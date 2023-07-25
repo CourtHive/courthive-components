@@ -1,7 +1,7 @@
 import { renderFlag } from "../components/renderFlag";
 
 export default {
-  title: "Example/Flag",
+  title: "Participants/Flag",
   tags: ["autodocs"],
   render: ({ ...args }) => {
     return renderFlag({ ...args });
