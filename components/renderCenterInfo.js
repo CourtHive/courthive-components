@@ -5,9 +5,9 @@ import {
   statusStyle,
 } from "../styles/centerInfoStyle";
 
-export function renderCenterInfo({ height, sideNumber, entryStatus }) {
+export function renderCenterInfo({ sideNumber, entryStatus }) {
   const div = document.createElement("div");
-  div.className = getInfoStyle({ height, variant: sideNumber });
+  div.className = getInfoStyle({ variant: sideNumber });
 
   const column = document.createElement("div");
   column.className = columnStyle();

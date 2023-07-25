@@ -1,11 +1,11 @@
 import { css } from "@stitches/core";
 
-export function getInfoStyle({ height, variant }) {
+export function getInfoStyle({ variant }) {
   const infoStyle = css({
     borderBottom: "solid 1px lightgray",
     backgroundColor: "$matchUp",
     width: "100%",
-    height,
+    height: "$lineHeights$centerInfo",
     variants: {
       variant: {
         1: {

@@ -65,7 +65,6 @@ export function renderMatchUp(params) {
       ?.participant?.entryStatus?.replace("_", " ");
     return renderCenterInfo({
       entryStatus,
-      height: 30,
       sideNumber,
     });
   };

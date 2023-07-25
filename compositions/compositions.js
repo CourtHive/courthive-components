@@ -40,7 +40,7 @@ export const compositions = {
     theme: itfTheme,
     configuration: {
       id: "I",
-      centerInfo: 30,
+      centerInfo: true,
       winnerChevron: true,
       flags: true,
     },
@@ -53,7 +53,7 @@ export const compositions = {
       bracketedSeeds: "square",
       drawPositions: true,
       showAddress: true,
-      scheduleInfo: 30,
+      scheduleInfo: true,
     },
   },
   Night: {
