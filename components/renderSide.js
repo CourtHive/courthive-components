@@ -2,11 +2,13 @@ import { sideContainerStyle, sideRowStyle } from "../styles/sideStyles";
 import { renderParticipant } from "./renderParticipant";
 import { renderSideScore } from "./renderSideScore";
 import { renderSchedule } from "./renderSchedule";
+import cx from "classnames";
 
 export function renderSide({
   eventHandlers,
   composition,
   sideNumber,
+  className,
   matchUp,
 }) {
   const configuration = composition?.configuration || {};
@@ -16,7 +18,7 @@ export function renderSide({
   const scoreBox = composition?.configuration?.scoreBox && hasScore;
 
   const div = document.createElement("div");
-  div.className = sideContainerStyle();
+  div.className = cx(sideContainerStyle(), className);
 
   if (scheduleInfo && sideNumber === 1) {
     const schedule = renderSchedule({ matchUp });

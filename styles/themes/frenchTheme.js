@@ -2,11 +2,10 @@ import { createTheme } from "./createTheme";
 
 export const frenchTheme = createTheme("french-theme", {
   colors: {
-    winner: "#01503d!important",
     winnerName: "#01503d!important",
-    borderHover: "#0091d2",
-    connector: "lightgray",
     borderInlineStart: "#F8F9F9",
+    winner: "#01503d!important",
+    borderHover: "#0091d2",
     border: "#F8F9F9",
   },
   matchUp: {

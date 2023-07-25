@@ -1,7 +1,8 @@
 import { resultsInfoStyle, resultsItemStyle } from "../styles/resultStyles";
 import { getSelectedMatchUpStyle } from "../styles/getSelectedMatchUpStyle";
-import { getMatchUpStyle } from "../styles/getMatchUpStyle";
+import { matchUpStyle } from "../styles/getMatchUpStyle";
 import { renderCenterInfo } from "./renderCenterInfo";
+import { getLinkStyle } from "../styles/getLinkStyle";
 import { renderSide } from "./renderSide";
 import cx from "classnames";
 
@@ -18,11 +19,11 @@ export function renderMatchUp(params) {
   } = matchUp;
   const qualifyingStage = stage === "QUALIFYING";
   const isFinalRound = parseInt(finishingRound) === 1;
-  const noProgression = !qualifyingStage && isFinalRound;
   const isQualifying = stage === "QUALIFYING" && isFinalRound;
+
+  const noProgression = !qualifyingStage && isFinalRound;
   const isFirstRound = parseInt(roundNumber) === 1;
   const isDoubles = matchUpType === "DOUBLES";
-
   const link =
     ((searchActive ||
       matchUp.isRoundRobin ||
@@ -32,18 +33,14 @@ export function renderMatchUp(params) {
     ((isQualifying || preFeedRound) && "m0") ||
     (moeity && "m1") ||
     "m2";
+  const linkClass = getLinkStyle({ composition, isDoubles })({
+    noProgression,
+    isFirstRound,
+    link,
+  });
 
   const configuration = composition?.configuration || {};
-  const { resultsInfo, showAddress, centerInfo } = configuration || {};
-
-  const participantHeight =
-    (isDoubles && ((showAddress && 80) || 60)) || (showAddress && 50) || 40;
-  const componentStyle = getMatchUpStyle({
-    participantHeight,
-    composition,
-    roundFactor,
-    roundNumber,
-  });
+  const { resultsInfo, centerInfo } = configuration || {};
 
   const eventHandlers = params.eventHandlers || {};
   const handleOnClick = (event) => {
@@ -53,19 +50,24 @@ export function renderMatchUp(params) {
   };
 
   const container = document.createElement("div");
-  container.className = cx(composition.theme, params?.className);
+  container.className = cx(composition.theme, params?.className, "matchup");
   container.onclick = handleOnClick;
 
   const component = document.createElement("div");
-  component.className = componentStyle({ isFirstRound, noProgression, link });
+
+  component.className = matchUpStyle();
 
   const entryStatusDisplay = ({ sideNumber }) => {
     const entryStatus = matchUp?.sides
       .find((s) => s.sideNumber === sideNumber)
       ?.participant?.entryStatus?.replace("_", " ");
+
+    const className = sideNumber === 2 && linkClass;
+
     return renderCenterInfo({
       entryStatus,
       sideNumber,
+      className,
     });
   };
 
@@ -76,6 +78,7 @@ export function renderMatchUp(params) {
     matchUp,
   });
   const side2 = renderSide({
+    className: !centerInfo && linkClass,
     sideNumber: 2,
     eventHandlers,
     composition,

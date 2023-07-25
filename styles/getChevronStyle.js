@@ -12,13 +12,13 @@ export function getChevronStyle({
       variant: {
         winner: {
           "&:before": {
-            content: "",
-            position: "absolute",
-            display: "block",
             borderTop: `${chevronHeight}px solid transparent`,
             borderBottom: `${chevronHeight}px solid transparent`,
             borderInlineStart: "8px solid #008f70",
+            position: "absolute",
             insetInlineStart: 0,
+            display: "block",
+            content: "",
           },
         },
       },

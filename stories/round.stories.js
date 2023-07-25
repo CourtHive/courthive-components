@@ -48,7 +48,13 @@ const argTypes = {
 export default {
   title: "Example/Rounds",
   tags: ["autodocs"],
-  render: ({ eventType, outcomes, randomWinningSide, ...args }) => {
+  render: ({
+    roundNumber = 1,
+    eventType,
+    outcomes,
+    randomWinningSide,
+    ...args
+  }) => {
     const composition = compositions[args.composition || "Basic"];
     const { matchUps } = generateMatchUps({
       ...args,
@@ -59,7 +65,7 @@ export default {
     });
     const content = renderRound({
       ...args,
-      roundNumber: 1,
+      roundNumber,
       composition,
       matchUps,
     });
@@ -70,6 +76,19 @@ export default {
 
 export const Singles = {
   args: {
+    roundNumber: 2,
+  },
+};
+
+export const FirstRound = {
+  args: {
+    roundNumber: 1,
+  },
+};
+
+export const Lucky = {
+  args: {
+    roundNumber: 2,
     isLucky: true,
   },
 };
@@ -77,6 +96,6 @@ export const Singles = {
 export const Doubles = {
   args: {
     eventType: "DOUBLES",
-    isLucky: true,
+    roundNumber: 2,
   },
 };

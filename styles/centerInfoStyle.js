@@ -4,6 +4,7 @@ export function getInfoStyle({ variant }) {
   const infoStyle = css({
     borderBottom: "solid 1px lightgray",
     backgroundColor: "$matchUp",
+    position: "relative",
     width: "100%",
     height: "$lineHeights$centerInfo",
     variants: {
