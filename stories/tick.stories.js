@@ -1,7 +1,7 @@
 import { renderTick } from "../components/renderTick";
 
 export default {
-  title: "Example/Tick",
+  title: "MatchUps/Tick",
   tags: ["autodocs"],
   render: ({ ...args }) => {
     return renderTick({ ...args });

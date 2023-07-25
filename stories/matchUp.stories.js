@@ -11,7 +11,7 @@ const argTypes = {
 };
 
 export default {
-  title: "Example/MatchUps",
+  title: "MatchUps/MatchUp",
   tags: ["autodocs"],
   render: ({ eventType, outcomes, randomWinningSide, ...args }) => {
     const composition = compositions[args.composition || "Basic"];

@@ -1,7 +1,7 @@
 import { renderButton } from "../components/button/cvaButton";
 
 export default {
-  title: "Example/Button",
+  title: "Forms/Button",
   tags: ["autodocs"],
   render: ({ ...args }) => {
     return renderButton({ ...args });

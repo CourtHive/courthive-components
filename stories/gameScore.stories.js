@@ -1,7 +1,7 @@
 import { renderGameScore } from "../components/renderGameScore";
 
 export default {
-  title: "Example/Game Score",
+  title: "MatchUps/Game Score",
   tags: ["autodocs"],
   render: ({ ...args }) => {
     return renderGameScore({ ...args });

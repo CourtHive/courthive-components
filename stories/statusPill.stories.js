@@ -1,7 +1,7 @@
 import { renderStatusPill } from "../components/renderStatusPill";
 
 export default {
-  title: "Example/Status",
+  title: "MatchUps/Status",
   tags: ["autodocs"],
   render: ({ ...args }) => {
     return renderStatusPill({ ...args });

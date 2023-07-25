@@ -1,7 +1,7 @@
 import { renderIndividual } from "../components/renderIndividual";
 
 export default {
-  title: "Example/Individual",
+  title: "Participants/Individual",
   tags: ["autodocs"],
   render: ({ ...args }) => {
     return renderIndividual({ ...args });

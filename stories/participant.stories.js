@@ -2,7 +2,7 @@ import { renderParticipant } from "../components/renderParticipant";
 import { generateMatchUps } from "../data/generateMatchUps";
 
 export default {
-  title: "Example/Participant",
+  title: "Participants/Participant",
   tags: ["autodocs"],
   render: ({ eventType, outcomes, randomWinningSide, ...args }) => {
     const { matchUps } = generateMatchUps({
