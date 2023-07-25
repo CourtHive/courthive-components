@@ -1,7 +1,12 @@
+import { lineHeights } from "../../compositions/lineHeights";
 import { createStitches } from "@stitches/core";
 
 export const { createTheme } = createStitches({
   theme: {
+    lineHeights: {
+      scheduleInfo: `${lineHeights.scheduleInfo}rem`,
+      centerInfo: `${lineHeights.centerInfo}rem`,
+    },
     borderWidths: {
       matchUp: "1px",
       matchUpInline: "1px 1px",

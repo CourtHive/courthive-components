@@ -19,7 +19,7 @@ export function renderSide({
   div.className = sideContainerStyle();
 
   if (scheduleInfo && sideNumber === 1) {
-    const schedule = renderSchedule({ matchUp, scheduleInfo });
+    const schedule = renderSchedule({ matchUp });
     div.appendChild(schedule);
   }
 

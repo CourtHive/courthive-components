@@ -1,17 +1,11 @@
 import { css } from "@stitches/core";
 
-export function getMatchUpStyle() {
-  /*
-  {
-    participantHeight = 0,
-    composition,
-    roundFactor,
-    roundNumber,
-  }
-  */
+export function getMatchUpStyle({ composition, roundNumber }) {
+  const centerInfoHeight =
+    composition?.configuration?.centerInfo || composition?.theme;
+  console.log({ centerInfoHeight, theme: composition.theme });
   /*
   const configuration = composition?.configuration || {};
-  const centerInfoHeight = configuration?.centerInfo || 0;
   const topInfoHeight = configuration?.scheduleInfo || 0;
   const connectorWidth = configuration?.connectorWidth || 16;
   const connectorHeight =
