@@ -39,6 +39,7 @@ export const seeding = {
 
 export const WTN = {
   args: {
+    matchUp: { matchUpType: "SINGLES" },
     individualParticipant,
     side: { seedValue: 1 },
     type: "scale",

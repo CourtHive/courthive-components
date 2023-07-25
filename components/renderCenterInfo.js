@@ -4,10 +4,11 @@ import {
   getInfoStyle,
   statusStyle,
 } from "../styles/centerInfoStyle";
+import cx from "classnames";
 
-export function renderCenterInfo({ sideNumber, entryStatus }) {
+export function renderCenterInfo({ sideNumber, entryStatus, className }) {
   const div = document.createElement("div");
-  div.className = getInfoStyle({ variant: sideNumber });
+  div.className = cx(getInfoStyle({ variant: sideNumber }), className);
 
   const column = document.createElement("div");
   column.className = columnStyle();

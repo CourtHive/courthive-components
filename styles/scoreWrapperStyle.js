@@ -12,7 +12,6 @@ export const scoreWrapperStyle = (participantHeight) => {
         1: {
           borderBottom: "1px solid $internalDividers",
         },
-        // 2: { borderBottom: "1px solid $border" },
       },
       fontSize: {
         small: {

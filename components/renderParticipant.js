@@ -14,7 +14,7 @@ export function renderParticipant({
   sideNumber,
   matchUp,
 }) {
-  const { winningSide, matchUpType } = matchUp;
+  const { winningSide, matchUpType, isRoundRobin } = matchUp;
   const configuration = composition.configuration;
   const isDoubles = matchUpType === "DOUBLES";
   const matchUpStatus = matchUp.matchUpStatus;

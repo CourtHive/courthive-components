@@ -8,8 +8,8 @@ export const { createTheme } = createStitches({
       centerInfo: `${lineHeights.centerInfo}rem`,
     },
     borderWidths: {
-      matchUp: "1px",
       matchUpInline: "1px 1px",
+      matchUp: "1px",
       factor: 2,
     },
     space: {
@@ -24,10 +24,11 @@ export const { createTheme } = createStitches({
       borderInlineStart: "1px 1px",
     },
     colors: {
-      backgroundColor: "white",
-      border: "darkgray",
       borderInlineStart: "darkgray",
       internalDividers: "lightgray",
+      backgroundColor: "white",
+      connector: "lightgray",
+      border: "darkgray",
       color: "black",
     },
     participant: {

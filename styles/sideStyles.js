@@ -2,6 +2,7 @@ import { css } from "@stitches/core";
 
 export const sideContainerStyle = css({
   flexDirection: "column",
+  position: "relative",
   display: "flex",
 });
 
