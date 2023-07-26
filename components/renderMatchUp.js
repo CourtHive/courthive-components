@@ -54,7 +54,6 @@ export function renderMatchUp(params) {
   container.onclick = handleOnClick;
 
   const component = document.createElement("div");
-
   component.className = matchUpStyle();
 
   const entryStatusDisplay = ({ sideNumber }) => {

@@ -11,6 +11,7 @@ export const matchUpStyle = css({
   border: "solid $border",
   marginBottom: "$space$1",
   marginTop: "$space$1",
+  position: "relative",
   display: "grid",
   width: "100%",
 });
