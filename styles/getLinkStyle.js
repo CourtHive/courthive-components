@@ -75,9 +75,9 @@ export function getLinkStyle({ composition, isDoubles, roundFactor = 1 }) {
           "&::before": { height: 0, width: 0, borderWidth: 0 },
           "&::after": { height: 0, width: 0, borderWidth: 0 },
         },
-      },
-      noProgression: {
-        true: { "&::after": { height: 0, width: 0, borderWidth: 0 } },
+        noProgression: {
+          true: { "&::after": { height: 0, width: 0, borderWidth: 0 } },
+        },
       },
     },
   });

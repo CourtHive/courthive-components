@@ -30,11 +30,11 @@ export function renderMatchUp(params) {
       matchUp.collectionId ||
       params.isLucky) &&
       "mr") ||
+    (noProgression && "noProgression") ||
     ((isQualifying || preFeedRound) && "m0") ||
     (moeity && "m1") ||
     "m2";
   const linkClass = getLinkStyle({ composition, isDoubles, roundFactor })({
-    noProgression,
     isFirstRound,
     link,
   });
