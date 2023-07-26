@@ -1,19 +1,15 @@
 import { css } from "@stitches/core";
 
-export function getChevronStyle({
-  isDoubles,
-  participantHeight,
-  winnerChevron,
-}) {
-  const chevronHeight = (isDoubles ? 0.35 : 0.3) * participantHeight;
+export function getChevronStyle({ winnerChevron, isDoubles }) {
+  const chevronHeight = (isDoubles ? 0.4 : 0.3) * 2;
 
   const chevronStyle = css({
     variants: {
       variant: {
         winner: {
-          "&:before": {
-            borderTop: `${chevronHeight}px solid transparent`,
-            borderBottom: `${chevronHeight}px solid transparent`,
+          "&::before": {
+            borderTop: `${chevronHeight}rem solid transparent`,
+            borderBottom: `${chevronHeight}rem solid transparent`,
             borderInlineStart: "8px solid #008f70",
             position: "absolute",
             insetInlineStart: 0,
