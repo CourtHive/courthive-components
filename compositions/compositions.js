@@ -8,57 +8,43 @@ import {
   usOpenTheme,
 } from "../styles/themes";
 
-// name only need to be unique for React updates
 export const compositions = {
   Australian: {
-    name: "oz",
+    configuration: { flags: true },
     theme: australianTheme,
-    configuration: { id: "A", flags: true },
   },
   Basic: {
-    name: "basic",
-    theme: basicTheme,
     configuration: { gameScoreOnly: true, teamLogo: false },
+    theme: basicTheme,
   },
   French: {
-    name: "fr",
+    configuration: { bracketedSeeds: true, flags: true },
     theme: frenchTheme,
-    configuration: { id: "F", bracketedSeeds: true, flags: true },
   },
   Wimbledon: {
-    name: "gb",
+    configuration: { resultsInfo: true, flags: true },
     theme: wimbledonTheme,
-    configuration: { id: "W", resultsInfo: true, flags: true },
   },
   "US Open": {
-    name: "us",
+    configuration: { scoreBox: true, flags: true },
     theme: usOpenTheme,
-    configuration: { id: "U", scoreBox: true, flags: true },
   },
   ITF: {
-    name: "itf",
+    configuration: { winnerChevron: true, centerInfo: true, flags: true },
     theme: itfTheme,
-    configuration: {
-      id: "I",
-      centerInfo: true,
-      winnerChevron: true,
-      flags: true,
-    },
   },
   National: {
-    name: "ngb",
-    theme: australianTheme,
     configuration: {
-      id: "U",
       bracketedSeeds: "square",
+      allDrawPositions: true,
       drawPositions: true,
-      showAddress: true,
       scheduleInfo: true,
+      showAddress: true,
     },
+    theme: australianTheme,
   },
   Night: {
-    name: "xx",
+    configuration: { flags: true },
     theme: nightTheme,
-    configuration: { id: "N", flags: true },
   },
 };

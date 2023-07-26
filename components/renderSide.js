@@ -20,14 +20,14 @@ export function renderSide({
   const scoreBox = composition?.configuration?.scoreBox && hasScore;
   const readyToScore =
     matchUp?.readyToScore &&
-    eventHandlers.scoreClick &&
+    eventHandlers?.scoreClick &&
     !utilities.scoreHasValue({ matchUp });
 
   const div = document.createElement("div");
   div.className = cx(sideContainerStyle(), className);
 
   if (scheduleInfo && sideNumber === 1) {
-    const schedule = renderSchedule({ matchUp });
+    const schedule = renderSchedule({ matchUp, eventHandlers });
     div.appendChild(schedule);
   }
 
@@ -36,6 +36,7 @@ export function renderSide({
 
   const participant = renderParticipant({
     sideContainer: true,
+    eventHandlers,
     composition,
     sideNumber,
     matchUp,

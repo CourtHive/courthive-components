@@ -2,7 +2,7 @@ import { schedulingStyle } from "../styles/schedulingStyle";
 import { utilities } from "tods-competition-factory";
 import dayjs from "dayjs";
 
-export function renderSchedule({ matchUp, handleHeaderClick }) {
+export function renderSchedule({ matchUp, eventHandlers }) {
   const { scheduledTime, scheduledDate, venueAbbreviation, courtName } =
     matchUp?.schedule || {};
   const {
@@ -30,13 +30,24 @@ export function renderSchedule({ matchUp, handleHeaderClick }) {
 
   const div = document.createElement("div");
   div.className = schedulingStyle();
-  div.onclick = handleHeaderClick;
+  div.onclick = eventHandlers?.scheduleClick;
 
   const dateDisplay = document.createElement("div");
   dateDisplay.innerHTML = displayDate;
   div.append(dateDisplay);
 
+  const handleVenueClick = (event) => {
+    if (typeof eventHandlers?.venueClick === "function") {
+      event.stopPropagation();
+      eventHandlers.venueClick({
+        matchUp,
+        event,
+      });
+    }
+  };
+
   const locationDisplay = document.createElement("div");
+  locationDisplay.onclick = handleVenueClick;
   locationDisplay.innerHTML = location;
   div.append(locationDisplay);
 

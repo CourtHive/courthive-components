@@ -5,7 +5,6 @@ export const { createTheme } = createStitches({
   theme: {
     lineHeights: {
       scheduleInfo: `${lineHeights.scheduleInfo}rem`,
-      participant: `${lineHeights.participant}rem`,
       centerInfo: `${lineHeights.centerInfo}rem`,
     },
     borderWidths: {
@@ -34,6 +33,7 @@ export const { createTheme } = createStitches({
     },
     participant: {
       textTransform: "capitalize",
+      minHeight: `2rem`,
       seed: "gray",
     },
     score: {
