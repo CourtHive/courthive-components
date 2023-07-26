@@ -1,35 +1,59 @@
-import { renderParticipant } from "../components/renderParticipant";
-import { generateMatchUps } from "../data/generateMatchUps";
+import { renderParticipant } from '../components/renderParticipant';
+import { generateMatchUps } from '../data/generateMatchUps';
 
 export default {
-  title: "Participants/Participant",
-  tags: ["autodocs"],
-  render: ({ eventType, outcomes, randomWinningSide, ...args }) => {
+  title: 'Participants/Participant',
+  tags: ['autodocs'],
+  render: ({ eventType, outcomes, randomWinningSide, participant, ...args }) => {
     const { matchUps } = generateMatchUps({
       ...args,
       randomWinningSide,
-      drawSize: 16,
+      drawSize: 2,
       eventType,
-      outcomes,
+      outcomes
     });
-    return renderParticipant({ ...args, matchUp: matchUps[0] });
+    const matchUp = !participant ? matchUps[0] : undefined;
+    return renderParticipant({ ...args, participant, matchUp });
   },
-  argTypes: {
-    name: { control: "text" },
-    seedNumber: { control: "text" },
-    address: { control: "text" },
-  },
+  argTypes: {}
 };
 
 const composition = {
-  configuration: { bracketedSeeds: "square", flags: true, showAddress: true },
+  configuration: { bracketedSeeds: 'square', flags: true, showAddress: true }
+};
+
+export const ParticipantFlag = {
+  args: {
+    participant: {
+      participantName: 'Normal person',
+      person: {
+        iso2NationalityCode: 'USA'
+      }
+    },
+    composition
+  }
+};
+
+export const ParticipantWTN = {
+  args: {
+    participant: {
+      ratings: { SINGLES: { WTN: 12.5 } },
+      participantName: 'Normal person',
+      person: {
+        addresses: [{ city: 'Buffalo', state: 'NY' }]
+      }
+    },
+    composition: {
+      configuration: { scaleAttributes: { scaleType: 'RATING', accessor: 'WTN' }, showAddress: true }
+    }
+  }
 };
 
 export const Singles = {
   args: {
     sideNumber: 1,
-    composition,
-  },
+    composition
+  }
 };
 
 export const SinglesWon = {
@@ -37,70 +61,70 @@ export const SinglesWon = {
     randomWinningSide: false,
     sideContainer: true,
     sideNumber: 1,
-    composition,
-  },
+    composition
+  }
 };
 
 export const SinglesRetired = {
   args: {
     outcomes: [
       // prettier-ignore
-      { stage: 'MAIN', roundNumber: 1, roundPosition: 1, scoreString: '6-1 2-2', matchUpStatus: 'RETIRED', winningSide: 2 },
+      { stage: 'MAIN', roundNumber: 1, roundPosition: 1, scoreString: '6-1 2-2', matchUpStatus: 'RETIRED', winningSide: 2 }
     ],
     sideContainer: true,
     sideNumber: 1,
-    composition,
-  },
+    composition
+  }
 };
 
 export const SinglesDefaulted = {
   args: {
     outcomes: [
       // prettier-ignore
-      { stage: 'MAIN',roundNumber: 1, roundPosition: 1, matchUpStatus: 'DEFAULTED', winningSide: 2 },
+      { stage: 'MAIN',roundNumber: 1, roundPosition: 1, matchUpStatus: 'DEFAULTED', winningSide: 2 }
     ],
     sideContainer: true,
     sideNumber: 1,
-    composition,
-  },
+    composition
+  }
 };
 
 export const SinglesWalkover = {
   args: {
     outcomes: [
       // prettier-ignore
-      { matchUpStatus: "WALKOVER", roundNumber: 1, roundPosition: 1, winningSide: 2, stage: "MAIN", },
+      { matchUpStatus: "WALKOVER", roundNumber: 1, roundPosition: 1, winningSide: 2, stage: "MAIN", }
     ],
     sideContainer: true,
     sideNumber: 1,
-    composition,
-  },
+    composition
+  }
 };
 
 export const SinglesDoubleWalkover = {
   args: {
     outcomes: [
       // prettier-ignore
-      { stage: 'MAIN',roundNumber: 1, roundPosition: 1, matchUpStatus: 'DOUBLE_WALKOVER' },
+      { stage: 'MAIN',roundNumber: 1, roundPosition: 1, matchUpStatus: 'DOUBLE_WALKOVER' }
     ],
     sideContainer: true,
     sideNumber: 2,
-    composition,
-  },
+    composition
+  }
 };
 
 export const Doubles = {
   args: {
     composition: { configuration: { flags: false } },
-    eventType: "DOUBLES",
-    sideNumber: 1,
-  },
+    eventType: 'DOUBLES',
+    sideNumber: 1
+  }
 };
 
 export const DoublesAddress = {
   args: {
     composition: { configuration: { flags: true, showAddress: true } },
-    eventType: "DOUBLES",
-    sideNumber: 1,
-  },
+    eventType: 'DOUBLES',
+    sideNumber: 1
+  }
 };

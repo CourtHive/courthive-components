@@ -1,7 +1,7 @@
-import { seedStyle } from '../styles/seedStyle';
-import { renderFrill } from './renderFrill';
-import { renderAddress } from './renderAddress';
 import { participantNameStyle, participantStatus, participantStyle } from '../styles/participantStyle';
+import { seedStyle } from '../styles/seedStyle';
+import { renderAddress } from './renderAddress';
+import { renderFrill } from './renderFrill';
 
 const QUALIFIER = 'Qualifier';
 const BYE = 'BYE';

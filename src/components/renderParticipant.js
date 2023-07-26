@@ -1,28 +1,32 @@
+import { getParticipantContainerStyle, participantTypeStyle } from '../styles/participantStyle';
 import { getChevronStyle } from '../styles/getChevronStyle';
 import { renderIndividual } from './renderIndividual';
 import { renderStatusPill } from './renderStatusPill';
 import { renderTeamLogo } from './renderTeamLogo';
 import { renderTick } from './renderTick';
-import { getParticipantContainerStyle, participantTypeStyle } from '../styles/participantStyle';
 
-export function renderParticipant({ eventHandlers, sideContainer, composition, sideNumber, matchUp }) {
-  const { winningSide, matchUpType, isRoundRobin } = matchUp;
+export function renderParticipant({ eventHandlers, sideContainer, composition, sideNumber, matchUp, participant }) {
+  const { winningSide, matchUpType, isRoundRobin, matchUpStatus } = matchUp || {};
   const configuration = composition.configuration;
   const isDoubles = matchUpType === 'DOUBLES';
-  const matchUpStatus = matchUp.matchUpStatus;
 
-  const side = matchUp?.sides?.find((side) => side.sideNumber === sideNumber);
-  const drawPosition =
-    configuration.allDrawPositions ||
-    (configuration.drawPositions &&
-      side?.drawPosition &&
-      (matchUp.roundNumber === 1 || side.participantFed || isRoundRobin))
-      ? side?.drawPosition
-      : '';
+  let drawPosition, side;
+  if (!participant) {
+    side = matchUp?.sides?.find((side) => side.sideNumber === sideNumber);
+    participant = side?.participant;
 
-  const firstParticipant = isDoubles ? side?.participant?.individualParticipants?.[0] : side?.participant;
-  const secondParticipant = isDoubles && side?.participant?.individualParticipants?.[1];
-  const isWinningSide = sideNumber === winningSide || (matchUpStatus === 'BYE' && side?.participant);
+    drawPosition =
+      configuration?.allDrawPositions ||
+      (configuration?.drawPositions &&
+        side?.drawPosition &&
+        (matchUp?.roundNumber === 1 || side?.participantFed || isRoundRobin))
+        ? side?.drawPosition
+        : '';
+  }
+
+  const firstParticipant = isDoubles ? participant?.individualParticipants?.[0] : participant;
+  const secondParticipant = isDoubles && participant?.individualParticipants?.[1];
+  const isWinningSide = sideNumber === winningSide || (matchUpStatus === 'BYE' && participant);
   const winnerChevron = configuration?.winnerChevron && isWinningSide;
 
   const teamLogo = configuration?.teamLogo;
