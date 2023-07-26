@@ -9,6 +9,7 @@ import {
 } from "../styles/participantStyle";
 
 export function renderParticipant({
+  eventHandlers,
   sideContainer,
   composition,
   sideNumber,
@@ -69,6 +70,7 @@ export function renderParticipant({
 
   const Individual = renderIndividual({
     individualParticipant: firstParticipant,
+    eventHandlers,
     isWinningSide,
     composition,
     matchUp,
@@ -80,6 +82,7 @@ export function renderParticipant({
   if (secondParticipant) {
     const Individual = renderIndividual({
       individualParticipant: secondParticipant,
+      eventHandlers,
       isWinningSide,
       composition,
       matchUp,

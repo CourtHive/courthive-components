@@ -14,6 +14,7 @@ export const gameScoreStyle = css({
   width: "$score$setWidth",
   lineHeight: "2.0rem",
   position: "relative",
+  cursor: "pointer",
   fontWeight: 500,
   fontSize: "$1",
   display: "flex",

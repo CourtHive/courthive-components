@@ -54,15 +54,18 @@ export const participantTypeStyle = css({
 
 export function getParticipantContainerStyle({ drawPosition, sideNumber }) {
   const participantContainerStyle = css({
-    lineHeight: "$lineHeights$participant",
+    minHeight: "$participant$minHeight",
     justifyContent: "space-between",
     paddingInlineStart: "0.75rem",
     backgroundColor: "$matchUp",
     paddingInlineEnd: "0rem",
     boxSizing: "border-box",
+    paddingBottom: ".2rem",
     position: "relative",
     alignItems: "center",
+    paddingTop: ".2rem",
     minWidth: "15rem",
+    cursor: "pointer",
     display: "flex",
     flexGrow: 1,
 

@@ -10,6 +10,13 @@ const argTypes = {
   },
 };
 
+const eventHandlers = {
+  participantClick: () => console.log("participant click"),
+  scheduleClick: () => console.log("schedule click"),
+  scoreClick: () => console.log("score click"),
+  venueClick: () => console.log("venue click"),
+};
+
 export default {
   title: "Draws/Structure",
   tags: ["autodocs"],
@@ -28,6 +35,7 @@ export default {
 
     const content = renderStructure({
       ...args,
+      eventHandlers,
       composition,
       matchUps,
     });

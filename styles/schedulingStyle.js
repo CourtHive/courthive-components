@@ -9,6 +9,7 @@ export const schedulingStyle = css({
   paddingRight: "0.5rem",
   paddingLeft: "0.5rem",
   alignItems: "center",
+  cursor: "pointer",
   color: "#7F8080",
   display: "flex",
   width: "100%",

@@ -65,6 +65,7 @@ export function renderMatchUp(params) {
     const className = sideNumber === 2 && linkClass;
 
     return renderCenterInfo({
+      eventHandlers,
       entryStatus,
       sideNumber,
       className,
