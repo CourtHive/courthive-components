@@ -1,6 +1,7 @@
 import { resultsInfoStyle, resultsItemStyle } from "../styles/resultStyles";
 import { getSelectedMatchUpStyle } from "../styles/getSelectedMatchUpStyle";
-import { matchUpStyle } from "../styles/getMatchUpStyle";
+import { matchUpContainerStyle } from "../styles/matchUpContainerStyle";
+import { getMatchUpStyle } from "../styles/getMatchUpStyle";
 import { renderCenterInfo } from "./renderCenterInfo";
 import { getLinkStyle } from "../styles/getLinkStyle";
 import { renderSide } from "./renderSide";
@@ -50,11 +51,19 @@ export function renderMatchUp(params) {
   };
 
   const container = document.createElement("div");
-  container.className = cx(composition.theme, params?.className, "matchup");
+  container.className = cx(
+    composition.theme,
+    params?.className,
+    "matchup",
+    matchUpContainerStyle()
+  );
   container.onclick = handleOnClick;
 
   const component = document.createElement("div");
-  component.className = matchUpStyle();
+  // component.className = matchUpStyle();
+  component.className = getMatchUpStyle({
+    configuration: { matchUpHover: true },
+  });
 
   const entryStatusDisplay = ({ sideNumber }) => {
     const entryStatus = matchUp?.sides
