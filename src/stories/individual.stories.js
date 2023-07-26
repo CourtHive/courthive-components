@@ -1,107 +1,104 @@
-import { renderIndividual } from "../components/renderIndividual";
+import { renderIndividual } from '../components/renderIndividual';
 
 export default {
-  title: "Participants/Individual",
-  tags: ["autodocs"],
+  title: 'Participants/Individual',
+  tags: ['autodocs'],
   render: ({ ...args }) => {
     return renderIndividual({ ...args });
   },
   argTypes: {
-    name: { control: "text" },
-    seedNumber: { control: "text" },
-    address: { control: "text" },
-  },
+    name: { control: 'text' },
+    seedNumber: { control: 'text' },
+    address: { control: 'text' }
+  }
 };
 
 const composition = {
-  configuration: { bracketedSeeds: "square", flags: true, showAddress: true },
+  configuration: { bracketedSeeds: 'square', flags: true, showAddress: true }
 };
+const participantName = 'Thornstein Veblen';
 
 export const Basic = {
   args: {
-    individualParticipant: {
-      participantName: "Thornstein Veblen",
-    },
-    composition: { configuration: { flags: false } },
-  },
+    individualParticipant: { participantName },
+    composition: { configuration: { flags: false } }
+  }
 };
 
 export const Seeded = {
   args: {
     individualParticipant: {
-      participantName: "Thornstein Veblen",
-      person: { iso2NationalityCode: "USA" },
+      person: { iso2NationalityCode: 'USA' },
+      participantName
     },
     side: { seedValue: 1 },
-    composition,
-  },
+    composition
+  }
 };
 
 export const supSeed = {
   args: {
     individualParticipant: {
-      participantName: "Thornstein Veblen",
-      person: { iso2NationalityCode: "USA" },
+      person: { iso2NationalityCode: 'USA' },
+      participantName
     },
     side: { seedValue: 1 },
-    composition: { configuration: { seedingElement: "sup" } },
-  },
+    composition: { configuration: { seedingElement: 'sup' } }
+  }
 };
 
 export const Unseeded = {
   args: {
     individualParticipant: {
-      participantName: "Thornstein Veblen",
-      person: { iso2NationalityCode: "USA" },
+      person: { iso2NationalityCode: 'USA' },
+      participantName
     },
-    composition,
-  },
+    composition
+  }
 };
 
 export const FlagAddress = {
   args: {
     individualParticipant: {
-      participantName: "Thornstein Veblen",
+      participantName,
       person: {
-        iso2NationalityCode: "USA",
-        addresses: [{ city: "Atlanta", state: "GA" }],
-      },
+        iso2NationalityCode: 'USA',
+        addresses: [{ city: 'Atlanta', state: 'GA' }]
+      }
     },
-    matchUp: { matchUpType: "SINGLES" },
-    composition,
-  },
+    matchUp: { matchUpType: 'SINGLES' },
+    composition
+  }
 };
 
 export const scaleAddress = {
   args: {
-    matchUp: { matchUpType: "SINGLES" },
+    matchUp: { matchUpType: 'SINGLES' },
     individualParticipant: {
-      participantName: "Thornstein Veblen",
+      person: { addresses: [{ city: 'Atlanta', state: 'GA' }] },
       ratings: { SINGLES: { WTN: 13.5 } },
-      person: {
-        addresses: [{ city: "Atlanta", state: "GA" }],
-      },
+      participantName
     },
     composition: {
       configuration: {
-        scaleAttributes: { scaleType: "RATING", accessor: "WTN" },
-        showAddress: true,
-      },
-    },
-  },
+        scaleAttributes: { scaleType: 'RATING', accessor: 'WTN' },
+        showAddress: true
+      }
+    }
+  }
 };
 
 export const Address = {
   args: {
     individualParticipant: {
-      participantName: "Thornstein Veblen",
+      participantName,
       person: {
-        iso2NationalityCode: "USA",
-        addresses: [{ city: "Atlanta", state: "GA" }],
-      },
+        iso2NationalityCode: 'USA',
+        addresses: [{ city: 'Atlanta', state: 'GA' }]
+      }
     },
     composition: {
-      configuration: { showAddress: true },
-    },
-  },
+      configuration: { showAddress: true }
+    }
+  }
 };
