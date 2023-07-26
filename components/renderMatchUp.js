@@ -33,7 +33,7 @@ export function renderMatchUp(params) {
     ((isQualifying || preFeedRound) && "m0") ||
     (moeity && "m1") ||
     "m2";
-  const linkClass = getLinkStyle({ composition, isDoubles })({
+  const linkClass = getLinkStyle({ composition, isDoubles, roundFactor })({
     noProgression,
     isFirstRound,
     link,
