@@ -22,12 +22,6 @@ export function getLinkStyle({ composition, isDoubles, roundFactor = 1 }) {
   const m1Height = baseHeight * roundFactor;
   const m2Height = (baseHeight + scheduleHeight) * roundFactor;
 
-  const hidden = {
-    borderWidth: 0,
-    height: 0,
-    width: 0,
-  };
-
   return css({
     "&::before": {
       borderBlockStart: "$borderWidths$matchUp solid #999",
@@ -50,7 +44,9 @@ export function getLinkStyle({ composition, isDoubles, roundFactor = 1 }) {
       content: "",
     },
     variants: {
-      isFirstRound: { true: { "&::before": { ...hidden } } },
+      isFirstRound: {
+        true: { "&::before": { height: 0, width: 0, borderWidth: 0 } },
+      },
       link: {
         m1: {
           "&::after": {
@@ -76,11 +72,13 @@ export function getLinkStyle({ composition, isDoubles, roundFactor = 1 }) {
           },
         },
         mr: {
-          "&::before": { ...hidden },
-          "&::after": { ...hidden },
+          "&::before": { height: 0, width: 0, borderWidth: 0 },
+          "&::after": { height: 0, width: 0, borderWidth: 0 },
         },
       },
-      noProgression: { true: { "&::after": { ...hidden } } },
+      noProgression: {
+        true: { "&::after": { height: 0, width: 0, borderWidth: 0 } },
+      },
     },
   });
 }

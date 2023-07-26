@@ -17,6 +17,14 @@ export const compositions = {
     configuration: { gameScoreOnly: true, teamLogo: false },
     theme: basicTheme,
   },
+  DrawPositions: {
+    configuration: {
+      gameScoreOnly: true,
+      teamLogo: false,
+      drawPositions: true,
+    },
+    theme: basicTheme,
+  },
   French: {
     configuration: { bracketedSeeds: true, flags: true },
     theme: frenchTheme,
