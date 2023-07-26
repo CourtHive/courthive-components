@@ -1,39 +1,34 @@
-import { addressStyle } from "../styles/addressStyle";
-import { participantStyle } from "../styles/participantStyle";
-import { renderFrill } from "./renderFrill";
-import cx from "classnames";
+import { addressStyle } from '../styles/addressStyle';
+import { participantStyle } from '../styles/participantStyle';
+import { renderFrill } from './renderFrill';
+import cx from 'classnames';
 
-export function renderAddress({
-  individualParticipant,
-  composition,
-  className,
-  matchUp,
-}) {
+export function renderAddress({ individualParticipant, composition, className, matchUp }) {
   const showAddress = composition?.configuration?.showAddress;
   const address = individualParticipant?.person?.addresses?.length
-    ? Object.values(individualParticipant.person?.addresses?.[0] || {}).join(
-        ", "
-      )
-    : " ";
+    ? Object.values(individualParticipant.person?.addresses?.[0] || {}).join(', ')
+    : ' ';
 
-  if (!showAddress) return "";
+  if (!showAddress) {
+    return document.createElement('div');
+  }
 
   const flags = composition?.configuration?.flags;
   const scale = composition?.configuration?.scaleAttributes;
 
-  const div = document.createElement("div");
+  const div = document.createElement('div');
   if (flags || scale) {
     div.className = participantStyle();
     const frill = renderFrill({
-      type: flags ? "flag" : "scale",
+      type: flags ? 'flag' : 'scale',
       individualParticipant,
       spacer: true,
       composition,
       className,
-      matchUp,
+      matchUp
     });
     div.appendChild(frill);
-    const addrDiv = document.createElement("div");
+    const addrDiv = document.createElement('div');
     addrDiv.className = cx(addressStyle(), className);
     addrDiv.innerHTML = address;
     div.appendChild(addrDiv);

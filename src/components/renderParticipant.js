@@ -1,23 +1,14 @@
-import { getChevronStyle } from "../styles/getChevronStyle";
-import { renderIndividual } from "./renderIndividual";
-import { renderStatusPill } from "./renderStatusPill";
-import { renderTeamLogo } from "./renderTeamLogo";
-import { renderTick } from "./renderTick";
-import {
-  getParticipantContainerStyle,
-  participantTypeStyle,
-} from "../styles/participantStyle";
+import { getChevronStyle } from '../styles/getChevronStyle';
+import { renderIndividual } from './renderIndividual';
+import { renderStatusPill } from './renderStatusPill';
+import { renderTeamLogo } from './renderTeamLogo';
+import { renderTick } from './renderTick';
+import { getParticipantContainerStyle, participantTypeStyle } from '../styles/participantStyle';
 
-export function renderParticipant({
-  eventHandlers,
-  sideContainer,
-  composition,
-  sideNumber,
-  matchUp,
-}) {
+export function renderParticipant({ eventHandlers, sideContainer, composition, sideNumber, matchUp }) {
   const { winningSide, matchUpType, isRoundRobin } = matchUp;
   const configuration = composition.configuration;
-  const isDoubles = matchUpType === "DOUBLES";
+  const isDoubles = matchUpType === 'DOUBLES';
   const matchUpStatus = matchUp.matchUpStatus;
 
   const side = matchUp?.sides?.find((side) => side.sideNumber === sideNumber);
@@ -27,29 +18,22 @@ export function renderParticipant({
       side?.drawPosition &&
       (matchUp.roundNumber === 1 || side.participantFed || isRoundRobin))
       ? side?.drawPosition
-      : "";
+      : '';
 
-  const firstParticipant = isDoubles
-    ? side?.participant?.individualParticipants?.[0]
-    : side?.participant;
-  const secondParticipant =
-    isDoubles && side?.participant?.individualParticipants?.[1];
-  const isWinningSide =
-    sideNumber === winningSide ||
-    (matchUpStatus === "BYE" && side?.participant);
+  const firstParticipant = isDoubles ? side?.participant?.individualParticipants?.[0] : side?.participant;
+  const secondParticipant = isDoubles && side?.participant?.individualParticipants?.[1];
+  const isWinningSide = sideNumber === winningSide || (matchUpStatus === 'BYE' && side?.participant);
   const winnerChevron = configuration?.winnerChevron && isWinningSide;
 
   const teamLogo = configuration?.teamLogo;
   const irregularEnding =
-    ["RETIRED", "DOUBLE_WALKOVER", "WALKOVER", "DEFAULTED"].includes(
-      matchUpStatus
-    ) && !isWinningSide;
+    ['RETIRED', 'DOUBLE_WALKOVER', 'WALKOVER', 'DEFAULTED'].includes(matchUpStatus) && !isWinningSide;
   const gameScoreOnly = composition?.configuration?.gameScoreOnly;
 
-  const participantContainer = document.createElement("div");
+  const participantContainer = document.createElement('div');
   participantContainer.className = getParticipantContainerStyle({
     sideNumber: sideContainer && sideNumber,
-    drawPosition,
+    drawPosition
   });
 
   if (teamLogo) {
@@ -57,15 +41,15 @@ export function renderParticipant({
     participantContainer.appendChild(logo);
   }
 
-  const participantType = document.createElement("div");
+  const participantType = document.createElement('div');
   participantType.className = participantTypeStyle({
-    variant: isDoubles ? "doubles" : "singles",
+    variant: isDoubles ? 'doubles' : 'singles'
   });
 
-  const annotationDiv = document.createElement("div");
+  const annotationDiv = document.createElement('div');
   annotationDiv.className = getChevronStyle({
     winnerChevron,
-    isDoubles,
+    isDoubles
   });
 
   const Individual = renderIndividual({
@@ -74,7 +58,7 @@ export function renderParticipant({
     isWinningSide,
     composition,
     matchUp,
-    side,
+    side
   });
 
   annotationDiv.appendChild(Individual);
@@ -86,7 +70,7 @@ export function renderParticipant({
       isWinningSide,
       composition,
       matchUp,
-      side,
+      side
     });
 
     annotationDiv.appendChild(Individual);
@@ -96,13 +80,13 @@ export function renderParticipant({
   participantContainer.appendChild(participantType);
 
   if (sideContainer) {
-    const endMatter = document.createElement("div");
+    const endMatter = document.createElement('div');
     if (isWinningSide && !gameScoreOnly) {
       const tick = renderTick();
-      if (typeof tick === "string") {
+      if (typeof tick === 'string') {
         endMatter.innerHTML = tick;
       } else {
-        endMatter.appendChild(renderTick());
+        endMatter.appendChild(tick);
       }
     } else if (irregularEnding) {
       const statusPill = renderStatusPill({ matchUpStatus });
