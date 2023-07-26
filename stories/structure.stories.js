@@ -50,6 +50,9 @@ export const Singles = {
 export const Doubles = {
   args: { drawSize: 16, participantsCount: 14, eventType: "DOUBLES" },
 };
+export const Qualifying = {
+  args: { drawSize: 16, participantsCount: 14, addQualifying: true },
+};
 export const Team = {
   args: {
     completeAllMatchUps: false,
