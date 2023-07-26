@@ -7,7 +7,6 @@ export const sideContainerStyle = css({
 });
 
 export const sideRowStyle = css({
-  // minHeight: "$participant$minHeight",
   alignItems: "stretch",
   display: "flex",
 });
