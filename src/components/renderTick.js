@@ -1,6 +1,6 @@
-import { tickStyles } from "../styles/sideStyles";
+import { tickStyles } from '../styles/sideStyles';
 
-export function renderTick({ dim = "20px" } = {}) {
+export function renderTick({ dim = '20px' } = {}) {
   /*
    check path source:
    https://github.com/PolymerElements/iron-icons/blob/master/iron-icons.js
@@ -27,13 +27,11 @@ export function renderTick({ dim = "20px" } = {}) {
   div.appendChild(svg);
   */
 
-  const html = `
+  return `
     <div style="line-height: 0;">
       <svg height="${dim}" viewBox="0 0 18 24" width="${dim}" xmlns="http://www.w3.org/2000/svg" class="${className}" style="fill: currentcolor;">
         <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path>
       </svg>
     </div>
   `;
-
-  return html;
 }
