@@ -37,7 +37,7 @@ export default {
 };
 
 export const Singles = {
-  args: { drawSize: 16, participantsCount: 14 },
+  args: { drawSize: 16, participantsCount: 14, completionGoal: 40 },
 };
 export const Doubles = {
   args: { drawSize: 16, participantsCount: 14, eventType: "DOUBLES" },
