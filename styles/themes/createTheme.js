@@ -6,6 +6,7 @@ export const { createTheme } = createStitches({
     lineHeights: {
       scheduleInfo: `${lineHeights.scheduleInfo}rem`,
       centerInfo: `${lineHeights.centerInfo}rem`,
+      gameScore: `${lineHeights.gameScore}rem`,
     },
     borderWidths: {
       matchUpInline: "1px 1px",
@@ -37,7 +38,7 @@ export const { createTheme } = createStitches({
       seed: "gray",
     },
     score: {
-      setWidth: "1.5rem",
+      setWidth: "1.3rem",
     },
   },
 });

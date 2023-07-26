@@ -10,10 +10,11 @@ export const tieBreakStyle = css({
 });
 
 export const gameScoreStyle = css({
+  lineHeight: "$lineHeights$gameScore",
   justifyContent: "center",
   width: "$score$setWidth",
-  lineHeight: "2.0rem",
   position: "relative",
+  textAlign: "center",
   cursor: "pointer",
   fontWeight: 500,
   fontSize: "$1",
