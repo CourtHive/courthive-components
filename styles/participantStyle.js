@@ -52,32 +52,27 @@ export const participantTypeStyle = css({
   },
 });
 
-export function getParticipantContainerStyle({
-  participantHeight,
-  drawPosition,
-  sideNumber,
-}) {
+export function getParticipantContainerStyle({ drawPosition, sideNumber }) {
   const participantContainerStyle = css({
-    display: "flex",
-    position: "relative",
-    flexGrow: 1,
-    height: participantHeight,
-    boxSizing: "border-box",
-    minWidth: "15rem",
-    alignItems: "center",
-    backgroundColor: "$matchUp",
+    lineHeight: "$lineHeights$participant",
     justifyContent: "space-between",
     paddingInlineStart: "0.75rem",
+    backgroundColor: "$matchUp",
     paddingInlineEnd: "0rem",
+    boxSizing: "border-box",
+    position: "relative",
+    alignItems: "center",
+    minWidth: "15rem",
+    display: "flex",
+    flexGrow: 1,
+
     "& p": {
       fontFamily: "Sharp Sans, Arial, sans-serif",
       color: "$color",
     },
     variants: {
       sideNumber: {
-        1: {
-          borderBottom: "1px solid $internalDividers",
-        },
+        1: { borderBottom: "1px solid $internalDividers" },
       },
     },
   });

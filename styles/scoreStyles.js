@@ -12,8 +12,8 @@ export const tieBreakStyle = css({
 export const gameScoreStyle = css({
   justifyContent: "center",
   width: "$score$setWidth",
+  lineHeight: "2.0rem",
   position: "relative",
-  lineHeight: "2.5rem",
   fontWeight: 500,
   fontSize: "$1",
   display: "flex",

@@ -8,8 +8,8 @@ import {
 export function generateEventData({
   matchUpFormat = "SET5-S:6/TB7",
   completeAllMatchUps = true,
-  participantsCount = 4,
   autoSchedule = true,
+  participantsCount,
   completionGoal,
   addQualifying,
   drawSize = 4,
@@ -21,7 +21,9 @@ export function generateEventData({
       ? Math.floor(drawSize * 0.01 * completionGoal)
       : undefined;
 
+  participantsCount = participantsCount || drawSize;
   const drawId = "drawId";
+
   const drawProfile = {
     completionGoal: complete,
     participantsCount,

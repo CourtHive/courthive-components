@@ -1,7 +1,7 @@
 import { lineHeights } from "../compositions/lineHeights";
 import { css } from "@stitches/core";
 
-export function getLinkStyle({ composition, isDoubles }) {
+export function getLinkStyle({ composition, isDoubles, roundFactor = 1 }) {
   const fontSize = parseInt(
     window.getComputedStyle(document.body).getPropertyValue("font-size")
   );
@@ -18,7 +18,9 @@ export function getLinkStyle({ composition, isDoubles }) {
 
   const baseHeight =
     (60 + addressHeight) * (isDoubles ? 1.3 : 1) + centerHeight;
-  const m2Height = baseHeight + scheduleHeight;
+
+  const m1Height = baseHeight * roundFactor;
+  const m2Height = (baseHeight + scheduleHeight) * roundFactor;
 
   const hidden = {
     borderWidth: 0,
@@ -48,14 +50,13 @@ export function getLinkStyle({ composition, isDoubles }) {
       content: "",
     },
     variants: {
-      noProgression: { true: { "&::after": hidden } },
-      isFirstRound: { true: { "&::before": hidden } },
+      isFirstRound: { true: { "&::before": { ...hidden } } },
       link: {
         m1: {
           "&::after": {
             borderInlineEnd: "$borderWidths$matchUp solid $connector",
             borderTopStyle: "solid",
-            height: baseHeight,
+            height: m1Height,
             top: -1,
           },
         },
@@ -75,10 +76,11 @@ export function getLinkStyle({ composition, isDoubles }) {
           },
         },
         mr: {
-          "&::before": hidden,
-          "&::after": hidden,
+          "&::before": { ...hidden },
+          "&::after": { ...hidden },
         },
       },
+      noProgression: { true: { "&::after": { ...hidden } } },
     },
   });
 }

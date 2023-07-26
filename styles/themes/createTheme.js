@@ -5,6 +5,7 @@ export const { createTheme } = createStitches({
   theme: {
     lineHeights: {
       scheduleInfo: `${lineHeights.scheduleInfo}rem`,
+      participant: `${lineHeights.participant}rem`,
       centerInfo: `${lineHeights.centerInfo}rem`,
     },
     borderWidths: {
