@@ -60,10 +60,7 @@ export function renderMatchUp(params) {
   container.onclick = handleOnClick;
 
   const component = document.createElement("div");
-  // component.className = matchUpStyle();
-  component.className = getMatchUpStyle({
-    configuration: { matchUpHover: true },
-  });
+  component.className = getMatchUpStyle({ configuration });
 
   const entryStatusDisplay = ({ sideNumber }) => {
     const entryStatus = matchUp?.sides

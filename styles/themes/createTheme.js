@@ -11,7 +11,6 @@ export const { createTheme } = createStitches({
     borderWidths: {
       matchUpInline: "1px 1px",
       matchUp: "1px",
-      factor: 2,
     },
     space: {
       1: "10px",
@@ -21,11 +20,7 @@ export const { createTheme } = createStitches({
     fontSizes: {
       1: "0.875rem",
     },
-    matchUp: {
-      borderInlineStart: "1px 1px",
-    },
     colors: {
-      borderInlineStart: "darkgray",
       internalDividers: "lightgray",
       backgroundColor: "white",
       connector: "lightgray",

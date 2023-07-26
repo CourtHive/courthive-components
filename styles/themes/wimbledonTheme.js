@@ -2,15 +2,11 @@ import { createTheme } from "./createTheme";
 
 export const wimbledonTheme = createTheme("wimbledon-theme", {
   borderWidths: {
-    matchUpInline: "10px 1px",
-    matchUp: "10px",
-  },
-  matchUp: {
-    borderInlineStart: "10px solid green",
+    borderInlineStart: "10px",
   },
   colors: {
     connector: "transparent",
-    borderHover: "lightgray",
+    borderHover: "darkgrey",
     border: "#00703c",
     matchUp: "#fff",
   },
