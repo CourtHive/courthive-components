@@ -25,6 +25,28 @@ export const Basic = {
   }
 };
 
+export const GenderedMale = {
+  args: {
+    individualParticipant: { participantName, person: { sex: 'MALE' } },
+    composition: { configuration: { flags: false, genderColor: true } }
+  }
+};
+
+export const GenderedFemale = {
+  args: {
+    individualParticipant: { participantName: 'Zeta Moon', person: { sex: 'FEMALE' } },
+    composition: { configuration: { flags: false, genderColor: true } }
+  }
+};
+
+export const WinnerColor = {
+  args: {
+    composition: { configuration: { flags: false, winnerColor: true } },
+    individualParticipant: { participantName },
+    isWinningSide: true
+  }
+};
+
 export const Seeded = {
   args: {
     individualParticipant: {

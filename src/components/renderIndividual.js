@@ -9,8 +9,9 @@ const TBD = 'TBD';
 
 export function renderIndividual(params) {
   const { isWinningSide, side, individualParticipant, matchUp, composition } = params || {};
-  const eventHandlers = params.eventHandlers || {};
   const variant = isWinningSide ? 'winner' : undefined;
+  const eventHandlers = params.eventHandlers || {};
+  const configuration = composition?.configuration;
 
   const participantName = individualParticipant?.participantName;
 
@@ -32,7 +33,7 @@ export function renderIndividual(params) {
 
   const individual = document.createElement('div');
   individual.className = participantStyle({ variant });
-  const flags = composition?.configuration?.flags;
+  const flags = configuration?.flags;
   const flag = flags && renderFrill({ ...params, type: 'flag' });
   if (flag) {
     individual.appendChild(flag);
@@ -48,6 +49,13 @@ export function renderIndividual(params) {
 
   if (participantName) {
     const span = document.createElement('span');
+    if (isWinningSide && configuration?.winnerColor) {
+      span.style.color = typeof configuration.winnerColor === 'string' ? configuration.winnerColor : 'green';
+    } else if (configuration?.genderColor) {
+      const gender = individualParticipant?.person?.sex;
+      const color = (gender === 'MALE' && '#2E86C1') || (gender === 'FEMALE' && '#AA336A') || '';
+      span.style.color = typeof configuration.genderColor === 'string' ? configuration.genderColor : color;
+    }
     span.innerHTML = participantName;
     name.appendChild(span);
   } else {
