@@ -22,7 +22,7 @@ export default {
   title: 'Draws/Structure',
   tags: ['autodocs'],
   render: ({ ...args }) => {
-    const composition = compositions[args.composition || 'Basic'];
+    const composition = compositions[args.composition || 'Australian'];
 
     const { eventData } = generateEventData({ ...args }) || {};
 
@@ -48,6 +48,9 @@ export const Singles = {
 };
 export const Doubles = {
   args: { drawSize: 16, participantsCount: 14, eventType: 'DOUBLES' }
+};
+export const National = {
+  args: { drawSize: 16, participantsCount: 14, completeAllMatchUps: false, composition: 'National' }
 };
 export const Qualifying = {
   args: { drawSize: 16, participantsCount: 14, addQualifying: true }

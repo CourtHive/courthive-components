@@ -1,4 +1,4 @@
-import { participantNameStyle, participantStatus, participantStyle } from '../styles/participantStyle';
+import { getPlacholderStyle, participantNameStyle, participantStyle } from '../styles/participantStyle';
 import { seedStyle } from '../styles/seedStyle';
 import { renderAddress } from './renderAddress';
 import { renderFrill } from './renderFrill';
@@ -28,11 +28,11 @@ export function renderIndividual(params) {
   };
 
   const div = document.createElement('div');
-  div.setAttribute('key', params.index);
   div.onclick = handleOnClick;
 
   const individual = document.createElement('div');
   individual.className = participantStyle({ variant });
+
   const flags = configuration?.flags;
   const flag = flags && renderFrill({ ...params, type: 'flag' });
   if (flag) {
@@ -59,10 +59,11 @@ export function renderIndividual(params) {
     span.innerHTML = participantName;
     name.appendChild(span);
   } else {
-    const abbr = document.createElement('abbr');
-    abbr.className = participantStatus();
-    abbr.innerHTML = (side?.bye && BYE) || (side?.qualifier && QUALIFIER) || TBD;
-    name.appendChild(abbr);
+    const placeholder = document.createElement('abbr');
+    // if { showAddress: true } pad placeholder
+    placeholder.className = getPlacholderStyle({ variant: configuration.showAddress ? 'showAddress' : '' });
+    placeholder.innerHTML = (side?.bye && BYE) || (side?.qualifier && QUALIFIER) || TBD;
+    name.appendChild(placeholder);
   }
 
   const seeding = renderFrill({
@@ -73,7 +74,6 @@ export function renderIndividual(params) {
   if (seeding) name.appendChild(seeding);
 
   individual.appendChild(name);
-
   div.appendChild(individual);
 
   const address = renderAddress(params);

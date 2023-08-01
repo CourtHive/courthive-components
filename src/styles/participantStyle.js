@@ -1,8 +1,19 @@
 import { css } from '@stitches/core';
 
-export const participantStatus = css({
-  margin: '2.5px 0'
-});
+export function getPlacholderStyle({ variant }) {
+  const participantPlaceholder = css({
+    margin: '2.5px 0',
+    variants: {
+      variant: {
+        showAddress: {
+          lineHeight: '2.3em'
+        }
+      }
+    }
+  });
+
+  return participantPlaceholder({ variant });
+}
 
 export const participantStyle = css({
   justifyContent: 'flex-start',
