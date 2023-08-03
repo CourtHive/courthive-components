@@ -33,7 +33,15 @@ export const Primary = {
 
 export const Secondary = {
   args: {
+    intent: 'secondary',
     label: 'Secondary',
-    intent: 'secondary'
+    onClick: () => {
+      cModal.open({
+        buttons: [{ label: 'Close', onClick: (p) => console.log(p) }],
+        config: { title: { padding: '1' }, content: { padding: '2' }, footer: { padding: '0' } },
+        content: 'Content has 2em padding<p>Footer has no padding!',
+        title: 'Title has 1em padding'
+      });
+    }
   }
 };
