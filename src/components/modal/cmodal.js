@@ -126,7 +126,9 @@ export const cModal = (() => {
     const modalBody = document.createElement('div');
     modalBody.style.position = 'relative';
     modalBody.style.padding = getPadding({ config, attr: 'body' });
-    if (typeof content === 'object') {
+    if (typeof content === 'function') {
+      content(modalBody);
+    } else if (typeof content === 'object') {
       modalBody.appendChild(content);
     } else if (typeof content === 'string') {
       modalBody.innerHTML = content;
