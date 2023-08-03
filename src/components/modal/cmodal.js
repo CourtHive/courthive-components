@@ -123,6 +123,7 @@ export const cModal = (() => {
     const modalFooter = document.createElement('div');
     modalFooter.className = modalFooterStyle();
     modalFooter.style.padding = getUnitValue({ config, attrs: ['footer.padding', 'padding'] });
+    const modalNumber = modals.length + 1; // because the modal hasn't been added yet
 
     const defaultFooterButton = {
       label: config?.dictionary?.close || 'Close',
@@ -146,8 +147,6 @@ export const cModal = (() => {
 
       elem.onclick = (e) => {
         e.stopPropagation();
-        const modalNumber = modals.length;
-        console.log({ bodyContent, modalNumber });
         if (isFunction(config.onClick)) config.onClick({ e, content: bodyContent[modalNumber] });
         if (config.close !== false) {
           if (isFunction(config.close)) config.close();
