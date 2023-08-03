@@ -1,38 +1,38 @@
-import { generateMatchUps } from "../data/generateMatchUps";
-import { renderSide } from "../components/renderSide";
+import { generateMatchUps } from '../data/generateMatchUps';
+import { renderSide } from '../components/renderSide';
 
 export default {
-  title: "MatchUps/Sides",
-  tags: ["autodocs"],
+  title: 'MatchUps/Sides',
+  tags: ['autodocs'],
   render: ({ eventType, outcomes, randomWinningSide, ...args }) => {
     const { matchUps } = generateMatchUps({
       ...args,
       randomWinningSide,
       drawSize: 16,
       eventType,
-      outcomes,
+      outcomes
     });
     return renderSide({ ...args, matchUp: matchUps[0] });
   },
   argTypes: {
-    name: { control: "text" },
-    seedNumber: { control: "text" },
-    address: { control: "text" },
-  },
+    name: { control: 'text' },
+    seedNumber: { control: 'text' },
+    address: { control: 'text' }
+  }
 };
 
 const composition = {
   configuration: {
-    bracketedSeeds: "square",
+    bracketedSeeds: 'square',
     showAddress: true,
     scoreBox: false,
-    flags: true,
-  },
+    flags: true
+  }
 };
 
 export const Singles = {
   args: {
     sideNumber: 1,
-    composition,
-  },
+    composition
+  }
 };

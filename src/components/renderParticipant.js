@@ -7,8 +7,7 @@ import { renderTick } from './renderTick';
 
 export function renderParticipant({ eventHandlers, sideContainer, composition, sideNumber, matchUp, participant }) {
   const { winningSide, matchUpType, isRoundRobin, matchUpStatus } = matchUp || {};
-  const configuration = composition.configuration;
-  const isDoubles = matchUpType === 'DOUBLES';
+  const configuration = composition?.configuration;
 
   let drawPosition, side;
   if (!participant) {
@@ -23,6 +22,7 @@ export function renderParticipant({ eventHandlers, sideContainer, composition, s
         ? side?.drawPosition
         : '';
   }
+  const isDoubles = participant?.individualParticipants?.length === 2 || matchUpType === 'DOUBLES';
 
   const firstParticipant = isDoubles ? participant?.individualParticipants?.[0] : participant;
   const secondParticipant = isDoubles && participant?.individualParticipants?.[1];
@@ -32,13 +32,15 @@ export function renderParticipant({ eventHandlers, sideContainer, composition, s
   const teamLogo = configuration?.teamLogo;
   const irregularEnding =
     ['RETIRED', 'DOUBLE_WALKOVER', 'WALKOVER', 'DEFAULTED'].includes(matchUpStatus) && !isWinningSide;
-  const gameScoreOnly = composition?.configuration?.gameScoreOnly;
+  const gameScoreOnly = configuration?.gameScoreOnly;
 
   const participantContainer = document.createElement('div');
-  participantContainer.className = getParticipantContainerStyle({
-    sideNumber: sideContainer && sideNumber,
-    drawPosition
-  });
+  participantContainer.className =
+    sideContainer &&
+    getParticipantContainerStyle({
+      drawPosition,
+      sideNumber
+    });
 
   if (teamLogo) {
     const logo = renderTeamLogo({ teamLogo });

@@ -3,7 +3,7 @@ import { renderScale } from './renderScale';
 import { renderFlag } from './renderFlag';
 
 export function renderFrill({ individualParticipant, composition, className, matchUp, spacer, side, type }) {
-  if (type === 'scale')
+  if (type === 'scale') {
     return renderScale({
       individualParticipant,
       composition,
@@ -11,6 +11,7 @@ export function renderFrill({ individualParticipant, composition, className, mat
       matchUp,
       spacer
     });
+  }
 
   const configuration = composition?.configuration || {};
 

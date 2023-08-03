@@ -1,5 +1,5 @@
-import { addressStyle } from '../styles/addressStyle';
 import { participantStyle } from '../styles/participantStyle';
+import { addressStyle } from '../styles/addressStyle';
 import { renderFrill } from './renderFrill';
 import cx from 'classnames';
 
@@ -13,8 +13,8 @@ export function renderAddress({ individualParticipant, composition, className, m
     return document.createElement('div');
   }
 
-  const flags = composition?.configuration?.flags;
   const scale = composition?.configuration?.scaleAttributes;
+  const flags = composition?.configuration?.flags;
 
   const div = document.createElement('div');
   if (flags || scale) {
