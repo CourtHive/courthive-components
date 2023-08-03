@@ -21,7 +21,7 @@ export const cModal = (() => {
   const destroy = (id) => {
     if (!id) {
       const modal = modals.pop();
-      document.body.removeChild(modal);
+      if (modal) document.body.removeChild(modal);
     } else {
       let modal;
       modals = modals.filter((m) => {
