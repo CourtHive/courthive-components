@@ -1,31 +1,36 @@
-import { cva } from "class-variance-authority";
-import "bulma/css/bulma.css";
+import { cva } from 'class-variance-authority';
+import { cModal } from '../modal/cmodal';
+import 'bulma/css/bulma.css';
 
-export function renderButton({
-  intent = "primary",
-  size = "medium",
-  label,
-} = {}) {
-  const button = cva("button", {
+export function renderButton({ intent = 'primary', size = 'medium', label, onClick } = {}) {
+  const buttonStyle = cva('button', {
     variants: {
       intent: {
-        primary: ["is-info"],
-        secondary: ["is-success"],
+        primary: ['is-info'],
+        secondary: ['is-success']
       },
       size: {
-        medium: ["font-medium"],
-      },
+        medium: ['font-medium']
+      }
     },
-    compoundVariants: [
-      { intent: "primary", size: "medium", textTransform: "uppercase" },
-    ],
+    compoundVariants: [{ intent: 'primary', size: 'medium', textTransform: 'uppercase' }],
     defaultVariants: {
-      intent: "primary",
-      size: "medium",
-    },
+      intent: 'primary',
+      size: 'medium'
+    }
   });
 
-  console.log(button({ intent, size }));
+  const button = document.createElement('button');
+  button.className = buttonStyle({ intent, size });
+  button.innerHTML = label;
 
-  return `<button class="${button({ intent, size })}">${label}</button>`;
+  button.onclick = () => {
+    if (typeof onClick === 'function') {
+      onClick();
+    } else {
+      cModal.open({ title: 'Modal title' });
+    }
+  };
+
+  return button;
 }

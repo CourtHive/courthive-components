@@ -5,7 +5,7 @@ export function renderScale({ individualParticipant, composition, className, mat
   const matchUpType = matchUp?.matchUpType || 'SINGLES';
   const ratings = individualParticipant?.ratings?.[matchUpType];
   const rankings = individualParticipant?.rankings?.[matchUpType];
-  const scaleAttributes = composition.configuration?.scaleAttributes;
+  const scaleAttributes = composition?.configuration?.scaleAttributes;
   const scaleType = scaleAttributes?.scaleType;
   const accessor = scaleAttributes?.accessor;
 

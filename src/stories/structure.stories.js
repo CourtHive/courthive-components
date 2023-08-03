@@ -1,7 +1,10 @@
+import { renderParticipant } from '../components/renderParticipant';
 import { renderContainer } from '../components/renderContainer';
 import { renderStructure } from '../components/renderStructure';
 import { generateEventData } from '../data/generateEventData';
+import { renderButton } from '../components/button/cvaButton';
 import { compositions } from '../compositions/compositions';
+import { cModal } from '../components/modal/cmodal';
 
 const argTypes = {
   composition: {
@@ -12,9 +15,20 @@ const argTypes = {
 
 const eventHandlers = {
   centerInfoClick: () => console.log('centerInfo click'),
-  participantClick: () => console.log('participant click'),
+  participantClick: ({ individualParticipant, matchUp, side }) => {
+    console.log({ individualParticipant, matchUp, side });
+  },
   scheduleClick: () => console.log('schedule click'),
-  scoreClick: () => console.log('score click'),
+  scoreClick: ({ matchUp }) => {
+    if (!matchUp.readyToScore && !matchUp.winningSide) return;
+    const composition = {
+      configuration: { bracketedSeeds: 'square', flags: true, showAddress: true }
+    };
+    const participants = matchUp.sides.map(({ participant }) => participant);
+    const content = renderParticipant({ participant: participants[0], matchUp, composition });
+    const footer = renderButton({ label: 'Ok', onClick: () => cModal.close() });
+    cModal.open({ content, footer, config: { backdrop: true, padding: '.5', clickAway: false } });
+  },
   venueClick: () => console.log('venue click')
 };
 
@@ -44,7 +58,7 @@ export default {
 };
 
 export const Singles = {
-  args: { drawSize: 16, participantsCount: 14, completionGoal: 40 }
+  args: { drawSize: 32, participantsCount: 14, completionGoal: 40 }
 };
 export const Doubles = {
   args: { drawSize: 16, participantsCount: 14, eventType: 'DOUBLES' }
