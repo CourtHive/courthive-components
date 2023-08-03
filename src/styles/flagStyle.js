@@ -5,18 +5,16 @@ export const flagStyle = css({
   display: 'inline-block',
   boxSizing: 'border-box',
   position: 'relative',
+  marginInlineStart: 1,
+  marginInlineEnd: 2,
   borderRadius: 2,
   variants: {
     variant: {
       doubles: {
-        marginInlineStart: 1,
-        marginInlineEnd: 1,
-        width: '.5rem'
+        width: '.75rem'
       },
       singles: {
-        marginInlineStart: 1,
-        marginInlineEnd: 1,
-        width: '.75rem'
+        width: '1rem'
       }
     }
   }
