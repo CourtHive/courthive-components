@@ -1,5 +1,4 @@
 import { cva } from 'class-variance-authority';
-import { cModal } from '../modal/cmodal';
 import 'bulma/css/bulma.css';
 
 export function renderButton({ intent = 'primary', size = 'medium', label, onClick } = {}) {
@@ -25,11 +24,7 @@ export function renderButton({ intent = 'primary', size = 'medium', label, onCli
   button.innerHTML = label;
 
   button.onclick = () => {
-    if (typeof onClick === 'function') {
-      onClick();
-    } else {
-      cModal.open({ title: 'Modal title' });
-    }
+    if (typeof onClick === 'function') onClick();
   };
 
   return button;
