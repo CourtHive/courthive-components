@@ -2,7 +2,6 @@ import { renderParticipant } from '../components/renderParticipant';
 import { renderContainer } from '../components/renderContainer';
 import { renderStructure } from '../components/renderStructure';
 import { generateEventData } from '../data/generateEventData';
-import { renderButton } from '../components/button/cvaButton';
 import { compositions } from '../compositions/compositions';
 import { cModal } from '../components/modal/cmodal';
 
@@ -26,12 +25,11 @@ const eventHandlers = {
     };
     const participants = matchUp.sides.map(({ participant }) => participant);
     const content = renderParticipant({ participant: participants[0], matchUp, composition });
-    const footer = renderButton({ label: 'Ok', onClick: () => cModal.close() });
     cModal.open({
+      buttons: [{ label: 'Ok', onClick: (p) => console.log(p) }],
       config: { backdrop: true, padding: '.5', clickAway: true },
       onClose: () => console.log('modal closed'),
-      content,
-      footer
+      content
     });
   },
   venueClick: () => console.log('venue click')
