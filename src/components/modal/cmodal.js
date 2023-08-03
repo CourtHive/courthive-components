@@ -15,6 +15,7 @@ export const cModal = (() => {
   const scrollStop = bodyFreeze();
   const conditionalClose = {};
   let scrollPosition;
+  let closeFx = [];
   let modals = [];
   let backdrop;
 
@@ -39,10 +40,10 @@ export const cModal = (() => {
     }
   };
 
-  const closeModal = (conditional) => {
-    if (conditional) {
-      const modalNumber = modals.length;
-      if (conditionalClose[modalNumber] === false) return;
+  const close = (conditional) => {
+    const modalNumber = modals.length;
+    if (conditional && conditionalClose[modalNumber] === false) {
+      return;
     }
     document.body.classList.remove(scrollStop);
     document.body.style.top = null;
@@ -52,6 +53,9 @@ export const cModal = (() => {
     });
     closeBackdrop();
     destroy();
+
+    const onClose = closeFx.pop();
+    if (typeof onClose === 'function') onClose();
   };
 
   const createBackdrop = () => {
@@ -59,7 +63,7 @@ export const cModal = (() => {
     backdrop.className = backdropStyle();
     backdrop.id = `cmdl-backdrop`;
 
-    backdrop.onclick = () => closeModal(true);
+    backdrop.onclick = () => close(true);
 
     document.body.appendChild(backdrop);
   };
@@ -78,20 +82,31 @@ export const cModal = (() => {
     }
   };
 
-  const getPadding = ({ config, attr }) => {
-    let padding;
-    if (attr && config[attr] !== undefined) {
-      padding = config[attr];
+  const getConfigAttr = ({ config: node, attr }) => {
+    if (typeof attr !== 'string') return;
+    const attrs = attr.split('.');
+    for (const a of attrs) {
+      node = node[a];
+      if (!node) return;
     }
-    if (padding === undefined && config.padding !== undefined) {
-      padding = config.padding;
-    }
-
-    if (isNaN(padding)) return padding;
-    return `${padding}em`;
+    return node;
   };
 
-  const newModal = ({ title = '', content, footer, config } = {}) => {
+  const getUnitValue = ({ config, attr, attrs, unit = 'em', value }) => {
+    if (typeof attr === 'string' && config[attr] !== undefined) {
+      value = getConfigAttr({ config, attr });
+    } else if (Array.isArray(attrs)) {
+      value = attrs.map((attr) => getConfigAttr({ config, attr })).filter(Boolean)?.[0];
+    }
+
+    if (isNaN(value)) return value;
+    return `${value}${unit}`;
+  };
+
+  const open = ({ title = '', content, footer, config, onClose } = {}) => {
+    freezeBackground({ config });
+    closeFx.push(onClose);
+
     const modalNumber = modals.length + 1;
     conditionalClose[modalNumber] = config?.clickAway;
     const section = document.createElement('section');
@@ -100,12 +115,11 @@ export const cModal = (() => {
     section.role = 'dialog';
     section.tabIndex = -1;
     section.id = id;
-    section.onclick = () => console.log('section');
 
     const container = document.createElement('div');
     container.className = modalContainerStyle();
     container.style.maxWidth = `${config.maxWidth || 450}px`;
-    container.onclick = () => closeModal(true);
+    container.onclick = () => close(true);
 
     const dialog = document.createElement('div');
     dialog.className = modalDialogStyle();
@@ -114,7 +128,7 @@ export const cModal = (() => {
     if (title) {
       const modalHeader = document.createElement('div');
       modalHeader.className = modalHeaderStyle();
-      modalHeader.style.padding = getPadding({ config, attr: 'header' });
+      modalHeader.style.padding = getUnitValue({ config, attrs: ['header.padding', 'padding'] });
       const titleDiv = document.createElement('div');
       titleDiv.className = modalTitleStyle();
       titleDiv.innerHTML = title;
@@ -124,8 +138,10 @@ export const cModal = (() => {
     }
 
     const modalBody = document.createElement('div');
+    modalBody.style.fontSize = getUnitValue({ config, attr: 'fontSize', value: '15px' });
     modalBody.style.position = 'relative';
-    modalBody.style.padding = getPadding({ config, attr: 'body' });
+    modalBody.style.padding = getUnitValue({ config, attrs: ['body.padding', 'padding'] });
+
     if (typeof content === 'function') {
       content(modalBody);
     } else if (typeof content === 'object') {
@@ -140,7 +156,7 @@ export const cModal = (() => {
     if (footer) {
       const modalFooter = document.createElement('div');
       modalFooter.className = modalFooterStyle();
-      modalFooter.style.padding = getPadding({ config, attr: 'footer' });
+      modalFooter.style.padding = getUnitValue({ config, attrs: ['footer.padding', 'padding'] });
       if (typeof footer === 'object') {
         modalFooter.appendChild(footer);
       } else if (typeof footer === 'string') {
@@ -159,12 +175,5 @@ export const cModal = (() => {
     return section;
   };
 
-  return {
-    close: closeModal,
-    open: ({ title, content, footer, config }) => {
-      freezeBackground({ config });
-
-      return newModal({ title, content, footer, config });
-    }
-  };
+  return { close, open };
 })();

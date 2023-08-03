@@ -27,7 +27,12 @@ const eventHandlers = {
     const participants = matchUp.sides.map(({ participant }) => participant);
     const content = renderParticipant({ participant: participants[0], matchUp, composition });
     const footer = renderButton({ label: 'Ok', onClick: () => cModal.close() });
-    cModal.open({ content, footer, config: { backdrop: true, padding: '.5', clickAway: false } });
+    cModal.open({
+      config: { backdrop: true, padding: '.5', clickAway: true },
+      onClose: () => console.log('modal closed'),
+      content,
+      footer
+    });
   },
   venueClick: () => console.log('venue click')
 };
