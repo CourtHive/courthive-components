@@ -16,9 +16,17 @@ export default {
 
 export const Primary = {
   args: {
-    onClick: () =>
-      cModal.open({
-        buttons: [{ label: 'Close', onClick: (p) => console.log(p) }],
+    onClick: () => {
+      let update;
+      const changeContent = () => update({ content: 'Like magic' });
+      const changeButtons = () => update({ buttons: [{ label: 'Ok' }] });
+
+      ({ update } = cModal.open({
+        buttons: [
+          { label: 'Content', onClick: changeContent, close: false },
+          { label: 'Buttons', onClick: changeButtons, close: false },
+          { label: 'Close', onClick: (p) => console.log(p) }
+        ],
         content: (elem) => {
           const div = document.createElement('div');
           div.innerHTML = 'Content';
@@ -26,7 +34,8 @@ export const Primary = {
           return elem;
         },
         title: 'Modal title'
-      }),
+      }));
+    },
     label: 'Primary'
   }
 };
