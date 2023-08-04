@@ -23,6 +23,13 @@ export function isArray(item) {
 export function isObject(item) {
   return typeof item === 'object' && !Array.isArray(item);
 }
+export function removeAllChildNodes(parent) {
+  if (!parent) return;
+
+  while (parent.firstChild) {
+    parent.removeChild(parent.firstChild);
+  }
+}
 
 export const cModal = (() => {
   const scrollStop = bodyFreeze();
@@ -124,11 +131,10 @@ export const cModal = (() => {
     return `${value}${unit}`;
   };
 
-  const footerButtons = ({ buttons, config }) => {
+  const footerButtons = ({ buttons, config, modalNumber }) => {
     const modalFooter = document.createElement('div');
     modalFooter.className = modalFooterStyle();
     modalFooter.style.padding = getUnitValue({ config, attrs: ['footer.padding', 'padding'], value: defaultPadding });
-    const modalNumber = modals.length + 1; // because the modal hasn't been added yet
 
     const defaultFooterButton = {
       label: config?.dictionary?.close || 'Close',
@@ -202,19 +208,23 @@ export const cModal = (() => {
     modalBody.style.position = 'relative';
     modalBody.style.padding = getUnitValue({ config, attrs: ['content.padding', 'padding'], value: defaultPadding });
 
-    if (isFunction(content)) {
-      bodyContent[modalNumber] = content(modalBody);
-    } else if (isObject(content)) {
-      modalBody.appendChild(content);
-    } else if (isString(content)) {
-      modalBody.innerHTML = content;
-    } else {
-      modalBody.innerHTML = EMPTY;
-    }
+    const attachContent = (content) => {
+      if (isFunction(content)) {
+        bodyContent[modalNumber] = content(modalBody);
+      } else if (isObject(content)) {
+        modalBody.appendChild(content);
+      } else if (isString(content)) {
+        modalBody.innerHTML = content;
+      } else {
+        modalBody.innerHTML = EMPTY;
+      }
+    };
+    attachContent(content);
     dialog.appendChild(modalBody);
 
     if (isArray(buttons)) {
-      dialog.appendChild(footerButtons({ buttons, config }));
+      footer = footerButtons({ buttons, config, modalNumber });
+      dialog.appendChild(footer);
     } else if (footer) {
       const modalFooter = document.createElement('div');
       modalFooter.className = modalFooterStyle();
@@ -234,9 +244,27 @@ export const cModal = (() => {
     container.appendChild(dialog);
     section.appendChild(container);
     document.body.appendChild(section);
+
     modals.push(section);
 
-    return section;
+    const setContent = ({ content: newContent }) => {
+      bodyContent[modalNumber] = undefined;
+      removeAllChildNodes(modalBody);
+      attachContent(newContent);
+    };
+
+    const setButtons = ({ buttons }) => {
+      dialog.removeChild(footer);
+      footer = footerButtons({ buttons, config, modalNumber });
+      dialog.appendChild(footer);
+    };
+
+    const update = ({ content: newContent, buttons }) => {
+      if (newContent) setContent({ content: newContent });
+      if (buttons) setButtons({ buttons });
+    };
+
+    return { setContent, setButtons, update };
   };
 
   return { close, open };
