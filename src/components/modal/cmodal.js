@@ -27,6 +27,7 @@ export function isObject(item) {
 export const cModal = (() => {
   const scrollStop = bodyFreeze();
   const conditionalClose = {};
+  const defaultPadding = '.5';
   let bodyContent = [];
   let scrollPosition;
   let closeFx = [];
@@ -109,20 +110,24 @@ export const cModal = (() => {
   };
 
   const getUnitValue = ({ config, attr, attrs, unit = 'em', value }) => {
+    let attrValue;
+
     if (isString(attr)) {
-      value = getConfigAttr({ config, attr });
+      attrValue = getConfigAttr({ config, attr });
     } else if (isArray(attrs)) {
-      value = attrs.map((attr) => getConfigAttr({ config, attr })).filter(Boolean)?.[0];
+      attrValue = attrs.map((attr) => getConfigAttr({ config, attr })).filter(Boolean)?.[0];
     }
 
+    if (attrValue !== undefined) value = attrValue;
     if (isNaN(value)) return value;
+
     return `${value}${unit}`;
   };
 
   const footerButtons = ({ buttons, config }) => {
     const modalFooter = document.createElement('div');
     modalFooter.className = modalFooterStyle();
-    modalFooter.style.padding = getUnitValue({ config, attrs: ['footer.padding', 'padding'] });
+    modalFooter.style.padding = getUnitValue({ config, attrs: ['footer.padding', 'padding'], value: defaultPadding });
     const modalNumber = modals.length + 1; // because the modal hasn't been added yet
 
     const defaultFooterButton = {
@@ -183,7 +188,7 @@ export const cModal = (() => {
     if (title) {
       const modalHeader = document.createElement('div');
       modalHeader.className = modalHeaderStyle();
-      modalHeader.style.padding = getUnitValue({ config, attrs: ['header.padding', 'padding'] });
+      modalHeader.style.padding = getUnitValue({ config, attrs: ['title.padding', 'padding'], value: defaultPadding });
       const titleDiv = document.createElement('div');
       titleDiv.className = modalTitleStyle();
       titleDiv.innerHTML = title;
@@ -195,7 +200,7 @@ export const cModal = (() => {
     const modalBody = document.createElement('div');
     modalBody.style.fontSize = getUnitValue({ config, attr: 'fontSize', value: '15px' });
     modalBody.style.position = 'relative';
-    modalBody.style.padding = getUnitValue({ config, attrs: ['body.padding', 'padding'] });
+    modalBody.style.padding = getUnitValue({ config, attrs: ['content.padding', 'padding'], value: defaultPadding });
 
     if (isFunction(content)) {
       bodyContent[modalNumber] = content(modalBody);
