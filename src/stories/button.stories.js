@@ -2,7 +2,7 @@ import { renderButton } from '../components/button/cvaButton';
 import { cModal } from '../components/modal/cmodal';
 
 export default {
-  title: 'Forms/Button',
+  title: 'Forms/Modal',
   tags: ['autodocs'],
   render: ({ ...args }) => {
     return renderButton({ ...args });
@@ -14,43 +14,82 @@ export default {
   }
 };
 
-export const Primary = {
+export const Update = {
   args: {
     onClick: () => {
-      let update;
-      const changeContent = () => update({ content: 'Like magic' });
+      let update, buttons;
       const changeButtons = () => update({ buttons: [{ label: 'Ok' }] });
+      const changeContent = () => {
+        buttons = buttons.filter(({ label }) => label !== 'Content');
+        update({ content: 'Like magic', buttons });
+      };
+      const changeTitle = () => {
+        buttons = buttons.filter(({ label }) => label !== 'Title');
+        update({ title: 'Something new', buttons });
+      };
+
+      buttons = [
+        { label: 'Title', onClick: changeTitle, close: false },
+        { label: 'Content', onClick: changeContent, close: false },
+        { label: 'Buttons', onClick: changeButtons, close: false },
+        { label: 'Close' }
+      ];
 
       ({ update } = cModal.open({
-        buttons: [
-          { label: 'Content', onClick: changeContent, close: false },
-          { label: 'Buttons', onClick: changeButtons, close: false },
-          { label: 'Close', onClick: (p) => console.log(p) }
-        ],
         content: (elem) => {
           const div = document.createElement('div');
           div.innerHTML = 'Content';
           elem.appendChild(div);
           return elem;
         },
-        title: 'Modal title'
+        title: 'Modal title',
+        buttons
       }));
     },
-    label: 'Primary'
+    label: 'Modal updates'
   }
 };
 
-export const Secondary = {
+export const Title = {
+  args: {
+    onClick: () => {
+      let update;
+      const changeTitle = () => update({ title: 'Something new', buttons: [{ label: 'Ok' }] });
+
+      ({ update } = cModal.open({
+        buttons: [{ label: 'Add title', onClick: changeTitle, close: false }, { label: 'Close' }],
+        content: (elem) => {
+          const div = document.createElement('div');
+          div.innerHTML = 'Begin with no title';
+          elem.appendChild(div);
+          return elem;
+        }
+      }));
+    },
+    label: 'Add title'
+  }
+};
+
+export const Config = {
   args: {
     intent: 'secondary',
-    label: 'Secondary',
+    label: 'Config',
     onClick: () => {
-      cModal.open({
-        buttons: [{ label: 'Close', onClick: (p) => console.log(p) }],
+      let buttons, update;
+      let config = { title: { padding: '1' }, content: { padding: '2' }, footer: { padding: '0' } };
+
+      const addPadding = () => {
+        config.footer.padding = '1';
+        update({ buttons: [{ label: 'Ok' }], config });
+      };
+
+      buttons = [{ label: 'Add padding', onClick: addPadding, close: false }, { label: 'Close' }];
+      ({ update } = cModal.open({
         config: { title: { padding: '1' }, content: { padding: '2' }, footer: { padding: '0' } },
         content: 'Content has 2em padding<p>Footer has no padding!',
-        title: 'Title has 1em padding'
-      });
+        title: 'Title has 1em padding',
+        buttons
+      }));
     }
   }
 };

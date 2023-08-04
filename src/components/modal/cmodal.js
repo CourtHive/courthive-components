@@ -191,24 +191,27 @@ export const cModal = (() => {
     dialog.className = modalDialogStyle();
     dialog.onclick = (e) => e.stopPropagation();
 
-    if (title) {
-      const modalHeader = document.createElement('div');
-      modalHeader.className = modalHeaderStyle();
-      modalHeader.style.padding = getUnitValue({ config, attrs: ['title.padding', 'padding'], value: defaultPadding });
-      const titleDiv = document.createElement('div');
-      titleDiv.className = modalTitleStyle();
-      titleDiv.innerHTML = title;
+    const modalHeader = document.createElement('div');
+    const titleDiv = document.createElement('div');
+    modalHeader.appendChild(titleDiv);
+    dialog.appendChild(modalHeader);
 
-      modalHeader.appendChild(titleDiv);
-      dialog.appendChild(modalHeader);
-    }
+    const setTitle = ({ title, config }) => {
+      modalHeader.className = title ? modalHeaderStyle() : '';
+      modalHeader.style.padding = getUnitValue({ config, attrs: ['title.padding', 'padding'], value: defaultPadding });
+      titleDiv.className = title ? modalTitleStyle() : '';
+      titleDiv.innerHTML = title;
+    };
+    if (title) setTitle({ title });
 
     const modalBody = document.createElement('div');
-    modalBody.style.fontSize = getUnitValue({ config, attr: 'fontSize', value: '15px' });
-    modalBody.style.position = 'relative';
-    modalBody.style.padding = getUnitValue({ config, attrs: ['content.padding', 'padding'], value: defaultPadding });
+    dialog.appendChild(modalBody);
 
-    const attachContent = (content) => {
+    const attachContent = ({ content, config }) => {
+      modalBody.style.fontSize = getUnitValue({ config, attr: 'fontSize', value: '15px' });
+      modalBody.style.position = 'relative';
+      modalBody.style.padding = getUnitValue({ config, attrs: ['content.padding', 'padding'], value: defaultPadding });
+
       if (isFunction(content)) {
         bodyContent[modalNumber] = content(modalBody);
       } else if (isObject(content)) {
@@ -219,8 +222,7 @@ export const cModal = (() => {
         modalBody.innerHTML = EMPTY;
       }
     };
-    attachContent(content);
-    dialog.appendChild(modalBody);
+    attachContent({ content, config });
 
     if (isArray(buttons)) {
       footer = footerButtons({ buttons, config, modalNumber });
@@ -247,21 +249,24 @@ export const cModal = (() => {
 
     modals.push(section);
 
-    const setContent = ({ content: newContent }) => {
+    const setContent = ({ content: newContent, config }) => {
       bodyContent[modalNumber] = undefined;
       removeAllChildNodes(modalBody);
-      attachContent(newContent);
+      attachContent({ content: newContent, config });
     };
 
-    const setButtons = ({ buttons }) => {
+    const setButtons = ({ buttons, config }) => {
       dialog.removeChild(footer);
       footer = footerButtons({ buttons, config, modalNumber });
       dialog.appendChild(footer);
     };
 
-    const update = ({ content: newContent, buttons }) => {
-      if (newContent) setContent({ content: newContent });
-      if (buttons) setButtons({ buttons });
+    const update = ({ content: newContent, buttons, title, config: newConfig }) => {
+      config = newConfig || config;
+
+      if (newContent) setContent({ content: newContent, config });
+      if (buttons) setButtons({ buttons, config });
+      if (title) setTitle({ title, config });
     };
 
     return { setContent, setButtons, update };
