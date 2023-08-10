@@ -1,6 +1,38 @@
 {
-  "name": "components",
-  "private": true,
+  "name": "courthive-components",
+  "private": false,
+  "description": "Components for competitions projects",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/courthive-components.umd.js",
+  "module": "./dist/courthive-components.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/courthive-components.es.js",
+      "require": "./dist/courthive-components.umd.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CourtHive/courthive-components.git"
+  },
+  "keywords": [
+    "tournament",
+    "match",
+    "score",
+    "vanillajs",
+    "bracket"
+  ],
+  "np": {
+    "contents": "."
+  },
+  "author": "Charles Allen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/CourtHive/courthive-components/issues"
+  },
+  "homepage": "https://courthive.github.io/courthive-component",
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
