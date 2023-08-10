@@ -24,9 +24,6 @@
     "vanillajs",
     "bracket"
   ],
-  "np": {
-    "contents": "."
-  },
   "author": "Charles Allen",
   "license": "MIT",
   "bugs": {
