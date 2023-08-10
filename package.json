@@ -39,6 +39,8 @@
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
+    "deploy-storybook": "gh-pages -d storybook-static",
+    "predeploy": "npm run build-storybook",
     "prebuild": "rm -rf dist/*",
     "lint": "eslint src --fix --cache",
     "lint:report": "eslint src & eslint --cache src -f json > eslint-report.json",
