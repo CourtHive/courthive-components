@@ -38,7 +38,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
+    "build-storybook": "storybook build -s ./public",
     "deploy-storybook": "gh-pages -d storybook-static",
     "predeploy": "npm run build-storybook",
     "prebuild": "rm -rf dist/*",
@@ -84,6 +84,7 @@
     "class-variance-authority": "^0.7.0",
     "classnames": "^2.3.2",
     "dayjs": "^1.11.9",
+    "gh-pages": "^5.0.0",
     "tods-competition-factory": "^1.2.32"
   }
 }
