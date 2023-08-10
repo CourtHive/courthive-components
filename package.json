@@ -63,6 +63,7 @@
     "eslint-config-react-app": "^7.0.1",
     "eslint-plugin-sonarjs": "^0.20.0",
     "lint-staged": "^13.2.2",
+    "np": "^8.0.4",
     "prettier": "^2.8.8",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -75,7 +76,6 @@
     "class-variance-authority": "^0.7.0",
     "classnames": "^2.3.2",
     "dayjs": "^1.11.9",
-    "np": "^8.0.4",
     "tods-competition-factory": "^1.2.32"
   }
 }
