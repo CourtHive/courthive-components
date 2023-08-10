@@ -1,6 +1,9 @@
 {
   "name": "courthive-components",
-  "private": false,
+  "version": "0.0.0",
+  "engines": {
+    "node": ">=16.16.0 < 19"
+  },
   "description": "Components for competitions projects",
   "files": [
     "dist"
@@ -30,7 +33,6 @@
     "url": "https://github.com/CourtHive/courthive-components/issues"
   },
   "homepage": "https://courthive.github.io/courthive-component",
-  "version": "0.0.0",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
