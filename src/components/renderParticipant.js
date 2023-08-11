@@ -9,9 +9,9 @@ export function renderParticipant({ eventHandlers, sideContainer, composition, s
   const { winningSide, matchUpType, isRoundRobin, matchUpStatus } = matchUp || {};
   const configuration = composition?.configuration;
 
-  let drawPosition, side;
+  let drawPosition;
+  const side = sideNumber ? matchUp?.sides?.find((side) => side.sideNumber === sideNumber) : undefined;
   if (!participant) {
-    side = matchUp?.sides?.find((side) => side.sideNumber === sideNumber);
     participant = side?.participant;
 
     drawPosition =
