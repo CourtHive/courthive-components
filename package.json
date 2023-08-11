@@ -69,7 +69,7 @@
     "eslint": "^8.39.0",
     "eslint-config-react-app": "^7.0.1",
     "eslint-plugin-sonarjs": "^0.20.0",
-    "gh-pages": "^5.0.0",
+    "gh-pages": "^6.0.0",
     "lint-staged": "^13.2.2",
     "np": "^8.0.4",
     "prettier": "^2.8.8",
