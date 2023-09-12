@@ -79,3 +79,6 @@ export const Team = {
     drawSize: 4
   }
 };
+export const RoundRobin = {
+  args: { drawSize: 16, drawType: 'ROUND_ROBIN', composition: 'Basic' }
+};

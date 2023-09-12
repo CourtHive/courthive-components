@@ -10,6 +10,10 @@ const argTypes = {
   }
 };
 
+const eventHandlers = {
+  roundHeaderClick: () => console.log('round header click')
+};
+
 export default {
   title: 'Draws/Rounds',
   tags: ['autodocs'],
@@ -24,6 +28,7 @@ export default {
     });
     const content = renderRound({
       ...args,
+      eventHandlers,
       roundFactor,
       roundNumber,
       composition,
@@ -36,6 +41,7 @@ export default {
 
 export const Singles = {
   args: {
+    roundProfile: { 2: { roundName: 'Round 2' } },
     roundNumber: 2,
     roundFactor: 1
   }
@@ -43,12 +49,14 @@ export const Singles = {
 
 export const FirstRound = {
   args: {
+    roundProfile: { 1: { roundName: 'Round 1' } },
     roundNumber: 1
   }
 };
 
 export const Lucky = {
   args: {
+    roundProfile: { 2: { roundName: 'Round 2' } },
     roundNumber: 2,
     isLucky: true
   }
@@ -56,6 +64,7 @@ export const Lucky = {
 
 export const Doubles = {
   args: {
+    roundProfile: { 2: { roundName: 'Round 2' } },
     eventType: 'DOUBLES',
     roundNumber: 2,
     roundFactor: 1
