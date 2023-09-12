@@ -58,7 +58,7 @@ export const Seeded = {
   }
 };
 
-export const supSeed = {
+export const SupSeed = {
   args: {
     individualParticipant: {
       person: { iso2NationalityCode: 'USA' },
@@ -93,7 +93,7 @@ export const FlagAddress = {
   }
 };
 
-export const scaleAddress = {
+export const ScaleAddress = {
   args: {
     matchUp: { matchUpType: 'SINGLES' },
     individualParticipant: {
