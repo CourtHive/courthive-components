@@ -1,48 +1,48 @@
-import { renderFrill } from "../components/renderFrill";
+import { renderFrill } from '../components/renderFrill';
 
 export default {
-  title: "Participants/Frill",
-  tags: ["autodocs"],
+  title: 'Participants/Frill',
+  tags: ['autodocs'],
   render: ({ ...args }) => {
     return renderFrill({ ...args });
-  },
+  }
 };
 
 const composition = {
   configuration: {
-    scaleAttributes: { scaleType: "RATING", accessor: "WTN" },
-    bracketedSeeds: "square",
-    flags: true,
-  },
+    scaleAttributes: { scaleType: 'RATING', accessor: 'WTN' },
+    bracketedSeeds: 'square',
+    flags: true
+  }
 };
 const individualParticipant = {
-  person: { iso2NationalityCode: "USA" },
-  ratings: { SINGLES: { WTN: 13.5 } },
+  person: { iso2NationalityCode: 'USA' },
+  ratings: { SINGLES: { WTN: 13.5 } }
 };
 
-export const flag = {
+export const Flag = {
   args: {
     individualParticipant,
-    type: "flag",
-    composition,
-  },
+    type: 'flag',
+    composition
+  }
 };
 
-export const seeding = {
+export const Seeding = {
   args: {
     individualParticipant,
     side: { seedValue: 1 },
-    type: "seeding",
-    composition,
-  },
+    type: 'seeding',
+    composition
+  }
 };
 
 export const WTN = {
   args: {
-    matchUp: { matchUpType: "SINGLES" },
+    matchUp: { matchUpType: 'SINGLES' },
     individualParticipant,
     side: { seedValue: 1 },
-    type: "scale",
-    composition,
-  },
+    type: 'scale',
+    composition
+  }
 };

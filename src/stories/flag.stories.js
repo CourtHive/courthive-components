@@ -1,20 +1,20 @@
-import { renderFlag } from "../components/renderFlag";
+import { renderFlag } from '../components/renderFlag';
 
 export default {
-  title: "Participants/Flag",
-  tags: ["autodocs"],
+  title: 'Participants/Flag',
+  tags: ['autodocs'],
   render: ({ ...args }) => {
     return renderFlag({ ...args });
-  },
+  }
 };
 
-export const unitedStates = {
+export const UnitedStates = {
   args: {
-    individualParticipant: { person: { iso2NationalityCode: "USA" } },
-  },
+    individualParticipant: { person: { iso2NationalityCode: 'USA' } }
+  }
 };
-export const spain = {
+export const Spain = {
   args: {
-    individualParticipant: { person: { iso2NationalityCode: "ESP" } },
-  },
+    individualParticipant: { person: { iso2NationalityCode: 'ESP' } }
+  }
 };
