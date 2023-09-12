@@ -5,54 +5,55 @@ import {
   frenchTheme,
   nightTheme,
   wimbledonTheme,
-  usOpenTheme,
-} from "../styles/themes";
+  usOpenTheme
+} from '../styles/themes';
 
 export const compositions = {
   Australian: {
     configuration: { flags: true },
-    theme: australianTheme,
+    theme: australianTheme
   },
   Basic: {
-    configuration: { gameScoreOnly: true, teamLogo: false },
-    theme: basicTheme,
+    configuration: { gameScoreOnly: true, teamLogo: false, roundHeader: true },
+    theme: basicTheme
   },
   DrawPositions: {
     configuration: {
       gameScoreOnly: true,
-      teamLogo: false,
       drawPositions: true,
+      teamLogo: false
     },
-    theme: basicTheme,
+    theme: basicTheme
   },
   French: {
     configuration: { bracketedSeeds: true, flags: true },
-    theme: frenchTheme,
+    theme: frenchTheme
   },
   Wimbledon: {
     configuration: { resultsInfo: true, flags: true },
-    theme: wimbledonTheme,
+    theme: wimbledonTheme
   },
-  "US Open": {
+  'US Open': {
     configuration: { scoreBox: true, flags: true },
-    theme: usOpenTheme,
+    theme: usOpenTheme
   },
   ITF: {
-    configuration: { winnerChevron: true, centerInfo: true, flags: true },
-    theme: itfTheme,
+    configuration: { winnerChevron: true, centerInfo: true, flags: true, roundHeader: true },
+    theme: itfTheme
   },
   National: {
     configuration: {
-      bracketedSeeds: "square",
+      bracketedSeeds: 'square',
       allDrawPositions: true,
       drawPositions: true,
       scheduleInfo: true,
-      showAddress: true,
+      roundHeader: true,
+      showAddress: true
     },
-    theme: australianTheme,
+    theme: australianTheme
   },
   Night: {
     configuration: { flags: true },
-    theme: nightTheme,
-  },
+    theme: nightTheme
+  }
 };

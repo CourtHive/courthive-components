@@ -1,10 +1,11 @@
-import { css } from "@stitches/core";
+import { css } from '@stitches/core';
 
 export const roundStyle = css({
-  justifyContent: "space-around",
-  marginInlineStart: "16px",
-  marginInlineEnd: "16px",
-  flexDirection: "column",
-  display: "flex",
-  width: "460px",
+  justifyContent: 'space-around',
+  marginInlineStart: '16px',
+  marginInlineEnd: '16px',
+  flexDirection: 'column',
+  height: '100%',
+  display: 'flex',
+  width: '460px'
 });
