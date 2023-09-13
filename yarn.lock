@@ -9673,10 +9673,10 @@ tocbot@^4.20.1:
   resolved "https://registry.yarnpkg.com/tocbot/-/tocbot-4.21.1.tgz#7b667bef1c3ea1a07e4f400b742aa71e7e7e5ba0"
   integrity sha512-IfajhBTeg0HlMXu1f+VMbPef05QpDTsZ9X2Yn1+8npdaXsXg/+wrm9Ze1WG5OS1UDC3qJ5EQN/XOZ3gfXjPFCw==
 
-tods-competition-factory@^1.4.11:
-  version "1.4.30"
-  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.4.30.tgz#bea2ffa610f8c6a1b9d058b90ba94b207e97a27c"
-  integrity sha512-NNAve1XyjcYAwYZeT+0jI+z9yMiczAI71jNqWXO6jo140iHYZObD6xHW6cWOdf918gScfo7MNEj04ZemrPaOQg==
+tods-competition-factory@^1.4.31:
+  version "1.4.31"
+  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.4.31.tgz#34d9a14c5df2497691e478abda0a0c77f2ad490c"
+  integrity sha512-hwrMMq4OUtOyC1Nx5n0sPx6EE+fneDhDcYThIi0jeYbOm0II3Raxt4D6AeQRdPMKchyD0uj+iYm4kOKtjwdjPA==
 
 toidentifier@1.0.1:
   version "1.0.1"
