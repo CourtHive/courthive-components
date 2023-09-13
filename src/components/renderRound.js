@@ -1,5 +1,6 @@
 import { groupSeparatorStyle } from '../styles/groupSeparatorStyle';
 import { roundContainerStyle } from '../styles/roundContainerStyle';
+import { groupNameStyle } from '../styles/groupNameStyle';
 import { renderRoundHeader } from './renderRoundHeader';
 import { utilities } from 'tods-competition-factory';
 import { roundStyle } from '../styles/roundStyle';
@@ -49,6 +50,10 @@ export function renderRound({
   }
   const per = groupsCount && roundMatchUps.length / groupsCount;
 
+  const roundNumbers = Object.keys(roundProfile).map((k) => parseInt(k));
+  const roundIndex = roundNumbers.indexOf(roundNumber);
+  const roundOrder = (roundIndex === 0 && 'first') || (roundIndex === roundNumbers.length - 1 && 'last');
+
   roundMatchUps.forEach((matchUp, i) => {
     const rrGroupSepator = per && !(i % per);
     const groupIndex = per && Math.floor(i / per);
@@ -56,10 +61,13 @@ export function renderRound({
 
     if (rrGroupSepator) {
       const separator = document.createElement('div');
-      separator.className = groupSeparatorStyle({ variant: groupIndex });
-      if (roundNumber === 1) separator.innerHTML = rrGroupName;
-
+      separator.className = groupSeparatorStyle({ variant: groupIndex, roundOrder });
       div.appendChild(separator);
+
+      const groupName = document.createElement('div');
+      groupName.className = groupNameStyle();
+      if (roundNumber === 1) groupName.innerHTML = rrGroupName;
+      div.appendChild(groupName);
     }
 
     const moeity = i % 2 === 0;

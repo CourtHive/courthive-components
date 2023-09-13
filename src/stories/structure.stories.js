@@ -32,6 +32,7 @@ const eventHandlers = {
       content
     });
   },
+  roundHeaderClick: () => console.log('round header click'),
   venueClick: () => console.log('venue click')
 };
 
