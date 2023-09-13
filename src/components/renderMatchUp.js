@@ -18,7 +18,7 @@ export function renderMatchUp(params) {
   const isFirstRound = parseInt(roundNumber) === 1;
   const isDoubles = matchUpType === 'DOUBLES';
   const link =
-    ((searchActive || matchUp.isRoundRobin || matchUp.collectionId || params.isLucky) && 'mr') ||
+    ((searchActive || matchUp.isRoundRobin || matchUp.collectionId || params.isLucky || params.isAdHoc) && 'mr') ||
     (noProgression && 'noProgression') ||
     ((isQualifying || preFeedRound) && 'm0') ||
     (moeity && 'm1') ||
