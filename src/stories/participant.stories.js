@@ -37,7 +37,7 @@ export const ParticipantFlag = {
 export const ParticipantWTN = {
   args: {
     participant: {
-      ratings: { SINGLES: [{ scaleName: 'WTN', scaleValue: { wtnRating: 13.5 } }] },
+      ratings: { SINGLES: [{ scaleName: 'WTN', scaleValue: { wtnRating: 11.05 } }] },
       participantName: 'Normal person',
       person: {
         addresses: [{ city: 'Buffalo', state: 'NY' }]

@@ -17,7 +17,7 @@ const composition = {
 };
 const individualParticipant = {
   person: { iso2NationalityCode: 'USA' },
-  ratings: { SINGLES: [{ scaleName: 'WTN', scaleValue: { wtnRating: 13.5 } }] }
+  ratings: { SINGLES: [{ scaleName: 'WTN', scaleValue: { wtnRating: 13.53 } }] }
 };
 
 export const Flag = {
