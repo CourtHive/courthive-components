@@ -8,6 +8,7 @@ export function generateEventData({
   completionGoal,
   addQualifying,
   drawSize = 4,
+  automated,
   eventType,
   drawType
 } = {}) {
@@ -17,10 +18,12 @@ export function generateEventData({
   const drawId = 'drawId';
 
   const drawProfile = {
+    category: { ratingType: 'WTN', ratingMin: 10, ratingMax: 14.99 },
     completionGoal: complete,
     participantsCount,
     matchUpFormat,
     seedsCount: 8,
+    automated,
     eventType,
     drawType,
     drawSize,
@@ -69,6 +72,7 @@ function genData({ drawProfile, completeAllMatchUps, autoSchedule }) {
 
   const result = mocksEngine.generateTournamentRecord({
     policyDefinitions: fixtures.policies.POLICY_SCHEDULING_NO_DAILY_LIMITS,
+    participantsProfile: { scaleAllParticipants: true },
     scheduleCompletedMatchUps: true,
     completeAllMatchUps,
     schedulingProfile,
@@ -88,7 +92,7 @@ function genData({ drawProfile, completeAllMatchUps, autoSchedule }) {
   tournamentEngine.setState(tournamentRecord);
   const { eventData } =
     tournamentEngine.getEventData({
-      participantsProfile: { withIOC: true, withISO2: true },
+      participantsProfile: { withIOC: true, withISO2: true, withScaleValues: true },
       eventId
     }) || {};
 

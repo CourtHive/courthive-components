@@ -37,14 +37,17 @@ export const ParticipantFlag = {
 export const ParticipantWTN = {
   args: {
     participant: {
-      ratings: { SINGLES: { WTN: 12.5 } },
+      ratings: { SINGLES: [{ scaleName: 'WTN', scaleValue: { wtnRating: 13.5 } }] },
       participantName: 'Normal person',
       person: {
         addresses: [{ city: 'Buffalo', state: 'NY' }]
       }
     },
     composition: {
-      configuration: { scaleAttributes: { scaleType: 'RATING', accessor: 'WTN' }, showAddress: true }
+      configuration: {
+        scaleAttributes: { scaleType: 'RATING', scaleName: 'WTN', accessor: 'wtnRating' },
+        showAddress: true
+      }
     }
   }
 };
