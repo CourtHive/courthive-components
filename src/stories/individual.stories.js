@@ -98,7 +98,7 @@ export const ScaleAddress = {
     matchUp: { matchUpType: 'SINGLES' },
     individualParticipant: {
       person: { addresses: [{ city: 'Atlanta', state: 'GA' }] },
-      ratings: { SINGLES: [{ scaleName: 'WTN', scaleValue: { wtnRating: 13.5 } }] },
+      ratings: { SINGLES: [{ scaleName: 'WTN', scaleValue: { wtnRating: 12.42 } }] },
       participantName
     },
     composition: {
