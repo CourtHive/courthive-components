@@ -85,5 +85,5 @@ export const RoundRobin = {
   args: { drawSize: 16, drawType: 'ROUND_ROBIN', composition: 'National' }
 };
 export const AdHoc = {
-  args: { drawSize: 16, drawType: 'AD_HOC', composition: 'National' }
+  args: { drawSize: 16, drawType: 'AD_HOC', composition: 'National', automated: true }
 };

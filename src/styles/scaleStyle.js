@@ -1,15 +1,14 @@
-import { css } from "@stitches/core";
+import { css } from '@stitches/core';
 
 export const scaleStyle = css({
-  WebkitBoxSizing: "border-box",
-  display: "inline-block",
-  boxSizing: "border-box",
-  marginInlineStart: 2,
-  position: "relative",
-  fontSize: "smaller",
-  fontWeight: "bold",
-  marginInlineEnd: 2,
+  WebkitBoxSizing: 'border-box',
+  marginInlineEnd: '.5em',
+  boxSizing: 'border-box',
+  display: 'inline-block',
+  position: 'relative',
+  fontSize: 'smaller',
+  fontWeight: 'bold',
   borderRadius: 2,
-  width: "1.8rem",
-  color: "blue",
+  width: '1.8rem',
+  color: 'blue'
 });
