@@ -6,11 +6,11 @@ export const generateRound = ({ composition, roundNumber, matchUps }) => {
     .sort((a, b) => (a.roundPosition || 0) - (b.roundPosition || 0));
 
   const roundStyle = css({
-    display: 'flex',
-    flexDirection: 'column',
     justifyContent: 'space-around',
     marginInlineStart: '16px',
     marginInlineEnd: '16px',
+    flexDirection: 'column',
+    display: 'flex',
     width: '460px'
   });
 
