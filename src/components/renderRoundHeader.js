@@ -1,10 +1,13 @@
 import { roundHeaderStyle } from '../styles/roundHeaderStyle';
+import { isFunction } from './modal/cmodal';
 
-export function renderRoundHeader({ eventHandlers, roundProfile, roundNumber }) {
+export function renderRoundHeader({ eventHandlers, roundMatchUps, roundProfile, roundNumber }) {
   const div = document.createElement('div');
   div.className = roundHeaderStyle();
 
-  div.onclick = eventHandlers?.roundHeaderClick;
+  if (isFunction(eventHandlers?.roundHeaderClick)) {
+    div.onclick = () => eventHandlers.roundHeaderClick({ roundNumber, roundProfile, roundMatchUps });
+  }
 
   const roundName = roundProfile?.[roundNumber]?.roundName;
   div.innerHTML = roundName || '';

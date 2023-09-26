@@ -48,7 +48,12 @@ export const compositions = {
       drawPositions: true,
       scheduleInfo: true,
       roundHeader: true,
-      showAddress: true
+      showAddress: true,
+      scaleAttributes: {
+        scaleType: 'RATING',
+        scaleName: 'WTN',
+        accessor: 'wtnRating'
+      }
     },
     theme: australianTheme
   },
