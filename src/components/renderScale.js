@@ -7,13 +7,15 @@ export function renderScale({ individualParticipant, composition, className, mat
   const rankings = individualParticipant?.rankings?.[matchUpType];
   const scaleAttributes = composition?.configuration?.scaleAttributes;
   const scaleType = scaleAttributes?.scaleType;
+  const scaleName = scaleAttributes?.scaleName;
   const accessor = scaleAttributes?.accessor;
 
   const scale = scaleType === 'RATING' ? ratings : rankings;
-  const value = !spacer && scale?.[accessor];
+  const scaleValue = !spacer && scale?.find((item) => item?.scaleName === scaleName)?.scaleValue;
+  const value = scaleValue && accessor ? scaleValue[accessor] : scaleValue || '';
 
   const span = document.createElement('span');
-  if (value || spacer) span.className = cx(className, scaleStyle());
+  if (value) span.className = cx(className, scaleStyle());
   span.innerHTML = value || '';
 
   return span;

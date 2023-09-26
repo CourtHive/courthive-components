@@ -1,33 +1,22 @@
-// import { MatchUp } from "../MatchUp/MatchUp";
-import { css } from "@stitches/core";
+import { css } from '@stitches/core';
 
-export const generateRound = ({
-  // selectedMatchUpId,
-  // eventHandlers,
-  // searchActive,
-  composition,
-  roundNumber,
-  matchUps,
-  // isLucky,
-}) => {
+export const generateRound = ({ composition, roundNumber, matchUps }) => {
   const roundMatchUps = (matchUps || [])
     .filter((matchUp) => matchUp.roundNumber === roundNumber)
     .sort((a, b) => (a.roundPosition || 0) - (b.roundPosition || 0));
 
   const roundStyle = css({
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-around",
-    marginInlineStart: "16px",
-    marginInlineEnd: "16px",
-    width: "460px",
+    justifyContent: 'space-around',
+    marginInlineStart: '16px',
+    marginInlineEnd: '16px',
+    flexDirection: 'column',
+    display: 'flex',
+    width: '460px'
   });
 
-  const content = roundMatchUps
-    .map((matchUp) => matchUp.score?.scoreStringSide1 || "Score")
-    .join("");
+  const content = roundMatchUps.map((matchUp) => matchUp.score?.scoreStringSide1 || 'Score').join('');
 
-  const div = document.createElement("div");
+  const div = document.createElement('div');
   div.className = roundStyle;
   if (composition?.theme) div.classList.append(composition.theme);
 

@@ -3,13 +3,13 @@ import { drawEngine } from 'tods-competition-factory';
 import { renderRound } from './renderRound';
 
 export function renderStructure({ selectedMatchUpId, eventHandlers, searchActive, composition, matchUps }) {
-  const { roundNumbers, roundProfile, hasOddMatchUpsCount } = drawEngine.getRoundMatchUps({
+  const { roundNumbers, roundProfile, hasOddMatchUpsCount, isNotEliminationStructure } = drawEngine.getRoundMatchUps({
     matchUps
   });
 
   const isRoundRobin = matchUps.some(({ isRoundRobin }) => isRoundRobin);
 
-  const isLucky = hasOddMatchUpsCount;
+  const isLucky = hasOddMatchUpsCount || isNotEliminationStructure;
 
   const div = document.createElement('div');
   div.className = structureStyle();

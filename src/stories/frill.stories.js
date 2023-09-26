@@ -10,14 +10,14 @@ export default {
 
 const composition = {
   configuration: {
-    scaleAttributes: { scaleType: 'RATING', accessor: 'WTN' },
+    scaleAttributes: { scaleType: 'RATING', scaleName: 'WTN', accessor: 'wtnRating' },
     bracketedSeeds: 'square',
     flags: true
   }
 };
 const individualParticipant = {
   person: { iso2NationalityCode: 'USA' },
-  ratings: { SINGLES: { WTN: 13.5 } }
+  ratings: { SINGLES: [{ scaleName: 'WTN', scaleValue: { wtnRating: 13.53 } }] }
 };
 
 export const Flag = {
