@@ -51,10 +51,20 @@ export default {
     const roundMatchUps = structure?.roundMatchUps;
     const matchUps = roundMatchUps ? Object.values(roundMatchUps)?.flat() : [];
 
+    const buttonColumn = document.createElement('div');
+    buttonColumn.style = 'display: flex; place-content: flex-start; height: 100%';
+    const elem = document.createElement('button');
+    elem.className = 'button font-medium is-info';
+    elem.innerHTML = 'Generate Round';
+    buttonColumn.appendChild(elem);
+
+    const finalColumn = args.drawType === 'AD_HOC' && buttonColumn;
+
     const content = renderStructure({
       ...args,
       eventHandlers,
       composition,
+      finalColumn,
       matchUps
     });
     return renderContainer({ theme: composition.theme, content });
