@@ -10,8 +10,8 @@ export const generateRound = ({ composition, roundNumber, matchUps }) => {
     marginInlineStart: '16px',
     marginInlineEnd: '16px',
     flexDirection: 'column',
-    display: 'flex',
-    width: '460px'
+    display: 'flex'
+    // width: '460px'
   });
 
   const content = roundMatchUps.map((matchUp) => matchUp.score?.scoreStringSide1 || 'Score').join('');
