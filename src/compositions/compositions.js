@@ -50,6 +50,7 @@ export const compositions = {
       roundHeader: true,
       showAddress: true,
       scaleAttributes: {
+        scaleColor: 'red',
         scaleType: 'RATING',
         scaleName: 'WTN',
         accessor: 'wtnRating'
