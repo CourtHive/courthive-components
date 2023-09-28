@@ -1,6 +1,6 @@
 {
   "name": "courthive-components",
-  "version": "0.7.6",
+  "version": "0.7.7",
   "engines": {
     "node": ">=16.16.0 < 19"
   },
@@ -48,7 +48,7 @@
     "lint": "eslint src --fix --cache",
     "lint:report": "eslint src & eslint --cache src -f json > eslint-report.json",
     "format": "prettier --write src",
-    "prepare": "npm run build",
+    "prepare": "npm run build && npm run commits",
     "release:major": "npm version $(semver $npm_package_version -i major) && npm publish --tag latest",
     "release:minor": "npm version $(semver $npm_package_version -i minor) && npm publish --tag latest",
     "release:patch": "npm version $(semver $npm_package_version -i patch) && npm publish --tag latest"
