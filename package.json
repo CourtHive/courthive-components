@@ -34,6 +34,8 @@
   },
   "homepage": "https://courthive.github.io/courthive-component",
   "scripts": {
+    "commits": "git log $(git describe --tags --abbrev=0)..HEAD --oneline --no-merges --pretty=format:'%s: %h' | sed '/courthive-components/d'",
+    "release": "npm run release:patch",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
@@ -46,7 +48,7 @@
     "lint": "eslint src --fix --cache",
     "lint:report": "eslint src & eslint --cache src -f json > eslint-report.json",
     "format": "prettier --write src",
-    "release": "np --no-tests",
+    "prepare": "npm run build",
     "release:major": "npm version $(semver $npm_package_version -i major) && npm publish --tag latest",
     "release:minor": "npm version $(semver $npm_package_version -i minor) && npm publish --tag latest",
     "release:patch": "npm version $(semver $npm_package_version -i patch) && npm publish --tag latest"
