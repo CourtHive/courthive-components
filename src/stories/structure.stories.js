@@ -51,6 +51,8 @@ export default {
     const roundMatchUps = structure?.roundMatchUps;
     const matchUps = roundMatchUps ? Object.values(roundMatchUps)?.flat() : [];
 
+    const context = { structureId: structure?.structureId, drawId: eventData?.drawsData?.[0].drawId };
+
     const buttonColumn = document.createElement('div');
     buttonColumn.style = 'display: flex; place-content: flex-start; height: 100%';
     const elem = document.createElement('button');
@@ -65,7 +67,8 @@ export default {
       eventHandlers,
       composition,
       finalColumn,
-      matchUps
+      matchUps,
+      context
     });
     return renderContainer({ theme: composition.theme, content });
   },

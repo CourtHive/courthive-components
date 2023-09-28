@@ -1,16 +1,28 @@
 import { roundHeaderStyle } from '../styles/roundHeaderStyle';
 import { isFunction } from './modal/cmodal';
 
-export function renderRoundHeader({ eventHandlers, roundMatchUps, roundProfile, roundNumber }) {
+export function renderRoundHeader({ eventHandlers, roundMatchUps, roundProfile, roundNumber, context }) {
   const div = document.createElement('div');
   div.className = roundHeaderStyle();
 
-  if (isFunction(eventHandlers?.roundHeaderClick)) {
-    div.onclick = () => eventHandlers.roundHeaderClick({ roundNumber, roundProfile, roundMatchUps });
+  const hasAction = isFunction(eventHandlers?.roundHeaderClick);
+  if (hasAction) {
+    div.onclick = () => eventHandlers.roundHeaderClick({ roundNumber, roundProfile, roundMatchUps, context });
   }
 
+  // CONSIDER: multiple icons depending on available methods, e.g. roundScheduleClick, roundActionsClick
+  const headerAction = hasAction ? '⋮' : '';
+  // const headerAction = hasAction ? '&#128197;' : '';
+
   const roundName = roundProfile?.[roundNumber]?.roundName;
-  div.innerHTML = roundName || '';
+  const header =
+    roundName &&
+    ` <div style="display: flex; flex-direction: row; justify-content: space-between">
+        <div>${roundName}</div>
+        <div style="font-weight: bold">${headerAction}</div>
+      </div>
+  `;
+  div.innerHTML = header || '';
 
   return div;
 }
