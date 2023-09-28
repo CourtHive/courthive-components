@@ -9,6 +9,16 @@ export const scaleStyle = css({
   fontSize: 'smaller',
   fontWeight: 'bold',
   borderRadius: 2,
-  width: '1.8rem',
-  color: 'blue'
+  // width: '1.8rem',
+  color: 'blue',
+  variants: {
+    color: {
+      green: {
+        color: 'green'
+      },
+      red: {
+        color: 'red'
+      }
+    }
+  }
 });

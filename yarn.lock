@@ -9741,9 +9741,9 @@ tocbot@^4.20.1:
   integrity sha512-IfajhBTeg0HlMXu1f+VMbPef05QpDTsZ9X2Yn1+8npdaXsXg/+wrm9Ze1WG5OS1UDC3qJ5EQN/XOZ3gfXjPFCw==
 
 tods-competition-factory@^1.4.31:
-  version "1.6.11"
-  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.6.11.tgz#9671f5dd062c320396deae3e647710383cf4ba31"
-  integrity sha512-rZzvnbHdI/PVOcsjiVHue/itYq+qWpAA0HVizhzDihydyBq7JukX86iCOxWHKxvgh7oOU/uyCcMFd4z7VCBrFA==
+  version "1.6.15"
+  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.6.15.tgz#8a8b693a2a7a63ac0f76efc52af8d0f7746b24b4"
+  integrity sha512-3yx8jnpKmUVxx48kyaCzq8xDK5dlkR84ueQ975ZpSCfAjoDGEAL3veh2dF89VhaVNAmpdkRXaXU8JTWq6Ub++w==
 
 toidentifier@1.0.1:
   version "1.0.1"
