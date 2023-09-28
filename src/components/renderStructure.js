@@ -10,7 +10,8 @@ export function renderStructure({
   searchActive,
   composition,
   finalColumn,
-  matchUps
+  matchUps,
+  context
 }) {
   const { roundNumbers, roundProfile, hasOddMatchUpsCount, isNotEliminationStructure } = drawEngine.getRoundMatchUps({
     matchUps
@@ -33,6 +34,7 @@ export function renderStructure({
       roundNumber,
       roundProfile,
       matchUps,
+      context,
       isLucky
     });
     div.appendChild(round);
