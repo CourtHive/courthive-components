@@ -5,7 +5,15 @@ import { renderStatusPill } from './renderStatusPill';
 import { renderTeamLogo } from './renderTeamLogo';
 import { renderTick } from './renderTick';
 
-export function renderParticipant({ eventHandlers, sideContainer, composition, sideNumber, matchUp, participant }) {
+export function renderParticipant({
+  eventHandlers,
+  sideContainer,
+  composition,
+  participant,
+  placeholder,
+  sideNumber,
+  matchUp
+}) {
   const { winningSide, matchUpType, isRoundRobin, matchUpStatus } = matchUp || {};
   const configuration = composition?.configuration;
 
@@ -80,6 +88,8 @@ export function renderParticipant({ eventHandlers, sideContainer, composition, s
     });
 
     annotationDiv.appendChild(Individual);
+  } else if (isDoubles && placeholder) {
+    annotationDiv.appendChild(placeholder);
   }
 
   participantType.appendChild(annotationDiv);
