@@ -17,6 +17,7 @@ export function renderRound({
   roundNumber,
   roundProfile,
   matchUps,
+  context,
   isLucky
 }) {
   const roundMatchUps = matchUps
@@ -31,7 +32,7 @@ export function renderRound({
   roundContainer.className = roundContainerStyle();
 
   if (configuration.roundHeader) {
-    const header = renderRoundHeader({ roundProfile, roundMatchUps, roundNumber, eventHandlers });
+    const header = renderRoundHeader({ roundProfile, roundMatchUps, roundNumber, eventHandlers, context });
     roundContainer.appendChild(header);
   }
 
