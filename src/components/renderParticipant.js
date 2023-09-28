@@ -30,7 +30,7 @@ export function renderParticipant({
         ? side?.drawPosition
         : '';
   }
-  const isDoubles = participant?.individualParticipants?.length === 2 || matchUpType === 'DOUBLES';
+  const isDoubles = matchUpType === 'DOUBLES';
 
   const firstParticipant = isDoubles ? participant?.individualParticipants?.[0] : participant;
   const secondParticipant = isDoubles && participant?.individualParticipants?.[1];
