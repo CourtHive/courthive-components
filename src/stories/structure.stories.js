@@ -89,6 +89,7 @@ export const Qualifying = {
 };
 export const Team = {
   args: {
+    tieFormatName: 'DOMINANT_DUO',
     completeAllMatchUps: false,
     eventType: 'TEAM',
     drawSize: 4
