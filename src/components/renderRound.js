@@ -10,6 +10,7 @@ import { isFunction } from './modal/cmodal';
 export function renderRound({
   selectedMatchUpId,
   eventHandlers,
+  isFinalRound,
   isRoundRobin,
   searchActive,
   composition,
@@ -91,11 +92,12 @@ export function renderRound({
     const m = renderMatchUp({
       selectedMatchUpId,
       eventHandlers,
+      isFinalRound,
       searchActive,
       composition,
-      matchUp,
       isAdHoc,
       isLucky,
+      matchUp,
       moeity
     });
     div.appendChild(m);
