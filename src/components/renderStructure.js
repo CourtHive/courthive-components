@@ -24,10 +24,14 @@ export function renderStructure({
   const div = document.createElement('div');
   div.className = structureStyle();
 
+  const finalRoundNumber = Math.max(...roundNumbers);
+
   for (const roundNumber of roundNumbers) {
+    const isFinalRound = roundNumber === finalRoundNumber;
     const round = renderRound({
       selectedMatchUpId,
       eventHandlers,
+      isFinalRound,
       isRoundRobin,
       searchActive,
       composition,

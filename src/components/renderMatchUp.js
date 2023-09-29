@@ -11,7 +11,7 @@ export function renderMatchUp(params) {
   const { composition, matchUp, moeity, selectedMatchUpId, searchActive } = params;
   const { roundFactor, roundNumber, finishingRound, matchUpType, preFeedRound, stage } = matchUp;
   const qualifyingStage = stage === 'QUALIFYING';
-  const isFinalRound = parseInt(finishingRound) === 1;
+  const isFinalRound = params.isFinalRound || parseInt(finishingRound) === 1;
   const isQualifying = stage === 'QUALIFYING' && isFinalRound;
 
   const noProgression = !qualifyingStage && isFinalRound;
@@ -23,6 +23,7 @@ export function renderMatchUp(params) {
     ((isQualifying || preFeedRound) && 'm0') ||
     (moeity && 'm1') ||
     'm2';
+
   const linkClass = getLinkStyle({ composition, isDoubles, roundFactor })({
     isFirstRound,
     link
