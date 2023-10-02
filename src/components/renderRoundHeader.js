@@ -7,7 +7,8 @@ export function renderRoundHeader({ eventHandlers, roundMatchUps, roundProfile, 
 
   const hasAction = isFunction(eventHandlers?.roundHeaderClick);
   if (hasAction) {
-    div.onclick = () => eventHandlers.roundHeaderClick({ roundNumber, roundProfile, roundMatchUps, context });
+    div.onclick = (pointerEvent) =>
+      eventHandlers.roundHeaderClick({ roundNumber, roundProfile, roundMatchUps, context, pointerEvent });
   }
 
   // CONSIDER: multiple icons depending on available methods, e.g. roundScheduleClick, roundActionsClick

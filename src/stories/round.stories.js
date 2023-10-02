@@ -11,7 +11,9 @@ const argTypes = {
 };
 
 const eventHandlers = {
-  roundHeaderClick: () => console.log('round header click')
+  roundHeaderClick: (params) => console.log('round header click', params),
+  scheduleClick: (params) => console.log('schedule click', params),
+  venueClick: (params) => console.log('venue click', params)
 };
 
 export default {

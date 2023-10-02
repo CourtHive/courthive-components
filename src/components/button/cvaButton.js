@@ -23,8 +23,8 @@ export function renderButton({ intent = 'primary', size = 'medium', label, onCli
   button.className = buttonStyle({ intent, size });
   button.innerHTML = label;
 
-  button.onclick = () => {
-    if (typeof onClick === 'function') onClick();
+  button.onclick = (pointerEvent) => {
+    if (typeof onClick === 'function') onClick({ pointerEvent });
   };
 
   return button;

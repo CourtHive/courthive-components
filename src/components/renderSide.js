@@ -1,29 +1,20 @@
-import { sideContainerStyle, sideRowStyle } from "../styles/sideStyles";
-import { scoreWrapperStyle } from "../styles/scoreWrapperStyle";
-import { renderParticipant } from "./renderParticipant";
-import { utilities } from "tods-competition-factory";
-import { renderSideScore } from "./renderSideScore";
-import { renderSchedule } from "./renderSchedule";
-import cx from "classnames";
+import { sideContainerStyle, sideRowStyle } from '../styles/sideStyles';
+import { scoreWrapperStyle } from '../styles/scoreWrapperStyle';
+import { renderParticipant } from './renderParticipant';
+import { utilities } from 'tods-competition-factory';
+import { renderSideScore } from './renderSideScore';
+import { renderSchedule } from './renderSchedule';
+import cx from 'classnames';
 
-export function renderSide({
-  eventHandlers,
-  composition,
-  sideNumber,
-  className,
-  matchUp,
-}) {
+export function renderSide({ eventHandlers, composition, sideNumber, className, matchUp }) {
   const configuration = composition?.configuration || {};
   const scheduleInfo = configuration?.scheduleInfo;
 
   const hasScore = matchUp?.score?.scoreStringSide1;
   const scoreBox = composition?.configuration?.scoreBox && hasScore;
-  const readyToScore =
-    matchUp?.readyToScore &&
-    eventHandlers?.scoreClick &&
-    !utilities.scoreHasValue({ matchUp });
+  const readyToScore = matchUp?.readyToScore && eventHandlers?.scoreClick && !utilities.scoreHasValue({ matchUp });
 
-  const div = document.createElement("div");
+  const div = document.createElement('div');
   div.className = cx(sideContainerStyle(), className);
 
   if (scheduleInfo && sideNumber === 1) {
@@ -31,7 +22,7 @@ export function renderSide({
     div.appendChild(schedule);
   }
 
-  const sideRow = document.createElement("div");
+  const sideRow = document.createElement('div');
   sideRow.className = sideRowStyle();
 
   const participant = renderParticipant({
@@ -39,13 +30,13 @@ export function renderSide({
     eventHandlers,
     composition,
     sideNumber,
-    matchUp,
+    matchUp
   });
 
   sideRow.appendChild(participant);
 
   if (scoreBox) {
-    const box = document.createElement("div");
+    const box = document.createElement('div');
     box.style.border = `1px solid lightgray`;
     sideRow.appendChild(box);
   }
@@ -55,23 +46,23 @@ export function renderSide({
       eventHandlers,
       composition,
       sideNumber,
-      matchUp,
+      matchUp
     });
     sideRow.appendChild(sideScore);
   }
 
   if (readyToScore) {
     const scoringStyle = scoreWrapperStyle();
-    const handleScoreClick = (event) => {
-      if (typeof eventHandlers?.scoreClick === "function") {
+    const handleScoreClick = (pointerEvent) => {
+      if (typeof eventHandlers?.scoreClick === 'function') {
         event.stopPropagation();
-        eventHandlers.scoreClick({ event, matchUp });
+        eventHandlers.scoreClick({ pointerEvent, matchUp });
       }
     };
-    const score = document.createElement("div");
+    const score = document.createElement('div');
     score.className = scoringStyle({
       sideNumber: !scoreBox && sideNumber,
-      fontSize: "small",
+      fontSize: 'small'
     });
     score.onclick = handleScoreClick;
     score.innerHTML = `[Score]`;
