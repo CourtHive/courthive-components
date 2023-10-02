@@ -1,9 +1,9 @@
 import cx from 'classnames';
 import { columnStyle, entryStyle, getInfoStyle, statusStyle } from '../styles/centerInfoStyle';
 
-export function renderCenterInfo({ eventHandlers, entryStatus, sideNumber, className }) {
+export function renderCenterInfo({ eventHandlers, entryStatus, sideNumber, className, matchUp }) {
   const div = document.createElement('div');
-  div.onclick = eventHandlers?.centerInfoClick;
+  div.onclick = (pointerEvent) => eventHandlers?.centerInfoClick({ matchUp, sideNumber, pointerEvent });
   div.className = cx(getInfoStyle({ variant: sideNumber }), className);
 
   const column = document.createElement('div');
