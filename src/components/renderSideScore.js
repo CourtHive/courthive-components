@@ -43,10 +43,10 @@ export function renderSideScore({ participantHeight, eventHandlers, composition,
   const wrapperHeight = sideNumber === 2 ? participantHeight : participantHeight - 1; // account for border!!
   const scoreStyle = scoreWrapperStyle(wrapperHeight);
 
-  const handleScoreClick = (event) => {
+  const handleScoreClick = (pointerEvent) => {
     if (typeof eventHandlers?.scoreClick === 'function') {
-      event.stopPropagation();
-      eventHandlers.scoreClick({ event, matchUp });
+      pointerEvent.stopPropagation();
+      eventHandlers.scoreClick({ pointerEvent, matchUp });
     }
   };
 

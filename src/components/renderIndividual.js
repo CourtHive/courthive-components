@@ -15,13 +15,13 @@ export function renderIndividual(params) {
 
   const participantName = individualParticipant?.participantName;
 
-  const handleOnClick = (event) => {
+  const handleOnClick = (pointerEvent) => {
     if (typeof eventHandlers?.participantClick === 'function') {
-      event.stopPropagation();
+      pointerEvent.stopPropagation();
       eventHandlers.participantClick({
         individualParticipant,
+        pointerEvent,
         matchUp,
-        event,
         side
       });
     }

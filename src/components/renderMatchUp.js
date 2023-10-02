@@ -33,9 +33,9 @@ export function renderMatchUp(params) {
   const { resultsInfo, centerInfo } = configuration || {};
 
   const eventHandlers = params.eventHandlers || {};
-  const handleOnClick = (event) => {
+  const handleOnClick = (pointerEvent) => {
     if (typeof eventHandlers?.matchUpClick === 'function') {
-      eventHandlers.matchUpClick({ event, matchUp });
+      eventHandlers.matchUpClick({ pointerEvent, matchUp });
     }
   };
 
@@ -57,7 +57,8 @@ export function renderMatchUp(params) {
       eventHandlers,
       entryStatus,
       sideNumber,
-      className
+      className,
+      matchUp
     });
   };
 

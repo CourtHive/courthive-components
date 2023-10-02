@@ -13,11 +13,11 @@ const argTypes = {
 };
 
 const eventHandlers = {
-  centerInfoClick: () => console.log('centerInfo click'),
+  centerInfoClick: (params) => console.log('centerInfo click', params),
   participantClick: ({ individualParticipant, matchUp, side }) => {
     console.log({ individualParticipant, matchUp, side });
   },
-  scheduleClick: () => console.log('schedule click'),
+  scheduleClick: (params) => console.log('schedule click', params),
   scoreClick: ({ matchUp }) => {
     if (!matchUp.readyToScore && !matchUp.winningSide) return;
     const composition = {
@@ -34,7 +34,7 @@ const eventHandlers = {
   },
   groupHeaderClick: (params) => console.log('group header click', params),
   roundHeaderClick: (params) => console.log('round header click', params),
-  venueClick: () => console.log('venue click')
+  venueClick: (params) => console.log('venue click', params)
 };
 
 export default {
