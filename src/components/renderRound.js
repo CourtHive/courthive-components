@@ -80,8 +80,13 @@ export function renderRound({
       groupName.className = groupNameStyle();
       if (isFunction(eventHandlers?.groupHeaderClick)) {
         const { drawId, containerStructureId } = roundMatchUps[0];
-        div.onclick = () =>
-          eventHandlers.groupHeaderClick({ drawId, structureId: structureIds[groupIndex], containerStructureId });
+        div.onclick = (pointerEvent) =>
+          eventHandlers.groupHeaderClick({
+            drawId,
+            structureId: structureIds[groupIndex],
+            containerStructureId,
+            pointerEvent
+          });
       }
       if (roundNumber === 1) groupName.innerHTML = rrGroupName;
       div.appendChild(groupName);
