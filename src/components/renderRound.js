@@ -25,7 +25,7 @@ export function renderRound({
     .filter((matchUp) => matchUp.roundNumber === roundNumber)
     .sort((a, b) => (a.roundPosition || 0) - (b.roundPosition || 0));
 
-  const isAdHoc = roundMatchUps.every(({ roundPosition }) => !roundPosition);
+  const isAdHoc = roundMatchUps.every(({ roundPosition, drawPositions }) => !roundPosition && !drawPositions);
 
   const configuration = composition?.configuration || {};
 
@@ -38,7 +38,7 @@ export function renderRound({
   }
 
   const div = document.createElement('div');
-  div.className = roundStyle();
+  div.className = roundStyle({ variant: isAdHoc ? 'adHoc' : undefined });
 
   let structureNames;
   let structureIds;
