@@ -52,6 +52,23 @@ export const ParticipantWTN = {
   }
 };
 
+export const Address = {
+  args: {
+    sideNumber: 1,
+    composition: {
+      configuration: { bracketedSeeds: 'square', flags: true, participantDetail: 'ADDRESS' }
+    }
+  }
+};
+export const Team = {
+  args: {
+    sideNumber: 1,
+    composition: {
+      configuration: { bracketedSeeds: 'square', flags: true, participantDetail: 'TEAM' }
+    }
+  }
+};
+
 export const Singles = {
   args: {
     sideNumber: 1,

@@ -51,7 +51,12 @@ export function generateMatchUps({
 
   const { tournamentRecord } = result;
 
-  const { matchUps: allMatchUps } = tournamentEngine.setState(tournamentRecord).allTournamentMatchUps();
+  tournamentEngine.setState(tournamentRecord);
+
+  tournamentEngine.generateTeamsFromParticipantAttribute({ personAttribute: 'nationalityCode', addParticipants: true });
+  const { matchUps: allMatchUps } = tournamentEngine.allTournamentMatchUps({
+    participantsProfile: { withGroupings: true }
+  });
   const matchUpIds = allMatchUps.map(({ matchUpId }) => matchUpId);
   const schedule = {
     startTime: '08:00',
