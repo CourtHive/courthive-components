@@ -26,11 +26,14 @@ export default {
     if (args.editing) {
       matchUp.score.sets[0].editing = 2;
     }
-    const content = renderMatchUp({
+    const renderedMatchUp = renderMatchUp({
       ...args,
       matchUp,
       composition
     });
+    const content = document.createElement('div');
+    content.style.maxWidth = '500px';
+    content.appendChild(renderedMatchUp);
     return renderContainer({ theme: composition.theme, content });
   },
   argTypes
@@ -38,12 +41,14 @@ export default {
 
 export const Singles = {
   args: {
+    composition: 'Australian',
     isLucky: true
   }
 };
 
 export const Doubles = {
   args: {
+    composition: 'Wimbledon',
     eventType: 'DOUBLES',
     isLucky: true
   }
@@ -51,6 +56,7 @@ export const Doubles = {
 
 export const Editing = {
   args: {
+    composition: 'Basic',
     isLucky: true,
     editing: 1
   }
