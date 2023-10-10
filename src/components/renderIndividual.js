@@ -1,6 +1,6 @@
 import { getPlacholderStyle, participantNameStyle, participantStyle } from '../styles/participantStyle';
+import { renderParticipantDetail } from './renderParticipantDetail';
 import { seedStyle } from '../styles/seedStyle';
-import { renderAddress } from './renderAddress';
 import { renderFrill } from './renderFrill';
 
 const QUALIFIER = 'Qualifier';
@@ -76,8 +76,8 @@ export function renderIndividual(params) {
   individual.appendChild(name);
   div.appendChild(individual);
 
-  const address = renderAddress(params);
-  div.appendChild(address);
+  const participantDetail = renderParticipantDetail(params);
+  div.appendChild(participantDetail);
 
   return div;
 }
