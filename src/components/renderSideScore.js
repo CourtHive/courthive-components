@@ -6,6 +6,7 @@ export function setScore({ gameScoreOnly, scoreStripes, set, sideNumber }) {
   const isWinningSide = sideNumber === set?.winningSide;
   const variant = (isWinningSide && 'winner') || set?.winningSide ? 'loser' : undefined;
   const gameScore = sideNumber === 2 ? set.side2Score : set.side1Score;
+  const hasTiebreakScore = set.side2TiebreakScore || set.side1TiebreakScore;
   const tieBreakScore = sideNumber === 2 ? set.side2TiebreakScore : set.side1TiebreakScore;
   const tieBreakSet = gameScore === undefined && tieBreakScore;
   const scoreDisplay = tieBreakSet || gameScore;
@@ -26,7 +27,7 @@ export function setScore({ gameScoreOnly, scoreStripes, set, sideNumber }) {
     if (!gameScoreOnly) {
       const span = document.createElement('span');
       span.className = tieBreakStyle();
-      span.innerHTML = tieBreakSet ? tieBreakScore : '';
+      span.innerHTML = hasTiebreakScore && !tieBreakSet ? tieBreakScore : '';
       p.appendChild(span);
     }
   }
