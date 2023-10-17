@@ -45,9 +45,7 @@ export function renderMatchUp(params) {
 
   // event metadata
   container.classList.add('tmx-m');
-  if (matchUp?.matchUpId) {
-    container.setAttribute('id', matchUp.matchUpId);
-  }
+  container.setAttribute('id', matchUp?.matchUpId);
 
   container.onclick = handleOnClick;
 

@@ -9,9 +9,7 @@ export function renderTeam({ individualParticipant, className }) {
   div.className = cx(participantDetailStyle(), className);
 
   div.classList.add('tmx-tm');
-  if (team?.participantId) {
-    div.setAttribute('id', team.participantId);
-  }
+  div.setAttribute('id', team?.participantId);
   div.innerHTML = teamName;
 
   return div;
