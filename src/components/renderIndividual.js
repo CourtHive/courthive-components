@@ -33,9 +33,7 @@ export function renderIndividual(params) {
   // event metadata
   div.classList.add('tmx-i');
   div.setAttribute('sideNumber', sideNumber);
-  if (individualParticipant?.participantId) {
-    div.setAttribute('id', individualParticipant.participantId);
-  }
+  div.setAttribute('id', individualParticipant?.participantId);
 
   div.onclick = handleOnClick;
 
