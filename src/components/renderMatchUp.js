@@ -41,6 +41,11 @@ export function renderMatchUp(params) {
 
   const container = document.createElement('div');
   container.className = cx(composition.theme, params?.className, 'matchup', matchUpContainerStyle());
+
+  // event metadata
+  container.classList.add('tmx-m');
+  container.setAttribute('id', matchUp?.matchUpId);
+
   container.onclick = handleOnClick;
 
   const component = document.createElement('div');
@@ -78,8 +83,10 @@ export function renderMatchUp(params) {
 
   component.appendChild(side1);
   if (centerInfo) {
-    component.appendChild(entryStatusDisplay({ sideNumber: 1 }));
-    component.appendChild(entryStatusDisplay({ sideNumber: 2 }));
+    const s1 = entryStatusDisplay({ sideNumber: 1 });
+    const s2 = entryStatusDisplay({ sideNumber: 2 });
+    component.appendChild(s1.element);
+    component.appendChild(s2.element);
   }
   component.appendChild(side2);
 

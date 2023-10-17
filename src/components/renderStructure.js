@@ -9,6 +9,7 @@ export function renderStructure({
   eventHandlers,
   searchActive,
   composition,
+  structureId,
   finalColumn,
   matchUps,
   context
@@ -17,12 +18,15 @@ export function renderStructure({
     matchUps
   });
 
+  structureId = structureId || context?.structureId || matchUps?.[0]?.structureId;
   const isRoundRobin = matchUps.some(({ isRoundRobin }) => isRoundRobin);
-
   const isLucky = hasOddMatchUpsCount || isNotEliminationStructure;
 
   const div = document.createElement('div');
   div.className = structureStyle();
+
+  div.classList.add('tmx-str');
+  div.setAttribute('id', structureId);
 
   const finalRoundNumber = Math.max(...roundNumbers);
 
