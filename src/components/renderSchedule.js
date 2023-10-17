@@ -1,5 +1,6 @@
 import { schedulingStyle } from '../styles/schedulingStyle';
 import { utilities } from 'tods-competition-factory';
+import { isFunction } from './modal/cmodal';
 import dayjs from 'dayjs';
 
 export function renderSchedule({ matchUp, eventHandlers }) {
@@ -28,14 +29,16 @@ export function renderSchedule({ matchUp, eventHandlers }) {
 
   div.classList.add('tmx-sch');
 
-  div.onclick = (pointerEvent) => eventHandlers?.scheduleClick({ matchUp, pointerEvent });
+  if (isFunction(eventHandlers?.scheduleClick)) {
+    div.onclick = (pointerEvent) => eventHandlers.scheduleClick({ matchUp, pointerEvent });
+  }
 
   const dateDisplay = document.createElement('div');
   dateDisplay.innerHTML = displayDate;
   div.append(dateDisplay);
 
   const handleVenueClick = (pointerEvent) => {
-    if (typeof eventHandlers?.venueClick === 'function') {
+    if (isFunction(eventHandlers?.venueClick)) {
       pointerEvent.stopPropagation();
       eventHandlers.venueClick({
         pointerEvent,

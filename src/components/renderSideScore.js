@@ -1,6 +1,7 @@
-import { scoreWrapperStyle } from '../styles/scoreWrapperStyle';
 import { gameScoreStyle, tieBreakStyle, gameWrapperStyle } from '../styles/scoreStyles';
+import { scoreWrapperStyle } from '../styles/scoreWrapperStyle';
 import { renderGameScore } from './renderGameScore';
+import { isFunction } from './modal/cmodal';
 
 export function setScore({ gameScoreOnly, scoreStripes, set, sideNumber }) {
   const isWinningSide = sideNumber === set?.winningSide;
@@ -49,7 +50,7 @@ export function renderSideScore({ participantHeight, eventHandlers, composition,
   const scoreStyle = scoreWrapperStyle(wrapperHeight);
 
   const handleScoreClick = (pointerEvent) => {
-    if (typeof eventHandlers?.scoreClick === 'function') {
+    if (isFunction(eventHandlers?.scoreClick)) {
       pointerEvent.stopPropagation();
       eventHandlers.scoreClick({ pointerEvent, matchUp });
     }
