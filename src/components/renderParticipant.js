@@ -51,9 +51,7 @@ export function renderParticipant({
     });
 
   participantContainer.classList.add('tmx-p');
-  if (participant?.participantId) {
-    participantContainer.setAttribute('id', participant.participantId);
-  }
+  participantContainer.setAttribute('id', participant?.participantId);
 
   if (teamLogo) {
     const logo = renderTeamLogo({ teamLogo });
