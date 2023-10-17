@@ -2,6 +2,7 @@ import { getPlacholderStyle, participantNameStyle, participantStyle } from '../s
 import { renderParticipantDetail } from './renderParticipantDetail';
 import { seedStyle } from '../styles/seedStyle';
 import { renderFrill } from './renderFrill';
+import { isFunction } from './modal/cmodal';
 
 const QUALIFIER = 'Qualifier';
 const BYE = 'BYE';
@@ -16,7 +17,7 @@ export function renderIndividual(params) {
   const participantName = individualParticipant?.participantName;
 
   const handleOnClick = (pointerEvent) => {
-    if (typeof eventHandlers?.participantClick === 'function') {
+    if (isFunction(eventHandlers?.participantClick)) {
       pointerEvent.stopPropagation();
       eventHandlers.participantClick({
         individualParticipant,
@@ -32,7 +33,9 @@ export function renderIndividual(params) {
   // event metadata
   div.classList.add('tmx-i');
   div.setAttribute('sideNumber', sideNumber);
-  div.setAttribute('id', individualParticipant?.participantId);
+  if (individualParticipant?.participantId) {
+    div.setAttribute('id', individualParticipant.participantId);
+  }
 
   div.onclick = handleOnClick;
 
