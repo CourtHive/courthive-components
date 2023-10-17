@@ -8,7 +8,7 @@ const BYE = 'BYE';
 const TBD = 'TBD';
 
 export function renderIndividual(params) {
-  const { isWinningSide, side, individualParticipant, matchUp, composition } = params || {};
+  const { isWinningSide, side, sideNumber, individualParticipant, matchUp, composition } = params || {};
   const variant = isWinningSide ? 'winner' : undefined;
   const eventHandlers = params.eventHandlers || {};
   const configuration = composition?.configuration;
@@ -28,6 +28,12 @@ export function renderIndividual(params) {
   };
 
   const div = document.createElement('div');
+
+  // event metadata
+  div.classList.add('tmx-i');
+  div.setAttribute('sideNumber', sideNumber);
+  div.setAttribute('id', individualParticipant?.participantId);
+
   div.onclick = handleOnClick;
 
   const individual = document.createElement('div');
@@ -79,5 +85,5 @@ export function renderIndividual(params) {
   const participantDetail = renderParticipantDetail(params);
   div.appendChild(participantDetail);
 
-  return div;
+  return { element: div };
 }

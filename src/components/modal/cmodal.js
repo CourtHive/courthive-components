@@ -261,11 +261,17 @@ export const cModal = (() => {
       dialog.appendChild(footer);
     };
 
-    const update = ({ content: newContent, buttons, title, config: newConfig }) => {
+    const setOnClose = ({ onClose }) => {
+      closeFx.length = 0; // clear array
+      closeFx.push(onClose);
+    };
+
+    const update = ({ content: newContent, buttons, title, config: newConfig, onClose }) => {
       config = newConfig || config;
 
       if (newContent) setContent({ content: newContent, config });
       if (buttons) setButtons({ buttons, config });
+      if (onClose) setOnClose({ onClose });
       if (title) setTitle({ title, config });
     };
 

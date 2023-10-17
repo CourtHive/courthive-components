@@ -1,10 +1,14 @@
-import cx from 'classnames';
 import { columnStyle, entryStyle, getInfoStyle, statusStyle } from '../styles/centerInfoStyle';
+import cx from 'classnames';
 
 export function renderCenterInfo({ eventHandlers, entryStatus, sideNumber, className, matchUp }) {
   const div = document.createElement('div');
   div.onclick = (pointerEvent) => eventHandlers?.centerInfoClick({ matchUp, sideNumber, pointerEvent });
   div.className = cx(getInfoStyle({ variant: sideNumber }), className);
+
+  // event metadata
+  div.classList.add('tmx-ci');
+  div.setAttribute('sideNumber', sideNumber);
 
   const column = document.createElement('div');
   column.className = columnStyle();
@@ -25,5 +29,5 @@ export function renderCenterInfo({ eventHandlers, entryStatus, sideNumber, class
   column.appendChild(entry);
   div.appendChild(column);
 
-  return div;
+  return { element: div };
 }

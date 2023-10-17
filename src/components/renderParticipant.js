@@ -50,6 +50,9 @@ export function renderParticipant({
       sideNumber
     });
 
+  participantContainer.classList.add('tmx-p');
+  participantContainer.setAttribute('id', participant?.participantId);
+
   if (teamLogo) {
     const logo = renderTeamLogo({ teamLogo });
     participantContainer.appendChild(logo);
@@ -71,9 +74,10 @@ export function renderParticipant({
     eventHandlers,
     isWinningSide,
     composition,
+    sideNumber,
     matchUp,
     side
-  });
+  }).element;
 
   annotationDiv.appendChild(Individual);
 
@@ -83,9 +87,10 @@ export function renderParticipant({
       eventHandlers,
       isWinningSide,
       composition,
+      sideNumber,
       matchUp,
       side
-    });
+    }).element;
 
     annotationDiv.appendChild(Individual);
   } else if (isDoubles && placeholder) {

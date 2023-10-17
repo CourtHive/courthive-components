@@ -32,6 +32,9 @@ export function renderRound({
   const roundContainer = document.createElement('div');
   roundContainer.className = roundContainerStyle();
 
+  roundContainer.classList.add('tmx-rd');
+  roundContainer.setAttribute('roundNumber', roundNumber);
+
   if (configuration.roundHeader) {
     const header = renderRoundHeader({ roundProfile, roundMatchUps, roundNumber, eventHandlers, context });
     roundContainer.appendChild(header);

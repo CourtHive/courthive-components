@@ -25,6 +25,9 @@ export function renderSchedule({ matchUp, eventHandlers }) {
 
   const div = document.createElement('div');
   div.className = schedulingStyle();
+
+  div.classList.add('tmx-sch');
+
   div.onclick = (pointerEvent) => eventHandlers?.scheduleClick({ matchUp, pointerEvent });
 
   const dateDisplay = document.createElement('div');
