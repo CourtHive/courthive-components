@@ -4,6 +4,7 @@ import { matchUpContainerStyle } from '../styles/matchUpContainerStyle';
 import { getMatchUpStyle } from '../styles/getMatchUpStyle';
 import { renderCenterInfo } from './renderCenterInfo';
 import { getLinkStyle } from '../styles/getLinkStyle';
+import { isFunction } from './modal/cmodal';
 import { renderSide } from './renderSide';
 import cx from 'classnames';
 
@@ -34,7 +35,7 @@ export function renderMatchUp(params) {
 
   const eventHandlers = params.eventHandlers || {};
   const handleOnClick = (pointerEvent) => {
-    if (typeof eventHandlers?.matchUpClick === 'function') {
+    if (isFunction(eventHandlers?.matchUpClick)) {
       eventHandlers.matchUpClick({ pointerEvent, matchUp });
     }
   };
@@ -44,7 +45,9 @@ export function renderMatchUp(params) {
 
   // event metadata
   container.classList.add('tmx-m');
-  container.setAttribute('id', matchUp?.matchUpId);
+  if (matchUp?.matchUpId) {
+    container.setAttribute('id', matchUp.matchUpId);
+  }
 
   container.onclick = handleOnClick;
 

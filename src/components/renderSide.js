@@ -4,6 +4,7 @@ import { renderParticipant } from './renderParticipant';
 import { utilities } from 'tods-competition-factory';
 import { renderSideScore } from './renderSideScore';
 import { renderSchedule } from './renderSchedule';
+import { isFunction } from './modal/cmodal';
 import cx from 'classnames';
 
 export function renderSide({ eventHandlers, composition, sideNumber, className, matchUp }) {
@@ -57,7 +58,7 @@ export function renderSide({ eventHandlers, composition, sideNumber, className, 
   if (readyToScore) {
     const scoringStyle = scoreWrapperStyle();
     const handleScoreClick = (pointerEvent) => {
-      if (typeof eventHandlers?.scoreClick === 'function') {
+      if (isFunction(eventHandlers?.scoreClick)) {
         event.stopPropagation();
         eventHandlers.scoreClick({ pointerEvent, matchUp });
       }
