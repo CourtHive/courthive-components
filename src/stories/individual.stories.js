@@ -4,7 +4,7 @@ export default {
   title: 'Participants/Individual',
   tags: ['autodocs'],
   render: ({ ...args }) => {
-    return renderIndividual({ ...args });
+    return renderIndividual({ ...args }).element;
   },
   argTypes: {
     name: { control: 'text' },

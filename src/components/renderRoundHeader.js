@@ -5,6 +5,9 @@ export function renderRoundHeader({ eventHandlers, roundMatchUps, roundProfile, 
   const div = document.createElement('div');
   div.className = roundHeaderStyle();
 
+  div.classList.add('tmx-rh');
+  div.setAttribute('roundNumber', roundNumber);
+
   const hasAction = isFunction(eventHandlers?.roundHeaderClick);
   if (hasAction) {
     div.onclick = (pointerEvent) =>
