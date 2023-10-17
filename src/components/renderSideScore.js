@@ -21,6 +21,10 @@ export function setScore({ gameScoreOnly, scoreStripes, set, sideNumber }) {
   } else {
     p = document.createElement('p');
     p.className = gameScoreStyle({ variant });
+
+    p.classList.add('tmx-st');
+    p.setAttribute('setNumber', set.setNumber);
+
     p.style.backgroundColor = stripedScore;
     p.innerHTML = !isNaN(scoreDisplay) ? scoreDisplay : '';
 
@@ -56,7 +60,10 @@ export function renderSideScore({ participantHeight, eventHandlers, composition,
     sideNumber: !scoreBox && sideNumber,
     fontSize: '5px'
   });
+
   div.classList.add('sideScore');
+  div.classList.add('tmx-scr');
+
   div.onclick = handleScoreClick;
 
   const gameWrapper = document.createElement('div');

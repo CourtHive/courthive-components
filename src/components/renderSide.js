@@ -17,6 +17,9 @@ export function renderSide({ eventHandlers, composition, sideNumber, className, 
   const div = document.createElement('div');
   div.className = cx(sideContainerStyle(), className);
 
+  div.classList.add('tmx-sd');
+  div.setAttribute('sideNumber', sideNumber);
+
   if (scheduleInfo && sideNumber === 1) {
     const schedule = renderSchedule({ matchUp, eventHandlers });
     div.appendChild(schedule);
