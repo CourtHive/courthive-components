@@ -26,9 +26,7 @@ export function renderStructure({
   div.className = structureStyle();
 
   div.classList.add('tmx-str');
-  if (structureId) {
-    div.setAttribute('id', structureId);
-  }
+  div.setAttribute('id', structureId);
 
   const finalRoundNumber = Math.max(...roundNumbers);
 
