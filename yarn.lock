@@ -9512,10 +9512,10 @@ tocbot@^4.20.1:
   resolved "https://registry.yarnpkg.com/tocbot/-/tocbot-4.21.2.tgz#7ae513d73dddb80f126724160bd6f72bf8638edb"
   integrity sha512-R5Muhi/TUu4i4snWVrMgNoXyJm2f8sJfdgIkQvqb+cuIXQEIMAiWGWgCgYXHqX4+XiS/Bnm7IYZ9Zy6NVe6lhw==
 
-tods-competition-factory@^1.7.4:
-  version "1.7.8"
-  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.7.8.tgz#b5f6db4308714a1d48b7b355bf4e9fa2da2265cc"
-  integrity sha512-XvEavWg2okmpvnTA5nWezcQKsfQhvhT/IEcCumx0zy45xfNNsBUgX+hxmb/ADOK328EoOT7+nP+ZGSBPM0kIXQ==
+tods-competition-factory@^1.7.18:
+  version "1.7.18"
+  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.7.18.tgz#460e4829bf9c1ad5a62afef88b2248e9064367c4"
+  integrity sha512-he91PWQg6rykH5PmP3J9DPp7lAqd9R0YHt3IXSyXCU66osqMT4dSkZaKRTvGw+lyxwEFkwIOgUwOKRESRYn5/g==
   dependencies:
     "@babel/plugin-transform-nullish-coalescing-operator" "^7.22.11"
     "@babel/plugin-transform-optional-chaining" "^7.23.0"
