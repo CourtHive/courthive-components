@@ -3,6 +3,7 @@ import { getChevronStyle } from '../styles/getChevronStyle';
 import { renderIndividual } from './renderIndividual';
 import { renderStatusPill } from './renderStatusPill';
 import { renderTeamLogo } from './renderTeamLogo';
+import { isElement } from 'utilities/isElement';
 import { renderTick } from './renderTick';
 
 export function renderParticipant({
@@ -93,7 +94,7 @@ export function renderParticipant({
     }).element;
 
     annotationDiv.appendChild(Individual);
-  } else if (isDoubles && placeholder) {
+  } else if (isDoubles && placeholder && isElement(placeholder)) {
     annotationDiv.appendChild(placeholder);
   }
 
