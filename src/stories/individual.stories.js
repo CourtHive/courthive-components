@@ -25,6 +25,13 @@ export const Basic = {
   }
 };
 
+export const TBDAsDash = {
+  args: {
+    individualParticipant: { participantName: undefined },
+    composition: { configuration: { flags: false, placeHolders: { tbd: '-' } } }
+  }
+};
+
 export const GenderedMale = {
   args: {
     individualParticipant: { participantName, person: { sex: 'MALE' } },

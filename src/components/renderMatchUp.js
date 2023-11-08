@@ -11,11 +11,14 @@ import cx from 'classnames';
 export function renderMatchUp(params) {
   const { composition, matchUp, moeity, selectedMatchUpId, searchActive } = params;
   const { roundFactor, roundNumber, finishingRound, matchUpType, preFeedRound, stage } = matchUp;
-  const qualifyingStage = stage === 'QUALIFYING';
   const isFinalRound = params.isFinalRound || parseInt(finishingRound) === 1;
   const isQualifying = stage === 'QUALIFYING' && isFinalRound;
 
-  const noProgression = !qualifyingStage && isFinalRound;
+  // NOTE: is it desireable to have trailing - for final round of qualifying?
+  // const qualifyingStage = stage === 'QUALIFYING';
+  // const noProgression = !qualifyingStage && isFinalRound;
+
+  const noProgression = isFinalRound;
   const isFirstRound = parseInt(roundNumber) === 1;
   const isDoubles = matchUpType === 'DOUBLES';
   const link =
