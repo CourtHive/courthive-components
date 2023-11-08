@@ -14,6 +14,12 @@ export function renderIndividual(params) {
   const eventHandlers = params.eventHandlers || {};
   const configuration = composition?.configuration;
 
+  const placeHolders = {
+    QUALIFIER: configuration?.placeHolders?.qualifier || QUALIFIER,
+    BYE: configuration?.placeHolders?.bye || BYE,
+    TBD: configuration?.placeHolders?.tbd || TBD
+  };
+
   const participantName = individualParticipant?.participantName;
 
   const handleOnClick = (pointerEvent) => {
@@ -69,7 +75,8 @@ export function renderIndividual(params) {
     const placeholder = document.createElement('abbr');
     // if { showAddress: true } pad placeholder
     placeholder.className = getPlacholderStyle({ variant: configuration.showAddress ? 'showAddress' : '' });
-    placeholder.innerHTML = (side?.bye && BYE) || (side?.qualifier && QUALIFIER) || TBD;
+    placeholder.innerHTML =
+      (side?.bye && placeHolders.BYE) || (side?.qualifier && placeHolders.QUALIFIER) || placeHolders.TBD;
     name.appendChild(placeholder);
   }
 
