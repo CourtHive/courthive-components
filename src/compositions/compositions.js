@@ -14,7 +14,7 @@ export const compositions = {
     theme: australianTheme
   },
   Basic: {
-    configuration: { gameScoreOnly: true, teamLogo: false, roundHeader: true },
+    configuration: { gameScoreOnly: true, teamLogo: false, roundHeader: true, placeHolders: { tbd: '-', bye: 'Bye' } },
     theme: basicTheme
   },
   DrawPositions: {
