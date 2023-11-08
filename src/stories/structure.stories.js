@@ -21,7 +21,11 @@ const eventHandlers = {
   scoreClick: ({ matchUp }) => {
     if (!matchUp.readyToScore && !matchUp.winningSide) return;
     const composition = {
-      configuration: { bracketedSeeds: 'square', flags: true, showAddress: true }
+      configuration: {
+        bracketedSeeds: 'square',
+        flags: true,
+        showAddress: true
+      }
     };
     const participants = matchUp.sides.map(({ participant }) => participant);
     const content = renderParticipant({ participant: participants[0], matchUp, composition });
