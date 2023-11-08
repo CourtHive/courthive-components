@@ -1,3 +1,3 @@
 export function isElement(element) {
-  return element instanceof Element || element instanceof HTMLDocument;
+  return element instanceof Element || element;
 }
