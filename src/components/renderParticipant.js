@@ -2,8 +2,8 @@ import { getParticipantContainerStyle, participantTypeStyle } from '../styles/pa
 import { getChevronStyle } from '../styles/getChevronStyle';
 import { renderIndividual } from './renderIndividual';
 import { renderStatusPill } from './renderStatusPill';
+import { isElement } from '../utilities/isElement';
 import { renderTeamLogo } from './renderTeamLogo';
-import { isElement } from 'utilities/isElement';
 import { renderTick } from './renderTick';
 
 export function renderParticipant({
