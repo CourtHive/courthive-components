@@ -1,4 +1,4 @@
-import { fixtures, utilities, mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { fixtures, tools, mocksEngine, tournamentEngine } from 'tods-competition-factory';
 
 export function generateEventData({
   matchUpFormat = 'SET5-S:6/TB7',
@@ -43,7 +43,7 @@ function genData({ drawProfile, completeAllMatchUps, autoSchedule }) {
   const venueId = 'venueId';
   const startTime = '08:00';
   const endTime = '20:00';
-  const startDate = utilities.dateTime.extractDate(new Date().toISOString());
+  const startDate = tools.dateTime.extractDate(new Date().toISOString());
   const drawProfiles = [drawProfile];
   const venueProfiles = [
     {

@@ -1,5 +1,5 @@
 import { schedulingStyle } from '../styles/schedulingStyle';
-import { utilities } from 'tods-competition-factory';
+import { tools } from 'tods-competition-factory';
 import { isFunction } from './modal/cmodal';
 import dayjs from 'dayjs';
 
@@ -7,7 +7,7 @@ export function renderSchedule({ matchUp, eventHandlers }) {
   const { scheduledTime, scheduledDate, venueAbbreviation, courtName } = matchUp?.schedule || {};
   const {
     dateTime: { extractDate, extractTime }
-  } = utilities;
+  } = tools;
   const time = extractTime(scheduledTime);
   const date = extractDate(scheduledDate);
   let constructedDateString = date;

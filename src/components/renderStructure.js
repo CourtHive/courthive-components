@@ -1,6 +1,6 @@
 import { roundContainerStyle } from '../styles/roundContainerStyle';
+import { tournamentEngine } from 'tods-competition-factory';
 import { structureStyle } from '../styles/structureStyle';
-import { drawEngine } from 'tods-competition-factory';
 import { roundStyle } from '../styles/roundStyle';
 import { renderRound } from './renderRound';
 
@@ -14,9 +14,10 @@ export function renderStructure({
   matchUps,
   context
 }) {
-  const { roundNumbers, roundProfile, hasOddMatchUpsCount, isNotEliminationStructure } = drawEngine.getRoundMatchUps({
-    matchUps
-  });
+  const { roundNumbers, roundProfile, hasOddMatchUpsCount, isNotEliminationStructure } =
+    tournamentEngine.getRoundMatchUps({
+      matchUps
+    });
 
   structureId = structureId || context?.structureId || matchUps?.[0]?.structureId;
   const isRoundRobin = matchUps.some(({ isRoundRobin }) => isRoundRobin);
