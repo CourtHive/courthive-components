@@ -7,6 +7,7 @@ import { renderTeamLogo } from './renderTeamLogo';
 import { renderTick } from './renderTick';
 
 export function renderParticipant({
+  initialRoundNumber = 1,
   eventHandlers,
   sideContainer,
   composition,
@@ -27,7 +28,7 @@ export function renderParticipant({
       configuration?.allDrawPositions ||
       (configuration?.drawPositions &&
         side?.drawPosition &&
-        (matchUp?.roundNumber === 1 || side?.participantFed || isRoundRobin))
+        (matchUp?.roundNumber === initialRoundNumber || side?.participantFed || isRoundRobin))
         ? side?.drawPosition
         : '';
   }

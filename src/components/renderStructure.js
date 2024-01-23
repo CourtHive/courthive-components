@@ -5,6 +5,7 @@ import { roundStyle } from '../styles/roundStyle';
 import { renderRound } from './renderRound';
 
 export function renderStructure({
+  initialRoundNumber = 1,
   selectedMatchUpId,
   eventHandlers,
   searchActive,
@@ -15,9 +16,7 @@ export function renderStructure({
   context
 }) {
   const { roundNumbers, roundProfile, hasOddMatchUpsCount, isNotEliminationStructure } =
-    tournamentEngine.getRoundMatchUps({
-      matchUps
-    });
+    tournamentEngine.getRoundMatchUps({ matchUps });
 
   structureId = structureId || context?.structureId || matchUps?.[0]?.structureId;
   const isRoundRobin = matchUps.some(({ isRoundRobin }) => isRoundRobin);
@@ -32,8 +31,10 @@ export function renderStructure({
   const finalRoundNumber = Math.max(...roundNumbers);
 
   for (const roundNumber of roundNumbers) {
+    if (roundNumber < initialRoundNumber) continue;
     const isFinalRound = roundNumber === finalRoundNumber;
     const round = renderRound({
+      initialRoundNumber,
       selectedMatchUpId,
       eventHandlers,
       isFinalRound,

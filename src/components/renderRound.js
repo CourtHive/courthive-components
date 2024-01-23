@@ -8,6 +8,7 @@ import { renderMatchUp } from './renderMatchUp';
 import { isFunction } from './modal/cmodal';
 
 export function renderRound({
+  initialRoundNumber = 1,
   selectedMatchUpId,
   eventHandlers,
   isFinalRound,
@@ -91,13 +92,18 @@ export function renderRound({
             pointerEvent
           });
       }
-      if (roundNumber === 1) groupName.innerHTML = rrGroupName;
+      if (roundNumber === initialRoundNumber) groupName.innerHTML = rrGroupName;
       div.appendChild(groupName);
     }
 
     const moeity = i % 2 === 0;
-    if (roundFactor) matchUp.roundFactor = roundFactor;
+    if (roundFactor) {
+      matchUp.roundFactor = roundFactor;
+    } else if (initialRoundNumber > 1) {
+      matchUp.roundFactor = Math.pow(2, roundNumber - initialRoundNumber);
+    }
     const m = renderMatchUp({
+      initialRoundNumber,
       selectedMatchUpId,
       eventHandlers,
       isFinalRound,
