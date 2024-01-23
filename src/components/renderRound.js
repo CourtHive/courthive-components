@@ -2,7 +2,7 @@ import { groupSeparatorStyle } from '../styles/groupSeparatorStyle';
 import { roundContainerStyle } from '../styles/roundContainerStyle';
 import { groupNameStyle } from '../styles/groupNameStyle';
 import { renderRoundHeader } from './renderRoundHeader';
-import { utilities } from 'tods-competition-factory';
+import { tools } from 'tods-competition-factory';
 import { roundStyle } from '../styles/roundStyle';
 import { renderMatchUp } from './renderMatchUp';
 import { isFunction } from './modal/cmodal';
@@ -59,7 +59,7 @@ export function renderRound({
     }, {});
     structureNames = Object.values(structureDetails);
     structureIds = Object.keys(structureDetails);
-    groupsCount = Object.keys(utilities.instanceCount(roundMatchUps.map(({ structureId }) => structureId))).length;
+    groupsCount = Object.keys(tools.instanceCount(roundMatchUps.map(({ structureId }) => structureId))).length;
   } else if (isAdHoc) {
     roundMatchUps.sort((a, b) => (a.roundOrder ?? 0) - (b.roundOrder ?? 0));
   }
