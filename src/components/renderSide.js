@@ -1,7 +1,7 @@
 import { sideContainerStyle, sideRowStyle } from '../styles/sideStyles';
 import { scoreWrapperStyle } from '../styles/scoreWrapperStyle';
 import { renderParticipant } from './renderParticipant';
-import { utilities } from 'tods-competition-factory';
+import { tournamentEngine } from 'tods-competition-factory';
 import { renderSideScore } from './renderSideScore';
 import { renderSchedule } from './renderSchedule';
 import { isFunction } from './modal/cmodal';
@@ -13,7 +13,8 @@ export function renderSide({ eventHandlers, composition, sideNumber, className, 
 
   const hasScore = matchUp?.score?.scoreStringSide1;
   const scoreBox = composition?.configuration?.scoreBox && hasScore;
-  const readyToScore = matchUp?.readyToScore && eventHandlers?.scoreClick && !utilities.scoreHasValue({ matchUp });
+  const readyToScore =
+    matchUp?.readyToScore && eventHandlers?.scoreClick && !tournamentEngine.checkScoreHasValue({ matchUp });
 
   const div = document.createElement('div');
   div.className = cx(sideContainerStyle(), className);
