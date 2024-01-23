@@ -53,7 +53,7 @@ export function generateMatchUps({
 
   tournamentEngine.setState(tournamentRecord);
 
-  tournamentEngine.generateTeamsFromParticipantAttribute({ personAttribute: 'nationalityCode', addParticipants: true });
+  tournamentEngine.createTeamsFromParticipantAttributes({ personAttribute: 'nationalityCode', addParticipants: true });
   const { matchUps: allMatchUps } = tournamentEngine.allTournamentMatchUps({
     participantsProfile: { withGroupings: true }
   });
