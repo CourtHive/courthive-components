@@ -7,7 +7,7 @@ import { renderSchedule } from './renderSchedule';
 import { isFunction } from './modal/cmodal';
 import cx from 'classnames';
 
-export function renderSide({ eventHandlers, composition, sideNumber, className, matchUp }) {
+export function renderSide({ initialRoundNumber = 1, eventHandlers, composition, sideNumber, className, matchUp }) {
   const configuration = composition?.configuration || {};
   const scheduleInfo = configuration?.scheduleInfo;
 
@@ -32,6 +32,7 @@ export function renderSide({ eventHandlers, composition, sideNumber, className, 
 
   const participant = renderParticipant({
     sideContainer: true,
+    initialRoundNumber,
     eventHandlers,
     composition,
     sideNumber,
