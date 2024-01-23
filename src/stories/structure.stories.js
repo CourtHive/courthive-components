@@ -86,7 +86,22 @@ export const Doubles = {
   args: { drawSize: 16, participantsCount: 14, eventType: 'DOUBLES' }
 };
 export const National = {
-  args: { drawSize: 16, participantsCount: 14, completeAllMatchUps: false, composition: 'National' }
+  args: {
+    completeAllMatchUps: false,
+    composition: 'National',
+    initialRoundNumber: 1,
+    participantsCount: 14,
+    drawSize: 16
+  }
+};
+export const initialRound = {
+  args: {
+    completeAllMatchUps: false,
+    composition: 'National',
+    initialRoundNumber: 2,
+    participantsCount: 14,
+    drawSize: 16
+  }
 };
 export const Qualifying = {
   args: { drawSize: 16, participantsCount: 14, addQualifying: true }

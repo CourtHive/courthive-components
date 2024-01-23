@@ -1,7 +1,6 @@
 import { lineHeights } from '../compositions/lineHeights';
 import { css } from '@stitches/core';
 
-// TODO: roundFactorOffset for when view starts with roundNumber > 1
 export function getLinkStyle({ composition, isDoubles, roundFactor = 1 }) {
   const fontSize = parseInt(window.getComputedStyle(document.body).getPropertyValue('font-size'));
 
