@@ -87,7 +87,7 @@
     "class-variance-authority": "0.7.0",
     "classnames": "2.3.2",
     "dayjs": "1.11.9",
-    "husky": "8.0.3",
+    "husky": "9.0.10",
     "tods-competition-factory": "2.0.21"
   }
 }
