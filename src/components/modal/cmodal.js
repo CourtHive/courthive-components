@@ -1,3 +1,4 @@
+import { getAttr } from '../../helpers/getAttr';
 import {
   backdropStyle,
   bodyFreeze,
@@ -106,23 +107,13 @@ export const cModal = (() => {
     }
   };
 
-  const getConfigAttr = ({ config: node, attr }) => {
-    if (!isString(attr)) return;
-    const attrs = attr.split('.');
-    for (const a of attrs) {
-      node = node?.[a];
-      if (!node) return;
-    }
-    return node;
-  };
-
   const getUnitValue = ({ config, attr, attrs, unit = 'em', value }) => {
     let attrValue;
 
     if (isString(attr)) {
-      attrValue = getConfigAttr({ config, attr });
+      attrValue = getAttr({ element: config, attr });
     } else if (isArray(attrs)) {
-      attrValue = attrs.map((attr) => getConfigAttr({ config, attr })).filter(Boolean)?.[0];
+      attrValue = attrs.map((attr) => getAttr({ element: config, attr })).filter(Boolean)?.[0];
     }
 
     if (attrValue !== undefined) value = attrValue;
