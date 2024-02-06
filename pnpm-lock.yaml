@@ -29,11 +29,11 @@ dependencies:
 
 devDependencies:
   '@commitlint/cli':
-    specifier: 18.0.0
-    version: 18.0.0(@types/node@20.11.16)(typescript@5.3.3)
+    specifier: 18.6.0
+    version: 18.6.0(@types/node@20.11.16)(typescript@5.3.3)
   '@commitlint/config-conventional':
-    specifier: 18.0.0
-    version: 18.0.0
+    specifier: 18.6.0
+    version: 18.6.0
   '@storybook/addon-essentials':
     specifier: 7.6.10
     version: 7.6.10(react-dom@18.2.0)(react@18.2.0)
@@ -1574,8 +1574,8 @@ packages:
     dev: true
     optional: true
 
-  /@commitlint/cli@18.0.0(@types/node@20.11.16)(typescript@5.3.3):
-    resolution: {integrity: sha512-0HuJB7VfxSqia0r+mZ9VLgTc5gPaRDiQtloLfwCBp63PvpFn2sZsidiZBbym3jDC6+P47HSuIdRRg3/JsCcBwA==}
+  /@commitlint/cli@18.6.0(@types/node@20.11.16)(typescript@5.3.3):
+    resolution: {integrity: sha512-FiH23cr9QG8VdfbmvJJZmdfHGVMCouOOAzoXZ3Cd7czGC52RbycwNt8YCI7SA69pAl+t30vh8LMaO/N+kcel6w==}
     engines: {node: '>=v18'}
     hasBin: true
     dependencies:
@@ -1594,8 +1594,8 @@ packages:
       - typescript
     dev: true
 
-  /@commitlint/config-conventional@18.0.0:
-    resolution: {integrity: sha512-XZW3MDwhMWwr7pf+jO5F18ohBwrJ8mt+1OPhkVyO8bYrY0dKPE5tPpdXlDt+JCFurl4VnUDPmu6xZ4/cKCH7cA==}
+  /@commitlint/config-conventional@18.6.0:
+    resolution: {integrity: sha512-CDCOf2eJz9D/TL44IBks0stM9TmdLCNE2B48owIU3YCadwzts/bobXPScagIgPQF6hhKYMEdj5zpUDlmbwuqwQ==}
     engines: {node: '>=v18'}
     dependencies:
       conventional-changelog-conventionalcommits: 7.0.2
