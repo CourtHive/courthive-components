@@ -1,4 +1,5 @@
 import { renderAddress } from './renderAddress';
+import { renderPersonAttribute } from './renderPersonAttribute';
 import { renderTeam } from './renderTeam';
 
 export function renderParticipantDetail(params) {
@@ -8,6 +9,11 @@ export function renderParticipantDetail(params) {
 
   const showTeam = participantDetail === 'TEAM';
   if (showTeam) return renderTeam(params);
+
+  if (participantDetail) {
+    const personDetail = renderPersonAttribute({ ...params, attribute: participantDetail });
+    if (personDetail) return personDetail;
+  }
 
   return document.createElement('div');
 }
