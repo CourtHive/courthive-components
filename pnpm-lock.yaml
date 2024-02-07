@@ -74,8 +74,8 @@ devDependencies:
     specifier: 0.6.15
     version: 0.6.15(eslint@8.39.0)(typescript@5.3.3)
   gh-pages:
-    specifier: 6.0.0
-    version: 6.0.0
+    specifier: 6.1.1
+    version: 6.1.1
   lint-staged:
     specifier: 15.0.0
     version: 15.0.0
@@ -6443,8 +6443,8 @@ packages:
       get-intrinsic: 1.2.2
     dev: true
 
-  /gh-pages@6.0.0:
-    resolution: {integrity: sha512-FXZWJRsvP/fK2HJGY+Di6FRNHvqFF6gOIELaopDjXXgjeOYSNURcuYwEO/6bwuq6koP5Lnkvnr5GViXzuOB89g==}
+  /gh-pages@6.1.1:
+    resolution: {integrity: sha512-upnohfjBwN5hBP9w2dPE7HO5JJTHzSGMV1JrLrHvNuqmjoYHg6TBrCcnEoorjG/e0ejbuvnwyKMdTyM40PEByw==}
     engines: {node: '>=10'}
     hasBin: true
     dependencies:
