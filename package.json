@@ -79,7 +79,7 @@
     "react-dom": "18.2.0",
     "semver": "7.5.1",
     "storybook": "7.6.13",
-    "vite": "5.0.12"
+    "vite": "5.1.4"
   },
   "dependencies": {
     "@stitches/core": "1.2.8",
