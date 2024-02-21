@@ -94,7 +94,7 @@ export const National = {
     drawSize: 16
   }
 };
-export const initialRound = {
+export const InitialRound = {
   args: {
     completeAllMatchUps: false,
     composition: 'National',
