@@ -135,7 +135,7 @@ export const cModal = (() => {
 
     for (const button of buttons) {
       if (button.hide) continue;
-      const config = Object.assign({}, defaultFooterButton);
+      const config = { ...defaultFooterButton };
       if (isObject(button)) Object.assign(config, button);
       const elem = document.createElement('button');
 
@@ -149,7 +149,10 @@ export const cModal = (() => {
 
       elem.onclick = (e) => {
         e.stopPropagation();
-        if (isFunction(config.onClick)) config.onClick({ e, content: bodyContent[modalNumber] });
+        if (isFunction(config.onClick)) {
+          elem.classList.add('is-loading');
+          config.onClick({ e, content: bodyContent[modalNumber] });
+        }
         if (config.close !== false) {
           if (isFunction(config.close)) config.close();
           cModal.close();
