@@ -24,8 +24,8 @@ dependencies:
     specifier: 9.0.11
     version: 9.0.11
   tods-competition-factory:
-    specifier: 2.0.28
-    version: 2.0.28
+    specifier: 2.0.32
+    version: 2.0.32
 
 devDependencies:
   '@commitlint/cli':
@@ -8737,14 +8737,6 @@ packages:
     hasBin: true
     dev: true
 
-  /semver@7.5.4:
-    resolution: {integrity: sha512-1bCSESV6Pv+i21Hvpxp3Dx+pSD8lIPt8uVjRrxAUt/nbswYc+tK6Y2btiULjd4+fnq15PX+nqQDC7Oft7WkwcA==}
-    engines: {node: '>=10'}
-    hasBin: true
-    dependencies:
-      lru-cache: 6.0.0
-    dev: true
-
   /semver@7.6.0:
     resolution: {integrity: sha512-EnwXhrlwXMk9gKu5/flx5sv/an57AkRplG3hTK68W7FRDN+k+OWBj65M7719OkA82XLBxrcX0KSHj+X5COhOVg==}
     engines: {node: '>=10'}
@@ -9246,8 +9238,8 @@ packages:
     resolution: {integrity: sha512-kE5wyCQJ40hqUaRVkyQ4z5+4juzYsv/eK+aqD97N62YH0TxFhzJvo22RUQQZdO3YnXAk42ZOfOpjVdy+Z0YokA==}
     dev: true
 
-  /tods-competition-factory@2.0.28:
-    resolution: {integrity: sha512-/YcPJq16+yBMzp3/Ywx7Sjwp5+s9aTaRc0RQPUXmsEncW+W8K7Kn3Rce6IXVPIgPw/3umfOoYBay+vZpjLqtiw==}
+  /tods-competition-factory@2.0.32:
+    resolution: {integrity: sha512-zw/4Ng+108SgDbcI4iZ2STkdM8+SbpXpy4oLX1UufwcpHPE+5BmrsdWKRy/qZh0zYIyfwOI2Y07KdXmm/W0W8w==}
     engines: {node: '>=18.17.1 < 21'}
     dev: false
 
