@@ -71,7 +71,7 @@
     "eslint": "8.57.0",
     "eslint-config-react-app": "7.0.1",
     "eslint-plugin-sonarjs": "0.24.0",
-    "eslint-plugin-storybook": "0.6.15",
+    "eslint-plugin-storybook": "0.8.0",
     "gh-pages": "6.1.1",
     "lint-staged": "15.2.2",
     "prettier": "2.8.8",
@@ -88,6 +88,6 @@
     "classnames": "2.5.1",
     "dayjs": "1.11.10",
     "husky": "9.0.11",
-    "tods-competition-factory": "2.0.32"
+    "tods-competition-factory": "2.0.35"
   }
 }
