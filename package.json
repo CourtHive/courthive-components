@@ -57,8 +57,8 @@
     "*": "prettier --ignore-unknown --write"
   },
   "devDependencies": {
-    "@commitlint/cli": "19.0.3",
-    "@commitlint/config-conventional": "19.0.3",
+    "@commitlint/cli": "19.2.0",
+    "@commitlint/config-conventional": "19.1.0",
     "@storybook/addon-essentials": "7.6.17",
     "@storybook/addon-interactions": "7.6.17",
     "@storybook/addon-links": "7.6.17",
