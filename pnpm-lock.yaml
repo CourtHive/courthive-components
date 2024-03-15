@@ -51,7 +51,7 @@ devDependencies:
     version: 7.6.17(@babel/core@7.23.9)
   '@storybook/html-vite':
     specifier: 7.6.17
-    version: 7.6.17(@babel/core@7.23.9)(react-dom@18.2.0)(react@18.2.0)(typescript@5.3.3)(vite@5.1.5)
+    version: 7.6.17(@babel/core@7.23.9)(react-dom@18.2.0)(react@18.2.0)(typescript@5.3.3)(vite@5.1.6)
   '@storybook/testing-library':
     specifier: 0.2.2
     version: 0.2.2
@@ -95,8 +95,8 @@ devDependencies:
     specifier: 7.6.17
     version: 7.6.17
   vite:
-    specifier: 5.1.5
-    version: 5.1.5(@types/node@20.11.16)
+    specifier: 5.1.6
+    version: 5.1.6(@types/node@20.11.16)
 
 packages:
 
@@ -3269,7 +3269,7 @@ packages:
       - supports-color
     dev: true
 
-  /@storybook/builder-vite@7.6.17(typescript@5.3.3)(vite@5.1.5):
+  /@storybook/builder-vite@7.6.17(typescript@5.3.3)(vite@5.1.6):
     resolution: {integrity: sha512-2Q32qalI401EsKKr9Hkk8TAOcHEerqwsjCpQgTNJnCu6GgCVKoVUcb99oRbR9Vyg0xh+jb19XiWqqQujFtLYlQ==}
     peerDependencies:
       '@preact/preset-vite': '*'
@@ -3301,7 +3301,7 @@ packages:
       magic-string: 0.30.6
       rollup: 3.29.4
       typescript: 5.3.3
-      vite: 5.1.5(@types/node@20.11.16)
+      vite: 5.1.6(@types/node@20.11.16)
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -3581,12 +3581,12 @@ packages:
     resolution: {integrity: sha512-FcOqPAXACP0I3oJ/ws6/rrPT9WGhu915Cg8D02a9YxLo0DE9zI+a9A5gRGvmQ09fiWPukqI8ZAEoQEdWUKMQdQ==}
     dev: true
 
-  /@storybook/html-vite@7.6.17(@babel/core@7.23.9)(react-dom@18.2.0)(react@18.2.0)(typescript@5.3.3)(vite@5.1.5):
+  /@storybook/html-vite@7.6.17(@babel/core@7.23.9)(react-dom@18.2.0)(react@18.2.0)(typescript@5.3.3)(vite@5.1.6):
     resolution: {integrity: sha512-fvwn+B16FQU5fpVIdFPul6LFSYIfM1imdA6dWxK7F1/IbKiTEiT79cBqIqASmwx5CIaojVrHcySC52oB7LsmdQ==}
     engines: {node: ^14.18 || >=16}
     dependencies:
       '@storybook/addons': 7.6.17(react-dom@18.2.0)(react@18.2.0)
-      '@storybook/builder-vite': 7.6.17(typescript@5.3.3)(vite@5.1.5)
+      '@storybook/builder-vite': 7.6.17(typescript@5.3.3)(vite@5.1.6)
       '@storybook/client-api': 7.6.17
       '@storybook/core-server': 7.6.17
       '@storybook/html': 7.6.17(@babel/core@7.23.9)
@@ -9620,8 +9620,8 @@ packages:
     engines: {node: '>= 0.8'}
     dev: true
 
-  /vite@5.1.5(@types/node@20.11.16):
-    resolution: {integrity: sha512-BdN1xh0Of/oQafhU+FvopafUp6WaYenLU/NFoL5WyJL++GxkNfieKzBhM24H3HVsPQrlAqB7iJYTHabzaRed5Q==}
+  /vite@5.1.6(@types/node@20.11.16):
+    resolution: {integrity: sha512-yYIAZs9nVfRJ/AiOLCA91zzhjsHUgMjB+EigzFb6W2XTLO8JixBCKCjvhKZaye+NKYHCrkv3Oh50dH9EdLU2RA==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
     peerDependencies:
