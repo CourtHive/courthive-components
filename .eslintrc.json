@@ -12,9 +12,7 @@
     "plugin:sonarjs/recommended",
     "plugin:storybook/recommended"
   ],
-  "plugins": [
-    "sonarjs"
-  ],
+  "plugins": ["sonarjs"],
   "parserOptions": {
     "ecmaVersion": "latest",
     "sourceType": "module"
@@ -53,9 +51,5 @@
     "import/no-unresolved": "off",
     "no-prototype-builtins": "off"
   },
-  "settings": {
-    "react": {
-      "version": "17"
-    }
-  }
+  "settings": {}
 }
