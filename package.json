@@ -57,8 +57,8 @@
     "*": "prettier --ignore-unknown --write"
   },
   "devDependencies": {
-    "@commitlint/cli": "19.0.3",
-    "@commitlint/config-conventional": "19.0.3",
+    "@commitlint/cli": "19.2.0",
+    "@commitlint/config-conventional": "19.1.0",
     "@storybook/addon-essentials": "7.6.17",
     "@storybook/addon-interactions": "7.6.17",
     "@storybook/addon-links": "7.6.17",
@@ -66,8 +66,8 @@
     "@storybook/html": "7.6.17",
     "@storybook/html-vite": "7.6.17",
     "@storybook/testing-library": "0.2.2",
-    "@typescript-eslint/eslint-plugin": "7.1.1",
-    "@typescript-eslint/parser": "7.1.1",
+    "@typescript-eslint/eslint-plugin": "7.2.0",
+    "@typescript-eslint/parser": "7.2.0",
     "eslint": "8.57.0",
     "eslint-config-react-app": "7.0.1",
     "eslint-plugin-sonarjs": "0.24.0",
@@ -79,7 +79,7 @@
     "react-dom": "18.2.0",
     "semver": "7.6.0",
     "storybook": "7.6.17",
-    "vite": "5.1.5"
+    "vite": "5.1.6"
   },
   "dependencies": {
     "@stitches/core": "1.2.8",
@@ -88,6 +88,6 @@
     "classnames": "2.5.1",
     "dayjs": "1.11.10",
     "husky": "9.0.11",
-    "tods-competition-factory": "2.0.44"
+    "tods-competition-factory": "2.0.52"
   }
 }
