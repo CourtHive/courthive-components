@@ -57,7 +57,7 @@
     "*": "prettier --ignore-unknown --write"
   },
   "devDependencies": {
-    "@commitlint/cli": "19.2.0",
+    "@commitlint/cli": "19.2.1",
     "@commitlint/config-conventional": "19.1.0",
     "@storybook/addon-essentials": "^8.0.0",
     "@storybook/addon-interactions": "^8.0.0",
@@ -65,8 +65,8 @@
     "@storybook/blocks": "^8.0.0",
     "@storybook/html": "^8.0.0",
     "@storybook/html-vite": "^8.0.0",
-    "@typescript-eslint/eslint-plugin": "7.2.0",
-    "@typescript-eslint/parser": "7.2.0",
+    "@typescript-eslint/eslint-plugin": "7.3.1",
+    "@typescript-eslint/parser": "7.3.1",
     "eslint": "8.57.0",
     "eslint-plugin-sonarjs": "0.24.0",
     "eslint-plugin-storybook": "0.8.0",
@@ -85,6 +85,6 @@
     "classnames": "2.5.1",
     "dayjs": "1.11.10",
     "husky": "9.0.11",
-    "tods-competition-factory": "2.0.52"
+    "tods-competition-factory": "2.0.55"
   }
 }
