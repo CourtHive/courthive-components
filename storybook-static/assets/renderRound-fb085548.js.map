@@ -1,1 +1,35 @@
-{"version":3,"file":"renderRound-fb085548.js","sources":["../../src/styles/roundStyle.js","../../src/components/renderRound.js"],"sourcesContent":["import { css } from \"@stitches/core\";\n\nexport const roundStyle = css({\n  justifyContent: \"space-around\",\n  marginInlineStart: \"16px\",\n  marginInlineEnd: \"16px\",\n  flexDirection: \"column\",\n  display: \"flex\",\n  width: \"460px\",\n});\n","import { roundStyle } from '../styles/roundStyle';\nimport { renderMatchUp } from './renderMatchUp';\n\nexport function renderRound({\n  selectedMatchUpId,\n  eventHandlers,\n  searchActive,\n  composition,\n  roundFactor,\n  roundNumber,\n  matchUps,\n  isLucky\n}) {\n  const roundMatchUps = matchUps\n    .filter((matchUp) => matchUp.roundNumber === roundNumber)\n    .sort((a, b) => (a.roundPosition || 0) - (b.roundPosition || 0));\n\n  const div = document.createElement('div');\n  div.className = roundStyle();\n\n  roundMatchUps.forEach((matchUp, i) => {\n    const moeity = i % 2 === 0;\n    if (roundFactor) matchUp.roundFactor = roundFactor;\n    const m = renderMatchUp({\n      selectedMatchUpId,\n      eventHandlers,\n      searchActive,\n      composition,\n      matchUp,\n      isLucky,\n      moeity\n    });\n    div.appendChild(m);\n  });\n\n  return div;\n}\n"],"names":["roundStyle","css","renderRound","selectedMatchUpId","eventHandlers","searchActive","composition","roundFactor","roundNumber","matchUps","isLucky","roundMatchUps","matchUp","a","b","div","i","moeity","m","renderMatchUp"],"mappings":"uFAEO,MAAMA,EAAaC,EAAI,CAC5B,eAAgB,eAChB,kBAAmB,OACnB,gBAAiB,OACjB,cAAe,SACf,QAAS,OACT,MAAO,OACT,CAAC,ECNM,SAASC,EAAY,CAC1B,kBAAAC,EACA,cAAAC,EACA,aAAAC,EACA,YAAAC,EACA,YAAAC,EACA,YAAAC,EACA,SAAAC,EACA,QAAAC,CACF,EAAG,CACD,MAAMC,EAAgBF,EACnB,OAAQG,GAAYA,EAAQ,cAAgBJ,CAAW,EACvD,KAAK,CAACK,EAAGC,KAAOD,EAAE,eAAiB,IAAMC,EAAE,eAAiB,EAAE,EAE3DC,EAAM,SAAS,cAAc,KAAK,EACxC,OAAAA,EAAI,UAAYf,IAEhBW,EAAc,QAAQ,CAACC,EAASI,IAAM,CACpC,MAAMC,EAASD,EAAI,IAAM,EACrBT,IAAaK,EAAQ,YAAcL,GACvC,MAAMW,EAAIC,EAAc,CACtB,kBAAAhB,EACA,cAAAC,EACA,aAAAC,EACA,YAAAC,EACA,QAAAM,EACA,QAAAF,EACA,OAAAO,CACN,CAAK,EACDF,EAAI,YAAYG,CAAC,CACrB,CAAG,EAEMH,CACT"}
+{
+  "version": 3,
+  "file": "renderRound-fb085548.js",
+  "sources": [
+    "../../src/styles/roundStyle.js",
+    "../../src/components/renderRound.js"
+  ],
+  "sourcesContent": [
+    "import { css } from \"@stitches/core\";\n\nexport const roundStyle = css({\n  justifyContent: \"space-around\",\n  marginInlineStart: \"16px\",\n  marginInlineEnd: \"16px\",\n  flexDirection: \"column\",\n  display: \"flex\",\n  width: \"370px\",\n});\n",
+    "import { roundStyle } from '../styles/roundStyle';\nimport { renderMatchUp } from './renderMatchUp';\n\nexport function renderRound({\n  selectedMatchUpId,\n  eventHandlers,\n  searchActive,\n  composition,\n  roundFactor,\n  roundNumber,\n  matchUps,\n  isLucky\n}) {\n  const roundMatchUps = matchUps\n    .filter((matchUp) => matchUp.roundNumber === roundNumber)\n    .sort((a, b) => (a.roundPosition || 0) - (b.roundPosition || 0));\n\n  const div = document.createElement('div');\n  div.className = roundStyle();\n\n  roundMatchUps.forEach((matchUp, i) => {\n    const moeity = i % 2 === 0;\n    if (roundFactor) matchUp.roundFactor = roundFactor;\n    const m = renderMatchUp({\n      selectedMatchUpId,\n      eventHandlers,\n      searchActive,\n      composition,\n      matchUp,\n      isLucky,\n      moeity\n    });\n    div.appendChild(m);\n  });\n\n  return div;\n}\n"
+  ],
+  "names": [
+    "roundStyle",
+    "css",
+    "renderRound",
+    "selectedMatchUpId",
+    "eventHandlers",
+    "searchActive",
+    "composition",
+    "roundFactor",
+    "roundNumber",
+    "matchUps",
+    "isLucky",
+    "roundMatchUps",
+    "matchUp",
+    "a",
+    "b",
+    "div",
+    "i",
+    "moeity",
+    "m",
+    "renderMatchUp"
+  ],
+  "mappings": "uFAEO,MAAMA,EAAaC,EAAI,CAC5B,eAAgB,eAChB,kBAAmB,OACnB,gBAAiB,OACjB,cAAe,SACf,QAAS,OACT,MAAO,OACT,CAAC,ECNM,SAASC,EAAY,CAC1B,kBAAAC,EACA,cAAAC,EACA,aAAAC,EACA,YAAAC,EACA,YAAAC,EACA,YAAAC,EACA,SAAAC,EACA,QAAAC,CACF,EAAG,CACD,MAAMC,EAAgBF,EACnB,OAAQG,GAAYA,EAAQ,cAAgBJ,CAAW,EACvD,KAAK,CAACK,EAAGC,KAAOD,EAAE,eAAiB,IAAMC,EAAE,eAAiB,EAAE,EAE3DC,EAAM,SAAS,cAAc,KAAK,EACxC,OAAAA,EAAI,UAAYf,IAEhBW,EAAc,QAAQ,CAACC,EAASI,IAAM,CACpC,MAAMC,EAASD,EAAI,IAAM,EACrBT,IAAaK,EAAQ,YAAcL,GACvC,MAAMW,EAAIC,EAAc,CACtB,kBAAAhB,EACA,cAAAC,EACA,aAAAC,EACA,YAAAC,EACA,QAAAM,EACA,QAAAF,EACA,OAAAO,CACN,CAAK,EACDF,EAAI,YAAYG,CAAC,CACrB,CAAG,EAEMH,CACT"
+}
