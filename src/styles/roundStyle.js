@@ -7,7 +7,7 @@ export const roundStyle = css({
   flexDirection: 'column',
   height: '100%',
   display: 'flex',
-  width: '460px',
+  width: '370px',
   variants: {
     variant: {
       adHoc: {
