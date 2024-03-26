@@ -27,8 +27,8 @@ dependencies:
     specifier: 9.0.11
     version: 9.0.11
   tods-competition-factory:
-    specifier: 2.0.55
-    version: 2.0.55
+    specifier: 2.0.60
+    version: 2.0.60
 
 devDependencies:
   '@commitlint/cli':
@@ -7191,8 +7191,8 @@ packages:
     resolution: {integrity: sha512-kE5wyCQJ40hqUaRVkyQ4z5+4juzYsv/eK+aqD97N62YH0TxFhzJvo22RUQQZdO3YnXAk42ZOfOpjVdy+Z0YokA==}
     dev: true
 
-  /tods-competition-factory@2.0.55:
-    resolution: {integrity: sha512-rABj9eVHKtr0KXndp46+/MXTWx7DxzLNhg/yBYz6gCfZVh13h0uOdCE/wKqOH0au/3vddcgwye+otQFZELIdhg==}
+  /tods-competition-factory@2.0.60:
+    resolution: {integrity: sha512-CZSBafOfm9yKUNiQxeDpT8dew4tVCgQu0q6gPJtciFv4aOzbDJeJCBc2ZVv5BMoJ+1QpfnL1/g6vzHp6qP7Vvg==}
     engines: {node: '>=18.17.1 < 21'}
     dev: false
 
