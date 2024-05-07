@@ -9,7 +9,7 @@ import { renderSide } from './renderSide';
 import cx from 'classnames';
 
 export function renderMatchUp(params) {
-  const { composition, initialRoundNumber = 1, matchUp, moeity, selectedMatchUpId, searchActive } = params;
+  const { composition, initialRoundNumber = 1, matchUp, moiety, selectedMatchUpId, searchActive } = params;
   const { roundFactor, roundNumber, finishingRound, matchUpType, preFeedRound, stage } = matchUp;
   const isFinalRound = params.isFinalRound || parseInt(finishingRound) === 1;
   const isQualifying = stage === 'QUALIFYING' && isFinalRound;
@@ -25,7 +25,7 @@ export function renderMatchUp(params) {
     ((searchActive || matchUp.isRoundRobin || matchUp.collectionId || params.isLucky || params.isAdHoc) && 'mr') ||
     (noProgression && 'noProgression') ||
     ((isQualifying || preFeedRound) && 'm0') ||
-    (moeity && 'm1') ||
+    (moiety && 'm1') ||
     'm2';
 
   const linkClass = getLinkStyle({ composition, isDoubles, roundFactor })({
