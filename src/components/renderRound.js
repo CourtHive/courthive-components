@@ -2,8 +2,8 @@ import { groupSeparatorStyle } from '../styles/groupSeparatorStyle';
 import { roundContainerStyle } from '../styles/roundContainerStyle';
 import { groupNameStyle } from '../styles/groupNameStyle';
 import { renderRoundHeader } from './renderRoundHeader';
-import { tools } from 'tods-competition-factory';
 import { roundStyle } from '../styles/roundStyle';
+import { tools } from 'tods-competition-factory';
 import { renderMatchUp } from './renderMatchUp';
 import { isFunction } from './modal/cmodal';
 
@@ -18,6 +18,7 @@ export function renderRound({
   roundFactor,
   roundNumber,
   roundProfile,
+  minWidth,
   matchUps,
   context,
   isLucky
@@ -43,6 +44,7 @@ export function renderRound({
 
   const div = document.createElement('div');
   div.className = roundStyle({ variant: isAdHoc ? 'adHoc' : undefined });
+  if (minWidth) div.style.minWidth = minWidth;
 
   let structureNames;
   let structureIds;
@@ -86,17 +88,17 @@ export function renderRound({
         const { drawId, containerStructureId } = roundMatchUps[0];
         div.onclick = (pointerEvent) =>
           eventHandlers.groupHeaderClick({
-            drawId,
             structureId: structureIds[groupIndex],
             containerStructureId,
-            pointerEvent
+            pointerEvent,
+            drawId
           });
       }
       if (roundNumber === initialRoundNumber) groupName.innerHTML = rrGroupName;
       div.appendChild(groupName);
     }
 
-    const moeity = i % 2 === 0;
+    const moiety = i % 2 === 0;
     if (roundFactor) {
       matchUp.roundFactor = roundFactor;
     } else if (initialRoundNumber > 1) {
@@ -112,7 +114,7 @@ export function renderRound({
       isAdHoc,
       isLucky,
       matchUp,
-      moeity
+      moiety
     });
     div.appendChild(m);
   });
