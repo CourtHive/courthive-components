@@ -13,6 +13,7 @@ export function renderStructure({
   structureId,
   finalColumn,
   matchUps,
+  minWidth,
   context
 }) {
   const { roundNumbers, roundProfile, hasOddMatchUpsCount, isNotEliminationStructure } =
@@ -44,6 +45,7 @@ export function renderStructure({
       roundNumber,
       roundProfile,
       matchUps,
+      minWidth,
       context,
       isLucky
     });
