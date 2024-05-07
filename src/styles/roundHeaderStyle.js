@@ -5,6 +5,6 @@ export const roundHeaderStyle = css({
   marginInlineStart: '16px',
   marginInlineEnd: '16px',
   fontWeight: 'bold',
-  width: '370px',
+  // width: '370px',
   height: '1.5em'
 });
