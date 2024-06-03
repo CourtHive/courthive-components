@@ -1,5 +1,6 @@
 export function renderSeeding({ className, composition, side }) {
-  const seedValue = side?.seedValue !== undefined ? side.seedValue : side?.seedNumber;
+  const seedValue =
+    side?.seedValue === '~' ? '' : (side?.seedValue !== undefined && side.seedValue) || side?.seedNumber;
 
   if (!seedValue) return '';
 
