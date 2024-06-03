@@ -30,8 +30,8 @@ importers:
         specifier: 9.0.11
         version: 9.0.11
       tods-competition-factory:
-        specifier: 2.1.20
-        version: 2.1.20
+        specifier: 2.1.27
+        version: 2.1.27
     devDependencies:
       '@commitlint/cli':
         specifier: 19.3.0
@@ -2439,6 +2439,7 @@ packages:
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
+    deprecated: Glob versions prior to v9 are no longer supported
 
   global-directory@4.0.1:
     resolution: {integrity: sha512-wHTUcDUoZ1H5/0iVqEudYW4/kAlN5cZ3j/bXn0Dpbizl9iaUVeWSHqiOjsgk6OW2bkLclbBjzewBz6weQ1zA2Q==}
@@ -2568,6 +2569,7 @@ packages:
 
   inflight@1.0.6:
     resolution: {integrity: sha512-k92I/b08q4wvFscXCLvqfsHCrjrF7yiXsQuIVvVE7N82W3+aqpzuUdBbfhWcy/FZR3/4IgflMgKLOsvPDrGCJA==}
+    deprecated: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
 
   inherits@2.0.4:
     resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
@@ -3522,10 +3524,12 @@ packages:
 
   rimraf@2.6.3:
     resolution: {integrity: sha512-mwqeW5XsA2qAejG46gYdENaxXjx9onRNCfn7L0duuP4hCuTIi/QO7PDK07KJfp1d+izWPrzEJDcSqBa0OZQriA==}
+    deprecated: Rimraf versions prior to v4 are no longer supported
     hasBin: true
 
   rimraf@3.0.2:
     resolution: {integrity: sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==}
+    deprecated: Rimraf versions prior to v4 are no longer supported
     hasBin: true
 
   rollup@4.13.0:
@@ -3790,8 +3794,8 @@ packages:
   tocbot@4.27.19:
     resolution: {integrity: sha512-0yu8k0L3gCQ1OVNZnKqpbZp+kLd6qtlNEBxsb+e0G/bS0EXMl2tWqWi1Oy9knRX8rTPYfOxd/sI/OzAj3JowGg==}
 
-  tods-competition-factory@2.1.20:
-    resolution: {integrity: sha512-3v/9OKsoYg+hciXbokhqI54J142CbYagT8O9iOA0uIzRnSFKe5qREDs3mK3weDjL14ghOhL5JEdKM9uT/oEefg==}
+  tods-competition-factory@2.1.27:
+    resolution: {integrity: sha512-Xf49wBhuLX7SEk/1p9hvPoLkAsdj4j9o7IEw7XquXsnSZ9Axq9SywG3IrbZ1Eu4BVJhteS208Ic4J5lX/WYbpg==}
     engines: {node: '>=20'}
 
   toidentifier@1.0.1:
@@ -8446,7 +8450,7 @@ snapshots:
 
   tocbot@4.27.19: {}
 
-  tods-competition-factory@2.1.20: {}
+  tods-competition-factory@2.1.27: {}
 
   toidentifier@1.0.1: {}
 
