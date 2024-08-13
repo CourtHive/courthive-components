@@ -71,7 +71,7 @@
     "eslint-plugin-sonarjs": "1.0.3",
     "eslint-plugin-storybook": "0.8.0",
     "gh-pages": "6.1.1",
-    "lint-staged": "15.2.5",
+    "lint-staged": "15.2.9",
     "prettier": "2.8.8",
     "semver": "7.6.2",
     "storybook": "^8.0.0",
