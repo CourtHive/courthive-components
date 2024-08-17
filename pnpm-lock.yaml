@@ -30,8 +30,8 @@ importers:
         specifier: 9.0.11
         version: 9.0.11
       tods-competition-factory:
-        specifier: 2.1.29
-        version: 2.1.29
+        specifier: 2.2.7
+        version: 2.2.7
     devDependencies:
       '@commitlint/cli':
         specifier: 19.3.0
@@ -976,6 +976,7 @@ packages:
   '@humanwhocodes/config-array@0.11.14':
     resolution: {integrity: sha512-3T8LkOmg45BV5FICb15QQMsyUSWrQ8AygVfC7ZG32zOalnqrilm018ZVCw0eapXux8FtA33q8PSRSstjee3jSg==}
     engines: {node: '>=10.10.0'}
+    deprecated: Use @eslint/config-array instead
 
   '@humanwhocodes/module-importer@1.0.1':
     resolution: {integrity: sha512-bxveV4V8v5Yb4ncFTT3rPSgZBOpCkjfK0y4oVVVJwIuDVBRMDXrPyXRL988i5ap9m9bnyEEjWfm5WkBmtffLfA==}
@@ -983,6 +984,7 @@ packages:
 
   '@humanwhocodes/object-schema@2.0.2':
     resolution: {integrity: sha512-6EwiSjwWYP7pTckG6I5eyFANjPhmPjUX9JRLUSfNPC7FX7zK9gyZAfUEaECL6ALTpGX5AjnBq3C9XmVWPitNpw==}
+    deprecated: Use @eslint/object-schema instead
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -3806,8 +3808,8 @@ packages:
   tocbot@4.27.19:
     resolution: {integrity: sha512-0yu8k0L3gCQ1OVNZnKqpbZp+kLd6qtlNEBxsb+e0G/bS0EXMl2tWqWi1Oy9knRX8rTPYfOxd/sI/OzAj3JowGg==}
 
-  tods-competition-factory@2.1.29:
-    resolution: {integrity: sha512-DkProJkJ8iwdACc+Fwrd95W9yRlXUlf5x4syvDoGwI4qBebbUdWea7w4qw3uMac1BxBxRnGI7oIAkqbB2X3bTg==}
+  tods-competition-factory@2.2.7:
+    resolution: {integrity: sha512-4qIu1OfsADoU7WDGMMVlQ7x4Ju1Oh1Wp7i0F0H/0oYNgqelicifNKRPCnSTdZmVbtNeVC1Jnd07OUXKeEoMboA==}
     engines: {node: '>=20'}
 
   toidentifier@1.0.1:
@@ -8467,7 +8469,7 @@ snapshots:
 
   tocbot@4.27.19: {}
 
-  tods-competition-factory@2.1.29: {}
+  tods-competition-factory@2.2.7: {}
 
   toidentifier@1.0.1: {}
 
