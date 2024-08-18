@@ -23,8 +23,8 @@ const eventHandlers = {
     const composition = {
       configuration: {
         bracketedSeeds: 'square',
-        flags: true,
-        showAddress: true
+        showAddress: true,
+        flags: true
       }
     };
     const participants = matchUp.sides.map(({ participant }) => participant);
