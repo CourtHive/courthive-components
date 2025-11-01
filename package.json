@@ -1,6 +1,6 @@
 {
   "name": "courthive-components",
-  "version": "0.7.21",
+  "version": "0.7.22",
   "engines": {
     "node": ">=16.16.0 < 21"
   },
@@ -84,7 +84,7 @@
     "class-variance-authority": "0.7.0",
     "classnames": "2.5.1",
     "dayjs": "1.11.12",
-    "husky": "9.1.4",
+    "husky": "9.1.7",
     "tods-competition-factory": "2.2.9"
   }
 }
