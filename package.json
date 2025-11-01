@@ -83,7 +83,7 @@
     "bulma": "1.0.4",
     "class-variance-authority": "0.7.1",
     "classnames": "2.5.1",
-    "dayjs": "1.11.12",
+    "dayjs": "1.11.19",
     "husky": "9.1.7",
     "tods-competition-factory": "2.2.31"
   }
