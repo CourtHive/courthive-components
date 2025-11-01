@@ -12,7 +12,12 @@ const config = {
     options: {}
   },
   docs: {
-    autodocs: 'tag'
+    autodocs: 'tag',
+    mdxPluginOptions: {
+      mdxCompileOptions: {
+        remarkPlugins: [require('remark-gfm')]
+      }
+    }
   }
 };
 export default config;
