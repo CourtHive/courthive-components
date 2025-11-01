@@ -70,7 +70,7 @@
     "eslint": "8.57.1",
     "eslint-plugin-sonarjs": "1.0.4",
     "eslint-plugin-storybook": "0.8.0",
-    "gh-pages": "6.1.1",
+    "gh-pages": "6.3.0",
     "lint-staged": "15.5.2",
     "prettier": "2.8.8",
     "semver": "7.7.3",
