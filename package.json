@@ -81,7 +81,7 @@
     "@stitches/core": "1.2.8",
     "@storybook/test": "^8.0.0",
     "bulma": "1.0.2",
-    "class-variance-authority": "0.7.0",
+    "class-variance-authority": "0.7.1",
     "classnames": "2.5.1",
     "dayjs": "1.11.12",
     "husky": "9.1.7",
