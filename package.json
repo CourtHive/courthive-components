@@ -59,20 +59,20 @@
   "devDependencies": {
     "@commitlint/cli": "20.1.0",
     "@commitlint/config-conventional": "20.0.0",
+    "@storybook/html-vite": "^10.0.2",
+    "@storybook/addon-docs": "^10.0.2",
     "@typescript-eslint/eslint-plugin": "8.46.2",
     "@typescript-eslint/parser": "8.46.2",
     "eslint": "8.57.1",
     "eslint-plugin-sonarjs": "3.0.5",
+    "eslint-plugin-storybook": "^10.0.2",
     "gh-pages": "6.3.0",
     "husky": "9.1.7",
     "lint-staged": "16.2.6",
     "prettier": "2.8.8",
     "semver": "7.7.3",
     "vite": "7.1.12",
-    "storybook": "^10.0.2",
-    "@storybook/html-vite": "^10.0.2",
-    "@storybook/addon-docs": "^10.0.2",
-    "eslint-plugin-storybook": "^10.0.2"
+    "storybook": "^10.0.2"
   },
   "dependencies": {
     "@stitches/core": "1.2.8",
