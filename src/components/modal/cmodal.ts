@@ -13,7 +13,7 @@ import type { ModalButton, ModalConfig, ModalParams } from '../../types';
 
 const EMPTY = 'Nothing to see here';
 
-export function isFunction(fx: any): fx is Function {
+export function isFunction(fx: any): fx is (...args: any[]) => any {
   return typeof fx === 'function';
 }
 export function isString(item: any): item is string {
@@ -37,9 +37,9 @@ export const cModal = (() => {
   const scrollStop = bodyFreeze();
   const conditionalClose: Record<number, boolean | undefined> = {};
   const defaultPadding = '.5';
-  let bodyContent: any[] = [];
+  const bodyContent: any[] = [];
   let scrollPosition: number;
-  let closeFx: Array<((params: { content?: any }) => void) | undefined> = [];
+  const closeFx: Array<((params: { content?: any }) => void) | undefined> = [];
   let modals: HTMLElement[] = [];
   let backdrop: HTMLElement;
 
@@ -104,7 +104,7 @@ export const cModal = (() => {
     if (config?.backdrop !== false) {
       backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
       backdrop.style.transition = 'opacity 0.15s linear';
-      backdrop.style.opacity = 1;
+      backdrop.style.opacity = '1';
     }
   };
 
@@ -140,34 +140,33 @@ export const cModal = (() => {
     modalFooter.className = modalFooterStyle();
     modalFooter.style.padding = getUnitValue({ config, attrs: ['footer.padding', 'padding'], value: defaultPadding });
 
-    const defaultFooterButton = {
+    const defaultFooterButton: Partial<ModalButton> = {
       label: config?.dictionary?.close || 'Close',
-      onClick: cModal.close,
+      onClick: () => cModal.close(),
       intent: 'is-info'
     };
 
     for (const button of buttons) {
       if (button.hide) continue;
-      const config = { ...defaultFooterButton };
-      if (isObject(button)) Object.assign(config, button);
+      const buttonConfig: ModalButton = { ...defaultFooterButton, ...button };
       const elem = document.createElement('button');
 
-      if (config.disabled !== undefined) elem.disabled = config.disabled;
-      if (config.id) elem.id = config.id;
+      if (buttonConfig.disabled !== undefined) elem.disabled = buttonConfig.disabled;
+      if (buttonConfig.id) elem.id = buttonConfig.id;
 
-      elem.className = config?.footer?.className || 'button font-medium';
-      elem.classList.add(config.intent);
+      elem.className = buttonConfig?.footer?.className || 'button font-medium';
+      elem.classList.add(buttonConfig.intent || 'is-info');
       elem.style = 'margin-right: .5em;';
-      elem.innerHTML = config.label || config.text;
+      elem.innerHTML = buttonConfig.label || buttonConfig.text || '';
 
       elem.onclick = (e) => {
         e.stopPropagation();
-        if (isFunction(config.onClick)) {
+        if (isFunction(buttonConfig.onClick)) {
           // elem.classList.add('is-loading'); // disabled for now; issues in client
-          config.onClick({ e, content: bodyContent[modalNumber] });
+          buttonConfig.onClick({ e, content: bodyContent[modalNumber] });
         }
-        if (config.close !== false) {
-          if (isFunction(config.close)) config.close();
+        if (buttonConfig.close !== false) {
+          if (isFunction(buttonConfig.close)) buttonConfig.close();
           cModal.close();
         }
       };
@@ -203,7 +202,7 @@ export const cModal = (() => {
     modalHeader.appendChild(titleDiv);
     dialog.appendChild(modalHeader);
 
-    const setTitle = ({ title, config }) => {
+    const setTitle = ({ title, config }: { title?: string; config?: ModalConfig }) => {
       modalHeader.className = title ? modalHeaderStyle() : '';
       modalHeader.style.padding = getUnitValue({ config, attrs: ['title.padding', 'padding'], value: defaultPadding });
       titleDiv.className = title ? modalTitleStyle() : '';
@@ -214,14 +213,14 @@ export const cModal = (() => {
     const modalBody = document.createElement('div');
     dialog.appendChild(modalBody);
 
-    const attachContent = ({ content, config }) => {
+    const attachContent = ({ content, config }: { content?: string | HTMLElement | ((container: HTMLElement) => any); config?: ModalConfig }) => {
       modalBody.style.fontSize = getUnitValue({ config, attr: 'fontSize', value: '15px' });
       modalBody.style.position = 'relative';
       modalBody.style.padding = getUnitValue({ config, attrs: ['content.padding', 'padding'], value: defaultPadding });
 
       if (isFunction(content)) {
         bodyContent[modalNumber] = content(modalBody);
-      } else if (isObject(content)) {
+      } else if (content instanceof HTMLElement) {
         modalBody.appendChild(content);
       } else if (isString(content)) {
         modalBody.innerHTML = content;
@@ -231,15 +230,16 @@ export const cModal = (() => {
     };
     attachContent({ content, config });
 
+    let footerElement: HTMLElement | undefined;
     if (isArray(buttons)) {
-      footer = footerButtons({ buttons, config, modalNumber });
-      dialog.appendChild(footer);
+      footerElement = footerButtons({ buttons, config, modalNumber });
+      dialog.appendChild(footerElement);
     } else if (footer) {
       const modalFooter = document.createElement('div');
       modalFooter.className = modalFooterStyle();
       modalFooter.style.padding = getUnitValue({ config, attrs: ['footer.padding', 'padding'] });
 
-      if (isObject(footer)) {
+      if (footer instanceof HTMLElement) {
         modalFooter.appendChild(footer);
       } else if (isString(footer)) {
         modalFooter.innerHTML = footer;
@@ -247,6 +247,7 @@ export const cModal = (() => {
         modalFooter.innerHTML = EMPTY;
       }
 
+      footerElement = modalFooter;
       dialog.appendChild(modalFooter);
     }
 
@@ -256,24 +257,24 @@ export const cModal = (() => {
 
     modals.push(section);
 
-    const setContent = ({ content: newContent, config }) => {
+    const setContent = ({ content: newContent, config }: { content?: string | HTMLElement | ((container: HTMLElement) => any); config?: ModalConfig }) => {
       bodyContent[modalNumber] = undefined;
       removeAllChildNodes(modalBody);
       attachContent({ content: newContent, config });
     };
 
-    const setButtons = ({ buttons, config }) => {
-      dialog.removeChild(footer);
-      footer = footerButtons({ buttons, config, modalNumber });
-      dialog.appendChild(footer);
+    const setButtons = ({ buttons, config }: { buttons: ModalButton[]; config?: ModalConfig }) => {
+      if (footerElement) dialog.removeChild(footerElement);
+      footerElement = footerButtons({ buttons, config, modalNumber });
+      dialog.appendChild(footerElement);
     };
 
-    const setOnClose = ({ onClose }) => {
+    const setOnClose = ({ onClose }: { onClose?: (params: { content?: any }) => void }) => {
       closeFx.length = 0; // clear array
       closeFx.push(onClose);
     };
 
-    const update = ({ content: newContent, buttons, title, config: newConfig, onClose }) => {
+    const update = ({ content: newContent, buttons, title, config: newConfig, onClose }: { content?: string | HTMLElement | ((container: HTMLElement) => any); buttons?: ModalButton[]; title?: string; config?: ModalConfig; onClose?: (params: { content?: any }) => void }) => {
       config = newConfig || config;
 
       if (newContent) setContent({ content: newContent, config });
