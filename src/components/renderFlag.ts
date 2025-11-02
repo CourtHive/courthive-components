@@ -1,14 +1,19 @@
 import { fixtures } from 'tods-competition-factory';
 import { flagStyle } from '../styles/flagStyle';
+import type { IndividualParticipant, MatchUp } from '../types';
 
-export function renderFlag({ matchUp, individualParticipant, spacer }) {
+export function renderFlag({ matchUp, individualParticipant, spacer }: { 
+  matchUp?: MatchUp; 
+  individualParticipant?: IndividualParticipant; 
+  spacer?: boolean 
+}): HTMLElement {
   // const alt = individualParticipant?.person?.nationalityCode || "";
   const nationalityCode = individualParticipant?.person?.iso2NationalityCode || '';
 
   const iocFlag = nationalityCode ? fixtures.countryToFlag(nationalityCode)?.slice(0, 4) : '';
 
   const span = document.createElement('span');
-  const variant = matchUp?.matchUpType?.toLowerCase();
+  const variant = matchUp?.matchUpType?.toLowerCase() as 'doubles' | 'singles' | undefined;
   if (!spacer) span.className = flagStyle({ variant });
   span.innerHTML = spacer ? '' : iocFlag;
 

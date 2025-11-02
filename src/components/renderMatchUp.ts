@@ -7,11 +7,24 @@ import { getLinkStyle } from '../styles/getLinkStyle';
 import { isFunction } from './modal/cmodal';
 import { renderSide } from './renderSide';
 import cx from 'classnames';
+import type { Composition, EventHandlers, MatchUp, SetScore } from '../types';
 
-export function renderMatchUp(params) {
+export function renderMatchUp(params: {
+  composition?: Composition;
+  initialRoundNumber?: number;
+  matchUp: MatchUp;
+  moiety?: boolean;
+  selectedMatchUpId?: string;
+  searchActive?: boolean;
+  isFinalRound?: boolean;
+  isLucky?: boolean;
+  isAdHoc?: boolean;
+  eventHandlers?: EventHandlers;
+  className?: string;
+}): HTMLElement {
   const { composition, initialRoundNumber = 1, matchUp, moiety, selectedMatchUpId, searchActive } = params;
   const { roundFactor, roundNumber, finishingRound, matchUpType, preFeedRound, stage } = matchUp;
-  const isFinalRound = params.isFinalRound || parseInt(finishingRound) === 1;
+  const isFinalRound = params.isFinalRound || (finishingRound ? parseInt(String(finishingRound)) === 1 : false);
   const isQualifying = stage === 'QUALIFYING' && isFinalRound;
 
   // NOTE: is it desireable to have trailing - for final round of qualifying?
@@ -19,7 +32,7 @@ export function renderMatchUp(params) {
   // const noProgression = !qualifyingStage && isFinalRound;
 
   const noProgression = isFinalRound;
-  const isFirstRound = parseInt(roundNumber) === initialRoundNumber;
+  const isFirstRound = roundNumber ? parseInt(String(roundNumber)) === initialRoundNumber : false;
   const isDoubles = matchUpType === 'DOUBLES';
   const link =
     ((searchActive || matchUp.isRoundRobin || matchUp.collectionId || params.isLucky || params.isAdHoc) && 'mr') ||
@@ -37,14 +50,14 @@ export function renderMatchUp(params) {
   const { resultsInfo, centerInfo } = configuration || {};
 
   const eventHandlers = params.eventHandlers || {};
-  const handleOnClick = (pointerEvent) => {
+  const handleOnClick = (pointerEvent: MouseEvent) => {
     if (isFunction(eventHandlers?.matchUpClick)) {
       eventHandlers.matchUpClick({ pointerEvent, matchUp });
     }
   };
 
   const container = document.createElement('div');
-  container.className = cx(composition.theme, params?.className, 'matchup', matchUpContainerStyle());
+  container.className = cx(composition?.theme, params?.className, 'matchup', matchUpContainerStyle());
 
   // event metadata
   container.classList.add('tmx-m');
@@ -55,12 +68,12 @@ export function renderMatchUp(params) {
   const component = document.createElement('div');
   component.className = getMatchUpStyle({ configuration });
 
-  const entryStatusDisplay = ({ sideNumber }) => {
+  const entryStatusDisplay = ({ sideNumber }: { sideNumber: number }) => {
     const entryStatus = matchUp?.sides
-      .find((s) => s.sideNumber === sideNumber)
+      ?.find((s) => s.sideNumber === sideNumber)
       ?.participant?.entryStatus?.replace('_', ' ');
 
-    const className = sideNumber === 2 && linkClass;
+    const className = sideNumber === 2 ? linkClass : undefined;
 
     return renderCenterInfo({
       eventHandlers,
@@ -112,7 +125,7 @@ export function renderMatchUp(params) {
   return container;
 }
 
-function renderResultsInfo({ score }) {
+function renderResultsInfo({ score }: { score?: { sets?: SetScore[] } }): HTMLElement {
   const sets = score?.sets?.filter(Boolean).sort((a, b) => (a.setNumber || 0) - (b.setNumber || 0));
   const finalSet = sets?.[sets.length - 1];
   const points = finalSet?.side1PointsScore || finalSet?.side2PointsScore;
@@ -129,9 +142,9 @@ function renderResultsInfo({ score }) {
 
   for (const set of sets || []) {
     const setDiv = document.createElement('div');
-    setDiv.setAttribute('key', set.setNumber);
+    setDiv.setAttribute('key', String(set.setNumber));
     setDiv.className = resultsItemStyle({ variant: 'set' });
-    setDiv.innerHTML = set.setNumber;
+    setDiv.innerHTML = String(set.setNumber);
     div.appendChild(setDiv);
   }
 

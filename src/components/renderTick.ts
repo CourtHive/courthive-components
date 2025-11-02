@@ -1,6 +1,6 @@
 import { tickStyles } from '../styles/sideStyles';
 
-export function renderTick({ dim = '20px' } = {}) {
+export function renderTick({ dim = '20px' }: { dim?: string } = {}): string {
   /*
    check path source:
    https://github.com/PolymerElements/iron-icons/blob/master/iron-icons.js

@@ -1,7 +1,8 @@
 import { css } from "@stitches/core";
+import type { Configuration } from "../types";
 
-export function getMatchUpStyle({ configuration }) {
-  const matchUpStyle = {
+export function getMatchUpStyle({ configuration }: { configuration?: Configuration }): string {
+  const matchUpStyle: any = {
     backgroundColor: "$matchUpBackgroundColor",
     WebkitTransition: "all 0.30s linear",
     boxShadow: "$matchUp$boxShadow",
@@ -27,5 +28,5 @@ export function getMatchUpStyle({ configuration }) {
     };
   }
 
-  return css(matchUpStyle);
+  return css(matchUpStyle)();
 }

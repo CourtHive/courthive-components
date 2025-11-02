@@ -6,8 +6,23 @@ import { renderSideScore } from './renderSideScore';
 import { renderSchedule } from './renderSchedule';
 import { isFunction } from './modal/cmodal';
 import cx from 'classnames';
+import type { Composition, EventHandlers, MatchUp } from '../types';
 
-export function renderSide({ initialRoundNumber = 1, eventHandlers, composition, sideNumber, className, matchUp }) {
+export function renderSide({ 
+  initialRoundNumber = 1, 
+  eventHandlers, 
+  composition, 
+  sideNumber, 
+  className, 
+  matchUp 
+}: {
+  initialRoundNumber?: number;
+  eventHandlers?: EventHandlers;
+  composition?: Composition;
+  sideNumber: number;
+  className?: string;
+  matchUp: MatchUp;
+}): HTMLElement {
   const configuration = composition?.configuration || {};
   const scheduleInfo = configuration?.scheduleInfo;
 
@@ -20,7 +35,7 @@ export function renderSide({ initialRoundNumber = 1, eventHandlers, composition,
   div.className = cx(sideContainerStyle(), className);
 
   div.classList.add('tmx-sd');
-  div.setAttribute('sideNumber', sideNumber);
+  div.setAttribute('sideNumber', String(sideNumber));
 
   if (scheduleInfo && sideNumber === 1) {
     const schedule = renderSchedule({ matchUp, eventHandlers });
@@ -58,16 +73,15 @@ export function renderSide({ initialRoundNumber = 1, eventHandlers, composition,
   }
 
   if (readyToScore) {
-    const scoringStyle = scoreWrapperStyle();
-    const handleScoreClick = (pointerEvent) => {
+    const handleScoreClick = (pointerEvent: MouseEvent) => {
       if (isFunction(eventHandlers?.scoreClick)) {
-        event.stopPropagation();
+        pointerEvent.stopPropagation();
         eventHandlers.scoreClick({ pointerEvent, matchUp });
       }
     };
     const score = document.createElement('div');
-    score.className = scoringStyle({
-      sideNumber: !scoreBox && sideNumber,
+    score.className = scoreWrapperStyle(undefined)({
+      ...((!scoreBox && sideNumber === 1) && { sideNumber: 1 }),
       fontSize: 'small'
     });
     score.onclick = handleScoreClick;

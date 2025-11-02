@@ -1,12 +1,25 @@
 import { roundHeaderStyle } from '../styles/roundHeaderStyle';
 import { isFunction } from './modal/cmodal';
+import type { EventHandlers, MatchUp } from '../types';
 
-export function renderRoundHeader({ eventHandlers, roundMatchUps, roundProfile, roundNumber, context }) {
+export function renderRoundHeader({ 
+  eventHandlers, 
+  roundMatchUps, 
+  roundProfile, 
+  roundNumber, 
+  context 
+}: { 
+  eventHandlers?: EventHandlers; 
+  roundMatchUps?: MatchUp[]; 
+  roundProfile?: any; 
+  roundNumber: number; 
+  context?: any 
+}): HTMLElement {
   const div = document.createElement('div');
   div.className = roundHeaderStyle();
 
   div.classList.add('tmx-rh');
-  div.setAttribute('roundNumber', roundNumber);
+  div.setAttribute('roundNumber', String(roundNumber));
 
   const hasAction = isFunction(eventHandlers?.roundHeaderClick);
   if (hasAction) {

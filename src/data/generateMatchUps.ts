@@ -1,4 +1,5 @@
 import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import type { MatchUp } from '../types';
 
 export function generateMatchUps({
   matchUpFormat = 'SET5-S:6/TB7',
@@ -10,7 +11,17 @@ export function generateMatchUps({
   eventType,
   outcomes,
   drawType
-} = {}) {
+}: {
+  matchUpFormat?: string;
+  randomWinningSide?: boolean;
+  qualifyingProfiles?: any;
+  participantsCount?: number;
+  completionGoal?: number;
+  drawSize?: number;
+  eventType?: string;
+  outcomes?: any;
+  drawType?: string;
+} = {}): { matchUps: MatchUp[] } {
   const complete = completionGoal < 100 ? Math.floor(drawSize * 0.01 * completionGoal) : undefined;
 
   const venueId = 'venueId';

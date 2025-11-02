@@ -2,8 +2,19 @@ import { gameScoreStyle, tieBreakStyle, gameWrapperStyle } from '../styles/score
 import { scoreWrapperStyle } from '../styles/scoreWrapperStyle';
 import { renderGameScore } from './renderGameScore';
 import { isFunction } from './modal/cmodal';
+import type { Composition, EventHandlers, MatchUp, SetScore } from '../types';
 
-export function setScore({ gameScoreOnly, scoreStripes, set, sideNumber }) {
+export function setScore({
+  gameScoreOnly,
+  scoreStripes,
+  set,
+  sideNumber
+}: {
+  gameScoreOnly?: boolean;
+  scoreStripes?: boolean;
+  set: SetScore & { editing?: number };
+  sideNumber: number;
+}): HTMLElement {
   const isWinningSide = sideNumber === set?.winningSide;
   const variant = (isWinningSide && 'winner') || set?.winningSide ? 'loser' : undefined;
   const gameScore = sideNumber === 2 ? set.side2Score : set.side1Score;
@@ -32,7 +43,7 @@ export function setScore({ gameScoreOnly, scoreStripes, set, sideNumber }) {
     if (!gameScoreOnly) {
       const span = document.createElement('span');
       span.className = tieBreakStyle();
-      span.innerHTML = hasTiebreakScore && !tieBreakSet ? tieBreakScore : '';
+      span.innerHTML = hasTiebreakScore && !tieBreakSet ? String(tieBreakScore) : '';
       p.appendChild(span);
     }
   }
@@ -40,16 +51,27 @@ export function setScore({ gameScoreOnly, scoreStripes, set, sideNumber }) {
   return p;
 }
 
-export function renderSideScore({ participantHeight, eventHandlers, composition, sideNumber, matchUp }) {
+export function renderSideScore({
+  participantHeight,
+  eventHandlers,
+  composition,
+  sideNumber,
+  matchUp
+}: {
+  participantHeight?: number;
+  eventHandlers?: EventHandlers;
+  composition?: Composition;
+  sideNumber: number;
+  matchUp: MatchUp;
+}): HTMLElement {
   const scoreStripes = composition?.configuration?.winnerChevron;
   const gameScoreOnly = composition?.configuration?.gameScoreOnly;
   const sets = matchUp?.score?.sets || [];
 
   const scoreBox = composition?.configuration?.scoreBox;
-  const wrapperHeight = sideNumber === 2 ? participantHeight : participantHeight - 1; // account for border!!
-  const scoreStyle = scoreWrapperStyle(wrapperHeight);
+  const wrapperHeight = participantHeight ? (sideNumber === 2 ? participantHeight : participantHeight - 1) : undefined; // account for border!!
 
-  const handleScoreClick = (pointerEvent) => {
+  const handleScoreClick = (pointerEvent: MouseEvent) => {
     if (isFunction(eventHandlers?.scoreClick)) {
       pointerEvent.stopPropagation();
       eventHandlers.scoreClick({ pointerEvent, matchUp });
@@ -57,9 +79,9 @@ export function renderSideScore({ participantHeight, eventHandlers, composition,
   };
 
   const div = document.createElement('div');
-  div.className = scoreStyle({
-    sideNumber: !scoreBox && sideNumber,
-    fontSize: '5px'
+  div.className = scoreWrapperStyle(wrapperHeight)({
+    ...(!scoreBox && sideNumber === 1 && { sideNumber: 1 }),
+    fontSize: 'small'
   });
 
   div.classList.add('sideScore');

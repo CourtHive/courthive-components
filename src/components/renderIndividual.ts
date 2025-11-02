@@ -3,12 +3,21 @@ import { renderParticipantDetail } from './renderParticipantDetail';
 import { seedStyle } from '../styles/seedStyle';
 import { renderFrill } from './renderFrill';
 import { isFunction } from './modal/cmodal';
+import type { Composition, EventHandlers, IndividualParticipant, MatchUp, Side } from '../types';
 
 const QUALIFIER = 'Qualifier';
 const BYE = 'BYE';
 const TBD = 'TBD';
 
-export function renderIndividual(params) {
+export function renderIndividual(params: {
+  isWinningSide?: boolean;
+  side?: Side;
+  sideNumber?: number;
+  individualParticipant?: IndividualParticipant;
+  matchUp?: MatchUp;
+  composition?: Composition;
+  eventHandlers?: EventHandlers;
+}): { element: HTMLElement } {
   const { isWinningSide, side, sideNumber, individualParticipant, matchUp, composition } = params || {};
   const variant = isWinningSide ? 'winner' : undefined;
   const eventHandlers = params.eventHandlers || {};

@@ -12,13 +12,25 @@ export function generateEventData({
   automated,
   eventType,
   drawType
-} = {}) {
+}: {
+  matchUpFormat?: string;
+  completeAllMatchUps?: boolean;
+  autoSchedule?: boolean;
+  participantsCount?: number;
+  completionGoal?: number;
+  tieFormatName?: string;
+  addQualifying?: boolean;
+  drawSize?: number;
+  automated?: boolean;
+  eventType?: string;
+  drawType?: string;
+} = {}): { eventData?: any } {
   const complete = completionGoal < 100 ? Math.floor(drawSize * 0.01 * completionGoal) : undefined;
 
   participantsCount = participantsCount || drawSize;
   const drawId = 'drawId';
 
-  const drawProfile = {
+  const drawProfile: any = {
     category: { ratingType: 'WTN', ratingMin: 10, ratingMax: 14.99 },
     completionGoal: complete,
     participantsCount,
@@ -38,7 +50,15 @@ export function generateEventData({
   return genData({ drawProfile, completeAllMatchUps, autoSchedule });
 }
 
-function genData({ drawProfile, completeAllMatchUps, autoSchedule }) {
+function genData({ 
+  drawProfile, 
+  completeAllMatchUps, 
+  autoSchedule 
+}: { 
+  drawProfile: any; 
+  completeAllMatchUps?: boolean; 
+  autoSchedule?: boolean 
+}): { eventData?: any; error?: any } {
   const drawId = 'drawId';
   const venueId = 'venueId';
   const startTime = '08:00';
@@ -73,7 +93,7 @@ function genData({ drawProfile, completeAllMatchUps, autoSchedule }) {
   ];
 
   const result = mocksEngine.generateTournamentRecord({
-    policyDefinitions: fixtures.policies.POLICY_SCHEDULING_NO_DAILY_LIMITS,
+    policyDefinitions: (fixtures.policies as any).POLICY_SCHEDULING_NO_DAILY_LIMITS,
     participantsProfile: { scaleAllParticipants: true },
     scheduleCompletedMatchUps: true,
     completeAllMatchUps,

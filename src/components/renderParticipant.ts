@@ -5,6 +5,7 @@ import { renderStatusPill } from './renderStatusPill';
 import { isElement } from '../utilities/isElement';
 import { renderTeamLogo } from './renderTeamLogo';
 import { renderTick } from './renderTick';
+import type { Composition, EventHandlers, MatchUp, Participant, Side } from '../types';
 
 export function renderParticipant({
   initialRoundNumber = 1,
@@ -15,7 +16,16 @@ export function renderParticipant({
   placeholder,
   sideNumber,
   matchUp
-}) {
+}: {
+  initialRoundNumber?: number;
+  eventHandlers?: EventHandlers;
+  sideContainer?: boolean;
+  composition?: Composition;
+  participant?: Participant;
+  placeholder?: any;
+  sideNumber?: number;
+  matchUp?: MatchUp;
+}): HTMLElement {
   const { winningSide, matchUpType, isRoundRobin, matchUpStatus } = matchUp || {};
   const configuration = composition?.configuration;
 
@@ -36,7 +46,7 @@ export function renderParticipant({
 
   const firstParticipant = isDoubles ? participant?.individualParticipants?.[0] : participant;
   const secondParticipant = isDoubles && participant?.individualParticipants?.[1];
-  const isWinningSide = sideNumber === winningSide || (matchUpStatus === 'BYE' && participant);
+  const isWinningSide = Boolean(sideNumber === winningSide || (matchUpStatus === 'BYE' && participant));
   const winnerChevron = configuration?.winnerChevron && isWinningSide;
 
   const teamLogo = configuration?.teamLogo;
@@ -45,15 +55,15 @@ export function renderParticipant({
   const gameScoreOnly = configuration?.gameScoreOnly;
 
   const participantContainer = document.createElement('div');
-  participantContainer.className =
-    sideContainer &&
-    getParticipantContainerStyle({
+  if (sideContainer) {
+    participantContainer.className = getParticipantContainerStyle({
       drawPosition,
       sideNumber
     });
+  }
 
   participantContainer.classList.add('tmx-p');
-  participantContainer.setAttribute('id', participant?.participantId);
+  participantContainer.setAttribute('id', participant?.participantId || '');
 
   if (teamLogo) {
     const logo = renderTeamLogo({ teamLogo });
@@ -61,9 +71,9 @@ export function renderParticipant({
   }
 
   const participantType = document.createElement('div');
-  participantType.className = participantTypeStyle({
-    variant: isDoubles ? 'doubles' : 'singles'
-  });
+  participantType.className = participantTypeStyle(
+    isDoubles ? { variant: 'doubles' } : {}
+  );
 
   const annotationDiv = document.createElement('div');
   annotationDiv.className = getChevronStyle({

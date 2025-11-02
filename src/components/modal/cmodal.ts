@@ -9,22 +9,23 @@ import {
   modalStyle,
   modalTitleStyle
 } from './cmodalStyles';
+import type { ModalButton, ModalConfig, ModalParams } from '../../types';
 
 const EMPTY = 'Nothing to see here';
 
-export function isFunction(fx) {
+export function isFunction(fx: any): fx is Function {
   return typeof fx === 'function';
 }
-export function isString(item) {
+export function isString(item: any): item is string {
   return typeof item === 'string';
 }
-export function isArray(item) {
+export function isArray(item: any): item is any[] {
   return Array.isArray(item);
 }
-export function isObject(item) {
+export function isObject(item: any): item is object {
   return typeof item === 'object' && !Array.isArray(item);
 }
-export function removeAllChildNodes(parent) {
+export function removeAllChildNodes(parent: HTMLElement | null): void {
   if (!parent) return;
 
   while (parent.firstChild) {
@@ -34,20 +35,20 @@ export function removeAllChildNodes(parent) {
 
 export const cModal = (() => {
   const scrollStop = bodyFreeze();
-  const conditionalClose = {};
+  const conditionalClose: Record<number, boolean | undefined> = {};
   const defaultPadding = '.5';
-  let bodyContent = [];
-  let scrollPosition;
-  let closeFx = [];
-  let modals = [];
-  let backdrop;
+  let bodyContent: any[] = [];
+  let scrollPosition: number;
+  let closeFx: Array<((params: { content?: any }) => void) | undefined> = [];
+  let modals: HTMLElement[] = [];
+  let backdrop: HTMLElement;
 
-  const destroy = (id) => {
+  const destroy = (id?: string): void => {
     if (!id) {
       const modal = modals.pop();
       if (modal) document.body.removeChild(modal);
     } else {
-      let modal;
+      let modal: HTMLElement | undefined;
       modals = modals.filter((m) => {
         if (m.id === id) modal = m;
         return m.id !== id;
@@ -56,14 +57,14 @@ export const cModal = (() => {
     }
   };
 
-  const closeBackdrop = () => {
+  const closeBackdrop = (): void => {
     if (backdrop) {
-      backdrop.style.opacity = 0;
+      backdrop.style.opacity = '0';
       backdrop.style.display = 'none';
     }
   };
 
-  const close = (conditional) => {
+  const close = (conditional?: boolean): void => {
     const modalNumber = modals.length;
     if (conditional && conditionalClose[modalNumber] === false) {
       return;
@@ -83,7 +84,7 @@ export const cModal = (() => {
     destroy();
   };
 
-  const createBackdrop = () => {
+  const createBackdrop = (): void => {
     backdrop = document.createElement('div');
     backdrop.className = backdropStyle();
     backdrop.id = `cmdl-backdrop`;
@@ -93,7 +94,7 @@ export const cModal = (() => {
     document.body.appendChild(backdrop);
   };
 
-  const freezeBackground = ({ config }) => {
+  const freezeBackground = ({ config }: { config?: ModalConfig }): void => {
     scrollPosition = window.scrollY;
     document.body.classList.add(scrollStop);
     document.body.style.top = `-${scrollPosition}px`;
@@ -107,8 +108,20 @@ export const cModal = (() => {
     }
   };
 
-  const getUnitValue = ({ config, attr, attrs, unit = 'em', value }) => {
-    let attrValue;
+  const getUnitValue = ({ 
+    config, 
+    attr, 
+    attrs, 
+    unit = 'em', 
+    value 
+  }: { 
+    config?: any; 
+    attr?: string; 
+    attrs?: string[]; 
+    unit?: string; 
+    value?: any 
+  }): string => {
+    let attrValue: any;
 
     if (isString(attr)) {
       attrValue = getAttr({ element: config, attr });
@@ -122,7 +135,7 @@ export const cModal = (() => {
     return `${value}${unit}`;
   };
 
-  const footerButtons = ({ buttons, config, modalNumber }) => {
+  const footerButtons = ({ buttons, config, modalNumber }: { buttons: ModalButton[]; config?: ModalConfig; modalNumber: number }): HTMLElement => {
     const modalFooter = document.createElement('div');
     modalFooter.className = modalFooterStyle();
     modalFooter.style.padding = getUnitValue({ config, attrs: ['footer.padding', 'padding'], value: defaultPadding });
@@ -163,7 +176,7 @@ export const cModal = (() => {
     return modalFooter;
   };
 
-  const open = ({ title = '', content, buttons, footer, config, onClose } = {}) => {
+  const open = ({ title = '', content, buttons, footer, config, onClose }: ModalParams = {}) => {
     freezeBackground({ config });
     closeFx.push(onClose);
 

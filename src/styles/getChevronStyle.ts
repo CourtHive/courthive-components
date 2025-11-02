@@ -1,6 +1,12 @@
 import { css } from "@stitches/core";
 
-export function getChevronStyle({ winnerChevron, isDoubles }) {
+export function getChevronStyle({ 
+  winnerChevron, 
+  isDoubles 
+}: { 
+  winnerChevron?: boolean; 
+  isDoubles?: boolean 
+}): string {
   const chevronHeight = (isDoubles ? 0.4 : 0.3) * 2;
 
   const chevronStyle = css({
