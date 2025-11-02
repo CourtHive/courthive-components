@@ -5,7 +5,7 @@ import { renderStatusPill } from './renderStatusPill';
 import { isElement } from '../utilities/isElement';
 import { renderTeamLogo } from './renderTeamLogo';
 import { renderTick } from './renderTick';
-import type { Composition, EventHandlers, MatchUp, Participant, Side } from '../types';
+import type { Composition, EventHandlers, MatchUp, Participant } from '../types';
 
 export function renderParticipant({
   initialRoundNumber = 1,
