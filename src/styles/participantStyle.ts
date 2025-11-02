@@ -1,6 +1,6 @@
 import { css } from '@stitches/core';
 
-export function getPlacholderStyle({ variant }) {
+export function getPlacholderStyle({ variant }: { variant?: string }): string {
   const participantPlaceholder = css({
     margin: '2.5px 0',
     variants: {
@@ -63,7 +63,7 @@ export const participantTypeStyle = css({
   }
 });
 
-export function getParticipantContainerStyle({ drawPosition, sideNumber }) {
+export function getParticipantContainerStyle({ drawPosition, sideNumber }: { drawPosition?: number | string; sideNumber?: number }): string {
   const participantContainerStyle = css({
     minHeight: '$participant$minHeight',
     justifyContent: 'space-between',

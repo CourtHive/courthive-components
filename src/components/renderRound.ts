@@ -6,6 +6,7 @@ import { roundStyle } from '../styles/roundStyle';
 import { tools } from 'tods-competition-factory';
 import { renderMatchUp } from './renderMatchUp';
 import { isFunction } from './modal/cmodal';
+import type { Composition, EventHandlers, MatchUp } from '../types';
 
 export function renderRound({
   initialRoundNumber = 1,
@@ -22,7 +23,22 @@ export function renderRound({
   matchUps,
   context,
   isLucky
-}) {
+}: {
+  initialRoundNumber?: number;
+  selectedMatchUpId?: string;
+  eventHandlers?: EventHandlers;
+  isFinalRound?: boolean;
+  isRoundRobin?: boolean;
+  searchActive?: boolean;
+  composition?: Composition;
+  roundFactor?: number;
+  roundNumber: number;
+  roundProfile?: any;
+  minWidth?: string;
+  matchUps: MatchUp[];
+  context?: any;
+  isLucky?: boolean;
+}): HTMLElement {
   const roundMatchUps = matchUps
     .filter((matchUp) => matchUp.roundNumber === roundNumber)
     .sort((a, b) => (a.roundPosition || 0) - (b.roundPosition || 0));
@@ -35,7 +51,7 @@ export function renderRound({
   roundContainer.className = roundContainerStyle();
 
   roundContainer.classList.add('tmx-rd');
-  roundContainer.setAttribute('roundNumber', roundNumber);
+  roundContainer.setAttribute('roundNumber', String(roundNumber));
 
   if (configuration.roundHeader) {
     const header = renderRoundHeader({ roundProfile, roundMatchUps, roundNumber, eventHandlers, context });
@@ -50,10 +66,12 @@ export function renderRound({
   let structureIds;
   let groupsCount;
   if (isRoundRobin) {
-    const sum = (arr) => arr.reduce((sum, val) => val + sum, 0);
+    const sum = (arr?: number[]) => (arr || []).reduce((sum, val) => val + sum, 0);
     roundMatchUps.sort((a, b) => {
       const sumDiff = sum(a.drawPositions) - sum(b.drawPositions);
-      const minDiff = Math.min(...(a.drawPositions ?? [])) - Math.min(...(b.drawPositions ?? []));
+      const aPositions = a.drawPositions || [];
+      const bPositions = b.drawPositions || [];
+      const minDiff = (aPositions.length ? Math.min.apply(null, aPositions) : 0) - (bPositions.length ? Math.min.apply(null, bPositions) : 0);
       return sumDiff || minDiff;
     });
     const structureDetails = roundMatchUps.reduce((obj, matchUp) => {
@@ -79,7 +97,10 @@ export function renderRound({
 
     if (rrGroupSepator) {
       const separator = document.createElement('div');
-      separator.className = groupSeparatorStyle({ variant: groupIndex, roundOrder });
+      separator.className = groupSeparatorStyle({ 
+        ...(groupIndex === 0 && { variant: 0 }), 
+        ...(roundOrder && { roundOrder })
+      });
       div.appendChild(separator);
 
       const groupName = document.createElement('div');

@@ -1,7 +1,16 @@
 import { lineHeights } from '../compositions/lineHeights';
 import { css } from '@stitches/core';
+import type { Composition } from '../types';
 
-export function getLinkStyle({ composition, isDoubles, roundFactor = 1 }) {
+export function getLinkStyle({ 
+  composition, 
+  isDoubles, 
+  roundFactor = 1 
+}: { 
+  composition?: Composition; 
+  isDoubles?: boolean; 
+  roundFactor?: number 
+}) {
   const fontSize = parseInt(window.getComputedStyle(document.body).getPropertyValue('font-size'));
 
   const configuration = composition?.configuration || {};

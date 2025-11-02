@@ -3,6 +3,7 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { structureStyle } from '../styles/structureStyle';
 import { roundStyle } from '../styles/roundStyle';
 import { renderRound } from './renderRound';
+import type { Composition, EventHandlers, MatchUp } from '../types';
 
 export function renderStructure({
   initialRoundNumber = 1,
@@ -15,7 +16,18 @@ export function renderStructure({
   matchUps,
   minWidth,
   context
-}) {
+}: {
+  initialRoundNumber?: number;
+  selectedMatchUpId?: string;
+  eventHandlers?: EventHandlers;
+  searchActive?: boolean;
+  composition?: Composition;
+  structureId?: string;
+  finalColumn?: boolean | HTMLElement;
+  matchUps: MatchUp[];
+  minWidth?: string;
+  context?: any;
+}): HTMLElement {
   const { roundNumbers, roundProfile, hasOddMatchUpsCount, isNotEliminationStructure } =
     tournamentEngine.getRoundMatchUps({ matchUps });
 
@@ -27,9 +39,9 @@ export function renderStructure({
   div.className = structureStyle();
 
   div.classList.add('tmx-str');
-  div.setAttribute('id', structureId);
+  div.setAttribute('id', structureId || '');
 
-  const finalRoundNumber = Math.max(...roundNumbers);
+  const finalRoundNumber = roundNumbers.length ? Math.max.apply(null, roundNumbers) : 0;
 
   for (const roundNumber of roundNumbers) {
     if (roundNumber < initialRoundNumber) continue;
@@ -52,7 +64,7 @@ export function renderStructure({
     div.appendChild(round);
   }
 
-  if (finalColumn) {
+  if (finalColumn && typeof finalColumn !== 'boolean') {
     const roundContainer = document.createElement('div');
     roundContainer.className = roundContainerStyle();
 

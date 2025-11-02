@@ -1,8 +1,21 @@
 import { columnStyle, entryStyle, getInfoStyle, statusStyle } from '../styles/centerInfoStyle';
 import { isFunction } from './modal/cmodal';
 import cx from 'classnames';
+import type { EventHandlers, MatchUp } from '../types';
 
-export function renderCenterInfo({ eventHandlers, entryStatus, sideNumber, className, matchUp }) {
+export function renderCenterInfo({ 
+  eventHandlers, 
+  entryStatus, 
+  sideNumber, 
+  className, 
+  matchUp 
+}: { 
+  eventHandlers?: EventHandlers; 
+  entryStatus?: string; 
+  sideNumber?: number; 
+  className?: string; 
+  matchUp?: MatchUp 
+}): { element: HTMLElement } {
   const div = document.createElement('div');
   if (isFunction(eventHandlers?.centerInfoClick)) {
     div.onclick = (pointerEvent) => eventHandlers.centerInfoClick({ matchUp, sideNumber, pointerEvent });
@@ -11,7 +24,7 @@ export function renderCenterInfo({ eventHandlers, entryStatus, sideNumber, class
 
   // event metadata
   div.classList.add('tmx-ci');
-  div.setAttribute('sideNumber', sideNumber);
+  div.setAttribute('sideNumber', String(sideNumber));
 
   const column = document.createElement('div');
   column.className = columnStyle();

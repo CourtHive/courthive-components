@@ -1,6 +1,6 @@
 import { css } from "@stitches/core";
 
-export const scoreWrapperStyle = (participantHeight) => {
+export const scoreWrapperStyle = (participantHeight?: number) => {
   return css({
     display: "flex",
     alignItems: "center",

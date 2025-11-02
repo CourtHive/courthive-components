@@ -1,6 +1,6 @@
 import { css } from "@stitches/core";
 
-export function getInfoStyle({ variant }) {
+export function getInfoStyle({ variant }: { variant?: number | string }): string {
   const infoStyle = css({
     borderBottom: "solid 1px lightgray",
     backgroundColor: "$matchUp",

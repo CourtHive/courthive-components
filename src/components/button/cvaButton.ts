@@ -1,7 +1,17 @@
 import { cva } from 'class-variance-authority';
 import 'bulma/css/bulma.css';
 
-export function renderButton({ intent = 'primary', size = 'medium', label, onClick } = {}) {
+export function renderButton({ 
+  intent = 'primary', 
+  size = 'medium', 
+  label, 
+  onClick 
+}: {
+  intent?: 'primary' | 'secondary';
+  size?: 'medium';
+  label?: string;
+  onClick?: (args: { pointerEvent: MouseEvent }) => void;
+} = {}): HTMLButtonElement {
   const buttonStyle = cva('button', {
     variants: {
       intent: {
@@ -12,7 +22,7 @@ export function renderButton({ intent = 'primary', size = 'medium', label, onCli
         medium: ['font-medium']
       }
     },
-    compoundVariants: [{ intent: 'primary', size: 'medium', textTransform: 'uppercase' }],
+    compoundVariants: [{ intent: 'primary', size: 'medium', class: 'uppercase' }],
     defaultVariants: {
       intent: 'primary',
       size: 'medium'
@@ -21,9 +31,9 @@ export function renderButton({ intent = 'primary', size = 'medium', label, onCli
 
   const button = document.createElement('button');
   button.className = buttonStyle({ intent, size });
-  button.innerHTML = label;
+  button.innerHTML = label || '';
 
-  button.onclick = (pointerEvent) => {
+  button.onclick = (pointerEvent: MouseEvent) => {
     if (typeof onClick === 'function') onClick({ pointerEvent });
   };
 

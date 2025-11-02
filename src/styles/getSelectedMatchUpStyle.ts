@@ -1,6 +1,6 @@
 import { css } from "@stitches/core";
 
-export function getSelectedMatchUpStyle() {
+export function getSelectedMatchUpStyle(): string {
   return css({
     backgroundColor: "magenta",
     position: "absolute",
@@ -8,5 +8,5 @@ export function getSelectedMatchUpStyle() {
     height: "100%",
     width: "100%",
     top: 0,
-  });
+  })();
 }

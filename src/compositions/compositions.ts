@@ -7,8 +7,9 @@ import {
   wimbledonTheme,
   usOpenTheme
 } from '../styles/themes';
+import type { Composition } from '../types';
 
-export const compositions = {
+export const compositions: Record<string, Composition> = {
   Australian: {
     configuration: { flags: true },
     theme: australianTheme
