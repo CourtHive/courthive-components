@@ -1,3 +1,4 @@
+import '../components/forms/styles';
 import { renderButtons } from '../components/forms/renderButtons';
 
 export default {

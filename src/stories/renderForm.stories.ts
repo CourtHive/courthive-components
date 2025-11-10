@@ -1,3 +1,4 @@
+import '../components/forms/styles';
 import { renderForm } from '../components/forms/renderForm';
 
 export default {
@@ -257,10 +258,11 @@ export const DateRangeForm = {
         value: ''
       },
       {
-        label: 'Active Dates',
+        label: 'Active Dates (multi-select datepicker)',
         field: 'activeDates',
         id: 'activeDates',
-        placeholder: 'YYYY-MM-DD',
+        placeholder: 'Click to select dates',
+        value: '',
         maxNumberOfDates: 10,
         date: true
       }

@@ -1,3 +1,4 @@
+import '../components/forms/styles';
 import { renderField } from '../components/forms/renderField';
 
 export default {

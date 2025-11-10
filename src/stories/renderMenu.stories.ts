@@ -1,3 +1,4 @@
+import '../components/forms/styles';
 import { renderMenu } from '../components/forms/renderMenu';
 
 export default {
