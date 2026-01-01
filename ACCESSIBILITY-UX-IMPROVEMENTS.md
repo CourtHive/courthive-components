@@ -135,6 +135,40 @@ Two-pronged approach:
 - Consistent appearance across all components and stories
 - Fixes issue in Field stories and matchUpFormat component
 
+**Additional Fixes (Second Pass):**
+After initial fix, black backgrounds persisted in some contexts. Extended solution:
+
+1. **Force white backgrounds globally**:
+```css
+.input, .textarea, .select select {
+  background-color: #ffffff !important;
+}
+
+option {
+  background-color: #ffffff !important;
+  color: #363636 !important;
+}
+```
+
+2. **Inline styles on select and option elements**:
+```typescript
+select.style.backgroundColor = '#ffffff';
+opt.style.backgroundColor = '#ffffff';
+opt.style.color = '#363636';
+```
+
+3. **Wrapper div white background**:
+```typescript
+wrapper.style.backgroundColor = '#ffffff';
+wrapper.style.color = '#363636';
+```
+
+**Why So Many Fixes?**
+- Browser/OS dark mode overrides CSS at multiple levels
+- Bulma's specificity requires !important flags
+- Some browsers apply dark styling to native select/option elements
+- Multiple defense layers ensure white backgrounds in all contexts
+
 ### 6. **Button Layout Issues in matchUpFormat**
 
 **Problem:**
@@ -157,6 +191,42 @@ setFormat.style.marginBottom = '1em';
 - Clear visual separation of interactive elements
 - Better clickability and user experience
 - Applies to both setFormat and finalSetFormat containers
+
+### 7. **Dropdown Not Closing On Selection**
+
+**Problem:**
+Custom dropdowns in matchUpFormat didn't close after clicking an option:
+- User clicks dropdown item
+- onClick handler fires
+- Dropdown remains visible
+- Required clicking outside to close
+
+**Root Cause:**
+Race condition between onClick execution and dropdown removal:
+- onClick updates state immediately
+- Dropdown removal also happened immediately
+- Event propagation could interfere with cleanup
+
+**Solution:**
+Improved dropdown cleanup with timing and event control:
+```typescript
+itemDiv.onclick = (e) => {
+  e.stopPropagation(); // Prevent event bubbling
+  item.onClick();
+  // Give a tiny delay to ensure onClick completes
+  setTimeout(() => {
+    if (document.body.contains(dropdown)) {
+      document.body.removeChild(dropdown);
+    }
+  }, 0);
+};
+```
+
+**Impact:**
+- Dropdowns now close immediately after selection
+- No race conditions or event bubbling issues
+- Safe removal with existence check
+- Better user experience with expected behavior
 
 ## WCAG 2.1 Compliance
 
