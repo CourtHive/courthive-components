@@ -645,17 +645,8 @@ function getButtonClick(params: any): void {
   dropdownMenu.style.borderRadius = '4px';
   dropdownMenu.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
 
-  // Store cleanup function reference
-  let cleanupListener: ((event: MouseEvent) => void) | null = null;
-
   const removeDropdown = () => {
-    if (document.body.contains(dropdown)) {
-      document.body.removeChild(dropdown);
-    }
-    if (cleanupListener) {
-      document.removeEventListener('click', cleanupListener);
-      cleanupListener = null;
-    }
+    closeCurrentDropdown();
   };
 
   items.forEach((item: any) => {
