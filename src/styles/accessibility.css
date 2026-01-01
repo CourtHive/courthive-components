@@ -49,3 +49,21 @@
 .select::after {
   border-color: #4a4a4a !important; /* Darker arrow (was #3273dc or #dbdbdb) */
 }
+
+/* Fix dropdown menu backgrounds that may have dark styling */
+.dropdown-menu,
+.dropdown-content {
+  background-color: white !important;
+  color: #363636 !important;
+}
+
+.dropdown-item,
+.dropdown-item:not(a) {
+  background-color: white !important;
+  color: #363636 !important;
+}
+
+.dropdown-item:hover {
+  background-color: #f5f5f5 !important;
+  color: #363636 !important;
+}

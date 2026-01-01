@@ -408,6 +408,10 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
   content.appendChild(standardFormatSelector);
 
   const setFormat = document.createElement('div');
+  setFormat.style.display = 'flex';
+  setFormat.style.flexWrap = 'wrap';
+  setFormat.style.gap = '0.5em';
+  setFormat.style.marginBottom = '1em';
   setComponents
     .map((component) => {
       const value = component.getValue ? component.getValue(parsedMatchUpFormat) : undefined;
@@ -476,7 +480,10 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
   content.appendChild(setConfig);
 
   finalSetFormat = document.createElement('div');
-  finalSetFormat.style.display = parsedMatchUpFormat.finalSetFormat ? '' : NONE;
+  finalSetFormat.style.display = parsedMatchUpFormat.finalSetFormat ? 'flex' : NONE;
+  finalSetFormat.style.flexWrap = 'wrap';
+  finalSetFormat.style.gap = '0.5em';
+  finalSetFormat.style.marginBottom = '1em';
   finalSetFormat.id = 'finalSetFormat';
   ([{ label: `<div style='font-weight: bold'>Final set</div>`, options: [] as any[], finalSet: true }] as any[])
     .concat(
@@ -614,16 +621,26 @@ function getButtonClick(params: any): void {
   
   items.forEach((item: any) => {
     const itemDiv = document.createElement('div');
-    itemDiv.className = 'dropdown-item';
+    // Don't use Bulma's dropdown-item class - it may have styling conflicts
     itemDiv.style.padding = '0.5em 1em';
     itemDiv.style.cursor = 'pointer';
+    itemDiv.style.backgroundColor = 'white';
+    itemDiv.style.color = '#363636';
+    itemDiv.style.fontSize = '1rem';
+    itemDiv.style.lineHeight = '1.5';
     itemDiv.textContent = item.text;
     itemDiv.onclick = () => {
       item.onClick();
       document.body.removeChild(dropdown);
     };
-    itemDiv.onmouseenter = () => itemDiv.style.backgroundColor = '#f5f5f5';
-    itemDiv.onmouseleave = () => itemDiv.style.backgroundColor = 'white';
+    itemDiv.onmouseenter = () => {
+      itemDiv.style.backgroundColor = '#f5f5f5';
+      itemDiv.style.color = '#363636';
+    };
+    itemDiv.onmouseleave = () => {
+      itemDiv.style.backgroundColor = 'white';
+      itemDiv.style.color = '#363636';
+    };
     dropdownMenu.appendChild(itemDiv);
   });
   
