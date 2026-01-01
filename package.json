@@ -73,7 +73,7 @@
     "prettier": "2.8.8",
     "semver": "7.7.3",
     "storybook": "^10.0.2",
-    "vite": "7.2.2"
+    "vite": "7.3.0"
   },
   "dependencies": {
     "@stitches/core": "1.2.8",
