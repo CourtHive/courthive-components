@@ -1,4 +1,5 @@
 import type { Preview } from '@storybook/html-vite';
+import '../src/styles/accessibility.css';
 
 const preview: Preview = {
   parameters: {

@@ -57,29 +57,34 @@
     "*": "prettier --ignore-unknown --write"
   },
   "devDependencies": {
-    "@commitlint/cli": "20.1.0",
-    "@commitlint/config-conventional": "20.0.0",
-    "@storybook/html-vite": "^10.0.2",
+    "@commitlint/cli": "20.3.0",
+    "@commitlint/config-conventional": "20.3.0",
     "@storybook/addon-docs": "^10.0.2",
-    "@typescript-eslint/eslint-plugin": "8.46.3",
-    "@typescript-eslint/parser": "8.46.3",
+    "@storybook/html-vite": "^10.0.2",
+    "@types/vanillajs-datepicker": "^1.3.5",
+    "@typescript-eslint/eslint-plugin": "8.51.0",
+    "@typescript-eslint/parser": "8.51.0",
     "eslint": "8.57.1",
     "eslint-plugin-sonarjs": "3.0.5",
     "eslint-plugin-storybook": "^10.0.2",
     "gh-pages": "6.3.0",
     "husky": "9.1.7",
-    "lint-staged": "16.2.6",
+    "lint-staged": "16.2.7",
     "prettier": "2.8.8",
     "semver": "7.7.3",
-    "vite": "7.2.2",
-    "storybook": "^10.0.2"
+    "storybook": "^10.0.2",
+    "vite": "7.3.0"
   },
   "dependencies": {
     "@stitches/core": "1.2.8",
+    "awesomplete": "1.1.7",
     "bulma": "1.0.4",
+    "bulma-checkradio": "^2.1.3",
+    "bulma-switch": "^2.0.4",
     "class-variance-authority": "0.7.1",
     "classnames": "2.5.1",
     "dayjs": "1.11.19",
-    "tods-competition-factory": "2.2.31"
+    "tods-competition-factory": "2.2.34",
+    "vanillajs-datepicker": "1.3.4"
   }
 }

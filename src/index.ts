@@ -6,3 +6,11 @@ export { renderMatchUp } from './components/renderMatchUp';
 export { compositions } from './compositions/compositions';
 export { renderRound } from './components/renderRound';
 export { cModal } from './components/modal/cmodal';
+
+// Form renderers (import styles first)
+import './components/forms/styles';
+export { renderButtons } from './components/forms/renderButtons';
+export { renderField, renderOptions } from './components/forms/renderField';
+export { renderForm } from './components/forms/renderForm';
+export { renderMenu } from './components/forms/renderMenu';
+export { validator } from './components/forms/renderValidator';

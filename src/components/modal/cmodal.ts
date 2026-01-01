@@ -13,6 +13,8 @@ import type { ModalButton, ModalConfig, ModalParams } from '../../types';
 
 const EMPTY = 'Nothing to see here';
 
+type ModalContent = string | HTMLElement | ((container: HTMLElement) => any);
+
 export function isFunction(fx: any): fx is (...args: any[]) => any {
   return typeof fx === 'function';
 }
@@ -29,7 +31,7 @@ export function removeAllChildNodes(parent: HTMLElement | null): void {
   if (!parent) return;
 
   while (parent.firstChild) {
-    parent.removeChild(parent.firstChild);
+    parent.firstChild.remove();
   }
 }
 
@@ -44,16 +46,16 @@ export const cModal = (() => {
   let backdrop: HTMLElement;
 
   const destroy = (id?: string): void => {
-    if (!id) {
-      const modal = modals.pop();
-      if (modal) document.body.removeChild(modal);
-    } else {
+    if (id) {
       let modal: HTMLElement | undefined;
       modals = modals.filter((m) => {
         if (m.id === id) modal = m;
         return m.id !== id;
       });
-      if (modal) document.body.removeChild(modal);
+      if (modal) modal.remove();
+    } else {
+      const modal = modals.pop();
+      if (modal) modal.remove();
     }
   };
 
@@ -108,34 +110,42 @@ export const cModal = (() => {
     }
   };
 
-  const getUnitValue = ({ 
-    config, 
-    attr, 
-    attrs, 
-    unit = 'em', 
-    value 
-  }: { 
-    config?: any; 
-    attr?: string; 
-    attrs?: string[]; 
-    unit?: string; 
-    value?: any 
+  const getUnitValue = ({
+    config,
+    attr,
+    attrs,
+    unit = 'em',
+    value
+  }: {
+    config?: any;
+    attr?: string;
+    attrs?: string[];
+    unit?: string;
+    value?: any;
   }): string => {
     let attrValue: any;
 
     if (isString(attr)) {
       attrValue = getAttr({ element: config, attr });
     } else if (isArray(attrs)) {
-      attrValue = attrs.map((attr) => getAttr({ element: config, attr })).filter(Boolean)?.[0];
+      attrValue = attrs.map((attr) => getAttr({ element: config, attr })).find(Boolean);
     }
 
     if (attrValue !== undefined) value = attrValue;
-    if (isNaN(value)) return value;
+    if (Number.isNaN(value)) return value;
 
     return `${value}${unit}`;
   };
 
-  const footerButtons = ({ buttons, config, modalNumber }: { buttons: ModalButton[]; config?: ModalConfig; modalNumber: number }): HTMLElement => {
+  const footerButtons = ({
+    buttons,
+    config,
+    modalNumber
+  }: {
+    buttons: ModalButton[];
+    config?: ModalConfig;
+    modalNumber: number;
+  }): HTMLElement => {
     const modalFooter = document.createElement('div');
     modalFooter.className = modalFooterStyle();
     modalFooter.style.padding = getUnitValue({ config, attrs: ['footer.padding', 'padding'], value: defaultPadding });
@@ -195,6 +205,17 @@ export const cModal = (() => {
 
     const dialog = document.createElement('div');
     dialog.className = modalDialogStyle();
+
+    // Apply custom class if provided
+    if (config?.className) {
+      dialog.classList.add(config.className);
+    }
+
+    // Apply custom styles if provided
+    if (config?.style) {
+      Object.assign(dialog.style, config.style);
+    }
+
     dialog.onclick = (e) => e.stopPropagation();
 
     const modalHeader = document.createElement('div');
@@ -213,7 +234,7 @@ export const cModal = (() => {
     const modalBody = document.createElement('div');
     dialog.appendChild(modalBody);
 
-    const attachContent = ({ content, config }: { content?: string | HTMLElement | ((container: HTMLElement) => any); config?: ModalConfig }) => {
+    const attachContent = ({ content, config }: { content?: ModalContent; config?: ModalConfig }) => {
       modalBody.style.fontSize = getUnitValue({ config, attr: 'fontSize', value: '15px' });
       modalBody.style.position = 'relative';
       modalBody.style.padding = getUnitValue({ config, attrs: ['content.padding', 'padding'], value: defaultPadding });
@@ -257,14 +278,14 @@ export const cModal = (() => {
 
     modals.push(section);
 
-    const setContent = ({ content: newContent, config }: { content?: string | HTMLElement | ((container: HTMLElement) => any); config?: ModalConfig }) => {
+    const setContent = ({ content: newContent, config }: { content?: ModalContent; config?: ModalConfig }) => {
       bodyContent[modalNumber] = undefined;
       removeAllChildNodes(modalBody);
       attachContent({ content: newContent, config });
     };
 
     const setButtons = ({ buttons, config }: { buttons: ModalButton[]; config?: ModalConfig }) => {
-      if (footerElement) dialog.removeChild(footerElement);
+      if (footerElement) footerElement.remove();
       footerElement = footerButtons({ buttons, config, modalNumber });
       dialog.appendChild(footerElement);
     };
@@ -274,7 +295,19 @@ export const cModal = (() => {
       closeFx.push(onClose);
     };
 
-    const update = ({ content: newContent, buttons, title, config: newConfig, onClose }: { content?: string | HTMLElement | ((container: HTMLElement) => any); buttons?: ModalButton[]; title?: string; config?: ModalConfig; onClose?: (params: { content?: any }) => void }) => {
+    const update = ({
+      content: newContent,
+      buttons,
+      title,
+      config: newConfig,
+      onClose
+    }: {
+      content?: ModalContent;
+      buttons?: ModalButton[];
+      title?: string;
+      config?: ModalConfig;
+      onClose?: (params: { content?: any }) => void;
+    }) => {
       config = newConfig || config;
 
       if (newContent) setContent({ content: newContent, config });

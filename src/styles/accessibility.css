@@ -1,0 +1,76 @@
+/**
+ * Accessibility & UX improvements for courthive-components
+ * 
+ * These overrides improve color contrast and visual clarity following WCAG 2.1 guidelines:
+ * - Level AA requires a contrast ratio of at least 4.5:1 for normal text
+ * - Level AAA requires a contrast ratio of at least 7:1 for normal text
+ * 
+ * Bulma's default styles use very light greys (#dbdbdb borders, #b5b5b5 placeholders)
+ * which can have poor contrast, especially for users with visual impairments.
+ */
+
+/* Improve input field contrast */
+.input,
+.textarea,
+.select select {
+  background-color: #ffffff !important; /* Force white background */
+  color: #363636 !important; /* Darker text (was #363636 by default, but reinforced) */
+  border-color: #7a7a7a !important; /* Darker border (was #dbdbdb - contrast ratio too low) */
+}
+
+/* Force white background for option elements */
+option {
+  background-color: #ffffff !important;
+  color: #363636 !important;
+}
+
+/* Improve placeholder text contrast */
+.input::placeholder,
+.textarea::placeholder {
+  color: #6a6a6a !important; /* Darker placeholder (was #b5b5b5 - contrast ratio ~2.8:1, now ~4.6:1) */
+}
+
+/* Improve disabled input visibility */
+.input:disabled,
+.textarea:disabled,
+.select select:disabled {
+  background-color: #f0f0f0 !important; /* Slightly darker than default #f5f5f5 */
+  border-color: #9a9a9a !important; /* More visible border */
+  color: #4a4a4a !important; /* Darker text for readability */
+}
+
+/* Improve focus states for better keyboard navigation */
+.input:focus,
+.textarea:focus,
+.select select:focus {
+  border-color: #0066cc !important; /* Strong blue border for focus */
+  box-shadow: 0 0 0 0.125em rgba(0, 102, 204, 0.25) !important; /* Visible focus ring */
+}
+
+/* Improve button contrast */
+.button {
+  border-color: #7a7a7a !important; /* Darker border for better definition */
+}
+
+/* Improve dropdown/select arrow visibility */
+.select::after {
+  border-color: #4a4a4a !important; /* Darker arrow (was #3273dc or #dbdbdb) */
+}
+
+/* Fix dropdown menu backgrounds that may have dark styling */
+.dropdown-menu,
+.dropdown-content {
+  background-color: white !important;
+  color: #363636 !important;
+}
+
+.dropdown-item,
+.dropdown-item:not(a) {
+  background-color: white !important;
+  color: #363636 !important;
+}
+
+.dropdown-item:hover {
+  background-color: #f5f5f5 !important;
+  color: #363636 !important;
+}
