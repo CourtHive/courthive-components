@@ -277,7 +277,7 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
   changeWhat: (_e, index, opt) => {
     const tiebreakOptionVisible = opt === SETS;
     const elementId = index ? 'finalSetTiebreakToggle' : 'setTiebreakToggle';
-    const elem = document.getElementById(elementId)!;
+    const elem = document.getElementById(elementId);
     elem.style.display = tiebreakOptionVisible ? '' : NONE;
 
     setComponents.forEach((component) => {
@@ -285,7 +285,7 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
         const { prefix = '', suffix = '', pluralize } = component;
         const visible = component.whats.includes(opt);
         const id = index ? `${component.id}-${index}` : component.id;
-        const elem = document.getElementById(id)!;
+        const elem = document.getElementById(id);
 
         if (elem.style.display === NONE && visible) {
           const bestOf = parsedMatchUpFormat.bestOf;
@@ -306,7 +306,7 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
   changeCount: (_e, index, opt) => {
     const elementId = index ? `tiebreakAt-${index}` : 'tiebreakAt';
     format[index ? 'finalSetFormat' : 'setFormat'].tiebreakAt = opt;
-    const elem = document.getElementById(elementId)!;
+    const elem = document.getElementById(elementId);
     elem.innerHTML = `@${opt}${clickable}`;
     // Update format string and dropdown
     setMatchUpFormatString();
@@ -314,7 +314,7 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
   pluralize: (_e, index, opt) => {
     const what = format[index ? 'finalSetFormat' : 'setFormat'].what;
     const elementId = index ? `what-${index}` : 'what';
-    const elem = document.getElementById(elementId)!;
+    const elem = document.getElementById(elementId);
     const plural = opt > 1 ? 's' : '';
     elem.innerHTML = `${what}${plural}${clickable}`;
     // Update format string and dropdown
@@ -646,7 +646,7 @@ let currentCleanupListener: ((event: MouseEvent) => void) | null = null;
 
 function closeCurrentDropdown() {
   if (currentDropdown && document.body.contains(currentDropdown)) {
-    document.body.removeChild(currentDropdown);
+    currentDropdown.remove();
   }
   if (currentCleanupListener) {
     document.removeEventListener('click', currentCleanupListener);
