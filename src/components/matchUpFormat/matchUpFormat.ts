@@ -102,25 +102,40 @@ function getSetFormat(index?: number): any {
 }
 
 function generateMatchUpFormat(): string {
-  const setFormat = getSetFormat();
+  try {
+    console.log('generateMatchUpFormat START');
+    const setFormat = getSetFormat();
+    console.log('getSetFormat returned:', setFormat);
 
-  parsedMatchUpFormat = {
-    bestOf: format.setFormat.bestOf,
-    setFormat
-  };
+    parsedMatchUpFormat = {
+      bestOf: format.setFormat.bestOf,
+      setFormat
+    };
+    console.log('parsedMatchUpFormat:', parsedMatchUpFormat);
 
-  const hasFinalSet = (document.getElementById('finalSetOption') as HTMLInputElement)?.checked;
-  if (hasFinalSet) parsedMatchUpFormat.finalSetFormat = getSetFormat(1);
+    const hasFinalSet = (document.getElementById('finalSetOption') as HTMLInputElement)?.checked;
+    if (hasFinalSet) {
+      console.log('Adding finalSetFormat');
+      parsedMatchUpFormat.finalSetFormat = getSetFormat(1);
+    }
 
-  const matchUpFormat = governors.scoreGovernor.stringifyMatchUpFormat(parsedMatchUpFormat);
-  const predefined = matchUpFormats.some((format) => format.format === matchUpFormat);
-  const elem = document.getElementById('matchUpFormatSelector') as HTMLSelectElement;
-  const options = elem?.querySelectorAll('option');
-  Array.from(options).forEach((option) => {
-    option.selected = (!predefined && option.value === 'Custom') || option.value === matchUpFormat;
-  });
+    console.log('Calling stringifyMatchUpFormat with:', parsedMatchUpFormat);
+    const matchUpFormat = governors.scoreGovernor.stringifyMatchUpFormat(parsedMatchUpFormat);
+    console.log('stringifyMatchUpFormat returned:', matchUpFormat);
+    
+    const predefined = matchUpFormats.some((format) => format.format === matchUpFormat);
+    const elem = document.getElementById('matchUpFormatSelector') as HTMLSelectElement;
+    const options = elem?.querySelectorAll('option');
+    Array.from(options).forEach((option) => {
+      option.selected = (!predefined && option.value === 'Custom') || option.value === matchUpFormat;
+    });
 
-  return matchUpFormat;
+    console.log('generateMatchUpFormat RETURNING:', matchUpFormat);
+    return matchUpFormat;
+  } catch (error) {
+    console.error('ERROR in generateMatchUpFormat:', error);
+    throw error;
+  }
 }
 
 function setMatchUpFormatString(value?: string): void {
