@@ -102,70 +102,47 @@ function getSetFormat(index?: number): any {
 }
 
 function generateMatchUpFormat(): string {
-  try {
-    console.log('generateMatchUpFormat START');
-    const setFormat = getSetFormat();
-    console.log('getSetFormat returned:', setFormat);
+  const setFormat = getSetFormat();
 
-    parsedMatchUpFormat = {
-      bestOf: format.setFormat.bestOf,
-      setFormat
-    };
-    console.log('parsedMatchUpFormat:', parsedMatchUpFormat);
+  parsedMatchUpFormat = {
+    bestOf: format.setFormat.bestOf,
+    setFormat
+  };
 
-    const hasFinalSet = (document.getElementById('finalSetOption') as HTMLInputElement)?.checked;
-    if (hasFinalSet) {
-      console.log('Adding finalSetFormat');
-      parsedMatchUpFormat.finalSetFormat = getSetFormat(1);
-    }
+  const hasFinalSet = (document.getElementById('finalSetOption') as HTMLInputElement)?.checked;
+  if (hasFinalSet) parsedMatchUpFormat.finalSetFormat = getSetFormat(1);
 
-    console.log('Calling stringifyMatchUpFormat with:', parsedMatchUpFormat);
-    const matchUpFormat = governors.scoreGovernor.stringifyMatchUpFormat(parsedMatchUpFormat);
-    console.log('stringifyMatchUpFormat returned:', matchUpFormat);
+  const matchUpFormat = governors.scoreGovernor.stringifyMatchUpFormat(parsedMatchUpFormat);
+  
+  const predefined = matchUpFormats.some((format) => format.format === matchUpFormat);
+  const elem = document.getElementById('matchUpFormatSelector') as HTMLSelectElement;
+  
+  // Update select dropdown WITHOUT triggering onchange event
+  if (elem) {
+    const currentValue = elem.value;
+    const newValue = predefined ? matchUpFormat : 'Custom';
     
-    const predefined = matchUpFormats.some((format) => format.format === matchUpFormat);
-    const elem = document.getElementById('matchUpFormatSelector') as HTMLSelectElement;
-    
-    // Update select dropdown WITHOUT triggering onchange event
-    if (elem) {
-      const currentValue = elem.value;
-      const newValue = predefined ? matchUpFormat : 'Custom';
+    // Only update if the value actually changed
+    if (currentValue !== newValue) {
+      // Temporarily remove onchange to prevent recursion
+      const originalOnChange = elem.onchange;
+      elem.onchange = null;
       
-      // Only update if the value actually changed
-      if (currentValue !== newValue) {
-        // Temporarily remove onchange to prevent recursion
-        const originalOnChange = elem.onchange;
-        elem.onchange = null;
-        
-        elem.value = newValue;
-        
-        // Restore onchange handler
-        elem.onchange = originalOnChange;
-      }
+      elem.value = newValue;
+      
+      // Restore onchange handler
+      elem.onchange = originalOnChange;
     }
-
-    console.log('generateMatchUpFormat RETURNING:', matchUpFormat);
-    return matchUpFormat;
-  } catch (error) {
-    console.error('ERROR in generateMatchUpFormat:', error);
-    throw error;
   }
+
+  return matchUpFormat;
 }
 
 function setMatchUpFormatString(value?: string): void {
-  console.log('setMatchUpFormatString called with value:', value);
-  const result = value || generateMatchUpFormat();
-  const matchUpFormat = typeof result === 'string' ? result : (result as { matchUpFormat: string }).matchUpFormat;
-  console.log('matchUpFormat to display:', matchUpFormat);
+  const matchUpFormat = value || generateMatchUpFormat();
   const matchUpFormatString = document.getElementById('matchUpFormatString');
-  console.log('matchUpFormatString element:', matchUpFormatString);
-  console.log('Current innerHTML:', matchUpFormatString?.innerHTML);
   if (matchUpFormatString) {
-    console.log('Setting innerHTML to:', matchUpFormat);
     matchUpFormatString.innerHTML = matchUpFormat;
-    console.log('After update, innerHTML is:', matchUpFormatString.innerHTML);
-  } else {
-    console.error('ERROR: matchUpFormatString element NOT FOUND in DOM');
   }
 }
 
