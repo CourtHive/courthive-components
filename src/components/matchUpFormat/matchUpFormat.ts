@@ -126,9 +126,12 @@ function generateMatchUpFormat(): string {
     const predefined = matchUpFormats.some((format) => format.format === matchUpFormat);
     const elem = document.getElementById('matchUpFormatSelector') as HTMLSelectElement;
     const options = elem?.querySelectorAll('option');
-    Array.from(options).forEach((option) => {
-      option.selected = (!predefined && option.value === 'Custom') || option.value === matchUpFormat;
-    });
+    
+    // WARNING: This forEach loop triggers the select's onchange event which calls setMatchUpFormatString AGAIN!
+    // Comment out to prevent infinite recursion during debugging
+    // Array.from(options).forEach((option) => {
+    //   option.selected = (!predefined && option.value === 'Custom') || option.value === matchUpFormat;
+    // });
 
     console.log('generateMatchUpFormat RETURNING:', matchUpFormat);
     return matchUpFormat;
