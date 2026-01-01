@@ -124,6 +124,7 @@ function generateMatchUpFormat(): string {
 }
 
 function setMatchUpFormatString(value?: string): void {
+  console.log('setMatchUpFormatString called with value:', value);
   const result = value || generateMatchUpFormat();
   const matchUpFormat = typeof result === 'string' ? result : (result as { matchUpFormat: string }).matchUpFormat;
   console.log({ result, matchUpFormat });
@@ -610,7 +611,7 @@ function getButtonClick(params: any): void {
       }
       format[index ? 'finalSetFormat' : 'setFormat'][id] = opt;
       // Update the format string display immediately
-      console.log('About to call setMatchUpFormatString');
+      console.log('Now calling setMatchUpFormatString');
       setMatchUpFormatString();
     }
   }));
