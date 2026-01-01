@@ -4,7 +4,7 @@ import { renderForm } from '../components/forms/renderForm';
 export default {
   title: 'Renderers/Form',
   tags: ['autodocs'],
-  render: ({ items, relationships }) => {
+  render: ({ title, items, relationships }) => {
     const wrapper = document.createElement('div');
     wrapper.style.maxWidth = '600px';
     wrapper.style.margin = '20px';
@@ -12,6 +12,18 @@ export default {
     wrapper.style.border = '1px solid #e0e0e0';
     wrapper.style.borderRadius = '8px';
     wrapper.style.backgroundColor = '#ffffff';
+    
+    // Add title if provided
+    if (title) {
+      const titleElement = document.createElement('h2');
+      titleElement.textContent = title;
+      titleElement.style.marginTop = '0';
+      titleElement.style.marginBottom = '1.5rem';
+      titleElement.style.fontSize = '1.5rem';
+      titleElement.style.fontWeight = 'bold';
+      titleElement.style.color = '#363636';
+      wrapper.appendChild(titleElement);
+    }
     
     const container = document.createElement('div');
     
@@ -86,11 +98,8 @@ export default {
  */
 export const LoginForm = {
   args: {
+    title: 'Login',
     items: [
-      {
-        text: '<h3>Login</h3>',
-        header: true
-      },
       {
         label: 'Username',
         field: 'username',
@@ -125,11 +134,8 @@ export const LoginForm = {
  */
 export const ParticipantForm = {
   args: {
+    title: 'Participant Information',
     items: [
-      {
-        text: '<h3>Participant Information</h3>',
-        header: true
-      },
       {
         label: 'First name',
         field: 'firstName',
@@ -170,11 +176,8 @@ export const ParticipantForm = {
  */
 export const RegistrationForm = {
   args: {
+    title: 'Create Account',
     items: [
-      {
-        text: '<h3>Create Account</h3>',
-        header: true
-      },
       { divider: true },
       {
         label: 'Full Name',
@@ -225,11 +228,8 @@ export const RegistrationForm = {
  */
 export const FieldPairing = {
   args: {
+    title: 'Contact Information',
     items: [
-      {
-        text: '<h3>Contact Information</h3>',
-        header: true
-      },
       {
         label: 'First Name',
         field: 'firstName',
@@ -270,11 +270,8 @@ export const FieldPairing = {
  */
 export const DateRangeForm = {
   args: {
+    title: 'Tournament Details',
     items: [
-      {
-        text: '<h3>Tournament Details</h3>',
-        header: true
-      },
       {
         label: 'Tournament Name',
         field: 'tournamentName',
@@ -319,11 +316,8 @@ export const DateRangeForm = {
  */
 export const DynamicRelationships = {
   args: {
+    title: 'Password Change',
     items: [
-      {
-        text: '<h3>Password Change</h3>',
-        header: true
-      },
       {
         label: 'New Password',
         field: 'newPassword',
@@ -374,11 +368,8 @@ export const DynamicRelationships = {
  */
 export const RadioButtonForm = {
   args: {
+    title: 'Survey Form',
     items: [
-      {
-        text: '<h3>Survey Form</h3>',
-        header: true
-      },
       {
         label: 'How satisfied are you with our service?',
         radio: true,
@@ -410,11 +401,8 @@ export const RadioButtonForm = {
  */
 export const VisualSections = {
   args: {
+    title: 'Account Settings',
     items: [
-      {
-        text: '<h3>Account Settings</h3>',
-        header: true
-      },
       { divider: true },
       {
         text: '<strong>Personal Information</strong>'
@@ -457,11 +445,8 @@ export const VisualSections = {
  */
 export const CustomWidths = {
   args: {
+    title: 'Product Details',
     items: [
-      {
-        text: '<h3>Product Details</h3>',
-        header: true
-      },
       {
         label: 'Product Name',
         field: 'productName',
@@ -494,12 +479,8 @@ export const CustomWidths = {
  */
 export const CompleteExample = {
   args: {
+    title: 'Tournament Registration',
     items: [
-      {
-        text: '<h2>Tournament Registration</h2>',
-        header: true,
-        style: 'color: #4a90e2; margin-bottom: 10px;'
-      },
       { divider: true },
       {
         text: '<strong>Participant Information</strong>'
