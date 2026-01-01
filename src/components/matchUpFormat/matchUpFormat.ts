@@ -548,19 +548,12 @@ export function getMatchUpFormat({
 
   content.appendChild(finalSetConfig);
 
-  // Wrap content with padding and ensure white background
-  const wrapper = document.createElement('div');
-  wrapper.style.padding = '1.5em';
-  wrapper.style.backgroundColor = '#ffffff';
-  wrapper.style.color = '#363636';
-  wrapper.appendChild(content);
-
   return cModal.open({
     title: 'Score format',
-    content: content, // Pass content directly - cModal handles padding
+    content: content,
     buttons,
     config: {
-      content: { padding: '1.5em' }, // Use config to add padding
+      content: { padding: '1.5' }, // Use cModal's built-in content padding
       maxWidth: 480,
       style: {
         backgroundColor: '#f8f9fa',
