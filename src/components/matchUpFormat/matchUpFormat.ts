@@ -345,12 +345,15 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
   const select = document.createElement('select');
   select.className = 'input';
   select.style.width = '100%';
-  select.style.color = '#363636'; // Improve contrast from Bulma's default light grey
+  select.style.backgroundColor = '#ffffff'; // Force white background
+  select.style.color = '#363636'; // Dark text for contrast
   select.style.border = '1px solid #b5b5b5'; // Darker border for better visibility
   for (const option of formatSelector.options) {
     const opt = document.createElement('option');
     opt.value = option.value || '';
     opt.text = option.label || '';
+    opt.style.backgroundColor = '#ffffff'; // Force white background for options
+    opt.style.color = '#363636'; // Dark text
     if (option.selected) opt.selected = true;
     select.appendChild(opt);
   }
@@ -537,9 +540,11 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
 
   content.appendChild(finalSetConfig);
 
-  // Wrap content with padding (styling now handled by cModal config)
+  // Wrap content with padding and ensure white background
   const wrapper = document.createElement('div');
   wrapper.style.padding = '1em';
+  wrapper.style.backgroundColor = '#ffffff';
+  wrapper.style.color = '#363636';
   wrapper.appendChild(content);
 
   return cModal.open({ 
@@ -629,9 +634,15 @@ function getButtonClick(params: any): void {
     itemDiv.style.fontSize = '1rem';
     itemDiv.style.lineHeight = '1.5';
     itemDiv.textContent = item.text;
-    itemDiv.onclick = () => {
+    itemDiv.onclick = (e) => {
+      e.stopPropagation(); // Prevent event bubbling
       item.onClick();
-      document.body.removeChild(dropdown);
+      // Give a tiny delay to ensure onClick completes
+      setTimeout(() => {
+        if (document.body.contains(dropdown)) {
+          document.body.removeChild(dropdown);
+        }
+      }, 0);
     };
     itemDiv.onmouseenter = () => {
       itemDiv.style.backgroundColor = '#f5f5f5';
