@@ -195,6 +195,17 @@ export const cModal = (() => {
 
     const dialog = document.createElement('div');
     dialog.className = modalDialogStyle();
+    
+    // Apply custom class if provided
+    if (config?.className) {
+      dialog.classList.add(config.className);
+    }
+    
+    // Apply custom styles if provided
+    if (config?.style) {
+      Object.assign(dialog.style, config.style);
+    }
+    
     dialog.onclick = (e) => e.stopPropagation();
 
     const modalHeader = document.createElement('div');

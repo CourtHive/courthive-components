@@ -2,7 +2,7 @@ import { renderButton } from '../components/button/cvaButton';
 import { cModal } from '../components/modal/cmodal';
 
 export default {
-  title: 'Forms/Modal',
+  title: 'Components/Modal',
   tags: ['autodocs'],
   render: ({ ...args }) => {
     return renderButton({ ...args });
@@ -56,7 +56,14 @@ export const Title = {
   args: {
     onClick: () => {
       const { update } = cModal.open({
-        buttons: [{ label: 'Add title', onClick: () => update({ title: 'Something new', buttons: [{ label: 'Ok' }] }), close: false }, { label: 'Close' }],
+        buttons: [
+          {
+            label: 'Add title',
+            onClick: () => update({ title: 'Something new', buttons: [{ label: 'Ok' }] }),
+            close: false
+          },
+          { label: 'Close' }
+        ],
         content: (elem) => {
           const div = document.createElement('div');
           div.innerHTML = 'Begin with no title';

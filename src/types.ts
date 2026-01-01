@@ -174,6 +174,8 @@ export interface Configuration {
   maxWidth?: number;
   fontSize?: string;
   padding?: string;
+  className?: string; // Custom class for modal dialog container
+  style?: Partial<CSSStyleDeclaration>; // Custom inline styles for modal dialog container
   title?: {
     padding?: string;
   };

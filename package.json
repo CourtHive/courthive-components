@@ -59,8 +59,9 @@
   "devDependencies": {
     "@commitlint/cli": "20.1.0",
     "@commitlint/config-conventional": "20.0.0",
-    "@storybook/html-vite": "^10.0.2",
     "@storybook/addon-docs": "^10.0.2",
+    "@storybook/html-vite": "^10.0.2",
+    "@types/vanillajs-datepicker": "^1.3.5",
     "@typescript-eslint/eslint-plugin": "8.46.3",
     "@typescript-eslint/parser": "8.46.3",
     "eslint": "8.57.1",
@@ -71,15 +72,19 @@
     "lint-staged": "16.2.6",
     "prettier": "2.8.8",
     "semver": "7.7.3",
-    "vite": "7.2.2",
-    "storybook": "^10.0.2"
+    "storybook": "^10.0.2",
+    "vite": "7.2.2"
   },
   "dependencies": {
     "@stitches/core": "1.2.8",
+    "awesomplete": "1.1.7",
     "bulma": "1.0.4",
+    "bulma-checkradio": "^2.1.3",
+    "bulma-switch": "^2.0.4",
     "class-variance-authority": "0.7.1",
     "classnames": "2.5.1",
     "dayjs": "1.11.19",
-    "tods-competition-factory": "2.2.31"
+    "tods-competition-factory": "2.2.31",
+    "vanillajs-datepicker": "1.3.4"
   }
 }
