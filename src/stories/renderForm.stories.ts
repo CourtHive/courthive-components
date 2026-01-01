@@ -5,16 +5,20 @@ export default {
   title: 'Renderers/Form',
   tags: ['autodocs'],
   render: ({ items, relationships }) => {
+    const wrapper = document.createElement('div');
+    wrapper.style.maxWidth = '600px';
+    wrapper.style.margin = '20px';
+    wrapper.style.padding = '20px';
+    wrapper.style.border = '1px solid #e0e0e0';
+    wrapper.style.borderRadius = '8px';
+    wrapper.style.backgroundColor = '#ffffff';
+    
     const container = document.createElement('div');
-    container.style.maxWidth = '600px';
-    container.style.margin = '20px';
-    container.style.padding = '20px';
-    container.style.border = '1px solid #e0e0e0';
-    container.style.borderRadius = '8px';
-    container.style.backgroundColor = '#ffffff';
     container.style.display = 'flex';
     container.style.flexDirection = 'column';
     container.style.gap = '1em';
+    
+    wrapper.appendChild(container);
     
     const inputs = renderForm(container, items, relationships);
     
@@ -40,9 +44,9 @@ export default {
       console.log('Form values:', values);
       alert('Form values logged to console');
     };
-    container.appendChild(submitBtn);
+    wrapper.appendChild(submitBtn);
     
-    return container;
+    return wrapper;
   }
 };
 
