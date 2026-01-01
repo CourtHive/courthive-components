@@ -142,10 +142,16 @@ function setMatchUpFormatString(value?: string): void {
   console.log('setMatchUpFormatString called with value:', value);
   const result = value || generateMatchUpFormat();
   const matchUpFormat = typeof result === 'string' ? result : (result as { matchUpFormat: string }).matchUpFormat;
-  console.log({ result, matchUpFormat });
+  console.log('matchUpFormat to display:', matchUpFormat);
   const matchUpFormatString = document.getElementById('matchUpFormatString');
+  console.log('matchUpFormatString element:', matchUpFormatString);
+  console.log('Current innerHTML:', matchUpFormatString?.innerHTML);
   if (matchUpFormatString) {
+    console.log('Setting innerHTML to:', matchUpFormat);
     matchUpFormatString.innerHTML = matchUpFormat;
+    console.log('After update, innerHTML is:', matchUpFormatString.innerHTML);
+  } else {
+    console.error('ERROR: matchUpFormatString element NOT FOUND in DOM');
   }
 }
 
