@@ -557,10 +557,10 @@ export function getMatchUpFormat({
 
   return cModal.open({
     title: 'Score format',
-    content: wrapper,
+    content: content, // Pass content directly - cModal handles padding
     buttons,
     config: {
-      padding: '0', // No padding since wrapper handles it
+      content: { padding: '1.5em' }, // Use config to add padding
       maxWidth: 480,
       style: {
         backgroundColor: '#f8f9fa',
