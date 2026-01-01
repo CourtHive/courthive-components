@@ -358,11 +358,16 @@ export function getMatchUpFormat({
   standardFormatSelector.style.marginBlockEnd = '1em';
   const formatSelector = {
     id: 'matchUpFormatSelector',
-    options: matchUpFormats.map((format) => ({
-      selected: format.format === selectedMatchUpFormat,
-      value: format.format,
-      label: format.name
-    }))
+    options: [
+      { value: 'Custom', label: 'Custom', selected: false },
+      ...matchUpFormats
+        .filter((format) => format.format) // Skip the "Custom" entry from JSON
+        .map((format) => ({
+          selected: format.format === selectedMatchUpFormat,
+          value: format.format,
+          label: format.name
+        }))
+    ]
   };
 
   // Create simple select field
@@ -459,7 +464,7 @@ export function getMatchUpFormat({
   setTiebreak.name = 'setTiebreak';
   setTiebreak.id = 'setTiebreak';
   setTiebreak.type = 'checkbox';
-  setTiebreak.checked = parsedMatchUpFormat.tiebreakFormat;
+  setTiebreak.checked = !!parsedMatchUpFormat.setFormat.tiebreakFormat;
   setTiebreak.onchange = (e) => {
     const active = (e.target as HTMLInputElement).checked;
     setComponents
