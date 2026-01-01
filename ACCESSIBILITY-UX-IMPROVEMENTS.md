@@ -101,6 +101,63 @@ Enhanced focus states in `accessibility.css`:
 - Better keyboard navigation experience
 - Meets WCAG 2.1 Level AA focus visible requirements
 
+### 5. **Dropdown Menu Dark Background Issue**
+
+**Problem:**
+Dropdown menus in matchUpFormat and Field stories showed black backgrounds making text invisible:
+- Bulma's `.dropdown-item` class has complex styling
+- Theme overrides or CSS conflicts apply dark backgrounds
+- Custom dropdown implementations conflict with Bulma defaults
+
+**Solution:**
+Two-pronged approach:
+1. **Inline Styles in matchUpFormat**: Removed `.dropdown-item` class, applied inline styles directly
+2. **Global CSS Overrides**: Added to `accessibility.css`:
+```css
+.dropdown-menu, .dropdown-content {
+  background-color: white !important;
+  color: #363636 !important;
+}
+
+.dropdown-item, .dropdown-item:not(a) {
+  background-color: white !important;
+  color: #363636 !important;
+}
+
+.dropdown-item:hover {
+  background-color: #f5f5f5 !important;
+  color: #363636 !important;
+}
+```
+
+**Impact:**
+- All dropdowns now have readable white backgrounds
+- Consistent appearance across all components and stories
+- Fixes issue in Field stories and matchUpFormat component
+
+### 6. **Button Layout Issues in matchUpFormat**
+
+**Problem:**
+Buttons in matchUpFormat ran together with no spacing:
+- Displayed as: `Best of▾3▾Ad▾Sets▾to 6▾` (unreadable mess)
+- No visual separation between interactive elements
+- Hard to identify individual clickable buttons
+
+**Solution:**
+Added flexbox layout to button containers:
+```typescript
+setFormat.style.display = 'flex';
+setFormat.style.flexWrap = 'wrap';
+setFormat.style.gap = '0.5em';
+setFormat.style.marginBottom = '1em';
+```
+
+**Impact:**
+- Buttons now display with proper spacing: `Best of ▾` `3 ▾` `Ad ▾` `Sets ▾` `to 6 ▾`
+- Clear visual separation of interactive elements
+- Better clickability and user experience
+- Applies to both setFormat and finalSetFormat containers
+
 ## WCAG 2.1 Compliance
 
 ### Standards Met
