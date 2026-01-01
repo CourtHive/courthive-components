@@ -20,10 +20,21 @@ export default {
     style.textContent = `
       .field {
         display: block !important;
-        margin-bottom: 0.75rem;
+        margin-bottom: 1.5rem;
+      }
+      .field label {
+        display: block !important;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+        font-size: 0.9rem;
       }
       .field .control {
         display: block !important;
+      }
+      .field .control .input,
+      .field .control .select,
+      .field .control select {
+        width: 100%;
       }
       .flexrow {
         display: flex !important;
