@@ -125,13 +125,24 @@ function generateMatchUpFormat(): string {
     
     const predefined = matchUpFormats.some((format) => format.format === matchUpFormat);
     const elem = document.getElementById('matchUpFormatSelector') as HTMLSelectElement;
-    const options = elem?.querySelectorAll('option');
     
-    // WARNING: This forEach loop triggers the select's onchange event which calls setMatchUpFormatString AGAIN!
-    // Comment out to prevent infinite recursion during debugging
-    // Array.from(options).forEach((option) => {
-    //   option.selected = (!predefined && option.value === 'Custom') || option.value === matchUpFormat;
-    // });
+    // Update select dropdown WITHOUT triggering onchange event
+    if (elem) {
+      const currentValue = elem.value;
+      const newValue = predefined ? matchUpFormat : 'Custom';
+      
+      // Only update if the value actually changed
+      if (currentValue !== newValue) {
+        // Temporarily remove onchange to prevent recursion
+        const originalOnChange = elem.onchange;
+        elem.onchange = null;
+        
+        elem.value = newValue;
+        
+        // Restore onchange handler
+        elem.onchange = originalOnChange;
+      }
+    }
 
     console.log('generateMatchUpFormat RETURNING:', matchUpFormat);
     return matchUpFormat;
