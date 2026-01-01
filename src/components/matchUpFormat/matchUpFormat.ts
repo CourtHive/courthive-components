@@ -113,23 +113,23 @@ function generateMatchUpFormat(): string {
   if (hasFinalSet) parsedMatchUpFormat.finalSetFormat = getSetFormat(1);
 
   const matchUpFormat = governors.scoreGovernor.stringifyMatchUpFormat(parsedMatchUpFormat);
-  
+
   const predefined = matchUpFormats.some((format) => format.format === matchUpFormat);
   const elem = document.getElementById('matchUpFormatSelector') as HTMLSelectElement;
-  
+
   // Update select dropdown WITHOUT triggering onchange event
   if (elem) {
     const currentValue = elem.value;
     const newValue = predefined ? matchUpFormat : 'Custom';
-    
+
     // Only update if the value actually changed
     if (currentValue !== newValue) {
       // Temporarily remove onchange to prevent recursion
       const originalOnChange = elem.onchange;
       elem.onchange = null;
-      
+
       elem.value = newValue;
-      
+
       // Restore onchange handler
       elem.onchange = originalOnChange;
     }
@@ -299,7 +299,7 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
         elem.style.display = visible ? '' : NONE;
       }
     });
-    
+
     // Update format string and dropdown after changing what type
     setMatchUpFormatString();
   },
@@ -325,7 +325,7 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
 export function getMatchUpFormat({
   existingMatchUpFormat = 'SET3-S:6/TB7',
   callback
-}: { existingMatchUpFormat?: string; callback?: (format: string) => void } = {}): void {
+}: { existingMatchUpFormat?: string; callback?: (format: string) => void } = {}) {
   selectedMatchUpFormat = existingMatchUpFormat;
   parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
   const onSelect = () => {
@@ -335,7 +335,7 @@ export function getMatchUpFormat({
 
   const buttons = [
     {
-      onClick: () => callback && callback(''),
+      onClick: () => callback?.(''),
       label: 'Cancel',
       intent: 'none',
       close: true
@@ -464,7 +464,8 @@ export function getMatchUpFormat({
     setComponents
       .filter(({ tb }) => tb)
       .forEach((component) => {
-        const elem = document.getElementById(component.id)!;
+        const elem = document.getElementById(component.id);
+        if (!elem) return;
 
         if (elem.style.display === NONE && active) {
           const { prefix = '', suffix = '', pluralize, defaultValue: value } = component;
@@ -541,7 +542,7 @@ export function getMatchUpFormat({
     setComponents
       .filter(({ tb }) => tb)
       .forEach((component) => {
-        const elem = document.getElementById(`${component.id}-1`)!;
+        const elem = document.getElementById(`${component.id}-1`);
 
         if (elem.style.display === NONE && active) {
           const { prefix = '', suffix = '', pluralize, defaultValue: value } = component;
