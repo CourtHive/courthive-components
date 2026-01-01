@@ -601,13 +601,14 @@ function getButtonClick(params: any): void {
   const itemConfig = isFunction(options) ? options(index) : options;
   const items = itemConfig.map((opt: any) => ({
     text: `${opt}${plural}`,
-    onClick: () => {
+    onClick: (closeDropdown: () => void) => {
       button.innerHTML = `${prefix}${opt}${plural}${suffix}${clickable}`;
       if (onChange && isFunction(onClicks[onChange])) {
         onClicks[onChange](e, index, opt);
       }
       format[index ? 'finalSetFormat' : 'setFormat'][id] = opt;
       setMatchUpFormatString();
+      closeDropdown();
     },
   }));
 
@@ -647,11 +648,11 @@ function getButtonClick(params: any): void {
     itemDiv.style.fontSize = '1rem';
     itemDiv.style.lineHeight = '1.5';
     itemDiv.textContent = item.text;
-    itemDiv.onclick = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      item.onClick();
-      removeDropdown();
+    itemDiv.onclick = (clickEvent) => {
+      clickEvent.preventDefault();
+      clickEvent.stopPropagation();
+      // Pass removeDropdown as a callback to ensure it's called AFTER onClick completes
+      item.onClick(removeDropdown);
     };
     itemDiv.onmouseenter = () => {
       itemDiv.style.backgroundColor = '#f5f5f5';

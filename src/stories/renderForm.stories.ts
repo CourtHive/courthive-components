@@ -12,6 +12,9 @@ export default {
     container.style.border = '1px solid #e0e0e0';
     container.style.borderRadius = '8px';
     container.style.backgroundColor = '#ffffff';
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    container.style.gap = '1em';
     
     const inputs = renderForm(container, items, relationships);
     
