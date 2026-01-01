@@ -14,10 +14,26 @@ export default {
     wrapper.style.backgroundColor = '#ffffff';
     
     const container = document.createElement('div');
-    container.style.display = 'flex';
-    container.style.flexDirection = 'column';
-    container.style.gap = '1em';
     
+    // Add style tag to force vertical stacking of Bulma fields
+    const style = document.createElement('style');
+    style.textContent = `
+      .field {
+        display: block !important;
+        margin-bottom: 0.75rem;
+      }
+      .field .control {
+        display: block !important;
+      }
+      .flexrow {
+        display: flex !important;
+        gap: 1em;
+      }
+      .flexrow .field {
+        flex: 1;
+      }
+    `;
+    wrapper.appendChild(style);
     wrapper.appendChild(container);
     
     const inputs = renderForm(container, items, relationships);
