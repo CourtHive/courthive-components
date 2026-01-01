@@ -603,12 +603,14 @@ function getButtonClick(params: any): void {
   const items = itemConfig.map((opt: any) => ({
     text: `${opt}${plural}`,
     onClick: () => {
+      console.log('onClick called for:', opt, 'id:', id);
       button.innerHTML = `${prefix}${opt}${plural}${suffix}${clickable}`;
       if (onChange && isFunction(onClicks[onChange])) {
         onClicks[onChange](e, index, opt);
       }
       format[index ? 'finalSetFormat' : 'setFormat'][id] = opt;
       // Update the format string display immediately
+      console.log('About to call setMatchUpFormatString');
       setMatchUpFormatString();
     }
   }));
@@ -652,10 +654,12 @@ function getButtonClick(params: any): void {
     itemDiv.onclick = (clickEvent) => {
       clickEvent.preventDefault();
       clickEvent.stopPropagation();
+      console.log('itemDiv clicked, calling item.onClick');
       // Remove dropdown immediately (like tipster does), then call onClick
       removeDropdown();
       // Use setTimeout to allow dropdown to fully close before state updates
       setTimeout(() => {
+        console.log('setTimeout firing, about to call item.onClick');
         item.onClick();
       }, 0);
     };
