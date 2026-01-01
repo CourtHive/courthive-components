@@ -134,70 +134,32 @@ export const Styling = {
   }
 };
 
-export const FormatEditor = {
+export const MatchUpFormatEditor = {
   render: () => {
     const container = document.createElement('div');
     container.style.padding = '2em';
     
     const button = document.createElement('button');
     button.className = 'button is-primary';
-    button.textContent = 'Open Format Editor Style Modal';
-    button.onclick = () => {
-      cModal.open({
-        title: 'Score Format Editor',
-        content: `
-          <div style="padding: 1em;">
-            <h3 style="margin-bottom: 0.5em;">Match Format Configuration</h3>
-            <p style="margin-bottom: 1em;">Select format options below:</p>
-            
-            <div style="margin-bottom: 1em;">
-              <label style="display: block; margin-bottom: 0.5em;">
-                <strong>Best of:</strong>
-                <select class="input" style="margin-left: 0.5em; width: 100px;">
-                  <option>1</option>
-                  <option selected>3</option>
-                  <option>5</option>
-                </select>
-              </label>
-            </div>
-            
-            <div style="margin-bottom: 1em;">
-              <label style="display: block; margin-bottom: 0.5em;">
-                <strong>Games to win set:</strong>
-                <input type="number" class="input" value="6" style="margin-left: 0.5em; width: 80px;">
-              </label>
-            </div>
-            
-            <div style="margin-bottom: 1em;">
-              <label style="display: block; margin-bottom: 0.5em;">
-                <strong>Tiebreak at:</strong>
-                <input type="number" class="input" value="6" style="margin-left: 0.5em; width: 80px;">
-              </label>
-            </div>
-          </div>
-        `,
-        buttons: [
-          { label: 'Cancel', intent: 'none' },
-          { label: 'Apply Format', intent: 'is-primary' }
-        ],
-        config: {
-          maxWidth: 480,
-          style: {
-            backgroundColor: '#f8f9fa',
-            border: '3px solid #0066cc',
-            borderRadius: '8px',
-            boxShadow: '0 8px 16px rgba(0, 102, 204, 0.2)'
-          }
+    button.textContent = 'Open Match Format Editor';
+    button.onclick = async () => {
+      // Dynamically import the matchUpFormat component
+      const { getMatchUpFormat } = await import('../components/matchUpFormat/matchUpFormat');
+      
+      getMatchUpFormat({
+        existingMatchUpFormat: 'SET3-S:6/TB7',
+        callback: (format: string) => {
+          console.log('Selected format:', format);
         }
       });
     };
     
     const title = document.createElement('h2');
-    title.textContent = 'Format Editor Modal Example';
+    title.textContent = 'Match Format Editor (Real Component)';
     title.style.marginBottom = '1em';
     
     const description = document.createElement('p');
-    description.textContent = 'This demonstrates a modal styled to look like the TMX format editor when overlaid on another modal.';
+    description.innerHTML = 'This is the real <code>matchUpFormat</code> component from TMX, now ported to courthive-components.<br>It demonstrates the new <code>style</code> config option for custom modal styling with a blue border.';
     description.style.marginBottom = '1.5em';
     description.style.color = '#666';
     
