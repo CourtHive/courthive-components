@@ -1,9 +1,11 @@
-import type { Meta, StoryObj } from '@storybook/html-vite';
 import { cModal } from '../components/modal/cmodal';
 
-const meta: Meta = {
+export default {
   title: 'Components/Modal',
-  tags: ['autodocs'],
+  tags: ['autodocs']
+};
+
+export const Styling = {
   render: () => {
     const container = document.createElement('div');
     container.style.padding = '2em';
@@ -132,12 +134,7 @@ const meta: Meta = {
   }
 };
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {};
-
-export const StyledModal: Story = {
+export const FormatEditor = {
   render: () => {
     const container = document.createElement('div');
     container.style.padding = '2em';
