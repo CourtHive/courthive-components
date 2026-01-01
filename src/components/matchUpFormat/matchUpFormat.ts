@@ -401,28 +401,6 @@ export function getMatchUpFormat({
       if (component.getValue) {
         const setComponentValue = component.getValue(parsedMatchUpFormat);
         const elem = document.getElementById(component.id);
-        if (elem && setComponentValue !== undefined) {
-          const { prefix = '', suffix = '', pluralize } = component;
-          const plural = pluralize && parsedMatchUpFormat.bestOf > 1 ? 's' : '';
-          elem.innerHTML = `${prefix}${setComponentValue}${plural}${suffix}${clickable}`;
-        }
-
-        if (component.finalSetLabel) {
-          const finalSetValue = component.getValue(parsedMatchUpFormat, true);
-          const finalSetElem = document.getElementById(`${component.id}-1`);
-          if (finalSetElem && finalSetValue !== undefined) {
-            const { prefix = '', suffix = '', pluralize } = component;
-            const plural = pluralize ? 's' : '';
-            finalSetElem.innerHTML = `${prefix}${finalSetValue}${plural}${suffix}${clickable}`;
-          }
-        }
-      }
-    });
-
-    setComponents.forEach((component) => {
-      if (component.getValue) {
-        const setComponentValue = component.getValue(parsedMatchUpFormat);
-        const elem = document.getElementById(component.id);
 
         if (elem && setComponentValue) {
           const { prefix = '', suffix = '', pluralize } = component;
