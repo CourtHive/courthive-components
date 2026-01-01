@@ -345,6 +345,8 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
   const select = document.createElement('select');
   select.className = 'input';
   select.style.width = '100%';
+  select.style.color = '#363636'; // Improve contrast from Bulma's default light grey
+  select.style.border = '1px solid #b5b5b5'; // Darker border for better visibility
   for (const option of formatSelector.options) {
     const opt = document.createElement('option');
     opt.value = option.value || '';
@@ -564,6 +566,18 @@ function createButton(params: any): HTMLButtonElement {
   button.onclick = (e) => getButtonClick({ e, button, ...params });
   button.style.display = value || params.label ? '' : NONE;
   if (initiallyHidden) button.style.display = NONE;
+  
+  // Apply TMX button styles inline since courthive-components doesn't have .mfcButton CSS
+  button.style.transition = 'all .2s ease-in-out';
+  button.style.backgroundColor = 'inherit';
+  button.style.border = 'none';
+  button.style.color = 'inherit';
+  button.style.padding = '.3em';
+  button.style.textAlign = 'center';
+  button.style.textDecoration = 'none';
+  button.style.fontSize = '1em';
+  button.style.cursor = 'pointer';
+  
   return button;
 }
 
@@ -589,7 +603,7 @@ function getButtonClick(params: any): void {
   const dropdown = document.createElement('div');
   dropdown.className = 'dropdown is-active';
   dropdown.style.position = 'absolute';
-  dropdown.style.zIndex = '1000';
+  dropdown.style.zIndex = '10000'; // Higher than modal (9999)
   
   const dropdownMenu = document.createElement('div');
   dropdownMenu.className = 'dropdown-menu';
