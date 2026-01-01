@@ -202,30 +202,52 @@ Custom dropdowns in matchUpFormat didn't close after clicking an option:
 - Required clicking outside to close
 
 **Root Cause:**
-Race condition between onClick execution and dropdown removal:
-- onClick updates state immediately
-- Dropdown removal also happened immediately
-- Event propagation could interfere with cleanup
+Multiple issues with dropdown cleanup:
+1. onClick removed dropdown but didn't remove event listener
+2. Event listener added after 100ms stayed active
+3. Race condition between manual removal and listener cleanup
+4. setTimeout(0) wasn't reliable for async operations
 
 **Solution:**
-Improved dropdown cleanup with timing and event control:
+Proper cleanup with shared removal function:
 ```typescript
-itemDiv.onclick = (e) => {
-  e.stopPropagation(); // Prevent event bubbling
-  item.onClick();
-  // Give a tiny delay to ensure onClick completes
-  setTimeout(() => {
-    if (document.body.contains(dropdown)) {
-      document.body.removeChild(dropdown);
-    }
-  }, 0);
+// Store cleanup function reference in closure
+let cleanupListener: ((event: MouseEvent) => void) | null = null;
+
+const removeDropdown = () => {
+  if (document.body.contains(dropdown)) {
+    document.body.removeChild(dropdown);
+  }
+  if (cleanupListener) {
+    document.removeEventListener('click', cleanupListener);
+    cleanupListener = null;
+  }
 };
+
+// Item click handler - immediate cleanup
+itemDiv.onclick = (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  item.onClick();
+  removeDropdown(); // Immediate closure with proper cleanup
+};
+
+// Close on click outside
+setTimeout(() => {
+  cleanupListener = (event: MouseEvent) => {
+    if (!dropdown.contains(event.target as Node)) {
+      removeDropdown(); // Consistent cleanup path
+    }
+  };
+  document.addEventListener('click', cleanupListener);
+}, 100);
 ```
 
 **Impact:**
 - Dropdowns now close immediately after selection
-- No race conditions or event bubbling issues
-- Safe removal with existence check
+- Event listeners properly cleaned up (no memory leaks)
+- Consistent cleanup path for both manual and outside clicks
+- No race conditions or orphaned listeners
 - Better user experience with expected behavior
 
 ## WCAG 2.1 Compliance
