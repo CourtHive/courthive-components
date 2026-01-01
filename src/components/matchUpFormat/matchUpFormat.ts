@@ -697,14 +697,15 @@ function getButtonClick(params: any): void {
   dropdown.style.top = `${rect.bottom}px`;
 
   document.body.appendChild(dropdown);
+  currentDropdown = dropdown;
 
   // Close on click outside (after a short delay to avoid immediate closure)
   setTimeout(() => {
-    cleanupListener = (event: MouseEvent) => {
+    currentCleanupListener = (event: MouseEvent) => {
       if (!dropdown.contains(event.target as Node)) {
         removeDropdown();
       }
     };
-    document.addEventListener('click', cleanupListener);
+    document.addEventListener('click', currentCleanupListener);
   }, 100);
 }
