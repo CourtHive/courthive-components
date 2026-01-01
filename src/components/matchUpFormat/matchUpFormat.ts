@@ -624,6 +624,19 @@ function getButtonClick(params: any): void {
   dropdownMenu.style.borderRadius = '4px';
   dropdownMenu.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
   
+  // Store cleanup function reference
+  let cleanupListener: ((event: MouseEvent) => void) | null = null;
+  
+  const removeDropdown = () => {
+    if (document.body.contains(dropdown)) {
+      document.body.removeChild(dropdown);
+    }
+    if (cleanupListener) {
+      document.removeEventListener('click', cleanupListener);
+      cleanupListener = null;
+    }
+  };
+  
   items.forEach((item: any) => {
     const itemDiv = document.createElement('div');
     // Don't use Bulma's dropdown-item class - it may have styling conflicts
@@ -635,14 +648,10 @@ function getButtonClick(params: any): void {
     itemDiv.style.lineHeight = '1.5';
     itemDiv.textContent = item.text;
     itemDiv.onclick = (e) => {
-      e.stopPropagation(); // Prevent event bubbling
+      e.preventDefault();
+      e.stopPropagation();
       item.onClick();
-      // Give a tiny delay to ensure onClick completes
-      setTimeout(() => {
-        if (document.body.contains(dropdown)) {
-          document.body.removeChild(dropdown);
-        }
-      }, 0);
+      removeDropdown();
     };
     itemDiv.onmouseenter = () => {
       itemDiv.style.backgroundColor = '#f5f5f5';
@@ -664,14 +673,13 @@ function getButtonClick(params: any): void {
   
   document.body.appendChild(dropdown);
   
-  // Close on click outside
+  // Close on click outside (after a short delay to avoid immediate closure)
   setTimeout(() => {
-    const closeDropdown = (event: MouseEvent) => {
+    cleanupListener = (event: MouseEvent) => {
       if (!dropdown.contains(event.target as Node)) {
-        document.body.removeChild(dropdown);
-        document.removeEventListener('click', closeDropdown);
+        removeDropdown();
       }
     };
-    document.addEventListener('click', closeDropdown);
+    document.addEventListener('click', cleanupListener);
   }, 100);
 }
