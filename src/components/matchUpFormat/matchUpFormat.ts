@@ -402,7 +402,7 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
       }
     });
   };
-  standardFormatSelector.appendChild(field);
+  standardFormatSelector.appendChild(select);
   content.appendChild(standardFormatSelector);
 
   const setFormat = document.createElement('div');
