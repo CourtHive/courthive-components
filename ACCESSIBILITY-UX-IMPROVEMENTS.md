@@ -192,7 +192,30 @@ setFormat.style.marginBottom = '1em';
 - Better clickability and user experience
 - Applies to both setFormat and finalSetFormat containers
 
-### 7. **Dropdown Not Closing On Selection**
+### 7. **Form Layout Issues**
+
+**Problem:**
+Form stories (Login, Participant, etc.) had poor layout:
+- Username, Password, Remember Me fields displayed horizontally or haphazardly
+- Inconsistent spacing between elements
+- Form didn't look like a proper vertical form
+- Hard to read and use
+
+**Solution:**
+Added flexbox column layout to form container:
+```typescript
+container.style.display = 'flex';
+container.style.flexDirection = 'column';
+container.style.gap = '1em';
+```
+
+**Impact:**
+- All form fields stack vertically
+- Consistent 1em spacing between fields
+- Professional form appearance
+- Applies to all Form stories (Login, Participant, Contact, etc.)
+
+### 8. **Dropdown Not Closing On Selection**
 
 **Problem:**
 Custom dropdowns in matchUpFormat didn't close after clicking an option:
@@ -202,14 +225,18 @@ Custom dropdowns in matchUpFormat didn't close after clicking an option:
 - Required clicking outside to close
 
 **Root Cause:**
-Multiple issues with dropdown cleanup:
-1. onClick removed dropdown but didn't remove event listener
-2. Event listener added after 100ms stayed active
-3. Race condition between manual removal and listener cleanup
-4. setTimeout(0) wasn't reliable for async operations
+Multiple issues with dropdown cleanup and timing:
+1. onClick removed dropdown but didn't remove event listener (first attempt)
+2. Event listener added after 100ms stayed active (first attempt)
+3. Race condition between manual removal and listener cleanup (first attempt)
+4. setTimeout(0) wasn't reliable for async operations (first attempt)
+5. **Critical Issue (second attempt)**: onClick() state updates executed BEFORE removeDropdown()
+   - State updates triggered DOM changes (button innerHTML, format updates)
+   - Dropdown removal competed with active state changes
+   - Timing conflict prevented proper closure even with proper listener cleanup
 
 **Solution:**
-Proper cleanup with shared removal function:
+Callback pattern to ensure state settles before removal:
 ```typescript
 // Store cleanup function reference in closure
 let cleanupListener: ((event: MouseEvent) => void) | null = null;
@@ -224,12 +251,26 @@ const removeDropdown = () => {
   }
 };
 
-// Item click handler - immediate cleanup
-itemDiv.onclick = (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  item.onClick();
-  removeDropdown(); // Immediate closure with proper cleanup
+// Define onClick with callback parameter
+const items = itemConfig.map((opt: any) => ({
+  text: `${opt}${plural}`,
+  onClick: (closeDropdown: () => void) => {
+    button.innerHTML = `${prefix}${opt}${plural}${suffix}${clickable}`;
+    if (onChange && isFunction(onClicks[onChange])) {
+      onClicks[onChange](e, index, opt);
+    }
+    format[index ? 'finalSetFormat' : 'setFormat'][id] = opt;
+    setMatchUpFormatString();
+    closeDropdown(); // ✅ Called AFTER all state updates complete
+  },
+}));
+
+// Item click handler - pass callback
+itemDiv.onclick = (clickEvent) => {
+  clickEvent.preventDefault();
+  clickEvent.stopPropagation();
+  // Pass removeDropdown as callback, ensuring state settles first
+  item.onClick(removeDropdown);
 };
 
 // Close on click outside
