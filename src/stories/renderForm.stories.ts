@@ -18,6 +18,10 @@ export default {
     // Add style tag to force vertical stacking of Bulma fields
     const style = document.createElement('style');
     style.textContent = `
+      .flexcol {
+        display: flex !important;
+        flex-direction: column !important;
+      }
       .field {
         display: block !important;
         margin-bottom: 1.5rem;
