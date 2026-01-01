@@ -51,7 +51,7 @@ const format: FormatConfig = {
     tiebreakAt: 6,
     tiebreakTo: 7,
     winBy: 2,
-    minutes: 10,
+    minutes: 10
   },
   finalSetFormat: {
     descriptor: 'Final set',
@@ -61,23 +61,24 @@ const format: FormatConfig = {
     tiebreakAt: 6,
     tiebreakTo: 7,
     winBy: 2,
-    minutes: 10,
-  },
+    minutes: 10
+  }
 };
 
 function getSetFormat(index?: number): any {
   const which = index ? 'finalSetFormat' : 'setFormat';
   const what = format[which].what;
   const setFormat: any = {
-    setTo: format[which].setTo,
+    setTo: format[which].setTo
   };
   if (what === SETS && format[which].advantage === NOAD) setFormat.NoAD = true;
 
-  const hasTiebreak = what === SETS && (document.getElementById(index ? 'finalSetTiebreak' : 'setTiebreak') as HTMLInputElement)?.checked;
+  const hasTiebreak =
+    what === SETS && (document.getElementById(index ? 'finalSetTiebreak' : 'setTiebreak') as HTMLInputElement)?.checked;
   if (hasTiebreak) {
     setFormat.tiebreakAt = format[which].tiebreakAt;
     setFormat.tiebreakFormat = {
-      tiebreakTo: format[which].tiebreakTo,
+      tiebreakTo: format[which].tiebreakTo
     };
     if (what === SETS && format[which].winBy === 1) {
       setFormat.tiebreakFormat.NoAD = true;
@@ -90,7 +91,7 @@ function getSetFormat(index?: number): any {
 
   if (what === TIEBREAKS) {
     setFormat.tiebreakSet = {
-      tiebreakTo: format[which].tiebreakTo,
+      tiebreakTo: format[which].tiebreakTo
     };
     if (format[which].winBy === 1) {
       setFormat.tiebreakSet.NoAD = true;
@@ -105,7 +106,7 @@ function generateMatchUpFormat(): string {
 
   parsedMatchUpFormat = {
     bestOf: format.setFormat.bestOf,
-    setFormat,
+    setFormat
   };
 
   const hasFinalSet = (document.getElementById('finalSetOption') as HTMLInputElement)?.checked;
@@ -125,6 +126,7 @@ function generateMatchUpFormat(): string {
 function setMatchUpFormatString(value?: string): void {
   const result = value || generateMatchUpFormat();
   const matchUpFormat = typeof result === 'string' ? result : (result as { matchUpFormat: string }).matchUpFormat;
+  console.log({ result, matchUpFormat });
   const matchUpFormatString = document.getElementById('matchUpFormatString');
   if (matchUpFormatString) {
     matchUpFormatString.innerHTML = matchUpFormat;
@@ -160,7 +162,7 @@ const setComponents: SetComponent[] = [
     options: ['Best of', 'Exactly'],
     id: 'descriptor',
     value: 'Best of',
-    finalSet: false,
+    finalSet: false
   },
   { getValue: (pmf) => pmf.bestOf, finalSet: false, id: 'bestOf', options: [1, 3, 5], onChange: 'pluralize', value: 3 },
   {
@@ -172,7 +174,7 @@ const setComponents: SetComponent[] = [
     options: [AD, NOAD],
     defaultValue: AD,
     id: 'advantage',
-    whats: [SETS],
+    whats: [SETS]
   },
   {
     getValue: (pmf, isFinal) => {
@@ -186,7 +188,7 @@ const setComponents: SetComponent[] = [
     finalSetLabel: `${SETS}${clickable}`,
     onChange: 'changeWhat',
     pluralize: true,
-    id: 'what',
+    id: 'what'
   },
   {
     getValue: (pmf, isFinal) => {
@@ -198,7 +200,7 @@ const setComponents: SetComponent[] = [
     defaultValue: 6,
     whats: [SETS],
     prefix: 'to ',
-    id: 'setTo',
+    id: 'setTo'
   },
   {
     getValue: (pmf, isFinal) => {
@@ -212,7 +214,7 @@ const setComponents: SetComponent[] = [
     prefix: 'TB to ',
     tbSet: true,
     value: 7,
-    tb: true,
+    tb: true
   },
   {
     getValue: (pmf, isFinal) => {
@@ -228,7 +230,7 @@ const setComponents: SetComponent[] = [
     whats: [SETS],
     prefix: '@',
     value: 6,
-    tb: true,
+    tb: true
   },
   {
     getValue: (pmf, isFinal) => {
@@ -242,7 +244,7 @@ const setComponents: SetComponent[] = [
     defaultValue: 2,
     tbSet: true,
     id: 'winBy',
-    tb: true,
+    tb: true
   },
   {
     getValue: (pmf, isFinal) => {
@@ -254,8 +256,8 @@ const setComponents: SetComponent[] = [
     suffix: ' Minutes',
     defaultValue: 10,
     id: 'minutes',
-    timed: true,
-  },
+    timed: true
+  }
 ];
 
 const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) => void> = {
@@ -295,10 +297,13 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
     const elem = document.getElementById(elementId)!;
     const plural = opt > 1 ? 's' : '';
     elem.innerHTML = `${what}${plural}${clickable}`;
-  },
+  }
 };
 
-export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callback }: { existingMatchUpFormat?: string; callback?: (format: string) => void } = {}): void {
+export function getMatchUpFormat({
+  existingMatchUpFormat = 'SET3-S:6/TB7',
+  callback
+}: { existingMatchUpFormat?: string; callback?: (format: string) => void } = {}): void {
   selectedMatchUpFormat = existingMatchUpFormat;
   parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
   const onSelect = () => {
@@ -317,9 +322,9 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
       onClick: () => callback && callback(''),
       label: 'Cancel',
       intent: 'none',
-      close: true,
+      close: true
     },
-    { label: 'Select', intent: 'is-info', close: true, onClick: onSelect },
+    { label: 'Select', intent: 'is-info', close: true, onClick: onSelect }
   ];
 
   const tiebreakSwitch = 'switch is-rounded is-danger';
@@ -340,10 +345,10 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
     options: matchUpFormats.map((format) => ({
       selected: format.format === selectedMatchUpFormat,
       value: format.format,
-      label: format.name,
-    })),
+      label: format.name
+    }))
   };
-  
+
   // Create simple select field
   const select = document.createElement('select');
   select.className = 'input';
@@ -360,7 +365,7 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
     if (option.selected) opt.selected = true;
     select.appendChild(opt);
   }
-  
+
   select.onchange = (e) => {
     selectedMatchUpFormat = (e.target as HTMLSelectElement).value;
     setMatchUpFormatString(selectedMatchUpFormat);
@@ -496,7 +501,7 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
       setComponents.map((component) => {
         const value = component.getValue ? component.getValue(parsedMatchUpFormat, true) : undefined;
         return { ...component, value };
-      }),
+      })
     )
     .filter((def: any) => def.finalSet !== false)
     .map((def: any) => createButton({ ...def, index: 1 }))
@@ -550,9 +555,9 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
   wrapper.style.color = '#363636';
   wrapper.appendChild(content);
 
-  return cModal.open({ 
-    title: 'Score format', 
-    content: wrapper, 
+  return cModal.open({
+    title: 'Score format',
+    content: wrapper,
     buttons,
     config: {
       padding: '0', // No padding since wrapper handles it
@@ -581,7 +586,7 @@ function createButton(params: any): HTMLButtonElement {
   button.onclick = (e) => getButtonClick({ e, button, ...params });
   button.style.display = value || params.label ? '' : NONE;
   if (initiallyHidden) button.style.display = NONE;
-  
+
   // Apply TMX button styles inline since courthive-components doesn't have .mfcButton CSS
   button.style.transition = 'all .2s ease-in-out';
   button.style.backgroundColor = 'inherit';
@@ -592,7 +597,7 @@ function createButton(params: any): HTMLButtonElement {
   button.style.textDecoration = 'none';
   button.style.fontSize = '1em';
   button.style.cursor = 'pointer';
-  
+
   return button;
 }
 
@@ -612,7 +617,7 @@ function getButtonClick(params: any): void {
       format[index ? 'finalSetFormat' : 'setFormat'][id] = opt;
       // Update the format string display immediately
       setMatchUpFormatString();
-    },
+    }
   }));
 
   // Simple dropdown menu implementation
@@ -620,17 +625,17 @@ function getButtonClick(params: any): void {
   dropdown.className = 'dropdown is-active';
   dropdown.style.position = 'absolute';
   dropdown.style.zIndex = '10000'; // Higher than modal (9999)
-  
+
   const dropdownMenu = document.createElement('div');
   dropdownMenu.className = 'dropdown-menu';
   dropdownMenu.style.backgroundColor = 'white';
   dropdownMenu.style.border = '1px solid #ddd';
   dropdownMenu.style.borderRadius = '4px';
   dropdownMenu.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-  
+
   // Store cleanup function reference
   let cleanupListener: ((event: MouseEvent) => void) | null = null;
-  
+
   const removeDropdown = () => {
     if (document.body.contains(dropdown)) {
       document.body.removeChild(dropdown);
@@ -640,7 +645,7 @@ function getButtonClick(params: any): void {
       cleanupListener = null;
     }
   };
-  
+
   items.forEach((item: any) => {
     const itemDiv = document.createElement('div');
     // Don't use Bulma's dropdown-item class - it may have styling conflicts
@@ -671,16 +676,16 @@ function getButtonClick(params: any): void {
     };
     dropdownMenu.appendChild(itemDiv);
   });
-  
+
   dropdown.appendChild(dropdownMenu);
-  
+
   // Position near the clicked button
   const rect = (e.target as HTMLElement).getBoundingClientRect();
   dropdown.style.left = `${rect.left}px`;
   dropdown.style.top = `${rect.bottom}px`;
-  
+
   document.body.appendChild(dropdown);
-  
+
   // Close on click outside (after a short delay to avoid immediate closure)
   setTimeout(() => {
     cleanupListener = (event: MouseEvent) => {
