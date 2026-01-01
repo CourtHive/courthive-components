@@ -632,7 +632,28 @@ function getButtonClick(params: any): void {
     }
   }));
 
-  // Simple dropdown menu implementation
+  createDropdown(e, items);
+}
+
+// Track currently open dropdown to close it when opening a new one
+let currentDropdown: HTMLElement | null = null;
+let currentCleanupListener: ((event: MouseEvent) => void) | null = null;
+
+function closeCurrentDropdown() {
+  if (currentDropdown && document.body.contains(currentDropdown)) {
+    document.body.removeChild(currentDropdown);
+  }
+  if (currentCleanupListener) {
+    document.removeEventListener('click', currentCleanupListener);
+    currentCleanupListener = null;
+  }
+  currentDropdown = null;
+}
+
+function createDropdown(e: any, items: any[]) {
+  // Close any existing dropdown before opening a new one
+  closeCurrentDropdown();
+
   const dropdown = document.createElement('div');
   dropdown.className = 'dropdown is-active';
   dropdown.style.position = 'absolute';
