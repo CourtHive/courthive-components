@@ -367,6 +367,7 @@ export function getMatchUpFormat({
 
   // Create simple select field
   const select = document.createElement('select');
+  select.id = 'matchUpFormatSelector';
   select.className = 'input';
   select.style.width = '100%';
   select.style.backgroundColor = '#ffffff'; // Force white background
