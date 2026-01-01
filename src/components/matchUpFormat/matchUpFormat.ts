@@ -123,9 +123,12 @@ function generateMatchUpFormat(): string {
 }
 
 function setMatchUpFormatString(value?: string): void {
-  const matchUpFormat = value || generateMatchUpFormat();
-  const matchUpFormatString = document.getElementById('matchUpFormatString')!;
-  matchUpFormatString.innerHTML = matchUpFormat;
+  const result = value || generateMatchUpFormat();
+  const matchUpFormat = typeof result === 'string' ? result : result.matchUpFormat;
+  const matchUpFormatString = document.getElementById('matchUpFormatString');
+  if (matchUpFormatString) {
+    matchUpFormatString.innerHTML = matchUpFormat;
+  }
 }
 
 const whichSetFormat = (pmf: any, isFinal?: boolean) => {
@@ -542,7 +545,7 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
 
   // Wrap content with padding and ensure white background
   const wrapper = document.createElement('div');
-  wrapper.style.padding = '1em';
+  wrapper.style.padding = '1.5em';
   wrapper.style.backgroundColor = '#ffffff';
   wrapper.style.color = '#363636';
   wrapper.appendChild(content);
@@ -607,6 +610,7 @@ function getButtonClick(params: any): void {
         onClicks[onChange](e, index, opt);
       }
       format[index ? 'finalSetFormat' : 'setFormat'][id] = opt;
+      // Update the format string display immediately
       setMatchUpFormatString();
     },
   }));
