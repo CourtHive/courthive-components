@@ -292,17 +292,24 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
           const plural = !index && pluralize && bestOf > 1 ? 's' : '';
           const value = component.defaultValue;
           elem.innerHTML = `${prefix}${value}${plural}${suffix}${clickable}`;
+          // Also update the format object with the default value
+          format[index ? 'finalSetFormat' : 'setFormat'][component.id] = value;
         }
 
         elem.style.display = visible ? '' : NONE;
       }
     });
+    
+    // Update format string and dropdown after changing what type
+    setMatchUpFormatString();
   },
   changeCount: (_e, index, opt) => {
     const elementId = index ? `tiebreakAt-${index}` : 'tiebreakAt';
     format[index ? 'finalSetFormat' : 'setFormat'].tiebreakAt = opt;
     const elem = document.getElementById(elementId)!;
     elem.innerHTML = `@${opt}${clickable}`;
+    // Update format string and dropdown
+    setMatchUpFormatString();
   },
   pluralize: (_e, index, opt) => {
     const what = format[index ? 'finalSetFormat' : 'setFormat'].what;
@@ -310,6 +317,8 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
     const elem = document.getElementById(elementId)!;
     const plural = opt > 1 ? 's' : '';
     elem.innerHTML = `${what}${plural}${clickable}`;
+    // Update format string and dropdown
+    setMatchUpFormatString();
   }
 };
 
