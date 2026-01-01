@@ -333,12 +333,6 @@ export function getMatchUpFormat({
     if (isFunction(callback)) callback(specifiedFormat);
   };
 
-  let finalSetFormat: HTMLElement;
-  let finalSetConfig: HTMLElement;
-  let finalSetOption: HTMLInputElement;
-  let setTiebreak: HTMLInputElement;
-  let finalSetTiebreak: HTMLInputElement;
-
   const buttons = [
     {
       onClick: () => callback && callback(''),
@@ -459,7 +453,7 @@ export function getMatchUpFormat({
   setConfig.className = 'field';
   setConfig.style.fontSize = '1em';
 
-  setTiebreak = document.createElement('input');
+  const setTiebreak = document.createElement('input');
   setTiebreak.className = tiebreakSwitch;
   setTiebreak.name = 'setTiebreak';
   setTiebreak.id = 'setTiebreak';
@@ -492,7 +486,7 @@ export function getMatchUpFormat({
   tiebreakLabel.style.marginRight = '1em';
   setConfig.appendChild(tiebreakLabel);
 
-  finalSetOption = document.createElement('input');
+  const finalSetOption = document.createElement('input');
   finalSetOption.className = 'switch is-rounded is-info';
   finalSetOption.type = 'checkbox';
   finalSetOption.name = 'finalSetOption';
@@ -513,7 +507,7 @@ export function getMatchUpFormat({
 
   content.appendChild(setConfig);
 
-  finalSetFormat = document.createElement('div');
+  const finalSetFormat = document.createElement('div');
   finalSetFormat.style.display = parsedMatchUpFormat.finalSetFormat ? 'flex' : NONE;
   finalSetFormat.style.flexWrap = 'wrap';
   finalSetFormat.style.gap = '0.5em';
@@ -531,12 +525,12 @@ export function getMatchUpFormat({
     .forEach((button) => finalSetFormat.appendChild(button));
   content.appendChild(finalSetFormat);
 
-  finalSetConfig = document.createElement('div');
+  const finalSetConfig = document.createElement('div');
   finalSetConfig.style.display = parsedMatchUpFormat.finalSetFormat ? '' : NONE;
   finalSetConfig.className = 'field';
   finalSetConfig.style.fontSize = '1em';
 
-  finalSetTiebreak = document.createElement('input');
+  const finalSetTiebreak = document.createElement('input');
   finalSetTiebreak.className = tiebreakSwitch;
   finalSetTiebreak.name = 'finalSetTiebreak';
   finalSetTiebreak.id = 'finalSetTiebreak';
