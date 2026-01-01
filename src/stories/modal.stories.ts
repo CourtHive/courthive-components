@@ -1,4 +1,5 @@
 import { cModal } from '../components/modal/cmodal';
+import '../components/forms/styles'; // Import bulma-switch and other form styles
 
 export default {
   title: 'Components/Modal',

@@ -601,14 +601,13 @@ function getButtonClick(params: any): void {
   const itemConfig = isFunction(options) ? options(index) : options;
   const items = itemConfig.map((opt: any) => ({
     text: `${opt}${plural}`,
-    onClick: (closeDropdown: () => void) => {
+    onClick: () => {
       button.innerHTML = `${prefix}${opt}${plural}${suffix}${clickable}`;
       if (onChange && isFunction(onClicks[onChange])) {
         onClicks[onChange](e, index, opt);
       }
       format[index ? 'finalSetFormat' : 'setFormat'][id] = opt;
       setMatchUpFormatString();
-      closeDropdown();
     },
   }));
 
@@ -651,8 +650,12 @@ function getButtonClick(params: any): void {
     itemDiv.onclick = (clickEvent) => {
       clickEvent.preventDefault();
       clickEvent.stopPropagation();
-      // Pass removeDropdown as a callback to ensure it's called AFTER onClick completes
-      item.onClick(removeDropdown);
+      // Remove dropdown immediately (like tipster does), then call onClick
+      removeDropdown();
+      // Use setTimeout to allow dropdown to fully close before state updates
+      setTimeout(() => {
+        item.onClick();
+      }, 0);
     };
     itemDiv.onmouseenter = () => {
       itemDiv.style.backgroundColor = '#f5f5f5';
