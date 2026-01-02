@@ -177,7 +177,15 @@ const setComponents: SetComponent[] = [
     value: 'Best of',
     finalSet: false
   },
-  { getValue: (pmf) => pmf.bestOf, finalSet: false, id: 'bestOf', options: [1, 3, 5], onChange: 'pluralize', value: 3 },
+  { 
+    getValue: (pmf) => pmf.bestOf, 
+    finalSet: false, 
+    id: 'bestOf', 
+    options: [1, 3, 5], 
+    onChange: 'pluralize', 
+    onChangeCallback: 'updateFinalSetVisibility', 
+    value: 3 
+  },
   {
     getValue: (pmf, isFinal) => {
       const setFormat = whichSetFormat(pmf, isFinal);
@@ -185,6 +193,7 @@ const setComponents: SetComponent[] = [
       return setFormat?.timed || setFormat?.tiebreakSet ? undefined : adType;
     },
     options: [AD, NOAD],
+    onChange: 'changeAdvantage',
     defaultValue: AD,
     id: 'advantage',
     whats: [SETS]
@@ -200,6 +209,7 @@ const setComponents: SetComponent[] = [
     options: [SETS, TIEBREAKS, TIMED_SETS],
     finalSetLabel: `${SETS}${clickable}`,
     onChange: 'changeWhat',
+    onChangeCallback: 'updateWhatValue',
     pluralize: true,
     id: 'what'
   },
@@ -221,6 +231,7 @@ const setComponents: SetComponent[] = [
       return setFormat.tiebreakFormat?.tiebreakTo || setFormat.tiebreakSet?.tiebreakTo;
     },
     options: [5, 7, 9, 10, 12],
+    onChange: 'changeTiebreakTo',
     whats: [SETS, TIEBREAKS],
     id: 'tiebreakTo',
     defaultValue: 7,
@@ -238,6 +249,7 @@ const setComponents: SetComponent[] = [
       const setTo = format[index ? 'finalSetFormat' : 'setFormat'].setTo;
       return setTo > 1 ? [setTo - 1, setTo] : [];
     },
+    onChange: 'changeTiebreakAt',
     id: 'tiebreakAt',
     defaultValue: 6,
     whats: [SETS],
@@ -252,6 +264,7 @@ const setComponents: SetComponent[] = [
       return setFormat.tiebreakFormat?.NoAD ? 1 : 2;
     },
     whats: [SETS, TIEBREAKS],
+    onChange: 'changeWinBy',
     prefix: 'Win by ',
     options: [1, 2],
     defaultValue: 2,
@@ -265,6 +278,7 @@ const setComponents: SetComponent[] = [
       return (setFormat.timed && setFormat.minutes) || undefined;
     },
     options: [10, 15, 20, 25, 30, 45, 60, 90],
+    onChange: 'changeMinutes',
     whats: [TIMED_SETS],
     suffix: ' Minutes',
     defaultValue: 10,
@@ -304,11 +318,48 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
     setMatchUpFormatString();
   },
   changeCount: (_e, index, opt) => {
-    const elementId = index ? `tiebreakAt-${index}` : 'tiebreakAt';
-    format[index ? 'finalSetFormat' : 'setFormat'].tiebreakAt = opt;
-    const elem = document.getElementById(elementId);
-    elem.innerHTML = `@${opt}${clickable}`;
+    // When setTo changes, also update tiebreakAt to match (either setTo or setTo-1)
+    const which = index ? 'finalSetFormat' : 'setFormat';
+    format[which].setTo = opt;
+    
+    // Auto-update tiebreakAt to be setTo (unless it's already valid)
+    const currentTiebreakAt = format[which].tiebreakAt;
+    const validOptions = opt > 1 ? [opt - 1, opt] : [];
+    if (!validOptions.includes(currentTiebreakAt)) {
+      format[which].tiebreakAt = opt;
+      // Update the tiebreakAt button display
+      const tiebreakAtElem = document.getElementById(index ? `tiebreakAt-${index}` : 'tiebreakAt');
+      if (tiebreakAtElem) {
+        tiebreakAtElem.innerHTML = `@${opt}${clickable}`;
+      }
+    }
+    
     // Update format string and dropdown
+    setMatchUpFormatString();
+  },
+  changeTiebreakAt: (_e, index, opt) => {
+    format[index ? 'finalSetFormat' : 'setFormat'].tiebreakAt = opt;
+    // Update format string and dropdown
+    setMatchUpFormatString();
+  },
+  updateWhatValue: (_e, index, opt) => {
+    // Update the format.what value when user clicks Sets/Tiebreaks/Timed Sets
+    format[index ? 'finalSetFormat' : 'setFormat'].what = opt;
+  },
+  changeAdvantage: (_e, index, opt) => {
+    format[index ? 'finalSetFormat' : 'setFormat'].advantage = opt;
+    setMatchUpFormatString();
+  },
+  changeTiebreakTo: (_e, index, opt) => {
+    format[index ? 'finalSetFormat' : 'setFormat'].tiebreakTo = opt;
+    setMatchUpFormatString();
+  },
+  changeWinBy: (_e, index, opt) => {
+    format[index ? 'finalSetFormat' : 'setFormat'].winBy = opt;
+    setMatchUpFormatString();
+  },
+  changeMinutes: (_e, index, opt) => {
+    format[index ? 'finalSetFormat' : 'setFormat'].minutes = opt;
     setMatchUpFormatString();
   },
   pluralize: (_e, index, opt) => {
@@ -319,17 +370,52 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
     elem.innerHTML = `${what}${plural}${clickable}`;
     // Update format string and dropdown
     setMatchUpFormatString();
+  },
+  updateFinalSetVisibility: (_e, _index, opt) => {
+    // When bestOf changes, show/hide final set toggle
+    const showFinalSet = opt > 1;
+    const finalSetOption = document.getElementById('finalSetOption') as HTMLInputElement;
+    const finalSetLabel = document.querySelector('label[for="finalSetOption"]') as HTMLElement;
+    
+    if (finalSetOption && finalSetLabel) {
+      if (!showFinalSet) {
+        // If bestOf becomes 1, uncheck the toggle (this will hide config panels via onchange)
+        if (finalSetOption.checked) {
+          finalSetOption.checked = false;
+          // Trigger the onchange event to hide the panels
+          finalSetOption.dispatchEvent(new Event('change'));
+        }
+        // Hide the toggle and label
+        finalSetOption.style.display = 'none';
+        finalSetLabel.style.display = 'none';
+      } else {
+        // Show the toggle and label
+        finalSetOption.style.display = '';
+        finalSetLabel.style.display = '';
+      }
+    }
   }
 };
 
-export function getMatchUpFormat({
+export function getMatchUpFormatModal({
   existingMatchUpFormat = 'SET3-S:6/TB7',
-  callback
-}: { existingMatchUpFormat?: string; callback?: (format: string) => void } = {}) {
+  callback,
+  config,
+  modalConfig
+}: { 
+  existingMatchUpFormat?: string; 
+  callback?: (format: string) => void; 
+  config?: any;
+  modalConfig?: any;
+} = {}) {
   selectedMatchUpFormat = existingMatchUpFormat;
   parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
   const onSelect = () => {
-    const specifiedFormat = generateMatchUpFormat();
+    // Use selectedMatchUpFormat if it's a predefined format (from dropdown selection)
+    // Otherwise generate from current button states
+    const dropdown = document.getElementById('matchUpFormatSelector') as HTMLSelectElement;
+    const isPredefined = dropdown?.value && dropdown.value !== 'Custom';
+    const specifiedFormat = isPredefined ? selectedMatchUpFormat : generateMatchUpFormat();
     if (isFunction(callback)) callback(specifiedFormat);
   };
 
@@ -493,23 +579,29 @@ export function getMatchUpFormat({
   tiebreakLabel.style.marginRight = '1em';
   setConfig.appendChild(tiebreakLabel);
 
+  // Only show final set option if bestOf > 1 (can't have a final set with only 1 set)
+  const showFinalSetOption = parsedMatchUpFormat.bestOf > 1;
+  
   const finalSetOption = document.createElement('input');
   finalSetOption.className = 'switch is-rounded is-info';
   finalSetOption.type = 'checkbox';
   finalSetOption.name = 'finalSetOption';
   finalSetOption.checked = !!parsedMatchUpFormat.finalSetFormat;
   finalSetOption.id = 'finalSetOption';
+  finalSetOption.style.display = showFinalSetOption ? '' : 'none';
   finalSetOption.onchange = (e) => {
     const active = (e.target as HTMLInputElement).checked;
     finalSetFormat.style.display = active ? '' : NONE;
     finalSetConfig.style.display = active ? '' : NONE;
     setMatchUpFormatString();
   };
+  
   setConfig.appendChild(finalSetOption);
 
   const finalSetLabel = document.createElement('label');
   finalSetLabel.setAttribute('for', 'finalSetOption');
   finalSetLabel.innerHTML = 'Final set';
+  finalSetLabel.style.display = showFinalSetOption ? '' : 'none';
   setConfig.appendChild(finalSetLabel);
 
   content.appendChild(setConfig);
@@ -533,6 +625,7 @@ export function getMatchUpFormat({
   content.appendChild(finalSetFormat);
 
   const finalSetConfig = document.createElement('div');
+  finalSetConfig.id = 'finalSetConfig'; // Add id for dynamic visibility control
   finalSetConfig.style.display = parsedMatchUpFormat.finalSetFormat ? '' : NONE;
   finalSetConfig.className = 'field';
   finalSetConfig.style.fontSize = '1em';
@@ -572,20 +665,37 @@ export function getMatchUpFormat({
 
   content.appendChild(finalSetConfig);
 
+  // Merge modalConfig with defaults
+  const defaultModalConfig = {
+    content: { padding: '1.5' },
+    maxWidth: 480,
+    fontSize: '14px', // cModal expects fontSize at top level, not in style
+    style: {
+      backgroundColor: '#f8f9fa',
+      borderRadius: '8px',
+      boxShadow: '0 8px 16px rgba(0, 102, 204, 0.2)',
+    }
+  };
+
+  // Extract fontSize from style if provided there, and move to top level
+  const fontSize = modalConfig?.fontSize || modalConfig?.style?.fontSize || defaultModalConfig.fontSize;
+  
+  const finalModalConfig = {
+    ...defaultModalConfig,
+    ...modalConfig,
+    fontSize, // Ensure fontSize is at top level for cModal
+    style: {
+      ...defaultModalConfig.style,
+      ...(config?.style || {}), // Include old config.style for backward compatibility
+      ...(modalConfig?.style || {}) // modalConfig.style takes precedence
+    }
+  };
+
   return cModal.open({
     title: 'Score format',
     content: content,
     buttons,
-    config: {
-      content: { padding: '1.5' }, // Use cModal's built-in content padding
-      maxWidth: 480,
-      style: {
-        backgroundColor: '#f8f9fa',
-        border: '3px solid #0066cc',
-        borderRadius: '8px',
-        boxShadow: '0 8px 16px rgba(0, 102, 204, 0.2)'
-      }
-    }
+    config: finalModalConfig
   });
 }
 
@@ -619,7 +729,7 @@ function createButton(params: any): HTMLButtonElement {
 }
 
 function getButtonClick(params: any): void {
-  const { e, id, button, pluralize, options, onChange, index, prefix = '', suffix = '' } = params;
+  const { e, id, button, pluralize, options, onChange, onChangeCallback, index, prefix = '', suffix = '' } = params;
   const bestOf = format.setFormat.bestOf || 1;
   const plural = !index && pluralize && bestOf > 1 ? 's' : '';
 
@@ -630,6 +740,10 @@ function getButtonClick(params: any): void {
       button.innerHTML = `${prefix}${opt}${plural}${suffix}${clickable}`;
       if (onChange && isFunction(onClicks[onChange])) {
         onClicks[onChange](e, index, opt);
+      }
+      // Call additional callback if specified
+      if (onChangeCallback && isFunction(onClicks[onChangeCallback])) {
+        onClicks[onChangeCallback](e, index, opt);
       }
       format[index ? 'finalSetFormat' : 'setFormat'][id] = opt;
       // Update the format string display immediately

@@ -1,0 +1,4 @@
+#!/bin/bash
+sed -i '' "s/@VERSION@/$1/g" dist/*.js
+sed -i '' "s/@VERSION@/$1/g" dist/*.es.js
+sed -i '' "s/@VERSION@/$1/g" dist/*.umd.js

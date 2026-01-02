@@ -1,6 +1,6 @@
 {
   "name": "courthive-components",
-  "version": "0.7.22",
+  "version": "0.8.7",
   "engines": {
     "node": ">=16.16.0 < 25"
   },
@@ -35,9 +35,11 @@
   "homepage": "https://courthive.github.io/courthive-component",
   "scripts": {
     "commits": "git log $(git describe --tags --abbrev=0)..HEAD --oneline --no-merges --pretty=format:'%s: %h' | sed '/courthive-components/d'",
-    "release": "npm run build && npm run commits && npm run release:patch",
+    "release": "npm run release:patch",
     "dev": "vite",
     "build": "vite build",
+    "postbuild": "./addVersion $npm_package_version",
+    "prepublishOnly": "npm run build",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
@@ -48,9 +50,9 @@
     "lint": "eslint src --fix --cache",
     "lint:report": "eslint src & eslint --cache src -f json > eslint-report.json",
     "format": "prettier --write src",
-    "release:major": "npm version $(semver $npm_package_version -i major) && npm publish --tag latest",
-    "release:minor": "npm version $(semver $npm_package_version -i minor) && npm publish --tag latest",
-    "release:patch": "npm version $(semver $npm_package_version -i patch) && npm publish --tag latest"
+    "release:major": "npm run commits && npm version $(semver $npm_package_version -i major) && npm publish --tag latest",
+    "release:minor": "npm run commits && npm version $(semver $npm_package_version -i minor) && npm publish --tag latest",
+    "release:patch": "npm run commits && npm version $(semver $npm_package_version -i patch) && npm publish --tag latest"
   },
   "lint-staged": {
     "*.{js,ts}": "eslint --cache --fix",

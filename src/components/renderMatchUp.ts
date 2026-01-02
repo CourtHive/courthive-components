@@ -24,7 +24,7 @@ export function renderMatchUp(params: {
 }): HTMLElement {
   const { composition, initialRoundNumber = 1, matchUp, moiety, selectedMatchUpId, searchActive } = params;
   const { roundFactor, roundNumber, finishingRound, matchUpType, preFeedRound, stage } = matchUp;
-  const isFinalRound = params.isFinalRound || (finishingRound ? parseInt(String(finishingRound)) === 1 : false);
+  const isFinalRound = params.isFinalRound || (finishingRound ? Number.parseInt(String(finishingRound)) === 1 : false);
   const isQualifying = stage === 'QUALIFYING' && isFinalRound;
 
   // NOTE: is it desireable to have trailing - for final round of qualifying?
@@ -32,7 +32,7 @@ export function renderMatchUp(params: {
   // const noProgression = !qualifyingStage && isFinalRound;
 
   const noProgression = isFinalRound;
-  const isFirstRound = roundNumber ? parseInt(String(roundNumber)) === initialRoundNumber : false;
+  const isFirstRound = roundNumber ? Number.parseInt(String(roundNumber)) === initialRoundNumber : false;
   const isDoubles = matchUpType === 'DOUBLES';
   const link =
     ((searchActive || matchUp.isRoundRobin || matchUp.collectionId || params.isLucky || params.isAdHoc) && 'mr') ||
@@ -127,7 +127,7 @@ export function renderMatchUp(params: {
 
 function renderResultsInfo({ score }: { score?: { sets?: SetScore[] } }): HTMLElement {
   const sets = score?.sets?.filter(Boolean).sort((a, b) => (a.setNumber || 0) - (b.setNumber || 0));
-  const finalSet = sets?.[sets.length - 1];
+  const finalSet = sets?.at(-1);
   const points = finalSet?.side1PointsScore || finalSet?.side2PointsScore;
 
   const div = document.createElement('div');
