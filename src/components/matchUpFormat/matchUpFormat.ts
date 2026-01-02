@@ -193,6 +193,7 @@ const setComponents: SetComponent[] = [
       return setFormat?.timed || setFormat?.tiebreakSet ? undefined : adType;
     },
     options: [AD, NOAD],
+    onChange: 'changeAdvantage',
     defaultValue: AD,
     id: 'advantage',
     whats: [SETS]
@@ -230,6 +231,7 @@ const setComponents: SetComponent[] = [
       return setFormat.tiebreakFormat?.tiebreakTo || setFormat.tiebreakSet?.tiebreakTo;
     },
     options: [5, 7, 9, 10, 12],
+    onChange: 'changeTiebreakTo',
     whats: [SETS, TIEBREAKS],
     id: 'tiebreakTo',
     defaultValue: 7,
@@ -262,6 +264,7 @@ const setComponents: SetComponent[] = [
       return setFormat.tiebreakFormat?.NoAD ? 1 : 2;
     },
     whats: [SETS, TIEBREAKS],
+    onChange: 'changeWinBy',
     prefix: 'Win by ',
     options: [1, 2],
     defaultValue: 2,
@@ -275,6 +278,7 @@ const setComponents: SetComponent[] = [
       return (setFormat.timed && setFormat.minutes) || undefined;
     },
     options: [10, 15, 20, 25, 30, 45, 60, 90],
+    onChange: 'changeMinutes',
     whats: [TIMED_SETS],
     suffix: ' Minutes',
     defaultValue: 10,
@@ -341,6 +345,22 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
   updateWhatValue: (_e, index, opt) => {
     // Update the format.what value when user clicks Sets/Tiebreaks/Timed Sets
     format[index ? 'finalSetFormat' : 'setFormat'].what = opt;
+  },
+  changeAdvantage: (_e, index, opt) => {
+    format[index ? 'finalSetFormat' : 'setFormat'].advantage = opt;
+    setMatchUpFormatString();
+  },
+  changeTiebreakTo: (_e, index, opt) => {
+    format[index ? 'finalSetFormat' : 'setFormat'].tiebreakTo = opt;
+    setMatchUpFormatString();
+  },
+  changeWinBy: (_e, index, opt) => {
+    format[index ? 'finalSetFormat' : 'setFormat'].winBy = opt;
+    setMatchUpFormatString();
+  },
+  changeMinutes: (_e, index, opt) => {
+    format[index ? 'finalSetFormat' : 'setFormat'].minutes = opt;
+    setMatchUpFormatString();
   },
   pluralize: (_e, index, opt) => {
     const what = format[index ? 'finalSetFormat' : 'setFormat'].what;
