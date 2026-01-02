@@ -145,9 +145,9 @@ export const MatchUpFormatEditor = {
     button.textContent = 'Open Match Format Editor';
     button.onclick = async () => {
       // Dynamically import the matchUpFormat component
-      const { getMatchUpFormat } = await import('../components/matchUpFormat/matchUpFormat');
+      const { getMatchUpFormatModal } = await import('../components/matchUpFormat/matchUpFormat');
       
-      getMatchUpFormat({
+      getMatchUpFormatModal({
         existingMatchUpFormat: 'SET3-S:6/TB7',
         callback: (format: string) => {
           console.log('Selected format:', format);
