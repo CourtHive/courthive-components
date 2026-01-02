@@ -375,7 +375,7 @@ export function getMatchUpFormatModal({
   config?: any;
   modalConfig?: any;
 } = {}) {
-  console.log('[getMatchUpFormatModal] VERSION 0.8.2 - Function called with format:', existingMatchUpFormat);
+  console.log('[getMatchUpFormatModal] VERSION 0.8.3 - Function called with format:', existingMatchUpFormat);
   console.log('[getMatchUpFormatModal] modalConfig:', modalConfig);
   selectedMatchUpFormat = existingMatchUpFormat;
   parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
