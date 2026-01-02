@@ -208,6 +208,7 @@ const setComponents: SetComponent[] = [
     options: [SETS, TIEBREAKS, TIMED_SETS],
     finalSetLabel: `${SETS}${clickable}`,
     onChange: 'changeWhat',
+    onChangeCallback: 'updateWhatValue',
     pluralize: true,
     id: 'what'
   },
@@ -324,6 +325,10 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
     format[index ? 'finalSetFormat' : 'setFormat'].tiebreakAt = opt;
     // Update format string and dropdown
     setMatchUpFormatString();
+  },
+  updateWhatValue: (_e, index, opt) => {
+    // Update the format.what value when user clicks Sets/Tiebreaks/Timed Sets
+    format[index ? 'finalSetFormat' : 'setFormat'].what = opt;
   },
   pluralize: (_e, index, opt) => {
     const what = format[index ? 'finalSetFormat' : 'setFormat'].what;
