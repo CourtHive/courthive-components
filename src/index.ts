@@ -7,6 +7,9 @@ export { compositions } from './compositions/compositions';
 export { renderRound } from './components/renderRound';
 export { cModal } from './components/modal/cmodal';
 
+// Match format selector modal
+export { getMatchUpFormatModal } from './components/matchUpFormat/matchUpFormat';
+
 // Form renderers (import styles first)
 import './components/forms/styles';
 export { renderButtons } from './components/forms/renderButtons';

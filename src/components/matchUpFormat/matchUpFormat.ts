@@ -322,7 +322,7 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
   }
 };
 
-export function getMatchUpFormat({
+export function getMatchUpFormatModal({
   existingMatchUpFormat = 'SET3-S:6/TB7',
   callback,
   config
