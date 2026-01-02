@@ -324,8 +324,9 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
 
 export function getMatchUpFormat({
   existingMatchUpFormat = 'SET3-S:6/TB7',
-  callback
-}: { existingMatchUpFormat?: string; callback?: (format: string) => void } = {}) {
+  callback,
+  config
+}: { existingMatchUpFormat?: string; callback?: (format: string) => void; config?: any } = {}) {
   selectedMatchUpFormat = existingMatchUpFormat;
   parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
   const onSelect = () => {
@@ -581,9 +582,9 @@ export function getMatchUpFormat({
       maxWidth: 480,
       style: {
         backgroundColor: '#f8f9fa',
-        border: '3px solid #0066cc',
         borderRadius: '8px',
-        boxShadow: '0 8px 16px rgba(0, 102, 204, 0.2)'
+        boxShadow: '0 8px 16px rgba(0, 102, 204, 0.2)',
+        ...(config?.style || {})
       }
     }
   });
