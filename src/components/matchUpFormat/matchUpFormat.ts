@@ -325,8 +325,14 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
 export function getMatchUpFormatModal({
   existingMatchUpFormat = 'SET3-S:6/TB7',
   callback,
-  config
-}: { existingMatchUpFormat?: string; callback?: (format: string) => void; config?: any } = {}) {
+  config,
+  modalConfig
+}: { 
+  existingMatchUpFormat?: string; 
+  callback?: (format: string) => void; 
+  config?: any;
+  modalConfig?: any;
+} = {}) {
   selectedMatchUpFormat = existingMatchUpFormat;
   parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
   const onSelect = () => {
@@ -573,21 +579,33 @@ export function getMatchUpFormatModal({
 
   content.appendChild(finalSetConfig);
 
+  // Merge modalConfig with defaults
+  const defaultModalConfig = {
+    content: { padding: '1.5' },
+    maxWidth: 480,
+    style: {
+      fontSize: '14px',
+      backgroundColor: '#f8f9fa',
+      borderRadius: '8px',
+      boxShadow: '0 8px 16px rgba(0, 102, 204, 0.2)',
+      ...(config?.style || {})
+    }
+  };
+
+  const finalModalConfig = {
+    ...defaultModalConfig,
+    ...modalConfig,
+    style: {
+      ...defaultModalConfig.style,
+      ...(modalConfig?.style || {})
+    }
+  };
+
   return cModal.open({
     title: 'Score format',
     content: content,
     buttons,
-    config: {
-      content: { padding: '1.5' }, // Use cModal's built-in content padding
-      maxWidth: 480,
-      style: {
-        fontSize: '14px', // Set base font size for the modal
-        backgroundColor: '#f8f9fa',
-        borderRadius: '8px',
-        boxShadow: '0 8px 16px rgba(0, 102, 204, 0.2)',
-        ...(config?.style || {})
-      }
-    }
+    config: finalModalConfig
   });
 }
 
