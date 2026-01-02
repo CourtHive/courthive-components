@@ -314,10 +314,22 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
     setMatchUpFormatString();
   },
   changeCount: (_e, index, opt) => {
-    const elementId = index ? `tiebreakAt-${index}` : 'tiebreakAt';
-    format[index ? 'finalSetFormat' : 'setFormat'].tiebreakAt = opt;
-    const elem = document.getElementById(elementId);
-    elem.innerHTML = `@${opt}${clickable}`;
+    // When setTo changes, also update tiebreakAt to match (either setTo or setTo-1)
+    const which = index ? 'finalSetFormat' : 'setFormat';
+    format[which].setTo = opt;
+    
+    // Auto-update tiebreakAt to be setTo (unless it's already valid)
+    const currentTiebreakAt = format[which].tiebreakAt;
+    const validOptions = opt > 1 ? [opt - 1, opt] : [];
+    if (!validOptions.includes(currentTiebreakAt)) {
+      format[which].tiebreakAt = opt;
+      // Update the tiebreakAt button display
+      const tiebreakAtElem = document.getElementById(index ? `tiebreakAt-${index}` : 'tiebreakAt');
+      if (tiebreakAtElem) {
+        tiebreakAtElem.innerHTML = `@${opt}${clickable}`;
+      }
+    }
+    
     // Update format string and dropdown
     setMatchUpFormatString();
   },
