@@ -509,6 +509,7 @@ export function getMatchUpFormatModal({
   finalSetOption.name = 'finalSetOption';
   finalSetOption.checked = !!parsedMatchUpFormat.finalSetFormat;
   finalSetOption.id = 'finalSetOption';
+  finalSetOption.style.display = showFinalSetOption ? '' : 'none';
   finalSetOption.onchange = (e) => {
     const active = (e.target as HTMLInputElement).checked;
     finalSetFormat.style.display = active ? '' : NONE;
@@ -516,14 +517,13 @@ export function getMatchUpFormatModal({
     setMatchUpFormatString();
   };
   
-  if (showFinalSetOption) {
-    setConfig.appendChild(finalSetOption);
+  setConfig.appendChild(finalSetOption);
 
-    const finalSetLabel = document.createElement('label');
-    finalSetLabel.setAttribute('for', 'finalSetOption');
-    finalSetLabel.innerHTML = 'Final set';
-    setConfig.appendChild(finalSetLabel);
-  }
+  const finalSetLabel = document.createElement('label');
+  finalSetLabel.setAttribute('for', 'finalSetOption');
+  finalSetLabel.innerHTML = 'Final set';
+  finalSetLabel.style.display = showFinalSetOption ? '' : 'none';
+  setConfig.appendChild(finalSetLabel);
 
   content.appendChild(setConfig);
 
