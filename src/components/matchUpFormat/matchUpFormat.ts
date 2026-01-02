@@ -246,6 +246,7 @@ const setComponents: SetComponent[] = [
       const setTo = format[index ? 'finalSetFormat' : 'setFormat'].setTo;
       return setTo > 1 ? [setTo - 1, setTo] : [];
     },
+    onChange: 'changeTiebreakAt',
     id: 'tiebreakAt',
     defaultValue: 6,
     whats: [SETS],
@@ -319,6 +320,11 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
     // Update format string and dropdown
     setMatchUpFormatString();
   },
+  changeTiebreakAt: (_e, index, opt) => {
+    format[index ? 'finalSetFormat' : 'setFormat'].tiebreakAt = opt;
+    // Update format string and dropdown
+    setMatchUpFormatString();
+  },
   pluralize: (_e, index, opt) => {
     const what = format[index ? 'finalSetFormat' : 'setFormat'].what;
     const elementId = index ? `what-${index}` : 'what';
@@ -368,7 +374,11 @@ export function getMatchUpFormatModal({
   selectedMatchUpFormat = existingMatchUpFormat;
   parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
   const onSelect = () => {
-    const specifiedFormat = generateMatchUpFormat();
+    // Use selectedMatchUpFormat if it's a predefined format (from dropdown selection)
+    // Otherwise generate from current button states
+    const dropdown = document.getElementById('matchUpFormatSelector') as HTMLSelectElement;
+    const isPredefined = dropdown?.value && dropdown.value !== 'Custom';
+    const specifiedFormat = isPredefined ? selectedMatchUpFormat : generateMatchUpFormat();
     if (isFunction(callback)) callback(specifiedFormat);
   };
 
