@@ -319,6 +319,40 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
     elem.innerHTML = `${what}${plural}${clickable}`;
     // Update format string and dropdown
     setMatchUpFormatString();
+  },
+  updateFinalSetVisibility: (_e, _index, opt) => {
+    console.log('updateFinalSetVisibility called with opt:', opt);
+    // When bestOf changes, show/hide final set toggle
+    const showFinalSet = opt > 1;
+    const finalSetOption = document.getElementById('finalSetOption') as HTMLInputElement;
+    const finalSetLabel = document.querySelector('label[for="finalSetOption"]') as HTMLElement;
+    
+    console.log('finalSetOption:', finalSetOption);
+    console.log('finalSetLabel:', finalSetLabel);
+    console.log('showFinalSet:', showFinalSet);
+    
+    if (finalSetOption && finalSetLabel) {
+      if (!showFinalSet) {
+        // If bestOf becomes 1, uncheck the toggle (this will hide config panels via onchange)
+        if (finalSetOption.checked) {
+          console.log('Unchecking finalSetOption');
+          finalSetOption.checked = false;
+          // Trigger the onchange event to hide the panels
+          finalSetOption.dispatchEvent(new Event('change'));
+        }
+        // Hide the toggle and label
+        console.log('Hiding toggle and label');
+        finalSetOption.style.display = 'none';
+        finalSetLabel.style.display = 'none';
+      } else {
+        // Show the toggle and label
+        console.log('Showing toggle and label');
+        finalSetOption.style.display = '';
+        finalSetLabel.style.display = '';
+      }
+    } else {
+      console.log('ERROR: Could not find finalSetOption or finalSetLabel');
+    }
   }
 };
 
