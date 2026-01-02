@@ -375,11 +375,12 @@ export function getMatchUpFormatModal({
   config?: any;
   modalConfig?: any;
 } = {}) {
-  console.log('[getMatchUpFormatModal] VERSION 0.8.3 - Function called with format:', existingMatchUpFormat);
+  console.log('[getMatchUpFormatModal] DEBUG MARKER 12345 - Function called with format:', existingMatchUpFormat);
   console.log('[getMatchUpFormatModal] modalConfig:', modalConfig);
   selectedMatchUpFormat = existingMatchUpFormat;
   parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
   console.log('[getMatchUpFormatModal] parsedMatchUpFormat.bestOf:', parsedMatchUpFormat.bestOf);
+  console.log('[getMatchUpFormatModal] setComponents[1] (bestOf config):', setComponents[1]);
   const onSelect = () => {
     const specifiedFormat = generateMatchUpFormat();
     if (isFunction(callback)) callback(specifiedFormat);
