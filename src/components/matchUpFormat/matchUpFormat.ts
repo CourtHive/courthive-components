@@ -177,7 +177,15 @@ const setComponents: SetComponent[] = [
     value: 'Best of',
     finalSet: false
   },
-  { getValue: (pmf) => pmf.bestOf, finalSet: false, id: 'bestOf', options: [1, 3, 5], onChange: 'pluralize', onChangeCallback: 'updateFinalSetVisibility', value: 3 },
+  { 
+    getValue: (pmf) => pmf.bestOf, 
+    finalSet: false, 
+    id: 'bestOf', 
+    options: [1, 3, 5], 
+    onChange: 'pluralize', 
+    onChangeCallback: 'updateFinalSetVisibility', 
+    value: 3 
+  },
   {
     getValue: (pmf, isFinal) => {
       const setFormat = whichSetFormat(pmf, isFinal);
@@ -367,8 +375,11 @@ export function getMatchUpFormatModal({
   config?: any;
   modalConfig?: any;
 } = {}) {
+  console.log('[getMatchUpFormatModal] VERSION 0.8.2 - Function called with format:', existingMatchUpFormat);
+  console.log('[getMatchUpFormatModal] modalConfig:', modalConfig);
   selectedMatchUpFormat = existingMatchUpFormat;
   parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
+  console.log('[getMatchUpFormatModal] parsedMatchUpFormat.bestOf:', parsedMatchUpFormat.bestOf);
   const onSelect = () => {
     const specifiedFormat = generateMatchUpFormat();
     if (isFunction(callback)) callback(specifiedFormat);
