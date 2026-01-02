@@ -500,6 +500,9 @@ export function getMatchUpFormatModal({
   tiebreakLabel.style.marginRight = '1em';
   setConfig.appendChild(tiebreakLabel);
 
+  // Only show final set option if bestOf > 1 (can't have a final set with only 1 set)
+  const showFinalSetOption = parsedMatchUpFormat.bestOf > 1;
+  
   const finalSetOption = document.createElement('input');
   finalSetOption.className = 'switch is-rounded is-info';
   finalSetOption.type = 'checkbox';
@@ -512,12 +515,15 @@ export function getMatchUpFormatModal({
     finalSetConfig.style.display = active ? '' : NONE;
     setMatchUpFormatString();
   };
-  setConfig.appendChild(finalSetOption);
+  
+  if (showFinalSetOption) {
+    setConfig.appendChild(finalSetOption);
 
-  const finalSetLabel = document.createElement('label');
-  finalSetLabel.setAttribute('for', 'finalSetOption');
-  finalSetLabel.innerHTML = 'Final set';
-  setConfig.appendChild(finalSetLabel);
+    const finalSetLabel = document.createElement('label');
+    finalSetLabel.setAttribute('for', 'finalSetOption');
+    finalSetLabel.innerHTML = 'Final set';
+    setConfig.appendChild(finalSetLabel);
+  }
 
   content.appendChild(setConfig);
 
