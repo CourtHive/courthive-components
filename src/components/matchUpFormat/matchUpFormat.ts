@@ -177,7 +177,7 @@ const setComponents: SetComponent[] = [
     value: 'Best of',
     finalSet: false
   },
-  { getValue: (pmf) => pmf.bestOf, finalSet: false, id: 'bestOf', options: [1, 3, 5], onChange: 'pluralize', value: 3 },
+  { getValue: (pmf) => pmf.bestOf, finalSet: false, id: 'bestOf', options: [1, 3, 5], onChange: 'pluralize', onChangeCallback: 'updateFinalSetVisibility', value: 3 },
   {
     getValue: (pmf, isFinal) => {
       const setFormat = whichSetFormat(pmf, isFinal);
@@ -546,6 +546,7 @@ export function getMatchUpFormatModal({
   content.appendChild(finalSetFormat);
 
   const finalSetConfig = document.createElement('div');
+  finalSetConfig.id = 'finalSetConfig'; // Add id for dynamic visibility control
   finalSetConfig.style.display = parsedMatchUpFormat.finalSetFormat ? '' : NONE;
   finalSetConfig.className = 'field';
   finalSetConfig.style.fontSize = '1em';
@@ -649,7 +650,7 @@ function createButton(params: any): HTMLButtonElement {
 }
 
 function getButtonClick(params: any): void {
-  const { e, id, button, pluralize, options, onChange, index, prefix = '', suffix = '' } = params;
+  const { e, id, button, pluralize, options, onChange, onChangeCallback, index, prefix = '', suffix = '' } = params;
   const bestOf = format.setFormat.bestOf || 1;
   const plural = !index && pluralize && bestOf > 1 ? 's' : '';
 
@@ -660,6 +661,10 @@ function getButtonClick(params: any): void {
       button.innerHTML = `${prefix}${opt}${plural}${suffix}${clickable}`;
       if (onChange && isFunction(onClicks[onChange])) {
         onClicks[onChange](e, index, opt);
+      }
+      // Call additional callback if specified
+      if (onChangeCallback && isFunction(onClicks[onChangeCallback])) {
+        onClicks[onChangeCallback](e, index, opt);
       }
       format[index ? 'finalSetFormat' : 'setFormat'][id] = opt;
       // Update the format string display immediately
