@@ -583,8 +583,8 @@ export function getMatchUpFormatModal({
   const defaultModalConfig = {
     content: { padding: '1.5' },
     maxWidth: 480,
+    fontSize: '14px', // cModal expects fontSize at top level, not in style
     style: {
-      fontSize: '14px',
       backgroundColor: '#f8f9fa',
       borderRadius: '8px',
       boxShadow: '0 8px 16px rgba(0, 102, 204, 0.2)',
@@ -592,9 +592,13 @@ export function getMatchUpFormatModal({
     }
   };
 
+  // Extract fontSize from style if provided there, and move to top level
+  const fontSize = modalConfig?.fontSize || modalConfig?.style?.fontSize || defaultModalConfig.fontSize;
+  
   const finalModalConfig = {
     ...defaultModalConfig,
     ...modalConfig,
+    fontSize, // Ensure fontSize is at top level for cModal
     style: {
       ...defaultModalConfig.style,
       ...(modalConfig?.style || {})
