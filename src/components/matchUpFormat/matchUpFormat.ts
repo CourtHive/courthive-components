@@ -321,15 +321,21 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
     setMatchUpFormatString();
   },
   updateFinalSetVisibility: (_e, _index, opt) => {
+    console.log('[updateFinalSetVisibility] Called with opt:', opt);
     // When bestOf changes, show/hide final set toggle
     const showFinalSet = opt > 1;
     const finalSetOption = document.getElementById('finalSetOption') as HTMLInputElement;
     const finalSetLabel = document.querySelector('label[for="finalSetOption"]') as HTMLElement;
     
+    console.log('[updateFinalSetVisibility] finalSetOption found:', !!finalSetOption, 'checked:', finalSetOption?.checked);
+    console.log('[updateFinalSetVisibility] finalSetLabel found:', !!finalSetLabel);
+    console.log('[updateFinalSetVisibility] showFinalSet:', showFinalSet);
+    
     if (finalSetOption && finalSetLabel) {
       if (!showFinalSet) {
         // If bestOf becomes 1, uncheck the toggle (this will hide config panels via onchange)
         if (finalSetOption.checked) {
+          console.log('[updateFinalSetVisibility] Unchecking and hiding...');
           finalSetOption.checked = false;
           // Trigger the onchange event to hide the panels
           finalSetOption.dispatchEvent(new Event('change'));
@@ -337,11 +343,15 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
         // Hide the toggle and label
         finalSetOption.style.display = 'none';
         finalSetLabel.style.display = 'none';
+        console.log('[updateFinalSetVisibility] Hidden toggle and label');
       } else {
         // Show the toggle and label
+        console.log('[updateFinalSetVisibility] Showing toggle and label');
         finalSetOption.style.display = '';
         finalSetLabel.style.display = '';
       }
+    } else {
+      console.error('[updateFinalSetVisibility] Elements not found!');
     }
   }
 };
@@ -678,17 +688,24 @@ function getButtonClick(params: any): void {
   const bestOf = format.setFormat.bestOf || 1;
   const plural = !index && pluralize && bestOf > 1 ? 's' : '';
 
+  console.log('[getButtonClick] id:', id, 'onChangeCallback:', onChangeCallback);
+
   const itemConfig = isFunction(options) ? options(index) : options;
   const items = itemConfig.map((opt: any) => ({
     text: `${opt}${plural}`,
     onClick: () => {
+      console.log('[getButtonClick.onClick] id:', id, 'opt:', opt, 'onChangeCallback:', onChangeCallback);
       button.innerHTML = `${prefix}${opt}${plural}${suffix}${clickable}`;
       if (onChange && isFunction(onClicks[onChange])) {
+        console.log('[getButtonClick] Calling onChange:', onChange);
         onClicks[onChange](e, index, opt);
       }
       // Call additional callback if specified
       if (onChangeCallback && isFunction(onClicks[onChangeCallback])) {
+        console.log('[getButtonClick] Calling onChangeCallback:', onChangeCallback);
         onClicks[onChangeCallback](e, index, opt);
+      } else {
+        console.log('[getButtonClick] No onChangeCallback or not a function. onChangeCallback:', onChangeCallback, 'exists in onClicks:', onChangeCallback in onClicks);
       }
       format[index ? 'finalSetFormat' : 'setFormat'][id] = opt;
       // Update the format string display immediately
