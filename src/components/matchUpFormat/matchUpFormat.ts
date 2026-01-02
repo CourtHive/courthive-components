@@ -581,6 +581,7 @@ export function getMatchUpFormatModal({
       content: { padding: '1.5' }, // Use cModal's built-in content padding
       maxWidth: 480,
       style: {
+        fontSize: '14px', // Set base font size for the modal
         backgroundColor: '#f8f9fa',
         borderRadius: '8px',
         boxShadow: '0 8px 16px rgba(0, 102, 204, 0.2)',
