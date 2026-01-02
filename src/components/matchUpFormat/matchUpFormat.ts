@@ -588,7 +588,6 @@ export function getMatchUpFormatModal({
       backgroundColor: '#f8f9fa',
       borderRadius: '8px',
       boxShadow: '0 8px 16px rgba(0, 102, 204, 0.2)',
-      ...(config?.style || {})
     }
   };
 
@@ -601,7 +600,8 @@ export function getMatchUpFormatModal({
     fontSize, // Ensure fontSize is at top level for cModal
     style: {
       ...defaultModalConfig.style,
-      ...(modalConfig?.style || {})
+      ...(config?.style || {}), // Include old config.style for backward compatibility
+      ...(modalConfig?.style || {}) // modalConfig.style takes precedence
     }
   };
 
