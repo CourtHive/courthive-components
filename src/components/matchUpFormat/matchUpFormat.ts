@@ -160,6 +160,7 @@ interface SetComponent {
   defaultValue?: any;
   whats?: string[];
   onChange?: string;
+  onChangeCallback?: string;
   pluralize?: boolean;
   prefix?: string;
   suffix?: string;
@@ -177,14 +178,14 @@ const setComponents: SetComponent[] = [
     value: 'Best of',
     finalSet: false
   },
-  { 
-    getValue: (pmf) => pmf.bestOf, 
-    finalSet: false, 
-    id: 'bestOf', 
-    options: [1, 3, 5], 
-    onChange: 'pluralize', 
-    onChangeCallback: 'updateFinalSetVisibility', 
-    value: 3 
+  {
+    getValue: (pmf) => pmf.bestOf,
+    finalSet: false,
+    id: 'bestOf',
+    options: [1, 3, 5],
+    onChange: 'pluralize',
+    onChangeCallback: 'updateFinalSetVisibility',
+    value: 3
   },
   {
     getValue: (pmf, isFinal) => {
@@ -321,7 +322,7 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
     // When setTo changes, also update tiebreakAt to match (either setTo or setTo-1)
     const which = index ? 'finalSetFormat' : 'setFormat';
     format[which].setTo = opt;
-    
+
     // Auto-update tiebreakAt to be setTo (unless it's already valid)
     const currentTiebreakAt = format[which].tiebreakAt;
     const validOptions = opt > 1 ? [opt - 1, opt] : [];
@@ -333,7 +334,7 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
         tiebreakAtElem.innerHTML = `@${opt}${clickable}`;
       }
     }
-    
+
     // Update format string and dropdown
     setMatchUpFormatString();
   },
@@ -376,9 +377,13 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
     const showFinalSet = opt > 1;
     const finalSetOption = document.getElementById('finalSetOption') as HTMLInputElement;
     const finalSetLabel = document.querySelector('label[for="finalSetOption"]') as HTMLElement;
-    
+
     if (finalSetOption && finalSetLabel) {
-      if (!showFinalSet) {
+      if (showFinalSet) {
+        // Show the toggle and label
+        finalSetOption.style.display = '';
+        finalSetLabel.style.display = '';
+      } else {
         // If bestOf becomes 1, uncheck the toggle (this will hide config panels via onchange)
         if (finalSetOption.checked) {
           finalSetOption.checked = false;
@@ -388,10 +393,6 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
         // Hide the toggle and label
         finalSetOption.style.display = 'none';
         finalSetLabel.style.display = 'none';
-      } else {
-        // Show the toggle and label
-        finalSetOption.style.display = '';
-        finalSetLabel.style.display = '';
       }
     }
   }
@@ -402,9 +403,9 @@ export function getMatchUpFormatModal({
   callback,
   config,
   modalConfig
-}: { 
-  existingMatchUpFormat?: string; 
-  callback?: (format: string) => void; 
+}: {
+  existingMatchUpFormat?: string;
+  callback?: (format: string) => void;
   config?: any;
   modalConfig?: any;
 } = {}) {
@@ -487,7 +488,7 @@ export function getMatchUpFormatModal({
     finalSetFormat.style.display = finalSet ? '' : NONE;
     finalSetConfig.style.display = finalSet ? '' : NONE;
     finalSetOption.checked = finalSet;
-    
+
     // Check if final set is tiebreak-only (e.g., F:TB10)
     const finalSetIsTiebreakOnly = finalSet?.tiebreakSet?.tiebreakTo && !finalSet?.setTo;
     finalSetTiebreak.checked = !!finalSet?.tiebreakFormat;
@@ -588,7 +589,7 @@ export function getMatchUpFormatModal({
 
   // Only show final set option if bestOf > 1 (can't have a final set with only 1 set)
   const showFinalSetOption = parsedMatchUpFormat.bestOf > 1;
-  
+
   const finalSetOption = document.createElement('input');
   finalSetOption.className = 'switch is-rounded is-info';
   finalSetOption.type = 'checkbox';
@@ -602,7 +603,7 @@ export function getMatchUpFormatModal({
     finalSetConfig.style.display = active ? '' : NONE;
     setMatchUpFormatString();
   };
-  
+
   setConfig.appendChild(finalSetOption);
 
   const finalSetLabel = document.createElement('label');
@@ -639,8 +640,8 @@ export function getMatchUpFormatModal({
 
   // Check if final set is tiebreak-only format (e.g., F:TB10)
   // Tiebreak-only formats have tiebreakSet.tiebreakTo but no setTo
-  const finalSetIsTiebreakOnly = parsedMatchUpFormat.finalSetFormat?.tiebreakSet?.tiebreakTo && 
-                                  !parsedMatchUpFormat.finalSetFormat?.setTo;
+  const finalSetIsTiebreakOnly =
+    parsedMatchUpFormat.finalSetFormat?.tiebreakSet?.tiebreakTo && !parsedMatchUpFormat.finalSetFormat?.setTo;
 
   const finalSetTiebreak = document.createElement('input');
   finalSetTiebreak.className = tiebreakSwitch;
@@ -689,13 +690,13 @@ export function getMatchUpFormatModal({
     style: {
       backgroundColor: '#f8f9fa',
       borderRadius: '8px',
-      boxShadow: '0 8px 16px rgba(0, 102, 204, 0.2)',
+      boxShadow: '0 8px 16px rgba(0, 102, 204, 0.2)'
     }
   };
 
   // Extract fontSize from style if provided there, and move to top level
   const fontSize = modalConfig?.fontSize || modalConfig?.style?.fontSize || defaultModalConfig.fontSize;
-  
+
   const finalModalConfig = {
     ...defaultModalConfig,
     ...modalConfig,
