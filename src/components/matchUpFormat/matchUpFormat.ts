@@ -487,7 +487,14 @@ export function getMatchUpFormatModal({
     finalSetFormat.style.display = finalSet ? '' : NONE;
     finalSetConfig.style.display = finalSet ? '' : NONE;
     finalSetOption.checked = finalSet;
+    
+    // Check if final set is tiebreak-only (e.g., F:TB10)
+    const finalSetIsTiebreakOnly = finalSet?.tiebreakSet?.tiebreakTo && !finalSet?.setTo;
     finalSetTiebreak.checked = !!finalSet?.tiebreakFormat;
+    // Hide tiebreak checkbox/label if final set is tiebreak-only
+    finalSetTiebreak.style.display = finalSetIsTiebreakOnly ? NONE : '';
+    const finalSetTiebreakLabelElem = document.getElementById('finalSetTiebreakToggle');
+    if (finalSetTiebreakLabelElem) finalSetTiebreakLabelElem.style.display = finalSetIsTiebreakOnly ? NONE : '';
 
     setTiebreak.checked = parsedMatchUpFormat.setFormat.tiebreakFormat;
 
@@ -630,12 +637,19 @@ export function getMatchUpFormatModal({
   finalSetConfig.className = 'field';
   finalSetConfig.style.fontSize = '1em';
 
+  // Check if final set is tiebreak-only format (e.g., F:TB10)
+  // Tiebreak-only formats have tiebreakSet.tiebreakTo but no setTo
+  const finalSetIsTiebreakOnly = parsedMatchUpFormat.finalSetFormat?.tiebreakSet?.tiebreakTo && 
+                                  !parsedMatchUpFormat.finalSetFormat?.setTo;
+
   const finalSetTiebreak = document.createElement('input');
   finalSetTiebreak.className = tiebreakSwitch;
   finalSetTiebreak.name = 'finalSetTiebreak';
   finalSetTiebreak.id = 'finalSetTiebreak';
   finalSetTiebreak.type = 'checkbox';
   finalSetTiebreak.checked = parsedMatchUpFormat.finalSetFormat?.tiebreakFormat;
+  // Hide tiebreak checkbox if final set is already tiebreak-only
+  finalSetTiebreak.style.display = finalSetIsTiebreakOnly ? NONE : '';
   finalSetConfig.onchange = (e) => {
     const active = (e.target as HTMLInputElement).checked;
     setComponents
@@ -661,6 +675,8 @@ export function getMatchUpFormatModal({
   finalSetTiebreakLabel.id = 'finalSetTiebreakToggle';
   finalSetTiebreakLabel.innerHTML = 'Tiebreak';
   finalSetTiebreakLabel.style.marginRight = '1em';
+  // Hide tiebreak label if final set is already tiebreak-only
+  finalSetTiebreakLabel.style.display = finalSetIsTiebreakOnly ? NONE : '';
   finalSetConfig.appendChild(finalSetTiebreakLabel);
 
   content.appendChild(finalSetConfig);
