@@ -5,7 +5,11 @@ import { renderStatusPill } from './renderStatusPill';
 import { isElement } from '../utilities/isElement';
 import { renderTeamLogo } from './renderTeamLogo';
 import { renderTick } from './renderTick';
+
 import type { Composition, EventHandlers, MatchUp, Participant } from '../types';
+import { matchUpStatusConstants } from 'tods-competition-factory';
+
+const { WALKOVER, DEFAULTED, DOUBLE_WALKOVER, RETIRED } = matchUpStatusConstants;
 
 export function renderParticipant({
   initialRoundNumber = 1,
@@ -50,8 +54,7 @@ export function renderParticipant({
   const winnerChevron = configuration?.winnerChevron && isWinningSide;
 
   const teamLogo = configuration?.teamLogo;
-  const irregularEnding =
-    ['RETIRED', 'DOUBLE_WALKOVER', 'WALKOVER', 'DEFAULTED'].includes(matchUpStatus) && !isWinningSide;
+  const irregularEnding = [RETIRED, DOUBLE_WALKOVER, WALKOVER, DEFAULTED].includes(matchUpStatus) && !isWinningSide;
   const gameScoreOnly = configuration?.gameScoreOnly;
 
   const participantContainer = document.createElement('div');
@@ -71,9 +74,7 @@ export function renderParticipant({
   }
 
   const participantType = document.createElement('div');
-  participantType.className = participantTypeStyle(
-    isDoubles ? { variant: 'doubles' } : {}
-  );
+  participantType.className = participantTypeStyle(isDoubles ? { variant: 'doubles' } : {});
 
   const annotationDiv = document.createElement('div');
   annotationDiv.className = getChevronStyle({
