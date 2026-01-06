@@ -36,6 +36,9 @@
   "scripts": {
     "commits": "git log $(git describe --tags --abbrev=0)..HEAD --oneline --no-merges --pretty=format:'%s: %h' | sed '/courthive-components/d'",
     "release": "npm run release:patch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
     "dev": "vite",
     "build": "vite build",
     "postbuild": "./addVersion $npm_package_version",

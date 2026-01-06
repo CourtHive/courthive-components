@@ -4,6 +4,13 @@
  */
 import { governors, matchUpFormatCode } from 'tods-competition-factory';
 import { cModal } from '../modal/cmodal';
+import {
+  initializeFormatFromString,
+  buildSetFormat,
+  getComponentVisibility,
+  autoAdjustTiebreakAt,
+  getTiebreakAtOptions,
+} from './matchUpFormatLogic';
 
 import matchUpFormats from './matchUpFormats.json';
 
@@ -65,40 +72,17 @@ const format: FormatConfig = {
   }
 };
 
+// REFACTORED: Thin wrapper around pure buildSetFormat function
+// Now just reads DOM state and delegates to pure logic
 function getSetFormat(index?: number): any {
   const which = index ? 'finalSetFormat' : 'setFormat';
-  const what = format[which].what;
-  const setFormat: any = {
-    setTo: format[which].setTo
-  };
-  if (what === SETS && format[which].advantage === NOAD) setFormat.NoAD = true;
-
-  const hasTiebreak =
-    what === SETS && (document.getElementById(index ? 'finalSetTiebreak' : 'setTiebreak') as HTMLInputElement)?.checked;
-  if (hasTiebreak) {
-    setFormat.tiebreakAt = format[which].tiebreakAt;
-    setFormat.tiebreakFormat = {
-      tiebreakTo: format[which].tiebreakTo
-    };
-    if (what === SETS && format[which].winBy === 1) {
-      setFormat.tiebreakFormat.NoAD = true;
-    }
-  }
-  if (what === TIMED_SETS) {
-    setFormat.minutes = format[which].minutes;
-    setFormat.timed = true;
-  }
-
-  if (what === TIEBREAKS) {
-    setFormat.tiebreakSet = {
-      tiebreakTo: format[which].tiebreakTo
-    };
-    if (format[which].winBy === 1) {
-      setFormat.tiebreakSet.NoAD = true;
-    }
-  }
-
-  return setFormat;
+  const config = format[which];
+  
+  // Check if tiebreak checkbox is checked (DOM read)
+  const hasTiebreak = (document.getElementById(index ? 'finalSetTiebreak' : 'setTiebreak') as HTMLInputElement)?.checked || false;
+  
+  // Delegate to pure logic function
+  return buildSetFormat(config, hasTiebreak);
 }
 
 function generateMatchUpFormat(): string {
@@ -248,9 +232,10 @@ const setComponents: SetComponent[] = [
       const setFormat = whichSetFormat(pmf, isFinal);
       return setFormat.tiebreakAt;
     },
+    // REFACTORED: Use pure logic function for tiebreakAt options
     options: (index?: number) => {
       const setTo = format[index ? 'finalSetFormat' : 'setFormat'].setTo;
-      return setTo > 1 ? [setTo - 1, setTo] : [];
+      return getTiebreakAtOptions(setTo);
     },
     onChange: 'changeTiebreakAt',
     id: 'tiebreakAt',
@@ -321,19 +306,20 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
     setMatchUpFormatString();
   },
   changeCount: (_e, index, opt) => {
-    // When setTo changes, also update tiebreakAt to match (either setTo or setTo-1)
+    // REFACTORED: Use pure logic for tiebreakAt auto-adjustment
     const which = index ? 'finalSetFormat' : 'setFormat';
     format[which].setTo = opt;
 
-    // Auto-update tiebreakAt to be setTo (unless it's already valid)
+    // Auto-adjust tiebreakAt using pure logic function
     const currentTiebreakAt = format[which].tiebreakAt;
-    const validOptions = opt > 1 ? [opt - 1, opt] : [];
-    if (!validOptions.includes(currentTiebreakAt)) {
-      format[which].tiebreakAt = opt;
+    const newTiebreakAt = autoAdjustTiebreakAt(opt, currentTiebreakAt);
+    
+    if (newTiebreakAt !== currentTiebreakAt) {
+      format[which].tiebreakAt = newTiebreakAt;
       // Update the tiebreakAt button display
       const tiebreakAtElem = document.getElementById(index ? `tiebreakAt-${index}` : 'tiebreakAt');
       if (tiebreakAtElem) {
-        tiebreakAtElem.innerHTML = `@${opt}${clickable}`;
+        tiebreakAtElem.innerHTML = `@${newTiebreakAt}${clickable}`;
       }
     }
 
@@ -411,46 +397,20 @@ export function getMatchUpFormatModal({
   config?: any;
   modalConfig?: any;
 } = {}) {
+  // REFACTORED: Use pure function for format initialization
+  // This prevents state pollution and ensures proper handling of all format types
   selectedMatchUpFormat = existingMatchUpFormat;
   parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
   
-  // Initialize format object from existing format to prevent state pollution
-  // Merge parsed format with defaults to ensure all properties exist
-  const setDefaults = {
-    descriptor: 'Best of',
-    bestOf: 3,
-    advantage: AD,
-    what: SETS,
-    setTo: 6,
-    tiebreakAt: 6,
-    tiebreakTo: 7,
-    winBy: 2,
-    minutes: 10
-  };
+  // Initialize format object using pure logic function
+  const initializedFormat = initializeFormatFromString(
+    selectedMatchUpFormat,
+    matchUpFormatCode.parse
+  );
   
-  const finalSetDefaults = {
-    descriptor: 'Final set',
-    advantage: AD,
-    what: SETS,
-    setTo: 6,
-    tiebreakAt: 6,
-    tiebreakTo: 7,
-    winBy: 2,
-    minutes: 10
-  };
-  
-  format.setFormat = { ...setDefaults, ...parsedMatchUpFormat.setFormat };
-  format.setFormat.bestOf = parsedMatchUpFormat.bestOf || 3;
-  
-  format.finalSetFormat = { ...finalSetDefaults, ...parsedMatchUpFormat.finalSetFormat };
-  
-  // Detect if final set is tiebreak-only (e.g., F:TB10)
-  // This must be done AFTER format initialization
-  if (parsedMatchUpFormat.finalSetFormat?.tiebreakSet?.tiebreakTo && !parsedMatchUpFormat.finalSetFormat?.setTo) {
-    format.finalSetFormat.what = TIEBREAKS;
-    format.finalSetFormat.tiebreakTo = parsedMatchUpFormat.finalSetFormat.tiebreakSet.tiebreakTo;
-    format.finalSetFormat.winBy = parsedMatchUpFormat.finalSetFormat.tiebreakSet.NoAD ? 1 : 2;
-  }
+  // Update module-level format object
+  format.setFormat = initializedFormat.setFormat;
+  format.finalSetFormat = initializedFormat.finalSetFormat;
   const onSelect = () => {
     // Use selectedMatchUpFormat if it's a predefined format (from dropdown selection)
     // Otherwise generate from current button states
@@ -709,7 +669,10 @@ export function getMatchUpFormatModal({
   finalSetTiebreak.name = 'finalSetTiebreak';
   finalSetTiebreak.id = 'finalSetTiebreak';
   finalSetTiebreak.type = 'checkbox';
-  finalSetTiebreak.checked = parsedMatchUpFormat.finalSetFormat?.tiebreakFormat;
+  // Initialize final set tiebreak: if final set exists, use its tiebreakFormat
+  // Otherwise default to match the main set's tiebreak setting
+  finalSetTiebreak.checked = parsedMatchUpFormat.finalSetFormat?.tiebreakFormat 
+    ?? !!parsedMatchUpFormat.setFormat.tiebreakFormat;
   // Hide tiebreak checkbox if final set is already tiebreak-only
   finalSetTiebreak.style.display = finalSetIsTiebreakOnly ? NONE : '';
   finalSetConfig.onchange = (e) => {
