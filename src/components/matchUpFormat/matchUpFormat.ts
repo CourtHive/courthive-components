@@ -669,10 +669,12 @@ export function getMatchUpFormatModal({
   finalSetTiebreak.name = 'finalSetTiebreak';
   finalSetTiebreak.id = 'finalSetTiebreak';
   finalSetTiebreak.type = 'checkbox';
-  // Initialize final set tiebreak: if final set exists, use its tiebreakFormat
-  // Otherwise default to match the main set's tiebreak setting
-  finalSetTiebreak.checked = parsedMatchUpFormat.finalSetFormat?.tiebreakFormat 
-    ?? !!parsedMatchUpFormat.setFormat.tiebreakFormat;
+  // Initialize final set tiebreak:
+  // - If final set doesn't exist, default to match main set's tiebreak
+  // - If final set exists, preserve its explicit tiebreakFormat setting (which could be false)
+  finalSetTiebreak.checked = parsedMatchUpFormat.finalSetFormat
+    ? !!parsedMatchUpFormat.finalSetFormat.tiebreakFormat
+    : !!parsedMatchUpFormat.setFormat.tiebreakFormat;
   // Hide tiebreak checkbox if final set is already tiebreak-only
   finalSetTiebreak.style.display = finalSetIsTiebreakOnly ? NONE : '';
   finalSetConfig.onchange = (e) => {

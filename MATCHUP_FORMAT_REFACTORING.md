@@ -134,11 +134,38 @@ For now, tests are written and ready to run when test infrastructure is availabl
 
 **Average reduction in refactored sections: 67%**
 
+## Storybook Interaction Tests
+
+Created `MatchUpFormatInteraction.stories.ts` with 3 interaction tests:
+
+1. **FinalSetTiebreakInitialization** - Tests the bug fix where toggling final set ON should default tiebreak to match main set
+2. **FinalSetNoTiebreakWhenMainHasNone** - Tests that final set defaults to no tiebreak when main set has none
+3. **PreserveExistingFinalSetTiebreak** - Tests that explicit final set settings are preserved when reopening
+
+### To Run Interaction Tests
+
+1. Install `@storybook/test` (if not already installed):
+   ```bash
+   npm install --save-dev @storybook/test
+   ```
+
+2. Start Storybook:
+   ```bash
+   npm run storybook
+   ```
+
+3. Navigate to "Components/MatchUpFormat/Interactions" and watch the tests run in the Interactions panel
+
+4. Or run via test runner:
+   ```bash
+   npm run test-storybook
+   ```
+
 ## Notes
 
 This follows the same successful pattern used for `dynamicSetsApproach.ts`:
 - Extract pure functions first
-- Comprehensive tests
+- Comprehensive tests (36 unit tests + 3 interaction tests)
 - Incremental integration
 - Zero breaking changes
 - Clear documentation
