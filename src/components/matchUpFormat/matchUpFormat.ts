@@ -140,6 +140,8 @@ function generateMatchUpFormat(): string {
 
 function setMatchUpFormatString(value?: string): void {
   const matchUpFormat = value || generateMatchUpFormat();
+  // Update selectedMatchUpFormat so onSelect uses the current format
+  selectedMatchUpFormat = matchUpFormat;
   const matchUpFormatString = document.getElementById('matchUpFormatString');
   if (matchUpFormatString) {
     matchUpFormatString.innerHTML = matchUpFormat;
@@ -411,6 +413,44 @@ export function getMatchUpFormatModal({
 } = {}) {
   selectedMatchUpFormat = existingMatchUpFormat;
   parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
+  
+  // Initialize format object from existing format to prevent state pollution
+  // Merge parsed format with defaults to ensure all properties exist
+  const setDefaults = {
+    descriptor: 'Best of',
+    bestOf: 3,
+    advantage: AD,
+    what: SETS,
+    setTo: 6,
+    tiebreakAt: 6,
+    tiebreakTo: 7,
+    winBy: 2,
+    minutes: 10
+  };
+  
+  const finalSetDefaults = {
+    descriptor: 'Final set',
+    advantage: AD,
+    what: SETS,
+    setTo: 6,
+    tiebreakAt: 6,
+    tiebreakTo: 7,
+    winBy: 2,
+    minutes: 10
+  };
+  
+  format.setFormat = { ...setDefaults, ...parsedMatchUpFormat.setFormat };
+  format.setFormat.bestOf = parsedMatchUpFormat.bestOf || 3;
+  
+  format.finalSetFormat = { ...finalSetDefaults, ...parsedMatchUpFormat.finalSetFormat };
+  
+  // Detect if final set is tiebreak-only (e.g., F:TB10)
+  // This must be done AFTER format initialization
+  if (parsedMatchUpFormat.finalSetFormat?.tiebreakSet?.tiebreakTo && !parsedMatchUpFormat.finalSetFormat?.setTo) {
+    format.finalSetFormat.what = TIEBREAKS;
+    format.finalSetFormat.tiebreakTo = parsedMatchUpFormat.finalSetFormat.tiebreakSet.tiebreakTo;
+    format.finalSetFormat.winBy = parsedMatchUpFormat.finalSetFormat.tiebreakSet.NoAD ? 1 : 2;
+  }
   const onSelect = () => {
     // Use selectedMatchUpFormat if it's a predefined format (from dropdown selection)
     // Otherwise generate from current button states
@@ -422,16 +462,37 @@ export function getMatchUpFormatModal({
 
   const buttons = [
     {
-      onClick: () => callback?.(''),
+      onClick: () => {
+        closeCurrentDropdown(); // Clean up any open dropdowns
+        callback?.('');
+      },
       label: 'Cancel',
       intent: 'none',
       close: true
     },
-    { label: 'Select', intent: 'is-info', close: true, onClick: onSelect }
+    { 
+      label: 'Select', 
+      intent: 'is-info', 
+      close: true, 
+      onClick: () => {
+        closeCurrentDropdown(); // Clean up any open dropdowns
+        onSelect();
+      }
+    }
   ];
 
   const tiebreakSwitch = 'switch is-rounded is-danger';
   const content = document.createElement('div');
+  
+  // Close any open dropdown when clicking inside the modal content
+  // (except on dropdown elements or buttons that open dropdowns)
+  content.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    // Don't close if clicking on a dropdown or a button that will open one
+    if (!target.closest('.dropdown') && !target.classList.contains('mfcButton')) {
+      closeCurrentDropdown();
+    }
+  });
 
   const matchUpFormatString = document.createElement('div');
   matchUpFormatString.id = 'matchUpFormatString';
@@ -708,12 +769,45 @@ export function getMatchUpFormatModal({
     }
   };
 
-  return cModal.open({
+  const modalResult = cModal.open({
     title: 'Score format',
     content: content,
     buttons,
     config: finalModalConfig
   });
+  
+  // Update final set UI after modal DOM is ready
+  // This handles tiebreak-only final sets like F:TB7
+  setTimeout(() => {
+    if (parsedMatchUpFormat.finalSetFormat?.tiebreakSet?.tiebreakTo && !parsedMatchUpFormat.finalSetFormat?.setTo) {
+      // Trigger the changeWhat callback for final set to update UI
+      const whatElem = document.getElementById('what-1');
+      if (whatElem) {
+        whatElem.innerHTML = `${TIEBREAKS}${clickable}`;
+      }
+      
+      // Update component visibility for tiebreak-only final set
+      onClicks.changeWhat(new Event('click'), 1, TIEBREAKS);
+    }
+    
+    // Watch for modal removal and clean up dropdowns
+    const modalElement = document.querySelector('.modal.is-active');
+    if (modalElement) {
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.removedNodes.forEach((node) => {
+            if (node === modalElement) {
+              closeCurrentDropdown();
+              observer.disconnect();
+            }
+          });
+        });
+      });
+      observer.observe(document.body, { childList: true });
+    }
+  }, 0);
+  
+  return modalResult;
 }
 
 function generateLabel({ index, finalSetLabel, label, prefix = '', suffix = '', value, pluralize }: any): string {
