@@ -7,7 +7,6 @@ import { cModal } from '../modal/cmodal';
 import {
   initializeFormatFromString,
   buildSetFormat,
-  getComponentVisibility,
   autoAdjustTiebreakAt,
   getTiebreakAtOptions,
 } from './matchUpFormatLogic';
@@ -504,6 +503,9 @@ export function getMatchUpFormatModal({
     format.setFormat = parsedMatchUpFormat.setFormat;
     format.setFormat.bestOf = parsedMatchUpFormat.bestOf;
     if (parsedMatchUpFormat.finalSetFormat) format.finalSetFormat = parsedMatchUpFormat.finalSetFormat;
+
+    // Update Final Set toggle visibility based on bestOf value
+    onClicks.updateFinalSetVisibility(null, 0, parsedMatchUpFormat.bestOf);
 
     const finalSet = parsedMatchUpFormat.finalSetFormat;
     finalSetFormat.style.display = finalSet ? '' : NONE;
