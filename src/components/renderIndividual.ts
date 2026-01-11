@@ -1,5 +1,6 @@
 import { getPlacholderStyle, participantNameStyle, participantStyle } from '../styles/participantStyle';
 import { renderParticipantDetail } from './renderParticipantDetail';
+import { renderParticipantInput } from './renderParticipantInput';
 import { seedStyle } from '../styles/seedStyle';
 import { renderFrill } from './renderFrill';
 import { isFunction } from './modal/cmodal';
@@ -81,12 +82,33 @@ export function renderIndividual(params: {
     span.innerHTML = participantName;
     name.appendChild(span);
   } else {
-    const placeholder = document.createElement('abbr');
-    // if { showAddress: true } pad placeholder
-    placeholder.className = getPlacholderStyle({ variant: configuration.showAddress ? 'showAddress' : '' });
-    placeholder.innerHTML =
-      (side?.bye && placeHolders.BYE) || (side?.qualifier && placeHolders.QUALIFIER) || placeHolders.TBD;
-    name.appendChild(placeholder);
+    // Check if inline assignment is enabled
+    const canAssign = 
+      configuration?.inlineAssignment && 
+      isFunction(eventHandlers?.assignParticipant) &&
+      isFunction(configuration?.participantProvider) &&
+      !side?.bye && // Don't show input for BYE
+      !side?.qualifier; // Don't show input for Qualifier
+    
+    if (canAssign && matchUp) {
+      // Render typeahead input for participant assignment
+      const inputField = renderParticipantInput({
+        matchUp,
+        side,
+        sideNumber,
+        eventHandlers,
+        composition
+      });
+      name.appendChild(inputField);
+    } else {
+      // Render placeholder (TBD/Qualifier/BYE)
+      const placeholder = document.createElement('abbr');
+      // if { showAddress: true } pad placeholder
+      placeholder.className = getPlacholderStyle({ variant: configuration?.showAddress ? 'showAddress' : '' });
+      placeholder.innerHTML =
+        (side?.bye && placeHolders.BYE) || (side?.qualifier && placeHolders.QUALIFIER) || placeHolders.TBD;
+      name.appendChild(placeholder);
+    }
   }
 
   const seeding = renderFrill({

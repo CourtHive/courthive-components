@@ -1,4 +1,5 @@
 export { renderParticipant } from './components/renderParticipant';
+export { renderParticipantInput } from './components/renderParticipantInput';
 export { renderRoundHeader } from './components/renderRoundHeader';
 export { renderStructure } from './components/renderStructure';
 export { renderContainer } from './components/renderContainer';

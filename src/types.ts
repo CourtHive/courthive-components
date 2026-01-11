@@ -157,6 +157,8 @@ export interface Configuration {
   seedingElement?: 'sup' | 'span';
   matchUpHover?: boolean | string;
   participantDetail?: string;
+  inlineAssignment?: boolean;
+  participantProvider?: () => Participant[];
   placeHolders?: {
     tbd?: string;
     bye?: string;
@@ -199,6 +201,14 @@ export interface Composition {
 export interface EventHandlers {
   matchUpClick?: (params: { pointerEvent: MouseEvent; matchUp: MatchUp }) => void;
   participantClick?: (params: { pointerEvent: MouseEvent; participant: Participant }) => void;
+  assignParticipant?: (params: {
+    matchUp: MatchUp;
+    side: Side;
+    sideNumber: number;
+    participant: Participant;
+    pointerEvent?: Event;
+  }) => void;
+  scoreClick?: (params: { pointerEvent: MouseEvent; matchUp: MatchUp }) => void;
   [key: string]: any;
 }
 

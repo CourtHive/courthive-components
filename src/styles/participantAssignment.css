@@ -1,0 +1,15 @@
+/**
+ * Participant Assignment Inline Styles
+ * Ensures awesomplete dropdown is visible and has high z-index
+ */
+
+/* Ensure awesomplete dropdown appears above matchUp elements */
+.awesomplete > ul[role="listbox"] {
+  z-index: 10000 !important;
+}
+
+/* Participant assignment input styling */
+.participant-assignment-input {
+  width: 100%;
+  font-size: inherit;
+}
