@@ -1,0 +1,40 @@
+/**
+ * Participant Assignment Inline Styles
+ * Ensures awesomplete dropdown is visible by preventing ALL ancestor containers from clipping
+ */
+
+/* Ensure awesomplete dropdown appears above matchUp elements */
+.awesomplete > ul[role="listbox"] {
+  z-index: 10000 !important;
+  /* Disable animations that make dropdown invisible */
+  transition: none !important;
+  transform: none !important;
+  opacity: 1 !important;
+  animation: none !important;
+}
+
+/* Disable overflow on ALL ancestor containers when participant assignment is present */
+.participant-assignment-input,
+.participant-assignment-input *,
+.field:has(.participant-assignment-input),
+.field:has(.participant-assignment-input) *,
+.tmx-i:has(.participant-assignment-input),
+.tmx-i:has(.participant-assignment-input) * {
+  overflow: visible !important;
+}
+
+/* Participant assignment input styling */
+.participant-assignment-input {
+  width: 100%;
+  /* Font size is set via inline style on field wrapper when configured */
+}
+
+/* Input field inherits font size from parent field wrapper */
+.participant-assignment-input input {
+  font-size: inherit;
+}
+
+/* Dropdown inherits font size from parent field wrapper */
+.participant-assignment-input .awesomplete > ul[role="listbox"] {
+  font-size: inherit;
+}
