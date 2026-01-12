@@ -7,7 +7,7 @@ import { renderStructure } from '../components/renderStructure';
 import { generateEventData } from '../data/generateEventData';
 import { compositions } from '../compositions/compositions';
 import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
-import type { Participant } from '../types';
+import type { Participant, MatchUp } from '../types';
 
 // Generate available participants
 function getAvailableParticipants(count: number = 32): Participant[] {
@@ -67,7 +67,7 @@ export default {
     const initialStructureId = structures[0]?.structureId;
     const structure = structures?.find((structure) => structure.structureId === initialStructureId);
     const roundMatchUps = structure?.roundMatchUps;
-    const matchUps = roundMatchUps ? Object.values(roundMatchUps)?.flat() : [];
+    const matchUps: MatchUp[] = roundMatchUps ? Object.values(roundMatchUps)?.flat() as MatchUp[] : [];
     
     const context = { 
       structureId: structure?.structureId, 
@@ -84,7 +84,7 @@ export default {
       availableParticipants: availableParticipants.length,
       fontSize: fontSize || 'default',
       sampleMatchUp: matchUps[0], // Debug: Check matchUp structure
-      firstRoundMatchUps: matchUps.filter(m => m.roundNumber === 1).length
+      firstRoundMatchUps: matchUps.filter((m: any) => m.roundNumber === 1).length
     });
 
     // Configure composition for inline assignment
@@ -145,7 +145,7 @@ export default {
         <li><strong>Enter</strong> - Select highlighted participant</li>
       </ul>
       <small style="color: #555;">
-        Draw Size: ${drawSize} (${matchUps.filter(m => m.roundNumber === 1).length} first round matches)<br>
+        Draw Size: ${drawSize} (${matchUps.filter((m: any) => m.roundNumber === 1).length} first round matches)<br>
         Available Participants: ${availableParticipants.length}<br>
         Font Size: ${fontSize || 'default (inherit)'}
       </small>
