@@ -11,6 +11,9 @@ export { cModal } from './components/modal/cmodal';
 // Match format selector modal
 export { getMatchUpFormatModal } from './components/matchUpFormat/matchUpFormat';
 
+// Tippy.js popover
+export { tipster, destroyTipster } from './components/popover/tipster';
+
 // Version API
 export { courthiveComponentsVersion } from './version';
 
