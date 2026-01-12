@@ -4,28 +4,25 @@ A wrapper around [tippy.js](https://atomiks.github.io/tippyjs/) for creating int
 
 ## Installation
 
-The `tippy.js` dependency is included with `courthive-components`. You need to import the CSS files to use tipster.
+The `tippy.js` dependency and all CSS styles are bundled with `courthive-components`.
 
-### Import CSS
+### Import
+
+If you already import the courthive-components CSS bundle (e.g., in TMX), tipster styles are included:
 
 ```typescript
-// Import tippy.js base styles and themes
-import 'courthive-components/dist/courthive-components.css'; // Includes all component styles
-
-// Or import individually:
-import 'tippy.js/dist/tippy.css';
-import 'tippy.js/themes/light.css';
-import 'tippy.js/themes/light-border.css';
-
-// Import custom tipster styles
-import 'courthive-components/src/styles/tipster.css';
+import { tipster, destroyTipster } from 'courthive-components';
+// CSS already included in courthive-components.css if you import it
 ```
 
-Or use the convenience import:
+If you don't already import courthive-components CSS, add it:
+
 ```typescript
-import 'courthive-components/src/styles/tippy.css'; // Imports all tippy.js CSS
-import 'courthive-components/src/styles/tipster.css'; // Custom tipster theme
+import { tipster, destroyTipster } from 'courthive-components';
+import 'courthive-components/dist/courthive-components.css';
 ```
+
+**Note**: All tippy.js CSS (base styles, light and light-border themes, and custom tipster styles) are bundled into `courthive-components.css`.
 
 ## Usage
 
