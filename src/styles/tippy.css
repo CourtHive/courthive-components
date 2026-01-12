@@ -1,0 +1,7 @@
+/**
+ * Tippy.js CSS imports
+ * Import order matches TMX for consistency
+ */
+@import 'tippy.js/themes/light-border.css';
+@import 'tippy.js/themes/light.css';
+@import 'tippy.js/dist/tippy.css';

@@ -11,6 +11,11 @@ export { cModal } from './components/modal/cmodal';
 // Match format selector modal
 export { getMatchUpFormatModal } from './components/matchUpFormat/matchUpFormat';
 
+// Tippy.js popover (CSS bundled in courthive-components.css)
+import './styles/tippy.css';
+import './styles/tipster.css';
+export { tipster, destroyTipster } from './components/popover/tipster';
+
 // Version API
 export { courthiveComponentsVersion } from './version';
 
