@@ -76,6 +76,10 @@ export const cModal = (() => {
     const content = bodyContent.pop();
     if (isFunction(onClose)) onClose({ content });
 
+    // Clean up any open popovers
+    const popovers = document.querySelectorAll('[data-modal-popover]');
+    popovers.forEach((popover) => popover.remove());
+
     document.body.classList.remove(scrollStop);
     document.body.style.top = null;
     window.scrollTo({
@@ -221,15 +225,105 @@ export const cModal = (() => {
     const modalHeader = document.createElement('div');
     const titleDiv = document.createElement('div');
     modalHeader.appendChild(titleDiv);
+    
+    // Add info icon if config.info is present
+    let infoIcon: HTMLElement | undefined;
+    let infoPopover: HTMLElement | undefined;
+    if (config?.info) {
+      infoIcon = document.createElement('span');
+      infoIcon.innerHTML = '?';
+      infoIcon.style.cssText = `
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: #3273dc;
+        color: white;
+        font-size: 14px;
+        font-weight: bold;
+        flex-shrink: 0;
+        user-select: none;
+      `;
+      
+      infoIcon.onclick = (e) => {
+        e.stopPropagation();
+        
+        // Close existing popover if open
+        if (infoPopover && document.body.contains(infoPopover)) {
+          infoPopover.remove();
+          infoPopover = undefined;
+          return;
+        }
+        
+        // Create popover
+        infoPopover = document.createElement('div');
+        infoPopover.setAttribute('data-modal-popover', 'true');
+        infoPopover.style.cssText = `
+          position: absolute;
+          z-index: 10000;
+          background-color: white;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+          padding: 1em;
+          max-width: 300px;
+          font-size: 14px;
+          font-weight: normal;
+          line-height: 1.5;
+          color: #363636;
+        `;
+        
+        if (isString(config.info)) {
+          infoPopover.innerHTML = config.info;
+        } else {
+          infoPopover.textContent = String(config.info);
+        }
+        
+        document.body.appendChild(infoPopover);
+        
+        // Position the popover to the left of the info icon
+        const rect = infoIcon!.getBoundingClientRect();
+        const popoverWidth = infoPopover.offsetWidth;
+        infoPopover.style.right = `${window.innerWidth - rect.left + 5}px`;
+        infoPopover.style.top = `${rect.bottom + 5}px`;
+        infoPopover.style.left = 'auto';
+        
+        // Close on click anywhere else (after a short delay to avoid immediate closure)
+        setTimeout(() => {
+          const closePopover = (event: MouseEvent) => {
+            if (infoPopover && !infoPopover.contains(event.target as Node) && event.target !== infoIcon) {
+              infoPopover.remove();
+              infoPopover = undefined;
+              document.removeEventListener('click', closePopover);
+            }
+          };
+          document.addEventListener('click', closePopover);
+        }, 100);
+      };
+      
+      modalHeader.appendChild(infoIcon);
+    }
+    
     dialog.appendChild(modalHeader);
 
     const setTitle = ({ title, config }: { title?: string; config?: ModalConfig }) => {
       modalHeader.className = title ? modalHeaderStyle() : '';
       modalHeader.style.padding = getUnitValue({ config, attrs: ['title.padding', 'padding'], value: defaultPadding });
+      modalHeader.style.display = title || config?.info ? 'flex' : '';
+      modalHeader.style.alignItems = 'center';
+      modalHeader.style.justifyContent = title ? 'space-between' : 'flex-end';
       titleDiv.className = title ? modalTitleStyle() : '';
       titleDiv.innerHTML = title;
+      
+      // Adjust icon margin based on title presence
+      if (infoIcon) {
+        infoIcon.style.marginLeft = title ? 'auto' : '0';
+      }
     };
-    if (title) setTitle({ title });
+    if (title || config?.info) setTitle({ title, config });
 
     const modalBody = document.createElement('div');
     dialog.appendChild(modalBody);

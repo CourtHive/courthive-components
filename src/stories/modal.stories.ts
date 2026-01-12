@@ -6,6 +6,82 @@ export default {
   tags: ['autodocs']
 };
 
+export const InfoIcon = {
+  render: () => {
+    const container = document.createElement('div');
+    container.style.padding = '2em';
+    
+    // Modal with info icon
+    const infoButton = document.createElement('button');
+    infoButton.className = 'button is-primary';
+    infoButton.textContent = 'Open Modal with Info Icon';
+    infoButton.style.marginRight = '1em';
+    infoButton.onclick = () => {
+      cModal.open({
+        title: 'Modal with Info',
+        content: '<p>This modal has an info icon in the title bar.</p><p>Click the blue (?) icon to see more information.</p>',
+        buttons: [
+          { label: 'Close', intent: 'is-info' }
+        ],
+        config: {
+          info: 'This is additional information that appears in a popover when you click the info icon. It can contain helpful context or instructions about the modal content.'
+        }
+      });
+    };
+    
+    // Modal with info icon and HTML content
+    const htmlInfoButton = document.createElement('button');
+    htmlInfoButton.className = 'button is-success';
+    htmlInfoButton.textContent = 'Modal with HTML Info';
+    htmlInfoButton.style.marginRight = '1em';
+    htmlInfoButton.onclick = () => {
+      cModal.open({
+        title: 'Advanced Info Example',
+        content: '<p>This modal demonstrates HTML in the info popover.</p>',
+        buttons: [
+          { label: 'Close', intent: 'is-info' }
+        ],
+        config: {
+          info: '<strong>Important:</strong> This popover supports HTML.<br><br><ul><li>Feature 1</li><li>Feature 2</li><li>Feature 3</li></ul>'
+        }
+      });
+    };
+    
+    // Modal with info icon but no title (edge case)
+    const noTitleButton = document.createElement('button');
+    noTitleButton.className = 'button is-warning';
+    noTitleButton.textContent = 'Info Icon without Title';
+    noTitleButton.onclick = () => {
+      cModal.open({
+        content: '<p>This modal has no title but still shows the info icon in the header area.</p>',
+        buttons: [
+          { label: 'Close', intent: 'is-info' }
+        ],
+        config: {
+          info: 'You can have an info icon even without a title. The header will still be displayed to accommodate the icon.'
+        }
+      });
+    };
+    
+    const title = document.createElement('h2');
+    title.textContent = 'Modal Info Icon Examples';
+    title.style.marginBottom = '1em';
+    
+    const description = document.createElement('p');
+    description.innerHTML = 'Demonstrates the new <code>config.info</code> option that displays an info icon (?) in the modal title bar with a popover on click.';
+    description.style.marginBottom = '1.5em';
+    description.style.color = '#666';
+    
+    container.appendChild(title);
+    container.appendChild(description);
+    container.appendChild(infoButton);
+    container.appendChild(htmlInfoButton);
+    container.appendChild(noTitleButton);
+    
+    return container;
+  }
+};
+
 export const Styling = {
   render: () => {
     const container = document.createElement('div');
