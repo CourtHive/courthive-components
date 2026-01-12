@@ -26,5 +26,15 @@
 /* Participant assignment input styling */
 .participant-assignment-input {
   width: 100%;
+  /* Font size is set via inline style on field wrapper when configured */
+}
+
+/* Input field inherits font size from parent field wrapper */
+.participant-assignment-input input {
+  font-size: inherit;
+}
+
+/* Dropdown inherits font size from parent field wrapper */
+.participant-assignment-input .awesomplete > ul[role="listbox"] {
   font-size: inherit;
 }

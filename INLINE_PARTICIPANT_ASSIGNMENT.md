@@ -4,7 +4,7 @@
 
 The inline participant assignment feature allows users to assign participants directly within draw structures by typing names into typeahead input fields that appear in empty draw positions.
 
-**Status**: ✅ Fully functional - dropdown appears and participant selection works. The dropdown may require scrolling within the participant container to see all options (positioning optimization is a future enhancement).
+**Status**: ✅ **FULLY FUNCTIONAL** - Dropdown is fully visible without scrolling, participant selection works perfectly. Ready for production use!
 
 ## Configuration
 
@@ -25,7 +25,10 @@ const composition = {
     participantProvider: () => {
       // Return array of participants that can be assigned
       return getAvailableParticipants();
-    }
+    },
+    
+    // Optional: Set font size for input and dropdown
+    assignmentInputFontSize: '14px' // Can be px, rem, em, etc.
   }
 };
 ```
@@ -192,6 +195,34 @@ The input field uses Awesomplete for autocomplete:
 
 For doubles matchUps, the feature currently renders one input field for the pair. Full support for assigning individual partners (2 inputs per side) is planned for future implementation.
 
+## Styling
+
+### Font Size Control
+
+Control the font size of input fields and dropdown using the `assignmentInputFontSize` configuration:
+
+```typescript
+const composition = {
+  configuration: {
+    inlineAssignment: true,
+    participantProvider: () => participants,
+    assignmentInputFontSize: '14px' // Any valid CSS font-size value
+  }
+};
+```
+
+**Supported values:**
+- Pixels: `'10px'`, `'14px'`, `'18px'`
+- Relative: `'0.875rem'`, `'1rem'`, `'1.25rem'`
+- Em units: `'0.9em'`, `'1em'`, `'1.2em'`
+
+The font size applies to:
+- Input text field
+- Dropdown suggestions
+- Selected text
+
+**Default:** Inherits font size from parent container if not specified.
+
 ## Storybook Examples
 
 View interactive examples in Storybook:
@@ -200,12 +231,29 @@ View interactive examples in Storybook:
 npm run storybook
 ```
 
+### MatchUp Level Examples
 Navigate to: **MatchUps → Participant Assignment**
 
 Stories include:
 - **EmptySingles**: Both sides unassigned
 - **PartiallyAssigned**: One side assigned, one empty
 - **EmptyDoubles**: Doubles matchUp assignment
+
+### Structure Level Examples  
+Navigate to: **Structures → Participant Assignment**
+
+Stories include:
+- **DrawSize16**: Full 16-player bracket with tab order testing
+- **DrawSize8**: 8-player bracket
+- **DrawSize4**: Simple 4-player bracket
+- **SmallFont**: 8-player bracket with 10px font
+- **LargeFont**: 8-player bracket with 18px font
+
+**Features demonstrated:**
+- Tab order navigation through all empty positions
+- Font size control via composition
+- Keyboard navigation (Tab, Arrow keys, Enter)
+- Full structure with multiple rounds
 
 ## CSS Styling
 
@@ -225,6 +273,29 @@ The input field has class `participant-assignment-input` for custom styling:
   outline-offset: 1px;
 }
 ```
+
+## Technical Implementation
+
+### Dropdown Visibility Solution
+
+The component automatically fixes dropdown clipping by walking up the DOM tree and forcing `overflow: visible` on all ancestor containers. This solves the issue where scroll containers (like the participant name container) would clip the dropdown.
+
+**How it works:**
+```typescript
+// Walks up 15 levels of parent elements
+// Forces overflow: visible !important on any element with scroll/auto/hidden
+setTimeout(() => {
+  let element = input.parentElement;
+  while (element && level < 15) {
+    if (overflow !== 'visible') {
+      element.style.setProperty('overflow', 'visible', 'important');
+    }
+    element = element.parentElement;
+  }
+}, 100);
+```
+
+This ensures the Awesomplete dropdown is always fully visible without requiring users to scroll.
 
 ## Troubleshooting
 
@@ -249,6 +320,13 @@ Check that `assignParticipant` event handler:
 - Is properly attached to eventHandlers object
 - Receives correct parameters (matchUp, side, sideNumber, participant)
 - Handles assignment logic and triggers re-render
+
+### Dropdown not visible
+
+The component automatically fixes overflow on parent containers. If the dropdown is still not visible:
+- Check browser console for errors
+- Verify Awesomplete CSS is loaded
+- Check z-index conflicts with other elements
 
 ## Future Enhancements
 

@@ -66,6 +66,13 @@ export function renderParticipantInput({
   // Style for inline display
   field.style.width = '100%';
   field.style.margin = '0';
+  
+  // Apply font size if specified in configuration (optional)
+  // Only set on the field wrapper to allow CSS inheritance
+  const fontSize = configuration?.assignmentInputFontSize;
+  if (fontSize) {
+    field.style.fontSize = fontSize;
+  }
 
   // Walk up the DOM and disable overflow on all ancestors with JavaScript
   setTimeout(() => {

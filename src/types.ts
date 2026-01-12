@@ -159,6 +159,7 @@ export interface Configuration {
   participantDetail?: string;
   inlineAssignment?: boolean;
   participantProvider?: () => Participant[];
+  assignmentInputFontSize?: string; // Font size for participant assignment inputs (e.g., '14px', '0.875rem')
   placeHolders?: {
     tbd?: string;
     bye?: string;
