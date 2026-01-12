@@ -116,7 +116,6 @@ export default {
     // Event handlers for participant assignment
     const eventHandlers = {
       assignParticipant: ({ matchUp, side, participant, sideNumber }: any) => {
-        alert(`✓ Assigned ${participant.participantName} to side ${sideNumber}`);
         console.log('Participant assigned:', {
           matchUpId: matchUp.matchUpId,
           sideNumber,

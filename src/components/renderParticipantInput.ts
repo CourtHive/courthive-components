@@ -67,5 +67,25 @@ export function renderParticipantInput({
   field.style.width = '100%';
   field.style.margin = '0';
 
+  // Walk up the DOM and disable overflow on all ancestors with JavaScript
+  setTimeout(() => {
+    const input = field.querySelector('input');
+    if (input) {
+      let element: HTMLElement | null = input.parentElement;
+      let level = 0;
+      while (element && level < 15) {
+        const styles = window.getComputedStyle(element);
+        // Force overflow visible on any element that has overflow scroll/auto/hidden
+        if (styles.overflow !== 'visible' || styles.overflowX !== 'visible' || styles.overflowY !== 'visible') {
+          element.style.setProperty('overflow', 'visible', 'important');
+          element.style.setProperty('overflow-x', 'visible', 'important');
+          element.style.setProperty('overflow-y', 'visible', 'important');
+        }
+        element = element.parentElement;
+        level++;
+      }
+    }
+  }, 100);
+
   return field;
 }
