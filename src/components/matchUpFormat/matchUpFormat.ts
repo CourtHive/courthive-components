@@ -320,6 +320,12 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
       // Switch to timed format if not already
       if (format.setFormat.what !== TIMED_SETS) {
         format.setFormat.what = TIMED_SETS;
+        // Set default timed set values if not already set
+        if (!format.setFormat.minutes) {
+          format.setFormat.minutes = 10;
+        }
+        // Keep existing 'based' or leave undefined (defaults to Games)
+        
         // Trigger UI update for component visibility
         onClicks.changeWhat(new Event('click'), undefined, TIMED_SETS);
         
@@ -328,6 +334,21 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
         if (whatElem) {
           const plural = currentValue > 1 ? 's' : '';
           whatElem.innerHTML = `${TIMED_SETS}${plural}${clickable}`;
+        }
+        
+        // Update the Minutes button display
+        const minutesElem = document.getElementById('minutes');
+        if (minutesElem) {
+          minutesElem.innerHTML = `${format.setFormat.minutes} Minutes${clickable}`;
+          minutesElem.style.display = '';
+        }
+        
+        // Update the based button display (show G/P/A)
+        const basedElem = document.getElementById('based');
+        if (basedElem) {
+          const basedValue = format.setFormat.based || 'G';
+          basedElem.innerHTML = `${basedValue}${clickable}`;
+          basedElem.style.display = '';
         }
       }
       
@@ -779,6 +800,64 @@ export function getMatchUpFormatModal({
   finalSetOption.style.display = showFinalSetOption ? '' : 'none';
   finalSetOption.onchange = (e) => {
     const active = (e.target as HTMLInputElement).checked;
+    
+    if (active) {
+      // When enabling final set, copy ALL properties from main set format
+      format.finalSetFormat = {
+        ...format.setFormat,
+        descriptor: 'Final set'
+      };
+      
+      const what = format.setFormat.what;
+      const setCount = format.setFormat.bestOf || format.setFormat.exactly || 3;
+      
+      // Update the "what" button for final set
+      const whatElem = document.getElementById('what-1');
+      if (whatElem) {
+        const plural = setCount > 1 ? 's' : '';
+        whatElem.innerHTML = `${what}${plural}${clickable}`;
+      }
+      
+      // Update ALL component buttons to match main set
+      setComponents.forEach((component) => {
+        if (!component.finalSetLabel) return;
+        
+        const elem = document.getElementById(`${component.id}-1`);
+        if (!elem) return;
+        
+        // Check if this component should be visible for the current 'what'
+        const visible = component.whats?.includes(what);
+        
+        if (visible) {
+          // Get the value from the main set format
+          const mainElem = document.getElementById(component.id);
+          if (mainElem) {
+            // Copy the exact innerHTML from main set to final set
+            elem.innerHTML = mainElem.innerHTML;
+          }
+          elem.style.display = '';
+        } else {
+          // Hide component not applicable to this 'what' type
+          elem.style.display = NONE;
+        }
+      });
+      
+      // Handle tiebreak toggle visibility (only for regular sets)
+      const finalSetTiebreakToggle = document.getElementById('finalSetTiebreakToggle');
+      if (finalSetTiebreakToggle) {
+        finalSetTiebreakToggle.style.display = what === SETS ? '' : NONE;
+      }
+      
+      // Copy tiebreak checkbox state for regular sets
+      if (what === SETS) {
+        const mainTiebreak = document.getElementById('setTiebreak') as HTMLInputElement;
+        const finalTiebreak = document.getElementById('finalSetTiebreak') as HTMLInputElement;
+        if (mainTiebreak && finalTiebreak) {
+          finalTiebreak.checked = mainTiebreak.checked;
+        }
+      }
+    }
+    
     finalSetFormat.style.display = active ? '' : NONE;
     finalSetConfig.style.display = active ? '' : NONE;
     setMatchUpFormatString();
