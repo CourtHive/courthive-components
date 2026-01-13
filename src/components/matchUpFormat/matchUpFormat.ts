@@ -360,8 +360,10 @@ const setComponents: SetComponent[] = [
   {
     getValue: (pmf, isFinal) => {
       const setFormat = whichSetFormat(pmf, isFinal);
-      if (!setFormat.tiebreakFormat) return undefined;
-      return setFormat.tiebreakFormat?.NoAD ? 1 : 2;
+      if (!setFormat.tiebreakFormat && !setFormat.tiebreakSet) return undefined;
+      // Check both tiebreakFormat (regular sets) and tiebreakSet (tiebreak-only sets)
+      const NoAD = setFormat.tiebreakFormat?.NoAD || setFormat.tiebreakSet?.NoAD;
+      return NoAD ? 1 : 2;
     },
     whats: [SETS, TIEBREAKS],
     onChange: 'changeWinBy',
