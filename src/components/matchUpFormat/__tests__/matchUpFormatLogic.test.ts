@@ -116,13 +116,25 @@ describe('matchUpFormatLogic', () => {
   });
 
   describe('buildParsedFormat', () => {
-    it('should build basic parsed format', () => {
+    it('should build basic parsed format with bestOf', () => {
       const config = createDefaultFormat();
       const parsed = buildParsedFormat(config, false, false, false);
       
       expect(parsed.bestOf).toBe(3);
+      expect(parsed.exactly).toBeUndefined();
       expect(parsed.setFormat.setTo).toBe(6);
       expect(parsed.finalSetFormat).toBeUndefined();
+    });
+
+    it('should build parsed format with exactly', () => {
+      const config = createDefaultFormat();
+      config.setFormat.exactly = 4;
+      delete config.setFormat.bestOf;
+      const parsed = buildParsedFormat(config, false, false, false);
+      
+      expect(parsed.exactly).toBe(4);
+      expect(parsed.bestOf).toBeUndefined();
+      expect(parsed.setFormat.setTo).toBe(6);
     });
 
     it('should include final set when requested', () => {
@@ -248,6 +260,18 @@ describe('matchUpFormatLogic', () => {
           setFormat: { setTo: 6, tiebreakAt: 6, tiebreakFormat: { tiebreakTo: 7 } },
         };
       }
+      if (format === 'SET3X-S:T10') {
+        return {
+          exactly: 3,
+          setFormat: { timed: true, minutes: 10 },
+        };
+      }
+      if (format === 'SET4X-S:T20') {
+        return {
+          exactly: 4,
+          setFormat: { timed: true, minutes: 20 },
+        };
+      }
       if (format === 'SET3-S:6') {
         return {
           bestOf: 3,
@@ -277,12 +301,30 @@ describe('matchUpFormatLogic', () => {
       return { bestOf: 3, setFormat: {} };
     };
 
-    it('should initialize from standard format', () => {
+    it('should initialize from standard format with bestOf', () => {
       const format = initializeFormatFromString('SET3-S:6/TB7', mockParse);
       
       expect(format.setFormat.bestOf).toBe(3);
+      expect(format.setFormat.exactly).toBeUndefined();
+      expect(format.setFormat.descriptor).toBe('Best of');
       expect(format.setFormat.setTo).toBe(6);
       expect(format.setFormat.tiebreakAt).toBe(6);
+    });
+
+    it('should initialize from format with exactly (SET3X)', () => {
+      const format = initializeFormatFromString('SET3X-S:T10', mockParse);
+      
+      expect(format.setFormat.exactly).toBe(3);
+      expect(format.setFormat.bestOf).toBeUndefined();
+      expect(format.setFormat.descriptor).toBe('Exactly');
+    });
+
+    it('should initialize from format with exactly (SET4X)', () => {
+      const format = initializeFormatFromString('SET4X-S:T20', mockParse);
+      
+      expect(format.setFormat.exactly).toBe(4);
+      expect(format.setFormat.bestOf).toBeUndefined();
+      expect(format.setFormat.descriptor).toBe('Exactly');
     });
 
     it('should initialize with tiebreak-only final set', () => {
