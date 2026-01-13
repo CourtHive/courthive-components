@@ -58,6 +58,7 @@ const format: FormatConfig = {
     tiebreakTo: 7,
     winBy: 2,
     minutes: 10
+    // based is undefined by default
   },
   finalSetFormat: {
     descriptor: 'Final set',
@@ -68,6 +69,7 @@ const format: FormatConfig = {
     tiebreakTo: 7,
     winBy: 2,
     minutes: 10
+    // based is undefined by default
   }
 };
 
@@ -289,6 +291,20 @@ const setComponents: SetComponent[] = [
     defaultValue: 10,
     id: 'minutes',
     timed: true
+  },
+  {
+    getValue: (pmf, isFinal) => {
+      const setFormat = whichSetFormat(pmf, isFinal);
+      if (!setFormat?.timed) return undefined;
+      // Return 'based' property directly (A/P/G or undefined)
+      return setFormat.based || 'G'; // Default to 'G' for display
+    },
+    options: ['G', 'P', 'A'],
+    onChange: 'changeBased',
+    whats: [TIMED_SETS],
+    defaultValue: 'G',
+    id: 'based',
+    timed: true
   }
 ];
 
@@ -325,20 +341,16 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
       format.setFormat.bestOf = validBestOf;
       delete format.setFormat.exactly;
       
-      // Update the display if value changed
-      if (validBestOf !== currentValue) {
-        const elem = document.getElementById('bestOf');
-        if (elem) {
-          elem.innerHTML = `${validBestOf}${clickable}`;
-        }
+      // Always update the bestOf button display with the valid odd number
+      const bestOfElem = document.getElementById('bestOf');
+      if (bestOfElem) {
+        bestOfElem.innerHTML = `${validBestOf}${clickable}`;
       }
-    }
-    
-    // Update the bestOf button display (no pluralization on the number)
-    const bestOfElem = document.getElementById('bestOf');
-    if (bestOfElem) {
-      const currentVal = format.setFormat.bestOf || format.setFormat.exactly;
-      bestOfElem.innerHTML = `${currentVal}${clickable}`;
+      
+      // Trigger pluralize to update the "what" text if needed
+      if (validBestOf !== currentValue) {
+        onClicks.pluralize(new Event('click'), undefined, validBestOf);
+      }
     }
     
     setMatchUpFormatString();
@@ -439,6 +451,13 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
   },
   changeMinutes: (_e, index, opt) => {
     format[index ? 'finalSetFormat' : 'setFormat'].minutes = opt;
+    setMatchUpFormatString();
+  },
+  changeBased: (_e, index, opt) => {
+    const which = index ? 'finalSetFormat' : 'setFormat';
+    // Set based property directly (A/P/G)
+    // If 'G' is selected, we can omit it (undefined) since it's the default
+    format[which].based = opt === 'G' ? undefined : opt;
     setMatchUpFormatString();
   },
   pluralize: (_e, index, opt) => {

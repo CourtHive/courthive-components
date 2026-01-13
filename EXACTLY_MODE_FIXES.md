@@ -59,12 +59,18 @@ This means `exactly` is ONLY valid when the set format is timed.
    - Updates UI to show minutes selector
    - Hides regular set options (setTo, tiebreak, etc.)
 
-2. **Switching away from 'Timed set' while in 'Exactly' mode:**
+2. **Switching from 'Exactly' to 'Best of' mode:**
+   - **Converts even numbers to odd** (e.g., 2→3, 4→5)
+   - This makes sense because "best of 2" or "best of 4" is logically impossible
+   - Updates the number display
+   - Triggers pluralize callback to update "what" text (e.g., "Timed sets" → "Timed set")
+
+3. **Switching away from 'Timed set' while in 'Exactly' mode:**
    - Automatically switches back to 'Best of' mode
-   - Converts even numbers to odd (e.g., 2→3, 4→5)
+   - Applies the even-to-odd conversion if needed
    - Updates both descriptor and number displays
 
-3. **Number Options:**
+4. **Number Options:**
    - 'Best of' mode: [1, 3, 5] (odd numbers only)
    - 'Exactly' mode: [1, 2, 3, 4, 5] (any number)
 
