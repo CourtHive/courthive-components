@@ -14,6 +14,7 @@ export const AD = 'Ad';
 export interface SetFormatConfig {
   descriptor: string;
   bestOf?: number;
+  exactly?: number;
   advantage: string;
   what: string;
   setTo: number;
@@ -29,7 +30,8 @@ export interface FormatConfig {
 }
 
 export interface ParsedMatchUpFormat {
-  bestOf: number;
+  bestOf?: number;
+  exactly?: number;
   setFormat: any;
   finalSetFormat?: any;
 }
@@ -123,9 +125,15 @@ export function buildParsedFormat(
   const setFormat = buildSetFormat(config.setFormat, hasSetTiebreak);
 
   const parsed: ParsedMatchUpFormat = {
-    bestOf: config.setFormat.bestOf || 3,
     setFormat
   };
+
+  // Use exactly or bestOf based on which is defined
+  if (config.setFormat.exactly) {
+    parsed.exactly = config.setFormat.exactly;
+  } else {
+    parsed.bestOf = config.setFormat.bestOf || 3;
+  }
 
   if (hasFinalSet) {
     parsed.finalSetFormat = buildSetFormat(config.finalSetFormat, hasFinalSetTiebreak);
@@ -212,7 +220,21 @@ export function initializeFormatFromString(
     finalSetFormat: { ...finalSetDefaults, ...parsedMatchUpFormat.finalSetFormat }
   };
 
-  format.setFormat.bestOf = parsedMatchUpFormat.bestOf || 3;
+  // Handle both bestOf and exactly attributes
+  if (parsedMatchUpFormat.exactly) {
+    format.setFormat.exactly = parsedMatchUpFormat.exactly;
+    format.setFormat.descriptor = 'Exactly';
+    delete format.setFormat.bestOf;
+    // IMPORTANT: Exactly only works with timed sets
+    // Ensure the "what" is set correctly
+    if (format.setFormat.timed) {
+      format.setFormat.what = TIMED_SETS;
+    }
+  } else {
+    format.setFormat.bestOf = parsedMatchUpFormat.bestOf || 3;
+    format.setFormat.descriptor = 'Best of';
+    delete format.setFormat.exactly;
+  }
 
   // Detect if final set is tiebreak-only (e.g., F:TB10)
   if (isTiebreakOnlySet(parsedMatchUpFormat.finalSetFormat)) {

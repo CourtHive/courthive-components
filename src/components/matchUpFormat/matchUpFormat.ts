@@ -88,9 +88,22 @@ function generateMatchUpFormat(): string {
   const setFormat = getSetFormat();
 
   parsedMatchUpFormat = {
-    bestOf: format.setFormat.bestOf,
     setFormat
   };
+
+  // Use exactly or bestOf based on descriptor
+  const descriptor = format.setFormat.descriptor;
+  const numValue = format.setFormat.exactly ?? format.setFormat.bestOf ?? 3;
+  
+  if (descriptor === 'Exactly') {
+    parsedMatchUpFormat.exactly = numValue;
+    // Make sure we don't include bestOf when we have exactly
+    delete parsedMatchUpFormat.bestOf;
+  } else {
+    parsedMatchUpFormat.bestOf = numValue;
+    // Make sure we don't include exactly when we have bestOf
+    delete parsedMatchUpFormat.exactly;
+  }
 
   const hasFinalSet = (document.getElementById('finalSetOption') as HTMLInputElement)?.checked;
   if (hasFinalSet) parsedMatchUpFormat.finalSetFormat = getSetFormat(1);
@@ -157,17 +170,22 @@ interface SetComponent {
 
 const setComponents: SetComponent[] = [
   {
-    getValue: (pmf) => (pmf.bestOf > 1 ? 'Best of' : 'Exactly'),
+    getValue: (pmf) => (pmf.exactly ? 'Exactly' : 'Best of'),
     options: ['Best of', 'Exactly'],
     id: 'descriptor',
     value: 'Best of',
-    finalSet: false
+    finalSet: false,
+    onChange: 'changeDescriptor'
   },
   {
-    getValue: (pmf) => pmf.bestOf,
+    getValue: (pmf) => pmf.bestOf || pmf.exactly,
     finalSet: false,
     id: 'bestOf',
-    options: [1, 3, 5],
+    options: (index?: number) => {
+      // Return [1,2,3,4,5] for 'Exactly', [1,3,5] for 'Best of'
+      const descriptor = format.setFormat.descriptor;
+      return descriptor === 'Exactly' ? [1, 2, 3, 4, 5] : [1, 3, 5];
+    },
     onChange: 'pluralize',
     onChangeCallback: 'updateFinalSetVisibility',
     value: 3
@@ -275,11 +293,84 @@ const setComponents: SetComponent[] = [
 ];
 
 const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) => void> = {
+  changeDescriptor: (_e, _index, opt) => {
+    format.setFormat.descriptor = opt;
+    
+    // When switching between 'Best of' and 'Exactly', ensure the value is valid
+    const currentValue = format.setFormat.bestOf || format.setFormat.exactly || 3;
+    
+    if (opt === 'Exactly') {
+      // IMPORTANT: 'Exactly' is only valid with timed sets
+      // Switch to timed format if not already
+      if (format.setFormat.what !== TIMED_SETS) {
+        format.setFormat.what = TIMED_SETS;
+        // Trigger UI update for component visibility
+        onClicks.changeWhat(new Event('click'), undefined, TIMED_SETS);
+        
+        // Update the "what" button text to show "Timed set" or "Timed sets"
+        const whatElem = document.getElementById('what');
+        if (whatElem) {
+          const plural = currentValue > 1 ? 's' : '';
+          whatElem.innerHTML = `${TIMED_SETS}${plural}${clickable}`;
+        }
+      }
+      
+      // Switch to exactly mode
+      format.setFormat.exactly = currentValue;
+      delete format.setFormat.bestOf;
+    } else {
+      // Switch to bestOf mode
+      // If current value is even (2, 4), change to nearest odd (3, 5)
+      const validBestOf = currentValue % 2 === 0 ? currentValue + 1 : currentValue;
+      format.setFormat.bestOf = validBestOf;
+      delete format.setFormat.exactly;
+      
+      // Update the display if value changed
+      if (validBestOf !== currentValue) {
+        const elem = document.getElementById('bestOf');
+        if (elem) {
+          elem.innerHTML = `${validBestOf}${clickable}`;
+        }
+      }
+    }
+    
+    // Update the bestOf button display (no pluralization on the number)
+    const bestOfElem = document.getElementById('bestOf');
+    if (bestOfElem) {
+      const currentVal = format.setFormat.bestOf || format.setFormat.exactly;
+      bestOfElem.innerHTML = `${currentVal}${clickable}`;
+    }
+    
+    setMatchUpFormatString();
+  },
   changeWhat: (_e, index, opt) => {
     const tiebreakOptionVisible = opt === SETS;
     const elementId = index ? 'finalSetTiebreakToggle' : 'setTiebreakToggle';
     const elem = document.getElementById(elementId);
     elem.style.display = tiebreakOptionVisible ? '' : NONE;
+
+    // IMPORTANT: 'Exactly' is only valid with timed sets
+    // If changing away from timed sets while in 'Exactly' mode, switch to 'Best of'
+    if (!index && opt !== TIMED_SETS && format.setFormat.descriptor === 'Exactly') {
+      format.setFormat.descriptor = 'Best of';
+      const currentValue = format.setFormat.exactly || 3;
+      // If current value is even, change to nearest odd
+      const validBestOf = currentValue % 2 === 0 ? currentValue + 1 : currentValue;
+      format.setFormat.bestOf = validBestOf;
+      delete format.setFormat.exactly;
+      
+      // Update the descriptor button display
+      const descriptorElem = document.getElementById('descriptor');
+      if (descriptorElem) {
+        descriptorElem.innerHTML = `Best of${clickable}`;
+      }
+      
+      // Update the number button display
+      const bestOfElem = document.getElementById('bestOf');
+      if (bestOfElem) {
+        bestOfElem.innerHTML = `${validBestOf}${clickable}`;
+      }
+    }
 
     setComponents.forEach((component) => {
       if (component.whats) {
@@ -289,8 +380,8 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
         const elem = document.getElementById(id);
 
         if (elem.style.display === NONE && visible) {
-          const bestOf = parsedMatchUpFormat.bestOf;
-          const plural = !index && pluralize && bestOf > 1 ? 's' : '';
+          const setCount = parsedMatchUpFormat.bestOf || parsedMatchUpFormat.exactly;
+          const plural = !index && pluralize && setCount > 1 ? 's' : '';
           const value = component.defaultValue;
           elem.innerHTML = `${prefix}${value}${plural}${suffix}${clickable}`;
           // Also update the format object with the default value
@@ -351,16 +442,29 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
     setMatchUpFormatString();
   },
   pluralize: (_e, index, opt) => {
-    const what = format[index ? 'finalSetFormat' : 'setFormat'].what;
+    const which = index ? 'finalSetFormat' : 'setFormat';
+    const what = format[which].what;
     const elementId = index ? `what-${index}` : 'what';
     const elem = document.getElementById(elementId);
     const plural = opt > 1 ? 's' : '';
     elem.innerHTML = `${what}${plural}${clickable}`;
+    
+    // Update bestOf or exactly based on descriptor
+    if (!index) {
+      if (format.setFormat.descriptor === 'Exactly') {
+        format.setFormat.exactly = opt;
+        delete format.setFormat.bestOf;
+      } else {
+        format.setFormat.bestOf = opt;
+        delete format.setFormat.exactly;
+      }
+    }
+    
     // Update format string and dropdown
     setMatchUpFormatString();
   },
   updateFinalSetVisibility: (_e, _index, opt) => {
-    // When bestOf changes, show/hide final set toggle
+    // When bestOf/exactly changes, show/hide final set toggle
     const showFinalSet = opt > 1;
     const finalSetOption = document.getElementById('finalSetOption') as HTMLInputElement;
     const finalSetLabel = document.querySelector('label[for="finalSetOption"]') as HTMLElement;
@@ -371,7 +475,7 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
         finalSetOption.style.display = '';
         finalSetLabel.style.display = '';
       } else {
-        // If bestOf becomes 1, uncheck the toggle (this will hide config panels via onchange)
+        // If value becomes 1, uncheck the toggle (this will hide config panels via onchange)
         if (finalSetOption.checked) {
           finalSetOption.checked = false;
           // Trigger the onchange event to hide the panels
@@ -401,6 +505,14 @@ export function getMatchUpFormatModal({
   selectedMatchUpFormat = existingMatchUpFormat;
   parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
   
+  // Handle invalid format strings that parse to undefined
+  if (!parsedMatchUpFormat) {
+    console.warn('Invalid matchUpFormat:', selectedMatchUpFormat);
+    // Fall back to default format
+    selectedMatchUpFormat = 'SET3-S:6/TB7';
+    parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
+  }
+  
   // Initialize format object using pure logic function
   const initializedFormat = initializeFormatFromString(
     selectedMatchUpFormat,
@@ -408,8 +520,9 @@ export function getMatchUpFormatModal({
   );
   
   // Update module-level format object
-  format.setFormat = initializedFormat.setFormat;
-  format.finalSetFormat = initializedFormat.finalSetFormat;
+  // Use spread to ensure we get a copy, not a reference
+  format.setFormat = { ...initializedFormat.setFormat };
+  format.finalSetFormat = { ...initializedFormat.finalSetFormat };
   const onSelect = () => {
     // Use selectedMatchUpFormat if it's a predefined format (from dropdown selection)
     // Otherwise generate from current button states
@@ -499,13 +612,38 @@ export function getMatchUpFormatModal({
     selectedMatchUpFormat = (e.target as HTMLSelectElement).value;
     setMatchUpFormatString(selectedMatchUpFormat);
     parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
+    
+    // Handle invalid format strings
+    if (!parsedMatchUpFormat) {
+      console.warn('Invalid matchUpFormat selected:', selectedMatchUpFormat);
+      return;
+    }
 
-    format.setFormat = parsedMatchUpFormat.setFormat;
-    format.setFormat.bestOf = parsedMatchUpFormat.bestOf;
+    // Start with the setFormat from parsed result
+    format.setFormat = { ...parsedMatchUpFormat.setFormat };
+    
+    // Handle both bestOf and exactly attributes
+    // These are at the top level of parsedMatchUpFormat, not in setFormat
+    if (parsedMatchUpFormat.exactly) {
+      format.setFormat.exactly = parsedMatchUpFormat.exactly;
+      format.setFormat.descriptor = 'Exactly';
+      delete format.setFormat.bestOf;
+      // IMPORTANT: Exactly only works with timed sets
+      // Ensure the "what" is set correctly
+      if (format.setFormat.timed) {
+        format.setFormat.what = TIMED_SETS;
+      }
+    } else {
+      format.setFormat.bestOf = parsedMatchUpFormat.bestOf;
+      format.setFormat.descriptor = 'Best of';
+      delete format.setFormat.exactly;
+    }
+    
     if (parsedMatchUpFormat.finalSetFormat) format.finalSetFormat = parsedMatchUpFormat.finalSetFormat;
 
-    // Update Final Set toggle visibility based on bestOf value
-    onClicks.updateFinalSetVisibility(null, 0, parsedMatchUpFormat.bestOf);
+    // Update Final Set toggle visibility based on bestOf/exactly value
+    const setCount = parsedMatchUpFormat.bestOf || parsedMatchUpFormat.exactly;
+    onClicks.updateFinalSetVisibility(null, 0, setCount);
 
     const finalSet = parsedMatchUpFormat.finalSetFormat;
     finalSetFormat.style.display = finalSet ? '' : NONE;
@@ -530,8 +668,8 @@ export function getMatchUpFormatModal({
 
         if (elem && setComponentValue) {
           const { prefix = '', suffix = '', pluralize } = component;
-          const bestOf = parsedMatchUpFormat.bestOf;
-          const plural = pluralize && bestOf > 1 ? 's' : '';
+          const setCount = parsedMatchUpFormat.bestOf || parsedMatchUpFormat.exactly;
+          const plural = pluralize && setCount > 1 ? 's' : '';
           elem.innerHTML = `${prefix}${setComponentValue}${plural}${suffix}${clickable}`;
           elem.style.display = '';
         } else if (elem) {
@@ -544,8 +682,8 @@ export function getMatchUpFormatModal({
 
           if (elem && finalComponentValue) {
             const { prefix = '', suffix = '', pluralize } = component;
-            const bestOf = parsedMatchUpFormat.bestOf;
-            const plural = pluralize && bestOf > 1 ? 's' : '';
+            const setCount = parsedMatchUpFormat.bestOf || parsedMatchUpFormat.exactly;
+            const plural = pluralize && setCount > 1 ? 's' : '';
             elem.innerHTML = `${prefix}${finalComponentValue}${plural}${suffix}${clickable}`;
             elem.style.display = '';
           } else if (elem) {
@@ -592,8 +730,8 @@ export function getMatchUpFormatModal({
 
         if (elem.style.display === NONE && active) {
           const { prefix = '', suffix = '', pluralize, defaultValue: value } = component;
-          const bestOf = parsedMatchUpFormat.bestOf;
-          const plural = pluralize && bestOf > 1 ? 's' : '';
+          const setCount = parsedMatchUpFormat.bestOf || parsedMatchUpFormat.exactly;
+          const plural = pluralize && setCount > 1 ? 's' : '';
           elem.innerHTML = `${prefix}${value}${plural}${suffix}${clickable}`;
         }
 
@@ -610,8 +748,8 @@ export function getMatchUpFormatModal({
   tiebreakLabel.style.marginRight = '1em';
   setConfig.appendChild(tiebreakLabel);
 
-  // Only show final set option if bestOf > 1 (can't have a final set with only 1 set)
-  const showFinalSetOption = parsedMatchUpFormat.bestOf > 1;
+  // Only show final set option if setCount > 1 (can't have a final set with only 1 set)
+  const showFinalSetOption = (parsedMatchUpFormat.bestOf || parsedMatchUpFormat.exactly) > 1;
 
   const finalSetOption = document.createElement('input');
   finalSetOption.className = 'switch is-rounded is-info';
@@ -688,8 +826,8 @@ export function getMatchUpFormatModal({
 
         if (elem.style.display === NONE && active) {
           const { prefix = '', suffix = '', pluralize, defaultValue: value } = component;
-          const bestOf = parsedMatchUpFormat.bestOf;
-          const plural = pluralize && bestOf > 1 ? 's' : '';
+          const setCount = parsedMatchUpFormat.bestOf || parsedMatchUpFormat.exactly;
+          const plural = pluralize && setCount > 1 ? 's' : '';
           elem.innerHTML = `${prefix}${value}${plural}${suffix}${clickable}`;
         }
 
@@ -778,7 +916,8 @@ export function getMatchUpFormatModal({
 }
 
 function generateLabel({ index, finalSetLabel, label, prefix = '', suffix = '', value, pluralize }: any): string {
-  const plural = !index && pluralize && (format.setFormat.bestOf || 1) > 1 ? 's' : '';
+  const setCount = format.setFormat.bestOf || format.setFormat.exactly || 1;
+  const plural = !index && pluralize && setCount > 1 ? 's' : '';
   return label || (index && finalSetLabel) || `${prefix}${value}${plural}${suffix}${clickable}`;
 }
 
@@ -808,8 +947,8 @@ function createButton(params: any): HTMLButtonElement {
 
 function getButtonClick(params: any): void {
   const { e, id, button, pluralize, options, onChange, onChangeCallback, index, prefix = '', suffix = '' } = params;
-  const bestOf = format.setFormat.bestOf || 1;
-  const plural = !index && pluralize && bestOf > 1 ? 's' : '';
+  const setCount = format.setFormat.bestOf || format.setFormat.exactly || 1;
+  const plural = !index && pluralize && setCount > 1 ? 's' : '';
 
   const itemConfig = isFunction(options) ? options(index) : options;
   const items = itemConfig.map((opt: any) => ({
