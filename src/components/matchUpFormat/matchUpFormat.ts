@@ -21,6 +21,82 @@ function isFunction(fx: any): fx is (...args: any[]) => any {
   return typeof fx === 'function';
 }
 
+// Configuration interface for customizing the matchUpFormat editor
+interface MatchUpFormatConfig {
+  labels?: {
+    title?: string;
+    setFormatLabel?: string;
+    finalSetLabel?: string;
+    tiebreakLabel?: string;
+    finalSetToggleLabel?: string;
+    standardFormatsLabel?: string;
+    descriptors?: {
+      bestOf?: string;
+      exactly?: string;
+    };
+    what?: {
+      sets?: string;
+      tiebreaks?: string;
+      timedSets?: string;
+    };
+    advantage?: {
+      ad?: string;
+      noAd?: string;
+    };
+  };
+  options?: {
+    bestOf?: number[];
+    exactly?: number[];
+    setTo?: number[];
+    tiebreakTo?: number[];
+    tiebreakToExactly?: number[]; // Additional options for Exactly + Final Set
+    tiebreakAt?: number[];
+    minutes?: number[];
+    winBy?: number[];
+  };
+  preDefinedFormats?: Array<{
+    code: string;
+    text: string;
+  }>;
+}
+
+// Default configuration
+const defaultConfig: MatchUpFormatConfig = {
+  labels: {
+    title: 'Match format',
+    setFormatLabel: 'Set format',
+    finalSetLabel: 'Final set',
+    tiebreakLabel: 'Tiebreak',
+    finalSetToggleLabel: 'Final set',
+    standardFormatsLabel: 'Standard formats',
+    descriptors: {
+      bestOf: 'Best of',
+      exactly: 'Exactly'
+    },
+    what: {
+      sets: 'Set',
+      tiebreaks: 'Tiebreak',
+      timedSets: 'Timed set'
+    },
+    advantage: {
+      ad: 'Ad',
+      noAd: 'No-Ad'
+    }
+  },
+  options: {
+    bestOf: [1, 3, 5],
+    exactly: [1, 2, 3, 4, 5],
+    setTo: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    tiebreakTo: [5, 7, 9, 10, 12],
+    tiebreakToExactly: [1, 3], // Additional for Exactly
+    tiebreakAt: [3, 4, 5, 6, 7, 8],
+    minutes: [5, 10, 15, 20, 30],
+    winBy: [1, 2]
+  }
+};
+
+let editorConfig: MatchUpFormatConfig = defaultConfig;
+
 let selectedMatchUpFormat: string;
 let parsedMatchUpFormat: any;
 
@@ -112,7 +188,10 @@ function generateMatchUpFormat(): string {
 
   const matchUpFormat = governors.scoreGovernor.stringifyMatchUpFormat(parsedMatchUpFormat);
 
-  const predefined = matchUpFormats.some((format) => format.format === matchUpFormat);
+  const predefinedFormats = editorConfig.preDefinedFormats 
+    ? editorConfig.preDefinedFormats.map(f => ({ value: f.code, label: f.text, format: f.code }))
+    : matchUpFormats;
+  const predefined = predefinedFormats.some((format) => format.format === matchUpFormat);
   const elem = document.getElementById('matchUpFormatSelector') as HTMLSelectElement;
 
   // Update select dropdown WITHOUT triggering onchange event
@@ -172,10 +251,10 @@ interface SetComponent {
 
 const setComponents: SetComponent[] = [
   {
-    getValue: (pmf) => (pmf.exactly ? 'Exactly' : 'Best of'),
-    options: ['Best of', 'Exactly'],
+    getValue: (pmf) => (pmf.exactly ? editorConfig.labels?.descriptors?.exactly || 'Exactly' : editorConfig.labels?.descriptors?.bestOf || 'Best of'),
+    options: () => [editorConfig.labels?.descriptors?.bestOf || 'Best of', editorConfig.labels?.descriptors?.exactly || 'Exactly'],
     id: 'descriptor',
-    value: 'Best of',
+    value: editorConfig.labels?.descriptors?.bestOf || 'Best of',
     finalSet: false,
     onChange: 'changeDescriptor'
   },
@@ -184,9 +263,12 @@ const setComponents: SetComponent[] = [
     finalSet: false,
     id: 'bestOf',
     options: (index?: number) => {
-      // Return [1,2,3,4,5] for 'Exactly', [1,3,5] for 'Best of'
+      // Return configured options for 'Exactly' or 'Best of'
       const descriptor = format.setFormat.descriptor;
-      return descriptor === 'Exactly' ? [1, 2, 3, 4, 5] : [1, 3, 5];
+      const exactlyLabel = editorConfig.labels?.descriptors?.exactly || 'Exactly';
+      return descriptor === exactlyLabel 
+        ? (editorConfig.options?.exactly || defaultConfig.options!.exactly!)
+        : (editorConfig.options?.bestOf || defaultConfig.options!.bestOf!);
     },
     onChange: 'pluralize',
     onChangeCallback: 'updateFinalSetVisibility',
@@ -224,7 +306,7 @@ const setComponents: SetComponent[] = [
       const setFormat = whichSetFormat(pmf, isFinal);
       return setFormat.setTo;
     },
-    options: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    options: () => editorConfig.options?.setTo || defaultConfig.options!.setTo!,
     onChange: 'changeCount',
     defaultValue: 6,
     whats: [SETS],
@@ -236,7 +318,18 @@ const setComponents: SetComponent[] = [
       const setFormat = whichSetFormat(pmf, isFinal);
       return setFormat.tiebreakFormat?.tiebreakTo || setFormat.tiebreakSet?.tiebreakTo;
     },
-    options: [5, 7, 9, 10, 12],
+    options: (index?: number) => {
+      // For Final Set tiebreak when Exactly is selected, include [1,3]
+      const descriptor = format.setFormat.descriptor;
+      const standardOptions = editorConfig.options?.tiebreakTo || defaultConfig.options!.tiebreakTo!;
+      const exactlyOptions = editorConfig.options?.tiebreakToExactly || defaultConfig.options!.tiebreakToExactly!;
+      
+      if (index && descriptor === 'Exactly') {
+        // Final set + Exactly: prepend [1, 3] options
+        return [...exactlyOptions, ...standardOptions];
+      }
+      return standardOptions;
+    },
     onChange: 'changeTiebreakTo',
     whats: [SETS, TIEBREAKS],
     id: 'tiebreakTo',
@@ -379,6 +472,28 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
       // Trigger pluralize to update the "what" text if needed
       if (validBestOf !== currentValue) {
         onClicks.pluralize(new Event('click'), undefined, validBestOf);
+      }
+    }
+    
+    // Refresh tiebreakTo options for Final Set (index=1) when descriptor changes
+    // This adds/removes [1,3] options based on Exactly vs Best of
+    const finalSetTiebreakToElem = document.getElementById('tiebreakTo-1');
+    if (finalSetTiebreakToElem && finalSetTiebreakToElem.style.display !== NONE) {
+      // Just refresh the button - the options function will automatically return the correct list
+      const currentTiebreakTo = format.finalSetFormat.tiebreakTo || 7;
+      const tiebreakComponent = setComponents.find(c => c.id === 'tiebreakTo');
+      if (tiebreakComponent) {
+        const { prefix = '', suffix = '' } = tiebreakComponent;
+        // Ensure current value is still valid for new descriptor
+        const newOptions = isFunction(tiebreakComponent.options) 
+          ? tiebreakComponent.options(1) // Final set (index=1)
+          : tiebreakComponent.options;
+        // If current value is not in new options, reset to default
+        const validValue = newOptions.includes(currentTiebreakTo) ? currentTiebreakTo : 7;
+        if (validValue !== currentTiebreakTo) {
+          format.finalSetFormat.tiebreakTo = validValue;
+        }
+        finalSetTiebreakToElem.innerHTML = `${prefix}${validValue}${suffix}${clickable}`;
       }
     }
     
@@ -545,9 +660,20 @@ export function getMatchUpFormatModal({
 }: {
   existingMatchUpFormat?: string;
   callback?: (format: string) => void;
-  config?: any;
+  config?: MatchUpFormatConfig;
   modalConfig?: any;
 } = {}) {
+  // Merge user config with defaults
+  if (config) {
+    editorConfig = {
+      labels: { ...defaultConfig.labels, ...config.labels },
+      options: { ...defaultConfig.options, ...config.options },
+      preDefinedFormats: config.preDefinedFormats || defaultConfig.preDefinedFormats
+    };
+  } else {
+    editorConfig = defaultConfig;
+  }
+  
   // REFACTORED: Use pure function for format initialization
   // This prevents state pollution and ensures proper handling of all format types
   selectedMatchUpFormat = existingMatchUpFormat;
@@ -624,11 +750,17 @@ export function getMatchUpFormatModal({
 
   const standardFormatSelector = document.createElement('div');
   standardFormatSelector.style.marginBlockEnd = '1em';
+  
+  // Use configured predefined formats if available, otherwise use default from JSON
+  const predefinedFormats = editorConfig.preDefinedFormats 
+    ? editorConfig.preDefinedFormats.map(f => ({ value: f.code, label: f.text, format: f.code }))
+    : matchUpFormats;
+  
   const formatSelector = {
     id: 'matchUpFormatSelector',
     options: [
       { value: 'Custom', label: 'Custom', selected: false },
-      ...matchUpFormats
+      ...predefinedFormats
         .filter((format) => format.format) // Skip the "Custom" entry from JSON
         .map((format) => ({
           selected: format.format === selectedMatchUpFormat,
