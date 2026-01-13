@@ -319,6 +319,14 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
       // IMPORTANT: 'Exactly' is only valid with timed sets
       // Switch to timed format if not already
       if (format.setFormat.what !== TIMED_SETS) {
+        // Clean out regular set properties before switching to timed
+        delete format.setFormat.setTo;
+        delete format.setFormat.tiebreakAt;
+        delete format.setFormat.tiebreakTo;
+        delete format.setFormat.winBy;
+        delete format.setFormat.tiebreakFormat;
+        delete format.setFormat.NoAD;
+        
         format.setFormat.what = TIMED_SETS;
         // Set default timed set values if not already set
         if (!format.setFormat.minutes) {
@@ -818,22 +826,24 @@ export function getMatchUpFormatModal({
         whatElem.innerHTML = `${what}${plural}${clickable}`;
       }
       
-      // Update ALL component buttons to match main set
+      // Update ALL final set component buttons from format data
       setComponents.forEach((component) => {
-        if (!component.finalSetLabel) return;
-        
+        // Try to find the final set version of this component (id-1)
         const elem = document.getElementById(`${component.id}-1`);
+        
+        // Skip if this component doesn't have a final set version
         if (!elem) return;
         
         // Check if this component should be visible for the current 'what'
-        const visible = component.whats?.includes(what);
+        // Components without 'whats' are always visible (like 'what' selector itself)
+        const visible = component.whats ? component.whats.includes(what) : true;
         
         if (visible) {
-          // Get the value from the main set format
-          const mainElem = document.getElementById(component.id);
-          if (mainElem) {
-            // Copy the exact innerHTML from main set to final set
-            elem.innerHTML = mainElem.innerHTML;
+          // Build innerHTML from format data, not from stale buttons
+          const value = format.finalSetFormat[component.id];
+          if (value !== undefined) {
+            const { prefix = '', suffix = '' } = component;
+            elem.innerHTML = `${prefix}${value}${suffix}${clickable}`;
           }
           elem.style.display = '';
         } else {
