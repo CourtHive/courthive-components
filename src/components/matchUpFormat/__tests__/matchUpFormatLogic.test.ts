@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { matchUpFormatCode } from 'tods-competition-factory';
 import {
   AD,
   NOAD,
@@ -382,6 +383,50 @@ describe('matchUpFormatLogic', () => {
       
       // The key is that buildSetFormat() will be called with hasTiebreak flag
       // from the checkbox state, which should reflect the parsed format
+    });
+
+    it('should round-trip SET3X-S:T10-F:TB1NOAD format', () => {
+      const formatString = 'SET3X-S:T10-F:TB1NOAD';
+      const format = initializeFormatFromString(formatString, matchUpFormatCode.parse);
+      
+      // Check final set is tiebreak-only with NoAD
+      expect(format.finalSetFormat.what).toBe(TIEBREAKS);
+      expect(format.finalSetFormat.tiebreakTo).toBe(1);
+      expect(format.finalSetFormat.winBy).toBe(1); // NoAD = win by 1
+      
+      // Build the parsed format
+      const parsed = buildParsedFormat(format, false, true, false);
+      
+      // Verify NoAD is preserved in tiebreakSet
+      expect(parsed.finalSetFormat.tiebreakSet).toBeDefined();
+      expect(parsed.finalSetFormat.tiebreakSet.tiebreakTo).toBe(1);
+      expect(parsed.finalSetFormat.tiebreakSet.NoAD).toBe(true);
+      
+      // Stringify back
+      const roundTrip = matchUpFormatCode.stringify(parsed);
+      expect(roundTrip).toBe('SET3X-S:T10-F:TB1NOAD');
+    });
+
+    it('should round-trip SET3X-S:T10-F:TB1 format (without NOAD)', () => {
+      const formatString = 'SET3X-S:T10-F:TB1';
+      const format = initializeFormatFromString(formatString, matchUpFormatCode.parse);
+      
+      // Check final set is tiebreak-only WITHOUT NoAD
+      expect(format.finalSetFormat.what).toBe(TIEBREAKS);
+      expect(format.finalSetFormat.tiebreakTo).toBe(1);
+      expect(format.finalSetFormat.winBy).toBe(2); // No NoAD = win by 2
+      
+      // Build the parsed format
+      const parsed = buildParsedFormat(format, false, true, false);
+      
+      // Verify NoAD is NOT set
+      expect(parsed.finalSetFormat.tiebreakSet).toBeDefined();
+      expect(parsed.finalSetFormat.tiebreakSet.tiebreakTo).toBe(1);
+      expect(parsed.finalSetFormat.tiebreakSet.NoAD).toBeUndefined();
+      
+      // Stringify back
+      const roundTrip = matchUpFormatCode.stringify(parsed);
+      expect(roundTrip).toBe('SET3X-S:T10-F:TB1');
     });
   });
 });
