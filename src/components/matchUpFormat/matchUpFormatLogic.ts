@@ -47,7 +47,7 @@ export function createDefaultSetFormat(isFinalSet = false): SetFormatConfig {
     tiebreakAt: 6,
     tiebreakTo: 7,
     winBy: 2,
-    minutes: 10,
+    minutes: 10
   };
 }
 
@@ -57,7 +57,7 @@ export function createDefaultSetFormat(isFinalSet = false): SetFormatConfig {
 export function createDefaultFormat(): FormatConfig {
   return {
     setFormat: createDefaultSetFormat(false),
-    finalSetFormat: createDefaultSetFormat(true),
+    finalSetFormat: createDefaultSetFormat(true)
   };
 }
 
@@ -72,14 +72,11 @@ export function isTiebreakOnlySet(setFormat: any): boolean {
  * Generate a setFormat object from FormatConfig
  * Pure function - no DOM dependencies
  */
-export function buildSetFormat(
-  config: SetFormatConfig,
-  hasTiebreak: boolean
-): any {
+export function buildSetFormat(config: SetFormatConfig, hasTiebreak: boolean): any {
   const { what, setTo, tiebreakAt, tiebreakTo, winBy, minutes, advantage } = config;
-  
+
   const setFormat: any = {
-    setTo,
+    setTo
   };
 
   if (what === SETS && advantage === NOAD) {
@@ -89,7 +86,7 @@ export function buildSetFormat(
   if (hasTiebreak && what === SETS) {
     setFormat.tiebreakAt = tiebreakAt;
     setFormat.tiebreakFormat = {
-      tiebreakTo,
+      tiebreakTo
     };
     if (winBy === 1) {
       setFormat.tiebreakFormat.NoAD = true;
@@ -103,7 +100,7 @@ export function buildSetFormat(
 
   if (what === TIEBREAKS) {
     setFormat.tiebreakSet = {
-      tiebreakTo,
+      tiebreakTo
     };
     if (winBy === 1) {
       setFormat.tiebreakSet.NoAD = true;
@@ -114,7 +111,7 @@ export function buildSetFormat(
 }
 
 /**
- * Build parsed match up format from current configuration
+ * Build parsed matchUp format from current configuration
  * Pure function - no DOM dependencies
  */
 export function buildParsedFormat(
@@ -124,10 +121,10 @@ export function buildParsedFormat(
   hasFinalSetTiebreak: boolean
 ): ParsedMatchUpFormat {
   const setFormat = buildSetFormat(config.setFormat, hasSetTiebreak);
-  
+
   const parsed: ParsedMatchUpFormat = {
     bestOf: config.setFormat.bestOf || 3,
-    setFormat,
+    setFormat
   };
 
   if (hasFinalSet) {
@@ -154,7 +151,7 @@ export function getComponentVisibility(what: string): {
     tiebreakTo: what === SETS || what === TIEBREAKS,
     winBy: what === TIEBREAKS,
     advantage: what === SETS,
-    minutes: what === TIMED_SETS,
+    minutes: what === TIMED_SETS
   };
 }
 
@@ -170,17 +167,14 @@ export function getTiebreakAtOptions(setTo: number): number[] {
  * Auto-adjust tiebreakAt when setTo changes
  * Returns the new tiebreakAt value that should be used
  */
-export function autoAdjustTiebreakAt(
-  newSetTo: number,
-  currentTiebreakAt: number
-): number {
+export function autoAdjustTiebreakAt(newSetTo: number, currentTiebreakAt: number): number {
   const validOptions = getTiebreakAtOptions(newSetTo);
-  
+
   // If current value is still valid, keep it
   if (validOptions.includes(currentTiebreakAt)) {
     return currentTiebreakAt;
   }
-  
+
   // Otherwise, default to setTo (e.g., 6-6 tiebreak for setTo=6)
   return newSetTo;
 }
@@ -201,7 +195,7 @@ export function shouldShowFinalSetOption(bestOf: number): boolean {
 }
 
 /**
- * Initialize format configuration from a match up format string
+ * Initialize format configuration from a matchUp format string
  * Merges parsed format with defaults to ensure all properties exist
  */
 export function initializeFormatFromString(
@@ -209,23 +203,23 @@ export function initializeFormatFromString(
   parseFunction: (format: string) => any
 ): FormatConfig {
   const parsedMatchUpFormat = parseFunction(matchUpFormat);
-  
+
   const setDefaults = createDefaultSetFormat(false);
   const finalSetDefaults = createDefaultSetFormat(true);
-  
+
   const format: FormatConfig = {
     setFormat: { ...setDefaults, ...parsedMatchUpFormat.setFormat },
-    finalSetFormat: { ...finalSetDefaults, ...parsedMatchUpFormat.finalSetFormat },
+    finalSetFormat: { ...finalSetDefaults, ...parsedMatchUpFormat.finalSetFormat }
   };
-  
+
   format.setFormat.bestOf = parsedMatchUpFormat.bestOf || 3;
-  
+
   // Detect if final set is tiebreak-only (e.g., F:TB10)
   if (isTiebreakOnlySet(parsedMatchUpFormat.finalSetFormat)) {
     format.finalSetFormat.what = TIEBREAKS;
     format.finalSetFormat.tiebreakTo = parsedMatchUpFormat.finalSetFormat.tiebreakSet.tiebreakTo;
     format.finalSetFormat.winBy = parsedMatchUpFormat.finalSetFormat.tiebreakSet.NoAD ? 1 : 2;
   }
-  
+
   return format;
 }
