@@ -22,6 +22,7 @@ export interface SetFormatConfig {
   tiebreakTo: number;
   winBy: number;
   minutes: number;
+  based?: string; // 'A' (Aggregate), 'P' (Points), 'G' (Games), or undefined (default Games)
 }
 
 export interface FormatConfig {
@@ -50,6 +51,7 @@ export function createDefaultSetFormat(isFinalSet = false): SetFormatConfig {
     tiebreakTo: 7,
     winBy: 2,
     minutes: 10
+    // based is undefined by default (Games is default when omitted)
   };
 }
 
@@ -75,7 +77,7 @@ export function isTiebreakOnlySet(setFormat: any): boolean {
  * Pure function - no DOM dependencies
  */
 export function buildSetFormat(config: SetFormatConfig, hasTiebreak: boolean): any {
-  const { what, setTo, tiebreakAt, tiebreakTo, winBy, minutes, advantage } = config;
+  const { what, setTo, tiebreakAt, tiebreakTo, winBy, minutes, advantage, based } = config;
 
   const setFormat: any = {
     setTo
@@ -98,6 +100,12 @@ export function buildSetFormat(config: SetFormatConfig, hasTiebreak: boolean): a
   if (what === TIMED_SETS) {
     setFormat.minutes = minutes;
     setFormat.timed = true;
+    
+    // Include 'based' property if specified (A/P/G)
+    // If undefined, omit it (defaults to games in factory)
+    if (based) {
+      setFormat.based = based;
+    }
   }
 
   if (what === TIEBREAKS) {
@@ -219,6 +227,15 @@ export function initializeFormatFromString(
     setFormat: { ...setDefaults, ...parsedMatchUpFormat.setFormat },
     finalSetFormat: { ...finalSetDefaults, ...parsedMatchUpFormat.finalSetFormat }
   };
+
+  // Copy 'based' property directly from parsed format (no conversion needed)
+  if (parsedMatchUpFormat.setFormat?.based) {
+    format.setFormat.based = parsedMatchUpFormat.setFormat.based;
+  }
+
+  if (parsedMatchUpFormat.finalSetFormat?.based) {
+    format.finalSetFormat.based = parsedMatchUpFormat.finalSetFormat.based;
+  }
 
   // Handle both bestOf and exactly attributes
   if (parsedMatchUpFormat.exactly) {
