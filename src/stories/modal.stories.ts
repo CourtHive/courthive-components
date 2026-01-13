@@ -10,7 +10,7 @@ export const InfoIcon = {
   render: () => {
     const container = document.createElement('div');
     container.style.padding = '2em';
-    
+
     // Modal with info icon
     const infoButton = document.createElement('button');
     infoButton.className = 'button is-primary';
@@ -19,16 +19,15 @@ export const InfoIcon = {
     infoButton.onclick = () => {
       cModal.open({
         title: 'Modal with Info',
-        content: '<p>This modal has an info icon in the title bar.</p><p>Click the blue (?) icon to see more information.</p>',
-        buttons: [
-          { label: 'Close', intent: 'is-info' }
-        ],
+        content:
+          '<p>This modal has an info icon in the title bar.</p><p>Click the blue (?) icon to see more information.</p>',
+        buttons: [{ label: 'Close', intent: 'is-info' }],
         config: {
           info: 'This is additional information that appears in a popover when you click the info icon. It can contain helpful context or instructions about the modal content.'
         }
       });
     };
-    
+
     // Modal with info icon and HTML content
     const htmlInfoButton = document.createElement('button');
     htmlInfoButton.className = 'button is-success';
@@ -38,15 +37,13 @@ export const InfoIcon = {
       cModal.open({
         title: 'Advanced Info Example',
         content: '<p>This modal demonstrates HTML in the info popover.</p>',
-        buttons: [
-          { label: 'Close', intent: 'is-info' }
-        ],
+        buttons: [{ label: 'Close', intent: 'is-info' }],
         config: {
           info: '<strong>Important:</strong> This popover supports HTML.<br><br><ul><li>Feature 1</li><li>Feature 2</li><li>Feature 3</li></ul>'
         }
       });
     };
-    
+
     // Modal with info icon but no title (edge case)
     const noTitleButton = document.createElement('button');
     noTitleButton.className = 'button is-warning';
@@ -54,30 +51,29 @@ export const InfoIcon = {
     noTitleButton.onclick = () => {
       cModal.open({
         content: '<p>This modal has no title but still shows the info icon in the header area.</p>',
-        buttons: [
-          { label: 'Close', intent: 'is-info' }
-        ],
+        buttons: [{ label: 'Close', intent: 'is-info' }],
         config: {
           info: 'You can have an info icon even without a title. The header will still be displayed to accommodate the icon.'
         }
       });
     };
-    
+
     const title = document.createElement('h2');
     title.textContent = 'Modal Info Icon Examples';
     title.style.marginBottom = '1em';
-    
+
     const description = document.createElement('p');
-    description.innerHTML = 'Demonstrates the new <code>config.info</code> option that displays an info icon (?) in the modal title bar with a popover on click.';
+    description.innerHTML =
+      'Demonstrates the new <code>config.info</code> option that displays an info icon (?) in the modal title bar with a popover on click.';
     description.style.marginBottom = '1.5em';
     description.style.color = '#666';
-    
+
     container.appendChild(title);
     container.appendChild(description);
     container.appendChild(infoButton);
     container.appendChild(htmlInfoButton);
     container.appendChild(noTitleButton);
-    
+
     return container;
   }
 };
@@ -86,7 +82,7 @@ export const Styling = {
   render: () => {
     const container = document.createElement('div');
     container.style.padding = '2em';
-    
+
     // Standard modal button
     const standardButton = document.createElement('button');
     standardButton.className = 'button is-primary';
@@ -102,7 +98,7 @@ export const Styling = {
         ]
       });
     };
-    
+
     // Styled modal button with inline styles
     const styledButton = document.createElement('button');
     styledButton.className = 'button is-info';
@@ -111,10 +107,9 @@ export const Styling = {
     styledButton.onclick = () => {
       cModal.open({
         title: 'Custom Styled Modal',
-        content: '<p>This modal uses inline styles for custom appearance.</p><p>Notice the blue border and gray background!</p>',
-        buttons: [
-          { label: 'Close', intent: 'is-primary' }
-        ],
+        content:
+          '<p>This modal uses inline styles for custom appearance.</p><p>Notice the blue border and gray background!</p>',
+        buttons: [{ label: 'Close', intent: 'is-primary' }],
         config: {
           style: {
             backgroundColor: '#f8f9fa',
@@ -125,7 +120,7 @@ export const Styling = {
         }
       });
     };
-    
+
     // Custom class modal button
     const classButton = document.createElement('button');
     classButton.className = 'button is-success';
@@ -147,19 +142,17 @@ export const Styling = {
         }
       `;
       document.head.appendChild(style);
-      
+
       cModal.open({
         title: 'Custom Class Modal',
         content: '<p>This modal uses a custom CSS class with gradient background!</p>',
-        buttons: [
-          { label: 'Amazing!', intent: 'is-light' }
-        ],
+        buttons: [{ label: 'Amazing!', intent: 'is-light' }],
         config: {
           className: 'custom-modal-class'
         }
       });
     };
-    
+
     // Combined styles and class
     const combinedButton = document.createElement('button');
     combinedButton.className = 'button is-warning';
@@ -174,13 +167,12 @@ export const Styling = {
         }
       `;
       document.head.appendChild(style);
-      
+
       cModal.open({
         title: 'Combined Styling',
-        content: '<p>This modal combines both a custom class and inline styles.</p><p>The class provides base styling, while inline styles add the border.</p>',
-        buttons: [
-          { label: 'Got it', intent: 'is-primary' }
-        ],
+        content:
+          '<p>This modal combines both a custom class and inline styles.</p><p>The class provides base styling, while inline styles add the border.</p>',
+        buttons: [{ label: 'Got it', intent: 'is-primary' }],
         config: {
           className: 'format-editor-modal',
           style: {
@@ -190,79 +182,24 @@ export const Styling = {
         }
       });
     };
-    
+
     const title = document.createElement('h2');
     title.textContent = 'Modal Styling Examples';
     title.style.marginBottom = '1em';
-    
+
     const description = document.createElement('p');
-    description.innerHTML = 'Demonstrates the new <code>className</code> and <code>style</code> config options for customizing modal appearance.';
+    description.innerHTML =
+      'Demonstrates the new <code>className</code> and <code>style</code> config options for customizing modal appearance.';
     description.style.marginBottom = '1.5em';
     description.style.color = '#666';
-    
+
     container.appendChild(title);
     container.appendChild(description);
     container.appendChild(standardButton);
     container.appendChild(styledButton);
     container.appendChild(classButton);
     container.appendChild(combinedButton);
-    
-    return container;
-  }
-};
 
-export const MatchUpFormatEditor = {
-  render: () => {
-    const container = document.createElement('div');
-    container.style.padding = '2em';
-    
-    // Track the current format across modal opens
-    let currentFormat = 'SET3-S:6/TB7';
-    
-    const formatDisplay = document.createElement('div');
-    formatDisplay.style.marginBottom = '1em';
-    formatDisplay.style.padding = '1em';
-    formatDisplay.style.backgroundColor = '#f0f0f0';
-    formatDisplay.style.borderRadius = '4px';
-    formatDisplay.style.color = '#000';
-    formatDisplay.innerHTML = `<strong style="color: #000;">Current Format:</strong> <code style="background: #e0e0e0; padding: 0.2em 0.4em; border-radius: 3px; color: #000;">${currentFormat}</code>`;
-    
-    const button = document.createElement('button');
-    button.className = 'button is-primary';
-    button.textContent = 'Open Match Format Editor';
-    button.onclick = async () => {
-      // Dynamically import the matchUpFormat component
-      const { getMatchUpFormatModal } = await import('../components/matchUpFormat/matchUpFormat');
-      
-      getMatchUpFormatModal({
-        existingMatchUpFormat: currentFormat,
-        callback: (format: string) => {
-          if (format) {
-            console.log('Selected format:', format);
-            currentFormat = format;
-            formatDisplay.innerHTML = `<strong style="color: #000;">Current Format:</strong> <code style="background: #e0e0e0; padding: 0.2em 0.4em; border-radius: 3px; color: #000;">${currentFormat}</code>`;
-          } else {
-            console.log('Format selection cancelled');
-          }
-        }
-      });
-    };
-    
-    const title = document.createElement('h2');
-    title.textContent = 'Match Format Editor (Real Component)';
-    title.style.marginBottom = '1em';
-    title.style.color = '#333';
-    
-    const description = document.createElement('p');
-    description.innerHTML = 'This is the real <code>matchUpFormat</code> component from TMX, now ported to courthive-components.<br>It demonstrates the new <code>style</code> config option for custom modal styling with a blue border.<br><em>The modal will remember your last selection and open with it next time.</em>';
-    description.style.marginBottom = '1.5em';
-    description.style.color = '#555';
-    
-    container.appendChild(title);
-    container.appendChild(description);
-    container.appendChild(formatDisplay);
-    container.appendChild(button);
-    
     return container;
   }
 };

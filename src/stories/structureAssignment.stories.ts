@@ -17,10 +17,10 @@ function getAvailableParticipants(count: number = 32): Participant[] {
       participantType: 'INDIVIDUAL'
     }
   });
-  
+
   tournamentEngine.setState(tournamentRecord);
   const { participants } = tournamentEngine.getParticipants();
-  
+
   return participants.map((p: any) => ({
     participantId: p.participantId,
     participantName: p.participantName,
@@ -51,33 +51,34 @@ const argTypes = {
 };
 
 export default {
-  title: 'Structures/Participant Assignment',
+  title: 'Draws/Participant Assignment',
   tags: ['autodocs'],
   render: ({ composition: compositionKey, fontSize, ...args }) => {
     const composition = compositions[compositionKey || 'Basic'];
-    
+
     // Generate event data with empty draw (participantsCount: 0, automated: false)
-    const { eventData } = generateEventData({ 
-      ...args, 
-      participantsCount: 0,
-      automated: false // Prevent automatic participant placement
-    }) || {};
-    
+    const { eventData } =
+      generateEventData({
+        ...args,
+        participantsCount: 0,
+        automated: false // Prevent automatic participant placement
+      }) || {};
+
     const structures = eventData?.drawsData?.[0]?.structures || [];
     const initialStructureId = structures[0]?.structureId;
     const structure = structures?.find((structure) => structure.structureId === initialStructureId);
     const roundMatchUps = structure?.roundMatchUps;
-    const matchUps: MatchUp[] = roundMatchUps ? Object.values(roundMatchUps)?.flat() as MatchUp[] : [];
-    
-    const context = { 
-      structureId: structure?.structureId, 
-      drawId: eventData?.drawsData?.[0]?.drawId 
+    const matchUps: MatchUp[] = roundMatchUps ? (Object.values(roundMatchUps)?.flat() as MatchUp[]) : [];
+
+    const context = {
+      structureId: structure?.structureId,
+      drawId: eventData?.drawsData?.[0]?.drawId
     };
-    
+
     // Generate available participants (twice the draw size for selection options)
     const drawSize = args.drawSize || 16;
     const availableParticipants = getAvailableParticipants(drawSize * 2);
-    
+
     console.log(`Generated draw:`, {
       drawSize,
       matchUpCount: matchUps.length,
@@ -94,7 +95,7 @@ export default {
         ...composition.configuration,
         inlineAssignment: true,
         participantProvider: () => availableParticipants,
-        assignmentInputFontSize: fontSize, // Apply font size from controls
+        assignmentInputFontSize: fontSize // Apply font size from controls
       }
     };
 
@@ -110,7 +111,7 @@ export default {
           participantId: participant.participantId,
           participantName: participant.participantName
         });
-        
+
         // In real implementation, this would:
         // 1. Call tournamentEngine.assignDrawPosition()
         // 2. Trigger re-render of the structure
@@ -127,7 +128,7 @@ export default {
     const content = document.createElement('div');
     content.style.maxWidth = '100%';
     content.style.padding = '20px';
-    
+
     // Add instructions
     const instructions = document.createElement('div');
     instructions.style.marginBottom = '20px';
@@ -150,7 +151,7 @@ export default {
         Font Size: ${fontSize || 'default (inherit)'}
       </small>
     `;
-    
+
     content.appendChild(instructions);
     content.appendChild(renderedStructure);
 
