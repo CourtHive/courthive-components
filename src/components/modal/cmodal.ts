@@ -169,7 +169,10 @@ export const cModal = (() => {
       if (buttonConfig.id) elem.id = buttonConfig.id;
 
       elem.className = buttonConfig?.footer?.className || 'button font-medium';
-      elem.classList.add(buttonConfig.intent || 'is-info');
+      // Only add intent class if it's not 'none'
+      if (buttonConfig.intent && buttonConfig.intent !== 'none') {
+        elem.classList.add(buttonConfig.intent);
+      }
       elem.style = 'margin-right: .5em;';
       elem.innerHTML = buttonConfig.label || buttonConfig.text || '';
 
