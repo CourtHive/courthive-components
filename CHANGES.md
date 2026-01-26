@@ -1,5 +1,22 @@
 # Recent Changes
 
+## 2026-01-26 - Documentation & Improvements
+
+### Documentation
+
+9. **README.md Overhaul**
+   - Comprehensive component documentation
+   - Usage examples for all components
+   - Integration with Competition Factory
+   - Storybook link and quick start guide
+
+10. **STATE_OF_THE_ART.md Created**
+   - Consolidated all root-level documentation
+   - Architectural decisions and patterns
+   - Migration history and lessons learned
+   - Testing, deployment, and best practices
+   - Single source of truth for accumulated knowledge
+
 ## 2026-01-26 - Scoring Modal Improvements
 
 ### Fixes
@@ -40,7 +57,7 @@
    - Added cross-references
    - Updated TMX integration docs
 
-### Follow-up Fix
+### Follow-up Fixes
 
 7. **Null Check for 'in' Operator**
    - Fixed crash when using `in` operator with null values
@@ -48,6 +65,13 @@
    - Discovered in Storybook dialPad testing
    - Files: `freeScoreApproach.ts`, `dialPadApproach.ts`
    - Details: [NULL_CHECK_FIX.md](./NULL_CHECK_FIX.md)
+
+8. **Storybook GitHub Pages Deployment**
+   - Fixed "Failed to fetch dynamically imported module" errors
+   - Added base path configuration for GitHub Pages
+   - Configured viteFinal hook in `.storybook/main.ts`
+   - All dynamic imports now working correctly
+   - Details: [STORYBOOK_GITHUB_PAGES_FIX.md](./STORYBOOK_GITHUB_PAGES_FIX.md)
 
 ### Build
 
