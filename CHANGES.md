@@ -5,28 +5,32 @@
 ### Documentation
 
 9. **README.md Overhaul**
+
    - Comprehensive component documentation
    - Usage examples for all components
    - Integration with Competition Factory
    - Storybook link and quick start guide
 
 10. **STATE_OF_THE_ART.md Created**
-   - Consolidated all root-level documentation
-   - Architectural decisions and patterns
-   - Migration history and lessons learned
-   - Testing, deployment, and best practices
-   - Single source of truth for accumulated knowledge
+
+- Consolidated all root-level documentation
+- Architectural decisions and patterns
+- Migration history and lessons learned
+- Testing, deployment, and best practices
+- Single source of truth for accumulated knowledge
 
 ## 2026-01-26 - Scoring Modal Improvements
 
 ### Fixes
 
 1. **Info Popover Text Visibility**
+
    - Fixed `<strong>` tags rendering as light grey
    - Added CSS rule for black text with proper weight
    - File: `src/components/modal/cmodal.ts`
 
 2. **Walkover Score Display**
+
    - Fixed issue where Walkover showed numeric scores + [WO] pill
    - Now shows ONLY [WO] pill without any scores
    - File: `src/components/scoring/approaches/dynamicSetsApproach.ts`
@@ -48,6 +52,7 @@
 ### Documentation
 
 5. **Testing Guide**
+
    - Created comprehensive testing guidelines
    - Consolidated all scoring modal documentation
    - File: `SCORING_MODAL_TESTING_GUIDE.md`
@@ -60,6 +65,7 @@
 ### Follow-up Fixes
 
 7. **Null Check for 'in' Operator**
+
    - Fixed crash when using `in` operator with null values
    - Added explicit null check in property existence checks
    - Discovered in Storybook dialPad testing
