@@ -137,7 +137,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
       ...matchUp,
       score: displayScore,
       winningSide: internalWinningSide,
-      matchUpStatus: internalMatchUpStatus,
+      matchUpStatus: internalMatchUpStatus
     };
 
     // Clear and render
@@ -147,7 +147,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
     const matchUpElement = renderMatchUp({
       matchUp: displayMatchUp,
       isLucky: true,
-      composition: compositions[compositionName] || compositions.Australian,
+      composition: compositions[compositionName] || compositions.Australian
     });
     matchUpContainer.appendChild(matchUpElement);
   };
@@ -203,9 +203,9 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
           modalConfig: {
             style: {
               fontSize: '12px', // Smaller base font size for TMX
-              border: '3px solid #0066cc',
-            },
-          },
+              border: '3px solid #0066cc'
+            }
+          }
         } as any);
       } catch (error) {
         console.error('[FreeScore] Error opening format selector:', error);
@@ -234,7 +234,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
   const input = document.createElement('input');
   input.type = 'text';
   input.className = 'input';
-  input.placeholder = '6-3 3-6 6-4';
+  input.placeholder = '';
   input.style.flex = '1';
   input.id = 'scoreInputV2';
 
@@ -314,10 +314,10 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
       manualWinningSide = undefined;
       // Reset matchUp display - clear score and winningSide
       updateMatchUpDisplay({ clearAll: true });
-      onScoreChange({ 
-        isValid: false, 
-        sets: [], 
-        matchUpStatus: 'TO_BE_PLAYED' 
+      onScoreChange({
+        isValid: false,
+        sets: [],
+        matchUpStatus: 'TO_BE_PLAYED'
       });
       return;
     }
@@ -344,7 +344,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
         INCOMPLETE,
         DEAD_RUBBER,
         IN_PROGRESS,
-        AWAITING_RESULT,
+        AWAITING_RESULT
       ].includes(parseResult.matchUpStatus);
 
     // CRITICAL: Validate the formatted score using factory validation
@@ -366,7 +366,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
       updateMatchUpDisplay({
         scoreObject: result.scoreObject, // May be undefined for WALKOVER/CANCELLED/DEAD_RUBBER
         winningSide: displayWinningSide,
-        matchUpStatus: result.matchUpStatus || parseResult.matchUpStatus,
+        matchUpStatus: result.matchUpStatus || parseResult.matchUpStatus
       });
     }
 
@@ -412,7 +412,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
       const noWinnerNeeded =
         isIrregularEnding &&
         [CANCELLED, DEAD_RUBBER, AWAITING_RESULT, INCOMPLETE, IN_PROGRESS, SUSPENDED].includes(
-          result.matchUpStatus || parseResult.matchUpStatus,
+          result.matchUpStatus || parseResult.matchUpStatus
         );
 
       if (requiresWinnerSelection) {
@@ -429,7 +429,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
             isValid: false,
             error: 'Winner must be selected for irregular ending',
             matchUpStatus: result.matchUpStatus || parseResult.matchUpStatus,
-            score: parseResult.formattedScore || scoreString,
+            score: parseResult.formattedScore || scoreString
           });
           return;
         }
@@ -467,7 +467,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
         isValid: true,
         winningSide: effectiveWinningSide,
         matchUpStatus: result.matchUpStatus || parseResult.matchUpStatus,
-        score: parseResult.formattedScore || scoreString,
+        score: parseResult.formattedScore || scoreString
       });
     } else if (!result.isValid && hasSets) {
       // Has validated sets but incomplete - show orange indicator
@@ -619,10 +619,10 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
     // Clear matchUp display
     updateMatchUpDisplay({ clearAll: true });
     // Report cleared state
-    onScoreChange({ 
-      isValid: false, 
-      sets: [], 
-      matchUpStatus: 'TO_BE_PLAYED' 
+    onScoreChange({
+      isValid: false,
+      sets: [],
+      matchUpStatus: 'TO_BE_PLAYED'
     });
     // Focus input
     input.focus();

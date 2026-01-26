@@ -37,7 +37,7 @@ const createMockMatchUp = (withExistingScore = false, withFormat = true): any =>
     eventType: 'SINGLES',
     randomWinningSide: false
   });
-  
+
   const matchUp = matchUps[0];
   matchUp.matchUpId = 'test-matchup-1';
   matchUp.matchUpStatus = 'TO_BE_PLAYED';
@@ -55,14 +55,6 @@ const createMockMatchUp = (withExistingScore = false, withFormat = true): any =>
     matchUp.score = globalMatchUpState.score;
     matchUp.winningSide = globalMatchUpState.winningSide;
     matchUp.matchUpStatus = globalMatchUpState.matchUpStatus;
-  } else if (withExistingScore) {
-    matchUp.score = {
-      sets: [
-        { side1Score: 6, side2Score: 4, winningSide: 1 },
-        { side1Score: 3, side2Score: 6, winningSide: 2 }
-      ]
-    };
-    matchUp.matchUpStatus = 'IN_PROGRESS';
   }
 
   return matchUp;
@@ -70,8 +62,6 @@ const createMockMatchUp = (withExistingScore = false, withFormat = true): any =>
 
 // Shared callback to save state globally
 const handleScoreSubmit = (outcome: any) => {
-  console.log('Score submitted:', outcome);
-
   // Save to global state
   globalMatchUpState = {
     score: outcome.scoreObject || outcome.score,
@@ -101,10 +91,6 @@ const createStoryContainer = (title: string, description: string) => {
 
   return container;
 };
-
-
-
-
 
 /**
  * Free Score Approach

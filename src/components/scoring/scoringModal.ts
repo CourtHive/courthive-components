@@ -11,27 +11,27 @@ import { getScoringConfig } from './config';
 
 export function scoringModal(params: ScoringModalParams): void {
   const { matchUp, callback } = params;
-  
+
   // Choose approach based on config setting
   const config = getScoringConfig();
   const approach = config.scoringApproach || 'dynamicSets';
-  
+
   const container = document.createElement('div');
   container.style.padding = '1em';
-  
+
   // Track if matchUp had an existing score/status
   const hadExistingScore = !!(matchUp.score?.sets?.length || matchUp.matchUpStatus);
   let currentOutcome: ScoreOutcome | null = null;
   let wasCleared = false; // Track if user has cleared the score
-  
+
   const handleScoreChange = (outcome: ScoreOutcome) => {
     currentOutcome = outcome;
-    
+
     // If user enters anything after clearing, mark as no longer cleared
     if (wasCleared && (outcome.sets?.length > 0 || outcome.score)) {
       wasCleared = false;
     }
-    
+
     // Enable/disable submit button based on validity
     const submitBtn = document.getElementById('submitScoreV2') as HTMLButtonElement;
     if (submitBtn) {
@@ -41,7 +41,7 @@ export function scoringModal(params: ScoringModalParams): void {
       const canSubmit = outcome.isValid || (wasCleared && hadExistingScore);
       submitBtn.disabled = !canSubmit;
     }
-    
+
     // Enable/disable clear button based on whether there's input
     const clearBtn = document.getElementById('clearScoreV2') as HTMLButtonElement;
     if (clearBtn) {
@@ -52,9 +52,8 @@ export function scoringModal(params: ScoringModalParams): void {
       } else {
         // For other approaches (dynamicSets, dialPad), check if there are sets OR irregular ending status
         const hasSets = outcome.sets && outcome.sets.length > 0;
-        const hasIrregularStatus = outcome.matchUpStatus && 
-                                   outcome.matchUpStatus !== 'COMPLETED' && 
-                                   outcome.matchUpStatus !== 'TO_BE_PLAYED';
+        const hasIrregularStatus =
+          outcome.matchUpStatus && outcome.matchUpStatus !== 'COMPLETED' && outcome.matchUpStatus !== 'TO_BE_PLAYED';
         const hasContentToClear = hasSets || hasIrregularStatus;
         clearBtn.disabled = !hasContentToClear;
       }
@@ -74,45 +73,45 @@ export function scoringModal(params: ScoringModalParams): void {
       (window as any).resetDynamicSets = undefined;
     }
   };
-  
+
   if (approach === 'freeScore') {
     renderFreeScoreEntry({
       matchUp,
       container,
-      onScoreChange: handleScoreChange,
+      onScoreChange: handleScoreChange
     });
   } else if (approach === 'dynamicSets') {
     renderDynamicSetsScoreEntry({
       matchUp,
       container,
-      onScoreChange: handleScoreChange,
+      onScoreChange: handleScoreChange
     });
   } else if (approach === 'dialPad') {
     renderDialPadScoreEntry({
       matchUp,
       container,
-      onScoreChange: handleScoreChange,
+      onScoreChange: handleScoreChange
     });
   } else {
     container.innerHTML = '<p>Unknown scoring approach...</p>';
   }
-  
+
   cModal.open({
     title: 'Score Entry',
     content: container,
     buttons: [
-      { 
+      {
         onClick: () => {
           cleanupCurrentApproach();
           // Cancel button should NOT call callback - just close modal
         },
-        label: 'Cancel', 
+        label: 'Cancel',
         intent: 'none',
-        footer: { 
+        footer: {
           className: 'button',
           style: 'background-color: white; color: #363636; border: 1px solid #dbdbdb;'
         },
-        close: true 
+        close: true
       },
       {
         id: 'clearScoreV2',
@@ -123,7 +122,7 @@ export function scoringModal(params: ScoringModalParams): void {
         onClick: () => {
           // Mark that user has cleared the score
           wasCleared = true;
-          
+
           if (approach === 'freeScore') {
             // Clear text input (freeScore uses text input)
             const scoreInput = document.getElementById('scoreInputV2') as HTMLInputElement;
@@ -132,18 +131,14 @@ export function scoringModal(params: ScoringModalParams): void {
               scoreInput.dispatchEvent(new Event('input', { bubbles: true }));
               scoreInput.focus();
             }
-          } else if (approach === 'dynamicSets') {
+          } else if (approach === 'dynamicSets' && (window as any).resetDynamicSets) {
             // Clear dynamic sets
-            if ((window as any).resetDynamicSets) {
-              (window as any).resetDynamicSets();
-            }
-          } else if (approach === 'dialPad') {
+            (window as any).resetDynamicSets();
+          } else if (approach === 'dialPad' && (window as any).resetDialPad) {
             // Clear dial pad digits
-            if ((window as any).resetDialPad) {
-              (window as any).resetDialPad();
-            }
+            (window as any).resetDialPad();
           }
-        },
+        }
       },
       {
         id: 'submitScoreV2',
@@ -155,30 +150,30 @@ export function scoringModal(params: ScoringModalParams): void {
           // 1. Score is valid, OR
           // 2. User cleared an existing score (to remove it)
           const canSubmit = currentOutcome && (currentOutcome.isValid || (wasCleared && hadExistingScore));
-          
+
           if (canSubmit) {
             cleanupCurrentApproach();
             // Pass the full outcome to callback
             callback(currentOutcome);
           }
         },
-        close: true,
-      },
-    ],
+        close: true
+      }
+    ]
   });
-  
+
   // Apply yellow styling to Clear button and update button states after modal opens
   setTimeout(() => {
     const clearButton = document.getElementById('clearScoreV2') as HTMLButtonElement;
     if (clearButton) {
       clearButton.style.backgroundColor = '#ffeb3b';
       clearButton.style.color = '#333';
-      
+
       // Enable Clear button if matchUp has existing score or irregular status
       if (hadExistingScore) {
         clearButton.disabled = false;
       }
-      
+
       // Update button states if we have an initial outcome
       if (currentOutcome) {
         handleScoreChange(currentOutcome);
