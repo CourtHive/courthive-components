@@ -175,8 +175,8 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     radio.addEventListener('change', (e) => {
       selectedOutcome = (e.target as HTMLInputElement).value as any;
 
-      // Clear all set inputs when WALKOVER is selected
-      if (selectedOutcome === WALKOVER) {
+      // Clear all set inputs and scores for irregular endings
+      if (selectedOutcome === WALKOVER || selectedOutcome === RETIRED || selectedOutcome === DEFAULTED) {
         // Clear all set inputs
         const allInputs = setsContainer.querySelectorAll('input');
         allInputs.forEach((input) => {
@@ -189,8 +189,9 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
           allSetRows[i].remove();
         }
 
-        // Reset currentSets
+        // Reset currentSets and clear internal score state
         currentSets = [];
+        internalScore = undefined; // CRITICAL: Clear internal score so it doesn't show in display
       }
 
       // Show winner selection when irregular ending selected
@@ -405,6 +406,13 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       }
       if (validationResult?.matchUpStatus) {
         internalMatchUpStatus = validationResult.matchUpStatus;
+        
+        // CRITICAL: For irregular endings (WO/RET/DEF) with no sets, clear the score display
+        const isIrregularEnding = [WALKOVER, RETIRED, DEFAULTED].includes(internalMatchUpStatus);
+        if (isIrregularEnding && currentSets.length === 0) {
+          displayScore = undefined;
+          internalScore = undefined;
+        }
       }
     }
 

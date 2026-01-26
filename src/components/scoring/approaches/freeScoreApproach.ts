@@ -122,12 +122,15 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
     if (currentScore?.clearAll) {
       internalWinningSide = undefined;
       internalMatchUpStatus = undefined;
-    } else {
-      // Update all properties that are present (not mutually exclusive)
-      if (currentScore?.winningSide !== undefined) {
+    } else if (currentScore !== undefined && currentScore !== null) {
+      // Update properties that are present in currentScore object
+      // CRITICAL: Check if property EXISTS in object (using 'in'), not just if it's truthy
+      // This allows us to clear values by passing undefined explicitly
+      // NOTE: Must check currentScore is not null before using 'in' operator
+      if ('winningSide' in currentScore) {
         internalWinningSide = currentScore.winningSide;
       }
-      if (currentScore?.matchUpStatus) {
+      if ('matchUpStatus' in currentScore) {
         internalMatchUpStatus = currentScore.matchUpStatus;
       }
     }
@@ -216,14 +219,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
     container.appendChild(formatInfo);
   }
 
-  // Instructions
-  const instructions = document.createElement('div');
-  instructions.style.fontSize = '0.9em';
-  instructions.style.color = '#666';
-  instructions.style.marginBottom = '0.5em';
-  instructions.innerHTML =
-    '<small style="color: #999;">Tiebreaks auto-detected: "67 3" → "6-7(3)".<br> Match tiebreaks use dash: "10-7".<br> Irregular: r/w/s/c/a (ret/wo/def/susp/canc/await) or "in"/"inc"/"dr".</small>';
-  container.appendChild(instructions);
+  // Instructions removed - now shown in info icon popover in modal title
 
   // Score input
   const inputWrapper = document.createElement('div');
@@ -503,8 +499,12 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
       side2RadioLabel.style.fontWeight = '';
       side2RadioLabel.style.color = '';
       manualWinningSide = undefined;
-      // Reset matchUp display
-      updateMatchUpDisplay();
+      // Reset matchUp display - explicitly clear status and winner
+      updateMatchUpDisplay({
+        scoreObject: undefined,
+        winningSide: undefined,
+        matchUpStatus: undefined
+      });
 
       onScoreChange(result);
     }

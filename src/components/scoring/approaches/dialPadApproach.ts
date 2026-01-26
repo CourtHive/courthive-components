@@ -288,15 +288,18 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         internalScore = undefined;
         internalWinningSide = undefined;
         internalMatchUpStatus = undefined;
-      } else {
+      } else if (outcome !== undefined && outcome !== null) {
         // Update all properties that are present (not mutually exclusive)
+        // CRITICAL: Check if property EXISTS in object (using 'in'), not just if it's truthy
+        // This allows us to clear values by passing undefined explicitly
+        // NOTE: Must check outcome is not null before using 'in' operator
         if (hasOutcomeScore) {
           internalScore = (outcome as ScoreOutcome)?.scoreObject;
         }
-        if ((outcome as ScoreOutcome)?.winningSide !== undefined) {
+        if ('winningSide' in (outcome as ScoreOutcome)) {
           internalWinningSide = (outcome as ScoreOutcome)?.winningSide;
         }
-        if ((outcome as ScoreOutcome)?.matchUpStatus) {
+        if ('matchUpStatus' in (outcome as ScoreOutcome)) {
           internalMatchUpStatus = (outcome as ScoreOutcome)?.matchUpStatus;
         }
       }

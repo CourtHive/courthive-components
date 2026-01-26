@@ -281,6 +281,19 @@ export const cModal = (() => {
           color: #363636;
         `;
         
+        // Ensure strong tags render in black
+        const style = document.createElement('style');
+        style.textContent = `
+          [data-modal-popover] strong {
+            color: #000 !important;
+            font-weight: 600;
+          }
+        `;
+        if (!document.querySelector('[data-modal-popover-styles]')) {
+          style.setAttribute('data-modal-popover-styles', 'true');
+          document.head.appendChild(style);
+        }
+        
         if (isString(config.info)) {
           infoPopover.innerHTML = config.info;
         } else {
