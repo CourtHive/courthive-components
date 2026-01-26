@@ -411,7 +411,5 @@ MIT © Charles Allen
 
 ## Links
 
-- **Storybook:** <https://courthive.github.io/courthive-components/>
 - **Competition Factory:** <https://github.com/CourtHive/tods-competition-factory>
-- **Documentation:** <https://courthive.com/developers>
-- **npm:** <https://www.npmjs.com/package/courthive-components>
+- **TMX:** <https://github.com/CourtHive/tmx>
