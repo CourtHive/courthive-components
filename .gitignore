@@ -1,0 +1,4 @@
+node_modules
+dist
+eslint-report.json
+.eslintcache
