@@ -26,7 +26,7 @@ yarn add courthive-components
 ```typescript
 import { scoringModal, setScoringConfig } from 'courthive-components';
 
-// Configure the scoring approach (optional - defaults to 'tidyScore')
+// Configure the scoring approach
 setScoringConfig({
   scoringApproach: 'dynamicSets',
   composition: 'Australian'
@@ -80,6 +80,7 @@ scoringModal({
 ```
 
 **Features:**
+
 - ✅ Real-time validation
 - ✅ Automatic set expansion
 - ✅ Tiebreak support
@@ -89,6 +90,7 @@ scoringModal({
 
 **Smart Complements:**
 When enabled, typing a digit in the first field auto-fills the complement in the second field:
+
 - Type `6` → fills `6-4`
 - Type `7` → fills `7-5`
 - Hold `Shift` to reverse: `Shift+6` → fills `4-6`
@@ -99,11 +101,12 @@ Clean, compact text-based entry with automatic formatting.
 
 ```typescript
 setScoringConfig({
-  scoringApproach: 'tidyScore'
+  scoringApproach: 'freeScore'
 });
 ```
 
 **Input examples:**
+
 - `6-4 3-6 7-5`
 - `6/4, 3/6, 7/5`
 - `6-4 ret.` (retirement)
@@ -119,6 +122,7 @@ setScoringConfig({
 ```
 
 **Input examples:**
+
 - `6-4 3-6 7-5`
 - `6/4, 3/6, 7/5`
 - `6-7(3) 6-7(7)` (with tiebreaks)
@@ -135,6 +139,7 @@ setScoringConfig({
 ```
 
 **Features:**
+
 - ✅ Mobile-optimized
 - ✅ Touch-friendly buttons
 - ✅ Keyboard shortcuts
@@ -146,7 +151,7 @@ setScoringConfig({
 
 ```typescript
 interface ScoringConfig {
-  scoringApproach?: 'tidyScore' | 'freeScore' | 'dynamicSets' | 'dialPad';
+  scoringApproach?: 'freeScore' | 'dynamicSets' | 'dialPad';
   smartComplements?: boolean;
   composition?: string;
   idiom?: string;
@@ -224,7 +229,7 @@ scoringModal({
       console.log('Winner:', outcome.winningSide);
       console.log('Score:', outcome.scoreObject);
       console.log('Status:', outcome.matchUpStatus);
-      
+
       // Update your database
       updateMatchScore(outcome);
     }
@@ -296,12 +301,12 @@ The scoring modal respects TODS (Tennis Open Data Standards) match formats:
 
 ```typescript
 // Common formats
-'SET3-S:6/TB7'          // Best of 3, sets to 6, tiebreak at 7
-'SET5-S:6/TB7'          // Best of 5, sets to 6, tiebreak at 7
-'SET3-S:6/TB7-F:TB10'   // Best of 3, final set is tiebreak to 10
-'SET3-S:4/TB7'          // Fast4 format
-'SET1-S:8/TB7'          // Pro set to 8
-'SET1-S:T20'            // Timed set (20 minutes)
+'SET3-S:6/TB7'; // Best of 3, sets to 6, tiebreak at 7
+'SET5-S:6/TB7'; // Best of 5, sets to 6, tiebreak at 7
+'SET3-S:6/TB7-F:TB10'; // Best of 3, final set is tiebreak to 10
+'SET3-S:4/TB7'; // Fast4 format
+'SET1-S:8/TB7'; // Pro set to 8
+'SET1-S:T20'; // Timed set (20 minutes)
 ```
 
 ## TypeScript Types
@@ -360,15 +365,17 @@ function openScoreEntry(matchUp) {
     callback: (outcome) => {
       if (outcome.isValid) {
         // Update match in database
-        api.updateMatchScore({
-          matchUpId: matchUp.matchUpId,
-          score: outcome.scoreObject,
-          winningSide: outcome.winningSide,
-          matchUpStatus: outcome.matchUpStatus
-        }).then(() => {
-          // Refresh UI
-          refreshMatchDisplay();
-        });
+        api
+          .updateMatchScore({
+            matchUpId: matchUp.matchUpId,
+            score: outcome.scoreObject,
+            winningSide: outcome.winningSide,
+            matchUpStatus: outcome.matchUpStatus
+          })
+          .then(() => {
+            // Refresh UI
+            refreshMatchDisplay();
+          });
       }
     }
   });
@@ -385,14 +392,14 @@ function openScoreEntry(matchUp) {
 </label>
 
 <script>
-document.getElementById('smartComplementsToggle').addEventListener('change', (e) => {
-  settings.set('smartComplements', e.target.checked);
-  
-  // Update config immediately
-  setScoringConfig({
-    smartComplements: e.target.checked
+  document.getElementById('smartComplementsToggle').addEventListener('change', (e) => {
+    settings.set('smartComplements', e.target.checked);
+
+    // Update config immediately
+    setScoringConfig({
+      smartComplements: e.target.checked
+    });
   });
-});
 </script>
 ```
 
@@ -407,8 +414,9 @@ document.getElementById('smartComplementsToggle').addEventListener('change', (e)
 ## Support
 
 For issues or questions:
-- GitHub: https://github.com/CourtHive/courthive-components
-- Documentation: https://courthive.github.io/courthive-components
+
+- GitHub: <https://github.com/CourtHive/courthive-components>
+- Documentation: <https://courthive.github.io/courthive-components>
 
 ## License
 

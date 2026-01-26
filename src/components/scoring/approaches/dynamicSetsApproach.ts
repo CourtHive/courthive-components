@@ -132,6 +132,11 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   // REFACTORED: Changed from Map to Set for compatibility with pure logic
   const setsWithSmartComplement = new Set<number>();
 
+  // INTERNAL STATE: Copy initial values from matchUp, then NEVER reference matchUp.score again
+  let internalScore = matchUp.score ? { ...matchUp.score } : undefined;
+  let internalWinningSide = matchUp.winningSide;
+  let internalMatchUpStatus = matchUp.matchUpStatus;
+
   const irregularEndingContainer = document.createElement('div');
   irregularEndingContainer.style.marginBottom = '0.8em';
 
@@ -323,6 +328,11 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     selectedOutcome = COMPLETED;
     selectedWinner = undefined;
 
+    // CLEAR INTERNAL STATE - no more reference to original matchUp
+    internalScore = undefined;
+    internalWinningSide = undefined;
+    internalMatchUpStatus = undefined;
+
     // Uncheck all irregular ending radios
     const outcomeRadios = irregularEndingContainer.querySelectorAll<HTMLInputElement>('input[name="matchOutcome"]');
     outcomeRadios.forEach((r) => (r.checked = false));
@@ -333,7 +343,8 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     ) as NodeListOf<HTMLInputElement>;
     winnerRadios.forEach((r) => (r.checked = false));
 
-    // Hide winner selection container
+    // Hide irregular ending and winner selection containers
+    irregularEndingContainer.style.display = 'none';
     winnerSelectionContainer.style.display = 'none';
 
     // Add first set row
@@ -349,7 +360,11 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
     // Update display and validation - explicitly clear everything
     updateMatchUpDisplay({ clearAll: true });
-    onScoreChange({ isValid: false, sets: [] });
+    onScoreChange({ 
+      isValid: false, 
+      sets: [], 
+      matchUpStatus: 'TO_BE_PLAYED' 
+    });
 
     // Focus first input
     const firstInput = setsContainer.querySelector('input') as HTMLInputElement;
@@ -363,24 +378,42 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   const updateMatchUpDisplay = (validationResult?: any) => {
     matchUpContainer.innerHTML = '';
 
-    // Determine score for display
+    // Determine score for display - ONLY use internal state, never matchUp.score
     let displayScore: any;
     if (validationResult?.clearAll) {
       displayScore = undefined;
+      internalScore = undefined; // Clear internal state too
     } else if (validationResult?.scoreObject) {
       displayScore = validationResult.scoreObject;
+      internalScore = validationResult.scoreObject; // Update internal state
     } else if (currentSets.length > 0) {
       displayScore = { sets: currentSets };
+      internalScore = { sets: currentSets }; // Update internal state
     } else {
-      displayScore = matchUp.score;
+      // Use internal state, NOT matchUp.score
+      displayScore = internalScore;
     }
 
-    // Create temporary matchUp with current sets
+    // Update internal state for winningSide and matchUpStatus
+    if (validationResult?.clearAll) {
+      internalWinningSide = undefined;
+      internalMatchUpStatus = undefined;
+    } else {
+      // Update all properties that are present (not mutually exclusive)
+      if (validationResult?.winningSide !== undefined) {
+        internalWinningSide = validationResult.winningSide;
+      }
+      if (validationResult?.matchUpStatus) {
+        internalMatchUpStatus = validationResult.matchUpStatus;
+      }
+    }
+
+    // Create temporary matchUp with current sets - use internal state only
     const displayMatchUp = {
       ...matchUp,
       score: displayScore,
-      winningSide: validationResult?.clearAll ? undefined : validationResult?.winningSide,
-      matchUpStatus: validationResult?.clearAll ? undefined : validationResult?.matchUpStatus,
+      winningSide: internalWinningSide,
+      matchUpStatus: internalMatchUpStatus,
     };
 
     const config = getScoringConfig();
@@ -692,7 +725,11 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       irregularEndingContainer.style.display = 'block';
 
       updateMatchUpDisplay();
-      onScoreChange({ isValid: false, sets: [] });
+      onScoreChange({ 
+        isValid: false, 
+        sets: [], 
+        matchUpStatus: 'TO_BE_PLAYED' 
+      });
     }
   };
 
@@ -774,6 +811,18 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   const handleInput = (event: Event) => {
     const input = event.target as HTMLInputElement;
     const isTiebreak = input.dataset.type === 'tiebreak';
+
+    // Clear irregular ending when user starts entering a score
+    // This handles the case where user had RETIRED/WALKOVER/DEFAULTED and now enters new digits
+    if (selectedOutcome !== COMPLETED && input.value) {
+      selectedOutcome = COMPLETED;
+      selectedWinner = undefined;
+      // Uncheck irregular ending radios
+      const outcomeRadios = irregularEndingContainer.querySelectorAll('input[name="matchOutcome"]');
+      outcomeRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
+      // Hide winner selection
+      winnerSelectionContainer.style.display = 'none';
+    }
 
     // Only allow numeric input
     const value = input.value.replace(/\D/g, '');
@@ -1173,15 +1222,15 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     input.addEventListener('keydown', handleKeydown);
   });
 
-  // Pre-fill with existing scores if available
-  if (matchUp.score?.sets && matchUp.score.sets.length > 0) {
+  // Pre-fill with existing scores if available (use internal state only)
+  if (internalScore?.sets && internalScore.sets.length > 0) {
     // Check if match is already complete to avoid showing extra empty sets
     const setsNeeded = Math.ceil(getBestOf() / 2);
     let setsWon1 = 0;
     let setsWon2 = 0;
     let matchAlreadyComplete = false;
 
-    matchUp.score.sets.forEach((set: any, index: number) => {
+    internalScore.sets.forEach((set: any, index: number) => {
       // Check completion status BEFORE creating this set row
       if (matchAlreadyComplete) {
         return; // Skip creating rows after match is complete
@@ -1274,16 +1323,17 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     }
   }
 
-  // Trigger final update after all initialization
-  if (matchUp.score?.sets && matchUp.score.sets.length > 0) {
+  // Trigger final update after all initialization (use internal state)
+  if (internalScore?.sets && internalScore.sets.length > 0) {
     updateScoreFromInputs();
+  } else if (selectedOutcome !== COMPLETED) {
+    // For irregular ending with no score (e.g., Walkover), render the matchUp display
+    updateMatchUpDisplay();
   } else {
     // For fresh matchUp with no score, hide irregular ending section
     // It will be shown automatically when user starts entering incomplete scores
-    if (selectedOutcome === COMPLETED) {
-      irregularEndingContainer.style.display = 'none';
-      winnerSelectionContainer.style.display = 'none';
-    }
+    irregularEndingContainer.style.display = 'none';
+    winnerSelectionContainer.style.display = 'none';
   }
 
   // Focus first input

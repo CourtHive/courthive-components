@@ -4,7 +4,7 @@
  */
 
 export interface ScoringConfig {
-  scoringApproach?: 'tidyScore' | 'freeScore' | 'dynamicSets' | 'dialPad';
+  scoringApproach?: 'freeScore' | 'dynamicSets' | 'dialPad';
   smartComplements?: boolean;
   composition?: string; // Composition name: 'Australian', 'Basic', 'French', 'Wimbledon', 'US Open', 'ITF', 'National', 'Night'
   idiom?: string;
@@ -14,7 +14,7 @@ export interface ScoringConfig {
 
 // Default configuration
 const defaultConfig: ScoringConfig = {
-  scoringApproach: 'tidyScore',
+  scoringApproach: 'dynamicSets',
   smartComplements: false,
   composition: 'Australian',
   idiom: 'en',

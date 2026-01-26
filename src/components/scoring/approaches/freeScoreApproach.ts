@@ -9,6 +9,7 @@ import { validateScore } from '../utils/scoreValidator';
 import { formatExistingScore } from '../utils/scoreFormatters';
 import type { RenderScoreEntryParams } from '../types';
 import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
+import { getScoringConfig } from '../config';
 
 const { RETIRED, WALKOVER, DEFAULTED, SUSPENDED, CANCELLED, INCOMPLETE, DEAD_RUBBER, IN_PROGRESS, AWAITING_RESULT } =
   matchUpStatusConstants;
@@ -24,6 +25,12 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
 
   const side1 = matchUp?.sides?.find((s: any) => s.sideNumber === 1);
   const side2 = matchUp?.sides?.find((s: any) => s.sideNumber === 2);
+
+  // INTERNAL STATE: Copy initial values from matchUp, then NEVER reference matchUp.score again
+  // MUST be declared BEFORE updateMatchUpDisplay function that uses them
+  let internalScore = matchUp.score ? { ...matchUp.score } : undefined;
+  let internalWinningSide = matchUp.winningSide;
+  let internalMatchUpStatus = matchUp.matchUpStatus;
 
   // MatchUp display container (will be updated dynamically)
   const matchUpContainer = document.createElement('div');
@@ -92,22 +99,45 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
     const scoresRemovedStatuses = [WALKOVER, CANCELLED, DEAD_RUBBER];
     const shouldClearScore = currentScore?.matchUpStatus && scoresRemovedStatuses.includes(currentScore.matchUpStatus);
 
-    // Determine the score to display
+    // Determine the score to display - ONLY use internal state, never matchUp.score
     let displayScore: any;
     if (currentScore?.clearAll) {
       displayScore = undefined;
+      internalScore = undefined; // Clear internal state
     } else if (shouldClearScore) {
       displayScore = undefined;
+      internalScore = undefined; // Clear internal state
+    } else if (currentScore?.scoreObject) {
+      displayScore = currentScore.scoreObject;
+      internalScore = currentScore.scoreObject; // Update internal state
+    } else if (currentScore !== undefined) {
+      // We have a currentScore but no scoreObject - use internal state
+      displayScore = internalScore;
     } else {
-      displayScore = currentScore?.scoreObject || matchUp.score;
+      // No currentScore provided - use internal state
+      displayScore = internalScore;
     }
 
-    // Create a copy of matchUp with current score
+    // Update internal state for winningSide and matchUpStatus
+    if (currentScore?.clearAll) {
+      internalWinningSide = undefined;
+      internalMatchUpStatus = undefined;
+    } else {
+      // Update all properties that are present (not mutually exclusive)
+      if (currentScore?.winningSide !== undefined) {
+        internalWinningSide = currentScore.winningSide;
+      }
+      if (currentScore?.matchUpStatus) {
+        internalMatchUpStatus = currentScore.matchUpStatus;
+      }
+    }
+
+    // Create a copy of matchUp with current score - use internal state only
     const displayMatchUp = {
       ...matchUp,
       score: displayScore,
-      winningSide: currentScore?.clearAll ? undefined : currentScore?.winningSide,
-      matchUpStatus: currentScore?.clearAll ? undefined : currentScore?.matchUpStatus || matchUp.matchUpStatus,
+      winningSide: internalWinningSide,
+      matchUpStatus: internalMatchUpStatus,
     };
 
     // Clear and render
@@ -209,8 +239,8 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
   input.id = 'scoreInputV2';
 
   // Initialize with existing score if available
-  if (matchUp.score) {
-    const existingScore = formatExistingScore(matchUp.score, matchUp.matchUpStatus);
+  if (internalScore) {
+    const existingScore = formatExistingScore(internalScore, internalMatchUpStatus);
     input.value = existingScore;
   }
 
@@ -239,7 +269,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
   container.appendChild(validationMessage);
 
   // Track manual winner selection
-  let manualWinningSide: number | undefined = matchUp.winningSide; // Initialize with existing winner
+  let manualWinningSide: number | undefined = internalWinningSide; // Initialize with internal state
 
   const handleWinnerSelection = () => {
     if (side1Radio.checked) {
@@ -284,7 +314,11 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
       manualWinningSide = undefined;
       // Reset matchUp display - clear score and winningSide
       updateMatchUpDisplay({ clearAll: true });
-      onScoreChange({ isValid: false, sets: [] });
+      onScoreChange({ 
+        isValid: false, 
+        sets: [], 
+        matchUpStatus: 'TO_BE_PLAYED' 
+      });
       return;
     }
 
@@ -538,12 +572,12 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
     }
   });
 
-  // Initialize radio buttons with existing winner if present
-  if (matchUp.winningSide === 1) {
+  // Initialize radio buttons with existing winner if present (use internal state)
+  if (internalWinningSide === 1) {
     side1Radio.checked = true;
     side1RadioLabel.style.fontWeight = 'bold';
     side1RadioLabel.style.color = '#22c55e';
-  } else if (matchUp.winningSide === 2) {
+  } else if (internalWinningSide === 2) {
     side2Radio.checked = true;
     side2RadioLabel.style.fontWeight = 'bold';
     side2RadioLabel.style.color = '#22c55e';
@@ -556,4 +590,41 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
       handleInput(); // Trigger validation for pre-populated score
     }
   }, 100);
+
+  // Expose reset function for Clear button
+  (globalThis as any).resetFreeScore = () => {
+    // Clear the input
+    input.value = '';
+    // CLEAR INTERNAL STATE - no more reference to original matchUp
+    internalScore = undefined;
+    internalWinningSide = undefined;
+    internalMatchUpStatus = undefined;
+    // Clear all display elements
+    indicator.textContent = '';
+    formattedDisplay.textContent = '';
+    validationMessage.textContent = '';
+    validationMessage.style.color = '';
+    // Hide and clear radio buttons
+    radioContainer.style.display = 'none';
+    side1Radio.checked = false;
+    side2Radio.checked = false;
+    side1RadioLabel.style.fontWeight = '';
+    side1RadioLabel.style.color = '';
+    side2RadioLabel.style.fontWeight = '';
+    side2RadioLabel.style.color = '';
+    // Reset manual winner
+    manualWinningSide = undefined;
+    // Reset match completion lock
+    matchComplete = false;
+    // Clear matchUp display
+    updateMatchUpDisplay({ clearAll: true });
+    // Report cleared state
+    onScoreChange({ 
+      isValid: false, 
+      sets: [], 
+      matchUpStatus: 'TO_BE_PLAYED' 
+    });
+    // Focus input
+    input.focus();
+  };
 }

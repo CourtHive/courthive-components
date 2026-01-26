@@ -24,7 +24,7 @@ export function parseMatchUpFormat(matchUpFormat?: string): MatchUpFormatInfo {
 
   // Parse using factory to get detailed information
   const parsed = matchUpFormatCode.parse(matchUpFormat);
-  
+
   if (!parsed) {
     // If factory parse fails, return default SET3 format
     // Never use regex to parse matchUpFormat strings!
@@ -33,12 +33,12 @@ export function parseMatchUpFormat(matchUpFormat?: string): MatchUpFormatInfo {
 
   // Check if this is a timed set format
   const isTimed = !!(parsed.setFormat?.timed || parsed.finalSetFormat?.timed);
-  
+
   // Determine if this is an "exactly" format (exactly:N or bestOf:1)
   // Note: bestOf:1 is functionally the same as exactly:1
   const isExactlyFormat = !!parsed.exactly || parsed.bestOf === 1;
   const setCount = parsed.exactly || parsed.bestOf || 3;
-  
+
   // For exactly formats or bestOf:1, we know the exact number of sets
   // For bestOf, calculate sets needed to win
   const setsToWin = isExactlyFormat ? setCount : Math.ceil(setCount / 2);
@@ -48,7 +48,7 @@ export function parseMatchUpFormat(matchUpFormat?: string): MatchUpFormatInfo {
     exactly: parsed.exactly,
     setsToWin,
     isTimed,
-    isExactlyFormat,
+    isExactlyFormat
   };
 }
 
@@ -71,18 +71,17 @@ export function shouldExpandSets(sets: SetScore[], matchUpFormat?: string): bool
     if (sets.length >= totalSets) {
       return false;
     }
-    
+
     // Special case: Aggregate scoring with conditional final tiebreak (e.g., SET3X-S:T10A-F:TB1)
     const parsed = matchUpFormatCode.parse(matchUpFormat);
-    const isAggregateScoring = 
-      parsed?.setFormat?.based === 'A' || parsed?.finalSetFormat?.based === 'A';
+    const isAggregateScoring = parsed?.setFormat?.based === 'A' || parsed?.finalSetFormat?.based === 'A';
     const hasFinalTiebreak = parsed?.finalSetFormat?.tiebreakSet?.tiebreakTo !== undefined;
-    
+
     if (isAggregateScoring && hasFinalTiebreak && formatInfo.isTimed) {
       // For SET3X-S:T10A-F:TB1: Show sets 1-2, then check aggregate
       // For SET4X-S:T10A-F:TB1: Show sets 1-3, then check aggregate
       const timedSetsCount = totalSets - 1; // Final set is TB, so timed sets = totalSets - 1
-      
+
       if (sets.length < timedSetsCount) {
         // Still need to show timed sets
         return true;
@@ -100,7 +99,7 @@ export function shouldExpandSets(sets: SetScore[], matchUpFormat?: string): bool
           },
           { side1: 0, side2: 0 }
         );
-        
+
         // Only show final TB if aggregate is tied
         return aggregateTotals.side1 === aggregateTotals.side2;
       } else {
@@ -108,7 +107,7 @@ export function shouldExpandSets(sets: SetScore[], matchUpFormat?: string): bool
         return false;
       }
     }
-    
+
     // Always show all sets for exactly formats (non-aggregate or no conditional TB)
     return true;
   }
@@ -116,11 +115,11 @@ export function shouldExpandSets(sets: SetScore[], matchUpFormat?: string): bool
   // For regular bestOf formats, use dynamic expansion based on scores
   // Calculate sets won per side
   const setsWon = { side1: 0, side2: 0 };
-  
-  sets.forEach(set => {
+
+  sets.forEach((set) => {
     const s1 = set.side1Score ?? 0;
     const s2 = set.side2Score ?? 0;
-    
+
     if (s1 > s2) setsWon.side1++;
     else if (s2 > s1) setsWon.side2++;
   });
@@ -136,15 +135,46 @@ export function shouldExpandSets(sets: SetScore[], matchUpFormat?: string): bool
   }
 
   // Check if all current sets are filled
-  const allSetsFilled = sets.every(set => 
-    set.side1Score !== undefined && 
-    set.side2Score !== undefined &&
-    set.side1Score !== null &&
-    set.side2Score !== null
+  const allSetsFilled = sets.every(
+    (set) =>
+      set.side1Score !== undefined && set.side2Score !== undefined && set.side1Score !== null && set.side2Score !== null
   );
 
   // Expand if all sets filled and match not decided
   return allSetsFilled;
+}
+
+/**
+ * Determine winner for aggregate scoring format
+ */
+function determineAggregateWinner(sets: SetScore[]): number | undefined {
+  const aggregateTotals = sets.reduce(
+    (totals, set) => {
+      // Only count sets with actual scores (not tiebreak-only sets without side scores)
+      if (set.side1Score !== undefined && set.side1Score !== null) {
+        totals.side1 += set.side1Score;
+      }
+      if (set.side2Score !== undefined && set.side2Score !== null) {
+        totals.side2 += set.side2Score;
+      }
+      return totals;
+    },
+    { side1: 0, side2: 0 }
+  );
+
+  if (aggregateTotals.side1 > aggregateTotals.side2) return 1;
+  if (aggregateTotals.side2 > aggregateTotals.side1) return 2;
+
+  // If aggregate is tied, check for final tiebreak set
+  const finalSet = sets.at(-1);
+  if (finalSet?.side1TiebreakScore !== undefined || finalSet?.side2TiebreakScore !== undefined) {
+    const tb1 = finalSet.side1TiebreakScore ?? 0;
+    const tb2 = finalSet.side2TiebreakScore ?? 0;
+    if (tb1 > tb2) return 1;
+    if (tb2 > tb1) return 2;
+  }
+
+  return undefined; // Tied aggregate, no tiebreak yet
 }
 
 /**
@@ -156,55 +186,27 @@ export function determineWinningSide(sets: SetScore[], matchUpFormat?: string): 
 
   // Check if this is aggregate scoring
   const parsed = matchUpFormat ? matchUpFormatCode.parse(matchUpFormat) : null;
-  const isAggregateScoring = 
-    parsed?.setFormat?.based === 'A' || parsed?.finalSetFormat?.based === 'A';
+  const isAggregateScoring = parsed?.setFormat?.based === 'A' || parsed?.finalSetFormat?.based === 'A';
 
   if (isAggregateScoring) {
-    // For aggregate scoring, winner is determined by total score across all sets
-    const aggregateTotals = sets.reduce(
-      (totals, set) => {
-        // Only count sets with actual scores (not tiebreak-only sets without side scores)
-        if (set.side1Score !== undefined && set.side1Score !== null) {
-          totals.side1 += set.side1Score;
-        }
-        if (set.side2Score !== undefined && set.side2Score !== null) {
-          totals.side2 += set.side2Score;
-        }
-        return totals;
-      },
-      { side1: 0, side2: 0 }
-    );
-
-    if (aggregateTotals.side1 > aggregateTotals.side2) return 1;
-    if (aggregateTotals.side2 > aggregateTotals.side1) return 2;
-    
-    // If aggregate is tied, check for final tiebreak set
-    const finalSet = sets[sets.length - 1];
-    if (finalSet?.side1TiebreakScore !== undefined || finalSet?.side2TiebreakScore !== undefined) {
-      const tb1 = finalSet.side1TiebreakScore ?? 0;
-      const tb2 = finalSet.side2TiebreakScore ?? 0;
-      if (tb1 > tb2) return 1;
-      if (tb2 > tb1) return 2;
-    }
-    
-    return undefined; // Tied aggregate, no tiebreak yet
+    return determineAggregateWinner(sets);
   }
 
   // Standard scoring: count sets won
   const { setsToWin } = parseMatchUpFormat(matchUpFormat);
-  
+
   const setsWon = { side1: 0, side2: 0 };
-  
-  sets.forEach(set => {
+
+  sets.forEach((set) => {
     const s1 = set.side1Score ?? 0;
     const s2 = set.side2Score ?? 0;
-    
+
     if (s1 > s2) setsWon.side1++;
     else if (s2 > s1) setsWon.side2++;
   });
 
   if (setsWon.side1 >= setsToWin) return 1;
   if (setsWon.side2 >= setsToWin) return 2;
-  
+
   return undefined;
 }

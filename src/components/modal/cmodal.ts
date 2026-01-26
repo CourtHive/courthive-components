@@ -173,7 +173,9 @@ export const cModal = (() => {
       if (buttonConfig.intent && buttonConfig.intent !== 'none') {
         elem.classList.add(buttonConfig.intent);
       }
-      elem.style = 'margin-right: .5em;';
+      const baseStyle = 'margin-right: .5em;';
+      const customStyle = buttonConfig?.footer?.style || '';
+      elem.style.cssText = baseStyle + (customStyle ? ' ' + customStyle : '');
       elem.innerHTML = buttonConfig.label || buttonConfig.text || '';
 
       elem.onclick = (e) => {

@@ -28,6 +28,10 @@ export { tipster, destroyTipster } from './components/popover/tipster';
 // Version API
 export { courthiveComponentsVersion } from './version';
 
+// Constants
+export { MATCH_FORMATS } from './constants/matchUpFormats';
+export type { MatchUpFormatCode } from './constants/matchUpFormats';
+
 // Form renderers (import styles first)
 import './components/forms/styles';
 export { renderButtons } from './components/forms/renderButtons';

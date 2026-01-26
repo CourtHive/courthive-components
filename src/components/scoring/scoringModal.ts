@@ -3,7 +3,6 @@
  * Supports multiple scoring approaches with validation
  */
 import { cModal } from '../modal/cmodal';
-import { renderTidyScoreEntry } from './approaches/tidyScoreApproach';
 import { renderFreeScoreEntry } from './approaches/freeScoreApproach';
 import { renderDynamicSetsScoreEntry } from './approaches/dynamicSetsApproach';
 import { renderDialPadScoreEntry } from './approaches/dialPadApproach';
@@ -15,7 +14,7 @@ export function scoringModal(params: ScoringModalParams): void {
   
   // Choose approach based on config setting
   const config = getScoringConfig();
-  const approach = config.scoringApproach || 'tidyScore';
+  const approach = config.scoringApproach || 'dynamicSets';
   
   const container = document.createElement('div');
   container.style.padding = '1em';
@@ -46,7 +45,7 @@ export function scoringModal(params: ScoringModalParams): void {
     // Enable/disable clear button based on whether there's input
     const clearBtn = document.getElementById('clearScoreV2') as HTMLButtonElement;
     if (clearBtn) {
-      // For text-based approaches (freeScore, tidyScore), check input field
+      // For text-based approaches (freeScore), check input field
       const scoreInput = document.getElementById('scoreInputV2') as HTMLInputElement;
       if (scoreInput) {
         clearBtn.disabled = !scoreInput.value.trim();
@@ -76,13 +75,7 @@ export function scoringModal(params: ScoringModalParams): void {
     }
   };
   
-  if (approach === 'tidyScore') {
-    renderTidyScoreEntry({
-      matchUp,
-      container,
-      onScoreChange: handleScoreChange,
-    });
-  } else if (approach === 'freeScore') {
+  if (approach === 'freeScore') {
     renderFreeScoreEntry({
       matchUp,
       container,
@@ -115,7 +108,10 @@ export function scoringModal(params: ScoringModalParams): void {
         },
         label: 'Cancel', 
         intent: 'none',
-        footer: { className: 'button' },
+        footer: { 
+          className: 'button',
+          style: 'background-color: white; color: #363636; border: 1px solid #dbdbdb;'
+        },
         close: true 
       },
       {
@@ -128,8 +124,8 @@ export function scoringModal(params: ScoringModalParams): void {
           // Mark that user has cleared the score
           wasCleared = true;
           
-          if (approach === 'tidyScore' || approach === 'freeScore') {
-            // Clear text input (both tidyScore and freeScore use same input ID)
+          if (approach === 'freeScore') {
+            // Clear text input (freeScore uses text input)
             const scoreInput = document.getElementById('scoreInputV2') as HTMLInputElement;
             if (scoreInput) {
               scoreInput.value = '';

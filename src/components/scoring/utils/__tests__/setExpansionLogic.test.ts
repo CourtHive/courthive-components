@@ -8,7 +8,7 @@
 import { describe, it, expect } from 'vitest';
 import { parseMatchUpFormat, shouldExpandSets, determineWinningSide } from '../setExpansionLogic';
 import type { SetScore } from '../../types';
-import { MATCH_FORMATS } from '../../../../../constants/matchUpFormats';
+import { MATCH_FORMATS } from '../../../../constants/matchUpFormats';
 
 describe('setExpansionLogic', () => {
   describe('parseMatchUpFormat', () => {

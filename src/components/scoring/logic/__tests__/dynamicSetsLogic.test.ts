@@ -23,7 +23,7 @@ import {
   type MatchConfig,
 } from '../dynamicSetsLogic';
 import type { SetScore } from '../../types';
-import { MATCH_FORMATS } from '../../../../../constants/matchUpFormats';
+import { MATCH_FORMATS } from '../../../../constants/matchUpFormats';
 import { matchUpFormatCode } from 'tods-competition-factory';
 
 // Helper to create MatchConfig from format string

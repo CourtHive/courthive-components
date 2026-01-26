@@ -425,6 +425,114 @@ matchUp.matchUpFormat = 'SET3-S:6/TB7'; // Correct
 // NOT: 'Best of 3' or 'BO3' (invalid)
 ```
 
+## Customizing Button Styles
+
+The scoring modal uses `cModal` from courthive-components, which supports custom button styling through the `footer.style` property.
+
+### Default Button Styling
+
+```typescript
+// Cancel button has explicit white styling
+{ 
+  label: 'Cancel', 
+  intent: 'none',
+  footer: { 
+    className: 'button',
+    style: 'background-color: white; color: #363636; border: 1px solid #dbdbdb;'
+  },
+  close: true 
+}
+
+// Clear button gets yellow styling via setTimeout
+{
+  id: 'clearScoreV2',
+  label: 'Clear',
+  intent: 'none',
+  // Style: background-color: #ffeb3b; color: #333;
+}
+
+// Submit button uses Bulma's primary intent
+{
+  id: 'submitScoreV2',
+  label: 'Submit Score',
+  intent: 'is-primary', // Blue Bulma primary button
+}
+```
+
+### Customizing in TMX
+
+**Option 1: CSS Override (Simplest)**
+```css
+/* In your TMX CSS file */
+.modal button {
+  background-color: white;
+  color: #363636;
+  border: 1px solid #dbdbdb;
+}
+
+.modal button.is-primary {
+  background-color: #3273dc;
+  color: white;
+}
+
+#clearScoreV2 {
+  background-color: #ffeb3b !important;
+  color: #333 !important;
+}
+```
+
+**Option 2: Wrap scoringModal (Advanced)**
+```typescript
+// Create wrapper function in TMX to customize buttons
+import { cModal } from 'courthive-components';
+
+export function customScoringModal({ matchUp, callback }) {
+  // Your custom rendering logic...
+  
+  cModal({
+    title: 'Score Entry',
+    content: myContent,
+    buttons: [
+      { 
+        label: 'Cancel', 
+        intent: 'none',
+        footer: { 
+          className: 'button',
+          // Custom TMX styling
+          style: 'background-color: #f0f0f0; color: #000; border: 2px solid #999;'
+        },
+        close: true 
+      },
+      // ... other buttons with custom styles
+    ]
+  });
+}
+```
+
+### Available Style Properties
+
+Set any CSS in `footer.style`:
+- `background-color` - Button background
+- `color` - Text color
+- `border` - Border style
+- `padding` - Internal spacing
+- `font-weight` - Text weight
+- `font-size` - Text size
+- Any valid CSS property
+
+### Example: Brand-Colored Buttons
+
+```typescript
+// TMX brand colors
+const TMX_PRIMARY = '#1a73e8';
+const TMX_DANGER = '#d93025';
+const TMX_NEUTRAL = '#f1f3f4';
+
+footer: { 
+  style: `background-color: ${TMX_PRIMARY}; color: white; border: none;`
+}
+```
+
 ## Support
 
 - Full Documentation: `courthive-components/src/components/scoring/README.md`

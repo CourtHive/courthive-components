@@ -17,7 +17,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { matchUpFormatCode } from 'tods-competition-factory';
-import { MATCH_FORMATS } from '../../../../../constants/matchUpFormats';
+import { MATCH_FORMATS } from '../../../../constants/matchUpFormats';
 
 /**
  * Replicates the getSetFormat logic from dynamicSetsApproach.ts

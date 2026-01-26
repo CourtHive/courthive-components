@@ -104,40 +104,7 @@ const createStoryContainer = (title: string, description: string) => {
 
 
 
-/**
- * Tidy Score Approach
- * Clean, compact text-based entry with automatic formatting
- */
-export const TidyScore = {
-  args: {
-    composition: 'Australian',
-    smartComplements: false
-  },
-  render: (args: any) => {
-    const container = createStoryContainer(
-      'Tidy Score Entry',
-      'Compact text-based score entry with automatic formatting. Type scores like "6-4 3-6 7-5" and press Submit. Scores persist across all scoring stories.'
-    );
 
-    const button = document.createElement('button');
-    button.className = 'button is-primary';
-    button.textContent = 'Open Tidy Score Modal';
-    button.onclick = () => {
-      setScoringConfig({
-        scoringApproach: 'tidyScore',
-        composition: args.composition
-      });
-
-      scoringModal({
-        matchUp: createMockMatchUp(),
-        callback: handleScoreSubmit
-      });
-    };
-
-    container.appendChild(button);
-    return container;
-  }
-};
 
 /**
  * Free Score Approach
@@ -336,7 +303,6 @@ export const AllApproaches = {
     buttonContainer.style.flexWrap = 'wrap';
 
     const approaches: Array<{ approach: any; label: string; intent: string }> = [
-      { approach: 'tidyScore', label: 'Tidy Score', intent: 'is-primary' },
       { approach: 'freeScore', label: 'Free Score', intent: 'is-info' },
       { approach: 'dynamicSets', label: 'Dynamic Sets', intent: 'is-success' },
       { approach: 'dialPad', label: 'Dial Pad', intent: 'is-warning' }

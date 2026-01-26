@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { formatScoreString } from '../dialPadLogic';
-import { MATCH_FORMATS } from '../../../../../constants/matchUpFormats';
+import { MATCH_FORMATS } from '../../../../constants/matchUpFormats';
 
 type TestCase = {
   name: string;

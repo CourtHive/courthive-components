@@ -426,15 +426,6 @@ function getSetFormat(setIndex: number, matchUpFormat: string, bestOf: number) {
 - NoAD format
 - Mixed formats with finalSetFormat
 
-#### tidyScore Function (8 tests)
-
-- Tidy messy score: "64 63" → "6-4 6-3"
-- Handle score with status keyword
-- Handle walkover, defaulted
-- Return error for empty/whitespace
-- Handle tiebreak scores
-- Handle extended tiebreaks
-
 #### Regression Tests (3 tests)
 
 - Verify input locking logic
@@ -577,7 +568,6 @@ All 234 tests complete in ~180ms, enabling rapid development feedback.
 
 ### Not Planned
 
-- tidyScore approach will be deprecated once freeScore is fully robust
 - Full DOM testing requires more complex setup (Storybook or E2E framework)
 
 ## Conclusion
