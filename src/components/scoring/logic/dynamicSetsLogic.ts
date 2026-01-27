@@ -25,9 +25,10 @@ export type SetFormat = {
 };
 
 /**
- * Configuration for a match
+ * Configuration for a matchUp
+ * Should be derived from TODS matchUpFormat strings using matchUpFormatCode.parse()
  */
-export type MatchConfig = {
+export type MatchUpConfig = {
   bestOf: number;
   setFormat?: SetFormat;
   finalSetFormat?: SetFormat;
@@ -49,7 +50,7 @@ export type SmartComplementResult = {
  */
 export function getSetFormatForIndex(
   setIndex: number,
-  config: MatchConfig,
+  config: MatchUpConfig,
 ): SetFormat | undefined {
   const isDecidingSet = config.bestOf === 1 || setIndex + 1 === config.bestOf;
 
@@ -85,7 +86,7 @@ export function getMaxAllowedScore(
   setIndex: number,
   side: 1 | 2,
   currentScores: { side1: number; side2: number },
-  config: MatchConfig,
+  config: MatchUpConfig,
 ): number {
   const setFormat = getSetFormatForIndex(setIndex, config);
   
@@ -155,7 +156,7 @@ export function isSetComplete(
     side2: number;
     tiebreak?: number;
   },
-  config: MatchConfig,
+  config: MatchUpConfig,
 ): boolean {
   const setFormat = getSetFormatForIndex(setIndex, config);
 
@@ -211,7 +212,7 @@ export function getSetWinner(
     side2: number;
     tiebreak?: number;
   },
-  config: MatchConfig,
+  config: MatchUpConfig,
 ): 1 | 2 | undefined {
   if (!isSetComplete(setIndex, scores, config)) {
     return undefined;
@@ -307,7 +308,7 @@ export function shouldApplySmartComplement(
   isShiftPressed: boolean,
   setIndex: number,
   sets: SetScore[],
-  config: MatchConfig,
+  config: MatchUpConfig,
   smartComplementsUsed: Set<number>,
   smartComplementsEnabled: boolean,
 ): SmartComplementResult {
@@ -387,7 +388,7 @@ export function shouldApplySmartComplement(
 export function shouldShowTiebreak(
   setIndex: number,
   scores: { side1: number; side2: number },
-  config: MatchConfig,
+  config: MatchUpConfig,
 ): boolean {
   const setFormat = getSetFormatForIndex(setIndex, config);
 
@@ -424,7 +425,7 @@ export function shouldShowTiebreak(
 export function shouldCreateNextSet(
   currentSetIndex: number,
   sets: SetScore[],
-  config: MatchConfig,
+  config: MatchUpConfig,
 ): boolean {
   // Don't exceed bestOf
   if (currentSetIndex + 1 >= config.bestOf) {
@@ -454,7 +455,7 @@ export function buildSetScore(
   side1Value: string,
   side2Value: string,
   tiebreakValue: string | undefined,
-  config: MatchConfig,
+  config: MatchUpConfig,
 ): SetScore {
   const side1Score = Number.parseInt(side1Value) || 0;
   const side2Score = Number.parseInt(side2Value) || 0;
@@ -473,6 +474,7 @@ export function buildSetScore(
         : undefined;
 
     return {
+      setNumber: setIndex + 1,
       side1Score: 0,
       side2Score: 0,
       side1TiebreakScore: side1Score,
@@ -486,6 +488,7 @@ export function buildSetScore(
   const winningSide = getSetWinner(setIndex, scores, config);
 
   const setData: SetScore = {
+    setNumber: setIndex + 1,
     side1Score,
     side2Score,
     winningSide,

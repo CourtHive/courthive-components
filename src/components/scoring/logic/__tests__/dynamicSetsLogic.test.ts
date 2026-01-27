@@ -20,14 +20,14 @@ import {
   shouldShowTiebreak,
   shouldCreateNextSet,
   buildSetScore,
-  type MatchConfig,
+  type MatchUpConfig,
 } from '../dynamicSetsLogic';
 import type { SetScore } from '../../types';
 import { MATCH_FORMATS } from '../../../../constants/matchUpFormats';
 import { matchUpFormatCode } from 'tods-competition-factory';
 
-// Helper to create MatchConfig from format string
-function parseFormat(formatString: string): MatchConfig {
+// Helper to create MatchUpConfig from format string
+function parseFormat(formatString: string): MatchUpConfig {
   const parsed = matchUpFormatCode.parse(formatString);
   const regex = /SET(\d+)/;
   const bestOfMatch = regex.exec(formatString);
@@ -46,7 +46,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
   
   // Note: Can't parse this format cleanly because F:TB10 creates tiebreakSet (tiebreak-only) not tiebreakFormat
   // Using inline config to match original test expectations
-  const standardBestOf5: MatchConfig = {
+  const standardBestOf5: MatchUpConfig = {
     bestOf: 5,
     setFormat: { setTo: 6, tiebreakAt: 6, tiebreakFormat: { tiebreakTo: 7 } },
     finalSetFormat: { setTo: 6, tiebreakAt: 6, tiebreakFormat: { tiebreakTo: 10 } },
@@ -621,6 +621,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
   describe('buildSetScore', () => {
     it('builds regular set 6-4', () => {
       const set = buildSetScore(0, '6', '4', undefined, standardBestOf3);
+      expect(set.setNumber).toBe(1);
       expect(set.side1Score).toBe(6);
       expect(set.side2Score).toBe(4);
       expect(set.winningSide).toBe(1);
@@ -628,6 +629,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
 
     it('builds regular set 7-6 with tiebreak', () => {
       const set = buildSetScore(0, '7', '6', '5', standardBestOf3);
+      expect(set.setNumber).toBe(1);
       expect(set.side1Score).toBe(7);
       expect(set.side2Score).toBe(6);
       expect(set.winningSide).toBe(1);
@@ -637,6 +639,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
 
     it('builds incomplete set 5-4', () => {
       const set = buildSetScore(0, '5', '4', undefined, standardBestOf3);
+      expect(set.setNumber).toBe(1);
       expect(set.side1Score).toBe(5);
       expect(set.side2Score).toBe(4);
       expect(set.winningSide).toBeUndefined();
@@ -644,6 +647,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
 
     it('builds tiebreak-only set TB10', () => {
       const set = buildSetScore(2, '11', '9', undefined, tb10Config);
+      expect(set.setNumber).toBe(3);
       expect(set.side1Score).toBe(0);
       expect(set.side2Score).toBe(0);
       expect(set.side1TiebreakScore).toBe(11);
@@ -653,6 +657,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
 
     it('builds incomplete tiebreak-only set', () => {
       const set = buildSetScore(2, '5', '5', undefined, tb10Config);
+      expect(set.setNumber).toBe(3);
       expect(set.winningSide).toBeUndefined();
     });
   });

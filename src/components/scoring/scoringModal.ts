@@ -96,9 +96,28 @@ export function scoringModal(params: ScoringModalParams): void {
     container.innerHTML = '<p>Unknown scoring approach...</p>';
   }
 
+  // Help text for freeScore approach (shown in info popover)
+  const freeScoreHelp = `
+    <strong>Score Entry Tips:</strong><br><br>
+    <strong>Set Scores:</strong> Enter space or dash-separated (e.g., "6-4 6-3")<br><br>
+    <strong>Tiebreaks:</strong> Auto-detected from digits (e.g., "67 3" becomes "6-7(3)")<br><br>
+    <strong>Match Tiebreaks:</strong> Use dash separator (e.g., "10-7")<br><br>
+    <strong>Irregular Endings:</strong><br>
+    <strong>r</strong> = Retired<br>
+    <strong>w</strong> = Walkover<br>
+    <strong>d</strong> = Defaulted<br>
+    <strong>s</strong> = Suspended<br>
+    <strong>c</strong> = Cancelled<br>
+    <strong>a</strong> = Awaiting Result<br>
+    <strong>in</strong> = In Progress<br>
+    <strong>inc</strong> = Incomplete<br>
+    <strong>dr</strong> = Dead Rubber
+  `;
+
   cModal.open({
     title: 'Score Entry',
     content: container,
+    config: approach === 'freeScore' ? { info: freeScoreHelp } : undefined,
     buttons: [
       {
         onClick: () => {

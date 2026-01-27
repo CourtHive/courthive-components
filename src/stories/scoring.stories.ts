@@ -137,14 +137,33 @@ export const DynamicSets = {
     smartComplements: false
   },
   render: (args: any) => {
-    const container = createStoryContainer(
-      'Dynamic Sets Entry',
-      'Visual grid interface with automatic set expansion. Use the Controls below to enable Smart Complements and change the composition theme. Scores persist across all scoring stories.'
-    );
+    const container = document.createElement('div');
+    container.style.padding = '2em';
+    container.style.maxWidth = '900px';
 
+    // Title
+    const title = document.createElement('h2');
+    title.textContent = 'Dynamic Sets Entry';
+    title.style.marginBottom = '1em';
+    title.style.color = '#333';
+    container.appendChild(title);
+
+    // Architecture & Coverage intro
+    const intro = document.createElement('p');
+    intro.style.marginBottom = '1.5em';
+    intro.style.lineHeight = '1.6';
+    intro.style.color = '#555';
+    intro.innerHTML =
+      'The Dynamic Sets approach uses a <strong style="color: #363636;">pure state engine architecture</strong> with business logic completely separated from UI rendering. ' +
+      'All scoring rules, validation, and smart complement calculations are implemented as testable pure functions with <strong style="color: #363636;">comprehensive test coverage</strong> ' +
+      'across set completion, match completion, tiebreak detection, and edge cases. Use the Controls below to enable Smart Complements and change the composition theme.';
+    container.appendChild(intro);
+
+    // Button
     const button = document.createElement('button');
     button.className = 'button is-success';
     button.textContent = 'Open Dynamic Sets Modal';
+    button.style.marginBottom = '2em';
     button.onclick = () => {
       setScoringConfig({
         scoringApproach: 'dynamicSets',
@@ -157,8 +176,148 @@ export const DynamicSets = {
         callback: handleScoreSubmit
       });
     };
-
     container.appendChild(button);
+
+    // Integration Details Section
+    const integrationSection = document.createElement('div');
+    integrationSection.style.marginTop = '2em';
+    integrationSection.style.padding = '1.5em';
+    integrationSection.style.backgroundColor = '#f8f9fa';
+    integrationSection.style.borderLeft = '4px solid #48c774';
+    integrationSection.style.borderRadius = '4px';
+
+    const integrationTitle = document.createElement('h3');
+    integrationTitle.textContent = 'Integration Details';
+    integrationTitle.style.marginTop = '0';
+    integrationTitle.style.marginBottom = '1em';
+    integrationTitle.style.color = '#363636';
+    integrationSection.appendChild(integrationTitle);
+
+    const integrationText = document.createElement('p');
+    integrationText.style.marginBottom = '1em';
+    integrationText.style.color = '#4a4a4a';
+    integrationText.innerHTML =
+      'The underlying state management API is fully exportable from <code>courthive-components</code>, allowing you to build custom UIs that leverage the same scoring logic. ' +
+      'All functions are pure (no side effects) and independently testable. ' +
+      '<strong style="color: #363636;">Configuration should be derived from TODS matchUpFormat strings using <code>matchUpFormatCode.parse()</code></strong> to ensure consistency with the TODS ecosystem.';
+    integrationSection.appendChild(integrationText);
+
+    // Example code
+    const codeExample = document.createElement('pre');
+    codeExample.style.backgroundColor = '#ffffff';
+    codeExample.style.padding = '1em';
+    codeExample.style.borderRadius = '4px';
+    codeExample.style.overflow = 'auto';
+    codeExample.style.fontSize = '13px';
+    codeExample.style.lineHeight = '1.5';
+    codeExample.style.border = '1px solid #e0e0e0';
+    codeExample.innerHTML = `<code style="color: #000;">import {
+  isSetComplete,
+  isMatchComplete,
+  shouldApplySmartComplement,
+  buildSetScore,
+  getMatchWinner,
+  type MatchUpConfig,
+  type SetScore
+} from 'courthive-components';
+import { matchUpFormatCode } from 'tods-competition-factory';
+
+// Parse TODS matchUpFormat string to get configuration
+// Example format: 'SET3-S:6/TB7' (Best of 3 sets to 6 games with TB7)
+const parsedFormat = matchUpFormatCode.parse('SET3-S:6/TB7');
+const config: MatchUpConfig = {
+  bestOf: parsedFormat.bestOf,
+  setFormat: parsedFormat.setFormat,
+  finalSetFormat: parsedFormat.finalSetFormat
+};
+
+// Check if a set is complete
+const complete = isSetComplete(
+  0,                           // set index
+  { side1: 6, side2: 4 },     // current scores
+  config
+);
+// Returns: true
+
+// Build a set score object from user input
+const setScore: SetScore = buildSetScore(
+  0,                           // set index
+  '6',                         // side1 games
+  '4',                         // side2 games
+  undefined,                   // tiebreak (optional)
+  config
+);
+// Returns: { setNumber: 1, side1Score: 6, side2Score: 4 }
+
+// Check if match is complete
+const sets: SetScore[] = [
+  { side1Score: 6, side2Score: 4 },
+  { side1Score: 4, side2Score: 6 },
+  { side1Score: 6, side2Score: 3 }
+];
+const matchComplete = isMatchComplete(sets, config.bestOf);
+// Returns: true
+
+// Get match winner
+const winner = getMatchWinner(sets, config.bestOf);
+// Returns: 1 (side1 won 2 sets)
+
+// Smart complement for rapid entry (2 → 2-6)
+const result = shouldApplySmartComplement(
+  2,                           // digit entered
+  false,                       // shift key held?
+  0,                           // set index
+  sets,                        // current sets
+  config,
+  new Set(),                   // used complements
+  true                         // feature enabled?
+);
+// Returns: { field1Value: 2, field2Value: 6, shouldApply: true }</code></pre>`;
+    integrationSection.appendChild(codeExample);
+
+    // API Reference
+    const apiRef = document.createElement('div');
+    apiRef.style.marginTop = '1.5em';
+
+    const apiTitle = document.createElement('h4');
+    apiTitle.textContent = 'Available Functions';
+    apiTitle.style.marginBottom = '0.5em';
+    apiTitle.style.color = '#363636';
+    apiRef.appendChild(apiTitle);
+
+    const apiList = document.createElement('ul');
+    apiList.style.marginLeft = '1.5em';
+    apiList.style.color = '#4a4a4a';
+    apiList.style.lineHeight = '1.8';
+    apiList.innerHTML = `
+      <li><code>isSetComplete(setIndex, scores, config)</code> - Check if a set is finished</li>
+      <li><code>isMatchComplete(sets, bestOf)</code> - Check if the match is finished</li>
+      <li><code>getSetWinner(setIndex, scores, config)</code> - Get the winner of a set (1, 2, or undefined)</li>
+      <li><code>getMatchWinner(sets, bestOf)</code> - Get the winner of a match (1, 2, or undefined)</li>
+      <li><code>buildSetScore(setIndex, side1Input, side2Input, tiebreak, config)</code> - Build SetScore from inputs (includes setNumber)</li>
+      <li><code>shouldApplySmartComplement(digit, shiftKey, setIndex, sets, config, used, enabled)</code> - Calculate smart complement</li>
+      <li><code>getMaxAllowedScore(setIndex, side, currentScores, config)</code> - Get max valid score for validation</li>
+      <li><code>shouldShowTiebreak(setIndex, scores, config)</code> - Determine if tiebreak input should appear</li>
+      <li><code>isSetTiebreakOnly(format)</code> - Check if set is tiebreak-only (e.g., TB10)</li>
+      <li><code>isSetTimed(format)</code> - Check if set uses timed scoring</li>
+    `;
+    apiRef.appendChild(apiList);
+    integrationSection.appendChild(apiRef);
+
+    // Test Coverage note
+    const testNote = document.createElement('p');
+    testNote.style.marginTop = '1em';
+    testNote.style.padding = '1em';
+    testNote.style.backgroundColor = '#e8f5e9';
+    testNote.style.borderRadius = '4px';
+    testNote.style.fontSize = '14px';
+    testNote.style.color = '#2e7d32';
+    testNote.innerHTML =
+      '<strong style="color: #1b5e20;">✓ Test Coverage:</strong> 76 tests covering all functions, edge cases, and format variations (S:6, S:8, TB10, timed sets). ' +
+      'See <code>src/components/scoring/logic/__tests__/dynamicSetsLogic.test.ts</code> for comprehensive examples.';
+    integrationSection.appendChild(testNote);
+
+    container.appendChild(integrationSection);
     return container;
   }
 };

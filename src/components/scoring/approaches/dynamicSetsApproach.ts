@@ -17,7 +17,7 @@ import {
   getMaxAllowedScore as getMaxAllowedScoreLogic,
   shouldApplySmartComplement,
   buildSetScore,
-  type MatchConfig,
+  type MatchUpConfig,
 } from '../logic/dynamicSetsLogic';
 
 const { COMPLETED, RETIRED, WALKOVER, DEFAULTED } = matchUpStatusConstants;
@@ -35,7 +35,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   // NOTE: These are wrapped in a function to allow dynamic re-parsing when format changes
   let currentMatchUpFormat = matchUp.matchUpFormat || 'SET3-S:6/TB7';
   
-  const getMatchConfig = (): MatchConfig => {
+  const getMatchUpConfig = (): MatchUpConfig => {
     const formatInfo = parseMatchUpFormat(currentMatchUpFormat);
     const parsedFormat = matchUpFormatCode.parse(currentMatchUpFormat);
     return {
@@ -47,7 +47,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   
   // Create matchConfig that always uses current format
   // This ensures format changes are immediately reflected
-  let matchConfig = getMatchConfig();
+  let matchConfig = getMatchUpConfig();
   const getBestOf = () => matchConfig.bestOf;
 
   // Helper function to get format for a specific set index
@@ -100,7 +100,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
               formatButton.textContent = newFormat;
 
               // Regenerate matchConfig with new format
-              matchConfig = getMatchConfig();
+              matchConfig = getMatchUpConfig();
 
               // Clear all sets and reset
               if ((globalThis as any).resetDynamicSets) {
@@ -175,8 +175,8 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     radio.addEventListener('change', (e) => {
       selectedOutcome = (e.target as HTMLInputElement).value as any;
 
-      // Clear all set inputs when WALKOVER is selected
-      if (selectedOutcome === WALKOVER) {
+      // Clear all set inputs and scores for irregular endings
+      if (selectedOutcome === WALKOVER || selectedOutcome === RETIRED || selectedOutcome === DEFAULTED) {
         // Clear all set inputs
         const allInputs = setsContainer.querySelectorAll('input');
         allInputs.forEach((input) => {
@@ -189,8 +189,9 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
           allSetRows[i].remove();
         }
 
-        // Reset currentSets
+        // Reset currentSets and clear internal score state
         currentSets = [];
+        internalScore = undefined; // CRITICAL: Clear internal score so it doesn't show in display
       }
 
       // Show winner selection when irregular ending selected
@@ -405,6 +406,13 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       }
       if (validationResult?.matchUpStatus) {
         internalMatchUpStatus = validationResult.matchUpStatus;
+        
+        // CRITICAL: For irregular endings (WO/RET/DEF) with no sets, clear the score display
+        const isIrregularEnding = [WALKOVER, RETIRED, DEFAULTED].includes(internalMatchUpStatus);
+        if (isIrregularEnding && currentSets.length === 0) {
+          displayScore = undefined;
+          internalScore = undefined;
+        }
       }
     }
 

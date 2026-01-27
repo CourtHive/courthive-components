@@ -16,6 +16,28 @@ export { scoringModal } from './components/scoring/scoringModal';
 export { setScoringConfig, getScoringConfig, resetScoringConfig } from './components/scoring/config';
 export type { ScoringModalParams, ScoreOutcome, SetScore } from './components/scoring/types';
 
+// Dynamic Sets state management API (pure functions, testable)
+export {
+  getSetFormatForIndex,
+  isSetTiebreakOnly,
+  isSetTimed,
+  getMaxAllowedScore,
+  isSetComplete,
+  getSetWinner,
+  isMatchComplete,
+  getMatchWinner,
+  calculateComplement,
+  shouldApplySmartComplement,
+  shouldShowTiebreak,
+  shouldCreateNextSet,
+  buildSetScore
+} from './components/scoring/logic/dynamicSetsLogic';
+export type {
+  SetFormat,
+  MatchUpConfig,
+  SmartComplementResult
+} from './components/scoring/logic/dynamicSetsLogic';
+
 // Drawer component
 export { drawer, initDrawer } from './components/drawer/drawer';
 export type { DrawerOptions } from './components/drawer/drawer';

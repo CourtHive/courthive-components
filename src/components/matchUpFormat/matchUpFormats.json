@@ -112,5 +112,10 @@
     "key": "timed10",
     "name": "Timed 10 minute game - game based",
     "format": "SET1-S:T10"
+  },
+  {
+    "key": "1pointslam",
+    "name": "1 Point Slam",
+    "format": "SET1-S:TB1NOAD"
   }
 ]

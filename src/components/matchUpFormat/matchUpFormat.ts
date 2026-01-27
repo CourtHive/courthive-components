@@ -8,7 +8,7 @@ import {
   initializeFormatFromString,
   buildSetFormat,
   autoAdjustTiebreakAt,
-  getTiebreakAtOptions,
+  getTiebreakAtOptions
 } from './matchUpFormatLogic';
 
 import matchUpFormats from './matchUpFormats.json';
@@ -109,6 +109,7 @@ const AD = 'Ad';
 interface SetFormatConfig {
   descriptor: string;
   bestOf?: number;
+  exactly?: number;
   advantage: string;
   what: string;
   setTo: number;
@@ -116,6 +117,11 @@ interface SetFormatConfig {
   tiebreakTo: number;
   winBy: number;
   minutes: number;
+  tiebreakFormat?: any;
+  NoAD?: boolean;
+  tiebreakSet?: any;
+  timed?: boolean;
+  based?: string;
 }
 
 interface FormatConfig {
@@ -154,10 +160,11 @@ const format: FormatConfig = {
 function getSetFormat(index?: number): any {
   const which = index ? 'finalSetFormat' : 'setFormat';
   const config = format[which];
-  
+
   // Check if tiebreak checkbox is checked (DOM read)
-  const hasTiebreak = (document.getElementById(index ? 'finalSetTiebreak' : 'setTiebreak') as HTMLInputElement)?.checked || false;
-  
+  const hasTiebreak =
+    (document.getElementById(index ? 'finalSetTiebreak' : 'setTiebreak') as HTMLInputElement)?.checked || false;
+
   // Delegate to pure logic function
   return buildSetFormat(config, hasTiebreak);
 }
@@ -172,7 +179,7 @@ function generateMatchUpFormat(): string {
   // Use exactly or bestOf based on descriptor
   const descriptor = format.setFormat.descriptor;
   const numValue = format.setFormat.exactly ?? format.setFormat.bestOf ?? 3;
-  
+
   if (descriptor === 'Exactly') {
     parsedMatchUpFormat.exactly = numValue;
     // Make sure we don't include bestOf when we have exactly
@@ -188,8 +195,8 @@ function generateMatchUpFormat(): string {
 
   const matchUpFormat = governors.scoreGovernor.stringifyMatchUpFormat(parsedMatchUpFormat);
 
-  const predefinedFormats = editorConfig.preDefinedFormats 
-    ? editorConfig.preDefinedFormats.map(f => ({ value: f.code, label: f.text, format: f.code }))
+  const predefinedFormats = editorConfig.preDefinedFormats
+    ? editorConfig.preDefinedFormats.map((f) => ({ value: f.code, label: f.text, format: f.code }))
     : matchUpFormats;
   const predefined = predefinedFormats.some((format) => format.format === matchUpFormat);
   const elem = document.getElementById('matchUpFormatSelector') as HTMLSelectElement;
@@ -251,8 +258,14 @@ interface SetComponent {
 
 const setComponents: SetComponent[] = [
   {
-    getValue: (pmf) => (pmf.exactly ? editorConfig.labels?.descriptors?.exactly || 'Exactly' : editorConfig.labels?.descriptors?.bestOf || 'Best of'),
-    options: () => [editorConfig.labels?.descriptors?.bestOf || 'Best of', editorConfig.labels?.descriptors?.exactly || 'Exactly'],
+    getValue: (pmf) =>
+      pmf.exactly
+        ? editorConfig.labels?.descriptors?.exactly || 'Exactly'
+        : editorConfig.labels?.descriptors?.bestOf || 'Best of',
+    options: () => [
+      editorConfig.labels?.descriptors?.bestOf || 'Best of',
+      editorConfig.labels?.descriptors?.exactly || 'Exactly'
+    ],
     id: 'descriptor',
     value: editorConfig.labels?.descriptors?.bestOf || 'Best of',
     finalSet: false,
@@ -262,13 +275,13 @@ const setComponents: SetComponent[] = [
     getValue: (pmf) => pmf.bestOf || pmf.exactly,
     finalSet: false,
     id: 'bestOf',
-    options: (index?: number) => {
+    options: () => {
       // Return configured options for 'Exactly' or 'Best of'
       const descriptor = format.setFormat.descriptor;
       const exactlyLabel = editorConfig.labels?.descriptors?.exactly || 'Exactly';
-      return descriptor === exactlyLabel 
-        ? (editorConfig.options?.exactly || defaultConfig.options!.exactly!)
-        : (editorConfig.options?.bestOf || defaultConfig.options!.bestOf!);
+      return descriptor === exactlyLabel
+        ? editorConfig.options?.exactly || defaultConfig.options!.exactly!
+        : editorConfig.options?.bestOf || defaultConfig.options!.bestOf!;
     },
     onChange: 'pluralize',
     onChangeCallback: 'updateFinalSetVisibility',
@@ -323,7 +336,7 @@ const setComponents: SetComponent[] = [
       const descriptor = format.setFormat.descriptor;
       const standardOptions = editorConfig.options?.tiebreakTo || defaultConfig.options!.tiebreakTo!;
       const exactlyOptions = editorConfig.options?.tiebreakToExactly || defaultConfig.options!.tiebreakToExactly!;
-      
+
       if (index && descriptor === 'Exactly') {
         // Final set + Exactly: prepend [1, 3] options
         return [...exactlyOptions, ...standardOptions];
@@ -406,10 +419,10 @@ const setComponents: SetComponent[] = [
 const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) => void> = {
   changeDescriptor: (_e, _index, opt) => {
     format.setFormat.descriptor = opt;
-    
+
     // When switching between 'Best of' and 'Exactly', ensure the value is valid
     const currentValue = format.setFormat.bestOf || format.setFormat.exactly || 3;
-    
+
     if (opt === 'Exactly') {
       // IMPORTANT: 'Exactly' is only valid with timed sets
       // Switch to timed format if not already
@@ -421,31 +434,31 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
         delete format.setFormat.winBy;
         delete format.setFormat.tiebreakFormat;
         delete format.setFormat.NoAD;
-        
+
         format.setFormat.what = TIMED_SETS;
         // Set default timed set values if not already set
         if (!format.setFormat.minutes) {
           format.setFormat.minutes = 10;
         }
         // Keep existing 'based' or leave undefined (defaults to Games)
-        
+
         // Trigger UI update for component visibility
         onClicks.changeWhat(new Event('click'), undefined, TIMED_SETS);
-        
+
         // Update the "what" button text to show "Timed set" or "Timed sets"
         const whatElem = document.getElementById('what');
         if (whatElem) {
           const plural = currentValue > 1 ? 's' : '';
           whatElem.innerHTML = `${TIMED_SETS}${plural}${clickable}`;
         }
-        
+
         // Update the Minutes button display
         const minutesElem = document.getElementById('minutes');
         if (minutesElem) {
           minutesElem.innerHTML = `${format.setFormat.minutes} Minutes${clickable}`;
           minutesElem.style.display = '';
         }
-        
+
         // Update the based button display (show G/P/A)
         const basedElem = document.getElementById('based');
         if (basedElem) {
@@ -454,7 +467,7 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
           basedElem.style.display = '';
         }
       }
-      
+
       // Switch to exactly mode
       format.setFormat.exactly = currentValue;
       delete format.setFormat.bestOf;
@@ -464,30 +477,30 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
       const validBestOf = currentValue % 2 === 0 ? currentValue + 1 : currentValue;
       format.setFormat.bestOf = validBestOf;
       delete format.setFormat.exactly;
-      
+
       // Always update the bestOf button display with the valid odd number
       const bestOfElem = document.getElementById('bestOf');
       if (bestOfElem) {
         bestOfElem.innerHTML = `${validBestOf}${clickable}`;
       }
-      
+
       // Trigger pluralize to update the "what" text if needed
       if (validBestOf !== currentValue) {
         onClicks.pluralize(new Event('click'), undefined, validBestOf);
       }
     }
-    
+
     // Refresh tiebreakTo options for Final Set (index=1) when descriptor changes
     // This adds/removes [1,3] options based on Exactly vs Best of
     const finalSetTiebreakToElem = document.getElementById('tiebreakTo-1');
     if (finalSetTiebreakToElem && finalSetTiebreakToElem.style.display !== NONE) {
       // Just refresh the button - the options function will automatically return the correct list
       const currentTiebreakTo = format.finalSetFormat.tiebreakTo || 7;
-      const tiebreakComponent = setComponents.find(c => c.id === 'tiebreakTo');
+      const tiebreakComponent = setComponents.find((c) => c.id === 'tiebreakTo');
       if (tiebreakComponent) {
         const { prefix = '', suffix = '' } = tiebreakComponent;
         // Ensure current value is still valid for new descriptor
-        const newOptions = isFunction(tiebreakComponent.options) 
+        const newOptions = isFunction(tiebreakComponent.options)
           ? tiebreakComponent.options(1) // Final set (index=1)
           : tiebreakComponent.options;
         // If current value is not in new options, reset to default
@@ -498,7 +511,7 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
         finalSetTiebreakToElem.innerHTML = `${prefix}${validValue}${suffix}${clickable}`;
       }
     }
-    
+
     setMatchUpFormatString();
   },
   changeWhat: (_e, index, opt) => {
@@ -516,13 +529,13 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
       const validBestOf = currentValue % 2 === 0 ? currentValue + 1 : currentValue;
       format.setFormat.bestOf = validBestOf;
       delete format.setFormat.exactly;
-      
+
       // Update the descriptor button display
       const descriptorElem = document.getElementById('descriptor');
       if (descriptorElem) {
         descriptorElem.innerHTML = `Best of${clickable}`;
       }
-      
+
       // Update the number button display
       const bestOfElem = document.getElementById('bestOf');
       if (bestOfElem) {
@@ -561,7 +574,7 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
     // Auto-adjust tiebreakAt using pure logic function
     const currentTiebreakAt = format[which].tiebreakAt;
     const newTiebreakAt = autoAdjustTiebreakAt(opt, currentTiebreakAt);
-    
+
     if (newTiebreakAt !== currentTiebreakAt) {
       format[which].tiebreakAt = newTiebreakAt;
       // Update the tiebreakAt button display
@@ -613,7 +626,7 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
     const elem = document.getElementById(elementId);
     const plural = opt > 1 ? 's' : '';
     elem.innerHTML = `${what}${plural}${clickable}`;
-    
+
     // Update bestOf or exactly based on descriptor
     if (!index) {
       if (format.setFormat.descriptor === 'Exactly') {
@@ -624,7 +637,7 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
         delete format.setFormat.exactly;
       }
     }
-    
+
     // Update format string and dropdown
     setMatchUpFormatString();
   },
@@ -675,12 +688,12 @@ export function getMatchUpFormatModal({
   } else {
     editorConfig = defaultConfig;
   }
-  
+
   // REFACTORED: Use pure function for format initialization
   // This prevents state pollution and ensures proper handling of all format types
   selectedMatchUpFormat = existingMatchUpFormat;
   parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
-  
+
   // Handle invalid format strings that parse to undefined
   if (!parsedMatchUpFormat) {
     console.warn('Invalid matchUpFormat:', selectedMatchUpFormat);
@@ -688,13 +701,10 @@ export function getMatchUpFormatModal({
     selectedMatchUpFormat = 'SET3-S:6/TB7';
     parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
   }
-  
+
   // Initialize format object using pure logic function
-  const initializedFormat = initializeFormatFromString(
-    selectedMatchUpFormat,
-    matchUpFormatCode.parse
-  );
-  
+  const initializedFormat = initializeFormatFromString(selectedMatchUpFormat, matchUpFormatCode.parse);
+
   // Update module-level format object
   // Use spread to ensure we get a copy, not a reference
   format.setFormat = { ...initializedFormat.setFormat };
@@ -716,12 +726,16 @@ export function getMatchUpFormatModal({
       },
       label: 'Cancel',
       intent: 'none',
+      footer: {
+        className: 'button',
+        style: 'background-color: white; color: #363636; border: 1px solid #dbdbdb;'
+      },
       close: true
     },
-    { 
-      label: 'Select', 
-      intent: 'is-info', 
-      close: true, 
+    {
+      label: 'Select',
+      intent: 'is-info',
+      close: true,
       onClick: () => {
         closeCurrentDropdown(); // Clean up any open dropdowns
         onSelect();
@@ -731,7 +745,7 @@ export function getMatchUpFormatModal({
 
   const tiebreakSwitch = 'switch is-rounded is-danger';
   const content = document.createElement('div');
-  
+
   // Close any open dropdown when clicking inside the modal content
   // (except on dropdown elements or buttons that open dropdowns)
   content.addEventListener('click', (e) => {
@@ -752,12 +766,12 @@ export function getMatchUpFormatModal({
 
   const standardFormatSelector = document.createElement('div');
   standardFormatSelector.style.marginBlockEnd = '1em';
-  
+
   // Use configured predefined formats if available, otherwise use default from JSON
-  const predefinedFormats = editorConfig.preDefinedFormats 
-    ? editorConfig.preDefinedFormats.map(f => ({ value: f.code, label: f.text, format: f.code }))
+  const predefinedFormats = editorConfig.preDefinedFormats
+    ? editorConfig.preDefinedFormats.map((f) => ({ value: f.code, label: f.text, format: f.code }))
     : matchUpFormats;
-  
+
   const formatSelector = {
     id: 'matchUpFormatSelector',
     options: [
@@ -767,7 +781,7 @@ export function getMatchUpFormatModal({
         .map((format) => ({
           selected: format.format === selectedMatchUpFormat,
           value: format.format,
-          label: format.name
+          label: ('label' in format ? format.label : format.name) || ''
         }))
     ]
   };
@@ -794,7 +808,7 @@ export function getMatchUpFormatModal({
     selectedMatchUpFormat = (e.target as HTMLSelectElement).value;
     setMatchUpFormatString(selectedMatchUpFormat);
     parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
-    
+
     // Handle invalid format strings
     if (!parsedMatchUpFormat) {
       console.warn('Invalid matchUpFormat selected:', selectedMatchUpFormat);
@@ -803,7 +817,7 @@ export function getMatchUpFormatModal({
 
     // Start with the setFormat from parsed result
     format.setFormat = { ...parsedMatchUpFormat.setFormat };
-    
+
     // Handle both bestOf and exactly attributes
     // These are at the top level of parsedMatchUpFormat, not in setFormat
     if (parsedMatchUpFormat.exactly) {
@@ -820,7 +834,7 @@ export function getMatchUpFormatModal({
       format.setFormat.descriptor = 'Best of';
       delete format.setFormat.exactly;
     }
-    
+
     if (parsedMatchUpFormat.finalSetFormat) format.finalSetFormat = parsedMatchUpFormat.finalSetFormat;
 
     // Update Final Set toggle visibility based on bestOf/exactly value
@@ -942,36 +956,36 @@ export function getMatchUpFormatModal({
   finalSetOption.style.display = showFinalSetOption ? '' : 'none';
   finalSetOption.onchange = (e) => {
     const active = (e.target as HTMLInputElement).checked;
-    
+
     if (active) {
       // When enabling final set, copy ALL properties from main set format
       format.finalSetFormat = {
         ...format.setFormat,
         descriptor: 'Final set'
       };
-      
+
       const what = format.setFormat.what;
       const setCount = format.setFormat.bestOf || format.setFormat.exactly || 3;
-      
+
       // Update the "what" button for final set
       const whatElem = document.getElementById('what-1');
       if (whatElem) {
         const plural = setCount > 1 ? 's' : '';
         whatElem.innerHTML = `${what}${plural}${clickable}`;
       }
-      
+
       // Update ALL final set component buttons from format data
       setComponents.forEach((component) => {
         // Try to find the final set version of this component (id-1)
         const elem = document.getElementById(`${component.id}-1`);
-        
+
         // Skip if this component doesn't have a final set version
         if (!elem) return;
-        
+
         // Check if this component should be visible for the current 'what'
         // Components without 'whats' are always visible (like 'what' selector itself)
         const visible = component.whats ? component.whats.includes(what) : true;
-        
+
         if (visible) {
           // Build innerHTML from format data, not from stale buttons
           const value = format.finalSetFormat[component.id];
@@ -985,13 +999,13 @@ export function getMatchUpFormatModal({
           elem.style.display = NONE;
         }
       });
-      
+
       // Handle tiebreak toggle visibility (only for regular sets)
       const finalSetTiebreakToggle = document.getElementById('finalSetTiebreakToggle');
       if (finalSetTiebreakToggle) {
         finalSetTiebreakToggle.style.display = what === SETS ? '' : NONE;
       }
-      
+
       // Copy tiebreak checkbox state for regular sets
       if (what === SETS) {
         const mainTiebreak = document.getElementById('setTiebreak') as HTMLInputElement;
@@ -1001,7 +1015,7 @@ export function getMatchUpFormatModal({
         }
       }
     }
-    
+
     finalSetFormat.style.display = active ? '' : NONE;
     finalSetConfig.style.display = active ? '' : NONE;
     setMatchUpFormatString();
@@ -1122,7 +1136,7 @@ export function getMatchUpFormatModal({
     buttons,
     config: finalModalConfig
   });
-  
+
   // Update final set UI after modal DOM is ready
   // This handles tiebreak-only final sets like F:TB7
   setTimeout(() => {
@@ -1132,11 +1146,11 @@ export function getMatchUpFormatModal({
       if (whatElem) {
         whatElem.innerHTML = `${TIEBREAKS}${clickable}`;
       }
-      
+
       // Update component visibility for tiebreak-only final set
       onClicks.changeWhat(new Event('click'), 1, TIEBREAKS);
     }
-    
+
     // Watch for modal removal and clean up dropdowns
     const modalElement = document.querySelector('.modal.is-active');
     if (modalElement) {
@@ -1153,7 +1167,7 @@ export function getMatchUpFormatModal({
       observer.observe(document.body, { childList: true });
     }
   }, 0);
-  
+
   return modalResult;
 }
 
