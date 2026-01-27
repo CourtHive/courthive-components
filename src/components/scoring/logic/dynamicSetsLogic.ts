@@ -474,6 +474,7 @@ export function buildSetScore(
         : undefined;
 
     return {
+      setNumber: setIndex + 1,
       side1Score: 0,
       side2Score: 0,
       side1TiebreakScore: side1Score,
@@ -487,6 +488,7 @@ export function buildSetScore(
   const winningSide = getSetWinner(setIndex, scores, config);
 
   const setData: SetScore = {
+    setNumber: setIndex + 1,
     side1Score,
     side2Score,
     winningSide,

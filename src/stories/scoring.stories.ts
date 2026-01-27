@@ -155,7 +155,7 @@ export const DynamicSets = {
     intro.style.color = '#555';
     intro.innerHTML =
       'The Dynamic Sets approach uses a <strong style="color: #363636;">pure state engine architecture</strong> with business logic completely separated from UI rendering. ' +
-      'All scoring rules, validation, and smart complement calculations are implemented as testable pure functions with <strong style="color: #363636;">76 passing tests</strong> providing comprehensive coverage ' +
+      'All scoring rules, validation, and smart complement calculations are implemented as testable pure functions with <strong style="color: #363636;">comprehensive test coverage</strong> ' +
       'across set completion, match completion, tiebreak detection, and edge cases. Use the Controls below to enable Smart Complements and change the composition theme.';
     container.appendChild(intro);
 
@@ -247,7 +247,7 @@ const setScore: SetScore = buildSetScore(
   undefined,                   // tiebreak (optional)
   config
 );
-// Returns: { side1Score: 6, side2Score: 4 }
+// Returns: { setNumber: 1, side1Score: 6, side2Score: 4 }
 
 // Check if match is complete
 const sets: SetScore[] = [
@@ -294,7 +294,7 @@ const result = shouldApplySmartComplement(
       <li><code>isMatchComplete(sets, bestOf)</code> - Check if the match is finished</li>
       <li><code>getSetWinner(setIndex, scores, config)</code> - Get the winner of a set (1, 2, or undefined)</li>
       <li><code>getMatchWinner(sets, bestOf)</code> - Get the winner of a match (1, 2, or undefined)</li>
-      <li><code>buildSetScore(setIndex, side1Input, side2Input, tiebreak, config)</code> - Build SetScore from inputs</li>
+      <li><code>buildSetScore(setIndex, side1Input, side2Input, tiebreak, config)</code> - Build SetScore from inputs (includes setNumber)</li>
       <li><code>shouldApplySmartComplement(digit, shiftKey, setIndex, sets, config, used, enabled)</code> - Calculate smart complement</li>
       <li><code>getMaxAllowedScore(setIndex, side, currentScores, config)</code> - Get max valid score for validation</li>
       <li><code>shouldShowTiebreak(setIndex, scores, config)</code> - Determine if tiebreak input should appear</li>

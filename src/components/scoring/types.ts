@@ -3,6 +3,7 @@
  */
 
 export type SetScore = {
+  setNumber?: number;
   side1Score?: number;
   side2Score?: number;
   side1TiebreakScore?: number;
