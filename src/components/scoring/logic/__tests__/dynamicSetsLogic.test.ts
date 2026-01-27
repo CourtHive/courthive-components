@@ -20,14 +20,14 @@ import {
   shouldShowTiebreak,
   shouldCreateNextSet,
   buildSetScore,
-  type MatchConfig,
+  type MatchUpConfig,
 } from '../dynamicSetsLogic';
 import type { SetScore } from '../../types';
 import { MATCH_FORMATS } from '../../../../constants/matchUpFormats';
 import { matchUpFormatCode } from 'tods-competition-factory';
 
-// Helper to create MatchConfig from format string
-function parseFormat(formatString: string): MatchConfig {
+// Helper to create MatchUpConfig from format string
+function parseFormat(formatString: string): MatchUpConfig {
   const parsed = matchUpFormatCode.parse(formatString);
   const regex = /SET(\d+)/;
   const bestOfMatch = regex.exec(formatString);
@@ -46,7 +46,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
   
   // Note: Can't parse this format cleanly because F:TB10 creates tiebreakSet (tiebreak-only) not tiebreakFormat
   // Using inline config to match original test expectations
-  const standardBestOf5: MatchConfig = {
+  const standardBestOf5: MatchUpConfig = {
     bestOf: 5,
     setFormat: { setTo: 6, tiebreakAt: 6, tiebreakFormat: { tiebreakTo: 7 } },
     finalSetFormat: { setTo: 6, tiebreakAt: 6, tiebreakFormat: { tiebreakTo: 10 } },

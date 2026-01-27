@@ -17,7 +17,7 @@ import {
   getMaxAllowedScore as getMaxAllowedScoreLogic,
   shouldApplySmartComplement,
   buildSetScore,
-  type MatchConfig,
+  type MatchUpConfig,
 } from '../logic/dynamicSetsLogic';
 
 const { COMPLETED, RETIRED, WALKOVER, DEFAULTED } = matchUpStatusConstants;
@@ -35,7 +35,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   // NOTE: These are wrapped in a function to allow dynamic re-parsing when format changes
   let currentMatchUpFormat = matchUp.matchUpFormat || 'SET3-S:6/TB7';
   
-  const getMatchConfig = (): MatchConfig => {
+  const getMatchUpConfig = (): MatchUpConfig => {
     const formatInfo = parseMatchUpFormat(currentMatchUpFormat);
     const parsedFormat = matchUpFormatCode.parse(currentMatchUpFormat);
     return {
@@ -47,7 +47,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   
   // Create matchConfig that always uses current format
   // This ensures format changes are immediately reflected
-  let matchConfig = getMatchConfig();
+  let matchConfig = getMatchUpConfig();
   const getBestOf = () => matchConfig.bestOf;
 
   // Helper function to get format for a specific set index
@@ -100,7 +100,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
               formatButton.textContent = newFormat;
 
               // Regenerate matchConfig with new format
-              matchConfig = getMatchConfig();
+              matchConfig = getMatchUpConfig();
 
               // Clear all sets and reset
               if ((globalThis as any).resetDynamicSets) {
