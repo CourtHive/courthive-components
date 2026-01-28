@@ -15,7 +15,7 @@ export interface ScoringConfig {
 // Default configuration
 const defaultConfig: ScoringConfig = {
   scoringApproach: 'dynamicSets',
-  smartComplements: false,
+  smartComplements: true, // Enable shift+digit complement entry by default
   composition: 'Australian',
   idiom: 'en',
   dateFormat: 'YYYY-MM-DD',

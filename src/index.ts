@@ -11,6 +11,10 @@ export { cModal } from './components/modal/cmodal';
 // Match format selector modal
 export { getMatchUpFormatModal } from './components/matchUpFormat/matchUpFormat';
 
+// Age category editor modal
+export { getAgeCategoryModal } from './components/categories/ageCategory/ageCategory';
+export type { AgeCategoryConfig } from './components/categories/ageCategory/ageCategory';
+
 // Scoring modals
 export { scoringModal } from './components/scoring/scoringModal';
 export { setScoringConfig, getScoringConfig, resetScoringConfig } from './components/scoring/config';
