@@ -11,6 +11,9 @@ const meta: Meta = {
 export default meta;
 type Story = StoryObj;
 
+// Global variable to preserve last edited age category code for round-trip testing
+let lastAgeCategoryCode: string | undefined;
+
 /**
  * Basic Age Category Editor
  */
@@ -34,9 +37,9 @@ export const BasicEditor: Story = {
       const { getAgeCategoryModal } = await import('../components/categories/ageCategory/ageCategory');
 
       getAgeCategoryModal({
-        existingCategory: { ageCategoryCode: '18U' },
-        consideredDate: '2024-01-01',
+        existingAgeCategoryCode: lastAgeCategoryCode, // Use last edited value for round-trip testing
         callback: (category) => {
+          lastAgeCategoryCode = category.ageCategoryCode; // Save for next open
           if (category.ageCategoryCode) {
             resultDisplay.innerHTML = `
               <div style="color: #000;">
@@ -44,6 +47,9 @@ export const BasicEditor: Story = {
                 <code style="background: #e0e0e0; padding: 0.2em 0.4em; border-radius: 3px; color: #000;">
                   ${category.ageCategoryCode}
                 </code>
+                <div style="margin-top: 0.5em; font-size: 0.9em; color: #666; font-style: italic;">
+                  Click the button again to test round-trip editing
+                </div>
               </div>
             `;
           }

@@ -340,25 +340,30 @@ function createDropdown(e: Event, items: Array<{ text: string; onClick: () => vo
  * Main function to open the age category modal
  */
 export function getAgeCategoryModal({
+  existingAgeCategoryCode,
   existingCategory = {},
+  editorConfig: userConfig,
   consideredDate: providedDate,
   callback,
   config,
   modalConfig
 }: {
+  existingAgeCategoryCode?: string;
   existingCategory?: { ageCategoryCode?: string; [key: string]: any };
+  editorConfig?: AgeCategoryConfig;
   consideredDate?: string;
   callback?: (category: { ageCategoryCode: string; [key: string]: any }) => void;
   config?: AgeCategoryConfig;
   modalConfig?: any;
 } = {}) {
-  // Merge config
-  if (config) {
+  // Merge config (support both 'config' and 'editorConfig' for backwards compatibility)
+  const configToUse = userConfig || config;
+  if (configToUse) {
     editorConfig = {
-      labels: { ...defaultConfig.labels, ...config.labels },
-      options: { ...defaultConfig.options, ...config.options },
-      preDefinedCodes: config.preDefinedCodes || getDefaultPredefinedCodes(),
-      defaultConsideredDate: config.defaultConsideredDate || defaultConfig.defaultConsideredDate
+      labels: { ...defaultConfig.labels, ...configToUse.labels },
+      options: { ...defaultConfig.options, ...configToUse.options },
+      preDefinedCodes: configToUse.preDefinedCodes || getDefaultPredefinedCodes(),
+      defaultConsideredDate: configToUse.defaultConsideredDate || defaultConfig.defaultConsideredDate
     };
   } else {
     editorConfig = { ...defaultConfig, preDefinedCodes: getDefaultPredefinedCodes() };
@@ -367,8 +372,8 @@ export function getAgeCategoryModal({
   // Set considered date (YYYY-MM-DD format)
   consideredDate = providedDate || editorConfig.defaultConsideredDate || new Date().toISOString().split('T')[0];
 
-  // Parse existing code
-  const existingCode = existingCategory.ageCategoryCode || 'OPEN';
+  // Parse existing code (support both direct parameter and existingCategory object)
+  const existingCode = existingAgeCategoryCode || existingCategory.ageCategoryCode || 'OPEN';
   selectedAgeCategoryCode = existingCode;
 
   const parsed = parseAgeCategoryCode(existingCode);
@@ -646,6 +651,12 @@ export function getAgeCategoryModal({
 
   // Helper function to update all button labels
   function updateButtonLabels(): void {
+    // Update category type button
+    const categoryTypeBtn = document.getElementById('categoryType');
+    if (categoryTypeBtn) {
+      categoryTypeBtn.innerHTML = `${internalToCategory(editorState.type)}${clickable}`;
+    }
+
     // Update age value button
     if (editorState.ageValue !== undefined) {
       const ageValueBtn = document.getElementById('ageValue');

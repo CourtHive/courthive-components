@@ -1,11 +1,11 @@
 import '../components/forms/styles'; // Import bulma-switch and other form styles
 
 export default {
-  title: 'Components/Editor',
+  title: 'Components/matchUpFormat',
   tags: ['autodocs']
 };
 
-export const FormatEditor = {
+export const Editor = {
   render: () => {
     const container = document.createElement('div');
     container.style.padding = '2em';
@@ -170,7 +170,8 @@ export const CustomPresets = {
         validationMsg.style.display = 'block';
         validationMsg.style.backgroundColor = '#ffebee';
         validationMsg.style.color = '#c62828';
-        validationMsg.innerHTML = '<strong style="color: #b71c1c;">Invalid Config:</strong> preDefinedFormats must be an array';
+        validationMsg.innerHTML =
+          '<strong style="color: #b71c1c;">Invalid Config:</strong> preDefinedFormats must be an array';
         return;
       }
 
