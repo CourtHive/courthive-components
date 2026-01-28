@@ -170,11 +170,11 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       let s1 = Number.parseInt(side1);
       let s2 = Number.parseInt(side2);
 
-      // Coercion rules ONLY apply to regular sets, NOT tiebreak-only sets (TB10)
-      // For tiebreak-only formats (SET1-S:TB10), accept scores as-is
+      // Coercion rules ONLY apply to regular sets, NOT tiebreak-only sets (TB10) or timed sets
+      // For tiebreak-only formats (SET1-S:TB10) and timed sets (SET3X-S:T10), accept scores as-is
       let wasCoerced = false;
 
-      if (!currentSetIsTiebreakOnly) {
+      if (!currentSetIsTiebreakOnly && !currentSetIsTimed) {
         // Coercion rules to match other scoring dialog behavior:
         // 1. If side > setTo+1: coerce that side DOWN to setTo
         // 2. If side = setTo+1 but other side < setTo-1: coerce the HIGH side DOWN to setTo

@@ -159,6 +159,70 @@ export const DynamicSets = {
       'across set completion, match completion, tiebreak detection, and edge cases. Use the Controls below to enable Smart Complements and change the composition theme.';
     container.appendChild(intro);
 
+    // Smart Complements Section
+    const smartComplementsSection = document.createElement('div');
+    smartComplementsSection.style.marginBottom = '2em';
+    smartComplementsSection.style.padding = '1.5em';
+    smartComplementsSection.style.backgroundColor = '#f0f9ff';
+    smartComplementsSection.style.borderLeft = '4px solid #3273dc';
+    smartComplementsSection.style.borderRadius = '4px';
+
+    const smartTitle = document.createElement('h3');
+    smartTitle.textContent = 'Smart Complements';
+    smartTitle.style.marginTop = '0';
+    smartTitle.style.marginBottom = '1em';
+    smartTitle.style.color = '#363636';
+    smartTitle.style.fontSize = '1.2em';
+    smartComplementsSection.appendChild(smartTitle);
+
+    const smartDescription = document.createElement('p');
+    smartDescription.style.marginBottom = '1em';
+    smartDescription.style.color = '#4a4a4a';
+    smartDescription.style.lineHeight = '1.6';
+    smartDescription.innerHTML =
+      'When entering scores in the <strong style="color: #363636;">first (left) field</strong> of a new set, the system can automatically fill the second field with the complement score. ' +
+      'This feature speeds up score entry for standard tennis results.';
+    smartComplementsSection.appendChild(smartDescription);
+
+    const examplesTitle = document.createElement('div');
+    examplesTitle.textContent = 'Keyboard Shortcuts:';
+    examplesTitle.style.fontWeight = 'bold';
+    examplesTitle.style.marginBottom = '0.75em';
+    examplesTitle.style.color = '#363636';
+    smartComplementsSection.appendChild(examplesTitle);
+
+    const examplesList = document.createElement('ul');
+    examplesList.style.marginLeft = '1.5em';
+    examplesList.style.marginBottom = '1em';
+    examplesList.style.lineHeight = '1.8';
+    examplesList.style.color = '#4a4a4a';
+    
+    const examples = [
+      { key: '6', result: '6-4', desc: 'Type "6" → auto-fills "6-4"' },
+      { key: '7', result: '7-5', desc: 'Type "7" → auto-fills "7-5"' },
+      { key: 'Shift+6', result: '4-6', desc: 'Hold Shift, type "6" → auto-fills "4-6" (reversed)' },
+      { key: 'Shift+7', result: '5-7', desc: 'Hold Shift, type "7" → auto-fills "5-7" (reversed)' },
+    ];
+
+    examples.forEach(example => {
+      const li = document.createElement('li');
+      li.innerHTML = `<code style="background: #e8f4f8; padding: 0.2em 0.5em; border-radius: 3px; font-family: monospace; color: #0066cc;">${example.key}</code> → <strong>${example.result}</strong> <span style="color: #666;">(${example.desc})</span>`;
+      examplesList.appendChild(li);
+    });
+    
+    smartComplementsSection.appendChild(examplesList);
+
+    const smartNote = document.createElement('p');
+    smartNote.style.fontSize = '0.9em';
+    smartNote.style.color = '#666';
+    smartNote.style.fontStyle = 'italic';
+    smartNote.style.marginTop = '0.75em';
+    smartNote.innerHTML =
+      '<strong style="color: #363636;">Note:</strong> This feature is enabled by default. Toggle it using the "smartComplements" control below, or disable it programmatically by calling <code>setScoringConfig({ smartComplements: false })</code>.';
+    smartComplementsSection.appendChild(smartNote);
+
+    container.appendChild(smartComplementsSection);
+
     // Button
     const button = document.createElement('button');
     button.className = 'button is-success';

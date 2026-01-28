@@ -174,7 +174,7 @@ import { renderField } from './renderField';
 
 export function renderForm(elem: HTMLElement, items: any[], relationships?: any[]): any {
   const div = document.createElement('div');
-  div.style.cssText = 'display: flex; width: 100%;';
+  div.style.cssText = 'display: flex; flex-direction: column; width: 100%;';
   div.classList.add('flexcol');
 
   const inputs: any = {},
