@@ -17,6 +17,10 @@ export type { AgeCategoryConfig } from './components/categories/ageCategory/ageC
 export { getCategoryModal } from './components/categories/category/category';
 export type { CategoryConfig, Category } from './components/categories/category/category';
 
+// Flight profile editor modal
+export { getFlightProfileModal } from './components/flightProfile/flightProfileNew';
+export type { FlightProfileConfig } from './components/flightProfile/flightProfileNew';
+
 // Scoring modals
 export { scoringModal } from './components/scoring/scoringModal';
 export { setScoringConfig, getScoringConfig, resetScoringConfig } from './components/scoring/config';
