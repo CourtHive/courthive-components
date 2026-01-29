@@ -1,4 +1,4 @@
-import { getFlightProfileModal } from '../components/flightProfile/flightProfile';
+import { getFlightProfileModal } from '../components/flightProfile/flightProfileNew';
 
 export default {
   title: 'Components/FlightProfile',
