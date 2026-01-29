@@ -2,17 +2,14 @@
  * Flight profile form relationships and field interactions.
  * Manages form field dependencies and dynamic updates for flight profile creation.
  */
-import { numericValidator } from '../validators/numericValidator';
 import { numericRange } from '../validators/numericRange';
-import { generateFlightNames } from './flightProfileLogic';
 import {
   FLIGHTS_COUNT,
   NAMING_TYPE,
   CUSTOM_NAME,
   SUFFIX_TYPE,
   SCALE_TYPE,
-  SCALE_NAME,
-  SPLIT_METHOD
+  SCALE_NAME
 } from './getFlightProfileFormItems';
 
 const NONE = 'none';

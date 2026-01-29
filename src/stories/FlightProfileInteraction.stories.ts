@@ -1,24 +1,49 @@
+import { setupTournamentWithFlights, generateAndDisplayFlights } from './helpers/flightProfileHelpers';
 import { getFlightProfileModal } from '../components/flightProfile/flightProfileNew';
+import { mocksEngine, tournamentEngine, tools } from 'tods-competition-factory';
+import { createJsonViewer } from './helpers/JsonViewer';
 
 export default {
   title: 'Components/FlightProfile',
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      source: {
+        type: 'dynamic'
+      }
+    }
+  },
+  decorators: [
+    (Story: any) => {
+      // Add CSS for flexrow to make fieldPair display side-by-side
+      const style = document.createElement('style');
+      style.textContent = `
+        .flexrow {
+          display: flex !important;
+          gap: 1em;
+        }
+        .flexrow .field {
+          flex: 1;
+        }
+      `;
+      document.head.appendChild(style);
+
+      return Story();
+    }
+  ]
 };
 
-// Global variable to preserve last edited flight profile for round-trip testing
-let lastFlightProfile: any;
-
 /**
- * Basic Flight Profile Editor
- * Demonstrates creating a new flight profile
+ * Complete Flight Generation Example
+ * Shows full workflow: tournament setup → modal → generateFlightProfile → results
  */
-export const BasicEditor = {
+export const CompleteFlightGeneration = {
   render: () => {
     const container = document.createElement('div');
     container.style.padding = '2em';
 
     const title = document.createElement('h2');
-    title.textContent = 'Flight Profile Editor';
+    title.textContent = 'Flight Profile Generation';
     title.style.marginBottom = '0.5em';
     title.style.color = '#000';
     container.appendChild(title);
@@ -27,8 +52,33 @@ export const BasicEditor = {
     description.style.marginBottom = '1.5em';
     description.style.color = '#666';
     description.innerHTML =
-      'Click the button below to open the Flight Profile editor. The Flight Profile editor allows you to configure automatic participant segmentation into multiple flights based on ratings or rankings.';
+      'This demonstrates the complete flight generation workflow:<br>' +
+      '1. Tournament with 32 participants (90% have WTN/UTR/NTRP/U18 rankings)<br>' +
+      '2. Modal collects flight parameters<br>' +
+      '3. <code style="background: #f5f5f5; padding: 0.2em 0.4em; border-radius: 3px;">generateFlightProfile()</code> splits participants<br>' +
+      '4. Results displayed with full flight details';
     container.appendChild(description);
+
+    // Setup tournament
+    const { tournamentEngine: engine, eventId } = setupTournamentWithFlights(mocksEngine, tournamentEngine);
+    const event = engine.getEvent({ eventId }).event;
+
+    const infoBox = document.createElement('div');
+    infoBox.style.marginBottom = '1.5em';
+    infoBox.style.padding = '1em';
+    infoBox.style.backgroundColor = '#e8f5e9';
+    infoBox.style.borderLeft = '4px solid #4caf50';
+    infoBox.style.borderRadius = '4px';
+    infoBox.innerHTML = `
+      <div style="color: #000;">
+        <strong style="color: #000;">Tournament Ready:</strong><br>
+        Event: ${event.eventName} (${event.eventType})<br>
+        Participants: 32 (29 with rankings, 3 unranked)<br>
+        Ratings: WTN, UTR, NTRP<br>
+        Rankings: U18
+      </div>
+    `;
+    container.appendChild(infoBox);
 
     const resultDisplay = document.createElement('div');
     resultDisplay.style.marginTop = '1.5em';
@@ -38,351 +88,109 @@ export const BasicEditor = {
     resultDisplay.style.border = '1px solid #e0e0e0';
     resultDisplay.innerHTML = `
       <div style="color: #666; font-style: italic;">
-        Flight profile configuration will appear here after clicking OK...
+        Click button above to configure and generate flights...
       </div>
     `;
 
     const button = document.createElement('button');
     button.className = 'button is-primary';
-    button.textContent = 'Create Flight Profile';
+    button.textContent = 'Configure Flights';
     button.onclick = () => {
       getFlightProfileModal({
-        callback: (config: any) => {
-          console.log('Flight profile config:', config);
-          resultDisplay.innerHTML = `
-            <div style="color: #000;">
-              <strong style="color: #000;">Flight Profile Configuration:</strong><br>
-              <pre style="background: #f5f5f5; padding: 1em; border-radius: 4px; overflow: auto; color: #000;">${JSON.stringify(
-                config,
-                null,
-                2,
-              )}</pre>
-              <div style="margin-top: 1em; padding: 1em; background: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 4px;">
-                <strong style="color: #000;">Generated Flight Names:</strong><br>
-                ${config.drawNames?.join(', ') || 'N/A'}
-              </div>
-            </div>
-          `;
-        },
-      });
-    };
-    container.appendChild(button);
-    container.appendChild(resultDisplay);
+        callback: (modalOutput: any) => {
+          console.log('Modal output:', modalOutput);
 
-    return container;
-  },
-};
+          // Generate flights using helper
+          const result = generateAndDisplayFlights({
+            modalOutput,
+            tournamentEngine: engine,
+            eventId,
+            eventType: event.eventType,
+            tools
+          });
 
-/**
- * Split Methods Comparison
- * Shows examples of different split methods
- */
-export const SplitMethods = {
-  render: () => {
-    const container = document.createElement('div');
-    container.style.padding = '2em';
+          console.log('Flight generation result:', result);
 
-    const title = document.createElement('h2');
-    title.textContent = 'Split Methods';
-    title.style.marginBottom = '0.5em';
-    title.style.color = '#000';
-    container.appendChild(title);
-
-    const description = document.createElement('p');
-    description.style.marginBottom = '1.5em';
-    description.style.color = '#666';
-    description.innerHTML =
-      'The flight profile editor supports three split methods:<br>' +
-      '<strong style="color: #000;">Waterfall</strong> - Distributes evenly like dealing cards<br>' +
-      '<strong style="color: #000;">Level Based</strong> - Groups by skill tiers<br>' +
-      '<strong style="color: #000;">Shuttle</strong> - Snake/serpentine distribution';
-    container.appendChild(description);
-
-    const methodsInfo = document.createElement('div');
-    methodsInfo.style.marginBottom = '1.5em';
-    methodsInfo.style.padding = '1em';
-    methodsInfo.style.backgroundColor = '#f5f5f5';
-    methodsInfo.style.borderRadius = '4px';
-    methodsInfo.innerHTML = `
-      <div style="color: #333;">
-        <strong style="color: #000;">Example with rankings 1-15 into 3 flights:</strong><br><br>
-        <strong style="color: #000;">Waterfall:</strong> Flight 1: [1,4,7,10,13], Flight 2: [2,5,8,11,14], Flight 3: [3,6,9,12,15]<br>
-        <strong style="color: #000;">Level Based:</strong> Flight 1: [1-5], Flight 2: [6-10], Flight 3: [11-15]<br>
-        <strong style="color: #000;">Shuttle:</strong> Flight 1: [1,6,7,12,13], Flight 2: [2,5,8,11,14], Flight 3: [3,4,9,10,15]
-      </div>
-    `;
-    container.appendChild(methodsInfo);
-
-    const button = document.createElement('button');
-    button.className = 'button is-info';
-    button.textContent = 'Try Different Split Methods';
-    button.onclick = () => {
-      getFlightProfileModal({
-        callback: (config: any) => {
-          console.log('Flight profile with split method:', config);
-          resultDisplay.innerHTML = `
-            <div style="color: #000;">
-              <strong style="color: #000;">Selected Split Method:</strong> ${config.splitMethod}<br><br>
-              <pre style="background: #f5f5f5; padding: 1em; border-radius: 4px; overflow: auto; color: #000;">${JSON.stringify(
-                config,
-                null,
-                2,
-              )}</pre>
-            </div>
-          `;
-        },
-      });
-    };
-    container.appendChild(button);
-
-    const resultDisplay = document.createElement('div');
-    resultDisplay.style.marginTop = '1.5em';
-    container.appendChild(resultDisplay);
-
-    return container;
-  },
-};
-
-/**
- * Naming Options
- * Shows different flight naming configurations
- */
-export const NamingOptions = {
-  render: () => {
-    const container = document.createElement('div');
-    container.style.padding = '2em';
-
-    const title = document.createElement('h2');
-    title.textContent = 'Flight Naming Options';
-    title.style.marginBottom = '0.5em';
-    title.style.color = '#000';
-    container.appendChild(title);
-
-    const description = document.createElement('p');
-    description.style.marginBottom = '1.5em';
-    description.style.color = '#666';
-    description.innerHTML =
-      'Choose between color names (Gold, Silver, Bronze) or custom names with letter/number suffixes.';
-    container.appendChild(description);
-
-    const button = document.createElement('button');
-    button.className = 'button is-success';
-    button.textContent = 'Configure Flight Names';
-    button.onclick = () => {
-      getFlightProfileModal({
-        callback: (config: any) => {
-          console.log('Flight names:', config.drawNames);
-          resultDisplay.innerHTML = `
-            <div style="color: #000;">
-              <strong style="color: #000;">Generated Flight Names:</strong><br><br>
-              <div style="display: flex; gap: 0.5em; flex-wrap: wrap; margin-top: 1em;">
-                ${config.drawNames
-                  ?.map(
-                    (name: string) => `
-                  <span style="padding: 0.5em 1em; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 4px; font-weight: bold;">
-                    ${name}
-                  </span>
-                `,
-                  )
-                  .join('')}
-              </div>
-            </div>
-          `;
-        },
-      });
-    };
-    container.appendChild(button);
-
-    const resultDisplay = document.createElement('div');
-    resultDisplay.style.marginTop = '1.5em';
-    container.appendChild(resultDisplay);
-
-    return container;
-  },
-};
-
-/**
- * Scale Types
- * Shows rating vs ranking scale configurations
- */
-export const ScaleTypes = {
-  render: () => {
-    const container = document.createElement('div');
-    container.style.padding = '2em';
-
-    const title = document.createElement('h2');
-    title.textContent = 'Scale Types';
-    title.style.marginBottom = '0.5em';
-    title.style.color = '#000';
-    container.appendChild(title);
-
-    const description = document.createElement('p');
-    description.style.marginBottom = '1.5em';
-    description.style.color = '#666';
-    description.innerHTML =
-      'Choose between <strong style="color: #000;">Rating</strong> (WTN, UTR, NTRP, etc.) or <strong style="color: #000;">Ranking</strong> based distribution.';
-    container.appendChild(description);
-
-    const button = document.createElement('button');
-    button.className = 'button is-warning';
-    button.textContent = 'Configure Scale Type';
-    button.onclick = () => {
-      getFlightProfileModal({
-        callback: (config: any) => {
-          console.log('Scale configuration:', config.scaleAttributes);
-          resultDisplay.innerHTML = `
-            <div style="color: #000;">
-              <strong style="color: #000;">Scale Attributes:</strong><br>
-              <pre style="background: #f5f5f5; padding: 1em; border-radius: 4px; overflow: auto; color: #000;">${JSON.stringify(
-                config.scaleAttributes,
-                null,
-                2,
-              )}</pre>
-            </div>
-          `;
-        },
-      });
-    };
-    container.appendChild(button);
-
-    const resultDisplay = document.createElement('div');
-    resultDisplay.style.marginTop = '1.5em';
-    container.appendChild(resultDisplay);
-
-    return container;
-  },
-};
-
-/**
- * Edit Existing Flight Profile
- * Shows editing an existing profile (rename flights only)
- */
-export const EditExisting = {
-  render: () => {
-    const container = document.createElement('div');
-    container.style.padding = '2em';
-
-    const title = document.createElement('h2');
-    title.textContent = 'Edit Existing Flight Profile';
-    title.style.marginBottom = '0.5em';
-    title.style.color = '#000';
-    container.appendChild(title);
-
-    const description = document.createElement('p');
-    description.style.marginBottom = '1.5em';
-    description.style.color = '#666';
-    description.innerHTML =
-      'When editing an existing flight profile, the split has already been performed. You can only rename the individual flights.';
-    container.appendChild(description);
-
-    // Mock existing flight profile
-    const mockExistingProfile = {
-      flights: [
-        { flightNumber: 1, drawId: 'flight-1', drawName: 'Gold' },
-        { flightNumber: 2, drawId: 'flight-2', drawName: 'Silver' },
-        { flightNumber: 3, drawId: 'flight-3', drawName: 'Bronze' },
-      ],
-      scaleAttributes: {
-        scaleType: 'RATING',
-        scaleName: 'WTN',
-        eventType: 'SINGLES',
-      },
-      splitMethod: 'splitLevelBased',
-    };
-
-    const button = document.createElement('button');
-    button.className = 'button is-danger';
-    button.textContent = 'Edit Existing Profile';
-    button.onclick = () => {
-      getFlightProfileModal({
-        existingFlightProfile: mockExistingProfile,
-        callback: (config: any) => {
-          console.log('Updated flight names:', config);
-          resultDisplay.innerHTML = `
-            <div style="color: #000;">
-              <strong style="color: #000;">Updated Flight Names:</strong><br>
-              <pre style="background: #f5f5f5; padding: 1em; border-radius: 4px; overflow: auto; color: #000;">${JSON.stringify(
-                config.flights,
-                null,
-                2,
-              )}</pre>
-              <div style="margin-top: 1em; padding: 1em; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 4px;">
-                <strong style="color: #000;">Note:</strong> When editing an existing profile, only flight names can be changed. The split configuration is read-only.
-              </div>
-            </div>
-          `;
-        },
-      });
-    };
-    container.appendChild(button);
-
-    const resultDisplay = document.createElement('div');
-    resultDisplay.style.marginTop = '1.5em';
-    container.appendChild(resultDisplay);
-
-    return container;
-  },
-};
-
-/**
- * Pre-configured Event Type
- * Shows passing event type from parent context
- */
-export const PreConfiguredEventType = {
-  render: () => {
-    const container = document.createElement('div');
-    container.style.padding = '2em';
-
-    const title = document.createElement('h2');
-    title.textContent = 'Pre-configured Event Type';
-    title.style.marginBottom = '0.5em';
-    title.style.color = '#000';
-    container.appendChild(title);
-
-    const description = document.createElement('p');
-    description.style.marginBottom = '1.5em';
-    description.style.color = '#666';
-    description.innerHTML =
-      'When called from an event context, the event type can be pre-set to avoid asking the user.';
-    container.appendChild(description);
-
-    const buttonGroup = document.createElement('div');
-    buttonGroup.style.marginBottom = '1em';
-
-    ['SINGLES', 'DOUBLES'].forEach((eventType) => {
-      const button = document.createElement('button');
-      button.className = 'button is-link';
-      button.style.marginRight = '0.5em';
-      button.textContent = `Create ${eventType} Flight Profile`;
-      button.onclick = () => {
-        getFlightProfileModal({
-          editorConfig: {
-            eventType: eventType,
-          },
-          callback: (config: any) => {
-            console.log(`${eventType} flight profile:`, config);
+          if (result.error) {
             resultDisplay.innerHTML = `
-              <div style="color: #000;">
-                <strong style="color: #000;">${eventType} Flight Profile:</strong><br>
-                <pre style="background: #f5f5f5; padding: 1em; border-radius: 4px; overflow: auto; color: #000;">${JSON.stringify(
-                  config,
+              <div style="color: #d32f2f;">
+                <strong style="color: #d32f2f;">Error:</strong> ${result.error}<br>
+                <pre style="background: #ffebee; padding: 1em; border-radius: 4px; overflow: auto; color: #d32f2f; margin-top: 0.5em;">${JSON.stringify(
+                  result.params,
                   null,
-                  2,
+                  2
                 )}</pre>
               </div>
             `;
-          },
-        });
-      };
-      buttonGroup.appendChild(button);
-    });
+            return;
+          }
 
-    container.appendChild(buttonGroup);
+          // Display success result
+          resultDisplay.innerHTML = '';
 
-    const resultDisplay = document.createElement('div');
-    resultDisplay.style.marginTop = '1.5em';
+          const successDiv = document.createElement('div');
+          successDiv.style.color = '#000';
+
+          // Title
+          const title = document.createElement('h3');
+          title.style.marginTop = '0';
+          title.style.color = '#000';
+          title.textContent = '✓ Flights Generated Successfully';
+          successDiv.appendChild(title);
+
+          // Summary
+          const summaryBox = document.createElement('div');
+          summaryBox.style.cssText =
+            'margin: 1em 0; padding: 1em; background: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 4px;';
+          summaryBox.innerHTML = `
+            <strong style="color: #000;">Summary:</strong><br>
+            Total Flights: ${result.summary.totalFlights}<br>
+            Flight Names: ${result.summary.flightNames.join(', ')}<br>
+            Entries per Flight: ${result.summary.entriesPerFlight.join(', ')}<br>
+            Split Method: ${result.summary.splitMethod}<br>
+            Scale Type: ${result.summary.scaleAttributes.scaleType}
+            ${result.summary.scaleAttributes.scaleName ? ` (${result.summary.scaleAttributes.scaleName})` : ''}
+          `;
+          successDiv.appendChild(summaryBox);
+
+          // Interactive Flight Profile Viewer
+          const profileSection = document.createElement('div');
+          profileSection.style.marginTop = '1.5em';
+
+          const profileTitle = document.createElement('h4');
+          profileTitle.style.color = '#000';
+          profileTitle.style.marginBottom = '0.5em';
+          profileTitle.innerHTML =
+            '🔍 Interactive Flight Profile <span style="color: #666; font-size: 0.9em; font-weight: normal;">(click triangles to expand/collapse)</span>';
+          profileSection.appendChild(profileTitle);
+
+          const profileViewer = document.createElement('div');
+          createJsonViewer(profileViewer, result.flightProfile, { expanded: 2 });
+          profileSection.appendChild(profileViewer);
+          successDiv.appendChild(profileSection);
+
+          // Interactive Parameters Viewer
+          const paramsSection = document.createElement('div');
+          paramsSection.style.marginTop = '1.5em';
+
+          const paramsTitle = document.createElement('h4');
+          paramsTitle.style.color = '#000';
+          paramsTitle.style.marginBottom = '0.5em';
+          paramsTitle.textContent = '📋 Parameters Sent to generateFlightProfile()';
+          paramsSection.appendChild(paramsTitle);
+
+          const paramsViewer = document.createElement('div');
+          createJsonViewer(paramsViewer, result.params, { expanded: 3 });
+          paramsSection.appendChild(paramsViewer);
+          successDiv.appendChild(paramsSection);
+
+          resultDisplay.appendChild(successDiv);
+        }
+      });
+    };
+    container.appendChild(button);
     container.appendChild(resultDisplay);
 
     return container;
-  },
+  }
 };

@@ -10,7 +10,7 @@ import {
   generateFlightNames,
   buildScaleAttributes,
   getSplitMethodConstant,
-  validateFlightProfile,
+  validateFlightProfile
 } from './flightProfileLogic';
 
 // Helper functions
@@ -54,31 +54,31 @@ export function getFlightProfileModal(params: {
   const { existingFlightProfile, editorConfig = {}, callback } = params;
 
   const isExisting = !!existingFlightProfile;
-  
+
   let inputs: any;
-  
+
   const content = (elem: HTMLElement) => {
     // Add info message if editing existing profile
     if (isExisting) {
       const header = document.createElement('div');
       header.className = 'notification is-info is-light';
-      header.innerHTML = '<strong style="color: #000;">Note:</strong> Flight split has already been performed. You can only rename the flights.';
+      header.innerHTML =
+        '<strong style="color: #000;">Note:</strong> Flight split has already been performed. You can only rename the flights.';
       elem.appendChild(header);
     }
 
     // Get form items and relationships
     const items = getFlightProfileFormItems({
       existingProfile: existingFlightProfile,
-      eventType: editorConfig.eventType,
-      editorConfig,
+      editorConfig
     });
-    
+
     const relationships = getFlightProfileFormRelationships();
 
     // Render the form with both items and relationships
     const formContainer = document.createElement('div');
     elem.appendChild(formContainer);
-    
+
     inputs = renderForm(formContainer, items, relationships);
 
     // Editable flight names for existing profiles
@@ -103,7 +103,7 @@ export function getFlightProfileModal(params: {
             />
           </div>
         `;
-        
+
         const input = fieldDiv.querySelector('input') as HTMLInputElement;
         input.addEventListener('input', (e) => {
           existingFlightProfile.flights[index].drawName = (e.target as HTMLInputElement).value;
@@ -121,21 +121,21 @@ export function getFlightProfileModal(params: {
       // Return updated flight names
       if (isFunction(callback)) {
         callback({
-          flights: existingFlightProfile.flights,
+          flights: existingFlightProfile.flights
         });
       }
     } else {
-      // Validate and return full configuration for new profile
+      // Validate and return configuration for new profile
+      // Note: eventType will be added by caller from event context
       const state = {
-        flightsCount: parseInt(inputs.flightsCount?.value || '0'),
+        flightsCount: Number.parseInt(inputs.flightsCount?.value || '0'),
         namingType: inputs.namingType?.value || 'colors',
         customName: inputs.customName?.value || 'Flight',
         suffixType: inputs.suffixType?.value || 'numbers',
         scaleType: inputs.scaleType?.value || 'RATING',
         scaleName: inputs.scaleName?.value,
-        eventType: inputs.eventType?.value || editorConfig.eventType || 'SINGLES',
         splitMethod: inputs.splitMethod?.value || 'LEVEL_BASED',
-        isExisting: false,
+        isExisting: false
       };
 
       const errors = validateFlightProfile(state);
@@ -153,8 +153,8 @@ export function getFlightProfileModal(params: {
           flightsCount: state.flightsCount,
           drawNames,
           scaleAttributes,
-          splitMethod,
-          eventType: state.eventType,
+          splitMethod
+          // eventType NOT included - will be added by caller from event context
         });
       }
     }
@@ -163,20 +163,20 @@ export function getFlightProfileModal(params: {
   const buttons = [
     {
       label: 'Cancel',
-      close: true,
+      close: true
     },
     {
       label: 'OK',
       id: 'flightProfileOk',
       intent: 'is-success',
       close: true,
-      onClick: checkParams,
-    },
+      onClick: checkParams
+    }
   ];
 
   // Build config with info popover for split methods (only for new profiles)
   const modalConfig: any = {
-    modalSize: 'is-medium',
+    modalSize: 'is-medium'
   };
 
   if (!isExisting) {
@@ -202,7 +202,7 @@ export function getFlightProfileModal(params: {
     title: editorConfig.labels?.title || 'Flight Profile',
     content,
     buttons,
-    config: modalConfig,
+    config: modalConfig
   });
 
   return modalInstance;

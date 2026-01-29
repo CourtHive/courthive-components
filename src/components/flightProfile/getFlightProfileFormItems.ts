@@ -12,31 +12,27 @@ export const CUSTOM_NAME = 'customName';
 export const SUFFIX_TYPE = 'suffixType';
 export const SCALE_TYPE = 'scaleType';
 export const SCALE_NAME = 'scaleName';
-export const EVENT_TYPE = 'eventType';
 export const SPLIT_METHOD = 'splitMethod';
 
 interface FlightProfileFormItemsParams {
   existingProfile?: any;
-  eventType?: string;
   editorConfig?: any;
 }
 
 export function getFlightProfileFormItems({
   existingProfile,
-  eventType,
   editorConfig = {}
 }: FlightProfileFormItemsParams = {}): any[] {
   const isExisting = !!existingProfile;
 
   // If editing existing, parse the profile
-  let initialState: Partial<FlightProfileState> = {
+  const initialState: Partial<FlightProfileState> = {
     flightsCount: 2,
     namingType: 'colors',
     customName: 'Flight',
     suffixType: 'numbers',
     scaleType: 'RATING',
     scaleName: 'WTN',
-    eventType: eventType || 'SINGLES',
     splitMethod: 'LEVEL_BASED'
   };
 
@@ -49,7 +45,7 @@ export function getFlightProfileFormItems({
 
       // Detect naming pattern
       const firstName = flights[0].drawName;
-      if (DEFAULT_COLORS.some((color) => firstName === color)) {
+      if (DEFAULT_COLORS.includes(firstName)) {
         initialState.namingType = 'colors';
       } else {
         // Try to extract custom pattern
@@ -65,7 +61,6 @@ export function getFlightProfileFormItems({
     if (scaleAttributes) {
       initialState.scaleType = scaleAttributes.scaleType || 'RATING';
       initialState.scaleName = scaleAttributes.scaleName;
-      initialState.eventType = scaleAttributes.eventType;
     }
 
     if (splitMethod) {
@@ -87,27 +82,27 @@ export function getFlightProfileFormItems({
       label: editorConfig.labels?.flightsCountLabel || 'Number of Flights (2-10)',
       field: FLIGHTS_COUNT,
       selectOnFocus: true,
+      hide: isExisting,
       type: 'number',
-      focus: true,
-      hide: isExisting
+      focus: true
     },
     {
       options: [
         { label: 'Color Names', value: 'colors', selected: initialState.namingType === 'colors' },
-        { label: 'Custom Name', value: 'custom', selected: initialState.namingType === 'custom' }
+        { label: 'Root Word', value: 'custom', selected: initialState.namingType === 'custom' }
       ],
-      label: editorConfig.labels?.namingTypeLabel || 'Naming',
-      field: NAMING_TYPE,
+      label: editorConfig.labels?.namingTypeLabel || 'Naming Strategy',
       value: initialState.namingType,
+      field: NAMING_TYPE,
       hide: isExisting
     },
     {
       placeholder: 'Flight',
-      value: initialState.customName,
-      label: editorConfig.labels?.customNameLabel || 'Custom Name',
-      field: CUSTOM_NAME,
-      selectOnFocus: true,
+      label: editorConfig.labels?.customNameLabel || 'Root Wor',
       visible: initialState.namingType === 'custom',
+      value: initialState.customName,
+      selectOnFocus: true,
+      field: CUSTOM_NAME,
       hide: isExisting,
       fieldPair: {
         options: [
@@ -115,9 +110,9 @@ export function getFlightProfileFormItems({
           { label: 'Numbers (1, 2, 3)', value: 'numbers', selected: initialState.suffixType === 'numbers' }
         ],
         label: editorConfig.labels?.suffixTypeLabel || 'Suffix Style',
-        field: SUFFIX_TYPE,
+        visible: initialState.namingType === 'custom',
         value: initialState.suffixType,
-        visible: initialState.namingType === 'custom'
+        field: SUFFIX_TYPE
       }
     },
     {
@@ -125,7 +120,7 @@ export function getFlightProfileFormItems({
         { label: 'Rating', value: 'RATING', selected: initialState.scaleType === 'RATING' },
         { label: 'Ranking', value: 'RANKING', selected: initialState.scaleType === 'RANKING' }
       ],
-      label: editorConfig.labels?.scaleTypeLabel || 'Scale Type',
+      label: editorConfig.labels?.scaleTypeLabel || 'Flighting Strategy',
       field: SCALE_TYPE,
       value: initialState.scaleType,
       hide: isExisting
@@ -141,17 +136,6 @@ export function getFlightProfileFormItems({
       value: initialState.scaleName,
       visible: initialState.scaleType === 'RATING',
       hide: isExisting
-    },
-    {
-      options: (editorConfig.options?.eventTypes || ['SINGLES', 'DOUBLES']).map((type) => ({
-        label: type,
-        value: type,
-        selected: type === initialState.eventType
-      })),
-      label: editorConfig.labels?.eventTypeLabel || 'Event Type',
-      field: EVENT_TYPE,
-      value: initialState.eventType,
-      hide: isExisting || !!eventType
     },
     {
       label: editorConfig.labels?.splitMethodLabel || 'Split Method',

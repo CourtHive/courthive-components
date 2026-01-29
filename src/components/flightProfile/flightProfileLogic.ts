@@ -21,16 +21,16 @@ export interface FlightProfileState {
 }
 
 export const DEFAULT_COLORS = [
-  'Gold',
-  'Silver',
-  'Bronze',
   'Blue',
   'Red',
   'Green',
   'Orange',
   'Purple',
   'Yellow',
-  'Pink'
+  'Pink',
+  'Gold',
+  'Silver',
+  'Bronze'
 ];
 
 export const RATING_SYSTEMS = ['WTN', 'UTR', 'TRN', 'NTRP', 'DUPR'];
@@ -52,9 +52,10 @@ export function generateFlightNames(state: FlightProfileState): string[] {
     if (namingType === 'colors') {
       names.push(DEFAULT_COLORS[i] || `Flight ${i + 1}`);
     } else {
-      const suffix = suffixType === 'letters' 
-        ? String.fromCharCode(65 + i) // A, B, C...
-        : (i + 1).toString(); // 1, 2, 3...
+      const suffix =
+        suffixType === 'letters'
+          ? String.fromCodePoint(65 + i) // A, B, C...
+          : (i + 1).toString(); // 1, 2, 3...
       names.push(`${customName || 'Flight'} ${suffix}`);
     }
   }
@@ -64,18 +65,19 @@ export function generateFlightNames(state: FlightProfileState): string[] {
 
 /**
  * Build scale attributes object for factory
+ * Note: eventType should be added by the caller from event context
  */
 export function buildScaleAttributes(state: FlightProfileState): any {
   if (state.scaleType === 'RANKING') {
     return {
-      scaleType: 'RANKING',
-      eventType: state.eventType
+      scaleType: 'RANKING'
+      // eventType will be added by caller from event context
     };
   } else {
     return {
       scaleType: 'RATING',
-      eventType: state.eventType,
       scaleName: state.scaleName
+      // eventType will be added by caller from event context
     };
   }
 }
@@ -85,9 +87,9 @@ export function buildScaleAttributes(state: FlightProfileState): any {
  */
 export function getSplitMethodConstant(method: string): string {
   const methodMap: Record<string, string> = {
-    'WATERFALL': 'splitWaterfall',
-    'LEVEL_BASED': 'splitLevelBased',
-    'SHUTTLE': 'splitShuttle'
+    WATERFALL: 'splitWaterfall',
+    LEVEL_BASED: 'splitLevelBased',
+    SHUTTLE: 'splitShuttle'
   };
   return methodMap[method] || 'splitLevelBased';
 }
@@ -107,9 +109,9 @@ export function parseExistingFlightProfile(flightProfile: any): Partial<FlightPr
 
   if (flights && flights.length > 0) {
     const firstName = flights[0].drawName;
-    
+
     // Check if it matches color pattern
-    if (DEFAULT_COLORS.some(color => firstName === color)) {
+    if (DEFAULT_COLORS.includes(firstName)) {
       namingType = 'colors';
     } else {
       // Try to extract pattern from name like "Flight A" or "Flight 1"
@@ -123,9 +125,9 @@ export function parseExistingFlightProfile(flightProfile: any): Partial<FlightPr
 
   // Map split method from constant to UI value
   const splitMethodMap: Record<string, 'WATERFALL' | 'LEVEL_BASED' | 'SHUTTLE'> = {
-    'splitWaterfall': 'WATERFALL',
-    'splitLevelBased': 'LEVEL_BASED',
-    'splitShuttle': 'SHUTTLE'
+    splitWaterfall: 'WATERFALL',
+    splitLevelBased: 'LEVEL_BASED',
+    splitShuttle: 'SHUTTLE'
   };
 
   return {
@@ -152,7 +154,7 @@ export function parseExistingFlightProfile(flightProfile: any): Partial<FlightPr
 export function validateFlightProfile(state: FlightProfileState): string[] {
   const errors: string[] = [];
 
-  if (!state.flightsCount || isNaN(state.flightsCount) || state.flightsCount <= 0) {
+  if (!state.flightsCount || Number.isNaN(state.flightsCount) || state.flightsCount <= 0) {
     errors.push('Number of flights must be a valid number greater than 0');
   } else if (state.flightsCount < 2) {
     errors.push('Must have at least 2 flights');
@@ -164,9 +166,7 @@ export function validateFlightProfile(state: FlightProfileState): string[] {
     errors.push('Rating system must be selected');
   }
 
-  if (!state.eventType) {
-    errors.push('Event type must be specified');
-  }
+  // eventType is provided by caller from event context, not by the modal
 
   return errors;
 }
