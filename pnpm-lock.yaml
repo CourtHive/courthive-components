@@ -33,14 +33,14 @@ importers:
         specifier: 1.11.19
         version: 1.11.19
       focus-trap:
-        specifier: ^7.8.0
-        version: 7.8.0
+        specifier: ^8.0.0
+        version: 8.0.0
       tippy.js:
         specifier: 6.3.7
         version: 6.3.7
       tods-competition-factory:
-        specifier: 2.3.1
-        version: 2.3.1
+        specifier: 2.3.3
+        version: 2.3.3
       vanillajs-datepicker:
         specifier: 1.3.4
         version: 1.3.4
@@ -2129,8 +2129,8 @@ packages:
   flatted@3.3.3:
     resolution: {integrity: sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==}
 
-  focus-trap@7.8.0:
-    resolution: {integrity: sha512-/yNdlIkpWbM0ptxno3ONTuf+2g318kh2ez3KSeZN5dZ8YC6AAmgeWz+GasYYiBJPFaYcSAPeu4GfhUaChzIJXA==}
+  focus-trap@8.0.0:
+    resolution: {integrity: sha512-Aa84FOGHs99vVwufDMdq2qgOwXPC2e9U66GcqBhn1/jEHPDhJaP8PYhkIbqG9lhfL5Kddk/567lj46LLHYCRUw==}
 
   follow-redirects@1.15.11:
     resolution: {integrity: sha512-deG2P0JfjrTxl50XGCDyfI97ZGVCxIpfKYmfyrQ54n5FO/0gfIES8C/Psl6kWVDolizcaaxZJnTS0QSMxvnsBQ==}
@@ -3568,8 +3568,8 @@ packages:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
 
-  tods-competition-factory@2.3.1:
-    resolution: {integrity: sha512-zO5HjzRFM6146j2fA9/BgBDR2+QhmJQgbmzluqa3//LCxGqPX0n0BTG5z4YdUWaeGS7luUR2ixBt8bAIgI6pYQ==}
+  tods-competition-factory@2.3.3:
+    resolution: {integrity: sha512-a/eNPKKiygmoThcuxZLCov5aV+uNL2ml4dd86z1Rgu0Hq7xBDr47ixrMPr82B/QR9CjstYyFauTarshVXaE3wA==}
     engines: {node: '>=20'}
 
   totalist@3.0.1:
@@ -6086,7 +6086,7 @@ snapshots:
 
   flatted@3.3.3: {}
 
-  focus-trap@7.8.0:
+  focus-trap@8.0.0:
     dependencies:
       tabbable: 6.4.0
 
@@ -7734,7 +7734,7 @@ snapshots:
     dependencies:
       is-number: 7.0.0
 
-  tods-competition-factory@2.3.1: {}
+  tods-competition-factory@2.3.3: {}
 
   totalist@3.0.1: {}
 
