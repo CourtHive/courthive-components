@@ -8,6 +8,10 @@ export { compositions } from './compositions/compositions';
 export { renderRound } from './components/renderRound';
 export { cModal } from './components/modal/cmodal';
 
+// Mock participants generator modal
+export { getMockParticipantsModal } from './components/modal/mockParticipants';
+export type { MockParticipantsConfig } from './components/modal/mockParticipants';
+
 // Match format selector modal
 export { getMatchUpFormatModal } from './components/matchUpFormat/matchUpFormat';
 
