@@ -24,7 +24,7 @@ describe('Flight Profile Logic', () => {
       };
 
       const names = generateFlightNames(state);
-      expect(names).toEqual(['Gold', 'Silver', 'Bronze']);
+      expect(names).toEqual(['Blue', 'Red', 'Green']);
     });
 
     it('should generate custom names with letters', () => {
@@ -128,7 +128,7 @@ describe('Flight Profile Logic', () => {
       };
 
       const parsed = parseExistingFlightProfile(existingProfile);
-      
+
       expect(parsed.flightsCount).toBe(2);
       expect(parsed.namingType).toBe('colors');
       expect(parsed.scaleType).toBe('RATING');
@@ -151,7 +151,7 @@ describe('Flight Profile Logic', () => {
       };
 
       const parsed = parseExistingFlightProfile(existingProfile);
-      
+
       expect(parsed.flightsCount).toBe(2);
       expect(parsed.namingType).toBe('custom');
       expect(parsed.customName).toBe('Flight');
@@ -175,7 +175,7 @@ describe('Flight Profile Logic', () => {
       };
 
       const parsed = parseExistingFlightProfile(existingProfile);
-      
+
       expect(parsed.flightsCount).toBe(2);
       expect(parsed.namingType).toBe('custom');
       expect(parsed.customName).toBe('Division');

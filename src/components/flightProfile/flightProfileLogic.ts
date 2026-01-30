@@ -65,21 +65,23 @@ export function generateFlightNames(state: FlightProfileState): string[] {
 
 /**
  * Build scale attributes object for factory
- * Note: eventType should be added by the caller from event context
  */
 export function buildScaleAttributes(state: FlightProfileState): any {
-  if (state.scaleType === 'RANKING') {
-    return {
-      scaleType: 'RANKING'
-      // eventType will be added by caller from event context
-    };
-  } else {
-    return {
-      scaleType: 'RATING',
-      scaleName: state.scaleName
-      // eventType will be added by caller from event context
-    };
+  const base: any = {
+    scaleType: state.scaleType
+  };
+
+  // Add eventType if present in state
+  if (state.eventType) {
+    base.eventType = state.eventType;
   }
+
+  // Add scaleName for RATING type
+  if (state.scaleType === 'RATING' && state.scaleName) {
+    base.scaleName = state.scaleName;
+  }
+
+  return base;
 }
 
 /**
@@ -166,7 +168,9 @@ export function validateFlightProfile(state: FlightProfileState): string[] {
     errors.push('Rating system must be selected');
   }
 
-  // eventType is provided by caller from event context, not by the modal
+  if (!state.eventType) {
+    errors.push('Event type must be specified');
+  }
 
   return errors;
 }
