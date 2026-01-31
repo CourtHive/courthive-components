@@ -545,25 +545,30 @@ export function getAgeCategoryModal({
 
   configPanel.appendChild(categoryTypeButton);
 
-  // Age Value (for simple under/over)
-  const ageValueButton = createButton({
-    id: 'ageValue',
-    label: `${editorState.ageValue || 18}${clickable}`,
-    onClick: (e) => {
-      const ages = editorConfig.options?.ages || getAgeOptions();
-      const items = ages.map((age) => ({
-        text: String(age),
-        onClick: () => {
-          editorState.ageValue = age;
-          ageValueButton.innerHTML = `${age}${clickable}`;
-          updateAgeCategoryCodeDisplay();
-        }
-      }));
-      createDropdown(e, items);
-    },
-    initiallyHidden: editorState.type !== 'under' && editorState.type !== 'over'
-  });
-  configPanel.appendChild(ageValueButton);
+  // Age Value (for simple under/over) - Numeric Input
+  const ageValueContainer = document.createElement('div');
+  ageValueContainer.id = 'ageValue';
+  ageValueContainer.style.display = editorState.type !== 'under' && editorState.type !== 'over' ? 'none' : '';
+
+  const ageValueInput = document.createElement('input');
+  ageValueInput.type = 'number';
+  ageValueInput.min = '1';
+  ageValueInput.max = '120';
+  ageValueInput.value = String(editorState.ageValue || 18);
+  ageValueInput.style.width = '80px';
+  ageValueInput.style.padding = '0.3em';
+  ageValueInput.style.border = '1px solid #ddd';
+  ageValueInput.style.borderRadius = '4px';
+  ageValueInput.oninput = () => {
+    const value = Number.parseInt(ageValueInput.value, 10);
+    if (!Number.isNaN(value) && value >= 1 && value <= 120) {
+      editorState.ageValue = value;
+      updateAgeCategoryCodeDisplay();
+    }
+  };
+
+  ageValueContainer.appendChild(ageValueInput);
+  configPanel.appendChild(ageValueContainer);
 
   // Position Toggle (for simple under/over)
   const positionToggleButton = createButton({
@@ -582,45 +587,95 @@ export function getAgeCategoryModal({
   });
   configPanel.appendChild(positionToggleButton);
 
-  // Min Age (for range/combined)
-  const ageMinButton = createButton({
-    id: 'ageMin',
-    label: `Min: ${editorState.ageMin || 10}${clickable}`,
-    onClick: (e) => {
-      const ages = editorConfig.options?.ages || getAgeOptions();
-      const items = ages.map((age) => ({
-        text: String(age),
-        onClick: () => {
-          editorState.ageMin = age;
-          ageMinButton.innerHTML = `Min: ${age}${clickable}`;
-          updateAgeCategoryCodeDisplay();
-        }
-      }));
-      createDropdown(e, items);
-    },
-    initiallyHidden: editorState.type !== 'range' && editorState.type !== 'combined'
-  });
-  configPanel.appendChild(ageMinButton);
+  // Min Age (for range/combined) - Numeric Input with Validation
+  const ageMinContainer = document.createElement('div');
+  ageMinContainer.id = 'ageMin';
+  ageMinContainer.style.display = editorState.type !== 'range' && editorState.type !== 'combined' ? 'none' : '';
+  ageMinContainer.style.display = 'flex';
+  ageMinContainer.style.alignItems = 'center';
+  ageMinContainer.style.gap = '0.5em';
 
-  // Max Age (for range/combined)
-  const ageMaxButton = createButton({
-    id: 'ageMax',
-    label: `Max: ${editorState.ageMax || 18}${clickable}`,
-    onClick: (e) => {
-      const ages = editorConfig.options?.ages || getAgeOptions();
-      const items = ages.map((age) => ({
-        text: String(age),
-        onClick: () => {
-          editorState.ageMax = age;
-          ageMaxButton.innerHTML = `Max: ${age}${clickable}`;
-          updateAgeCategoryCodeDisplay();
-        }
-      }));
-      createDropdown(e, items);
-    },
-    initiallyHidden: editorState.type !== 'range' && editorState.type !== 'combined'
-  });
-  configPanel.appendChild(ageMaxButton);
+  const ageMinLabel = document.createElement('span');
+  ageMinLabel.textContent = 'Min:';
+  ageMinLabel.style.color = '#000';
+
+  const ageMinInput = document.createElement('input');
+  ageMinInput.type = 'number';
+  ageMinInput.min = '1';
+  ageMinInput.max = '120';
+  ageMinInput.value = String(editorState.ageMin || 10);
+  ageMinInput.style.width = '80px';
+  ageMinInput.style.padding = '0.3em';
+  ageMinInput.style.border = '1px solid #ddd';
+  ageMinInput.style.borderRadius = '4px';
+  ageMinInput.oninput = () => {
+    const minValue = Number.parseInt(ageMinInput.value, 10);
+    if (!Number.isNaN(minValue) && minValue >= 1 && minValue <= 120) {
+      editorState.ageMin = minValue;
+
+      // Auto-adjust max if it's less than min
+      if (editorState.ageMax !== undefined && editorState.ageMax < minValue) {
+        editorState.ageMax = minValue;
+        ageMaxInput.value = String(minValue);
+      }
+
+      updateAgeCategoryCodeDisplay();
+    }
+  };
+
+  ageMinContainer.appendChild(ageMinLabel);
+  ageMinContainer.appendChild(ageMinInput);
+  configPanel.appendChild(ageMinContainer);
+
+  // Update visibility after creation
+  if (editorState.type !== 'range' && editorState.type !== 'combined') {
+    ageMinContainer.style.display = 'none';
+  }
+
+  // Max Age (for range/combined) - Numeric Input with Validation
+  const ageMaxContainer = document.createElement('div');
+  ageMaxContainer.id = 'ageMax';
+  ageMaxContainer.style.display = editorState.type !== 'range' && editorState.type !== 'combined' ? 'none' : '';
+  ageMaxContainer.style.display = 'flex';
+  ageMaxContainer.style.alignItems = 'center';
+  ageMaxContainer.style.gap = '0.5em';
+
+  const ageMaxLabel = document.createElement('span');
+  ageMaxLabel.textContent = 'Max:';
+  ageMaxLabel.style.color = '#000';
+
+  const ageMaxInput = document.createElement('input');
+  ageMaxInput.type = 'number';
+  ageMaxInput.min = '1';
+  ageMaxInput.max = '120';
+  ageMaxInput.value = String(editorState.ageMax || 18);
+  ageMaxInput.style.width = '80px';
+  ageMaxInput.style.padding = '0.3em';
+  ageMaxInput.style.border = '1px solid #ddd';
+  ageMaxInput.style.borderRadius = '4px';
+  ageMaxInput.oninput = () => {
+    const maxValue = Number.parseInt(ageMaxInput.value, 10);
+    if (!Number.isNaN(maxValue) && maxValue >= 1 && maxValue <= 120) {
+      editorState.ageMax = maxValue;
+
+      // Auto-adjust min if it's greater than max
+      if (editorState.ageMin !== undefined && editorState.ageMin > maxValue) {
+        editorState.ageMin = maxValue;
+        ageMinInput.value = String(maxValue);
+      }
+
+      updateAgeCategoryCodeDisplay();
+    }
+  };
+
+  ageMaxContainer.appendChild(ageMaxLabel);
+  ageMaxContainer.appendChild(ageMaxInput);
+  configPanel.appendChild(ageMaxContainer);
+
+  // Update visibility after creation
+  if (editorState.type !== 'range' && editorState.type !== 'combined') {
+    ageMaxContainer.style.display = 'none';
+  }
 
   // Combined label
   const combinedLabel = document.createElement('div');
@@ -649,7 +704,7 @@ export function getAgeCategoryModal({
     return '';
   }
 
-  // Helper function to update all button labels
+  // Helper function to update all input values and button labels
   function updateButtonLabels(): void {
     // Update category type button
     const categoryTypeBtn = document.getElementById('categoryType');
@@ -657,12 +712,9 @@ export function getAgeCategoryModal({
       categoryTypeBtn.innerHTML = `${internalToCategory(editorState.type)}${clickable}`;
     }
 
-    // Update age value button
+    // Update age value input
     if (editorState.ageValue !== undefined) {
-      const ageValueBtn = document.getElementById('ageValue');
-      if (ageValueBtn) {
-        ageValueBtn.innerHTML = `${editorState.ageValue}${clickable}`;
-      }
+      ageValueInput.value = String(editorState.ageValue);
     }
 
     // Update position toggle
@@ -671,19 +723,13 @@ export function getAgeCategoryModal({
       posToggleBtn.innerHTML = getPositionLabel();
     }
 
-    // Update min/max buttons
+    // Update min/max inputs
     if (editorState.ageMin !== undefined) {
-      const ageMinBtn = document.getElementById('ageMin');
-      if (ageMinBtn) {
-        ageMinBtn.innerHTML = `Min: ${editorState.ageMin}${clickable}`;
-      }
+      ageMinInput.value = String(editorState.ageMin);
     }
 
     if (editorState.ageMax !== undefined) {
-      const ageMaxBtn = document.getElementById('ageMax');
-      if (ageMaxBtn) {
-        ageMaxBtn.innerHTML = `Max: ${editorState.ageMax}${clickable}`;
-      }
+      ageMaxInput.value = String(editorState.ageMax);
     }
   }
 
@@ -707,8 +753,8 @@ export function getAgeCategoryModal({
     fontSize,
     style: {
       ...defaultModalConfig.style,
-      ...(config?.style || {}),
-      ...(modalConfig?.style || {})
+      ...config?.style,
+      ...modalConfig?.style
     }
   };
 

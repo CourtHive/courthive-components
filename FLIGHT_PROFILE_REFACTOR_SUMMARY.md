@@ -1,6 +1,7 @@
 # Flight Profile Editor Refactor Summary
 
 ## Overview
+
 Refactored the flight profile editor to follow the TMX form design pattern, reducing complexity and improving maintainability.
 
 ## Changes Made
@@ -8,7 +9,9 @@ Refactored the flight profile editor to follow the TMX form design pattern, redu
 ### 1. New Files Created
 
 #### `FORM_PATTERN_DESIGN.md`
+
 Comprehensive documentation of the TMX form design pattern, explaining:
+
 - Separation of form structure (items) from behavior (relationships)
 - Single `renderForm()` call with items and relationships
 - Dynamic field visibility using `fields[FIELD_NAME].style.display`
@@ -16,7 +19,9 @@ Comprehensive documentation of the TMX form design pattern, explaining:
 - Common patterns for show/hide, value updates, button management
 
 #### `getFlightProfileFormItems.ts`
+
 Defines the structure of all form fields:
+
 - **Field Constants**: `FLIGHTS_COUNT`, `NAMING_TYPE`, `CUSTOM_NAME`, `SUFFIX_TYPE`, `SCALE_TYPE`, `SCALE_NAME`, `EVENT_TYPE`, `SPLIT_METHOD`
 - **Field Properties**: labels, values, validators, options, visibility
 - **Field Pairing**: Uses `fieldPair` for Custom Name + Suffix Style on same line
@@ -24,6 +29,7 @@ Defines the structure of all form fields:
 - **Configuration**: Respects `editorConfig` for labels and options
 
 **Key Features:**
+
 - Number of Flights: text input with `numericRange(2, 10)` validator, shows error "Must be in range 2-10"
 - Naming Type: select (colors/custom)
 - Custom Name + Suffix Style: paired fields, initially hidden
@@ -33,7 +39,9 @@ Defines the structure of all form fields:
 - Split Method: radio buttons with descriptions
 
 #### `getFlightProfileFormRelationships.ts`
+
 Defines interactions between form fields:
+
 - **`flightsCountChange`**: Updates OK button state and preview on input
 - **`namingTypeChange`**: Shows/hides Custom Name + Suffix fields
 - **`scaleTypeChange`**: Shows/hides Rating System field
@@ -42,18 +50,21 @@ Defines interactions between form fields:
 - **`updateOkButtonState`**: Enables/disables OK button based on validation
 
 **Relationship Array:**
+
 ```typescript
 [
   { onInput: flightsCountChange, control: FLIGHTS_COUNT },
   { onChange: namingTypeChange, control: NAMING_TYPE },
   { onInput: customNamingChange, control: CUSTOM_NAME },
   { onChange: customNamingChange, control: SUFFIX_TYPE },
-  { onChange: scaleTypeChange, control: SCALE_TYPE },
-]
+  { onChange: scaleTypeChange, control: SCALE_TYPE }
+];
 ```
 
 #### `flightProfileNew.ts`
+
 Refactored main component:
+
 - Single `renderForm(formContainer, items, relationships)` call
 - Simplified content rendering
 - Preview section created outside form
@@ -61,19 +72,23 @@ Refactored main component:
 - Validation and submission logic unchanged
 
 #### Validator Utilities
+
 Created `/components/validators/`:
+
 - **`numericValidator.ts`**: Validates numeric input >= 0
 - **`numericRange.ts`**: Validates number within min/max range
 
 ### 2. Old vs New Comparison
 
 **Old Approach (flightProfile.ts):**
+
 - 9 separate `renderForm()` calls
 - Manual DOM manipulation for show/hide
 - Complex `renderFlightProfileModal()` function that re-rendered entire modal
 - 483 lines
 
 **New Approach (flightProfileNew.ts):**
+
 - 1 single `renderForm()` call
 - Declarative relationships for show/hide
 - Form items and relationships in separate, testable files
@@ -83,43 +98,51 @@ Created `/components/validators/`:
 ### 3. Benefits
 
 **Maintainability:**
+
 - Clear separation: structure (items) vs behavior (relationships)
 - Easy to add/remove/modify fields
 - Relationships are declarative and readable
 
 **Testability:**
+
 - Form items logic can be unit tested
 - Relationship functions can be tested independently
 - Validators are pure functions
 
 **Flexibility:**
+
 - Easy to add complex interactions
 - Field pairing for side-by-side layouts
 - Conditional visibility without manual DOM manipulation
 
 **Consistency:**
+
 - Follows established TMX pattern
 - Same approach as addDraw, making codebase more uniform
 
 ### 4. Key Improvements
 
 1. **Number of Flights:**
+
    - Text input (not dropdown)
    - Real-time validation with error message
    - OK button disabled when invalid
    - Follows Draw Size pattern from addDraw
 
 2. **Custom Name Fields:**
+
    - Paired layout (side-by-side like email/phone in examples)
    - Automatically shown/hidden together
    - Pre-populated with "Flight" placeholder
 
 3. **Split Method:**
+
    - Radio buttons with inline descriptions
    - Format: "Method: Description"
    - Cleaner than previous multi-line layout
 
 4. **Dynamic Visibility:**
+
    - Rating System hides when Scale Type = RANKING
    - Custom Name fields hide when Naming = colors
    - All handled declaratively through relationships
@@ -131,7 +154,7 @@ Created `/components/validators/`:
 
 ### 5. File Structure
 
-```
+```text
 courthive-components/src/components/
 ├── flightProfile/
 │   ├── flightProfile.ts                    (old, to be deprecated)
@@ -150,12 +173,14 @@ courthive-components/src/components/
 ### 6. Migration Path
 
 To fully migrate:
+
 1. Update Storybook stories to use new component
 2. Test all scenarios (create new, edit existing)
 3. Remove old `flightProfile.ts` file
 4. Update tests if needed
 
 Current status:
+
 - ✅ New component built successfully
 - ✅ Exported from index.ts
 - ✅ All TypeScript types correct
@@ -172,13 +197,13 @@ getFlightProfileModal({
   editorConfig: {
     eventType: 'SINGLES',
     labels: {
-      title: 'Configure Flight Profile',
-    },
+      title: 'Configure Flight Profile'
+    }
   },
   callback: (config) => {
     console.log('Flight profile:', config);
     // config contains: flightsCount, drawNames, scaleAttributes, splitMethod
-  },
+  }
 });
 
 // Edit existing flight profile
@@ -186,14 +211,14 @@ getFlightProfileModal({
   existingFlightProfile: {
     flights: [
       { flightNumber: 1, drawId: 'abc', drawName: 'Gold' },
-      { flightNumber: 2, drawId: 'def', drawName: 'Silver' },
+      { flightNumber: 2, drawId: 'def', drawName: 'Silver' }
     ],
     scaleAttributes: { scaleType: 'RATING', scaleName: 'WTN' },
-    splitMethod: 'splitLevelBased',
+    splitMethod: 'splitLevelBased'
   },
   callback: (config) => {
     console.log('Updated flights:', config.flights);
-  },
+  }
 });
 ```
 
@@ -213,6 +238,7 @@ getFlightProfileModal({
 ## Conclusion
 
 The refactored flight profile editor now follows the proven TMX form pattern, making it:
+
 - Easier to understand and modify
 - Consistent with rest of codebase
 - Better separated concerns

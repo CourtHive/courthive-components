@@ -133,6 +133,9 @@ export function generateAndDisplayFlights(params: {
 }) {
   const { modalOutput, tournamentEngine, eventId, eventType, tools } = params;
 
+  // Delete any existing flight profile first (in case user clicks button multiple times)
+  tournamentEngine.deleteFlightProfileAndFlightDraws({ eventId });
+
   // Enrich modal output with event context
   const generateParams = {
     flightsCount: modalOutput.flightsCount,

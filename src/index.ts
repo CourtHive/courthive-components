@@ -75,3 +75,6 @@ export { renderField, renderOptions } from './components/forms/renderField';
 export { renderForm } from './components/forms/renderForm';
 export { renderMenu } from './components/forms/renderMenu';
 export { validator } from './components/forms/renderValidator';
+
+// Form validators
+export * as validators from './validators';

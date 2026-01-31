@@ -232,8 +232,9 @@ const items = [
 ```typescript
 {
   control: FIELD_NAME,           // Which field triggers the interaction
-  onChange?: (params) => void,   // Called when value changes
-  onInput?: (params) => void,    // Called on every input event
+  onChange?: (params) => void,   // Called when value changes (blur, selection)
+  onInput?: (params) => void,    // Called on EVERY keystroke/input
+  onFocusOut?: (params) => void, // Called when field loses focus
 }
 ```
 
@@ -244,6 +245,35 @@ The handler receives an object with:
 - `fields`: Record of all form field DOM elements
 - `e`: The DOM event (if applicable)
 - `name`: The field name (optional, for generic handlers)
+
+**onChange vs onInput:**
+
+- **`onChange`**: Fires when field value changes AND loses focus (blur event), or when selection changes
+  - Best for: Dropdown/select changes, showing/hiding fields, cascading updates
+  - Example: Show additional fields when a specific option is selected
+  
+- **`onInput`**: Fires on EVERY keystroke, character entry, paste, or value change
+  - Best for: Real-time validation, button enable/disable, character counters, instant feedback
+  - Example: Enable submit button as soon as user types 5th character
+  - **⚡ More responsive UX** - users get immediate feedback
+
+**When to use onInput for button state:**
+
+Use `onInput` (not `onChange`) when you want the button to enable/disable AS the user types:
+
+```typescript
+// ✅ GOOD: Button enables immediately after 5th character
+{
+  control: 'categoryName',
+  onInput: () => { updateButtonState(); }
+}
+
+// ❌ LESS RESPONSIVE: Button only enables after user leaves field
+{
+  control: 'categoryName', 
+  onChange: () => { updateButtonState(); }
+}
+```
 
 **Common Patterns:**
 
@@ -298,20 +328,98 @@ return [
 
 #### Enable/Disable Buttons Based on Validation
 
+**Pattern: Use `onInput` for responsive button state management**
+
+**CRITICAL:** Read values from `inputs` parameter (not stale state!) to avoid checking outdated data.
+
 ```typescript
-const structureNameChange = ({ inputs, name }: FormInteractionParams) => {
-  const newStructureName = inputs[name!].value;
-  const generateButton = document.getElementById('generateDraw') as HTMLButtonElement;
-  const valid = nameValidator(4)(newStructureName);
-  if (generateButton) generateButton.disabled = !valid;
+// Validation function that reads LIVE values from inputs (not stale state!)
+const isValid = (inputs: any): boolean => {
+  // ✅ Read from inputs.fieldName.value (current DOM values)
+  const categoryName = inputs.categoryName?.value || '';
+  if (categoryName.trim().length < 5) {
+    return false;
+  }
+
+  const type = inputs.type?.value;
+  if (!type) {
+    return false;
+  }
+
+  // ... other validation criteria
+  return true;
 };
 
-return [
-  {
-    onInput: ({ inputs }: FormInteractionParams) => structureNameChange({ inputs, name: DRAW_NAME }),
-    control: DRAW_NAME
+// Update button state - receives inputs parameter
+const updateButtonState = (inputs: any) => {
+  const okButton = document.getElementById('categoryOkButton') as HTMLButtonElement;
+  if (okButton) {
+    okButton.disabled = !isValid(inputs);
   }
-];
+};
+
+// Capture renderForm return value
+const formInputs = renderForm(
+  container,
+  [...fields...],
+  // Relationships receive { inputs } and pass it to updateButtonState
+  [
+    {
+      control: 'categoryName',
+      onInput: ({ inputs }: any) => {  
+        updateButtonState(inputs);  // ⚡ Pass LIVE inputs, not stale state!
+      },
+    },
+    {
+      control: 'type',
+      onInput: ({ inputs }: any) => {
+        updateButtonState(inputs);
+      },
+    },
+  ],
+);
+
+// For callbacks outside renderForm, pass formInputs
+ageCategoryButton.onclick = () => {
+  getAgeCategoryModal({
+    callback: (result) => {
+      category.ageCategoryCode = result.ageCategoryCode;
+      updateButtonState(formInputs);  // Pass captured formInputs
+    }
+  });
+};
+```
+
+**Benefits of onInput for button state:**
+- Button enables/disables AS you type (not after leaving field)
+- More responsive and modern UX
+- User gets immediate feedback about form validity
+- No need to tab out of field to enable button
+
+**Old pattern (less responsive):**
+```typescript
+// ❌ onChange only fires when field loses focus
+{
+  control: DRAW_NAME,
+  onChange: ({ inputs }: FormInteractionParams) => {
+    const valid = nameValidator(4)(inputs[DRAW_NAME].value);
+    const button = document.getElementById('generateDraw') as HTMLButtonElement;
+    if (button) button.disabled = !valid;
+  }
+}
+```
+
+**New pattern (more responsive):**
+```typescript
+// ✅ onInput fires on every keystroke
+{
+  control: DRAW_NAME,
+  onInput: ({ inputs }: FormInteractionParams) => {
+    const valid = nameValidator(4)(inputs[DRAW_NAME].value);
+    const button = document.getElementById('generateDraw') as HTMLButtonElement;
+    if (button) button.disabled = !valid;
+  }
+}
 ```
 
 #### Cascading Updates
@@ -349,7 +457,9 @@ return [
 
 6. **Helper Text**: Use `help: { text, visible }` in items for contextual help
 
-7. **Validation on Input**: Use `onInput` for real-time validation, `onChange` for selection changes
+7. **Validation on Input**: Use `onInput` for real-time validation and button state management, `onChange` for field visibility and cascading updates
+
+8. **Responsive Button State**: Always use `onInput` (not `onChange`) for button enable/disable logic to provide immediate feedback as user types
 
 ## Benefits
 
