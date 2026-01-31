@@ -110,7 +110,7 @@ export const CompleteFlightGeneration = {
           if (result.error) {
             resultDisplay.innerHTML = `
               <div style="color: #d32f2f;">
-                <strong style="color: #d32f2f;">Error:</strong> ${result.error}<br>
+                <strong style="color: #d32f2f;">Error:</strong> ${typeof result.error === 'object' ? JSON.stringify(result.error) : result.error}<br>
                 <pre style="background: #ffebee; padding: 1em; border-radius: 4px; overflow: auto; color: #d32f2f; margin-top: 0.5em;">${JSON.stringify(
                   result.params,
                   null,
@@ -118,6 +118,8 @@ export const CompleteFlightGeneration = {
                 )}</pre>
               </div>
             `;
+            console.error('Flight generation error:', result.error);
+            console.log('Params that caused error:', result.params);
             return;
           }
 
