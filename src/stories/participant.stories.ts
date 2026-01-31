@@ -16,7 +16,7 @@ export default {
       eventType,
       outcomes
     });
-    const matchUp = !participant ? matchUps[0] : undefined;
+    const matchUp = participant ? undefined : matchUps[0];
     return renderParticipant({ ...args, participant, matchUp });
   },
   argTypes: {}
