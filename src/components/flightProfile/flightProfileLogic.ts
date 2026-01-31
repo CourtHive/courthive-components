@@ -168,9 +168,8 @@ export function validateFlightProfile(state: FlightProfileState): string[] {
     errors.push('Rating system must be selected');
   }
 
-  if (!state.eventType) {
-    errors.push('Event type must be specified');
-  }
+  // Note: eventType is NOT validated here because it's added by the caller
+  // after the modal returns (see Storybook helper: generateAndDisplayFlights)
 
   return errors;
 }

@@ -252,7 +252,7 @@ describe('Flight Profile Logic', () => {
       expect(errors).toContain('Rating system must be selected');
     });
 
-    it('should require event type', () => {
+    it('should not require event type (added by caller after modal)', () => {
       const state: FlightProfileState = {
         flightsCount: 3,
         namingType: 'colors',
@@ -265,7 +265,7 @@ describe('Flight Profile Logic', () => {
       };
 
       const errors = validateFlightProfile(state);
-      expect(errors).toContain('Event type must be specified');
+      expect(errors.length).toBe(0);
     });
   });
 });

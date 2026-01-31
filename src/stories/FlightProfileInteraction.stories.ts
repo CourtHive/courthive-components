@@ -98,8 +98,6 @@ export const CompleteFlightGeneration = {
     button.onclick = () => {
       getFlightProfileModal({
         callback: (modalOutput: any) => {
-          console.log('Modal output:', modalOutput);
-
           // Generate flights using helper
           const result = generateAndDisplayFlights({
             modalOutput,
@@ -108,8 +106,6 @@ export const CompleteFlightGeneration = {
             eventType: event.eventType,
             tools
           });
-
-          console.log('Flight generation result:', result);
 
           if (result.error) {
             resultDisplay.innerHTML = `

@@ -98,7 +98,7 @@ export function getFlightProfileFormItems({
     },
     {
       placeholder: 'Flight',
-      label: editorConfig.labels?.customNameLabel || 'Root Wor',
+      label: editorConfig.labels?.customNameLabel || 'Root Word',
       visible: initialState.namingType === 'custom',
       value: initialState.customName,
       selectOnFocus: true,
