@@ -15,9 +15,21 @@ const isFunction = (value: any): boolean => typeof value === 'function';
 // Utility: Remove all child nodes from an element
 const removeAllChildNodes = (element: HTMLElement): void => {
   while (element.firstChild) {
-    element.removeChild(element.firstChild);
+    element.firstChild.remove();
   }
 };
+
+/**
+ * Utility: Check if 'child' is a descendant of 'parent'
+ */
+function isDescendant(parent: HTMLElement, child: HTMLElement): boolean {
+  let node = child.parentNode as HTMLElement;
+  while (node) {
+    if (node === parent) return true;
+    node = node.parentNode as HTMLElement;
+  }
+  return false;
+}
 
 export interface DrawerOptions {
   title?: string;
@@ -33,7 +45,7 @@ export interface DrawerOptions {
 let drawerSingleton: any = null;
 let listenersInitialized = false;
 
-export const drawer = (): any => {
+export const drawer = (drawerId: string = DRAWER_ID): any => {
   // Return existing instance if already created
   if (drawerSingleton) {
     return drawerSingleton;
@@ -55,14 +67,16 @@ export const drawer = (): any => {
   let cancelClose: any;
   let closeFx: (() => boolean | void) | undefined;
 
-  const drawerId = DRAWER_ID;
   let trap: any;
   let isOpening = false; // Track if drawer is currently opening
 
   const setOnClose = (onClose: () => boolean | void) => (closeFx = onClose);
 
   const close = () => {
-    isFunction(closeFx) && closeFx && closeFx() && (closeFx = undefined);
+    if (isFunction(closeFx)) {
+      closeFx?.();
+      closeFx = undefined;
+    }
     const target = document.getElementById(drawerId);
     if (!target) return;
     target.classList.remove(settings.visibleClass);
@@ -160,13 +174,13 @@ export const drawer = (): any => {
 
   const open = (options: DrawerOptions = {}) => {
     const { title, content, side, width, footer, callback, onClose } = options;
-    
+
     if (content) setContent(content);
     if (onClose) setOnClose(onClose);
     if (title) setTitle(title);
     if (width) setWidth(width);
     setFooter(footer);
-    
+
     if (drawerIsOpen) {
       cancelClose = { callback };
     } else if (side) {
@@ -178,28 +192,19 @@ export const drawer = (): any => {
     }
   };
 
-  const isDescendant = function (parent: HTMLElement, child: HTMLElement): boolean {
-    let node = child.parentNode as HTMLElement;
-    while (node) {
-      if (node === parent) return true;
-      node = node.parentNode as HTMLElement;
-    }
-
-    return false;
-  };
-
   const clickHandler = function (pointerEvent: MouseEvent) {
     if (!drawerId || !drawerIsOpen || isOpening) return; // Don't handle clicks while opening
     const target = pointerEvent.target as HTMLElement;
     const parent = document.querySelector('.drawer__wrapper') as HTMLElement;
     if (!parent) return;
-    
+
     // Check if click is on close button or its children (SVG, etc)
-    const isCloseButton = target.classList.contains('drawer__close') || 
-                          target.closest('.drawer__close') ||
-                          target.hasAttribute('data-drawer-close') ||
-                          target.closest('[data-drawer-close]');
-    
+    const isCloseButton =
+      target.classList.contains('drawer__close') ||
+      target.closest('.drawer__close') ||
+      'drawerClose' in target.dataset ||
+      target.closest('[data-drawer-close]');
+
     if (!isDescendant(parent, target) || isCloseButton) close();
   };
 
@@ -221,11 +226,11 @@ export const drawer = (): any => {
 /**
  * Initialize drawer HTML structure in the DOM
  */
-export function initDrawer(): void {
-  if (document.getElementById(DRAWER_ID)) return; // Already initialized
+export function initDrawer(drawerId: string = DRAWER_ID): void {
+  if (document.getElementById(drawerId)) return; // Already initialized
 
   const drawerHTML = `
-    <div id="${DRAWER_ID}" class="drawer" aria-hidden="true">
+    <div id="${drawerId}" class="drawer" aria-hidden="true">
       <div class="drawer__overlay" tabindex="-1" data-drawer-close></div>
       <div class="drawer__wrapper" role="dialog" aria-modal="true">
         <div class="drawer__header">
