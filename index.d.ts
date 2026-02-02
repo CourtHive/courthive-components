@@ -422,12 +422,7 @@ export function getSetWinner(
 ): 1 | 2 | undefined;
 export function isMatchComplete(sets: SetScore[], config: MatchUpConfig): boolean;
 export function getMatchWinner(sets: SetScore[]): 1 | 2 | undefined;
-export function calculateComplement(
-  value: number,
-  maxScore: number,
-  minScore: number,
-  isTiebreak: boolean
-): number;
+export function calculateComplement(value: number, maxScore: number, minScore: number, isTiebreak: boolean): number;
 export function shouldApplySmartComplement(
   side1Score: number,
   side2Score: number,
@@ -549,7 +544,6 @@ export namespace validators {
   export function time(value: string): boolean;
   export function phoneNumber(value: string): boolean;
   export function alphanumeric(value: string): boolean;
-  [key: string]: any;
 }
 
 // ============================================================================
@@ -558,9 +552,7 @@ export namespace validators {
 
 export type MatchUpFormatCode = string;
 
-export const MATCH_FORMATS: {
-  [key: string]: MatchUpFormatCode;
-};
+export const MATCH_FORMATS: Record<string, MatchUpFormatCode>;
 
 // ============================================================================
 // Version

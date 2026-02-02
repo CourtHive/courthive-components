@@ -9,6 +9,7 @@ As of version 0.9.12, courthive-components includes comprehensive TypeScript dec
 The package now ships with `index.d.ts` containing type definitions for:
 
 ### Core Components
+
 - `renderParticipant` - Render participant information with styling and event handlers
 - `renderParticipantInput` - Render participant assignment input
 - `renderStructure` - Render tournament draw structures
@@ -18,6 +19,7 @@ The package now ships with `index.d.ts` containing type definitions for:
 - `renderRoundHeader` - Render round header information
 
 ### Modal System
+
 - `cModal` - Core modal instance for opening and managing modals
 - `getCategoryModal` - Age category editor modal
 - `getMatchUpFormatModal` - Match format selector modal
@@ -25,11 +27,13 @@ The package now ships with `index.d.ts` containing type definitions for:
 - `getFlightProfileModal` - Flight profile editor
 
 ### Scoring System
+
 - `scoringModal` - Main scoring interface
 - `setScoringConfig` / `getScoringConfig` / `resetScoringConfig` - Configuration management
 - Dynamic Sets logic functions for programmatic score manipulation
 
 ### Form Components
+
 - `renderForm` - Dynamic form renderer
 - `renderButtons` - Button group renderer
 - `renderField` - Individual field renderer
@@ -39,6 +43,7 @@ The package now ships with `index.d.ts` containing type definitions for:
 - `validators` namespace - Collection of validation functions
 
 ### Other Components
+
 - `drawer` / `initDrawer` - Drawer/sidebar component
 - `tipster` / `destroyTipster` - Tooltip/popover system
 - `compositions` - Pre-configured draw rendering themes
@@ -48,18 +53,12 @@ The package now ships with `index.d.ts` containing type definitions for:
 ### TypeScript Projects
 
 ```typescript
-import { 
-  cModal, 
-  renderStructure, 
-  scoringModal,
-  type MatchUp,
-  type ScoringModalParams 
-} from 'courthive-components';
+import { cModal, renderStructure, scoringModal, type MatchUp, type ScoringModalParams } from 'courthive-components';
 
 // Full type checking and IntelliSense
 const matchUp: MatchUp = {
   matchUpId: '123',
-  structureId: 'abc',
+  structureId: 'abc'
   // ... TypeScript will validate all properties
 };
 
@@ -75,6 +74,7 @@ scoringModal({
 ### JavaScript Projects
 
 JavaScript projects using modern editors (VS Code, WebStorm, etc.) will automatically get:
+
 - IntelliSense / autocomplete
 - Parameter hints
 - Type checking (with JSDoc or when using `checkJs`)
@@ -85,23 +85,23 @@ import { cModal, renderStructure } from 'courthive-components';
 // IntelliSense will suggest all available options
 cModal.open({
   title: 'My Modal',
-  content: elem => {
+  content: (elem) => {
     // elem is typed as HTMLElement
   },
-  buttons: [
-    { label: 'OK', close: true }
-  ]
+  buttons: [{ label: 'OK', close: true }]
 });
 ```
 
 ## Implementation Details
 
 ### Declaration File
+
 - **Location**: `dist/index.d.ts` (copied from root `index.d.ts` during build)
 - **Source**: Hand-written declarations matching all exports from `src/index.ts`
 - **Build**: Automatically copied to dist folder during `pnpm build`
 
 ### Package.json Configuration
+
 ```json
 {
   "types": "./dist/index.d.ts",
@@ -139,6 +139,7 @@ None. This is a purely additive change. Existing JavaScript code continues to wo
 ## Future Improvements
 
 Potential future enhancements:
+
 - Generate types automatically from TypeScript source using `tsc --declaration`
 - Add more granular type exports for internal utilities
 - Include JSDoc comments in declaration file for better IDE tooltips
