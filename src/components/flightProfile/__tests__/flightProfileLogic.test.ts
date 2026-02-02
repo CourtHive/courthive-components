@@ -74,6 +74,8 @@ describe('Flight Profile Logic', () => {
 
       const attrs = buildScaleAttributes(state);
       expect(attrs).toEqual({
+        accessor: 'wtnRating',
+        ascending: false,
         scaleType: 'RATING',
         eventType: 'SINGLES',
         scaleName: 'WTN'
