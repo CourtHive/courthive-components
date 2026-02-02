@@ -3,6 +3,11 @@
  * Handles flight naming, split methods, and scale attributes.
  */
 
+import { factoryConstants, fixtures } from 'tods-competition-factory';
+
+const { WTN, UTR, TRN, NTRP, DUPR } = factoryConstants.ratingConstants;
+const { RATING } = factoryConstants.scaleConstants;
+
 export interface FlightProfileState {
   flightsCount: number;
   namingType: 'colors' | 'custom';
@@ -33,7 +38,7 @@ export const DEFAULT_COLORS = [
   'Bronze'
 ];
 
-export const RATING_SYSTEMS = ['WTN', 'UTR', 'TRN', 'NTRP', 'DUPR'];
+export const RATING_SYSTEMS = [WTN, UTR, TRN, NTRP, DUPR];
 
 export const SPLIT_METHODS = [
   { value: 'WATERFALL', label: 'Waterfall', description: 'Distributes evenly: 1→2→3→1→2→3 (like dealing cards)' },
@@ -77,8 +82,15 @@ export function buildScaleAttributes(state: FlightProfileState): any {
   }
 
   // Add scaleName for RATING type
-  if (state.scaleType === 'RATING' && state.scaleName) {
+  if (state.scaleType === RATING && state.scaleName) {
     base.scaleName = state.scaleName;
+    if (fixtures.ratingsParameters[state.scaleName]) {
+      base.ascending = fixtures.ratingsParameters[state.scaleName].ascending;
+      base.accessor = fixtures.ratingsParameters[state.scaleName].accessor;
+    } else {
+      delete base.ascending;
+      delete base.accessor;
+    }
   }
 
   return base;
@@ -137,7 +149,7 @@ export function parseExistingFlightProfile(flightProfile: any): Partial<FlightPr
     namingType,
     customName,
     suffixType,
-    scaleType: scaleAttributes?.scaleType || 'RATING',
+    scaleType: scaleAttributes?.scaleType || RATING,
     scaleName: scaleAttributes?.scaleName,
     eventType: scaleAttributes?.eventType,
     splitMethod: splitMethodMap[splitMethod] || 'LEVEL_BASED',
@@ -164,7 +176,7 @@ export function validateFlightProfile(state: FlightProfileState): string[] {
     errors.push('Maximum 10 flights allowed');
   }
 
-  if (state.scaleType === 'RATING' && !state.scaleName) {
+  if (state.scaleType === RATING && !state.scaleName) {
     errors.push('Rating system must be selected');
   }
 

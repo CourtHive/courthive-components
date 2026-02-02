@@ -171,6 +171,7 @@ export interface Configuration {
     accessor?: string;
     eventType?: string;
     fallback?: boolean;
+    rawValue?: any;
   };
   clickAway?: boolean;
   backdrop?: boolean;

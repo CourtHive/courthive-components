@@ -2,10 +2,10 @@
  * Category editor modal.
  * Allows users to configure complete category definitions including age, rating, and ball type.
  */
+import { getAgeCategoryModal } from '../ageCategory/ageCategory';
 import { eventGovernor } from 'tods-competition-factory';
 import { renderForm } from '../../forms/renderForm';
 import { cModal } from '../../modal/cmodal';
-import { getAgeCategoryModal } from '../ageCategory/ageCategory';
 
 // Configuration interface
 export interface CategoryConfig {
