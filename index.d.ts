@@ -151,6 +151,7 @@ export interface Schedule {
 
 export interface Configuration {
   flags?: boolean;
+  flag?: boolean;
   teamLogo?: boolean;
   roundHeader?: boolean;
   winnerChevron?: boolean;
@@ -169,6 +170,8 @@ export interface Configuration {
   inlineAssignment?: boolean;
   participantProvider?: () => Participant[];
   assignmentInputFontSize?: string;
+  genderColor?: boolean | string;
+  winnerColor?: boolean | string;
   placeHolders?: {
     tbd?: string;
     bye?: string;
@@ -205,7 +208,7 @@ export interface Configuration {
 }
 
 export interface Composition {
-  theme: string;
+  theme?: string;
   configuration?: Configuration;
 }
 
@@ -521,29 +524,23 @@ export function destroyTipster(instance: any): void;
 
 export function renderForm(elem: HTMLElement, items?: any[], relationships?: any): any;
 export function renderButtons(elem: HTMLElement, buttons?: any[], close?: () => void): any;
-export function renderField(elem: HTMLElement, field?: any): any;
-export function renderOptions(elem: HTMLElement, options?: any[]): any;
+export function renderField(item: any): any;
+export function renderOptions(select: HTMLSelectElement, item: any): void;
 export function renderMenu(elem: HTMLElement, menu?: any[], close?: () => void): any;
-export function validator(options?: any): (value: any) => boolean;
+export function validator(item: any, e: any, input: HTMLElement, help: HTMLElement, fx?: (value: string) => boolean): void;
 
 // ============================================================================
 // Validators
 // ============================================================================
 
 export namespace validators {
-  export function email(value: string): boolean;
-  export function url(value: string): boolean;
-  export function required(value: any): boolean;
-  export function minLength(min: number): (value: string) => boolean;
-  export function maxLength(max: number): (value: string) => boolean;
-  export function nameValidator(minLength?: number): (value: string) => boolean;
-  export function numeric(value: any): boolean;
-  export function integer(value: any): boolean;
-  export function positive(value: any): boolean;
-  export function date(value: string): boolean;
-  export function time(value: string): boolean;
-  export function phoneNumber(value: string): boolean;
-  export function alphanumeric(value: string): boolean;
+  export function nameValidator(minLength?: number, maxLength?: number): (value: string) => boolean;
+  export function numericValidator(value: string | number): boolean;
+  export function numericRange(min: number, max: number): (value: string | number) => boolean;
+  export function passwordValidator(value: string): boolean;
+  export function dateValidator(value: string): boolean;
+  export function wordValidator(minWords: number, maxWords?: number): (value: string) => boolean;
+  export function emailValidator(value: string): RegExpMatchArray | null;
 }
 
 // ============================================================================
