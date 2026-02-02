@@ -10,8 +10,10 @@
   ],
   "main": "./dist/courthive-components.umd.js",
   "module": "./dist/courthive-components.es.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/courthive-components.es.js",
       "require": "./dist/courthive-components.umd.js"
     }
@@ -40,7 +42,7 @@
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && cp index.d.ts dist/index.d.ts",
     "postbuild": "./addVersion $npm_package_version",
     "prepublishOnly": "npm run build",
     "preview": "vite preview",
