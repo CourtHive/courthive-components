@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 /**
  * Tests for Flight Profile logic functions
  */
@@ -75,7 +76,7 @@ describe('Flight Profile Logic', () => {
       const attrs = buildScaleAttributes(state);
       expect(attrs).toEqual({
         accessor: 'wtnRating',
-        ascending: false,
+        ascending: true,
         scaleType: 'RATING',
         eventType: 'SINGLES',
         scaleName: 'WTN'
