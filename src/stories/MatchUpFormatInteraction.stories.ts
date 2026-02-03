@@ -3,9 +3,7 @@
  * Tests the final set tiebreak initialization bug fix
  */
 import type { Meta, StoryObj } from '@storybook/html';
-import { within, waitFor } from '@storybook/testing-library';
-import { userEvent } from '@storybook/testing-library';
-import { expect } from '@storybook/jest';
+import { within, waitFor, userEvent, expect } from '@storybook/test';
 
 const meta: Meta = {
   title: 'Components/MatchUpFormat/Interactions',
