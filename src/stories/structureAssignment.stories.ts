@@ -4,30 +4,10 @@
  */
 import { renderContainer } from '../components/renderContainer';
 import { renderStructure } from '../components/renderStructure';
-import { generateEventData } from '../data/generateEventData';
 import { compositions } from '../compositions/compositions';
-import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
-import type { Participant, MatchUp } from '../types';
-
-// Generate available participants
-function getAvailableParticipants(count: number = 32): Participant[] {
-  const { tournamentRecord } = mocksEngine.generateTournamentRecord({
-    participantsProfile: {
-      participantsCount: count,
-      participantType: 'INDIVIDUAL'
-    }
-  });
-
-  tournamentEngine.setState(tournamentRecord);
-  const { participants } = tournamentEngine.getParticipants();
-
-  return participants.map((p: any) => ({
-    participantId: p.participantId,
-    participantName: p.participantName,
-    participantType: p.participantType,
-    person: p.person
-  }));
-}
+import { mocksEngine } from 'tods-competition-factory';
+import { DrawStateManager } from '../helpers/drawStateManager';
+import type { MatchUp } from '../types';
 
 const argTypes = {
   composition: {
@@ -55,109 +35,195 @@ export default {
   tags: ['autodocs'],
   render: ({ composition: compositionKey, fontSize, ...args }) => {
     const composition = compositions[compositionKey || 'Basic'];
-
-    // Generate event data with empty draw (participantsCount: 0, automated: false)
-    const { eventData } =
-      generateEventData({
-        ...args,
-        participantsCount: 0,
-        automated: false // Prevent automatic participant placement
-      }) || {};
-
-    const structures = eventData?.drawsData?.[0]?.structures || [];
-    const initialStructureId = structures[0]?.structureId;
-    const structure = structures?.find((structure) => structure.structureId === initialStructureId);
-    const roundMatchUps = structure?.roundMatchUps;
-    const matchUps: MatchUp[] = roundMatchUps ? (Object.values(roundMatchUps)?.flat() as MatchUp[]) : [];
-
-    const context = {
-      structureId: structure?.structureId,
-      drawId: eventData?.drawsData?.[0]?.drawId
-    };
-
-    // Generate available participants (twice the draw size for selection options)
     const drawSize = args.drawSize || 16;
-    const availableParticipants = getAvailableParticipants(drawSize * 2);
+    const drawType = args.drawType || 'SINGLE_ELIMINATION';
 
-    console.log(`Generated draw:`, {
-      drawSize,
-      matchUpCount: matchUps.length,
-      availableParticipants: availableParticipants.length,
-      fontSize: fontSize || 'default',
-      sampleMatchUp: matchUps[0], // Debug: Check matchUp structure
-      firstRoundMatchUps: matchUps.filter((m: any) => m.roundNumber === 1).length
+    // Generate tournament with draw and participants (automated: false to prevent auto-assignment)
+    const {
+      tournamentRecord,
+      drawIds: [drawId],
+    } = mocksEngine.generateTournamentRecord({
+      drawProfiles: [
+        {
+          drawSize,
+          drawType,
+          automated: false, // Don't auto-assign participants
+        },
+      ],
+      participantsProfile: {
+        participantsCount: drawSize * 2, // Generate 2x participants for selection
+        participantType: 'INDIVIDUAL',
+      },
     });
 
-    // Configure composition for inline assignment
-    const assignmentComposition = {
-      ...composition,
-      configuration: {
-        ...composition.configuration,
-        inlineAssignment: true,
-        participantProvider: () => availableParticipants,
-        assignmentInputFontSize: fontSize // Apply font size from controls
+    // Get structure and event information
+    const eventId = tournamentRecord.events[0].eventId;
+    const drawDefinition = tournamentRecord.events[0].drawDefinitions.find(
+      (dd: any) => dd.drawId === drawId
+    );
+    const structureId = drawDefinition.structures[0].structureId;
+
+    console.log('[Story] Initialize:', { drawId, structureId, eventId });
+
+    // Create state manager
+    const stateManager = new DrawStateManager({
+      tournamentRecord,
+      drawId,
+      structureId,
+      eventId,
+    });
+
+    // Container for dynamic content
+    const contentContainer = document.createElement('div');
+    contentContainer.style.maxWidth = '100%';
+    contentContainer.style.padding = '20px';
+
+    // Render function that will be called on state changes
+    // NOTE: This re-renders the ENTIRE structure, not just matchUps
+    // This ensures all participant assignments are reflected in the UI
+    const renderContent = () => {
+      console.log('[Story] renderContent called - re-rendering ENTIRE structure');
+      
+      // Clear previous content (removes all DOM elements)
+      contentContainer.innerHTML = '';
+
+      // Get current matchUps from state manager
+      const matchUps: MatchUp[] = stateManager.getMatchUps();
+      const availableParticipants = stateManager.getAvailableParticipants();
+      const allParticipants = stateManager.getAllParticipants();
+      const context = stateManager.getContext();
+
+      console.log('[Story] Draw state:', {
+        drawSize,
+        drawType,
+        matchUpCount: matchUps.length,
+        totalParticipants: allParticipants.length,
+        availableParticipants: availableParticipants.length,
+        assignedCount: allParticipants.length - availableParticipants.length,
+        fontSize: fontSize || 'default',
+        firstRoundMatchUps: matchUps.filter((m: any) => m.roundNumber === 1).length,
+        sampleMatchUp: {
+          matchUpId: matchUps[0]?.matchUpId,
+          roundNumber: matchUps[0]?.roundNumber,
+          sides: matchUps[0]?.sides?.map((s: any) => ({ 
+            sideNumber: s.sideNumber,
+            drawPosition: s.drawPosition,
+            participantId: s.participant?.participantId,
+            participantName: s.participant?.participantName,
+            allSideKeys: Object.keys(s),
+          })),
+        },
+      });
+
+      // Configure composition for inline assignment
+      const assignmentComposition = {
+        ...composition,
+        configuration: {
+          ...composition.configuration,
+          inlineAssignment: true,
+          // Dynamic participant provider - called each time input is focused
+          participantProvider: () => stateManager.getAvailableParticipants(),
+          assignmentInputFontSize: fontSize,
+        },
+      };
+
+      // Event handlers for participant assignment
+      const eventHandlers = {
+        assignParticipant: ({ matchUp, side, participant, sideNumber }: any) => {
+          const drawPosition = side?.drawPosition;
+
+          console.log('Assigning participant:', {
+            matchUpId: matchUp.matchUpId,
+            roundNumber: matchUp.roundNumber,
+            roundPosition: matchUp.roundPosition,
+            sideNumber,
+            drawPosition,
+            participantId: participant.participantId,
+            participantName: participant.participantName,
+          });
+
+          if (!drawPosition) {
+            console.error('Missing drawPosition for assignment');
+            return;
+          }
+
+          // Actually assign using tournamentEngine
+          const result = stateManager.assignParticipant({
+            drawPosition,
+            participantId: participant.participantId,
+          });
+
+          if (!result.success) {
+            console.error('Failed to assign participant:', result.error);
+          }
+        },
+      };
+
+      // Render the structure
+      const renderedStructure = renderStructure({
+        context,
+        matchUps,
+        composition: assignmentComposition,
+        eventHandlers,
+      });
+
+      // Add instructions
+      const instructions = document.createElement('div');
+      instructions.style.marginBottom = '20px';
+      instructions.style.padding = '15px';
+      instructions.style.border = '2px solid #4CAF50';
+      instructions.style.borderRadius = '8px';
+      instructions.style.backgroundColor = '#f1f8f4';
+      instructions.innerHTML = `
+        <strong style="color: #2E7D32;">Tab Order & Keyboard Navigation Test</strong><br>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+          <li><strong>Tab</strong> - Move to next input field</li>
+          <li><strong>Shift+Tab</strong> - Move to previous input field</li>
+          <li><strong>Type</strong> - Filter participant list</li>
+          <li><strong>Arrow Down/Up</strong> - Navigate suggestions</li>
+          <li><strong>Enter</strong> - Select highlighted participant</li>
+        </ul>
+        <small style="color: #555;">
+          Draw Size: ${drawSize} (${matchUps.filter((m: any) => m.roundNumber === 1).length} first round matches)<br>
+          Total Participants: ${stateManager.getAllParticipants().length}<br>
+          Available: ${availableParticipants.length} | Assigned: ${stateManager.getAllParticipants().length - availableParticipants.length}<br>
+          Font Size: ${fontSize || 'default (inherit)'}
+        </small>
+      `;
+
+      contentContainer.appendChild(instructions);
+      contentContainer.appendChild(renderedStructure);
+
+      // After rendering, focus the appropriate input if needed
+      const focusDrawPosition = stateManager.getAndClearFocusDrawPosition();
+      if (focusDrawPosition) {
+        console.log('[Story] Attempting to focus drawPosition:', focusDrawPosition);
+        
+        // Use setTimeout to ensure DOM is fully rendered
+        setTimeout(() => {
+          const inputToFocus = contentContainer.querySelector(
+            `.participant-assignment-input[data-draw-position="${focusDrawPosition}"] input`
+          ) as HTMLInputElement;
+          
+          if (inputToFocus) {
+            console.log('[Story] Focusing input for drawPosition:', focusDrawPosition);
+            inputToFocus.focus();
+          } else {
+            console.log('[Story] Could not find input for drawPosition:', focusDrawPosition);
+          }
+        }, 50);
       }
     };
 
-    // Event handlers for participant assignment
-    const eventHandlers = {
-      assignParticipant: ({ matchUp, side, participant, sideNumber }: any) => {
-        console.log('Participant assigned:', {
-          matchUpId: matchUp.matchUpId,
-          roundNumber: matchUp.roundNumber,
-          roundPosition: matchUp.roundPosition,
-          sideNumber,
-          drawPosition: side?.drawPosition,
-          participantId: participant.participantId,
-          participantName: participant.participantName
-        });
+    // Set render callback on state manager
+    stateManager.setRenderCallback(renderContent);
 
-        // In real implementation, this would:
-        // 1. Call tournamentEngine.assignDrawPosition()
-        // 2. Trigger re-render of the structure
-      }
-    };
+    // Initial render
+    renderContent();
 
-    const renderedStructure = renderStructure({
-      context,
-      matchUps,
-      composition: assignmentComposition,
-      eventHandlers
-    });
-
-    const content = document.createElement('div');
-    content.style.maxWidth = '100%';
-    content.style.padding = '20px';
-
-    // Add instructions
-    const instructions = document.createElement('div');
-    instructions.style.marginBottom = '20px';
-    instructions.style.padding = '15px';
-    instructions.style.border = '2px solid #4CAF50';
-    instructions.style.borderRadius = '8px';
-    instructions.style.backgroundColor = '#f1f8f4';
-    instructions.innerHTML = `
-      <strong style="color: #2E7D32;">Tab Order & Keyboard Navigation Test</strong><br>
-      <ul style="margin: 10px 0; padding-left: 20px;">
-        <li><strong>Tab</strong> - Move to next input field</li>
-        <li><strong>Shift+Tab</strong> - Move to previous input field</li>
-        <li><strong>Type</strong> - Filter participant list</li>
-        <li><strong>Arrow Down/Up</strong> - Navigate suggestions</li>
-        <li><strong>Enter</strong> - Select highlighted participant</li>
-      </ul>
-      <small style="color: #555;">
-        Draw Size: ${drawSize} (${matchUps.filter((m: any) => m.roundNumber === 1).length} first round matches)<br>
-        Available Participants: ${availableParticipants.length}<br>
-        Font Size: ${fontSize || 'default (inherit)'}
-      </small>
-    `;
-
-    content.appendChild(instructions);
-    content.appendChild(renderedStructure);
-
-    return renderContainer({ theme: composition.theme, content });
+    return renderContainer({ theme: composition.theme, content: contentContainer });
   },
-  argTypes
+  argTypes,
 };
 
 export const DrawSize16 = {

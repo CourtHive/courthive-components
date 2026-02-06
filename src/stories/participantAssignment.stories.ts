@@ -15,6 +15,44 @@ const argTypes = {
   }
 };
 
+function generateStoryDraw(drawSize: number) {
+  const {
+    drawIds: [drawId]
+  } = mocksEngine.generateTournamentRecord({
+    drawProfiles: [
+      {
+        generate: false,
+        drawSize
+      }
+    ]
+  });
+
+  return drawId;
+}
+
+/*
+you can use tournamentEngine.getAssignedParticipantIds({ drawId }) to get already assigned participants
+to filter the participantProvider results to exclude already assigned participants
+*/
+
+/* example assignment:
+  {
+      "method": "assignDrawPosition",
+      "params": {
+          "drawId": "27530180-581f-4652-8b42-6328ca540ba0",
+          "structureId": "08bac9ec-56dd-4729-a6e2-1058e467f52b",
+          "drawPosition": 2,
+          "participantId": "6196ffbf-2e12-4c43-aa11-706e5dddc8d7",
+          "selected": [
+              {
+                  "participantId": "6196ffbf-2e12-4c43-aa11-706e5dddc8d7",
+              }
+          ],
+          "activeTournamentId": "155ed081-b9d9-4661-b1c9-f1ea904d9b50"
+      }
+  }
+*/
+
 // Generate available participants using mocksEngine
 function getAvailableParticipants(count: number = 16, eventType: 'SINGLES' | 'DOUBLES' = 'SINGLES'): Participant[] {
   const { tournamentRecord } = mocksEngine.generateTournamentRecord({
@@ -23,10 +61,10 @@ function getAvailableParticipants(count: number = 16, eventType: 'SINGLES' | 'DO
       participantType: eventType === 'DOUBLES' ? 'PAIR' : 'INDIVIDUAL'
     }
   });
-  
+
   tournamentEngine.setState(tournamentRecord);
   const { participants } = tournamentEngine.getParticipants();
-  
+
   return participants.map((p: any) => ({
     participantId: p.participantId,
     participantName: p.participantName,
@@ -47,12 +85,12 @@ function createEmptyMatchUp(eventType: 'SINGLES' | 'DOUBLES' = 'SINGLES'): Match
     sides: [
       {
         sideNumber: 1,
-        drawPosition: 1,
+        drawPosition: 1
         // No participant assigned
       },
       {
         sideNumber: 2,
-        drawPosition: 2,
+        drawPosition: 2
         // No participant assigned
       }
     ],
@@ -67,13 +105,13 @@ function createEmptyMatchUp(eventType: 'SINGLES' | 'DOUBLES' = 'SINGLES'): Match
 // Create matchUp with one side assigned
 function createPartiallyAssignedMatchUp(): MatchUp {
   const matchUp = createEmptyMatchUp();
-  
+
   // Generate one participant for the assigned side
   const participants = getAvailableParticipants(1, 'SINGLES');
   if (participants.length > 0) {
     matchUp.sides[0].participant = participants[0];
   }
-  
+
   return matchUp;
 }
 
@@ -82,11 +120,11 @@ export default {
   tags: ['autodocs'],
   render: ({ eventType, composition: compositionKey, scenario, ...args }) => {
     const composition = compositions[compositionKey || 'Basic'];
-    
+
     // Create matchUp based on scenario
     let matchUp: MatchUp;
     let participantType: 'SINGLES' | 'DOUBLES' = 'SINGLES';
-    
+
     switch (scenario) {
       case 'partial':
         matchUp = createPartiallyAssignedMatchUp();
@@ -109,7 +147,7 @@ export default {
       configuration: {
         ...composition.configuration,
         inlineAssignment: true,
-        participantProvider: () => availableParticipants,
+        participantProvider: () => availableParticipants
       }
     };
 
@@ -147,7 +185,7 @@ export default {
       <strong>Inline Participant Assignment Demo</strong><br>
       <small>Type participant names in the empty positions to assign them.</small>
     `;
-    
+
     const wrapper = document.createElement('div');
     wrapper.appendChild(instructions);
     wrapper.appendChild(content);

@@ -84,25 +84,25 @@ export function renderIndividual(params: {
   } else {
     // Check if inline assignment is enabled
     const isFirstRound = matchUp?.roundNumber === 1;
-    
+
     // For feed-in draws: check if this specific side is a feed-in position (can be any round)
     // A feed-in position has a drawPosition but no sourceMatchUp (doesn't come from previous round)
-    const isFeedInSide = 
+    const isFeedInSide =
       matchUp?.drawType === 'FEED_IN' &&
       matchUp?.roundNumber > 1 && // Not first round (already covered)
-      side?.drawPosition && 
+      side?.drawPosition &&
       !side?.sourceMatchUp; // No source means it's a direct feed-in position
-    
+
     const isAssignablePosition = isFirstRound || isFeedInSide;
-    
-    const canAssign = 
-      configuration?.inlineAssignment && 
+
+    const canAssign =
+      configuration?.inlineAssignment &&
       isFunction(eventHandlers?.assignParticipant) &&
       isFunction(configuration?.participantProvider) &&
       isAssignablePosition && // Only first round or feed-in sides
       !side?.bye && // Don't show input for BYE
       !side?.qualifier; // Don't show input for Qualifier
-    
+
     if (canAssign && matchUp) {
       // Render typeahead input for participant assignment
       const inputField = renderParticipantInput({

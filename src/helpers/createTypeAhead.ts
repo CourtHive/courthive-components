@@ -13,6 +13,8 @@ type CreateTypeAheadParams = {
   currentValue?: string;
   withCatchTab?: boolean;
   onChange?: (event: Event) => void;
+  onSelectComplete?: () => void;
+  listProvider?: () => any[]; // Function to get fresh list
 };
 
 export function createTypeAhead({
@@ -22,9 +24,24 @@ export function createTypeAhead({
   currentValue,
   withCatchTab,
   onChange,
+  onSelectComplete,
+  listProvider,
 }: CreateTypeAheadParams): { typeAhead: any } {
   const typeAhead = new AWSP(element, { list });
   if (element.parentElement) element.parentElement.style.width = '100%';
+
+  // Refresh list on focus if listProvider is available
+  if (isFunction(listProvider)) {
+    element.addEventListener('focus', () => {
+      const freshList = listProvider();
+      console.log('[TypeAhead] Refreshing list on focus:', {
+        inputId: element.id,
+        listLength: freshList.length,
+        items: freshList.slice(0, 3),
+      });
+      typeAhead.list = freshList;
+    });
+  }
 
   let selectionFlag = false;
   const selectComplete = (c: any) => {
@@ -32,6 +49,10 @@ export function createTypeAhead({
     if (isFunction(callback)) callback(c.text.value);
     element.value = c.text.label;
     typeAhead.suggestions = [];
+    // Trigger onSelectComplete callback after selection
+    if (isFunction(onSelectComplete)) {
+      setTimeout(() => onSelectComplete(), 0);
+    }
   };
 
   if (withCatchTab) {
