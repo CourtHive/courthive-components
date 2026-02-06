@@ -70,7 +70,55 @@ export function renderIndividual(params: {
   const name = document.createElement('div');
   name.className = participantNameStyle({ variant });
 
-  if (participantName) {
+  // Check if inline assignment is enabled
+  const isFirstRound = matchUp?.roundNumber === 1;
+
+  // For feed-in draws: check if this specific side is a feed-in position (can be any round)
+  // A feed-in position has a drawPosition but no sourceMatchUp (doesn't come from previous round)
+  const isFeedInSide =
+    matchUp?.drawType === 'FEED_IN' &&
+    matchUp?.roundNumber > 1 && // Not first round (already covered)
+    side?.drawPosition &&
+    !side?.sourceMatchUp; // No source means it's a direct feed-in position
+
+  const isAssignablePosition = isFirstRound || isFeedInSide;
+
+  // In persist mode, BYE should also be assignable (can change BYE to participant)
+  const persistMode = configuration?.persistInputFields;
+  
+  const canAssign =
+    configuration?.inlineAssignment &&
+    isFunction(eventHandlers?.assignParticipant) &&
+    isFunction(configuration?.participantProvider) &&
+    isAssignablePosition && // Only first round or feed-in sides
+    (!side?.bye || persistMode) && // In persist mode, BYE can be reassigned
+    !side?.qualifier; // Don't show input for Qualifier (qualifiers come from qualifying draws)
+
+  // Determine whether to show input field or participant name/BYE
+  const shouldShowInput = canAssign && matchUp && (
+    !participantName || // No participant assigned yet
+    side?.bye || // BYE assigned (in persist mode, since canAssign checks persistMode)
+    persistMode // Or persistInputFields mode is enabled
+  );
+
+  if (shouldShowInput) {
+    // Render typeahead input for participant assignment
+    // In persist mode, if BYE is assigned, pass a special marker
+    const currentAssignment = side?.bye 
+      ? { participantId: '__BYE__', participantName: '— BYE —' }
+      : individualParticipant;
+    
+    const inputField = renderParticipantInput({
+      matchUp,
+      side,
+      sideNumber,
+      eventHandlers,
+      composition,
+      currentParticipant: currentAssignment, // Pass current assignment (BYE or participant)
+    });
+    name.appendChild(inputField);
+  } else if (participantName) {
+    // Show participant name (normal mode)
     const span = document.createElement('span');
     if (isWinningSide && configuration?.winnerColor) {
       span.style.color = typeof configuration.winnerColor === 'string' ? configuration.winnerColor : 'green';
@@ -82,46 +130,13 @@ export function renderIndividual(params: {
     span.innerHTML = participantName;
     name.appendChild(span);
   } else {
-    // Check if inline assignment is enabled
-    const isFirstRound = matchUp?.roundNumber === 1;
-
-    // For feed-in draws: check if this specific side is a feed-in position (can be any round)
-    // A feed-in position has a drawPosition but no sourceMatchUp (doesn't come from previous round)
-    const isFeedInSide =
-      matchUp?.drawType === 'FEED_IN' &&
-      matchUp?.roundNumber > 1 && // Not first round (already covered)
-      side?.drawPosition &&
-      !side?.sourceMatchUp; // No source means it's a direct feed-in position
-
-    const isAssignablePosition = isFirstRound || isFeedInSide;
-
-    const canAssign =
-      configuration?.inlineAssignment &&
-      isFunction(eventHandlers?.assignParticipant) &&
-      isFunction(configuration?.participantProvider) &&
-      isAssignablePosition && // Only first round or feed-in sides
-      !side?.bye && // Don't show input for BYE
-      !side?.qualifier; // Don't show input for Qualifier
-
-    if (canAssign && matchUp) {
-      // Render typeahead input for participant assignment
-      const inputField = renderParticipantInput({
-        matchUp,
-        side,
-        sideNumber,
-        eventHandlers,
-        composition
-      });
-      name.appendChild(inputField);
-    } else {
-      // Render placeholder (TBD/Qualifier/BYE)
-      const placeholder = document.createElement('abbr');
-      // if { showAddress: true } pad placeholder
-      placeholder.className = getPlacholderStyle({ variant: configuration?.showAddress ? 'showAddress' : '' });
-      placeholder.innerHTML =
-        (side?.bye && placeHolders.BYE) || (side?.qualifier && placeHolders.QUALIFIER) || placeHolders.TBD;
-      name.appendChild(placeholder);
-    }
+    // Render placeholder (TBD/Qualifier/BYE)
+    const placeholder = document.createElement('abbr');
+    // if { showAddress: true } pad placeholder
+    placeholder.className = getPlacholderStyle({ variant: configuration?.showAddress ? 'showAddress' : '' });
+    placeholder.innerHTML =
+      (side?.bye && placeHolders.BYE) || (side?.qualifier && placeHolders.QUALIFIER) || placeHolders.TBD;
+    name.appendChild(placeholder);
   }
 
   const seeding = renderFrill({

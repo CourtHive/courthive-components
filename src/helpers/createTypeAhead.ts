@@ -25,7 +25,7 @@ export function createTypeAhead({
   withCatchTab,
   onChange,
   onSelectComplete,
-  listProvider,
+  listProvider
 }: CreateTypeAheadParams): { typeAhead: any } {
   const typeAhead = new AWSP(element, { list });
   if (element.parentElement) element.parentElement.style.width = '100%';
@@ -34,11 +34,6 @@ export function createTypeAhead({
   if (isFunction(listProvider)) {
     element.addEventListener('focus', () => {
       const freshList = listProvider();
-      console.log('[TypeAhead] Refreshing list on focus:', {
-        inputId: element.id,
-        listLength: freshList.length,
-        items: freshList.slice(0, 3),
-      });
       typeAhead.list = freshList;
     });
   }
@@ -64,7 +59,14 @@ export function createTypeAhead({
   element.setAttribute('autocomplete', 'off');
   element.addEventListener('awesomplete-selectcomplete', (c: any) => selectComplete(c), false);
   element.addEventListener('keyup', function (evt: any) {
-    if ((evt.key === 'Enter' || evt.key === 'Tab') && !selectionFlag && typeAhead.suggestions?.length) {
+    // Don't auto-select on Shift+Tab (backward navigation)
+    const isShiftTab = evt.key === 'Tab' && evt.shiftKey;
+
+    if (
+      (evt.key === 'Enter' || (evt.key === 'Tab' && !isShiftTab)) &&
+      !selectionFlag &&
+      typeAhead.suggestions?.length
+    ) {
       typeAhead.next();
       typeAhead.select(0);
     }
