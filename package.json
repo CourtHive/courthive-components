@@ -1,6 +1,6 @@
 {
   "name": "courthive-components",
-  "version": "0.9.16",
+  "version": "0.9.17",
   "engines": {
     "node": ">=16.16.0 < 25"
   },
@@ -16,7 +16,8 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/courthive-components.es.js",
       "require": "./dist/courthive-components.umd.js"
-    }
+    },
+    "./dist/courthive-components.css": "./dist/courthive-components.css"
   },
   "repository": {
     "type": "git",
