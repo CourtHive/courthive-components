@@ -78,3 +78,7 @@ export { validator } from './components/forms/renderValidator';
 
 // Form validators
 export * as validators from './validators';
+
+// State management
+export { DrawStateManager } from './helpers/drawStateManager';
+export type { RenderCallback } from './helpers/drawStateManager';
