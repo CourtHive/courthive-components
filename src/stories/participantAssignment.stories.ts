@@ -15,44 +15,6 @@ const argTypes = {
   }
 };
 
-function generateStoryDraw(drawSize: number) {
-  const {
-    drawIds: [drawId]
-  } = mocksEngine.generateTournamentRecord({
-    drawProfiles: [
-      {
-        generate: false,
-        drawSize
-      }
-    ]
-  });
-
-  return drawId;
-}
-
-/*
-you can use tournamentEngine.getAssignedParticipantIds({ drawId }) to get already assigned participants
-to filter the participantProvider results to exclude already assigned participants
-*/
-
-/* example assignment:
-  {
-      "method": "assignDrawPosition",
-      "params": {
-          "drawId": "27530180-581f-4652-8b42-6328ca540ba0",
-          "structureId": "08bac9ec-56dd-4729-a6e2-1058e467f52b",
-          "drawPosition": 2,
-          "participantId": "6196ffbf-2e12-4c43-aa11-706e5dddc8d7",
-          "selected": [
-              {
-                  "participantId": "6196ffbf-2e12-4c43-aa11-706e5dddc8d7",
-              }
-          ],
-          "activeTournamentId": "155ed081-b9d9-4661-b1c9-f1ea904d9b50"
-      }
-  }
-*/
-
 // Generate available participants using mocksEngine
 function getAvailableParticipants(count: number = 16, eventType: 'SINGLES' | 'DOUBLES' = 'SINGLES'): Participant[] {
   const { tournamentRecord } = mocksEngine.generateTournamentRecord({
