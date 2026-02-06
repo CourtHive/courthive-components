@@ -85,7 +85,7 @@
     "lint-staged": "16.2.7",
     "playwright": "^1.57.0",
     "prettier": "2.8.8",
-    "semver": "7.7.3",
+    "semver": "7.7.4",
     "storybook": "^10.0.2",
     "vite": "7.3.1",
     "vitest": "^4.0.16"
