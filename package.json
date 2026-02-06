@@ -42,7 +42,7 @@
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "dev": "vite",
-    "build": "vite build && cp index.d.ts dist/index.d.ts",
+    "build": "vite build",
     "postbuild": "./addVersion $npm_package_version",
     "prepublishOnly": "npm run build",
     "preview": "vite preview",
@@ -88,6 +88,7 @@
     "semver": "7.7.4",
     "storybook": "^10.0.2",
     "vite": "7.3.1",
+    "vite-plugin-dts": "^4.5.4",
     "vitest": "^4.0.16"
   },
   "dependencies": {
