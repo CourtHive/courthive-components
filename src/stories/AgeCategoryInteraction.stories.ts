@@ -1,6 +1,7 @@
 /**
  * Interaction stories for Age Category Code modal
  */
+// @ts-expect-error - Storybook types not in published package
 import type { Meta, StoryObj } from '@storybook/html';
 
 const meta: Meta = {

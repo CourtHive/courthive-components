@@ -12,7 +12,7 @@ export default {
       eventType,
       outcomes
     });
-    return renderSide({ ...args, matchUp: matchUps[0] });
+    return renderSide({ ...args, matchUp: matchUps[0], sideNumber: 1 });
   },
   argTypes: {
     name: { control: 'text' },

@@ -157,7 +157,7 @@ export function parseAgeCategoryCode(code: string): ParsedAgeCategory | null {
  * Build an age category code from configuration
  */
 export function buildAgeCategoryCode(config: AgeCategoryCodeConfig): string {
-  const { type, ageValue, ageMin, ageMax, uPosition = 'post', oPosition = 'post', isCombined, rangeOrder = 'min-max' } = config;
+  const { type, ageValue, ageMin, ageMax, uPosition = 'post', oPosition = 'post', rangeOrder = 'min-max' } = config;
 
   if (type === 'open') {
     return 'OPEN';

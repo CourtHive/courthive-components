@@ -19,7 +19,7 @@ export function getInfoStyle({ variant }: { variant?: number | string }): string
     },
   });
 
-  return infoStyle({ variant });
+  return infoStyle({ variant: variant as any });
 }
 
 export const columnStyle = css({

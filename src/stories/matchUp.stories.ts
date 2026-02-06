@@ -24,7 +24,7 @@ export default {
     });
     const matchUp = matchUps[0];
     if (args.editing) {
-      matchUp.score.sets[0].editing = 2;
+      (matchUp.score.sets[0] as any).editing = 2;
     }
     const renderedMatchUp = renderMatchUp({
       ...args,
