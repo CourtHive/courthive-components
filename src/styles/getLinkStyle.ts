@@ -14,7 +14,7 @@ export function getLinkStyle({
   const fontSize = parseInt(window.getComputedStyle(document.body).getPropertyValue('font-size'));
 
   const configuration = composition?.configuration || {};
-  const connectorWidth = configuration?.connectorWidth || 16;
+  const connectorWidth = (configuration as any)?.connectorWidth || 16;
   const centerHeight = configuration.centerInfo ? lineHeights.centerInfo * fontSize : 0;
   const scheduleHeight = configuration.scheduleInfo ? lineHeights.scheduleInfo * fontSize : 0;
   const addressHeight = configuration.showAddress ? fontSize : 0;

@@ -12,8 +12,8 @@
 
  
 /* eslint-disable sonarjs/no-duplicate-string */
-/* eslint-disable sonarjs/different-types-comparison */
-/* eslint-disable no-constant-binary-expression */
+ 
+ 
 
 import { describe, it, expect } from 'vitest';
 import { matchUpFormatCode } from 'tods-competition-factory';

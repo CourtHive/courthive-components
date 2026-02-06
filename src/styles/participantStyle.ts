@@ -12,7 +12,7 @@ export function getPlacholderStyle({ variant }: { variant?: string }): string {
     }
   });
 
-  return participantPlaceholder({ variant });
+  return participantPlaceholder({ variant: variant as any });
 }
 
 export const participantStyle = css({
@@ -63,7 +63,13 @@ export const participantTypeStyle = css({
   }
 });
 
-export function getParticipantContainerStyle({ drawPosition, sideNumber }: { drawPosition?: number | string; sideNumber?: number }): string {
+export function getParticipantContainerStyle({
+  drawPosition,
+  sideNumber
+}: {
+  drawPosition?: number | string;
+  sideNumber?: number;
+}): string {
   const participantContainerStyle = css({
     minHeight: '$participant$minHeight',
     justifyContent: 'space-between',
@@ -92,7 +98,7 @@ export function getParticipantContainerStyle({ drawPosition, sideNumber }: { dra
   });
 
   return participantContainerStyle({
-    sideNumber,
+    sideNumber: sideNumber as any,
     css: drawPosition && {
       '&:before': {
         backgroundColor: '$backgroundColor',

@@ -4,7 +4,7 @@
  */
 
  
-/* eslint-disable sonarjs/no-duplicate-string */
+ 
 
 import { describe, it, expect } from 'vitest';
 import {

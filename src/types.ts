@@ -33,6 +33,9 @@ export interface Side {
   drawPosition?: number;
   participant?: Participant;
   participantFed?: string;
+  sourceMatchUp?: MatchUp;
+  qualifier?: boolean;
+  bye?: boolean;
   lineUp?: LineUp[];
   score?: SideScore;
   seedNumber?: number;
@@ -142,6 +145,7 @@ export interface Schedule {
 
 export interface Configuration {
   flags?: boolean;
+  flag?: boolean; // Single flag display (from index.d.ts)
   teamLogo?: boolean;
   roundHeader?: boolean;
   winnerChevron?: boolean;
@@ -160,9 +164,13 @@ export interface Configuration {
   inlineAssignment?: boolean;
   participantProvider?: () => Participant[];
   assignmentInputFontSize?: string; // Font size for participant assignment inputs (e.g., '14px', '0.875rem')
+  persistInputFields?: boolean; // Keep input fields visible after assignment, allow re-assignment
+  genderColor?: boolean | string; // Color coding by gender (from index.d.ts)
+  winnerColor?: boolean | string; // Color coding for winners (from index.d.ts)
   placeHolders?: {
     tbd?: string;
     bye?: string;
+    qualifier?: string;
   };
   scaleAttributes?: {
     scaleColor?: string;
@@ -203,12 +211,24 @@ export interface Composition {
 
 export interface EventHandlers {
   matchUpClick?: (params: { pointerEvent: MouseEvent; matchUp: MatchUp }) => void;
-  participantClick?: (params: { pointerEvent: MouseEvent; participant: Participant }) => void;
+  participantClick?: (params: {
+    individualParticipant: IndividualParticipant;
+    matchUp?: MatchUp;
+    pointerEvent: MouseEvent;
+    participant?: Participant;
+    side?: Side;
+  }) => void;
   assignParticipant?: (params: {
     matchUp: MatchUp;
     side: Side;
     sideNumber: number;
     participant: Participant;
+    pointerEvent?: Event;
+  }) => void;
+  assignBye?: (params: {
+    matchUp: MatchUp;
+    side: Side;
+    sideNumber: number;
     pointerEvent?: Event;
   }) => void;
   scoreClick?: (params: { pointerEvent: MouseEvent; matchUp: MatchUp }) => void;

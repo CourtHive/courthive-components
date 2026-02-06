@@ -13,7 +13,10 @@
  */
 
 import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
-import type { ParsedFormat } from 'tods-competition-factory';
+
+// ParsedFormat is declared but not exported from tods-competition-factory
+// Define locally to avoid import error
+type ParsedFormat = any;
 
 const { RETIRED, WALKOVER, DEFAULTED, SUSPENDED, CANCELLED, INCOMPLETE, DEAD_RUBBER, IN_PROGRESS, AWAITING_RESULT } =
   matchUpStatusConstants;

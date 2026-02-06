@@ -244,7 +244,7 @@ export function initializeFormatFromString(
     delete format.setFormat.bestOf;
     // IMPORTANT: Exactly only works with timed sets
     // Ensure the "what" is set correctly
-    if (format.setFormat.timed) {
+    if ((format.setFormat as any).timed) {
       format.setFormat.what = TIMED_SETS;
     }
   } else {

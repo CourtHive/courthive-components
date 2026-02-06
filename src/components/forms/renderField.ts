@@ -160,6 +160,7 @@
  *   - list: Array of suggestions
  *   - callback: Function(value) - called when item selected
  *   - currentValue: String - initial value
+ *   - onSelectComplete: Function() - called after selection is complete
  * 
  * Example:
  * {

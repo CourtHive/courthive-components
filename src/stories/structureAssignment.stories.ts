@@ -4,30 +4,10 @@
  */
 import { renderContainer } from '../components/renderContainer';
 import { renderStructure } from '../components/renderStructure';
-import { generateEventData } from '../data/generateEventData';
 import { compositions } from '../compositions/compositions';
-import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
-import type { Participant, MatchUp } from '../types';
-
-// Generate available participants
-function getAvailableParticipants(count: number = 32): Participant[] {
-  const { tournamentRecord } = mocksEngine.generateTournamentRecord({
-    participantsProfile: {
-      participantsCount: count,
-      participantType: 'INDIVIDUAL'
-    }
-  });
-
-  tournamentEngine.setState(tournamentRecord);
-  const { participants } = tournamentEngine.getParticipants();
-
-  return participants.map((p: any) => ({
-    participantId: p.participantId,
-    participantName: p.participantName,
-    participantType: p.participantType,
-    person: p.person
-  }));
-}
+import { mocksEngine } from 'tods-competition-factory';
+import { DrawStateManager } from '../helpers/drawStateManager';
+import type { MatchUp } from '../types';
 
 const argTypes = {
   composition: {
@@ -47,115 +27,257 @@ const argTypes = {
     options: ['10px', '12px', '14px', '16px', '18px', '20px'],
     control: { type: 'select' },
     description: 'Font size for participant assignment inputs'
+  },
+  persistInputFields: {
+    control: { type: 'boolean' },
+    description: 'Keep input fields visible after assignment, allow re-assignment'
   }
 };
 
 export default {
   title: 'Draws/Participant Assignment',
   tags: ['autodocs'],
-  render: ({ composition: compositionKey, fontSize, ...args }) => {
+  parameters: {
+    controls: { expanded: true } // Ensure controls panel is visible
+  },
+  render: ({ composition: compositionKey, fontSize, persistInputFields, ...args }) => {
     const composition = compositions[compositionKey || 'Basic'];
-
-    // Generate event data with empty draw (participantsCount: 0, automated: false)
-    const { eventData } =
-      generateEventData({
-        ...args,
-        participantsCount: 0,
-        automated: false // Prevent automatic participant placement
-      }) || {};
-
-    const structures = eventData?.drawsData?.[0]?.structures || [];
-    const initialStructureId = structures[0]?.structureId;
-    const structure = structures?.find((structure) => structure.structureId === initialStructureId);
-    const roundMatchUps = structure?.roundMatchUps;
-    const matchUps: MatchUp[] = roundMatchUps ? (Object.values(roundMatchUps)?.flat() as MatchUp[]) : [];
-
-    const context = {
-      structureId: structure?.structureId,
-      drawId: eventData?.drawsData?.[0]?.drawId
-    };
-
-    // Generate available participants (twice the draw size for selection options)
     const drawSize = args.drawSize || 16;
-    const availableParticipants = getAvailableParticipants(drawSize * 2);
+    const drawType = args.drawType || 'SINGLE_ELIMINATION';
 
-    console.log(`Generated draw:`, {
-      drawSize,
-      matchUpCount: matchUps.length,
-      availableParticipants: availableParticipants.length,
-      fontSize: fontSize || 'default',
-      sampleMatchUp: matchUps[0], // Debug: Check matchUp structure
-      firstRoundMatchUps: matchUps.filter((m: any) => m.roundNumber === 1).length
+    // Track persist mode state locally for UI toggle
+    let currentPersistMode = persistInputFields || false;
+
+    // Generate tournament with draw and participants (automated: false to prevent auto-assignment)
+    const {
+      tournamentRecord,
+      drawIds: [drawId]
+    } = mocksEngine.generateTournamentRecord({
+      drawProfiles: [
+        {
+          drawSize,
+          drawType,
+          automated: false // Don't auto-assign participants
+        }
+      ],
+      participantsProfile: {
+        participantsCount: drawSize * 2, // Generate 2x participants for selection
+        participantType: 'INDIVIDUAL'
+      }
     });
 
-    // Configure composition for inline assignment
-    const assignmentComposition = {
-      ...composition,
-      configuration: {
-        ...composition.configuration,
-        inlineAssignment: true,
-        participantProvider: () => availableParticipants,
-        assignmentInputFontSize: fontSize // Apply font size from controls
+    // Get structure and event information
+    const eventId = tournamentRecord.events[0].eventId;
+    const drawDefinition = tournamentRecord.events[0].drawDefinitions.find((dd: any) => dd.drawId === drawId);
+    const structureId = drawDefinition.structures[0].structureId;
+
+    // Create state manager
+    const stateManager = new DrawStateManager({
+      tournamentRecord,
+      drawId,
+      structureId,
+      eventId
+    });
+
+    // Main container
+    const mainContainer = document.createElement('div');
+    mainContainer.style.maxWidth = '100%';
+    mainContainer.style.padding = '20px';
+
+    // Toggle button for persist mode
+    const toggleContainer = document.createElement('div');
+    toggleContainer.style.marginBottom = '15px';
+    toggleContainer.style.padding = '10px';
+    toggleContainer.style.backgroundColor = '#f8f9fa';
+    toggleContainer.style.borderRadius = '8px';
+    toggleContainer.style.border = '2px solid #dee2e6';
+
+    const toggleButton = document.createElement('button');
+    toggleButton.style.padding = '8px 16px';
+    toggleButton.style.fontSize = '14px';
+    toggleButton.style.fontWeight = 'bold';
+    toggleButton.style.border = '2px solid #0066cc';
+    toggleButton.style.borderRadius = '6px';
+    toggleButton.style.cursor = 'pointer';
+    toggleButton.style.marginRight = '10px';
+    toggleButton.style.transition = 'all 0.2s';
+
+    const updateToggleButton = (isPersist: boolean) => {
+      if (isPersist) {
+        toggleButton.style.backgroundColor = '#0066cc';
+        toggleButton.style.color = 'white';
+        toggleButton.textContent = '✓ Persist Mode ON';
+      } else {
+        toggleButton.style.backgroundColor = 'white';
+        toggleButton.style.color = '#0066cc';
+        toggleButton.textContent = 'Persist Mode OFF';
       }
     };
 
-    // Event handlers for participant assignment
-    const eventHandlers = {
-      assignParticipant: ({ matchUp, side, participant, sideNumber }: any) => {
-        console.log('Participant assigned:', {
-          matchUpId: matchUp.matchUpId,
-          roundNumber: matchUp.roundNumber,
-          roundPosition: matchUp.roundPosition,
-          sideNumber,
-          drawPosition: side?.drawPosition,
-          participantId: participant.participantId,
-          participantName: participant.participantName
-        });
+    updateToggleButton(currentPersistMode);
 
-        // In real implementation, this would:
-        // 1. Call tournamentEngine.assignDrawPosition()
-        // 2. Trigger re-render of the structure
+    const toggleLabel = document.createElement('span');
+    toggleLabel.style.color = '#495057';
+    toggleLabel.style.fontSize = '13px';
+    toggleLabel.innerHTML = currentPersistMode
+      ? '<strong style="color: #28a745;">Input fields stay visible, allow re-assignment</strong>'
+      : '<strong>Input fields disappear after assignment</strong>';
+
+    toggleContainer.appendChild(toggleButton);
+    toggleContainer.appendChild(toggleLabel);
+    mainContainer.appendChild(toggleContainer);
+
+    // Container for dynamic content (draw structure)
+    const contentContainer = document.createElement('div');
+    contentContainer.style.maxWidth = '100%';
+
+    // Render function that will be called on state changes
+    // NOTE: This re-renders the ENTIRE structure, not just matchUps
+    // This ensures all participant assignments are reflected in the UI
+    const renderContent = () => {
+      // Clear previous content (removes all DOM elements)
+      contentContainer.innerHTML = '';
+
+      // Get current matchUps from state manager
+      const matchUps: MatchUp[] = stateManager.getMatchUps();
+      const availableParticipants = stateManager.getAvailableParticipants();
+      const context = stateManager.getContext();
+
+      // Configure composition for inline assignment
+      const assignmentComposition = {
+        ...composition,
+        configuration: {
+          ...composition.configuration,
+          inlineAssignment: true,
+          // Dynamic participant provider - called each time input is focused
+          participantProvider: () => stateManager.getAvailableParticipants(),
+          assignmentInputFontSize: fontSize,
+          persistInputFields: currentPersistMode // Use local state, not args
+        }
+      };
+
+      // Event handlers for participant assignment
+      const eventHandlers = {
+        assignParticipant: ({ side, participant }: any) => {
+          const drawPosition = side?.drawPosition;
+          const hasExisting = side?.participant?.participantId || side?.bye;
+
+          if (!drawPosition) {
+            return;
+          }
+
+          // In persistInputFields mode with existing assignment, replace it
+          const replaceExisting = currentPersistMode && hasExisting;
+
+          // Actually assign using tournamentEngine
+          const result = stateManager.assignParticipant({
+            drawPosition,
+            participantId: participant.participantId,
+            replaceExisting
+          });
+
+          if (!result.success) {
+            console.error('Failed to assign participant:', result.error);
+          }
+        },
+        assignBye: ({ side }: any) => {
+          const drawPosition = side?.drawPosition;
+          const hasExisting = side?.participant?.participantId || side?.bye;
+
+          if (!drawPosition) {
+            return;
+          }
+
+          // In persistInputFields mode with existing assignment, replace it
+          const replaceExisting = persistInputFields && hasExisting;
+
+          // Actually assign BYE using tournamentEngine
+          const result = stateManager.assignBye({
+            drawPosition,
+            replaceExisting
+          });
+
+          if (!result.success) {
+            console.error('Failed to assign BYE:', result.error);
+          }
+        }
+      };
+
+      // Render the structure
+      const renderedStructure = renderStructure({
+        context,
+        matchUps,
+        composition: assignmentComposition,
+        eventHandlers
+      });
+
+      // Add instructions
+      const instructions = document.createElement('div');
+      instructions.style.marginBottom = '20px';
+      instructions.style.padding = '15px';
+      instructions.style.border = '2px solid #4CAF50';
+      instructions.style.borderRadius = '8px';
+      instructions.style.backgroundColor = '#f1f8f4';
+      instructions.innerHTML = `
+        <strong style="color: #2E7D32;">Tab Order & Keyboard Navigation Test</strong><br>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+          <li><strong>Tab</strong> - Move to next input field</li>
+          <li><strong>Shift+Tab</strong> - Move to previous input field</li>
+          <li><strong>Type</strong> - Filter participant list</li>
+          <li><strong>Arrow Down/Up</strong> - Navigate suggestions</li>
+          <li><strong>Enter</strong> - Select highlighted participant</li>
+        </ul>
+        <small style="color: #555;">
+          Draw Size: ${drawSize} (${matchUps.filter((m: any) => m.roundNumber === 1).length} first round matches)<br>
+          Total Participants: ${stateManager.getAllParticipants().length}<br>
+          Available: ${availableParticipants.length} | Assigned: ${
+        stateManager.getAllParticipants().length - availableParticipants.length
+      }<br>
+          Font Size: ${fontSize || 'default (inherit)'}
+        </small>
+      `;
+
+      contentContainer.appendChild(instructions);
+      contentContainer.appendChild(renderedStructure);
+
+      // After rendering, focus the appropriate input if needed
+      const focusDrawPosition = stateManager.getAndClearFocusDrawPosition();
+      if (focusDrawPosition) {
+        // Use setTimeout to ensure DOM is fully rendered
+        setTimeout(() => {
+          const inputToFocus = contentContainer.querySelector(
+            `.participant-assignment-input[data-draw-position="${focusDrawPosition}"] input`
+          ) as HTMLInputElement;
+
+          if (inputToFocus) {
+            inputToFocus.focus();
+          }
+        }, 50);
       }
     };
 
-    const renderedStructure = renderStructure({
-      context,
-      matchUps,
-      composition: assignmentComposition,
-      eventHandlers
-    });
+    // Set render callback on state manager
+    stateManager.setRenderCallback(renderContent);
 
-    const content = document.createElement('div');
-    content.style.maxWidth = '100%';
-    content.style.padding = '20px';
+    // Toggle button click handler
+    toggleButton.onclick = () => {
+      currentPersistMode = !currentPersistMode;
+      updateToggleButton(currentPersistMode);
+      toggleLabel.innerHTML = currentPersistMode
+        ? '<strong style="color: #28a745;">Input fields stay visible, allow re-assignment</strong>'
+        : '<strong>Input fields disappear after assignment</strong>';
 
-    // Add instructions
-    const instructions = document.createElement('div');
-    instructions.style.marginBottom = '20px';
-    instructions.style.padding = '15px';
-    instructions.style.border = '2px solid #4CAF50';
-    instructions.style.borderRadius = '8px';
-    instructions.style.backgroundColor = '#f1f8f4';
-    instructions.innerHTML = `
-      <strong style="color: #2E7D32;">Tab Order & Keyboard Navigation Test</strong><br>
-      <ul style="margin: 10px 0; padding-left: 20px;">
-        <li><strong>Tab</strong> - Move to next input field</li>
-        <li><strong>Shift+Tab</strong> - Move to previous input field</li>
-        <li><strong>Type</strong> - Filter participant list</li>
-        <li><strong>Arrow Down/Up</strong> - Navigate suggestions</li>
-        <li><strong>Enter</strong> - Select highlighted participant</li>
-      </ul>
-      <small style="color: #555;">
-        Draw Size: ${drawSize} (${matchUps.filter((m: any) => m.roundNumber === 1).length} first round matches)<br>
-        Available Participants: ${availableParticipants.length}<br>
-        Font Size: ${fontSize || 'default (inherit)'}
-      </small>
-    `;
+      // Re-render with new mode
+      renderContent();
+    };
 
-    content.appendChild(instructions);
-    content.appendChild(renderedStructure);
+    // Initial render
+    renderContent();
 
-    return renderContainer({ theme: composition.theme, content });
+    // Add content container to main
+    mainContainer.appendChild(contentContainer);
+
+    return renderContainer({ theme: composition.theme, content: mainContainer });
   },
   argTypes
 };
@@ -164,7 +286,8 @@ export const DrawSize16 = {
   args: {
     composition: 'Australian',
     drawSize: 16,
-    fontSize: '14px'
+    fontSize: '14px',
+    persistInputFields: false
   }
 };
 

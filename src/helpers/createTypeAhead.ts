@@ -13,6 +13,8 @@ type CreateTypeAheadParams = {
   currentValue?: string;
   withCatchTab?: boolean;
   onChange?: (event: Event) => void;
+  onSelectComplete?: () => void;
+  listProvider?: () => any[]; // Function to get fresh list
 };
 
 export function createTypeAhead({
@@ -22,9 +24,19 @@ export function createTypeAhead({
   currentValue,
   withCatchTab,
   onChange,
+  onSelectComplete,
+  listProvider
 }: CreateTypeAheadParams): { typeAhead: any } {
   const typeAhead = new AWSP(element, { list });
   if (element.parentElement) element.parentElement.style.width = '100%';
+
+  // Refresh list on focus if listProvider is available
+  if (isFunction(listProvider)) {
+    element.addEventListener('focus', () => {
+      const freshList = listProvider();
+      typeAhead.list = freshList;
+    });
+  }
 
   let selectionFlag = false;
   const selectComplete = (c: any) => {
@@ -32,6 +44,10 @@ export function createTypeAhead({
     if (isFunction(callback)) callback(c.text.value);
     element.value = c.text.label;
     typeAhead.suggestions = [];
+    // Trigger onSelectComplete callback after selection
+    if (isFunction(onSelectComplete)) {
+      setTimeout(() => onSelectComplete(), 0);
+    }
   };
 
   if (withCatchTab) {
@@ -43,7 +59,14 @@ export function createTypeAhead({
   element.setAttribute('autocomplete', 'off');
   element.addEventListener('awesomplete-selectcomplete', (c: any) => selectComplete(c), false);
   element.addEventListener('keyup', function (evt: any) {
-    if ((evt.key === 'Enter' || evt.key === 'Tab') && !selectionFlag && typeAhead.suggestions?.length) {
+    // Don't auto-select on Shift+Tab (backward navigation)
+    const isShiftTab = evt.key === 'Tab' && evt.shiftKey;
+
+    if (
+      (evt.key === 'Enter' || (evt.key === 'Tab' && !isShiftTab)) &&
+      !selectionFlag &&
+      typeAhead.suggestions?.length
+    ) {
       typeAhead.next();
       typeAhead.select(0);
     }

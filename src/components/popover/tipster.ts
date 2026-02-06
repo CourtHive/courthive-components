@@ -33,7 +33,7 @@ type TipsterParams = {
 export function tipster(params: TipsterParams): Instance | undefined {
   const { title, options, menuItems = [], coords, callback, config } = params;
   let { target, items } = params;
-  if (!options?.length && !items?.length && !menuItems) return;
+  if (!options?.length && !items?.length && !menuItems) return undefined;
 
   destroyTipster();
   const tippyMenu = document.createElement('div');

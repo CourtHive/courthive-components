@@ -38,3 +38,22 @@
 .participant-assignment-input .awesomplete > ul[role="listbox"] {
   font-size: inherit;
 }
+
+/* Style BYE option in dropdown */
+.participant-assignment-input .awesomplete > ul[role="listbox"] li[aria-selected] mark {
+  font-style: normal;
+}
+
+/* Target BYE option specifically - Awesomplete wraps search term in <mark> */
+.participant-assignment-input .awesomplete > ul[role="listbox"] li {
+  position: relative;
+}
+
+/* Visual distinction for BYE option - will be first item */
+.participant-assignment-input .awesomplete > ul[role="listbox"] li:first-child {
+  font-style: italic;
+  color: #666;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+}

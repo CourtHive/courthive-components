@@ -4,7 +4,10 @@
  */
 import { renderField } from './forms/renderField';
 import { isFunction } from './modal/cmodal';
-import type { Composition, EventHandlers, MatchUp, Participant, Side } from '../types';
+import type { Composition, EventHandlers, MatchUp, Side } from '../types';
+
+// Special value to identify BYE selection
+const BYE_VALUE = '__BYE__';
 
 export function renderParticipantInput({
   matchUp,
@@ -12,7 +15,8 @@ export function renderParticipantInput({
   sideNumber,
   eventHandlers,
   composition,
-  position
+  position,
+  currentParticipant
 }: {
   matchUp: MatchUp;
   side?: Side;
@@ -20,53 +24,159 @@ export function renderParticipantInput({
   eventHandlers?: EventHandlers;
   composition?: Composition;
   position?: number; // For doubles: 1 or 2
+  currentParticipant?: any; // Current assigned participant (for persistInputFields mode)
 }): HTMLElement {
   const configuration = composition?.configuration;
-  
-  // Get available participants from provider
-  const availableParticipants = 
-    isFunction(configuration?.participantProvider) 
-      ? configuration.participantProvider() 
+  const drawPosition = side?.drawPosition;
+
+  // Get initial list with BYE option
+  const getParticipantList = () => {
+    const availableParticipants = isFunction(configuration?.participantProvider)
+      ? configuration.participantProvider()
       : [];
 
-  // Convert participants to typeahead format
-  const list = availableParticipants.map((participant) => ({
-    label: participant.participantName || participant.participantId,
-    value: participant.participantId,
-  }));
+    // In persistInputFields mode, include the current participant even if already assigned
+    const persistMode = configuration?.persistInputFields;
+    let participantsToShow = availableParticipants;
 
-  // Handle participant selection
-  const handleAssignment = (participantId: string) => {
-    const participant = availableParticipants.find((p) => p.participantId === participantId);
-    
-    if (participant && isFunction(eventHandlers?.assignParticipant) && side) {
+    if (persistMode && currentParticipant) {
+      // Check if current participant is in the available list
+      const currentIsAvailable = availableParticipants.some(
+        (p) => p.participantId === currentParticipant.participantId
+      );
+
+      // If not in list (because it's already assigned), add it
+      if (!currentIsAvailable) {
+        participantsToShow = [currentParticipant, ...availableParticipants];
+      }
+    }
+
+    // Convert participants to options
+    const participantOptions = participantsToShow.map((participant) => ({
+      label: participant.participantName || participant.participantId,
+      value: participant.participantId
+    }));
+
+    // Add BYE as first option, unless it's already the current value
+    const currentIsBye = currentParticipant?.participantId === BYE_VALUE;
+
+    if (currentIsBye) {
+      // BYE is current, it's already in the list, don't duplicate
+      return participantOptions;
+    } else {
+      // Add BYE as first option
+      return [{ label: '— BYE —', value: BYE_VALUE }, ...participantOptions];
+    }
+  };
+
+  const initialList = getParticipantList();
+
+  // Handle participant or BYE selection
+  const handleAssignment = (value: string) => {
+    if (!side) return;
+
+    // Check if BYE was selected
+    if (value === BYE_VALUE) {
+      if (isFunction(eventHandlers?.assignBye)) {
+        eventHandlers.assignBye({
+          matchUp,
+          side,
+          sideNumber: sideNumber || 1
+        });
+      }
+      return;
+    }
+
+    // Regular participant assignment
+    const availableParticipants = isFunction(configuration?.participantProvider)
+      ? configuration.participantProvider()
+      : [];
+
+    const participant = availableParticipants.find((p) => p.participantId === value);
+
+    if (participant && isFunction(eventHandlers?.assignParticipant)) {
       eventHandlers.assignParticipant({
         matchUp,
         side,
         sideNumber: sideNumber || 1,
-        participant,
+        participant
       });
+    }
+  };
+
+  // Track if user is manually tabbing (vs programmatic focus)
+  let isManualTabbing = false;
+
+  // Handle moving focus to next input after selection
+  const handleSelectComplete = () => {
+    // Don't auto-focus if user is manually tabbing backwards
+    if (isManualTabbing) {
+      isManualTabbing = false;
+      return;
+    }
+
+    // Find all participant assignment inputs
+    const allInputs = Array.from(
+      document.querySelectorAll('.participant-assignment-input input')
+    ) as HTMLInputElement[];
+
+    // Find the current input
+    const currentIndex = allInputs.findIndex((input) => input.id === fieldId);
+
+    // Focus the next input if it exists
+    if (currentIndex !== -1 && currentIndex < allInputs.length - 1) {
+      const nextInput = allInputs[currentIndex + 1];
+      setTimeout(() => {
+        nextInput.focus();
+      }, 100);
     }
   };
 
   // Create input field using renderField
   const fieldId = `assign-${matchUp.matchUpId}-side${sideNumber}${position ? `-p${position}` : ''}`;
-  
+
+  // Set current value if participant is assigned (for persistInputFields mode)
+  const currentValue = currentParticipant?.participantId;
+
   const { field } = renderField({
     typeAhead: {
-      list,
+      list: initialList,
       callback: handleAssignment,
+      onSelectComplete: handleSelectComplete,
+      listProvider: getParticipantList, // Pass the function to refresh list
+      currentValue // Show current assignment in input field
     },
     placeholder: position ? `Partner ${position}` : 'Type participant name...',
     field: fieldId,
     id: fieldId,
-    class: 'participant-assignment-input',
+    class: 'participant-assignment-input'
   });
+
+  // Add data attribute to identify input by drawPosition
+  if (drawPosition) {
+    field.dataset.drawPosition = drawPosition.toString();
+  }
+
+  // Track manual Tab/Shift+Tab navigation to prevent auto-focus interference
+  const inputElement = field.querySelector('input');
+  if (inputElement) {
+    inputElement.addEventListener('keydown', (evt: KeyboardEvent) => {
+      if (evt.key === 'Tab') {
+        // User is manually tabbing (forward or backward)
+        isManualTabbing = true;
+
+        // Clear the flag after a short delay in case they're just navigating
+        setTimeout(() => {
+          isManualTabbing = false;
+        }, 500);
+      }
+    });
+  }
 
   // Style for inline display
   field.style.width = '100%';
   field.style.margin = '0';
-  
+
   // Apply font size if specified in configuration (optional)
   // Only set on the field wrapper to allow CSS inheritance
   const fontSize = configuration?.assignmentInputFontSize;

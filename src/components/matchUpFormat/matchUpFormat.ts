@@ -1125,7 +1125,7 @@ export function getMatchUpFormatModal({
     fontSize, // Ensure fontSize is at top level for cModal
     style: {
       ...defaultModalConfig.style,
-      ...(config?.style || {}), // Include old config.style for backward compatibility
+      ...((config as any)?.style || {}), // Include old config.style for backward compatibility
       ...(modalConfig?.style || {}) // modalConfig.style takes precedence
     }
   };

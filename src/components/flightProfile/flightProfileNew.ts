@@ -116,7 +116,7 @@ export function getFlightProfileModal(params: {
     }
   };
 
-  const checkParams = () => {
+  const checkParams = (): boolean => {
     if (isExisting) {
       // Return updated flight names
       if (isFunction(callback)) {
@@ -124,6 +124,7 @@ export function getFlightProfileModal(params: {
           flights: existingFlightProfile.flights
         });
       }
+      return true;
     } else {
       // Validate and return configuration for new profile
       // Note: eventType will be added by caller from event context
@@ -157,6 +158,7 @@ export function getFlightProfileModal(params: {
           // eventType NOT included - will be added by caller from event context
         });
       }
+      return true;
     }
   };
 

@@ -23,10 +23,10 @@ function getAvailableParticipants(count: number = 16, eventType: 'SINGLES' | 'DO
       participantType: eventType === 'DOUBLES' ? 'PAIR' : 'INDIVIDUAL'
     }
   });
-  
+
   tournamentEngine.setState(tournamentRecord);
   const { participants } = tournamentEngine.getParticipants();
-  
+
   return participants.map((p: any) => ({
     participantId: p.participantId,
     participantName: p.participantName,
@@ -47,12 +47,12 @@ function createEmptyMatchUp(eventType: 'SINGLES' | 'DOUBLES' = 'SINGLES'): Match
     sides: [
       {
         sideNumber: 1,
-        drawPosition: 1,
+        drawPosition: 1
         // No participant assigned
       },
       {
         sideNumber: 2,
-        drawPosition: 2,
+        drawPosition: 2
         // No participant assigned
       }
     ],
@@ -67,13 +67,13 @@ function createEmptyMatchUp(eventType: 'SINGLES' | 'DOUBLES' = 'SINGLES'): Match
 // Create matchUp with one side assigned
 function createPartiallyAssignedMatchUp(): MatchUp {
   const matchUp = createEmptyMatchUp();
-  
+
   // Generate one participant for the assigned side
   const participants = getAvailableParticipants(1, 'SINGLES');
   if (participants.length > 0) {
     matchUp.sides[0].participant = participants[0];
   }
-  
+
   return matchUp;
 }
 
@@ -82,11 +82,11 @@ export default {
   tags: ['autodocs'],
   render: ({ eventType, composition: compositionKey, scenario, ...args }) => {
     const composition = compositions[compositionKey || 'Basic'];
-    
+
     // Create matchUp based on scenario
     let matchUp: MatchUp;
     let participantType: 'SINGLES' | 'DOUBLES' = 'SINGLES';
-    
+
     switch (scenario) {
       case 'partial':
         matchUp = createPartiallyAssignedMatchUp();
@@ -109,7 +109,7 @@ export default {
       configuration: {
         ...composition.configuration,
         inlineAssignment: true,
-        participantProvider: () => availableParticipants,
+        participantProvider: () => availableParticipants
       }
     };
 
@@ -147,7 +147,7 @@ export default {
       <strong>Inline Participant Assignment Demo</strong><br>
       <small>Type participant names in the empty positions to assign them.</small>
     `;
-    
+
     const wrapper = document.createElement('div');
     wrapper.appendChild(instructions);
     wrapper.appendChild(content);
