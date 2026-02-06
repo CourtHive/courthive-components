@@ -6,8 +6,9 @@ import { renderField } from './forms/renderField';
 import { isFunction } from './modal/cmodal';
 import type { Composition, EventHandlers, MatchUp, Side } from '../types';
 
-// Special value to identify BYE selection
+// Special values to identify BYE and QUALIFIER selection
 const BYE_VALUE = '__BYE__';
+const QUALIFIER_VALUE = '__QUALIFIER__';
 
 export function renderParticipantInput({
   matchUp,
@@ -29,7 +30,7 @@ export function renderParticipantInput({
   const configuration = composition?.configuration;
   const drawPosition = side?.drawPosition;
 
-  // Get initial list with BYE option
+  // Get initial list with BYE and QUALIFIER options
   const getParticipantList = () => {
     const availableParticipants = isFunction(configuration?.participantProvider)
       ? configuration.participantProvider()
@@ -57,28 +58,62 @@ export function renderParticipantInput({
       value: participant.participantId
     }));
 
-    // Add BYE as first option, unless it's already the current value
+    // Check if current assignment is BYE or QUALIFIER
     const currentIsBye = currentParticipant?.participantId === BYE_VALUE;
+    const currentIsQualifier = currentParticipant?.participantId === QUALIFIER_VALUE;
 
-    if (currentIsBye) {
-      // BYE is current, it's already in the list, don't duplicate
-      return participantOptions;
-    } else {
-      // Add BYE as first option
-      return [{ label: '— BYE —', value: BYE_VALUE }, ...participantOptions];
+    // Build special options list
+    const specialOptions = [];
+
+    // Add BYE unless it's already the current value
+    if (!currentIsBye) {
+      specialOptions.push({ label: '— BYE —', value: BYE_VALUE });
     }
+
+    // Add QUALIFIER if hasQualifying is enabled, unless it's already the current value
+    const hasQualifying = configuration?.hasQualifying;
+    if (hasQualifying && !currentIsQualifier) {
+      specialOptions.push({ label: '— QUALIFIER —', value: QUALIFIER_VALUE });
+    }
+
+    // Return special options + participant options
+    return [...specialOptions, ...participantOptions];
   };
 
   const initialList = getParticipantList();
 
-  // Handle participant or BYE selection
+  // Handle participant or BYE or QUALIFIER selection
   const handleAssignment = (value: string) => {
     if (!side) return;
+
+    // Check if field was cleared (empty value means user wants to remove assignment)
+    if (!value || value.trim() === '') {
+      if (isFunction(eventHandlers?.removeAssignment)) {
+        eventHandlers.removeAssignment({
+          matchUp,
+          side,
+          sideNumber: sideNumber || 1
+        });
+      }
+      return;
+    }
 
     // Check if BYE was selected
     if (value === BYE_VALUE) {
       if (isFunction(eventHandlers?.assignBye)) {
         eventHandlers.assignBye({
+          matchUp,
+          side,
+          sideNumber: sideNumber || 1
+        });
+      }
+      return;
+    }
+
+    // Check if QUALIFIER was selected
+    if (value === QUALIFIER_VALUE) {
+      if (isFunction(eventHandlers?.assignQualifier)) {
+        eventHandlers.assignQualifier({
           matchUp,
           side,
           sideNumber: sideNumber || 1

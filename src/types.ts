@@ -165,6 +165,7 @@ export interface Configuration {
   participantProvider?: () => Participant[];
   assignmentInputFontSize?: string; // Font size for participant assignment inputs (e.g., '14px', '0.875rem')
   persistInputFields?: boolean; // Keep input fields visible after assignment, allow re-assignment
+  hasQualifying?: boolean; // If true, show QUALIFIER option in typeahead
   genderColor?: boolean | string; // Color coding by gender (from index.d.ts)
   winnerColor?: boolean | string; // Color coding for winners (from index.d.ts)
   placeHolders?: {
@@ -226,6 +227,18 @@ export interface EventHandlers {
     pointerEvent?: Event;
   }) => void;
   assignBye?: (params: {
+    matchUp: MatchUp;
+    side: Side;
+    sideNumber: number;
+    pointerEvent?: Event;
+  }) => void;
+  assignQualifier?: (params: {
+    matchUp: MatchUp;
+    side: Side;
+    sideNumber: number;
+    pointerEvent?: Event;
+  }) => void;
+  removeAssignment?: (params: {
     matchUp: MatchUp;
     side: Side;
     sideNumber: number;

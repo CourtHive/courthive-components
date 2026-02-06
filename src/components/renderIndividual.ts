@@ -92,21 +92,27 @@ export function renderIndividual(params: {
     isFunction(configuration?.participantProvider) &&
     isAssignablePosition && // Only first round or feed-in sides
     (!side?.bye || persistMode) && // In persist mode, BYE can be reassigned
-    !side?.qualifier; // Don't show input for Qualifier (qualifiers come from qualifying draws)
+    (!side?.qualifier || persistMode); // In persist mode, QUALIFIER can be reassigned
 
-  // Determine whether to show input field or participant name/BYE
+  // Determine whether to show input field or participant name/BYE/QUALIFIER
   const shouldShowInput = canAssign && matchUp && (
     !participantName || // No participant assigned yet
     side?.bye || // BYE assigned (in persist mode, since canAssign checks persistMode)
+    side?.qualifier || // QUALIFIER assigned (in persist mode, since canAssign checks persistMode)
     persistMode // Or persistInputFields mode is enabled
   );
 
   if (shouldShowInput) {
     // Render typeahead input for participant assignment
-    // In persist mode, if BYE is assigned, pass a special marker
-    const currentAssignment = side?.bye 
-      ? { participantId: '__BYE__', participantName: '— BYE —' }
-      : individualParticipant;
+    // In persist mode, if BYE or QUALIFIER is assigned, pass a special marker
+    let currentAssignment;
+    if (side?.bye) {
+      currentAssignment = { participantId: '__BYE__', participantName: '— BYE —' };
+    } else if (side?.qualifier) {
+      currentAssignment = { participantId: '__QUALIFIER__', participantName: '— QUALIFIER —' };
+    } else {
+      currentAssignment = individualParticipant;
+    }
     
     const inputField = renderParticipantInput({
       matchUp,

@@ -62,13 +62,31 @@ export function createTypeAhead({
     // Don't auto-select on Shift+Tab (backward navigation)
     const isShiftTab = evt.key === 'Tab' && evt.shiftKey;
 
-    if (
-      (evt.key === 'Enter' || (evt.key === 'Tab' && !isShiftTab)) &&
-      !selectionFlag &&
-      typeAhead.suggestions?.length
-    ) {
-      typeAhead.next();
-      typeAhead.select(0);
+    if ((evt.key === 'Enter' || (evt.key === 'Tab' && !isShiftTab)) && !selectionFlag) {
+      const fieldValue = element.value.trim();
+      const isFieldEmpty = fieldValue === '';
+
+      // CRITICAL: Check if field is empty FIRST, before checking suggestions
+      // Empty field + Enter = user wants to clear/remove assignment
+      if (evt.key === 'Enter' && isFieldEmpty) {
+        if (isFunction(callback)) {
+          callback(''); // Pass empty string to trigger remove
+        }
+        // Clear suggestions and input
+        element.value = '';
+        typeAhead.suggestions = [];
+        // Trigger onSelectComplete for focus management
+        if (isFunction(onSelectComplete)) {
+          setTimeout(() => onSelectComplete(), 0);
+        }
+        return; // Don't proceed to auto-select
+      }
+
+      // If there are suggestions AND field is not empty, auto-select the first one
+      if (typeAhead.suggestions?.length && !isFieldEmpty) {
+        typeAhead.next();
+        typeAhead.select(0);
+      }
     }
     selectionFlag = false;
   });

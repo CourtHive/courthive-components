@@ -104,26 +104,15 @@ export class DrawStateManager {
 
   /**
    * Assign a participant to a specific draw position
+   * Note: Direct assignment replaces existing assignment (even with scores)
    */
-  assignParticipant({
-    drawPosition,
-    participantId,
-    replaceExisting = false
-  }: {
-    drawPosition: number;
-    participantId: string;
-    replaceExisting?: boolean; // If true, remove existing assignment first
-  }): { success: boolean; error?: any } {
+  assignParticipant({ drawPosition, participantId }: { drawPosition: number; participantId: string }): {
+    success: boolean;
+    error?: any;
+  } {
     tournamentEngine.setState(this.tournamentRecord);
 
-    // If replacing existing, remove first
-    if (replaceExisting) {
-      const removeResult = this.removeAssignment({ drawPosition });
-      if (!removeResult.success) {
-        return removeResult;
-      }
-    }
-
+    // Direct assignment - factory handles replacement automatically
     const result = tournamentEngine.assignDrawPosition({
       drawId: this.drawId,
       structureId: this.structureId,
@@ -161,28 +150,50 @@ export class DrawStateManager {
 
   /**
    * Assign a BYE to a specific draw position
+   * Note: Direct assignment replaces existing assignment (even with scores)
    */
-  assignBye({
-    drawPosition,
-    replaceExisting = false
-  }: {
-    drawPosition: number;
-    replaceExisting?: boolean; // If true, remove existing assignment first
-  }): { success: boolean; error?: any } {
+  assignBye({ drawPosition }: { drawPosition: number }): { success: boolean; error?: any } {
     tournamentEngine.setState(this.tournamentRecord);
 
-    // If replacing existing, remove first
-    if (replaceExisting) {
-      const removeResult = this.removeAssignment({ drawPosition });
-      if (!removeResult.success) {
-        return removeResult;
-      }
-    }
-
+    // Direct assignment - factory handles replacement automatically
     const result = tournamentEngine.assignDrawPositionBye({
       drawId: this.drawId,
       structureId: this.structureId,
       drawPosition
+    });
+
+    if (result.error) {
+      return { success: false, error: result.error };
+    }
+
+    // Update stored tournament record
+    const { tournamentRecord } = tournamentEngine.getState() || {};
+    this.tournamentRecord = tournamentRecord;
+
+    // Set focus to next drawPosition (current + 1)
+    this.focusDrawPosition = drawPosition + 1;
+
+    // Trigger re-render if callback is set
+    if (this.renderCallback) {
+      this.renderCallback();
+    }
+
+    return { success: true };
+  }
+
+  /**
+   * Assign a QUALIFIER placeholder to a specific draw position
+   * Note: Used when structure has qualifying stage feeding into it
+   */
+  assignQualifier({ drawPosition }: { drawPosition: number }): { success: boolean; error?: any } {
+    tournamentEngine.setState(this.tournamentRecord);
+
+    // Assign qualifier placeholder using factory method
+    const result = tournamentEngine.assignDrawPosition({
+      drawId: this.drawId,
+      structureId: this.structureId,
+      drawPosition,
+      qualifier: true
     });
 
     if (result.error) {
