@@ -174,7 +174,7 @@ export const cModal = (() => {
         elem.classList.add(buttonConfig.intent);
       }
       const baseStyle = 'margin-right: .5em;';
-      const customStyle = buttonConfig?.footer?.style || '';
+      const customStyle = (buttonConfig?.footer as any)?.style || '';
       elem.style.cssText = baseStyle + (customStyle ? ' ' + customStyle : '');
       elem.innerHTML = buttonConfig.label || buttonConfig.text || '';
 
@@ -304,7 +304,6 @@ export const cModal = (() => {
         
         // Position the popover to the left of the info icon
         const rect = infoIcon!.getBoundingClientRect();
-        const popoverWidth = infoPopover.offsetWidth;
         infoPopover.style.right = `${window.innerWidth - rect.left + 5}px`;
         infoPopover.style.top = `${rect.bottom + 5}px`;
         infoPopover.style.left = 'auto';

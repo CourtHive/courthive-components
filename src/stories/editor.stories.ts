@@ -161,7 +161,7 @@ export const CustomPresets = {
         validationMsg.style.display = 'block';
         validationMsg.style.backgroundColor = '#ffebee';
         validationMsg.style.color = '#c62828';
-        validationMsg.innerHTML = `<strong style="color: #b71c1c;">Invalid JSON:</strong> ${error.message}`;
+        validationMsg.innerHTML = `<strong style="color: #b71c1c;">Invalid JSON:</strong> ${(error as Error).message}`;
         return;
       }
 

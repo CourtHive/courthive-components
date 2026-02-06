@@ -753,7 +753,7 @@ export function getAgeCategoryModal({
     fontSize,
     style: {
       ...defaultModalConfig.style,
-      ...config?.style,
+      ...((config as any)?.style || {}),
       ...modalConfig?.style
     }
   };

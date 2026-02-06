@@ -129,7 +129,7 @@ export function scoringModal(params: ScoringModalParams): void {
         footer: {
           className: 'button',
           style: 'background-color: white; color: #363636; border: 1px solid #dbdbdb;'
-        },
+        } as any,
         close: true
       },
       {

@@ -14,13 +14,14 @@ const argTypes = {
 
 const eventHandlers = {
   centerInfoClick: (params) => console.log('centerInfo click', params),
-  participantClick: ({ individualParticipant, matchUp, side }) => {
-    console.log({ individualParticipant, matchUp, side });
+  participantClick: (params: any) => {
+    console.log({ individualParticipant: params.individualParticipant, matchUp: params.matchUp, side: params.side });
   },
   scheduleClick: (params) => console.log('schedule click', params),
   scoreClick: ({ matchUp }) => {
     if (!matchUp.readyToScore && !matchUp.winningSide) return;
-    const composition = {
+    const composition: any = {
+      theme: 'default',
       configuration: {
         bracketedSeeds: 'square',
         showAddress: true,
@@ -71,7 +72,7 @@ export default {
       eventHandlers,
       composition,
       finalColumn,
-      matchUps,
+      matchUps: matchUps as any,
       context
     });
     return renderContainer({ theme: composition.theme, content });
