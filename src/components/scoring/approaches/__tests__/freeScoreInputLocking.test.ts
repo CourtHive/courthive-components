@@ -37,7 +37,7 @@ function shouldLockInput(
       : { isValid: false, winningSide: undefined };
 
     const hasWinner = validation.isValid && validation.winningSide !== undefined;
-    const endsWithSeparator = rawValue.length > 0 && /[\s\-]$/.test(rawValue);
+    const endsWithSeparator = rawValue.length > 0 && /[\s-]$/.test(rawValue);
 
     // Lock if it has a winner AND ends with a separator
     if (hasWinner && endsWithSeparator) {
@@ -45,7 +45,7 @@ function shouldLockInput(
     }
   } else if (previouslyLocked) {
     // Already locked - check if we should unlock it
-    const endsWithSeparator = rawValue.length > 0 && /[\s\-]$/.test(rawValue);
+    const endsWithSeparator = rawValue.length > 0 && /[\s-]$/.test(rawValue);
     if (scoreString.length === 0 || !endsWithSeparator) {
       return false; // Unlock
     }

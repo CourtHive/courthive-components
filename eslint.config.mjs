@@ -23,6 +23,7 @@ export default [
         ...globals.node,
         ...globals.es2021,
         ...globals.jest,
+        NodeListOf: 'readonly',
       },
     },
     plugins: {
@@ -33,6 +34,7 @@ export default [
     rules: {
       ...tseslint.configs.recommended.rules,
       'no-unused-expressions': 'off',
+      'no-useless-assignment': 'warn',
       'sonarjs/cognitive-complexity': 'off',
       'sonarjs/no-all-duplicated-branches': 'warn',
       'sonarjs/no-collapsible-if': 'warn',
