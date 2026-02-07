@@ -396,7 +396,7 @@ describe('dynamicSets getSetFormat Logic', () => {
         const completeWith2GameMargin = maxScore >= setTo && scoreDiff >= 2;
         const completeWithTiebreak = maxScore === tiebreakAt + 1 && 
                                      minScore === tiebreakAt && 
-                                     undefined !== undefined; // No tiebreak
+                                     false; // No tiebreak
         
         expect(completeWith2GameMargin).toBe(false);
         expect(completeWithTiebreak).toBe(false);

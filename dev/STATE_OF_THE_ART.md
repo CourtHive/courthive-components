@@ -585,7 +585,7 @@ pnpm build-storybook   # Build static Storybook
 
 **For Scoring Modals:**
 
-See [SCORING_MODAL_TESTING_GUIDE.md](./SCORING_MODAL_TESTING_GUIDE.md) for comprehensive testing procedures including:
+See [SCORING_MODAL_TESTING_GUIDE.md](../SCORING_MODAL_TESTING_GUIDE.md) for comprehensive testing procedures including:
 
 - All three scoring approaches
 - Irregular ending scenarios
@@ -832,8 +832,8 @@ pnpm deploy-storybook  # Deploy to gh-pages
 - **Storybook:** https://courthive.github.io/courthive-components/
 - **Competition Factory:** https://github.com/CourtHive/tods-competition-factory
 - **TODS Documentation:** https://courthive.com/developers
-- **Testing Guide:** [SCORING_MODAL_TESTING_GUIDE.md](./SCORING_MODAL_TESTING_GUIDE.md)
-- **Recent Changes:** [CHANGES.md](./CHANGES.md)
+- **Testing Guide:** [SCORING_MODAL_TESTING_GUIDE.md](../SCORING_MODAL_TESTING_GUIDE.md)
+- **Recent Changes:** [CHANGES.md](../CHANGES.md)
 
 ---
 
