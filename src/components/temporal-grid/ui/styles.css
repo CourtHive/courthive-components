@@ -1,0 +1,517 @@
+/**
+ * Temporal Grid Styles
+ * 
+ * Complete styling for the temporal resource grid component.
+ * Following CourtHive design system with Bulma integration.
+ */
+
+/* ============================================================================
+   Root Container
+   ============================================================================ */
+
+.temporal-grid-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+/* ============================================================================
+   Header Section
+   ============================================================================ */
+
+.temporal-grid-header {
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+  padding: 1rem;
+}
+
+.temporal-grid-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.toolbar-section {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.toolbar-section button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toolbar-section button:hover {
+  background: #f0f0f0;
+}
+
+.toolbar-section button.active {
+  background: #218D8D;
+  color: white;
+  border-color: #218D8D;
+}
+
+.paint-type-selector {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+}
+
+.date-selector {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+/* ============================================================================
+   Capacity Indicator
+   ============================================================================ */
+
+.temporal-grid-capacity {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+.capacity-label {
+  font-weight: 600;
+  color: #333;
+}
+
+.capacity-stats {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stat-label {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: #218D8D;
+  font-size: 1.1rem;
+}
+
+/* ============================================================================
+   Main Layout
+   ============================================================================ */
+
+.temporal-grid-main {
+  flex: 1;
+  overflow: hidden;
+}
+
+.temporal-grid-layout {
+  display: flex;
+  height: 100%;
+}
+
+/* ============================================================================
+   Facility Tree (Left Panel)
+   ============================================================================ */
+
+.temporal-grid-facility-tree {
+  width: 250px;
+  border-right: 1px solid #e0e0e0;
+  background: #fafafa;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.tree-header {
+  padding: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+  background: white;
+}
+
+.tree-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.tree-content {
+  padding: 0.5rem;
+}
+
+.facility-group {
+  margin-bottom: 1rem;
+}
+
+.facility-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.facility-header:hover {
+  background: #f0f0f0;
+}
+
+.facility-name {
+  flex: 1;
+  color: #333;
+}
+
+.courts-list {
+  margin-top: 0.25rem;
+  padding-left: 1.5rem;
+}
+
+.court-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.court-item:hover {
+  background: #f8f8f8;
+}
+
+.court-name {
+  flex: 1;
+  color: #555;
+}
+
+.court-meta {
+  font-size: 0.85rem;
+  color: #999;
+}
+
+.court-checkbox,
+.facility-checkbox {
+  cursor: pointer;
+}
+
+/* ============================================================================
+   Calendar Area
+   ============================================================================ */
+
+.temporal-grid-calendar {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* EventCalendar overrides */
+.temporal-grid-calendar .ec {
+  height: 100%;
+}
+
+.temporal-grid-calendar .ec-timeline {
+  height: 100%;
+}
+
+/* ============================================================================
+   Segment Styles (from viewProjections.ts)
+   ============================================================================ */
+
+/* Available - solid teal */
+.segment-available {
+  opacity: 0.3;
+}
+
+/* Blocked - diagonal hatching */
+.segment-blocked {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(0, 0, 0, 0.1) 10px,
+    rgba(0, 0, 0, 0.1) 20px
+  );
+}
+
+/* Practice - horizontal stripes */
+.segment-practice {
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 5px,
+    rgba(255, 255, 255, 0.2) 5px,
+    rgba(255, 255, 255, 0.2) 10px
+  );
+}
+
+/* Maintenance - dots */
+.segment-maintenance {
+  background-image: radial-gradient(
+    circle,
+    rgba(0, 0, 0, 0.2) 1px,
+    transparent 1px
+  );
+  background-size: 10px 10px;
+}
+
+/* Reserved - solid blue */
+.segment-reserved {
+  opacity: 0.4;
+}
+
+/* Hard Block - solid with border */
+.segment-hard_block {
+  opacity: 0.9;
+  border: 2px solid rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Soft Block - semi-transparent */
+.segment-soft_block {
+  opacity: 0.5;
+}
+
+/* Locked - dark */
+.segment-locked {
+  opacity: 0.8;
+}
+
+/* Unspecified - gray fog */
+.segment-unspecified {
+  opacity: 0.15;
+}
+
+/* ============================================================================
+   Block Styles
+   ============================================================================ */
+
+.temporal-block {
+  cursor: move;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.temporal-block:hover {
+  opacity: 0.9;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================================================
+   Conflict Indicators
+   ============================================================================ */
+
+.temporal-conflict {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.conflict-error {
+  border: 2px dashed #e74c3c !important;
+  animation: pulse-error 2s infinite;
+}
+
+.conflict-warn {
+  border: 2px dashed #f39c12 !important;
+  animation: pulse-warn 2s infinite;
+}
+
+.conflict-info {
+  border: 2px dashed #3498db !important;
+}
+
+@keyframes pulse-error {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes pulse-warn {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ============================================================================
+   Paint Mode
+   ============================================================================ */
+
+.temporal-grid-root.paint-mode {
+  cursor: crosshair;
+}
+
+.temporal-grid-root.paint-mode .temporal-segment {
+  cursor: crosshair !important;
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .temporal-grid-facility-tree {
+    width: 200px;
+  }
+
+  .temporal-grid-toolbar {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .toolbar-section {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 480px) {
+  .temporal-grid-facility-tree {
+    display: none;
+  }
+
+  .capacity-stats {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+/* ============================================================================
+   Accessibility
+   ============================================================================ */
+
+.temporal-grid-root:focus-within {
+  outline: 2px solid #218D8D;
+  outline-offset: 2px;
+}
+
+button:focus,
+input:focus,
+select:focus {
+  outline: 2px solid #218D8D;
+  outline-offset: 2px;
+}
+
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ============================================================================
+   Loading & Empty States
+   ============================================================================ */
+
+.temporal-grid-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #999;
+}
+
+.temporal-grid-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #999;
+  padding: 2rem;
+  text-align: center;
+}
+
+.temporal-grid-empty h3 {
+  margin: 0 0 0.5rem 0;
+  color: #666;
+}
+
+.temporal-grid-empty p {
+  margin: 0;
+  color: #999;
+}
+
+/* ============================================================================
+   Tooltips
+   ============================================================================ */
+
+.temporal-tooltip {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  pointer-events: none;
+  z-index: 1000;
+  max-width: 300px;
+}
+
+.temporal-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(0, 0, 0, 0.9) transparent transparent transparent;
+}
+
+/* ============================================================================
+   Animations
+   ============================================================================ */
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.slide-in-left {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
