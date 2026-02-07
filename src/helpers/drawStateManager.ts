@@ -85,6 +85,13 @@ export class DrawStateManager {
   removeAssignment({ drawPosition }: { drawPosition: number }): { success: boolean; error?: any } {
     tournamentEngine.setState(this.tournamentRecord);
 
+    // Check if the position being removed has a BYE
+    // We need to know this BEFORE removing it
+    const matchUps = this.getMatchUps();
+    const matchUp = matchUps.find((m: any) => m.sides?.some((s: any) => s.drawPosition === drawPosition));
+    const side = matchUp?.sides?.find((s: any) => s.drawPosition === drawPosition);
+    const hadBye = side?.bye === true;
+
     const result = tournamentEngine.removeDrawPositionAssignment({
       drawId: this.drawId,
       structureId: this.structureId,
@@ -98,6 +105,14 @@ export class DrawStateManager {
     // Update stored tournament record
     const { tournamentRecord } = tournamentEngine.getState() || {};
     this.tournamentRecord = tournamentRecord;
+
+    // Only trigger re-render if a BYE was removed
+    // This is important because removing a BYE can cause participants to advance
+    // and checkmarks need to appear, but removing a regular participant doesn't
+    // require re-rendering the entire structure
+    if (hadBye && this.renderCallback) {
+      this.renderCallback();
+    }
 
     return { success: true };
   }
