@@ -10,7 +10,7 @@ import { validateScore } from '../utils/scoreValidator';
 import type { RenderScoreEntryParams, ScoreOutcome } from '../types';
 import { getScoringConfig } from '../config';
 
-const { COMPLETED, RETIRED, WALKOVER, DEFAULTED } = matchUpStatusConstants;
+const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT } = matchUpStatusConstants;
 
 type EntryState = {
   digits: string; // Raw digits: "36366" becomes "3-6 3-6 6"
@@ -83,7 +83,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       isMatchComplete: false,
     };
     
-    // Initialize state with existing score if available
+    // Initialize state with existing score if available (not for DOUBLE_* statuses)
     if (internalScore) {
       state.digits = scoreToDigits(internalScore);
       
@@ -369,14 +369,26 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
       // Add irregular ending info if selected
       if (selectedOutcome !== COMPLETED) {
-        validation.matchUpStatus = selectedOutcome;
+        // Override winningSide if manually selected
         if (selectedWinner) {
+          validation.matchUpStatus = selectedOutcome;
           validation.winningSide = selectedWinner;
           validation.isValid = true;
         } else {
-          // Need winner selection for irregular ending
-          // BUT: Keep the score/sets that were entered (for RETIRED/DEFAULTED)
-          validation.isValid = false;
+          // No winner selected
+          // For walkover and defaulted, use DOUBLE_* status and enable submit
+          if (selectedOutcome === WALKOVER) {
+            validation.matchUpStatus = DOUBLE_WALKOVER;
+            validation.isValid = true;
+          } else if (selectedOutcome === DEFAULTED) {
+            validation.matchUpStatus = DOUBLE_DEFAULT;
+            validation.isValid = true;
+          } else {
+            // For retired, still need winner selection
+            // BUT: Keep the score/sets that were entered (for RETIRED)
+            validation.matchUpStatus = selectedOutcome;
+            validation.isValid = false;
+          }
         }
         // Irregular endings mean match is "complete" in a different way
         state.isMatchComplete = false; // Allow RET/DEF since irregular ending was selected
@@ -747,29 +759,40 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
     // Initialize irregular ending and winner if present (use internal state only)
     // Only set selectedOutcome for ACTUAL irregular endings (RETIRED, WALKOVER, DEFAULTED)
+    // Also handle DOUBLE_* statuses by mapping them back to base status without winner
     // Don't treat TO_BE_PLAYED as irregular
     const isActualIrregularEnding = internalMatchUpStatus === RETIRED || 
                                     internalMatchUpStatus === WALKOVER || 
-                                    internalMatchUpStatus === DEFAULTED;
+                                    internalMatchUpStatus === DEFAULTED ||
+                                    internalMatchUpStatus === DOUBLE_WALKOVER ||
+                                    internalMatchUpStatus === DOUBLE_DEFAULT;
     if (isActualIrregularEnding) {
-      selectedOutcome = internalMatchUpStatus as any;
+      // Map DOUBLE_* statuses to their base status
+      if (internalMatchUpStatus === DOUBLE_WALKOVER) {
+        selectedOutcome = WALKOVER;
+        selectedWinner = undefined; // No winner for double walkover
+      } else if (internalMatchUpStatus === DOUBLE_DEFAULT) {
+        selectedOutcome = DEFAULTED;
+        selectedWinner = undefined; // No winner for double default
+      } else {
+        selectedOutcome = internalMatchUpStatus as any;
+        selectedWinner = internalWinningSide;
+      }
       
       // Check the appropriate irregular ending radio button
       const outcomeRadios = irregularEndingContainer.querySelectorAll('input[name="matchOutcome"]') as NodeListOf<HTMLInputElement>;
       outcomeRadios.forEach(radio => {
-        if (radio.value === internalMatchUpStatus) {
+        if (radio.value === selectedOutcome) {
           radio.checked = true;
         }
       });
       
-      // Initialize winner if present
-      if (internalWinningSide) {
-        selectedWinner = internalWinningSide;
-        
+      // Initialize winner if present (only for non-DOUBLE statuses)
+      if (selectedWinner) {
         // Check the appropriate winner radio button
         const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]') as NodeListOf<HTMLInputElement>;
         winnerRadios.forEach(radio => {
-          if (Number.parseInt(radio.value) === internalWinningSide) {
+          if (Number.parseInt(radio.value) === selectedWinner) {
             radio.checked = true;
           }
         });
@@ -783,9 +806,9 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       resetDialPad();
     }
 
-    // Initial display - ALWAYS call updateDisplay if state.digits exists
+    // Initial display - ALWAYS call updateDisplay if state.digits exists OR if irregular ending is set
     // This ensures all UI elements (scoreDisplay, Clear button, etc.) are properly initialized
-    if (state.digits) {
+    if (state.digits || isActualIrregularEnding) {
       // Call updateDisplay to initialize display, validate, and set button states
       updateDisplay();
       
@@ -794,7 +817,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       setTimeout(() => {
         const clearBtn = document.getElementById('clearScoreV2') as HTMLButtonElement;
         if (clearBtn) {
-          clearBtn.disabled = false; // Enable Clear button when opening with existing score
+          clearBtn.disabled = false; // Enable Clear button when opening with existing score or irregular ending
         }
         // Also update digit button states in case we opened with a completed score
         updateDigitButtonStates();

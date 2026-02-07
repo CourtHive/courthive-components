@@ -11,7 +11,7 @@ import type { RenderScoreEntryParams } from '../types';
 import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
 import { getScoringConfig } from '../config';
 
-const { RETIRED, WALKOVER, DEFAULTED, SUSPENDED, CANCELLED, INCOMPLETE, DEAD_RUBBER, IN_PROGRESS, AWAITING_RESULT } =
+const { RETIRED, WALKOVER, DEFAULTED, SUSPENDED, CANCELLED, INCOMPLETE, DEAD_RUBBER, IN_PROGRESS, AWAITING_RESULT, DOUBLE_WALKOVER, DOUBLE_DEFAULT } =
   matchUpStatusConstants;
 
 export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
@@ -419,15 +419,37 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
         effectiveWinningSide = manualWinningSide;
 
         if (!effectiveWinningSide) {
-          // Invalid until winner selected (matchUp already rendered above)
-          onScoreChange({
-            ...result,
-            isValid: false,
-            error: 'Winner must be selected for irregular ending',
-            matchUpStatus: result.matchUpStatus || parseResult.matchUpStatus,
-            score: parseResult.formattedScore || scoreString
-          });
-          return;
+          // No winner selected
+          const currentStatus = result.matchUpStatus || parseResult.matchUpStatus;
+          
+          // For walkover and defaulted, use DOUBLE_* status and enable submit
+          if (currentStatus === WALKOVER) {
+            onScoreChange({
+              ...result,
+              isValid: true,
+              matchUpStatus: DOUBLE_WALKOVER,
+              score: parseResult.formattedScore || scoreString
+            });
+            return;
+          } else if (currentStatus === DEFAULTED) {
+            onScoreChange({
+              ...result,
+              isValid: true,
+              matchUpStatus: DOUBLE_DEFAULT,
+              score: parseResult.formattedScore || scoreString
+            });
+            return;
+          } else {
+            // For retired, still need winner selection
+            onScoreChange({
+              ...result,
+              isValid: false,
+              error: 'Winner must be selected for irregular ending',
+              matchUpStatus: currentStatus,
+              score: parseResult.formattedScore || scoreString
+            });
+            return;
+          }
         }
       } else if (noWinnerNeeded) {
         // Hide radio buttons - no winner needed for these statuses
@@ -583,11 +605,27 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
     side2RadioLabel.style.color = '#22c55e';
   }
 
-  // Focus input and trigger validation if there's an existing score
+  // Focus input and trigger validation if there's an existing score or irregular status
   setTimeout(() => {
     input.focus();
-    if (input.value) {
-      handleInput(); // Trigger validation for pre-populated score
+    
+    // Special case: for DOUBLE_* statuses, don't trigger handleInput as it would
+    // re-parse and lose the DOUBLE_* distinction. Just update display directly.
+    if (internalMatchUpStatus === DOUBLE_WALKOVER || internalMatchUpStatus === DOUBLE_DEFAULT) {
+      updateMatchUpDisplay({
+        scoreObject: internalScore,
+        winningSide: internalWinningSide,
+        matchUpStatus: internalMatchUpStatus
+      });
+      onScoreChange({
+        isValid: true,
+        sets: internalScore?.sets || [],
+        scoreObject: internalScore,
+        winningSide: internalWinningSide,
+        matchUpStatus: internalMatchUpStatus
+      });
+    } else if (input.value || (internalMatchUpStatus && internalMatchUpStatus !== 'TO_BE_PLAYED' && internalMatchUpStatus !== 'COMPLETED')) {
+      handleInput(); // Trigger validation for pre-populated score or status
     }
   }, 100);
 

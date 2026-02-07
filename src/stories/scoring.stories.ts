@@ -68,8 +68,6 @@ const handleScoreSubmit = (outcome: any) => {
     winningSide: outcome.winningSide,
     matchUpStatus: outcome.matchUpStatus
   };
-
-  // Score saved silently - check console for details
 };
 
 // Helper to create story container
@@ -196,20 +194,20 @@ export const DynamicSets = {
     examplesList.style.marginBottom = '1em';
     examplesList.style.lineHeight = '1.8';
     examplesList.style.color = '#4a4a4a';
-    
+
     const examples = [
       { key: '6', result: '6-4', desc: 'Type "6" → auto-fills "6-4"' },
       { key: '7', result: '7-5', desc: 'Type "7" → auto-fills "7-5"' },
       { key: 'Shift+6', result: '4-6', desc: 'Hold Shift, type "6" → auto-fills "4-6" (reversed)' },
-      { key: 'Shift+7', result: '5-7', desc: 'Hold Shift, type "7" → auto-fills "5-7" (reversed)' },
+      { key: 'Shift+7', result: '5-7', desc: 'Hold Shift, type "7" → auto-fills "5-7" (reversed)' }
     ];
 
-    examples.forEach(example => {
+    examples.forEach((example) => {
       const li = document.createElement('li');
       li.innerHTML = `<code style="background: #e8f4f8; padding: 0.2em 0.5em; border-radius: 3px; font-family: monospace; color: #0066cc;">${example.key}</code> → <strong>${example.result}</strong> <span style="color: #666;">(${example.desc})</span>`;
       examplesList.appendChild(li);
     });
-    
+
     smartComplementsSection.appendChild(examplesList);
 
     const smartNote = document.createElement('p');
@@ -442,8 +440,12 @@ export const ClearGlobalScore = {
     scoreDisplay.style.fontSize = '0.9em';
 
     const updateScoreDisplay = () => {
-      if (globalMatchUpState?.score) {
-        const sets = globalMatchUpState.score.sets || [];
+      // Check if we have either a score OR a matchUpStatus (for irregular endings without scores)
+      const hasScore = globalMatchUpState?.score?.sets?.length > 0;
+      const hasStatus = globalMatchUpState?.matchUpStatus && globalMatchUpState.matchUpStatus !== 'TO_BE_PLAYED';
+
+      if (hasScore || hasStatus) {
+        const sets = globalMatchUpState?.score?.sets || [];
         const scoreText = sets
           .map((set: any) => {
             let setScore = `${set.side1Score}-${set.side2Score}`;
@@ -457,7 +459,7 @@ export const ClearGlobalScore = {
 
         scoreDisplay.innerHTML = `
           <div style="font-weight: 600; margin-bottom: 0.5em; color: #333;">Current Global Score:</div>
-          <div style="color: #0066cc; font-size: 1.1em; margin-bottom: 0.5em;">${scoreText}</div>
+          ${scoreText ? `<div style="color: #0066cc; font-size: 1.1em; margin-bottom: 0.5em;">${scoreText}</div>` : ''}
           ${
             globalMatchUpState.winningSide
               ? `<div style="color: #28a745;">Winner: Side ${globalMatchUpState.winningSide}</div>`
@@ -483,7 +485,6 @@ export const ClearGlobalScore = {
     button.textContent = 'Clear Global Score';
     button.onclick = () => {
       globalMatchUpState = null;
-      console.log('Global score cleared! All scoring modals will now open without a score.');
       updateScoreDisplay();
     };
 

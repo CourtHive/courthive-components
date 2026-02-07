@@ -9,7 +9,16 @@ import { renderTick } from './renderTick';
 import type { Composition, EventHandlers, MatchUp, Participant } from '../types';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 
-const { WALKOVER, DEFAULTED, DOUBLE_WALKOVER, RETIRED } = matchUpStatusConstants;
+const { 
+  WALKOVER, 
+  DEFAULTED, 
+  DOUBLE_WALKOVER, 
+  DOUBLE_DEFAULT, 
+  RETIRED, 
+  SUSPENDED, 
+  CANCELLED, 
+  IN_PROGRESS 
+} = matchUpStatusConstants;
 
 export function renderParticipant({
   initialRoundNumber = 1,
@@ -54,7 +63,16 @@ export function renderParticipant({
   const winnerChevron = configuration?.winnerChevron && isWinningSide;
 
   const teamLogo = configuration?.teamLogo;
-  const irregularEnding = [RETIRED, DOUBLE_WALKOVER, WALKOVER, DEFAULTED].includes(matchUpStatus) && !isWinningSide;
+  const irregularEnding = [
+    RETIRED, 
+    WALKOVER, 
+    DEFAULTED, 
+    DOUBLE_WALKOVER, 
+    DOUBLE_DEFAULT, 
+    SUSPENDED, 
+    CANCELLED, 
+    IN_PROGRESS
+  ].includes(matchUpStatus) && !isWinningSide;
   const gameScoreOnly = configuration?.gameScoreOnly;
 
   const participantContainer = document.createElement('div');

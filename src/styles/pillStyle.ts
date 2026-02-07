@@ -45,6 +45,9 @@ export const pillStyle = css({
       },
       double_walkover: {
         backgroundColor: 'black'
+      },
+      double_default: {
+        backgroundColor: '#df164c'
       }
     }
   }
