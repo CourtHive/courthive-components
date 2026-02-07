@@ -2,7 +2,7 @@ import { pillStyle } from '../styles/pillStyle';
 
 import { matchUpStatusConstants } from 'tods-competition-factory';
 
-const { WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT } = matchUpStatusConstants;
+const { WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, ABANDONED } = matchUpStatusConstants;
 
 export function renderStatusPill({ matchUpStatus }: { matchUpStatus?: string }): HTMLElement {
   const variantValue = matchUpStatus?.toLowerCase();
@@ -18,7 +18,8 @@ export function renderStatusPill({ matchUpStatus }: { matchUpStatus?: string }):
     'awaiting_result',
     'dead_rubber',
     'incomplete',
-    'suspended'
+    'suspended',
+    'abandoned'
   ] as const;
   const variant = validVariants.includes(variantValue as any)
     ? (variantValue as (typeof validVariants)[number])
@@ -28,6 +29,8 @@ export function renderStatusPill({ matchUpStatus }: { matchUpStatus?: string }):
     ? 'WO'
     : [DEFAULTED, DOUBLE_DEFAULT].includes(matchUpStatus || '')
     ? 'DEF'
+    : matchUpStatus === ABANDONED
+    ? 'ABD'
     : matchUpStatus?.split('_').join('').slice(0, 3) || '';
 
   const div = document.createElement('div');

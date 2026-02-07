@@ -8,6 +8,10 @@ import { isFunction } from './modal/cmodal';
 import cx from 'classnames';
 import type { Composition, EventHandlers, MatchUp } from '../types';
 
+// Import factory constants
+import { factoryConstants } from 'tods-competition-factory';
+const { completedMatchUpStatuses } = factoryConstants;
+
 export function renderSide({ 
   initialRoundNumber = 1, 
   eventHandlers, 
@@ -28,8 +32,12 @@ export function renderSide({
 
   const hasScore = matchUp?.score?.scoreStringSide1;
   const scoreBox = composition?.configuration?.scoreBox && hasScore;
+  const isCompleted = matchUp?.matchUpStatus && completedMatchUpStatuses.includes(matchUp.matchUpStatus);
   const readyToScore =
-    matchUp?.readyToScore && eventHandlers?.scoreClick && !tournamentEngine.checkScoreHasValue({ matchUp });
+    matchUp?.readyToScore && 
+    eventHandlers?.scoreClick && 
+    !tournamentEngine.checkScoreHasValue({ matchUp }) &&
+    !isCompleted;
 
   const div = document.createElement('div');
   div.className = cx(sideContainerStyle(), className);

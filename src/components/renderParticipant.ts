@@ -17,7 +17,8 @@ const {
   RETIRED, 
   SUSPENDED, 
   CANCELLED, 
-  IN_PROGRESS 
+  IN_PROGRESS,
+  ABANDONED
 } = matchUpStatusConstants;
 
 export function renderParticipant({
@@ -71,7 +72,8 @@ export function renderParticipant({
     DOUBLE_DEFAULT, 
     SUSPENDED, 
     CANCELLED, 
-    IN_PROGRESS
+    IN_PROGRESS,
+    ABANDONED
   ].includes(matchUpStatus) && !isWinningSide;
   const gameScoreOnly = configuration?.gameScoreOnly;
 

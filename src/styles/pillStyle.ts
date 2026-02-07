@@ -48,6 +48,9 @@ export const pillStyle = css({
       },
       double_default: {
         backgroundColor: '#df164c'
+      },
+      abandoned: {
+        backgroundColor: 'black'
       }
     }
   }
