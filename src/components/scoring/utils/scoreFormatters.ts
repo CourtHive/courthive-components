@@ -6,25 +6,27 @@
  * Format existing score object into string for input field
  */
 export function formatExistingScore(scoreObject: any, matchUpStatus?: string): string {
-  if (!scoreObject) return '';
+  // Build score string from sets (if present)
+  let scoreString = '';
   
-  // Build score string from sets
-  const sets = scoreObject.sets || [];
-  const scoreString = sets
-    .map((set: any) => {
-      let setStr = `${set.side1Score || 0}-${set.side2Score || 0}`;
-      
-      // Add tiebreak score if present
-      if (set.side1TiebreakScore !== undefined || set.side2TiebreakScore !== undefined) {
-        const tbScore = set.winningSide === 1 
-          ? set.side2TiebreakScore 
-          : set.side1TiebreakScore;
-        setStr += `(${tbScore})`;
-      }
-      
-      return setStr;
-    })
-    .join(' ');
+  if (scoreObject) {
+    const sets = scoreObject.sets || [];
+    scoreString = sets
+      .map((set: any) => {
+        let setStr = `${set.side1Score || 0}-${set.side2Score || 0}`;
+        
+        // Add tiebreak score if present
+        if (set.side1TiebreakScore !== undefined || set.side2TiebreakScore !== undefined) {
+          const tbScore = set.winningSide === 1 
+            ? set.side2TiebreakScore 
+            : set.side1TiebreakScore;
+          setStr += `(${tbScore})`;
+        }
+        
+        return setStr;
+      })
+      .join(' ');
+  }
   
   // Append matchUpStatus abbreviation if present (but not for TO_BE_PLAYED or COMPLETED)
   if (matchUpStatus && matchUpStatus !== 'COMPLETED' && matchUpStatus !== 'TO_BE_PLAYED') {
@@ -46,6 +48,8 @@ export function getStatusAbbreviation(status: string): string {
     'RETIRED': 'ret',
     'WALKOVER': 'wo',
     'DEFAULTED': 'def',
+    'DOUBLE_WALKOVER': 'wo',  // Map to same abbreviation as WALKOVER
+    'DOUBLE_DEFAULT': 'def',  // Map to same abbreviation as DEFAULTED
     'SUSPENDED': 'susp',
     'CANCELLED': 'canc',
     'INCOMPLETE': 'inc',

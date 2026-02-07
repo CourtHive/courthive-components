@@ -11,6 +11,8 @@ export function renderStatusPill({ matchUpStatus }: { matchUpStatus?: string }):
     'retired',
     'walkover',
     'defaulted',
+    'double_walkover',
+    'double_default',
     'cancelled',
     'in_progress',
     'awaiting_result',
