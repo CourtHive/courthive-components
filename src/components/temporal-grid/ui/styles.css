@@ -230,6 +230,15 @@
   height: 100%;
 }
 
+/* Try to make rows equal height without breaking rendering */
+.temporal-grid-calendar .ec-resource {
+  min-height: 60px;
+}
+
+.temporal-grid-calendar .ec-timeline .ec-body {
+  overflow-y: auto;
+}
+
 /* ============================================================================
    Segment Styles (from viewProjections.ts)
    ============================================================================ */

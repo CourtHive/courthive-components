@@ -8,6 +8,7 @@
 import type { Meta, StoryObj } from '@storybook/html';
 import { createTemporalGrid } from '../../components/temporal-grid';
 import '../../components/temporal-grid/ui/styles.css';
+import '@event-calendar/core/index.css';
 
 // ============================================================================
 // Mock Data
@@ -132,7 +133,7 @@ const renderTemporalGrid = (args: any) => {
   // Create temporal grid
   const tournamentRecord = args.tournamentRecord || createMockTournament();
   
-  createTemporalGrid({
+  const grid = createTemporalGrid({
     tournamentRecord,
     initialDay: args.initialDay || '2026-06-15',
     showFacilityTree: args.showFacilityTree ?? true,
@@ -146,6 +147,27 @@ const renderTemporalGrid = (args: any) => {
       console.log('Mutations applied:', mutations);
     },
   }, gridContainer);
+
+  // Add some initial availability blocks so timeline isn't empty
+  setTimeout(() => {
+    const engine = grid.getEngine();
+    tournamentRecord.venues.forEach(venue => {
+      venue.courts.forEach(court => {
+        engine.applyBlock({
+          courts: [{
+            tournamentId: tournamentRecord.tournamentId,
+            facilityId: venue.venueId,
+            courtId: court.courtId,
+          }],
+          timeRange: {
+            start: '2026-06-15T08:00:00',
+            end: '2026-06-15T20:00:00',
+          },
+          type: 'AVAILABLE',
+        });
+      });
+    });
+  }, 100);
 
   return container;
 };

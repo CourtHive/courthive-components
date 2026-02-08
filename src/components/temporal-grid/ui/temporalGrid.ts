@@ -10,6 +10,7 @@
  * This is the entry point for using the temporal grid in applications.
  */
 
+import { tools } from 'tods-competition-factory';
 import { TemporalGridEngine } from '../engine/temporalGridEngine';
 import { TemporalGridControl, type TemporalGridControlConfig } from '../controller/temporalGridControl';
 import type { BlockType, CourtRef, DayId } from '../engine/types';
@@ -75,6 +76,9 @@ export class TemporalGrid {
   private calendarElement: HTMLElement | null = null;
   private capacityElement: HTMLElement | null = null;
   private toolbarElement: HTMLElement | null = null;
+  
+  // State
+  private visibleCourts: Set<string> = new Set(); // "tournamentId|facilityId|courtId" to match resource IDs
 
   constructor(config: TemporalGridConfig) {
     this.config = {
@@ -145,6 +149,10 @@ export class TemporalGrid {
         onCourtSelected: this.handleCourtSelected,
         onTimeRangeSelected: this.handleTimeRangeSelected,
       });
+      
+      // Don't set visibleCourts on controller initially - let it show all
+      // The controller's visibleCourts = null means "show all courts"
+      // User will filter via checkboxes if desired
     }
   }
 
@@ -226,19 +234,24 @@ export class TemporalGrid {
       let isPaintMode = false;
       paintBtn.addEventListener('click', () => {
         isPaintMode = !isPaintMode;
+        console.log('Paint button clicked! isPaintMode:', isPaintMode);
         paintBtn.classList.toggle('active', isPaintMode);
+        console.log('Button has active class:', paintBtn.classList.contains('active'));
+        console.log('Calling setPaintMode with:', { isPaintMode, type: paintTypeSelect.value });
         this.control?.setPaintMode(isPaintMode, paintTypeSelect.value as BlockType);
       });
 
       paintTypeSelect.addEventListener('change', () => {
+        console.log('Paint type changed to:', paintTypeSelect.value);
         if (isPaintMode) {
+          console.log('Updating paint type while in paint mode');
           this.control?.setPaintMode(true, paintTypeSelect.value as BlockType);
         }
       });
     }
 
     if (dateInput) {
-      const currentDay = this.control?.getDay() || new Date().toISOString().slice(0, 10);
+      const currentDay = this.control?.getDay() || tools.dateTime.extractDate(new Date().toISOString());
       dateInput.value = currentDay;
       
       dateInput.addEventListener('change', () => {
@@ -250,9 +263,7 @@ export class TemporalGrid {
       prevBtn.addEventListener('click', () => {
         const currentDay = this.control?.getDay();
         if (currentDay) {
-          const date = new Date(currentDay);
-          date.setDate(date.getDate() - 1);
-          const newDay = date.toISOString().slice(0, 10);
+          const newDay = tools.dateTime.addDays(currentDay, -1);
           this.control?.setDay(newDay);
           if (dateInput) dateInput.value = newDay;
         }
@@ -263,9 +274,7 @@ export class TemporalGrid {
       nextBtn.addEventListener('click', () => {
         const currentDay = this.control?.getDay();
         if (currentDay) {
-          const date = new Date(currentDay);
-          date.setDate(date.getDate() + 1);
-          const newDay = date.toISOString().slice(0, 10);
+          const newDay = tools.dateTime.addDays(currentDay, 1);
           this.control?.setDay(newDay);
           if (dateInput) dateInput.value = newDay;
         }
@@ -369,6 +378,16 @@ export class TemporalGrid {
     if (!treeContent) return;
 
     const courtMeta = this.engine.listCourtMeta();
+    const tournamentId = this.engine.getConfig().tournamentId;
+    
+    // Initialize all courts as visible if not already set
+    if (this.visibleCourts.size === 0) {
+      courtMeta.forEach(meta => {
+        // Match resource ID format: tournamentId|facilityId|courtId
+        const key = `${meta.ref.tournamentId}|${meta.ref.facilityId}|${meta.ref.courtId}`;
+        this.visibleCourts.add(key);
+      });
+    }
     
     // Group by facility
     const facilities = new Map<string, typeof courtMeta>();
@@ -383,22 +402,37 @@ export class TemporalGrid {
     // Build tree HTML
     let html = '';
     for (const [facilityId, courts] of facilities) {
+      // Check if all courts in this facility are visible
+      const allVisible = courts.every(c => {
+        const key = `${c.ref.tournamentId}|${c.ref.facilityId}|${c.ref.courtId}`;
+        return this.visibleCourts.has(key);
+      });
+      
       html += `
         <div class="facility-group">
           <div class="facility-header">
-            <input type="checkbox" class="facility-checkbox" data-facility="${facilityId}" />
+            <input type="checkbox" class="facility-checkbox" 
+                   data-facility="${facilityId}"
+                   data-tournament-id="${tournamentId}"
+                   ${allVisible ? 'checked' : ''} />
             <span class="facility-name">${facilityId}</span>
           </div>
           <div class="courts-list">
-            ${courts.map(court => `
-              <div class="court-item">
-                <input type="checkbox" class="court-checkbox" 
-                       data-court-id="${court.ref.courtId}" 
-                       data-facility-id="${court.ref.facilityId}" />
-                <span class="court-name">${court.name}</span>
-                <span class="court-meta">${court.surface}${court.indoor ? ' (Indoor)' : ''}</span>
-              </div>
-            `).join('')}
+            ${courts.map(court => {
+              const key = `${court.ref.tournamentId}|${court.ref.facilityId}|${court.ref.courtId}`;
+              const checked = this.visibleCourts.has(key);
+              return `
+                <div class="court-item">
+                  <input type="checkbox" class="court-checkbox" 
+                         data-court-id="${court.ref.courtId}" 
+                         data-facility-id="${court.ref.facilityId}"
+                         data-tournament-id="${court.ref.tournamentId}"
+                         ${checked ? 'checked' : ''} />
+                  <span class="court-name">${court.name}</span>
+                  <span class="court-meta">${court.surface}${court.indoor ? ' (Indoor)' : ''}</span>
+                </div>
+              `;
+            }).join('')}
           </div>
         </div>
       `;
@@ -406,10 +440,16 @@ export class TemporalGrid {
 
     treeContent.innerHTML = html;
 
-    // Wire up checkboxes
+    // Wire up court checkboxes
     const courtCheckboxes = treeContent.querySelectorAll('.court-checkbox');
     courtCheckboxes.forEach(checkbox => {
       checkbox.addEventListener('change', this.handleCourtCheckboxChange);
+    });
+    
+    // Wire up facility checkboxes
+    const facilityCheckboxes = treeContent.querySelectorAll('.facility-checkbox');
+    facilityCheckboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', this.handleFacilityCheckboxChange);
     });
   }
 
@@ -445,16 +485,93 @@ export class TemporalGrid {
     const checkbox = event.target as HTMLInputElement;
     const courtId = checkbox.dataset.courtId;
     const facilityId = checkbox.dataset.facilityId;
+    const tournamentId = checkbox.dataset.tournamentId;
 
-    if (!courtId || !facilityId) return;
+    if (!courtId || !facilityId || !tournamentId) return;
 
-    // Update selected courts
-    const selectedCourts = this.control?.getSelectedCourts() || [];
+    // Match resource ID format: tournamentId|facilityId|courtId
+    const key = `${tournamentId}|${facilityId}|${courtId}`;
     
-    // TODO: Add/remove court from selection
+    // Toggle visibility
+    if (checkbox.checked) {
+      this.visibleCourts.add(key);
+    } else {
+      this.visibleCourts.delete(key);
+    }
     
-    console.log('Court checkbox changed:', { courtId, facilityId, checked: checkbox.checked });
+    // Update facility checkbox state
+    this.updateFacilityCheckboxState(facilityId);
+    
+    // Update controller with new visibility filter
+    const filterSet = new Set(this.visibleCourts);
+    this.control?.setVisibleCourts(filterSet);
   };
+
+  private handleFacilityCheckboxChange = (event: Event): void => {
+    const checkbox = event.target as HTMLInputElement;
+    const facilityId = checkbox.dataset.facility;
+    const tournamentId = checkbox.dataset.tournamentId;
+
+    if (!facilityId || !tournamentId) return;
+
+    // Get all courts in this facility
+    const courtMeta = this.engine.listCourtMeta();
+    const facilityCourts = courtMeta.filter(m => m.ref.facilityId === facilityId);
+
+    // Toggle all courts in facility
+    facilityCourts.forEach(court => {
+      const key = `${court.ref.tournamentId}|${court.ref.facilityId}|${court.ref.courtId}`;
+      if (checkbox.checked) {
+        this.visibleCourts.add(key);
+      } else {
+        this.visibleCourts.delete(key);
+      }
+    });
+
+    // Update all court checkboxes in this facility
+    const courtCheckboxes = this.facilityTreeElement?.querySelectorAll(
+      `.court-checkbox[data-facility-id="${facilityId}"]`
+    );
+    courtCheckboxes?.forEach(cb => {
+      (cb as HTMLInputElement).checked = checkbox.checked;
+    });
+
+    // Update controller
+    const filterSet = new Set(this.visibleCourts);
+    this.control?.setVisibleCourts(filterSet);
+  };
+
+  private updateFacilityCheckboxState(facilityId: string): void {
+    const courtMeta = this.engine.listCourtMeta();
+    const facilityCourts = courtMeta.filter(m => m.ref.facilityId === facilityId);
+    
+    // Count how many courts in facility are visible
+    const visibleCount = facilityCourts.filter(c => {
+      const key = `${c.ref.tournamentId}|${c.ref.facilityId}|${c.ref.courtId}`;
+      return this.visibleCourts.has(key);
+    }).length;
+
+    // Update facility checkbox
+    const facilityCheckbox = this.facilityTreeElement?.querySelector(
+      `.facility-checkbox[data-facility="${facilityId}"]`
+    ) as HTMLInputElement;
+    
+    if (facilityCheckbox) {
+      if (visibleCount === 0) {
+        // No courts visible - unchecked
+        facilityCheckbox.checked = false;
+        facilityCheckbox.indeterminate = false;
+      } else if (visibleCount === facilityCourts.length) {
+        // All courts visible - checked
+        facilityCheckbox.checked = true;
+        facilityCheckbox.indeterminate = false;
+      } else {
+        // Some courts visible - indeterminate [-]
+        facilityCheckbox.checked = false;
+        facilityCheckbox.indeterminate = true;
+      }
+    }
+  }
 
   // ============================================================================
   // Public API

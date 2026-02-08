@@ -38,6 +38,8 @@ import type {
   TemplateId,
 } from './types';
 
+import { tools } from 'tods-competition-factory';
+
 import {
   buildDayRange,
   courtDayKey,
@@ -261,6 +263,30 @@ export class TemporalGridEngine {
   getCapacityCurve(day: DayId): CapacityCurve {
     const timelines = this.getDayTimeline(day);
     return generateCapacityCurve(day, timelines);
+  }
+
+  /**
+   * Get all blocks for a specific day across all courts
+   */
+  getDayBlocks(day: DayId): Block[] {
+    const blocks: Block[] = [];
+    
+    // Iterate through all blocks and find ones that overlap with this day
+    for (const block of this.blocksById.values()) {
+      const blockDay = extractDay(block.start);
+      if (blockDay === day) {
+        blocks.push(block);
+      }
+    }
+    
+    return blocks;
+  }
+
+  /**
+   * Get all blocks (across all days)
+   */
+  getAllBlocks(): Block[] {
+    return Array.from(this.blocksById.values());
   }
 
   // ============================================================================
@@ -721,7 +747,7 @@ export class TemporalGridEngine {
     if (!this.tournamentRecord?.startDate) {
       return null;
     }
-    return this.tournamentRecord.startDate.slice(0, 10);
+    return tools.dateTime.extractDate(this.tournamentRecord.startDate);
   }
 
   /**

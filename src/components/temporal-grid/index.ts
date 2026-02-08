@@ -122,6 +122,12 @@ export {
   type TemporalGridConfig,
 } from './ui/temporalGrid';
 
+export {
+  ModernTimePicker,
+  showModernTimePicker,
+  type TimePickerConfig,
+} from './ui/modernTimePicker';
+
 // ============================================================================
 // Styles
 // ============================================================================

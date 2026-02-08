@@ -473,29 +473,31 @@ export const WhatIfSimulation: Story = {
 
     engine.setSelectedDay('2026-06-15');
 
-    const court = {
-      tournamentId: 'test-tournament',
-      facilityId: 'venue-1',
-      courtId: 'court-1',
-    };
+    const courts = [
+      { tournamentId: 'test-tournament', facilityId: 'venue-1', courtId: 'court-1' },
+      { tournamentId: 'test-tournament', facilityId: 'venue-1', courtId: 'court-2' },
+      { tournamentId: 'test-tournament', facilityId: 'venue-1', courtId: 'court-3' },
+    ];
 
-    // Add real block
-    engine.applyBlock({
-      courts: [court],
-      timeRange: { start: '2026-06-15T08:00:00', end: '2026-06-15T20:00:00' },
-      type: 'AVAILABLE',
+    // Add availability for all courts
+    courts.forEach(court => {
+      engine.applyBlock({
+        courts: [court],
+        timeRange: { start: '2026-06-15T08:00:00', end: '2026-06-15T20:00:00' },
+        type: 'AVAILABLE',
+      });
     });
 
     // Get current capacity
     const beforeCurve = engine.getCapacityCurve('2026-06-15');
     const beforeStats = calculateCapacityStats(beforeCurve);
 
-    // Simulate adding maintenance block
+    // Simulate adding maintenance block to court-1
     const simulation = engine.simulateBlocks([{
       kind: 'ADD_BLOCK',
       block: {
         id: 'sim-block',
-        court,
+        court: courts[0],
         start: '2026-06-15T12:00:00',
         end: '2026-06-15T14:00:00',
         type: 'MAINTENANCE',
@@ -506,18 +508,29 @@ export const WhatIfSimulation: Story = {
       ? calculateCapacityStats(simulation.capacityImpact)
       : null;
 
+    // Calculate the impact
+    const peakChange = afterStats ? afterStats.peakAvailable - beforeStats.peakAvailable : 0;
+    const avgChange = afterStats ? afterStats.avgAvailable - beforeStats.avgAvailable : 0;
+
     return `
 What-If Simulation:
 
-Question: What if we add 2-hour maintenance at noon?
+Question: What if we add 2-hour maintenance to Court 1 at noon?
 
-Current State:
+Current State (3 courts):
 - Peak Available: ${beforeStats.peakAvailable} courts
 - Avg Available: ${beforeStats.avgAvailable.toFixed(1)} courts
+- Total Court-Hours: ${beforeStats.totalCourtHours.toFixed(1)}
 
 Simulated State:
 - Peak Available: ${afterStats?.peakAvailable ?? 'N/A'} courts
 - Avg Available: ${afterStats?.avgAvailable.toFixed(1) ?? 'N/A'} courts
+- Total Court-Hours: ${afterStats?.totalCourtHours.toFixed(1) ?? 'N/A'}
+
+Impact:
+- Peak Change: ${peakChange} court${Math.abs(peakChange) !== 1 ? 's' : ''}
+- Avg Change: ${avgChange > 0 ? '+' : ''}${avgChange.toFixed(2)} courts
+- Lost Capacity: ${(beforeStats.totalCourtHours - (afterStats?.totalCourtHours ?? 0)).toFixed(1)} court-hours
 
 Conflicts: ${simulation.conflicts.length}
 
@@ -528,7 +541,7 @@ Use applyBlock() to commit changes.
   parameters: {
     docs: {
       description: {
-        story: 'Demonstrates what-if simulation for testing changes before applying them.',
+        story: 'Demonstrates what-if simulation for testing changes before applying them. Shows how maintenance affects overall capacity.',
       },
     },
   },

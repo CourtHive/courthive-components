@@ -11,6 +11,8 @@
  * - Can integrate with Competition Factory's proConflicts
  */
 
+import { tools } from 'tods-competition-factory';
+
 import type {
   Block,
   BlockMutation,
@@ -48,7 +50,7 @@ export const courtOverlapEvaluator = {
       }
 
       const block = mutation.block;
-      const day = block.start.slice(0, 10);
+      const day = tools.dateTime.extractDate(block.start);
       const courtKey = `${block.court.tournamentId}|${block.court.facilityId}|${block.court.courtId}|${day}`;
 
       // Get all blocks for this court on this day
@@ -119,7 +121,7 @@ export const matchWindowEvaluator = {
     const affectedCourtDays = new Set<string>();
     for (const mutation of mutations) {
       const block = mutation.block;
-      const day = block.start.slice(0, 10);
+      const day = tools.dateTime.extractDate(block.start);
       const courtKey = `${block.court.tournamentId}|${block.court.facilityId}|${block.court.courtId}|${day}`;
       affectedCourtDays.add(courtKey);
     }
@@ -187,7 +189,7 @@ export const adjacentBlockEvaluator = {
       if (mutation.kind === 'REMOVE_BLOCK') continue;
 
       const block = mutation.block;
-      const day = block.start.slice(0, 10);
+      const day = tools.dateTime.extractDate(block.start);
       const courtKey = `${block.court.tournamentId}|${block.court.facilityId}|${block.court.courtId}|${day}`;
 
       const existingIds = ctx.blocksByCourtDay.get(courtKey) || [];
@@ -351,8 +353,8 @@ export const dayBoundaryEvaluator = {
       if (mutation.kind === 'REMOVE_BLOCK') continue;
 
       const block = mutation.block;
-      const startDay = block.start.slice(0, 10);
-      const endDay = block.end.slice(0, 10);
+      const startDay = tools.dateTime.extractDate(block.start);
+      const endDay = tools.dateTime.extractDate(block.end);
 
       if (startDay !== endDay) {
         conflicts.push({

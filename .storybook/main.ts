@@ -16,6 +16,7 @@ const config: StorybookConfig = {
     config.optimizeDeps.include = [
       ...(config.optimizeDeps.include || []),
       '@event-calendar/core',
+      'timepicker-ui',
     ];
     
     // Force exclude Svelte from optimization to avoid issues

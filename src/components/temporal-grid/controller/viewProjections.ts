@@ -308,9 +308,11 @@ export function buildBlockEvents(
         reason: block.reason,
         isBlock: true,
       },
+      // Enable dragging and resizing
       editable: true,
       startEditable: true,
       durationEditable: true,
+      resourceEditable: true,
     });
   }
 

@@ -8,6 +8,8 @@
  * where each segment has exactly one effective status.
  */
 
+import { tools } from 'tods-competition-factory';
+
 import type {
   Block,
   BlockId,
@@ -307,7 +309,7 @@ export function mergeAdjacentSegments(segments: RailSegment[]): RailSegment[] {
  * Extract day ID (YYYY-MM-DD) from ISO datetime string
  */
 export function extractDay(isoDateTime: string): string {
-  return isoDateTime.slice(0, 10);
+  return tools.dateTime.extractDate(isoDateTime);
 }
 
 /**
