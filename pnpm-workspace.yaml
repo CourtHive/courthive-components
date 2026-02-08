@@ -1,5 +1,7 @@
 packages:
-  - '.'
+  - .
 
 ignoredBuiltDependencies:
+  - '@swc/core'
   - esbuild
+  - unrs-resolver

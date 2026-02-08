@@ -20,7 +20,7 @@ import {
   type MatchUpConfig,
 } from '../logic/dynamicSetsLogic';
 
-const { COMPLETED, RETIRED, WALKOVER, DEFAULTED } = matchUpStatusConstants;
+const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT } = matchUpStatusConstants;
 
 export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): void {
   const { matchUp, container, onScoreChange } = params;
@@ -407,8 +407,8 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       if (validationResult?.matchUpStatus) {
         internalMatchUpStatus = validationResult.matchUpStatus;
         
-        // CRITICAL: For irregular endings (WO/RET/DEF) with no sets, clear the score display
-        const isIrregularEnding = [WALKOVER, RETIRED, DEFAULTED].includes(internalMatchUpStatus);
+        // CRITICAL: For irregular endings (WO/RET/DEF/DOUBLE_*) with no sets, clear the score display
+        const isIrregularEnding = [WALKOVER, RETIRED, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT].includes(internalMatchUpStatus);
         if (isIrregularEnding && currentSets.length === 0) {
           displayScore = undefined;
           internalScore = undefined;
@@ -711,15 +711,26 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
       // Add matchUpStatus and winningSide if irregular ending
       if (selectedOutcome !== COMPLETED) {
-        validation.matchUpStatus = selectedOutcome;
         // Override winningSide if manually selected
         if (selectedWinner) {
+          validation.matchUpStatus = selectedOutcome;
           validation.winningSide = selectedWinner;
           // For irregular endings, valid if winner is selected
           validation.isValid = true;
         } else {
-          // Need winner selection for irregular ending
-          validation.isValid = false;
+          // No winner selected
+          // For walkover and defaulted, use DOUBLE_* status and enable submit
+          if (selectedOutcome === WALKOVER) {
+            validation.matchUpStatus = DOUBLE_WALKOVER;
+            validation.isValid = true;
+          } else if (selectedOutcome === DEFAULTED) {
+            validation.matchUpStatus = DOUBLE_DEFAULT;
+            validation.isValid = true;
+          } else {
+            // For retired, still need winner selection
+            validation.matchUpStatus = selectedOutcome;
+            validation.isValid = false;
+          }
         }
       }
 
@@ -1299,29 +1310,38 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
   // Initialize irregular ending and winner if present
   // Only set selectedOutcome if it's an actual irregular ending (not TO_BE_PLAYED)
+  // Handle DOUBLE_* statuses by mapping them back to base status without winner
   if (
     matchUp.matchUpStatus &&
     matchUp.matchUpStatus !== COMPLETED &&
-    [RETIRED, WALKOVER, DEFAULTED].includes(matchUp.matchUpStatus)
+    [RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT].includes(matchUp.matchUpStatus)
   ) {
-    selectedOutcome = matchUp.matchUpStatus;
+    // Map DOUBLE_* statuses to their base status
+    if (matchUp.matchUpStatus === DOUBLE_WALKOVER) {
+      selectedOutcome = WALKOVER;
+      selectedWinner = undefined; // No winner for double walkover
+    } else if (matchUp.matchUpStatus === DOUBLE_DEFAULT) {
+      selectedOutcome = DEFAULTED;
+      selectedWinner = undefined; // No winner for double default
+    } else {
+      selectedOutcome = matchUp.matchUpStatus;
+      selectedWinner = matchUp.winningSide;
+    }
 
     // Check the appropriate irregular ending radio button
     const outcomeRadios = irregularEndingContainer.querySelectorAll<HTMLInputElement>('input[name="matchOutcome"]');
     outcomeRadios.forEach((radio) => {
-      if (radio.value === matchUp.matchUpStatus) {
+      if (radio.value === selectedOutcome) {
         radio.checked = true;
       }
     });
 
-    // Initialize winner if present
-    if (matchUp.winningSide) {
-      selectedWinner = matchUp.winningSide;
-
+    // Initialize winner if present (only for non-DOUBLE statuses)
+    if (selectedWinner) {
       // Check the appropriate winner radio button
       const winnerRadios = irregularEndingContainer.querySelectorAll<HTMLInputElement>('input[name="irregularWinner"]');
       winnerRadios.forEach((radio) => {
-        if (Number.parseInt(radio.value) === matchUp.winningSide) {
+        if (Number.parseInt(radio.value) === selectedWinner) {
           radio.checked = true;
         }
       });
