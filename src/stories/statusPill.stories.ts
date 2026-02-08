@@ -1,7 +1,7 @@
 import { renderStatusPill } from '../components/renderStatusPill';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 
-const { WALKOVER, RETIRED, DEFAULTED, SUSPENDED, AWAITING_RESULT, CANCELLED, IN_PROGRESS } = matchUpStatusConstants;
+const { WALKOVER, RETIRED, DEFAULTED, SUSPENDED, AWAITING_RESULT, CANCELLED, IN_PROGRESS, ABANDONED } = matchUpStatusConstants;
 
 export default {
   title: 'MatchUps/Status',
@@ -26,6 +26,12 @@ export const Defaulted = {
 export const Cancelled = {
   args: {
     matchUpStatus: CANCELLED
+  }
+};
+
+export const Abandoned = {
+  args: {
+    matchUpStatus: ABANDONED
   }
 };
 
