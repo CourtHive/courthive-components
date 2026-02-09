@@ -78,6 +78,8 @@ export interface BlockColorScheme {
   PRACTICE: string;
   MAINTENANCE: string;
   RESERVED: string;
+  CLOSED: string;
+  SCHEDULED: string;
   SOFT_BLOCK: string;
   HARD_BLOCK: string;
   LOCKED: string;
@@ -89,11 +91,13 @@ export interface BlockColorScheme {
 // ============================================================================
 
 export const DEFAULT_COLOR_SCHEME: BlockColorScheme = {
-  AVAILABLE: '#218D8D', // Teal (primary action color)
+  AVAILABLE: 'transparent', // Transparent (inverted paradigm: default state, no visual needed)
   BLOCKED: '#95a5a6', // Gray
   PRACTICE: '#9b59b6', // Purple
   MAINTENANCE: '#f39c12', // Amber/Orange
   RESERVED: '#3498db', // Blue
+  CLOSED: '#2c3e50', // Dark Gray/Blue (court closed)
+  SCHEDULED: '#27ae60', // Green (tournament matches)
   SOFT_BLOCK: '#5dade2', // Light Blue
   HARD_BLOCK: '#e74c3c', // Red
   LOCKED: '#34495e', // Dark Gray

@@ -198,15 +198,16 @@ export class TemporalGrid {
     toolbar.className = 'temporal-grid-toolbar';
     toolbar.innerHTML = `
       <div class="toolbar-section toolbar-left">
-        <button class="btn-paint" title="Paint Mode">
+        <button class="btn-paint" title="Paint Mode - Mark Unavailable Time">
           <span>🖌️</span> Paint
         </button>
         <select class="paint-type-selector">
-          <option value="AVAILABLE">Available</option>
           <option value="BLOCKED">Blocked</option>
           <option value="MAINTENANCE">Maintenance</option>
           <option value="PRACTICE">Practice</option>
           <option value="RESERVED">Reserved</option>
+          <option value="CLOSED">Closed</option>
+          <option value="DELETE">🗑️ Delete</option>
         </select>
       </div>
       
@@ -234,17 +235,12 @@ export class TemporalGrid {
       let isPaintMode = false;
       paintBtn.addEventListener('click', () => {
         isPaintMode = !isPaintMode;
-        console.log('Paint button clicked! isPaintMode:', isPaintMode);
         paintBtn.classList.toggle('active', isPaintMode);
-        console.log('Button has active class:', paintBtn.classList.contains('active'));
-        console.log('Calling setPaintMode with:', { isPaintMode, type: paintTypeSelect.value });
         this.control?.setPaintMode(isPaintMode, paintTypeSelect.value as BlockType);
       });
 
       paintTypeSelect.addEventListener('change', () => {
-        console.log('Paint type changed to:', paintTypeSelect.value);
         if (isPaintMode) {
-          console.log('Updating paint type while in paint mode');
           this.control?.setPaintMode(true, paintTypeSelect.value as BlockType);
         }
       });
@@ -468,16 +464,14 @@ export class TemporalGrid {
   };
 
   private handleBlockSelected = (blockId: string): void => {
-    console.log('Block selected:', blockId);
     // TODO: Show block details panel
   };
 
   private handleCourtSelected = (court: CourtRef): void => {
-    console.log('Court selected:', court);
+    // TODO: Handle court selection
   };
 
   private handleTimeRangeSelected = (params: { courts: CourtRef[]; start: string; end: string }): void => {
-    console.log('Time range selected:', params);
     // TODO: Show create block dialog
   };
 

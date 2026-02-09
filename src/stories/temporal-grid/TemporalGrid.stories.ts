@@ -144,29 +144,32 @@ const renderTemporalGrid = (args: any) => {
     showSegmentLabels: args.showSegmentLabels ?? false,
     engineConfig: args.engineConfig,
     onMutationsApplied: (mutations) => {
-      console.log('Mutations applied:', mutations);
+      // Mutations applied callback
     },
   }, gridContainer);
 
-  // Add some initial availability blocks so timeline isn't empty
+  // INVERTED PARADIGM: No blocks = Available
+  // Courts are available by default during open hours (6am-10pm)
+  // Only paint UNAVAILABLE blocks (maintenance, practice, reserved, blocked, closed)
+  // Example: Add some maintenance blocks for demonstration
   setTimeout(() => {
     const engine = grid.getEngine();
-    tournamentRecord.venues.forEach(venue => {
-      venue.courts.forEach(court => {
-        engine.applyBlock({
-          courts: [{
-            tournamentId: tournamentRecord.tournamentId,
-            facilityId: venue.venueId,
-            courtId: court.courtId,
-          }],
-          timeRange: {
-            start: '2026-06-15T08:00:00',
-            end: '2026-06-15T20:00:00',
-          },
-          type: 'AVAILABLE',
-        });
+    // Add a maintenance block to the first court as an example
+    if (tournamentRecord.venues.length > 0 && tournamentRecord.venues[0].courts.length > 0) {
+      const firstCourt = tournamentRecord.venues[0].courts[0];
+      engine.applyBlock({
+        courts: [{
+          tournamentId: tournamentRecord.tournamentId,
+          facilityId: tournamentRecord.venues[0].venueId,
+          courtId: firstCourt.courtId,
+        }],
+        timeRange: {
+          start: '2026-06-15T08:00:00',
+          end: '2026-06-15T09:00:00',
+        },
+        type: 'MAINTENANCE',
       });
-    });
+    }
   }, 100);
 
   return container;
@@ -194,6 +197,7 @@ export const Default: Story = {
 /**
  * Small tournament with 1 facility and 3 courts
  */
+/* TEMPORARILY COMMENTED OUT - FOCUSING ON DEFAULT STORY
 export const SmallTournament: Story = {
   render: () => renderTemporalGrid({
     tournamentRecord: createMockTournament({
@@ -211,9 +215,12 @@ export const SmallTournament: Story = {
   },
 };
 
+*/
+
 /**
  * Large tournament with multiple facilities
  */
+/* TEMPORARILY COMMENTED OUT - FOCUSING ON DEFAULT STORY
 export const LargeTournament: Story = {
   render: () => renderTemporalGrid({
     tournamentRecord: createMockTournament({
@@ -231,9 +238,12 @@ export const LargeTournament: Story = {
   },
 };
 
+*/
+
 /**
  * Capacity focused view
  */
+/* TEMPORARILY COMMENTED OUT - FOCUSING ON DEFAULT STORY
 export const CapacityFocused: Story = {
   render: () => renderTemporalGrid({
     showFacilityTree: false,
@@ -249,9 +259,12 @@ export const CapacityFocused: Story = {
   },
 };
 
+*/
+
 /**
  * Timeline only view
  */
+/* TEMPORARILY COMMENTED OUT - FOCUSING ON DEFAULT STORY
 export const TimelineOnly: Story = {
   render: () => renderTemporalGrid({
     showFacilityTree: false,
@@ -268,9 +281,12 @@ export const TimelineOnly: Story = {
   },
 };
 
+*/
+
 /**
  * Surface grouping mode
  */
+/* TEMPORARILY COMMENTED OUT - FOCUSING ON DEFAULT STORY
 export const GroupBySurface: Story = {
   render: () => renderTemporalGrid({
     groupingMode: 'BY_SURFACE',
@@ -285,9 +301,12 @@ export const GroupBySurface: Story = {
   },
 };
 
+*/
+
 /**
  * Flat (ungrouped) view
  */
+/* TEMPORARILY COMMENTED OUT - FOCUSING ON DEFAULT STORY
 export const FlatView: Story = {
   render: () => renderTemporalGrid({
     groupingMode: 'FLAT',
@@ -302,9 +321,12 @@ export const FlatView: Story = {
   },
 };
 
+*/
+
 /**
  * With segment labels
  */
+/* TEMPORARILY COMMENTED OUT - FOCUSING ON DEFAULT STORY
 export const WithSegmentLabels: Story = {
   render: () => renderTemporalGrid({
     showSegmentLabels: true,
@@ -319,9 +341,12 @@ export const WithSegmentLabels: Story = {
   },
 };
 
+*/
+
 /**
  * Custom time slots (30-minute granularity)
  */
+/* TEMPORARILY COMMENTED OUT - FOCUSING ON DEFAULT STORY
 export const CustomTimeSlots: Story = {
   render: () => renderTemporalGrid({
     engineConfig: {
@@ -340,9 +365,12 @@ export const CustomTimeSlots: Story = {
   },
 };
 
+*/
+
 /**
  * Fine granularity (5-minute slots)
  */
+/* TEMPORARILY COMMENTED OUT - FOCUSING ON DEFAULT STORY
 export const FineGranularity: Story = {
   render: () => renderTemporalGrid({
     engineConfig: {
@@ -359,9 +387,12 @@ export const FineGranularity: Story = {
   },
 };
 
+*/
+
 /**
  * Extended day hours
  */
+/* TEMPORARILY COMMENTED OUT - FOCUSING ON DEFAULT STORY
 export const ExtendedHours: Story = {
   render: () => renderTemporalGrid({
     engineConfig: {
@@ -379,9 +410,12 @@ export const ExtendedHours: Story = {
   },
 };
 
+*/
+
 /**
  * Week view mode (if supported in future)
  */
+/* TEMPORARILY COMMENTED OUT - FOCUSING ON DEFAULT STORY
 export const WeekView: Story = {
   render: () => renderTemporalGrid({
     initialDay: '2026-06-15',
@@ -396,9 +430,12 @@ export const WeekView: Story = {
   },
 };
 
+*/
+
 /**
  * Mobile responsive view
  */
+/* TEMPORARILY COMMENTED OUT - FOCUSING ON DEFAULT STORY
 export const MobileView: Story = {
   render: () => {
     const container = renderTemporalGrid({
@@ -420,9 +457,12 @@ export const MobileView: Story = {
   },
 };
 
+*/
+
 /**
  * Tablet view
  */
+/* TEMPORARILY COMMENTED OUT - FOCUSING ON DEFAULT STORY
 export const TabletView: Story = {
   render: () => {
     const container = renderTemporalGrid({
@@ -443,9 +483,12 @@ export const TabletView: Story = {
   },
 };
 
+*/
+
 /**
  * Dark mode (placeholder for future implementation)
  */
+/* TEMPORARILY COMMENTED OUT - FOCUSING ON DEFAULT STORY
 export const DarkMode: Story = {
   render: () => {
     const container = renderTemporalGrid({
@@ -465,9 +508,12 @@ export const DarkMode: Story = {
   },
 };
 
+*/
+
 /**
  * With pre-populated blocks
  */
+/* TEMPORARILY COMMENTED OUT - FOCUSING ON DEFAULT STORY
 export const WithBlocks: Story = {
   render: () => {
     const container = renderTemporalGrid({
@@ -476,9 +522,6 @@ export const WithBlocks: Story = {
 
     // Note: In a real implementation, you would initialize the engine with blocks
     // This is a placeholder showing the concept
-    setTimeout(() => {
-      console.log('In production, blocks would be pre-loaded from tournament data');
-    }, 100);
 
     return container;
   },
@@ -491,9 +534,12 @@ export const WithBlocks: Story = {
   },
 };
 
+*/
+
 /**
  * With conflicts
  */
+/* TEMPORARILY COMMENTED OUT - FOCUSING ON DEFAULT STORY
 export const WithConflicts: Story = {
   render: () => renderTemporalGrid({
     showConflicts: true,
@@ -508,9 +554,12 @@ export const WithConflicts: Story = {
   },
 };
 
+*/
+
 /**
  * Conflicts disabled
  */
+/* TEMPORARILY COMMENTED OUT - FOCUSING ON DEFAULT STORY
 export const ConflictsDisabled: Story = {
   render: () => renderTemporalGrid({
     showConflicts: false,
@@ -525,9 +574,12 @@ export const ConflictsDisabled: Story = {
   },
 };
 
+*/
+
 /**
  * Embedded in card
  */
+/* TEMPORARILY COMMENTED OUT - FOCUSING ON DEFAULT STORY
 export const EmbeddedInCard: Story = {
   render: () => {
     const card = document.createElement('div');
@@ -564,9 +616,12 @@ export const EmbeddedInCard: Story = {
   },
 };
 
+*/
+
 /**
  * Performance test with many courts
  */
+/* TEMPORARILY COMMENTED OUT - FOCUSING ON DEFAULT STORY
 export const PerformanceTest: Story = {
   render: () => renderTemporalGrid({
     tournamentRecord: createMockTournament({
@@ -584,9 +639,12 @@ export const PerformanceTest: Story = {
   },
 };
 
+*/
+
 /**
  * Minimal tournament
  */
+/* TEMPORARILY COMMENTED OUT - FOCUSING ON DEFAULT STORY
 export const MinimalTournament: Story = {
   render: () => renderTemporalGrid({
     tournamentRecord: createMockTournament({
@@ -604,9 +662,12 @@ export const MinimalTournament: Story = {
   },
 };
 
+*/
+
 /**
  * Multi-day tournament
  */
+/* TEMPORARILY COMMENTED OUT - FOCUSING ON DEFAULT STORY
 export const MultiDayTournament: Story = {
   render: () => renderTemporalGrid({
     tournamentRecord: createMockTournament({
@@ -623,3 +684,4 @@ export const MultiDayTournament: Story = {
     },
   },
 };
+*/

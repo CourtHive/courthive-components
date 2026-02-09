@@ -24,17 +24,24 @@ export type RuleId = string;
 /**
  * BlockType defines the semantic meaning of a time segment.
  * Precedence matters for overlapping blocks (defined in EngineConfig).
+ * 
+ * INVERTED PARADIGM: No blocks = Available Time
+ * - Default state is AVAILABLE (no block needed)
+ * - Paint ONLY what makes courts UNAVAILABLE
+ * - AVAILABLE is derived, not stored as blocks
  */
 export type BlockType =
-  | 'AVAILABLE' // Court is available for scheduling
-  | 'BLOCKED' // Generic block (reason specified)
-  | 'PRACTICE' // Reserved for practice
-  | 'MAINTENANCE' // Maintenance window
-  | 'RESERVED' // Reserved for specific purpose
-  | 'SOFT_BLOCK' // Can be overridden if needed
-  | 'HARD_BLOCK' // Cannot be overridden
-  | 'LOCKED' // System-locked, no user modification
-  | 'UNSPECIFIED'; // No explicit status (gray fog)
+  | 'MAINTENANCE' // Court maintenance/cleaning
+  | 'PRACTICE' // Practice time reserved
+  | 'RESERVED' // Reserved for recreational/paying players
+  | 'BLOCKED' // Generic unavailable (miscellaneous)
+  | 'CLOSED' // Court closed (outside open hours or explicitly closed)
+  | 'SCHEDULED' // Tournament matches (read-only, created by scheduler)
+  | 'SOFT_BLOCK' // Can be overridden if needed (legacy)
+  | 'HARD_BLOCK' // Cannot be overridden (legacy)
+  | 'LOCKED' // System-locked, no user modification (legacy)
+  | 'AVAILABLE' // Derived status - time without any blocks
+  | 'UNSPECIFIED'; // No explicit status (gray fog - for backwards compatibility)
 
 export type BlockSource = 'USER' | 'TEMPLATE' | 'RULE' | 'SYSTEM';
 export type BlockHardness = 'HARD' | 'SOFT';
@@ -348,6 +355,9 @@ export interface CourtMeta {
   indoor: boolean;
   hasLights: boolean;
   tags: string[];
+  openTime?: string; // Default open time 'HH:mm' (e.g., '06:00')
+  closeTime?: string; // Default close time 'HH:mm' (e.g., '22:00')
+  closedDays?: string[]; // Days when court is closed (e.g., ['saturday', 'sunday'])
   extendedProps?: Record<string, any>; // Additional TODS properties
 }
 

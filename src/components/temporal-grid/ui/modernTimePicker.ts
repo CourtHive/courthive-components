@@ -39,6 +39,8 @@ export interface TimePickerConfig {
   dayStartTime?: string; // HH:mm format (default: '00:00')
   dayEndTime?: string;   // HH:mm format (default: '23:59')
   minuteIncrement?: number; // default: 5
+  minDuration?: number; // Minimum duration in minutes (default: none)
+  maxDuration?: number; // Maximum duration in minutes (default: none)
   clockType?: '12h' | '24h'; // default: '12h' - TODO: should come from TemporalGrid config
   onConfirm: (startTime: string, endTime: string) => void;
   onCancel: () => void;
@@ -160,13 +162,25 @@ export class ModernTimePicker {
     this.inputElement.setAttribute('data-type-from', startPeriod);
     this.inputElement.setAttribute('data-type-to', endPeriod);
     
+    // Build range configuration with optional min/max duration
+    const rangeConfig: any = {
+      enabled: true,
+      fromLabel: 'Start',
+      toLabel: 'End',
+    };
+    
+    // Add duration constraints if provided
+    if (this.config.minDuration !== undefined) {
+      rangeConfig.minDuration = this.config.minDuration;
+    }
+    if (this.config.maxDuration !== undefined) {
+      rangeConfig.maxDuration = this.config.maxDuration;
+      console.log('[ModernTimePicker] Setting maxDuration:', this.config.maxDuration, 'minutes');
+    }
+    
     // Create the picker with range plugin
     this.picker = new TimepickerUI(this.inputElement, {
-      range: {
-        enabled: true,
-        fromLabel: 'Start',
-        toLabel: 'End',
-      },
+      range: rangeConfig,
       clock: {
         type: this.config.clockType || '12h', // Use config or default to 12h
         incrementMinutes: this.config.minuteIncrement || 5,
@@ -174,59 +188,88 @@ export class ModernTimePicker {
       ui: {
         theme: 'crane', // TODO: should also come from TemporalGrid config
       },
+      callbacks: {
+        // For range mode, use onRangeConfirm instead of onConfirm
+        onRangeConfirm: (data: any) => {
+          console.log('[ModernTimePicker] onRangeConfirm callback triggered');
+          console.log('[ModernTimePicker] Range data:', data);
+          
+          try {
+            // Extract from and to times (these are strings like "06:30 AM")
+            const fromTimeStr = data.from;
+            const toTimeStr = data.to;
+            
+            console.log('[ModernTimePicker] From data:', fromTimeStr);
+            console.log('[ModernTimePicker] To data:', toTimeStr);
+            
+            if (fromTimeStr && toTimeStr) {
+              // Parse the 12-hour time strings (e.g., "06:30 AM")
+              // and convert to 24-hour HH:mm format
+              // TODO: Replace with factory utilities once correct usage is determined
+              
+              const parseTime12h = (timeStr: string): string => {
+                const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+                if (!match) {
+                  console.error('[ModernTimePicker] Failed to parse time:', timeStr);
+                  return '00:00';
+                }
+                
+                let hour = parseInt(match[1], 10);
+                const minutes = match[2];
+                const period = match[3].toUpperCase();
+                
+                // Convert to 24-hour format
+                if (period === 'PM' && hour !== 12) {
+                  hour += 12;
+                } else if (period === 'AM' && hour === 12) {
+                  hour = 0;
+                }
+                
+                return `${String(hour).padStart(2, '0')}:${minutes}`;
+              };
+              
+              this.selectedStart = parseTime12h(fromTimeStr);
+              this.selectedEnd = parseTime12h(toTimeStr);
+              
+              console.log('[ModernTimePicker] Converted times (24h HH:mm):', {
+                selectedStart: this.selectedStart,
+                selectedEnd: this.selectedEnd,
+              });
+              
+              // Call the confirm callback with the selected times in 24-hour format
+              console.log('[ModernTimePicker] Calling user onConfirm callback');
+              this.config.onConfirm(this.selectedStart, this.selectedEnd);
+              
+              // Clean up
+              this.destroy();
+            } else {
+              console.log('[ModernTimePicker] Missing from or to data');
+            }
+          } catch (error) {
+            console.error('[ModernTimePicker] Error in onRangeConfirm:', error);
+          }
+        },
+        onCancel: () => {
+          try {
+            console.log('[ModernTimePicker] onCancel callback triggered');
+            this.config.onCancel();
+            this.destroy();
+          } catch (error) {
+            console.error('[ModernTimePicker] Error in onCancel:', error);
+          }
+        },
+      },
     });
     
     this.picker.create();
     
-    // Listen for accept event (when user confirms time)
-    this.inputElement.addEventListener('accept', ((e: CustomEvent) => {
-      // Get the selected range values from the picker
-      const plugin = this.picker.getPlugin('range');
-      if (plugin) {
-        const fromValue = plugin.getFromValue();
-        const toValue = plugin.getToValue();
-        
-        if (fromValue && toValue) {
-          // Convert 12-hour format back to 24-hour format for storage
-          let startHour = parseInt(fromValue.hour, 10);
-          let endHour = parseInt(toValue.hour, 10);
-          
-          // Handle AM/PM conversion
-          if (fromValue.type === 'PM' && startHour !== 12) {
-            startHour += 12;
-          } else if (fromValue.type === 'AM' && startHour === 12) {
-            startHour = 0;
-          }
-          
-          if (toValue.type === 'PM' && endHour !== 12) {
-            endHour += 12;
-          } else if (toValue.type === 'AM' && endHour === 12) {
-            endHour = 0;
-          }
-          
-          // Format as 24-hour HH:mm
-          this.selectedStart = `${String(startHour).padStart(2, '0')}:${fromValue.minutes}`;
-          this.selectedEnd = `${String(endHour).padStart(2, '0')}:${toValue.minutes}`;
-          
-          // Call the confirm callback with the selected times in 24-hour format
-          this.config.onConfirm(this.selectedStart, this.selectedEnd);
-          
-          // Clean up
-          this.destroy();
-        }
-      }
-    }) as EventListener);
-    
-    // Listen for cancel event
-    this.inputElement.addEventListener('cancel', () => {
-      this.config.onCancel();
-      this.destroy();
-    });
+    console.log('[ModernTimePicker] Picker created with callbacks');
     
     // Auto-open the picker after a short delay
     setTimeout(() => {
       if (this.picker) {
         this.picker.open();
+        console.log('[ModernTimePicker] Picker opened');
       }
     }, 100);
   }
@@ -262,7 +305,19 @@ export class ModernTimePicker {
  * Factory function to create and show a time picker
  */
 export async function showModernTimePicker(config: TimePickerConfig): Promise<ModernTimePicker> {
+  console.log('[ModernTimePicker] showModernTimePicker called with config:', {
+    startTime: config.startTime,
+    endTime: config.endTime,
+    dayStartTime: config.dayStartTime,
+    dayEndTime: config.dayEndTime,
+    minuteIncrement: config.minuteIncrement,
+    clockType: config.clockType,
+  });
+  
   const picker = new ModernTimePicker(config);
   await picker.show();
+  
+  console.log('[ModernTimePicker] Time picker shown');
+  
   return picker;
 }

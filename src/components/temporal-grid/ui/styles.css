@@ -235,17 +235,20 @@
   min-height: 60px;
 }
 
-.temporal-grid-calendar .ec-timeline .ec-body {
-  overflow-y: auto;
-}
+/* IMPORTANT: Do NOT override .ec-body overflow properties!
+   EventCalendar's ResourceTimeline relies on the default CSS structure
+   where .ec-sidebar stays outside the scrolling .ec-body container.
+   Overriding overflow breaks the sticky sidebar behavior.
+*/
 
 /* ============================================================================
    Segment Styles (from viewProjections.ts)
    ============================================================================ */
 
-/* Available - solid teal */
+/* Available - transparent (inverted paradigm: no visual needed for default state) */
 .segment-available {
-  opacity: 0.3;
+  background: transparent !important;
+  opacity: 1;
 }
 
 /* Blocked - diagonal hatching */
@@ -283,6 +286,16 @@
 /* Reserved - solid blue */
 .segment-reserved {
   opacity: 0.4;
+}
+
+/* Closed - dark solid */
+.segment-closed {
+  opacity: 0.7;
+}
+
+/* Scheduled - solid green (read-only) */
+.segment-scheduled {
+  opacity: 0.6;
 }
 
 /* Hard Block - solid with border */

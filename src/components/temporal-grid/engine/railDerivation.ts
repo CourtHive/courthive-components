@@ -1,8 +1,14 @@
 /**
- * Rail Derivation Algorithm
+ * Rail Derivation Algorithm - INVERTED PARADIGM
  * 
  * Converts overlapping blocks into non-overlapping rail segments using
  * a sweep-line algorithm with status resolution based on type precedence.
+ * 
+ * INVERTED PARADIGM: No blocks = Available Time
+ * - Default state is AVAILABLE (time within open hours without blocks)
+ * - Paint ONLY what makes courts UNAVAILABLE (MAINTENANCE, PRACTICE, RESERVED, BLOCKED, CLOSED, SCHEDULED)
+ * - AVAILABLE segments are derived by subtracting blocks from open hours
+ * - Outside open hours = CLOSED by default
  * 
  * Core principle: Given blocks that may overlap, derive a continuous timeline
  * where each segment has exactly one effective status.
@@ -91,6 +97,10 @@ export function diffMinutes(start: string, end: string): number {
 /**
  * Resolve the effective status for a segment given contributing blocks.
  * Uses type precedence from config: first type in precedence array wins.
+ * 
+ * INVERTED PARADIGM: No blocks = AVAILABLE
+ * - If no contributing blocks, status is AVAILABLE (not UNSPECIFIED)
+ * - Blocks represent UNAVAILABLE time
  */
 export function resolveStatus(
   contributingIds: BlockId[],
@@ -98,13 +108,13 @@ export function resolveStatus(
   precedence: BlockType[],
 ): BlockType {
   if (contributingIds.length === 0) {
-    return 'UNSPECIFIED'; // Gray fog - no explicit status
+    return 'AVAILABLE'; // No blocks = available time (inverted paradigm)
   }
 
   // Build a rank map for fast lookups
   const typeRank = new Map(precedence.map((type, index) => [type, index]));
 
-  let bestType: BlockType = 'UNSPECIFIED';
+  let bestType: BlockType = 'AVAILABLE';
   let bestRank = Infinity;
 
   for (const blockId of contributingIds) {
@@ -193,12 +203,12 @@ export function deriveRailSegments(
     .filter((block): block is Block => block !== null);
 
   if (clampedBlocks.length === 0) {
-    // No blocks - entire day is UNSPECIFIED
+    // No blocks - entire day is AVAILABLE (inverted paradigm)
     return [
       {
         start: dayRange.start,
         end: dayRange.end,
-        status: 'UNSPECIFIED',
+        status: 'AVAILABLE',
         contributingBlocks: [],
       },
     ];

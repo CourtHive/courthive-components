@@ -102,7 +102,7 @@ export class TemporalGridControl {
   private currentDay: DayId | null = null;
   private currentView: 'resourceTimelineDay' | 'resourceTimelineWeek' = 'resourceTimelineDay';
   private selectedCourts: Set<CourtRef> = new Set();
-  private currentPaintType: BlockType = 'AVAILABLE';
+  private currentPaintType: BlockType | 'DELETE' = 'BLOCKED';
   private isPaintMode = false;
   private visibleCourts: Set<string> | null = null; // null = all visible, Set = filtered
   private paintDragStart: { x: number; y: number; resourceId: string | null } | null = null;
@@ -265,9 +265,9 @@ export class TemporalGridControl {
   }
 
   /**
-   * Set paint mode and block type
+   * Set paint mode and block type (or DELETE action)
    */
-  setPaintMode(enabled: boolean, blockType?: BlockType): void {
+  setPaintMode(enabled: boolean, blockType?: BlockType | 'DELETE'): void {
     this.isPaintMode = enabled;
     
     if (blockType) {
@@ -480,7 +480,19 @@ export class TemporalGridControl {
       const blockId = parseBlockEventId(event.id);
       if (!blockId) return;
       
-      // Open time picker for block fine-tuning
+      // If in paint mode with DELETE selected, delete the block immediately
+      if (this.isPaintMode && this.currentPaintType === 'DELETE') {
+        this.deleteBlock(blockId);
+        return;
+      }
+      
+      // If NOT in paint mode, show dialog with Edit/Delete options
+      if (!this.isPaintMode) {
+        this.showBlockActionDialog(blockId, event);
+        return;
+      }
+      
+      // Otherwise (in paint mode but not DELETE), open time picker for block fine-tuning
       this.openTimePickerForBlock(blockId, event);
       
       // Also call callback if provided
@@ -519,10 +531,10 @@ export class TemporalGridControl {
       dayEndTime: engineConfig.dayEndTime,
       minuteIncrement: 5,
       onConfirm: (startTime: string, endTime: string) => {
-        // Convert HH:mm to full ISO strings for the current day
+        // Convert HH:mm to full ISO strings for the current day (without Z suffix)
         const currentDay = this.currentDay || tools.dateTime.extractDate(new Date().toISOString());
-        const startISO = `${currentDay}T${startTime}:00Z`;
-        const endISO = `${currentDay}T${endTime}:00Z`;
+        const startISO = `${currentDay}T${startTime}:00`;
+        const endISO = `${currentDay}T${endTime}:00`;
         
         // Update the block through engine
         const result = this.engine.resizeBlock({
@@ -571,6 +583,124 @@ export class TemporalGridControl {
   }
 
   /**
+   * Delete a block
+   */
+  private deleteBlock(blockId: string): void {
+    console.log('[TemporalGrid] Deleting block:', blockId);
+    
+    const result = this.engine.removeBlock(blockId);
+    
+    if (result.conflicts.some(c => c.severity === 'ERROR')) {
+      console.error('[TemporalGrid] Error deleting block:', result.conflicts);
+      this.showConflictDialog(result.conflicts);
+    } else {
+      console.log('[TemporalGrid] Block deleted successfully');
+    }
+  }
+
+  /**
+   * Show block action dialog (Edit/Delete/Cancel)
+   * This is shown when clicking a block while NOT in paint mode
+   */
+  private showBlockActionDialog(blockId: string, event: any): void {
+    const blocks = this.engine.getDayBlocks(this.currentDay);
+    const block = blocks.find(b => b.id === blockId);
+    
+    if (!block) {
+      console.error('Block not found:', blockId);
+      return;
+    }
+    
+    // Create dialog overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'block-action-dialog-overlay';
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    `;
+    
+    // Create dialog
+    const dialog = document.createElement('div');
+    dialog.className = 'block-action-dialog';
+    dialog.style.cssText = `
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      min-width: 300px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    `;
+    
+    // Extract time parts for display
+    const startTime = tools.dateTime.extractTime(block.start);
+    const endTime = tools.dateTime.extractTime(block.end);
+    
+    dialog.innerHTML = `
+      <h3 style="margin: 0 0 16px 0; font-size: 18px;">${block.type}</h3>
+      <div style="margin-bottom: 16px; color: #666;">
+        <div>${startTime} - ${endTime}</div>
+        <div style="font-size: 14px; margin-top: 4px;">Court: ${block.court.courtId}</div>
+      </div>
+      <div style="display: flex; gap: 8px; justify-content: flex-end;">
+        <button class="btn-edit" style="padding: 8px 16px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">Edit Time</button>
+        <button class="btn-delete" style="padding: 8px 16px; border: 1px solid #d32f2f; background: #d32f2f; color: white; border-radius: 4px; cursor: pointer;">Delete</button>
+        <button class="btn-cancel" style="padding: 8px 16px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">Cancel</button>
+      </div>
+    `;
+    
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+    
+    // Handle Edit button
+    const editBtn = dialog.querySelector('.btn-edit');
+    editBtn?.addEventListener('click', () => {
+      overlay.remove();
+      this.openTimePickerForBlock(blockId, event);
+    });
+    
+    // Handle Delete button
+    const deleteBtn = dialog.querySelector('.btn-delete');
+    deleteBtn?.addEventListener('click', () => {
+      overlay.remove();
+      this.deleteBlock(blockId);
+    });
+    
+    // Handle Cancel button and overlay click
+    const cancelBtn = dialog.querySelector('.btn-cancel');
+    cancelBtn?.addEventListener('click', () => {
+      overlay.remove();
+    });
+    
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        overlay.remove();
+      }
+    });
+    
+    // Handle keyboard shortcut (Delete/Backspace)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault();
+        overlay.remove();
+        this.deleteBlock(blockId);
+        document.removeEventListener('keydown', handleKeyDown);
+      } else if (e.key === 'Escape') {
+        overlay.remove();
+        document.removeEventListener('keydown', handleKeyDown);
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+  }
+
+  /**
    * Open time picker to create a new block with user-defined times
    * 
    * Smart end time logic:
@@ -580,6 +710,12 @@ export class TemporalGridControl {
    * 4. Never exceed day end time
    */
   private openTimePickerForNewBlock(court: CourtRef, clickedTime?: Date): void {
+    console.log('[TemporalGrid] openTimePickerForNewBlock called:', {
+      court,
+      clickedTime: clickedTime?.toISOString(),
+      currentDay: this.currentDay,
+    });
+    
     const engineConfig = this.engine.getConfig();
     const currentDay = this.currentDay || tools.dateTime.extractDate(new Date().toISOString());
     
@@ -590,6 +726,11 @@ export class TemporalGridControl {
     } else {
       startDate = new Date();
     }
+    
+    console.log('[TemporalGrid] Start date initialized:', {
+      startDate: startDate.toISOString(),
+      startTimestamp: startDate.getTime(),
+    });
     
     // Get the timeline for this court to see segments (availability boundaries)
     const timelines = this.engine.getDayTimeline(this.currentDay);
@@ -626,26 +767,82 @@ export class TemporalGridControl {
     }
     
     // Also check for existing blocks on this court
+    // We need to find ANY block that would overlap with our potential range
+    // This includes blocks that start after our clicked time
+    // IMPORTANT: Block times are stored without 'Z', so we need to parse them as UTC
     const existingBlocks = this.engine.getDayBlocks(this.currentDay);
-    const nextBlock = existingBlocks
-      .filter(b => 
-        b.court.tournamentId === court.tournamentId &&
-        b.court.facilityId === court.facilityId &&
-        b.court.courtId === court.courtId
-      )
-      .map(b => new Date(b.start).getTime())
+    
+    console.log('[TemporalGrid] All blocks for day:', {
+      currentDay: this.currentDay,
+      totalBlocks: existingBlocks.length,
+      blocks: existingBlocks.map(b => ({
+        id: b.id,
+        court: b.court.courtId,
+        type: b.type,
+        start: b.start,
+        end: b.end,
+      })),
+    });
+    
+    const blocksOnThisCourt = existingBlocks.filter(b => 
+      b.court.tournamentId === court.tournamentId &&
+      b.court.facilityId === court.facilityId &&
+      b.court.courtId === court.courtId
+    );
+    
+    console.log('[TemporalGrid] Blocks on this court:', {
+      courtId: court.courtId,
+      count: blocksOnThisCourt.length,
+      blocks: blocksOnThisCourt.map(b => ({
+        id: b.id,
+        type: b.type,
+        start: b.start,
+        end: b.end,
+      })),
+    });
+    
+    const relevantBlocks = blocksOnThisCourt
+      .filter(b => {
+        // Parse as UTC by ensuring 'Z' suffix
+        const blockStartStr = b.start.endsWith('Z') ? b.start : b.start + 'Z';
+        const blockEndStr = b.end.endsWith('Z') ? b.end : b.end + 'Z';
+        const blockStart = new Date(blockStartStr).getTime();
+        const blockEnd = new Date(blockEndStr).getTime();
+        // Include blocks that start after our clicked time
+        // (these would be potential overlaps if we extend past their start)
+        return blockStart > startTime || blockEnd > startTime;
+      });
+    
+    // Find the earliest block start time that's after our clicked time
+    const nextBlockStart = relevantBlocks
+      .map(b => {
+        const blockStartStr = b.start.endsWith('Z') ? b.start : b.start + 'Z';
+        return new Date(blockStartStr).getTime();
+      })
       .filter(blockStart => blockStart > startTime)
       .sort((a, b) => a - b)[0];
     
+    console.log('[TemporalGrid] Relevant blocks for overlap detection:', {
+      clickedTime: new Date(startTime).toISOString(),
+      relevantBlocks: relevantBlocks.map(b => ({
+        start: b.start,
+        startParsed: new Date(b.start).toISOString(),
+        startWithZ: new Date(b.start + 'Z').toISOString(),
+        end: b.end,
+        type: b.type,
+      })),
+      nextBlockStart: nextBlockStart ? new Date(nextBlockStart).toISOString() : null,
+    });
+    
     // Calculate end time:
-    // Use the nearest boundary: next segment, next block, or start + 3 hours
+    // Use the nearest boundary: next segment, next block start, or start + 3 hours
     const maxDurationHours = 3; // TODO: should come from config
     const maxEndTime = startTime + (maxDurationHours * 60 * 60 * 1000);
     
     let endDate: Date;
     const boundaries = [
       nextBoundary ? nextBoundary.getTime() : Infinity,
-      nextBlock || Infinity,
+      nextBlockStart || Infinity,
       maxEndTime,
     ].filter(t => t !== Infinity);
     
@@ -662,19 +859,61 @@ export class TemporalGridControl {
       endDate = new Date(dayEndTime);
     }
     
+    // Calculate maxDuration in minutes to prevent overlaps
+    const maxDurationMinutes = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60));
+    
+    console.log('[TemporalGrid] Opening time picker with constraints:', {
+      startTime: startDate.toISOString(),
+      endTime: endDate.toISOString(),
+      maxDurationMinutes,
+      nextBoundary: nextBoundary?.toISOString(),
+      nextBlockStart: nextBlockStart ? new Date(nextBlockStart).toISOString() : null,
+    });
+    
+    // Check if maxDurationMinutes is valid (must be positive)
+    if (maxDurationMinutes <= 0) {
+      console.error('[TemporalGrid] Invalid maxDuration:', {
+        maxDurationMinutes,
+        startTime: startDate.toISOString(),
+        endTime: endDate.toISOString(),
+        startTimestamp: startDate.getTime(),
+        endTimestamp: endDate.getTime(),
+      });
+      alert('Cannot create block: No available time (too close to existing block or day boundary)');
+      return;
+    }
+    
+    console.log('[TemporalGrid] About to call showModernTimePicker');
+    
     showModernTimePicker({
       startTime: startDate.toISOString(),
       endTime: endDate.toISOString(),
       dayStartTime: engineConfig.dayStartTime,
       dayEndTime: engineConfig.dayEndTime,
       minuteIncrement: 5,
+      maxDuration: maxDurationMinutes, // Restrict based on next block
       onConfirm: (startTime: string, endTime: string) => {
-        // Convert HH:mm to full ISO strings for the current day
-        const startISO = `${currentDay}T${startTime}:00Z`;
-        const endISO = `${currentDay}T${endTime}:00Z`;
+        // Convert HH:mm to full ISO strings for the current day (without Z suffix)
+        const startISO = `${currentDay}T${startTime}:00`;
+        const endISO = `${currentDay}T${endTime}:00`;
+        
+        console.log('[TemporalGrid] Time picker confirmed:', {
+          startTime,
+          endTime,
+          startISO,
+          endISO,
+          court,
+          paintType: this.currentPaintType,
+        });
         
         // Create the block
-        this.engine.applyBlock({
+        // DELETE is a paint action, not a block type - ignore it here
+        if (this.currentPaintType === 'DELETE') {
+          console.warn('[TemporalGrid] Cannot create DELETE blocks');
+          return;
+        }
+        
+        const result = this.engine.applyBlock({
           type: this.currentPaintType,
           courts: [court],
           timeRange: {
@@ -682,11 +921,16 @@ export class TemporalGridControl {
             end: endISO,
           },
         });
+        
+        console.log('[TemporalGrid] Block apply result:', result);
       },
       onCancel: () => {
         // User cancelled - do nothing
+        console.log('[TemporalGrid] Time picker cancelled');
       },
     });
+    
+    console.log('[TemporalGrid] showModernTimePicker called successfully - waiting for user interaction');
   }
 
   /**
@@ -706,6 +950,12 @@ export class TemporalGridControl {
     
     // Apply block
     if (this.isPaintMode) {
+      // DELETE is a paint action, not a block type - ignore it here
+      if (this.currentPaintType === 'DELETE') {
+        console.warn('[TemporalGrid] Cannot create DELETE blocks via drag');
+        return;
+      }
+      
       const result = this.engine.applyBlock({
         courts,
         timeRange: { start, end },
@@ -972,12 +1222,26 @@ export class TemporalGridControl {
     const deltaY = Math.abs(e.clientY - this.paintDragStart.y);
     const isClick = deltaX < 5 && deltaY < 5; // Less than 5px movement = click
     
+    console.log('[TemporalGrid] Paint mouse up:', {
+      isClick,
+      deltaX,
+      deltaY,
+      startX: this.paintDragStart.x,
+      endX: e.clientX,
+      resourceId: endResourceId,
+    });
+    
     // If it's a click, open the time picker instead of creating a 0-minute block
     if (isClick) {
       const court = parseResourceId(endResourceId);
       if (court) {
         // Calculate the time where the user clicked
         const clickTime = this.calculateTimeRangeFromMouseEvent(this.paintDragStart.x, this.paintDragStart.x);
+        console.log('[TemporalGrid] Single click detected - opening time picker:', {
+          court,
+          clickTime,
+          paintType: this.currentPaintType,
+        });
         this.openTimePickerForNewBlock(court, clickTime?.start);
       }
       this.paintDragStart = null;
@@ -993,6 +1257,7 @@ export class TemporalGridControl {
     const timeRange = this.calculateTimeRangeFromMouseEvent(this.paintDragStart.x, e.clientX);
     
     if (!timeRange) {
+      console.log('[TemporalGrid] Drag event: No time range calculated');
       this.paintDragStart = null;
       return;
     }
@@ -1001,9 +1266,24 @@ export class TemporalGridControl {
     const snappedStart = this.snapToMinutes(timeRange.start, 5);
     const snappedEnd = this.snapToMinutes(timeRange.end, 5);
     
+    console.log('[TemporalGrid] Drag event detected:', {
+      startX: this.paintDragStart.x,
+      endX: e.clientX,
+      timeRange: {
+        start: timeRange.start.toISOString(),
+        end: timeRange.end.toISOString(),
+      },
+      snappedRange: {
+        start: snappedStart.toISOString(),
+        end: snappedEnd.toISOString(),
+      },
+      resourceId: endResourceId,
+    });
+    
     // Parse resource ID to get court
     const court = parseResourceId(endResourceId);
     if (!court) {
+      console.log('[TemporalGrid] Drag event: Could not parse court from resource ID:', endResourceId);
       this.paintDragStart = null;
       return;
     }
@@ -1043,7 +1323,22 @@ export class TemporalGridControl {
     }
     
     // Create the block with snapped ISO string dates
-    this.engine.applyBlock({
+    console.log('[TemporalGrid] Creating block from drag event:', {
+      court,
+      paintType: this.currentPaintType,
+      timeRange: {
+        start: snappedStart.toISOString(),
+        end: snappedEnd.toISOString(),
+      },
+    });
+    
+    // DELETE is a paint action, not a block type - ignore it here
+    if (this.currentPaintType === 'DELETE') {
+      console.warn('[TemporalGrid] Cannot create DELETE blocks via paint drag');
+      return;
+    }
+    
+    const result = this.engine.applyBlock({
       type: this.currentPaintType,
       courts: [court],
       timeRange: {
@@ -1051,6 +1346,8 @@ export class TemporalGridControl {
         end: snappedEnd.toISOString(),
       },
     });
+    
+    console.log('[TemporalGrid] Block apply result from drag:', result);
     
     // Clean up visual overlay
     if (this.paintSelectionOverlay) {
