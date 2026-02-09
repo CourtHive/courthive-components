@@ -154,6 +154,13 @@ export class TemporalGridControl {
 
       // Time configuration
       ...timeSlotConfig,
+      
+      // Use 24-hour format for time labels (no AM/PM)
+      slotLabelFormat: {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: false,
+      },
 
       // Resource configuration
       resources: [],

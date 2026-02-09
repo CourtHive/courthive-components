@@ -64,6 +64,29 @@ const createMockTournament = (options: {
 const meta: Meta = {
   title: 'Temporal Grid/Main Component',
   tags: ['autodocs'],
+  argTypes: {
+    dayStartTime: {
+      control: { type: 'text' },
+      description: 'Court opening time (HH:mm format)',
+      defaultValue: '06:00',
+    },
+    dayEndTime: {
+      control: { type: 'text' },
+      description: 'Court closing time (HH:mm format)',
+      defaultValue: '23:00',
+    },
+    view: {
+      control: { type: 'select' },
+      options: ['resourceTimelineDay', 'resourceTimelineWeek'],
+      description: 'View mode: single day or week',
+      defaultValue: 'resourceTimelineDay',
+    },
+    slotMinutes: {
+      control: { type: 'number', min: 15, max: 60, step: 15 },
+      description: 'Time slot size in minutes',
+      defaultValue: 15,
+    },
+  },
   parameters: {
     layout: 'fullscreen',
     docs: {
@@ -183,11 +206,23 @@ const renderTemporalGrid = (args: any) => {
  * Default view with all features enabled
  */
 export const Default: Story = {
-  render: () => renderTemporalGrid({
+  args: {
+    dayStartTime: '06:00',
+    dayEndTime: '23:00',
+    view: 'resourceTimelineDay',
+    slotMinutes: 15,
+  },
+  render: (args) => renderTemporalGrid({
+    ...args,
+    engineConfig: {
+      dayStartTime: args.dayStartTime,
+      dayEndTime: args.dayEndTime,
+      slotMinutes: args.slotMinutes,
+    },
     instructions: `
       <strong>Try these features:</strong><br>
       • Click the Paint button and drag on the timeline to create blocks<br>
-      • Use the date picker to switch days<br>
+      • Use the controls above to change court hours and view settings<br>
       • Check courts in the left panel for multi-selection<br>
       • View capacity stats at the top
     `,

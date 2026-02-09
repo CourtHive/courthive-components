@@ -297,11 +297,11 @@ export class TemporalGrid {
       <div class="capacity-label">Court Availability:</div>
       <div class="capacity-stats">
         <div class="stat">
-          <span class="stat-label">Available:</span>
-          <span class="stat-value" id="available">-</span>
+          <span class="stat-label">Total Hours:</span>
+          <span class="stat-value" id="total-hours">-</span>
         </div>
         <div class="stat">
-          <span class="stat-label">Avg Hours/Court:</span>
+          <span class="stat-label">Avg/Court:</span>
           <span class="stat-value" id="avg-hours">-</span>
         </div>
       </div>
@@ -354,15 +354,15 @@ export class TemporalGrid {
     const curve = this.engine.getCapacityCurve(currentDay);
     const stats = calculateCapacityStats(curve);
 
-    const availableEl = this.capacityElement.querySelector('#available');
+    const totalHoursEl = this.capacityElement.querySelector('#total-hours');
     const avgHoursEl = this.capacityElement.querySelector('#avg-hours');
 
-    // Available: Percentage of court-hours available (not blocked)
-    if (availableEl) {
-      availableEl.textContent = `${(stats.availablePercent || 0).toFixed(0)}%`;
+    // Total Hours: Total available hours across all courts
+    if (totalHoursEl) {
+      totalHoursEl.textContent = `${(stats.totalAvailableHours || 0).toFixed(1)}h`;
     }
     
-    // Avg Hours/Court: Average hours available per court
+    // Avg/Court: Average hours available per court
     const avgAvailableHoursPerCourt = stats.totalCourts && stats.totalCourts > 0
       ? (stats.totalAvailableHours || 0) / stats.totalCourts
       : 0;
