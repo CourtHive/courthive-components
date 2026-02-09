@@ -17,7 +17,11 @@
 import { createCalendar, destroyCalendar, ResourceTimeline, type Calendar } from '@event-calendar/core';
 import { tools } from 'tods-competition-factory';
 import type { TemporalGridEngine } from '../engine/temporalGridEngine';
-import { clampDragToCollisions, findBlocksContainingTime, sortBlocksByStart } from '../engine/collisionDetection';
+import { 
+  clampDragToCollisions, 
+  findBlocksContainingTime, 
+  sortBlocksByStart 
+} from '../engine/collisionDetection';
 import type { BlockType, CourtRef, DayId } from '../engine/types';
 import {
   buildBlockEvents,
@@ -509,6 +513,7 @@ export class TemporalGridControl {
     const block = blocks.find((b) => b.id === blockId);
 
     if (!block) {
+      console.error('Block not found:', blockId);
       return;
     }
 
@@ -578,12 +583,15 @@ export class TemporalGridControl {
    * Delete a block
    */
   private deleteBlock(blockId: string): void {
+    console.log('[TemporalGrid] Deleting block:', blockId);
+
     const result = this.engine.removeBlock(blockId);
 
     if (result.conflicts.some((c) => c.severity === 'ERROR')) {
+      console.error('[TemporalGrid] Error deleting block:', result.conflicts);
       this.showConflictDialog(result.conflicts);
     } else {
-      // [TemporalGrid] Block deleted successfully
+      console.log('[TemporalGrid] Block deleted successfully');
     }
   }
 
@@ -596,6 +604,7 @@ export class TemporalGridControl {
     const block = blocks.find((b) => b.id === blockId);
 
     if (!block) {
+      console.error('Block not found:', blockId);
       return;
     }
 
@@ -698,6 +707,12 @@ export class TemporalGridControl {
    * 4. Never exceed day end time
    */
   private openTimePickerForNewBlock(court: CourtRef, clickedTime?: Date): void {
+    console.log('[TemporalGrid] openTimePickerForNewBlock called:', {
+      court,
+      clickedTime: clickedTime?.toISOString(),
+      currentDay: this.currentDay
+    });
+
     const engineConfig = this.engine.getConfig();
     const currentDay = this.currentDay || tools.dateTime.extractDate(new Date().toISOString());
 
@@ -708,6 +723,11 @@ export class TemporalGridControl {
     } else {
       startDate = new Date();
     }
+
+    console.log('[TemporalGrid] Start date initialized:', {
+      startDate: startDate.toISOString(),
+      startTimestamp: startDate.getTime()
+    });
 
     // Get the timeline for this court to see segments (availability boundaries)
     const timelines = this.engine.getDayTimeline(this.currentDay);
@@ -725,6 +745,16 @@ export class TemporalGridControl {
     let nextBoundary: Date | null = null;
 
     if (courtTimeline) {
+      console.log('[TemporalGrid] Court timeline segments:', {
+        courtId: court.courtId,
+        segmentCount: courtTimeline.segments.length,
+        segments: courtTimeline.segments.map(s => ({
+          status: s.status,
+          start: s.start,
+          end: s.end,
+        })),
+      });
+      
       // Look at all segments and find the next one that starts after our click time
       for (const segment of courtTimeline.segments) {
         // CRITICAL: Segment times are stored without 'Z', so parse as UTC by adding 'Z'
@@ -733,15 +763,26 @@ export class TemporalGridControl {
         const segmentStart = new Date(segmentStartStr).getTime();
         const segmentEnd = new Date(segmentEndStr).getTime();
 
+        console.log('[TemporalGrid] Checking segment for boundary:', {
+          segmentStatus: segment.status,
+          segmentStart: new Date(segmentStart).toISOString(),
+          segmentEnd: new Date(segmentEnd).toISOString(),
+          clickedTime: new Date(startTime).toISOString(),
+          isWithinSegment: startTime >= segmentStart && startTime < segmentEnd,
+          startsAfterClick: segmentStart > startTime,
+        });
+
         // If the clicked time is within this segment, use the segment end
         if (startTime >= segmentStart && startTime < segmentEnd) {
           nextBoundary = new Date(segmentEnd);
+          console.log('[TemporalGrid] Setting nextBoundary from segment end:', nextBoundary.toISOString());
           break;
         }
 
         // If there's a segment that starts after our time, that's a boundary
         if (segmentStart > startTime) {
           nextBoundary = new Date(segmentStart);
+          console.log('[TemporalGrid] Setting nextBoundary from segment start:', nextBoundary.toISOString());
           break;
         }
       }
@@ -753,12 +794,35 @@ export class TemporalGridControl {
     // IMPORTANT: Block times are stored without 'Z', so we need to parse them as UTC
     const existingBlocks = this.engine.getDayBlocks(this.currentDay);
 
+    console.log('[TemporalGrid] All blocks for day:', {
+      currentDay: this.currentDay,
+      totalBlocks: existingBlocks.length,
+      blocks: existingBlocks.map((b) => ({
+        id: b.id,
+        court: b.court.courtId,
+        type: b.type,
+        start: b.start,
+        end: b.end
+      }))
+    });
+
     const blocksOnThisCourt = existingBlocks.filter(
       (b) =>
         b.court.tournamentId === court.tournamentId &&
         b.court.facilityId === court.facilityId &&
         b.court.courtId === court.courtId
     );
+
+    console.log('[TemporalGrid] Blocks on this court:', {
+      courtId: court.courtId,
+      count: blocksOnThisCourt.length,
+      blocks: blocksOnThisCourt.map((b) => ({
+        id: b.id,
+        type: b.type,
+        start: b.start,
+        end: b.end
+      }))
+    });
 
     const relevantBlocks = blocksOnThisCourt.filter((b) => {
       // Parse as UTC by ensuring 'Z' suffix
@@ -768,6 +832,16 @@ export class TemporalGridControl {
       const blockEnd = new Date(blockEndStr).getTime();
 
       const isRelevant = blockStart > startTime || blockEnd > startTime;
+
+      console.log('[TemporalGrid] Block relevance check:', {
+        blockId: b.id,
+        blockStart: new Date(blockStart).toISOString(),
+        blockEnd: new Date(blockEnd).toISOString(),
+        clickedTime: new Date(startTime).toISOString(),
+        blockStartAfterClick: blockStart > startTime,
+        blockEndAfterClick: blockEnd > startTime,
+        isRelevant
+      });
 
       // Include blocks that start after our clicked time
       // (these would be potential overlaps if we extend past their start)
@@ -784,9 +858,27 @@ export class TemporalGridControl {
         })
         .filter((blockStart) => blockStart > startTime)
         .sort((a, b) => a - b)[0];
+      
+      console.log('[TemporalGrid] nextBlockStart calculated:', nextBlockStart ? new Date(nextBlockStart).toISOString() : null);
     } catch (error) {
       console.error('[TemporalGrid] Error calculating nextBlockStart:', error);
       nextBlockStart = undefined;
+    }
+
+    try {
+      console.log('[TemporalGrid] Relevant blocks for overlap detection:', {
+        clickedTime: new Date(startTime).toISOString(),
+        relevantBlocks: relevantBlocks.map((b) => ({
+          start: b.start,
+          startParsed: new Date(b.start).toISOString(),
+          startWithZ: new Date(b.start + 'Z').toISOString(),
+          end: b.end,
+          type: b.type
+        })),
+        nextBlockStart: nextBlockStart ? new Date(nextBlockStart).toISOString() : null
+      });
+    } catch (error) {
+      console.error('[TemporalGrid] Error logging relevant blocks:', error);
     }
 
     // Calculate end time:
@@ -816,12 +908,30 @@ export class TemporalGridControl {
 
     // Calculate maxDuration in minutes to prevent overlaps
     const maxDurationMinutes = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60));
+    console.log({ startDate, endDate, maxDurationMinutes });
+
+    console.log('[TemporalGrid] Opening time picker with constraints:', {
+      startTime: startDate.toISOString(),
+      endTime: endDate.toISOString(),
+      maxDurationMinutes,
+      nextBoundary: nextBoundary?.toISOString(),
+      nextBlockStart: nextBlockStart ? new Date(nextBlockStart).toISOString() : null
+    });
 
     // Check if maxDurationMinutes is valid (must be positive)
     if (maxDurationMinutes <= 0) {
-      // Cannot create block: No available time (too close to existing block or day boundary
+      console.error('[TemporalGrid] Invalid maxDuration:', {
+        maxDurationMinutes,
+        startTime: startDate.toISOString(),
+        endTime: endDate.toISOString(),
+        startTimestamp: startDate.getTime(),
+        endTimestamp: endDate.getTime()
+      });
+      alert('Cannot create block: No available time (too close to existing block or day boundary)');
       return;
     }
+
+    console.log('[TemporalGrid] About to call showModernTimePicker');
 
     showModernTimePicker({
       startTime: startDate.toISOString(),
@@ -835,47 +945,79 @@ export class TemporalGridControl {
         let startISO = `${currentDay}T${startTime}:00`;
         let endISO = `${currentDay}T${endTime}:00`;
 
+        console.log('[TemporalGrid] Time picker confirmed (before clamping):', {
+          startTime,
+          endTime,
+          startISO,
+          endISO,
+          court,
+          paintType: this.currentPaintType
+        });
+
         // Apply collision-aware clamping to the confirmed times
         // This prevents overlaps even if user overrides maxDuration
         const startTimestamp = new Date(startISO + 'Z').getTime();
         const endTimestamp = new Date(endISO + 'Z').getTime();
-
+        
         // Get existing blocks on this court for collision detection
         const existingBlocks = this.engine.getDayBlocks(currentDay);
-        const blocksOnCourt = existingBlocks.filter(
-          (b) =>
-            b.court.tournamentId === court.tournamentId &&
-            b.court.facilityId === court.facilityId &&
-            b.court.courtId === court.courtId
+        const blocksOnCourt = existingBlocks.filter((b) =>
+          b.court.tournamentId === court.tournamentId &&
+          b.court.facilityId === court.facilityId &&
+          b.court.courtId === court.courtId
         );
-
+        
         // Sort blocks by start time for efficient collision detection
         sortBlocksByStart(blocksOnCourt);
-
+        
         // Apply collision clamping
         const clamped = clampDragToCollisions(startTimestamp, endTimestamp, blocksOnCourt);
-
+        
         // Use clamped times
         const clampedStartDate = new Date(clamped.start);
         const clampedEndDate = new Date(clamped.end);
-
+        
         // Convert back to ISO strings without Z
         startISO = clampedStartDate.toISOString().slice(0, 19);
         endISO = clampedEndDate.toISOString().slice(0, 19);
-
+        
         // Check if clamping resulted in zero or negative duration
         if (clampedEndDate.getTime() <= clampedStartDate.getTime()) {
-          // Cannot create block: The selected time would overlap with an existing block.
+          console.warn('[TemporalGrid] Time picker result would overlap - cancelling');
+          alert('Cannot create block: The selected time would overlap with an existing block.');
           return;
         }
+        
+        // Log if we clamped the user's selection
+        if (clamped.clamped) {
+          console.log('[TemporalGrid] Time picker result was clamped to avoid overlap:', {
+            originalStart: startTime,
+            originalEnd: endTime,
+            clampedStart: startISO,
+            clampedEnd: endISO,
+            clampedBy: clamped.clampedBy ? {
+              id: clamped.clampedBy.id,
+              type: clamped.clampedBy.type,
+              start: clamped.clampedBy.start,
+              end: clamped.clampedBy.end,
+            } : null,
+          });
+        }
+
+        console.log('[TemporalGrid] Time picker confirmed (after clamping):', {
+          startISO,
+          endISO,
+          wasClamped: clamped.clamped,
+        });
 
         // Create the block
         // DELETE is a paint action, not a block type - ignore it here
         if (this.currentPaintType === 'DELETE') {
+          console.warn('[TemporalGrid] Cannot create DELETE blocks');
           return;
         }
 
-        this.engine.applyBlock({
+        const result = this.engine.applyBlock({
           type: this.currentPaintType,
           courts: [court],
           timeRange: {
@@ -883,12 +1025,16 @@ export class TemporalGridControl {
             end: endISO
           }
         });
+
+        console.log('[TemporalGrid] Block apply result:', result);
       },
       onCancel: () => {
         // User cancelled - do nothing
-        // [TemporalGrid] Time picker cancelled'
+        console.log('[TemporalGrid] Time picker cancelled');
       }
     });
+
+    console.log('[TemporalGrid] showModernTimePicker called successfully - waiting for user interaction');
   }
 
   /**
@@ -908,7 +1054,7 @@ export class TemporalGridControl {
     if (this.isPaintMode) {
       // DELETE is a paint action, not a block type - ignore it here
       if (this.currentPaintType === 'DELETE') {
-        // [TemporalGrid] Cannot create DELETE blocks via drag
+        console.warn('[TemporalGrid] Cannot create DELETE blocks via drag');
         return;
       }
 
@@ -1058,28 +1204,27 @@ export class TemporalGridControl {
     const resourceId = this.getResourceIdFromMouseEvent(e);
 
     if (!resourceId) return;
-
+    
     // Rule B: Check if starting inside an existing block
     const court = parseResourceId(resourceId);
     if (court) {
       const timeRange = this.calculateTimeRangeFromMouseEvent(e.clientX, e.clientX);
       if (timeRange) {
         const clickTime = timeRange.start.getTime();
-
+        
         // Get all blocks on this court
         const existingBlocks = this.engine.getDayBlocks(this.currentDay);
-        const blocksOnCourt = existingBlocks.filter(
-          (b) =>
-            b.court.tournamentId === court.tournamentId &&
-            b.court.facilityId === court.facilityId &&
-            b.court.courtId === court.courtId
+        const blocksOnCourt = existingBlocks.filter((b) =>
+          b.court.tournamentId === court.tournamentId &&
+          b.court.facilityId === court.facilityId &&
+          b.court.courtId === court.courtId
         );
-
+        
         // Check if click is inside any existing block
         const blocksContaining = findBlocksContainingTime(clickTime, blocksOnCourt);
-
+        
         if (blocksContaining.length > 0) {
-          // [TemporalGrid] Cannot start drag inside existing block:', blocksContaining[0]
+          console.log('[TemporalGrid] Cannot start drag inside existing block:', blocksContaining[0]);
           // TODO: Show tooltip "Can't start inside an existing block"
           return; // Abort drag start
         }
@@ -1205,12 +1350,26 @@ export class TemporalGridControl {
     const deltaY = Math.abs(e.clientY - this.paintDragStart.y);
     const isClick = deltaX < 5 && deltaY < 5; // Less than 5px movement = click
 
+    console.log('[TemporalGrid] Paint mouse up:', {
+      isClick,
+      deltaX,
+      deltaY,
+      startX: this.paintDragStart.x,
+      endX: e.clientX,
+      resourceId: endResourceId
+    });
+
     // If it's a click, open the time picker instead of creating a 0-minute block
     if (isClick) {
       const court = parseResourceId(endResourceId);
       if (court) {
         // Calculate the time where the user clicked
         const clickTime = this.calculateTimeRangeFromMouseEvent(this.paintDragStart.x, this.paintDragStart.x);
+        console.log('[TemporalGrid] Single click detected - opening time picker:', {
+          court,
+          clickTime,
+          paintType: this.currentPaintType
+        });
         this.openTimePickerForNewBlock(court, clickTime?.start);
       }
       this.paintDragStart = null;
@@ -1226,6 +1385,7 @@ export class TemporalGridControl {
     const timeRange = this.calculateTimeRangeFromMouseEvent(this.paintDragStart.x, e.clientX);
 
     if (!timeRange) {
+      console.log('[TemporalGrid] Drag event: No time range calculated');
       this.paintDragStart = null;
       return;
     }
@@ -1233,35 +1393,51 @@ export class TemporalGridControl {
     // Parse resource ID to get court
     const court = parseResourceId(endResourceId);
     if (!court) {
+      console.log('[TemporalGrid] Drag event: Could not parse court from resource ID:', endResourceId);
       this.paintDragStart = null;
       return;
     }
 
     // Get existing blocks on this court for collision detection
     const existingBlocks = this.engine.getDayBlocks(this.currentDay);
-    const blocksOnCourt = existingBlocks.filter(
-      (b) =>
-        b.court.tournamentId === court.tournamentId &&
-        b.court.facilityId === court.facilityId &&
-        b.court.courtId === court.courtId
+    const blocksOnCourt = existingBlocks.filter((b) =>
+      b.court.tournamentId === court.tournamentId &&
+      b.court.facilityId === court.facilityId &&
+      b.court.courtId === court.courtId
     );
-
+    
     // Sort blocks by start time for efficient collision detection
     sortBlocksByStart(blocksOnCourt);
-
+    
     // Get anchor and cursor times
     const anchorTimeRange = this.calculateTimeRangeFromMouseEvent(this.paintDragStart.x, this.paintDragStart.x);
     if (!anchorTimeRange) {
+      console.log('[TemporalGrid] Drag event: Could not calculate anchor time');
       this.paintDragStart = null;
       return;
     }
-
+    
     const anchorTime = anchorTimeRange.start.getTime();
     const cursorTime = timeRange.end.getTime(); // Use end because timeRange is normalized
-
+    
     // Apply collision-aware clamping (Rules A & C)
     const clamped = clampDragToCollisions(anchorTime, cursorTime, blocksOnCourt);
-
+    
+    console.log('[TemporalGrid] Collision clamping result:', {
+      anchorTime: new Date(anchorTime).toISOString(),
+      cursorTime: new Date(cursorTime).toISOString(),
+      clampedStart: new Date(clamped.start).toISOString(),
+      clampedEnd: new Date(clamped.end).toISOString(),
+      wasClamped: clamped.clamped,
+      clampedByBlock: clamped.clampedBy ? {
+        id: clamped.clampedBy.id,
+        type: clamped.clampedBy.type,
+        start: clamped.clampedBy.start,
+        end: clamped.clampedBy.end,
+      } : null,
+      direction: clamped.direction,
+    });
+    
     // Use clamped times
     const clampedStartDate = new Date(clamped.start);
     const clampedEndDate = new Date(clamped.end);
@@ -1272,6 +1448,7 @@ export class TemporalGridControl {
 
     // If clamping resulted in zero or negative duration, don't create block
     if (snappedEnd.getTime() <= snappedStart.getTime()) {
+      console.log('[TemporalGrid] Drag resulted in zero/negative duration after clamping - not creating block');
       this.paintDragStart = null;
       if (this.paintSelectionOverlay) {
         this.paintSelectionOverlay.remove();
@@ -1279,14 +1456,39 @@ export class TemporalGridControl {
       }
       return;
     }
+    
+    console.log('[TemporalGrid] Drag event detected:', {
+      startX: this.paintDragStart.x,
+      endX: e.clientX,
+      timeRange: {
+        start: timeRange.start.toISOString(),
+        end: timeRange.end.toISOString()
+      },
+      snappedRange: {
+        start: snappedStart.toISOString(),
+        end: snappedEnd.toISOString()
+      },
+      resourceId: endResourceId,
+      wasClamped: clamped.clamped,
+    });
+
+    // Create the block with snapped ISO string dates
+    console.log('[TemporalGrid] Creating block from drag event:', {
+      court,
+      paintType: this.currentPaintType,
+      timeRange: {
+        start: snappedStart.toISOString(),
+        end: snappedEnd.toISOString()
+      }
+    });
 
     // DELETE is a paint action, not a block type - ignore it here
     if (this.currentPaintType === 'DELETE') {
-      // [TemporalGrid] Cannot create DELETE blocks via paint drag
+      console.warn('[TemporalGrid] Cannot create DELETE blocks via paint drag');
       return;
     }
 
-    this.engine.applyBlock({
+    const result = this.engine.applyBlock({
       type: this.currentPaintType,
       courts: [court],
       timeRange: {
@@ -1294,6 +1496,8 @@ export class TemporalGridControl {
         end: snappedEnd.toISOString()
       }
     });
+
+    console.log('[TemporalGrid] Block apply result from drag:', result);
 
     // Clean up visual overlay
     if (this.paintSelectionOverlay) {
@@ -1347,12 +1551,14 @@ export class TemporalGridControl {
     // Get the timeline and find the actual time grid area (excluding resource labels sidebar)
     const timelineEl = this.config.container.querySelector('.ec-timeline');
     if (!timelineEl) {
+      console.error('No timeline element found');
       return null;
     }
 
     // Find the body element first
     const bodyEl = timelineEl.querySelector('.ec-body');
     if (!bodyEl) {
+      console.error('No body element found');
       return null;
     }
 

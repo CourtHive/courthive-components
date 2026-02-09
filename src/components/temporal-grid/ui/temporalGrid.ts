@@ -1,12 +1,12 @@
 /**
  * Temporal Grid Component
- * 
+ *
  * Main component that assembles the complete Temporal Grid interface:
  * - Facility tree (left panel)
  * - Calendar timeline (center)
  * - Capacity indicator (top)
  * - Toolbar controls (top)
- * 
+ *
  * This is the entry point for using the temporal grid in applications.
  */
 
@@ -69,14 +69,14 @@ export class TemporalGrid {
   private engine: TemporalGridEngine;
   private control: TemporalGridControl | null = null;
   private config: Required<TemporalGridConfig>;
-  
+
   // UI Elements
   private rootElement: HTMLElement | null = null;
   private facilityTreeElement: HTMLElement | null = null;
   private calendarElement: HTMLElement | null = null;
   private capacityElement: HTMLElement | null = null;
   private toolbarElement: HTMLElement | null = null;
-  
+
   // State
   private visibleCourts: Set<string> = new Set(); // "tournamentId|facilityId|courtId" to match resource IDs
 
@@ -88,7 +88,7 @@ export class TemporalGrid {
       groupingMode: 'BY_FACILITY',
       showConflicts: true,
       showSegmentLabels: false,
-      ...config,
+      ...config
     } as Required<TemporalGridConfig>;
 
     // Create engine
@@ -147,9 +147,9 @@ export class TemporalGrid {
         showSegmentLabels: this.config.showSegmentLabels,
         onBlockSelected: this.handleBlockSelected,
         onCourtSelected: this.handleCourtSelected,
-        onTimeRangeSelected: this.handleTimeRangeSelected,
+        onTimeRangeSelected: this.handleTimeRangeSelected
       });
-      
+
       // Don't set visibleCourts on controller initially - let it show all
       // The controller's visibleCourts = null means "show all courts"
       // User will filter via checkboxes if desired
@@ -249,7 +249,7 @@ export class TemporalGrid {
     if (dateInput) {
       const currentDay = this.control?.getDay() || tools.dateTime.extractDate(new Date().toISOString());
       dateInput.value = currentDay;
-      
+
       dateInput.addEventListener('change', () => {
         this.control?.setDay(dateInput.value);
       });
@@ -294,30 +294,22 @@ export class TemporalGrid {
     const capacity = document.createElement('div');
     capacity.className = 'temporal-grid-capacity';
     capacity.innerHTML = `
-      <div class="capacity-label">Court Capacity:</div>
+      <div class="capacity-label">Court Availability:</div>
       <div class="capacity-stats">
-        <div class="stat">
-          <span class="stat-label">Peak Use:</span>
-          <span class="stat-value" id="peak-use">-</span>
-        </div>
-        <div class="stat">
-          <span class="stat-label">Avg Blocked/Court:</span>
-          <span class="stat-value" id="avg-blocked">-</span>
-        </div>
         <div class="stat">
           <span class="stat-label">Available:</span>
           <span class="stat-value" id="available">-</span>
         </div>
         <div class="stat">
-          <span class="stat-label">Utilization:</span>
-          <span class="stat-value" id="utilization">-</span>
+          <span class="stat-label">Avg Hours/Court:</span>
+          <span class="stat-value" id="avg-hours">-</span>
         </div>
       </div>
     `;
 
     header.appendChild(capacity);
     this.capacityElement = capacity;
-    
+
     // Update capacity stats
     this.updateCapacityStats();
   }
@@ -336,7 +328,7 @@ export class TemporalGrid {
 
     container.appendChild(tree);
     this.facilityTreeElement = tree;
-    
+
     // Populate tree
     this.updateFacilityTree();
   }
@@ -344,7 +336,7 @@ export class TemporalGrid {
   private renderCalendar(container: HTMLElement): void {
     const calendar = document.createElement('div');
     calendar.className = 'temporal-grid-calendar';
-    
+
     container.appendChild(calendar);
     this.calendarElement = calendar;
   }
@@ -362,30 +354,21 @@ export class TemporalGrid {
     const curve = this.engine.getCapacityCurve(currentDay);
     const stats = calculateCapacityStats(curve);
 
-    // NEW: Display inverted paradigm metrics
-    const peakUseEl = this.capacityElement.querySelector('#peak-use');
-    const avgBlockedEl = this.capacityElement.querySelector('#avg-blocked');
     const availableEl = this.capacityElement.querySelector('#available');
-    const utilEl = this.capacityElement.querySelector('#utilization');
+    const avgHoursEl = this.capacityElement.querySelector('#avg-hours');
 
-    // Peak Use: Maximum number of courts blocked at once
-    if (peakUseEl) {
-      peakUseEl.textContent = `${stats.peakUnavailable || 0} courts`;
-    }
-    
-    // Avg Blocked/Court: Average hours blocked per court
-    if (avgBlockedEl) {
-      avgBlockedEl.textContent = `${(stats.avgBlockedHoursPerCourt || 0).toFixed(1)}h`;
-    }
-    
     // Available: Percentage of court-hours available (not blocked)
     if (availableEl) {
       availableEl.textContent = `${(stats.availablePercent || 0).toFixed(0)}%`;
     }
     
-    // Utilization: Percentage of court-hours blocked (in use)
-    if (utilEl) {
-      utilEl.textContent = `${(stats.utilizationPercent || 0).toFixed(0)}%`;
+    // Avg Hours/Court: Average hours available per court
+    const avgAvailableHoursPerCourt = stats.totalCourts && stats.totalCourts > 0
+      ? (stats.totalAvailableHours || 0) / stats.totalCourts
+      : 0;
+    
+    if (avgHoursEl) {
+      avgHoursEl.textContent = `${avgAvailableHoursPerCourt.toFixed(1)}h`;
     }
   }
 
@@ -397,16 +380,16 @@ export class TemporalGrid {
 
     const courtMeta = this.engine.listCourtMeta();
     const tournamentId = this.engine.getConfig().tournamentId;
-    
+
     // Initialize all courts as visible if not already set
     if (this.visibleCourts.size === 0) {
-      courtMeta.forEach(meta => {
+      courtMeta.forEach((meta) => {
         // Match resource ID format: tournamentId|facilityId|courtId
         const key = `${meta.ref.tournamentId}|${meta.ref.facilityId}|${meta.ref.courtId}`;
         this.visibleCourts.add(key);
       });
     }
-    
+
     // Group by facility
     const facilities = new Map<string, typeof courtMeta>();
     for (const meta of courtMeta) {
@@ -421,11 +404,11 @@ export class TemporalGrid {
     let html = '';
     for (const [facilityId, courts] of facilities) {
       // Check if all courts in this facility are visible
-      const allVisible = courts.every(c => {
+      const allVisible = courts.every((c) => {
         const key = `${c.ref.tournamentId}|${c.ref.facilityId}|${c.ref.courtId}`;
         return this.visibleCourts.has(key);
       });
-      
+
       html += `
         <div class="facility-group">
           <div class="facility-header">
@@ -436,10 +419,11 @@ export class TemporalGrid {
             <span class="facility-name">${facilityId}</span>
           </div>
           <div class="courts-list">
-            ${courts.map(court => {
-              const key = `${court.ref.tournamentId}|${court.ref.facilityId}|${court.ref.courtId}`;
-              const checked = this.visibleCourts.has(key);
-              return `
+            ${courts
+              .map((court) => {
+                const key = `${court.ref.tournamentId}|${court.ref.facilityId}|${court.ref.courtId}`;
+                const checked = this.visibleCourts.has(key);
+                return `
                 <div class="court-item">
                   <input type="checkbox" class="court-checkbox" 
                          data-court-id="${court.ref.courtId}" 
@@ -450,7 +434,8 @@ export class TemporalGrid {
                   <span class="court-meta">${court.surface}${court.indoor ? ' (Indoor)' : ''}</span>
                 </div>
               `;
-            }).join('')}
+              })
+              .join('')}
           </div>
         </div>
       `;
@@ -460,13 +445,13 @@ export class TemporalGrid {
 
     // Wire up court checkboxes
     const courtCheckboxes = treeContent.querySelectorAll('.court-checkbox');
-    courtCheckboxes.forEach(checkbox => {
+    courtCheckboxes.forEach((checkbox) => {
       checkbox.addEventListener('change', this.handleCourtCheckboxChange);
     });
-    
+
     // Wire up facility checkboxes
     const facilityCheckboxes = treeContent.querySelectorAll('.facility-checkbox');
-    facilityCheckboxes.forEach(checkbox => {
+    facilityCheckboxes.forEach((checkbox) => {
       checkbox.addEventListener('change', this.handleFacilityCheckboxChange);
     });
   }
@@ -478,7 +463,7 @@ export class TemporalGrid {
   private handleEngineEvent = (event: any): void => {
     if (event.type === 'BLOCKS_CHANGED') {
       this.updateCapacityStats();
-      
+
       if (this.config.onMutationsApplied) {
         this.config.onMutationsApplied(event.payload.mutations);
       }
@@ -507,17 +492,17 @@ export class TemporalGrid {
 
     // Match resource ID format: tournamentId|facilityId|courtId
     const key = `${tournamentId}|${facilityId}|${courtId}`;
-    
+
     // Toggle visibility
     if (checkbox.checked) {
       this.visibleCourts.add(key);
     } else {
       this.visibleCourts.delete(key);
     }
-    
+
     // Update facility checkbox state
     this.updateFacilityCheckboxState(facilityId);
-    
+
     // Update controller with new visibility filter
     const filterSet = new Set(this.visibleCourts);
     this.control?.setVisibleCourts(filterSet);
@@ -532,10 +517,10 @@ export class TemporalGrid {
 
     // Get all courts in this facility
     const courtMeta = this.engine.listCourtMeta();
-    const facilityCourts = courtMeta.filter(m => m.ref.facilityId === facilityId);
+    const facilityCourts = courtMeta.filter((m) => m.ref.facilityId === facilityId);
 
     // Toggle all courts in facility
-    facilityCourts.forEach(court => {
+    facilityCourts.forEach((court) => {
       const key = `${court.ref.tournamentId}|${court.ref.facilityId}|${court.ref.courtId}`;
       if (checkbox.checked) {
         this.visibleCourts.add(key);
@@ -548,7 +533,7 @@ export class TemporalGrid {
     const courtCheckboxes = this.facilityTreeElement?.querySelectorAll(
       `.court-checkbox[data-facility-id="${facilityId}"]`
     );
-    courtCheckboxes?.forEach(cb => {
+    courtCheckboxes?.forEach((cb) => {
       (cb as HTMLInputElement).checked = checkbox.checked;
     });
 
@@ -559,10 +544,10 @@ export class TemporalGrid {
 
   private updateFacilityCheckboxState(facilityId: string): void {
     const courtMeta = this.engine.listCourtMeta();
-    const facilityCourts = courtMeta.filter(m => m.ref.facilityId === facilityId);
-    
+    const facilityCourts = courtMeta.filter((m) => m.ref.facilityId === facilityId);
+
     // Count how many courts in facility are visible
-    const visibleCount = facilityCourts.filter(c => {
+    const visibleCount = facilityCourts.filter((c) => {
       const key = `${c.ref.tournamentId}|${c.ref.facilityId}|${c.ref.courtId}`;
       return this.visibleCourts.has(key);
     }).length;
@@ -571,7 +556,7 @@ export class TemporalGrid {
     const facilityCheckbox = this.facilityTreeElement?.querySelector(
       `.facility-checkbox[data-facility="${facilityId}"]`
     ) as HTMLInputElement;
-    
+
     if (facilityCheckbox) {
       if (visibleCount === 0) {
         // No courts visible - unchecked
@@ -632,10 +617,7 @@ export class TemporalGrid {
 /**
  * Create and render a temporal grid
  */
-export function createTemporalGrid(
-  config: TemporalGridConfig,
-  container: HTMLElement,
-): TemporalGrid {
+export function createTemporalGrid(config: TemporalGridConfig, container: HTMLElement): TemporalGrid {
   const grid = new TemporalGrid(config);
   grid.render(container);
   return grid;
