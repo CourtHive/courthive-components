@@ -297,12 +297,16 @@ export class TemporalGrid {
       <div class="capacity-label">Court Capacity:</div>
       <div class="capacity-stats">
         <div class="stat">
-          <span class="stat-label">Peak:</span>
-          <span class="stat-value" id="peak-courts">-</span>
+          <span class="stat-label">Peak Use:</span>
+          <span class="stat-value" id="peak-use">-</span>
         </div>
         <div class="stat">
-          <span class="stat-label">Avg:</span>
-          <span class="stat-value" id="avg-courts">-</span>
+          <span class="stat-label">Avg Blocked/Court:</span>
+          <span class="stat-value" id="avg-blocked">-</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Available:</span>
+          <span class="stat-value" id="available">-</span>
         </div>
         <div class="stat">
           <span class="stat-label">Utilization:</span>
@@ -358,13 +362,31 @@ export class TemporalGrid {
     const curve = this.engine.getCapacityCurve(currentDay);
     const stats = calculateCapacityStats(curve);
 
-    const peakEl = this.capacityElement.querySelector('#peak-courts');
-    const avgEl = this.capacityElement.querySelector('#avg-courts');
+    // NEW: Display inverted paradigm metrics
+    const peakUseEl = this.capacityElement.querySelector('#peak-use');
+    const avgBlockedEl = this.capacityElement.querySelector('#avg-blocked');
+    const availableEl = this.capacityElement.querySelector('#available');
     const utilEl = this.capacityElement.querySelector('#utilization');
 
-    if (peakEl) peakEl.textContent = stats.peakAvailable.toString();
-    if (avgEl) avgEl.textContent = stats.avgAvailable.toFixed(1);
-    if (utilEl) utilEl.textContent = `${stats.utilizationPercent.toFixed(0)}%`;
+    // Peak Use: Maximum number of courts blocked at once
+    if (peakUseEl) {
+      peakUseEl.textContent = `${stats.peakUnavailable || 0} courts`;
+    }
+    
+    // Avg Blocked/Court: Average hours blocked per court
+    if (avgBlockedEl) {
+      avgBlockedEl.textContent = `${(stats.avgBlockedHoursPerCourt || 0).toFixed(1)}h`;
+    }
+    
+    // Available: Percentage of court-hours available (not blocked)
+    if (availableEl) {
+      availableEl.textContent = `${(stats.availablePercent || 0).toFixed(0)}%`;
+    }
+    
+    // Utilization: Percentage of court-hours blocked (in use)
+    if (utilEl) {
+      utilEl.textContent = `${(stats.utilizationPercent || 0).toFixed(0)}%`;
+    }
   }
 
   private updateFacilityTree(): void {

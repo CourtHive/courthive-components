@@ -93,24 +93,38 @@ function findSegmentAtTime(segments: RailSegment[], time: string): RailSegment |
 
 /**
  * Categorize a segment and increment appropriate counter
+ * 
+ * INVERTED PARADIGM: We count UNAVAILABLE courts (blocked/in-use)
+ * - courtsAvailable = courts that are NOT blocked (truly available)
+ * - courtsSoftBlocked = courts blocked for maintenance, practice, etc.
+ * - courtsHardBlocked = courts hard-blocked or locked
  */
 function categorizeSegment(segment: RailSegment, point: CapacityPoint): void {
   switch (segment.status) {
     case 'AVAILABLE':
-    case 'SOFT_BLOCK':
-    case 'RESERVED':
+      // Truly available - not blocked at all
       point.courtsAvailable++;
       break;
 
-    case 'HARD_BLOCK':
-    case 'LOCKED':
-      point.courtsHardBlocked++;
+    case 'RESERVED':
+    case 'SOFT_BLOCK':
+      // Reserved for players but still "soft" (can be overridden)
+      point.courtsSoftBlocked++;
       break;
 
     case 'BLOCKED':
     case 'PRACTICE':
     case 'MAINTENANCE':
+    case 'CLOSED':
+      // Unavailable - blocked for various reasons
       point.courtsSoftBlocked++;
+      break;
+
+    case 'SCHEDULED':
+    case 'HARD_BLOCK':
+    case 'LOCKED':
+      // Hard unavailable - scheduled matches, locked
+      point.courtsHardBlocked++;
       break;
 
     case 'UNSPECIFIED':
@@ -125,15 +139,29 @@ function categorizeSegment(segment: RailSegment, point: CapacityPoint): void {
 
 /**
  * Calculate capacity statistics for a curve
+ * 
+ * INVERTED PARADIGM METRICS:
+ * - peakUnavailable: Maximum number of courts blocked at any point (Peak Use)
+ * - avgBlockedHoursPerCourt: Average hours blocked per court
+ * - availablePercent: Percentage of total court-hours that are AVAILABLE
+ * - utilizationPercent: Percentage of total court-hours that are UNAVAILABLE (in use)
  */
 export interface CapacityStats {
-  peakAvailable: number;
+  peakAvailable: number; // Legacy - max courts available at once
   peakTime: string;
-  minAvailable: number;
+  minAvailable: number; // Legacy - min courts available at once
   minTime: string;
-  avgAvailable: number;
+  avgAvailable: number; // Legacy - kept for backward compatibility
   totalCourtHours: number;
-  utilizationPercent: number;
+  utilizationPercent: number; // NEW: % of time blocked (inverted)
+  // New metrics for inverted paradigm
+  peakUnavailable?: number; // Peak number of courts blocked at once
+  peakUnavailableTime?: string;
+  totalCourts?: number; // Total number of courts
+  totalAvailableHours?: number; // Total court-hours available
+  totalUnavailableHours?: number; // Total court-hours unavailable
+  availablePercent?: number; // % of court-hours available
+  avgBlockedHoursPerCourt?: number; // Average hours blocked per court
 }
 
 export function calculateCapacityStats(curve: CapacityCurve): CapacityStats {
@@ -146,21 +174,47 @@ export function calculateCapacityStats(curve: CapacityCurve): CapacityStats {
       avgAvailable: 0,
       totalCourtHours: 0,
       utilizationPercent: 0,
+      peakUnavailable: 0,
+      peakUnavailableTime: '',
+      totalCourts: 0,
+      totalAvailableHours: 0,
+      totalUnavailableHours: 0,
+      availablePercent: 0,
+      avgBlockedHoursPerCourt: 0,
     };
   }
 
+  // Legacy metrics (kept for backward compatibility)
   let peakAvailable = 0;
   let peakTime = curve.points[0].time;
   let minAvailable = Infinity;
   let minTime = curve.points[0].time;
-  let totalCourts = 0;
-  let totalCourtHours = 0;
+  
+  // NEW metrics for inverted paradigm
+  let peakUnavailable = 0;
+  let peakUnavailableTime = curve.points[0].time;
+  let totalAvailableHours = 0;
+  let totalUnavailableHours = 0;
+  
+  // Track total courts (max courts seen at any point)
+  let maxTotalCourts = 0;
 
   for (let i = 0; i < curve.points.length - 1; i++) {
     const current = curve.points[i];
     const next = curve.points[i + 1];
 
-    // Track peak/min
+    // Calculate duration for this segment
+    const durationHours =
+      (new Date(next.time).getTime() - new Date(current.time).getTime()) / (1000 * 60 * 60);
+
+    // Count total courts at this point
+    const totalCourtsNow = current.courtsAvailable + current.courtsSoftBlocked + current.courtsHardBlocked;
+    maxTotalCourts = Math.max(maxTotalCourts, totalCourtsNow);
+    
+    // Count unavailable courts (blocked = soft + hard)
+    const courtsUnavailable = current.courtsSoftBlocked + current.courtsHardBlocked;
+
+    // Legacy: Track peak/min AVAILABLE
     if (current.courtsAvailable > peakAvailable) {
       peakAvailable = current.courtsAvailable;
       peakTime = current.time;
@@ -170,32 +224,58 @@ export function calculateCapacityStats(curve: CapacityCurve): CapacityStats {
       minTime = current.time;
     }
 
+    // NEW: Track peak UNAVAILABLE (Peak Use)
+    if (courtsUnavailable > peakUnavailable) {
+      peakUnavailable = courtsUnavailable;
+      peakUnavailableTime = current.time;
+    }
+
     // Calculate court-hours
-    const durationHours =
-      (new Date(next.time).getTime() - new Date(current.time).getTime()) / (1000 * 60 * 60);
-    totalCourtHours += current.courtsAvailable * durationHours;
-    totalCourts += current.courtsAvailable;
+    totalAvailableHours += current.courtsAvailable * durationHours;
+    totalUnavailableHours += courtsUnavailable * durationHours;
   }
 
-  const avgAvailable = totalCourts / (curve.points.length - 1);
-
-  // Utilization: actual court-hours / potential court-hours
+  // Total possible court-hours (all courts, full day)
   const dayDurationHours =
     (new Date(curve.points[curve.points.length - 1].time).getTime() -
       new Date(curve.points[0].time).getTime()) /
     (1000 * 60 * 60);
-  const maxPossibleCourtHours = peakAvailable * dayDurationHours;
+  const totalPossibleCourtHours = maxTotalCourts * dayDurationHours;
+
+  // NEW: Available % = available hours / total possible hours
+  const availablePercent =
+    totalPossibleCourtHours > 0 ? (totalAvailableHours / totalPossibleCourtHours) * 100 : 0;
+
+  // NEW: Utilization % = unavailable hours / total possible hours (INVERTED)
   const utilizationPercent =
-    maxPossibleCourtHours > 0 ? (totalCourtHours / maxPossibleCourtHours) * 100 : 0;
+    totalPossibleCourtHours > 0 ? (totalUnavailableHours / totalPossibleCourtHours) * 100 : 0;
+
+  // NEW: Average blocked hours per court
+  const avgBlockedHoursPerCourt = maxTotalCourts > 0 ? totalUnavailableHours / maxTotalCourts : 0;
+
+  // Legacy avgAvailable (average courts available across time samples)
+  const avgAvailable = curve.points.length > 1 
+    ? curve.points.slice(0, -1).reduce((sum, p) => sum + p.courtsAvailable, 0) / (curve.points.length - 1)
+    : 0;
 
   return {
+    // Legacy metrics
     peakAvailable,
     peakTime,
     minAvailable: minAvailable === Infinity ? 0 : minAvailable,
     minTime,
     avgAvailable,
-    totalCourtHours,
-    utilizationPercent,
+    totalCourtHours: totalPossibleCourtHours,
+    
+    // NEW inverted paradigm metrics
+    utilizationPercent, // Now correctly shows % BLOCKED
+    peakUnavailable, // Peak number of courts blocked at once
+    peakUnavailableTime,
+    totalCourts: maxTotalCourts,
+    totalAvailableHours,
+    totalUnavailableHours,
+    availablePercent, // % of court-hours available
+    avgBlockedHoursPerCourt, // Average hours blocked per court
   };
 }
 
