@@ -942,16 +942,72 @@ export class TemporalGridControl {
       maxDuration: maxDurationMinutes, // Restrict based on next block
       onConfirm: (startTime: string, endTime: string) => {
         // Convert HH:mm to full ISO strings for the current day (without Z suffix)
-        const startISO = `${currentDay}T${startTime}:00`;
-        const endISO = `${currentDay}T${endTime}:00`;
+        let startISO = `${currentDay}T${startTime}:00`;
+        let endISO = `${currentDay}T${endTime}:00`;
 
-        console.log('[TemporalGrid] Time picker confirmed:', {
+        console.log('[TemporalGrid] Time picker confirmed (before clamping):', {
           startTime,
           endTime,
           startISO,
           endISO,
           court,
           paintType: this.currentPaintType
+        });
+
+        // Apply collision-aware clamping to the confirmed times
+        // This prevents overlaps even if user overrides maxDuration
+        const startTimestamp = new Date(startISO + 'Z').getTime();
+        const endTimestamp = new Date(endISO + 'Z').getTime();
+        
+        // Get existing blocks on this court for collision detection
+        const existingBlocks = this.engine.getDayBlocks(currentDay);
+        const blocksOnCourt = existingBlocks.filter((b) =>
+          b.court.tournamentId === court.tournamentId &&
+          b.court.facilityId === court.facilityId &&
+          b.court.courtId === court.courtId
+        );
+        
+        // Sort blocks by start time for efficient collision detection
+        sortBlocksByStart(blocksOnCourt);
+        
+        // Apply collision clamping
+        const clamped = clampDragToCollisions(startTimestamp, endTimestamp, blocksOnCourt);
+        
+        // Use clamped times
+        const clampedStartDate = new Date(clamped.start);
+        const clampedEndDate = new Date(clamped.end);
+        
+        // Convert back to ISO strings without Z
+        startISO = clampedStartDate.toISOString().slice(0, 19);
+        endISO = clampedEndDate.toISOString().slice(0, 19);
+        
+        // Check if clamping resulted in zero or negative duration
+        if (clampedEndDate.getTime() <= clampedStartDate.getTime()) {
+          console.warn('[TemporalGrid] Time picker result would overlap - cancelling');
+          alert('Cannot create block: The selected time would overlap with an existing block.');
+          return;
+        }
+        
+        // Log if we clamped the user's selection
+        if (clamped.clamped) {
+          console.log('[TemporalGrid] Time picker result was clamped to avoid overlap:', {
+            originalStart: startTime,
+            originalEnd: endTime,
+            clampedStart: startISO,
+            clampedEnd: endISO,
+            clampedBy: clamped.clampedBy ? {
+              id: clamped.clampedBy.id,
+              type: clamped.clampedBy.type,
+              start: clamped.clampedBy.start,
+              end: clamped.clampedBy.end,
+            } : null,
+          });
+        }
+
+        console.log('[TemporalGrid] Time picker confirmed (after clamping):', {
+          startISO,
+          endISO,
+          wasClamped: clamped.clamped,
         });
 
         // Create the block
