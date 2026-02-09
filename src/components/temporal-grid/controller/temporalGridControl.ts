@@ -1,16 +1,16 @@
 /**
  * Temporal Grid Controller
- * 
+ *
  * Manages the EventCalendar instance and wires it to the Temporal Grid Engine.
  * Following the TMX controlBar pattern: engine handles state, controller handles UI.
- * 
+ *
  * Responsibilities:
  * - Create and configure EventCalendar
  * - Convert engine data → calendar format
  * - Handle user interactions → engine commands
  * - Subscribe to engine events → update calendar
  * - Manage view state (selected day, facility, etc.)
- * 
+ *
  * Design: Stateful controller, but all domain logic stays in engine.
  */
 
@@ -29,7 +29,7 @@ import {
   type CalendarEvent,
   type CalendarResource,
   type ProjectionConfig,
-  type ResourceGroupingMode,
+  type ResourceGroupingMode
 } from './viewProjections';
 import { showModernTimePicker } from '../ui/modernTimePicker';
 
@@ -81,11 +81,7 @@ export interface TemporalGridControlConfig {
   /**
    * Callback when time range is selected (for painting)
    */
-  onTimeRangeSelected?: (params: {
-    courts: CourtRef[];
-    start: string;
-    end: string;
-  }) => void;
+  onTimeRangeSelected?: (params: { courts: CourtRef[]; start: string; end: string }) => void;
 }
 
 // ============================================================================
@@ -116,7 +112,7 @@ export class TemporalGridControl {
       showConflicts: true,
       showSegmentLabels: false,
       colorScheme: DEFAULT_COLOR_SCHEME,
-      ...config,
+      ...config
     };
 
     this.initialize();
@@ -148,62 +144,58 @@ export class TemporalGridControl {
     const timeSlotConfig = buildTimeSlotConfig({
       dayStartTime: engineConfig.dayStartTime,
       dayEndTime: engineConfig.dayEndTime,
-      slotMinutes: engineConfig.slotMinutes,
+      slotMinutes: engineConfig.slotMinutes
     });
 
-    this.calendar = createCalendar(
-      this.config.container,
-      [ResourceTimeline],
-      {
-        view: this.currentView,
-        date: this.currentDay || tools.dateTime.extractDate(new Date().toISOString()),
-        
-        // Time configuration
-        ...timeSlotConfig,
-        
-        // Resource configuration
-        resources: [],
-        resourceAreaWidth: '200px',
-        
-        // Event configuration
-        events: [],
-        eventDidMount: this.handleEventDidMount,
-        eventClick: this.handleEventClick,
-        
-        // Interaction configuration
-        selectable: true,
-        selectOverlap: true, // Allow selection over background events (segments)
-        selectMirror: true, // Show selection rectangle while dragging
-        unselectAuto: false, // Don't auto-unselect when clicking away
-        select: this.handleSelect,
-        dateClick: this.handleDateClick,
-        
-        // Enable drag and drop for blocks
-        editable: true,
-        eventStartEditable: true,
-        eventDurationEditable: true,
-        eventResourceEditable: true, // Allow moving between courts
-        eventOverlap: true, // Allow events to overlap
-        eventDragMinDistance: 5, // Minimum pixels to drag before it's considered a drag
-        eventDrop: this.handleEventDrop,
-        eventResize: this.handleEventResize,
-        pointer: true, // Enable pointer interaction
-        
-        // Styling
-        headerToolbar: {
-          start: '',
-          center: 'title',
-          end: '',
-        },
-        
-        // Accessibility
-        buttonText: {
-          today: 'Today',
-          resourceTimelineDay: 'Day',
-          resourceTimelineWeek: 'Week',
-        },
+    this.calendar = createCalendar(this.config.container, [ResourceTimeline], {
+      view: this.currentView,
+      date: this.currentDay || tools.dateTime.extractDate(new Date().toISOString()),
+
+      // Time configuration
+      ...timeSlotConfig,
+
+      // Resource configuration
+      resources: [],
+      resourceAreaWidth: '200px',
+
+      // Event configuration
+      events: [],
+      eventDidMount: this.handleEventDidMount,
+      eventClick: this.handleEventClick,
+
+      // Interaction configuration
+      selectable: true,
+      selectOverlap: true, // Allow selection over background events (segments)
+      selectMirror: true, // Show selection rectangle while dragging
+      unselectAuto: false, // Don't auto-unselect when clicking away
+      select: this.handleSelect,
+      dateClick: this.handleDateClick,
+
+      // Enable drag and drop for blocks
+      editable: true,
+      eventStartEditable: true,
+      eventDurationEditable: true,
+      eventResourceEditable: true, // Allow moving between courts
+      eventOverlap: true, // Allow events to overlap
+      eventDragMinDistance: 5, // Minimum pixels to drag before it's considered a drag
+      eventDrop: this.handleEventDrop,
+      eventResize: this.handleEventResize,
+      pointer: true, // Enable pointer interaction
+
+      // Styling
+      headerToolbar: {
+        start: '',
+        center: 'title',
+        end: ''
+      },
+
+      // Accessibility
+      buttonText: {
+        today: 'Today',
+        resourceTimelineDay: 'Day',
+        resourceTimelineWeek: 'Week'
       }
-    );
+    });
   }
 
   // ============================================================================
@@ -218,14 +210,14 @@ export class TemporalGridControl {
     if (this.currentDay === day) {
       return;
     }
-    
+
     this.currentDay = day;
     this.engine.setSelectedDay(day);
-    
+
     if (this.calendar) {
       this.calendar.setOption('date', day);
     }
-    
+
     this.render();
   }
 
@@ -236,13 +228,13 @@ export class TemporalGridControl {
     if (this.currentDay === day) {
       return;
     }
-    
+
     this.currentDay = day;
-    
+
     if (this.calendar) {
       this.calendar.setOption('date', day);
     }
-    
+
     this.render();
   }
 
@@ -258,7 +250,7 @@ export class TemporalGridControl {
    */
   setView(view: 'resourceTimelineDay' | 'resourceTimelineWeek'): void {
     this.currentView = view;
-    
+
     if (this.calendar) {
       this.calendar.setOption('view', view);
     }
@@ -269,22 +261,22 @@ export class TemporalGridControl {
    */
   setPaintMode(enabled: boolean, blockType?: BlockType | 'DELETE'): void {
     this.isPaintMode = enabled;
-    
+
     if (blockType) {
       this.currentPaintType = blockType;
     }
-    
+
     // Clean up overlay when disabling paint mode
     if (!enabled && this.paintSelectionOverlay) {
       this.paintSelectionOverlay.remove();
       this.paintSelectionOverlay = null;
     }
-    
+
     // Update cursor style
     if (this.config.container) {
       this.config.container.style.cursor = enabled ? 'crosshair' : 'default';
     }
-    
+
     // Attach/detach paint mode handlers to avoid interfering with EventCalendar drag
     if (enabled) {
       this.config.container.addEventListener('mousedown', this.handlePaintMouseDown);
@@ -347,7 +339,7 @@ export class TemporalGridControl {
     if (this.unsubscribe) {
       this.unsubscribe();
     }
-    
+
     if (this.calendar) {
       destroyCalendar(this.calendar);
       this.calendar = null;
@@ -368,50 +360,50 @@ export class TemporalGridControl {
 
     // Get layer visibility from engine state
     const layerVisibility = this.engine['ctx']?.layerVisibility || new Map<BlockType, boolean>();
-    
+
     // Build projection config
     const projectionConfig: ProjectionConfig = {
       groupingMode: this.config.groupingMode,
       layerVisibility,
       showSegmentLabels: this.config.showSegmentLabels,
-      colorScheme: this.config.colorScheme,
+      colorScheme: this.config.colorScheme
     };
 
     // Build resources (courts)
     let resources = buildResourcesFromTimelines(timelines, courtMeta, projectionConfig);
-    
+
     // Filter resources by visibility (only if visibleCourts is set AND not empty)
     if (this.visibleCourts !== null && this.visibleCourts.size > 0) {
-      resources = resources.filter(r => this.visibleCourts!.has(r.id));
+      resources = resources.filter((r) => this.visibleCourts!.has(r.id));
     }
-    
+
     // Cache resources for paint mode
     this.currentResources = resources;
-    
+
     // Build events (segments + blocks)
     const segmentEvents = buildEventsFromTimelines(timelines, projectionConfig);
-    
+
     // Filter events to only show for visible resources
     let filteredSegmentEvents = segmentEvents;
     if (this.visibleCourts !== null && this.visibleCourts.size > 0 && resources.length > 0) {
-      const visibleResourceIds = new Set(resources.map(r => r.id));
-      filteredSegmentEvents = segmentEvents.filter(e => visibleResourceIds.has(e.resourceId));
+      const visibleResourceIds = new Set(resources.map((r) => r.id));
+      filteredSegmentEvents = segmentEvents.filter((e) => visibleResourceIds.has(e.resourceId));
     }
-    
+
     // Get actual blocks from engine and build block events
     const blocks = this.engine.getDayBlocks(this.currentDay);
     const blockEvents = buildBlockEvents(blocks, projectionConfig);
-    
+
     // Filter block events to visible resources
     let filteredBlockEvents = blockEvents;
     if (this.visibleCourts !== null && this.visibleCourts.size > 0 && resources.length > 0) {
-      const visibleResourceIds = new Set(resources.map(r => r.id));
-      filteredBlockEvents = blockEvents.filter(e => visibleResourceIds.has(e.resourceId));
+      const visibleResourceIds = new Set(resources.map((r) => r.id));
+      filteredBlockEvents = blockEvents.filter((e) => visibleResourceIds.has(e.resourceId));
     }
-    
+
     // Combine events (use filtered versions!)
     let allEvents = [...filteredSegmentEvents, ...filteredBlockEvents];
-    
+
     // Add conflict indicators if enabled
     if (this.config.showConflicts) {
       // TODO: Get conflicts from engine
@@ -437,14 +429,14 @@ export class TemporalGridControl {
       case 'BLOCKS_CHANGED':
         this.render();
         break;
-        
+
       case 'VIEW_CHANGED':
         if (event.payload.day) {
           // Update calendar without triggering engine (avoid circular update)
           this.updateDayDisplay(event.payload.day);
         }
         break;
-        
+
       case 'CONFLICTS_CHANGED':
         if (this.config.showConflicts) {
           this.render();
@@ -458,7 +450,7 @@ export class TemporalGridControl {
    */
   private handleEventDidMount = (info: any): void => {
     const { event, el } = info;
-    
+
     // Add tooltips for events
     if (event.extendedProps?.isSegment) {
       el.title = `${event.extendedProps.status} segment`;
@@ -474,27 +466,27 @@ export class TemporalGridControl {
    */
   private handleEventClick = (info: any): void => {
     const { event } = info;
-    
+
     // Handle both block events and segment events
     if (event.extendedProps?.isBlock) {
       const blockId = parseBlockEventId(event.id);
       if (!blockId) return;
-      
+
       // If in paint mode with DELETE selected, delete the block immediately
       if (this.isPaintMode && this.currentPaintType === 'DELETE') {
         this.deleteBlock(blockId);
         return;
       }
-      
+
       // If NOT in paint mode, show dialog with Edit/Delete options
       if (!this.isPaintMode) {
         this.showBlockActionDialog(blockId, event);
         return;
       }
-      
+
       // Otherwise (in paint mode but not DELETE), open time picker for block fine-tuning
       this.openTimePickerForBlock(blockId, event);
-      
+
       // Also call callback if provided
       if (this.config.onBlockSelected) {
         this.config.onBlockSelected(blockId);
@@ -510,20 +502,20 @@ export class TemporalGridControl {
    */
   private openTimePickerForBlock(blockId: string, event: any): void {
     const engineConfig = this.engine.getConfig();
-    
+
     // Get the block from engine to get original ISO string times (not Date objects)
     const blocks = this.engine.getDayBlocks(this.currentDay);
-    const block = blocks.find(b => b.id === blockId);
-    
+    const block = blocks.find((b) => b.id === blockId);
+
     if (!block) {
       console.error('Block not found:', blockId);
       return;
     }
-    
+
     // Use the block's original ISO string times to avoid any Date conversion issues
     const startISO = block.start;
     const endISO = block.end;
-    
+
     showModernTimePicker({
       startTime: startISO,
       endTime: endISO,
@@ -535,23 +527,23 @@ export class TemporalGridControl {
         const currentDay = this.currentDay || tools.dateTime.extractDate(new Date().toISOString());
         const startISO = `${currentDay}T${startTime}:00`;
         const endISO = `${currentDay}T${endTime}:00`;
-        
+
         // Update the block through engine
         const result = this.engine.resizeBlock({
           blockId,
           newTimeRange: {
             start: startISO,
-            end: endISO,
-          },
+            end: endISO
+          }
         });
-        
-        if (result.conflicts.some(c => c.severity === 'ERROR')) {
+
+        if (result.conflicts.some((c) => c.severity === 'ERROR')) {
           this.showConflictDialog(result.conflicts);
         }
       },
       onCancel: () => {
         // User cancelled - do nothing
-      },
+      }
     });
   }
 
@@ -560,11 +552,11 @@ export class TemporalGridControl {
    */
   private openTimePickerForSegment(event: any): void {
     const engineConfig = this.engine.getConfig();
-    
+
     // Extract times as ISO strings preserving the date part
     const startISO = event.start instanceof Date ? event.start.toISOString() : String(event.start);
     const endISO = event.end instanceof Date ? event.end.toISOString() : String(event.end);
-    
+
     showModernTimePicker({
       startTime: startISO,
       endTime: endISO,
@@ -578,7 +570,7 @@ export class TemporalGridControl {
       },
       onCancel: () => {
         // User cancelled - do nothing
-      },
+      }
     });
   }
 
@@ -587,10 +579,10 @@ export class TemporalGridControl {
    */
   private deleteBlock(blockId: string): void {
     console.log('[TemporalGrid] Deleting block:', blockId);
-    
+
     const result = this.engine.removeBlock(blockId);
-    
-    if (result.conflicts.some(c => c.severity === 'ERROR')) {
+
+    if (result.conflicts.some((c) => c.severity === 'ERROR')) {
       console.error('[TemporalGrid] Error deleting block:', result.conflicts);
       this.showConflictDialog(result.conflicts);
     } else {
@@ -604,13 +596,13 @@ export class TemporalGridControl {
    */
   private showBlockActionDialog(blockId: string, event: any): void {
     const blocks = this.engine.getDayBlocks(this.currentDay);
-    const block = blocks.find(b => b.id === blockId);
-    
+    const block = blocks.find((b) => b.id === blockId);
+
     if (!block) {
       console.error('Block not found:', blockId);
       return;
     }
-    
+
     // Create dialog overlay
     const overlay = document.createElement('div');
     overlay.className = 'block-action-dialog-overlay';
@@ -626,7 +618,7 @@ export class TemporalGridControl {
       justify-content: center;
       z-index: 10000;
     `;
-    
+
     // Create dialog
     const dialog = document.createElement('div');
     dialog.className = 'block-action-dialog';
@@ -637,11 +629,11 @@ export class TemporalGridControl {
       min-width: 300px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     `;
-    
+
     // Extract time parts for display
     const startTime = tools.dateTime.extractTime(block.start);
     const endTime = tools.dateTime.extractTime(block.end);
-    
+
     dialog.innerHTML = `
       <h3 style="margin: 0 0 16px 0; font-size: 18px;">${block.type}</h3>
       <div style="margin-bottom: 16px; color: #666;">
@@ -654,36 +646,36 @@ export class TemporalGridControl {
         <button class="btn-cancel" style="padding: 8px 16px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">Cancel</button>
       </div>
     `;
-    
+
     overlay.appendChild(dialog);
     document.body.appendChild(overlay);
-    
+
     // Handle Edit button
     const editBtn = dialog.querySelector('.btn-edit');
     editBtn?.addEventListener('click', () => {
       overlay.remove();
       this.openTimePickerForBlock(blockId, event);
     });
-    
+
     // Handle Delete button
     const deleteBtn = dialog.querySelector('.btn-delete');
     deleteBtn?.addEventListener('click', () => {
       overlay.remove();
       this.deleteBlock(blockId);
     });
-    
+
     // Handle Cancel button and overlay click
     const cancelBtn = dialog.querySelector('.btn-cancel');
     cancelBtn?.addEventListener('click', () => {
       overlay.remove();
     });
-    
+
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) {
         overlay.remove();
       }
     });
-    
+
     // Handle keyboard shortcut (Delete/Backspace)
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Delete' || e.key === 'Backspace') {
@@ -696,13 +688,13 @@ export class TemporalGridControl {
         document.removeEventListener('keydown', handleKeyDown);
       }
     };
-    
+
     document.addEventListener('keydown', handleKeyDown);
   }
 
   /**
    * Open time picker to create a new block with user-defined times
-   * 
+   *
    * Smart end time logic:
    * 1. Get the rail timeline for this court (shows segments/availability)
    * 2. Find the next segment boundary after clicked time
@@ -713,12 +705,12 @@ export class TemporalGridControl {
     console.log('[TemporalGrid] openTimePickerForNewBlock called:', {
       court,
       clickedTime: clickedTime?.toISOString(),
-      currentDay: this.currentDay,
+      currentDay: this.currentDay
     });
-    
+
     const engineConfig = this.engine.getConfig();
     const currentDay = this.currentDay || tools.dateTime.extractDate(new Date().toISOString());
-    
+
     // Use the clicked time if provided, otherwise use current time
     let startDate: Date;
     if (clickedTime) {
@@ -726,150 +718,189 @@ export class TemporalGridControl {
     } else {
       startDate = new Date();
     }
-    
+
     console.log('[TemporalGrid] Start date initialized:', {
       startDate: startDate.toISOString(),
-      startTimestamp: startDate.getTime(),
+      startTimestamp: startDate.getTime()
     });
-    
+
     // Get the timeline for this court to see segments (availability boundaries)
     const timelines = this.engine.getDayTimeline(this.currentDay);
     const courtTimeline = timelines
-      .flatMap(f => f.rails)
-      .find(r => 
-        r.court.tournamentId === court.tournamentId &&
-        r.court.facilityId === court.facilityId &&
-        r.court.courtId === court.courtId
+      .flatMap((f) => f.rails)
+      .find(
+        (r) =>
+          r.court.tournamentId === court.tournamentId &&
+          r.court.facilityId === court.facilityId &&
+          r.court.courtId === court.courtId
       );
-    
+
     // Find the next segment boundary after the clicked time
     const startTime = startDate.getTime();
     let nextBoundary: Date | null = null;
-    
+
     if (courtTimeline) {
+      console.log('[TemporalGrid] Court timeline segments:', {
+        courtId: court.courtId,
+        segmentCount: courtTimeline.segments.length,
+        segments: courtTimeline.segments.map(s => ({
+          status: s.status,
+          start: s.start,
+          end: s.end,
+        })),
+      });
+      
       // Look at all segments and find the next one that starts after our click time
       for (const segment of courtTimeline.segments) {
-        const segmentStart = new Date(segment.start).getTime();
-        const segmentEnd = new Date(segment.end).getTime();
-        
+        // CRITICAL: Segment times are stored without 'Z', so parse as UTC by adding 'Z'
+        const segmentStartStr = segment.start.endsWith('Z') ? segment.start : segment.start + 'Z';
+        const segmentEndStr = segment.end.endsWith('Z') ? segment.end : segment.end + 'Z';
+        const segmentStart = new Date(segmentStartStr).getTime();
+        const segmentEnd = new Date(segmentEndStr).getTime();
+
+        console.log('[TemporalGrid] Checking segment for boundary:', {
+          segmentStatus: segment.status,
+          segmentStart: new Date(segmentStart).toISOString(),
+          segmentEnd: new Date(segmentEnd).toISOString(),
+          clickedTime: new Date(startTime).toISOString(),
+          isWithinSegment: startTime >= segmentStart && startTime < segmentEnd,
+          startsAfterClick: segmentStart > startTime,
+        });
+
         // If the clicked time is within this segment, use the segment end
         if (startTime >= segmentStart && startTime < segmentEnd) {
           nextBoundary = new Date(segmentEnd);
+          console.log('[TemporalGrid] Setting nextBoundary from segment end:', nextBoundary.toISOString());
           break;
         }
-        
+
         // If there's a segment that starts after our time, that's a boundary
         if (segmentStart > startTime) {
           nextBoundary = new Date(segmentStart);
+          console.log('[TemporalGrid] Setting nextBoundary from segment start:', nextBoundary.toISOString());
           break;
         }
       }
     }
-    
+
     // Also check for existing blocks on this court
     // We need to find ANY block that would overlap with our potential range
     // This includes blocks that start after our clicked time
     // IMPORTANT: Block times are stored without 'Z', so we need to parse them as UTC
     const existingBlocks = this.engine.getDayBlocks(this.currentDay);
-    
+
     console.log('[TemporalGrid] All blocks for day:', {
       currentDay: this.currentDay,
       totalBlocks: existingBlocks.length,
-      blocks: existingBlocks.map(b => ({
+      blocks: existingBlocks.map((b) => ({
         id: b.id,
         court: b.court.courtId,
         type: b.type,
         start: b.start,
-        end: b.end,
-      })),
+        end: b.end
+      }))
     });
-    
-    const blocksOnThisCourt = existingBlocks.filter(b => 
-      b.court.tournamentId === court.tournamentId &&
-      b.court.facilityId === court.facilityId &&
-      b.court.courtId === court.courtId
+
+    const blocksOnThisCourt = existingBlocks.filter(
+      (b) =>
+        b.court.tournamentId === court.tournamentId &&
+        b.court.facilityId === court.facilityId &&
+        b.court.courtId === court.courtId
     );
-    
+
     console.log('[TemporalGrid] Blocks on this court:', {
       courtId: court.courtId,
       count: blocksOnThisCourt.length,
-      blocks: blocksOnThisCourt.map(b => ({
+      blocks: blocksOnThisCourt.map((b) => ({
         id: b.id,
         type: b.type,
         start: b.start,
-        end: b.end,
-      })),
+        end: b.end
+      }))
     });
-    
-    const relevantBlocks = blocksOnThisCourt
-      .filter(b => {
-        // Parse as UTC by ensuring 'Z' suffix
-        const blockStartStr = b.start.endsWith('Z') ? b.start : b.start + 'Z';
-        const blockEndStr = b.end.endsWith('Z') ? b.end : b.end + 'Z';
-        const blockStart = new Date(blockStartStr).getTime();
-        const blockEnd = new Date(blockEndStr).getTime();
-        // Include blocks that start after our clicked time
-        // (these would be potential overlaps if we extend past their start)
-        return blockStart > startTime || blockEnd > startTime;
+
+    const relevantBlocks = blocksOnThisCourt.filter((b) => {
+      // Parse as UTC by ensuring 'Z' suffix
+      const blockStartStr = b.start.endsWith('Z') ? b.start : b.start + 'Z';
+      const blockEndStr = b.end.endsWith('Z') ? b.end : b.end + 'Z';
+      const blockStart = new Date(blockStartStr).getTime();
+      const blockEnd = new Date(blockEndStr).getTime();
+
+      const isRelevant = blockStart > startTime || blockEnd > startTime;
+
+      console.log('[TemporalGrid] Block relevance check:', {
+        blockId: b.id,
+        blockStart: new Date(blockStart).toISOString(),
+        blockEnd: new Date(blockEnd).toISOString(),
+        clickedTime: new Date(startTime).toISOString(),
+        blockStartAfterClick: blockStart > startTime,
+        blockEndAfterClick: blockEnd > startTime,
+        isRelevant
       });
-    
+
+      // Include blocks that start after our clicked time
+      // (these would be potential overlaps if we extend past their start)
+      return isRelevant;
+    });
+
     // Find the earliest block start time that's after our clicked time
     const nextBlockStart = relevantBlocks
-      .map(b => {
+      .map((b) => {
         const blockStartStr = b.start.endsWith('Z') ? b.start : b.start + 'Z';
         return new Date(blockStartStr).getTime();
       })
-      .filter(blockStart => blockStart > startTime)
+      .filter((blockStart) => blockStart > startTime)
       .sort((a, b) => a - b)[0];
-    
+
     console.log('[TemporalGrid] Relevant blocks for overlap detection:', {
       clickedTime: new Date(startTime).toISOString(),
-      relevantBlocks: relevantBlocks.map(b => ({
+      relevantBlocks: relevantBlocks.map((b) => ({
         start: b.start,
         startParsed: new Date(b.start).toISOString(),
         startWithZ: new Date(b.start + 'Z').toISOString(),
         end: b.end,
-        type: b.type,
+        type: b.type
       })),
-      nextBlockStart: nextBlockStart ? new Date(nextBlockStart).toISOString() : null,
+      nextBlockStart: nextBlockStart ? new Date(nextBlockStart).toISOString() : null
     });
-    
+
     // Calculate end time:
     // Use the nearest boundary: next segment, next block start, or start + 3 hours
     const maxDurationHours = 3; // TODO: should come from config
-    const maxEndTime = startTime + (maxDurationHours * 60 * 60 * 1000);
-    
+    const maxEndTime = startTime + maxDurationHours * 60 * 60 * 1000;
+
     let endDate: Date;
     const boundaries = [
       nextBoundary ? nextBoundary.getTime() : Infinity,
       nextBlockStart || Infinity,
-      maxEndTime,
-    ].filter(t => t !== Infinity);
-    
+      maxEndTime
+    ].filter((t) => t !== Infinity);
+
     endDate = new Date(Math.min(...boundaries));
-    
+
     // Snap to 5-minute increments
     startDate = this.snapToMinutes(startDate, 5);
     endDate = this.snapToMinutes(endDate, 5);
-    
+
     // Ensure end time doesn't exceed day end
     const dayEndParts = engineConfig.dayEndTime.split(':');
     const dayEndTime = new Date(`${currentDay}T${dayEndParts[0]}:${dayEndParts[1]}:00Z`).getTime();
     if (endDate.getTime() > dayEndTime) {
       endDate = new Date(dayEndTime);
     }
-    
+
     // Calculate maxDuration in minutes to prevent overlaps
     const maxDurationMinutes = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60));
-    
+    console.log({ startDate, endDate, maxDurationMinutes });
+
     console.log('[TemporalGrid] Opening time picker with constraints:', {
       startTime: startDate.toISOString(),
       endTime: endDate.toISOString(),
       maxDurationMinutes,
       nextBoundary: nextBoundary?.toISOString(),
-      nextBlockStart: nextBlockStart ? new Date(nextBlockStart).toISOString() : null,
+      nextBlockStart: nextBlockStart ? new Date(nextBlockStart).toISOString() : null
     });
-    
+
     // Check if maxDurationMinutes is valid (must be positive)
     if (maxDurationMinutes <= 0) {
       console.error('[TemporalGrid] Invalid maxDuration:', {
@@ -877,14 +908,14 @@ export class TemporalGridControl {
         startTime: startDate.toISOString(),
         endTime: endDate.toISOString(),
         startTimestamp: startDate.getTime(),
-        endTimestamp: endDate.getTime(),
+        endTimestamp: endDate.getTime()
       });
       alert('Cannot create block: No available time (too close to existing block or day boundary)');
       return;
     }
-    
+
     console.log('[TemporalGrid] About to call showModernTimePicker');
-    
+
     showModernTimePicker({
       startTime: startDate.toISOString(),
       endTime: endDate.toISOString(),
@@ -896,40 +927,40 @@ export class TemporalGridControl {
         // Convert HH:mm to full ISO strings for the current day (without Z suffix)
         const startISO = `${currentDay}T${startTime}:00`;
         const endISO = `${currentDay}T${endTime}:00`;
-        
+
         console.log('[TemporalGrid] Time picker confirmed:', {
           startTime,
           endTime,
           startISO,
           endISO,
           court,
-          paintType: this.currentPaintType,
+          paintType: this.currentPaintType
         });
-        
+
         // Create the block
         // DELETE is a paint action, not a block type - ignore it here
         if (this.currentPaintType === 'DELETE') {
           console.warn('[TemporalGrid] Cannot create DELETE blocks');
           return;
         }
-        
+
         const result = this.engine.applyBlock({
           type: this.currentPaintType,
           courts: [court],
           timeRange: {
             start: startISO,
-            end: endISO,
-          },
+            end: endISO
+          }
         });
-        
+
         console.log('[TemporalGrid] Block apply result:', result);
       },
       onCancel: () => {
         // User cancelled - do nothing
         console.log('[TemporalGrid] Time picker cancelled');
-      },
+      }
     });
-    
+
     console.log('[TemporalGrid] showModernTimePicker called successfully - waiting for user interaction');
   }
 
@@ -938,16 +969,14 @@ export class TemporalGridControl {
    */
   private handleSelect = (info: any): void => {
     const { start, end, resource } = info;
-    
+
     // Parse resource ID to court reference
     const court = parseResourceId(resource.id);
     if (!court) return;
-    
+
     // In paint mode, apply to all selected courts
-    const courts = this.isPaintMode && this.selectedCourts.size > 0
-      ? Array.from(this.selectedCourts)
-      : [court];
-    
+    const courts = this.isPaintMode && this.selectedCourts.size > 0 ? Array.from(this.selectedCourts) : [court];
+
     // Apply block
     if (this.isPaintMode) {
       // DELETE is a paint action, not a block type - ignore it here
@@ -955,15 +984,15 @@ export class TemporalGridControl {
         console.warn('[TemporalGrid] Cannot create DELETE blocks via drag');
         return;
       }
-      
+
       const result = this.engine.applyBlock({
         courts,
         timeRange: { start, end },
         type: this.currentPaintType,
-        reason: `${this.currentPaintType} block`,
+        reason: `${this.currentPaintType} block`
       });
-      
-      if (result.conflicts.some(c => c.severity === 'ERROR')) {
+
+      if (result.conflicts.some((c) => c.severity === 'ERROR')) {
         this.showConflictDialog(result.conflicts);
       }
     } else {
@@ -971,7 +1000,7 @@ export class TemporalGridControl {
         this.config.onTimeRangeSelected({ courts, start, end });
       }
     }
-    
+
     // Clear selection
     this.calendar?.unselect();
   };
@@ -981,34 +1010,34 @@ export class TemporalGridControl {
    */
   private handleEventDrop = (info: any): void => {
     const { event, revert } = info;
-    
+
     // Only handle block events
     if (!event.extendedProps?.isBlock) {
       revert();
       return;
     }
-    
+
     const blockId = parseBlockEventId(event.id);
     if (!blockId) {
       revert();
       return;
     }
-    
+
     // Check if court changed
     const newCourt = parseResourceId(event.resourceId);
-    
+
     // Move block in engine
     const result = this.engine.moveBlock({
       blockId,
       newTimeRange: {
         start: event.start,
-        end: event.end,
+        end: event.end
       },
-      newCourt: newCourt || undefined,
+      newCourt: newCourt || undefined
     });
-    
+
     // Check for conflicts
-    if (result.conflicts.some(c => c.severity === 'ERROR')) {
+    if (result.conflicts.some((c) => c.severity === 'ERROR')) {
       revert();
       this.showConflictDialog(result.conflicts);
     }
@@ -1019,30 +1048,30 @@ export class TemporalGridControl {
    */
   private handleEventResize = (info: any): void => {
     const { event, revert } = info;
-    
+
     // Only handle block events
     if (!event.extendedProps?.isBlock) {
       revert();
       return;
     }
-    
+
     const blockId = parseBlockEventId(event.id);
     if (!blockId) {
       revert();
       return;
     }
-    
+
     // Resize block in engine
     const result = this.engine.resizeBlock({
       blockId,
       newTimeRange: {
         start: event.start,
-        end: event.end,
-      },
+        end: event.end
+      }
     });
-    
+
     // Check for conflicts
-    if (result.conflicts.some(c => c.severity === 'ERROR')) {
+    if (result.conflicts.some((c) => c.severity === 'ERROR')) {
       revert();
       this.showConflictDialog(result.conflicts);
     }
@@ -1068,10 +1097,10 @@ export class TemporalGridControl {
    */
   private showConflictDialog(conflicts: any[]): void {
     const messages = conflicts
-      .filter(c => c.severity === 'ERROR')
-      .map(c => c.message)
+      .filter((c) => c.severity === 'ERROR')
+      .map((c) => c.message)
       .join('\n');
-    
+
     alert(`Cannot complete operation:\n\n${messages}`);
   }
 
@@ -1080,13 +1109,13 @@ export class TemporalGridControl {
    */
   private handleDateClick = (info: any): void => {
     if (!this.isPaintMode) return;
-    
+
     // Use EventCalendar's info which includes resource!
     if (info.resource) {
       this.paintDragStart = {
         x: info.jsEvent.clientX,
         y: info.jsEvent.clientY,
-        resourceId: info.resource.id,
+        resourceId: info.resource.id
       };
     }
   };
@@ -1096,16 +1125,16 @@ export class TemporalGridControl {
    */
   private handlePaintMouseDown = (e: MouseEvent): void => {
     if (!this.isPaintMode) return;
-    
+
     // EventCalendar's dateClick should handle this, but keep as fallback
     // Find which resource (court) was clicked
     const resourceId = this.getResourceIdFromMouseEvent(e);
-    
+
     if (resourceId) {
       this.paintDragStart = {
         x: e.clientX,
         y: e.clientY,
-        resourceId,
+        resourceId
       };
     }
   };
@@ -1122,10 +1151,10 @@ export class TemporalGridControl {
       }
       return;
     }
-    
+
     // Get current resource
     const currentResourceId = this.getResourceIdFromMouseEvent(e);
-    
+
     // Only show overlay if on same resource
     if (currentResourceId !== this.paintDragStart.resourceId) {
       if (this.paintSelectionOverlay) {
@@ -1134,7 +1163,7 @@ export class TemporalGridControl {
       }
       return;
     }
-    
+
     // Create overlay if it doesn't exist
     if (!this.paintSelectionOverlay) {
       this.paintSelectionOverlay = document.createElement('div');
@@ -1152,30 +1181,30 @@ export class TemporalGridControl {
       this.paintSelectionOverlay.style.textShadow = '0 0 3px white';
       document.body.appendChild(this.paintSelectionOverlay); // Append to body for fixed positioning
     }
-    
+
     // Calculate overlay position using same logic as resource detection
     const timeline = this.config.container.querySelector('.ec-timeline');
     if (!timeline) return;
-    
+
     const bodyEl = timeline.querySelector('.ec-body');
     if (!bodyEl) return;
-    
+
     const bodyRect = bodyEl.getBoundingClientRect();
-    
+
     // Find resource index using same method as detection
-    const resourceIndex = this.currentResources.findIndex(r => r.id === currentResourceId);
+    const resourceIndex = this.currentResources.findIndex((r) => r.id === currentResourceId);
     if (resourceIndex === -1) return;
-    
+
     // Calculate row position (same as detection logic)
     const totalHeight = bodyRect.height;
     const rowHeight = totalHeight / this.currentResources.length;
-    const rowTop = bodyRect.top + (resourceIndex * rowHeight);
-    
+    const rowTop = bodyRect.top + resourceIndex * rowHeight;
+
     // Calculate horizontal position (time range)
     const startX = Math.min(this.paintDragStart.x, e.clientX);
     const endX = Math.max(this.paintDragStart.x, e.clientX);
     const width = Math.max(1, endX - startX); // Minimum 1px width
-    
+
     // Calculate time range for display
     const timeRange = this.calculateTimeRangeFromMouseEvent(this.paintDragStart.x, e.clientX);
     let timeText = '';
@@ -1183,13 +1212,13 @@ export class TemporalGridControl {
       // Snap times to 5-minute increments for display
       const snappedStart = this.snapToMinutes(timeRange.start, 5);
       const snappedEnd = this.snapToMinutes(timeRange.end, 5);
-      
+
       // Display in UTC to match what will be created (not local time)
       const startTime = snappedStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
       const endTime = snappedEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
       timeText = `${startTime} - ${endTime}`;
     }
-    
+
     // Update overlay with absolute positioning
     this.paintSelectionOverlay.style.left = `${startX}px`;
     this.paintSelectionOverlay.style.top = `${rowTop}px`;
@@ -1203,34 +1232,34 @@ export class TemporalGridControl {
    */
   private handlePaintMouseUp = (e: MouseEvent): void => {
     if (!this.isPaintMode || !this.paintDragStart) return;
-    
+
     const endResourceId = this.getResourceIdFromMouseEvent(e);
-    
+
     if (!endResourceId) {
       this.paintDragStart = null;
       return;
     }
-    
+
     // For now, only support painting within same resource
     if (endResourceId !== this.paintDragStart.resourceId) {
       this.paintDragStart = null;
       return;
     }
-    
+
     // Check if this was a click (minimal movement) vs a drag
     const deltaX = Math.abs(e.clientX - this.paintDragStart.x);
     const deltaY = Math.abs(e.clientY - this.paintDragStart.y);
     const isClick = deltaX < 5 && deltaY < 5; // Less than 5px movement = click
-    
+
     console.log('[TemporalGrid] Paint mouse up:', {
       isClick,
       deltaX,
       deltaY,
       startX: this.paintDragStart.x,
       endX: e.clientX,
-      resourceId: endResourceId,
+      resourceId: endResourceId
     });
-    
+
     // If it's a click, open the time picker instead of creating a 0-minute block
     if (isClick) {
       const court = parseResourceId(endResourceId);
@@ -1240,7 +1269,7 @@ export class TemporalGridControl {
         console.log('[TemporalGrid] Single click detected - opening time picker:', {
           court,
           clickTime,
-          paintType: this.currentPaintType,
+          paintType: this.currentPaintType
         });
         this.openTimePickerForNewBlock(court, clickTime?.start);
       }
@@ -1252,34 +1281,34 @@ export class TemporalGridControl {
       }
       return;
     }
-    
+
     // Calculate time range from pixel positions
     const timeRange = this.calculateTimeRangeFromMouseEvent(this.paintDragStart.x, e.clientX);
-    
+
     if (!timeRange) {
       console.log('[TemporalGrid] Drag event: No time range calculated');
       this.paintDragStart = null;
       return;
     }
-    
+
     // Snap times to 5-minute increments
     const snappedStart = this.snapToMinutes(timeRange.start, 5);
     const snappedEnd = this.snapToMinutes(timeRange.end, 5);
-    
+
     console.log('[TemporalGrid] Drag event detected:', {
       startX: this.paintDragStart.x,
       endX: e.clientX,
       timeRange: {
         start: timeRange.start.toISOString(),
-        end: timeRange.end.toISOString(),
+        end: timeRange.end.toISOString()
       },
       snappedRange: {
         start: snappedStart.toISOString(),
-        end: snappedEnd.toISOString(),
+        end: snappedEnd.toISOString()
       },
-      resourceId: endResourceId,
+      resourceId: endResourceId
     });
-    
+
     // Parse resource ID to get court
     const court = parseResourceId(endResourceId);
     if (!court) {
@@ -1287,77 +1316,81 @@ export class TemporalGridControl {
       this.paintDragStart = null;
       return;
     }
-    
+
     // Check for overlapping blocks and handle based on type
     const existingBlocks = this.engine.getDayBlocks(this.currentDay);
-    const overlappingBlocks = existingBlocks.filter(b => {
+    const overlappingBlocks = existingBlocks.filter((b) => {
       // Check if same court
-      if (b.court.tournamentId !== court.tournamentId || 
-          b.court.facilityId !== court.facilityId || 
-          b.court.courtId !== court.courtId) {
+      if (
+        b.court.tournamentId !== court.tournamentId ||
+        b.court.facilityId !== court.facilityId ||
+        b.court.courtId !== court.courtId
+      ) {
         return false;
       }
-      
+
       // Check if time ranges overlap
       const bStart = new Date(b.start).getTime();
       const bEnd = new Date(b.end).getTime();
       const newStart = snappedStart.getTime();
       const newEnd = snappedEnd.getTime();
-      
+
       return !(newEnd <= bStart || newStart >= bEnd);
     });
-    
+
     // Handle overlaps based on block type logic
     if (overlappingBlocks.length > 0) {
       // If painting AVAILABLE over existing AVAILABLE - warn and skip
-      if (this.currentPaintType === 'AVAILABLE' && overlappingBlocks.some(b => b.type === 'AVAILABLE')) {
-        alert('This time range already has an AVAILABLE block. Use BLOCKED or SCHEDULED to override, or clear the existing block first.');
+      if (this.currentPaintType === 'AVAILABLE' && overlappingBlocks.some((b) => b.type === 'AVAILABLE')) {
+        alert(
+          'This time range already has an AVAILABLE block. Use BLOCKED or SCHEDULED to override, or clear the existing block first.'
+        );
         this.paintDragStart = null;
         return;
       }
-      
+
       // TODO: Implement block splitting logic
       // For BLOCKED over AVAILABLE: split the AVAILABLE block
       // For SCHEDULED over AVAILABLE: split the AVAILABLE block
       // For now, we'll allow it but blocks will overlap (rail derivation will show correct merged view)
     }
-    
+
     // Create the block with snapped ISO string dates
     console.log('[TemporalGrid] Creating block from drag event:', {
       court,
       paintType: this.currentPaintType,
       timeRange: {
         start: snappedStart.toISOString(),
-        end: snappedEnd.toISOString(),
-      },
+        end: snappedEnd.toISOString()
+      }
     });
-    
+
     // DELETE is a paint action, not a block type - ignore it here
     if (this.currentPaintType === 'DELETE') {
       console.warn('[TemporalGrid] Cannot create DELETE blocks via paint drag');
       return;
     }
-    
+
     const result = this.engine.applyBlock({
       type: this.currentPaintType,
       courts: [court],
       timeRange: {
         start: snappedStart.toISOString(),
-        end: snappedEnd.toISOString(),
-      },
+        end: snappedEnd.toISOString()
+      }
     });
-    
+
     console.log('[TemporalGrid] Block apply result from drag:', result);
-    
+
     // Clean up visual overlay
     if (this.paintSelectionOverlay) {
       this.paintSelectionOverlay.remove();
       this.paintSelectionOverlay = null;
     }
-    
+
     // Refresh display
     this.render();
-    
+
     // Reset drag state
     this.paintDragStart = null;
   };
@@ -1367,95 +1400,94 @@ export class TemporalGridControl {
    */
   private getResourceIdFromMouseEvent(e: MouseEvent): string | null {
     const y = e.clientY;
-    
+
     if (this.currentResources.length === 0) return null;
-    
+
     // Get the timeline body which contains all rows
     const timeline = this.config.container.querySelector('.ec-timeline');
     if (!timeline) return null;
-    
+
     const bodyEl = timeline.querySelector('.ec-body');
     if (!bodyEl) return null;
-    
+
     const bodyRect = bodyEl.getBoundingClientRect();
-    
+
     // Calculate which resource index based on Y position
     // Divide body height by number of resources to get row height
     const totalHeight = bodyRect.height;
     const rowHeight = totalHeight / this.currentResources.length;
     const relativeY = y - bodyRect.top;
     const resourceIndex = Math.floor(relativeY / rowHeight);
-    
+
     // Clamp to valid range
     const clampedIndex = Math.max(0, Math.min(resourceIndex, this.currentResources.length - 1));
-    
+
     return this.currentResources[clampedIndex]?.id || null;
-  };
+  }
 
   /**
    * Calculate time range from mouse X positions
    */
   private calculateTimeRangeFromMouseEvent(startX: number, endX: number): { start: Date; end: Date } | null {
     if (!this.calendar || !this.currentDay) return null;
-    
+
     // Get the timeline and find the actual time grid area (excluding resource labels sidebar)
     const timelineEl = this.config.container.querySelector('.ec-timeline');
     if (!timelineEl) {
       console.error('No timeline element found');
       return null;
     }
-    
+
     // Find the body element first
     const bodyEl = timelineEl.querySelector('.ec-body');
     if (!bodyEl) {
       console.error('No body element found');
       return null;
     }
-    
+
     // Try to find the actual time grid within the body (excludes resource label column)
     // EventCalendar structure: .ec-body contains .ec-sidebar (labels) and .ec-days (time grid)
-    let contentEl = bodyEl.querySelector('.ec-days') || 
-                    bodyEl.querySelector('.ec-content') ||
-                    bodyEl.querySelector('.ec-time');
-    
+    let contentEl =
+      bodyEl.querySelector('.ec-days') || bodyEl.querySelector('.ec-content') || bodyEl.querySelector('.ec-time');
+
     // If we can't find a specific time grid element, try to measure the sidebar and subtract it
     if (!contentEl) {
       contentEl = bodyEl as HTMLElement;
     }
-    
+
     const rect = (contentEl as HTMLElement).getBoundingClientRect();
-    
+
     // Also check if there's a sidebar we need to account for
     const sidebarEl = bodyEl.querySelector('.ec-sidebar');
     let timeGridLeft = rect.left;
-    
+
     if (sidebarEl && contentEl === bodyEl) {
       // If we're using the body and there's a sidebar, we need to exclude it
       const sidebarRect = (sidebarEl as HTMLElement).getBoundingClientRect();
       timeGridLeft = sidebarRect.right; // Time grid starts after sidebar
     }
-    
+
     const timeGridWidth = rect.right - timeGridLeft;
-    
+
     // Calculate relative positions (0 to 1) within the time grid
     const minX = Math.min(startX, endX);
     const maxX = Math.max(startX, endX);
-    
+
     const startRelative = Math.max(0, Math.min(1, (minX - timeGridLeft) / timeGridWidth));
     const endRelative = Math.max(0, Math.min(1, (maxX - timeGridLeft) / timeGridWidth));
-    
+
     // Get day start/end times from engine config
     const config = this.engine.getConfig();
-    
+
     // IMPORTANT: Parse as UTC to avoid timezone conversion issues
     // Add 'Z' suffix to force UTC interpretation
     const dayStart = new Date(`${this.currentDay}T${config.dayStartTime}:00Z`);
     const dayEnd = new Date(`${this.currentDay}T${config.dayEndTime}:00Z`);
     const dayDuration = dayEnd.getTime() - dayStart.getTime();
-    
+
     const start = new Date(dayStart.getTime() + dayDuration * startRelative);
     const end = new Date(dayStart.getTime() + dayDuration * endRelative);
-    
+
     return { start, end };
   }
 
@@ -1483,7 +1515,7 @@ export class TemporalGridControl {
  */
 export function createTemporalGridControl(
   engine: TemporalGridEngine,
-  config: TemporalGridControlConfig,
+  config: TemporalGridControlConfig
 ): TemporalGridControl {
   return new TemporalGridControl(engine, config);
 }
