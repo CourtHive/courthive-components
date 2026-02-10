@@ -50,6 +50,11 @@ export interface TemporalGridControlConfig {
   initialDay?: DayId;
 
   /**
+   * Initial view mode
+   */
+  initialView?: 'resourceTimelineDay' | 'resourceTimelineWeek';
+
+  /**
    * Resource grouping mode
    */
   groupingMode?: ResourceGroupingMode;
@@ -90,9 +95,9 @@ export interface TemporalGridControlConfig {
 // ============================================================================
 
 export class TemporalGridControl {
-  private engine: TemporalGridEngine;
+  private readonly engine: TemporalGridEngine;
   private calendar: Calendar | null = null;
-  private config: TemporalGridControlConfig;
+  private readonly config: TemporalGridControlConfig;
   private unsubscribe: (() => void) | null = null;
 
   // View state
@@ -124,11 +129,21 @@ export class TemporalGridControl {
   // ============================================================================
 
   private initialize(): void {
+    console.log('[Controller] Initialize - config.initialView:', this.config.initialView);
+    
     // Set initial day
     if (this.config.initialDay) {
       this.currentDay = this.config.initialDay;
       this.engine.setSelectedDay(this.config.initialDay);
     }
+
+    // Set initial view
+    if (this.config.initialView) {
+      console.log('[Controller] Setting currentView to:', this.config.initialView);
+      this.currentView = this.config.initialView;
+    }
+
+    console.log('[Controller] After initialization, currentView is:', this.currentView);
 
     // Create calendar
     this.createCalendar();
@@ -148,18 +163,28 @@ export class TemporalGridControl {
       slotMinutes: engineConfig.slotMinutes
     });
 
+    const durationDays = this.currentView === 'resourceTimelineWeek' ? 7 : 1;
+    console.log('[Controller] Creating calendar:', {
+      currentView: this.currentView,
+      durationDays,
+      date: this.currentDay,
+    });
+
     this.calendar = createCalendar(this.config.container, [ResourceTimeline], {
       view: this.currentView,
       date: this.currentDay || tools.dateTime.extractDate(new Date().toISOString()),
 
+      // Duration for week view (number of days to show)
+      duration: { days: durationDays },
+
       // Time configuration
       ...timeSlotConfig,
-      
+
       // Use 24-hour format for time labels (no AM/PM)
       slotLabelFormat: {
         hour: 'numeric',
         minute: '2-digit',
-        hour12: false,
+        hour12: false
       },
 
       // Resource configuration
@@ -285,7 +310,14 @@ export class TemporalGridControl {
       this.config.container.style.cursor = enabled ? 'crosshair' : 'default';
     }
 
-    // Attach/detach paint mode handlers to avoid interfering with EventCalendar drag
+    // Toggle EventCalendar's selection based on paint mode
+    // When paint mode is ON: disable EC selection, use custom handlers
+    // When paint mode is OFF: enable EC selection
+    if (this.calendar) {
+      this.calendar.setOption('selectable', !enabled);
+    }
+
+    // Attach/detach paint mode handlers
     if (enabled) {
       this.config.container.addEventListener('mousedown', this.handlePaintMouseDown);
       this.config.container.addEventListener('mousemove', this.handlePaintMouseMove);
@@ -1347,64 +1379,78 @@ export class TemporalGridControl {
 
   /**
    * Calculate time range from mouse X positions
+   * Uses EventCalendar's dateFromPoint API for accurate positioning
    */
   private calculateTimeRangeFromMouseEvent(startX: number, endX: number): { start: Date; end: Date } | null {
     if (!this.calendar || !this.currentDay) return null;
 
-    // Get the timeline and find the actual time grid area (excluding resource labels sidebar)
+    // Use EventCalendar's dateFromPoint method if available
+    // This handles all the complexity: scroll, multi-day, time calculations
+    const calendar = this.calendar as any;
+    
+    if (calendar.dateFromPoint) {
+      const startDate = calendar.dateFromPoint(startX, 0); // Y doesn't matter for timeline
+      const endDate = calendar.dateFromPoint(endX, 0);
+      
+      if (startDate && endDate) {
+        return {
+          start: startDate < endDate ? startDate : endDate,
+          end: startDate < endDate ? endDate : startDate,
+        };
+      }
+    }
+
+    // Fallback: Manual calculation (original implementation)
+    // This may have scroll offset issues but provides a backup
     const timelineEl = this.config.container.querySelector('.ec-timeline');
-    if (!timelineEl) {
-      return null;
-    }
+    if (!timelineEl) return null;
 
-    // Find the body element first
     const bodyEl = timelineEl.querySelector('.ec-body');
-    if (!bodyEl) {
-      return null;
-    }
+    if (!bodyEl) return null;
 
-    // Try to find the actual time grid within the body (excludes resource label column)
-    // EventCalendar structure: .ec-body contains .ec-sidebar (labels) and .ec-days (time grid)
     let contentEl =
       bodyEl.querySelector('.ec-days') || bodyEl.querySelector('.ec-content') || bodyEl.querySelector('.ec-time');
 
-    // If we can't find a specific time grid element, try to measure the sidebar and subtract it
     if (!contentEl) {
       contentEl = bodyEl as HTMLElement;
     }
 
     const rect = (contentEl as HTMLElement).getBoundingClientRect();
-
-    // Also check if there's a sidebar we need to account for
     const sidebarEl = bodyEl.querySelector('.ec-sidebar');
     let timeGridLeft = rect.left;
 
     if (sidebarEl && contentEl === bodyEl) {
-      // If we're using the body and there's a sidebar, we need to exclude it
       const sidebarRect = (sidebarEl as HTMLElement).getBoundingClientRect();
-      timeGridLeft = sidebarRect.right; // Time grid starts after sidebar
+      timeGridLeft = sidebarRect.right;
     }
 
     const timeGridWidth = rect.right - timeGridLeft;
-
-    // Calculate relative positions (0 to 1) within the time grid
-    const minX = Math.min(startX, endX);
-    const maxX = Math.max(startX, endX);
-
-    const startRelative = Math.max(0, Math.min(1, (minX - timeGridLeft) / timeGridWidth));
-    const endRelative = Math.max(0, Math.min(1, (maxX - timeGridLeft) / timeGridWidth));
-
-    // Get day start/end times from engine config
     const config = this.engine.getConfig();
+    const isWeekView = this.currentView === 'resourceTimelineWeek';
+    const numDays = isWeekView ? 7 : 1;
+    const dayWidth = timeGridWidth / numDays;
 
-    // IMPORTANT: Parse as UTC to avoid timezone conversion issues
-    // Add 'Z' suffix to force UTC interpretation
-    const dayStart = new Date(`${this.currentDay}T${config.dayStartTime}:00Z`);
-    const dayEnd = new Date(`${this.currentDay}T${config.dayEndTime}:00Z`);
-    const dayDuration = dayEnd.getTime() - dayStart.getTime();
+    const xToTime = (x: number): Date => {
+      const relativeX = x - timeGridLeft;
+      const dayIndex = Math.floor(relativeX / dayWidth);
+      const clampedDayIndex = Math.max(0, Math.min(numDays - 1, dayIndex));
+      const dayStartX = clampedDayIndex * dayWidth;
+      const positionInDay = Math.max(0, Math.min(1, (relativeX - dayStartX) / dayWidth));
+      
+      const baseDate = new Date(`${this.currentDay}T00:00:00Z`);
+      const targetDate = new Date(baseDate);
+      targetDate.setUTCDate(baseDate.getUTCDate() + clampedDayIndex);
+      const targetDayId = tools.dateTime.extractDate(targetDate.toISOString());
+      
+      const dayStart = new Date(`${targetDayId}T${config.dayStartTime}:00Z`);
+      const dayEnd = new Date(`${targetDayId}T${config.dayEndTime}:00Z`);
+      const dayDuration = dayEnd.getTime() - dayStart.getTime();
+      
+      return new Date(dayStart.getTime() + dayDuration * positionInDay);
+    };
 
-    const start = new Date(dayStart.getTime() + dayDuration * startRelative);
-    const end = new Date(dayStart.getTime() + dayDuration * endRelative);
+    const start = xToTime(Math.min(startX, endX));
+    const end = xToTime(Math.max(startX, endX));
 
     return { start, end };
   }

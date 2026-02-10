@@ -142,6 +142,7 @@ export class TemporalGrid {
       this.control = new TemporalGridControl(this.engine, {
         container: this.calendarElement,
         initialDay: this.config.initialDay,
+        initialView: this.config.initialView,
         groupingMode: this.config.groupingMode,
         showConflicts: this.config.showConflicts,
         showSegmentLabels: this.config.showSegmentLabels,

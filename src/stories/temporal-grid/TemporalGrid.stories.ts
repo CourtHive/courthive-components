@@ -75,12 +75,6 @@ const meta: Meta = {
       description: 'Court closing time (HH:mm format)',
       defaultValue: '23:00',
     },
-    view: {
-      control: { type: 'select' },
-      options: ['resourceTimelineDay', 'resourceTimelineWeek'],
-      description: 'View mode: single day or week',
-      defaultValue: 'resourceTimelineDay',
-    },
     slotMinutes: {
       control: { type: 'number', min: 15, max: 60, step: 15 },
       description: 'Time slot size in minutes',
@@ -156,9 +150,12 @@ const renderTemporalGrid = (args: any) => {
   // Create temporal grid
   const tournamentRecord = args.tournamentRecord || createMockTournament();
   
+  console.log('[Story] View being passed:', args.view, 'Initial view will be:', args.view || 'resourceTimelineDay');
+  
   const grid = createTemporalGrid({
     tournamentRecord,
     initialDay: args.initialDay || '2026-06-15',
+    initialView: args.view || 'resourceTimelineDay',
     showFacilityTree: args.showFacilityTree ?? true,
     showCapacity: args.showCapacity ?? true,
     showToolbar: args.showToolbar ?? true,
@@ -203,28 +200,57 @@ const renderTemporalGrid = (args: any) => {
 // ============================================================================
 
 /**
- * Default view with all features enabled
+ * Default single-day view with all features enabled
  */
 export const Default: Story = {
   args: {
     dayStartTime: '06:00',
     dayEndTime: '23:00',
-    view: 'resourceTimelineDay',
     slotMinutes: 15,
   },
   render: (args) => renderTemporalGrid({
     ...args,
+    initialDay: '2026-06-15',
+    view: 'resourceTimelineDay',
     engineConfig: {
       dayStartTime: args.dayStartTime,
       dayEndTime: args.dayEndTime,
       slotMinutes: args.slotMinutes,
     },
     instructions: `
-      <strong>Try these features:</strong><br>
+      <strong>Single Day View:</strong><br>
       • Click the Paint button and drag on the timeline to create blocks<br>
-      • Use the controls above to change court hours and view settings<br>
+      • Use the controls above to change court hours<br>
       • Check courts in the left panel for multi-selection<br>
       • View capacity stats at the top
+    `,
+  }),
+};
+
+/**
+ * Week view showing 7 days for scheduling across multiple days
+ */
+export const WeekView: Story = {
+  args: {
+    dayStartTime: '06:00',
+    dayEndTime: '23:00',
+    slotMinutes: 30,
+  },
+  render: (args) => renderTemporalGrid({
+    ...args,
+    initialDay: '2026-06-15',
+    view: 'resourceTimelineWeek',  // This gets mapped to initialView
+    engineConfig: {
+      dayStartTime: args.dayStartTime,
+      dayEndTime: args.dayEndTime,
+      slotMinutes: args.slotMinutes,
+    },
+    instructions: `
+      <strong>Week View:</strong><br>
+      • Shows 7 days starting from June 15, 2026<br>
+      • Scroll horizontally to see all days<br>
+      • Paint mode: Click and drag to create blocks across days<br>
+      • Check courts in the left panel for multi-selection
     `,
   }),
 };
