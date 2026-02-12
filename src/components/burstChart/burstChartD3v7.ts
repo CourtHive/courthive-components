@@ -57,19 +57,9 @@ export interface SunburstSide {
   sideNumber: number;
   drawPosition: number;
   participantName?: string;
-  nationalityCode?: string; // ISO 3-letter (works with existing flagIOC)
+  nationalityCode?: string; // ISO 3-letter (works with existing flagISO)
   seedNumber?: number;
   entryStatus?: string; // 'DIRECT_ACCEPTANCE' | 'WILDCARD' | 'QUALIFIER' | 'LUCKY_LOSER'
-}
-
-/** @deprecated Use SunburstSide */
-export interface PlayerEntry {
-  player: string;
-  country: string;
-  seed?: string | number;
-  entry?: string;
-  score?: string;
-  Draw?: number;
 }
 
 // ============================================================================
@@ -222,7 +212,7 @@ function buildTournamentHierarchy(drawData: SunburstDrawData): HierarchyNode {
   const rawLeaves = buildLeafNodes(round1MUs, roundNumbers.length);
   const leafNodes = reorderForBracket(rawLeaves);
 
-  // Build participant lookup from leaf nodes for drawPosition/seed/country
+  // Build participant lookup from leaf nodes for drawPosition/seed/nationalityCode
   const participantLookup = new Map<string, HierarchyNode>();
   for (const node of leafNodes) {
     if (node.participantName && node.participantName !== 'BYE') {
@@ -487,7 +477,7 @@ function displayFlag(
     .attr(ATTR_TEXT_ANCHOR, 'middle')
     .attr(ATTR_DOMINANT_BASELINE, 'middle')
     .attr('transform', `translate(0, ${ySign * flagRadius})`)
-    .text(flagIOC(nationalityCode));
+    .text(flagISO(nationalityCode));
 }
 
 // ============================================================================
@@ -620,10 +610,10 @@ export function renderBurstChartD3v7(
         const y = Math.sin(angle) * flagRadius;
         return `translate(${x}, ${y})`;
       })
-      .text((country: string) => flagIOC(country))
+      .text((nationalityCode: string) => flagISO(nationalityCode))
       .style('cursor', 'pointer')
-      .on('mouseover', function (_event: any, country: string) {
-        const countryName = countryNames[country] || country;
+      .on('mouseover', function (_event: any, nationalityCode: string) {
+        const countryName = countryNames[nationalityCode] || nationalityCode;
         centerText.selectAll('tspan').remove();
         centerText.attr('y', height / 2);
         centerText.text(countryName).style('display', 'block');
@@ -633,7 +623,7 @@ export function renderBurstChartD3v7(
         g.selectAll<SVGPathElement, HierarchyRectangularNode<HierarchyNode>>('path').attr(
           ATTR_FILL_OPACITY,
           (p: any) => {
-            if (p.data.nationalityCode === country) return 0.9;
+            if (p.data.nationalityCode === nationalityCode) return 0.9;
             return 0.3;
           }
         );
@@ -742,7 +732,7 @@ export function burstChartD3v7(options: BurstChartD3v7Options = {}) {
   };
 }
 
-function countryToFlag(isoCode: string): string {
+function isoToFlag(isoCode: string): string {
   if (isoCode?.length !== 2) return '';
 
   // Convert each letter to regional indicator symbol
@@ -754,11 +744,11 @@ function countryToFlag(isoCode: string): string {
 
 /**
  * Convert IOC code to emoji flag
- * Matches fixtures.flagIOC() from tods-competition-factory
- * @param ioc - IOC country code (e.g., "SRB", "GBR", "SUI")
+ * Matches fixtures.flagISO() from tods-competition-factory
+ * @param ioc - IOC nationality code (e.g., "SRB", "GBR", "SUI")
  * @returns Emoji flag
  */
-export function flagIOC(ioc: string): string {
+export function flagISO(ioc: string): string {
   const iso2 = ioc2iso2[ioc] || ioc; // Fallback to ioc if not found
-  return countryToFlag(iso2);
+  return isoToFlag(iso2);
 }
