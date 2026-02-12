@@ -82,3 +82,8 @@ export * as validators from './validators';
 // State management
 export { DrawStateManager } from './helpers/drawStateManager';
 export type { RenderCallback } from './helpers/drawStateManager';
+
+// Burst Chart — D3v7 Sunburst Tournament Visualization
+export { burstChartD3v7 } from './components/burstChart/burstChartD3v7';
+export type { SunburstDrawData, SunburstMatchUp, SunburstSide } from './components/burstChart/burstChartD3v7';
+export { fromFactoryDrawData, fromLegacyDraw } from './components/burstChart/matchUpTransform';
