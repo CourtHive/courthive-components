@@ -1,13 +1,13 @@
 /**
  * Transform utilities for converting between data formats and the TODS-aligned
- * SunburstDrawData intermediate format consumed by burstChartD3v7.
+ * SunburstDrawData intermediate format consumed by burstChart.
  *
  * Two adapters:
  * - fromFactoryDrawData: tods-competition-factory getEventData().drawsData structure → SunburstDrawData
  * - fromLegacyDraw: legacy TournamentDraw JSON (R128/R64/.../W) → SunburstDrawData
  */
 
-import type { SunburstDrawData, SunburstMatchUp, SunburstSide } from './burstChartD3v7';
+import type { SunburstDrawData, SunburstMatchUp, SunburstSide } from './burstChart';
 
 // ============================================================================
 // fromFactoryDrawData — tods-competition-factory → SunburstDrawData
@@ -31,16 +31,16 @@ export function fromFactoryDrawData(structure: any): SunburstDrawData {
         mu.winningSide === 1
           ? mu.score?.scoreStringSide1
           : mu.winningSide === 2
-            ? mu.score?.scoreStringSide2
-            : undefined,
+          ? mu.score?.scoreStringSide2
+          : undefined,
       sides: (mu.sides || []).map((s: any) => ({
         sideNumber: s.sideNumber,
         drawPosition: s.drawPosition,
         participantName: s.participant?.participantName,
         nationalityCode: s.participant?.person?.nationalityCode,
         seedNumber: s.seedNumber,
-        entryStatus: s.participant?.entryStatus,
-      })),
+        entryStatus: s.participant?.entryStatus
+      }))
     }));
   }
 
@@ -49,7 +49,7 @@ export function fromFactoryDrawData(structure: any): SunburstDrawData {
   return {
     drawSize: round1Count * 2,
     roundMatchUps,
-    seedAssignments: structure.seedAssignments,
+    seedAssignments: structure.seedAssignments
   };
 }
 
@@ -61,7 +61,7 @@ export function fromFactoryDrawData(structure: any): SunburstDrawData {
 const ENTRY_STATUS_MAP: Record<string, string> = {
   WC: 'WILDCARD',
   Q: 'QUALIFIER',
-  LL: 'LUCKY_LOSER',
+  LL: 'LUCKY_LOSER'
 };
 
 /** Legacy round keys ordered from largest (outermost) to smallest (innermost) */
@@ -102,7 +102,7 @@ export function fromLegacyDraw(tournamentDraw: any): SunburstDrawData {
         drawPosition: p.Draw ?? idx + 1,
         country: p.country,
         seed: p.seed,
-        entry: p.entry,
+        entry: p.entry
       });
     }
   });
@@ -138,10 +138,10 @@ export function fromLegacyDraw(tournamentDraw: any): SunburstDrawData {
         ? 2
         : 1
       : winners1.has(name1)
-        ? 1
-        : winners1.has(name2)
-          ? 2
-          : undefined;
+      ? 1
+      : winners1.has(name2)
+      ? 2
+      : undefined;
 
     // Determine score: the winner's score from round 2 data
     let scoreString: string | undefined;
@@ -160,7 +160,7 @@ export function fromLegacyDraw(tournamentDraw: any): SunburstDrawData {
       winningSide,
       drawPositions: [p1?.Draw ?? i + 1, p2?.Draw ?? i + 2],
       scoreString,
-      sides: [makeSide(1, p1, i + 1), makeSide(2, p2, i + 2)],
+      sides: [makeSide(1, p1, i + 1), makeSide(2, p2, i + 2)]
     });
   }
   roundMatchUps[1] = round1MatchUps;
@@ -192,7 +192,7 @@ export function fromLegacyDraw(tournamentDraw: any): SunburstDrawData {
         winningSide,
         drawPositions: [playerInfoMap.get(name1)?.drawPosition ?? 0, playerInfoMap.get(name2)?.drawPosition ?? 0],
         scoreString,
-        sides: [makeSideFromLookup(1, p1, playerInfoMap), makeSideFromLookup(2, p2, playerInfoMap)],
+        sides: [makeSideFromLookup(1, p1, playerInfoMap), makeSideFromLookup(2, p2, playerInfoMap)]
       });
     }
     roundMatchUps[roundNumber] = matchUps;
@@ -216,7 +216,7 @@ function mapEntryStatus(entry: string | undefined): string | undefined {
   return ENTRY_STATUS_MAP[entry.toUpperCase()] || entry;
 }
 
-function makeSide(sideNumber: number, player: any | undefined, fallbackPos: number): SunburstSide {
+function makeSide(sideNumber: number, player: any, fallbackPos: number): SunburstSide {
   if (!player) {
     return { sideNumber, drawPosition: fallbackPos };
   }
@@ -227,14 +227,14 @@ function makeSide(sideNumber: number, player: any | undefined, fallbackPos: numb
     participantName: name || undefined,
     nationalityCode: player.country || undefined,
     seedNumber: player.seed ? Number(player.seed) : undefined,
-    entryStatus: mapEntryStatus(player.entry),
+    entryStatus: mapEntryStatus(player.entry)
   };
 }
 
 function makeSideFromLookup(
   sideNumber: number,
-  player: any | undefined,
-  lookup: Map<string, { drawPosition: number; country: string; seed?: string | number; entry?: string }>,
+  player: any,
+  lookup: Map<string, { drawPosition: number; country: string; seed?: string | number; entry?: string }>
 ): SunburstSide {
   if (!player) {
     return { sideNumber, drawPosition: 0 };
@@ -247,6 +247,6 @@ function makeSideFromLookup(
     participantName: name || undefined,
     nationalityCode: player.country || info?.country || undefined,
     seedNumber: player.seed ? Number(player.seed) : info?.seed ? Number(info.seed) : undefined,
-    entryStatus: mapEntryStatus(player.entry || info?.entry),
+    entryStatus: mapEntryStatus(player.entry || info?.entry)
   };
 }

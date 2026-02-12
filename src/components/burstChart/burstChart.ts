@@ -83,7 +83,7 @@ export interface HierarchyNode {
   opponent?: HierarchyNode; // Set during hover to track opponent for flag display
 }
 
-export interface BurstChartD3v7Options {
+export interface BurstChartOptions {
   width?: number;
   height?: number;
   title?: string;
@@ -488,11 +488,11 @@ function displayFlag(
  * Create a BurstChart D3v7 visualization.
  * Accepts the TODS-aligned SunburstDrawData format.
  */
-export function renderBurstChartD3v7(
+export function renderburstChart(
   container: HTMLElement,
   drawData: SunburstDrawData,
   title: string,
-  options: BurstChartD3v7Options = {}
+  options: BurstChartOptions = {}
 ): void {
   const width = options.width || 800;
   const height = options.height || 800;
@@ -724,10 +724,10 @@ export function renderBurstChartD3v7(
  * Factory function to create a burst chart renderer.
  * Accepts either SunburstDrawData (new) or TournamentDraw (legacy, auto-converted).
  */
-export function burstChartD3v7(options: BurstChartD3v7Options = {}) {
+export function burstChart(options: BurstChartOptions = {}) {
   return {
     render: (container: HTMLElement, drawData: SunburstDrawData, title: string) => {
-      renderBurstChartD3v7(container, drawData, title, options);
+      renderburstChart(container, drawData, title, options);
     }
   };
 }

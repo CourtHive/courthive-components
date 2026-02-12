@@ -13,7 +13,7 @@
 
 import { mocksEngine, tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
 import { fromLegacyDraw, fromFactoryDrawData } from '../components/burstChart/matchUpTransform';
-import { burstChartD3v7 } from '../components/burstChart/burstChartD3v7';
+import { burstChart } from '../components/burstChart/burstChart';
 import australianOpenData from '../data/burstChart/australian_open.json';
 import rolandGarrosData from '../data/burstChart/roland_garros.json';
 import wimbledonData from '../data/burstChart/wimbledon.json';
@@ -26,7 +26,7 @@ const { SINGLE_ELIMINATION } = drawDefinitionConstants;
 const BORDER_STYLE_1 = '1px solid #ddd';
 const BORDER_STYLE_2 = '1px solid #ccc';
 
-interface BurstChartD3v7Args {
+interface BurstChartArgs {
   width: number;
   height: number;
   title: string;
@@ -35,8 +35,8 @@ interface BurstChartD3v7Args {
 /**
  * Modern D3v7 Burst Chart with emoji flags and clean architecture
  */
-const meta: Meta<BurstChartD3v7Args> = {
-  title: 'Visualizations/BurstChartD3v7',
+const meta: Meta<BurstChartArgs> = {
+  title: 'Visualizations/burstChart',
   tags: ['autodocs'],
   argTypes: {
     width: {
@@ -55,7 +55,7 @@ const meta: Meta<BurstChartD3v7Args> = {
 };
 
 export default meta;
-type Story = StoryObj<BurstChartD3v7Args>;
+type Story = StoryObj<BurstChartArgs>;
 
 /**
  * Australian Open 2016 - Full 128-draw Grand Slam
@@ -89,7 +89,7 @@ export const AustralianOpen2016: Story = {
     chartContainer.style.alignItems = 'center';
     chartContainer.style.justifyContent = 'center';
 
-    const chart = burstChartD3v7({
+    const chart = burstChart({
       height: args.height,
       width: args.width
     });
@@ -201,7 +201,7 @@ export const GrandSlamComparison: Story = {
       chartDiv.style.justifyContent = 'center';
       container.appendChild(chartDiv);
 
-      const chart = burstChartD3v7({
+      const chart = burstChart({
         width: args.width,
         height: args.height
       });
@@ -252,7 +252,7 @@ export const GeneratedTournament: Story = {
     const structure = eventData.drawsData.find((d: any) => d.drawId === drawId).structures[0];
     const drawData = fromFactoryDrawData(structure);
 
-    const chart = burstChartD3v7({
+    const chart = burstChart({
       width: args.width,
       height: args.height
     });
@@ -415,7 +415,7 @@ export const DrawSizePicker: Story = {
       const drawData = fromFactoryDrawData(structure);
 
       chartContainer.innerHTML = '';
-      const chart = burstChartD3v7({
+      const chart = burstChart({
         width: args.width,
         height: args.height
       });
