@@ -46,11 +46,7 @@ export {
   shouldCreateNextSet,
   buildSetScore
 } from './components/scoring/logic/dynamicSetsLogic';
-export type {
-  SetFormat,
-  MatchUpConfig,
-  SmartComplementResult
-} from './components/scoring/logic/dynamicSetsLogic';
+export type { SetFormat, MatchUpConfig, SmartComplementResult } from './components/scoring/logic/dynamicSetsLogic';
 
 // Drawer component
 export { drawer, initDrawer } from './components/drawer/drawer';
@@ -82,3 +78,8 @@ export * as validators from './validators';
 // State management
 export { DrawStateManager } from './helpers/drawStateManager';
 export type { RenderCallback } from './helpers/drawStateManager';
+
+// Burst Chart — D3v7 Sunburst Tournament Visualization
+export { burstChart } from './components/burstChart/burstChart';
+export type { SunburstDrawData, SunburstMatchUp, SunburstSide } from './components/burstChart/burstChart';
+export { fromFactoryDrawData, fromLegacyDraw } from './components/burstChart/matchUpTransform';
