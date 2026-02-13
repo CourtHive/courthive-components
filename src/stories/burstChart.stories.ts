@@ -229,10 +229,6 @@ export const GeneratedTournament: Story = {
     title: 'Generated 32-Draw'
   },
   render: (args: any) => {
-    const wrapper = document.createElement('div');
-    wrapper.style.padding = '20px';
-    wrapper.style.backgroundColor = '#f5f5f5';
-
     const chartContainer = document.createElement('div');
     chartContainer.style.backgroundColor = '#ffffff';
     chartContainer.style.border = BORDER_STYLE_1;
@@ -258,6 +254,10 @@ export const GeneratedTournament: Story = {
     });
 
     chart.render(chartContainer, drawData, args.title);
+
+    const wrapper = document.createElement('div');
+    wrapper.style.padding = '20px';
+    wrapper.style.backgroundColor = '#f5f5f5';
 
     wrapper.appendChild(chartContainer);
 
