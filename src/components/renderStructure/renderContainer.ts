@@ -1,4 +1,4 @@
-import { containerStyle } from '../styles/containerStyle';
+import { containerStyle } from '../../styles/containerStyle';
 import cx from 'classnames';
 
 // NOTE: container is necessary for setting the background color for e.g. Night theme

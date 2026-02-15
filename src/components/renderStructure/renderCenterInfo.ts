@@ -1,7 +1,7 @@
-import { columnStyle, entryStyle, getInfoStyle, statusStyle } from '../styles/centerInfoStyle';
-import { isFunction } from './modal/cmodal';
+import { columnStyle, entryStyle, getInfoStyle, statusStyle } from '../../styles/centerInfoStyle';
+import { isFunction } from '../modal/cmodal';
 import cx from 'classnames';
-import type { EventHandlers, MatchUp } from '../types';
+import type { EventHandlers, MatchUp } from '../../types';
 
 export function renderCenterInfo({ 
   eventHandlers, 

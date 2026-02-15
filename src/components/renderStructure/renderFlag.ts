@@ -1,6 +1,6 @@
 import { fixtures } from 'tods-competition-factory';
-import { flagStyle } from '../styles/flagStyle';
-import type { IndividualParticipant, MatchUp } from '../types';
+import { flagStyle } from '../../styles/flagStyle';
+import type { IndividualParticipant, MatchUp } from '../../types';
 
 export function renderFlag({ matchUp, individualParticipant, spacer }: { 
   matchUp?: MatchUp; 

@@ -1,4 +1,4 @@
-import { tickStyles } from '../styles/sideStyles';
+import { tickStyles } from '../../styles/sideStyles';
 
 export function renderTick({ dim = '20px' }: { dim?: string } = {}): string {
   /*

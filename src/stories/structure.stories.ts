@@ -1,6 +1,6 @@
-import { renderParticipant } from '../components/renderParticipant';
-import { renderContainer } from '../components/renderContainer';
-import { renderStructure } from '../components/renderStructure';
+import { renderParticipant } from '../components/renderStructure/renderParticipant';
+import { renderContainer } from '../components/renderStructure/renderContainer';
+import { renderStructure } from '../components/renderStructure/renderStructure';
 import { generateEventData } from '../data/generateEventData';
 import { compositions } from '../compositions/compositions';
 import { cModal } from '../components/modal/cmodal';

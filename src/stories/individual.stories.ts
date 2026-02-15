@@ -1,4 +1,4 @@
-import { renderIndividual } from '../components/renderIndividual';
+import { renderIndividual } from '../components/renderStructure/renderIndividual';
 
 export default {
   title: 'Participants/Individual',

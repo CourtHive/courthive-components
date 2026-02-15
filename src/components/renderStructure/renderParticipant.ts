@@ -1,12 +1,12 @@
-import { getParticipantContainerStyle, participantTypeStyle } from '../styles/participantStyle';
-import { getChevronStyle } from '../styles/getChevronStyle';
+import { getParticipantContainerStyle, participantTypeStyle } from '../../styles/participantStyle';
+import { getChevronStyle } from '../../styles/getChevronStyle';
 import { renderIndividual } from './renderIndividual';
 import { renderStatusPill } from './renderStatusPill';
-import { isElement } from '../utilities/isElement';
+import { isElement } from '../../utilities/isElement';
 import { renderTeamLogo } from './renderTeamLogo';
 import { renderTick } from './renderTick';
 
-import type { Composition, EventHandlers, MatchUp, Participant } from '../types';
+import type { Composition, EventHandlers, MatchUp, Participant } from '../../types';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 
 const { 

@@ -1,4 +1,4 @@
-import { renderStatusPill } from '../components/renderStatusPill';
+import { renderStatusPill } from '../components/renderStructure/renderStatusPill';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 
 const { WALKOVER, RETIRED, DEFAULTED, SUSPENDED, AWAITING_RESULT, CANCELLED, IN_PROGRESS, ABANDONED } = matchUpStatusConstants;

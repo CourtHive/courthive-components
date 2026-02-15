@@ -1,5 +1,5 @@
-import { renderContainer } from '../components/renderContainer';
-import { renderMatchUp } from '../components/renderMatchUp';
+import { renderContainer } from '../components/renderStructure/renderContainer';
+import { renderMatchUp } from '../components/renderStructure/renderMatchUp';
 import { compositions } from '../compositions/compositions';
 import { generateMatchUps } from '../data/generateMatchUps';
 import { matchUpStatusConstants } from 'tods-competition-factory';

@@ -1,4 +1,4 @@
-import { renderTick } from '../components/renderTick';
+import { renderTick } from '../components/renderStructure/renderTick';
 
 export default {
   title: 'MatchUps/Tick',

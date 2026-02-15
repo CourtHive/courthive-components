@@ -2,8 +2,8 @@
  * Storybook stories for inline participant assignment feature
  * Demonstrates typeahead input for assigning participants to empty draw positions
  */
-import { renderContainer } from '../components/renderContainer';
-import { renderMatchUp } from '../components/renderMatchUp';
+import { renderContainer } from '../components/renderStructure/renderContainer';
+import { renderMatchUp } from '../components/renderStructure/renderMatchUp';
 import { compositions } from '../compositions/compositions';
 import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import type { MatchUp, Participant } from '../types';

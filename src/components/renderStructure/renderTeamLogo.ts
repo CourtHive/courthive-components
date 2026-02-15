@@ -1,4 +1,4 @@
-import { teamLogoStyle } from "../styles/teamLogoStyle";
+import { teamLogoStyle } from "../../styles/teamLogoStyle";
 
 export function renderTeamLogo({ teamLogo }: { teamLogo?: any }): HTMLElement {
   console.log({ teamLogo });

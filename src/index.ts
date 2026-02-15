@@ -1,11 +1,11 @@
-export { renderParticipant } from './components/renderParticipant';
-export { renderParticipantInput } from './components/renderParticipantInput';
-export { renderRoundHeader } from './components/renderRoundHeader';
-export { renderStructure } from './components/renderStructure';
-export { renderContainer } from './components/renderContainer';
-export { renderMatchUp } from './components/renderMatchUp';
+export { renderParticipant } from './components/renderStructure/renderParticipant';
+export { renderParticipantInput } from './components/renderStructure/renderParticipantInput';
+export { renderRoundHeader } from './components/renderStructure/renderRoundHeader';
+export { renderStructure } from './components/renderStructure/renderStructure';
+export { renderContainer } from './components/renderStructure/renderContainer';
+export { renderMatchUp } from './components/renderStructure/renderMatchUp';
 export { compositions } from './compositions/compositions';
-export { renderRound } from './components/renderRound';
+export { renderRound } from './components/renderStructure/renderRound';
 export { cModal } from './components/modal/cmodal';
 
 // Mock participants generator modal
@@ -46,11 +46,7 @@ export {
   shouldCreateNextSet,
   buildSetScore
 } from './components/scoring/logic/dynamicSetsLogic';
-export type {
-  SetFormat,
-  MatchUpConfig,
-  SmartComplementResult
-} from './components/scoring/logic/dynamicSetsLogic';
+export type { SetFormat, MatchUpConfig, SmartComplementResult } from './components/scoring/logic/dynamicSetsLogic';
 
 // Drawer component
 export { drawer, initDrawer } from './components/drawer/drawer';
@@ -82,3 +78,16 @@ export * as validators from './validators';
 // State management
 export { DrawStateManager } from './helpers/drawStateManager';
 export type { RenderCallback } from './helpers/drawStateManager';
+
+// Burst Chart — D3v7 Sunburst Tournament Visualization
+export { burstChart } from './components/burstChart/burstChart';
+export type {
+  SunburstDrawData,
+  SunburstMatchUp,
+  SunburstSide,
+  SegmentData,
+  BurstChartEventHandlers,
+  BurstChartOptions,
+  BurstChartInstance
+} from './components/burstChart/burstChart';
+export { fromFactoryDrawData, fromLegacyDraw } from './components/burstChart/matchUpTransform';
