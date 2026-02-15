@@ -204,7 +204,7 @@ export class TemporalGridControl {
       dayStartTime: engineConfig.dayStartTime,
       dayEndTime: engineConfig.dayEndTime,
       slotMinutes: engineConfig.slotMinutes,
-      day: currentDay,
+      day: currentDay
     });
 
     let windowEnd = windowConfig.end;
@@ -241,7 +241,7 @@ export class TemporalGridControl {
         add: true,
         updateTime: true,
         updateGroup: true,
-        remove: false,
+        remove: false
       },
 
       // Snap to 5-minute increments
@@ -276,19 +276,19 @@ export class TemporalGridControl {
       format: {
         minorLabels: {
           minute: 'HH:mm',
-          hour: 'HH:mm',
+          hour: 'HH:mm'
         },
         majorLabels: {
           hour: 'ddd D MMM',
-          day: 'ddd D MMM',
-        },
+          day: 'ddd D MMM'
+        }
       },
 
       // Items always draggable (for block items that are editable)
       itemsAlwaysDraggable: {
         item: true,
-        range: true,
-      },
+        range: true
+      }
     });
 
     // Register click handler for block actions
@@ -399,7 +399,7 @@ export class TemporalGridControl {
       dayStartTime: engineConfig.dayStartTime,
       dayEndTime: engineConfig.dayEndTime,
       slotMinutes: engineConfig.slotMinutes,
-      day: this.currentDay,
+      day: this.currentDay
     });
 
     let windowEnd = windowConfig.end;
@@ -415,7 +415,7 @@ export class TemporalGridControl {
 
     this.timeline.setOptions({
       min: windowConfig.min,
-      max: maxDate,
+      max: maxDate
     });
 
     this.timeline.setWindow(windowConfig.start, windowEnd, { animation: false });
@@ -505,8 +505,8 @@ export class TemporalGridControl {
         courts: [court],
         timeRange: {
           start: this.toLocalISO(snappedStart),
-          end: this.toLocalISO(snappedEnd),
-        },
+          end: this.toLocalISO(snappedEnd)
+        }
       });
     } else {
       // Not in paint mode — open time picker for new block
@@ -637,7 +637,7 @@ export class TemporalGridControl {
           this.showConflictDialog(result.conflicts);
         }
       },
-      onCancel: () => {},
+      onCancel: () => {}
     });
   }
 
@@ -718,7 +718,7 @@ export class TemporalGridControl {
     }
 
     // Calculate end time
-    const maxDurationHours = 3;
+    const maxDurationHours = 5;
     const maxEndTime = startTime + maxDurationHours * 60 * 60 * 1000;
 
     const boundaries = [
@@ -784,7 +784,7 @@ export class TemporalGridControl {
           timeRange: { start: startISO, end: endISO }
         });
       },
-      onCancel: () => {},
+      onCancel: () => {}
     });
   }
 
@@ -918,7 +918,9 @@ export class TemporalGridControl {
    */
   private toLocalISO(date: Date): string {
     const pad = (n: number) => n.toString().padStart(2, '0');
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(
+      date.getMinutes()
+    )}:${pad(date.getSeconds())}`;
   }
 
   /** Show conflict dialog */
