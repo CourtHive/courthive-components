@@ -1,4 +1,4 @@
-import { renderFrill } from '../components/renderFrill';
+import { renderFrill } from '../components/renderStructure/renderFrill';
 
 export default {
   title: 'Participants/Frill',

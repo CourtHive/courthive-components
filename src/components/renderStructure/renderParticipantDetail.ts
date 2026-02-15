@@ -1,7 +1,7 @@
 import { renderAddress } from './renderAddress';
 import { renderPersonAttribute } from './renderPersonAttribute';
 import { renderTeam } from './renderTeam';
-import type { Composition, IndividualParticipant } from '../types';
+import type { Composition, IndividualParticipant } from '../../types';
 
 export function renderParticipantDetail(params: {
   composition?: Composition;

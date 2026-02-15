@@ -1,7 +1,7 @@
-import { renderContainer } from '../components/renderContainer';
+import { renderContainer } from '../components/renderStructure/renderContainer';
 import { generateMatchUps } from '../data/generateMatchUps';
 import { compositions } from '../compositions/compositions';
-import { renderRound } from '../components/renderRound';
+import { renderRound } from '../components/renderStructure/renderRound';
 
 const argTypes = {
   composition: {

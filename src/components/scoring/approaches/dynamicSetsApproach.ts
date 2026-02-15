@@ -2,7 +2,7 @@
  * Dynamic Sets score entry approach
  * Individual set inputs with hotkey navigation and real-time validation
  */
-import { renderMatchUp } from '../../renderMatchUp';
+import { renderMatchUp } from '../../renderStructure/renderMatchUp';
 import { compositions } from '../../../compositions/compositions';
 import { validateSetScores } from '../utils/scoreValidator';
 import { parseMatchUpFormat, shouldExpandSets } from '../utils/setExpansionLogic';

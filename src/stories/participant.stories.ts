@@ -1,4 +1,4 @@
-import { renderParticipant } from '../components/renderParticipant';
+import { renderParticipant } from '../components/renderStructure/renderParticipant';
 import { generateMatchUps } from '../data/generateMatchUps';
 
 import { matchUpStatusConstants } from 'tods-competition-factory';

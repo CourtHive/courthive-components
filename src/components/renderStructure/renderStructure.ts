@@ -1,9 +1,9 @@
-import { roundContainerStyle } from '../styles/roundContainerStyle';
+import { roundContainerStyle } from '../../styles/roundContainerStyle';
 import { tournamentEngine } from 'tods-competition-factory';
-import { structureStyle } from '../styles/structureStyle';
-import { roundStyle } from '../styles/roundStyle';
+import { structureStyle } from '../../styles/structureStyle';
+import { roundStyle } from '../../styles/roundStyle';
 import { renderRound } from './renderRound';
-import type { Composition, EventHandlers, MatchUp } from '../types';
+import type { Composition, EventHandlers, MatchUp } from '../../types';
 
 export function renderStructure({
   initialRoundNumber = 1,

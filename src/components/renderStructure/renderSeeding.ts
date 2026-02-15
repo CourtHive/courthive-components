@@ -1,4 +1,4 @@
-import type { Composition, Side } from '../types';
+import type { Composition, Side } from '../../types';
 
 export function renderSeeding({ className, composition, side }: { className?: string; composition?: Composition; side?: Side }): HTMLElement | string {
   const seedValue =

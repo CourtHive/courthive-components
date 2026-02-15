@@ -1,12 +1,12 @@
-import { groupSeparatorStyle } from '../styles/groupSeparatorStyle';
-import { roundContainerStyle } from '../styles/roundContainerStyle';
-import { groupNameStyle } from '../styles/groupNameStyle';
+import { groupSeparatorStyle } from '../../styles/groupSeparatorStyle';
+import { roundContainerStyle } from '../../styles/roundContainerStyle';
+import { groupNameStyle } from '../../styles/groupNameStyle';
 import { renderRoundHeader } from './renderRoundHeader';
-import { roundStyle } from '../styles/roundStyle';
+import { roundStyle } from '../../styles/roundStyle';
 import { tools } from 'tods-competition-factory';
 import { renderMatchUp } from './renderMatchUp';
-import { isFunction } from './modal/cmodal';
-import type { Composition, EventHandlers, MatchUp } from '../types';
+import { isFunction } from '../modal/cmodal';
+import type { Composition, EventHandlers, MatchUp } from '../../types';
 
 export function renderRound({
   initialRoundNumber = 1,

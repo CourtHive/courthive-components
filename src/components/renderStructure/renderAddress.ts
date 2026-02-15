@@ -1,6 +1,6 @@
-import { participantDetailStyle } from '../styles/participantDetailStyle';
+import { participantDetailStyle } from '../../styles/participantDetailStyle';
 import cx from 'classnames';
-import type { IndividualParticipant } from '../types';
+import type { IndividualParticipant } from '../../types';
 
 export function renderAddress({ 
   individualParticipant, 

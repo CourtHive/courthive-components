@@ -1,7 +1,7 @@
 import { renderSeeding } from './renderSeeding';
 import { renderScale } from './renderScale';
 import { renderFlag } from './renderFlag';
-import type { Composition, IndividualParticipant, MatchUp, Side } from '../types';
+import type { Composition, IndividualParticipant, MatchUp, Side } from '../../types';
 
 export function renderFrill({ 
   individualParticipant, 

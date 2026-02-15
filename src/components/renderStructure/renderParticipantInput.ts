@@ -2,9 +2,9 @@
  * Render typeahead input field for inline participant assignment
  * Used when matchUp has empty draw positions and inlineAssignment is enabled
  */
-import { renderField } from './forms/renderField';
-import { isFunction } from './modal/cmodal';
-import type { Composition, EventHandlers, MatchUp, Side } from '../types';
+import { renderField } from '../forms/renderField';
+import { isFunction } from '../modal/cmodal';
+import type { Composition, EventHandlers, MatchUp, Side } from '../../types';
 
 // Special values to identify BYE and QUALIFIER selection
 const BYE_VALUE = '__BYE__';

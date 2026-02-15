@@ -2,8 +2,8 @@
  * Structure with Participant Assignment
  * Full draw structure example to test tab order and keyboard navigation
  */
-import { renderContainer } from '../components/renderContainer';
-import { renderStructure } from '../components/renderStructure';
+import { renderContainer } from '../components/renderStructure/renderContainer';
+import { renderStructure } from '../components/renderStructure/renderStructure';
 import { compositions } from '../compositions/compositions';
 import { mocksEngine } from 'tods-competition-factory';
 import { DrawStateManager } from '../helpers/drawStateManager';

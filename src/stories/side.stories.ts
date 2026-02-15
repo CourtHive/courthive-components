@@ -1,5 +1,5 @@
 import { generateMatchUps } from '../data/generateMatchUps';
-import { renderSide } from '../components/renderSide';
+import { renderSide } from '../components/renderStructure/renderSide';
 
 export default {
   title: 'MatchUps/Sides',
