@@ -14,6 +14,7 @@
 import { mocksEngine, tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
 import { fromLegacyDraw, fromFactoryDrawData } from '../components/burstChart/matchUpTransform';
 import { burstChart } from '../components/burstChart/burstChart';
+import type { BurstChartInstance } from '../components/burstChart/burstChart';
 import australianOpenData from '../data/burstChart/australian_open.json';
 import rolandGarrosData from '../data/burstChart/roland_garros.json';
 import wimbledonData from '../data/burstChart/wimbledon.json';
@@ -458,6 +459,198 @@ export const DrawSizePicker: Story = {
 
     wrapper.appendChild(controlsDiv);
     wrapper.appendChild(chartContainer);
+
+    return wrapper;
+  }
+};
+
+/**
+ * Australian Open Player Search - Multi-chart visualization with cross-chart player search
+ *
+ * Reproduces the TennisVisuals hive-eye-tracker burstTyped demo:
+ * - Displays all historical Australian Open tournaments as burst charts
+ * - Search input with autocomplete datalist of all player names
+ * - Searching highlights the player across all charts
+ * - Charts where the player doesn't appear are hidden
+ * - Clearing the search restores all charts
+ */
+export const AustralianOpenPlayerSearch: Story = {
+  args: {
+    width: 400,
+    height: 400,
+    title: 'Australian Open'
+  },
+  render: (args: any) => {
+    const wrapper = document.createElement('div');
+    wrapper.style.padding = '20px';
+    wrapper.style.backgroundColor = '#f5f5f5';
+    wrapper.style.fontFamily =
+      "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif";
+
+    // Header
+    const header = document.createElement('div');
+    header.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    header.style.color = 'white';
+    header.style.padding = '20px';
+    header.style.borderRadius = '8px';
+    header.style.marginBottom = '20px';
+    header.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+
+    const headerTitle = document.createElement('h1');
+    headerTitle.textContent = 'Tournament Burst Visualization';
+    headerTitle.style.margin = '0 0 10px 0';
+    header.appendChild(headerTitle);
+
+    const badge1 = document.createElement('span');
+    badge1.textContent = 'TypeScript + D3v7';
+    badge1.style.background = 'rgba(255, 255, 255, 0.2)';
+    badge1.style.padding = '4px 12px';
+    badge1.style.borderRadius = '12px';
+    badge1.style.fontSize = '14px';
+    badge1.style.fontWeight = '600';
+    badge1.style.marginRight = '8px';
+    header.appendChild(badge1);
+
+    const badge2 = document.createElement('span');
+    badge2.textContent = 'Player Search';
+    badge2.style.background = 'rgba(255, 255, 255, 0.2)';
+    badge2.style.padding = '4px 12px';
+    badge2.style.borderRadius = '12px';
+    badge2.style.fontSize = '14px';
+    badge2.style.fontWeight = '600';
+    header.appendChild(badge2);
+
+    wrapper.appendChild(header);
+
+    // Search container
+    const searchContainer = document.createElement('div');
+    searchContainer.style.background = 'white';
+    searchContainer.style.padding = '20px';
+    searchContainer.style.borderRadius = '8px';
+    searchContainer.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+    searchContainer.style.marginBottom = '20px';
+
+    const searchLabel = document.createElement('label');
+    searchLabel.textContent = 'Search for Player:';
+    searchLabel.style.display = 'block';
+    searchLabel.style.marginBottom = '8px';
+    searchLabel.style.fontWeight = '600';
+    searchLabel.style.color = '#333';
+    searchContainer.appendChild(searchLabel);
+
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.placeholder = 'Type player name...';
+    searchInput.autocomplete = 'off';
+    searchInput.style.width = '100%';
+    searchInput.style.maxWidth = '400px';
+    searchInput.style.padding = '12px';
+    searchInput.style.fontSize = '16px';
+    searchInput.style.border = '2px solid #e0e0e0';
+    searchInput.style.borderRadius = '6px';
+    searchInput.style.transition = 'border-color 0.3s';
+    searchInput.style.boxSizing = 'border-box';
+
+    const datalist = document.createElement('datalist');
+    datalist.id = `player-search-${Date.now()}`;
+    searchInput.setAttribute('list', datalist.id);
+
+    searchContainer.appendChild(searchInput);
+    searchContainer.appendChild(datalist);
+    wrapper.appendChild(searchContainer);
+
+    // Draws container
+    const drawsContainer = document.createElement('div');
+    drawsContainer.style.background = 'white';
+    drawsContainer.style.padding = '20px';
+    drawsContainer.style.borderRadius = '8px';
+    drawsContainer.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+    drawsContainer.style.display = 'flex';
+    drawsContainer.style.flexWrap = 'wrap';
+    drawsContainer.style.gap = '20px';
+    drawsContainer.style.justifyContent = 'center';
+    wrapper.appendChild(drawsContainer);
+
+    // Render all tournaments and collect chart instances + player names
+    const chartInstances: BurstChartInstance[] = [];
+    const allPlayers = new Set<string>();
+
+    australianOpenData.draws.forEach((draw: any, index: number) => {
+      const title = australianOpenData.titles[index] || `Tournament ${index + 1}`;
+      const drawData = fromLegacyDraw(draw);
+
+      const chartDiv = document.createElement('div');
+      drawsContainer.appendChild(chartDiv);
+
+      const chart = burstChart({
+        height: args.height,
+        width: args.width,
+        eventHandlers: {
+          clickSegment: (data) => {
+            console.log('Clicked segment:', data);
+          }
+        }
+      });
+
+      const instance = chart.render(chartDiv, drawData, title);
+      chartInstances.push(instance);
+
+      // Collect player names from first round
+      const firstRoundKey = Object.keys(draw).reduce(
+        (largest, key) => ((draw[key]?.length || 0) > (draw[largest]?.length || 0) ? key : largest),
+        Object.keys(draw)[0]
+      );
+      const firstRound = draw[firstRoundKey] || [];
+      for (const match of firstRound) {
+        if (match.player && match.player !== 'BYE') {
+          allPlayers.add(match.player);
+        }
+      }
+    });
+
+    // Populate datalist with all unique player names (sorted)
+    const sortedPlayers = Array.from(allPlayers).sort();
+    for (const player of sortedPlayers) {
+      const option = document.createElement('option');
+      option.value = player;
+      datalist.appendChild(option);
+    }
+
+    // Player search handler
+    function highlightPlayer(playerName: string): void {
+      if (sortedPlayers.some((p) => p.toLowerCase() === playerName.toLowerCase())) {
+        chartInstances.forEach((instance) => {
+          const highlighted = instance.highlightPlayer(playerName);
+          instance.hide(!highlighted);
+        });
+      } else {
+        // Clear: show all charts, reset highlights
+        chartInstances.forEach((instance) => {
+          instance.highlightPlayer();
+          instance.hide(false);
+        });
+      }
+    }
+
+    // Wire up search events
+    searchInput.addEventListener('keyup', (event: KeyboardEvent) => {
+      if (event.key === 'Enter') {
+        highlightPlayer(searchInput.value);
+      }
+    });
+
+    searchInput.addEventListener('change', () => {
+      highlightPlayer(searchInput.value);
+    });
+
+    // Focus styling
+    searchInput.addEventListener('focus', () => {
+      searchInput.style.borderColor = '#667eea';
+      searchInput.style.outline = 'none';
+    });
+    searchInput.addEventListener('blur', () => {
+      searchInput.style.borderColor = '#e0e0e0';
+    });
 
     return wrapper;
   }

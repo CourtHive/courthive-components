@@ -110,6 +110,14 @@ export interface BurstChartOptions {
   eventHandlers?: BurstChartEventHandlers;
 }
 
+/** Handle returned by render() for controlling the chart after rendering */
+export interface BurstChartInstance {
+  /** Highlight all segments belonging to a player. Returns count of highlighted nodes. Omit name to clear. */
+  highlightPlayer: (playerName?: string) => number;
+  /** Show or hide the entire chart SVG */
+  hide: (hidden: boolean) => void;
+}
+
 type GSelection = Selection<SVGGElement, unknown, null, undefined>;
 
 interface FlagGroups {
@@ -514,7 +522,7 @@ export function renderburstChart(
   drawData: SunburstDrawData,
   title: string,
   options: BurstChartOptions = {}
-): void {
+): BurstChartInstance {
   const width = options.width || 800;
   const height = options.height || 800;
   const tournamentTitle = title || options.title || 'Tournament';
@@ -641,22 +649,31 @@ export function renderburstChart(
         centerText2.selectAll('tspan').remove();
         centerText2.text('').style('display', 'none');
 
-        g.selectAll<SVGPathElement, HierarchyRectangularNode<HierarchyNode>>('path').attr(
-          ATTR_FILL_OPACITY,
-          (p: any) => {
-            if (p.data.nationalityCode === nationalityCode) return 0.9;
-            return 0.3;
-          }
-        );
+        if (!frozen) {
+          g.selectAll<SVGPathElement, HierarchyRectangularNode<HierarchyNode>>('path').attr(
+            ATTR_FILL_OPACITY,
+            (p: any) => {
+              if (p.data.nationalityCode === nationalityCode) return 0.9;
+              return 0.3;
+            }
+          );
+        }
       })
       .on('mouseout', function () {
-        g.selectAll('path').attr(ATTR_FILL_OPACITY, 0.8);
+        if (!frozen) {
+          g.selectAll('path').attr(ATTR_FILL_OPACITY, 0.8);
+        }
         displayTournamentTitle();
       });
   }
 
   displayAllFlags();
   displayTournamentTitle();
+
+  // Frozen state: when a player is highlighted via highlightPlayer(), opacity is locked
+  // but individual segments still show hover feedback
+  let frozen = false;
+  let frozenPlayerName: string | undefined;
 
   // Arc mouseover handler
   function handleArcMouseover(_event: MouseEvent, d: HierarchyRectangularNode<HierarchyNode>) {
@@ -688,10 +705,21 @@ export function renderburstChart(
       centerText2.style('display', 'none');
     }
 
-    g.selectAll<SVGPathElement, HierarchyRectangularNode<HierarchyNode>>('path').attr(ATTR_FILL_OPACITY, (p: any) => {
-      if (p.data.participantName === d.data.participantName) return 0.9;
-      return 0.3;
-    });
+    if (!frozen) {
+      // Normal mode: highlight all segments matching hovered player, dim others
+      g.selectAll<SVGPathElement, HierarchyRectangularNode<HierarchyNode>>('path').attr(ATTR_FILL_OPACITY, (p: any) => {
+        if (p.data.participantName === d.data.participantName) return 0.9;
+        return 0.3;
+      });
+    } else {
+      // Frozen mode: only highlight the individual hovered segment
+      // (searched player's segments stay at 1, don't register hover)
+      const isSearchedPlayer =
+        nodeData.participantName?.toLowerCase() === frozenPlayerName?.toLowerCase();
+      if (!isSearchedPlayer) {
+        select(_event.currentTarget as SVGPathElement).attr(ATTR_FILL_OPACITY, 0.9);
+      }
+    }
 
     // Show winner's flag at top
     const hoverFlagSize = getFlagSize(30);
@@ -714,8 +742,15 @@ export function renderburstChart(
   }
 
   // Arc mouseout handler
-  function handleArcMouseout() {
-    g.selectAll('path').attr(ATTR_FILL_OPACITY, 0.8);
+  function handleArcMouseout(_event: MouseEvent, d: HierarchyRectangularNode<HierarchyNode>) {
+    if (!frozen) {
+      g.selectAll('path').attr(ATTR_FILL_OPACITY, 0.8);
+    } else {
+      // Restore the segment to its frozen-state opacity
+      const isSearchedPlayer =
+        d.data.participantName?.toLowerCase() === frozenPlayerName?.toLowerCase();
+      select(_event.currentTarget as SVGPathElement).attr(ATTR_FILL_OPACITY, isSearchedPlayer ? 1 : 0.2);
+    }
     displayAllFlags();
     displayTournamentTitle();
   }
@@ -765,6 +800,37 @@ export function renderburstChart(
       }
       return `${nodeData.name}\nDepth: ${node.depth}`;
     });
+
+  // ============================================================================
+  // Instance methods for cross-chart coordination (player search)
+  // ============================================================================
+
+  function highlightPlayer(playerName?: string): number {
+    let highlighted = 0;
+
+    frozen = !!playerName;
+    frozenPlayerName = playerName;
+
+    g.selectAll<SVGPathElement, HierarchyRectangularNode<HierarchyNode>>('path').attr(
+      ATTR_FILL_OPACITY,
+      (p: any) => {
+        if (!playerName) return 0.8;
+        if (p.data.participantName?.toLowerCase() === playerName.toLowerCase()) {
+          highlighted += 1;
+          return 1;
+        }
+        return 0.2;
+      }
+    );
+
+    return highlighted;
+  }
+
+  function hide(hidden: boolean): void {
+    svg.style('display', hidden ? 'none' : 'block');
+  }
+
+  return { highlightPlayer, hide };
 }
 
 /**
@@ -773,8 +839,8 @@ export function renderburstChart(
  */
 export function burstChart(options: BurstChartOptions = {}) {
   return {
-    render: (container: HTMLElement, drawData: SunburstDrawData, title: string) => {
-      renderburstChart(container, drawData, title, options);
+    render: (container: HTMLElement, drawData: SunburstDrawData, title: string): BurstChartInstance => {
+      return renderburstChart(container, drawData, title, options);
     }
   };
 }
