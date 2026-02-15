@@ -87,6 +87,7 @@ export type {
   SunburstSide,
   SegmentData,
   BurstChartEventHandlers,
-  BurstChartOptions
+  BurstChartOptions,
+  BurstChartInstance
 } from './components/burstChart/burstChart';
 export { fromFactoryDrawData, fromLegacyDraw } from './components/burstChart/matchUpTransform';

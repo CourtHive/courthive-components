@@ -110,6 +110,14 @@ export interface BurstChartOptions {
   eventHandlers?: BurstChartEventHandlers;
 }
 
+/** Handle returned by render() for controlling the chart after rendering */
+export interface BurstChartInstance {
+  /** Highlight all segments belonging to a player. Returns count of highlighted nodes. Omit name to clear. */
+  highlightPlayer: (playerName?: string) => number;
+  /** Show or hide the entire chart SVG */
+  hide: (hidden: boolean) => void;
+}
+
 type GSelection = Selection<SVGGElement, unknown, null, undefined>;
 
 interface FlagGroups {
@@ -514,7 +522,7 @@ export function renderburstChart(
   drawData: SunburstDrawData,
   title: string,
   options: BurstChartOptions = {}
-): void {
+): BurstChartInstance {
   const width = options.width || 800;
   const height = options.height || 800;
   const tournamentTitle = title || options.title || 'Tournament';
@@ -765,6 +773,34 @@ export function renderburstChart(
       }
       return `${nodeData.name}\nDepth: ${node.depth}`;
     });
+
+  // ============================================================================
+  // Instance methods for cross-chart coordination (player search)
+  // ============================================================================
+
+  function highlightPlayer(playerName?: string): number {
+    let highlighted = 0;
+
+    g.selectAll<SVGPathElement, HierarchyRectangularNode<HierarchyNode>>('path').attr(
+      ATTR_FILL_OPACITY,
+      (p: any) => {
+        if (!playerName) return 0.8;
+        if (p.data.participantName?.toLowerCase() === playerName.toLowerCase()) {
+          highlighted += 1;
+          return 1;
+        }
+        return 0.2;
+      }
+    );
+
+    return highlighted;
+  }
+
+  function hide(hidden: boolean): void {
+    svg.style('display', hidden ? 'none' : 'block');
+  }
+
+  return { highlightPlayer, hide };
 }
 
 /**
@@ -773,8 +809,8 @@ export function renderburstChart(
  */
 export function burstChart(options: BurstChartOptions = {}) {
   return {
-    render: (container: HTMLElement, drawData: SunburstDrawData, title: string) => {
-      renderburstChart(container, drawData, title, options);
+    render: (container: HTMLElement, drawData: SunburstDrawData, title: string): BurstChartInstance => {
+      return renderburstChart(container, drawData, title, options);
     }
   };
 }
