@@ -14,12 +14,9 @@
 import { tools } from 'tods-competition-factory';
 
 import type {
-  Block,
   BlockMutation,
-  CourtRef,
   EngineConflict,
   EngineContext,
-  TimeRange,
 } from './types';
 
 import { diffMinutes, rangesOverlap } from './railDerivation';
@@ -241,7 +238,7 @@ export const lightingEvaluator = {
   id: 'LIGHTING',
   description: 'Prevent scheduling on unlit courts after sunset',
 
-  evaluate: (ctx: EngineContext, mutations: BlockMutation[]): EngineConflict[] => {
+  evaluate: (_ctx: EngineContext, mutations: BlockMutation[]): EngineConflict[] => {
     const conflicts: EngineConflict[] = [];
 
     // Default sunset time (should come from tournament location/date)
@@ -295,7 +292,7 @@ export const blockDurationEvaluator = {
   id: 'BLOCK_DURATION',
   description: 'Validate block durations are reasonable',
 
-  evaluate: (ctx: EngineContext, mutations: BlockMutation[]): EngineConflict[] => {
+  evaluate: (_ctx: EngineContext, mutations: BlockMutation[]): EngineConflict[] => {
     const conflicts: EngineConflict[] = [];
 
     const minReasonableDuration = 15; // 15 minutes
@@ -346,7 +343,7 @@ export const dayBoundaryEvaluator = {
   id: 'DAY_BOUNDARY',
   description: 'Ensure blocks do not span multiple days',
 
-  evaluate: (ctx: EngineContext, mutations: BlockMutation[]): EngineConflict[] => {
+  evaluate: (_ctx: EngineContext, mutations: BlockMutation[]): EngineConflict[] => {
     const conflicts: EngineConflict[] = [];
 
     for (const mutation of mutations) {
@@ -387,7 +384,7 @@ export const maintenanceWindowEvaluator = {
   id: 'MAINTENANCE_WINDOW',
   description: 'Validate maintenance scheduling practices',
 
-  evaluate: (ctx: EngineContext, mutations: BlockMutation[]): EngineConflict[] => {
+  evaluate: (_ctx: EngineContext, mutations: BlockMutation[]): EngineConflict[] => {
     const conflicts: EngineConflict[] = [];
 
     const peakHoursStart = '09:00';
@@ -501,11 +498,11 @@ export class EvaluatorRegistry {
  * 
  * Implementation requires access to Competition Factory API.
  */
-export const createFollowByEvaluator = (factoryAPI: any) => ({
+export const createFollowByEvaluator = (_factoryAPI: any) => ({
   id: 'FOLLOW_BY',
   description: 'Player rest and follow-by conflicts using Competition Factory',
 
-  evaluate: (ctx: EngineContext, mutations: BlockMutation[]): EngineConflict[] => {
+  evaluate: (_ctx: EngineContext, _mutations: BlockMutation[]): EngineConflict[] => {
     // TODO: Implement when Competition Factory integration is ready
     // 1. Determine affected days/courts
     // 2. Build preview tournamentRecord

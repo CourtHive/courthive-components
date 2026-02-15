@@ -45,7 +45,6 @@ import {
   courtDayKey,
   deriveRailSegments,
   extractDay,
-  rangesOverlap,
 } from './railDerivation';
 
 import { generateCapacityCurve } from './capacityCurve';
@@ -199,7 +198,6 @@ export class TemporalGridEngine {
    * Get complete timeline for a day (all facilities, all courts)
    */
   getDayTimeline(day: DayId): FacilityDayTimeline[] {
-    const dayRange = buildDayRange(day, this.config);
     const courts = this.getAllCourtsFromTournamentRecord();
 
     // Group by facility

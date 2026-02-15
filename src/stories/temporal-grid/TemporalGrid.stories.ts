@@ -8,7 +8,7 @@
 import type { Meta, StoryObj } from '@storybook/html';
 import { createTemporalGrid } from '../../components/temporal-grid';
 import '../../components/temporal-grid/ui/styles.css';
-import '@event-calendar/core/index.css';
+import 'vis-timeline/styles/vis-timeline-graph2d.min.css';
 
 // ============================================================================
 // Mock Data
@@ -104,7 +104,7 @@ A revolutionary court availability management system that treats courts as "time
 The temporal grid is built on a pure state machine with event-driven updates:
 
 \`\`\`
-TODS Tournament → Engine → Projections → Controller → EventCalendar
+TODS Tournament → Engine → Projections → Controller → vis-timeline
 \`\`\`
 
 All domain logic stays in the engine, making it fully testable without the UI.
@@ -150,12 +150,10 @@ const renderTemporalGrid = (args: any) => {
   // Create temporal grid
   const tournamentRecord = args.tournamentRecord || createMockTournament();
   
-  console.log('[Story] View being passed:', args.view, 'Initial view will be:', args.view || 'resourceTimelineDay');
-  
   const grid = createTemporalGrid({
     tournamentRecord,
     initialDay: args.initialDay || '2026-06-15',
-    initialView: args.view || 'resourceTimelineDay',
+    initialView: args.view || 'day',
     showFacilityTree: args.showFacilityTree ?? true,
     showCapacity: args.showCapacity ?? true,
     showToolbar: args.showToolbar ?? true,
@@ -163,7 +161,7 @@ const renderTemporalGrid = (args: any) => {
     showConflicts: args.showConflicts ?? true,
     showSegmentLabels: args.showSegmentLabels ?? false,
     engineConfig: args.engineConfig,
-    onMutationsApplied: (mutations) => {
+    onMutationsApplied: (_mutations) => {
       // Mutations applied callback
     },
   }, gridContainer);
@@ -211,7 +209,7 @@ export const Default: Story = {
   render: (args) => renderTemporalGrid({
     ...args,
     initialDay: '2026-06-15',
-    view: 'resourceTimelineDay',
+    view: 'day',
     engineConfig: {
       dayStartTime: args.dayStartTime,
       dayEndTime: args.dayEndTime,
@@ -239,7 +237,7 @@ export const WeekView: Story = {
   render: (args) => renderTemporalGrid({
     ...args,
     initialDay: '2026-06-15',
-    view: 'resourceTimelineWeek',  // This gets mapped to initialView
+    view: 'week',  // This gets mapped to initialView
     engineConfig: {
       dayStartTime: args.dayStartTime,
       dayEndTime: args.dayEndTime,

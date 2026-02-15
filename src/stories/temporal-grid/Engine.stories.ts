@@ -7,14 +7,12 @@
 
 import type { Meta, StoryObj } from '@storybook/html';
 import { TemporalGridEngine } from '../../components/temporal-grid/engine/temporalGridEngine';
-import { 
+import {
   calculateCapacityStats,
-  generateCapacityCurve 
 } from '../../components/temporal-grid/engine/capacityCurve';
 import {
   courtOverlapEvaluator,
   dayBoundaryEvaluator,
-  defaultEvaluators,
 } from '../../components/temporal-grid/engine/conflictEvaluators';
 
 // ============================================================================

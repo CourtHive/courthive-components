@@ -217,29 +217,47 @@
 
 .temporal-grid-calendar {
   flex: 1;
-  overflow: hidden;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
   position: relative;
 }
 
-/* EventCalendar overrides */
-.temporal-grid-calendar .ec {
-  height: 100%;
+/* vis-timeline overrides — height is controlled via JS options (fixed pixels) */
+.temporal-grid-calendar .vis-timeline {
+  border: none;
 }
 
-.temporal-grid-calendar .ec-timeline {
-  height: 100%;
+.temporal-grid-calendar .vis-panel.vis-center {
+  border: none;
 }
 
-/* Try to make rows equal height without breaking rendering */
-.temporal-grid-calendar .ec-resource {
-  min-height: 60px;
+/* Group label styling — min-height ensures consistent row heights across all courts */
+.temporal-grid-calendar .vis-labelset .vis-label {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 0.875rem;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-/* IMPORTANT: Do NOT override .ec-body overflow properties!
-   EventCalendar's ResourceTimeline relies on the default CSS structure
-   where .ec-sidebar stays outside the scrolling .ec-body container.
-   Overriding overflow breaks the sticky sidebar behavior.
-*/
+/* Group row styling — min-height matches label to keep rows aligned */
+.temporal-grid-calendar .vis-group {
+  min-height: 40px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* Range item styling */
+.temporal-grid-calendar .vis-item.vis-range {
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+/* Background item styling */
+.temporal-grid-calendar .vis-item.vis-background {
+  opacity: 0.6;
+}
 
 /* ============================================================================
    Segment Styles (from viewProjections.ts)

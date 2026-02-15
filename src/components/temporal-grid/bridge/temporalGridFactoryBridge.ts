@@ -532,7 +532,7 @@ export function mergeOverlappingAvailability(
 
   const merged: TodsDateAvailability[] = [];
 
-  for (const [key, groupEntries] of groups.entries()) {
+  for (const [_key, groupEntries] of groups.entries()) {
     // Sort by start time
     groupEntries.sort((a, b) => a.startTime.localeCompare(b.startTime));
 

@@ -95,6 +95,7 @@ export {
   buildFacilityGroups,
   buildResourcesFromTimelines,
   buildTimeSlotConfig,
+  buildTimelineWindowConfig,
   DEFAULT_COLOR_SCHEME,
   filterEventsByTimeRange,
   filterResourcesByFacility,
@@ -108,6 +109,8 @@ export {
   type BlockColorScheme,
   type CalendarEvent,
   type CalendarResource,
+  type TimelineGroup,
+  type TimelineItem,
   type ProjectionConfig,
   type ResourceGroupingMode,
 } from './controller/viewProjections';
@@ -133,4 +136,5 @@ export {
 // ============================================================================
 
 // Import styles (consumers need to include this in their build)
+import 'vis-timeline/styles/vis-timeline-graph2d.min.css';
 import './ui/styles.css';

@@ -1,14 +1,14 @@
 /**
  * View Projections
- * 
- * Converts Temporal Grid Engine data structures into EventCalendar format.
- * This module is the translation layer between our domain model and the calendar UI.
- * 
+ *
+ * Converts Temporal Grid Engine data structures into vis-timeline format.
+ * This module is the translation layer between our domain model and the timeline UI.
+ *
  * Key Transformations:
- * - FacilityDayTimeline → Calendar Resources (courts grouped by facility)
- * - RailSegments → Calendar Events (background events showing availability)
- * - Blocks → Calendar Events (draggable, resizable)
- * 
+ * - FacilityDayTimeline → TimelineGroup (courts grouped by facility)
+ * - RailSegments → TimelineItem (background items showing availability)
+ * - Blocks → TimelineItem (draggable, resizable range items)
+ *
  * Design: Pure functions, no side effects, testable in isolation.
  */
 
@@ -20,39 +20,71 @@ import type {
   RailSegment,
 } from '../engine/types';
 
+import type {
+  IdType,
+} from 'vis-timeline/standalone';
+
 // ============================================================================
-// EventCalendar Type Definitions
+// Timeline Type Definitions (vis-timeline compatible)
 // ============================================================================
 
 /**
- * EventCalendar Resource (represents a court)
+ * vis-timeline Group (represents a court or facility group header)
  */
-export interface CalendarResource {
-  id: string;
-  title: string;
-  groupId?: string; // For facility grouping
-  extendedProps?: Record<string, any>;
-}
-
-/**
- * EventCalendar Event (represents a block or segment)
- */
-export interface CalendarEvent {
-  id: string;
-  resourceId: string;
-  start: string;
-  end: string;
+export interface TimelineGroup {
+  id: IdType;
+  content: string;
+  nestedGroups?: IdType[];
+  showNested?: boolean;
+  className?: string;
   title?: string;
-  display?: 'auto' | 'background' | 'inverse-background' | 'none';
-  backgroundColor?: string;
-  borderColor?: string;
-  textColor?: string;
-  classNames?: string[];
-  extendedProps?: Record<string, any>;
-  editable?: boolean;
-  startEditable?: boolean;
-  durationEditable?: boolean;
+  order?: number;
+  visible?: boolean;
+  // Extended properties (not native vis-timeline, but we store them on group objects)
+  courtRef?: CourtRef;
+  surface?: string;
+  indoor?: boolean;
+  hasLights?: boolean;
+  tags?: string[];
+  isGroup?: boolean;
 }
+
+/**
+ * vis-timeline Item (represents a block or segment)
+ */
+export interface TimelineItem {
+  id: IdType;
+  group: IdType;
+  content: string;
+  start: Date | string;
+  end?: Date | string;
+  type?: 'box' | 'point' | 'range' | 'background';
+  className?: string;
+  style?: string;
+  title?: string;
+  editable?: boolean | { updateTime?: boolean; updateGroup?: boolean; remove?: boolean };
+  selectable?: boolean;
+  // Extended properties for domain data
+  blockId?: string;
+  status?: string;
+  reason?: string;
+  isBlock?: boolean;
+  isSegment?: boolean;
+  isConflict?: boolean;
+  conflictCode?: string;
+  severity?: string;
+  message?: string;
+  contributingBlocks?: string[];
+}
+
+// ============================================================================
+// Backward Compatibility Aliases (deprecated)
+// ============================================================================
+
+/** @deprecated Use TimelineGroup instead */
+export type CalendarResource = TimelineGroup;
+/** @deprecated Use TimelineItem instead */
+export type CalendarEvent = TimelineItem;
 
 /**
  * Grouping modes for resources
@@ -105,25 +137,19 @@ export const DEFAULT_COLOR_SCHEME: BlockColorScheme = {
 };
 
 // ============================================================================
-// Resource Building
+// Group Building (replaces Resource Building)
 // ============================================================================
 
 /**
- * Build calendar resources from facility timelines.
- * Converts courts into calendar resources, grouped by facility.
- * 
- * @param timelines - Facility day timelines from engine
- * @param courtMeta - Court metadata for additional properties
- * @param config - Projection configuration
- * @returns Array of calendar resources
+ * Build timeline groups from facility timelines.
+ * Converts courts into vis-timeline groups, grouped by facility.
  */
 export function buildResourcesFromTimelines(
   timelines: FacilityDayTimeline[],
   courtMeta: CourtMeta[],
-  config: ProjectionConfig = {},
-): CalendarResource[] {
-  const { groupingMode = 'BY_FACILITY' } = config;
-  const resources: CalendarResource[] = [];
+  _config: ProjectionConfig = {},
+): TimelineGroup[] {
+  const groups: TimelineGroup[] = [];
 
   // Create a map of court metadata for quick lookup
   const metaMap = new Map<string, CourtMeta>();
@@ -140,121 +166,108 @@ export function buildResourcesFromTimelines(
     }
   }
 
-  // Build resources based on grouping mode
+  // Build groups based on grouping mode
   for (const courtKeyStr of courts) {
     const meta = metaMap.get(courtKeyStr);
     if (!meta) continue;
 
-    const resource: CalendarResource = {
+    const group: TimelineGroup = {
       id: courtKeyStr,
-      title: meta.name,
-      extendedProps: {
-        courtRef: meta.ref,
-        surface: meta.surface,
-        indoor: meta.indoor,
-        hasLights: meta.hasLights,
-        tags: meta.tags,
-      },
+      content: meta.name,
+      courtRef: meta.ref,
+      surface: meta.surface,
+      indoor: meta.indoor,
+      hasLights: meta.hasLights,
+      tags: meta.tags,
     };
 
-    // Set groupId based on grouping mode
-    switch (groupingMode) {
-      case 'BY_FACILITY':
-        resource.groupId = meta.ref.facilityId;
-        break;
-      case 'BY_SURFACE':
-        resource.groupId = meta.surface;
-        break;
-      case 'BY_TAG':
-        resource.groupId = meta.tags[0] || 'untagged';
-        break;
-      case 'FLAT':
-        // No grouping
-        break;
-    }
-
-    resources.push(resource);
+    // Set nestedGroups grouping based on mode
+    // (nestedInGroup is set on facility group headers, not on courts)
+    groups.push(group);
   }
 
-  return resources;
+  return groups;
 }
 
 /**
- * Build facility groups for resource grouping.
- * Creates group headers for EventCalendar.
+ * Build facility group headers for nested grouping.
+ * Creates group headers for vis-timeline.
  */
-export function buildFacilityGroups(timelines: FacilityDayTimeline[]): CalendarResource[] {
-  const facilities = new Set<string>();
+export function buildFacilityGroups(timelines: FacilityDayTimeline[]): TimelineGroup[] {
+  const facilities = new Map<string, Set<string>>();
+
+  // Collect all courts per facility
   for (const timeline of timelines) {
-    facilities.add(timeline.facilityId);
+    if (!facilities.has(timeline.facilityId)) {
+      facilities.set(timeline.facilityId, new Set());
+    }
+    for (const rail of timeline.rails) {
+      facilities.get(timeline.facilityId)!.add(courtKey(rail.court));
+    }
   }
 
-  return Array.from(facilities).map((facilityId) => ({
+  return Array.from(facilities.entries()).map(([facilityId, courtKeys]) => ({
     id: facilityId,
-    title: facilityId, // Should be friendly name in production
-    extendedProps: { isGroup: true },
+    content: facilityId,
+    nestedGroups: Array.from(courtKeys),
+    showNested: true,
+    isGroup: true,
   }));
 }
 
 // ============================================================================
-// Event Building
+// Item Building (replaces Event Building)
 // ============================================================================
 
 /**
- * Build calendar events from facility timelines.
- * Converts rail segments into background events showing availability status.
- * 
- * @param timelines - Facility day timelines from engine
- * @param config - Projection configuration
- * @returns Array of calendar events
+ * Build timeline items from facility timelines.
+ * Converts rail segments into background items showing availability status.
  */
 export function buildEventsFromTimelines(
   timelines: FacilityDayTimeline[],
   config: ProjectionConfig = {},
-): CalendarEvent[] {
+): TimelineItem[] {
   const {
     layerVisibility = new Map(),
     showSegmentLabels = false,
     colorScheme = DEFAULT_COLOR_SCHEME,
   } = config;
 
-  const events: CalendarEvent[] = [];
+  const items: TimelineItem[] = [];
 
   for (const timeline of timelines) {
     for (const rail of timeline.rails) {
-      const resourceId = courtKey(rail.court);
+      const groupId = courtKey(rail.court);
 
       for (const segment of rail.segments) {
         // Check if this layer should be visible
         const isVisible = layerVisibility.get(segment.status) ?? true;
         if (!isVisible) continue;
 
-        const eventId = `${resourceId}-${segment.start}-${segment.status}`;
+        const itemId = `${groupId}-${segment.start}-${segment.status}`;
+        const color = colorScheme[segment.status];
 
-        events.push({
-          id: eventId,
-          resourceId,
+        items.push({
+          id: itemId,
+          group: groupId,
+          content: showSegmentLabels ? formatSegmentLabel(segment) : '',
           start: segment.start,
           end: segment.end,
-          title: showSegmentLabels ? formatSegmentLabel(segment) : undefined,
-          display: 'background',
-          backgroundColor: colorScheme[segment.status],
-          classNames: [
-            'temporal-segment',
-            `segment-${segment.status.toLowerCase()}`,
-          ],
-          extendedProps: {
-            status: segment.status,
-            contributingBlocks: segment.contributingBlocks,
-            isSegment: true,
-          },
-          editable: false, // Segments are not directly editable
+          type: 'background',
+          className: `temporal-segment segment-${segment.status.toLowerCase()}`,
+          style: color !== 'transparent' ? `background-color: ${color};` : undefined,
+          title: `${segment.status} segment`,
+          editable: false,
+          selectable: false,
+          status: segment.status,
+          contributingBlocks: segment.contributingBlocks,
+          isSegment: true,
         });
       }
     }
   }
 
-  return events;
+  return items;
 }
 
 /**
@@ -268,16 +281,12 @@ function formatSegmentLabel(segment: RailSegment): string {
 }
 
 // ============================================================================
-// Block Event Building
+// Block Item Building
 // ============================================================================
 
 /**
- * Build draggable/editable block events.
+ * Build draggable/editable block items.
  * These represent user-created blocks that can be moved and resized.
- * 
- * @param blocks - Array of blocks to render
- * @param config - Projection configuration
- * @returns Array of calendar events
  */
 export function buildBlockEvents(
   blocks: Array<{
@@ -289,38 +298,34 @@ export function buildBlockEvents(
     reason?: string;
   }>,
   config: ProjectionConfig = {},
-): CalendarEvent[] {
+): TimelineItem[] {
   const { colorScheme = DEFAULT_COLOR_SCHEME } = config;
-  const events: CalendarEvent[] = [];
+  const items: TimelineItem[] = [];
 
   for (const block of blocks) {
-    const resourceId = courtKey(block.court);
+    const groupId = courtKey(block.court);
+    const color = colorScheme[block.type];
+    const borderColor = adjustColorBrightness(color, -20);
 
-    events.push({
+    items.push({
       id: `block-${block.id}`,
-      resourceId,
+      group: groupId,
+      content: block.reason || block.type,
       start: block.start,
       end: block.end,
+      type: 'range',
+      className: `temporal-block block-${block.type.toLowerCase()}`,
+      style: `background-color: ${color}; border-color: ${borderColor};`,
       title: block.reason || block.type,
-      display: 'auto', // Regular event display (not background)
-      backgroundColor: colorScheme[block.type],
-      borderColor: adjustColorBrightness(colorScheme[block.type], -20),
-      classNames: ['temporal-block', `block-${block.type.toLowerCase()}`],
-      extendedProps: {
-        blockId: block.id,
-        status: block.type,
-        reason: block.reason,
-        isBlock: true,
-      },
-      // Enable dragging and resizing
-      editable: true,
-      startEditable: true,
-      durationEditable: true,
-      resourceEditable: true,
+      editable: { updateTime: true, updateGroup: true, remove: true },
+      blockId: block.id,
+      status: block.type,
+      reason: block.reason,
+      isBlock: true,
     });
   }
 
-  return events;
+  return items;
 }
 
 // ============================================================================
@@ -329,7 +334,7 @@ export function buildBlockEvents(
 
 /**
  * Build visual indicators for conflicts.
- * Creates overlay events showing where conflicts exist.
+ * Creates overlay items showing where conflicts exist.
  */
 export function buildConflictEvents(
   conflicts: Array<{
@@ -339,41 +344,33 @@ export function buildConflictEvents(
     timeRange: { start: string; end: string };
     courts: CourtRef[];
   }>,
-): CalendarEvent[] {
-  const events: CalendarEvent[] = [];
+): TimelineItem[] {
+  const items: TimelineItem[] = [];
 
   for (const conflict of conflicts) {
     for (const court of conflict.courts) {
-      const resourceId = courtKey(court);
+      const groupId = courtKey(court);
 
-      // Choose color based on severity
-      const color = conflict.severity === 'ERROR' ? '#e74c3c' : 
-                    conflict.severity === 'WARN' ? '#f39c12' : '#3498db';
-
-      events.push({
-        id: `conflict-${conflict.code}-${resourceId}`,
-        resourceId,
+      items.push({
+        id: `conflict-${conflict.code}-${groupId}`,
+        group: groupId,
+        content: conflict.message,
         start: conflict.timeRange.start,
         end: conflict.timeRange.end,
+        type: 'background',
+        className: `temporal-conflict conflict-${conflict.severity.toLowerCase()}`,
         title: conflict.message,
-        display: 'inverse-background',
-        backgroundColor: color,
-        classNames: [
-          'temporal-conflict',
-          `conflict-${conflict.severity.toLowerCase()}`,
-        ],
-        extendedProps: {
-          conflictCode: conflict.code,
-          severity: conflict.severity,
-          message: conflict.message,
-          isConflict: true,
-        },
         editable: false,
+        selectable: false,
+        conflictCode: conflict.code,
+        severity: conflict.severity,
+        message: conflict.message,
+        isConflict: true,
       });
     }
   }
 
-  return events;
+  return items;
 }
 
 // ============================================================================
@@ -381,32 +378,42 @@ export function buildConflictEvents(
 // ============================================================================
 
 /**
- * Filter events by time range
+ * Filter items by time range
  */
 export function filterEventsByTimeRange(
-  events: CalendarEvent[],
+  events: TimelineItem[],
   timeRange: { start: string; end: string },
-): CalendarEvent[] {
+): TimelineItem[] {
   return events.filter(
-    (event) => event.start < timeRange.end && event.end > timeRange.start,
+    (event) => {
+      const eventStart = typeof event.start === 'string' ? event.start : event.start.toISOString();
+      const eventEnd = event.end ? (typeof event.end === 'string' ? event.end : event.end.toISOString()) : eventStart;
+      return eventStart < timeRange.end && eventEnd > timeRange.start;
+    },
   );
 }
 
 /**
- * Filter resources by facility
+ * Filter groups by facility
  */
 export function filterResourcesByFacility(
-  resources: CalendarResource[],
+  resources: TimelineGroup[],
   facilityId: string,
-): CalendarResource[] {
-  return resources.filter((resource) => resource.groupId === facilityId);
+): TimelineGroup[] {
+  return resources.filter((resource) => {
+    return resource.courtRef?.facilityId === facilityId;
+  });
 }
 
 /**
- * Sort resources by court name
+ * Sort groups by court name
  */
-export function sortResources(resources: CalendarResource[]): CalendarResource[] {
-  return resources.slice().sort((a, b) => a.title.localeCompare(b.title));
+export function sortResources(resources: TimelineGroup[]): TimelineGroup[] {
+  return resources.slice().sort((a, b) => {
+    const contentA = typeof a.content === 'string' ? a.content : '';
+    const contentB = typeof b.content === 'string' ? b.content : '';
+    return contentA.localeCompare(contentB);
+  });
 }
 
 // ============================================================================
@@ -437,7 +444,7 @@ export function buildCapacityVisualization(
 // ============================================================================
 
 /**
- * Generate a unique court key for resource/event IDs
+ * Generate a unique court key for group/item IDs
  */
 function courtKey(court: CourtRef): string {
   return `${court.tournamentId}|${court.facilityId}|${court.courtId}`;
@@ -448,6 +455,7 @@ function courtKey(court: CourtRef): string {
  */
 function adjustColorBrightness(color: string, percent: number): string {
   // Simple brightness adjustment (for hex colors)
+  if (!color || !color.startsWith('#')) return color;
   const num = parseInt(color.replace('#', ''), 16);
   const amt = Math.round(2.55 * percent);
   const R = (num >> 16) + amt;
@@ -468,7 +476,7 @@ function adjustColorBrightness(color: string, percent: number): string {
 }
 
 /**
- * Parse resource ID back to court reference
+ * Parse group ID back to court reference
  */
 export function parseResourceId(resourceId: string): CourtRef | null {
   const parts = resourceId.split('|');
@@ -482,28 +490,29 @@ export function parseResourceId(resourceId: string): CourtRef | null {
 }
 
 /**
- * Parse event ID to extract block ID
+ * Parse item ID to extract block ID
  */
 export function parseBlockEventId(eventId: string): string | null {
-  if (eventId.startsWith('block-')) {
-    return eventId.slice(6); // Remove 'block-' prefix
+  const strId = String(eventId);
+  if (strId.startsWith('block-')) {
+    return strId.slice(6); // Remove 'block-' prefix
   }
   return null;
 }
 
 /**
- * Check if an event is a segment (background) or block (editable)
+ * Check if an item is a segment (background) or block (editable)
  */
-export function isSegmentEvent(event: CalendarEvent): boolean {
-  return event.extendedProps?.isSegment === true;
+export function isSegmentEvent(event: TimelineItem): boolean {
+  return event.isSegment === true;
 }
 
-export function isBlockEvent(event: CalendarEvent): boolean {
-  return event.extendedProps?.isBlock === true;
+export function isBlockEvent(event: TimelineItem): boolean {
+  return event.isBlock === true;
 }
 
-export function isConflictEvent(event: CalendarEvent): boolean {
-  return event.extendedProps?.isConflict === true;
+export function isConflictEvent(event: TimelineItem): boolean {
+  return event.isConflict === true;
 }
 
 // ============================================================================
@@ -590,11 +599,45 @@ export function generateBlockPatternCSS(): string {
 }
 
 // ============================================================================
-// Time Slot Configuration
+// Timeline Window Configuration (replaces buildTimeSlotConfig)
 // ============================================================================
 
 /**
- * Build time slot configuration for calendar
+ * Build timeline window configuration for vis-timeline
+ */
+export function buildTimelineWindowConfig(config: {
+  dayStartTime: string;
+  dayEndTime: string;
+  slotMinutes: number;
+  day: string;
+}): {
+  start: Date;
+  end: Date;
+  min: Date;
+  max: Date;
+  zoomMin: number;
+  zoomMax: number;
+} {
+  const start = new Date(`${config.day}T${config.dayStartTime}:00`);
+  const end = new Date(`${config.day}T${config.dayEndTime}:00`);
+
+  // zoomMin: minimum visible range (slotMinutes * 4 slots worth of ms)
+  const zoomMin = config.slotMinutes * 4 * 60 * 1000;
+  // zoomMax: maximum visible range (full day + buffer)
+  const zoomMax = (end.getTime() - start.getTime()) * 1.5;
+
+  return {
+    start,
+    end,
+    min: start,
+    max: end,
+    zoomMin,
+    zoomMax,
+  };
+}
+
+/**
+ * @deprecated Use buildTimelineWindowConfig instead
  */
 export function buildTimeSlotConfig(config: {
   dayStartTime: string;
@@ -605,7 +648,6 @@ export function buildTimeSlotConfig(config: {
   slotMinTime: string;
   slotMaxTime: string;
 } {
-  // Convert minutes to duration string (HH:MM:SS or HH:MM)
   const hours = Math.floor(config.slotMinutes / 60);
   const minutes = config.slotMinutes % 60;
   const slotDuration = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
