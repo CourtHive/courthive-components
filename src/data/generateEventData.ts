@@ -50,14 +50,14 @@ export function generateEventData({
   return genData({ drawProfile, completeAllMatchUps, autoSchedule });
 }
 
-function genData({ 
-  drawProfile, 
-  completeAllMatchUps, 
-  autoSchedule 
-}: { 
-  drawProfile: any; 
-  completeAllMatchUps?: boolean; 
-  autoSchedule?: boolean 
+function genData({
+  drawProfile,
+  completeAllMatchUps,
+  autoSchedule
+}: {
+  drawProfile: any;
+  completeAllMatchUps?: boolean;
+  autoSchedule?: boolean;
 }): { eventData?: any; error?: any } {
   const drawId = 'drawId';
   const venueId = 'venueId';
@@ -96,6 +96,7 @@ function genData({
     policyDefinitions: (fixtures.policies as any).POLICY_SCHEDULING_NO_DAILY_LIMITS,
     participantsProfile: { scaleAllParticipants: true },
     scheduleCompletedMatchUps: true,
+    randomWinningSide: true,
     completeAllMatchUps,
     schedulingProfile,
     autoSchedule,
