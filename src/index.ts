@@ -81,5 +81,12 @@ export type { RenderCallback } from './helpers/drawStateManager';
 
 // Burst Chart — D3v7 Sunburst Tournament Visualization
 export { burstChart } from './components/burstChart/burstChart';
-export type { SunburstDrawData, SunburstMatchUp, SunburstSide } from './components/burstChart/burstChart';
+export type {
+  SunburstDrawData,
+  SunburstMatchUp,
+  SunburstSide,
+  SegmentData,
+  BurstChartEventHandlers,
+  BurstChartOptions
+} from './components/burstChart/burstChart';
 export { fromFactoryDrawData, fromLegacyDraw } from './components/burstChart/matchUpTransform';

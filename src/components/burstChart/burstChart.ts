@@ -76,11 +76,29 @@ export interface HierarchyNode {
   roundName?: string;
   scoreString?: string;
   matchUpStatus?: string;
+  matchUp?: SunburstMatchUp;
   depth: number;
   value?: number;
   color?: string;
   children?: HierarchyNode[];
   opponent?: HierarchyNode; // Set during hover to track opponent for flag display
+}
+
+export interface SegmentData {
+  participantName?: string;
+  drawPosition?: number;
+  seedNumber?: number;
+  entryStatus?: string;
+  nationalityCode?: string;
+  scoreString?: string;
+  matchUpStatus?: string;
+  roundName?: string;
+  depth: number;
+  matchUp?: SunburstMatchUp;
+}
+
+export interface BurstChartEventHandlers {
+  clickSegment?: (data: SegmentData) => void;
 }
 
 export interface BurstChartOptions {
@@ -89,6 +107,7 @@ export interface BurstChartOptions {
   title?: string;
   colorBySeeds?: boolean;
   countryCodes?: Record<string, string>;
+  eventHandlers?: BurstChartEventHandlers;
 }
 
 type GSelection = Selection<SVGGElement, unknown, null, undefined>;
@@ -139,6 +158,7 @@ function buildLeafNodes(matchUps: SunburstMatchUp[], totalRounds: number): Hiera
         seedNumber: side.seedNumber,
         entryStatus: entryStatusShortCode(side.entryStatus),
         nationalityCode: side.nationalityCode,
+        matchUp: mu,
         depth: totalRounds,
         value: 1
       });
@@ -182,6 +202,7 @@ function buildRoundParents(
       nationalityCode: winnerSide?.nationalityCode ?? winnerLookup?.nationalityCode,
       scoreString: mu.scoreString,
       matchUpStatus: mu.matchUpStatus,
+      matchUp: mu,
       depth,
       children: children.length > 0 ? children : undefined
     };
@@ -699,8 +720,28 @@ export function renderburstChart(
     displayTournamentTitle();
   }
 
+  // Arc click handler
+  const clickSegment = options.eventHandlers?.clickSegment;
+  function handleArcClick(_event: MouseEvent, d: HierarchyRectangularNode<HierarchyNode>) {
+    if (!clickSegment) return;
+    const nodeData = d.data;
+    clickSegment({
+      participantName: nodeData.participantName,
+      drawPosition: nodeData.drawPosition,
+      seedNumber: nodeData.seedNumber,
+      entryStatus: nodeData.entryStatus,
+      nationalityCode: nodeData.nationalityCode,
+      scoreString: nodeData.scoreString,
+      matchUpStatus: nodeData.matchUpStatus,
+      roundName: nodeData.roundName,
+      depth: nodeData.depth,
+      matchUp: nodeData.matchUp
+    });
+  }
+
   // Render sunburst
-  g.selectAll<SVGPathElement, HierarchyRectangularNode<HierarchyNode>>('path')
+  const paths = g
+    .selectAll<SVGPathElement, HierarchyRectangularNode<HierarchyNode>>('path')
     .data(descendants)
     .join('path')
     .attr('d', (d) => arc(d))
@@ -709,7 +750,13 @@ export function renderburstChart(
     .attr('stroke', '#fff')
     .attr('stroke-width', 1)
     .on('mouseover', handleArcMouseover)
-    .on('mouseout', handleArcMouseout)
+    .on('mouseout', handleArcMouseout);
+
+  if (clickSegment) {
+    paths.style('cursor', 'pointer').on('click', handleArcClick);
+  }
+
+  paths
     .append('title')
     .text((node: any) => {
       const nodeData = node.data;

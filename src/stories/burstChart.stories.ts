@@ -91,7 +91,14 @@ export const AustralianOpen2016: Story = {
 
     const chart = burstChart({
       height: args.height,
-      width: args.width
+      width: args.width,
+      eventHandlers: {
+        clickSegment: (data) => {
+          // data.matchUp contains the full SunburstMatchUp
+          // data.participantName, data.scoreString, etc.
+          console.log('Clicked segment:', data);
+        }
+      }
     });
 
     const firstDraw = australianOpenData.draws[0];
@@ -202,8 +209,15 @@ export const GrandSlamComparison: Story = {
       container.appendChild(chartDiv);
 
       const chart = burstChart({
+        height: args.height,
         width: args.width,
-        height: args.height
+        eventHandlers: {
+          clickSegment: (data) => {
+            // data.matchUp contains the full SunburstMatchUp
+            // data.participantName, data.scoreString, etc.
+            console.log('Clicked segment:', data);
+          }
+        }
       });
 
       const firstDraw = tournament.data.draws[0];
@@ -250,7 +264,12 @@ export const GeneratedTournament: Story = {
 
     const chart = burstChart({
       width: args.width,
-      height: args.height
+      height: args.height,
+      eventHandlers: {
+        clickSegment: (data) => {
+          console.log('Clicked segment:', data);
+        }
+      }
     });
 
     chart.render(chartContainer, drawData, args.title);
@@ -416,8 +435,13 @@ export const DrawSizePicker: Story = {
 
       chartContainer.innerHTML = '';
       const chart = burstChart({
+        height: args.height,
         width: args.width,
-        height: args.height
+        eventHandlers: {
+          clickSegment: (data) => {
+            console.log('Clicked segment:', data);
+          }
+        }
       });
 
       const titleText = `Generated ${drawSize}-Draw (${seedsCount} seeds)`;

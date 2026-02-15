@@ -22,9 +22,7 @@ export function fromFactoryDrawData(structure: any): SunburstDrawData {
 
   for (const [roundNum, matchUps] of Object.entries(structure.roundMatchUps)) {
     roundMatchUps[Number(roundNum)] = (matchUps as any[]).map((mu) => ({
-      roundNumber: mu.roundNumber,
-      roundName: mu.roundName,
-      matchUpStatus: mu.matchUpStatus,
+      ...mu,
       winningSide: mu.winningSide,
       drawPositions: mu.drawPositions || [],
       scoreString:
@@ -59,9 +57,9 @@ export function fromFactoryDrawData(structure: any): SunburstDrawData {
 
 /** Map legacy entry codes to TODS entryStatus values */
 const ENTRY_STATUS_MAP: Record<string, string> = {
+  LL: 'LUCKY_LOSER',
   WC: 'WILDCARD',
-  Q: 'QUALIFIER',
-  LL: 'LUCKY_LOSER'
+  Q: 'QUALIFIER'
 };
 
 /** Legacy round keys ordered from largest (outermost) to smallest (innermost) */
