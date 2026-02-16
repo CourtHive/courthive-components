@@ -1,0 +1,175 @@
+The scheduling profile is essentially a higher‑level, match‑centric abstraction built on top of venue/court availability, and your temporal state machine can both (a) generate the **dataAvailability** that the Schedule Governor expects and (b) provide a UI for composing the **schedulingProfile** structure that Competition Factory uses. [ppl-ai-file-upload.s3.amazonaws](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/32195800/bb94d58b-be5f-4341-9538-8997f3163cd6/TMX-Court-Availability.pdf)
+
+## 1. Key concepts from the scheduling profile
+
+From the Schedule Governor docs: [courthive.github](https://courthive.github.io/tods-competition-factory/docs/governors/schedule-governor/)
+
+- Scheduling depends on:
+  - Venues and courts.
+  - **Date availability** (when courts are available).
+  - Scheduling policy (averageMatchUpMinutes, recoveryMinutes, daily limits).
+- **scheduleProfileRounds**:
+  - Uses a stored **schedulingProfile** (via `engine.setSchedulingProfile`) to assign matchUps to dates/times/venues. [courthive.github](https://courthive.github.io/tods-competition-factory/docs/governors/schedule-governor/)
+  - Accepts parameters like `periodLength`, `scheduleDates`, `pro: true` (grid scheduling). [courthive.github](https://courthive.github.io/tods-competition-factory/docs/governors/schedule-governor/)
+- **Scheduling profile structure**:
+  - An array of objects mapping **scheduleDate + venueIds** to specific rounds/events. [courthive.github](https://courthive.github.io/tods-competition-factory/docs/governors/schedule-governor/)
+
+Conceptually, the pipeline is:
+
+1. **Court availability → TODS `dateAvailability` / `dataAvailability`**
+2. **Scheduling profile** → which rounds/categories are scheduled on which `scheduleDate` + venues.
+3. **Schedule Governor** → takes `dateAvailability` + `schedulingProfile` + policy and assigns matchUp times. [courthive.github](https://courthive.github.io/tods-competition-factory/)
+
+Your Temporal Grid engine gives you (1), and the UI you build on top of it can author (2).
+
+## 2. Temporal engine → TODS dateAvailability/dataAvailability
+
+In TODS/Competition Factory, court availability is represented as **date/time windows per venue/court**, typically called `dateAvailability` or `venue.dateAvailability`. [npmjs](https://www.npmjs.com/package/tods-competition-factory)
+
+Given your engine’s `FacilityDayTimeline` rails: [ppl-ai-file-upload.s3.amazonaws](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/32195800/bb94d58b-be5f-4341-9538-8997f3163cd6/TMX-Court-Availability.pdf)
+
+- For each facility (TODS venue) and day:
+  - For each court:
+    - Merge contiguous `status === 'AVAILABLE'` (or “schedulable” statuses) into **availability periods**.
+- Convert those periods into TODS `dateAvailability` entries:
+  - `{ date: 'YYYY-MM-DD', startTime: 'HH:MM', endTime: 'HH:MM', venueId, courtId }`.
+
+A pure conversion function:
+
+```ts
+function railsToDateAvailability(timelines: FacilityDayTimeline[]): TodsDateAvailability[] {
+  const result: TodsDateAvailability[] = [];
+
+  for (const facilityTimeline of timelines) {
+    const { day, facilityId, rails } = facilityTimeline;
+
+    for (const rail of rails) {
+      const court = rail.court;
+      let currentStart: string | null = null;
+      let lastEnd: string | null = null;
+
+      for (const seg of rail.segments) {
+        const isSchedulable = seg.status === 'AVAILABLE' || seg.status === 'SOFT_BLOCK';
+        if (isSchedulable) {
+          if (!currentStart) currentStart = seg.start;
+          lastEnd = seg.end;
+        } else {
+          if (currentStart && lastEnd) {
+            result.push({
+              date: day,
+              startTime: currentStart.slice(11, 16), // 'HH:MM'
+              endTime: lastEnd.slice(11, 16),
+              venueId: facilityId,
+              courtId: court.courtId
+            });
+          }
+          currentStart = null;
+          lastEnd = null;
+        }
+      }
+
+      if (currentStart && lastEnd) {
+        result.push({
+          date: day,
+          startTime: currentStart.slice(11, 16),
+          endTime: lastEnd.slice(11, 16),
+          venueId: facilityId,
+          courtId: court.courtId
+        });
+      }
+    }
+  }
+
+  return result;
+}
+```
+
+Then a factory‑level helper can:
+
+- Write these into `tournamentRecord.venues[].dateAvailability` or equivalent structure.
+- Keep the Temporal Grid engine as the **authoring tool** for those values. [npmjs](https://www.npmjs.com/package/tods-competition-factory)
+
+## 3. Using the state machine to author a schedulingProfile
+
+A **schedulingProfile** in Competition Factory is a declarative plan, roughly: “On date X at venue Y, schedule rounds R1, R2, R3 from these events/flight groups.” [courthive.github](https://courthive.github.io/tods-competition-factory/docs/governors/schedule-governor/)
+
+Your Temporal Grid engine can provide the **capacity picture** needed to build this profile:
+
+- For each `scheduleDate`:
+  - Use `getCapacityCurve(day)` to see total courts available by time, by venue. [ppl-ai-file-upload.s3.amazonaws](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/32195800/bb94d58b-be5f-4341-9538-8997f3163cd6/TMX-Court-Availability.pdf)
+  - Use `getDayTimeline(day)` to understand per‑court rails and where blocks exist. [ppl-ai-file-upload.s3.amazonaws](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/32195800/bb94d58b-be5f-4341-9538-8997f3163cd6/TMX-Court-Availability.pdf)
+
+The UI workflow:
+
+1. User uses the Temporal Grid to paint/adjust availability windows (this builds dateAvailability). [ppl-ai-file-upload.s3.amazonaws](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/32195800/bb94d58b-be5f-4341-9538-8997f3163cd6/TMX-Court-Availability.pdf)
+2. Then switches to a “Scheduling Profile Builder” view:
+   - For each `scheduleDate`:
+     - Show **capacity bands** from the Temporal Grid (e.g., 8–12 has 6 courts, 12–14 has 4 courts, etc.). [ppl-ai-file-upload.s3.amazonaws](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/32195800/bb94d58b-be5f-4341-9538-8997f3163cd6/TMX-Court-Availability.pdf)
+     - Populate candidate rounds from Competition Factory (event structures, draw positions, etc.). [npmjs](https://www.npmjs.com/package/tods-competition-factory)
+   - User assigns rounds to:
+     - `scheduleDate`,
+     - `venueId(s)`,
+     - optionally time windows (if profile supports it).
+
+Your engine doesn’t need to know about rounds directly; it only needs to give “how much court time is available on this date at this venue.” The controller then assembles the schedulingProfile object that Competition Factory expects, e.g.: [courthive.github](https://courthive.github.io/tods-competition-factory/docs/governors/schedule-governor/)
+
+```ts
+const schedulingProfile = [
+  {
+    scheduleDate: '2026-06-15',
+    venueIds: ['venue-1', 'venue-2'],
+    // Specific structure per Competition Factory docs; simplified:
+    rounds: [
+      { eventId: 'E1', roundNumber: 1, drawId: 'D1' },
+      { eventId: 'E1', roundNumber: 2, drawId: 'D1' },
+      { eventId: 'E2', roundNumber: 1, drawId: 'D2' }
+    ]
+  }
+  // ...
+];
+```
+
+Then TMX can call `engine.setSchedulingProfile({ schedulingProfile })` on the Competition Factory side, and later `scheduleProfileRounds({ periodLength, scheduleDates })`. [npmjs](https://www.npmjs.com/package/tods-competition-factory)
+
+## 4. Flow from Temporal Grid → dataAvailability → schedulingProfileRounds
+
+Putting it together: [courthive.github](https://courthive.github.io/tods-competition-factory/)
+
+1. **Author availability in Temporal Grid**
+
+   - User paints and edits rails; Temporal Grid engine stores blocks.
+   - At chosen points (or live), TMX converts rails to TODS `dateAvailability` and updates the Competition Factory tournamentRecord via a helper.
+
+2. **Save scheduling profile using Grid‑informed UI**
+
+   - Temporal Grid capacity curves help the user allocate rounds to days/venues where capacity is sufficient.
+   - TMX composes a `schedulingProfile` and calls Competition Factory’s `setSchedulingProfile({ schedulingProfile })`.
+
+3. **Run Schedule Governor**
+
+   - TMX (or an internal service) calls `scheduleProfileRounds({ periodLength, scheduleDates, pro: true/false })`. [courthive.github](https://courthive.github.io/tods-competition-factory/docs/governors/schedule-governor/)
+   - Schedule Governor consults:
+     - Updated `dateAvailability` (from Temporal Grid),
+     - Scheduling policy (match durations, recovery),
+     - The stored `schedulingProfile`,  
+       and assigns matchUp start times.
+
+4. **Feed back into Temporal Grid**
+   - Once matchUps are scheduled, TMX can:
+     - Convert scheduled matchUp times into “match blocks” on rails for shadow/what‑if views.
+     - Use the same conflict evaluators to signal when manual availability edits would break an existing schedule.
+
+## 5. How the scheduling profile UI could sit on the state machine
+
+A scheduling‑profile builder component can use the engine purely as a read API:
+
+- Inputs:
+  - `tournamentRecord`, `engine` instance, candidate events/rounds from Competition Factory. [npmjs](https://www.npmjs.com/package/tods-competition-factory)
+- Queries to engine:
+  - `getCapacityCurve(day)` per venue.
+  - `getDayTimeline(day)` for finer inspection.
+- UI:
+  - Per date, show capacity vs requested rounds (e.g., “4 rounds needing 10 court‑hours, 12 court‑hours available”).
+  - Allow drag‑drop of rounds onto dates/venues (similar to how you’ll treat blocks on the Temporal Grid, but acting on `schedulingProfile` instead of `blocks`).
+
+Internally, the scheduling profile builder doesn’t mutate the Temporal Grid engine; it reads from it to avoid suggesting over‑committed dates and writes the profile via Competition Factory’s API.
