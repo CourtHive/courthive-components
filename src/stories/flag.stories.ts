@@ -1,4 +1,4 @@
-import { renderFlag } from '../components/renderFlag';
+import { renderFlag } from '../components/renderStructure/renderFlag';
 
 export default {
   title: 'Participants/Flag',

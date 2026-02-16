@@ -108,6 +108,7 @@ export interface BurstChartOptions {
   colorBySeeds?: boolean;
   countryCodes?: Record<string, string>;
   eventHandlers?: BurstChartEventHandlers;
+  textScaleFactor?: number;
 }
 
 /** Handle returned by render() for controlling the chart after rendering */
@@ -405,9 +406,9 @@ function getMessageLines(
 /**
  * Calculate vertical offset to center text block
  */
-function getTextVerticalOffset(lineCount: number): number {
-  const totalHeight = lineCount * 15;
-  return -(totalHeight / 2) + 7;
+function getTextVerticalOffset(lineCount: number, lineHeight: number): number {
+  const totalHeight = lineCount * lineHeight;
+  return -(totalHeight / 2) + lineHeight / 2;
 }
 
 // ============================================================================
@@ -445,7 +446,9 @@ function createSvgElements(
 function createCenterText(
   svg: Selection<SVGSVGElement, unknown, null, undefined>,
   width: number,
-  height: number
+  height: number,
+  titleFontSize: number,
+  secondaryFontSize: number
 ): {
   centerText: Selection<SVGTextElement, unknown, null, undefined>;
   centerText2: Selection<SVGTextElement, unknown, null, undefined>;
@@ -456,18 +459,19 @@ function createCenterText(
     .attr('y', height / 2)
     .attr(ATTR_TEXT_ANCHOR, 'middle')
     .attr(ATTR_DOMINANT_BASELINE, 'middle')
-    .attr('font-size', '14px')
+    .attr('font-size', `${titleFontSize}px`)
     .attr('font-weight', 'bold')
     .attr('fill', '#333')
     .attr('pointer-events', 'none');
 
+  const secondaryOffset = titleFontSize + secondaryFontSize * 0.5;
   const centerText2 = svg
     .append('text')
     .attr('x', width / 2)
-    .attr('y', height / 2 + 20)
+    .attr('y', height / 2 + secondaryOffset)
     .attr(ATTR_TEXT_ANCHOR, 'middle')
     .attr(ATTR_DOMINANT_BASELINE, 'middle')
-    .attr('font-size', '12px')
+    .attr('font-size', `${secondaryFontSize}px`)
     .attr('fill', '#666')
     .attr('pointer-events', 'none');
 
@@ -525,6 +529,10 @@ export function renderburstChart(
 ): BurstChartInstance {
   const width = options.width || 800;
   const height = options.height || 800;
+  const textScale = (Math.min(width, height) / 800) * (options.textScaleFactor ?? 1);
+  const titleFontSize = 28 * textScale;
+  const secondaryFontSize = 24 * textScale;
+  const lineHeight = 30 * textScale;
   const tournamentTitle = title || options.title || 'Tournament';
   const countryNames = Object.assign(
     {},
@@ -583,7 +591,7 @@ export function renderburstChart(
   const countries = Array.from(uniqueCountries);
 
   // Center text elements
-  const { centerText, centerText2 } = createCenterText(svg, width, height);
+  const { centerText, centerText2 } = createCenterText(svg, width, height, titleFontSize, secondaryFontSize);
 
   // Display tournament title with text wrapping
   function displayTournamentTitle() {
@@ -599,12 +607,12 @@ export function renderburstChart(
       .data(titleLines)
       .join('tspan')
       .attr('x', width / 2)
-      .attr('dy', (_datum: any, i: number) => (i === 0 ? 0 : 15))
+      .attr('dy', (_datum: any, i: number) => (i === 0 ? 0 : lineHeight))
       .text((line: any) => line);
 
     const lineCount = titleLines.length;
-    const totalHeight = lineCount * 15;
-    const offsetY = -(totalHeight / 2) + 7;
+    const totalHeight = lineCount * lineHeight;
+    const offsetY = -(totalHeight / 2) + lineHeight / 2;
     centerText.attr('y', height / 2 + offsetY);
 
     centerText.style('display', 'block');
@@ -695,10 +703,10 @@ export function renderburstChart(
         .data(messageLines)
         .join('tspan')
         .attr('x', width / 2)
-        .attr('dy', (_datum: any, i: number) => (i === 0 ? 0 : 15))
+        .attr('dy', (_datum: any, i: number) => (i === 0 ? 0 : lineHeight))
         .text((line: any) => line);
 
-      const offsetY = getTextVerticalOffset(messageLines.length);
+      const offsetY = getTextVerticalOffset(messageLines.length, lineHeight);
       centerText.attr('y', height / 2 + offsetY);
 
       centerText.style('display', 'block');

@@ -2,7 +2,7 @@
  * FreeScore approach - interactive parsing with known format
  * Single input field with real-time validation using freeScore parser
  */
-import { renderMatchUp } from '../../renderMatchUp';
+import { renderMatchUp } from '../../renderStructure/renderMatchUp';
 import { compositions } from '../../../compositions/compositions';
 import { parseScore } from '../../../tools/freeScore/freeScore';
 import { validateScore } from '../utils/scoreValidator';

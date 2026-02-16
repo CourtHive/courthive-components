@@ -1,4 +1,4 @@
-import { pillStyle } from '../styles/pillStyle';
+import { pillStyle } from '../../styles/pillStyle';
 
 import { matchUpStatusConstants } from 'tods-competition-factory';
 

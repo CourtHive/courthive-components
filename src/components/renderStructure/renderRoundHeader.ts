@@ -1,6 +1,6 @@
-import { roundHeaderStyle } from '../styles/roundHeaderStyle';
-import { isFunction } from './modal/cmodal';
-import type { EventHandlers, MatchUp } from '../types';
+import { roundHeaderStyle } from '../../styles/roundHeaderStyle';
+import { isFunction } from '../modal/cmodal';
+import type { EventHandlers, MatchUp } from '../../types';
 
 export function renderRoundHeader({ 
   eventHandlers, 

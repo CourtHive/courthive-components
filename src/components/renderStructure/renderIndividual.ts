@@ -1,10 +1,10 @@
-import { getPlacholderStyle, participantNameStyle, participantStyle } from '../styles/participantStyle';
+import { getPlacholderStyle, participantNameStyle, participantStyle } from '../../styles/participantStyle';
 import { renderParticipantDetail } from './renderParticipantDetail';
 import { renderParticipantInput } from './renderParticipantInput';
-import { seedStyle } from '../styles/seedStyle';
+import { seedStyle } from '../../styles/seedStyle';
 import { renderFrill } from './renderFrill';
-import { isFunction } from './modal/cmodal';
-import type { Composition, EventHandlers, IndividualParticipant, MatchUp, Side } from '../types';
+import { isFunction } from '../modal/cmodal';
+import type { Composition, EventHandlers, IndividualParticipant, MatchUp, Side } from '../../types';
 
 const QUALIFIER = 'Qualifier';
 const BYE = 'BYE';

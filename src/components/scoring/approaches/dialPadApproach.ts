@@ -2,7 +2,7 @@
  * Dial Pad score entry approach
  * Builds score string incrementally using matchUpFormat rules
  */
-import { renderMatchUp } from '../../renderMatchUp';
+import { renderMatchUp } from '../../renderStructure/renderMatchUp';
 import { compositions } from '../../../compositions/compositions';
 import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
 import { formatScoreString } from './dialPadLogic';

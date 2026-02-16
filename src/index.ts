@@ -1,11 +1,11 @@
-export { renderParticipant } from './components/renderParticipant';
-export { renderParticipantInput } from './components/renderParticipantInput';
-export { renderRoundHeader } from './components/renderRoundHeader';
-export { renderStructure } from './components/renderStructure';
-export { renderContainer } from './components/renderContainer';
-export { renderMatchUp } from './components/renderMatchUp';
+export { renderParticipant } from './components/renderStructure/renderParticipant';
+export { renderParticipantInput } from './components/renderStructure/renderParticipantInput';
+export { renderRoundHeader } from './components/renderStructure/renderRoundHeader';
+export { renderStructure } from './components/renderStructure/renderStructure';
+export { renderContainer } from './components/renderStructure/renderContainer';
+export { renderMatchUp } from './components/renderStructure/renderMatchUp';
 export { compositions } from './compositions/compositions';
-export { renderRound } from './components/renderRound';
+export { renderRound } from './components/renderStructure/renderRound';
 export { cModal } from './components/modal/cmodal';
 
 // Mock participants generator modal

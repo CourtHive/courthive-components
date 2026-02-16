@@ -1,12 +1,12 @@
-import { sideContainerStyle, sideRowStyle } from '../styles/sideStyles';
-import { scoreWrapperStyle } from '../styles/scoreWrapperStyle';
+import { sideContainerStyle, sideRowStyle } from '../../styles/sideStyles';
+import { scoreWrapperStyle } from '../../styles/scoreWrapperStyle';
 import { renderParticipant } from './renderParticipant';
 import { tournamentEngine } from 'tods-competition-factory';
 import { renderSideScore } from './renderSideScore';
 import { renderSchedule } from './renderSchedule';
-import { isFunction } from './modal/cmodal';
+import { isFunction } from '../modal/cmodal';
 import cx from 'classnames';
-import type { Composition, EventHandlers, MatchUp } from '../types';
+import type { Composition, EventHandlers, MatchUp } from '../../types';
 
 // Import factory constants
 import { factoryConstants } from 'tods-competition-factory';

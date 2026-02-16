@@ -1,4 +1,4 @@
-import { renderGameScore } from '../components/renderGameScore';
+import { renderGameScore } from '../components/renderStructure/renderGameScore';
 
 export default {
   title: 'MatchUps/Game Score',

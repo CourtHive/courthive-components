@@ -1,7 +1,7 @@
-import { participantDetailStyle } from '../styles/participantDetailStyle';
-import { getAttr } from '../helpers/getAttr';
+import { participantDetailStyle } from '../../styles/participantDetailStyle';
+import { getAttr } from '../../helpers/getAttr';
 import cx from 'classnames';
-import type { IndividualParticipant } from '../types';
+import type { IndividualParticipant } from '../../types';
 
 export function renderPersonAttribute({ 
   individualParticipant, 

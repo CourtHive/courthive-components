@@ -1,13 +1,13 @@
-import { resultsInfoStyle, resultsItemStyle } from '../styles/resultStyles';
-import { getSelectedMatchUpStyle } from '../styles/getSelectedMatchUpStyle';
-import { matchUpContainerStyle } from '../styles/matchUpContainerStyle';
-import { getMatchUpStyle } from '../styles/getMatchUpStyle';
+import { resultsInfoStyle, resultsItemStyle } from '../../styles/resultStyles';
+import { getSelectedMatchUpStyle } from '../../styles/getSelectedMatchUpStyle';
+import { matchUpContainerStyle } from '../../styles/matchUpContainerStyle';
+import { getMatchUpStyle } from '../../styles/getMatchUpStyle';
 import { renderCenterInfo } from './renderCenterInfo';
-import { getLinkStyle } from '../styles/getLinkStyle';
-import { isFunction } from './modal/cmodal';
+import { getLinkStyle } from '../../styles/getLinkStyle';
+import { isFunction } from '../modal/cmodal';
 import { renderSide } from './renderSide';
 import cx from 'classnames';
-import type { Composition, EventHandlers, MatchUp, SetScore } from '../types';
+import type { Composition, EventHandlers, MatchUp, SetScore } from '../../types';
 
 export function renderMatchUp(params: {
   composition?: Composition;
