@@ -117,5 +117,95 @@
     "key": "1pointslam",
     "name": "1 Point Slam",
     "format": "SET1-S:TB1NOAD"
+  },
+  {
+    "key": "pickleball",
+    "name": "Pickleball Standard",
+    "format": "SET3-S:TB11",
+    "desc": "Best of 3 games to 11"
+  },
+  {
+    "key": "pickleballRally",
+    "name": "Pickleball Rally",
+    "format": "SET3-S:TB11@RALLY",
+    "desc": "Best of 3 games to 11, rally scoring"
+  },
+  {
+    "key": "mlp",
+    "name": "MLP Format",
+    "format": "SET5-S:TB21@RALLY-F:TB15@RALLY",
+    "desc": "Best of 5 to 21, final to 15, rally scoring"
+  },
+  {
+    "key": "padel",
+    "name": "Padel Standard",
+    "format": "SET3-S:6NOAD/TB7",
+    "desc": "Best of 3 sets to 6, golden point"
+  },
+  {
+    "key": "squash",
+    "name": "Squash PAR-11",
+    "format": "SET5-S:TB11",
+    "desc": "Best of 5 games to 11"
+  },
+  {
+    "key": "badminton",
+    "name": "Badminton BWF",
+    "format": "SET3-S:TB21",
+    "desc": "Best of 3 games to 21"
+  },
+  {
+    "key": "volleyball",
+    "name": "Volleyball Indoor",
+    "format": "SET5-S:TB25-F:TB15",
+    "desc": "Best of 5 sets to 25, final to 15"
+  },
+  {
+    "key": "beachVolleyball",
+    "name": "Beach Volleyball",
+    "format": "SET3-S:TB21-F:TB15",
+    "desc": "Best of 3 sets to 21, final to 15"
+  },
+  {
+    "key": "soccer",
+    "name": "Soccer",
+    "format": "HAL2A-S:T45",
+    "desc": "2 halves of 45 minutes, aggregate"
+  },
+  {
+    "key": "basketball",
+    "name": "Basketball NBA",
+    "format": "QTR4A-S:T12",
+    "desc": "4 quarters of 12 minutes, aggregate"
+  },
+  {
+    "key": "iceHockey",
+    "name": "Ice Hockey",
+    "format": "PER3A-S:T20",
+    "desc": "3 periods of 20 minutes, aggregate"
+  },
+  {
+    "key": "boxing",
+    "name": "Boxing Championship",
+    "format": "RND12A-S:T3",
+    "desc": "12 rounds of 3 minutes, aggregate"
+  },
+  {
+    "key": "mma",
+    "name": "MMA Standard",
+    "format": "RND3A-S:T5",
+    "desc": "3 rounds of 5 minutes, aggregate"
+  },
+  {
+    "key": "typti",
+    "name": "TYPTI Standard",
+    "format": "SET5-S:5-G:3C",
+    "desc": "Best of 5 sets to 5, 3 consecutive points/game"
+  },
+  {
+    "key": "intennse",
+    "name": "INTENNSE",
+    "format": "SET7XA-S:T10P",
+    "desc": "Exactly 7 timed sets, aggregate, points-based"
   }
 ]
