@@ -131,6 +131,24 @@ export {
   type TimePickerConfig,
 } from './ui/modernTimePicker';
 
+export {
+  createBlockPopoverManager,
+  type BlockPopoverManager,
+  type BlockPopoverOptions,
+  type EngineBlockPopoverOptions,
+} from './ui/blockPopover';
+
+export {
+  buildStatsBar,
+  type StatsBarUpdate,
+} from './ui/statsBar';
+
+export {
+  buildViewToolbar,
+  VIEW_PRESETS,
+  type ViewPreset,
+} from './ui/viewToolbar';
+
 // ============================================================================
 // Styles
 // ============================================================================

@@ -15,6 +15,8 @@ import { TemporalGridEngine } from '../engine/temporalGridEngine';
 import { TemporalGridControl, type TemporalGridControlConfig } from '../controller/temporalGridControl';
 import type { BlockType, CourtRef, DayId } from '../engine/types';
 import { calculateCapacityStats } from '../engine/capacityCurve';
+import { buildStatsBar, type StatsBarUpdate } from './statsBar';
+import { buildViewToolbar } from './viewToolbar';
 
 // ============================================================================
 // Component Configuration
@@ -75,6 +77,7 @@ export class TemporalGrid {
   private facilityTreeElement: HTMLElement | null = null;
   private calendarElement: HTMLElement | null = null;
   private capacityElement: HTMLElement | null = null;
+  private statsBarInstance: { element: HTMLElement; update: (stats: StatsBarUpdate) => void } | null = null;
 
   // State
   private visibleCourts: Set<string> = new Set(); // "tournamentId|facilityId|courtId" to match resource IDs
@@ -147,7 +150,11 @@ export class TemporalGrid {
         showSegmentLabels: this.config.showSegmentLabels,
         onBlockSelected: this.handleBlockSelected,
         onCourtSelected: this.handleCourtSelected,
-        onTimeRangeSelected: this.handleTimeRangeSelected
+        onTimeRangeSelected: this.handleTimeRangeSelected,
+        onBlocksChanged: () => {
+          this.updateCapacityStats();
+          this.updateStatsBar();
+        },
       });
 
       // Don't set visibleCourts on controller initially - let it show all
@@ -283,6 +290,17 @@ export class TemporalGrid {
     }
 
     header.appendChild(toolbar);
+
+    // View toolbar (Day / 3 Days / Week)
+    const viewToolbar = buildViewToolbar(
+      (viewKey: string) => this.control?.setViewPreset(viewKey),
+      this.config.initialView || 'day',
+    );
+    header.appendChild(viewToolbar);
+
+    // Stats bar (total hours, blocked, available, avg)
+    this.statsBarInstance = buildStatsBar();
+    header.appendChild(this.statsBarInstance.element);
   }
 
   private renderCapacityIndicator(): void {
@@ -342,6 +360,27 @@ export class TemporalGrid {
   // ============================================================================
   // Update Methods
   // ============================================================================
+
+  private updateStatsBar(): void {
+    if (!this.statsBarInstance) return;
+
+    const currentDay = this.control?.getDay();
+    if (!currentDay) return;
+
+    const curve = this.engine.getCapacityCurve(currentDay);
+    const stats = calculateCapacityStats(curve);
+
+    const totalCourts = stats.totalCourts || 1;
+    const availableHours = stats.totalAvailableHours || 0;
+    const unavailableHours = stats.totalUnavailableHours || 0;
+
+    this.statsBarInstance.update({
+      totalHours: stats.totalCourtHours,
+      blockedHours: unavailableHours,
+      availableHours,
+      avgPerCourt: availableHours / totalCourts,
+    });
+  }
 
   private updateCapacityStats(): void {
     if (!this.capacityElement) return;
@@ -461,6 +500,7 @@ export class TemporalGrid {
   private handleEngineEvent = (event: any): void => {
     if (event.type === 'BLOCKS_CHANGED') {
       this.updateCapacityStats();
+      this.updateStatsBar();
 
       if (this.config.onMutationsApplied) {
         this.config.onMutationsApplied(event.payload.mutations);

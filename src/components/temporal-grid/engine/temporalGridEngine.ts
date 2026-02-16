@@ -701,14 +701,72 @@ export class TemporalGridEngine {
   // ============================================================================
 
   /**
-   * Load blocks from tournament record
-   * TODO: Implement actual TODS parsing when bridge is ready
+   * Booking type → engine BlockType mapping
+   */
+  private static readonly BOOKING_TYPE_MAP: Record<string, BlockType> = {
+    MAINTENANCE: 'MAINTENANCE',
+    PRACTICE: 'PRACTICE',
+    RESERVED: 'RESERVED',
+    MATCH: 'SCHEDULED',
+    SCHEDULED: 'SCHEDULED',
+  };
+
+  /**
+   * Load blocks from court dateAvailability bookings in the tournament record.
+   * Iterates venues[].courts[].dateAvailability[].bookings[] and calls applyBlock().
    */
   private loadBlocksFromTournamentRecord(): void {
-    // Placeholder - will be implemented with bridge module
-    // For now, start with empty blocks
     this.blocksById.clear();
     this.blocksByCourtDay.clear();
+
+    if (!this.tournamentRecord?.venues) return;
+
+    for (const venue of this.tournamentRecord.venues) {
+      for (const court of venue.courts || []) {
+        if (!court.dateAvailability?.length) continue;
+
+        const courtRef: CourtRef = {
+          tournamentId: this.config.tournamentId,
+          facilityId: venue.venueId || venue.venueName,
+          courtId: court.courtId || court.courtName,
+        };
+
+        for (const avail of court.dateAvailability) {
+          if (!avail.bookings?.length) continue;
+          const day = avail.date || this.tournamentRecord.startDate;
+
+          for (const booking of avail.bookings) {
+            if (!booking.startTime || !booking.endTime) continue;
+            const st =
+              booking.startTime.length === 5
+                ? `${booking.startTime}:00`
+                : booking.startTime;
+            const et =
+              booking.endTime.length === 5
+                ? `${booking.endTime}:00`
+                : booking.endTime;
+
+            const blockType: BlockType =
+              TemporalGridEngine.BOOKING_TYPE_MAP[(booking.bookingType || '').toUpperCase()] ||
+              'RESERVED';
+
+            // Directly create and index blocks (bypass applyMutations to avoid emitting during init)
+            const blockId = this.generateBlockId();
+            const block: Block = {
+              id: blockId,
+              court: courtRef,
+              start: `${day}T${st}`,
+              end: `${day}T${et}`,
+              type: blockType,
+              reason: booking.bookingType || 'Booking',
+              source: 'SYSTEM',
+            };
+            this.blocksById.set(blockId, block);
+            this.indexBlock(block);
+          }
+        }
+      }
+    }
   }
 
   /**

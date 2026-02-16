@@ -5,9 +5,7 @@
 
 import 'vis-timeline/styles/vis-timeline-graph2d.min.css';
 import { Timeline } from 'vis-timeline/standalone';
-import tippy, { type Instance as TippyInstance } from 'tippy.js';
 import 'tippy.js/dist/tippy.css';
-import { showModernTimePicker } from '../../components/temporal-grid/ui/modernTimePicker';
 import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { TemporalGridEngine } from '../../components/temporal-grid/engine/temporalGridEngine';
 import { calculateCapacityStats } from '../../components/temporal-grid/engine/capacityCurve';
@@ -15,27 +13,17 @@ import {
   buildResourcesFromTimelines,
   buildEventsFromTimelines,
   buildBlockEvents,
-  DEFAULT_COLOR_SCHEME,
   buildTimelineWindowConfig,
   parseResourceId,
   parseBlockEventId,
 } from '../../components/temporal-grid/controller/viewProjections';
-import type { BlockType } from '../../components/temporal-grid/engine/types';
+import { createBlockPopoverManager } from '../../components/temporal-grid/ui/blockPopover';
+import { buildStatsBar } from '../../components/temporal-grid/ui/statsBar';
+import { buildViewToolbar, VIEW_PRESETS } from '../../components/temporal-grid/ui/viewToolbar';
 
 export default {
   title: 'Temporal Grid/Vis Timeline Basic',
 };
-
-// Track active tippy instance and its associated item ID for toggle behavior
-let activeBlockTip: TippyInstance | null = null;
-let activeBlockTipItemId: string | null = null;
-function destroyActiveBlockTip() {
-  if (activeBlockTip) {
-    activeBlockTip.destroy();
-    activeBlockTip = null;
-    activeBlockTipItemId = null;
-  }
-}
 
 // ── Facility / Court data ─────────────────────────────────────────────────────
 
@@ -90,7 +78,7 @@ const dayStart = new Date('2026-06-15T06:00:00');
 const dayEnd = new Date('2026-06-15T22:00:00');
 const weekEnd = new Date('2026-06-21T22:00:00');
 
-// Block type definitions
+// Block type definitions (Baseline story only — no engine)
 const BLOCK_TYPES: Record<string, { label: string; bg: string; border: string }> = {
   maintenance: { label: 'Maintenance', bg: '#FF9800', border: '#E65100' },
   practice:    { label: 'Practice',    bg: '#2196F3', border: '#0D47A1' },
@@ -177,97 +165,6 @@ function makeItems(courtIds: Set<string>) {
   return [...bgItems, ...blocks];
 }
 
-// ── Block action popover (tippy.js) ───────────────────────────────────────────
-
-function buildPopoverContent(
-  item: any,
-  timeline: any,
-  onDone: () => void,
-): HTMLElement {
-  const wrap = document.createElement('div');
-  wrap.style.cssText = 'font-family:sans-serif; font-size:13px; min-width:150px;';
-
-  for (const [key, def] of Object.entries(BLOCK_TYPES)) {
-    const btn = document.createElement('div');
-    btn.style.cssText =
-      'padding:6px 12px; cursor:pointer; display:flex; align-items:center; gap:8px;';
-    btn.innerHTML = `
-      <span style="width:10px;height:10px;border-radius:2px;background:${def.bg};display:inline-block;"></span>
-      ${def.label}
-    `;
-    btn.addEventListener('mouseenter', () => { btn.style.background = '#f0f0f0'; btn.style.color = '#333'; });
-    btn.addEventListener('mouseleave', () => { btn.style.background = 'transparent'; btn.style.color = ''; });
-    btn.addEventListener('click', () => {
-      timeline.itemsData.update({
-        id: item.id,
-        content: def.label,
-        style: blockStyle(key),
-      });
-      onDone();
-    });
-    wrap.appendChild(btn);
-  }
-
-  const hr = document.createElement('div');
-  hr.style.cssText = 'border-top:1px solid #e0e0e0; margin:4px 0;';
-  wrap.appendChild(hr);
-
-  const timeBtn = document.createElement('div');
-  timeBtn.style.cssText =
-    'padding:6px 12px; cursor:pointer; display:flex; align-items:center; gap:8px;';
-  timeBtn.innerHTML = `<span style="font-size:14px;">&#128339;</span> Adjust Time`;
-  timeBtn.addEventListener('mouseenter', () => { timeBtn.style.background = '#f0f0f0'; timeBtn.style.color = '#333'; });
-  timeBtn.addEventListener('mouseleave', () => { timeBtn.style.background = 'transparent'; timeBtn.style.color = ''; });
-  timeBtn.addEventListener('click', () => {
-    onDone();
-    const startDate = new Date(item.start);
-    const endDate = new Date(item.end);
-    showModernTimePicker({
-      startTime: toLocalISO(startDate),
-      endTime: toLocalISO(endDate),
-      dayStartTime: '06:00',
-      dayEndTime: '22:00',
-      minuteIncrement: 5,
-      onConfirm: (startTimeStr: string, endTimeStr: string) => {
-        const day = toLocalISO(startDate).slice(0, 10);
-        const newStart = new Date(`${day}T${startTimeStr}:00`);
-        const newEnd = new Date(`${day}T${endTimeStr}:00`);
-        timeline.itemsData.update({ id: item.id, start: newStart, end: newEnd });
-      },
-      onCancel: () => {},
-    });
-  });
-  wrap.appendChild(timeBtn);
-
-  return wrap;
-}
-
-function showBlockPopover(
-  targetEl: Element,
-  item: any,
-  timeline: any,
-): void {
-  destroyActiveBlockTip();
-
-  const content = buildPopoverContent(item, timeline, () => {
-    destroyActiveBlockTip();
-  });
-
-  const tip: TippyInstance = tippy(targetEl, {
-    content,
-    allowHTML: true,
-    interactive: true,
-    trigger: 'manual',
-    placement: 'bottom',
-    appendTo: document.body,
-    onHidden: () => { activeBlockTip = null; activeBlockTipItemId = null; },
-  });
-
-  activeBlockTip = tip;
-  activeBlockTipItemId = String(item.id);
-  tip.show();
-}
-
 // ── Facility tree panel ───────────────────────────────────────────────────────
 
 function buildFacilityTree(
@@ -290,7 +187,6 @@ function buildFacilityTree(
     const group = document.createElement('div');
     group.style.cssText = 'padding: 4px 0;';
 
-    // Facility header with checkbox
     const facRow = document.createElement('label');
     facRow.style.cssText =
       'display: flex; align-items: center; gap: 6px; padding: 6px 12px; cursor: pointer; font-weight: 600; color: #333;';
@@ -318,10 +214,8 @@ function buildFacilityTree(
     facRow.appendChild(courtCount);
     group.appendChild(facRow);
 
-    // Court list
     const courtList = document.createElement('div');
     courtList.style.cssText = 'padding-left: 28px;';
-
     const courtCheckboxes: HTMLInputElement[] = [];
 
     for (const court of fac.courts) {
@@ -336,12 +230,8 @@ function buildFacilityTree(
       courtCb.dataset.courtId = court.id;
 
       courtCb.addEventListener('change', () => {
-        if (courtCb.checked) {
-          visibleCourts.add(court.id);
-        } else {
-          visibleCourts.delete(court.id);
-        }
-        // Update facility checkbox state
+        if (courtCb.checked) visibleCourts.add(court.id);
+        else visibleCourts.delete(court.id);
         const allChecked = fac.courts.every((c) => visibleCourts.has(c.id));
         const someChecked = fac.courts.some((c) => visibleCourts.has(c.id));
         facCb.checked = allChecked;
@@ -360,18 +250,12 @@ function buildFacilityTree(
       courtList.appendChild(courtRow);
     }
 
-    // Facility checkbox toggles all courts
     facCb.addEventListener('change', () => {
       for (const court of fac.courts) {
-        if (facCb.checked) {
-          visibleCourts.add(court.id);
-        } else {
-          visibleCourts.delete(court.id);
-        }
+        if (facCb.checked) visibleCourts.add(court.id);
+        else visibleCourts.delete(court.id);
       }
-      for (const cb of courtCheckboxes) {
-        cb.checked = facCb.checked;
-      }
+      for (const cb of courtCheckboxes) cb.checked = facCb.checked;
       facCb.indeterminate = false;
       updateCount();
       onChange();
@@ -396,6 +280,9 @@ function toLocalISO(date: Date): string {
 
 let justDragged = false;
 
+// Shared popover manager across stories
+const popoverManager = createBlockPopoverManager();
+
 function baseOptions() {
   return {
     start: dayStart,
@@ -418,7 +305,7 @@ function baseOptions() {
       return new Date(Math.round(ms / fiveMin) * fiveMin);
     },
     onMoving: (item: any, callback: any) => {
-      destroyActiveBlockTip();
+      popoverManager.destroy();
       callback(item);
     },
     onMove: (item: any, callback: any) => {
@@ -444,49 +331,8 @@ function baseOptions() {
   };
 }
 
-// ── Shared Helpers ────────────────────────────────────────────────────────────
+// ── Parameterized court tree builder (reusable by engine-backed stories) ──────
 
-function buildStatsBar(): {
-  element: HTMLElement;
-  update: (stats: {
-    totalHours: number;
-    blockedHours: number;
-    availableHours: number;
-    avgPerCourt: number;
-  }) => void;
-} {
-  const bar = document.createElement('div');
-  bar.style.cssText =
-    'display:flex; align-items:center; gap:20px; padding:6px 16px; border-bottom:1px solid #e0e0e0; background:#f0f4f4; font-family:sans-serif; font-size:13px; color:#666;';
-
-  const makeStat = (label: string) => {
-    const span = document.createElement('span');
-    span.innerHTML = `${label}: <b style="color:#218D8D">&mdash;</b>`;
-    bar.appendChild(span);
-    return span;
-  };
-
-  const totalEl = makeStat('Total Hours');
-  const blockedEl = makeStat('Blocked');
-  const availEl = makeStat('Available');
-  const avgEl = makeStat('Avg Avail/Court');
-
-  const update = (stats: {
-    totalHours: number;
-    blockedHours: number;
-    availableHours: number;
-    avgPerCourt: number;
-  }) => {
-    totalEl.innerHTML = `Total Hours: <b style="color:#218D8D">${stats.totalHours.toFixed(1)}h</b>`;
-    blockedEl.innerHTML = `Blocked: <b style="color:#218D8D">${stats.blockedHours.toFixed(1)}h</b>`;
-    availEl.innerHTML = `Available: <b style="color:#218D8D">${stats.availableHours.toFixed(1)}h</b>`;
-    avgEl.innerHTML = `Avg Avail/Court: <b style="color:#218D8D">${stats.avgPerCourt.toFixed(1)}h</b>`;
-  };
-
-  return { element: bar, update };
-}
-
-// Parameterized court tree builder (reusable by engine-backed stories)
 interface VenueInfo {
   id: string;
   name: string;
@@ -595,135 +441,8 @@ function buildCourtTree(
   return panel;
 }
 
-// Engine-aware block popover (type picker + adjust time + delete)
-const ENGINE_BLOCK_TYPES: [BlockType, string][] = [
-  ['MAINTENANCE', 'Maintenance'],
-  ['PRACTICE', 'Practice'],
-  ['RESERVED', 'Reserved'],
-  ['BLOCKED', 'Blocked'],
-];
+// ── Shared engine setup for FactoryBacked and RoundTrip stories ──────────────
 
-function showEngineBlockPopover(
-  targetEl: Element,
-  _item: any,
-  blockId: string,
-  engine: TemporalGridEngine,
-  day: string,
-  rebuildItems: () => void,
-  itemId?: string,
-): void {
-  destroyActiveBlockTip();
-
-  const wrap = document.createElement('div');
-  wrap.style.cssText = 'font-family:sans-serif; font-size:13px; min-width:150px;';
-
-  for (const [type, label] of ENGINE_BLOCK_TYPES) {
-    const color = DEFAULT_COLOR_SCHEME[type];
-    const btn = document.createElement('div');
-    btn.style.cssText =
-      'padding:6px 12px; cursor:pointer; display:flex; align-items:center; gap:8px;';
-    btn.innerHTML = `
-      <span style="width:10px;height:10px;border-radius:2px;background:${color};display:inline-block;"></span>
-      ${label}
-    `;
-    btn.addEventListener('mouseenter', () => {
-      btn.style.background = '#f0f0f0';
-      btn.style.color = '#333';
-    });
-    btn.addEventListener('mouseleave', () => {
-      btn.style.background = 'transparent';
-      btn.style.color = '';
-    });
-    btn.addEventListener('click', () => {
-      const block = engine.getDayBlocks(day).find((b) => b.id === blockId);
-      if (block) {
-        engine.removeBlock(blockId);
-        engine.applyBlock({
-          courts: [block.court],
-          timeRange: { start: block.start, end: block.end },
-          type,
-          reason: label,
-        });
-        rebuildItems();
-      }
-      tip.destroy();
-    });
-    wrap.appendChild(btn);
-  }
-
-  const hr = document.createElement('div');
-  hr.style.cssText = 'border-top:1px solid #e0e0e0; margin:4px 0;';
-  wrap.appendChild(hr);
-
-  // Adjust Time
-  const timeBtn = document.createElement('div');
-  timeBtn.style.cssText =
-    'padding:6px 12px; cursor:pointer; display:flex; align-items:center; gap:8px;';
-  timeBtn.innerHTML = `<span style="font-size:14px;">&#128339;</span> Adjust Time`;
-  timeBtn.addEventListener('mouseenter', () => {
-    timeBtn.style.background = '#f0f0f0';
-    timeBtn.style.color = '#333';
-  });
-  timeBtn.addEventListener('mouseleave', () => {
-    timeBtn.style.background = 'transparent';
-    timeBtn.style.color = '';
-  });
-  timeBtn.addEventListener('click', () => {
-    tip.destroy();
-    const block = engine.getDayBlocks(day).find((b) => b.id === blockId);
-    if (!block) return;
-    showModernTimePicker({
-      startTime: block.start,
-      endTime: block.end,
-      dayStartTime: '06:00',
-      dayEndTime: '22:00',
-      minuteIncrement: 5,
-      onConfirm: (startTimeStr: string, endTimeStr: string) => {
-        const d = block.start.slice(0, 10);
-        engine.resizeBlock({
-          blockId,
-          newTimeRange: { start: `${d}T${startTimeStr}:00`, end: `${d}T${endTimeStr}:00` },
-        });
-        rebuildItems();
-      },
-      onCancel: () => {},
-    });
-  });
-  wrap.appendChild(timeBtn);
-
-  // Delete
-  const delBtn = document.createElement('div');
-  delBtn.style.cssText =
-    'padding:6px 12px; cursor:pointer; display:flex; align-items:center; gap:8px; color:#e74c3c;';
-  delBtn.innerHTML = `<span style="font-size:14px;">&#128465;</span> Delete`;
-  delBtn.addEventListener('mouseenter', () => {
-    delBtn.style.background = '#fdecea';
-  });
-  delBtn.addEventListener('mouseleave', () => {
-    delBtn.style.background = 'transparent';
-  });
-  delBtn.addEventListener('click', () => {
-    engine.removeBlock(blockId);
-    rebuildItems();
-    tip.destroy();
-  });
-  wrap.appendChild(delBtn);
-
-  const tip: TippyInstance = tippy(targetEl, {
-    content: wrap,
-    allowHTML: true,
-    interactive: true,
-    trigger: 'manual',
-    placement: 'bottom',
-    appendTo: document.body,
-    onHidden: () => { activeBlockTip = null; activeBlockTipItemId = null; },
-  });
-  activeBlockTip = tip;
-  activeBlockTipItemId = itemId || blockId;
-  tip.show();
-}
-
-// Shared engine setup for FactoryBacked and RoundTrip stories
 const VENUE_COLORS = [
   'rgba(33, 141, 141, 0.06)',
   'rgba(33, 96, 200, 0.06)',
@@ -764,14 +483,11 @@ function createEngineSetup() {
   }
 
   // Use factory methods to add real court-level bookings to the tournament record.
-  // This makes the tournament record the single source of truth.
   tournamentEngine.setState(tournamentRecord);
 
-  // Extract actual court IDs from the generated venues (factory generates its own IDs)
   const mainVenue = tournamentRecord.venues?.find((v: any) => v.venueId === 'venue-main');
   const mainCourts: any[] = mainVenue?.courts || [];
 
-  // Add bookings using actual factory-generated court IDs
   if (mainCourts[0]) {
     tournamentEngine.modifyCourtAvailability({
       courtId: mainCourts[0].courtId,
@@ -824,62 +540,13 @@ function createEngineSetup() {
   const stateResult = tournamentEngine.getState();
   const recordWithBookings = stateResult?.tournamentRecord ?? tournamentRecord;
 
+  // Engine now loads blocks from tournament record automatically during init()
   const engine = new TemporalGridEngine();
   engine.init(recordWithBookings, {
     dayStartTime: '06:00',
     dayEndTime: '22:00',
     slotMinutes: 5,
   });
-
-  // Load blocks from court dateAvailability bookings in the tournament record
-  const BOOKING_TYPE_MAP: Record<string, BlockType> = {
-    MAINTENANCE: 'MAINTENANCE',
-    PRACTICE: 'PRACTICE',
-    RESERVED: 'RESERVED',
-    MATCH: 'SCHEDULED',
-    SCHEDULED: 'SCHEDULED',
-  };
-
-  for (const venue of recordWithBookings.venues || []) {
-    for (const court of venue.courts || []) {
-      if (!court.dateAvailability?.length) continue;
-
-      const courtRef = {
-        tournamentId: engine.getConfig().tournamentId,
-        facilityId: venue.venueId,
-        courtId: court.courtId,
-      };
-
-      for (const avail of court.dateAvailability) {
-        if (!avail.bookings?.length) continue;
-        const day = avail.date || startDate;
-
-        for (const booking of avail.bookings) {
-          if (!booking.startTime || !booking.endTime) continue;
-          const st =
-            booking.startTime.length === 5
-              ? `${booking.startTime}:00`
-              : booking.startTime;
-          const et =
-            booking.endTime.length === 5
-              ? `${booking.endTime}:00`
-              : booking.endTime;
-
-          const blockType: BlockType =
-            BOOKING_TYPE_MAP[(booking.bookingType || '').toUpperCase()] ||
-            'RESERVED';
-
-          engine.applyBlock({
-            courts: [courtRef],
-            timeRange: { start: `${day}T${st}`, end: `${day}T${et}` },
-            type: blockType,
-            reason: booking.bookingType || 'Booking',
-            source: 'SYSTEM',
-          });
-        }
-      }
-    }
-  }
 
   // Build court name map from tournament record
   const courtNameMap = new Map<string, string>();
@@ -940,69 +607,14 @@ function createEngineSetup() {
  * - Toggle entire facilities on/off
  * - Indeterminate state when some courts in a facility are hidden
  */
-// View presets
-const VIEWS: Record<string, { label: string; days: number; timeAxis: any }> = {
-  day:        { label: '1 Day',   days: 1,  timeAxis: { scale: 'hour', step: 1 } },
-  tournament: { label: '3 Days',  days: 3,  timeAxis: { scale: 'hour', step: 3 } },
-  week:       { label: 'Week',    days: 7,  timeAxis: { scale: 'hour', step: 6 } },
-};
-
-function buildToolbar(
-  onViewChange: (viewKey: string) => void,
-  initialView: string,
-): HTMLElement {
-  const bar = document.createElement('div');
-  bar.style.cssText =
-    'display:flex; align-items:center; gap:4px; padding:6px 12px; border-bottom:1px solid #e0e0e0; background:#f8f9fa; font-family:sans-serif; font-size:13px;';
-
-  const label = document.createElement('span');
-  label.textContent = 'View:';
-  label.style.cssText = 'color:#666; margin-right:4px;';
-  bar.appendChild(label);
-
-  const buttons: HTMLButtonElement[] = [];
-
-  for (const [key, view] of Object.entries(VIEWS)) {
-    const btn = document.createElement('button');
-    btn.textContent = view.label;
-    btn.style.cssText =
-      'padding:4px 12px; border:1px solid #ddd; border-radius:4px; cursor:pointer; font-size:13px; background:white; color:#333;';
-
-    if (key === initialView) {
-      btn.style.background = '#218D8D';
-      btn.style.color = 'white';
-      btn.style.borderColor = '#218D8D';
-    }
-
-    btn.addEventListener('click', () => {
-      for (const b of buttons) {
-        b.style.background = 'white';
-        b.style.color = '#333';
-        b.style.borderColor = '#ddd';
-      }
-      btn.style.background = '#218D8D';
-      btn.style.color = 'white';
-      btn.style.borderColor = '#218D8D';
-      onViewChange(key);
-    });
-
-    buttons.push(btn);
-    bar.appendChild(btn);
-  }
-
-  return bar;
-}
-
 export const Baseline = {
   render: () => {
     const visibleCourts = new Set(ALL_COURTS.map((c) => c.id));
     let currentView = 'day';
 
-    // Root layout: column (toolbar on top, then tree+timeline row)
     const root = document.createElement('div');
     root.style.cssText = 'display:flex; flex-direction:column; width:100%; height:600px; border:1px solid #e0e0e0; border-radius:4px; overflow:hidden;';
 
-    // Main row: tree | timeline
     const mainRow = document.createElement('div');
     mainRow.style.cssText = 'display:flex; flex:1; min-height:0;';
 
@@ -1014,16 +626,16 @@ export const Baseline = {
     const setView = (viewKey: string) => {
       if (!timeline) return;
       currentView = viewKey;
-      const view = VIEWS[viewKey];
-      const end = new Date(dayStart.getTime() + view.days * 16 * 60 * 60 * 1000); // days × 16h
+      const view = VIEW_PRESETS[viewKey];
+      const end = new Date(dayStart.getTime() + view.days * 16 * 60 * 60 * 1000);
       timeline.setWindow(dayStart, end);
       timeline.setOptions({ timeAxis: view.timeAxis });
     };
 
-    // Stats bar
+    // Stats bar (from library)
     const statsBar = buildStatsBar();
     const updateStats = () => {
-      const dayHours = 16; // 06:00 to 22:00
+      const dayHours = 16;
       const courtCount = visibleCourts.size;
       const totalHours = courtCount * dayHours;
       let blockedHours = 0;
@@ -1051,12 +663,11 @@ export const Baseline = {
       updateStats();
     };
 
-    // Toolbar
-    const toolbar = buildToolbar(setView, currentView);
+    // Toolbar (from library)
+    const toolbar = buildViewToolbar(setView, currentView);
     root.appendChild(toolbar);
     root.appendChild(statsBar.element);
 
-    // Facility tree
     const treePanel = buildFacilityTree(visibleCourts, refreshTimeline);
 
     mainRow.appendChild(treePanel);
@@ -1083,13 +694,13 @@ export const Baseline = {
       timeline.on('click', (props: any) => {
         if (justDragged) return;
         if (!props.item || props.item.startsWith('avail-')) {
-          destroyActiveBlockTip();
+          popoverManager.destroy();
           return;
         }
 
-        // Toggle: if clicking the same block that has an open tippy, just close it
-        if (String(props.item) === activeBlockTipItemId) {
-          destroyActiveBlockTip();
+        // Toggle via popover manager
+        if (popoverManager.isActiveFor(String(props.item))) {
+          popoverManager.destroy();
           return;
         }
 
@@ -1106,7 +717,31 @@ export const Baseline = {
             const el =
               timelineContainer.querySelector(`.vis-item[data-id="${props.item}"]`) ??
               (props.event?.target as Element)?.closest?.('.vis-item');
-            if (el && updatedItem) showBlockPopover(el, updatedItem, timeline);
+            if (el && updatedItem) {
+              popoverManager.show(el as HTMLElement, {
+                itemId: String(updatedItem.id),
+                blockTypes: Object.entries(BLOCK_TYPES).map(([key, def]) => ({
+                  type: key,
+                  color: def.bg,
+                  label: def.label,
+                })),
+                startTime: toLocalISO(new Date(updatedItem.start)),
+                endTime: toLocalISO(new Date(updatedItem.end)),
+                onTypeSelected: (type: string) => {
+                  timeline.itemsData.update({
+                    id: updatedItem.id,
+                    content: BLOCK_TYPES[type]?.label || type,
+                    style: blockStyle(type),
+                  });
+                },
+                onAdjustTime: (startTimeStr: string, endTimeStr: string) => {
+                  const day = toLocalISO(new Date(updatedItem.start)).slice(0, 10);
+                  const newStart = new Date(`${day}T${startTimeStr}:00`);
+                  const newEnd = new Date(`${day}T${endTimeStr}:00`);
+                  timeline.itemsData.update({ id: updatedItem.id, start: newStart, end: newEnd });
+                },
+              });
+            }
           }, 50);
           return;
         }
@@ -1117,7 +752,29 @@ export const Baseline = {
           timelineContainer.querySelector(`.vis-item[data-id="${props.item}"]`);
 
         if (itemEl) {
-          showBlockPopover(itemEl, item, timeline);
+          popoverManager.show(itemEl as HTMLElement, {
+            itemId: String(item.id),
+            blockTypes: Object.entries(BLOCK_TYPES).map(([key, def]) => ({
+              type: key,
+              color: def.bg,
+              label: def.label,
+            })),
+            startTime: toLocalISO(new Date(item.start)),
+            endTime: toLocalISO(new Date(item.end)),
+            onTypeSelected: (type: string) => {
+              timeline.itemsData.update({
+                id: item.id,
+                content: BLOCK_TYPES[type]?.label || type,
+                style: blockStyle(type),
+              });
+            },
+            onAdjustTime: (startTimeStr: string, endTimeStr: string) => {
+              const day = toLocalISO(new Date(item.start)).slice(0, 10);
+              const newStart = new Date(`${day}T${startTimeStr}:00`);
+              const newEnd = new Date(`${day}T${endTimeStr}:00`);
+              timeline.itemsData.update({ id: item.id, start: newStart, end: newEnd });
+            },
+          });
         }
       });
 
@@ -1155,7 +812,6 @@ export const FactoryBacked = {
     const visibleCourts = new Set(allCourtIds);
     let timeline: any = null;
 
-    // ── Helpers for engine → vis-timeline mapping ─────────────────────────
     const getGroups = () => {
       const timelines = engine.getDayTimeline(startDate);
       const courtMeta = engine.listCourtMeta();
@@ -1184,7 +840,7 @@ export const FactoryBacked = {
       ];
     };
 
-    // ── Stats ─────────────────────────────────────────────────────────────
+    // Stats bar (from library)
     const statsBar = buildStatsBar();
     const updateEngineStats = () => {
       const curve = engine.getCapacityCurve(startDate);
@@ -1204,7 +860,6 @@ export const FactoryBacked = {
       updateEngineStats();
     };
 
-    // ── DOM ───────────────────────────────────────────────────────────────
     const root = document.createElement('div');
     root.style.cssText =
       'display:flex; flex-direction:column; width:100%; height:600px; border:1px solid #e0e0e0; border-radius:4px; overflow:hidden;';
@@ -1213,14 +868,15 @@ export const FactoryBacked = {
     const setView = (viewKey: string) => {
       if (!timeline) return;
       currentView = viewKey;
-      const view = VIEWS[viewKey];
+      const view = VIEW_PRESETS[viewKey];
       const windowStart = new Date(`${startDate}T06:00:00`);
       const end = new Date(windowStart.getTime() + view.days * 16 * 60 * 60 * 1000);
       timeline.setWindow(windowStart, end);
       timeline.setOptions({ timeAxis: view.timeAxis });
     };
 
-    const toolbar = buildToolbar(setView, currentView);
+    // Toolbar (from library)
+    const toolbar = buildViewToolbar(setView, currentView);
     root.appendChild(toolbar);
     root.appendChild(statsBar.element);
 
@@ -1235,7 +891,6 @@ export const FactoryBacked = {
     mainRow.appendChild(timelineContainer);
     root.appendChild(mainRow);
 
-    // ── Create vis-timeline ───────────────────────────────────────────────
     setTimeout(() => {
       const windowConfig = buildTimelineWindowConfig({
         dayStartTime: '06:00',
@@ -1244,7 +899,6 @@ export const FactoryBacked = {
         day: startDate,
       });
 
-      // Extend max to allow multi-day views (1 week beyond start)
       const weekMax = new Date(`${startDate}T22:00:00`);
       weekMax.setDate(weekMax.getDate() + 7);
 
@@ -1258,7 +912,6 @@ export const FactoryBacked = {
         zoomMax: 7 * 24 * 60 * 60 * 1000,
 
         onAdd: (item: any, callback: any) => {
-          // Create a box item with umbilical line; click will convert to range via engine
           item.content = item.content || 'New Block';
           item.style = 'background-color: #607D8B; border-color: #37474F; color: white;';
           item.editable = { updateTime: true, updateGroup: true, remove: false };
@@ -1283,7 +936,6 @@ export const FactoryBacked = {
             callback(item);
             rebuildItems();
           } else {
-            // Temporary box item (not yet in engine) — let vis-timeline handle it
             callback(item);
           }
         },
@@ -1293,19 +945,18 @@ export const FactoryBacked = {
       timeline.on('click', (props: any) => {
         if (justDragged) return;
         if (!props.item) {
-          destroyActiveBlockTip();
+          popoverManager.destroy();
           return;
         }
 
         const item = timeline.itemsData.get(props.item);
         if (!item || item.isSegment || item.type === 'background') {
-          destroyActiveBlockTip();
+          popoverManager.destroy();
           return;
         }
 
-        // Toggle: if clicking the same block that has an open tippy, just close it
-        if (String(props.item) === activeBlockTipItemId) {
-          destroyActiveBlockTip();
+        if (popoverManager.isActiveFor(String(props.item))) {
+          popoverManager.destroy();
           return;
         }
 
@@ -1322,15 +973,19 @@ export const FactoryBacked = {
             reason: 'New Block',
           });
           rebuildItems();
-          // Show popover on the newly created engine block
           if (result.applied.length > 0) {
             const newBlockId = result.applied[0].block.id;
             const newItemId = `block-${newBlockId}`;
             setTimeout(() => {
               const el = timelineContainer.querySelector(`.vis-item[data-id="${newItemId}"]`);
-              const newItem = timeline.itemsData.get(newItemId);
-              if (el && newItem) {
-                showEngineBlockPopover(el, newItem, newBlockId, engine, startDate, rebuildItems, newItemId);
+              if (el) {
+                popoverManager.showForEngineBlock(el as HTMLElement, {
+                  itemId: newItemId,
+                  blockId: newBlockId,
+                  engine,
+                  day: startDate,
+                  onBlockChanged: rebuildItems,
+                });
               }
             }, 50);
           }
@@ -1346,15 +1001,13 @@ export const FactoryBacked = {
           timelineContainer.querySelector(`.vis-item[data-id="${props.item}"]`);
 
         if (itemEl) {
-          showEngineBlockPopover(
-            itemEl,
-            item,
+          popoverManager.showForEngineBlock(itemEl as HTMLElement, {
+            itemId: String(props.item),
             blockId,
             engine,
-            startDate,
-            rebuildItems,
-            String(props.item),
-          );
+            day: startDate,
+            onBlockChanged: rebuildItems,
+          });
         }
       });
 
@@ -1371,7 +1024,7 @@ export const FactoryBacked = {
  * Extends FactoryBacked with write-back to tournament record.
  *
  * Adds:
- * - "Save to Tournament" button that calls applyTemporalAvailabilityToTournamentRecord()
+ * - "Save to Tournament" button that calls modifyCourtAvailability()
  * - Collapsible "Tournament State" panel showing venue dateAvailability JSON
  * - Panel updates after save to show the new state
  */
@@ -1383,7 +1036,6 @@ export const RoundTrip = {
     const visibleCourts = new Set(allCourtIds);
     let timeline: any = null;
 
-    // ── Engine → vis-timeline mapping ─────────────────────────────────────
     const getGroups = () => {
       const timelines = engine.getDayTimeline(startDate);
       const courtMeta = engine.listCourtMeta();
@@ -1412,7 +1064,7 @@ export const RoundTrip = {
       ];
     };
 
-    // ── Stats ─────────────────────────────────────────────────────────────
+    // Stats bar (from library)
     const statsBar = buildStatsBar();
     const updateEngineStats = () => {
       const curve = engine.getCapacityCurve(startDate);
@@ -1432,7 +1084,7 @@ export const RoundTrip = {
       updateEngineStats();
     };
 
-    // ── Tournament State Panel ────────────────────────────────────────────
+    // Tournament State Panel
     let statePanel: HTMLElement;
     let statePre: HTMLPreElement;
 
@@ -1491,26 +1143,24 @@ export const RoundTrip = {
         : '(no court-level dateAvailability set)';
     };
 
-    // ── DOM ───────────────────────────────────────────────────────────────
     const root = document.createElement('div');
     root.style.cssText =
       'display:flex; flex-direction:column; width:100%; height:700px; border:1px solid #e0e0e0; border-radius:4px; overflow:hidden;';
 
-    // Toolbar with Save button
     let currentView = 'day';
     const setView = (viewKey: string) => {
       if (!timeline) return;
       currentView = viewKey;
-      const view = VIEWS[viewKey];
+      const view = VIEW_PRESETS[viewKey];
       const windowStart = new Date(`${startDate}T06:00:00`);
       const end = new Date(windowStart.getTime() + view.days * 16 * 60 * 60 * 1000);
       timeline.setWindow(windowStart, end);
       timeline.setOptions({ timeAxis: view.timeAxis });
     };
 
-    const toolbar = buildToolbar(setView, currentView);
+    // Toolbar (from library) with Save button appended
+    const toolbar = buildViewToolbar(setView, currentView);
 
-    // Add Save button to toolbar
     const spacer = document.createElement('div');
     spacer.style.cssText = 'flex:1;';
     toolbar.appendChild(spacer);
@@ -1520,12 +1170,10 @@ export const RoundTrip = {
     saveBtn.style.cssText =
       'padding:4px 14px; border:1px solid #218D8D; border-radius:4px; cursor:pointer; font-size:13px; background:#218D8D; color:white; font-weight:600;';
     saveBtn.addEventListener('click', () => {
-      // Write engine blocks back to court-level dateAvailability via factory methods
       tournamentEngine.setState(tournamentRecord);
 
       const blocks = engine.getDayBlocks(startDate);
 
-      // Group blocks by courtId, initializing all courts with empty arrays
       const blocksByCourt = new Map<string, Array<{ start: string; end: string; type: string }>>();
       for (const meta of engine.listCourtMeta()) {
         blocksByCourt.set(meta.ref.courtId, []);
@@ -1537,7 +1185,6 @@ export const RoundTrip = {
         blocksByCourt.set(courtId, existing);
       }
 
-      // Only save courts whose blocks have actually changed
       let modifiedCount = 0;
       console.group('[RoundTrip] Save to Tournament');
       blocksByCourt.forEach((courtBlocks, courtId) => {
@@ -1572,7 +1219,6 @@ export const RoundTrip = {
       console.log(`[RoundTrip] ${modifiedCount} court(s) modified, ${blocksByCourt.size - modifiedCount} unchanged`);
       console.groupEnd();
 
-      // Retrieve updated tournament record
       const { tournamentRecord: updated } = tournamentEngine.getState() || {};
       tournamentRecord = updated;
       updateStatePanel();
@@ -1603,7 +1249,6 @@ export const RoundTrip = {
     root.appendChild(mainRow);
     root.appendChild(buildStatePanel());
 
-    // ── Create vis-timeline ───────────────────────────────────────────────
     setTimeout(() => {
       const windowConfig = buildTimelineWindowConfig({
         dayStartTime: '06:00',
@@ -1612,7 +1257,6 @@ export const RoundTrip = {
         day: startDate,
       });
 
-      // Extend max to allow multi-day views (1 week beyond start)
       const weekMax = new Date(`${startDate}T22:00:00`);
       weekMax.setDate(weekMax.getDate() + 7);
 
@@ -1626,7 +1270,6 @@ export const RoundTrip = {
         zoomMax: 7 * 24 * 60 * 60 * 1000,
 
         onAdd: (item: any, callback: any) => {
-          // Create a box item with umbilical line; click will convert to range via engine
           item.content = item.content || 'New Block';
           item.style = 'background-color: #607D8B; border-color: #37474F; color: white;';
           item.editable = { updateTime: true, updateGroup: true, remove: false };
@@ -1651,29 +1294,26 @@ export const RoundTrip = {
             callback(item);
             rebuildItems();
           } else {
-            // Temporary box item (not yet in engine) — let vis-timeline handle it
             callback(item);
           }
         },
       });
 
-      // Click handler: box→range via engine, or popover on existing block
       timeline.on('click', (props: any) => {
         if (justDragged) return;
         if (!props.item) {
-          destroyActiveBlockTip();
+          popoverManager.destroy();
           return;
         }
 
         const item = timeline.itemsData.get(props.item);
         if (!item || item.isSegment || item.type === 'background') {
-          destroyActiveBlockTip();
+          popoverManager.destroy();
           return;
         }
 
-        // Toggle: if clicking the same block that has an open tippy, just close it
-        if (String(props.item) === activeBlockTipItemId) {
-          destroyActiveBlockTip();
+        if (popoverManager.isActiveFor(String(props.item))) {
+          popoverManager.destroy();
           return;
         }
 
@@ -1690,15 +1330,19 @@ export const RoundTrip = {
             reason: 'New Block',
           });
           rebuildItems();
-          // Show popover on the newly created engine block
           if (result.applied.length > 0) {
             const newBlockId = result.applied[0].block.id;
             const newItemId = `block-${newBlockId}`;
             setTimeout(() => {
               const el = timelineContainer.querySelector(`.vis-item[data-id="${newItemId}"]`);
-              const newItem = timeline.itemsData.get(newItemId);
-              if (el && newItem) {
-                showEngineBlockPopover(el, newItem, newBlockId, engine, startDate, rebuildItems, newItemId);
+              if (el) {
+                popoverManager.showForEngineBlock(el as HTMLElement, {
+                  itemId: newItemId,
+                  blockId: newBlockId,
+                  engine,
+                  day: startDate,
+                  onBlockChanged: rebuildItems,
+                });
               }
             }, 50);
           }
@@ -1714,15 +1358,13 @@ export const RoundTrip = {
           timelineContainer.querySelector(`.vis-item[data-id="${props.item}"]`);
 
         if (itemEl) {
-          showEngineBlockPopover(
-            itemEl,
-            item,
+          popoverManager.showForEngineBlock(itemEl as HTMLElement, {
+            itemId: String(props.item),
             blockId,
             engine,
-            startDate,
-            rebuildItems,
-            String(props.item),
-          );
+            day: startDate,
+            onBlockChanged: rebuildItems,
+          });
         }
       });
 

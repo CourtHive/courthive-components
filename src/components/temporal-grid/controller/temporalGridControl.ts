@@ -31,7 +31,8 @@ import {
   type ProjectionConfig,
   type ResourceGroupingMode
 } from './viewProjections';
-import { showModernTimePicker } from '../ui/modernTimePicker';
+import { createBlockPopoverManager, type BlockPopoverManager } from '../ui/blockPopover';
+import { VIEW_PRESETS } from '../ui/viewToolbar';
 
 // ============================================================================
 // Controller Configuration
@@ -67,6 +68,9 @@ export interface TemporalGridControlConfig {
 
   /** Callback when time range is selected (for painting) */
   onTimeRangeSelected?: (params: { courts: CourtRef[]; start: string; end: string }) => void;
+
+  /** Callback when engine blocks change (for stats bar, external consumers) */
+  onBlocksChanged?: () => void;
 }
 
 // ============================================================================
@@ -85,9 +89,15 @@ export class TemporalGridControl {
   // Render guard — prevents re-entrant render() calls
   private isRendering = false;
 
+  // Popover manager for block actions
+  private popoverManager: BlockPopoverManager = createBlockPopoverManager();
+
+  // Drag guard — suppresses click handler after drag
+  private justDragged = false;
+
   // View state
   private currentDay: DayId | null = null;
-  private currentView: 'day' | 'week' = 'day';
+  private currentView: string = 'day';
   private selectedCourts: Set<CourtRef> = new Set();
   private currentPaintType: BlockType | 'DELETE' = 'BLOCKED';
   private isPaintMode = false;
@@ -209,13 +219,15 @@ export class TemporalGridControl {
 
     let windowEnd = windowConfig.end;
     let maxDate = windowConfig.max;
-    if (this.currentView === 'week') {
-      const weekEnd = new Date(windowConfig.start);
-      weekEnd.setDate(weekEnd.getDate() + 7);
+
+    const preset = VIEW_PRESETS[this.currentView];
+    if (preset && preset.days > 1) {
+      const multiDayEnd = new Date(windowConfig.start);
+      multiDayEnd.setDate(multiDayEnd.getDate() + preset.days);
       const dayEndParts = engineConfig.dayEndTime.split(':');
-      weekEnd.setHours(parseInt(dayEndParts[0]), parseInt(dayEndParts[1]), 0, 0);
-      windowEnd = weekEnd;
-      maxDate = weekEnd;
+      multiDayEnd.setHours(parseInt(dayEndParts[0]), parseInt(dayEndParts[1]), 0, 0);
+      windowEnd = multiDayEnd;
+      maxDate = multiDayEnd;
     }
 
     // Build initial data so the first layout already has correct content
@@ -259,6 +271,7 @@ export class TemporalGridControl {
       // - height: fixed pixel → stable offsetHeight reads, no redraw oscillation
       orientation: { axis: 'top', item: 'top' },
       stack: false,
+      groupHeightMode: 'fixed' as const,
       showCurrentTime: false,
       verticalScroll: false,
       horizontalScroll: true,
@@ -267,7 +280,7 @@ export class TemporalGridControl {
       autoResize: false,
 
       // Group ordering
-      groupOrder: 'content',
+      groupOrder: 'order',
 
       // Tooltip
       showTooltips: true,
@@ -284,11 +297,17 @@ export class TemporalGridControl {
         }
       },
 
+      // Time axis (from current view preset)
+      timeAxis: preset ? preset.timeAxis : { scale: 'hour', step: 1 },
+
       // Items always draggable (for block items that are editable)
       itemsAlwaysDraggable: {
         item: true,
         range: true
-      }
+      },
+
+      // Data attributes for DOM querying
+      dataAttributes: ['id'],
     });
 
     // Register click handler for block actions
@@ -325,9 +344,23 @@ export class TemporalGridControl {
   }
 
   /** Set view mode */
-  setView(view: 'day' | 'week'): void {
+  setView(view: string): void {
     this.currentView = view;
     this.updateTimelineWindow();
+  }
+
+  /** Set a named view preset (day/tournament/week) */
+  setViewPreset(viewKey: string): void {
+    const preset = VIEW_PRESETS[viewKey];
+    if (!preset || !this.timeline || !this.currentDay) return;
+
+    this.currentView = viewKey;
+    const engineConfig = this.engine.getConfig();
+    const windowStart = new Date(`${this.currentDay}T${engineConfig.dayStartTime}:00`);
+    const windowEnd = new Date(windowStart.getTime() + preset.days * 16 * 60 * 60 * 1000);
+
+    this.timeline.setWindow(windowStart, windowEnd, { animation: false });
+    this.timeline.setOptions({ timeAxis: preset.timeAxis });
   }
 
   /** Set paint mode and block type (or DELETE action) */
@@ -377,6 +410,8 @@ export class TemporalGridControl {
 
   /** Destroy the controller and cleanup */
   destroy(): void {
+    this.popoverManager.destroy();
+
     if (this.unsubscribe) {
       this.unsubscribe();
     }
@@ -404,13 +439,15 @@ export class TemporalGridControl {
 
     let windowEnd = windowConfig.end;
     let maxDate = windowConfig.max;
-    if (this.currentView === 'week') {
-      const weekEnd = new Date(windowConfig.start);
-      weekEnd.setDate(weekEnd.getDate() + 7);
+
+    const preset = VIEW_PRESETS[this.currentView];
+    if (preset && preset.days > 1) {
+      const multiDayEnd = new Date(windowConfig.start);
+      multiDayEnd.setDate(multiDayEnd.getDate() + preset.days);
       const dayEndParts = engineConfig.dayEndTime.split(':');
-      weekEnd.setHours(parseInt(dayEndParts[0]), parseInt(dayEndParts[1]), 0, 0);
-      windowEnd = weekEnd;
-      maxDate = weekEnd;
+      multiDayEnd.setHours(parseInt(dayEndParts[0]), parseInt(dayEndParts[1]), 0, 0);
+      windowEnd = multiDayEnd;
+      maxDate = multiDayEnd;
     }
 
     this.timeline.setOptions({
@@ -419,6 +456,10 @@ export class TemporalGridControl {
     });
 
     this.timeline.setWindow(windowConfig.start, windowEnd, { animation: false });
+
+    if (preset) {
+      this.timeline.setOptions({ timeAxis: preset.timeAxis });
+    }
   }
 
   // ============================================================================
@@ -458,18 +499,23 @@ export class TemporalGridControl {
   // ============================================================================
 
   /**
-   * onAdd: Replaces entire paint mode.
-   * Called when user drags to create a new item on the timeline.
+   * onAdd: Called when user double-clicks or drags to create a new item.
+   *
+   * In paint mode: applies block directly via engine.
+   * Otherwise: shows a temporary box item, then opens type-picker popover.
    */
   private handleOnAdd = (item: any, callback: (item: any) => void): void => {
-    // Always reject the native add — engine re-renders via subscription
-    callback(null);
-
     const groupId = String(item.group);
     const court = parseResourceId(groupId);
-    if (!court) return;
+    if (!court) {
+      callback(null);
+      return;
+    }
 
     if (this.isPaintMode) {
+      // Always reject the native add — engine re-renders via subscription
+      callback(null);
+
       if (this.currentPaintType === 'DELETE') return;
 
       // Get start/end as timestamps
@@ -509,8 +555,11 @@ export class TemporalGridControl {
         }
       });
     } else {
-      // Not in paint mode — open time picker for new block
-      this.openTimePickerForNewBlock(court, new Date(item.start));
+      // Show a temporary box item (with umbilical line); click will convert to range + popover
+      item.content = item.content || 'New Block';
+      item.style = 'background-color: #607D8B; border-color: #37474F; color: white;';
+      item.editable = { updateTime: true, updateGroup: true, remove: false };
+      callback(item);
     }
   };
 
@@ -519,10 +568,17 @@ export class TemporalGridControl {
    * Called when user finishes dragging or resizing an item.
    */
   private handleOnMove = (item: any, callback: (item: any) => void): void => {
-    // Only handle block items
+    this.justDragged = true;
+    setTimeout(() => (this.justDragged = false), 300);
+
+    // Only handle block items — temp box items pass through
     if (!item.isBlock) {
-      callback(null);
-      return;
+      const blockId = parseBlockEventId(String(item.id));
+      if (!blockId) {
+        // Temporary box item (not yet in engine) — let vis-timeline handle it
+        callback(item);
+        return;
+      }
     }
 
     const blockId = parseBlockEventId(String(item.id));
@@ -549,18 +605,20 @@ export class TemporalGridControl {
       callback(null);
       this.showConflictDialog(result.conflicts);
     } else {
-      // Accept — but engine will re-render anyway via subscription
-      callback(null);
+      callback(item);
+      this.render();
     }
   };
 
   /**
    * onMoving: Live validation during drag (optional visual feedback).
-   * Allows the move to proceed visually.
+   * Destroys active popover and allows the move to proceed visually.
    */
   private handleOnMoving = (item: any, callback: (item: any) => void): void => {
-    // Only allow moving block items (not segments or backgrounds)
-    if (!item.isBlock) {
+    this.popoverManager.destroy();
+
+    // Allow moving block items and temp box items, not segments or backgrounds
+    if (!item.isBlock && item.type !== 'box') {
       callback(null);
       return;
     }
@@ -569,37 +627,96 @@ export class TemporalGridControl {
   };
 
   /**
-   * Timeline click handler: Routes to edit dialog or delete based on mode.
+   * Timeline click handler: Routes to popover or delete based on mode.
+   * Supports box→range conversion for double-click-created items.
    */
   private handleTimelineClick = (properties: any): void => {
-    if (!properties.item) return;
+    if (this.justDragged) return;
+
+    if (!properties.item) {
+      this.popoverManager.destroy();
+      return;
+    }
 
     const itemId = String(properties.item);
+    const item = (this.timeline as any)?.itemsData?.get(properties.item) as any;
+    if (!item) {
+      this.popoverManager.destroy();
+      return;
+    }
 
-    // Look up item data from local map
-    const item = this.currentItems.get(itemId) as any;
-    if (!item) return;
+    // Skip segment/background items
+    if (item.isSegment || item.type === 'background') {
+      this.popoverManager.destroy();
+      return;
+    }
 
-    // Only handle block items
-    if (!item.isBlock) return;
-
-    const blockId = parseBlockEventId(itemId);
-    if (!blockId) return;
+    // Toggle: clicking the same block that has an open popover closes it
+    if (this.popoverManager.isActiveFor(itemId)) {
+      this.popoverManager.destroy();
+      return;
+    }
 
     // If in paint mode with DELETE selected, delete the block immediately
     if (this.isPaintMode && this.currentPaintType === 'DELETE') {
-      this.deleteBlock(blockId);
+      const blockId = parseBlockEventId(itemId);
+      if (blockId) this.deleteBlock(blockId);
       return;
     }
 
-    // If NOT in paint mode, show dialog with Edit/Delete options
-    if (!this.isPaintMode) {
-      this.showBlockActionDialog(blockId);
+    // Box/point item (from double-click) → convert to range via engine
+    if (item.type !== 'range' && !item.isBlock) {
+      const courtRef = parseResourceId(String(item.group));
+      if (!courtRef) return;
+      const start = this.toLocalISO(new Date(item.start));
+      const endTime = new Date(new Date(item.start).getTime() + 60 * 60 * 1000);
+      const result = this.engine.applyBlock({
+        courts: [courtRef],
+        timeRange: { start, end: this.toLocalISO(endTime) },
+        type: 'BLOCKED',
+        reason: 'New Block',
+      });
+      this.render();
+
+      // Show popover on the newly created engine block
+      if (result.applied.length > 0) {
+        const newBlockId = result.applied[0].block.id;
+        const newItemId = `block-${newBlockId}`;
+        const day = this.currentDay || start.slice(0, 10);
+        setTimeout(() => {
+          const el = this.config.container.querySelector(`.vis-item[data-id="${newItemId}"]`);
+          if (el) {
+            this.popoverManager.showForEngineBlock(el as HTMLElement, {
+              itemId: newItemId,
+              blockId: newBlockId,
+              engine: this.engine,
+              day,
+              onBlockChanged: () => this.render(),
+            });
+          }
+        }, 50);
+      }
       return;
     }
 
-    // In paint mode but not DELETE — open time picker for block fine-tuning
-    this.openTimePickerForBlock(blockId);
+    // Range / block item → show popover
+    const blockId = parseBlockEventId(itemId);
+    if (!blockId) return;
+
+    const itemEl =
+      (properties.event?.target as Element)?.closest?.('.vis-item') ??
+      this.config.container.querySelector(`.vis-item[data-id="${itemId}"]`);
+
+    if (itemEl) {
+      const day = this.currentDay || '';
+      this.popoverManager.showForEngineBlock(itemEl as HTMLElement, {
+        itemId,
+        blockId,
+        engine: this.engine,
+        day,
+        onBlockChanged: () => this.render(),
+      });
+    }
 
     if (this.config.onBlockSelected) {
       this.config.onBlockSelected(blockId);
@@ -610,184 +727,6 @@ export class TemporalGridControl {
   // Block Operations
   // ============================================================================
 
-  /** Open time picker to fine-tune a block's times */
-  private openTimePickerForBlock(blockId: string): void {
-    const engineConfig = this.engine.getConfig();
-    const blocks = this.engine.getDayBlocks(this.currentDay);
-    const block = blocks.find((b) => b.id === blockId);
-    if (!block) return;
-
-    showModernTimePicker({
-      startTime: block.start,
-      endTime: block.end,
-      dayStartTime: engineConfig.dayStartTime,
-      dayEndTime: engineConfig.dayEndTime,
-      minuteIncrement: 5,
-      onConfirm: (startTime: string, endTime: string) => {
-        const currentDay = this.currentDay || tools.dateTime.extractDate(new Date().toISOString());
-        const startISO = `${currentDay}T${startTime}:00`;
-        const endISO = `${currentDay}T${endTime}:00`;
-
-        const result = this.engine.resizeBlock({
-          blockId,
-          newTimeRange: { start: startISO, end: endISO }
-        });
-
-        if (result.conflicts.some((c) => c.severity === 'ERROR')) {
-          this.showConflictDialog(result.conflicts);
-        }
-      },
-      onCancel: () => {}
-    });
-  }
-
-  /**
-   * Open time picker to create a new block with user-defined times.
-   *
-   * Smart end time logic:
-   * 1. Get the rail timeline for this court
-   * 2. Find the next segment boundary after clicked time
-   * 3. Use that boundary as end time, OR start + 3 hours, whichever is sooner
-   * 4. Never exceed day end time
-   */
-  private openTimePickerForNewBlock(court: CourtRef, clickedTime?: Date): void {
-    const engineConfig = this.engine.getConfig();
-    const currentDay = this.currentDay || tools.dateTime.extractDate(new Date().toISOString());
-
-    let startDate: Date = clickedTime || new Date();
-
-    // Get the timeline for this court to see segments
-    const timelines = this.engine.getDayTimeline(this.currentDay);
-    const courtTimeline = timelines
-      .flatMap((f) => f.rails)
-      .find(
-        (r) =>
-          r.court.tournamentId === court.tournamentId &&
-          r.court.facilityId === court.facilityId &&
-          r.court.courtId === court.courtId
-      );
-
-    // Find the next segment boundary after the clicked time
-    const startTime = startDate.getTime();
-    let nextBoundary: Date | null = null;
-
-    if (courtTimeline) {
-      for (const segment of courtTimeline.segments) {
-        const segmentStartStr = segment.start.endsWith('Z') ? segment.start : segment.start + 'Z';
-        const segmentEndStr = segment.end.endsWith('Z') ? segment.end : segment.end + 'Z';
-        const segmentStart = new Date(segmentStartStr).getTime();
-        const segmentEnd = new Date(segmentEndStr).getTime();
-
-        if (startTime >= segmentStart && startTime < segmentEnd) {
-          nextBoundary = new Date(segmentEnd);
-          break;
-        }
-
-        if (segmentStart > startTime) {
-          nextBoundary = new Date(segmentStart);
-          break;
-        }
-      }
-    }
-
-    // Check for existing blocks on this court
-    const existingBlocks = this.engine.getDayBlocks(this.currentDay);
-    const blocksOnThisCourt = existingBlocks.filter(
-      (b) =>
-        b.court.tournamentId === court.tournamentId &&
-        b.court.facilityId === court.facilityId &&
-        b.court.courtId === court.courtId
-    );
-
-    const relevantBlocks = blocksOnThisCourt.filter((b) => {
-      const blockStartStr = b.start.endsWith('Z') ? b.start : b.start + 'Z';
-      const blockEndStr = b.end.endsWith('Z') ? b.end : b.end + 'Z';
-      const blockStart = new Date(blockStartStr).getTime();
-      const blockEnd = new Date(blockEndStr).getTime();
-      return blockStart > startTime || blockEnd > startTime;
-    });
-
-    let nextBlockStart: number | undefined;
-    try {
-      nextBlockStart = relevantBlocks
-        .map((b) => new Date(b.start.endsWith('Z') ? b.start : b.start + 'Z').getTime())
-        .filter((bs) => bs > startTime)
-        .sort((a, b) => a - b)[0];
-    } catch {
-      nextBlockStart = undefined;
-    }
-
-    // Calculate end time
-    const maxDurationHours = 5;
-    const maxEndTime = startTime + maxDurationHours * 60 * 60 * 1000;
-
-    const boundaries = [
-      nextBoundary ? nextBoundary.getTime() : Infinity,
-      nextBlockStart || Infinity,
-      maxEndTime
-    ].filter((t) => t !== Infinity);
-
-    let endDate = new Date(Math.min(...boundaries));
-
-    // Snap
-    startDate = this.snapToMinutes(startDate, 5);
-    endDate = this.snapToMinutes(endDate, 5);
-
-    // Ensure end time doesn't exceed day end
-    const dayEndParts = engineConfig.dayEndTime.split(':');
-    const dayEndTime = new Date(`${currentDay}T${dayEndParts[0]}:${dayEndParts[1]}:00Z`).getTime();
-    if (endDate.getTime() > dayEndTime) {
-      endDate = new Date(dayEndTime);
-    }
-
-    const maxDurationMinutes = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60));
-    if (maxDurationMinutes <= 0) return;
-
-    showModernTimePicker({
-      startTime: startDate.toISOString(),
-      endTime: endDate.toISOString(),
-      dayStartTime: engineConfig.dayStartTime,
-      dayEndTime: engineConfig.dayEndTime,
-      minuteIncrement: 5,
-      maxDuration: maxDurationMinutes,
-      onConfirm: (startTimeStr: string, endTimeStr: string) => {
-        let startISO = `${currentDay}T${startTimeStr}:00`;
-        let endISO = `${currentDay}T${endTimeStr}:00`;
-
-        // Apply collision-aware clamping
-        const startTimestamp = new Date(startISO + 'Z').getTime();
-        const endTimestamp = new Date(endISO + 'Z').getTime();
-
-        const currentBlocks = this.engine.getDayBlocks(currentDay);
-        const blocksOnCourt = currentBlocks.filter(
-          (b) =>
-            b.court.tournamentId === court.tournamentId &&
-            b.court.facilityId === court.facilityId &&
-            b.court.courtId === court.courtId
-        );
-
-        sortBlocksByStart(blocksOnCourt);
-        const clamped = clampDragToCollisions(startTimestamp, endTimestamp, blocksOnCourt);
-
-        const clampedStartDate = new Date(clamped.start);
-        const clampedEndDate = new Date(clamped.end);
-
-        startISO = clampedStartDate.toISOString().slice(0, 19);
-        endISO = clampedEndDate.toISOString().slice(0, 19);
-
-        if (clampedEndDate.getTime() <= clampedStartDate.getTime()) return;
-        if (this.currentPaintType === 'DELETE') return;
-
-        this.engine.applyBlock({
-          type: this.currentPaintType,
-          courts: [court],
-          timeRange: { start: startISO, end: endISO }
-        });
-      },
-      onCancel: () => {}
-    });
-  }
-
   /** Delete a block */
   private deleteBlock(blockId: string): void {
     const result = this.engine.removeBlock(blockId);
@@ -796,82 +735,9 @@ export class TemporalGridControl {
     }
   }
 
-  /**
-   * Show block action dialog (Edit/Delete/Cancel).
-   * Shown when clicking a block while NOT in paint mode.
-   */
-  private showBlockActionDialog(blockId: string): void {
-    const blocks = this.engine.getDayBlocks(this.currentDay);
-    const block = blocks.find((b) => b.id === blockId);
-    if (!block) return;
-
-    const overlay = document.createElement('div');
-    overlay.className = 'block-action-dialog-overlay';
-    overlay.style.cssText = `
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 10000;
-    `;
-
-    const dialog = document.createElement('div');
-    dialog.className = 'block-action-dialog';
-    dialog.style.cssText = `
-      background: white; border-radius: 8px; padding: 24px;
-      min-width: 300px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    `;
-
-    const blockStartTime = tools.dateTime.extractTime(block.start);
-    const blockEndTime = tools.dateTime.extractTime(block.end);
-
-    dialog.innerHTML = `
-      <h3 style="margin: 0 0 16px 0; font-size: 18px;">${block.type}</h3>
-      <div style="margin-bottom: 16px; color: #666;">
-        <div>${blockStartTime} - ${blockEndTime}</div>
-        <div style="font-size: 14px; margin-top: 4px;">Court: ${block.court.courtId}</div>
-      </div>
-      <div style="display: flex; gap: 8px; justify-content: flex-end;">
-        <button class="btn-edit" style="padding: 8px 16px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">Edit Time</button>
-        <button class="btn-delete" style="padding: 8px 16px; border: 1px solid #d32f2f; background: #d32f2f; color: white; border-radius: 4px; cursor: pointer;">Delete</button>
-        <button class="btn-cancel" style="padding: 8px 16px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">Cancel</button>
-      </div>
-    `;
-
-    overlay.appendChild(dialog);
-    document.body.appendChild(overlay);
-
-    dialog.querySelector('.btn-edit')?.addEventListener('click', () => {
-      overlay.remove();
-      this.openTimePickerForBlock(blockId);
-    });
-
-    dialog.querySelector('.btn-delete')?.addEventListener('click', () => {
-      overlay.remove();
-      this.deleteBlock(blockId);
-    });
-
-    dialog.querySelector('.btn-cancel')?.addEventListener('click', () => {
-      overlay.remove();
-    });
-
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) overlay.remove();
-    });
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        e.preventDefault();
-        overlay.remove();
-        this.deleteBlock(blockId);
-        document.removeEventListener('keydown', handleKeyDown);
-      } else if (e.key === 'Escape') {
-        overlay.remove();
-        document.removeEventListener('keydown', handleKeyDown);
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
+  /** Get the popover manager (for external access) */
+  getPopoverManager(): BlockPopoverManager {
+    return this.popoverManager;
   }
 
   // ============================================================================
@@ -883,6 +749,9 @@ export class TemporalGridControl {
       case 'STATE_CHANGED':
       case 'BLOCKS_CHANGED':
         this.render();
+        if (event.type === 'BLOCKS_CHANGED' && this.config.onBlocksChanged) {
+          this.config.onBlocksChanged();
+        }
         break;
 
       case 'VIEW_CHANGED':
