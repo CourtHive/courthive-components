@@ -40,7 +40,7 @@ importers:
         version: 8.0.0
       timepicker-ui:
         specifier: ^4.1.2
-        version: 4.1.2
+        version: 4.1.6
       tippy.js:
         specifier: 6.3.7
         version: 6.3.7
@@ -4011,8 +4011,8 @@ packages:
     resolution: {integrity: sha512-cAGWPIyOHU6zlmg88jwm7VRyXnMN7iV68OGAbYDk/Mh/xC/pzVPlQtY6ngoIH/5/tciuhGfvESU8GrHrcxD56w==}
     engines: {node: '>=8'}
 
-  timepicker-ui@4.1.2:
-    resolution: {integrity: sha512-29JLX0l4OOQwplY2oE0wGdX0CDFvHr2WJ16YLv2YC18Lw6fDPSNhiDKlHG9JrQmpR6Hlf9YeOMjY/jllwpnUDg==}
+  timepicker-ui@4.1.6:
+    resolution: {integrity: sha512-d03EUof/5atNY6Hq7SvaJEh/mhs/D2UYMqT2bK1BmqN9j94DWxubZjUMRRkWusP9NE0U3n3fIb4bU2/IN7nvdg==}
 
   tiny-invariant@1.3.3:
     resolution: {integrity: sha512-+FbBPE1o9QAYvviau/qC5SE3caw21q3xkvWKBtja5vgqOWIHHJ3ioaq1VPfn/Szqctz2bU/oYeKd9/z5BL+PVg==}
@@ -8590,7 +8590,7 @@ snapshots:
       glob: 7.2.3
       minimatch: 3.1.2
 
-  timepicker-ui@4.1.2: {}
+  timepicker-ui@4.1.6: {}
 
   tiny-invariant@1.3.3: {}
 
