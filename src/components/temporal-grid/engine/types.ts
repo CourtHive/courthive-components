@@ -274,7 +274,8 @@ export type EngineEventType =
   | 'STATE_CHANGED'
   | 'BLOCKS_CHANGED'
   | 'CONFLICTS_CHANGED'
-  | 'VIEW_CHANGED';
+  | 'VIEW_CHANGED'
+  | 'AVAILABILITY_CHANGED';
 
 export interface EngineEvent {
   type: EngineEventType;
@@ -342,6 +343,15 @@ export interface ApplyTemplateOptions {
     courts?: CourtRef[];
     days?: DayId[];
   };
+}
+
+// ============================================================================
+// Court Availability
+// ============================================================================
+
+export interface CourtDayAvailability {
+  startTime: string; // 'HH:MM'
+  endTime: string;   // 'HH:MM'
 }
 
 // ============================================================================

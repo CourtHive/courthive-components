@@ -210,9 +210,10 @@ export class TemporalGridControl {
     const engineConfig = this.engine.getConfig();
     const currentDay = this.currentDay || tools.dateTime.extractDate(new Date().toISOString());
 
+    const timeRange = this.engine.getVisibleTimeRange(currentDay);
     const windowConfig = buildTimelineWindowConfig({
-      dayStartTime: engineConfig.dayStartTime,
-      dayEndTime: engineConfig.dayEndTime,
+      dayStartTime: timeRange.startTime,
+      dayEndTime: timeRange.endTime,
       slotMinutes: engineConfig.slotMinutes,
       day: currentDay
     });
@@ -430,9 +431,10 @@ export class TemporalGridControl {
     if (!this.timeline || !this.currentDay) return;
 
     const engineConfig = this.engine.getConfig();
+    const timeRange = this.engine.getVisibleTimeRange(this.currentDay);
     const windowConfig = buildTimelineWindowConfig({
-      dayStartTime: engineConfig.dayStartTime,
-      dayEndTime: engineConfig.dayEndTime,
+      dayStartTime: timeRange.startTime,
+      dayEndTime: timeRange.endTime,
       slotMinutes: engineConfig.slotMinutes,
       day: this.currentDay
     });
@@ -612,7 +614,7 @@ export class TemporalGridControl {
 
   /**
    * onMoving: Live validation during drag (optional visual feedback).
-   * Destroys active popover and allows the move to proceed visually.
+   * Destroys active popover, clamps to court availability, and allows the move.
    */
   private handleOnMoving = (item: any, callback: (item: any) => void): void => {
     this.popoverManager.destroy();
@@ -622,7 +624,19 @@ export class TemporalGridControl {
       callback(null);
       return;
     }
-    // Allow the move to proceed visually
+
+    // Clamp to court availability window
+    if (item.group && this.currentDay) {
+      const courtRef = parseResourceId(String(item.group));
+      if (courtRef) {
+        const avail = this.engine.getCourtAvailability(courtRef, this.currentDay);
+        const availStart = new Date(`${this.currentDay}T${avail.startTime}:00`);
+        const availEnd = new Date(`${this.currentDay}T${avail.endTime}:00`);
+        if (new Date(item.start) < availStart) item.start = availStart;
+        if (new Date(item.end) > availEnd) item.end = availEnd;
+      }
+    }
+
     callback(item);
   };
 
@@ -764,6 +778,11 @@ export class TemporalGridControl {
         if (this.config.showConflicts) {
           this.render();
         }
+        break;
+
+      case 'AVAILABILITY_CHANGED':
+        this.updateTimelineWindow();
+        this.render();
         break;
     }
   };

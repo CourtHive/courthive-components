@@ -149,6 +149,11 @@ export {
   type ViewPreset,
 } from './ui/viewToolbar';
 
+export {
+  showCourtAvailabilityModal,
+  type CourtAvailabilityModalConfig,
+} from './ui/courtAvailabilityModal';
+
 // ============================================================================
 // Styles
 // ============================================================================

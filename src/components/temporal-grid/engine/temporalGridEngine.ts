@@ -19,6 +19,7 @@ import type {
   BlockMutation,
   BlockType,
   CapacityCurve,
+  CourtDayAvailability,
   CourtMeta,
   CourtRef,
   CourtRail,
@@ -41,8 +42,8 @@ import type {
 import { tools } from 'tods-competition-factory';
 
 import {
-  buildDayRange,
   courtDayKey,
+  courtKey,
   deriveRailSegments,
   extractDay,
 } from './railDerivation';
@@ -60,6 +61,10 @@ export class TemporalGridEngine {
   // Core state: blocks indexed by ID and by court+day
   private blocksById: Map<BlockId, Block> = new Map();
   private blocksByCourtDay: Map<string, BlockId[]> = new Map();
+
+  // Per-court-per-day availability
+  // Key: courtKey(courtRef)|day, or courtKey(courtRef)|DEFAULT, or GLOBAL|DEFAULT
+  private courtDayAvailability: Map<string, CourtDayAvailability> = new Map();
 
   // Templates and rules
   private templates: Map<TemplateId, Template> = new Map();
@@ -191,6 +196,118 @@ export class TemporalGridEngine {
   }
 
   // ============================================================================
+  // Court Availability
+  // ============================================================================
+
+  /**
+   * Get availability for a court on a specific day.
+   * Lookup order: courtKey|day → courtKey|DEFAULT → GLOBAL|DEFAULT → engine config
+   */
+  getCourtAvailability(court: CourtRef, day: DayId): CourtDayAvailability {
+    const ck = courtKey(court);
+    // 1. Specific court+day
+    const dayKey = `${ck}|${day}`;
+    const dayAvail = this.courtDayAvailability.get(dayKey);
+    if (dayAvail) return dayAvail;
+
+    // 2. Court default (all days)
+    const defaultKey = `${ck}|DEFAULT`;
+    const defaultAvail = this.courtDayAvailability.get(defaultKey);
+    if (defaultAvail) return defaultAvail;
+
+    // 3. Global default
+    const globalAvail = this.courtDayAvailability.get('GLOBAL|DEFAULT');
+    if (globalAvail) return globalAvail;
+
+    // 4. Engine config fallback
+    return {
+      startTime: this.config.dayStartTime,
+      endTime: this.config.dayEndTime,
+    };
+  }
+
+  /**
+   * Set availability for a specific court on a specific day
+   */
+  setCourtAvailability(court: CourtRef, day: DayId, avail: CourtDayAvailability): void {
+    const ck = courtKey(court);
+    this.courtDayAvailability.set(`${ck}|${day}`, avail);
+    this.emit({
+      type: 'AVAILABILITY_CHANGED',
+      payload: { court, day, avail },
+    });
+  }
+
+  /**
+   * Set default availability for a court across all days
+   */
+  setCourtAvailabilityAllDays(court: CourtRef, avail: CourtDayAvailability): void {
+    const ck = courtKey(court);
+    this.courtDayAvailability.set(`${ck}|DEFAULT`, avail);
+    this.emit({
+      type: 'AVAILABILITY_CHANGED',
+      payload: { court, scope: 'all-days', avail },
+    });
+  }
+
+  /**
+   * Set global default availability for all courts
+   */
+  setAllCourtsDefaultAvailability(avail: CourtDayAvailability): void {
+    this.courtDayAvailability.set('GLOBAL|DEFAULT', avail);
+    this.emit({
+      type: 'AVAILABILITY_CHANGED',
+      payload: { scope: 'global', avail },
+    });
+  }
+
+  /**
+   * Get the visible time range across courts for a day.
+   * Returns the earliest start and latest end among the given courts (or all courts).
+   */
+  getVisibleTimeRange(day: DayId, courtRefs?: CourtRef[]): { startTime: string; endTime: string } {
+    const courts = courtRefs && courtRefs.length > 0
+      ? courtRefs
+      : this.getAllCourtsFromTournamentRecord();
+
+    let earliestStart = '23:59';
+    let latestEnd = '00:00';
+
+    for (const court of courts) {
+      const avail = this.getCourtAvailability(court, day);
+      if (avail.startTime < earliestStart) earliestStart = avail.startTime;
+      if (avail.endTime > latestEnd) latestEnd = avail.endTime;
+    }
+
+    // Fallback if no courts
+    if (courts.length === 0) {
+      return { startTime: this.config.dayStartTime, endTime: this.config.dayEndTime };
+    }
+
+    return { startTime: earliestStart, endTime: latestEnd };
+  }
+
+  /**
+   * Get array of tournament days from startDate to endDate
+   */
+  getTournamentDays(): DayId[] {
+    if (!this.tournamentRecord?.startDate) return [];
+    const startDate = this.tournamentRecord.startDate;
+    const endDate = this.tournamentRecord.endDate || startDate;
+
+    const days: DayId[] = [];
+    const current = new Date(startDate);
+    const end = new Date(endDate);
+
+    while (current <= end) {
+      days.push(current.toISOString().slice(0, 10));
+      current.setDate(current.getDate() + 1);
+    }
+
+    return days;
+  }
+
+  // ============================================================================
   // Queries - Generate Timelines
   // ============================================================================
 
@@ -239,10 +356,15 @@ export class TemporalGridEngine {
   }
 
   /**
-   * Get rail for a specific court on a specific day
+   * Get rail for a specific court on a specific day.
+   * Uses court-specific availability range instead of global config.
    */
   getCourtRail(day: DayId, court: CourtRef): CourtRail | null {
-    const dayRange = buildDayRange(day, this.config);
+    const avail = this.getCourtAvailability(court, day);
+    const dayRange = {
+      start: `${day}T${avail.startTime}:00`,
+      end: `${day}T${avail.endTime}:00`,
+    };
     const key = courtDayKey(court, day);
     const blockIds = this.blocksByCourtDay.get(key) || [];
     const blocks = blockIds.map((id) => this.blocksById.get(id)!).filter(Boolean);
@@ -312,18 +434,23 @@ export class TemporalGridEngine {
   // ============================================================================
 
   /**
-   * Apply a block (or multiple blocks) to courts
+   * Apply a block (or multiple blocks) to courts.
+   * Clamps to court availability window.
    */
   applyBlock(opts: ApplyBlockOptions): MutationResult {
     const mutations: BlockMutation[] = [];
 
     for (const court of opts.courts) {
+      const day = extractDay(opts.timeRange.start);
+      const clamped = this.clampToAvailability(court, day, opts.timeRange.start, opts.timeRange.end);
+      if (!clamped) continue; // No valid range after clamping
+
       const blockId = this.generateBlockId();
       const block: Block = {
         id: blockId,
         court,
-        start: opts.timeRange.start,
-        end: opts.timeRange.end,
+        start: clamped.start,
+        end: clamped.end,
         type: opts.type,
         reason: opts.reason,
         hardSoft: opts.hardSoft,
@@ -340,7 +467,8 @@ export class TemporalGridEngine {
   }
 
   /**
-   * Move a block to a new time or court
+   * Move a block to a new time or court.
+   * Clamps to target court's availability window.
    */
   moveBlock(opts: MoveBlockOptions): MutationResult {
     const block = this.blocksById.get(opts.blockId);
@@ -358,11 +486,23 @@ export class TemporalGridEngine {
       };
     }
 
+    const targetCourt = opts.newCourt || block.court;
+    const day = extractDay(opts.newTimeRange.start);
+    const clamped = this.clampToAvailability(targetCourt, day, opts.newTimeRange.start, opts.newTimeRange.end);
+    if (!clamped) {
+      return {
+        applied: [],
+        rejected: [],
+        warnings: [{ code: 'OUTSIDE_AVAILABILITY', message: 'Block falls outside court availability' }],
+        conflicts: [],
+      };
+    }
+
     const updated: Block = {
       ...block,
-      start: opts.newTimeRange.start,
-      end: opts.newTimeRange.end,
-      court: opts.newCourt || block.court,
+      start: clamped.start,
+      end: clamped.end,
+      court: targetCourt,
     };
 
     return this.applyMutations([
@@ -375,7 +515,8 @@ export class TemporalGridEngine {
   }
 
   /**
-   * Resize a block's time range
+   * Resize a block's time range.
+   * Clamps to court availability window.
    */
   resizeBlock(opts: ResizeBlockOptions): MutationResult {
     const block = this.blocksById.get(opts.blockId);
@@ -393,10 +534,21 @@ export class TemporalGridEngine {
       };
     }
 
+    const day = extractDay(opts.newTimeRange.start);
+    const clamped = this.clampToAvailability(block.court, day, opts.newTimeRange.start, opts.newTimeRange.end);
+    if (!clamped) {
+      return {
+        applied: [],
+        rejected: [],
+        warnings: [{ code: 'OUTSIDE_AVAILABILITY', message: 'Block falls outside court availability' }],
+        conflicts: [],
+      };
+    }
+
     const updated: Block = {
       ...block,
-      start: opts.newTimeRange.start,
-      end: opts.newTimeRange.end,
+      start: clamped.start,
+      end: clamped.end,
     };
 
     return this.applyMutations([
@@ -687,6 +839,7 @@ export class TemporalGridEngine {
     snapshot.tournamentRecord = this.tournamentRecord;
     snapshot.blocksById = new Map(this.blocksById);
     snapshot.blocksByCourtDay = new Map(this.blocksByCourtDay);
+    snapshot.courtDayAvailability = new Map(this.courtDayAvailability);
     snapshot.templates = new Map(this.templates);
     snapshot.rules = new Map(this.rules);
     snapshot.selectedDay = this.selectedDay;
@@ -718,6 +871,7 @@ export class TemporalGridEngine {
   private loadBlocksFromTournamentRecord(): void {
     this.blocksById.clear();
     this.blocksByCourtDay.clear();
+    this.courtDayAvailability.clear();
 
     if (!this.tournamentRecord?.venues) return;
 
@@ -732,8 +886,18 @@ export class TemporalGridEngine {
         };
 
         for (const avail of court.dateAvailability) {
-          if (!avail.bookings?.length) continue;
           const day = avail.date || this.tournamentRecord.startDate;
+
+          // Read startTime/endTime from dateAvailability for court availability
+          if (avail.startTime && avail.endTime) {
+            const ck = courtKey(courtRef);
+            this.courtDayAvailability.set(`${ck}|${day}`, {
+              startTime: avail.startTime,
+              endTime: avail.endTime,
+            });
+          }
+
+          if (!avail.bookings?.length) continue;
 
           for (const booking of avail.bookings) {
             if (!booking.startTime || !booking.endTime) continue;
@@ -818,6 +982,24 @@ export class TemporalGridEngine {
   // ============================================================================
 
   /**
+   * Clamp a time range to a court's availability window.
+   * Returns null if no valid range remains after clamping.
+   */
+  private clampToAvailability(
+    court: CourtRef, day: DayId, start: string, end: string
+  ): { start: string; end: string } | null {
+    const avail = this.getCourtAvailability(court, day);
+    const availStart = `${day}T${avail.startTime}:00`;
+    const availEnd = `${day}T${avail.endTime}:00`;
+
+    const clampedStart = start < availStart ? availStart : start;
+    const clampedEnd = end > availEnd ? availEnd : end;
+
+    if (clampedStart >= clampedEnd) return null;
+    return { start: clampedStart, end: clampedEnd };
+  }
+
+  /**
    * Get metadata for all courts
    */
   listCourtMeta(): CourtMeta[] {
@@ -829,7 +1011,33 @@ export class TemporalGridEngine {
    * Get metadata for a specific court
    */
   private getCourtMeta(ref: CourtRef): CourtMeta {
-    // TODO: Extract from TODS when bridge is ready
+    // Extract from tournament record
+    if (this.tournamentRecord?.venues) {
+      for (const venue of this.tournamentRecord.venues) {
+        const facilityId = venue.venueId || venue.venueName;
+        if (facilityId !== ref.facilityId) continue;
+        for (const court of venue.courts || []) {
+          const cId = court.courtId || court.courtName;
+          if (cId !== ref.courtId) continue;
+
+          // Get availability times
+          const day = this.selectedDay || this.getFirstAvailableDay();
+          const avail = day ? this.getCourtAvailability(ref, day) : undefined;
+
+          return {
+            ref,
+            name: court.courtName || court.courtId,
+            surface: court.surfaceCategory || court.surfaceType || 'hard',
+            indoor: court.indoorOutdoor === 'INDOOR' || court.indoor || false,
+            hasLights: court.hasLights || false,
+            tags: [],
+            openTime: avail?.startTime,
+            closeTime: avail?.endTime,
+          };
+        }
+      }
+    }
+
     return {
       ref,
       name: ref.courtId,

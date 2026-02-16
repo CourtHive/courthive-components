@@ -15,14 +15,15 @@ import {
   buildBlockEvents,
   buildTimelineWindowConfig,
   parseResourceId,
-  parseBlockEventId,
+  parseBlockEventId
 } from '../../components/temporal-grid/controller/viewProjections';
 import { createBlockPopoverManager } from '../../components/temporal-grid/ui/blockPopover';
 import { buildStatsBar } from '../../components/temporal-grid/ui/statsBar';
 import { buildViewToolbar, VIEW_PRESETS } from '../../components/temporal-grid/ui/viewToolbar';
+import { showCourtAvailabilityModal } from '../../components/temporal-grid/ui/courtAvailabilityModal';
 
 export default {
-  title: 'Temporal Grid/Vis Timeline Basic',
+  title: 'Temporal Grid/Vis Timeline Basic'
 };
 
 // ── Facility / Court data ─────────────────────────────────────────────────────
@@ -41,8 +42,8 @@ const FACILITIES: Facility[] = [
     color: 'rgba(33, 141, 141, 0.06)',
     courts: Array.from({ length: 8 }, (_, i) => ({
       id: `court-${i + 1}`,
-      name: `Court ${i + 1}`,
-    })),
+      name: `Court ${i + 1}`
+    }))
   },
   {
     id: 'fac-practice',
@@ -50,8 +51,8 @@ const FACILITIES: Facility[] = [
     color: 'rgba(33, 96, 200, 0.06)',
     courts: Array.from({ length: 8 }, (_, i) => ({
       id: `court-${i + 9}`,
-      name: `Court ${i + 9}`,
-    })),
+      name: `Court ${i + 9}`
+    }))
   },
   {
     id: 'fac-outdoor',
@@ -59,9 +60,9 @@ const FACILITIES: Facility[] = [
     color: 'rgba(156, 39, 176, 0.06)',
     courts: Array.from({ length: 8 }, (_, i) => ({
       id: `court-${i + 17}`,
-      name: `Court ${i + 17}`,
-    })),
-  },
+      name: `Court ${i + 17}`
+    }))
+  }
 ];
 
 // Map court id → facility for quick lookup
@@ -81,9 +82,9 @@ const weekEnd = new Date('2026-06-21T22:00:00');
 // Block type definitions (Baseline story only — no engine)
 const BLOCK_TYPES: Record<string, { label: string; bg: string; border: string }> = {
   maintenance: { label: 'Maintenance', bg: '#FF9800', border: '#E65100' },
-  practice:    { label: 'Practice',    bg: '#2196F3', border: '#0D47A1' },
-  reserved:    { label: 'Reserved',    bg: '#9C27B0', border: '#4A148C' },
-  blocked:     { label: 'Blocked',     bg: '#757575', border: '#424242' },
+  practice: { label: 'Practice', bg: '#2196F3', border: '#0D47A1' },
+  reserved: { label: 'Reserved', bg: '#9C27B0', border: '#4A148C' },
+  blocked: { label: 'Blocked', bg: '#757575', border: '#424242' }
 };
 
 function blockStyle(type: string): string {
@@ -102,7 +103,7 @@ function makeGroups(courtIds: Set<string>) {
         id: court.id,
         content: court.name,
         order: order++,
-        style: `background: ${fac.color};`,
+        style: `background: ${fac.color};`
       });
     }
   }
@@ -112,22 +113,20 @@ function makeGroups(courtIds: Set<string>) {
 
 function makeItems(courtIds: Set<string>) {
   // Background segments per court with facility-specific tint
-  const bgItems = ALL_COURTS
-    .filter((c) => courtIds.has(c.id))
-    .map((c) => {
-      const fac = COURT_FACILITY.get(c.id);
-      return {
-        id: `avail-${c.id}`,
-        group: c.id,
-        content: '',
-        start: dayStart,
-        end: dayEnd,
-        type: 'background' as const,
-        style: `background-color: ${fac?.color || 'rgba(76, 175, 80, 0.06)'};`,
-        editable: false,
-        selectable: false,
-      };
-    });
+  const bgItems = ALL_COURTS.filter((c) => courtIds.has(c.id)).map((c) => {
+    const fac = COURT_FACILITY.get(c.id);
+    return {
+      id: `avail-${c.id}`,
+      group: c.id,
+      content: '',
+      start: dayStart,
+      end: dayEnd,
+      type: 'background' as const,
+      style: `background-color: ${fac?.color || 'rgba(76, 175, 80, 0.06)'};`,
+      editable: false,
+      selectable: false
+    };
+  });
 
   const blocks = [
     {
@@ -138,7 +137,7 @@ function makeItems(courtIds: Set<string>) {
       end: new Date('2026-06-15T10:00:00'),
       type: 'range' as const,
       style: blockStyle('maintenance'),
-      editable: { updateTime: true, updateGroup: true, remove: false },
+      editable: { updateTime: true, updateGroup: true, remove: false }
     },
     {
       id: 'block-2',
@@ -148,7 +147,7 @@ function makeItems(courtIds: Set<string>) {
       end: new Date('2026-06-15T16:00:00'),
       type: 'range' as const,
       style: blockStyle('practice'),
-      editable: { updateTime: true, updateGroup: true, remove: false },
+      editable: { updateTime: true, updateGroup: true, remove: false }
     },
     {
       id: 'block-3',
@@ -158,8 +157,8 @@ function makeItems(courtIds: Set<string>) {
       end: new Date('2026-06-15T13:00:00'),
       type: 'range' as const,
       style: blockStyle('reserved'),
-      editable: { updateTime: true, updateGroup: true, remove: false },
-    },
+      editable: { updateTime: true, updateGroup: true, remove: false }
+    }
   ].filter((b) => courtIds.has(b.group));
 
   return [...bgItems, ...blocks];
@@ -167,10 +166,7 @@ function makeItems(courtIds: Set<string>) {
 
 // ── Facility tree panel ───────────────────────────────────────────────────────
 
-function buildFacilityTree(
-  visibleCourts: Set<string>,
-  onChange: () => void,
-): HTMLElement {
+function buildFacilityTree(visibleCourts: Set<string>, onChange: () => void): HTMLElement {
   const panel = document.createElement('div');
   panel.style.cssText = `
     width: 220px; flex-shrink: 0; border-right: 1px solid #e0e0e0;
@@ -194,8 +190,7 @@ function buildFacilityTree(
     const facCb = document.createElement('input');
     facCb.type = 'checkbox';
     facCb.checked = fac.courts.every((c) => visibleCourts.has(c.id));
-    facCb.indeterminate =
-      !facCb.checked && fac.courts.some((c) => visibleCourts.has(c.id));
+    facCb.indeterminate = !facCb.checked && fac.courts.some((c) => visibleCourts.has(c.id));
     facCb.style.cursor = 'pointer';
 
     const facLabel = document.createElement('span');
@@ -273,7 +268,9 @@ function buildFacilityTree(
 const pad = (n: number) => n.toString().padStart(2, '0');
 
 function toLocalISO(date: Date): string {
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(
+    date.getMinutes()
+  )}:${pad(date.getSeconds())}`;
 }
 
 // ── Shared timeline options ───────────────────────────────────────────────────
@@ -297,7 +294,7 @@ function baseOptions() {
       add: true,
       updateTime: true,
       updateGroup: true,
-      remove: false,
+      remove: false
     },
     snap: (date: Date) => {
       const ms = date.getTime();
@@ -323,11 +320,11 @@ function baseOptions() {
     showTooltips: true,
     format: {
       minorLabels: { minute: 'HH:mm', hour: 'HH:mm' },
-      majorLabels: { hour: 'ddd D MMM', day: 'ddd D MMM' },
+      majorLabels: { hour: 'ddd D MMM', day: 'ddd D MMM' }
     },
     timeAxis: { scale: 'hour' as const, step: 1 },
     itemsAlwaysDraggable: { item: true, range: true },
-    dataAttributes: ['id'],
+    dataAttributes: ['id']
   };
 }
 
@@ -340,11 +337,7 @@ interface VenueInfo {
   courts: { id: string; name: string }[];
 }
 
-function buildCourtTree(
-  venues: VenueInfo[],
-  visibleCourts: Set<string>,
-  onChange: () => void,
-): HTMLElement {
+function buildCourtTree(venues: VenueInfo[], visibleCourts: Set<string>, onChange: () => void): HTMLElement {
   const panel = document.createElement('div');
   panel.style.cssText = `
     width: 220px; flex-shrink: 0; border-right: 1px solid #e0e0e0;
@@ -368,16 +361,14 @@ function buildCourtTree(
     const venueCb = document.createElement('input');
     venueCb.type = 'checkbox';
     venueCb.checked = venue.courts.every((c) => visibleCourts.has(c.id));
-    venueCb.indeterminate =
-      !venueCb.checked && venue.courts.some((c) => visibleCourts.has(c.id));
+    venueCb.indeterminate = !venueCb.checked && venue.courts.some((c) => visibleCourts.has(c.id));
     venueCb.style.cursor = 'pointer';
 
     const venueLabel = document.createElement('span');
     venueLabel.textContent = venue.name;
 
     const courtCount = document.createElement('span');
-    courtCount.style.cssText =
-      'margin-left:auto; color:#999; font-weight:400; font-size:12px;';
+    courtCount.style.cssText = 'margin-left:auto; color:#999; font-weight:400; font-size:12px;';
     const updateCount = () => {
       const vis = venue.courts.filter((c) => visibleCourts.has(c.id)).length;
       courtCount.textContent = `${vis}/${venue.courts.length}`;
@@ -443,13 +434,9 @@ function buildCourtTree(
 
 // ── Shared engine setup for FactoryBacked and RoundTrip stories ──────────────
 
-const VENUE_COLORS = [
-  'rgba(33, 141, 141, 0.06)',
-  'rgba(33, 96, 200, 0.06)',
-  'rgba(156, 39, 176, 0.06)',
-];
+const VENUE_COLORS = ['rgba(33, 141, 141, 0.06)', 'rgba(33, 96, 200, 0.06)', 'rgba(156, 39, 176, 0.06)'];
 
-function createEngineSetup() {
+function createEngineSetup(options?: { includeBookings?: boolean }) {
   const startDate = '2026-06-15';
 
   const venueProfiles = [
@@ -459,7 +446,7 @@ function createEngineSetup() {
       venueAbbreviation: 'MS',
       courtsCount: 8,
       startTime: '08:00',
-      endTime: '20:00',
+      endTime: '20:00'
     },
     {
       venueId: 'venue-practice',
@@ -467,14 +454,14 @@ function createEngineSetup() {
       venueAbbreviation: 'PC',
       courtsCount: 4,
       startTime: '07:00',
-      endTime: '21:00',
-    },
+      endTime: '21:00'
+    }
   ];
 
   const result = mocksEngine.generateTournamentRecord({
     venueProfiles,
     drawProfiles: [{ drawSize: 16, seedsCount: 4 }],
-    startDate,
+    startDate
   });
 
   const { tournamentRecord } = result;
@@ -488,52 +475,48 @@ function createEngineSetup() {
   const mainVenue = tournamentRecord.venues?.find((v: any) => v.venueId === 'venue-main');
   const mainCourts: any[] = mainVenue?.courts || [];
 
-  if (mainCourts[0]) {
-    tournamentEngine.modifyCourtAvailability({
-      courtId: mainCourts[0].courtId,
-      dateAvailability: [
-        {
-          date: startDate,
-          startTime: '08:00',
-          endTime: '20:00',
-          bookings: [
-            { startTime: '09:00', endTime: '11:00', bookingType: 'MAINTENANCE' },
-          ],
-        },
-      ],
-    });
-  }
+  if (options?.includeBookings !== false) {
+    if (mainCourts[0]) {
+      tournamentEngine.modifyCourtAvailability({
+        courtId: mainCourts[0].courtId,
+        dateAvailability: [
+          {
+            date: startDate,
+            startTime: '08:00',
+            endTime: '20:00',
+            bookings: [{ startTime: '09:00', endTime: '11:00', bookingType: 'MAINTENANCE' }]
+          }
+        ]
+      });
+    }
 
-  if (mainCourts[2]) {
-    tournamentEngine.modifyCourtAvailability({
-      courtId: mainCourts[2].courtId,
-      dateAvailability: [
-        {
-          date: startDate,
-          startTime: '08:00',
-          endTime: '20:00',
-          bookings: [
-            { startTime: '14:00', endTime: '16:00', bookingType: 'PRACTICE' },
-          ],
-        },
-      ],
-    });
-  }
+    if (mainCourts[2]) {
+      tournamentEngine.modifyCourtAvailability({
+        courtId: mainCourts[2].courtId,
+        dateAvailability: [
+          {
+            date: startDate,
+            startTime: '08:00',
+            endTime: '20:00',
+            bookings: [{ startTime: '14:00', endTime: '16:00', bookingType: 'PRACTICE' }]
+          }
+        ]
+      });
+    }
 
-  if (mainCourts[3]) {
-    tournamentEngine.modifyCourtAvailability({
-      courtId: mainCourts[3].courtId,
-      dateAvailability: [
-        {
-          date: startDate,
-          startTime: '08:00',
-          endTime: '20:00',
-          bookings: [
-            { startTime: '14:00', endTime: '16:00', bookingType: 'PRACTICE' },
-          ],
-        },
-      ],
-    });
+    if (mainCourts[3]) {
+      tournamentEngine.modifyCourtAvailability({
+        courtId: mainCourts[3].courtId,
+        dateAvailability: [
+          {
+            date: startDate,
+            startTime: '08:00',
+            endTime: '20:00',
+            bookings: [{ startTime: '14:00', endTime: '16:00', bookingType: 'PRACTICE' }]
+          }
+        ]
+      });
+    }
   }
 
   // Retrieve updated tournament record with court-level bookings
@@ -545,7 +528,7 @@ function createEngineSetup() {
   engine.init(recordWithBookings, {
     dayStartTime: '06:00',
     dayEndTime: '22:00',
-    slotMinutes: 5,
+    slotMinutes: 5
   });
 
   // Build court name map from tournament record
@@ -558,17 +541,15 @@ function createEngineSetup() {
   }
 
   // Build venue info for tree
-  const venueInfos: VenueInfo[] = (recordWithBookings.venues || []).map(
-    (venue: any, i: number) => ({
-      id: venue.venueId,
-      name: venue.venueName,
-      color: VENUE_COLORS[i % VENUE_COLORS.length],
-      courts: (venue.courts || []).map((c: any) => ({
-        id: `${engine.getConfig().tournamentId}|${venue.venueId}|${c.courtId}`,
-        name: c.courtName || c.courtId,
-      })),
-    }),
-  );
+  const venueInfos: VenueInfo[] = (recordWithBookings.venues || []).map((venue: any, i: number) => ({
+    id: venue.venueId,
+    name: venue.venueName,
+    color: VENUE_COLORS[i % VENUE_COLORS.length],
+    courts: (venue.courts || []).map((c: any) => ({
+      id: `${engine.getConfig().tournamentId}|${venue.venueId}|${c.courtId}`,
+      name: c.courtName || c.courtId
+    }))
+  }));
 
   const allCourtIds = venueInfos.flatMap((v) => v.courts.map((c) => c.id));
 
@@ -588,7 +569,15 @@ function createEngineSetup() {
     initialBlockSnapshot.set(courtId, JSON.stringify(blocks));
   });
 
-  return { engine, tournamentRecord: recordWithBookings, startDate, courtNameMap, venueInfos, allCourtIds, initialBlockSnapshot };
+  return {
+    engine,
+    tournamentRecord: recordWithBookings,
+    startDate,
+    courtNameMap,
+    venueInfos,
+    allCourtIds,
+    initialBlockSnapshot
+  };
 }
 
 // ── Story: Baseline ───────────────────────────────────────────────────────────
@@ -613,7 +602,8 @@ export const Baseline = {
     let currentView = 'day';
 
     const root = document.createElement('div');
-    root.style.cssText = 'display:flex; flex-direction:column; width:100%; height:600px; border:1px solid #e0e0e0; border-radius:4px; overflow:hidden;';
+    root.style.cssText =
+      'display:flex; flex-direction:column; width:100%; height:600px; border:1px solid #e0e0e0; border-radius:4px; overflow:hidden;';
 
     const mainRow = document.createElement('div');
     mainRow.style.cssText = 'display:flex; flex:1; min-height:0;';
@@ -641,7 +631,7 @@ export const Baseline = {
       let blockedHours = 0;
       if (timeline?.itemsData) {
         const blocks = timeline.itemsData.get({
-          filter: (item: any) => item.type === 'range' && visibleCourts.has(item.group),
+          filter: (item: any) => item.type === 'range' && visibleCourts.has(item.group)
         });
         for (const block of blocks) {
           const s = new Date(block.start).getTime();
@@ -675,21 +665,16 @@ export const Baseline = {
     root.appendChild(mainRow);
 
     setTimeout(() => {
-      timeline = new Timeline(
-        timelineContainer,
-        makeItems(visibleCourts),
-        makeGroups(visibleCourts),
-        {
-          ...baseOptions(),
+      timeline = new Timeline(timelineContainer, makeItems(visibleCourts), makeGroups(visibleCourts), {
+        ...baseOptions(),
 
-          onAdd: (item: any, callback: any) => {
-            item.content = item.content || 'New Block';
-            item.style = 'background-color: #607D8B; border-color: #37474F; color: white;';
-            item.editable = { updateTime: true, updateGroup: true, remove: false };
-            callback(item);
-          },
-        },
-      );
+        onAdd: (item: any, callback: any) => {
+          item.content = item.content || 'New Block';
+          item.style = 'background-color: #607D8B; border-color: #37474F; color: white;';
+          item.editable = { updateTime: true, updateGroup: true, remove: false };
+          callback(item);
+        }
+      });
 
       timeline.on('click', (props: any) => {
         if (justDragged) return;
@@ -723,7 +708,7 @@ export const Baseline = {
                 blockTypes: Object.entries(BLOCK_TYPES).map(([key, def]) => ({
                   type: key,
                   color: def.bg,
-                  label: def.label,
+                  label: def.label
                 })),
                 startTime: toLocalISO(new Date(updatedItem.start)),
                 endTime: toLocalISO(new Date(updatedItem.end)),
@@ -731,7 +716,7 @@ export const Baseline = {
                   timeline.itemsData.update({
                     id: updatedItem.id,
                     content: BLOCK_TYPES[type]?.label || type,
-                    style: blockStyle(type),
+                    style: blockStyle(type)
                   });
                 },
                 onAdjustTime: (startTimeStr: string, endTimeStr: string) => {
@@ -739,7 +724,7 @@ export const Baseline = {
                   const newStart = new Date(`${day}T${startTimeStr}:00`);
                   const newEnd = new Date(`${day}T${endTimeStr}:00`);
                   timeline.itemsData.update({ id: updatedItem.id, start: newStart, end: newEnd });
-                },
+                }
               });
             }
           }, 50);
@@ -757,7 +742,7 @@ export const Baseline = {
             blockTypes: Object.entries(BLOCK_TYPES).map(([key, def]) => ({
               type: key,
               color: def.bg,
-              label: def.label,
+              label: def.label
             })),
             startTime: toLocalISO(new Date(item.start)),
             endTime: toLocalISO(new Date(item.end)),
@@ -765,7 +750,7 @@ export const Baseline = {
               timeline.itemsData.update({
                 id: item.id,
                 content: BLOCK_TYPES[type]?.label || type,
-                style: blockStyle(type),
+                style: blockStyle(type)
               });
             },
             onAdjustTime: (startTimeStr: string, endTimeStr: string) => {
@@ -773,7 +758,7 @@ export const Baseline = {
               const newStart = new Date(`${day}T${startTimeStr}:00`);
               const newEnd = new Date(`${day}T${endTimeStr}:00`);
               timeline.itemsData.update({ id: item.id, start: newStart, end: newEnd });
-            },
+            }
           });
         }
       });
@@ -784,7 +769,7 @@ export const Baseline = {
     }, 0);
 
     return root;
-  },
+  }
 };
 
 // ── Story: FactoryBacked ──────────────────────────────────────────────────────
@@ -807,8 +792,7 @@ export const Baseline = {
  */
 export const FactoryBacked = {
   render: () => {
-    const { engine, startDate, courtNameMap, venueInfos, allCourtIds } =
-      createEngineSetup();
+    const { engine, startDate, courtNameMap, venueInfos, allCourtIds } = createEngineSetup();
     const visibleCourts = new Set(allCourtIds);
     let timeline: any = null;
 
@@ -823,10 +807,8 @@ export const FactoryBacked = {
           content: courtNameMap.get(String(g.id)) || g.content,
           order: i,
           style: `background: ${
-            venueInfos.find((v: VenueInfo) =>
-              v.courts.some((c) => c.id === String(g.id)),
-            )?.color || 'transparent'
-          };`,
+            venueInfos.find((v: VenueInfo) => v.courts.some((c) => c.id === String(g.id)))?.color || 'transparent'
+          };`
         }));
     };
 
@@ -836,7 +818,7 @@ export const FactoryBacked = {
       const blockItems = buildBlockEvents(engine.getDayBlocks(startDate));
       return [
         ...segmentItems.filter((item) => visibleCourts.has(String(item.group))),
-        ...blockItems.filter((item) => visibleCourts.has(String(item.group))),
+        ...blockItems.filter((item) => visibleCourts.has(String(item.group)))
       ];
     };
 
@@ -849,7 +831,9 @@ export const FactoryBacked = {
         totalHours: stats.totalCourtHours,
         blockedHours: stats.totalUnavailableHours ?? 0,
         availableHours: stats.totalAvailableHours ?? 0,
-        avgPerCourt: stats.avgBlockedHoursPerCourt ?? 0,
+        avgPerCourt: (stats.totalCourts ?? 0) > 0
+          ? (stats.totalAvailableHours ?? 0) / stats.totalCourts!
+          : 0
       });
     };
 
@@ -892,14 +876,15 @@ export const FactoryBacked = {
     root.appendChild(mainRow);
 
     setTimeout(() => {
+      const timeRange = engine.getVisibleTimeRange(startDate);
       const windowConfig = buildTimelineWindowConfig({
-        dayStartTime: '06:00',
-        dayEndTime: '22:00',
+        dayStartTime: timeRange.startTime,
+        dayEndTime: timeRange.endTime,
         slotMinutes: 5,
-        day: startDate,
+        day: startDate
       });
 
-      const weekMax = new Date(`${startDate}T22:00:00`);
+      const weekMax = new Date(`${startDate}T${timeRange.endTime}:00`);
       weekMax.setDate(weekMax.getDate() + 7);
 
       timeline = new Timeline(timelineContainer, getItems(), getGroups(), {
@@ -918,6 +903,21 @@ export const FactoryBacked = {
           callback(item);
         },
 
+        onMoving: (item: any, callback: any) => {
+          popoverManager.destroy();
+          if (engine && item.group) {
+            const courtRef = parseResourceId(String(item.group));
+            if (courtRef) {
+              const avail = engine.getCourtAvailability(courtRef, startDate);
+              const availStart = new Date(`${startDate}T${avail.startTime}:00`);
+              const availEnd = new Date(`${startDate}T${avail.endTime}:00`);
+              if (new Date(item.start) < availStart) item.start = availStart;
+              if (new Date(item.end) > availEnd) item.end = availEnd;
+            }
+          }
+          callback(item);
+        },
+
         onMove: (item: any, callback: any) => {
           justDragged = true;
           setTimeout(() => (justDragged = false), 300);
@@ -929,21 +929,45 @@ export const FactoryBacked = {
               blockId,
               newTimeRange: {
                 start: toLocalISO(new Date(item.start)),
-                end: toLocalISO(new Date(item.end)),
+                end: toLocalISO(new Date(item.end))
               },
-              newCourt: courtRef,
+              newCourt: courtRef
             });
             callback(item);
             rebuildItems();
           } else {
             callback(item);
           }
-        },
+        }
       });
 
-      // Click handler: box→range via engine, or popover on existing block
+      // Click handler: group-label click for availability, or popover on block
       timeline.on('click', (props: any) => {
         if (justDragged) return;
+
+        // Court name (group label) click → availability modal
+        if (props.what === 'group-label' && props.group) {
+          const courtRef = parseResourceId(String(props.group));
+          if (!courtRef) return;
+          const courtName = courtNameMap.get(String(props.group)) || courtRef.courtId;
+          const avail = engine.getCourtAvailability(courtRef, startDate);
+          showCourtAvailabilityModal({
+            title: `${courtName} Availability`,
+            currentDay: startDate,
+            currentStartTime: avail.startTime,
+            currentEndTime: avail.endTime,
+            onConfirm: ({ startTime, endTime, scope }) => {
+              if (scope === 'all-days') {
+                engine.setCourtAvailabilityAllDays(courtRef, { startTime, endTime });
+              } else {
+                engine.setCourtAvailability(courtRef, startDate, { startTime, endTime });
+              }
+              rebuildItems();
+            },
+          });
+          return;
+        }
+
         if (!props.item) {
           popoverManager.destroy();
           return;
@@ -970,7 +994,7 @@ export const FactoryBacked = {
             courts: [courtRef],
             timeRange: { start, end: toLocalISO(endTime) },
             type: 'BLOCKED',
-            reason: 'New Block',
+            reason: 'New Block'
           });
           rebuildItems();
           if (result.applied.length > 0) {
@@ -984,7 +1008,7 @@ export const FactoryBacked = {
                   blockId: newBlockId,
                   engine,
                   day: startDate,
-                  onBlockChanged: rebuildItems,
+                  onBlockChanged: rebuildItems
                 });
               }
             }, 50);
@@ -1006,7 +1030,7 @@ export const FactoryBacked = {
             blockId,
             engine,
             day: startDate,
-            onBlockChanged: rebuildItems,
+            onBlockChanged: rebuildItems
           });
         }
       });
@@ -1015,7 +1039,7 @@ export const FactoryBacked = {
     }, 0);
 
     return root;
-  },
+  }
 };
 
 // ── Story: RoundTrip ──────────────────────────────────────────────────────────
@@ -1030,7 +1054,7 @@ export const FactoryBacked = {
  */
 export const RoundTrip = {
   render: () => {
-    const setup = createEngineSetup();
+    const setup = createEngineSetup({ includeBookings: false });
     const { engine, startDate, courtNameMap, venueInfos, allCourtIds, initialBlockSnapshot } = setup;
     let { tournamentRecord } = setup;
     const visibleCourts = new Set(allCourtIds);
@@ -1047,10 +1071,8 @@ export const RoundTrip = {
           content: courtNameMap.get(String(g.id)) || g.content,
           order: i,
           style: `background: ${
-            venueInfos.find((v: VenueInfo) =>
-              v.courts.some((c) => c.id === String(g.id)),
-            )?.color || 'transparent'
-          };`,
+            venueInfos.find((v: VenueInfo) => v.courts.some((c) => c.id === String(g.id)))?.color || 'transparent'
+          };`
         }));
     };
 
@@ -1060,7 +1082,7 @@ export const RoundTrip = {
       const blockItems = buildBlockEvents(engine.getDayBlocks(startDate));
       return [
         ...segmentItems.filter((item) => visibleCourts.has(String(item.group))),
-        ...blockItems.filter((item) => visibleCourts.has(String(item.group))),
+        ...blockItems.filter((item) => visibleCourts.has(String(item.group)))
       ];
     };
 
@@ -1073,8 +1095,75 @@ export const RoundTrip = {
         totalHours: stats.totalCourtHours,
         blockedHours: stats.totalUnavailableHours ?? 0,
         availableHours: stats.totalAvailableHours ?? 0,
-        avgPerCourt: stats.avgBlockedHoursPerCourt ?? 0,
+        avgPerCourt: (stats.totalCourts ?? 0) > 0
+          ? (stats.totalAvailableHours ?? 0) / stats.totalCourts!
+          : 0
       });
+    };
+
+    // Track current block snapshot for dirty-checking
+    let currentBlockSnapshot = new Map(initialBlockSnapshot);
+
+    const hasPendingChanges = (): boolean => {
+      const blocks = engine.getDayBlocks(startDate);
+      const blocksByCourt = new Map<string, Array<{ start: string; end: string; type: string }>>();
+      for (const meta of engine.listCourtMeta()) {
+        blocksByCourt.set(meta.ref.courtId, []);
+      }
+      for (const block of blocks) {
+        const courtId = block.court.courtId;
+        const existing = blocksByCourt.get(courtId) || [];
+        existing.push({ start: block.start, end: block.end, type: block.type });
+        blocksByCourt.set(courtId, existing);
+      }
+      for (const [courtId, courtBlocks] of blocksByCourt) {
+        const currentSnapshot = JSON.stringify(courtBlocks);
+        const originalSnapshot = currentBlockSnapshot.get(courtId) || '[]';
+        if (currentSnapshot !== originalSnapshot) return true;
+      }
+      return false;
+    };
+
+    let saveBtn: HTMLButtonElement;
+
+    const updateSaveButtonState = () => {
+      if (!saveBtn) return;
+      const dirty = hasPendingChanges();
+      saveBtn.disabled = !dirty;
+      saveBtn.style.opacity = dirty ? '1' : '0.5';
+      saveBtn.style.cursor = dirty ? 'pointer' : 'not-allowed';
+    };
+
+    // Helper: get visible court refs for window calculation
+    const getVisibleCourtRefs = () => {
+      const refs: any[] = [];
+      for (const v of venueInfos) {
+        for (const c of v.courts) {
+          if (visibleCourts.has(c.id)) {
+            const ref = parseResourceId(c.id);
+            if (ref) refs.push(ref);
+          }
+        }
+      }
+      return refs;
+    };
+
+    // Rebuild timeline window + items after availability changes
+    const rebuildTimeline = () => {
+      if (!timeline) return;
+      const visibleRefs = getVisibleCourtRefs();
+      const timeRange = engine.getVisibleTimeRange(startDate, visibleRefs);
+      const windowConfig = buildTimelineWindowConfig({
+        dayStartTime: timeRange.startTime,
+        dayEndTime: timeRange.endTime,
+        slotMinutes: 5,
+        day: startDate
+      });
+      const weekMax = new Date(`${startDate}T${timeRange.endTime}:00`);
+      weekMax.setDate(weekMax.getDate() + 7);
+      timeline.setOptions({ min: windowConfig.min, max: weekMax });
+      timeline.setWindow(windowConfig.start, windowConfig.end);
+      rebuildItems();
     };
 
     const rebuildItems = () => {
@@ -1082,70 +1171,12 @@ export const RoundTrip = {
       timeline.setGroups(getGroups());
       timeline.setItems(getItems());
       updateEngineStats();
-    };
-
-    // Tournament State Panel
-    let statePanel: HTMLElement;
-    let statePre: HTMLPreElement;
-
-    const buildStatePanel = () => {
-      statePanel = document.createElement('div');
-      statePanel.style.cssText =
-        'border-top:1px solid #e0e0e0; background:#fafafa; font-family:sans-serif; font-size:12px; max-height:250px; overflow:hidden; display:flex; flex-direction:column;';
-
-      const panelHeader = document.createElement('div');
-      panelHeader.style.cssText =
-        'display:flex; align-items:center; justify-content:space-between; padding:6px 12px; background:#f0f0f0; cursor:pointer; user-select:none;';
-      panelHeader.innerHTML =
-        '<span style="font-weight:600; color:#333;">Tournament State</span><span style="color:#999;">&#9660;</span>';
-
-      const panelBody = document.createElement('div');
-      panelBody.style.cssText = 'flex:1; overflow-y:auto; padding:8px 12px;';
-
-      statePre = document.createElement('pre');
-      statePre.style.cssText =
-        'margin:0; white-space:pre-wrap; word-break:break-all; font-size:11px; color:#555; line-height:1.4;';
-      panelBody.appendChild(statePre);
-
-      let collapsed = false;
-      panelHeader.addEventListener('click', () => {
-        collapsed = !collapsed;
-        panelBody.style.display = collapsed ? 'none' : 'block';
-        panelHeader.querySelector('span:last-child')!.innerHTML = collapsed
-          ? '&#9654;'
-          : '&#9660;';
-      });
-
-      statePanel.appendChild(panelHeader);
-      statePanel.appendChild(panelBody);
-
-      updateStatePanel();
-      return statePanel;
-    };
-
-    const updateStatePanel = () => {
-      if (!statePre) return;
-      const courtsSummary: any[] = [];
-      for (const venue of tournamentRecord.venues || []) {
-        for (const court of venue.courts || []) {
-          if (court.dateAvailability?.length) {
-            courtsSummary.push({
-              venueName: venue.venueName,
-              courtId: court.courtId,
-              courtName: court.courtName,
-              dateAvailability: court.dateAvailability,
-            });
-          }
-        }
-      }
-      statePre.textContent = courtsSummary.length
-        ? JSON.stringify(courtsSummary, null, 2)
-        : '(no court-level dateAvailability set)';
+      updateSaveButtonState();
     };
 
     const root = document.createElement('div');
     root.style.cssText =
-      'display:flex; flex-direction:column; width:100%; height:700px; border:1px solid #e0e0e0; border-radius:4px; overflow:hidden;';
+      'display:flex; flex-direction:column; width:100%; height:600px; border:1px solid #e0e0e0; border-radius:4px; overflow:hidden;';
 
     let currentView = 'day';
     const setView = (viewKey: string) => {
@@ -1165,11 +1196,37 @@ export const RoundTrip = {
     spacer.style.cssText = 'flex:1;';
     toolbar.appendChild(spacer);
 
-    const saveBtn = document.createElement('button');
+    const defaultAvailBtn = document.createElement('button');
+    defaultAvailBtn.textContent = 'Set Default Availability';
+    defaultAvailBtn.style.cssText =
+      'padding:4px 14px; border:1px solid #666; border-radius:4px; cursor:pointer; font-size:13px; background:#666; color:white; font-weight:600; margin-right:8px;';
+    defaultAvailBtn.addEventListener('click', () => {
+      const courts = engine.listCourtMeta();
+      const firstRef = courts.length > 0 ? courts[0].ref : undefined;
+      const avail = firstRef
+        ? engine.getCourtAvailability(firstRef, startDate)
+        : { startTime: '08:00', endTime: '20:00' };
+      showCourtAvailabilityModal({
+        title: 'Default Availability (All Courts)',
+        currentDay: startDate,
+        currentStartTime: avail.startTime,
+        currentEndTime: avail.endTime,
+        showScopeToggle: false,
+        onConfirm: ({ startTime, endTime }) => {
+          engine.setAllCourtsDefaultAvailability({ startTime, endTime });
+          rebuildTimeline();
+        },
+      });
+    });
+    toolbar.appendChild(defaultAvailBtn);
+
+    saveBtn = document.createElement('button');
     saveBtn.textContent = 'Save to Tournament';
+    saveBtn.disabled = true;
     saveBtn.style.cssText =
-      'padding:4px 14px; border:1px solid #218D8D; border-radius:4px; cursor:pointer; font-size:13px; background:#218D8D; color:white; font-weight:600;';
+      'padding:4px 14px; border:1px solid #218D8D; border-radius:4px; cursor:not-allowed; font-size:13px; background:#218D8D; color:white; font-weight:600; opacity:0.5;';
     saveBtn.addEventListener('click', () => {
+      if (saveBtn.disabled) return;
       tournamentEngine.setState(tournamentRecord);
 
       const blocks = engine.getDayBlocks(startDate);
@@ -1188,10 +1245,9 @@ export const RoundTrip = {
       let modifiedCount = 0;
       console.group('[RoundTrip] Save to Tournament');
       blocksByCourt.forEach((courtBlocks, courtId) => {
-        const currentSnapshot = JSON.stringify(courtBlocks);
-        const originalSnapshot = initialBlockSnapshot.get(courtId) || '[]';
-        if (currentSnapshot === originalSnapshot) {
-          console.log(`modifyCourtAvailability(${courtId}): SKIPPED (unchanged)`);
+        const currentJson = JSON.stringify(courtBlocks);
+        const originalSnapshot = currentBlockSnapshot.get(courtId) || '[]';
+        if (currentJson === originalSnapshot) {
           return;
         }
 
@@ -1199,7 +1255,7 @@ export const RoundTrip = {
         const bookings = courtBlocks.map((b) => ({
           startTime: b.start.slice(11, 16),
           endTime: b.end.slice(11, 16),
-          bookingType: b.type,
+          bookingType: b.type
         }));
 
         const params = {
@@ -1209,9 +1265,9 @@ export const RoundTrip = {
               date: startDate,
               startTime: '06:00',
               endTime: '22:00',
-              bookings,
-            },
-          ],
+              bookings
+            }
+          ]
         };
         console.log(`modifyCourtAvailability(${courtId}):`, params);
         tournamentEngine.modifyCourtAvailability(params);
@@ -1221,7 +1277,12 @@ export const RoundTrip = {
 
       const { tournamentRecord: updated } = tournamentEngine.getState() || {};
       tournamentRecord = updated;
-      updateStatePanel();
+
+      // Update snapshot to current state so button disables
+      currentBlockSnapshot = new Map<string, string>();
+      blocksByCourt.forEach((courtBlocks, courtId) => {
+        currentBlockSnapshot.set(courtId, JSON.stringify(courtBlocks));
+      });
 
       saveBtn.textContent = 'Saved!';
       saveBtn.style.background = '#27ae60';
@@ -1230,6 +1291,7 @@ export const RoundTrip = {
         saveBtn.textContent = 'Save to Tournament';
         saveBtn.style.background = '#218D8D';
         saveBtn.style.borderColor = '#218D8D';
+        updateSaveButtonState();
       }, 1500);
     });
     toolbar.appendChild(saveBtn);
@@ -1247,17 +1309,18 @@ export const RoundTrip = {
     mainRow.appendChild(treePanel);
     mainRow.appendChild(timelineContainer);
     root.appendChild(mainRow);
-    root.appendChild(buildStatePanel());
 
     setTimeout(() => {
+      const visibleRefs = getVisibleCourtRefs();
+      const timeRange = engine.getVisibleTimeRange(startDate, visibleRefs);
       const windowConfig = buildTimelineWindowConfig({
-        dayStartTime: '06:00',
-        dayEndTime: '22:00',
+        dayStartTime: timeRange.startTime,
+        dayEndTime: timeRange.endTime,
         slotMinutes: 5,
-        day: startDate,
+        day: startDate
       });
 
-      const weekMax = new Date(`${startDate}T22:00:00`);
+      const weekMax = new Date(`${startDate}T${timeRange.endTime}:00`);
       weekMax.setDate(weekMax.getDate() + 7);
 
       timeline = new Timeline(timelineContainer, getItems(), getGroups(), {
@@ -1276,6 +1339,21 @@ export const RoundTrip = {
           callback(item);
         },
 
+        onMoving: (item: any, callback: any) => {
+          popoverManager.destroy();
+          if (engine && item.group) {
+            const courtRef = parseResourceId(String(item.group));
+            if (courtRef) {
+              const avail = engine.getCourtAvailability(courtRef, startDate);
+              const availStart = new Date(`${startDate}T${avail.startTime}:00`);
+              const availEnd = new Date(`${startDate}T${avail.endTime}:00`);
+              if (new Date(item.start) < availStart) item.start = availStart;
+              if (new Date(item.end) > availEnd) item.end = availEnd;
+            }
+          }
+          callback(item);
+        },
+
         onMove: (item: any, callback: any) => {
           justDragged = true;
           setTimeout(() => (justDragged = false), 300);
@@ -1287,20 +1365,44 @@ export const RoundTrip = {
               blockId,
               newTimeRange: {
                 start: toLocalISO(new Date(item.start)),
-                end: toLocalISO(new Date(item.end)),
+                end: toLocalISO(new Date(item.end))
               },
-              newCourt: courtRef,
+              newCourt: courtRef
             });
             callback(item);
             rebuildItems();
           } else {
             callback(item);
           }
-        },
+        }
       });
 
       timeline.on('click', (props: any) => {
         if (justDragged) return;
+
+        // Court name (group label) click → availability modal
+        if (props.what === 'group-label' && props.group) {
+          const courtRef = parseResourceId(String(props.group));
+          if (!courtRef) return;
+          const courtName = courtNameMap.get(String(props.group)) || courtRef.courtId;
+          const avail = engine.getCourtAvailability(courtRef, startDate);
+          showCourtAvailabilityModal({
+            title: `${courtName} Availability`,
+            currentDay: startDate,
+            currentStartTime: avail.startTime,
+            currentEndTime: avail.endTime,
+            onConfirm: ({ startTime, endTime, scope }) => {
+              if (scope === 'all-days') {
+                engine.setCourtAvailabilityAllDays(courtRef, { startTime, endTime });
+              } else {
+                engine.setCourtAvailability(courtRef, startDate, { startTime, endTime });
+              }
+              rebuildTimeline();
+            },
+          });
+          return;
+        }
+
         if (!props.item) {
           popoverManager.destroy();
           return;
@@ -1327,7 +1429,7 @@ export const RoundTrip = {
             courts: [courtRef],
             timeRange: { start, end: toLocalISO(endTime) },
             type: 'BLOCKED',
-            reason: 'New Block',
+            reason: 'New Block'
           });
           rebuildItems();
           if (result.applied.length > 0) {
@@ -1341,7 +1443,7 @@ export const RoundTrip = {
                   blockId: newBlockId,
                   engine,
                   day: startDate,
-                  onBlockChanged: rebuildItems,
+                  onBlockChanged: rebuildItems
                 });
               }
             }, 50);
@@ -1363,7 +1465,7 @@ export const RoundTrip = {
             blockId,
             engine,
             day: startDate,
-            onBlockChanged: rebuildItems,
+            onBlockChanged: rebuildItems
           });
         }
       });
@@ -1372,5 +1474,5 @@ export const RoundTrip = {
     }, 0);
 
     return root;
-  },
+  }
 };
