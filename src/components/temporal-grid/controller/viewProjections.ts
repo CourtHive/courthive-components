@@ -317,7 +317,7 @@ export function buildBlockEvents(
       className: `temporal-block block-${block.type.toLowerCase()}`,
       style: `background-color: ${color}; border-color: ${borderColor};`,
       title: block.reason || block.type,
-      editable: { updateTime: true, updateGroup: true, remove: true },
+      editable: { updateTime: true, updateGroup: true, remove: false },
       blockId: block.id,
       status: block.type,
       reason: block.reason,

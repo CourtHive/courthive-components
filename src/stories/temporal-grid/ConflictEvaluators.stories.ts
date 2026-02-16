@@ -5,6 +5,7 @@
  * Shows each evaluator in isolation and combined scenarios.
  */
 
+// @ts-expect-error - Storybook types not resolved under current moduleResolution
 import type { Meta, StoryObj } from '@storybook/html';
 import { TemporalGridEngine } from '../../components/temporal-grid/engine/temporalGridEngine';
 import {
@@ -588,7 +589,7 @@ export const AllEvaluators: Story = {
 
     return `
 All Evaluators Running:
-${defaultEvaluators.map(e => `- ${e.name}`).join('\n')}
+${defaultEvaluators.map(e => `- ${e.id}`).join('\n')}
 
 Scenario:
 1. Create HARD_BLOCK at 10:00-14:00
@@ -630,26 +631,30 @@ export const CustomEvaluator: Story = {
   render: () => renderEvaluatorDemo('Custom Evaluator', () => {
     // Create custom evaluator
     const noWeekendMaintenanceEvaluator = {
-      name: 'noWeekendMaintenance',
-      evaluate: (block, context) => {
-        if (block.type !== 'MAINTENANCE') return [];
+      id: 'noWeekendMaintenance',
+      description: 'Discourage maintenance on weekends',
+      evaluate: (_ctx: any, mutations: any[]) => {
+        const conflicts: any[] = [];
+        for (const mutation of mutations) {
+          if (mutation.kind !== 'ADD_BLOCK') continue;
+          const block = mutation.block;
+          if (block.type !== 'MAINTENANCE') continue;
 
-        const date = new Date(block.start);
-        const dayOfWeek = date.getDay();
-        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+          const date = new Date(block.start);
+          const dayOfWeek = date.getDay();
+          const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-        if (isWeekend) {
-          return [{
-            code: 'WEEKEND_MAINTENANCE',
-            severity: 'WARN' as const,
-            message: 'Maintenance scheduled on weekend - consider weekday instead',
-            blockId: block.id,
-            court: block.court,
-            timeRange: { start: block.start, end: block.end },
-          }];
+          if (isWeekend) {
+            conflicts.push({
+              code: 'WEEKEND_MAINTENANCE',
+              severity: 'WARN' as const,
+              message: 'Maintenance scheduled on weekend - consider weekday instead',
+              timeRange: { start: block.start, end: block.end },
+              courts: [block.court],
+            });
+          }
         }
-
-        return [];
+        return conflicts;
       },
     };
 

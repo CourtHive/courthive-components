@@ -5,6 +5,7 @@
  * Shows the pure state machine functionality.
  */
 
+// @ts-expect-error - Storybook types not resolved under current moduleResolution
 import type { Meta, StoryObj } from '@storybook/html';
 import { TemporalGridEngine } from '../../components/temporal-grid/engine/temporalGridEngine';
 import {

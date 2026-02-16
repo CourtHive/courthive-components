@@ -75,7 +75,6 @@ export class TemporalGrid {
   private facilityTreeElement: HTMLElement | null = null;
   private calendarElement: HTMLElement | null = null;
   private capacityElement: HTMLElement | null = null;
-  private toolbarElement: HTMLElement | null = null;
 
   // State
   private visibleCourts: Set<string> = new Set(); // "tournamentId|facilityId|courtId" to match resource IDs
@@ -174,7 +173,6 @@ export class TemporalGrid {
     this.facilityTreeElement = null;
     this.calendarElement = null;
     this.capacityElement = null;
-    this.toolbarElement = null;
   }
 
   // ============================================================================
@@ -285,7 +283,6 @@ export class TemporalGrid {
     }
 
     header.appendChild(toolbar);
-    this.toolbarElement = toolbar;
   }
 
   private renderCapacityIndicator(): void {

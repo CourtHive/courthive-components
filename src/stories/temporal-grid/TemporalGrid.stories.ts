@@ -5,6 +5,7 @@
  * Demonstrates all major features and use cases.
  */
 
+// @ts-expect-error - Storybook types not resolved under current moduleResolution
 import type { Meta, StoryObj } from '@storybook/html';
 import { createTemporalGrid } from '../../components/temporal-grid';
 import '../../components/temporal-grid/ui/styles.css';
