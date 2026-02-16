@@ -6,6 +6,9 @@ import {
   SETS,
   TIEBREAKS,
   TIMED_SETS,
+  MATCH_ROOTS,
+  MATCH_ROOT_LABELS,
+  getBestOfOptionsForRoot,
   createDefaultSetFormat,
   createDefaultFormat,
   isTiebreakOnlySet,
@@ -410,23 +413,251 @@ describe('matchUpFormatLogic', () => {
     it('should round-trip SET3X-S:T10-F:TB1 format (without NOAD)', () => {
       const formatString = 'SET3X-S:T10-F:TB1';
       const format = initializeFormatFromString(formatString, matchUpFormatCode.parse);
-      
+
       // Check final set is tiebreak-only WITHOUT NoAD
       expect(format.finalSetFormat.what).toBe(TIEBREAKS);
       expect(format.finalSetFormat.tiebreakTo).toBe(1);
       expect(format.finalSetFormat.winBy).toBe(2); // No NoAD = win by 2
-      
+
       // Build the parsed format
       const parsed = buildParsedFormat(format, false, true, false);
-      
+
       // Verify NoAD is NOT set
       expect(parsed.finalSetFormat.tiebreakSet).toBeDefined();
       expect(parsed.finalSetFormat.tiebreakSet.tiebreakTo).toBe(1);
       expect(parsed.finalSetFormat.tiebreakSet.NoAD).toBeUndefined();
-      
+
       // Stringify back
       const roundTrip = matchUpFormatCode.stringify(parsed);
       expect(roundTrip).toBe('SET3X-S:T10-F:TB1');
+    });
+  });
+
+  describe('MATCH_ROOTS and helpers', () => {
+    it('should have all expected match roots', () => {
+      expect(MATCH_ROOTS).toContain('SET');
+      expect(MATCH_ROOTS).toContain('HAL');
+      expect(MATCH_ROOTS).toContain('QTR');
+      expect(MATCH_ROOTS).toContain('PER');
+      expect(MATCH_ROOTS).toContain('RND');
+      expect(MATCH_ROOTS).toContain('FRM');
+      expect(MATCH_ROOTS).toContain('MAP');
+    });
+
+    it('should have labels for all roots', () => {
+      for (const root of MATCH_ROOTS) {
+        expect(MATCH_ROOT_LABELS[root]).toBeDefined();
+      }
+    });
+
+    it('getBestOfOptionsForRoot returns [1,3,5] for SET', () => {
+      expect(getBestOfOptionsForRoot('SET')).toEqual([1, 3, 5]);
+      expect(getBestOfOptionsForRoot(undefined)).toEqual([1, 3, 5]);
+    });
+
+    it('getBestOfOptionsForRoot returns [1..12] for non-SET', () => {
+      const opts = getBestOfOptionsForRoot('HAL');
+      expect(opts).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    });
+  });
+
+  describe('buildSetFormat with modifier', () => {
+    it('should add modifier to tiebreakSet (TIEBREAKS)', () => {
+      const config = { ...createDefaultSetFormat(false), what: TIEBREAKS, tiebreakTo: 11, modifier: 'RALLY' };
+      const setFormat = buildSetFormat(config, false);
+
+      expect(setFormat.tiebreakSet.tiebreakTo).toBe(11);
+      expect(setFormat.tiebreakSet.modifier).toBe('RALLY');
+    });
+
+    it('should add modifier to tiebreakFormat (SETS with tiebreak)', () => {
+      const config = { ...createDefaultSetFormat(false), modifier: 'RALLY' };
+      const setFormat = buildSetFormat(config, true);
+
+      expect(setFormat.tiebreakFormat.tiebreakTo).toBe(7);
+      expect(setFormat.tiebreakFormat.modifier).toBe('RALLY');
+    });
+
+    it('should add modifier to timed set', () => {
+      const config = { ...createDefaultSetFormat(false), what: TIMED_SETS, minutes: 10, modifier: 'RALLY' };
+      const setFormat = buildSetFormat(config, false);
+
+      expect(setFormat.timed).toBe(true);
+      expect(setFormat.modifier).toBe('RALLY');
+    });
+
+    it('should not add modifier when undefined', () => {
+      const config = { ...createDefaultSetFormat(false), what: TIEBREAKS, tiebreakTo: 11 };
+      const setFormat = buildSetFormat(config, false);
+
+      expect(setFormat.tiebreakSet.modifier).toBeUndefined();
+    });
+  });
+
+  describe('buildParsedFormat with match-level properties', () => {
+    it('should include matchRoot when not SET', () => {
+      const config = createDefaultFormat();
+      config.matchRoot = 'HAL';
+      config.setFormat.what = TIMED_SETS;
+      config.setFormat.minutes = 45;
+
+      const parsed = buildParsedFormat(config, false, false, false);
+      expect(parsed.matchRoot).toBe('HAL');
+    });
+
+    it('should not include matchRoot when SET', () => {
+      const config = createDefaultFormat();
+      config.matchRoot = 'SET';
+
+      const parsed = buildParsedFormat(config, false, false, false);
+      expect(parsed.matchRoot).toBeUndefined();
+    });
+
+    it('should not include matchRoot when undefined', () => {
+      const config = createDefaultFormat();
+
+      const parsed = buildParsedFormat(config, false, false, false);
+      expect(parsed.matchRoot).toBeUndefined();
+    });
+
+    it('should include aggregate when true', () => {
+      const config = createDefaultFormat();
+      config.aggregate = true;
+
+      const parsed = buildParsedFormat(config, false, false, false);
+      expect(parsed.aggregate).toBe(true);
+    });
+
+    it('should not include aggregate when falsy', () => {
+      const config = createDefaultFormat();
+
+      const parsed = buildParsedFormat(config, false, false, false);
+      expect(parsed.aggregate).toBeUndefined();
+    });
+
+    it('should include gameFormat when defined', () => {
+      const config = createDefaultFormat();
+      config.gameFormat = { type: 'CONSECUTIVE', count: 3 };
+
+      const parsed = buildParsedFormat(config, false, false, false);
+      expect(parsed.gameFormat).toEqual({ type: 'CONSECUTIVE', count: 3 });
+    });
+
+    it('should include AGGR gameFormat', () => {
+      const config = createDefaultFormat();
+      config.gameFormat = { type: 'AGGR' };
+
+      const parsed = buildParsedFormat(config, false, false, false);
+      expect(parsed.gameFormat).toEqual({ type: 'AGGR' });
+    });
+  });
+
+  describe('initializeFormatFromString with cross-sport formats', () => {
+    it('should extract matchRoot from HAL format', () => {
+      const format = initializeFormatFromString('HAL2A-S:T45', matchUpFormatCode.parse);
+
+      expect(format.matchRoot).toBe('HAL');
+      expect(format.aggregate).toBe(true);
+      expect(format.setFormat.what).toBe(TIMED_SETS);
+      expect(format.setFormat.minutes).toBe(45);
+    });
+
+    it('should extract matchRoot from QTR format', () => {
+      const format = initializeFormatFromString('QTR4A-S:T12', matchUpFormatCode.parse);
+
+      expect(format.matchRoot).toBe('QTR');
+      expect(format.aggregate).toBe(true);
+      expect(format.setFormat.minutes).toBe(12);
+    });
+
+    it('should extract modifier from rally scoring format', () => {
+      const format = initializeFormatFromString('SET3-S:TB11@RALLY', matchUpFormatCode.parse);
+
+      expect(format.setFormat.modifier).toBe('RALLY');
+      expect(format.setFormat.what).toBe(TIEBREAKS);
+      expect(format.setFormat.tiebreakTo).toBe(11);
+    });
+
+    it('should extract modifier from final set rally scoring', () => {
+      const format = initializeFormatFromString('SET5-S:TB21@RALLY-F:TB15@RALLY', matchUpFormatCode.parse);
+
+      expect(format.setFormat.modifier).toBe('RALLY');
+      expect(format.finalSetFormat.modifier).toBe('RALLY');
+    });
+
+    it('should extract gameFormat CONSECUTIVE', () => {
+      const format = initializeFormatFromString('SET5-S:5-G:3C', matchUpFormatCode.parse);
+
+      expect(format.gameFormat).toEqual({ type: 'CONSECUTIVE', count: 3 });
+    });
+
+    it('should extract aggregate and gameFormat AGGR', () => {
+      const format = initializeFormatFromString('SET7XA-S:T10P', matchUpFormatCode.parse);
+
+      expect(format.aggregate).toBe(true);
+      expect(format.setFormat.based).toBe('P');
+    });
+
+    it('should not set matchRoot for standard SET formats', () => {
+      const format = initializeFormatFromString('SET3-S:6/TB7', matchUpFormatCode.parse);
+
+      expect(format.matchRoot).toBeUndefined();
+    });
+  });
+
+  describe('cross-sport round-trip tests', () => {
+    function roundTrip(formatString: string) {
+      const format = initializeFormatFromString(formatString, matchUpFormatCode.parse);
+      const parsed = matchUpFormatCode.parse(formatString);
+
+      // Determine hasTiebreak from parsed setFormat
+      const hasSetTiebreak = !!parsed?.setFormat?.tiebreakFormat;
+      const hasFinalSet = !!parsed?.finalSetFormat;
+      const hasFinalSetTiebreak = !!parsed?.finalSetFormat?.tiebreakFormat;
+
+      const built = buildParsedFormat(format, hasSetTiebreak, hasFinalSet, hasFinalSetTiebreak);
+      const result = matchUpFormatCode.stringify(built);
+      return result;
+    }
+
+    it('HAL2A-S:T45 (soccer)', () => {
+      expect(roundTrip('HAL2A-S:T45')).toBe('HAL2A-S:T45');
+    });
+
+    it('QTR4A-S:T12 (basketball)', () => {
+      expect(roundTrip('QTR4A-S:T12')).toBe('QTR4A-S:T12');
+    });
+
+    it('SET3-S:TB11@RALLY (pickleball)', () => {
+      expect(roundTrip('SET3-S:TB11@RALLY')).toBe('SET3-S:TB11@RALLY');
+    });
+
+    it('SET5-S:5-G:3C (TYPTI)', () => {
+      expect(roundTrip('SET5-S:5-G:3C')).toBe('SET5-S:5-G:3C');
+    });
+
+    it('SET7XA-S:T10P (INTENNSE)', () => {
+      expect(roundTrip('SET7XA-S:T10P')).toBe('SET7XA-S:T10P');
+    });
+
+    it('RND12A-S:T3 (boxing)', () => {
+      expect(roundTrip('RND12A-S:T3')).toBe('RND12A-S:T3');
+    });
+
+    it('SET5-S:TB21@RALLY-F:TB15@RALLY (MLP)', () => {
+      expect(roundTrip('SET5-S:TB21@RALLY-F:TB15@RALLY')).toBe('SET5-S:TB21@RALLY-F:TB15@RALLY');
+    });
+
+    it('PER3A-S:T20 (ice hockey)', () => {
+      expect(roundTrip('PER3A-S:T20')).toBe('PER3A-S:T20');
+    });
+
+    it('SET3-S:T10-G:AGGR (INTENNSE variant)', () => {
+      expect(roundTrip('SET3-S:T10-G:AGGR')).toBe('SET3-S:T10-G:AGGR');
+    });
+
+    it('SET5-S:TB25-F:TB15 (volleyball)', () => {
+      expect(roundTrip('SET5-S:TB25-F:TB15')).toBe('SET5-S:TB25-F:TB15');
     });
   });
 });

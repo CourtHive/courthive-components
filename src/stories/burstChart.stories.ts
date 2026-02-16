@@ -13,8 +13,10 @@
 
 import { mocksEngine, tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
 import { fromLegacyDraw, fromFactoryDrawData } from '../components/burstChart/matchUpTransform';
-import { burstChart } from '../components/burstChart/burstChart';
 import type { BurstChartInstance } from '../components/burstChart/burstChart';
+import { burstChart } from '../components/burstChart/burstChart';
+
+// data imports
 import australianOpenData from '../data/burstChart/australian_open.json';
 import rolandGarrosData from '../data/burstChart/roland_garros.json';
 import wimbledonData from '../data/burstChart/wimbledon.json';
@@ -254,7 +256,8 @@ export const GeneratedTournament: Story = {
 
     const { tournamentRecord, drawIds } = mocksEngine.generateTournamentRecord({
       drawProfiles: [{ drawSize: 32, drawType: SINGLE_ELIMINATION, seedsCount: 8 }],
-      completeAllMatchUps: true
+      completeAllMatchUps: true,
+      randomWinningSide: false
     });
     tournamentEngine.setState(tournamentRecord);
 
@@ -425,7 +428,8 @@ export const DrawSizePicker: Story = {
 
       const { tournamentRecord, drawIds } = mocksEngine.generateTournamentRecord({
         drawProfiles: [{ drawSize, drawType: SINGLE_ELIMINATION, seedsCount, completionGoal }],
-        completeAllMatchUps: complete
+        completeAllMatchUps: complete,
+        randomWinningSide: true
       });
       tournamentEngine.setState(tournamentRecord);
 

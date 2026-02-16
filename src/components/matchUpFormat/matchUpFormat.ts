@@ -8,7 +8,10 @@ import {
   initializeFormatFromString,
   buildSetFormat,
   autoAdjustTiebreakAt,
-  getTiebreakAtOptions
+  getTiebreakAtOptions,
+  MATCH_ROOTS,
+  MATCH_ROOT_LABELS,
+  getBestOfOptionsForRoot
 } from './matchUpFormatLogic';
 
 import matchUpFormats from './matchUpFormats.json';
@@ -53,6 +56,9 @@ interface MatchUpFormatConfig {
     tiebreakAt?: number[];
     minutes?: number[];
     winBy?: number[];
+    matchRoots?: string[];
+    gameFormats?: string[];
+    modifiers?: string[];
   };
   preDefinedFormats?: Array<{
     code: string;
@@ -85,13 +91,16 @@ const defaultConfig: MatchUpFormatConfig = {
   },
   options: {
     bestOf: [1, 3, 5],
-    exactly: [1, 2, 3, 4, 5],
+    exactly: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
     setTo: [1, 2, 3, 4, 5, 6, 7, 8, 9],
-    tiebreakTo: [5, 7, 9, 10, 12],
+    tiebreakTo: [1, 3, 5, 7, 9, 10, 11, 12, 13, 15, 21, 25],
     tiebreakToExactly: [1, 3], // Additional for Exactly
     tiebreakAt: [3, 4, 5, 6, 7, 8],
-    minutes: [5, 10, 15, 20, 30],
-    winBy: [1, 2]
+    minutes: [3, 5, 8, 10, 12, 15, 20, 25, 30, 45, 60, 90, 120],
+    winBy: [1, 2],
+    matchRoots: [...MATCH_ROOTS],
+    gameFormats: ['None', 'AGGR', '2C', '3C', '4C'],
+    modifiers: ['None', 'RALLY']
   }
 };
 
@@ -99,6 +108,18 @@ let editorConfig: MatchUpFormatConfig = defaultConfig;
 
 let selectedMatchUpFormat: string;
 let parsedMatchUpFormat: any;
+
+// Direct element references - avoids document.getElementById lookups
+// Populated when the modal renders, used by handlers to update controls
+let modalInputs: Record<string, HTMLElement> = {};
+
+/**
+ * Get an element by key from modalInputs, falling back to document.getElementById.
+ * This ensures handlers work even if modalInputs references become stale.
+ */
+function getEl(key: string): HTMLElement | null {
+  return modalInputs[key] || document.getElementById(key) || null;
+}
 
 const TIMED_SETS = 'Timed set';
 const TIEBREAKS = 'Tiebreak';
@@ -122,14 +143,21 @@ interface SetFormatConfig {
   tiebreakSet?: any;
   timed?: boolean;
   based?: string;
+  modifier?: string;
 }
 
 interface FormatConfig {
+  matchRoot?: string;
+  aggregate?: boolean;
+  gameFormat?: { type: 'AGGR' } | { type: 'CONSECUTIVE'; count: number };
   setFormat: SetFormatConfig;
   finalSetFormat: SetFormatConfig;
 }
 
 const format: FormatConfig = {
+  matchRoot: undefined,
+  aggregate: undefined,
+  gameFormat: undefined,
   setFormat: {
     descriptor: 'Best of',
     bestOf: 3,
@@ -161,9 +189,9 @@ function getSetFormat(index?: number): any {
   const which = index ? 'finalSetFormat' : 'setFormat';
   const config = format[which];
 
-  // Check if tiebreak checkbox is checked (DOM read)
-  const hasTiebreak =
-    (document.getElementById(index ? 'finalSetTiebreak' : 'setTiebreak') as HTMLInputElement)?.checked || false;
+  // Check if tiebreak checkbox is checked
+  const tiebreakKey = index ? 'finalSetTiebreak' : 'setTiebreak';
+  const hasTiebreak = (getEl(tiebreakKey) as HTMLInputElement)?.checked || false;
 
   // Delegate to pure logic function
   return buildSetFormat(config, hasTiebreak);
@@ -175,6 +203,17 @@ function generateMatchUpFormat(): string {
   parsedMatchUpFormat = {
     setFormat
   };
+
+  // Include match-level properties
+  if (format.matchRoot && format.matchRoot !== 'SET') {
+    parsedMatchUpFormat.matchRoot = format.matchRoot;
+  }
+  if (format.aggregate) {
+    parsedMatchUpFormat.aggregate = true;
+  }
+  if (format.gameFormat) {
+    parsedMatchUpFormat.gameFormat = format.gameFormat;
+  }
 
   // Use exactly or bestOf based on descriptor
   const descriptor = format.setFormat.descriptor;
@@ -190,7 +229,7 @@ function generateMatchUpFormat(): string {
     delete parsedMatchUpFormat.exactly;
   }
 
-  const hasFinalSet = (document.getElementById('finalSetOption') as HTMLInputElement)?.checked;
+  const hasFinalSet = (getEl('finalSetOption') as HTMLInputElement)?.checked;
   if (hasFinalSet) parsedMatchUpFormat.finalSetFormat = getSetFormat(1);
 
   const matchUpFormat = governors.scoreGovernor.stringifyMatchUpFormat(parsedMatchUpFormat);
@@ -199,7 +238,7 @@ function generateMatchUpFormat(): string {
     ? editorConfig.preDefinedFormats.map((f) => ({ value: f.code, label: f.text, format: f.code }))
     : matchUpFormats;
   const predefined = predefinedFormats.some((format) => format.format === matchUpFormat);
-  const elem = document.getElementById('matchUpFormatSelector') as HTMLSelectElement;
+  const elem = getEl('matchUpFormatSelector') as HTMLSelectElement;
 
   // Update select dropdown WITHOUT triggering onchange event
   if (elem) {
@@ -226,9 +265,9 @@ function setMatchUpFormatString(value?: string): void {
   const matchUpFormat = value || generateMatchUpFormat();
   // Update selectedMatchUpFormat so onSelect uses the current format
   selectedMatchUpFormat = matchUpFormat;
-  const matchUpFormatString = document.getElementById('matchUpFormatString');
-  if (matchUpFormatString) {
-    matchUpFormatString.innerHTML = matchUpFormat;
+  const formatStringElem = getEl('matchUpFormatString');
+  if (formatStringElem) {
+    formatStringElem.innerHTML = matchUpFormat;
   }
 }
 
@@ -279,9 +318,11 @@ const setComponents: SetComponent[] = [
       // Return configured options for 'Exactly' or 'Best of'
       const descriptor = format.setFormat.descriptor;
       const exactlyLabel = editorConfig.labels?.descriptors?.exactly || 'Exactly';
-      return descriptor === exactlyLabel
-        ? editorConfig.options?.exactly || defaultConfig.options!.exactly!
-        : editorConfig.options?.bestOf || defaultConfig.options!.bestOf!;
+      if (descriptor === exactlyLabel) {
+        return editorConfig.options?.exactly || defaultConfig.options!.exactly!;
+      }
+      // For Best of, use root-aware options
+      return getBestOfOptionsForRoot(format.matchRoot);
     },
     onChange: 'pluralize',
     onChangeCallback: 'updateFinalSetVisibility',
@@ -392,7 +433,7 @@ const setComponents: SetComponent[] = [
       const setFormat = whichSetFormat(pmf, isFinal);
       return (setFormat.timed && setFormat.minutes) || undefined;
     },
-    options: [10, 15, 20, 25, 30, 45, 60, 90],
+    options: () => editorConfig.options?.minutes || defaultConfig.options!.minutes!,
     onChange: 'changeMinutes',
     whats: [TIMED_SETS],
     suffix: ' Minutes',
@@ -413,6 +454,22 @@ const setComponents: SetComponent[] = [
     defaultValue: 'G',
     id: 'based',
     timed: true
+  },
+  {
+    getValue: (pmf, isFinal) => {
+      const setFormat = whichSetFormat(pmf, isFinal);
+      // Extract modifier from tiebreakSet, tiebreakFormat, or timed set
+      const modifier =
+        setFormat?.tiebreakSet?.modifier || setFormat?.tiebreakFormat?.modifier || setFormat?.modifier;
+      return modifier || undefined;
+    },
+    options: () => editorConfig.options?.modifiers || defaultConfig.options!.modifiers!,
+    onChange: 'changeModifier',
+    whats: [TIEBREAKS, TIMED_SETS],
+    prefix: '@',
+    defaultValue: 'None',
+    id: 'modifier',
+    tb: true
   }
 ];
 
@@ -446,21 +503,21 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
         onClicks.changeWhat(new Event('click'), undefined, TIMED_SETS);
 
         // Update the "what" button text to show "Timed set" or "Timed sets"
-        const whatElem = document.getElementById('what');
+        const whatElem = getEl('what');
         if (whatElem) {
           const plural = currentValue > 1 ? 's' : '';
           whatElem.innerHTML = `${TIMED_SETS}${plural}${clickable}`;
         }
 
         // Update the Minutes button display
-        const minutesElem = document.getElementById('minutes');
+        const minutesElem = getEl('minutes');
         if (minutesElem) {
           minutesElem.innerHTML = `${format.setFormat.minutes} Minutes${clickable}`;
           minutesElem.style.display = '';
         }
 
         // Update the based button display (show G/P/A)
-        const basedElem = document.getElementById('based');
+        const basedElem = getEl('based');
         if (basedElem) {
           const basedValue = format.setFormat.based || 'G';
           basedElem.innerHTML = `${basedValue}${clickable}`;
@@ -479,7 +536,7 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
       delete format.setFormat.exactly;
 
       // Always update the bestOf button display with the valid odd number
-      const bestOfElem = document.getElementById('bestOf');
+      const bestOfElem = getEl('bestOf');
       if (bestOfElem) {
         bestOfElem.innerHTML = `${validBestOf}${clickable}`;
       }
@@ -492,7 +549,7 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
 
     // Refresh tiebreakTo options for Final Set (index=1) when descriptor changes
     // This adds/removes [1,3] options based on Exactly vs Best of
-    const finalSetTiebreakToElem = document.getElementById('tiebreakTo-1');
+    const finalSetTiebreakToElem = getEl('tiebreakTo-1');
     if (finalSetTiebreakToElem && finalSetTiebreakToElem.style.display !== NONE) {
       // Just refresh the button - the options function will automatically return the correct list
       const currentTiebreakTo = format.finalSetFormat.tiebreakTo || 7;
@@ -517,8 +574,8 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
   changeWhat: (_e, index, opt) => {
     const tiebreakOptionVisible = opt === SETS;
     const elementId = index ? 'finalSetTiebreakToggle' : 'setTiebreakToggle';
-    const elem = document.getElementById(elementId);
-    elem.style.display = tiebreakOptionVisible ? '' : NONE;
+    const tiebreakToggle = getEl(elementId);
+    if (tiebreakToggle) tiebreakToggle.style.display = tiebreakOptionVisible ? '' : NONE;
 
     // IMPORTANT: 'Exactly' is only valid with timed sets
     // If changing away from timed sets while in 'Exactly' mode, switch to 'Best of'
@@ -531,13 +588,13 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
       delete format.setFormat.exactly;
 
       // Update the descriptor button display
-      const descriptorElem = document.getElementById('descriptor');
+      const descriptorElem = getEl('descriptor');
       if (descriptorElem) {
         descriptorElem.innerHTML = `Best of${clickable}`;
       }
 
       // Update the number button display
-      const bestOfElem = document.getElementById('bestOf');
+      const bestOfElem = getEl('bestOf');
       if (bestOfElem) {
         bestOfElem.innerHTML = `${validBestOf}${clickable}`;
       }
@@ -548,15 +605,20 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
         const { prefix = '', suffix = '', pluralize } = component;
         const visible = component.whats.includes(opt);
         const id = index ? `${component.id}-${index}` : component.id;
-        const elem = document.getElementById(id);
+        const elem = getEl(id);
+        if (!elem) return;
 
         if (elem.style.display === NONE && visible) {
           const setCount = parsedMatchUpFormat.bestOf || parsedMatchUpFormat.exactly;
           const plural = !index && pluralize && setCount > 1 ? 's' : '';
           const value = component.defaultValue;
           elem.innerHTML = `${prefix}${value}${plural}${suffix}${clickable}`;
-          // Also update the format object with the default value
-          format[index ? 'finalSetFormat' : 'setFormat'][component.id] = value;
+          // Store the default value, but apply the same transformations
+          // that the onChange handlers would (e.g., 'None' → undefined, 'G' → undefined)
+          let storedValue = value;
+          if (component.id === 'modifier' && value === 'None') storedValue = undefined;
+          if (component.id === 'based' && value === 'G') storedValue = undefined;
+          format[index ? 'finalSetFormat' : 'setFormat'][component.id] = storedValue;
         }
 
         elem.style.display = visible ? '' : NONE;
@@ -578,7 +640,7 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
     if (newTiebreakAt !== currentTiebreakAt) {
       format[which].tiebreakAt = newTiebreakAt;
       // Update the tiebreakAt button display
-      const tiebreakAtElem = document.getElementById(index ? `tiebreakAt-${index}` : 'tiebreakAt');
+      const tiebreakAtElem = getEl(index ? `tiebreakAt-${index}` : 'tiebreakAt');
       if (tiebreakAtElem) {
         tiebreakAtElem.innerHTML = `@${newTiebreakAt}${clickable}`;
       }
@@ -619,13 +681,60 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
     format[which].based = opt === 'G' ? undefined : opt;
     setMatchUpFormatString();
   },
+  changeModifier: (_e, index, opt) => {
+    const which = index ? 'finalSetFormat' : 'setFormat';
+    format[which].modifier = opt === 'None' ? undefined : opt;
+    setMatchUpFormatString();
+  },
+  changeMatchRoot: (_e, _index, opt) => {
+    const prevRoot = format.matchRoot || 'SET';
+    format.matchRoot = opt === 'SET' ? undefined : opt;
+
+    // When switching roots, validate bestOf is in allowed range
+    if (prevRoot !== opt) {
+      const bestOfOptions = getBestOfOptionsForRoot(format.matchRoot);
+      const currentBestOf = format.setFormat.bestOf;
+      if (currentBestOf && !bestOfOptions.includes(currentBestOf)) {
+        // Reset to nearest valid value
+        const validBestOf = bestOfOptions[bestOfOptions.length - 1] >= currentBestOf
+          ? bestOfOptions.reduce((prev, curr) => (curr <= currentBestOf ? curr : prev), bestOfOptions[0])
+          : bestOfOptions[bestOfOptions.length - 1];
+        format.setFormat.bestOf = validBestOf;
+        const bestOfElem = getEl('bestOf');
+        if (bestOfElem) {
+          bestOfElem.innerHTML = `${validBestOf}${clickable}`;
+        }
+      }
+    }
+
+    setMatchUpFormatString();
+  },
+  changeAggregate: (_e, _index, _opt) => {
+    const checkbox = getEl('aggregateOption') as HTMLInputElement;
+    format.aggregate = checkbox?.checked || undefined;
+    setMatchUpFormatString();
+  },
+  changeGameFormat: (_e, _index, opt) => {
+    if (opt === 'None') {
+      format.gameFormat = undefined;
+    } else if (opt === 'AGGR') {
+      format.gameFormat = { type: 'AGGR' };
+    } else {
+      // Parse '2C', '3C', '4C' etc.
+      const match = /^(\d+)C$/.exec(opt);
+      if (match) {
+        format.gameFormat = { type: 'CONSECUTIVE', count: Number(match[1]) };
+      }
+    }
+    setMatchUpFormatString();
+  },
   pluralize: (_e, index, opt) => {
     const which = index ? 'finalSetFormat' : 'setFormat';
     const what = format[which].what;
     const elementId = index ? `what-${index}` : 'what';
-    const elem = document.getElementById(elementId);
+    const elem = getEl(elementId);
     const plural = opt > 1 ? 's' : '';
-    elem.innerHTML = `${what}${plural}${clickable}`;
+    if (elem) elem.innerHTML = `${what}${plural}${clickable}`;
 
     // Update bestOf or exactly based on descriptor
     if (!index) {
@@ -644,8 +753,8 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
   updateFinalSetVisibility: (_e, _index, opt) => {
     // When bestOf/exactly changes, show/hide final set toggle
     const showFinalSet = opt > 1;
-    const finalSetOption = document.getElementById('finalSetOption') as HTMLInputElement;
-    const finalSetLabel = document.querySelector('label[for="finalSetOption"]') as HTMLElement;
+    const finalSetOption = getEl('finalSetOption') as HTMLInputElement;
+    const finalSetLabel = getEl('finalSetOptionLabel') as HTMLElement;
 
     if (finalSetOption && finalSetLabel) {
       if (showFinalSet) {
@@ -692,6 +801,10 @@ export function getMatchUpFormatModal({
   // REFACTORED: Use pure function for format initialization
   // This prevents state pollution and ensures proper handling of all format types
   selectedMatchUpFormat = existingMatchUpFormat;
+
+  // Reset direct element references for this modal instance
+  modalInputs = {};
+
   parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
 
   // Handle invalid format strings that parse to undefined
@@ -707,12 +820,15 @@ export function getMatchUpFormatModal({
 
   // Update module-level format object
   // Use spread to ensure we get a copy, not a reference
+  format.matchRoot = initializedFormat.matchRoot;
+  format.aggregate = initializedFormat.aggregate;
+  format.gameFormat = initializedFormat.gameFormat;
   format.setFormat = { ...initializedFormat.setFormat };
   format.finalSetFormat = { ...initializedFormat.finalSetFormat };
   const onSelect = () => {
     // Use selectedMatchUpFormat if it's a predefined format (from dropdown selection)
     // Otherwise generate from current button states
-    const dropdown = document.getElementById('matchUpFormatSelector') as HTMLSelectElement;
+    const dropdown = getEl('matchUpFormatSelector') as HTMLSelectElement;
     const isPredefined = dropdown?.value && dropdown.value !== 'Custom';
     const specifiedFormat = isPredefined ? selectedMatchUpFormat : generateMatchUpFormat();
     if (isFunction(callback)) callback(specifiedFormat);
@@ -762,6 +878,7 @@ export function getMatchUpFormatModal({
   matchUpFormatString.style.fontSize = '1.5em';
   matchUpFormatString.style.color = 'blue';
   matchUpFormatString.style.marginBottom = '1em';
+  modalInputs['matchUpFormatString'] = matchUpFormatString;
   content.appendChild(matchUpFormatString);
 
   const standardFormatSelector = document.createElement('div');
@@ -804,6 +921,8 @@ export function getMatchUpFormatModal({
     select.appendChild(opt);
   }
 
+  modalInputs['matchUpFormatSelector'] = select;
+
   select.onchange = (e) => {
     selectedMatchUpFormat = (e.target as HTMLSelectElement).value;
     setMatchUpFormatString(selectedMatchUpFormat);
@@ -815,27 +934,39 @@ export function getMatchUpFormatModal({
       return;
     }
 
-    // Start with the setFormat from parsed result
-    format.setFormat = { ...parsedMatchUpFormat.setFormat };
+    // Use initializeFormatFromString for full extraction
+    const initialized = initializeFormatFromString(selectedMatchUpFormat, matchUpFormatCode.parse);
 
-    // Handle both bestOf and exactly attributes
-    // These are at the top level of parsedMatchUpFormat, not in setFormat
-    if (parsedMatchUpFormat.exactly) {
-      format.setFormat.exactly = parsedMatchUpFormat.exactly;
-      format.setFormat.descriptor = 'Exactly';
-      delete format.setFormat.bestOf;
-      // IMPORTANT: Exactly only works with timed sets
-      // Ensure the "what" is set correctly
-      if (format.setFormat.timed) {
-        format.setFormat.what = TIMED_SETS;
-      }
-    } else {
-      format.setFormat.bestOf = parsedMatchUpFormat.bestOf;
-      format.setFormat.descriptor = 'Best of';
-      delete format.setFormat.exactly;
+    // Apply match-level properties
+    format.matchRoot = initialized.matchRoot;
+    format.aggregate = initialized.aggregate;
+    format.gameFormat = initialized.gameFormat;
+
+    // Start with the setFormat from initialized result (includes modifier, based, etc.)
+    format.setFormat = { ...initialized.setFormat };
+    format.finalSetFormat = { ...initialized.finalSetFormat };
+
+    // Update match-level controls
+    const matchRootElem = getEl('matchRoot');
+    if (matchRootElem) {
+      const rootLabel = format.matchRoot || 'SET';
+      matchRootElem.innerHTML = `${MATCH_ROOT_LABELS[rootLabel] || rootLabel}${clickable}`;
     }
 
-    if (parsedMatchUpFormat.finalSetFormat) format.finalSetFormat = parsedMatchUpFormat.finalSetFormat;
+    const aggElem = getEl('aggregateOption') as HTMLInputElement;
+    if (aggElem) {
+      aggElem.checked = !!format.aggregate;
+    }
+
+    const gfElem = getEl('gameFormat');
+    if (gfElem) {
+      const gfDisplay = format.gameFormat
+        ? format.gameFormat.type === 'AGGR'
+          ? 'AGGR'
+          : `${(format.gameFormat as any).count}C`
+        : 'None';
+      gfElem.innerHTML = `Game: ${gfDisplay}${clickable}`;
+    }
 
     // Update Final Set toggle visibility based on bestOf/exactly value
     const setCount = parsedMatchUpFormat.bestOf || parsedMatchUpFormat.exactly;
@@ -844,25 +975,34 @@ export function getMatchUpFormatModal({
     const finalSet = parsedMatchUpFormat.finalSetFormat;
     finalSetFormat.style.display = finalSet ? '' : NONE;
     finalSetConfig.style.display = finalSet ? '' : NONE;
-    finalSetOption.checked = finalSet;
+    finalSetOption.checked = !!finalSet;
 
     // Check if final set is tiebreak-only (e.g., F:TB10)
     const finalSetIsTiebreakOnly = finalSet?.tiebreakSet?.tiebreakTo && !finalSet?.setTo;
     finalSetTiebreak.checked = !!finalSet?.tiebreakFormat;
     // Hide tiebreak checkbox/label if final set is tiebreak-only
     finalSetTiebreak.style.display = finalSetIsTiebreakOnly ? NONE : '';
-    const finalSetTiebreakLabelElem = document.getElementById('finalSetTiebreakToggle');
+    const finalSetTiebreakLabelElem = getEl('finalSetTiebreakToggle');
     if (finalSetTiebreakLabelElem) finalSetTiebreakLabelElem.style.display = finalSetIsTiebreakOnly ? NONE : '';
 
-    setTiebreak.checked = parsedMatchUpFormat.setFormat.tiebreakFormat;
+    // Determine the main set 'what' type from the parsed format
+    const mainWhat = format.setFormat.what;
+    const mainSetHasTiebreak = !!parsedMatchUpFormat.setFormat.tiebreakFormat;
+
+    // Update tiebreak checkbox and toggle visibility based on 'what' type
+    setTiebreak.checked = mainSetHasTiebreak;
+    const tiebreakToggleVisible = mainWhat === SETS;
+    setTiebreak.style.display = tiebreakToggleVisible ? '' : NONE;
+    const setTiebreakToggleElem = getEl('setTiebreakToggle');
+    if (setTiebreakToggleElem) setTiebreakToggleElem.style.display = tiebreakToggleVisible ? '' : NONE;
 
     // Update all button values to match the selected format
     setComponents.forEach((component) => {
       if (component.getValue) {
         const setComponentValue = component.getValue(parsedMatchUpFormat);
-        const elem = document.getElementById(component.id);
+        const elem = getEl(component.id);
 
-        if (elem && setComponentValue) {
+        if (elem && setComponentValue !== undefined && setComponentValue !== null) {
           const { prefix = '', suffix = '', pluralize } = component;
           const setCount = parsedMatchUpFormat.bestOf || parsedMatchUpFormat.exactly;
           const plural = pluralize && setCount > 1 ? 's' : '';
@@ -872,18 +1012,28 @@ export function getMatchUpFormatModal({
           elem.style.display = NONE;
         }
 
+        // For tb (tiebreak-related) components: update visibility based on what type
+        // In SETS mode: only visible when tiebreak is checked
+        // In TIEBREAKS/TIMED_SETS mode: visibility determined by whats and getValue above
+        if (component.tb && mainWhat === SETS) {
+          const tbElem = getEl(component.id);
+          if (tbElem) {
+            tbElem.style.display = mainSetHasTiebreak ? tbElem.style.display : NONE;
+          }
+        }
+
         if (finalSet) {
           const finalComponentValue = component.getValue(parsedMatchUpFormat, true);
-          const elem = document.getElementById(`${component.id}-1`);
+          const finalElem = getEl(`${component.id}-1`);
 
-          if (elem && finalComponentValue) {
+          if (finalElem && finalComponentValue !== undefined && finalComponentValue !== null) {
             const { prefix = '', suffix = '', pluralize } = component;
             const setCount = parsedMatchUpFormat.bestOf || parsedMatchUpFormat.exactly;
             const plural = pluralize && setCount > 1 ? 's' : '';
-            elem.innerHTML = `${prefix}${finalComponentValue}${plural}${suffix}${clickable}`;
-            elem.style.display = '';
-          } else if (elem) {
-            elem.style.display = NONE;
+            finalElem.innerHTML = `${prefix}${finalComponentValue}${plural}${suffix}${clickable}`;
+            finalElem.style.display = '';
+          } else if (finalElem) {
+            finalElem.style.display = NONE;
           }
         }
       }
@@ -892,20 +1042,114 @@ export function getMatchUpFormatModal({
   standardFormatSelector.appendChild(select);
   content.appendChild(standardFormatSelector);
 
+  // Match root button (SET, HAL, QTR, PER, etc.)
+  const matchRootRow = document.createElement('div');
+  matchRootRow.style.display = 'flex';
+  matchRootRow.style.flexWrap = 'wrap';
+  matchRootRow.style.gap = '0.5em';
+  matchRootRow.style.marginBottom = '0.5em';
+  matchRootRow.style.alignItems = 'center';
+
+  const matchRootLabel = format.matchRoot || 'SET';
+  const matchRootButton = document.createElement('button');
+  matchRootButton.className = 'mfcButton';
+  matchRootButton.id = 'matchRoot';
+  matchRootButton.innerHTML = `${MATCH_ROOT_LABELS[matchRootLabel] || matchRootLabel}${clickable}`;
+  matchRootButton.style.transition = 'all .2s ease-in-out';
+  matchRootButton.style.backgroundColor = 'inherit';
+  matchRootButton.style.border = 'none';
+  matchRootButton.style.color = 'inherit';
+  matchRootButton.style.padding = '.3em';
+  matchRootButton.style.textAlign = 'center';
+  matchRootButton.style.textDecoration = 'none';
+  matchRootButton.style.fontSize = '1em';
+  matchRootButton.style.cursor = 'pointer';
+  matchRootButton.onclick = (e) => {
+    const roots = editorConfig.options?.matchRoots || defaultConfig.options!.matchRoots!;
+    const items = roots.map((root: string) => ({
+      text: `${MATCH_ROOT_LABELS[root] || root}`,
+      onClick: () => {
+        matchRootButton.innerHTML = `${MATCH_ROOT_LABELS[root] || root}${clickable}`;
+        onClicks.changeMatchRoot(e, undefined, root);
+      }
+    }));
+    createDropdown(e, items);
+  };
+  matchRootRow.appendChild(matchRootButton);
+
+  // Aggregate checkbox
+  const aggregateCheckbox = document.createElement('input');
+  aggregateCheckbox.type = 'checkbox';
+  aggregateCheckbox.className = 'switch is-rounded is-warning';
+  aggregateCheckbox.id = 'aggregateOption';
+  aggregateCheckbox.name = 'aggregateOption';
+  aggregateCheckbox.checked = !!format.aggregate;
+  aggregateCheckbox.onchange = () => {
+    onClicks.changeAggregate(new Event('change'), undefined, undefined);
+  };
+  matchRootRow.appendChild(aggregateCheckbox);
+
+  const aggregateLabel = document.createElement('label');
+  aggregateLabel.setAttribute('for', 'aggregateOption');
+  aggregateLabel.innerHTML = 'Aggregate';
+  aggregateLabel.style.marginRight = '1em';
+  matchRootRow.appendChild(aggregateLabel);
+
+  // Game format button
+  const currentGameFormat = format.gameFormat
+    ? format.gameFormat.type === 'AGGR'
+      ? 'AGGR'
+      : `${(format.gameFormat as any).count}C`
+    : 'None';
+  const gameFormatButton = document.createElement('button');
+  gameFormatButton.className = 'mfcButton';
+  gameFormatButton.id = 'gameFormat';
+  gameFormatButton.innerHTML = `Game: ${currentGameFormat}${clickable}`;
+  gameFormatButton.style.transition = 'all .2s ease-in-out';
+  gameFormatButton.style.backgroundColor = 'inherit';
+  gameFormatButton.style.border = 'none';
+  gameFormatButton.style.color = 'inherit';
+  gameFormatButton.style.padding = '.3em';
+  gameFormatButton.style.textAlign = 'center';
+  gameFormatButton.style.textDecoration = 'none';
+  gameFormatButton.style.fontSize = '1em';
+  gameFormatButton.style.cursor = 'pointer';
+  gameFormatButton.onclick = (e) => {
+    const gameFormats = editorConfig.options?.gameFormats || defaultConfig.options!.gameFormats!;
+    const items = gameFormats.map((gf: string) => ({
+      text: gf,
+      onClick: () => {
+        gameFormatButton.innerHTML = `Game: ${gf}${clickable}`;
+        onClicks.changeGameFormat(e, undefined, gf);
+      }
+    }));
+    createDropdown(e, items);
+  };
+  matchRootRow.appendChild(gameFormatButton);
+
+  // Store match-level control references
+  modalInputs['matchRoot'] = matchRootButton;
+  modalInputs['aggregateOption'] = aggregateCheckbox;
+  modalInputs['gameFormat'] = gameFormatButton;
+
+  content.appendChild(matchRootRow);
+
   const setFormat = document.createElement('div');
   setFormat.style.display = 'flex';
   setFormat.style.flexWrap = 'wrap';
   setFormat.style.gap = '0.5em';
   setFormat.style.marginBottom = '1em';
+
   setComponents
     .map((component) => {
       const value = component.getValue ? component.getValue(parsedMatchUpFormat) : undefined;
-      return createButton({ ...component, value });
+      const button = createButton({ ...component, value });
+      modalInputs[component.id] = button; // Store direct reference
+      return button;
     })
     .forEach((button) => setFormat.appendChild(button));
   setFormat.id = 'setFormat';
   content.appendChild(setFormat);
-
   const setConfig = document.createElement('div');
   setConfig.className = 'field';
   setConfig.style.fontSize = '1em';
@@ -916,12 +1160,13 @@ export function getMatchUpFormatModal({
   setTiebreak.id = 'setTiebreak';
   setTiebreak.type = 'checkbox';
   setTiebreak.checked = !!parsedMatchUpFormat.setFormat.tiebreakFormat;
+  modalInputs['setTiebreak'] = setTiebreak;
   setTiebreak.onchange = (e) => {
     const active = (e.target as HTMLInputElement).checked;
     setComponents
       .filter(({ tb }) => tb)
       .forEach((component) => {
-        const elem = document.getElementById(component.id);
+        const elem = getEl(component.id);
         if (!elem) return;
 
         if (elem.style.display === NONE && active) {
@@ -942,6 +1187,7 @@ export function getMatchUpFormatModal({
   tiebreakLabel.id = 'setTiebreakToggle';
   tiebreakLabel.innerHTML = 'Tiebreak';
   tiebreakLabel.style.marginRight = '1em';
+  modalInputs['setTiebreakToggle'] = tiebreakLabel;
   setConfig.appendChild(tiebreakLabel);
 
   // Only show final set option if setCount > 1 (can't have a final set with only 1 set)
@@ -953,6 +1199,7 @@ export function getMatchUpFormatModal({
   finalSetOption.name = 'finalSetOption';
   finalSetOption.checked = !!parsedMatchUpFormat.finalSetFormat;
   finalSetOption.id = 'finalSetOption';
+  modalInputs['finalSetOption'] = finalSetOption;
   finalSetOption.style.display = showFinalSetOption ? '' : 'none';
   finalSetOption.onchange = (e) => {
     const active = (e.target as HTMLInputElement).checked;
@@ -968,7 +1215,7 @@ export function getMatchUpFormatModal({
       const setCount = format.setFormat.bestOf || format.setFormat.exactly || 3;
 
       // Update the "what" button for final set
-      const whatElem = document.getElementById('what-1');
+      const whatElem = getEl('what-1');
       if (whatElem) {
         const plural = setCount > 1 ? 's' : '';
         whatElem.innerHTML = `${what}${plural}${clickable}`;
@@ -977,7 +1224,7 @@ export function getMatchUpFormatModal({
       // Update ALL final set component buttons from format data
       setComponents.forEach((component) => {
         // Try to find the final set version of this component (id-1)
-        const elem = document.getElementById(`${component.id}-1`);
+        const elem = getEl(`${component.id}-1`);
 
         // Skip if this component doesn't have a final set version
         if (!elem) return;
@@ -1001,15 +1248,15 @@ export function getMatchUpFormatModal({
       });
 
       // Handle tiebreak toggle visibility (only for regular sets)
-      const finalSetTiebreakToggle = document.getElementById('finalSetTiebreakToggle');
-      if (finalSetTiebreakToggle) {
-        finalSetTiebreakToggle.style.display = what === SETS ? '' : NONE;
+      const fsTiebreakToggle = getEl('finalSetTiebreakToggle');
+      if (fsTiebreakToggle) {
+        fsTiebreakToggle.style.display = what === SETS ? '' : NONE;
       }
 
       // Copy tiebreak checkbox state for regular sets
       if (what === SETS) {
-        const mainTiebreak = document.getElementById('setTiebreak') as HTMLInputElement;
-        const finalTiebreak = document.getElementById('finalSetTiebreak') as HTMLInputElement;
+        const mainTiebreak = getEl('setTiebreak') as HTMLInputElement;
+        const finalTiebreak = getEl('finalSetTiebreak') as HTMLInputElement;
         if (mainTiebreak && finalTiebreak) {
           finalTiebreak.checked = mainTiebreak.checked;
         }
@@ -1027,6 +1274,7 @@ export function getMatchUpFormatModal({
   finalSetLabel.setAttribute('for', 'finalSetOption');
   finalSetLabel.innerHTML = 'Final set';
   finalSetLabel.style.display = showFinalSetOption ? '' : 'none';
+  modalInputs['finalSetOptionLabel'] = finalSetLabel;
   setConfig.appendChild(finalSetLabel);
 
   content.appendChild(setConfig);
@@ -1037,6 +1285,7 @@ export function getMatchUpFormatModal({
   finalSetFormat.style.gap = '0.5em';
   finalSetFormat.style.marginBottom = '1em';
   finalSetFormat.id = 'finalSetFormat';
+  modalInputs['finalSetFormatDiv'] = finalSetFormat;
   ([{ label: `<div style='font-weight: bold'>Final set</div>`, options: [] as any[], finalSet: true }] as any[])
     .concat(
       setComponents.map((component) => {
@@ -1045,12 +1294,17 @@ export function getMatchUpFormatModal({
       })
     )
     .filter((def: any) => def.finalSet !== false)
-    .map((def: any) => createButton({ ...def, index: 1 }))
+    .map((def: any) => {
+      const button = createButton({ ...def, index: 1 });
+      if (def.id) modalInputs[`${def.id}-1`] = button;
+      return button;
+    })
     .forEach((button) => finalSetFormat.appendChild(button));
   content.appendChild(finalSetFormat);
 
   const finalSetConfig = document.createElement('div');
-  finalSetConfig.id = 'finalSetConfig'; // Add id for dynamic visibility control
+  finalSetConfig.id = 'finalSetConfig';
+  modalInputs['finalSetConfigDiv'] = finalSetConfig;
   finalSetConfig.style.display = parsedMatchUpFormat.finalSetFormat ? '' : NONE;
   finalSetConfig.className = 'field';
   finalSetConfig.style.fontSize = '1em';
@@ -1064,6 +1318,7 @@ export function getMatchUpFormatModal({
   finalSetTiebreak.className = tiebreakSwitch;
   finalSetTiebreak.name = 'finalSetTiebreak';
   finalSetTiebreak.id = 'finalSetTiebreak';
+  modalInputs['finalSetTiebreak'] = finalSetTiebreak;
   finalSetTiebreak.type = 'checkbox';
   // Initialize final set tiebreak:
   // - If final set doesn't exist, default to match main set's tiebreak
@@ -1078,7 +1333,8 @@ export function getMatchUpFormatModal({
     setComponents
       .filter(({ tb }) => tb)
       .forEach((component) => {
-        const elem = document.getElementById(`${component.id}-1`);
+        const elem = getEl(`${component.id}-1`);
+        if (!elem) return;
 
         if (elem.style.display === NONE && active) {
           const { prefix = '', suffix = '', pluralize, defaultValue: value } = component;
@@ -1100,6 +1356,7 @@ export function getMatchUpFormatModal({
   finalSetTiebreakLabel.style.marginRight = '1em';
   // Hide tiebreak label if final set is already tiebreak-only
   finalSetTiebreakLabel.style.display = finalSetIsTiebreakOnly ? NONE : '';
+  modalInputs['finalSetTiebreakToggle'] = finalSetTiebreakLabel;
   finalSetConfig.appendChild(finalSetTiebreakLabel);
 
   content.appendChild(finalSetConfig);
@@ -1142,7 +1399,7 @@ export function getMatchUpFormatModal({
   setTimeout(() => {
     if (parsedMatchUpFormat.finalSetFormat?.tiebreakSet?.tiebreakTo && !parsedMatchUpFormat.finalSetFormat?.setTo) {
       // Trigger the changeWhat callback for final set to update UI
-      const whatElem = document.getElementById('what-1');
+      const whatElem = getEl('what-1');
       if (whatElem) {
         whatElem.innerHTML = `${TIEBREAKS}${clickable}`;
       }
@@ -1211,6 +1468,9 @@ function getButtonClick(params: any): void {
     text: `${opt}${plural}`,
     onClick: () => {
       button.innerHTML = `${prefix}${opt}${plural}${suffix}${clickable}`;
+      // Store raw value first; onChange handlers may override with transformed values
+      // (e.g., changeModifier converts 'None' → undefined, changeBased converts 'G' → undefined)
+      format[index ? 'finalSetFormat' : 'setFormat'][id] = opt;
       if (onChange && isFunction(onClicks[onChange])) {
         onClicks[onChange](e, index, opt);
       }
@@ -1218,8 +1478,8 @@ function getButtonClick(params: any): void {
       if (onChangeCallback && isFunction(onClicks[onChangeCallback])) {
         onClicks[onChangeCallback](e, index, opt);
       }
-      format[index ? 'finalSetFormat' : 'setFormat'][id] = opt;
-      // Update the format string display immediately
+      // Ensure format string is up-to-date (onChange handlers also call this,
+      // but we call it as a safety net for any handler that might not)
       setMatchUpFormatString();
     }
   }));
@@ -1275,12 +1535,9 @@ function createDropdown(e: any, items: any[]) {
     itemDiv.onclick = (clickEvent) => {
       clickEvent.preventDefault();
       clickEvent.stopPropagation();
-      // Remove dropdown immediately (like tipster does), then call onClick
+      // Remove dropdown immediately, then call onClick synchronously
       removeDropdown();
-      // Use setTimeout to allow dropdown to fully close before state updates
-      setTimeout(() => {
-        item.onClick();
-      }, 0);
+      item.onClick();
     };
     itemDiv.onmouseenter = () => {
       itemDiv.style.backgroundColor = '#f5f5f5';

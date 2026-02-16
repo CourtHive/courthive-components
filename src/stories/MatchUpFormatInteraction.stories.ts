@@ -295,3 +295,119 @@ export const PreserveExistingFinalSetTiebreak: Story = {
     await userEvent.click(cancelButton);
   }
 };
+
+/**
+ * Test: Predefined format selector updates all controls
+ *
+ * When selecting INTENNSE (SET7XA-S:T10P), the modal should update:
+ * - Descriptor: 'Best of' → 'Exactly'
+ * - BestOf count: → 7
+ * - What: 'Set' → 'Timed set'
+ * - Aggregate toggle: ON
+ * - Format string display: SET7XA-S:T10P
+ */
+export const PredefinedFormatUpdatesControls: Story = {
+  render: () => {
+    const container = document.createElement('div');
+    container.style.padding = '2em';
+
+    const resultDisplay = document.createElement('div');
+    resultDisplay.id = 'result-display-4';
+    resultDisplay.style.marginTop = '1em';
+    resultDisplay.style.padding = '1em';
+    resultDisplay.style.backgroundColor = '#f0f0f0';
+    resultDisplay.style.borderRadius = '4px';
+    resultDisplay.innerHTML = '<strong>Selected format will appear here</strong>';
+
+    const button = document.createElement('button');
+    button.className = 'button is-primary';
+    button.textContent = 'Open Match Format Editor';
+    button.id = 'open-modal-button-4';
+    button.onclick = async () => {
+      const { getMatchUpFormatModal } = await import('../components/matchUpFormat/matchUpFormat');
+
+      getMatchUpFormatModal({
+        existingMatchUpFormat: 'SET3-S:6/TB7',
+        callback: (format: string) => {
+          if (format) {
+            resultDisplay.innerHTML = `<strong style="color: #000;">Selected format:</strong> <code style="background: #e0e0e0; padding: 0.2em 0.4em; border-radius: 3px; color: #000;">${format}</code>`;
+          }
+        }
+      });
+    };
+
+    const title = document.createElement('h2');
+    title.textContent = 'Predefined Format Selector Test';
+    title.style.color = '#333';
+
+    const description = document.createElement('p');
+    description.innerHTML =
+      'Tests that selecting INTENNSE from the dropdown updates all controls correctly.<br><br>' +
+      '<strong>Expected:</strong> Descriptor=Exactly, Count=7, What=Timed sets, Aggregate=ON';
+    description.style.color = '#555';
+    description.style.marginBottom = '1.5em';
+
+    container.appendChild(title);
+    container.appendChild(description);
+    container.appendChild(button);
+    container.appendChild(resultDisplay);
+
+    return container;
+  },
+
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    // Step 1: Open modal
+    const openButton = await canvas.findByRole('button', { name: /open match format editor/i });
+    await userEvent.click(openButton);
+
+    // Step 2: Wait for modal and verify initial state
+    await waitFor(() => {
+      const formatDisplay = document.getElementById('matchUpFormatString');
+      expect(formatDisplay).toBeInTheDocument();
+      expect(formatDisplay?.textContent).toBe('SET3-S:6/TB7');
+    });
+
+    // Verify initial button states
+    const descriptorBtn = document.getElementById('descriptor');
+    expect(descriptorBtn?.textContent).toContain('Best of');
+
+    const aggregateCheckbox = document.getElementById('aggregateOption') as HTMLInputElement;
+    expect(aggregateCheckbox.checked).toBe(false);
+
+    // Step 3: Select INTENNSE from dropdown
+    const selector = document.getElementById('matchUpFormatSelector') as HTMLSelectElement;
+    expect(selector).toBeInTheDocument();
+
+    await userEvent.selectOptions(selector, 'SET7XA-S:T10P');
+
+    // Step 4: Verify format string updated
+    await waitFor(() => {
+      const formatDisplay = document.getElementById('matchUpFormatString');
+      expect(formatDisplay?.textContent).toBe('SET7XA-S:T10P');
+    });
+
+    // Step 5: Verify descriptor changed to 'Exactly'
+    await waitFor(() => {
+      const descriptorBtn = document.getElementById('descriptor');
+      expect(descriptorBtn?.textContent).toContain('Exactly');
+    });
+
+    // Step 6: Verify bestOf changed to 7
+    const bestOfBtn = document.getElementById('bestOf');
+    expect(bestOfBtn?.textContent).toContain('7');
+
+    // Step 7: Verify what changed to 'Timed set'
+    const whatBtn = document.getElementById('what');
+    expect(whatBtn?.textContent).toContain('Timed set');
+
+    // Step 8: Verify aggregate toggle is ON
+    const aggregateAfter = document.getElementById('aggregateOption') as HTMLInputElement;
+    expect(aggregateAfter.checked).toBe(true);
+
+    // Close modal
+    const cancelButton = within(document.body).getByRole('button', { name: /cancel/i });
+    await userEvent.click(cancelButton);
+  }
+};
