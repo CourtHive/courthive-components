@@ -55,9 +55,9 @@
 }
 
 .toolbar-section button.active {
-  background: #218D8D;
+  background: #218d8d;
   color: white;
-  border-color: #218D8D;
+  border-color: #218d8d;
 }
 
 .paint-type-selector {
@@ -107,7 +107,7 @@
 
 .stat-value {
   font-weight: 600;
-  color: #218D8D;
+  color: #218d8d;
   font-size: 1.1rem;
 }
 
@@ -228,6 +228,12 @@
   border: none;
 }
 
+/* Prevent horizontal overscroll from triggering browser back/forward navigation */
+.vis-timeline {
+  overscroll-behavior-x: contain;
+  touch-action: pan-x pan-y pinch-zoom;
+}
+
 .temporal-grid-calendar .vis-panel.vis-center {
   border: none;
 }
@@ -263,10 +269,8 @@
    Segment Styles (from viewProjections.ts)
    ============================================================================ */
 
-/* Available - transparent (inverted paradigm: no visual needed for default state) */
+/* Available - near-transparent; inline background-color from colorScheme takes effect */
 .segment-available {
-  background: transparent !important;
-  opacity: 1;
 }
 
 /* Blocked - diagonal hatching */
@@ -293,11 +297,7 @@
 
 /* Maintenance - dots */
 .segment-maintenance {
-  background-image: radial-gradient(
-    circle,
-    rgba(0, 0, 0, 0.2) 1px,
-    transparent 1px
-  );
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.2) 1px, transparent 1px);
   background-size: 10px 10px;
 }
 
@@ -377,7 +377,8 @@
 }
 
 @keyframes pulse-error {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.4;
   }
   50% {
@@ -386,7 +387,8 @@
 }
 
 @keyframes pulse-warn {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.3;
   }
   50% {
@@ -442,14 +444,14 @@
    ============================================================================ */
 
 .temporal-grid-root:focus-within {
-  outline: 2px solid #218D8D;
+  outline: 2px solid #218d8d;
   outline-offset: 2px;
 }
 
 button:focus,
 input:focus,
 select:focus {
-  outline: 2px solid #218D8D;
+  outline: 2px solid #218d8d;
   outline-offset: 2px;
 }
 

@@ -12,17 +12,9 @@
  * Design: Pure functions, no side effects, testable in isolation.
  */
 
-import type {
-  BlockType,
-  CourtMeta,
-  CourtRef,
-  FacilityDayTimeline,
-  RailSegment,
-} from '../engine/types';
+import type { BlockType, CourtMeta, CourtRef, FacilityDayTimeline, RailSegment } from '../engine/types';
 
-import type {
-  IdType,
-} from 'vis-timeline/standalone';
+import type { IdType } from 'vis-timeline/standalone';
 
 // ============================================================================
 // Timeline Type Definitions (vis-timeline compatible)
@@ -123,7 +115,7 @@ export interface BlockColorScheme {
 // ============================================================================
 
 export const DEFAULT_COLOR_SCHEME: BlockColorScheme = {
-  AVAILABLE: 'transparent', // Transparent (inverted paradigm: default state, no visual needed)
+  AVAILABLE: 'rgba(33, 141, 141, 0.15)', // Barely-there teal tint; consumers can override via colorScheme
   BLOCKED: '#95a5a6', // Gray
   PRACTICE: '#9b59b6', // Purple
   MAINTENANCE: '#f39c12', // Amber/Orange
@@ -133,7 +125,7 @@ export const DEFAULT_COLOR_SCHEME: BlockColorScheme = {
   SOFT_BLOCK: '#5dade2', // Light Blue
   HARD_BLOCK: '#e74c3c', // Red
   LOCKED: '#34495e', // Dark Gray
-  UNSPECIFIED: '#ecf0f1', // Very Light Gray (gray fog)
+  UNSPECIFIED: '#ecf0f1' // Very Light Gray (gray fog)
 };
 
 // ============================================================================
@@ -147,7 +139,7 @@ export const DEFAULT_COLOR_SCHEME: BlockColorScheme = {
 export function buildResourcesFromTimelines(
   timelines: FacilityDayTimeline[],
   courtMeta: CourtMeta[],
-  _config: ProjectionConfig = {},
+  _config: ProjectionConfig = {}
 ): TimelineGroup[] {
   const groups: TimelineGroup[] = [];
 
@@ -178,7 +170,7 @@ export function buildResourcesFromTimelines(
       surface: meta.surface,
       indoor: meta.indoor,
       hasLights: meta.hasLights,
-      tags: meta.tags,
+      tags: meta.tags
     };
 
     // Set nestedGroups grouping based on mode
@@ -211,7 +203,7 @@ export function buildFacilityGroups(timelines: FacilityDayTimeline[]): TimelineG
     content: facilityId,
     nestedGroups: Array.from(courtKeys),
     showNested: true,
-    isGroup: true,
+    isGroup: true
   }));
 }
 
@@ -225,13 +217,9 @@ export function buildFacilityGroups(timelines: FacilityDayTimeline[]): TimelineG
  */
 export function buildEventsFromTimelines(
   timelines: FacilityDayTimeline[],
-  config: ProjectionConfig = {},
+  config: ProjectionConfig = {}
 ): TimelineItem[] {
-  const {
-    layerVisibility = new Map(),
-    showSegmentLabels = false,
-    colorScheme = DEFAULT_COLOR_SCHEME,
-  } = config;
+  const { layerVisibility = new Map(), showSegmentLabels = false, colorScheme = DEFAULT_COLOR_SCHEME } = config;
 
   const items: TimelineItem[] = [];
 
@@ -261,7 +249,7 @@ export function buildEventsFromTimelines(
           selectable: false,
           status: segment.status,
           contributingBlocks: segment.contributingBlocks,
-          isSegment: true,
+          isSegment: true
         });
       }
     }
@@ -274,9 +262,7 @@ export function buildEventsFromTimelines(
  * Format a segment label for display
  */
 function formatSegmentLabel(segment: RailSegment): string {
-  const duration = Math.round(
-    (new Date(segment.end).getTime() - new Date(segment.start).getTime()) / (1000 * 60),
-  );
+  const duration = Math.round((new Date(segment.end).getTime() - new Date(segment.start).getTime()) / (1000 * 60));
   return `${segment.status} (${duration}m)`;
 }
 
@@ -297,7 +283,7 @@ export function buildBlockEvents(
     type: BlockType;
     reason?: string;
   }>,
-  config: ProjectionConfig = {},
+  config: ProjectionConfig = {}
 ): TimelineItem[] {
   const { colorScheme = DEFAULT_COLOR_SCHEME } = config;
   const items: TimelineItem[] = [];
@@ -321,7 +307,7 @@ export function buildBlockEvents(
       blockId: block.id,
       status: block.type,
       reason: block.reason,
-      isBlock: true,
+      isBlock: true
     });
   }
 
@@ -343,7 +329,7 @@ export function buildConflictEvents(
     severity: 'ERROR' | 'WARN' | 'INFO';
     timeRange: { start: string; end: string };
     courts: CourtRef[];
-  }>,
+  }>
 ): TimelineItem[] {
   const items: TimelineItem[] = [];
 
@@ -365,7 +351,7 @@ export function buildConflictEvents(
         conflictCode: conflict.code,
         severity: conflict.severity,
         message: conflict.message,
-        isConflict: true,
+        isConflict: true
       });
     }
   }
@@ -382,24 +368,19 @@ export function buildConflictEvents(
  */
 export function filterEventsByTimeRange(
   events: TimelineItem[],
-  timeRange: { start: string; end: string },
+  timeRange: { start: string; end: string }
 ): TimelineItem[] {
-  return events.filter(
-    (event) => {
-      const eventStart = typeof event.start === 'string' ? event.start : event.start.toISOString();
-      const eventEnd = event.end ? (typeof event.end === 'string' ? event.end : event.end.toISOString()) : eventStart;
-      return eventStart < timeRange.end && eventEnd > timeRange.start;
-    },
-  );
+  return events.filter((event) => {
+    const eventStart = typeof event.start === 'string' ? event.start : event.start.toISOString();
+    const eventEnd = event.end ? (typeof event.end === 'string' ? event.end : event.end.toISOString()) : eventStart;
+    return eventStart < timeRange.end && eventEnd > timeRange.start;
+  });
 }
 
 /**
  * Filter groups by facility
  */
-export function filterResourcesByFacility(
-  resources: TimelineGroup[],
-  facilityId: string,
-): TimelineGroup[] {
+export function filterResourcesByFacility(resources: TimelineGroup[], facilityId: string): TimelineGroup[] {
   return resources.filter((resource) => {
     return resource.courtRef?.facilityId === facilityId;
   });
@@ -430,12 +411,12 @@ export function buildCapacityVisualization(
     courtsAvailable: number;
     courtsSoftBlocked: number;
     courtsHardBlocked: number;
-  }>,
+  }>
 ): Array<{ time: string; value: number; label: string }> {
   return capacityPoints.map((point) => ({
     time: point.time,
     value: point.courtsAvailable,
-    label: `${point.courtsAvailable} courts available`,
+    label: `${point.courtsAvailable} courts available`
   }));
 }
 
@@ -485,7 +466,7 @@ export function parseResourceId(resourceId: string): CourtRef | null {
   return {
     tournamentId: parts[0],
     facilityId: parts[1],
-    courtId: parts[2],
+    courtId: parts[2]
   };
 }
 
@@ -525,9 +506,8 @@ export function isConflictEvent(event: TimelineItem): boolean {
  */
 export function generateBlockPatternCSS(): string {
   return `
-    /* Available - solid */
+    /* Available - near-transparent tint */
     .segment-available {
-      opacity: 0.3;
     }
 
     /* Blocked - diagonal lines */
@@ -632,18 +612,57 @@ export function buildTimelineWindowConfig(config: {
     min: start,
     max: end,
     zoomMin,
-    zoomMax,
+    zoomMax
   };
+}
+
+/**
+ * Build hidden date ranges for vis-timeline to collapse overnight gaps.
+ * Uses `repeat: 'daily'` so the gap is hidden every day in a multi-day view.
+ */
+export function buildHiddenDates(config: {
+  dayStartTime: string; // earliest court open across all days/courts (e.g. '08:00')
+  dayEndTime: string; // latest court close across all days/courts (e.g. '20:00')
+  referenceDay: string; // any tournament day (YYYY-MM-DD), used as anchor
+  bufferMinutes?: number; // minutes of padding outside availability (default 30)
+}): Array<{ start: Date; end: Date; repeat: 'daily' | 'weekly' | 'monthly' | 'yearly' }> {
+  const buffer = config.bufferMinutes ?? 30;
+
+  // Parse HH:MM into total minutes since midnight
+  const [startH, startM] = config.dayStartTime.split(':').map(Number);
+  const [endH, endM] = config.dayEndTime.split(':').map(Number);
+  const startMinutes = startH * 60 + startM;
+  const endMinutes = endH * 60 + endM;
+
+  // Apply buffer: show a bit before open and a bit after close
+  const bufferedStartMinutes = Math.max(0, startMinutes - buffer);
+  const bufferedEndMinutes = Math.min(24 * 60, endMinutes + buffer);
+
+  // If buffered range covers the full day (or nearly), no gap to hide
+  if (bufferedEndMinutes >= bufferedStartMinutes + 24 * 60 - 1) return [];
+  // If end meets or exceeds next-day start (gap vanishes), return empty
+  if (bufferedEndMinutes >= 24 * 60 && bufferedStartMinutes <= 0) return [];
+
+  // Build gap: from bufferedEnd on referenceDay to bufferedStart on referenceDay+1
+  const refDate = new Date(`${config.referenceDay}T00:00:00`);
+
+  const gapStart = new Date(refDate);
+  gapStart.setMinutes(bufferedEndMinutes);
+
+  const gapEnd = new Date(refDate);
+  gapEnd.setDate(gapEnd.getDate() + 1);
+  gapEnd.setMinutes(bufferedStartMinutes);
+
+  // If gap start >= gap end, the gap is zero or negative — nothing to hide
+  if (gapStart >= gapEnd) return [];
+
+  return [{ start: gapStart, end: gapEnd, repeat: 'daily' }];
 }
 
 /**
  * @deprecated Use buildTimelineWindowConfig instead
  */
-export function buildTimeSlotConfig(config: {
-  dayStartTime: string;
-  dayEndTime: string;
-  slotMinutes: number;
-}): {
+export function buildTimeSlotConfig(config: { dayStartTime: string; dayEndTime: string; slotMinutes: number }): {
   slotDuration: string;
   slotMinTime: string;
   slotMaxTime: string;
@@ -655,6 +674,6 @@ export function buildTimeSlotConfig(config: {
   return {
     slotDuration,
     slotMinTime: config.dayStartTime,
-    slotMaxTime: config.dayEndTime,
+    slotMaxTime: config.dayEndTime
   };
 }

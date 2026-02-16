@@ -14,6 +14,7 @@ import {
   buildEventsFromTimelines,
   buildBlockEvents,
   buildTimelineWindowConfig,
+  buildHiddenDates,
   parseResourceId,
   parseBlockEventId
 } from '../../components/temporal-grid/controller/viewProjections';
@@ -271,6 +272,26 @@ function toLocalISO(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(
     date.getMinutes()
   )}:${pad(date.getSeconds())}`;
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+/** Extract day (YYYY-MM-DD) from a Date or string */
+function dayOf(d: Date | string): string {
+  const date = typeof d === 'string' ? new Date(d) : d;
+  return toLocalISO(date).slice(0, 10);
+}
+
+/** Get the currently visible day from a timeline window (center of viewport) */
+function getVisibleDay(timeline: any, fallback: string): string {
+  if (!timeline) return fallback;
+  try {
+    const win = timeline.getWindow();
+    const center = new Date((new Date(win.start).getTime() + new Date(win.end).getTime()) / 2);
+    return dayOf(center);
+  } catch {
+    return fallback;
+  }
 }
 
 // ── Shared timeline options ───────────────────────────────────────────────────
@@ -580,6 +601,21 @@ function createEngineSetup(options?: { includeBookings?: boolean }) {
   };
 }
 
+// ── Hidden-dates helper ───────────────────────────────────────────────────────
+
+/** Compute the widest time range across ALL tournament days (for multi-day hiddenDates). */
+function getWidestTimeRange(engine: TemporalGridEngine, courtRefs?: any[]) {
+  const days = engine.getTournamentDays();
+  let earliest = '23:59',
+    latest = '00:00';
+  for (const day of days) {
+    const range = engine.getVisibleTimeRange(day, courtRefs);
+    if (range.startTime < earliest) earliest = range.startTime;
+    if (range.endTime > latest) latest = range.endTime;
+  }
+  return { startTime: earliest, endTime: latest };
+}
+
 // ── Story: Baseline ───────────────────────────────────────────────────────────
 
 /**
@@ -812,13 +848,19 @@ export const FactoryBacked = {
         }));
     };
 
+    const tournamentDays = engine.getTournamentDays();
+
     const getItems = () => {
-      const timelines = engine.getDayTimeline(startDate);
-      const segmentItems = buildEventsFromTimelines(timelines);
-      const blockItems = buildBlockEvents(engine.getDayBlocks(startDate));
+      const allSegments: any[] = [];
+      const allBlocks: any[] = [];
+      for (const day of tournamentDays) {
+        const timelines = engine.getDayTimeline(day);
+        allSegments.push(...buildEventsFromTimelines(timelines));
+        allBlocks.push(...buildBlockEvents(engine.getDayBlocks(day)));
+      }
       return [
-        ...segmentItems.filter((item) => visibleCourts.has(String(item.group))),
-        ...blockItems.filter((item) => visibleCourts.has(String(item.group)))
+        ...allSegments.filter((item) => visibleCourts.has(String(item.group))),
+        ...allBlocks.filter((item) => visibleCourts.has(String(item.group)))
       ];
     };
 
@@ -831,9 +873,7 @@ export const FactoryBacked = {
         totalHours: stats.totalCourtHours,
         blockedHours: stats.totalUnavailableHours ?? 0,
         availableHours: stats.totalAvailableHours ?? 0,
-        avgPerCourt: (stats.totalCourts ?? 0) > 0
-          ? (stats.totalAvailableHours ?? 0) / stats.totalCourts!
-          : 0
+        avgPerCourt: (stats.totalCourts ?? 0) > 0 ? (stats.totalAvailableHours ?? 0) / stats.totalCourts! : 0
       });
     };
 
@@ -853,7 +893,8 @@ export const FactoryBacked = {
       if (!timeline) return;
       currentView = viewKey;
       const view = VIEW_PRESETS[viewKey];
-      const windowStart = new Date(`${startDate}T06:00:00`);
+      const timeRange = engine.getVisibleTimeRange(startDate);
+      const windowStart = new Date(`${startDate}T${timeRange.startTime}:00`);
       const end = new Date(windowStart.getTime() + view.days * 16 * 60 * 60 * 1000);
       timeline.setWindow(windowStart, end);
       timeline.setOptions({ timeAxis: view.timeAxis });
@@ -887,6 +928,14 @@ export const FactoryBacked = {
       const weekMax = new Date(`${startDate}T${timeRange.endTime}:00`);
       weekMax.setDate(weekMax.getDate() + 7);
 
+      // Compute hidden dates to collapse overnight gaps
+      const widestRange = getWidestTimeRange(engine);
+      const hiddenDates = buildHiddenDates({
+        dayStartTime: widestRange.startTime,
+        dayEndTime: widestRange.endTime,
+        referenceDay: startDate
+      });
+
       timeline = new Timeline(timelineContainer, getItems(), getGroups(), {
         ...baseOptions(),
         start: windowConfig.start,
@@ -895,6 +944,7 @@ export const FactoryBacked = {
         max: weekMax,
         zoomMin: windowConfig.zoomMin,
         zoomMax: 7 * 24 * 60 * 60 * 1000,
+        hiddenDates,
 
         onAdd: (item: any, callback: any) => {
           item.content = item.content || 'New Block';
@@ -905,12 +955,13 @@ export const FactoryBacked = {
 
         onMoving: (item: any, callback: any) => {
           popoverManager.destroy();
-          if (engine && item.group) {
+          if (engine && item.group && item.start) {
             const courtRef = parseResourceId(String(item.group));
             if (courtRef) {
-              const avail = engine.getCourtAvailability(courtRef, startDate);
-              const availStart = new Date(`${startDate}T${avail.startTime}:00`);
-              const availEnd = new Date(`${startDate}T${avail.endTime}:00`);
+              const itemDay = dayOf(item.start);
+              const avail = engine.getCourtAvailability(courtRef, itemDay);
+              const availStart = new Date(`${itemDay}T${avail.startTime}:00`);
+              const availEnd = new Date(`${itemDay}T${avail.endTime}:00`);
               if (new Date(item.start) < availStart) item.start = availStart;
               if (new Date(item.end) > availEnd) item.end = availEnd;
             }
@@ -950,20 +1001,21 @@ export const FactoryBacked = {
           const courtRef = parseResourceId(String(props.group));
           if (!courtRef) return;
           const courtName = courtNameMap.get(String(props.group)) || courtRef.courtId;
-          const avail = engine.getCourtAvailability(courtRef, startDate);
+          const visDay = getVisibleDay(timeline, startDate);
+          const avail = engine.getCourtAvailability(courtRef, visDay);
           showCourtAvailabilityModal({
             title: `${courtName} Availability`,
-            currentDay: startDate,
+            currentDay: visDay,
             currentStartTime: avail.startTime,
             currentEndTime: avail.endTime,
             onConfirm: ({ startTime, endTime, scope }) => {
               if (scope === 'all-days') {
                 engine.setCourtAvailabilityAllDays(courtRef, { startTime, endTime });
               } else {
-                engine.setCourtAvailability(courtRef, startDate, { startTime, endTime });
+                engine.setCourtAvailability(courtRef, visDay, { startTime, endTime });
               }
               rebuildItems();
-            },
+            }
           });
           return;
         }
@@ -989,6 +1041,7 @@ export const FactoryBacked = {
           const courtRef = parseResourceId(String(item.group));
           if (!courtRef) return;
           const start = toLocalISO(new Date(item.start));
+          const itemDay = start.slice(0, 10);
           const endTime = new Date(new Date(item.start).getTime() + 60 * 60 * 1000);
           const result = engine.applyBlock({
             courts: [courtRef],
@@ -1007,7 +1060,7 @@ export const FactoryBacked = {
                   itemId: newItemId,
                   blockId: newBlockId,
                   engine,
-                  day: startDate,
+                  day: itemDay,
                   onBlockChanged: rebuildItems
                 });
               }
@@ -1025,11 +1078,12 @@ export const FactoryBacked = {
           timelineContainer.querySelector(`.vis-item[data-id="${props.item}"]`);
 
         if (itemEl) {
+          const itemDay = item.start ? dayOf(item.start) : startDate;
           popoverManager.showForEngineBlock(itemEl as HTMLElement, {
             itemId: String(props.item),
             blockId,
             engine,
-            day: startDate,
+            day: itemDay,
             onBlockChanged: rebuildItems
           });
         }
@@ -1076,13 +1130,19 @@ export const RoundTrip = {
         }));
     };
 
+    const tournamentDays = engine.getTournamentDays();
+
     const getItems = () => {
-      const timelines = engine.getDayTimeline(startDate);
-      const segmentItems = buildEventsFromTimelines(timelines);
-      const blockItems = buildBlockEvents(engine.getDayBlocks(startDate));
+      const allSegments: any[] = [];
+      const allBlocks: any[] = [];
+      for (const day of tournamentDays) {
+        const timelines = engine.getDayTimeline(day);
+        allSegments.push(...buildEventsFromTimelines(timelines));
+        allBlocks.push(...buildBlockEvents(engine.getDayBlocks(day)));
+      }
       return [
-        ...segmentItems.filter((item) => visibleCourts.has(String(item.group))),
-        ...blockItems.filter((item) => visibleCourts.has(String(item.group)))
+        ...allSegments.filter((item) => visibleCourts.has(String(item.group))),
+        ...allBlocks.filter((item) => visibleCourts.has(String(item.group)))
       ];
     };
 
@@ -1095,31 +1155,29 @@ export const RoundTrip = {
         totalHours: stats.totalCourtHours,
         blockedHours: stats.totalUnavailableHours ?? 0,
         availableHours: stats.totalAvailableHours ?? 0,
-        avgPerCourt: (stats.totalCourts ?? 0) > 0
-          ? (stats.totalAvailableHours ?? 0) / stats.totalCourts!
-          : 0
+        avgPerCourt: (stats.totalCourts ?? 0) > 0 ? (stats.totalAvailableHours ?? 0) / stats.totalCourts! : 0
       });
     };
 
-    // Track current block snapshot for dirty-checking
+    // Track current block snapshot for dirty-checking (across all days)
     let currentBlockSnapshot = new Map(initialBlockSnapshot);
 
     const hasPendingChanges = (): boolean => {
-      const blocks = engine.getDayBlocks(startDate);
+      const allBlocks = engine.getAllBlocks();
       const blocksByCourt = new Map<string, Array<{ start: string; end: string; type: string }>>();
       for (const meta of engine.listCourtMeta()) {
         blocksByCourt.set(meta.ref.courtId, []);
       }
-      for (const block of blocks) {
+      for (const block of allBlocks) {
         const courtId = block.court.courtId;
         const existing = blocksByCourt.get(courtId) || [];
         existing.push({ start: block.start, end: block.end, type: block.type });
         blocksByCourt.set(courtId, existing);
       }
       for (const [courtId, courtBlocks] of blocksByCourt) {
-        const currentSnapshot = JSON.stringify(courtBlocks);
+        const snap = JSON.stringify(courtBlocks);
         const originalSnapshot = currentBlockSnapshot.get(courtId) || '[]';
-        if (currentSnapshot !== originalSnapshot) return true;
+        if (snap !== originalSnapshot) return true;
       }
       return false;
     };
@@ -1161,7 +1219,16 @@ export const RoundTrip = {
       });
       const weekMax = new Date(`${startDate}T${timeRange.endTime}:00`);
       weekMax.setDate(weekMax.getDate() + 7);
-      timeline.setOptions({ min: windowConfig.min, max: weekMax });
+
+      // Recompute hidden dates after availability change
+      const widestRange = getWidestTimeRange(engine, visibleRefs);
+      const hiddenDates = buildHiddenDates({
+        dayStartTime: widestRange.startTime,
+        dayEndTime: widestRange.endTime,
+        referenceDay: startDate
+      });
+
+      timeline.setOptions({ min: windowConfig.min, max: weekMax, hiddenDates });
       timeline.setWindow(windowConfig.start, windowConfig.end);
       rebuildItems();
     };
@@ -1183,7 +1250,8 @@ export const RoundTrip = {
       if (!timeline) return;
       currentView = viewKey;
       const view = VIEW_PRESETS[viewKey];
-      const windowStart = new Date(`${startDate}T06:00:00`);
+      const timeRange = engine.getVisibleTimeRange(startDate);
+      const windowStart = new Date(`${startDate}T${timeRange.startTime}:00`);
       const end = new Date(windowStart.getTime() + view.days * 16 * 60 * 60 * 1000);
       timeline.setWindow(windowStart, end);
       timeline.setOptions({ timeAxis: view.timeAxis });
@@ -1201,21 +1269,20 @@ export const RoundTrip = {
     defaultAvailBtn.style.cssText =
       'padding:4px 14px; border:1px solid #666; border-radius:4px; cursor:pointer; font-size:13px; background:#666; color:white; font-weight:600; margin-right:8px;';
     defaultAvailBtn.addEventListener('click', () => {
+      const visDay = getVisibleDay(timeline, startDate);
       const courts = engine.listCourtMeta();
       const firstRef = courts.length > 0 ? courts[0].ref : undefined;
-      const avail = firstRef
-        ? engine.getCourtAvailability(firstRef, startDate)
-        : { startTime: '08:00', endTime: '20:00' };
+      const avail = firstRef ? engine.getCourtAvailability(firstRef, visDay) : { startTime: '08:00', endTime: '20:00' };
       showCourtAvailabilityModal({
         title: 'Default Availability (All Courts)',
-        currentDay: startDate,
+        currentDay: visDay,
         currentStartTime: avail.startTime,
         currentEndTime: avail.endTime,
         showScopeToggle: false,
         onConfirm: ({ startTime, endTime }) => {
           engine.setAllCourtsDefaultAvailability({ startTime, endTime });
           rebuildTimeline();
-        },
+        }
       });
     });
     toolbar.appendChild(defaultAvailBtn);
@@ -1229,17 +1296,29 @@ export const RoundTrip = {
       if (saveBtn.disabled) return;
       tournamentEngine.setState(tournamentRecord);
 
-      const blocks = engine.getDayBlocks(startDate);
+      const allBlocks = engine.getAllBlocks();
 
+      // Group blocks by courtId
       const blocksByCourt = new Map<string, Array<{ start: string; end: string; type: string }>>();
       for (const meta of engine.listCourtMeta()) {
         blocksByCourt.set(meta.ref.courtId, []);
       }
-      for (const block of blocks) {
+      for (const block of allBlocks) {
         const courtId = block.court.courtId;
         const existing = blocksByCourt.get(courtId) || [];
         existing.push({ start: block.start, end: block.end, type: block.type });
         blocksByCourt.set(courtId, existing);
+      }
+
+      // Group blocks by courtId+day for dateAvailability format
+      const blocksByCourtDay = new Map<string, Map<string, Array<{ start: string; end: string; type: string }>>>();
+      for (const block of allBlocks) {
+        const courtId = block.court.courtId;
+        const day = block.start.slice(0, 10);
+        if (!blocksByCourtDay.has(courtId)) blocksByCourtDay.set(courtId, new Map());
+        const dayMap = blocksByCourtDay.get(courtId)!;
+        if (!dayMap.has(day)) dayMap.set(day, []);
+        dayMap.get(day)!.push({ start: block.start, end: block.end, type: block.type });
       }
 
       let modifiedCount = 0;
@@ -1252,23 +1331,24 @@ export const RoundTrip = {
         }
 
         modifiedCount++;
-        const bookings = courtBlocks.map((b) => ({
-          startTime: b.start.slice(11, 16),
-          endTime: b.end.slice(11, 16),
-          bookingType: b.type
+        const dayMap = blocksByCourtDay.get(courtId) || new Map();
+        const dateAvailability = Array.from(dayMap.entries()).map(([day, blocks]) => ({
+          date: day,
+          startTime: '06:00',
+          endTime: '22:00',
+          bookings: blocks.map((b) => ({
+            startTime: b.start.slice(11, 16),
+            endTime: b.end.slice(11, 16),
+            bookingType: b.type
+          }))
         }));
 
-        const params = {
-          courtId,
-          dateAvailability: [
-            {
-              date: startDate,
-              startTime: '06:00',
-              endTime: '22:00',
-              bookings
-            }
-          ]
-        };
+        // If no blocks for this court, still save empty availability for the start date
+        if (dateAvailability.length === 0) {
+          dateAvailability.push({ date: startDate, startTime: '06:00', endTime: '22:00', bookings: [] });
+        }
+
+        const params = { courtId, dateAvailability };
         console.log(`modifyCourtAvailability(${courtId}):`, params);
         tournamentEngine.modifyCourtAvailability(params);
       });
@@ -1323,6 +1403,14 @@ export const RoundTrip = {
       const weekMax = new Date(`${startDate}T${timeRange.endTime}:00`);
       weekMax.setDate(weekMax.getDate() + 7);
 
+      // Compute hidden dates to collapse overnight gaps
+      const widestRange = getWidestTimeRange(engine, visibleRefs);
+      const hiddenDates = buildHiddenDates({
+        dayStartTime: widestRange.startTime,
+        dayEndTime: widestRange.endTime,
+        referenceDay: startDate
+      });
+
       timeline = new Timeline(timelineContainer, getItems(), getGroups(), {
         ...baseOptions(),
         start: windowConfig.start,
@@ -1331,6 +1419,7 @@ export const RoundTrip = {
         max: weekMax,
         zoomMin: windowConfig.zoomMin,
         zoomMax: 7 * 24 * 60 * 60 * 1000,
+        hiddenDates,
 
         onAdd: (item: any, callback: any) => {
           item.content = item.content || 'New Block';
@@ -1344,9 +1433,10 @@ export const RoundTrip = {
           if (engine && item.group) {
             const courtRef = parseResourceId(String(item.group));
             if (courtRef) {
-              const avail = engine.getCourtAvailability(courtRef, startDate);
-              const availStart = new Date(`${startDate}T${avail.startTime}:00`);
-              const availEnd = new Date(`${startDate}T${avail.endTime}:00`);
+              const itemDay = dayOf(item.start);
+              const avail = engine.getCourtAvailability(courtRef, itemDay);
+              const availStart = new Date(`${itemDay}T${avail.startTime}:00`);
+              const availEnd = new Date(`${itemDay}T${avail.endTime}:00`);
               if (new Date(item.start) < availStart) item.start = availStart;
               if (new Date(item.end) > availEnd) item.end = availEnd;
             }
@@ -1384,21 +1474,22 @@ export const RoundTrip = {
         if (props.what === 'group-label' && props.group) {
           const courtRef = parseResourceId(String(props.group));
           if (!courtRef) return;
+          const visibleDay = getVisibleDay(timeline, startDate);
           const courtName = courtNameMap.get(String(props.group)) || courtRef.courtId;
-          const avail = engine.getCourtAvailability(courtRef, startDate);
+          const avail = engine.getCourtAvailability(courtRef, visibleDay);
           showCourtAvailabilityModal({
             title: `${courtName} Availability`,
-            currentDay: startDate,
+            currentDay: visibleDay,
             currentStartTime: avail.startTime,
             currentEndTime: avail.endTime,
             onConfirm: ({ startTime, endTime, scope }) => {
               if (scope === 'all-days') {
                 engine.setCourtAvailabilityAllDays(courtRef, { startTime, endTime });
               } else {
-                engine.setCourtAvailability(courtRef, startDate, { startTime, endTime });
+                engine.setCourtAvailability(courtRef, visibleDay, { startTime, endTime });
               }
               rebuildTimeline();
-            },
+            }
           });
           return;
         }
@@ -1423,6 +1514,7 @@ export const RoundTrip = {
         if (item.type !== 'range') {
           const courtRef = parseResourceId(String(item.group));
           if (!courtRef) return;
+          const itemDay = dayOf(item.start);
           const start = toLocalISO(new Date(item.start));
           const endTime = new Date(new Date(item.start).getTime() + 60 * 60 * 1000);
           const result = engine.applyBlock({
@@ -1442,7 +1534,7 @@ export const RoundTrip = {
                   itemId: newItemId,
                   blockId: newBlockId,
                   engine,
-                  day: startDate,
+                  day: itemDay,
                   onBlockChanged: rebuildItems
                 });
               }
@@ -1460,11 +1552,12 @@ export const RoundTrip = {
           timelineContainer.querySelector(`.vis-item[data-id="${props.item}"]`);
 
         if (itemEl) {
+          const blockDay = item.start ? dayOf(item.start) : getVisibleDay(timeline, startDate);
           popoverManager.showForEngineBlock(itemEl as HTMLElement, {
             itemId: String(props.item),
             blockId,
             engine,
-            day: startDate,
+            day: blockDay,
             onBlockChanged: rebuildItems
           });
         }

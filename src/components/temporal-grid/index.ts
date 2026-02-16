@@ -93,6 +93,7 @@ export {
   buildConflictEvents,
   buildEventsFromTimelines,
   buildFacilityGroups,
+  buildHiddenDates,
   buildResourcesFromTimelines,
   buildTimeSlotConfig,
   buildTimelineWindowConfig,
