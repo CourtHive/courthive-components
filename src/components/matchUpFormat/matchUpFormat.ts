@@ -127,6 +127,34 @@ const NOAD = 'No-Ad';
 const SETS = 'Set';
 const AD = 'Ad';
 
+// Display labels for the 'based' scoring method (timed sets)
+const BASED_LABELS: Record<string, string> = { G: 'Games', P: 'Points', A: 'Aggregate' };
+const BASED_CODES: Record<string, string> = { Games: 'G', Points: 'P', Aggregate: 'A' };
+
+// Display labels for game format codes
+const GAME_FORMAT_LABELS: Record<string, string> = {
+  None: 'None',
+  AGGR: 'Aggregate',
+  '2C': '2 consecutive points',
+  '3C': '3 consecutive points',
+  '4C': '4 consecutive points'
+};
+const GAME_FORMAT_CODES: Record<string, string> = {
+  None: 'None',
+  Aggregate: 'AGGR',
+  '2 consecutive points': '2C',
+  '3 consecutive points': '3C',
+  '4 consecutive points': '4C'
+};
+
+/** Convert a gameFormat object to its display label */
+function gameFormatLabel(gf: any): string {
+  if (!gf) return 'None';
+  if (gf.type === 'AGGR') return GAME_FORMAT_LABELS['AGGR'];
+  if (gf.type === 'CONSECUTIVE') return GAME_FORMAT_LABELS[`${gf.count}C`] || `${gf.count} consecutive points`;
+  return 'None';
+}
+
 interface SetFormatConfig {
   descriptor: string;
   bestOf?: number;
@@ -445,13 +473,21 @@ const setComponents: SetComponent[] = [
     getValue: (pmf, isFinal) => {
       const setFormat = whichSetFormat(pmf, isFinal);
       if (!setFormat?.timed) return undefined;
-      // Return 'based' property directly (A/P/G or undefined)
-      return setFormat.based || 'G'; // Default to 'G' for display
+      // Map code to display label
+      const code = setFormat.based || 'G';
+      return BASED_LABELS[code] || code;
     },
-    options: ['G', 'P', 'A'],
+    options: () => {
+      // Only include 'Aggregate' if the current format already uses it
+      const hasAggregate =
+        format.setFormat.based === 'A' || format.finalSetFormat.based === 'A';
+      const opts = ['Games', 'Points'];
+      if (hasAggregate) opts.push('Aggregate');
+      return opts;
+    },
     onChange: 'changeBased',
     whats: [TIMED_SETS],
-    defaultValue: 'G',
+    defaultValue: 'Games',
     id: 'based',
     timed: true
   },
@@ -516,11 +552,11 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
           minutesElem.style.display = '';
         }
 
-        // Update the based button display (show G/P/A)
+        // Update the based button display
         const basedElem = getEl('based');
         if (basedElem) {
-          const basedValue = format.setFormat.based || 'G';
-          basedElem.innerHTML = `${basedValue}${clickable}`;
+          const basedCode = format.setFormat.based || 'G';
+          basedElem.innerHTML = `${BASED_LABELS[basedCode] || basedCode}${clickable}`;
           basedElem.style.display = '';
         }
       }
@@ -614,10 +650,13 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
           const value = component.defaultValue;
           elem.innerHTML = `${prefix}${value}${plural}${suffix}${clickable}`;
           // Store the default value, but apply the same transformations
-          // that the onChange handlers would (e.g., 'None' → undefined, 'G' → undefined)
+          // that the onChange handlers would (e.g., 'None' → undefined, 'Games' → undefined)
           let storedValue = value;
           if (component.id === 'modifier' && value === 'None') storedValue = undefined;
-          if (component.id === 'based' && value === 'G') storedValue = undefined;
+          if (component.id === 'based') {
+            const code = BASED_CODES[value] || value;
+            storedValue = code === 'G' ? undefined : code;
+          }
           format[index ? 'finalSetFormat' : 'setFormat'][component.id] = storedValue;
         }
 
@@ -676,9 +715,25 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
   },
   changeBased: (_e, index, opt) => {
     const which = index ? 'finalSetFormat' : 'setFormat';
-    // Set based property directly (A/P/G)
-    // If 'G' is selected, we can omit it (undefined) since it's the default
-    format[which].based = opt === 'G' ? undefined : opt;
+    // Map display label to code (Games→G, Points→P, Aggregate→A)
+    const code = BASED_CODES[opt] || opt;
+    // If 'G' (Games), omit it since it's the default
+    format[which].based = code === 'G' ? undefined : code;
+
+    // Hide game format button when Points is selected (not applicable)
+    if (!index) {
+      const gfElem = getEl('gameFormat');
+      if (gfElem) {
+        if (code === 'P') {
+          // Clear game format when switching to Points
+          format.gameFormat = undefined;
+          gfElem.style.display = NONE;
+        } else {
+          gfElem.style.display = '';
+        }
+      }
+    }
+
     setMatchUpFormatString();
   },
   changeModifier: (_e, index, opt) => {
@@ -715,13 +770,15 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
     setMatchUpFormatString();
   },
   changeGameFormat: (_e, _index, opt) => {
-    if (opt === 'None') {
+    // Map display label to code (e.g., '3 consecutive points' → '3C')
+    const code = GAME_FORMAT_CODES[opt] || opt;
+    if (code === 'None') {
       format.gameFormat = undefined;
-    } else if (opt === 'AGGR') {
+    } else if (code === 'AGGR') {
       format.gameFormat = { type: 'AGGR' };
     } else {
       // Parse '2C', '3C', '4C' etc.
-      const match = /^(\d+)C$/.exec(opt);
+      const match = /^(\d+)C$/.exec(code);
       if (match) {
         format.gameFormat = { type: 'CONSECUTIVE', count: Number(match[1]) };
       }
@@ -960,12 +1017,9 @@ export function getMatchUpFormatModal({
 
     const gfElem = getEl('gameFormat');
     if (gfElem) {
-      const gfDisplay = format.gameFormat
-        ? format.gameFormat.type === 'AGGR'
-          ? 'AGGR'
-          : `${(format.gameFormat as any).count}C`
-        : 'None';
-      gfElem.innerHTML = `Game: ${gfDisplay}${clickable}`;
+      gfElem.innerHTML = `Game: ${gameFormatLabel(format.gameFormat)}${clickable}`;
+      // Hide game format when scoring is Points-based
+      gfElem.style.display = format.setFormat.based === 'P' ? NONE : '';
     }
 
     // Update Final Set toggle visibility based on bestOf/exactly value
@@ -1095,16 +1149,12 @@ export function getMatchUpFormatModal({
   aggregateLabel.style.marginRight = '1em';
   matchRootRow.appendChild(aggregateLabel);
 
-  // Game format button
-  const currentGameFormat = format.gameFormat
-    ? format.gameFormat.type === 'AGGR'
-      ? 'AGGR'
-      : `${(format.gameFormat as any).count}C`
-    : 'None';
+  // Game format button — hidden when scoring is Points-based
+  const currentGameFormatDisplay = gameFormatLabel(format.gameFormat);
   const gameFormatButton = document.createElement('button');
   gameFormatButton.className = 'mfcButton';
   gameFormatButton.id = 'gameFormat';
-  gameFormatButton.innerHTML = `Game: ${currentGameFormat}${clickable}`;
+  gameFormatButton.innerHTML = `Game: ${currentGameFormatDisplay}${clickable}`;
   gameFormatButton.style.transition = 'all .2s ease-in-out';
   gameFormatButton.style.backgroundColor = 'inherit';
   gameFormatButton.style.border = 'none';
@@ -1114,15 +1164,20 @@ export function getMatchUpFormatModal({
   gameFormatButton.style.textDecoration = 'none';
   gameFormatButton.style.fontSize = '1em';
   gameFormatButton.style.cursor = 'pointer';
+  // Hide if scoring method is Points (game format not applicable)
+  if (format.setFormat.based === 'P') gameFormatButton.style.display = NONE;
   gameFormatButton.onclick = (e) => {
     const gameFormats = editorConfig.options?.gameFormats || defaultConfig.options!.gameFormats!;
-    const items = gameFormats.map((gf: string) => ({
-      text: gf,
-      onClick: () => {
-        gameFormatButton.innerHTML = `Game: ${gf}${clickable}`;
-        onClicks.changeGameFormat(e, undefined, gf);
-      }
-    }));
+    const items = gameFormats.map((gf: string) => {
+      const label = GAME_FORMAT_LABELS[gf] || gf;
+      return {
+        text: label,
+        onClick: () => {
+          gameFormatButton.innerHTML = `Game: ${label}${clickable}`;
+          onClicks.changeGameFormat(e, undefined, label);
+        }
+      };
+    });
     createDropdown(e, items);
   };
   matchRootRow.appendChild(gameFormatButton);
