@@ -1,0 +1,523 @@
+/*
+ * Checkbox and radio button styling
+ * Extracted from bulma-checkradio v2.1.3 (MIT License, Wikiki)
+ * Original: https://github.com/Wikiki/bulma-checkradio
+ *
+ * This is a local replacement for the abandoned bulma-checkradio package.
+ * Only the styles actually used in this project are included.
+ */
+
+/* ========================================
+   Base checkbox/radio styles
+   ======================================== */
+
+.is-checkradio[type=checkbox],
+.is-checkradio[type=radio] {
+  outline: 0;
+  user-select: none;
+  display: none;
+  position: absolute;
+  opacity: 0;
+}
+
+.is-checkradio[type=checkbox] + label,
+.is-checkradio[type=radio] + label {
+  position: relative;
+  display: initial;
+  cursor: pointer;
+  vertical-align: middle;
+  margin: 0.5em;
+  padding: 0.2rem 0.5rem 0.2rem 0;
+  border-radius: 4px;
+}
+
+.is-checkradio[type=checkbox] + label:first-of-type,
+.is-checkradio[type=radio] + label:first-of-type {
+  margin-left: 0;
+}
+
+/* Hover animation on the ::before pseudo-element */
+.is-checkradio[type=checkbox] + label:hover::before,
+.is-checkradio[type=radio] + label:hover::before {
+  animation-duration: 0.4s;
+  animation-fill-mode: both;
+  animation-name: hover-color;
+}
+
+/* ::before = the box/circle outline */
+.is-checkradio[type=checkbox] + label::before,
+.is-checkradio[type=radio] + label::before {
+  position: absolute;
+  left: 0;
+  top: 0;
+  content: "";
+  border: 0.1rem solid #dbdbdb;
+}
+
+/* ::after = the check mark / radio dot */
+.is-checkradio[type=checkbox] + label::after,
+.is-checkradio[type=radio] + label::after {
+  position: absolute;
+  display: none;
+  content: "";
+  top: 0;
+}
+
+/* ========================================
+   Focus state
+   ======================================== */
+
+.is-checkradio[type=checkbox]:focus + label::before,
+.is-checkradio[type=radio]:focus + label::before {
+  outline: 1px dotted #b5b5b5;
+}
+
+/* ========================================
+   Hover state (not disabled)
+   ======================================== */
+
+.is-checkradio[type=checkbox]:hover:not([disabled]) + label::before,
+.is-checkradio[type=radio]:hover:not([disabled]) + label::before {
+  border-color: #00d1b2 !important;
+}
+
+/* ========================================
+   Checked state
+   ======================================== */
+
+.is-checkradio[type=checkbox]:checked + label::before,
+.is-checkradio[type=radio]:checked + label::before {
+  border: 0.1rem solid #dbdbdb;
+  animation-name: none;
+}
+
+.is-checkradio[type=checkbox]:checked + label::after,
+.is-checkradio[type=radio]:checked + label::after {
+  display: inline-block;
+}
+
+/* ========================================
+   Disabled state
+   ======================================== */
+
+.is-checkradio[type=checkbox]:checked[disabled],
+.is-checkradio[type=radio]:checked[disabled] {
+  cursor: not-allowed;
+}
+
+.is-checkradio[type=checkbox]:checked[disabled] + label,
+.is-checkradio[type=radio]:checked[disabled] + label {
+  opacity: 0.5;
+}
+
+.is-checkradio[type=checkbox][disabled],
+.is-checkradio[type=radio][disabled] {
+  cursor: not-allowed;
+}
+
+.is-checkradio[type=checkbox][disabled] + label,
+.is-checkradio[type=radio][disabled] + label {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.is-checkradio[type=checkbox][disabled] + label::before,
+.is-checkradio[type=checkbox][disabled] + label::after,
+.is-checkradio[type=checkbox][disabled] + label:hover,
+.is-checkradio[type=radio][disabled] + label::before,
+.is-checkradio[type=radio][disabled] + label::after,
+.is-checkradio[type=radio][disabled] + label:hover {
+  cursor: not-allowed;
+}
+
+.is-checkradio[type=checkbox][disabled]:hover,
+.is-checkradio[type=radio][disabled]:hover {
+  cursor: not-allowed;
+}
+
+.is-checkradio[type=checkbox][disabled]:hover::before,
+.is-checkradio[type=radio][disabled]:hover::before {
+  animation-name: none;
+}
+
+.is-checkradio[type=checkbox][disabled]::before,
+.is-checkradio[type=radio][disabled]::before {
+  cursor: not-allowed;
+}
+
+.is-checkradio[type=checkbox][disabled]::after,
+.is-checkradio[type=radio][disabled]::after {
+  cursor: not-allowed;
+}
+
+/* ========================================
+   No border variant
+   ======================================== */
+
+.is-checkradio[type=checkbox].has-no-border + label::before,
+.is-checkradio[type=radio].has-no-border + label::before {
+  border: none !important;
+}
+
+/* ========================================
+   Checkbox-specific styles
+   ======================================== */
+
+.is-checkradio[type=checkbox] + label::before {
+  border-radius: 4px;
+}
+
+/* Checkmark (rotated border trick) */
+.is-checkradio[type=checkbox] + label::after {
+  box-sizing: border-box;
+  transform: translateY(0) rotate(45deg);
+  border-width: 0.1rem;
+  border-style: solid;
+  border-color: #00d1b2;
+  border-top: 0;
+  border-left: 0;
+}
+
+/* Circle variant */
+.is-checkradio[type=checkbox].is-circle + label::before {
+  border-radius: 50%;
+}
+
+/* Default size */
+.is-checkradio[type=checkbox] + label {
+  font-size: 1rem;
+  padding-left: 2rem;
+}
+
+.is-checkradio[type=checkbox] + label::before {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.is-checkradio[type=checkbox] + label::after {
+  width: 0.375rem;
+  height: 0.6rem;
+  top: 0.405rem;
+  left: 0.6rem;
+}
+
+/* Small size */
+.is-checkradio[type=checkbox].is-small + label {
+  font-size: 0.75rem;
+  padding-left: 1.5rem;
+}
+
+.is-checkradio[type=checkbox].is-small + label::before {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.is-checkradio[type=checkbox].is-small + label::after {
+  width: 0.28125rem;
+  height: 0.45rem;
+  top: 0.30375rem;
+  left: 0.45rem;
+}
+
+/* Medium size */
+.is-checkradio[type=checkbox].is-medium + label {
+  font-size: 1.25rem;
+  padding-left: 2.5rem;
+}
+
+.is-checkradio[type=checkbox].is-medium + label::before {
+  width: 1.875rem;
+  height: 1.875rem;
+}
+
+.is-checkradio[type=checkbox].is-medium + label::after {
+  width: 0.46875rem;
+  height: 0.75rem;
+  top: 0.50625rem;
+  left: 0.75rem;
+}
+
+/* Large size */
+.is-checkradio[type=checkbox].is-large + label {
+  font-size: 1.5rem;
+  padding-left: 3rem;
+}
+
+.is-checkradio[type=checkbox].is-large + label::before {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.is-checkradio[type=checkbox].is-large + label::after {
+  width: 0.5625rem;
+  height: 0.9rem;
+  top: 0.6075rem;
+  left: 0.9rem;
+}
+
+/* Indeterminate state */
+.is-checkradio[type=checkbox]:indeterminate + label::after {
+  display: inline-block;
+  transform: rotate(90deg);
+  border-bottom: none;
+}
+
+/* ========================================
+   Radio-specific styles
+   ======================================== */
+
+.is-checkradio[type=radio] + label::before {
+  border-radius: 50%;
+}
+
+.is-checkradio[type=radio] + label::after {
+  border-radius: 50%;
+  background: #00d1b2;
+  left: 0;
+  transform: scale(0.5);
+}
+
+/* Default size */
+.is-checkradio[type=radio] + label {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  padding-left: 2rem;
+}
+
+.is-checkradio[type=radio] + label::after,
+.is-checkradio[type=radio] + label::before {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* Small size */
+.is-checkradio[type=radio].is-small + label {
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+  padding-left: 1.5rem;
+}
+
+.is-checkradio[type=radio].is-small + label::after,
+.is-checkradio[type=radio].is-small + label::before {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+/* Medium size */
+.is-checkradio[type=radio].is-medium + label {
+  font-size: 1.25rem;
+  line-height: 1.875rem;
+  padding-left: 2.5rem;
+}
+
+.is-checkradio[type=radio].is-medium + label::after,
+.is-checkradio[type=radio].is-medium + label::before {
+  width: 1.875rem;
+  height: 1.875rem;
+}
+
+/* Large size */
+.is-checkradio[type=radio].is-large + label {
+  font-size: 1.5rem;
+  line-height: 2.25rem;
+  padding-left: 3rem;
+}
+
+.is-checkradio[type=radio].is-large + label::after,
+.is-checkradio[type=radio].is-large + label::before {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+/* ========================================
+   Color variants — Checkbox
+   ======================================== */
+
+/* --- Primary (#00d1b2) --- */
+.is-checkradio[type=checkbox].is-primary:hover:not([disabled]) + label::before {
+  border-color: #00d1b2 !important;
+}
+.is-checkradio[type=checkbox].is-primary:checked + label::after {
+  border-color: #00d1b2 !important;
+}
+
+/* --- Success (#48c78e) --- */
+.is-checkradio[type=checkbox].is-success:hover:not([disabled]) + label::before {
+  border-color: #48c78e !important;
+}
+.is-checkradio[type=checkbox].is-success:checked + label::after {
+  border-color: #48c78e !important;
+}
+
+/* --- Info (#3e8ed0) --- */
+.is-checkradio[type=checkbox].is-info:hover:not([disabled]) + label::before {
+  border-color: #3e8ed0 !important;
+}
+.is-checkradio[type=checkbox].is-info:checked + label::after {
+  border-color: #3e8ed0 !important;
+}
+
+/* --- Warning (#ffe08a) --- */
+.is-checkradio[type=checkbox].is-warning:hover:not([disabled]) + label::before {
+  border-color: #ffe08a !important;
+}
+.is-checkradio[type=checkbox].is-warning:checked + label::after {
+  border-color: #ffe08a !important;
+}
+
+/* --- Danger (#f14668) --- */
+.is-checkradio[type=checkbox].is-danger:hover:not([disabled]) + label::before {
+  border-color: #f14668 !important;
+}
+.is-checkradio[type=checkbox].is-danger:checked + label::after {
+  border-color: #f14668 !important;
+}
+
+/* --- Link (#485fc7) --- */
+.is-checkradio[type=checkbox].is-link:hover:not([disabled]) + label::before {
+  border-color: #485fc7 !important;
+}
+.is-checkradio[type=checkbox].is-link:checked + label::after {
+  border-color: #485fc7 !important;
+}
+
+/* --- White (#fff) --- */
+.is-checkradio[type=checkbox].is-white:hover:not([disabled]) + label::before {
+  border-color: #fff !important;
+}
+.is-checkradio[type=checkbox].is-white:checked + label::after {
+  border-color: #fff !important;
+}
+
+/* --- Black (#0a0a0a) --- */
+.is-checkradio[type=checkbox].is-black:hover:not([disabled]) + label::before {
+  border-color: #0a0a0a !important;
+}
+.is-checkradio[type=checkbox].is-black:checked + label::after {
+  border-color: #0a0a0a !important;
+}
+
+/* --- Light (#f5f5f5) --- */
+.is-checkradio[type=checkbox].is-light:hover:not([disabled]) + label::before {
+  border-color: #f5f5f5 !important;
+}
+.is-checkradio[type=checkbox].is-light:checked + label::after {
+  border-color: #f5f5f5 !important;
+}
+
+/* --- Dark (#363636) --- */
+.is-checkradio[type=checkbox].is-dark:hover:not([disabled]) + label::before {
+  border-color: #363636 !important;
+}
+.is-checkradio[type=checkbox].is-dark:checked + label::after {
+  border-color: #363636 !important;
+}
+
+/* ========================================
+   Color variants — Indeterminate checkbox
+   ======================================== */
+
+.is-checkradio[type=checkbox]:indeterminate.is-primary + label::after { border-color: #00d1b2; }
+.is-checkradio[type=checkbox]:indeterminate.is-success + label::after { border-color: #48c78e; }
+.is-checkradio[type=checkbox]:indeterminate.is-info + label::after { border-color: #3e8ed0; }
+.is-checkradio[type=checkbox]:indeterminate.is-warning + label::after { border-color: #ffe08a; }
+.is-checkradio[type=checkbox]:indeterminate.is-danger + label::after { border-color: #f14668; }
+.is-checkradio[type=checkbox]:indeterminate.is-link + label::after { border-color: #485fc7; }
+.is-checkradio[type=checkbox]:indeterminate.is-white + label::after { border-color: #fff; }
+.is-checkradio[type=checkbox]:indeterminate.is-black + label::after { border-color: #0a0a0a; }
+.is-checkradio[type=checkbox]:indeterminate.is-light + label::after { border-color: #f5f5f5; }
+.is-checkradio[type=checkbox]:indeterminate.is-dark + label::after { border-color: #363636; }
+
+/* ========================================
+   Color variants — Radio
+   ======================================== */
+
+/* --- Primary (#00d1b2) --- */
+.is-checkradio[type=radio].is-primary:hover:not([disabled]) + label::before {
+  border-color: #00d1b2 !important;
+}
+.is-checkradio[type=radio].is-primary:checked + label::after {
+  border-color: #00d1b2 !important;
+  background-color: #00d1b2 !important;
+}
+
+/* --- Success (#48c78e) --- */
+.is-checkradio[type=radio].is-success:hover:not([disabled]) + label::before {
+  border-color: #48c78e !important;
+}
+.is-checkradio[type=radio].is-success:checked + label::after {
+  border-color: #48c78e !important;
+  background-color: #48c78e !important;
+}
+
+/* --- Info (#3e8ed0) --- */
+.is-checkradio[type=radio].is-info:hover:not([disabled]) + label::before {
+  border-color: #3e8ed0 !important;
+}
+.is-checkradio[type=radio].is-info:checked + label::after {
+  border-color: #3e8ed0 !important;
+  background-color: #3e8ed0 !important;
+}
+
+/* --- Warning (#ffe08a) --- */
+.is-checkradio[type=radio].is-warning:hover:not([disabled]) + label::before {
+  border-color: #ffe08a !important;
+}
+.is-checkradio[type=radio].is-warning:checked + label::after {
+  border-color: #ffe08a !important;
+  background-color: #ffe08a !important;
+}
+
+/* --- Danger (#f14668) --- */
+.is-checkradio[type=radio].is-danger:hover:not([disabled]) + label::before {
+  border-color: #f14668 !important;
+}
+.is-checkradio[type=radio].is-danger:checked + label::after {
+  border-color: #f14668 !important;
+  background-color: #f14668 !important;
+}
+
+/* --- Link (#485fc7) --- */
+.is-checkradio[type=radio].is-link:hover:not([disabled]) + label::before {
+  border-color: #485fc7 !important;
+}
+.is-checkradio[type=radio].is-link:checked + label::after {
+  border-color: #485fc7 !important;
+  background-color: #485fc7 !important;
+}
+
+/* --- White (#fff) --- */
+.is-checkradio[type=radio].is-white:hover:not([disabled]) + label::before {
+  border-color: #fff !important;
+}
+.is-checkradio[type=radio].is-white:checked + label::after {
+  border-color: #fff !important;
+  background-color: #fff !important;
+}
+
+/* --- Black (#0a0a0a) --- */
+.is-checkradio[type=radio].is-black:hover:not([disabled]) + label::before {
+  border-color: #0a0a0a !important;
+}
+.is-checkradio[type=radio].is-black:checked + label::after {
+  border-color: #0a0a0a !important;
+  background-color: #0a0a0a !important;
+}
+
+/* --- Light (#f5f5f5) --- */
+.is-checkradio[type=radio].is-light:hover:not([disabled]) + label::before {
+  border-color: #f5f5f5 !important;
+}
+.is-checkradio[type=radio].is-light:checked + label::after {
+  border-color: #f5f5f5 !important;
+  background-color: #f5f5f5 !important;
+}
+
+/* --- Dark (#363636) --- */
+.is-checkradio[type=radio].is-dark:hover:not([disabled]) + label::before {
+  border-color: #363636 !important;
+}
+.is-checkradio[type=radio].is-dark:checked + label::after {
+  border-color: #363636 !important;
+  background-color: #363636 !important;
+}

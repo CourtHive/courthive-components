@@ -40,6 +40,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     const parsedFormat = matchUpFormatCode.parse(currentMatchUpFormat);
     return {
       bestOf: formatInfo.bestOf,
+      exactly: parsedFormat?.exactly,
       setFormat: parsedFormat?.setFormat,
       finalSetFormat: parsedFormat?.finalSetFormat,
     };
@@ -49,6 +50,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   // This ensures format changes are immediately reflected
   let matchConfig = getMatchUpConfig();
   const getBestOf = () => matchConfig.bestOf;
+  const getExactly = () => matchConfig.exactly;
 
   // Helper function to get format for a specific set index
   // NOTE: Keeping this closure for backward compatibility during migration
@@ -609,7 +611,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     // Determine how many rows we should have
     // If match is complete, only keep completed sets
     // If match is incomplete, keep one extra row for next set
-    const matchComplete = isMatchCompleteLogic(currentSets, getBestOf());
+    const matchComplete = isMatchCompleteLogic(currentSets, getBestOf(), getExactly());
     
     let rowsToKeep: number;
     if (matchComplete) {
@@ -917,7 +919,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
     if (currentSetComplete) {
       // REFACTORED: Use pure logic function for match completion check
-      const matchComplete = isMatchCompleteLogic(currentSets, getBestOf());
+      const matchComplete = isMatchCompleteLogic(currentSets, getBestOf(), getExactly());
 
       // Only expand if match not complete and we should expand
       if (!matchComplete && shouldExpandSets(currentSets, matchUp.matchUpFormat)) {
@@ -942,6 +944,9 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       }
     }
   };
+
+  // Helper: focus and select contents of a score input when tabbing
+  const focusAndSelect = (el: HTMLInputElement) => { el.focus(); el.select(); };
 
   // Handle keyboard navigation
   const handleKeydown = (event: KeyboardEvent) => {
@@ -1006,7 +1011,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
               updateScoreFromInputs();
               
               // REFACTORED: Use pure logic function for match completion check
-              const matchComplete = isMatchCompleteLogic(currentSets, getBestOf());
+              const matchComplete = isMatchCompleteLogic(currentSets, getBestOf(), getExactly());
               
               if (matchComplete) {
                 // Match is complete, don't create next set or move focus
@@ -1019,21 +1024,21 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
               ) as HTMLInputElement;
               
               if (nextSetSide1) {
-                nextSetSide1.focus();
+                focusAndSelect(nextSetSide1);
               } else if (setIndex + 1 < getBestOf()) {
                 // Create next set
                 const newSetRow = createSetRow(setIndex + 1);
                 setsContainer.appendChild(newSetRow);
-                
+
                 const newInputs = newSetRow.querySelectorAll('input');
                 newInputs.forEach((inp) => {
                   inp.addEventListener('input', handleInput);
                   inp.addEventListener('keydown', handleKeydown);
                 });
-                
+
                 const firstInput = newInputs[0];
                 if (firstInput instanceof HTMLInputElement) {
-                  firstInput.focus();
+                  focusAndSelect(firstInput);
                 }
                 updateClearButtonState();
               }
@@ -1056,13 +1061,13 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
           const side2Input = setsContainer.querySelector(
             `input[data-set-index="${setIndex}"][data-side="2"]`,
           ) as HTMLInputElement;
-          if (side2Input) side2Input.focus();
+          if (side2Input) focusAndSelect(side2Input);
         } else if (side === '2') {
           // From side 2 to side 1
           const side1Input = setsContainer.querySelector(
             `input[data-set-index="${setIndex}"][data-side="1"]`,
           ) as HTMLInputElement;
-          if (side1Input) side1Input.focus();
+          if (side1Input) focusAndSelect(side1Input);
         } else if (setIndex > 0) {
           // From side 1 to previous set's tiebreak (if exists) or side 2
           const prevTiebreakInput = setsContainer.querySelector(
@@ -1075,9 +1080,9 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
           // Check if tiebreak is visible
           const prevTiebreakContainer = prevTiebreakInput?.closest('.tiebreak-container') as HTMLElement;
           if (prevTiebreakInput && prevTiebreakContainer && prevTiebreakContainer.style.display !== 'none') {
-            prevTiebreakInput.focus();
+            focusAndSelect(prevTiebreakInput);
           } else if (prevSide2Input) {
-            prevSide2Input.focus();
+            focusAndSelect(prevSide2Input);
           }
         }
       } else {
@@ -1089,7 +1094,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
             `input[data-set-index="${setIndex + 1}"][data-side="1"]`,
           ) as HTMLInputElement;
           if (nextInput) {
-            nextInput.focus();
+            focusAndSelect(nextInput);
           } else if (setIndex + 1 < getBestOf()) {
             // Only create next set if current set is valid and match not complete
             const currentSetComplete = isSetComplete(setIndex);
@@ -1101,7 +1106,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
             updateScoreFromInputs();
 
             // REFACTORED: Use pure logic function for match completion check
-            const matchComplete = isMatchCompleteLogic(currentSets, getBestOf());
+            const matchComplete = isMatchCompleteLogic(currentSets, getBestOf(), getExactly());
 
             if (matchComplete) {
               return; // Don't create next set if match complete
@@ -1121,7 +1126,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
             // Focus first input of new set
             const firstInput = newInputs[0];
             if (firstInput instanceof HTMLInputElement) {
-              firstInput.focus();
+              focusAndSelect(firstInput);
             }
             updateClearButtonState();
           }
@@ -1130,7 +1135,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
           const side2Input = setsContainer.querySelector(
             `input[data-set-index="${setIndex}"][data-side="2"]`,
           ) as HTMLInputElement;
-          if (side2Input) side2Input.focus();
+          if (side2Input) focusAndSelect(side2Input);
         } else if (side === '2') {
           // First, update score to ensure currentSets reflects the latest input
           updateScoreFromInputs();
@@ -1143,14 +1148,14 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
           if (tiebreakInput && tiebreakContainer && tiebreakContainer.style.display !== 'none') {
             // Move to tiebreak if visible
-            tiebreakInput.focus();
+            focusAndSelect(tiebreakInput);
           } else {
             // Move to next set's side 1
             const nextInput = setsContainer.querySelector(
               `input[data-set-index="${setIndex + 1}"][data-side="1"]`,
             ) as HTMLInputElement;
             if (nextInput) {
-              nextInput.focus();
+              focusAndSelect(nextInput);
             } else if (setIndex + 1 < getBestOf()) {
               // Only create next set if current set is complete and match not complete
               const currentSetComplete = isSetComplete(setIndex);
@@ -1160,7 +1165,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
               }
 
               // REFACTORED: Use pure logic function for match completion check
-              const matchComplete = isMatchCompleteLogic(currentSets, getBestOf());
+              const matchComplete = isMatchCompleteLogic(currentSets, getBestOf(), getExactly());
 
               if (matchComplete) {
                 return; // Don't create next set if match complete
@@ -1178,7 +1183,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
               });
 
               // Focus first input of new set
-              (newInputs[0] as HTMLInputElement).focus();
+              focusAndSelect(newInputs[0] as HTMLInputElement);
               updateClearButtonState();
             }
           }
@@ -1203,13 +1208,13 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
         const side2Input = setsContainer.querySelector(
           `input[data-set-index="${setIndex}"][data-side="2"]`,
         ) as HTMLInputElement;
-        if (side2Input) side2Input.focus();
+        if (side2Input) focusAndSelect(side2Input);
       } else if (side === '2') {
         // Move back to side 1 of same set
         const side1Input = setsContainer.querySelector(
           `input[data-set-index="${setIndex}"][data-side="1"]`,
         ) as HTMLInputElement;
-        if (side1Input) side1Input.focus();
+        if (side1Input) focusAndSelect(side1Input);
       } else if (setIndex > 0) {
         // Move back to previous set's tiebreak (if visible) or side 2
         const prevTiebreakInput = setsContainer.querySelector(
@@ -1222,9 +1227,9 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
         // Check if tiebreak is visible
         const prevTiebreakContainer = prevTiebreakInput?.closest('.tiebreak-container') as HTMLElement;
         if (prevTiebreakInput && prevTiebreakContainer && prevTiebreakContainer.style.display !== 'none') {
-          prevTiebreakInput.focus();
+          focusAndSelect(prevTiebreakInput);
         } else if (prevSide2Input) {
-          prevSide2Input.focus();
+          focusAndSelect(prevSide2Input);
         }
       }
     }
@@ -1302,7 +1307,9 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       // Update completion tracking after filling this set
       if (set.winningSide === 1) setsWon1++;
       if (set.winningSide === 2) setsWon2++;
-      matchAlreadyComplete = setsWon1 >= setsNeeded || setsWon2 >= setsNeeded;
+      const hasWinner = setsWon1 >= setsNeeded || setsWon2 >= setsNeeded;
+      // For exactly formats, all sets must be played even if one side has majority
+      matchAlreadyComplete = hasWinner && (!getExactly() || index + 1 >= getExactly());
     });
   } else {
     updateMatchUpDisplay();

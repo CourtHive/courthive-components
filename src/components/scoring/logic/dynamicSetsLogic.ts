@@ -30,6 +30,7 @@ export type SetFormat = {
  */
 export type MatchUpConfig = {
   bestOf: number;
+  exactly?: number;
   setFormat?: SetFormat;
   finalSetFormat?: SetFormat;
 };
@@ -226,20 +227,31 @@ export function getSetWinner(
 /**
  * Determine if match is complete based on sets won
  */
-export function isMatchComplete(sets: SetScore[], bestOf: number): boolean {
+export function isMatchComplete(sets: SetScore[], bestOf: number, exactly?: number): boolean {
   const setsNeeded = Math.ceil(bestOf / 2);
   const setsWon1 = sets.filter((s) => s.winningSide === 1).length;
   const setsWon2 = sets.filter((s) => s.winningSide === 2).length;
+  const hasWinner = setsWon1 >= setsNeeded || setsWon2 >= setsNeeded;
 
-  return setsWon1 >= setsNeeded || setsWon2 >= setsNeeded;
+  if (!hasWinner) return false;
+
+  if (exactly) {
+    // For exactly formats, all sets must have scores entered
+    const completedSets = sets.filter(
+      (s) => s.side1Score !== undefined && s.side2Score !== undefined,
+    ).length;
+    return completedSets >= exactly;
+  }
+
+  return true;
 }
 
 /**
  * Get the match winner based on sets won
  * Returns undefined if match is not complete
  */
-export function getMatchWinner(sets: SetScore[], bestOf: number): 1 | 2 | undefined {
-  if (!isMatchComplete(sets, bestOf)) {
+export function getMatchWinner(sets: SetScore[], bestOf: number, exactly?: number): 1 | 2 | undefined {
+  if (!isMatchComplete(sets, bestOf, exactly)) {
     return undefined;
   }
 
@@ -333,7 +345,7 @@ export function shouldApplySmartComplement(
   }
 
   // Check if match is already complete
-  if (isMatchComplete(sets, config.bestOf)) {
+  if (isMatchComplete(sets, config.bestOf, config.exactly)) {
     return {
       field1Value: digit,
       field2Value: 0,
@@ -433,7 +445,7 @@ export function shouldCreateNextSet(
   }
 
   // Don't create if match is complete
-  if (isMatchComplete(sets, config.bestOf)) {
+  if (isMatchComplete(sets, config.bestOf, config.exactly)) {
     return false;
   }
 

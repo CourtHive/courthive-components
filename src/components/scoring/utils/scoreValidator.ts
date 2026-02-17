@@ -70,7 +70,14 @@ function checkMatchComplete(
     return false;
   }
 
-  const isAggregateScoring = parsed?.setFormat?.based === 'A' || parsed?.finalSetFormat?.based === 'A';
+  const isAggregateScoring = !!(
+    parsed?.aggregate ||
+    parsed?.setFormat?.based === 'A' ||
+    parsed?.finalSetFormat?.based === 'A' ||
+    parsed?.gameFormat?.type === 'AGGR'
+  );
+
+  const isExactlyFormat = !!parsed?.exactly;
 
   if (isAggregateScoring) {
     const completeSets = validatedSets.filter((s) => s.side1Score !== undefined && s.side2Score !== undefined).length;
@@ -82,7 +89,13 @@ function checkMatchComplete(
       if (set.winningSide === 1) setsWon.side1++;
       else if (set.winningSide === 2) setsWon.side2++;
     });
-    return setsWon.side1 >= setsToWin || setsWon.side2 >= setsToWin;
+    const hasWinner = setsWon.side1 >= setsToWin || setsWon.side2 >= setsToWin;
+    if (!hasWinner) return false;
+
+    // For exactly formats, all sets must be played
+    if (isExactlyFormat && validatedSets.length < bestOfSets) return false;
+
+    return true;
   }
 }
 

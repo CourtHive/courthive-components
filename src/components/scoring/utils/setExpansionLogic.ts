@@ -41,7 +41,7 @@ export function parseMatchUpFormat(matchUpFormat?: string): MatchUpFormatInfo {
 
   // For exactly formats or bestOf:1, we know the exact number of sets
   // For bestOf, calculate sets needed to win
-  const setsToWin = isExactlyFormat ? setCount : Math.ceil(setCount / 2);
+  const setsToWin = Math.ceil(setCount / 2);
 
   return {
     bestOf: parsed.bestOf || setCount,
@@ -74,7 +74,12 @@ export function shouldExpandSets(sets: SetScore[], matchUpFormat?: string): bool
 
     // Special case: Aggregate scoring with conditional final tiebreak (e.g., SET3X-S:T10A-F:TB1)
     const parsed = matchUpFormatCode.parse(matchUpFormat);
-    const isAggregateScoring = parsed?.setFormat?.based === 'A' || parsed?.finalSetFormat?.based === 'A';
+    const isAggregateScoring = !!(
+      parsed?.aggregate ||
+      parsed?.setFormat?.based === 'A' ||
+      parsed?.finalSetFormat?.based === 'A' ||
+      parsed?.gameFormat?.type === 'AGGR'
+    );
     const hasFinalTiebreak = parsed?.finalSetFormat?.tiebreakSet?.tiebreakTo !== undefined;
 
     if (isAggregateScoring && hasFinalTiebreak && formatInfo.isTimed) {
@@ -186,7 +191,12 @@ export function determineWinningSide(sets: SetScore[], matchUpFormat?: string): 
 
   // Check if this is aggregate scoring
   const parsed = matchUpFormat ? matchUpFormatCode.parse(matchUpFormat) : null;
-  const isAggregateScoring = parsed?.setFormat?.based === 'A' || parsed?.finalSetFormat?.based === 'A';
+  const isAggregateScoring = !!(
+    parsed?.aggregate ||
+    parsed?.setFormat?.based === 'A' ||
+    parsed?.finalSetFormat?.based === 'A' ||
+    parsed?.gameFormat?.type === 'AGGR'
+  );
 
   if (isAggregateScoring) {
     return determineAggregateWinner(sets);
