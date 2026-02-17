@@ -13,6 +13,7 @@ The renderers provide a declarative way to create complex UI components without 
 Renders a row of configurable buttons for modals, drawers, and forms.
 
 **Features:**
+
 - Multiple button intents (colors)
 - Disabled states
 - Custom click handlers
@@ -20,16 +21,17 @@ Renders a row of configurable buttons for modals, drawers, and forms.
 - Programmatic button control via IDs
 
 **Basic Usage:**
+
 ```typescript
 import { renderButtons } from './components/renderers/renderButtons';
 
 const buttons = [
   { label: 'Cancel', intent: 'none' },
-  { 
-    label: 'Save', 
+  {
+    label: 'Save',
     id: 'saveBtn',
-    intent: 'is-success', 
-    onClick: () => saveData() 
+    intent: 'is-success',
+    onClick: () => saveData()
   }
 ];
 
@@ -48,6 +50,7 @@ elements.saveBtn.disabled = true;
 Renders individual form fields with support for multiple input types.
 
 **Supported Field Types:**
+
 - Text, email, password, number inputs
 - Select dropdowns (single and multi-select)
 - Checkboxes
@@ -56,6 +59,7 @@ Renders individual form fields with support for multiple input types.
 - Type-ahead/autocomplete (with awesomplete)
 
 **Features:**
+
 - Built-in validation with error messages
 - Icons (left and right)
 - Custom styling and widths
@@ -64,6 +68,7 @@ Renders individual form fields with support for multiple input types.
 - Event handlers (onChange, onInput, onKeyDown, etc.)
 
 **Basic Usage:**
+
 ```typescript
 import { renderField } from './components/renderers/renderField';
 
@@ -92,6 +97,7 @@ console.log(inputElement.value);
 Renders complete forms with multiple fields, validation, and relationships.
 
 **Features:**
+
 - Multiple field types in one form
 - Field pairing (two fields per row)
 - Date range pickers
@@ -101,6 +107,7 @@ Renders complete forms with multiple fields, validation, and relationships.
 - Real-time validation
 
 **Basic Usage:**
+
 ```typescript
 import { renderForm } from './components/renderers/renderForm';
 
@@ -137,6 +144,7 @@ console.log(inputs.remember.checked);
 ```
 
 **Field Pairing Example:**
+
 ```typescript
 const inputs = renderForm(container, [
   {
@@ -151,33 +159,43 @@ const inputs = renderForm(container, [
 ```
 
 **Date Range Example:**
+
 ```typescript
-const inputs = renderForm(container, [
-  { label: 'Start Date', field: 'startDate', date: true },
-  { label: 'End Date', field: 'endDate', date: true }
-], [
-  {
-    dateRange: true,
-    fields: ['startDate', 'endDate'],
-    minDate: new Date()
-  }
-]);
+const inputs = renderForm(
+  container,
+  [
+    { label: 'Start Date', field: 'startDate', date: true },
+    { label: 'End Date', field: 'endDate', date: true }
+  ],
+  [
+    {
+      dateRange: true,
+      fields: ['startDate', 'endDate'],
+      minDate: new Date()
+    }
+  ]
+);
 ```
 
 **Dynamic Relationships Example:**
+
 ```typescript
-const inputs = renderForm(container, [
-  { label: 'Password', field: 'password', type: 'password' },
-  { label: 'Confirm', field: 'confirm', type: 'password' }
-], [
-  {
-    control: 'confirm',
-    onInput: ({ e, inputs, fields }) => {
-      const match = inputs.password.value === inputs.confirm.value;
-      // Update UI based on match
+const inputs = renderForm(
+  container,
+  [
+    { label: 'Password', field: 'password', type: 'password' },
+    { label: 'Confirm', field: 'confirm', type: 'password' }
+  ],
+  [
+    {
+      control: 'confirm',
+      onInput: ({ e, inputs, fields }) => {
+        const match = inputs.password.value === inputs.confirm.value;
+        // Update UI based on match
+      }
     }
-  }
-]);
+  ]
+);
 ```
 
 **See:** [renderForm.stories.ts](../../stories/renderForm.stories.ts) for complete form examples
@@ -189,6 +207,7 @@ const inputs = renderForm(container, [
 Renders hierarchical menus with sections, dividers, and embedded inputs.
 
 **Features:**
+
 - Nested menu sections with labels
 - Dividers between items
 - Disabled items
@@ -199,44 +218,54 @@ Renders hierarchical menus with sections, dividers, and embedded inputs.
 - Click handlers
 
 **Basic Usage:**
+
 ```typescript
 import { renderMenu } from './components/renderers/renderMenu';
 
-renderMenu(container, [
-  {
-    text: 'File Operations',
-    items: [
-      { text: 'New File', onClick: () => createFile() },
-      { text: 'Open File', onClick: () => openFile() },
-      { divider: true },
-      { text: 'Save', onClick: () => saveFile() }
-    ]
-  },
-  {
-    text: 'Edit Operations',
-    items: [
-      { text: 'Cut', onClick: () => cut() },
-      { text: 'Copy', onClick: () => copy() },
-      { text: 'Paste', disabled: !hasClipboard, onClick: () => paste() }
-    ]
-  }
-], closeMenu);
+renderMenu(
+  container,
+  [
+    {
+      text: 'File Operations',
+      items: [
+        { text: 'New File', onClick: () => createFile() },
+        { text: 'Open File', onClick: () => openFile() },
+        { divider: true },
+        { text: 'Save', onClick: () => saveFile() }
+      ]
+    },
+    {
+      text: 'Edit Operations',
+      items: [
+        { text: 'Cut', onClick: () => cut() },
+        { text: 'Copy', onClick: () => copy() },
+        { text: 'Paste', disabled: !hasClipboard, onClick: () => paste() }
+      ]
+    }
+  ],
+  closeMenu
+);
 ```
 
 **Context Menu Example:**
+
 ```typescript
-renderMenu(container, [
-  {
-    items: [
-      { text: 'Open', onClick: () => open() },
-      { divider: true },
-      { text: 'Copy', onClick: () => copy() },
-      { text: 'Paste', disabled: true },
-      { divider: true },
-      { text: 'Delete', color: 'red', onClick: () => deleteItem() }
-    ]
-  }
-], closeMenu);
+renderMenu(
+  container,
+  [
+    {
+      items: [
+        { text: 'Open', onClick: () => open() },
+        { divider: true },
+        { text: 'Copy', onClick: () => copy() },
+        { text: 'Paste', disabled: true },
+        { divider: true },
+        { text: 'Delete', color: 'red', onClick: () => deleteItem() }
+      ]
+    }
+  ],
+  closeMenu
+);
 ```
 
 **See:** [renderMenu.stories.ts](../../stories/renderMenu.stories.ts) for menu variations
@@ -248,25 +277,21 @@ renderMenu(container, [
 Internal validation utility used by renderField for real-time input validation.
 
 **Features:**
+
 - Real-time validation feedback
 - Success/error styling (green/red borders)
 - Error message display
 - Custom validation functions
 
 **Usage:** (typically used internally by renderField)
+
 ```typescript
 import { validator } from './components/renderers/renderValidator';
 
 const emailValidator = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
 input.addEventListener('input', (e) => {
-  validator(
-    { error: 'Invalid email format' },
-    e,
-    input,
-    helpElement,
-    emailValidator
-  );
+  validator({ error: 'Invalid email format' }, e, input, helpElement, emailValidator);
 });
 ```
 
@@ -279,7 +304,7 @@ The renderers require the following packages (already installed):
 - **vanillajs-datepicker** (v1.3.4) - Date picker functionality
 - **awesomplete** (v1.1.7) - Type-ahead/autocomplete functionality
 - **bulma** (v1.0.4) - CSS framework for styling
-- **bulma-checkradio** (v2.1.3) - Checkbox and radio styling
+- **checkradio.css** - Checkbox and radio styling
 - **bulma-switch** (v2.0.4) - Switch/toggle styling
 
 ### CSS Imports
@@ -288,7 +313,7 @@ All required CSS is automatically imported when you import the renderers from th
 
 ```typescript
 import 'vanillajs-datepicker/css/datepicker-bulma.css';
-import 'bulma-checkradio/dist/css/bulma-checkradio.min.css';
+import './checkradio.css';
 import 'bulma-switch/dist/css/bulma-switch.min.css';
 import 'awesomplete/awesomplete.css';
 ```
@@ -308,6 +333,7 @@ The renderers use Bulma CSS classes for styling. Key classes include:
 - `.is-success`, `.is-danger`, `.is-info`, etc. - Intent colors
 
 Custom styling can be applied via:
+
 - `style` property (inline CSS)
 - `class` property (CSS classes)
 - `width` property (field width)
@@ -328,20 +354,24 @@ const inputs = renderForm(modalContent, [
 
 // Render buttons
 const modalFooter = document.createElement('div');
-renderButtons(modalFooter, [
-  { label: 'Cancel' },
-  { 
-    label: 'Submit', 
-    intent: 'is-success',
-    onClick: () => {
-      const data = {
-        name: inputs.name.value,
-        email: inputs.email.value
-      };
-      submitData(data);
+renderButtons(
+  modalFooter,
+  [
+    { label: 'Cancel' },
+    {
+      label: 'Submit',
+      intent: 'is-success',
+      onClick: () => {
+        const data = {
+          name: inputs.name.value,
+          email: inputs.email.value
+        };
+        submitData(data);
+      }
     }
-  }
-], closeModal);
+  ],
+  closeModal
+);
 ```
 
 ### Dynamic Field Validation
@@ -403,6 +433,7 @@ npm run storybook
 ```
 
 Navigate to:
+
 - **Renderers/Buttons** - Button configurations
 - **Renderers/Field** - All field types and validation
 - **Renderers/Form** - Complete form examples
