@@ -100,8 +100,8 @@ importers:
         specifier: 10.0.0
         version: 10.0.0(jiti@2.6.1)
       eslint-plugin-sonarjs:
-        specifier: 3.0.7
-        version: 3.0.7(eslint@10.0.0(jiti@2.6.1))
+        specifier: 4.0.0
+        version: 4.0.0(eslint@10.0.0(jiti@2.6.1))
       eslint-plugin-storybook:
         specifier: ^10.0.2
         version: 10.2.10(eslint@10.0.0(jiti@2.6.1))(storybook@10.2.10(@testing-library/dom@10.4.0)(prettier@2.8.8)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(typescript@5.9.3)
@@ -1920,6 +1920,10 @@ packages:
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
 
+  balanced-match@4.0.3:
+    resolution: {integrity: sha512-1pHv8LX9CpKut1Zp4EXey7Z8OfH11ONNH6Dhi2WDUt31VVZFXZzKwXcysBgqSumFCmR+0dqjMK5v5JiFHzi0+g==}
+    engines: {node: 20 || >=22}
+
   baseline-browser-mapping@2.9.11:
     resolution: {integrity: sha512-Sg0xJUNDU1sJNGdfGWhVHX0kkZ+HWcvmVymJbj6NSgZZmW/8S9Y2HQ5euytnIgakgxN6papOAWiwDo1ctFDcoQ==}
     hasBin: true
@@ -1929,6 +1933,10 @@ packages:
 
   brace-expansion@2.0.2:
     resolution: {integrity: sha512-Jt0vHyM+jmUBqojB7E1NIYadt0vI0Qxjxd2TErW94wDz+E2LAm5vKMXXwg6ZZBTHPuUlDgQHKXvjGBdfcF1ZDQ==}
+
+  brace-expansion@5.0.2:
+    resolution: {integrity: sha512-Pdk8c9poy+YhOgVWw1JNN22/HcivgKWwpxKq04M/jTmHyCZn12WPJebZxdjSa5TmBqISrUSgNYU3eRORljfCCw==}
+    engines: {node: 20 || >=22}
 
   braces@3.0.3:
     resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
@@ -2520,10 +2528,10 @@ packages:
     resolution: {integrity: sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==}
     engines: {node: '>=10'}
 
-  eslint-plugin-sonarjs@3.0.7:
-    resolution: {integrity: sha512-62jB20krIPvcwBLAyG3VVKa2ce2j2lL1yCb8Y0ylMRR/dLvCCTiQx8gQbXb+G81k1alPZ2/I3muZinqWQdBbzw==}
+  eslint-plugin-sonarjs@4.0.0:
+    resolution: {integrity: sha512-ihyH9HO52OeeWer/gWRndkW/ZhGqx9HDg+Iptu+ApSfiomT2LzhHgHCoyJrhh7DjCyKhjU3Hmmz1pzcXRf7B3g==}
     peerDependencies:
-      eslint: ^8.0.0 || ^9.0.0
+      eslint: ^8.0.0 || ^9.0.0 || ^10.0.0
 
   eslint-plugin-storybook@10.2.10:
     resolution: {integrity: sha512-aWkoh2rhTaEsMA4yB1iVIcISM5wb0uffp09ZqhwpoD4GAngCs131uq6un+QdnOMc7vXyAnBBfsuhtOj8WwCUgw==}
@@ -3410,6 +3418,10 @@ packages:
 
   minimatch@10.1.2:
     resolution: {integrity: sha512-fu656aJ0n2kcXwsnwnv9g24tkU5uSmOlTjd6WyyaKm2Z+h1qmY6bAjrcaIxF/BslFqbZ8UBtbJi7KgQOZD2PTw==}
+    engines: {node: 20 || >=22}
+
+  minimatch@10.2.1:
+    resolution: {integrity: sha512-MClCe8IL5nRRmawL6ib/eT4oLyeKMGCghibcDWK+J0hh0Q8kqSdia6BvbRMVk6mPa6WqUa5uR2oxt6C5jd533A==}
     engines: {node: 20 || >=22}
 
   minimatch@3.1.2:
@@ -6297,6 +6309,8 @@ snapshots:
 
   balanced-match@1.0.2: {}
 
+  balanced-match@4.0.3: {}
+
   baseline-browser-mapping@2.9.11: {}
 
   brace-expansion@1.1.12:
@@ -6307,6 +6321,10 @@ snapshots:
   brace-expansion@2.0.2:
     dependencies:
       balanced-match: 1.0.2
+
+  brace-expansion@5.0.2:
+    dependencies:
+      balanced-match: 4.0.3
 
   braces@3.0.3:
     dependencies:
@@ -6877,18 +6895,20 @@ snapshots:
 
   escape-string-regexp@4.0.0: {}
 
-  eslint-plugin-sonarjs@3.0.7(eslint@10.0.0(jiti@2.6.1)):
+  eslint-plugin-sonarjs@4.0.0(eslint@10.0.0(jiti@2.6.1)):
     dependencies:
       '@eslint-community/regexpp': 4.12.2
       builtin-modules: 3.3.0
       bytes: 3.1.2
       eslint: 10.0.0(jiti@2.6.1)
       functional-red-black-tree: 1.0.1
+      globals: 17.3.0
       jsx-ast-utils-x: 0.1.0
       lodash.merge: 4.6.2
-      minimatch: 10.1.2
+      minimatch: 10.2.1
       scslre: 0.3.0
       semver: 7.7.4
+      ts-api-utils: 2.4.0(typescript@5.9.3)
       typescript: 5.9.3
 
   eslint-plugin-storybook@10.2.10(eslint@10.0.0(jiti@2.6.1))(storybook@10.2.10(@testing-library/dom@10.4.0)(prettier@2.8.8)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(typescript@5.9.3):
@@ -7978,6 +7998,10 @@ snapshots:
   minimatch@10.1.2:
     dependencies:
       '@isaacs/brace-expansion': 5.0.1
+
+  minimatch@10.2.1:
+    dependencies:
+      brace-expansion: 5.0.2
 
   minimatch@3.1.2:
     dependencies:
