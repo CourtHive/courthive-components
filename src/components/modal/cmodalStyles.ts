@@ -1,7 +1,6 @@
 import { css } from '@stitches/core';
 
 export const backdropStyle = css({
-  willChange: 'opacity',
   position: 'fixed',
   zIndex: 9998,
   bottom: 0,

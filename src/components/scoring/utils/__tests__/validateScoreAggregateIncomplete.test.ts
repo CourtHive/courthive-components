@@ -6,7 +6,7 @@ import { describe, it, expect } from 'vitest';
 import { validateScore } from '../scoreValidator';
 
 describe('validateScore - Aggregate incomplete handling', () => {
-  const format = 'SET3X-S:T10A';
+  const format = 'SET3XA-S:T10';
 
   it('should NOT treat incomplete third set as complete match', () => {
     // 2 complete sets + 1 incomplete (only side1)
@@ -65,7 +65,7 @@ describe('validateScore - Aggregate incomplete handling', () => {
   });
 
   it('should work with SET4X format', () => {
-    const format = 'SET4X-S:T10A';
+    const format = 'SET4XA-S:T10';
     
     // 3 complete sets + 1 incomplete
     const scoreString = '10-1 0-1 5-3 2';
@@ -76,7 +76,7 @@ describe('validateScore - Aggregate incomplete handling', () => {
   });
 
   it('should validate 4 complete sets for SET4X', () => {
-    const format = 'SET4X-S:T10A';
+    const format = 'SET4XA-S:T10';
     
     const scoreString = '10-1 0-1 5-3 2-8';
     const result = validateScore(scoreString, format);
@@ -87,7 +87,7 @@ describe('validateScore - Aggregate incomplete handling', () => {
 });
 
 describe('validateScore - Aggregate with TB1 final', () => {
-  const format = 'SET3X-S:T10A-F:TB1';
+  const format = 'SET3XA-S:T10-F:TB1';
 
   it('should handle incomplete sets before TB', () => {
     const scoreString = '10-1 5';

@@ -52,7 +52,7 @@ describe('dialPadLogic - Timed sets incomplete handling', () => {
   });
 
   it('should handle aggregate format with incomplete sets', () => {
-    const format = 'SET3X-S:T10A';
+    const format = 'SET3XA-S:T10';
     const digits = '30-25 25';
     const result = formatScoreString(digits, { matchUpFormat: format });
     

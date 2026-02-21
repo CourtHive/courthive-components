@@ -48,14 +48,14 @@ export interface SetFormatConfig {
   tiebreakTo: number;
   winBy: number;
   minutes: number;
-  based?: string; // 'A' (Aggregate), 'P' (Points), 'G' (Games), or undefined (default Games)
+  based?: string; // 'P' (Points), 'G' (Games), or undefined (default Games)
   modifier?: string; // e.g., 'RALLY'
 }
 
 export interface FormatConfig {
   matchRoot?: string;      // 'SET'|'HAL'|'QTR'|'PER'|'INN'|'RND'|'FRM'|'MAP'
   aggregate?: boolean;
-  gameFormat?: { type: 'AGGR' } | { type: 'CONSECUTIVE'; count: number };
+  gameFormat?: { type: 'CONSECUTIVE'; count: number; deuceAfter?: number } | { type: 'TRADITIONAL'; deuceAfter?: number };
   setFormat: SetFormatConfig;
   finalSetFormat: SetFormatConfig;
 }
@@ -63,7 +63,7 @@ export interface FormatConfig {
 export interface ParsedMatchUpFormat {
   matchRoot?: string;
   aggregate?: boolean;
-  gameFormat?: { type: 'AGGR' } | { type: 'CONSECUTIVE'; count: number };
+  gameFormat?: { type: 'CONSECUTIVE'; count: number; deuceAfter?: number } | { type: 'TRADITIONAL'; deuceAfter?: number };
   bestOf?: number;
   exactly?: number;
   setFormat: any;

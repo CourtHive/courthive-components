@@ -424,7 +424,7 @@ describe('setExpansionLogic', () => {
   });
 
   describe('Aggregate Scoring with Conditional TB', () => {
-    describe('SET3X-S:T10A-F:TB1', () => {
+    describe('SET3XA-S:T10-F:TB1', () => {
       const format = MATCH_FORMATS.SET3X_T10A_TB1;
 
       it('should NOT expand after 2 sets when aggregate not tied (match complete)', () => {
@@ -489,7 +489,7 @@ describe('setExpansionLogic', () => {
       });
     });
 
-    describe('SET4X-S:T10A-F:TB1', () => {
+    describe('SET4XA-S:T10-F:TB1', () => {
       const format = MATCH_FORMATS.SET4X_T10A_TB1;
 
       it('should NOT expand after 3 sets when aggregate not tied', () => {

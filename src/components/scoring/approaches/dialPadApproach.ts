@@ -104,7 +104,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     container.appendChild(matchUpContainer);
 
     // Show aggregate scoring indicator if format uses aggregate
-    const isAggregateScoring = parsedFormat?.setFormat?.based === 'A' || parsedFormat?.finalSetFormat?.based === 'A';
+    const isAggregateScoring = !!parsedFormat?.aggregate;
     if (isAggregateScoring) {
       const aggregateIndicator = document.createElement('div');
       aggregateIndicator.style.fontSize = '0.75em';

@@ -143,6 +143,12 @@
     "desc": "Best of 3 sets to 6, golden point"
   },
   {
+    "key": "padelStarPoint",
+    "name": "Padel Star Point (2026)",
+    "format": "SET3-S:6NOAD/TB7-G:TN3D",
+    "desc": "Best of 3 sets to 6, golden point, Star Point deuce"
+  },
+  {
     "key": "squash",
     "name": "Squash PAR-11",
     "format": "SET5-S:TB11",

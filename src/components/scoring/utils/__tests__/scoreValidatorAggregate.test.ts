@@ -7,8 +7,8 @@ import { describe, it, expect } from 'vitest';
 import { validateScore } from '../scoreValidator';
 
 describe('scoreValidator - Aggregate Scoring', () => {
-  describe('SET3X-S:T10A (exactly 3 sets, aggregate scoring)', () => {
-    const format = 'SET3X-S:T10A';
+  describe('SET3XA-S:T10 (exactly 3 sets, aggregate scoring)', () => {
+    const format = 'SET3XA-S:T10';
 
     it('should calculate winningSide based on aggregate totals, not sets won (30-0, 0-1, 0-1)', () => {
       const scoreString = '30-0 0-1 0-1';
@@ -90,8 +90,8 @@ describe('scoreValidator - Aggregate Scoring', () => {
     });
   });
 
-  describe('SET3X-S:T10A-F:TB1 (aggregate with conditional final tiebreak)', () => {
-    const format = 'SET3X-S:T10A-F:TB1';
+  describe('SET3XA-S:T10-F:TB1 (aggregate with conditional final tiebreak)', () => {
+    const format = 'SET3XA-S:T10-F:TB1';
 
     it('should handle aggregate tie resolved by final tiebreak', () => {
       // Use bracket notation for tiebreak-only final set

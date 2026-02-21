@@ -585,7 +585,7 @@ function formatTimedSets(sets: ParsedSet[]): string {
 /**
  * Simple parser for timed sets with exactly format
  * For formats like SET3X-S:T10, expects exactly N sets in "#-#" format
- * For aggregate with conditional TB (SET3X-S:T10A-F:TB1):
+ * For aggregate with conditional TB (SET3XA-S:T10-F:TB1):
  *   - Accepts N-1 sets if aggregate not tied (match ends early)
  *   - Requires N sets with final TB if aggregate tied
  * No smart logic - just parse literal "#-# #-# #-#" patterns
@@ -594,7 +594,7 @@ function parseTimedExactlyScore(input: string, parsedFormat: ParsedFormat): Pars
   const expectedSetCount = parsedFormat.exactly || parsedFormat.bestOf || 1;
   const trimmedInput = input.trim();
 
-  const isAggregateScoring = parsedFormat.setFormat?.based === 'A' || parsedFormat.finalSetFormat?.based === 'A';
+  const isAggregateScoring = !!parsedFormat?.aggregate;
   const hasFinalTiebreak = parsedFormat.finalSetFormat?.tiebreakSet?.tiebreakTo !== undefined;
   const conditionalFinalTB = isAggregateScoring && hasFinalTiebreak;
 

@@ -8,7 +8,7 @@ import { tournamentEngine } from 'tods-competition-factory';
 describe('Factory generateOutcomeFromScoreString with preserveSideOrder', () => {
   describe('Aggregate scoring', () => {
     it('should preserve side order and calculate winningSide correctly', () => {
-      const format = 'SET3X-S:T10A';
+      const format = 'SET3XA-S:T10';
       const { outcome } = tournamentEngine.generateOutcomeFromScoreString({
         scoreString: '30-1 0-1 0-1',
         matchUpFormat: format,
@@ -24,7 +24,7 @@ describe('Factory generateOutcomeFromScoreString with preserveSideOrder', () => 
     });
 
     it('should handle aggregate tie resolved by TB1', () => {
-      const format = 'SET3X-S:T10A-F:TB1';
+      const format = 'SET3XA-S:T10-F:TB1';
       const { outcome } = tournamentEngine.generateOutcomeFromScoreString({
         scoreString: '30-25 25-30 [1-0]',
         matchUpFormat: format,
@@ -111,7 +111,7 @@ describe('Factory generateOutcomeFromScoreString with preserveSideOrder', () => 
     });
 
     it('should generate scoreStrings for aggregate format', () => {
-      const format = 'SET3X-S:T10A';
+      const format = 'SET3XA-S:T10';
       const { outcome } = tournamentEngine.generateOutcomeFromScoreString({
         scoreString: '30-1 0-1 0-1',
         matchUpFormat: format,

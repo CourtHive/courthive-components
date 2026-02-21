@@ -543,12 +543,28 @@ describe('matchUpFormatLogic', () => {
       expect(parsed.gameFormat).toEqual({ type: 'CONSECUTIVE', count: 3 });
     });
 
-    it('should include AGGR gameFormat', () => {
+    it('should include TRADITIONAL gameFormat', () => {
       const config = createDefaultFormat();
-      config.gameFormat = { type: 'AGGR' };
+      config.gameFormat = { type: 'TRADITIONAL' };
 
       const parsed = buildParsedFormat(config, false, false, false);
-      expect(parsed.gameFormat).toEqual({ type: 'AGGR' });
+      expect(parsed.gameFormat).toEqual({ type: 'TRADITIONAL' });
+    });
+
+    it('should include TRADITIONAL gameFormat with deuceAfter', () => {
+      const config = createDefaultFormat();
+      config.gameFormat = { type: 'TRADITIONAL', deuceAfter: 3 };
+
+      const parsed = buildParsedFormat(config, false, false, false);
+      expect(parsed.gameFormat).toEqual({ type: 'TRADITIONAL', deuceAfter: 3 });
+    });
+
+    it('should include CONSECUTIVE gameFormat with deuceAfter', () => {
+      const config = createDefaultFormat();
+      config.gameFormat = { type: 'CONSECUTIVE', count: 3, deuceAfter: 3 };
+
+      const parsed = buildParsedFormat(config, false, false, false);
+      expect(parsed.gameFormat).toEqual({ type: 'CONSECUTIVE', count: 3, deuceAfter: 3 });
     });
   });
 
@@ -591,11 +607,16 @@ describe('matchUpFormatLogic', () => {
       expect(format.gameFormat).toEqual({ type: 'CONSECUTIVE', count: 3 });
     });
 
-    it('should extract aggregate and gameFormat AGGR', () => {
+    it('should extract aggregate and points-based scoring', () => {
       const format = initializeFormatFromString('SET7XA-S:T10P', matchUpFormatCode.parse);
 
       expect(format.aggregate).toBe(true);
       expect(format.setFormat.based).toBe('P');
+    });
+
+    it('should extract gameFormat TRADITIONAL with deuceAfter', () => {
+      const format = initializeFormatFromString('SET3-S:6/TB7-G:TN3D', matchUpFormatCode.parse);
+      expect(format.gameFormat).toEqual({ type: 'TRADITIONAL', deuceAfter: 3 });
     });
 
     it('should not set matchRoot for standard SET formats', () => {
@@ -652,8 +673,20 @@ describe('matchUpFormatLogic', () => {
       expect(roundTrip('PER3A-S:T20')).toBe('PER3A-S:T20');
     });
 
-    it('SET3-S:T10-G:AGGR (INTENNSE variant)', () => {
-      expect(roundTrip('SET3-S:T10-G:AGGR')).toBe('SET3-S:T10-G:AGGR');
+    it('SET3-S:6/TB7-G:TN3D (Padel Star Point)', () => {
+      expect(roundTrip('SET3-S:6/TB7-G:TN3D')).toBe('SET3-S:6/TB7-G:TN3D');
+    });
+
+    it('SET3-S:6/TB7-G:TN (explicit traditional)', () => {
+      expect(roundTrip('SET3-S:6/TB7-G:TN')).toBe('SET3-S:6/TB7-G:TN');
+    });
+
+    it('SET3-S:6/TB7-G:TN1D (golden point)', () => {
+      expect(roundTrip('SET3-S:6/TB7-G:TN1D')).toBe('SET3-S:6/TB7-G:TN1D');
+    });
+
+    it('SET5-S:5-G:3C3D (consecutive + Star Point)', () => {
+      expect(roundTrip('SET5-S:5-G:3C3D')).toBe('SET5-S:5-G:3C3D');
     });
 
     it('SET5-S:TB25-F:TB15 (volleyball)', () => {

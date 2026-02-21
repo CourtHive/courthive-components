@@ -70,12 +70,7 @@ function checkMatchComplete(
     return false;
   }
 
-  const isAggregateScoring = !!(
-    parsed?.aggregate ||
-    parsed?.setFormat?.based === 'A' ||
-    parsed?.finalSetFormat?.based === 'A' ||
-    parsed?.gameFormat?.type === 'AGGR'
-  );
+  const isAggregateScoring = !!parsed?.aggregate;
 
   const isExactlyFormat = !!parsed?.exactly;
 
