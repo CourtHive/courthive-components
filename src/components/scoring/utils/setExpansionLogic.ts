@@ -72,19 +72,14 @@ export function shouldExpandSets(sets: SetScore[], matchUpFormat?: string): bool
       return false;
     }
 
-    // Special case: Aggregate scoring with conditional final tiebreak (e.g., SET3X-S:T10A-F:TB1)
+    // Special case: Aggregate scoring with conditional final tiebreak (e.g., SET3XA-S:T10-F:TB1)
     const parsed = matchUpFormatCode.parse(matchUpFormat);
-    const isAggregateScoring = !!(
-      parsed?.aggregate ||
-      parsed?.setFormat?.based === 'A' ||
-      parsed?.finalSetFormat?.based === 'A' ||
-      parsed?.gameFormat?.type === 'AGGR'
-    );
+    const isAggregateScoring = !!parsed?.aggregate;
     const hasFinalTiebreak = parsed?.finalSetFormat?.tiebreakSet?.tiebreakTo !== undefined;
 
     if (isAggregateScoring && hasFinalTiebreak && formatInfo.isTimed) {
-      // For SET3X-S:T10A-F:TB1: Show sets 1-2, then check aggregate
-      // For SET4X-S:T10A-F:TB1: Show sets 1-3, then check aggregate
+      // For SET3XA-S:T10-F:TB1: Show sets 1-2, then check aggregate
+      // For SET4XA-S:T10-F:TB1: Show sets 1-3, then check aggregate
       const timedSetsCount = totalSets - 1; // Final set is TB, so timed sets = totalSets - 1
 
       if (sets.length < timedSetsCount) {
@@ -191,12 +186,7 @@ export function determineWinningSide(sets: SetScore[], matchUpFormat?: string): 
 
   // Check if this is aggregate scoring
   const parsed = matchUpFormat ? matchUpFormatCode.parse(matchUpFormat) : null;
-  const isAggregateScoring = !!(
-    parsed?.aggregate ||
-    parsed?.setFormat?.based === 'A' ||
-    parsed?.finalSetFormat?.based === 'A' ||
-    parsed?.gameFormat?.type === 'AGGR'
-  );
+  const isAggregateScoring = !!parsed?.aggregate;
 
   if (isAggregateScoring) {
     return determineAggregateWinner(sets);

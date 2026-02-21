@@ -1,14 +1,14 @@
 /**
  * Tests for aggregate scoring with conditional final tiebreak
- * Format: SET3X-S:T10A-F:TB1 and SET4X-S:T10A-F:TB1
+ * Format: SET3XA-S:T10-F:TB1 and SET4XA-S:T10-F:TB1
  */
 
 import { describe, it, expect } from 'vitest';
 import { parseScore } from '../freeScore';
 
 describe('freeScore - Aggregate Scoring with Conditional TB', () => {
-  describe('SET3X-S:T10A (3 sets, aggregate, no conditional TB)', () => {
-    const format = 'SET3X-S:T10A';
+  describe('SET3XA-S:T10 (3 sets, aggregate, no conditional TB)', () => {
+    const format = 'SET3XA-S:T10';
 
     it('should accept 3 sets with highly uneven scores (30-0, 0-1, 0-1)', () => {
       const result = parseScore('30-0 0-1 0-1', format);
@@ -66,8 +66,8 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
     });
   });
 
-  describe('SET3X-S:T10A-F:TB1 (3 sets, aggregate, conditional TB1)', () => {
-    const format = 'SET3X-S:T10A-F:TB1';
+  describe('SET3XA-S:T10-F:TB1 (3 sets, aggregate, conditional TB1)', () => {
+    const format = 'SET3XA-S:T10-F:TB1';
 
     it('should accept 2 sets when aggregate not tied (side 2 wins)', () => {
       const result = parseScore('30-25 20-30', format);
@@ -163,8 +163,8 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
     });
   });
 
-  describe('SET4X-S:T10A-F:TB1 (4 sets, aggregate, conditional TB1)', () => {
-    const format = 'SET4X-S:T10A-F:TB1';
+  describe('SET4XA-S:T10-F:TB1 (4 sets, aggregate, conditional TB1)', () => {
+    const format = 'SET4XA-S:T10-F:TB1';
 
     it('should accept 3 sets when aggregate not tied', () => {
       const result = parseScore('30-25 20-30 45-50', format);
@@ -215,8 +215,8 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
     });
   });
 
-  describe('SET3X-S:T10A-F:TB1NOAD (NoAD final TB)', () => {
-    const format = 'SET3X-S:T10A-F:TB1NOAD';
+  describe('SET3XA-S:T10-F:TB1NOAD (NoAD final TB)', () => {
+    const format = 'SET3XA-S:T10-F:TB1NOAD';
 
     it('should accept TB with NoAD format (same validation as TB1)', () => {
       const result = parseScore('30-25 25-30 1-0', format);
@@ -234,7 +234,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
   });
 
   describe('Edge Cases', () => {
-    const format = 'SET3X-S:T10A-F:TB1';
+    const format = 'SET3XA-S:T10-F:TB1';
 
     it('should handle aggregate tied at 0-0', () => {
       const result = parseScore('0-0 0-1', format);
@@ -283,8 +283,8 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
   });
 
   describe('Realistic score examples', () => {
-    it('should accept 10-11 11-10 1-0 for SET3X-S:T10A-F:TB1', () => {
-      const result = parseScore('10-11 11-10 1-0', 'SET3X-S:T10A-F:TB1');
+    it('should accept 10-11 11-10 1-0 for SET3XA-S:T10-F:TB1', () => {
+      const result = parseScore('10-11 11-10 1-0', 'SET3XA-S:T10-F:TB1');
 
       // Aggregate: 21-21, tied → TB decides
       expect(result.valid).toBe(true);
@@ -292,8 +292,8 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
       expect(result.matchComplete).toBe(true);
     });
 
-    it('should accept 10-11 11-11 11-10 1-0 for SET4X-S:T10A-F:TB1', () => {
-      const result = parseScore('10-11 11-11 11-10 1-0', 'SET4X-S:T10A-F:TB1');
+    it('should accept 10-11 11-11 11-10 1-0 for SET4XA-S:T10-F:TB1', () => {
+      const result = parseScore('10-11 11-11 11-10 1-0', 'SET4XA-S:T10-F:TB1');
 
       // Aggregate: 32-32, tied → TB decides
       expect(result.valid).toBe(true);

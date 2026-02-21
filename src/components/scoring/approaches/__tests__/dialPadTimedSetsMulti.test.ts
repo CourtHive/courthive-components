@@ -53,8 +53,8 @@ describe('dialPadLogic - Timed sets multi-set entry', () => {
     expect(result).toBe('10-1 0-1 5-3');
   });
 
-  it('should handle SET3X-S:T10A aggregate format', () => {
-    const format = 'SET3X-S:T10A';
+  it('should handle SET3XA-S:T10 aggregate format', () => {
+    const format = 'SET3XA-S:T10';
     const digits = '30-1-0-1-0-1';
     const result = formatScoreString(digits, { matchUpFormat: format });
     expect(result).toBe('30-1 0-1 0-1');

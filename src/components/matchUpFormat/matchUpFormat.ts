@@ -99,7 +99,7 @@ const defaultConfig: MatchUpFormatConfig = {
     minutes: [3, 5, 8, 10, 12, 15, 20, 25, 30, 45, 60, 90, 120],
     winBy: [1, 2],
     matchRoots: [...MATCH_ROOTS],
-    gameFormats: ['None', 'AGGR', '2C', '3C', '4C'],
+    gameFormats: ['None', 'TN', '2C', '3C', '4C'],
     modifiers: ['None', 'RALLY']
   }
 };
@@ -128,31 +128,33 @@ const SETS = 'Set';
 const AD = 'Ad';
 
 // Display labels for the 'based' scoring method (timed sets)
-const BASED_LABELS: Record<string, string> = { G: 'Games', P: 'Points', A: 'Aggregate' };
-const BASED_CODES: Record<string, string> = { Games: 'G', Points: 'P', Aggregate: 'A' };
+const BASED_LABELS: Record<string, string> = { G: 'Games', P: 'Points' };
+const BASED_CODES: Record<string, string> = { Games: 'G', Points: 'P' };
 
 // Display labels for game format codes
 const GAME_FORMAT_LABELS: Record<string, string> = {
   None: 'None',
-  AGGR: 'Aggregate',
-  '2C': '2 consecutive points',
-  '3C': '3 consecutive points',
-  '4C': '4 consecutive points'
+  TN: 'Traditional',
+  '2C': '2 consecutive',
+  '3C': '3 consecutive',
+  '4C': '4 consecutive',
 };
-const GAME_FORMAT_CODES: Record<string, string> = {
+
+const DEUCE_RULE_LABELS: Record<string, string> = {
   None: 'None',
-  Aggregate: 'AGGR',
-  '2 consecutive points': '2C',
-  '3 consecutive points': '3C',
-  '4 consecutive points': '4C'
+  '1D': 'Golden point',
+  '3D': 'Star point',
 };
 
 /** Convert a gameFormat object to its display label */
 function gameFormatLabel(gf: any): string {
   if (!gf) return 'None';
-  if (gf.type === 'AGGR') return GAME_FORMAT_LABELS['AGGR'];
-  if (gf.type === 'CONSECUTIVE') return GAME_FORMAT_LABELS[`${gf.count}C`] || `${gf.count} consecutive points`;
-  return 'None';
+  let label = '';
+  if (gf.type === 'TRADITIONAL') label = 'Traditional';
+  else if (gf.type === 'CONSECUTIVE') label = GAME_FORMAT_LABELS[`${gf.count}C`] || `${gf.count} consecutive`;
+  else return 'None';
+  if (gf.deuceAfter) label += ` + ${DEUCE_RULE_LABELS[`${gf.deuceAfter}D`] || `${gf.deuceAfter}D`}`;
+  return label;
 }
 
 interface SetFormatConfig {
@@ -177,7 +179,7 @@ interface SetFormatConfig {
 interface FormatConfig {
   matchRoot?: string;
   aggregate?: boolean;
-  gameFormat?: { type: 'AGGR' } | { type: 'CONSECUTIVE'; count: number };
+  gameFormat?: { type: 'CONSECUTIVE'; count: number; deuceAfter?: number } | { type: 'TRADITIONAL'; deuceAfter?: number };
   setFormat: SetFormatConfig;
   finalSetFormat: SetFormatConfig;
 }
@@ -477,14 +479,7 @@ const setComponents: SetComponent[] = [
       const code = setFormat.based || 'G';
       return BASED_LABELS[code] || code;
     },
-    options: () => {
-      // Only include 'Aggregate' if the current format already uses it
-      const hasAggregate =
-        format.setFormat.based === 'A' || format.finalSetFormat.based === 'A';
-      const opts = ['Games', 'Points'];
-      if (hasAggregate) opts.push('Aggregate');
-      return opts;
-    },
+    options: () => ['Games', 'Points'],
     onChange: 'changeBased',
     whats: [TIMED_SETS],
     defaultValue: 'Games',
@@ -770,19 +765,8 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
     setMatchUpFormatString();
   },
   changeGameFormat: (_e, _index, opt) => {
-    // Map display label to code (e.g., '3 consecutive points' → '3C')
-    const code = GAME_FORMAT_CODES[opt] || opt;
-    if (code === 'None') {
-      format.gameFormat = undefined;
-    } else if (code === 'AGGR') {
-      format.gameFormat = { type: 'AGGR' };
-    } else {
-      // Parse '2C', '3C', '4C' etc.
-      const match = /^(\d+)C$/.exec(code);
-      if (match) {
-        format.gameFormat = { type: 'CONSECUTIVE', count: Number(match[1]) };
-      }
-    }
+    // opt is already a gameFormat object or undefined (from createGameFormatDropdown callback)
+    format.gameFormat = opt;
     setMatchUpFormatString();
   },
   pluralize: (_e, index, opt) => {
@@ -1167,18 +1151,11 @@ export function getMatchUpFormatModal({
   // Hide if scoring method is Points (game format not applicable)
   if (format.setFormat.based === 'P') gameFormatButton.style.display = NONE;
   gameFormatButton.onclick = (e) => {
-    const gameFormats = editorConfig.options?.gameFormats || defaultConfig.options!.gameFormats!;
-    const items = gameFormats.map((gf: string) => {
-      const label = GAME_FORMAT_LABELS[gf] || gf;
-      return {
-        text: label,
-        onClick: () => {
-          gameFormatButton.innerHTML = `Game: ${label}${clickable}`;
-          onClicks.changeGameFormat(e, undefined, label);
-        }
-      };
+    createGameFormatDropdown(e, format.gameFormat, (newGameFormat) => {
+      format.gameFormat = newGameFormat;
+      gameFormatButton.innerHTML = `Game: ${gameFormatLabel(format.gameFormat)}${clickable}`;
+      setMatchUpFormatString();
     });
-    createDropdown(e, items);
   };
   matchRootRow.appendChild(gameFormatButton);
 
@@ -1555,6 +1532,158 @@ function closeCurrentDropdown() {
     currentCleanupListener = null;
   }
   currentDropdown = null;
+}
+
+function createGameFormatDropdown(
+  e: Event,
+  currentGameFormat: any,
+  onUpdate: (gf: any) => void
+) {
+  closeCurrentDropdown();
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'dropdown is-active';
+  dropdown.style.position = 'absolute';
+  dropdown.style.zIndex = '10000';
+
+  const dropdownMenu = document.createElement('div');
+  dropdownMenu.className = 'dropdown-menu';
+  dropdownMenu.style.backgroundColor = 'white';
+  dropdownMenu.style.border = '1px solid #ddd';
+  dropdownMenu.style.borderRadius = '4px';
+  dropdownMenu.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+  dropdownMenu.style.padding = '0.25em 0';
+  dropdownMenu.style.minWidth = '180px';
+
+  // Determine current selections from currentGameFormat
+  let currentType = 'none';
+  let currentDeuce = 'none';
+  if (currentGameFormat?.type === 'TRADITIONAL') currentType = 'TN';
+  else if (currentGameFormat?.type === 'CONSECUTIVE') currentType = `${currentGameFormat.count}C`;
+  if (currentGameFormat?.deuceAfter) currentDeuce = `${currentGameFormat.deuceAfter}D`;
+
+  // Helper to build gameFormat from selections
+  function buildGameFormat(type: string, deuce: string): any {
+    if (type === 'none' && deuce === 'none') return undefined;
+    const gf: any = {};
+    if (type === 'TN') gf.type = 'TRADITIONAL';
+    else if (/^\d+C$/.test(type)) { gf.type = 'CONSECUTIVE'; gf.count = Number(type.slice(0, -1)); }
+    else { gf.type = 'TRADITIONAL'; } // deuce without explicit type defaults to TRADITIONAL
+    if (deuce !== 'none') gf.deuceAfter = Number(deuce.slice(0, -1));
+    return gf;
+  }
+
+  function onRadioChange() {
+    const typeRadio = dropdown.querySelector('input[name="gameType"]:checked') as HTMLInputElement;
+    const deuceRadio = dropdown.querySelector('input[name="deuceRule"]:checked') as HTMLInputElement;
+    const type = typeRadio?.value || 'none';
+    const deuce = deuceRadio?.value || 'none';
+    onUpdate(buildGameFormat(type, deuce));
+  }
+
+  // Shared styles
+  const itemStyle = 'padding: 0.4em 1em; cursor: pointer; background-color: white; color: #363636; font-size: 1rem;';
+  const headerStyle = 'padding: 0.3em 1em; font-weight: bold; font-size: 0.85rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px;';
+  const separatorStyle = 'border-top: 1px solid #eee; margin: 0.25em 0;';
+
+  // "None" button at top — clears everything and closes dropdown
+  const noneItem = document.createElement('div');
+  noneItem.textContent = 'None';
+  noneItem.style.cssText = itemStyle;
+  noneItem.onmouseenter = () => { noneItem.style.backgroundColor = '#f5f5f5'; };
+  noneItem.onmouseleave = () => { noneItem.style.backgroundColor = 'white'; };
+  noneItem.onclick = (clickEvent) => {
+    clickEvent.preventDefault();
+    clickEvent.stopPropagation();
+    onUpdate(undefined);
+    closeCurrentDropdown();
+  };
+  dropdownMenu.appendChild(noneItem);
+
+  // Helper to create a radio option row
+  function createRadioRow(name: string, value: string, label: string, checked: boolean): HTMLElement {
+    const row = document.createElement('label');
+    row.style.cssText = 'display: flex; align-items: center; padding: 0.3em 1em; cursor: pointer; gap: 0.4em; font-size: 1rem; color: #363636;';
+    row.onmouseenter = () => { row.style.backgroundColor = '#f5f5f5'; };
+    row.onmouseleave = () => { row.style.backgroundColor = 'white'; };
+
+    const radio = document.createElement('input');
+    radio.type = 'radio';
+    radio.name = name;
+    radio.value = value;
+    radio.checked = checked;
+    radio.style.margin = '0';
+    radio.onchange = () => onRadioChange();
+
+    const span = document.createElement('span');
+    span.textContent = label;
+
+    row.appendChild(radio);
+    row.appendChild(span);
+    return row;
+  }
+
+  // Separator + "Game type" header
+  const sep1 = document.createElement('div');
+  sep1.style.cssText = separatorStyle;
+  dropdownMenu.appendChild(sep1);
+
+  const gameTypeHeader = document.createElement('div');
+  gameTypeHeader.style.cssText = headerStyle;
+  gameTypeHeader.textContent = 'Game type';
+  dropdownMenu.appendChild(gameTypeHeader);
+
+  // Game type radio group
+  const gameTypeOptions = [
+    { value: 'none', label: 'None' },
+    { value: 'TN', label: 'Traditional' },
+    { value: '2C', label: '2 consecutive' },
+    { value: '3C', label: '3 consecutive' },
+    { value: '4C', label: '4 consecutive' },
+  ];
+  for (const opt of gameTypeOptions) {
+    dropdownMenu.appendChild(createRadioRow('gameType', opt.value, opt.label, currentType === opt.value));
+  }
+
+  // Separator + "Deuce rule" header
+  const sep2 = document.createElement('div');
+  sep2.style.cssText = separatorStyle;
+  dropdownMenu.appendChild(sep2);
+
+  const deuceHeader = document.createElement('div');
+  deuceHeader.style.cssText = headerStyle;
+  deuceHeader.textContent = 'Deuce rule';
+  dropdownMenu.appendChild(deuceHeader);
+
+  // Deuce rule radio group
+  const deuceOptions = [
+    { value: 'none', label: 'None' },
+    { value: '1D', label: 'Golden point' },
+    { value: '3D', label: 'Star point' },
+  ];
+  for (const opt of deuceOptions) {
+    dropdownMenu.appendChild(createRadioRow('deuceRule', opt.value, opt.label, currentDeuce === opt.value));
+  }
+
+  dropdown.appendChild(dropdownMenu);
+
+  // Position near the clicked button
+  const rect = (e.target as HTMLElement).getBoundingClientRect();
+  dropdown.style.left = `${rect.left}px`;
+  dropdown.style.top = `${rect.bottom}px`;
+
+  document.body.appendChild(dropdown);
+  currentDropdown = dropdown;
+
+  // Close on click outside
+  setTimeout(() => {
+    currentCleanupListener = (event: MouseEvent) => {
+      if (!dropdown.contains(event.target as Node)) {
+        closeCurrentDropdown();
+      }
+    };
+    document.addEventListener('click', currentCleanupListener);
+  }, 100);
 }
 
 function createDropdown(e: any, items: any[]) {

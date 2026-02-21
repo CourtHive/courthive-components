@@ -1,5 +1,5 @@
 /**
- * Tests for dialPad timed set support (SET3X-S:T10, SET3X-S:T10A)
+ * Tests for dialPad timed set support (SET3X-S:T10, SET3XA-S:T10)
  * Verifies that dialPad can format scores with unlimited digits for timed sets
  */
 import { describe, it, expect } from 'vitest';
@@ -61,8 +61,8 @@ describe('dialPadLogic - Timed sets (T10)', () => {
     });
   });
 
-  describe('SET3X-S:T10A (3 timed sets, aggregate scoring)', () => {
-    const format = 'SET3X-S:T10A';
+  describe('SET3XA-S:T10 (3 timed sets, aggregate scoring)', () => {
+    const format = 'SET3XA-S:T10';
 
     it('should format aggregate score 30-1 0-1 0-1', () => {
       const digits = '30-1 0-1 0-1';
@@ -83,8 +83,8 @@ describe('dialPadLogic - Timed sets (T10)', () => {
     });
   });
 
-  describe('SET3X-S:T10A-F:TB1 (aggregate with conditional tiebreak)', () => {
-    const format = 'SET3X-S:T10A-F:TB1';
+  describe('SET3XA-S:T10-F:TB1 (aggregate with conditional tiebreak)', () => {
+    const format = 'SET3XA-S:T10-F:TB1';
 
     it('should format aggregate with TB1 using minus notation', () => {
       const digits = '30-25 25-30 1-0';
@@ -94,17 +94,17 @@ describe('dialPadLogic - Timed sets (T10)', () => {
     });
 
     it('should handle TB1NOAD variant', () => {
-      const format = 'SET3X-S:T10A-F:TB1NOAD';
+      const format = 'SET3XA-S:T10-F:TB1NOAD';
       const digits = '30-25 25-30 1-0';
       const result = formatScoreString(digits, { matchUpFormat: format });
       expect(result).toBe('30-25 25-30 [1-0]');
     });
   });
 
-  describe('SET4X-S:T10A-F:TB1 (4 sets aggregate)', () => {
+  describe('SET4XA-S:T10-F:TB1 (4 sets aggregate)', () => {
     // Note: SET4X with finalSetFormat might have complex parsing
     // These tests verify basic timed set support
-    const format = 'SET3X-S:T10A'; // Simpler format for testing
+    const format = 'SET3XA-S:T10'; // Simpler format for testing
 
     it('should handle multiple timed sets', () => {
       const digits = '30-25 25-30 28-27';

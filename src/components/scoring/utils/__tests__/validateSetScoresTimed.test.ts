@@ -61,7 +61,7 @@ describe('validateSetScores - Timed formats', () => {
     });
   });
 
-  describe('SET3X-S:T10A (timed aggregate scoring)', () => {
+  describe('SET3XA-S:T10 (timed aggregate scoring)', () => {
     it('should calculate winningSide by aggregate score', () => {
       const sets = [
         { side1: 30, side2: 1 },  // +29 for side 1
@@ -69,7 +69,7 @@ describe('validateSetScores - Timed formats', () => {
         { side1: 0, side2: 1 },   // +1 for side 2
       ];
 
-      const result = validateSetScores(sets, 'SET3X-S:T10A', false);
+      const result = validateSetScores(sets, 'SET3XA-S:T10', false);
 
       expect(result.isValid).toBe(true);
       expect(result.winningSide).toBe(1); // Aggregate: 30-3, side 1 wins
@@ -83,7 +83,7 @@ describe('validateSetScores - Timed formats', () => {
         { side1TiebreakScore: 1, side2TiebreakScore: 0 }, // TB: side 1 wins
       ];
 
-      const result = validateSetScores(sets, 'SET3X-S:T10A-F:TB1', false);
+      const result = validateSetScores(sets, 'SET3XA-S:T10-F:TB1', false);
 
       expect(result.isValid).toBe(true);
       expect(result.winningSide).toBe(1); // Aggregate 55-55, TB resolves to side 1
@@ -111,7 +111,7 @@ describe('validateSetScores - Timed formats', () => {
         { side1TiebreakScore: 1, side2TiebreakScore: 0 },
       ];
 
-      const result = validateSetScores(sets, 'SET3X-S:T10A-F:TB1', false);
+      const result = validateSetScores(sets, 'SET3XA-S:T10-F:TB1', false);
 
       expect(result.score).toBe('30-25 25-30 [1-0]');
     });
