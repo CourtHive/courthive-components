@@ -8,23 +8,9 @@ const config: StorybookConfig = {
     options: {}
   },
   viteFinal: async (config) => {
-    // Configure optimizations for EventCalendar (Svelte-based) dependencies
     if (!config.optimizeDeps) config.optimizeDeps = {};
     config.optimizeDeps.include = [...(config.optimizeDeps.include || []), 'timepicker-ui'];
 
-    // Force exclude Svelte from optimization to avoid issues
-    config.optimizeDeps.exclude = [...(config.optimizeDeps.exclude || []), 'svelte'];
-
-    // Ensure proper module resolution for ESM
-    if (!config.resolve) config.resolve = {};
-    if (!config.resolve.alias) config.resolve.alias = {};
-
-    // Handle .svelte.js files properly
-    if (!config.resolve.extensions) {
-      config.resolve.extensions = ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.svelte'];
-    }
-
-    // Configure server to handle dependencies
     if (!config.server) config.server = {};
     if (!config.server.fs) config.server.fs = {};
     config.server.fs.allow = ['..'];
