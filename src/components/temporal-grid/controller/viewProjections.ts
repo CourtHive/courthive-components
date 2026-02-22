@@ -5,14 +5,14 @@
  * This module is the translation layer between our domain model and the timeline UI.
  *
  * Key Transformations:
- * - FacilityDayTimeline → TimelineGroup (courts grouped by facility)
+ * - VenueDayTimeline → TimelineGroup (courts grouped by venue)
  * - RailSegments → TimelineItem (background items showing availability)
  * - Blocks → TimelineItem (draggable, resizable range items)
  *
  * Design: Pure functions, no side effects, testable in isolation.
  */
 
-import type { BlockType, CourtMeta, CourtRef, FacilityDayTimeline, RailSegment } from '../engine/types';
+import type { BlockType, CourtMeta, CourtRef, VenueDayTimeline, RailSegment } from '../engine/types';
 
 import type { IdType } from 'vis-timeline/standalone';
 
@@ -81,7 +81,7 @@ export type CalendarEvent = TimelineItem;
 /**
  * Grouping modes for resources
  */
-export type ResourceGroupingMode = 'BY_FACILITY' | 'BY_SURFACE' | 'BY_TAG' | 'FLAT';
+export type ResourceGroupingMode = 'BY_VENUE' | 'BY_SURFACE' | 'BY_TAG' | 'FLAT';
 
 /**
  * Configuration for view projections
@@ -137,7 +137,7 @@ export const DEFAULT_COLOR_SCHEME: BlockColorScheme = {
  * Converts courts into vis-timeline groups, grouped by facility.
  */
 export function buildResourcesFromTimelines(
-  timelines: FacilityDayTimeline[],
+  timelines: VenueDayTimeline[],
   courtMeta: CourtMeta[],
   _config: ProjectionConfig = {}
 ): TimelineGroup[] {
@@ -182,25 +182,25 @@ export function buildResourcesFromTimelines(
 }
 
 /**
- * Build facility group headers for nested grouping.
+ * Build venue group headers for nested grouping.
  * Creates group headers for vis-timeline.
  */
-export function buildFacilityGroups(timelines: FacilityDayTimeline[]): TimelineGroup[] {
-  const facilities = new Map<string, Set<string>>();
+export function buildVenueGroups(timelines: VenueDayTimeline[]): TimelineGroup[] {
+  const venues = new Map<string, Set<string>>();
 
-  // Collect all courts per facility
+  // Collect all courts per venue
   for (const timeline of timelines) {
-    if (!facilities.has(timeline.facilityId)) {
-      facilities.set(timeline.facilityId, new Set());
+    if (!venues.has(timeline.venueId)) {
+      venues.set(timeline.venueId, new Set());
     }
     for (const rail of timeline.rails) {
-      facilities.get(timeline.facilityId)!.add(courtKey(rail.court));
+      venues.get(timeline.venueId)!.add(courtKey(rail.court));
     }
   }
 
-  return Array.from(facilities.entries()).map(([facilityId, courtKeys]) => ({
-    id: facilityId,
-    content: facilityId,
+  return Array.from(venues.entries()).map(([venueId, courtKeys]) => ({
+    id: venueId,
+    content: venueId,
     nestedGroups: Array.from(courtKeys),
     showNested: true,
     isGroup: true
@@ -216,7 +216,7 @@ export function buildFacilityGroups(timelines: FacilityDayTimeline[]): TimelineG
  * Converts rail segments into background items showing availability status.
  */
 export function buildEventsFromTimelines(
-  timelines: FacilityDayTimeline[],
+  timelines: VenueDayTimeline[],
   config: ProjectionConfig = {}
 ): TimelineItem[] {
   const { layerVisibility = new Map(), showSegmentLabels = false, colorScheme = DEFAULT_COLOR_SCHEME } = config;
@@ -380,9 +380,9 @@ export function filterEventsByTimeRange(
 /**
  * Filter groups by facility
  */
-export function filterResourcesByFacility(resources: TimelineGroup[], facilityId: string): TimelineGroup[] {
+export function filterResourcesByVenue(resources: TimelineGroup[], venueId: string): TimelineGroup[] {
   return resources.filter((resource) => {
-    return resource.courtRef?.facilityId === facilityId;
+    return resource.courtRef?.venueId === venueId;
   });
 }
 
@@ -428,7 +428,7 @@ export function buildCapacityVisualization(
  * Generate a unique court key for group/item IDs
  */
 function courtKey(court: CourtRef): string {
-  return `${court.tournamentId}|${court.facilityId}|${court.courtId}`;
+  return `${court.tournamentId}|${court.venueId}|${court.courtId}`;
 }
 
 /**
@@ -465,7 +465,7 @@ export function parseResourceId(resourceId: string): CourtRef | null {
 
   return {
     tournamentId: parts[0],
-    facilityId: parts[1],
+    venueId: parts[1],
     courtId: parts[2]
   };
 }

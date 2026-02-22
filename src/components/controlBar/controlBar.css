@@ -1,0 +1,122 @@
+.font-medium {
+  font-size: 15px;
+}
+
+.panel_container {
+  width: 100%;
+}
+
+.panelHeader {
+  background-color: rgb(192 193 211);
+  -webkit-align-items: center;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  align-content: center;
+  align-items: center;
+  display: flex;
+  padding: 1em;
+  height: 3em;
+  width: 100%;
+  flex-grow: 1;
+}
+
+.buttonBar {
+  padding: .5em;
+}
+
+.tabHeader {
+  padding: .5em;
+  padding-bottom: 0em;
+}
+
+.buttonBar,
+.options_left {
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  -webkit-flex-direction: row;
+  -webkit-align-content: center;
+}
+
+.buttonBar {
+  flex-direction: row;
+  width: 100%;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  align-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+}
+
+.options_left {
+  flex-flow: row wrap;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+  align-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+}
+
+.options_center,
+.options_right {
+  -webkit-align-content: center;
+  align-content: center;
+  display: flex;
+}
+
+.options_center {
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  -webkit-justify-content: center;
+  justify-content: center;
+  align-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+}
+
+.options_right {
+  flex-grow: 1;
+  flex-wrap: wrap;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  -webkit-justify-content: flex-end;
+  justify-content: flex-end;
+  align-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+}
+
+.options_overlay {
+  flex-grow: 1;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+  align-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+  display: none;
+}
+
+.flexcol {
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+}
+
+.flexcenter {
+  display: flex;
+  -webkit-justify-content: center;
+  justify-content: center;
+  align-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+}
+
+.dropdown-content {
+  border: 1px solid #dbdbdb;
+}

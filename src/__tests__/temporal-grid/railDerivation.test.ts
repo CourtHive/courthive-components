@@ -11,7 +11,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import type { Block, BlockType, EngineConfig, TimeRange } from '../../components/temporal-grid/engine/types';
+import { BLOCK_TYPES, type Block, type BlockType, type EngineConfig, type TimeRange } from '../../components/temporal-grid/engine/types';
 import {
   buildDayRange,
   clampToDayRange,
@@ -30,37 +30,41 @@ import {
 // Test Fixtures
 // ============================================================================
 
+const TEST_TOURNAMENT = 'test-tournament';
+const TEST_VENUE = 'facility-1';
+const TEST_COURT = 'court-1';
+
 const mockConfig: EngineConfig = {
-  tournamentId: 'test-tournament',
+  tournamentId: TEST_TOURNAMENT,
   dayStartTime: '06:00',
   dayEndTime: '23:00',
   slotMinutes: 15,
   typePrecedence: [
-    'HARD_BLOCK',
-    'LOCKED',
-    'SCHEDULED', // Tournament matches (read-only)
-    'MAINTENANCE',
-    'CLOSED', // Court closed
-    'BLOCKED',
-    'PRACTICE',
-    'RESERVED',
-    'SOFT_BLOCK',
-    'AVAILABLE',
-    'UNSPECIFIED',
+    BLOCK_TYPES.HARD_BLOCK,
+    BLOCK_TYPES.LOCKED,
+    BLOCK_TYPES.SCHEDULED,
+    BLOCK_TYPES.MAINTENANCE,
+    BLOCK_TYPES.CLOSED,
+    BLOCK_TYPES.BLOCKED,
+    BLOCK_TYPES.PRACTICE,
+    BLOCK_TYPES.RESERVED,
+    BLOCK_TYPES.SOFT_BLOCK,
+    BLOCK_TYPES.AVAILABLE,
+    BLOCK_TYPES.UNSPECIFIED,
   ],
 };
 
 const mockCourt = {
-  tournamentId: 'test-tournament',
-  facilityId: 'facility-1',
-  courtId: 'court-1',
+  tournamentId: TEST_TOURNAMENT,
+  venueId: TEST_VENUE,
+  courtId: TEST_COURT,
 };
 
 function createBlock(
   id: string,
   start: string,
   end: string,
-  type: BlockType = 'AVAILABLE',
+  type: BlockType = BLOCK_TYPES.AVAILABLE,
 ): Block {
   return {
     id,
@@ -187,29 +191,29 @@ describe('clampToDayRange', () => {
 
 describe('resolveStatus', () => {
   const blocksById = new Map<string, Block>([
-    ['1', createBlock('1', '2026-06-15T10:00:00', '2026-06-15T12:00:00', 'AVAILABLE')],
-    ['2', createBlock('2', '2026-06-15T10:00:00', '2026-06-15T12:00:00', 'MAINTENANCE')],
-    ['3', createBlock('3', '2026-06-15T10:00:00', '2026-06-15T12:00:00', 'HARD_BLOCK')],
+    ['1', createBlock('1', '2026-06-15T10:00:00', '2026-06-15T12:00:00', BLOCK_TYPES.AVAILABLE)],
+    ['2', createBlock('2', '2026-06-15T10:00:00', '2026-06-15T12:00:00', BLOCK_TYPES.MAINTENANCE)],
+    ['3', createBlock('3', '2026-06-15T10:00:00', '2026-06-15T12:00:00', BLOCK_TYPES.HARD_BLOCK)],
   ]);
 
   it('should return AVAILABLE for empty contributing blocks (inverted paradigm)', () => {
     const status = resolveStatus([], blocksById, mockConfig.typePrecedence);
-    expect(status).toBe('AVAILABLE');
+    expect(status).toBe(BLOCK_TYPES.AVAILABLE);
   });
 
   it('should return single block type', () => {
     const status = resolveStatus(['1'], blocksById, mockConfig.typePrecedence);
-    expect(status).toBe('AVAILABLE');
+    expect(status).toBe(BLOCK_TYPES.AVAILABLE);
   });
 
   it('should resolve precedence - HARD_BLOCK wins', () => {
     const status = resolveStatus(['1', '2', '3'], blocksById, mockConfig.typePrecedence);
-    expect(status).toBe('HARD_BLOCK');
+    expect(status).toBe(BLOCK_TYPES.HARD_BLOCK);
   });
 
   it('should resolve precedence - MAINTENANCE over AVAILABLE', () => {
     const status = resolveStatus(['1', '2'], blocksById, mockConfig.typePrecedence);
-    expect(status).toBe('MAINTENANCE');
+    expect(status).toBe(BLOCK_TYPES.MAINTENANCE);
   });
 });
 
@@ -223,13 +227,13 @@ describe('mergeAdjacentSegments', () => {
       {
         start: '2026-06-15T10:00:00',
         end: '2026-06-15T11:00:00',
-        status: 'AVAILABLE' as BlockType,
+        status: BLOCK_TYPES.AVAILABLE as BlockType,
         contributingBlocks: ['1'],
       },
       {
         start: '2026-06-15T11:00:00',
         end: '2026-06-15T12:00:00',
-        status: 'AVAILABLE' as BlockType,
+        status: BLOCK_TYPES.AVAILABLE as BlockType,
         contributingBlocks: ['1'],
       },
     ];
@@ -238,7 +242,7 @@ describe('mergeAdjacentSegments', () => {
     expect(merged).toHaveLength(1);
     expect(merged[0].start).toBe('2026-06-15T10:00:00');
     expect(merged[0].end).toBe('2026-06-15T12:00:00');
-    expect(merged[0].status).toBe('AVAILABLE');
+    expect(merged[0].status).toBe(BLOCK_TYPES.AVAILABLE);
   });
 
   it('should not merge segments with different status', () => {
@@ -246,13 +250,13 @@ describe('mergeAdjacentSegments', () => {
       {
         start: '2026-06-15T10:00:00',
         end: '2026-06-15T11:00:00',
-        status: 'AVAILABLE' as BlockType,
+        status: BLOCK_TYPES.AVAILABLE as BlockType,
         contributingBlocks: ['1'],
       },
       {
         start: '2026-06-15T11:00:00',
         end: '2026-06-15T12:00:00',
-        status: 'BLOCKED' as BlockType,
+        status: BLOCK_TYPES.BLOCKED as BlockType,
         contributingBlocks: ['2'],
       },
     ];
@@ -266,13 +270,13 @@ describe('mergeAdjacentSegments', () => {
       {
         start: '2026-06-15T10:00:00',
         end: '2026-06-15T11:00:00',
-        status: 'AVAILABLE' as BlockType,
+        status: BLOCK_TYPES.AVAILABLE as BlockType,
         contributingBlocks: ['1'],
       },
       {
         start: '2026-06-15T11:30:00',
         end: '2026-06-15T12:00:00',
-        status: 'AVAILABLE' as BlockType,
+        status: BLOCK_TYPES.AVAILABLE as BlockType,
         contributingBlocks: ['1'],
       },
     ];
@@ -295,26 +299,26 @@ describe('deriveRailSegments', () => {
   it('should handle empty blocks - entire day is AVAILABLE (inverted paradigm)', () => {
     const segments = deriveRailSegments([], dayRange, mockConfig);
     expect(segments).toHaveLength(1);
-    expect(segments[0].status).toBe('AVAILABLE');
+    expect(segments[0].status).toBe(BLOCK_TYPES.AVAILABLE);
     expect(segments[0].start).toBe(dayRange.start);
     expect(segments[0].end).toBe(dayRange.end);
   });
 
   it('should create segments with maintenance block', () => {
-    const blocks = [createBlock('1', '2026-06-15T10:00:00', '2026-06-15T12:00:00', 'MAINTENANCE')];
+    const blocks = [createBlock('1', '2026-06-15T10:00:00', '2026-06-15T12:00:00', BLOCK_TYPES.MAINTENANCE)];
     const segments = deriveRailSegments(blocks, dayRange, mockConfig);
 
     // Should have 3 segments: available before, maintenance during, available after
     expect(segments).toHaveLength(3);
-    expect(segments[0].status).toBe('AVAILABLE');
-    expect(segments[1].status).toBe('MAINTENANCE');
-    expect(segments[2].status).toBe('AVAILABLE');
+    expect(segments[0].status).toBe(BLOCK_TYPES.AVAILABLE);
+    expect(segments[1].status).toBe(BLOCK_TYPES.MAINTENANCE);
+    expect(segments[2].status).toBe(BLOCK_TYPES.AVAILABLE);
   });
 
   it('should handle overlapping blocks with precedence', () => {
     const blocks = [
-      createBlock('1', '2026-06-15T10:00:00', '2026-06-15T14:00:00', 'PRACTICE'),
-      createBlock('2', '2026-06-15T12:00:00', '2026-06-15T16:00:00', 'MAINTENANCE'),
+      createBlock('1', '2026-06-15T10:00:00', '2026-06-15T14:00:00', BLOCK_TYPES.PRACTICE),
+      createBlock('2', '2026-06-15T12:00:00', '2026-06-15T16:00:00', BLOCK_TYPES.MAINTENANCE),
     ];
     const segments = deriveRailSegments(blocks, dayRange, mockConfig);
 
@@ -323,19 +327,19 @@ describe('deriveRailSegments', () => {
       (s) => s.start === '2026-06-15T12:00:00' && s.end === '2026-06-15T14:00:00',
     );
     expect(overlapSegment).toBeDefined();
-    expect(overlapSegment?.status).toBe('MAINTENANCE'); // Higher precedence
+    expect(overlapSegment?.status).toBe(BLOCK_TYPES.MAINTENANCE); // Higher precedence
     expect(overlapSegment?.contributingBlocks).toHaveLength(2);
   });
 
   it('should handle adjacent non-overlapping blocks', () => {
     const blocks = [
-      createBlock('1', '2026-06-15T10:00:00', '2026-06-15T12:00:00', 'MAINTENANCE'),
-      createBlock('2', '2026-06-15T12:00:00', '2026-06-15T14:00:00', 'BLOCKED'),
+      createBlock('1', '2026-06-15T10:00:00', '2026-06-15T12:00:00', BLOCK_TYPES.MAINTENANCE),
+      createBlock('2', '2026-06-15T12:00:00', '2026-06-15T14:00:00', BLOCK_TYPES.BLOCKED),
     ];
     const segments = deriveRailSegments(blocks, dayRange, mockConfig);
 
-    const maintenanceSegment = segments.find((s) => s.status === 'MAINTENANCE');
-    const blockedSegment = segments.find((s) => s.status === 'BLOCKED');
+    const maintenanceSegment = segments.find((s) => s.status === BLOCK_TYPES.MAINTENANCE);
+    const blockedSegment = segments.find((s) => s.status === BLOCK_TYPES.BLOCKED);
 
     expect(maintenanceSegment).toBeDefined();
     expect(blockedSegment).toBeDefined();
@@ -344,14 +348,14 @@ describe('deriveRailSegments', () => {
 
   it('should handle adjacent blocks with same status (but different IDs)', () => {
     const blocks = [
-      createBlock('1', '2026-06-15T10:00:00', '2026-06-15T11:00:00', 'MAINTENANCE'),
-      createBlock('2', '2026-06-15T11:00:00', '2026-06-15T12:00:00', 'MAINTENANCE'),
+      createBlock('1', '2026-06-15T10:00:00', '2026-06-15T11:00:00', BLOCK_TYPES.MAINTENANCE),
+      createBlock('2', '2026-06-15T11:00:00', '2026-06-15T12:00:00', BLOCK_TYPES.MAINTENANCE),
     ];
     const segments = deriveRailSegments(blocks, dayRange, mockConfig);
 
     // Two separate blocks = two separate segments (even with same status)
     // because contributing blocks are different
-    const maintenanceSegments = segments.filter((s) => s.status === 'MAINTENANCE');
+    const maintenanceSegments = segments.filter((s) => s.status === BLOCK_TYPES.MAINTENANCE);
     expect(maintenanceSegments).toHaveLength(2);
     expect(maintenanceSegments[0].contributingBlocks).toEqual(['1']);
     expect(maintenanceSegments[1].contributingBlocks).toEqual(['2']);
@@ -359,9 +363,9 @@ describe('deriveRailSegments', () => {
 
   it('should handle complex overlapping scenario', () => {
     const blocks = [
-      createBlock('1', '2026-06-15T10:00:00', '2026-06-15T12:00:00', 'MAINTENANCE'),
-      createBlock('2', '2026-06-15T11:00:00', '2026-06-15T13:00:00', 'HARD_BLOCK'),
-      createBlock('3', '2026-06-15T14:00:00', '2026-06-15T16:00:00', 'PRACTICE'),
+      createBlock('1', '2026-06-15T10:00:00', '2026-06-15T12:00:00', BLOCK_TYPES.MAINTENANCE),
+      createBlock('2', '2026-06-15T11:00:00', '2026-06-15T13:00:00', BLOCK_TYPES.HARD_BLOCK),
+      createBlock('3', '2026-06-15T14:00:00', '2026-06-15T16:00:00', BLOCK_TYPES.PRACTICE),
     ];
     const segments = deriveRailSegments(blocks, dayRange, mockConfig);
 
@@ -372,17 +376,17 @@ describe('deriveRailSegments', () => {
     const hardBlockSegment = segments.find(
       (s) => s.start === '2026-06-15T11:00:00' && s.end === '2026-06-15T12:00:00',
     );
-    expect(hardBlockSegment?.status).toBe('HARD_BLOCK');
+    expect(hardBlockSegment?.status).toBe(BLOCK_TYPES.HARD_BLOCK);
     
     // Check that we have AVAILABLE segments before and after blocks
-    const availableSegments = segments.filter((s) => s.status === 'AVAILABLE');
+    const availableSegments = segments.filter((s) => s.status === BLOCK_TYPES.AVAILABLE);
     expect(availableSegments.length).toBeGreaterThan(0);
   });
 
   it('should clamp blocks to day range', () => {
     const blocks = [
-      createBlock('1', '2026-06-15T05:00:00', '2026-06-15T10:00:00', 'MAINTENANCE'),
-      createBlock('2', '2026-06-15T20:00:00', '2026-06-16T02:00:00', 'BLOCKED'),
+      createBlock('1', '2026-06-15T05:00:00', '2026-06-15T10:00:00', BLOCK_TYPES.MAINTENANCE),
+      createBlock('2', '2026-06-15T20:00:00', '2026-06-16T02:00:00', BLOCK_TYPES.BLOCKED),
     ];
     const segments = deriveRailSegments(blocks, dayRange, mockConfig);
 
@@ -404,7 +408,7 @@ describe('deriveRailSegments', () => {
     it('should show entire day as AVAILABLE when no blocks exist', () => {
       const segments = deriveRailSegments([], dayRange, mockConfig);
       expect(segments).toHaveLength(1);
-      expect(segments[0].status).toBe('AVAILABLE');
+      expect(segments[0].status).toBe(BLOCK_TYPES.AVAILABLE);
       expect(segments[0].start).toBe(dayRange.start);
       expect(segments[0].end).toBe(dayRange.end);
       expect(segments[0].contributingBlocks).toHaveLength(0);
@@ -412,8 +416,8 @@ describe('deriveRailSegments', () => {
 
     it('should create AVAILABLE gaps between UNAVAILABLE blocks', () => {
       const blocks = [
-        createBlock('1', '2026-06-15T08:00:00', '2026-06-15T09:00:00', 'MAINTENANCE'),
-        createBlock('2', '2026-06-15T14:00:00', '2026-06-15T15:00:00', 'PRACTICE'),
+        createBlock('1', '2026-06-15T08:00:00', '2026-06-15T09:00:00', BLOCK_TYPES.MAINTENANCE),
+        createBlock('2', '2026-06-15T14:00:00', '2026-06-15T15:00:00', BLOCK_TYPES.PRACTICE),
       ];
       const segments = deriveRailSegments(blocks, dayRange, mockConfig);
 
@@ -422,7 +426,7 @@ describe('deriveRailSegments', () => {
       
       // Check middle AVAILABLE segment
       const middleAvailable = segments[2];
-      expect(middleAvailable.status).toBe('AVAILABLE');
+      expect(middleAvailable.status).toBe(BLOCK_TYPES.AVAILABLE);
       expect(middleAvailable.start).toBe('2026-06-15T09:00:00');
       expect(middleAvailable.end).toBe('2026-06-15T14:00:00');
       expect(middleAvailable.contributingBlocks).toHaveLength(0);
@@ -430,12 +434,12 @@ describe('deriveRailSegments', () => {
 
     it('should handle maintenance block reducing available time', () => {
       const blocks = [
-        createBlock('1', '2026-06-15T12:00:00', '2026-06-15T13:00:00', 'MAINTENANCE'),
+        createBlock('1', '2026-06-15T12:00:00', '2026-06-15T13:00:00', BLOCK_TYPES.MAINTENANCE),
       ];
       const segments = deriveRailSegments(blocks, dayRange, mockConfig);
 
-      const availableSegments = segments.filter((s) => s.status === 'AVAILABLE');
-      const maintenanceSegments = segments.filter((s) => s.status === 'MAINTENANCE');
+      const availableSegments = segments.filter((s) => s.status === BLOCK_TYPES.AVAILABLE);
+      const maintenanceSegments = segments.filter((s) => s.status === BLOCK_TYPES.MAINTENANCE);
 
       expect(maintenanceSegments).toHaveLength(1);
       expect(availableSegments).toHaveLength(2); // Before and after maintenance
@@ -453,12 +457,12 @@ describe('deriveRailSegments', () => {
 
     it('should handle scheduled blocks reducing available time', () => {
       const blocks = [
-        createBlock('1', '2026-06-15T10:00:00', '2026-06-15T12:00:00', 'SCHEDULED'),
+        createBlock('1', '2026-06-15T10:00:00', '2026-06-15T12:00:00', BLOCK_TYPES.SCHEDULED),
       ];
       const segments = deriveRailSegments(blocks, dayRange, mockConfig);
 
-      const availableSegments = segments.filter((s) => s.status === 'AVAILABLE');
-      const scheduledSegments = segments.filter((s) => s.status === 'SCHEDULED');
+      const availableSegments = segments.filter((s) => s.status === BLOCK_TYPES.AVAILABLE);
+      const scheduledSegments = segments.filter((s) => s.status === BLOCK_TYPES.SCHEDULED);
 
       expect(scheduledSegments).toHaveLength(1);
       expect(availableSegments).toHaveLength(2); // Before and after scheduled time
@@ -466,36 +470,36 @@ describe('deriveRailSegments', () => {
 
     it('should handle multiple block types - all reducing available time', () => {
       const blocks = [
-        createBlock('1', '2026-06-15T08:00:00', '2026-06-15T09:00:00', 'MAINTENANCE'),
-        createBlock('2', '2026-06-15T10:00:00', '2026-06-15T12:00:00', 'PRACTICE'),
-        createBlock('3', '2026-06-15T14:00:00', '2026-06-15T16:00:00', 'RESERVED'),
-        createBlock('4', '2026-06-15T18:00:00', '2026-06-15T19:00:00', 'BLOCKED'),
-        createBlock('5', '2026-06-15T20:00:00', '2026-06-15T21:00:00', 'SCHEDULED'),
+        createBlock('1', '2026-06-15T08:00:00', '2026-06-15T09:00:00', BLOCK_TYPES.MAINTENANCE),
+        createBlock('2', '2026-06-15T10:00:00', '2026-06-15T12:00:00', BLOCK_TYPES.PRACTICE),
+        createBlock('3', '2026-06-15T14:00:00', '2026-06-15T16:00:00', BLOCK_TYPES.RESERVED),
+        createBlock('4', '2026-06-15T18:00:00', '2026-06-15T19:00:00', BLOCK_TYPES.BLOCKED),
+        createBlock('5', '2026-06-15T20:00:00', '2026-06-15T21:00:00', BLOCK_TYPES.SCHEDULED),
       ];
       const segments = deriveRailSegments(blocks, dayRange, mockConfig);
 
-      const availableSegments = segments.filter((s) => s.status === 'AVAILABLE');
+      const availableSegments = segments.filter((s) => s.status === BLOCK_TYPES.AVAILABLE);
       
       // Should have AVAILABLE segments between each block
       expect(availableSegments.length).toBeGreaterThan(0);
       
       // Verify we have all the block types
-      expect(segments.some(s => s.status === 'MAINTENANCE')).toBe(true);
-      expect(segments.some(s => s.status === 'PRACTICE')).toBe(true);
-      expect(segments.some(s => s.status === 'RESERVED')).toBe(true);
-      expect(segments.some(s => s.status === 'BLOCKED')).toBe(true);
-      expect(segments.some(s => s.status === 'SCHEDULED')).toBe(true);
+      expect(segments.some(s => s.status === BLOCK_TYPES.MAINTENANCE)).toBe(true);
+      expect(segments.some(s => s.status === BLOCK_TYPES.PRACTICE)).toBe(true);
+      expect(segments.some(s => s.status === BLOCK_TYPES.RESERVED)).toBe(true);
+      expect(segments.some(s => s.status === BLOCK_TYPES.BLOCKED)).toBe(true);
+      expect(segments.some(s => s.status === BLOCK_TYPES.SCHEDULED)).toBe(true);
     });
 
     it('should handle CLOSED blocks marking unavailable time', () => {
       const blocks = [
-        createBlock('1', '2026-06-15T06:00:00', '2026-06-15T08:00:00', 'CLOSED'),
-        createBlock('2', '2026-06-15T21:00:00', '2026-06-15T23:00:00', 'CLOSED'),
+        createBlock('1', '2026-06-15T06:00:00', '2026-06-15T08:00:00', BLOCK_TYPES.CLOSED),
+        createBlock('2', '2026-06-15T21:00:00', '2026-06-15T23:00:00', BLOCK_TYPES.CLOSED),
       ];
       const segments = deriveRailSegments(blocks, dayRange, mockConfig);
 
-      const closedSegments = segments.filter((s) => s.status === 'CLOSED');
-      const availableSegments = segments.filter((s) => s.status === 'AVAILABLE');
+      const closedSegments = segments.filter((s) => s.status === BLOCK_TYPES.CLOSED);
+      const availableSegments = segments.filter((s) => s.status === BLOCK_TYPES.AVAILABLE);
 
       // Should have 2 CLOSED segments and 1 AVAILABLE segment in between
       expect(closedSegments).toHaveLength(2);
@@ -519,13 +523,13 @@ describe('validateSegments', () => {
       {
         start: '2026-06-15T10:00:00',
         end: '2026-06-15T11:00:00',
-        status: 'AVAILABLE' as BlockType,
+        status: BLOCK_TYPES.AVAILABLE as BlockType,
         contributingBlocks: [],
       },
       {
         start: '2026-06-15T11:00:00',
         end: '2026-06-15T12:00:00',
-        status: 'BLOCKED' as BlockType,
+        status: BLOCK_TYPES.BLOCKED as BlockType,
         contributingBlocks: [],
       },
     ];
@@ -537,13 +541,13 @@ describe('validateSegments', () => {
       {
         start: '2026-06-15T10:00:00',
         end: '2026-06-15T11:30:00',
-        status: 'AVAILABLE' as BlockType,
+        status: BLOCK_TYPES.AVAILABLE as BlockType,
         contributingBlocks: [],
       },
       {
         start: '2026-06-15T11:00:00',
         end: '2026-06-15T12:00:00',
-        status: 'BLOCKED' as BlockType,
+        status: BLOCK_TYPES.BLOCKED as BlockType,
         contributingBlocks: [],
       },
     ];
@@ -555,13 +559,13 @@ describe('validateSegments', () => {
       {
         start: '2026-06-15T10:00:00',
         end: '2026-06-15T11:00:00',
-        status: 'AVAILABLE' as BlockType,
+        status: BLOCK_TYPES.AVAILABLE as BlockType,
         contributingBlocks: [],
       },
       {
         start: '2026-06-15T11:30:00',
         end: '2026-06-15T12:00:00',
-        status: 'BLOCKED' as BlockType,
+        status: BLOCK_TYPES.BLOCKED as BlockType,
         contributingBlocks: [],
       },
     ];
@@ -573,7 +577,7 @@ describe('validateSegments', () => {
       {
         start: '2026-06-15T11:00:00',
         end: '2026-06-15T10:00:00', // end before start
-        status: 'AVAILABLE' as BlockType,
+        status: BLOCK_TYPES.AVAILABLE as BlockType,
         contributingBlocks: [],
       },
     ];

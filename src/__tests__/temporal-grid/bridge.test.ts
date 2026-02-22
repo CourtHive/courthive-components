@@ -1,11 +1,16 @@
 /**
  * Temporal Grid Factory Bridge Tests
- * 
+ *
  * Test suite for translation between Temporal Grid Engine and TODS format.
  */
 
 import { describe, it, expect } from 'vitest';
-import type { FacilityDayTimeline, RailSegment, BlockType } from '../../components/temporal-grid/engine/types';
+import {
+  BLOCK_TYPES,
+  type VenueDayTimeline,
+  type RailSegment,
+  type BlockType
+} from '../../components/temporal-grid/engine/types';
 import {
   railsToDateAvailability,
   applyTemporalAvailabilityToTournamentRecord,
@@ -17,52 +22,58 @@ import {
   calculateCourtHours,
   type TodsDateAvailability,
   type SchedulingSelection,
-  type TodsVenue,
+  type TodsVenue
 } from '../../components/temporal-grid/bridge/temporalGridFactoryBridge';
+import { HydratedVenue } from 'tods-competition-factory';
 
 // ============================================================================
 // Test Fixtures
 // ============================================================================
 
+const TEST_DATE_START_TIME = '2026-06-15T08:00:00';
+const TEST_DATE_END_TIME_2 = '2026-06-15T18:00:00';
+const TEST_DATE_END_TIME_3 = '2026-06-15T10:00:00';
+const TEST_DATE_END_TIME_4 = '2026-06-15T14:00:00';
+const TEST_DATE_END_TIME = '2026-06-15T12:00:00';
+const TEST_TOURNAMENT = 'test-tournament';
+const TEST_VENUE = 'venue-1';
+const TEST_DAY = '2026-06-15';
+
 const mockCourt1 = {
-  tournamentId: 'test-tournament',
-  facilityId: 'venue-1',
-  courtId: 'court-1',
+  tournamentId: TEST_TOURNAMENT,
+  venueId: TEST_VENUE,
+  courtId: 'court-1'
 };
 
 const mockCourt2 = {
-  tournamentId: 'test-tournament',
-  facilityId: 'venue-1',
-  courtId: 'court-2',
+  tournamentId: TEST_TOURNAMENT,
+  venueId: TEST_VENUE,
+  courtId: 'court-2'
 };
 
-function createSegment(
-  start: string,
-  end: string,
-  status: BlockType = 'AVAILABLE',
-): RailSegment {
+function createSegment(start: string, end: string, status: BlockType = BLOCK_TYPES.AVAILABLE): RailSegment {
   return {
     start,
     end,
     status,
-    contributingBlocks: [],
+    contributingBlocks: []
   };
 }
 
-function createTimeline(day: string, facilityId: string, segments: RailSegment[][]): FacilityDayTimeline {
+function createTimeline(day: string, venueId: string, segments: RailSegment[][]): VenueDayTimeline {
   return {
     day,
-    facilityId,
+    venueId,
     rails: [
       {
         court: mockCourt1,
-        segments: segments[0],
+        segments: segments[0]
       },
       {
         court: mockCourt2,
-        segments: segments[1],
-      },
-    ],
+        segments: segments[1]
+      }
+    ]
   };
 }
 
@@ -72,12 +83,12 @@ function createTimeline(day: string, facilityId: string, segments: RailSegment[]
 
 describe('railsToDateAvailability', () => {
   it('should convert simple availability to TODS format', () => {
-    const timeline = createTimeline('2026-06-15', 'venue-1', [
+    const timeline = createTimeline(TEST_DAY, TEST_VENUE, [
       [
-        createSegment('2026-06-15T08:00:00', '2026-06-15T12:00:00', 'AVAILABLE'),
-        createSegment('2026-06-15T12:00:00', '2026-06-15T18:00:00', 'BLOCKED'),
+        createSegment(TEST_DATE_START_TIME, TEST_DATE_END_TIME, BLOCK_TYPES.AVAILABLE),
+        createSegment(TEST_DATE_END_TIME, TEST_DATE_END_TIME_2, BLOCK_TYPES.BLOCKED)
       ],
-      [createSegment('2026-06-15T08:00:00', '2026-06-15T18:00:00', 'AVAILABLE')],
+      [createSegment(TEST_DATE_START_TIME, TEST_DATE_END_TIME_2, BLOCK_TYPES.AVAILABLE)]
     ]);
 
     const result = railsToDateAvailability([timeline]);
@@ -86,31 +97,31 @@ describe('railsToDateAvailability', () => {
 
     // Court 1: only 08:00-12:00 is available
     expect(result[0]).toEqual({
-      date: '2026-06-15',
+      date: TEST_DAY,
       startTime: '08:00',
       endTime: '12:00',
       venueId: 'venue-1',
-      courtIds: ['court-1'],
+      courtIds: ['court-1']
     });
 
     // Court 2: full day available
     expect(result[1]).toEqual({
-      date: '2026-06-15',
+      date: TEST_DAY,
       startTime: '08:00',
       endTime: '18:00',
       venueId: 'venue-1',
-      courtIds: ['court-2'],
+      courtIds: ['court-2']
     });
   });
 
   it('should handle multiple schedulable segments', () => {
-    const timeline = createTimeline('2026-06-15', 'venue-1', [
+    const timeline = createTimeline(TEST_DAY, TEST_VENUE, [
       [
-        createSegment('2026-06-15T08:00:00', '2026-06-15T10:00:00', 'AVAILABLE'),
-        createSegment('2026-06-15T10:00:00', '2026-06-15T12:00:00', 'MAINTENANCE'),
-        createSegment('2026-06-15T12:00:00', '2026-06-15T14:00:00', 'AVAILABLE'),
+        createSegment(TEST_DATE_START_TIME, TEST_DATE_END_TIME_3, BLOCK_TYPES.AVAILABLE),
+        createSegment(TEST_DATE_END_TIME_3, TEST_DATE_END_TIME, BLOCK_TYPES.MAINTENANCE),
+        createSegment(TEST_DATE_END_TIME, TEST_DATE_END_TIME_4, BLOCK_TYPES.AVAILABLE)
       ],
-      [],
+      []
     ]);
 
     const result = railsToDateAvailability([timeline]);
@@ -124,13 +135,13 @@ describe('railsToDateAvailability', () => {
   });
 
   it('should respect custom schedulable status function', () => {
-    const timeline = createTimeline('2026-06-15', 'venue-1', [
+    const timeline = createTimeline(TEST_DAY, TEST_VENUE, [
       [
-        createSegment('2026-06-15T08:00:00', '2026-06-15T10:00:00', 'AVAILABLE'),
-        createSegment('2026-06-15T10:00:00', '2026-06-15T12:00:00', 'SOFT_BLOCK'),
-        createSegment('2026-06-15T12:00:00', '2026-06-15T14:00:00', 'HARD_BLOCK'),
+        createSegment(TEST_DATE_START_TIME, TEST_DATE_END_TIME_3, BLOCK_TYPES.AVAILABLE),
+        createSegment(TEST_DATE_END_TIME_3, TEST_DATE_END_TIME, BLOCK_TYPES.SOFT_BLOCK),
+        createSegment(TEST_DATE_END_TIME, TEST_DATE_END_TIME_4, BLOCK_TYPES.HARD_BLOCK)
       ],
-      [],
+      []
     ]);
 
     // Default: AVAILABLE and SOFT_BLOCK are schedulable
@@ -140,7 +151,7 @@ describe('railsToDateAvailability', () => {
 
     // Custom: Only AVAILABLE is schedulable
     const result2 = railsToDateAvailability([timeline], {
-      isSchedulableStatus: (status) => status === 'AVAILABLE',
+      isSchedulableStatus: (status) => status === 'AVAILABLE'
     });
     expect(result2).toHaveLength(1);
     expect(result2[0].endTime).toBe('10:00'); // Excludes SOFT_BLOCK
@@ -152,39 +163,26 @@ describe('railsToDateAvailability', () => {
   });
 
   it('should handle timelines with no schedulable segments', () => {
-    const timeline = createTimeline('2026-06-15', 'venue-1', [
+    const timeline = createTimeline(TEST_DAY, TEST_VENUE, [
       [
-        createSegment('2026-06-15T08:00:00', '2026-06-15T12:00:00', 'BLOCKED'),
-        createSegment('2026-06-15T12:00:00', '2026-06-15T18:00:00', 'MAINTENANCE'),
+        createSegment(TEST_DATE_START_TIME, TEST_DATE_END_TIME, BLOCK_TYPES.BLOCKED),
+        createSegment(TEST_DATE_END_TIME, TEST_DATE_END_TIME_2, BLOCK_TYPES.MAINTENANCE)
       ],
-      [],
+      []
     ]);
 
     const result = railsToDateAvailability([timeline]);
     expect(result).toHaveLength(0);
   });
 
-  it('should apply custom facility to venue mapping', () => {
-    const timeline = createTimeline('2026-06-15', 'internal-facility-1', [
-      [createSegment('2026-06-15T08:00:00', '2026-06-15T12:00:00', 'AVAILABLE')],
-      [],
-    ]);
-
-    const result = railsToDateAvailability([timeline], {
-      facilityToVenueId: (facilityId) => `venue-${facilityId}`,
-    });
-
-    expect(result[0].venueId).toBe('venue-internal-facility-1');
-  });
-
   it('should aggregate by venue when configured', () => {
-    const timeline = createTimeline('2026-06-15', 'venue-1', [
-      [createSegment('2026-06-15T08:00:00', '2026-06-15T12:00:00', 'AVAILABLE')],
-      [createSegment('2026-06-15T08:00:00', '2026-06-15T12:00:00', 'AVAILABLE')],
+    const timeline = createTimeline(TEST_DAY, TEST_VENUE, [
+      [createSegment(TEST_DATE_START_TIME, TEST_DATE_END_TIME, BLOCK_TYPES.AVAILABLE)],
+      [createSegment(TEST_DATE_START_TIME, TEST_DATE_END_TIME, BLOCK_TYPES.AVAILABLE)]
     ]);
 
     const result = railsToDateAvailability([timeline], {
-      aggregateByVenue: true,
+      aggregateByVenue: true
     });
 
     // Should combine into single entry with both court IDs
@@ -201,41 +199,41 @@ describe('railsToDateAvailability', () => {
 describe('applyTemporalAvailabilityToTournamentRecord', () => {
   it('should update tournament record with availability', () => {
     const tournamentRecord = {
-      tournamentId: 'test-tournament',
+      tournamentId: TEST_TOURNAMENT,
       venues: [
         {
           venueId: 'venue-1',
           venueName: 'Main Stadium',
           courts: [
             { courtId: 'court-1', courtName: 'Court 1' },
-            { courtId: 'court-2', courtName: 'Court 2' },
-          ],
-        },
-      ],
+            { courtId: 'court-2', courtName: 'Court 2' }
+          ]
+        }
+      ]
     };
 
-    const timeline = createTimeline('2026-06-15', 'venue-1', [
-      [createSegment('2026-06-15T08:00:00', '2026-06-15T18:00:00', 'AVAILABLE')],
-      [],
+    const timeline = createTimeline(TEST_DAY, TEST_VENUE, [
+      [createSegment(TEST_DATE_START_TIME, TEST_DATE_END_TIME_2, BLOCK_TYPES.AVAILABLE)],
+      []
     ]);
 
     const result = applyTemporalAvailabilityToTournamentRecord({
       tournamentRecord,
-      timelines: [timeline],
+      timelines: [timeline]
     });
 
     // Should not mutate original
     expect(result).not.toBe(tournamentRecord);
-    expect(tournamentRecord.venues[0].dateAvailability).toBeUndefined();
+    expect((tournamentRecord.venues[0] as HydratedVenue).dateAvailability).toBeUndefined();
 
     // Should have dateAvailability in result
-    expect(result.venues[0].dateAvailability).toBeDefined();
-    expect(result.venues[0].dateAvailability).toHaveLength(1);
-    expect(result.venues[0].dateAvailability[0]).toMatchObject({
-      date: '2026-06-15',
+    expect((result.venues[0] as HydratedVenue).dateAvailability).toBeDefined();
+    expect((result.venues[0] as HydratedVenue).dateAvailability).toHaveLength(1);
+    expect((result.venues[0] as HydratedVenue).dateAvailability[0]).toMatchObject({
+      date: TEST_DAY,
       startTime: '08:00',
       endTime: '18:00',
-      venueId: 'venue-1',
+      venueId: 'venue-1'
     });
   });
 
@@ -243,27 +241,27 @@ describe('applyTemporalAvailabilityToTournamentRecord', () => {
     const tournamentRecord = {
       venues: [
         { venueId: 'venue-1', courts: [{ courtId: 'court-1' }] },
-        { venueId: 'venue-2', courts: [{ courtId: 'court-3' }] },
-      ],
+        { venueId: 'venue-2', courts: [{ courtId: 'court-3' }] }
+      ]
     };
 
     const timelines = [
-      createTimeline('2026-06-15', 'venue-1', [
-        [createSegment('2026-06-15T08:00:00', '2026-06-15T12:00:00', 'AVAILABLE')],
-        [], // Second court (no segments)
+      createTimeline(TEST_DAY, TEST_VENUE, [
+        [createSegment(TEST_DATE_START_TIME, TEST_DATE_END_TIME, BLOCK_TYPES.AVAILABLE)],
+        [] // Second court (no segments)
       ]),
-      createTimeline('2026-06-15', 'venue-2', [
-        [createSegment('2026-06-15T10:00:00', '2026-06-15T14:00:00', 'AVAILABLE')],
-        [], // Second court (no segments)
-      ]),
+      createTimeline(TEST_DAY, 'venue-2', [
+        [createSegment(TEST_DATE_END_TIME_3, TEST_DATE_END_TIME_4, BLOCK_TYPES.AVAILABLE)],
+        [] // Second court (no segments)
+      ])
     ];
 
     const result = applyTemporalAvailabilityToTournamentRecord({
       tournamentRecord,
-      timelines,
+      timelines
     });
 
-    expect(result.venues[0].dateAvailability).toHaveLength(1);
+    expect((result.venues[0] as HydratedVenue).dateAvailability).toHaveLength(1);
     expect(result.venues[1].dateAvailability).toHaveLength(1);
   });
 });
@@ -276,45 +274,45 @@ describe('buildSchedulingProfileFromUISelections', () => {
   it('should build valid scheduling profile', () => {
     const selections: SchedulingSelection[] = [
       {
-        scheduleDate: '2026-06-15',
+        scheduleDate: TEST_DAY,
         venueIds: ['venue-1', 'venue-2'],
         rounds: [
           { eventId: 'event-1', roundNumber: 1 },
-          { eventId: 'event-1', roundNumber: 2 },
-        ],
+          { eventId: 'event-1', roundNumber: 2 }
+        ]
       },
       {
         scheduleDate: '2026-06-16',
         venueIds: ['venue-1'],
-        rounds: [{ eventId: 'event-2', roundNumber: 1 }],
-      },
+        rounds: [{ eventId: 'event-2', roundNumber: 1 }]
+      }
     ];
 
     const profile = buildSchedulingProfileFromUISelections(selections);
 
     expect(profile).toHaveLength(2);
     expect(profile[0]).toEqual({
-      scheduleDate: '2026-06-15',
+      scheduleDate: TEST_DAY,
       venueIds: ['venue-1', 'venue-2'],
       rounds: [
         { eventId: 'event-1', roundNumber: 1 },
-        { eventId: 'event-1', roundNumber: 2 },
-      ],
+        { eventId: 'event-1', roundNumber: 2 }
+      ]
     });
   });
 
   it('should filter out empty selections', () => {
     const selections: SchedulingSelection[] = [
       {
-        scheduleDate: '2026-06-15',
+        scheduleDate: TEST_DAY,
         venueIds: ['venue-1'],
-        rounds: [{ eventId: 'event-1', roundNumber: 1 }],
+        rounds: [{ eventId: 'event-1', roundNumber: 1 }]
       },
       {
         scheduleDate: '',
         venueIds: [],
-        rounds: [],
-      },
+        rounds: []
+      }
     ];
 
     const profile = buildSchedulingProfileFromUISelections(selections);
@@ -335,36 +333,33 @@ describe('todsAvailabilityToBlocks', () => {
   it('should convert TODS availability to blocks', () => {
     const venue: TodsVenue = {
       venueId: 'venue-1',
-      courts: [
-        { courtId: 'court-1' },
-        { courtId: 'court-2' },
-      ],
+      courts: [{ courtId: 'court-1' }, { courtId: 'court-2' }],
       dateAvailability: [
         {
-          date: '2026-06-15',
+          date: TEST_DAY,
           startTime: '08:00',
           endTime: '18:00',
           venueId: 'venue-1',
-          courtIds: ['court-1'],
-        },
-      ],
+          courtIds: ['court-1']
+        }
+      ]
     };
 
     const blocks = todsAvailabilityToBlocks({
       venue,
-      tournamentId: 'test-tournament',
+      tournamentId: TEST_TOURNAMENT
     });
 
     expect(blocks).toHaveLength(1);
     expect(blocks[0]).toEqual({
       court: {
-        tournamentId: 'test-tournament',
-        facilityId: 'venue-1',
-        courtId: 'court-1',
+        tournamentId: TEST_TOURNAMENT,
+        venueId: 'venue-1',
+        courtId: 'court-1'
       },
-      start: '2026-06-15T08:00:00',
-      end: '2026-06-15T18:00:00',
-      type: 'AVAILABLE',
+      start: TEST_DATE_START_TIME,
+      end: TEST_DATE_END_TIME_2,
+      type: BLOCK_TYPES.AVAILABLE
     });
   });
 
@@ -374,17 +369,17 @@ describe('todsAvailabilityToBlocks', () => {
       courts: [{ courtId: 'court-1' }, { courtId: 'court-2' }],
       dateAvailability: [
         {
-          date: '2026-06-15',
+          date: TEST_DAY,
           startTime: '08:00',
           endTime: '18:00',
-          venueId: 'venue-1',
-        },
-      ],
+          venueId: 'venue-1'
+        }
+      ]
     };
 
     const blocks = todsAvailabilityToBlocks({
       venue,
-      tournamentId: 'test-tournament',
+      tournamentId: TEST_TOURNAMENT
     });
 
     expect(blocks).toHaveLength(2);
@@ -398,22 +393,22 @@ describe('todsAvailabilityToBlocks', () => {
       courts: [{ courtId: 'court-1' }],
       dateAvailability: [
         {
-          date: '2026-06-15',
+          date: TEST_DAY,
           startTime: '08:00',
           endTime: '18:00',
           venueId: 'venue-1',
-          courtIds: ['court-1'],
-        },
-      ],
+          courtIds: ['court-1']
+        }
+      ]
     };
 
     const blocks = todsAvailabilityToBlocks({
       venue,
-      tournamentId: 'test-tournament',
-      blockType: 'SOFT_BLOCK',
+      tournamentId: TEST_TOURNAMENT,
+      blockType: 'SOFT_BLOCK'
     });
 
-    expect(blocks[0].type).toBe('SOFT_BLOCK');
+    expect(blocks[0].type).toBe(BLOCK_TYPES.SOFT_BLOCK);
   });
 });
 
@@ -425,10 +420,10 @@ describe('validateSchedulingProfile', () => {
   it('should validate correct profile', () => {
     const profile = [
       {
-        scheduleDate: '2026-06-15',
+        scheduleDate: TEST_DAY,
         venueIds: ['venue-1'],
-        rounds: [{ eventId: 'event-1' }],
-      },
+        rounds: [{ eventId: 'event-1' }]
+      }
     ];
 
     const result = validateSchedulingProfile(profile);
@@ -441,8 +436,8 @@ describe('validateSchedulingProfile', () => {
       {
         scheduleDate: '',
         venueIds: ['venue-1'],
-        rounds: [],
-      },
+        rounds: []
+      }
     ];
 
     const result = validateSchedulingProfile(profile);
@@ -455,8 +450,8 @@ describe('validateSchedulingProfile', () => {
       {
         scheduleDate: '06/15/2026',
         venueIds: ['venue-1'],
-        rounds: [],
-      },
+        rounds: []
+      }
     ];
 
     const result = validateSchedulingProfile(profile);
@@ -467,10 +462,10 @@ describe('validateSchedulingProfile', () => {
   it('should detect missing venueIds', () => {
     const profile = [
       {
-        scheduleDate: '2026-06-15',
+        scheduleDate: TEST_DAY,
         venueIds: [],
-        rounds: [],
-      },
+        rounds: []
+      }
     ];
 
     const result = validateSchedulingProfile(profile);
@@ -481,10 +476,10 @@ describe('validateSchedulingProfile', () => {
   it('should detect missing eventId in rounds', () => {
     const profile = [
       {
-        scheduleDate: '2026-06-15',
+        scheduleDate: TEST_DAY,
         venueIds: ['venue-1'],
-        rounds: [{ eventId: '' } as any],
-      },
+        rounds: [{ eventId: '' } as any]
+      }
     ];
 
     const result = validateSchedulingProfile(profile);
@@ -497,11 +492,11 @@ describe('validateDateAvailability', () => {
   it('should validate correct availability', () => {
     const entries: TodsDateAvailability[] = [
       {
-        date: '2026-06-15',
+        date: TEST_DAY,
         startTime: '08:00',
         endTime: '18:00',
-        venueId: 'venue-1',
-      },
+        venueId: 'venue-1'
+      }
     ];
 
     const result = validateDateAvailability(entries);
@@ -515,8 +510,8 @@ describe('validateDateAvailability', () => {
         date: '06/15/2026',
         startTime: '08:00',
         endTime: '18:00',
-        venueId: 'venue-1',
-      },
+        venueId: 'venue-1'
+      }
     ];
 
     const result = validateDateAvailability(entries);
@@ -527,11 +522,11 @@ describe('validateDateAvailability', () => {
   it('should detect invalid time format', () => {
     const entries: TodsDateAvailability[] = [
       {
-        date: '2026-06-15',
+        date: TEST_DAY,
         startTime: '8:00',
         endTime: '18:00',
-        venueId: 'venue-1',
-      },
+        venueId: 'venue-1'
+      }
     ];
 
     const result = validateDateAvailability(entries);
@@ -542,11 +537,11 @@ describe('validateDateAvailability', () => {
   it('should detect endTime before startTime', () => {
     const entries: TodsDateAvailability[] = [
       {
-        date: '2026-06-15',
+        date: TEST_DAY,
         startTime: '18:00',
         endTime: '08:00',
-        venueId: 'venue-1',
-      },
+        venueId: 'venue-1'
+      }
     ];
 
     const result = validateDateAvailability(entries);
@@ -563,17 +558,17 @@ describe('mergeOverlappingAvailability', () => {
   it('should merge overlapping entries', () => {
     const entries: TodsDateAvailability[] = [
       {
-        date: '2026-06-15',
+        date: TEST_DAY,
         startTime: '08:00',
         endTime: '12:00',
-        venueId: 'venue-1',
+        venueId: 'venue-1'
       },
       {
-        date: '2026-06-15',
+        date: TEST_DAY,
         startTime: '11:00',
         endTime: '14:00',
-        venueId: 'venue-1',
-      },
+        venueId: 'venue-1'
+      }
     ];
 
     const merged = mergeOverlappingAvailability(entries);
@@ -585,17 +580,17 @@ describe('mergeOverlappingAvailability', () => {
   it('should merge adjacent entries', () => {
     const entries: TodsDateAvailability[] = [
       {
-        date: '2026-06-15',
+        date: TEST_DAY,
         startTime: '08:00',
         endTime: '12:00',
-        venueId: 'venue-1',
+        venueId: 'venue-1'
       },
       {
-        date: '2026-06-15',
+        date: TEST_DAY,
         startTime: '12:00',
         endTime: '16:00',
-        venueId: 'venue-1',
-      },
+        venueId: 'venue-1'
+      }
     ];
 
     const merged = mergeOverlappingAvailability(entries);
@@ -607,17 +602,17 @@ describe('mergeOverlappingAvailability', () => {
   it('should not merge separate entries', () => {
     const entries: TodsDateAvailability[] = [
       {
-        date: '2026-06-15',
+        date: TEST_DAY,
         startTime: '08:00',
         endTime: '10:00',
-        venueId: 'venue-1',
+        venueId: 'venue-1'
       },
       {
-        date: '2026-06-15',
+        date: TEST_DAY,
         startTime: '12:00',
         endTime: '14:00',
-        venueId: 'venue-1',
-      },
+        venueId: 'venue-1'
+      }
     ];
 
     const merged = mergeOverlappingAvailability(entries);
@@ -627,19 +622,19 @@ describe('mergeOverlappingAvailability', () => {
   it('should merge courtIds when merging entries', () => {
     const entries: TodsDateAvailability[] = [
       {
-        date: '2026-06-15',
+        date: TEST_DAY,
         startTime: '08:00',
         endTime: '12:00',
         venueId: 'venue-1',
-        courtIds: ['court-1'],
+        courtIds: ['court-1']
       },
       {
-        date: '2026-06-15',
+        date: TEST_DAY,
         startTime: '10:00',
         endTime: '14:00',
         venueId: 'venue-1',
-        courtIds: ['court-2'],
-      },
+        courtIds: ['court-2']
+      }
     ];
 
     const merged = mergeOverlappingAvailability(entries);
@@ -653,19 +648,19 @@ describe('calculateCourtHours', () => {
   it('should calculate court hours correctly', () => {
     const entries: TodsDateAvailability[] = [
       {
-        date: '2026-06-15',
+        date: TEST_DAY,
         startTime: '08:00',
         endTime: '10:00',
         venueId: 'venue-1',
-        courtIds: ['court-1'],
+        courtIds: ['court-1']
       },
       {
-        date: '2026-06-15',
+        date: TEST_DAY,
         startTime: '10:00',
         endTime: '12:00',
         venueId: 'venue-1',
-        courtIds: ['court-2'],
-      },
+        courtIds: ['court-2']
+      }
     ];
 
     const hours = calculateCourtHours(entries);
@@ -675,12 +670,12 @@ describe('calculateCourtHours', () => {
   it('should handle multiple courts in single entry', () => {
     const entries: TodsDateAvailability[] = [
       {
-        date: '2026-06-15',
+        date: TEST_DAY,
         startTime: '08:00',
         endTime: '10:00',
         venueId: 'venue-1',
-        courtIds: ['court-1', 'court-2', 'court-3'],
-      },
+        courtIds: ['court-1', 'court-2', 'court-3']
+      }
     ];
 
     const hours = calculateCourtHours(entries);
@@ -690,11 +685,11 @@ describe('calculateCourtHours', () => {
   it('should handle entry without courtIds', () => {
     const entries: TodsDateAvailability[] = [
       {
-        date: '2026-06-15',
+        date: TEST_DAY,
         startTime: '08:00',
         endTime: '10:00',
-        venueId: 'venue-1',
-      },
+        venueId: 'venue-1'
+      }
     ];
 
     const hours = calculateCourtHours(entries);

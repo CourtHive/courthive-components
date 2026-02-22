@@ -5,19 +5,21 @@
  * This module is the ONLY place where engine structures touch TODS structures.
  * 
  * Key Functions:
- * - Convert facility rails → TODS dateAvailability
+ * - Convert venue rails → TODS dateAvailability
  * - Update tournamentRecord with availability from engine
  * - Build schedulingProfile from UI selections
  * 
  * Design: Pure functions, fully testable, no side effects.
  */
 
-import type {
-  BlockType,
-  CourtRef,
-  FacilityDayTimeline,
-  RailSegment,
+import {
+  BLOCK_TYPES,
+  type BlockType,
+  type CourtRef,
+  type VenueDayTimeline,
+  type RailSegment,
 } from '../engine/types';
+import type { TemporalGridEngine } from '../engine/temporalGridEngine';
 
 // ============================================================================
 // TODS Type Definitions
@@ -41,6 +43,8 @@ export interface TodsDateAvailability {
 export interface TodsVenue {
   venueId?: string;
   venueName?: string;
+  defaultStartTime?: string;
+  defaultEndTime?: string;
   courts?: TodsCourt[];
   dateAvailability?: TodsDateAvailability[];
 }
@@ -98,11 +102,6 @@ export interface SchedulingSelection {
 
 export interface BridgeConfig {
   /**
-   * Map facilityId to TODS venueId (if they differ)
-   */
-  facilityToVenueId?: (facilityId: string) => string;
-
-  /**
    * Map courtId to TODS courtId (if they differ)
    */
   courtToCourtId?: (courtRef: CourtRef) => string;
@@ -122,10 +121,9 @@ export interface BridgeConfig {
 }
 
 const DEFAULT_CONFIG: Required<BridgeConfig> = {
-  facilityToVenueId: (facilityId: string) => facilityId,
   courtToCourtId: (courtRef: CourtRef) => courtRef.courtId,
   isSchedulableStatus: (status: BlockType) =>
-    status === 'AVAILABLE' || status === 'SOFT_BLOCK' || status === 'RESERVED',
+    status === BLOCK_TYPES.AVAILABLE || status === BLOCK_TYPES.SOFT_BLOCK || status === BLOCK_TYPES.RESERVED,
   aggregateByVenue: false,
 };
 
@@ -134,27 +132,26 @@ const DEFAULT_CONFIG: Required<BridgeConfig> = {
 // ============================================================================
 
 /**
- * Convert facility timelines to TODS dateAvailability entries.
- * 
+ * Convert venue timelines to TODS dateAvailability entries.
+ *
  * Algorithm:
- * 1. For each facility/court/day, extract contiguous schedulable segments
+ * 1. For each venue/court/day, extract contiguous schedulable segments
  * 2. Convert each segment to dateAvailability format
  * 3. Optionally aggregate by venue
- * 
- * @param timelines - Facility day timelines from engine
+ *
+ * @param timelines - Venue day timelines from engine
  * @param config - Bridge configuration
  * @returns Array of TODS dateAvailability entries
  */
 export function railsToDateAvailability(
-  timelines: FacilityDayTimeline[],
+  timelines: VenueDayTimeline[],
   config: BridgeConfig = {},
 ): TodsDateAvailability[] {
   const cfg = { ...DEFAULT_CONFIG, ...config };
   const result: TodsDateAvailability[] = [];
 
-  for (const facilityTimeline of timelines) {
-    const { day, facilityId, rails } = facilityTimeline;
-    const venueId = cfg.facilityToVenueId(facilityId);
+  for (const venueTimeline of timelines) {
+    const { day, venueId, rails } = venueTimeline;
 
     for (const rail of rails) {
       const { court, segments } = rail;
@@ -264,16 +261,17 @@ function aggregateAvailabilityByVenue(
  * Updates venue dateAvailability fields with data from engine.
  * 
  * @param tournamentRecord - TODS tournament record
- * @param timelines - Facility day timelines from engine
+ * @param timelines - Venue day timelines from engine
  * @param config - Bridge configuration
  * @returns Updated tournament record (new object, doesn't mutate input)
  */
 export function applyTemporalAvailabilityToTournamentRecord(params: {
   tournamentRecord: any;
-  timelines: FacilityDayTimeline[];
+  timelines: VenueDayTimeline[];
   config?: BridgeConfig;
+  engine?: TemporalGridEngine;
 }): any {
-  const { tournamentRecord, timelines, config = {} } = params;
+  const { tournamentRecord, timelines, config = {}, engine } = params;
 
   // Generate dateAvailability from timelines
   const dateAvailability = railsToDateAvailability(timelines, config);
@@ -291,12 +289,24 @@ export function applyTemporalAvailabilityToTournamentRecord(params: {
 
   // Update venues in tournament record
   if (updated.venues && Array.isArray(updated.venues)) {
+    const engineConfig = engine?.getConfig();
+    const tournamentId = engineConfig?.tournamentId;
+
     for (const venue of updated.venues) {
       const venueId = venue.venueId || venue.venueName;
       const availability = byVenue.get(venueId);
 
       if (availability) {
         venue.dateAvailability = availability;
+      }
+
+      // Write venue defaults from engine if available
+      if (engine && tournamentId) {
+        const venueDefaults = engine.getVenueAvailability(tournamentId, venueId);
+        if (venueDefaults) {
+          venue.defaultStartTime = venueDefaults.startTime;
+          venue.defaultEndTime = venueDefaults.endTime;
+        }
       }
     }
   }
@@ -359,7 +369,7 @@ export function todsAvailabilityToBlocks(params: {
   end: string;
   type: BlockType;
 }> {
-  const { venue, tournamentId, blockType = 'AVAILABLE' } = params;
+  const { venue, tournamentId, blockType = BLOCK_TYPES.AVAILABLE } = params;
   const blocks: Array<{
     court: CourtRef;
     start: string;
@@ -382,7 +392,7 @@ export function todsAvailabilityToBlocks(params: {
         blocks.push({
           court: {
             tournamentId,
-            facilityId: venueId,
+            venueId: venueId,
             courtId,
           },
           start: `${date}T${startTime}:00`,
@@ -398,7 +408,7 @@ export function todsAvailabilityToBlocks(params: {
           blocks.push({
             court: {
               tournamentId,
-              facilityId: venueId,
+              venueId: venueId,
               courtId,
             },
             start: `${date}T${startTime}:00`,

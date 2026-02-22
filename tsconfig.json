@@ -24,7 +24,7 @@
     "sourceMap": false,
     "strict": true,
     "strictNullChecks": false,
-    "target": "es5"
+    "target": "es2020"
   },
   "include": ["src"]
 }

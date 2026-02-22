@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import type { Block, BlockMutation, EngineConfig, EngineContext } from '../../components/temporal-grid/engine/types';
+import { BLOCK_TYPES, type Block, type BlockMutation, type EngineConfig, type EngineContext } from '../../components/temporal-grid/engine/types';
 import {
   adjacentBlockEvaluator,
   blockDurationEvaluator,
@@ -25,25 +25,29 @@ import {
 // Test Fixtures
 // ============================================================================
 
+const TEST_TOURNAMENT = 'test-tournament';
+const TEST_VENUE = 'facility-1';
+const TEST_COURT = 'court-1';
+
 const mockConfig: EngineConfig = {
-  tournamentId: 'test-tournament',
+  tournamentId: TEST_TOURNAMENT,
   dayStartTime: '06:00',
   dayEndTime: '23:00',
   slotMinutes: 15,
-  typePrecedence: ['HARD_BLOCK', 'LOCKED', 'MAINTENANCE', 'AVAILABLE'],
+  typePrecedence: [BLOCK_TYPES.HARD_BLOCK, BLOCK_TYPES.LOCKED, BLOCK_TYPES.MAINTENANCE, BLOCK_TYPES.AVAILABLE],
 };
 
 const mockCourt = {
-  tournamentId: 'test-tournament',
-  facilityId: 'facility-1',
-  courtId: 'court-1',
+  tournamentId: TEST_TOURNAMENT,
+  venueId: TEST_VENUE,
+  courtId: TEST_COURT,
 };
 
 function createBlock(
   id: string,
   start: string,
   end: string,
-  type: any = 'AVAILABLE',
+  type: any = BLOCK_TYPES.AVAILABLE,
 ): Block {
   return {
     id,
@@ -60,7 +64,7 @@ function createContext(blocks: Block[]): EngineContext {
 
   for (const block of blocks) {
     const day = block.start.slice(0, 10);
-    const key = `${block.court.tournamentId}|${block.court.facilityId}|${block.court.courtId}|${day}`;
+    const key = `${block.court.tournamentId}|${block.court.venueId}|${block.court.courtId}|${day}`;
     const existing = blocksByCourtDay.get(key) || [];
     existing.push(block.id);
     blocksByCourtDay.set(key, existing);
@@ -87,8 +91,8 @@ function createMutation(block: Block, kind: 'ADD_BLOCK' | 'UPDATE_BLOCK' | 'REMO
 
 describe('courtOverlapEvaluator', () => {
   it('should detect overlapping blocks on same court', () => {
-    const existingBlock = createBlock('1', '2026-06-15T10:00:00', '2026-06-15T14:00:00', 'AVAILABLE');
-    const newBlock = createBlock('2', '2026-06-15T12:00:00', '2026-06-15T16:00:00', 'MAINTENANCE');
+    const existingBlock = createBlock('1', '2026-06-15T10:00:00', '2026-06-15T14:00:00', BLOCK_TYPES.AVAILABLE);
+    const newBlock = createBlock('2', '2026-06-15T12:00:00', '2026-06-15T16:00:00', BLOCK_TYPES.MAINTENANCE);
 
     const ctx = createContext([existingBlock]);
     const mutations = [createMutation(newBlock)];
@@ -103,8 +107,8 @@ describe('courtOverlapEvaluator', () => {
   });
 
   it('should flag HARD_BLOCK overlaps as ERROR', () => {
-    const existingBlock = createBlock('1', '2026-06-15T10:00:00', '2026-06-15T14:00:00', 'HARD_BLOCK');
-    const newBlock = createBlock('2', '2026-06-15T12:00:00', '2026-06-15T16:00:00', 'AVAILABLE');
+    const existingBlock = createBlock('1', '2026-06-15T10:00:00', '2026-06-15T14:00:00', BLOCK_TYPES.HARD_BLOCK);
+    const newBlock = createBlock('2', '2026-06-15T12:00:00', '2026-06-15T16:00:00', BLOCK_TYPES.AVAILABLE);
 
     const ctx = createContext([existingBlock]);
     const mutations = [createMutation(newBlock)];
@@ -116,8 +120,8 @@ describe('courtOverlapEvaluator', () => {
   });
 
   it('should not flag overlaps when new block is HARD_BLOCK', () => {
-    const existingBlock = createBlock('1', '2026-06-15T10:00:00', '2026-06-15T14:00:00', 'AVAILABLE');
-    const newBlock = createBlock('2', '2026-06-15T12:00:00', '2026-06-15T16:00:00', 'HARD_BLOCK');
+    const existingBlock = createBlock('1', '2026-06-15T10:00:00', '2026-06-15T14:00:00', BLOCK_TYPES.AVAILABLE);
+    const newBlock = createBlock('2', '2026-06-15T12:00:00', '2026-06-15T16:00:00', BLOCK_TYPES.HARD_BLOCK);
 
     const ctx = createContext([existingBlock]);
     const mutations = [createMutation(newBlock)];
@@ -129,8 +133,8 @@ describe('courtOverlapEvaluator', () => {
   });
 
   it('should not detect overlaps on different courts', () => {
-    const existingBlock = createBlock('1', '2026-06-15T10:00:00', '2026-06-15T14:00:00', 'AVAILABLE');
-    const newBlock = createBlock('2', '2026-06-15T12:00:00', '2026-06-15T16:00:00', 'AVAILABLE');
+    const existingBlock = createBlock('1', '2026-06-15T10:00:00', '2026-06-15T14:00:00', BLOCK_TYPES.AVAILABLE);
+    const newBlock = createBlock('2', '2026-06-15T12:00:00', '2026-06-15T16:00:00', BLOCK_TYPES.AVAILABLE);
     newBlock.court = { ...mockCourt, courtId: 'court-2' };
 
     const ctx = createContext([existingBlock]);
@@ -142,8 +146,8 @@ describe('courtOverlapEvaluator', () => {
   });
 
   it('should not detect conflicts for adjacent blocks', () => {
-    const existingBlock = createBlock('1', '2026-06-15T10:00:00', '2026-06-15T12:00:00', 'AVAILABLE');
-    const newBlock = createBlock('2', '2026-06-15T12:00:00', '2026-06-15T14:00:00', 'AVAILABLE');
+    const existingBlock = createBlock('1', '2026-06-15T10:00:00', '2026-06-15T12:00:00', BLOCK_TYPES.AVAILABLE);
+    const newBlock = createBlock('2', '2026-06-15T12:00:00', '2026-06-15T14:00:00', BLOCK_TYPES.AVAILABLE);
 
     const ctx = createContext([existingBlock]);
     const mutations = [createMutation(newBlock)];
@@ -154,8 +158,8 @@ describe('courtOverlapEvaluator', () => {
   });
 
   it('should skip REMOVE_BLOCK mutations', () => {
-    const existingBlock = createBlock('1', '2026-06-15T10:00:00', '2026-06-15T14:00:00', 'AVAILABLE');
-    const blockToRemove = createBlock('2', '2026-06-15T12:00:00', '2026-06-15T16:00:00', 'AVAILABLE');
+    const existingBlock = createBlock('1', '2026-06-15T10:00:00', '2026-06-15T14:00:00', BLOCK_TYPES.AVAILABLE);
+    const blockToRemove = createBlock('2', '2026-06-15T12:00:00', '2026-06-15T16:00:00', BLOCK_TYPES.AVAILABLE);
 
     const ctx = createContext([existingBlock]);
     const mutations = [createMutation(blockToRemove, 'REMOVE_BLOCK')];
@@ -172,8 +176,8 @@ describe('courtOverlapEvaluator', () => {
 
 describe('matchWindowEvaluator', () => {
   it('should warn about small availability windows', () => {
-    const block1 = createBlock('1', '2026-06-15T10:00:00', '2026-06-15T10:30:00', 'MAINTENANCE');
-    const block2 = createBlock('2', '2026-06-15T11:00:00', '2026-06-15T12:00:00', 'MAINTENANCE');
+    const block1 = createBlock('1', '2026-06-15T10:00:00', '2026-06-15T10:30:00', BLOCK_TYPES.MAINTENANCE);
+    const block2 = createBlock('2', '2026-06-15T11:00:00', '2026-06-15T12:00:00', BLOCK_TYPES.MAINTENANCE);
 
     // Both blocks need to be in context to detect the gap
     const ctx = createContext([block1, block2]);
@@ -187,8 +191,8 @@ describe('matchWindowEvaluator', () => {
   });
 
   it('should not warn about adequate windows', () => {
-    const block1 = createBlock('1', '2026-06-15T08:00:00', '2026-06-15T09:00:00', 'MAINTENANCE');
-    const block2 = createBlock('2', '2026-06-15T11:00:00', '2026-06-15T12:00:00', 'MAINTENANCE');
+    const block1 = createBlock('1', '2026-06-15T08:00:00', '2026-06-15T09:00:00', BLOCK_TYPES.MAINTENANCE);
+    const block2 = createBlock('2', '2026-06-15T11:00:00', '2026-06-15T12:00:00', BLOCK_TYPES.MAINTENANCE);
 
     const ctx = createContext([block1]);
     const mutations = [createMutation(block2)];
@@ -206,8 +210,8 @@ describe('matchWindowEvaluator', () => {
 
 describe('adjacentBlockEvaluator', () => {
   it('should flag adjacent blocks of different types', () => {
-    const existingBlock = createBlock('1', '2026-06-15T10:00:00', '2026-06-15T12:00:00', 'MAINTENANCE');
-    const newBlock = createBlock('2', '2026-06-15T12:00:00', '2026-06-15T14:00:00', 'AVAILABLE');
+    const existingBlock = createBlock('1', '2026-06-15T10:00:00', '2026-06-15T12:00:00', BLOCK_TYPES.MAINTENANCE);
+    const newBlock = createBlock('2', '2026-06-15T12:00:00', '2026-06-15T14:00:00', BLOCK_TYPES.AVAILABLE);
 
     const ctx = createContext([existingBlock]);
     const mutations = [createMutation(newBlock)];
@@ -220,8 +224,8 @@ describe('adjacentBlockEvaluator', () => {
   });
 
   it('should not flag adjacent blocks of same type', () => {
-    const existingBlock = createBlock('1', '2026-06-15T10:00:00', '2026-06-15T12:00:00', 'AVAILABLE');
-    const newBlock = createBlock('2', '2026-06-15T12:00:00', '2026-06-15T14:00:00', 'AVAILABLE');
+    const existingBlock = createBlock('1', '2026-06-15T10:00:00', '2026-06-15T12:00:00', BLOCK_TYPES.AVAILABLE);
+    const newBlock = createBlock('2', '2026-06-15T12:00:00', '2026-06-15T14:00:00', BLOCK_TYPES.AVAILABLE);
 
     const ctx = createContext([existingBlock]);
     const mutations = [createMutation(newBlock)];
@@ -238,7 +242,7 @@ describe('adjacentBlockEvaluator', () => {
 
 describe('lightingEvaluator', () => {
   it('should warn about scheduling after sunset', () => {
-    const lateBlock = createBlock('1', '2026-06-15T19:00:00', '2026-06-15T21:00:00', 'AVAILABLE');
+    const lateBlock = createBlock('1', '2026-06-15T19:00:00', '2026-06-15T21:00:00', BLOCK_TYPES.AVAILABLE);
 
     const ctx = createContext([]);
     const mutations = [createMutation(lateBlock)];
@@ -251,7 +255,7 @@ describe('lightingEvaluator', () => {
   });
 
   it('should not warn about daytime scheduling', () => {
-    const dayBlock = createBlock('1', '2026-06-15T10:00:00', '2026-06-15T12:00:00', 'AVAILABLE');
+    const dayBlock = createBlock('1', '2026-06-15T10:00:00', '2026-06-15T12:00:00', BLOCK_TYPES.AVAILABLE);
 
     const ctx = createContext([]);
     const mutations = [createMutation(dayBlock)];
@@ -262,7 +266,7 @@ describe('lightingEvaluator', () => {
   });
 
   it('should not warn about non-scheduling blocks after sunset', () => {
-    const maintenanceBlock = createBlock('1', '2026-06-15T20:00:00', '2026-06-15T22:00:00', 'MAINTENANCE');
+    const maintenanceBlock = createBlock('1', '2026-06-15T20:00:00', '2026-06-15T22:00:00', BLOCK_TYPES.MAINTENANCE);
 
     const ctx = createContext([]);
     const mutations = [createMutation(maintenanceBlock)];
@@ -279,7 +283,7 @@ describe('lightingEvaluator', () => {
 
 describe('blockDurationEvaluator', () => {
   it('should warn about very short blocks', () => {
-    const shortBlock = createBlock('1', '2026-06-15T10:00:00', '2026-06-15T10:10:00', 'AVAILABLE');
+    const shortBlock = createBlock('1', '2026-06-15T10:00:00', '2026-06-15T10:10:00', BLOCK_TYPES.AVAILABLE);
 
     const ctx = createContext([]);
     const mutations = [createMutation(shortBlock)];
@@ -292,7 +296,7 @@ describe('blockDurationEvaluator', () => {
   });
 
   it('should warn about very long blocks', () => {
-    const longBlock = createBlock('1', '2026-06-15T08:00:00', '2026-06-15T22:00:00', 'AVAILABLE');
+    const longBlock = createBlock('1', '2026-06-15T08:00:00', '2026-06-15T22:00:00', BLOCK_TYPES.AVAILABLE);
 
     const ctx = createContext([]);
     const mutations = [createMutation(longBlock)];
@@ -305,7 +309,7 @@ describe('blockDurationEvaluator', () => {
   });
 
   it('should not warn about reasonable durations', () => {
-    const normalBlock = createBlock('1', '2026-06-15T10:00:00', '2026-06-15T12:00:00', 'AVAILABLE');
+    const normalBlock = createBlock('1', '2026-06-15T10:00:00', '2026-06-15T12:00:00', BLOCK_TYPES.AVAILABLE);
 
     const ctx = createContext([]);
     const mutations = [createMutation(normalBlock)];
@@ -322,7 +326,7 @@ describe('blockDurationEvaluator', () => {
 
 describe('dayBoundaryEvaluator', () => {
   it('should detect blocks spanning multiple days', () => {
-    const spanningBlock = createBlock('1', '2026-06-15T22:00:00', '2026-06-16T02:00:00', 'AVAILABLE');
+    const spanningBlock = createBlock('1', '2026-06-15T22:00:00', '2026-06-16T02:00:00', BLOCK_TYPES.AVAILABLE);
 
     const ctx = createContext([]);
     const mutations = [createMutation(spanningBlock)];
@@ -335,7 +339,7 @@ describe('dayBoundaryEvaluator', () => {
   });
 
   it('should not flag blocks within same day', () => {
-    const sameDayBlock = createBlock('1', '2026-06-15T08:00:00', '2026-06-15T22:00:00', 'AVAILABLE');
+    const sameDayBlock = createBlock('1', '2026-06-15T08:00:00', '2026-06-15T22:00:00', BLOCK_TYPES.AVAILABLE);
 
     const ctx = createContext([]);
     const mutations = [createMutation(sameDayBlock)];
@@ -352,7 +356,7 @@ describe('dayBoundaryEvaluator', () => {
 
 describe('maintenanceWindowEvaluator', () => {
   it('should suggest avoiding maintenance during peak hours', () => {
-    const peakMaintenanceBlock = createBlock('1', '2026-06-15T14:00:00', '2026-06-15T15:00:00', 'MAINTENANCE');
+    const peakMaintenanceBlock = createBlock('1', '2026-06-15T14:00:00', '2026-06-15T15:00:00', BLOCK_TYPES.MAINTENANCE);
 
     const ctx = createContext([]);
     const mutations = [createMutation(peakMaintenanceBlock)];
@@ -364,7 +368,7 @@ describe('maintenanceWindowEvaluator', () => {
   });
 
   it('should not flag maintenance during off-peak hours', () => {
-    const offPeakBlock = createBlock('1', '2026-06-15T20:00:00', '2026-06-15T21:00:00', 'MAINTENANCE');
+    const offPeakBlock = createBlock('1', '2026-06-15T20:00:00', '2026-06-15T21:00:00', BLOCK_TYPES.MAINTENANCE);
 
     const ctx = createContext([]);
     const mutations = [createMutation(offPeakBlock)];
@@ -375,7 +379,7 @@ describe('maintenanceWindowEvaluator', () => {
   });
 
   it('should warn about very short maintenance', () => {
-    const shortMaintenanceBlock = createBlock('1', '2026-06-15T20:00:00', '2026-06-15T20:15:00', 'MAINTENANCE');
+    const shortMaintenanceBlock = createBlock('1', '2026-06-15T20:00:00', '2026-06-15T20:15:00', BLOCK_TYPES.MAINTENANCE);
 
     const ctx = createContext([]);
     const mutations = [createMutation(shortMaintenanceBlock)];

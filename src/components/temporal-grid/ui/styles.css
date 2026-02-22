@@ -126,10 +126,10 @@
 }
 
 /* ============================================================================
-   Facility Tree (Left Panel)
+   Venue Tree (Left Panel)
    ============================================================================ */
 
-.temporal-grid-facility-tree {
+.temporal-grid-venue-tree {
   width: 250px;
   border-right: 1px solid #e0e0e0;
   background: #fafafa;
@@ -154,11 +154,11 @@
   padding: 0.5rem;
 }
 
-.facility-group {
+.venue-group {
   margin-bottom: 1rem;
 }
 
-.facility-header {
+.venue-header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -169,11 +169,11 @@
   cursor: pointer;
 }
 
-.facility-header:hover {
+.venue-header:hover {
   background: #f0f0f0;
 }
 
-.facility-name {
+.venue-name {
   flex: 1;
   color: #333;
 }
@@ -207,8 +207,43 @@
 }
 
 .court-checkbox,
-.facility-checkbox {
+.venue-checkbox {
   cursor: pointer;
+}
+
+/* Edit icons — hidden by default, shown on parent hover */
+.edit-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #999;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 3px;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+
+.venue-header:hover .edit-icon,
+.court-item:hover .edit-icon {
+  opacity: 1;
+}
+
+.edit-icon:hover {
+  color: #218d8d;
+  background: rgba(33, 141, 141, 0.08);
+}
+
+.edit-icon:focus {
+  opacity: 1;
+  outline: 2px solid #218d8d;
+  outline-offset: 1px;
 }
 
 /* ============================================================================
@@ -413,7 +448,7 @@
    ============================================================================ */
 
 @media (max-width: 768px) {
-  .temporal-grid-facility-tree {
+  .temporal-grid-venue-tree {
     width: 200px;
   }
 
@@ -429,7 +464,7 @@
 }
 
 @media (max-width: 480px) {
-  .temporal-grid-facility-tree {
+  .temporal-grid-venue-tree {
     display: none;
   }
 

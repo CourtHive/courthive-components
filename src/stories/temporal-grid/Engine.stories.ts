@@ -163,7 +163,7 @@ export const CreatingBlocks: Story = {
 
     const court = {
       tournamentId: 'test-tournament',
-      facilityId: 'venue-1',
+      venueId: 'venue-1',
       courtId: 'court-1',
     };
 
@@ -216,7 +216,7 @@ export const RailDerivation: Story = {
 
     const court = {
       tournamentId: 'test-tournament',
-      facilityId: 'venue-1',
+      venueId: 'venue-1',
       courtId: 'court-1',
     };
 
@@ -273,9 +273,9 @@ export const CapacityCurve: Story = {
 
     // Add some blocks to create interesting capacity
     const courts = [
-      { tournamentId: 'test-tournament', facilityId: 'venue-1', courtId: 'court-1' },
-      { tournamentId: 'test-tournament', facilityId: 'venue-1', courtId: 'court-2' },
-      { tournamentId: 'test-tournament', facilityId: 'venue-1', courtId: 'court-3' },
+      { tournamentId: 'test-tournament', venueId: 'venue-1', courtId: 'court-1' },
+      { tournamentId: 'test-tournament', venueId: 'venue-1', courtId: 'court-2' },
+      { tournamentId: 'test-tournament', venueId: 'venue-1', courtId: 'court-3' },
     ];
 
     courts.forEach(court => {
@@ -335,7 +335,7 @@ export const ConflictDetection: Story = {
 
     const court = {
       tournamentId: 'test-tournament',
-      facilityId: 'venue-1',
+      venueId: 'venue-1',
       courtId: 'court-1',
     };
 
@@ -440,7 +440,7 @@ export const EventSubscription: Story = {
       engine.applyBlock({
         courts: [{
           tournamentId: 'test-tournament',
-          facilityId: 'venue-1',
+          venueId: 'venue-1',
           courtId: 'court-1',
         }],
         timeRange: {
@@ -473,9 +473,9 @@ export const WhatIfSimulation: Story = {
     engine.setSelectedDay('2026-06-15');
 
     const courts = [
-      { tournamentId: 'test-tournament', facilityId: 'venue-1', courtId: 'court-1' },
-      { tournamentId: 'test-tournament', facilityId: 'venue-1', courtId: 'court-2' },
-      { tournamentId: 'test-tournament', facilityId: 'venue-1', courtId: 'court-3' },
+      { tournamentId: 'test-tournament', venueId: 'venue-1', courtId: 'court-1' },
+      { tournamentId: 'test-tournament', venueId: 'venue-1', courtId: 'court-2' },
+      { tournamentId: 'test-tournament', venueId: 'venue-1', courtId: 'court-3' },
     ];
 
     // Add availability for all courts
@@ -558,7 +558,7 @@ export const Performance: Story = {
 
     const court = {
       tournamentId: 'test-tournament',
-      facilityId: 'venue-1',
+      venueId: 'venue-1',
       courtId: 'court-1',
     };
 

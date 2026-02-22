@@ -11,7 +11,7 @@
 
 export type DayId = string; // 'YYYY-MM-DD'
 export type BlockId = string;
-export type FacilityId = string;
+export type VenueId = string;
 export type CourtId = string;
 export type TournamentId = string;
 export type TemplateId = string;
@@ -30,6 +30,20 @@ export type RuleId = string;
  * - Paint ONLY what makes courts UNAVAILABLE
  * - AVAILABLE is derived, not stored as blocks
  */
+export const BLOCK_TYPES = {
+  MAINTENANCE: 'MAINTENANCE',
+  PRACTICE: 'PRACTICE',
+  RESERVED: 'RESERVED',
+  BLOCKED: 'BLOCKED',
+  CLOSED: 'CLOSED',
+  SCHEDULED: 'SCHEDULED',
+  SOFT_BLOCK: 'SOFT_BLOCK',
+  HARD_BLOCK: 'HARD_BLOCK',
+  LOCKED: 'LOCKED',
+  AVAILABLE: 'AVAILABLE',
+  UNSPECIFIED: 'UNSPECIFIED',
+} as const;
+
 export type BlockType =
   | 'MAINTENANCE' // Court maintenance/cleaning
   | 'PRACTICE' // Practice time reserved
@@ -57,7 +71,7 @@ export interface TimeRange {
 
 export interface CourtRef {
   tournamentId: TournamentId;
-  facilityId: FacilityId;
+  venueId: VenueId;
   courtId: CourtId;
 }
 
@@ -103,11 +117,11 @@ export interface CourtRail {
 }
 
 /**
- * FacilityDayTimeline represents all courts in a facility for a single day.
+ * VenueDayTimeline represents all courts in a venue for a single day.
  */
-export interface FacilityDayTimeline {
+export interface VenueDayTimeline {
   day: DayId;
-  facilityId: FacilityId;
+  venueId: VenueId;
   rails: CourtRail[];
 }
 
@@ -146,8 +160,8 @@ export interface Template {
 }
 
 export interface TemplateOperation {
-  target: 'TOURNAMENT' | 'FACILITY' | 'COURT_GROUP' | 'COURT';
-  facilityIds?: FacilityId[];
+  target: 'TOURNAMENT' | 'VENUE' | 'COURT_GROUP' | 'COURT';
+  venueIds?: VenueId[];
   courtIds?: CourtId[];
   days?: DayId[];
   relativeTime?: {
@@ -188,7 +202,7 @@ export interface MutationResult {
 }
 
 export interface SimulationResult {
-  previewRails: FacilityDayTimeline[];
+  previewRails: VenueDayTimeline[];
   capacityImpact?: CapacityCurve;
   conflicts: EngineConflict[];
 }
@@ -261,7 +275,7 @@ export interface EngineContext {
   
   // Current view state
   selectedDay?: DayId;
-  selectedFacility?: FacilityId;
+  selectedVenue?: VenueId;
   selectedCourt?: CourtId;
   layerVisibility: Map<BlockType, boolean>;
 }
@@ -307,7 +321,7 @@ export interface ViewChangedEvent extends EngineEvent {
   type: 'VIEW_CHANGED';
   payload: {
     day?: DayId;
-    facilityId?: FacilityId | null;
+    venueId?: VenueId | null;
     courtId?: CourtId | null;
   };
 }
@@ -339,7 +353,7 @@ export interface ResizeBlockOptions {
 export interface ApplyTemplateOptions {
   templateId: TemplateId;
   scope?: {
-    facilities?: FacilityId[];
+    venues?: VenueId[];
     courts?: CourtRef[];
     days?: DayId[];
   };

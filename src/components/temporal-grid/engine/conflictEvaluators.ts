@@ -13,10 +13,11 @@
 
 import { tools } from 'tods-competition-factory';
 
-import type {
-  BlockMutation,
-  EngineConflict,
-  EngineContext,
+import {
+  BLOCK_TYPES,
+  type BlockMutation,
+  type EngineConflict,
+  type EngineContext,
 } from './types';
 
 import { diffMinutes, rangesOverlap } from './railDerivation';
@@ -48,7 +49,7 @@ export const courtOverlapEvaluator = {
 
       const block = mutation.block;
       const day = tools.dateTime.extractDate(block.start);
-      const courtKey = `${block.court.tournamentId}|${block.court.facilityId}|${block.court.courtId}|${day}`;
+      const courtKey = `${block.court.tournamentId}|${block.court.venueId}|${block.court.courtId}|${day}`;
 
       // Get all blocks for this court on this day
       const existingIds = ctx.blocksByCourtDay.get(courtKey) || [];
@@ -64,10 +65,10 @@ export const courtOverlapEvaluator = {
         if (rangesOverlap(block, existing)) {
           // Determine severity based on block types
           const isHardConflict =
-            existing.type === 'HARD_BLOCK' ||
-            existing.type === 'LOCKED' ||
-            block.type === 'HARD_BLOCK' ||
-            block.type === 'LOCKED';
+            existing.type === BLOCK_TYPES.HARD_BLOCK ||
+            existing.type === BLOCK_TYPES.LOCKED ||
+            block.type === BLOCK_TYPES.HARD_BLOCK ||
+            block.type === BLOCK_TYPES.LOCKED;
 
           const severity = isHardConflict ? 'ERROR' : 'WARN';
 
@@ -119,7 +120,7 @@ export const matchWindowEvaluator = {
     for (const mutation of mutations) {
       const block = mutation.block;
       const day = tools.dateTime.extractDate(block.start);
-      const courtKey = `${block.court.tournamentId}|${block.court.facilityId}|${block.court.courtId}|${day}`;
+      const courtKey = `${block.court.tournamentId}|${block.court.venueId}|${block.court.courtId}|${day}`;
       affectedCourtDays.add(courtKey);
     }
 
@@ -135,7 +136,7 @@ export const matchWindowEvaluator = {
       let lastNonAvailableEnd: string | null = null;
 
       for (const block of sortedBlocks) {
-        if (block.type !== 'AVAILABLE' && block.type !== 'SOFT_BLOCK' && block.type !== 'RESERVED') {
+        if (block.type !== BLOCK_TYPES.AVAILABLE && block.type !== BLOCK_TYPES.SOFT_BLOCK && block.type !== BLOCK_TYPES.RESERVED) {
           if (lastNonAvailableEnd) {
             // Check the gap between last non-available and this one
             const gapMinutes = diffMinutes(lastNonAvailableEnd, block.start);
@@ -187,7 +188,7 @@ export const adjacentBlockEvaluator = {
 
       const block = mutation.block;
       const day = tools.dateTime.extractDate(block.start);
-      const courtKey = `${block.court.tournamentId}|${block.court.facilityId}|${block.court.courtId}|${day}`;
+      const courtKey = `${block.court.tournamentId}|${block.court.venueId}|${block.court.courtId}|${day}`;
 
       const existingIds = ctx.blocksByCourtDay.get(courtKey) || [];
 
@@ -258,7 +259,7 @@ export const lightingEvaluator = {
         // For now, we'll flag all blocks after sunset as potential issues
 
         // Only flag AVAILABLE blocks (actual scheduling)
-        if (block.type === 'AVAILABLE' || block.type === 'RESERVED') {
+        if (block.type === BLOCK_TYPES.AVAILABLE || block.type === BLOCK_TYPES.RESERVED) {
           conflicts.push({
             code: 'AFTER_SUNSET',
             message: `Court scheduled after sunset (${sunsetTime}). Verify court has adequate lighting.`,
@@ -396,7 +397,7 @@ export const maintenanceWindowEvaluator = {
 
       const block = mutation.block;
 
-      if (block.type === 'MAINTENANCE') {
+      if (block.type === BLOCK_TYPES.MAINTENANCE) {
         const blockStartTime = block.start.slice(11, 16);
         const blockEndTime = block.end.slice(11, 16);
         const duration = diffMinutes(block.start, block.end);

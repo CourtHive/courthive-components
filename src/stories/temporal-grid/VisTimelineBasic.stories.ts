@@ -27,16 +27,16 @@ export default {
   title: 'Temporal Grid/Vis Timeline Basic'
 };
 
-// ── Facility / Court data ─────────────────────────────────────────────────────
+// ── Venue / Court data ─────────────────────────────────────────────────────
 
-interface Facility {
+interface Venue {
   id: string;
   name: string;
   color: string; // light background tint for court rows
   courts: { id: string; name: string }[];
 }
 
-const FACILITIES: Facility[] = [
+const VENUES: Venue[] = [
   {
     id: 'fac-main',
     name: 'Main Stadium',
@@ -66,15 +66,15 @@ const FACILITIES: Facility[] = [
   }
 ];
 
-// Map court id → facility for quick lookup
-const COURT_FACILITY = new Map<string, Facility>();
-for (const fac of FACILITIES) {
+// Map court id → venue for quick lookup
+const COURT_VENUE = new Map<string, Venue>();
+for (const fac of VENUES) {
   for (const court of fac.courts) {
-    COURT_FACILITY.set(court.id, fac);
+    COURT_VENUE.set(court.id, fac);
   }
 }
 
-const ALL_COURTS = FACILITIES.flatMap((f) => f.courts);
+const ALL_COURTS = VENUES.flatMap((f) => f.courts);
 
 const dayStart = new Date('2026-06-15T06:00:00');
 const dayEnd = new Date('2026-06-15T22:00:00');
@@ -97,7 +97,7 @@ function makeGroups(courtIds: Set<string>) {
   const groups: any[] = [];
   let order = 0;
 
-  for (const fac of FACILITIES) {
+  for (const fac of VENUES) {
     for (const court of fac.courts) {
       if (!courtIds.has(court.id)) continue;
       groups.push({
@@ -113,9 +113,9 @@ function makeGroups(courtIds: Set<string>) {
 }
 
 function makeItems(courtIds: Set<string>) {
-  // Background segments per court with facility-specific tint
+  // Background segments per court with venue-specific tint
   const bgItems = ALL_COURTS.filter((c) => courtIds.has(c.id)).map((c) => {
-    const fac = COURT_FACILITY.get(c.id);
+    const fac = COURT_VENUE.get(c.id);
     return {
       id: `avail-${c.id}`,
       group: c.id,
@@ -165,9 +165,9 @@ function makeItems(courtIds: Set<string>) {
   return [...bgItems, ...blocks];
 }
 
-// ── Facility tree panel ───────────────────────────────────────────────────────
+// ── Venue tree panel ───────────────────────────────────────────────────────
 
-function buildFacilityTree(visibleCourts: Set<string>, onChange: () => void): HTMLElement {
+function buildVenueTree(visibleCourts: Set<string>, onChange: () => void): HTMLElement {
   const panel = document.createElement('div');
   panel.style.cssText = `
     width: 220px; flex-shrink: 0; border-right: 1px solid #e0e0e0;
@@ -180,7 +180,7 @@ function buildFacilityTree(visibleCourts: Set<string>, onChange: () => void): HT
   header.textContent = 'Facilities & Courts';
   panel.appendChild(header);
 
-  for (const fac of FACILITIES) {
+  for (const fac of VENUES) {
     const group = document.createElement('div');
     group.style.cssText = 'padding: 4px 0;';
 
@@ -619,7 +619,7 @@ function getWidestTimeRange(engine: TemporalGridEngine, courtRefs?: any[]) {
 // ── Story: Baseline ───────────────────────────────────────────────────────────
 
 /**
- * Baseline vis-timeline with facility tree panel.
+ * Baseline vis-timeline with venue tree panel.
  *
  * Timeline interactions:
  * 1) Double-click → native box item with umbilical line
@@ -627,10 +627,10 @@ function getWidestTimeRange(engine: TemporalGridEngine, courtRefs?: any[]) {
  * 3) Click range item → action popover (assign type or adjust time)
  * 4) Drag to move, drag edges to resize
  *
- * Facility tree:
+ * Venue tree:
  * - Toggle individual courts on/off
  * - Toggle entire facilities on/off
- * - Indeterminate state when some courts in a facility are hidden
+ * - Indeterminate state when some courts in a venue are hidden
  */
 export const Baseline = {
   render: () => {
@@ -694,7 +694,7 @@ export const Baseline = {
     root.appendChild(toolbar);
     root.appendChild(statsBar.element);
 
-    const treePanel = buildFacilityTree(visibleCourts, refreshTimeline);
+    const treePanel = buildVenueTree(visibleCourts, refreshTimeline);
 
     mainRow.appendChild(treePanel);
     mainRow.appendChild(timelineContainer);
@@ -1553,6 +1553,623 @@ export const RoundTrip = {
 
         if (itemEl) {
           const blockDay = item.start ? dayOf(item.start) : getVisibleDay(timeline, startDate);
+          popoverManager.showForEngineBlock(itemEl as HTMLElement, {
+            itemId: String(props.item),
+            blockId,
+            engine,
+            day: blockDay,
+            onBlockChanged: rebuildItems
+          });
+        }
+      });
+
+      updateEngineStats();
+    }, 0);
+
+    return root;
+  }
+};
+
+// ── Story: VenueAvailability ──────────────────────────────────────────────────
+
+/**
+ * Demonstrates venue-level availability defaults and their interaction
+ * with court-level availability.
+ *
+ * - Main Stadium has venue defaults (08:00–18:00) that constrain its courts
+ * - Practice Center has no venue defaults (uses engine config 06:00–22:00)
+ * - Edit icons on venue/court rows open the availability modal
+ * - Info panel shows effective availability per venue
+ */
+
+interface VenueAvailabilityInfo {
+  venueId: string;
+  name: string;
+  defaultStartTime?: string;
+  defaultEndTime?: string;
+}
+
+function createVenueAvailabilitySetup() {
+  const startDate = '2026-06-15';
+
+  const venueProfiles = [
+    {
+      venueId: 'venue-main',
+      venueName: 'Main Stadium',
+      venueAbbreviation: 'MS',
+      courtsCount: 6,
+      startTime: '08:00',
+      endTime: '18:00'
+    },
+    {
+      venueId: 'venue-practice',
+      venueName: 'Practice Center',
+      venueAbbreviation: 'PC',
+      courtsCount: 4,
+      startTime: '07:00',
+      endTime: '21:00'
+    }
+  ];
+
+  const result = mocksEngine.generateTournamentRecord({
+    venueProfiles,
+    drawProfiles: [{ drawSize: 16, seedsCount: 4 }],
+    startDate
+  });
+
+  const { tournamentRecord } = result;
+  if (!tournamentRecord) {
+    throw new Error(`Failed to generate tournament: ${JSON.stringify(result.error || 'unknown error')}`);
+  }
+
+  // Patch venue defaults onto Main Stadium (mocksEngine doesn't set these)
+  const mainVenue = tournamentRecord.venues?.find((v: any) => v.venueId === 'venue-main');
+  if (mainVenue) {
+    mainVenue.defaultStartTime = '08:00';
+    mainVenue.defaultEndTime = '18:00';
+  }
+
+  // Engine loads defaultStartTime/defaultEndTime during init()
+  const engine = new TemporalGridEngine();
+  engine.init(tournamentRecord, {
+    dayStartTime: '06:00',
+    dayEndTime: '22:00',
+    slotMinutes: 5
+  });
+
+  const courtNameMap = new Map<string, string>();
+  for (const venue of tournamentRecord.venues || []) {
+    for (const court of venue.courts || []) {
+      const key = `${engine.getConfig().tournamentId}|${venue.venueId}|${court.courtId}`;
+      courtNameMap.set(key, court.courtName || court.courtId);
+    }
+  }
+
+  const venueInfos: VenueInfo[] = (tournamentRecord.venues || []).map((venue: any, i: number) => ({
+    id: venue.venueId,
+    name: venue.venueName,
+    color: VENUE_COLORS[i % VENUE_COLORS.length],
+    courts: (venue.courts || []).map((c: any) => ({
+      id: `${engine.getConfig().tournamentId}|${venue.venueId}|${c.courtId}`,
+      name: c.courtName || c.courtId
+    }))
+  }));
+
+  const allCourtIds = venueInfos.flatMap((v) => v.courts.map((c) => c.id));
+
+  // Build venue availability info for the info panel
+  const venueAvailInfos: VenueAvailabilityInfo[] = (tournamentRecord.venues || []).map((v: any) => ({
+    venueId: v.venueId,
+    name: v.venueName,
+    defaultStartTime: v.defaultStartTime,
+    defaultEndTime: v.defaultEndTime
+  }));
+
+  return { engine, tournamentRecord, startDate, courtNameMap, venueInfos, allCourtIds, venueAvailInfos };
+}
+
+function buildCourtTreeWithEditIcons(
+  venues: VenueInfo[],
+  visibleCourts: Set<string>,
+  onChange: () => void,
+  onVenueEdit: (venueId: string, venueName: string) => void,
+  onCourtEdit: (courtResourceId: string, courtName: string) => void
+): HTMLElement {
+  const panel = document.createElement('div');
+  panel.style.cssText = `
+    width: 220px; flex-shrink: 0; border-right: 1px solid #e0e0e0;
+    background: #fafafa; overflow-y: auto; font-family: sans-serif; font-size: 13px;
+  `;
+
+  const header = document.createElement('div');
+  header.style.cssText =
+    'padding: 10px 12px; font-weight: 600; font-size: 14px; color: #333; border-bottom: 1px solid #e0e0e0; background: white;';
+  header.textContent = 'Venues & Courts';
+  panel.appendChild(header);
+
+  for (const venue of venues) {
+    const group = document.createElement('div');
+    group.style.cssText = 'padding: 4px 0;';
+
+    const venueRow = document.createElement('div');
+    venueRow.style.cssText =
+      'display: flex; align-items: center; gap: 6px; padding: 6px 12px; cursor: pointer;';
+
+    const venueCb = document.createElement('input');
+    venueCb.type = 'checkbox';
+    venueCb.checked = venue.courts.every((c) => visibleCourts.has(c.id));
+    venueCb.indeterminate = !venueCb.checked && venue.courts.some((c) => visibleCourts.has(c.id));
+    venueCb.style.cursor = 'pointer';
+
+    const venueLabel = document.createElement('span');
+    venueLabel.textContent = venue.name;
+    venueLabel.style.cssText = 'font-weight: 600; color: #333;';
+
+    const venueEditBtn = document.createElement('button');
+    venueEditBtn.textContent = '\u270E';
+    venueEditBtn.title = `Edit ${venue.name} venue defaults`;
+    venueEditBtn.style.cssText =
+      'opacity: 0; border: none; background: none; cursor: pointer; font-size: 14px; color: #2176d2; padding: 0 2px; transition: opacity 0.15s;';
+    venueEditBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      onVenueEdit(venue.id, venue.name);
+    });
+
+    const courtCount = document.createElement('span');
+    courtCount.style.cssText = 'margin-left: auto; color: #999; font-weight: 400; font-size: 12px;';
+    const updateCount = () => {
+      const vis = venue.courts.filter((c) => visibleCourts.has(c.id)).length;
+      courtCount.textContent = `${vis}/${venue.courts.length}`;
+    };
+    updateCount();
+
+    venueRow.appendChild(venueCb);
+    venueRow.appendChild(venueLabel);
+    venueRow.appendChild(venueEditBtn);
+    venueRow.appendChild(courtCount);
+    group.appendChild(venueRow);
+
+    // Show edit icon on hover
+    venueRow.addEventListener('mouseenter', () => {
+      venueEditBtn.style.opacity = '1';
+    });
+    venueRow.addEventListener('mouseleave', () => {
+      venueEditBtn.style.opacity = '0';
+    });
+
+    const courtList = document.createElement('div');
+    courtList.style.cssText = 'padding-left: 28px;';
+    const courtCheckboxes: HTMLInputElement[] = [];
+
+    for (const court of venue.courts) {
+      const courtRow = document.createElement('div');
+      courtRow.style.cssText =
+        'display: flex; align-items: center; gap: 6px; padding: 3px 0; cursor: pointer; color: #555;';
+
+      const courtCb = document.createElement('input');
+      courtCb.type = 'checkbox';
+      courtCb.checked = visibleCourts.has(court.id);
+      courtCb.style.cursor = 'pointer';
+
+      courtCb.addEventListener('change', () => {
+        if (courtCb.checked) visibleCourts.add(court.id);
+        else visibleCourts.delete(court.id);
+        const allChecked = venue.courts.every((c) => visibleCourts.has(c.id));
+        const someChecked = venue.courts.some((c) => visibleCourts.has(c.id));
+        venueCb.checked = allChecked;
+        venueCb.indeterminate = !allChecked && someChecked;
+        updateCount();
+        onChange();
+      });
+      courtCheckboxes.push(courtCb);
+
+      const courtLabel = document.createElement('span');
+      courtLabel.textContent = court.name;
+
+      const courtEditBtn = document.createElement('button');
+      courtEditBtn.textContent = '\u270E';
+      courtEditBtn.title = `Edit ${court.name} availability`;
+      courtEditBtn.style.cssText =
+        'opacity: 0; border: none; background: none; cursor: pointer; font-size: 13px; color: #2176d2; padding: 0 2px; transition: opacity 0.15s;';
+      courtEditBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        onCourtEdit(court.id, court.name);
+      });
+
+      courtRow.appendChild(courtCb);
+      courtRow.appendChild(courtLabel);
+      courtRow.appendChild(courtEditBtn);
+      courtList.appendChild(courtRow);
+
+      // Show edit icon on hover
+      courtRow.addEventListener('mouseenter', () => {
+        courtEditBtn.style.opacity = '1';
+      });
+      courtRow.addEventListener('mouseleave', () => {
+        courtEditBtn.style.opacity = '0';
+      });
+    }
+
+    venueCb.addEventListener('change', () => {
+      for (const court of venue.courts) {
+        if (venueCb.checked) visibleCourts.add(court.id);
+        else visibleCourts.delete(court.id);
+      }
+      for (const cb of courtCheckboxes) cb.checked = venueCb.checked;
+      venueCb.indeterminate = false;
+      updateCount();
+      onChange();
+    });
+
+    group.appendChild(courtList);
+    panel.appendChild(group);
+  }
+
+  return panel;
+}
+
+function buildVenueInfoPanel(
+  venueAvailInfos: VenueAvailabilityInfo[],
+  engine: TemporalGridEngine
+): { element: HTMLElement; update: () => void } {
+  const bar = document.createElement('div');
+  bar.style.cssText =
+    'padding: 6px 14px; background: #f0f7ff; border-bottom: 1px solid #d0e0f0; font-family: sans-serif; font-size: 12px; color: #334; display: flex; gap: 20px; flex-wrap: wrap;';
+
+  const spans: HTMLSpanElement[] = venueAvailInfos.map(() => {
+    const span = document.createElement('span');
+    bar.appendChild(span);
+    return span;
+  });
+
+  const config = engine.getConfig();
+
+  const update = () => {
+    for (let i = 0; i < venueAvailInfos.length; i++) {
+      const vi = venueAvailInfos[i];
+      const avail = engine.getVenueAvailability(config.tournamentId, vi.venueId);
+      const label = `<strong style="color:#223">${vi.name}:</strong>`;
+      if (avail) {
+        spans[i].innerHTML = `${label} venue defaults ${avail.startTime}\u2013${avail.endTime}`;
+      } else {
+        spans[i].innerHTML = `${label} <em>no venue defaults</em> (uses system defaults)`;
+      }
+    }
+  };
+
+  update();
+  return { element: bar, update };
+}
+
+export const VenueAvailability = {
+  render: () => {
+    const { engine, startDate, courtNameMap, venueInfos, allCourtIds, venueAvailInfos } =
+      createVenueAvailabilitySetup();
+    const visibleCourts = new Set(allCourtIds);
+    let timeline: any = null;
+
+    const config = engine.getConfig();
+
+    const getGroups = () => {
+      const timelines = engine.getDayTimeline(startDate);
+      const courtMeta = engine.listCourtMeta();
+      const groups = buildResourcesFromTimelines(timelines, courtMeta);
+      return groups
+        .filter((g) => visibleCourts.has(String(g.id)))
+        .map((g, i) => ({
+          ...g,
+          content: courtNameMap.get(String(g.id)) || g.content,
+          order: i,
+          style: `background: ${
+            venueInfos.find((v: VenueInfo) => v.courts.some((c) => c.id === String(g.id)))?.color || 'transparent'
+          };`
+        }));
+    };
+
+    const tournamentDays = engine.getTournamentDays();
+
+    const getItems = () => {
+      const allSegments: any[] = [];
+      const allBlocks: any[] = [];
+      for (const day of tournamentDays) {
+        const timelines = engine.getDayTimeline(day);
+        allSegments.push(...buildEventsFromTimelines(timelines));
+        allBlocks.push(...buildBlockEvents(engine.getDayBlocks(day)));
+      }
+      return [
+        ...allSegments.filter((item) => visibleCourts.has(String(item.group))),
+        ...allBlocks.filter((item) => visibleCourts.has(String(item.group)))
+      ];
+    };
+
+    const statsBar = buildStatsBar();
+    const updateEngineStats = () => {
+      const curve = engine.getCapacityCurve(startDate);
+      const stats = calculateCapacityStats(curve);
+      statsBar.update({
+        totalHours: stats.totalCourtHours,
+        blockedHours: stats.totalUnavailableHours ?? 0,
+        availableHours: stats.totalAvailableHours ?? 0,
+        avgPerCourt: (stats.totalCourts ?? 0) > 0 ? (stats.totalAvailableHours ?? 0) / stats.totalCourts! : 0
+      });
+    };
+
+    const infoPanel = buildVenueInfoPanel(venueAvailInfos, engine);
+
+    const getVisibleCourtRefs = () => {
+      const refs: any[] = [];
+      for (const v of venueInfos) {
+        for (const c of v.courts) {
+          if (visibleCourts.has(c.id)) {
+            const ref = parseResourceId(c.id);
+            if (ref) refs.push(ref);
+          }
+        }
+      }
+      return refs;
+    };
+
+    const rebuildTimeline = () => {
+      if (!timeline) return;
+      const visibleRefs = getVisibleCourtRefs();
+      const timeRange = engine.getVisibleTimeRange(startDate, visibleRefs);
+      const windowConfig = buildTimelineWindowConfig({
+        dayStartTime: timeRange.startTime,
+        dayEndTime: timeRange.endTime,
+        slotMinutes: 5,
+        day: startDate
+      });
+      const weekMax = new Date(`${startDate}T${timeRange.endTime}:00`);
+      weekMax.setDate(weekMax.getDate() + 7);
+
+      const widestRange = getWidestTimeRange(engine, visibleRefs);
+      const hiddenDates = buildHiddenDates({
+        dayStartTime: widestRange.startTime,
+        dayEndTime: widestRange.endTime,
+        referenceDay: startDate
+      });
+
+      timeline.setOptions({ min: windowConfig.min, max: weekMax, hiddenDates });
+      timeline.setWindow(windowConfig.start, windowConfig.end);
+      rebuildItems();
+    };
+
+    const rebuildItems = () => {
+      if (!timeline) return;
+      timeline.setGroups(getGroups());
+      timeline.setItems(getItems());
+      updateEngineStats();
+      infoPanel.update();
+    };
+
+    // Venue edit handler
+    const handleVenueEdit = (venueId: string, venueName: string) => {
+      const visDay = getVisibleDay(timeline, startDate);
+      const avail = engine.getVenueAvailability(config.tournamentId, venueId);
+      showCourtAvailabilityModal({
+        title: `${venueName} \u2014 Venue Defaults`,
+        currentDay: visDay,
+        currentStartTime: avail?.startTime || config.dayStartTime,
+        currentEndTime: avail?.endTime || config.dayEndTime,
+        showScopeToggle: false,
+        onConfirm: ({ startTime, endTime }) => {
+          engine.setVenueDefaultAvailability(config.tournamentId, venueId, { startTime, endTime });
+          // Update local info for info panel
+          const vi = venueAvailInfos.find((v) => v.venueId === venueId);
+          if (vi) {
+            vi.defaultStartTime = startTime;
+            vi.defaultEndTime = endTime;
+          }
+          rebuildTimeline();
+        }
+      });
+    };
+
+    // Court edit handler
+    const handleCourtEdit = (courtResourceId: string, courtName: string) => {
+      const courtRef = parseResourceId(courtResourceId);
+      if (!courtRef) return;
+      const visDay = getVisibleDay(timeline, startDate);
+      const avail = engine.getCourtAvailability(courtRef, visDay);
+      showCourtAvailabilityModal({
+        title: `${courtName} Availability`,
+        currentDay: visDay,
+        currentStartTime: avail.startTime,
+        currentEndTime: avail.endTime,
+        showScopeToggle: true,
+        onConfirm: ({ startTime, endTime, scope }) => {
+          if (scope === 'all-days') {
+            engine.setCourtAvailabilityAllDays(courtRef, { startTime, endTime });
+          } else {
+            engine.setCourtAvailability(courtRef, visDay, { startTime, endTime });
+          }
+          rebuildTimeline();
+        }
+      });
+    };
+
+    const root = document.createElement('div');
+    root.style.cssText =
+      'display:flex; flex-direction:column; width:100%; height:600px; border:1px solid #e0e0e0; border-radius:4px; overflow:hidden;';
+
+    let currentView = 'day';
+    const setView = (viewKey: string) => {
+      if (!timeline) return;
+      currentView = viewKey;
+      const view = VIEW_PRESETS[viewKey];
+      const timeRange = engine.getVisibleTimeRange(startDate);
+      const windowStart = new Date(`${startDate}T${timeRange.startTime}:00`);
+      const end = new Date(windowStart.getTime() + view.days * 16 * 60 * 60 * 1000);
+      timeline.setWindow(windowStart, end);
+      timeline.setOptions({ timeAxis: view.timeAxis });
+    };
+
+    const toolbar = buildViewToolbar(setView, currentView);
+    root.appendChild(toolbar);
+    root.appendChild(infoPanel.element);
+    root.appendChild(statsBar.element);
+
+    const mainRow = document.createElement('div');
+    mainRow.style.cssText = 'display:flex; flex:1; min-height:0;';
+
+    const treePanel = buildCourtTreeWithEditIcons(
+      venueInfos,
+      visibleCourts,
+      rebuildItems,
+      handleVenueEdit,
+      handleCourtEdit
+    );
+    const timelineContainer = document.createElement('div');
+    timelineContainer.style.cssText = 'flex:1; min-width:0;';
+
+    mainRow.appendChild(treePanel);
+    mainRow.appendChild(timelineContainer);
+    root.appendChild(mainRow);
+
+    setTimeout(() => {
+      const visibleRefs = getVisibleCourtRefs();
+      const timeRange = engine.getVisibleTimeRange(startDate, visibleRefs);
+      const windowConfig = buildTimelineWindowConfig({
+        dayStartTime: timeRange.startTime,
+        dayEndTime: timeRange.endTime,
+        slotMinutes: 5,
+        day: startDate
+      });
+
+      const weekMax = new Date(`${startDate}T${timeRange.endTime}:00`);
+      weekMax.setDate(weekMax.getDate() + 7);
+
+      const widestRange = getWidestTimeRange(engine, visibleRefs);
+      const hiddenDates = buildHiddenDates({
+        dayStartTime: widestRange.startTime,
+        dayEndTime: widestRange.endTime,
+        referenceDay: startDate
+      });
+
+      timeline = new Timeline(timelineContainer, getItems(), getGroups(), {
+        ...baseOptions(),
+        start: windowConfig.start,
+        end: windowConfig.end,
+        min: windowConfig.min,
+        max: weekMax,
+        zoomMin: windowConfig.zoomMin,
+        zoomMax: 7 * 24 * 60 * 60 * 1000,
+        hiddenDates,
+
+        onAdd: (item: any, callback: any) => {
+          item.content = item.content || 'New Block';
+          item.style = 'background-color: #607D8B; border-color: #37474F; color: white;';
+          item.editable = { updateTime: true, updateGroup: true, remove: false };
+          callback(item);
+        },
+
+        onMoving: (item: any, callback: any) => {
+          popoverManager.destroy();
+          if (engine && item.group && item.start) {
+            const courtRef = parseResourceId(String(item.group));
+            if (courtRef) {
+              const itemDay = dayOf(item.start);
+              const avail = engine.getCourtAvailability(courtRef, itemDay);
+              const availStart = new Date(`${itemDay}T${avail.startTime}:00`);
+              const availEnd = new Date(`${itemDay}T${avail.endTime}:00`);
+              if (new Date(item.start) < availStart) item.start = availStart;
+              if (new Date(item.end) > availEnd) item.end = availEnd;
+            }
+          }
+          callback(item);
+        },
+
+        onMove: (item: any, callback: any) => {
+          justDragged = true;
+          setTimeout(() => (justDragged = false), 300);
+
+          const blockId = parseBlockEventId(String(item.id));
+          const courtRef = parseResourceId(String(item.group));
+          if (blockId && courtRef) {
+            engine.moveBlock({
+              blockId,
+              newTimeRange: {
+                start: toLocalISO(new Date(item.start)),
+                end: toLocalISO(new Date(item.end))
+              },
+              newCourt: courtRef
+            });
+            callback(item);
+            rebuildItems();
+          } else {
+            callback(item);
+          }
+        }
+      });
+
+      // Click handler: group-label for availability, block for popover
+      timeline.on('click', (props: any) => {
+        if (justDragged) return;
+
+        if (props.what === 'group-label' && props.group) {
+          const courtRef = parseResourceId(String(props.group));
+          if (!courtRef) return;
+          const courtName = courtNameMap.get(String(props.group)) || courtRef.courtId;
+          handleCourtEdit(String(props.group), courtName);
+          return;
+        }
+
+        if (!props.item) {
+          popoverManager.destroy();
+          return;
+        }
+
+        const item = timeline.itemsData.get(props.item);
+        if (!item || item.isSegment || item.type === 'background') {
+          popoverManager.destroy();
+          return;
+        }
+
+        if (popoverManager.isActiveFor(String(props.item))) {
+          popoverManager.destroy();
+          return;
+        }
+
+        if (item.type !== 'range') {
+          const courtRef = parseResourceId(String(item.group));
+          if (!courtRef) return;
+          const start = toLocalISO(new Date(item.start));
+          const endTime = new Date(new Date(item.start).getTime() + 60 * 60 * 1000);
+          const result = engine.applyBlock({
+            courts: [courtRef],
+            timeRange: { start, end: toLocalISO(endTime) },
+            type: 'BLOCKED',
+            reason: 'New Block'
+          });
+          rebuildItems();
+          if (result.applied.length > 0) {
+            const newBlockId = result.applied[0].block.id;
+            const newItemId = `block-${newBlockId}`;
+            setTimeout(() => {
+              const el = timelineContainer.querySelector(`.vis-item[data-id="${newItemId}"]`);
+              if (el) {
+                popoverManager.showForEngineBlock(el as HTMLElement, {
+                  itemId: newItemId,
+                  blockId: newBlockId,
+                  engine,
+                  day: dayOf(item.start),
+                  onBlockChanged: rebuildItems
+                });
+              }
+            }, 50);
+          }
+          return;
+        }
+
+        const blockId = parseBlockEventId(String(props.item));
+        if (!blockId) return;
+
+        const itemEl =
+          (props.event?.target as Element)?.closest?.('.vis-item') ??
+          timelineContainer.querySelector(`.vis-item[data-id="${props.item}"]`);
+
+        if (itemEl) {
+          const blockDay = item.start ? dayOf(item.start) : startDate;
           popoverManager.showForEngineBlock(itemEl as HTMLElement, {
             itemId: String(props.item),
             blockId,

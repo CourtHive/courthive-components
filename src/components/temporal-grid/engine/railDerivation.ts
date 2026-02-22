@@ -16,15 +16,16 @@
 
 import { tools } from 'tods-competition-factory';
 
-import type {
-  Block,
-  BlockId,
-  BlockType,
-  CourtRef,
-  Edge,
-  EngineConfig,
-  RailSegment,
-  TimeRange,
+import {
+  BLOCK_TYPES,
+  type Block,
+  type BlockId,
+  type BlockType,
+  type CourtRef,
+  type Edge,
+  type EngineConfig,
+  type RailSegment,
+  type TimeRange,
 } from './types';
 
 // ============================================================================
@@ -32,11 +33,19 @@ import type {
 // ============================================================================
 
 export function courtDayKey(court: CourtRef, day: string): string {
-  return `${court.tournamentId}|${court.facilityId}|${court.courtId}|${day}`;
+  return `${court.tournamentId}|${court.venueId}|${court.courtId}|${day}`;
 }
 
 export function courtKey(court: CourtRef): string {
-  return `${court.tournamentId}|${court.facilityId}|${court.courtId}`;
+  return `${court.tournamentId}|${court.venueId}|${court.courtId}`;
+}
+
+export function venueKey(tournamentId: string, venueId: string): string {
+  return `${tournamentId}|${venueId}`;
+}
+
+export function venueDayKey(tournamentId: string, venueId: string, day: string): string {
+  return `${tournamentId}|${venueId}|${day}`;
 }
 
 // ============================================================================
@@ -108,13 +117,13 @@ export function resolveStatus(
   precedence: BlockType[],
 ): BlockType {
   if (contributingIds.length === 0) {
-    return 'AVAILABLE'; // No blocks = available time (inverted paradigm)
+    return BLOCK_TYPES.AVAILABLE; // No blocks = available time (inverted paradigm)
   }
 
   // Build a rank map for fast lookups
   const typeRank = new Map(precedence.map((type, index) => [type, index]));
 
-  let bestType: BlockType = 'AVAILABLE';
+  let bestType: BlockType = BLOCK_TYPES.AVAILABLE;
   let bestRank = Infinity;
 
   for (const blockId of contributingIds) {
@@ -208,7 +217,7 @@ export function deriveRailSegments(
       {
         start: dayRange.start,
         end: dayRange.end,
-        status: 'AVAILABLE',
+        status: BLOCK_TYPES.AVAILABLE,
         contributingBlocks: [],
       },
     ];
