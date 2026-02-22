@@ -91,3 +91,16 @@ export type {
   BurstChartInstance
 } from './components/burstChart/burstChart';
 export { fromFactoryDrawData, fromLegacyDraw } from './components/burstChart/matchUpTransform';
+
+// Control Bar (CSS bundled in courthive-components.css)
+import './components/controlBar/controlBar.css';
+export { controlBar } from './components/controlBar/controlBar';
+export { toggleOverlay } from './components/controlBar/toggleOverlay';
+
+// Buttons
+export { dropDownButton } from './components/button/dropDownButton';
+export { barButton } from './components/button/barButton';
+
+// Select Item modal
+export { selectItem } from './components/modal/selectItem';
+export type { SelectItemParams, SelectItemOption } from './components/modal/selectItem';

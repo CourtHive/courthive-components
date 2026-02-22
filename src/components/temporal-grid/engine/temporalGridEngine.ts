@@ -28,6 +28,7 @@ import {
   type EngineConfig,
   type EngineContext,
   type EngineEvent,
+  type TournamentId,
   type VenueDayTimeline,
   type VenueId,
   type MoveBlockOptions,
@@ -216,16 +217,12 @@ export class TemporalGridEngine {
     // Resolve court-level
     const ck = courtKey(court);
     const courtAvail =
-      this.courtDayAvailability.get(`${ck}|${day}`) ??
-      this.courtDayAvailability.get(`${ck}|DEFAULT`) ??
-      null;
+      this.courtDayAvailability.get(`${ck}|${day}`) ?? this.courtDayAvailability.get(`${ck}|DEFAULT`) ?? null;
 
     // Resolve venue-level
     const vk = venueKey(court.tournamentId, court.venueId);
     const venueAvail =
-      this.venueDayAvailability.get(`${vk}|${day}`) ??
-      this.venueDayAvailability.get(`${vk}|DEFAULT`) ??
-      null;
+      this.venueDayAvailability.get(`${vk}|${day}`) ?? this.venueDayAvailability.get(`${vk}|DEFAULT`) ?? null;
 
     if (courtAvail && venueAvail) {
       // Intersection: later start, earlier end
@@ -290,9 +287,22 @@ export class TemporalGridEngine {
   // ============================================================================
 
   /**
-   * Set default availability for a venue (all days)
+   * Get venue-level availability. Checks day-specific first, then DEFAULT.
+   * Returns null if no venue-level availability is set.
    */
-  setVenueDefaultAvailability(tournamentId: string, venueId: string, avail: CourtDayAvailability): void {
+  getVenueAvailability(tournamentId: TournamentId, venueId: VenueId, day?: DayId): CourtDayAvailability | null {
+    const vk = venueKey(tournamentId, venueId);
+    if (day) {
+      const dayAvail = this.venueDayAvailability.get(`${vk}|${day}`);
+      if (dayAvail) return dayAvail;
+    }
+    return this.venueDayAvailability.get(`${vk}|DEFAULT`) ?? null;
+  }
+
+  /**
+   * Set default venue-level availability (applies to all days unless overridden).
+   */
+  setVenueDefaultAvailability(tournamentId: TournamentId, venueId: VenueId, avail: CourtDayAvailability): void {
     const vk = venueKey(tournamentId, venueId);
     this.venueDayAvailability.set(`${vk}|DEFAULT`, avail);
     this.emit({
@@ -302,27 +312,15 @@ export class TemporalGridEngine {
   }
 
   /**
-   * Set availability for a venue on a specific day
+   * Set venue-level availability for a specific day.
    */
-  setVenueDayAvailability(tournamentId: string, venueId: string, day: DayId, avail: CourtDayAvailability): void {
+  setVenueDayAvailability(tournamentId: TournamentId, venueId: VenueId, day: DayId, avail: CourtDayAvailability): void {
     const vk = venueKey(tournamentId, venueId);
     this.venueDayAvailability.set(`${vk}|${day}`, avail);
     this.emit({
       type: 'AVAILABILITY_CHANGED',
       payload: { tournamentId, venueId, day, scope: 'venue-day', avail }
     });
-  }
-
-  /**
-   * Get venue availability. Resolves venueKey|day → venueKey|DEFAULT → null.
-   */
-  getVenueAvailability(tournamentId: string, venueId: string, day?: DayId): CourtDayAvailability | null {
-    const vk = venueKey(tournamentId, venueId);
-    if (day) {
-      const dayAvail = this.venueDayAvailability.get(`${vk}|${day}`);
-      if (dayAvail) return dayAvail;
-    }
-    return this.venueDayAvailability.get(`${vk}|DEFAULT`) ?? null;
   }
 
   /**
