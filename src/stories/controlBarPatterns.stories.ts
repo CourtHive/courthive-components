@@ -8,26 +8,38 @@ import type { Meta, StoryObj } from '@storybook/html';
 
 const meta: Meta = {
   title: 'Components/ControlBar/Patterns & Best Practices',
-  parameters: {
-    docs: {
-      description: {
-        component: `
-# Control Bar Patterns
+  tags: ['autodocs']
+};
 
-The Control Bar is a versatile component used consistently for table management and filtering.
+export default meta;
+type Story = StoryObj;
 
-## Common Pattern: Header + ControlBar + Table
+function codeBlock(code: string): string {
+  const escaped = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return `<pre style="background: #f5f5f5; padding: 1em; border-radius: 4px; overflow-x: auto; font-size: 0.85em; line-height: 1.5;"><code>${escaped}</code></pre>`;
+}
 
-The most common pattern combines three elements:
+export const Documentation: Story = {
+  render: () => {
+    const container = document.createElement('div');
+    container.className = 'section';
+    container.style.maxWidth = '900px';
+    container.style.margin = '0 auto';
+    container.innerHTML = `
+      <div class="content">
+        <h1>Control Bar Patterns</h1>
+        <p>The Control Bar is a versatile component used consistently for table management and filtering.</p>
 
-1. **Header**: Displays count and context (e.g., "Participants (42)")
-2. **Control Bar**: Provides search, filters, and actions
-3. **Tabulator Table**: Displays the actual data
+        <h2>Common Pattern: Header + ControlBar + Table</h2>
+        <p>The most common pattern combines three elements:</p>
+        <ol>
+          <li><strong>Header</strong>: Displays count and context (e.g., "Participants (42)")</li>
+          <li><strong>Control Bar</strong>: Provides search, filters, and actions</li>
+          <li><strong>Tabulator Table</strong>: Displays the actual data</li>
+        </ol>
 
-### Example Structure
-
-\`\`\`typescript
-import { controlBar } from 'courthive-components';
+        <h3>Example Structure</h3>
+        ${codeBlock(`import { controlBar } from 'courthive-components';
 
 // 1. Create the table
 const table = new Tabulator(element, { /* config */ });
@@ -51,48 +63,42 @@ controlBar({ table, target, items });
 // 4. Update header on data changes
 table.on('dataFiltered', (_filters, rows) => {
   headerElement.innerHTML = \`Participants (\${rows.length})\`;
-});
-\`\`\`
+});`)}
 
-## Item Configuration
+        <h2>Item Configuration</h2>
 
-### Location Options
+        <h3>Location Options</h3>
+        <p>Items can be positioned in different locations:</p>
+        <ul>
+          <li><strong>OVERLAY</strong>: Shown only when table rows are selected (for bulk actions)</li>
+          <li><strong>LEFT</strong>: Left side of control bar (typically search and filters)</li>
+          <li><strong>CENTER</strong>: Center of control bar (less commonly used)</li>
+          <li><strong>RIGHT</strong>: Right side of control bar (typically main actions)</li>
+          <li><strong>HEADER</strong>: In the header section above the control bar</li>
+        </ul>
 
-Items can be positioned in different locations:
+        <h3>Item Types</h3>
 
-- **OVERLAY**: Shown only when table rows are selected (for bulk actions)
-- **LEFT**: Left side of control bar (typically search and filters)
-- **CENTER**: Center of control bar (less commonly used)
-- **RIGHT**: Right side of control bar (typically main actions)
-- **HEADER**: In the header section above the control bar
-
-### Item Types
-
-#### 1. Search Input
-\`\`\`typescript
-{
+        <h4>1. Search Input</h4>
+        ${codeBlock(`{
   placeholder: 'Search...',
   location: 'left',
   search: true,
   clearSearch: () => clearFilters(),
   onKeyUp: (e) => handleSearch(e.target.value),
   onKeyDown: (e) => handleKeyDown(e),
-}
-\`\`\`
+}`)}
 
-#### 2. Button
-\`\`\`typescript
-{
+        <h4>2. Button</h4>
+        ${codeBlock(`{
   label: 'Add Item',
   location: 'right',
   intent: 'is-primary', // Bulma CSS class
   onClick: () => handleClick(),
-}
-\`\`\`
+}`)}
 
-#### 3. Dropdown Button
-\`\`\`typescript
-{
+        <h4>3. Dropdown Button</h4>
+        ${codeBlock(`{
   label: 'Actions',
   location: 'right',
   options: [
@@ -101,96 +107,75 @@ Items can be positioned in different locations:
     { heading: 'Section' },
     { label: 'Option 2', onClick: () => {}, close: true },
   ],
-}
-\`\`\`
+}`)}
 
-#### 4. Filter Dropdown
-\`\`\`typescript
-{
+        <h4>4. Filter Dropdown</h4>
+        ${codeBlock(`{
   label: 'All Events',
   location: 'left',
   modifyLabel: true,  // Label changes to selected option
   selection: true,
   options: [
-    { label: '<span style="font-weight: bold">All Events</span>', onClick: () => {}, close: true },
+    { label: '<b>All Events</b>', onClick: () => {}, close: true },
     { divider: true },
     { label: 'Event A', onClick: () => {}, close: true },
   ],
-}
-\`\`\`
+}`)}
 
-## Best Practices
+        <h2>Best Practices</h2>
 
-### 1. Consistent Positioning
-- **Search**: Always on the left
-- **Primary Action**: Always on the right
-- **Filters**: Left side, between search and actions
-- **Bulk Actions**: Overlay location
+        <h3>1. Consistent Positioning</h3>
+        <ul>
+          <li><strong>Search</strong>: Always on the left</li>
+          <li><strong>Primary Action</strong>: Always on the right</li>
+          <li><strong>Filters</strong>: Left side, between search and actions</li>
+          <li><strong>Bulk Actions</strong>: Overlay location</li>
+        </ul>
 
-### 2. Filter Labels
-Always include an "All" option with bold styling:
-
-\`\`\`typescript
-{
-  label: '<span style="font-weight: bold">All Events</span>',
+        <h3>2. Filter Labels</h3>
+        <p>Always include an "All" option with bold styling:</p>
+        ${codeBlock(`{
+  label: '<b>All Events</b>',
   onClick: () => table.clearFilter(),
   close: true
-}
-\`\`\`
+}`)}
 
-### 3. Dropdown Options
-Organize dropdown menus with:
-- Headings for sections
-- Dividers between groups
-- Bold formatting for actions vs selections
-
-### 4. Action Feedback
-Provide clear feedback for all actions:
-- Use appropriate intent classes
-- Show loading states when needed
-- Update labels after state changes (e.g., "Publish" → "Unpublish")
-
-### 5. Search Functionality
-Always include:
-- Clear button (X icon)
-- Escape key to clear
-- Backspace on last character to clear
-
-### 6. Accessibility
-- Use semantic HTML
-- Provide meaningful labels
-- Ensure keyboard navigation works
-- Use ARIA attributes where appropriate
-
-## Dependencies
-
-- Bulma CSS for styling
-- Tabulator (optional, for table integration)
-- Font Awesome icons (for search icon)
-        `
-      }
-    }
-  }
-};
-
-export default meta;
-type Story = StoryObj;
-
-// This story just displays the documentation
-export const Documentation: Story = {
-  render: () => {
-    const container = document.createElement('div');
-    container.className = 'section';
-    container.innerHTML = `
-      <div class="content">
-        <p><strong>See the full documentation in the "Docs" tab above.</strong></p>
-        <p>This page contains comprehensive patterns and best practices for using the Control Bar component.</p>
+        <h3>3. Dropdown Options</h3>
+        <p>Organize dropdown menus with:</p>
         <ul>
-          <li>Common patterns across different pages</li>
-          <li>Item type specifications</li>
-          <li>Location options</li>
-          <li>Best practices guide</li>
-          <li>Real-world examples from the codebase</li>
+          <li>Headings for sections</li>
+          <li>Dividers between groups</li>
+          <li>Bold formatting for actions vs selections</li>
+        </ul>
+
+        <h3>4. Action Feedback</h3>
+        <p>Provide clear feedback for all actions:</p>
+        <ul>
+          <li>Use appropriate intent classes</li>
+          <li>Show loading states when needed</li>
+          <li>Update labels after state changes (e.g., "Publish" &rarr; "Unpublish")</li>
+        </ul>
+
+        <h3>5. Search Functionality</h3>
+        <p>Always include:</p>
+        <ul>
+          <li>Clear button (X icon)</li>
+          <li>Escape key to clear</li>
+          <li>Backspace on last character to clear</li>
+        </ul>
+
+        <h3>6. Accessibility</h3>
+        <ul>
+          <li>Use semantic HTML</li>
+          <li>Provide meaningful labels</li>
+          <li>Ensure keyboard navigation works</li>
+          <li>Use ARIA attributes where appropriate</li>
+        </ul>
+
+        <h2>Dependencies</h2>
+        <ul>
+          <li>Bulma CSS for styling</li>
+          <li>Tabulator (optional, for table integration)</li>
         </ul>
       </div>
     `;

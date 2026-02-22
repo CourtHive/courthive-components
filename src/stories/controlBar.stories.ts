@@ -154,8 +154,14 @@ export const ParticipantsPage: Story = {
           placeholder: 'Search by name',
           location: 'left',
           search: true,
-          clearSearch: () => { currentSearch = ''; applyFilters(); },
-          onKeyUp: (e: KeyboardEvent) => { currentSearch = (e.target as HTMLInputElement).value; applyFilters(); }
+          clearSearch: () => {
+            currentSearch = '';
+            applyFilters();
+          },
+          onKeyUp: (e: KeyboardEvent) => {
+            currentSearch = (e.target as HTMLInputElement).value;
+            applyFilters();
+          }
         },
         {
           label: 'All Genders',
@@ -163,10 +169,31 @@ export const ParticipantsPage: Story = {
           modifyLabel: true,
           selection: true,
           options: [
-            { label: '<b>All Genders</b>', close: true, onClick: () => { currentGender = ''; applyFilters(); } },
+            {
+              label: '<b>All Genders</b>',
+              close: true,
+              onClick: () => {
+                currentGender = '';
+                applyFilters();
+              }
+            },
             { divider: true },
-            { label: 'Male', close: true, onClick: () => { currentGender = 'MALE'; applyFilters(); } },
-            { label: 'Female', close: true, onClick: () => { currentGender = 'FEMALE'; applyFilters(); } }
+            {
+              label: 'Male',
+              close: true,
+              onClick: () => {
+                currentGender = 'MALE';
+                applyFilters();
+              }
+            },
+            {
+              label: 'Female',
+              close: true,
+              onClick: () => {
+                currentGender = 'FEMALE';
+                applyFilters();
+              }
+            }
           ]
         },
         // Right — actions
@@ -266,7 +293,11 @@ export const EventsPage: Story = {
           clearSearch: () => table.clearFilter(),
           onKeyUp: (e: KeyboardEvent) => {
             const v = (e.target as HTMLInputElement).value;
-            v ? table.setFilter('name', 'like', v) : table.clearFilter();
+            if (v) {
+              table.setFilter('name', 'like', v);
+            } else {
+              table.clearFilter();
+            }
           }
         },
         {
@@ -351,13 +382,25 @@ export const MatchUpsPage: Story = {
       };
 
       const items = [
-        { label: 'Schedule', location: 'overlay', stateChange: true, intent: 'is-info', onClick: () => alert('Schedule selected') },
+        {
+          label: 'Schedule',
+          location: 'overlay',
+          stateChange: true,
+          intent: 'is-info',
+          onClick: () => alert('Schedule selected')
+        },
         {
           placeholder: 'Search matches',
           location: 'left',
           search: true,
-          clearSearch: () => { currentSearch = ''; applyFilters(); },
-          onKeyUp: (e: KeyboardEvent) => { currentSearch = (e.target as HTMLInputElement).value; applyFilters(); }
+          clearSearch: () => {
+            currentSearch = '';
+            applyFilters();
+          },
+          onKeyUp: (e: KeyboardEvent) => {
+            currentSearch = (e.target as HTMLInputElement).value;
+            applyFilters();
+          }
         },
         {
           label: 'All Events',
@@ -365,10 +408,31 @@ export const MatchUpsPage: Story = {
           modifyLabel: true,
           selection: true,
           options: [
-            { label: '<b>All Events</b>', close: true, onClick: () => { currentEvent = ''; applyFilters(); } },
+            {
+              label: '<b>All Events</b>',
+              close: true,
+              onClick: () => {
+                currentEvent = '';
+                applyFilters();
+              }
+            },
             { divider: true },
-            { label: 'U16 Singles', close: true, onClick: () => { currentEvent = 'U16 Singles'; applyFilters(); } },
-            { label: 'U18 Singles', close: true, onClick: () => { currentEvent = 'U18 Singles'; applyFilters(); } }
+            {
+              label: 'U16 Singles',
+              close: true,
+              onClick: () => {
+                currentEvent = 'U16 Singles';
+                applyFilters();
+              }
+            },
+            {
+              label: 'U18 Singles',
+              close: true,
+              onClick: () => {
+                currentEvent = 'U18 Singles';
+                applyFilters();
+              }
+            }
           ]
         },
         {
@@ -377,10 +441,31 @@ export const MatchUpsPage: Story = {
           modifyLabel: true,
           selection: true,
           options: [
-            { label: '<b>All Statuses</b>', close: true, onClick: () => { currentStatus = ''; applyFilters(); } },
+            {
+              label: '<b>All Statuses</b>',
+              close: true,
+              onClick: () => {
+                currentStatus = '';
+                applyFilters();
+              }
+            },
             { divider: true },
-            { label: 'Ready', close: true, onClick: () => { currentStatus = 'Ready'; applyFilters(); } },
-            { label: 'Complete', close: true, onClick: () => { currentStatus = 'Complete'; applyFilters(); } }
+            {
+              label: 'Ready',
+              close: true,
+              onClick: () => {
+                currentStatus = 'Ready';
+                applyFilters();
+              }
+            },
+            {
+              label: 'Complete',
+              close: true,
+              onClick: () => {
+                currentStatus = 'Complete';
+                applyFilters();
+              }
+            }
           ]
         }
       ];
@@ -429,12 +514,18 @@ export const VenuesPage: Story = {
       });
 
       const items = [
-        { label: 'Delete selected', location: 'overlay', intent: 'is-danger', stateChange: true, onClick: () => {
-          const selected = table.getSelectedData();
-          if (confirm(`Delete ${selected.length} venues?`)) {
-            selected.forEach((row: any) => table.deleteRow(row.id));
+        {
+          label: 'Delete selected',
+          location: 'overlay',
+          intent: 'is-danger',
+          stateChange: true,
+          onClick: () => {
+            const selected = table.getSelectedData();
+            if (confirm(`Delete ${selected.length} venues?`)) {
+              selected.forEach((row: any) => table.deleteRow(row.id));
+            }
           }
-        }},
+        },
         { label: 'Add venue', location: 'right', intent: 'is-primary', onClick: () => alert('Add venue') }
       ];
 

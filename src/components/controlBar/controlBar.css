@@ -116,3 +116,7 @@
   -webkit-align-items: center;
   align-items: center;
 }
+
+.dropdown-content {
+  border: 1px solid #dbdbdb;
+}

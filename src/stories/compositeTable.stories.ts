@@ -159,18 +159,27 @@ export const FullParticipantsExample: Story = {
             {
               label: 'U16 Singles',
               close: true,
-              onClick: () => { alert(`Adding ${table.getSelectedData().length} to U16 Singles`); table.deselectRow(); }
+              onClick: () => {
+                alert(`Adding ${table.getSelectedData().length} to U16 Singles`);
+                table.deselectRow();
+              }
             },
             {
               label: 'U18 Singles',
               close: true,
-              onClick: () => { alert(`Adding ${table.getSelectedData().length} to U18 Singles`); table.deselectRow(); }
+              onClick: () => {
+                alert(`Adding ${table.getSelectedData().length} to U18 Singles`);
+                table.deselectRow();
+              }
             },
             { divider: true },
             {
               label: '<b>Create New Event</b>',
               close: true,
-              onClick: () => { alert('Create event'); table.deselectRow(); }
+              onClick: () => {
+                alert('Create event');
+                table.deselectRow();
+              }
             }
           ]
         },
@@ -190,8 +199,14 @@ export const FullParticipantsExample: Story = {
           placeholder: 'Search by name',
           location: 'left',
           search: true,
-          clearSearch: () => { currentSearch = ''; applyFilters(); },
-          onKeyUp: (e: KeyboardEvent) => { currentSearch = (e.target as HTMLInputElement).value; applyFilters(); }
+          clearSearch: () => {
+            currentSearch = '';
+            applyFilters();
+          },
+          onKeyUp: (e: KeyboardEvent) => {
+            currentSearch = (e.target as HTMLInputElement).value;
+            applyFilters();
+          }
         },
         {
           label: 'All Genders',
@@ -199,10 +214,31 @@ export const FullParticipantsExample: Story = {
           modifyLabel: true,
           selection: true,
           options: [
-            { label: '<b>All Genders</b>', close: true, onClick: () => { currentGender = ''; applyFilters(); } },
+            {
+              label: '<b>All Genders</b>',
+              close: true,
+              onClick: () => {
+                currentGender = '';
+                applyFilters();
+              }
+            },
             { divider: true },
-            { label: 'Male', close: true, onClick: () => { currentGender = 'MALE'; applyFilters(); } },
-            { label: 'Female', close: true, onClick: () => { currentGender = 'FEMALE'; applyFilters(); } }
+            {
+              label: 'Male',
+              close: true,
+              onClick: () => {
+                currentGender = 'MALE';
+                applyFilters();
+              }
+            },
+            {
+              label: 'Female',
+              close: true,
+              onClick: () => {
+                currentGender = 'FEMALE';
+                applyFilters();
+              }
+            }
           ]
         },
         {
@@ -211,25 +247,47 @@ export const FullParticipantsExample: Story = {
           modifyLabel: true,
           selection: true,
           options: [
-            { label: '<b>All Teams</b>', close: true, onClick: () => { currentTeam = ''; applyFilters(); } },
+            {
+              label: '<b>All Teams</b>',
+              close: true,
+              onClick: () => {
+                currentTeam = '';
+                applyFilters();
+              }
+            },
             { divider: true },
-            { label: 'Team A', close: true, onClick: () => { currentTeam = 'Team A'; applyFilters(); } },
-            { label: 'Team B', close: true, onClick: () => { currentTeam = 'Team B'; applyFilters(); } },
-            { label: 'Team C', close: true, onClick: () => { currentTeam = 'Team C'; applyFilters(); } },
-            { label: 'Team D', close: true, onClick: () => { currentTeam = 'Team D'; applyFilters(); } }
-          ]
-        },
-        // Right — view selector and actions
-        {
-          label: 'Individuals',
-          location: 'right',
-          intent: 'is-info',
-          modifyLabel: true,
-          selection: true,
-          options: [
-            { label: 'Individuals', close: true, onClick: () => console.log('Individuals view') },
-            { label: 'Teams', close: true, onClick: () => console.log('Teams view') },
-            { label: 'Groups', close: true, onClick: () => console.log('Groups view') }
+            {
+              label: 'Team A',
+              close: true,
+              onClick: () => {
+                currentTeam = 'Team A';
+                applyFilters();
+              }
+            },
+            {
+              label: 'Team B',
+              close: true,
+              onClick: () => {
+                currentTeam = 'Team B';
+                applyFilters();
+              }
+            },
+            {
+              label: 'Team C',
+              close: true,
+              onClick: () => {
+                currentTeam = 'Team C';
+                applyFilters();
+              }
+            },
+            {
+              label: 'Team D',
+              close: true,
+              onClick: () => {
+                currentTeam = 'Team D';
+                applyFilters();
+              }
+            }
           ]
         },
         {
@@ -259,86 +317,6 @@ export const FullParticipantsExample: Story = {
         target: controlContainer,
         items,
         onSelection: (rows) => console.log(`${rows.length} selected`)
-      });
-    });
-
-    return container;
-  }
-};
-
-/**
- * Minimal Example
- *
- * The simplest possible Header + ControlBar + Table: just a search input
- * and a data table. Shows the minimum code needed to use the pattern.
- */
-export const MinimalExample: Story = {
-  render: () => {
-    const container = document.createElement('div');
-    container.className = 'section';
-    container.style.maxWidth = '900px';
-    container.style.margin = '0 auto';
-
-    const header = document.createElement('div');
-    header.className = 'tabHeader';
-    header.style.cssText = 'padding: 0.75rem 0.5rem; font-size: 1.1rem; font-weight: bold;';
-    header.innerHTML = 'Items (0)';
-    container.appendChild(header);
-
-    const controlContainer = document.createElement('div');
-    container.appendChild(controlContainer);
-
-    const tableContainer = document.createElement('div');
-    container.appendChild(tableContainer);
-
-    requestAnimationFrame(() => {
-      const data = [
-        { id: 1, name: 'Court 1', surface: 'Hard', available: true },
-        { id: 2, name: 'Court 2', surface: 'Clay', available: false },
-        { id: 3, name: 'Court 3', surface: 'Hard', available: true },
-        { id: 4, name: 'Court 4', surface: 'Grass', available: true },
-        { id: 5, name: 'Court 5', surface: 'Hard', available: false }
-      ];
-
-      const table = new Tabulator(tableContainer, {
-        data,
-        height: '250px',
-        layout: 'fitColumns',
-        columns: [
-          { title: 'Court', field: 'name' },
-          { title: 'Surface', field: 'surface' },
-          {
-            title: 'Available',
-            field: 'available',
-            hozAlign: 'center',
-            formatter: (cell: any) =>
-              cell.getValue()
-                ? '<span style="color: green;">Yes</span>'
-                : '<span style="color: #ccc;">No</span>'
-          }
-        ]
-      });
-
-      const items = [
-        {
-          placeholder: 'Search...',
-          location: 'left',
-          search: true,
-          clearSearch: () => table.clearFilter(),
-          onKeyUp: (e: KeyboardEvent) => {
-            const v = (e.target as HTMLInputElement).value;
-            v ? table.setFilter('name', 'like', v) : table.clearFilter();
-          }
-        }
-      ];
-
-      controlBar({ table, target: controlContainer, items });
-
-      table.on('dataFiltered', () => {
-        header.innerHTML = `Items (${table.getRows('active').length})`;
-      });
-      table.on('tableBuilt', () => {
-        header.innerHTML = `Items (${table.getData().length})`;
       });
     });
 
