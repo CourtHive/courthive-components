@@ -1,6 +1,9 @@
 import '../components/forms/styles';
 import { renderButtons } from '../components/forms/renderButtons';
 
+const IS_SUCCESS = 'is-success';
+const IS_WARNING = 'is-warning';
+
 export default {
   title: 'Renderers/Buttons',
   tags: ['autodocs'],
@@ -44,7 +47,7 @@ export const MultipleButtons = {
     buttons: [
       { label: 'Cancel', intent: 'none' },
       { label: 'Delete', intent: 'is-danger', onClick: () => alert('Delete clicked!') },
-      { label: 'Save', intent: 'is-success', onClick: () => alert('Save clicked!') }
+      { label: 'Save', intent: IS_SUCCESS, onClick: () => alert('Save clicked!') }
     ]
   }
 };
@@ -71,7 +74,7 @@ export const WithIDs = {
       { 
         label: 'Change Text', 
         id: 'changeBtn',
-        intent: 'is-warning',
+        intent: IS_WARNING,
         onClick: function() {
           const btn = document.getElementById('changeBtn') as HTMLButtonElement;
           if (btn) btn.innerHTML = 'Text Changed!';
@@ -88,7 +91,7 @@ export const DisabledButtons = {
   args: {
     hasClose: false,
     buttons: [
-      { label: 'Enabled', intent: 'is-success', onClick: () => alert('This works!') },
+      { label: 'Enabled', intent: IS_SUCCESS, onClick: () => alert('This works!') },
       { label: 'Disabled', intent: 'is-info', disabled: true, onClick: () => alert('This should not fire!') }
     ]
   }
@@ -103,13 +106,13 @@ export const PreventClose = {
     buttons: [
       { 
         label: 'Validate Only', 
-        intent: 'is-warning',
+        intent: IS_WARNING,
         close: false,
         onClick: () => alert('Validation run - modal stays open!')
       },
       { 
         label: 'Submit & Close', 
-        intent: 'is-success',
+        intent: IS_SUCCESS,
         onClick: () => alert('Submitting and closing!')
       }
     ]
@@ -127,8 +130,8 @@ export const AllIntents = {
       { label: 'Primary', intent: 'is-primary', onClick: () => {} },
       { label: 'Link', intent: 'is-link', onClick: () => {} },
       { label: 'Info', intent: 'is-info', onClick: () => {} },
-      { label: 'Success', intent: 'is-success', onClick: () => {} },
-      { label: 'Warning', intent: 'is-warning', onClick: () => {} },
+      { label: 'Success', intent: IS_SUCCESS, onClick: () => {} },
+      { label: 'Warning', intent: IS_WARNING, onClick: () => {} },
       { label: 'Danger', intent: 'is-danger', onClick: () => {} }
     ]
   }
@@ -143,7 +146,7 @@ export const ConditionalButtons = {
     buttons: [
       { label: 'Always Visible', intent: 'is-info' },
       { label: 'Hidden Button', hide: true, intent: 'is-danger' },
-      { label: 'Also Visible', intent: 'is-success' }
+      { label: 'Also Visible', intent: IS_SUCCESS }
     ]
   }
 };
@@ -159,7 +162,7 @@ export const ModalFooterExample = {
       { 
         label: 'Save Changes', 
         id: 'saveBtn',
-        intent: 'is-success',
+        intent: IS_SUCCESS,
         disabled: false,
         onClick: () => {
           const btn = document.getElementById('saveBtn') as HTMLButtonElement;

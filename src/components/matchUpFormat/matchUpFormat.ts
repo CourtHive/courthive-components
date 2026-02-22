@@ -18,6 +18,7 @@ import matchUpFormats from './matchUpFormats.json';
 
 const NONE = 'none';
 const clickable = '▾'; // clickable character
+const TRANSITION_STYLE = 'all .2s ease-in-out';
 
 // Helper functions
 function isFunction(fx: any): fx is (...args: any[]) => any {
@@ -149,11 +150,17 @@ const DEUCE_RULE_LABELS: Record<string, string> = {
 /** Convert a gameFormat object to its display label */
 function gameFormatLabel(gf: any): string {
   if (!gf) return 'None';
-  let label = '';
+  let label: string;
   if (gf.type === 'TRADITIONAL') label = 'Traditional';
-  else if (gf.type === 'CONSECUTIVE') label = GAME_FORMAT_LABELS[`${gf.count}C`] || `${gf.count} consecutive`;
+  else if (gf.type === 'CONSECUTIVE') {
+    const countKey = `${gf.count}C`;
+    label = GAME_FORMAT_LABELS[countKey] || `${gf.count} consecutive`;
+  }
   else return 'None';
-  if (gf.deuceAfter) label += ` + ${DEUCE_RULE_LABELS[`${gf.deuceAfter}D`] || `${gf.deuceAfter}D`}`;
+  if (gf.deuceAfter) {
+    const deuceKey = `${gf.deuceAfter}D`;
+    label += ` + ${DEUCE_RULE_LABELS[deuceKey] || deuceKey}`;
+  }
   return label;
 }
 
@@ -759,7 +766,7 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
 
     setMatchUpFormatString();
   },
-  changeAggregate: (_e, _index, _opt) => {
+  changeAggregate: () => {
     const checkbox = getEl('aggregateOption') as HTMLInputElement;
     format.aggregate = checkbox?.checked || undefined;
     setMatchUpFormatString();
@@ -1093,7 +1100,7 @@ export function getMatchUpFormatModal({
   matchRootButton.className = 'mfcButton';
   matchRootButton.id = 'matchRoot';
   matchRootButton.innerHTML = `${MATCH_ROOT_LABELS[matchRootLabel] || matchRootLabel}${clickable}`;
-  matchRootButton.style.transition = 'all .2s ease-in-out';
+  matchRootButton.style.transition = TRANSITION_STYLE;
   matchRootButton.style.backgroundColor = 'inherit';
   matchRootButton.style.border = 'none';
   matchRootButton.style.color = 'inherit';
@@ -1139,7 +1146,7 @@ export function getMatchUpFormatModal({
   gameFormatButton.className = 'mfcButton';
   gameFormatButton.id = 'gameFormat';
   gameFormatButton.innerHTML = `Game: ${currentGameFormatDisplay}${clickable}`;
-  gameFormatButton.style.transition = 'all .2s ease-in-out';
+  gameFormatButton.style.transition = TRANSITION_STYLE;
   gameFormatButton.style.backgroundColor = 'inherit';
   gameFormatButton.style.border = 'none';
   gameFormatButton.style.color = 'inherit';
@@ -1477,7 +1484,7 @@ function createButton(params: any): HTMLButtonElement {
   if (initiallyHidden) button.style.display = NONE;
 
   // Apply TMX button styles inline since courthive-components doesn't have .mfcButton CSS
-  button.style.transition = 'all .2s ease-in-out';
+  button.style.transition = TRANSITION_STYLE;
   button.style.backgroundColor = 'inherit';
   button.style.border = 'none';
   button.style.color = 'inherit';

@@ -14,6 +14,8 @@ const { BLOCK_TYPES } = temporal;
 type BlockType = temporal.BlockType;
 import { DEFAULT_COLOR_SCHEME } from '../controller/viewProjections';
 
+const POPOVER_ITEM_STYLE = 'padding:6px 12px; cursor:pointer; display:flex; align-items:center; gap:8px;';
+
 // ============================================================================
 // Public Types
 // ============================================================================
@@ -77,8 +79,7 @@ export function createBlockPopoverManager(): BlockPopoverManager {
 
     for (const bt of options.blockTypes) {
       const btn = document.createElement('div');
-      btn.style.cssText =
-        'padding:6px 12px; cursor:pointer; display:flex; align-items:center; gap:8px;';
+      btn.style.cssText = POPOVER_ITEM_STYLE;
       btn.innerHTML = `
         <span style="width:10px;height:10px;border-radius:2px;background:${bt.color};display:inline-block;"></span>
         ${bt.label}
@@ -100,8 +101,7 @@ export function createBlockPopoverManager(): BlockPopoverManager {
 
     if (options.onAdjustTime) {
       const timeBtn = document.createElement('div');
-      timeBtn.style.cssText =
-        'padding:6px 12px; cursor:pointer; display:flex; align-items:center; gap:8px;';
+      timeBtn.style.cssText = POPOVER_ITEM_STYLE;
       timeBtn.innerHTML = `<span style="font-size:14px;">&#128339;</span> Adjust Time`;
       timeBtn.addEventListener('mouseenter', () => { timeBtn.style.background = '#f0f0f0'; timeBtn.style.color = '#333'; });
       timeBtn.addEventListener('mouseleave', () => { timeBtn.style.background = 'transparent'; timeBtn.style.color = ''; });
@@ -151,8 +151,7 @@ export function createBlockPopoverManager(): BlockPopoverManager {
     for (const [type, label] of ENGINE_BLOCK_TYPES) {
       const color = DEFAULT_COLOR_SCHEME[type];
       const btn = document.createElement('div');
-      btn.style.cssText =
-        'padding:6px 12px; cursor:pointer; display:flex; align-items:center; gap:8px;';
+      btn.style.cssText = POPOVER_ITEM_STYLE;
       btn.innerHTML = `
         <span style="width:10px;height:10px;border-radius:2px;background:${color};display:inline-block;"></span>
         ${label}
@@ -182,8 +181,7 @@ export function createBlockPopoverManager(): BlockPopoverManager {
 
     // Adjust Time
     const timeBtn = document.createElement('div');
-    timeBtn.style.cssText =
-      'padding:6px 12px; cursor:pointer; display:flex; align-items:center; gap:8px;';
+    timeBtn.style.cssText = POPOVER_ITEM_STYLE;
     timeBtn.innerHTML = `<span style="font-size:14px;">&#128339;</span> Adjust Time`;
     timeBtn.addEventListener('mouseenter', () => { timeBtn.style.background = '#f0f0f0'; timeBtn.style.color = '#333'; });
     timeBtn.addEventListener('mouseleave', () => { timeBtn.style.background = 'transparent'; timeBtn.style.color = ''; });

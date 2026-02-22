@@ -5,12 +5,16 @@
 import { describe, it, expect } from 'vitest';
 import { tournamentEngine } from 'tods-competition-factory';
 
+const FORMAT_SET3_TB7 = 'SET3-S:6/TB7';
+const FORMAT_SET3XA_T10 = 'SET3XA-S:T10';
+const SCORE_30_1_01_01 = '30-1 0-1 0-1';
+
 describe('Factory generateOutcomeFromScoreString with preserveSideOrder', () => {
   describe('Aggregate scoring', () => {
     it('should preserve side order and calculate winningSide correctly', () => {
-      const format = 'SET3XA-S:T10';
+      const format = FORMAT_SET3XA_T10;
       const { outcome } = tournamentEngine.generateOutcomeFromScoreString({
-        scoreString: '30-1 0-1 0-1',
+        scoreString: SCORE_30_1_01_01,
         matchUpFormat: format,
         preserveSideOrder: true,
       });
@@ -44,7 +48,7 @@ describe('Factory generateOutcomeFromScoreString with preserveSideOrder', () => 
 
   describe('Standard scoring', () => {
     it('should preserve side order for loser score first', () => {
-      const format = 'SET3-S:6/TB7';
+      const format = FORMAT_SET3_TB7;
       const { outcome } = tournamentEngine.generateOutcomeFromScoreString({
         scoreString: '3-6 4-6',
         matchUpFormat: format,
@@ -62,7 +66,7 @@ describe('Factory generateOutcomeFromScoreString with preserveSideOrder', () => 
     });
 
     it('should preserve side order for winner score first', () => {
-      const format = 'SET3-S:6/TB7';
+      const format = FORMAT_SET3_TB7;
       const { outcome } = tournamentEngine.generateOutcomeFromScoreString({
         scoreString: '6-3 6-4',
         matchUpFormat: format,
@@ -78,7 +82,7 @@ describe('Factory generateOutcomeFromScoreString with preserveSideOrder', () => 
     });
 
     it('should handle split sets correctly', () => {
-      const format = 'SET3-S:6/TB7';
+      const format = FORMAT_SET3_TB7;
       const { outcome } = tournamentEngine.generateOutcomeFromScoreString({
         scoreString: '6-3 4-6 6-4',
         matchUpFormat: format,
@@ -97,7 +101,7 @@ describe('Factory generateOutcomeFromScoreString with preserveSideOrder', () => 
 
   describe('Scorestring generation', () => {
     it('should generate correct scoreStringSide1 and scoreStringSide2', () => {
-      const format = 'SET3-S:6/TB7';
+      const format = FORMAT_SET3_TB7;
       const { outcome } = tournamentEngine.generateOutcomeFromScoreString({
         scoreString: '3-6 4-6',
         matchUpFormat: format,
@@ -111,14 +115,14 @@ describe('Factory generateOutcomeFromScoreString with preserveSideOrder', () => 
     });
 
     it('should generate scoreStrings for aggregate format', () => {
-      const format = 'SET3XA-S:T10';
+      const format = FORMAT_SET3XA_T10;
       const { outcome } = tournamentEngine.generateOutcomeFromScoreString({
-        scoreString: '30-1 0-1 0-1',
+        scoreString: SCORE_30_1_01_01,
         matchUpFormat: format,
         preserveSideOrder: true,
       });
 
-      expect(outcome.score.scoreStringSide1).toBe('30-1 0-1 0-1');
+      expect(outcome.score.scoreStringSide1).toBe(SCORE_30_1_01_01);
       expect(outcome.score.scoreStringSide2).toBe('1-30 1-0 1-0');
     });
   });

@@ -8,6 +8,12 @@ interface JsonViewerOptions {
   theme?: 'light' | 'dark';
 }
 
+const CLASS_LINE = 'json-viewer-line';
+const CLASS_TOGGLE = 'json-viewer-toggle';
+const CLASS_BRACKET = 'json-viewer-bracket';
+const CLASS_COMMA = 'json-viewer-comma';
+const CLASS_COLLAPSED = 'json-viewer-collapsed';
+
 export class JsonViewer {
   private readonly container: HTMLElement;
   private readonly options: JsonViewerOptions;
@@ -143,11 +149,11 @@ export class JsonViewer {
 
   private createLine(key: string, valueSpan: HTMLElement, isLast: boolean): HTMLElement {
     const line = document.createElement('div');
-    line.className = 'json-viewer-line';
+    line.className = CLASS_LINE;
 
     // Empty toggle space for alignment
     const toggle = document.createElement('span');
-    toggle.className = 'json-viewer-toggle';
+    toggle.className = CLASS_TOGGLE;
     toggle.textContent = ' ';
     line.appendChild(toggle);
 
@@ -159,7 +165,7 @@ export class JsonViewer {
     line.appendChild(valueSpan);
 
     if (!isLast) {
-      line.appendChild(this.span(',', 'json-viewer-comma'));
+      line.appendChild(this.span(',', CLASS_COMMA));
     }
 
     return line;
@@ -169,11 +175,11 @@ export class JsonViewer {
     const container = document.createElement('div');
 
     const headerLine = document.createElement('div');
-    headerLine.className = 'json-viewer-line';
+    headerLine.className = CLASS_LINE;
 
     // Toggle button
     const toggle = document.createElement('span');
-    toggle.className = 'json-viewer-toggle';
+    toggle.className = CLASS_TOGGLE;
     const expanded = level < this.options.expanded;
     toggle.textContent = expanded ? '▼' : '▶';
     headerLine.appendChild(toggle);
@@ -186,7 +192,7 @@ export class JsonViewer {
 
     // Opening bracket
     const openBracket = isArray ? '[' : '{';
-    headerLine.appendChild(this.span(openBracket, 'json-viewer-bracket'));
+    headerLine.appendChild(this.span(openBracket, CLASS_BRACKET));
 
     // Summary when collapsed
     const summary = document.createElement('span');
@@ -203,14 +209,14 @@ export class JsonViewer {
 
     // Closing bracket (for collapsed view)
     const closeBracketCollapsed = document.createElement('span');
-    closeBracketCollapsed.className = 'json-viewer-bracket';
+    closeBracketCollapsed.className = CLASS_BRACKET;
     closeBracketCollapsed.textContent = isArray ? ']' : '}';
     if (!expanded) {
       headerLine.appendChild(closeBracketCollapsed);
     }
 
     if (!isLast) {
-      const comma = this.span(',', 'json-viewer-comma');
+      const comma = this.span(',', CLASS_COMMA);
       if (!expanded) {
         headerLine.appendChild(comma);
       }
@@ -222,7 +228,7 @@ export class JsonViewer {
     const childrenContainer = document.createElement('div');
     childrenContainer.className = 'json-viewer-children';
     if (!expanded) {
-      childrenContainer.classList.add('json-viewer-collapsed');
+      childrenContainer.classList.add(CLASS_COLLAPSED);
     }
 
     const entries = isArray ? value.map((v: any, i: number) => [i, v]) : Object.entries(value);
@@ -237,19 +243,19 @@ export class JsonViewer {
 
     // Closing bracket line (for expanded view)
     const closingLine = document.createElement('div');
-    closingLine.className = 'json-viewer-line';
+    closingLine.className = CLASS_LINE;
     if (!expanded) {
-      closingLine.classList.add('json-viewer-collapsed');
+      closingLine.classList.add(CLASS_COLLAPSED);
     }
 
     const emptyToggle = document.createElement('span');
-    emptyToggle.className = 'json-viewer-toggle';
+    emptyToggle.className = CLASS_TOGGLE;
     emptyToggle.textContent = ' ';
     closingLine.appendChild(emptyToggle);
 
-    closingLine.appendChild(this.span(isArray ? ']' : '}', 'json-viewer-bracket'));
+    closingLine.appendChild(this.span(isArray ? ']' : '}', CLASS_BRACKET));
     if (!isLast) {
-      closingLine.appendChild(this.span(',', 'json-viewer-comma'));
+      closingLine.appendChild(this.span(',', CLASS_COMMA));
     }
 
     container.appendChild(closingLine);
@@ -261,17 +267,17 @@ export class JsonViewer {
 
       if (isCurrentlyExpanded) {
         // Collapse
-        childrenContainer.classList.add('json-viewer-collapsed');
-        closingLine.classList.add('json-viewer-collapsed');
+        childrenContainer.classList.add(CLASS_COLLAPSED);
+        closingLine.classList.add(CLASS_COLLAPSED);
         headerLine.appendChild(summary);
         headerLine.appendChild(closeBracketCollapsed);
         if (!isLast) {
-          headerLine.appendChild(this.span(',', 'json-viewer-comma'));
+          headerLine.appendChild(this.span(',', CLASS_COMMA));
         }
       } else {
         // Expand
-        childrenContainer.classList.remove('json-viewer-collapsed');
-        closingLine.classList.remove('json-viewer-collapsed');
+        childrenContainer.classList.remove(CLASS_COLLAPSED);
+        closingLine.classList.remove(CLASS_COLLAPSED);
         // Remove summary and collapsed bracket from header
         if (summary.parentNode) summary.remove();
         if (closeBracketCollapsed.parentNode) closeBracketCollapsed.remove();

@@ -22,6 +22,10 @@ import {
 
 const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT } = matchUpStatusConstants;
 
+const OUTCOME_SELECTOR = 'input[name="matchOutcome"]';
+const WINNER_SELECTOR = 'input[name="irregularWinner"]';
+const TIEBREAK_CONTAINER_CLASS = '.tiebreak-container';
+
 export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): void {
   const { matchUp, container, onScoreChange } = params;
 
@@ -225,7 +229,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   clearOutcomeBtn.addEventListener('click', () => {
     // Uncheck all radio buttons
     const radios = irregularEndingContainer.querySelectorAll(
-      'input[name="matchOutcome"]',
+      OUTCOME_SELECTOR,
     ) as NodeListOf<HTMLInputElement>;
     radios.forEach((r) => (r.checked = false));
 
@@ -235,7 +239,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     winnerSelectionContainer.style.display = 'none';
 
     // Clear winner selection
-    const winnerRadios = irregularEndingContainer.querySelectorAll<HTMLInputElement>('input[name="irregularWinner"]');
+    const winnerRadios = irregularEndingContainer.querySelectorAll<HTMLInputElement>(WINNER_SELECTOR);
     winnerRadios.forEach((r) => (r.checked = false));
 
     // Update validation
@@ -337,12 +341,12 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     internalMatchUpStatus = undefined;
 
     // Uncheck all irregular ending radios
-    const outcomeRadios = irregularEndingContainer.querySelectorAll<HTMLInputElement>('input[name="matchOutcome"]');
+    const outcomeRadios = irregularEndingContainer.querySelectorAll<HTMLInputElement>(OUTCOME_SELECTOR);
     outcomeRadios.forEach((r) => (r.checked = false));
 
     // Clear winner selection
     const winnerRadios = irregularEndingContainer.querySelectorAll(
-      'input[name="irregularWinner"]',
+      WINNER_SELECTOR,
     ) as NodeListOf<HTMLInputElement>;
     winnerRadios.forEach((r) => (r.checked = false));
 
@@ -839,7 +843,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       selectedOutcome = COMPLETED;
       selectedWinner = undefined;
       // Uncheck irregular ending radios
-      const outcomeRadios = irregularEndingContainer.querySelectorAll('input[name="matchOutcome"]');
+      const outcomeRadios = irregularEndingContainer.querySelectorAll(OUTCOME_SELECTOR);
       outcomeRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
       // Hide winner selection
       winnerSelectionContainer.style.display = 'none';
@@ -1078,7 +1082,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
           ) as HTMLInputElement;
 
           // Check if tiebreak is visible
-          const prevTiebreakContainer = prevTiebreakInput?.closest('.tiebreak-container') as HTMLElement;
+          const prevTiebreakContainer = prevTiebreakInput?.closest(TIEBREAK_CONTAINER_CLASS) as HTMLElement;
           if (prevTiebreakInput && prevTiebreakContainer && prevTiebreakContainer.style.display !== 'none') {
             focusAndSelect(prevTiebreakInput);
           } else if (prevSide2Input) {
@@ -1144,7 +1148,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
           const tiebreakInput = setsContainer.querySelector(
             `input[data-set-index="${setIndex}"][data-type="tiebreak"]`,
           ) as HTMLInputElement;
-          const tiebreakContainer = tiebreakInput?.closest('.tiebreak-container') as HTMLElement;
+          const tiebreakContainer = tiebreakInput?.closest(TIEBREAK_CONTAINER_CLASS) as HTMLElement;
 
           if (tiebreakInput && tiebreakContainer && tiebreakContainer.style.display !== 'none') {
             // Move to tiebreak if visible
@@ -1225,7 +1229,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
         ) as HTMLInputElement;
 
         // Check if tiebreak is visible
-        const prevTiebreakContainer = prevTiebreakInput?.closest('.tiebreak-container') as HTMLElement;
+        const prevTiebreakContainer = prevTiebreakInput?.closest(TIEBREAK_CONTAINER_CLASS) as HTMLElement;
         if (prevTiebreakInput && prevTiebreakContainer && prevTiebreakContainer.style.display !== 'none') {
           focusAndSelect(prevTiebreakInput);
         } else if (prevSide2Input) {
@@ -1336,7 +1340,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     }
 
     // Check the appropriate irregular ending radio button
-    const outcomeRadios = irregularEndingContainer.querySelectorAll<HTMLInputElement>('input[name="matchOutcome"]');
+    const outcomeRadios = irregularEndingContainer.querySelectorAll<HTMLInputElement>(OUTCOME_SELECTOR);
     outcomeRadios.forEach((radio) => {
       if (radio.value === selectedOutcome) {
         radio.checked = true;
@@ -1346,7 +1350,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     // Initialize winner if present (only for non-DOUBLE statuses)
     if (selectedWinner) {
       // Check the appropriate winner radio button
-      const winnerRadios = irregularEndingContainer.querySelectorAll<HTMLInputElement>('input[name="irregularWinner"]');
+      const winnerRadios = irregularEndingContainer.querySelectorAll<HTMLInputElement>(WINNER_SELECTOR);
       winnerRadios.forEach((radio) => {
         if (Number.parseInt(radio.value) === selectedWinner) {
           radio.checked = true;

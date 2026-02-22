@@ -3,6 +3,8 @@
  * Sets up tournament scenarios and handles generateFlightProfile results
  */
 
+const SCALE_DATE = '2026-01-01';
+
 /**
  * Setup a tournament with participants having scale values
  * Creates 32 participants with WTN, UTR, NTRP ratings and 18U rankings
@@ -58,7 +60,7 @@ export function setupTournamentWithFlights(mocksEngine: any, tournamentEngine: a
           scaleName: 'WTN',
           scaleType: 'RATING',
           eventType: 'SINGLES',
-          scaleDate: '2026-01-01'
+          scaleDate: SCALE_DATE
         }
       });
 
@@ -71,7 +73,7 @@ export function setupTournamentWithFlights(mocksEngine: any, tournamentEngine: a
           scaleName: 'UTR',
           scaleType: 'RATING',
           eventType: 'SINGLES',
-          scaleDate: '2026-01-01'
+          scaleDate: SCALE_DATE
         }
       });
 
@@ -84,7 +86,7 @@ export function setupTournamentWithFlights(mocksEngine: any, tournamentEngine: a
           scaleName: 'NTRP',
           scaleType: 'RATING',
           eventType: 'SINGLES',
-          scaleDate: '2026-01-01'
+          scaleDate: SCALE_DATE
         }
       });
 
@@ -97,7 +99,7 @@ export function setupTournamentWithFlights(mocksEngine: any, tournamentEngine: a
           scaleName: 'U18',
           scaleType: 'RANKING',
           eventType: 'SINGLES',
-          scaleDate: '2026-01-01'
+          scaleDate: SCALE_DATE
         }
       });
     }

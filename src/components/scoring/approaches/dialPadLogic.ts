@@ -30,7 +30,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
   };
 
   let result = '';
-  let i = 0;
+  let i: number;
   let setCount = 0;
 
   // Split on spaces, slashes, or consecutive minuses as set separators

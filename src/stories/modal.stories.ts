@@ -1,6 +1,8 @@
 import { cModal } from '../components/modal/cmodal';
 import '../components/forms/styles'; // Import bulma-switch and other form styles
 
+const IS_PRIMARY = 'is-primary';
+
 export default {
   title: 'Components/Modal',
   tags: ['autodocs']
@@ -94,7 +96,7 @@ export const Styling = {
         content: '<p>This is a standard modal with default white background.</p>',
         buttons: [
           { label: 'Cancel', intent: 'none' },
-          { label: 'OK', intent: 'is-primary' }
+          { label: 'OK', intent: IS_PRIMARY }
         ]
       });
     };
@@ -109,7 +111,7 @@ export const Styling = {
         title: 'Custom Styled Modal',
         content:
           '<p>This modal uses inline styles for custom appearance.</p><p>Notice the blue border and gray background!</p>',
-        buttons: [{ label: 'Close', intent: 'is-primary' }],
+        buttons: [{ label: 'Close', intent: IS_PRIMARY }],
         config: {
           style: {
             backgroundColor: '#f8f9fa',
@@ -172,7 +174,7 @@ export const Styling = {
         title: 'Combined Styling',
         content:
           '<p>This modal combines both a custom class and inline styles.</p><p>The class provides base styling, while inline styles add the border.</p>',
-        buttons: [{ label: 'Got it', intent: 'is-primary' }],
+        buttons: [{ label: 'Got it', intent: IS_PRIMARY }],
         config: {
           className: 'format-editor-modal',
           style: {

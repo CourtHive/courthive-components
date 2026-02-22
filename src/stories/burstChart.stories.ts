@@ -28,6 +28,7 @@ const { SINGLE_ELIMINATION } = drawDefinitionConstants;
 
 const BORDER_STYLE_1 = '1px solid #ddd';
 const BORDER_STYLE_2 = '1px solid #ccc';
+const CLICKED_SEGMENT = 'Clicked segment:';
 
 interface BurstChartArgs {
   width: number;
@@ -99,7 +100,7 @@ export const AustralianOpen2016: Story = {
         clickSegment: (data) => {
           // data.matchUp contains the full SunburstMatchUp
           // data.participantName, data.scoreString, etc.
-          console.log('Clicked segment:', data);
+          console.log(CLICKED_SEGMENT, data);
         }
       }
     });
@@ -218,7 +219,7 @@ export const GrandSlamComparison: Story = {
           clickSegment: (data) => {
             // data.matchUp contains the full SunburstMatchUp
             // data.participantName, data.scoreString, etc.
-            console.log('Clicked segment:', data);
+            console.log(CLICKED_SEGMENT, data);
           }
         }
       });
@@ -271,7 +272,7 @@ export const GeneratedTournament: Story = {
       height: args.height,
       eventHandlers: {
         clickSegment: (data) => {
-          console.log('Clicked segment:', data);
+          console.log(CLICKED_SEGMENT, data);
         }
       }
     });
@@ -413,7 +414,7 @@ export const DrawSizePicker: Story = {
     // Chart container
     const chartContainer = document.createElement('div');
     chartContainer.style.backgroundColor = '#ffffff';
-    chartContainer.style.border = '1px solid #ddd';
+    chartContainer.style.border = BORDER_STYLE_1;
     chartContainer.style.borderRadius = '8px';
     chartContainer.style.display = 'flex';
     chartContainer.style.alignItems = 'center';
@@ -444,7 +445,7 @@ export const DrawSizePicker: Story = {
         width: args.width,
         eventHandlers: {
           clickSegment: (data) => {
-            console.log('Clicked segment:', data);
+            console.log(CLICKED_SEGMENT, data);
           }
         }
       });
@@ -591,7 +592,7 @@ export const AustralianOpenPlayerSearch: Story = {
         width: args.width,
         eventHandlers: {
           clickSegment: (data) => {
-            console.log('Clicked segment:', data);
+            console.log(CLICKED_SEGMENT, data);
           }
         }
       });

@@ -5,6 +5,8 @@
 import { describe, it, expect } from 'vitest';
 import { formatScoreString } from '../dialPadLogic';
 
+const SCORE_3_SETS_COMPLETE = '10-1 1-0 1-0';
+
 describe('dialPadLogic - Timed sets incomplete handling', () => {
   const format = 'SET3X-S:T10';
 
@@ -20,11 +22,11 @@ describe('dialPadLogic - Timed sets incomplete handling', () => {
 
   it('should allow continuation after incomplete third set', () => {
     // User enters: "10-1 1-0 1" then "-0"
-    const digits = '10-1 1-0 1-0';
+    const digits = SCORE_3_SETS_COMPLETE;
     const result = formatScoreString(digits, { matchUpFormat: format });
     
     // Should now show 3 complete sets
-    expect(result).toBe('10-1 1-0 1-0');
+    expect(result).toBe(SCORE_3_SETS_COMPLETE);
   });
 
   it('should handle incomplete second set', () => {
@@ -81,10 +83,10 @@ describe('dialPadLogic - Timed sets completion detection', () => {
   const format = 'SET3X-S:T10';
 
   it('should recognize truly complete match (3 sets, both scores each)', () => {
-    const digits = '10-1 1-0 1-0';
+    const digits = SCORE_3_SETS_COMPLETE;
     const result = formatScoreString(digits, { matchUpFormat: format });
     
-    expect(result).toBe('10-1 1-0 1-0');
+    expect(result).toBe(SCORE_3_SETS_COMPLETE);
     // This should be treated as complete (3 sets with both scores)
   });
 

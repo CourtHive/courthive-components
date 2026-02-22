@@ -5,9 +5,15 @@
 import { describe, it, expect } from 'vitest';
 import { formatScoreString } from '../dialPadLogic';
 
+const FORMAT_SET3X_T10 = 'SET3X-S:T10';
+const SCORE_10_0_01_01 = '10-0 0-1 0-1';
+const SCORE_30_25_25_30_35_20 = '30-25 25-30 35-20';
+const SCORE_30_1_01_01 = '30-1 0-1 0-1';
+const SCORE_30_25_25_30_1_0 = '30-25 25-30 1-0';
+
 describe('dialPadLogic - Timed sets (T10)', () => {
   describe('SET3X-S:T10 (3 timed sets, no aggregate)', () => {
-    const format = 'SET3X-S:T10';
+    const format = FORMAT_SET3X_T10;
 
     it('should format simple timed score 10-0', () => {
       const digits = '10-0';
@@ -16,9 +22,9 @@ describe('dialPadLogic - Timed sets (T10)', () => {
     });
 
     it('should format score 10-0 0-1 0-1', () => {
-      const digits = '10-0 0-1 0-1';
+      const digits = SCORE_10_0_01_01;
       const result = formatScoreString(digits, { matchUpFormat: format });
-      expect(result).toBe('10-0 0-1 0-1');
+      expect(result).toBe(SCORE_10_0_01_01);
     });
 
     it('should format high score 30-25', () => {
@@ -34,9 +40,9 @@ describe('dialPadLogic - Timed sets (T10)', () => {
     });
 
     it('should format multiple high scores', () => {
-      const digits = '30-25 25-30 35-20';
+      const digits = SCORE_30_25_25_30_35_20;
       const result = formatScoreString(digits, { matchUpFormat: format });
-      expect(result).toBe('30-25 25-30 35-20');
+      expect(result).toBe(SCORE_30_25_25_30_35_20);
     });
 
     it('should handle digits without explicit minus (requires minus for timed)', () => {
@@ -45,19 +51,19 @@ describe('dialPadLogic - Timed sets (T10)', () => {
       const result = formatScoreString(digits, { matchUpFormat: format });
       // Timed sets REQUIRE minus separator, so this won't parse as expected
       // This is expected behavior - user must use minus
-      expect(result).not.toBe('10-0 0-1 0-1');
+      expect(result).not.toBe(SCORE_10_0_01_01);
     });
 
     it('should format with explicit separators', () => {
       const digits = '10-0/0-1/0-1';
       const result = formatScoreString(digits, { matchUpFormat: format });
-      expect(result).toBe('10-0 0-1 0-1');
+      expect(result).toBe(SCORE_10_0_01_01);
     });
 
     it('should stop at 3 sets (bestOf 3)', () => {
       const digits = '10-0 0-1 0-1 5-3'; // 4 sets entered
       const result = formatScoreString(digits, { matchUpFormat: format });
-      expect(result).toBe('10-0 0-1 0-1'); // Only first 3
+      expect(result).toBe(SCORE_10_0_01_01); // Only first 3
     });
   });
 
@@ -65,9 +71,9 @@ describe('dialPadLogic - Timed sets (T10)', () => {
     const format = 'SET3XA-S:T10';
 
     it('should format aggregate score 30-1 0-1 0-1', () => {
-      const digits = '30-1 0-1 0-1';
+      const digits = SCORE_30_1_01_01;
       const result = formatScoreString(digits, { matchUpFormat: format });
-      expect(result).toBe('30-1 0-1 0-1');
+      expect(result).toBe(SCORE_30_1_01_01);
     });
 
     it('should format tied aggregate 30-25 25-30 0-0', () => {
@@ -87,7 +93,7 @@ describe('dialPadLogic - Timed sets (T10)', () => {
     const format = 'SET3XA-S:T10-F:TB1';
 
     it('should format aggregate with TB1 using minus notation', () => {
-      const digits = '30-25 25-30 1-0';
+      const digits = SCORE_30_25_25_30_1_0;
       const result = formatScoreString(digits, { matchUpFormat: format });
       // Final set is TB1, should format as bracket notation
       expect(result).toBe('30-25 25-30 [1-0]');
@@ -95,7 +101,7 @@ describe('dialPadLogic - Timed sets (T10)', () => {
 
     it('should handle TB1NOAD variant', () => {
       const format = 'SET3XA-S:T10-F:TB1NOAD';
-      const digits = '30-25 25-30 1-0';
+      const digits = SCORE_30_25_25_30_1_0;
       const result = formatScoreString(digits, { matchUpFormat: format });
       expect(result).toBe('30-25 25-30 [1-0]');
     });
@@ -133,21 +139,21 @@ describe('dialPadLogic - Timed sets (T10)', () => {
 
   describe('Edge cases', () => {
     it('should handle leading zeros in timed sets', () => {
-      const format = 'SET3X-S:T10';
+      const format = FORMAT_SET3X_T10;
       const digits = '10-0 0-10 5-5';
       const result = formatScoreString(digits, { matchUpFormat: format });
       expect(result).toBe('10-0 0-10 5-5');
     });
 
     it('should handle single-digit vs double-digit scores', () => {
-      const format = 'SET3X-S:T10';
+      const format = FORMAT_SET3X_T10;
       const digits = '9-10 10-9 11-8';
       const result = formatScoreString(digits, { matchUpFormat: format });
       expect(result).toBe('9-10 10-9 11-8');
     });
 
     it('should require minus separator for timed sets', () => {
-      const format = 'SET3X-S:T10';
+      const format = FORMAT_SET3X_T10;
       // Without minus, parsing is ambiguous
       const digits = '301'; // Could be 30-1, 3-01, or 3-0-1
       const result = formatScoreString(digits, { matchUpFormat: format });
@@ -156,7 +162,7 @@ describe('dialPadLogic - Timed sets (T10)', () => {
     });
 
     it('should handle empty sets in timed format', () => {
-      const format = 'SET3X-S:T10';
+      const format = FORMAT_SET3X_T10;
       const digits = '';
       const result = formatScoreString(digits, { matchUpFormat: format });
       expect(result).toBe('');
@@ -205,7 +211,7 @@ describe('dialPadApproach - scoreToDigits for timed sets', () => {
       ]
     };
     // Should add explicit minus for high scores
-    expect(scoreToDigits(score)).toBe('30-1 0-1 0-1');
+    expect(scoreToDigits(score)).toBe(SCORE_30_1_01_01);
   });
 
   it('should handle aggregate score', () => {
@@ -216,7 +222,7 @@ describe('dialPadApproach - scoreToDigits for timed sets', () => {
         { side1Score: 35, side2Score: 20, winningSide: 1 }
       ]
     };
-    expect(scoreToDigits(score)).toBe('30-25 25-30 35-20');
+    expect(scoreToDigits(score)).toBe(SCORE_30_25_25_30_35_20);
   });
 
   it('should handle TB1 final set', () => {
@@ -228,6 +234,6 @@ describe('dialPadApproach - scoreToDigits for timed sets', () => {
       ]
     };
     // TB1 set shows as regular scores (1-0) without tiebreak notation
-    expect(scoreToDigits(score)).toBe('30-25 25-30 1-0');
+    expect(scoreToDigits(score)).toBe(SCORE_30_25_25_30_1_0);
   });
 });

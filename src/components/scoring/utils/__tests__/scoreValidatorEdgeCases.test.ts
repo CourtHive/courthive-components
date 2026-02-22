@@ -13,6 +13,11 @@ import { describe, it, expect } from 'vitest';
 import { validateScore } from '../scoreValidator';
 import { MATCH_FORMATS } from '../../../../constants/matchUpFormats';
 
+const FORMAT_SET3_S4_TB7 = 'SET3-S:4/TB7';
+const FORMAT_SET3_TB7_F_TB10 = 'SET3-S:6/TB7-F:TB10';
+const SCORE_64_46_TB10_8 = '6-4 4-6 [10-8]';
+const SCORE_76_3_64 = '7-6(3) 6-4';
+
 describe('scoreValidator - Edge Cases', () => {
   describe('Extended Tiebreak Scores', () => {
     it('should accept extended tiebreak 102-100', () => {
@@ -81,12 +86,12 @@ describe('scoreValidator - Edge Cases', () => {
     });
 
     it('should handle short set 4-2', () => {
-      const result = validateScore('4-2 4-1', 'SET3-S:4/TB7');
+      const result = validateScore('4-2 4-1', FORMAT_SET3_S4_TB7);
       expect(result.isValid).toBe(true);
     });
 
     it('should handle short set with tiebreak 5-4(3)', () => {
-      const result = validateScore('5-4(3) 4-2', 'SET3-S:4/TB7');
+      const result = validateScore('5-4(3) 4-2', FORMAT_SET3_S4_TB7);
       expect(result.isValid).toBe(true);
     });
   });
@@ -254,7 +259,7 @@ describe('scoreValidator - Edge Cases', () => {
     });
 
     it('should handle short set format S:4/TB7', () => {
-      const result = validateScore('5-4(3) 4-2', 'SET3-S:4/TB7');
+      const result = validateScore('5-4(3) 4-2', FORMAT_SET3_S4_TB7);
       expect(result.isValid).toBe(true);
     });
 
@@ -264,7 +269,7 @@ describe('scoreValidator - Edge Cases', () => {
     });
 
     it('should handle mixed formats with finalSetFormat', () => {
-      const result = validateScore('6-4 4-6 [10-8]', 'SET3-S:6/TB7-F:TB10');
+      const result = validateScore(SCORE_64_46_TB10_8, FORMAT_SET3_TB7_F_TB10);
       expect(result.isValid).toBe(true);
     });
   });
@@ -288,18 +293,18 @@ describe('scoreValidator - Edge Cases', () => {
 
     it('should handle dynamicSets per-set format detection', () => {
       // Use valid format with finalSetFormat
-      const result = validateScore('6-4 4-6 [10-8]', 'SET3-S:6/TB7-F:TB10');
+      const result = validateScore(SCORE_64_46_TB10_8, FORMAT_SET3_TB7_F_TB10);
       expect(result.isValid).toBe(true);
     });
 
     it('should handle F:TB10 in final set', () => {
-      const result = validateScore('6-4 4-6 [10-8]', 'SET3-S:6/TB7-F:TB10');
+      const result = validateScore(SCORE_64_46_TB10_8, FORMAT_SET3_TB7_F_TB10);
       expect(result.isValid).toBe(true);
       expect(result.winningSide).toBe(1);
     });
 
     it('should reject regular set when F:TB10 expected', () => {
-      const result = validateScore('6-4 4-6 6-3', 'SET3-S:6/TB7-F:TB10');
+      const result = validateScore('6-4 4-6 6-3', FORMAT_SET3_TB7_F_TB10);
       expect(result.isValid).toBe(false);
       expect(result.error).toContain('tiebreak-only');
     });
@@ -326,9 +331,9 @@ describe('scoreValidator - Edge Cases', () => {
   describe('Regression: dynamicSets Tiebreak Rendering (Issue #7-5-tiebreak)', () => {
     it('should correctly render 7-6(3) not as 7-3', () => {
       // This tests the fix for tiebreak-only set detection
-      const result = validateScore('7-6(3) 6-4', MATCH_FORMATS.SET3_S6_TB7);
+      const result = validateScore(SCORE_76_3_64, MATCH_FORMATS.SET3_S6_TB7);
       expect(result.isValid).toBe(true);
-      expect(result.score).toBe('7-6(3) 6-4');
+      expect(result.score).toBe(SCORE_76_3_64);
     });
 
     it('should complete match with 7-5 final set after tiebreak set', () => {
@@ -348,14 +353,14 @@ describe('scoreValidator - Edge Cases', () => {
 
     it('should distinguish tiebreak-only sets from regular sets with tiebreaks', () => {
       // TB10 (tiebreak-only) should use brackets: [10-8]
-      const tbOnlyResult = validateScore('6-4 4-6 [10-8]', 'SET3-S:6/TB7-F:TB10');
+      const tbOnlyResult = validateScore(SCORE_64_46_TB10_8, FORMAT_SET3_TB7_F_TB10);
       expect(tbOnlyResult.isValid).toBe(true);
-      expect(tbOnlyResult.score).toBe('6-4 4-6 [10-8]');
+      expect(tbOnlyResult.score).toBe(SCORE_64_46_TB10_8);
 
       // Regular set with tiebreak should use parentheses: 7-6(3)
-      const regularResult = validateScore('7-6(3) 6-4', MATCH_FORMATS.SET3_S6_TB7);
+      const regularResult = validateScore(SCORE_76_3_64, MATCH_FORMATS.SET3_S6_TB7);
       expect(regularResult.isValid).toBe(true);
-      expect(regularResult.score).toBe('7-6(3) 6-4');
+      expect(regularResult.score).toBe(SCORE_76_3_64);
     });
 
     it('should handle multiple tiebreak sets followed by 7-5', () => {

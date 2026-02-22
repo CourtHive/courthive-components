@@ -17,6 +17,7 @@ import {
 } from './ageCategoryLogic';
 
 const clickable = '▾'; // clickable character
+const BORDER_STYLE = '1px solid #ddd';
 
 // Helper functions
 function isFunction(fx: any): fx is (...args: any[]) => any {
@@ -283,7 +284,7 @@ function createDropdown(e: Event, items: Array<{ text: string; onClick: () => vo
   const dropdownMenu = document.createElement('div');
   dropdownMenu.className = 'dropdown-menu';
   dropdownMenu.style.backgroundColor = 'white';
-  dropdownMenu.style.border = '1px solid #ddd';
+  dropdownMenu.style.border = BORDER_STYLE;
   dropdownMenu.style.borderRadius = '4px';
   dropdownMenu.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
 
@@ -557,7 +558,7 @@ export function getAgeCategoryModal({
   ageValueInput.value = String(editorState.ageValue || 18);
   ageValueInput.style.width = '80px';
   ageValueInput.style.padding = '0.3em';
-  ageValueInput.style.border = '1px solid #ddd';
+  ageValueInput.style.border = BORDER_STYLE;
   ageValueInput.style.borderRadius = '4px';
   ageValueInput.oninput = () => {
     const value = Number.parseInt(ageValueInput.value, 10);
@@ -606,7 +607,7 @@ export function getAgeCategoryModal({
   ageMinInput.value = String(editorState.ageMin || 10);
   ageMinInput.style.width = '80px';
   ageMinInput.style.padding = '0.3em';
-  ageMinInput.style.border = '1px solid #ddd';
+  ageMinInput.style.border = BORDER_STYLE;
   ageMinInput.style.borderRadius = '4px';
   ageMinInput.oninput = () => {
     const minValue = Number.parseInt(ageMinInput.value, 10);
@@ -651,7 +652,7 @@ export function getAgeCategoryModal({
   ageMaxInput.value = String(editorState.ageMax || 18);
   ageMaxInput.style.width = '80px';
   ageMaxInput.style.padding = '0.3em';
-  ageMaxInput.style.border = '1px solid #ddd';
+  ageMaxInput.style.border = BORDER_STYLE;
   ageMaxInput.style.borderRadius = '4px';
   ageMaxInput.oninput = () => {
     const maxValue = Number.parseInt(ageMaxInput.value, 10);

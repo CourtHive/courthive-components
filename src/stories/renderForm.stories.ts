@@ -1,6 +1,9 @@
 import '../components/forms/styles';
 import { renderForm } from '../components/forms/renderForm';
 
+const PLACEHOLDER_DATE = 'YYYY-MM-DD';
+const PLACEHOLDER_EMAIL = 'john@example.com';
+
 export default {
   title: 'Renderers/Form',
   tags: ['autodocs'],
@@ -163,7 +166,7 @@ export const ParticipantForm = {
       {
         label: 'Date of birth',
         field: 'birthday',
-        placeholder: 'YYYY-MM-DD',
+        placeholder: PLACEHOLDER_DATE,
         date: true,
         maxDate: new Date()
       }
@@ -189,7 +192,7 @@ export const RegistrationForm = {
         label: 'Email',
         field: 'email',
         type: 'email',
-        placeholder: 'john@example.com',
+        placeholder: PLACEHOLDER_EMAIL,
         iconLeft: 'fas fa-envelope',
         validator: (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
         error: 'Please enter a valid email'
@@ -244,7 +247,7 @@ export const FieldPairing = {
         label: 'Email',
         field: 'email',
         type: 'email',
-        placeholder: 'john@example.com',
+        placeholder: PLACEHOLDER_EMAIL,
         fieldPair: {
           label: 'Phone',
           field: 'phone',
@@ -283,13 +286,13 @@ export const DateRangeForm = {
       {
         label: 'Start date',
         field: 'startDate',
-        placeholder: 'YYYY-MM-DD',
+        placeholder: PLACEHOLDER_DATE,
         value: ''
       },
       {
         label: 'End date',
         field: 'endDate',
-        placeholder: 'YYYY-MM-DD',
+        placeholder: PLACEHOLDER_DATE,
         value: ''
       },
       {
@@ -498,7 +501,7 @@ export const CompleteExample = {
         label: 'Email',
         field: 'email',
         type: 'email',
-        placeholder: 'john@example.com',
+        placeholder: PLACEHOLDER_EMAIL,
         iconLeft: 'fas fa-envelope',
         fieldPair: {
           label: 'Phone',

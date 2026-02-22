@@ -23,6 +23,10 @@ import { controlBar } from '../components/controlBar/controlBar';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
 
+const IS_PRIMARY = 'is-primary';
+const U16_SINGLES = 'U16 Singles';
+const U18_SINGLES = 'U18 Singles';
+
 const meta: Meta = {
   title: 'Components/ControlBar',
   tags: ['autodocs']
@@ -129,7 +133,7 @@ export const ParticipantsPage: Story = {
         {
           label: 'Sign In',
           location: 'overlay',
-          intent: 'is-primary',
+          intent: IS_PRIMARY,
           onClick: () => {
             const selected = table.getSelectedData();
             selected.forEach((row: any) => {
@@ -306,15 +310,15 @@ export const EventsPage: Story = {
           id: 'oopButton',
           onClick: () => {
             const btn = document.getElementById('oopButton');
-            const published = btn?.classList.contains('is-primary');
-            btn?.classList.toggle('is-primary');
+            const published = btn?.classList.contains(IS_PRIMARY);
+            btn?.classList.toggle(IS_PRIMARY);
             btn!.innerText = published ? 'Publish OOP' : 'Unpublish OOP';
           }
         },
         {
           label: 'Add event',
           location: 'right',
-          intent: 'is-primary',
+          intent: IS_PRIMARY,
           onClick: () => alert('Add event')
         }
       ];
@@ -349,7 +353,7 @@ export const MatchUpsPage: Story = {
         matchData.push({
           id: i,
           matchUp: `${data[i].name} vs ${data[i + 1].name}`,
-          event: i % 4 < 2 ? 'U16 Singles' : 'U18 Singles',
+          event: i % 4 < 2 ? U16_SINGLES : U18_SINGLES,
           status: i % 3 === 0 ? 'Complete' : 'Ready',
           type: 'Singles'
         });
@@ -418,18 +422,18 @@ export const MatchUpsPage: Story = {
             },
             { divider: true },
             {
-              label: 'U16 Singles',
+              label: U16_SINGLES,
               close: true,
               onClick: () => {
-                currentEvent = 'U16 Singles';
+                currentEvent = U16_SINGLES;
                 applyFilters();
               }
             },
             {
-              label: 'U18 Singles',
+              label: U18_SINGLES,
               close: true,
               onClick: () => {
-                currentEvent = 'U18 Singles';
+                currentEvent = U18_SINGLES;
                 applyFilters();
               }
             }
@@ -526,7 +530,7 @@ export const VenuesPage: Story = {
             }
           }
         },
-        { label: 'Add venue', location: 'right', intent: 'is-primary', onClick: () => alert('Add venue') }
+        { label: 'Add venue', location: 'right', intent: IS_PRIMARY, onClick: () => alert('Add venue') }
       ];
 
       controlBar({ table, target, items });
@@ -571,7 +575,7 @@ export const AllLocations: Story = {
         { text: '<b>Overlay action</b>', location: 'overlay', onClick: () => alert('Overlay') },
         { label: 'Left', location: 'left', intent: 'is-light', onClick: () => alert('Left') },
         { label: 'Center', location: 'center', intent: 'is-light', onClick: () => alert('Center') },
-        { label: 'Right', location: 'right', intent: 'is-primary', onClick: () => alert('Right') }
+        { label: 'Right', location: 'right', intent: IS_PRIMARY, onClick: () => alert('Right') }
       ];
 
       controlBar({ table, target, items });

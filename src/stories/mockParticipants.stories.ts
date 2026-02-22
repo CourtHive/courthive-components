@@ -12,6 +12,8 @@ import { getMockParticipantsModal } from '../components/modal/mockParticipants';
 import { createJsonViewer } from './helpers/JsonViewer';
 import '../components/forms/styles';
 
+const CONSIDERED_DATE = '2024-12-31';
+
 export default {
   title: 'Components/MockParticipants',
   tags: ['autodocs']
@@ -104,7 +106,7 @@ export const WithConsideredDate = {
 
     button.onclick = () => {
       getMockParticipantsModal({
-        consideredDate: '2024-12-31',
+        consideredDate: CONSIDERED_DATE,
         callback: (participants) => {
           // Clear previous output
           outputContainer.innerHTML = '';
@@ -185,7 +187,7 @@ export const WithDefaults = {
     button.onclick = () => {
       getMockParticipantsModal({
         title: 'Generate Junior Players (U18)',
-        consideredDate: '2024-12-31',
+        consideredDate: CONSIDERED_DATE,
         defaults: {
           participantsCount: 64,
           ageMin: 10,
@@ -329,7 +331,7 @@ export const Scenarios = {
     // Junior Tournament
     const juniorBtn = createButton('Junior (U18)', 'is-primary', {
       title: 'Generate Junior Players',
-      consideredDate: '2024-12-31',
+      consideredDate: CONSIDERED_DATE,
       defaults: {
         participantsCount: 32,
         ageMin: 10,
@@ -341,7 +343,7 @@ export const Scenarios = {
     // Adult League
     const adultBtn = createButton('Adult League', 'is-info', {
       title: 'Generate Adult Players',
-      consideredDate: '2024-12-31',
+      consideredDate: CONSIDERED_DATE,
       defaults: {
         participantsCount: 64,
         ageMin: 25,
@@ -353,7 +355,7 @@ export const Scenarios = {
     // Senior Tournament
     const seniorBtn = createButton('Senior (60+)', 'is-success', {
       title: 'Generate Senior Players',
-      consideredDate: '2024-12-31',
+      consideredDate: CONSIDERED_DATE,
       defaults: {
         participantsCount: 16,
         ageMin: 60,
@@ -366,7 +368,7 @@ export const Scenarios = {
     // Development Program
     const devBtn = createButton('Youth Development', 'is-warning', {
       title: 'Generate Youth Players',
-      consideredDate: '2024-12-31',
+      consideredDate: CONSIDERED_DATE,
       defaults: {
         participantsCount: 128,
         ageMin: 8,
@@ -440,7 +442,7 @@ export const FieldRelationships = {
     button.onclick = () => {
       getMockParticipantsModal({
         title: 'Test Age Range Validation',
-        consideredDate: '2024-12-31',
+        consideredDate: CONSIDERED_DATE,
         defaults: {
           participantsCount: 16,
           ageMin: 12,
@@ -517,7 +519,7 @@ export const CustomLabels = {
     button.onclick = () => {
       getMockParticipantsModal({
         title: 'Crear Jugadores Ficticios',
-        consideredDate: '2024-12-31',
+        consideredDate: CONSIDERED_DATE,
         labels: {
           gender: 'Género del participante',
           count: 'Número de participantes',

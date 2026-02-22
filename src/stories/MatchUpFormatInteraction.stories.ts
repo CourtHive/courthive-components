@@ -6,6 +6,10 @@
 import type { Meta, StoryObj } from '@storybook/html';
 import { within, waitFor, userEvent, expect } from '@storybook/test';
 
+const SELECTED_FORMAT_PLACEHOLDER = '<strong>Selected format will appear here</strong>';
+const BUTTON_IS_PRIMARY = 'button is-primary';
+const FORMAT_SET3_TB7 = 'SET3-S:6/TB7';
+
 const meta: Meta = {
   title: 'Components/MatchUpFormat/Interactions',
   tags: ['autodocs']
@@ -32,17 +36,17 @@ export const FinalSetTiebreakInitialization: Story = {
     resultDisplay.style.padding = '1em';
     resultDisplay.style.backgroundColor = '#f0f0f0';
     resultDisplay.style.borderRadius = '4px';
-    resultDisplay.innerHTML = '<strong>Selected format will appear here</strong>';
+    resultDisplay.innerHTML = SELECTED_FORMAT_PLACEHOLDER;
 
     const button = document.createElement('button');
-    button.className = 'button is-primary';
+    button.className = BUTTON_IS_PRIMARY;
     button.textContent = 'Open Match Format Editor';
     button.id = 'open-modal-button';
     button.onclick = async () => {
       const { getMatchUpFormatModal } = await import('../components/matchUpFormat/matchUpFormat');
 
       getMatchUpFormatModal({
-        existingMatchUpFormat: 'SET3-S:6/TB7',
+        existingMatchUpFormat: FORMAT_SET3_TB7,
         callback: (format: string) => {
           if (format) {
             resultDisplay.innerHTML = `<strong style="color: #000;">Selected format:</strong> <code style="background: #e0e0e0; padding: 0.2em 0.4em; border-radius: 3px; color: #000;">${format}</code>`;
@@ -80,7 +84,7 @@ export const FinalSetTiebreakInitialization: Story = {
     await waitFor(async () => {
       const formatDisplay = document.getElementById('matchUpFormatString');
       expect(formatDisplay).toBeInTheDocument();
-      expect(formatDisplay?.textContent).toBe('SET3-S:6/TB7');
+      expect(formatDisplay?.textContent).toBe(FORMAT_SET3_TB7);
     });
 
     // Step 3: Verify initial checkbox states
@@ -137,10 +141,10 @@ export const FinalSetNoTiebreakWhenMainHasNone: Story = {
     resultDisplay.style.padding = '1em';
     resultDisplay.style.backgroundColor = '#f0f0f0';
     resultDisplay.style.borderRadius = '4px';
-    resultDisplay.innerHTML = '<strong>Selected format will appear here</strong>';
+    resultDisplay.innerHTML = SELECTED_FORMAT_PLACEHOLDER;
 
     const button = document.createElement('button');
-    button.className = 'button is-primary';
+    button.className = BUTTON_IS_PRIMARY;
     button.textContent = 'Open Modal (No Tiebreak)';
     button.id = 'open-modal-button-2';
     button.onclick = async () => {
@@ -232,7 +236,7 @@ export const PreserveExistingFinalSetTiebreak: Story = {
     resultDisplay.innerHTML = '<strong>Checkbox state will appear here</strong>';
 
     const button = document.createElement('button');
-    button.className = 'button is-primary';
+    button.className = BUTTON_IS_PRIMARY;
     button.textContent = 'Open with Explicit F:6';
     button.id = 'open-modal-button-3';
     button.onclick = async () => {
@@ -317,17 +321,17 @@ export const PredefinedFormatUpdatesControls: Story = {
     resultDisplay.style.padding = '1em';
     resultDisplay.style.backgroundColor = '#f0f0f0';
     resultDisplay.style.borderRadius = '4px';
-    resultDisplay.innerHTML = '<strong>Selected format will appear here</strong>';
+    resultDisplay.innerHTML = SELECTED_FORMAT_PLACEHOLDER;
 
     const button = document.createElement('button');
-    button.className = 'button is-primary';
+    button.className = BUTTON_IS_PRIMARY;
     button.textContent = 'Open Match Format Editor';
     button.id = 'open-modal-button-4';
     button.onclick = async () => {
       const { getMatchUpFormatModal } = await import('../components/matchUpFormat/matchUpFormat');
 
       getMatchUpFormatModal({
-        existingMatchUpFormat: 'SET3-S:6/TB7',
+        existingMatchUpFormat: FORMAT_SET3_TB7,
         callback: (format: string) => {
           if (format) {
             resultDisplay.innerHTML = `<strong style="color: #000;">Selected format:</strong> <code style="background: #e0e0e0; padding: 0.2em 0.4em; border-radius: 3px; color: #000;">${format}</code>`;
@@ -366,7 +370,7 @@ export const PredefinedFormatUpdatesControls: Story = {
     await waitFor(() => {
       const formatDisplay = document.getElementById('matchUpFormatString');
       expect(formatDisplay).toBeInTheDocument();
-      expect(formatDisplay?.textContent).toBe('SET3-S:6/TB7');
+      expect(formatDisplay?.textContent).toBe(FORMAT_SET3_TB7);
     });
 
     // Verify initial button states

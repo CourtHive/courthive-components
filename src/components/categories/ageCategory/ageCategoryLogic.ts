@@ -3,6 +3,9 @@
  * Supports ITF TODS standard age category codes.
  */
 
+const SIMPLE_UNDER = 'Simple Under';
+const SIMPLE_OVER = 'Simple Over';
+
 export interface ParsedAgeCategory {
   type: 'under' | 'over' | 'range' | 'combined' | 'open';
   ageValue?: number;      // For simple under/over
@@ -88,12 +91,10 @@ export function parseAgeCategoryCode(code: string): ParsedAgeCategory | null {
         }
       }
       // First part is Over (sets min)
-      else if (part1.startsWith('O') || part1.endsWith('O')) {
-        if (match1O) {
-          const age = parseInt(match1O[1], 10);
-          ageMin = part1.startsWith('O') ? age + 1 : age; // O10 = min 11, 10O = min 10
-          oPosition = part1.startsWith('O') ? 'pre' : 'post';
-        }
+      else if ((part1.startsWith('O') || part1.endsWith('O')) && match1O) {
+        const age = parseInt(match1O[1], 10);
+        ageMin = part1.startsWith('O') ? age + 1 : age; // O10 = min 11, 10O = min 10
+        oPosition = part1.startsWith('O') ? 'pre' : 'post';
       }
 
       // Second part is Under (sets max)
@@ -105,12 +106,10 @@ export function parseAgeCategoryCode(code: string): ParsedAgeCategory | null {
         }
       }
       // Second part is Over (sets min)
-      else if (part2.startsWith('O') || part2.endsWith('O')) {
-        if (match2O) {
-          const age = parseInt(match2O[1], 10);
-          ageMin = part2.startsWith('O') ? age + 1 : age;
-          oPosition = part2.startsWith('O') ? 'pre' : 'post';
-        }
+      else if ((part2.startsWith('O') || part2.endsWith('O')) && match2O) {
+        const age = parseInt(match2O[1], 10);
+        ageMin = part2.startsWith('O') ? age + 1 : age;
+        oPosition = part2.startsWith('O') ? 'pre' : 'post';
       }
 
       if (ageMin !== undefined || ageMax !== undefined) {
@@ -218,7 +217,7 @@ export function getAgeOptions(): number[] {
  * Get category type options
  */
 export function getCategoryTypeOptions(): string[] {
-  return ['Simple Under', 'Simple Over', 'Range', 'Combined', 'Open'];
+  return [SIMPLE_UNDER, SIMPLE_OVER, 'Range', 'Combined', 'Open'];
 }
 
 /**
@@ -226,9 +225,9 @@ export function getCategoryTypeOptions(): string[] {
  */
 export function categoryTypeToInternal(categoryType: string): ParsedAgeCategory['type'] {
   switch (categoryType) {
-    case 'Simple Under':
+    case SIMPLE_UNDER:
       return 'under';
-    case 'Simple Over':
+    case SIMPLE_OVER:
       return 'over';
     case 'Range':
       return 'range';
@@ -247,9 +246,9 @@ export function categoryTypeToInternal(categoryType: string): ParsedAgeCategory[
 export function internalToCategory(type: ParsedAgeCategory['type']): string {
   switch (type) {
     case 'under':
-      return 'Simple Under';
+      return SIMPLE_UNDER;
     case 'over':
-      return 'Simple Over';
+      return SIMPLE_OVER;
     case 'range':
       return 'Range';
     case 'combined':

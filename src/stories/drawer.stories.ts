@@ -5,6 +5,10 @@
 import { drawer, initDrawer } from '../components/drawer/drawer';
 import '../components/forms/styles'; // Bulma styles
 
+const BUTTON_IS_PRIMARY = 'button is-primary';
+const BUTTON_IS_INFO = 'button is-info';
+const BUTTON_IS_SUCCESS = 'button is-success';
+
 export default {
   title: 'Components/Drawer',
   tags: ['autodocs'],
@@ -53,7 +57,7 @@ export const BasicDrawer = {
     );
 
     const button = document.createElement('button');
-    button.className = 'button is-primary';
+    button.className = BUTTON_IS_PRIMARY;
     button.textContent = 'Open Right Drawer';
     button.onclick = () => {
       const d = getDrawer();
@@ -81,7 +85,7 @@ export const LeftDrawer = {
     );
 
     const button = document.createElement('button');
-    button.className = 'button is-info';
+    button.className = BUTTON_IS_INFO;
     button.textContent = 'Open Left Drawer';
     button.onclick = () => {
       const d = getDrawer();
@@ -113,7 +117,7 @@ export const CustomWidth = {
     buttonContainer.style.gap = '1em';
 
     const smallButton = document.createElement('button');
-    smallButton.className = 'button is-primary';
+    smallButton.className = BUTTON_IS_PRIMARY;
     smallButton.textContent = 'Small (300px)';
     smallButton.onclick = () => {
       const d = getDrawer();
@@ -126,7 +130,7 @@ export const CustomWidth = {
     };
 
     const largeButton = document.createElement('button');
-    largeButton.className = 'button is-success';
+    largeButton.className = BUTTON_IS_SUCCESS;
     largeButton.textContent = 'Large (800px)';
     largeButton.onclick = () => {
       const d = getDrawer();
@@ -209,7 +213,7 @@ export const WithFooter = {
     );
 
     const button = document.createElement('button');
-    button.className = 'button is-success';
+    button.className = BUTTON_IS_SUCCESS;
     button.textContent = 'Open with Footer';
     button.onclick = () => {
       const d = getDrawer();
@@ -243,7 +247,7 @@ export const WithFooter = {
           cancelBtn.onclick = close;
 
           const saveBtn = document.createElement('button');
-          saveBtn.className = 'button is-primary';
+          saveBtn.className = BUTTON_IS_PRIMARY;
           saveBtn.textContent = 'Save Changes';
           saveBtn.onclick = () => {
             console.log('Changes saved!');
@@ -275,7 +279,7 @@ export const ScrollableContent = {
     );
 
     const button = document.createElement('button');
-    button.className = 'button is-primary';
+    button.className = BUTTON_IS_PRIMARY;
     button.textContent = 'Open Scrollable Drawer';
     button.onclick = () => {
       const d = getDrawer();
@@ -316,7 +320,7 @@ export const WithCloseCallback = {
     status.textContent = 'Drawer has not been opened yet';
 
     const button = document.createElement('button');
-    button.className = 'button is-info';
+    button.className = BUTTON_IS_INFO;
     button.textContent = 'Open Drawer';
     button.onclick = () => {
       status.textContent = 'Drawer is open...';
@@ -356,7 +360,7 @@ export const AllFeatures = {
     buttonContainer.style.flexWrap = 'wrap';
 
     const rightBtn = document.createElement('button');
-    rightBtn.className = 'button is-primary';
+    rightBtn.className = BUTTON_IS_PRIMARY;
     rightBtn.textContent = 'Right';
     rightBtn.onclick = () => {
       const d = getDrawer();
@@ -368,7 +372,7 @@ export const AllFeatures = {
     };
 
     const leftBtn = document.createElement('button');
-    leftBtn.className = 'button is-info';
+    leftBtn.className = BUTTON_IS_INFO;
     leftBtn.textContent = 'Left';
     leftBtn.onclick = () => {
       const d = getDrawer();
@@ -380,7 +384,7 @@ export const AllFeatures = {
     };
 
     const formBtn = document.createElement('button');
-    formBtn.className = 'button is-success';
+    formBtn.className = BUTTON_IS_SUCCESS;
     formBtn.textContent = 'Form with Footer';
     formBtn.onclick = () => {
       const d = getDrawer();
@@ -396,7 +400,7 @@ export const AllFeatures = {
         `,
         footer: (footerElement, close) => {
           const btn = document.createElement('button');
-          btn.className = 'button is-primary';
+          btn.className = BUTTON_IS_PRIMARY;
           btn.textContent = 'Save';
           btn.onclick = close;
           footerElement.appendChild(btn);

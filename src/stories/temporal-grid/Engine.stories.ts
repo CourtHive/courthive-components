@@ -11,12 +11,21 @@ import { TemporalEngine, temporal } from 'tods-competition-factory';
 const { calculateCapacityStats, courtOverlapEvaluator, dayBoundaryEvaluator } = temporal;
 
 // ============================================================================
+// Constants
+// ============================================================================
+
+const TEST_TOURNAMENT = 'test-tournament';
+const TEST_DATE = '2026-06-15';
+const T_0800 = '2026-06-15T08:00:00';
+const T_1200 = '2026-06-15T12:00:00';
+
+// ============================================================================
 // Mock Tournament
 // ============================================================================
 
 const mockTournament = {
-  tournamentId: 'test-tournament',
-  startDate: '2026-06-15',
+  tournamentId: TEST_TOURNAMENT,
+  startDate: TEST_DATE,
   endDate: '2026-06-20',
   venues: [
     {
@@ -156,7 +165,7 @@ export const CreatingBlocks: Story = {
     engine.init(mockTournament);
 
     const court = {
-      tournamentId: 'test-tournament',
+      tournamentId: TEST_TOURNAMENT,
       venueId: 'venue-1',
       courtId: 'court-1',
     };
@@ -208,7 +217,7 @@ export const RailDerivation: Story = {
 
 
     const court = {
-      tournamentId: 'test-tournament',
+      tournamentId: TEST_TOURNAMENT,
       venueId: 'venue-1',
       courtId: 'court-1',
     };
@@ -216,18 +225,18 @@ export const RailDerivation: Story = {
     // Create overlapping blocks
     engine.applyBlock({
       courts: [court],
-      timeRange: { start: '2026-06-15T08:00:00', end: '2026-06-15T18:00:00' },
+      timeRange: { start: T_0800, end: '2026-06-15T18:00:00' },
       type: 'AVAILABLE',
     });
 
     engine.applyBlock({
       courts: [court],
-      timeRange: { start: '2026-06-15T12:00:00', end: '2026-06-15T13:00:00' },
+      timeRange: { start: T_1200, end: '2026-06-15T13:00:00' },
       type: 'MAINTENANCE',
     });
 
     // Get derived rail
-    const rail = engine.getCourtRail('2026-06-15', court);
+    const rail = engine.getCourtRail(TEST_DATE, court);
 
     if (!rail) return 'No rail found';
 
@@ -265,15 +274,15 @@ export const CapacityCurve: Story = {
 
     // Add some blocks to create interesting capacity
     const courts = [
-      { tournamentId: 'test-tournament', venueId: 'venue-1', courtId: 'court-1' },
-      { tournamentId: 'test-tournament', venueId: 'venue-1', courtId: 'court-2' },
-      { tournamentId: 'test-tournament', venueId: 'venue-1', courtId: 'court-3' },
+      { tournamentId: TEST_TOURNAMENT, venueId: 'venue-1', courtId: 'court-1' },
+      { tournamentId: TEST_TOURNAMENT, venueId: 'venue-1', courtId: 'court-2' },
+      { tournamentId: TEST_TOURNAMENT, venueId: 'venue-1', courtId: 'court-3' },
     ];
 
     courts.forEach(court => {
       engine.applyBlock({
         courts: [court],
-        timeRange: { start: '2026-06-15T08:00:00', end: '2026-06-15T20:00:00' },
+        timeRange: { start: T_0800, end: '2026-06-15T20:00:00' },
         type: 'AVAILABLE',
       });
     });
@@ -281,11 +290,11 @@ export const CapacityCurve: Story = {
     // Block one court during lunch
     engine.applyBlock({
       courts: [courts[0]],
-      timeRange: { start: '2026-06-15T12:00:00', end: '2026-06-15T13:00:00' },
+      timeRange: { start: T_1200, end: '2026-06-15T13:00:00' },
       type: 'MAINTENANCE',
     });
 
-    const curve = engine.getCapacityCurve('2026-06-15');
+    const curve = engine.getCapacityCurve(TEST_DATE);
     const stats = calculateCapacityStats(curve);
 
     return `
@@ -326,7 +335,7 @@ export const ConflictDetection: Story = {
     });
 
     const court = {
-      tournamentId: 'test-tournament',
+      tournamentId: TEST_TOURNAMENT,
       venueId: 'venue-1',
       courtId: 'court-1',
     };
@@ -341,7 +350,7 @@ export const ConflictDetection: Story = {
     // Try to create overlapping block
     const result = engine.applyBlock({
       courts: [court],
-      timeRange: { start: '2026-06-15T12:00:00', end: '2026-06-15T16:00:00' },
+      timeRange: { start: T_1200, end: '2026-06-15T16:00:00' },
       type: 'AVAILABLE',
     });
 
@@ -431,7 +440,7 @@ export const EventSubscription: Story = {
       blockCount++;
       engine.applyBlock({
         courts: [{
-          tournamentId: 'test-tournament',
+          tournamentId: TEST_TOURNAMENT,
           venueId: 'venue-1',
           courtId: 'court-1',
         }],
@@ -464,22 +473,22 @@ export const WhatIfSimulation: Story = {
 
 
     const courts = [
-      { tournamentId: 'test-tournament', venueId: 'venue-1', courtId: 'court-1' },
-      { tournamentId: 'test-tournament', venueId: 'venue-1', courtId: 'court-2' },
-      { tournamentId: 'test-tournament', venueId: 'venue-1', courtId: 'court-3' },
+      { tournamentId: TEST_TOURNAMENT, venueId: 'venue-1', courtId: 'court-1' },
+      { tournamentId: TEST_TOURNAMENT, venueId: 'venue-1', courtId: 'court-2' },
+      { tournamentId: TEST_TOURNAMENT, venueId: 'venue-1', courtId: 'court-3' },
     ];
 
     // Add availability for all courts
     courts.forEach(court => {
       engine.applyBlock({
         courts: [court],
-        timeRange: { start: '2026-06-15T08:00:00', end: '2026-06-15T20:00:00' },
+        timeRange: { start: T_0800, end: '2026-06-15T20:00:00' },
         type: 'AVAILABLE',
       });
     });
 
     // Get current capacity
-    const beforeCurve = engine.getCapacityCurve('2026-06-15');
+    const beforeCurve = engine.getCapacityCurve(TEST_DATE);
     const beforeStats = calculateCapacityStats(beforeCurve);
 
     // Simulate adding maintenance block to court-1
@@ -488,7 +497,7 @@ export const WhatIfSimulation: Story = {
       block: {
         id: 'sim-block',
         court: courts[0],
-        start: '2026-06-15T12:00:00',
+        start: T_1200,
         end: '2026-06-15T14:00:00',
         type: 'MAINTENANCE',
       },
@@ -548,7 +557,7 @@ export const Performance: Story = {
     engine.init(mockTournament);
 
     const court = {
-      tournamentId: 'test-tournament',
+      tournamentId: TEST_TOURNAMENT,
       venueId: 'venue-1',
       courtId: 'court-1',
     };
@@ -568,7 +577,7 @@ export const Performance: Story = {
     }
 
     // Generate rail
-    const rail = engine.getCourtRail('2026-06-15', court);
+    const rail = engine.getCourtRail(TEST_DATE, court);
 
     const endTime = performance.now();
     const duration = endTime - startTime;

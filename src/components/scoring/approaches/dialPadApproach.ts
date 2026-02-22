@@ -12,6 +12,10 @@ import { getScoringConfig } from '../config';
 
 const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT } = matchUpStatusConstants;
 
+const DEFAULT_FORMAT = 'SET3-S:6/TB7';
+const OUTCOME_SELECTOR = 'input[name="matchOutcome"]';
+const WINNER_SELECTOR = 'input[name="irregularWinner"]';
+
 type EntryState = {
   digits: string; // Raw digits: "36366" becomes "3-6 3-6 6"
   setTo: number;
@@ -66,7 +70,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     container.style.gap = '1em';
 
     // Parse match format
-    const parsedFormat = matchUpFormatCode.parse(matchUp.matchUpFormat || 'SET3-S:6/TB7');
+    const parsedFormat = matchUpFormatCode.parse(matchUp.matchUpFormat || DEFAULT_FORMAT);
     const setTo = parsedFormat?.setFormat?.setTo || 6;
     const tiebreakAt = parsedFormat?.setFormat?.tiebreakAt || setTo;
 
@@ -89,7 +93,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       
       // CRITICAL: Validate initial score to set isMatchComplete
       // This prevents RET/DEF from being enabled when score is already complete
-      const initialScoreString = formatScoreString(state.digits, { matchUpFormat: matchUp.matchUpFormat || 'SET3-S:6/TB7' });
+      const initialScoreString = formatScoreString(state.digits, { matchUpFormat: matchUp.matchUpFormat || DEFAULT_FORMAT });
       if (initialScoreString && initialScoreString.includes('-')) {
         const initialValidation = validateScore(initialScoreString, matchUp.matchUpFormat);
         state.isMatchComplete = initialValidation.isValid && 
@@ -273,7 +277,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
     // Format score string using shared logic
     const formatScore = (digits: string): string => {
-      return formatScoreString(digits, { matchUpFormat: matchUp.matchUpFormat || 'SET3-S:6/TB7' });
+      return formatScoreString(digits, { matchUpFormat: matchUp.matchUpFormat || DEFAULT_FORMAT });
     };
 
     // Update matchUp display with current outcome
@@ -418,7 +422,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         selectedOutcome = COMPLETED;
         selectedWinner = undefined;
         // Uncheck irregular ending radios
-        const outcomeRadios = irregularEndingContainer.querySelectorAll('input[name="matchOutcome"]');
+        const outcomeRadios = irregularEndingContainer.querySelectorAll(OUTCOME_SELECTOR);
         outcomeRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
         // Hide winner selection
         winnerSelectionContainer.style.display = 'none';
@@ -549,10 +553,10 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       internalWinningSide = undefined;
       internalMatchUpStatus = undefined;
       // Clear winner radio selections
-      const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]');
+      const winnerRadios = irregularEndingContainer.querySelectorAll(WINNER_SELECTOR);
       winnerRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
       // Clear irregular ending radio selections
-      const outcomeRadios = irregularEndingContainer.querySelectorAll('input[name="matchOutcome"]');
+      const outcomeRadios = irregularEndingContainer.querySelectorAll(OUTCOME_SELECTOR);
       outcomeRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
       // Hide irregular ending containers
       irregularEndingContainer.style.display = 'none';
@@ -686,7 +690,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           selectedOutcome = RETIRED;
           selectedWinner = undefined;
           // Clear winner radio selections
-          const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]');
+          const winnerRadios = irregularEndingContainer.querySelectorAll(WINNER_SELECTOR);
           winnerRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
           updateDisplay();
         } else if (btn.value === 'walkover') {
@@ -695,7 +699,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           // Clear score for walkover
           state.digits = '';
           // Clear winner radio selections
-          const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]');
+          const winnerRadios = irregularEndingContainer.querySelectorAll(WINNER_SELECTOR);
           winnerRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
           updateDisplay();
           updateDigitButtonStates(); // Update button states after selecting walkover
@@ -703,7 +707,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           selectedOutcome = DEFAULTED;
           selectedWinner = undefined;
           // Clear winner radio selections
-          const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]');
+          const winnerRadios = irregularEndingContainer.querySelectorAll(WINNER_SELECTOR);
           winnerRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
           updateDisplay();
         } else if (btn.value === 'empty') {
@@ -780,7 +784,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       }
       
       // Check the appropriate irregular ending radio button
-      const outcomeRadios = irregularEndingContainer.querySelectorAll('input[name="matchOutcome"]') as NodeListOf<HTMLInputElement>;
+      const outcomeRadios = irregularEndingContainer.querySelectorAll(OUTCOME_SELECTOR) as NodeListOf<HTMLInputElement>;
       outcomeRadios.forEach(radio => {
         if (radio.value === selectedOutcome) {
           radio.checked = true;
@@ -790,7 +794,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       // Initialize winner if present (only for non-DOUBLE statuses)
       if (selectedWinner) {
         // Check the appropriate winner radio button
-        const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]') as NodeListOf<HTMLInputElement>;
+        const winnerRadios = irregularEndingContainer.querySelectorAll(WINNER_SELECTOR) as NodeListOf<HTMLInputElement>;
         winnerRadios.forEach(radio => {
           if (Number.parseInt(radio.value) === selectedWinner) {
             radio.checked = true;

@@ -385,8 +385,6 @@ describe('dynamicSets getSetFormat Logic', () => {
       it('should NOT complete set with 8-7 (no 2-game margin, would go to 9-7 or 8-8 tiebreak)', () => {
         const setFormat = getSetFormat(0, format, bestOf);
         const setTo = setFormat?.setTo || 6;
-        const tiebreakAt = setFormat?.tiebreakAt || 6;
-        
         const s1 = 8, s2 = 7;
         const maxScore = Math.max(s1, s2);
         const minScore = Math.min(s1, s2);
@@ -394,9 +392,7 @@ describe('dynamicSets getSetFormat Logic', () => {
         
         // Check both conditions
         const completeWith2GameMargin = maxScore >= setTo && scoreDiff >= 2;
-        const completeWithTiebreak = maxScore === tiebreakAt + 1 && 
-                                     minScore === tiebreakAt && 
-                                     false; // No tiebreak
+        const completeWithTiebreak = false; // No tiebreak
         
         expect(completeWith2GameMargin).toBe(false);
         expect(completeWithTiebreak).toBe(false);
