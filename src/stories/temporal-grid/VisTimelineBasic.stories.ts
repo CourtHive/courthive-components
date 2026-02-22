@@ -6,9 +6,8 @@
 import 'vis-timeline/styles/vis-timeline-graph2d.min.css';
 import { Timeline } from 'vis-timeline/standalone';
 import 'tippy.js/dist/tippy.css';
-import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
-import { TemporalGridEngine } from '../../components/temporal-grid/engine/temporalGridEngine';
-import { calculateCapacityStats } from '../../components/temporal-grid/engine/capacityCurve';
+import { mocksEngine, tournamentEngine, TemporalEngine, temporal } from 'tods-competition-factory';
+const { calculateCapacityStats } = temporal;
 import {
   buildResourcesFromTimelines,
   buildEventsFromTimelines,
@@ -545,7 +544,7 @@ function createEngineSetup(options?: { includeBookings?: boolean }) {
   const recordWithBookings = stateResult?.tournamentRecord ?? tournamentRecord;
 
   // Engine now loads blocks from tournament record automatically during init()
-  const engine = new TemporalGridEngine();
+  const engine = new TemporalEngine();
   engine.init(recordWithBookings, {
     dayStartTime: '06:00',
     dayEndTime: '22:00',
@@ -604,7 +603,7 @@ function createEngineSetup(options?: { includeBookings?: boolean }) {
 // ── Hidden-dates helper ───────────────────────────────────────────────────────
 
 /** Compute the widest time range across ALL tournament days (for multi-day hiddenDates). */
-function getWidestTimeRange(engine: TemporalGridEngine, courtRefs?: any[]) {
+function getWidestTimeRange(engine: TemporalEngine, courtRefs?: any[]) {
   const days = engine.getTournamentDays();
   let earliest = '23:59',
     latest = '00:00';
@@ -815,7 +814,7 @@ export const Baseline = {
  *
  * Data flow:
  *   mocksEngine.generateTournamentRecord()
- *     → TemporalGridEngine.init(tournamentRecord)
+ *     → TemporalEngine.init(tournamentRecord)
  *     → engine.getDayTimeline() → viewProjections → vis-timeline
  *
  * All block CRUD round-trips through the engine:
@@ -1630,7 +1629,7 @@ function createVenueAvailabilitySetup() {
   }
 
   // Engine loads defaultStartTime/defaultEndTime during init()
-  const engine = new TemporalGridEngine();
+  const engine = new TemporalEngine();
   engine.init(tournamentRecord, {
     dayStartTime: '06:00',
     dayEndTime: '22:00',
@@ -1810,7 +1809,7 @@ function buildCourtTreeWithEditIcons(
 
 function buildVenueInfoPanel(
   venueAvailInfos: VenueAvailabilityInfo[],
-  engine: TemporalGridEngine
+  engine: TemporalEngine
 ): { element: HTMLElement; update: () => void } {
   const bar = document.createElement('div');
   bar.style.cssText =

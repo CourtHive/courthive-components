@@ -10,11 +10,13 @@
  * This is the entry point for using the temporal grid in applications.
  */
 
-import { tools } from 'tods-competition-factory';
-import { TemporalGridEngine } from '../engine/temporalGridEngine';
+import { tools, TemporalEngine, temporal } from 'tods-competition-factory';
+
+const { calculateCapacityStats } = temporal;
+type BlockType = temporal.BlockType;
+type CourtRef = temporal.CourtRef;
+type DayId = temporal.DayId;
 import { TemporalGridControl, type TemporalGridControlConfig } from '../controller/temporalGridControl';
-import type { BlockType, CourtRef, DayId } from '../engine/types';
-import { calculateCapacityStats } from '../engine/capacityCurve';
 import { buildStatsBar, type StatsBarUpdate } from './statsBar';
 import { buildViewToolbar } from './viewToolbar';
 import { showCourtAvailabilityModal } from './courtAvailabilityModal';
@@ -69,7 +71,7 @@ export interface TemporalGridConfig extends Partial<TemporalGridControlConfig> {
 // ============================================================================
 
 export class TemporalGrid {
-  private engine: TemporalGridEngine;
+  private engine: TemporalEngine;
   private control: TemporalGridControl | null = null;
   private config: Required<TemporalGridConfig>;
 
@@ -95,7 +97,7 @@ export class TemporalGrid {
     } as Required<TemporalGridConfig>;
 
     // Create engine
-    this.engine = new TemporalGridEngine();
+    this.engine = new TemporalEngine();
     this.engine.init(config.tournamentRecord, config.engineConfig);
 
     // Subscribe to engine mutations
@@ -682,7 +684,7 @@ export class TemporalGrid {
   /**
    * Get the engine instance
    */
-  getEngine(): TemporalGridEngine {
+  getEngine(): TemporalEngine {
     return this.engine;
   }
 

@@ -7,14 +7,8 @@
 
 // @ts-expect-error - Storybook types not resolved under current moduleResolution
 import type { Meta, StoryObj } from '@storybook/html';
-import { TemporalGridEngine } from '../../components/temporal-grid/engine/temporalGridEngine';
-import {
-  calculateCapacityStats,
-} from '../../components/temporal-grid/engine/capacityCurve';
-import {
-  courtOverlapEvaluator,
-  dayBoundaryEvaluator,
-} from '../../components/temporal-grid/engine/conflictEvaluators';
+import { TemporalEngine, temporal } from 'tods-competition-factory';
+const { calculateCapacityStats, courtOverlapEvaluator, dayBoundaryEvaluator } = temporal;
 
 // ============================================================================
 // Mock Tournament
@@ -121,7 +115,7 @@ const renderEngineDemo = (title: string, demoFn: () => string) => {
  */
 export const Initialization: Story = {
   render: () => renderEngineDemo('Engine Initialization', () => {
-    const engine = new TemporalGridEngine();
+    const engine = new TemporalEngine();
     engine.init(mockTournament, {
       dayStartTime: '08:00',
       dayEndTime: '20:00',
@@ -158,7 +152,7 @@ ${courts.map(c => `- ${c.name} (${c.surface})`).join('\n')}
  */
 export const CreatingBlocks: Story = {
   render: () => renderEngineDemo('Creating Blocks', () => {
-    const engine = new TemporalGridEngine();
+    const engine = new TemporalEngine();
     engine.init(mockTournament);
 
     const court = {
@@ -209,10 +203,9 @@ Block Details:
  */
 export const RailDerivation: Story = {
   render: () => renderEngineDemo('Rail Derivation', () => {
-    const engine = new TemporalGridEngine();
+    const engine = new TemporalEngine();
     engine.init(mockTournament);
 
-    engine.setSelectedDay('2026-06-15');
 
     const court = {
       tournamentId: 'test-tournament',
@@ -266,10 +259,9 @@ Total Segments: ${rail.segments.length}
  */
 export const CapacityCurve: Story = {
   render: () => renderEngineDemo('Capacity Curve', () => {
-    const engine = new TemporalGridEngine();
+    const engine = new TemporalEngine();
     engine.init(mockTournament);
 
-    engine.setSelectedDay('2026-06-15');
 
     // Add some blocks to create interesting capacity
     const courts = [
@@ -328,7 +320,7 @@ Sample Points: ${curve.points.length}
  */
 export const ConflictDetection: Story = {
   render: () => renderEngineDemo('Conflict Detection', () => {
-    const engine = new TemporalGridEngine();
+    const engine = new TemporalEngine();
     engine.init(mockTournament, {
       conflictEvaluators: [courtOverlapEvaluator, dayBoundaryEvaluator],
     });
@@ -418,7 +410,7 @@ export const EventSubscription: Story = {
     container.appendChild(button);
 
     // Setup engine
-    const engine = new TemporalGridEngine();
+    const engine = new TemporalEngine();
     engine.init(mockTournament);
 
     const events: string[] = [];
@@ -467,10 +459,9 @@ export const EventSubscription: Story = {
  */
 export const WhatIfSimulation: Story = {
   render: () => renderEngineDemo('What-If Simulation', () => {
-    const engine = new TemporalGridEngine();
+    const engine = new TemporalEngine();
     engine.init(mockTournament);
 
-    engine.setSelectedDay('2026-06-15');
 
     const courts = [
       { tournamentId: 'test-tournament', venueId: 'venue-1', courtId: 'court-1' },
@@ -553,7 +544,7 @@ export const Performance: Story = {
   render: () => renderEngineDemo('Performance Test', () => {
     const startTime = performance.now();
 
-    const engine = new TemporalGridEngine();
+    const engine = new TemporalEngine();
     engine.init(mockTournament);
 
     const court = {

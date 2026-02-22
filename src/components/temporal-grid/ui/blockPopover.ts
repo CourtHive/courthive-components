@@ -8,8 +8,10 @@
 import tippy, { type Instance as TippyInstance } from 'tippy.js';
 import 'tippy.js/dist/tippy.css';
 import { showModernTimePicker } from './modernTimePicker';
-import type { TemporalGridEngine } from '../engine/temporalGridEngine';
-import { BLOCK_TYPES, type BlockType } from '../engine/types';
+import { temporal, type TemporalEngine } from 'tods-competition-factory';
+
+const { BLOCK_TYPES } = temporal;
+type BlockType = temporal.BlockType;
 import { DEFAULT_COLOR_SCHEME } from '../controller/viewProjections';
 
 // ============================================================================
@@ -30,7 +32,7 @@ export interface BlockPopoverOptions {
 export interface EngineBlockPopoverOptions {
   itemId: string;
   blockId: string;
-  engine: TemporalGridEngine;
+  engine: TemporalEngine;
   day: string;
   onBlockChanged: () => void;
 }

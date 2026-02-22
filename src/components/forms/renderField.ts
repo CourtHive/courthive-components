@@ -278,6 +278,7 @@ export function renderField(item: any): { field: HTMLDivElement; inputElement?: 
       input.type = 'radio';
       input.value = option.text;
       if (option.checked) input.checked = true;
+      if (isFunction(item.onChange)) input.addEventListener('change', (e) => item.onChange(e, item));
       label.appendChild(input);
       radioGroup.appendChild(label);
       const text = document.createElement('span');
