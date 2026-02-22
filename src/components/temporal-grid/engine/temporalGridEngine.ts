@@ -1,9 +1,9 @@
 /**
  * Temporal Grid Engine - Core State Machine
- * 
+ *
  * Pure JavaScript state machine for managing court availability as continuous
  * time-based capacity streams. UI-agnostic and fully testable.
- * 
+ *
  * Architecture:
  * - Blocks are the only canonical state (stored in Map indices)
  * - All higher structures (rails, capacity) are derived on-demand
@@ -11,42 +11,38 @@
  * - Event subscribers notified of changes
  */
 
-import type {
-  ApplyBlockOptions,
-  ApplyTemplateOptions,
-  Block,
-  BlockId,
-  BlockMutation,
-  BlockType,
-  CapacityCurve,
-  CourtDayAvailability,
-  CourtMeta,
-  CourtRef,
-  CourtRail,
-  DayId,
-  EngineConfig,
-  EngineContext,
-  EngineEvent,
-  FacilityDayTimeline,
-  FacilityId,
-  MoveBlockOptions,
-  MutationResult,
-  ResizeBlockOptions,
-  Rule,
-  RuleId,
-  SimulationResult,
-  Template,
-  TemplateId,
+import {
+  BLOCK_TYPES,
+  type ApplyBlockOptions,
+  type ApplyTemplateOptions,
+  type Block,
+  type BlockId,
+  type BlockMutation,
+  type BlockType,
+  type CapacityCurve,
+  type CourtDayAvailability,
+  type CourtMeta,
+  type CourtRef,
+  type CourtRail,
+  type DayId,
+  type EngineConfig,
+  type EngineContext,
+  type EngineEvent,
+  type VenueDayTimeline,
+  type VenueId,
+  type MoveBlockOptions,
+  type MutationResult,
+  type ResizeBlockOptions,
+  type Rule,
+  type RuleId,
+  type SimulationResult,
+  type Template,
+  type TemplateId
 } from './types';
 
 import { tools } from 'tods-competition-factory';
 
-import {
-  courtDayKey,
-  courtKey,
-  deriveRailSegments,
-  extractDay,
-} from './railDerivation';
+import { courtDayKey, courtKey, venueKey, deriveRailSegments, extractDay } from './railDerivation';
 
 import { generateCapacityCurve } from './capacityCurve';
 
@@ -66,18 +62,22 @@ export class TemporalGridEngine {
   // Key: courtKey(courtRef)|day, or courtKey(courtRef)|DEFAULT, or GLOBAL|DEFAULT
   private courtDayAvailability: Map<string, CourtDayAvailability> = new Map();
 
+  // Per-venue-per-day availability
+  // Key: venueKey|day, or venueKey|DEFAULT
+  private venueDayAvailability: Map<string, CourtDayAvailability> = new Map();
+
   // Templates and rules
   private templates: Map<TemplateId, Template> = new Map();
   private rules: Map<RuleId, Rule> = new Map();
 
   // View state
   private selectedDay?: DayId;
-  private selectedFacility?: FacilityId;
-  private selectedCourt?: string;
+  private selectedVenue?: VenueId;
+  private readonly selectedCourt?: string;
   private layerVisibility: Map<BlockType, boolean> = new Map();
 
   // Event subscribers
-  private subscribers: Array<(event: EngineEvent) => void> = [];
+  private readonly subscribers: Array<(event: EngineEvent) => void> = [];
 
   // Block ID counter
   private nextBlockId = 1;
@@ -99,30 +99,30 @@ export class TemporalGridEngine {
       dayEndTime: config?.dayEndTime || '23:00',
       slotMinutes: config?.slotMinutes || 15,
       typePrecedence: config?.typePrecedence || [
-        'HARD_BLOCK',
-        'LOCKED',
-        'MAINTENANCE',
-        'BLOCKED',
-        'PRACTICE',
-        'RESERVED',
-        'SOFT_BLOCK',
-        'AVAILABLE',
-        'UNSPECIFIED',
+        BLOCK_TYPES.HARD_BLOCK,
+        BLOCK_TYPES.LOCKED,
+        BLOCK_TYPES.MAINTENANCE,
+        BLOCK_TYPES.BLOCKED,
+        BLOCK_TYPES.PRACTICE,
+        BLOCK_TYPES.RESERVED,
+        BLOCK_TYPES.SOFT_BLOCK,
+        BLOCK_TYPES.AVAILABLE,
+        BLOCK_TYPES.UNSPECIFIED
       ],
-      conflictEvaluators: config?.conflictEvaluators || [],
+      conflictEvaluators: config?.conflictEvaluators || []
     };
 
     // Initialize layer visibility (all visible by default)
     const allTypes: BlockType[] = [
-      'AVAILABLE',
-      'BLOCKED',
-      'PRACTICE',
-      'MAINTENANCE',
-      'RESERVED',
-      'SOFT_BLOCK',
-      'HARD_BLOCK',
-      'LOCKED',
-      'UNSPECIFIED',
+      BLOCK_TYPES.AVAILABLE,
+      BLOCK_TYPES.BLOCKED,
+      BLOCK_TYPES.PRACTICE,
+      BLOCK_TYPES.MAINTENANCE,
+      BLOCK_TYPES.RESERVED,
+      BLOCK_TYPES.SOFT_BLOCK,
+      BLOCK_TYPES.HARD_BLOCK,
+      BLOCK_TYPES.LOCKED,
+      BLOCK_TYPES.UNSPECIFIED
     ];
     allTypes.forEach((type) => this.layerVisibility.set(type, true));
 
@@ -131,7 +131,7 @@ export class TemporalGridEngine {
 
     this.emit({
       type: 'STATE_CHANGED',
-      payload: { reason: 'INIT' },
+      payload: { reason: 'INIT' }
     });
   }
 
@@ -144,7 +144,7 @@ export class TemporalGridEngine {
 
     this.emit({
       type: 'STATE_CHANGED',
-      payload: { reason: 'TOURNAMENT_RECORD_UPDATED' },
+      payload: { reason: 'TOURNAMENT_RECORD_UPDATED' }
     });
   }
 
@@ -163,7 +163,7 @@ export class TemporalGridEngine {
     this.selectedDay = day;
     this.emit({
       type: 'VIEW_CHANGED',
-      payload: { day },
+      payload: { day }
     });
   }
 
@@ -171,23 +171,23 @@ export class TemporalGridEngine {
     return this.selectedDay;
   }
 
-  setSelectedFacility(facilityId: FacilityId | null): void {
-    this.selectedFacility = facilityId || undefined;
+  setSelectedVenue(venueId: VenueId | null): void {
+    this.selectedVenue = venueId || undefined;
     this.emit({
       type: 'VIEW_CHANGED',
-      payload: { facilityId },
+      payload: { venueId }
     });
   }
 
-  getSelectedFacility(): FacilityId | undefined {
-    return this.selectedFacility;
+  getSelectedVenue(): VenueId | undefined {
+    return this.selectedVenue;
   }
 
   setLayerVisibility(layerId: BlockType, visible: boolean): void {
     this.layerVisibility.set(layerId, visible);
     this.emit({
       type: 'VIEW_CHANGED',
-      payload: { layerId, visible },
+      payload: { layerId, visible }
     });
   }
 
@@ -201,28 +201,52 @@ export class TemporalGridEngine {
 
   /**
    * Get availability for a court on a specific day.
-   * Lookup order: courtKey|day → courtKey|DEFAULT → GLOBAL|DEFAULT → engine config
+   * Resolves court-level and venue-level independently, then intersects.
+   *
+   * Court resolution: courtKey|day → courtKey|DEFAULT (or null)
+   * Venue resolution: venueKey|day → venueKey|DEFAULT (or null)
+   *
+   * If both exist → intersection: max(startTime), min(endTime).
+   *   Guard: if intersection is empty (start >= end), use venue availability.
+   * If only court → use court.
+   * If only venue → use venue.
+   * If neither → GLOBAL|DEFAULT → engine config fallback.
    */
   getCourtAvailability(court: CourtRef, day: DayId): CourtDayAvailability {
+    // Resolve court-level
     const ck = courtKey(court);
-    // 1. Specific court+day
-    const dayKey = `${ck}|${day}`;
-    const dayAvail = this.courtDayAvailability.get(dayKey);
-    if (dayAvail) return dayAvail;
+    const courtAvail =
+      this.courtDayAvailability.get(`${ck}|${day}`) ??
+      this.courtDayAvailability.get(`${ck}|DEFAULT`) ??
+      null;
 
-    // 2. Court default (all days)
-    const defaultKey = `${ck}|DEFAULT`;
-    const defaultAvail = this.courtDayAvailability.get(defaultKey);
-    if (defaultAvail) return defaultAvail;
+    // Resolve venue-level
+    const vk = venueKey(court.tournamentId, court.venueId);
+    const venueAvail =
+      this.venueDayAvailability.get(`${vk}|${day}`) ??
+      this.venueDayAvailability.get(`${vk}|DEFAULT`) ??
+      null;
 
-    // 3. Global default
+    if (courtAvail && venueAvail) {
+      // Intersection: later start, earlier end
+      const start = courtAvail.startTime > venueAvail.startTime ? courtAvail.startTime : venueAvail.startTime;
+      const end = courtAvail.endTime < venueAvail.endTime ? courtAvail.endTime : venueAvail.endTime;
+      // Guard: if intersection is empty, fall back to venue availability
+      if (start >= end) return venueAvail;
+      return { startTime: start, endTime: end };
+    }
+
+    if (courtAvail) return courtAvail;
+    if (venueAvail) return venueAvail;
+
+    // Global default
     const globalAvail = this.courtDayAvailability.get('GLOBAL|DEFAULT');
     if (globalAvail) return globalAvail;
 
-    // 4. Engine config fallback
+    // Engine config fallback
     return {
       startTime: this.config.dayStartTime,
-      endTime: this.config.dayEndTime,
+      endTime: this.config.dayEndTime
     };
   }
 
@@ -234,7 +258,7 @@ export class TemporalGridEngine {
     this.courtDayAvailability.set(`${ck}|${day}`, avail);
     this.emit({
       type: 'AVAILABILITY_CHANGED',
-      payload: { court, day, avail },
+      payload: { court, day, avail }
     });
   }
 
@@ -246,7 +270,7 @@ export class TemporalGridEngine {
     this.courtDayAvailability.set(`${ck}|DEFAULT`, avail);
     this.emit({
       type: 'AVAILABILITY_CHANGED',
-      payload: { court, scope: 'all-days', avail },
+      payload: { court, scope: 'all-days', avail }
     });
   }
 
@@ -257,8 +281,48 @@ export class TemporalGridEngine {
     this.courtDayAvailability.set('GLOBAL|DEFAULT', avail);
     this.emit({
       type: 'AVAILABILITY_CHANGED',
-      payload: { scope: 'global', avail },
+      payload: { scope: 'global', avail }
     });
+  }
+
+  // ============================================================================
+  // Venue Availability
+  // ============================================================================
+
+  /**
+   * Set default availability for a venue (all days)
+   */
+  setVenueDefaultAvailability(tournamentId: string, venueId: string, avail: CourtDayAvailability): void {
+    const vk = venueKey(tournamentId, venueId);
+    this.venueDayAvailability.set(`${vk}|DEFAULT`, avail);
+    this.emit({
+      type: 'AVAILABILITY_CHANGED',
+      payload: { tournamentId, venueId, scope: 'venue', avail }
+    });
+  }
+
+  /**
+   * Set availability for a venue on a specific day
+   */
+  setVenueDayAvailability(tournamentId: string, venueId: string, day: DayId, avail: CourtDayAvailability): void {
+    const vk = venueKey(tournamentId, venueId);
+    this.venueDayAvailability.set(`${vk}|${day}`, avail);
+    this.emit({
+      type: 'AVAILABILITY_CHANGED',
+      payload: { tournamentId, venueId, day, scope: 'venue-day', avail }
+    });
+  }
+
+  /**
+   * Get venue availability. Resolves venueKey|day → venueKey|DEFAULT → null.
+   */
+  getVenueAvailability(tournamentId: string, venueId: string, day?: DayId): CourtDayAvailability | null {
+    const vk = venueKey(tournamentId, venueId);
+    if (day) {
+      const dayAvail = this.venueDayAvailability.get(`${vk}|${day}`);
+      if (dayAvail) return dayAvail;
+    }
+    return this.venueDayAvailability.get(`${vk}|DEFAULT`) ?? null;
   }
 
   /**
@@ -266,9 +330,7 @@ export class TemporalGridEngine {
    * Returns the earliest start and latest end among the given courts (or all courts).
    */
   getVisibleTimeRange(day: DayId, courtRefs?: CourtRef[]): { startTime: string; endTime: string } {
-    const courts = courtRefs && courtRefs.length > 0
-      ? courtRefs
-      : this.getAllCourtsFromTournamentRecord();
+    const courts = courtRefs && courtRefs.length > 0 ? courtRefs : this.getAllCourtsFromTournamentRecord();
 
     let earliestStart = '23:59';
     let latestEnd = '00:00';
@@ -312,22 +374,22 @@ export class TemporalGridEngine {
   // ============================================================================
 
   /**
-   * Get complete timeline for a day (all facilities, all courts)
+   * Get complete timeline for a day (all venues, all courts)
    */
-  getDayTimeline(day: DayId): FacilityDayTimeline[] {
+  getDayTimeline(day: DayId): VenueDayTimeline[] {
     const courts = this.getAllCourtsFromTournamentRecord();
 
-    // Group by facility
-    const facilitiesMap = new Map<FacilityId, CourtRef[]>();
+    // Group by venue
+    const venuesMap = new Map<VenueId, CourtRef[]>();
     for (const court of courts) {
-      const existing = facilitiesMap.get(court.facilityId) || [];
+      const existing = venuesMap.get(court.venueId) || [];
       existing.push(court);
-      facilitiesMap.set(court.facilityId, existing);
+      venuesMap.set(court.venueId, existing);
     }
 
-    // Build timeline for each facility
-    const timelines: FacilityDayTimeline[] = [];
-    for (const [facilityId, courtRefs] of facilitiesMap.entries()) {
+    // Build timeline for each venue
+    const timelines: VenueDayTimeline[] = [];
+    for (const [venueId, courtRefs] of venuesMap.entries()) {
       const rails: CourtRail[] = [];
 
       for (const court of courtRefs) {
@@ -339,8 +401,8 @@ export class TemporalGridEngine {
 
       timelines.push({
         day,
-        facilityId,
-        rails,
+        venueId,
+        rails
       });
     }
 
@@ -348,11 +410,11 @@ export class TemporalGridEngine {
   }
 
   /**
-   * Get timeline for a specific facility
+   * Get timeline for a specific venue
    */
-  getFacilityTimeline(day: DayId, facilityId: FacilityId): FacilityDayTimeline | null {
+  getVenueTimeline(day: DayId, venueId: VenueId): VenueDayTimeline | null {
     const dayTimeline = this.getDayTimeline(day);
-    return dayTimeline.find((t) => t.facilityId === facilityId) || null;
+    return dayTimeline.find((t) => t.venueId === venueId) || null;
   }
 
   /**
@@ -363,17 +425,17 @@ export class TemporalGridEngine {
     const avail = this.getCourtAvailability(court, day);
     const dayRange = {
       start: `${day}T${avail.startTime}:00`,
-      end: `${day}T${avail.endTime}:00`,
+      end: `${day}T${avail.endTime}:00`
     };
     const key = courtDayKey(court, day);
     const blockIds = this.blocksByCourtDay.get(key) || [];
-    const blocks = blockIds.map((id) => this.blocksById.get(id)!).filter(Boolean);
+    const blocks = blockIds.map((id) => this.blocksById.get(id)).filter(Boolean);
 
     const segments = deriveRailSegments(blocks, dayRange, this.config);
 
     return {
       court,
-      segments,
+      segments
     };
   }
 
@@ -390,7 +452,7 @@ export class TemporalGridEngine {
    */
   getDayBlocks(day: DayId): Block[] {
     const blocks: Block[] = [];
-    
+
     // Iterate through all blocks and find ones that overlap with this day
     for (const block of this.blocksById.values()) {
       const blockDay = extractDay(block.start);
@@ -398,7 +460,7 @@ export class TemporalGridEngine {
         blocks.push(block);
       }
     }
-    
+
     return blocks;
   }
 
@@ -454,12 +516,12 @@ export class TemporalGridEngine {
         type: opts.type,
         reason: opts.reason,
         hardSoft: opts.hardSoft,
-        source: opts.source || 'USER',
+        source: opts.source || 'USER'
       };
 
       mutations.push({
         kind: 'ADD_BLOCK',
-        block,
+        block
       });
     }
 
@@ -479,10 +541,10 @@ export class TemporalGridEngine {
         warnings: [
           {
             code: 'BLOCK_NOT_FOUND',
-            message: `Block ${opts.blockId} not found`,
-          },
+            message: `Block ${opts.blockId} not found`
+          }
         ],
-        conflicts: [],
+        conflicts: []
       };
     }
 
@@ -494,7 +556,7 @@ export class TemporalGridEngine {
         applied: [],
         rejected: [],
         warnings: [{ code: 'OUTSIDE_AVAILABILITY', message: 'Block falls outside court availability' }],
-        conflicts: [],
+        conflicts: []
       };
     }
 
@@ -502,15 +564,15 @@ export class TemporalGridEngine {
       ...block,
       start: clamped.start,
       end: clamped.end,
-      court: targetCourt,
+      court: targetCourt
     };
 
     return this.applyMutations([
       {
         kind: 'UPDATE_BLOCK',
         block: updated,
-        previousBlock: block,
-      },
+        previousBlock: block
+      }
     ]);
   }
 
@@ -527,10 +589,10 @@ export class TemporalGridEngine {
         warnings: [
           {
             code: 'BLOCK_NOT_FOUND',
-            message: `Block ${opts.blockId} not found`,
-          },
+            message: `Block ${opts.blockId} not found`
+          }
         ],
-        conflicts: [],
+        conflicts: []
       };
     }
 
@@ -541,22 +603,22 @@ export class TemporalGridEngine {
         applied: [],
         rejected: [],
         warnings: [{ code: 'OUTSIDE_AVAILABILITY', message: 'Block falls outside court availability' }],
-        conflicts: [],
+        conflicts: []
       };
     }
 
     const updated: Block = {
       ...block,
       start: clamped.start,
-      end: clamped.end,
+      end: clamped.end
     };
 
     return this.applyMutations([
       {
         kind: 'UPDATE_BLOCK',
         block: updated,
-        previousBlock: block,
-      },
+        previousBlock: block
+      }
     ]);
   }
 
@@ -572,18 +634,18 @@ export class TemporalGridEngine {
         warnings: [
           {
             code: 'BLOCK_NOT_FOUND',
-            message: `Block ${blockId} not found`,
-          },
+            message: `Block ${blockId} not found`
+          }
         ],
-        conflicts: [],
+        conflicts: []
       };
     }
 
     return this.applyMutations([
       {
         kind: 'REMOVE_BLOCK',
-        block,
-      },
+        block
+      }
     ]);
   }
 
@@ -599,10 +661,10 @@ export class TemporalGridEngine {
         warnings: [
           {
             code: 'TEMPLATE_NOT_FOUND',
-            message: `Template ${opts.templateId} not found`,
-          },
+            message: `Template ${opts.templateId} not found`
+          }
         ],
-        conflicts: [],
+        conflicts: []
       };
     }
 
@@ -612,7 +674,7 @@ export class TemporalGridEngine {
       applied: [],
       rejected: [],
       warnings: [],
-      conflicts: [],
+      conflicts: []
     };
   }
 
@@ -638,7 +700,7 @@ export class TemporalGridEngine {
     return {
       previewRails,
       capacityImpact,
-      conflicts: result.conflicts,
+      conflicts: result.conflicts
     };
   }
 
@@ -692,7 +754,7 @@ export class TemporalGridEngine {
         applied: [],
         rejected: mutations,
         warnings: [],
-        conflicts,
+        conflicts
       };
     }
 
@@ -706,18 +768,18 @@ export class TemporalGridEngine {
     // Emit events
     this.emit({
       type: 'BLOCKS_CHANGED',
-      payload: { mutations: applied },
+      payload: { mutations: applied }
     });
 
     this.emit({
       type: 'STATE_CHANGED',
-      payload: { reason: 'BLOCKS_MUTATED' },
+      payload: { reason: 'BLOCKS_MUTATED' }
     });
 
     if (conflicts.length > 0) {
       this.emit({
         type: 'CONFLICTS_CHANGED',
-        payload: { conflicts },
+        payload: { conflicts }
       });
     }
 
@@ -728,9 +790,9 @@ export class TemporalGridEngine {
         .filter((c) => c.severity === 'WARN')
         .map((c) => ({
           code: c.code,
-          message: c.message,
+          message: c.message
         })),
-      conflicts,
+      conflicts
     };
   }
 
@@ -824,9 +886,9 @@ export class TemporalGridEngine {
       templates: new Map(this.templates),
       rules: new Map(this.rules),
       selectedDay: this.selectedDay,
-      selectedFacility: this.selectedFacility,
+      selectedVenue: this.selectedVenue,
       selectedCourt: this.selectedCourt,
-      layerVisibility: new Map(this.layerVisibility),
+      layerVisibility: new Map(this.layerVisibility)
     };
   }
 
@@ -840,10 +902,11 @@ export class TemporalGridEngine {
     snapshot.blocksById = new Map(this.blocksById);
     snapshot.blocksByCourtDay = new Map(this.blocksByCourtDay);
     snapshot.courtDayAvailability = new Map(this.courtDayAvailability);
+    snapshot.venueDayAvailability = new Map(this.venueDayAvailability);
     snapshot.templates = new Map(this.templates);
     snapshot.rules = new Map(this.rules);
     snapshot.selectedDay = this.selectedDay;
-    snapshot.selectedFacility = this.selectedFacility;
+    snapshot.selectedVenue = this.selectedVenue;
     snapshot.layerVisibility = new Map(this.layerVisibility);
     snapshot.nextBlockId = this.nextBlockId;
     return snapshot;
@@ -857,11 +920,11 @@ export class TemporalGridEngine {
    * Booking type → engine BlockType mapping
    */
   private static readonly BOOKING_TYPE_MAP: Record<string, BlockType> = {
-    MAINTENANCE: 'MAINTENANCE',
-    PRACTICE: 'PRACTICE',
-    RESERVED: 'RESERVED',
-    MATCH: 'SCHEDULED',
-    SCHEDULED: 'SCHEDULED',
+    MAINTENANCE: BLOCK_TYPES.MAINTENANCE,
+    PRACTICE: BLOCK_TYPES.PRACTICE,
+    RESERVED: BLOCK_TYPES.RESERVED,
+    MATCH: BLOCK_TYPES.SCHEDULED,
+    SCHEDULED: BLOCK_TYPES.SCHEDULED
   };
 
   /**
@@ -872,17 +935,86 @@ export class TemporalGridEngine {
     this.blocksById.clear();
     this.blocksByCourtDay.clear();
     this.courtDayAvailability.clear();
+    this.venueDayAvailability.clear();
 
     if (!this.tournamentRecord?.venues) return;
 
     for (const venue of this.tournamentRecord.venues) {
+      const vid = venue.venueId || venue.venueName;
+      const vk = venueKey(this.config.tournamentId, vid);
+
+      // --- Venue-level availability ---
+      // 1. defaultStartTime / defaultEndTime → venueKey|DEFAULT
+      if (venue.defaultStartTime && venue.defaultEndTime) {
+        this.venueDayAvailability.set(`${vk}|DEFAULT`, {
+          startTime: venue.defaultStartTime,
+          endTime: venue.defaultEndTime
+        });
+      }
+
+      // 2. venue.dateAvailability[]
+      if (venue.dateAvailability?.length) {
+        for (const va of venue.dateAvailability) {
+          if (va.date) {
+            // Date-specific venue availability
+            if (va.startTime && va.endTime) {
+              this.venueDayAvailability.set(`${vk}|${va.date}`, {
+                startTime: va.startTime,
+                endTime: va.endTime
+              });
+            }
+          } else {
+            // Dateless entry → venue DEFAULT (overrides defaultStartTime/defaultEndTime)
+            if (va.startTime && va.endTime) {
+              this.venueDayAvailability.set(`${vk}|DEFAULT`, {
+                startTime: va.startTime,
+                endTime: va.endTime
+              });
+            }
+          }
+
+          // Venue-level bookings → create blocks for ALL courts in the venue
+          if (va.bookings?.length && venue.courts?.length) {
+            const bookingDay = va.date || this.tournamentRecord.startDate;
+            for (const booking of va.bookings) {
+              if (!booking.startTime || !booking.endTime) continue;
+              const st = booking.startTime.length === 5 ? `${booking.startTime}:00` : booking.startTime;
+              const et = booking.endTime.length === 5 ? `${booking.endTime}:00` : booking.endTime;
+              const blockType: BlockType =
+                TemporalGridEngine.BOOKING_TYPE_MAP[(booking.bookingType || '').toUpperCase()] || BLOCK_TYPES.RESERVED;
+
+              for (const court of venue.courts) {
+                const courtRef: CourtRef = {
+                  tournamentId: this.config.tournamentId,
+                  venueId: vid,
+                  courtId: court.courtId || court.courtName
+                };
+                const blockId = this.generateBlockId();
+                const block: Block = {
+                  id: blockId,
+                  court: courtRef,
+                  start: `${bookingDay}T${st}`,
+                  end: `${bookingDay}T${et}`,
+                  type: blockType,
+                  reason: booking.bookingType || 'Booking',
+                  source: 'SYSTEM'
+                };
+                this.blocksById.set(blockId, block);
+                this.indexBlock(block);
+              }
+            }
+          }
+        }
+      }
+
+      // --- Court-level availability and bookings ---
       for (const court of venue.courts || []) {
         if (!court.dateAvailability?.length) continue;
 
         const courtRef: CourtRef = {
           tournamentId: this.config.tournamentId,
-          facilityId: venue.venueId || venue.venueName,
-          courtId: court.courtId || court.courtName,
+          venueId: vid,
+          courtId: court.courtId || court.courtName
         };
 
         for (const avail of court.dateAvailability) {
@@ -893,7 +1025,7 @@ export class TemporalGridEngine {
             const ck = courtKey(courtRef);
             this.courtDayAvailability.set(`${ck}|${day}`, {
               startTime: avail.startTime,
-              endTime: avail.endTime,
+              endTime: avail.endTime
             });
           }
 
@@ -901,18 +1033,11 @@ export class TemporalGridEngine {
 
           for (const booking of avail.bookings) {
             if (!booking.startTime || !booking.endTime) continue;
-            const st =
-              booking.startTime.length === 5
-                ? `${booking.startTime}:00`
-                : booking.startTime;
-            const et =
-              booking.endTime.length === 5
-                ? `${booking.endTime}:00`
-                : booking.endTime;
+            const st = booking.startTime.length === 5 ? `${booking.startTime}:00` : booking.startTime;
+            const et = booking.endTime.length === 5 ? `${booking.endTime}:00` : booking.endTime;
 
             const blockType: BlockType =
-              TemporalGridEngine.BOOKING_TYPE_MAP[(booking.bookingType || '').toUpperCase()] ||
-              'RESERVED';
+              TemporalGridEngine.BOOKING_TYPE_MAP[(booking.bookingType || '').toUpperCase()] || BLOCK_TYPES.RESERVED;
 
             // Directly create and index blocks (bypass applyMutations to avoid emitting during init)
             const blockId = this.generateBlockId();
@@ -923,7 +1048,7 @@ export class TemporalGridEngine {
               end: `${day}T${et}`,
               type: blockType,
               reason: booking.bookingType || 'Booking',
-              source: 'SYSTEM',
+              source: 'SYSTEM'
             };
             this.blocksById.set(blockId, block);
             this.indexBlock(block);
@@ -945,13 +1070,13 @@ export class TemporalGridEngine {
 
     const courts: CourtRef[] = [];
     for (const venue of this.tournamentRecord.venues) {
-      const facilityId = venue.venueId || venue.venueName;
+      const venueId = venue.venueId || venue.venueName;
       if (venue.courts) {
         for (const court of venue.courts) {
           courts.push({
             tournamentId: this.config.tournamentId,
-            facilityId,
-            courtId: court.courtId || court.courtName,
+            venueId,
+            courtId: court.courtId || court.courtName
           });
         }
       }
@@ -986,7 +1111,10 @@ export class TemporalGridEngine {
    * Returns null if no valid range remains after clamping.
    */
   private clampToAvailability(
-    court: CourtRef, day: DayId, start: string, end: string
+    court: CourtRef,
+    day: DayId,
+    start: string,
+    end: string
   ): { start: string; end: string } | null {
     const avail = this.getCourtAvailability(court, day);
     const availStart = `${day}T${avail.startTime}:00`;
@@ -1014,8 +1142,8 @@ export class TemporalGridEngine {
     // Extract from tournament record
     if (this.tournamentRecord?.venues) {
       for (const venue of this.tournamentRecord.venues) {
-        const facilityId = venue.venueId || venue.venueName;
-        if (facilityId !== ref.facilityId) continue;
+        const venueId = venue.venueId || venue.venueName;
+        if (venueId !== ref.venueId) continue;
         for (const court of venue.courts || []) {
           const cId = court.courtId || court.courtName;
           if (cId !== ref.courtId) continue;
@@ -1032,7 +1160,7 @@ export class TemporalGridEngine {
             hasLights: court.hasLights || false,
             tags: [],
             openTime: avail?.startTime,
-            closeTime: avail?.endTime,
+            closeTime: avail?.endTime
           };
         }
       }
@@ -1044,7 +1172,7 @@ export class TemporalGridEngine {
       surface: 'hard',
       indoor: false,
       hasLights: false,
-      tags: [],
+      tags: []
     };
   }
 }

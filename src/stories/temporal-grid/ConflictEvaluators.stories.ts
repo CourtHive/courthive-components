@@ -123,7 +123,7 @@ export const CourtOverlap: Story = {
 
     const court = {
       tournamentId: 'test-tournament',
-      facilityId: 'venue-1',
+      venueId: 'venue-1',
       courtId: 'court-1',
     };
 
@@ -184,7 +184,7 @@ export const DayBoundary: Story = {
 
     const court = {
       tournamentId: 'test-tournament',
-      facilityId: 'venue-1',
+      venueId: 'venue-1',
       courtId: 'court-1',
     };
 
@@ -240,7 +240,7 @@ export const BlockDuration: Story = {
 
     const court = {
       tournamentId: 'test-tournament',
-      facilityId: 'venue-1',
+      venueId: 'venue-1',
       courtId: 'court-1',
     };
 
@@ -307,7 +307,7 @@ export const MatchWindow: Story = {
 
     const court = {
       tournamentId: 'test-tournament',
-      facilityId: 'venue-1',
+      venueId: 'venue-1',
       courtId: 'court-1',
     };
 
@@ -365,7 +365,7 @@ export const AdjacentBlock: Story = {
 
     const court = {
       tournamentId: 'test-tournament',
-      facilityId: 'venue-1',
+      venueId: 'venue-1',
       courtId: 'court-1',
     };
 
@@ -430,13 +430,13 @@ export const Lighting: Story = {
 
     const outdoorCourt = {
       tournamentId: 'test-tournament',
-      facilityId: 'venue-1',
+      venueId: 'venue-1',
       courtId: 'court-1', // Outdoor
     };
 
     const indoorCourt = {
       tournamentId: 'test-tournament',
-      facilityId: 'venue-1',
+      venueId: 'venue-1',
       courtId: 'court-2', // Indoor
     };
 
@@ -505,7 +505,7 @@ export const MaintenanceWindow: Story = {
 
     const court = {
       tournamentId: 'test-tournament',
-      facilityId: 'venue-1',
+      venueId: 'venue-1',
       courtId: 'court-1',
     };
 
@@ -565,7 +565,7 @@ export const AllEvaluators: Story = {
 
     const court = {
       tournamentId: 'test-tournament',
-      facilityId: 'venue-1',
+      venueId: 'venue-1',
       courtId: 'court-1',
     };
 
@@ -665,7 +665,7 @@ export const CustomEvaluator: Story = {
 
     const court = {
       tournamentId: 'test-tournament',
-      facilityId: 'venue-1',
+      venueId: 'venue-1',
       courtId: 'court-1',
     };
 

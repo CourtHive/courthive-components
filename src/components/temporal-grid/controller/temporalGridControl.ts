@@ -18,7 +18,7 @@ import { Timeline } from 'vis-timeline/standalone';
 import { tools } from 'tods-competition-factory';
 import type { TemporalGridEngine } from '../engine/temporalGridEngine';
 import { clampDragToCollisions, findBlocksContainingTime, sortBlocksByStart } from '../engine/collisionDetection';
-import type { BlockType, CourtRef, DayId } from '../engine/types';
+import { BLOCK_TYPES, type BlockType, type CourtRef, type DayId } from '../engine/types';
 import {
   buildBlockEvents,
   buildEventsFromTimelines,
@@ -99,14 +99,14 @@ export class TemporalGridControl {
   private currentDay: DayId | null = null;
   private currentView: string = 'day';
   private selectedCourts: Set<CourtRef> = new Set();
-  private currentPaintType: BlockType | 'DELETE' = 'BLOCKED';
+  private currentPaintType: BlockType | 'DELETE' = BLOCK_TYPES.BLOCKED;
   private isPaintMode = false;
   private visibleCourts: Set<string> | null = null; // null = all visible, Set = filtered
 
   constructor(engine: TemporalGridEngine, config: TemporalGridControlConfig) {
     this.engine = engine;
     this.config = {
-      groupingMode: 'BY_FACILITY',
+      groupingMode: 'BY_VENUE',
       showConflicts: true,
       showSegmentLabels: false,
       colorScheme: DEFAULT_COLOR_SCHEME,
@@ -529,7 +529,7 @@ export class TemporalGridControl {
       const blocksOnCourt = existingBlocks.filter(
         (b) =>
           b.court.tournamentId === court.tournamentId &&
-          b.court.facilityId === court.facilityId &&
+          b.court.venueId === court.venueId &&
           b.court.courtId === court.courtId
       );
 
@@ -687,7 +687,7 @@ export class TemporalGridControl {
       const result = this.engine.applyBlock({
         courts: [courtRef],
         timeRange: { start, end: this.toLocalISO(endTime) },
-        type: 'BLOCKED',
+        type: BLOCK_TYPES.BLOCKED,
         reason: 'New Block',
       });
       this.render();

@@ -37,7 +37,7 @@ The engine is UI-agnostic, fully testable, and designed for integration with Com
 ```typescript
 type DayId = string; // 'YYYY-MM-DD'
 type BlockId = string;
-type FacilityId = string;
+type VenueId = string;
 type TournamentId = string;
 type CourtId = string;
 
@@ -48,7 +48,7 @@ interface TimeRange {
 
 interface CourtRef {
   tournamentId: TournamentId;
-  facilityId: FacilityId;
+  venueId: VenueId;
   courtId: CourtId;
 }
 ```
@@ -100,9 +100,9 @@ interface CourtRail {
   segments: RailSegment[]; // Non-overlapping, sorted, contiguous
 }
 
-interface FacilityDayTimeline {
+interface VenueDayTimeline {
   day: DayId;
-  facilityId: FacilityId;
+  venueId: VenueId;
   rails: CourtRail[];
 }
 ```
@@ -225,8 +225,8 @@ init(tournamentRecord: any, config?: Partial<EngineConfig>): void
 ```typescript
 setSelectedDay(day: DayId): void
 getSelectedDay(): DayId | undefined
-setSelectedFacility(facilityId: FacilityId | null): void
-getSelectedFacility(): FacilityId | undefined
+setSelectedVenue(venueId: VenueId | null): void
+getSelectedVenue(): VenueId | undefined
 setLayerVisibility(layerId: BlockType, visible: boolean): void
 getLayerVisibility(layerId: BlockType): boolean
 ```
@@ -251,8 +251,8 @@ getVisibleTimeRange(day: DayId, courtRefs?: CourtRef[]): { startTime, endTime }
 ### 4.4 Timeline Queries
 
 ```typescript
-getDayTimeline(day: DayId): FacilityDayTimeline[]
-getFacilityTimeline(day: DayId, facilityId: FacilityId): FacilityDayTimeline | null
+getDayTimeline(day: DayId): VenueDayTimeline[]
+getVenueTimeline(day: DayId, venueId: VenueId): VenueDayTimeline | null
 getCourtRail(day: DayId, court: CourtRef): CourtRail | null
 getCapacityCurve(day: DayId): CapacityCurve
 getDayBlocks(day: DayId): Block[]
@@ -331,7 +331,7 @@ Default precedence: HARD_BLOCK > LOCKED > MAINTENANCE > BLOCKED > RESERVED > PRA
 
 | Function                        | Purpose                                                 |
 | ------------------------------- | ------------------------------------------------------- |
-| `courtDayKey(court, day)`       | Composite key: `tournamentId\|facilityId\|courtId\|day` |
+| `courtDayKey(court, day)`       | Composite key: `tournamentId\|venueId\|courtId\|day` |
 | `courtKey(court)`               | Composite key without day                               |
 | `clampToDayRange(block, range)` | Trim block to operating hours                           |
 | `rangesOverlap(a, b)`           | Half-open interval overlap test                         |
@@ -441,7 +441,7 @@ Translates between the engine's block-based model and Competition Factory's TODS
 
 ```typescript
 railsToDateAvailability(
-  timelines: FacilityDayTimeline[],
+  timelines: VenueDayTimeline[],
   config?: BridgeConfig
 ): TodsDateAvailability[]
 ```
@@ -465,7 +465,7 @@ TODS output:
 ```typescript
 applyTemporalAvailabilityToTournamentRecord(params: {
   tournamentRecord: any;
-  timelines: FacilityDayTimeline[];
+  timelines: VenueDayTimeline[];
   config?: BridgeConfig;
 }): any
 ```
@@ -501,7 +501,7 @@ validateDateAvailability(entries): { valid, errors }
 
 ```typescript
 interface BridgeConfig {
-  facilityToVenueId?: (facilityId: string) => string;
+  venueId?: (venueId: string) => string;
   courtToCourtId?: (courtRef: CourtRef) => string;
   isSchedulableStatus?: (status: BlockType) => boolean;
   aggregateByVenue?: boolean;
@@ -519,7 +519,7 @@ Wires the engine to a vis-timeline instance:
 - **Paint mode** — drag-create blocks or click-to-delete
 - **Block interaction** — popover with edit/delete, keyboard shortcuts
 - **View projections** — converts engine domain model to vis-timeline groups/items
-- **Grouping modes** — `BY_FACILITY`, `BY_SURFACE`, `BY_TAG`, `FLAT`
+- **Grouping modes** — `BY_VENUE`, `BY_SURFACE`, `BY_TAG`, `FLAT`
 - **View presets** — day, week, 3-day views
 
 ### UI Component (`temporalGrid.ts`)
@@ -530,7 +530,7 @@ Wires the engine to a vis-timeline instance:
 ├─────────────────────────────────────────────────┤
 │              Capacity Indicator                 │
 ├──────────────┬──────────────────────────────────┤
-│  Facility    │ Timeline (vis-timeline)          │
+│  Venue       │ Timeline (vis-timeline)          │
 │  Tree        │ ▓▓▓░░░░░▓▓░░░░░░░▓▓▓▓░░░         │
 │  ☑ Court 1   │ ░░░▓▓▓▓▓░░░░░░▓▓░░░░░░░░         │
 │  ☑ Court 2   │ ░░░░░░░░▓▓▓░░░░░░░░▓▓▓░░         │
@@ -942,5 +942,5 @@ court.dateAvailability = Array<{
 | **dateAvailability**  | Factory's per-court time windows when scheduling is permitted                                                 |
 | **bookings**          | Sub-blocks within a dateAvailability window (practice, maintenance)                                           |
 | **schedulingProfile** | Factory's specification of which rounds to schedule at which venues on which dates                            |
-| **CourtRef**          | Composite key: tournamentId + facilityId + courtId                                                            |
+| **CourtRef**          | Composite key: tournamentId + venueId + courtId                                                            |
 | **DayId**             | ISO date string 'YYYY-MM-DD'                                                                                  |

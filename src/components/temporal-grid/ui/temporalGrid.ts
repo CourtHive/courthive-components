@@ -2,7 +2,7 @@
  * Temporal Grid Component
  *
  * Main component that assembles the complete Temporal Grid interface:
- * - Facility tree (left panel)
+ * - Venue tree (left panel)
  * - Calendar timeline (center)
  * - Capacity indicator (top)
  * - Toolbar controls (top)
@@ -17,6 +17,7 @@ import type { BlockType, CourtRef, DayId } from '../engine/types';
 import { calculateCapacityStats } from '../engine/capacityCurve';
 import { buildStatsBar, type StatsBarUpdate } from './statsBar';
 import { buildViewToolbar } from './viewToolbar';
+import { showCourtAvailabilityModal } from './courtAvailabilityModal';
 
 // ============================================================================
 // Component Configuration
@@ -45,7 +46,7 @@ export interface TemporalGridConfig extends Partial<TemporalGridControlConfig> {
   /**
    * Show facility tree
    */
-  showFacilityTree?: boolean;
+  showVenueTree?: boolean;
 
   /**
    * Show capacity indicator
@@ -74,20 +75,20 @@ export class TemporalGrid {
 
   // UI Elements
   private rootElement: HTMLElement | null = null;
-  private facilityTreeElement: HTMLElement | null = null;
+  private venueTreeElement: HTMLElement | null = null;
   private calendarElement: HTMLElement | null = null;
   private capacityElement: HTMLElement | null = null;
   private statsBarInstance: { element: HTMLElement; update: (stats: StatsBarUpdate) => void } | null = null;
 
   // State
-  private visibleCourts: Set<string> = new Set(); // "tournamentId|facilityId|courtId" to match resource IDs
+  private visibleCourts: Set<string> = new Set(); // "tournamentId|venueId|courtId" to match resource IDs
 
   constructor(config: TemporalGridConfig) {
     this.config = {
-      showFacilityTree: true,
+      showVenueTree: true,
       showCapacity: true,
       showToolbar: true,
-      groupingMode: 'BY_FACILITY',
+      groupingMode: 'BY_VENUE',
       showConflicts: true,
       showSegmentLabels: false,
       ...config
@@ -133,8 +134,8 @@ export class TemporalGrid {
     layoutContainer.className = 'temporal-grid-layout';
     mainArea.appendChild(layoutContainer);
 
-    if (this.config.showFacilityTree) {
-      this.renderFacilityTree(layoutContainer);
+    if (this.config.showVenueTree) {
+      this.renderVenueTree(layoutContainer);
     }
 
     this.renderCalendar(layoutContainer);
@@ -177,7 +178,7 @@ export class TemporalGrid {
     }
 
     this.rootElement = null;
-    this.facilityTreeElement = null;
+    this.venueTreeElement = null;
     this.calendarElement = null;
     this.capacityElement = null;
   }
@@ -330,23 +331,23 @@ export class TemporalGrid {
     this.updateCapacityStats();
   }
 
-  private renderFacilityTree(container: HTMLElement): void {
+  private renderVenueTree(container: HTMLElement): void {
     const tree = document.createElement('div');
-    tree.className = 'temporal-grid-facility-tree';
+    tree.className = 'temporal-grid-venue-tree';
     tree.innerHTML = `
       <div class="tree-header">
-        <h3>Facilities & Courts</h3>
+        <h3>Venues & Courts</h3>
       </div>
-      <div class="tree-content" id="facility-tree-content">
+      <div class="tree-content" id="venue-tree-content">
         <!-- Tree will be populated dynamically -->
       </div>
     `;
 
     container.appendChild(tree);
-    this.facilityTreeElement = tree;
+    this.venueTreeElement = tree;
 
     // Populate tree
-    this.updateFacilityTree();
+    this.updateVenueTree();
   }
 
   private renderCalendar(container: HTMLElement): void {
@@ -409,10 +410,10 @@ export class TemporalGrid {
     }
   }
 
-  private updateFacilityTree(): void {
-    if (!this.facilityTreeElement) return;
+  private updateVenueTree(): void {
+    if (!this.venueTreeElement) return;
 
-    const treeContent = this.facilityTreeElement.querySelector('#facility-tree-content');
+    const treeContent = this.venueTreeElement.querySelector('#venue-tree-content');
     if (!treeContent) return;
 
     const courtMeta = this.engine.listCourtMeta();
@@ -421,54 +422,61 @@ export class TemporalGrid {
     // Initialize all courts as visible if not already set
     if (this.visibleCourts.size === 0) {
       courtMeta.forEach((meta) => {
-        // Match resource ID format: tournamentId|facilityId|courtId
-        const key = `${meta.ref.tournamentId}|${meta.ref.facilityId}|${meta.ref.courtId}`;
+        // Match resource ID format: tournamentId|venueId|courtId
+        const key = `${meta.ref.tournamentId}|${meta.ref.venueId}|${meta.ref.courtId}`;
         this.visibleCourts.add(key);
       });
     }
 
-    // Group by facility
-    const facilities = new Map<string, typeof courtMeta>();
+    // Group by venue
+    const venues = new Map<string, typeof courtMeta>();
     for (const meta of courtMeta) {
-      const facilityId = meta.ref.facilityId;
-      if (!facilities.has(facilityId)) {
-        facilities.set(facilityId, []);
+      const venueId = meta.ref.venueId;
+      if (!venues.has(venueId)) {
+        venues.set(venueId, []);
       }
-      facilities.get(facilityId)!.push(meta);
+      venues.get(venueId)!.push(meta);
     }
 
     // Build tree HTML
     let html = '';
-    for (const [facilityId, courts] of facilities) {
-      // Check if all courts in this facility are visible
+    for (const [venueId, courts] of venues) {
+      // Check if all courts in this venue are visible
       const allVisible = courts.every((c) => {
-        const key = `${c.ref.tournamentId}|${c.ref.facilityId}|${c.ref.courtId}`;
+        const key = `${c.ref.tournamentId}|${c.ref.venueId}|${c.ref.courtId}`;
         return this.visibleCourts.has(key);
       });
 
       html += `
-        <div class="facility-group">
-          <div class="facility-header">
-            <input type="checkbox" class="facility-checkbox" 
-                   data-facility="${facilityId}"
+        <div class="venue-group">
+          <div class="venue-header">
+            <input type="checkbox" class="venue-checkbox"
+                   data-venue="${venueId}"
                    data-tournament-id="${tournamentId}"
                    ${allVisible ? 'checked' : ''} />
-            <span class="facility-name">${facilityId}</span>
+            <span class="venue-name">${venueId}</span>
+            <button class="edit-icon venue-edit-icon"
+                    data-venue="${venueId}" data-tournament-id="${tournamentId}"
+                    title="Edit venue defaults">&#9998;</button>
           </div>
           <div class="courts-list">
             ${courts
               .map((court) => {
-                const key = `${court.ref.tournamentId}|${court.ref.facilityId}|${court.ref.courtId}`;
+                const key = `${court.ref.tournamentId}|${court.ref.venueId}|${court.ref.courtId}`;
                 const checked = this.visibleCourts.has(key);
                 return `
                 <div class="court-item">
-                  <input type="checkbox" class="court-checkbox" 
-                         data-court-id="${court.ref.courtId}" 
-                         data-facility-id="${court.ref.facilityId}"
+                  <input type="checkbox" class="court-checkbox"
+                         data-court-id="${court.ref.courtId}"
+                         data-venue-id="${court.ref.venueId}"
                          data-tournament-id="${court.ref.tournamentId}"
                          ${checked ? 'checked' : ''} />
                   <span class="court-name">${court.name}</span>
                   <span class="court-meta">${court.surface}${court.indoor ? ' (Indoor)' : ''}</span>
+                  <button class="edit-icon court-edit-icon"
+                          data-court-id="${court.ref.courtId}" data-venue-id="${court.ref.venueId}"
+                          data-tournament-id="${court.ref.tournamentId}"
+                          title="Edit court availability">&#9998;</button>
                 </div>
               `;
               })
@@ -486,10 +494,65 @@ export class TemporalGrid {
       checkbox.addEventListener('change', this.handleCourtCheckboxChange);
     });
 
-    // Wire up facility checkboxes
-    const facilityCheckboxes = treeContent.querySelectorAll('.facility-checkbox');
-    facilityCheckboxes.forEach((checkbox) => {
-      checkbox.addEventListener('change', this.handleFacilityCheckboxChange);
+    // Wire up venue checkboxes
+    const venueCheckboxes = treeContent.querySelectorAll('.venue-checkbox');
+    venueCheckboxes.forEach((checkbox) => {
+      checkbox.addEventListener('change', this.handleVenueCheckboxChange);
+    });
+
+    // Wire up venue edit icons
+    const venueEditIcons = treeContent.querySelectorAll('.venue-edit-icon');
+    venueEditIcons.forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const el = e.currentTarget as HTMLElement;
+        const vid = el.dataset.venue!;
+        const tid = el.dataset.tournamentId!;
+        const currentDay = this.control?.getDay() || this.engine.getTournamentDays()[0] || '2026-01-01';
+        const existing = this.engine.getVenueAvailability(tid, vid);
+        const config = this.engine.getConfig();
+        showCourtAvailabilityModal({
+          title: `Venue Defaults \u2014 ${vid}`,
+          currentDay,
+          currentStartTime: existing?.startTime || config.dayStartTime,
+          currentEndTime: existing?.endTime || config.dayEndTime,
+          showScopeToggle: false,
+          onConfirm: ({ startTime, endTime }) => {
+            this.engine.setVenueDefaultAvailability(tid, vid, { startTime, endTime });
+            this.control?.refresh();
+          }
+        });
+      });
+    });
+
+    // Wire up court edit icons
+    const courtEditIcons = treeContent.querySelectorAll('.court-edit-icon');
+    courtEditIcons.forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const el = e.currentTarget as HTMLElement;
+        const cid = el.dataset.courtId!;
+        const vid = el.dataset.venueId!;
+        const tid = el.dataset.tournamentId!;
+        const courtRef = { tournamentId: tid, venueId: vid, courtId: cid };
+        const currentDay = this.control?.getDay() || this.engine.getTournamentDays()[0] || '2026-01-01';
+        const existing = this.engine.getCourtAvailability(courtRef, currentDay);
+        showCourtAvailabilityModal({
+          title: `Court \u2014 ${cid}`,
+          currentDay,
+          currentStartTime: existing.startTime,
+          currentEndTime: existing.endTime,
+          showScopeToggle: true,
+          onConfirm: ({ startTime, endTime, scope }) => {
+            if (scope === 'all-days') {
+              this.engine.setCourtAvailabilityAllDays(courtRef, { startTime, endTime });
+            } else {
+              this.engine.setCourtAvailability(courtRef, currentDay, { startTime, endTime });
+            }
+            this.control?.refresh();
+          }
+        });
+      });
     });
   }
 
@@ -523,13 +586,13 @@ export class TemporalGrid {
   private handleCourtCheckboxChange = (event: Event): void => {
     const checkbox = event.target as HTMLInputElement;
     const courtId = checkbox.dataset.courtId;
-    const facilityId = checkbox.dataset.facilityId;
+    const venueId = checkbox.dataset.venueId;
     const tournamentId = checkbox.dataset.tournamentId;
 
-    if (!courtId || !facilityId || !tournamentId) return;
+    if (!courtId || !venueId || !tournamentId) return;
 
-    // Match resource ID format: tournamentId|facilityId|courtId
-    const key = `${tournamentId}|${facilityId}|${courtId}`;
+    // Match resource ID format: tournamentId|venueId|courtId
+    const key = `${tournamentId}|${venueId}|${courtId}`;
 
     // Toggle visibility
     if (checkbox.checked) {
@@ -538,28 +601,28 @@ export class TemporalGrid {
       this.visibleCourts.delete(key);
     }
 
-    // Update facility checkbox state
-    this.updateFacilityCheckboxState(facilityId);
+    // Update venue checkbox state
+    this.updateVenueCheckboxState(venueId);
 
     // Update controller with new visibility filter
     const filterSet = new Set(this.visibleCourts);
     this.control?.setVisibleCourts(filterSet);
   };
 
-  private handleFacilityCheckboxChange = (event: Event): void => {
+  private handleVenueCheckboxChange = (event: Event): void => {
     const checkbox = event.target as HTMLInputElement;
-    const facilityId = checkbox.dataset.facility;
+    const venueId = checkbox.dataset.venue;
     const tournamentId = checkbox.dataset.tournamentId;
 
-    if (!facilityId || !tournamentId) return;
+    if (!venueId || !tournamentId) return;
 
-    // Get all courts in this facility
+    // Get all courts in this venue
     const courtMeta = this.engine.listCourtMeta();
-    const facilityCourts = courtMeta.filter((m) => m.ref.facilityId === facilityId);
+    const venueCourts = courtMeta.filter((m) => m.ref.venueId === venueId);
 
-    // Toggle all courts in facility
-    facilityCourts.forEach((court) => {
-      const key = `${court.ref.tournamentId}|${court.ref.facilityId}|${court.ref.courtId}`;
+    // Toggle all courts in venue
+    venueCourts.forEach((court) => {
+      const key = `${court.ref.tournamentId}|${court.ref.venueId}|${court.ref.courtId}`;
       if (checkbox.checked) {
         this.visibleCourts.add(key);
       } else {
@@ -567,9 +630,9 @@ export class TemporalGrid {
       }
     });
 
-    // Update all court checkboxes in this facility
-    const courtCheckboxes = this.facilityTreeElement?.querySelectorAll(
-      `.court-checkbox[data-facility-id="${facilityId}"]`
+    // Update all court checkboxes in this venue
+    const courtCheckboxes = this.venueTreeElement?.querySelectorAll(
+      `.court-checkbox[data-venue-id="${venueId}"]`
     );
     courtCheckboxes?.forEach((cb) => {
       (cb as HTMLInputElement).checked = checkbox.checked;
@@ -580,34 +643,34 @@ export class TemporalGrid {
     this.control?.setVisibleCourts(filterSet);
   };
 
-  private updateFacilityCheckboxState(facilityId: string): void {
+  private updateVenueCheckboxState(venueId: string): void {
     const courtMeta = this.engine.listCourtMeta();
-    const facilityCourts = courtMeta.filter((m) => m.ref.facilityId === facilityId);
+    const venueCourts = courtMeta.filter((m) => m.ref.venueId === venueId);
 
-    // Count how many courts in facility are visible
-    const visibleCount = facilityCourts.filter((c) => {
-      const key = `${c.ref.tournamentId}|${c.ref.facilityId}|${c.ref.courtId}`;
+    // Count how many courts in venue are visible
+    const visibleCount = venueCourts.filter((c) => {
+      const key = `${c.ref.tournamentId}|${c.ref.venueId}|${c.ref.courtId}`;
       return this.visibleCourts.has(key);
     }).length;
 
-    // Update facility checkbox
-    const facilityCheckbox = this.facilityTreeElement?.querySelector(
-      `.facility-checkbox[data-facility="${facilityId}"]`
+    // Update venue checkbox
+    const venueCheckbox = this.venueTreeElement?.querySelector(
+      `.venue-checkbox[data-venue="${venueId}"]`
     ) as HTMLInputElement;
 
-    if (facilityCheckbox) {
+    if (venueCheckbox) {
       if (visibleCount === 0) {
         // No courts visible - unchecked
-        facilityCheckbox.checked = false;
-        facilityCheckbox.indeterminate = false;
-      } else if (visibleCount === facilityCourts.length) {
+        venueCheckbox.checked = false;
+        venueCheckbox.indeterminate = false;
+      } else if (visibleCount === venueCourts.length) {
         // All courts visible - checked
-        facilityCheckbox.checked = true;
-        facilityCheckbox.indeterminate = false;
+        venueCheckbox.checked = true;
+        venueCheckbox.indeterminate = false;
       } else {
         // Some courts visible - indeterminate [-]
-        facilityCheckbox.checked = false;
-        facilityCheckbox.indeterminate = true;
+        venueCheckbox.checked = false;
+        venueCheckbox.indeterminate = true;
       }
     }
   }
@@ -644,7 +707,7 @@ export class TemporalGrid {
   refresh(): void {
     this.control?.refresh();
     this.updateCapacityStats();
-    this.updateFacilityTree();
+    this.updateVenueTree();
   }
 }
 

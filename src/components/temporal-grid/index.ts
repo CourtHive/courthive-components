@@ -9,12 +9,15 @@
 // ============================================================================
 
 export { TemporalGridEngine } from './engine/temporalGridEngine';
+export { BLOCK_TYPES } from './engine/types';
 export type * from './engine/types';
 export {
   buildDayRange,
   clampToDayRange,
   courtDayKey,
   courtKey,
+  venueKey,
+  venueDayKey,
   deriveRailSegments,
   diffMinutes,
   extractDay,
@@ -92,14 +95,14 @@ export {
   buildCapacityVisualization,
   buildConflictEvents,
   buildEventsFromTimelines,
-  buildFacilityGroups,
+  buildVenueGroups,
   buildHiddenDates,
   buildResourcesFromTimelines,
   buildTimeSlotConfig,
   buildTimelineWindowConfig,
   DEFAULT_COLOR_SCHEME,
   filterEventsByTimeRange,
-  filterResourcesByFacility,
+  filterResourcesByVenue,
   generateBlockPatternCSS,
   isBlockEvent,
   isConflictEvent,

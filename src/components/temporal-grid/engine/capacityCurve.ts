@@ -8,12 +8,13 @@
  * temporal grid's philosophy.
  */
 
-import type {
-  CapacityCurve,
-  CapacityPoint,
-  DayId,
-  FacilityDayTimeline,
-  RailSegment,
+import {
+  BLOCK_TYPES,
+  type CapacityCurve,
+  type CapacityPoint,
+  type DayId,
+  type VenueDayTimeline,
+  type RailSegment,
 } from './types';
 
 // ============================================================================
@@ -31,7 +32,7 @@ import type {
  */
 export function generateCapacityCurve(
   day: DayId,
-  timelines: FacilityDayTimeline[],
+  timelines: VenueDayTimeline[],
 ): CapacityCurve {
   // Collect all unique time points
   const timePoints = new Set<string>();
@@ -101,33 +102,33 @@ function findSegmentAtTime(segments: RailSegment[], time: string): RailSegment |
  */
 function categorizeSegment(segment: RailSegment, point: CapacityPoint): void {
   switch (segment.status) {
-    case 'AVAILABLE':
+    case BLOCK_TYPES.AVAILABLE:
       // Truly available - not blocked at all
       point.courtsAvailable++;
       break;
 
-    case 'RESERVED':
-    case 'SOFT_BLOCK':
+    case BLOCK_TYPES.RESERVED:
+    case BLOCK_TYPES.SOFT_BLOCK:
       // Reserved for players but still "soft" (can be overridden)
       point.courtsSoftBlocked++;
       break;
 
-    case 'BLOCKED':
-    case 'PRACTICE':
-    case 'MAINTENANCE':
-    case 'CLOSED':
+    case BLOCK_TYPES.BLOCKED:
+    case BLOCK_TYPES.PRACTICE:
+    case BLOCK_TYPES.MAINTENANCE:
+    case BLOCK_TYPES.CLOSED:
       // Unavailable - blocked for various reasons
       point.courtsSoftBlocked++;
       break;
 
-    case 'SCHEDULED':
-    case 'HARD_BLOCK':
-    case 'LOCKED':
+    case BLOCK_TYPES.SCHEDULED:
+    case BLOCK_TYPES.HARD_BLOCK:
+    case BLOCK_TYPES.LOCKED:
       // Hard unavailable - scheduled matches, locked
       point.courtsHardBlocked++;
       break;
 
-    case 'UNSPECIFIED':
+    case BLOCK_TYPES.UNSPECIFIED:
       // Don't count unspecified - it's "gray fog"
       break;
   }

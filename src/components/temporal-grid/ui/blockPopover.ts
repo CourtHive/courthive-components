@@ -9,7 +9,7 @@ import tippy, { type Instance as TippyInstance } from 'tippy.js';
 import 'tippy.js/dist/tippy.css';
 import { showModernTimePicker } from './modernTimePicker';
 import type { TemporalGridEngine } from '../engine/temporalGridEngine';
-import type { BlockType } from '../engine/types';
+import { BLOCK_TYPES, type BlockType } from '../engine/types';
 import { DEFAULT_COLOR_SCHEME } from '../controller/viewProjections';
 
 // ============================================================================
@@ -47,10 +47,10 @@ export interface BlockPopoverManager {
 // ============================================================================
 
 const ENGINE_BLOCK_TYPES: [BlockType, string][] = [
-  ['MAINTENANCE', 'Maintenance'],
-  ['PRACTICE', 'Practice'],
-  ['RESERVED', 'Reserved'],
-  ['BLOCKED', 'Blocked'],
+  [BLOCK_TYPES.MAINTENANCE, 'Maintenance'],
+  [BLOCK_TYPES.PRACTICE, 'Practice'],
+  [BLOCK_TYPES.RESERVED, 'Reserved'],
+  [BLOCK_TYPES.BLOCKED, 'Blocked'],
 ];
 
 // ============================================================================

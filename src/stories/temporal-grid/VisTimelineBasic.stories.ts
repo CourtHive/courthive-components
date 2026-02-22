@@ -27,16 +27,16 @@ export default {
   title: 'Temporal Grid/Vis Timeline Basic'
 };
 
-// ── Facility / Court data ─────────────────────────────────────────────────────
+// ── Venue / Court data ─────────────────────────────────────────────────────
 
-interface Facility {
+interface Venue {
   id: string;
   name: string;
   color: string; // light background tint for court rows
   courts: { id: string; name: string }[];
 }
 
-const FACILITIES: Facility[] = [
+const VENUES: Venue[] = [
   {
     id: 'fac-main',
     name: 'Main Stadium',
@@ -66,15 +66,15 @@ const FACILITIES: Facility[] = [
   }
 ];
 
-// Map court id → facility for quick lookup
-const COURT_FACILITY = new Map<string, Facility>();
-for (const fac of FACILITIES) {
+// Map court id → venue for quick lookup
+const COURT_VENUE = new Map<string, Venue>();
+for (const fac of VENUES) {
   for (const court of fac.courts) {
-    COURT_FACILITY.set(court.id, fac);
+    COURT_VENUE.set(court.id, fac);
   }
 }
 
-const ALL_COURTS = FACILITIES.flatMap((f) => f.courts);
+const ALL_COURTS = VENUES.flatMap((f) => f.courts);
 
 const dayStart = new Date('2026-06-15T06:00:00');
 const dayEnd = new Date('2026-06-15T22:00:00');
@@ -97,7 +97,7 @@ function makeGroups(courtIds: Set<string>) {
   const groups: any[] = [];
   let order = 0;
 
-  for (const fac of FACILITIES) {
+  for (const fac of VENUES) {
     for (const court of fac.courts) {
       if (!courtIds.has(court.id)) continue;
       groups.push({
@@ -113,9 +113,9 @@ function makeGroups(courtIds: Set<string>) {
 }
 
 function makeItems(courtIds: Set<string>) {
-  // Background segments per court with facility-specific tint
+  // Background segments per court with venue-specific tint
   const bgItems = ALL_COURTS.filter((c) => courtIds.has(c.id)).map((c) => {
-    const fac = COURT_FACILITY.get(c.id);
+    const fac = COURT_VENUE.get(c.id);
     return {
       id: `avail-${c.id}`,
       group: c.id,
@@ -165,9 +165,9 @@ function makeItems(courtIds: Set<string>) {
   return [...bgItems, ...blocks];
 }
 
-// ── Facility tree panel ───────────────────────────────────────────────────────
+// ── Venue tree panel ───────────────────────────────────────────────────────
 
-function buildFacilityTree(visibleCourts: Set<string>, onChange: () => void): HTMLElement {
+function buildVenueTree(visibleCourts: Set<string>, onChange: () => void): HTMLElement {
   const panel = document.createElement('div');
   panel.style.cssText = `
     width: 220px; flex-shrink: 0; border-right: 1px solid #e0e0e0;
@@ -180,7 +180,7 @@ function buildFacilityTree(visibleCourts: Set<string>, onChange: () => void): HT
   header.textContent = 'Facilities & Courts';
   panel.appendChild(header);
 
-  for (const fac of FACILITIES) {
+  for (const fac of VENUES) {
     const group = document.createElement('div');
     group.style.cssText = 'padding: 4px 0;';
 
@@ -619,7 +619,7 @@ function getWidestTimeRange(engine: TemporalGridEngine, courtRefs?: any[]) {
 // ── Story: Baseline ───────────────────────────────────────────────────────────
 
 /**
- * Baseline vis-timeline with facility tree panel.
+ * Baseline vis-timeline with venue tree panel.
  *
  * Timeline interactions:
  * 1) Double-click → native box item with umbilical line
@@ -627,10 +627,10 @@ function getWidestTimeRange(engine: TemporalGridEngine, courtRefs?: any[]) {
  * 3) Click range item → action popover (assign type or adjust time)
  * 4) Drag to move, drag edges to resize
  *
- * Facility tree:
+ * Venue tree:
  * - Toggle individual courts on/off
  * - Toggle entire facilities on/off
- * - Indeterminate state when some courts in a facility are hidden
+ * - Indeterminate state when some courts in a venue are hidden
  */
 export const Baseline = {
   render: () => {
@@ -694,7 +694,7 @@ export const Baseline = {
     root.appendChild(toolbar);
     root.appendChild(statsBar.element);
 
-    const treePanel = buildFacilityTree(visibleCourts, refreshTimeline);
+    const treePanel = buildVenueTree(visibleCourts, refreshTimeline);
 
     mainRow.appendChild(treePanel);
     mainRow.appendChild(timelineContainer);
