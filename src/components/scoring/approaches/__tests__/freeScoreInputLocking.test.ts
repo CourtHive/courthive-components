@@ -46,10 +46,7 @@ function shouldLockInput(
   } else if (previouslyLocked) {
     // Already locked - check if we should unlock it
     const endsWithSeparator = rawValue.length > 0 && /[\s-]$/.test(rawValue);
-    if (scoreString.length === 0 || !endsWithSeparator) {
-      return false; // Unlock
-    }
-    return true; // Stay locked
+    return scoreString.length > 0 && endsWithSeparator; // Stay locked if score exists and ends with separator
   }
 
   return false;
@@ -76,6 +73,7 @@ function simulateInputSequence(
 describe('freeScore Input Locking Logic', () => {
   const SET3_FORMAT = MATCH_FORMATS.SET3_S6_TB7;
   const SET5_FORMAT = MATCH_FORMATS.SET5_S6_TB7;
+  const SCORE_64_63_SPACE = '64 63 ';
 
   describe('Basic Locking on Complete Score + Separator', () => {
     it('should lock after complete 2-set match with trailing space', () => {
@@ -216,7 +214,7 @@ describe('freeScore Input Locking Logic', () => {
       let locked = false;
 
       // Lock it
-      locked = shouldLockInput('64 63 ', locked, SET3_FORMAT);
+      locked = shouldLockInput(SCORE_64_63_SPACE, locked, SET3_FORMAT);
       expect(locked).toBe(true);
 
       // Clear all (Ctrl+A, Delete)
@@ -228,7 +226,7 @@ describe('freeScore Input Locking Logic', () => {
       let locked = false;
 
       // Lock it
-      locked = shouldLockInput('64 63 ', locked, SET3_FORMAT);
+      locked = shouldLockInput(SCORE_64_63_SPACE, locked, SET3_FORMAT);
       expect(locked).toBe(true);
 
       // Backspace removes space → should unlock
@@ -300,9 +298,9 @@ describe('freeScore Input Locking Logic', () => {
         '64',
         '64 46',
         '64 46 63',
-        '64 46 63 36',
-        '64 46 63 36 75',
-        '64 46 63 36 75 ',
+        `${SCORE_64_63_SPACE}36`,
+        `${SCORE_64_63_SPACE}36 75`,
+        `${SCORE_64_63_SPACE}36 75 `,
       ];
       const lockStates = simulateInputSequence(inputs, SET5_FORMAT);
 
@@ -317,7 +315,7 @@ describe('freeScore Input Locking Logic', () => {
     });
 
     it('should not lock 2-2 tied best-of-5 with separator', () => {
-      const inputs = ['64', '64 46', '64 46 63', '64 46 63 36', '64 46 63 36 '];
+      const inputs = ['64', '64 46', '64 46 63', `${SCORE_64_63_SPACE}36`, `${SCORE_64_63_SPACE}36 `];
       const lockStates = simulateInputSequence(inputs, SET5_FORMAT);
 
       expect(lockStates).toEqual([
@@ -355,7 +353,7 @@ describe('freeScore Input Locking Logic', () => {
     it('should maintain lock state with multiple trailing spaces', () => {
       let locked = false;
 
-      locked = shouldLockInput('64 63 ', locked, SET3_FORMAT);
+      locked = shouldLockInput(SCORE_64_63_SPACE, locked, SET3_FORMAT);
       expect(locked).toBe(true);
 
       locked = shouldLockInput('64 63  ', locked, SET3_FORMAT);

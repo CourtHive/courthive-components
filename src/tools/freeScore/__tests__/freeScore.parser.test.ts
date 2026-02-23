@@ -7,13 +7,18 @@
 import { describe, it, expect } from 'vitest';
 import { parseScore } from '../freeScore';
 
+const FORMAT_SET3_TB7 = 'SET3-S:6/TB7';
+const FORMAT_SET3_TB7_F_TB10 = 'SET3-S:6/TB7-F:TB10';
+const SCORE_64_63 = '6-4 6-3';
+const SCORE_64_46_TB10_7 = '6-4 4-6 [10-7]';
+
 describe('freeScore Parser', () => {
   describe('Basic Score Parsing', () => {
     it('should parse simple best-of-3 score with dashes', () => {
-      const result = parseScore('6-4 6-3', 'SET3-S:6/TB7');
+      const result = parseScore(SCORE_64_63, FORMAT_SET3_TB7);
 
       expect(result.valid).toBe(true);
-      expect(result.formattedScore).toBe('6-4 6-3');
+      expect(result.formattedScore).toBe(SCORE_64_63);
       expect(result.sets).toHaveLength(2);
       expect(result.sets[0]).toMatchObject({
         side1Score: 6,
@@ -24,22 +29,22 @@ describe('freeScore Parser', () => {
     });
 
     it('should parse score without dashes', () => {
-      const result = parseScore('6463', 'SET3-S:6/TB7');
+      const result = parseScore('6463', FORMAT_SET3_TB7);
 
       expect(result.valid).toBe(true);
-      expect(result.formattedScore).toBe('6-4 6-3');
+      expect(result.formattedScore).toBe(SCORE_64_63);
       expect(result.sets).toHaveLength(2);
     });
 
     it('should parse score with spaces only', () => {
-      const result = parseScore('64 63', 'SET3-S:6/TB7');
+      const result = parseScore('64 63', FORMAT_SET3_TB7);
 
       expect(result.valid).toBe(true);
-      expect(result.formattedScore).toBe('6-4 6-3');
+      expect(result.formattedScore).toBe(SCORE_64_63);
     });
 
     it('should parse incomplete score', () => {
-      const result = parseScore('64', 'SET3-S:6/TB7');
+      const result = parseScore('64', FORMAT_SET3_TB7);
 
       expect(result.valid).toBe(true);
       expect(result.formattedScore).toBe('6-4');
@@ -51,7 +56,7 @@ describe('freeScore Parser', () => {
 
   describe('Tiebreak Parsing', () => {
     it('should parse regular set tiebreak with parentheses', () => {
-      const result = parseScore('6-7(5) 6-3', 'SET3-S:6/TB7');
+      const result = parseScore('6-7(5) 6-3', FORMAT_SET3_TB7);
 
       expect(result.valid).toBe(true);
       expect(result.formattedScore).toBe('6-7(5) 6-3');
@@ -65,10 +70,10 @@ describe('freeScore Parser', () => {
     });
 
     it('should parse match tiebreak with brackets', () => {
-      const result = parseScore('6-4 4-6 [10-7]', 'SET3-S:6/TB7-F:TB10');
+      const result = parseScore(SCORE_64_46_TB10_7, FORMAT_SET3_TB7_F_TB10);
 
       expect(result.valid).toBe(true);
-      expect(result.formattedScore).toBe('6-4 4-6 [10-7]');
+      expect(result.formattedScore).toBe(SCORE_64_46_TB10_7);
       expect(result.sets[2]).toMatchObject({
         side1TiebreakScore: 10,
         side2TiebreakScore: 7,
@@ -78,15 +83,15 @@ describe('freeScore Parser', () => {
     it('should parse match tiebreak with separator between scores', () => {
       // Tiebreaks require separator between side1 and side2 scores
       // Cannot reliably parse "107" as "10-7" vs "1-07" without separator
-      const result = parseScore('64 46 10-7', 'SET3-S:6/TB7-F:TB10');
+      const result = parseScore('64 46 10-7', FORMAT_SET3_TB7_F_TB10);
 
       expect(result.valid).toBe(true);
-      expect(result.formattedScore).toBe('6-4 4-6 [10-7]');
+      expect(result.formattedScore).toBe(SCORE_64_46_TB10_7);
     });
 
     it('should handle extended tiebreaks with explicit separators', () => {
       // Extended tiebreak scenario: brackets + explicit dash separator
-      const result = parseScore('6-4 4-6 [200-202]', 'SET3-S:6/TB7-F:TB10');
+      const result = parseScore('6-4 4-6 [200-202]', FORMAT_SET3_TB7_F_TB10);
 
       expect(result.valid).toBe(true);
       expect(result.sets).toHaveLength(3);
@@ -105,7 +110,7 @@ describe('freeScore Parser', () => {
 
   describe('Format-Aware Disambiguation', () => {
     it('should disambiguate "123" based on setTo:6 (becomes 1-23 invalid)', () => {
-      const result = parseScore('123', 'SET3-S:6/TB7');
+      const result = parseScore('123', FORMAT_SET3_TB7);
 
       // "123" with setTo:6 means max game score is 7
       // Could be: "1-23" (invalid), "12-3" (invalid), "1-2 3" (incomplete)
@@ -114,7 +119,7 @@ describe('freeScore Parser', () => {
     });
 
     it('should handle "7564" correctly (7-5 6-4)', () => {
-      const result = parseScore('7564', 'SET3-S:6/TB7');
+      const result = parseScore('7564', FORMAT_SET3_TB7);
 
       expect(result.valid).toBe(true);
       expect(result.formattedScore).toBe('7-5 6-4');
@@ -132,24 +137,24 @@ describe('freeScore Parser', () => {
 
   describe('Various Separators', () => {
     it('should accept commas as separators', () => {
-      const result = parseScore('6,4,6,3', 'SET3-S:6/TB7');
+      const result = parseScore('6,4,6,3', FORMAT_SET3_TB7);
 
       expect(result.valid).toBe(true);
-      expect(result.formattedScore).toBe('6-4 6-3');
+      expect(result.formattedScore).toBe(SCORE_64_63);
     });
 
     it('should accept semicolons as separators', () => {
-      const result = parseScore('6;4;6;3', 'SET3-S:6/TB7');
+      const result = parseScore('6;4;6;3', FORMAT_SET3_TB7);
 
       expect(result.valid).toBe(true);
-      expect(result.formattedScore).toBe('6-4 6-3');
+      expect(result.formattedScore).toBe(SCORE_64_63);
     });
 
     it('should accept mixed separators', () => {
-      const result = parseScore('6-4,6 3', 'SET3-S:6/TB7');
+      const result = parseScore('6-4,6 3', FORMAT_SET3_TB7);
 
       expect(result.valid).toBe(true);
-      expect(result.formattedScore).toBe('6-4 6-3');
+      expect(result.formattedScore).toBe(SCORE_64_63);
     });
   });
 
@@ -190,16 +195,16 @@ describe('freeScore Parser', () => {
 
   describe('Error Cases', () => {
     it('should ignore invalid characters as separators', () => {
-      const result = parseScore('6-4 x 6-3', 'SET3-S:6/TB7');
+      const result = parseScore('6-4 x 6-3', FORMAT_SET3_TB7);
 
       // Non-numeric characters (except parentheses/brackets) are treated as separators
       expect(result.valid).toBe(true);
-      expect(result.formattedScore).toBe('6-4 6-3');
+      expect(result.formattedScore).toBe(SCORE_64_63);
       expect(result.sets).toHaveLength(2);
     });
 
     it('should warn about scores exceeding format limits', () => {
-      const result = parseScore('10-2', 'SET3-S:6/TB7');
+      const result = parseScore('10-2', FORMAT_SET3_TB7);
 
       // 10 exceeds setTo + 1 (7)
       expect(result.warnings.length).toBeGreaterThan(0);
@@ -208,14 +213,14 @@ describe('freeScore Parser', () => {
 
   describe('Real-World Examples', () => {
     it('should parse "6-2;2-6;10-2"', () => {
-      const result = parseScore('6-2;2-6;10-2', 'SET3-S:6/TB7-F:TB10');
+      const result = parseScore('6-2;2-6;10-2', FORMAT_SET3_TB7_F_TB10);
 
       expect(result.valid).toBe(true);
       expect(result.formattedScore).toBe('6-2 2-6 [10-2]');
     });
 
     it('should parse "6 3 6 7(3) 6 0"', () => {
-      const result = parseScore('6 3 6 7(3) 6 0', 'SET3-S:6/TB7');
+      const result = parseScore('6 3 6 7(3) 6 0', FORMAT_SET3_TB7);
 
       expect(result.valid).toBe(true);
       expect(result.formattedScore).toBe('6-3 6-7(3) 6-0');
@@ -224,7 +229,7 @@ describe('freeScore Parser', () => {
     it('should parse "67(6)6410-6" (tiebreak with separator)', () => {
       // freeScore requires separator in tiebreaks for unambiguous parsing
       // so users can provide minimal formatting like dash in tiebreak
-      const result = parseScore('67(6)6410-6', 'SET3-S:6/TB7-F:TB10');
+      const result = parseScore('67(6)6410-6', FORMAT_SET3_TB7_F_TB10);
 
       expect(result.valid).toBe(true);
       expect(result.formattedScore).toBe('6-7(6) 6-4 [10-6]');
@@ -233,14 +238,14 @@ describe('freeScore Parser', () => {
 
   describe('Confidence and Ambiguity', () => {
     it('should have high confidence for clear input', () => {
-      const result = parseScore('6-4 6-3', 'SET3-S:6/TB7');
+      const result = parseScore(SCORE_64_63, FORMAT_SET3_TB7);
 
       expect(result.confidence).toBeGreaterThan(0.9);
       expect(result.ambiguities).toHaveLength(0);
     });
 
     it('should detect ambiguity in "64106"', () => {
-      const result = parseScore('64106', 'SET3-S:6/TB7-F:TB10');
+      const result = parseScore('64106', FORMAT_SET3_TB7_F_TB10);
 
       // Could be: "6-4 10-6" or "6-4 [10-6]"
       // Parser should recognize final set context

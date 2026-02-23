@@ -99,6 +99,7 @@ export interface SegmentData {
 
 export interface BurstChartEventHandlers {
   clickSegment?: (data: SegmentData) => void;
+  clickCenter?: () => void;
 }
 
 export interface BurstChartOptions {
@@ -181,10 +182,16 @@ function resolveWinner(
   mu: SunburstMatchUp,
   lookup: Map<string, HierarchyNode>
 ): { winnerName?: string; winnerSide?: SunburstSide; winnerLookup?: HierarchyNode } {
-  const winnerSide =
+  let winnerSide =
     mu.winningSide !== undefined && mu.winningSide !== null
       ? mu.sides.find((s) => s.sideNumber === mu.winningSide)
       : undefined;
+
+  // BYE matchUps may not have winningSide set; resolve by finding the side with a participant
+  if (!winnerSide && mu.matchUpStatus === 'BYE') {
+    winnerSide = mu.sides.find((s) => s.participantName);
+  }
+
   const winnerName = winnerSide?.participantName;
   const winnerLookup = winnerName ? lookup.get(winnerName) : undefined;
   return { winnerName, winnerSide, winnerLookup };
@@ -361,8 +368,11 @@ function applyColors(node: HierarchyNode, colorScale: ScaleLinear<number, number
  */
 function getLeafInfo(data: HierarchyNode, depth: number): string | undefined {
   const info: string[] = [];
-  if (data.seedNumber) info.push(`Seed ${data.seedNumber}`);
-  if (data.entryStatus) info.push(data.entryStatus);
+  if (data.seedNumber) {
+    info.push(`Seed ${data.seedNumber}`);
+  } else if (data.entryStatus) {
+    info.push(data.entryStatus); // map to short code (WC/Q/LL) in buildRoundParents()
+  }
   if (depth === 7 && data.drawPosition) {
     info.push(`Draw ${data.drawPosition}`);
   }
@@ -677,6 +687,16 @@ export function renderburstChart(
 
   displayAllFlags();
   displayTournamentTitle();
+
+  // Center click target (transparent circle behind text/flags)
+  const clickCenter = options.eventHandlers?.clickCenter;
+  if (clickCenter) {
+    g.insert('circle', ':first-child')
+      .attr('r', centerRadius)
+      .attr('fill', 'transparent')
+      .style('cursor', 'pointer')
+      .on('click', clickCenter);
+  }
 
   // Frozen state: when a player is highlighted via highlightPlayer(), opacity is locked
   // but individual segments still show hover feedback

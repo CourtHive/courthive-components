@@ -12,7 +12,13 @@
  * Design: Pure functions, no side effects, testable in isolation.
  */
 
-import type { BlockType, CourtMeta, CourtRef, VenueDayTimeline, RailSegment } from '../engine/types';
+import type { temporal } from 'tods-competition-factory';
+
+type BlockType = temporal.BlockType;
+type CourtMeta = temporal.CourtMeta;
+type CourtRef = temporal.CourtRef;
+type VenueDayTimeline = temporal.VenueDayTimeline;
+type RailSegment = temporal.RailSegment;
 
 import type { IdType } from 'vis-timeline/standalone';
 
@@ -139,7 +145,7 @@ export const DEFAULT_COLOR_SCHEME: BlockColorScheme = {
 export function buildResourcesFromTimelines(
   timelines: VenueDayTimeline[],
   courtMeta: CourtMeta[],
-  _config: ProjectionConfig = {}
+  _config: ProjectionConfig = {} // eslint-disable-line @typescript-eslint/no-unused-vars
 ): TimelineGroup[] {
   const groups: TimelineGroup[] = [];
 

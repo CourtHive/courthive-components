@@ -22,6 +22,15 @@ import {
   initializeFormatFromString,
 } from '../matchUpFormatLogic';
 
+const FORMAT_SET3_TB7 = 'SET3-S:6/TB7';
+const FORMAT_HAL2A_T45 = 'HAL2A-S:T45';
+const FORMAT_QTR4A_T12 = 'QTR4A-S:T12';
+const FORMAT_SET3_TB11_RALLY = 'SET3-S:TB11@RALLY';
+const FORMAT_SET5_TB21_RALLY_F_TB15 = 'SET5-S:TB21@RALLY-F:TB15@RALLY';
+const FORMAT_SET5_5_G3C = 'SET5-S:5-G:3C';
+const FORMAT_SET7XA_T10P = 'SET7XA-S:T10P';
+const FORMAT_SET3_TB7_G_TN3D = 'SET3-S:6/TB7-G:TN3D';
+
 describe('matchUpFormatLogic', () => {
   describe('createDefaultSetFormat', () => {
     it('should create default set format', () => {
@@ -258,7 +267,7 @@ describe('matchUpFormatLogic', () => {
   describe('initializeFormatFromString', () => {
     const mockParse = (format: string) => {
       // Simple mock for testing
-      if (format === 'SET3-S:6/TB7') {
+      if (format === FORMAT_SET3_TB7) {
         return {
           bestOf: 3,
           setFormat: { setTo: 6, tiebreakAt: 6, tiebreakFormat: { tiebreakTo: 7 } },
@@ -306,8 +315,8 @@ describe('matchUpFormatLogic', () => {
     };
 
     it('should initialize from standard format with bestOf', () => {
-      const format = initializeFormatFromString('SET3-S:6/TB7', mockParse);
-      
+      const format = initializeFormatFromString(FORMAT_SET3_TB7, mockParse);
+
       expect(format.setFormat.bestOf).toBe(3);
       expect(format.setFormat.exactly).toBeUndefined();
       expect(format.setFormat.descriptor).toBe('Best of');
@@ -359,7 +368,7 @@ describe('matchUpFormatLogic', () => {
     // The UI logic should default finalSetTiebreak.checked to match setFormat.tiebreakFormat
     it('should initialize with format that will enable correct tiebreak default', () => {
       // When main set has tiebreak
-      const formatWithTiebreak = initializeFormatFromString('SET3-S:6/TB7', mockParse);
+      const formatWithTiebreak = initializeFormatFromString(FORMAT_SET3_TB7, mockParse);
       
       // The final set format should have default properties that match main set
       // (UI will use this to initialize checkboxes)
@@ -570,7 +579,7 @@ describe('matchUpFormatLogic', () => {
 
   describe('initializeFormatFromString with cross-sport formats', () => {
     it('should extract matchRoot from HAL format', () => {
-      const format = initializeFormatFromString('HAL2A-S:T45', matchUpFormatCode.parse);
+      const format = initializeFormatFromString(FORMAT_HAL2A_T45, matchUpFormatCode.parse);
 
       expect(format.matchRoot).toBe('HAL');
       expect(format.aggregate).toBe(true);
@@ -579,7 +588,7 @@ describe('matchUpFormatLogic', () => {
     });
 
     it('should extract matchRoot from QTR format', () => {
-      const format = initializeFormatFromString('QTR4A-S:T12', matchUpFormatCode.parse);
+      const format = initializeFormatFromString(FORMAT_QTR4A_T12, matchUpFormatCode.parse);
 
       expect(format.matchRoot).toBe('QTR');
       expect(format.aggregate).toBe(true);
@@ -587,7 +596,7 @@ describe('matchUpFormatLogic', () => {
     });
 
     it('should extract modifier from rally scoring format', () => {
-      const format = initializeFormatFromString('SET3-S:TB11@RALLY', matchUpFormatCode.parse);
+      const format = initializeFormatFromString(FORMAT_SET3_TB11_RALLY, matchUpFormatCode.parse);
 
       expect(format.setFormat.modifier).toBe('RALLY');
       expect(format.setFormat.what).toBe(TIEBREAKS);
@@ -595,32 +604,32 @@ describe('matchUpFormatLogic', () => {
     });
 
     it('should extract modifier from final set rally scoring', () => {
-      const format = initializeFormatFromString('SET5-S:TB21@RALLY-F:TB15@RALLY', matchUpFormatCode.parse);
+      const format = initializeFormatFromString(FORMAT_SET5_TB21_RALLY_F_TB15, matchUpFormatCode.parse);
 
       expect(format.setFormat.modifier).toBe('RALLY');
       expect(format.finalSetFormat.modifier).toBe('RALLY');
     });
 
     it('should extract gameFormat CONSECUTIVE', () => {
-      const format = initializeFormatFromString('SET5-S:5-G:3C', matchUpFormatCode.parse);
+      const format = initializeFormatFromString(FORMAT_SET5_5_G3C, matchUpFormatCode.parse);
 
       expect(format.gameFormat).toEqual({ type: 'CONSECUTIVE', count: 3 });
     });
 
     it('should extract aggregate and points-based scoring', () => {
-      const format = initializeFormatFromString('SET7XA-S:T10P', matchUpFormatCode.parse);
+      const format = initializeFormatFromString(FORMAT_SET7XA_T10P, matchUpFormatCode.parse);
 
       expect(format.aggregate).toBe(true);
       expect(format.setFormat.based).toBe('P');
     });
 
     it('should extract gameFormat TRADITIONAL with deuceAfter', () => {
-      const format = initializeFormatFromString('SET3-S:6/TB7-G:TN3D', matchUpFormatCode.parse);
+      const format = initializeFormatFromString(FORMAT_SET3_TB7_G_TN3D, matchUpFormatCode.parse);
       expect(format.gameFormat).toEqual({ type: 'TRADITIONAL', deuceAfter: 3 });
     });
 
     it('should not set matchRoot for standard SET formats', () => {
-      const format = initializeFormatFromString('SET3-S:6/TB7', matchUpFormatCode.parse);
+      const format = initializeFormatFromString(FORMAT_SET3_TB7, matchUpFormatCode.parse);
 
       expect(format.matchRoot).toBeUndefined();
     });
@@ -642,23 +651,23 @@ describe('matchUpFormatLogic', () => {
     }
 
     it('HAL2A-S:T45 (soccer)', () => {
-      expect(roundTrip('HAL2A-S:T45')).toBe('HAL2A-S:T45');
+      expect(roundTrip(FORMAT_HAL2A_T45)).toBe(FORMAT_HAL2A_T45);
     });
 
     it('QTR4A-S:T12 (basketball)', () => {
-      expect(roundTrip('QTR4A-S:T12')).toBe('QTR4A-S:T12');
+      expect(roundTrip(FORMAT_QTR4A_T12)).toBe(FORMAT_QTR4A_T12);
     });
 
     it('SET3-S:TB11@RALLY (pickleball)', () => {
-      expect(roundTrip('SET3-S:TB11@RALLY')).toBe('SET3-S:TB11@RALLY');
+      expect(roundTrip(FORMAT_SET3_TB11_RALLY)).toBe(FORMAT_SET3_TB11_RALLY);
     });
 
     it('SET5-S:5-G:3C (TYPTI)', () => {
-      expect(roundTrip('SET5-S:5-G:3C')).toBe('SET5-S:5-G:3C');
+      expect(roundTrip(FORMAT_SET5_5_G3C)).toBe(FORMAT_SET5_5_G3C);
     });
 
     it('SET7XA-S:T10P (INTENNSE)', () => {
-      expect(roundTrip('SET7XA-S:T10P')).toBe('SET7XA-S:T10P');
+      expect(roundTrip(FORMAT_SET7XA_T10P)).toBe(FORMAT_SET7XA_T10P);
     });
 
     it('RND12A-S:T3 (boxing)', () => {
@@ -666,7 +675,7 @@ describe('matchUpFormatLogic', () => {
     });
 
     it('SET5-S:TB21@RALLY-F:TB15@RALLY (MLP)', () => {
-      expect(roundTrip('SET5-S:TB21@RALLY-F:TB15@RALLY')).toBe('SET5-S:TB21@RALLY-F:TB15@RALLY');
+      expect(roundTrip(FORMAT_SET5_TB21_RALLY_F_TB15)).toBe(FORMAT_SET5_TB21_RALLY_F_TB15);
     });
 
     it('PER3A-S:T20 (ice hockey)', () => {
@@ -674,7 +683,7 @@ describe('matchUpFormatLogic', () => {
     });
 
     it('SET3-S:6/TB7-G:TN3D (Padel Star Point)', () => {
-      expect(roundTrip('SET3-S:6/TB7-G:TN3D')).toBe('SET3-S:6/TB7-G:TN3D');
+      expect(roundTrip(FORMAT_SET3_TB7_G_TN3D)).toBe(FORMAT_SET3_TB7_G_TN3D);
     });
 
     it('SET3-S:6/TB7-G:TN (explicit traditional)', () => {

@@ -168,7 +168,8 @@ export function renderParticipantInput({
   };
 
   // Create input field using renderField
-  const fieldId = `assign-${matchUp.matchUpId}-side${sideNumber}${position ? `-p${position}` : ''}`;
+  const positionSuffix = position ? `-p${position}` : '';
+  const fieldId = `assign-${matchUp.matchUpId}-side${sideNumber}${positionSuffix}`;
 
   // Set current value if participant is assigned (for persistInputFields mode)
   const currentValue = currentParticipant?.participantId;

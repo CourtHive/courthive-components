@@ -1,84 +1,26 @@
 /**
  * Temporal Grid - Main Entry Point
- * 
- * Export all public APIs for the temporal resource grid system.
+ *
+ * Engine modules re-exported from tods-competition-factory via `temporal` namespace.
+ * Controller, UI, and view state are local to courthive-components.
  */
 
 // ============================================================================
-// Engine (Core State Machine)
+// Engine (re-exported from factory)
 // ============================================================================
 
-export { TemporalGridEngine } from './engine/temporalGridEngine';
-export { BLOCK_TYPES } from './engine/types';
-export type * from './engine/types';
-export {
-  buildDayRange,
-  clampToDayRange,
-  courtDayKey,
-  courtKey,
-  venueKey,
-  venueDayKey,
-  deriveRailSegments,
-  diffMinutes,
-  extractDay,
-  mergeAdjacentSegments,
-  overlappingRange,
-  rangesOverlap,
-  resolveStatus,
-  validateSegments,
-} from './engine/railDerivation';
-export {
-  calculateCapacityStats,
-  compareCapacityCurves,
-  filterCapacityCurve,
-  generateCapacityCurve,
-  sampleCapacityCurve,
-  type CapacityDiff,
-  type CapacityStats,
-} from './engine/capacityCurve';
+export { TemporalEngine, TemporalEngine as TemporalGridEngine, temporal } from 'tods-competition-factory';
 
 // ============================================================================
-// Conflict Evaluators
+// View State (UI-specific, stays in courthive-components)
 // ============================================================================
 
 export {
-  adjacentBlockEvaluator,
-  blockDurationEvaluator,
-  courtOverlapEvaluator,
-  createFollowByEvaluator,
-  dayBoundaryEvaluator,
-  defaultEvaluators,
-  EvaluatorRegistry,
-  formatConflicts,
-  getHighestSeverity,
-  groupConflictsBySeverity,
-  lightingEvaluator,
-  maintenanceWindowEvaluator,
-  matchWindowEvaluator,
-} from './engine/conflictEvaluators';
-
-// ============================================================================
-// Factory Bridge
-// ============================================================================
-
-export {
-  applyTemporalAvailabilityToTournamentRecord,
-  buildSchedulingProfileFromUISelections,
-  calculateCourtHours,
-  mergeOverlappingAvailability,
-  railsToDateAvailability,
-  todsAvailabilityToBlocks,
-  validateDateAvailability,
-  validateSchedulingProfile,
-  type BridgeConfig,
-  type SchedulingProfile,
-  type SchedulingProfileItem,
-  type SchedulingProfileRound,
-  type SchedulingSelection,
-  type TodsDateAvailability,
-  type TodsCourt,
-  type TodsVenue,
-} from './bridge/temporalGridFactoryBridge';
+  TemporalViewState,
+  type ViewChangeEvent,
+  type ViewChangeListener,
+  type ViewStateSnapshot,
+} from './engine/viewState';
 
 // ============================================================================
 // Controller & View Projections

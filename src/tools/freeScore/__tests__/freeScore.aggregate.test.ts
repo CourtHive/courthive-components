@@ -6,6 +6,9 @@
 import { describe, it, expect } from 'vitest';
 import { parseScore } from '../freeScore';
 
+const FORMAT_SET3XA_TB1 = 'SET3XA-S:T10-F:TB1';
+const SCORE_30_25_20_30 = '30-25 20-30';
+
 describe('freeScore - Aggregate Scoring with Conditional TB', () => {
   describe('SET3XA-S:T10 (3 sets, aggregate, no conditional TB)', () => {
     const format = 'SET3XA-S:T10';
@@ -67,16 +70,16 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
   });
 
   describe('SET3XA-S:T10-F:TB1 (3 sets, aggregate, conditional TB1)', () => {
-    const format = 'SET3XA-S:T10-F:TB1';
+    const format = FORMAT_SET3XA_TB1;
 
     it('should accept 2 sets when aggregate not tied (side 2 wins)', () => {
-      const result = parseScore('30-25 20-30', format);
+      const result = parseScore(SCORE_30_25_20_30, format);
 
       // Aggregate: 50-55, side 2 wins, no TB needed
       expect(result.valid).toBe(true);
       expect(result.sets.length).toBe(2);
       expect(result.matchComplete).toBe(true);
-      expect(result.formattedScore).toBe('30-25 20-30');
+      expect(result.formattedScore).toBe(SCORE_30_25_20_30);
     });
 
     it('should accept 2 sets when aggregate not tied (side 1 wins)', () => {
@@ -207,7 +210,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
     });
 
     it('should mark as incomplete with only 2 sets', () => {
-      const result = parseScore('30-25 20-30', format);
+      const result = parseScore(SCORE_30_25_20_30, format);
 
       expect(result.valid).toBe(false);
       expect(result.incomplete).toBe(true);
@@ -234,7 +237,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
   });
 
   describe('Edge Cases', () => {
-    const format = 'SET3XA-S:T10-F:TB1';
+    const format = FORMAT_SET3XA_TB1;
 
     it('should handle aggregate tied at 0-0', () => {
       const result = parseScore('0-0 0-1', format);
@@ -274,7 +277,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
 
     it('should reject 2 sets for SET3X-S:T10 (no conditional logic)', () => {
       const format = 'SET3X-S:T10';
-      const result = parseScore('30-25 20-30', format);
+      const result = parseScore(SCORE_30_25_20_30, format);
 
       // Not aggregate, so all 3 sets required
       expect(result.valid).toBe(false);
@@ -284,7 +287,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
 
   describe('Realistic score examples', () => {
     it('should accept 10-11 11-10 1-0 for SET3XA-S:T10-F:TB1', () => {
-      const result = parseScore('10-11 11-10 1-0', 'SET3XA-S:T10-F:TB1');
+      const result = parseScore('10-11 11-10 1-0', FORMAT_SET3XA_TB1);
 
       // Aggregate: 21-21, tied → TB decides
       expect(result.valid).toBe(true);

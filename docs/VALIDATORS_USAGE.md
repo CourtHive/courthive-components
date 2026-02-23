@@ -36,6 +36,7 @@ validators.emailValidator(value: string) => RegExpMatchArray | null
 ### In TMX Forms
 
 Before:
+
 ```typescript
 import { nameValidator } from '../validators/nameValidator';
 import { numericRange } from '../validators/numericRange';
@@ -44,19 +45,20 @@ const items = [
   {
     field: DRAW_NAME,
     validator: nameValidator(4),
-    error: 'minimum of 4 characters',
+    error: 'minimum of 4 characters'
     // ...
   },
   {
     field: DRAW_SIZE,
     validator: numericRange(2, maxDrawSize),
-    error: `Must be in range 2-${maxDrawSize}`,
+    error: `Must be in range 2-${maxDrawSize}`
     // ...
   }
 ];
 ```
 
 After (using courthive-components):
+
 ```typescript
 import { validators } from 'courthive-components';
 
@@ -64,13 +66,13 @@ const items = [
   {
     field: DRAW_NAME,
     validator: validators.nameValidator(4),
-    error: 'minimum of 4 characters',
+    error: 'minimum of 4 characters'
     // ...
   },
   {
     field: DRAW_SIZE,
     validator: validators.numericRange(2, maxDrawSize),
-    error: `Must be in range 2-${maxDrawSize}`,
+    error: `Must be in range 2-${maxDrawSize}`
     // ...
   }
 ];
@@ -86,7 +88,7 @@ const items = [
     label: 'Category Name',
     field: 'categoryName',
     validator: validators.nameValidator(5),
-    error: 'Minimum 5 characters',
+    error: 'Minimum 5 characters'
     // ...
   }
 ];
@@ -115,11 +117,13 @@ const isValidPwd = validators.passwordValidator('MyP@ss123'); // true
 Once the new version of courthive-components is published:
 
 1. Replace all local validator imports with:
+
    ```typescript
    import { validators } from 'courthive-components';
    ```
 
 2. Update all validator references:
+
    ```typescript
    nameValidator(4) → validators.nameValidator(4)
    numericRange(2, 10) → validators.numericRange(2, 10)

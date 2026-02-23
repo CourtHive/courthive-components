@@ -5,6 +5,8 @@
 # testing
 /coverage
 
+/dev/docs/*
+
 # sandbox
 scratch*
 

@@ -5,6 +5,9 @@
 import { describe, it, expect } from 'vitest';
 import { validateSetScores } from '../scoreValidator';
 
+const FORMAT_SET3X_T10 = 'SET3X-S:T10';
+const STATUS_COMPLETED = 'COMPLETED';
+
 describe('validateSetScores - Timed formats', () => {
   describe('SET3X-S:T10 (3 timed sets exactly, to 10 points)', () => {
     it('should calculate winningSide correctly for 10-0 0-1 0-1 (side 2 wins)', () => {
@@ -14,12 +17,12 @@ describe('validateSetScores - Timed formats', () => {
         { side1: 0, side2: 1 },  // Set 3: side 2 wins
       ];
 
-      const result = validateSetScores(sets, 'SET3X-S:T10', false);
+      const result = validateSetScores(sets, FORMAT_SET3X_T10, false);
 
       expect(result.isValid).toBe(true);
       expect(result.winningSide).toBe(2); // Side 2 won 2 out of 3 sets
       expect(result.sets?.length).toBe(3);
-      expect(result.matchUpStatus).toBe('COMPLETED');
+      expect(result.matchUpStatus).toBe(STATUS_COMPLETED);
     });
 
     it('should calculate winningSide correctly for 10-5 10-3 0-1 (side 1 wins)', () => {
@@ -29,11 +32,11 @@ describe('validateSetScores - Timed formats', () => {
         { side1: 0, side2: 1 },   // Set 3: side 2 wins
       ];
 
-      const result = validateSetScores(sets, 'SET3X-S:T10', false);
+      const result = validateSetScores(sets, FORMAT_SET3X_T10, false);
 
       expect(result.isValid).toBe(true);
       expect(result.winningSide).toBe(1); // Side 1 won 2 out of 3 sets
-      expect(result.matchUpStatus).toBe('COMPLETED');
+      expect(result.matchUpStatus).toBe(STATUS_COMPLETED);
     });
 
     it('should handle incomplete match (only 2 sets entered)', () => {
@@ -42,7 +45,7 @@ describe('validateSetScores - Timed formats', () => {
         { side1: 0, side2: 1 },
       ];
 
-      const result = validateSetScores(sets, 'SET3X-S:T10', false);
+      const result = validateSetScores(sets, FORMAT_SET3X_T10, false);
 
       // Should be invalid - not enough sets for exactly format
       expect(result.isValid).toBe(false);
@@ -53,7 +56,7 @@ describe('validateSetScores - Timed formats', () => {
         { side1: 10, side2: 0 }, // Complete set but incomplete match (need 3 sets)
       ];
 
-      const result = validateSetScores(sets, 'SET3X-S:T10', true);
+      const result = validateSetScores(sets, FORMAT_SET3X_T10, true);
 
       // allowIncomplete doesn't help here - still need correct number of sets for exactly format
       expect(result.isValid).toBe(false);
@@ -73,7 +76,7 @@ describe('validateSetScores - Timed formats', () => {
 
       expect(result.isValid).toBe(true);
       expect(result.winningSide).toBe(1); // Aggregate: 30-3, side 1 wins
-      expect(result.matchUpStatus).toBe('COMPLETED');
+      expect(result.matchUpStatus).toBe(STATUS_COMPLETED);
     });
 
     it('should handle aggregate tie resolved by TB1', () => {
@@ -87,7 +90,7 @@ describe('validateSetScores - Timed formats', () => {
 
       expect(result.isValid).toBe(true);
       expect(result.winningSide).toBe(1); // Aggregate 55-55, TB resolves to side 1
-      expect(result.matchUpStatus).toBe('COMPLETED');
+      expect(result.matchUpStatus).toBe(STATUS_COMPLETED);
     });
   });
 
@@ -99,7 +102,7 @@ describe('validateSetScores - Timed formats', () => {
         { side1: 0, side2: 1 },
       ];
 
-      const result = validateSetScores(sets, 'SET3X-S:T10', false);
+      const result = validateSetScores(sets, FORMAT_SET3X_T10, false);
 
       expect(result.score).toBe('10-0 0-1 0-1');
     });

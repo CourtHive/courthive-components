@@ -21,7 +21,7 @@ async function ensureTimepickerLoaded() {
     TimepickerUI = timepickerModule.TimepickerUI;
     PluginRegistry = timepickerModule.PluginRegistry;
 
-    // @ts-ignore - TS doesn't handle dynamic imports well
+    // @ts-expect-error - TS doesn't handle dynamic imports well
     const rangeModule = await import('timepicker-ui/plugins/range');
     RangePlugin = rangeModule.RangePlugin;
 

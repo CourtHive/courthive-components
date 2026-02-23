@@ -101,20 +101,14 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
 
     // Determine the score to display - ONLY use internal state, never matchUp.score
     let displayScore: any;
-    if (currentScore?.clearAll) {
-      displayScore = undefined;
-      internalScore = undefined; // Clear internal state
-    } else if (shouldClearScore) {
+    if (currentScore?.clearAll || shouldClearScore) {
       displayScore = undefined;
       internalScore = undefined; // Clear internal state
     } else if (currentScore?.scoreObject) {
       displayScore = currentScore.scoreObject;
       internalScore = currentScore.scoreObject; // Update internal state
-    } else if (currentScore !== undefined) {
-      // We have a currentScore but no scoreObject - use internal state
-      displayScore = internalScore;
     } else {
-      // No currentScore provided - use internal state
+      // No scoreObject - use internal state
       displayScore = internalScore;
     }
 

@@ -15,10 +15,13 @@
  */
 
 import { Timeline } from 'vis-timeline/standalone';
-import { tools } from 'tods-competition-factory';
-import type { TemporalGridEngine } from '../engine/temporalGridEngine';
-import { clampDragToCollisions, findBlocksContainingTime, sortBlocksByStart } from '../engine/collisionDetection';
-import { BLOCK_TYPES, type BlockType, type CourtRef, type DayId } from '../engine/types';
+import { tools, temporal, type TemporalEngine } from 'tods-competition-factory';
+
+const { BLOCK_TYPES, clampDragToCollisions, findBlocksContainingTime, sortBlocksByStart } = temporal;
+type BlockType = temporal.BlockType;
+type CourtRef = temporal.CourtRef;
+type DayId = temporal.DayId;
+import { TemporalViewState } from '../engine/viewState';
 import {
   buildBlockEvents,
   buildEventsFromTimelines,
@@ -78,7 +81,7 @@ export interface TemporalGridControlConfig {
 // ============================================================================
 
 export class TemporalGridControl {
-  private readonly engine: TemporalGridEngine;
+  private readonly engine: TemporalEngine;
   private timeline: Timeline | null = null;
   private readonly config: TemporalGridControlConfig;
   private unsubscribe: (() => void) | null = null;
@@ -95,7 +98,8 @@ export class TemporalGridControl {
   // Drag guard — suppresses click handler after drag
   private justDragged = false;
 
-  // View state
+  // View state (UI-specific, not part of engine)
+  private viewState: TemporalViewState = new TemporalViewState();
   private currentDay: DayId | null = null;
   private currentView: string = 'day';
   private selectedCourts: Set<CourtRef> = new Set();
@@ -103,7 +107,7 @@ export class TemporalGridControl {
   private isPaintMode = false;
   private visibleCourts: Set<string> | null = null; // null = all visible, Set = filtered
 
-  constructor(engine: TemporalGridEngine, config: TemporalGridControlConfig) {
+  constructor(engine: TemporalEngine, config: TemporalGridControlConfig) {
     this.engine = engine;
     this.config = {
       groupingMode: 'BY_VENUE',
@@ -124,7 +128,7 @@ export class TemporalGridControl {
     // Set initial day
     if (this.config.initialDay) {
       this.currentDay = this.config.initialDay;
-      this.engine.setSelectedDay(this.config.initialDay);
+      this.viewState.setSelectedDay(this.config.initialDay);
     }
 
     // Set initial view
@@ -168,7 +172,7 @@ export class TemporalGridControl {
 
     const timelines = this.engine.getDayTimeline(this.currentDay);
     const courtMeta = this.engine.listCourtMeta();
-    const layerVisibility = (this.engine as any).layerVisibility || new Map<BlockType, boolean>();
+    const layerVisibility = this.viewState.getLayerVisibility();
 
     const projectionConfig: ProjectionConfig = {
       groupingMode: this.config.groupingMode,
@@ -319,22 +323,14 @@ export class TemporalGridControl {
   // Public API
   // ============================================================================
 
-  /** Set the selected day (public API - updates engine) */
+  /** Set the selected day (public API) */
   setDay(day: DayId): void {
     if (this.currentDay === day) return;
 
     this.currentDay = day;
-    this.engine.setSelectedDay(day);
+    this.viewState.setSelectedDay(day);
 
     // Update timeline window
-    this.updateTimelineWindow();
-    this.render();
-  }
-
-  /** Update day display without triggering engine (internal use) */
-  private updateDayDisplay(day: DayId): void {
-    if (this.currentDay === day) return;
-    this.currentDay = day;
     this.updateTimelineWindow();
     this.render();
   }
@@ -400,7 +396,7 @@ export class TemporalGridControl {
 
   /** Set layer visibility */
   setLayerVisibility(layerId: BlockType, visible: boolean): void {
-    this.engine.setLayerVisibility(layerId, visible);
+    this.viewState.setLayerVisibility(layerId, visible);
     this.render();
   }
 
@@ -768,12 +764,6 @@ export class TemporalGridControl {
         }
         break;
 
-      case 'VIEW_CHANGED':
-        if (event.payload.day) {
-          this.updateDayDisplay(event.payload.day);
-        }
-        break;
-
       case 'CONFLICTS_CHANGED':
         if (this.config.showConflicts) {
           this.render();
@@ -827,8 +817,13 @@ export class TemporalGridControl {
   }
 
   /** Get engine instance */
-  getEngine(): TemporalGridEngine {
+  getEngine(): TemporalEngine {
     return this.engine;
+  }
+
+  /** Get view state (for external consumers to subscribe to view changes) */
+  getViewState(): TemporalViewState {
+    return this.viewState;
   }
 }
 
@@ -838,7 +833,7 @@ export class TemporalGridControl {
 
 /** Create a temporal grid controller */
 export function createTemporalGridControl(
-  engine: TemporalGridEngine,
+  engine: TemporalEngine,
   config: TemporalGridControlConfig
 ): TemporalGridControl {
   return new TemporalGridControl(engine, config);

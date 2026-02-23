@@ -4,6 +4,9 @@
 // @ts-expect-error - Storybook types not in published package
 import type { Meta, StoryObj } from '@storybook/html';
 
+const BUTTON_IS_PRIMARY = 'button is-primary';
+const CONSIDERED_DATE_2024 = '2024-01-01';
+
 const meta: Meta = {
   title: 'Components/Categories/AgeCategory',
   tags: ['autodocs'],
@@ -32,7 +35,7 @@ export const BasicEditor: Story = {
     resultDisplay.innerHTML = '<strong>Selected category will appear here</strong>';
 
     const button = document.createElement('button');
-    button.className = 'button is-primary';
+    button.className = BUTTON_IS_PRIMARY;
     button.textContent = 'Open Age Category Editor';
     button.onclick = async () => {
       const { getAgeCategoryModal } = await import('../components/categories/ageCategory/ageCategory');
@@ -135,7 +138,7 @@ export const DifferentCategoryTypes: Story = {
 
         getAgeCategoryModal({
           existingCategory: { ageCategoryCode: testCase.code },
-          consideredDate: '2024-01-01',
+          consideredDate: CONSIDERED_DATE_2024,
           callback: (category) => {
             alert(`Selected: ${category.ageCategoryCode}`);
           },
@@ -162,7 +165,7 @@ export const CustomConfiguration: Story = {
     container.style.padding = '2em';
 
     const button = document.createElement('button');
-    button.className = 'button is-primary';
+    button.className = BUTTON_IS_PRIMARY;
     button.textContent = 'Open with Custom Config';
     button.onclick = async () => {
       const { getAgeCategoryModal } = await import('../components/categories/ageCategory/ageCategory');
@@ -228,21 +231,21 @@ export const CalculatedAgeDetails: Story = {
     resultDisplay.innerHTML = '<strong>Age calculations will appear here</strong>';
 
     const button = document.createElement('button');
-    button.className = 'button is-primary';
+    button.className = BUTTON_IS_PRIMARY;
     button.textContent = 'Open Editor';
     button.onclick = async () => {
       const { getAgeCategoryModal } = await import('../components/categories/ageCategory/ageCategory');
 
       getAgeCategoryModal({
         existingCategory: { ageCategoryCode: '10O-18U' },
-        consideredDate: '2024-01-01',
+        consideredDate: CONSIDERED_DATE_2024,
         callback: (category) => {
           if (category.ageCategoryCode) {
             // Use factory to calculate details
             import('tods-competition-factory').then(({ eventGovernor }) => {
               const result = eventGovernor.getCategoryAgeDetails({
                 category: { ageCategoryCode: category.ageCategoryCode },
-                consideredDate: '2024-01-01',
+                consideredDate: CONSIDERED_DATE_2024,
               });
 
               resultDisplay.innerHTML = `
@@ -300,14 +303,14 @@ export const StandardCategories: Story = {
     description.style.marginBottom = '1.5em';
 
     const button = document.createElement('button');
-    button.className = 'button is-primary';
+    button.className = BUTTON_IS_PRIMARY;
     button.textContent = 'Open Editor';
     button.onclick = async () => {
       const { getAgeCategoryModal } = await import('../components/categories/ageCategory/ageCategory');
 
       getAgeCategoryModal({
         existingCategory: { ageCategoryCode: 'OPEN' },
-        consideredDate: '2024-01-01',
+        consideredDate: CONSIDERED_DATE_2024,
         callback: (category) => {
           alert(`Selected: ${category.ageCategoryCode}`);
         },

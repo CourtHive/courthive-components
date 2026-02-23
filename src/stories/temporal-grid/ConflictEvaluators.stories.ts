@@ -7,8 +7,8 @@
 
 // @ts-expect-error - Storybook types not resolved under current moduleResolution
 import type { Meta, StoryObj } from '@storybook/html';
-import { TemporalGridEngine } from '../../components/temporal-grid/engine/temporalGridEngine';
-import {
+import { TemporalEngine, temporal } from 'tods-competition-factory';
+const {
   courtOverlapEvaluator,
   dayBoundaryEvaluator,
   blockDurationEvaluator,
@@ -19,14 +19,25 @@ import {
   defaultEvaluators,
   formatConflicts,
   getHighestSeverity,
-} from '../../components/temporal-grid/engine/conflictEvaluators';
+} = temporal;
+
+// ============================================================================
+// Constants
+// ============================================================================
+
+const TEST_TOURNAMENT = 'test-tournament';
+const T_1000 = '2026-06-15T10:00:00';
+const T_1200 = '2026-06-15T12:00:00';
+const T_1400 = '2026-06-15T14:00:00';
+const T_2000 = '2026-06-15T20:00:00';
+const REJECTED_LABEL = '❌ REJECTED';
 
 // ============================================================================
 // Mock Tournament
 // ============================================================================
 
 const mockTournament = {
-  tournamentId: 'test-tournament',
+  tournamentId: TEST_TOURNAMENT,
   startDate: '2026-06-15',
   endDate: '2026-06-20',
   venues: [{
@@ -116,13 +127,13 @@ const renderEvaluatorDemo = (title: string, demoFn: () => string) => {
  */
 export const CourtOverlap: Story = {
   render: () => renderEvaluatorDemo('Court Overlap Evaluator', () => {
-    const engine = new TemporalGridEngine();
+    const engine = new TemporalEngine();
     engine.init(mockTournament, {
       conflictEvaluators: [courtOverlapEvaluator],
     });
 
     const court = {
-      tournamentId: 'test-tournament',
+      tournamentId: TEST_TOURNAMENT,
       venueId: 'venue-1',
       courtId: 'court-1',
     };
@@ -130,7 +141,7 @@ export const CourtOverlap: Story = {
     // Create HARD_BLOCK
     engine.applyBlock({
       courts: [court],
-      timeRange: { start: '2026-06-15T10:00:00', end: '2026-06-15T14:00:00' },
+      timeRange: { start: T_1000, end: T_1400 },
       type: 'HARD_BLOCK',
       reason: 'Championship match',
     });
@@ -138,7 +149,7 @@ export const CourtOverlap: Story = {
     // Try to overlap
     const result = engine.applyBlock({
       courts: [court],
-      timeRange: { start: '2026-06-15T12:00:00', end: '2026-06-15T16:00:00' },
+      timeRange: { start: T_1200, end: '2026-06-15T16:00:00' },
       type: 'AVAILABLE',
     });
 
@@ -152,7 +163,7 @@ Scenario:
 1. Create HARD_BLOCK at 10:00-14:00
 2. Try to add AVAILABLE at 12:00-16:00
 
-Result: ${result.rejected.length > 0 ? '❌ REJECTED' : '✓ ALLOWED'}
+Result: ${result.rejected.length > 0 ? REJECTED_LABEL : '✓ ALLOWED'}
 
 Conflicts:
 ${formatConflicts(result.conflicts)}
@@ -177,13 +188,13 @@ championship matches cannot be double-booked.
  */
 export const DayBoundary: Story = {
   render: () => renderEvaluatorDemo('Day Boundary Evaluator', () => {
-    const engine = new TemporalGridEngine();
+    const engine = new TemporalEngine();
     engine.init(mockTournament, {
       conflictEvaluators: [dayBoundaryEvaluator],
     });
 
     const court = {
-      tournamentId: 'test-tournament',
+      tournamentId: TEST_TOURNAMENT,
       venueId: 'venue-1',
       courtId: 'court-1',
     };
@@ -192,7 +203,7 @@ export const DayBoundary: Story = {
     const result = engine.applyBlock({
       courts: [court],
       timeRange: {
-        start: '2026-06-15T20:00:00',
+        start: T_2000,
         end: '2026-06-16T02:00:00', // Next day!
       },
       type: 'AVAILABLE',
@@ -208,7 +219,7 @@ Scenario:
 Try to create block from 20:00 on June 15
 to 02:00 on June 16 (spans midnight)
 
-Result: ${result.rejected.length > 0 ? '❌ REJECTED' : '✓ ALLOWED'}
+Result: ${result.rejected.length > 0 ? REJECTED_LABEL : '✓ ALLOWED'}
 
 Conflicts:
 ${formatConflicts(result.conflicts)}
@@ -233,13 +244,13 @@ complicate the model and are not allowed.
  */
 export const BlockDuration: Story = {
   render: () => renderEvaluatorDemo('Block Duration Evaluator', () => {
-    const engine = new TemporalGridEngine();
+    const engine = new TemporalEngine();
     engine.init(mockTournament, {
       conflictEvaluators: [blockDurationEvaluator],
     });
 
     const court = {
-      tournamentId: 'test-tournament',
+      tournamentId: TEST_TOURNAMENT,
       venueId: 'venue-1',
       courtId: 'court-1',
     };
@@ -248,7 +259,7 @@ export const BlockDuration: Story = {
     const shortResult = engine.applyBlock({
       courts: [court],
       timeRange: {
-        start: '2026-06-15T10:00:00',
+        start: T_1000,
         end: '2026-06-15T10:05:00', // 5 minutes
       },
       type: 'AVAILABLE',
@@ -300,13 +311,13 @@ Both are allowed but flagged for review.
  */
 export const MatchWindow: Story = {
   render: () => renderEvaluatorDemo('Match Window Evaluator', () => {
-    const engine = new TemporalGridEngine();
+    const engine = new TemporalEngine();
     engine.init(mockTournament, {
       conflictEvaluators: [matchWindowEvaluator],
     });
 
     const court = {
-      tournamentId: 'test-tournament',
+      tournamentId: TEST_TOURNAMENT,
       venueId: 'venue-1',
       courtId: 'court-1',
     };
@@ -315,7 +326,7 @@ export const MatchWindow: Story = {
     const result = engine.applyBlock({
       courts: [court],
       timeRange: {
-        start: '2026-06-15T10:00:00',
+        start: T_1000,
         end: '2026-06-15T10:45:00', // 45 minutes
       },
       type: 'AVAILABLE',
@@ -358,13 +369,13 @@ Note: Still allowed as some formats (fast4) are shorter.
  */
 export const AdjacentBlock: Story = {
   render: () => renderEvaluatorDemo('Adjacent Block Evaluator', () => {
-    const engine = new TemporalGridEngine();
+    const engine = new TemporalEngine();
     engine.init(mockTournament, {
       conflictEvaluators: [adjacentBlockEvaluator],
     });
 
     const court = {
-      tournamentId: 'test-tournament',
+      tournamentId: TEST_TOURNAMENT,
       venueId: 'venue-1',
       courtId: 'court-1',
     };
@@ -372,14 +383,14 @@ export const AdjacentBlock: Story = {
     // Create first block
     engine.applyBlock({
       courts: [court],
-      timeRange: { start: '2026-06-15T10:00:00', end: '2026-06-15T12:00:00' },
+      timeRange: { start: T_1000, end: T_1200 },
       type: 'AVAILABLE',
     });
 
     // Create adjacent block (no buffer)
     const result = engine.applyBlock({
       courts: [court],
-      timeRange: { start: '2026-06-15T12:00:00', end: '2026-06-15T14:00:00' },
+      timeRange: { start: T_1200, end: T_1400 },
       type: 'AVAILABLE',
     });
 
@@ -423,19 +434,19 @@ This is a suggestion, not a requirement.
  */
 export const Lighting: Story = {
   render: () => renderEvaluatorDemo('Lighting Evaluator', () => {
-    const engine = new TemporalGridEngine();
+    const engine = new TemporalEngine();
     engine.init(mockTournament, {
       conflictEvaluators: [lightingEvaluator],
     });
 
     const outdoorCourt = {
-      tournamentId: 'test-tournament',
+      tournamentId: TEST_TOURNAMENT,
       venueId: 'venue-1',
       courtId: 'court-1', // Outdoor
     };
 
     const indoorCourt = {
-      tournamentId: 'test-tournament',
+      tournamentId: TEST_TOURNAMENT,
       venueId: 'venue-1',
       courtId: 'court-2', // Indoor
     };
@@ -444,7 +455,7 @@ export const Lighting: Story = {
     const outdoorResult = engine.applyBlock({
       courts: [outdoorCourt],
       timeRange: {
-        start: '2026-06-15T20:00:00',
+        start: T_2000,
         end: '2026-06-15T21:00:00',
       },
       type: 'AVAILABLE',
@@ -454,7 +465,7 @@ export const Lighting: Story = {
     const indoorResult = engine.applyBlock({
       courts: [indoorCourt],
       timeRange: {
-        start: '2026-06-15T20:00:00',
+        start: T_2000,
         end: '2026-06-15T21:00:00',
       },
       type: 'AVAILABLE',
@@ -498,13 +509,13 @@ Indoor courts are exempt from this check.
  */
 export const MaintenanceWindow: Story = {
   render: () => renderEvaluatorDemo('Maintenance Window Evaluator', () => {
-    const engine = new TemporalGridEngine();
+    const engine = new TemporalEngine();
     engine.init(mockTournament, {
       conflictEvaluators: [maintenanceWindowEvaluator],
     });
 
     const court = {
-      tournamentId: 'test-tournament',
+      tournamentId: TEST_TOURNAMENT,
       venueId: 'venue-1',
       courtId: 'court-1',
     };
@@ -513,7 +524,7 @@ export const MaintenanceWindow: Story = {
     const result = engine.applyBlock({
       courts: [court],
       timeRange: {
-        start: '2026-06-15T14:00:00',
+        start: T_1400,
         end: '2026-06-15T16:00:00',
       },
       type: 'MAINTENANCE',
@@ -558,13 +569,13 @@ during peak hours is sometimes necessary.
  */
 export const AllEvaluators: Story = {
   render: () => renderEvaluatorDemo('All Evaluators Combined', () => {
-    const engine = new TemporalGridEngine();
+    const engine = new TemporalEngine();
     engine.init(mockTournament, {
       conflictEvaluators: defaultEvaluators,
     });
 
     const court = {
-      tournamentId: 'test-tournament',
+      tournamentId: TEST_TOURNAMENT,
       venueId: 'venue-1',
       courtId: 'court-1',
     };
@@ -572,14 +583,14 @@ export const AllEvaluators: Story = {
     // Complex scenario with multiple issues
     engine.applyBlock({
       courts: [court],
-      timeRange: { start: '2026-06-15T10:00:00', end: '2026-06-15T14:00:00' },
+      timeRange: { start: T_1000, end: T_1400 },
       type: 'HARD_BLOCK',
     });
 
     const result = engine.applyBlock({
       courts: [court],
       timeRange: {
-        start: '2026-06-15T12:00:00',
+        start: T_1200,
         end: '2026-06-15T12:05:00', // Short + overlapping
       },
       type: 'AVAILABLE',
@@ -595,7 +606,7 @@ Scenario:
 1. Create HARD_BLOCK at 10:00-14:00
 2. Try AVAILABLE at 12:00-12:05 (overlaps + too short)
 
-Result: ${result.rejected.length > 0 ? '❌ REJECTED' : '✓ ALLOWED'}
+Result: ${result.rejected.length > 0 ? REJECTED_LABEL : '✓ ALLOWED'}
 
 Highest Severity: ${highestSeverity}
 
@@ -658,13 +669,13 @@ export const CustomEvaluator: Story = {
       },
     };
 
-    const engine = new TemporalGridEngine();
+    const engine = new TemporalEngine();
     engine.init(mockTournament, {
       conflictEvaluators: [noWeekendMaintenanceEvaluator],
     });
 
     const court = {
-      tournamentId: 'test-tournament',
+      tournamentId: TEST_TOURNAMENT,
       venueId: 'venue-1',
       courtId: 'court-1',
     };
@@ -672,7 +683,7 @@ export const CustomEvaluator: Story = {
     // June 15, 2026 is a Monday
     const weekdayResult = engine.applyBlock({
       courts: [court],
-      timeRange: { start: '2026-06-15T10:00:00', end: '2026-06-15T12:00:00' },
+      timeRange: { start: T_1000, end: T_1200 },
       type: 'MAINTENANCE',
     });
 

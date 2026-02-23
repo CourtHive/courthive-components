@@ -5,6 +5,8 @@
 import { describe, it, expect } from 'vitest';
 import { validateScore } from '../scoreValidator';
 
+const ERROR_INCOMPLETE = 'Incomplete match';
+
 describe('validateScore - Aggregate incomplete handling', () => {
   const format = 'SET3XA-S:T10';
 
@@ -16,7 +18,7 @@ describe('validateScore - Aggregate incomplete handling', () => {
     // Should NOT be valid for submission
     expect(result.isValid).toBe(false);
     expect(result.winningSide).toBeUndefined();
-    expect(result.error).toContain('Incomplete match');
+    expect(result.error).toContain(ERROR_INCOMPLETE);
   });
 
   it('should accept 3 complete sets as valid', () => {
@@ -35,7 +37,7 @@ describe('validateScore - Aggregate incomplete handling', () => {
     const result = validateScore(scoreString, format);
 
     expect(result.isValid).toBe(false);
-    expect(result.error).toContain('Incomplete match');
+    expect(result.error).toContain(ERROR_INCOMPLETE);
   });
 
   it('should handle incomplete second set', () => {
@@ -61,7 +63,7 @@ describe('validateScore - Aggregate incomplete handling', () => {
     const result = validateScore(scoreString, format);
 
     expect(result.isValid).toBe(false);
-    expect(result.error).toContain('Incomplete match');
+    expect(result.error).toContain(ERROR_INCOMPLETE);
   });
 
   it('should work with SET4X format', () => {
@@ -72,7 +74,7 @@ describe('validateScore - Aggregate incomplete handling', () => {
     const result = validateScore(scoreString, format);
 
     expect(result.isValid).toBe(false);
-    expect(result.error).toContain('Incomplete match');
+    expect(result.error).toContain(ERROR_INCOMPLETE);
   });
 
   it('should validate 4 complete sets for SET4X', () => {

@@ -3,12 +3,12 @@
  * Purpose: nail the correct options, CSS, and interactions in isolation.
  */
 
-import 'vis-timeline/styles/vis-timeline-graph2d.min.css';
+import { mocksEngine, tournamentEngine, TemporalEngine, temporal } from 'tods-competition-factory';
+import { showCourtAvailabilityModal } from '../../components/temporal-grid/ui/courtAvailabilityModal';
+import { buildViewToolbar, VIEW_PRESETS } from '../../components/temporal-grid/ui/viewToolbar';
+import { createBlockPopoverManager } from '../../components/temporal-grid/ui/blockPopover';
+import { buildStatsBar } from '../../components/temporal-grid/ui/statsBar';
 import { Timeline } from 'vis-timeline/standalone';
-import 'tippy.js/dist/tippy.css';
-import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
-import { TemporalGridEngine } from '../../components/temporal-grid/engine/temporalGridEngine';
-import { calculateCapacityStats } from '../../components/temporal-grid/engine/capacityCurve';
 import {
   buildResourcesFromTimelines,
   buildEventsFromTimelines,
@@ -18,14 +18,31 @@ import {
   parseResourceId,
   parseBlockEventId
 } from '../../components/temporal-grid/controller/viewProjections';
-import { createBlockPopoverManager } from '../../components/temporal-grid/ui/blockPopover';
-import { buildStatsBar } from '../../components/temporal-grid/ui/statsBar';
-import { buildViewToolbar, VIEW_PRESETS } from '../../components/temporal-grid/ui/viewToolbar';
-import { showCourtAvailabilityModal } from '../../components/temporal-grid/ui/courtAvailabilityModal';
+
+import 'vis-timeline/styles/vis-timeline-graph2d.min.css';
+import 'tippy.js/dist/tippy.css';
+
+const { calculateCapacityStats } = temporal;
 
 export default {
-  title: 'Temporal Grid/Vis Timeline Basic'
+  title: 'Temporal Grid/Timeline'
 };
+
+// ── Shared string constants (extracted to satisfy no-duplicate-string) ─────────
+const VENUE_NAME_MAIN = 'Main Stadium';
+const VENUE_NAME_PRACTICE = 'Practice Center';
+const VENUE_ID_MAIN = 'venue-main';
+const STYLE_HEADER =
+  'padding: 10px 12px; font-weight: 600; font-size: 14px; color: #333; border-bottom: 1px solid #e0e0e0; background: white;';
+const STYLE_GROUP_ROW = 'padding: 4px 0;';
+const STYLE_COURT_LIST = 'padding-left: 28px;';
+const STYLE_COURT_ROW = 'display: flex; align-items: center; gap: 6px; padding: 3px 0; cursor: pointer; color: #555;';
+const STYLE_ROOT =
+  'display:flex; flex-direction:column; width:100%; height:600px; border:1px solid #e0e0e0; border-radius:4px; overflow:hidden;';
+const STYLE_MAIN_ROW = 'display:flex; flex:1; min-height:0;';
+const STYLE_TIMELINE_CONTAINER = 'flex:1; min-width:0;';
+const STYLE_NEW_BLOCK = 'background-color: #607D8B; border-color: #37474F; color: white;';
+const WHAT_GROUP_LABEL = 'group-label';
 
 // ── Venue / Court data ─────────────────────────────────────────────────────
 
@@ -39,7 +56,7 @@ interface Venue {
 const VENUES: Venue[] = [
   {
     id: 'fac-main',
-    name: 'Main Stadium',
+    name: VENUE_NAME_MAIN,
     color: 'rgba(33, 141, 141, 0.06)',
     courts: Array.from({ length: 8 }, (_, i) => ({
       id: `court-${i + 1}`,
@@ -48,7 +65,7 @@ const VENUES: Venue[] = [
   },
   {
     id: 'fac-practice',
-    name: 'Practice Center',
+    name: VENUE_NAME_PRACTICE,
     color: 'rgba(33, 96, 200, 0.06)',
     courts: Array.from({ length: 8 }, (_, i) => ({
       id: `court-${i + 9}`,
@@ -175,14 +192,13 @@ function buildVenueTree(visibleCourts: Set<string>, onChange: () => void): HTMLE
   `;
 
   const header = document.createElement('div');
-  header.style.cssText =
-    'padding: 10px 12px; font-weight: 600; font-size: 14px; color: #333; border-bottom: 1px solid #e0e0e0; background: white;';
+  header.style.cssText = STYLE_HEADER;
   header.textContent = 'Facilities & Courts';
   panel.appendChild(header);
 
   for (const fac of VENUES) {
     const group = document.createElement('div');
-    group.style.cssText = 'padding: 4px 0;';
+    group.style.cssText = STYLE_GROUP_ROW;
 
     const facRow = document.createElement('label');
     facRow.style.cssText =
@@ -211,13 +227,12 @@ function buildVenueTree(visibleCourts: Set<string>, onChange: () => void): HTMLE
     group.appendChild(facRow);
 
     const courtList = document.createElement('div');
-    courtList.style.cssText = 'padding-left: 28px;';
+    courtList.style.cssText = STYLE_COURT_LIST;
     const courtCheckboxes: HTMLInputElement[] = [];
 
     for (const court of fac.courts) {
       const courtRow = document.createElement('label');
-      courtRow.style.cssText =
-        'display: flex; align-items: center; gap: 6px; padding: 3px 0; cursor: pointer; color: #555;';
+      courtRow.style.cssText = STYLE_COURT_ROW;
 
       const courtCb = document.createElement('input');
       courtCb.type = 'checkbox';
@@ -366,14 +381,13 @@ function buildCourtTree(venues: VenueInfo[], visibleCourts: Set<string>, onChang
   `;
 
   const header = document.createElement('div');
-  header.style.cssText =
-    'padding: 10px 12px; font-weight: 600; font-size: 14px; color: #333; border-bottom: 1px solid #e0e0e0; background: white;';
+  header.style.cssText = STYLE_HEADER;
   header.textContent = 'Venues & Courts';
   panel.appendChild(header);
 
   for (const venue of venues) {
     const group = document.createElement('div');
-    group.style.cssText = 'padding: 4px 0;';
+    group.style.cssText = STYLE_GROUP_ROW;
 
     const venueRow = document.createElement('label');
     venueRow.style.cssText =
@@ -402,13 +416,12 @@ function buildCourtTree(venues: VenueInfo[], visibleCourts: Set<string>, onChang
     group.appendChild(venueRow);
 
     const courtList = document.createElement('div');
-    courtList.style.cssText = 'padding-left: 28px;';
+    courtList.style.cssText = STYLE_COURT_LIST;
     const courtCheckboxes: HTMLInputElement[] = [];
 
     for (const court of venue.courts) {
       const courtRow = document.createElement('label');
-      courtRow.style.cssText =
-        'display: flex; align-items: center; gap: 6px; padding: 3px 0; cursor: pointer; color: #555;';
+      courtRow.style.cssText = STYLE_COURT_ROW;
 
       const courtCb = document.createElement('input');
       courtCb.type = 'checkbox';
@@ -462,8 +475,8 @@ function createEngineSetup(options?: { includeBookings?: boolean }) {
 
   const venueProfiles = [
     {
-      venueId: 'venue-main',
-      venueName: 'Main Stadium',
+      venueId: VENUE_ID_MAIN,
+      venueName: VENUE_NAME_MAIN,
       venueAbbreviation: 'MS',
       courtsCount: 8,
       startTime: '08:00',
@@ -471,7 +484,7 @@ function createEngineSetup(options?: { includeBookings?: boolean }) {
     },
     {
       venueId: 'venue-practice',
-      venueName: 'Practice Center',
+      venueName: VENUE_NAME_PRACTICE,
       venueAbbreviation: 'PC',
       courtsCount: 4,
       startTime: '07:00',
@@ -493,7 +506,7 @@ function createEngineSetup(options?: { includeBookings?: boolean }) {
   // Use factory methods to add real court-level bookings to the tournament record.
   tournamentEngine.setState(tournamentRecord);
 
-  const mainVenue = tournamentRecord.venues?.find((v: any) => v.venueId === 'venue-main');
+  const mainVenue = tournamentRecord.venues?.find((v: any) => v.venueId === VENUE_ID_MAIN);
   const mainCourts: any[] = mainVenue?.courts || [];
 
   if (options?.includeBookings !== false) {
@@ -545,7 +558,7 @@ function createEngineSetup(options?: { includeBookings?: boolean }) {
   const recordWithBookings = stateResult?.tournamentRecord ?? tournamentRecord;
 
   // Engine now loads blocks from tournament record automatically during init()
-  const engine = new TemporalGridEngine();
+  const engine = new TemporalEngine();
   engine.init(recordWithBookings, {
     dayStartTime: '06:00',
     dayEndTime: '22:00',
@@ -604,7 +617,7 @@ function createEngineSetup(options?: { includeBookings?: boolean }) {
 // ── Hidden-dates helper ───────────────────────────────────────────────────────
 
 /** Compute the widest time range across ALL tournament days (for multi-day hiddenDates). */
-function getWidestTimeRange(engine: TemporalGridEngine, courtRefs?: any[]) {
+function getWidestTimeRange(engine: TemporalEngine, courtRefs?: any[]) {
   const days = engine.getTournamentDays();
   let earliest = '23:59',
     latest = '00:00';
@@ -614,6 +627,122 @@ function getWidestTimeRange(engine: TemporalGridEngine, courtRefs?: any[]) {
     if (range.endTime > latest) latest = range.endTime;
   }
   return { startTime: earliest, endTime: latest };
+}
+
+// ── Shared helpers for engine-backed stories ──────────────────────────────────
+
+/** Context object shared by the engine-backed story helpers */
+interface EngineStoryContext {
+  engine: TemporalEngine;
+  startDate: string;
+  courtNameMap: Map<string, string>;
+  venueInfos: VenueInfo[];
+  visibleCourts: Set<string>;
+  getTimeline: () => any;
+}
+
+function makeGetGroups(ctx: EngineStoryContext) {
+  return () => {
+    const timelines = ctx.engine.getDayTimeline(ctx.startDate);
+    const courtMeta = ctx.engine.listCourtMeta();
+    const groups = buildResourcesFromTimelines(timelines, courtMeta);
+    return groups
+      .filter((g) => ctx.visibleCourts.has(String(g.id)))
+      .map((g, i) => ({
+        ...g,
+        content: ctx.courtNameMap.get(String(g.id)) || g.content,
+        order: i,
+        style: `background: ${
+          ctx.venueInfos.find((v: VenueInfo) => v.courts.some((c) => c.id === String(g.id)))?.color || 'transparent'
+        };`
+      }));
+  };
+}
+
+function makeGetItems(ctx: EngineStoryContext) {
+  const tournamentDays = ctx.engine.getTournamentDays();
+  return () => {
+    const allSegments: any[] = [];
+    const allBlocks: any[] = [];
+    for (const day of tournamentDays) {
+      const timelines = ctx.engine.getDayTimeline(day);
+      allSegments.push(...buildEventsFromTimelines(timelines));
+      allBlocks.push(...buildBlockEvents(ctx.engine.getDayBlocks(day)));
+    }
+    return [
+      ...allSegments.filter((item) => ctx.visibleCourts.has(String(item.group))),
+      ...allBlocks.filter((item) => ctx.visibleCourts.has(String(item.group)))
+    ];
+  };
+}
+
+function makeUpdateEngineStats(ctx: EngineStoryContext, statsBar: ReturnType<typeof buildStatsBar>) {
+  return () => {
+    const curve = ctx.engine.getCapacityCurve(ctx.startDate);
+    const stats = calculateCapacityStats(curve);
+    statsBar.update({
+      totalHours: stats.totalCourtHours,
+      blockedHours: stats.totalUnavailableHours ?? 0,
+      availableHours: stats.totalAvailableHours ?? 0,
+      avgPerCourt: (stats.totalCourts ?? 0) > 0 ? (stats.totalAvailableHours ?? 0) / stats.totalCourts! : 0
+    });
+  };
+}
+
+function makeSetView(ctx: EngineStoryContext) {
+  return (viewKey: string) => {
+    const timeline = ctx.getTimeline();
+    if (!timeline) return;
+    const view = VIEW_PRESETS[viewKey];
+    const timeRange = ctx.engine.getVisibleTimeRange(ctx.startDate);
+    const windowStart = new Date(`${ctx.startDate}T${timeRange.startTime}:00`);
+    const end = new Date(windowStart.getTime() + view.days * 16 * 60 * 60 * 1000);
+    timeline.setWindow(windowStart, end);
+    timeline.setOptions({ timeAxis: view.timeAxis });
+  };
+}
+
+function makeGetVisibleCourtRefs(ctx: EngineStoryContext) {
+  return () => {
+    const refs: any[] = [];
+    for (const v of ctx.venueInfos) {
+      for (const c of v.courts) {
+        if (ctx.visibleCourts.has(c.id)) {
+          const ref = parseResourceId(c.id);
+          if (ref) refs.push(ref);
+        }
+      }
+    }
+    return refs;
+  };
+}
+
+function makeRebuildTimeline(ctx: EngineStoryContext, getVisibleCourtRefs: () => any[], rebuildItems: () => void) {
+  return () => {
+    const timeline = ctx.getTimeline();
+    if (!timeline) return;
+    const visibleRefs = getVisibleCourtRefs();
+    const timeRange = ctx.engine.getVisibleTimeRange(ctx.startDate, visibleRefs);
+    const windowConfig = buildTimelineWindowConfig({
+      dayStartTime: timeRange.startTime,
+      dayEndTime: timeRange.endTime,
+      slotMinutes: 5,
+      day: ctx.startDate
+    });
+    const weekMax = new Date(`${ctx.startDate}T${timeRange.endTime}:00`);
+    weekMax.setDate(weekMax.getDate() + 7);
+
+    const widestRange = getWidestTimeRange(ctx.engine, visibleRefs);
+    const hiddenDates = buildHiddenDates({
+      dayStartTime: widestRange.startTime,
+      dayEndTime: widestRange.endTime,
+      referenceDay: ctx.startDate
+    });
+
+    timeline.setOptions({ min: windowConfig.min, max: weekMax, hiddenDates });
+    timeline.setWindow(windowConfig.start, windowConfig.end);
+    rebuildItems();
+  };
 }
 
 // ── Story: Baseline ───────────────────────────────────────────────────────────
@@ -638,14 +767,13 @@ export const Baseline = {
     let currentView = 'day';
 
     const root = document.createElement('div');
-    root.style.cssText =
-      'display:flex; flex-direction:column; width:100%; height:600px; border:1px solid #e0e0e0; border-radius:4px; overflow:hidden;';
+    root.style.cssText = STYLE_ROOT;
 
     const mainRow = document.createElement('div');
-    mainRow.style.cssText = 'display:flex; flex:1; min-height:0;';
+    mainRow.style.cssText = STYLE_MAIN_ROW;
 
     const timelineContainer = document.createElement('div');
-    timelineContainer.style.cssText = 'flex:1; min-width:0;';
+    timelineContainer.style.cssText = STYLE_TIMELINE_CONTAINER;
 
     let timeline: any = null;
 
@@ -706,7 +834,7 @@ export const Baseline = {
 
         onAdd: (item: any, callback: any) => {
           item.content = item.content || 'New Block';
-          item.style = 'background-color: #607D8B; border-color: #37474F; color: white;';
+          item.style = STYLE_NEW_BLOCK;
           item.editable = { updateTime: true, updateGroup: true, remove: false };
           callback(item);
         }
@@ -815,7 +943,7 @@ export const Baseline = {
  *
  * Data flow:
  *   mocksEngine.generateTournamentRecord()
- *     → TemporalGridEngine.init(tournamentRecord)
+ *     → TemporalEngine.init(tournamentRecord)
  *     → engine.getDayTimeline() → viewProjections → vis-timeline
  *
  * All block CRUD round-trips through the engine:
@@ -832,50 +960,21 @@ export const FactoryBacked = {
     const visibleCourts = new Set(allCourtIds);
     let timeline: any = null;
 
-    const getGroups = () => {
-      const timelines = engine.getDayTimeline(startDate);
-      const courtMeta = engine.listCourtMeta();
-      const groups = buildResourcesFromTimelines(timelines, courtMeta);
-      return groups
-        .filter((g) => visibleCourts.has(String(g.id)))
-        .map((g, i) => ({
-          ...g,
-          content: courtNameMap.get(String(g.id)) || g.content,
-          order: i,
-          style: `background: ${
-            venueInfos.find((v: VenueInfo) => v.courts.some((c) => c.id === String(g.id)))?.color || 'transparent'
-          };`
-        }));
+    const ctx: EngineStoryContext = {
+      engine,
+      startDate,
+      courtNameMap,
+      venueInfos,
+      visibleCourts,
+      getTimeline: () => timeline
     };
 
-    const tournamentDays = engine.getTournamentDays();
-
-    const getItems = () => {
-      const allSegments: any[] = [];
-      const allBlocks: any[] = [];
-      for (const day of tournamentDays) {
-        const timelines = engine.getDayTimeline(day);
-        allSegments.push(...buildEventsFromTimelines(timelines));
-        allBlocks.push(...buildBlockEvents(engine.getDayBlocks(day)));
-      }
-      return [
-        ...allSegments.filter((item) => visibleCourts.has(String(item.group))),
-        ...allBlocks.filter((item) => visibleCourts.has(String(item.group)))
-      ];
-    };
+    const getGroups = makeGetGroups(ctx);
+    const getItems = makeGetItems(ctx);
 
     // Stats bar (from library)
     const statsBar = buildStatsBar();
-    const updateEngineStats = () => {
-      const curve = engine.getCapacityCurve(startDate);
-      const stats = calculateCapacityStats(curve);
-      statsBar.update({
-        totalHours: stats.totalCourtHours,
-        blockedHours: stats.totalUnavailableHours ?? 0,
-        availableHours: stats.totalAvailableHours ?? 0,
-        avgPerCourt: (stats.totalCourts ?? 0) > 0 ? (stats.totalAvailableHours ?? 0) / stats.totalCourts! : 0
-      });
-    };
+    const updateEngineStats = makeUpdateEngineStats(ctx, statsBar);
 
     const rebuildItems = () => {
       if (!timeline) return;
@@ -885,32 +984,21 @@ export const FactoryBacked = {
     };
 
     const root = document.createElement('div');
-    root.style.cssText =
-      'display:flex; flex-direction:column; width:100%; height:600px; border:1px solid #e0e0e0; border-radius:4px; overflow:hidden;';
+    root.style.cssText = STYLE_ROOT;
 
-    let currentView = 'day';
-    const setView = (viewKey: string) => {
-      if (!timeline) return;
-      currentView = viewKey;
-      const view = VIEW_PRESETS[viewKey];
-      const timeRange = engine.getVisibleTimeRange(startDate);
-      const windowStart = new Date(`${startDate}T${timeRange.startTime}:00`);
-      const end = new Date(windowStart.getTime() + view.days * 16 * 60 * 60 * 1000);
-      timeline.setWindow(windowStart, end);
-      timeline.setOptions({ timeAxis: view.timeAxis });
-    };
+    const setView = makeSetView(ctx);
 
     // Toolbar (from library)
-    const toolbar = buildViewToolbar(setView, currentView);
+    const toolbar = buildViewToolbar(setView, 'day');
     root.appendChild(toolbar);
     root.appendChild(statsBar.element);
 
     const mainRow = document.createElement('div');
-    mainRow.style.cssText = 'display:flex; flex:1; min-height:0;';
+    mainRow.style.cssText = STYLE_MAIN_ROW;
 
     const treePanel = buildCourtTree(venueInfos, visibleCourts, rebuildItems);
     const timelineContainer = document.createElement('div');
-    timelineContainer.style.cssText = 'flex:1; min-width:0;';
+    timelineContainer.style.cssText = STYLE_TIMELINE_CONTAINER;
 
     mainRow.appendChild(treePanel);
     mainRow.appendChild(timelineContainer);
@@ -948,7 +1036,7 @@ export const FactoryBacked = {
 
         onAdd: (item: any, callback: any) => {
           item.content = item.content || 'New Block';
-          item.style = 'background-color: #607D8B; border-color: #37474F; color: white;';
+          item.style = STYLE_NEW_BLOCK;
           item.editable = { updateTime: true, updateGroup: true, remove: false };
           callback(item);
         },
@@ -997,7 +1085,7 @@ export const FactoryBacked = {
         if (justDragged) return;
 
         // Court name (group label) click → availability modal
-        if (props.what === 'group-label' && props.group) {
+        if (props.what === WHAT_GROUP_LABEL && props.group) {
           const courtRef = parseResourceId(String(props.group));
           if (!courtRef) return;
           const courtName = courtNameMap.get(String(props.group)) || courtRef.courtId;
@@ -1114,50 +1202,21 @@ export const RoundTrip = {
     const visibleCourts = new Set(allCourtIds);
     let timeline: any = null;
 
-    const getGroups = () => {
-      const timelines = engine.getDayTimeline(startDate);
-      const courtMeta = engine.listCourtMeta();
-      const groups = buildResourcesFromTimelines(timelines, courtMeta);
-      return groups
-        .filter((g) => visibleCourts.has(String(g.id)))
-        .map((g, i) => ({
-          ...g,
-          content: courtNameMap.get(String(g.id)) || g.content,
-          order: i,
-          style: `background: ${
-            venueInfos.find((v: VenueInfo) => v.courts.some((c) => c.id === String(g.id)))?.color || 'transparent'
-          };`
-        }));
+    const ctx: EngineStoryContext = {
+      engine,
+      startDate,
+      courtNameMap,
+      venueInfos,
+      visibleCourts,
+      getTimeline: () => timeline
     };
 
-    const tournamentDays = engine.getTournamentDays();
-
-    const getItems = () => {
-      const allSegments: any[] = [];
-      const allBlocks: any[] = [];
-      for (const day of tournamentDays) {
-        const timelines = engine.getDayTimeline(day);
-        allSegments.push(...buildEventsFromTimelines(timelines));
-        allBlocks.push(...buildBlockEvents(engine.getDayBlocks(day)));
-      }
-      return [
-        ...allSegments.filter((item) => visibleCourts.has(String(item.group))),
-        ...allBlocks.filter((item) => visibleCourts.has(String(item.group)))
-      ];
-    };
+    const getGroups = makeGetGroups(ctx);
+    const getItems = makeGetItems(ctx);
 
     // Stats bar (from library)
     const statsBar = buildStatsBar();
-    const updateEngineStats = () => {
-      const curve = engine.getCapacityCurve(startDate);
-      const stats = calculateCapacityStats(curve);
-      statsBar.update({
-        totalHours: stats.totalCourtHours,
-        blockedHours: stats.totalUnavailableHours ?? 0,
-        availableHours: stats.totalAvailableHours ?? 0,
-        avgPerCourt: (stats.totalCourts ?? 0) > 0 ? (stats.totalAvailableHours ?? 0) / stats.totalCourts! : 0
-      });
-    };
+    const updateEngineStats = makeUpdateEngineStats(ctx, statsBar);
 
     // Track current block snapshot for dirty-checking (across all days)
     let currentBlockSnapshot = new Map(initialBlockSnapshot);
@@ -1192,46 +1251,7 @@ export const RoundTrip = {
       saveBtn.style.cursor = dirty ? 'pointer' : 'not-allowed';
     };
 
-    // Helper: get visible court refs for window calculation
-    const getVisibleCourtRefs = () => {
-      const refs: any[] = [];
-      for (const v of venueInfos) {
-        for (const c of v.courts) {
-          if (visibleCourts.has(c.id)) {
-            const ref = parseResourceId(c.id);
-            if (ref) refs.push(ref);
-          }
-        }
-      }
-      return refs;
-    };
-
-    // Rebuild timeline window + items after availability changes
-    const rebuildTimeline = () => {
-      if (!timeline) return;
-      const visibleRefs = getVisibleCourtRefs();
-      const timeRange = engine.getVisibleTimeRange(startDate, visibleRefs);
-      const windowConfig = buildTimelineWindowConfig({
-        dayStartTime: timeRange.startTime,
-        dayEndTime: timeRange.endTime,
-        slotMinutes: 5,
-        day: startDate
-      });
-      const weekMax = new Date(`${startDate}T${timeRange.endTime}:00`);
-      weekMax.setDate(weekMax.getDate() + 7);
-
-      // Recompute hidden dates after availability change
-      const widestRange = getWidestTimeRange(engine, visibleRefs);
-      const hiddenDates = buildHiddenDates({
-        dayStartTime: widestRange.startTime,
-        dayEndTime: widestRange.endTime,
-        referenceDay: startDate
-      });
-
-      timeline.setOptions({ min: windowConfig.min, max: weekMax, hiddenDates });
-      timeline.setWindow(windowConfig.start, windowConfig.end);
-      rebuildItems();
-    };
+    const getVisibleCourtRefs = makeGetVisibleCourtRefs(ctx);
 
     const rebuildItems = () => {
       if (!timeline) return;
@@ -1241,24 +1261,15 @@ export const RoundTrip = {
       updateSaveButtonState();
     };
 
-    const root = document.createElement('div');
-    root.style.cssText =
-      'display:flex; flex-direction:column; width:100%; height:600px; border:1px solid #e0e0e0; border-radius:4px; overflow:hidden;';
+    const rebuildTimeline = makeRebuildTimeline(ctx, getVisibleCourtRefs, rebuildItems);
 
-    let currentView = 'day';
-    const setView = (viewKey: string) => {
-      if (!timeline) return;
-      currentView = viewKey;
-      const view = VIEW_PRESETS[viewKey];
-      const timeRange = engine.getVisibleTimeRange(startDate);
-      const windowStart = new Date(`${startDate}T${timeRange.startTime}:00`);
-      const end = new Date(windowStart.getTime() + view.days * 16 * 60 * 60 * 1000);
-      timeline.setWindow(windowStart, end);
-      timeline.setOptions({ timeAxis: view.timeAxis });
-    };
+    const root = document.createElement('div');
+    root.style.cssText = STYLE_ROOT;
+
+    const setView = makeSetView(ctx);
 
     // Toolbar (from library) with Save button appended
-    const toolbar = buildViewToolbar(setView, currentView);
+    const toolbar = buildViewToolbar(setView, 'day');
 
     const spacer = document.createElement('div');
     spacer.style.cssText = 'flex:1;';
@@ -1380,11 +1391,11 @@ export const RoundTrip = {
     root.appendChild(statsBar.element);
 
     const mainRow = document.createElement('div');
-    mainRow.style.cssText = 'display:flex; flex:1; min-height:0;';
+    mainRow.style.cssText = STYLE_MAIN_ROW;
 
     const treePanel = buildCourtTree(venueInfos, visibleCourts, rebuildItems);
     const timelineContainer = document.createElement('div');
-    timelineContainer.style.cssText = 'flex:1; min-width:0;';
+    timelineContainer.style.cssText = STYLE_TIMELINE_CONTAINER;
 
     mainRow.appendChild(treePanel);
     mainRow.appendChild(timelineContainer);
@@ -1423,7 +1434,7 @@ export const RoundTrip = {
 
         onAdd: (item: any, callback: any) => {
           item.content = item.content || 'New Block';
-          item.style = 'background-color: #607D8B; border-color: #37474F; color: white;';
+          item.style = STYLE_NEW_BLOCK;
           item.editable = { updateTime: true, updateGroup: true, remove: false };
           callback(item);
         },
@@ -1471,7 +1482,7 @@ export const RoundTrip = {
         if (justDragged) return;
 
         // Court name (group label) click → availability modal
-        if (props.what === 'group-label' && props.group) {
+        if (props.what === WHAT_GROUP_LABEL && props.group) {
           const courtRef = parseResourceId(String(props.group));
           if (!courtRef) return;
           const visibleDay = getVisibleDay(timeline, startDate);
@@ -1594,8 +1605,8 @@ function createVenueAvailabilitySetup() {
 
   const venueProfiles = [
     {
-      venueId: 'venue-main',
-      venueName: 'Main Stadium',
+      venueId: VENUE_ID_MAIN,
+      venueName: VENUE_NAME_MAIN,
       venueAbbreviation: 'MS',
       courtsCount: 6,
       startTime: '08:00',
@@ -1603,7 +1614,7 @@ function createVenueAvailabilitySetup() {
     },
     {
       venueId: 'venue-practice',
-      venueName: 'Practice Center',
+      venueName: VENUE_NAME_PRACTICE,
       venueAbbreviation: 'PC',
       courtsCount: 4,
       startTime: '07:00',
@@ -1623,14 +1634,14 @@ function createVenueAvailabilitySetup() {
   }
 
   // Patch venue defaults onto Main Stadium (mocksEngine doesn't set these)
-  const mainVenue = tournamentRecord.venues?.find((v: any) => v.venueId === 'venue-main');
+  const mainVenue = tournamentRecord.venues?.find((v: any) => v.venueId === VENUE_ID_MAIN);
   if (mainVenue) {
     mainVenue.defaultStartTime = '08:00';
     mainVenue.defaultEndTime = '18:00';
   }
 
   // Engine loads defaultStartTime/defaultEndTime during init()
-  const engine = new TemporalGridEngine();
+  const engine = new TemporalEngine();
   engine.init(tournamentRecord, {
     dayStartTime: '06:00',
     dayEndTime: '22:00',
@@ -1682,18 +1693,16 @@ function buildCourtTreeWithEditIcons(
   `;
 
   const header = document.createElement('div');
-  header.style.cssText =
-    'padding: 10px 12px; font-weight: 600; font-size: 14px; color: #333; border-bottom: 1px solid #e0e0e0; background: white;';
+  header.style.cssText = STYLE_HEADER;
   header.textContent = 'Venues & Courts';
   panel.appendChild(header);
 
   for (const venue of venues) {
     const group = document.createElement('div');
-    group.style.cssText = 'padding: 4px 0;';
+    group.style.cssText = STYLE_GROUP_ROW;
 
     const venueRow = document.createElement('div');
-    venueRow.style.cssText =
-      'display: flex; align-items: center; gap: 6px; padding: 6px 12px; cursor: pointer;';
+    venueRow.style.cssText = 'display: flex; align-items: center; gap: 6px; padding: 6px 12px; cursor: pointer;';
 
     const venueCb = document.createElement('input');
     venueCb.type = 'checkbox';
@@ -1738,13 +1747,12 @@ function buildCourtTreeWithEditIcons(
     });
 
     const courtList = document.createElement('div');
-    courtList.style.cssText = 'padding-left: 28px;';
+    courtList.style.cssText = STYLE_COURT_LIST;
     const courtCheckboxes: HTMLInputElement[] = [];
 
     for (const court of venue.courts) {
       const courtRow = document.createElement('div');
-      courtRow.style.cssText =
-        'display: flex; align-items: center; gap: 6px; padding: 3px 0; cursor: pointer; color: #555;';
+      courtRow.style.cssText = STYLE_COURT_ROW;
 
       const courtCb = document.createElement('input');
       courtCb.type = 'checkbox';
@@ -1810,7 +1818,7 @@ function buildCourtTreeWithEditIcons(
 
 function buildVenueInfoPanel(
   venueAvailInfos: VenueAvailabilityInfo[],
-  engine: TemporalGridEngine
+  engine: TemporalEngine
 ): { element: HTMLElement; update: () => void } {
   const bar = document.createElement('div');
   bar.style.cssText =
@@ -1848,91 +1856,26 @@ export const VenueAvailability = {
     const visibleCourts = new Set(allCourtIds);
     let timeline: any = null;
 
+    const ctx: EngineStoryContext = {
+      engine,
+      startDate,
+      courtNameMap,
+      venueInfos,
+      visibleCourts,
+      getTimeline: () => timeline
+    };
+
     const config = engine.getConfig();
 
-    const getGroups = () => {
-      const timelines = engine.getDayTimeline(startDate);
-      const courtMeta = engine.listCourtMeta();
-      const groups = buildResourcesFromTimelines(timelines, courtMeta);
-      return groups
-        .filter((g) => visibleCourts.has(String(g.id)))
-        .map((g, i) => ({
-          ...g,
-          content: courtNameMap.get(String(g.id)) || g.content,
-          order: i,
-          style: `background: ${
-            venueInfos.find((v: VenueInfo) => v.courts.some((c) => c.id === String(g.id)))?.color || 'transparent'
-          };`
-        }));
-    };
-
-    const tournamentDays = engine.getTournamentDays();
-
-    const getItems = () => {
-      const allSegments: any[] = [];
-      const allBlocks: any[] = [];
-      for (const day of tournamentDays) {
-        const timelines = engine.getDayTimeline(day);
-        allSegments.push(...buildEventsFromTimelines(timelines));
-        allBlocks.push(...buildBlockEvents(engine.getDayBlocks(day)));
-      }
-      return [
-        ...allSegments.filter((item) => visibleCourts.has(String(item.group))),
-        ...allBlocks.filter((item) => visibleCourts.has(String(item.group)))
-      ];
-    };
+    const getGroups = makeGetGroups(ctx);
+    const getItems = makeGetItems(ctx);
 
     const statsBar = buildStatsBar();
-    const updateEngineStats = () => {
-      const curve = engine.getCapacityCurve(startDate);
-      const stats = calculateCapacityStats(curve);
-      statsBar.update({
-        totalHours: stats.totalCourtHours,
-        blockedHours: stats.totalUnavailableHours ?? 0,
-        availableHours: stats.totalAvailableHours ?? 0,
-        avgPerCourt: (stats.totalCourts ?? 0) > 0 ? (stats.totalAvailableHours ?? 0) / stats.totalCourts! : 0
-      });
-    };
+    const updateEngineStats = makeUpdateEngineStats(ctx, statsBar);
 
     const infoPanel = buildVenueInfoPanel(venueAvailInfos, engine);
 
-    const getVisibleCourtRefs = () => {
-      const refs: any[] = [];
-      for (const v of venueInfos) {
-        for (const c of v.courts) {
-          if (visibleCourts.has(c.id)) {
-            const ref = parseResourceId(c.id);
-            if (ref) refs.push(ref);
-          }
-        }
-      }
-      return refs;
-    };
-
-    const rebuildTimeline = () => {
-      if (!timeline) return;
-      const visibleRefs = getVisibleCourtRefs();
-      const timeRange = engine.getVisibleTimeRange(startDate, visibleRefs);
-      const windowConfig = buildTimelineWindowConfig({
-        dayStartTime: timeRange.startTime,
-        dayEndTime: timeRange.endTime,
-        slotMinutes: 5,
-        day: startDate
-      });
-      const weekMax = new Date(`${startDate}T${timeRange.endTime}:00`);
-      weekMax.setDate(weekMax.getDate() + 7);
-
-      const widestRange = getWidestTimeRange(engine, visibleRefs);
-      const hiddenDates = buildHiddenDates({
-        dayStartTime: widestRange.startTime,
-        dayEndTime: widestRange.endTime,
-        referenceDay: startDate
-      });
-
-      timeline.setOptions({ min: windowConfig.min, max: weekMax, hiddenDates });
-      timeline.setWindow(windowConfig.start, windowConfig.end);
-      rebuildItems();
-    };
+    const getVisibleCourtRefs = makeGetVisibleCourtRefs(ctx);
 
     const rebuildItems = () => {
       if (!timeline) return;
@@ -1941,6 +1884,8 @@ export const VenueAvailability = {
       updateEngineStats();
       infoPanel.update();
     };
+
+    const rebuildTimeline = makeRebuildTimeline(ctx, getVisibleCourtRefs, rebuildItems);
 
     // Venue edit handler
     const handleVenueEdit = (venueId: string, venueName: string) => {
@@ -1989,28 +1934,17 @@ export const VenueAvailability = {
     };
 
     const root = document.createElement('div');
-    root.style.cssText =
-      'display:flex; flex-direction:column; width:100%; height:600px; border:1px solid #e0e0e0; border-radius:4px; overflow:hidden;';
+    root.style.cssText = STYLE_ROOT;
 
-    let currentView = 'day';
-    const setView = (viewKey: string) => {
-      if (!timeline) return;
-      currentView = viewKey;
-      const view = VIEW_PRESETS[viewKey];
-      const timeRange = engine.getVisibleTimeRange(startDate);
-      const windowStart = new Date(`${startDate}T${timeRange.startTime}:00`);
-      const end = new Date(windowStart.getTime() + view.days * 16 * 60 * 60 * 1000);
-      timeline.setWindow(windowStart, end);
-      timeline.setOptions({ timeAxis: view.timeAxis });
-    };
+    const setView = makeSetView(ctx);
 
-    const toolbar = buildViewToolbar(setView, currentView);
+    const toolbar = buildViewToolbar(setView, 'day');
     root.appendChild(toolbar);
     root.appendChild(infoPanel.element);
     root.appendChild(statsBar.element);
 
     const mainRow = document.createElement('div');
-    mainRow.style.cssText = 'display:flex; flex:1; min-height:0;';
+    mainRow.style.cssText = STYLE_MAIN_ROW;
 
     const treePanel = buildCourtTreeWithEditIcons(
       venueInfos,
@@ -2020,7 +1954,7 @@ export const VenueAvailability = {
       handleCourtEdit
     );
     const timelineContainer = document.createElement('div');
-    timelineContainer.style.cssText = 'flex:1; min-width:0;';
+    timelineContainer.style.cssText = STYLE_TIMELINE_CONTAINER;
 
     mainRow.appendChild(treePanel);
     mainRow.appendChild(timelineContainer);
@@ -2058,7 +1992,7 @@ export const VenueAvailability = {
 
         onAdd: (item: any, callback: any) => {
           item.content = item.content || 'New Block';
-          item.style = 'background-color: #607D8B; border-color: #37474F; color: white;';
+          item.style = STYLE_NEW_BLOCK;
           item.editable = { updateTime: true, updateGroup: true, remove: false };
           callback(item);
         },
@@ -2106,7 +2040,7 @@ export const VenueAvailability = {
       timeline.on('click', (props: any) => {
         if (justDragged) return;
 
-        if (props.what === 'group-label' && props.group) {
+        if (props.what === WHAT_GROUP_LABEL && props.group) {
           const courtRef = parseResourceId(String(props.group));
           if (!courtRef) return;
           const courtName = courtNameMap.get(String(props.group)) || courtRef.courtId;

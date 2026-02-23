@@ -9,6 +9,9 @@ import {
   getDefaultPredefinedCodes,
 } from '../ageCategoryLogic';
 
+const SIMPLE_UNDER = 'Simple Under';
+const SIMPLE_OVER = 'Simple Over';
+
 describe('parseAgeCategoryCode', () => {
   it('should parse OPEN category', () => {
     const result = parseAgeCategoryCode('OPEN');
@@ -247,11 +250,11 @@ describe('roundtrip parsing and building', () => {
 
 describe('categoryTypeToInternal', () => {
   it('should convert Simple Under', () => {
-    expect(categoryTypeToInternal('Simple Under')).toBe('under');
+    expect(categoryTypeToInternal(SIMPLE_UNDER)).toBe('under');
   });
 
   it('should convert Simple Over', () => {
-    expect(categoryTypeToInternal('Simple Over')).toBe('over');
+    expect(categoryTypeToInternal(SIMPLE_OVER)).toBe('over');
   });
 
   it('should convert Range', () => {
@@ -273,11 +276,11 @@ describe('categoryTypeToInternal', () => {
 
 describe('internalToCategory', () => {
   it('should convert under', () => {
-    expect(internalToCategory('under')).toBe('Simple Under');
+    expect(internalToCategory('under')).toBe(SIMPLE_UNDER);
   });
 
   it('should convert over', () => {
-    expect(internalToCategory('over')).toBe('Simple Over');
+    expect(internalToCategory('over')).toBe(SIMPLE_OVER);
   });
 
   it('should convert range', () => {
@@ -314,8 +317,8 @@ describe('getCategoryTypeOptions', () => {
   it('should return category type options', () => {
     const options = getCategoryTypeOptions();
     expect(Array.isArray(options)).toBe(true);
-    expect(options).toContain('Simple Under');
-    expect(options).toContain('Simple Over');
+    expect(options).toContain(SIMPLE_UNDER);
+    expect(options).toContain(SIMPLE_OVER);
     expect(options).toContain('Range');
     expect(options).toContain('Combined');
     expect(options).toContain('Open');
