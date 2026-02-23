@@ -1,5 +1,8 @@
 import { css } from '@stitches/core';
 
+const CHC_PILL_BG_DANGER = 'var(--chc-pill-bg-danger)';
+const CHC_PILL_BG_DARK = 'var(--chc-pill-bg-dark)';
+
 export const pillStyle = css({
   width: 'auto',
   display: 'inline-block',
@@ -23,13 +26,13 @@ export const pillStyle = css({
         backgroundColor: 'var(--chc-pill-bg-success)'
       },
       defaulted: {
-        backgroundColor: 'var(--chc-pill-bg-danger)'
+        backgroundColor: CHC_PILL_BG_DANGER
       },
       dead_rubber: {
-        backgroundColor: 'var(--chc-pill-bg-danger)'
+        backgroundColor: CHC_PILL_BG_DANGER
       },
       cancelled: {
-        backgroundColor: 'var(--chc-pill-bg-danger)'
+        backgroundColor: CHC_PILL_BG_DANGER
       },
       incomplete: {
         backgroundColor: 'var(--chc-pill-bg-warning)'
@@ -38,19 +41,19 @@ export const pillStyle = css({
         backgroundColor: 'var(--chc-pill-bg-warning)'
       },
       retired: {
-        backgroundColor: 'var(--chc-pill-bg-danger)'
+        backgroundColor: CHC_PILL_BG_DANGER
       },
       walkover: {
-        backgroundColor: 'var(--chc-pill-bg-dark)'
+        backgroundColor: CHC_PILL_BG_DARK
       },
       double_walkover: {
-        backgroundColor: 'var(--chc-pill-bg-dark)'
+        backgroundColor: CHC_PILL_BG_DARK
       },
       double_default: {
-        backgroundColor: 'var(--chc-pill-bg-danger)'
+        backgroundColor: CHC_PILL_BG_DANGER
       },
       abandoned: {
-        backgroundColor: 'var(--chc-pill-bg-dark)'
+        backgroundColor: CHC_PILL_BG_DARK
       }
     }
   }

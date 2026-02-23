@@ -14,6 +14,8 @@ import { getScoringConfig } from '../config';
 const { RETIRED, WALKOVER, DEFAULTED, SUSPENDED, CANCELLED, INCOMPLETE, DEAD_RUBBER, IN_PROGRESS, AWAITING_RESULT, DOUBLE_WALKOVER, DOUBLE_DEFAULT } =
   matchUpStatusConstants;
 
+const CHC_STATUS_SUCCESS = 'var(--chc-status-success)';
+
 export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
   const { matchUp, container, onScoreChange } = params;
 
@@ -266,14 +268,14 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
       manualWinningSide = 1;
       // Highlight selected
       side1RadioLabel.style.fontWeight = 'bold';
-      side1RadioLabel.style.color = 'var(--chc-status-success)';
+      side1RadioLabel.style.color = CHC_STATUS_SUCCESS;
       side2RadioLabel.style.fontWeight = '';
       side2RadioLabel.style.color = '';
     } else if (side2Radio.checked) {
       manualWinningSide = 2;
       // Highlight selected
       side2RadioLabel.style.fontWeight = 'bold';
-      side2RadioLabel.style.color = 'var(--chc-status-success)';
+      side2RadioLabel.style.color = CHC_STATUS_SUCCESS;
       side1RadioLabel.style.fontWeight = '';
       side1RadioLabel.style.color = '';
     }
@@ -366,7 +368,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
     // For complete scores (or irregular endings), show green checkmark
     if (isComplete) {
       indicator.textContent = '✓';
-      indicator.style.color = 'var(--chc-status-success)';
+      indicator.style.color = CHC_STATUS_SUCCESS;
 
       // Show match status
       let statusText = 'Valid score';
@@ -390,7 +392,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
         statusText = 'Valid score - AWAITING RESULT';
       }
       validationMessage.textContent = statusText;
-      validationMessage.style.color = 'var(--chc-status-success)';
+      validationMessage.style.color = CHC_STATUS_SUCCESS;
 
       // Determine winner
       let effectiveWinningSide: number | undefined;
@@ -592,11 +594,11 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
   if (internalWinningSide === 1) {
     side1Radio.checked = true;
     side1RadioLabel.style.fontWeight = 'bold';
-    side1RadioLabel.style.color = 'var(--chc-status-success)';
+    side1RadioLabel.style.color = CHC_STATUS_SUCCESS;
   } else if (internalWinningSide === 2) {
     side2Radio.checked = true;
     side2RadioLabel.style.fontWeight = 'bold';
-    side2RadioLabel.style.color = 'var(--chc-status-success)';
+    side2RadioLabel.style.color = CHC_STATUS_SUCCESS;
   }
 
   // Focus input and trigger validation if there's an existing score or irregular status

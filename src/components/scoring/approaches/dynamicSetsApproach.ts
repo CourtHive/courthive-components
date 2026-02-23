@@ -22,6 +22,8 @@ import {
 
 const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT } = matchUpStatusConstants;
 
+const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
+const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
 const OUTCOME_SELECTOR = 'input[name="matchOutcome"]';
 const WINNER_SELECTOR = 'input[name="irregularWinner"]';
 const TIEBREAK_CONTAINER_CLASS = '.tiebreak-container';
@@ -82,7 +84,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
     const formatLabel = document.createElement('span');
     formatLabel.textContent = 'Format:';
-    formatLabel.style.color = 'var(--chc-text-secondary)';
+    formatLabel.style.color = CHC_TEXT_SECONDARY;
     formatDisplay.appendChild(formatLabel);
 
     const formatButton = document.createElement('button');
@@ -151,7 +153,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   irregularLabel.style.fontSize = '0.75em';
   irregularLabel.style.fontWeight = '500';
   irregularLabel.style.marginBottom = '0.3em';
-  irregularLabel.style.color = 'var(--chc-text-primary)';
+  irregularLabel.style.color = CHC_TEXT_PRIMARY;
   irregularEndingContainer.appendChild(irregularLabel);
 
   const outcomeOptions = document.createElement('div');
@@ -265,7 +267,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   winnerLabel.style.fontSize = '0.75em';
   winnerLabel.style.fontWeight = '500';
   winnerLabel.style.marginBottom = '0.2em';
-  winnerLabel.style.color = 'var(--chc-text-primary)';
+  winnerLabel.style.color = CHC_TEXT_PRIMARY;
   winnerSelectionContainer.appendChild(winnerLabel);
 
   const winnerOptions = document.createElement('div');
@@ -455,7 +457,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     setLabel.style.width = '3.5em';
     setLabel.style.fontSize = '0.9em';
     setLabel.style.fontWeight = '500';
-    setLabel.style.color = 'var(--chc-text-primary)';
+    setLabel.style.color = CHC_TEXT_PRIMARY;
     setRow.appendChild(setLabel);
 
     // Side 1 input
@@ -482,7 +484,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     const dash = document.createElement('span');
     dash.textContent = '-';
     dash.style.fontWeight = 'bold';
-    dash.style.color = 'var(--chc-text-secondary)';
+    dash.style.color = CHC_TEXT_SECONDARY;
 
     setRow.appendChild(side1Input);
     setRow.appendChild(dash);
@@ -496,7 +498,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
     const tiebreakOpen = document.createElement('span');
     tiebreakOpen.textContent = '(';
-    tiebreakOpen.style.color = 'var(--chc-text-secondary)';
+    tiebreakOpen.style.color = CHC_TEXT_SECONDARY;
 
     const tiebreakInput = document.createElement('input');
     tiebreakInput.type = 'text';
@@ -508,7 +510,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
     const tiebreakClose = document.createElement('span');
     tiebreakClose.textContent = ')';
-    tiebreakClose.style.color = 'var(--chc-text-secondary)';
+    tiebreakClose.style.color = CHC_TEXT_SECONDARY;
 
     tiebreakContainer.appendChild(tiebreakOpen);
     tiebreakContainer.appendChild(tiebreakInput);

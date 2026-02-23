@@ -4,11 +4,11 @@ import { compositions } from '../compositions/compositions';
 import { generateMatchUps } from '../data/generateMatchUps';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 
-const { 
-  RETIRED, 
-  WALKOVER, 
-  DEFAULTED, 
-  DOUBLE_WALKOVER, 
+const {
+  RETIRED,
+  WALKOVER,
+  DEFAULTED,
+  DOUBLE_WALKOVER,
   DOUBLE_DEFAULT,
   SUSPENDED,
   CANCELLED,
@@ -16,6 +16,8 @@ const {
   TO_BE_PLAYED,
   ABANDONED
 } = matchUpStatusConstants;
+
+const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
 
 const argTypes = {
   composition: {
@@ -115,7 +117,7 @@ export const Retired = {
     const description = document.createElement('p');
     description.textContent = 'Match ended with retirement - side 1 wins with partial score';
     description.style.marginBottom = '1em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     content.appendChild(description);
     
     content.appendChild(renderedMatchUp);
@@ -155,7 +157,7 @@ export const Walkover = {
     const description = document.createElement('p');
     description.textContent = 'Walkover - side 1 wins without playing';
     description.style.marginBottom = '1em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     content.appendChild(description);
     
     content.appendChild(renderedMatchUp);
@@ -200,7 +202,7 @@ export const Defaulted = {
     const description = document.createElement('p');
     description.textContent = 'Match ended with default - side 1 wins with partial score';
     description.style.marginBottom = '1em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     content.appendChild(description);
     
     content.appendChild(renderedMatchUp);
@@ -242,7 +244,7 @@ export const DoubleWalkover = {
     const description = document.createElement('p');
     description.textContent = 'Double Walkover - both players failed to appear, no winner';
     description.style.marginBottom = '1em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     content.appendChild(description);
     
     content.appendChild(renderedMatchUp);
@@ -282,7 +284,7 @@ export const DoubleDefault = {
     const description = document.createElement('p');
     description.textContent = 'Double Default - both players defaulted, no winner';
     description.style.marginBottom = '1em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     content.appendChild(description);
     
     content.appendChild(renderedMatchUp);
@@ -329,7 +331,7 @@ export const Suspended = {
     const description = document.createElement('p');
     description.textContent = 'Match suspended - will resume later';
     description.style.marginBottom = '1em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     content.appendChild(description);
     
     content.appendChild(renderedMatchUp);
@@ -369,7 +371,7 @@ export const Cancelled = {
     const description = document.createElement('p');
     description.textContent = 'Match cancelled - will not be played';
     description.style.marginBottom = '1em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     content.appendChild(description);
     
     content.appendChild(renderedMatchUp);
@@ -409,7 +411,7 @@ export const Abandoned = {
     const description = document.createElement('p');
     description.textContent = 'Match abandoned - incomplete and terminated';
     description.style.marginBottom = '1em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     content.appendChild(description);
     
     content.appendChild(renderedMatchUp);
@@ -454,7 +456,7 @@ export const InProgress = {
     const description = document.createElement('p');
     description.textContent = 'Match currently in progress';
     description.style.marginBottom = '1em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     content.appendChild(description);
     
     content.appendChild(renderedMatchUp);
@@ -504,7 +506,7 @@ export const ToBePlayedWithScoreClick = {
     const description = document.createElement('p');
     description.textContent = 'TO_BE_PLAYED with scoreClick handler - should show [Score]';
     description.style.marginBottom = '1em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     content.appendChild(description);
     
     content.appendChild(renderedMatchUp);
@@ -554,7 +556,7 @@ export const CompletedWithScoreClick = {
     const description = document.createElement('p');
     description.textContent = 'Completed match with scoreClick handler - should NOT show [Score]';
     description.style.marginBottom = '1em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     content.appendChild(description);
     
     content.appendChild(renderedMatchUp);
@@ -606,7 +608,7 @@ export const RetiredWithScoreClick = {
     const description = document.createElement('p');
     description.textContent = 'RETIRED with partial score and scoreClick handler - should show [RET] but NOT [Score]';
     description.style.marginBottom = '1em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     content.appendChild(description);
     
     content.appendChild(renderedMatchUp);
@@ -654,7 +656,7 @@ export const DoubleDefaultWithScoreClick = {
     const description = document.createElement('p');
     description.textContent = 'DOUBLE_DEFAULT with scoreClick handler - should show [DEF] but NOT [Score]';
     description.style.marginBottom = '1em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     content.appendChild(description);
     
     content.appendChild(renderedMatchUp);
@@ -702,7 +704,7 @@ export const DoubleWalkoverWithScoreClick = {
     const description = document.createElement('p');
     description.textContent = 'DOUBLE_WALKOVER with scoreClick handler - should show [WO] but NOT [Score]';
     description.style.marginBottom = '1em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     content.appendChild(description);
     
     content.appendChild(renderedMatchUp);
@@ -750,7 +752,7 @@ export const AbandonedWithScoreClick = {
     const description = document.createElement('p');
     description.textContent = 'ABANDONED with scoreClick handler - should show [ABD] but NOT [Score]';
     description.style.marginBottom = '1em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     content.appendChild(description);
     
     content.appendChild(renderedMatchUp);
@@ -798,7 +800,7 @@ export const CancelledWithScoreClick = {
     const description = document.createElement('p');
     description.textContent = 'CANCELLED with scoreClick handler - should NOT show [Score]';
     description.style.marginBottom = '1em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     content.appendChild(description);
     
     content.appendChild(renderedMatchUp);

@@ -1,6 +1,9 @@
 import { getCategoryModal } from '../components/categories/category/category';
 import type { Category } from '../components/categories/category/category';
 
+const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
+const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
+
 export default {
   title: 'Components/Categories/Category',
   tags: ['autodocs'],
@@ -21,12 +24,12 @@ export const BasicEditor = {
     const title = document.createElement('h2');
     title.textContent = 'Category Editor';
     title.style.marginBottom = '0.5em';
-    title.style.color = 'var(--chc-text-primary)';
+    title.style.color = CHC_TEXT_PRIMARY;
     container.appendChild(title);
 
     const description = document.createElement('p');
     description.style.marginBottom = '1.5em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     description.innerHTML =
       'Click the button below to open the Category editor. The Category editor allows you to define complete category information including age categories, ratings, and ball types. ' +
       'The Age Category Code editor is launched as a sub-modal when defining age-based categories.';
@@ -88,12 +91,12 @@ export const EditExisting = {
     const title = document.createElement('h2');
     title.textContent = 'Edit Existing Category';
     title.style.marginBottom = '0.5em';
-    title.style.color = 'var(--chc-text-primary)';
+    title.style.color = CHC_TEXT_PRIMARY;
     container.appendChild(title);
 
     const description = document.createElement('p');
     description.style.marginBottom = '1.5em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     description.textContent =
       'Opens the editor with pre-populated data demonstrating how to edit existing categories.';
     container.appendChild(description);
@@ -175,12 +178,12 @@ export const CategoryTypes = {
     const title = document.createElement('h2');
     title.textContent = 'Category Types';
     title.style.marginBottom = '0.5em';
-    title.style.color = 'var(--chc-text-primary)';
+    title.style.color = CHC_TEXT_PRIMARY;
     container.appendChild(title);
 
     const description = document.createElement('p');
     description.style.marginBottom = '1.5em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     description.innerHTML =
       'The category editor supports three types:<br>' +
       '<strong style="color: var(--chc-text-primary);">AGE</strong> - Age-based categories with age category codes<br>' +
@@ -268,12 +271,12 @@ export const CustomConfiguration = {
     const title = document.createElement('h2');
     title.textContent = 'Custom Configuration';
     title.style.marginBottom = '0.5em';
-    title.style.color = 'var(--chc-text-primary)';
+    title.style.color = CHC_TEXT_PRIMARY;
     container.appendChild(title);
 
     const description = document.createElement('p');
     description.style.marginBottom = '1.5em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     description.textContent =
       'The editor can be customized with different labels, rating types, and ball types.';
     container.appendChild(description);
@@ -333,12 +336,12 @@ export const AgeCategoryIntegration = {
     const title = document.createElement('h2');
     title.textContent = 'Age Category Integration';
     title.style.marginBottom = '0.5em';
-    title.style.color = 'var(--chc-text-primary)';
+    title.style.color = CHC_TEXT_PRIMARY;
     container.appendChild(title);
 
     const description = document.createElement('p');
     description.style.marginBottom = '1.5em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     description.innerHTML =
       'When the category type is <strong style="color: var(--chc-text-primary);">AGE</strong> or <strong style="color: var(--chc-text-primary);">BOTH</strong>, ' +
       'an "Age Category Code" field appears with an Edit/Set button. Clicking this button launches the Age Category Code editor as a sub-modal. ' +

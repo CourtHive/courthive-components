@@ -2,6 +2,8 @@ import { tipster } from '../components/popover/tipster';
 import '../styles/tippy.css';
 import '../styles/tipster.css';
 
+const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
+
 export default {
   title: 'Components/Tipster',
   tags: ['autodocs']
@@ -35,7 +37,7 @@ export const BasicPopover = {
     const description = document.createElement('p');
     description.innerHTML = 'Click the button to see the tipster popover menu. Tipster uses <code>tippy.js</code> for positioning and rendering interactive popup menus.';
     description.style.marginBottom = '1.5em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     
     container.appendChild(title);
     container.appendChild(description);
@@ -82,7 +84,7 @@ export const WithCallback = {
     const description = document.createElement('p');
     description.innerHTML = 'This example uses a callback function to handle the selection instead of individual <code>onClick</code> handlers.';
     description.style.marginBottom = '1.5em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     
     container.appendChild(title);
     container.appendChild(description);
@@ -132,7 +134,7 @@ export const WithItems = {
     const description = document.createElement('p');
     description.innerHTML = 'Items can have custom styles and individual click handlers. This is useful for action menus.';
     description.style.marginBottom = '1.5em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     
     container.appendChild(title);
     container.appendChild(description);
