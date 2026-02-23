@@ -29,6 +29,7 @@ const { SINGLE_ELIMINATION } = drawDefinitionConstants;
 const BORDER_STYLE_1 = '1px solid #ddd';
 const BORDER_STYLE_2 = '1px solid #ccc';
 const CLICKED_SEGMENT = 'Clicked segment:';
+const CLICKED_CENTER = 'Clicked center!';
 
 interface BurstChartArgs {
   width: number;
@@ -467,6 +468,125 @@ export const DrawSizePicker: Story = {
 
     return wrapper;
   }
+};
+
+/**
+ * Center Click Navigation - Demonstrates clickCenter event handler
+ *
+ * The center of the burst chart is a clickable target that can be used
+ * for navigation (e.g. navigating to the full draw page).
+ * Click the center area to trigger the callback.
+ */
+export const CenterClickNavigation: Story = {
+  args: {
+    width: 800,
+    height: 800,
+    title: 'Click Center to Navigate',
+  },
+  render: (args: any) => {
+    const wrapper = document.createElement('div');
+    wrapper.style.padding = '20px';
+    wrapper.style.backgroundColor = '#f5f5f5';
+    wrapper.style.display = 'flex';
+    wrapper.style.gap = '20px';
+
+    const chartContainer = document.createElement('div');
+    chartContainer.style.flex = '1';
+    chartContainer.style.backgroundColor = '#ffffff';
+    chartContainer.style.border = BORDER_STYLE_1;
+    chartContainer.style.borderRadius = '8px';
+    chartContainer.style.display = 'flex';
+    chartContainer.style.alignItems = 'center';
+    chartContainer.style.justifyContent = 'center';
+
+    // Event log panel
+    const logPanel = document.createElement('div');
+    logPanel.style.flex = '0 0 300px';
+    logPanel.style.padding = '20px';
+    logPanel.style.backgroundColor = '#ffffff';
+    logPanel.style.border = BORDER_STYLE_1;
+    logPanel.style.borderRadius = '8px';
+    logPanel.style.display = 'flex';
+    logPanel.style.flexDirection = 'column';
+
+    const logTitle = document.createElement('h3');
+    logTitle.textContent = 'Event Log';
+    logTitle.style.marginTop = '0';
+    logTitle.style.marginBottom = '10px';
+    logTitle.style.color = '#333';
+    logPanel.appendChild(logTitle);
+
+    const logDescription = document.createElement('p');
+    logDescription.style.fontSize = '14px';
+    logDescription.style.color = '#666';
+    logDescription.style.marginTop = '0';
+    logDescription.innerHTML =
+      '<strong>clickCenter</strong> fires when the center of the chart is clicked. ' +
+      'Use it to navigate to the draw page or trigger any action.<br><br>' +
+      '<strong>clickSegment</strong> fires when an arc segment is clicked.';
+    logPanel.appendChild(logDescription);
+
+    const logArea = document.createElement('div');
+    logArea.style.flex = '1';
+    logArea.style.fontFamily = 'monospace';
+    logArea.style.fontSize = '13px';
+    logArea.style.backgroundColor = '#f9f9f9';
+    logArea.style.borderRadius = '4px';
+    logArea.style.padding = '12px';
+    logArea.style.overflowY = 'auto';
+    logArea.style.maxHeight = '500px';
+    logPanel.appendChild(logArea);
+
+    let logCount = 0;
+    const addLogEntry = (message: string, color: string) => {
+      logCount++;
+      const entry = document.createElement('div');
+      entry.style.padding = '6px 0';
+      entry.style.borderBottom = '1px solid #eee';
+      entry.style.color = color;
+      entry.innerHTML = `<span style="color:#999">${logCount}.</span> ${message}`;
+      logArea.insertBefore(entry, logArea.firstChild);
+    };
+
+    // Generate tournament
+    const { tournamentRecord, drawIds } = mocksEngine.generateTournamentRecord({
+      drawProfiles: [{ drawSize: 32, drawType: SINGLE_ELIMINATION, seedsCount: 8 }],
+      completeAllMatchUps: true,
+      randomWinningSide: true,
+    });
+    tournamentEngine.setState(tournamentRecord);
+
+    const drawId = drawIds[0];
+    const { eventData } = tournamentEngine.getEventData({ drawId });
+    const structure = eventData.drawsData.find((d: any) => d.drawId === drawId).structures[0];
+    const drawData = fromFactoryDrawData(structure);
+
+    const chart = burstChart({
+      width: args.width,
+      height: args.height,
+      eventHandlers: {
+        clickCenter: () => {
+          console.log(CLICKED_CENTER);
+          addLogEntry('clickCenter — navigate to draw page', '#1565C0');
+        },
+        clickSegment: (data) => {
+          console.log(CLICKED_SEGMENT, data);
+          const name = data.participantName || 'unknown';
+          const score = data.scoreString ? ` (${data.scoreString})` : '';
+          addLogEntry(`clickSegment — ${name}${score}`, '#333');
+        },
+      },
+    });
+
+    chart.render(chartContainer, drawData, args.title);
+
+    addLogEntry('Chart rendered. Click center or segments.', '#999');
+
+    wrapper.appendChild(chartContainer);
+    wrapper.appendChild(logPanel);
+
+    return wrapper;
+  },
 };
 
 /**
