@@ -6,8 +6,8 @@
  * Right:  roundCatalog + inspectorPanel
  */
 
-import type { ProfileStoreState, UIPanel } from '../types';
 import { spLayoutStyle, spColumnStyle, SP_CSS_VARS } from './styles';
+import type { ProfileStoreState, UIPanel } from '../types';
 
 export interface LayoutPanels {
   dateStrip: UIPanel<ProfileStoreState>;

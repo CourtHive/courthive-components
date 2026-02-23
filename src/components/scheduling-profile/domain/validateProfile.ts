@@ -6,14 +6,8 @@
  * DUPLICATE_SEGMENT, ROUND_ORDER_VIOLATION.
  */
 
-import type {
-  SchedulingProfile,
-  ValidationResult,
-  TemporalAdapter,
-  FlattenedRound,
-  RoundLocator,
-} from '../types';
 import { roundKeyString, roundLabel, pickRoundKey } from './utils';
+import type { SchedulingProfile, ValidationResult, TemporalAdapter, FlattenedRound, RoundLocator } from '../types';
 
 // ============================================================================
 // Public API
@@ -38,9 +32,7 @@ export function validateProfile({ profile, temporal, venueOrder }: ValidateProfi
           severity: 'ERROR',
           message: `Can't schedule on ${day.scheduleDate} \u2014 day is unavailable${a.reason ? `: ${a.reason}` : ''}.`,
           context: { date: day.scheduleDate },
-          fixActions: [
-            { kind: 'OPEN_TEMPORAL_GRID', date: day.scheduleDate, label: 'Open Temporal Grid' },
-          ],
+          fixActions: [{ kind: 'OPEN_TEMPORAL_GRID', date: day.scheduleDate, label: 'Open Temporal Grid' }]
         });
       }
     }
@@ -66,8 +58,8 @@ export function validateProfile({ profile, temporal, venueOrder }: ValidateProfi
         context: {
           locator: item.locator,
           date: item.locator.date,
-          venueId: item.locator.venueId,
-        },
+          venueId: item.locator.venueId
+        }
       });
     }
   }
@@ -90,11 +82,9 @@ export function validateProfile({ profile, temporal, venueOrder }: ValidateProfi
             scope: `${r.drawId}|${r.structureId}`,
             locator: item.locator,
             date: item.locator.date,
-            venueId: item.locator.venueId,
+            venueId: item.locator.venueId
           },
-          fixActions: [
-            { kind: 'JUMP_TO_ITEM', locator: seenNoSeg.get(base)!, label: 'Jump to existing' },
-          ],
+          fixActions: [{ kind: 'JUMP_TO_ITEM', locator: seenNoSeg.get(base)!, label: 'Jump to existing' }]
         });
       } else {
         seenNoSeg.set(base, item.locator);
@@ -110,11 +100,9 @@ export function validateProfile({ profile, temporal, venueOrder }: ValidateProfi
             scope: `${r.drawId}|${r.structureId}`,
             locator: item.locator,
             date: item.locator.date,
-            venueId: item.locator.venueId,
+            venueId: item.locator.venueId
           },
-          fixActions: [
-            { kind: 'JUMP_TO_ITEM', locator: seenSeg.get(segKey)!, label: 'Jump to existing' },
-          ],
+          fixActions: [{ kind: 'JUMP_TO_ITEM', locator: seenSeg.get(segKey)!, label: 'Jump to existing' }]
         });
       } else {
         seenSeg.set(segKey, item.locator);
@@ -134,7 +122,7 @@ export function validateProfile({ profile, temporal, venueOrder }: ValidateProfi
 
 export function validateRoundPrecedenceLocal({
   profile,
-  venueOrder,
+  venueOrder
 }: {
   profile: SchedulingProfile;
   venueOrder?: string[];
@@ -171,7 +159,7 @@ export function validateRoundPrecedenceLocal({
           date: cur.locator.date,
           venueId: cur.locator.venueId,
           locator: cur.locator,
-          prerequisite: prereq.locator,
+          prerequisite: prereq.locator
         },
         fixActions: [
           { kind: 'JUMP_TO_ITEM', locator: prereq.locator, label: 'Jump to prerequisite' },
@@ -181,8 +169,8 @@ export function validateRoundPrecedenceLocal({
                   kind: 'MOVE_ITEM_AFTER' as const,
                   locator: cur.locator,
                   after: fix.moveOffenderAfter,
-                  label: 'Move offending round after prerequisite set',
-                },
+                  label: 'Move offending round after prerequisite set'
+                }
               ]
             : []),
           ...(fix.movePrereqBefore
@@ -191,11 +179,11 @@ export function validateRoundPrecedenceLocal({
                   kind: 'MOVE_ITEM_BEFORE' as const,
                   locator: prereq.locator,
                   before: fix.movePrereqBefore,
-                  label: 'Move prerequisite before offending round',
-                },
+                  label: 'Move prerequisite before offending round'
+                }
               ]
-            : []),
-        ],
+            : [])
+        ]
       });
     }
   }
@@ -210,7 +198,7 @@ export function validateRoundPrecedenceLocal({
 function computeMinimalFix(
   items: FlattenedRound[],
   _index: number,
-  prereq: FlattenedRound,
+  prereq: FlattenedRound
 ): { moveOffenderAfter: RoundLocator; movePrereqBefore: RoundLocator } {
   const cur = items[_index];
 
@@ -221,7 +209,7 @@ function computeMinimalFix(
 
   return {
     moveOffenderAfter: items[lastHigher].locator,
-    movePrereqBefore: cur.locator,
+    movePrereqBefore: cur.locator
   };
 }
 
@@ -238,8 +226,8 @@ export function flatten(profile: SchedulingProfile): FlattenedRound[] {
             venueId: venue.venueId,
             index: i,
             roundKey: pickRoundKey(r),
-            roundSegment: r.roundSegment,
-          },
+            roundSegment: r.roundSegment
+          }
         });
       }
     }
@@ -278,13 +266,7 @@ function dedupe(results: ValidationResult[]): ValidationResult[] {
   const out: ValidationResult[] = [];
   for (const r of results) {
     const k =
-      r.code +
-      '|' +
-      r.message +
-      '|' +
-      (r.context?.scope ?? '') +
-      '|' +
-      JSON.stringify(r.context?.locator ?? {});
+      r.code + '|' + r.message + '|' + (r.context?.scope ?? '') + '|' + JSON.stringify(r.context?.locator ?? {});
     if (seen.has(k)) continue;
     seen.add(k);
     out.push(r);

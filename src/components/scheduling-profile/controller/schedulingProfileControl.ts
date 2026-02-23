@@ -7,6 +7,14 @@
  * Exposes: render(container), destroy(), getProfile().
  */
 
+import { buildSchedulingProfileLayout } from '../ui/schedulingProfileLayout';
+import { createCardPopoverManager } from '../ui/cardPopover';
+import { buildInspectorPanel } from '../ui/inspectorPanel';
+import { buildRoundCatalog } from '../ui/roundCatalog';
+import { buildIssuesPanel } from '../ui/issuesPanel';
+import { ProfileStore } from '../engine/profileStore';
+import { buildVenueBoard } from '../ui/venueBoard';
+import { buildDateStrip } from '../ui/dateStrip';
 import type {
   SchedulingProfileConfig,
   SchedulingProfile,
@@ -14,17 +22,8 @@ import type {
   DragPayload,
   DropTarget,
   FixAction,
-  CatalogGroupBy,
+  CatalogGroupBy
 } from '../types';
-import { ProfileStore } from '../engine/profileStore';
-import { buildDateStrip } from '../ui/dateStrip';
-import { buildIssuesPanel } from '../ui/issuesPanel';
-import { buildVenueBoard } from '../ui/venueBoard';
-import { buildRoundCatalog } from '../ui/roundCatalog';
-import { buildInspectorPanel } from '../ui/inspectorPanel';
-import { buildSchedulingProfileLayout } from '../ui/schedulingProfileLayout';
-import { createCardPopoverManager } from '../ui/cardPopover';
-
 export class SchedulingProfileControl {
   private readonly store: ProfileStore;
   private readonly layout: { element: HTMLElement; update: (state: any) => void };
@@ -45,16 +44,16 @@ export class SchedulingProfileControl {
         if (time !== null) {
           this.store.setNotBeforeTime(locator, time || undefined);
         }
-      },
+      }
     });
 
     // Create all panels
     const dateStrip = buildDateStrip({
-      onDateSelected: (date: string) => this.store.selectDate(date),
+      onDateSelected: (date: string) => this.store.selectDate(date)
     });
 
     const issuesPanel = buildIssuesPanel({
-      onFixAction: (action: FixAction) => this.store.applyFixAction(action),
+      onFixAction: (action: FixAction) => this.store.applyFixAction(action)
     });
 
     const venueBoard = buildVenueBoard({
@@ -67,12 +66,12 @@ export class SchedulingProfileControl {
       onCardClick: (locator: RoundLocator) => this.store.selectCard(locator),
       onCardContextMenu: (locator: RoundLocator, target: HTMLElement) => {
         this.popover.show(target, locator);
-      },
+      }
     });
 
     const roundCatalog = buildRoundCatalog({
       onSearchChange: (query: string) => this.store.setCatalogSearch(query),
-      onGroupByChange: (mode: CatalogGroupBy) => this.store.setCatalogGroupBy(mode),
+      onGroupByChange: (mode: CatalogGroupBy) => this.store.setCatalogGroupBy(mode)
     });
 
     const inspectorPanel = buildInspectorPanel();
@@ -83,7 +82,7 @@ export class SchedulingProfileControl {
       issuesPanel,
       venueBoard,
       roundCatalog,
-      inspectorPanel,
+      inspectorPanel
     });
 
     // Subscribe and do initial render

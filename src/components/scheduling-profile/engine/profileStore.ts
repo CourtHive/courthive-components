@@ -8,6 +8,10 @@
  * Drop is validated before commit — rejected if it produces ERRORs.
  */
 
+import { validateProfile } from '../domain/validateProfile';
+import { buildIssueIndex } from '../domain/issueIndex';
+import { applyDropCommit } from '../domain/dndApply';
+import { deepClone } from '../domain/utils';
 import type {
   ProfileStoreState,
   ProfileChangeListener,
@@ -18,12 +22,8 @@ import type {
   DropTarget,
   CatalogGroupBy,
   IssueIndex,
-  FixAction,
+  FixAction
 } from '../types';
-import { deepClone } from '../domain/utils';
-import { applyDropCommit } from '../domain/dndApply';
-import { validateProfile } from '../domain/validateProfile';
-import { buildIssueIndex } from '../domain/issueIndex';
 
 // ============================================================================
 // ProfileStore
@@ -43,7 +43,7 @@ export class ProfileStore {
       byDate: {},
       byVenue: {},
       byDraw: {},
-      counts: { total: 0, ERROR: 0, WARN: 0, INFO: 0, byDate: {}, byVenue: {}, byDraw: {} },
+      counts: { total: 0, ERROR: 0, WARN: 0, INFO: 0, byDate: {}, byVenue: {}, byDraw: {} }
     };
 
     this.state = {
@@ -56,7 +56,7 @@ export class ProfileStore {
       ruleResults: [],
       issueIndex: emptyIndex,
       catalogSearchQuery: '',
-      catalogGroupBy: 'event',
+      catalogGroupBy: 'event'
     };
 
     this.revalidate();
@@ -105,7 +105,7 @@ export class ProfileStore {
     const tempResults = validateProfile({
       profile: result.profile,
       temporal: this.config.temporalAdapter,
-      venueOrder: this.config.venueOrder,
+      venueOrder: this.config.venueOrder
     });
 
     const firstError = tempResults.find((r) => r.severity === 'ERROR');
@@ -166,7 +166,7 @@ export class ProfileStore {
     if (action.kind === 'JUMP_TO_ITEM' && action.locator) {
       this.setState({
         selectedDate: action.locator.date,
-        selectedLocator: action.locator,
+        selectedLocator: action.locator
       });
       return;
     }
@@ -217,7 +217,7 @@ export class ProfileStore {
     const results = validateProfile({
       profile: this.state.profileDraft,
       temporal: this.config.temporalAdapter,
-      venueOrder: this.config.venueOrder,
+      venueOrder: this.config.venueOrder
     });
     const index = buildIssueIndex(results);
     this.state = { ...this.state, ruleResults: results, issueIndex: index };
@@ -238,7 +238,7 @@ export class ProfileStore {
 function moveItemAfter(
   profile: SchedulingProfile,
   locator: RoundLocator,
-  afterLocator: RoundLocator,
+  afterLocator: RoundLocator
 ): SchedulingProfile {
   const next = deepClone(profile);
   const item = removeAt(next, locator);
@@ -253,7 +253,7 @@ function moveItemAfter(
 function moveItemBefore(
   profile: SchedulingProfile,
   locator: RoundLocator,
-  beforeLocator: RoundLocator,
+  beforeLocator: RoundLocator
 ): SchedulingProfile {
   const next = deepClone(profile);
   const item = removeAt(next, locator);

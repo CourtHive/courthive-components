@@ -4,15 +4,9 @@
  * Stateless factory pattern: { element, update }.
  */
 
-import type {
-  ProfileStoreState,
-  UIPanel,
-  DragPayload,
-  DropTarget,
-  RoundLocator,
-} from '../types';
-import { sameLocator, pickRoundKey } from '../domain/utils';
+import type { ProfileStoreState, UIPanel, DragPayload, DropTarget, RoundLocator } from '../types';
 import { getVenueRounds, findIssuesForLocator, maxSeverity } from '../domain/profileProjections';
+import { sameLocator, pickRoundKey } from '../domain/utils';
 import { buildRoundCard } from './roundCard';
 import {
   spPanelStyle,
@@ -26,7 +20,7 @@ import {
   spVenueSubStyle,
   spDropzoneStyle,
   spBadgeStyle,
-  spSmallStyle,
+  spSmallStyle
 } from './styles';
 
 export interface VenueBoardCallbacks {
@@ -126,7 +120,7 @@ export function buildVenueBoard(callbacks: VenueBoardCallbacks): UIPanel<Profile
             venueId: v.venueId,
             index: idx,
             roundKey: pickRoundKey(r),
-            roundSegment: r.roundSegment,
+            roundSegment: r.roundSegment
           };
 
           const cardIssues = findIssuesForLocator(state.ruleResults, locator);
@@ -137,8 +131,8 @@ export function buildVenueBoard(callbacks: VenueBoardCallbacks): UIPanel<Profile
             { round: r, locator, isSelected, severity: sev },
             {
               onClick: callbacks.onCardClick,
-              onContextMenu: callbacks.onCardContextMenu,
-            },
+              onContextMenu: callbacks.onCardContextMenu
+            }
           );
           dz.appendChild(card);
         });
