@@ -2,10 +2,13 @@ import { describe, it, expect } from 'vitest';
 import { filterCatalog, groupCatalog, getPlannedRoundKeys } from '../domain/catalogProjections';
 import type { CatalogRoundItem } from '../types';
 
+const BOYS_U16 = 'Boys U16 Singles';
+const GIRLS_U16 = 'Girls U16 Singles';
+
 const catalog: CatalogRoundItem[] = [
-  { tournamentId: 'T1', eventId: 'E1', eventName: 'Boys U16 Singles', drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 5, roundName: 'R32', matchCountEstimate: 16 },
-  { tournamentId: 'T1', eventId: 'E1', eventName: 'Boys U16 Singles', drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 6, roundName: 'R16', matchCountEstimate: 8 },
-  { tournamentId: 'T1', eventId: 'E2', eventName: 'Girls U16 Singles', drawId: 'D2', drawName: 'Main', structureId: 'S2', roundNumber: 5, roundName: 'R32', matchCountEstimate: 16 },
+  { tournamentId: 'T1', eventId: 'E1', eventName: BOYS_U16, drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 5, roundName: 'R32', matchCountEstimate: 16 },
+  { tournamentId: 'T1', eventId: 'E1', eventName: BOYS_U16, drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 6, roundName: 'R16', matchCountEstimate: 8 },
+  { tournamentId: 'T1', eventId: 'E2', eventName: GIRLS_U16, drawId: 'D2', drawName: 'Main', structureId: 'S2', roundNumber: 5, roundName: 'R32', matchCountEstimate: 16 },
 ];
 
 describe('filterCatalog', () => {
@@ -17,7 +20,7 @@ describe('filterCatalog', () => {
   it('filters by query string', () => {
     const result = filterCatalog(catalog, 'girls', new Set());
     expect(result).toHaveLength(1);
-    expect(result[0].eventName).toBe('Girls U16 Singles');
+    expect(result[0].eventName).toBe(GIRLS_U16);
   });
 
   it('marks planned items', () => {
@@ -38,8 +41,8 @@ describe('groupCatalog', () => {
     const items = filterCatalog(catalog, '', new Set());
     const groups = groupCatalog(items, 'event');
     expect(groups.size).toBe(2);
-    expect(groups.get('Boys U16 Singles')).toHaveLength(2);
-    expect(groups.get('Girls U16 Singles')).toHaveLength(1);
+    expect(groups.get(BOYS_U16)).toHaveLength(2);
+    expect(groups.get(GIRLS_U16)).toHaveLength(1);
   });
 
   it('groups by draw', () => {
@@ -60,7 +63,7 @@ describe('groupCatalog', () => {
     const items = filterCatalog(catalog, '', new Set());
     const groups = groupCatalog(items, 'event');
     const keys = [...groups.keys()];
-    expect(keys).toEqual(['Boys U16 Singles', 'Girls U16 Singles']);
+    expect(keys).toEqual([BOYS_U16, GIRLS_U16]);
   });
 });
 

@@ -45,6 +45,7 @@ export default {
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 const DARK_BG = 'background: linear-gradient(180deg, #070a0f, #0b1020 40%, #070a0f);';
+const ROOT_STYLE = DARK_BG + 'min-height: 100vh;';
 const INFO_STYLE =
   'font-size: 12px; color: #94a3b8; padding: 12px 16px; font-family: ui-sans-serif, system-ui, sans-serif;';
 
@@ -80,7 +81,7 @@ function addConsoleLog(container: HTMLElement, control: SchedulingProfileControl
 export const EmptyProfile = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG + 'min-height: 100vh;';
+    root.style.cssText = ROOT_STYLE;
 
     const info = document.createElement('div');
     info.style.cssText = INFO_STYLE;
@@ -117,7 +118,7 @@ export const EmptyProfile = {
 export const PrePopulated = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG + 'min-height: 100vh;';
+    root.style.cssText = ROOT_STYLE;
 
     const info = document.createElement('div');
     info.style.cssText = INFO_STYLE;
@@ -145,7 +146,7 @@ export const PrePopulated = {
 export const WithErrors = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG + 'min-height: 100vh;';
+    root.style.cssText = ROOT_STYLE;
 
     const info = document.createElement('div');
     info.style.cssText = INFO_STYLE;
@@ -182,7 +183,7 @@ export const WithErrors = {
 export const MultiVenueExtended = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG + 'min-height: 100vh;';
+    root.style.cssText = ROOT_STYLE;
 
     const info = document.createElement('div');
     info.style.cssText = INFO_STYLE;
@@ -214,7 +215,7 @@ export const MultiVenueExtended = {
 export const ProgrammaticControl = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG + 'min-height: 100vh;';
+    root.style.cssText = ROOT_STYLE;
 
     const info = document.createElement('div');
     info.style.cssText = INFO_STYLE;

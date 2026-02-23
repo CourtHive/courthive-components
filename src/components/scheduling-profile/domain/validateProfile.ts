@@ -30,7 +30,7 @@ export function validateProfile({ profile, temporal, venueOrder }: ValidateProfi
         results.push({
           code: 'DATE_UNAVAILABLE',
           severity: 'ERROR',
-          message: `Can't schedule on ${day.scheduleDate} \u2014 day is unavailable${a.reason ? `: ${a.reason}` : ''}.`,
+          message: `Can't schedule on ${day.scheduleDate} \u2014 day is unavailable${a.reason ? ': ' + a.reason : ''}.`,
           context: { date: day.scheduleDate },
           fixActions: [{ kind: 'OPEN_TEMPORAL_GRID', date: day.scheduleDate, label: 'Open Temporal Grid' }]
         });

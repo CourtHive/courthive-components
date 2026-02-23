@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { applyDropCommit } from '../domain/dndApply';
 import type { SchedulingProfile, CatalogDragPayload, PlannedDragPayload } from '../types';
 
+const DAY1 = '2026-06-15';
+
 const catalogRound = {
   tournamentId: 'T1',
   eventId: 'E1',
@@ -16,7 +18,7 @@ const catalogRound = {
 function makeProfile(): SchedulingProfile {
   return [
     {
-      scheduleDate: '2026-06-15',
+      scheduleDate: DAY1,
       venues: [
         {
           venueId: 'V1',
@@ -35,10 +37,10 @@ describe('applyDropCommit', () => {
   describe('CATALOG_ROUND drops', () => {
     it('adds a round from catalog to an empty venue', () => {
       const profile: SchedulingProfile = [
-        { scheduleDate: '2026-06-15', venues: [{ venueId: 'V1', rounds: [] }] },
+        { scheduleDate: DAY1, venues: [{ venueId: 'V1', rounds: [] }] },
       ];
       const drag: CatalogDragPayload = { type: 'CATALOG_ROUND', roundRef: catalogRound };
-      const result = applyDropCommit(profile, drag, { date: '2026-06-15', venueId: 'V1', index: 0 });
+      const result = applyDropCommit(profile, drag, { date: DAY1, venueId: 'V1', index: 0 });
 
       expect(result.ok).toBe(true);
       expect(result.profile[0].venues[0].rounds).toHaveLength(1);
@@ -52,7 +54,7 @@ describe('applyDropCommit', () => {
         type: 'CATALOG_ROUND',
         roundRef: { ...catalogRound, roundNumber: 7, roundName: 'QF' },
       };
-      const result = applyDropCommit(profile, drag, { date: '2026-06-15', venueId: 'V1', index: 1 });
+      const result = applyDropCommit(profile, drag, { date: DAY1, venueId: 'V1', index: 1 });
 
       expect(result.ok).toBe(true);
       const rounds = result.profile[0].venues[0].rounds;
@@ -78,7 +80,7 @@ describe('applyDropCommit', () => {
       const profile = makeProfile();
       const originalLen = profile[0].venues[0].rounds.length;
       const drag: CatalogDragPayload = { type: 'CATALOG_ROUND', roundRef: catalogRound };
-      applyDropCommit(profile, drag, { date: '2026-06-15', venueId: 'V1', index: 0 });
+      applyDropCommit(profile, drag, { date: DAY1, venueId: 'V1', index: 0 });
 
       expect(profile[0].venues[0].rounds).toHaveLength(originalLen);
     });
@@ -90,13 +92,13 @@ describe('applyDropCommit', () => {
       const drag: PlannedDragPayload = {
         type: 'PLANNED_ROUND',
         locator: {
-          date: '2026-06-15',
+          date: DAY1,
           venueId: 'V1',
           index: 0,
           roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 },
         },
       };
-      const result = applyDropCommit(profile, drag, { date: '2026-06-15', venueId: 'V2', index: 0 });
+      const result = applyDropCommit(profile, drag, { date: DAY1, venueId: 'V2', index: 0 });
 
       expect(result.ok).toBe(true);
       expect(result.profile[0].venues[0].rounds).toHaveLength(1); // V1 now has 1
@@ -108,7 +110,7 @@ describe('applyDropCommit', () => {
       // Use a 3-element list to properly test reorder
       const profile: SchedulingProfile = [
         {
-          scheduleDate: '2026-06-15',
+          scheduleDate: DAY1,
           venues: [
             {
               venueId: 'V1',
@@ -124,14 +126,14 @@ describe('applyDropCommit', () => {
       const drag: PlannedDragPayload = {
         type: 'PLANNED_ROUND',
         locator: {
-          date: '2026-06-15',
+          date: DAY1,
           venueId: 'V1',
           index: 0,
           roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 },
         },
       };
       // Move index 0 (R32) to index 3 (end). After removal [R16,QF], clamp(3,0,2)=2, adjust: 2-1=1 → insert at 1
-      const result = applyDropCommit(profile, drag, { date: '2026-06-15', venueId: 'V1', index: 3 });
+      const result = applyDropCommit(profile, drag, { date: DAY1, venueId: 'V1', index: 3 });
 
       expect(result.ok).toBe(true);
       const rounds = result.profile[0].venues[0].rounds;
@@ -147,13 +149,13 @@ describe('applyDropCommit', () => {
       const drag: PlannedDragPayload = {
         type: 'PLANNED_ROUND',
         locator: {
-          date: '2026-06-15',
+          date: DAY1,
           venueId: 'V1',
           index: 0,
           roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 },
         },
       };
-      const result = applyDropCommit(profile, drag, { date: '2026-06-15', venueId: 'V1', index: 2 });
+      const result = applyDropCommit(profile, drag, { date: DAY1, venueId: 'V1', index: 2 });
 
       expect(result.ok).toBe(true);
       // After removing index 0, the original target 2 is clamped to 1 (end of list)
@@ -166,7 +168,7 @@ describe('applyDropCommit', () => {
     it('returns ok: false for unknown drag type', () => {
       const profile = makeProfile();
       const drag = { type: 'UNKNOWN' } as any;
-      const result = applyDropCommit(profile, drag, { date: '2026-06-15', venueId: 'V1', index: 0 });
+      const result = applyDropCommit(profile, drag, { date: DAY1, venueId: 'V1', index: 0 });
       expect(result.ok).toBe(false);
     });
   });

@@ -127,7 +127,8 @@ export function buildRoundCatalog(callbacks: RoundCatalogCallbacks): UIPanel<Pro
 
         const m = document.createElement('div');
         m.className = spCardMetaStyle();
-        m.textContent = `${item.drawName ?? item.drawId} (${item.drawId}/${item.structureId})${item.matchCountEstimate ? ` \u00b7 est ${item.matchCountEstimate} matches` : ''}`;
+        const matchInfo = item.matchCountEstimate ? ' \u00b7 est ' + item.matchCountEstimate + ' matches' : '';
+        m.textContent = `${item.drawName ?? item.drawId} (${item.drawId}/${item.structureId})${matchInfo}`;
 
         div.appendChild(t);
         div.appendChild(m);

@@ -8,6 +8,23 @@
 import { css } from '@stitches/core';
 
 // ============================================================================
+// Shared CSS Values
+// ============================================================================
+
+const GAP_12 = '12px';
+const BORDER_SUBTLE = '1px solid rgba(31,41,55,0.85)';
+const JUSTIFY_BETWEEN = 'space-between';
+const COLOR_MUTED = 'var(--sp-muted)';
+const BORDER_DEFAULT = '1px solid rgba(148,163,184,0.18)';
+const ACCENT_FOCUS = 'rgba(96,165,250,0.55)';
+const RADIUS_PILL = '999px';
+const BG_CARD = 'rgba(15,23,42,0.55)';
+const HOVER_BORDER = 'rgba(148,163,184,0.35)';
+const COLOR_TEXT = 'var(--sp-text)';
+const BORDER_LIGHT = '1px solid rgba(148,163,184,0.22)';
+const BG_INPUT = 'rgba(2,6,23,0.45)';
+
+// ============================================================================
 // CSS Variables (injected via layout root)
 // ============================================================================
 
@@ -30,10 +47,10 @@ export const SP_CSS_VARS = {
 export const spLayoutStyle = css({
   display: 'grid',
   gridTemplateColumns: '320px 1fr 360px',
-  gap: '12px',
-  padding: '12px',
+  gap: GAP_12,
+  padding: GAP_12,
   fontFamily: 'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif',
-  color: 'var(--sp-text)',
+  color: COLOR_TEXT,
   boxSizing: 'border-box',
   '& *': { boxSizing: 'border-box' },
 });
@@ -41,7 +58,7 @@ export const spLayoutStyle = css({
 export const spColumnStyle = css({
   display: 'flex',
   flexDirection: 'column',
-  gap: '12px',
+  gap: GAP_12,
 });
 
 // ============================================================================
@@ -58,9 +75,9 @@ export const spPanelStyle = css({
 
 export const spPanelHeaderStyle = css({
   padding: '12px 12px 10px',
-  borderBottom: '1px solid rgba(31,41,55,0.85)',
+  borderBottom: BORDER_SUBTLE,
   display: 'flex',
-  justifyContent: 'space-between',
+  justifyContent: JUSTIFY_BETWEEN,
   alignItems: 'baseline',
   gap: '10px',
 });
@@ -71,12 +88,12 @@ export const spPanelTitleStyle = css({
 });
 
 export const spPanelMetaStyle = css({
-  fontSize: '12px',
-  color: 'var(--sp-muted)',
+  fontSize: GAP_12,
+  color: COLOR_MUTED,
 });
 
 export const spPanelBodyStyle = css({
-  padding: '12px',
+  padding: GAP_12,
 });
 
 // ============================================================================
@@ -87,21 +104,21 @@ export const spDateStripStyle = css({
   display: 'flex',
   flexDirection: 'column',
   gap: '6px',
-  padding: '12px',
+  padding: GAP_12,
 });
 
 export const spDateChipStyle = css({
   display: 'flex',
-  justifyContent: 'space-between',
+  justifyContent: JUSTIFY_BETWEEN,
   alignItems: 'center',
   padding: '10px',
   borderRadius: '12px',
-  border: '1px solid rgba(148,163,184,0.18)',
+  border: BORDER_DEFAULT,
   background: 'rgba(15,23,42,0.6)',
   cursor: 'pointer',
-  '&:hover': { borderColor: 'rgba(148,163,184,0.35)' },
+  '&:hover': { borderColor: HOVER_BORDER },
   '&.selected': {
-    borderColor: 'rgba(96,165,250,0.55)',
+    borderColor: ACCENT_FOCUS,
     background: 'rgba(96,165,250,0.12)',
   },
   '&.unavailable': {
@@ -123,9 +140,9 @@ export const spBadgesStyle = css({
 export const spBadgeStyle = css({
   fontSize: '11px',
   padding: '3px 6px',
-  borderRadius: '999px',
-  border: '1px solid rgba(148,163,184,0.22)',
-  color: 'var(--sp-muted)',
+  borderRadius: RADIUS_PILL,
+  border: BORDER_LIGHT,
+  color: COLOR_MUTED,
   '&.ok': { borderColor: 'rgba(52,211,153,0.35)', color: 'rgba(52,211,153,0.95)' },
   '&.warn': { borderColor: 'rgba(251,191,36,0.4)', color: 'rgba(251,191,36,0.95)' },
   '&.err': { borderColor: 'rgba(251,113,133,0.45)', color: 'rgba(251,113,133,0.95)' },
@@ -141,9 +158,9 @@ export const spChipsStyle = css({
 export const spChipStyle = css({
   fontSize: '11px',
   padding: '3px 6px',
-  borderRadius: '999px',
-  border: '1px solid rgba(148,163,184,0.22)',
-  color: 'var(--sp-muted)',
+  borderRadius: RADIUS_PILL,
+  border: BORDER_LIGHT,
+  color: COLOR_MUTED,
   '&.seg': { borderColor: 'rgba(96,165,250,0.35)', color: 'rgba(96,165,250,0.95)' },
   '&.nb': { borderColor: 'rgba(52,211,153,0.28)', color: 'rgba(52,211,153,0.95)' },
   '&.err': { borderColor: 'rgba(251,113,133,0.35)', color: 'rgba(251,113,133,0.95)' },
@@ -155,16 +172,16 @@ export const spChipStyle = css({
 // ============================================================================
 
 export const spBoardStyle = css({
-  padding: '12px',
+  padding: GAP_12,
   display: 'grid',
   gap: '10px',
   minHeight: '520px',
 });
 
 export const spVenueStyle = css({
-  border: '1px solid rgba(148,163,184,0.18)',
+  border: BORDER_DEFAULT,
   borderRadius: '14px',
-  background: 'rgba(15,23,42,0.55)',
+  background: BG_CARD,
   display: 'flex',
   flexDirection: 'column',
   minHeight: '480px',
@@ -172,9 +189,9 @@ export const spVenueStyle = css({
 
 export const spVenueHeaderStyle = css({
   padding: '10px 10px 8px',
-  borderBottom: '1px solid rgba(31,41,55,0.85)',
+  borderBottom: BORDER_SUBTLE,
   display: 'flex',
-  justifyContent: 'space-between',
+  justifyContent: JUSTIFY_BETWEEN,
   alignItems: 'center',
 });
 
@@ -185,7 +202,7 @@ export const spVenueTitleStyle = css({
 
 export const spVenueSubStyle = css({
   fontSize: '11px',
-  color: 'var(--sp-muted)',
+  color: COLOR_MUTED,
 });
 
 export const spDropzoneStyle = css({
@@ -195,7 +212,7 @@ export const spDropzoneStyle = css({
   gap: '8px',
   flex: 1,
   '&.over': {
-    outline: '2px solid rgba(96,165,250,0.55)',
+    outline: `2px solid ${ACCENT_FOCUS}`,
     outlineOffset: '-4px',
   },
 });
@@ -205,8 +222,8 @@ export const spDropzoneStyle = css({
 // ============================================================================
 
 export const spCardStyle = css({
-  border: '1px solid rgba(148,163,184,0.18)',
-  background: 'rgba(2,6,23,0.45)',
+  border: BORDER_DEFAULT,
+  background: BG_INPUT,
   borderRadius: '14px',
   padding: '10px',
   cursor: 'grab',
@@ -224,7 +241,7 @@ export const spCardTitleStyle = css({
 export const spCardMetaStyle = css({
   marginTop: '4px',
   fontSize: '11px',
-  color: 'var(--sp-muted)',
+  color: COLOR_MUTED,
 });
 
 // ============================================================================
@@ -232,7 +249,7 @@ export const spCardMetaStyle = css({
 // ============================================================================
 
 export const spIssuesStyle = css({
-  padding: '12px',
+  padding: GAP_12,
   display: 'flex',
   flexDirection: 'column',
   gap: '8px',
@@ -241,10 +258,10 @@ export const spIssuesStyle = css({
 });
 
 export const spIssueStyle = css({
-  border: '1px solid rgba(148,163,184,0.18)',
+  border: BORDER_DEFAULT,
   borderRadius: '12px',
   padding: '10px',
-  background: 'rgba(15,23,42,0.55)',
+  background: BG_CARD,
   '&.error': { borderColor: 'rgba(251,113,133,0.35)' },
   '&.warn': { borderColor: 'rgba(251,191,36,0.35)' },
   '&.info': { borderColor: 'rgba(96,165,250,0.25)' },
@@ -252,7 +269,7 @@ export const spIssueStyle = css({
 
 export const spIssueCodeStyle = css({
   fontSize: '11px',
-  color: 'var(--sp-muted)',
+  color: COLOR_MUTED,
 });
 
 export const spIssueMsgStyle = css({
@@ -271,11 +288,11 @@ export const spIssueActionBtnStyle = css({
   fontSize: '11px',
   padding: '6px 8px',
   borderRadius: '10px',
-  border: '1px solid rgba(148,163,184,0.22)',
+  border: BORDER_LIGHT,
   background: 'rgba(17,24,39,0.6)',
-  color: 'var(--sp-text)',
+  color: COLOR_TEXT,
   cursor: 'pointer',
-  '&:hover': { borderColor: 'rgba(148,163,184,0.35)' },
+  '&:hover': { borderColor: HOVER_BORDER },
 });
 
 // ============================================================================
@@ -283,7 +300,7 @@ export const spIssueActionBtnStyle = css({
 // ============================================================================
 
 export const spCatalogStyle = css({
-  padding: '12px',
+  padding: GAP_12,
   display: 'flex',
   flexDirection: 'column',
   gap: '10px',
@@ -294,30 +311,30 @@ export const spCatalogStyle = css({
 export const spCatalogToolbarStyle = css({
   display: 'flex',
   gap: '8px',
-  padding: '12px',
-  borderBottom: '1px solid rgba(31,41,55,0.85)',
+  padding: GAP_12,
+  borderBottom: BORDER_SUBTLE,
 });
 
 export const spInputStyle = css({
   width: '100%',
-  background: 'rgba(2,6,23,0.45)',
-  border: '1px solid rgba(148,163,184,0.18)',
-  color: 'var(--sp-text)',
+  background: BG_INPUT,
+  border: BORDER_DEFAULT,
+  color: COLOR_TEXT,
   borderRadius: '12px',
   padding: '8px 10px',
-  fontSize: '12px',
+  fontSize: GAP_12,
   outline: 'none',
-  '&:focus': { borderColor: 'rgba(96,165,250,0.55)' },
+  '&:focus': { borderColor: ACCENT_FOCUS },
 });
 
 export const spSelectStyle = css({
   maxWidth: '170px',
-  background: 'rgba(2,6,23,0.45)',
-  border: '1px solid rgba(148,163,184,0.18)',
-  color: 'var(--sp-text)',
+  background: BG_INPUT,
+  border: BORDER_DEFAULT,
+  color: COLOR_TEXT,
   borderRadius: '12px',
   padding: '8px 10px',
-  fontSize: '12px',
+  fontSize: GAP_12,
   outline: 'none',
 });
 
@@ -329,8 +346,8 @@ export const spGroupStyle = css({
 
 export const spGroupHeaderStyle = css({
   padding: '10px',
-  borderBottom: '1px solid rgba(31,41,55,0.85)',
-  fontSize: '12px',
+  borderBottom: BORDER_SUBTLE,
+  fontSize: GAP_12,
   fontWeight: 800,
 });
 
@@ -342,12 +359,12 @@ export const spGroupBodyStyle = css({
 });
 
 export const spCatalogItemStyle = css({
-  border: '1px solid rgba(148,163,184,0.18)',
+  border: BORDER_DEFAULT,
   borderRadius: '14px',
   padding: '10px',
-  background: 'rgba(15,23,42,0.55)',
+  background: BG_CARD,
   cursor: 'grab',
-  '&:hover': { borderColor: 'rgba(148,163,184,0.35)' },
+  '&:hover': { borderColor: HOVER_BORDER },
   '&.dimmed': { opacity: 0.65 },
 });
 
@@ -356,7 +373,7 @@ export const spCatalogItemStyle = css({
 // ============================================================================
 
 export const spInspectorStyle = css({
-  padding: '12px',
+  padding: GAP_12,
   display: 'flex',
   flexDirection: 'column',
   gap: '10px',
@@ -365,13 +382,13 @@ export const spInspectorStyle = css({
 
 export const spKvStyle = css({
   display: 'flex',
-  justifyContent: 'space-between',
+  justifyContent: JUSTIFY_BETWEEN,
   gap: '10px',
-  fontSize: '12px',
+  fontSize: GAP_12,
 });
 
 export const spKvKeyStyle = css({
-  color: 'var(--sp-muted)',
+  color: COLOR_MUTED,
 });
 
 export const spKvValueStyle = css({
@@ -380,7 +397,7 @@ export const spKvValueStyle = css({
 
 export const spSmallStyle = css({
   fontSize: '11px',
-  color: 'var(--sp-muted)',
+  color: COLOR_MUTED,
   lineHeight: 1.35,
 });
 

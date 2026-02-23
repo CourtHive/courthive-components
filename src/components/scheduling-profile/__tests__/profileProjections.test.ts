@@ -2,9 +2,11 @@ import { describe, it, expect } from 'vitest';
 import { getVenueRounds, getRoundAt, findIssuesForLocator, maxSeverity } from '../domain/profileProjections';
 import type { SchedulingProfile, RoundLocator, ValidationResult } from '../types';
 
+const DAY1 = '2026-06-15';
+
 const profile: SchedulingProfile = [
   {
-    scheduleDate: '2026-06-15',
+    scheduleDate: DAY1,
     venues: [
       {
         venueId: 'V1',
@@ -20,13 +22,13 @@ const profile: SchedulingProfile = [
 
 describe('getVenueRounds', () => {
   it('returns rounds for matching venue and date', () => {
-    const rounds = getVenueRounds(profile, '2026-06-15', 'V1');
+    const rounds = getVenueRounds(profile, DAY1, 'V1');
     expect(rounds).toHaveLength(2);
     expect(rounds[0].roundName).toBe('R32');
   });
 
   it('returns empty array for non-existent venue', () => {
-    expect(getVenueRounds(profile, '2026-06-15', 'V99')).toEqual([]);
+    expect(getVenueRounds(profile, DAY1, 'V99')).toEqual([]);
   });
 
   it('returns empty array for non-existent date', () => {
@@ -37,7 +39,7 @@ describe('getVenueRounds', () => {
 describe('getRoundAt', () => {
   it('returns the round at the locator', () => {
     const loc: RoundLocator = {
-      date: '2026-06-15',
+      date: DAY1,
       venueId: 'V1',
       index: 1,
       roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 6 },
@@ -49,7 +51,7 @@ describe('getRoundAt', () => {
 
   it('returns null for out-of-bounds index', () => {
     const loc: RoundLocator = {
-      date: '2026-06-15',
+      date: DAY1,
       venueId: 'V1',
       index: 99,
       roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 },
@@ -60,7 +62,7 @@ describe('getRoundAt', () => {
 
 describe('findIssuesForLocator', () => {
   const locator: RoundLocator = {
-    date: '2026-06-15',
+    date: DAY1,
     venueId: 'V1',
     index: 0,
     roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 },
@@ -90,7 +92,7 @@ describe('findIssuesForLocator', () => {
         code: 'DATE_UNAVAILABLE',
         severity: 'ERROR',
         message: 'Unavailable',
-        context: { date: '2026-06-15' },
+        context: { date: DAY1 },
       },
     ];
     expect(findIssuesForLocator(results, locator)).toHaveLength(0);

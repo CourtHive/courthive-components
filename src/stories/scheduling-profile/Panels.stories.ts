@@ -34,6 +34,9 @@ export default {
 
 const DARK_BG =
   'background: linear-gradient(180deg, #070a0f, #0b1020 40%, #070a0f); min-height: 400px; padding: 20px;';
+const DARK_BG_NARROW = DARK_BG + 'max-width: 400px;';
+const EVENT_NAME = 'Boys U16 Singles';
+const DAY1 = '2026-06-15';
 
 function applyVars(el: HTMLElement): void {
   for (const [key, value] of Object.entries(SP_CSS_VARS)) {
@@ -111,8 +114,8 @@ export const RoundCard = {
     // Normal card
     const card1 = buildRoundCard(
       {
-        round: { ...roundKey, eventName: 'Boys U16 Singles', roundName: 'R32' },
-        locator: { date: '2026-06-15', venueId: 'VENUE_A', index: 0, roundKey },
+        round: { ...roundKey, eventName: EVENT_NAME, roundName: 'R32' },
+        locator: { date: DAY1, venueId: 'VENUE_A', index: 0, roundKey },
         isSelected: false,
         severity: null,
       },
@@ -123,8 +126,8 @@ export const RoundCard = {
     // Selected card
     const card2 = buildRoundCard(
       {
-        round: { ...roundKey, eventName: 'Boys U16 Singles', roundName: 'R16', roundNumber: 6 },
-        locator: { date: '2026-06-15', venueId: 'VENUE_A', index: 1, roundKey: { ...roundKey, roundNumber: 6 } },
+        round: { ...roundKey, eventName: EVENT_NAME, roundName: 'R16', roundNumber: 6 },
+        locator: { date: DAY1, venueId: 'VENUE_A', index: 1, roundKey: { ...roundKey, roundNumber: 6 } },
         isSelected: true,
         severity: null,
       },
@@ -135,8 +138,8 @@ export const RoundCard = {
     // Error card
     const card3 = buildRoundCard(
       {
-        round: { ...roundKey, eventName: 'Boys U16 Singles', roundName: 'QF', roundNumber: 7 },
-        locator: { date: '2026-06-15', venueId: 'VENUE_A', index: 2, roundKey: { ...roundKey, roundNumber: 7 } },
+        round: { ...roundKey, eventName: EVENT_NAME, roundName: 'QF', roundNumber: 7 },
+        locator: { date: DAY1, venueId: 'VENUE_A', index: 2, roundKey: { ...roundKey, roundNumber: 7 } },
         isSelected: false,
         severity: 'ERROR',
       },
@@ -147,8 +150,8 @@ export const RoundCard = {
     // Warn card
     const card4 = buildRoundCard(
       {
-        round: { ...roundKey, eventName: 'Boys U16 Singles', roundName: 'SF', roundNumber: 8 },
-        locator: { date: '2026-06-15', venueId: 'VENUE_A', index: 3, roundKey: { ...roundKey, roundNumber: 8 } },
+        round: { ...roundKey, eventName: EVENT_NAME, roundName: 'SF', roundNumber: 8 },
+        locator: { date: DAY1, venueId: 'VENUE_A', index: 3, roundKey: { ...roundKey, roundNumber: 8 } },
         isSelected: false,
         severity: 'WARN',
       },
@@ -159,8 +162,8 @@ export const RoundCard = {
     // Segment card
     const card5 = buildRoundCard(
       {
-        round: { ...roundKey, eventName: 'Boys U16 Singles', roundName: 'R32', roundSegment: { segmentNumber: 1, segmentsCount: 2 } },
-        locator: { date: '2026-06-15', venueId: 'VENUE_A', index: 4, roundKey, roundSegment: { segmentNumber: 1, segmentsCount: 2 } },
+        round: { ...roundKey, eventName: EVENT_NAME, roundName: 'R32', roundSegment: { segmentNumber: 1, segmentsCount: 2 } },
+        locator: { date: DAY1, venueId: 'VENUE_A', index: 4, roundKey, roundSegment: { segmentNumber: 1, segmentsCount: 2 } },
         isSelected: false,
         severity: null,
       },
@@ -171,8 +174,8 @@ export const RoundCard = {
     // Not-before card
     const card6 = buildRoundCard(
       {
-        round: { ...roundKey, eventName: 'Boys U16 Singles', roundName: 'F', roundNumber: 9, notBeforeTime: '14:00' },
-        locator: { date: '2026-06-15', venueId: 'VENUE_A', index: 5, roundKey: { ...roundKey, roundNumber: 9 } },
+        round: { ...roundKey, eventName: EVENT_NAME, roundName: 'F', roundNumber: 9, notBeforeTime: '14:00' },
+        locator: { date: DAY1, venueId: 'VENUE_A', index: 5, roundKey: { ...roundKey, roundNumber: 9 } },
         isSelected: false,
         severity: null,
       },
@@ -229,7 +232,7 @@ export const DateStrip = {
 export const IssuesPanel = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG + 'max-width: 400px;';
+    root.style.cssText = DARK_BG_NARROW;
     applyVars(root);
 
     const store = new ProfileStore(makeBaseConfig({ initialProfile: ERROR_PROFILE }));
@@ -253,7 +256,7 @@ export const IssuesPanel = {
 export const IssuesPanelEmpty = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG + 'max-width: 400px;';
+    root.style.cssText = DARK_BG_NARROW;
     applyVars(root);
 
     const panel = buildIssuesPanel({
@@ -295,7 +298,7 @@ export const VenueBoard = {
         panel.update(store.getState());
         logFn(`Selected: ${locator.venueId} idx=${locator.index}`);
       },
-      onCardContextMenu: (locator, _target) => {
+      onCardContextMenu: (locator) => {
         logFn(`Context menu: ${locator.venueId} idx=${locator.index}`);
       },
     });
@@ -361,7 +364,7 @@ export const VenueBoardEmpty = {
 export const RoundCatalogByEvent = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG + 'max-width: 400px;';
+    root.style.cssText = DARK_BG_NARROW;
     applyVars(root);
 
     const store = new ProfileStore(makeBaseConfig());
@@ -390,7 +393,7 @@ export const RoundCatalogByEvent = {
 export const RoundCatalogWithPlanned = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG + 'max-width: 400px;';
+    root.style.cssText = DARK_BG_NARROW;
     applyVars(root);
 
     const heading = document.createElement('div');
@@ -425,7 +428,7 @@ export const RoundCatalogWithPlanned = {
 export const InspectorEmpty = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG + 'max-width: 400px;';
+    root.style.cssText = DARK_BG_NARROW;
     applyVars(root);
 
     const panel = buildInspectorPanel();
@@ -439,14 +442,14 @@ export const InspectorEmpty = {
 export const InspectorWithSelection = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG + 'max-width: 400px;';
+    root.style.cssText = DARK_BG_NARROW;
     applyVars(root);
 
     const store = new ProfileStore(makeBaseConfig({ initialProfile: VALID_PROFILE }));
 
     // Select the first card
     store.selectCard({
-      date: '2026-06-15',
+      date: DAY1,
       venueId: 'VENUE_A',
       index: 0,
       roundKey: { tournamentId: 'T1', eventId: 'E_MS_U16', drawId: 'D1_MAIN', structureId: 'S1', roundNumber: 5 },
@@ -463,14 +466,14 @@ export const InspectorWithSelection = {
 export const InspectorWithErrors = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG + 'max-width: 400px;';
+    root.style.cssText = DARK_BG_NARROW;
     applyVars(root);
 
     const store = new ProfileStore(makeBaseConfig({ initialProfile: ERROR_PROFILE }));
 
     // Select a card that has errors
     store.selectCard({
-      date: '2026-06-15',
+      date: DAY1,
       venueId: 'VENUE_A',
       index: 0,
       roundKey: { tournamentId: 'T1', eventId: 'E_MS_U16', drawId: 'D1_MAIN', structureId: 'S1', roundNumber: 6 },

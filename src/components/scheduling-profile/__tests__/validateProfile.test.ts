@@ -22,6 +22,9 @@ function makeTemporal(schedulable: string[]): TemporalAdapter {
   };
 }
 
+const DAY1 = '2026-06-15';
+const DAY2 = '2026-06-16';
+
 describe('validateProfile', () => {
   it('returns empty for valid empty profile', () => {
     const results = validateProfile({ profile: [] });
@@ -31,11 +34,11 @@ describe('validateProfile', () => {
   describe('DATE_UNAVAILABLE', () => {
     it('reports unavailable dates', () => {
       const profile: SchedulingProfile = [
-        { scheduleDate: '2026-06-15', venues: [{ venueId: 'V1', rounds: [makeRound()] }] },
+        { scheduleDate: DAY1, venues: [{ venueId: 'V1', rounds: [makeRound()] }] },
       ];
       const results = validateProfile({
         profile,
-        temporal: makeTemporal(['2026-06-16']),
+        temporal: makeTemporal([DAY2]),
       });
       expect(results).toHaveLength(1);
       expect(results[0].code).toBe('DATE_UNAVAILABLE');
@@ -46,11 +49,11 @@ describe('validateProfile', () => {
 
     it('does not report available dates', () => {
       const profile: SchedulingProfile = [
-        { scheduleDate: '2026-06-15', venues: [{ venueId: 'V1', rounds: [makeRound()] }] },
+        { scheduleDate: DAY1, venues: [{ venueId: 'V1', rounds: [makeRound()] }] },
       ];
       const results = validateProfile({
         profile,
-        temporal: makeTemporal(['2026-06-15']),
+        temporal: makeTemporal([DAY1]),
       });
       const dateIssues = results.filter((r) => r.code === 'DATE_UNAVAILABLE');
       expect(dateIssues).toHaveLength(0);
@@ -61,7 +64,7 @@ describe('validateProfile', () => {
     it('flags invalid segment configuration', () => {
       const profile: SchedulingProfile = [
         {
-          scheduleDate: '2026-06-15',
+          scheduleDate: DAY1,
           venues: [
             {
               venueId: 'V1',
@@ -78,7 +81,7 @@ describe('validateProfile', () => {
     it('accepts valid segment config', () => {
       const profile: SchedulingProfile = [
         {
-          scheduleDate: '2026-06-15',
+          scheduleDate: DAY1,
           venues: [
             {
               venueId: 'V1',
@@ -97,7 +100,7 @@ describe('validateProfile', () => {
     it('flags duplicate non-segmented rounds', () => {
       const profile: SchedulingProfile = [
         {
-          scheduleDate: '2026-06-15',
+          scheduleDate: DAY1,
           venues: [
             { venueId: 'V1', rounds: [makeRound()] },
             { venueId: 'V2', rounds: [makeRound()] },
@@ -113,7 +116,7 @@ describe('validateProfile', () => {
     it('does not flag different rounds', () => {
       const profile: SchedulingProfile = [
         {
-          scheduleDate: '2026-06-15',
+          scheduleDate: DAY1,
           venues: [
             {
               venueId: 'V1',
@@ -133,7 +136,7 @@ describe('validateProfile', () => {
       const seg = { segmentNumber: 1, segmentsCount: 2 };
       const profile: SchedulingProfile = [
         {
-          scheduleDate: '2026-06-15',
+          scheduleDate: DAY1,
           venues: [
             {
               venueId: 'V1',
@@ -152,7 +155,7 @@ describe('validateProfile', () => {
     it('flags later round scheduled before earlier round', () => {
       const profile: SchedulingProfile = [
         {
-          scheduleDate: '2026-06-15',
+          scheduleDate: DAY1,
           venues: [
             {
               venueId: 'V1',
@@ -173,7 +176,7 @@ describe('validateProfile', () => {
     it('accepts correctly ordered rounds', () => {
       const profile: SchedulingProfile = [
         {
-          scheduleDate: '2026-06-15',
+          scheduleDate: DAY1,
           venues: [
             {
               venueId: 'V1',
@@ -193,7 +196,7 @@ describe('validateProfile', () => {
     it('does not flag rounds from different draws', () => {
       const profile: SchedulingProfile = [
         {
-          scheduleDate: '2026-06-15',
+          scheduleDate: DAY1,
           venues: [
             {
               venueId: 'V1',
@@ -213,11 +216,11 @@ describe('validateProfile', () => {
     it('handles precedence across dates', () => {
       const profile: SchedulingProfile = [
         {
-          scheduleDate: '2026-06-16',
+          scheduleDate: DAY2,
           venues: [{ venueId: 'V1', rounds: [makeRound({ roundNumber: 6, roundName: 'R16' })] }],
         },
         {
-          scheduleDate: '2026-06-15',
+          scheduleDate: DAY1,
           venues: [{ venueId: 'V1', rounds: [makeRound({ roundNumber: 5, roundName: 'R32' })] }],
         },
       ];

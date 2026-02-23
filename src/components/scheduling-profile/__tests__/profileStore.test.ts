@@ -13,7 +13,10 @@ const roundCatalog = [
   { tournamentId: 'T1', eventId: 'E1', eventName: 'Boys U16', drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 7, roundName: 'QF', matchCountEstimate: 4 },
 ];
 
-const schedulableDates = ['2026-06-15', '2026-06-16', '2026-06-17'];
+const DAY1 = '2026-06-15';
+const DAY2 = '2026-06-16';
+const DAY3 = '2026-06-17';
+const schedulableDates = [DAY1, DAY2, DAY3];
 
 function makeConfig(overrides: Partial<SchedulingProfileConfig> = {}): SchedulingProfileConfig {
   return { venues, roundCatalog, schedulableDates, ...overrides };
@@ -33,12 +36,12 @@ describe('ProfileStore', () => {
       const state = store.getState();
       expect(state.profileDraft).toEqual([]);
       expect(state.venues).toEqual(venues);
-      expect(state.selectedDate).toBe('2026-06-15');
+      expect(state.selectedDate).toBe(DAY1);
     });
 
     it('initializes with provided profile', () => {
       const initial: SchedulingProfile = [
-        { scheduleDate: '2026-06-15', venues: [{ venueId: 'V1', rounds: [] }] },
+        { scheduleDate: DAY1, venues: [{ venueId: 'V1', rounds: [] }] },
       ];
       const store = new ProfileStore(makeConfig({ initialProfile: initial }));
       expect(store.getState().profileDraft).toHaveLength(1);
@@ -47,7 +50,7 @@ describe('ProfileStore', () => {
     it('runs initial validation', () => {
       const profile: SchedulingProfile = [
         {
-          scheduleDate: '2026-06-15',
+          scheduleDate: DAY1,
           venues: [
             {
               venueId: 'V1',
@@ -68,19 +71,19 @@ describe('ProfileStore', () => {
   describe('selectDate', () => {
     it('updates selected date', () => {
       const store = new ProfileStore(makeConfig());
-      store.selectDate('2026-06-16');
-      expect(store.getState().selectedDate).toBe('2026-06-16');
+      store.selectDate(DAY2);
+      expect(store.getState().selectedDate).toBe(DAY2);
     });
 
     it('clears selection when changing date', () => {
       const store = new ProfileStore(makeConfig());
       store.selectCard({
-        date: '2026-06-15',
+        date: DAY1,
         venueId: 'V1',
         index: 0,
         roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 },
       });
-      store.selectDate('2026-06-16');
+      store.selectDate(DAY2);
       expect(store.getState().selectedLocator).toBeNull();
     });
   });
@@ -90,7 +93,7 @@ describe('ProfileStore', () => {
       const store = new ProfileStore(makeConfig({ temporalAdapter: makeTemporal() }));
       const result = store.dropRound(
         { type: 'CATALOG_ROUND', roundRef: roundCatalog[0] },
-        { date: '2026-06-15', venueId: 'V1', index: 0 },
+        { date: DAY1, venueId: 'V1', index: 0 },
       );
       expect(result.ok).toBe(true);
       expect(store.getState().profileDraft).toHaveLength(1);
@@ -100,7 +103,7 @@ describe('ProfileStore', () => {
     it('rejects drops that cause validation errors', () => {
       const profile: SchedulingProfile = [
         {
-          scheduleDate: '2026-06-15',
+          scheduleDate: DAY1,
           venues: [
             {
               venueId: 'V1',
@@ -116,7 +119,7 @@ describe('ProfileStore', () => {
       // Dropping the same round again should cause DUPLICATE_ROUND
       const result = store.dropRound(
         { type: 'CATALOG_ROUND', roundRef: roundCatalog[0] },
-        { date: '2026-06-15', venueId: 'V2', index: 0 },
+        { date: DAY1, venueId: 'V2', index: 0 },
       );
       expect(result.ok).toBe(false);
       expect(result.errorMessage).toBeDefined();
@@ -127,7 +130,7 @@ describe('ProfileStore', () => {
     it('removes a round from the profile', () => {
       const profile: SchedulingProfile = [
         {
-          scheduleDate: '2026-06-15',
+          scheduleDate: DAY1,
           venues: [
             {
               venueId: 'V1',
@@ -140,7 +143,7 @@ describe('ProfileStore', () => {
       ];
       const store = new ProfileStore(makeConfig({ initialProfile: profile }));
       store.removeRound({
-        date: '2026-06-15',
+        date: DAY1,
         venueId: 'V1',
         index: 0,
         roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 },
@@ -153,7 +156,7 @@ describe('ProfileStore', () => {
     it('sets notBeforeTime on a round', () => {
       const profile: SchedulingProfile = [
         {
-          scheduleDate: '2026-06-15',
+          scheduleDate: DAY1,
           venues: [
             {
               venueId: 'V1',
@@ -166,7 +169,7 @@ describe('ProfileStore', () => {
       ];
       const store = new ProfileStore(makeConfig({ initialProfile: profile }));
       const locator = {
-        date: '2026-06-15',
+        date: DAY1,
         venueId: 'V1',
         index: 0,
         roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 },
@@ -178,7 +181,7 @@ describe('ProfileStore', () => {
     it('removes notBeforeTime when undefined', () => {
       const profile: SchedulingProfile = [
         {
-          scheduleDate: '2026-06-15',
+          scheduleDate: DAY1,
           venues: [
             {
               venueId: 'V1',
@@ -191,7 +194,7 @@ describe('ProfileStore', () => {
       ];
       const store = new ProfileStore(makeConfig({ initialProfile: profile }));
       const locator = {
-        date: '2026-06-15',
+        date: DAY1,
         venueId: 'V1',
         index: 0,
         roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 },
@@ -207,9 +210,9 @@ describe('ProfileStore', () => {
       const listener = vi.fn();
       store.subscribe(listener);
 
-      store.selectDate('2026-06-16');
+      store.selectDate(DAY2);
       expect(listener).toHaveBeenCalled();
-      expect(listener.mock.calls[0][0].selectedDate).toBe('2026-06-16');
+      expect(listener.mock.calls[0][0].selectedDate).toBe(DAY2);
     });
 
     it('returns unsubscribe function', () => {
@@ -218,10 +221,10 @@ describe('ProfileStore', () => {
       const unsub = store.subscribe(listener);
 
       unsub();
-      store.selectDate('2026-06-16');
+      store.selectDate(DAY2);
       // listener was called during subscribe time but not after unsub
       const callCount = listener.mock.calls.length;
-      store.selectDate('2026-06-17');
+      store.selectDate(DAY3);
       expect(listener.mock.calls.length).toBe(callCount);
     });
   });
@@ -243,12 +246,12 @@ describe('ProfileStore', () => {
   describe('getSchedulingProfile', () => {
     it('returns a deep copy', () => {
       const profile: SchedulingProfile = [
-        { scheduleDate: '2026-06-15', venues: [{ venueId: 'V1', rounds: [] }] },
+        { scheduleDate: DAY1, venues: [{ venueId: 'V1', rounds: [] }] },
       ];
       const store = new ProfileStore(makeConfig({ initialProfile: profile }));
       const copy = store.getSchedulingProfile();
       copy[0].scheduleDate = '9999-01-01';
-      expect(store.getState().profileDraft[0].scheduleDate).toBe('2026-06-15');
+      expect(store.getState().profileDraft[0].scheduleDate).toBe(DAY1);
     });
   });
 });

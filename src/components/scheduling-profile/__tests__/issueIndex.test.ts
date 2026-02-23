@@ -2,12 +2,15 @@ import { describe, it, expect } from 'vitest';
 import { buildIssueIndex } from '../domain/issueIndex';
 import type { ValidationResult } from '../types';
 
+const DAY1 = '2026-06-15';
+const DAY2 = '2026-06-16';
+
 function makeResult(overrides: Partial<ValidationResult> = {}): ValidationResult {
   return {
     code: 'DUPLICATE_ROUND',
     severity: 'ERROR',
     message: 'Test error',
-    context: { date: '2026-06-15', venueId: 'V1' },
+    context: { date: DAY1, venueId: 'V1' },
     ...overrides,
   };
 }
@@ -36,14 +39,14 @@ describe('buildIssueIndex', () => {
 
   it('indexes by date', () => {
     const results = [
-      makeResult({ context: { date: '2026-06-15' } }),
-      makeResult({ context: { date: '2026-06-15' }, message: 'Second' }),
-      makeResult({ context: { date: '2026-06-16' }, message: 'Third' }),
+      makeResult({ context: { date: DAY1 } }),
+      makeResult({ context: { date: DAY1 }, message: 'Second' }),
+      makeResult({ context: { date: DAY2 }, message: 'Third' }),
     ];
     const idx = buildIssueIndex(results);
-    expect(idx.byDate['2026-06-15']).toHaveLength(2);
-    expect(idx.byDate['2026-06-16']).toHaveLength(1);
-    expect(idx.counts.byDate['2026-06-15'].total).toBe(2);
+    expect(idx.byDate[DAY1]).toHaveLength(2);
+    expect(idx.byDate[DAY2]).toHaveLength(1);
+    expect(idx.counts.byDate[DAY1].total).toBe(2);
   });
 
   it('indexes by venue', () => {
@@ -58,8 +61,8 @@ describe('buildIssueIndex', () => {
 
   it('indexes by draw scope', () => {
     const results = [
-      makeResult({ context: { scope: 'D1|S1', date: '2026-06-15' } }),
-      makeResult({ context: { scope: 'D1|S1', date: '2026-06-15' }, message: 'Another' }),
+      makeResult({ context: { scope: 'D1|S1', date: DAY1 } }),
+      makeResult({ context: { scope: 'D1|S1', date: DAY1 }, message: 'Another' }),
     ];
     const idx = buildIssueIndex(results);
     expect(idx.byDraw['D1|S1']).toHaveLength(2);
