@@ -99,6 +99,7 @@ export interface SegmentData {
 
 export interface BurstChartEventHandlers {
   clickSegment?: (data: SegmentData) => void;
+  clickCenter?: () => void;
 }
 
 export interface BurstChartOptions {
@@ -677,6 +678,16 @@ export function renderburstChart(
 
   displayAllFlags();
   displayTournamentTitle();
+
+  // Center click target (transparent circle behind text/flags)
+  const clickCenter = options.eventHandlers?.clickCenter;
+  if (clickCenter) {
+    g.insert('circle', ':first-child')
+      .attr('r', centerRadius)
+      .attr('fill', 'transparent')
+      .style('cursor', 'pointer')
+      .on('click', clickCenter);
+  }
 
   // Frozen state: when a player is highlighted via highlightPlayer(), opacity is locked
   // but individual segments still show hover feedback
