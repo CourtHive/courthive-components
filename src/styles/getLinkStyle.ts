@@ -26,7 +26,7 @@ export function getLinkStyle({
 
   return css({
     '&::before': {
-      borderBlockStart: '$borderWidths$matchUp solid #999',
+      borderBlockStart: '$borderWidths$matchUp solid var(--chc-border-primary)',
       left: -connectorWidth,
       width: connectorWidth,
       position: 'absolute',

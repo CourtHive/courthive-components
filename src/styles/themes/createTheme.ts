@@ -21,16 +21,18 @@ export const { createTheme } = createStitches({
       1: '0.875rem'
     },
     colors: {
-      internalDividers: 'lightgray',
-      backgroundColor: 'white',
-      connector: 'lightgray',
-      border: 'darkgray',
-      color: 'black'
+      internalDividers: 'var(--chc-border-secondary)',
+      matchUpBackgroundColor: 'var(--chc-bg-primary)',
+      backgroundColor: 'var(--chc-bg-primary)',
+      connector: 'var(--chc-border-secondary)',
+      matchUp: 'var(--chc-bg-elevated)',
+      border: 'var(--chc-border-primary)',
+      color: 'var(--chc-text-primary)'
     },
     participant: {
       textTransform: 'capitalize',
       minHeight: `2rem`,
-      seed: 'gray'
+      seed: 'var(--chc-text-muted)'
     },
     score: {
       setWidth: '1.3rem'

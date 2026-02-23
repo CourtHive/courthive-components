@@ -1,7 +1,7 @@
 import { css } from '@stitches/core';
 
 export const roundHeaderStyle = css({
-  borderBottom: 'solid 1px black',
+  borderBottom: 'solid 1px var(--chc-text-primary)',
   marginInlineStart: '16px',
   marginInlineEnd: '16px',
   fontWeight: 'bold',

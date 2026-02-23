@@ -30,12 +30,12 @@ export const Basic = {
     const title = document.createElement('h2');
     title.textContent = 'Mock Participants Generator';
     title.style.marginBottom = '1em';
-    title.style.color = '#333';
+    title.style.color = 'var(--chc-text-primary)';
 
     const description = document.createElement('p');
     description.textContent = 'Generate mock participants with configurable gender, count, age range, and ratings.';
     description.style.marginBottom = '1.5em';
-    description.style.color = '#666';
+    description.style.color = 'var(--chc-text-secondary)';
 
     const button = document.createElement('button');
     button.className = 'button is-primary';
@@ -56,7 +56,7 @@ export const Basic = {
           const resultHeader = document.createElement('h3');
           resultHeader.textContent = `Generated ${participants.length} Participants`;
           resultHeader.style.marginBottom = '1em';
-          resultHeader.style.color = '#333';
+          resultHeader.style.color = 'var(--chc-text-primary)';
           outputContainer.appendChild(resultHeader);
 
           // Add JSON viewer
@@ -87,13 +87,13 @@ export const WithConsideredDate = {
     const title = document.createElement('h2');
     title.textContent = 'With Considered Date';
     title.style.marginBottom = '1em';
-    title.style.color = '#333';
+    title.style.color = 'var(--chc-text-primary)';
 
     const description = document.createElement('p');
     description.style.marginBottom = '1.5em';
-    description.style.color = '#666';
+    description.style.color = 'var(--chc-text-secondary)';
     description.innerHTML =
-      'Generates participants with birthdates calculated relative to <span style="font-weight: bold; color: #333;">2024-12-31</span>.<br>Try setting an age range to see birthdates generated!';
+      'Generates participants with birthdates calculated relative to <span style="font-weight: bold; color: var(--chc-text-primary);">2024-12-31</span>.<br>Try setting an age range to see birthdates generated!';
 
     const button = document.createElement('button');
     button.className = 'button is-info';
@@ -116,7 +116,7 @@ export const WithConsideredDate = {
 
           const resultHeader = document.createElement('h3');
           resultHeader.style.marginBottom = '1em';
-          resultHeader.style.color = '#333';
+          resultHeader.style.color = 'var(--chc-text-primary)';
 
           if (birthdates.length > 0) {
             const years = birthdates.map((bd) => Number.parseInt(bd.slice(0, 4)));
@@ -129,7 +129,7 @@ export const WithConsideredDate = {
             resultHeader.textContent = `Generated ${participants.length} Participants (Ages ${minAge}-${maxAge} on 2024-12-31)`;
 
             const info = document.createElement('p');
-            info.style.color = '#666';
+            info.style.color = 'var(--chc-text-secondary)';
             info.style.marginBottom = '1em';
             info.textContent = `Birth years: ${minYear}-${maxYear} | ${birthdates.length} participants have birthdates`;
             outputContainer.appendChild(resultHeader);
@@ -167,11 +167,11 @@ export const WithDefaults = {
     const title = document.createElement('h2');
     title.textContent = 'With Default Values';
     title.style.marginBottom = '1em';
-    title.style.color = '#333';
+    title.style.color = 'var(--chc-text-primary)';
 
     const description = document.createElement('p');
     description.style.marginBottom = '1.5em';
-    description.style.color = '#666';
+    description.style.color = 'var(--chc-text-secondary)';
     description.innerHTML =
       'Pre-configured for a junior tournament:<br>• 64 participants<br>• Ages 10-18<br>• WTN ratings enabled';
 
@@ -211,11 +211,11 @@ export const WithDefaults = {
 
           const resultHeader = document.createElement('h3');
           resultHeader.style.marginBottom = '0.5em';
-          resultHeader.style.color = '#333';
+          resultHeader.style.color = 'var(--chc-text-primary)';
           resultHeader.textContent = `Generated ${participants.length} Junior Players`;
 
           const stats = document.createElement('p');
-          stats.style.color = '#666';
+          stats.style.color = 'var(--chc-text-secondary)';
           stats.style.marginBottom = '1em';
           if (ages.length > 0) {
             const minAge = Math.min(...ages);
@@ -255,12 +255,12 @@ export const Scenarios = {
     const title = document.createElement('h2');
     title.textContent = 'Common Scenarios';
     title.style.marginBottom = '1em';
-    title.style.color = '#333';
+    title.style.color = 'var(--chc-text-primary)';
 
     const description = document.createElement('p');
     description.textContent = 'Pre-configured buttons for common tournament types:';
     description.style.marginBottom = '1.5em';
-    description.style.color = '#666';
+    description.style.color = 'var(--chc-text-secondary)';
 
     const buttonsContainer = document.createElement('div');
     buttonsContainer.style.marginBottom = '2em';
@@ -285,11 +285,11 @@ export const Scenarios = {
             // Calculate statistics
             const resultHeader = document.createElement('h3');
             resultHeader.style.marginBottom = '0.5em';
-            resultHeader.style.color = '#333';
+            resultHeader.style.color = 'var(--chc-text-primary)';
             resultHeader.textContent = `${text}: ${participants.length} Participants`;
 
             const stats = document.createElement('p');
-            stats.style.color = '#666';
+            stats.style.color = 'var(--chc-text-secondary)';
             stats.style.marginBottom = '1em';
 
             // Age statistics if birthdates present
@@ -414,18 +414,18 @@ export const FieldRelationships = {
     const title = document.createElement('h2');
     title.textContent = 'Field Relationships';
     title.style.marginBottom = '1em';
-    title.style.color = '#333';
+    title.style.color = 'var(--chc-text-primary)';
 
     const description = document.createElement('div');
     description.innerHTML = `
-      <p style="margin-bottom: 1em; color: #666;">
-        The modal automatically validates age ranges to ensure <code style="background-color: #f5f5f5; padding: 2px 6px; border-radius: 3px; color: #333;">ageMax >= ageMin</code> always:
+      <p style="margin-bottom: 1em; color: var(--chc-text-secondary);">
+        The modal automatically validates age ranges to ensure <code style="background-color: var(--chc-bg-secondary); padding: 2px 6px; border-radius: 3px; color: var(--chc-text-primary);">ageMax >= ageMin</code> always:
       </p>
-      <ul style="color: #666; margin-bottom: 1.5em; padding-left: 2em;">
-        <li><span style="font-weight: bold; color: #333;">When minimum age increases</span> above maximum → maximum adjusts up automatically</li>
-        <li><span style="font-weight: bold; color: #333;">When maximum age decreases</span> below minimum → minimum adjusts down automatically</li>
+      <ul style="color: var(--chc-text-secondary); margin-bottom: 1.5em; padding-left: 2em;">
+        <li><span style="font-weight: bold; color: var(--chc-text-primary);">When minimum age increases</span> above maximum → maximum adjusts up automatically</li>
+        <li><span style="font-weight: bold; color: var(--chc-text-primary);">When maximum age decreases</span> below minimum → minimum adjusts down automatically</li>
       </ul>
-      <p style="color: #666; margin-bottom: 1.5em;">
+      <p style="color: var(--chc-text-secondary); margin-bottom: 1.5em;">
         Try it in the modal: Set min age to 14, then try to set max age to 10. Watch max auto-adjust to 14!
       </p>
     `;
@@ -457,7 +457,7 @@ export const FieldRelationships = {
 
           const resultHeader = document.createElement('h3');
           resultHeader.style.marginBottom = '0.5em';
-          resultHeader.style.color = '#333';
+          resultHeader.style.color = 'var(--chc-text-primary)';
 
           if (birthdates.length > 0) {
             const years = birthdates.map((bd) => Number.parseInt(bd.slice(0, 4)));
@@ -499,13 +499,13 @@ export const CustomLabels = {
     const title = document.createElement('h2');
     title.textContent = 'Custom Labels (i18n)';
     title.style.marginBottom = '1em';
-    title.style.color = '#333';
+    title.style.color = 'var(--chc-text-primary)';
 
     const description = document.createElement('p');
     description.innerHTML =
       'All field labels can be customized for internationalization.<br>This example shows Spanish labels.';
     description.style.marginBottom = '1.5em';
-    description.style.color = '#666';
+    description.style.color = 'var(--chc-text-secondary)';
 
     const button = document.createElement('button');
     button.className = 'button is-link';
@@ -541,7 +541,7 @@ export const CustomLabels = {
 
           const resultHeader = document.createElement('h3');
           resultHeader.style.marginBottom = '1em';
-          resultHeader.style.color = '#333';
+          resultHeader.style.color = 'var(--chc-text-primary)';
           resultHeader.textContent = `¡Generado ${participants.length} jugadores!`;
 
           outputContainer.appendChild(resultHeader);

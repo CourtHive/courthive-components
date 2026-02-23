@@ -13,5 +13,5 @@ export const sideRowStyle = css({
 
 export const tickStyles = css({
   marginInlineEnd: ".25rem",
-  color: "green",
+  color: "var(--chc-status-success)",
 });

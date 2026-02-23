@@ -9,9 +9,9 @@ export default {
     container.style.maxWidth = '300px';
     container.style.margin = '20px';
     container.style.padding = '20px';
-    container.style.border = '1px solid #e0e0e0';
+    container.style.border = '1px solid var(--chc-border-primary)';
     container.style.borderRadius = '8px';
-    container.style.backgroundColor = '#ffffff';
+    container.style.backgroundColor = 'var(--chc-bg-elevated)';
     
     const closeCallback = hasClose ? () => {
       alert('Menu closed!');

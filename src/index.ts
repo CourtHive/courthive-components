@@ -52,6 +52,9 @@ export type { SetFormat, MatchUpConfig, SmartComplementResult } from './componen
 export { drawer, initDrawer } from './components/drawer/drawer';
 export type { DrawerOptions } from './components/drawer/drawer';
 
+// Theme variables (CSS bundled in courthive-components.css)
+import './styles/theme.css';
+
 // Tippy.js popover (CSS bundled in courthive-components.css)
 import './styles/tippy.css';
 import './styles/tipster.css';

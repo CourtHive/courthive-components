@@ -128,7 +128,7 @@ export function scoringModal(params: ScoringModalParams): void {
         intent: 'none',
         footer: {
           className: 'button',
-          style: 'background-color: white; color: #363636; border: 1px solid #dbdbdb;'
+          style: 'background-color: var(--chc-bg-primary); color: var(--chc-text-primary); border: 1px solid var(--chc-border-primary);'
         } as any,
         close: true
       },
@@ -185,8 +185,8 @@ export function scoringModal(params: ScoringModalParams): void {
   setTimeout(() => {
     const clearButton = document.getElementById('clearScoreV2') as HTMLButtonElement;
     if (clearButton) {
-      clearButton.style.backgroundColor = '#ffeb3b';
-      clearButton.style.color = '#333';
+      clearButton.style.backgroundColor = 'var(--chc-clear-btn-bg)';
+      clearButton.style.color = 'var(--chc-clear-btn-text)';
 
       // Enable Clear button if matchUp has existing score or irregular status
       if (hadExistingScore) {

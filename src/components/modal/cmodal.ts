@@ -108,7 +108,7 @@ export const cModal = (() => {
     if (!backdrop) createBackdrop();
     backdrop.style.display = '';
     if (config?.backdrop !== false) {
-      backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
+      backdrop.style.backgroundColor = 'var(--chc-bg-overlay)';
       backdrop.style.transition = 'opacity 0.15s linear';
       backdrop.style.opacity = '1';
     }
@@ -214,6 +214,7 @@ export const cModal = (() => {
 
     const dialog = document.createElement('div');
     dialog.className = modalDialogStyle();
+    dialog.style.color = 'var(--chc-text-primary)';
 
     // Apply custom class if provided
     if (config?.className) {
@@ -269,8 +270,8 @@ export const cModal = (() => {
         infoPopover.style.cssText = `
           position: absolute;
           z-index: 10000;
-          background-color: white;
-          border: 1px solid #ddd;
+          background-color: var(--chc-bg-elevated);
+          border: 1px solid var(--chc-border-secondary);
           border-radius: 4px;
           box-shadow: 0 2px 8px rgba(0,0,0,0.15);
           padding: 1em;
@@ -278,14 +279,14 @@ export const cModal = (() => {
           font-size: 14px;
           font-weight: normal;
           line-height: 1.5;
-          color: #363636;
+          color: var(--chc-text-primary);
         `;
         
         // Ensure strong tags render in black
         const style = document.createElement('style');
         style.textContent = `
           [data-modal-popover] strong {
-            color: #000 !important;
+            color: var(--chc-text-primary) !important;
             font-weight: 600;
           }
         `;

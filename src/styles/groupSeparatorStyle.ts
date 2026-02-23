@@ -1,7 +1,7 @@
 import { css } from '@stitches/core';
 
 export const groupSeparatorStyle = css({
-  borderTop: 'solid 1px black',
+  borderTop: 'solid 1px var(--chc-text-primary)',
   marginRight: '-1em',
   marginLeft: '-1em',
   paddingTop: '.5em',

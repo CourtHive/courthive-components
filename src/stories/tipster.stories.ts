@@ -35,7 +35,7 @@ export const BasicPopover = {
     const description = document.createElement('p');
     description.innerHTML = 'Click the button to see the tipster popover menu. Tipster uses <code>tippy.js</code> for positioning and rendering interactive popup menus.';
     description.style.marginBottom = '1.5em';
-    description.style.color = '#666';
+    description.style.color = 'var(--chc-text-secondary)';
     
     container.appendChild(title);
     container.appendChild(description);
@@ -53,7 +53,8 @@ export const WithCallback = {
     const result = document.createElement('div');
     result.style.marginTop = '1em';
     result.style.padding = '1em';
-    result.style.backgroundColor = '#f5f5f5';
+    result.style.backgroundColor = 'var(--chc-bg-secondary)';
+    result.style.color = 'var(--chc-text-primary)';
     result.style.borderRadius = '4px';
     result.textContent = 'No selection yet';
     
@@ -68,8 +69,8 @@ export const WithCallback = {
         options: ['Apple', 'Banana', 'Cherry', 'Date'],
         callback: (selection) => {
           result.textContent = `You selected: ${selection}`;
-          result.style.backgroundColor = '#d4edda';
-          result.style.color = '#155724';
+          result.style.backgroundColor = 'var(--chc-status-success)';
+          result.style.color = 'var(--chc-text-inverse)';
         }
       });
     };
@@ -81,7 +82,7 @@ export const WithCallback = {
     const description = document.createElement('p');
     description.innerHTML = 'This example uses a callback function to handle the selection instead of individual <code>onClick</code> handlers.';
     description.style.marginBottom = '1.5em';
-    description.style.color = '#666';
+    description.style.color = 'var(--chc-text-secondary)';
     
     container.appendChild(title);
     container.appendChild(description);
@@ -131,7 +132,7 @@ export const WithItems = {
     const description = document.createElement('p');
     description.innerHTML = 'Items can have custom styles and individual click handlers. This is useful for action menus.';
     description.style.marginBottom = '1.5em';
-    description.style.color = '#666';
+    description.style.color = 'var(--chc-text-secondary)';
     
     container.appendChild(title);
     container.appendChild(description);
