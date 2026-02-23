@@ -47,8 +47,10 @@ export const SP_CSS_VARS = {
 export const spLayoutStyle = css({
   display: 'grid',
   gridTemplateColumns: '320px 1fr 360px',
+  gridTemplateRows: 'minmax(0, 1fr)',
   gap: GAP_12,
   padding: GAP_12,
+  height: '100%',
   fontFamily: 'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif',
   color: COLOR_TEXT,
   boxSizing: 'border-box',
@@ -59,6 +61,17 @@ export const spColumnStyle = css({
   display: 'flex',
   flexDirection: 'column',
   gap: GAP_12,
+  minHeight: 0,
+  overflowX: 'hidden',
+  overflowY: 'auto',
+  scrollbarWidth: 'thin',
+  scrollbarColor: 'rgba(148,163,184,0.3) transparent',
+  '&::-webkit-scrollbar': { width: '6px' },
+  '&::-webkit-scrollbar-track': { background: 'transparent' },
+  '&::-webkit-scrollbar-thumb': {
+    background: 'rgba(148,163,184,0.3)',
+    borderRadius: '3px',
+  },
 });
 
 // ============================================================================
@@ -177,7 +190,9 @@ export const spBoardStyle = css({
   padding: GAP_12,
   display: 'grid',
   gap: '10px',
-  minHeight: '520px',
+  flex: 1,
+  minHeight: 0,
+  overflow: 'auto',
 });
 
 export const spVenueStyle = css({
@@ -208,7 +223,7 @@ export const spVenueSubStyle = css({
 });
 
 export const spDropzoneStyle = css({
-  padding: '10px',
+  padding: '10px 10px 40px',
   display: 'flex',
   flexDirection: 'column',
   gap: '8px',
@@ -310,6 +325,10 @@ export const spCatalogStyle = css({
   flex: 1,
   minHeight: 0,
   overflow: 'auto',
+  '&.over': {
+    outline: '2px dashed var(--sp-accent)',
+    outlineOffset: '-4px',
+  },
 });
 
 export const spCatalogToolbarStyle = css({
@@ -346,6 +365,7 @@ export const spGroupStyle = css({
   border: '1px solid rgba(148,163,184,0.14)',
   borderRadius: '14px',
   overflow: 'hidden',
+  flexShrink: 0,
 });
 
 export const spGroupHeaderStyle = css({
@@ -353,6 +373,12 @@ export const spGroupHeaderStyle = css({
   borderBottom: BORDER_SUBTLE,
   fontSize: GAP_12,
   fontWeight: 800,
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '6px',
+  userSelect: 'none',
+  '&:hover': { background: 'rgba(148,163,184,0.08)' },
 });
 
 export const spGroupBodyStyle = css({
@@ -370,6 +396,11 @@ export const spCatalogItemStyle = css({
   cursor: 'grab',
   '&:hover': { borderColor: HOVER_BORDER },
   '&.dimmed': { opacity: 0.65 },
+  '&.navigate': {
+    cursor: 'pointer',
+    borderColor: 'rgba(96,165,250,0.3)',
+    '&:hover': { borderColor: ACCENT_FOCUS, opacity: 1 },
+  },
 });
 
 // ============================================================================
@@ -433,4 +464,29 @@ export const spPopoverDeleteStyle = css({
 export const spPopoverDividerStyle = css({
   borderTop: '1px solid #e0e0e0',
   margin: '4px 0',
+});
+
+// ============================================================================
+// Insertion Line (position-aware drops)
+// ============================================================================
+
+export const spInsertionLineStyle = css({
+  height: '2px',
+  background: 'var(--sp-accent)',
+  borderRadius: '1px',
+  margin: '2px 0',
+  pointerEvents: 'none',
+  opacity: 0.8,
+});
+
+// ============================================================================
+// Group Chevron (collapsible catalog groups)
+// ============================================================================
+
+export const spGroupChevronStyle = css({
+  fontSize: '10px',
+  color: COLOR_MUTED,
+  display: 'inline-block',
+  width: '12px',
+  textAlign: 'center',
 });

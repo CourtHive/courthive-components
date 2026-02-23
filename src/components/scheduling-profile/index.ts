@@ -24,7 +24,7 @@ export { validateProfile, type ValidateProfileParams } from './domain/validatePr
 export { buildIssueIndex } from './domain/issueIndex';
 export { applyDropCommit } from './domain/dndApply';
 export { filterCatalog, groupCatalog, getPlannedRoundKeys } from './domain/catalogProjections';
-export { getVenueRounds, getRoundAt, findIssuesForLocator, maxSeverity } from './domain/profileProjections';
+export { getVenueRounds, getRoundAt, findIssuesForLocator, maxSeverity, findRoundInProfile } from './domain/profileProjections';
 export { deepClone, clamp, roundKeyString, roundLabel, sameLocator, pickRoundKey } from './domain/utils';
 
 // ============================================================================
@@ -74,6 +74,7 @@ export type {
   SchedulingProfileConfig,
   UIPanel,
   FlattenedRound,
+  PlannedRoundBehavior,
 } from './types';
 
 // ============================================================================

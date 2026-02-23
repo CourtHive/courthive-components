@@ -124,6 +124,41 @@ describe('ProfileStore', () => {
       expect(result.ok).toBe(false);
       expect(result.errorMessage).toBeDefined();
     });
+
+    it('allows moves that do not introduce new errors (unstuck)', () => {
+      // Profile with a pre-existing DUPLICATE_ROUND error
+      const profile: SchedulingProfile = [
+        {
+          scheduleDate: DAY1,
+          venues: [
+            {
+              venueId: 'V1',
+              rounds: [
+                { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5, roundName: 'R32' },
+                { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5, roundName: 'R32' },
+              ],
+            },
+          ],
+        },
+      ];
+      const store = new ProfileStore(makeConfig({ initialProfile: profile, temporalAdapter: makeTemporal() }));
+      expect(store.getState().issueIndex.counts.ERROR).toBeGreaterThan(0);
+
+      // Moving one duplicate to V2 should be allowed — it doesn't add new errors
+      const result = store.dropRound(
+        {
+          type: 'PLANNED_ROUND',
+          locator: {
+            date: DAY1,
+            venueId: 'V1',
+            index: 1,
+            roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 },
+          },
+        },
+        { date: DAY1, venueId: 'V2', index: 0 },
+      );
+      expect(result.ok).toBe(true);
+    });
   });
 
   describe('removeRound', () => {

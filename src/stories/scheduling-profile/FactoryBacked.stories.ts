@@ -401,3 +401,19 @@ export const PreScheduled = {
     return root;
   },
 };
+
+// ============================================================================
+// Story E: FullHeight
+// ============================================================================
+
+export const FullHeight = {
+  render: () => {
+    const root = document.createElement('div');
+    root.style.cssText = DARK_BG + 'height: 100vh; overflow: hidden;';
+
+    const setup = createFactorySetup();
+    createSchedulingProfile(setup.config, root);
+
+    return root;
+  },
+};

@@ -18,6 +18,7 @@ import { buildDateStrip } from '../ui/dateStrip';
 import type {
   SchedulingProfileConfig,
   SchedulingProfile,
+  CatalogRoundItem,
   RoundLocator,
   DragPayload,
   DropTarget,
@@ -58,10 +59,7 @@ export class SchedulingProfileControl {
 
     const venueBoard = buildVenueBoard({
       onDrop: (drag: DragPayload, drop: DropTarget) => {
-        const result = this.store.dropRound(drag, drop);
-        if (!result.ok && result.errorMessage) {
-          console.warn('Drop rejected:', result.errorMessage);
-        }
+        this.store.dropRound(drag, drop);
       },
       onCardClick: (locator: RoundLocator) => this.store.selectCard(locator),
       onCardContextMenu: (locator: RoundLocator, target: HTMLElement) => {
@@ -71,7 +69,9 @@ export class SchedulingProfileControl {
 
     const roundCatalog = buildRoundCatalog({
       onSearchChange: (query: string) => this.store.setCatalogSearch(query),
-      onGroupByChange: (mode: CatalogGroupBy) => this.store.setCatalogGroupBy(mode)
+      onGroupByChange: (mode: CatalogGroupBy) => this.store.setCatalogGroupBy(mode),
+      onDropRemove: (locator: RoundLocator) => this.store.removeRound(locator),
+      onNavigateToPlanned: (item: CatalogRoundItem) => this.store.navigateToRound(item)
     });
 
     const inspectorPanel = buildInspectorPanel();

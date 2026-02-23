@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getVenueRounds, getRoundAt, findIssuesForLocator, maxSeverity } from '../domain/profileProjections';
+import { getVenueRounds, getRoundAt, findIssuesForLocator, maxSeverity, findRoundInProfile } from '../domain/profileProjections';
 import type { SchedulingProfile, RoundLocator, ValidationResult } from '../types';
 
 const DAY1 = '2026-06-15';
@@ -124,5 +124,32 @@ describe('maxSeverity', () => {
       { code: 'DAY_OVERLOAD', severity: 'INFO', message: 'I', context: {} },
     ];
     expect(maxSeverity(results)).toBe('INFO');
+  });
+});
+
+describe('findRoundInProfile', () => {
+  it('finds a round by key and returns its locator', () => {
+    const locator = findRoundInProfile(profile, {
+      tournamentId: 'T1',
+      eventId: 'E1',
+      drawId: 'D1',
+      structureId: 'S1',
+      roundNumber: 6,
+    });
+    expect(locator).not.toBeNull();
+    expect(locator!.date).toBe(DAY1);
+    expect(locator!.venueId).toBe('V1');
+    expect(locator!.index).toBe(1);
+  });
+
+  it('returns null for a round not in the profile', () => {
+    const locator = findRoundInProfile(profile, {
+      tournamentId: 'T1',
+      eventId: 'E1',
+      drawId: 'D99',
+      structureId: 'S1',
+      roundNumber: 5,
+    });
+    expect(locator).toBeNull();
   });
 });

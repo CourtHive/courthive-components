@@ -4,6 +4,7 @@ import type { CatalogRoundItem } from '../types';
 
 const BOYS_U16 = 'Boys U16 Singles';
 const GIRLS_U16 = 'Girls U16 Singles';
+const ROUND_KEY_R32 = 'T1|E1|D1|S1|5';
 
 const catalog: CatalogRoundItem[] = [
   { tournamentId: 'T1', eventId: 'E1', eventName: BOYS_U16, drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 5, roundName: 'R32', matchCountEstimate: 16 },
@@ -24,7 +25,7 @@ describe('filterCatalog', () => {
   });
 
   it('marks planned items', () => {
-    const planned = new Set(['T1|E1|D1|S1|5']);
+    const planned = new Set([ROUND_KEY_R32]);
     const result = filterCatalog(catalog, '', planned);
     expect(result[0].isPlanned).toBe(true);
     expect(result[1].isPlanned).toBe(false);
@@ -33,6 +34,39 @@ describe('filterCatalog', () => {
   it('is case-insensitive', () => {
     const result = filterCatalog(catalog, 'BOYS', new Set());
     expect(result).toHaveLength(2);
+  });
+
+  describe('behavior parameter', () => {
+    const planned = new Set([ROUND_KEY_R32]);
+
+    it('defaults to dim (keeps all items)', () => {
+      const result = filterCatalog(catalog, '', planned);
+      expect(result).toHaveLength(3);
+      expect(result[0].isPlanned).toBe(true);
+    });
+
+    it('hide behavior filters out planned items', () => {
+      const result = filterCatalog(catalog, '', planned, 'hide');
+      expect(result).toHaveLength(2);
+      expect(result.every((r) => !r.isPlanned)).toBe(true);
+    });
+
+    it('hide behavior filters out planned items with query', () => {
+      const result = filterCatalog(catalog, 'boys', planned, 'hide');
+      expect(result).toHaveLength(1);
+      expect(result[0].roundName).toBe('R16');
+    });
+
+    it('dim behavior keeps all items', () => {
+      const result = filterCatalog(catalog, '', planned, 'dim');
+      expect(result).toHaveLength(3);
+    });
+
+    it('navigate behavior keeps all items', () => {
+      const result = filterCatalog(catalog, '', planned, 'navigate');
+      expect(result).toHaveLength(3);
+      expect(result[0].isPlanned).toBe(true);
+    });
   });
 });
 
@@ -85,6 +119,6 @@ describe('getPlannedRoundKeys', () => {
     ];
     const keys = getPlannedRoundKeys(profile);
     expect(keys.size).toBe(1); // Only the non-segmented one
-    expect(keys.has('T1|E1|D1|S1|5')).toBe(true);
+    expect(keys.has(ROUND_KEY_R32)).toBe(true);
   });
 });

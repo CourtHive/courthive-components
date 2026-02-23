@@ -6,8 +6,12 @@
  * DUPLICATE_SEGMENT, ROUND_ORDER_VIOLATION.
  */
 
-import { roundKeyString, roundLabel, pickRoundKey } from './utils';
 import type { SchedulingProfile, ValidationResult, TemporalAdapter, FlattenedRound, RoundLocator } from '../types';
+import { roundKeyString, roundLabel, pickRoundKey } from './utils';
+
+import { drawDefinitionConstants } from 'tods-competition-factory';
+
+const { ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } = drawDefinitionConstants;
 
 // ============================================================================
 // Public API
@@ -120,19 +124,31 @@ export function validateProfile({ profile, temporal, venueOrder }: ValidateProfi
 // Precedence Validation
 // ============================================================================
 
+// Structure types where round ordering is not meaningful
+const UNORDERED_STRUCTURE_TYPES = new Set([ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF]);
+
 export function validateRoundPrecedenceLocal({
   profile,
-  venueOrder
 }: {
   profile: SchedulingProfile;
   venueOrder?: string[];
 }): ValidationResult[] {
   const out: ValidationResult[] = [];
   const planned = flatten(profile);
-  const byScope = groupBy(planned, (p) => `${p.round.drawId}|${p.round.structureId}`);
+
+  // Only check ordering within the same structure + date + venue.
+  // Cross-venue and cross-date ordering is left to the factory's validateSchedulingProfile().
+  const byScope = groupBy(planned, (p) =>
+    `${p.round.structureId}|${p.locator.date}|${p.locator.venueId}`
+  );
 
   for (const [scope, items] of byScope.entries()) {
-    items.sort((a, b) => comparePlanned(a, b, venueOrder));
+    // Skip structures where round order doesn't imply precedence
+    const sType = items[0]?.round.structureType;
+    if (sType && UNORDERED_STRUCTURE_TYPES.has(sType)) continue;
+
+    // Sort by index within the venue (already the natural order from flatten)
+    items.sort((a, b) => a.locator.index - b.locator.index);
 
     for (let i = 0; i < items.length; i++) {
       const cur = items[i];
@@ -151,7 +167,7 @@ export function validateRoundPrecedenceLocal({
       out.push({
         code: 'ROUND_ORDER_VIOLATION',
         severity: 'ERROR',
-        message: `Cannot place ${roundLabel(cur.round)} before ${roundLabel(prereq.round)} in this draw.`,
+        message: `Cannot place ${roundLabel(cur.round)} before ${roundLabel(prereq.round)} in this venue.`,
         context: {
           scope,
           drawId: cur.round.drawId,
@@ -246,20 +262,6 @@ function groupBy<T>(items: T[], keyFn: (item: T) => string): Map<string, T[]> {
   return m;
 }
 
-function comparePlanned(a: FlattenedRound, b: FlattenedRound, venueOrder?: string[]): number {
-  const d = a.locator.date.localeCompare(b.locator.date);
-  if (d) return d;
-  const ar = venueRank(a.locator.venueId, venueOrder);
-  const br = venueRank(b.locator.venueId, venueOrder);
-  if (ar !== br) return ar - br;
-  return a.locator.index - b.locator.index;
-}
-
-function venueRank(id: string, order?: string[]): number {
-  if (!order || !order.length) return 0;
-  const i = order.indexOf(id);
-  return i >= 0 ? i : order.length;
-}
 
 function dedupe(results: ValidationResult[]): ValidationResult[] {
   const seen = new Set<string>();

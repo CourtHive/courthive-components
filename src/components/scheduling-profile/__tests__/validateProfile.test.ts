@@ -1,6 +1,11 @@
-import { describe, it, expect } from 'vitest';
-import { validateProfile } from '../domain/validateProfile';
 import type { SchedulingProfile, TemporalAdapter } from '../types';
+import { validateProfile } from '../domain/validateProfile';
+import { describe, it, expect } from 'vitest';
+
+// constants
+import { drawDefinitionConstants } from 'tods-competition-factory';
+
+const { ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } = drawDefinitionConstants;
 
 function makeRound(overrides: Record<string, unknown> = {}) {
   return {
@@ -11,14 +16,14 @@ function makeRound(overrides: Record<string, unknown> = {}) {
     structureId: 'S1',
     roundNumber: 5,
     roundName: 'R32',
-    ...overrides,
+    ...overrides
   };
 }
 
 function makeTemporal(schedulable: string[]): TemporalAdapter {
   return {
     isDateAvailable: (date: string) =>
-      schedulable.includes(date) ? { ok: true } : { ok: false, reason: 'Not schedulable' },
+      schedulable.includes(date) ? { ok: true } : { ok: false, reason: 'Not schedulable' }
   };
 }
 
@@ -33,12 +38,10 @@ describe('validateProfile', () => {
 
   describe('DATE_UNAVAILABLE', () => {
     it('reports unavailable dates', () => {
-      const profile: SchedulingProfile = [
-        { scheduleDate: DAY1, venues: [{ venueId: 'V1', rounds: [makeRound()] }] },
-      ];
+      const profile: SchedulingProfile = [{ scheduleDate: DAY1, venues: [{ venueId: 'V1', rounds: [makeRound()] }] }];
       const results = validateProfile({
         profile,
-        temporal: makeTemporal([DAY2]),
+        temporal: makeTemporal([DAY2])
       });
       expect(results).toHaveLength(1);
       expect(results[0].code).toBe('DATE_UNAVAILABLE');
@@ -48,12 +51,10 @@ describe('validateProfile', () => {
     });
 
     it('does not report available dates', () => {
-      const profile: SchedulingProfile = [
-        { scheduleDate: DAY1, venues: [{ venueId: 'V1', rounds: [makeRound()] }] },
-      ];
+      const profile: SchedulingProfile = [{ scheduleDate: DAY1, venues: [{ venueId: 'V1', rounds: [makeRound()] }] }];
       const results = validateProfile({
         profile,
-        temporal: makeTemporal([DAY1]),
+        temporal: makeTemporal([DAY1])
       });
       const dateIssues = results.filter((r) => r.code === 'DATE_UNAVAILABLE');
       expect(dateIssues).toHaveLength(0);
@@ -68,10 +69,10 @@ describe('validateProfile', () => {
           venues: [
             {
               venueId: 'V1',
-              rounds: [makeRound({ roundSegment: { segmentNumber: 3, segmentsCount: 2 } })],
-            },
-          ],
-        },
+              rounds: [makeRound({ roundSegment: { segmentNumber: 3, segmentsCount: 2 } })]
+            }
+          ]
+        }
       ];
       const results = validateProfile({ profile });
       const segIssues = results.filter((r) => r.code === 'INVALID_SEGMENT_CONFIG');
@@ -85,10 +86,10 @@ describe('validateProfile', () => {
           venues: [
             {
               venueId: 'V1',
-              rounds: [makeRound({ roundSegment: { segmentNumber: 1, segmentsCount: 2 } })],
-            },
-          ],
-        },
+              rounds: [makeRound({ roundSegment: { segmentNumber: 1, segmentsCount: 2 } })]
+            }
+          ]
+        }
       ];
       const results = validateProfile({ profile });
       const segIssues = results.filter((r) => r.code === 'INVALID_SEGMENT_CONFIG');
@@ -103,9 +104,9 @@ describe('validateProfile', () => {
           scheduleDate: DAY1,
           venues: [
             { venueId: 'V1', rounds: [makeRound()] },
-            { venueId: 'V2', rounds: [makeRound()] },
-          ],
-        },
+            { venueId: 'V2', rounds: [makeRound()] }
+          ]
+        }
       ];
       const results = validateProfile({ profile });
       const dupes = results.filter((r) => r.code === 'DUPLICATE_ROUND');
@@ -120,10 +121,10 @@ describe('validateProfile', () => {
           venues: [
             {
               venueId: 'V1',
-              rounds: [makeRound({ roundNumber: 5 }), makeRound({ roundNumber: 6, roundName: 'R16' })],
-            },
-          ],
-        },
+              rounds: [makeRound({ roundNumber: 5 }), makeRound({ roundNumber: 6, roundName: 'R16' })]
+            }
+          ]
+        }
       ];
       const results = validateProfile({ profile });
       const dupes = results.filter((r) => r.code === 'DUPLICATE_ROUND');
@@ -140,10 +141,10 @@ describe('validateProfile', () => {
           venues: [
             {
               venueId: 'V1',
-              rounds: [makeRound({ roundSegment: seg }), makeRound({ roundSegment: seg })],
-            },
-          ],
-        },
+              rounds: [makeRound({ roundSegment: seg }), makeRound({ roundSegment: seg })]
+            }
+          ]
+        }
       ];
       const results = validateProfile({ profile });
       const dupes = results.filter((r) => r.code === 'DUPLICATE_SEGMENT');
@@ -159,13 +160,10 @@ describe('validateProfile', () => {
           venues: [
             {
               venueId: 'V1',
-              rounds: [
-                makeRound({ roundNumber: 6, roundName: 'R16' }),
-                makeRound({ roundNumber: 5, roundName: 'R32' }),
-              ],
-            },
-          ],
-        },
+              rounds: [makeRound({ roundNumber: 6, roundName: 'R16' }), makeRound({ roundNumber: 5, roundName: 'R32' })]
+            }
+          ]
+        }
       ];
       const results = validateProfile({ profile, venueOrder: ['V1'] });
       const violations = results.filter((r) => r.code === 'ROUND_ORDER_VIOLATION');
@@ -180,20 +178,17 @@ describe('validateProfile', () => {
           venues: [
             {
               venueId: 'V1',
-              rounds: [
-                makeRound({ roundNumber: 5, roundName: 'R32' }),
-                makeRound({ roundNumber: 6, roundName: 'R16' }),
-              ],
-            },
-          ],
-        },
+              rounds: [makeRound({ roundNumber: 5, roundName: 'R32' }), makeRound({ roundNumber: 6, roundName: 'R16' })]
+            }
+          ]
+        }
       ];
       const results = validateProfile({ profile, venueOrder: ['V1'] });
       const violations = results.filter((r) => r.code === 'ROUND_ORDER_VIOLATION');
       expect(violations).toHaveLength(0);
     });
 
-    it('does not flag rounds from different draws', () => {
+    it('does not flag rounds from different structures', () => {
       const profile: SchedulingProfile = [
         {
           scheduleDate: DAY1,
@@ -201,12 +196,12 @@ describe('validateProfile', () => {
             {
               venueId: 'V1',
               rounds: [
-                makeRound({ drawId: 'D1', roundNumber: 6, roundName: 'R16' }),
-                makeRound({ drawId: 'D2', roundNumber: 5, roundName: 'R32' }),
-              ],
-            },
-          ],
-        },
+                makeRound({ drawId: 'D1', structureId: 'S1', roundNumber: 6, roundName: 'R16' }),
+                makeRound({ drawId: 'D2', structureId: 'S2', roundNumber: 5, roundName: 'R32' })
+              ]
+            }
+          ]
+        }
       ];
       const results = validateProfile({ profile, venueOrder: ['V1'] });
       const violations = results.filter((r) => r.code === 'ROUND_ORDER_VIOLATION');
@@ -217,16 +212,93 @@ describe('validateProfile', () => {
       const profile: SchedulingProfile = [
         {
           scheduleDate: DAY2,
-          venues: [{ venueId: 'V1', rounds: [makeRound({ roundNumber: 6, roundName: 'R16' })] }],
+          venues: [{ venueId: 'V1', rounds: [makeRound({ roundNumber: 6, roundName: 'R16' })] }]
         },
         {
           scheduleDate: DAY1,
-          venues: [{ venueId: 'V1', rounds: [makeRound({ roundNumber: 5, roundName: 'R32' })] }],
-        },
+          venues: [{ venueId: 'V1', rounds: [makeRound({ roundNumber: 5, roundName: 'R32' })] }]
+        }
       ];
       const results = validateProfile({ profile, venueOrder: ['V1'] });
       const violations = results.filter((r) => r.code === 'ROUND_ORDER_VIOLATION');
       // R32 on day 1, R16 on day 2 = correct order
+      expect(violations).toHaveLength(0);
+    });
+
+    it('does not flag rounds in ROUND_ROBIN structures', () => {
+      const profile: SchedulingProfile = [
+        {
+          scheduleDate: DAY1,
+          venues: [
+            {
+              venueId: 'V1',
+              rounds: [
+                makeRound({ structureType: ROUND_ROBIN, roundNumber: 3, roundName: 'Round 3' }),
+                makeRound({ structureType: ROUND_ROBIN, roundNumber: 1, roundName: 'Round 1' })
+              ]
+            }
+          ]
+        }
+      ];
+      const results = validateProfile({ profile, venueOrder: ['V1'] });
+      const violations = results.filter((r) => r.code === 'ROUND_ORDER_VIOLATION');
+      expect(violations).toHaveLength(0);
+    });
+
+    it('does not flag rounds in ROUND_ROBIN_WITH_PLAYOFF structures', () => {
+      const profile: SchedulingProfile = [
+        {
+          scheduleDate: DAY1,
+          venues: [
+            {
+              venueId: 'V1',
+              rounds: [
+                makeRound({ structureType: ROUND_ROBIN_WITH_PLAYOFF, roundNumber: 2, roundName: 'Round 2' }),
+                makeRound({ structureType: ROUND_ROBIN_WITH_PLAYOFF, roundNumber: 1, roundName: 'Round 1' })
+              ]
+            }
+          ]
+        }
+      ];
+      const results = validateProfile({ profile, venueOrder: ['V1'] });
+      const violations = results.filter((r) => r.code === 'ROUND_ORDER_VIOLATION');
+      expect(violations).toHaveLength(0);
+    });
+
+    it('does not flag rounds from the same structure in different venues', () => {
+      const profile: SchedulingProfile = [
+        {
+          scheduleDate: DAY1,
+          venues: [
+            { venueId: 'V1', rounds: [makeRound({ roundNumber: 6, roundName: 'R16' })] },
+            { venueId: 'V2', rounds: [makeRound({ roundNumber: 5, roundName: 'R32' })] },
+          ],
+        },
+      ];
+      const results = validateProfile({ profile, venueOrder: ['V1', 'V2'] });
+      const violations = results.filter((r) => r.code === 'ROUND_ORDER_VIOLATION');
+      // Cross-venue ordering is left to the factory's validateSchedulingProfile()
+      expect(violations).toHaveLength(0);
+    });
+
+    it('scopes precedence by structureId not drawId', () => {
+      const profile: SchedulingProfile = [
+        {
+          scheduleDate: DAY1,
+          venues: [
+            {
+              venueId: 'V1',
+              rounds: [
+                makeRound({ drawId: 'D1', structureId: 'S1', roundNumber: 6, roundName: 'R16' }),
+                makeRound({ drawId: 'D1', structureId: 'S2', roundNumber: 5, roundName: 'R32' })
+              ]
+            }
+          ]
+        }
+      ];
+      const results = validateProfile({ profile, venueOrder: ['V1'] });
+      const violations = results.filter((r) => r.code === 'ROUND_ORDER_VIOLATION');
+      // Different structures within the same draw — no violation
       expect(violations).toHaveLength(0);
     });
   });

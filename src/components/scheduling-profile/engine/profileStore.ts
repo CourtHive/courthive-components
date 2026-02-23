@@ -12,6 +12,7 @@ import { validateProfile } from '../domain/validateProfile';
 import { buildIssueIndex } from '../domain/issueIndex';
 import { applyDropCommit } from '../domain/dndApply';
 import { deepClone } from '../domain/utils';
+import { findRoundInProfile } from '../domain/profileProjections';
 import type {
   ProfileStoreState,
   ProfileChangeListener,
@@ -21,7 +22,9 @@ import type {
   DragPayload,
   DropTarget,
   CatalogGroupBy,
+  CatalogRoundItem,
   IssueIndex,
+  ValidationResult,
   FixAction
 } from '../types';
 
@@ -56,7 +59,8 @@ export class ProfileStore {
       ruleResults: [],
       issueIndex: emptyIndex,
       catalogSearchQuery: '',
-      catalogGroupBy: 'event'
+      catalogGroupBy: 'event',
+      plannedRoundBehavior: config.plannedRoundBehavior ?? 'dim'
     };
 
     this.revalidate();
@@ -95,26 +99,51 @@ export class ProfileStore {
     this.setState({ catalogGroupBy: mode });
   }
 
+  // ---------- Navigation ----------
+
+  navigateToRound(item: CatalogRoundItem): void {
+    const locator = findRoundInProfile(this.state.profileDraft, {
+      tournamentId: item.tournamentId,
+      eventId: item.eventId,
+      drawId: item.drawId,
+      structureId: item.structureId,
+      roundNumber: item.roundNumber,
+    });
+    if (locator) {
+      this.setState({ selectedDate: locator.date, selectedLocator: locator });
+    }
+  }
+
   // ---------- Profile Mutations ----------
 
   dropRound(drag: DragPayload, drop: DropTarget): { ok: boolean; errorMessage?: string } {
-    const result = applyDropCommit(this.state.profileDraft, drag, drop);
-    if (!result.ok) return { ok: false, errorMessage: 'Invalid drop operation' };
+    try {
+      const result = applyDropCommit(this.state.profileDraft, drag, drop);
+      if (!result.ok) {
+        return { ok: false, errorMessage: 'Invalid drop operation' };
+      }
 
-    // Validate before committing
-    const tempResults = validateProfile({
-      profile: result.profile,
-      temporal: this.config.temporalAdapter,
-      venueOrder: this.config.venueOrder
-    });
+      // Compare errors before and after: only reject if the drop introduces NEW errors
+      const currentKeys = new Set(this.state.ruleResults.filter((r) => r.severity === 'ERROR').map(errorSignature));
 
-    const firstError = tempResults.find((r) => r.severity === 'ERROR');
-    if (firstError) {
-      return { ok: false, errorMessage: firstError.message };
+      const proposedResults = validateProfile({
+        profile: result.profile,
+        temporal: this.config.temporalAdapter,
+        venueOrder: this.config.venueOrder
+      });
+      const newErrors = proposedResults
+        .filter((r) => r.severity === 'ERROR')
+        .filter((e) => !currentKeys.has(errorSignature(e)));
+
+      if (newErrors.length) {
+        return { ok: false, errorMessage: newErrors[0].message };
+      }
+
+      this.commitProfile(result.profile);
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, errorMessage: String(err) };
     }
-
-    this.commitProfile(result.profile);
-    return { ok: true };
   }
 
   removeRound(locator: RoundLocator): void {
@@ -229,6 +258,15 @@ export class ProfileStore {
       listener(this.state);
     }
   }
+}
+
+// ============================================================================
+// Validation Helpers
+// ============================================================================
+
+/** Stable key for comparing errors before/after a drop — ignores locator indices which shift. */
+function errorSignature(r: ValidationResult): string {
+  return `${r.code}|${r.context?.scope ?? ''}|${r.context?.structureId ?? ''}|${r.context?.date ?? ''}`;
 }
 
 // ============================================================================

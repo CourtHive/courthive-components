@@ -21,6 +21,7 @@ export interface RoundProfile {
   drawId: string;
   drawName?: string;
   structureId: string;
+  structureType?: string;
   roundNumber: number;
   roundName?: string;
   roundSegment?: RoundSegment;
@@ -61,12 +62,15 @@ export interface CatalogRoundItem {
   drawId: string;
   drawName?: string;
   structureId: string;
+  structureType?: string;
   roundNumber: number;
   roundName?: string;
   matchCountEstimate?: number;
 }
 
 export type CatalogGroupBy = 'event' | 'draw' | 'round';
+
+export type PlannedRoundBehavior = 'dim' | 'hide' | 'navigate';
 
 // ============================================================================
 // Selection & Location
@@ -207,6 +211,7 @@ export interface ProfileStoreState {
   issueIndex: IssueIndex;
   catalogSearchQuery: string;
   catalogGroupBy: CatalogGroupBy;
+  plannedRoundBehavior: PlannedRoundBehavior;
 }
 
 export type ProfileChangeListener = (state: ProfileStoreState) => void;
@@ -237,6 +242,7 @@ export interface SchedulingProfileConfig {
   temporalAdapter?: TemporalAdapter;
   demandAdapter?: DemandAdapter;
   venueOrder?: string[];
+  plannedRoundBehavior?: PlannedRoundBehavior;
   onProfileChanged?: (profile: SchedulingProfile) => void;
   onFixAction?: (action: FixAction) => void;
 }

@@ -26,6 +26,7 @@ export function applyDropCommit(
       drawId: drag.roundRef.drawId,
       drawName: drag.roundRef.drawName,
       structureId: drag.roundRef.structureId,
+      structureType: drag.roundRef.structureType,
       roundNumber: drag.roundRef.roundNumber,
       roundName: drag.roundRef.roundName,
     };
@@ -42,10 +43,12 @@ export function applyDropCommit(
     const [removed] = srcVenue.rounds.splice(locator.index, 1);
     normalizeSortOrder(srcVenue.rounds);
 
-    let targetIndex = clamp(drop.index, 0, venue.rounds.length);
+    // Adjust for same-venue shift BEFORE clamping to post-removal length
+    let targetIndex = drop.index;
     if (locator.date === date && locator.venueId === venueId && locator.index < targetIndex) {
-      targetIndex = Math.max(0, targetIndex - 1);
+      targetIndex = targetIndex - 1;
     }
+    targetIndex = clamp(targetIndex, 0, venue.rounds.length);
 
     venue.rounds.splice(targetIndex, 0, removed);
     normalizeSortOrder(venue.rounds);

@@ -69,6 +69,7 @@ function makeStoreState(overrides: Partial<ProfileStoreState> = {}): ProfileStor
     issueIndex: makeEmptyIndex(),
     catalogSearchQuery: '',
     catalogGroupBy: 'event',
+    plannedRoundBehavior: 'dim',
     ...overrides,
   };
 }
@@ -393,12 +394,16 @@ export const RoundCatalogByEvent = {
 export const RoundCatalogWithPlanned = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG_NARROW;
+    root.style.cssText =
+      'background: linear-gradient(180deg, #070a0f, #0b1020 40%, #070a0f); ' +
+      'height: 100vh; max-width: 400px; padding: 20px; display: flex; flex-direction: column; gap: 12px;';
     applyVars(root);
 
     const heading = document.createElement('div');
-    heading.style.cssText = 'font-size: 12px; color: #94a3b8; margin-bottom: 12px;';
-    heading.textContent = 'Planned rounds are dimmed in the catalog. Try dragging a round.';
+    heading.style.cssText = 'font-size: 12px; color: #94a3b8; flex-shrink: 0;';
+    heading.textContent =
+      'Fixed-height container (100vh). Expand all groups — the catalog body should scroll. ' +
+      'Planned rounds are dimmed.';
     root.appendChild(heading);
 
     const store = new ProfileStore(makeBaseConfig({ initialProfile: VALID_PROFILE }));
@@ -414,6 +419,9 @@ export const RoundCatalogWithPlanned = {
       },
     });
 
+    // Panel fills remaining space in the flex column
+    panel.element.style.flex = '1';
+    panel.element.style.minHeight = '0';
     root.appendChild(panel.element);
     panel.update(store.getState());
 

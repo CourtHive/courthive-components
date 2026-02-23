@@ -40,6 +40,8 @@ export function buildSchedulingProfileLayout(panels: LayoutPanels): {
   // Center column
   const center = document.createElement('div');
   center.className = spColumnStyle();
+  panels.venueBoard.element.style.flex = '1';
+  panels.venueBoard.element.style.minHeight = '0';
   center.appendChild(panels.venueBoard.element);
 
   // Right column

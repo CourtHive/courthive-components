@@ -4,18 +4,20 @@
  * Transforms round catalog data into filterable, groupable catalog items.
  */
 
-import type { CatalogRoundItem, CatalogGroupBy } from '../types';
+import type { CatalogRoundItem, CatalogGroupBy, PlannedRoundBehavior } from '../types';
 import { roundKeyString } from './utils';
 
 export function filterCatalog(
   catalog: CatalogRoundItem[],
   query: string,
   plannedKeys: Set<string>,
+  behavior: PlannedRoundBehavior = 'dim',
 ): Array<CatalogRoundItem & { isPlanned: boolean }> {
   const q = query.toLowerCase().trim();
 
   return catalog
     .filter((r) => {
+      if (behavior === 'hide' && plannedKeys.has(roundKeyString(r))) return false;
       if (!q) return true;
       const hay = `${r.eventName} ${r.drawName ?? ''} ${r.roundName ?? ''} ${r.drawId}`.toLowerCase();
       return hay.includes(q);

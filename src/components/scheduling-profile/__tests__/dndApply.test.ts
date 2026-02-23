@@ -132,16 +132,16 @@ describe('applyDropCommit', () => {
           roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 },
         },
       };
-      // Move index 0 (R32) to index 3 (end). After removal [R16,QF], clamp(3,0,2)=2, adjust: 2-1=1 → insert at 1
+      // Move index 0 (R32) to index 3 (end). Adjust: 3-1=2, clamp(2,0,2)=2 → insert at 2
       const result = applyDropCommit(profile, drag, { date: DAY1, venueId: 'V1', index: 3 });
 
       expect(result.ok).toBe(true);
       const rounds = result.profile[0].venues[0].rounds;
       expect(rounds).toHaveLength(3);
-      // R16, R32, QF — R32 moved from front to middle
+      // R16, QF, R32 — R32 moved from front to end
       expect(rounds[0].roundName).toBe('R16');
-      expect(rounds[1].roundName).toBe('R32');
-      expect(rounds[2].roundName).toBe('QF');
+      expect(rounds[1].roundName).toBe('QF');
+      expect(rounds[2].roundName).toBe('R32');
     });
 
     it('adjusts target index when removing from earlier position in same list', () => {
@@ -155,12 +155,15 @@ describe('applyDropCommit', () => {
           roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 },
         },
       };
+      // Move R32(index 0) to end (index 2). Adjust: 2-1=1, clamp(1,0,1)=1 → insert at 1
       const result = applyDropCommit(profile, drag, { date: DAY1, venueId: 'V1', index: 2 });
 
       expect(result.ok).toBe(true);
-      // After removing index 0, the original target 2 is clamped to 1 (end of list)
       const rounds = result.profile[0].venues[0].rounds;
       expect(rounds).toHaveLength(2);
+      // R16, R32 — R32 moved to end
+      expect(rounds[0].roundName).toBe('R16');
+      expect(rounds[1].roundName).toBe('R32');
     });
   });
 

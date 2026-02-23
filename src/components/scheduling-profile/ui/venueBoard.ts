@@ -20,7 +20,8 @@ import {
   spVenueSubStyle,
   spDropzoneStyle,
   spBadgeStyle,
-  spSmallStyle
+  spSmallStyle,
+  spInsertionLineStyle
 } from './styles';
 
 export interface VenueBoardCallbacks {
@@ -138,16 +139,36 @@ export function buildVenueBoard(callbacks: VenueBoardCallbacks): UIPanel<Profile
         });
       }
 
+      // Insertion line element
+      const insertionLine = document.createElement('div');
+      insertionLine.className = spInsertionLineStyle();
+      insertionLine.style.display = 'none';
+
       // Drop handlers
       dz.addEventListener('dragover', (e) => {
         if (!date) return;
         e.preventDefault();
         dz.classList.add('over');
-        e.dataTransfer!.dropEffect = 'copy';
+        e.dataTransfer!.dropEffect = 'move';
+
+        const idx = calcInsertionIndex(dz, e.clientY, insertionLine);
+        const cards = getDraggableCards(dz, insertionLine);
+        insertionLine.style.display = '';
+        if (idx < cards.length) {
+          dz.insertBefore(insertionLine, cards[idx]);
+        } else {
+          dz.appendChild(insertionLine);
+        }
       });
-      dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+      dz.addEventListener('dragleave', (e) => {
+        if (!dz.contains(e.relatedTarget as Node)) {
+          dz.classList.remove('over');
+          insertionLine.style.display = 'none';
+        }
+      });
       dz.addEventListener('drop', (e) => {
         dz.classList.remove('over');
+        insertionLine.style.display = 'none';
         e.preventDefault();
         if (!date) return;
 
@@ -157,8 +178,8 @@ export function buildVenueBoard(callbacks: VenueBoardCallbacks): UIPanel<Profile
         } catch {
           return;
         }
-        const rounds = getVenueRounds(state.profileDraft, date, v.venueId);
-        const drop: DropTarget = { date, venueId: v.venueId, index: rounds.length };
+        const idx = calcInsertionIndex(dz, e.clientY, insertionLine);
+        const drop: DropTarget = { date, venueId: v.venueId, index: idx };
         callbacks.onDrop(payload, drop);
       });
 
@@ -169,4 +190,20 @@ export function buildVenueBoard(callbacks: VenueBoardCallbacks): UIPanel<Profile
   }
 
   return { element: root, update };
+}
+
+function getDraggableCards(dz: HTMLElement, exclude: HTMLElement): HTMLElement[] {
+  return Array.from(dz.querySelectorAll<HTMLElement>('[draggable="true"]')).filter(
+    (el) => el !== exclude,
+  );
+}
+
+function calcInsertionIndex(dz: HTMLElement, clientY: number, exclude: HTMLElement): number {
+  const cards = getDraggableCards(dz, exclude);
+  for (let i = 0; i < cards.length; i++) {
+    const rect = cards[i].getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    if (clientY < midY) return i;
+  }
+  return cards.length;
 }

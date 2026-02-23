@@ -39,11 +39,13 @@ export function buildRoundCard(
   card.draggable = true;
 
   card.addEventListener('dragstart', (e) => {
+    e.stopPropagation();
+    e.dataTransfer!.setDragImage(card, card.offsetWidth / 2, 20);
     e.dataTransfer!.setData(
       'application/json',
       JSON.stringify({ type: 'PLANNED_ROUND', locator }),
     );
-    e.dataTransfer!.effectAllowed = 'move';
+    e.dataTransfer!.effectAllowed = 'copyMove';
   });
 
   card.addEventListener('click', (e) => {
