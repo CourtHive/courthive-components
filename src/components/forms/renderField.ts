@@ -284,7 +284,7 @@ export function renderField(item: any): { field: HTMLDivElement; inputElement?: 
       const text = document.createElement('span');
       text.style.marginLeft = '.25em';
       text.style.marginRight = '1em';
-      text.style.color = '#000';
+      text.style.color = 'var(--chc-text-primary)';
       text.innerHTML = option.text;
       radioGroup.appendChild(text);
     }

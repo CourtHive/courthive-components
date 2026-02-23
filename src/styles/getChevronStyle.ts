@@ -16,7 +16,7 @@ export function getChevronStyle({
           "&::before": {
             borderTop: `${chevronHeight}rem solid transparent`,
             borderBottom: `${chevronHeight}rem solid transparent`,
-            borderInlineStart: "8px solid #008f70",
+            borderInlineStart: "8px solid var(--chc-status-success)",
             position: "absolute",
             insetInlineStart: 0,
             display: "block",

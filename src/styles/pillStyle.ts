@@ -11,46 +11,46 @@ export const pillStyle = css({
   paddingInline: '0.25rem 0.25rem',
   fontWeight: 700,
   borderRadius: '4px',
-  color: '#fff',
+  color: 'var(--chc-pill-text)',
   textAlign: 'center',
   whiteSpace: 'nowrap',
   variants: {
     variant: {
       in_progress: {
-        backgroundColor: '#199f01ff'
+        backgroundColor: 'var(--chc-pill-bg-success)'
       },
       awaiting_result: {
-        backgroundColor: '#199f01ff'
+        backgroundColor: 'var(--chc-pill-bg-success)'
       },
       defaulted: {
-        backgroundColor: '#df164c'
+        backgroundColor: 'var(--chc-pill-bg-danger)'
       },
       dead_rubber: {
-        backgroundColor: '#df164c'
+        backgroundColor: 'var(--chc-pill-bg-danger)'
       },
       cancelled: {
-        backgroundColor: '#df164c'
+        backgroundColor: 'var(--chc-pill-bg-danger)'
       },
       incomplete: {
-        backgroundColor: '#f7ae04ff'
+        backgroundColor: 'var(--chc-pill-bg-warning)'
       },
       suspended: {
-        backgroundColor: '#f7ae04ff'
+        backgroundColor: 'var(--chc-pill-bg-warning)'
       },
       retired: {
-        backgroundColor: '#df164c'
+        backgroundColor: 'var(--chc-pill-bg-danger)'
       },
       walkover: {
-        backgroundColor: 'black'
+        backgroundColor: 'var(--chc-pill-bg-dark)'
       },
       double_walkover: {
-        backgroundColor: 'black'
+        backgroundColor: 'var(--chc-pill-bg-dark)'
       },
       double_default: {
-        backgroundColor: '#df164c'
+        backgroundColor: 'var(--chc-pill-bg-danger)'
       },
       abandoned: {
-        backgroundColor: 'black'
+        backgroundColor: 'var(--chc-pill-bg-dark)'
       }
     }
   }

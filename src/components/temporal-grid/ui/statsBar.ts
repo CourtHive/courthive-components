@@ -26,7 +26,7 @@ export function buildStatsBar(): {
 } {
   const bar = document.createElement('div');
   bar.style.cssText =
-    'display:flex; align-items:center; gap:20px; padding:6px 16px; border-bottom:1px solid #e0e0e0; background:#f0f4f4; font-family:sans-serif; font-size:13px; color:#666;';
+    'display:flex; align-items:center; gap:20px; padding:6px 16px; border-bottom:1px solid var(--chc-border-primary); background:var(--chc-bg-secondary); font-family:sans-serif; font-size:13px; color:var(--chc-text-secondary);';
 
   const makeStat = (label: string) => {
     const span = document.createElement('span');

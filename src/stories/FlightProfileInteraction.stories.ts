@@ -45,17 +45,17 @@ export const CompleteFlightGeneration = {
     const title = document.createElement('h2');
     title.textContent = 'Flight Profile Generation';
     title.style.marginBottom = '0.5em';
-    title.style.color = '#000';
+    title.style.color = 'var(--chc-text-primary)';
     container.appendChild(title);
 
     const description = document.createElement('p');
     description.style.marginBottom = '1.5em';
-    description.style.color = '#666';
+    description.style.color = 'var(--chc-text-secondary)';
     description.innerHTML =
       'This demonstrates the complete flight generation workflow:<br>' +
       '1. Tournament with 32 participants (90% have WTN/UTR/NTRP/U18 rankings)<br>' +
       '2. Modal collects flight parameters<br>' +
-      '3. <code style="background: #f5f5f5; padding: 0.2em 0.4em; border-radius: 3px;">generateFlightProfile()</code> splits participants<br>' +
+      '3. <code style="background: var(--chc-bg-secondary); padding: 0.2em 0.4em; border-radius: 3px;">generateFlightProfile()</code> splits participants<br>' +
       '4. Results displayed with full flight details';
     container.appendChild(description);
 
@@ -66,12 +66,12 @@ export const CompleteFlightGeneration = {
     const infoBox = document.createElement('div');
     infoBox.style.marginBottom = '1.5em';
     infoBox.style.padding = '1em';
-    infoBox.style.backgroundColor = '#e8f5e9';
-    infoBox.style.borderLeft = '4px solid #4caf50';
+    infoBox.style.backgroundColor = 'var(--chc-bg-secondary)';
+    infoBox.style.borderLeft = '4px solid var(--chc-status-success)';
     infoBox.style.borderRadius = '4px';
     infoBox.innerHTML = `
-      <div style="color: #000;">
-        <strong style="color: #000;">Tournament Ready:</strong><br>
+      <div style="color: var(--chc-text-primary);">
+        <strong style="color: var(--chc-text-primary);">Tournament Ready:</strong><br>
         Event: ${event.eventName} (${event.eventType})<br>
         Participants: 32 (29 with rankings, 3 unranked)<br>
         Ratings: WTN, UTR, NTRP<br>
@@ -83,11 +83,11 @@ export const CompleteFlightGeneration = {
     const resultDisplay = document.createElement('div');
     resultDisplay.style.marginTop = '1.5em';
     resultDisplay.style.padding = '1em';
-    resultDisplay.style.backgroundColor = '#f9f9f9';
+    resultDisplay.style.backgroundColor = 'var(--chc-bg-secondary)';
     resultDisplay.style.borderRadius = '4px';
-    resultDisplay.style.border = '1px solid #e0e0e0';
+    resultDisplay.style.border = '1px solid var(--chc-border-primary)';
     resultDisplay.innerHTML = `
-      <div style="color: #666; font-style: italic;">
+      <div style="color: var(--chc-text-secondary); font-style: italic;">
         Click button above to configure and generate flights...
       </div>
     `;
@@ -109,9 +109,9 @@ export const CompleteFlightGeneration = {
 
           if (result.error) {
             resultDisplay.innerHTML = `
-              <div style="color: #d32f2f;">
-                <strong style="color: #d32f2f;">Error:</strong> ${typeof result.error === 'object' ? JSON.stringify(result.error) : result.error}<br>
-                <pre style="background: #ffebee; padding: 1em; border-radius: 4px; overflow: auto; color: #d32f2f; margin-top: 0.5em;">${JSON.stringify(
+              <div style="color: var(--chc-status-error);">
+                <strong style="color: var(--chc-status-error);">Error:</strong> ${typeof result.error === 'object' ? JSON.stringify(result.error) : result.error}<br>
+                <pre style="background: var(--chc-bg-secondary); padding: 1em; border-radius: 4px; overflow: auto; color: var(--chc-status-error); margin-top: 0.5em;">${JSON.stringify(
                   result.params,
                   null,
                   2
@@ -127,21 +127,21 @@ export const CompleteFlightGeneration = {
           resultDisplay.innerHTML = '';
 
           const successDiv = document.createElement('div');
-          successDiv.style.color = '#000';
+          successDiv.style.color = 'var(--chc-text-primary)';
 
           // Title
           const title = document.createElement('h3');
           title.style.marginTop = '0';
-          title.style.color = '#000';
+          title.style.color = 'var(--chc-text-primary)';
           title.textContent = '✓ Flights Generated Successfully';
           successDiv.appendChild(title);
 
           // Summary
           const summaryBox = document.createElement('div');
           summaryBox.style.cssText =
-            'margin: 1em 0; padding: 1em; background: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 4px;';
+            'margin: 1em 0; padding: 1em; background: var(--chc-bg-secondary); border-left: 4px solid var(--chc-status-info); border-radius: 4px;';
           summaryBox.innerHTML = `
-            <strong style="color: #000;">Summary:</strong><br>
+            <strong style="color: var(--chc-text-primary);">Summary:</strong><br>
             Total Flights: ${result.summary.totalFlights}<br>
             Flight Names: ${result.summary.flightNames.join(', ')}<br>
             Entries per Flight: ${result.summary.entriesPerFlight.join(', ')}<br>
@@ -156,10 +156,10 @@ export const CompleteFlightGeneration = {
           profileSection.style.marginTop = '1.5em';
 
           const profileTitle = document.createElement('h4');
-          profileTitle.style.color = '#000';
+          profileTitle.style.color = 'var(--chc-text-primary)';
           profileTitle.style.marginBottom = '0.5em';
           profileTitle.innerHTML =
-            '🔍 Interactive Flight Profile <span style="color: #666; font-size: 0.9em; font-weight: normal;">(click triangles to expand/collapse)</span>';
+            '🔍 Interactive Flight Profile <span style="color: var(--chc-text-secondary); font-size: 0.9em; font-weight: normal;">(click triangles to expand/collapse)</span>';
           profileSection.appendChild(profileTitle);
 
           const profileViewer = document.createElement('div');
@@ -172,7 +172,7 @@ export const CompleteFlightGeneration = {
           paramsSection.style.marginTop = '1.5em';
 
           const paramsTitle = document.createElement('h4');
-          paramsTitle.style.color = '#000';
+          paramsTitle.style.color = 'var(--chc-text-primary)';
           paramsTitle.style.marginBottom = '0.5em';
           paramsTitle.textContent = '📋 Parameters Sent to generateFlightProfile()';
           paramsSection.appendChild(paramsTitle);

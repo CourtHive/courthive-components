@@ -22,7 +22,7 @@ export function setScore({
   const tieBreakScore = sideNumber === 2 ? set.side2TiebreakScore : set.side1TiebreakScore;
   const tieBreakSet = gameScore === undefined && tieBreakScore;
   const scoreDisplay = tieBreakSet || gameScore;
-  const stripedScore = scoreStripes && set.setNumber % 2 ? 'lightgray' : 'transparent';
+  const stripedScore = scoreStripes && set.setNumber % 2 ? 'var(--chc-bg-secondary)' : 'transparent';
 
   const editing = set.editing;
   const activeEdit = editing ? set.editing === sideNumber : undefined;

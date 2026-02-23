@@ -2,7 +2,7 @@ import { css } from "@stitches/core";
 
 export function getInfoStyle({ variant }: { variant?: number | string }): string {
   const infoStyle = css({
-    borderBottom: "solid 1px lightgray",
+    borderBottom: "solid 1px var(--chc-border-secondary)",
     backgroundColor: "$matchUp",
     position: "relative",
     width: "100%",
@@ -10,10 +10,10 @@ export function getInfoStyle({ variant }: { variant?: number | string }): string
     variants: {
       variant: {
         1: {
-          borderBottom: "solid 1px black",
+          borderBottom: "solid 1px var(--chc-border-primary)",
         },
         2: {
-          borderBottom: "solid 1px lightgray",
+          borderBottom: "solid 1px var(--chc-border-secondary)",
         },
       },
     },

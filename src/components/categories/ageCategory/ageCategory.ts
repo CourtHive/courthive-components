@@ -17,7 +17,7 @@ import {
 } from './ageCategoryLogic';
 
 const clickable = '▾'; // clickable character
-const BORDER_STYLE = '1px solid #ddd';
+const BORDER_STYLE = '1px solid var(--chc-border-secondary)';
 
 // Helper functions
 function isFunction(fx: any): fx is (...args: any[]) => any {
@@ -150,19 +150,19 @@ function updateCalculatedDetailsDisplay(): void {
 
   const { ageMin, ageMax, ageMinDate, ageMaxDate, errors } = calculatedDetails;
 
-  let html = '<div style="margin-top: 1em; padding: 0.75em; background: #f5f5f5; border-radius: 4px; color: #000;">';
+  let html = '<div style="margin-top: 1em; padding: 0.75em; background: var(--chc-bg-secondary); border-radius: 4px; color: var(--chc-text-primary);">';
 
   if (errors && errors.length > 0) {
     html +=
-      '<div style="color: red; margin-bottom: 0.5em;"><strong style="color: #000;">Errors:</strong><ul style="margin: 0; padding-left: 1.5em; color: #000;">';
+      '<div style="color: var(--chc-status-error); margin-bottom: 0.5em;"><strong style="color: var(--chc-text-primary);">Errors:</strong><ul style="margin: 0; padding-left: 1.5em; color: var(--chc-text-primary);">';
     errors.forEach((err) => {
-      html += `<li style="color: red;">${err}</li>`;
+      html += `<li style="color: var(--chc-status-error);">${err}</li>`;
     });
     html += '</ul></div>';
   }
 
   if (ageMin !== undefined || ageMax !== undefined) {
-    html += '<div style="margin-bottom: 0.5em; color: #000;"><strong style="color: #000;">Age Range:</strong> ';
+    html += '<div style="margin-bottom: 0.5em; color: var(--chc-text-primary);"><strong style="color: var(--chc-text-primary);">Age Range:</strong> ';
     if (ageMin !== undefined && ageMax !== undefined) {
       html += `${ageMin} - ${ageMax}`;
     } else if (ageMin !== undefined) {
@@ -174,11 +174,11 @@ function updateCalculatedDetailsDisplay(): void {
   }
 
   if (ageMinDate) {
-    html += `<div style="margin-bottom: 0.5em; color: #000;"><strong style="color: #000;">Min Birth Date:</strong> ${ageMinDate}</div>`;
+    html += `<div style="margin-bottom: 0.5em; color: var(--chc-text-primary);"><strong style="color: var(--chc-text-primary);">Min Birth Date:</strong> ${ageMinDate}</div>`;
   }
 
   if (ageMaxDate) {
-    html += `<div style="margin-bottom: 0.5em; color: #000;"><strong style="color: #000;">Max Birth Date:</strong> ${ageMaxDate}</div>`;
+    html += `<div style="margin-bottom: 0.5em; color: var(--chc-text-primary);"><strong style="color: var(--chc-text-primary);">Max Birth Date:</strong> ${ageMaxDate}</div>`;
   }
 
   html += '</div>';
@@ -248,7 +248,7 @@ function createButton(params: {
   button.style.transition = 'all .2s ease-in-out';
   button.style.backgroundColor = 'inherit';
   button.style.border = 'none';
-  button.style.color = '#000'; // Explicit black text
+  button.style.color = 'var(--chc-text-primary)';
   button.style.padding = '.3em';
   button.style.textAlign = 'center';
   button.style.textDecoration = 'none';
@@ -283,7 +283,7 @@ function createDropdown(e: Event, items: Array<{ text: string; onClick: () => vo
 
   const dropdownMenu = document.createElement('div');
   dropdownMenu.className = 'dropdown-menu';
-  dropdownMenu.style.backgroundColor = 'white';
+  dropdownMenu.style.backgroundColor = 'var(--chc-dropdown-bg)';
   dropdownMenu.style.border = BORDER_STYLE;
   dropdownMenu.style.borderRadius = '4px';
   dropdownMenu.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
@@ -296,8 +296,8 @@ function createDropdown(e: Event, items: Array<{ text: string; onClick: () => vo
     const itemDiv = document.createElement('div');
     itemDiv.style.padding = '0.5em 1em';
     itemDiv.style.cursor = 'pointer';
-    itemDiv.style.backgroundColor = 'white';
-    itemDiv.style.color = '#363636';
+    itemDiv.style.backgroundColor = 'var(--chc-dropdown-bg)';
+    itemDiv.style.color = 'var(--chc-text-primary)';
     itemDiv.style.fontSize = '1rem';
     itemDiv.style.lineHeight = '1.5';
     itemDiv.textContent = item.text;
@@ -310,10 +310,10 @@ function createDropdown(e: Event, items: Array<{ text: string; onClick: () => vo
       }, 0);
     };
     itemDiv.onmouseenter = () => {
-      itemDiv.style.backgroundColor = '#f5f5f5';
+      itemDiv.style.backgroundColor = 'var(--chc-hover-bg)';
     };
     itemDiv.onmouseleave = () => {
-      itemDiv.style.backgroundColor = 'white';
+      itemDiv.style.backgroundColor = 'var(--chc-dropdown-bg)';
     };
     dropdownMenu.appendChild(itemDiv);
   });
@@ -404,7 +404,7 @@ export function getAgeCategoryModal({
       intent: 'none',
       footer: {
         className: 'button',
-        style: 'background-color: white; color: #363636; border: 1px solid #dbdbdb;'
+        style: 'background-color: var(--chc-bg-primary); color: var(--chc-text-primary); border: 1px solid var(--chc-border-primary);'
       },
       close: true
     },
@@ -434,7 +434,7 @@ export function getAgeCategoryModal({
   codeDisplay.id = 'ageCategoryCodeString';
   codeDisplay.innerHTML = selectedAgeCategoryCode;
   codeDisplay.style.fontSize = '1.5em';
-  codeDisplay.style.color = 'blue';
+  codeDisplay.style.color = 'var(--chc-format-code-color)';
   codeDisplay.style.marginBottom = '1em';
   codeDisplay.style.fontWeight = 'bold';
   content.appendChild(codeDisplay);
@@ -598,7 +598,7 @@ export function getAgeCategoryModal({
 
   const ageMinLabel = document.createElement('span');
   ageMinLabel.textContent = 'Min:';
-  ageMinLabel.style.color = '#000';
+  ageMinLabel.style.color = 'var(--chc-text-primary)';
 
   const ageMinInput = document.createElement('input');
   ageMinInput.type = 'number';
@@ -643,7 +643,7 @@ export function getAgeCategoryModal({
 
   const ageMaxLabel = document.createElement('span');
   ageMaxLabel.textContent = 'Max:';
-  ageMaxLabel.style.color = '#000';
+  ageMaxLabel.style.color = 'var(--chc-text-primary)';
 
   const ageMaxInput = document.createElement('input');
   ageMaxInput.type = 'number';
@@ -681,7 +681,7 @@ export function getAgeCategoryModal({
   // Combined label
   const combinedLabel = document.createElement('div');
   combinedLabel.id = 'combinedLabel';
-  combinedLabel.innerHTML = '<em style="color: #888;">Combined age range</em>';
+  combinedLabel.innerHTML = '<em style="color: var(--chc-text-muted);">Combined age range</em>';
   combinedLabel.style.display = editorState.type === 'combined' ? '' : 'none';
   combinedLabel.style.padding = '0.3em';
   configPanel.appendChild(combinedLabel);
@@ -740,7 +740,7 @@ export function getAgeCategoryModal({
     maxWidth: 480,
     fontSize: '14px',
     style: {
-      backgroundColor: '#f8f9fa',
+      backgroundColor: 'var(--chc-bg-secondary)',
       borderRadius: '8px',
       boxShadow: '0 8px 16px rgba(0, 102, 204, 0.2)'
     }

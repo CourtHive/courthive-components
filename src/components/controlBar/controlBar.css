@@ -7,7 +7,7 @@
 }
 
 .panelHeader {
-  background-color: rgb(192 193 211);
+  background-color: var(--chc-panel-header-bg);
   -webkit-align-items: center;
   -webkit-flex-direction: row;
   flex-direction: row;
@@ -118,5 +118,5 @@
 }
 
 .dropdown-content {
-  border: 1px solid #dbdbdb;
+  border: 1px solid var(--chc-border-primary);
 }

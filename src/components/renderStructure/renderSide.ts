@@ -66,7 +66,7 @@ export function renderSide({
 
   if (scoreBox) {
     const box = document.createElement('div');
-    box.style.border = `1px solid lightgray`;
+    box.style.border = `1px solid var(--chc-border-secondary)`;
     sideRow.appendChild(box);
   }
 

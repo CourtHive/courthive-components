@@ -8,7 +8,7 @@ export const wimbledonTheme = createTheme("wimbledon-theme", {
     connector: "transparent",
     // borderHover: "darkgrey", // Not in type definition
     border: "#00703c",
-    matchUp: "#fff",
+    matchUp: "var(--chc-bg-elevated)",
   },
   participant: {
     textTransform: "uppercase",

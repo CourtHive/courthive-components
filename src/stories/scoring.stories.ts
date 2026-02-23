@@ -82,7 +82,7 @@ const createStoryContainer = (title: string, description: string) => {
   const desc = document.createElement('p');
   desc.textContent = description;
   desc.style.marginBottom = '1.5em';
-  desc.style.color = '#666';
+  desc.style.color = 'var(--chc-text-secondary)';
 
   container.appendChild(heading);
   container.appendChild(desc);
@@ -143,17 +143,17 @@ export const DynamicSets = {
     const title = document.createElement('h2');
     title.textContent = 'Dynamic Sets Entry';
     title.style.marginBottom = '1em';
-    title.style.color = '#333';
+    title.style.color = 'var(--chc-text-primary)';
     container.appendChild(title);
 
     // Architecture & Coverage intro
     const intro = document.createElement('p');
     intro.style.marginBottom = '1.5em';
     intro.style.lineHeight = '1.6';
-    intro.style.color = '#555';
+    intro.style.color = 'var(--chc-text-secondary)';
     intro.innerHTML =
-      'The Dynamic Sets approach uses a <strong style="color: #363636;">pure state engine architecture</strong> with business logic completely separated from UI rendering. ' +
-      'All scoring rules, validation, and smart complement calculations are implemented as testable pure functions with <strong style="color: #363636;">comprehensive test coverage</strong> ' +
+      'The Dynamic Sets approach uses a <strong style="color: var(--chc-text-primary);">pure state engine architecture</strong> with business logic completely separated from UI rendering. ' +
+      'All scoring rules, validation, and smart complement calculations are implemented as testable pure functions with <strong style="color: var(--chc-text-primary);">comprehensive test coverage</strong> ' +
       'across set completion, match completion, tiebreak detection, and edge cases. Use the Controls below to enable Smart Complements and change the composition theme.';
     container.appendChild(intro);
 
@@ -161,24 +161,24 @@ export const DynamicSets = {
     const smartComplementsSection = document.createElement('div');
     smartComplementsSection.style.marginBottom = '2em';
     smartComplementsSection.style.padding = '1.5em';
-    smartComplementsSection.style.backgroundColor = '#f0f9ff';
-    smartComplementsSection.style.borderLeft = '4px solid #3273dc';
+    smartComplementsSection.style.backgroundColor = 'var(--chc-bg-secondary)';
+    smartComplementsSection.style.borderLeft = '4px solid var(--chc-border-focus)';
     smartComplementsSection.style.borderRadius = '4px';
 
     const smartTitle = document.createElement('h3');
     smartTitle.textContent = 'Smart Complements';
     smartTitle.style.marginTop = '0';
     smartTitle.style.marginBottom = '1em';
-    smartTitle.style.color = '#363636';
+    smartTitle.style.color = 'var(--chc-text-primary)';
     smartTitle.style.fontSize = '1.2em';
     smartComplementsSection.appendChild(smartTitle);
 
     const smartDescription = document.createElement('p');
     smartDescription.style.marginBottom = '1em';
-    smartDescription.style.color = '#4a4a4a';
+    smartDescription.style.color = 'var(--chc-text-secondary)';
     smartDescription.style.lineHeight = '1.6';
     smartDescription.innerHTML =
-      'When entering scores in the <strong style="color: #363636;">first (left) field</strong> of a new set, the system can automatically fill the second field with the complement score. ' +
+      'When entering scores in the <strong style="color: var(--chc-text-primary);">first (left) field</strong> of a new set, the system can automatically fill the second field with the complement score. ' +
       'This feature speeds up score entry for standard tennis results.';
     smartComplementsSection.appendChild(smartDescription);
 
@@ -186,14 +186,14 @@ export const DynamicSets = {
     examplesTitle.textContent = 'Keyboard Shortcuts:';
     examplesTitle.style.fontWeight = 'bold';
     examplesTitle.style.marginBottom = '0.75em';
-    examplesTitle.style.color = '#363636';
+    examplesTitle.style.color = 'var(--chc-text-primary)';
     smartComplementsSection.appendChild(examplesTitle);
 
     const examplesList = document.createElement('ul');
     examplesList.style.marginLeft = '1.5em';
     examplesList.style.marginBottom = '1em';
     examplesList.style.lineHeight = '1.8';
-    examplesList.style.color = '#4a4a4a';
+    examplesList.style.color = 'var(--chc-text-secondary)';
 
     const examples = [
       { key: '6', result: '6-4', desc: 'Type "6" → auto-fills "6-4"' },
@@ -204,7 +204,7 @@ export const DynamicSets = {
 
     examples.forEach((example) => {
       const li = document.createElement('li');
-      li.innerHTML = `<code style="background: #e8f4f8; padding: 0.2em 0.5em; border-radius: 3px; font-family: monospace; color: #0066cc;">${example.key}</code> → <strong>${example.result}</strong> <span style="color: #666;">(${example.desc})</span>`;
+      li.innerHTML = `<code style="background: var(--chc-bg-secondary); padding: 0.2em 0.5em; border-radius: 3px; font-family: monospace; color: var(--chc-border-focus);">${example.key}</code> → <strong>${example.result}</strong> <span style="color: var(--chc-text-secondary);">(${example.desc})</span>`;
       examplesList.appendChild(li);
     });
 
@@ -212,11 +212,11 @@ export const DynamicSets = {
 
     const smartNote = document.createElement('p');
     smartNote.style.fontSize = '0.9em';
-    smartNote.style.color = '#666';
+    smartNote.style.color = 'var(--chc-text-secondary)';
     smartNote.style.fontStyle = 'italic';
     smartNote.style.marginTop = '0.75em';
     smartNote.innerHTML =
-      '<strong style="color: #363636;">Note:</strong> This feature is enabled by default. Toggle it using the "smartComplements" control below, or disable it programmatically by calling <code>setScoringConfig({ smartComplements: false })</code>.';
+      '<strong style="color: var(--chc-text-primary);">Note:</strong> This feature is enabled by default. Toggle it using the "smartComplements" control below, or disable it programmatically by calling <code>setScoringConfig({ smartComplements: false })</code>.';
     smartComplementsSection.appendChild(smartNote);
 
     container.appendChild(smartComplementsSection);
@@ -244,36 +244,36 @@ export const DynamicSets = {
     const integrationSection = document.createElement('div');
     integrationSection.style.marginTop = '2em';
     integrationSection.style.padding = '1.5em';
-    integrationSection.style.backgroundColor = '#f8f9fa';
-    integrationSection.style.borderLeft = '4px solid #48c774';
+    integrationSection.style.backgroundColor = 'var(--chc-bg-secondary)';
+    integrationSection.style.borderLeft = '4px solid var(--chc-status-success)';
     integrationSection.style.borderRadius = '4px';
 
     const integrationTitle = document.createElement('h3');
     integrationTitle.textContent = 'Integration Details';
     integrationTitle.style.marginTop = '0';
     integrationTitle.style.marginBottom = '1em';
-    integrationTitle.style.color = '#363636';
+    integrationTitle.style.color = 'var(--chc-text-primary)';
     integrationSection.appendChild(integrationTitle);
 
     const integrationText = document.createElement('p');
     integrationText.style.marginBottom = '1em';
-    integrationText.style.color = '#4a4a4a';
+    integrationText.style.color = 'var(--chc-text-secondary)';
     integrationText.innerHTML =
       'The underlying state management API is fully exportable from <code>courthive-components</code>, allowing you to build custom UIs that leverage the same scoring logic. ' +
       'All functions are pure (no side effects) and independently testable. ' +
-      '<strong style="color: #363636;">Configuration should be derived from TODS matchUpFormat strings using <code>matchUpFormatCode.parse()</code></strong> to ensure consistency with the TODS ecosystem.';
+      '<strong style="color: var(--chc-text-primary);">Configuration should be derived from TODS matchUpFormat strings using <code>matchUpFormatCode.parse()</code></strong> to ensure consistency with the TODS ecosystem.';
     integrationSection.appendChild(integrationText);
 
     // Example code
     const codeExample = document.createElement('pre');
-    codeExample.style.backgroundColor = '#ffffff';
+    codeExample.style.backgroundColor = 'var(--chc-bg-elevated)';
     codeExample.style.padding = '1em';
     codeExample.style.borderRadius = '4px';
     codeExample.style.overflow = 'auto';
     codeExample.style.fontSize = '13px';
     codeExample.style.lineHeight = '1.5';
-    codeExample.style.border = '1px solid #e0e0e0';
-    codeExample.innerHTML = `<code style="color: #000;">import {
+    codeExample.style.border = '1px solid var(--chc-border-primary)';
+    codeExample.innerHTML = `<code style="color: var(--chc-text-primary);">import {
   isSetComplete,
   isMatchComplete,
   shouldApplySmartComplement,
@@ -344,12 +344,12 @@ const result = shouldApplySmartComplement(
     const apiTitle = document.createElement('h4');
     apiTitle.textContent = 'Available Functions';
     apiTitle.style.marginBottom = '0.5em';
-    apiTitle.style.color = '#363636';
+    apiTitle.style.color = 'var(--chc-text-primary)';
     apiRef.appendChild(apiTitle);
 
     const apiList = document.createElement('ul');
     apiList.style.marginLeft = '1.5em';
-    apiList.style.color = '#4a4a4a';
+    apiList.style.color = 'var(--chc-text-secondary)';
     apiList.style.lineHeight = '1.8';
     apiList.innerHTML = `
       <li><code>isSetComplete(setIndex, scores, config)</code> - Check if a set is finished</li>
@@ -433,7 +433,7 @@ export const ClearGlobalScore = {
     // Display area for current global score
     const scoreDisplay = document.createElement('div');
     scoreDisplay.style.padding = '1em';
-    scoreDisplay.style.backgroundColor = '#f5f5f5';
+    scoreDisplay.style.backgroundColor = 'var(--chc-bg-secondary)';
     scoreDisplay.style.borderRadius = '4px';
     scoreDisplay.style.marginBottom = '1em';
     scoreDisplay.style.fontFamily = 'monospace';
@@ -458,8 +458,8 @@ export const ClearGlobalScore = {
           .join(' ');
 
         scoreDisplay.innerHTML = `
-          <div style="font-weight: 600; margin-bottom: 0.5em; color: #333;">Current Global Score:</div>
-          ${scoreText ? `<div style="color: #0066cc; font-size: 1.1em; margin-bottom: 0.5em;">${scoreText}</div>` : ''}
+          <div style="font-weight: 600; margin-bottom: 0.5em; color: var(--chc-text-primary);">Current Global Score:</div>
+          ${scoreText ? `<div style="color: var(--chc-border-focus); font-size: 1.1em; margin-bottom: 0.5em;">${scoreText}</div>` : ''}
           ${
             globalMatchUpState.winningSide
               ? `<div style="color: #28a745;">Winner: Side ${globalMatchUpState.winningSide}</div>`
@@ -474,7 +474,7 @@ export const ClearGlobalScore = {
         button.disabled = false;
       } else {
         scoreDisplay.innerHTML = `
-          <div style="color: #666; font-style: italic;">No global score currently saved.</div>
+          <div style="color: var(--chc-text-secondary); font-style: italic;">No global score currently saved.</div>
         `;
         button.disabled = true;
       }
