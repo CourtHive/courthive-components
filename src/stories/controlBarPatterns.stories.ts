@@ -16,7 +16,7 @@ type Story = StoryObj;
 
 function codeBlock(code: string): string {
   const escaped = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  return `<pre style="background: #f5f5f5; padding: 1em; border-radius: 4px; overflow-x: auto; font-size: 0.85em; line-height: 1.5;"><code>${escaped}</code></pre>`;
+  return `<pre style="background: var(--chc-bg-secondary); padding: 1em; border-radius: 4px; overflow-x: auto; font-size: 0.85em; line-height: 1.5;"><code>${escaped}</code></pre>`;
 }
 
 export const Documentation: Story = {

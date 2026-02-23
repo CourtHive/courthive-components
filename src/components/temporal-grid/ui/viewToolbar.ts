@@ -37,11 +37,11 @@ export function buildViewToolbar(
 ): HTMLElement {
   const bar = document.createElement('div');
   bar.style.cssText =
-    'display:flex; align-items:center; gap:4px; padding:6px 12px; border-bottom:1px solid #e0e0e0; background:#f8f9fa; font-family:sans-serif; font-size:13px;';
+    'display:flex; align-items:center; gap:4px; padding:6px 12px; border-bottom:1px solid var(--chc-border-primary); background:var(--chc-bg-secondary); font-family:sans-serif; font-size:13px;';
 
   const label = document.createElement('span');
   label.textContent = 'View:';
-  label.style.cssText = 'color:#666; margin-right:4px;';
+  label.style.cssText = 'color:var(--chc-text-secondary); margin-right:4px;';
   bar.appendChild(label);
 
   const buttons: HTMLButtonElement[] = [];
@@ -51,7 +51,7 @@ export function buildViewToolbar(
     const btn = document.createElement('button');
     btn.textContent = view.label;
     btn.style.cssText =
-      'padding:4px 12px; border:1px solid #ddd; border-radius:4px; cursor:pointer; font-size:13px; background:white; color:#333;';
+      'padding:4px 12px; border:1px solid var(--chc-border-primary); border-radius:4px; cursor:pointer; font-size:13px; background:var(--chc-bg-elevated); color:var(--chc-text-primary);';
 
     if (key === activeView) {
       btn.style.background = '#218D8D';
@@ -61,9 +61,9 @@ export function buildViewToolbar(
 
     btn.addEventListener('click', () => {
       for (const b of buttons) {
-        b.style.background = 'white';
-        b.style.color = '#333';
-        b.style.borderColor = '#ddd';
+        b.style.background = 'var(--chc-bg-elevated)';
+        b.style.color = 'var(--chc-text-primary)';
+        b.style.borderColor = 'var(--chc-border-primary)';
       }
       btn.style.background = '#218D8D';
       btn.style.color = 'white';

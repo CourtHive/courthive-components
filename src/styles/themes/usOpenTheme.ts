@@ -2,7 +2,7 @@ import { createTheme } from "./createTheme";
 
 export const usOpenTheme = createTheme("usopen-theme", {
   colors: {
-    matchUpBackgroundColor: "#F8F9F9",
+    matchUpBackgroundColor: "var(--chc-bg-secondary)",
     internalDividers: "darkgray",
     borderHover: "#0091d2",
     connector: "#999",

@@ -17,7 +17,7 @@ export const scoreWrapperStyle = (participantHeight?: number) => {
         small: {
           fontSize: "smaller",
           paddingRight: "1em",
-          color: "blue",
+          color: "var(--chc-status-info)",
         },
       },
     },

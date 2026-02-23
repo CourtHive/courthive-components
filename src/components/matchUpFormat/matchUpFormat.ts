@@ -892,7 +892,7 @@ export function getMatchUpFormatModal({
       intent: 'none',
       footer: {
         className: 'button',
-        style: 'background-color: white; color: #363636; border: 1px solid #dbdbdb;'
+        style: 'background-color: var(--chc-bg-primary); color: var(--chc-text-primary); border: 1px solid var(--chc-border-primary);'
       },
       close: true
     },
@@ -924,7 +924,7 @@ export function getMatchUpFormatModal({
   matchUpFormatString.id = 'matchUpFormatString';
   matchUpFormatString.innerHTML = selectedMatchUpFormat;
   matchUpFormatString.style.fontSize = '1.5em';
-  matchUpFormatString.style.color = 'blue';
+  matchUpFormatString.style.color = 'var(--chc-format-code-color)';
   matchUpFormatString.style.marginBottom = '1em';
   modalInputs['matchUpFormatString'] = matchUpFormatString;
   content.appendChild(matchUpFormatString);
@@ -956,15 +956,15 @@ export function getMatchUpFormatModal({
   select.id = 'matchUpFormatSelector';
   select.className = 'input';
   select.style.width = '100%';
-  select.style.backgroundColor = '#ffffff'; // Force white background
-  select.style.color = '#363636'; // Dark text for contrast
-  select.style.border = '1px solid #b5b5b5'; // Darker border for better visibility
+  select.style.backgroundColor = 'var(--chc-input-bg)';
+  select.style.color = 'var(--chc-text-primary)';
+  select.style.border = '1px solid var(--chc-input-border)';
   for (const option of formatSelector.options) {
     const opt = document.createElement('option');
     opt.value = option.value || '';
     opt.text = option.label || '';
-    opt.style.backgroundColor = '#ffffff'; // Force white background for options
-    opt.style.color = '#363636'; // Dark text
+    opt.style.backgroundColor = 'var(--chc-input-bg)';
+    opt.style.color = 'var(--chc-text-primary)';
     if (option.selected) opt.selected = true;
     select.appendChild(opt);
   }
@@ -1406,7 +1406,7 @@ export function getMatchUpFormatModal({
     maxWidth: 480,
     fontSize: '14px', // cModal expects fontSize at top level, not in style
     style: {
-      backgroundColor: '#f8f9fa',
+      backgroundColor: 'var(--chc-bg-secondary)',
       borderRadius: '8px',
       boxShadow: '0 8px 16px rgba(0, 102, 204, 0.2)'
     }
@@ -1555,8 +1555,8 @@ function createGameFormatDropdown(
 
   const dropdownMenu = document.createElement('div');
   dropdownMenu.className = 'dropdown-menu';
-  dropdownMenu.style.backgroundColor = 'white';
-  dropdownMenu.style.border = '1px solid #ddd';
+  dropdownMenu.style.backgroundColor = 'var(--chc-dropdown-bg)';
+  dropdownMenu.style.border = '1px solid var(--chc-border-secondary)';
   dropdownMenu.style.borderRadius = '4px';
   dropdownMenu.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
   dropdownMenu.style.padding = '0.25em 0';
@@ -1589,16 +1589,16 @@ function createGameFormatDropdown(
   }
 
   // Shared styles
-  const itemStyle = 'padding: 0.4em 1em; cursor: pointer; background-color: white; color: #363636; font-size: 1rem;';
-  const headerStyle = 'padding: 0.3em 1em; font-weight: bold; font-size: 0.85rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px;';
+  const itemStyle = 'padding: 0.4em 1em; cursor: pointer; background-color: var(--chc-dropdown-bg); color: var(--chc-text-primary); font-size: 1rem;';
+  const headerStyle = 'padding: 0.3em 1em; font-weight: bold; font-size: 0.85rem; color: var(--chc-text-muted); text-transform: uppercase; letter-spacing: 0.5px;';
   const separatorStyle = 'border-top: 1px solid #eee; margin: 0.25em 0;';
 
   // "None" button at top — clears everything and closes dropdown
   const noneItem = document.createElement('div');
   noneItem.textContent = 'None';
   noneItem.style.cssText = itemStyle;
-  noneItem.onmouseenter = () => { noneItem.style.backgroundColor = '#f5f5f5'; };
-  noneItem.onmouseleave = () => { noneItem.style.backgroundColor = 'white'; };
+  noneItem.onmouseenter = () => { noneItem.style.backgroundColor = 'var(--chc-hover-bg)'; };
+  noneItem.onmouseleave = () => { noneItem.style.backgroundColor = 'var(--chc-dropdown-bg)'; };
   noneItem.onclick = (clickEvent) => {
     clickEvent.preventDefault();
     clickEvent.stopPropagation();
@@ -1610,9 +1610,9 @@ function createGameFormatDropdown(
   // Helper to create a radio option row
   function createRadioRow(name: string, value: string, label: string, checked: boolean): HTMLElement {
     const row = document.createElement('label');
-    row.style.cssText = 'display: flex; align-items: center; padding: 0.3em 1em; cursor: pointer; gap: 0.4em; font-size: 1rem; color: #363636;';
-    row.onmouseenter = () => { row.style.backgroundColor = '#f5f5f5'; };
-    row.onmouseleave = () => { row.style.backgroundColor = 'white'; };
+    row.style.cssText = 'display: flex; align-items: center; padding: 0.3em 1em; cursor: pointer; gap: 0.4em; font-size: 1rem; color: var(--chc-text-primary);';
+    row.onmouseenter = () => { row.style.backgroundColor = 'var(--chc-hover-bg)'; };
+    row.onmouseleave = () => { row.style.backgroundColor = 'var(--chc-dropdown-bg)'; };
 
     const radio = document.createElement('input');
     radio.type = 'radio';
@@ -1704,8 +1704,8 @@ function createDropdown(e: any, items: any[]) {
 
   const dropdownMenu = document.createElement('div');
   dropdownMenu.className = 'dropdown-menu';
-  dropdownMenu.style.backgroundColor = 'white';
-  dropdownMenu.style.border = '1px solid #ddd';
+  dropdownMenu.style.backgroundColor = 'var(--chc-dropdown-bg)';
+  dropdownMenu.style.border = '1px solid var(--chc-border-secondary)';
   dropdownMenu.style.borderRadius = '4px';
   dropdownMenu.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
 
@@ -1718,8 +1718,8 @@ function createDropdown(e: any, items: any[]) {
     // Don't use Bulma's dropdown-item class - it may have styling conflicts
     itemDiv.style.padding = '0.5em 1em';
     itemDiv.style.cursor = 'pointer';
-    itemDiv.style.backgroundColor = 'white';
-    itemDiv.style.color = '#363636';
+    itemDiv.style.backgroundColor = 'var(--chc-dropdown-bg)';
+    itemDiv.style.color = 'var(--chc-text-primary)';
     itemDiv.style.fontSize = '1rem';
     itemDiv.style.lineHeight = '1.5';
     itemDiv.textContent = item.text;
@@ -1731,12 +1731,12 @@ function createDropdown(e: any, items: any[]) {
       item.onClick();
     };
     itemDiv.onmouseenter = () => {
-      itemDiv.style.backgroundColor = '#f5f5f5';
-      itemDiv.style.color = '#363636';
+      itemDiv.style.backgroundColor = 'var(--chc-hover-bg)';
+      itemDiv.style.color = 'var(--chc-text-primary)';
     };
     itemDiv.onmouseleave = () => {
-      itemDiv.style.backgroundColor = 'white';
-      itemDiv.style.color = '#363636';
+      itemDiv.style.backgroundColor = 'var(--chc-dropdown-bg)';
+      itemDiv.style.color = 'var(--chc-text-primary)';
     };
     dropdownMenu.appendChild(itemDiv);
   });

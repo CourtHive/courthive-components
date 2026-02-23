@@ -12,9 +12,9 @@ export default {
     wrapper.style.maxWidth = '600px';
     wrapper.style.margin = '20px';
     wrapper.style.padding = '20px';
-    wrapper.style.border = '1px solid #e0e0e0';
+    wrapper.style.border = '1px solid var(--chc-border-primary)';
     wrapper.style.borderRadius = '8px';
-    wrapper.style.backgroundColor = '#ffffff';
+    wrapper.style.backgroundColor = 'var(--chc-bg-elevated)';
     
     // Add title if provided
     if (title) {
@@ -24,7 +24,7 @@ export default {
       titleElement.style.marginBottom = '1.5rem';
       titleElement.style.fontSize = '1.5rem';
       titleElement.style.fontWeight = 'bold';
-      titleElement.style.color = '#363636';
+      titleElement.style.color = 'var(--chc-text-primary)';
       wrapper.appendChild(titleElement);
     }
     
@@ -336,7 +336,7 @@ export const DynamicRelationships = {
       {
         text: 'Passwords must match',
         id: 'matchStatus',
-        style: 'color: red; display: none; margin-top: 10px;'
+        style: 'color: var(--chc-status-error); display: none; margin-top: 10px;'
       }
     ],
     relationships: [
@@ -350,11 +350,11 @@ export const DynamicRelationships = {
           if (status) {
             if (confirmPwd && newPwd !== confirmPwd) {
               status.style.display = 'block';
-              status.style.color = 'red';
+              status.style.color = 'var(--chc-status-error)';
               status.innerHTML = '❌ Passwords do not match';
             } else if (confirmPwd && newPwd === confirmPwd) {
               status.style.display = 'block';
-              status.style.color = 'green';
+              status.style.color = 'var(--chc-status-success)';
               status.innerHTML = '✓ Passwords match';
             } else {
               status.style.display = 'none';

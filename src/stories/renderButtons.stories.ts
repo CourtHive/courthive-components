@@ -10,7 +10,7 @@ export default {
   render: ({ buttons, hasClose }) => {
     const container = document.createElement('div');
     container.style.padding = '20px';
-    container.style.border = '1px solid #ccc';
+    container.style.border = '1px solid var(--chc-border-primary)';
     container.style.borderRadius = '4px';
     
     const closeCallback = hasClose ? () => {

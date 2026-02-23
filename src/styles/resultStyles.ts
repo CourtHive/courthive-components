@@ -20,11 +20,11 @@ export const resultsItemStyle = css({
 export const resultsInfoStyle = css({
   transform: "translateY(-50%)",
   textTransform: "uppercase",
-  backgroundColor: "#fff",
+  backgroundColor: "var(--chc-bg-primary)",
   position: "absolute",
   textAlign: "center",
   top: `calc(50%)`,
-  color: "#bbb",
+  color: "var(--chc-text-muted)",
   fontSize: 0,
   right: 4,
 });

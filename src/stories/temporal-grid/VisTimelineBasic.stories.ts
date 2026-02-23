@@ -20,6 +20,7 @@ import {
 } from '../../components/temporal-grid/controller/viewProjections';
 
 import 'vis-timeline/styles/vis-timeline-graph2d.min.css';
+import '../../components/temporal-grid/ui/styles.css';
 import 'tippy.js/dist/tippy.css';
 
 const { calculateCapacityStats } = temporal;
@@ -33,12 +34,12 @@ const VENUE_NAME_MAIN = 'Main Stadium';
 const VENUE_NAME_PRACTICE = 'Practice Center';
 const VENUE_ID_MAIN = 'venue-main';
 const STYLE_HEADER =
-  'padding: 10px 12px; font-weight: 600; font-size: 14px; color: #333; border-bottom: 1px solid #e0e0e0; background: white;';
+  'padding: 10px 12px; font-weight: 600; font-size: 14px; color: var(--chc-text-primary); border-bottom: 1px solid var(--chc-border-primary); background: var(--chc-bg-elevated);';
 const STYLE_GROUP_ROW = 'padding: 4px 0;';
 const STYLE_COURT_LIST = 'padding-left: 28px;';
-const STYLE_COURT_ROW = 'display: flex; align-items: center; gap: 6px; padding: 3px 0; cursor: pointer; color: #555;';
+const STYLE_COURT_ROW = 'display: flex; align-items: center; gap: 6px; padding: 3px 0; cursor: pointer; color: var(--chc-text-secondary);';
 const STYLE_ROOT =
-  'display:flex; flex-direction:column; width:100%; height:600px; border:1px solid #e0e0e0; border-radius:4px; overflow:hidden;';
+  'display:flex; flex-direction:column; width:100%; height:600px; border:1px solid var(--chc-border-primary); border-radius:4px; overflow:hidden;';
 const STYLE_MAIN_ROW = 'display:flex; flex:1; min-height:0;';
 const STYLE_TIMELINE_CONTAINER = 'flex:1; min-width:0;';
 const STYLE_NEW_BLOCK = 'background-color: #607D8B; border-color: #37474F; color: white;';
@@ -187,8 +188,8 @@ function makeItems(courtIds: Set<string>) {
 function buildVenueTree(visibleCourts: Set<string>, onChange: () => void): HTMLElement {
   const panel = document.createElement('div');
   panel.style.cssText = `
-    width: 220px; flex-shrink: 0; border-right: 1px solid #e0e0e0;
-    background: #fafafa; overflow-y: auto; font-family: sans-serif; font-size: 13px;
+    width: 220px; flex-shrink: 0; border-right: 1px solid var(--chc-border-primary);
+    background: var(--chc-bg-secondary); overflow-y: auto; font-family: sans-serif; font-size: 13px;
   `;
 
   const header = document.createElement('div');
@@ -202,7 +203,7 @@ function buildVenueTree(visibleCourts: Set<string>, onChange: () => void): HTMLE
 
     const facRow = document.createElement('label');
     facRow.style.cssText =
-      'display: flex; align-items: center; gap: 6px; padding: 6px 12px; cursor: pointer; font-weight: 600; color: #333;';
+      'display: flex; align-items: center; gap: 6px; padding: 6px 12px; cursor: pointer; font-weight: 600; color: var(--chc-text-primary);';
 
     const facCb = document.createElement('input');
     facCb.type = 'checkbox';
@@ -214,7 +215,7 @@ function buildVenueTree(visibleCourts: Set<string>, onChange: () => void): HTMLE
     facLabel.textContent = fac.name;
 
     const courtCount = document.createElement('span');
-    courtCount.style.cssText = 'margin-left:auto; color:#999; font-weight:400; font-size:12px;';
+    courtCount.style.cssText = 'margin-left:auto; color:var(--chc-text-muted); font-weight:400; font-size:12px;';
     const updateCount = () => {
       const vis = fac.courts.filter((c) => visibleCourts.has(c.id)).length;
       courtCount.textContent = `${vis}/${fac.courts.length}`;
@@ -376,8 +377,8 @@ interface VenueInfo {
 function buildCourtTree(venues: VenueInfo[], visibleCourts: Set<string>, onChange: () => void): HTMLElement {
   const panel = document.createElement('div');
   panel.style.cssText = `
-    width: 220px; flex-shrink: 0; border-right: 1px solid #e0e0e0;
-    background: #fafafa; overflow-y: auto; font-family: sans-serif; font-size: 13px;
+    width: 220px; flex-shrink: 0; border-right: 1px solid var(--chc-border-primary);
+    background: var(--chc-bg-secondary); overflow-y: auto; font-family: sans-serif; font-size: 13px;
   `;
 
   const header = document.createElement('div');
@@ -391,7 +392,7 @@ function buildCourtTree(venues: VenueInfo[], visibleCourts: Set<string>, onChang
 
     const venueRow = document.createElement('label');
     venueRow.style.cssText =
-      'display: flex; align-items: center; gap: 6px; padding: 6px 12px; cursor: pointer; font-weight: 600; color: #333;';
+      'display: flex; align-items: center; gap: 6px; padding: 6px 12px; cursor: pointer; font-weight: 600; color: var(--chc-text-primary);';
 
     const venueCb = document.createElement('input');
     venueCb.type = 'checkbox';
@@ -403,7 +404,7 @@ function buildCourtTree(venues: VenueInfo[], visibleCourts: Set<string>, onChang
     venueLabel.textContent = venue.name;
 
     const courtCount = document.createElement('span');
-    courtCount.style.cssText = 'margin-left:auto; color:#999; font-weight:400; font-size:12px;';
+    courtCount.style.cssText = 'margin-left:auto; color:var(--chc-text-muted); font-weight:400; font-size:12px;';
     const updateCount = () => {
       const vis = venue.courts.filter((c) => visibleCourts.has(c.id)).length;
       courtCount.textContent = `${vis}/${venue.courts.length}`;
@@ -1688,8 +1689,8 @@ function buildCourtTreeWithEditIcons(
 ): HTMLElement {
   const panel = document.createElement('div');
   panel.style.cssText = `
-    width: 220px; flex-shrink: 0; border-right: 1px solid #e0e0e0;
-    background: #fafafa; overflow-y: auto; font-family: sans-serif; font-size: 13px;
+    width: 220px; flex-shrink: 0; border-right: 1px solid var(--chc-border-primary);
+    background: var(--chc-bg-secondary); overflow-y: auto; font-family: sans-serif; font-size: 13px;
   `;
 
   const header = document.createElement('div');
@@ -1712,7 +1713,7 @@ function buildCourtTreeWithEditIcons(
 
     const venueLabel = document.createElement('span');
     venueLabel.textContent = venue.name;
-    venueLabel.style.cssText = 'font-weight: 600; color: #333;';
+    venueLabel.style.cssText = 'font-weight: 600; color: var(--chc-text-primary);';
 
     const venueEditBtn = document.createElement('button');
     venueEditBtn.textContent = '\u270E';
@@ -1725,7 +1726,7 @@ function buildCourtTreeWithEditIcons(
     });
 
     const courtCount = document.createElement('span');
-    courtCount.style.cssText = 'margin-left: auto; color: #999; font-weight: 400; font-size: 12px;';
+    courtCount.style.cssText = 'margin-left: auto; color: var(--chc-text-muted); font-weight: 400; font-size: 12px;';
     const updateCount = () => {
       const vis = venue.courts.filter((c) => visibleCourts.has(c.id)).length;
       courtCount.textContent = `${vis}/${venue.courts.length}`;
@@ -1822,7 +1823,7 @@ function buildVenueInfoPanel(
 ): { element: HTMLElement; update: () => void } {
   const bar = document.createElement('div');
   bar.style.cssText =
-    'padding: 6px 14px; background: #f0f7ff; border-bottom: 1px solid #d0e0f0; font-family: sans-serif; font-size: 12px; color: #334; display: flex; gap: 20px; flex-wrap: wrap;';
+    'padding: 6px 14px; background: var(--chc-bg-secondary); border-bottom: 1px solid var(--chc-border-primary); font-family: sans-serif; font-size: 12px; color: var(--chc-text-primary); display: flex; gap: 20px; flex-wrap: wrap;';
 
   const spans: HTMLSpanElement[] = venueAvailInfos.map(() => {
     const span = document.createElement('span');
@@ -1836,7 +1837,7 @@ function buildVenueInfoPanel(
     for (let i = 0; i < venueAvailInfos.length; i++) {
       const vi = venueAvailInfos[i];
       const avail = engine.getVenueAvailability(config.tournamentId, vi.venueId);
-      const label = `<strong style="color:#223">${vi.name}:</strong>`;
+      const label = `<strong style="color:var(--chc-text-primary)">${vi.name}:</strong>`;
       if (avail) {
         spans[i].innerHTML = `${label} venue defaults ${avail.startTime}\u2013${avail.endTime}`;
       } else {

@@ -10,14 +10,14 @@ export const scaleStyle = css({
   fontWeight: 'bold',
   borderRadius: 2,
   // width: '1.8rem',
-  color: 'blue',
+  color: 'var(--chc-status-info)',
   variants: {
     color: {
       green: {
-        color: 'green'
+        color: 'var(--chc-status-success)'
       },
       red: {
-        color: 'red'
+        color: 'var(--chc-status-error)'
       }
     }
   }

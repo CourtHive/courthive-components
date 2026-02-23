@@ -52,8 +52,8 @@
 /* Visual distinction for BYE option - will be first item */
 .participant-assignment-input .awesomplete > ul[role="listbox"] li:first-child {
   font-style: italic;
-  color: #666;
-  border-bottom: 1px solid #e0e0e0;
+  color: var(--chc-text-secondary);
+  border-bottom: 1px solid var(--chc-border-secondary);
   padding-bottom: 4px;
   margin-bottom: 4px;
 }

@@ -37,7 +37,7 @@ export const modalContainerStyle = css({
 
 export const modalDialogStyle = css({
   boxShadow: '0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23)',
-  backgroundColor: 'white',
+  backgroundColor: 'var(--chc-modal-bg)',
   position: 'relative',
   borderRadius: '3px',
   minHeight: 'auto',
@@ -45,7 +45,7 @@ export const modalDialogStyle = css({
 });
 
 export const modalHeaderStyle = css({
-  borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
+  borderBottom: '1px solid var(--chc-border-primary)',
   alignItems: 'center',
   position: 'relative',
   display: 'flex'
@@ -57,7 +57,7 @@ export const modalTitleStyle = css({
 });
 
 export const modalFooterStyle = css({
-  borderTop: '1px solid rgba(0, 0, 0, 0.1)',
+  borderTop: '1px solid var(--chc-border-primary)',
   justifyContent: 'right',
   alignItems: 'center',
   position: 'relative',
