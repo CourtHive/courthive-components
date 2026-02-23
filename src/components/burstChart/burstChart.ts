@@ -182,10 +182,16 @@ function resolveWinner(
   mu: SunburstMatchUp,
   lookup: Map<string, HierarchyNode>
 ): { winnerName?: string; winnerSide?: SunburstSide; winnerLookup?: HierarchyNode } {
-  const winnerSide =
+  let winnerSide =
     mu.winningSide !== undefined && mu.winningSide !== null
       ? mu.sides.find((s) => s.sideNumber === mu.winningSide)
       : undefined;
+
+  // BYE matchUps may not have winningSide set; resolve by finding the side with a participant
+  if (!winnerSide && mu.matchUpStatus === 'BYE') {
+    winnerSide = mu.sides.find((s) => s.participantName);
+  }
+
   const winnerName = winnerSide?.participantName;
   const winnerLookup = winnerName ? lookup.get(winnerName) : undefined;
   return { winnerName, winnerSide, winnerLookup };

@@ -291,6 +291,121 @@ export const GeneratedTournament: Story = {
 };
 
 /**
+ * With BYEs - 32-draw with 28 participants (4 BYEs)
+ *
+ * Verifies that players who advance via BYE have their color shown
+ * in the round-1 winner segment (the ring just inside the outer draw positions).
+ * The factory produces BYE matchUps without winningSide set, so resolveWinner
+ * falls back to finding the side with a participant.
+ */
+export const ByesInDraw: Story = {
+  args: {
+    width: 800,
+    height: 800,
+    title: '32-Draw with BYEs'
+  },
+  render: (args: any) => {
+    const wrapper = document.createElement('div');
+    wrapper.style.padding = '20px';
+    wrapper.style.backgroundColor = '#f5f5f5';
+    wrapper.style.display = 'flex';
+    wrapper.style.gap = '20px';
+
+    const chartContainer = document.createElement('div');
+    chartContainer.style.flex = '1';
+    chartContainer.style.backgroundColor = '#ffffff';
+    chartContainer.style.border = BORDER_STYLE_1;
+    chartContainer.style.borderRadius = '8px';
+    chartContainer.style.display = 'flex';
+    chartContainer.style.alignItems = 'center';
+    chartContainer.style.justifyContent = 'center';
+
+    const { tournamentRecord, drawIds } = mocksEngine.generateTournamentRecord({
+      drawProfiles: [{ drawSize: 32, drawType: SINGLE_ELIMINATION, seedsCount: 4, participantsCount: 28 }],
+      completeAllMatchUps: true,
+      randomWinningSide: true
+    });
+    tournamentEngine.setState(tournamentRecord);
+
+    const drawId = drawIds[0];
+    const { eventData } = tournamentEngine.getEventData({ drawId });
+    const structure = eventData.drawsData.find((d: any) => d.drawId === drawId).structures[0];
+    const drawData = fromFactoryDrawData(structure);
+
+    // Log BYE matchUp details for debugging
+    const round1 = drawData.roundMatchUps[1] || [];
+    const byeMatchUps = round1.filter((mu) => mu.matchUpStatus === 'BYE');
+    console.log(`BYE matchUps: ${byeMatchUps.length} of ${round1.length} in round 1`);
+    byeMatchUps.forEach((mu) => {
+      const player = mu.sides.find((s) => s.participantName);
+      console.log(
+        `  BYE: ${player?.participantName} (draw pos ${player?.drawPosition}, seed ${player?.seedNumber || '-'})`
+      );
+    });
+
+    const chart = burstChart({
+      width: args.width,
+      height: args.height,
+      eventHandlers: {
+        clickSegment: (data) => {
+          console.log(CLICKED_SEGMENT, data);
+        }
+      }
+    });
+
+    chart.render(chartContainer, drawData, args.title);
+
+    // Info panel
+    const infoPanel = document.createElement('div');
+    infoPanel.style.flex = '0 0 300px';
+    infoPanel.style.padding = '20px';
+    infoPanel.style.backgroundColor = '#ffffff';
+    infoPanel.style.border = BORDER_STYLE_1;
+    infoPanel.style.borderRadius = '8px';
+
+    const infoTitle = document.createElement('h3');
+    infoTitle.textContent = 'BYE Handling';
+    infoTitle.style.marginTop = '0';
+    infoTitle.style.marginBottom = '15px';
+    infoTitle.style.color = '#333';
+    infoPanel.appendChild(infoTitle);
+
+    const desc = document.createElement('div');
+    desc.style.fontSize = '14px';
+    desc.style.lineHeight = '1.8';
+    desc.style.color = '#666';
+    desc.innerHTML = `
+      <p>32-draw bracket with <strong>28 participants</strong> and <strong>4 BYEs</strong>.</p>
+      <p>Players advancing by BYE should have their color visible in the
+      round-1 winner segment (the ring just inside the outermost draw positions).</p>
+      <ul>
+        <li><strong>Grey segments</strong> on the outer ring = BYE positions</li>
+        <li><strong>Colored segments</strong> one ring inward = BYE-advanced players</li>
+        <li>Seeds shown in <span style="color:#1565C0">blue gradient</span></li>
+        <li>Unseeded in <span style="color:#4CAF50">green palette</span></li>
+      </ul>
+      <p><strong>BYE matchUps found:</strong> ${byeMatchUps.length}</p>
+      <ul style="font-size:13px">
+        ${byeMatchUps
+          .map((mu) => {
+            const player = mu.sides.find((s: any) => s.participantName);
+            return `<li>${player?.participantName || '?'} (pos ${player?.drawPosition || '?'}${
+              player?.seedNumber ? `, seed ${player.seedNumber}` : ''
+            })</li>`;
+          })
+          .join('')}
+      </ul>
+    `;
+    infoPanel.appendChild(desc);
+
+    wrapper.appendChild(chartContainer);
+    wrapper.appendChild(infoPanel);
+
+    return wrapper;
+  }
+};
+
+/**
  * Draw Size Picker - Generate tournaments at various sizes with controls
  */
 export const DrawSizePicker: Story = {
@@ -481,7 +596,7 @@ export const CenterClickNavigation: Story = {
   args: {
     width: 800,
     height: 800,
-    title: 'Click Center to Navigate',
+    title: 'Click Center to Navigate'
   },
   render: (args: any) => {
     const wrapper = document.createElement('div');
@@ -552,7 +667,7 @@ export const CenterClickNavigation: Story = {
     const { tournamentRecord, drawIds } = mocksEngine.generateTournamentRecord({
       drawProfiles: [{ drawSize: 32, drawType: SINGLE_ELIMINATION, seedsCount: 8 }],
       completeAllMatchUps: true,
-      randomWinningSide: true,
+      randomWinningSide: true
     });
     tournamentEngine.setState(tournamentRecord);
 
@@ -574,8 +689,8 @@ export const CenterClickNavigation: Story = {
           const name = data.participantName || 'unknown';
           const score = data.scoreString ? ` (${data.scoreString})` : '';
           addLogEntry(`clickSegment — ${name}${score}`, '#333');
-        },
-      },
+        }
+      }
     });
 
     chart.render(chartContainer, drawData, args.title);
@@ -586,7 +701,7 @@ export const CenterClickNavigation: Story = {
     wrapper.appendChild(logPanel);
 
     return wrapper;
-  },
+  }
 };
 
 /**
