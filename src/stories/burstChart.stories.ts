@@ -335,13 +335,6 @@ export const ByesInDraw: Story = {
     // Log BYE matchUp details for debugging
     const round1 = drawData.roundMatchUps[1] || [];
     const byeMatchUps = round1.filter((mu) => mu.matchUpStatus === 'BYE');
-    console.log(`BYE matchUps: ${byeMatchUps.length} of ${round1.length} in round 1`);
-    byeMatchUps.forEach((mu) => {
-      const player = mu.sides.find((s) => s.participantName);
-      console.log(
-        `  BYE: ${player?.participantName} (draw pos ${player?.drawPosition}, seed ${player?.seedNumber || '-'})`
-      );
-    });
 
     const chart = burstChart({
       width: args.width,

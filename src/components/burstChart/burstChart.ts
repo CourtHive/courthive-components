@@ -368,8 +368,11 @@ function applyColors(node: HierarchyNode, colorScale: ScaleLinear<number, number
  */
 function getLeafInfo(data: HierarchyNode, depth: number): string | undefined {
   const info: string[] = [];
-  if (data.seedNumber) info.push(`Seed ${data.seedNumber}`);
-  if (data.entryStatus) info.push(data.entryStatus);
+  if (data.seedNumber) {
+    info.push(`Seed ${data.seedNumber}`);
+  } else if (data.entryStatus) {
+    info.push(data.entryStatus); // map to short code (WC/Q/LL) in buildRoundParents()
+  }
   if (depth === 7 && data.drawPosition) {
     info.push(`Draw ${data.drawPosition}`);
   }
