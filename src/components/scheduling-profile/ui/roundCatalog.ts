@@ -114,6 +114,7 @@ export function buildRoundCatalog(callbacks: RoundCatalogCallbacks): UIPanel<Pro
 
         div.draggable = true;
         div.addEventListener('dragstart', (e) => {
+          e.stopPropagation();
           e.dataTransfer!.setData(
             'application/json',
             JSON.stringify({ type: 'CATALOG_ROUND', roundRef: item }),

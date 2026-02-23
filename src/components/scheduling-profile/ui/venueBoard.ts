@@ -143,7 +143,7 @@ export function buildVenueBoard(callbacks: VenueBoardCallbacks): UIPanel<Profile
         if (!date) return;
         e.preventDefault();
         dz.classList.add('over');
-        e.dataTransfer!.dropEffect = 'move';
+        e.dataTransfer!.dropEffect = 'copy';
       });
       dz.addEventListener('dragleave', () => dz.classList.remove('over'));
       dz.addEventListener('drop', (e) => {
@@ -151,7 +151,12 @@ export function buildVenueBoard(callbacks: VenueBoardCallbacks): UIPanel<Profile
         e.preventDefault();
         if (!date) return;
 
-        const payload: DragPayload = JSON.parse(e.dataTransfer!.getData('application/json'));
+        let payload: DragPayload;
+        try {
+          payload = JSON.parse(e.dataTransfer!.getData('application/json'));
+        } catch {
+          return;
+        }
         const rounds = getVenueRounds(state.profileDraft, date, v.venueId);
         const drop: DropTarget = { date, venueId: v.venueId, index: rounds.length };
         callbacks.onDrop(payload, drop);

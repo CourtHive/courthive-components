@@ -71,6 +71,8 @@ export const spPanelStyle = css({
   borderRadius: '16px',
   overflow: 'hidden',
   boxShadow: '0 10px 30px rgba(0,0,0,0.35)',
+  display: 'flex',
+  flexDirection: 'column',
 });
 
 export const spPanelHeaderStyle = css({
@@ -253,7 +255,8 @@ export const spIssuesStyle = css({
   display: 'flex',
   flexDirection: 'column',
   gap: '8px',
-  maxHeight: '360px',
+  flex: 1,
+  minHeight: 0,
   overflow: 'auto',
 });
 
@@ -304,7 +307,8 @@ export const spCatalogStyle = css({
   display: 'flex',
   flexDirection: 'column',
   gap: '10px',
-  maxHeight: '520px',
+  flex: 1,
+  minHeight: 0,
   overflow: 'auto',
 });
 

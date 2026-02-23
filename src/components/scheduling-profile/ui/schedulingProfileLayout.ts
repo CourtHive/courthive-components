@@ -33,6 +33,8 @@ export function buildSchedulingProfileLayout(panels: LayoutPanels): {
   const left = document.createElement('div');
   left.className = spColumnStyle();
   left.appendChild(panels.dateStrip.element);
+  panels.issuesPanel.element.style.flex = '1';
+  panels.issuesPanel.element.style.minHeight = '0';
   left.appendChild(panels.issuesPanel.element);
 
   // Center column
@@ -43,6 +45,8 @@ export function buildSchedulingProfileLayout(panels: LayoutPanels): {
   // Right column
   const right = document.createElement('div');
   right.className = spColumnStyle();
+  panels.roundCatalog.element.style.flex = '1';
+  panels.roundCatalog.element.style.minHeight = '0';
   right.appendChild(panels.roundCatalog.element);
   right.appendChild(panels.inspectorPanel.element);
 
