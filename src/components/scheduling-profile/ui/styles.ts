@@ -12,33 +12,17 @@ import { css } from '@stitches/core';
 // ============================================================================
 
 const GAP_12 = '12px';
-const BORDER_SUBTLE = '1px solid rgba(31,41,55,0.85)';
+const BORDER_SUBTLE = '1px solid var(--sp-border-subtle)';
 const JUSTIFY_BETWEEN = 'space-between';
 const COLOR_MUTED = 'var(--sp-muted)';
-const BORDER_DEFAULT = '1px solid rgba(148,163,184,0.18)';
-const ACCENT_FOCUS = 'rgba(96,165,250,0.55)';
+const BORDER_DEFAULT = '1px solid var(--sp-border)';
+const ACCENT_FOCUS = 'var(--sp-accent-focus)';
 const RADIUS_PILL = '999px';
-const BG_CARD = 'rgba(15,23,42,0.55)';
-const HOVER_BORDER = 'rgba(148,163,184,0.35)';
+const BG_CARD = 'var(--sp-card-bg)';
+const HOVER_BORDER = 'var(--sp-border-hover)';
 const COLOR_TEXT = 'var(--sp-text)';
-const BORDER_LIGHT = '1px solid rgba(148,163,184,0.22)';
-const BG_INPUT = 'rgba(2,6,23,0.45)';
-
-// ============================================================================
-// CSS Variables (injected via layout root)
-// ============================================================================
-
-export const SP_CSS_VARS = {
-  '--sp-bg': '#0b0f14',
-  '--sp-panel': '#111827',
-  '--sp-muted': '#94a3b8',
-  '--sp-text': '#e5e7eb',
-  '--sp-line': '#1f2937',
-  '--sp-accent': '#60a5fa',
-  '--sp-ok': '#34d399',
-  '--sp-warn': '#fbbf24',
-  '--sp-err': '#fb7185',
-} as const;
+const BORDER_LIGHT = '1px solid var(--sp-border-light)';
+const BG_INPUT = 'var(--sp-input-bg)';
 
 // ============================================================================
 // Layout
@@ -65,11 +49,11 @@ export const spColumnStyle = css({
   overflowX: 'hidden',
   overflowY: 'auto',
   scrollbarWidth: 'thin',
-  scrollbarColor: 'rgba(148,163,184,0.3) transparent',
+  scrollbarColor: 'var(--sp-scrollbar) transparent',
   '&::-webkit-scrollbar': { width: '6px' },
   '&::-webkit-scrollbar-track': { background: 'transparent' },
   '&::-webkit-scrollbar-thumb': {
-    background: 'rgba(148,163,184,0.3)',
+    background: 'var(--sp-scrollbar)',
     borderRadius: '3px',
   },
 });
@@ -79,11 +63,11 @@ export const spColumnStyle = css({
 // ============================================================================
 
 export const spPanelStyle = css({
-  background: 'rgba(17,24,39,0.75)',
+  background: 'var(--sp-panel-bg)',
   border: '1px solid var(--sp-line)',
   borderRadius: '16px',
   overflow: 'hidden',
-  boxShadow: '0 10px 30px rgba(0,0,0,0.35)',
+  boxShadow: 'var(--sp-panel-shadow)',
   display: 'flex',
   flexDirection: 'column',
 });
@@ -129,12 +113,12 @@ export const spDateChipStyle = css({
   padding: '10px',
   borderRadius: '12px',
   border: BORDER_DEFAULT,
-  background: 'rgba(15,23,42,0.6)',
+  background: 'var(--sp-chip-bg)',
   cursor: 'pointer',
   '&:hover': { borderColor: HOVER_BORDER },
   '&.selected': {
     borderColor: ACCENT_FOCUS,
-    background: 'rgba(96,165,250,0.12)',
+    background: 'var(--sp-selected-bg)',
   },
   '&.unavailable': {
     opacity: 0.55,
@@ -158,9 +142,9 @@ export const spBadgeStyle = css({
   borderRadius: RADIUS_PILL,
   border: BORDER_LIGHT,
   color: COLOR_MUTED,
-  '&.ok': { borderColor: 'rgba(52,211,153,0.35)', color: 'rgba(52,211,153,0.95)' },
-  '&.warn': { borderColor: 'rgba(251,191,36,0.4)', color: 'rgba(251,191,36,0.95)' },
-  '&.err': { borderColor: 'rgba(251,113,133,0.45)', color: 'rgba(251,113,133,0.95)' },
+  '&.ok': { borderColor: 'var(--sp-ok-border)', color: 'var(--sp-ok-text)' },
+  '&.warn': { borderColor: 'var(--sp-warn-border)', color: 'var(--sp-warn-text)' },
+  '&.err': { borderColor: 'var(--sp-err-border)', color: 'var(--sp-err-text)' },
 });
 
 export const spChipsStyle = css({
@@ -176,10 +160,10 @@ export const spChipStyle = css({
   borderRadius: RADIUS_PILL,
   border: BORDER_LIGHT,
   color: COLOR_MUTED,
-  '&.seg': { borderColor: 'rgba(96,165,250,0.35)', color: 'rgba(96,165,250,0.95)' },
-  '&.nb': { borderColor: 'rgba(52,211,153,0.28)', color: 'rgba(52,211,153,0.95)' },
-  '&.err': { borderColor: 'rgba(251,113,133,0.35)', color: 'rgba(251,113,133,0.95)' },
-  '&.warn': { borderColor: 'rgba(251,191,36,0.35)', color: 'rgba(251,191,36,0.95)' },
+  '&.seg': { borderColor: 'var(--sp-accent-border)', color: 'var(--sp-accent-text)' },
+  '&.nb': { borderColor: 'var(--sp-ok-border)', color: 'var(--sp-ok-text)' },
+  '&.err': { borderColor: 'var(--sp-err-border)', color: 'var(--sp-err-text)' },
+  '&.warn': { borderColor: 'var(--sp-warn-border)', color: 'var(--sp-warn-text)' },
 });
 
 // ============================================================================
@@ -245,9 +229,9 @@ export const spCardStyle = css({
   padding: '10px',
   cursor: 'grab',
   '&:active': { cursor: 'grabbing' },
-  '&.selected': { borderColor: 'rgba(96,165,250,0.6)' },
-  '&.error': { borderColor: 'rgba(251,113,133,0.55)' },
-  '&.warn': { borderColor: 'rgba(251,191,36,0.55)' },
+  '&.selected': { borderColor: 'var(--sp-selected-border)' },
+  '&.error': { borderColor: 'var(--sp-err-border-strong)' },
+  '&.warn': { borderColor: 'var(--sp-warn-border-strong)' },
 });
 
 export const spCardTitleStyle = css({
@@ -280,9 +264,9 @@ export const spIssueStyle = css({
   borderRadius: '12px',
   padding: '10px',
   background: BG_CARD,
-  '&.error': { borderColor: 'rgba(251,113,133,0.35)' },
-  '&.warn': { borderColor: 'rgba(251,191,36,0.35)' },
-  '&.info': { borderColor: 'rgba(96,165,250,0.25)' },
+  '&.error': { borderColor: 'var(--sp-err-border-light)' },
+  '&.warn': { borderColor: 'var(--sp-warn-border-light)' },
+  '&.info': { borderColor: 'var(--sp-accent-border-light)' },
 });
 
 export const spIssueCodeStyle = css({
@@ -307,7 +291,7 @@ export const spIssueActionBtnStyle = css({
   padding: '6px 8px',
   borderRadius: '10px',
   border: BORDER_LIGHT,
-  background: 'rgba(17,24,39,0.6)',
+  background: 'var(--sp-action-btn-bg)',
   color: COLOR_TEXT,
   cursor: 'pointer',
   '&:hover': { borderColor: HOVER_BORDER },
@@ -362,7 +346,7 @@ export const spSelectStyle = css({
 });
 
 export const spGroupStyle = css({
-  border: '1px solid rgba(148,163,184,0.14)',
+  border: '1px solid var(--sp-border-group)',
   borderRadius: '14px',
   overflow: 'hidden',
   flexShrink: 0,
@@ -378,7 +362,7 @@ export const spGroupHeaderStyle = css({
   alignItems: 'center',
   gap: '6px',
   userSelect: 'none',
-  '&:hover': { background: 'rgba(148,163,184,0.08)' },
+  '&:hover': { background: 'var(--sp-hover-bg)' },
 });
 
 export const spGroupBodyStyle = css({
@@ -398,7 +382,7 @@ export const spCatalogItemStyle = css({
   '&.dimmed': { opacity: 0.65 },
   '&.navigate': {
     cursor: 'pointer',
-    borderColor: 'rgba(96,165,250,0.3)',
+    borderColor: 'var(--sp-accent-border)',
     '&:hover': { borderColor: ACCENT_FOCUS, opacity: 1 },
   },
 });
@@ -447,7 +431,7 @@ export const spPopoverItemStyle = css({
   alignItems: 'center',
   gap: '8px',
   fontSize: '13px',
-  '&:hover': { background: '#f0f0f0', color: '#333' },
+  '&:hover': { background: 'var(--sp-popover-hover-bg)', color: 'var(--sp-popover-hover-text)' },
 });
 
 export const spPopoverDeleteStyle = css({
@@ -456,13 +440,13 @@ export const spPopoverDeleteStyle = css({
   display: 'flex',
   alignItems: 'center',
   gap: '8px',
-  color: '#e74c3c',
+  color: 'var(--sp-popover-delete)',
   fontSize: '13px',
-  '&:hover': { background: '#fdecea' },
+  '&:hover': { background: 'var(--sp-popover-delete-bg)' },
 });
 
 export const spPopoverDividerStyle = css({
-  borderTop: '1px solid #e0e0e0',
+  borderTop: '1px solid var(--sp-popover-divider)',
   margin: '4px 0',
 });
 

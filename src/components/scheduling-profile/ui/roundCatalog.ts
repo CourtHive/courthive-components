@@ -43,7 +43,7 @@ export function buildRoundCatalog(callbacks: RoundCatalogCallbacks): UIPanel<Pro
   root.className = spPanelStyle();
   root.style.overflowY = 'auto';
   root.style.scrollbarWidth = 'thin';
-  root.style.scrollbarColor = 'rgba(148,163,184,0.3) transparent';
+  root.style.scrollbarColor = 'var(--sp-scrollbar) transparent';
 
   // Collapsible group state (persists across update calls)
   const collapsedGroups = new Set<string>();

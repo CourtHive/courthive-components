@@ -15,7 +15,6 @@ import { buildVenueBoard } from '../../components/scheduling-profile/ui/venueBoa
 import { buildRoundCatalog } from '../../components/scheduling-profile/ui/roundCatalog';
 import { buildInspectorPanel } from '../../components/scheduling-profile/ui/inspectorPanel';
 import { buildRoundCard } from '../../components/scheduling-profile/ui/roundCard';
-import { SP_CSS_VARS } from '../../components/scheduling-profile/ui/styles';
 
 import {
   VENUES,
@@ -32,19 +31,11 @@ export default {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-const DARK_BG =
-  'background: linear-gradient(180deg, #070a0f, #0b1020 40%, #070a0f); min-height: 400px; padding: 20px;';
-const DARK_BG_NARROW = DARK_BG + 'max-width: 400px;';
+const SP_ROOT =
+  'background: var(--sp-bg); min-height: 400px; padding: 20px; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: var(--sp-text);';
+const SP_ROOT_NARROW = SP_ROOT + ' max-width: 400px;';
 const EVENT_NAME = 'Boys U16 Singles';
 const DAY1 = '2026-06-15';
-
-function applyVars(el: HTMLElement): void {
-  for (const [key, value] of Object.entries(SP_CSS_VARS)) {
-    el.style.setProperty(key, value);
-  }
-  el.style.fontFamily = 'ui-sans-serif, system-ui, -apple-system, sans-serif';
-  el.style.color = 'var(--sp-text)';
-}
 
 function makeEmptyIndex(): IssueIndex {
   return {
@@ -77,7 +68,7 @@ function makeStoreState(overrides: Partial<ProfileStoreState> = {}): ProfileStor
 function addStatusLog(container: HTMLElement): (msg: string) => void {
   const log = document.createElement('div');
   log.style.cssText =
-    'margin-top: 16px; padding: 12px; background: rgba(15,23,42,0.8); border: 1px solid rgba(148,163,184,0.2); border-radius: 8px; font-size: 12px; color: #94a3b8; max-height: 150px; overflow: auto;';
+    'margin-top: 16px; padding: 12px; background: var(--sp-card-bg); border: 1px solid var(--sp-border-group); border-radius: 8px; font-size: 12px; color: var(--sp-muted); max-height: 150px; overflow: auto;';
   log.innerHTML = '<div style="font-weight:700; margin-bottom:6px;">Event Log</div>';
   container.appendChild(log);
 
@@ -96,8 +87,7 @@ function addStatusLog(container: HTMLElement): (msg: string) => void {
 export const RoundCard = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG;
-    applyVars(root);
+    root.style.cssText = SP_ROOT;
 
     const heading = document.createElement('h3');
     heading.textContent = 'Round Card Variants';
@@ -192,7 +182,7 @@ function labelCard(label: string, card: HTMLElement): HTMLElement {
   const wrap = document.createElement('div');
   const lbl = document.createElement('div');
   lbl.textContent = label;
-  lbl.style.cssText = 'font-size: 11px; color: #94a3b8; margin-bottom: 6px; font-weight: 600;';
+  lbl.style.cssText = 'font-size: 11px; color: var(--sp-muted); margin-bottom: 6px; font-weight: 600;';
   wrap.appendChild(lbl);
   wrap.appendChild(card);
   return wrap;
@@ -205,8 +195,7 @@ function labelCard(label: string, card: HTMLElement): HTMLElement {
 export const DateStrip = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG + 'max-width: 360px;';
-    applyVars(root);
+    root.style.cssText = SP_ROOT + ' max-width: 360px;';
 
     const store = new ProfileStore(makeBaseConfig({ initialProfile: ERROR_PROFILE }));
     const panel = buildDateStrip({
@@ -233,8 +222,7 @@ export const DateStrip = {
 export const IssuesPanel = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG_NARROW;
-    applyVars(root);
+    root.style.cssText = SP_ROOT_NARROW;
 
     const store = new ProfileStore(makeBaseConfig({ initialProfile: ERROR_PROFILE }));
     const logFn = addStatusLog(root);
@@ -257,8 +245,7 @@ export const IssuesPanel = {
 export const IssuesPanelEmpty = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG_NARROW;
-    applyVars(root);
+    root.style.cssText = SP_ROOT_NARROW;
 
     const panel = buildIssuesPanel({
       onFixAction: () => {},
@@ -278,8 +265,7 @@ export const IssuesPanelEmpty = {
 export const VenueBoard = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG;
-    applyVars(root);
+    root.style.cssText = SP_ROOT;
 
     const store = new ProfileStore(makeBaseConfig({ initialProfile: VALID_PROFILE }));
     const logFn = addStatusLog(root);
@@ -314,8 +300,7 @@ export const VenueBoard = {
 export const VenueBoardWithErrors = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG;
-    applyVars(root);
+    root.style.cssText = SP_ROOT;
 
     const store = new ProfileStore(makeBaseConfig({ initialProfile: ERROR_PROFILE }));
     const logFn = addStatusLog(root);
@@ -343,8 +328,7 @@ export const VenueBoardWithErrors = {
 export const VenueBoardEmpty = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG;
-    applyVars(root);
+    root.style.cssText = SP_ROOT;
 
     const panel = buildVenueBoard({
       onDrop: () => {},
@@ -365,8 +349,7 @@ export const VenueBoardEmpty = {
 export const RoundCatalogByEvent = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG_NARROW;
-    applyVars(root);
+    root.style.cssText = SP_ROOT_NARROW;
 
     const store = new ProfileStore(makeBaseConfig());
     const logFn = addStatusLog(root);
@@ -395,12 +378,12 @@ export const RoundCatalogWithPlanned = {
   render: () => {
     const root = document.createElement('div');
     root.style.cssText =
-      'background: linear-gradient(180deg, #070a0f, #0b1020 40%, #070a0f); ' +
-      'height: 100vh; max-width: 400px; padding: 20px; display: flex; flex-direction: column; gap: 12px;';
-    applyVars(root);
+      'background: var(--sp-bg); ' +
+      'height: 100vh; max-width: 400px; padding: 20px; display: flex; flex-direction: column; gap: 12px;' +
+      ' font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: var(--sp-text);';
 
     const heading = document.createElement('div');
-    heading.style.cssText = 'font-size: 12px; color: #94a3b8; flex-shrink: 0;';
+    heading.style.cssText = 'font-size: 12px; color: var(--sp-muted); flex-shrink: 0;';
     heading.textContent =
       'Fixed-height container (100vh). Expand all groups — the catalog body should scroll. ' +
       'Planned rounds are dimmed.';
@@ -436,8 +419,7 @@ export const RoundCatalogWithPlanned = {
 export const InspectorEmpty = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG_NARROW;
-    applyVars(root);
+    root.style.cssText = SP_ROOT_NARROW;
 
     const panel = buildInspectorPanel();
     root.appendChild(panel.element);
@@ -450,8 +432,7 @@ export const InspectorEmpty = {
 export const InspectorWithSelection = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG_NARROW;
-    applyVars(root);
+    root.style.cssText = SP_ROOT_NARROW;
 
     const store = new ProfileStore(makeBaseConfig({ initialProfile: VALID_PROFILE }));
 
@@ -474,8 +455,7 @@ export const InspectorWithSelection = {
 export const InspectorWithErrors = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG_NARROW;
-    applyVars(root);
+    root.style.cssText = SP_ROOT_NARROW;
 
     const store = new ProfileStore(makeBaseConfig({ initialProfile: ERROR_PROFILE }));
 

@@ -6,7 +6,7 @@
  * Right:  roundCatalog + inspectorPanel
  */
 
-import { spLayoutStyle, spColumnStyle, SP_CSS_VARS } from './styles';
+import { spLayoutStyle, spColumnStyle } from './styles';
 import type { ProfileStoreState, UIPanel } from '../types';
 
 export interface LayoutPanels {
@@ -23,11 +23,6 @@ export function buildSchedulingProfileLayout(panels: LayoutPanels): {
 } {
   const root = document.createElement('div');
   root.className = spLayoutStyle();
-
-  // Apply CSS variables
-  for (const [key, value] of Object.entries(SP_CSS_VARS)) {
-    root.style.setProperty(key, value);
-  }
 
   // Left column
   const left = document.createElement('div');

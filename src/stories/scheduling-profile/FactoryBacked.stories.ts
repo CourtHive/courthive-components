@@ -42,20 +42,23 @@ export default {
 
 // ── Shared Styles ────────────────────────────────────────────────────────────
 
-const DARK_BG = 'background: linear-gradient(180deg, #070a0f, #0b1020 40%, #070a0f);';
-const ROOT_STYLE = DARK_BG + 'min-height: 100vh;';
+const ROOT_STYLE =
+  'background: var(--sp-bg); min-height: 100vh;';
 
 const INFO_STYLE =
-  'font-size: 12px; color: #94a3b8; padding: 12px 16px; font-family: ui-sans-serif, system-ui, sans-serif;';
+  'font-size: 12px; color: var(--sp-muted); padding: 12px 16px; font-family: ui-sans-serif, system-ui, sans-serif;';
 
 const BTN_STYLE =
-  'padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(96,165,250,0.35); background: rgba(96,165,250,0.12); color: #e5e7eb; cursor: pointer; font-size: 12px;';
+  'padding: 6px 12px; border-radius: 8px; border: 1px solid var(--sp-accent-border); background: var(--sp-selected-bg); color: var(--sp-text); cursor: pointer; font-size: 12px;';
+
+const BTN_STYLE_OK =
+  'padding: 6px 12px; border-radius: 8px; border: 1px solid var(--sp-ok-border); background: var(--sp-selected-bg); color: var(--sp-text); cursor: pointer; font-size: 12px;';
 
 const FOOTER_STYLE =
-  'padding: 12px 16px; border-top: 1px solid #1f2937; font-size: 12px; color: #94a3b8; font-family: ui-sans-serif, system-ui, sans-serif; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;';
+  'padding: 12px 16px; border-top: 1px solid var(--sp-line); font-size: 12px; color: var(--sp-muted); font-family: ui-sans-serif, system-ui, sans-serif; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;';
 
 const PRE_STYLE =
-  'margin: 0; padding: 12px 16px; background: rgba(15,23,42,0.75); border-top: 1px solid #1f2937; color: #94a3b8; font-size: 11px; font-family: ui-monospace, monospace; max-height: 200px; overflow: auto; white-space: pre-wrap;';
+  'margin: 0; padding: 12px 16px; background: var(--sp-card-bg); border-top: 1px solid var(--sp-line); color: var(--sp-muted); font-size: 11px; font-family: ui-monospace, monospace; max-height: 200px; overflow: auto; white-space: pre-wrap;';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -178,7 +181,7 @@ export const RoundTrip = {
 
     const scheduleBtn = document.createElement('button');
     scheduleBtn.textContent = 'Schedule Profile Rounds';
-    scheduleBtn.style.cssText = BTN_STYLE.replace('rgba(96,165,250', 'rgba(52,211,153');
+    scheduleBtn.style.cssText = BTN_STYLE_OK;
 
     const resultPanel = document.createElement('pre');
     resultPanel.style.cssText = PRE_STYLE;
@@ -409,7 +412,7 @@ export const PreScheduled = {
 export const FullHeight = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText = DARK_BG + 'height: 100vh; overflow: hidden;';
+    root.style.cssText = 'background: var(--sp-bg); height: 100vh; overflow: hidden;';
 
     const setup = createFactorySetup();
     createSchedulingProfile(setup.config, root);

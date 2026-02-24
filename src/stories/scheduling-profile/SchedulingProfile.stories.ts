@@ -44,20 +44,20 @@ export default {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-const DARK_BG = 'background: linear-gradient(180deg, #070a0f, #0b1020 40%, #070a0f);';
-const ROOT_STYLE = DARK_BG + 'min-height: 100vh;';
+const ROOT_STYLE =
+  'background: var(--sp-bg); min-height: 100vh;';
 const INFO_STYLE =
-  'font-size: 12px; color: #94a3b8; padding: 12px 16px; font-family: ui-sans-serif, system-ui, sans-serif;';
+  'font-size: 12px; color: var(--sp-muted); padding: 12px 16px; font-family: ui-sans-serif, system-ui, sans-serif;';
 
 function addConsoleLog(container: HTMLElement, control: SchedulingProfileControl): void {
   const footer = document.createElement('div');
   footer.style.cssText =
-    'padding: 12px 16px; border-top: 1px solid #1f2937; font-size: 12px; color: #94a3b8; font-family: ui-sans-serif, system-ui, sans-serif; display: flex; gap: 12px; align-items: center;';
+    'padding: 12px 16px; border-top: 1px solid var(--sp-line); font-size: 12px; color: var(--sp-muted); font-family: ui-sans-serif, system-ui, sans-serif; display: flex; gap: 12px; align-items: center;';
 
   const exportBtn = document.createElement('button');
   exportBtn.textContent = 'Export Profile (console)';
   exportBtn.style.cssText =
-    'padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(96,165,250,0.35); background: rgba(96,165,250,0.12); color: #e5e7eb; cursor: pointer; font-size: 12px;';
+    'padding: 6px 12px; border-radius: 8px; border: 1px solid var(--sp-accent-border); background: var(--sp-selected-bg); color: var(--sp-text); cursor: pointer; font-size: 12px;';
   exportBtn.addEventListener('click', () => {
     const profile = control.getProfile();
     console.log('Scheduling Profile:', JSON.stringify(profile, null, 2));
@@ -241,7 +241,7 @@ export const ProgrammaticControl = {
     // Status text
     const status = document.createElement('div');
     status.style.cssText =
-      'padding: 8px 16px; font-size: 12px; color: #60a5fa; font-family: ui-sans-serif, system-ui, sans-serif;';
+      'padding: 8px 16px; font-size: 12px; color: var(--sp-accent); font-family: ui-sans-serif, system-ui, sans-serif;';
     root.appendChild(status);
 
     function updateStatus(): void {
@@ -260,7 +260,7 @@ export const ProgrammaticControl = {
       const btn = document.createElement('button');
       btn.textContent = text;
       btn.style.cssText =
-        'padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(148,163,184,0.25); background: rgba(15,23,42,0.75); color: #e5e7eb; cursor: pointer; font-size: 12px;';
+        'padding: 6px 12px; border-radius: 8px; border: 1px solid var(--sp-border); background: var(--sp-card-bg); color: var(--sp-text); cursor: pointer; font-size: 12px;';
       btn.addEventListener('click', handler);
       btnBar.appendChild(btn);
       return btn;
