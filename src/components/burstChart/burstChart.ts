@@ -471,7 +471,7 @@ function createCenterText(
     .attr(ATTR_DOMINANT_BASELINE, 'middle')
     .attr('font-size', `${titleFontSize}px`)
     .attr('font-weight', 'bold')
-    .attr('fill', '#333')
+    .style('fill', 'var(--chc-text-primary, #333)')
     .attr('pointer-events', 'none');
 
   const secondaryOffset = titleFontSize + secondaryFontSize * 0.5;
@@ -482,7 +482,7 @@ function createCenterText(
     .attr(ATTR_TEXT_ANCHOR, 'middle')
     .attr(ATTR_DOMINANT_BASELINE, 'middle')
     .attr('font-size', `${secondaryFontSize}px`)
-    .attr('fill', '#666')
+    .style('fill', 'var(--chc-text-secondary, #666)')
     .attr('pointer-events', 'none');
 
   return { centerText, centerText2 };

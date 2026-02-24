@@ -13,6 +13,8 @@ import { createJsonViewer } from './helpers/JsonViewer';
 import '../components/forms/styles';
 
 const CONSIDERED_DATE = '2024-12-31';
+const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
+const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
 
 export default {
   title: 'Components/MockParticipants',
@@ -30,12 +32,12 @@ export const Basic = {
     const title = document.createElement('h2');
     title.textContent = 'Mock Participants Generator';
     title.style.marginBottom = '1em';
-    title.style.color = 'var(--chc-text-primary)';
+    title.style.color = CHC_TEXT_PRIMARY;
 
     const description = document.createElement('p');
     description.textContent = 'Generate mock participants with configurable gender, count, age range, and ratings.';
     description.style.marginBottom = '1.5em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
 
     const button = document.createElement('button');
     button.className = 'button is-primary';
@@ -56,7 +58,7 @@ export const Basic = {
           const resultHeader = document.createElement('h3');
           resultHeader.textContent = `Generated ${participants.length} Participants`;
           resultHeader.style.marginBottom = '1em';
-          resultHeader.style.color = 'var(--chc-text-primary)';
+          resultHeader.style.color = CHC_TEXT_PRIMARY;
           outputContainer.appendChild(resultHeader);
 
           // Add JSON viewer
@@ -87,11 +89,11 @@ export const WithConsideredDate = {
     const title = document.createElement('h2');
     title.textContent = 'With Considered Date';
     title.style.marginBottom = '1em';
-    title.style.color = 'var(--chc-text-primary)';
+    title.style.color = CHC_TEXT_PRIMARY;
 
     const description = document.createElement('p');
     description.style.marginBottom = '1.5em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     description.innerHTML =
       'Generates participants with birthdates calculated relative to <span style="font-weight: bold; color: var(--chc-text-primary);">2024-12-31</span>.<br>Try setting an age range to see birthdates generated!';
 
@@ -116,7 +118,7 @@ export const WithConsideredDate = {
 
           const resultHeader = document.createElement('h3');
           resultHeader.style.marginBottom = '1em';
-          resultHeader.style.color = 'var(--chc-text-primary)';
+          resultHeader.style.color = CHC_TEXT_PRIMARY;
 
           if (birthdates.length > 0) {
             const years = birthdates.map((bd) => Number.parseInt(bd.slice(0, 4)));
@@ -129,7 +131,7 @@ export const WithConsideredDate = {
             resultHeader.textContent = `Generated ${participants.length} Participants (Ages ${minAge}-${maxAge} on 2024-12-31)`;
 
             const info = document.createElement('p');
-            info.style.color = 'var(--chc-text-secondary)';
+            info.style.color = CHC_TEXT_SECONDARY;
             info.style.marginBottom = '1em';
             info.textContent = `Birth years: ${minYear}-${maxYear} | ${birthdates.length} participants have birthdates`;
             outputContainer.appendChild(resultHeader);
@@ -167,11 +169,11 @@ export const WithDefaults = {
     const title = document.createElement('h2');
     title.textContent = 'With Default Values';
     title.style.marginBottom = '1em';
-    title.style.color = 'var(--chc-text-primary)';
+    title.style.color = CHC_TEXT_PRIMARY;
 
     const description = document.createElement('p');
     description.style.marginBottom = '1.5em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     description.innerHTML =
       'Pre-configured for a junior tournament:<br>• 64 participants<br>• Ages 10-18<br>• WTN ratings enabled';
 
@@ -211,11 +213,11 @@ export const WithDefaults = {
 
           const resultHeader = document.createElement('h3');
           resultHeader.style.marginBottom = '0.5em';
-          resultHeader.style.color = 'var(--chc-text-primary)';
+          resultHeader.style.color = CHC_TEXT_PRIMARY;
           resultHeader.textContent = `Generated ${participants.length} Junior Players`;
 
           const stats = document.createElement('p');
-          stats.style.color = 'var(--chc-text-secondary)';
+          stats.style.color = CHC_TEXT_SECONDARY;
           stats.style.marginBottom = '1em';
           if (ages.length > 0) {
             const minAge = Math.min(...ages);
@@ -255,12 +257,12 @@ export const Scenarios = {
     const title = document.createElement('h2');
     title.textContent = 'Common Scenarios';
     title.style.marginBottom = '1em';
-    title.style.color = 'var(--chc-text-primary)';
+    title.style.color = CHC_TEXT_PRIMARY;
 
     const description = document.createElement('p');
     description.textContent = 'Pre-configured buttons for common tournament types:';
     description.style.marginBottom = '1.5em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
 
     const buttonsContainer = document.createElement('div');
     buttonsContainer.style.marginBottom = '2em';
@@ -285,11 +287,11 @@ export const Scenarios = {
             // Calculate statistics
             const resultHeader = document.createElement('h3');
             resultHeader.style.marginBottom = '0.5em';
-            resultHeader.style.color = 'var(--chc-text-primary)';
+            resultHeader.style.color = CHC_TEXT_PRIMARY;
             resultHeader.textContent = `${text}: ${participants.length} Participants`;
 
             const stats = document.createElement('p');
-            stats.style.color = 'var(--chc-text-secondary)';
+            stats.style.color = CHC_TEXT_SECONDARY;
             stats.style.marginBottom = '1em';
 
             // Age statistics if birthdates present
@@ -414,7 +416,7 @@ export const FieldRelationships = {
     const title = document.createElement('h2');
     title.textContent = 'Field Relationships';
     title.style.marginBottom = '1em';
-    title.style.color = 'var(--chc-text-primary)';
+    title.style.color = CHC_TEXT_PRIMARY;
 
     const description = document.createElement('div');
     description.innerHTML = `
@@ -457,7 +459,7 @@ export const FieldRelationships = {
 
           const resultHeader = document.createElement('h3');
           resultHeader.style.marginBottom = '0.5em';
-          resultHeader.style.color = 'var(--chc-text-primary)';
+          resultHeader.style.color = CHC_TEXT_PRIMARY;
 
           if (birthdates.length > 0) {
             const years = birthdates.map((bd) => Number.parseInt(bd.slice(0, 4)));
@@ -499,13 +501,13 @@ export const CustomLabels = {
     const title = document.createElement('h2');
     title.textContent = 'Custom Labels (i18n)';
     title.style.marginBottom = '1em';
-    title.style.color = 'var(--chc-text-primary)';
+    title.style.color = CHC_TEXT_PRIMARY;
 
     const description = document.createElement('p');
     description.innerHTML =
       'All field labels can be customized for internationalization.<br>This example shows Spanish labels.';
     description.style.marginBottom = '1.5em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
 
     const button = document.createElement('button');
     button.className = 'button is-link';
@@ -541,7 +543,7 @@ export const CustomLabels = {
 
           const resultHeader = document.createElement('h3');
           resultHeader.style.marginBottom = '1em';
-          resultHeader.style.color = 'var(--chc-text-primary)';
+          resultHeader.style.color = CHC_TEXT_PRIMARY;
           resultHeader.textContent = `¡Generado ${participants.length} jugadores!`;
 
           outputContainer.appendChild(resultHeader);

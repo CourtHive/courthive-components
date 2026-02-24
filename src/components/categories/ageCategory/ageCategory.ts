@@ -18,6 +18,8 @@ import {
 
 const clickable = '▾'; // clickable character
 const BORDER_STYLE = '1px solid var(--chc-border-secondary)';
+const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
+const CHC_DROPDOWN_BG = 'var(--chc-dropdown-bg)';
 
 // Helper functions
 function isFunction(fx: any): fx is (...args: any[]) => any {
@@ -248,7 +250,7 @@ function createButton(params: {
   button.style.transition = 'all .2s ease-in-out';
   button.style.backgroundColor = 'inherit';
   button.style.border = 'none';
-  button.style.color = 'var(--chc-text-primary)';
+  button.style.color = CHC_TEXT_PRIMARY;
   button.style.padding = '.3em';
   button.style.textAlign = 'center';
   button.style.textDecoration = 'none';
@@ -283,7 +285,7 @@ function createDropdown(e: Event, items: Array<{ text: string; onClick: () => vo
 
   const dropdownMenu = document.createElement('div');
   dropdownMenu.className = 'dropdown-menu';
-  dropdownMenu.style.backgroundColor = 'var(--chc-dropdown-bg)';
+  dropdownMenu.style.backgroundColor = CHC_DROPDOWN_BG;
   dropdownMenu.style.border = BORDER_STYLE;
   dropdownMenu.style.borderRadius = '4px';
   dropdownMenu.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
@@ -296,8 +298,8 @@ function createDropdown(e: Event, items: Array<{ text: string; onClick: () => vo
     const itemDiv = document.createElement('div');
     itemDiv.style.padding = '0.5em 1em';
     itemDiv.style.cursor = 'pointer';
-    itemDiv.style.backgroundColor = 'var(--chc-dropdown-bg)';
-    itemDiv.style.color = 'var(--chc-text-primary)';
+    itemDiv.style.backgroundColor = CHC_DROPDOWN_BG;
+    itemDiv.style.color = CHC_TEXT_PRIMARY;
     itemDiv.style.fontSize = '1rem';
     itemDiv.style.lineHeight = '1.5';
     itemDiv.textContent = item.text;
@@ -313,7 +315,7 @@ function createDropdown(e: Event, items: Array<{ text: string; onClick: () => vo
       itemDiv.style.backgroundColor = 'var(--chc-hover-bg)';
     };
     itemDiv.onmouseleave = () => {
-      itemDiv.style.backgroundColor = 'var(--chc-dropdown-bg)';
+      itemDiv.style.backgroundColor = CHC_DROPDOWN_BG;
     };
     dropdownMenu.appendChild(itemDiv);
   });
@@ -598,7 +600,7 @@ export function getAgeCategoryModal({
 
   const ageMinLabel = document.createElement('span');
   ageMinLabel.textContent = 'Min:';
-  ageMinLabel.style.color = 'var(--chc-text-primary)';
+  ageMinLabel.style.color = CHC_TEXT_PRIMARY;
 
   const ageMinInput = document.createElement('input');
   ageMinInput.type = 'number';
@@ -643,7 +645,7 @@ export function getAgeCategoryModal({
 
   const ageMaxLabel = document.createElement('span');
   ageMaxLabel.textContent = 'Max:';
-  ageMaxLabel.style.color = 'var(--chc-text-primary)';
+  ageMaxLabel.style.color = CHC_TEXT_PRIMARY;
 
   const ageMaxInput = document.createElement('input');
   ageMaxInput.type = 'number';

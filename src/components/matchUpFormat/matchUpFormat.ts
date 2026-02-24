@@ -19,6 +19,9 @@ import matchUpFormats from './matchUpFormats.json';
 const NONE = 'none';
 const clickable = '▾'; // clickable character
 const TRANSITION_STYLE = 'all .2s ease-in-out';
+const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
+const CHC_DROPDOWN_BG = 'var(--chc-dropdown-bg)';
+const CHC_HOVER_BG = 'var(--chc-hover-bg)';
 
 // Helper functions
 function isFunction(fx: any): fx is (...args: any[]) => any {
@@ -957,14 +960,14 @@ export function getMatchUpFormatModal({
   select.className = 'input';
   select.style.width = '100%';
   select.style.backgroundColor = 'var(--chc-input-bg)';
-  select.style.color = 'var(--chc-text-primary)';
+  select.style.color = CHC_TEXT_PRIMARY;
   select.style.border = '1px solid var(--chc-input-border)';
   for (const option of formatSelector.options) {
     const opt = document.createElement('option');
     opt.value = option.value || '';
     opt.text = option.label || '';
     opt.style.backgroundColor = 'var(--chc-input-bg)';
-    opt.style.color = 'var(--chc-text-primary)';
+    opt.style.color = CHC_TEXT_PRIMARY;
     if (option.selected) opt.selected = true;
     select.appendChild(opt);
   }
@@ -1555,7 +1558,7 @@ function createGameFormatDropdown(
 
   const dropdownMenu = document.createElement('div');
   dropdownMenu.className = 'dropdown-menu';
-  dropdownMenu.style.backgroundColor = 'var(--chc-dropdown-bg)';
+  dropdownMenu.style.backgroundColor = CHC_DROPDOWN_BG;
   dropdownMenu.style.border = '1px solid var(--chc-border-secondary)';
   dropdownMenu.style.borderRadius = '4px';
   dropdownMenu.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
@@ -1597,8 +1600,8 @@ function createGameFormatDropdown(
   const noneItem = document.createElement('div');
   noneItem.textContent = 'None';
   noneItem.style.cssText = itemStyle;
-  noneItem.onmouseenter = () => { noneItem.style.backgroundColor = 'var(--chc-hover-bg)'; };
-  noneItem.onmouseleave = () => { noneItem.style.backgroundColor = 'var(--chc-dropdown-bg)'; };
+  noneItem.onmouseenter = () => { noneItem.style.backgroundColor = CHC_HOVER_BG; };
+  noneItem.onmouseleave = () => { noneItem.style.backgroundColor = CHC_DROPDOWN_BG; };
   noneItem.onclick = (clickEvent) => {
     clickEvent.preventDefault();
     clickEvent.stopPropagation();
@@ -1611,8 +1614,8 @@ function createGameFormatDropdown(
   function createRadioRow(name: string, value: string, label: string, checked: boolean): HTMLElement {
     const row = document.createElement('label');
     row.style.cssText = 'display: flex; align-items: center; padding: 0.3em 1em; cursor: pointer; gap: 0.4em; font-size: 1rem; color: var(--chc-text-primary);';
-    row.onmouseenter = () => { row.style.backgroundColor = 'var(--chc-hover-bg)'; };
-    row.onmouseleave = () => { row.style.backgroundColor = 'var(--chc-dropdown-bg)'; };
+    row.onmouseenter = () => { row.style.backgroundColor = CHC_HOVER_BG; };
+    row.onmouseleave = () => { row.style.backgroundColor = CHC_DROPDOWN_BG; };
 
     const radio = document.createElement('input');
     radio.type = 'radio';
@@ -1704,7 +1707,7 @@ function createDropdown(e: any, items: any[]) {
 
   const dropdownMenu = document.createElement('div');
   dropdownMenu.className = 'dropdown-menu';
-  dropdownMenu.style.backgroundColor = 'var(--chc-dropdown-bg)';
+  dropdownMenu.style.backgroundColor = CHC_DROPDOWN_BG;
   dropdownMenu.style.border = '1px solid var(--chc-border-secondary)';
   dropdownMenu.style.borderRadius = '4px';
   dropdownMenu.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
@@ -1718,8 +1721,8 @@ function createDropdown(e: any, items: any[]) {
     // Don't use Bulma's dropdown-item class - it may have styling conflicts
     itemDiv.style.padding = '0.5em 1em';
     itemDiv.style.cursor = 'pointer';
-    itemDiv.style.backgroundColor = 'var(--chc-dropdown-bg)';
-    itemDiv.style.color = 'var(--chc-text-primary)';
+    itemDiv.style.backgroundColor = CHC_DROPDOWN_BG;
+    itemDiv.style.color = CHC_TEXT_PRIMARY;
     itemDiv.style.fontSize = '1rem';
     itemDiv.style.lineHeight = '1.5';
     itemDiv.textContent = item.text;
@@ -1731,12 +1734,12 @@ function createDropdown(e: any, items: any[]) {
       item.onClick();
     };
     itemDiv.onmouseenter = () => {
-      itemDiv.style.backgroundColor = 'var(--chc-hover-bg)';
-      itemDiv.style.color = 'var(--chc-text-primary)';
+      itemDiv.style.backgroundColor = CHC_HOVER_BG;
+      itemDiv.style.color = CHC_TEXT_PRIMARY;
     };
     itemDiv.onmouseleave = () => {
-      itemDiv.style.backgroundColor = 'var(--chc-dropdown-bg)';
-      itemDiv.style.color = 'var(--chc-text-primary)';
+      itemDiv.style.backgroundColor = CHC_DROPDOWN_BG;
+      itemDiv.style.color = CHC_TEXT_PRIMARY;
     };
     dropdownMenu.appendChild(itemDiv);
   });

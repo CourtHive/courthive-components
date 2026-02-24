@@ -9,6 +9,9 @@ import { mocksEngine } from 'tods-competition-factory';
 import { DrawStateManager } from '../helpers/drawStateManager';
 import type { MatchUp } from '../types';
 
+const CHC_BG_SECONDARY = 'var(--chc-bg-secondary)';
+const CHC_BORDER_FOCUS = 'var(--chc-border-focus)';
+
 const argTypes = {
   composition: {
     options: Object.keys(compositions),
@@ -88,7 +91,7 @@ export default {
     const toggleContainer = document.createElement('div');
     toggleContainer.style.marginBottom = '15px';
     toggleContainer.style.padding = '10px';
-    toggleContainer.style.backgroundColor = 'var(--chc-bg-secondary)';
+    toggleContainer.style.backgroundColor = CHC_BG_SECONDARY;
     toggleContainer.style.borderRadius = '8px';
     toggleContainer.style.border = '2px solid var(--chc-border-primary)';
 
@@ -104,12 +107,12 @@ export default {
 
     const updateToggleButton = (isPersist: boolean) => {
       if (isPersist) {
-        toggleButton.style.backgroundColor = 'var(--chc-border-focus)';
+        toggleButton.style.backgroundColor = CHC_BORDER_FOCUS;
         toggleButton.style.color = 'var(--chc-text-inverse)';
         toggleButton.textContent = '✓ Persist Mode ON';
       } else {
         toggleButton.style.backgroundColor = 'var(--chc-bg-elevated)';
-        toggleButton.style.color = 'var(--chc-border-focus)';
+        toggleButton.style.color = CHC_BORDER_FOCUS;
         toggleButton.textContent = 'Persist Mode OFF';
       }
     };
@@ -238,7 +241,7 @@ export default {
       instructions.style.padding = '15px';
       instructions.style.border = '2px solid #4CAF50';
       instructions.style.borderRadius = '8px';
-      instructions.style.backgroundColor = 'var(--chc-bg-secondary)';
+      instructions.style.backgroundColor = CHC_BG_SECONDARY;
       instructions.innerHTML = `
         <strong style="color: #2E7D32;">Tab Order & Keyboard Navigation Test</strong><br>
         <ul style="margin: 10px 0; padding-left: 20px;">
@@ -435,8 +438,8 @@ export const DrawWithQualifying = {
     toggleButton.style.cssText =
       'padding: 8px 16px; border: 2px solid var(--chc-border-focus); border-radius: 4px; font-weight: 500; cursor: pointer;';
     const updateToggleButton = (isPersist: boolean) => {
-      toggleButton.style.backgroundColor = isPersist ? 'var(--chc-border-focus)' : 'var(--chc-bg-elevated)';
-      toggleButton.style.color = isPersist ? 'var(--chc-text-inverse)' : 'var(--chc-border-focus)';
+      toggleButton.style.backgroundColor = isPersist ? CHC_BORDER_FOCUS : 'var(--chc-bg-elevated)';
+      toggleButton.style.color = isPersist ? 'var(--chc-text-inverse)' : CHC_BORDER_FOCUS;
       toggleButton.textContent = isPersist ? '✓ Persist Mode ON' : 'Persist Mode OFF';
     };
     updateToggleButton(currentPersistMode);

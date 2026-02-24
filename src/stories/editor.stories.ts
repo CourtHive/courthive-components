@@ -1,5 +1,8 @@
 import '../components/forms/styles'; // Import bulma-switch and other form styles
 
+const CHC_BG_SECONDARY = 'var(--chc-bg-secondary)';
+const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
+
 export default {
   title: 'Components/matchUpFormat',
   tags: ['autodocs']
@@ -16,9 +19,9 @@ export const Editor = {
     const formatDisplay = document.createElement('div');
     formatDisplay.style.marginBottom = '1em';
     formatDisplay.style.padding = '1em';
-    formatDisplay.style.backgroundColor = 'var(--chc-bg-secondary)';
+    formatDisplay.style.backgroundColor = CHC_BG_SECONDARY;
     formatDisplay.style.borderRadius = '4px';
-    formatDisplay.style.color = 'var(--chc-text-primary)';
+    formatDisplay.style.color = CHC_TEXT_PRIMARY;
     formatDisplay.innerHTML = `<strong style="color: var(--chc-text-primary);">Current Format:</strong> <code style="background: var(--chc-active-bg); padding: 0.2em 0.4em; border-radius: 3px; color: var(--chc-text-primary);">${currentFormat}</code>`;
 
     const button = document.createElement('button');
@@ -45,7 +48,7 @@ export const Editor = {
     const title = document.createElement('h2');
     title.textContent = 'Match Format Editor (Real Component)';
     title.style.marginBottom = '1em';
-    title.style.color = 'var(--chc-text-primary)';
+    title.style.color = CHC_TEXT_PRIMARY;
 
     const description = document.createElement('p');
     description.innerHTML =
@@ -93,7 +96,7 @@ export const CustomPresets = {
     const title = document.createElement('h2');
     title.textContent = 'Match Format Editor with Custom Presets';
     title.style.marginBottom = '1em';
-    title.style.color = 'var(--chc-text-primary)';
+    title.style.color = CHC_TEXT_PRIMARY;
     container.appendChild(title);
 
     // Description
@@ -111,7 +114,7 @@ export const CustomPresets = {
     configLabel.innerHTML = '<strong style="color: var(--chc-text-primary);">Configuration JSON:</strong>';
     configLabel.style.display = 'block';
     configLabel.style.marginBottom = '0.5em';
-    configLabel.style.color = 'var(--chc-text-primary)';
+    configLabel.style.color = CHC_TEXT_PRIMARY;
     container.appendChild(configLabel);
 
     // Config editor textarea
@@ -124,8 +127,8 @@ export const CustomPresets = {
     configEditor.style.marginBottom = '1em';
     configEditor.style.border = '1px solid var(--chc-border-secondary)';
     configEditor.style.borderRadius = '4px';
-    configEditor.style.backgroundColor = 'var(--chc-bg-secondary)';
-    configEditor.style.color = 'var(--chc-text-primary)';
+    configEditor.style.backgroundColor = CHC_BG_SECONDARY;
+    configEditor.style.color = CHC_TEXT_PRIMARY;
     configEditor.value = JSON.stringify(defaultConfig, null, 2);
     container.appendChild(configEditor);
 
@@ -141,9 +144,9 @@ export const CustomPresets = {
     const formatDisplay = document.createElement('div');
     formatDisplay.style.marginBottom = '1em';
     formatDisplay.style.padding = '1em';
-    formatDisplay.style.backgroundColor = 'var(--chc-bg-secondary)';
+    formatDisplay.style.backgroundColor = CHC_BG_SECONDARY;
     formatDisplay.style.borderRadius = '4px';
-    formatDisplay.style.color = 'var(--chc-text-primary)';
+    formatDisplay.style.color = CHC_TEXT_PRIMARY;
     formatDisplay.innerHTML = `<strong style="color: var(--chc-text-primary);">Current Format:</strong> <code style="background: var(--chc-active-bg); padding: 0.2em 0.4em; border-radius: 3px; color: var(--chc-text-primary);">${currentFormat}</code>`;
     container.appendChild(formatDisplay);
 
@@ -159,7 +162,7 @@ export const CustomPresets = {
         validationMsg.style.display = 'none';
       } catch (error) {
         validationMsg.style.display = 'block';
-        validationMsg.style.backgroundColor = 'var(--chc-bg-secondary)';
+        validationMsg.style.backgroundColor = CHC_BG_SECONDARY;
         validationMsg.style.color = 'var(--chc-status-error)';
         validationMsg.innerHTML = `<strong style="color: var(--chc-status-error);">Invalid JSON:</strong> ${(error as Error).message}`;
         return;
@@ -168,7 +171,7 @@ export const CustomPresets = {
       // Validate config structure
       if (config.preDefinedFormats && !Array.isArray(config.preDefinedFormats)) {
         validationMsg.style.display = 'block';
-        validationMsg.style.backgroundColor = 'var(--chc-bg-secondary)';
+        validationMsg.style.backgroundColor = CHC_BG_SECONDARY;
         validationMsg.style.color = 'var(--chc-status-error)';
         validationMsg.innerHTML =
           '<strong style="color: var(--chc-status-error);">Invalid Config:</strong> preDefinedFormats must be an array';
@@ -176,7 +179,7 @@ export const CustomPresets = {
       }
 
       validationMsg.style.display = 'block';
-      validationMsg.style.backgroundColor = 'var(--chc-bg-secondary)';
+      validationMsg.style.backgroundColor = CHC_BG_SECONDARY;
       validationMsg.style.color = 'var(--chc-status-success)';
       validationMsg.innerHTML = '<strong style="color: var(--chc-status-success);">✓ Valid configuration</strong>';
 
@@ -203,7 +206,7 @@ export const CustomPresets = {
     const docs = document.createElement('div');
     docs.style.marginTop = '2em';
     docs.style.padding = '1em';
-    docs.style.backgroundColor = 'var(--chc-bg-secondary)';
+    docs.style.backgroundColor = CHC_BG_SECONDARY;
     docs.style.borderLeft = '4px solid var(--chc-status-info)';
     docs.style.borderRadius = '4px';
     docs.innerHTML = `

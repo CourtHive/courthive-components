@@ -3,6 +3,8 @@ import { getFlightProfileModal } from '../components/flightProfile/flightProfile
 import { mocksEngine, tournamentEngine, tools } from 'tods-competition-factory';
 import { createJsonViewer } from './helpers/JsonViewer';
 
+const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
+
 export default {
   title: 'Components/FlightProfile',
   tags: ['autodocs'],
@@ -45,7 +47,7 @@ export const CompleteFlightGeneration = {
     const title = document.createElement('h2');
     title.textContent = 'Flight Profile Generation';
     title.style.marginBottom = '0.5em';
-    title.style.color = 'var(--chc-text-primary)';
+    title.style.color = CHC_TEXT_PRIMARY;
     container.appendChild(title);
 
     const description = document.createElement('p');
@@ -127,12 +129,12 @@ export const CompleteFlightGeneration = {
           resultDisplay.innerHTML = '';
 
           const successDiv = document.createElement('div');
-          successDiv.style.color = 'var(--chc-text-primary)';
+          successDiv.style.color = CHC_TEXT_PRIMARY;
 
           // Title
           const title = document.createElement('h3');
           title.style.marginTop = '0';
-          title.style.color = 'var(--chc-text-primary)';
+          title.style.color = CHC_TEXT_PRIMARY;
           title.textContent = '✓ Flights Generated Successfully';
           successDiv.appendChild(title);
 
@@ -156,7 +158,7 @@ export const CompleteFlightGeneration = {
           profileSection.style.marginTop = '1.5em';
 
           const profileTitle = document.createElement('h4');
-          profileTitle.style.color = 'var(--chc-text-primary)';
+          profileTitle.style.color = CHC_TEXT_PRIMARY;
           profileTitle.style.marginBottom = '0.5em';
           profileTitle.innerHTML =
             '🔍 Interactive Flight Profile <span style="color: var(--chc-text-secondary); font-size: 0.9em; font-weight: normal;">(click triangles to expand/collapse)</span>';
@@ -172,7 +174,7 @@ export const CompleteFlightGeneration = {
           paramsSection.style.marginTop = '1.5em';
 
           const paramsTitle = document.createElement('h4');
-          paramsTitle.style.color = 'var(--chc-text-primary)';
+          paramsTitle.style.color = CHC_TEXT_PRIMARY;
           paramsTitle.style.marginBottom = '0.5em';
           paramsTitle.textContent = '📋 Parameters Sent to generateFlightProfile()';
           paramsSection.appendChild(paramsTitle);

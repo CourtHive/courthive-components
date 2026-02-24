@@ -18,6 +18,7 @@ const TEST_TOURNAMENT = 'test-tournament';
 const TEST_DATE = '2026-06-15';
 const T_0800 = '2026-06-15T08:00:00';
 const T_1200 = '2026-06-15T12:00:00';
+const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
 
 // ============================================================================
 // Mock Tournament
@@ -102,7 +103,7 @@ const renderEngineDemo = (title: string, demoFn: () => string) => {
   const titleEl = document.createElement('h3');
   titleEl.textContent = title;
   titleEl.style.marginTop = '0';
-  titleEl.style.color = 'var(--chc-text-primary)';
+  titleEl.style.color = CHC_TEXT_PRIMARY;
   container.appendChild(titleEl);
 
   const output = document.createElement('pre');
@@ -110,7 +111,7 @@ const renderEngineDemo = (title: string, demoFn: () => string) => {
   output.style.padding = '1rem';
   output.style.borderRadius = '4px';
   output.style.overflow = 'auto';
-  output.style.color = 'var(--chc-text-primary)';
+  output.style.color = CHC_TEXT_PRIMARY;
   output.textContent = demoFn();
   container.appendChild(output);
 
@@ -399,7 +400,7 @@ export const EventSubscription: Story = {
     const title = document.createElement('h3');
     title.textContent = 'Event Subscription';
     title.style.marginTop = '0';
-    title.style.color = 'var(--chc-text-primary)';
+    title.style.color = CHC_TEXT_PRIMARY;
     container.appendChild(title);
 
     const output = document.createElement('pre');
@@ -408,7 +409,7 @@ export const EventSubscription: Story = {
     output.style.borderRadius = '4px';
     output.style.overflow = 'auto';
     output.style.maxHeight = '400px';
-    output.style.color = 'var(--chc-text-primary)';
+    output.style.color = CHC_TEXT_PRIMARY;
     container.appendChild(output);
 
     const button = document.createElement('button');

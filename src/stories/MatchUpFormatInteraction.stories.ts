@@ -9,6 +9,9 @@ import { within, waitFor, userEvent, expect } from '@storybook/test';
 const SELECTED_FORMAT_PLACEHOLDER = '<strong>Selected format will appear here</strong>';
 const BUTTON_IS_PRIMARY = 'button is-primary';
 const FORMAT_SET3_TB7 = 'SET3-S:6/TB7';
+const CHC_BG_SECONDARY = 'var(--chc-bg-secondary)';
+const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
+const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
 
 const meta: Meta = {
   title: 'Components/MatchUpFormat/Interactions',
@@ -34,7 +37,7 @@ export const FinalSetTiebreakInitialization: Story = {
     resultDisplay.id = 'result-display';
     resultDisplay.style.marginTop = '1em';
     resultDisplay.style.padding = '1em';
-    resultDisplay.style.backgroundColor = 'var(--chc-bg-secondary)';
+    resultDisplay.style.backgroundColor = CHC_BG_SECONDARY;
     resultDisplay.style.borderRadius = '4px';
     resultDisplay.innerHTML = SELECTED_FORMAT_PLACEHOLDER;
 
@@ -57,12 +60,12 @@ export const FinalSetTiebreakInitialization: Story = {
 
     const title = document.createElement('h2');
     title.textContent = 'Final Set Tiebreak Initialization Test';
-    title.style.color = 'var(--chc-text-primary)';
+    title.style.color = CHC_TEXT_PRIMARY;
 
     const description = document.createElement('p');
     description.innerHTML =
       'This test verifies that when toggling "Final set" ON with a format that has tiebreak on the main set (SET3-S:6/TB7), the final set should also default to having a tiebreak.<br><br><strong>Expected:</strong> SET3-S:6/TB7-F:6/TB7<br><strong>Bug (fixed):</strong> SET3-S:6/TB7-F:6';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     description.style.marginBottom = '1.5em';
 
     container.appendChild(title);
@@ -139,7 +142,7 @@ export const FinalSetNoTiebreakWhenMainHasNone: Story = {
     resultDisplay.id = 'result-display-2';
     resultDisplay.style.marginTop = '1em';
     resultDisplay.style.padding = '1em';
-    resultDisplay.style.backgroundColor = 'var(--chc-bg-secondary)';
+    resultDisplay.style.backgroundColor = CHC_BG_SECONDARY;
     resultDisplay.style.borderRadius = '4px';
     resultDisplay.innerHTML = SELECTED_FORMAT_PLACEHOLDER;
 
@@ -162,12 +165,12 @@ export const FinalSetNoTiebreakWhenMainHasNone: Story = {
 
     const title = document.createElement('h2');
     title.textContent = 'Final Set WITHOUT Tiebreak Test';
-    title.style.color = 'var(--chc-text-primary)';
+    title.style.color = CHC_TEXT_PRIMARY;
 
     const description = document.createElement('p');
     description.innerHTML =
       'When main set has NO tiebreak, final set should also default to NO tiebreak.<br><br><strong>Expected:</strong> SET3-S:6-F:6';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     description.style.marginBottom = '1.5em';
 
     container.appendChild(title);
@@ -231,7 +234,7 @@ export const PreserveExistingFinalSetTiebreak: Story = {
     resultDisplay.id = 'result-display-3';
     resultDisplay.style.marginTop = '1em';
     resultDisplay.style.padding = '1em';
-    resultDisplay.style.backgroundColor = 'var(--chc-bg-secondary)';
+    resultDisplay.style.backgroundColor = CHC_BG_SECONDARY;
     resultDisplay.style.borderRadius = '4px';
     resultDisplay.innerHTML = '<strong>Checkbox state will appear here</strong>';
 
@@ -255,12 +258,12 @@ export const PreserveExistingFinalSetTiebreak: Story = {
 
     const title = document.createElement('h2');
     title.textContent = 'Preserve Explicit Final Set Setting';
-    title.style.color = 'var(--chc-text-primary)';
+    title.style.color = CHC_TEXT_PRIMARY;
 
     const description = document.createElement('p');
     description.innerHTML =
       'When opening with SET3-S:6/TB7-F:6 (main has tiebreak, final does NOT), should preserve the explicit choice.<br><br><strong>Expected:</strong> Final set tiebreak checkbox should be UNCHECKED';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     description.style.marginBottom = '1.5em';
 
     container.appendChild(title);
@@ -319,7 +322,7 @@ export const PredefinedFormatUpdatesControls: Story = {
     resultDisplay.id = 'result-display-4';
     resultDisplay.style.marginTop = '1em';
     resultDisplay.style.padding = '1em';
-    resultDisplay.style.backgroundColor = 'var(--chc-bg-secondary)';
+    resultDisplay.style.backgroundColor = CHC_BG_SECONDARY;
     resultDisplay.style.borderRadius = '4px';
     resultDisplay.innerHTML = SELECTED_FORMAT_PLACEHOLDER;
 
@@ -342,13 +345,13 @@ export const PredefinedFormatUpdatesControls: Story = {
 
     const title = document.createElement('h2');
     title.textContent = 'Predefined Format Selector Test';
-    title.style.color = 'var(--chc-text-primary)';
+    title.style.color = CHC_TEXT_PRIMARY;
 
     const description = document.createElement('p');
     description.innerHTML =
       'Tests that selecting INTENNSE from the dropdown updates all controls correctly.<br><br>' +
       '<strong>Expected:</strong> Descriptor=Exactly, Count=7, What=Timed sets, Aggregate=ON';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = CHC_TEXT_SECONDARY;
     description.style.marginBottom = '1.5em';
 
     container.appendChild(title);
