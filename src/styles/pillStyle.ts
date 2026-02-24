@@ -1,5 +1,8 @@
 import { css } from '@stitches/core';
 
+const CHC_PILL_BG_DANGER = 'var(--chc-pill-bg-danger)';
+const CHC_PILL_BG_DARK = 'var(--chc-pill-bg-dark)';
+
 export const pillStyle = css({
   width: 'auto',
   display: 'inline-block',
@@ -11,46 +14,46 @@ export const pillStyle = css({
   paddingInline: '0.25rem 0.25rem',
   fontWeight: 700,
   borderRadius: '4px',
-  color: '#fff',
+  color: 'var(--chc-pill-text)',
   textAlign: 'center',
   whiteSpace: 'nowrap',
   variants: {
     variant: {
       in_progress: {
-        backgroundColor: '#199f01ff'
+        backgroundColor: 'var(--chc-pill-bg-success)'
       },
       awaiting_result: {
-        backgroundColor: '#199f01ff'
+        backgroundColor: 'var(--chc-pill-bg-success)'
       },
       defaulted: {
-        backgroundColor: '#df164c'
+        backgroundColor: CHC_PILL_BG_DANGER
       },
       dead_rubber: {
-        backgroundColor: '#df164c'
+        backgroundColor: CHC_PILL_BG_DANGER
       },
       cancelled: {
-        backgroundColor: '#df164c'
+        backgroundColor: CHC_PILL_BG_DANGER
       },
       incomplete: {
-        backgroundColor: '#f7ae04ff'
+        backgroundColor: 'var(--chc-pill-bg-warning)'
       },
       suspended: {
-        backgroundColor: '#f7ae04ff'
+        backgroundColor: 'var(--chc-pill-bg-warning)'
       },
       retired: {
-        backgroundColor: '#df164c'
+        backgroundColor: CHC_PILL_BG_DANGER
       },
       walkover: {
-        backgroundColor: 'black'
+        backgroundColor: CHC_PILL_BG_DARK
       },
       double_walkover: {
-        backgroundColor: 'black'
+        backgroundColor: CHC_PILL_BG_DARK
       },
       double_default: {
-        backgroundColor: '#df164c'
+        backgroundColor: CHC_PILL_BG_DANGER
       },
       abandoned: {
-        backgroundColor: 'black'
+        backgroundColor: CHC_PILL_BG_DARK
       }
     }
   }

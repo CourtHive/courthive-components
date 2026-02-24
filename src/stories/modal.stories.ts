@@ -68,7 +68,7 @@ export const InfoIcon = {
     description.innerHTML =
       'Demonstrates the new <code>config.info</code> option that displays an info icon (?) in the modal title bar with a popover on click.';
     description.style.marginBottom = '1.5em';
-    description.style.color = '#666';
+    description.style.color = 'var(--chc-text-secondary)';
 
     container.appendChild(title);
     container.appendChild(description);
@@ -193,7 +193,7 @@ export const Styling = {
     description.innerHTML =
       'Demonstrates the new <code>className</code> and <code>style</code> config options for customizing modal appearance.';
     description.style.marginBottom = '1.5em';
-    description.style.color = '#666';
+    description.style.color = 'var(--chc-text-secondary)';
 
     container.appendChild(title);
     container.appendChild(description);

@@ -107,7 +107,7 @@ export function getParticipantContainerStyle({
         alignContent: 'center',
         insetInlineStart: -10,
         position: 'absolute',
-        color: '#55AFFE',
+        color: 'var(--chc-status-info)',
         display: 'flex',
         width: 20
       }

@@ -147,8 +147,8 @@ export function getCategoryModal(params: {
       if (result.error) {
         detailsPanel.style.display = 'block';
         detailsPanel.innerHTML = `
-          <div style="padding: 0.75em; background-color: #ffe8e8; border-left: 4px solid #ff4444; border-radius: 4px; color: #000;">
-            <strong style="color: #000;">Error:</strong> ${
+          <div style="padding: 0.75em; background-color: var(--chc-bg-secondary); border-left: 4px solid var(--chc-status-error); border-radius: 4px; color: var(--chc-text-primary);">
+            <strong style="color: var(--chc-text-primary);">Error:</strong> ${
               typeof result.error === 'string' ? result.error : result.error.message || 'Invalid category'
             }
           </div>
@@ -164,17 +164,17 @@ export function getCategoryModal(params: {
 
       detailsPanel.style.display = 'block';
       detailsPanel.innerHTML = `
-        <div style="padding: 0.75em; background-color: #e8f5e9; border-left: 4px solid #4caf50; border-radius: 4px; color: #000;">
-          <strong style="color: #000;">Age Range:</strong> ${result.ageMin || 'N/A'} - ${result.ageMax || 'N/A'}<br>
-          <strong style="color: #000;">Min Birth Date:</strong> ${result.ageMinDate || 'N/A'}<br>
-          <strong style="color: #000;">Max Birth Date:</strong> ${result.ageMaxDate || 'N/A'}
+        <div style="padding: 0.75em; background-color: var(--chc-bg-secondary); border-left: 4px solid var(--chc-status-success); border-radius: 4px; color: var(--chc-text-primary);">
+          <strong style="color: var(--chc-text-primary);">Age Range:</strong> ${result.ageMin || 'N/A'} - ${result.ageMax || 'N/A'}<br>
+          <strong style="color: var(--chc-text-primary);">Min Birth Date:</strong> ${result.ageMinDate || 'N/A'}<br>
+          <strong style="color: var(--chc-text-primary);">Max Birth Date:</strong> ${result.ageMaxDate || 'N/A'}
         </div>
       `;
     } catch (error: any) {
       detailsPanel.style.display = 'block';
       detailsPanel.innerHTML = `
-        <div style="padding: 0.75em; background-color: #ffe8e8; border-left: 4px solid #ff4444; border-radius: 4px; color: #000;">
-          <strong style="color: #000;">Error:</strong> ${error?.message || 'Failed to calculate age details'}
+        <div style="padding: 0.75em; background-color: var(--chc-bg-secondary); border-left: 4px solid var(--chc-status-error); border-radius: 4px; color: var(--chc-text-primary);">
+          <strong style="color: var(--chc-text-primary);">Error:</strong> ${error?.message || 'Failed to calculate age details'}
         </div>
       `;
     }
@@ -332,7 +332,7 @@ export function getCategoryModal(params: {
   ageCategoryLabel.style.marginBottom = '0.5em';
   ageCategoryLabel.style.fontWeight = 'bold';
   ageCategoryLabel.style.fontSize = '0.9em';
-  ageCategoryLabel.style.color = '#000';
+  ageCategoryLabel.style.color = 'var(--chc-text-primary)';
   ageCategorySection.appendChild(ageCategoryLabel);
 
   const ageCategoryDisplay = document.createElement('div');
@@ -343,14 +343,14 @@ export function getCategoryModal(params: {
   const ageCategoryValue = document.createElement('div');
   ageCategoryValue.id = 'ageCategoryValue';
   ageCategoryValue.style.padding = '0.5em';
-  ageCategoryValue.style.border = '1px solid #b5b5b5';
+  ageCategoryValue.style.border = '1px solid var(--chc-input-border)';
   ageCategoryValue.style.borderRadius = '4px';
-  ageCategoryValue.style.backgroundColor = '#f5f5f5';
+  ageCategoryValue.style.backgroundColor = 'var(--chc-bg-secondary)';
   ageCategoryValue.style.flex = '1';
   ageCategoryValue.style.minHeight = '2.5em';
   ageCategoryValue.style.display = 'flex';
   ageCategoryValue.style.alignItems = 'center';
-  ageCategoryValue.style.color = '#000';
+  ageCategoryValue.style.color = 'var(--chc-text-primary)';
   ageCategoryValue.textContent = category.ageCategoryCode || 'Not set';
   ageCategoryDisplay.appendChild(ageCategoryValue);
 

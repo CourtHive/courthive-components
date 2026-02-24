@@ -97,7 +97,7 @@ const renderEvaluatorDemo = (title: string, demoFn: () => string) => {
   const container = document.createElement('div');
   container.style.padding = '2rem';
   container.style.fontFamily = 'monospace';
-  container.style.background = '#f8f9fa';
+  container.style.background = 'var(--chc-bg-secondary)';
   container.style.borderRadius = '8px';
   container.style.maxWidth = '800px';
   container.style.margin = '0 auto';
@@ -105,13 +105,15 @@ const renderEvaluatorDemo = (title: string, demoFn: () => string) => {
   const titleEl = document.createElement('h3');
   titleEl.textContent = title;
   titleEl.style.marginTop = '0';
+  titleEl.style.color = 'var(--chc-text-primary)';
   container.appendChild(titleEl);
 
   const output = document.createElement('pre');
-  output.style.background = 'white';
+  output.style.background = 'var(--chc-bg-elevated)';
   output.style.padding = '1rem';
   output.style.borderRadius = '4px';
   output.style.overflow = 'auto';
+  output.style.color = 'var(--chc-text-primary)';
   output.textContent = demoFn();
   container.appendChild(output);
 

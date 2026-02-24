@@ -1,0 +1,103 @@
+/**
+ * courthive-components Theme Variables
+ *
+ * Library-owned CSS custom properties (--chc-*).
+ * Consumers can override these to match their own design system.
+ * Example (TMX):
+ *   :root { --chc-bg-primary: var(--tmx-bg-primary); }
+ *
+ * Light defaults match the previously hardcoded values so existing
+ * consumers see zero visual change.
+ */
+
+:root {
+  /* ── Backgrounds ─────────────────────────────────────── */
+  --chc-bg-primary: #fff;
+  --chc-bg-secondary: #f5f5f5;
+  --chc-bg-elevated: #fff;
+  --chc-bg-overlay: rgba(0, 0, 0, 0.2);
+
+  /* ── Text ────────────────────────────────────────────── */
+  --chc-text-primary: #363636;
+  --chc-text-secondary: #666;
+  --chc-text-muted: #999;
+  --chc-text-inverse: #fff;
+
+  /* ── Borders ─────────────────────────────────────────── */
+  --chc-border-primary: #dbdbdb;
+  --chc-border-secondary: #ddd;
+  --chc-border-focus: #0066cc;
+
+  /* ── Interactive ─────────────────────────────────────── */
+  --chc-hover-bg: #f5f5f5;
+  --chc-active-bg: #e0e0e0;
+
+  /* ── Status ──────────────────────────────────────────── */
+  --chc-status-success: green;
+  --chc-status-warning: orange;
+  --chc-status-error: red;
+  --chc-status-info: blue;
+
+  /* ── Components ──────────────────────────────────────── */
+  --chc-modal-bg: #fff;
+  --chc-dropdown-bg: white;
+  --chc-input-bg: #ffffff;
+  --chc-input-border: #7a7a7a;
+  --chc-panel-header-bg: rgb(192 193 211);
+  --chc-format-code-color: blue;
+  --chc-clear-btn-bg: #ffeb3b;
+  --chc-clear-btn-text: #333;
+
+  /* ── Pills ─────────────────────────────────────────────── */
+  --chc-pill-text: #fff;
+  --chc-pill-bg-danger: #df164c;
+  --chc-pill-bg-success: #199f01;
+  --chc-pill-bg-warning: #f7ae04;
+  --chc-pill-bg-dark: #363636;
+}
+
+[data-theme='dark'] {
+  /* ── Backgrounds ─────────────────────────────────────── */
+  --chc-bg-primary: #1a1a2e;
+  --chc-bg-secondary: #16213e;
+  --chc-bg-elevated: #222244;
+  --chc-bg-overlay: rgba(0, 0, 0, 0.5);
+
+  /* ── Text ────────────────────────────────────────────── */
+  --chc-text-primary: #e0e0e0;
+  --chc-text-secondary: #b0b0b0;
+  --chc-text-muted: #808080;
+  --chc-text-inverse: #1a1a2e;
+
+  /* ── Borders ─────────────────────────────────────────── */
+  --chc-border-primary: #444;
+  --chc-border-secondary: #333;
+  --chc-border-focus: #5b9bd5;
+
+  /* ── Interactive ─────────────────────────────────────── */
+  --chc-hover-bg: #2a2a4e;
+  --chc-active-bg: #3a3a5e;
+
+  /* ── Status ──────────────────────────────────────────── */
+  --chc-status-success: #5cb878;
+  --chc-status-warning: #ffb366;
+  --chc-status-error: #ff8a8a;
+  --chc-status-info: #5b9bd5;
+
+  /* ── Components ──────────────────────────────────────── */
+  --chc-modal-bg: #222244;
+  --chc-dropdown-bg: #222244;
+  --chc-input-bg: #16213e;
+  --chc-input-border: #555;
+  --chc-panel-header-bg: #2a2a4e;
+  --chc-format-code-color: #5b9bd5;
+  --chc-clear-btn-bg: #b8a000;
+  --chc-clear-btn-text: #fff;
+
+  /* ── Pills ─────────────────────────────────────────────── */
+  --chc-pill-text: #1a1a2e;
+  --chc-pill-bg-danger: #ff8a8a;
+  --chc-pill-bg-success: #7dd87d;
+  --chc-pill-bg-warning: #ffd54f;
+  --chc-pill-bg-dark: #b0b0b0;
+}

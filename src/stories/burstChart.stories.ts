@@ -26,8 +26,13 @@ import type { Meta, StoryObj } from '@storybook/html';
 
 const { SINGLE_ELIMINATION } = drawDefinitionConstants;
 
-const BORDER_STYLE_1 = '1px solid #ddd';
-const BORDER_STYLE_2 = '1px solid #ccc';
+const CHC_BG_SECONDARY = 'var(--chc-bg-secondary)';
+const CHC_BG_ELEVATED = 'var(--chc-bg-elevated)';
+const CHC_BG_PRIMARY = 'var(--chc-bg-primary)';
+const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
+const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
+const BORDER_STYLE_1 = '1px solid var(--chc-border-secondary)';
+const BORDER_STYLE_2 = '1px solid var(--chc-border-primary)';
 const CLICKED_SEGMENT = 'Clicked segment:';
 const CLICKED_CENTER = 'Clicked center!';
 
@@ -81,13 +86,13 @@ export const AustralianOpen2016: Story = {
     wrapper.style.display = 'flex';
     wrapper.style.gap = '20px';
     wrapper.style.padding = '20px';
-    wrapper.style.backgroundColor = '#f5f5f5';
+    wrapper.style.backgroundColor = CHC_BG_SECONDARY;
 
     const chartContainer = document.createElement('div');
     chartContainer.style.flex = '1';
     chartContainer.style.minWidth = `${args.width}px`;
     chartContainer.style.minHeight = `${args.height}px`;
-    chartContainer.style.backgroundColor = '#ffffff';
+    chartContainer.style.backgroundColor = CHC_BG_ELEVATED;
     chartContainer.style.border = BORDER_STYLE_1;
     chartContainer.style.borderRadius = '8px';
     chartContainer.style.display = 'flex';
@@ -114,7 +119,7 @@ export const AustralianOpen2016: Story = {
     const infoPanel = document.createElement('div');
     infoPanel.style.flex = '0 0 350px';
     infoPanel.style.padding = '20px';
-    infoPanel.style.backgroundColor = '#ffffff';
+    infoPanel.style.backgroundColor = CHC_BG_ELEVATED;
     infoPanel.style.border = BORDER_STYLE_1;
     infoPanel.style.borderRadius = '8px';
 
@@ -122,13 +127,13 @@ export const AustralianOpen2016: Story = {
     infoTitle.textContent = 'D3v7 Modern Implementation';
     infoTitle.style.marginTop = '0';
     infoTitle.style.marginBottom = '15px';
-    infoTitle.style.color = '#333';
+    infoTitle.style.color = CHC_TEXT_PRIMARY;
     infoPanel.appendChild(infoTitle);
 
     const featureList = document.createElement('ul');
     featureList.style.fontSize = '14px';
     featureList.style.lineHeight = '1.8';
-    featureList.style.color = '#666';
+    featureList.style.color = CHC_TEXT_SECONDARY;
     featureList.innerHTML = `
       <li><strong>Emoji Flags</strong> - No image dependencies</li>
       <li><strong>IOC to ISO2</strong> - Proper country code mapping</li>
@@ -143,7 +148,7 @@ export const AustralianOpen2016: Story = {
     const usage = document.createElement('div');
     usage.style.marginTop = '20px';
     usage.style.padding = '15px';
-    usage.style.backgroundColor = '#f9f9f9';
+    usage.style.backgroundColor = CHC_BG_SECONDARY;
     usage.style.borderRadius = '4px';
     usage.style.fontSize = '13px';
     usage.innerHTML = `
@@ -174,7 +179,8 @@ export const GrandSlamComparison: Story = {
   render: (args: any) => {
     const wrapper = document.createElement('div');
     wrapper.style.padding = '20px';
-    wrapper.style.backgroundColor = '#f5f5f5';
+    wrapper.style.backgroundColor = CHC_BG_SECONDARY;
+    wrapper.style.color = CHC_TEXT_PRIMARY;
 
     const title = document.createElement('h2');
     title.textContent = 'Grand Slam Tournaments';
@@ -195,7 +201,7 @@ export const GrandSlamComparison: Story = {
 
     tournaments.forEach((tournament) => {
       const container = document.createElement('div');
-      container.style.backgroundColor = '#ffffff';
+      container.style.backgroundColor = CHC_BG_ELEVATED;
       container.style.border = `2px solid ${tournament.color}`;
       container.style.borderRadius = '8px';
       container.style.padding = '10px';
@@ -249,7 +255,7 @@ export const GeneratedTournament: Story = {
   },
   render: (args: any) => {
     const chartContainer = document.createElement('div');
-    chartContainer.style.backgroundColor = '#ffffff';
+    chartContainer.style.backgroundColor = CHC_BG_ELEVATED;
     chartContainer.style.border = BORDER_STYLE_1;
     chartContainer.style.borderRadius = '8px';
     chartContainer.style.display = 'flex';
@@ -282,117 +288,9 @@ export const GeneratedTournament: Story = {
 
     const wrapper = document.createElement('div');
     wrapper.style.padding = '20px';
-    wrapper.style.backgroundColor = '#f5f5f5';
+    wrapper.style.backgroundColor = CHC_BG_SECONDARY;
 
     wrapper.appendChild(chartContainer);
-
-    return wrapper;
-  }
-};
-
-/**
- * With BYEs - 32-draw with 28 participants (4 BYEs)
- *
- * Verifies that players who advance via BYE have their color shown
- * in the round-1 winner segment (the ring just inside the outer draw positions).
- * The factory produces BYE matchUps without winningSide set, so resolveWinner
- * falls back to finding the side with a participant.
- */
-export const ByesInDraw: Story = {
-  args: {
-    width: 800,
-    height: 800,
-    title: '32-Draw with BYEs'
-  },
-  render: (args: any) => {
-    const wrapper = document.createElement('div');
-    wrapper.style.padding = '20px';
-    wrapper.style.backgroundColor = '#f5f5f5';
-    wrapper.style.display = 'flex';
-    wrapper.style.gap = '20px';
-
-    const chartContainer = document.createElement('div');
-    chartContainer.style.flex = '1';
-    chartContainer.style.backgroundColor = '#ffffff';
-    chartContainer.style.border = BORDER_STYLE_1;
-    chartContainer.style.borderRadius = '8px';
-    chartContainer.style.display = 'flex';
-    chartContainer.style.alignItems = 'center';
-    chartContainer.style.justifyContent = 'center';
-
-    const { tournamentRecord, drawIds } = mocksEngine.generateTournamentRecord({
-      drawProfiles: [{ drawSize: 32, drawType: SINGLE_ELIMINATION, seedsCount: 4, participantsCount: 28 }],
-      completeAllMatchUps: true,
-      randomWinningSide: true
-    });
-    tournamentEngine.setState(tournamentRecord);
-
-    const drawId = drawIds[0];
-    const { eventData } = tournamentEngine.getEventData({ drawId });
-    const structure = eventData.drawsData.find((d: any) => d.drawId === drawId).structures[0];
-    const drawData = fromFactoryDrawData(structure);
-
-    // Log BYE matchUp details for debugging
-    const round1 = drawData.roundMatchUps[1] || [];
-    const byeMatchUps = round1.filter((mu) => mu.matchUpStatus === 'BYE');
-
-    const chart = burstChart({
-      width: args.width,
-      height: args.height,
-      eventHandlers: {
-        clickSegment: (data) => {
-          console.log(CLICKED_SEGMENT, data);
-        }
-      }
-    });
-
-    chart.render(chartContainer, drawData, args.title);
-
-    // Info panel
-    const infoPanel = document.createElement('div');
-    infoPanel.style.flex = '0 0 300px';
-    infoPanel.style.padding = '20px';
-    infoPanel.style.backgroundColor = '#ffffff';
-    infoPanel.style.border = BORDER_STYLE_1;
-    infoPanel.style.borderRadius = '8px';
-
-    const infoTitle = document.createElement('h3');
-    infoTitle.textContent = 'BYE Handling';
-    infoTitle.style.marginTop = '0';
-    infoTitle.style.marginBottom = '15px';
-    infoTitle.style.color = '#333';
-    infoPanel.appendChild(infoTitle);
-
-    const desc = document.createElement('div');
-    desc.style.fontSize = '14px';
-    desc.style.lineHeight = '1.8';
-    desc.style.color = '#666';
-    desc.innerHTML = `
-      <p>32-draw bracket with <strong>28 participants</strong> and <strong>4 BYEs</strong>.</p>
-      <p>Players advancing by BYE should have their color visible in the
-      round-1 winner segment (the ring just inside the outermost draw positions).</p>
-      <ul>
-        <li><strong>Grey segments</strong> on the outer ring = BYE positions</li>
-        <li><strong>Colored segments</strong> one ring inward = BYE-advanced players</li>
-        <li>Seeds shown in <span style="color:#1565C0">blue gradient</span></li>
-        <li>Unseeded in <span style="color:#4CAF50">green palette</span></li>
-      </ul>
-      <p><strong>BYE matchUps found:</strong> ${byeMatchUps.length}</p>
-      <ul style="font-size:13px">
-        ${byeMatchUps
-          .map((mu) => {
-            const player = mu.sides.find((s: any) => s.participantName);
-            return `<li>${player?.participantName || '?'} (pos ${player?.drawPosition || '?'}${
-              player?.seedNumber ? `, seed ${player.seedNumber}` : ''
-            })</li>`;
-          })
-          .join('')}
-      </ul>
-    `;
-    infoPanel.appendChild(desc);
-
-    wrapper.appendChild(chartContainer);
-    wrapper.appendChild(infoPanel);
 
     return wrapper;
   }
@@ -410,13 +308,14 @@ export const DrawSizePicker: Story = {
   render: (args: any) => {
     const wrapper = document.createElement('div');
     wrapper.style.padding = '20px';
-    wrapper.style.backgroundColor = '#f5f5f5';
+    wrapper.style.backgroundColor = CHC_BG_SECONDARY;
 
     // Controls
     const controlsDiv = document.createElement('div');
     controlsDiv.style.marginBottom = '20px';
     controlsDiv.style.padding = '15px';
-    controlsDiv.style.backgroundColor = '#ffffff';
+    controlsDiv.style.backgroundColor = CHC_BG_ELEVATED;
+    controlsDiv.style.color = CHC_TEXT_PRIMARY;
     controlsDiv.style.borderRadius = '8px';
     controlsDiv.style.border = BORDER_STYLE_1;
     controlsDiv.style.display = 'flex';
@@ -433,6 +332,8 @@ export const DrawSizePicker: Story = {
     sizeSelect.style.fontSize = '14px';
     sizeSelect.style.borderRadius = '4px';
     sizeSelect.style.border = BORDER_STYLE_2;
+    sizeSelect.style.backgroundColor = CHC_BG_PRIMARY;
+    sizeSelect.style.color = CHC_TEXT_PRIMARY;
     for (const size of [8, 16, 32, 64, 128]) {
       const opt = document.createElement('option');
       opt.value = String(size);
@@ -450,6 +351,8 @@ export const DrawSizePicker: Story = {
     seedsSelect.style.fontSize = '14px';
     seedsSelect.style.borderRadius = '4px';
     seedsSelect.style.border = BORDER_STYLE_2;
+    seedsSelect.style.backgroundColor = CHC_BG_PRIMARY;
+    seedsSelect.style.color = CHC_TEXT_PRIMARY;
     for (const count of [0, 2, 4, 8, 16, 32]) {
       const opt = document.createElement('option');
       opt.value = String(count);
@@ -483,6 +386,8 @@ export const DrawSizePicker: Story = {
     goalInput.style.fontSize = '14px';
     goalInput.style.borderRadius = '4px';
     goalInput.style.border = BORDER_STYLE_2;
+    goalInput.style.backgroundColor = CHC_BG_PRIMARY;
+    goalInput.style.color = CHC_TEXT_PRIMARY;
     goalInput.style.width = '80px';
     goalInput.disabled = completeCheckbox.checked;
 
@@ -522,7 +427,7 @@ export const DrawSizePicker: Story = {
 
     // Chart container
     const chartContainer = document.createElement('div');
-    chartContainer.style.backgroundColor = '#ffffff';
+    chartContainer.style.backgroundColor = CHC_BG_ELEVATED;
     chartContainer.style.border = BORDER_STYLE_1;
     chartContainer.style.borderRadius = '8px';
     chartContainer.style.display = 'flex';
@@ -579,125 +484,6 @@ export const DrawSizePicker: Story = {
 };
 
 /**
- * Center Click Navigation - Demonstrates clickCenter event handler
- *
- * The center of the burst chart is a clickable target that can be used
- * for navigation (e.g. navigating to the full draw page).
- * Click the center area to trigger the callback.
- */
-export const CenterClickNavigation: Story = {
-  args: {
-    width: 800,
-    height: 800,
-    title: 'Click Center to Navigate'
-  },
-  render: (args: any) => {
-    const wrapper = document.createElement('div');
-    wrapper.style.padding = '20px';
-    wrapper.style.backgroundColor = '#f5f5f5';
-    wrapper.style.display = 'flex';
-    wrapper.style.gap = '20px';
-
-    const chartContainer = document.createElement('div');
-    chartContainer.style.flex = '1';
-    chartContainer.style.backgroundColor = '#ffffff';
-    chartContainer.style.border = BORDER_STYLE_1;
-    chartContainer.style.borderRadius = '8px';
-    chartContainer.style.display = 'flex';
-    chartContainer.style.alignItems = 'center';
-    chartContainer.style.justifyContent = 'center';
-
-    // Event log panel
-    const logPanel = document.createElement('div');
-    logPanel.style.flex = '0 0 300px';
-    logPanel.style.padding = '20px';
-    logPanel.style.backgroundColor = '#ffffff';
-    logPanel.style.border = BORDER_STYLE_1;
-    logPanel.style.borderRadius = '8px';
-    logPanel.style.display = 'flex';
-    logPanel.style.flexDirection = 'column';
-
-    const logTitle = document.createElement('h3');
-    logTitle.textContent = 'Event Log';
-    logTitle.style.marginTop = '0';
-    logTitle.style.marginBottom = '10px';
-    logTitle.style.color = '#333';
-    logPanel.appendChild(logTitle);
-
-    const logDescription = document.createElement('p');
-    logDescription.style.fontSize = '14px';
-    logDescription.style.color = '#666';
-    logDescription.style.marginTop = '0';
-    logDescription.innerHTML =
-      '<strong>clickCenter</strong> fires when the center of the chart is clicked. ' +
-      'Use it to navigate to the draw page or trigger any action.<br><br>' +
-      '<strong>clickSegment</strong> fires when an arc segment is clicked.';
-    logPanel.appendChild(logDescription);
-
-    const logArea = document.createElement('div');
-    logArea.style.flex = '1';
-    logArea.style.fontFamily = 'monospace';
-    logArea.style.fontSize = '13px';
-    logArea.style.backgroundColor = '#f9f9f9';
-    logArea.style.borderRadius = '4px';
-    logArea.style.padding = '12px';
-    logArea.style.overflowY = 'auto';
-    logArea.style.maxHeight = '500px';
-    logPanel.appendChild(logArea);
-
-    let logCount = 0;
-    const addLogEntry = (message: string, color: string) => {
-      logCount++;
-      const entry = document.createElement('div');
-      entry.style.padding = '6px 0';
-      entry.style.borderBottom = '1px solid #eee';
-      entry.style.color = color;
-      entry.innerHTML = `<span style="color:#999">${logCount}.</span> ${message}`;
-      logArea.insertBefore(entry, logArea.firstChild);
-    };
-
-    // Generate tournament
-    const { tournamentRecord, drawIds } = mocksEngine.generateTournamentRecord({
-      drawProfiles: [{ drawSize: 32, drawType: SINGLE_ELIMINATION, seedsCount: 8 }],
-      completeAllMatchUps: true,
-      randomWinningSide: true
-    });
-    tournamentEngine.setState(tournamentRecord);
-
-    const drawId = drawIds[0];
-    const { eventData } = tournamentEngine.getEventData({ drawId });
-    const structure = eventData.drawsData.find((d: any) => d.drawId === drawId).structures[0];
-    const drawData = fromFactoryDrawData(structure);
-
-    const chart = burstChart({
-      width: args.width,
-      height: args.height,
-      eventHandlers: {
-        clickCenter: () => {
-          console.log(CLICKED_CENTER);
-          addLogEntry('clickCenter — navigate to draw page', '#1565C0');
-        },
-        clickSegment: (data) => {
-          console.log(CLICKED_SEGMENT, data);
-          const name = data.participantName || 'unknown';
-          const score = data.scoreString ? ` (${data.scoreString})` : '';
-          addLogEntry(`clickSegment — ${name}${score}`, '#333');
-        }
-      }
-    });
-
-    chart.render(chartContainer, drawData, args.title);
-
-    addLogEntry('Chart rendered. Click center or segments.', '#999');
-
-    wrapper.appendChild(chartContainer);
-    wrapper.appendChild(logPanel);
-
-    return wrapper;
-  }
-};
-
-/**
  * Australian Open Player Search - Multi-chart visualization with cross-chart player search
  *
  * Reproduces the TennisVisuals hive-eye-tracker burstTyped demo:
@@ -716,7 +502,8 @@ export const AustralianOpenPlayerSearch: Story = {
   render: (args: any) => {
     const wrapper = document.createElement('div');
     wrapper.style.padding = '20px';
-    wrapper.style.backgroundColor = '#f5f5f5';
+    wrapper.style.backgroundColor = CHC_BG_SECONDARY;
+    wrapper.style.color = CHC_TEXT_PRIMARY;
     wrapper.style.fontFamily =
       "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif";
 
@@ -757,7 +544,7 @@ export const AustralianOpenPlayerSearch: Story = {
 
     // Search container
     const searchContainer = document.createElement('div');
-    searchContainer.style.background = 'white';
+    searchContainer.style.background = CHC_BG_ELEVATED;
     searchContainer.style.padding = '20px';
     searchContainer.style.borderRadius = '8px';
     searchContainer.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
@@ -768,7 +555,7 @@ export const AustralianOpenPlayerSearch: Story = {
     searchLabel.style.display = 'block';
     searchLabel.style.marginBottom = '8px';
     searchLabel.style.fontWeight = '600';
-    searchLabel.style.color = '#333';
+    searchLabel.style.color = CHC_TEXT_PRIMARY;
     searchContainer.appendChild(searchLabel);
 
     const searchInput = document.createElement('input');
@@ -779,8 +566,10 @@ export const AustralianOpenPlayerSearch: Story = {
     searchInput.style.maxWidth = '400px';
     searchInput.style.padding = '12px';
     searchInput.style.fontSize = '16px';
-    searchInput.style.border = '2px solid #e0e0e0';
+    searchInput.style.border = '2px solid var(--chc-border-secondary)';
     searchInput.style.borderRadius = '6px';
+    searchInput.style.backgroundColor = CHC_BG_PRIMARY;
+    searchInput.style.color = CHC_TEXT_PRIMARY;
     searchInput.style.transition = 'border-color 0.3s';
     searchInput.style.boxSizing = 'border-box';
 
@@ -794,7 +583,7 @@ export const AustralianOpenPlayerSearch: Story = {
 
     // Draws container
     const drawsContainer = document.createElement('div');
-    drawsContainer.style.background = 'white';
+    drawsContainer.style.background = CHC_BG_ELEVATED;
     drawsContainer.style.padding = '20px';
     drawsContainer.style.borderRadius = '8px';
     drawsContainer.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
@@ -882,7 +671,7 @@ export const AustralianOpenPlayerSearch: Story = {
       searchInput.style.outline = 'none';
     });
     searchInput.addEventListener('blur', () => {
-      searchInput.style.borderColor = '#e0e0e0';
+      searchInput.style.borderColor = 'var(--chc-border-secondary)';
     });
 
     return wrapper;

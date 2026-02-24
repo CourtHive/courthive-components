@@ -14,6 +14,8 @@ import { getScoringConfig } from '../config';
 const { RETIRED, WALKOVER, DEFAULTED, SUSPENDED, CANCELLED, INCOMPLETE, DEAD_RUBBER, IN_PROGRESS, AWAITING_RESULT, DOUBLE_WALKOVER, DOUBLE_DEFAULT } =
   matchUpStatusConstants;
 
+const CHC_STATUS_SUCCESS = 'var(--chc-status-success)';
+
 export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
   const { matchUp, container, onScoreChange } = params;
 
@@ -42,7 +44,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
   radioContainer.style.display = 'none'; // Hidden by default
   radioContainer.style.marginTop = '0.25em';
   radioContainer.style.padding = '0.35em 0.5em'; // Reduced vertical padding
-  radioContainer.style.backgroundColor = '#f5f5f5';
+  radioContainer.style.backgroundColor = 'var(--chc-bg-secondary)';
   radioContainer.style.borderRadius = '4px';
   radioContainer.style.flexDirection = 'column';
   radioContainer.style.gap = '0.35em'; // Reduced from 0.5em
@@ -163,7 +165,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
 
     const formatLabel = document.createElement('span');
     formatLabel.textContent = 'Format:';
-    formatLabel.style.color = '#666';
+    formatLabel.style.color = 'var(--chc-text-secondary)';
     formatInfo.appendChild(formatLabel);
 
     const formatButton = document.createElement('button');
@@ -194,7 +196,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
 
               // Update validation message
               validationMessage.textContent = 'Score cleared - format changed';
-              validationMessage.style.color = '#999';
+              validationMessage.style.color = 'var(--chc-text-muted)';
             }
           },
           modalConfig: {
@@ -246,7 +248,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
   // Formatted score display (non-editable)
   const formattedDisplay = document.createElement('div');
   formattedDisplay.style.fontSize = '0.9em';
-  formattedDisplay.style.color = '#0066cc';
+  formattedDisplay.style.color = 'var(--chc-border-focus)';
   formattedDisplay.style.fontFamily = 'monospace';
   formattedDisplay.style.minHeight = '1.5em';
   formattedDisplay.style.padding = '0.25em';
@@ -266,14 +268,14 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
       manualWinningSide = 1;
       // Highlight selected
       side1RadioLabel.style.fontWeight = 'bold';
-      side1RadioLabel.style.color = '#22c55e';
+      side1RadioLabel.style.color = CHC_STATUS_SUCCESS;
       side2RadioLabel.style.fontWeight = '';
       side2RadioLabel.style.color = '';
     } else if (side2Radio.checked) {
       manualWinningSide = 2;
       // Highlight selected
       side2RadioLabel.style.fontWeight = 'bold';
-      side2RadioLabel.style.color = '#22c55e';
+      side2RadioLabel.style.color = CHC_STATUS_SUCCESS;
       side1RadioLabel.style.fontWeight = '';
       side1RadioLabel.style.color = '';
     }
@@ -366,7 +368,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
     // For complete scores (or irregular endings), show green checkmark
     if (isComplete) {
       indicator.textContent = '✓';
-      indicator.style.color = 'green';
+      indicator.style.color = CHC_STATUS_SUCCESS;
 
       // Show match status
       let statusText = 'Valid score';
@@ -390,7 +392,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
         statusText = 'Valid score - AWAITING RESULT';
       }
       validationMessage.textContent = statusText;
-      validationMessage.style.color = 'green';
+      validationMessage.style.color = CHC_STATUS_SUCCESS;
 
       // Determine winner
       let effectiveWinningSide: number | undefined;
@@ -484,9 +486,9 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
     } else if (!result.isValid && hasSets) {
       // Has validated sets but incomplete - show orange indicator
       indicator.textContent = '⋯';
-      indicator.style.color = 'orange';
+      indicator.style.color = 'var(--chc-status-warning)';
       validationMessage.textContent = result.error || 'Score incomplete - continue typing';
-      validationMessage.style.color = 'orange';
+      validationMessage.style.color = 'var(--chc-status-warning)';
 
       // Hide radio buttons for incomplete scores
       radioContainer.style.display = 'none';
@@ -503,9 +505,9 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
     } else {
       // No valid sets at all - show error
       indicator.textContent = '✗';
-      indicator.style.color = 'red';
+      indicator.style.color = 'var(--chc-status-error)';
       validationMessage.textContent = result.error || 'Invalid score';
-      validationMessage.style.color = 'red';
+      validationMessage.style.color = 'var(--chc-status-error)';
       // Hide radio buttons
       radioContainer.style.display = 'none';
       side1Radio.checked = false;
@@ -592,11 +594,11 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
   if (internalWinningSide === 1) {
     side1Radio.checked = true;
     side1RadioLabel.style.fontWeight = 'bold';
-    side1RadioLabel.style.color = '#22c55e';
+    side1RadioLabel.style.color = CHC_STATUS_SUCCESS;
   } else if (internalWinningSide === 2) {
     side2Radio.checked = true;
     side2RadioLabel.style.fontWeight = 'bold';
-    side2RadioLabel.style.color = '#22c55e';
+    side2RadioLabel.style.color = CHC_STATUS_SUCCESS;
   }
 
   // Focus input and trigger validation if there's an existing score or irregular status

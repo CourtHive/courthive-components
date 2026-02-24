@@ -105,7 +105,7 @@ export const ParticipantsPage: Story = {
             formatter: (cell: any) =>
               cell.getValue()
                 ? '<span style="color: green; font-weight: bold;">Yes</span>'
-                : '<span style="color: #ccc;">No</span>'
+                : '<span style="color: var(--chc-text-muted);">No</span>'
           }
         ]
       });

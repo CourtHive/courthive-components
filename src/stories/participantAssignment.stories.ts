@@ -141,7 +141,7 @@ export default {
     const instructions = document.createElement('div');
     instructions.style.marginBottom = '20px';
     instructions.style.padding = '10px';
-    instructions.style.border = '1px solid #ccc';
+    instructions.style.border = '1px solid var(--chc-border-primary)';
     instructions.style.borderRadius = '4px';
     instructions.innerHTML = `
       <strong>Inline Participant Assignment Demo</strong><br>

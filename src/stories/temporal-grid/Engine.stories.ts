@@ -18,6 +18,7 @@ const TEST_TOURNAMENT = 'test-tournament';
 const TEST_DATE = '2026-06-15';
 const T_0800 = '2026-06-15T08:00:00';
 const T_1200 = '2026-06-15T12:00:00';
+const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
 
 // ============================================================================
 // Mock Tournament
@@ -94,7 +95,7 @@ const renderEngineDemo = (title: string, demoFn: () => string) => {
   const container = document.createElement('div');
   container.style.padding = '2rem';
   container.style.fontFamily = 'monospace';
-  container.style.background = '#f8f9fa';
+  container.style.background = 'var(--chc-bg-secondary)';
   container.style.borderRadius = '8px';
   container.style.maxWidth = '800px';
   container.style.margin = '0 auto';
@@ -102,13 +103,15 @@ const renderEngineDemo = (title: string, demoFn: () => string) => {
   const titleEl = document.createElement('h3');
   titleEl.textContent = title;
   titleEl.style.marginTop = '0';
+  titleEl.style.color = CHC_TEXT_PRIMARY;
   container.appendChild(titleEl);
 
   const output = document.createElement('pre');
-  output.style.background = 'white';
+  output.style.background = 'var(--chc-bg-elevated)';
   output.style.padding = '1rem';
   output.style.borderRadius = '4px';
   output.style.overflow = 'auto';
+  output.style.color = CHC_TEXT_PRIMARY;
   output.textContent = demoFn();
   container.appendChild(output);
 
@@ -389,7 +392,7 @@ export const EventSubscription: Story = {
     const container = document.createElement('div');
     container.style.padding = '2rem';
     container.style.fontFamily = 'monospace';
-    container.style.background = '#f8f9fa';
+    container.style.background = 'var(--chc-bg-secondary)';
     container.style.borderRadius = '8px';
     container.style.maxWidth = '800px';
     container.style.margin = '0 auto';
@@ -397,14 +400,16 @@ export const EventSubscription: Story = {
     const title = document.createElement('h3');
     title.textContent = 'Event Subscription';
     title.style.marginTop = '0';
+    title.style.color = CHC_TEXT_PRIMARY;
     container.appendChild(title);
 
     const output = document.createElement('pre');
-    output.style.background = 'white';
+    output.style.background = 'var(--chc-bg-elevated)';
     output.style.padding = '1rem';
     output.style.borderRadius = '4px';
     output.style.overflow = 'auto';
     output.style.maxHeight = '400px';
+    output.style.color = CHC_TEXT_PRIMARY;
     container.appendChild(output);
 
     const button = document.createElement('button');

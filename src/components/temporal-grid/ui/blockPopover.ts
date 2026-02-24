@@ -15,6 +15,8 @@ type BlockType = temporal.BlockType;
 import { DEFAULT_COLOR_SCHEME } from '../controller/viewProjections';
 
 const POPOVER_ITEM_STYLE = 'padding:6px 12px; cursor:pointer; display:flex; align-items:center; gap:8px;';
+const CHC_HOVER_BG = 'var(--chc-hover-bg)';
+const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
 
 // ============================================================================
 // Public Types
@@ -84,7 +86,7 @@ export function createBlockPopoverManager(): BlockPopoverManager {
         <span style="width:10px;height:10px;border-radius:2px;background:${bt.color};display:inline-block;"></span>
         ${bt.label}
       `;
-      btn.addEventListener('mouseenter', () => { btn.style.background = '#f0f0f0'; btn.style.color = '#333'; });
+      btn.addEventListener('mouseenter', () => { btn.style.background = CHC_HOVER_BG; btn.style.color = CHC_TEXT_PRIMARY; });
       btn.addEventListener('mouseleave', () => { btn.style.background = 'transparent'; btn.style.color = ''; });
       btn.addEventListener('click', () => {
         options.onTypeSelected(bt.type);
@@ -95,7 +97,7 @@ export function createBlockPopoverManager(): BlockPopoverManager {
 
     if (options.onAdjustTime || options.onDelete) {
       const hr = document.createElement('div');
-      hr.style.cssText = 'border-top:1px solid #e0e0e0; margin:4px 0;';
+      hr.style.cssText = 'border-top:1px solid var(--chc-border-primary); margin:4px 0;';
       wrap.appendChild(hr);
     }
 
@@ -103,7 +105,7 @@ export function createBlockPopoverManager(): BlockPopoverManager {
       const timeBtn = document.createElement('div');
       timeBtn.style.cssText = POPOVER_ITEM_STYLE;
       timeBtn.innerHTML = `<span style="font-size:14px;">&#128339;</span> Adjust Time`;
-      timeBtn.addEventListener('mouseenter', () => { timeBtn.style.background = '#f0f0f0'; timeBtn.style.color = '#333'; });
+      timeBtn.addEventListener('mouseenter', () => { timeBtn.style.background = CHC_HOVER_BG; timeBtn.style.color = CHC_TEXT_PRIMARY; });
       timeBtn.addEventListener('mouseleave', () => { timeBtn.style.background = 'transparent'; timeBtn.style.color = ''; });
       timeBtn.addEventListener('click', () => {
         const onAdjust = options.onAdjustTime!;
@@ -156,7 +158,7 @@ export function createBlockPopoverManager(): BlockPopoverManager {
         <span style="width:10px;height:10px;border-radius:2px;background:${color};display:inline-block;"></span>
         ${label}
       `;
-      btn.addEventListener('mouseenter', () => { btn.style.background = '#f0f0f0'; btn.style.color = '#333'; });
+      btn.addEventListener('mouseenter', () => { btn.style.background = CHC_HOVER_BG; btn.style.color = CHC_TEXT_PRIMARY; });
       btn.addEventListener('mouseleave', () => { btn.style.background = 'transparent'; btn.style.color = ''; });
       btn.addEventListener('click', () => {
         const block = engine.getDayBlocks(day).find((b) => b.id === blockId);
@@ -176,14 +178,14 @@ export function createBlockPopoverManager(): BlockPopoverManager {
     }
 
     const hr = document.createElement('div');
-    hr.style.cssText = 'border-top:1px solid #e0e0e0; margin:4px 0;';
+    hr.style.cssText = 'border-top:1px solid var(--chc-border-primary); margin:4px 0;';
     wrap.appendChild(hr);
 
     // Adjust Time
     const timeBtn = document.createElement('div');
     timeBtn.style.cssText = POPOVER_ITEM_STYLE;
     timeBtn.innerHTML = `<span style="font-size:14px;">&#128339;</span> Adjust Time`;
-    timeBtn.addEventListener('mouseenter', () => { timeBtn.style.background = '#f0f0f0'; timeBtn.style.color = '#333'; });
+    timeBtn.addEventListener('mouseenter', () => { timeBtn.style.background = CHC_HOVER_BG; timeBtn.style.color = CHC_TEXT_PRIMARY; });
     timeBtn.addEventListener('mouseleave', () => { timeBtn.style.background = 'transparent'; timeBtn.style.color = ''; });
     timeBtn.addEventListener('click', () => {
       destroyActive();

@@ -1,6 +1,9 @@
 import { getCategoryModal } from '../components/categories/category/category';
 import type { Category } from '../components/categories/category/category';
 
+const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
+const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
+
 export default {
   title: 'Components/Categories/Category',
   tags: ['autodocs'],
@@ -21,12 +24,12 @@ export const BasicEditor = {
     const title = document.createElement('h2');
     title.textContent = 'Category Editor';
     title.style.marginBottom = '0.5em';
-    title.style.color = '#000';
+    title.style.color = CHC_TEXT_PRIMARY;
     container.appendChild(title);
 
     const description = document.createElement('p');
     description.style.marginBottom = '1.5em';
-    description.style.color = '#666';
+    description.style.color = CHC_TEXT_SECONDARY;
     description.innerHTML =
       'Click the button below to open the Category editor. The Category editor allows you to define complete category information including age categories, ratings, and ball types. ' +
       'The Age Category Code editor is launched as a sub-modal when defining age-based categories.';
@@ -35,11 +38,11 @@ export const BasicEditor = {
     const resultDisplay = document.createElement('div');
     resultDisplay.style.marginTop = '1.5em';
     resultDisplay.style.padding = '1em';
-    resultDisplay.style.backgroundColor = '#f9f9f9';
+    resultDisplay.style.backgroundColor = 'var(--chc-bg-secondary)';
     resultDisplay.style.borderRadius = '4px';
-    resultDisplay.style.border = '1px solid #e0e0e0';
+    resultDisplay.style.border = '1px solid var(--chc-border-primary)';
     resultDisplay.innerHTML = `
-      <div style="color: #666; font-style: italic;">
+      <div style="color: var(--chc-text-secondary); font-style: italic;">
         Category result will appear here after clicking OK...
       </div>
     `;
@@ -54,14 +57,14 @@ export const BasicEditor = {
           lastCategory = category; // Save for next open
           console.log('Category selected:', category);
           resultDisplay.innerHTML = `
-            <div style="color: #000;">
-              <strong style="color: #000;">Selected category:</strong><br>
-              <pre style="background: #f5f5f5; padding: 1em; border-radius: 4px; overflow: auto; color: #000;">${JSON.stringify(
+            <div style="color: var(--chc-text-primary);">
+              <strong style="color: var(--chc-text-primary);">Selected category:</strong><br>
+              <pre style="background: var(--chc-bg-secondary); padding: 1em; border-radius: 4px; overflow: auto; color: var(--chc-text-primary);">${JSON.stringify(
                 category,
                 null,
                 2,
               )}</pre>
-              <div style="margin-top: 0.5em; font-size: 0.9em; color: #666; font-style: italic;">
+              <div style="margin-top: 0.5em; font-size: 0.9em; color: var(--chc-text-secondary); font-style: italic;">
                 Click the button again to test round-trip editing
               </div>
             </div>
@@ -88,12 +91,12 @@ export const EditExisting = {
     const title = document.createElement('h2');
     title.textContent = 'Edit Existing Category';
     title.style.marginBottom = '0.5em';
-    title.style.color = '#000';
+    title.style.color = CHC_TEXT_PRIMARY;
     container.appendChild(title);
 
     const description = document.createElement('p');
     description.style.marginBottom = '1.5em';
-    description.style.color = '#666';
+    description.style.color = CHC_TEXT_SECONDARY;
     description.textContent =
       'Opens the editor with pre-populated data demonstrating how to edit existing categories.';
     container.appendChild(description);
@@ -140,9 +143,9 @@ export const EditExisting = {
           callback: (category: Category) => {
             console.log('Category updated:', category);
             resultDisplay.innerHTML = `
-              <div style="color: #000;">
-                <strong style="color: #000;">Updated category:</strong><br>
-                <pre style="background: #f5f5f5; padding: 1em; border-radius: 4px; overflow: auto; color: #000;">${JSON.stringify(
+              <div style="color: var(--chc-text-primary);">
+                <strong style="color: var(--chc-text-primary);">Updated category:</strong><br>
+                <pre style="background: var(--chc-bg-secondary); padding: 1em; border-radius: 4px; overflow: auto; color: var(--chc-text-primary);">${JSON.stringify(
                   category,
                   null,
                   2,
@@ -175,17 +178,17 @@ export const CategoryTypes = {
     const title = document.createElement('h2');
     title.textContent = 'Category Types';
     title.style.marginBottom = '0.5em';
-    title.style.color = '#000';
+    title.style.color = CHC_TEXT_PRIMARY;
     container.appendChild(title);
 
     const description = document.createElement('p');
     description.style.marginBottom = '1.5em';
-    description.style.color = '#666';
+    description.style.color = CHC_TEXT_SECONDARY;
     description.innerHTML =
       'The category editor supports three types:<br>' +
-      '<strong style="color: #000;">AGE</strong> - Age-based categories with age category codes<br>' +
-      '<strong style="color: #000;">RATING</strong> - Rating-based categories with min/max ratings<br>' +
-      '<strong style="color: #000;">BOTH</strong> - Combined age and rating requirements';
+      '<strong style="color: var(--chc-text-primary);">AGE</strong> - Age-based categories with age category codes<br>' +
+      '<strong style="color: var(--chc-text-primary);">RATING</strong> - Rating-based categories with min/max ratings<br>' +
+      '<strong style="color: var(--chc-text-primary);">BOTH</strong> - Combined age and rating requirements';
     container.appendChild(description);
 
     const types = [
@@ -233,9 +236,9 @@ export const CategoryTypes = {
           callback: (result: Category) => {
             console.log('Category result:', result);
             resultDisplay.innerHTML = `
-              <div style="color: #000;">
-                <strong style="color: #000;">Category (${result.type}):</strong><br>
-                <pre style="background: #f5f5f5; padding: 1em; border-radius: 4px; overflow: auto; color: #000;">${JSON.stringify(
+              <div style="color: var(--chc-text-primary);">
+                <strong style="color: var(--chc-text-primary);">Category (${result.type}):</strong><br>
+                <pre style="background: var(--chc-bg-secondary); padding: 1em; border-radius: 4px; overflow: auto; color: var(--chc-text-primary);">${JSON.stringify(
                   result,
                   null,
                   2,
@@ -268,12 +271,12 @@ export const CustomConfiguration = {
     const title = document.createElement('h2');
     title.textContent = 'Custom Configuration';
     title.style.marginBottom = '0.5em';
-    title.style.color = '#000';
+    title.style.color = CHC_TEXT_PRIMARY;
     container.appendChild(title);
 
     const description = document.createElement('p');
     description.style.marginBottom = '1.5em';
-    description.style.color = '#666';
+    description.style.color = CHC_TEXT_SECONDARY;
     description.textContent =
       'The editor can be customized with different labels, rating types, and ball types.';
     container.appendChild(description);
@@ -299,9 +302,9 @@ export const CustomConfiguration = {
         callback: (category: Category) => {
           console.log('Custom configured category:', category);
           resultDisplay.innerHTML = `
-            <div style="color: #000;">
-              <strong style="color: #000;">Configured category:</strong><br>
-              <pre style="background: #f5f5f5; padding: 1em; border-radius: 4px; overflow: auto; color: #000;">${JSON.stringify(
+            <div style="color: var(--chc-text-primary);">
+              <strong style="color: var(--chc-text-primary);">Configured category:</strong><br>
+              <pre style="background: var(--chc-bg-secondary); padding: 1em; border-radius: 4px; overflow: auto; color: var(--chc-text-primary);">${JSON.stringify(
                 category,
                 null,
                 2,
@@ -333,14 +336,14 @@ export const AgeCategoryIntegration = {
     const title = document.createElement('h2');
     title.textContent = 'Age Category Integration';
     title.style.marginBottom = '0.5em';
-    title.style.color = '#000';
+    title.style.color = CHC_TEXT_PRIMARY;
     container.appendChild(title);
 
     const description = document.createElement('p');
     description.style.marginBottom = '1.5em';
-    description.style.color = '#666';
+    description.style.color = CHC_TEXT_SECONDARY;
     description.innerHTML =
-      'When the category type is <strong style="color: #000;">AGE</strong> or <strong style="color: #000;">BOTH</strong>, ' +
+      'When the category type is <strong style="color: var(--chc-text-primary);">AGE</strong> or <strong style="color: var(--chc-text-primary);">BOTH</strong>, ' +
       'an "Age Category Code" field appears with an Edit/Set button. Clicking this button launches the Age Category Code editor as a sub-modal. ' +
       'The calculated age ranges are displayed in the category editor after setting the code.';
     container.appendChild(description);
@@ -357,9 +360,9 @@ export const AgeCategoryIntegration = {
         callback: (category: Category) => {
           console.log('Category with age:', category);
           resultDisplay.innerHTML = `
-            <div style="color: #000;">
-              <strong style="color: #000;">Category with age details:</strong><br>
-              <pre style="background: #f5f5f5; padding: 1em; border-radius: 4px; overflow: auto; color: #000;">${JSON.stringify(
+            <div style="color: var(--chc-text-primary);">
+              <strong style="color: var(--chc-text-primary);">Category with age details:</strong><br>
+              <pre style="background: var(--chc-bg-secondary); padding: 1em; border-radius: 4px; overflow: auto; color: var(--chc-text-primary);">${JSON.stringify(
                 category,
                 null,
                 2,
@@ -367,10 +370,10 @@ export const AgeCategoryIntegration = {
               ${
                 category.ageCategoryCode
                   ? `
-                <div style="margin-top: 1em; padding: 1em; background: #e8f5e9; border-left: 4px solid #4caf50; border-radius: 4px;">
-                  <strong style="color: #000;">Age Category Code:</strong> ${category.ageCategoryCode}<br>
-                  <strong style="color: #000;">Age Range:</strong> ${category.ageMin || 'N/A'} - ${category.ageMax || 'N/A'}<br>
-                  <strong style="color: #000;">Birth Date Range:</strong> ${category.ageMinDate || 'N/A'} to ${category.ageMaxDate || 'N/A'}
+                <div style="margin-top: 1em; padding: 1em; background: var(--chc-bg-secondary); border-left: 4px solid var(--chc-status-success); border-radius: 4px;">
+                  <strong style="color: var(--chc-text-primary);">Age Category Code:</strong> ${category.ageCategoryCode}<br>
+                  <strong style="color: var(--chc-text-primary);">Age Range:</strong> ${category.ageMin || 'N/A'} - ${category.ageMax || 'N/A'}<br>
+                  <strong style="color: var(--chc-text-primary);">Birth Date Range:</strong> ${category.ageMinDate || 'N/A'} to ${category.ageMaxDate || 'N/A'}
                 </div>
               `
                   : ''

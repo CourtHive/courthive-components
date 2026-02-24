@@ -9,6 +9,9 @@ import { mocksEngine } from 'tods-competition-factory';
 import { DrawStateManager } from '../helpers/drawStateManager';
 import type { MatchUp } from '../types';
 
+const CHC_BG_SECONDARY = 'var(--chc-bg-secondary)';
+const CHC_BORDER_FOCUS = 'var(--chc-border-focus)';
+
 const argTypes = {
   composition: {
     options: Object.keys(compositions),
@@ -88,15 +91,15 @@ export default {
     const toggleContainer = document.createElement('div');
     toggleContainer.style.marginBottom = '15px';
     toggleContainer.style.padding = '10px';
-    toggleContainer.style.backgroundColor = '#f8f9fa';
+    toggleContainer.style.backgroundColor = CHC_BG_SECONDARY;
     toggleContainer.style.borderRadius = '8px';
-    toggleContainer.style.border = '2px solid #dee2e6';
+    toggleContainer.style.border = '2px solid var(--chc-border-primary)';
 
     const toggleButton = document.createElement('button');
     toggleButton.style.padding = '8px 16px';
     toggleButton.style.fontSize = '14px';
     toggleButton.style.fontWeight = 'bold';
-    toggleButton.style.border = '2px solid #0066cc';
+    toggleButton.style.border = '2px solid var(--chc-border-focus)';
     toggleButton.style.borderRadius = '6px';
     toggleButton.style.cursor = 'pointer';
     toggleButton.style.marginRight = '10px';
@@ -104,12 +107,12 @@ export default {
 
     const updateToggleButton = (isPersist: boolean) => {
       if (isPersist) {
-        toggleButton.style.backgroundColor = '#0066cc';
-        toggleButton.style.color = 'white';
+        toggleButton.style.backgroundColor = CHC_BORDER_FOCUS;
+        toggleButton.style.color = 'var(--chc-text-inverse)';
         toggleButton.textContent = '✓ Persist Mode ON';
       } else {
-        toggleButton.style.backgroundColor = 'white';
-        toggleButton.style.color = '#0066cc';
+        toggleButton.style.backgroundColor = 'var(--chc-bg-elevated)';
+        toggleButton.style.color = CHC_BORDER_FOCUS;
         toggleButton.textContent = 'Persist Mode OFF';
       }
     };
@@ -117,7 +120,7 @@ export default {
     updateToggleButton(currentPersistMode);
 
     const toggleLabel = document.createElement('span');
-    toggleLabel.style.color = '#495057';
+    toggleLabel.style.color = 'var(--chc-text-secondary)';
     toggleLabel.style.fontSize = '13px';
     toggleLabel.innerHTML = currentPersistMode
       ? '<strong style="color: #28a745;">Input fields stay visible, allow re-assignment</strong>'
@@ -238,7 +241,7 @@ export default {
       instructions.style.padding = '15px';
       instructions.style.border = '2px solid #4CAF50';
       instructions.style.borderRadius = '8px';
-      instructions.style.backgroundColor = '#f1f8f4';
+      instructions.style.backgroundColor = CHC_BG_SECONDARY;
       instructions.innerHTML = `
         <strong style="color: #2E7D32;">Tab Order & Keyboard Navigation Test</strong><br>
         <ul style="margin: 10px 0; padding-left: 20px;">
@@ -418,7 +421,7 @@ export const DrawWithQualifying = {
 
     const infoBanner = document.createElement('div');
     infoBanner.style.cssText =
-      'background: #e3f2fd; padding: 15px; margin-bottom: 20px; border-radius: 4px; border-left: 4px solid #2196f3;';
+      'background: var(--chc-bg-secondary); padding: 15px; margin-bottom: 20px; border-radius: 4px; border-left: 4px solid var(--chc-status-info);';
     infoBanner.innerHTML = `
       <strong style="color: #1976d2;">Draw with Qualifying Structure</strong><br/>
       <span style="color: #424242; font-size: 14px;">
@@ -430,13 +433,13 @@ export const DrawWithQualifying = {
 
     const toggleContainer = document.createElement('div');
     toggleContainer.style.cssText =
-      'display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding: 10px; background: #f5f5f5; border-radius: 4px;';
+      'display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding: 10px; background: var(--chc-bg-secondary); border-radius: 4px;';
     const toggleButton = document.createElement('button');
     toggleButton.style.cssText =
-      'padding: 8px 16px; border: 2px solid #0066cc; border-radius: 4px; font-weight: 500; cursor: pointer;';
+      'padding: 8px 16px; border: 2px solid var(--chc-border-focus); border-radius: 4px; font-weight: 500; cursor: pointer;';
     const updateToggleButton = (isPersist: boolean) => {
-      toggleButton.style.backgroundColor = isPersist ? '#0066cc' : 'white';
-      toggleButton.style.color = isPersist ? 'white' : '#0066cc';
+      toggleButton.style.backgroundColor = isPersist ? CHC_BORDER_FOCUS : 'var(--chc-bg-elevated)';
+      toggleButton.style.color = isPersist ? 'var(--chc-text-inverse)' : CHC_BORDER_FOCUS;
       toggleButton.textContent = isPersist ? '✓ Persist Mode ON' : 'Persist Mode OFF';
     };
     updateToggleButton(currentPersistMode);

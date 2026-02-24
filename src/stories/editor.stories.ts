@@ -1,5 +1,8 @@
 import '../components/forms/styles'; // Import bulma-switch and other form styles
 
+const CHC_BG_SECONDARY = 'var(--chc-bg-secondary)';
+const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
+
 export default {
   title: 'Components/matchUpFormat',
   tags: ['autodocs']
@@ -16,10 +19,10 @@ export const Editor = {
     const formatDisplay = document.createElement('div');
     formatDisplay.style.marginBottom = '1em';
     formatDisplay.style.padding = '1em';
-    formatDisplay.style.backgroundColor = '#f0f0f0';
+    formatDisplay.style.backgroundColor = CHC_BG_SECONDARY;
     formatDisplay.style.borderRadius = '4px';
-    formatDisplay.style.color = '#363636';
-    formatDisplay.innerHTML = `<strong style="color: #363636;">Current Format:</strong> <code style="background: #e0e0e0; padding: 0.2em 0.4em; border-radius: 3px; color: #363636;">${currentFormat}</code>`;
+    formatDisplay.style.color = CHC_TEXT_PRIMARY;
+    formatDisplay.innerHTML = `<strong style="color: var(--chc-text-primary);">Current Format:</strong> <code style="background: var(--chc-active-bg); padding: 0.2em 0.4em; border-radius: 3px; color: var(--chc-text-primary);">${currentFormat}</code>`;
 
     const button = document.createElement('button');
     button.className = 'button is-primary';
@@ -34,7 +37,7 @@ export const Editor = {
           if (format) {
             console.log('Selected format:', format);
             currentFormat = format;
-            formatDisplay.innerHTML = `<strong style="color: #363636;">Current Format:</strong> <code style="background: #e0e0e0; padding: 0.2em 0.4em; border-radius: 3px; color: #363636;">${currentFormat}</code>`;
+            formatDisplay.innerHTML = `<strong style="color: var(--chc-text-primary);">Current Format:</strong> <code style="background: var(--chc-active-bg); padding: 0.2em 0.4em; border-radius: 3px; color: var(--chc-text-primary);">${currentFormat}</code>`;
           } else {
             console.log('Format selection cancelled');
           }
@@ -45,13 +48,13 @@ export const Editor = {
     const title = document.createElement('h2');
     title.textContent = 'Match Format Editor (Real Component)';
     title.style.marginBottom = '1em';
-    title.style.color = '#333';
+    title.style.color = CHC_TEXT_PRIMARY;
 
     const description = document.createElement('p');
     description.innerHTML =
       'This is the real <code>matchUpFormat</code> component from TMX, now ported to courthive-components.<br>It demonstrates the new <code>style</code> config option for custom modal styling with a blue border.<br><em>The modal will remember your last selection and open with it next time.</em>';
     description.style.marginBottom = '1.5em';
-    description.style.color = '#555';
+    description.style.color = 'var(--chc-text-secondary)';
 
     container.appendChild(title);
     container.appendChild(description);
@@ -93,7 +96,7 @@ export const CustomPresets = {
     const title = document.createElement('h2');
     title.textContent = 'Match Format Editor with Custom Presets';
     title.style.marginBottom = '1em';
-    title.style.color = '#333';
+    title.style.color = CHC_TEXT_PRIMARY;
     container.appendChild(title);
 
     // Description
@@ -103,15 +106,15 @@ export const CustomPresets = {
       'Edit the JSON below to customize the available format presets and options.<br>' +
       '<em>Example shown: Pickleball scoring formats.</em>';
     description.style.marginBottom = '1.5em';
-    description.style.color = '#555';
+    description.style.color = 'var(--chc-text-secondary)';
     container.appendChild(description);
 
     // Config editor label
     const configLabel = document.createElement('label');
-    configLabel.innerHTML = '<strong style="color: #363636;">Configuration JSON:</strong>';
+    configLabel.innerHTML = '<strong style="color: var(--chc-text-primary);">Configuration JSON:</strong>';
     configLabel.style.display = 'block';
     configLabel.style.marginBottom = '0.5em';
-    configLabel.style.color = '#363636';
+    configLabel.style.color = CHC_TEXT_PRIMARY;
     container.appendChild(configLabel);
 
     // Config editor textarea
@@ -122,10 +125,10 @@ export const CustomPresets = {
     configEditor.style.fontSize = '12px';
     configEditor.style.padding = '1em';
     configEditor.style.marginBottom = '1em';
-    configEditor.style.border = '1px solid #ddd';
+    configEditor.style.border = '1px solid var(--chc-border-secondary)';
     configEditor.style.borderRadius = '4px';
-    configEditor.style.backgroundColor = '#f9f9f9';
-    configEditor.style.color = '#000';
+    configEditor.style.backgroundColor = CHC_BG_SECONDARY;
+    configEditor.style.color = CHC_TEXT_PRIMARY;
     configEditor.value = JSON.stringify(defaultConfig, null, 2);
     container.appendChild(configEditor);
 
@@ -141,10 +144,10 @@ export const CustomPresets = {
     const formatDisplay = document.createElement('div');
     formatDisplay.style.marginBottom = '1em';
     formatDisplay.style.padding = '1em';
-    formatDisplay.style.backgroundColor = '#f0f0f0';
+    formatDisplay.style.backgroundColor = CHC_BG_SECONDARY;
     formatDisplay.style.borderRadius = '4px';
-    formatDisplay.style.color = '#363636';
-    formatDisplay.innerHTML = `<strong style="color: #363636;">Current Format:</strong> <code style="background: #e0e0e0; padding: 0.2em 0.4em; border-radius: 3px; color: #363636;">${currentFormat}</code>`;
+    formatDisplay.style.color = CHC_TEXT_PRIMARY;
+    formatDisplay.innerHTML = `<strong style="color: var(--chc-text-primary);">Current Format:</strong> <code style="background: var(--chc-active-bg); padding: 0.2em 0.4em; border-radius: 3px; color: var(--chc-text-primary);">${currentFormat}</code>`;
     container.appendChild(formatDisplay);
 
     // Open editor button
@@ -159,26 +162,26 @@ export const CustomPresets = {
         validationMsg.style.display = 'none';
       } catch (error) {
         validationMsg.style.display = 'block';
-        validationMsg.style.backgroundColor = '#ffebee';
-        validationMsg.style.color = '#c62828';
-        validationMsg.innerHTML = `<strong style="color: #b71c1c;">Invalid JSON:</strong> ${(error as Error).message}`;
+        validationMsg.style.backgroundColor = CHC_BG_SECONDARY;
+        validationMsg.style.color = 'var(--chc-status-error)';
+        validationMsg.innerHTML = `<strong style="color: var(--chc-status-error);">Invalid JSON:</strong> ${(error as Error).message}`;
         return;
       }
 
       // Validate config structure
       if (config.preDefinedFormats && !Array.isArray(config.preDefinedFormats)) {
         validationMsg.style.display = 'block';
-        validationMsg.style.backgroundColor = '#ffebee';
-        validationMsg.style.color = '#c62828';
+        validationMsg.style.backgroundColor = CHC_BG_SECONDARY;
+        validationMsg.style.color = 'var(--chc-status-error)';
         validationMsg.innerHTML =
-          '<strong style="color: #b71c1c;">Invalid Config:</strong> preDefinedFormats must be an array';
+          '<strong style="color: var(--chc-status-error);">Invalid Config:</strong> preDefinedFormats must be an array';
         return;
       }
 
       validationMsg.style.display = 'block';
-      validationMsg.style.backgroundColor = '#e8f5e9';
-      validationMsg.style.color = '#2e7d32';
-      validationMsg.innerHTML = '<strong style="color: #1b5e20;">✓ Valid configuration</strong>';
+      validationMsg.style.backgroundColor = CHC_BG_SECONDARY;
+      validationMsg.style.color = 'var(--chc-status-success)';
+      validationMsg.innerHTML = '<strong style="color: var(--chc-status-success);">✓ Valid configuration</strong>';
 
       // Dynamically import the matchUpFormat component
       const { getMatchUpFormatModal } = await import('../components/matchUpFormat/matchUpFormat');
@@ -190,7 +193,7 @@ export const CustomPresets = {
           if (format) {
             console.log('Selected format:', format);
             currentFormat = format;
-            formatDisplay.innerHTML = `<strong style="color: #363636;">Current Format:</strong> <code style="background: #e0e0e0; padding: 0.2em 0.4em; border-radius: 3px; color: #363636;">${currentFormat}</code>`;
+            formatDisplay.innerHTML = `<strong style="color: var(--chc-text-primary);">Current Format:</strong> <code style="background: var(--chc-active-bg); padding: 0.2em 0.4em; border-radius: 3px; color: var(--chc-text-primary);">${currentFormat}</code>`;
           } else {
             console.log('Format selection cancelled');
           }
@@ -203,12 +206,12 @@ export const CustomPresets = {
     const docs = document.createElement('div');
     docs.style.marginTop = '2em';
     docs.style.padding = '1em';
-    docs.style.backgroundColor = '#e3f2fd';
-    docs.style.borderLeft = '4px solid #2196f3';
+    docs.style.backgroundColor = CHC_BG_SECONDARY;
+    docs.style.borderLeft = '4px solid var(--chc-status-info)';
     docs.style.borderRadius = '4px';
     docs.innerHTML = `
       <h3 style="margin-top: 0; color: #1565c0;">Configuration Structure</h3>
-      <pre style="background: #fff; padding: 1em; border-radius: 4px; overflow-x: auto; color: #000;"><code>{
+      <pre style="background: #fff; padding: 1em; border-radius: 4px; overflow-x: auto; color: var(--chc-text-primary);"><code>{
   "preDefinedFormats": [
     { "code": "SET3-S:6/TB7", "text": "Display Name" }
   ],
@@ -223,7 +226,7 @@ export const CustomPresets = {
   }
 }</code></pre>
       <p style="margin-bottom: 0; color: #424242;">
-        <strong style="color: #363636;">Note:</strong> The <code>code</code> field should contain a valid matchUpFormat string (e.g., SET3-S:6/TB7).
+        <strong style="color: var(--chc-text-primary);">Note:</strong> The <code>code</code> field should contain a valid matchUpFormat string (e.g., SET3-S:6/TB7).
         See the default formats in matchUpFormats.json for more examples.
       </p>
     `;

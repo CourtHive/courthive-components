@@ -37,7 +37,7 @@ const createStoryContainer = (title: string, description: string) => {
   const desc = document.createElement('p');
   desc.textContent = description;
   desc.style.marginBottom = '1.5em';
-  desc.style.color = '#666';
+  desc.style.color = 'var(--chc-text-secondary)';
 
   container.appendChild(heading);
   container.appendChild(desc);
@@ -315,7 +315,8 @@ export const WithCloseCallback = {
     const status = document.createElement('p');
     status.style.marginTop = '1em';
     status.style.padding = '1em';
-    status.style.backgroundColor = '#f5f5f5';
+    status.style.backgroundColor = 'var(--chc-bg-secondary)';
+    status.style.color = 'var(--chc-text-primary)';
     status.style.borderRadius = '4px';
     status.textContent = 'Drawer has not been opened yet';
 
@@ -332,7 +333,8 @@ export const WithCloseCallback = {
         side: 'right',
         onClose: () => {
           status.textContent = `Drawer closed at ${new Date().toLocaleTimeString()}`;
-          status.style.backgroundColor = '#d4edda';
+          status.style.backgroundColor = 'var(--chc-status-success)';
+          status.style.color = 'var(--chc-text-inverse)';
         },
       });
     };

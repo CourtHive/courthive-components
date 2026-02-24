@@ -13,6 +13,8 @@ import { getScoringConfig } from '../config';
 const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT } = matchUpStatusConstants;
 
 const DEFAULT_FORMAT = 'SET3-S:6/TB7';
+const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
+const CHC_BG_SECONDARY = 'var(--chc-bg-secondary)';
 const OUTCOME_SELECTOR = 'input[name="matchOutcome"]';
 const WINNER_SELECTOR = 'input[name="irregularWinner"]';
 
@@ -112,12 +114,12 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     if (isAggregateScoring) {
       const aggregateIndicator = document.createElement('div');
       aggregateIndicator.style.fontSize = '0.75em';
-      aggregateIndicator.style.color = '#666';
+      aggregateIndicator.style.color = CHC_TEXT_SECONDARY;
       aggregateIndicator.style.marginTop = '0.25em';
       aggregateIndicator.style.marginBottom = '0.5em';
       aggregateIndicator.style.padding = '0.25em 0.5em';
-      aggregateIndicator.style.backgroundColor = '#fff3cd';
-      aggregateIndicator.style.border = '1px solid #ffc107';
+      aggregateIndicator.style.backgroundColor = CHC_BG_SECONDARY;
+      aggregateIndicator.style.border = '1px solid var(--chc-status-warning)';
       aggregateIndicator.style.borderRadius = '3px';
       aggregateIndicator.textContent = '⚠️ Aggregate Scoring: Winner determined by total points across all sets';
       container.appendChild(aggregateIndicator);
@@ -134,7 +136,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
       const formatLabel = document.createElement('span');
       formatLabel.textContent = 'Format:';
-      formatLabel.style.color = '#666';
+      formatLabel.style.color = CHC_TEXT_SECONDARY;
       formatDisplay.appendChild(formatLabel);
 
       const formatButton = document.createElement('button');
@@ -198,8 +200,8 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     irregularEndingContainer.style.display = 'none'; // Hidden by default
     irregularEndingContainer.style.marginBottom = '0.8em';
     irregularEndingContainer.style.padding = '0.6em';
-    irregularEndingContainer.style.backgroundColor = '#fff3cd';
-    irregularEndingContainer.style.border = '2px solid #ffc107';
+    irregularEndingContainer.style.backgroundColor = CHC_BG_SECONDARY;
+    irregularEndingContainer.style.border = '2px solid var(--chc-status-warning)';
     irregularEndingContainer.style.borderRadius = '4px';
 
     const irregularLabel = document.createElement('div');
@@ -207,7 +209,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     irregularLabel.style.fontSize = '0.8em';
     irregularLabel.style.fontWeight = '600';
     irregularLabel.style.marginBottom = '0.3em';
-    irregularLabel.style.color = '#856404';
+    irregularLabel.style.color = CHC_TEXT_SECONDARY;
     irregularEndingContainer.appendChild(irregularLabel);
 
     // Winner selection for irregular endings
@@ -220,7 +222,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     winnerLabel.style.fontSize = '0.75em';
     winnerLabel.style.fontWeight = '500';
     winnerLabel.style.marginBottom = '0.2em';
-    winnerLabel.style.color = '#856404';
+    winnerLabel.style.color = CHC_TEXT_SECONDARY;
     winnerSelectionContainer.appendChild(winnerLabel);
 
     const winnerOptions = document.createElement('div');
@@ -254,7 +256,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       const side = sideNum === 1 ? side1 : side2;
       winnerText.textContent = side?.participant?.participantName || `Side ${sideNum}`;
       winnerText.style.fontSize = '0.75em';
-      winnerText.style.color = '#856404';
+      winnerText.style.color = CHC_TEXT_SECONDARY;
 
       winnerRadioLabel.appendChild(winnerRadio);
       winnerRadioLabel.appendChild(winnerText);
@@ -648,8 +650,9 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         height: 55px !important;
         width: 100% !important;
         padding: 0.5em !important;
-        color: #000 !important;
-        border: 1px solid #dbdbdb !important;
+        color: var(--chc-text-primary) !important;
+        background-color: var(--chc-bg-elevated) !important;
+        border: 1px solid var(--chc-border-primary) !important;
       `;
 
       // Adjust font size for longer labels
@@ -657,10 +660,10 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         button.style.fontSize = '1.3em';
       } else if (btn.isSpecial && ['RET', 'WO', 'DEF'].includes(btn.label)) {
         button.style.fontSize = '0.95em';
-        button.style.backgroundColor = '#ffe0b2'; // Orange-ish for irregular endings
+        button.style.setProperty('background-color', CHC_BG_SECONDARY, 'important');
       } else if (btn.isSpecial) {
         button.style.fontSize = '1.3em';
-        button.style.backgroundColor = '#f0f0f0';
+        button.style.setProperty('background-color', CHC_BG_SECONDARY, 'important');
       } else {
         button.style.fontSize = '1.3em';
       }

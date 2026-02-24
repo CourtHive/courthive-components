@@ -34,7 +34,7 @@ export function showCourtAvailabilityModal(config: CourtAvailabilityModalConfig)
   const overlay = document.createElement('div');
   overlay.style.cssText = `
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.4); z-index: 10000;
+    background: var(--chc-bg-overlay); z-index: 10000;
     display: flex; align-items: center; justify-content: center;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   `;
@@ -42,14 +42,14 @@ export function showCourtAvailabilityModal(config: CourtAvailabilityModalConfig)
   // Dialog
   const dialog = document.createElement('div');
   dialog.style.cssText = `
-    background: white; border-radius: 8px; padding: 24px;
+    background: var(--chc-bg-elevated); border-radius: 8px; padding: 24px;
     width: 360px; max-width: 90vw; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
   `;
 
   // Title
   const titleEl = document.createElement('div');
   titleEl.textContent = title;
-  titleEl.style.cssText = 'font-weight: 700; font-size: 16px; color: #333; margin-bottom: 20px;';
+  titleEl.style.cssText = 'font-weight: 700; font-size: 16px; color: var(--chc-text-primary); margin-bottom: 20px;';
   dialog.appendChild(titleEl);
 
   // Time inputs container
@@ -62,14 +62,14 @@ export function showCourtAvailabilityModal(config: CourtAvailabilityModalConfig)
 
     const labelEl = document.createElement('label');
     labelEl.textContent = label;
-    labelEl.style.cssText = 'display: block; font-size: 12px; color: #666; margin-bottom: 4px; font-weight: 500;';
+    labelEl.style.cssText = 'display: block; font-size: 12px; color: var(--chc-text-secondary); margin-bottom: 4px; font-weight: 500;';
 
     const input = document.createElement('input');
     input.type = 'time';
     input.value = value;
     input.style.cssText = `
-      width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 4px;
-      font-size: 14px; color: #333; box-sizing: border-box;
+      width: 100%; padding: 8px 10px; border: 1px solid var(--chc-border-primary); border-radius: 4px;
+      font-size: 14px; color: var(--chc-text-primary); box-sizing: border-box; background: var(--chc-bg-elevated);
     `;
 
     wrapper.appendChild(labelEl);
@@ -91,12 +91,12 @@ export function showCourtAvailabilityModal(config: CourtAvailabilityModalConfig)
 
     const scopeLabel = document.createElement('div');
     scopeLabel.textContent = 'Apply to:';
-    scopeLabel.style.cssText = 'font-size: 12px; color: #666; margin-bottom: 8px; font-weight: 500;';
+    scopeLabel.style.cssText = 'font-size: 12px; color: var(--chc-text-secondary); margin-bottom: 8px; font-weight: 500;';
     scopeContainer.appendChild(scopeLabel);
 
     const makeRadio = (value: 'current-day' | 'all-days', label: string, checked: boolean): void => {
       const row = document.createElement('label');
-      row.style.cssText = 'display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; font-size: 13px; color: #444;';
+      row.style.cssText = 'display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; font-size: 13px; color: var(--chc-text-primary);';
 
       const radio = document.createElement('input');
       radio.type = 'radio';
@@ -131,8 +131,8 @@ export function showCourtAvailabilityModal(config: CourtAvailabilityModalConfig)
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = 'Cancel';
   cancelBtn.style.cssText = `
-    padding: 8px 16px; border: 1px solid #ddd; border-radius: 4px;
-    background: white; color: #666; font-size: 13px; cursor: pointer; font-weight: 500;
+    padding: 8px 16px; border: 1px solid var(--chc-border-primary); border-radius: 4px;
+    background: var(--chc-bg-elevated); color: var(--chc-text-secondary); font-size: 13px; cursor: pointer; font-weight: 500;
   `;
   cancelBtn.addEventListener('click', () => {
     overlay.remove();

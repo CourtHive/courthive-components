@@ -6,6 +6,9 @@ import type { Meta, StoryObj } from '@storybook/html';
 
 const BUTTON_IS_PRIMARY = 'button is-primary';
 const CONSIDERED_DATE_2024 = '2024-01-01';
+const CHC_BG_SECONDARY = 'var(--chc-bg-secondary)';
+const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
+const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
 
 const meta: Meta = {
   title: 'Components/Categories/AgeCategory',
@@ -30,7 +33,7 @@ export const BasicEditor: Story = {
     resultDisplay.id = 'result-display';
     resultDisplay.style.marginTop = '1em';
     resultDisplay.style.padding = '1em';
-    resultDisplay.style.backgroundColor = '#f0f0f0';
+    resultDisplay.style.backgroundColor = CHC_BG_SECONDARY;
     resultDisplay.style.borderRadius = '4px';
     resultDisplay.innerHTML = '<strong>Selected category will appear here</strong>';
 
@@ -46,12 +49,12 @@ export const BasicEditor: Story = {
           lastAgeCategoryCode = category.ageCategoryCode; // Save for next open
           if (category.ageCategoryCode) {
             resultDisplay.innerHTML = `
-              <div style="color: #000;">
-                <strong style="color: #000;">Selected category:</strong> 
-                <code style="background: #e0e0e0; padding: 0.2em 0.4em; border-radius: 3px; color: #000;">
+              <div style="color: ${CHC_TEXT_PRIMARY};">
+                <strong style="color: ${CHC_TEXT_PRIMARY};">Selected category:</strong>
+                <code style="background: var(--chc-active-bg); padding: 0.2em 0.4em; border-radius: 3px; color: ${CHC_TEXT_PRIMARY};">
                   ${category.ageCategoryCode}
                 </code>
-                <div style="margin-top: 0.5em; font-size: 0.9em; color: #666; font-style: italic;">
+                <div style="margin-top: 0.5em; font-size: 0.9em; color: ${CHC_TEXT_SECONDARY}; font-style: italic;">
                   Click the button again to test round-trip editing
                 </div>
               </div>
@@ -63,12 +66,12 @@ export const BasicEditor: Story = {
 
     const title = document.createElement('h2');
     title.textContent = 'Age Category Code Editor';
-    title.style.color = '#333';
+    title.style.color = CHC_TEXT_PRIMARY;
 
     const description = document.createElement('p');
     description.innerHTML =
       'Configure age category codes following ITF TODS standards.<br>Supports Under (U), Over (O), Range, Combined (C), and Open categories.';
-    description.style.color = '#555';
+    description.style.color = CHC_TEXT_SECONDARY;
     description.style.marginBottom = '1.5em';
 
     container.appendChild(title);
@@ -101,7 +104,7 @@ export const DifferentCategoryTypes: Story = {
 
     const title = document.createElement('h2');
     title.textContent = 'Category Type Examples';
-    title.style.color = '#333';
+    title.style.color = CHC_TEXT_PRIMARY;
     title.style.marginBottom = '1em';
     container.appendChild(title);
 
@@ -113,9 +116,9 @@ export const DifferentCategoryTypes: Story = {
     testCases.forEach((testCase) => {
       const card = document.createElement('div');
       card.style.padding = '1em';
-      card.style.border = '1px solid #ddd';
+      card.style.border = '1px solid var(--chc-border-secondary)';
       card.style.borderRadius = '4px';
-      card.style.backgroundColor = '#fff';
+      card.style.backgroundColor = 'var(--chc-bg-elevated)';
 
       const label = document.createElement('div');
       label.textContent = testCase.label;
@@ -124,7 +127,7 @@ export const DifferentCategoryTypes: Story = {
 
       const code = document.createElement('code');
       code.textContent = testCase.code;
-      code.style.backgroundColor = '#e0e0e0';
+      code.style.backgroundColor = 'var(--chc-active-bg)';
       code.style.padding = '0.2em 0.4em';
       code.style.borderRadius = '3px';
       code.style.display = 'block';
@@ -198,12 +201,12 @@ export const CustomConfiguration: Story = {
 
     const title = document.createElement('h2');
     title.textContent = 'Custom Configuration';
-    title.style.color = '#333';
+    title.style.color = CHC_TEXT_PRIMARY;
 
     const description = document.createElement('p');
     description.innerHTML =
       'Demonstrates custom configuration with:<br>• Custom labels<br>• Limited age options (juniors only)<br>• Custom predefined categories';
-    description.style.color = '#555';
+    description.style.color = CHC_TEXT_SECONDARY;
     description.style.marginBottom = '1.5em';
 
     container.appendChild(title);
@@ -226,7 +229,7 @@ export const CalculatedAgeDetails: Story = {
     resultDisplay.id = 'result-display-calc';
     resultDisplay.style.marginTop = '1em';
     resultDisplay.style.padding = '1em';
-    resultDisplay.style.backgroundColor = '#f0f0f0';
+    resultDisplay.style.backgroundColor = CHC_BG_SECONDARY;
     resultDisplay.style.borderRadius = '4px';
     resultDisplay.innerHTML = '<strong>Age calculations will appear here</strong>';
 
@@ -249,14 +252,14 @@ export const CalculatedAgeDetails: Story = {
               });
 
               resultDisplay.innerHTML = `
-                <div style="color: #000;">
-                  <strong style="color: #000;">Category:</strong> 
-                  <code style="background: #e0e0e0; padding: 0.2em 0.4em; border-radius: 3px; color: #000;">
+                <div style="color: ${CHC_TEXT_PRIMARY};">
+                  <strong style="color: ${CHC_TEXT_PRIMARY};">Category:</strong>
+                  <code style="background: var(--chc-active-bg); padding: 0.2em 0.4em; border-radius: 3px; color: ${CHC_TEXT_PRIMARY};">
                     ${category.ageCategoryCode}
                   </code><br><br>
-                  <strong style="color: #000;">Age Range:</strong> ${result.ageMin || 'N/A'} - ${result.ageMax || 'N/A'}<br>
-                  <strong style="color: #000;">Min Birth Date:</strong> ${result.ageMinDate || 'N/A'}<br>
-                  <strong style="color: #000;">Max Birth Date:</strong> ${result.ageMaxDate || 'N/A'}
+                  <strong style="color: ${CHC_TEXT_PRIMARY};">Age Range:</strong> ${result.ageMin || 'N/A'} - ${result.ageMax || 'N/A'}<br>
+                  <strong style="color: ${CHC_TEXT_PRIMARY};">Min Birth Date:</strong> ${result.ageMinDate || 'N/A'}<br>
+                  <strong style="color: ${CHC_TEXT_PRIMARY};">Max Birth Date:</strong> ${result.ageMaxDate || 'N/A'}
                 </div>
               `;
             });
@@ -267,12 +270,12 @@ export const CalculatedAgeDetails: Story = {
 
     const title = document.createElement('h2');
     title.textContent = 'Age Detail Calculations';
-    title.style.color = '#333';
+    title.style.color = CHC_TEXT_PRIMARY;
 
     const description = document.createElement('p');
     description.innerHTML =
       'The editor shows calculated age ranges and birth dates based on the considered date.<br>Open the modal to see live calculations as you change the category.';
-    description.style.color = '#555';
+    description.style.color = CHC_TEXT_SECONDARY;
     description.style.marginBottom = '1.5em';
 
     container.appendChild(title);
@@ -294,12 +297,12 @@ export const StandardCategories: Story = {
 
     const title = document.createElement('h2');
     title.textContent = 'Standard Categories';
-    title.style.color = '#333';
+    title.style.color = CHC_TEXT_PRIMARY;
 
     const description = document.createElement('p');
     description.innerHTML =
       'The editor includes a dropdown of standard age categories for quick selection.<br>Try selecting from the dropdown in the modal.';
-    description.style.color = '#555';
+    description.style.color = CHC_TEXT_SECONDARY;
     description.style.marginBottom = '1.5em';
 
     const button = document.createElement('button');
@@ -336,19 +339,19 @@ export const HistoricalDates14U: Story = {
 
     const title = document.createElement('h2');
     title.textContent = '14U with Historical Dates (2010-2015)';
-    title.style.color = '#333';
+    title.style.color = CHC_TEXT_PRIMARY;
 
     const description = document.createElement('p');
     description.innerHTML =
       'Tests age category calculations with historical dates.<br><strong>Issue Fixed:</strong> Previously showed "Failed to calculate age details" - now works correctly.';
-    description.style.color = '#555';
+    description.style.color = CHC_TEXT_SECONDARY;
     description.style.marginBottom = '1.5em';
 
     const resultDisplay = document.createElement('div');
     resultDisplay.id = 'result-display-historical';
     resultDisplay.style.marginTop = '1em';
     resultDisplay.style.padding = '1em';
-    resultDisplay.style.backgroundColor = '#f0f0f0';
+    resultDisplay.style.backgroundColor = CHC_BG_SECONDARY;
     resultDisplay.style.borderRadius = '4px';
     resultDisplay.innerHTML = '<strong>Test results will appear here</strong>';
 
@@ -379,17 +382,17 @@ export const HistoricalDates14U: Story = {
                 consideredDate: testDate,
               });
 
-              let html = '<div style="color: #000;">';
-              html += `<strong style="color: #000;">Test Date: ${testDate}</strong><br>`;
-              html += `<strong style="color: #000;">Category:</strong> <code style="background: #e0e0e0; padding: 0.2em 0.4em; border-radius: 3px; color: #000;">${category.ageCategoryCode}</code><br>`;
-              
+              let html = `<div style="color: ${CHC_TEXT_PRIMARY};">`;
+              html += `<strong style="color: ${CHC_TEXT_PRIMARY};">Test Date: ${testDate}</strong><br>`;
+              html += `<strong style="color: ${CHC_TEXT_PRIMARY};">Category:</strong> <code style="background: var(--chc-active-bg); padding: 0.2em 0.4em; border-radius: 3px; color: ${CHC_TEXT_PRIMARY};">${category.ageCategoryCode}</code><br>`;
+
               if (result.error) {
-                html += `<strong style="color: #000;">Error:</strong> <span style="color: red;">${result.error}</span><br>`;
+                html += `<strong style="color: ${CHC_TEXT_PRIMARY};">Error:</strong> <span style="color: var(--chc-status-error);">${result.error}</span><br>`;
               } else {
-                html += `<strong style="color: #000;">Max Age:</strong> ${result.ageMax || 'N/A'}<br>`;
-                html += `<strong style="color: #000;">Min Birth Date:</strong> ${result.ageMinDate || 'N/A'}<br>`;
+                html += `<strong style="color: ${CHC_TEXT_PRIMARY};">Max Age:</strong> ${result.ageMax || 'N/A'}<br>`;
+                html += `<strong style="color: ${CHC_TEXT_PRIMARY};">Min Birth Date:</strong> ${result.ageMinDate || 'N/A'}<br>`;
                 if (result.errors && result.errors.length > 0) {
-                  html += `<strong style="color: #000;">Warnings:</strong><ul style="margin:0; padding-left: 1.5em; color: #000;">`;
+                  html += `<strong style="color: ${CHC_TEXT_PRIMARY};">Warnings:</strong><ul style="margin:0; padding-left: 1.5em; color: ${CHC_TEXT_PRIMARY};">`;
                   result.errors.forEach((err) => {
                     html += `<li style="color: orange;">${err}</li>`;
                   });
