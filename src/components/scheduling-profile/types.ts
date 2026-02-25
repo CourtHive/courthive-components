@@ -131,6 +131,7 @@ export type ValidationCode =
   | 'DUPLICATE_SEGMENT'
   | 'INVALID_SEGMENT_CONFIG'
   | 'ROUND_ORDER_VIOLATION'
+  | 'DEPENDENCY_VIOLATION'
   | 'DAY_OVERLOAD';
 
 export type FixActionKind =
@@ -229,6 +230,15 @@ export interface DemandAdapter {
   estimateDayDemandMinutes: (date: string, profile: SchedulingProfile) => number;
 }
 
+export interface DependencyAdapter {
+  /**
+   * Returns roundKeyStrings for all rounds that must complete
+   * before the given round can proceed.
+   * Key format: "tournamentId|eventId|drawId|structureId|roundNumber"
+   */
+  getRoundDependencies: (roundKeyString: string) => string[];
+}
+
 // ============================================================================
 // Configuration
 // ============================================================================
@@ -241,6 +251,7 @@ export interface SchedulingProfileConfig {
   selectedDate?: string;
   temporalAdapter?: TemporalAdapter;
   demandAdapter?: DemandAdapter;
+  dependencyAdapter?: DependencyAdapter;
   venueOrder?: string[];
   plannedRoundBehavior?: PlannedRoundBehavior;
   onProfileChanged?: (profile: SchedulingProfile) => void;

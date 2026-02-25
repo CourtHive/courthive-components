@@ -107,7 +107,7 @@ export class ProfileStore {
       eventId: item.eventId,
       drawId: item.drawId,
       structureId: item.structureId,
-      roundNumber: item.roundNumber,
+      roundNumber: item.roundNumber
     });
     if (locator) {
       this.setState({ selectedDate: locator.date, selectedLocator: locator });
@@ -129,6 +129,7 @@ export class ProfileStore {
       const proposedResults = validateProfile({
         profile: result.profile,
         temporal: this.config.temporalAdapter,
+        dependencies: this.config.dependencyAdapter,
         venueOrder: this.config.venueOrder
       });
       const newErrors = proposedResults
@@ -164,10 +165,9 @@ export class ProfileStore {
 
     // Clear selection if we removed the selected card
     if (
-      this.state.selectedLocator &&
-      this.state.selectedLocator.date === locator.date &&
-      this.state.selectedLocator.venueId === locator.venueId &&
-      this.state.selectedLocator.index === locator.index
+      this.state.selectedLocator?.date === locator.date &&
+      this.state.selectedLocator?.venueId === locator.venueId &&
+      this.state.selectedLocator?.index === locator.index
     ) {
       this.setState({ selectedLocator: null });
     }
@@ -246,6 +246,7 @@ export class ProfileStore {
     const results = validateProfile({
       profile: this.state.profileDraft,
       temporal: this.config.temporalAdapter,
+      dependencies: this.config.dependencyAdapter,
       venueOrder: this.config.venueOrder
     });
     const index = buildIssueIndex(results);

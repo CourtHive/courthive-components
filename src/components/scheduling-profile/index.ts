@@ -71,6 +71,7 @@ export type {
   ProfileChangeListener,
   TemporalAdapter,
   DemandAdapter,
+  DependencyAdapter,
   SchedulingProfileConfig,
   UIPanel,
   FlattenedRound,

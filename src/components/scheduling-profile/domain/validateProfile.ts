@@ -6,12 +6,14 @@
  * DUPLICATE_SEGMENT, ROUND_ORDER_VIOLATION.
  */
 
-import type { SchedulingProfile, ValidationResult, TemporalAdapter, FlattenedRound, RoundLocator } from '../types';
+import type { SchedulingProfile, ValidationResult, TemporalAdapter, DependencyAdapter, FlattenedRound, RoundLocator } from '../types';
 import { roundKeyString, roundLabel, pickRoundKey } from './utils';
 
 import { drawDefinitionConstants } from 'tods-competition-factory';
 
 const { ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } = drawDefinitionConstants;
+
+const JUMP_TO_PREREQUISITE_LABEL = 'Jump to prerequisite';
 
 // ============================================================================
 // Public API
@@ -20,10 +22,11 @@ const { ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } = drawDefinitionConstants;
 export interface ValidateProfileParams {
   profile: SchedulingProfile;
   temporal?: TemporalAdapter;
+  dependencies?: DependencyAdapter;
   venueOrder?: string[];
 }
 
-export function validateProfile({ profile, temporal, venueOrder }: ValidateProfileParams): ValidationResult[] {
+export function validateProfile({ profile, temporal, dependencies, venueOrder }: ValidateProfileParams): ValidationResult[] {
   const results: ValidationResult[] = [];
 
   // Date availability: ERROR
@@ -117,6 +120,11 @@ export function validateProfile({ profile, temporal, venueOrder }: ValidateProfi
   // Local precedence: ERROR
   results.push(...validateRoundPrecedenceLocal({ profile, venueOrder }));
 
+  // Dependency-based cross-structure / cross-date ordering: ERROR
+  if (dependencies?.getRoundDependencies) {
+    results.push(...validateRoundDependencies(planned, dependencies));
+  }
+
   return results;
 }
 
@@ -178,7 +186,7 @@ export function validateRoundPrecedenceLocal({
           prerequisite: prereq.locator
         },
         fixActions: [
-          { kind: 'JUMP_TO_ITEM', locator: prereq.locator, label: 'Jump to prerequisite' },
+          { kind: 'JUMP_TO_ITEM', locator: prereq.locator, label: JUMP_TO_PREREQUISITE_LABEL },
           ...(fix.moveOffenderAfter
             ? [
                 {
@@ -201,6 +209,101 @@ export function validateRoundPrecedenceLocal({
             : [])
         ]
       });
+    }
+  }
+
+  return dedupe(out);
+}
+
+// ============================================================================
+// Dependency Validation (cross-structure / cross-date)
+// ============================================================================
+
+function validateRoundDependencies(
+  planned: FlattenedRound[],
+  dependencies: DependencyAdapter
+): ValidationResult[] {
+  const out: ValidationResult[] = [];
+
+  // Build lookup: roundKeyString → FlattenedRound[]
+  const byKey = groupBy(planned, (p) => roundKeyString(p.round));
+
+  for (const [key, items] of byKey.entries()) {
+    const prereqKeys = dependencies.getRoundDependencies(key);
+    if (!prereqKeys.length) continue;
+
+    for (const prereqKey of prereqKeys) {
+      const prereqItems = byKey.get(prereqKey);
+      if (!prereqItems) continue; // prerequisite not in profile — nothing to check
+
+      for (const item of items) {
+        for (const prereq of prereqItems) {
+          // Skip same-structure + same-date + same-venue pairs — already handled by ROUND_ORDER_VIOLATION
+          if (
+            item.round.structureId === prereq.round.structureId &&
+            item.locator.date === prereq.locator.date &&
+            item.locator.venueId === prereq.locator.venueId
+          ) {
+            continue;
+          }
+
+          // Cross-date check: current round on an earlier date than its prerequisite
+          if (item.locator.date < prereq.locator.date) {
+            out.push({
+              code: 'DEPENDENCY_VIOLATION',
+              severity: 'ERROR',
+              message: `${roundLabel(item.round)} is scheduled on ${item.locator.date} but depends on ${roundLabel(prereq.round)} which is on the later date ${prereq.locator.date}.`,
+              context: {
+                date: item.locator.date,
+                venueId: item.locator.venueId,
+                locator: item.locator,
+                prerequisite: prereq.locator,
+                reason: 'cross-date',
+              },
+              fixActions: [
+                { kind: 'JUMP_TO_ITEM', locator: prereq.locator, label: JUMP_TO_PREREQUISITE_LABEL },
+              ],
+            });
+            continue;
+          }
+
+          // Same-date, same-venue, cross-structure check:
+          // current round listed before prerequisite
+          if (
+            item.locator.date === prereq.locator.date &&
+            item.locator.venueId === prereq.locator.venueId &&
+            item.locator.index < prereq.locator.index
+          ) {
+            out.push({
+              code: 'DEPENDENCY_VIOLATION',
+              severity: 'ERROR',
+              message: `${roundLabel(item.round)} is listed before its prerequisite ${roundLabel(prereq.round)} in the same venue on ${item.locator.date}.`,
+              context: {
+                date: item.locator.date,
+                venueId: item.locator.venueId,
+                locator: item.locator,
+                prerequisite: prereq.locator,
+                reason: 'cross-structure-same-day',
+              },
+              fixActions: [
+                { kind: 'JUMP_TO_ITEM', locator: prereq.locator, label: JUMP_TO_PREREQUISITE_LABEL },
+                {
+                  kind: 'MOVE_ITEM_AFTER',
+                  locator: item.locator,
+                  after: prereq.locator,
+                  label: 'Move after prerequisite',
+                },
+                {
+                  kind: 'MOVE_ITEM_BEFORE',
+                  locator: prereq.locator,
+                  before: item.locator,
+                  label: 'Move prerequisite before',
+                },
+              ],
+            });
+          }
+        }
+      }
     }
   }
 

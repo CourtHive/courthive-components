@@ -21,6 +21,7 @@ import type {
   SchedulingProfile,
   TemporalAdapter,
   DemandAdapter,
+  DependencyAdapter,
   SchedulingProfileConfig,
   RoundProfile,
 } from '../../components/scheduling-profile';
@@ -44,6 +45,7 @@ export interface FactorySetup {
   engine: TemporalEngine;
   temporalAdapter: TemporalAdapter;
   demandAdapter: DemandAdapter;
+  dependencyAdapter: DependencyAdapter;
   config: SchedulingProfileConfig;
 }
 
@@ -123,6 +125,43 @@ function dateRange(start: string, end: string): string[] {
     current.setDate(current.getDate() + 1);
   }
   return dates;
+}
+
+// ============================================================================
+// Dependency Adapter Builder
+// ============================================================================
+
+export function buildDependencyAdapter(tournamentId: string): DependencyAdapter {
+  const { matchUps } = tournamentEngine.allTournamentMatchUps({ inContext: true });
+
+  const { matchUpDependencies } = tournamentEngine.getMatchUpDependencies({ matchUps });
+
+  // Build matchUpId → roundKeyString index
+  const matchUpToRoundKey = new Map<string, string>();
+  for (const mu of matchUps ?? []) {
+    const key = [tournamentId, mu.eventId, mu.drawId, mu.structureId, mu.roundNumber].join('|');
+    matchUpToRoundKey.set(mu.matchUpId, key);
+  }
+
+  // Build round-level dependency map (deduplicated via Set)
+  const roundDeps = new Map<string, Set<string>>();
+  for (const [matchUpId, deps] of Object.entries(matchUpDependencies ?? {})) {
+    const roundKey = matchUpToRoundKey.get(matchUpId);
+    if (!roundKey) continue;
+
+    for (const depMatchUpId of (deps as any).matchUpIds ?? []) {
+      const depRoundKey = matchUpToRoundKey.get(depMatchUpId);
+      if (!depRoundKey || depRoundKey === roundKey) continue;
+
+      const set = roundDeps.get(roundKey) ?? new Set();
+      set.add(depRoundKey);
+      roundDeps.set(roundKey, set);
+    }
+  }
+
+  return {
+    getRoundDependencies: (key: string): string[] => [...(roundDeps.get(key) ?? [])],
+  };
 }
 
 // ============================================================================
@@ -258,7 +297,10 @@ export function createFactorySetup(options?: FactorySetupOptions): FactorySetup 
     },
   };
 
-  // 9. Build config
+  // 9. Build dependency adapter
+  const dependencyAdapter = buildDependencyAdapter(tournamentId);
+
+  // 10. Build config
   const config: SchedulingProfileConfig = {
     venues,
     roundCatalog,
@@ -266,6 +308,7 @@ export function createFactorySetup(options?: FactorySetupOptions): FactorySetup 
     venueOrder: venues.map((v) => v.venueId),
     temporalAdapter,
     demandAdapter,
+    dependencyAdapter,
   };
 
   return {
@@ -279,6 +322,7 @@ export function createFactorySetup(options?: FactorySetupOptions): FactorySetup 
     engine,
     temporalAdapter,
     demandAdapter,
+    dependencyAdapter,
     config,
   };
 }
