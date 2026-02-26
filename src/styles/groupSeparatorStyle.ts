@@ -1,26 +1,9 @@
-import { css } from '@stitches/core';
+import cx from 'classnames';
 
-export const groupSeparatorStyle = css({
-  borderTop: 'solid 1px var(--chc-text-primary)',
-  marginRight: '-1em',
-  marginLeft: '-1em',
-  paddingTop: '.5em',
-  marginTop: '.2em',
-  variants: {
-    variant: {
-      0: {
-        marginTop: '1em',
-        borderTop: 'none',
-        paddingTop: '0px'
-      }
-    },
-    roundOrder: {
-      first: {
-        marginLeft: '0em'
-      },
-      last: {
-        marginRight: '0em'
-      }
-    }
-  }
-});
+export const groupSeparatorStyle = (opts?: { variant?: number | string; roundOrder?: string }) =>
+  cx(
+    'chc-group-separator',
+    opts?.variant === 0 && 'chc-group-separator--0',
+    opts?.roundOrder === 'first' && 'chc-group-separator--round-first',
+    opts?.roundOrder === 'last' && 'chc-group-separator--round-last'
+  );

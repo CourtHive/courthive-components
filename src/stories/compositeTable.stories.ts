@@ -5,7 +5,6 @@
  * used for data management pages.
  */
 // CSS dependencies
-import 'bulma/css/versions/bulma-no-dark-mode.min.css';
 import '../components/controlBar/controlBar.css';
 import '../styles/tabulator.css';
 

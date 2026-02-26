@@ -54,6 +54,11 @@ option {
   border-color: var(--chc-input-border) !important;
 }
 
+/* Restore datepicker header button transparency */
+.datepicker-header .datepicker-controls .button {
+  border-color: transparent !important;
+}
+
 /* Improve dropdown/select arrow visibility */
 .select::after {
   border-color: var(--chc-text-secondary) !important;

@@ -54,6 +54,12 @@ export type { DrawerOptions } from './components/drawer/drawer';
 
 // Theme variables (CSS bundled in courthive-components.css)
 import './styles/theme.css';
+import './styles/themes.css';
+import './styles/draw.css';
+import './styles/components/buttons.css';
+import './styles/components/forms.css';
+import './styles/components/switch.css';
+import './styles/components/ui.css';
 
 // Tippy.js popover (CSS bundled in courthive-components.css)
 import './styles/tippy.css';

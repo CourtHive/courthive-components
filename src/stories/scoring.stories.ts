@@ -6,7 +6,7 @@ import { scoringModal } from '../components/scoring/scoringModal';
 import { setScoringConfig } from '../components/scoring/config';
 import { compositions } from '../compositions/compositions';
 import { generateMatchUps } from '../data/generateMatchUps';
-import '../components/forms/styles'; // Import bulma styles
+import '../components/forms/styles';
 
 const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
 const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';

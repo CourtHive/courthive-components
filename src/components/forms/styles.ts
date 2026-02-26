@@ -2,15 +2,13 @@
  * CSS imports for form renderer components
  *
  * These styles are required for the form renderers to display correctly:
- * - bulma: Base CSS framework (must be loaded first)
- * - vanillajs-datepicker: Date picker styling (Bulma theme)
+ * - forms.css + buttons.css + ui.css: Form and button styling (replaces Bulma)
+ * - vanillajs-datepicker: Date picker styling (default theme)
  * - checkradio.css: Checkbox and radio button styling
- * - bulma-switch: Switch/toggle styling
+ * - switch.css: Switch/toggle styling (replaces bulma-switch)
  * - awesomplete: Type-ahead/autocomplete styling
  */
 
-import 'bulma/css/bulma.css';
-import 'vanillajs-datepicker/css/datepicker-bulma.css';
+import 'vanillajs-datepicker/css/datepicker.css';
 import './checkradio.css';
-import 'bulma-switch/dist/css/bulma-switch.min.css';
 import 'awesomplete/awesomplete.css';

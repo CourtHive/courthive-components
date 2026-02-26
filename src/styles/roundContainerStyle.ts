@@ -1,6 +1,1 @@
-import { css } from '@stitches/core';
-
-export const roundContainerStyle = css({
-  flexDirection: 'column',
-  display: 'flex'
-});
+export const roundContainerStyle = () => 'chc-round-container';

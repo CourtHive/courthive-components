@@ -1,32 +1,13 @@
-import { css } from "@stitches/core";
-import type { Configuration } from "../types";
+import type { Configuration } from '../types';
 
 export function getMatchUpStyle({ configuration }: { configuration?: Configuration }): string {
-  const matchUpStyle: any = {
-    backgroundColor: "$matchUpBackgroundColor",
-    WebkitTransition: "all 0.30s linear",
-    boxShadow: "$matchUp$boxShadow",
-    transition: "all 0.30s linear",
-    border: "solid $border",
-    marginBottom: "$space$1",
-    marginTop: "$space$1",
-    position: "relative",
-    display: "grid",
-    width: "100%",
-    // IMPORTANT: must come last
-    borderInlineStartWidth: "$borderWidths$borderInlineStart",
-  };
+  // The base .chc-matchup class handles all static properties.
+  // Dynamic matchUpHover is handled via a data attribute + CSS, or inline style by the caller.
+  // If a custom hover color is needed, caller should set:
+  //   element.dataset.hoverColor = configuration.matchUpHover
+  // and we add a class that the caller can use to apply the inline style.
   if (configuration?.matchUpHover) {
-    const backgroundColor =
-      typeof configuration.matchUpHover === "string"
-        ? configuration.matchUpHover
-        : "cyan";
-    matchUpStyle["&:hover"] = { backgroundColor };
-  } else {
-    matchUpStyle["&:hover"] = {
-      borderColor: "$borderHover",
-    };
+    return 'chc-matchup chc-matchup--custom-hover';
   }
-
-  return css(matchUpStyle)();
+  return 'chc-matchup';
 }

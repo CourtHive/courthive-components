@@ -1,0 +1,233 @@
+/**
+ * Form styles — replaces Bulma's form classes.
+ * Themed via --chc-* custom properties.
+ */
+
+/* ── Field ───────────────────────────────────────────────── */
+.field {
+  margin-bottom: 0.75rem;
+}
+
+.field:not(:last-child) {
+  margin-bottom: 0.75rem;
+}
+
+/* ── Label ───────────────────────────────────────────────── */
+.label {
+  color: var(--chc-text-primary);
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.5em;
+}
+
+/* ── Control ─────────────────────────────────────────────── */
+.control {
+  box-sizing: border-box;
+  clear: both;
+  font-size: 1rem;
+  position: relative;
+  text-align: inherit;
+}
+
+/* ── Input ───────────────────────────────────────────────── */
+.input {
+  -webkit-appearance: none;
+  align-items: center;
+  background-color: var(--chc-input-bg);
+  border: 1px solid var(--chc-input-border);
+  border-radius: 4px;
+  box-shadow: inset 0 0.0625em 0.125em rgba(10, 10, 10, 0.05);
+  color: var(--chc-text-primary);
+  display: inline-flex;
+  font-size: 1rem;
+  height: 2.5em;
+  justify-content: flex-start;
+  line-height: 1.5;
+  padding: calc(0.5em - 1px) calc(0.75em - 1px);
+  position: relative;
+  vertical-align: top;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  border-color: var(--chc-border-focus);
+  box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25);
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--chc-text-muted);
+}
+
+.input.is-success {
+  border-color: #48c78e;
+}
+
+.input.is-danger {
+  border-color: #f14668;
+}
+
+/* ── Select ──────────────────────────────────────────────── */
+.select {
+  display: inline-block;
+  max-width: 100%;
+  position: relative;
+  vertical-align: top;
+}
+
+.select::after {
+  border: 3px solid transparent;
+  border-radius: 2px;
+  border-right: 0;
+  border-top: 0;
+  border-color: var(--chc-text-secondary);
+  content: ' ';
+  display: block;
+  height: 0.625em;
+  margin-top: -0.4375em;
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  right: 1.125em;
+  transform: rotate(-45deg);
+  transform-origin: center;
+  width: 0.625em;
+}
+
+.select select {
+  -webkit-appearance: none;
+  background-color: var(--chc-input-bg);
+  border: 1px solid var(--chc-input-border);
+  border-radius: 4px;
+  color: var(--chc-text-primary);
+  cursor: pointer;
+  display: block;
+  font-size: 1em;
+  height: 2.5em;
+  line-height: 1.5;
+  max-width: 100%;
+  outline: none;
+  padding: calc(0.5em - 1px) calc(2.5em - 1px) calc(0.5em - 1px) calc(0.75em - 1px);
+}
+
+.select select:focus {
+  border-color: var(--chc-border-focus);
+  box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25);
+}
+
+/* ── Radio ───────────────────────────────────────────────── */
+.radio {
+  cursor: pointer;
+  display: inline-block;
+  line-height: 1.25;
+  position: relative;
+  margin-right: 0.5em;
+}
+
+.radio input[type='radio'] {
+  cursor: pointer;
+  margin-right: 0.25em;
+}
+
+/* ── Checkbox ────────────────────────────────────────────── */
+.checkbox {
+  cursor: pointer;
+  display: inline-block;
+  line-height: 1.25;
+  position: relative;
+}
+
+.checkbox input[type='checkbox'] {
+  cursor: pointer;
+  margin-right: 0.25em;
+}
+
+/* ── Help text ───────────────────────────────────────────── */
+.help {
+  display: block;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.help.is-info {
+  color: #3e8ed0;
+}
+
+.help.is-success {
+  color: #48c78e;
+}
+
+.help.is-danger {
+  color: #f14668;
+}
+
+.help.is-warning {
+  color: #946c00;
+}
+
+/* ── Icon positioning ────────────────────────────────────── */
+.icon {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  height: 1.5rem;
+  width: 1.5rem;
+}
+
+.icon.is-small {
+  height: 1rem;
+  width: 1rem;
+}
+
+.control.has-icons-left .input,
+.control.has-icons-left .select select {
+  padding-left: 2.5em;
+}
+
+.control.has-icons-right .input {
+  padding-right: 2.5em;
+}
+
+.control.has-icons-left .icon.is-left,
+.control.has-icons-right .icon.is-right {
+  position: absolute;
+  top: 0;
+  z-index: 4;
+  height: 2.5em;
+  width: 2.5em;
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--chc-text-muted);
+}
+
+.control.has-icons-left .icon.is-left {
+  left: 0;
+}
+
+.control.has-icons-right .icon.is-right {
+  right: 0;
+}
+
+/* ── Content ─────────────────────────────────────────────── */
+.content {
+  color: var(--chc-text-primary);
+  line-height: 1.5;
+}
+
+.content h1, .content h2, .content h3,
+.content h4, .content h5, .content h6 {
+  color: var(--chc-text-primary);
+  font-weight: 600;
+  line-height: 1.125;
+}
+
+.content p:not(:last-child),
+.content ul:not(:last-child),
+.content ol:not(:last-child) {
+  margin-bottom: 1em;
+}

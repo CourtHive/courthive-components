@@ -8,18 +8,9 @@ importers:
 
   .:
     dependencies:
-      '@stitches/core':
-        specifier: 1.2.8
-        version: 1.2.8
       awesomplete:
         specifier: 1.1.7
         version: 1.1.7
-      bulma:
-        specifier: 1.0.4
-        version: 1.0.4
-      bulma-switch:
-        specifier: ^2.0.4
-        version: 2.0.4
       class-variance-authority:
         specifier: 0.7.1
         version: 0.7.1
@@ -1139,9 +1130,6 @@ packages:
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
-  '@stitches/core@1.2.8':
-    resolution: {integrity: sha512-Gfkvwk9o9kE9r9XNBmJRfV8zONvXThnm1tcuojL04Uy5uRyqg93DC83lDebl0rocZCfKSjUv+fWYtMQmEDJldg==}
-
   '@storybook/addon-docs@10.2.13':
     resolution: {integrity: sha512-puMxpJbt/CuodLIbKDxWrW1ZgADYomfNHWEKp2d2l2eJjp17rADx0h3PABuNbX+YHbJwYcDdqluSnQwMysFEOA==}
     peerDependencies:
@@ -1959,12 +1947,6 @@ packages:
   builtin-modules@3.3.0:
     resolution: {integrity: sha512-zhaCDicdLuWN5UbN5IMnFqNMhNfo919sH85y2/ea+5Yg9TsTkeZxpL+JLbp6cgYFS4sRLp3YV4S6yDuqVWHYOw==}
     engines: {node: '>=6'}
-
-  bulma-switch@2.0.4:
-    resolution: {integrity: sha512-kMu4H0Pr0VjvfsnT6viRDCgptUq0Rvy7y7PX6q+IHg1xUynsjszPjhAdal5ysAlCG5HNO+5YXxeiu92qYGQolw==}
-
-  bulma@1.0.4:
-    resolution: {integrity: sha512-Ffb6YGXDiZYX3cqvSbHWqQ8+LkX6tVoTcZuVB3lm93sbAVXlO0D6QlOTMnV6g18gILpAXqkG2z9hf9z4hCjz2g==}
 
   bundle-name@4.1.0:
     resolution: {integrity: sha512-tjwM5exMg6BGRI+kNmTntNsvdZS1X8BFYS6tnJ2hdH0kVxM6/eVZ2xy+FqStSWvYmtfFMDLIxurorHwDKfDz5Q==}
@@ -5388,8 +5370,6 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
-  '@stitches/core@1.2.8': {}
-
   '@storybook/addon-docs@10.2.13(@types/react@19.2.2)(esbuild@0.27.3)(rollup@4.52.5)(storybook@10.2.13(@testing-library/dom@10.4.0)(prettier@2.8.8)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(vite@7.3.1(@types/node@24.10.0)(jiti@2.6.1)(yaml@2.8.1))':
     dependencies:
       '@mdx-js/react': 3.1.1(@types/react@19.2.2)(react@19.2.4)
@@ -6355,10 +6335,6 @@ snapshots:
   buffer-from@1.1.2: {}
 
   builtin-modules@3.3.0: {}
-
-  bulma-switch@2.0.4: {}
-
-  bulma@1.0.4: {}
 
   bundle-name@4.1.0:
     dependencies:

@@ -1,0 +1,58 @@
+/**
+ * Sport-specific theme classes
+ *
+ * Each class overrides --chc-* custom properties scoped to its container.
+ * Replaces the Stitches createTheme() calls.
+ */
+
+/* ── Australian ─────────────────────────────────────────── */
+.chc-theme-australian {
+  --chc-color-border-hover: #0091d2;
+  --chc-color-connector: #999;
+}
+
+/* ── Basic ──────────────────────────────────────────────── */
+.chc-theme-basic {
+  --chc-color-internal-dividers: transparent;
+  --chc-color-winner: #50B649;
+  --chc-color-loser: #E61A1A;
+  --chc-color-connector: #999;
+  --chc-space-game-margin: 0.75rem;
+  --chc-participant-seed-color: transparent;
+  --chc-font-size-1: 1.5rem;
+}
+
+/* ── French ─────────────────────────────────────────────── */
+.chc-theme-french {
+  --chc-color-winner-name: #01503d;
+  --chc-color-winner: #01503d;
+  --chc-color-border-hover: #0091d2;
+  --chc-color-border: var(--chc-border-secondary);
+  --chc-matchup-box-shadow: 0 0 30px 0 hsla(0, 0%, 89%, 9);
+}
+
+/* ── ITF ────────────────────────────────────────────────── */
+.chc-theme-itf {
+  --chc-color-border-hover: #0091d2;
+  --chc-color-connector: #999;
+  --chc-color-matchup: var(--chc-bg-elevated);
+  --chc-participant-text-transform: uppercase;
+  --chc-participant-seed-color: gray;
+}
+
+/* ── US Open ────────────────────────────────────────────── */
+.chc-theme-usopen {
+  --chc-color-matchup-bg: var(--chc-bg-secondary);
+  --chc-color-internal-dividers: darkgray;
+  --chc-color-border-hover: #0091d2;
+  --chc-color-connector: #999;
+}
+
+/* ── Wimbledon ──────────────────────────────────────────── */
+.chc-theme-wimbledon {
+  --chc-color-connector: transparent;
+  --chc-color-border: #00703c;
+  --chc-color-matchup: var(--chc-bg-elevated);
+  --chc-participant-text-transform: uppercase;
+  --chc-border-width-inline-start: 10px;
+}

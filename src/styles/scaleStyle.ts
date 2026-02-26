@@ -1,24 +1,4 @@
-import { css } from '@stitches/core';
+import cx from 'classnames';
 
-export const scaleStyle = css({
-  WebkitBoxSizing: 'border-box',
-  marginInlineEnd: '.5em',
-  boxSizing: 'border-box',
-  display: 'inline-block',
-  position: 'relative',
-  fontSize: 'smaller',
-  fontWeight: 'bold',
-  borderRadius: 2,
-  // width: '1.8rem',
-  color: 'var(--chc-status-info)',
-  variants: {
-    color: {
-      green: {
-        color: 'var(--chc-status-success)'
-      },
-      red: {
-        color: 'var(--chc-status-error)'
-      }
-    }
-  }
-});
+export const scaleStyle = (opts?: { color?: string }) =>
+  cx('chc-scale', opts?.color && `chc-scale--${opts.color}`);

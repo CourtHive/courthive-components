@@ -98,10 +98,7 @@
     "vitest": "^4.0.16"
   },
   "dependencies": {
-    "@stitches/core": "1.2.8",
     "awesomplete": "1.1.7",
-    "bulma": "1.0.4",
-    "bulma-switch": "^2.0.4",
     "class-variance-authority": "0.7.1",
     "classnames": "2.5.1",
     "d3": "^7.9.0",

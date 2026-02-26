@@ -1,0 +1,295 @@
+/**
+ * UI component styles — replaces Bulma dropdown, menu, tabs, notification.
+ * Themed via --chc-* custom properties.
+ */
+
+/* ── Dropdown ────────────────────────────────────────────── */
+.dropdown {
+  display: inline-flex;
+  position: relative;
+  vertical-align: top;
+}
+
+.dropdown.is-active .dropdown-menu {
+  display: block;
+}
+
+.dropdown.is-right .dropdown-menu {
+  left: auto;
+  right: 0;
+}
+
+.dropdown-trigger {
+  display: inline-flex;
+}
+
+.dropdown-menu {
+  display: none;
+  left: 0;
+  min-width: 12rem;
+  padding-top: 4px;
+  position: absolute;
+  top: 100%;
+  z-index: 20;
+}
+
+.dropdown-content {
+  background-color: var(--chc-dropdown-bg);
+  border: 1px solid var(--chc-border-primary);
+  border-radius: 4px;
+  box-shadow: 0 0.5em 1em -0.125em rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.02);
+  padding-bottom: 0.5rem;
+  padding-top: 0.5rem;
+}
+
+.dropdown-item {
+  color: var(--chc-text-primary);
+  display: block;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  padding: 0.375rem 1rem;
+  position: relative;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.dropdown-item:hover {
+  background-color: var(--chc-hover-bg);
+  color: var(--chc-text-primary);
+}
+
+.dropdown-item.is-active {
+  background-color: #3e8ed0;
+  color: #fff;
+}
+
+.dropdown-divider {
+  background-color: var(--chc-border-secondary);
+  border: none;
+  display: block;
+  height: 1px;
+  margin: 0.5rem 0;
+}
+
+/* ── Menu ────────────────────────────────────────────────── */
+.menu {
+  font-size: 1rem;
+}
+
+.menu-label {
+  color: var(--chc-text-muted);
+  font-size: 0.75em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.menu-label:not(:first-child) {
+  margin-top: 1em;
+}
+
+.menu-label:not(:last-child) {
+  margin-bottom: 1em;
+}
+
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.menu-list li {
+  padding: 0;
+}
+
+.menu-list a,
+.menu-list button {
+  border-radius: 2px;
+  color: var(--chc-text-primary);
+  display: block;
+  padding: 0.5em 0.75em;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.menu-list a:hover,
+.menu-list button:hover {
+  background-color: var(--chc-hover-bg);
+  color: var(--chc-text-primary);
+}
+
+.menu-list a.is-active,
+.menu-list button.is-active {
+  background-color: #3e8ed0;
+  color: #fff;
+}
+
+/* ── Tabs ────────────────────────────────────────────────── */
+.tabs {
+  align-items: stretch;
+  display: flex;
+  font-size: 1rem;
+  justify-content: space-between;
+  overflow: hidden;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabs ul {
+  align-items: center;
+  border-bottom: 1px solid var(--chc-border-primary);
+  display: flex;
+  flex-grow: 1;
+  flex-shrink: 0;
+  justify-content: flex-start;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tabs.is-centered ul {
+  justify-content: center;
+}
+
+.tabs li {
+  display: block;
+}
+
+.tabs li a {
+  align-items: center;
+  border-bottom: 1px solid transparent;
+  color: var(--chc-text-primary);
+  display: flex;
+  justify-content: center;
+  margin-bottom: -1px;
+  padding: 0.5em 1em;
+  vertical-align: top;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.tabs li a:hover {
+  border-bottom-color: var(--chc-text-primary);
+  color: var(--chc-text-primary);
+}
+
+.tabs li.is-active a {
+  border-bottom-color: #3e8ed0;
+  color: #3e8ed0;
+}
+
+/* Toggle tabs */
+.tabs.is-toggle ul {
+  border-bottom: none;
+}
+
+.tabs.is-toggle li a {
+  border: 1px solid var(--chc-border-primary);
+  margin-bottom: 0;
+  position: relative;
+}
+
+.tabs.is-toggle li + li a {
+  margin-left: -1px;
+}
+
+.tabs.is-toggle li:first-child a {
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+
+.tabs.is-toggle li:last-child a {
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+.tabs.is-toggle li.is-active a {
+  background-color: #3e8ed0;
+  border-color: #3e8ed0;
+  color: #fff;
+  z-index: 1;
+}
+
+.tabs.is-toggle.is-toggle-rounded li:first-child a {
+  border-top-left-radius: 9999px;
+  border-bottom-left-radius: 9999px;
+  padding-left: 1.25em;
+}
+
+.tabs.is-toggle.is-toggle-rounded li:last-child a {
+  border-top-right-radius: 9999px;
+  border-bottom-right-radius: 9999px;
+  padding-right: 1.25em;
+}
+
+/* ── Notification ────────────────────────────────────────── */
+.notification {
+  background-color: var(--chc-bg-secondary);
+  border-radius: 4px;
+  padding: 1.25rem 2.5rem 1.25rem 1.5rem;
+  position: relative;
+  color: var(--chc-text-primary);
+}
+
+.notification .delete {
+  position: absolute;
+  right: 0.5rem;
+  top: 0.5rem;
+}
+
+.notification.is-info {
+  background-color: #3e8ed0;
+  color: #fff;
+}
+
+.notification.is-info.is-light {
+  background-color: #eff5fb;
+  color: #296fa8;
+}
+
+.notification.is-success {
+  background-color: #48c78e;
+  color: #fff;
+}
+
+.notification.is-success.is-light {
+  background-color: #effaf5;
+  color: #257953;
+}
+
+.notification.is-danger {
+  background-color: #f14668;
+  color: #fff;
+}
+
+.notification.is-danger.is-light {
+  background-color: #feecf0;
+  color: #cc0f35;
+}
+
+.notification.is-warning {
+  background-color: #ffe08a;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.notification.is-warning.is-light {
+  background-color: #fffaeb;
+  color: #946c00;
+}
+
+.notification.is-primary {
+  background-color: #00d1b2;
+  color: #fff;
+}
+
+.notification.is-link {
+  background-color: #485fc7;
+  color: #fff;
+}
+
+/* ── Generic state ───────────────────────────────────────── */
+.is-active {
+  /* Intentionally empty — individual components define what is-active means.
+     This selector exists so the class doesn't get flagged as undefined. */
+}
