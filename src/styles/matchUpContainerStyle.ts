@@ -1,3 +1,1 @@
-import { css } from "@stitches/core";
-
-export const matchUpContainerStyle = css({});
+export const matchUpContainerStyle = () => 'chc-matchup-container';

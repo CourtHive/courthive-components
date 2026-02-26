@@ -194,8 +194,7 @@ export const WithDefaults = {
           participantsCount: 64,
           ageMin: 10,
           ageMax: 18,
-          wtnRating: true,
-          utrRating: false
+          ratings: ['WTN'],
         },
         callback: (participants) => {
           // Clear previous output
@@ -338,7 +337,7 @@ export const Scenarios = {
         participantsCount: 32,
         ageMin: 10,
         ageMax: 18,
-        wtnRating: true
+        ratings: ['WTN'],
       }
     });
 
@@ -350,7 +349,7 @@ export const Scenarios = {
         participantsCount: 64,
         ageMin: 25,
         ageMax: 55,
-        utrRating: true
+        ratings: ['UTR'],
       }
     });
 
@@ -362,8 +361,7 @@ export const Scenarios = {
         participantsCount: 16,
         ageMin: 60,
         ageMax: 75,
-        wtnRating: true,
-        utrRating: true
+        ratings: ['WTN', 'UTR'],
       }
     });
 
@@ -375,8 +373,6 @@ export const Scenarios = {
         participantsCount: 128,
         ageMin: 8,
         ageMax: 14,
-        wtnRating: false,
-        utrRating: false
       }
     });
 
@@ -385,8 +381,7 @@ export const Scenarios = {
       title: 'Generate Players (All Ages)',
       defaults: {
         participantsCount: 32,
-        wtnRating: true,
-        utrRating: true
+        ratings: ['WTN', 'UTR'],
       }
     });
 

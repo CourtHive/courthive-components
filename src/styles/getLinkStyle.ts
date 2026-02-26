@@ -1,15 +1,24 @@
 import { lineHeights } from '../compositions/lineHeights';
-import { css } from '@stitches/core';
+import cx from 'classnames';
 import type { Composition } from '../types';
 
-export function getLinkStyle({ 
-  composition, 
-  isDoubles, 
-  roundFactor = 1 
-}: { 
-  composition?: Composition; 
-  isDoubles?: boolean; 
-  roundFactor?: number 
+/**
+ * Computes connector line configuration and returns a two-call API
+ * that matches the previous Stitches pattern.
+ *
+ * Usage:
+ *   const linkResult = getLinkStyle({ composition, isDoubles, roundFactor })({ isFirstRound, link });
+ *   element.className = linkResult.className;
+ *   linkResult.applyStyles(element); // sets CSS custom properties for dynamic dimensions
+ */
+export function getLinkStyle({
+  composition,
+  isDoubles,
+  roundFactor = 1
+}: {
+  composition?: Composition;
+  isDoubles?: boolean;
+  roundFactor?: number;
 }) {
   const fontSize = parseInt(window.getComputedStyle(document.body).getPropertyValue('font-size'));
 
@@ -20,67 +29,36 @@ export function getLinkStyle({
   const addressHeight = configuration.showAddress ? fontSize : 0;
 
   const baseHeight = (60 + addressHeight) * (isDoubles ? 1.3 : 1) + centerHeight;
-
   const m1Height = baseHeight * roundFactor;
   const m2Height = (baseHeight + scheduleHeight) * roundFactor;
 
-  return css({
-    '&::before': {
-      borderBlockStart: '$borderWidths$matchUp solid var(--chc-border-primary)',
-      left: -connectorWidth,
-      width: connectorWidth,
-      position: 'absolute',
-      borderRadius: 2,
-      top: -1
-    },
-    '&::after': {
-      width: connectorWidth,
-      position: 'absolute',
-      borderRadius: 2,
-      left: '100%'
-    },
-    '&::after, &::before': {
-      borderWidth: '$borderWidths$matchUp',
-      borderColor: '$connector',
-      display: 'block',
-      content: ''
-    },
-    variants: {
-      isFirstRound: {
-        true: { '&::before': { height: 0, width: 0, borderWidth: 0 } }
+  return (opts: {
+    isFirstRound?: boolean;
+    link?: string;
+    noProgression?: boolean;
+  }) => {
+    const className = cx(
+      'chc-link',
+      opts.isFirstRound && 'chc-link--first-round',
+      opts.link === 'mr' && 'chc-link--no-link',
+      opts.link === 'm1' && 'chc-link--m1',
+      opts.link === 'm2' && 'chc-link--m2',
+      opts.link === 'm0' && 'chc-link--m0',
+      opts.link === 'noProgression' && 'chc-link--no-progression'
+    );
+
+    return {
+      className,
+      /** Apply dynamic connector dimensions as CSS custom properties on the element */
+      applyStyles(element: HTMLElement) {
+        element.style.setProperty('--chc-connector-w', `${connectorWidth}px`);
+        element.style.setProperty('--chc-link-m1-h', `${m1Height}px`);
+        element.style.setProperty('--chc-link-m2-h', `${m2Height}px`);
       },
-      link: {
-        m1: {
-          '&::after': {
-            borderInlineEnd: '$borderWidths$matchUp solid $connector',
-            borderTopStyle: 'solid',
-            height: m1Height,
-            top: -1
-          }
-        },
-        m2: {
-          '&::after': {
-            bottom: `calc(100%)`,
-            borderInlineEnd: '$borderWidths$matchUp solid $connector',
-            borderBottomStyle: 'solid',
-            height: m2Height
-          }
-        },
-        m0: {
-          '&::after': {
-            borderTopStyle: 'solid',
-            borderColor: '$connector',
-            top: -1
-          }
-        },
-        mr: {
-          '&::before': { height: 0, width: 0, borderWidth: 0 },
-          '&::after': { height: 0, width: 0, borderWidth: 0 }
-        },
-        noProgression: {
-          true: { '&::after': { height: 0, width: 0, borderWidth: 0 } }
-        }
+      /** Legacy: return className as string for backward-compat (styles won't include dynamic dimensions) */
+      toString() {
+        return className;
       }
-    }
-  });
+    };
+  };
 }

@@ -1,0 +1,658 @@
+/**
+ * Draw component styles — plain CSS replacement for Stitches css() calls.
+ * All token values reference --chc-* custom properties.
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Container & Structure (Batch 1 — simple, no tokens/variants)
+   ════════════════════════════════════════════════════════════ */
+
+.chc-container {
+  background-color: var(--chc-color-container-bg);
+  color: var(--chc-color-text);
+  overflow-x: auto;
+  height: 1000px;
+}
+
+.chc-structure {
+  flex-direction: row;
+  display: flex;
+}
+
+.chc-round-container {
+  flex-direction: column;
+  display: flex;
+}
+
+.chc-round {
+  justify-content: space-around;
+  margin-inline-start: 16px;
+  margin-inline-end: 16px;
+  flex-direction: column;
+  height: 100%;
+  display: flex;
+}
+
+.chc-round--adhoc {
+  justify-content: flex-start;
+}
+
+.chc-matchup-container {
+  /* intentionally empty — placeholder for future use */
+}
+
+.chc-round-header {
+  border-bottom: solid 1px var(--chc-text-primary);
+  margin-inline-start: 16px;
+  margin-inline-end: 16px;
+  font-weight: bold;
+  height: 1.5em;
+}
+
+/* ── Side styles ─────────────────────────────────────────── */
+
+.chc-side-container {
+  flex-direction: column;
+  position: relative;
+  display: flex;
+}
+
+.chc-side-row {
+  align-items: stretch;
+  display: flex;
+}
+
+.chc-tick {
+  margin-inline-end: 0.25rem;
+  color: var(--chc-status-success);
+}
+
+/* ── Flag ────────────────────────────────────────────────── */
+
+.chc-flag {
+  -webkit-box-sizing: border-box;
+  margin-inline-end: 0.3em;
+  display: inline-block;
+  box-sizing: border-box;
+  position: relative;
+  border-radius: 2px;
+}
+
+.chc-flag--doubles {
+  width: 0.75rem;
+}
+
+.chc-flag--singles {
+  width: 1rem;
+}
+
+/* ── Team Logo ───────────────────────────────────────────── */
+
+.chc-team-logo {
+  margin-inline-end: 0.5rem;
+  background-color: pink;
+  margin-inline-start: 2px;
+  height: 40px;
+  width: 40px;
+}
+
+/* ── Group ───────────────────────────────────────────────── */
+
+.chc-group-name {
+  font-weight: bold;
+  color: var(--chc-status-info);
+  height: 1em;
+}
+
+.chc-group-separator {
+  border-top: solid 1px var(--chc-text-primary);
+  margin-right: -1em;
+  margin-left: -1em;
+  padding-top: 0.5em;
+  margin-top: 0.2em;
+}
+
+.chc-group-separator--0 {
+  margin-top: 1em;
+  border-top: none;
+  padding-top: 0px;
+}
+
+.chc-group-separator--round-first {
+  margin-left: 0em;
+}
+
+.chc-group-separator--round-last {
+  margin-right: 0em;
+}
+
+/* ── Participant Detail ──────────────────────────────────── */
+
+.chc-participant-detail {
+  font-size: smaller;
+  color: var(--chc-text-muted);
+}
+
+/* ── Modal ───────────────────────────────────────────────── */
+
+.chc-backdrop {
+  position: fixed;
+  z-index: 9998;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  top: 0;
+}
+
+.chc-modal {
+  display: block;
+}
+
+.chc-body-freeze {
+  position: fixed;
+  right: 0;
+  left: 0;
+}
+
+.chc-modal-container {
+  padding-right: 15px;
+  align-items: center;
+  margin: 30px auto;
+  padding-left: 15px;
+  position: fixed;
+  height: 100vh;
+  display: flex;
+  width: 100%;
+  z-index: 9999;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  top: 0;
+}
+
+.chc-modal-dialog {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  background-color: var(--chc-modal-bg);
+  position: relative;
+  border-radius: 3px;
+  min-height: auto;
+  width: 100%;
+}
+
+.chc-modal-header {
+  border-bottom: 1px solid var(--chc-border-primary);
+  align-items: center;
+  position: relative;
+  display: flex;
+}
+
+.chc-modal-title {
+  font-weight: 600;
+  font-size: 20px;
+}
+
+.chc-modal-footer {
+  border-top: 1px solid var(--chc-border-primary);
+  justify-content: right;
+  align-items: center;
+  position: relative;
+  display: flex;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Token-referenced styles (Batch 2)
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Seed ────────────────────────────────────────────────── */
+
+.chc-seed {
+  color: var(--chc-participant-seed-color);
+  margin-inline-start: 0.5rem;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+/* ── Scheduling info bar ─────────────────────────────────── */
+
+.chc-scheduling {
+  height: var(--chc-line-height-schedule-info);
+  border-bottom: 1px solid var(--chc-border-primary);
+  justify-content: space-between;
+  background-color: var(--chc-bg-secondary);
+  box-sizing: border-box;
+  padding-right: 0.2rem;
+  padding-left: 0.5rem;
+  align-items: center;
+  cursor: pointer;
+  color: var(--chc-text-muted);
+  display: flex;
+  width: 100%;
+}
+
+/* ── Scale badge ─────────────────────────────────────────── */
+
+.chc-scale {
+  -webkit-box-sizing: border-box;
+  margin-inline-end: 0.5em;
+  box-sizing: border-box;
+  display: inline-block;
+  position: relative;
+  font-size: smaller;
+  font-weight: bold;
+  border-radius: 2px;
+  color: var(--chc-status-info);
+}
+
+.chc-scale--green {
+  color: var(--chc-status-success);
+}
+
+.chc-scale--red {
+  color: var(--chc-status-error);
+}
+
+/* ════════════════════════════════════════════════════════════
+   Score styles (Batch 2 — token-referenced)
+   ════════════════════════════════════════════════════════════ */
+
+.chc-tiebreak {
+  line-height: 0.75rem;
+  font-size: 0.625rem;
+  left: 1.1rem;
+  top: 0.4rem;
+}
+
+.chc-game-score {
+  line-height: var(--chc-line-height-game-score);
+  justify-content: center;
+  width: var(--chc-score-set-width);
+  position: relative;
+  text-align: center;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: var(--chc-font-size-1);
+  display: flex;
+  margin: 0;
+}
+
+.chc-game-score--winner {
+  color: var(--chc-color-winner) !important;
+  font-weight: 700;
+}
+
+.chc-game-score--loser {
+  color: var(--chc-color-loser) !important;
+}
+
+.chc-game-wrapper {
+  margin-inline-end: var(--chc-space-game-margin);
+  justify-content: flex-end;
+  align-items: center;
+  display: flex;
+}
+
+/* ── Results ─────────────────────────────────────────────── */
+
+.chc-results-item {
+  width: var(--chc-score-set-width);
+  display: inline-block;
+  font-size: 9px;
+}
+
+.chc-results-item--set {
+  text-align: center;
+}
+
+.chc-results-item--points {
+  margin-inline-end: 3px;
+}
+
+.chc-results-info {
+  transform: translateY(-50%);
+  text-transform: uppercase;
+  background-color: var(--chc-bg-primary);
+  position: absolute;
+  text-align: center;
+  top: calc(50%);
+  color: var(--chc-text-muted);
+  font-size: 0;
+  right: 4px;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Variant styles (Batch 3)
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Participant ─────────────────────────────────────────── */
+
+.chc-participant {
+  justify-content: flex-start;
+  align-items: center;
+  white-space: nowrap;
+  font-weight: 500;
+  display: flex;
+}
+
+.chc-participant-name {
+  text-transform: var(--chc-participant-text-transform);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.chc-participant-name--winner {
+  font-weight: 700;
+  color: var(--chc-color-winner-name);
+}
+
+.chc-participant-name--loser {
+  font-weight: 500;
+}
+
+.chc-participant-type {
+  -webkit-scrollbar: none;
+  justify-content: space-between;
+  flex-direction: column;
+  margin-inline-end: 0rem;
+  scrollbar-width: none;
+  overflow-x: scroll;
+  font-weight: 500;
+  display: flex;
+  width: 100%;
+}
+
+.chc-participant-type::-webkit-scrollbar {
+  display: none;
+}
+
+.chc-participant-type--doubles {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+/* ── Participant container ───────────────────────────────── */
+
+.chc-participant-container {
+  min-height: var(--chc-participant-min-height);
+  justify-content: space-between;
+  padding-inline-start: 0.75rem;
+  background-color: var(--chc-color-matchup);
+  padding-inline-end: 0rem;
+  box-sizing: border-box;
+  padding-bottom: 0.2rem;
+  position: relative;
+  align-items: center;
+  padding-top: 0.2rem;
+  min-width: 15rem;
+  cursor: pointer;
+  display: flex;
+  flex-grow: 1;
+}
+
+.chc-participant-container p {
+  font-family: 'Sharp Sans', Arial, sans-serif;
+  color: var(--chc-color-text);
+}
+
+.chc-participant-container--side1 {
+  border-bottom: 1px solid var(--chc-color-internal-dividers);
+}
+
+/* ── Participant placeholder ─────────────────────────────── */
+
+.chc-placeholder {
+  margin: 2.5px 0;
+}
+
+.chc-placeholder--show-address {
+  line-height: 2.3em;
+}
+
+/* ── Pill (match status) ─────────────────────────────────── */
+
+.chc-pill {
+  width: auto;
+  display: inline-block;
+  text-transform: uppercase;
+  font-family: 'Sharp Sans', Arial, sans-serif;
+  font-size: 0.625rem;
+  line-height: 1rem;
+  margin-inline: 0.25rem 0.25rem;
+  padding-inline: 0.25rem 0.25rem;
+  font-weight: 700;
+  border-radius: 4px;
+  color: var(--chc-pill-text);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.chc-pill--in_progress,
+.chc-pill--awaiting_result {
+  background-color: var(--chc-pill-bg-success);
+}
+
+.chc-pill--defaulted,
+.chc-pill--dead_rubber,
+.chc-pill--cancelled,
+.chc-pill--retired,
+.chc-pill--double_default {
+  background-color: var(--chc-pill-bg-danger);
+}
+
+.chc-pill--incomplete,
+.chc-pill--suspended {
+  background-color: var(--chc-pill-bg-warning);
+}
+
+.chc-pill--walkover,
+.chc-pill--double_walkover,
+.chc-pill--abandoned {
+  background-color: var(--chc-pill-bg-dark);
+}
+
+/* ── Score wrapper ───────────────────────────────────────── */
+
+.chc-score-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  background-color: var(--chc-color-matchup);
+}
+
+.chc-score-wrapper--side1 {
+  border-bottom: 1px solid var(--chc-color-internal-dividers);
+}
+
+.chc-score-wrapper--small {
+  font-size: smaller;
+  padding-right: 1em;
+  color: var(--chc-status-info);
+}
+
+/* ── Center info ─────────────────────────────────────────── */
+
+.chc-center-info {
+  border-bottom: solid 1px var(--chc-border-secondary);
+  background-color: var(--chc-color-matchup);
+  position: relative;
+  width: 100%;
+  height: var(--chc-line-height-center-info);
+}
+
+.chc-center-info--1 {
+  border-bottom: solid 1px var(--chc-border-primary);
+}
+
+.chc-center-info--2 {
+  border-bottom: solid 1px var(--chc-border-secondary);
+}
+
+.chc-column {
+  justify-content: center;
+  align-content: center;
+  flex-direction: column;
+  height: 100%;
+  display: flex;
+}
+
+.chc-entry {
+  font-family: Lato, Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  margin-inline-start: calc(20%);
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -webkit-box-pack: center;
+  box-sizing: inherit;
+  flex-direction: row;
+  display: flex;
+}
+
+.chc-status {
+  align-content: center;
+  box-sizing: inherit;
+  font-family: Lato;
+  font-weight: 900;
+  font-size: 9px;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Dynamic styles (Batch 4) — handled by JS + data attributes
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Selected matchUp overlay ────────────────────────────── */
+
+.chc-selected-matchup {
+  background-color: var(--chc-status-info);
+  position: absolute;
+  opacity: 0.2;
+  height: 100%;
+  width: 100%;
+  top: 0;
+}
+
+/* ── Chevron (winner indicator) ──────────────────────────── */
+
+.chc-chevron--winner::before {
+  border-top: 0.6rem solid transparent;
+  border-bottom: 0.6rem solid transparent;
+  border-inline-start: 8px solid var(--chc-status-success);
+  position: absolute;
+  inset-inline-start: 0;
+  display: block;
+  content: '';
+}
+
+.chc-chevron-doubles--winner::before {
+  border-top: 0.8rem solid transparent;
+  border-bottom: 0.8rem solid transparent;
+  border-inline-start: 8px solid var(--chc-status-success);
+  position: absolute;
+  inset-inline-start: 0;
+  display: block;
+  content: '';
+}
+
+/* ── MatchUp box ─────────────────────────────────────────── */
+
+.chc-matchup {
+  background-color: var(--chc-color-matchup-bg);
+  -webkit-transition: all 0.30s linear;
+  box-shadow: var(--chc-matchup-box-shadow);
+  transition: all 0.30s linear;
+  border: solid var(--chc-color-border);
+  margin-bottom: var(--chc-space-matchup);
+  margin-top: var(--chc-space-matchup);
+  position: relative;
+  display: grid;
+  width: 100%;
+  border-width: var(--chc-border-width-matchup);
+  border-inline-start-width: var(--chc-border-width-inline-start);
+}
+
+.chc-matchup:hover {
+  border-color: var(--chc-color-border-hover);
+}
+
+/* ── Connector lines (links between rounds) ──────────────── */
+/* Dynamic dimensions are set via CSS custom properties on the element:
+   --chc-connector-w, --chc-link-m1-h, --chc-link-m2-h */
+
+.chc-link::before {
+  border-block-start: var(--chc-border-width-matchup) solid var(--chc-border-primary);
+  left: calc(-1 * var(--chc-connector-w, 16px));
+  width: var(--chc-connector-w, 16px);
+  position: absolute;
+  border-radius: 2px;
+  top: -1px;
+}
+
+.chc-link::after {
+  width: var(--chc-connector-w, 16px);
+  position: absolute;
+  border-radius: 2px;
+  left: 100%;
+}
+
+.chc-link::after,
+.chc-link::before {
+  border-width: var(--chc-border-width-matchup);
+  border-color: var(--chc-color-connector);
+  display: block;
+  content: '';
+}
+
+.chc-link--first-round::before {
+  height: 0;
+  width: 0;
+  border-width: 0;
+}
+
+/* m1: connector going DOWN from top of matchup */
+.chc-link--m1::after {
+  border-inline-end: var(--chc-border-width-matchup) solid var(--chc-color-connector);
+  border-top-style: solid;
+  height: var(--chc-link-m1-h, 0);
+  top: -1px;
+}
+
+/* m2: connector going UP from bottom of matchup */
+.chc-link--m2::after {
+  bottom: calc(100%);
+  border-inline-end: var(--chc-border-width-matchup) solid var(--chc-color-connector);
+  border-bottom-style: solid;
+  height: var(--chc-link-m2-h, 0);
+}
+
+/* m0: simple horizontal connector (qualifying/pre-feed) */
+.chc-link--m0::after {
+  border-top-style: solid;
+  border-color: var(--chc-color-connector);
+  top: -1px;
+}
+
+.chc-link--no-progression::after {
+  height: 0;
+  width: 0;
+  border-width: 0;
+}
+
+.chc-link--no-link::before,
+.chc-link--no-link::after {
+  height: 0;
+  width: 0;
+  border-width: 0;
+}
+
+/* Draw position number (::before pseudo on participant container) */
+.chc-participant-container[data-draw-position]::before {
+  background-color: var(--chc-color-container-bg);
+  content: attr(data-draw-position);
+  justify-content: center;
+  align-content: center;
+  inset-inline-start: -10px;
+  position: absolute;
+  color: var(--chc-status-info);
+  display: flex;
+  width: 20px;
+}

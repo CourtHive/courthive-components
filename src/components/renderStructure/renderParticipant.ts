@@ -83,6 +83,9 @@ export function renderParticipant({
       drawPosition,
       sideNumber
     });
+    if (drawPosition) {
+      participantContainer.dataset.drawPosition = String(drawPosition);
+    }
   }
 
   participantContainer.classList.add('tmx-p');

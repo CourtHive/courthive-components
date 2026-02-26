@@ -1,0 +1,275 @@
+/**
+ * Button styles — replaces Bulma's .button + intent variants.
+ * Themed via --chc-* custom properties.
+ */
+
+/* ── Base Button ─────────────────────────────────────────── */
+.button {
+  -webkit-appearance: none;
+  align-items: center;
+  background-color: var(--chc-bg-primary);
+  border: 1px solid var(--chc-border-primary);
+  border-radius: 4px;
+  box-shadow: none;
+  color: var(--chc-text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 1rem;
+  height: 2.5em;
+  justify-content: center;
+  line-height: 1.5;
+  padding: calc(0.5em - 1px) 1em;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: top;
+  user-select: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.button:hover {
+  border-color: var(--chc-border-secondary);
+  background-color: var(--chc-hover-bg);
+}
+
+.button:active {
+  background-color: var(--chc-active-bg);
+}
+
+.button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--chc-border-focus);
+}
+
+.button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ── Intent variants ─────────────────────────────────────── */
+
+/* Info */
+.button.is-info {
+  background-color: #3e8ed0;
+  border-color: transparent;
+  color: #fff;
+}
+.button.is-info:hover { background-color: #3082c5; }
+.button.is-info:active { background-color: #2b74b1; }
+.button.is-info.is-outlined {
+  background-color: transparent;
+  border-color: #3e8ed0;
+  color: #3e8ed0;
+}
+.button.is-info.is-outlined:hover {
+  background-color: #3e8ed0;
+  color: #fff;
+}
+.button.is-info.is-light {
+  background-color: #eff5fb;
+  color: #296fa8;
+}
+.button.is-info.is-light:hover { background-color: #e4eff9; }
+
+/* Success */
+.button.is-success {
+  background-color: #48c78e;
+  border-color: transparent;
+  color: #fff;
+}
+.button.is-success:hover { background-color: #3ec487; }
+.button.is-success:active { background-color: #34b37b; }
+.button.is-success.is-outlined {
+  background-color: transparent;
+  border-color: #48c78e;
+  color: #48c78e;
+}
+.button.is-success.is-outlined:hover {
+  background-color: #48c78e;
+  color: #fff;
+}
+.button.is-success.is-light {
+  background-color: #effaf5;
+  color: #257953;
+}
+.button.is-success.is-light:hover { background-color: #e6f7ef; }
+
+/* Danger */
+.button.is-danger {
+  background-color: #f14668;
+  border-color: transparent;
+  color: #fff;
+}
+.button.is-danger:hover { background-color: #ef2e55; }
+.button.is-danger:active { background-color: #eb1c47; }
+.button.is-danger.is-outlined {
+  background-color: transparent;
+  border-color: #f14668;
+  color: #f14668;
+}
+.button.is-danger.is-outlined:hover {
+  background-color: #f14668;
+  color: #fff;
+}
+.button.is-danger.is-light {
+  background-color: #feecf0;
+  color: #cc0f35;
+}
+.button.is-danger.is-light:hover { background-color: #fde0e6; }
+
+/* Warning */
+.button.is-warning {
+  background-color: #ffe08a;
+  border-color: transparent;
+  color: rgba(0, 0, 0, 0.7);
+}
+.button.is-warning:hover { background-color: #ffdc7d; }
+.button.is-warning:active { background-color: #ffd970; }
+.button.is-warning.is-outlined {
+  background-color: transparent;
+  border-color: #ffe08a;
+  color: #946c00;
+}
+.button.is-warning.is-outlined:hover {
+  background-color: #ffe08a;
+  color: rgba(0, 0, 0, 0.7);
+}
+.button.is-warning.is-light {
+  background-color: #fffaeb;
+  color: #946c00;
+}
+.button.is-warning.is-light:hover { background-color: #fff6db; }
+
+/* Primary */
+.button.is-primary {
+  background-color: #00d1b2;
+  border-color: transparent;
+  color: #fff;
+}
+.button.is-primary:hover { background-color: #00c4a7; }
+.button.is-primary:active { background-color: #00b89c; }
+.button.is-primary.is-outlined {
+  background-color: transparent;
+  border-color: #00d1b2;
+  color: #00d1b2;
+}
+.button.is-primary.is-outlined:hover {
+  background-color: #00d1b2;
+  color: #fff;
+}
+.button.is-primary.is-light {
+  background-color: #ebfffc;
+  color: #00947e;
+}
+.button.is-primary.is-light:hover { background-color: #defffa; }
+
+/* Link */
+.button.is-link {
+  background-color: #485fc7;
+  border-color: transparent;
+  color: #fff;
+}
+.button.is-link:hover { background-color: #3e56c4; }
+.button.is-link:active { background-color: #3a51bb; }
+.button.is-link.is-outlined {
+  background-color: transparent;
+  border-color: #485fc7;
+  color: #485fc7;
+}
+.button.is-link.is-outlined:hover {
+  background-color: #485fc7;
+  color: #fff;
+}
+.button.is-link.is-light {
+  background-color: #eff1fa;
+  color: #3850b7;
+}
+.button.is-link.is-light:hover { background-color: #e6e9f7; }
+
+/* White */
+.button.is-white {
+  background-color: #fff;
+  border-color: transparent;
+  color: #0a0a0a;
+}
+.button.is-white:hover { background-color: #f9f9f9; }
+
+/* ── Size modifiers ──────────────────────────────────────── */
+.button.is-small {
+  font-size: 0.75rem;
+  height: 2em;
+  padding: calc(0.25em - 1px) 0.75em;
+}
+
+/* ── State modifiers ─────────────────────────────────────── */
+.button.is-fullwidth {
+  display: flex;
+  width: 100%;
+}
+
+.button.is-outlined {
+  background-color: transparent;
+  border-color: var(--chc-border-primary);
+  color: var(--chc-text-primary);
+}
+.button.is-outlined:hover {
+  background-color: var(--chc-hover-bg);
+}
+
+.button.is-light {
+  background-color: var(--chc-bg-secondary);
+  border-color: transparent;
+  color: var(--chc-text-primary);
+}
+.button.is-light:hover {
+  background-color: var(--chc-hover-bg);
+}
+
+/* ── Delete button (X dismiss) ───────────────────────────── */
+.delete {
+  -webkit-appearance: none;
+  background-color: rgba(10, 10, 10, 0.2);
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  pointer-events: auto;
+  display: inline-block;
+  flex-grow: 0;
+  flex-shrink: 0;
+  font-size: 0;
+  height: 20px;
+  max-height: 20px;
+  max-width: 20px;
+  min-height: 20px;
+  min-width: 20px;
+  outline: 0;
+  position: relative;
+  vertical-align: top;
+  width: 20px;
+}
+
+.delete::before,
+.delete::after {
+  background-color: #fff;
+  content: '';
+  display: block;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%) rotate(45deg);
+  transform-origin: center center;
+}
+
+.delete::before {
+  height: 2px;
+  width: 50%;
+}
+
+.delete::after {
+  height: 50%;
+  width: 2px;
+}
+
+.delete:hover {
+  background-color: rgba(10, 10, 10, 0.3);
+}

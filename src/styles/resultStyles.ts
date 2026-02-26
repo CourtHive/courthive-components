@@ -1,30 +1,6 @@
-import { css } from "@stitches/core";
+import cx from 'classnames';
 
-export const resultsItemStyle = css({
-  width: "$score$setWidth",
-  display: "inline-block",
-  fontSize: 9,
+export const resultsItemStyle = (opts?: { variant?: string }) =>
+  cx('chc-results-item', opts?.variant && `chc-results-item--${opts.variant}`);
 
-  variants: {
-    variant: {
-      set: {
-        textAlign: "center",
-      },
-      points: {
-        marginInlineEnd: 3,
-      },
-    },
-  },
-});
-
-export const resultsInfoStyle = css({
-  transform: "translateY(-50%)",
-  textTransform: "uppercase",
-  backgroundColor: "var(--chc-bg-primary)",
-  position: "absolute",
-  textAlign: "center",
-  top: `calc(50%)`,
-  color: "var(--chc-text-muted)",
-  fontSize: 0,
-  right: 4,
-});
+export const resultsInfoStyle = () => 'chc-results-info';

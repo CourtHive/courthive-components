@@ -1,18 +1,4 @@
-import { css } from '@stitches/core';
+import cx from 'classnames';
 
-export const roundStyle = css({
-  justifyContent: 'space-around',
-  marginInlineStart: '16px',
-  marginInlineEnd: '16px',
-  flexDirection: 'column',
-  height: '100%',
-  display: 'flex',
-  // width: '370px',
-  variants: {
-    variant: {
-      adHoc: {
-        justifyContent: 'flex-start'
-      }
-    }
-  }
-});
+export const roundStyle = (opts?: { variant?: string }) =>
+  cx('chc-round', opts?.variant === 'adHoc' && 'chc-round--adhoc');

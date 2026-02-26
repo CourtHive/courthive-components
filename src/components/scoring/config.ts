@@ -6,7 +6,7 @@
 export interface ScoringConfig {
   scoringApproach?: 'freeScore' | 'dynamicSets' | 'dialPad';
   smartComplements?: boolean;
-  composition?: string; // Composition name: 'Australian', 'Basic', 'French', 'Wimbledon', 'US Open', 'ITF', 'National', 'Night'
+  composition?: string; // Composition name: 'Australian', 'Basic', 'French', 'Wimbledon', 'US Open', 'ITF', 'National'
   idiom?: string;
   dateFormat?: string;
   timeFormat?: string;

@@ -216,6 +216,7 @@ import { Datepicker } from 'vanillajs-datepicker';
 import { isFunction } from '../../helpers/typeOf';
 import { validator } from './renderValidator';
 
+import { createMultiSelect } from './createMultiSelect';
 import { NONE } from '../../data/componentConstants';
 
 export function renderOptions(select: HTMLSelectElement, item: any): void {
@@ -290,6 +291,11 @@ export function renderField(item: any): { field: HTMLDivElement; inputElement?: 
     }
     control.appendChild(radioGroup);
     inputElement = radioGroup;
+  } else if (item.options && item.multiple) {
+    const { container: msContainer, element } = createMultiSelect(item);
+    if (item.id) msContainer.id = item.id;
+    control.appendChild(msContainer);
+    inputElement = element;
   } else if (item.options) {
     const div = document.createElement('div');
     div.className = 'select font-medium';
@@ -298,7 +304,6 @@ export function renderField(item: any): { field: HTMLDivElement; inputElement?: 
     const select = document.createElement('select');
     if (item.dataPlaceholder) select.setAttribute('data-placeholder', item.dataPlaceholder);
     if (item.dataType) select.setAttribute('data-type', item.dataType);
-    if (item.multiple) select.setAttribute('multiple', 'true');
     if (item.disabled) select.disabled = true;
     if (item.id) div.id = item.id;
     select.style.cssText = 'width: 100%';

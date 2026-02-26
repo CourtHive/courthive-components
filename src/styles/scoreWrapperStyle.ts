@@ -1,25 +1,10 @@
-import { css } from "@stitches/core";
+import cx from 'classnames';
 
-export const scoreWrapperStyle = (participantHeight?: number) => {
-  return css({
-    display: "flex",
-    alignItems: "center",
-    height: participantHeight,
-    justifyContent: "flex-end",
-    backgroundColor: "$matchUp",
-    variants: {
-      sideNumber: {
-        1: {
-          borderBottom: "1px solid $internalDividers",
-        },
-      },
-      fontSize: {
-        small: {
-          fontSize: "smaller",
-          paddingRight: "1em",
-          color: "var(--chc-status-info)",
-        },
-      },
-    },
-  });
+export const scoreWrapperStyle = (_participantHeight?: number) => {
+  return (opts?: { sideNumber?: number | string; fontSize?: string }) =>
+    cx(
+      'chc-score-wrapper',
+      (opts?.sideNumber === 1 || String(opts?.sideNumber) === '1') && 'chc-score-wrapper--side1',
+      opts?.fontSize === 'small' && 'chc-score-wrapper--small'
+    );
 };

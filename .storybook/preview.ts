@@ -1,5 +1,13 @@
 import type { Preview } from '@storybook/html-vite';
+import 'vanillajs-datepicker/css/datepicker.css';
 import '../src/styles/theme.css';
+import '../src/styles/themes.css';
+import '../src/styles/draw.css';
+import '../src/styles/components/buttons.css';
+import '../src/styles/components/forms.css';
+import '../src/styles/components/switch.css';
+import '../src/styles/components/ui.css';
+import '../src/components/forms/checkradio.css';
 import '../src/styles/accessibility.css';
 
 const preview: Preview = {
