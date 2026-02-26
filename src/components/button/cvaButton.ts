@@ -1,11 +1,10 @@
 import { cva } from 'class-variance-authority';
-import 'bulma/css/bulma.css';
 
-export function renderButton({ 
-  intent = 'primary', 
-  size = 'medium', 
-  label, 
-  onClick 
+export function renderButton({
+  intent = 'primary',
+  size = 'medium',
+  label,
+  onClick
 }: {
   intent?: 'primary' | 'secondary';
   size?: 'medium';

@@ -1,5 +1,5 @@
 import { cModal } from '../components/modal/cmodal';
-import '../components/forms/styles'; // Import bulma-switch and other form styles
+import '../components/forms/styles';
 
 const IS_PRIMARY = 'is-primary';
 

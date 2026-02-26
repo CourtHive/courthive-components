@@ -1,20 +1,4 @@
-import { css } from '@stitches/core';
+import cx from 'classnames';
 
-export const flagStyle = css({
-  WebkitBoxSizing: 'border-box',
-  marginInlineEnd: '.3em',
-  display: 'inline-block',
-  boxSizing: 'border-box',
-  position: 'relative',
-  borderRadius: 2,
-  variants: {
-    variant: {
-      doubles: {
-        width: '.75rem'
-      },
-      singles: {
-        width: '1rem'
-      }
-    }
-  }
-});
+export const flagStyle = (opts?: { variant?: string }) =>
+  cx('chc-flag', opts?.variant && `chc-flag--${opts.variant}`);

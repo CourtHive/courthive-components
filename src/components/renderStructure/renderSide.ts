@@ -88,7 +88,7 @@ export function renderSide({
       }
     };
     const score = document.createElement('div');
-    score.className = scoreWrapperStyle(undefined)({
+    score.className = scoreWrapperStyle()({
       ...((!scoreBox && sideNumber === 1) && { sideNumber: 1 }),
       fontSize: 'small'
     });

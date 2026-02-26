@@ -82,9 +82,41 @@ export const SelectDropdown = {
 };
 
 /**
- * Multi-select dropdown
+ * Multi-select dropdown with tag chips and live value display
  */
 export const MultiSelect = {
+  render: ({ ...args }: any) => {
+    const container = document.createElement('div');
+    container.style.maxWidth = '400px';
+    container.style.margin = '20px';
+
+    const valuesDiv = document.createElement('div');
+    valuesDiv.style.cssText =
+      'margin-top: 12px; padding: 8px 12px; border: 1px dashed var(--chc-border-primary, #dbdbdb); border-radius: 4px; font-size: 0.9em; color: var(--chc-text-secondary, #666);';
+
+    function updateDisplay(element: any) {
+      const vals: string[] = element?.selectedValues ?? [];
+      valuesDiv.textContent = vals.length ? `Selected: ${vals.join(', ')}` : 'No values selected';
+    }
+
+    const originalOnChange = args.onChange;
+    args.onChange = (e: Event, item: any) => {
+      updateDisplay(item.options ? (e.target as any)?.closest?.('[class]')?.parentElement : e.target);
+      if (originalOnChange) originalOnChange(e, item);
+    };
+
+    const { field, inputElement } = renderField(args);
+    container.appendChild(field);
+
+    // wire onChange to the element itself so we capture changes
+    if (inputElement) {
+      inputElement.addEventListener('change', () => updateDisplay(inputElement));
+      updateDisplay(inputElement);
+    }
+
+    container.appendChild(valuesDiv);
+    return container;
+  },
   args: {
     label: 'Select Sports',
     field: 'sports',
@@ -94,9 +126,9 @@ export const MultiSelect = {
       { label: 'Basketball', value: 'basketball', selected: true },
       { label: 'Soccer', value: 'soccer' },
       { label: 'Swimming', value: 'swimming', selected: true },
-      { label: 'Running', value: 'running' }
-    ]
-  }
+      { label: 'Running', value: 'running' },
+    ],
+  },
 };
 
 /**

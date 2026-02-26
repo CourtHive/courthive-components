@@ -3,7 +3,6 @@ import {
   basicTheme,
   itfTheme,
   frenchTheme,
-  nightTheme,
   wimbledonTheme,
   usOpenTheme
 } from '../styles/themes';
@@ -59,8 +58,4 @@ export const compositions: Record<string, Composition> = {
     },
     theme: australianTheme
   },
-  Night: {
-    configuration: { flags: true },
-    theme: nightTheme
-  }
 };

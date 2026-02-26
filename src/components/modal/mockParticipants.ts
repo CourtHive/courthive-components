@@ -1,13 +1,15 @@
 /**
  * Mock participants generator modal.
  * Creates mock players with configurable age ranges, gender, ratings, and count.
- * 
+ * Supports all rating types from the factory's ratingsParameters.
+ *
  * @module mockParticipants
  */
-import { genderConstants, factoryConstants, mocksEngine } from 'tods-competition-factory';
+import { genderConstants, factoryConstants, fixtures, mocksEngine } from 'tods-competition-factory';
 import { renderForm } from '../forms/renderForm';
 import { cModal } from './cmodal';
 
+const { ratingsParameters } = fixtures;
 const { WTN, UTR } = factoryConstants.ratingConstants;
 const { FEMALE, MALE, ANY } = genderConstants;
 
@@ -29,7 +31,9 @@ export interface MockParticipantsConfig {
     minAge?: string;
     maxAge?: string;
     ratings?: string;
+    /** @deprecated Use ratings label instead */
     wtn?: string;
+    /** @deprecated Use ratings label instead */
     utr?: string;
   };
   /** Default values for form fields */
@@ -38,7 +42,11 @@ export interface MockParticipantsConfig {
     participantsCount?: number;
     ageMin?: number;
     ageMax?: number;
+    /** Array of rating type names to pre-select (e.g., ['WTN', 'UTR', 'DUPR']) */
+    ratings?: string[];
+    /** @deprecated Use ratings: ['WTN'] instead */
     wtnRating?: boolean;
+    /** @deprecated Use ratings: ['UTR'] instead */
     utrRating?: boolean;
   };
 }
@@ -99,9 +107,15 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
     minAge: labels.minAge || 'Minimum Age',
     maxAge: labels.maxAge || 'Maximum Age',
     ratings: labels.ratings || 'Generate Ratings',
-    wtn: labels.wtn || 'WTN',
-    utr: labels.utr || 'UTR'
   };
+
+  // Backward compatibility: convert legacy wtnRating/utrRating booleans to ratings array
+  const selectedRatings: string[] = defaults.ratings
+    ? [...defaults.ratings]
+    : [
+        ...(defaults.wtnRating ? [WTN] : []),
+        ...(defaults.utrRating ? [UTR] : []),
+      ];
 
   // Merge default values with custom defaults
   const finalDefaults = {
@@ -109,23 +123,37 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
     participantsCount: defaults.participantsCount || 32,
     ageMin: defaults.ageMin,
     ageMax: defaults.ageMax,
-    wtnRating: defaults.wtnRating || false,
-    utrRating: defaults.utrRating || false
   };
+
+  // Build rating options for multi-select dropdown (exclude deprecated)
+  const ratingOptions = Object.entries(ratingsParameters)
+    .filter(([_, params]: [string, any]) => !params.deprecated)
+    .map(([key]: [string, any]) => ({
+      label: key,
+      value: key,
+      selected: selectedRatings.includes(key),
+    }));
 
   const generate = () => {
     const count = inputs.participantsCount.value;
-    const genWtn = inputs.wtnRating.checked;
-    const genUtr = inputs.utrRating.checked;
     const gender = inputs.gender.value;
     const sex = gender === ANY ? undefined : gender;
     const ageMin = inputs.ageMin?.value ? Number.parseInt(inputs.ageMin.value) : undefined;
     const ageMax = inputs.ageMax?.value ? Number.parseInt(inputs.ageMax.value) : undefined;
 
-    const categories = [
-      genWtn && { ratingType: WTN, ratingMin: 14, ratingMax: 19.99 },
-      genUtr && { ratingType: UTR, ratingMin: 8, ratingMax: 10 }
-    ].filter(Boolean);
+    // Collect selected rating types from multi-select dropdown
+    const selected: string[] = inputs.ratings?.selectedValues || [];
+    const categories = selected
+      .map((key: string) => {
+        const params = (ratingsParameters as any)[key];
+        if (!params) return null;
+        const [a, b] = params.range || [0, 100];
+        const min = Math.min(a, b);
+        const max = Math.max(a, b);
+        const span = max - min;
+        return { ratingType: key, ratingMin: min + span * 0.3, ratingMax: min + span * 0.7 };
+      })
+      .filter(Boolean);
 
     // Build category object for age-based birthdate generation
     const category =
@@ -230,22 +258,11 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
           value: finalDefaults.ageMax
         },
         {
-          text: finalLabels.ratings,
-          header: true
-        },
-        {
-          label: finalLabels.wtn,
-          field: 'wtnRating',
-          id: 'wtnRating',
-          checkbox: true,
-          value: finalDefaults.wtnRating
-        },
-        {
-          label: finalLabels.utr,
-          field: 'utrRating',
-          id: 'utrRating',
-          checkbox: true,
-          value: finalDefaults.utrRating
+          label: finalLabels.ratings,
+          field: 'ratings',
+          id: 'ratings',
+          multiple: true,
+          options: ratingOptions,
         }
       ],
       relationships

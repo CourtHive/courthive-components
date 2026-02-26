@@ -41,10 +41,11 @@ export function renderMatchUp(params: {
     (moiety && 'm1') ||
     'm2';
 
-  const linkClass = getLinkStyle({ composition, isDoubles, roundFactor })({
+  const linkResult = getLinkStyle({ composition, isDoubles, roundFactor })({
     isFirstRound,
     link
   });
+  const linkClass = linkResult.className;
 
   const configuration = composition?.configuration || {};
   const { resultsInfo, centerInfo } = configuration || {};
@@ -105,9 +106,13 @@ export function renderMatchUp(params: {
     const s1 = entryStatusDisplay({ sideNumber: 1 });
     const s2 = entryStatusDisplay({ sideNumber: 2 });
     component.appendChild(s1.element);
+    // Apply link connector CSS custom properties to the element that has the link class
+    if (s2.element) linkResult.applyStyles(s2.element);
     component.appendChild(s2.element);
   }
   component.appendChild(side2);
+  // Apply link connector CSS custom properties to side2 (or side container with link class)
+  if (!centerInfo) linkResult.applyStyles(side2);
 
   if (resultsInfo) {
     const info = renderResultsInfo({ score: matchUp.score });

@@ -1,51 +1,14 @@
-import { css } from "@stitches/core";
+import cx from 'classnames';
 
 export function getInfoStyle({ variant }: { variant?: number | string }): string {
-  const infoStyle = css({
-    borderBottom: "solid 1px var(--chc-border-secondary)",
-    backgroundColor: "$matchUp",
-    position: "relative",
-    width: "100%",
-    height: "$lineHeights$centerInfo",
-    variants: {
-      variant: {
-        1: {
-          borderBottom: "solid 1px var(--chc-border-primary)",
-        },
-        2: {
-          borderBottom: "solid 1px var(--chc-border-secondary)",
-        },
-      },
-    },
-  });
-
-  return infoStyle({ variant: variant as any });
+  return cx(
+    'chc-center-info',
+    variant != null && `chc-center-info--${variant}`
+  );
 }
 
-export const columnStyle = css({
-  justifyContent: "center",
-  alignContent: "center",
-  flexDirection: "column",
-  height: "100%",
-  display: "flex",
-});
+export const columnStyle = () => 'chc-column';
 
-export const entryStyle = css({
-  fontFamily: "Lato,Arial,Helvetica,sans-serif",
-  WebkitFontSmooting: "antialiased",
-  marginInlineStart: "calc(20%)",
-  WebkitBoxOrient: "horizontal",
-  WebKitBoxDirection: "normal",
-  WebkitBoxPack: "center",
-  boxSizing: "inherit",
-  flexDirection: "row",
-  display: "flex",
-});
+export const entryStyle = () => 'chc-entry';
 
-export const statusStyle = css({
-  alignContent: "center",
-  boxSizing: "inherit",
-  fontFamily: "Lato",
-  fontWeight: 900,
-  fontSize: 9,
-});
+export const statusStyle = () => 'chc-status';

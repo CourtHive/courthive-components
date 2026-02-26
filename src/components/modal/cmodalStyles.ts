@@ -1,65 +1,15 @@
-import { css } from '@stitches/core';
+export const backdropStyle = () => 'chc-backdrop';
 
-export const backdropStyle = css({
-  position: 'fixed',
-  zIndex: 9998,
-  bottom: 0,
-  right: 0,
-  left: 0,
-  top: 0
-});
+export const modalStyle = () => 'chc-modal';
 
-export const modalStyle = css({
-  display: 'block'
-});
+export const bodyFreeze = () => 'chc-body-freeze';
 
-export const bodyFreeze = css({
-  position: 'fixed',
-  right: 0,
-  left: 0
-});
+export const modalContainerStyle = () => 'chc-modal-container';
 
-export const modalContainerStyle = css({
-  paddingRight: '15px',
-  alignItems: 'center',
-  margin: '30px auto',
-  paddingLeft: '15px',
-  position: 'fixed',
-  height: '100vh',
-  display: 'flex',
-  width: '100%',
-  zIndex: 9999,
-  bottom: 0,
-  right: 0,
-  left: 0,
-  top: 0
-});
+export const modalDialogStyle = () => 'chc-modal-dialog';
 
-export const modalDialogStyle = css({
-  boxShadow: '0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23)',
-  backgroundColor: 'var(--chc-modal-bg)',
-  position: 'relative',
-  borderRadius: '3px',
-  minHeight: 'auto',
-  width: '100%'
-});
+export const modalHeaderStyle = () => 'chc-modal-header';
 
-export const modalHeaderStyle = css({
-  borderBottom: '1px solid var(--chc-border-primary)',
-  alignItems: 'center',
-  position: 'relative',
-  display: 'flex'
-});
+export const modalTitleStyle = () => 'chc-modal-title';
 
-export const modalTitleStyle = css({
-  fontWeight: '600',
-  fontSize: '20px'
-});
-
-export const modalFooterStyle = css({
-  borderTop: '1px solid var(--chc-border-primary)',
-  justifyContent: 'right',
-  alignItems: 'center',
-  position: 'relative',
-  display: 'flex'
-});
+export const modalFooterStyle = () => 'chc-modal-footer';

@@ -1,9 +1,7 @@
 import { createTheme } from "./createTheme";
 
 export const wimbledonTheme = createTheme("wimbledon-theme", {
-  borderWidths: {
-    // borderInlineStart: "10px", // Not in type definition
-  },
+  borderWidths: {},
   colors: {
     connector: "transparent",
     // borderHover: "darkgrey", // Not in type definition

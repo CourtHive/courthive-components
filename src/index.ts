@@ -54,6 +54,12 @@ export type { DrawerOptions } from './components/drawer/drawer';
 
 // Theme variables (CSS bundled in courthive-components.css)
 import './styles/theme.css';
+import './styles/themes.css';
+import './styles/draw.css';
+import './styles/components/buttons.css';
+import './styles/components/forms.css';
+import './styles/components/switch.css';
+import './styles/components/ui.css';
 
 // Tippy.js popover (CSS bundled in courthive-components.css)
 import './styles/tippy.css';
@@ -107,3 +113,51 @@ export { barButton } from './components/button/barButton';
 // Select Item modal
 export { selectItem } from './components/modal/selectItem';
 export type { SelectItemParams, SelectItemOption } from './components/modal/selectItem';
+
+// Scheduling Profile Builder
+export {
+  SchedulingProfileControl,
+  ProfileStore,
+  createSchedulingProfile,
+  validateProfile,
+  buildIssueIndex,
+  applyDropCommit,
+  filterCatalog,
+  groupCatalog,
+  getPlannedRoundKeys,
+  getVenueRounds,
+  getRoundAt,
+  findIssuesForLocator,
+  maxSeverity,
+  buildDateStrip,
+  buildVenueBoard,
+  buildRoundCatalog,
+  buildInspectorPanel,
+  buildIssuesPanel,
+  buildRoundCard,
+  createCardPopoverManager,
+  buildSchedulingProfileLayout,
+} from './components/scheduling-profile';
+export type {
+  SchedulingProfile,
+  ScheduleDay,
+  VenueSchedule,
+  RoundProfile,
+  RoundSegment,
+  VenueInfo,
+  CatalogRoundItem,
+  CatalogGroupBy,
+  RoundKey,
+  RoundLocator,
+  DragPayload,
+  DropTarget,
+  DropResult,
+  Severity,
+  ValidationCode,
+  FixAction,
+  ValidationResult,
+  IssueIndex,
+  ProfileStoreState,
+  SchedulingProfileConfig,
+  UIPanel,
+} from './components/scheduling-profile';

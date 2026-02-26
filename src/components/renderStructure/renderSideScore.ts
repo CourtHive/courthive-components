@@ -79,10 +79,11 @@ export function renderSideScore({
   };
 
   const div = document.createElement('div');
-  div.className = scoreWrapperStyle(wrapperHeight)({
+  div.className = scoreWrapperStyle()({
     ...(!scoreBox && sideNumber === 1 && { sideNumber: 1 }),
     fontSize: 'small'
   });
+  if (wrapperHeight) div.style.height = `${wrapperHeight}px`;
 
   div.classList.add('sideScore');
   div.classList.add('tmx-scr');

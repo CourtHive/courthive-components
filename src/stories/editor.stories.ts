@@ -1,4 +1,4 @@
-import '../components/forms/styles'; // Import bulma-switch and other form styles
+import '../components/forms/styles';
 
 const CHC_BG_SECONDARY = 'var(--chc-bg-secondary)';
 const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
