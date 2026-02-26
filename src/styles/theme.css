@@ -61,7 +61,7 @@
   --chc-line-height-schedule-info: 1.8rem;
   --chc-border-width-matchup: 1px;
   --chc-border-width-matchup-inline: 1px 1px;
-  --chc-border-width-inline-start: 0px;
+  --chc-border-width-inline-start: 1px;
   --chc-space-matchup: 10px;
   --chc-space-participant-inline: 0.375rem;
   --chc-space-game-margin: 0.25rem;
