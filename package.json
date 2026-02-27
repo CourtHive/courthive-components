@@ -1,6 +1,6 @@
 {
   "name": "courthive-components",
-  "version": "0.9.28-beta.4",
+  "version": "0.9.28-beta.5",
   "engines": {
     "node": ">=20.19.0 < 25"
   },
@@ -17,7 +17,7 @@
       "import": "./dist/courthive-components.es.js",
       "require": "./dist/courthive-components.umd.js"
     },
-    "./dist/courthive-components.css": "./dist/courthive-components.css"
+    "./dist/*": "./dist/*"
   },
   "repository": {
     "type": "git",
@@ -71,6 +71,7 @@
     "@commitlint/cli": "20.4.2",
     "@commitlint/config-conventional": "20.4.2",
     "@eslint/js": "^10.0.1",
+    "@fortawesome/fontawesome-free": "^7.2.0",
     "@storybook/addon-docs": "^10.0.2",
     "@storybook/html-vite": "^10.0.2",
     "@storybook/test": "^8.6.15",

@@ -39,6 +39,7 @@ const eventHandlers = {
   },
   groupHeaderClick: (params) => console.log('group header click', params),
   roundHeaderClick: (params) => console.log('round header click', params),
+  roundVisibilityClick: (params) => console.log('round visibility click', params),
   venueClick: (params) => console.log('venue click', params)
 };
 

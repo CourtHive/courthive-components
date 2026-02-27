@@ -12,6 +12,7 @@ const argTypes = {
 
 const eventHandlers = {
   roundHeaderClick: (params) => console.log('round header click', params),
+  roundVisibilityClick: (params) => console.log('round visibility click', params),
   scheduleClick: (params) => console.log('schedule click', params),
   venueClick: (params) => console.log('venue click', params)
 };
