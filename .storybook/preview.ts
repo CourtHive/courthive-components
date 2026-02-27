@@ -1,4 +1,5 @@
 import type { Preview } from '@storybook/html-vite';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'vanillajs-datepicker/css/datepicker.css';
 import '../src/styles/theme.css';
 import '../src/styles/themes.css';
