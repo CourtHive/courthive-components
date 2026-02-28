@@ -43,11 +43,19 @@ export function renderRoundHeader({
   iconsEl.style.cssText = 'display:flex; align-items:center; gap:4px;';
 
   if (hasVisibility) {
+    const visState = context?.roundVisibilityState?.[roundNumber];
+    const isHidden = visState?.hidden === true;
+    const isEmbargoed = visState?.embargoed === true;
+
+    const iconClass = isHidden ? 'fa-eye-slash' : isEmbargoed ? 'fa-clock' : 'fa-eye';
+    const iconColor = isHidden ? '#e74c3c' : isEmbargoed ? '#f39c12' : 'inherit';
+    const baseOpacity = isHidden || isEmbargoed ? '0.85' : '0.7';
+
     const eyeIcon = document.createElement('i');
-    eyeIcon.className = 'fa-solid fa-eye tmx-rh-vis';
-    eyeIcon.style.cssText = 'cursor:pointer; font-size:0.85rem; color:inherit; opacity:0.7; transition:opacity 0.15s;';
+    eyeIcon.className = `fa-solid ${iconClass} tmx-rh-vis`;
+    eyeIcon.style.cssText = `cursor:pointer; font-size:0.85rem; color:${iconColor}; opacity:${baseOpacity}; transition:opacity 0.15s;`;
     eyeIcon.onmouseenter = () => (eyeIcon.style.opacity = '1');
-    eyeIcon.onmouseleave = () => (eyeIcon.style.opacity = '0.7');
+    eyeIcon.onmouseleave = () => (eyeIcon.style.opacity = baseOpacity);
     eyeIcon.onclick = (pointerEvent) => {
       pointerEvent.stopPropagation();
       eventHandlers.roundVisibilityClick({ roundNumber, roundProfile, roundMatchUps, context, pointerEvent });
