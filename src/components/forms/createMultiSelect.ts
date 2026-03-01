@@ -39,19 +39,8 @@ export function createMultiSelect(item: MultiSelectItem): { container: HTMLDivEl
 
   // --- trigger bar ---
   const trigger = document.createElement('div');
-  trigger.style.cssText = [
-    'display: flex',
-    'align-items: center',
-    'flex-wrap: wrap',
-    'gap: 4px',
-    'min-height: 2.5em',
-    'padding: 4px 8px',
-    'border: 1px solid var(--chc-input-border, #7a7a7a)',
-    'border-radius: 4px',
-    'background: var(--chc-input-bg, #fff)',
-    'cursor: pointer',
-    'box-sizing: border-box',
-  ].join('; ');
+  trigger.style.cssText =
+    'display: flex; align-items: center; flex-wrap: wrap; gap: 4px; min-height: 2.5em; padding: 4px 8px; border: 1px solid var(--chc-input-border, #7a7a7a); border-radius: 4px; background: var(--chc-input-bg, #fff); cursor: pointer; box-sizing: border-box';
 
   // tags area
   const tagsArea = document.createElement('div');

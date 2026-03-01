@@ -1,0 +1,409 @@
+/**
+ * Topology Builder Styles
+ */
+
+/* ── Layout ──────────────────────────────────────────────── */
+.tb-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--chc-bg-primary);
+  color: var(--chc-text-primary);
+}
+
+.tb-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Toolbar ─────────────────────────────────────────────── */
+.tb-toolbar-wrapper {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--chc-border-primary);
+  background: var(--chc-bg-secondary);
+}
+
+.tb-toolbar-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.tb-toolbar-template {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--chc-text-primary, #363636);
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding: 4px 8px;
+  line-height: 1;
+}
+
+.tb-toolbar-wrapper .panel_container {
+  padding: 4px 8px;
+}
+
+.tb-toolbar-wrapper .buttonBar {
+  gap: 4px;
+}
+
+.tb-toolbar-wrapper .options_right {
+  flex-grow: 1;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* ── Canvas ──────────────────────────────────────────────── */
+.tb-canvas {
+  flex: 1;
+  position: relative;
+  overflow: auto;
+  background:
+    linear-gradient(var(--chc-border-secondary) 1px, transparent 1px),
+    linear-gradient(90deg, var(--chc-border-secondary) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: -1px -1px;
+  min-height: 600px;
+}
+
+.tb-canvas-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.tb-canvas-svg path {
+  pointer-events: stroke;
+  cursor: pointer;
+  stroke-width: 2;
+  fill: none;
+}
+
+/* Invisible wider hit area for easier edge clicking */
+.tb-canvas-svg path.tb-edge-hit {
+  stroke-width: 12;
+  stroke: transparent;
+  fill: none;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+
+.tb-canvas-svg path:hover {
+  stroke-width: 3;
+}
+
+.tb-canvas-svg path.tb-edge--selected {
+  stroke-width: 3;
+  stroke-dasharray: 5 3;
+}
+
+.tb-canvas-svg text {
+  font-size: 10px;
+  fill: var(--chc-text-muted);
+  pointer-events: none;
+}
+
+.tb-canvas-nodes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+/* Flow-positioned spacer that defines the scrollable area */
+.tb-canvas-spacer {
+  pointer-events: none;
+}
+
+/* ── Edge colors ─────────────────────────────────────────── */
+.tb-edge--winner { stroke: var(--chc-status-success); }
+.tb-edge--loser { stroke: var(--chc-status-error); }
+.tb-edge--position { stroke: var(--chc-status-info); }
+
+/* ── Structure Card ──────────────────────────────────────── */
+.tb-card {
+  pointer-events: auto;
+  position: absolute;
+  min-width: 240px;
+  width: fit-content;
+  border: 1px solid var(--chc-border-primary);
+  border-radius: 6px;
+  background: var(--chc-bg-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  cursor: grab;
+  user-select: none;
+}
+
+.tb-card:hover {
+  border-color: var(--chc-border-focus);
+}
+
+.tb-card.tb-card--selected {
+  border-color: var(--chc-border-focus);
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+}
+
+.tb-card-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--chc-border-secondary);
+  background: var(--chc-bg-secondary);
+  border-radius: 5px 5px 0 0;
+}
+
+.tb-card-badge {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.tb-card-badge--main { background: var(--chc-border-focus, #0066cc); }
+.tb-card-badge--qualifying { background: var(--chc-status-warning, orange); }
+.tb-card-badge--consolation { background: var(--chc-status-error, red); }
+.tb-card-badge--playoff { background: var(--chc-status-success, green); }
+
+.tb-card-name {
+  font-size: 12px;
+  font-weight: 600;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tb-card-size {
+  font-size: 10px;
+  color: var(--chc-text-muted);
+  flex-shrink: 0;
+}
+
+.tb-card-preview {
+  padding: 6px 8px;
+  overflow: hidden;
+  min-height: 60px;
+  --chc-border-primary: #888;
+  --chc-color-connector: #777;
+  --chc-color-matchup-bg: transparent;
+}
+
+/* ── Round link annotations (colored matchup boxes for linked rounds) ──── */
+
+/* Loser source rounds: red matchup boxes */
+.tb-round-linked--loser.tb-round-linked--source .chc-schematic-slot {
+  background-color: var(--chc-status-error, red);
+  opacity: 0.5;
+}
+.tb-round-linked--loser.tb-round-linked--source.tb-round-linked--active .chc-schematic-slot {
+  opacity: 1;
+}
+
+/* Winner source rounds: green matchup boxes */
+.tb-round-linked--winner.tb-round-linked--source .chc-schematic-slot {
+  background-color: var(--chc-status-success, green);
+  opacity: 0.5;
+}
+.tb-round-linked--winner.tb-round-linked--source.tb-round-linked--active .chc-schematic-slot {
+  opacity: 1;
+}
+
+/* Position source rounds: blue matchup boxes */
+.tb-round-linked--position.tb-round-linked--source .chc-schematic-slot {
+  background-color: var(--chc-status-info, #0066cc);
+  opacity: 0.5;
+}
+.tb-round-linked--position.tb-round-linked--source.tb-round-linked--active .chc-schematic-slot {
+  opacity: 1;
+}
+
+/* Target entry rounds: always blue matchup boxes */
+.tb-round-linked--target .chc-schematic-slot {
+  background-color: var(--chc-status-info, #0066cc);
+  opacity: 0.5;
+}
+.tb-round-linked--target.tb-round-linked--active .chc-schematic-slot {
+  opacity: 1;
+}
+
+.tb-card-rounds {
+  padding: 3px 8px 5px;
+  font-size: 11px;
+  color: var(--chc-text-muted, #999);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-top: 1px solid var(--chc-border-secondary, #eee);
+}
+
+.tb-card-ports {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  border-top: 1px solid var(--chc-border-secondary);
+}
+
+/* ── Ports ────────────────────────────────────────────────── */
+.tb-port {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid;
+  cursor: crosshair;
+  background: var(--chc-bg-primary);
+}
+
+.tb-port:hover {
+  transform: scale(1.3);
+}
+
+.tb-port--input {
+  border-color: var(--chc-text-muted);
+}
+
+.tb-port--winner {
+  border-color: var(--chc-status-success);
+}
+
+.tb-port--winner.tb-port--connected {
+  background: var(--chc-status-success);
+  cursor: default;
+}
+
+.tb-port--winner.tb-port--connected:hover {
+  transform: none;
+}
+
+.tb-port--loser {
+  border-color: var(--chc-status-error);
+}
+
+.tb-port-group {
+  display: flex;
+  gap: 6px;
+}
+
+/* ── Editor Panel ────────────────────────────────────────── */
+.tb-editor {
+  width: 250px;
+  border-left: 1px solid var(--chc-border-primary);
+  background: var(--chc-bg-primary);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.tb-editor-header {
+  padding: 8px 12px;
+  font-weight: 600;
+  font-size: 13px;
+  border-bottom: 1px solid var(--chc-border-primary);
+  background: var(--chc-bg-secondary);
+}
+
+.tb-editor-body {
+  padding: 12px;
+}
+
+.tb-editor-empty {
+  padding: 20px 12px;
+  text-align: center;
+  color: var(--chc-text-muted);
+  font-size: 12px;
+}
+
+/* renderForm overrides for compact editor panel */
+.tb-editor-body .field label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--chc-text-secondary);
+  margin-bottom: 3px;
+}
+
+.tb-editor-body .input,
+.tb-editor-body .select select {
+  font-size: 12px;
+  padding: 4px 6px;
+}
+
+.tb-editor-body .field {
+  margin-bottom: 10px;
+}
+
+/* MatchUp Format trigger */
+.tb-format-trigger {
+  padding: 4px 6px;
+  border: 1px solid var(--chc-border-primary);
+  border-radius: 3px;
+  font-size: 12px;
+  background: var(--chc-input-bg);
+  color: var(--chc-text-primary);
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.tb-format-trigger:hover {
+  border-color: var(--chc-border-focus);
+}
+
+.tb-editor-delete {
+  margin-top: 12px;
+  padding: 4px 10px;
+  border: 1px solid var(--chc-status-error);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--chc-status-error);
+  font-size: 12px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.tb-editor-delete:hover {
+  background: var(--chc-status-error);
+  color: #fff;
+}
+
+/* ── Validation ──────────────────────────────────────────── */
+.tb-validation {
+  padding: 8px 12px;
+  border-top: 1px solid var(--chc-border-primary);
+  background: var(--chc-bg-secondary);
+}
+
+.tb-validation-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  padding: 2px 0;
+}
+
+.tb-validation-icon {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.tb-validation-icon--error {
+  background: var(--chc-status-error);
+}
+
+.tb-validation-icon--warning {
+  background: var(--chc-status-warning);
+}

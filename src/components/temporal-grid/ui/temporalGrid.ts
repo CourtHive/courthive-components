@@ -573,15 +573,15 @@ export class TemporalGrid {
     }
   };
 
-  private handleBlockSelected = (_blockId: string): void => { // eslint-disable-line @typescript-eslint/no-unused-vars
+  private handleBlockSelected = (_blockId: string): void => {
     // TODO: Show block details panel
   };
 
-  private handleCourtSelected = (_court: CourtRef): void => { // eslint-disable-line @typescript-eslint/no-unused-vars
+  private handleCourtSelected = (_court: CourtRef): void => {
     // TODO: Handle court selection
   };
 
-  private handleTimeRangeSelected = (_params: { courts: CourtRef[]; start: string; end: string }): void => { // eslint-disable-line @typescript-eslint/no-unused-vars
+  private handleTimeRangeSelected = (_params: { courts: CourtRef[]; start: string; end: string }): void => {
     // TODO: Show create block dialog
   };
 

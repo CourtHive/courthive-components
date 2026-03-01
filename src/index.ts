@@ -6,6 +6,11 @@ export { renderContainer } from './components/renderStructure/renderContainer';
 export { renderMatchUp } from './components/renderStructure/renderMatchUp';
 export { compositions } from './compositions/compositions';
 export { renderRound } from './components/renderStructure/renderRound';
+
+// Schematic Structure — compact bracket preview (no participant details)
+export { renderSchematicStructure, renderSchematicRound, renderSchematicMatchUp } from './components/renderSchematicStructure';
+export type { SchematicMatchUp } from './components/renderSchematicStructure';
+
 export { cModal } from './components/modal/cmodal';
 
 // Mock participants generator modal
@@ -56,6 +61,8 @@ export type { DrawerOptions } from './components/drawer/drawer';
 import './styles/theme.css';
 import './styles/themes.css';
 import './styles/draw.css';
+import './styles/schematic.css';
+import './components/topology-builder/ui/topology-builder.css';
 import './styles/components/buttons.css';
 import './styles/components/forms.css';
 import './styles/components/switch.css';
@@ -138,6 +145,34 @@ export {
   createCardPopoverManager,
   buildSchedulingProfileLayout,
 } from './components/scheduling-profile';
+
+// Topology Builder
+export {
+  TopologyBuilderControl,
+  TopologyStore,
+  topologyToDrawOptions,
+  validateTopology,
+  generatePreviewMatchUps,
+  standardTemplates,
+  buildTopologyCanvas,
+  buildStructureCard,
+  getPortPosition,
+  buildNodeEditor,
+  buildEdgeEditor,
+  buildToolbar,
+  buildTopologyBuilderLayout,
+} from './components/topology-builder';
+export type {
+  TopologyNode,
+  TopologyEdge,
+  TopologyState,
+  TopologyChangeListener,
+  TopologyBuilderConfig,
+  TopologyTemplate,
+  DrawOptionsResult,
+  ValidationError,
+} from './components/topology-builder';
+
 export type {
   SchedulingProfile,
   ScheduleDay,

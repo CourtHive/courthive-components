@@ -127,7 +127,7 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
 
   // Build rating options for multi-select dropdown (exclude deprecated)
   const ratingOptions = Object.entries(ratingsParameters)
-    .filter(([_, params]: [string, any]) => !params.deprecated)
+    .filter(([, params]: [string, any]) => !params.deprecated)
     .map(([key]: [string, any]) => ({
       label: key,
       value: key,
