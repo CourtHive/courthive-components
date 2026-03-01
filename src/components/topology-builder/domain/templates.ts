@@ -45,6 +45,7 @@ export const standardTemplates: TopologyTemplate[] = [
           stage: QUALIFYING as Stage,
           drawType: SINGLE_ELIMINATION,
           drawSize: 16,
+          qualifyingPositions: 4,
           position: { x: 40, y: 40 }
         }
       ],
@@ -342,6 +343,7 @@ export const standardTemplates: TopologyTemplate[] = [
           stage: QUALIFYING as Stage,
           drawType: SINGLE_ELIMINATION,
           drawSize: 32,
+          qualifyingPositions: 8,
           position: { x: 40, y: 40 }
         },
         {
@@ -350,6 +352,7 @@ export const standardTemplates: TopologyTemplate[] = [
           stage: QUALIFYING as Stage,
           drawType: SINGLE_ELIMINATION,
           drawSize: 16,
+          qualifyingPositions: 4,
           position: { x: 40, y: 210 }
         }
       ],

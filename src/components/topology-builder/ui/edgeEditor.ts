@@ -29,10 +29,12 @@ const FEED_PROFILES = [
 export interface EdgeEditorCallbacks {
   onUpdateEdge: (edgeId: string, updates: Partial<TopologyEdge>) => void;
   onDeleteEdge: (edgeId: string) => void;
+  readOnly?: boolean;
 }
 
 export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<TopologyState> {
   const root = document.createElement('div');
+  const isReadOnly = !!callbacks.readOnly;
 
   function update(state: TopologyState): void {
     root.innerHTML = '';
@@ -69,11 +71,12 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
         label: 'Link Type',
         field: 'linkType',
         value: edge.linkType,
+        disabled: isReadOnly,
         options: LINK_TYPES.map((lt) => ({ ...lt, selected: lt.value === edge.linkType })),
       },
     ];
 
-    const relationships: any[] = [
+    const relationships: any[] = isReadOnly ? [] : [
       {
         control: 'linkType',
         onChange: ({ e }: any) =>
@@ -99,6 +102,7 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
           label: 'Source Round',
           field: 'sourceRoundNumber',
           value: String(edge.sourceRoundNumber || sourceMaxRound),
+          disabled: isReadOnly,
           options: roundOptions,
         });
       } else {
@@ -107,6 +111,7 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
           field: 'sourceRoundNumber',
           type: 'number',
           value: String(edge.sourceRoundNumber || sourceMaxRound),
+          disabled: isReadOnly,
         });
       }
 
@@ -115,35 +120,38 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
         field: 'targetRoundNumber',
         type: 'number',
         value: String(edge.targetRoundNumber || 0),
+        disabled: isReadOnly,
       });
 
-      if (hasRoundRanges) {
+      if (!isReadOnly) {
+        if (hasRoundRanges) {
+          relationships.push({
+            control: 'sourceRoundNumber',
+            onChange: ({ e }: any) => {
+              const val = parseInt(e.target.value) || 0;
+              callbacks.onUpdateEdge(edge.id, { sourceRoundNumber: val || undefined });
+            },
+          });
+        } else {
+          relationships.push({
+            control: 'sourceRoundNumber',
+            onChange: ({ inputs }: any) => {
+              const val = parseInt(inputs.sourceRoundNumber.value) || 0;
+              const clamped = Math.max(0, Math.min(val, sourceMaxRound));
+              callbacks.onUpdateEdge(edge.id, { sourceRoundNumber: clamped || undefined });
+            },
+          });
+        }
+
         relationships.push({
-          control: 'sourceRoundNumber',
-          onChange: ({ e }: any) => {
-            const val = parseInt(e.target.value) || 0;
-            callbacks.onUpdateEdge(edge.id, { sourceRoundNumber: val || undefined });
-          },
-        });
-      } else {
-        relationships.push({
-          control: 'sourceRoundNumber',
+          control: 'targetRoundNumber',
           onChange: ({ inputs }: any) => {
-            const val = parseInt(inputs.sourceRoundNumber.value) || 0;
-            const clamped = Math.max(0, Math.min(val, sourceMaxRound));
-            callbacks.onUpdateEdge(edge.id, { sourceRoundNumber: clamped || undefined });
+            const val = parseInt(inputs.targetRoundNumber.value) || 0;
+            const clamped = Math.max(0, Math.min(val, targetMaxRound));
+            callbacks.onUpdateEdge(edge.id, { targetRoundNumber: clamped || undefined });
           },
         });
       }
-
-      relationships.push({
-        control: 'targetRoundNumber',
-        onChange: ({ inputs }: any) => {
-          const val = parseInt(inputs.targetRoundNumber.value) || 0;
-          const clamped = Math.max(0, Math.min(val, targetMaxRound));
-          callbacks.onUpdateEdge(edge.id, { targetRoundNumber: clamped || undefined });
-        },
-      });
     }
 
     // Qualifying positions (for WINNER links from qualifying structures)
@@ -156,15 +164,18 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
         field: 'qualifyingPositions',
         type: 'number',
         value: String(currentValue),
+        disabled: isReadOnly,
       });
-      relationships.push({
-        control: 'qualifyingPositions',
-        onChange: ({ inputs }: any) => {
-          const val = parseInt(inputs.qualifyingPositions.value) || 1;
-          const clamped = Math.max(1, Math.min(val, maxPositions));
-          callbacks.onUpdateEdge(edge.id, { qualifyingPositions: clamped });
-        },
-      });
+      if (!isReadOnly) {
+        relationships.push({
+          control: 'qualifyingPositions',
+          onChange: ({ inputs }: any) => {
+            const val = parseInt(inputs.qualifyingPositions.value) || 1;
+            const clamped = Math.max(1, Math.min(val, maxPositions));
+            callbacks.onUpdateEdge(edge.id, { qualifyingPositions: clamped });
+          },
+        });
+      }
     }
 
     // Feed profile (for LOSER links)
@@ -173,16 +184,19 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
         label: 'Feed Profile',
         field: 'feedProfile',
         value: edge.feedProfile || TOP_DOWN,
+        disabled: isReadOnly,
         options: FEED_PROFILES.map((fp) => ({
           ...fp,
           selected: fp.value === (edge.feedProfile || TOP_DOWN),
         })),
       });
-      relationships.push({
-        control: 'feedProfile',
-        onChange: ({ e }: any) =>
-          callbacks.onUpdateEdge(edge.id, { feedProfile: e.target.value }),
-      });
+      if (!isReadOnly) {
+        relationships.push({
+          control: 'feedProfile',
+          onChange: ({ e }: any) =>
+            callbacks.onUpdateEdge(edge.id, { feedProfile: e.target.value }),
+        });
+      }
     }
 
     // Finishing positions (for POSITION links)
@@ -192,17 +206,20 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
         field: 'finishingPositions',
         value: (edge.finishingPositions || []).join(', '),
         placeholder: 'e.g., 1, 2',
+        disabled: isReadOnly,
       });
-      relationships.push({
-        control: 'finishingPositions',
-        onChange: ({ inputs }: any) => {
-          const positions = inputs.finishingPositions.value
-            .split(',')
-            .map((v: string) => parseInt(v.trim()))
-            .filter((n: number) => !isNaN(n));
-          callbacks.onUpdateEdge(edge.id, { finishingPositions: positions });
-        },
-      });
+      if (!isReadOnly) {
+        relationships.push({
+          control: 'finishingPositions',
+          onChange: ({ inputs }: any) => {
+            const positions = inputs.finishingPositions.value
+              .split(',')
+              .map((v: string) => parseInt(v.trim()))
+              .filter((n: number) => !isNaN(n));
+            callbacks.onUpdateEdge(edge.id, { finishingPositions: positions });
+          },
+        });
+      }
     }
 
     renderForm(body, items, relationships);
@@ -239,15 +256,19 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
         const cb = document.createElement('input');
         cb.type = 'checkbox';
         cb.checked = currentPositions.has(i);
-        cb.addEventListener('change', () => {
-          const updated = new Set(currentPositions);
-          if (cb.checked) {
-            updated.add(i);
-          } else {
-            updated.delete(i);
-          }
-          callbacks.onUpdateEdge(edge.id, { finishingPositions: Array.from(updated).sort() });
-        });
+        if (isReadOnly) {
+          cb.disabled = true;
+        } else {
+          cb.addEventListener('change', () => {
+            const updated = new Set(currentPositions);
+            if (cb.checked) {
+              updated.add(i);
+            } else {
+              updated.delete(i);
+            }
+            callbacks.onUpdateEdge(edge.id, { finishingPositions: Array.from(updated).sort() });
+          });
+        }
 
         const labelText = document.createElement('span');
         labelText.textContent = `Position ${i}`;
@@ -265,12 +286,14 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
       body.appendChild(posField);
     }
 
-    // Delete button
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'tb-editor-delete';
-    deleteBtn.textContent = 'Delete Link';
-    deleteBtn.onclick = () => callbacks.onDeleteEdge(edge.id);
-    body.appendChild(deleteBtn);
+    // Delete button (hidden in readOnly mode)
+    if (!isReadOnly) {
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'tb-editor-delete';
+      deleteBtn.textContent = 'Delete Link';
+      deleteBtn.onclick = () => callbacks.onDeleteEdge(edge.id);
+      body.appendChild(deleteBtn);
+    }
 
     root.appendChild(body);
   }

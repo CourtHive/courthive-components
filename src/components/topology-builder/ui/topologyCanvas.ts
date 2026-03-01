@@ -4,10 +4,11 @@
  */
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { buildStructureCard, getPortPosition, getCardWidth, getNumRounds } from './structureCard';
+import { getFeedRoundCapacities } from '../domain/feedRounds';
 import type { RoundAnnotation } from './structureCard';
 import type { TopologyState, TopologyEdge, UIPanel } from '../types';
 
-const { WINNER, LOSER, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } = drawDefinitionConstants;
+const { WINNER, LOSER, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } = drawDefinitionConstants;
 const POSITION = 'POSITION';
 
 const RR_TYPES = new Set([ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF]);
@@ -193,6 +194,42 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
       }
     }
 
+    // Pre-compute node warnings: qualifying links targeting round > 1
+    // need that round to be a feed round with sufficient capacity.
+    const feedEdgesByTarget = new Map<string, { targetRound: number; qp: number; warning: string }[]>();
+    for (const edge of state.edges) {
+      if (edge.linkType !== WINNER) continue;
+      const targetRound = edge.targetRoundNumber || 1;
+      if (targetRound <= 1) continue;
+      const source = state.nodes.find((n) => n.id === edge.sourceNodeId);
+      if (!source || source.stage !== QUALIFYING) continue;
+      if (!feedEdgesByTarget.has(edge.targetNodeId)) feedEdgesByTarget.set(edge.targetNodeId, []);
+      const qp = source.qualifyingPositions || Math.floor(source.drawSize / 4);
+      feedEdgesByTarget.get(edge.targetNodeId)!.push({
+        targetRound,
+        qp,
+        warning: `Round ${targetRound} needs fed drawPositions to accommodate ${source.structureName} link`,
+      });
+    }
+    const nodeWarnings = new Map<string, string[]>();
+    for (const [targetId, entries] of feedEdgesByTarget) {
+      const target = state.nodes.find((n) => n.id === targetId);
+      if (!target) continue;
+      const feedCapacities = getFeedRoundCapacities(target.drawSize);
+      // Accumulate demand per round
+      const demandByRound = new Map<number, number>();
+      for (const entry of entries) {
+        demandByRound.set(entry.targetRound, (demandByRound.get(entry.targetRound) || 0) + entry.qp);
+      }
+      const warnings: string[] = [];
+      for (const entry of entries) {
+        const capacity = feedCapacities.get(entry.targetRound) || 0;
+        const demand = demandByRound.get(entry.targetRound) || 0;
+        if (capacity < demand) warnings.push(entry.warning);
+      }
+      if (warnings.length > 0) nodeWarnings.set(targetId, warnings);
+    }
+
     // Render nodes
     for (const node of state.nodes) {
       const card = buildStructureCard(
@@ -253,6 +290,7 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
         state.selectedNodeId === node.id,
         nodesWithWinnerLink.has(node.id),
         annotationsByNode.get(node.id),
+        nodeWarnings.get(node.id),
       );
       nodesLayer.appendChild(card);
     }

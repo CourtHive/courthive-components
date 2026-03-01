@@ -44,14 +44,18 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
   const qualifyingNodes = state.nodes.filter((n) => n.stage === QUALIFYING);
   const playoffNodes = state.nodes.filter((n) => n.stage === PLAY_OFF);
 
-  // Determine the effective draw type
+  // Determine the effective draw type.
+  // Multi-structure topologies (qualifying, consolation, playoff) are CUSTOM
+  // unless the consolation maps to a recognized composite type.
   let drawType = mainNode.drawType;
+  const isMultiStructure = qualifyingNodes.length > 0 || consolationNodes.length > 0 || playoffNodes.length > 0;
 
-  // Compass is a composite type — the sub-structures are visual only
-  if (drawType !== COMPASS && consolationNodes.length === 1) {
+  if (drawType !== COMPASS && consolationNodes.length === 1 && qualifyingNodes.length === 0 && playoffNodes.length === 0) {
     const consolationType = consolationNodes[0].drawType;
     const composite = CONSOLATION_COMPOSITE_TYPES[consolationType];
     if (composite) drawType = composite;
+  } else if (isMultiStructure) {
+    drawType = 'CUSTOM';
   }
 
   const drawOptions: any = {

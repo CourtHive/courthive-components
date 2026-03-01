@@ -84,9 +84,11 @@ export function buildStructureCard(
   isSelected: boolean,
   hasWinnerLink: boolean,
   roundAnnotations?: RoundAnnotation[],
+  warnings?: string[],
 ): HTMLElement {
+  const hasWarnings = warnings && warnings.length > 0;
   const card = document.createElement('div');
-  card.className = `tb-card${isSelected ? ' tb-card--selected' : ''}`;
+  card.className = `tb-card${isSelected ? ' tb-card--selected' : ''}${hasWarnings ? ' tb-card--warning' : ''}`;
   card.style.left = `${node.position.x}px`;
   card.style.top = `${node.position.y}px`;
   card.style.minWidth = `${getCardWidth(node)}px`;
@@ -232,6 +234,23 @@ export function buildStructureCard(
   card.appendChild(header);
   card.appendChild(preview);
   if (roundsDiv) card.appendChild(roundsDiv);
+
+  // Warning banner
+  if (hasWarnings) {
+    const warningDiv = document.createElement('div');
+    warningDiv.className = 'tb-card-warning';
+    warningDiv.textContent = '\u26a0 Issue';
+    const detail = document.createElement('div');
+    detail.className = 'tb-card-warning-detail';
+    detail.textContent = warnings!.join('; ');
+    warningDiv.appendChild(detail);
+    warningDiv.addEventListener('click', (e) => {
+      e.stopPropagation();
+      warningDiv.classList.toggle('tb-card-warning--open');
+    });
+    card.appendChild(warningDiv);
+  }
+
   card.appendChild(ports);
 
   // Click to select

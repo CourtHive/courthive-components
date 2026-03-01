@@ -11,7 +11,8 @@ import { buildToolbar } from '../ui/toolbar';
 import { buildTopologyBuilderLayout } from '../ui/topologyBuilderLayout';
 import { standardTemplates } from '../domain/templates';
 import { validateTopology } from '../domain/topologyValidator';
-import type { TopologyState, TopologyBuilderConfig, UIPanel } from '../types';
+import { getCardWidth } from '../ui/structureCard';
+import type { TopologyState, TopologyNode, TopologyBuilderConfig, UIPanel } from '../types';
 
 const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, SINGLE_ELIMINATION, WINNER, LOSER } = drawDefinitionConstants;
 const POSITION = 'POSITION';
@@ -27,6 +28,7 @@ export class TopologyBuilderControl {
     this.store = new TopologyStore(config.initialState);
 
     const allTemplates = [...standardTemplates, ...(config.templates || [])];
+    const isReadOnly = !!config.readOnly;
 
     // Build toolbar
     const toolbar = buildToolbar(
@@ -50,16 +52,18 @@ export class TopologyBuilderControl {
         onSaveTemplate: config.onSaveTemplate
           ? () => config.onSaveTemplate!(this.store.getState())
           : undefined,
+        onClear: config.onClear,
       },
       allTemplates,
+      { hideTemplates: config.hideTemplates, readOnly: isReadOnly },
     );
 
     // Build canvas
     const canvas = buildTopologyCanvas({
       onSelectNode: (nodeId) => this.store.selectNode(nodeId),
       onSelectEdge: (edgeId) => this.store.selectEdge(edgeId),
-      onMoveNode: (nodeId, x, y) => this.store.updateNode(nodeId, { position: { x, y } }),
-      onCreateEdge: (sourceNodeId, targetNodeId, linkType) => {
+      onMoveNode: isReadOnly ? () => {} : (nodeId, x, y) => this.store.updateNode(nodeId, { position: { x, y } }),
+      onCreateEdge: isReadOnly ? () => {} : (sourceNodeId, targetNodeId, linkType) => {
         const source = this.store.getState().nodes.find((n) => n.id === sourceNodeId);
 
         if (linkType === POSITION) {
@@ -86,13 +90,15 @@ export class TopologyBuilderControl {
 
     // Build editors
     const nodeEditor = buildNodeEditor({
-      onUpdateNode: (nodeId, updates) => this.store.updateNode(nodeId, updates),
-      onDeleteNode: (nodeId) => this.store.removeNode(nodeId),
+      onUpdateNode: isReadOnly ? () => {} : (nodeId, updates) => this.store.updateNode(nodeId, updates),
+      onDeleteNode: isReadOnly ? () => {} : (nodeId) => this.store.removeNode(nodeId),
+      readOnly: isReadOnly,
     });
 
     const edgeEditor = buildEdgeEditor({
-      onUpdateEdge: (edgeId, updates) => this.store.updateEdge(edgeId, updates),
-      onDeleteEdge: (edgeId) => this.store.removeEdge(edgeId),
+      onUpdateEdge: isReadOnly ? () => {} : (edgeId, updates) => this.store.updateEdge(edgeId, updates),
+      onDeleteEdge: isReadOnly ? () => {} : (edgeId) => this.store.removeEdge(edgeId),
+      readOnly: isReadOnly,
     });
 
     // Build layout
@@ -122,6 +128,12 @@ export class TopologyBuilderControl {
     this.layout.element.remove();
   }
 
+  autoLayout(): void {
+    this.store.autoLayout();
+    const state = this.store.getState();
+    this.store.loadState(state);
+  }
+
   getState(): TopologyState {
     return this.store.getState();
   }
@@ -145,11 +157,30 @@ export class TopologyBuilderControl {
       [PLAY_OFF]: 4,
     };
 
-    this.store.addNode({
+    const drawSize = sizeMap[stage] || 16;
+    const node = this.store.addNode({
       structureName: nameMap[stage] || stage,
       stage: stage as any,
       drawType: SINGLE_ELIMINATION,
-      drawSize: sizeMap[stage] || 16,
+      drawSize,
+      ...(stage === QUALIFYING && { qualifyingPositions: Math.floor(drawSize / 4) }),
+    });
+
+    this.scrollCanvasToNode(node);
+  }
+
+  private scrollCanvasToNode(node: TopologyNode): void {
+    const canvasEl = this.layout.element.querySelector('.tb-canvas');
+    if (!canvasEl) return;
+
+    requestAnimationFrame(() => {
+      const rightEdge = node.position.x + getCardWidth(node) + 40;
+      if (rightEdge > canvasEl.scrollLeft + canvasEl.clientWidth) {
+        canvasEl.scrollTo({
+          left: rightEdge - canvasEl.clientWidth,
+          behavior: 'smooth',
+        });
+      }
     });
   }
 
