@@ -145,7 +145,7 @@ export const DEFAULT_COLOR_SCHEME: BlockColorScheme = {
 export function buildResourcesFromTimelines(
   timelines: VenueDayTimeline[],
   courtMeta: CourtMeta[],
-  _config: ProjectionConfig = {} // eslint-disable-line @typescript-eslint/no-unused-vars
+  _config: ProjectionConfig = {}
 ): TimelineGroup[] {
   const groups: TimelineGroup[] = [];
 

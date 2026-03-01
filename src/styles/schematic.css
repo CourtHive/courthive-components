@@ -1,0 +1,127 @@
+/**
+ * Schematic Structure Styles — compact bracket preview.
+ * Renders structure shape without participant details.
+ * Each matchup is ~14px tall (vs ~60px for full renderMatchUp).
+ */
+
+/* ── Structure container ──────────────────────────────────── */
+.chc-schematic-structure {
+  flex-direction: row;
+  display: flex;
+}
+
+/* ── Round container ──────────────────────────────────────── */
+.chc-schematic-round-container {
+  flex-direction: column;
+  display: flex;
+}
+
+.chc-schematic-round-header {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--chc-text-muted);
+  text-align: center;
+  padding-bottom: 2px;
+  line-height: 1;
+}
+
+.chc-schematic-round {
+  justify-content: space-around;
+  margin-inline-start: 4px;
+  margin-inline-end: 4px;
+  flex-direction: column;
+  height: 100%;
+  display: flex;
+}
+
+/* ── Matchup ──────────────────────────────────────────────── */
+.chc-schematic-matchup {
+  width: 40px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.chc-schematic-slot {
+  height: 5px;
+  background-color: var(--chc-border-primary);
+  border-radius: 1px;
+  position: relative;
+}
+
+.chc-schematic-divider {
+  height: 1px;
+  background-color: var(--chc-color-matchup-bg, var(--chc-bg-primary));
+}
+
+/* ── Connector lines (schematic scale) ────────────────────── */
+/* Reuses the same visual pattern as .chc-link but at schematic dimensions.
+   Dynamic dimensions via --chc-schematic-connector-w, --chc-schematic-m1-h, --chc-schematic-m2-h */
+
+.chc-schematic-link::before {
+  border-block-start: 1px solid var(--chc-border-primary);
+  left: calc(-1 * var(--chc-schematic-connector-w, 8px));
+  width: var(--chc-schematic-connector-w, 8px);
+  position: absolute;
+  border-radius: 1px;
+  top: -1px;
+  display: block;
+  content: '';
+  border-color: var(--chc-color-connector);
+}
+
+.chc-schematic-link::after {
+  width: var(--chc-schematic-connector-w, 8px);
+  position: absolute;
+  border-radius: 1px;
+  left: 100%;
+  display: block;
+  content: '';
+  border-width: 1px;
+  border-color: var(--chc-color-connector);
+}
+
+/* First round: no incoming connector */
+.chc-schematic-link--first-round::before {
+  height: 0;
+  width: 0;
+  border-width: 0;
+}
+
+/* m1: connector going DOWN */
+.chc-schematic-link--m1::after {
+  border-inline-end: 1px solid var(--chc-color-connector);
+  border-top-style: solid;
+  height: var(--chc-schematic-m1-h, 0);
+  top: -1px;
+}
+
+/* m2: connector going UP */
+.chc-schematic-link--m2::after {
+  bottom: calc(100%);
+  border-inline-end: 1px solid var(--chc-color-connector);
+  border-bottom-style: solid;
+  height: var(--chc-schematic-m2-h, 0);
+}
+
+/* m0: horizontal-only connector (qualifying/pre-feed) */
+.chc-schematic-link--m0::after {
+  border-top-style: solid;
+  border-color: var(--chc-color-connector);
+  top: -1px;
+}
+
+/* No progression (final round) */
+.chc-schematic-link--no-progression::after {
+  height: 0;
+  width: 0;
+  border-width: 0;
+}
+
+/* No link (round-robin, etc.) */
+.chc-schematic-link--no-link::before,
+.chc-schematic-link--no-link::after {
+  height: 0;
+  width: 0;
+  border-width: 0;
+}

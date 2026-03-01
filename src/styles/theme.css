@@ -134,6 +134,15 @@
   --sp-warn-border-light: rgba(245, 158, 11, 0.25);
   --sp-accent-border-light: rgba(59, 130, 246, 0.2);
 
+  /* ── Topology Builder ─────────────────────────────────────── */
+  --tb-canvas-grid: var(--chc-border-secondary);
+  --tb-card-bg: var(--chc-bg-primary);
+  --tb-card-border: var(--chc-border-primary);
+  --tb-card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --tb-edge-winner: var(--chc-status-success);
+  --tb-edge-loser: var(--chc-status-error);
+  --tb-edge-position: var(--chc-status-info);
+
   /* ── Scheduling Profile: Scrollbar + Popover ───────────── */
   --sp-scrollbar: rgba(148, 163, 184, 0.35);
   --sp-popover-hover-bg: #f0f0f0;

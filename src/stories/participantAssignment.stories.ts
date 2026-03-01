@@ -78,7 +78,7 @@ function createPartiallyAssignedMatchUp(): MatchUp {
 }
 
 export default {
-  title: 'MatchUps/Participant Assignment',
+  title: 'Draws/Participant Assignment',
   tags: ['autodocs'],
   render: ({ eventType, composition: compositionKey, scenario, ...args }) => {
     const composition = compositions[compositionKey || 'Basic'];
