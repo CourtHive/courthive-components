@@ -16,7 +16,7 @@ export interface SchematicMatchUp {
 
 /**
  * Renders a compact matchup: two 5px-tall slots separated by a 1px divider.
- * Total height ~14px vs ~60px for the full renderMatchUp.
+ * Total height 11px vs ~60px for the full renderMatchUp.
  */
 export function renderSchematicMatchUp({
   matchUp,
@@ -68,10 +68,10 @@ export function renderSchematicMatchUp({
 
   // Apply schematic-scale connector dimensions
   const roundFactor = matchUp.roundFactor || 1;
-  const baseHeight = 14; // schematic matchup total height
+  const matchUpHeight = 11; // 5px slot + 1px divider + 5px slot
   const connectorWidth = 8;
-  const m1Height = baseHeight * roundFactor;
-  const m2Height = baseHeight * roundFactor;
+  const m1Height = (matchUpHeight / 2) * roundFactor;
+  const m2Height = (matchUpHeight / 2) * roundFactor;
 
   slot2.style.setProperty('--chc-schematic-connector-w', `${connectorWidth}px`);
   slot2.style.setProperty('--chc-schematic-m1-h', `${m1Height}px`);

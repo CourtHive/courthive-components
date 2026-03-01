@@ -41,7 +41,7 @@ export function renderSchematicRound({
   round.className = 'chc-schematic-round';
 
   roundMatchUps.forEach((matchUp, i) => {
-    if (initialRoundNumber > 1) {
+    if (!matchUp.roundFactor) {
       matchUp.roundFactor = Math.pow(2, roundNumber - initialRoundNumber);
     }
     const moiety = i % 2 === 0;
