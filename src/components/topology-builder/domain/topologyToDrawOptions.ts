@@ -2,21 +2,22 @@
  * Topology to Draw Options — Converts TopologyState to factory drawOptions.
  * Groups qualifying edges by targetRoundNumber -> qualifyingProfiles.
  */
-import { drawDefinitionConstants } from 'tods-competition-factory';
 import type { TopologyState, TopologyNode, TopologyEdge } from '../types';
+import { drawDefinitionConstants } from 'tods-competition-factory';
 
 const {
   MAIN,
   CONSOLATION,
   QUALIFYING,
   PLAY_OFF,
+  CUSTOM,
   FIRST_MATCH_LOSER_CONSOLATION,
   FIRST_ROUND_LOSER_CONSOLATION,
   FEED_IN_CHAMPIONSHIP,
   COMPASS,
   WINNER,
   ROUND_ROBIN,
-  ROUND_ROBIN_WITH_PLAYOFF,
+  ROUND_ROBIN_WITH_PLAYOFF
 } = drawDefinitionConstants;
 
 const POSITION = 'POSITION';
@@ -31,7 +32,7 @@ const CONSOLATION_COMPOSITE_TYPES: Record<string, string> = {
   [FIRST_MATCH_LOSER_CONSOLATION]: FIRST_MATCH_LOSER_CONSOLATION,
   [FIRST_ROUND_LOSER_CONSOLATION]: FIRST_ROUND_LOSER_CONSOLATION,
   [FEED_IN_CHAMPIONSHIP]: FEED_IN_CHAMPIONSHIP,
-  [COMPASS]: COMPASS,
+  [COMPASS]: COMPASS
 };
 
 export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
@@ -45,17 +46,23 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
   const playoffNodes = state.nodes.filter((n) => n.stage === PLAY_OFF);
 
   // Determine the effective draw type.
-  // Multi-structure topologies (qualifying, consolation, playoff) are CUSTOM
+  // Use the main node's drawType, or map to a composite type for consolation.
+  // Multi-structure topologies (qualifying, consolation, or playoff) use CUSTOM
   // unless the consolation maps to a recognized composite type.
   let drawType = mainNode.drawType;
-  const isMultiStructure = qualifyingNodes.length > 0 || consolationNodes.length > 0 || playoffNodes.length > 0;
+  const hasExtraStructures = qualifyingNodes.length > 0 || consolationNodes.length > 0 || playoffNodes.length > 0;
 
-  if (drawType !== COMPASS && consolationNodes.length === 1 && qualifyingNodes.length === 0 && playoffNodes.length === 0) {
+  if (
+    drawType !== COMPASS &&
+    consolationNodes.length === 1 &&
+    qualifyingNodes.length === 0 &&
+    playoffNodes.length === 0
+  ) {
     const consolationType = consolationNodes[0].drawType;
     const composite = CONSOLATION_COMPOSITE_TYPES[consolationType];
     if (composite) drawType = composite;
-  } else if (isMultiStructure) {
-    drawType = 'CUSTOM';
+  } else if (hasExtraStructures) {
+    drawType = CUSTOM;
   }
 
   const drawOptions: any = {
@@ -64,13 +71,13 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
     drawSize: mainNode.drawSize,
     matchUpFormat: mainNode.matchUpFormat || undefined,
     structureOptions: mainNode.structureOptions || undefined,
-    automated: true,
+    automated: true
   };
 
   // Build qualifying profiles from qualifying nodes and their edges
   if (qualifyingNodes.length > 0) {
     const qualifyingEdges = state.edges.filter(
-      (e) => e.linkType === WINNER && qualifyingNodes.some((n) => n.id === e.sourceNodeId),
+      (e) => e.linkType === WINNER && qualifyingNodes.some((n) => n.id === e.sourceNodeId)
     );
 
     // Group by target round number
@@ -79,26 +86,27 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
       const edge = qualifyingEdges.find((e) => e.sourceNodeId === qNode.id);
       const targetRound = edge?.targetRoundNumber || 1;
       if (!byTargetRound[targetRound]) byTargetRound[targetRound] = [];
-      byTargetRound[targetRound].push({ node: qNode, edge: edge! });
+      byTargetRound[targetRound].push({ node: qNode, edge });
     }
 
     // Calculate total qualifying positions
     let totalQualifiers = 0;
     const profiles = Object.entries(byTargetRound).map(([roundTarget, entries]) => {
       const structureProfiles = entries.map(({ node, edge }) => {
-        const qualifyingPositions = node.qualifyingPositions || edge?.qualifyingPositions || Math.floor(node.drawSize / 4);
+        const qualifyingPositions =
+          node.qualifyingPositions || edge?.qualifyingPositions || Math.floor(node.drawSize / 4);
         totalQualifiers += qualifyingPositions;
         return {
           structureName: node.structureName,
           drawType: node.drawType,
           drawSize: node.drawSize,
           qualifyingPositions,
-          seedsCount: 0,
+          seedsCount: 0
         };
       });
       return {
         roundTarget: Number(roundTarget),
-        structureProfiles,
+        structureProfiles
       };
     });
 
@@ -114,7 +122,8 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
   // Collect POSITION edges from the main RR node to playoff nodes
   const rrPositionEdges = isMainRR
     ? state.edges.filter(
-        (e) => e.sourceNodeId === mainNode.id && e.linkType === POSITION && playoffNodes.some((p) => p.id === e.targetNodeId),
+        (e) =>
+          e.sourceNodeId === mainNode.id && e.linkType === POSITION && playoffNodes.some((p) => p.id === e.targetNodeId)
       )
     : [];
 
@@ -127,7 +136,7 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
     const byTarget = new Map<string, TopologyEdge[]>();
     for (const edge of rrPositionEdges) {
       if (!byTarget.has(edge.targetNodeId)) byTarget.set(edge.targetNodeId, []);
-      byTarget.get(edge.targetNodeId)!.push(edge);
+      byTarget.get(edge.targetNodeId).push(edge);
     }
 
     for (const [targetId, edges] of byTarget) {
@@ -135,14 +144,12 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
       if (!playoffNode) continue;
 
       // Merge all finishingPositions targeting this playoff node
-      const finishingPositions = Array.from(
-        new Set(edges.flatMap((e) => e.finishingPositions || [])),
-      ).sort();
+      const finishingPositions = Array.from(new Set(edges.flatMap((e) => e.finishingPositions || []))).sort();
 
       const attrKey = `0-${attrIndex + 1}`;
       playoffAttributes[attrKey] = {
         name: playoffNode.structureName,
-        abbreviation: playoffNode.structureName.substring(0, 3),
+        abbreviation: playoffNode.structureName.substring(0, 3)
       };
       attrIndex++;
 
@@ -150,8 +157,8 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
         method: 'addPlayoffStructures',
         params: {
           playoffPositions: finishingPositions,
-          playoffStructureNameBase: playoffNode.structureName,
-        },
+          playoffStructureNameBase: playoffNode.structureName
+        }
       });
     }
 
@@ -162,7 +169,7 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
     // Non-RR playoff handling (legacy: uses sourceRoundNumber)
     for (const playoffNode of playoffNodes) {
       const playoffEdges = state.edges.filter(
-        (e) => e.sourceNodeId === playoffNode.id || e.targetNodeId === playoffNode.id,
+        (e) => e.sourceNodeId === playoffNode.id || e.targetNodeId === playoffNode.id
       );
       const sourceEdge = playoffEdges.find((e) => e.targetNodeId === playoffNode.id);
       const roundNumbers = sourceEdge?.sourceRoundNumber ? [sourceEdge.sourceRoundNumber] : [];
@@ -171,8 +178,8 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
         method: 'addPlayoffStructures',
         params: {
           roundProfiles: roundNumbers.map((rn) => ({ [rn]: 1 })),
-          playoffStructureNameBase: playoffNode.structureName,
-        },
+          playoffStructureNameBase: playoffNode.structureName
+        }
       });
     }
   }
