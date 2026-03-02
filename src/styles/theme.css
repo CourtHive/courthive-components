@@ -63,6 +63,11 @@
   --chc-container-success: #48c78e;
   --chc-container-warning: #ffe08a;
 
+  /* ── Point score (live game score boxes) ───────────────── */
+  --chc-point-score-bg: var(--chc-text-primary);
+  --chc-point-score-text: var(--chc-bg-primary);
+  --chc-point-score-width: 1.6rem;
+
   /* ── Draw / MatchUp tokens ─────────────────────────────── */
   --chc-line-height-game-score: 2rem;
   --chc-line-height-center-info: 1.5rem;
@@ -212,6 +217,10 @@
   --chc-container-danger: #b83a3a;
   --chc-container-success: #287a4a;
   --chc-container-warning: #a08620;
+
+  /* ── Point score (dark overrides) ─────────────────────── */
+  --chc-point-score-bg: var(--chc-text-primary);
+  --chc-point-score-text: var(--chc-bg-primary);
 
   /* ── Draw / MatchUp tokens (dark overrides) ────────────── */
   /* Line heights, border widths, spacing, font sizes, set width,

@@ -30,7 +30,7 @@ export function renderSide({
   const configuration = composition?.configuration || {};
   const scheduleInfo = configuration?.scheduleInfo;
 
-  const hasScore = matchUp?.score?.scoreStringSide1;
+  const hasScore = matchUp?.score?.scoreStringSide1 || matchUp?.score?.sets?.length;
   const scoreBox = composition?.configuration?.scoreBox && hasScore;
   const isCompleted = matchUp?.matchUpStatus && completedMatchUpStatuses.includes(matchUp.matchUpStatus);
   const readyToScore =

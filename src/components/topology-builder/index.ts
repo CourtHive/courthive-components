@@ -11,6 +11,8 @@ export { TopologyStore } from './engine/topologyStore';
 // Domain
 export { topologyToDrawOptions } from './domain/topologyToDrawOptions';
 export type { DrawOptionsResult } from './domain/topologyToDrawOptions';
+export { generateDrawFromTopology } from './domain/generateDrawFromTopology';
+export type { GenerationResult, StructureInfo } from './domain/generateDrawFromTopology';
 export { validateTopology } from './domain/topologyValidator';
 export type { ValidationError } from './domain/topologyValidator';
 export { generatePreviewMatchUps } from './domain/previewGenerator';

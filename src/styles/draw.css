@@ -292,6 +292,32 @@
   display: flex;
 }
 
+/* ── Point score (live game score) ─────────────────────── */
+
+.chc-point-score {
+  line-height: var(--chc-line-height-game-score);
+  min-width: var(--chc-point-score-width);
+  justify-content: center;
+  text-align: center;
+  font-weight: 700;
+  font-size: var(--chc-font-size-1);
+  display: flex;
+  margin: 0;
+}
+
+.chc-point-score--inverted {
+  background-color: var(--chc-point-score-bg);
+  color: var(--chc-point-score-text);
+}
+
+.chc-point-score--leading {
+  margin-inline-end: 2px;
+}
+
+.chc-point-score--trailing {
+  margin-inline-start: 2px;
+}
+
 /* ── Results ─────────────────────────────────────────────── */
 
 .chc-results-item {

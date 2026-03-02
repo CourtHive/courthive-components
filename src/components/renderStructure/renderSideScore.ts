@@ -1,4 +1,4 @@
-import { gameScoreStyle, tieBreakStyle, gameWrapperStyle } from '../../styles/scoreStyles';
+import { gameScoreStyle, tieBreakStyle, gameWrapperStyle, pointScoreStyle } from '../../styles/scoreStyles';
 import { scoreWrapperStyle } from '../../styles/scoreWrapperStyle';
 import { renderGameScore } from './renderGameScore';
 import { isFunction } from '../modal/cmodal';
@@ -66,6 +66,7 @@ export function renderSideScore({
 }): HTMLElement {
   const scoreStripes = composition?.configuration?.winnerChevron;
   const gameScoreOnly = composition?.configuration?.gameScoreOnly;
+  const gameScoreConfig = composition?.configuration?.gameScore;
   const sets = matchUp?.score?.sets || [];
 
   const scoreBox = composition?.configuration?.scoreBox;
@@ -93,6 +94,28 @@ export function renderSideScore({
   const gameWrapper = document.createElement('div');
   gameWrapper.className = gameWrapperStyle();
 
+  // Build point score element if configured and data is present
+  let pointScoreEl: HTMLElement | undefined;
+  if (gameScoreConfig && sets.length > 0) {
+    const lastSet = sets[sets.length - 1];
+    const hasPointScore = lastSet.side1PointsScore != null || lastSet.side2PointsScore != null;
+
+    if (hasPointScore) {
+      const pointValue = sideNumber === 2 ? lastSet.side2PointsScore : lastSet.side1PointsScore;
+      const position = gameScoreConfig.position || 'trailing';
+      const inverted = gameScoreConfig.inverted !== false;
+
+      pointScoreEl = document.createElement('p');
+      pointScoreEl.className = pointScoreStyle({ inverted, position });
+      pointScoreEl.textContent = pointValue != null ? String(pointValue) : '';
+    }
+  }
+
+  // Insert leading point score before set scores
+  if (pointScoreEl && gameScoreConfig?.position === 'leading') {
+    gameWrapper.appendChild(pointScoreEl);
+  }
+
   for (const set of sets || []) {
     const setScoreDisplay = setScore({
       gameScoreOnly,
@@ -101,6 +124,11 @@ export function renderSideScore({
       set
     });
     gameWrapper.appendChild(setScoreDisplay);
+  }
+
+  // Append trailing point score after set scores (default)
+  if (pointScoreEl && gameScoreConfig?.position !== 'leading') {
+    gameWrapper.appendChild(pointScoreEl);
   }
 
   div.appendChild(gameWrapper);
