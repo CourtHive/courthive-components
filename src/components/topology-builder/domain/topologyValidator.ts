@@ -2,6 +2,7 @@
  * Topology Validator — Validates topology state for correctness.
  */
 import { drawDefinitionConstants } from 'tods-competition-factory';
+import { getFeedRoundCapacities, getTotalRounds } from './feedRounds';
 import type { TopologyState } from '../types';
 
 const {
@@ -43,7 +44,16 @@ export function validateTopology(state: TopologyState): ValidationError[] {
     errors.push({ severity: 'error', message: 'Only one main draw structure is allowed' });
   }
 
-  // Draw sizes: power of 2 for elimination types
+  // Pre-compute nodes that receive qualifying links at round > 1 (intentional fed positions)
+  const nodesWithFeedLinks = new Set<string>();
+  for (const edge of state.edges) {
+    if (edge.linkType === WINNER && (edge.targetRoundNumber || 1) > 1) {
+      const source = state.nodes.find((n) => n.id === edge.sourceNodeId);
+      if (source?.stage === QUALIFYING) nodesWithFeedLinks.add(edge.targetNodeId);
+    }
+  }
+
+  // Draw sizes: power of 2 for elimination types (unless they have fed positions)
   const eliminationTypes = new Set([
     SINGLE_ELIMINATION,
     DOUBLE_ELIMINATION,
@@ -56,7 +66,7 @@ export function validateTopology(state: TopologyState): ValidationError[] {
   ]);
 
   for (const node of state.nodes) {
-    if (eliminationTypes.has(node.drawType)) {
+    if (eliminationTypes.has(node.drawType) && !nodesWithFeedLinks.has(node.id)) {
       const isPow2 = node.drawSize > 0 && (node.drawSize & (node.drawSize - 1)) === 0;
       if (!isPow2) {
         errors.push({
@@ -89,7 +99,9 @@ export function validateTopology(state: TopologyState): ValidationError[] {
     }
 
     if (source && edge.sourceRoundNumber) {
-      const maxRound = Math.ceil(Math.log2(source.drawSize));
+      const maxRound = RR_TYPES.has(source.drawType)
+        ? (source.structureOptions?.groupSize || 4) - 1
+        : getTotalRounds(source.drawSize);
       if (edge.sourceRoundNumber > maxRound || edge.sourceRoundNumber < 1) {
         errors.push({
           severity: 'warning',
@@ -100,7 +112,9 @@ export function validateTopology(state: TopologyState): ValidationError[] {
     }
 
     if (target && edge.targetRoundNumber) {
-      const maxRound = Math.ceil(Math.log2(target.drawSize));
+      const maxRound = RR_TYPES.has(target.drawType)
+        ? (target.structureOptions?.groupSize || 4) - 1
+        : getTotalRounds(target.drawSize);
       if (edge.targetRoundNumber > maxRound || edge.targetRoundNumber < 1) {
         errors.push({
           severity: 'warning',
@@ -177,6 +191,42 @@ export function validateTopology(state: TopologyState): ValidationError[] {
           severity: 'warning',
           message: `Qualifying positions (${winnerEdge.qualifyingPositions}) exceeds half of "${qNode.structureName}" draw size (${maxPositions})`,
           edgeId: winnerEdge.id,
+        });
+      }
+    }
+  }
+
+  // Qualifying links targeting round > 1 need that round to be a feed
+  // round with sufficient capacity in the target structure.
+  const feedEdgesByTarget = new Map<string, { edgeId: string; targetRound: number; qp: number; sourceName: string }[]>();
+  for (const edge of state.edges) {
+    if (edge.linkType !== WINNER) continue;
+    const targetRound = edge.targetRoundNumber || 1;
+    if (targetRound <= 1) continue;
+    const source = state.nodes.find((n) => n.id === edge.sourceNodeId);
+    if (!source || source.stage !== QUALIFYING) continue;
+    if (!feedEdgesByTarget.has(edge.targetNodeId)) feedEdgesByTarget.set(edge.targetNodeId, []);
+    const qp = source.qualifyingPositions || Math.floor(source.drawSize / 4);
+    feedEdgesByTarget.get(edge.targetNodeId)!.push({ edgeId: edge.id, targetRound, qp, sourceName: source.structureName });
+  }
+  for (const [targetId, entries] of feedEdgesByTarget) {
+    const target = state.nodes.find((n) => n.id === targetId);
+    if (!target) continue;
+    const feedCapacities = getFeedRoundCapacities(target.drawSize);
+    // Accumulate demand per round
+    const demandByRound = new Map<number, number>();
+    for (const entry of entries) {
+      demandByRound.set(entry.targetRound, (demandByRound.get(entry.targetRound) || 0) + entry.qp);
+    }
+    for (const { edgeId, targetRound, sourceName } of entries) {
+      const capacity = feedCapacities.get(targetRound) || 0;
+      const demand = demandByRound.get(targetRound) || 0;
+      if (capacity < demand) {
+        errors.push({
+          severity: 'warning',
+          message: `"${target.structureName}" round ${targetRound} is not a feed round or has insufficient capacity for ${sourceName} link`,
+          nodeId: targetId,
+          edgeId,
         });
       }
     }

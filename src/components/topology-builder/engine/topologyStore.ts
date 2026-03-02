@@ -116,6 +116,18 @@ export class TopologyStore {
       if (existing) return null;
     }
 
+    // Qualifying link constraints:
+    // - Qualifying sources can only target QUALIFYING or MAIN
+    // - Qualifying targets can only receive from QUALIFYING
+    const source = this.state.nodes.find((n) => n.id === partial.sourceNodeId);
+    const target = this.state.nodes.find((n) => n.id === partial.targetNodeId);
+    if (source?.stage === QUALIFYING && target && target.stage !== QUALIFYING && target.stage !== MAIN) {
+      return null;
+    }
+    if (target?.stage === QUALIFYING && source && source.stage !== QUALIFYING) {
+      return null;
+    }
+
     const edge: TopologyEdge = {
       ...partial,
       id: generateId('edge'),

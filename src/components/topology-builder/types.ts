@@ -44,7 +44,10 @@ export interface TopologyBuilderConfig {
   initialState?: Partial<TopologyState>;
   onGenerate?: (state: TopologyState) => void;
   onSaveTemplate?: (state: TopologyState) => void;
+  onClear?: () => void;
   templates?: TopologyTemplate[];
+  hideTemplates?: boolean;
+  readOnly?: boolean;
 }
 
 export interface TopologyTemplate {

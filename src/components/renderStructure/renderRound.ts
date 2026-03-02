@@ -122,7 +122,7 @@ export function renderRound({
     const moiety = i % 2 === 0;
     if (roundFactor) {
       matchUp.roundFactor = roundFactor;
-    } else if (initialRoundNumber > 1) {
+    } else if (!matchUp.roundFactor) {
       matchUp.roundFactor = Math.pow(2, roundNumber - initialRoundNumber);
     }
     const m = renderMatchUp({

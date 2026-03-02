@@ -50,7 +50,7 @@ export function buildTopologyBuilderLayout({
       if (!existing) {
         const empty = document.createElement('div');
         empty.className = 'tb-editor-empty';
-        empty.textContent = 'Select a structure or link to edit';
+        empty.textContent = 'Select a structure or link to view properties';
         editorPanel.appendChild(empty);
       }
     } else {
