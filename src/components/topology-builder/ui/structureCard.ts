@@ -26,7 +26,7 @@ export function getNumRounds(node: TopologyNode): number {
     return groupSize - 1;
   }
   if (node.drawType === AD_HOC) {
-    return 1;
+    return node.structureOptions?.roundsCount || 1;
   }
   const n = Math.max(2, node.drawSize);
   const base = Math.pow(2, Math.floor(Math.log2(n)));
@@ -127,6 +127,7 @@ export function buildStructureCard(
     stage: node.stage,
     structureId: node.id,
     qualifyingPositions: node.qualifyingPositions,
+    structureOptions: node.structureOptions,
   });
 
   if (matchUps.length > 0) {

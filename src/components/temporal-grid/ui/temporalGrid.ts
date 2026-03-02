@@ -10,10 +10,9 @@
  * This is the entry point for using the temporal grid in applications.
  */
 
-import { tools, TemporalEngine, temporal } from 'tods-competition-factory';
+import { TemporalEngine, temporal } from 'tods-competition-factory';
 
 const { calculateCapacityStats } = temporal;
-type BlockType = temporal.BlockType;
 type CourtRef = temporal.CourtRef;
 type DayId = temporal.DayId;
 import { TemporalGridControl, type TemporalGridControlConfig } from '../controller/temporalGridControl';
@@ -203,97 +202,6 @@ export class TemporalGrid {
     const header = this.rootElement?.querySelector('.temporal-grid-header');
     if (!header) return;
 
-    const toolbar = document.createElement('div');
-    toolbar.className = 'temporal-grid-toolbar';
-    toolbar.innerHTML = `
-      <div class="toolbar-section toolbar-left">
-        <button class="btn-paint" title="Paint Mode - Mark Unavailable Time">
-          <span>🖌️</span> Paint
-        </button>
-        <select class="paint-type-selector">
-          <option value="BLOCKED">Blocked</option>
-          <option value="MAINTENANCE">Maintenance</option>
-          <option value="PRACTICE">Practice</option>
-          <option value="RESERVED">Reserved</option>
-          <option value="CLOSED">Closed</option>
-          <option value="DELETE">🗑️ Delete</option>
-        </select>
-      </div>
-      
-      <div class="toolbar-section toolbar-center">
-        <button class="btn-prev-day" title="Previous Day">◀</button>
-        <input type="date" class="date-selector" />
-        <button class="btn-next-day" title="Next Day">▶</button>
-      </div>
-      
-      <div class="toolbar-section toolbar-right">
-        <button class="btn-refresh" title="Refresh">🔄</button>
-        <button class="btn-layers" title="Layers">👁️</button>
-      </div>
-    `;
-
-    // Wire up event handlers
-    const paintBtn = toolbar.querySelector('.btn-paint') as HTMLButtonElement;
-    const paintTypeSelect = toolbar.querySelector('.paint-type-selector') as HTMLSelectElement;
-    const dateInput = toolbar.querySelector('.date-selector') as HTMLInputElement;
-    const prevBtn = toolbar.querySelector('.btn-prev-day') as HTMLButtonElement;
-    const nextBtn = toolbar.querySelector('.btn-next-day') as HTMLButtonElement;
-    const refreshBtn = toolbar.querySelector('.btn-refresh') as HTMLButtonElement;
-
-    if (paintBtn && paintTypeSelect) {
-      let isPaintMode = false;
-      paintBtn.addEventListener('click', () => {
-        isPaintMode = !isPaintMode;
-        paintBtn.classList.toggle('active', isPaintMode);
-        this.control?.setPaintMode(isPaintMode, paintTypeSelect.value as BlockType);
-      });
-
-      paintTypeSelect.addEventListener('change', () => {
-        if (isPaintMode) {
-          this.control?.setPaintMode(true, paintTypeSelect.value as BlockType);
-        }
-      });
-    }
-
-    if (dateInput) {
-      const currentDay = this.control?.getDay() || tools.dateTime.extractDate(new Date().toISOString());
-      dateInput.value = currentDay;
-
-      dateInput.addEventListener('change', () => {
-        this.control?.setDay(dateInput.value);
-      });
-    }
-
-    if (prevBtn) {
-      prevBtn.addEventListener('click', () => {
-        const currentDay = this.control?.getDay();
-        if (currentDay) {
-          const newDay = tools.dateTime.addDays(currentDay, -1);
-          this.control?.setDay(newDay);
-          if (dateInput) dateInput.value = newDay;
-        }
-      });
-    }
-
-    if (nextBtn) {
-      nextBtn.addEventListener('click', () => {
-        const currentDay = this.control?.getDay();
-        if (currentDay) {
-          const newDay = tools.dateTime.addDays(currentDay, 1);
-          this.control?.setDay(newDay);
-          if (dateInput) dateInput.value = newDay;
-        }
-      });
-    }
-
-    if (refreshBtn) {
-      refreshBtn.addEventListener('click', () => {
-        this.control?.refresh();
-      });
-    }
-
-    header.appendChild(toolbar);
-
     // View toolbar (Day / 3 Days / Week)
     const viewToolbar = buildViewToolbar(
       (viewKey: string) => this.control?.setViewPreset(viewKey),
@@ -430,6 +338,13 @@ export class TemporalGrid {
       });
     }
 
+    // Build venueId → venueName lookup from tournament record
+    const venueNameMap = new Map<string, string>();
+    for (const venue of this.config.tournamentRecord?.venues || []) {
+      const vid = venue.venueId;
+      if (vid) venueNameMap.set(vid, venue.venueName || venue.venueAbbreviation || vid);
+    }
+
     // Group by venue
     const venues = new Map<string, typeof courtMeta>();
     for (const meta of courtMeta) {
@@ -449,6 +364,7 @@ export class TemporalGrid {
         return this.visibleCourts.has(key);
       });
 
+      const venueName = venueNameMap.get(venueId) || venueId;
       html += `
         <div class="venue-group">
           <div class="venue-header">
@@ -456,7 +372,7 @@ export class TemporalGrid {
                    data-venue="${venueId}"
                    data-tournament-id="${tournamentId}"
                    ${allVisible ? 'checked' : ''} />
-            <span class="venue-name">${venueId}</span>
+            <span class="venue-name">${venueName}</span>
             <button class="edit-icon venue-edit-icon"
                     data-venue="${venueId}" data-tournament-id="${tournamentId}"
                     title="Edit venue defaults">&#9998;</button>

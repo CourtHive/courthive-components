@@ -28,50 +28,6 @@
   padding: 1rem;
 }
 
-.temporal-grid-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-}
-
-.toolbar-section {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.toolbar-section button {
-  padding: 0.5rem 1rem;
-  border: 1px solid var(--chc-border-primary);
-  background: var(--chc-bg-elevated);
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.toolbar-section button:hover {
-  background: var(--chc-hover-bg);
-}
-
-.toolbar-section button.active {
-  background: #218d8d;
-  color: white;
-  border-color: #218d8d;
-}
-
-.paint-type-selector {
-  padding: 0.5rem;
-  border: 1px solid var(--chc-border-primary);
-  border-radius: 4px;
-  background: var(--chc-bg-elevated);
-}
-
-.date-selector {
-  padding: 0.5rem;
-  border: 1px solid var(--chc-border-primary);
-  border-radius: 4px;
-}
 
 /* ============================================================================
    Capacity Indicator
@@ -117,6 +73,7 @@
 
 .temporal-grid-main {
   flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -252,13 +209,11 @@
 
 .temporal-grid-calendar {
   flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
+  min-width: 0;
   position: relative;
 }
 
-/* vis-timeline overrides — height is controlled via JS options (fixed pixels) */
+/* vis-timeline overrides — height is controlled via JS options (height: '100%') */
 .temporal-grid-calendar .vis-timeline {
   border: none;
 }
@@ -432,34 +387,12 @@
 }
 
 /* ============================================================================
-   Paint Mode
-   ============================================================================ */
-
-.temporal-grid-root.paint-mode {
-  cursor: crosshair;
-}
-
-.temporal-grid-root.paint-mode .temporal-segment {
-  cursor: crosshair !important;
-}
-
-/* ============================================================================
    Responsive Design
    ============================================================================ */
 
 @media (max-width: 768px) {
   .temporal-grid-venue-tree {
     width: 200px;
-  }
-
-  .temporal-grid-toolbar {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .toolbar-section {
-    width: 100%;
-    justify-content: space-between;
   }
 }
 
