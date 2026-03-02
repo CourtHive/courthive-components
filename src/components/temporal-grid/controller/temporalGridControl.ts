@@ -662,14 +662,6 @@ export class TemporalGridControl {
   // Block Operations
   // ============================================================================
 
-  /** Delete a block */
-  private deleteBlock(blockId: string): void {
-    const result = this.engine.removeBlock(blockId);
-    if (result.conflicts.some((c) => c.severity === 'ERROR')) {
-      this.showConflictDialog(result.conflicts);
-    }
-  }
-
   /** Get the popover manager (for external access) */
   getPopoverManager(): BlockPopoverManager {
     return this.popoverManager;
