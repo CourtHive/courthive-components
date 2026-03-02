@@ -1,4 +1,5 @@
 import { gameScoreStyle, tieBreakStyle, gameWrapperStyle, pointScoreStyle } from '../../styles/scoreStyles';
+import { resultsItemStyle } from '../../styles/resultStyles';
 import { scoreWrapperStyle } from '../../styles/scoreWrapperStyle';
 import { renderGameScore } from './renderGameScore';
 import { isFunction } from '../modal/cmodal';
@@ -111,9 +112,34 @@ export function renderSideScore({
     }
   }
 
+  const resultsInfo = composition?.configuration?.resultsInfo && sideNumber === 1;
+
+  // When resultsInfo is enabled, the game-wrapper and its column children must
+  // stretch to the full score-wrapper height so labels anchor at the dividing line.
+  if (resultsInfo) {
+    gameWrapper.style.alignSelf = 'stretch';
+  }
+
+  const wrapCol = (child: HTMLElement, labelText: string, variant: string) => {
+    const col = document.createElement('div');
+    col.style.cssText = 'position:relative; align-self:stretch; display:flex; align-items:center;';
+    col.appendChild(child);
+
+    const label = document.createElement('div');
+    label.className = resultsItemStyle({ variant });
+    label.textContent = labelText;
+    col.appendChild(label);
+
+    return col;
+  };
+
   // Insert leading point score before set scores
   if (pointScoreEl && gameScoreConfig?.position === 'leading') {
-    gameWrapper.appendChild(pointScoreEl);
+    if (resultsInfo) {
+      gameWrapper.appendChild(wrapCol(pointScoreEl, 'PTS', 'points'));
+    } else {
+      gameWrapper.appendChild(pointScoreEl);
+    }
   }
 
   for (const set of sets || []) {
@@ -123,12 +149,21 @@ export function renderSideScore({
       sideNumber,
       set
     });
-    gameWrapper.appendChild(setScoreDisplay);
+
+    if (resultsInfo) {
+      gameWrapper.appendChild(wrapCol(setScoreDisplay, String(set.setNumber), 'set'));
+    } else {
+      gameWrapper.appendChild(setScoreDisplay);
+    }
   }
 
   // Append trailing point score after set scores (default)
   if (pointScoreEl && gameScoreConfig?.position !== 'leading') {
-    gameWrapper.appendChild(pointScoreEl);
+    if (resultsInfo) {
+      gameWrapper.appendChild(wrapCol(pointScoreEl, 'PTS', 'points'));
+    } else {
+      gameWrapper.appendChild(pointScoreEl);
+    }
   }
 
   div.appendChild(gameWrapper);

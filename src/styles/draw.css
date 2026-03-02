@@ -321,29 +321,22 @@
 /* ── Results ─────────────────────────────────────────────── */
 
 .chc-results-item {
-  width: var(--chc-score-set-width);
-  display: inline-block;
   font-size: 9px;
-}
-
-.chc-results-item--set {
   text-align: center;
+  text-transform: uppercase;
+  color: var(--chc-text-muted);
+  background-color: var(--chc-color-matchup);
+  padding-block: 1px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  transform: translateY(50%);
+  z-index: 1;
 }
 
 .chc-results-item--points {
-  margin-inline-end: 3px;
-}
-
-.chc-results-info {
-  transform: translateY(-50%);
-  text-transform: uppercase;
-  background-color: var(--chc-bg-primary);
-  position: absolute;
-  text-align: center;
-  top: calc(50%);
-  color: var(--chc-text-muted);
-  font-size: 0;
-  right: 4px;
+  /* inherits from .chc-results-item */
 }
 
 /* ════════════════════════════════════════════════════════════
