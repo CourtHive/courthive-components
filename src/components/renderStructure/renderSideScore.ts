@@ -1,4 +1,5 @@
-import { gameScoreStyle, tieBreakStyle, gameWrapperStyle } from '../../styles/scoreStyles';
+import { gameScoreStyle, tieBreakStyle, gameWrapperStyle, pointScoreStyle } from '../../styles/scoreStyles';
+import { resultsItemStyle } from '../../styles/resultStyles';
 import { scoreWrapperStyle } from '../../styles/scoreWrapperStyle';
 import { renderGameScore } from './renderGameScore';
 import { isFunction } from '../modal/cmodal';
@@ -66,6 +67,7 @@ export function renderSideScore({
 }): HTMLElement {
   const scoreStripes = composition?.configuration?.winnerChevron;
   const gameScoreOnly = composition?.configuration?.gameScoreOnly;
+  const gameScoreConfig = composition?.configuration?.gameScore;
   const sets = matchUp?.score?.sets || [];
 
   const scoreBox = composition?.configuration?.scoreBox;
@@ -93,6 +95,53 @@ export function renderSideScore({
   const gameWrapper = document.createElement('div');
   gameWrapper.className = gameWrapperStyle();
 
+  // Build point score element if configured and data is present
+  let pointScoreEl: HTMLElement | undefined;
+  if (gameScoreConfig && sets.length > 0) {
+    const lastSet = sets[sets.length - 1];
+    const hasPointScore = lastSet.side1PointsScore != null || lastSet.side2PointsScore != null;
+
+    if (hasPointScore) {
+      const pointValue = sideNumber === 2 ? lastSet.side2PointsScore : lastSet.side1PointsScore;
+      const position = gameScoreConfig.position || 'trailing';
+      const inverted = gameScoreConfig.inverted !== false;
+
+      pointScoreEl = document.createElement('p');
+      pointScoreEl.className = pointScoreStyle({ inverted, position });
+      pointScoreEl.textContent = pointValue != null ? String(pointValue) : '';
+    }
+  }
+
+  const resultsInfo = composition?.configuration?.resultsInfo && sideNumber === 1;
+
+  // When resultsInfo is enabled, the game-wrapper and its column children must
+  // stretch to the full score-wrapper height so labels anchor at the dividing line.
+  if (resultsInfo) {
+    gameWrapper.style.alignSelf = 'stretch';
+  }
+
+  const wrapCol = (child: HTMLElement, labelText: string, variant: string) => {
+    const col = document.createElement('div');
+    col.style.cssText = 'position:relative; align-self:stretch; display:flex; align-items:center;';
+    col.appendChild(child);
+
+    const label = document.createElement('div');
+    label.className = resultsItemStyle({ variant });
+    label.textContent = labelText;
+    col.appendChild(label);
+
+    return col;
+  };
+
+  // Insert leading point score before set scores
+  if (pointScoreEl && gameScoreConfig?.position === 'leading') {
+    if (resultsInfo) {
+      gameWrapper.appendChild(wrapCol(pointScoreEl, 'PTS', 'points'));
+    } else {
+      gameWrapper.appendChild(pointScoreEl);
+    }
+  }
+
   for (const set of sets || []) {
     const setScoreDisplay = setScore({
       gameScoreOnly,
@@ -100,7 +149,21 @@ export function renderSideScore({
       sideNumber,
       set
     });
-    gameWrapper.appendChild(setScoreDisplay);
+
+    if (resultsInfo) {
+      gameWrapper.appendChild(wrapCol(setScoreDisplay, String(set.setNumber), 'set'));
+    } else {
+      gameWrapper.appendChild(setScoreDisplay);
+    }
+  }
+
+  // Append trailing point score after set scores (default)
+  if (pointScoreEl && gameScoreConfig?.position !== 'leading') {
+    if (resultsInfo) {
+      gameWrapper.appendChild(wrapCol(pointScoreEl, 'PTS', 'points'));
+    } else {
+      gameWrapper.appendChild(pointScoreEl);
+    }
   }
 
   div.appendChild(gameWrapper);

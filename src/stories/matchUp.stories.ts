@@ -97,6 +97,7 @@ export const Retired = {
     
     // Set partial score and RETIRED status
     matchUp.score = {
+      scoreStringSide1: '6-4 3-2',
       sets: [
         { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
         { setNumber: 2, side1Score: 3, side2Score: 2 }
@@ -182,6 +183,7 @@ export const Defaulted = {
     
     // Defaulted with partial score
     matchUp.score = {
+      scoreStringSide1: '6-4 2-3',
       sets: [
         { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
         { setNumber: 2, side1Score: 2, side2Score: 3 }
@@ -311,6 +313,7 @@ export const Suspended = {
     
     // Suspended with partial score
     matchUp.score = {
+      scoreStringSide1: '6-4 3-5',
       sets: [
         { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
         { setNumber: 2, side1Score: 3, side2Score: 5 }
@@ -436,6 +439,7 @@ export const InProgress = {
     
     // In progress with partial score
     matchUp.score = {
+      scoreStringSide1: '6-4 4-5',
       sets: [
         { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
         { setNumber: 2, side1Score: 4, side2Score: 5 }
@@ -531,6 +535,7 @@ export const CompletedWithScoreClick = {
     
     // Completed match with full score
     matchUp.score = {
+      scoreStringSide1: '6-4 6-3',
       sets: [
         { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
         { setNumber: 2, side1Score: 6, side2Score: 3, winningSide: 1 }
@@ -581,6 +586,7 @@ export const RetiredWithScoreClick = {
     
     // Retired with partial score
     matchUp.score = {
+      scoreStringSide1: '6-4 3-2',
       sets: [
         { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
         { setNumber: 2, side1Score: 3, side2Score: 2 }
@@ -588,23 +594,23 @@ export const RetiredWithScoreClick = {
     };
     matchUp.winningSide = 1;
     matchUp.matchUpStatus = RETIRED;
-    
+
     const eventHandlers = {
       scoreClick: ({ matchUp }: any) => {
         alert(`Score clicked for matchUp: ${matchUp.matchUpId}`);
       }
     };
-    
+
     const renderedMatchUp = renderMatchUp({
       matchUp,
       composition,
       eventHandlers,
       isLucky: args.isLucky
     });
-    
+
     const content = document.createElement('div');
     content.style.maxWidth = '500px';
-    
+
     const description = document.createElement('p');
     description.textContent = 'RETIRED with partial score and scoreClick handler - should show [RET] but NOT [Score]';
     description.style.marginBottom = '1em';
@@ -802,8 +808,243 @@ export const CancelledWithScoreClick = {
     description.style.marginBottom = '1em';
     description.style.color = CHC_TEXT_SECONDARY;
     content.appendChild(description);
-    
+
     content.appendChild(renderedMatchUp);
+    return renderContainer({ theme: composition.theme, content });
+  }
+};
+
+// ── Game Score (Live Point Scores) ─────────────────────────────────
+
+/**
+ * Helper to render a matchUp with description text above it.
+ */
+function renderWithDescription(
+  matchUp: any,
+  composition: any,
+  descriptionText: string,
+) {
+  const renderedMatchUp = renderMatchUp({ matchUp, composition, isLucky: true });
+  const content = document.createElement('div');
+  content.style.maxWidth = '500px';
+  const description = document.createElement('p');
+  description.textContent = descriptionText;
+  description.style.marginBottom = '1em';
+  description.style.color = CHC_TEXT_SECONDARY;
+  content.appendChild(description);
+  content.appendChild(renderedMatchUp);
+  return content;
+}
+
+function gameScoreComposition(args: any, gameScoreConfig: { position?: 'leading' | 'trailing'; inverted?: boolean }) {
+  const base = compositions[args.composition || 'Australian'];
+  return {
+    ...base,
+    configuration: { ...base.configuration, gameScore: gameScoreConfig }
+  };
+}
+
+export const GameScoreInProgress = {
+  args: { composition: 'Australian', eventType: 'SINGLES' },
+  render: (args: any) => {
+    const composition = gameScoreComposition(args, { position: 'trailing', inverted: true });
+    const { matchUps } = generateMatchUps({ drawSize: 2, eventType: args.eventType || 'SINGLES', randomWinningSide: false });
+    const matchUp = matchUps[0];
+
+    matchUp.score = {
+      scoreStringSide1: '6-4 4-5',
+      sets: [
+        { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
+        { setNumber: 2, side1Score: 4, side2Score: 5, side1PointsScore: 15, side2PointsScore: 30 }
+      ]
+    };
+    matchUp.winningSide = undefined;
+    matchUp.matchUpStatus = IN_PROGRESS;
+
+    const content = renderWithDescription(matchUp, composition,
+      'IN_PROGRESS — Game score 15-30 shown after set scores (trailing, inverted)');
+    return renderContainer({ theme: composition.theme, content });
+  }
+};
+
+export const GameScoreLeading = {
+  args: { composition: 'Australian', eventType: 'SINGLES' },
+  render: (args: any) => {
+    const composition = gameScoreComposition(args, { position: 'leading', inverted: true });
+    const { matchUps } = generateMatchUps({ drawSize: 2, eventType: args.eventType || 'SINGLES', randomWinningSide: false });
+    const matchUp = matchUps[0];
+
+    matchUp.score = {
+      scoreStringSide1: '6-4 4-5',
+      sets: [
+        { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
+        { setNumber: 2, side1Score: 4, side2Score: 5, side1PointsScore: 40, side2PointsScore: 30 }
+      ]
+    };
+    matchUp.winningSide = undefined;
+    matchUp.matchUpStatus = IN_PROGRESS;
+
+    const content = renderWithDescription(matchUp, composition,
+      'IN_PROGRESS — Game score 40-30 shown before set scores (leading, inverted)');
+    return renderContainer({ theme: composition.theme, content });
+  }
+};
+
+export const GameScoreDeuce = {
+  args: { composition: 'Australian', eventType: 'SINGLES' },
+  render: (args: any) => {
+    const composition = gameScoreComposition(args, { position: 'trailing', inverted: true });
+    const { matchUps } = generateMatchUps({ drawSize: 2, eventType: args.eventType || 'SINGLES', randomWinningSide: false });
+    const matchUp = matchUps[0];
+
+    matchUp.score = {
+      scoreStringSide1: '6-4 5-6',
+      sets: [
+        { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
+        { setNumber: 2, side1Score: 5, side2Score: 6, side1PointsScore: 'AD', side2PointsScore: 40 }
+      ]
+    };
+    matchUp.winningSide = undefined;
+    matchUp.matchUpStatus = IN_PROGRESS;
+
+    const content = renderWithDescription(matchUp, composition,
+      'IN_PROGRESS — Advantage side 1 (AD-40), trailing inverted');
+    return renderContainer({ theme: composition.theme, content });
+  }
+};
+
+export const GameScoreTiebreak = {
+  args: { composition: 'Australian', eventType: 'SINGLES' },
+  render: (args: any) => {
+    const composition = gameScoreComposition(args, { position: 'trailing', inverted: true });
+    const { matchUps } = generateMatchUps({ drawSize: 2, eventType: args.eventType || 'SINGLES', randomWinningSide: false });
+    const matchUp = matchUps[0];
+
+    matchUp.score = {
+      scoreStringSide1: '6-4 6-6',
+      sets: [
+        { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
+        { setNumber: 2, side1Score: 6, side2Score: 6, side1PointsScore: 5, side2PointsScore: 3 }
+      ]
+    };
+    matchUp.winningSide = undefined;
+    matchUp.matchUpStatus = IN_PROGRESS;
+
+    const content = renderWithDescription(matchUp, composition,
+      'IN_PROGRESS — Tiebreak in progress (5-3), trailing inverted');
+    return renderContainer({ theme: composition.theme, content });
+  }
+};
+
+export const GameScoreNotInverted = {
+  args: { composition: 'Australian', eventType: 'SINGLES' },
+  render: (args: any) => {
+    const composition = gameScoreComposition(args, { position: 'trailing', inverted: false });
+    const { matchUps } = generateMatchUps({ drawSize: 2, eventType: args.eventType || 'SINGLES', randomWinningSide: false });
+    const matchUp = matchUps[0];
+
+    matchUp.score = {
+      scoreStringSide1: '6-4 3-2',
+      sets: [
+        { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
+        { setNumber: 2, side1Score: 3, side2Score: 2, side1PointsScore: 0, side2PointsScore: 15 }
+      ]
+    };
+    matchUp.winningSide = undefined;
+    matchUp.matchUpStatus = IN_PROGRESS;
+
+    const content = renderWithDescription(matchUp, composition,
+      'IN_PROGRESS — Game score 0-15, trailing, NOT inverted (plain text)');
+    return renderContainer({ theme: composition.theme, content });
+  }
+};
+
+export const GameScoreSuspended = {
+  args: { composition: 'Australian', eventType: 'SINGLES' },
+  render: (args: any) => {
+    const composition = gameScoreComposition(args, { position: 'trailing', inverted: true });
+    const { matchUps } = generateMatchUps({ drawSize: 2, eventType: args.eventType || 'SINGLES', randomWinningSide: false });
+    const matchUp = matchUps[0];
+
+    matchUp.score = {
+      scoreStringSide1: '6-4 3-5',
+      sets: [
+        { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
+        { setNumber: 2, side1Score: 3, side2Score: 5, side1PointsScore: 30, side2PointsScore: 40 }
+      ]
+    };
+    matchUp.winningSide = undefined;
+    matchUp.matchUpStatus = SUSPENDED;
+
+    const content = renderWithDescription(matchUp, composition,
+      'SUSPENDED — Match paused at 30-40, game score still visible');
+    return renderContainer({ theme: composition.theme, content });
+  }
+};
+
+export const GameScoreRetired = {
+  args: { composition: 'Australian', eventType: 'SINGLES' },
+  render: (args: any) => {
+    const composition = gameScoreComposition(args, { position: 'trailing', inverted: true });
+    const { matchUps } = generateMatchUps({ drawSize: 2, eventType: args.eventType || 'SINGLES', randomWinningSide: false });
+    const matchUp = matchUps[0];
+
+    matchUp.score = {
+      scoreStringSide1: '6-4 3-2',
+      sets: [
+        { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
+        { setNumber: 2, side1Score: 3, side2Score: 2, side1PointsScore: 15, side2PointsScore: 0 }
+      ]
+    };
+    matchUp.winningSide = 1;
+    matchUp.matchUpStatus = RETIRED;
+
+    const content = renderWithDescription(matchUp, composition,
+      'RETIRED — Retirement mid-game at 15-0, game score preserved');
+    return renderContainer({ theme: composition.theme, content });
+  }
+};
+
+export const GameScoreCompletedHidden = {
+  args: { composition: 'Australian', eventType: 'SINGLES' },
+  render: (args: any) => {
+    const composition = gameScoreComposition(args, { position: 'trailing', inverted: true });
+    const { matchUps } = generateMatchUps({ drawSize: 2, eventType: args.eventType || 'SINGLES', randomWinningSide: true });
+    const matchUp = matchUps[0];
+
+    matchUp.score = {
+      scoreStringSide1: '6-4 6-3',
+      sets: [
+        { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
+        { setNumber: 2, side1Score: 6, side2Score: 3, winningSide: 1 }
+      ]
+    };
+
+    const content = renderWithDescription(matchUp, composition,
+      'COMPLETED — No point scores in data, so game score boxes are NOT shown (smart hiding)');
+    return renderContainer({ theme: composition.theme, content });
+  }
+};
+
+export const GameScoreZeroZero = {
+  args: { composition: 'Australian', eventType: 'SINGLES' },
+  render: (args: any) => {
+    const composition = gameScoreComposition(args, { position: 'trailing', inverted: true });
+    const { matchUps } = generateMatchUps({ drawSize: 2, eventType: args.eventType || 'SINGLES', randomWinningSide: false });
+    const matchUp = matchUps[0];
+
+    matchUp.score = {
+      scoreStringSide1: '6-4 2-3',
+      sets: [
+        { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
+        { setNumber: 2, side1Score: 2, side2Score: 3, side1PointsScore: 0, side2PointsScore: 0 }
+      ]
+    };
+    matchUp.winningSide = undefined;
+    matchUp.matchUpStatus = IN_PROGRESS;
+
+    const content = renderWithDescription(matchUp, composition,
+      'IN_PROGRESS — Start of game (0-0), game score boxes shown because data is present');
     return renderContainer({ theme: composition.theme, content });
   }
 };

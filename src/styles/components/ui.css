@@ -239,7 +239,7 @@
 }
 
 .notification.is-info {
-  background-color: #3e8ed0;
+  background-color: var(--chc-container-info);
   color: #fff;
 }
 
@@ -249,7 +249,7 @@
 }
 
 .notification.is-success {
-  background-color: #48c78e;
+  background-color: var(--chc-container-success);
   color: #fff;
 }
 
@@ -259,7 +259,7 @@
 }
 
 .notification.is-danger {
-  background-color: #f14668;
+  background-color: var(--chc-container-danger);
   color: #fff;
 }
 
@@ -269,7 +269,7 @@
 }
 
 .notification.is-warning {
-  background-color: #ffe08a;
+  background-color: var(--chc-container-warning);
   color: rgba(0, 0, 0, 0.7);
 }
 
@@ -279,13 +279,32 @@
 }
 
 .notification.is-primary {
-  background-color: #00d1b2;
+  background-color: var(--chc-container-primary);
   color: #fff;
 }
 
 .notification.is-link {
-  background-color: #485fc7;
+  background-color: var(--chc-container-link);
   color: #fff;
+}
+
+/* ── Dark mode notification overrides ───────────────────── */
+[data-theme='dark'] .notification.is-warning { color: #fff; }
+[data-theme='dark'] .notification.is-info.is-light {
+  background-color: rgba(53, 113, 179, 0.15);
+  color: #7ab8e8;
+}
+[data-theme='dark'] .notification.is-success.is-light {
+  background-color: rgba(40, 122, 74, 0.15);
+  color: #6dd89a;
+}
+[data-theme='dark'] .notification.is-danger.is-light {
+  background-color: rgba(184, 58, 58, 0.15);
+  color: #ff8a8a;
+}
+[data-theme='dark'] .notification.is-warning.is-light {
+  background-color: rgba(160, 134, 32, 0.15);
+  color: #e6c84e;
 }
 
 /* ── Generic state ───────────────────────────────────────── */

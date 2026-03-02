@@ -1,4 +1,3 @@
-import { resultsInfoStyle, resultsItemStyle } from '../../styles/resultStyles';
 import { getSelectedMatchUpStyle } from '../../styles/getSelectedMatchUpStyle';
 import { matchUpContainerStyle } from '../../styles/matchUpContainerStyle';
 import { getMatchUpStyle } from '../../styles/getMatchUpStyle';
@@ -7,7 +6,7 @@ import { getLinkStyle } from '../../styles/getLinkStyle';
 import { isFunction } from '../modal/cmodal';
 import { renderSide } from './renderSide';
 import cx from 'classnames';
-import type { Composition, EventHandlers, MatchUp, SetScore } from '../../types';
+import type { Composition, EventHandlers, MatchUp } from '../../types';
 
 export function renderMatchUp(params: {
   composition?: Composition;
@@ -48,7 +47,7 @@ export function renderMatchUp(params: {
   const linkClass = linkResult.className;
 
   const configuration = composition?.configuration || {};
-  const { resultsInfo, centerInfo } = configuration || {};
+  const { centerInfo } = configuration || {};
 
   const eventHandlers = params.eventHandlers || {};
   const handleOnClick = (pointerEvent: MouseEvent) => {
@@ -114,11 +113,6 @@ export function renderMatchUp(params: {
   // Apply link connector CSS custom properties to side2 (or side container with link class)
   if (!centerInfo) linkResult.applyStyles(side2);
 
-  if (resultsInfo) {
-    const info = renderResultsInfo({ score: matchUp.score });
-    component.appendChild(info);
-  }
-
   container.appendChild(component);
 
   if (selectedMatchUpId === matchUp.matchUpId) {
@@ -128,30 +122,4 @@ export function renderMatchUp(params: {
   }
 
   return container;
-}
-
-function renderResultsInfo({ score }: { score?: { sets?: SetScore[] } }): HTMLElement {
-  const sets = score?.sets?.filter(Boolean).sort((a, b) => (a.setNumber || 0) - (b.setNumber || 0));
-  const finalSet = sets?.at(-1);
-  const points = finalSet?.side1PointsScore || finalSet?.side2PointsScore;
-
-  const div = document.createElement('div');
-  div.className = resultsInfoStyle();
-
-  if (points) {
-    const pts = document.createElement('div');
-    pts.className = resultsItemStyle({ variant: 'points' });
-    pts.innerHTML = 'PTS';
-    div.appendChild(pts);
-  }
-
-  for (const set of sets || []) {
-    const setDiv = document.createElement('div');
-    setDiv.setAttribute('key', String(set.setNumber));
-    setDiv.className = resultsItemStyle({ variant: 'set' });
-    setDiv.innerHTML = String(set.setNumber);
-    div.appendChild(setDiv);
-  }
-
-  return div;
 }

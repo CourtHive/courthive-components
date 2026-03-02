@@ -145,7 +145,7 @@
   {
     "key": "padelStarPoint",
     "name": "Padel Star Point (2026)",
-    "format": "SET3-S:6NOAD/TB7-G:TN3D",
+    "format": "SET3-S:6/TB7-G:TN3D",
     "desc": "Best of 3 sets to 6, golden point, Star Point deuce"
   },
   {

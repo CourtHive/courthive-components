@@ -10,12 +10,14 @@ const {
   CONSOLATION,
   QUALIFYING,
   PLAY_OFF,
-  CUSTOM,
+  SINGLE_ELIMINATION,
+  FEED_IN,
   FIRST_MATCH_LOSER_CONSOLATION,
   FIRST_ROUND_LOSER_CONSOLATION,
   FEED_IN_CHAMPIONSHIP,
   COMPASS,
   WINNER,
+  LOSER,
   ROUND_ROBIN,
   ROUND_ROBIN_WITH_PLAYOFF
 } = drawDefinitionConstants;
@@ -47,10 +49,8 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
 
   // Determine the effective draw type.
   // Use the main node's drawType, or map to a composite type for consolation.
-  // Multi-structure topologies (qualifying, consolation, or playoff) use CUSTOM
-  // unless the consolation maps to a recognized composite type.
+  // The factory handles qualifyingProfiles independently, so no CUSTOM wrapper is needed.
   let drawType = mainNode.drawType;
-  const hasExtraStructures = qualifyingNodes.length > 0 || consolationNodes.length > 0 || playoffNodes.length > 0;
 
   if (
     drawType !== COMPASS &&
@@ -61,8 +61,12 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
     const consolationType = consolationNodes[0].drawType;
     const composite = CONSOLATION_COMPOSITE_TYPES[consolationType];
     if (composite) drawType = composite;
-  } else if (hasExtraStructures) {
-    drawType = CUSTOM;
+  }
+
+  // Coerce SINGLE_ELIMINATION to FEED_IN for non-power-of-2 draw sizes.
+  // FEED_IN uses feedInMatchUps() which properly handles staggered entry.
+  if (drawType === SINGLE_ELIMINATION && !isPowerOf2(mainNode.drawSize)) {
+    drawType = FEED_IN;
   }
 
   const drawOptions: any = {
@@ -165,24 +169,61 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
     if (Object.keys(playoffAttributes).length > 0) {
       drawOptions.playoffAttributes = playoffAttributes;
     }
-  } else {
-    // Non-RR playoff handling (legacy: uses sourceRoundNumber)
-    for (const playoffNode of playoffNodes) {
-      const playoffEdges = state.edges.filter(
-        (e) => e.sourceNodeId === playoffNode.id || e.targetNodeId === playoffNode.id
-      );
-      const sourceEdge = playoffEdges.find((e) => e.targetNodeId === playoffNode.id);
-      const roundNumbers = sourceEdge?.sourceRoundNumber ? [sourceEdge.sourceRoundNumber] : [];
-
-      postGenerationMethods.push({
-        method: 'addPlayoffStructures',
-        params: {
-          roundProfiles: roundNumbers.map((rn) => ({ [rn]: 1 })),
-          playoffStructureNameBase: playoffNode.structureName
-        }
-      });
+  } else if (playoffNodes.length > 0) {
+    // Non-RR playoff handling: build recursive withPlayoffs tree
+    const tree = buildPlayoffTree(mainNode.id, playoffNodes, state.edges);
+    if (tree) {
+      drawOptions.withPlayoffs = tree;
     }
   }
 
   return { drawOptions, postGenerationMethods };
+}
+
+function buildPlayoffTree(
+  sourceNodeId: string,
+  playoffNodes: TopologyNode[],
+  edges: TopologyEdge[]
+): any | undefined {
+  // Find LOSER edges FROM this source node TO playoff nodes
+  const outEdges = edges.filter(
+    (e) =>
+      e.sourceNodeId === sourceNodeId && e.linkType === LOSER && playoffNodes.some((n) => n.id === e.targetNodeId)
+  );
+  if (!outEdges.length) return undefined;
+
+  const roundProfiles: { [key: number]: number }[] = [];
+  const playoffAttributes: Record<string, { name: string; abbreviation: string }> = {};
+  const roundPlayoffs: Record<number, any> = {};
+
+  for (const edge of outEdges) {
+    if (!edge.sourceRoundNumber) continue;
+    const targetNode = playoffNodes.find((n) => n.id === edge.targetNodeId);
+    if (!targetNode) continue;
+
+    roundProfiles.push({ [edge.sourceRoundNumber]: 1 });
+    const attrKey = `0-${roundProfiles.length}`;
+    playoffAttributes[attrKey] = {
+      name: targetNode.structureName,
+      abbreviation: targetNode.structureName.substring(0, 3)
+    };
+
+    // Recurse: does this playoff node itself feed other playoff nodes?
+    const childTree = buildPlayoffTree(targetNode.id, playoffNodes, edges);
+    if (childTree) {
+      roundPlayoffs[edge.sourceRoundNumber] = childTree;
+    }
+  }
+
+  if (!roundProfiles.length) return undefined;
+
+  return {
+    roundProfiles,
+    ...(Object.keys(playoffAttributes).length > 0 && { playoffAttributes }),
+    ...(Object.keys(roundPlayoffs).length > 0 && { roundPlayoffs })
+  };
+}
+
+function isPowerOf2(n: number): boolean {
+  return n > 0 && (n & (n - 1)) === 0;
 }

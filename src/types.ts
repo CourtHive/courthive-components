@@ -121,8 +121,8 @@ export interface SetScore {
   side2Score?: number;
   side1TiebreakScore?: number;
   side2TiebreakScore?: number;
-  side1PointsScore?: number;
-  side2PointsScore?: number;
+  side1PointsScore?: number | string;
+  side2PointsScore?: number | string;
   winningSide?: number;
 }
 
@@ -153,6 +153,10 @@ export interface Configuration {
   resultsInfo?: boolean;
   scoreBox?: boolean;
   gameScoreOnly?: boolean;
+  gameScore?: {
+    position?: 'leading' | 'trailing';
+    inverted?: boolean;
+  };
   drawPositions?: boolean;
   allDrawPositions?: boolean;
   bracketedSeeds?: boolean | 'square';

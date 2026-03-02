@@ -15,6 +15,7 @@ import { TopologyBuilderControl } from '../components/topology-builder/controlle
 import { standardTemplates } from '../components/topology-builder/domain/templates';
 import { topologyToDrawOptions } from '../components/topology-builder/domain/topologyToDrawOptions';
 import { validateTopology } from '../components/topology-builder/domain/topologyValidator';
+import { generateDrawFromTopology } from '../components/topology-builder/domain/generateDrawFromTopology';
 import type { TopologyBuilderConfig, TopologyState, TopologyTemplate } from '../components/topology-builder/types';
 
 const CANVAS_HEIGHT = '800px';
@@ -90,10 +91,19 @@ function renderBuilder(config: TopologyBuilderConfig = {}): HTMLElement {
       conversionError = err.message;
     }
 
+    // Run the full factory generation pipeline
+    const generationResult = generateDrawFromTopology(state);
+
     const payload = {
       ...(result ? { drawOptions: result.drawOptions, postGenerationMethods: result.postGenerationMethods } : {}),
       ...(conversionError ? { conversionError } : {}),
       validationErrors,
+      generationResult: {
+        success: generationResult.success,
+        ...(generationResult.structures ? { structures: generationResult.structures } : {}),
+        ...(generationResult.linkCount != null ? { linkCount: generationResult.linkCount } : {}),
+        ...(generationResult.error ? { error: generationResult.error } : {}),
+      },
     };
 
     showGenerateModal(payload);
