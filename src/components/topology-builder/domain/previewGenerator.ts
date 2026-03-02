@@ -5,7 +5,7 @@
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import type { SchematicMatchUp } from '../../renderSchematicStructure';
 
-const { ROUND_ROBIN } = drawDefinitionConstants;
+const { ROUND_ROBIN, AD_HOC } = drawDefinitionConstants;
 
 let matchUpCounter = 0;
 
@@ -24,6 +24,9 @@ export function generatePreviewMatchUps({
 }): SchematicMatchUp[] {
   if (drawType === ROUND_ROBIN) {
     return generateRoundRobinPreview({ drawSize, stage, structureId });
+  }
+  if (drawType === AD_HOC) {
+    return generateAdHocPreview({ drawSize, stage, structureId });
   }
   return generateEliminationPreview({ drawSize, stage, structureId, qualifyingPositions });
 }
@@ -156,6 +159,32 @@ function generateRoundRobinPreview({
         });
       }
     }
+  }
+
+  return matchUps;
+}
+
+function generateAdHocPreview({
+  drawSize,
+  stage,
+  structureId,
+}: {
+  drawSize: number;
+  stage?: string;
+  structureId?: string;
+}): SchematicMatchUp[] {
+  const matchUps: SchematicMatchUp[] = [];
+  const count = Math.max(1, Math.floor(drawSize / 2));
+
+  for (let pos = 1; pos <= count; pos++) {
+    matchUps.push({
+      matchUpId: `preview-${++matchUpCounter}`,
+      roundNumber: 1,
+      roundPosition: pos,
+      finishingRound: 1,
+      stage,
+      structureId,
+    });
   }
 
   return matchUps;

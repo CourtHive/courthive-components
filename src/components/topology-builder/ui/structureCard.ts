@@ -8,7 +8,7 @@ import { generatePreviewMatchUps } from '../domain/previewGenerator';
 import { getPlayoffProfiles } from '../domain/playoffProfilesCache';
 import type { TopologyNode } from '../types';
 
-const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, WINNER, LOSER } = drawDefinitionConstants;
+const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, AD_HOC, WINNER, LOSER } = drawDefinitionConstants;
 const RR_TYPES = new Set([ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF]);
 
 const MIN_CARD_WIDTH = 240;
@@ -24,6 +24,9 @@ export function getNumRounds(node: TopologyNode): number {
   if (RR_TYPES.has(node.drawType)) {
     const groupSize = node.structureOptions?.groupSize || Math.min(node.drawSize, 4);
     return groupSize - 1;
+  }
+  if (node.drawType === AD_HOC) {
+    return 1;
   }
   const n = Math.max(2, node.drawSize);
   const base = Math.pow(2, Math.floor(Math.log2(n)));
