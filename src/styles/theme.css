@@ -55,6 +55,14 @@
   --chc-pill-bg-warning: #f7ae04;
   --chc-pill-bg-dark: #363636;
 
+  /* ── Container fills — solid intent backgrounds (light = Bulma defaults) */
+  --chc-container-primary: #00d1b2;
+  --chc-container-link: #485fc7;
+  --chc-container-info: #3e8ed0;
+  --chc-container-danger: #f14668;
+  --chc-container-success: #48c78e;
+  --chc-container-warning: #ffe08a;
+
   /* ── Draw / MatchUp tokens ─────────────────────────────── */
   --chc-line-height-game-score: 2rem;
   --chc-line-height-center-info: 1.5rem;
@@ -196,6 +204,14 @@
   --chc-pill-bg-success: #7dd87d;
   --chc-pill-bg-warning: #ffd54f;
   --chc-pill-bg-dark: #b0b0b0;
+
+  /* ── Container fills — darker for solid backgrounds with white text */
+  --chc-container-primary: #0d7369;
+  --chc-container-link: #3566a8;
+  --chc-container-info: #3571b3;
+  --chc-container-danger: #b83a3a;
+  --chc-container-success: #287a4a;
+  --chc-container-warning: #a08620;
 
   /* ── Draw / MatchUp tokens (dark overrides) ────────────── */
   /* Line heights, border widths, spacing, font sizes, set width,

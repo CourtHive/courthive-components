@@ -50,7 +50,7 @@
 
 /* Info */
 .button.is-info {
-  background-color: #3e8ed0;
+  background-color: var(--chc-container-info);
   border-color: transparent;
   color: #fff;
 }
@@ -73,7 +73,7 @@
 
 /* Success */
 .button.is-success {
-  background-color: #48c78e;
+  background-color: var(--chc-container-success);
   border-color: transparent;
   color: #fff;
 }
@@ -96,7 +96,7 @@
 
 /* Danger */
 .button.is-danger {
-  background-color: #f14668;
+  background-color: var(--chc-container-danger);
   border-color: transparent;
   color: #fff;
 }
@@ -119,7 +119,7 @@
 
 /* Warning */
 .button.is-warning {
-  background-color: #ffe08a;
+  background-color: var(--chc-container-warning);
   border-color: transparent;
   color: rgba(0, 0, 0, 0.7);
 }
@@ -142,7 +142,7 @@
 
 /* Primary */
 .button.is-primary {
-  background-color: #00d1b2;
+  background-color: var(--chc-container-primary);
   border-color: transparent;
   color: #fff;
 }
@@ -165,7 +165,7 @@
 
 /* Link */
 .button.is-link {
-  background-color: #485fc7;
+  background-color: var(--chc-container-link);
   border-color: transparent;
   color: #fff;
 }
@@ -273,3 +273,18 @@
 .delete:hover {
   background-color: rgba(10, 10, 10, 0.3);
 }
+
+/* ── Dark mode intent overrides ─────────────────────────── */
+[data-theme='dark'] .button.is-info:hover { background-color: #3d82c4; }
+[data-theme='dark'] .button.is-info:active { background-color: #2e6ea6; }
+[data-theme='dark'] .button.is-success:hover { background-color: #2e8b55; }
+[data-theme='dark'] .button.is-success:active { background-color: #236b42; }
+[data-theme='dark'] .button.is-danger:hover { background-color: #c74444; }
+[data-theme='dark'] .button.is-danger:active { background-color: #a03232; }
+[data-theme='dark'] .button.is-warning { color: #fff; }
+[data-theme='dark'] .button.is-warning:hover { background-color: #b8962e; }
+[data-theme='dark'] .button.is-warning:active { background-color: #8a7118; }
+[data-theme='dark'] .button.is-primary:hover { background-color: #108575; }
+[data-theme='dark'] .button.is-primary:active { background-color: #0a5e53; }
+[data-theme='dark'] .button.is-link:hover { background-color: #3e74b8; }
+[data-theme='dark'] .button.is-link:active { background-color: #2c5892; }
