@@ -15,18 +15,21 @@ export function generatePreviewMatchUps({
   stage,
   structureId,
   qualifyingPositions,
+  structureOptions,
 }: {
   drawType: string;
   drawSize: number;
   stage?: string;
   structureId?: string;
   qualifyingPositions?: number;
+  structureOptions?: any;
 }): SchematicMatchUp[] {
   if (drawType === ROUND_ROBIN) {
     return generateRoundRobinPreview({ drawSize, stage, structureId });
   }
   if (drawType === AD_HOC) {
-    return generateAdHocPreview({ drawSize, stage, structureId });
+    const roundsCount = structureOptions?.roundsCount || 1;
+    return generateAdHocPreview({ drawSize, stage, structureId, roundsCount });
   }
   return generateEliminationPreview({ drawSize, stage, structureId, qualifyingPositions });
 }
@@ -168,23 +171,27 @@ function generateAdHocPreview({
   drawSize,
   stage,
   structureId,
+  roundsCount = 1,
 }: {
   drawSize: number;
   stage?: string;
   structureId?: string;
+  roundsCount?: number;
 }): SchematicMatchUp[] {
   const matchUps: SchematicMatchUp[] = [];
-  const count = Math.max(1, Math.floor(drawSize / 2));
+  const matchUpsPerRound = Math.max(1, Math.floor(drawSize / 2));
 
-  for (let pos = 1; pos <= count; pos++) {
-    matchUps.push({
-      matchUpId: `preview-${++matchUpCounter}`,
-      roundNumber: 1,
-      roundPosition: pos,
-      finishingRound: 1,
-      stage,
-      structureId,
-    });
+  for (let r = 1; r <= roundsCount; r++) {
+    for (let pos = 1; pos <= matchUpsPerRound; pos++) {
+      matchUps.push({
+        matchUpId: `preview-${++matchUpCounter}`,
+        roundNumber: r,
+        roundPosition: pos,
+        finishingRound: 1,
+        stage,
+        structureId,
+      });
+    }
   }
 
   return matchUps;
