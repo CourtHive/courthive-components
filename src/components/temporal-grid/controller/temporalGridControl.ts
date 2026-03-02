@@ -17,7 +17,7 @@
 import { Timeline } from 'vis-timeline/standalone';
 import { tools, temporal, type TemporalEngine } from 'tods-competition-factory';
 
-const { BLOCK_TYPES, clampDragToCollisions, findBlocksContainingTime, sortBlocksByStart } = temporal;
+const { BLOCK_TYPES } = temporal;
 type BlockType = temporal.BlockType;
 type CourtRef = temporal.CourtRef;
 type DayId = temporal.DayId;
@@ -69,7 +69,7 @@ export interface TemporalGridControlConfig {
   /** Callback when a court is selected */
   onCourtSelected?: (court: CourtRef) => void;
 
-  /** Callback when time range is selected (for painting) */
+  /** Callback when time range is selected */
   onTimeRangeSelected?: (params: { courts: CourtRef[]; start: string; end: string }) => void;
 
   /** Callback when engine blocks change (for stats bar, external consumers) */
@@ -103,8 +103,6 @@ export class TemporalGridControl {
   private currentDay: DayId | null = null;
   private currentView: string = 'day';
   private selectedCourts: Set<CourtRef> = new Set();
-  private currentPaintType: BlockType | 'DELETE' = BLOCK_TYPES.BLOCKED;
-  private isPaintMode = false;
   private visibleCourts: Set<string> | null = null; // null = all visible, Set = filtered
 
   constructor(engine: TemporalEngine, config: TemporalGridControlConfig) {
@@ -125,11 +123,14 @@ export class TemporalGridControl {
   // ============================================================================
 
   private initialize(): void {
-    // Set initial day
+    // Set initial day — fall back to first tournament day or today
     if (this.config.initialDay) {
       this.currentDay = this.config.initialDay;
-      this.viewState.setSelectedDay(this.config.initialDay);
+    } else {
+      const days = this.engine.getTournamentDays();
+      this.currentDay = days.length > 0 ? days[0] : tools.dateTime.extractDate(new Date().toISOString());
     }
+    this.viewState.setSelectedDay(this.currentDay);
 
     // Set initial view
     if (this.config.initialView) {
@@ -144,24 +145,17 @@ export class TemporalGridControl {
   }
 
   /**
-   * Ensure timeline exists. If the container has layout, create immediately
-   * with initial data. If not (e.g., Storybook hasn't attached the element
-   * to the DOM yet), poll via requestAnimationFrame until layout is available.
+   * Ensure timeline exists. Defers creation to the next macro-task so the
+   * container has layout dimensions (matches the working story pattern).
    */
   private ensureTimeline(): void {
     if (this.timeline) return;
 
-    const tryCreate = () => {
-      if (this.timeline) return;
-      const height = this.config.container.clientHeight;
-      if (height > 0) {
-        this.createTimelineWithData(height);
-      } else {
-        requestAnimationFrame(tryCreate);
+    setTimeout(() => {
+      if (!this.timeline) {
+        this.createTimelineWithData();
       }
-    };
-
-    tryCreate();
+    }, 0);
   }
 
   /**
@@ -210,7 +204,7 @@ export class TemporalGridControl {
    * Passing data to the constructor avoids the empty→populated transition
    * that causes extra redraws.
    */
-  private createTimelineWithData(height: number): void {
+  private createTimelineWithData(): void {
     const engineConfig = this.engine.getConfig();
     const currentDay = this.currentDay || tools.dateTime.extractDate(new Date().toISOString());
 
@@ -269,20 +263,18 @@ export class TemporalGridControl {
       onMove: this.handleOnMove,
       onMoving: this.handleOnMoving,
 
-      // Layout
-      // - verticalScroll: false → timeline auto-sizes to content, CSS container scrolls
-      //   This avoids vis-timeline's internal scrollbar-width oscillation bug.
-      // - autoResize: false → no resize observer feedback loop
-      // - height: fixed pixel → stable offsetHeight reads, no redraw oscillation
+      // Layout — match the working story pattern:
+      // height '100%' lets vis-timeline fill its CSS container,
+      // verticalScroll true enables internal scroll for many groups,
+      // autoResize defaults to true so the timeline responds to container changes.
       orientation: { axis: 'top', item: 'top' },
       stack: false,
       groupHeightMode: 'fixed' as const,
       showCurrentTime: false,
-      verticalScroll: false,
+      verticalScroll: true,
       horizontalScroll: true,
       zoomKey: 'ctrlKey',
-      height,
-      autoResize: false,
+      height: '100%',
 
       // Group ordering
       groupOrder: 'order',
@@ -358,20 +350,6 @@ export class TemporalGridControl {
 
     this.timeline.setWindow(windowStart, windowEnd, { animation: false });
     this.timeline.setOptions({ timeAxis: preset.timeAxis });
-  }
-
-  /** Set paint mode and block type (or DELETE action) */
-  setPaintMode(enabled: boolean, blockType?: BlockType | 'DELETE'): void {
-    this.isPaintMode = enabled;
-
-    if (blockType) {
-      this.currentPaintType = blockType;
-    }
-
-    // Update cursor style
-    if (this.config.container) {
-      this.config.container.style.cursor = enabled ? 'crosshair' : 'default';
-    }
   }
 
   /** Select courts for multi-court operations */
@@ -498,9 +476,7 @@ export class TemporalGridControl {
 
   /**
    * onAdd: Called when user double-clicks or drags to create a new item.
-   *
-   * In paint mode: applies block directly via engine.
-   * Otherwise: shows a temporary box item, then opens type-picker popover.
+   * Shows a temporary box item, then click converts to range + popover.
    */
   private handleOnAdd = (item: any, callback: (item: any) => void): void => {
     const groupId = String(item.group);
@@ -510,55 +486,11 @@ export class TemporalGridControl {
       return;
     }
 
-    if (this.isPaintMode) {
-      // Always reject the native add — engine re-renders via subscription
-      callback(null);
-
-      if (this.currentPaintType === 'DELETE') return;
-
-      // Get start/end as timestamps
-      const startTime = new Date(item.start).getTime();
-      const endTime = new Date(item.end).getTime();
-
-      // Get existing blocks on this court for collision detection
-      const existingBlocks = this.engine.getDayBlocks(this.currentDay);
-      const blocksOnCourt = existingBlocks.filter(
-        (b) =>
-          b.court.tournamentId === court.tournamentId &&
-          b.court.venueId === court.venueId &&
-          b.court.courtId === court.courtId
-      );
-
-      // Check if starting inside an existing block
-      const blocksContaining = findBlocksContainingTime(startTime, blocksOnCourt);
-      if (blocksContaining.length > 0) return;
-
-      // Sort and clamp
-      sortBlocksByStart(blocksOnCourt);
-      const clamped = clampDragToCollisions(startTime, endTime, blocksOnCourt);
-
-      // Snap
-      const snappedStart = this.snapToMinutes(new Date(clamped.start), 5);
-      const snappedEnd = this.snapToMinutes(new Date(clamped.end), 5);
-
-      if (snappedEnd.getTime() <= snappedStart.getTime()) return;
-
-      // Apply block via engine
-      this.engine.applyBlock({
-        type: this.currentPaintType,
-        courts: [court],
-        timeRange: {
-          start: this.toLocalISO(snappedStart),
-          end: this.toLocalISO(snappedEnd)
-        }
-      });
-    } else {
-      // Show a temporary box item (with umbilical line); click will convert to range + popover
-      item.content = item.content || 'New Block';
-      item.style = 'background-color: #607D8B; border-color: #37474F; color: white;';
-      item.editable = { updateTime: true, updateGroup: true, remove: false };
-      callback(item);
-    }
+    // Show a temporary box item (with umbilical line); click will convert to range + popover
+    item.content = item.content || 'New Block';
+    item.style = 'background-color: #607D8B; border-color: #37474F; color: white;';
+    item.editable = { updateTime: true, updateGroup: true, remove: false };
+    callback(item);
   };
 
   /**
@@ -664,13 +596,6 @@ export class TemporalGridControl {
     // Toggle: clicking the same block that has an open popover closes it
     if (this.popoverManager.isActiveFor(itemId)) {
       this.popoverManager.destroy();
-      return;
-    }
-
-    // If in paint mode with DELETE selected, delete the block immediately
-    if (this.isPaintMode && this.currentPaintType === 'DELETE') {
-      const blockId = parseBlockEventId(itemId);
-      if (blockId) this.deleteBlock(blockId);
       return;
     }
 
