@@ -11,12 +11,17 @@
  *   → map to courthive-components MatchUp → renderMatchUp()
  */
 
+import { scoreGovernor, matchUpStatusConstants } from 'tods-competition-factory';
 import { renderContainer } from '../components/renderStructure/renderContainer';
 import { renderMatchUp } from '../components/renderStructure/renderMatchUp';
 import { compositions } from '../compositions/compositions';
-import { scoreGovernor, matchUpStatusConstants } from 'tods-competition-factory';
-import mcpFixtures from '../data/mcpFixtures.json';
 import type { MatchUp, Composition } from '../types';
+import mcpFixtures from '../data/mcpFixtures.json';
+
+const { ScoringEngine } = scoreGovernor;
+
+// ── CSS Constants ───────────────────────────────────────────────
+const INFO_STYLE = 'font-size:12px; color:var(--chc-text-muted); margin-bottom:8px; font-family:sans-serif;';
 
 // ── MCP fixture access ──────────────────────────────────────────
 interface McpFixture {
@@ -39,27 +44,26 @@ function getMcpFixture(matchIndex = 0): McpFixture {
   return fixtures[matchIndex % fixtures.length];
 }
 
-const { ScoringEngine } = scoreGovernor;
 const { IN_PROGRESS, COMPLETED } = matchUpStatusConstants;
+
+const UNFORCED_ERROR = 'Unforced Error';
+const STANDARD_ADVANTAGE = 'SET3-S:6/TB7';
 
 // ── MCP result → factory result mapping ──────────────────────────
 const RESULT_MAP: Record<string, string> = {
   Ace: 'Ace',
   Winner: 'Winner',
   'Serve Winner': 'Serve Winner',
-  'Unforced Error': 'Unforced Error',
-  Net: 'Unforced Error',
-  Out: 'Unforced Error',
+  'Unforced Error': UNFORCED_ERROR,
+  Net: UNFORCED_ERROR,
+  Out: UNFORCED_ERROR,
   'Forced Error': 'Forced Error',
-  'Double Fault': 'Double Fault',
+  'Double Fault': 'Double Fault'
 };
 
 // ── Bridge: ScoringEngine state → courthive-components MatchUp ──
 
-function engineToMatchUp(
-  engine: any,
-  fixture: { matchId?: number; players: string[] },
-): MatchUp {
+function engineToMatchUp(engine: any, fixture: { matchId?: number; players: string[] }): MatchUp {
   const score = engine.getScore();
   const isComplete = engine.isComplete();
 
@@ -75,8 +79,8 @@ function engineToMatchUp(
       !s.winningSide &&
       !isComplete && {
         side1PointsScore: score.pointDisplay[0],
-        side2PointsScore: score.pointDisplay[1],
-      }),
+        side2PointsScore: score.pointDisplay[1]
+      })
   }));
 
   const winner = engine.getWinner();
@@ -86,21 +90,21 @@ function engineToMatchUp(
     matchUpType: 'SINGLES',
     structureId: 'live',
     matchUpStatus: isComplete ? COMPLETED : IN_PROGRESS,
-    winningSide: winner != null ? winner + 1 : undefined,
+    winningSide: winner === null ? undefined : winner + 1,
     score: {
       sets,
-      scoreStringSide1: engine.getScoreboard() || (engine.getPointCount() > 0 ? '0-0' : undefined),
+      scoreStringSide1: engine.getScoreboard() || (engine.getPointCount() > 0 ? '0-0' : undefined)
     },
     sides: [
       {
         sideNumber: 1,
-        participant: { participantId: 'p1', participantName: fixture.players[0] },
+        participant: { participantId: 'p1', participantName: fixture.players[0] }
       },
       {
         sideNumber: 2,
-        participant: { participantId: 'p2', participantName: fixture.players[1] },
-      },
-    ],
+        participant: { participantId: 'p2', participantName: fixture.players[1] }
+      }
+    ]
   };
 }
 
@@ -130,13 +134,17 @@ function createPlaybackControls(state: PlaybackState): HTMLElement {
     return b;
   };
 
-  const playBtn = btn('Play', () => {
-    if (state.playing) {
-      pause();
-    } else {
-      play();
-    }
-  }, 'play-btn');
+  const playBtn = btn(
+    'Play',
+    () => {
+      if (state.playing) {
+        pause();
+      } else {
+        play();
+      }
+    },
+    'play-btn'
+  );
 
   const stepBackBtn = btn('Step Back', () => {
     pause();
@@ -178,7 +186,7 @@ function createPlaybackControls(state: PlaybackState): HTMLElement {
       winner: pt.winner,
       server: pt.server,
       result: RESULT_MAP[pt.result] || 'Winner',
-      rallyLength: pt.rallyLength,
+      rallyLength: pt.rallyLength
     });
     state.cursor++;
     refresh();
@@ -223,7 +231,7 @@ function createPlaybackControls(state: PlaybackState): HTMLElement {
 
 function createFormatButton({
   currentFormat,
-  onFormatChange,
+  onFormatChange
 }: {
   currentFormat: string;
   onFormatChange: (format: string) => void;
@@ -242,7 +250,7 @@ function createFormatButton({
         if (format && format !== currentFormat) {
           onFormatChange(format);
         }
-      },
+      }
     });
   };
 
@@ -253,12 +261,12 @@ function createFormatButton({
 
 function gameScoreComposition(
   compositionName: string,
-  gameScoreConfig: { position?: 'leading' | 'trailing'; inverted?: boolean },
+  gameScoreConfig: { position?: 'leading' | 'trailing'; inverted?: boolean }
 ): Composition {
   const base = compositions[compositionName] || compositions['Australian'];
   return {
     ...base,
-    configuration: { ...base.configuration, gameScore: gameScoreConfig },
+    configuration: { ...base.configuration, gameScore: gameScoreConfig }
   };
 }
 
@@ -267,23 +275,23 @@ function gameScoreComposition(
 const argTypes = {
   composition: {
     options: Object.keys(compositions),
-    control: { type: 'select' },
+    control: { type: 'select' }
   },
   matchIndex: {
     options: {
       'Federer vs Djokovic': 0,
       'Federer vs Wawrinka': 1,
       'Djokovic vs Nadal': 2,
-      'Schwartzman vs Cervantes': 3,
+      'Schwartzman vs Cervantes': 3
     },
-    control: 'select',
-  },
+    control: 'select'
+  }
 };
 
 export default {
   title: 'MatchUps/GameScore Live',
   tags: ['autodocs'],
-  argTypes,
+  argTypes
 };
 
 /**
@@ -299,10 +307,10 @@ export const LivePlayback = {
   render: (args: any) => {
     const composition = gameScoreComposition(args.composition || 'Australian', {
       position: 'trailing',
-      inverted: true,
+      inverted: true
     });
     const fixture = getMcpFixture(args.matchIndex || 0);
-    const engine = new ScoringEngine({ matchUpFormat: 'SET3-S:6/TB7' });
+    const engine = new ScoringEngine({ matchUpFormat: STANDARD_ADVANTAGE });
 
     const wrapper = document.createElement('div');
     wrapper.style.maxWidth = '550px';
@@ -323,20 +331,20 @@ export const LivePlayback = {
       cursor: 0,
       timer: null,
       playing: false,
-      onUpdate: renderCurrentState,
+      onUpdate: renderCurrentState
     };
 
     const controls = createPlaybackControls(state);
 
     const info = document.createElement('div');
-    info.style.cssText = 'font-size:12px; color:var(--chc-text-muted); margin-bottom:8px; font-family:sans-serif;';
+    info.style.cssText = INFO_STYLE;
     info.textContent = `${fixture.players[0]} vs ${fixture.players[1]} — ${fixture.points.length} points`;
 
     wrapper.append(info, controls, matchUpContainer);
     renderCurrentState();
 
     return wrapper;
-  },
+  }
 };
 
 /**
@@ -351,10 +359,10 @@ export const StepThrough = {
   render: (args: any) => {
     const composition = gameScoreComposition(args.composition || 'Australian', {
       position: 'trailing',
-      inverted: true,
+      inverted: true
     });
     const fixture = getMcpFixture(args.matchIndex || 0);
-    const engine = new ScoringEngine({ matchUpFormat: 'SET3-S:6/TB7' });
+    const engine = new ScoringEngine({ matchUpFormat: STANDARD_ADVANTAGE });
 
     const wrapper = document.createElement('div');
     wrapper.style.maxWidth = '550px';
@@ -382,17 +390,19 @@ export const StepThrough = {
         sit?.isGamePoint && 'GP',
         sit?.isSetPoint && 'SP',
         sit?.isMatchPoint && 'MP',
-        sit?.isTiebreak && 'TB',
+        sit?.isTiebreak && 'TB'
       ]
         .filter(Boolean)
         .join(' ');
 
       const lastPt = state.cursor > 0 ? fixture.points[state.cursor - 1] : null;
-      const result = lastPt ? `${lastPt.result}${lastPt.error ? ` (${lastPt.error})` : ''}` : '';
+      const errorSuffix = lastPt?.error ? ` (${lastPt.error})` : '';
+      const result = lastPt ? `${lastPt.result}${errorSuffix}` : '';
 
-      detailPanel.textContent = engine.getPointCount() > 0
-        ? `Points: ${pointDisplay}  |  ${result}  ${flags}`
-        : 'No points played yet — click Step Fwd to begin';
+      detailPanel.textContent =
+        engine.getPointCount() > 0
+          ? `Points: ${pointDisplay}  |  ${result}  ${flags}`
+          : 'No points played yet — click Step Fwd to begin';
     }
 
     const state: PlaybackState = {
@@ -401,20 +411,20 @@ export const StepThrough = {
       cursor: 0,
       timer: null,
       playing: false,
-      onUpdate: renderCurrentState,
+      onUpdate: renderCurrentState
     };
 
     const controls = createPlaybackControls(state);
 
     const info = document.createElement('div');
-    info.style.cssText = 'font-size:12px; color:var(--chc-text-muted); margin-bottom:8px; font-family:sans-serif;';
+    info.style.cssText = INFO_STYLE;
     info.textContent = `${fixture.players[0]} vs ${fixture.players[1]} — ${fixture.points.length} points`;
 
     wrapper.append(info, controls, matchUpContainer, detailPanel);
     renderCurrentState();
 
     return wrapper;
-  },
+  }
 };
 
 /**
@@ -428,10 +438,10 @@ export const LeadingPosition = {
   render: (args: any) => {
     const composition = gameScoreComposition(args.composition || 'Australian', {
       position: 'leading',
-      inverted: true,
+      inverted: true
     });
     const fixture = getMcpFixture(args.matchIndex || 0);
-    const engine = new ScoringEngine({ matchUpFormat: 'SET3-S:6/TB7' });
+    const engine = new ScoringEngine({ matchUpFormat: STANDARD_ADVANTAGE });
 
     const wrapper = document.createElement('div');
     wrapper.style.maxWidth = '550px';
@@ -452,7 +462,7 @@ export const LeadingPosition = {
       cursor: 0,
       timer: null,
       playing: false,
-      onUpdate: renderCurrentState,
+      onUpdate: renderCurrentState
     };
 
     const controls = createPlaybackControls(state);
@@ -460,7 +470,7 @@ export const LeadingPosition = {
     renderCurrentState();
 
     return wrapper;
-  },
+  }
 };
 
 /**
@@ -474,7 +484,7 @@ export const AllCompositions = {
   args: { matchIndex: 0 },
   render: (args: any) => {
     const fixture = getMcpFixture(args.matchIndex || 0);
-    const engine = new ScoringEngine({ matchUpFormat: 'SET3-S:6/TB7' });
+    const engine = new ScoringEngine({ matchUpFormat: STANDARD_ADVANTAGE });
 
     // Feed enough points to get a meaningful score
     const pointCount = Math.min(15, fixture.points.length);
@@ -484,7 +494,7 @@ export const AllCompositions = {
         winner: pt.winner as 0 | 1,
         server: pt.server as 0 | 1,
         result: (RESULT_MAP[pt.result] || 'Winner') as any,
-        rallyLength: pt.rallyLength,
+        rallyLength: pt.rallyLength
       });
     }
 
@@ -502,8 +512,8 @@ export const AllCompositions = {
 
     for (const [name, comp] of Object.entries(compositions)) {
       const composition: Composition = {
-        ...(comp as Composition),
-        configuration: { ...(comp as Composition).configuration, gameScore: { position: 'trailing', inverted: true } },
+        ...comp,
+        configuration: { ...comp.configuration, gameScore: { position: 'trailing', inverted: true } }
       };
 
       const label = document.createElement('div');
@@ -518,7 +528,7 @@ export const AllCompositions = {
     }
 
     return wrapper;
-  },
+  }
 };
 
 /**
@@ -532,10 +542,10 @@ export const NotInverted = {
   render: (args: any) => {
     const composition = gameScoreComposition(args.composition || 'Australian', {
       position: 'trailing',
-      inverted: false,
+      inverted: false
     });
     const fixture = getMcpFixture(args.matchIndex || 0);
-    const engine = new ScoringEngine({ matchUpFormat: 'SET3-S:6/TB7' });
+    const engine = new ScoringEngine({ matchUpFormat: STANDARD_ADVANTAGE });
 
     const wrapper = document.createElement('div');
     wrapper.style.maxWidth = '550px';
@@ -556,7 +566,7 @@ export const NotInverted = {
       cursor: 0,
       timer: null,
       playing: false,
-      onUpdate: renderCurrentState,
+      onUpdate: renderCurrentState
     };
 
     const controls = createPlaybackControls(state);
@@ -564,7 +574,7 @@ export const NotInverted = {
     renderCurrentState();
 
     return wrapper;
-  },
+  }
 };
 
 /**
@@ -580,7 +590,7 @@ export const FixturePlayback = {
   render: (args: any) => {
     const compositionName = args.composition || 'Australian';
     const fixture = getMcpFixture(args.matchIndex || 0);
-    let currentFormat = 'SET3-S:6/TB7';
+    let currentFormat = STANDARD_ADVANTAGE;
 
     const outer = document.createElement('div');
     outer.style.maxWidth = '550px';
@@ -590,7 +600,7 @@ export const FixturePlayback = {
 
       const composition = gameScoreComposition(compositionName, {
         position: 'trailing',
-        inverted: true,
+        inverted: true
       });
 
       const engine = new ScoringEngine({ matchUpFormat: currentFormat });
@@ -617,7 +627,7 @@ export const FixturePlayback = {
         onFormatChange: (newFormat) => {
           currentFormat = newFormat;
           buildUI();
-        },
+        }
       });
       formatRow.append(formatLabel, formatBtn);
 
@@ -627,13 +637,13 @@ export const FixturePlayback = {
         cursor: 0,
         timer: null,
         playing: false,
-        onUpdate: renderCurrentState,
+        onUpdate: renderCurrentState
       };
 
       const controls = createPlaybackControls(state);
 
       const info = document.createElement('div');
-      info.style.cssText = 'font-size:12px; color:var(--chc-text-muted); margin-bottom:8px; font-family:sans-serif;';
+      info.style.cssText = INFO_STYLE;
       info.textContent = `${fixture.players[0]} vs ${fixture.players[1]} — ${fixture.points.length} points`;
 
       outer.append(formatRow, info, controls, matchUpContainer);
@@ -642,7 +652,7 @@ export const FixturePlayback = {
 
     buildUI();
     return outer;
-  },
+  }
 };
 
 /**
@@ -659,12 +669,12 @@ export const FormatExplorer = {
   argTypes: {
     composition: {
       options: Object.keys(compositions),
-      control: { type: 'select' },
-    },
+      control: { type: 'select' }
+    }
   },
   render: (args: any) => {
     const compositionName = args.composition || 'Australian';
-    let currentFormat = 'SET3-S:6/TB7';
+    let currentFormat = STANDARD_ADVANTAGE;
     const players = ['Player 1', 'Player 2'];
 
     const outer = document.createElement('div');
@@ -675,7 +685,7 @@ export const FormatExplorer = {
 
       const composition = gameScoreComposition(compositionName, {
         position: 'trailing',
-        inverted: true,
+        inverted: true
       });
 
       const engine = new ScoringEngine({ matchUpFormat: currentFormat });
@@ -706,7 +716,7 @@ export const FormatExplorer = {
           sit?.isBreakPoint && 'Break Point',
           sit?.isGamePoint && 'Game Point',
           sit?.isSetPoint && 'Set Point',
-          sit?.isMatchPoint && 'Match Point',
+          sit?.isMatchPoint && 'Match Point'
         ].filter(Boolean);
 
         const pointDisplay = score.pointDisplay ? score.pointDisplay.join('-') : '';
@@ -732,7 +742,7 @@ export const FormatExplorer = {
           if (autoTimer) clearInterval(autoTimer);
           currentFormat = newFormat;
           buildUI();
-        },
+        }
       });
       formatRow.append(formatLabel, formatBtn);
 
@@ -789,7 +799,7 @@ export const FormatExplorer = {
           autoBtn.textContent = 'Stop';
           autoTimer = setInterval(() => {
             if (engine.isComplete()) {
-              clearInterval(autoTimer!);
+              clearInterval(autoTimer);
               autoTimer = null;
               autoBtn.textContent = 'Auto';
               return;
@@ -807,5 +817,5 @@ export const FormatExplorer = {
 
     buildUI();
     return outer;
-  },
+  }
 };
