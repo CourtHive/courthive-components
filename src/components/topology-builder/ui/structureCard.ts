@@ -8,8 +8,7 @@ import { generatePreviewMatchUps } from '../domain/previewGenerator';
 import { getPlayoffProfiles } from '../domain/playoffProfilesCache';
 import type { TopologyNode } from '../types';
 
-const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, AD_HOC, WINNER, LOSER } = drawDefinitionConstants;
-const RR_TYPES = new Set([ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF]);
+const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, ROUND_ROBIN, AD_HOC, WINNER, LOSER } = drawDefinitionConstants;
 
 const MIN_CARD_WIDTH = 240;
 const ROUND_LAYOUT_WIDTH = 48; // 40px matchup + 4px margin each side
@@ -21,11 +20,11 @@ const PREVIEW_PADDING = 16; // 8px left + 8px right
  * the rounds needed to produce that many qualifiers.
  */
 export function getNumRounds(node: TopologyNode): number {
-  if (RR_TYPES.has(node.drawType)) {
+  if (node.structureType === ROUND_ROBIN) {
     const groupSize = node.structureOptions?.groupSize || Math.min(node.drawSize, 4);
     return groupSize - 1;
   }
-  if (node.drawType === AD_HOC) {
+  if (node.structureType === AD_HOC) {
     return node.structureOptions?.roundsCount || 1;
   }
   const n = Math.max(2, node.drawSize);
@@ -76,6 +75,7 @@ export interface RoundAnnotation {
 export interface StructureCardCallbacks {
   onSelect: (nodeId: string) => void;
   onSelectEdge: (edgeId: string) => void;
+  onDoubleClick?: (nodeId: string) => void;
   onPortMouseDown: (nodeId: string, portType: 'winner' | 'loser') => void;
   onPortMouseUp: (nodeId: string) => void;
   onDragStart: (nodeId: string, startX: number, startY: number) => void;
@@ -122,7 +122,7 @@ export function buildStructureCard(
   preview.className = 'tb-card-preview';
 
   const matchUps = node.matchUps || generatePreviewMatchUps({
-    drawType: node.drawType,
+    structureType: node.structureType,
     drawSize: node.drawSize,
     stage: node.stage,
     structureId: node.id,
@@ -141,7 +141,7 @@ export function buildStructureCard(
       schematic.style.transformOrigin = 'top left';
       preview.appendChild(schematic);
     } catch {
-      preview.textContent = `${node.drawType} \u00d7${node.drawSize}`;
+      preview.textContent = `${node.structureType} \u00d7${node.drawSize}`;
       preview.style.cssText += 'font-size:11px;color:var(--chc-text-muted);display:flex;align-items:center;justify-content:center;';
     }
   }
@@ -180,7 +180,7 @@ export function buildStructureCard(
   }
 
   // Rounds info
-  const profiles = getPlayoffProfiles(node.drawType, node.drawSize, node.structureOptions?.groupSize);
+  const profiles = getPlayoffProfiles(node.structureType, node.drawSize, node.structureOptions?.groupSize);
   let roundsDiv: HTMLElement | null = null;
 
   if (profiles.playoffRoundsRanges?.length) {
@@ -262,6 +262,14 @@ export function buildStructureCard(
     e.stopPropagation();
     callbacks.onSelect(node.id);
   });
+
+  // Double-click
+  if (callbacks.onDoubleClick) {
+    card.addEventListener('dblclick', (e) => {
+      e.stopPropagation();
+      callbacks.onDoubleClick!(node.id);
+    });
+  }
 
   // Drag
   card.addEventListener('mousedown', (e) => {

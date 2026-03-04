@@ -18,10 +18,10 @@ const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, SINGLE_ELIMINATION, WINNER, LOS
 const POSITION = 'POSITION';
 
 export class TopologyBuilderControl {
-  private store: TopologyStore;
-  private layout: UIPanel<TopologyState>;
-  private unsubscribe: () => void;
-  private config: TopologyBuilderConfig;
+  private readonly store: TopologyStore;
+  private readonly layout: UIPanel<TopologyState>;
+  private readonly unsubscribe: () => void;
+  private readonly config: TopologyBuilderConfig;
 
   constructor(config: TopologyBuilderConfig = {}) {
     this.config = config;
@@ -39,7 +39,7 @@ export class TopologyBuilderControl {
             ...template.state,
             selectedNodeId: null,
             selectedEdgeId: null,
-            templateName: template.name,
+            templateName: template.name
           });
         },
         onAutoLayout: () => {
@@ -49,56 +49,63 @@ export class TopologyBuilderControl {
           this.store.loadState(state);
         },
         onGenerate: () => this.handleGenerate(),
-        onSaveTemplate: config.onSaveTemplate
-          ? () => config.onSaveTemplate!(this.store.getState())
-          : undefined,
-        onClear: config.onClear,
+        onSaveTemplate: config.onSaveTemplate ? () => config.onSaveTemplate!(this.store.getState()) : undefined,
+        onClear: config.onClear
       },
       allTemplates,
-      { hideTemplates: config.hideTemplates, readOnly: isReadOnly },
+      { hideTemplates: config.hideTemplates, readOnly: isReadOnly }
     );
 
     // Build canvas
     const canvas = buildTopologyCanvas({
       onSelectNode: (nodeId) => this.store.selectNode(nodeId),
       onSelectEdge: (edgeId) => this.store.selectEdge(edgeId),
+      onDoubleClickNode: config.onDoubleClickNode
+        ? (nodeId) => {
+            const state = this.store.getState();
+            const node = state.nodes.find((n) => n.id === nodeId);
+            if (node) config.onDoubleClickNode(node, state);
+          }
+        : undefined,
       onMoveNode: (nodeId, x, y) => this.store.updateNode(nodeId, { position: { x, y } }),
-      onCreateEdge: isReadOnly ? () => {} : (sourceNodeId, targetNodeId, linkType) => {
-        const source = this.store.getState().nodes.find((n) => n.id === sourceNodeId);
+      onCreateEdge: isReadOnly
+        ? () => {}
+        : (sourceNodeId, targetNodeId, linkType) => {
+            const source = this.store.getState().nodes.find((n) => n.id === sourceNodeId);
 
-        if (linkType === POSITION) {
-          this.store.addEdge({
-            sourceNodeId,
-            targetNodeId,
-            linkType,
-            finishingPositions: [1],
-          });
-        } else {
-          const isQualifyingWinner = linkType === WINNER && source?.stage === QUALIFYING;
-          const sourceLastRound = source ? Math.ceil(Math.log2(source.drawSize)) : undefined;
-          this.store.addEdge({
-            sourceNodeId,
-            targetNodeId,
-            linkType,
-            ...(sourceLastRound && linkType === LOSER && { sourceRoundNumber: sourceLastRound }),
-            ...(isQualifyingWinner && { targetRoundNumber: 1 }),
-          });
-        }
-      },
-      onPortMouseDown: () => {},
+            if (linkType === POSITION) {
+              this.store.addEdge({
+                sourceNodeId,
+                targetNodeId,
+                linkType,
+                finishingPositions: [1]
+              });
+            } else {
+              const isQualifyingWinner = linkType === WINNER && source?.stage === QUALIFYING;
+              const sourceLastRound = source ? Math.ceil(Math.log2(source.drawSize)) : undefined;
+              this.store.addEdge({
+                sourceNodeId,
+                targetNodeId,
+                linkType,
+                ...(sourceLastRound && linkType === LOSER && { sourceRoundNumber: sourceLastRound }),
+                ...(isQualifyingWinner && { targetRoundNumber: 1 })
+              });
+            }
+          },
+      onPortMouseDown: () => {}
     });
 
     // Build editors
     const nodeEditor = buildNodeEditor({
       onUpdateNode: isReadOnly ? () => {} : (nodeId, updates) => this.store.updateNode(nodeId, updates),
       onDeleteNode: isReadOnly ? () => {} : (nodeId) => this.store.removeNode(nodeId),
-      readOnly: isReadOnly,
+      readOnly: isReadOnly
     });
 
     const edgeEditor = buildEdgeEditor({
       onUpdateEdge: isReadOnly ? () => {} : (edgeId, updates) => this.store.updateEdge(edgeId, updates),
       onDeleteEdge: isReadOnly ? () => {} : (edgeId) => this.store.removeEdge(edgeId),
-      readOnly: isReadOnly,
+      readOnly: isReadOnly
     });
 
     // Build layout
@@ -106,7 +113,7 @@ export class TopologyBuilderControl {
       toolbar,
       canvas,
       nodeEditor,
-      edgeEditor,
+      edgeEditor
     });
 
     // Subscribe to state changes
@@ -148,22 +155,22 @@ export class TopologyBuilderControl {
       [MAIN]: 'Main Draw',
       [QUALIFYING]: `Qualifying ${existingCount + 1}`,
       [CONSOLATION]: 'Consolation',
-      [PLAY_OFF]: `Playoff ${existingCount + 1}`,
+      [PLAY_OFF]: `Playoff ${existingCount + 1}`
     };
     const sizeMap: Record<string, number> = {
       [MAIN]: 32,
       [QUALIFYING]: 16,
       [CONSOLATION]: 16,
-      [PLAY_OFF]: 4,
+      [PLAY_OFF]: 4
     };
 
     const drawSize = sizeMap[stage] || 16;
     const node = this.store.addNode({
       structureName: nameMap[stage] || stage,
       stage: stage as any,
-      drawType: SINGLE_ELIMINATION,
+      structureType: SINGLE_ELIMINATION,
       drawSize,
-      ...(stage === QUALIFYING && { qualifyingPositions: Math.floor(drawSize / 4) }),
+      ...(stage === QUALIFYING && { qualifyingPositions: Math.floor(drawSize / 4) })
     });
 
     this.scrollCanvasToNode(node);
@@ -178,7 +185,7 @@ export class TopologyBuilderControl {
       if (rightEdge > canvasEl.scrollLeft + canvasEl.clientWidth) {
         canvasEl.scrollTo({
           left: rightEdge - canvasEl.clientWidth,
-          behavior: 'smooth',
+          behavior: 'smooth'
         });
       }
     });

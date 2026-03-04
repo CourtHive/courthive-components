@@ -203,6 +203,12 @@
     "desc": "3 rounds of 5 minutes, aggregate"
   },
   {
+    "key": "blw",
+    "name": "BLW Standard",
+    "format": "INN4XA-S:O3-M:T50",
+    "desc": "4 innings, 3 outs, 50 minute max match time"
+  },
+  {
     "key": "typti",
     "name": "TYPTI Standard",
     "format": "SET5-S:5-G:3C",

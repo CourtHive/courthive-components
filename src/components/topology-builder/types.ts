@@ -7,7 +7,7 @@ export interface TopologyNode {
   id: string;
   structureName: string;
   stage: 'MAIN' | 'QUALIFYING' | 'CONSOLATION' | 'PLAY_OFF';
-  drawType: string;
+  structureType: string;
   drawSize: number;
   qualifyingPositions?: number;
   matchUpFormat?: string;
@@ -43,6 +43,7 @@ export type TopologyChangeListener = (state: TopologyState) => void;
 export interface TopologyBuilderConfig {
   initialState?: Partial<TopologyState>;
   onGenerate?: (state: TopologyState) => void;
+  onDoubleClickNode?: (node: TopologyNode, state: TopologyState) => void;
   onSaveTemplate?: (state: TopologyState) => void;
   onClear?: () => void;
   templates?: TopologyTemplate[];

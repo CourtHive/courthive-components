@@ -35,6 +35,7 @@ export interface TemporalGridLabels {
   days3?: string;
   week?: string;
   tournament?: string;
+  courtAvailability?: string;
   totalHours?: string;
   blocked?: string;
   available?: string;
@@ -89,6 +90,11 @@ export interface TemporalGridConfig extends Partial<TemporalGridControlConfig>, 
    * i18n labels
    */
   labels?: TemporalGridLabels;
+
+  /**
+   * Language code for datepicker localization (e.g. 'en', 'fr', 'de')
+   */
+  language?: string;
 
   /**
    * Callback when "Set Default Availability" is clicked
@@ -311,6 +317,7 @@ export class TemporalGrid {
     const activeDaySet = new Set(days);
     this.datepicker = new Datepicker(this.viewToolbarResult.dateInput, {
       format: 'yyyy-mm-dd',
+      language: this.config.language || 'en',
       autohide: true,
       beforeShowDay: (date: Date) => {
         const y = date.getFullYear();
@@ -358,17 +365,22 @@ export class TemporalGrid {
     const header = this.rootElement?.querySelector('.temporal-grid-header');
     if (!header) return;
 
+    const labels = this.config.labels;
+    const courtAvailLabel = labels?.courtAvailability ?? 'Court Availability';
+    const totalHoursLabel = labels?.totalHours ?? 'Total Hours';
+    const avgPerCourtLabel = labels?.avgPerCourt ?? 'Avg/Court';
+
     const capacity = document.createElement('div');
     capacity.className = 'temporal-grid-capacity';
     capacity.innerHTML = `
-      <div class="capacity-label">Court Availability:</div>
+      <div class="capacity-label">${courtAvailLabel}:</div>
       <div class="capacity-stats">
         <div class="stat">
-          <span class="stat-label">Total Hours:</span>
+          <span class="stat-label">${totalHoursLabel}:</span>
           <span class="stat-value" id="total-hours">-</span>
         </div>
         <div class="stat">
-          <span class="stat-label">Avg/Court:</span>
+          <span class="stat-label">${avgPerCourtLabel}:</span>
           <span class="stat-value" id="avg-hours">-</span>
         </div>
       </div>

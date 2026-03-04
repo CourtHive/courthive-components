@@ -12,19 +12,10 @@ const {
   WINNER,
   LOSER,
   SINGLE_ELIMINATION,
-  DOUBLE_ELIMINATION,
-  FIRST_MATCH_LOSER_CONSOLATION,
-  FIRST_ROUND_LOSER_CONSOLATION,
-  FEED_IN_CHAMPIONSHIP,
-  COMPASS,
-  OLYMPIC,
-  CURTIS,
   ROUND_ROBIN,
-  ROUND_ROBIN_WITH_PLAYOFF,
 } = drawDefinitionConstants;
 
 const POSITION = 'POSITION';
-const RR_TYPES = new Set([ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF]);
 
 export interface ValidationError {
   severity: 'error' | 'warning';
@@ -54,19 +45,8 @@ export function validateTopology(state: TopologyState): ValidationError[] {
   }
 
   // Draw sizes: power of 2 for elimination types (unless they have fed positions)
-  const eliminationTypes = new Set([
-    SINGLE_ELIMINATION,
-    DOUBLE_ELIMINATION,
-    FIRST_MATCH_LOSER_CONSOLATION,
-    FIRST_ROUND_LOSER_CONSOLATION,
-    FEED_IN_CHAMPIONSHIP,
-    COMPASS,
-    OLYMPIC,
-    CURTIS,
-  ]);
-
   for (const node of state.nodes) {
-    if (eliminationTypes.has(node.drawType) && !nodesWithFeedLinks.has(node.id)) {
+    if (node.structureType === SINGLE_ELIMINATION && !nodesWithFeedLinks.has(node.id)) {
       const isPow2 = node.drawSize > 0 && (node.drawSize & (node.drawSize - 1)) === 0;
       if (!isPow2) {
         errors.push({
@@ -99,7 +79,7 @@ export function validateTopology(state: TopologyState): ValidationError[] {
     }
 
     if (source && edge.sourceRoundNumber) {
-      const maxRound = RR_TYPES.has(source.drawType)
+      const maxRound = source.structureType === ROUND_ROBIN
         ? (source.structureOptions?.groupSize || 4) - 1
         : getTotalRounds(source.drawSize);
       if (edge.sourceRoundNumber > maxRound || edge.sourceRoundNumber < 1) {
@@ -112,7 +92,7 @@ export function validateTopology(state: TopologyState): ValidationError[] {
     }
 
     if (target && edge.targetRoundNumber) {
-      const maxRound = RR_TYPES.has(target.drawType)
+      const maxRound = target.structureType === ROUND_ROBIN
         ? (target.structureOptions?.groupSize || 4) - 1
         : getTotalRounds(target.drawSize);
       if (edge.targetRoundNumber > maxRound || edge.targetRoundNumber < 1) {
@@ -267,7 +247,7 @@ export function validateTopology(state: TopologyState): ValidationError[] {
     positionEdgesBySource.get(edge.sourceNodeId)!.push({ edgeId: edge.id, positions: edge.finishingPositions || [] });
 
     const source = state.nodes.find((n) => n.id === edge.sourceNodeId);
-    if (source && RR_TYPES.has(source.drawType)) {
+    if (source && source.structureType === ROUND_ROBIN) {
       const groupSize = source.structureOptions?.groupSize || 4;
       for (const pos of edge.finishingPositions || []) {
         if (pos < 1 || pos > groupSize) {

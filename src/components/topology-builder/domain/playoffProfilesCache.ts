@@ -8,8 +8,7 @@
  */
 import { mocksEngine, tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
 
-const { ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } = drawDefinitionConstants;
-const RR_TYPES = new Set([ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF]);
+const { ROUND_ROBIN } = drawDefinitionConstants;
 
 export interface PlayoffRoundRange {
   roundNumber: number;
@@ -31,16 +30,16 @@ export interface PlayoffProfiles {
 const cache = new Map<string, PlayoffProfiles>();
 
 export function getPlayoffProfiles(
-  drawType: string,
+  structureType: string,
   drawSize: number,
   groupSize?: number,
 ): PlayoffProfiles {
-  const key = `${drawType}:${drawSize}:${groupSize || ''}`;
+  const key = `${structureType}:${drawSize}:${groupSize || ''}`;
   const cached = cache.get(key);
   if (cached) return cached;
 
   try {
-    const drawProfile: any = { drawSize, drawType };
+    const drawProfile: any = { drawSize, drawType: structureType };
     if (groupSize) {
       drawProfile.structureOptions = { groupSize };
     }
@@ -64,7 +63,7 @@ export function getPlayoffProfiles(
 
     let result: PlayoffProfiles = {};
 
-    if (isContainer || RR_TYPES.has(drawType)) {
+    if (isContainer || structureType === ROUND_ROBIN) {
       // RR / container: call without structureId
       const { availablePlayoffProfiles } =
         tournamentEngine.getAvailablePlayoffProfiles({ drawId });
