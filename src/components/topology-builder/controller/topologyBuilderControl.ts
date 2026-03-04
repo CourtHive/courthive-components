@@ -62,7 +62,7 @@ export class TopologyBuilderControl {
     const canvas = buildTopologyCanvas({
       onSelectNode: (nodeId) => this.store.selectNode(nodeId),
       onSelectEdge: (edgeId) => this.store.selectEdge(edgeId),
-      onMoveNode: isReadOnly ? () => {} : (nodeId, x, y) => this.store.updateNode(nodeId, { position: { x, y } }),
+      onMoveNode: (nodeId, x, y) => this.store.updateNode(nodeId, { position: { x, y } }),
       onCreateEdge: isReadOnly ? () => {} : (sourceNodeId, targetNodeId, linkType) => {
         const source = this.store.getState().nodes.find((n) => n.id === sourceNodeId);
 

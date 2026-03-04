@@ -1,8 +1,7 @@
 /**
- * View Toolbar — View-mode preset switcher.
+ * View Toolbar — View-mode preset switcher with date picker and action buttons.
  *
- * Extracted from VisTimelineBasic.stories.ts.
- * Provides Day / 3 Days / Week view buttons with CourtHive teal accent.
+ * Provides a date input + Day / 3 Days / Week view buttons + optional action buttons.
  */
 
 // ============================================================================
@@ -17,14 +16,33 @@ export interface ViewPreset {
   timeAxis: { scale: TimeAxisScale; step: number };
 }
 
+export interface ViewToolbarLabels {
+  view?: string;
+  day1?: string;
+  days3?: string;
+  week?: string;
+  tournament?: string;
+  setDefaultAvailability?: string;
+  saveToTournament?: string;
+}
+
+export interface ViewToolbarResult {
+  element: HTMLElement;
+  dateInput: HTMLInputElement;
+  setActiveView: (viewKey: string) => void;
+  setDate: (dateStr: string) => void;
+  setSaveEnabled: (enabled: boolean) => void;
+}
+
 // ============================================================================
 // Presets
 // ============================================================================
 
 export const VIEW_PRESETS: Record<string, ViewPreset> = {
   day: { label: '1 Day', days: 1, timeAxis: { scale: 'hour', step: 1 } },
-  tournament: { label: '3 Days', days: 3, timeAxis: { scale: 'hour', step: 3 } },
+  days3: { label: '3 Days', days: 3, timeAxis: { scale: 'hour', step: 3 } },
   week: { label: 'Week', days: 7, timeAxis: { scale: 'hour', step: 6 } },
+  all: { label: 'Tournament', days: 0, timeAxis: { scale: 'hour', step: 6 } },
 };
 
 // ============================================================================
@@ -34,46 +52,111 @@ export const VIEW_PRESETS: Record<string, ViewPreset> = {
 export function buildViewToolbar(
   onViewChange: (viewKey: string) => void,
   initialView?: string,
-): HTMLElement {
-  const bar = document.createElement('div');
-  bar.style.cssText =
-    'display:flex; align-items:center; gap:4px; padding:6px 12px; border-bottom:1px solid var(--chc-border-primary); background:var(--chc-bg-secondary); font-family:sans-serif; font-size:13px;';
+  onDateChange?: (dateStr: string) => void,
+  options?: {
+    labels?: ViewToolbarLabels;
+    onSetDefaultAvailability?: () => void;
+    onSave?: () => void;
+  },
+): ViewToolbarResult {
+  const labels = options?.labels;
 
-  const label = document.createElement('span');
-  label.textContent = 'View:';
-  label.style.cssText = 'color:var(--chc-text-secondary); margin-right:4px;';
-  bar.appendChild(label);
+  const bar = document.createElement('div');
+  bar.className = 'tg-view-toolbar';
+
+  const viewLabel = document.createElement('span');
+  viewLabel.textContent = (labels?.view ?? 'View') + ':';
+  viewLabel.className = 'tg-view-toolbar-label';
+  bar.appendChild(viewLabel);
+
+  // Date input
+  const dateInput = document.createElement('input');
+  dateInput.type = 'text';
+  dateInput.readOnly = true;
+  dateInput.className = 'tg-view-toolbar-date';
+  if (onDateChange) {
+    dateInput.addEventListener('changeDate', () => {
+      const val = dateInput.value;
+      if (val) onDateChange(val);
+    });
+  }
+  bar.appendChild(dateInput);
+
+  const presetLabels: Record<string, string> = {
+    day: labels?.day1 ?? '1 Day',
+    days3: labels?.days3 ?? '3 Days',
+    week: labels?.week ?? 'Week',
+    all: labels?.tournament ?? 'Tournament',
+  };
 
   const buttons: HTMLButtonElement[] = [];
+  const viewKeys: string[] = [];
   const activeView = initialView || 'day';
 
-  for (const [key, view] of Object.entries(VIEW_PRESETS)) {
-    const btn = document.createElement('button');
-    btn.textContent = view.label;
-    btn.style.cssText =
-      'padding:4px 12px; border:1px solid var(--chc-border-primary); border-radius:4px; cursor:pointer; font-size:13px; background:var(--chc-bg-elevated); color:var(--chc-text-primary);';
+  const setActiveView = (activeKey: string) => {
+    buttons.forEach((btn, i) => {
+      if (viewKeys[i] === activeKey) {
+        btn.className = 'tg-view-toolbar-btn tg-active';
+      } else {
+        btn.className = 'tg-view-toolbar-btn';
+      }
+    });
+  };
 
-    if (key === activeView) {
-      btn.style.background = '#218D8D';
-      btn.style.color = 'white';
-      btn.style.borderColor = '#218D8D';
-    }
+  for (const [key] of Object.entries(VIEW_PRESETS)) {
+    const btn = document.createElement('button');
+    btn.textContent = presetLabels[key];
+    btn.className = key === activeView ? 'tg-view-toolbar-btn tg-active' : 'tg-view-toolbar-btn';
 
     btn.addEventListener('click', () => {
-      for (const b of buttons) {
-        b.style.background = 'var(--chc-bg-elevated)';
-        b.style.color = 'var(--chc-text-primary)';
-        b.style.borderColor = 'var(--chc-border-primary)';
-      }
-      btn.style.background = '#218D8D';
-      btn.style.color = 'white';
-      btn.style.borderColor = '#218D8D';
+      setActiveView(key);
       onViewChange(key);
     });
 
     buttons.push(btn);
+    viewKeys.push(key);
     bar.appendChild(btn);
   }
 
-  return bar;
+  // Spacer to push action buttons to the right
+  if (options?.onSetDefaultAvailability || options?.onSave) {
+    const spacer = document.createElement('div');
+    spacer.className = 'tg-view-toolbar-spacer';
+    bar.appendChild(spacer);
+  }
+
+  // Set Default Availability button
+  if (options?.onSetDefaultAvailability) {
+    const btn = document.createElement('button');
+    btn.textContent = labels?.setDefaultAvailability ?? 'Set Default Availability';
+    btn.className = 'tg-view-toolbar-action tg-action-default';
+    btn.addEventListener('click', options.onSetDefaultAvailability);
+    bar.appendChild(btn);
+  }
+
+  // Save to Tournament button
+  let saveBtn: HTMLButtonElement | null = null;
+  if (options?.onSave) {
+    saveBtn = document.createElement('button');
+    saveBtn.textContent = labels?.saveToTournament ?? 'Save to Tournament';
+    saveBtn.className = 'tg-view-toolbar-action tg-action-save';
+    saveBtn.disabled = true;
+    saveBtn.style.opacity = '0.5';
+    saveBtn.style.cursor = 'not-allowed';
+    saveBtn.addEventListener('click', options.onSave);
+    bar.appendChild(saveBtn);
+  }
+
+  const setDate = (dateStr: string) => {
+    dateInput.value = dateStr;
+  };
+
+  const setSaveEnabled = (enabled: boolean) => {
+    if (!saveBtn) return;
+    saveBtn.disabled = !enabled;
+    saveBtn.style.opacity = enabled ? '1' : '0.5';
+    saveBtn.style.cursor = enabled ? 'pointer' : 'not-allowed';
+  };
+
+  return { element: bar, dateInput, setActiveView, setDate, setSaveEnabled };
 }

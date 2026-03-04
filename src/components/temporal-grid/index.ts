@@ -68,7 +68,9 @@ export {
 export {
   createTemporalGrid,
   TemporalGrid,
+  type TemporalGridCallbacks,
   type TemporalGridConfig,
+  type TemporalGridLabels,
 } from './ui/temporalGrid';
 
 export {
@@ -101,9 +103,21 @@ export {
 } from './ui/courtAvailabilityModal';
 
 // ============================================================================
+// CourtTimeline (custom timeline component, replaces vis-timeline)
+// ============================================================================
+
+export { CourtTimeline } from './timeline/CourtTimeline';
+export type {
+  TimelineGroupData,
+  TimelineItemData,
+  TimelineOptions,
+  TimelineCallbacks,
+  MultiRowSpan,
+} from './timeline/types';
+
+// ============================================================================
 // Styles
 // ============================================================================
 
 // Import styles (consumers need to include this in their build)
-import 'vis-timeline/styles/vis-timeline-graph2d.min.css';
 import './ui/styles.css';

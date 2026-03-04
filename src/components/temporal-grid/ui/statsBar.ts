@@ -1,7 +1,6 @@
 /**
  * Stats Bar — Horizontal capacity statistics strip.
  *
- * Extracted from VisTimelineBasic.stories.ts.
  * Shows total hours, blocked, available, and avg per court.
  */
 
@@ -16,35 +15,46 @@ export interface StatsBarUpdate {
   avgPerCourt: number;
 }
 
+export interface StatsBarLabels {
+  totalHours?: string;
+  blocked?: string;
+  available?: string;
+  avgPerCourt?: string;
+}
+
 // ============================================================================
 // Implementation
 // ============================================================================
 
-export function buildStatsBar(): {
+export function buildStatsBar(labels?: StatsBarLabels): {
   element: HTMLElement;
   update: (stats: StatsBarUpdate) => void;
 } {
+  const totalLabel = labels?.totalHours ?? 'Total Hours';
+  const blockedLabel = labels?.blocked ?? 'Blocked';
+  const availLabel = labels?.available ?? 'Available';
+  const avgLabel = labels?.avgPerCourt ?? 'Avg Avail/Court';
+
   const bar = document.createElement('div');
-  bar.style.cssText =
-    'display:flex; align-items:center; gap:20px; padding:6px 16px; border-bottom:1px solid var(--chc-border-primary); background:var(--chc-bg-secondary); font-family:sans-serif; font-size:13px; color:var(--chc-text-secondary);';
+  bar.className = 'tg-stats-bar';
 
   const makeStat = (label: string) => {
     const span = document.createElement('span');
-    span.innerHTML = `${label}: <b style="color:#218D8D">&mdash;</b>`;
+    span.innerHTML = `${label}: <b>&mdash;</b>`;
     bar.appendChild(span);
     return span;
   };
 
-  const totalEl = makeStat('Total Hours');
-  const blockedEl = makeStat('Blocked');
-  const availEl = makeStat('Available');
-  const avgEl = makeStat('Avg Avail/Court');
+  const totalEl = makeStat(totalLabel);
+  const blockedEl = makeStat(blockedLabel);
+  const availEl = makeStat(availLabel);
+  const avgEl = makeStat(avgLabel);
 
   const update = (stats: StatsBarUpdate) => {
-    totalEl.innerHTML = `Total Hours: <b style="color:#218D8D">${stats.totalHours.toFixed(1)}h</b>`;
-    blockedEl.innerHTML = `Blocked: <b style="color:#218D8D">${stats.blockedHours.toFixed(1)}h</b>`;
-    availEl.innerHTML = `Available: <b style="color:#218D8D">${stats.availableHours.toFixed(1)}h</b>`;
-    avgEl.innerHTML = `Avg Avail/Court: <b style="color:#218D8D">${stats.avgPerCourt.toFixed(1)}h</b>`;
+    totalEl.innerHTML = `${totalLabel}: <b>${stats.totalHours.toFixed(1)}h</b>`;
+    blockedEl.innerHTML = `${blockedLabel}: <b>${stats.blockedHours.toFixed(1)}h</b>`;
+    availEl.innerHTML = `${availLabel}: <b>${stats.availableHours.toFixed(1)}h</b>`;
+    avgEl.innerHTML = `${avgLabel}: <b>${stats.avgPerCourt.toFixed(1)}h</b>`;
   };
 
   return { element: bar, update };

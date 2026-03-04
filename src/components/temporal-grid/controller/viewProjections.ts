@@ -1,7 +1,7 @@
 /**
  * View Projections
  *
- * Converts Temporal Grid Engine data structures into vis-timeline format.
+ * Converts Temporal Grid Engine data structures into CourtTimeline format.
  * This module is the translation layer between our domain model and the timeline UI.
  *
  * Key Transformations:
@@ -20,25 +20,22 @@ type CourtRef = temporal.CourtRef;
 type VenueDayTimeline = temporal.VenueDayTimeline;
 type RailSegment = temporal.RailSegment;
 
-import type { IdType } from 'vis-timeline/standalone';
-
 // ============================================================================
-// Timeline Type Definitions (vis-timeline compatible)
+// Timeline Type Definitions
 // ============================================================================
 
 /**
- * vis-timeline Group (represents a court or facility group header)
+ * Timeline Group (represents a court or facility group header)
  */
 export interface TimelineGroup {
-  id: IdType;
+  id: string;
   content: string;
-  nestedGroups?: IdType[];
+  nestedGroups?: string[];
   showNested?: boolean;
   className?: string;
   title?: string;
   order?: number;
   visible?: boolean;
-  // Extended properties (not native vis-timeline, but we store them on group objects)
   courtRef?: CourtRef;
   surface?: string;
   indoor?: boolean;
@@ -48,11 +45,11 @@ export interface TimelineGroup {
 }
 
 /**
- * vis-timeline Item (represents a block or segment)
+ * Timeline Item (represents a block or segment)
  */
 export interface TimelineItem {
-  id: IdType;
-  group: IdType;
+  id: string;
+  group: string;
   content: string;
   start: Date | string;
   end?: Date | string;
@@ -62,7 +59,6 @@ export interface TimelineItem {
   title?: string;
   editable?: boolean | { updateTime?: boolean; updateGroup?: boolean; remove?: boolean };
   selectable?: boolean;
-  // Extended properties for domain data
   blockId?: string;
   status?: string;
   reason?: string;
@@ -140,7 +136,7 @@ export const DEFAULT_COLOR_SCHEME: BlockColorScheme = {
 
 /**
  * Build timeline groups from facility timelines.
- * Converts courts into vis-timeline groups, grouped by facility.
+ * Converts courts into timeline groups, grouped by facility.
  */
 export function buildResourcesFromTimelines(
   timelines: VenueDayTimeline[],
@@ -189,7 +185,7 @@ export function buildResourcesFromTimelines(
 
 /**
  * Build venue group headers for nested grouping.
- * Creates group headers for vis-timeline.
+ * Creates group headers for CourtTimeline.
  */
 export function buildVenueGroups(timelines: VenueDayTimeline[]): TimelineGroup[] {
   const venues = new Map<string, Set<string>>();
@@ -589,7 +585,7 @@ export function generateBlockPatternCSS(): string {
 // ============================================================================
 
 /**
- * Build timeline window configuration for vis-timeline
+ * Build timeline window configuration
  */
 export function buildTimelineWindowConfig(config: {
   dayStartTime: string;
@@ -623,7 +619,7 @@ export function buildTimelineWindowConfig(config: {
 }
 
 /**
- * Build hidden date ranges for vis-timeline to collapse overnight gaps.
+ * Build hidden date ranges to collapse overnight gaps.
  * Uses `repeat: 'daily'` so the gap is hidden every day in a multi-day view.
  */
 export function buildHiddenDates(config: {
