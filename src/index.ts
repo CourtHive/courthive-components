@@ -148,8 +148,8 @@ export {
 
 // Temporal Grid
 import './components/temporal-grid/ui/styles.css';
-export { createTemporalGrid, TemporalGrid } from './components/temporal-grid';
-export type { TemporalGridConfig } from './components/temporal-grid';
+export { createTemporalGrid, TemporalGrid, showCourtAvailabilityModal } from './components/temporal-grid';
+export type { TemporalGridConfig, TemporalGridLabels } from './components/temporal-grid';
 
 // Topology Builder
 export {

@@ -11,6 +11,7 @@ export interface CourtAvailabilityModalConfig {
   currentStartTime: string; // HH:MM
   currentEndTime: string; // HH:MM
   showScopeToggle?: boolean; // default true; false for global default
+  venueBounds?: { startTime: string; endTime: string };
   onConfirm: (params: { startTime: string; endTime: string; scope: 'current-day' | 'all-days' }) => void;
   onCancel?: () => void;
 }
@@ -22,6 +23,7 @@ export function showCourtAvailabilityModal(config: CourtAvailabilityModalConfig)
     currentStartTime,
     currentEndTime,
     showScopeToggle = true,
+    venueBounds,
     onConfirm,
     onCancel,
   } = config;
@@ -81,6 +83,32 @@ export function showCourtAvailabilityModal(config: CourtAvailabilityModalConfig)
   const startInput = makeTimeInput('Start Time', currentStartTime);
   const endInput = makeTimeInput('End Time', currentEndTime);
   dialog.appendChild(timeRow);
+
+  // Venue bounds warning (court modals only)
+  if (venueBounds) {
+    const warning = document.createElement('div');
+    warning.style.cssText = `
+      display: none; padding: 8px 12px; margin-bottom: 16px; border-radius: 6px;
+      background: #fef3c7; border: 1px solid #f59e0b; color: #92400e;
+      font-size: 12px; line-height: 1.4;
+    `;
+
+    const updateWarning = () => {
+      const exceedsStart = startInput.value < venueBounds.startTime;
+      const exceedsEnd = endInput.value > venueBounds.endTime;
+      if (exceedsStart || exceedsEnd) {
+        warning.textContent = `Venue hours are ${venueBounds.startTime}\u2013${venueBounds.endTime}. The venue will be widened to accommodate this change.`;
+        warning.style.display = 'block';
+      } else {
+        warning.style.display = 'none';
+      }
+    };
+
+    startInput.addEventListener('input', updateWarning);
+    endInput.addEventListener('input', updateWarning);
+    updateWarning();
+    dialog.appendChild(warning);
+  }
 
   // Scope toggle (radio group)
   let selectedScope: 'current-day' | 'all-days' = 'current-day';

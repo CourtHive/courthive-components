@@ -17,14 +17,40 @@ type CourtRef = temporal.CourtRef;
 type DayId = temporal.DayId;
 import { TemporalGridControl, type TemporalGridControlConfig } from '../controller/temporalGridControl';
 import { buildStatsBar, type StatsBarUpdate } from './statsBar';
-import { buildViewToolbar } from './viewToolbar';
+import { buildViewToolbar, type ViewToolbarResult } from './viewToolbar';
 import { showCourtAvailabilityModal } from './courtAvailabilityModal';
+import Datepicker from 'vanillajs-datepicker/Datepicker';
 
 // ============================================================================
 // Component Configuration
 // ============================================================================
 
-export interface TemporalGridConfig extends Partial<TemporalGridControlConfig> {
+/**
+ * i18n labels for the temporal grid component.
+ * All fields are optional — English defaults are used when omitted.
+ */
+export interface TemporalGridLabels {
+  view?: string;
+  day1?: string;
+  days3?: string;
+  week?: string;
+  tournament?: string;
+  totalHours?: string;
+  blocked?: string;
+  available?: string;
+  avgPerCourt?: string;
+  setDefaultAvailability?: string;
+  saveToTournament?: string;
+}
+
+export interface TemporalGridCallbacks {
+  /**
+   * Called when dirty state changes (blocks/availability modified vs initial)
+   */
+  onDirtyChange?: (isDirty: boolean) => void;
+}
+
+export interface TemporalGridConfig extends Partial<TemporalGridControlConfig>, TemporalGridCallbacks {
   /**
    * Tournament record (TODS format)
    */
@@ -60,6 +86,21 @@ export interface TemporalGridConfig extends Partial<TemporalGridControlConfig> {
   showToolbar?: boolean;
 
   /**
+   * i18n labels
+   */
+  labels?: TemporalGridLabels;
+
+  /**
+   * Callback when "Set Default Availability" is clicked
+   */
+  onSetDefaultAvailability?: () => void;
+
+  /**
+   * Callback when "Save to Tournament" is clicked
+   */
+  onSave?: () => void;
+
+  /**
    * Callback when mutations are applied
    */
   onMutationsApplied?: (mutations: any[]) => void;
@@ -80,9 +121,15 @@ export class TemporalGrid {
   private calendarElement: HTMLElement | null = null;
   private capacityElement: HTMLElement | null = null;
   private statsBarInstance: { element: HTMLElement; update: (stats: StatsBarUpdate) => void } | null = null;
+  private viewToolbarResult: ViewToolbarResult | null = null;
+  private datepicker: Datepicker | null = null;
 
   // State
   private visibleCourts: Set<string> = new Set(); // "tournamentId|venueId|courtId" to match resource IDs
+
+  // Dirty-state tracking
+  private initialSnapshot: string = '';
+  private isDirty: boolean = false;
 
   constructor(config: TemporalGridConfig) {
     this.config = {
@@ -98,6 +145,9 @@ export class TemporalGrid {
     // Create engine
     this.engine = new TemporalEngine();
     this.engine.init(config.tournamentRecord, config.engineConfig);
+
+    // Take initial snapshot for dirty tracking
+    this.initialSnapshot = this.takeSnapshot();
 
     // Subscribe to engine mutations
     this.engine.subscribe(this.handleEngineEvent);
@@ -157,11 +207,26 @@ export class TemporalGrid {
           this.updateCapacityStats();
           this.updateStatsBar();
         },
+        onDayNavigate: (day: string) => {
+          // Update toolbar active view button and datepicker to match
+          this.viewToolbarResult?.setActiveView('day');
+          this.viewToolbarResult?.setDate(day);
+          if (this.datepicker) {
+            this.datepicker.setDate(day, { clear: true });
+          }
+          this.updateCapacityStats();
+          this.updateStatsBar();
+        },
       });
 
       // Don't set visibleCourts on controller initially - let it show all
       // The controller's visibleCourts = null means "show all courts"
       // User will filter via checkboxes if desired
+
+      // Initialize datepicker now that elements are in the DOM
+      if (this.config.showToolbar) {
+        this.initDatepicker();
+      }
     }
   }
 
@@ -169,6 +234,11 @@ export class TemporalGrid {
    * Destroy the component and cleanup
    */
   destroy(): void {
+    if (this.datepicker) {
+      this.datepicker.destroy();
+      this.datepicker = null;
+    }
+
     if (this.control) {
       this.control.destroy();
       this.control = null;
@@ -182,6 +252,7 @@ export class TemporalGrid {
     this.venueTreeElement = null;
     this.calendarElement = null;
     this.capacityElement = null;
+    this.viewToolbarResult = null;
   }
 
   // ============================================================================
@@ -202,16 +273,85 @@ export class TemporalGrid {
     const header = this.rootElement?.querySelector('.temporal-grid-header');
     if (!header) return;
 
-    // View toolbar (Day / 3 Days / Week)
-    const viewToolbar = buildViewToolbar(
+    const labels = this.config.labels;
+
+    // View toolbar (date picker + Day / 3 Days / Week + action buttons)
+    this.viewToolbarResult = buildViewToolbar(
       (viewKey: string) => this.control?.setViewPreset(viewKey),
       this.config.initialView || 'day',
+      (dateStr: string) => this.handleDateChange(dateStr),
+      {
+        labels,
+        onSetDefaultAvailability: this.config.onSetDefaultAvailability,
+        onSave: this.config.onSave,
+      },
     );
-    header.appendChild(viewToolbar);
+    header.appendChild(this.viewToolbarResult.element);
+
+    // Set initial date on the input
+    const days = this.engine.getActiveDays();
+    const initialDay = this.config.initialDay || (days.length > 0 ? days[0] : '');
+    if (initialDay) {
+      this.viewToolbarResult.setDate(initialDay);
+    }
 
     // Stats bar (total hours, blocked, available, avg)
-    this.statsBarInstance = buildStatsBar();
+    this.statsBarInstance = buildStatsBar(labels);
     header.appendChild(this.statsBarInstance.element);
+  }
+
+  /**
+   * Initialize the datepicker on the toolbar date input.
+   * Must be called after the toolbar element is in the DOM.
+   */
+  private initDatepicker(): void {
+    if (this.datepicker || !this.viewToolbarResult) return;
+
+    const days = this.engine.getActiveDays();
+    const activeDaySet = new Set(days);
+    this.datepicker = new Datepicker(this.viewToolbarResult.dateInput, {
+      format: 'yyyy-mm-dd',
+      autohide: true,
+      beforeShowDay: (date: Date) => {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        if (activeDaySet.has(`${y}-${m}-${d}`)) {
+          return { classes: 'tg-datepicker-active-day' };
+        }
+        return {};
+      },
+    });
+
+    // Set initial date
+    const initialDay = this.config.initialDay || (days.length > 0 ? days[0] : '');
+    if (initialDay) {
+      this.datepicker.setDate(initialDay, { clear: true });
+    }
+  }
+
+  private handleDateChange(dateStr: string): void {
+    const days = this.engine.getActiveDays();
+    if (days.length === 0) return;
+
+    // Find nearest tournament day
+    let targetDay = dateStr;
+    if (!days.includes(dateStr)) {
+      targetDay = days.reduce((best, d) =>
+        Math.abs(new Date(d).getTime() - new Date(dateStr).getTime()) <
+        Math.abs(new Date(best).getTime() - new Date(dateStr).getTime()) ? d : best
+      , days[0]);
+    }
+
+    this.control?.setDay(targetDay);
+    this.updateCapacityStats();
+    this.updateStatsBar();
+    if (this.viewToolbarResult) {
+      this.viewToolbarResult.setDate(targetDay);
+    }
+    if (this.datepicker) {
+      this.datepicker.setDate(targetDay, { clear: true });
+    }
   }
 
   private renderCapacityIndicator(): void {
@@ -269,54 +409,111 @@ export class TemporalGrid {
   }
 
   // ============================================================================
+  // Dirty-State Tracking
+  // ============================================================================
+
+  /** Serialize current engine state (blocks + availability) for comparison */
+  private takeSnapshot(): string {
+    const days = this.engine.getActiveDays();
+    const courtMeta = this.engine.listCourtMeta();
+    const data: any[] = [];
+    for (const day of days) {
+      const blocks = this.engine.getDayBlocks(day).map((b: any) => ({
+        id: b.id, type: b.type, start: b.start, end: b.end,
+        court: `${b.court?.venueId}|${b.court?.courtId}`,
+      }));
+      const avails = courtMeta.map((m) => {
+        const a = this.engine.getCourtAvailability(m.ref, day);
+        return { ref: `${m.ref.venueId}|${m.ref.courtId}`, s: a.startTime, e: a.endTime };
+      });
+      data.push({ day, blocks, avails });
+    }
+    return JSON.stringify(data);
+  }
+
+  /** Compare current state to initial snapshot and update dirty flag */
+  private checkDirtyState(): void {
+    const current = this.takeSnapshot();
+    const wasDirty = this.isDirty;
+    this.isDirty = current !== this.initialSnapshot;
+
+    if (this.isDirty !== wasDirty) {
+      this.viewToolbarResult?.setSaveEnabled(this.isDirty);
+      if (this.config.onDirtyChange) {
+        this.config.onDirtyChange(this.isDirty);
+      }
+    }
+  }
+
+  /** Reset the snapshot (call after a successful save) */
+  resetDirtyState(): void {
+    this.initialSnapshot = this.takeSnapshot();
+    this.isDirty = false;
+    this.viewToolbarResult?.setSaveEnabled(false);
+    if (this.config.onDirtyChange) {
+      this.config.onDirtyChange(false);
+    }
+  }
+
+  // ============================================================================
   // Update Methods
   // ============================================================================
 
   private updateStatsBar(): void {
-    if (!this.statsBarInstance) return;
+    if (!this.statsBarInstance || !this.control) return;
 
-    const currentDay = this.control?.getDay();
-    if (!currentDay) return;
+    const viewDays = this.control.getViewDays();
+    if (viewDays.length === 0) return;
 
-    const curve = this.engine.getCapacityCurve(currentDay);
-    const stats = calculateCapacityStats(curve);
+    let totalCourtHours = 0;
+    let totalUnavailableHours = 0;
+    let totalAvailableHours = 0;
+    let totalCourts = 0;
 
-    const totalCourts = stats.totalCourts || 1;
-    const availableHours = stats.totalAvailableHours || 0;
-    const unavailableHours = stats.totalUnavailableHours || 0;
+    for (const day of viewDays) {
+      const curve = this.engine.getCapacityCurve(day);
+      const stats = calculateCapacityStats(curve);
+      totalCourtHours += stats.totalCourtHours;
+      totalUnavailableHours += stats.totalUnavailableHours ?? 0;
+      totalAvailableHours += stats.totalAvailableHours ?? 0;
+      totalCourts = stats.totalCourts ?? 0; // same across days
+    }
 
+    const courts = totalCourts || 1;
     this.statsBarInstance.update({
-      totalHours: stats.totalCourtHours,
-      blockedHours: unavailableHours,
-      availableHours,
-      avgPerCourt: availableHours / totalCourts,
+      totalHours: totalCourtHours,
+      blockedHours: totalUnavailableHours,
+      availableHours: totalAvailableHours,
+      avgPerCourt: totalAvailableHours / courts,
     });
   }
 
   private updateCapacityStats(): void {
-    if (!this.capacityElement) return;
+    if (!this.capacityElement || !this.control) return;
 
-    const currentDay = this.control?.getDay();
-    if (!currentDay) return;
+    const viewDays = this.control.getViewDays();
+    if (viewDays.length === 0) return;
 
-    const curve = this.engine.getCapacityCurve(currentDay);
-    const stats = calculateCapacityStats(curve);
+    let totalAvailableHours = 0;
+    let totalCourts = 0;
+
+    for (const day of viewDays) {
+      const curve = this.engine.getCapacityCurve(day);
+      const stats = calculateCapacityStats(curve);
+      totalAvailableHours += stats.totalAvailableHours ?? 0;
+      totalCourts = stats.totalCourts ?? 0;
+    }
 
     const totalHoursEl = this.capacityElement.querySelector('#total-hours');
     const avgHoursEl = this.capacityElement.querySelector('#avg-hours');
 
-    // Total Hours: Total available hours across all courts
     if (totalHoursEl) {
-      totalHoursEl.textContent = `${(stats.totalAvailableHours || 0).toFixed(1)}h`;
+      totalHoursEl.textContent = `${totalAvailableHours.toFixed(1)}h`;
     }
-    
-    // Avg/Court: Average hours available per court
-    const avgAvailableHoursPerCourt = stats.totalCourts && stats.totalCourts > 0
-      ? (stats.totalAvailableHours || 0) / stats.totalCourts
-      : 0;
-    
+
+    const avgPerCourt = totalCourts > 0 ? totalAvailableHours / totalCourts : 0;
     if (avgHoursEl) {
-      avgHoursEl.textContent = `${avgAvailableHoursPerCourt.toFixed(1)}h`;
+      avgHoursEl.textContent = `${avgPerCourt.toFixed(1)}h`;
     }
   }
 
@@ -426,7 +623,7 @@ export class TemporalGrid {
         const el = e.currentTarget as HTMLElement;
         const vid = el.dataset.venue!;
         const tid = el.dataset.tournamentId!;
-        const currentDay = this.control?.getDay() || this.engine.getTournamentDays()[0] || '2026-01-01';
+        const currentDay = this.control?.getDay() || this.engine.getActiveDays()[0] || '2026-01-01';
         const existing = this.engine.getVenueAvailability(tid, vid);
         const config = this.engine.getConfig();
         showCourtAvailabilityModal({
@@ -437,6 +634,7 @@ export class TemporalGrid {
           showScopeToggle: false,
           onConfirm: ({ startTime, endTime }) => {
             this.engine.setVenueDefaultAvailability(tid, vid, { startTime, endTime });
+            this.engine.clearCourtAvailabilityForVenue(tid, vid);
             this.control?.refresh();
           }
         });
@@ -453,7 +651,7 @@ export class TemporalGrid {
         const vid = el.dataset.venueId!;
         const tid = el.dataset.tournamentId!;
         const courtRef = { tournamentId: tid, venueId: vid, courtId: cid };
-        const currentDay = this.control?.getDay() || this.engine.getTournamentDays()[0] || '2026-01-01';
+        const currentDay = this.control?.getDay() || this.engine.getActiveDays()[0] || '2026-01-01';
         const existing = this.engine.getCourtAvailability(courtRef, currentDay);
         showCourtAvailabilityModal({
           title: `Court \u2014 ${cid}`,
@@ -482,10 +680,15 @@ export class TemporalGrid {
     if (event.type === 'BLOCKS_CHANGED') {
       this.updateCapacityStats();
       this.updateStatsBar();
+      this.checkDirtyState();
 
       if (this.config.onMutationsApplied) {
         this.config.onMutationsApplied(event.payload.mutations);
       }
+    }
+
+    if (event.type === 'AVAILABILITY_CHANGED') {
+      this.checkDirtyState();
     }
   };
 

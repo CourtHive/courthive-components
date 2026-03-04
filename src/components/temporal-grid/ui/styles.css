@@ -1,8 +1,8 @@
 /**
  * Temporal Grid Styles
- * 
+ *
  * Complete styling for the temporal resource grid component.
- * Following CourtHive design system with Bulma integration.
+ * Uses custom CourtTimeline (.tg-*) classes instead of vis-timeline.
  */
 
 /* ============================================================================
@@ -14,7 +14,6 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
-  background: var(--chc-bg-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
@@ -25,7 +24,98 @@
 .temporal-grid-header {
   border-bottom: 1px solid var(--chc-border-primary);
   background: var(--chc-bg-secondary);
-  padding: 1rem;
+}
+
+/* ============================================================================
+   View Toolbar
+   ============================================================================ */
+
+.tg-view-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--chc-border-primary);
+  background: var(--chc-bg-secondary);
+  font-family: sans-serif;
+  font-size: 13px;
+}
+
+.tg-view-toolbar-label {
+  color: var(--chc-text-secondary);
+  margin-right: 4px;
+}
+
+.tg-view-toolbar-date {
+  font-size: 13px;
+  padding: 2px 6px;
+  border: 1px solid var(--chc-border-primary);
+  border-radius: 4px;
+  margin-right: 8px;
+  width: 110px;
+  cursor: pointer;
+  background: var(--chc-bg-elevated);
+  color: var(--chc-text-primary);
+}
+
+.tg-view-toolbar-btn {
+  padding: 4px 12px;
+  border: 1px solid var(--chc-border-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  background: var(--chc-bg-elevated);
+  color: var(--chc-text-primary);
+}
+
+.tg-view-toolbar-btn.tg-active {
+  background: #218D8D;
+  color: white;
+  border-color: #218D8D;
+}
+
+.tg-view-toolbar-spacer {
+  flex: 1;
+}
+
+.tg-view-toolbar-action {
+  padding: 4px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  color: white;
+  font-weight: 600;
+}
+
+.tg-view-toolbar-action.tg-action-default {
+  background: #666;
+  border: 1px solid #666;
+  margin-right: 8px;
+}
+
+.tg-view-toolbar-action.tg-action-save {
+  background: #218D8D;
+  border: 1px solid #218D8D;
+}
+
+/* ============================================================================
+   Stats Bar
+   ============================================================================ */
+
+.tg-stats-bar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 6px 16px;
+  border-bottom: 1px solid var(--chc-border-primary);
+  background: var(--chc-bg-secondary);
+  font-family: sans-serif;
+  font-size: 13px;
+  color: var(--chc-text-secondary);
+}
+
+.tg-stats-bar b {
+  color: #218D8D;
 }
 
 
@@ -89,9 +179,10 @@
 .temporal-grid-venue-tree {
   width: 250px;
   border-right: 1px solid var(--chc-border-primary);
-  background: var(--chc-bg-secondary);
   overflow-y: auto;
   flex-shrink: 0;
+  font-size: 13px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
 .tree-header {
@@ -102,7 +193,7 @@
 
 .tree-header h3 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 14px;
   font-weight: 600;
   color: var(--chc-text-primary);
 }
@@ -204,7 +295,7 @@
 }
 
 /* ============================================================================
-   Calendar Area
+   Calendar Area (CourtTimeline container)
    ============================================================================ */
 
 .temporal-grid-calendar {
@@ -213,46 +304,284 @@
   position: relative;
 }
 
-/* vis-timeline overrides — height is controlled via JS options (height: '100%') */
-.temporal-grid-calendar .vis-timeline {
-  border: none;
+/* ============================================================================
+   CourtTimeline Component (.tg-*)
+   ============================================================================ */
+
+.tg-timeline {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: inherit;
+  position: relative;
 }
 
 /* Prevent horizontal overscroll from triggering browser back/forward navigation */
-.vis-timeline {
+.tg-timeline {
   overscroll-behavior-x: contain;
   touch-action: pan-x pan-y pinch-zoom;
 }
 
-.temporal-grid-calendar .vis-panel.vis-center {
-  border: none;
+/* ---- Axis Header (two-row: day labels + hour ticks) ---- */
+
+.tg-axis-header {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  grid-template-rows: auto auto;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--chc-border-primary);
 }
 
-/* Group label styling — min-height ensures consistent row heights across all courts */
-.temporal-grid-calendar .vis-labelset .vis-label {
-  min-height: 40px;
+.tg-axis-spacer {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  border-right: 1px solid var(--chc-border-primary);
+  background: var(--chc-bg-secondary);
+}
+
+/* ---- Day Axis (top row) ---- */
+
+.tg-day-axis {
+  grid-column: 2;
+  grid-row: 1;
+  position: relative;
+  height: 20px;
+  background: var(--chc-bg-secondary);
+  overflow: hidden;
+  min-width: 0;
+  user-select: none;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+}
+
+/* ---- Hour Axis (bottom row) ---- */
+
+.tg-hour-axis {
+  grid-column: 2;
+  grid-row: 2;
+  position: relative;
+  height: 20px;
+  background: var(--chc-bg-secondary);
+  overflow: hidden;
+  min-width: 0;
+  user-select: none;
+}
+
+/* ---- Day Tick Labels ---- */
+
+.tg-tick-day {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--chc-text-primary);
+  border-left: 1px solid var(--chc-border-primary);
+  padding-left: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* ---- Hour Tick Labels ---- */
+
+.tg-tick-hour {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  font-size: 0.7rem;
+  color: var(--chc-text-secondary);
+  border-left: 1px solid rgba(128, 128, 128, 0.2);
+  padding-left: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ---- Body (label panel + content) ---- */
+
+.tg-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ---- Label Panel ---- */
+
+.tg-label-panel {
+  width: 120px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-right: 1px solid var(--chc-border-primary);
+}
+
+.tg-label {
   display: flex;
   align-items: center;
   padding: 0 12px;
   font-size: 0.875rem;
+  color: var(--chc-text-primary);
   border-bottom: 1px solid var(--chc-border-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-sizing: border-box;
 }
 
-/* Group row styling — min-height matches label to keep rows aligned */
-.temporal-grid-calendar .vis-group {
-  min-height: 40px;
-  border-bottom: 1px solid var(--chc-border-primary);
+/* ---- Scroll Wrapper ---- */
+
+.tg-scroll-wrapper {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+  min-width: 0;
 }
 
-/* Range item styling */
-.temporal-grid-calendar .vis-item.vis-range {
+/* ---- Content Area ---- */
+
+.tg-content {
+  position: relative;
+  min-width: 100%;
+}
+
+/* ---- Rows ---- */
+
+.tg-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-bottom: 1px solid var(--chc-border-primary);
+  box-sizing: border-box;
+  transition: background-color 0.15s ease;
+}
+
+.tg-row-highlight {
+  background-color: rgba(33, 141, 141, 0.08);
+}
+
+/* ---- Gridlines (vertical lines through content rows) ---- */
+
+.tg-gridline {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  background: rgba(128, 128, 128, 0.15);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.tg-gridline-major {
+  background: rgba(128, 128, 128, 0.3);
+}
+
+/* ---- Items (segments + blocks) ---- */
+
+.tg-item-background {
+  opacity: 0.6;
+  border-radius: 0;
+}
+
+.tg-item {
   border-radius: 4px;
   font-size: 0.875rem;
+  box-sizing: border-box;
+  z-index: 1;
+  overflow: hidden;
 }
 
-/* Background item styling */
-.temporal-grid-calendar .vis-item.vis-background {
-  opacity: 0.6;
+.tg-item-range {
+  display: flex;
+  align-items: center;
+  padding: 0 0.5rem;
+  min-width: 0;
+}
+
+.tg-item-content {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+  flex: 1;
+}
+
+/* ---- Resize Handles ---- */
+
+.tg-resize-handle {
+  position: absolute;
+  z-index: 2;
+}
+
+.tg-resize-left {
+  left: 0;
+  top: 0;
+  width: 8px;
+  height: 100%;
+  cursor: ew-resize;
+}
+
+.tg-resize-right {
+  right: 0;
+  top: 0;
+  width: 8px;
+  height: 100%;
+  cursor: ew-resize;
+}
+
+.tg-resize-top {
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 8px;
+  cursor: ns-resize;
+}
+
+.tg-resize-bottom {
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 8px;
+  cursor: ns-resize;
+}
+
+/* ---- Ghost (multi-row creation) ---- */
+
+.tg-ghost {
+  position: absolute;
+  background: rgba(33, 141, 141, 0.15);
+  border: 2px dashed #218d8d;
+  border-radius: 4px;
+  z-index: 5;
+  cursor: pointer;
+  transition: height 0.1s ease, top 0.1s ease;
+  box-sizing: border-box;
+}
+
+.tg-ghost:hover {
+  background: rgba(33, 141, 141, 0.22);
+}
+
+.tg-ghost-count {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #218d8d;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  white-space: nowrap;
 }
 
 /* ============================================================================
@@ -497,6 +826,33 @@ select:focus {
 }
 
 /* ============================================================================
+   Datepicker — Active Day Highlighting
+   ============================================================================ */
+
+.datepicker-cell.tg-datepicker-active-day {
+  background: rgba(33, 141, 141, 0.15);
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.datepicker-cell.tg-datepicker-active-day:hover {
+  background: rgba(33, 141, 141, 0.3);
+}
+
+.datepicker-cell.tg-datepicker-active-day.selected {
+  background: #218D8D;
+  color: white;
+}
+
+[data-theme='dark'] .datepicker-cell.tg-datepicker-active-day {
+  background: rgba(33, 141, 141, 0.25);
+}
+
+[data-theme='dark'] .datepicker-cell.tg-datepicker-active-day:hover {
+  background: rgba(33, 141, 141, 0.4);
+}
+
+/* ============================================================================
    Animations
    ============================================================================ */
 
@@ -527,53 +883,100 @@ select:focus {
 }
 
 /* ============================================================================
-   vis-timeline Dark Mode Overrides
+   CourtTimeline Dark Mode Overrides
    ============================================================================ */
 
-[data-theme='dark'] .vis-timeline {
-  background: var(--chc-bg-primary);
+[data-theme='dark'] .tg-timeline {
+  /* inherits page background */
+}
+
+[data-theme='dark'] .tg-axis-header {
   border-color: var(--chc-border-primary);
 }
 
-[data-theme='dark'] .vis-time-axis .vis-text {
-  color: var(--chc-text-secondary) !important;
+[data-theme='dark'] .tg-axis-spacer {
+  background: var(--chc-bg-secondary);
+  border-color: var(--chc-border-primary);
 }
 
-[data-theme='dark'] .vis-time-axis .vis-grid.vis-minor {
-  border-color: rgba(255, 255, 255, 0.1) !important;
+[data-theme='dark'] .tg-day-axis {
+  background: var(--chc-bg-secondary);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
-[data-theme='dark'] .vis-time-axis .vis-grid.vis-major {
-  border-color: rgba(255, 255, 255, 0.2) !important;
+[data-theme='dark'] .tg-hour-axis {
+  background: var(--chc-bg-secondary);
 }
 
-[data-theme='dark'] .vis-labelset .vis-label {
-  color: var(--chc-text-primary) !important;
-  background: var(--chc-bg-secondary) !important;
-  border-bottom-color: var(--chc-border-primary) !important;
+[data-theme='dark'] .tg-tick-day {
+  color: var(--chc-text-primary);
+  border-color: var(--chc-border-primary);
 }
 
-[data-theme='dark'] .vis-labelset .vis-label .vis-inner,
-[data-theme='dark'] .vis-label .vis-inner {
-  color: var(--chc-text-primary) !important;
+[data-theme='dark'] .tg-tick-hour {
+  color: var(--chc-text-secondary);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
-[data-theme='dark'] .vis-foreground .vis-group .vis-inner {
-  color: var(--chc-text-primary) !important;
+[data-theme='dark'] .tg-label-panel {
+  border-color: var(--chc-border-primary);
 }
 
-[data-theme='dark'] .vis-foreground .vis-group {
-  background: transparent !important;
-  border-bottom-color: var(--chc-border-primary) !important;
+[data-theme='dark'] .tg-label {
+  color: var(--chc-text-primary);
+  border-color: var(--chc-border-primary);
 }
 
-[data-theme='dark'] .vis-panel.vis-bottom,
-[data-theme='dark'] .vis-panel.vis-top,
-[data-theme='dark'] .vis-panel.vis-left,
-[data-theme='dark'] .vis-panel.vis-right {
-  border-color: var(--chc-border-primary) !important;
+[data-theme='dark'] .tg-row {
+  border-color: var(--chc-border-primary);
 }
 
-[data-theme='dark'] .vis-current-time {
-  background-color: var(--chc-text-muted);
+[data-theme='dark'] .tg-row-highlight {
+  background-color: rgba(33, 141, 141, 0.12);
+}
+
+[data-theme='dark'] .tg-gridline {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .tg-gridline-major {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme='dark'] .tg-ghost {
+  background: rgba(33, 141, 141, 0.2);
+  border-color: #2ec4c4;
+}
+
+[data-theme='dark'] .tg-ghost-count {
+  background: #2ec4c4;
+}
+
+[data-theme='dark'] .tg-scroll-wrapper {
+  /* inherits page background */
+}
+
+[data-theme='dark'] .temporal-grid-venue-tree {
+  border-color: var(--chc-border-primary);
+}
+
+[data-theme='dark'] .tree-header {
+  background: var(--chc-bg-elevated);
+  border-color: var(--chc-border-primary);
+}
+
+[data-theme='dark'] .venue-header {
+  background: var(--chc-bg-elevated);
+}
+
+[data-theme='dark'] .venue-name {
+  color: var(--chc-text-primary);
+}
+
+[data-theme='dark'] .court-name {
+  color: var(--chc-text-secondary);
+}
+
+[data-theme='dark'] .court-meta {
+  color: var(--chc-text-muted);
 }

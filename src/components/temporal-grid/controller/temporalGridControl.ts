@@ -1,11 +1,11 @@
 /**
  * Temporal Grid Controller
  *
- * Manages the vis-timeline instance and wires it to the Temporal Grid Engine.
+ * Manages the CourtTimeline instance and wires it to the Temporal Grid Engine.
  * Following the TMX controlBar pattern: engine handles state, controller handles UI.
  *
  * Responsibilities:
- * - Create and configure vis-timeline
+ * - Create and configure CourtTimeline (replaces vis-timeline)
  * - Convert engine data → timeline format
  * - Handle user interactions → engine commands
  * - Subscribe to engine events → update timeline
@@ -14,7 +14,6 @@
  * Design: Stateful controller, but all domain logic stays in engine.
  */
 
-import { Timeline } from 'vis-timeline/standalone';
 import { tools, temporal, type TemporalEngine } from 'tods-competition-factory';
 
 const { BLOCK_TYPES } = temporal;
@@ -36,6 +35,8 @@ import {
 } from './viewProjections';
 import { createBlockPopoverManager, type BlockPopoverManager } from '../ui/blockPopover';
 import { VIEW_PRESETS } from '../ui/viewToolbar';
+import { CourtTimeline } from '../timeline/CourtTimeline';
+import type { TimelineGroupData, TimelineItemData, MultiRowSpan } from '../timeline/types';
 
 // ============================================================================
 // Controller Configuration
@@ -74,6 +75,9 @@ export interface TemporalGridControlConfig {
 
   /** Callback when engine blocks change (for stats bar, external consumers) */
   onBlocksChanged?: () => void;
+
+  /** Callback when a day label is double-clicked (for navigating to 1-Day view) */
+  onDayNavigate?: (day: string) => void;
 }
 
 // ============================================================================
@@ -82,7 +86,7 @@ export interface TemporalGridControlConfig {
 
 export class TemporalGridControl {
   private readonly engine: TemporalEngine;
-  private timeline: Timeline | null = null;
+  private timeline: CourtTimeline | null = null;
   private readonly config: TemporalGridControlConfig;
   private unsubscribe: (() => void) | null = null;
 
@@ -94,9 +98,6 @@ export class TemporalGridControl {
 
   // Popover manager for block actions
   private popoverManager: BlockPopoverManager = createBlockPopoverManager();
-
-  // Drag guard — suppresses click handler after drag
-  private justDragged = false;
 
   // View state (UI-specific, not part of engine)
   private viewState: TemporalViewState = new TemporalViewState();
@@ -123,11 +124,11 @@ export class TemporalGridControl {
   // ============================================================================
 
   private initialize(): void {
-    // Set initial day — fall back to first tournament day or today
+    // Set initial day — fall back to first active day or today
     if (this.config.initialDay) {
       this.currentDay = this.config.initialDay;
     } else {
-      const days = this.engine.getTournamentDays();
+      const days = this.engine.getActiveDays();
       this.currentDay = days.length > 0 ? days[0] : tools.dateTime.extractDate(new Date().toISOString());
     }
     this.viewState.setSelectedDay(this.currentDay);
@@ -161,10 +162,31 @@ export class TemporalGridControl {
   /**
    * Build the current view data from the engine.
    */
-  private buildViewData(): { groups: any[]; items: any[] } {
+  /**
+   * Get the list of days visible in the current view.
+   */
+  getViewDays(): string[] {
+    if (!this.currentDay) return [];
+    const preset = VIEW_PRESETS[this.currentView];
+    const dayCount = preset ? preset.days : 1;
+
+    if (dayCount <= 0) {
+      // days: 0 is the sentinel for "all active tournament days"
+      return this.engine.getActiveDays();
+    }
+
+    if (dayCount <= 1) return [this.currentDay];
+
+    const allDays = this.engine.getActiveDays();
+    const idx = allDays.indexOf(this.currentDay);
+    if (idx === -1) return [this.currentDay];
+    return allDays.slice(idx, idx + dayCount);
+  }
+
+  private buildViewData(): { groups: TimelineGroupData[]; items: TimelineItemData[] } {
     if (!this.currentDay) return { groups: [], items: [] };
 
-    const timelines = this.engine.getDayTimeline(this.currentDay);
+    const viewDays = this.getViewDays();
     const courtMeta = this.engine.listCourtMeta();
     const layerVisibility = this.viewState.getLayerVisibility();
 
@@ -175,140 +197,154 @@ export class TemporalGridControl {
       colorScheme: this.config.colorScheme
     };
 
+    // Build groups from first day (groups are the same for all days)
+    const timelines = this.engine.getDayTimeline(viewDays[0]);
     let groups = buildResourcesFromTimelines(timelines, courtMeta, projectionConfig);
     if (this.visibleCourts !== null && this.visibleCourts.size > 0) {
       groups = groups.filter((g) => this.visibleCourts!.has(String(g.id)));
     }
+    const visibleGroupIds = this.visibleCourts !== null && this.visibleCourts.size > 0 && groups.length > 0
+      ? new Set(groups.map((g) => String(g.id)))
+      : null;
 
-    const segmentItems = buildEventsFromTimelines(timelines, projectionConfig);
-    let filteredSegmentItems = segmentItems;
-    if (this.visibleCourts !== null && this.visibleCourts.size > 0 && groups.length > 0) {
-      const visibleGroupIds = new Set(groups.map((g) => String(g.id)));
-      filteredSegmentItems = segmentItems.filter((e) => visibleGroupIds.has(String(e.group)));
+    // In single-day view, build items for ALL active days so horizontal
+    // panning reveals correctly-shaded adjacent days (daily bounds collapse
+    // overnight gaps but all days remain pannable).
+    // In multi-day views, only build items for the view days (visible-days
+    // mode maps only those days to column space).
+    const itemDays = viewDays.length <= 1 ? this.engine.getActiveDays() : viewDays;
+
+    const allSegments: any[] = [];
+    const allBlocks: any[] = [];
+    for (const day of itemDays) {
+      const dayTimelines = this.engine.getDayTimeline(day);
+      allSegments.push(...buildEventsFromTimelines(dayTimelines, projectionConfig));
+      allBlocks.push(...buildBlockEvents(this.engine.getDayBlocks(day), projectionConfig));
     }
 
-    const blocks = this.engine.getDayBlocks(this.currentDay);
-    const blockItems = buildBlockEvents(blocks, projectionConfig);
-    let filteredBlockItems = blockItems;
-    if (this.visibleCourts !== null && this.visibleCourts.size > 0 && groups.length > 0) {
-      const visibleGroupIds = new Set(groups.map((g) => String(g.id)));
-      filteredBlockItems = blockItems.filter((e) => visibleGroupIds.has(String(e.group)));
-    }
+    const filteredSegments = visibleGroupIds
+      ? allSegments.filter((e) => visibleGroupIds.has(String(e.group)))
+      : allSegments;
+    const filteredBlocks = visibleGroupIds
+      ? allBlocks.filter((e) => visibleGroupIds.has(String(e.group)))
+      : allBlocks;
 
-    const items = [...filteredSegmentItems, ...filteredBlockItems];
-    return { groups, items };
+    const items = [...filteredSegments, ...filteredBlocks];
+
+    // Convert to CourtTimeline format (string IDs, consistent types)
+    const tlGroups: TimelineGroupData[] = groups.map((g, i) => ({
+      id: String(g.id),
+      content: typeof g.content === 'string' ? g.content : '',
+      order: i,
+      courtRef: g.courtRef,
+      surface: g.surface,
+      indoor: g.indoor,
+      hasLights: g.hasLights,
+      tags: g.tags,
+    }));
+
+    const tlItems: TimelineItemData[] = items.map((item) => ({
+      id: String(item.id),
+      group: String(item.group),
+      content: item.content,
+      start: item.start,
+      end: item.end,
+      type: item.type === 'background' ? 'background' as const : 'range' as const,
+      className: item.className,
+      style: item.style,
+      title: item.title,
+      editable: item.editable,
+      blockId: item.blockId,
+      status: item.status,
+      reason: item.reason,
+      isBlock: item.isBlock,
+      isSegment: item.isSegment,
+      isConflict: item.isConflict,
+    }));
+
+    return { groups: tlGroups, items: tlItems };
   }
 
   /**
    * Create the timeline with initial data already populated.
-   * Passing data to the constructor avoids the empty→populated transition
-   * that causes extra redraws.
    */
   private createTimelineWithData(): void {
     const engineConfig = this.engine.getConfig();
     const currentDay = this.currentDay || tools.dateTime.extractDate(new Date().toISOString());
 
-    const timeRange = this.engine.getVisibleTimeRange(currentDay);
+    const viewDays = this.getViewDays();
+    const firstDay = viewDays[0] || currentDay;
+    const lastDay = viewDays[viewDays.length - 1] || currentDay;
+
+    const timeRange = this.engine.getVisibleTimeRange(firstDay);
+    const lastTimeRange = this.engine.getVisibleTimeRange(lastDay);
     const windowConfig = buildTimelineWindowConfig({
       dayStartTime: timeRange.startTime,
       dayEndTime: timeRange.endTime,
       slotMinutes: engineConfig.slotMinutes,
-      day: currentDay
+      day: firstDay
     });
 
-    let windowEnd = windowConfig.end;
-    let maxDate = windowConfig.max;
-
     const preset = VIEW_PRESETS[this.currentView];
-    if (preset && preset.days > 1) {
-      const multiDayEnd = new Date(windowConfig.start);
-      multiDayEnd.setDate(multiDayEnd.getDate() + preset.days);
-      const dayEndParts = engineConfig.dayEndTime.split(':');
-      multiDayEnd.setHours(parseInt(dayEndParts[0]), parseInt(dayEndParts[1]), 0, 0);
-      windowEnd = multiDayEnd;
-      maxDate = multiDayEnd;
-    }
+    const windowEnd = viewDays.length > 1
+      ? new Date(`${lastDay}T${lastTimeRange.endTime}:00`)
+      : windowConfig.end;
 
-    // Build initial data so the first layout already has correct content
+    // Pan limits span the active tournament days so horizontal scrolling works
+    const activeDays = this.engine.getActiveDays();
+    const tournamentFirstDay = activeDays[0] || firstDay;
+    const tournamentLastDay = activeDays[activeDays.length - 1] || lastDay;
+    const firstDayRange = this.engine.getVisibleTimeRange(tournamentFirstDay);
+    const lastDayRange = this.engine.getVisibleTimeRange(tournamentLastDay);
+    const minDate = new Date(`${tournamentFirstDay}T${firstDayRange.startTime}:00`);
+    const maxDate = new Date(`${tournamentLastDay}T${lastDayRange.endTime}:00`);
+
+    // Build initial data
     const { groups, items } = this.buildViewData();
 
     // Update local item lookup
     this.currentItems.clear();
     for (const item of items) {
-      this.currentItems.set(String(item.id), item);
+      this.currentItems.set(item.id, item as unknown as TimelineItem);
     }
 
-    this.timeline = new Timeline(this.config.container, items as any, groups as any, {
-      // Time window
+    this.timeline = new CourtTimeline(this.config.container, items, groups, {
       start: windowConfig.start,
       end: windowEnd,
-      min: windowConfig.min,
+      min: minDate,
       max: maxDate,
       zoomMin: windowConfig.zoomMin,
-      zoomMax: windowConfig.zoomMax,
-
-      // Editing
-      editable: {
-        add: true,
-        updateTime: true,
-        updateGroup: true,
-        remove: false
-      },
-
-      // Snap to 5-minute increments
+      zoomMax: maxDate.getTime() - minDate.getTime(),
       snap: (date: Date) => this.snapToMinutes(date, 5),
-
-      // Interaction callbacks
-      onAdd: this.handleOnAdd,
-      onMove: this.handleOnMove,
-      onMoving: this.handleOnMoving,
-
-      // Layout — match the working story pattern:
-      // height '100%' lets vis-timeline fill its CSS container,
-      // verticalScroll true enables internal scroll for many groups,
-      // autoResize defaults to true so the timeline responds to container changes.
-      orientation: { axis: 'top', item: 'top' },
-      stack: false,
-      groupHeightMode: 'fixed' as const,
-      showCurrentTime: false,
-      verticalScroll: true,
-      horizontalScroll: true,
-      zoomKey: 'ctrlKey',
+      rowHeight: 40,
       height: '100%',
-
-      // Group ordering
-      groupOrder: 'order',
-
-      // Tooltip
-      showTooltips: true,
-
-      // Formatting
-      format: {
-        minorLabels: {
-          minute: 'HH:mm',
-          hour: 'HH:mm'
-        },
-        majorLabels: {
-          hour: 'ddd D MMM',
-          day: 'ddd D MMM'
-        }
-      },
-
-      // Time axis (from current view preset)
       timeAxis: preset ? preset.timeAxis : { scale: 'hour', step: 1 },
-
-      // Items always draggable (for block items that are editable)
-      itemsAlwaysDraggable: {
-        item: true,
-        range: true
-      },
-
-      // Data attributes for DOM querying
-      dataAttributes: ['id'],
+      showTooltips: true,
     });
 
-    // Register click handler for block actions
+    // Set daily bounds to collapse times outside availability window.
+    // For multi-day views, also restrict visible days to the view range.
+    // For single-day views, bounds still apply but all days remain pannable.
+    this.timeline.setDailyBounds(timeRange.startTime, timeRange.endTime);
+    if (viewDays.length > 1) {
+      this.timeline.setVisibleDays(viewDays);
+    }
+
+    // Wire interaction callbacks
     this.timeline.on('click', this.handleTimelineClick);
+    this.timeline.onMove(this.handleOnMove);
+    this.timeline.onMoving(this.handleOnMoving);
+    this.timeline.onMultiRowCreate(this.handleMultiRowCreate);
+
+    // Day label click → navigate to 1-Day view for that day
+    this.timeline.onDayClick((dayStr: string) => {
+      this.setDay(dayStr);
+      this.setViewPreset('day');
+      this.config.onDayNavigate?.(dayStr);
+    });
+
+    // Notify that initial data is ready so stats bars can populate
+    this.config.onBlocksChanged?.();
   }
 
   // ============================================================================
@@ -338,18 +374,52 @@ export class TemporalGridControl {
     this.updateTimelineWindow();
   }
 
-  /** Set a named view preset (day/tournament/week) */
+  /** Set a named view preset (day/days3/week/all) */
   setViewPreset(viewKey: string): void {
     const preset = VIEW_PRESETS[viewKey];
     if (!preset || !this.timeline || !this.currentDay) return;
 
     this.currentView = viewKey;
-    const engineConfig = this.engine.getConfig();
-    const windowStart = new Date(`${this.currentDay}T${engineConfig.dayStartTime}:00`);
-    const windowEnd = new Date(windowStart.getTime() + preset.days * 16 * 60 * 60 * 1000);
+
+    const viewDays = this.getViewDays();
+    const firstDay = viewDays[0];
+    const lastDay = viewDays[viewDays.length - 1];
+
+    const timeRange = this.engine.getVisibleTimeRange(firstDay);
+    const lastTimeRange = this.engine.getVisibleTimeRange(lastDay);
+
+    // Batch all updates to avoid intermediate renders with stale data
+    this.timeline.beginBatchUpdate();
+
+    // Set daily bounds to collapse times outside availability window.
+    // For multi-day views, also restrict visible days to the view range.
+    const isMultiDay = preset.days === 0 || preset.days > 1;
+    this.timeline.setDailyBounds(timeRange.startTime, timeRange.endTime);
+    if (isMultiDay) {
+      this.timeline.setVisibleDays(viewDays);
+    } else {
+      this.timeline.clearVisibleDays();
+    }
+
+    const windowStart = new Date(`${firstDay}T${timeRange.startTime}:00`);
+    const windowEnd = new Date(`${lastDay}T${lastTimeRange.endTime}:00`);
 
     this.timeline.setWindow(windowStart, windowEnd, { animation: false });
     this.timeline.setOptions({ timeAxis: preset.timeAxis });
+
+    // Build and apply new data within the batch
+    const { groups, items } = this.buildViewData();
+    this.currentItems.clear();
+    for (const item of items) {
+      this.currentItems.set(item.id, item as unknown as TimelineItem);
+    }
+    this.timeline.setGroups(groups);
+    this.timeline.setItems(items);
+
+    // End batch — triggers a single render with all state consistent
+    this.timeline.endBatchUpdate();
+
+    this.config.onBlocksChanged?.();
   }
 
   /** Select courts for multi-court operations */
@@ -380,6 +450,7 @@ export class TemporalGridControl {
 
   /** Refresh the calendar display */
   refresh(): void {
+    this.updateTimelineWindow();
     this.render();
   }
 
@@ -405,29 +476,47 @@ export class TemporalGridControl {
     if (!this.timeline || !this.currentDay) return;
 
     const engineConfig = this.engine.getConfig();
-    const timeRange = this.engine.getVisibleTimeRange(this.currentDay);
+    const viewDays = this.getViewDays();
+    const firstDay = viewDays[0] || this.currentDay;
+    const lastDay = viewDays[viewDays.length - 1] || this.currentDay;
+
+    const timeRange = this.engine.getVisibleTimeRange(firstDay);
+    const lastTimeRange = this.engine.getVisibleTimeRange(lastDay);
     const windowConfig = buildTimelineWindowConfig({
       dayStartTime: timeRange.startTime,
       dayEndTime: timeRange.endTime,
       slotMinutes: engineConfig.slotMinutes,
-      day: this.currentDay
+      day: firstDay
     });
 
-    let windowEnd = windowConfig.end;
-    let maxDate = windowConfig.max;
-
     const preset = VIEW_PRESETS[this.currentView];
-    if (preset && preset.days > 1) {
-      const multiDayEnd = new Date(windowConfig.start);
-      multiDayEnd.setDate(multiDayEnd.getDate() + preset.days);
-      const dayEndParts = engineConfig.dayEndTime.split(':');
-      multiDayEnd.setHours(parseInt(dayEndParts[0]), parseInt(dayEndParts[1]), 0, 0);
-      windowEnd = multiDayEnd;
-      maxDate = multiDayEnd;
+    const windowEnd = viewDays.length > 1
+      ? new Date(`${lastDay}T${lastTimeRange.endTime}:00`)
+      : windowConfig.end;
+
+    // Pan limits span the active tournament days
+    const activeDays = this.engine.getActiveDays();
+    const tournamentFirstDay = activeDays[0] || firstDay;
+    const tournamentLastDay = activeDays[activeDays.length - 1] || lastDay;
+    const firstDayRange = this.engine.getVisibleTimeRange(tournamentFirstDay);
+    const lastDayRange = this.engine.getVisibleTimeRange(tournamentLastDay);
+    const minDate = new Date(`${tournamentFirstDay}T${firstDayRange.startTime}:00`);
+    const maxDate = new Date(`${tournamentLastDay}T${lastDayRange.endTime}:00`);
+
+    // Batch updates to avoid intermediate renders
+    this.timeline.beginBatchUpdate();
+
+    // Set daily bounds to collapse times outside availability window.
+    // For multi-day views, also restrict visible days to the view range.
+    this.timeline.setDailyBounds(timeRange.startTime, timeRange.endTime);
+    if (viewDays.length > 1) {
+      this.timeline.setVisibleDays(viewDays);
+    } else {
+      this.timeline.clearVisibleDays();
     }
 
     this.timeline.setOptions({
-      min: windowConfig.min,
+      min: minDate,
       max: maxDate
     });
 
@@ -436,6 +525,8 @@ export class TemporalGridControl {
     if (preset) {
       this.timeline.setOptions({ timeAxis: preset.timeAxis });
     }
+
+    this.timeline.endBatchUpdate();
   }
 
   // ============================================================================
@@ -459,69 +550,32 @@ export class TemporalGridControl {
       // Update local item lookup map
       this.currentItems.clear();
       for (const item of items) {
-        this.currentItems.set(String(item.id), item);
+        this.currentItems.set(item.id, item as unknown as TimelineItem);
       }
 
       // Update timeline data
-      this.timeline.setGroups(groups as any);
-      this.timeline.setItems(items as any);
+      this.timeline.setGroups(groups);
+      this.timeline.setItems(items);
     } finally {
       this.isRendering = false;
     }
   }
 
   // ============================================================================
-  // vis-timeline Interaction Handlers
+  // CourtTimeline Interaction Handlers
   // ============================================================================
 
   /**
-   * onAdd: Called when user double-clicks or drags to create a new item.
-   * Shows a temporary box item, then click converts to range + popover.
+   * onMove: Called when user finishes dragging or resizing an item.
+   * Returns true to accept, false to reject.
    */
-  private handleOnAdd = (item: any, callback: (item: any) => void): void => {
-    const groupId = String(item.group);
-    const court = parseResourceId(groupId);
-    if (!court) {
-      callback(null);
-      return;
-    }
+  private handleOnMove = (item: { id: string; group: string; start: Date; end: Date }): boolean => {
+    const blockId = parseBlockEventId(item.id);
+    if (!blockId) return false;
 
-    // Show a temporary box item (with umbilical line); click will convert to range + popover
-    item.content = item.content || 'New Block';
-    item.style = 'background-color: #607D8B; border-color: #37474F; color: white;';
-    item.editable = { updateTime: true, updateGroup: true, remove: false };
-    callback(item);
-  };
-
-  /**
-   * onMove: Replaces handleEventDrop + handleEventResize.
-   * Called when user finishes dragging or resizing an item.
-   */
-  private handleOnMove = (item: any, callback: (item: any) => void): void => {
-    this.justDragged = true;
-    setTimeout(() => (this.justDragged = false), 300);
-
-    // Only handle block items — temp box items pass through
-    if (!item.isBlock) {
-      const blockId = parseBlockEventId(String(item.id));
-      if (!blockId) {
-        // Temporary box item (not yet in engine) — let vis-timeline handle it
-        callback(item);
-        return;
-      }
-    }
-
-    const blockId = parseBlockEventId(String(item.id));
-    if (!blockId) {
-      callback(null);
-      return;
-    }
-
-    const newGroupId = String(item.group);
-    const newCourt = parseResourceId(newGroupId);
-
-    const newStart = this.toLocalISO(new Date(item.start));
-    const newEnd = this.toLocalISO(new Date(item.end));
+    const newCourt = parseResourceId(item.group);
+    const newStart = this.toLocalISO(item.start);
+    const newEnd = this.toLocalISO(item.end);
 
     // Move/resize block in engine
     const result = this.engine.moveBlock({
@@ -530,58 +584,60 @@ export class TemporalGridControl {
       newCourt: newCourt || undefined
     });
 
-    // On conflict → reject by passing null
+    // On conflict → reject
     if (result.conflicts.some((c) => c.severity === 'ERROR')) {
-      callback(null);
       this.showConflictDialog(result.conflicts);
-    } else {
-      callback(item);
-      this.render();
+      return false;
     }
+
+    this.render();
+    return true;
   };
 
   /**
    * onMoving: Live validation during drag (optional visual feedback).
-   * Destroys active popover, clamps to court availability, and allows the move.
+   * Destroys active popover, clamps to court availability.
+   * Returns clamped start/end, or null to reject.
    */
-  private handleOnMoving = (item: any, callback: (item: any) => void): void => {
+  private handleOnMoving = (
+    item: { id: string; group: string; start: Date; end: Date }
+  ): { start: Date; end: Date } | null => {
     this.popoverManager.destroy();
 
-    // Allow moving block items and temp box items, not segments or backgrounds
-    if (!item.isBlock && item.type !== 'box') {
-      callback(null);
-      return;
+    // Look up the original item to check if it's a segment
+    const originalItem = this.currentItems.get(item.id);
+    if (originalItem && (originalItem.isSegment || originalItem.type === 'background')) {
+      return null; // Reject — segments are not user-editable
     }
+
+    let { start, end } = item;
 
     // Clamp to court availability window
-    if (item.group && this.currentDay) {
-      const courtRef = parseResourceId(String(item.group));
-      if (courtRef) {
-        const avail = this.engine.getCourtAvailability(courtRef, this.currentDay);
-        const availStart = new Date(`${this.currentDay}T${avail.startTime}:00`);
-        const availEnd = new Date(`${this.currentDay}T${avail.endTime}:00`);
-        if (new Date(item.start) < availStart) item.start = availStart;
-        if (new Date(item.end) > availEnd) item.end = availEnd;
-      }
+    const courtRef = parseResourceId(item.group);
+    if (courtRef) {
+      const itemDay = start.toISOString().slice(0, 10);
+      const avail = this.engine.getCourtAvailability(courtRef, itemDay);
+      const availStart = new Date(`${itemDay}T${avail.startTime}:00`);
+      const availEnd = new Date(`${itemDay}T${avail.endTime}:00`);
+      if (start < availStart) start = availStart;
+      if (end > availEnd) end = availEnd;
     }
 
-    callback(item);
+    return { start, end };
   };
 
   /**
-   * Timeline click handler: Routes to popover or delete based on mode.
-   * Supports box→range conversion for double-click-created items.
+   * Timeline click handler: Routes to popover based on item type.
+   * Handles ghost confirmation (multi-row create) and block click → popover.
    */
-  private handleTimelineClick = (properties: any): void => {
-    if (this.justDragged) return;
-
-    if (!properties.item) {
+  private handleTimelineClick = (properties: { item: string; event: PointerEvent }): void => {
+    const itemId = properties.item;
+    if (!itemId) {
       this.popoverManager.destroy();
       return;
     }
 
-    const itemId = String(properties.item);
-    const item = (this.timeline as any)?.itemsData?.get(properties.item) as any;
+    const item = this.currentItems.get(itemId);
     if (!item) {
       this.popoverManager.destroy();
       return;
@@ -599,51 +655,16 @@ export class TemporalGridControl {
       return;
     }
 
-    // Box/point item (from double-click) → convert to range via engine
-    if (item.type !== 'range' && !item.isBlock) {
-      const courtRef = parseResourceId(String(item.group));
-      if (!courtRef) return;
-      const start = this.toLocalISO(new Date(item.start));
-      const endTime = new Date(new Date(item.start).getTime() + 60 * 60 * 1000);
-      const result = this.engine.applyBlock({
-        courts: [courtRef],
-        timeRange: { start, end: this.toLocalISO(endTime) },
-        type: BLOCK_TYPES.BLOCKED,
-        reason: 'New Block',
-      });
-      this.render();
-
-      // Show popover on the newly created engine block
-      if (result.applied.length > 0) {
-        const newBlockId = result.applied[0].block.id;
-        const newItemId = `block-${newBlockId}`;
-        const day = this.currentDay || start.slice(0, 10);
-        setTimeout(() => {
-          const el = this.config.container.querySelector(`.vis-item[data-id="${newItemId}"]`);
-          if (el) {
-            this.popoverManager.showForEngineBlock(el as HTMLElement, {
-              itemId: newItemId,
-              blockId: newBlockId,
-              engine: this.engine,
-              day,
-              onBlockChanged: () => this.render(),
-            });
-          }
-        }, 50);
-      }
-      return;
-    }
-
     // Range / block item → show popover
     const blockId = parseBlockEventId(itemId);
     if (!blockId) return;
 
     const itemEl =
-      (properties.event?.target as Element)?.closest?.('.vis-item') ??
-      this.config.container.querySelector(`.vis-item[data-id="${itemId}"]`);
+      (properties.event?.target as Element)?.closest?.('.tg-item') ??
+      this.config.container.querySelector(`[data-item-id="${itemId}"]`);
 
     if (itemEl) {
-      const day = this.currentDay || '';
+      const day = String(item.start).slice(0, 10);
       this.popoverManager.showForEngineBlock(itemEl as HTMLElement, {
         itemId,
         blockId,
@@ -655,6 +676,57 @@ export class TemporalGridControl {
 
     if (this.config.onBlockSelected) {
       this.config.onBlockSelected(blockId);
+    }
+  };
+
+  /**
+   * Multi-row ghost creation handler.
+   * Called when user confirms a ghost spanning one or more court rows.
+   * Creates one block per court via engine.applyBlock.
+   */
+  private handleMultiRowCreate = (span: MultiRowSpan): void => {
+    const courts: CourtRef[] = [];
+    for (const groupId of span.groupIds) {
+      const court = parseResourceId(groupId);
+      if (court) courts.push(court);
+    }
+
+    if (courts.length === 0) return;
+
+    const startStr = this.toLocalISO(span.startTime);
+    const endStr = this.toLocalISO(span.endTime);
+
+    const result = this.engine.applyBlock({
+      courts,
+      timeRange: { start: startStr, end: endStr },
+      type: BLOCK_TYPES.BLOCKED,
+      reason: 'New Block',
+    });
+
+    this.render();
+
+    // Show popover on the first created block
+    if (result.applied.length > 0) {
+      const newBlockId = result.applied[0].block.id;
+      const newItemId = `block-${newBlockId}`;
+      const day = startStr.slice(0, 10);
+      setTimeout(() => {
+        const el = this.config.container.querySelector(`[data-item-id="${newItemId}"]`);
+        if (el) {
+          this.popoverManager.showForEngineBlock(el as HTMLElement, {
+            itemId: newItemId,
+            blockId: newBlockId,
+            engine: this.engine,
+            day,
+            onBlockChanged: () => this.render(),
+          });
+        }
+      }, 50);
+    }
+
+    // Notify external consumers
+    if (this.config.onTimeRangeSelected) {
+      this.config.onTimeRangeSelected({ courts, start: startStr, end: endStr });
     }
   };
 
@@ -729,7 +801,7 @@ export class TemporalGridControl {
   }
 
   /** Get timeline instance (for advanced usage) */
-  getTimeline(): Timeline | null {
+  getTimeline(): CourtTimeline | null {
     return this.timeline;
   }
 
