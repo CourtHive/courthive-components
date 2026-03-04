@@ -1,6 +1,6 @@
 {
   "name": "courthive-components",
-  "version": "0.9.28-beta.13",
+  "version": "0.9.28-beta.14",
   "engines": {
     "node": ">=20.19.0 < 25"
   },
