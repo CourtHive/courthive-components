@@ -7,12 +7,11 @@ import { renderForm } from '../../forms/renderForm';
 import { getPlayoffProfiles } from '../domain/playoffProfilesCache';
 import type { TopologyEdge, TopologyState, UIPanel } from '../types';
 
-const { WINNER, LOSER, TOP_DOWN, BOTTOM_UP, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } = drawDefinitionConstants;
+const { WINNER, LOSER, TOP_DOWN, BOTTOM_UP, QUALIFYING, ROUND_ROBIN } = drawDefinitionConstants;
 const POSITION = 'POSITION';
 const ALTERNATING = 'ALTERNATING';
 
-const RR_TYPES = new Set([ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF]);
-const isRoundRobin = (drawType: string) => RR_TYPES.has(drawType);
+const isRoundRobin = (structureType: string) => structureType === ROUND_ROBIN;
 
 const LINK_TYPES = [
   { label: 'Winner', value: WINNER },
@@ -64,7 +63,7 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
     const isQualifyingWinner = edge.linkType === WINNER && source?.stage === QUALIFYING;
     const sourceMaxRound = source ? Math.ceil(Math.log2(source.drawSize)) : 8;
     const targetMaxRound = target ? Math.ceil(Math.log2(target.drawSize)) : 8;
-    const isRRPosition = edge.linkType === POSITION && source && isRoundRobin(source.drawType);
+    const isRRPosition = edge.linkType === POSITION && source && isRoundRobin(source.structureType);
 
     const items: any[] = [
       {
@@ -88,7 +87,7 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
     if (!isRRPosition) {
       // Build Source Round field — dropdown from playoff profiles when available
       const profiles = source
-        ? getPlayoffProfiles(source.drawType, source.drawSize, source.structureOptions?.groupSize)
+        ? getPlayoffProfiles(source.structureType, source.drawSize, source.structureOptions?.groupSize)
         : {};
       const hasRoundRanges = profiles.playoffRoundsRanges && profiles.playoffRoundsRanges.length > 0;
 

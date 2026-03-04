@@ -10,24 +10,24 @@ const { ROUND_ROBIN, AD_HOC } = drawDefinitionConstants;
 let matchUpCounter = 0;
 
 export function generatePreviewMatchUps({
-  drawType,
+  structureType,
   drawSize,
   stage,
   structureId,
   qualifyingPositions,
   structureOptions,
 }: {
-  drawType: string;
+  structureType: string;
   drawSize: number;
   stage?: string;
   structureId?: string;
   qualifyingPositions?: number;
   structureOptions?: any;
 }): SchematicMatchUp[] {
-  if (drawType === ROUND_ROBIN) {
-    return generateRoundRobinPreview({ drawSize, stage, structureId });
+  if (structureType === ROUND_ROBIN) {
+    return generateRoundRobinPreview({ drawSize, stage, structureId, structureOptions });
   }
-  if (drawType === AD_HOC) {
+  if (structureType === AD_HOC) {
     const roundsCount = structureOptions?.roundsCount || 1;
     return generateAdHocPreview({ drawSize, stage, structureId, roundsCount });
   }
@@ -138,13 +138,15 @@ function generateRoundRobinPreview({
   drawSize,
   stage,
   structureId,
+  structureOptions,
 }: {
   drawSize: number;
   stage?: string;
   structureId?: string;
+  structureOptions?: any;
 }): SchematicMatchUp[] {
   const matchUps: SchematicMatchUp[] = [];
-  const groupSize = Math.min(drawSize, 4);
+  const groupSize = structureOptions?.groupSize || Math.min(drawSize, 4);
   const groups = Math.ceil(drawSize / groupSize);
   const roundsPerGroup = groupSize - 1;
 

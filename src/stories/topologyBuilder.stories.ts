@@ -16,7 +16,9 @@ import { standardTemplates } from '../components/topology-builder/domain/templat
 import { topologyToDrawOptions } from '../components/topology-builder/domain/topologyToDrawOptions';
 import { validateTopology } from '../components/topology-builder/domain/topologyValidator';
 import { generateDrawFromTopology } from '../components/topology-builder/domain/generateDrawFromTopology';
-import type { TopologyBuilderConfig, TopologyState, TopologyTemplate } from '../components/topology-builder/types';
+import { cModal } from '../components/modal/cmodal';
+import { getNumRounds } from '../components/topology-builder/ui/structureCard';
+import type { TopologyBuilderConfig, TopologyNode, TopologyState, TopologyTemplate } from '../components/topology-builder/types';
 
 const CANVAS_HEIGHT = '800px';
 
@@ -194,4 +196,109 @@ export const AllTemplates: Story = {
         console.log('Save template:', state);
       }
     })
+};
+
+/**
+ * Double-Click Structure Card — Opens a cModal with structure details.
+ *
+ * Double-click any structure card to open a modal showing its properties.
+ * This demonstrates the `onDoubleClickNode` callback used by TMX to show
+ * structure information when a user double-clicks a card.
+ *
+ * Pre-loaded with the FIC template so there are multiple structures to click.
+ */
+export const DoubleClickModal: Story = {
+  render: () => {
+    const template = standardTemplates.find((t) => t.name === 'Feed-In Championship (FIC)') as TopologyTemplate;
+
+    const onDoubleClickNode = (node: TopologyNode, state: TopologyState) => {
+      // Gather link info for this node
+      const inbound = state.edges.filter((e) => e.targetNodeId === node.id);
+      const outbound = state.edges.filter((e) => e.sourceNodeId === node.id);
+
+      const content = document.createElement('div');
+
+      // Properties table
+      const table = document.createElement('table');
+      table.style.cssText = 'width:100%;border-collapse:collapse;font-size:14px;';
+      const rows: [string, string][] = [
+        ['Name', node.structureName],
+        ['Stage', node.stage],
+        ['Structure Type', node.structureType],
+        ['Draw Size', String(node.drawSize)],
+        ['Rounds', String(getNumRounds(node))],
+      ];
+
+      if (node.qualifyingPositions) {
+        rows.push(['Qualifying Positions', String(node.qualifyingPositions)]);
+      }
+      if (node.structureOptions?.groupSize) {
+        rows.push(['Group Size', String(node.structureOptions.groupSize)]);
+      }
+      if (node.matchUpFormat) {
+        rows.push(['MatchUp Format', node.matchUpFormat]);
+      }
+
+      for (const [label, value] of rows) {
+        const tr = document.createElement('tr');
+        const td1 = document.createElement('td');
+        td1.style.cssText = 'padding:6px 12px 6px 0;font-weight:600;white-space:nowrap;color:var(--chc-text-secondary);';
+        td1.textContent = label;
+        const td2 = document.createElement('td');
+        td2.style.cssText = 'padding:6px 0;';
+        td2.textContent = value;
+        tr.appendChild(td1);
+        tr.appendChild(td2);
+        table.appendChild(tr);
+      }
+      content.appendChild(table);
+
+      // Links section
+      if (inbound.length > 0 || outbound.length > 0) {
+        const linksHeader = document.createElement('div');
+        linksHeader.style.cssText = 'margin-top:12px;padding-top:12px;border-top:1px solid var(--chc-border-secondary);font-weight:600;font-size:13px;margin-bottom:6px;';
+        linksHeader.textContent = 'Links';
+        content.appendChild(linksHeader);
+
+        const linkList = document.createElement('div');
+        linkList.style.cssText = 'font-size:13px;';
+
+        for (const edge of inbound) {
+          const source = state.nodes.find((n) => n.id === edge.sourceNodeId);
+          const div = document.createElement('div');
+          div.style.cssText = 'padding:3px 0;color:var(--chc-text-secondary);';
+          const roundInfo = edge.targetRoundNumber ? ` at R${edge.targetRoundNumber}` : '';
+          div.textContent = `\u2190 ${edge.linkType} from ${source?.structureName || 'Unknown'}${roundInfo}`;
+          linkList.appendChild(div);
+        }
+        for (const edge of outbound) {
+          const target = state.nodes.find((n) => n.id === edge.targetNodeId);
+          const div = document.createElement('div');
+          div.style.cssText = 'padding:3px 0;color:var(--chc-text-secondary);';
+          const roundInfo = edge.sourceRoundNumber ? ` from R${edge.sourceRoundNumber}` : '';
+          div.textContent = `\u2192 ${edge.linkType} to ${target?.structureName || 'Unknown'}${roundInfo}`;
+          linkList.appendChild(div);
+        }
+
+        content.appendChild(linkList);
+      }
+
+      cModal.open({
+        title: `Structure: ${node.structureName}`,
+        content,
+        buttons: [{ label: 'Close', intent: 'is-info' }],
+        config: { maxWidth: 480, clickAway: true },
+      });
+    };
+
+    return renderBuilder({
+      onDoubleClickNode,
+      initialState: {
+        ...template.state,
+        selectedNodeId: null,
+        selectedEdgeId: null,
+        templateName: template.name,
+      },
+    });
+  }
 };

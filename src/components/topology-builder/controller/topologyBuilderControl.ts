@@ -62,6 +62,13 @@ export class TopologyBuilderControl {
     const canvas = buildTopologyCanvas({
       onSelectNode: (nodeId) => this.store.selectNode(nodeId),
       onSelectEdge: (edgeId) => this.store.selectEdge(edgeId),
+      onDoubleClickNode: config.onDoubleClickNode
+        ? (nodeId) => {
+            const state = this.store.getState();
+            const node = state.nodes.find((n) => n.id === nodeId);
+            if (node) config.onDoubleClickNode!(node, state);
+          }
+        : undefined,
       onMoveNode: (nodeId, x, y) => this.store.updateNode(nodeId, { position: { x, y } }),
       onCreateEdge: isReadOnly ? () => {} : (sourceNodeId, targetNodeId, linkType) => {
         const source = this.store.getState().nodes.find((n) => n.id === sourceNodeId);
@@ -161,7 +168,7 @@ export class TopologyBuilderControl {
     const node = this.store.addNode({
       structureName: nameMap[stage] || stage,
       stage: stage as any,
-      drawType: SINGLE_ELIMINATION,
+      structureType: SINGLE_ELIMINATION,
       drawSize,
       ...(stage === QUALIFYING && { qualifyingPositions: Math.floor(drawSize / 4) }),
     });

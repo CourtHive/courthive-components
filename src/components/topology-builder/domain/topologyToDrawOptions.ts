@@ -1,6 +1,10 @@
 /**
  * Topology to Draw Options — Converts TopologyState to factory drawOptions.
  * Groups qualifying edges by targetRoundNumber -> qualifyingProfiles.
+ *
+ * Derives the factory drawType from the link topology rather than
+ * from individual node structureTypes, which only describe the
+ * structure shape (SE, FEED_IN, ROUND_ROBIN, AD_HOC).
  */
 import type { TopologyState, TopologyNode, TopologyEdge } from '../types';
 import { drawDefinitionConstants } from 'tods-competition-factory';
@@ -13,29 +17,67 @@ const {
   SINGLE_ELIMINATION,
   FEED_IN,
   FIRST_MATCH_LOSER_CONSOLATION,
-  FIRST_ROUND_LOSER_CONSOLATION,
   FEED_IN_CHAMPIONSHIP,
   COMPASS,
   WINNER,
   LOSER,
   ROUND_ROBIN,
-  ROUND_ROBIN_WITH_PLAYOFF
+  AD_HOC,
 } = drawDefinitionConstants;
 
 const POSITION = 'POSITION';
-const RR_TYPES = new Set([ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF]);
 
 export interface DrawOptionsResult {
   drawOptions: any;
   postGenerationMethods: any[];
 }
 
-const CONSOLATION_COMPOSITE_TYPES: Record<string, string> = {
-  [FIRST_MATCH_LOSER_CONSOLATION]: FIRST_MATCH_LOSER_CONSOLATION,
-  [FIRST_ROUND_LOSER_CONSOLATION]: FIRST_ROUND_LOSER_CONSOLATION,
-  [FEED_IN_CHAMPIONSHIP]: FEED_IN_CHAMPIONSHIP,
-  [COMPASS]: COMPASS
-};
+/**
+ * Infer the factory drawType from the topology's structure types + link topology.
+ */
+function inferFactoryDrawType(state: TopologyState, mainNode: TopologyNode): string {
+  const consolationNodes = state.nodes.filter((n) => n.stage === CONSOLATION);
+  const qualifyingNodes = state.nodes.filter((n) => n.stage === QUALIFYING);
+  const playoffNodes = state.nodes.filter((n) => n.stage === PLAY_OFF);
+
+  // RR, FEED_IN, AD_HOC main structures map directly
+  if (mainNode.structureType === ROUND_ROBIN) return ROUND_ROBIN;
+  if (mainNode.structureType === AD_HOC) return AD_HOC;
+  if (mainNode.structureType === FEED_IN) return FEED_IN;
+
+  // From here, main is SINGLE_ELIMINATION
+  // Check for compass: 7 consolation structures with loser links from main at R1/R2/R3
+  if (consolationNodes.length === 7 && qualifyingNodes.length === 0 && playoffNodes.length === 0) {
+    const mainLoserEdges = state.edges.filter(
+      (e) => e.linkType === LOSER && e.sourceNodeId === mainNode.id,
+    );
+    const mainLoserRounds = new Set(mainLoserEdges.map((e) => e.sourceRoundNumber));
+    if (mainLoserRounds.has(1) && mainLoserRounds.has(2) && mainLoserRounds.has(3)) {
+      return COMPASS;
+    }
+  }
+
+  // Check for consolation-based composite types
+  if (consolationNodes.length === 1 && qualifyingNodes.length === 0 && playoffNodes.length === 0) {
+    const consNode = consolationNodes[0];
+    const mainLoserEdges = state.edges.filter(
+      (e) => e.linkType === LOSER && e.sourceNodeId === mainNode.id && e.targetNodeId === consNode.id,
+    );
+
+    // FIC: consolation is FEED_IN, or multiple loser round links
+    if (consNode.structureType === FEED_IN || mainLoserEdges.length > 1) {
+      return FEED_IN_CHAMPIONSHIP;
+    }
+
+    // FMLC: single loser link from R1
+    if (mainLoserEdges.length === 1 && mainLoserEdges[0].sourceRoundNumber === 1) {
+      return FIRST_MATCH_LOSER_CONSOLATION;
+    }
+  }
+
+  // Default: SINGLE_ELIMINATION (coerced to FEED_IN for non-power-of-2 later)
+  return SINGLE_ELIMINATION;
+}
 
 export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
   const mainNode = state.nodes.find((n) => n.stage === MAIN);
@@ -43,25 +85,11 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
     throw new Error('No main structure node found');
   }
 
-  const consolationNodes = state.nodes.filter((n) => n.stage === CONSOLATION);
   const qualifyingNodes = state.nodes.filter((n) => n.stage === QUALIFYING);
   const playoffNodes = state.nodes.filter((n) => n.stage === PLAY_OFF);
 
-  // Determine the effective draw type.
-  // Use the main node's drawType, or map to a composite type for consolation.
-  // The factory handles qualifyingProfiles independently, so no CUSTOM wrapper is needed.
-  let drawType = mainNode.drawType;
-
-  if (
-    drawType !== COMPASS &&
-    consolationNodes.length === 1 &&
-    qualifyingNodes.length === 0 &&
-    playoffNodes.length === 0
-  ) {
-    const consolationType = consolationNodes[0].drawType;
-    const composite = CONSOLATION_COMPOSITE_TYPES[consolationType];
-    if (composite) drawType = composite;
-  }
+  // Derive factory drawType from link topology
+  let drawType = inferFactoryDrawType(state, mainNode);
 
   // Coerce SINGLE_ELIMINATION to FEED_IN for non-power-of-2 draw sizes.
   // FEED_IN uses feedInMatchUps() which properly handles staggered entry.
@@ -102,7 +130,7 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
         totalQualifiers += qualifyingPositions;
         return {
           structureName: node.structureName,
-          drawType: node.drawType,
+          drawType: node.structureType,
           drawSize: node.drawSize,
           qualifyingPositions,
           seedsCount: 0
@@ -121,7 +149,7 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
 
   // Post-generation methods for playoff structures
   const postGenerationMethods: any[] = [];
-  const isMainRR = RR_TYPES.has(mainNode.drawType);
+  const isMainRR = mainNode.structureType === ROUND_ROBIN;
 
   // Collect POSITION edges from the main RR node to playoff nodes
   const rrPositionEdges = isMainRR

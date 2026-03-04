@@ -27,7 +27,7 @@ describe('topologyToDrawOptions — drawType coercion', () => {
           id: 'main',
           structureName: 'Main Draw',
           stage: MAIN as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 32,
           position: { x: 0, y: 0 }
         }
@@ -44,7 +44,7 @@ describe('topologyToDrawOptions — drawType coercion', () => {
           id: 'main',
           structureName: 'Main Draw',
           stage: MAIN as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 36,
           position: { x: 0, y: 0 }
         }
@@ -61,7 +61,7 @@ describe('topologyToDrawOptions — drawType coercion', () => {
           id: 'main',
           structureName: 'Main Draw',
           stage: MAIN as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 32,
           position: { x: 320, y: 40 }
         },
@@ -69,7 +69,7 @@ describe('topologyToDrawOptions — drawType coercion', () => {
           id: 'q1',
           structureName: 'Qualifying',
           stage: QUALIFYING as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 16,
           qualifyingPositions: 4,
           position: { x: 40, y: 40 }
@@ -101,7 +101,7 @@ describe('generateDrawFromTopology — factory integration', () => {
           id: 'main',
           structureName: 'Main Draw',
           stage: MAIN as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 32,
           position: { x: 0, y: 0 }
         }
@@ -122,7 +122,7 @@ describe('generateDrawFromTopology — factory integration', () => {
           id: 'main',
           structureName: 'Main Draw',
           stage: MAIN as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 36,
           position: { x: 0, y: 0 }
         }
@@ -143,7 +143,7 @@ describe('generateDrawFromTopology — factory integration', () => {
           id: 'main',
           structureName: 'Main Draw',
           stage: MAIN as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 32,
           position: { x: 320, y: 40 }
         },
@@ -151,7 +151,7 @@ describe('generateDrawFromTopology — factory integration', () => {
           id: 'q1',
           structureName: 'Qualifying',
           stage: QUALIFYING as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 16,
           qualifyingPositions: 4,
           position: { x: 40, y: 40 }
@@ -192,7 +192,7 @@ describe('generateDrawFromTopology — factory integration', () => {
           id: 'main',
           structureName: 'Main Draw',
           stage: MAIN as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 36,
           position: { x: 320, y: 40 }
         },
@@ -200,7 +200,7 @@ describe('generateDrawFromTopology — factory integration', () => {
           id: 'q1',
           structureName: 'Qualifying 1',
           stage: QUALIFYING as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 16,
           qualifyingPositions: 4,
           position: { x: 40, y: 40 }
@@ -209,7 +209,7 @@ describe('generateDrawFromTopology — factory integration', () => {
           id: 'q2',
           structureName: 'Qualifying 2',
           stage: QUALIFYING as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 16,
           qualifyingPositions: 4,
           position: { x: 40, y: 210 }
@@ -259,7 +259,7 @@ describe('generateDrawFromTopology — factory integration', () => {
           id: 'main',
           structureName: 'Main Draw',
           stage: MAIN as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 32,
           position: { x: 0, y: 0 }
         },
@@ -267,7 +267,7 @@ describe('generateDrawFromTopology — factory integration', () => {
           id: 'po1',
           structureName: '3-4 Playoff',
           stage: PLAY_OFF as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 2,
           position: { x: 400, y: 200 }
         }
@@ -307,7 +307,7 @@ describe('generateDrawFromTopology — factory integration', () => {
           id: 'main',
           structureName: 'Main Draw',
           stage: MAIN as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 32,
           position: { x: 0, y: 0 }
         },
@@ -315,7 +315,7 @@ describe('generateDrawFromTopology — factory integration', () => {
           id: 'west',
           structureName: 'West',
           stage: PLAY_OFF as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 16,
           position: { x: 400, y: 0 }
         },
@@ -323,7 +323,7 @@ describe('generateDrawFromTopology — factory integration', () => {
           id: 'north',
           structureName: 'North',
           stage: PLAY_OFF as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 8,
           position: { x: 400, y: 200 }
         },
@@ -331,7 +331,7 @@ describe('generateDrawFromTopology — factory integration', () => {
           id: 'northeast',
           structureName: 'Northeast',
           stage: PLAY_OFF as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 4,
           position: { x: 400, y: 400 }
         },
@@ -339,7 +339,7 @@ describe('generateDrawFromTopology — factory integration', () => {
           id: 'south',
           structureName: 'South',
           stage: PLAY_OFF as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 8,
           position: { x: 800, y: 0 }
         },
@@ -347,7 +347,7 @@ describe('generateDrawFromTopology — factory integration', () => {
           id: 'southwest',
           structureName: 'Southwest',
           stage: PLAY_OFF as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 4,
           position: { x: 800, y: 200 }
         },
@@ -355,7 +355,7 @@ describe('generateDrawFromTopology — factory integration', () => {
           id: 'northwest',
           structureName: 'Northwest',
           stage: PLAY_OFF as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 4,
           position: { x: 800, y: 400 }
         },
@@ -363,7 +363,7 @@ describe('generateDrawFromTopology — factory integration', () => {
           id: 'southeast',
           structureName: 'Southeast',
           stage: PLAY_OFF as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 4,
           position: { x: 1200, y: 0 }
         }

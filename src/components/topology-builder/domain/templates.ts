@@ -8,9 +8,7 @@ type Stage = TopologyNode['stage'];
 
 const {
   SINGLE_ELIMINATION,
-  FIRST_MATCH_LOSER_CONSOLATION,
-  FEED_IN_CHAMPIONSHIP,
-  COMPASS,
+  FEED_IN,
   ROUND_ROBIN,
   MAIN,
   QUALIFYING,
@@ -35,7 +33,7 @@ export const standardTemplates: TopologyTemplate[] = [
           id: 'tpl-main',
           structureName: 'Main Draw',
           stage: MAIN as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 32,
           position: { x: 320, y: 40 }
         },
@@ -43,7 +41,7 @@ export const standardTemplates: TopologyTemplate[] = [
           id: 'tpl-qual',
           structureName: 'Qualifying',
           stage: QUALIFYING as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 16,
           qualifyingPositions: 4,
           position: { x: 40, y: 40 }
@@ -72,7 +70,7 @@ export const standardTemplates: TopologyTemplate[] = [
           id: 'tpl-main',
           structureName: 'Main Draw',
           stage: MAIN as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 32,
           position: { x: 40, y: 40 }
         },
@@ -80,7 +78,7 @@ export const standardTemplates: TopologyTemplate[] = [
           id: 'tpl-cons',
           structureName: 'Consolation',
           stage: CONSOLATION as Stage,
-          drawType: FIRST_MATCH_LOSER_CONSOLATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 16,
           position: { x: 320, y: 40 }
         }
@@ -107,7 +105,7 @@ export const standardTemplates: TopologyTemplate[] = [
           id: 'tpl-main',
           structureName: 'Main Draw',
           stage: MAIN as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 32,
           position: { x: 40, y: 40 }
         },
@@ -115,7 +113,7 @@ export const standardTemplates: TopologyTemplate[] = [
           id: 'tpl-cons',
           structureName: 'Consolation',
           stage: CONSOLATION as Stage,
-          drawType: FEED_IN_CHAMPIONSHIP,
+          structureType: FEED_IN,
           drawSize: 16,
           position: { x: 320, y: 40 }
         }
@@ -159,7 +157,7 @@ export const standardTemplates: TopologyTemplate[] = [
           id: 'tpl-east',
           structureName: 'East',
           stage: MAIN as Stage,
-          drawType: COMPASS,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 32,
           position: { x: 40, y: 40 }
         },
@@ -168,7 +166,7 @@ export const standardTemplates: TopologyTemplate[] = [
           id: 'tpl-west',
           structureName: 'West',
           stage: CONSOLATION as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 16,
           position: { x: 320, y: 40 }
         },
@@ -176,7 +174,7 @@ export const standardTemplates: TopologyTemplate[] = [
           id: 'tpl-north',
           structureName: 'North',
           stage: CONSOLATION as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 8,
           position: { x: 320, y: 210 }
         },
@@ -184,7 +182,7 @@ export const standardTemplates: TopologyTemplate[] = [
           id: 'tpl-ne',
           structureName: 'Northeast',
           stage: CONSOLATION as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 4,
           position: { x: 320, y: 380 }
         },
@@ -193,7 +191,7 @@ export const standardTemplates: TopologyTemplate[] = [
           id: 'tpl-south',
           structureName: 'South',
           stage: CONSOLATION as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 8,
           position: { x: 600, y: 40 }
         },
@@ -201,7 +199,7 @@ export const standardTemplates: TopologyTemplate[] = [
           id: 'tpl-sw',
           structureName: 'Southwest',
           stage: CONSOLATION as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 4,
           position: { x: 600, y: 210 }
         },
@@ -209,7 +207,7 @@ export const standardTemplates: TopologyTemplate[] = [
           id: 'tpl-nw',
           structureName: 'Northwest',
           stage: CONSOLATION as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 4,
           position: { x: 600, y: 380 }
         },
@@ -218,7 +216,7 @@ export const standardTemplates: TopologyTemplate[] = [
           id: 'tpl-se',
           structureName: 'Southeast',
           stage: CONSOLATION as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 4,
           position: { x: 880, y: 40 }
         }
@@ -297,7 +295,7 @@ export const standardTemplates: TopologyTemplate[] = [
           id: 'tpl-main',
           structureName: 'Main Draw',
           stage: MAIN as Stage,
-          drawType: ROUND_ROBIN,
+          structureType: ROUND_ROBIN,
           drawSize: 16,
           structureOptions: { groupSize: 4 },
           position: { x: 40, y: 40 }
@@ -306,7 +304,7 @@ export const standardTemplates: TopologyTemplate[] = [
           id: 'tpl-playoff',
           structureName: 'Playoff',
           stage: PLAY_OFF as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 4,
           position: { x: 320, y: 40 }
         }
@@ -333,7 +331,7 @@ export const standardTemplates: TopologyTemplate[] = [
           id: 'tpl-main',
           structureName: 'Main Draw',
           stage: MAIN as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 64,
           position: { x: 320, y: 40 }
         },
@@ -341,7 +339,7 @@ export const standardTemplates: TopologyTemplate[] = [
           id: 'tpl-q1',
           structureName: 'Qualifying 1',
           stage: QUALIFYING as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 32,
           qualifyingPositions: 8,
           position: { x: 40, y: 40 }
@@ -350,7 +348,7 @@ export const standardTemplates: TopologyTemplate[] = [
           id: 'tpl-q2',
           structureName: 'Qualifying 2',
           stage: QUALIFYING as Stage,
-          drawType: SINGLE_ELIMINATION,
+          structureType: SINGLE_ELIMINATION,
           drawSize: 16,
           qualifyingPositions: 4,
           position: { x: 40, y: 210 }

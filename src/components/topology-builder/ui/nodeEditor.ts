@@ -12,12 +12,6 @@ import type { TopologyNode, TopologyState, UIPanel } from '../types';
 const {
   SINGLE_ELIMINATION,
   ROUND_ROBIN,
-  ROUND_ROBIN_WITH_PLAYOFF,
-  DOUBLE_ELIMINATION,
-  FEED_IN_CHAMPIONSHIP,
-  FIRST_MATCH_LOSER_CONSOLATION,
-  FIRST_ROUND_LOSER_CONSOLATION,
-  COMPASS,
   FEED_IN,
   AD_HOC,
   MAIN,
@@ -27,15 +21,9 @@ const {
   WINNER,
 } = drawDefinitionConstants;
 
-const DRAW_TYPES = [
+const STRUCTURE_TYPES = [
   { label: 'Single Elimination', value: SINGLE_ELIMINATION },
   { label: 'Round Robin', value: ROUND_ROBIN },
-  { label: 'Round Robin w/ Playoff', value: ROUND_ROBIN_WITH_PLAYOFF },
-  { label: 'Double Elimination', value: DOUBLE_ELIMINATION },
-  { label: 'Fed Consolation', value: FEED_IN_CHAMPIONSHIP },
-  { label: 'First Match Loser', value: FIRST_MATCH_LOSER_CONSOLATION },
-  { label: 'First Round Loser', value: FIRST_ROUND_LOSER_CONSOLATION },
-  { label: 'Compass', value: COMPASS },
   { label: 'Staggered Entry', value: FEED_IN },
   { label: 'Ad-hoc', value: AD_HOC },
 ];
@@ -99,11 +87,11 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
         options: STAGES.map((s) => ({ ...s, selected: s.value === node.stage })),
       },
       {
-        label: 'Draw Type',
-        field: 'drawType',
-        value: node.drawType,
+        label: 'Structure Type',
+        field: 'structureType',
+        value: node.structureType,
         disabled: isReadOnly,
-        options: DRAW_TYPES.map((d) => ({ ...d, selected: d.value === node.drawType })),
+        options: STRUCTURE_TYPES.map((d) => ({ ...d, selected: d.value === node.structureType })),
       },
       {
         label: 'Draw Size',
@@ -126,9 +114,9 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
           callbacks.onUpdateNode(node.id, { stage: e.target.value }),
       },
       {
-        control: 'drawType',
+        control: 'structureType',
         onChange: ({ e }: any) =>
-          callbacks.onUpdateNode(node.id, { drawType: e.target.value }),
+          callbacks.onUpdateNode(node.id, { structureType: e.target.value }),
       },
       {
         control: 'drawSize',
@@ -140,7 +128,7 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
     ];
 
     // Round Robin group size field
-    const isRR = node.drawType === ROUND_ROBIN || node.drawType === ROUND_ROBIN_WITH_PLAYOFF;
+    const isRR = node.structureType === ROUND_ROBIN;
     if (isRR) {
       const groupSizeOptions = [3, 4, 5, 6, 8];
       const currentGroupSize = node.structureOptions?.groupSize || 4;

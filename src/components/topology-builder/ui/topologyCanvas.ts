@@ -8,11 +8,10 @@ import { getFeedRoundCapacities } from '../domain/feedRounds';
 import type { RoundAnnotation } from './structureCard';
 import type { TopologyState, TopologyEdge, UIPanel } from '../types';
 
-const { WINNER, LOSER, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } = drawDefinitionConstants;
+const { WINNER, LOSER, QUALIFYING, ROUND_ROBIN } = drawDefinitionConstants;
 const POSITION = 'POSITION';
 
-const RR_TYPES = new Set([ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF]);
-const isRoundRobin = (drawType: string) => RR_TYPES.has(drawType);
+const isRoundRobin = (structureType: string) => structureType === ROUND_ROBIN;
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -25,6 +24,7 @@ const EDGE_COLORS: Record<string, string> = {
 export interface CanvasCallbacks {
   onSelectNode: (nodeId: string | null) => void;
   onSelectEdge: (edgeId: string | null) => void;
+  onDoubleClickNode?: (nodeId: string) => void;
   onMoveNode: (nodeId: string, x: number, y: number) => void;
   onCreateEdge: (sourceNodeId: string, targetNodeId: string, linkType: 'WINNER' | 'LOSER' | 'POSITION') => void;
   onPortMouseDown: (nodeId: string, portType: 'winner' | 'loser') => void;
@@ -152,7 +152,7 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
         .map((e) => e.sourceNodeId)
         .filter((id) => {
           const node = state.nodes.find((n) => n.id === id);
-          return node && !isRoundRobin(node.drawType);
+          return node && !isRoundRobin(node.structureType);
         }),
     );
 
@@ -241,6 +241,9 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
           onSelectEdge: (edgeId) => {
             callbacks.onSelectEdge(edgeId);
           },
+          onDoubleClick: callbacks.onDoubleClickNode
+            ? (nodeId) => callbacks.onDoubleClickNode!(nodeId)
+            : undefined,
           onPortMouseDown: (nodeId, portType) => {
             const sourceNode = state.nodes.find((n) => n.id === nodeId);
             if (!sourceNode) return;
@@ -265,7 +268,7 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
                 linkType = LOSER;
               } else {
                 const sourceNode = state.nodes.find((n) => n.id === linkCreation!.sourceNodeId);
-                linkType = sourceNode && isRoundRobin(sourceNode.drawType) ? POSITION : WINNER;
+                linkType = sourceNode && isRoundRobin(sourceNode.structureType) ? POSITION : WINNER;
               }
               callbacks.onCreateEdge(linkCreation.sourceNodeId, targetNodeId, linkType);
             }
