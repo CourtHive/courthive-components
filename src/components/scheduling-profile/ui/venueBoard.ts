@@ -56,9 +56,16 @@ export function buildVenueBoard(callbacks: VenueBoardCallbacks): UIPanel<Profile
     meta.textContent = date ? `Selected: ${date}` : 'Select a date';
     board.innerHTML = '';
 
-    // Dynamic grid columns based on venue count
+    // When many venues, switch to horizontal scroll with minimum column width
     const cols = Math.max(1, state.venues.length);
-    board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    const SCROLL_THRESHOLD = 4;
+    if (cols > SCROLL_THRESHOLD) {
+      board.classList.add('sp-board-scroll');
+      board.style.gridTemplateColumns = '';
+    } else {
+      board.classList.remove('sp-board-scroll');
+      board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    }
 
     for (const v of state.venues) {
       const venue = document.createElement('div');

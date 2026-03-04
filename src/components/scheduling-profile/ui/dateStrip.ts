@@ -45,14 +45,16 @@ export function buildDateStrip(callbacks: DateStripCallbacks): UIPanel<ProfileSt
     meta.textContent = `${state.schedulableDates.length} schedulable`;
     body.innerHTML = '';
 
+    const activeSet = state.activeDates ? new Set(state.activeDates) : null;
+
     for (const d of state.schedulableDates) {
-      const available = state.schedulableDates.includes(d);
+      const isActive = !activeSet || activeSet.has(d);
       const counts = state.issueIndex.counts.byDate[d];
 
       const chip = document.createElement('div');
       chip.className = spDateChipStyle();
       if (d === state.selectedDate) chip.classList.add('selected');
-      if (!available) chip.classList.add('unavailable');
+      if (!isActive) chip.classList.add('inactive');
       chip.setAttribute('data-date', d);
 
       const left = document.createElement('div');
@@ -61,7 +63,7 @@ export function buildDateStrip(callbacks: DateStripCallbacks): UIPanel<ProfileSt
       dateLabel.textContent = d;
       const statusLabel = document.createElement('div');
       statusLabel.style.cssText = 'font-size:11px;color:var(--sp-muted)';
-      statusLabel.textContent = available ? 'Schedulable' : 'Unavailable';
+      statusLabel.textContent = isActive ? 'Active' : 'Inactive';
       left.appendChild(dateLabel);
       left.appendChild(statusLabel);
 

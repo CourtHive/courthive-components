@@ -420,3 +420,41 @@ export const FullHeight = {
     return root;
   },
 };
+
+// ============================================================================
+// Story F: ManyVenues — Horizontal scroll when venues exceed threshold
+// ============================================================================
+
+function venueCountStory(venueCount: number) {
+  return {
+    render: () => {
+      const root = document.createElement('div');
+      root.style.cssText = ROOT_STYLE;
+
+      const setup = createFactorySetup({ venueCount });
+
+      const info = document.createElement('div');
+      info.style.cssText = INFO_STYLE;
+      info.innerHTML = [
+        `<strong>${venueCount} Venues</strong> &mdash;`,
+        venueCount > 4
+          ? 'Day Plan scrolls horizontally (min 240px per venue column).'
+          : 'Venues fit within the available width.',
+        `${setup.roundCatalog.length} rounds across ${setup.venues.length} venues.`,
+      ].join(' ');
+      root.appendChild(info);
+
+      const container = document.createElement('div');
+      root.appendChild(container);
+
+      const control = createSchedulingProfile(setup.config, container);
+      addConsoleLog(root, control);
+
+      return root;
+    },
+  };
+}
+
+export const Venues3 = venueCountStory(3);
+export const Venues6 = venueCountStory(6);
+export const Venues10 = venueCountStory(10);

@@ -144,8 +144,7 @@ export function validateRoundPrecedenceLocal({
   const out: ValidationResult[] = [];
   const planned = flatten(profile);
 
-  // Only check ordering within the same structure + date + venue.
-  // Cross-venue and cross-date ordering is left to the factory's validateSchedulingProfile().
+  // Same-day, same-venue ordering check.
   const byScope = groupBy(planned, (p) =>
     `${p.round.structureId}|${p.locator.date}|${p.locator.venueId}`
   );
@@ -209,6 +208,67 @@ export function validateRoundPrecedenceLocal({
             : [])
         ]
       });
+    }
+  }
+
+  // Cross-day ordering check (same structure, different dates).
+  // Within a structure, a higher roundNumber cannot be on an earlier date
+  // than a lower roundNumber — the lower round must complete first.
+  const byStructure = groupBy(planned, (p) => p.round.structureId);
+
+  for (const [structureId, items] of byStructure.entries()) {
+    const sType = items[0]?.round.structureType;
+    if (sType && UNORDERED_STRUCTURE_TYPES.has(sType)) continue;
+
+    // Collect items per date
+    const dateMap = new Map<string, FlattenedRound[]>();
+    for (const item of items) {
+      const d = item.locator.date;
+      const arr = dateMap.get(d);
+      if (arr) arr.push(item);
+      else dateMap.set(d, [item]);
+    }
+
+    const sortedDates = [...dateMap.keys()].sort();
+    if (sortedDates.length < 2) continue;
+
+    // Scan dates chronologically, tracking the highest roundNumber seen so far
+    let maxRoundSoFar = -Infinity;
+    let maxRoundItem: FlattenedRound | null = null;
+
+    for (const date of sortedDates) {
+      const dateItems = dateMap.get(date)!;
+
+      for (const item of dateItems) {
+        if (item.round.roundNumber < maxRoundSoFar && maxRoundItem) {
+          out.push({
+            code: 'ROUND_ORDER_VIOLATION',
+            severity: 'ERROR',
+            message: `${roundLabel(maxRoundItem.round)} is scheduled on ${maxRoundItem.locator.date} but its prerequisite ${roundLabel(item.round)} is on the later date ${date}.`,
+            context: {
+              scope: `cross-date|${structureId}`,
+              drawId: maxRoundItem.round.drawId,
+              structureId,
+              date: maxRoundItem.locator.date,
+              venueId: maxRoundItem.locator.venueId,
+              locator: maxRoundItem.locator,
+              prerequisite: item.locator,
+              reason: 'cross-date',
+            },
+            fixActions: [
+              { kind: 'JUMP_TO_ITEM', locator: item.locator, label: JUMP_TO_PREREQUISITE_LABEL },
+            ],
+          });
+        }
+      }
+
+      // Update max after checking all items on this date
+      for (const item of dateItems) {
+        if (item.round.roundNumber > maxRoundSoFar) {
+          maxRoundSoFar = item.round.roundNumber;
+          maxRoundItem = item;
+        }
+      }
     }
   }
 

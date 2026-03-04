@@ -94,6 +94,7 @@
 .sp-date-chip:hover { border-color: var(--sp-border-hover); }
 .sp-date-chip.selected { border-color: var(--sp-accent-focus); background: var(--sp-selected-bg); }
 .sp-date-chip.unavailable { opacity: 0.55; border-style: dashed; }
+.sp-date-chip.inactive { opacity: 0.45; border-style: dashed; }
 
 /* ── Badges & Chips ──────────────────────────────────────── */
 
@@ -144,6 +145,13 @@
   flex: 1;
   min-height: 0;
   overflow: auto;
+}
+
+.sp-board.sp-board-scroll {
+  overflow-x: auto;
+  grid-auto-columns: minmax(240px, 1fr);
+  grid-auto-flow: column;
+  grid-template-columns: none;
 }
 
 .sp-venue {
@@ -349,7 +357,31 @@
 }
 
 .sp-catalog-item:hover { border-color: var(--sp-border-hover); }
-.sp-catalog-item.dimmed { opacity: 0.65; }
+
+.sp-catalog-item.dimmed {
+  opacity: 0.5;
+  background: var(--sp-dimmed-bg, color-mix(in srgb, var(--sp-card-bg) 60%, var(--sp-text) 40%));
+  cursor: default;
+  position: relative;
+}
+
+.sp-catalog-item.dimmed .sp-card-title,
+.sp-catalog-item.dimmed .sp-card-meta {
+  color: var(--sp-dimmed-text, color-mix(in srgb, var(--sp-muted) 80%, transparent 20%));
+}
+
+.sp-catalog-item.dimmed:hover { border-color: var(--sp-border); }
+
+.sp-catalog-item.dimmed .sp-catalog-check {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: var(--sp-ok-text, #4ade80);
+  pointer-events: none;
+}
+
 .sp-catalog-item.navigate { cursor: pointer; border-color: var(--sp-accent-border); }
 .sp-catalog-item.navigate:hover { border-color: var(--sp-accent-focus); opacity: 1; }
 
