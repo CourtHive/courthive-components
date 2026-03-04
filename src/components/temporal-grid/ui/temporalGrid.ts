@@ -92,6 +92,11 @@ export interface TemporalGridConfig extends Partial<TemporalGridControlConfig>, 
   labels?: TemporalGridLabels;
 
   /**
+   * Language code for datepicker localization (e.g. 'en', 'fr', 'de')
+   */
+  language?: string;
+
+  /**
    * Callback when "Set Default Availability" is clicked
    */
   onSetDefaultAvailability?: () => void;
@@ -312,6 +317,7 @@ export class TemporalGrid {
     const activeDaySet = new Set(days);
     this.datepicker = new Datepicker(this.viewToolbarResult.dateInput, {
       format: 'yyyy-mm-dd',
+      language: this.config.language || 'en',
       autohide: true,
       beforeShowDay: (date: Date) => {
         const y = date.getFullYear();

@@ -269,11 +269,13 @@ export function renderForm(elem: HTMLElement, items: any[], relationships?: any[
         const [field1, field2] = relationship.fields;
 
         if (inputs[field1] && inputs[field2]) {
+          const langItem = items.find((i: any) => i.field === field1);
           const datepicker = new DateRangePicker(inputs[field1], {
             inputs: [inputs[field1], inputs[field2]],
             minDate: relationship.minDate,
             maxDate: relationship.maxDate,
             format: 'yyyy-mm-dd',
+            language: langItem?.language || 'en',
             autohide: true,
           });
 

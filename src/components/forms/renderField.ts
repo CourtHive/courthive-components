@@ -382,6 +382,7 @@ export function renderField(item: any): { field: HTMLDivElement; inputElement?: 
         maxDate: item.maxDate,
         minDate: item.minDate,
         format: 'yyyy-mm-dd',
+        language: item.language || 'en',
         maxNumberOfDates,
         autohide,
       });
