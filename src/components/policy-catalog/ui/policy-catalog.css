@@ -1,0 +1,284 @@
+/**
+ * Policy Catalog styles — plain CSS.
+ * Uses --pc-* custom properties (aliased from --sp-* in theme.css).
+ * Falls back to --sp-* variables for visual consistency with scheduling-profile.
+ */
+
+/* ── Layout ──────────────────────────────────────────────── */
+
+.pc-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
+  height: 100%;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  color: var(--sp-text);
+  box-sizing: border-box;
+}
+
+.pc-layout * {
+  box-sizing: border-box;
+}
+
+/* ── Panel ───────────────────────────────────────────────── */
+
+.pc-panel {
+  background: var(--sp-panel-bg);
+  border: 1px solid var(--sp-line);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--sp-panel-shadow);
+  display: flex;
+  flex-direction: column;
+}
+
+.pc-panel-header {
+  padding: 12px 12px 10px;
+  border-bottom: 1px solid var(--sp-border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.pc-panel-title {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.pc-panel-meta {
+  font-size: 12px;
+  color: var(--sp-muted);
+}
+
+/* ── Toolbar ─────────────────────────────────────────────── */
+
+.pc-toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-bottom: 1px solid var(--sp-border-subtle);
+}
+
+.pc-input {
+  width: 100%;
+  background: var(--sp-input-bg);
+  border: 1px solid var(--sp-border);
+  color: var(--sp-text);
+  border-radius: 12px;
+  padding: 8px 10px;
+  font-size: 12px;
+  outline: none;
+}
+
+.pc-input:focus { border-color: var(--sp-accent-focus); }
+
+.pc-select {
+  max-width: 170px;
+  background: var(--sp-input-bg);
+  border: 1px solid var(--sp-border);
+  color: var(--sp-text);
+  border-radius: 12px;
+  padding: 8px 10px;
+  font-size: 12px;
+  outline: none;
+}
+
+/* ── Catalog Body ────────────────────────────────────────── */
+
+.pc-catalog {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sp-scrollbar) transparent;
+}
+
+.pc-catalog::-webkit-scrollbar { width: 6px; }
+.pc-catalog::-webkit-scrollbar-track { background: transparent; }
+.pc-catalog::-webkit-scrollbar-thumb { background: var(--sp-scrollbar); border-radius: 3px; }
+
+/* ── Groups ──────────────────────────────────────────────── */
+
+.pc-group {
+  border: 1px solid var(--sp-border-group);
+  border-radius: 14px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.pc-group-header {
+  padding: 10px;
+  border-bottom: 1px solid var(--sp-border-subtle);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+
+.pc-group-header:hover { background: var(--sp-hover-bg); }
+
+.pc-group-chevron {
+  font-size: 10px;
+  color: var(--sp-muted);
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+}
+
+.pc-group-body {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Policy Card ─────────────────────────────────────────── */
+
+.pc-card {
+  border: 1px solid var(--sp-border);
+  border-radius: 14px;
+  padding: 10px;
+  background: var(--sp-card-bg);
+  cursor: pointer;
+}
+
+.pc-card:hover { border-color: var(--sp-border-hover); }
+
+.pc-card.active {
+  border-color: var(--sp-selected-border);
+  background: var(--sp-selected-bg);
+}
+
+.pc-card-title {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pc-card-meta {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--sp-muted);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* ── Type Badge ──────────────────────────────────────────── */
+
+.pc-type-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--sp-border-light);
+  color: var(--sp-muted);
+  white-space: nowrap;
+}
+
+.pc-type-badge.builtin { border-color: var(--sp-accent-border); color: var(--sp-accent-text); }
+.pc-type-badge.user { border-color: var(--sp-ok-border); color: var(--sp-ok-text); }
+
+/* ── Editor Shell ────────────────────────────────────────── */
+
+.pc-editor {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.pc-editor-header {
+  padding: 12px 12px 10px;
+  border-bottom: 1px solid var(--sp-border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.pc-editor-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pc-editor-header-left .pc-panel-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pc-editor-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.pc-dirty-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sp-warn);
+  flex-shrink: 0;
+}
+
+.pc-editor-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sp-scrollbar) transparent;
+}
+
+.pc-editor-body::-webkit-scrollbar { width: 6px; }
+.pc-editor-body::-webkit-scrollbar-track { background: transparent; }
+.pc-editor-body::-webkit-scrollbar-thumb { background: var(--sp-scrollbar); border-radius: 3px; }
+
+/* ── Empty State ─────────────────────────────────────────── */
+
+.pc-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--sp-muted);
+  font-size: 13px;
+}
+
+/* ── JSON Editor ─────────────────────────────────────────── */
+
+.pc-json-editor {
+  padding: 12px;
+}
+
+.pc-json-editor textarea {
+  width: 100%;
+  min-height: 300px;
+  background: var(--sp-input-bg);
+  border: 1px solid var(--sp-border);
+  color: var(--sp-text);
+  border-radius: 12px;
+  padding: 10px;
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  outline: none;
+  resize: vertical;
+}
+
+.pc-json-editor textarea:focus { border-color: var(--sp-accent-focus); }
+
+.pc-json-error {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--sp-err-text);
+}

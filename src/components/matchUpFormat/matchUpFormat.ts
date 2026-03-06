@@ -1718,7 +1718,7 @@ function createDropdown(e: any, items: any[]) {
 
   items.forEach((item: any) => {
     const itemDiv = document.createElement('div');
-    // Don't use Bulma's dropdown-item class - it may have styling conflicts
+    // Don't use dropdown-item class - it may have styling conflicts
     itemDiv.style.padding = '0.5em 1em';
     itemDiv.style.cursor = 'pointer';
     itemDiv.style.backgroundColor = CHC_DROPDOWN_BG;

@@ -30,7 +30,7 @@ export default {
     
     const container = document.createElement('div');
     
-    // Add style tag to force vertical stacking of Bulma fields
+    // Add style tag to force vertical stacking of fields
     const style = document.createElement('style');
     style.textContent = `
       .flexcol {

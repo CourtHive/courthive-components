@@ -188,6 +188,14 @@
   flex-shrink: 0;
 }
 
+.tb-card-advance {
+  font-size: 9px;
+  color: var(--chc-status-success, #48c774);
+  flex-shrink: 0;
+  margin-left: auto;
+  padding-left: 4px;
+}
+
 .tb-card-preview {
   padding: 6px 8px;
   overflow: hidden;
@@ -198,6 +206,14 @@
 }
 
 /* ── Round link annotations (colored matchup boxes for linked rounds) ──── */
+
+/* Yellow outline for selected/active linked rounds */
+.tb-round-linked--active {
+  outline: 2px solid var(--chc-status-warning, #ffdd57);
+  outline-offset: 1px;
+  border-radius: 3px;
+  z-index: 1;
+}
 
 /* Loser source rounds: red matchup boxes */
 .tb-round-linked--loser.tb-round-linked--source .chc-schematic-slot {
@@ -226,13 +242,51 @@
   opacity: 1;
 }
 
-/* Target entry rounds: always blue matchup boxes */
+/* Target entry rounds: blue matchup boxes by default */
 .tb-round-linked--target .chc-schematic-slot {
   background-color: var(--chc-status-info, #0066cc);
   opacity: 0.5;
 }
 .tb-round-linked--target.tb-round-linked--active .chc-schematic-slot {
   opacity: 1;
+}
+
+/* Loser target rounds: red-tinted matchup boxes */
+.tb-round-linked--loser.tb-round-linked--target .chc-schematic-slot {
+  background-color: var(--chc-status-error, red);
+  opacity: 0.3;
+}
+.tb-round-linked--loser.tb-round-linked--target.tb-round-linked--active .chc-schematic-slot {
+  opacity: 0.7;
+}
+
+/* ── Finishing position chips (RR cards) ─────────────────── */
+.tb-card-chips {
+  display: flex;
+  gap: 4px;
+  padding: 4px 8px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--chc-border-secondary, #eee);
+}
+
+.tb-card-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 10px;
+  background: var(--chc-status-info, #0066cc);
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.tb-card-chip:hover {
+  transform: scale(1.15);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
 .tb-card-rounds {
@@ -395,21 +449,11 @@
   line-height: 1.5;
 }
 
-.tb-editor-delete {
-  margin-top: 12px;
-  padding: 4px 10px;
-  border: 1px solid var(--chc-status-error);
-  border-radius: 4px;
-  background: transparent;
-  color: var(--chc-status-error);
-  font-size: 12px;
-  cursor: pointer;
-  width: 100%;
-}
-
-.tb-editor-delete:hover {
-  background: var(--chc-status-error);
-  color: #fff;
+/* Scoped override: map sp-btn--danger to chc-status-error inside editor */
+.tb-editor-body .sp-btn--danger {
+  --sp-err-border: var(--chc-status-error);
+  --sp-err-text: var(--chc-status-error);
+  --sp-err: var(--chc-status-error);
 }
 
 /* ── Validation ──────────────────────────────────────────── */

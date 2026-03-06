@@ -66,7 +66,7 @@
  * - Should be clear and actionable (e.g., "Minimum 5 characters")
  *
  * STYLING:
- * - Uses Bulma CSS classes: is-success, is-danger
+ * - Uses CSS classes: is-success, is-danger
  * - Input field gets colored border
  * - Help text appears below input with matching color
  *

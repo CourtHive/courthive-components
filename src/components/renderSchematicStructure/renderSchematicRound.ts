@@ -28,7 +28,7 @@ export function renderSchematicRound({
 
   const roundContainer = document.createElement('div');
   roundContainer.className = 'chc-schematic-round-container';
-  roundContainer.setAttribute('data-round-number', String(roundNumber));
+  roundContainer.dataset.roundNumber = String(roundNumber);
 
   if (showHeader) {
     const header = document.createElement('div');

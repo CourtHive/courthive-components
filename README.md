@@ -314,13 +314,7 @@ The Storybook includes:
 
 ## Styling
 
-Components use Bulma CSS framework. Include Bulma in your project:
-
-```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css" />
-```
-
-Or import the bundled CSS:
+Import the bundled CSS:
 
 ```javascript
 import 'courthive-components/dist/courthive-components.css';

@@ -1,0 +1,239 @@
+/**
+ * Scheduling Editor styles — plain CSS.
+ * Uses --se-* custom properties (falls back to --sp-*).
+ */
+
+/* ── Accordion ───────────────────────────────────────────── */
+
+.se-section {
+  border: 1px solid var(--sp-border-group);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.se-section-header {
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+
+.se-section-header:hover { background: var(--sp-hover-bg); }
+
+.se-section-chevron {
+  font-size: 10px;
+  color: var(--sp-muted);
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+}
+
+.se-section-body {
+  padding: 12px;
+  border-top: 1px solid var(--sp-border-subtle);
+}
+
+/* ── Field Rows ──────────────────────────────────────────── */
+
+.se-field-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.se-field-row:last-child {
+  margin-bottom: 0;
+}
+
+.se-field-label {
+  font-size: 12px;
+  color: var(--sp-text);
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.se-field-input {
+  width: 80px;
+  background: var(--sp-input-bg);
+  border: 1px solid var(--sp-border);
+  color: var(--sp-text);
+  border-radius: 10px;
+  padding: 6px 8px;
+  font-size: 12px;
+  outline: none;
+  text-align: right;
+}
+
+.se-field-input:focus { border-color: var(--sp-accent-focus); }
+.se-field-input.is-success { border-color: var(--sp-accent); }
+.se-field-input.is-danger { border-color: var(--sp-err-border, #e74c3c); color: var(--sp-err-text, #e74c3c); }
+
+.se-field-unit {
+  font-size: 11px;
+  color: var(--sp-muted);
+}
+
+/* ── Checkbox ────────────────────────────────────────────── */
+
+.se-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.se-checkbox-row:last-child {
+  margin-bottom: 0;
+}
+
+.se-checkbox-row input[type="checkbox"] {
+  accent-color: var(--sp-accent);
+}
+
+.se-checkbox-row label {
+  font-size: 12px;
+  color: var(--sp-text);
+  cursor: pointer;
+}
+
+/* ── Format Group Card ───────────────────────────────────── */
+
+.se-format-group {
+  border: 1px solid var(--sp-border);
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 10px;
+  background: var(--sp-card-bg);
+}
+
+.se-format-group:last-child {
+  margin-bottom: 0;
+}
+
+.se-format-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.se-format-group-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sp-muted);
+  margin-bottom: 4px;
+}
+
+/* ── Tag Picker ──────────────────────────────────────────── */
+
+.se-tag-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  min-height: 28px;
+}
+
+.se-tag-add-wrap {
+  position: relative;
+}
+
+.se-tag-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 100;
+  min-width: 220px;
+  max-height: 200px;
+  overflow: auto;
+  background: var(--sp-panel-bg);
+  border: 1px solid var(--sp-border);
+  border-radius: 12px;
+  box-shadow: var(--sp-panel-shadow);
+  padding: 4px;
+  margin-top: 4px;
+}
+
+.se-tag-dropdown-input {
+  width: 100%;
+  background: var(--sp-input-bg);
+  border: 1px solid var(--sp-border);
+  color: var(--sp-text);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 11px;
+  outline: none;
+  margin-bottom: 4px;
+}
+
+.se-tag-dropdown-input:focus { border-color: var(--sp-accent-focus); }
+
+.se-tag-dropdown-item {
+  padding: 6px 8px;
+  font-size: 11px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--sp-text);
+}
+
+.se-tag-dropdown-item:hover { background: var(--sp-hover-bg); }
+
+.se-tag-dropdown-empty {
+  padding: 6px 8px;
+  font-size: 11px;
+  color: var(--sp-muted);
+}
+
+/* ── Category Override Row ───────────────────────────────── */
+
+.se-override-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-top: 1px solid var(--sp-border-subtle);
+}
+
+.se-override-row:first-child {
+  border-top: none;
+}
+
+.se-override-categories {
+  font-size: 11px;
+  color: var(--sp-text);
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.se-override-categories.all {
+  color: var(--sp-muted);
+}
+
+.se-override-remove {
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--sp-muted);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.se-override-remove:hover { color: var(--sp-err-text); }
+
+/* ── Add Button ──────────────────────────────────────────── */
+
+/* Retain margin-top for layout spacing when combined with sp-btn classes */
+.se-add-btn {
+  margin-top: 8px;
+}
+
+/* ── Editor Root ─────────────────────────────────────────── */
+
+.se-editor {
+  padding: 12px;
+}

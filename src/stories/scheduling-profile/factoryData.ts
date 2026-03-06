@@ -51,6 +51,7 @@ export interface FactorySetup {
 
 export interface FactorySetupOptions {
   includeBookings?: boolean;
+  venueCount?: number;
 }
 
 // ============================================================================
@@ -165,13 +166,38 @@ export function buildDependencyAdapter(tournamentId: string): DependencyAdapter 
 }
 
 // ============================================================================
+// Venue Generation
+// ============================================================================
+
+const VENUE_NAMES = [
+  'Main Stadium', 'Practice Center', 'Outdoor Complex', 'Indoor Arena',
+  'Clay Courts', 'Grass Courts', 'Training Center', 'Community Courts',
+  'Riverside Courts', 'Hilltop Courts', 'South Wing', 'North Wing',
+];
+
+function generateVenueProfiles(count: number) {
+  return Array.from({ length: count }, (_, i) => ({
+    venueId: `venue-${i + 1}`,
+    venueName: VENUE_NAMES[i] ?? `Venue ${i + 1}`,
+    venueAbbreviation: `V${i + 1}`,
+    courtsCount: Math.max(2, 8 - i),
+    startTime: '08:00',
+    endTime: '20:00',
+  }));
+}
+
+// ============================================================================
 // Core Setup
 // ============================================================================
 
 export function createFactorySetup(options?: FactorySetupOptions): FactorySetup {
   // 1. Generate tournament
+  const venueProfiles = options?.venueCount
+    ? generateVenueProfiles(options.venueCount)
+    : VENUE_PROFILES;
+
   const result = mocksEngine.generateTournamentRecord({
-    venueProfiles: VENUE_PROFILES,
+    venueProfiles,
     eventProfiles: EVENT_PROFILES,
     startDate: START_DATE,
     endDate: END_DATE,
@@ -300,11 +326,18 @@ export function createFactorySetup(options?: FactorySetupOptions): FactorySetup 
   // 9. Build dependency adapter
   const dependencyAdapter = buildDependencyAdapter(tournamentId);
 
-  // 10. Build config
+  // 10. Extract activeDates from tournament record (if set)
+  const tournamentInfo = tournamentEngine.getTournamentInfo?.() ?? {};
+  const activeDates: string[] | undefined = (tournamentInfo as any).activeDates?.map(
+    (d: Date | string) => (typeof d === 'string' ? d.slice(0, 10) : (d as Date).toISOString().slice(0, 10)),
+  );
+
+  // 11. Build config
   const config: SchedulingProfileConfig = {
     venues,
     roundCatalog,
     schedulableDates,
+    activeDates,
     venueOrder: venues.map((v) => v.venueId),
     temporalAdapter,
     demandAdapter,

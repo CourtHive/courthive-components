@@ -132,7 +132,8 @@ export type ValidationCode =
   | 'INVALID_SEGMENT_CONFIG'
   | 'ROUND_ORDER_VIOLATION'
   | 'DEPENDENCY_VIOLATION'
-  | 'DAY_OVERLOAD';
+  | 'DAY_OVERLOAD'
+  | 'DROP_REJECTED';
 
 export type FixActionKind =
   | 'JUMP_TO_ITEM'
@@ -206,6 +207,7 @@ export interface ProfileStoreState {
   venues: VenueInfo[];
   roundCatalog: CatalogRoundItem[];
   schedulableDates: string[];
+  activeDates?: string[];
   selectedDate: string | null;
   selectedLocator: RoundLocator | null;
   ruleResults: ValidationResult[];
@@ -247,6 +249,7 @@ export interface SchedulingProfileConfig {
   venues: VenueInfo[];
   roundCatalog: CatalogRoundItem[];
   schedulableDates: string[];
+  activeDates?: string[];
   initialProfile?: SchedulingProfile;
   selectedDate?: string;
   temporalAdapter?: TemporalAdapter;

@@ -54,6 +54,7 @@ export class ProfileStore {
       venues: config.venues,
       roundCatalog: config.roundCatalog,
       schedulableDates: config.schedulableDates,
+      activeDates: config.activeDates,
       selectedDate: config.selectedDate ?? config.schedulableDates[0] ?? null,
       selectedLocator: null,
       ruleResults: [],
@@ -137,6 +138,7 @@ export class ProfileStore {
         .filter((e) => !currentKeys.has(errorSignature(e)));
 
       if (newErrors.length) {
+        this.addRejectionNotice(newErrors[0].message);
         return { ok: false, errorMessage: newErrors[0].message };
       }
 
@@ -240,6 +242,19 @@ export class ProfileStore {
     this.state = { ...this.state, profileDraft: nextProfile };
     this.revalidate();
     this.config.onProfileChanged?.(deepClone(nextProfile));
+  }
+
+  private addRejectionNotice(message: string): void {
+    const notice: ValidationResult = {
+      code: 'DROP_REJECTED',
+      severity: 'WARN',
+      message: `Drop rejected: ${message}`,
+      context: {},
+    };
+    const results = [...this.state.ruleResults.filter((r) => r.code !== 'DROP_REJECTED'), notice];
+    const index = buildIssueIndex(results);
+    this.state = { ...this.state, ruleResults: results, issueIndex: index };
+    this.emit();
   }
 
   private revalidate(): void {

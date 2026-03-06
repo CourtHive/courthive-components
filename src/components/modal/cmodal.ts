@@ -271,9 +271,9 @@ export const cModal = (() => {
           position: absolute;
           z-index: 10000;
           background-color: var(--chc-bg-elevated);
-          border: 1px solid var(--chc-border-secondary);
+          border: 1px solid var(--chc-border-focus, #5b9bd5);
           border-radius: 4px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.25);
           padding: 1em;
           max-width: 300px;
           font-size: 14px;

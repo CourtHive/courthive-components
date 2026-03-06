@@ -10,6 +10,7 @@ import '../src/styles/components/switch.css';
 import '../src/styles/components/ui.css';
 import '../src/components/forms/checkradio.css';
 import '../src/styles/accessibility.css';
+import '../src/components/courts/courts.css';
 
 const preview: Preview = {
   globalTypes: {

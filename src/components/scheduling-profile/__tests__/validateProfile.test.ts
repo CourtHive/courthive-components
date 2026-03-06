@@ -281,6 +281,97 @@ describe('validateProfile', () => {
       expect(violations).toHaveLength(0);
     });
 
+    it('flags cross-day violation: later round on earlier date', () => {
+      const profile: SchedulingProfile = [
+        {
+          scheduleDate: DAY1,
+          venues: [{ venueId: 'V1', rounds: [makeRound({ roundNumber: 6, roundName: 'R16' })] }]
+        },
+        {
+          scheduleDate: DAY2,
+          venues: [{ venueId: 'V1', rounds: [makeRound({ roundNumber: 5, roundName: 'R32' })] }]
+        }
+      ];
+      const results = validateProfile({ profile });
+      const violations = results.filter((r) => r.code === 'ROUND_ORDER_VIOLATION');
+      expect(violations).toHaveLength(1);
+      expect(violations[0].context.reason).toBe('cross-date');
+      expect(violations[0].fixActions).toBeDefined();
+      expect(violations[0].fixActions!.some((a) => a.kind === 'JUMP_TO_ITEM')).toBe(true);
+    });
+
+    it('flags cross-day violation even when venues differ', () => {
+      const profile: SchedulingProfile = [
+        {
+          scheduleDate: DAY1,
+          venues: [{ venueId: 'V1', rounds: [makeRound({ roundNumber: 6, roundName: 'R16' })] }]
+        },
+        {
+          scheduleDate: DAY2,
+          venues: [{ venueId: 'V2', rounds: [makeRound({ roundNumber: 5, roundName: 'R32' })] }]
+        }
+      ];
+      const results = validateProfile({ profile });
+      const violations = results.filter((r) => r.code === 'ROUND_ORDER_VIOLATION' && r.context.reason === 'cross-date');
+      expect(violations).toHaveLength(1);
+    });
+
+    it('does not flag cross-day violation for ROUND_ROBIN structures', () => {
+      const profile: SchedulingProfile = [
+        {
+          scheduleDate: DAY1,
+          venues: [{ venueId: 'V1', rounds: [makeRound({ structureType: ROUND_ROBIN, roundNumber: 3, roundName: 'Round 3' })] }]
+        },
+        {
+          scheduleDate: DAY2,
+          venues: [{ venueId: 'V1', rounds: [makeRound({ structureType: ROUND_ROBIN, roundNumber: 1, roundName: 'Round 1' })] }]
+        }
+      ];
+      const results = validateProfile({ profile });
+      const violations = results.filter((r) => r.code === 'ROUND_ORDER_VIOLATION');
+      expect(violations).toHaveLength(0);
+    });
+
+    it('does not flag cross-day violation for different structures', () => {
+      const profile: SchedulingProfile = [
+        {
+          scheduleDate: DAY1,
+          venues: [{ venueId: 'V1', rounds: [makeRound({ structureId: 'S1', roundNumber: 6, roundName: 'R16' })] }]
+        },
+        {
+          scheduleDate: DAY2,
+          venues: [{ venueId: 'V1', rounds: [makeRound({ structureId: 'S2', roundNumber: 5, roundName: 'R32' })] }]
+        }
+      ];
+      const results = validateProfile({ profile });
+      const violations = results.filter((r) => r.code === 'ROUND_ORDER_VIOLATION');
+      expect(violations).toHaveLength(0);
+    });
+
+    it('flags cross-day violation across three days', () => {
+      const DAY3 = '2026-06-17';
+      const profile: SchedulingProfile = [
+        {
+          scheduleDate: DAY1,
+          venues: [{ venueId: 'V1', rounds: [makeRound({ roundNumber: 5, roundName: 'R32' })] }]
+        },
+        {
+          scheduleDate: DAY2,
+          venues: [{ venueId: 'V1', rounds: [makeRound({ roundNumber: 7, roundName: 'QF' })] }]
+        },
+        {
+          scheduleDate: DAY3,
+          venues: [{ venueId: 'V1', rounds: [makeRound({ roundNumber: 6, roundName: 'R16' })] }]
+        }
+      ];
+      const results = validateProfile({ profile });
+      const violations = results.filter(
+        (r) => r.code === 'ROUND_ORDER_VIOLATION' && r.context.reason === 'cross-date'
+      );
+      // QF on Day 2 but R16 on Day 3 — QF depends on R16 completing
+      expect(violations).toHaveLength(1);
+    });
+
     it('scopes precedence by structureId not drawId', () => {
       const profile: SchedulingProfile = [
         {

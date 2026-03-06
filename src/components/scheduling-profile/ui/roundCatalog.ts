@@ -179,14 +179,15 @@ export function buildRoundCatalog(callbacks: RoundCatalogCallbacks): UIPanel<Pro
         const div = document.createElement('div');
         div.className = spCatalogItemStyle();
 
-        if (item.isPlanned && behavior === 'navigate') {
-          div.classList.add('navigate');
+        if (item.isPlanned) {
+          div.classList.add(behavior === 'navigate' ? 'navigate' : 'dimmed');
           div.draggable = false;
-          div.addEventListener('click', () => {
-            callbacks.onNavigateToPlanned?.(item);
-          });
+          if (behavior === 'navigate') {
+            div.addEventListener('click', () => {
+              callbacks.onNavigateToPlanned?.(item);
+            });
+          }
         } else {
-          if (item.isPlanned) div.classList.add('dimmed');
           div.draggable = true;
           div.addEventListener('dragstart', (e) => {
             e.stopPropagation();
@@ -210,6 +211,13 @@ export function buildRoundCatalog(callbacks: RoundCatalogCallbacks): UIPanel<Pro
 
         div.appendChild(t);
         div.appendChild(m);
+
+        if (item.isPlanned && behavior !== 'navigate') {
+          const check = document.createElement('span');
+          check.className = 'sp-catalog-check';
+          check.textContent = '\u2713';
+          div.appendChild(check);
+        }
         gb.appendChild(div);
       }
 

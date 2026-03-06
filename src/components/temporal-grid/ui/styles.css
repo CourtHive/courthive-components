@@ -58,44 +58,30 @@
   color: var(--chc-text-primary);
 }
 
-.tg-view-toolbar-btn {
-  padding: 4px 12px;
-  border: 1px solid var(--chc-border-primary);
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
-  background: var(--chc-bg-elevated);
-  color: var(--chc-text-primary);
-}
-
-.tg-view-toolbar-btn.tg-active {
-  background: #218D8D;
-  color: white;
-  border-color: #218D8D;
-}
-
 .tg-view-toolbar-spacer {
   flex: 1;
 }
 
-.tg-view-toolbar-action {
-  padding: 4px 14px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
-  color: white;
-  font-weight: 600;
+/* Scoped overrides for shared .sp-btn inside the toolbar */
+.tg-view-toolbar .sp-btn--active {
+  background: var(--tg-accent);
+  border-color: var(--tg-accent);
+  color: #fff;
 }
 
-.tg-view-toolbar-action.tg-action-default {
-  background: #666;
-  border: 1px solid #666;
+.tg-view-toolbar .sp-btn--fill {
+  background: var(--tg-accent);
+  border-color: var(--tg-accent);
+}
+
+.tg-view-toolbar .sp-btn--fill-muted {
   margin-right: 8px;
 }
 
-.tg-view-toolbar-action.tg-action-save {
-  background: #218D8D;
-  border: 1px solid #218D8D;
+/* Court availability modal scoped override */
+.tg-modal .sp-btn--fill {
+  background: var(--tg-accent);
+  border-color: var(--tg-accent);
 }
 
 /* ============================================================================
@@ -115,7 +101,7 @@
 }
 
 .tg-stats-bar b {
-  color: #218D8D;
+  color: var(--tg-accent);
 }
 
 
@@ -153,7 +139,7 @@
 
 .stat-value {
   font-weight: 600;
-  color: #218d8d;
+  color: var(--tg-accent);
   font-size: 1.1rem;
 }
 
@@ -259,40 +245,7 @@
   cursor: pointer;
 }
 
-/* Edit icons — hidden by default, shown on parent hover */
-.edit-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--chc-text-muted);
-  font-size: 14px;
-  cursor: pointer;
-  border-radius: 3px;
-  opacity: 0;
-  transition: opacity 0.15s, color 0.15s, background 0.15s;
-  flex-shrink: 0;
-}
-
-.venue-header:hover .edit-icon,
-.court-item:hover .edit-icon {
-  opacity: 1;
-}
-
-.edit-icon:hover {
-  color: #218d8d;
-  background: rgba(33, 141, 141, 0.08);
-}
-
-.edit-icon:focus {
-  opacity: 1;
-  outline: 2px solid #218d8d;
-  outline-offset: 1px;
-}
+/* Edit icons use shared .sp-btn-icon--ghost from sp-buttons.css */
 
 /* ============================================================================
    Calendar Area (CourtTimeline container)
@@ -462,7 +415,7 @@
 }
 
 .tg-row-highlight {
-  background-color: rgba(33, 141, 141, 0.08);
+  background-color: var(--tg-accent-bg-light);
 }
 
 /* ---- Gridlines (vertical lines through content rows) ---- */
@@ -553,8 +506,8 @@
 
 .tg-ghost {
   position: absolute;
-  background: rgba(33, 141, 141, 0.15);
-  border: 2px dashed #218d8d;
+  background: var(--tg-accent-bg-light);
+  border: 2px dashed var(--tg-accent);
   border-radius: 4px;
   z-index: 5;
   cursor: pointer;
@@ -563,7 +516,7 @@
 }
 
 .tg-ghost:hover {
-  background: rgba(33, 141, 141, 0.22);
+  background: var(--tg-accent-bg-medium);
 }
 
 .tg-ghost-count {
@@ -571,7 +524,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: #218d8d;
+  background: var(--tg-accent);
   color: white;
   font-size: 0.75rem;
   font-weight: 600;
@@ -741,14 +694,14 @@
    ============================================================================ */
 
 .temporal-grid-root:focus-within {
-  outline: 2px solid #218d8d;
+  outline: 2px solid var(--tg-accent);
   outline-offset: 2px;
 }
 
-button:focus,
-input:focus,
-select:focus {
-  outline: 2px solid #218d8d;
+.temporal-grid-root button:focus,
+.temporal-grid-root input:focus,
+.temporal-grid-root select:focus {
+  outline: 2px solid var(--tg-accent);
   outline-offset: 2px;
 }
 
@@ -830,26 +783,26 @@ select:focus {
    ============================================================================ */
 
 .datepicker-cell.tg-datepicker-active-day {
-  background: rgba(33, 141, 141, 0.15);
+  background: var(--tg-accent-bg-light);
   border-radius: 4px;
   font-weight: 600;
 }
 
 .datepicker-cell.tg-datepicker-active-day:hover {
-  background: rgba(33, 141, 141, 0.3);
+  background: var(--tg-accent-bg-medium);
 }
 
 .datepicker-cell.tg-datepicker-active-day.selected {
-  background: #218D8D;
+  background: var(--tg-accent);
   color: white;
 }
 
 [data-theme='dark'] .datepicker-cell.tg-datepicker-active-day {
-  background: rgba(33, 141, 141, 0.25);
+  background: var(--tg-accent-bg-light);
 }
 
 [data-theme='dark'] .datepicker-cell.tg-datepicker-active-day:hover {
-  background: rgba(33, 141, 141, 0.4);
+  background: var(--tg-accent-bg-medium);
 }
 
 /* ============================================================================
@@ -932,7 +885,7 @@ select:focus {
 }
 
 [data-theme='dark'] .tg-row-highlight {
-  background-color: rgba(33, 141, 141, 0.12);
+  background-color: var(--tg-accent-bg-light);
 }
 
 [data-theme='dark'] .tg-gridline {
@@ -944,12 +897,12 @@ select:focus {
 }
 
 [data-theme='dark'] .tg-ghost {
-  background: rgba(33, 141, 141, 0.2);
-  border-color: #2ec4c4;
+  background: var(--tg-accent-bg-light);
+  border-color: var(--tg-accent);
 }
 
 [data-theme='dark'] .tg-ghost-count {
-  background: #2ec4c4;
+  background: var(--tg-accent);
 }
 
 [data-theme='dark'] .tg-scroll-wrapper {

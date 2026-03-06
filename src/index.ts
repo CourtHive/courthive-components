@@ -64,6 +64,7 @@ import './styles/draw.css';
 import './styles/schematic.css';
 import './components/topology-builder/ui/topology-builder.css';
 import './styles/components/buttons.css';
+import './styles/components/sp-buttons.css';
 import './styles/components/forms.css';
 import './styles/components/switch.css';
 import './styles/components/ui.css';
@@ -72,6 +73,10 @@ import './styles/components/ui.css';
 import './styles/tippy.css';
 import './styles/tipster.css';
 export { tipster, destroyTipster } from './components/popover/tipster';
+
+// Court/field SVG factories
+import './components/courts/courts.css';
+export { tennisCourt, basketballCourt, baseballDiamond, hockeyRink, pickleballCourt, badmintonCourt, padelCourt } from './components/courts';
 
 // Version API
 export { courthiveComponentsVersion } from './version';
@@ -201,3 +206,95 @@ export type {
   SchedulingProfileConfig,
   UIPanel,
 } from './components/scheduling-profile';
+
+// Schedule Page
+import './components/schedule-page/ui/schedule-page.css';
+export {
+  SchedulePageControl,
+  SchedulePageStore,
+  createSchedulePage,
+  filterMatchUpCatalog,
+  groupMatchUpCatalog,
+  buildScheduleIssueIndex,
+  matchUpLabel,
+  participantLabel,
+  matchUpSearchKey,
+  buildScheduleDateStrip,
+  buildScheduleIssuesPanel,
+  buildMatchUpCatalog,
+  buildMatchUpCard,
+  buildScheduleInspectorPanel,
+  buildCourtGridSlot,
+  buildSchedulePageLayout,
+} from './components/schedule-page';
+
+export type {
+  CatalogMatchUpItem,
+  MatchUpSide,
+  ScheduleDate,
+  ScheduleIssue,
+  ScheduleIssueSeverity,
+  ScheduleIssueIndex,
+  ScheduleIssueCounts,
+  MatchUpCatalogGroupBy,
+  ScheduledBehavior,
+  SchedulingMode,
+  PendingScheduleAction,
+  CatalogMatchUpDragPayload,
+  GridMatchUpDragPayload,
+  SchedulePageDragPayload,
+  SchedulePageConfig,
+  SchedulePageState,
+  SchedulePageChangeListener,
+} from './components/schedule-page';
+
+// Policy Catalog
+import './components/policy-catalog/ui/policy-catalog.css';
+import './components/policy-catalog/editors/scheduling/scheduling-editor.css';
+export {
+  PolicyCatalogControl,
+  PolicyCatalogStore,
+  createPolicyCatalog,
+  filterPolicyCatalog,
+  groupPolicyCatalog,
+  POLICY_TYPE_METADATA,
+  POLICY_TYPE_GROUPS,
+  getPolicyTypeMeta,
+  buildPolicyCatalogPanel,
+  buildEditorShell,
+  buildPolicyCatalogLayout,
+  buildJsonEditor,
+  // Scheduling Editor (standalone)
+  SchedulingEditorControl,
+  createSchedulingEditor,
+  SchedulingEditorStore,
+  validateSchedulingPolicy,
+  formatCodeLabel,
+  emptySchedulingPolicy,
+  buildSchedulingEditorPanel,
+} from './components/policy-catalog';
+
+export type {
+  PolicyCatalogItem,
+  PolicyCatalogState,
+  PolicyCatalogChangeListener,
+  PolicyCatalogConfig,
+  PolicyEditorInstance,
+  PolicyEditorPlugin,
+  PolicySource,
+  PolicyTypeGroup,
+  PolicyTypeMeta,
+  CatalogGroupBy as PolicyCatalogGroupBy,
+  SchedulingPolicyData,
+  SchedulingEditorState,
+  SchedulingEditorSection,
+  SchedulingEditorChangeListener,
+  SchedulingEditorConfig,
+  SchedulingValidationResult,
+  ValidationSeverity as SchedulingValidationSeverity,
+  MinutesEntry,
+  AverageTimeEntry,
+  RecoveryTimeEntry,
+  MatchUpAverageTime,
+  MatchUpRecoveryTime,
+} from './components/policy-catalog';

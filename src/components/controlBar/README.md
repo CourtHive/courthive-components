@@ -95,7 +95,7 @@ All items support:
 {
   label: 'Button Text',
   location: 'RIGHT',
-  intent: 'is-primary',            // Bulma CSS intent class
+  intent: 'is-primary',            // CSS intent class
   onClick: (e: Event, table: any) => void,
   disabled: false,
   stateChange: true,               // Triggers overlay refresh after click
@@ -460,6 +460,6 @@ Navigate to: **Components > ControlBar**
 
 ## Dependencies
 
-- Bulma CSS for styling
+- courthive-components CSS for styling
 - Tabulator (optional, for table integration)
 - Font Awesome icons (for search icon)

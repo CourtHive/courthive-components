@@ -7,7 +7,7 @@ import { renderForm } from '../../forms/renderForm';
 import { getFeedRoundCapacities } from '../domain/feedRounds';
 import { nameValidator } from '../../../validators/nameValidator';
 import { numericRange } from '../../../validators/numericRange';
-import type { TopologyNode, TopologyState, UIPanel } from '../types';
+import type { TopologyEdge, TopologyNode, TopologyState, UIPanel } from '../types';
 
 const {
   SINGLE_ELIMINATION,
@@ -20,6 +20,18 @@ const {
   PLAY_OFF,
   WINNER,
 } = drawDefinitionConstants;
+
+const POSITION = 'POSITION';
+
+const PLAYOFF_DRAW_TYPES = [
+  { label: 'Single Elimination', value: SINGLE_ELIMINATION },
+  { label: 'Round Robin', value: ROUND_ROBIN },
+  { label: 'Feed-In Championship', value: 'FEED_IN_CHAMPIONSHIP' },
+  { label: 'FMLC', value: 'FIRST_MATCH_LOSER_CONSOLATION' },
+  { label: 'Compass', value: 'COMPASS' },
+  { label: 'Olympic', value: 'OLYMPIC' },
+  { label: 'Ad-hoc', value: AD_HOC },
+];
 
 const STRUCTURE_TYPES = [
   { label: 'Single Elimination', value: SINGLE_ELIMINATION },
@@ -37,8 +49,10 @@ const STAGES = [
 
 export interface NodeEditorCallbacks {
   onUpdateNode: (nodeId: string, updates: Partial<TopologyNode>) => void;
+  onUpdateEdge: (edgeId: string, updates: Partial<TopologyEdge>) => void;
   onDeleteNode: (nodeId: string) => void;
   readOnly?: boolean;
+  hideDelete?: boolean;
 }
 
 /** Returns descending powers of 2 less than drawSize (e.g. 32 → [16, 8, 4, 2, 1]). */
@@ -50,6 +64,30 @@ function validQualifierCounts(drawSize: number): number[] {
     n = Math.floor(n / 2);
   }
   return counts;
+}
+
+/**
+ * Mirrors factory getValidGroupSizes logic.
+ * Returns group sizes (3..groupSizeLimit) where drawSize distributes
+ * evenly enough (≤1 bye per group, byes < groupSize).
+ */
+function getValidGroupSizes(drawSize: number, groupSizeLimit = 8): number[] {
+  const valid: number[] = [];
+  for (let gs = 3; gs <= groupSizeLimit; gs++) {
+    const groupsCount = Math.ceil(drawSize / gs);
+    const byesCount = groupsCount * gs - drawSize;
+    const maxPerGroup = Math.ceil(drawSize / groupsCount);
+    const maxByesPerGroup = Math.ceil(byesCount / groupsCount);
+    if (
+      (!byesCount || byesCount < gs) &&
+      maxPerGroup === gs &&
+      maxPerGroup >= 3 &&
+      maxByesPerGroup < 2
+    ) {
+      valid.push(gs);
+    }
+  }
+  return valid;
 }
 
 export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<TopologyState> {
@@ -122,7 +160,17 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
         control: 'drawSize',
         onChange: ({ inputs }: any) => {
           const size = parseInt(inputs.drawSize.value);
-          if (size >= 2) callbacks.onUpdateNode(node.id, { drawSize: size });
+          if (size < 2) return;
+          const updates: Partial<TopologyNode> = { drawSize: size };
+          // Auto-correct groupSize if it becomes invalid for the new drawSize
+          if (node.structureType === ROUND_ROBIN) {
+            const currentGS = node.structureOptions?.groupSize || 4;
+            const valid = getValidGroupSizes(size);
+            if (!valid.includes(currentGS) && valid.length > 0) {
+              updates.structureOptions = { ...node.structureOptions, groupSize: valid[0] };
+            }
+          }
+          callbacks.onUpdateNode(node.id, updates);
         },
       },
     ];
@@ -130,8 +178,14 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
     // Round Robin group size field
     const isRR = node.structureType === ROUND_ROBIN;
     if (isRR) {
-      const groupSizeOptions = [3, 4, 5, 6, 8];
+      const validSizes = getValidGroupSizes(node.drawSize);
       const currentGroupSize = node.structureOptions?.groupSize || 4;
+      // Ensure current value is in the list even if drawSize changed
+      const groupSizeOptions = validSizes.includes(currentGroupSize)
+        ? validSizes
+        : [currentGroupSize, ...validSizes].sort((a, b) => a - b);
+      const groupCount = Math.ceil(node.drawSize / currentGroupSize);
+
       items.push({
         label: 'Group Size',
         field: 'groupSize',
@@ -143,14 +197,159 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
           selected: n === currentGroupSize,
         })),
       });
+
+      items.push({
+        label: 'Groups',
+        field: 'groupCount',
+        value: String(groupCount),
+        disabled: true,
+      });
+
       if (!isReadOnly) {
         relationships.push({
           control: 'groupSize',
-          onChange: ({ e }: any) =>
+          onChange: ({ e }: any) => {
+            const newGroupSize = parseInt(e.target.value);
             callbacks.onUpdateNode(node.id, {
-              structureOptions: { ...node.structureOptions, groupSize: parseInt(e.target.value) },
-            }),
+              structureOptions: { ...node.structureOptions, groupSize: newGroupSize },
+            });
+          },
         });
+      }
+
+      // Advance Per Group — editable dropdown (1 to groupSize)
+      const positionEdges = state.edges.filter(
+        (e) => e.sourceNodeId === node.id && e.linkType === POSITION,
+      );
+      const allPositions = new Set(positionEdges.flatMap((e) => e.finishingPositions || []));
+      const advanceCount = allPositions.size || 0;
+      const advanceOptions = Array.from({ length: currentGroupSize }, (_, i) => i + 1);
+
+      items.push({
+        label: 'Advance Per Group',
+        field: 'advancePerGroup',
+        value: String(advanceCount),
+        disabled: isReadOnly || positionEdges.length === 0,
+        options: advanceOptions.map((n: number) => ({
+          label: String(n),
+          value: String(n),
+          selected: n === advanceCount,
+        })),
+      });
+
+      if (!isReadOnly && positionEdges.length > 0) {
+        relationships.push({
+          control: 'advancePerGroup',
+          onChange: ({ e }: any) => {
+            const newAdvance = parseInt(e.target.value);
+            const currentAdvance = allPositions.size;
+            if (newAdvance === currentAdvance) return;
+
+            if (newAdvance > currentAdvance) {
+              // Add unclaimed positions to the last POSITION edge
+              const lastEdge = positionEdges[positionEdges.length - 1];
+              const toAdd: number[] = [];
+              for (let p = 1; p <= currentGroupSize && allPositions.size + toAdd.length < newAdvance; p++) {
+                if (!allPositions.has(p)) toAdd.push(p);
+              }
+              if (toAdd.length > 0) {
+                callbacks.onUpdateEdge(lastEdge.id, {
+                  finishingPositions: [...(lastEdge.finishingPositions || []), ...toAdd].sort((a, b) => a - b),
+                });
+              }
+            } else {
+              // Remove highest positions across all edges
+              const sortedPositions = [...allPositions].sort((a, b) => b - a);
+              const toRemove = new Set(sortedPositions.slice(0, currentAdvance - newAdvance));
+              for (const edge of positionEdges) {
+                const filtered = (edge.finishingPositions || []).filter((p) => !toRemove.has(p));
+                if (filtered.length !== (edge.finishingPositions || []).length) {
+                  callbacks.onUpdateEdge(edge.id, { finishingPositions: filtered });
+                }
+              }
+            }
+          },
+        });
+      }
+
+      // Show playoff targets summary
+      if (positionEdges.length > 0 && advanceCount > 0) {
+        const byTarget = new Map<string, number[]>();
+        for (const edge of positionEdges) {
+          if (!byTarget.has(edge.targetNodeId)) byTarget.set(edge.targetNodeId, []);
+          byTarget.get(edge.targetNodeId)!.push(...(edge.finishingPositions || []));
+        }
+
+        const targetSummaries: string[] = [];
+        for (const [targetId, positions] of byTarget) {
+          const targetNode = state.nodes.find((n) => n.id === targetId);
+          const sorted = [...new Set(positions)].sort();
+          const posLabel = sorted.length === 1 ? `P${sorted[0]}` : `P${sorted.join(',')}`;
+          targetSummaries.push(`${posLabel} → ${targetNode?.structureName || '?'} (${sorted.length * groupCount})`);
+        }
+
+        if (targetSummaries.length > 0) {
+          items.push({
+            label: 'Playoff Groups',
+            field: 'playoffSummary',
+            value: targetSummaries.join('\n'),
+            disabled: true,
+          });
+        }
+      }
+    }
+
+    // Playoff draw type for PLAY_OFF nodes receiving POSITION edges from RR
+    if (node.stage === PLAY_OFF) {
+      const inboundPositionEdge = state.edges.find(
+        (e) => e.targetNodeId === node.id && e.linkType === POSITION,
+      );
+      if (inboundPositionEdge) {
+        const sourceNode = state.nodes.find((n) => n.id === inboundPositionEdge.sourceNodeId);
+        if (sourceNode?.structureType === ROUND_ROBIN) {
+          const currentDrawType = node.structureOptions?.playoffDrawType || SINGLE_ELIMINATION;
+          items.push({
+            label: 'Playoff Draw Type',
+            field: 'playoffDrawType',
+            value: currentDrawType,
+            disabled: isReadOnly,
+            options: PLAYOFF_DRAW_TYPES.map((d) => ({ ...d, selected: d.value === currentDrawType })),
+          });
+          if (!isReadOnly) {
+            relationships.push({
+              control: 'playoffDrawType',
+              onChange: ({ e }: any) =>
+                callbacks.onUpdateNode(node.id, {
+                  structureOptions: { ...node.structureOptions, playoffDrawType: e.target.value },
+                }),
+            });
+          }
+
+          // Group size for RR playoff type
+          if (currentDrawType === ROUND_ROBIN) {
+            const playoffGroupSize = node.structureOptions?.groupSize || 4;
+            items.push({
+              label: 'Playoff Group Size',
+              field: 'playoffGroupSize',
+              value: String(playoffGroupSize),
+              disabled: isReadOnly,
+              options: [3, 4, 5, 6, 8].map((n: number) => ({
+                label: String(n),
+                value: String(n),
+                selected: n === playoffGroupSize,
+              })),
+            });
+            if (!isReadOnly) {
+              relationships.push({
+                control: 'playoffGroupSize',
+                onChange: ({ e }: any) =>
+                  callbacks.onUpdateNode(node.id, {
+                    structureOptions: { ...node.structureOptions, groupSize: parseInt(e.target.value) },
+                  }),
+              });
+            }
+          }
+        }
       }
     }
 
@@ -258,10 +457,11 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
       body.appendChild(warningBox);
     }
 
-    // Delete button (hidden in readOnly mode)
-    if (!isReadOnly) {
+    // Delete button (hidden in readOnly or hideDelete mode)
+    if (!isReadOnly && !callbacks.hideDelete) {
       const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'tb-editor-delete';
+      deleteBtn.className = 'sp-btn sp-btn--danger sp-btn--full';
+      deleteBtn.style.marginTop = '12px';
       deleteBtn.textContent = 'Delete Structure';
       deleteBtn.onclick = () => callbacks.onDeleteNode(node.id);
       body.appendChild(deleteBtn);

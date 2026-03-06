@@ -40,8 +40,14 @@ function inferFactoryDrawType(state: TopologyState, mainNode: TopologyNode): str
   const qualifyingNodes = state.nodes.filter((n) => n.stage === QUALIFYING);
   const playoffNodes = state.nodes.filter((n) => n.stage === PLAY_OFF);
 
-  // RR, FEED_IN, AD_HOC main structures map directly
-  if (mainNode.structureType === ROUND_ROBIN) return ROUND_ROBIN;
+  // RR with POSITION links to playoff nodes → ROUND_ROBIN_WITH_PLAYOFF
+  if (mainNode.structureType === ROUND_ROBIN) {
+    const hasPlayoffs = state.edges.some(
+      (e) => e.sourceNodeId === mainNode.id && e.linkType === POSITION &&
+        state.nodes.some((n) => n.id === e.targetNodeId && n.stage === PLAY_OFF),
+    );
+    return hasPlayoffs ? 'ROUND_ROBIN_WITH_PLAYOFF' : ROUND_ROBIN;
+  }
   if (mainNode.structureType === AD_HOC) return AD_HOC;
   if (mainNode.structureType === FEED_IN) return FEED_IN;
 
@@ -160,42 +166,40 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
     : [];
 
   if (isMainRR && rrPositionEdges.length > 0) {
-    // RR → playoff via POSITION links
-    const playoffAttributes: Record<string, { name: string; abbreviation: string }> = {};
-    let attrIndex = 0;
-
-    // Group POSITION edges by target playoff node
+    // RR → playoff via POSITION links: use playoffGroups in structureOptions
     const byTarget = new Map<string, TopologyEdge[]>();
     for (const edge of rrPositionEdges) {
       if (!byTarget.has(edge.targetNodeId)) byTarget.set(edge.targetNodeId, []);
-      byTarget.get(edge.targetNodeId).push(edge);
+      byTarget.get(edge.targetNodeId)!.push(edge);
     }
 
+    const playoffGroups: any[] = [];
     for (const [targetId, edges] of byTarget) {
       const playoffNode = playoffNodes.find((n) => n.id === targetId);
       if (!playoffNode) continue;
 
-      // Merge all finishingPositions targeting this playoff node
       const finishingPositions = Array.from(new Set(edges.flatMap((e) => e.finishingPositions || []))).sort();
+      const playoffDrawType = playoffNode.structureOptions?.playoffDrawType || SINGLE_ELIMINATION;
 
-      const attrKey = `0-${attrIndex + 1}`;
-      playoffAttributes[attrKey] = {
-        name: playoffNode.structureName,
-        abbreviation: playoffNode.structureName.substring(0, 3)
+      const group: any = {
+        finishingPositions,
+        structureName: playoffNode.structureName,
+        drawType: playoffDrawType,
       };
-      attrIndex++;
 
-      postGenerationMethods.push({
-        method: 'addPlayoffStructures',
-        params: {
-          playoffPositions: finishingPositions,
-          playoffStructureNameBase: playoffNode.structureName
-        }
-      });
+      // Pass through structureOptions for nested draw types (e.g., RR groupSize)
+      if (playoffDrawType === ROUND_ROBIN && playoffNode.structureOptions?.groupSize) {
+        group.structureOptions = { groupSize: playoffNode.structureOptions.groupSize };
+      }
+
+      playoffGroups.push(group);
     }
 
-    if (Object.keys(playoffAttributes).length > 0) {
-      drawOptions.playoffAttributes = playoffAttributes;
+    if (playoffGroups.length > 0) {
+      drawOptions.structureOptions = {
+        ...drawOptions.structureOptions,
+        playoffGroups,
+      };
     }
   } else if (playoffNodes.length > 0) {
     // Non-RR playoff handling: build recursive withPlayoffs tree

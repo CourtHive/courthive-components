@@ -93,7 +93,7 @@ table.on('dataFiltered', (_filters, rows) => {
         ${codeBlock(`{
   label: 'Add Item',
   location: 'right',
-  intent: 'is-primary', // Bulma CSS class
+  intent: 'is-primary',
   onClick: () => handleClick(),
 }`)}
 
@@ -174,7 +174,7 @@ table.on('dataFiltered', (_filters, rows) => {
 
         <h2>Dependencies</h2>
         <ul>
-          <li>Bulma CSS for styling</li>
+          <li>courthive-components CSS for styling</li>
           <li>Tabulator (optional, for table integration)</li>
         </ul>
       </div>
