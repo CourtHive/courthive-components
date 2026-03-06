@@ -1,7 +1,7 @@
 import { fixtures, tools, mocksEngine, tournamentEngine } from 'tods-competition-factory';
 
 export function generateEventData({
-  matchUpFormat = 'SET5-S:6/TB7',
+  matchUpFormat = 'SET3-S:6/TB7',
   completeAllMatchUps = true,
   autoSchedule = true,
   participantsCount,
