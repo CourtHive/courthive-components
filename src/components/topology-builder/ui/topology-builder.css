@@ -207,6 +207,14 @@
 
 /* ── Round link annotations (colored matchup boxes for linked rounds) ──── */
 
+/* Yellow outline for selected/active linked rounds */
+.tb-round-linked--active {
+  outline: 2px solid var(--chc-status-warning, #ffdd57);
+  outline-offset: 1px;
+  border-radius: 3px;
+  z-index: 1;
+}
+
 /* Loser source rounds: red matchup boxes */
 .tb-round-linked--loser.tb-round-linked--source .chc-schematic-slot {
   background-color: var(--chc-status-error, red);
@@ -234,13 +242,22 @@
   opacity: 1;
 }
 
-/* Target entry rounds: always blue matchup boxes */
+/* Target entry rounds: blue matchup boxes by default */
 .tb-round-linked--target .chc-schematic-slot {
   background-color: var(--chc-status-info, #0066cc);
   opacity: 0.5;
 }
 .tb-round-linked--target.tb-round-linked--active .chc-schematic-slot {
   opacity: 1;
+}
+
+/* Loser target rounds: red-tinted matchup boxes */
+.tb-round-linked--loser.tb-round-linked--target .chc-schematic-slot {
+  background-color: var(--chc-status-error, red);
+  opacity: 0.3;
+}
+.tb-round-linked--loser.tb-round-linked--target.tb-round-linked--active .chc-schematic-slot {
+  opacity: 0.7;
 }
 
 /* ── Finishing position chips (RR cards) ─────────────────── */

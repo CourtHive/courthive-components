@@ -220,8 +220,7 @@ export function buildStructureCard(
   const inputPort = document.createElement('div');
   inputPort.className = 'tb-port tb-port--input';
   inputPort.title = 'Input';
-  inputPort.addEventListener('mouseup', (e) => {
-    e.stopPropagation();
+  inputPort.addEventListener('mouseup', () => {
     callbacks.onPortMouseUp(node.id);
   });
 
@@ -291,6 +290,12 @@ export function buildStructureCard(
   }
 
   card.appendChild(ports);
+
+  // Drop target — releasing mouse anywhere on the card completes a link
+  // Do NOT stopPropagation so the canvas mouseup still fires to clear drag state
+  card.addEventListener('mouseup', () => {
+    callbacks.onPortMouseUp(node.id);
+  });
 
   // Click to select
   card.addEventListener('click', (e) => {

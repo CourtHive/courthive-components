@@ -82,7 +82,8 @@ export const standardTemplates: TopologyTemplate[] = [
           targetNodeId: 'tpl-cons',
           linkType: LOSER,
           sourceRoundNumber: 1,
-          label: 'R1 losers'
+          targetRoundNumber: 1,
+          label: 'R1 losers → R1'
         }
       ]
     }
@@ -106,8 +107,8 @@ export const standardTemplates: TopologyTemplate[] = [
           structureName: 'Consolation',
           stage: CONSOLATION as Stage,
           structureType: FEED_IN,
-          drawSize: 16,
-          position: { x: 320, y: 40 }
+          drawSize: 31,
+          position: { x: 460, y: 40 }
         }
       ],
       edges: [
@@ -117,7 +118,8 @@ export const standardTemplates: TopologyTemplate[] = [
           targetNodeId: 'tpl-cons',
           linkType: LOSER,
           sourceRoundNumber: 1,
-          label: 'R1 losers'
+          targetRoundNumber: 1,
+          label: 'R1 losers → R1'
         },
         {
           id: TPL_EDGE_2,
@@ -125,7 +127,8 @@ export const standardTemplates: TopologyTemplate[] = [
           targetNodeId: 'tpl-cons',
           linkType: LOSER,
           sourceRoundNumber: 2,
-          label: 'R2 losers'
+          targetRoundNumber: 2,
+          label: 'R2 losers → R2'
         },
         {
           id: 'tpl-edge-3',
@@ -133,7 +136,26 @@ export const standardTemplates: TopologyTemplate[] = [
           targetNodeId: 'tpl-cons',
           linkType: LOSER,
           sourceRoundNumber: 3,
-          label: 'R3 losers'
+          targetRoundNumber: 4,
+          label: 'R3 losers → R4'
+        },
+        {
+          id: 'tpl-edge-4',
+          sourceNodeId: 'tpl-main',
+          targetNodeId: 'tpl-cons',
+          linkType: LOSER,
+          sourceRoundNumber: 4,
+          targetRoundNumber: 6,
+          label: 'R4 losers → R6'
+        },
+        {
+          id: 'tpl-edge-5',
+          sourceNodeId: 'tpl-main',
+          targetNodeId: 'tpl-cons',
+          linkType: LOSER,
+          sourceRoundNumber: 5,
+          targetRoundNumber: 8,
+          label: 'R5 losers → R8'
         }
       ]
     }
@@ -160,7 +182,7 @@ export const standardTemplates: TopologyTemplate[] = [
           stage: CONSOLATION as Stage,
           structureType: SINGLE_ELIMINATION,
           drawSize: 16,
-          position: { x: 320, y: 40 }
+          position: { x: 400, y: 40 }
         },
         {
           id: 'tpl-north',
@@ -168,7 +190,7 @@ export const standardTemplates: TopologyTemplate[] = [
           stage: CONSOLATION as Stage,
           structureType: SINGLE_ELIMINATION,
           drawSize: 8,
-          position: { x: 320, y: 210 }
+          position: { x: 400, y: 210 }
         },
         {
           id: 'tpl-ne',
@@ -176,7 +198,7 @@ export const standardTemplates: TopologyTemplate[] = [
           stage: CONSOLATION as Stage,
           structureType: SINGLE_ELIMINATION,
           drawSize: 4,
-          position: { x: 320, y: 380 }
+          position: { x: 400, y: 380 }
         },
         // Col 3
         {
@@ -185,7 +207,7 @@ export const standardTemplates: TopologyTemplate[] = [
           stage: CONSOLATION as Stage,
           structureType: SINGLE_ELIMINATION,
           drawSize: 8,
-          position: { x: 600, y: 40 }
+          position: { x: 680, y: 40 }
         },
         {
           id: 'tpl-sw',
@@ -193,7 +215,7 @@ export const standardTemplates: TopologyTemplate[] = [
           stage: CONSOLATION as Stage,
           structureType: SINGLE_ELIMINATION,
           drawSize: 4,
-          position: { x: 600, y: 210 }
+          position: { x: 680, y: 210 }
         },
         {
           id: 'tpl-nw',
@@ -201,7 +223,7 @@ export const standardTemplates: TopologyTemplate[] = [
           stage: CONSOLATION as Stage,
           structureType: SINGLE_ELIMINATION,
           drawSize: 4,
-          position: { x: 600, y: 380 }
+          position: { x: 680, y: 380 }
         },
         // Col 4
         {
@@ -210,7 +232,7 @@ export const standardTemplates: TopologyTemplate[] = [
           stage: CONSOLATION as Stage,
           structureType: SINGLE_ELIMINATION,
           drawSize: 4,
-          position: { x: 880, y: 40 }
+          position: { x: 960, y: 40 }
         }
       ],
       edges: [
@@ -221,7 +243,8 @@ export const standardTemplates: TopologyTemplate[] = [
           targetNodeId: 'tpl-west',
           linkType: LOSER,
           sourceRoundNumber: 1,
-          label: 'R1 losers'
+          targetRoundNumber: 1,
+          label: 'R1 losers → R1'
         },
         {
           id: TPL_EDGE_2,
@@ -229,7 +252,8 @@ export const standardTemplates: TopologyTemplate[] = [
           targetNodeId: 'tpl-north',
           linkType: LOSER,
           sourceRoundNumber: 2,
-          label: 'R2 losers'
+          targetRoundNumber: 1,
+          label: 'R2 losers → R1'
         },
         {
           id: 'tpl-edge-3',
@@ -237,7 +261,8 @@ export const standardTemplates: TopologyTemplate[] = [
           targetNodeId: 'tpl-ne',
           linkType: LOSER,
           sourceRoundNumber: 3,
-          label: 'R3 losers'
+          targetRoundNumber: 1,
+          label: 'R3 losers → R1'
         },
         // West → losers
         {
@@ -246,7 +271,8 @@ export const standardTemplates: TopologyTemplate[] = [
           targetNodeId: 'tpl-south',
           linkType: LOSER,
           sourceRoundNumber: 1,
-          label: 'R1 losers'
+          targetRoundNumber: 1,
+          label: 'R1 losers → R1'
         },
         {
           id: 'tpl-edge-5',
@@ -254,7 +280,8 @@ export const standardTemplates: TopologyTemplate[] = [
           targetNodeId: 'tpl-sw',
           linkType: LOSER,
           sourceRoundNumber: 2,
-          label: 'R2 losers'
+          targetRoundNumber: 1,
+          label: 'R2 losers → R1'
         },
         // North → losers
         {
@@ -263,7 +290,8 @@ export const standardTemplates: TopologyTemplate[] = [
           targetNodeId: 'tpl-nw',
           linkType: LOSER,
           sourceRoundNumber: 1,
-          label: 'R1 losers'
+          targetRoundNumber: 1,
+          label: 'R1 losers → R1'
         },
         // South → losers
         {
@@ -272,7 +300,8 @@ export const standardTemplates: TopologyTemplate[] = [
           targetNodeId: 'tpl-se',
           linkType: LOSER,
           sourceRoundNumber: 1,
-          label: 'R1 losers'
+          targetRoundNumber: 1,
+          label: 'R1 losers → R1'
         }
       ]
     }

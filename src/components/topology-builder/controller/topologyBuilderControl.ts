@@ -92,14 +92,31 @@ export class TopologyBuilderControl {
               });
             } else {
               const isQualifyingWinner = linkType === WINNER && source?.stage === QUALIFYING;
-              const sourceLastRound = source ? Math.ceil(Math.log2(source.drawSize)) : undefined;
-              this.store.addEdge({
-                sourceNodeId,
-                targetNodeId,
-                linkType,
-                ...(sourceLastRound && linkType === LOSER && { sourceRoundNumber: sourceLastRound }),
-                ...(isQualifyingWinner && { targetRoundNumber: 1 })
-              });
+              if (linkType === LOSER) {
+                // Default to the first unclaimed source round
+                const existingLoserEdges = this.store.getState().edges.filter(
+                  (e) => e.sourceNodeId === sourceNodeId && e.linkType === LOSER,
+                );
+                const claimedRounds = new Set(existingLoserEdges.map((e) => e.sourceRoundNumber));
+                const maxRound = source ? Math.ceil(Math.log2(source.drawSize)) : 1;
+                let defaultRound = 1;
+                for (let r = 1; r <= maxRound; r++) {
+                  if (!claimedRounds.has(r)) { defaultRound = r; break; }
+                }
+                this.store.addEdge({
+                  sourceNodeId,
+                  targetNodeId,
+                  linkType,
+                  sourceRoundNumber: defaultRound,
+                });
+              } else {
+                this.store.addEdge({
+                  sourceNodeId,
+                  targetNodeId,
+                  linkType,
+                  ...(isQualifyingWinner && { targetRoundNumber: 1 })
+                });
+              }
             }
           },
       onPortMouseDown: () => {}

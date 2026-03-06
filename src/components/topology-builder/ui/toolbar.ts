@@ -116,7 +116,7 @@ export function buildToolbar(
   }
 
   if (!options.readOnly && callbacks.onSaveTemplate) {
-    items.push({ label: 'Save Template', location: 'right', onClick: () => callbacks.onSaveTemplate!() });
+    items.push({ label: 'Save Template', location: 'right', intent: 'is-success', onClick: () => callbacks.onSaveTemplate!() });
   }
 
   if (!options.readOnly && !options.hideGenerate) {

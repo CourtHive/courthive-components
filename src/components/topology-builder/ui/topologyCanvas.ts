@@ -8,7 +8,7 @@ import { getFeedRoundCapacities } from '../domain/feedRounds';
 import type { RoundAnnotation, PositionChip } from './structureCard';
 import type { TopologyState, TopologyEdge, UIPanel } from '../types';
 
-const { WINNER, LOSER, QUALIFYING, ROUND_ROBIN } = drawDefinitionConstants;
+const { WINNER, LOSER, QUALIFYING, CONSOLATION, ROUND_ROBIN } = drawDefinitionConstants;
 const POSITION = 'POSITION';
 
 const isRoundRobin = (structureType: string) => structureType === ROUND_ROBIN;
@@ -158,14 +158,16 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
     currentState = state;
     nodesLayer.innerHTML = '';
 
-    // Pre-compute which non-RR nodes already have a winner link
+    // Pre-compute which nodes have their winner port locked.
+    // Only qualifying structures lock the winner port (one winner link to main).
+    // Main/consolation structures keep the winner port available.
     const nodesWithWinnerLink = new Set(
       state.edges
         .filter((e) => e.linkType === WINNER)
         .map((e) => e.sourceNodeId)
         .filter((id) => {
           const node = state.nodes.find((n) => n.id === id);
-          return node && !isRoundRobin(node.structureType);
+          return node && node.stage === QUALIFYING && !isRoundRobin(node.structureType);
         }),
     );
 
@@ -297,9 +299,13 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
             if (linkCreation && linkCreation.sourceNodeId !== targetNodeId) {
               let linkType: 'WINNER' | 'LOSER' | 'POSITION';
               const sourceNode = state.nodes.find((n) => n.id === linkCreation!.sourceNodeId);
+              const targetNode = state.nodes.find((n) => n.id === targetNodeId);
               if (sourceNode && isRoundRobin(sourceNode.structureType)) {
                 linkType = POSITION;
               } else if (linkCreation.portType === 'loser') {
+                linkType = LOSER;
+              } else if (targetNode?.stage === CONSOLATION) {
+                // Winner port to consolation target creates a loser link
                 linkType = LOSER;
               } else {
                 linkType = WINNER;

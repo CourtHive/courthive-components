@@ -35,13 +35,24 @@ export function validateTopology(state: TopologyState): ValidationError[] {
     errors.push({ severity: 'error', message: 'Only one main draw structure is allowed' });
   }
 
-  // Pre-compute nodes that receive qualifying links at round > 1 (intentional fed positions)
+  // Pre-compute nodes that have fed positions (qualifying links at round > 1
+  // OR multiple inbound loser links from different source rounds)
   const nodesWithFeedLinks = new Set<string>();
   for (const edge of state.edges) {
     if (edge.linkType === WINNER && (edge.targetRoundNumber || 1) > 1) {
       const source = state.nodes.find((n) => n.id === edge.sourceNodeId);
       if (source?.stage === QUALIFYING) nodesWithFeedLinks.add(edge.targetNodeId);
     }
+  }
+  // Nodes receiving multiple loser links are effectively feed-in structures
+  const loserLinkCountByTarget = new Map<string, number>();
+  for (const edge of state.edges) {
+    if (edge.linkType === LOSER) {
+      loserLinkCountByTarget.set(edge.targetNodeId, (loserLinkCountByTarget.get(edge.targetNodeId) || 0) + 1);
+    }
+  }
+  for (const [nodeId, count] of loserLinkCountByTarget) {
+    if (count > 1) nodesWithFeedLinks.add(nodeId);
   }
 
   // Draw sizes: power of 2 for elimination types (unless they have fed positions)
@@ -212,6 +223,53 @@ export function validateTopology(state: TopologyState): ValidationError[] {
     }
   }
 
+  // Loser link feed capacity validation — check that each loser link's
+  // source round produces enough losers for the target round's capacity,
+  // and that the target round is a valid feed round (or R1).
+  for (const edge of state.edges) {
+    if (edge.linkType !== LOSER) continue;
+    const source = state.nodes.find((n) => n.id === edge.sourceNodeId);
+    const target = state.nodes.find((n) => n.id === edge.targetNodeId);
+    if (!source || !target) continue;
+
+    const sourceRound = edge.sourceRoundNumber || 1;
+    const targetRound = edge.targetRoundNumber || 1;
+
+    // Losers produced by the source round
+    const losersProduced = Math.floor(source.drawSize / Math.pow(2, sourceRound));
+
+    // Target round capacity: R1 takes participants directly (drawSize / 2 matchup sides);
+    // feed rounds have specific capacity from the drawSize geometry.
+    const feedCapacities = getFeedRoundCapacities(target.drawSize);
+
+    if (targetRound === 1) {
+      // R1 of the target can accommodate drawSize/2 matchups = drawSize participants
+      // (each matchup has 2 sides, but for the first round losers fill the bracket)
+      // No additional validation needed for R1 — the consolation drawSize check covers it
+    } else {
+      const feedCap = feedCapacities.get(targetRound);
+      if (feedCap === undefined) {
+        errors.push({
+          severity: 'error',
+          message: `"${target.structureName}" R${targetRound} is not a feed round — cannot receive ${losersProduced} losers from "${source.structureName}" R${sourceRound}`,
+          edgeId: edge.id,
+        });
+      } else if (losersProduced > feedCap) {
+        errors.push({
+          severity: 'error',
+          message: `"${source.structureName}" R${sourceRound} produces ${losersProduced} losers but "${target.structureName}" R${targetRound} only has ${feedCap} feed positions`,
+          edgeId: edge.id,
+        });
+      } else if (losersProduced < feedCap) {
+        errors.push({
+          severity: 'warning',
+          message: `"${source.structureName}" R${sourceRound} produces ${losersProduced} losers but "${target.structureName}" R${targetRound} has ${feedCap} feed positions — ${feedCap - losersProduced} will be empty`,
+          edgeId: edge.id,
+        });
+      }
+    }
+  }
+
   // Consolation structure drawSize validation
   const consolationNodes = state.nodes.filter((n) => n.stage === CONSOLATION);
   for (const cNode of consolationNodes) {
@@ -234,6 +292,14 @@ export function validateTopology(state: TopologyState): ValidationError[] {
       errors.push({
         severity: 'warning',
         message: `"${cNode.structureName}" draw size (${cNode.drawSize}) exceeds inbound capacity (${capacity})`,
+        nodeId: cNode.id,
+      });
+    }
+
+    if (capacity > 0 && capacity > cNode.drawSize) {
+      errors.push({
+        severity: 'error',
+        message: `"${cNode.structureName}" receives ${capacity} participants but only has ${cNode.drawSize} positions`,
         nodeId: cNode.id,
       });
     }
