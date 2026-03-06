@@ -582,7 +582,7 @@ export class TemporalGrid {
                    data-tournament-id="${tournamentId}"
                    ${allVisible ? 'checked' : ''} />
             <span class="venue-name">${venueName}</span>
-            <button class="edit-icon venue-edit-icon"
+            <button class="sp-btn-icon sp-btn-icon--ghost venue-edit-icon"
                     data-venue="${venueId}" data-tournament-id="${tournamentId}"
                     title="Edit venue defaults">&#9998;</button>
           </div>
@@ -600,7 +600,7 @@ export class TemporalGrid {
                          ${checked ? 'checked' : ''} />
                   <span class="court-name">${court.name}</span>
                   <span class="court-meta">${court.surface}${court.indoor ? ' (Indoor)' : ''}</span>
-                  <button class="edit-icon court-edit-icon"
+                  <button class="sp-btn-icon sp-btn-icon--ghost court-edit-icon"
                           data-court-id="${court.ref.courtId}" data-venue-id="${court.ref.venueId}"
                           data-tournament-id="${court.ref.tournamentId}"
                           title="Edit court availability">&#9998;</button>

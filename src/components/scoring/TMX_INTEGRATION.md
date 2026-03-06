@@ -451,11 +451,11 @@ The scoring modal uses `cModal` from courthive-components, which supports custom
   // Style: background-color: #ffeb3b; color: #333;
 }
 
-// Submit button uses Bulma's primary intent
+// Submit button uses primary intent
 {
   id: 'submitScoreV2',
   label: 'Submit Score',
-  intent: 'is-primary', // Blue Bulma primary button
+  intent: 'is-primary',
 }
 ```
 

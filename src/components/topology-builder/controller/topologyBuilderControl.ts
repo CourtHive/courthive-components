@@ -53,7 +53,7 @@ export class TopologyBuilderControl {
         onClear: config.onClear
       },
       allTemplates,
-      { hideTemplates: config.hideTemplates, readOnly: isReadOnly }
+      { hideTemplates: config.hideTemplates, hideGenerate: config.hideGenerate, readOnly: isReadOnly }
     );
 
     // Build canvas

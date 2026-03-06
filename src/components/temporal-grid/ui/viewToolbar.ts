@@ -96,9 +96,9 @@ export function buildViewToolbar(
   const setActiveView = (activeKey: string) => {
     buttons.forEach((btn, i) => {
       if (viewKeys[i] === activeKey) {
-        btn.className = 'tg-view-toolbar-btn tg-active';
+        btn.className = 'sp-btn sp-btn--active';
       } else {
-        btn.className = 'tg-view-toolbar-btn';
+        btn.className = 'sp-btn';
       }
     });
   };
@@ -106,7 +106,7 @@ export function buildViewToolbar(
   for (const [key] of Object.entries(VIEW_PRESETS)) {
     const btn = document.createElement('button');
     btn.textContent = presetLabels[key];
-    btn.className = key === activeView ? 'tg-view-toolbar-btn tg-active' : 'tg-view-toolbar-btn';
+    btn.className = key === activeView ? 'sp-btn sp-btn--active' : 'sp-btn';
 
     btn.addEventListener('click', () => {
       setActiveView(key);
@@ -129,7 +129,7 @@ export function buildViewToolbar(
   if (options?.onSetDefaultAvailability) {
     const btn = document.createElement('button');
     btn.textContent = labels?.setDefaultAvailability ?? 'Set Default Availability';
-    btn.className = 'tg-view-toolbar-action tg-action-default';
+    btn.className = 'sp-btn sp-btn--fill-muted';
     btn.addEventListener('click', options.onSetDefaultAvailability);
     bar.appendChild(btn);
   }
@@ -139,10 +139,8 @@ export function buildViewToolbar(
   if (options?.onSave) {
     saveBtn = document.createElement('button');
     saveBtn.textContent = labels?.saveToTournament ?? 'Save to Tournament';
-    saveBtn.className = 'tg-view-toolbar-action tg-action-save';
+    saveBtn.className = 'sp-btn sp-btn--fill';
     saveBtn.disabled = true;
-    saveBtn.style.opacity = '0.5';
-    saveBtn.style.cursor = 'not-allowed';
     saveBtn.addEventListener('click', options.onSave);
     bar.appendChild(saveBtn);
   }
@@ -154,8 +152,6 @@ export function buildViewToolbar(
   const setSaveEnabled = (enabled: boolean) => {
     if (!saveBtn) return;
     saveBtn.disabled = !enabled;
-    saveBtn.style.opacity = enabled ? '1' : '0.5';
-    saveBtn.style.cursor = enabled ? 'pointer' : 'not-allowed';
   };
 
   return { element: bar, dateInput, setActiveView, setDate, setSaveEnabled };

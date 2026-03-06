@@ -303,18 +303,15 @@ The renderers require the following packages (already installed):
 
 - **vanillajs-datepicker** (v1.3.4) - Date picker functionality
 - **awesomplete** (v1.1.7) - Type-ahead/autocomplete functionality
-- **bulma** (v1.0.4) - CSS framework for styling
 - **checkradio.css** - Checkbox and radio styling
-- **bulma-switch** (v2.0.4) - Switch/toggle styling
 
 ### CSS Imports
 
 All required CSS is automatically imported when you import the renderers from the package. The following stylesheets are included:
 
 ```typescript
-import 'vanillajs-datepicker/css/datepicker-bulma.css';
+import 'vanillajs-datepicker/css/datepicker.css';
 import './checkradio.css';
-import 'bulma-switch/dist/css/bulma-switch.min.css';
 import 'awesomplete/awesomplete.css';
 ```
 
@@ -322,7 +319,7 @@ These imports are handled automatically via the `styles.ts` file and bundled int
 
 ## Styling
 
-The renderers use Bulma CSS classes for styling. Key classes include:
+Key CSS classes include:
 
 - `.button` - Button styling
 - `.field` - Form field container

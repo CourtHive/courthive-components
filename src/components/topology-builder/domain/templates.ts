@@ -6,15 +6,7 @@ import type { TopologyNode, TopologyTemplate } from '../types';
 
 type Stage = TopologyNode['stage'];
 
-const {
-  SINGLE_ELIMINATION,
-  FEED_IN,
-  ROUND_ROBIN,
-  MAIN,
-  QUALIFYING,
-  CONSOLATION,
-  PLAY_OFF
-} = drawDefinitionConstants;
+const { SINGLE_ELIMINATION, FEED_IN, ROUND_ROBIN, MAIN, QUALIFYING, CONSOLATION, PLAY_OFF } = drawDefinitionConstants;
 
 const WINNER = 'WINNER';
 const LOSER = 'LOSER';
@@ -317,61 +309,6 @@ export const standardTemplates: TopologyTemplate[] = [
           linkType: POSITION,
           finishingPositions: [1],
           label: 'group winners'
-        }
-      ]
-    }
-  },
-  {
-    name: 'SE + Multi-Qualifying',
-    description: 'Main draw with qualifying feeding R1 and R2',
-    state: {
-      drawName: 'SE + Multi-Q',
-      nodes: [
-        {
-          id: 'tpl-main',
-          structureName: 'Main Draw',
-          stage: MAIN as Stage,
-          structureType: SINGLE_ELIMINATION,
-          drawSize: 64,
-          position: { x: 320, y: 40 }
-        },
-        {
-          id: 'tpl-q1',
-          structureName: 'Qualifying 1',
-          stage: QUALIFYING as Stage,
-          structureType: SINGLE_ELIMINATION,
-          drawSize: 32,
-          qualifyingPositions: 8,
-          position: { x: 40, y: 40 }
-        },
-        {
-          id: 'tpl-q2',
-          structureName: 'Qualifying 2',
-          stage: QUALIFYING as Stage,
-          structureType: SINGLE_ELIMINATION,
-          drawSize: 16,
-          qualifyingPositions: 4,
-          position: { x: 40, y: 210 }
-        }
-      ],
-      edges: [
-        {
-          id: TPL_EDGE_1,
-          sourceNodeId: 'tpl-q1',
-          targetNodeId: 'tpl-main',
-          linkType: WINNER,
-          targetRoundNumber: 1,
-          qualifyingPositions: 8,
-          label: 'winners → R1 (8Q)'
-        },
-        {
-          id: TPL_EDGE_2,
-          sourceNodeId: 'tpl-q2',
-          targetNodeId: 'tpl-main',
-          linkType: WINNER,
-          targetRoundNumber: 2,
-          qualifyingPositions: 4,
-          label: 'winners → R2 (4Q)'
         }
       ]
     }

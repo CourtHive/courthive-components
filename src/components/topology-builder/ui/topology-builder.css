@@ -395,21 +395,11 @@
   line-height: 1.5;
 }
 
-.tb-editor-delete {
-  margin-top: 12px;
-  padding: 4px 10px;
-  border: 1px solid var(--chc-status-error);
-  border-radius: 4px;
-  background: transparent;
-  color: var(--chc-status-error);
-  font-size: 12px;
-  cursor: pointer;
-  width: 100%;
-}
-
-.tb-editor-delete:hover {
-  background: var(--chc-status-error);
-  color: #fff;
+/* Scoped override: map sp-btn--danger to chc-status-error inside editor */
+.tb-editor-body .sp-btn--danger {
+  --sp-err-border: var(--chc-status-error);
+  --sp-err-text: var(--chc-status-error);
+  --sp-err: var(--chc-status-error);
 }
 
 /* ── Validation ──────────────────────────────────────────── */

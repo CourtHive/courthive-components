@@ -245,7 +245,8 @@ export function renderField(item: any): { field: HTMLDivElement; inputElement?: 
 
   if (item.label && !item.checkbox) {
     const label = document.createElement('label');
-    label.style.cssText = item.labelStyle || 'font-weight: bold; font-size: larger;';
+    label.className = 'label';
+    if (item.labelStyle) label.style.cssText = item.labelStyle;
     label.innerHTML = item.label;
     field.appendChild(label);
   }

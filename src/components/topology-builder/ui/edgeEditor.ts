@@ -288,7 +288,8 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
     // Delete button (hidden in readOnly mode)
     if (!isReadOnly) {
       const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'tb-editor-delete';
+      deleteBtn.className = 'sp-btn sp-btn--danger sp-btn--full';
+      deleteBtn.style.marginTop = '12px';
       deleteBtn.textContent = 'Delete Link';
       deleteBtn.onclick = () => callbacks.onDeleteEdge(edge.id);
       body.appendChild(deleteBtn);

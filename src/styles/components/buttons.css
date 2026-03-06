@@ -1,11 +1,11 @@
 /**
- * Button styles — replaces Bulma's .button + intent variants.
+ * Button styles — .button + intent variants.
  * Themed via --chc-* custom properties.
  */
 
 /* ── Base Button ─────────────────────────────────────────── */
 .button {
-  -webkit-appearance: none;
+  appearance: none;
   align-items: center;
   background-color: var(--chc-bg-primary);
   border: 1px solid var(--chc-border-primary);
@@ -227,7 +227,7 @@
 
 /* ── Delete button (X dismiss) ───────────────────────────── */
 .delete {
-  -webkit-appearance: none;
+  appearance: none;
   background-color: rgba(10, 10, 10, 0.2);
   border: none;
   border-radius: 9999px;

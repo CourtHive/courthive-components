@@ -5,7 +5,7 @@
  * - Level AA requires a contrast ratio of at least 4.5:1 for normal text
  * - Level AAA requires a contrast ratio of at least 7:1 for normal text
  *
- * Bulma's default styles use very light greys (#dbdbdb borders, #b5b5b5 placeholders)
+ * Default styles use very light greys (#dbdbdb borders, #b5b5b5 placeholders)
  * which can have poor contrast, especially for users with visual impairments.
  *
  * Colors now use --chc-* CSS variables for dark mode support.
@@ -82,7 +82,7 @@ option {
   color: var(--chc-text-primary) !important;
 }
 
-/* Fix Bulma menu component for dark mode */
+/* Fix menu component for dark mode */
 .menu {
   background-color: var(--chc-bg-primary) !important;
   color: var(--chc-text-primary);

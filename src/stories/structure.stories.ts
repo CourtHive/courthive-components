@@ -122,3 +122,6 @@ export const RoundRobin = {
 export const AdHoc = {
   args: { drawSize: 16, drawType: 'AD_HOC', composition: 'National', automated: true }
 };
+export const Lucky = {
+  args: { drawSize: 11, drawType: 'LUCKY_DRAW', composition: 'National' }
+};

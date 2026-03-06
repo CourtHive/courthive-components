@@ -19,6 +19,7 @@ export interface ToolbarCallbacks {
 
 export interface ToolbarOptions {
   hideTemplates?: boolean;
+  hideGenerate?: boolean;
   readOnly?: boolean;
 }
 
@@ -30,19 +31,14 @@ export function buildToolbar(
   const wrapper = document.createElement('div');
   wrapper.className = 'tb-toolbar-wrapper';
 
-  // Top row: template name + controlBar side-by-side
+  // Top row: controlBar
   const topRow = document.createElement('div');
   topRow.className = 'tb-toolbar-row';
-
-  const templateLabel = document.createElement('div');
-  templateLabel.className = 'tb-toolbar-template';
-  templateLabel.textContent = 'CUSTOM';
 
   const target = document.createElement('div');
   target.style.flex = '1';
   target.style.minWidth = '0';
 
-  topRow.appendChild(templateLabel);
   topRow.appendChild(target);
   wrapper.appendChild(topRow);
 
@@ -123,7 +119,7 @@ export function buildToolbar(
     items.push({ label: 'Save Template', location: 'right', onClick: () => callbacks.onSaveTemplate!() });
   }
 
-  if (!options.readOnly) {
+  if (!options.readOnly && !options.hideGenerate) {
     items.push({ label: 'Generate Draw', location: 'right', intent: 'is-success', onClick: () => callbacks.onGenerate() });
   }
 
@@ -131,7 +127,6 @@ export function buildToolbar(
 
   function update(state: TopologyState): void {
     lastState = state;
-    templateLabel.textContent = state.templateName || 'CUSTOM';
   }
 
   return { element: wrapper, update };

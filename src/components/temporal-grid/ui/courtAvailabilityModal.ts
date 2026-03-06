@@ -34,6 +34,7 @@ export function showCourtAvailabilityModal(config: CourtAvailabilityModalConfig)
 
   // Create overlay backdrop
   const overlay = document.createElement('div');
+  overlay.className = 'tg-modal';
   overlay.style.cssText = `
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background: var(--chc-bg-overlay); z-index: 10000;
@@ -158,10 +159,7 @@ export function showCourtAvailabilityModal(config: CourtAvailabilityModalConfig)
 
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = 'Cancel';
-  cancelBtn.style.cssText = `
-    padding: 8px 16px; border: 1px solid var(--chc-border-primary); border-radius: 4px;
-    background: var(--chc-bg-elevated); color: var(--chc-text-secondary); font-size: 13px; cursor: pointer; font-weight: 500;
-  `;
+  cancelBtn.className = 'sp-btn';
   cancelBtn.addEventListener('click', () => {
     overlay.remove();
     onCancel?.();
@@ -169,10 +167,7 @@ export function showCourtAvailabilityModal(config: CourtAvailabilityModalConfig)
 
   const applyBtn = document.createElement('button');
   applyBtn.textContent = 'Apply';
-  applyBtn.style.cssText = `
-    padding: 8px 16px; border: 1px solid #218D8D; border-radius: 4px;
-    background: #218D8D; color: white; font-size: 13px; cursor: pointer; font-weight: 600;
-  `;
+  applyBtn.className = 'sp-btn sp-btn--fill';
   applyBtn.addEventListener('click', () => {
     overlay.remove();
     onConfirm({

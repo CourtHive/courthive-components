@@ -3,7 +3,7 @@
  * Side panel component with focus trap and dynamic content
  */
 import { drawer, initDrawer } from '../components/drawer/drawer';
-import '../components/forms/styles'; // Bulma styles
+import '../components/forms/styles';
 
 const BUTTON_IS_PRIMARY = 'button is-primary';
 const BUTTON_IS_INFO = 'button is-info';

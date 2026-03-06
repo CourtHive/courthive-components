@@ -45,7 +45,7 @@ export const spIssueStyle = () => 'sp-issue';
 export const spIssueCodeStyle = () => 'sp-issue-code';
 export const spIssueMsgStyle = () => 'sp-issue-msg';
 export const spIssueActionsStyle = () => 'sp-issue-actions';
-export const spIssueActionBtnStyle = () => 'sp-issue-action-btn';
+export const spIssueActionBtnStyle = () => 'sp-btn sp-btn--sm';
 
 // Catalog
 export const spCatalogStyle = () => 'sp-catalog';

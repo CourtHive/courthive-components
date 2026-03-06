@@ -260,18 +260,6 @@
   margin-top: 8px;
 }
 
-.sp-issue-action-btn {
-  font-size: 11px;
-  padding: 6px 8px;
-  border-radius: 10px;
-  border: 1px solid var(--sp-border-light);
-  background: var(--sp-action-btn-bg);
-  color: var(--sp-text);
-  cursor: pointer;
-}
-
-.sp-issue-action-btn:hover { border-color: var(--sp-border-hover); }
-
 /* ── Catalog ─────────────────────────────────────────────── */
 
 .sp-catalog {

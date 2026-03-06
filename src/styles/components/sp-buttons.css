@@ -1,0 +1,184 @@
+/**
+ * Shared Button System — sp-buttons.css
+ *
+ * Three base classes for courthive-components:
+ *   .sp-btn       — Standard action button
+ *   .sp-btn-icon  — Circular icon button (24px)
+ *   .sp-chip      — Clickable tag/pill
+ *
+ * Uses --sp-* custom properties defined in theme.css.
+ */
+
+/* ============================================================================
+   .sp-btn — Standard action button
+   ============================================================================ */
+
+.sp-btn {
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--sp-border-light);
+  background: var(--sp-action-btn-bg);
+  color: var(--sp-text);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  white-space: nowrap;
+  line-height: 1;
+  transition: border-color 0.15s, background 0.15s, color 0.15s, opacity 0.15s;
+}
+
+.sp-btn:hover { border-color: var(--sp-border-hover); }
+
+/* ── Size ── */
+.sp-btn--sm { font-size: 11px; padding: 6px 10px; }
+
+/* ── Intent ── */
+.sp-btn--accent { border-color: var(--sp-accent-border); color: var(--sp-accent-text); }
+.sp-btn--accent:hover { border-color: var(--sp-accent-focus); }
+
+.sp-btn--success { border-color: var(--sp-ok-border); color: var(--sp-ok-text); }
+.sp-btn--success:hover { border-color: var(--sp-ok); }
+
+.sp-btn--danger {
+  border-color: var(--sp-err-border);
+  color: var(--sp-err-text);
+  background: transparent;
+}
+.sp-btn--danger:hover {
+  background: var(--sp-err);
+  color: #fff;
+  border-color: var(--sp-err);
+}
+
+.sp-btn--warn { border-color: var(--sp-warn-border); color: var(--sp-warn-text); }
+.sp-btn--warn:hover { border-color: var(--sp-warn); }
+
+/* ── Shape ── */
+.sp-btn--outline {
+  border-style: dashed;
+  background: transparent;
+  color: var(--sp-muted);
+}
+.sp-btn--outline:hover { border-color: var(--sp-border-hover); color: var(--sp-text); }
+
+.sp-btn--fill {
+  background: var(--sp-accent);
+  border-color: var(--sp-accent);
+  color: #fff;
+  font-weight: 600;
+}
+.sp-btn--fill:hover { opacity: 0.9; }
+
+.sp-btn--fill-muted {
+  background: #666;
+  border-color: #666;
+  color: #fff;
+  font-weight: 600;
+}
+.sp-btn--fill-muted:hover { opacity: 0.9; }
+
+/* ── Layout ── */
+.sp-btn--full { width: 100%; }
+
+/* ── State ── */
+.sp-btn--active {
+  background: var(--sp-accent);
+  border-color: var(--sp-accent);
+  color: #fff;
+}
+
+.sp-btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ============================================================================
+   .sp-btn-icon — Circular icon button (24px)
+   ============================================================================ */
+
+.sp-btn-icon {
+  font-size: 14px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--sp-border);
+  background: var(--sp-input-bg);
+  color: var(--sp-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s, background 0.15s, opacity 0.15s;
+}
+
+.sp-btn-icon:hover { border-color: var(--sp-border-hover); }
+
+/* ── Danger variant ── */
+.sp-btn-icon--danger:hover {
+  border-color: var(--sp-err-border);
+  color: var(--sp-err-text);
+}
+
+/* ── Ghost variant (no border, reveal on parent hover) ── */
+.sp-btn-icon--ghost {
+  border: none;
+  background: transparent;
+  opacity: 0;
+  border-radius: 3px;
+  transition: opacity 0.15s, color 0.15s, background 0.15s;
+}
+
+.venue-header:hover .sp-btn-icon--ghost,
+.court-item:hover .sp-btn-icon--ghost {
+  opacity: 1;
+}
+
+.sp-btn-icon--ghost:hover {
+  color: var(--tg-accent, var(--sp-accent));
+  background: var(--tg-accent-bg-light, rgba(59, 130, 246, 0.08));
+}
+
+.sp-btn-icon--ghost:focus {
+  opacity: 1;
+  outline: 2px solid var(--tg-accent, var(--sp-accent));
+  outline-offset: 1px;
+}
+
+/* ============================================================================
+   .sp-chip — Clickable tag/pill
+   ============================================================================ */
+
+.sp-chip {
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--sp-accent-border);
+  color: var(--sp-accent-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.sp-chip:hover {
+  border-color: var(--sp-accent-focus);
+  background: var(--sp-selected-bg);
+}
+
+.sp-chip__remove {
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  opacity: 0.6;
+}
+
+.sp-chip__remove:hover { opacity: 1; }

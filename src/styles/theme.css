@@ -55,7 +55,7 @@
   --chc-pill-bg-warning: #f7ae04;
   --chc-pill-bg-dark: #363636;
 
-  /* ── Container fills — solid intent backgrounds (light = Bulma defaults) */
+  /* ── Container fills — solid intent backgrounds */
   --chc-container-primary: #00d1b2;
   --chc-container-link: #485fc7;
   --chc-container-info: #3e8ed0;
@@ -147,6 +147,12 @@
   --sp-warn-border-light: rgba(245, 158, 11, 0.25);
   --sp-accent-border-light: rgba(59, 130, 246, 0.2);
 
+  /* ── Temporal Grid Accent ─────────────────────────────────── */
+  --tg-accent: #218D8D;
+  --tg-accent-hover: #1a7a7a;
+  --tg-accent-bg-light: rgba(33, 141, 141, 0.08);
+  --tg-accent-bg-medium: rgba(33, 141, 141, 0.25);
+
   /* ── Topology Builder ─────────────────────────────────────── */
   --tb-canvas-grid: var(--chc-border-secondary);
   --tb-card-bg: var(--chc-bg-primary);
@@ -227,6 +233,12 @@
      and participant layout tokens are identical in dark mode.
      Color tokens automatically adapt via their var(--chc-*) references. */
 
+  /* ── Temporal Grid Accent ─────────────────────────────────── */
+  --tg-accent: #2ec4c4;
+  --tg-accent-hover: #178a7f;
+  --tg-accent-bg-light: rgba(46, 196, 196, 0.1);
+  --tg-accent-bg-medium: rgba(46, 196, 196, 0.3);
+
   /* ── Scheduling Profile: Core ──────────────────────────── */
   --sp-bg: #0b0f14;
   --sp-panel: #111827;
@@ -287,6 +299,10 @@
 [data-theme='dark'] .datepicker-picker {
   background-color: var(--chc-bg-elevated);
   color: var(--chc-text-primary);
+}
+[data-theme='dark'] .datepicker-dropdown .datepicker-picker {
+  border: 1px solid var(--chc-border-primary);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 [data-theme='dark'] .datepicker-title {
   background-color: var(--chc-bg-secondary);

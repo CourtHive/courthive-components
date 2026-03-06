@@ -28,12 +28,12 @@ export function renderStructure({
   minWidth?: string;
   context?: any;
 }): HTMLElement {
-  const { roundNumbers, roundProfile, hasOddMatchUpsCount, isNotEliminationStructure } =
+  const { roundNumbers, roundProfile, roundsNotPowerOf2, hasNoRoundPositions } =
     tournamentEngine.getRoundMatchUps({ matchUps });
 
   structureId = structureId || context?.structureId || matchUps?.[0]?.structureId;
   const isRoundRobin = matchUps.some(({ isRoundRobin }) => isRoundRobin);
-  const isLucky = hasOddMatchUpsCount || isNotEliminationStructure;
+  const isLucky = roundsNotPowerOf2 || hasNoRoundPositions;
 
   const div = document.createElement('div');
   div.className = structureStyle();

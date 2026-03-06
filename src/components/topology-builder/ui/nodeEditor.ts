@@ -261,7 +261,8 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
     // Delete button (hidden in readOnly mode)
     if (!isReadOnly) {
       const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'tb-editor-delete';
+      deleteBtn.className = 'sp-btn sp-btn--danger sp-btn--full';
+      deleteBtn.style.marginTop = '12px';
       deleteBtn.textContent = 'Delete Structure';
       deleteBtn.onclick = () => callbacks.onDeleteNode(node.id);
       body.appendChild(deleteBtn);

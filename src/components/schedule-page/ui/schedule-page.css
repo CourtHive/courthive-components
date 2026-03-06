@@ -1,0 +1,276 @@
+/**
+ * Schedule Page styles — uses --sp-* custom properties (shared with scheduling-profile).
+ * New spl-* classes for divergent layout; reuses sp-* for shared panel/card/catalog styles.
+ */
+
+/* ── 3-Column Layout ────────────────────────────────────── */
+
+.spl-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr 340px;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
+  height: 100%;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  color: var(--sp-text);
+  box-sizing: border-box;
+}
+
+.spl-layout * {
+  box-sizing: border-box;
+}
+
+.spl-layout.spl-left-collapsed {
+  grid-template-columns: 40px 1fr 340px;
+}
+
+/* ── Left Column ────────────────────────────────────────── */
+
+.spl-left {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sp-scrollbar) transparent;
+  transition: width 0.2s ease;
+}
+
+.spl-left::-webkit-scrollbar { width: 6px; }
+.spl-left::-webkit-scrollbar-track { background: transparent; }
+.spl-left::-webkit-scrollbar-thumb { background: var(--sp-scrollbar); border-radius: 3px; }
+
+.spl-left-collapsed .spl-left {
+  overflow: hidden;
+}
+
+.spl-left-collapsed .spl-left-content {
+  display: none;
+}
+
+.spl-toggle {
+  width: 100%;
+  padding: 8px 4px;
+  background: var(--sp-panel-bg);
+  border: 1px solid var(--sp-line);
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--sp-muted);
+  flex-shrink: 0;
+}
+
+.spl-toggle:hover {
+  border-color: var(--sp-border-hover);
+  color: var(--sp-text);
+}
+
+/* ── Center Column ──────────────────────────────────────── */
+
+.spl-center {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.spl-center-header {
+  padding: 12px 12px 10px;
+  border-bottom: 1px solid var(--sp-border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  background: var(--sp-panel-bg);
+  border: 1px solid var(--sp-line);
+  border-radius: 16px 16px 0 0;
+  box-shadow: var(--sp-panel-shadow);
+}
+
+.spl-center-title {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.spl-center-meta {
+  font-size: 12px;
+  color: var(--sp-muted);
+}
+
+.spl-grid-slot {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: var(--sp-panel-bg);
+  border: 1px solid var(--sp-line);
+  border-top: none;
+  border-radius: 0 0 16px 16px;
+  box-shadow: var(--sp-panel-shadow);
+}
+
+/* ── Right Column ───────────────────────────────────────── */
+
+.spl-right {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sp-scrollbar) transparent;
+}
+
+.spl-right::-webkit-scrollbar { width: 6px; }
+.spl-right::-webkit-scrollbar-track { background: transparent; }
+.spl-right::-webkit-scrollbar-thumb { background: var(--sp-scrollbar); border-radius: 3px; }
+
+/* ── MatchUp Card ───────────────────────────────────────── */
+
+.spl-matchup-card {
+  border: 1px solid var(--sp-border);
+  border-radius: 14px;
+  padding: 10px;
+  background: var(--sp-card-bg);
+  cursor: grab;
+}
+
+.spl-matchup-card:hover {
+  border-color: var(--sp-border-hover);
+}
+
+.spl-matchup-card:active {
+  cursor: grabbing;
+}
+
+.spl-matchup-card.selected {
+  border-color: var(--sp-selected-border);
+}
+
+.spl-matchup-card.scheduled {
+  opacity: 0.5;
+  background: var(--sp-dimmed-bg, color-mix(in srgb, var(--sp-card-bg) 60%, var(--sp-text) 40%));
+  cursor: default;
+  position: relative;
+}
+
+.spl-matchup-card.scheduled .spl-card-title,
+.spl-matchup-card.scheduled .spl-card-meta {
+  color: var(--sp-dimmed-text, color-mix(in srgb, var(--sp-muted) 80%, transparent 20%));
+}
+
+.spl-matchup-card.scheduled:hover {
+  border-color: var(--sp-border);
+}
+
+.spl-matchup-check {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: var(--sp-ok-text, #4ade80);
+  pointer-events: none;
+}
+
+.spl-card-title {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.spl-card-sides {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--sp-text);
+}
+
+.spl-card-meta {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--sp-muted);
+}
+
+.spl-card-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.spl-card-chip {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--sp-border-light);
+  color: var(--sp-muted);
+}
+
+.spl-card-chip.time {
+  border-color: var(--sp-ok-border);
+  color: var(--sp-ok-text);
+}
+
+.spl-card-chip.court {
+  border-color: var(--sp-accent-border);
+  color: var(--sp-accent-text);
+}
+
+.spl-card-chip.type {
+  border-color: var(--sp-border-light);
+  color: var(--sp-muted);
+}
+
+/* ── MatchUp Catalog drop highlight ────────────────────── */
+
+.sp-panel.spl-catalog-drop-over {
+  outline: 2px dashed var(--sp-accent-focus);
+  outline-offset: -2px;
+  background: color-mix(in srgb, var(--sp-panel-bg) 92%, var(--sp-accent-focus) 8%);
+}
+
+/* ── Date Strip (left panel) ────────────────────────────── */
+
+.spl-date-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.spl-date-badge.matchups {
+  border: 1px solid var(--sp-accent-border);
+  color: var(--sp-accent-text);
+}
+
+.spl-date-badge.issues {
+  border: 1px solid var(--sp-err-border);
+  color: var(--sp-err-text);
+}
+
+/* ── Inspector (right panel) ────────────────────────────── */
+
+.spl-inspector-sides {
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.spl-inspector-side {
+  font-size: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.spl-inspector-seed {
+  font-size: 11px;
+  color: var(--sp-muted);
+}
