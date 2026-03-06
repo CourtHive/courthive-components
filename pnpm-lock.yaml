@@ -124,8 +124,8 @@ importers:
         specifier: ^10.0.2
         version: 10.2.16(@testing-library/dom@10.4.0)(prettier@2.8.8)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       tabulator-tables:
-        specifier: 6.3.1
-        version: 6.3.1
+        specifier: 6.4.0
+        version: 6.4.0
       vite:
         specifier: 7.3.1
         version: 7.3.1(@types/node@24.10.0)(jiti@2.6.1)(yaml@2.8.2)
@@ -3997,8 +3997,8 @@ packages:
   tabbable@6.4.0:
     resolution: {integrity: sha512-05PUHKSNE8ou2dwIxTngl4EzcnsCDZGJ/iCLtDflR/SHB/ny14rXc+qU5P4mG9JkusiV7EivzY9Mhm55AzAvCg==}
 
-  tabulator-tables@6.3.1:
-    resolution: {integrity: sha512-qFW7kfadtcaISQIibKAIy0f3eeIXUVi8242Vly1iJfMD79kfEGzfczNuPBN/80hDxHzQJXYbmJ8VipI40hQtfA==}
+  tabulator-tables@6.4.0:
+    resolution: {integrity: sha512-Lxh+leFNoBo/Yyr4USs6gxqbfo8anYUaUMmoT91pfVLtoUgl/dE+qV7ahnFrKVMCYYqGG33aIMPR7FzpPBaNYA==}
 
   test-exclude@6.0.0:
     resolution: {integrity: sha512-cAGWPIyOHU6zlmg88jwm7VRyXnMN7iV68OGAbYDk/Mh/xC/pzVPlQtY6ngoIH/5/tciuhGfvESU8GrHrcxD56w==}
@@ -8579,7 +8579,7 @@ snapshots:
 
   tabbable@6.4.0: {}
 
-  tabulator-tables@6.3.1: {}
+  tabulator-tables@6.4.0: {}
 
   test-exclude@6.0.0:
     dependencies:
