@@ -11,7 +11,8 @@ import type {
   TopologyChangeListener,
 } from '../types';
 
-const { MAIN, QUALIFYING, CONSOLATION, WINNER, LOSER } = drawDefinitionConstants;
+const { MAIN, QUALIFYING, CONSOLATION, WINNER, LOSER, ROUND_ROBIN } = drawDefinitionConstants;
+const POSITION = 'POSITION';
 
 let idCounter = 0;
 function generateId(prefix: string): string {
@@ -116,11 +117,17 @@ export class TopologyStore {
       if (existing) return null;
     }
 
+    const source = this.state.nodes.find((n) => n.id === partial.sourceNodeId);
+    const target = this.state.nodes.find((n) => n.id === partial.targetNodeId);
+
+    // Round Robin sources only produce POSITION links
+    if (source?.structureType === ROUND_ROBIN && partial.linkType !== POSITION) {
+      return null;
+    }
+
     // Qualifying link constraints:
     // - Qualifying sources can only target QUALIFYING or MAIN
     // - Qualifying targets can only receive from QUALIFYING
-    const source = this.state.nodes.find((n) => n.id === partial.sourceNodeId);
-    const target = this.state.nodes.find((n) => n.id === partial.targetNodeId);
     if (source?.stage === QUALIFYING && target && target.stage !== QUALIFYING && target.stage !== MAIN) {
       return null;
     }

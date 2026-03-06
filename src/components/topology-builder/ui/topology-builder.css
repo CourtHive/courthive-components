@@ -188,6 +188,14 @@
   flex-shrink: 0;
 }
 
+.tb-card-advance {
+  font-size: 9px;
+  color: var(--chc-status-success, #48c774);
+  flex-shrink: 0;
+  margin-left: auto;
+  padding-left: 4px;
+}
+
 .tb-card-preview {
   padding: 6px 8px;
   overflow: hidden;
@@ -233,6 +241,35 @@
 }
 .tb-round-linked--target.tb-round-linked--active .chc-schematic-slot {
   opacity: 1;
+}
+
+/* ── Finishing position chips (RR cards) ─────────────────── */
+.tb-card-chips {
+  display: flex;
+  gap: 4px;
+  padding: 4px 8px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--chc-border-secondary, #eee);
+}
+
+.tb-card-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 10px;
+  background: var(--chc-status-info, #0066cc);
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.tb-card-chip:hover {
+  transform: scale(1.15);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
 .tb-card-rounds {

@@ -255,7 +255,8 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
         const cb = document.createElement('input');
         cb.type = 'checkbox';
         cb.checked = currentPositions.has(i);
-        if (isReadOnly) {
+        const isClaimed = claimedPositions.has(i);
+        if (isReadOnly || isClaimed) {
           cb.disabled = true;
         } else {
           cb.addEventListener('change', () => {
@@ -272,9 +273,11 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
         const labelText = document.createElement('span');
         labelText.textContent = `Position ${i}`;
 
-        if (claimedPositions.has(i)) {
-          labelText.style.color = 'var(--chc-status-warning, orange)';
-          labelText.title = 'Already used by another POSITION link';
+        if (isClaimed) {
+          labelText.style.color = 'var(--chc-text-muted, #999)';
+          labelText.title = 'Used by another link';
+          row.style.opacity = '0.5';
+          row.style.cursor = 'not-allowed';
         }
 
         row.appendChild(cb);

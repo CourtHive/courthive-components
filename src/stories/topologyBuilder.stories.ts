@@ -124,6 +124,7 @@ function renderBuilder(config: TopologyBuilderConfig = {}): HTMLElement {
 function renderTemplate(templateName: string): HTMLElement {
   const template = standardTemplates.find((t) => t.name === templateName) as TopologyTemplate;
   return renderBuilder({
+    hideDelete: true,
     initialState: {
       ...template.state,
       selectedNodeId: null,
@@ -191,6 +192,7 @@ export const RoundRobinPlayoff: Story = {
 export const AllTemplates: Story = {
   render: () =>
     renderBuilder({
+      hideDelete: true,
       templates: standardTemplates,
       onSaveTemplate: (state) => {
         console.log('Save template:', state);
@@ -293,6 +295,7 @@ export const DoubleClickModal: Story = {
 
     return renderBuilder({
       onDoubleClickNode,
+      hideDelete: true,
       initialState: {
         ...template.state,
         selectedNodeId: null,

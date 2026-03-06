@@ -5,13 +5,26 @@
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { buildStructureCard, getPortPosition, getCardWidth, getNumRounds } from './structureCard';
 import { getFeedRoundCapacities } from '../domain/feedRounds';
-import type { RoundAnnotation } from './structureCard';
+import type { RoundAnnotation, PositionChip } from './structureCard';
 import type { TopologyState, TopologyEdge, UIPanel } from '../types';
 
 const { WINNER, LOSER, QUALIFYING, ROUND_ROBIN } = drawDefinitionConstants;
 const POSITION = 'POSITION';
 
 const isRoundRobin = (structureType: string) => structureType === ROUND_ROBIN;
+
+import type { TopologyNode } from '../types';
+
+function computeAdvanceInfo(node: TopologyNode, state: TopologyState): string | undefined {
+  if (!isRoundRobin(node.structureType)) return undefined;
+  const positionEdges = state.edges.filter(
+    (e) => e.sourceNodeId === node.id && e.linkType === POSITION,
+  );
+  if (!positionEdges.length) return undefined;
+  const allPositions = new Set(positionEdges.flatMap((e) => e.finishingPositions || []));
+  const groupSize = node.structureOptions?.groupSize || 4;
+  return `${allPositions.size} of ${groupSize} advance`;
+}
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -230,6 +243,25 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
       if (warnings.length > 0) nodeWarnings.set(targetId, warnings);
     }
 
+    // Pre-compute position chips for RR nodes
+    const positionChipsByNode = new Map<string, PositionChip[]>();
+    for (const node of state.nodes) {
+      if (!isRoundRobin(node.structureType)) continue;
+      const posEdges = state.edges.filter(
+        (e) => e.sourceNodeId === node.id && e.linkType === POSITION,
+      );
+      if (!posEdges.length) continue;
+      const chips: PositionChip[] = [];
+      for (const edge of posEdges) {
+        const target = state.nodes.find((n) => n.id === edge.targetNodeId);
+        for (const pos of edge.finishingPositions || []) {
+          chips.push({ position: pos, edgeId: edge.id, targetName: target?.structureName || '?' });
+        }
+      }
+      chips.sort((a, b) => a.position - b.position);
+      positionChipsByNode.set(node.id, chips);
+    }
+
     // Render nodes
     for (const node of state.nodes) {
       const card = buildStructureCard(
@@ -264,11 +296,13 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
           onPortMouseUp: (targetNodeId) => {
             if (linkCreation && linkCreation.sourceNodeId !== targetNodeId) {
               let linkType: 'WINNER' | 'LOSER' | 'POSITION';
-              if (linkCreation.portType === 'loser') {
+              const sourceNode = state.nodes.find((n) => n.id === linkCreation!.sourceNodeId);
+              if (sourceNode && isRoundRobin(sourceNode.structureType)) {
+                linkType = POSITION;
+              } else if (linkCreation.portType === 'loser') {
                 linkType = LOSER;
               } else {
-                const sourceNode = state.nodes.find((n) => n.id === linkCreation!.sourceNodeId);
-                linkType = sourceNode && isRoundRobin(sourceNode.structureType) ? POSITION : WINNER;
+                linkType = WINNER;
               }
               callbacks.onCreateEdge(linkCreation.sourceNodeId, targetNodeId, linkType);
             }
@@ -294,6 +328,8 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
         nodesWithWinnerLink.has(node.id),
         annotationsByNode.get(node.id),
         nodeWarnings.get(node.id),
+        computeAdvanceInfo(node, state),
+        positionChipsByNode.get(node.id),
       );
       nodesLayer.appendChild(card);
     }

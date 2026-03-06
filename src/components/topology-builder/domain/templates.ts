@@ -279,7 +279,7 @@ export const standardTemplates: TopologyTemplate[] = [
   },
   {
     name: 'Round Robin + Playoff',
-    description: 'Round robin groups with single-elimination playoff',
+    description: 'Round robin groups with winners and consolation playoffs',
     state: {
       drawName: 'RR + Playoff',
       nodes: [
@@ -293,22 +293,38 @@ export const standardTemplates: TopologyTemplate[] = [
           position: { x: 40, y: 40 }
         },
         {
-          id: 'tpl-playoff',
-          structureName: 'Playoff',
+          id: 'tpl-playoff-gold',
+          structureName: 'Gold Flight',
           stage: PLAY_OFF as Stage,
           structureType: SINGLE_ELIMINATION,
-          drawSize: 4,
+          drawSize: 8,
           position: { x: 320, y: 40 }
+        },
+        {
+          id: 'tpl-playoff-silver',
+          structureName: 'Silver Flight',
+          stage: PLAY_OFF as Stage,
+          structureType: SINGLE_ELIMINATION,
+          drawSize: 8,
+          position: { x: 320, y: 220 }
         }
       ],
       edges: [
         {
           id: TPL_EDGE_1,
           sourceNodeId: 'tpl-main',
-          targetNodeId: 'tpl-playoff',
+          targetNodeId: 'tpl-playoff-gold',
           linkType: POSITION,
-          finishingPositions: [1],
-          label: 'group winners'
+          finishingPositions: [1, 2],
+          label: 'positions 1,2'
+        },
+        {
+          id: TPL_EDGE_2,
+          sourceNodeId: 'tpl-main',
+          targetNodeId: 'tpl-playoff-silver',
+          linkType: POSITION,
+          finishingPositions: [3, 4],
+          label: 'positions 3,4'
         }
       ]
     }

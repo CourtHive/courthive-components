@@ -74,11 +74,21 @@ export class TopologyBuilderControl {
             const source = this.store.getState().nodes.find((n) => n.id === sourceNodeId);
 
             if (linkType === POSITION) {
+              // Pick the first unclaimed finishing position
+              const existingEdges = this.store.getState().edges.filter(
+                (e) => e.sourceNodeId === sourceNodeId && e.linkType === POSITION,
+              );
+              const claimed = new Set(existingEdges.flatMap((e) => e.finishingPositions || []));
+              const groupSize = source?.structureOptions?.groupSize || 4;
+              let defaultPos = 1;
+              for (let p = 1; p <= groupSize; p++) {
+                if (!claimed.has(p)) { defaultPos = p; break; }
+              }
               this.store.addEdge({
                 sourceNodeId,
                 targetNodeId,
                 linkType,
-                finishingPositions: [1]
+                finishingPositions: [defaultPos]
               });
             } else {
               const isQualifyingWinner = linkType === WINNER && source?.stage === QUALIFYING;
@@ -98,8 +108,10 @@ export class TopologyBuilderControl {
     // Build editors
     const nodeEditor = buildNodeEditor({
       onUpdateNode: isReadOnly ? () => {} : (nodeId, updates) => this.store.updateNode(nodeId, updates),
+      onUpdateEdge: isReadOnly ? () => {} : (edgeId, updates) => this.store.updateEdge(edgeId, updates),
       onDeleteNode: isReadOnly ? () => {} : (nodeId) => this.store.removeNode(nodeId),
-      readOnly: isReadOnly
+      readOnly: isReadOnly,
+      hideDelete: config.hideDelete,
     });
 
     const edgeEditor = buildEdgeEditor({

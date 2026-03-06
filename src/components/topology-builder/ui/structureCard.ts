@@ -72,6 +72,12 @@ export interface RoundAnnotation {
   isSelected: boolean;
 }
 
+export interface PositionChip {
+  position: number;
+  edgeId: string;
+  targetName: string;
+}
+
 export interface StructureCardCallbacks {
   onSelect: (nodeId: string) => void;
   onSelectEdge: (edgeId: string) => void;
@@ -88,6 +94,8 @@ export function buildStructureCard(
   hasWinnerLink: boolean,
   roundAnnotations?: RoundAnnotation[],
   warnings?: string[],
+  advanceInfo?: string,
+  positionChips?: PositionChip[],
 ): HTMLElement {
   const hasWarnings = warnings && warnings.length > 0;
   const card = document.createElement('div');
@@ -116,6 +124,14 @@ export function buildStructureCard(
   header.appendChild(badge);
   header.appendChild(name);
   header.appendChild(size);
+
+  // Advance info for RR structures
+  if (advanceInfo) {
+    const advanceDiv = document.createElement('div');
+    advanceDiv.className = 'tb-card-advance';
+    advanceDiv.textContent = advanceInfo;
+    header.appendChild(advanceDiv);
+  }
 
   // Preview
   const preview = document.createElement('div');
@@ -237,6 +253,25 @@ export function buildStructureCard(
 
   card.appendChild(header);
   card.appendChild(preview);
+
+  // Finishing position chips for RR structures
+  if (positionChips?.length) {
+    const chipsDiv = document.createElement('div');
+    chipsDiv.className = 'tb-card-chips';
+    for (const chip of positionChips) {
+      const chipEl = document.createElement('span');
+      chipEl.className = 'tb-card-chip';
+      chipEl.textContent = `P${chip.position}`;
+      chipEl.title = `Position ${chip.position} → ${chip.targetName}`;
+      chipEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        callbacks.onSelectEdge(chip.edgeId);
+      });
+      chipsDiv.appendChild(chipEl);
+    }
+    card.appendChild(chipsDiv);
+  }
+
   if (roundsDiv) card.appendChild(roundsDiv);
 
   // Warning banner

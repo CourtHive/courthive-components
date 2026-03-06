@@ -49,6 +49,7 @@ export interface TopologyBuilderConfig {
   templates?: TopologyTemplate[];
   hideTemplates?: boolean;
   hideGenerate?: boolean;
+  hideDelete?: boolean;
   readOnly?: boolean;
 }
 
