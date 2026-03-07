@@ -113,6 +113,16 @@ export function renderMatchUp(params: {
   // Apply link connector CSS custom properties to side2 (or side container with link class)
   if (!centerInfo) linkResult.applyStyles(side2);
 
+  if (configuration?.matchUpFooter) {
+    const footer = document.createElement('div');
+    footer.className = 'chc-matchup-footer';
+    const roundName = matchUp.roundName || '';
+    const roundPosition = matchUp.roundPosition;
+    const label = roundPosition ? `${roundName} \u2022 Match ${roundPosition}` : roundName;
+    footer.textContent = label;
+    component.appendChild(footer);
+  }
+
   container.appendChild(component);
 
   if (selectedMatchUpId === matchUp.matchUpId) {

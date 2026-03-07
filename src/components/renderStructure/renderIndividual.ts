@@ -57,6 +57,7 @@ export function renderIndividual(params: {
   individual.className = participantStyle({ variant });
 
   const flags = configuration?.flags;
+  const hasScale = configuration?.scaleAttributes;
   const flag = flags && renderFrill({ ...params, type: 'flag' });
   if (flag) {
     individual.appendChild(flag);
@@ -161,6 +162,15 @@ export function renderIndividual(params: {
     placeholder.innerHTML =
       (side?.bye && placeHolders.BYE) || (side?.qualifier && placeHolders.QUALIFIER) || placeHolders.TBD;
     name.appendChild(placeholder);
+  }
+
+  // When both flag and scale are configured, place scale after the name
+  if (flag && hasScale) {
+    const scale = renderFrill({
+      type: 'scale',
+      ...params
+    });
+    if (scale) name.appendChild(scale);
   }
 
   const seeding = renderFrill({

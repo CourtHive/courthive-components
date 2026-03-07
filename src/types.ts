@@ -162,6 +162,7 @@ export interface Configuration {
   allDrawPositions?: boolean;
   bracketedSeeds?: boolean | 'square';
   scheduleInfo?: boolean;
+  matchUpFooter?: boolean;
   showAddress?: boolean;
   seedingElement?: 'sup' | 'span';
   matchUpHover?: boolean | string;

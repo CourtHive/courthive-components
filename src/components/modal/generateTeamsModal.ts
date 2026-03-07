@@ -15,6 +15,20 @@ export interface GenerateTeamsConfig {
   title?: string;
   /** Builtin + user tieFormats for team size inference */
   tieFormats?: { label: string; value: string; tieFormat: any }[];
+  /** Custom labels for form fields and buttons */
+  labels?: {
+    gender?: string;
+    teamsCount?: string;
+    tieFormatTemplate?: string;
+    manualTeamSize?: string;
+    playersPerTeam?: string;
+    countries?: string;
+    cancel?: string;
+    generate?: string;
+    genderAny?: string;
+    genderFemale?: string;
+    genderMale?: string;
+  };
 }
 
 /**
@@ -38,6 +52,7 @@ export function getGenerateTeamsModal(config: GenerateTeamsConfig = {}): void {
     consideredDate,
     title = 'Generate mock teams',
     tieFormats = [],
+    labels = {},
   } = config;
 
   let inputs: any;
@@ -46,7 +61,7 @@ export function getGenerateTeamsModal(config: GenerateTeamsConfig = {}): void {
   const NONE = '-';
 
   const tieFormatOptions = [
-    { label: 'Manual team size', value: NONE, selected: true },
+    { label: labels.manualTeamSize || 'Manual team size', value: NONE, selected: true },
     ...tieFormats.map((tf) => ({ label: tf.label, value: tf.value, selected: false })),
   ];
 
@@ -86,8 +101,8 @@ export function getGenerateTeamsModal(config: GenerateTeamsConfig = {}): void {
   };
 
   const buttons = [
-    { label: 'Cancel', intent: 'none', close: true },
-    { label: 'Generate', intent: 'is-info', close: true, onClick: generate },
+    { label: labels.cancel || 'Cancel', intent: 'none', close: true },
+    { label: labels.generate || 'Generate', intent: 'is-info', close: true, onClick: generate },
   ];
 
   const relationships = hasTieFormats
@@ -113,7 +128,7 @@ export function getGenerateTeamsModal(config: GenerateTeamsConfig = {}): void {
     ? [
         {
           options: tieFormatOptions,
-          label: 'Tie format template',
+          label: labels.tieFormatTemplate || 'Tie format template',
           field: 'tieFormatSelect',
           value: NONE,
         },
@@ -126,11 +141,11 @@ export function getGenerateTeamsModal(config: GenerateTeamsConfig = {}): void {
       [
         {
           options: [
-            { label: 'Any', value: ANY, selected: true },
-            { label: 'Female', value: FEMALE },
-            { label: 'Male', value: MALE },
+            { label: labels.genderAny || 'Any', value: ANY, selected: true },
+            { label: labels.genderFemale || 'Female', value: FEMALE },
+            { label: labels.genderMale || 'Male', value: MALE },
           ],
-          label: 'Gender',
+          label: labels.gender || 'Gender',
           field: 'gender',
           value: ANY,
         },
@@ -142,20 +157,20 @@ export function getGenerateTeamsModal(config: GenerateTeamsConfig = {}): void {
             { label: '16', value: 16 },
             { label: '32', value: 32 },
           ],
-          label: 'Number of teams',
+          label: labels.teamsCount || 'Number of teams',
           field: 'teamsCount',
           value: 4,
         },
         ...tieFormatField,
         {
-          label: 'Players per team',
+          label: labels.playersPerTeam || 'Players per team',
           field: 'teamSize',
           placeholder: 'e.g., 8',
           type: 'number',
           value: 8,
         },
         {
-          label: '# of Countries',
+          label: labels.countries || '# of Countries',
           field: 'nationalityCodesCount',
           placeholder: 'e.g., 10',
           type: 'number',

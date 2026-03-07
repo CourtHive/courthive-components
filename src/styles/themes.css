@@ -48,6 +48,30 @@
   --chc-color-connector: #999;
 }
 
+/* ── Basic Card ─────────────────────────────────────────── */
+.chc-theme-basiccard {
+  --chc-color-border: var(--chc-border-secondary);
+  --chc-color-border-hover: var(--chc-border-focus);
+  --chc-color-connector: transparent;
+  --chc-color-internal-dividers: transparent;
+  --chc-matchup-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  --chc-border-width-matchup: 1px;
+  --chc-color-winner: #333;
+}
+
+.chc-theme-basiccard .chc-matchup {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.chc-theme-basiccard .chc-scheduling {
+  border-bottom: none;
+}
+
+.chc-theme-basiccard .chc-score-wrapper--side1 {
+  border-bottom: none;
+}
+
 /* ── Wimbledon ──────────────────────────────────────────── */
 .chc-theme-wimbledon {
   --chc-color-connector: transparent;

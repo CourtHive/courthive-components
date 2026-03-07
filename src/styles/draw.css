@@ -687,6 +687,14 @@
   border-radius: 3px;
 }
 
+/* ── MatchUp footer (round/match label below sides) ────── */
+
+.chc-matchup-footer {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--chc-text-muted);
+}
+
 /* ── Participant hover highlight (all appearances) ─────── */
 
 .chc-participant-container.chc-participant-hover {

@@ -1,5 +1,6 @@
 import {
   australianTheme,
+  basicCardTheme,
   basicTheme,
   itfTheme,
   frenchTheme,
@@ -40,6 +41,15 @@ export const compositions: Record<string, Composition> = {
   ITF: {
     configuration: { winnerChevron: true, centerInfo: true, flags: true, roundHeader: true },
     theme: itfTheme
+  },
+  BasicCard: {
+    configuration: {
+      flags: true,
+      scheduleInfo: true,
+      matchUpFooter: true,
+      roundHeader: true
+    },
+    theme: basicCardTheme
   },
   National: {
     configuration: {

@@ -30,7 +30,7 @@ const WINNER_SELECTOR = 'input[name="irregularWinner"]';
 const TIEBREAK_CONTAINER_CLASS = '.tiebreak-container';
 
 export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): void {
-  const { matchUp, container, onScoreChange } = params;
+  const { matchUp, container, onScoreChange, labels = {} } = params;
 
   // Clear container
   container.innerHTML = '';
@@ -84,7 +84,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     formatDisplay.style.gap = '0.5em';
 
     const formatLabel = document.createElement('span');
-    formatLabel.textContent = 'Format:';
+    formatLabel.textContent = (labels.format || 'Format') + ':';
     formatLabel.style.color = CHC_TEXT_SECONDARY;
     formatDisplay.appendChild(formatLabel);
 
@@ -148,7 +148,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   irregularEndingContainer.style.marginBottom = '0.8em';
 
   const irregularLabel = document.createElement('div');
-  irregularLabel.textContent = 'Irregular Ending:';
+  irregularLabel.textContent = (labels.irregularEnding || 'Irregular Ending') + ':';
   irregularLabel.style.fontSize = '0.75em';
   irregularLabel.style.fontWeight = '500';
   irregularLabel.style.marginBottom = '0.3em';
@@ -162,9 +162,9 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
   // Only irregular endings - Completed is the default
   const outcomes = [
-    { value: RETIRED, label: 'Retired' },
-    { value: WALKOVER, label: 'Walkover' },
-    { value: DEFAULTED, label: 'Defaulted' },
+    { value: RETIRED, label: labels.retired || 'Retired' },
+    { value: WALKOVER, label: labels.walkover || 'Walkover' },
+    { value: DEFAULTED, label: labels.defaulted || 'Defaulted' },
   ];
 
   outcomes.forEach((outcome) => {
@@ -223,7 +223,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
   // Add "Clear" button to reset to COMPLETED
   const clearOutcomeBtn = document.createElement('button');
-  clearOutcomeBtn.textContent = 'Clear';
+  clearOutcomeBtn.textContent = labels.clear || 'Clear';
   clearOutcomeBtn.className = 'button';
   clearOutcomeBtn.style.fontSize = '0.7em';
   clearOutcomeBtn.style.padding = '0.2em 0.5em';
@@ -262,7 +262,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   winnerSelectionContainer.style.borderLeft = '3px solid var(--chc-clear-btn-bg)';
 
   const winnerLabel = document.createElement('div');
-  winnerLabel.textContent = 'Winner:';
+  winnerLabel.textContent = (labels.winner || 'Winner') + ':';
   winnerLabel.style.fontSize = '0.75em';
   winnerLabel.style.fontWeight = '500';
   winnerLabel.style.marginBottom = '0.2em';

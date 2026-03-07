@@ -33,6 +33,11 @@ export interface MockParticipantsConfig {
     ratings?: string;
     countries?: string;
     role?: string;
+    cancel?: string;
+    generate?: string;
+    genderAny?: string;
+    genderFemale?: string;
+    genderMale?: string;
     /** @deprecated Use ratings label instead */
     wtn?: string;
     /** @deprecated Use ratings label instead */
@@ -121,6 +126,11 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
     maxAge: labels.maxAge || 'Max Age',
     ratings: labels.ratings || 'Generate Ratings',
     countries: labels.countries || '# of Countries',
+    cancel: labels.cancel,
+    generate: labels.generate,
+    genderAny: labels.genderAny,
+    genderFemale: labels.genderFemale,
+    genderMale: labels.genderMale,
   };
 
   // Backward compatibility: convert legacy wtnRating/utrRating booleans to ratings array
@@ -201,8 +211,8 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
   };
 
   const buttons = [
-    { label: 'Cancel', intent: 'none', close: true },
-    { label: 'Generate', intent: 'is-info', close: true, onClick: generate }
+    { label: finalLabels.cancel || 'Cancel', intent: 'none', close: true },
+    { label: finalLabels.generate || 'Generate', intent: 'is-info', close: true, onClick: generate }
   ];
 
   // Relationships to ensure ageMax >= ageMin
@@ -255,9 +265,9 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
         ...roleField,
         {
           options: [
-            { label: 'Any', value: ANY, selected: finalDefaults.gender === ANY },
-            { label: 'Female', value: FEMALE, selected: finalDefaults.gender === FEMALE },
-            { label: 'Male', value: MALE, selected: finalDefaults.gender === MALE }
+            { label: finalLabels.genderAny || 'Any', value: ANY, selected: finalDefaults.gender === ANY },
+            { label: finalLabels.genderFemale || 'Female', value: FEMALE, selected: finalDefaults.gender === FEMALE },
+            { label: finalLabels.genderMale || 'Male', value: MALE, selected: finalDefaults.gender === MALE }
           ],
           label: finalLabels.gender,
           field: 'gender',

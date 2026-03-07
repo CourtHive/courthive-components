@@ -31,6 +31,9 @@ export interface FlightProfileConfig {
     eventTypeLabel?: string;
     splitMethodLabel?: string;
     flightNamesLabel?: string;
+    cancel?: string;
+    ok?: string;
+    existingNote?: string;
   };
   options?: {
     eventTypes?: string[];
@@ -62,7 +65,7 @@ export function getFlightProfileModal(params: {
     if (isExisting) {
       const header = document.createElement('div');
       header.className = 'notification is-info is-light';
-      header.innerHTML =
+      header.innerHTML = editorConfig.labels?.existingNote ||
         '<strong style="color: #000;">Note:</strong> Flight split has already been performed. You can only rename the flights.';
       elem.appendChild(header);
     }
@@ -164,11 +167,11 @@ export function getFlightProfileModal(params: {
 
   const buttons = [
     {
-      label: 'Cancel',
+      label: editorConfig.labels?.cancel || 'Cancel',
       close: true
     },
     {
-      label: 'OK',
+      label: editorConfig.labels?.ok || 'OK',
       id: 'flightProfileOk',
       intent: 'is-success',
       close: true,

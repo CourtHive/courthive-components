@@ -10,7 +10,7 @@ import type { ScoringModalParams, ScoreOutcome } from './types';
 import { getScoringConfig } from './config';
 
 export function scoringModal(params: ScoringModalParams): void {
-  const { matchUp, callback } = params;
+  const { matchUp, callback, labels = {} } = params;
 
   // Choose approach based on config setting
   const config = getScoringConfig();
@@ -78,19 +78,22 @@ export function scoringModal(params: ScoringModalParams): void {
     renderFreeScoreEntry({
       matchUp,
       container,
-      onScoreChange: handleScoreChange
+      onScoreChange: handleScoreChange,
+      labels,
     });
   } else if (approach === 'dynamicSets') {
     renderDynamicSetsScoreEntry({
       matchUp,
       container,
-      onScoreChange: handleScoreChange
+      onScoreChange: handleScoreChange,
+      labels,
     });
   } else if (approach === 'dialPad') {
     renderDialPadScoreEntry({
       matchUp,
       container,
-      onScoreChange: handleScoreChange
+      onScoreChange: handleScoreChange,
+      labels,
     });
   } else {
     container.innerHTML = '<p>Unknown scoring approach...</p>';
@@ -98,14 +101,14 @@ export function scoringModal(params: ScoringModalParams): void {
 
   // Help text for freeScore approach (shown in info popover)
   const freeScoreHelp = `
-    <strong>Score Entry Tips:</strong><br><br>
-    <strong>Set Scores:</strong> Enter space or dash-separated (e.g., "6-4 6-3")<br><br>
-    <strong>Tiebreaks:</strong> Auto-detected from digits (e.g., "67 3" becomes "6-7(3)")<br><br>
-    <strong>Match Tiebreaks:</strong> Use dash separator (e.g., "10-7")<br><br>
-    <strong>Irregular Endings:</strong><br>
-    <strong>r</strong> = Retired<br>
-    <strong>w</strong> = Walkover<br>
-    <strong>d</strong> = Defaulted<br>
+    <strong>${labels.scoreTips || 'Score Entry Tips:'}</strong><br><br>
+    <strong>${labels.setScores || 'Set Scores:'}</strong> Enter space or dash-separated (e.g., "6-4 6-3")<br><br>
+    <strong>${labels.tiebreaks || 'Tiebreaks:'}</strong> Auto-detected from digits (e.g., "67 3" becomes "6-7(3)")<br><br>
+    <strong>${labels.matchTiebreaks || 'Match Tiebreaks:'}</strong> Use dash separator (e.g., "10-7")<br><br>
+    <strong>${labels.irregularEndings || 'Irregular Endings:'}</strong><br>
+    <strong>r</strong> = ${labels.retired || 'Retired'}<br>
+    <strong>w</strong> = ${labels.walkover || 'Walkover'}<br>
+    <strong>d</strong> = ${labels.defaulted || 'Defaulted'}<br>
     <strong>s</strong> = Suspended<br>
     <strong>c</strong> = Cancelled<br>
     <strong>a</strong> = Awaiting Result<br>
@@ -115,7 +118,7 @@ export function scoringModal(params: ScoringModalParams): void {
   `;
 
   cModal.open({
-    title: 'Score Entry',
+    title: labels.title || 'Score Entry',
     content: container,
     config: approach === 'freeScore' ? { info: freeScoreHelp } : undefined,
     buttons: [
@@ -124,7 +127,7 @@ export function scoringModal(params: ScoringModalParams): void {
           cleanupCurrentApproach();
           // Cancel button should NOT call callback - just close modal
         },
-        label: 'Cancel',
+        label: labels.cancel || 'Cancel',
         intent: 'none',
         footer: {
           className: 'button',
@@ -134,7 +137,7 @@ export function scoringModal(params: ScoringModalParams): void {
       },
       {
         id: 'clearScoreV2',
-        label: 'Clear',
+        label: labels.clear || 'Clear',
         intent: 'none',
         disabled: true, // Initially disabled (no input yet)
         close: false, // Don't close modal when clearing
@@ -161,7 +164,7 @@ export function scoringModal(params: ScoringModalParams): void {
       },
       {
         id: 'submitScoreV2',
-        label: 'Submit Score',
+        label: labels.submit || 'Submit Score',
         intent: 'is-primary',
         disabled: true,
         onClick: () => {

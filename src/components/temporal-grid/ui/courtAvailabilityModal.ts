@@ -14,6 +14,17 @@ export interface CourtAvailabilityModalConfig {
   venueBounds?: { startTime: string; endTime: string };
   onConfirm: (params: { startTime: string; endTime: string; scope: 'current-day' | 'all-days' }) => void;
   onCancel?: () => void;
+  /** Custom labels for UI text */
+  labels?: {
+    startTime?: string;
+    endTime?: string;
+    applyTo?: string;
+    currentDayOnly?: string; // Use ${day} as placeholder for the day label
+    allDays?: string;
+    cancel?: string;
+    apply?: string;
+    venueWarning?: string; // Use ${startTime} and ${endTime} as placeholders
+  };
 }
 
 export function showCourtAvailabilityModal(config: CourtAvailabilityModalConfig): void {
@@ -26,6 +37,7 @@ export function showCourtAvailabilityModal(config: CourtAvailabilityModalConfig)
     venueBounds,
     onConfirm,
     onCancel,
+    labels = {},
   } = config;
 
   // Format day for display (e.g., "Jun 15")
@@ -81,8 +93,8 @@ export function showCourtAvailabilityModal(config: CourtAvailabilityModalConfig)
     return input;
   };
 
-  const startInput = makeTimeInput('Start Time', currentStartTime);
-  const endInput = makeTimeInput('End Time', currentEndTime);
+  const startInput = makeTimeInput(labels.startTime || 'Start Time', currentStartTime);
+  const endInput = makeTimeInput(labels.endTime || 'End Time', currentEndTime);
   dialog.appendChild(timeRow);
 
   // Venue bounds warning (court modals only)
@@ -98,7 +110,8 @@ export function showCourtAvailabilityModal(config: CourtAvailabilityModalConfig)
       const exceedsStart = startInput.value < venueBounds.startTime;
       const exceedsEnd = endInput.value > venueBounds.endTime;
       if (exceedsStart || exceedsEnd) {
-        warning.textContent = `Venue hours are ${venueBounds.startTime}\u2013${venueBounds.endTime}. The venue will be widened to accommodate this change.`;
+        const warningTemplate = labels.venueWarning || 'Venue hours are ${startTime}\u2013${endTime}. The venue will be widened to accommodate this change.';
+        warning.textContent = warningTemplate.replace('${startTime}', venueBounds.startTime).replace('${endTime}', venueBounds.endTime);
         warning.style.display = 'block';
       } else {
         warning.style.display = 'none';
@@ -119,7 +132,7 @@ export function showCourtAvailabilityModal(config: CourtAvailabilityModalConfig)
     scopeContainer.style.cssText = 'margin-bottom: 20px;';
 
     const scopeLabel = document.createElement('div');
-    scopeLabel.textContent = 'Apply to:';
+    scopeLabel.textContent = (labels.applyTo || 'Apply to') + ':';
     scopeLabel.style.cssText = 'font-size: 12px; color: var(--chc-text-secondary); margin-bottom: 8px; font-weight: 500;';
     scopeContainer.appendChild(scopeLabel);
 
@@ -145,8 +158,11 @@ export function showCourtAvailabilityModal(config: CourtAvailabilityModalConfig)
       scopeContainer.appendChild(row);
     };
 
-    makeRadio('current-day', `Current day only (${dayLabel})`, true);
-    makeRadio('all-days', 'All tournament days', false);
+    const currentDayLabel = labels.currentDayOnly
+      ? labels.currentDayOnly.replace('${day}', dayLabel)
+      : `Current day only (${dayLabel})`;
+    makeRadio('current-day', currentDayLabel, true);
+    makeRadio('all-days', labels.allDays || 'All tournament days', false);
 
     dialog.appendChild(scopeContainer);
   } else {
@@ -158,7 +174,7 @@ export function showCourtAvailabilityModal(config: CourtAvailabilityModalConfig)
   buttonRow.style.cssText = 'display: flex; justify-content: flex-end; gap: 10px;';
 
   const cancelBtn = document.createElement('button');
-  cancelBtn.textContent = 'Cancel';
+  cancelBtn.textContent = labels.cancel || 'Cancel';
   cancelBtn.className = 'sp-btn';
   cancelBtn.addEventListener('click', () => {
     overlay.remove();
@@ -166,7 +182,7 @@ export function showCourtAvailabilityModal(config: CourtAvailabilityModalConfig)
   });
 
   const applyBtn = document.createElement('button');
-  applyBtn.textContent = 'Apply';
+  applyBtn.textContent = labels.apply || 'Apply';
   applyBtn.className = 'sp-btn sp-btn--fill';
   applyBtn.addEventListener('click', () => {
     overlay.remove();
