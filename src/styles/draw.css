@@ -687,6 +687,12 @@
   border-radius: 3px;
 }
 
+/* ── Participant hover highlight (all appearances) ─────── */
+
+.chc-participant-container.chc-participant-hover {
+  background-color: var(--chc-participant-hover-bg);
+}
+
 /* Draw position number (::before pseudo on participant container) */
 .chc-participant-container[data-draw-position]::before {
   background-color: var(--chc-color-container-bg);
