@@ -1,4 +1,5 @@
 import '../components/forms/styles';
+import { getMatchUpFormatModal } from '../components/matchUpFormat/matchUpFormat';
 
 const CHC_BG_SECONDARY = 'var(--chc-bg-secondary)';
 const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
@@ -27,10 +28,7 @@ export const Editor = {
     const button = document.createElement('button');
     button.className = 'button is-primary';
     button.textContent = 'Open Match Format Editor';
-    button.onclick = async () => {
-      // Dynamically import the matchUpFormat component
-      const { getMatchUpFormatModal } = await import('../components/matchUpFormat/matchUpFormat');
-
+    button.onclick = () => {
       getMatchUpFormatModal({
         existingMatchUpFormat: currentFormat,
         callback: (format: string) => {
@@ -154,7 +152,7 @@ export const CustomPresets = {
     const button = document.createElement('button');
     button.className = 'button is-primary';
     button.textContent = 'Open Format Editor with Custom Config';
-    button.onclick = async () => {
+    button.onclick = () => {
       // Validate and parse config
       let config;
       try {
@@ -182,9 +180,6 @@ export const CustomPresets = {
       validationMsg.style.backgroundColor = CHC_BG_SECONDARY;
       validationMsg.style.color = 'var(--chc-status-success)';
       validationMsg.innerHTML = '<strong style="color: var(--chc-status-success);">✓ Valid configuration</strong>';
-
-      // Dynamically import the matchUpFormat component
-      const { getMatchUpFormatModal } = await import('../components/matchUpFormat/matchUpFormat');
 
       getMatchUpFormatModal({
         existingMatchUpFormat: currentFormat,

@@ -663,6 +663,30 @@
   border-width: 0;
 }
 
+/* ── Lucky loser badges ─────────────────────────────────── */
+
+/* Qualifying lucky loser — solid orange text */
+.chc-lucky-loser-badge {
+  color: var(--chc-lucky-loser-color, #EE7F2D);
+  margin-inline-start: 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1rem;
+}
+
+/* Lucky draw advancement — orange bordered box, no fill */
+.chc-lucky-advancement-badge {
+  color: var(--chc-lucky-loser-color, #EE7F2D);
+  border: 1.5px solid var(--chc-lucky-loser-color, #EE7F2D);
+  background: transparent;
+  margin-inline-start: 0.4rem;
+  padding: 0 0.25rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 1rem;
+  border-radius: 3px;
+}
+
 /* Draw position number (::before pseudo on participant container) */
 .chc-participant-container[data-draw-position]::before {
   background-color: var(--chc-color-container-bg);

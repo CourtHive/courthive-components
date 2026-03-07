@@ -1,3 +1,4 @@
+import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { renderParticipant } from '../components/renderStructure/renderParticipant';
 import { renderContainer } from '../components/renderStructure/renderContainer';
 import { renderStructure } from '../components/renderStructure/renderStructure';
@@ -122,7 +123,7 @@ export const InitialRound = {
         const n = Number(v);
         return Number.isInteger(n) && n >= 16 && n <= 64;
       },
-      error: '16–64',
+      error: '16–64'
     });
     toolbar.appendChild(drawSizeField);
 
@@ -140,7 +141,9 @@ export const InitialRound = {
     let currentRound = 1;
 
     const activeStyle = (active: boolean) =>
-      `padding: 4px 10px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; font-size: 13px; background: ${active ? '#3273dc' : ''}; color: ${active ? '#fff' : ''}`;
+      `padding: 4px 10px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; font-size: 13px; background: ${
+        active ? '#3273dc' : ''
+      }; color: ${active ? '#fff' : ''}`;
 
     const roundLabel = (round: number, last: number): string => {
       const fromEnd = last - round;
@@ -157,7 +160,11 @@ export const InitialRound = {
       const structure = eventData?.drawsData?.[0]?.structures?.[0];
       const roundMatchUps = structure?.roundMatchUps;
       const matchUps = roundMatchUps ? Object.values(roundMatchUps).flat() : [];
-      const roundNumbers = roundMatchUps ? Object.keys(roundMatchUps).map(Number).sort((a, b) => a - b) : [];
+      const roundNumbers = roundMatchUps
+        ? Object.keys(roundMatchUps)
+            .map(Number)
+            .sort((a, b) => a - b)
+        : [];
       const lastRound = roundNumbers[roundNumbers.length - 1] || 1;
 
       if (!roundNumbers.includes(currentRound)) currentRound = roundNumbers[0] || 1;
@@ -188,7 +195,7 @@ export const InitialRound = {
         eventHandlers,
         composition,
         matchUps: matchUps as any,
-        context,
+        context
       });
       drawContainer.appendChild(renderContainer({ theme: composition.theme, content }));
     };
@@ -211,8 +218,8 @@ export const InitialRound = {
     completeAllMatchUps: false,
     drawType: 'FEED_IN',
     composition: 'National',
-    drawSize: 32,
-  },
+    drawSize: 32
+  }
 };
 export const Qualifying = {
   args: { drawSize: 16, participantsCount: 14, addQualifying: true }
@@ -232,5 +239,98 @@ export const AdHoc = {
   args: { drawSize: 16, drawType: 'AD_HOC', composition: 'National', automated: true }
 };
 export const Lucky = {
-  args: { drawSize: 11, drawType: 'LUCKY_DRAW', composition: 'National' }
+  args: { drawSize: 10, drawType: 'LUCKY_DRAW', composition: 'National' },
+  render: ({ ...args }) => {
+    const composition = compositions[args.composition || 'National'];
+    const drawSize = args.drawSize || 10;
+
+    // Generate tournament with LUCKY_DRAW but don't complete matchUps automatically
+    const { tournamentRecord, drawIds, eventIds } = mocksEngine.generateTournamentRecord({
+      drawProfiles: [{ drawSize, drawType: 'LUCKY_DRAW', seedsCount: 0 }],
+      completeAllMatchUps: false
+    });
+    const drawId = drawIds[0];
+    const eventId = eventIds[0];
+    tournamentEngine.setState(tournamentRecord);
+
+    const { drawDefinition } = tournamentEngine.getEvent({ drawId });
+    const structureId = drawDefinition.structures[0].structureId;
+
+    // Get round structure to process rounds sequentially
+    const { matchUps: allMatchUps } = tournamentEngine.allTournamentMatchUps();
+    const drawMatchUps = allMatchUps.filter((m: any) => m.drawId === drawId);
+    const roundNumbers = Array.from(new Set(drawMatchUps.map((m: any) => m.roundNumber))).sort(
+      (a: any, b: any) => a - b
+    );
+
+    // Process each round: score matchUps, then advance (with lucky loser selection for pre-feed rounds)
+    for (const roundNumber of roundNumbers) {
+      // Get current matchUps for this round
+      const { matchUps: currentMatchUps } = tournamentEngine.allTournamentMatchUps();
+      const roundMatchUps = currentMatchUps
+        .filter((m: any) => m.drawId === drawId && m.roundNumber === roundNumber)
+        .filter((m: any) => m.drawPositions?.every(Boolean)); // Only score matchUps with assigned positions
+
+      if (!roundMatchUps.length) break;
+
+      // Score all matchUps in this round
+      for (const matchUp of roundMatchUps) {
+        const { outcome } = mocksEngine.generateOutcomeFromScoreString({
+          matchUpStatus: 'COMPLETED',
+          scoreString: '6-3 6-4',
+          winningSide: 1
+        });
+        tournamentEngine.setMatchUpStatus({
+          matchUpId: matchUp.matchUpId,
+          outcome,
+          drawId
+        });
+      }
+
+      // Check if this round needs lucky advancement (skip final round — no next round to advance to)
+      if (roundNumber === roundNumbers[roundNumbers.length - 1]) continue;
+
+      const status = tournamentEngine.getLuckyDrawRoundStatus({ drawId });
+      const roundStatus = status.rounds?.find((r: any) => r.roundNumber === roundNumber);
+
+      if (roundStatus?.needsLuckySelection && roundStatus.eligibleLosers?.length) {
+        // Select the loser with the narrowest margin (first in sorted list)
+        const selectedLoser = roundStatus.eligibleLosers[0];
+        tournamentEngine.luckyDrawAdvancement({
+          participantId: selectedLoser.participantId,
+          roundNumber,
+          structureId,
+          drawId
+        });
+      } else if (roundStatus?.isComplete) {
+        // Non-pre-feed completed round still needs advancement for position assignment
+        tournamentEngine.luckyDrawAdvancement({
+          roundNumber,
+          structureId,
+          drawId
+        });
+      }
+    }
+
+    // Get hydrated event data (which includes entryStatus on participants)
+    const { eventData } =
+      tournamentEngine.getEventData({
+        participantsProfile: { withIOC: true, withISO2: true, withScaleValues: true },
+        eventId
+      }) || {};
+
+    const structures = eventData?.drawsData?.[0]?.structures || [];
+    const structure = structures[0];
+    const roundMatchUps = structure?.roundMatchUps;
+    const matchUps = roundMatchUps ? Object.values(roundMatchUps).flat() : [];
+    const context = { structureId: structure?.structureId, drawId };
+
+    const content = renderStructure({
+      eventHandlers,
+      composition,
+      matchUps: matchUps as any,
+      context
+    });
+    return renderContainer({ theme: composition.theme, content });
+  }
 };

@@ -32,6 +32,7 @@ export interface MockParticipantsConfig {
     maxAge?: string;
     ratings?: string;
     countries?: string;
+    role?: string;
     /** @deprecated Use ratings label instead */
     wtn?: string;
     /** @deprecated Use ratings label instead */
@@ -41,6 +42,7 @@ export interface MockParticipantsConfig {
   defaults?: {
     gender?: string;
     participantsCount?: number;
+    participantRole?: string;
     ageMin?: number;
     ageMax?: number;
     nationalityCodesCount?: number;
@@ -51,6 +53,8 @@ export interface MockParticipantsConfig {
     /** @deprecated Use ratings: ['UTR'] instead */
     utrRating?: boolean;
   };
+  /** Available participant role options. If not provided, only COMPETITOR is used. */
+  roleOptions?: { label: string; value: string }[];
 }
 
 /**
@@ -96,15 +100,20 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
   const {
     callback,
     consideredDate,
-    title = 'Generate mock players',
+    title = 'Generate mock participants',
     labels = {},
-    defaults = {}
+    defaults = {},
+    roleOptions,
   } = config;
 
   let inputs: any;
 
+  const hasRoleOptions = roleOptions && roleOptions.length > 1;
+  const defaultRole = defaults.participantRole || roleOptions?.[0]?.value || 'COMPETITOR';
+
   // Merge default labels with custom labels
   const finalLabels = {
+    role: labels.role || 'Participant role',
     gender: labels.gender || 'Participant gender',
     count: labels.count || 'Participant count',
     ageRange: labels.ageRange || 'Participant Age Range',
@@ -144,6 +153,7 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
     const count = inputs.participantsCount.value;
     const gender = inputs.gender.value;
     const sex = gender === ANY ? undefined : gender;
+    const participantRole = hasRoleOptions ? inputs.participantRole.value : defaultRole;
     const ageMin = inputs.ageMin?.value ? Number.parseInt(inputs.ageMin.value) : undefined;
     const ageMax = inputs.ageMax?.value ? Number.parseInt(inputs.ageMax.value) : undefined;
     const nationalityCodesCount = inputs.nationalityCodesCount?.value
@@ -177,6 +187,7 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
       participantsCount: Number.parseInt(count),
       scaleAllParticipants: true,
       nationalityCodesCount,
+      participantRole,
       consideredDate,
       categories,
       category,
@@ -222,10 +233,26 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
     }
   ];
 
+  const roleField = hasRoleOptions
+    ? [
+        {
+          options: roleOptions!.map((opt) => ({
+            label: opt.label,
+            value: opt.value,
+            selected: opt.value === defaultRole,
+          })),
+          label: finalLabels.role,
+          field: 'participantRole',
+          value: defaultRole,
+        },
+      ]
+    : [];
+
   const content = (elem: HTMLElement) =>
     (inputs = renderForm(
       elem,
       [
+        ...roleField,
         {
           options: [
             { label: 'Any', value: ANY, selected: finalDefaults.gender === ANY },

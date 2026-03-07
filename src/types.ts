@@ -48,6 +48,7 @@ export interface Participant {
   participantType?: 'INDIVIDUAL' | 'PAIR' | 'TEAM';
   individualParticipants?: IndividualParticipant[];
   entryStatus?: string;
+  luckyAdvancement?: boolean;
   person?: Person;
 }
 

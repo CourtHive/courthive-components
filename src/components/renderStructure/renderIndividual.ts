@@ -130,11 +130,29 @@ export function renderIndividual(params: {
       span.style.color = typeof configuration.winnerColor === 'string' ? configuration.winnerColor : 'green';
     } else if (configuration?.genderColor) {
       const gender = individualParticipant?.person?.sex;
-      const color = (gender === 'MALE' && '#2E86C1') || (gender === 'FEMALE' && '#AA336A') || '';
+      const color =
+        (gender === 'MALE' && 'var(--chc-gender-male, #2E86C1)') ||
+        (gender === 'FEMALE' && 'var(--chc-gender-female, #E07BAF)') ||
+        '';
       span.style.color = typeof configuration.genderColor === 'string' ? configuration.genderColor : color;
     }
     span.innerHTML = participantName;
     name.appendChild(span);
+
+    // Lucky loser badge — two variants:
+    // 1. luckyAdvancement: re-entered after losing in a lucky draw (orange bordered box)
+    // 2. entryStatus LUCKY_LOSER without luckyAdvancement: qualifying lucky loser (solid orange text)
+    if (side?.participant?.luckyAdvancement) {
+      const ll = document.createElement('span');
+      ll.className = 'chc-lucky-advancement-badge';
+      ll.textContent = 'LL';
+      name.appendChild(ll);
+    } else if (side?.participant?.entryStatus === 'LUCKY_LOSER') {
+      const ll = document.createElement('span');
+      ll.className = 'chc-lucky-loser-badge';
+      ll.textContent = 'LL';
+      name.appendChild(ll);
+    }
   } else {
     // Render placeholder (TBD/Qualifier/BYE)
     const placeholder = document.createElement('abbr');

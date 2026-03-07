@@ -5,6 +5,7 @@
 import { renderMatchUp } from '../../renderStructure/renderMatchUp';
 import { compositions } from '../../../compositions/compositions';
 import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
+import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
 import { formatScoreString } from './dialPadLogic';
 import { validateScore } from '../utils/scoreValidator';
 import type { RenderScoreEntryParams, ScoreOutcome } from '../types';
@@ -146,10 +147,8 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       formatButton.style.padding = '0.2em 0.5em';
       formatButton.style.cursor = 'pointer';
       formatButton.title = 'Click to edit format';
-      formatButton.addEventListener('click', async () => {
+      formatButton.addEventListener('click', () => {
         try {
-          const { getMatchUpFormatModal } = await import('../../matchUpFormat/matchUpFormat');
-
           getMatchUpFormatModal({
             existingMatchUpFormat: matchUp.matchUpFormat,
             callback: (newFormat: string) => {

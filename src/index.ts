@@ -17,6 +17,10 @@ export { cModal } from './components/modal/cmodal';
 export { getMockParticipantsModal } from './components/modal/mockParticipants';
 export type { MockParticipantsConfig } from './components/modal/mockParticipants';
 
+// Generate teams modal
+export { getGenerateTeamsModal } from './components/modal/generateTeamsModal';
+export type { GenerateTeamsConfig } from './components/modal/generateTeamsModal';
+
 // Match format selector modal
 export { getMatchUpFormatModal } from './components/matchUpFormat/matchUpFormat';
 

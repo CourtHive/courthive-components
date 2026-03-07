@@ -5,6 +5,7 @@
 // @ts-expect-error - Storybook types not in published package
 import type { Meta, StoryObj } from '@storybook/html';
 import { within, waitFor, userEvent, expect } from '@storybook/test';
+import { getMatchUpFormatModal } from '../components/matchUpFormat/matchUpFormat';
 
 const SELECTED_FORMAT_PLACEHOLDER = '<strong>Selected format will appear here</strong>';
 const BUTTON_IS_PRIMARY = 'button is-primary';
@@ -45,9 +46,7 @@ export const FinalSetTiebreakInitialization: Story = {
     button.className = BUTTON_IS_PRIMARY;
     button.textContent = 'Open Match Format Editor';
     button.id = 'open-modal-button';
-    button.onclick = async () => {
-      const { getMatchUpFormatModal } = await import('../components/matchUpFormat/matchUpFormat');
-
+    button.onclick = () => {
       getMatchUpFormatModal({
         existingMatchUpFormat: FORMAT_SET3_TB7,
         callback: (format: string) => {
@@ -150,9 +149,7 @@ export const FinalSetNoTiebreakWhenMainHasNone: Story = {
     button.className = BUTTON_IS_PRIMARY;
     button.textContent = 'Open Modal (No Tiebreak)';
     button.id = 'open-modal-button-2';
-    button.onclick = async () => {
-      const { getMatchUpFormatModal } = await import('../components/matchUpFormat/matchUpFormat');
-
+    button.onclick = () => {
       getMatchUpFormatModal({
         existingMatchUpFormat: 'SET3-S:6',
         callback: (format: string) => {
@@ -243,7 +240,7 @@ export const PreserveExistingFinalSetTiebreak: Story = {
     button.textContent = 'Open with Explicit F:6';
     button.id = 'open-modal-button-3';
     button.onclick = async () => {
-      const { getMatchUpFormatModal } = await import('../components/matchUpFormat/matchUpFormat');
+
 
       // Open with format where main HAS tiebreak but final DOES NOT
       getMatchUpFormatModal({
@@ -330,9 +327,7 @@ export const PredefinedFormatUpdatesControls: Story = {
     button.className = BUTTON_IS_PRIMARY;
     button.textContent = 'Open Match Format Editor';
     button.id = 'open-modal-button-4';
-    button.onclick = async () => {
-      const { getMatchUpFormatModal } = await import('../components/matchUpFormat/matchUpFormat');
-
+    button.onclick = () => {
       getMatchUpFormatModal({
         existingMatchUpFormat: FORMAT_SET3_TB7,
         callback: (format: string) => {
