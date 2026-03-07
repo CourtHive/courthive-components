@@ -64,6 +64,31 @@ export function renderStructure({
     div.appendChild(round);
   }
 
+  // Highlight all appearances of a participant on hover using event delegation.
+  // Detect hover on .tmx-i (individual), then highlight the .tmx-p (participant container)
+  // ancestor of every .tmx-i sharing the same participantId.
+  let hoveredParticipantId: string | null = null;
+  const setHover = (pid: string, add: boolean) => {
+    div.querySelectorAll(`.tmx-i[id="${CSS.escape(pid)}"]`).forEach((el) => {
+      const container = el.closest('.tmx-p');
+      container?.classList.toggle('chc-participant-hover', add);
+    });
+  };
+  div.addEventListener('mouseover', (e) => {
+    const target = (e.target as HTMLElement).closest('.tmx-i') as HTMLElement | null;
+    const pid = target?.id;
+    if (!pid || pid === 'undefined' || pid === hoveredParticipantId) return;
+    if (hoveredParticipantId) setHover(hoveredParticipantId, false);
+    hoveredParticipantId = pid;
+    setHover(pid, true);
+  });
+  div.addEventListener('mouseleave', () => {
+    if (hoveredParticipantId) {
+      setHover(hoveredParticipantId, false);
+      hoveredParticipantId = null;
+    }
+  });
+
   if (finalColumn && typeof finalColumn !== 'boolean') {
     const roundContainer = document.createElement('div');
     roundContainer.className = roundContainerStyle();

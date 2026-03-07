@@ -12,6 +12,7 @@
  */
 
 import { scoreGovernor, matchUpStatusConstants } from 'tods-competition-factory';
+import { getMatchUpFormatModal } from '../components/matchUpFormat/matchUpFormat';
 import { renderContainer } from '../components/renderStructure/renderContainer';
 import { renderMatchUp } from '../components/renderStructure/renderMatchUp';
 import { compositions } from '../compositions/compositions';
@@ -242,8 +243,7 @@ function createFormatButton({
     'font-family:monospace; padding:4px 8px; cursor:pointer; border:1px solid var(--chc-border-primary); border-radius:4px; background:var(--chc-bg-secondary); color:var(--chc-text-primary); font-size:13px;';
   btn.title = 'Click to change match format';
 
-  btn.onclick = async () => {
-    const { getMatchUpFormatModal } = await import('../components/matchUpFormat/matchUpFormat');
+  btn.onclick = () => {
     getMatchUpFormatModal({
       existingMatchUpFormat: currentFormat,
       callback: (format: string) => {

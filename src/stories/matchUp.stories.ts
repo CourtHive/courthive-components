@@ -62,6 +62,45 @@ export const Singles = {
   }
 };
 
+export const LuckyLoser = {
+  args: {
+    composition: 'Australian',
+    eventType: 'SINGLES'
+  },
+  render: (args: any) => {
+    const composition = compositions[args.composition || 'Australian'];
+    const { matchUps } = generateMatchUps({
+      drawSize: 2,
+      eventType: args.eventType || 'SINGLES',
+      randomWinningSide: true
+    });
+    const matchUp = matchUps[0];
+
+    // Simulate a lucky loser on side 2
+    if (matchUp.sides?.[1]?.participant) {
+      matchUp.sides[1].participant.entryStatus = 'LUCKY_LOSER';
+    }
+
+    const renderedMatchUp = renderMatchUp({
+      matchUp,
+      composition,
+      isLucky: true
+    });
+
+    const content = document.createElement('div');
+    content.style.maxWidth = '500px';
+
+    const description = document.createElement('p');
+    description.textContent = 'Side 2 is a Lucky Loser — should show "LL" badge after participant name';
+    description.style.marginBottom = '1em';
+    description.style.color = CHC_TEXT_SECONDARY;
+    content.appendChild(description);
+
+    content.appendChild(renderedMatchUp);
+    return renderContainer({ theme: composition.theme, content });
+  }
+};
+
 export const Doubles = {
   args: {
     composition: 'Wimbledon',

@@ -3,6 +3,8 @@
  */
 // @ts-expect-error - Storybook types not in published package
 import type { Meta, StoryObj } from '@storybook/html';
+import { getAgeCategoryModal } from '../components/categories/ageCategory/ageCategory';
+import { eventGovernor } from 'tods-competition-factory';
 
 const BUTTON_IS_PRIMARY = 'button is-primary';
 const CONSIDERED_DATE_2024 = '2024-01-01';
@@ -40,9 +42,7 @@ export const BasicEditor: Story = {
     const button = document.createElement('button');
     button.className = BUTTON_IS_PRIMARY;
     button.textContent = 'Open Age Category Editor';
-    button.onclick = async () => {
-      const { getAgeCategoryModal } = await import('../components/categories/ageCategory/ageCategory');
-
+    button.onclick = () => {
       getAgeCategoryModal({
         existingAgeCategoryCode: lastAgeCategoryCode, // Use last edited value for round-trip testing
         callback: (category) => {
@@ -136,9 +136,7 @@ export const DifferentCategoryTypes: Story = {
       const button = document.createElement('button');
       button.className = 'button is-small is-info';
       button.textContent = 'Edit';
-      button.onclick = async () => {
-        const { getAgeCategoryModal } = await import('../components/categories/ageCategory/ageCategory');
-
+      button.onclick = () => {
         getAgeCategoryModal({
           existingCategory: { ageCategoryCode: testCase.code },
           consideredDate: CONSIDERED_DATE_2024,
@@ -170,9 +168,7 @@ export const CustomConfiguration: Story = {
     const button = document.createElement('button');
     button.className = BUTTON_IS_PRIMARY;
     button.textContent = 'Open with Custom Config';
-    button.onclick = async () => {
-      const { getAgeCategoryModal } = await import('../components/categories/ageCategory/ageCategory');
-
+    button.onclick = () => {
       getAgeCategoryModal({
         existingCategory: { ageCategoryCode: '16U' },
         consideredDate: '2024-06-01',
@@ -236,16 +232,14 @@ export const CalculatedAgeDetails: Story = {
     const button = document.createElement('button');
     button.className = BUTTON_IS_PRIMARY;
     button.textContent = 'Open Editor';
-    button.onclick = async () => {
-      const { getAgeCategoryModal } = await import('../components/categories/ageCategory/ageCategory');
-
+    button.onclick = () => {
       getAgeCategoryModal({
         existingCategory: { ageCategoryCode: '10O-18U' },
         consideredDate: CONSIDERED_DATE_2024,
         callback: (category) => {
           if (category.ageCategoryCode) {
             // Use factory to calculate details
-            import('tods-competition-factory').then(({ eventGovernor }) => {
+            {
               const result = eventGovernor.getCategoryAgeDetails({
                 category: { ageCategoryCode: category.ageCategoryCode },
                 consideredDate: CONSIDERED_DATE_2024,
@@ -262,7 +256,7 @@ export const CalculatedAgeDetails: Story = {
                   <strong style="color: ${CHC_TEXT_PRIMARY};">Max Birth Date:</strong> ${result.ageMaxDate || 'N/A'}
                 </div>
               `;
-            });
+            }
           }
         },
       });
@@ -308,9 +302,7 @@ export const StandardCategories: Story = {
     const button = document.createElement('button');
     button.className = BUTTON_IS_PRIMARY;
     button.textContent = 'Open Editor';
-    button.onclick = async () => {
-      const { getAgeCategoryModal } = await import('../components/categories/ageCategory/ageCategory');
-
+    button.onclick = () => {
       getAgeCategoryModal({
         existingCategory: { ageCategoryCode: 'OPEN' },
         consideredDate: CONSIDERED_DATE_2024,
@@ -368,43 +360,39 @@ export const HistoricalDates14U: Story = {
       const button = document.createElement('button');
       button.className = 'button is-info is-small';
       button.textContent = `Test ${testDate}`;
-      button.onclick = async () => {
-        const { getAgeCategoryModal } = await import('../components/categories/ageCategory/ageCategory');
-
+      button.onclick = () => {
         getAgeCategoryModal({
           existingCategory: { ageCategoryCode: '14U' },
           consideredDate: testDate,
           callback: (category) => {
             // Show the result with factory calculation
-            import('tods-competition-factory').then(({ eventGovernor }) => {
-              const result = eventGovernor.getCategoryAgeDetails({
-                category: { ageCategoryCode: category.ageCategoryCode },
-                consideredDate: testDate,
-              });
-
-              let html = `<div style="color: ${CHC_TEXT_PRIMARY};">`;
-              html += `<strong style="color: ${CHC_TEXT_PRIMARY};">Test Date: ${testDate}</strong><br>`;
-              html += `<strong style="color: ${CHC_TEXT_PRIMARY};">Category:</strong> <code style="background: var(--chc-active-bg); padding: 0.2em 0.4em; border-radius: 3px; color: ${CHC_TEXT_PRIMARY};">${category.ageCategoryCode}</code><br>`;
-
-              if (result.error) {
-                html += `<strong style="color: ${CHC_TEXT_PRIMARY};">Error:</strong> <span style="color: var(--chc-status-error);">${result.error}</span><br>`;
-              } else {
-                html += `<strong style="color: ${CHC_TEXT_PRIMARY};">Max Age:</strong> ${result.ageMax || 'N/A'}<br>`;
-                html += `<strong style="color: ${CHC_TEXT_PRIMARY};">Min Birth Date:</strong> ${result.ageMinDate || 'N/A'}<br>`;
-                if (result.errors && result.errors.length > 0) {
-                  html += `<strong style="color: ${CHC_TEXT_PRIMARY};">Warnings:</strong><ul style="margin:0; padding-left: 1.5em; color: ${CHC_TEXT_PRIMARY};">`;
-                  result.errors.forEach((err) => {
-                    html += `<li style="color: orange;">${err}</li>`;
-                  });
-                  html += '</ul>';
-                } else {
-                  html += '<strong style="color: green;">✓ Valid calculation</strong>';
-                }
-              }
-              html += '</div>';
-
-              resultDisplay.innerHTML = html;
+            const result = eventGovernor.getCategoryAgeDetails({
+              category: { ageCategoryCode: category.ageCategoryCode },
+              consideredDate: testDate,
             });
+
+            let html = `<div style="color: ${CHC_TEXT_PRIMARY};">`;
+            html += `<strong style="color: ${CHC_TEXT_PRIMARY};">Test Date: ${testDate}</strong><br>`;
+            html += `<strong style="color: ${CHC_TEXT_PRIMARY};">Category:</strong> <code style="background: var(--chc-active-bg); padding: 0.2em 0.4em; border-radius: 3px; color: ${CHC_TEXT_PRIMARY};">${category.ageCategoryCode}</code><br>`;
+
+            if (result.error) {
+              html += `<strong style="color: ${CHC_TEXT_PRIMARY};">Error:</strong> <span style="color: var(--chc-status-error);">${result.error}</span><br>`;
+            } else {
+              html += `<strong style="color: ${CHC_TEXT_PRIMARY};">Max Age:</strong> ${result.ageMax || 'N/A'}<br>`;
+              html += `<strong style="color: ${CHC_TEXT_PRIMARY};">Min Birth Date:</strong> ${result.ageMinDate || 'N/A'}<br>`;
+              if (result.errors && result.errors.length > 0) {
+                html += `<strong style="color: ${CHC_TEXT_PRIMARY};">Warnings:</strong><ul style="margin:0; padding-left: 1.5em; color: ${CHC_TEXT_PRIMARY};">`;
+                result.errors.forEach((err: any) => {
+                  html += `<li style="color: orange;">${err}</li>`;
+                });
+                html += '</ul>';
+              } else {
+                html += '<strong style="color: green;">✓ Valid calculation</strong>';
+              }
+            }
+            html += '</div>';
+
+            resultDisplay.innerHTML = html;
           },
         });
       };

@@ -122,6 +122,9 @@ export function renderRound({
     const moiety = i % 2 === 0;
     if (roundFactor) {
       matchUp.roundFactor = roundFactor;
+    } else if (initialRoundNumber > 1 && matchUp.roundFactor) {
+      const baseRoundFactor = roundProfile?.[initialRoundNumber]?.roundFactor || 1;
+      matchUp.roundFactor = matchUp.roundFactor / baseRoundFactor;
     } else if (!matchUp.roundFactor) {
       matchUp.roundFactor = Math.pow(2, roundNumber - initialRoundNumber);
     }

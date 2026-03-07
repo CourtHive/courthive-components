@@ -117,6 +117,30 @@ export const ScaleAddress = {
   }
 };
 
+export const LuckyLoser = {
+  args: {
+    individualParticipant: { participantName: 'Lucky Lou' },
+    side: { participant: { entryStatus: 'LUCKY_LOSER' } },
+    composition: { configuration: { flags: false } }
+  }
+};
+
+export const LuckyLoserGendered = {
+  args: {
+    individualParticipant: { participantName: 'Lucky Lou', person: { sex: 'MALE' } },
+    side: { participant: { entryStatus: 'LUCKY_LOSER' } },
+    composition: { configuration: { flags: false, genderColor: true } }
+  }
+};
+
+export const LuckyAdvancement = {
+  args: {
+    individualParticipant: { participantName: 'Lucky Lou' },
+    side: { participant: { luckyAdvancement: true } },
+    composition: { configuration: { flags: false } }
+  }
+};
+
 export const Address = {
   args: {
     individualParticipant: {

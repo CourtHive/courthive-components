@@ -86,6 +86,9 @@
   --chc-participant-min-height: 2rem;
   --chc-participant-seed-color: var(--chc-text-muted);
 
+  /* ── Participant hover highlight ───────────────────────── */
+  --chc-participant-hover-bg: rgba(255, 170, 0, 0.3);
+
   /* ── Draw colors (theme-overridable) ───────────────────── */
   --chc-color-internal-dividers: var(--chc-border-secondary);
   --chc-color-matchup-bg: var(--chc-bg-primary);
@@ -227,6 +230,9 @@
   /* ── Point score (dark overrides) ─────────────────────── */
   --chc-point-score-bg: var(--chc-text-primary);
   --chc-point-score-text: var(--chc-bg-primary);
+
+  /* ── Participant hover highlight (dark) ───────────────── */
+  --chc-participant-hover-bg: rgba(255, 230, 0, 0.22);
 
   /* ── Draw / MatchUp tokens (dark overrides) ────────────── */
   /* Line heights, border widths, spacing, font sizes, set width,

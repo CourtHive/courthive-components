@@ -9,6 +9,7 @@ import { validateScore } from '../utils/scoreValidator';
 import { formatExistingScore } from '../utils/scoreFormatters';
 import type { RenderScoreEntryParams } from '../types';
 import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
+import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
 import { getScoringConfig } from '../config';
 
 const { RETIRED, WALKOVER, DEFAULTED, SUSPENDED, CANCELLED, INCOMPLETE, DEAD_RUBBER, IN_PROGRESS, AWAITING_RESULT, DOUBLE_WALKOVER, DOUBLE_DEFAULT } =
@@ -175,10 +176,8 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
     formatButton.style.padding = '0.2em 0.5em';
     formatButton.style.cursor = 'pointer';
     formatButton.title = 'Click to edit format';
-    formatButton.addEventListener('click', async () => {
+    formatButton.addEventListener('click', () => {
       try {
-        const { getMatchUpFormatModal } = await import('../../matchUpFormat/matchUpFormat');
-
         getMatchUpFormatModal({
           existingMatchUpFormat: matchUp.matchUpFormat,
           callback: (newFormat: string) => {

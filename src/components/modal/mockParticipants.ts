@@ -31,6 +31,8 @@ export interface MockParticipantsConfig {
     minAge?: string;
     maxAge?: string;
     ratings?: string;
+    countries?: string;
+    role?: string;
     /** @deprecated Use ratings label instead */
     wtn?: string;
     /** @deprecated Use ratings label instead */
@@ -40,8 +42,10 @@ export interface MockParticipantsConfig {
   defaults?: {
     gender?: string;
     participantsCount?: number;
+    participantRole?: string;
     ageMin?: number;
     ageMax?: number;
+    nationalityCodesCount?: number;
     /** Array of rating type names to pre-select (e.g., ['WTN', 'UTR', 'DUPR']) */
     ratings?: string[];
     /** @deprecated Use ratings: ['WTN'] instead */
@@ -49,21 +53,24 @@ export interface MockParticipantsConfig {
     /** @deprecated Use ratings: ['UTR'] instead */
     utrRating?: boolean;
   };
+  /** Available participant role options. If not provided, only COMPETITOR is used. */
+  roleOptions?: { label: string; value: string }[];
 }
 
 /**
  * Opens a modal for generating mock participants with configurable options.
- * 
+ *
  * Features:
  * - Gender selection (Any/Male/Female)
  * - Participant count (8-256)
  * - Age range with automatic validation (ageMax >= ageMin)
+ * - Number of countries to limit nationality diversity
  * - Optional WTN/UTR ratings
  * - Birthdate generation based on consideredDate and age range
- * 
+ *
  * @param config - Configuration options
  * @returns void
- * 
+ *
  * @example
  * // Basic usage
  * getMockParticipantsModal({
@@ -72,7 +79,7 @@ export interface MockParticipantsConfig {
  *     // Add participants to tournament
  *   }
  * });
- * 
+ *
  * @example
  * // With consideredDate and defaults
  * getMockParticipantsModal({
@@ -84,6 +91,7 @@ export interface MockParticipantsConfig {
  *     participantsCount: 64,
  *     ageMin: 10,
  *     ageMax: 18,
+ *     nationalityCodesCount: 10,
  *     wtnRating: true
  *   }
  * });
@@ -92,21 +100,27 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
   const {
     callback,
     consideredDate,
-    title = 'Generate mock players',
+    title = 'Generate mock participants',
     labels = {},
-    defaults = {}
+    defaults = {},
+    roleOptions,
   } = config;
 
   let inputs: any;
 
+  const hasRoleOptions = roleOptions && roleOptions.length > 1;
+  const defaultRole = defaults.participantRole || roleOptions?.[0]?.value || 'COMPETITOR';
+
   // Merge default labels with custom labels
   const finalLabels = {
+    role: labels.role || 'Participant role',
     gender: labels.gender || 'Participant gender',
     count: labels.count || 'Participant count',
     ageRange: labels.ageRange || 'Participant Age Range',
-    minAge: labels.minAge || 'Minimum Age',
-    maxAge: labels.maxAge || 'Maximum Age',
+    minAge: labels.minAge || 'Min Age',
+    maxAge: labels.maxAge || 'Max Age',
     ratings: labels.ratings || 'Generate Ratings',
+    countries: labels.countries || '# of Countries',
   };
 
   // Backward compatibility: convert legacy wtnRating/utrRating booleans to ratings array
@@ -123,6 +137,7 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
     participantsCount: defaults.participantsCount || 32,
     ageMin: defaults.ageMin,
     ageMax: defaults.ageMax,
+    nationalityCodesCount: defaults.nationalityCodesCount,
   };
 
   // Build rating options for multi-select dropdown (exclude deprecated)
@@ -138,8 +153,12 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
     const count = inputs.participantsCount.value;
     const gender = inputs.gender.value;
     const sex = gender === ANY ? undefined : gender;
+    const participantRole = hasRoleOptions ? inputs.participantRole.value : defaultRole;
     const ageMin = inputs.ageMin?.value ? Number.parseInt(inputs.ageMin.value) : undefined;
     const ageMax = inputs.ageMax?.value ? Number.parseInt(inputs.ageMax.value) : undefined;
+    const nationalityCodesCount = inputs.nationalityCodesCount?.value
+      ? Number.parseInt(inputs.nationalityCodesCount.value)
+      : undefined;
 
     // Collect selected rating types from multi-select dropdown
     const selected: string[] = inputs.ratings?.selectedValues || [];
@@ -167,6 +186,8 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
     const { participants } = mocksEngine.generateParticipants({
       participantsCount: Number.parseInt(count),
       scaleAllParticipants: true,
+      nationalityCodesCount,
+      participantRole,
       consideredDate,
       categories,
       category,
@@ -212,10 +233,26 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
     }
   ];
 
+  const roleField = hasRoleOptions
+    ? [
+        {
+          options: roleOptions!.map((opt) => ({
+            label: opt.label,
+            value: opt.value,
+            selected: opt.value === defaultRole,
+          })),
+          label: finalLabels.role,
+          field: 'participantRole',
+          value: defaultRole,
+        },
+      ]
+    : [];
+
   const content = (elem: HTMLElement) =>
     (inputs = renderForm(
       elem,
       [
+        ...roleField,
         {
           options: [
             { label: 'Any', value: ANY, selected: finalDefaults.gender === ANY },
@@ -240,22 +277,27 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
           value: finalDefaults.participantsCount
         },
         {
-          text: finalLabels.ageRange,
-          header: true
-        },
-        {
           label: finalLabels.minAge,
           field: 'ageMin',
           placeholder: 'e.g., 10',
           type: 'number',
-          value: finalDefaults.ageMin
+          value: finalDefaults.ageMin,
+          width: '50%',
+          fieldPair: {
+            label: finalLabels.maxAge,
+            field: 'ageMax',
+            placeholder: 'e.g., 18',
+            type: 'number',
+            value: finalDefaults.ageMax,
+          },
         },
         {
-          label: finalLabels.maxAge,
-          field: 'ageMax',
-          placeholder: 'e.g., 18',
+          label: finalLabels.countries,
+          field: 'nationalityCodesCount',
+          id: 'nationalityCodesCount',
+          placeholder: 'e.g., 10',
           type: 'number',
-          value: finalDefaults.ageMax
+          value: finalDefaults.nationalityCodesCount,
         },
         {
           label: finalLabels.ratings,

@@ -3,6 +3,7 @@
  * Uses renderForm (items + relationships) pattern.
  */
 import { drawDefinitionConstants } from 'tods-competition-factory';
+import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
 import { renderForm } from '../../forms/renderForm';
 import { getFeedRoundCapacities } from '../domain/feedRounds';
 import { nameValidator } from '../../../validators/nameValidator';
@@ -396,8 +397,7 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
       formatTrigger.style.cursor = 'default';
       formatTrigger.style.opacity = '0.7';
     } else {
-      formatTrigger.onclick = async () => {
-        const { getMatchUpFormatModal } = await import('../../matchUpFormat/matchUpFormat');
+      formatTrigger.onclick = () => {
         getMatchUpFormatModal({
           existingMatchUpFormat: node.matchUpFormat,
           callback: (format: string) => {

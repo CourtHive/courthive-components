@@ -49,7 +49,7 @@ export class TopologyBuilderControl {
           this.store.loadState(state);
         },
         onGenerate: () => this.handleGenerate(),
-        onSaveTemplate: config.onSaveTemplate ? () => config.onSaveTemplate!(this.store.getState()) : undefined,
+        onSaveTemplate: config.onSaveTemplate ? () => config.onSaveTemplate(this.store.getState()) : undefined,
         onClear: config.onClear
       },
       allTemplates,
@@ -75,14 +75,17 @@ export class TopologyBuilderControl {
 
             if (linkType === POSITION) {
               // Pick the first unclaimed finishing position
-              const existingEdges = this.store.getState().edges.filter(
-                (e) => e.sourceNodeId === sourceNodeId && e.linkType === POSITION,
-              );
+              const existingEdges = this.store
+                .getState()
+                .edges.filter((e) => e.sourceNodeId === sourceNodeId && e.linkType === POSITION);
               const claimed = new Set(existingEdges.flatMap((e) => e.finishingPositions || []));
               const groupSize = source?.structureOptions?.groupSize || 4;
               let defaultPos = 1;
               for (let p = 1; p <= groupSize; p++) {
-                if (!claimed.has(p)) { defaultPos = p; break; }
+                if (!claimed.has(p)) {
+                  defaultPos = p;
+                  break;
+                }
               }
               this.store.addEdge({
                 sourceNodeId,
@@ -94,20 +97,23 @@ export class TopologyBuilderControl {
               const isQualifyingWinner = linkType === WINNER && source?.stage === QUALIFYING;
               if (linkType === LOSER) {
                 // Default to the first unclaimed source round
-                const existingLoserEdges = this.store.getState().edges.filter(
-                  (e) => e.sourceNodeId === sourceNodeId && e.linkType === LOSER,
-                );
+                const existingLoserEdges = this.store
+                  .getState()
+                  .edges.filter((e) => e.sourceNodeId === sourceNodeId && e.linkType === LOSER);
                 const claimedRounds = new Set(existingLoserEdges.map((e) => e.sourceRoundNumber));
                 const maxRound = source ? Math.ceil(Math.log2(source.drawSize)) : 1;
                 let defaultRound = 1;
                 for (let r = 1; r <= maxRound; r++) {
-                  if (!claimedRounds.has(r)) { defaultRound = r; break; }
+                  if (!claimedRounds.has(r)) {
+                    defaultRound = r;
+                    break;
+                  }
                 }
                 this.store.addEdge({
                   sourceNodeId,
                   targetNodeId,
                   linkType,
-                  sourceRoundNumber: defaultRound,
+                  sourceRoundNumber: defaultRound
                 });
               } else {
                 this.store.addEdge({
@@ -128,7 +134,7 @@ export class TopologyBuilderControl {
       onUpdateEdge: isReadOnly ? () => {} : (edgeId, updates) => this.store.updateEdge(edgeId, updates),
       onDeleteNode: isReadOnly ? () => {} : (nodeId) => this.store.removeNode(nodeId),
       readOnly: isReadOnly,
-      hideDelete: config.hideDelete,
+      hideDelete: config.hideDelete
     });
 
     const edgeEditor = buildEdgeEditor({

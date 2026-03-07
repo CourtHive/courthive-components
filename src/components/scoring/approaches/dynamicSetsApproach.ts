@@ -9,6 +9,7 @@ import { parseMatchUpFormat, shouldExpandSets } from '../utils/setExpansionLogic
 import type { RenderScoreEntryParams, SetScore } from '../types';
 import { loadSettings, getScoringConfig } from '../config';
 import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
+import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
 import {
   isMatchComplete as isMatchCompleteLogic,
   isSetComplete as isSetCompleteLogic,
@@ -94,10 +95,8 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     formatButton.style.padding = '0.2em 0.5em';
     formatButton.style.cursor = 'pointer';
     formatButton.title = 'Click to edit format';
-    formatButton.addEventListener('click', async () => {
+    formatButton.addEventListener('click', () => {
       try {
-        const { getMatchUpFormatModal } = await import('../../matchUpFormat/matchUpFormat');
-
         getMatchUpFormatModal({
           existingMatchUpFormat: matchUp.matchUpFormat,
           callback: (newFormat: string) => {
