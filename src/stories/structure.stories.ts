@@ -2,8 +2,10 @@ import { renderParticipant } from '../components/renderStructure/renderParticipa
 import { renderContainer } from '../components/renderStructure/renderContainer';
 import { renderStructure } from '../components/renderStructure/renderStructure';
 import { generateEventData } from '../data/generateEventData';
+import { renderField } from '../components/forms/renderField';
 import { compositions } from '../compositions/compositions';
 import { cModal } from '../components/modal/cmodal';
+import '../components/forms/styles';
 
 const argTypes = {
   composition: {
@@ -106,81 +108,111 @@ export const InitialRound = {
   render: ({ ...args }) => {
     const wrapper = document.createElement('div');
 
-    const { composition, matchUps, context, roundMatchUps } = buildStructureView(args);
-    const totalRounds = roundMatchUps ? Object.keys(roundMatchUps).length : 1;
-
-    // Round selector buttons
     const toolbar = document.createElement('div');
-    toolbar.style.cssText = 'display: flex; gap: 8px; padding: 8px 12px; align-items: center;';
+    toolbar.style.cssText = 'display: flex; gap: 12px; padding: 8px 12px; align-items: center; flex-wrap: wrap;';
 
-    const label = document.createElement('span');
-    label.textContent = 'Start from round:';
-    label.style.cssText = 'font-weight: 600; margin-right: 4px;';
-    toolbar.appendChild(label);
+    // Draw size input
+    const { field: drawSizeField, inputElement: drawSizeInput } = renderField({
+      label: 'Draw Size',
+      field: 'drawSize',
+      type: 'number',
+      value: String(args.drawSize),
+      width: '100px',
+      validator: (v: string) => {
+        const n = Number(v);
+        return Number.isInteger(n) && n >= 16 && n <= 64;
+      },
+      error: '16–64',
+    });
+    toolbar.appendChild(drawSizeField);
+
+    // Round buttons container (populated by rebuild)
+    const roundButtons = document.createElement('div');
+    roundButtons.style.cssText = 'display: flex; gap: 6px; align-items: center;';
+    toolbar.appendChild(roundButtons);
+
+    wrapper.appendChild(toolbar);
 
     const drawContainer = document.createElement('div');
+    wrapper.appendChild(drawContainer);
 
-    let currentRound = args.initialRoundNumber || 1;
+    let currentDrawSize = args.drawSize;
+    let currentRound = 1;
 
-    const renderDraw = (initialRoundNumber: number) => {
-      drawContainer.innerHTML = '';
-      const content = renderStructure({
-        ...args,
-        initialRoundNumber,
-        eventHandlers,
-        composition,
-        matchUps: matchUps as any,
-        context
-      });
-      drawContainer.appendChild(renderContainer({ theme: composition.theme, content }));
-    };
+    const activeStyle = (active: boolean) =>
+      `padding: 4px 10px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; font-size: 13px; background: ${active ? '#3273dc' : ''}; color: ${active ? '#fff' : ''}`;
 
-    const roundNames = (round: number, total: number): string => {
-      const fromEnd = total - round;
+    const roundLabel = (round: number, last: number): string => {
+      const fromEnd = last - round;
       if (fromEnd === 0) return `R${round} (F)`;
       if (fromEnd === 1) return `R${round} (SF)`;
       if (fromEnd === 2) return `R${round} (QF)`;
       return `R${round}`;
     };
 
-    const buttons: HTMLButtonElement[] = [];
-    for (let r = 1; r <= totalRounds; r++) {
-      const btn = document.createElement('button');
-      btn.textContent = roundNames(r, totalRounds);
-      btn.style.cssText =
-        'padding: 4px 12px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; font-size: 13px;';
-      const roundNum = r;
-      btn.onclick = () => {
-        currentRound = roundNum;
-        buttons.forEach((b, i) => {
-          b.style.background = i + 1 === currentRound ? '#3273dc' : '';
-          b.style.color = i + 1 === currentRound ? '#fff' : '';
-        });
-        renderDraw(currentRound);
-      };
-      buttons.push(btn);
-      toolbar.appendChild(btn);
+    const rebuild = () => {
+      const composition = compositions[args.composition || 'Australian'];
+      const genArgs = { ...args, drawSize: currentDrawSize, participantsCount: currentDrawSize };
+      const eventData = generateEventData(genArgs)?.eventData;
+      const structure = eventData?.drawsData?.[0]?.structures?.[0];
+      const roundMatchUps = structure?.roundMatchUps;
+      const matchUps = roundMatchUps ? Object.values(roundMatchUps).flat() : [];
+      const roundNumbers = roundMatchUps ? Object.keys(roundMatchUps).map(Number).sort((a, b) => a - b) : [];
+      const lastRound = roundNumbers[roundNumbers.length - 1] || 1;
+
+      if (!roundNumbers.includes(currentRound)) currentRound = roundNumbers[0] || 1;
+
+      // Round buttons
+      roundButtons.innerHTML = '';
+      const label = document.createElement('span');
+      label.textContent = 'Start from:';
+      label.style.cssText = 'font-weight: 600;';
+      roundButtons.appendChild(label);
+
+      roundNumbers.forEach((rn) => {
+        const btn = document.createElement('button');
+        btn.textContent = roundLabel(rn, lastRound);
+        btn.style.cssText = activeStyle(rn === currentRound);
+        btn.onclick = () => {
+          currentRound = rn;
+          rebuild();
+        };
+        roundButtons.appendChild(btn);
+      });
+
+      // Render
+      drawContainer.innerHTML = '';
+      const context = { structureId: structure?.structureId, drawId: eventData?.drawsData?.[0]?.drawId };
+      const content = renderStructure({
+        initialRoundNumber: currentRound,
+        eventHandlers,
+        composition,
+        matchUps: matchUps as any,
+        context,
+      });
+      drawContainer.appendChild(renderContainer({ theme: composition.theme, content }));
+    };
+
+    if (drawSizeInput) {
+      (drawSizeInput as HTMLInputElement).addEventListener('change', () => {
+        const val = Number((drawSizeInput as HTMLInputElement).value);
+        if (Number.isInteger(val) && val >= 16 && val <= 64) {
+          currentDrawSize = val;
+          currentRound = 1;
+          rebuild();
+        }
+      });
     }
 
-    wrapper.appendChild(toolbar);
-    wrapper.appendChild(drawContainer);
-
-    // Set initial active state and render
-    buttons.forEach((b, i) => {
-      b.style.background = i + 1 === currentRound ? '#3273dc' : '';
-      b.style.color = i + 1 === currentRound ? '#fff' : '';
-    });
-    renderDraw(currentRound);
-
+    rebuild();
     return wrapper;
   },
   args: {
     completeAllMatchUps: false,
+    drawType: 'FEED_IN',
     composition: 'National',
-    initialRoundNumber: 3,
-    participantsCount: 60,
-    drawSize: 64
-  }
+    drawSize: 32,
+  },
 };
 export const Qualifying = {
   args: { drawSize: 16, participantsCount: 14, addQualifying: true }

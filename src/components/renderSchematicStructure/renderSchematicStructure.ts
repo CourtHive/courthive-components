@@ -18,11 +18,13 @@ export function renderSchematicStructure({
   structureId?: string;
   matchUps: SchematicMatchUp[];
 }): HTMLElement {
-  const { roundNumbers, roundsNotPowerOf2, hasNoRoundPositions } =
+  const { roundNumbers, roundProfile, roundsNotPowerOf2, hasNoRoundPositions } =
     tournamentEngine.getRoundMatchUps({ matchUps });
 
   const isRoundRobin = matchUps.some((m) => m.isRoundRobin);
   const isLucky = roundsNotPowerOf2 || hasNoRoundPositions;
+  const initialRoundFactor =
+    initialRoundNumber > 1 ? roundProfile?.[initialRoundNumber]?.roundFactor || 1 : undefined;
 
   const div = document.createElement('div');
   div.className = 'chc-schematic-structure';
@@ -36,6 +38,7 @@ export function renderSchematicStructure({
 
     const round = renderSchematicRound({
       showHeader: showHeaders,
+      initialRoundFactor,
       initialRoundNumber,
       isRoundRobin,
       isFinalRound,

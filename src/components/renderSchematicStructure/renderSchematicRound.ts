@@ -6,6 +6,7 @@ import type { SchematicMatchUp } from './renderSchematicMatchUp';
  * and compact schematic matchups.
  */
 export function renderSchematicRound({
+  initialRoundFactor,
   initialRoundNumber = 1,
   isFinalRound,
   isRoundRobin,
@@ -14,6 +15,7 @@ export function renderSchematicRound({
   showHeader,
   isLucky
 }: {
+  initialRoundFactor?: number;
   initialRoundNumber?: number;
   isFinalRound?: boolean;
   isRoundRobin?: boolean;
@@ -41,7 +43,9 @@ export function renderSchematicRound({
   round.className = 'chc-schematic-round';
 
   roundMatchUps.forEach((matchUp, i) => {
-    if (!matchUp.roundFactor) {
+    if (initialRoundFactor && matchUp.roundFactor) {
+      matchUp.roundFactor = matchUp.roundFactor / initialRoundFactor;
+    } else if (!matchUp.roundFactor) {
       matchUp.roundFactor = Math.pow(2, roundNumber - initialRoundNumber);
     }
     const moiety = i % 2 === 0;
