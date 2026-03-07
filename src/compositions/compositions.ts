@@ -14,7 +14,7 @@ export const compositions: Record<string, Composition> = {
     theme: australianTheme
   },
   Basic: {
-    configuration: { gameScoreOnly: true, teamLogo: false, roundHeader: true, placeHolders: { tbd: '-', bye: 'Bye' } },
+    configuration: { gameScoreOnly: true, teamLogo: false, roundHeader: true, placeHolders: { tbd: 'TBD', bye: 'Bye' } },
     theme: basicTheme
   },
   DrawPositions: {
