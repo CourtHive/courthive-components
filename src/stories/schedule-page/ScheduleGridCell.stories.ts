@@ -62,10 +62,10 @@ export default {
 const CELL_SIZE = { width: '130px', height: '80px' };
 const WIDE_CELL = { width: '160px', height: '80px' };
 const STORY_ROOT_STYLE =
-  STORY_ROOT_STYLE;
-const STORY_INFO_STYLE = STORY_INFO_STYLE;
-const FLEX_GAP_8 = FLEX_GAP_8;
-const FLEX_GAP_12 = FLEX_GAP_12;
+  'font-family: ui-sans-serif, system-ui, sans-serif; color: var(--sp-text); padding: 24px; max-width: 900px;';
+const STORY_INFO_STYLE = 'font-size: 12px; color: var(--sp-muted); margin-bottom: 16px;';
+const FLEX_GAP_8 = 'display: flex; gap: 8px; flex-wrap: wrap;';
+const FLEX_GAP_12 = 'display: flex; gap: 12px; flex-wrap: wrap;';
 
 function cellWrapper(
   data: ScheduleCellData,

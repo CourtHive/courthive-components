@@ -17,7 +17,7 @@ import type {
 
 import './schedule-grid-cell.css';
 
-const CONFLICT_HIGHLIGHT = CONFLICT_HIGHLIGHT;
+const CONFLICT_HIGHLIGHT = 'spl-cell--conflict-highlight';
 
 // ============================================================================
 // Default Config

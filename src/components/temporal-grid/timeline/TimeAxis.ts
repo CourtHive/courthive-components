@@ -13,8 +13,8 @@
 
 import { TimeScale } from './TimeScale';
 
-const TG_TICK_DAY = TG_TICK_DAY;
-const TG_TICK_HOUR = TG_TICK_HOUR;
+const TG_TICK_DAY = 'tg-tick-day';
+const TG_TICK_HOUR = 'tg-tick-hour';
 
 /** Tick configuration derived from time axis scale/step */
 interface TickConfig {

@@ -15,10 +15,11 @@ const {
   FORMAT_STANDARD,
   FORMAT_ATP_DOUBLES,
   FORMAT_SHORT_SETS,
-  FORMAT_ONE_SET,
-  FORMAT_MATCH_TIEBREAK,
   FORMAT_PRO_SET,
 } = fixtures.matchUpFormats;
+
+const FORMAT_ONE_SET = 'SET1-S:6/TB7';
+const FORMAT_MATCH_TIEBREAK = 'SET1-S:TB10';
 
 // ============================================================================
 // Scheduling Policy Fixtures (mirrors factory POLICY_SCHEDULING_DEFAULT)

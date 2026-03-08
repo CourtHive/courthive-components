@@ -73,8 +73,8 @@ interface FactoryGridCallbacks {
 
 const START_DATE = '2026-06-13';
 const END_DATE = '2026-06-21';
-const ATTR_MATCHUP_ID = ATTR_MATCHUP_ID;
-const ATTR_DRAW_ID = ATTR_DRAW_ID;
+const ATTR_MATCHUP_ID = 'data-matchup-id';
+const ATTR_DRAW_ID = 'data-draw-id';
 
 /** Only weekend days are active */
 const ACTIVE_DATES = [START_DATE, '2026-06-14', '2026-06-20', END_DATE];

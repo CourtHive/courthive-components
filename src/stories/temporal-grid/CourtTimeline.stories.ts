@@ -51,9 +51,9 @@ const STYLE_ROOT =
 const STYLE_MAIN_ROW = 'display:flex; flex:1; min-height:0;';
 const STYLE_TIMELINE_CONTAINER = 'flex:1; min-width:0;';
 const VENUE_COLORS = ['rgba(33, 141, 141, 0.06)', 'rgba(33, 96, 200, 0.06)', 'rgba(156, 39, 176, 0.06)'];
-const STYLE_VENUE_LABEL = STYLE_VENUE_LABEL;
-const DATE_PICKER_FORMAT = DATE_PICKER_FORMAT;
-const CURSOR_NOT_ALLOWED = CURSOR_NOT_ALLOWED;
+const STYLE_VENUE_LABEL = 'font-weight: 600; color: var(--chc-text-primary);';
+const DATE_PICKER_FORMAT = 'yyyy-mm-dd';
+const CURSOR_NOT_ALLOWED = 'not-allowed';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 

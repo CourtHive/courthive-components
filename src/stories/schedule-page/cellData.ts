@@ -23,9 +23,9 @@ const { participants: females } = mocksEngine.generateParticipants({ participant
 const M = males.map((p) => p.participantName);
 const F = females.map((p) => p.participantName);
 
-const MENS_SINGLES = MENS_SINGLES;
-const WOMENS_SINGLES = WOMENS_SINGLES;
-const DAVIS_CUP_SF = DAVIS_CUP_SF;
+const MENS_SINGLES = "Men's Singles";
+const WOMENS_SINGLES = "Women's Singles";
+const DAVIS_CUP_SF = 'Davis Cup SF';
 
 // ============================================================================
 // Singles — Seeded, various statuses

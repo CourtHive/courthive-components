@@ -37,7 +37,7 @@ export default {
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 const ROOT_STYLE = 'background: var(--sp-bg); min-height: 100vh;';
-const CONTAINER_HEIGHT = CONTAINER_HEIGHT;
+const CONTAINER_HEIGHT = 'calc(100vh - 100px)';
 const INFO_STYLE =
   'font-size: 12px; color: var(--sp-muted); padding: 12px 16px; font-family: ui-sans-serif, system-ui, sans-serif;';
 

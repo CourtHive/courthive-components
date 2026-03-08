@@ -16,13 +16,13 @@ import { mocksEngine, genderConstants, fixtures } from 'tods-competition-factory
 const { MALE, FEMALE } = genderConstants;
 const { FORMAT_STANDARD, FORMAT_ATP_DOUBLES } = fixtures.matchUpFormats;
 
-const BOYS_U16_SINGLES = BOYS_U16_SINGLES;
-const GIRLS_U16_SINGLES = GIRLS_U16_SINGLES;
-const BOYS_U18_SINGLES = BOYS_U18_SINGLES;
-const GIRLS_U18_SINGLES = GIRLS_U18_SINGLES;
-const DATE_DAY1 = DATE_DAY1;
-const DATE_DAY2 = DATE_DAY2;
-const DATA_COURT_ATTR = DATA_COURT_ATTR;
+const BOYS_U16_SINGLES = 'Boys U16 Singles';
+const GIRLS_U16_SINGLES = 'Girls U16 Singles';
+const BOYS_U18_SINGLES = 'Boys U18 Singles';
+const GIRLS_U18_SINGLES = 'Girls U18 Singles';
+const DATE_DAY1 = '2026-06-15';
+const DATE_DAY2 = '2026-06-16';
+const DATA_COURT_ATTR = 'data-court';
 
 // ============================================================================
 // Participant Names (generated via mocksEngine)

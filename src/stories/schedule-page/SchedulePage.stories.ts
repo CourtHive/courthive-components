@@ -61,7 +61,7 @@ export default {
 const ROOT_STYLE = 'background: var(--sp-bg); height: 100vh; display: flex; flex-direction: column;';
 const INFO_STYLE =
   'font-size: 12px; color: var(--sp-muted); padding: 12px 16px; font-family: ui-sans-serif, system-ui, sans-serif; flex-shrink: 0;';
-const FLEX_CONTAINER = FLEX_CONTAINER;
+const FLEX_CONTAINER = 'flex: 1; min-height: 0;';
 
 function addFooter(
   container: HTMLElement,

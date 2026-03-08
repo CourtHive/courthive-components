@@ -41,8 +41,8 @@ const SP_ROOT =
   'background: var(--sp-bg); min-height: 400px; padding: 20px; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: var(--sp-text);';
 const SP_ROOT_NARROW = SP_ROOT + ' max-width: 400px;';
 const SP_ROOT_WIDE = SP_ROOT + ' max-width: 700px;';
-const CONTENT_MAX_700 = CONTENT_MAX_700;
-const INFO_MUTED_STYLE = INFO_MUTED_STYLE;
+const CONTENT_MAX_700 = 'max-width: 700px;';
+const INFO_MUTED_STYLE = 'font-size: 12px; color: var(--sp-muted); margin-bottom: 12px;';
 
 const GRID_STYLE =
   'display: grid; grid-template-columns: 1fr 280px; gap: 16px; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: var(--sp-text); background: var(--sp-bg); min-height: 400px; padding: 20px;';
