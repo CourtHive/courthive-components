@@ -357,3 +357,34 @@
 [data-theme='dark'] .datepicker .week {
   color: var(--chc-text-muted);
 }
+
+/* ── Awesomplete typeahead dark overrides ────────────────── */
+[data-theme='dark'] .awesomplete > ul {
+  background: var(--chc-dropdown-bg);
+  border-color: var(--chc-border-primary);
+  box-shadow: 0 .1em .6em rgba(0, 0, 0, .5);
+  color: var(--chc-text-primary);
+}
+[data-theme='dark'] .awesomplete > ul::before {
+  background: var(--chc-dropdown-bg);
+}
+[data-theme='dark'] .awesomplete > ul > li:hover {
+  background: var(--chc-border-focus);
+  color: #fff;
+}
+[data-theme='dark'] .awesomplete > ul > li[aria-selected="true"] {
+  background: var(--chc-border-focus);
+  color: #fff;
+}
+[data-theme='dark'] .awesomplete mark {
+  background: hsl(65, 70%, 35%);
+  color: #fff;
+}
+[data-theme='dark'] .awesomplete li:hover mark {
+  background: hsl(68, 80%, 30%);
+  color: #fff;
+}
+[data-theme='dark'] .awesomplete li[aria-selected="true"] mark {
+  background: hsl(86, 70%, 28%);
+  color: inherit;
+}
