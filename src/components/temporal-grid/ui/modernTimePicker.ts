@@ -41,27 +41,16 @@ export interface TimePickerConfig {
   minuteIncrement?: number; // default: 5
   minDuration?: number; // Minimum duration in minutes (default: none)
   maxDuration?: number; // Maximum duration in minutes (default: none)
-  clockType?: '12h' | '24h'; // default: '24h' - TODO: should come from TemporalGrid config
+  clockType?: '12h' | '24h'; // default: '12h'
   onConfirm: (startTime: string, endTime: string) => void;
   onCancel: () => void;
 }
 
-/**
- * NOTE: The Temporal Grid component should have a comprehensive config object that includes:
- * - timePickerMode: '12h' | '24h' (default: '24h')
- * - theme: string (for timepicker-ui themes like 'crane', 'm3-green', etc)
- * - minuteIncrement: number
- * - Other UI preferences and behavior settings
- *
- * This config should be passed down from TemporalGrid → TemporalGridControl → ModernTimePicker
- * to ensure consistent settings across the entire component.
- */
-
 export class ModernTimePicker {
-  private container: HTMLElement;
-  private config: TimePickerConfig;
+  private readonly container: HTMLElement;
+  private readonly config: TimePickerConfig;
   private picker: any; // TimepickerUI instance
-  private inputElement: HTMLInputElement;
+  private readonly inputElement: HTMLInputElement;
   private selectedStart: string;
   private selectedEnd: string;
 
@@ -70,7 +59,7 @@ export class ModernTimePicker {
       dayStartTime: '00:00',
       dayEndTime: '23:59',
       minuteIncrement: 5,
-      clockType: '24h', // Default to 24-hour mode (12h has range plugin AM/PM sync bug)
+      clockType: '12h',
       ...config
     };
 
@@ -140,7 +129,7 @@ export class ModernTimePicker {
     // Ensure the library is loaded
     await ensureTimepickerLoaded();
 
-    const clockType = this.config.clockType || '24h';
+    const clockType = this.config.clockType ?? '12h';
 
     // Parse the times to get hours and minutes
     const [startHour, startMin] = this.selectedStart.split(':').map(Number);
@@ -151,26 +140,29 @@ export class ModernTimePicker {
       const startFormatted = `${String(startHour).padStart(2, '0')}:${String(startMin).padStart(2, '0')}`;
       const endFormatted = `${String(endHour).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`;
       this.inputElement.value = `${startFormatted} - ${endFormatted}`;
-      this.inputElement.setAttribute('data-time-from', startFormatted);
-      this.inputElement.setAttribute('data-time-to', endFormatted);
+      this.inputElement.dataset.timeFrom = startFormatted;
+      this.inputElement.dataset.timeTo = endFormatted;
     } else {
       // 12h mode: convert to HH:MM AM/PM format
-      // NOTE: timepicker-ui range plugin has a bug where syncClockToActivePart
-      // doesn't update the clock system's internal AM/PM state, causing hours
-      // before the start hour to be incorrectly disabled on the "to" clock.
       const startPeriod = startHour >= 12 ? 'PM' : 'AM';
       const start12Hour = startHour === 0 ? 12 : startHour > 12 ? startHour - 12 : startHour;
-      const startFormatted = `${String(start12Hour).padStart(2, '0')}:${String(startMin).padStart(2, '0')} ${startPeriod}`;
+      const startFormatted = `${String(start12Hour).padStart(2, '0')}:${String(startMin).padStart(
+        2,
+        '0'
+      )} ${startPeriod}`;
 
       const endPeriod = endHour >= 12 ? 'PM' : 'AM';
       const end12Hour = endHour === 0 ? 12 : endHour > 12 ? endHour - 12 : endHour;
       const endFormatted = `${String(end12Hour).padStart(2, '0')}:${String(endMin).padStart(2, '0')} ${endPeriod}`;
 
       this.inputElement.value = `${startFormatted} - ${endFormatted}`;
-      this.inputElement.setAttribute('data-time-from', `${String(start12Hour).padStart(2, '0')}:${String(startMin).padStart(2, '0')}`);
-      this.inputElement.setAttribute('data-time-to', `${String(end12Hour).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`);
-      this.inputElement.setAttribute('data-type-from', startPeriod);
-      this.inputElement.setAttribute('data-type-to', endPeriod);
+      this.inputElement.dataset.timeFrom = `${String(start12Hour).padStart(2, '0')}:${String(startMin).padStart(
+        2,
+        '0'
+      )}`;
+      this.inputElement.dataset.timeTo = `${String(end12Hour).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`;
+      this.inputElement.dataset.typeFrom = startPeriod;
+      this.inputElement.dataset.typeTo = endPeriod;
     }
 
     // Build range configuration with optional min/max duration
