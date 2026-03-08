@@ -11,7 +11,9 @@ import type {
   ScheduleIssue,
   SchedulePageConfig,
 } from '../../components/schedule-page';
-import { mocksEngine } from 'tods-competition-factory';
+import { mocksEngine, genderConstants } from 'tods-competition-factory';
+
+const { MALE, FEMALE } = genderConstants;
 
 // ============================================================================
 // Participant Names (generated via mocksEngine)
@@ -19,13 +21,13 @@ import { mocksEngine } from 'tods-competition-factory';
 
 const { participants: maleParticipants } = mocksEngine.generateParticipants({
   participantsCount: 8,
-  sex: 'MALE',
+  sex: MALE,
 });
 export const MALE_NAMES = maleParticipants.map((p) => p.participantName);
 
 const { participants: femaleParticipants } = mocksEngine.generateParticipants({
   participantsCount: 8,
-  sex: 'FEMALE',
+  sex: FEMALE,
 });
 export const FEMALE_NAMES = femaleParticipants.map((p) => p.participantName);
 
@@ -86,9 +88,9 @@ export const LARGE_CATALOG: CatalogMatchUpItem[] = [
 // Extra-large catalog (for scrolling demo — 32 matchUps across 5 events)
 // ============================================================================
 
-const { participants: extraMales } = mocksEngine.generateParticipants({ participantsCount: 16, sex: 'MALE' });
+const { participants: extraMales } = mocksEngine.generateParticipants({ participantsCount: 16, sex: MALE });
 const EXTRA_MALE = extraMales.map((p) => p.participantName);
-const { participants: extraFemales } = mocksEngine.generateParticipants({ participantsCount: 16, sex: 'FEMALE' });
+const { participants: extraFemales } = mocksEngine.generateParticipants({ participantsCount: 16, sex: FEMALE });
 const EXTRA_FEMALE = extraFemales.map((p) => p.participantName);
 
 function xMaleSides(a: number, b: number) {

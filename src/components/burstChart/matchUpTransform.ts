@@ -7,7 +7,10 @@
  * - fromLegacyDraw: legacy TournamentDraw JSON (R128/R64/.../W) → SunburstDrawData
  */
 
+import { entryStatusConstants } from 'tods-competition-factory';
 import type { SunburstDrawData, SunburstMatchUp, SunburstSide } from './burstChart';
+
+const { LUCKY_LOSER, WILDCARD, QUALIFIER } = entryStatusConstants;
 
 // ============================================================================
 // fromFactoryDrawData — tods-competition-factory → SunburstDrawData
@@ -57,9 +60,9 @@ export function fromFactoryDrawData(structure: any): SunburstDrawData {
 
 /** Map legacy entry codes to TODS entryStatus values */
 const ENTRY_STATUS_MAP: Record<string, string> = {
-  LL: 'LUCKY_LOSER',
-  WC: 'WILDCARD',
-  Q: 'QUALIFIER'
+  LL: LUCKY_LOSER,
+  WC: WILDCARD,
+  Q: QUALIFIER
 };
 
 /** Legacy round keys ordered from largest (outermost) to smallest (innermost) */

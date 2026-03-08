@@ -1,4 +1,8 @@
 import { renderIndividual } from '../components/renderStructure/renderIndividual';
+import { genderConstants, entryStatusConstants } from 'tods-competition-factory';
+
+const { MALE, FEMALE } = genderConstants;
+const { LUCKY_LOSER } = entryStatusConstants;
 
 export default {
   title: 'Participants/Individual',
@@ -34,14 +38,14 @@ export const TBDAsDash = {
 
 export const GenderedMale = {
   args: {
-    individualParticipant: { participantName, person: { sex: 'MALE' } },
+    individualParticipant: { participantName, person: { sex: MALE } },
     composition: { configuration: { flags: false, genderColor: true } }
   }
 };
 
 export const GenderedFemale = {
   args: {
-    individualParticipant: { participantName: 'Zeta Moon', person: { sex: 'FEMALE' } },
+    individualParticipant: { participantName: 'Zeta Moon', person: { sex: FEMALE } },
     composition: { configuration: { flags: false, genderColor: true } }
   }
 };
@@ -158,15 +162,15 @@ export const FlagAndRatingWTN = {
 export const LuckyLoser = {
   args: {
     individualParticipant: { participantName: 'Lucky Lou' },
-    side: { participant: { entryStatus: 'LUCKY_LOSER' } },
+    side: { participant: { entryStatus: LUCKY_LOSER } },
     composition: { configuration: { flags: false } }
   }
 };
 
 export const LuckyLoserGendered = {
   args: {
-    individualParticipant: { participantName: 'Lucky Lou', person: { sex: 'MALE' } },
-    side: { participant: { entryStatus: 'LUCKY_LOSER' } },
+    individualParticipant: { participantName: 'Lucky Lou', person: { sex: MALE } },
+    side: { participant: { entryStatus: LUCKY_LOSER } },
     composition: { configuration: { flags: false, genderColor: true } }
   }
 };

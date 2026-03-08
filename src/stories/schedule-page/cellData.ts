@@ -7,14 +7,17 @@
  */
 
 import type { ScheduleCellData } from '../../components/schedule-page';
-import { mocksEngine } from 'tods-competition-factory';
+import { mocksEngine, genderConstants, matchUpStatusConstants } from 'tods-competition-factory';
+
+const { MALE, FEMALE } = genderConstants;
+const { COMPLETED, IN_PROGRESS, TO_BE_PLAYED, WALKOVER, RETIRED, DEFAULTED, ABANDONED, DOUBLE_WALKOVER, BYE } = matchUpStatusConstants;
 
 // ============================================================================
 // Generated Names
 // ============================================================================
 
-const { participants: males } = mocksEngine.generateParticipants({ participantsCount: 12, sex: 'MALE' });
-const { participants: females } = mocksEngine.generateParticipants({ participantsCount: 12, sex: 'FEMALE' });
+const { participants: males } = mocksEngine.generateParticipants({ participantsCount: 12, sex: MALE });
+const { participants: females } = mocksEngine.generateParticipants({ participantsCount: 12, sex: FEMALE });
 const M = males.map((p) => p.participantName);
 const F = females.map((p) => p.participantName);
 
@@ -30,7 +33,7 @@ export const SINGLES_COMPLETED: ScheduleCellData = {
   roundName: 'QF',
   matchUpFormat: 'SET3-S:6/TB7',
   matchUpType: 'SINGLES',
-  matchUpStatus: 'COMPLETED',
+  matchUpStatus: COMPLETED,
   winningSide: 1,
   sides: [
     { sideNumber: 1, participantName: M[0], participantId: 'P01', seedNumber: 1, ranking: 3, nationality: 'ESP' },
@@ -48,7 +51,7 @@ export const SINGLES_IN_PROGRESS: ScheduleCellData = {
   roundName: 'SF',
   matchUpFormat: 'SET3-S:6/TB7',
   matchUpType: 'SINGLES',
-  matchUpStatus: 'IN_PROGRESS',
+  matchUpStatus: IN_PROGRESS,
   sides: [
     { sideNumber: 1, participantName: M[2], participantId: 'P03', seedNumber: 3, ranking: 7, nationality: 'GBR' },
     { sideNumber: 2, participantName: M[3], participantId: 'P04', seedNumber: 2, ranking: 5, nationality: 'RUS' },
@@ -65,7 +68,7 @@ export const SINGLES_TO_BE_PLAYED: ScheduleCellData = {
   roundName: 'R32',
   matchUpFormat: 'SET3-S:6/TB7',
   matchUpType: 'SINGLES',
-  matchUpStatus: 'TO_BE_PLAYED',
+  matchUpStatus: TO_BE_PLAYED,
   sides: [
     { sideNumber: 1, participantName: F[0], participantId: 'PF01', seedNumber: 1, ranking: 1, nationality: 'POL' },
     { sideNumber: 2, participantName: F[1], participantId: 'PF02', nationality: 'USA' },
@@ -80,7 +83,7 @@ export const SINGLES_WALKOVER: ScheduleCellData = {
   eventName: "Men's Singles",
   roundName: 'R16',
   matchUpType: 'SINGLES',
-  matchUpStatus: 'WALKOVER',
+  matchUpStatus: WALKOVER,
   winningSide: 1,
   sides: [
     { sideNumber: 1, participantName: M[4], participantId: 'P05', seedNumber: 4, nationality: 'FRA' },
@@ -96,7 +99,7 @@ export const SINGLES_RETIRED: ScheduleCellData = {
   eventName: "Women's Singles",
   roundName: 'R16',
   matchUpType: 'SINGLES',
-  matchUpStatus: 'RETIRED',
+  matchUpStatus: RETIRED,
   winningSide: 2,
   sides: [
     { sideNumber: 1, participantName: F[2], participantId: 'PF03', seedNumber: 7, nationality: 'AUS' },
@@ -113,7 +116,7 @@ export const SINGLES_DEFAULTED: ScheduleCellData = {
   eventName: "Men's Singles",
   roundName: 'R32',
   matchUpType: 'SINGLES',
-  matchUpStatus: 'DEFAULTED',
+  matchUpStatus: DEFAULTED,
   winningSide: 2,
   sides: [
     { sideNumber: 1, participantName: M[6], participantId: 'P07', nationality: 'ITA' },
@@ -129,7 +132,7 @@ export const SINGLES_ABANDONED: ScheduleCellData = {
   eventName: "Women's Singles",
   roundName: 'QF',
   matchUpType: 'SINGLES',
-  matchUpStatus: 'ABANDONED',
+  matchUpStatus: ABANDONED,
   sides: [
     { sideNumber: 1, participantName: F[4], participantId: 'PF05', seedNumber: 2, nationality: 'CZE' },
     { sideNumber: 2, participantName: F[5], participantId: 'PF06', nationality: 'BEL' },
@@ -145,7 +148,7 @@ export const SINGLES_DOUBLE_WALKOVER: ScheduleCellData = {
   eventName: "Men's Singles",
   roundName: 'R32',
   matchUpType: 'SINGLES',
-  matchUpStatus: 'DOUBLE_WALKOVER',
+  matchUpStatus: DOUBLE_WALKOVER,
   sides: [
     { sideNumber: 1, participantName: M[8], participantId: 'P09' },
     { sideNumber: 2, participantName: M[9], participantId: 'P10' },
@@ -163,7 +166,7 @@ export const BYE_MATCHUP: ScheduleCellData = {
   eventName: "Men's Singles",
   roundName: 'R64',
   matchUpType: 'SINGLES',
-  matchUpStatus: 'BYE',
+  matchUpStatus: BYE,
   winningSide: 1,
   sides: [
     { sideNumber: 1, participantName: M[0], participantId: 'P01', seedNumber: 1, nationality: 'ESP' },
@@ -177,7 +180,7 @@ export const BYE_EXPLICIT: ScheduleCellData = {
   eventName: "Women's Singles",
   roundName: 'R64',
   matchUpType: 'SINGLES',
-  matchUpStatus: 'BYE',
+  matchUpStatus: BYE,
   winningSide: 1,
   sides: [
     { sideNumber: 1, participantName: F[0], participantId: 'PF01', seedNumber: 1, nationality: 'POL' },
@@ -192,7 +195,7 @@ export const BYE_TEAM_MEMBER: ScheduleCellData = {
   eventName: 'Davis Cup QF',
   roundName: 'Singles 1',
   matchUpType: 'SINGLES',
-  matchUpStatus: 'BYE',
+  matchUpStatus: BYE,
   winningSide: 1,
   sides: [
     { sideNumber: 1, participantName: M[2], participantId: 'P03', seedNumber: 3, nationality: 'GBR', teamName: 'Great Britain' },
@@ -211,7 +214,7 @@ export const DOUBLES_COMPLETED: ScheduleCellData = {
   roundName: 'QF',
   matchUpFormat: 'SET3-S:6/TB7-F:TB10',
   matchUpType: 'DOUBLES',
-  matchUpStatus: 'COMPLETED',
+  matchUpStatus: COMPLETED,
   winningSide: 2,
   sides: [
     { sideNumber: 1, participantName: `${M[0]} / ${M[1]}`, participantId: 'DP01', seedNumber: 1 },
@@ -229,7 +232,7 @@ export const DOUBLES_TO_BE_PLAYED: ScheduleCellData = {
   roundName: 'SF',
   matchUpFormat: 'SET3-S:6/TB7-F:TB10',
   matchUpType: 'DOUBLES',
-  matchUpStatus: 'TO_BE_PLAYED',
+  matchUpStatus: TO_BE_PLAYED,
   sides: [
     { sideNumber: 1, participantName: `${F[0]} / ${F[1]}`, participantId: 'DPF01', seedNumber: 1 },
     { sideNumber: 2, participantName: `${F[2]} / ${F[3]}`, participantId: 'DPF02', seedNumber: 2 },
@@ -249,7 +252,7 @@ export const TIE_SINGLES_COMPLETED: ScheduleCellData = {
   roundName: 'Singles 1',
   matchUpFormat: 'SET3-S:6/TB7',
   matchUpType: 'SINGLES',
-  matchUpStatus: 'COMPLETED',
+  matchUpStatus: COMPLETED,
   winningSide: 1,
   sides: [
     { sideNumber: 1, participantName: M[0], participantId: 'P01', seedNumber: 1, nationality: 'ESP', teamName: 'Spain' },
@@ -267,7 +270,7 @@ export const TIE_SINGLES_IN_PROGRESS: ScheduleCellData = {
   roundName: 'Singles 2',
   matchUpFormat: 'SET3-S:6/TB7',
   matchUpType: 'SINGLES',
-  matchUpStatus: 'IN_PROGRESS',
+  matchUpStatus: IN_PROGRESS,
   sides: [
     { sideNumber: 1, participantName: M[2], participantId: 'P03', seedNumber: 3, nationality: 'GBR', teamName: 'Great Britain' },
     { sideNumber: 2, participantName: M[6], participantId: 'P07', nationality: 'AUS', teamName: 'Australia' },
@@ -284,7 +287,7 @@ export const TIE_DOUBLES_TO_BE_PLAYED: ScheduleCellData = {
   roundName: 'Doubles',
   matchUpFormat: 'SET3-S:6/TB7-F:TB10',
   matchUpType: 'DOUBLES',
-  matchUpStatus: 'TO_BE_PLAYED',
+  matchUpStatus: TO_BE_PLAYED,
   sides: [
     { sideNumber: 1, participantName: `${M[0]} / ${M[1]}`, participantId: 'DP-ESP', teamName: 'Spain' },
     { sideNumber: 2, participantName: `${M[4]} / ${M[5]}`, participantId: 'DP-FRA', teamName: 'France' },
@@ -303,7 +306,7 @@ export const POTENTIAL_PARTICIPANTS: ScheduleCellData = {
   eventName: "Men's Singles",
   roundName: 'SF',
   matchUpType: 'SINGLES',
-  matchUpStatus: 'TO_BE_PLAYED',
+  matchUpStatus: TO_BE_PLAYED,
   sides: [],
   potentialParticipants: [
     [{ participantName: M[0] }, { participantName: M[2] }],
@@ -319,7 +322,7 @@ export const PARTIAL_POTENTIAL: ScheduleCellData = {
   eventName: "Women's Singles",
   roundName: 'Final',
   matchUpType: 'SINGLES',
-  matchUpStatus: 'TO_BE_PLAYED',
+  matchUpStatus: TO_BE_PLAYED,
   sides: [
     { sideNumber: 1, participantName: F[0], participantId: 'PF01', seedNumber: 1, nationality: 'POL' },
   ],
@@ -341,7 +344,7 @@ export const CONFLICT_DOUBLE_BOOKING: ScheduleCellData = {
   eventName: "Men's Singles",
   roundName: 'R16',
   matchUpType: 'SINGLES',
-  matchUpStatus: 'TO_BE_PLAYED',
+  matchUpStatus: TO_BE_PLAYED,
   sides: [
     { sideNumber: 1, participantName: M[0], participantId: 'P01', seedNumber: 1, nationality: 'ESP' },
     { sideNumber: 2, participantName: M[10], participantId: 'P11' },
@@ -359,7 +362,7 @@ export const CONFLICT_OTHER: ScheduleCellData = {
   eventName: "Men's Doubles",
   roundName: 'R16',
   matchUpType: 'DOUBLES',
-  matchUpStatus: 'TO_BE_PLAYED',
+  matchUpStatus: TO_BE_PLAYED,
   sides: [
     { sideNumber: 1, participantName: `${M[0]} / ${M[3]}`, participantId: 'DP03', seedNumber: 2 },
     { sideNumber: 2, participantName: `${M[8]} / ${M[9]}`, participantId: 'DP04' },
@@ -377,7 +380,7 @@ export const CONFLICT_WARNING: ScheduleCellData = {
   eventName: "Men's Singles",
   roundName: 'R32',
   matchUpType: 'SINGLES',
-  matchUpStatus: 'TO_BE_PLAYED',
+  matchUpStatus: TO_BE_PLAYED,
   sides: [
     { sideNumber: 1, participantName: M[2], participantId: 'P03', seedNumber: 3, nationality: 'GBR' },
     { sideNumber: 2, participantName: M[11], participantId: 'P12' },
@@ -393,7 +396,7 @@ export const CONFLICT_ERROR: ScheduleCellData = {
   eventName: "Women's Singles",
   roundName: 'R32',
   matchUpType: 'SINGLES',
-  matchUpStatus: 'TO_BE_PLAYED',
+  matchUpStatus: TO_BE_PLAYED,
   sides: [
     { sideNumber: 1, participantName: F[6], participantId: 'PF07', nationality: 'SWE' },
     { sideNumber: 2, participantName: F[7], participantId: 'PF08', seedNumber: 6, nationality: 'NED' },
@@ -409,7 +412,7 @@ export const CONFLICT_ISSUE: ScheduleCellData = {
   eventName: "Men's Singles",
   roundName: 'R16',
   matchUpType: 'SINGLES',
-  matchUpStatus: 'TO_BE_PLAYED',
+  matchUpStatus: TO_BE_PLAYED,
   sides: [
     { sideNumber: 1, participantName: M[4], participantId: 'P05', seedNumber: 4, nationality: 'FRA' },
     { sideNumber: 2, participantName: M[8], participantId: 'P09' },
@@ -429,7 +432,7 @@ export const WITH_UMPIRE: ScheduleCellData = {
   roundName: 'Final',
   matchUpFormat: 'SET5-S:6/TB7',
   matchUpType: 'SINGLES',
-  matchUpStatus: 'TO_BE_PLAYED',
+  matchUpStatus: TO_BE_PLAYED,
   sides: [
     { sideNumber: 1, participantName: M[0], participantId: 'P01', seedNumber: 1, ranking: 3, nationality: 'ESP' },
     { sideNumber: 2, participantName: M[2], participantId: 'P03', seedNumber: 3, ranking: 7, nationality: 'GBR' },

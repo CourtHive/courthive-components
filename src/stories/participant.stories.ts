@@ -1,9 +1,10 @@
 import { renderParticipant } from '../components/renderStructure/renderParticipant';
 import { generateMatchUps } from '../data/generateMatchUps';
 
-import { matchUpStatusConstants } from 'tods-competition-factory';
+import { matchUpStatusConstants, drawDefinitionConstants } from 'tods-competition-factory';
 
 const { WALKOVER, DEFAULTED, DOUBLE_WALKOVER, RETIRED } = matchUpStatusConstants;
+const { MAIN } = drawDefinitionConstants;
 
 export default {
   title: 'Participants/Participant',
@@ -93,7 +94,7 @@ export const SinglesRetired = {
   args: {
     outcomes: [
       // prettier-ignore
-      { stage: 'MAIN', roundNumber: 1, roundPosition: 1, scoreString: '6-1 2-2', matchUpStatus: RETIRED, winningSide: 2 }
+      { stage: MAIN, roundNumber: 1, roundPosition: 1, scoreString: '6-1 2-2', matchUpStatus: RETIRED, winningSide: 2 }
     ],
     sideContainer: true,
     sideNumber: 1,
@@ -105,7 +106,7 @@ export const SinglesDefaulted = {
   args: {
     outcomes: [
       // prettier-ignore
-      { stage: 'MAIN',roundNumber: 1, roundPosition: 1, matchUpStatus: DEFAULTED, winningSide: 2 }
+      { stage: MAIN,roundNumber: 1, roundPosition: 1, matchUpStatus: DEFAULTED, winningSide: 2 }
     ],
     sideContainer: true,
     sideNumber: 1,
@@ -117,7 +118,7 @@ export const SinglesWalkover = {
   args: {
     outcomes: [
       // prettier-ignore
-      { matchUpStatus: WALKOVER, roundNumber: 1, roundPosition: 1, winningSide: 2, stage: "MAIN", }
+      { matchUpStatus: WALKOVER, roundNumber: 1, roundPosition: 1, winningSide: 2, stage: MAIN, }
     ],
     sideContainer: true,
     sideNumber: 1,
@@ -129,7 +130,7 @@ export const SinglesDoubleWalkover = {
   args: {
     outcomes: [
       // prettier-ignore
-      { stage: 'MAIN',roundNumber: 1, roundPosition: 1, matchUpStatus: DOUBLE_WALKOVER }
+      { stage: MAIN,roundNumber: 1, roundPosition: 1, matchUpStatus: DOUBLE_WALKOVER }
     ],
     sideContainer: true,
     sideNumber: 2,

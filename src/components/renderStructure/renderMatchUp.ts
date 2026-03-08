@@ -1,12 +1,15 @@
 import { getSelectedMatchUpStyle } from '../../styles/getSelectedMatchUpStyle';
 import { matchUpContainerStyle } from '../../styles/matchUpContainerStyle';
 import { getMatchUpStyle } from '../../styles/getMatchUpStyle';
+import { drawDefinitionConstants } from 'tods-competition-factory';
 import { renderCenterInfo } from './renderCenterInfo';
 import { getLinkStyle } from '../../styles/getLinkStyle';
 import { isFunction } from '../modal/cmodal';
 import { renderSide } from './renderSide';
 import cx from 'classnames';
 import type { Composition, EventHandlers, MatchUp } from '../../types';
+
+const { QUALIFYING } = drawDefinitionConstants;
 
 export function renderMatchUp(params: {
   composition?: Composition;
@@ -24,7 +27,7 @@ export function renderMatchUp(params: {
   const { composition, initialRoundNumber = 1, matchUp, moiety, selectedMatchUpId, searchActive } = params;
   const { roundFactor, roundNumber, finishingRound, matchUpType, preFeedRound, stage } = matchUp;
   const isFinalRound = params.isFinalRound || (finishingRound ? Number.parseInt(String(finishingRound)) === 1 : false);
-  const isQualifying = stage === 'QUALIFYING' && isFinalRound;
+  const isQualifying = stage === QUALIFYING && isFinalRound;
 
   // NOTE: is it desireable to have trailing - for final round of qualifying?
   // const qualifyingStage = stage === 'QUALIFYING';

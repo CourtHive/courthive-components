@@ -22,6 +22,9 @@ import {
   buildScheduleGridCell,
   DEFAULT_SCHEDULE_CELL_CONFIG,
 } from '../../components/schedule-page';
+import { matchUpStatusConstants } from 'tods-competition-factory';
+
+const { TO_BE_PLAYED, IN_PROGRESS, COMPLETED, WALKOVER, RETIRED, DEFAULTED, ABANDONED, DOUBLE_WALKOVER } = matchUpStatusConstants;
 
 import {
   SINGLES_COMPLETED,
@@ -176,8 +179,8 @@ export const Default = {
 export const Statuses = {
   render: () => {
     const labels = [
-      'TO_BE_PLAYED', 'IN_PROGRESS', 'COMPLETED', 'WALKOVER',
-      'RETIRED', 'DEFAULTED', 'ABANDONED', 'DOUBLE_WALKOVER',
+      TO_BE_PLAYED, IN_PROGRESS, COMPLETED, WALKOVER,
+      RETIRED, DEFAULTED, ABANDONED, DOUBLE_WALKOVER,
     ];
     const cells = ALL_STATUSES.map((data, i) => labeledCell(data, labels[i]));
     return gridLayout(cells, 'MatchUp Status Variants');

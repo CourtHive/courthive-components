@@ -1,10 +1,15 @@
 import { getPlacholderStyle, participantNameStyle, participantStyle } from '../../styles/participantStyle';
+import { drawDefinitionConstants, genderConstants, entryStatusConstants } from 'tods-competition-factory';
 import { renderParticipantDetail } from './renderParticipantDetail';
 import { renderParticipantInput } from './renderParticipantInput';
 import { seedStyle } from '../../styles/seedStyle';
 import { renderFrill } from './renderFrill';
 import { isFunction } from '../modal/cmodal';
 import type { Composition, EventHandlers, IndividualParticipant, MatchUp, Side } from '../../types';
+
+const { FEED_IN } = drawDefinitionConstants;
+const { MALE, FEMALE } = genderConstants;
+const { LUCKY_LOSER } = entryStatusConstants;
 
 const QUALIFIER = 'Qualifier';
 const BYE = 'BYE';
@@ -77,7 +82,7 @@ export function renderIndividual(params: {
   // For feed-in draws: check if this specific side is a feed-in position (can be any round)
   // A feed-in position has a drawPosition but no sourceMatchUp (doesn't come from previous round)
   const isFeedInSide =
-    matchUp?.drawType === 'FEED_IN' &&
+    matchUp?.drawType === FEED_IN &&
     matchUp?.roundNumber > 1 && // Not first round (already covered)
     side?.drawPosition &&
     !side?.sourceMatchUp; // No source means it's a direct feed-in position
@@ -132,8 +137,8 @@ export function renderIndividual(params: {
     } else if (configuration?.genderColor) {
       const gender = individualParticipant?.person?.sex;
       const color =
-        (gender === 'MALE' && 'var(--chc-gender-male, #2E86C1)') ||
-        (gender === 'FEMALE' && 'var(--chc-gender-female, #E07BAF)') ||
+        (gender === MALE && 'var(--chc-gender-male, #2E86C1)') ||
+        (gender === FEMALE && 'var(--chc-gender-female, #E07BAF)') ||
         '';
       span.style.color = typeof configuration.genderColor === 'string' ? configuration.genderColor : color;
     }
@@ -148,7 +153,7 @@ export function renderIndividual(params: {
       ll.className = 'chc-lucky-advancement-badge';
       ll.textContent = 'LL';
       name.appendChild(ll);
-    } else if (side?.participant?.entryStatus === 'LUCKY_LOSER') {
+    } else if (side?.participant?.entryStatus === LUCKY_LOSER) {
       const ll = document.createElement('span');
       ll.className = 'chc-lucky-loser-badge';
       ll.textContent = 'LL';

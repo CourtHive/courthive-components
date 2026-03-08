@@ -1,24 +1,49 @@
-import { describe, it, expect } from 'vitest';
 import { filterMatchUpCatalog, groupMatchUpCatalog } from '../domain/matchUpCatalogProjections';
 import type { CatalogMatchUpItem } from '../types';
+import { describe, it, expect } from 'vitest';
 
 const catalog: CatalogMatchUpItem[] = [
   {
-    matchUpId: 'M1', eventId: 'E1', eventName: 'Boys U16 Singles', drawId: 'D1', drawName: 'Main',
-    structureId: 'S1', roundNumber: 1, roundName: 'R32', matchUpType: 'SINGLES', isScheduled: false,
-    sides: [{ participantName: 'Alice Smith' }, { participantName: 'Bob Jones' }],
+    matchUpId: 'M1',
+    eventId: 'E1',
+    eventName: 'Boys U16 Singles',
+    drawId: 'D1',
+    drawName: 'Main',
+    structureId: 'S1',
+    roundNumber: 1,
+    roundName: 'R32',
+    matchUpType: 'SINGLES',
+    isScheduled: false,
+    sides: [{ participantName: 'Alice Smith' }, { participantName: 'Bob Jones' }]
   },
   {
-    matchUpId: 'M2', eventId: 'E1', eventName: 'Boys U16 Singles', drawId: 'D1', drawName: 'Main',
-    structureId: 'S1', roundNumber: 2, roundName: 'R16', matchUpType: 'SINGLES', isScheduled: true,
-    scheduledTime: '10:00', scheduledCourtName: 'Court 1',
-    sides: [{ participantName: 'Charlie Brown' }, { participantName: 'David Lee' }],
+    matchUpId: 'M2',
+    eventId: 'E1',
+    eventName: 'Boys U16 Singles',
+    drawId: 'D1',
+    drawName: 'Main',
+    structureId: 'S1',
+    roundNumber: 2,
+    roundName: 'R16',
+    matchUpType: 'SINGLES',
+    isScheduled: true,
+    scheduledTime: '10:00',
+    scheduledCourtName: 'Court 1',
+    sides: [{ participantName: 'Charlie Brown' }, { participantName: 'David Lee' }]
   },
   {
-    matchUpId: 'M3', eventId: 'E2', eventName: 'Girls U16 Singles', drawId: 'D2', drawName: 'Main',
-    structureId: 'S2', roundNumber: 1, roundName: 'R32', matchUpType: 'SINGLES', isScheduled: false,
-    sides: [{ participantName: 'Eve Wilson' }, { participantName: 'Fay Miller' }],
-  },
+    matchUpId: 'M3',
+    eventId: 'E2',
+    eventName: 'Girls U16 Singles',
+    drawId: 'D2',
+    drawName: 'Main',
+    structureId: 'S2',
+    roundNumber: 1,
+    roundName: 'R32',
+    matchUpType: 'SINGLES',
+    isScheduled: false,
+    sides: [{ participantName: 'Eve Wilson' }, { participantName: 'Fay Miller' }]
+  }
 ];
 
 describe('filterMatchUpCatalog', () => {

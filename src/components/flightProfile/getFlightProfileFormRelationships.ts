@@ -2,6 +2,7 @@
  * Flight profile form relationships and field interactions.
  * Manages form field dependencies and dynamic updates for flight profile creation.
  */
+import { factoryConstants } from 'tods-competition-factory';
 import { numericRange } from '../validators/numericRange';
 import {
   FLIGHTS_COUNT,
@@ -11,6 +12,8 @@ import {
   SCALE_TYPE,
   SCALE_NAME
 } from './getFlightProfileFormItems';
+
+const { RATING } = factoryConstants.scaleConstants;
 
 const NONE = 'none';
 
@@ -65,7 +68,7 @@ export function getFlightProfileFormRelationships(): any[] {
     const scaleType = (e!.target as HTMLSelectElement).value;
 
     if (fields) {
-      const isRating = scaleType === 'RATING';
+      const isRating = scaleType === RATING;
       fields[SCALE_NAME].style.display = isRating ? '' : NONE;
     }
   };

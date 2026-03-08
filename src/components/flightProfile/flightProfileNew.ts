@@ -2,10 +2,13 @@
  * Flight Profile editor modal - Refactored to follow TMX form pattern.
  * Allows users to configure flight profiles for automatic participant segmentation.
  */
+import { factoryConstants } from 'tods-competition-factory';
 import { renderForm } from '../forms/renderForm';
 import { cModal } from '../modal/cmodal';
 import { getFlightProfileFormItems } from './getFlightProfileFormItems';
 import { getFlightProfileFormRelationships } from './getFlightProfileFormRelationships';
+
+const { RATING } = factoryConstants.scaleConstants;
 import {
   generateFlightNames,
   buildScaleAttributes,
@@ -136,7 +139,7 @@ export function getFlightProfileModal(params: {
         namingType: inputs.namingType?.value || 'colors',
         customName: inputs.customName?.value || 'Flight',
         suffixType: inputs.suffixType?.value || 'numbers',
-        scaleType: inputs.scaleType?.value || 'RATING',
+        scaleType: inputs.scaleType?.value || RATING,
         scaleName: inputs.scaleName?.value,
         splitMethod: inputs.splitMethod?.value || 'LEVEL_BASED',
         isExisting: false

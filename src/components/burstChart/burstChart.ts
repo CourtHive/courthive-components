@@ -15,7 +15,9 @@
 
 import { select, scaleLinear, arc as d3Arc, partition as d3Partition, hierarchy, range as d3Range } from 'd3';
 import type { ScaleLinear, HierarchyRectangularNode, Selection } from 'd3';
-import { fixtures } from 'tods-competition-factory';
+import { fixtures, entryStatusConstants } from 'tods-competition-factory';
+
+const { WILDCARD, QUALIFIER, LUCKY_LOSER } = entryStatusConstants;
 import { wordwrap } from './textHelpers';
 
 // ============================================================================
@@ -143,11 +145,11 @@ function reorderForBracket<T>(items: T[]): T[] {
 function entryStatusShortCode(entryStatus: string | undefined): string | undefined {
   if (!entryStatus) return undefined;
   switch (entryStatus) {
-    case 'WILDCARD':
+    case WILDCARD:
       return 'WC';
-    case 'QUALIFIER':
+    case QUALIFIER:
       return 'Q';
-    case 'LUCKY_LOSER':
+    case LUCKY_LOSER:
       return 'LL';
     default:
       // Legacy codes pass through (WC, Q, LL)

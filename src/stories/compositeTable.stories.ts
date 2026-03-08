@@ -12,7 +12,10 @@ import '../styles/tabulator.css';
 import type { Meta, StoryObj } from '@storybook/html';
 import { controlBar } from '../components/controlBar/controlBar';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { mocksEngine, tournamentEngine, genderConstants, participantConstants } from 'tods-competition-factory';
+
+const { MALE, FEMALE } = genderConstants;
+const { INDIVIDUAL } = participantConstants;
 
 const meta: Meta = {
   title: 'Components/ControlBar/Composite Pattern',
@@ -27,7 +30,7 @@ function getParticipantData(count: number = 25) {
   const { tournamentRecord } = mocksEngine.generateTournamentRecord({
     participantsProfile: {
       participantsCount: count,
-      participantType: 'INDIVIDUAL'
+      participantType: INDIVIDUAL
     }
   });
 
@@ -226,7 +229,7 @@ export const FullParticipantsExample: Story = {
               label: 'Male',
               close: true,
               onClick: () => {
-                currentGender = 'MALE';
+                currentGender = MALE;
                 applyFilters();
               }
             },
@@ -234,7 +237,7 @@ export const FullParticipantsExample: Story = {
               label: 'Female',
               close: true,
               onClick: () => {
-                currentGender = 'FEMALE';
+                currentGender = FEMALE;
                 applyFilters();
               }
             }

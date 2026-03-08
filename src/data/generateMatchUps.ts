@@ -1,4 +1,8 @@
-import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { mocksEngine, tournamentEngine, eventConstants, drawDefinitionConstants, participantConstants } from 'tods-competition-factory';
+
+const { DOUBLES, SINGLES } = eventConstants;
+const { AD_HOC } = drawDefinitionConstants;
+const { INDIVIDUAL } = participantConstants;
 import type { MatchUp } from '../types';
 
 export function generateMatchUps({
@@ -42,7 +46,7 @@ export function generateMatchUps({
   ];
 
   const drawProfile = {
-    eventType: eventType === 'DOUBLES' ? 'DOUBLES' : 'SINGLES', // for storybook entry fields: ensure valid value!
+    eventType: eventType === DOUBLES ? DOUBLES : SINGLES, // for storybook entry fields: ensure valid value!
     completionGoal: complete,
     qualifyingProfiles,
     participantsCount,
@@ -53,7 +57,7 @@ export function generateMatchUps({
     outcomes
   };
 
-  if (drawType === 'AD_HOC') Object.assign(drawProfile, { drawMatic: true, roundsCount: 3 });
+  if (drawType === AD_HOC) Object.assign(drawProfile, { drawMatic: true, roundsCount: 3 });
 
   const result = mocksEngine.generateTournamentRecord({
     drawProfiles: [drawProfile],
@@ -70,7 +74,7 @@ export function generateMatchUps({
 
   if (withRatings) {
     const { participants } = tournamentEngine.getParticipants({
-      participantFilters: { participantTypes: ['INDIVIDUAL'] }
+      participantFilters: { participantTypes: [INDIVIDUAL] }
     });
     participants.forEach((participant: any) => {
       const value = +(10 + Math.random() * 6).toFixed(2);
@@ -80,7 +84,7 @@ export function generateMatchUps({
           scaleValue: { [withRatings.scaleName]: value },
           scaleName: withRatings.scaleName,
           scaleType: withRatings.scaleType || 'RATING',
-          eventType: withRatings.eventType || 'SINGLES'
+          eventType: withRatings.eventType || SINGLES
         }
       });
     });

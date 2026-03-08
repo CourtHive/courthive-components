@@ -13,6 +13,7 @@ import {
   tieFormatConstants,
   scheduleConstants,
   matchUpStatusConstants,
+  genderConstants,
 } from 'tods-competition-factory';
 
 import type {
@@ -32,6 +33,7 @@ import {
 const { DOMINANT_DUO } = tieFormatConstants;
 const { DOUBLES, TEAM } = eventConstants;
 const { BYE } = matchUpStatusConstants;
+const { MALE, FEMALE } = genderConstants;
 const {
   SCHEDULE_ERROR,
   SCHEDULE_CONFLICT,
@@ -95,24 +97,24 @@ const VENUE_PROFILES = [
 const EVENT_PROFILES = [
   {
     eventName: "Men's Singles",
-    gender: 'MALE',
+    gender: MALE,
     drawProfiles: [{ drawSize: 32 }],
   },
   {
     eventName: "Men's Doubles",
     eventType: DOUBLES,
-    gender: 'MALE',
+    gender: MALE,
     drawProfiles: [{ drawSize: 16 }],
   },
   {
     eventName: "Women's Singles",
-    gender: 'FEMALE',
+    gender: FEMALE,
     drawProfiles: [{ drawSize: 32 }],
   },
   {
     eventName: "Women's Doubles",
     eventType: DOUBLES,
-    gender: 'FEMALE',
+    gender: FEMALE,
     drawProfiles: [{ drawSize: 16 }],
   },
   {

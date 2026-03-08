@@ -3,6 +3,10 @@
  * Sets up tournament scenarios and handles generateFlightProfile results
  */
 
+import { participantConstants } from 'tods-competition-factory';
+
+const { INDIVIDUAL } = participantConstants;
+
 const SCALE_DATE = '2026-01-01';
 
 /**
@@ -37,7 +41,7 @@ export function setupTournamentWithFlights(mocksEngine: any, tournamentEngine: a
 
   // Get all participants
   const { participants } = tournamentEngine.getParticipants({
-    participantFilters: { participantTypes: ['INDIVIDUAL'] }
+    participantFilters: { participantTypes: [INDIVIDUAL] }
   });
 
   // Add scale items to participants

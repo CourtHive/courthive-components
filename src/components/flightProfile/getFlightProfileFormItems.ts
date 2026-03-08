@@ -2,8 +2,11 @@
  * Flight profile form items configuration.
  * Generates form field definitions for flight profile creation with validation and options.
  */
+import { factoryConstants } from 'tods-competition-factory';
 import { numericRange } from '../validators/numericRange';
 import { DEFAULT_COLORS, RATING_SYSTEMS, SPLIT_METHODS, type FlightProfileState } from './flightProfileLogic';
+
+const { RATING, RANKING } = factoryConstants.scaleConstants;
 
 // Field name constants
 export const FLIGHTS_COUNT = 'flightsCount';
@@ -31,7 +34,7 @@ export function getFlightProfileFormItems({
     namingType: 'colors',
     customName: 'Flight',
     suffixType: 'numbers',
-    scaleType: 'RATING',
+    scaleType: RATING as 'RATING',
     scaleName: 'WTN',
     splitMethod: 'LEVEL_BASED'
   };
@@ -59,7 +62,7 @@ export function getFlightProfileFormItems({
     }
 
     if (scaleAttributes) {
-      initialState.scaleType = scaleAttributes.scaleType || 'RATING';
+      initialState.scaleType = scaleAttributes.scaleType || RATING;
       initialState.scaleName = scaleAttributes.scaleName;
     }
 
@@ -117,8 +120,8 @@ export function getFlightProfileFormItems({
     },
     {
       options: [
-        { label: 'Rating', value: 'RATING', selected: initialState.scaleType === 'RATING' },
-        { label: 'Ranking', value: 'RANKING', selected: initialState.scaleType === 'RANKING' }
+        { label: 'Rating', value: RATING, selected: initialState.scaleType === RATING },
+        { label: 'Ranking', value: RANKING, selected: initialState.scaleType === RANKING }
       ],
       label: editorConfig.labels?.scaleTypeLabel || 'Flighting Strategy',
       field: SCALE_TYPE,
@@ -134,7 +137,7 @@ export function getFlightProfileFormItems({
       label: editorConfig.labels?.scaleNameLabel || 'Rating System',
       field: SCALE_NAME,
       value: initialState.scaleName,
-      visible: initialState.scaleType === 'RATING',
+      visible: initialState.scaleType === RATING,
       hide: isExisting
     },
     {

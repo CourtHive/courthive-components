@@ -1,4 +1,7 @@
+import { eventConstants } from 'tods-competition-factory';
 import { describe, it, expect } from 'vitest';
+
+const { DOUBLES, SINGLES } = eventConstants;
 /**
  * Tests for Flight Profile logic functions
  */
@@ -68,7 +71,7 @@ describe('Flight Profile Logic', () => {
         suffixType: 'numbers',
         scaleType: 'RATING',
         scaleName: 'WTN',
-        eventType: 'SINGLES',
+        eventType: SINGLES,
         splitMethod: 'LEVEL_BASED',
         isExisting: false
       };
@@ -78,7 +81,7 @@ describe('Flight Profile Logic', () => {
         accessor: 'wtnRating',
         ascending: true,
         scaleType: 'RATING',
-        eventType: 'SINGLES',
+        eventType: SINGLES,
         scaleName: 'WTN'
       });
     });
@@ -90,7 +93,7 @@ describe('Flight Profile Logic', () => {
         customName: 'Flight',
         suffixType: 'numbers',
         scaleType: 'RANKING',
-        eventType: 'DOUBLES',
+        eventType: DOUBLES,
         splitMethod: 'LEVEL_BASED',
         isExisting: false
       };
@@ -98,7 +101,7 @@ describe('Flight Profile Logic', () => {
       const attrs = buildScaleAttributes(state);
       expect(attrs).toEqual({
         scaleType: 'RANKING',
-        eventType: 'DOUBLES'
+        eventType: DOUBLES
       });
     });
   });
@@ -125,7 +128,7 @@ describe('Flight Profile Logic', () => {
         scaleAttributes: {
           scaleType: 'RATING',
           scaleName: 'UTR',
-          eventType: 'SINGLES'
+          eventType: SINGLES
         },
         splitMethod: 'splitWaterfall'
       };
@@ -148,7 +151,7 @@ describe('Flight Profile Logic', () => {
         ],
         scaleAttributes: {
           scaleType: 'RANKING',
-          eventType: 'DOUBLES'
+          eventType: DOUBLES
         },
         splitMethod: 'splitLevelBased'
       };
@@ -172,7 +175,7 @@ describe('Flight Profile Logic', () => {
         scaleAttributes: {
           scaleType: 'RATING',
           scaleName: 'NTRP',
-          eventType: 'SINGLES'
+          eventType: SINGLES
         },
         splitMethod: 'splitShuttle'
       };
@@ -196,7 +199,7 @@ describe('Flight Profile Logic', () => {
         suffixType: 'numbers',
         scaleType: 'RATING',
         scaleName: 'WTN',
-        eventType: 'SINGLES',
+        eventType: SINGLES,
         splitMethod: 'LEVEL_BASED',
         isExisting: false
       };
@@ -213,7 +216,7 @@ describe('Flight Profile Logic', () => {
         suffixType: 'numbers',
         scaleType: 'RATING',
         scaleName: 'WTN',
-        eventType: 'SINGLES',
+        eventType: SINGLES,
         splitMethod: 'LEVEL_BASED',
         isExisting: false
       };
@@ -230,7 +233,7 @@ describe('Flight Profile Logic', () => {
         suffixType: 'numbers',
         scaleType: 'RATING',
         scaleName: 'WTN',
-        eventType: 'SINGLES',
+        eventType: SINGLES,
         splitMethod: 'LEVEL_BASED',
         isExisting: false
       };
@@ -246,7 +249,7 @@ describe('Flight Profile Logic', () => {
         customName: 'Flight',
         suffixType: 'numbers',
         scaleType: 'RATING',
-        eventType: 'SINGLES',
+        eventType: SINGLES,
         splitMethod: 'LEVEL_BASED',
         isExisting: false
       };

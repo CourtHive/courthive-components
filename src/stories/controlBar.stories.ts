@@ -20,7 +20,10 @@ import '../styles/tabulator.css';
 import type { Meta, StoryObj } from '@storybook/html';
 import { controlBar } from '../components/controlBar/controlBar';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { mocksEngine, tournamentEngine, genderConstants, participantConstants } from 'tods-competition-factory';
+
+const { MALE, FEMALE } = genderConstants;
+const { INDIVIDUAL } = participantConstants;
 
 const IS_PRIMARY = 'is-primary';
 const U16_SINGLES = 'U16 Singles';
@@ -39,7 +42,7 @@ function getParticipantData(count: number = 32) {
   const { tournamentRecord } = mocksEngine.generateTournamentRecord({
     participantsProfile: {
       participantsCount: count,
-      participantType: 'INDIVIDUAL'
+      participantType: INDIVIDUAL
     }
   });
 
@@ -185,7 +188,7 @@ export const ParticipantsPage: Story = {
               label: 'Male',
               close: true,
               onClick: () => {
-                currentGender = 'MALE';
+                currentGender = MALE;
                 applyFilters();
               }
             },
@@ -193,7 +196,7 @@ export const ParticipantsPage: Story = {
               label: 'Female',
               close: true,
               onClick: () => {
-                currentGender = 'FEMALE';
+                currentGender = FEMALE;
                 applyFilters();
               }
             }

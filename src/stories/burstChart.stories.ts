@@ -11,7 +11,7 @@
  * This replaces the broken D3v3-based BurstChart story.
  */
 
-import { mocksEngine, tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
+import { mocksEngine, tournamentEngine, drawDefinitionConstants, matchUpStatusConstants } from 'tods-competition-factory';
 import { fromLegacyDraw, fromFactoryDrawData } from '../components/burstChart/matchUpTransform';
 import type { BurstChartInstance } from '../components/burstChart/burstChart';
 import { burstChart } from '../components/burstChart/burstChart';
@@ -25,6 +25,7 @@ import wimbledonData from '../data/burstChart/wimbledon.json';
 import type { Meta, StoryObj } from '@storybook/html';
 
 const { SINGLE_ELIMINATION } = drawDefinitionConstants;
+const { BYE } = matchUpStatusConstants;
 
 const CHC_BG_SECONDARY = 'var(--chc-bg-secondary)';
 const CHC_BG_ELEVATED = 'var(--chc-bg-elevated)';
@@ -340,7 +341,7 @@ export const ByesInDraw: Story = {
 
     // Log BYE matchUp details for debugging
     const round1 = drawData.roundMatchUps[1] || [];
-    const byeMatchUps = round1.filter((mu) => mu.matchUpStatus === 'BYE');
+    const byeMatchUps = round1.filter((mu) => mu.matchUpStatus === BYE);
 
     const chart = burstChart({
       width: args.width,
