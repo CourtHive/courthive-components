@@ -199,6 +199,38 @@
   display: flex;
 }
 
+/* ── Modal Menu Dropdown ─────────────────────────────────── */
+
+.chc-modal-menu-dropdown {
+  position: fixed;
+  z-index: 10000;
+  background-color: var(--chc-bg-elevated, #fff);
+  border: 1px solid var(--chc-border-primary, rgba(0, 8, 16, 0.15));
+  border-radius: 6px;
+  box-shadow: 0 4px 14px -2px rgba(0, 8, 16, 0.12);
+  padding: 4px 0;
+  min-width: 160px;
+  overflow: hidden;
+}
+
+.chc-modal-menu-item {
+  padding: 8px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--chc-text-primary, #333);
+  white-space: nowrap;
+  transition: background-color 0.1s;
+}
+
+.chc-modal-menu-item:hover {
+  background-color: var(--chc-hover-bg, #f0f0f0);
+}
+
+.chc-modal-menu-item--active {
+  font-weight: 600;
+  color: var(--chc-status-info, #3273dc);
+}
+
 /* ════════════════════════════════════════════════════════════
    Token-referenced styles (Batch 2)
    ════════════════════════════════════════════════════════════ */

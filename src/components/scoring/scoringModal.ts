@@ -1,66 +1,63 @@
 /**
  * Modern TypeScript scoring modal
  * Supports multiple scoring approaches with validation
+ * Menu caret allows seamless switching between approaches
  */
 import { cModal } from '../modal/cmodal';
 import { renderFreeScoreEntry } from './approaches/freeScoreApproach';
 import { renderDynamicSetsScoreEntry } from './approaches/dynamicSetsApproach';
 import { renderDialPadScoreEntry } from './approaches/dialPadApproach';
 import type { ScoringModalParams, ScoreOutcome } from './types';
-import { getScoringConfig } from './config';
+import { getScoringConfig, setScoringConfig } from './config';
+
+type ScoringApproach = 'dynamicSets' | 'freeScore' | 'dialPad';
+
+const APPROACH_LABELS: Record<ScoringApproach, string> = {
+  dynamicSets: 'Dynamic Sets',
+  freeScore: 'Free Score',
+  dialPad: 'Dial Pad'
+};
+
+const APPROACHES: ScoringApproach[] = ['dynamicSets', 'freeScore', 'dialPad'];
 
 export function scoringModal(params: ScoringModalParams): void {
-  const { matchUp, callback, labels = {} } = params;
+  const { matchUp, callback, onClose, labels = {} } = params;
 
-  // Choose approach based on config setting
   const config = getScoringConfig();
-  const approach = config.scoringApproach || 'dynamicSets';
-
-  const container = document.createElement('div');
-  container.style.padding = '1em';
+  let activeApproach: ScoringApproach = (config.scoringApproach as ScoringApproach) || 'dynamicSets';
 
   // Track if matchUp had an existing score/status
   const hadExistingScore = !!(matchUp.score?.sets?.length || matchUp.matchUpStatus);
   let currentOutcome: ScoreOutcome | null = null;
-  let wasCleared = false; // Track if user has cleared the score
+  let wasCleared = false;
 
   const handleScoreChange = (outcome: ScoreOutcome) => {
     currentOutcome = outcome;
 
-    // If user enters anything after clearing, mark as no longer cleared
     if (wasCleared && (outcome.sets?.length > 0 || outcome.score)) {
       wasCleared = false;
     }
 
-    // Enable/disable submit button based on validity
     const submitBtn = document.getElementById('submitScoreV2') as HTMLButtonElement;
     if (submitBtn) {
-      // Submit should be enabled if:
-      // 1. Score is valid (normal case), OR
-      // 2. User cleared an existing score (wasCleared=true and hadExistingScore=true)
       const canSubmit = outcome.isValid || (wasCleared && hadExistingScore);
       submitBtn.disabled = !canSubmit;
     }
 
-    // Enable/disable clear button based on whether there's input
     const clearBtn = document.getElementById('clearScoreV2') as HTMLButtonElement;
     if (clearBtn) {
-      // For text-based approaches (freeScore), check input field
       const scoreInput = document.getElementById('scoreInputV2') as HTMLInputElement;
       if (scoreInput) {
         clearBtn.disabled = !scoreInput.value.trim();
       } else {
-        // For other approaches (dynamicSets, dialPad), check if there are sets OR irregular ending status
         const hasSets = outcome.sets && outcome.sets.length > 0;
         const hasIrregularStatus =
           outcome.matchUpStatus && outcome.matchUpStatus !== 'COMPLETED' && outcome.matchUpStatus !== 'TO_BE_PLAYED';
-        const hasContentToClear = hasSets || hasIrregularStatus;
-        clearBtn.disabled = !hasContentToClear;
+        clearBtn.disabled = !(hasSets || hasIrregularStatus);
       }
     }
   };
 
-  // Cleanup function to call when modal closes
   const cleanupCurrentApproach = () => {
     if ((window as any).cleanupDialPad) {
       (window as any).cleanupDialPad();
@@ -74,32 +71,21 @@ export function scoringModal(params: ScoringModalParams): void {
     }
   };
 
-  if (approach === 'freeScore') {
-    renderFreeScoreEntry({
-      matchUp,
-      container,
-      onScoreChange: handleScoreChange,
-      labels,
-    });
-  } else if (approach === 'dynamicSets') {
-    renderDynamicSetsScoreEntry({
-      matchUp,
-      container,
-      onScoreChange: handleScoreChange,
-      labels,
-    });
-  } else if (approach === 'dialPad') {
-    renderDialPadScoreEntry({
-      matchUp,
-      container,
-      onScoreChange: handleScoreChange,
-      labels,
-    });
-  } else {
-    container.innerHTML = '<p>Unknown scoring approach...</p>';
-  }
+  const renderApproach = (approach: ScoringApproach): HTMLElement => {
+    const container = document.createElement('div');
+    container.style.padding = '1em';
 
-  // Help text for freeScore approach (shown in info popover)
+    if (approach === 'freeScore') {
+      renderFreeScoreEntry({ matchUp, container, onScoreChange: handleScoreChange, labels });
+    } else if (approach === 'dynamicSets') {
+      renderDynamicSetsScoreEntry({ matchUp, container, onScoreChange: handleScoreChange, labels });
+    } else if (approach === 'dialPad') {
+      renderDialPadScoreEntry({ matchUp, container, onScoreChange: handleScoreChange, labels });
+    }
+
+    return container;
+  };
+
   const freeScoreHelp = `
     <strong>${labels.scoreTips || 'Score Entry Tips:'}</strong><br><br>
     <strong>${labels.setScores || 'Set Scores:'}</strong> Enter space or dash-separated (e.g., "6-4 6-3")<br><br>
@@ -117,89 +103,113 @@ export function scoringModal(params: ScoringModalParams): void {
     <strong>dr</strong> = Dead Rubber
   `;
 
-  cModal.open({
-    title: labels.title || 'Score Entry',
-    content: container,
-    config: approach === 'freeScore' ? { info: freeScoreHelp } : undefined,
-    buttons: [
-      {
-        onClick: () => {
-          cleanupCurrentApproach();
-          // Cancel button should NOT call callback - just close modal
-        },
-        label: labels.cancel || 'Cancel',
-        intent: 'none',
-        footer: {
-          className: 'button',
-          style: 'background-color: var(--chc-bg-primary); color: var(--chc-text-primary); border: 1px solid var(--chc-border-primary);'
-        } as any,
-        close: true
-      },
-      {
-        id: 'clearScoreV2',
-        label: labels.clear || 'Clear',
-        intent: 'none',
-        disabled: true, // Initially disabled (no input yet)
-        close: false, // Don't close modal when clearing
-        onClick: () => {
-          // Mark that user has cleared the score
-          wasCleared = true;
+  const buildMenuItems = () =>
+    APPROACHES.map((a) => ({
+      label: APPROACH_LABELS[a],
+      active: a === activeApproach,
+      onClick: () => switchApproach(a)
+    }));
 
-          if (approach === 'freeScore') {
-            // Clear text input (freeScore uses text input)
-            const scoreInput = document.getElementById('scoreInputV2') as HTMLInputElement;
-            if (scoreInput) {
-              scoreInput.value = '';
-              scoreInput.dispatchEvent(new Event('input', { bubbles: true }));
-              scoreInput.focus();
-            }
-          } else if (approach === 'dynamicSets' && (window as any).resetDynamicSets) {
-            // Clear dynamic sets
-            (window as any).resetDynamicSets();
-          } else if (approach === 'dialPad' && (window as any).resetDialPad) {
-            // Clear dial pad digits
-            (window as any).resetDialPad();
-          }
-        }
-      },
-      {
-        id: 'submitScoreV2',
-        label: labels.submit || 'Submit Score',
-        intent: 'is-primary',
-        disabled: true,
-        onClick: () => {
-          // Allow submission if:
-          // 1. Score is valid, OR
-          // 2. User cleared an existing score (to remove it)
-          const canSubmit = currentOutcome && (currentOutcome.isValid || (wasCleared && hadExistingScore));
-
-          if (canSubmit) {
-            cleanupCurrentApproach();
-            // Pass the full outcome to callback
-            callback(currentOutcome);
-          }
-        },
-        close: true
-      }
-    ]
+  const buildModalConfig = () => ({
+    info: activeApproach === 'freeScore' ? freeScoreHelp : undefined,
+    menu: { menuItems: buildMenuItems() }
   });
 
-  // Apply yellow styling to Clear button and update button states after modal opens
-  setTimeout(() => {
-    const clearButton = document.getElementById('clearScoreV2') as HTMLButtonElement;
-    if (clearButton) {
-      clearButton.style.backgroundColor = 'var(--chc-clear-btn-bg)';
-      clearButton.style.color = 'var(--chc-clear-btn-text)';
-
-      // Enable Clear button if matchUp has existing score or irregular status
-      if (hadExistingScore) {
-        clearButton.disabled = false;
+  const clearButton = () => {
+    // Re-apply clear button styling after content swap
+    setTimeout(() => {
+      const clearBtn = document.getElementById('clearScoreV2') as HTMLButtonElement;
+      if (clearBtn) {
+        clearBtn.style.backgroundColor = 'var(--chc-clear-btn-bg)';
+        clearBtn.style.color = 'var(--chc-clear-btn-text)';
+        if (hadExistingScore) clearBtn.disabled = false;
       }
+      if (currentOutcome) handleScoreChange(currentOutcome);
+    }, 0);
+  };
 
-      // Update button states if we have an initial outcome
-      if (currentOutcome) {
-        handleScoreChange(currentOutcome);
-      }
+  let modalHandle: any;
+
+  const switchApproach = (newApproach: ScoringApproach) => {
+    if (newApproach === activeApproach) return;
+
+    cleanupCurrentApproach();
+    currentOutcome = null;
+    wasCleared = false;
+    activeApproach = newApproach;
+
+    // Persist the preference
+    setScoringConfig({ scoringApproach: newApproach });
+
+    if (modalHandle) {
+      modalHandle.update({
+        content: renderApproach(newApproach),
+        config: buildModalConfig()
+      });
+      clearButton();
     }
-  }, 0);
+  };
+
+  const makeButtons = () => [
+    {
+      onClick: () => {
+        cleanupCurrentApproach();
+      },
+      label: labels.cancel || 'Cancel',
+      intent: 'none',
+      footer: {
+        className: 'button',
+        style:
+          'background-color: var(--chc-bg-primary); color: var(--chc-text-primary); border: 1px solid var(--chc-border-primary);'
+      } as any,
+      close: true
+    },
+    {
+      id: 'clearScoreV2',
+      label: labels.clear || 'Clear',
+      intent: 'none',
+      disabled: true,
+      close: false,
+      onClick: () => {
+        wasCleared = true;
+
+        if (activeApproach === 'freeScore') {
+          const scoreInput = document.getElementById('scoreInputV2') as HTMLInputElement;
+          if (scoreInput) {
+            scoreInput.value = '';
+            scoreInput.dispatchEvent(new Event('input', { bubbles: true }));
+            scoreInput.focus();
+          }
+        } else if (activeApproach === 'dynamicSets' && (window as any).resetDynamicSets) {
+          (window as any).resetDynamicSets();
+        } else if (activeApproach === 'dialPad' && (window as any).resetDialPad) {
+          (window as any).resetDialPad();
+        }
+      }
+    },
+    {
+      id: 'submitScoreV2',
+      label: labels.submit || 'Submit Score',
+      intent: 'is-primary',
+      disabled: true,
+      onClick: () => {
+        const canSubmit = currentOutcome && (currentOutcome.isValid || (wasCleared && hadExistingScore));
+        if (canSubmit) {
+          cleanupCurrentApproach();
+          callback(currentOutcome);
+        }
+      },
+      close: true
+    }
+  ];
+
+  modalHandle = cModal.open({
+    title: labels.title || 'Score Entry',
+    content: renderApproach(activeApproach),
+    config: buildModalConfig(),
+    buttons: makeButtons(),
+    onClose: onClose ? () => onClose() : undefined
+  });
+
+  clearButton();
 }

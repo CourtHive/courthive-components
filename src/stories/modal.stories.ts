@@ -8,6 +8,129 @@ export default {
   tags: ['autodocs']
 };
 
+export const MenuDropdown = {
+  render: () => {
+    const container = document.createElement('div');
+    container.style.padding = '2em';
+
+    const title = document.createElement('h2');
+    title.textContent = 'Modal Menu Dropdown';
+    title.style.marginBottom = '1em';
+
+    const description = document.createElement('p');
+    description.innerHTML =
+      'Demonstrates <code>config.menu</code> — a caret icon in the title bar that opens a dropdown menu. Active items are highlighted.';
+    description.style.marginBottom = '1.5em';
+    description.style.color = 'var(--chc-text-secondary)';
+
+    // Basic menu
+    const basicButton = document.createElement('button');
+    basicButton.className = 'button is-primary';
+    basicButton.textContent = 'Modal with Menu';
+    basicButton.style.marginRight = '1em';
+    basicButton.onclick = () => {
+      let current = 'Option A';
+      const logArea = document.createElement('div');
+      logArea.style.cssText = 'padding: 1em; font-size: 14px; color: var(--chc-text-secondary);';
+      logArea.textContent = `Current selection: ${current}`;
+
+      const makeMenuItems = () => [
+        { label: 'Option A', active: current === 'Option A', onClick: () => { current = 'Option A'; logArea.textContent = `Current selection: ${current}`; } },
+        { label: 'Option B', active: current === 'Option B', onClick: () => { current = 'Option B'; logArea.textContent = `Current selection: ${current}`; } },
+        { label: 'Option C', active: current === 'Option C', onClick: () => { current = 'Option C'; logArea.textContent = `Current selection: ${current}`; } },
+      ];
+
+      cModal.open({
+        title: 'Choose an Option',
+        content: logArea,
+        buttons: [{ label: 'Close', intent: 'is-info' }],
+        config: {
+          menu: { menuItems: makeMenuItems() }
+        }
+      });
+    };
+
+    // Menu + Info combined
+    const comboButton = document.createElement('button');
+    comboButton.className = 'button is-success';
+    comboButton.textContent = 'Menu + Info Icon';
+    comboButton.style.marginRight = '1em';
+    comboButton.onclick = () => {
+      cModal.open({
+        title: 'Both Features',
+        content: '<p>This modal has both an info icon and a menu caret in the title bar.</p>',
+        buttons: [{ label: 'Close', intent: 'is-info' }],
+        config: {
+          info: '<strong>Help:</strong> Use the dropdown menu to switch options.',
+          menu: {
+            menuItems: [
+              { label: 'View A', active: true, onClick: () => alert('View A selected') },
+              { label: 'View B', active: false, onClick: () => alert('View B selected') },
+            ]
+          }
+        }
+      });
+    };
+
+    // Seamless content swap demo
+    const swapButton = document.createElement('button');
+    swapButton.className = 'button is-info';
+    swapButton.textContent = 'Seamless Content Swap';
+    swapButton.onclick = () => {
+      let activeApproach = 'Alpha';
+      let modalHandle: any;
+
+      const buildContent = (name: string) => {
+        const div = document.createElement('div');
+        div.style.padding = '1em';
+        div.innerHTML = `<h3 style="margin-bottom: .5em;">${name} View</h3><p>This content was swapped seamlessly without closing the modal.</p>`;
+        return div;
+      };
+
+      const switchTo = (name: string) => {
+        activeApproach = name;
+        if (modalHandle) {
+          modalHandle.update({
+            content: buildContent(name),
+            config: {
+              menu: {
+                menuItems: ['Alpha', 'Beta', 'Gamma'].map((n) => ({
+                  label: n,
+                  active: n === activeApproach,
+                  onClick: () => switchTo(n)
+                }))
+              }
+            }
+          });
+        }
+      };
+
+      modalHandle = cModal.open({
+        title: 'Switchable Content',
+        content: buildContent('Alpha'),
+        buttons: [{ label: 'Done', intent: 'is-primary' }],
+        config: {
+          menu: {
+            menuItems: ['Alpha', 'Beta', 'Gamma'].map((n) => ({
+              label: n,
+              active: n === activeApproach,
+              onClick: () => switchTo(n)
+            }))
+          }
+        }
+      });
+    };
+
+    container.appendChild(title);
+    container.appendChild(description);
+    container.appendChild(basicButton);
+    container.appendChild(comboButton);
+    container.appendChild(swapButton);
+
+    return container;
+  }
+};
+
 export const InfoIcon = {
   render: () => {
     const container = document.createElement('div');

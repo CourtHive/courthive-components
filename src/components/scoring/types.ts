@@ -47,6 +47,7 @@ export type ScoringModalLabels = {
 export type ScoringModalParams = {
   matchUp: any;
   callback: (outcome: any) => void;
+  onClose?: () => void;
   labels?: ScoringModalLabels;
 };
 

@@ -55,16 +55,21 @@ export function validateTopology(state: TopologyState): ValidationError[] {
     if (count > 1) nodesWithFeedLinks.add(nodeId);
   }
 
-  // Draw sizes: power of 2 for elimination types (unless they have fed positions)
+  // Draw sizes: power of 2 for MAIN elimination types without fed positions
+  // Consolation, playoff, and fed structures can have any drawSize (they'll be coerced to FEED_IN)
   for (const node of state.nodes) {
     if (node.structureType === SINGLE_ELIMINATION && !nodesWithFeedLinks.has(node.id)) {
-      const isPow2 = node.drawSize > 0 && (node.drawSize & (node.drawSize - 1)) === 0;
-      if (!isPow2) {
-        errors.push({
-          severity: 'error',
-          message: `"${node.structureName}" draw size must be a power of 2`,
-          nodeId: node.id,
-        });
+      const isTarget = state.edges.some((e) => e.targetNodeId === node.id);
+      const isMainOrQualifying = node.stage === MAIN || node.stage === QUALIFYING;
+      if (isMainOrQualifying && !isTarget) {
+        const isPow2 = node.drawSize > 0 && (node.drawSize & (node.drawSize - 1)) === 0;
+        if (!isPow2) {
+          errors.push({
+            severity: 'error',
+            message: `"${node.structureName}" draw size must be a power of 2`,
+            nodeId: node.id,
+          });
+        }
       }
     }
 
