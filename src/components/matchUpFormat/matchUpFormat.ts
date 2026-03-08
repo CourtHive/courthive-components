@@ -37,6 +37,22 @@ interface MatchUpFormatConfig {
     tiebreakLabel?: string;
     finalSetToggleLabel?: string;
     standardFormatsLabel?: string;
+    cancel?: string;
+    select?: string;
+    custom?: string;
+    aggregate?: string;
+    game?: string;
+    gameType?: string;
+    deuceRule?: string;
+    none?: string;
+    traditional?: string;
+    consecutive2?: string;
+    consecutive3?: string;
+    consecutive4?: string;
+    goldenPoint?: string;
+    starPoint?: string;
+    games?: string;
+    points?: string;
     descriptors?: {
       bestOf?: string;
       exactly?: string;
@@ -79,6 +95,22 @@ const defaultConfig: MatchUpFormatConfig = {
     tiebreakLabel: 'Tiebreak',
     finalSetToggleLabel: 'Final set',
     standardFormatsLabel: 'Standard formats',
+    cancel: 'Cancel',
+    select: 'Select',
+    custom: 'Custom',
+    aggregate: 'Aggregate',
+    game: 'Game',
+    gameType: 'Game type',
+    deuceRule: 'Deuce rule',
+    none: 'None',
+    traditional: 'Traditional',
+    consecutive2: '2 consecutive',
+    consecutive3: '3 consecutive',
+    consecutive4: '4 consecutive',
+    goldenPoint: 'Golden point',
+    starPoint: 'Star point',
+    games: 'Games',
+    points: 'Points',
     descriptors: {
       bestOf: 'Best of',
       exactly: 'Exactly'
@@ -132,37 +164,46 @@ const SETS = 'Set';
 const AD = 'Ad';
 
 // Display labels for the 'based' scoring method (timed sets)
-const BASED_LABELS: Record<string, string> = { G: 'Games', P: 'Points' };
 const BASED_CODES: Record<string, string> = { Games: 'G', Points: 'P' };
 
-// Display labels for game format codes
-const GAME_FORMAT_LABELS: Record<string, string> = {
-  None: 'None',
-  TN: 'Traditional',
-  '2C': '2 consecutive',
-  '3C': '3 consecutive',
-  '4C': '4 consecutive',
-};
+function getBasedLabels(): Record<string, string> {
+  return { G: editorConfig.labels?.games || 'Games', P: editorConfig.labels?.points || 'Points' };
+}
 
-const DEUCE_RULE_LABELS: Record<string, string> = {
-  None: 'None',
-  '1D': 'Golden point',
-  '3D': 'Star point',
-};
+// Display labels for game format codes
+function getGameFormatLabels(): Record<string, string> {
+  return {
+    None: editorConfig.labels?.none || 'None',
+    TN: editorConfig.labels?.traditional || 'Traditional',
+    '2C': editorConfig.labels?.consecutive2 || '2 consecutive',
+    '3C': editorConfig.labels?.consecutive3 || '3 consecutive',
+    '4C': editorConfig.labels?.consecutive4 || '4 consecutive',
+  };
+}
+
+function getDeuceRuleLabels(): Record<string, string> {
+  return {
+    None: editorConfig.labels?.none || 'None',
+    '1D': editorConfig.labels?.goldenPoint || 'Golden point',
+    '3D': editorConfig.labels?.starPoint || 'Star point',
+  };
+}
 
 /** Convert a gameFormat object to its display label */
 function gameFormatLabel(gf: any): string {
-  if (!gf) return 'None';
+  const gfLabels = getGameFormatLabels();
+  const drLabels = getDeuceRuleLabels();
+  if (!gf) return editorConfig.labels?.none || 'None';
   let label: string;
-  if (gf.type === 'TRADITIONAL') label = 'Traditional';
+  if (gf.type === 'TRADITIONAL') label = gfLabels['TN'] || 'Traditional';
   else if (gf.type === 'CONSECUTIVE') {
     const countKey = `${gf.count}C`;
-    label = GAME_FORMAT_LABELS[countKey] || `${gf.count} consecutive`;
+    label = gfLabels[countKey] || `${gf.count} consecutive`;
   }
-  else return 'None';
+  else return editorConfig.labels?.none || 'None';
   if (gf.deuceAfter) {
     const deuceKey = `${gf.deuceAfter}D`;
-    label += ` + ${DEUCE_RULE_LABELS[deuceKey] || deuceKey}`;
+    label += ` + ${drLabels[deuceKey] || deuceKey}`;
   }
   return label;
 }
@@ -487,7 +528,7 @@ const setComponents: SetComponent[] = [
       if (!setFormat?.timed) return undefined;
       // Map code to display label
       const code = setFormat.based || 'G';
-      return BASED_LABELS[code] || code;
+      return getBasedLabels()[code] || code;
     },
     options: () => ['Games', 'Points'],
     onChange: 'changeBased',
@@ -561,7 +602,7 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
         const basedElem = getEl('based');
         if (basedElem) {
           const basedCode = format.setFormat.based || 'G';
-          basedElem.innerHTML = `${BASED_LABELS[basedCode] || basedCode}${clickable}`;
+          basedElem.innerHTML = `${getBasedLabels()[basedCode] || basedCode}${clickable}`;
           basedElem.style.display = '';
         }
       }
@@ -891,7 +932,7 @@ export function getMatchUpFormatModal({
         closeCurrentDropdown(); // Clean up any open dropdowns
         callback?.('');
       },
-      label: 'Cancel',
+      label: editorConfig.labels?.cancel || 'Cancel',
       intent: 'none',
       footer: {
         className: 'button',
@@ -900,7 +941,7 @@ export function getMatchUpFormatModal({
       close: true
     },
     {
-      label: 'Select',
+      label: editorConfig.labels?.select || 'Select',
       intent: 'is-info',
       close: true,
       onClick: () => {
@@ -943,7 +984,7 @@ export function getMatchUpFormatModal({
   const formatSelector = {
     id: 'matchUpFormatSelector',
     options: [
-      { value: 'Custom', label: 'Custom', selected: false },
+      { value: 'Custom', label: editorConfig.labels?.custom || 'Custom', selected: false },
       ...predefinedFormats
         .filter((format) => format.format) // Skip the "Custom" entry from JSON
         .map((format) => ({
@@ -1011,7 +1052,7 @@ export function getMatchUpFormatModal({
 
     const gfElem = getEl('gameFormat');
     if (gfElem) {
-      gfElem.innerHTML = `Game: ${gameFormatLabel(format.gameFormat)}${clickable}`;
+      gfElem.innerHTML = `${editorConfig.labels?.game || 'Game'}: ${gameFormatLabel(format.gameFormat)}${clickable}`;
       // Hide game format when scoring is Points-based
       gfElem.style.display = format.setFormat.based === 'P' ? NONE : '';
     }
@@ -1139,7 +1180,7 @@ export function getMatchUpFormatModal({
 
   const aggregateLabel = document.createElement('label');
   aggregateLabel.setAttribute('for', 'aggregateOption');
-  aggregateLabel.innerHTML = 'Aggregate';
+  aggregateLabel.innerHTML = editorConfig.labels?.aggregate || 'Aggregate';
   aggregateLabel.style.marginRight = '1em';
   matchRootRow.appendChild(aggregateLabel);
 
@@ -1148,7 +1189,7 @@ export function getMatchUpFormatModal({
   const gameFormatButton = document.createElement('button');
   gameFormatButton.className = 'mfcButton';
   gameFormatButton.id = 'gameFormat';
-  gameFormatButton.innerHTML = `Game: ${currentGameFormatDisplay}${clickable}`;
+  gameFormatButton.innerHTML = `${editorConfig.labels?.game || 'Game'}: ${currentGameFormatDisplay}${clickable}`;
   gameFormatButton.style.transition = TRANSITION_STYLE;
   gameFormatButton.style.backgroundColor = 'inherit';
   gameFormatButton.style.border = 'none';
@@ -1163,7 +1204,7 @@ export function getMatchUpFormatModal({
   gameFormatButton.onclick = (e) => {
     createGameFormatDropdown(e, format.gameFormat, (newGameFormat) => {
       format.gameFormat = newGameFormat;
-      gameFormatButton.innerHTML = `Game: ${gameFormatLabel(format.gameFormat)}${clickable}`;
+      gameFormatButton.innerHTML = `${editorConfig.labels?.game || 'Game'}: ${gameFormatLabel(format.gameFormat)}${clickable}`;
       setMatchUpFormatString();
     });
   };
@@ -1227,7 +1268,7 @@ export function getMatchUpFormatModal({
   const tiebreakLabel = document.createElement('label');
   tiebreakLabel.setAttribute('for', 'setTiebreak');
   tiebreakLabel.id = 'setTiebreakToggle';
-  tiebreakLabel.innerHTML = 'Tiebreak';
+  tiebreakLabel.innerHTML = editorConfig.labels?.tiebreakLabel || 'Tiebreak';
   tiebreakLabel.style.marginRight = '1em';
   modalInputs['setTiebreakToggle'] = tiebreakLabel;
   setConfig.appendChild(tiebreakLabel);
@@ -1314,7 +1355,7 @@ export function getMatchUpFormatModal({
 
   const finalSetLabel = document.createElement('label');
   finalSetLabel.setAttribute('for', 'finalSetOption');
-  finalSetLabel.innerHTML = 'Final set';
+  finalSetLabel.innerHTML = editorConfig.labels?.finalSetLabel || 'Final set';
   finalSetLabel.style.display = showFinalSetOption ? '' : 'none';
   modalInputs['finalSetOptionLabel'] = finalSetLabel;
   setConfig.appendChild(finalSetLabel);
@@ -1328,7 +1369,7 @@ export function getMatchUpFormatModal({
   finalSetFormat.style.marginBottom = '1em';
   finalSetFormat.id = 'finalSetFormat';
   modalInputs['finalSetFormatDiv'] = finalSetFormat;
-  ([{ label: `<div style='font-weight: bold'>Final set</div>`, options: [] as any[], finalSet: true }] as any[])
+  ([{ label: `<div style='font-weight: bold'>${editorConfig.labels?.finalSetLabel || 'Final set'}</div>`, options: [] as any[], finalSet: true }] as any[])
     .concat(
       setComponents.map((component) => {
         const value = component.getValue ? component.getValue(parsedMatchUpFormat, true) : undefined;
@@ -1394,7 +1435,7 @@ export function getMatchUpFormatModal({
   const finalSetTiebreakLabel = document.createElement('label');
   finalSetTiebreakLabel.setAttribute('for', 'finalSetTiebreak');
   finalSetTiebreakLabel.id = 'finalSetTiebreakToggle';
-  finalSetTiebreakLabel.innerHTML = 'Tiebreak';
+  finalSetTiebreakLabel.innerHTML = editorConfig.labels?.tiebreakLabel || 'Tiebreak';
   finalSetTiebreakLabel.style.marginRight = '1em';
   // Hide tiebreak label if final set is already tiebreak-only
   finalSetTiebreakLabel.style.display = finalSetIsTiebreakOnly ? NONE : '';
@@ -1430,7 +1471,7 @@ export function getMatchUpFormatModal({
   };
 
   const modalResult = cModal.open({
-    title: 'Score format',
+    title: editorConfig.labels?.title || 'Score format',
     content: content,
     buttons,
     config: finalModalConfig
@@ -1598,7 +1639,7 @@ function createGameFormatDropdown(
 
   // "None" button at top — clears everything and closes dropdown
   const noneItem = document.createElement('div');
-  noneItem.textContent = 'None';
+  noneItem.textContent = editorConfig.labels?.none || 'None';
   noneItem.style.cssText = itemStyle;
   noneItem.onmouseenter = () => { noneItem.style.backgroundColor = CHC_HOVER_BG; };
   noneItem.onmouseleave = () => { noneItem.style.backgroundColor = CHC_DROPDOWN_BG; };
@@ -1640,16 +1681,17 @@ function createGameFormatDropdown(
 
   const gameTypeHeader = document.createElement('div');
   gameTypeHeader.style.cssText = headerStyle;
-  gameTypeHeader.textContent = 'Game type';
+  gameTypeHeader.textContent = editorConfig.labels?.gameType || 'Game type';
   dropdownMenu.appendChild(gameTypeHeader);
 
   // Game type radio group
+  const gfLabels = getGameFormatLabels();
   const gameTypeOptions = [
-    { value: 'none', label: 'None' },
-    { value: 'TN', label: 'Traditional' },
-    { value: '2C', label: '2 consecutive' },
-    { value: '3C', label: '3 consecutive' },
-    { value: '4C', label: '4 consecutive' },
+    { value: 'none', label: editorConfig.labels?.none || 'None' },
+    { value: 'TN', label: gfLabels['TN'] },
+    { value: '2C', label: gfLabels['2C'] },
+    { value: '3C', label: gfLabels['3C'] },
+    { value: '4C', label: gfLabels['4C'] },
   ];
   for (const opt of gameTypeOptions) {
     dropdownMenu.appendChild(createRadioRow('gameType', opt.value, opt.label, currentType === opt.value));
@@ -1662,14 +1704,15 @@ function createGameFormatDropdown(
 
   const deuceHeader = document.createElement('div');
   deuceHeader.style.cssText = headerStyle;
-  deuceHeader.textContent = 'Deuce rule';
+  deuceHeader.textContent = editorConfig.labels?.deuceRule || 'Deuce rule';
   dropdownMenu.appendChild(deuceHeader);
 
   // Deuce rule radio group
+  const drLabels = getDeuceRuleLabels();
   const deuceOptions = [
-    { value: 'none', label: 'None' },
-    { value: '1D', label: 'Golden point' },
-    { value: '3D', label: 'Star point' },
+    { value: 'none', label: editorConfig.labels?.none || 'None' },
+    { value: '1D', label: drLabels['1D'] },
+    { value: '3D', label: drLabels['3D'] },
   ];
   for (const opt of deuceOptions) {
     dropdownMenu.appendChild(createRadioRow('deuceRule', opt.value, opt.label, currentDeuce === opt.value));

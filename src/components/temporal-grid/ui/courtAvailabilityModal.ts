@@ -1,9 +1,34 @@
 /**
  * Court Availability Modal
  *
- * Simple HTML modal (no third-party library) for setting court operating hours.
- * Supports per-day or all-days scope selection.
+ * Uses timepicker-ui in inline range mode for setting court operating hours.
+ * Supports per-day or all-days scope selection via integrated radio buttons.
  */
+
+import './timepicker-ui.css';
+
+// Lazy imports shared with modernTimePicker
+let TimepickerUI: any;
+let PluginRegistry: any;
+let RangePlugin: any;
+let pluginRegistered = false;
+
+async function ensureTimepickerLoaded() {
+  if (!TimepickerUI) {
+    const timepickerModule = await import('timepicker-ui');
+    TimepickerUI = timepickerModule.TimepickerUI;
+    PluginRegistry = timepickerModule.PluginRegistry;
+
+    // @ts-expect-error - TS doesn't handle dynamic imports well
+    const rangeModule = await import('timepicker-ui/plugins/range');
+    RangePlugin = rangeModule.RangePlugin;
+
+    if (!pluginRegistered && PluginRegistry && RangePlugin) {
+      PluginRegistry.register(RangePlugin);
+      pluginRegistered = true;
+    }
+  }
+}
 
 export interface CourtAvailabilityModalConfig {
   title: string;
@@ -14,9 +39,23 @@ export interface CourtAvailabilityModalConfig {
   venueBounds?: { startTime: string; endTime: string };
   onConfirm: (params: { startTime: string; endTime: string; scope: 'current-day' | 'all-days' }) => void;
   onCancel?: () => void;
+  /** Custom labels for UI text */
+  labels?: {
+    startTime?: string;
+    endTime?: string;
+    applyTo?: string;
+    currentDayOnly?: string; // Use ${day} as placeholder for the day label
+    allDays?: string;
+    cancel?: string;
+    apply?: string;
+    venueWarning?: string; // Use ${startTime} and ${endTime} as placeholders
+  };
 }
 
-export function showCourtAvailabilityModal(config: CourtAvailabilityModalConfig): void {
+// Unique ID counter for inline containers
+let instanceCounter = 0;
+
+export async function showCourtAvailabilityModal(config: CourtAvailabilityModalConfig): Promise<void> {
   const {
     title,
     currentDay,
@@ -26,11 +65,20 @@ export function showCourtAvailabilityModal(config: CourtAvailabilityModalConfig)
     venueBounds,
     onConfirm,
     onCancel,
+    labels = {}
   } = config;
+
+  await ensureTimepickerLoaded();
 
   // Format day for display (e.g., "Jun 15")
   const dayDate = new Date(currentDay + 'T12:00:00');
   const dayLabel = dayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+  // Unique container ID for this instance
+  const containerId = `tp-court-avail-${++instanceCounter}`;
+
+  // Scope state
+  let selectedScope: 'current-day' | 'all-days' = showScopeToggle ? 'current-day' : 'all-days';
 
   // Create overlay backdrop
   const overlay = document.createElement('div');
@@ -42,94 +90,84 @@ export function showCourtAvailabilityModal(config: CourtAvailabilityModalConfig)
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   `;
 
-  // Dialog
+  // Dialog — transparent wrapper; the inline clock provides its own styled panel
   const dialog = document.createElement('div');
-  dialog.style.cssText = `
-    background: var(--chc-bg-elevated); border-radius: 8px; padding: 24px;
-    width: 360px; max-width: 90vw; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  dialog.style.cssText = 'max-width: 90vw;';
+
+  // Inject a <style> to override inline mode constraints so the picker
+  // matches the uncontained (modal) width and drops the double shadow.
+  const styleTag = document.createElement('style');
+  styleTag.textContent = `
+    #${containerId} .tp-ui--inline .tp-ui-wrapper {
+      max-width: none !important;
+      width: 328px !important;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2) !important;
+    }
+    #${containerId} .tp-ui-range-mode .tp-ui-select-time {
+      display: block !important;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      padding: 12px 0 12px;
+    }
   `;
+  dialog.appendChild(styleTag);
 
-  // Title
-  const titleEl = document.createElement('div');
-  titleEl.textContent = title;
-  titleEl.style.cssText = 'font-weight: 700; font-size: 16px; color: var(--chc-text-primary); margin-bottom: 20px;';
-  dialog.appendChild(titleEl);
+  // Hidden input for timepicker-ui (it attaches to an input element)
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = `${currentStartTime} - ${currentEndTime}`;
+  input.dataset.timeFrom = currentStartTime;
+  input.dataset.timeTo = currentEndTime;
+  input.style.cssText = 'position: absolute; opacity: 0; pointer-events: none; height: 0; width: 0;';
+  dialog.appendChild(input);
 
-  // Time inputs container
-  const timeRow = document.createElement('div');
-  timeRow.style.cssText = 'display: flex; gap: 16px; margin-bottom: 20px;';
+  // Inline container for the clock
+  const clockContainer = document.createElement('div');
+  clockContainer.id = containerId;
+  dialog.appendChild(clockContainer);
 
-  const makeTimeInput = (label: string, value: string): HTMLInputElement => {
-    const wrapper = document.createElement('div');
-    wrapper.style.cssText = 'flex: 1;';
+  // Content area below the clock (scope + warning) — injected after clock renders
+  const extraContent = document.createElement('div');
+  extraContent.style.cssText = 'padding: 12px 24px 0;';
 
-    const labelEl = document.createElement('label');
-    labelEl.textContent = label;
-    labelEl.style.cssText = 'display: block; font-size: 12px; color: var(--chc-text-secondary); margin-bottom: 4px; font-weight: 500;';
-
-    const input = document.createElement('input');
-    input.type = 'time';
-    input.value = value;
-    input.style.cssText = `
-      width: 100%; padding: 8px 10px; border: 1px solid var(--chc-border-primary); border-radius: 4px;
-      font-size: 14px; color: var(--chc-text-primary); box-sizing: border-box; background: var(--chc-bg-elevated);
-    `;
-
-    wrapper.appendChild(labelEl);
-    wrapper.appendChild(input);
-    timeRow.appendChild(wrapper);
-    return input;
-  };
-
-  const startInput = makeTimeInput('Start Time', currentStartTime);
-  const endInput = makeTimeInput('End Time', currentEndTime);
-  dialog.appendChild(timeRow);
-
-  // Venue bounds warning (court modals only)
+  // Venue bounds warning
   if (venueBounds) {
-    const warning = document.createElement('div');
-    warning.style.cssText = `
-      display: none; padding: 8px 12px; margin-bottom: 16px; border-radius: 6px;
+    const warningEl = document.createElement('div');
+    warningEl.className = 'tp-court-avail-warning';
+    warningEl.style.cssText = `
+      display: none; padding: 8px 12px; margin-bottom: 12px; border-radius: 6px;
       background: #fef3c7; border: 1px solid #f59e0b; color: #92400e;
       font-size: 12px; line-height: 1.4;
     `;
+    extraContent.appendChild(warningEl);
 
-    const updateWarning = () => {
-      const exceedsStart = startInput.value < venueBounds.startTime;
-      const exceedsEnd = endInput.value > venueBounds.endTime;
-      if (exceedsStart || exceedsEnd) {
-        warning.textContent = `Venue hours are ${venueBounds.startTime}\u2013${venueBounds.endTime}. The venue will be widened to accommodate this change.`;
-        warning.style.display = 'block';
-      } else {
-        warning.style.display = 'none';
-      }
-    };
-
-    startInput.addEventListener('input', updateWarning);
-    endInput.addEventListener('input', updateWarning);
-    updateWarning();
-    dialog.appendChild(warning);
+    // We'll update this warning when the range changes
+    extraContent.dataset.venueBoundsStart = venueBounds.startTime;
+    extraContent.dataset.venueBoundsEnd = venueBounds.endTime;
   }
 
   // Scope toggle (radio group)
-  let selectedScope: 'current-day' | 'all-days' = 'current-day';
-
   if (showScopeToggle) {
     const scopeContainer = document.createElement('div');
-    scopeContainer.style.cssText = 'margin-bottom: 20px;';
+    scopeContainer.style.cssText = 'margin-bottom: 8px;';
 
     const scopeLabel = document.createElement('div');
-    scopeLabel.textContent = 'Apply to:';
-    scopeLabel.style.cssText = 'font-size: 12px; color: var(--chc-text-secondary); margin-bottom: 8px; font-weight: 500;';
+    scopeLabel.textContent = (labels.applyTo || 'Apply to') + ':';
+    scopeLabel.style.cssText =
+      'font-size: 12px; color: var(--chc-text-secondary); margin-bottom: 6px; font-weight: 500;';
     scopeContainer.appendChild(scopeLabel);
+
+    const radioName = `availability-scope-${containerId}`;
 
     const makeRadio = (value: 'current-day' | 'all-days', label: string, checked: boolean): void => {
       const row = document.createElement('label');
-      row.style.cssText = 'display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; font-size: 13px; color: var(--chc-text-primary);';
+      row.style.cssText =
+        'display: flex; align-items: center; gap: 8px; padding: 3px 0; cursor: pointer; font-size: 13px; color: var(--chc-text-primary);';
 
       const radio = document.createElement('input');
       radio.type = 'radio';
-      radio.name = 'availability-scope';
+      radio.name = radioName;
       radio.value = value;
       radio.checked = checked;
       radio.style.cursor = 'pointer';
@@ -145,54 +183,104 @@ export function showCourtAvailabilityModal(config: CourtAvailabilityModalConfig)
       scopeContainer.appendChild(row);
     };
 
-    makeRadio('current-day', `Current day only (${dayLabel})`, true);
-    makeRadio('all-days', 'All tournament days', false);
+    const currentDayLabel = labels.currentDayOnly
+      ? labels.currentDayOnly.replace('${day}', dayLabel)
+      : `Current day only (${dayLabel})`;
+    makeRadio('current-day', currentDayLabel, true);
+    makeRadio('all-days', labels.allDays || 'All tournament days', false);
 
-    dialog.appendChild(scopeContainer);
-  } else {
-    selectedScope = 'all-days';
+    extraContent.appendChild(scopeContainer);
   }
-
-  // Buttons
-  const buttonRow = document.createElement('div');
-  buttonRow.style.cssText = 'display: flex; justify-content: flex-end; gap: 10px;';
-
-  const cancelBtn = document.createElement('button');
-  cancelBtn.textContent = 'Cancel';
-  cancelBtn.className = 'sp-btn';
-  cancelBtn.addEventListener('click', () => {
-    overlay.remove();
-    onCancel?.();
-  });
-
-  const applyBtn = document.createElement('button');
-  applyBtn.textContent = 'Apply';
-  applyBtn.className = 'sp-btn sp-btn--fill';
-  applyBtn.addEventListener('click', () => {
-    overlay.remove();
-    onConfirm({
-      startTime: startInput.value,
-      endTime: endInput.value,
-      scope: selectedScope,
-    });
-  });
-
-  buttonRow.appendChild(cancelBtn);
-  buttonRow.appendChild(applyBtn);
-  dialog.appendChild(buttonRow);
 
   overlay.appendChild(dialog);
 
   // Click backdrop to dismiss
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) {
-      overlay.remove();
+      cleanup();
       onCancel?.();
     }
   });
 
   document.body.appendChild(overlay);
 
-  // Focus start input
-  startInput.focus();
+  // Create inline timepicker with range and built-in OK/Cancel buttons
+  const picker = new TimepickerUI(input, {
+    range: {
+      enabled: true,
+      fromLabel: labels.startTime || 'Start',
+      toLabel: labels.endTime || 'End'
+    },
+    clock: {
+      type: '24h',
+      incrementMinutes: 5
+    },
+    ui: {
+      theme: 'crane',
+      inline: {
+        enabled: true,
+        containerId,
+        showButtons: true
+      }
+    },
+    labels: {
+      ok: labels.apply || 'Apply',
+      cancel: labels.cancel || 'Cancel',
+      time: title
+    },
+    callbacks: {
+      onRangeConfirm: (data: any) => {
+        const startTime = data.from || currentStartTime;
+        const endTime = data.to || currentEndTime;
+        cleanup();
+        onConfirm({ startTime, endTime, scope: selectedScope });
+      },
+      onCancel: () => {
+        cleanup();
+        onCancel?.();
+      }
+    }
+  });
+
+  picker.create();
+
+  // Inject our extra content (scope radios, warning) into the inline modal,
+  // between the clock and the footer buttons.
+  // DOM structure: .tp-ui-modal > .tp-ui-wrapper > [header, clock, .tp-ui-footer]
+  const wrapper = clockContainer.querySelector('.tp-ui-wrapper');
+  const footer = wrapper?.querySelector('.tp-ui-footer');
+  if (footer && wrapper) {
+    footer.before(extraContent);
+  } else {
+    // Fallback: append after clock container
+    dialog.appendChild(extraContent);
+  }
+
+  // Update venue warning when range switches
+  if (venueBounds) {
+    const warningEl = extraContent.querySelector('.tp-court-avail-warning') as HTMLElement;
+    const updateWarning = (from?: string, to?: string) => {
+      if (!warningEl || !from || !to || from === '--:--' || to === '--:--') return;
+      const exceedsStart = from < venueBounds.startTime;
+      const exceedsEnd = to > venueBounds.endTime;
+      if (exceedsStart || exceedsEnd) {
+        const warningTemplate =
+          labels.venueWarning ||
+          'Venue hours are ${startTime}\u2013${endTime}. The venue will be widened to accommodate this change.';
+        warningEl.textContent = warningTemplate
+          .replace('${startTime}', venueBounds.startTime)
+          .replace('${endTime}', venueBounds.endTime);
+        warningEl.style.display = 'block';
+      } else {
+        warningEl.style.display = 'none';
+      }
+    };
+    // Check initial state
+    updateWarning(currentStartTime, currentEndTime);
+  }
+
+  function cleanup() {
+    if (picker?.destroy) picker.destroy();
+    overlay.remove();
+  }
 }

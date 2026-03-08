@@ -521,6 +521,17 @@ describe('dynamicSetsLogic - Pure Functions', () => {
       expect(result.reason).toContain('Tiebreak-only');
     });
 
+    it('does not apply for timed sets (e.g., INTENNSE T10P)', () => {
+      const timedConfig: MatchUpConfig = {
+        bestOf: 7,
+        exactly: 7,
+        setFormat: { timed: true, minutes: 10 },
+      };
+      const result = shouldApplySmartComplement(5, false, 0, emptySet, timedConfig, new Set(), true);
+      expect(result.shouldApply).toBe(false);
+      expect(result.reason).toContain('Timed set');
+    });
+
     it('does not apply when digit >= setTo', () => {
       const result = shouldApplySmartComplement(6, false, 0, emptySet, standardBestOf3, new Set(), true);
       expect(result.shouldApply).toBe(false);

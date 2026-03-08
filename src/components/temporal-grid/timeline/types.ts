@@ -1,8 +1,5 @@
 /**
  * Shared types for the custom CourtTimeline component.
- *
- * Replaces vis-timeline's type surface with a minimal set tailored
- * to the temporal-grid's actual needs.
  */
 
 import type { temporal } from 'tods-competition-factory';

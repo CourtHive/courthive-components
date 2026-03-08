@@ -41,14 +41,14 @@ export interface TimePickerConfig {
   minuteIncrement?: number; // default: 5
   minDuration?: number; // Minimum duration in minutes (default: none)
   maxDuration?: number; // Maximum duration in minutes (default: none)
-  clockType?: '12h' | '24h'; // default: '12h' - TODO: should come from TemporalGrid config
+  clockType?: '12h' | '24h'; // default: '24h' - TODO: should come from TemporalGrid config
   onConfirm: (startTime: string, endTime: string) => void;
   onCancel: () => void;
 }
 
 /**
  * NOTE: The Temporal Grid component should have a comprehensive config object that includes:
- * - timePickerMode: '12h' | '24h' (default: '12h')
+ * - timePickerMode: '12h' | '24h' (default: '24h')
  * - theme: string (for timepicker-ui themes like 'crane', 'm3-green', etc)
  * - minuteIncrement: number
  * - Other UI preferences and behavior settings
@@ -70,7 +70,7 @@ export class ModernTimePicker {
       dayStartTime: '00:00',
       dayEndTime: '23:59',
       minuteIncrement: 5,
-      clockType: '12h', // Default to 12-hour mode
+      clockType: '24h', // Default to 24-hour mode (12h has range plugin AM/PM sync bug)
       ...config
     };
 
@@ -140,36 +140,38 @@ export class ModernTimePicker {
     // Ensure the library is loaded
     await ensureTimepickerLoaded();
 
+    const clockType = this.config.clockType || '24h';
+
     // Parse the times to get hours and minutes
     const [startHour, startMin] = this.selectedStart.split(':').map(Number);
     const [endHour, endMin] = this.selectedEnd.split(':').map(Number);
 
-    // Convert to 12-hour format with AM/PM
-    const startPeriod = startHour >= 12 ? 'PM' : 'AM';
-    const start12Hour = startHour === 0 ? 12 : startHour > 12 ? startHour - 12 : startHour;
-    const startTimeFormatted = `${String(start12Hour).padStart(2, '0')}:${String(startMin).padStart(
-      2,
-      '0'
-    )} ${startPeriod}`;
+    if (clockType === '24h') {
+      // 24h mode: use HH:MM format directly
+      const startFormatted = `${String(startHour).padStart(2, '0')}:${String(startMin).padStart(2, '0')}`;
+      const endFormatted = `${String(endHour).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`;
+      this.inputElement.value = `${startFormatted} - ${endFormatted}`;
+      this.inputElement.setAttribute('data-time-from', startFormatted);
+      this.inputElement.setAttribute('data-time-to', endFormatted);
+    } else {
+      // 12h mode: convert to HH:MM AM/PM format
+      // NOTE: timepicker-ui range plugin has a bug where syncClockToActivePart
+      // doesn't update the clock system's internal AM/PM state, causing hours
+      // before the start hour to be incorrectly disabled on the "to" clock.
+      const startPeriod = startHour >= 12 ? 'PM' : 'AM';
+      const start12Hour = startHour === 0 ? 12 : startHour > 12 ? startHour - 12 : startHour;
+      const startFormatted = `${String(start12Hour).padStart(2, '0')}:${String(startMin).padStart(2, '0')} ${startPeriod}`;
 
-    const endPeriod = endHour >= 12 ? 'PM' : 'AM';
-    const end12Hour = endHour === 0 ? 12 : endHour > 12 ? endHour - 12 : endHour;
-    const endTimeFormatted = `${String(end12Hour).padStart(2, '0')}:${String(endMin).padStart(2, '0')} ${endPeriod}`;
+      const endPeriod = endHour >= 12 ? 'PM' : 'AM';
+      const end12Hour = endHour === 0 ? 12 : endHour > 12 ? endHour - 12 : endHour;
+      const endFormatted = `${String(end12Hour).padStart(2, '0')}:${String(endMin).padStart(2, '0')} ${endPeriod}`;
 
-    // Set the input value to show the range
-    this.inputElement.value = `${startTimeFormatted} - ${endTimeFormatted}`;
-
-    // Set data attributes for the range plugin to pick up initial values
-    this.inputElement.setAttribute(
-      'data-time-from',
-      `${String(start12Hour).padStart(2, '0')}:${String(startMin).padStart(2, '0')}`
-    );
-    this.inputElement.setAttribute(
-      'data-time-to',
-      `${String(end12Hour).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`
-    );
-    this.inputElement.setAttribute('data-type-from', startPeriod);
-    this.inputElement.setAttribute('data-type-to', endPeriod);
+      this.inputElement.value = `${startFormatted} - ${endFormatted}`;
+      this.inputElement.setAttribute('data-time-from', `${String(start12Hour).padStart(2, '0')}:${String(startMin).padStart(2, '0')}`);
+      this.inputElement.setAttribute('data-time-to', `${String(end12Hour).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`);
+      this.inputElement.setAttribute('data-type-from', startPeriod);
+      this.inputElement.setAttribute('data-type-to', endPeriod);
+    }
 
     // Build range configuration with optional min/max duration
     const rangeConfig: any = {
@@ -190,52 +192,41 @@ export class ModernTimePicker {
     this.picker = new TimepickerUI(this.inputElement, {
       range: rangeConfig,
       clock: {
-        type: this.config.clockType || '12h', // Use config or default to 12h
+        type: clockType,
         incrementMinutes: this.config.minuteIncrement || 5
       },
       ui: {
         theme: 'crane' // TODO: should also come from TemporalGrid config
       },
       callbacks: {
-        // For range mode, use onRangeConfirm instead of onConfirm
         onRangeConfirm: (data: any) => {
           try {
-            // Extract from and to times (these are strings like "06:30 AM")
             const fromTimeStr = data.from;
             const toTimeStr = data.to;
 
             if (fromTimeStr && toTimeStr) {
-              // Parse the 12-hour time strings (e.g., "06:30 AM")
-              // and convert to 24-hour HH:mm format
-              // TODO: Replace with factory utilities once correct usage is determined
-
-              const parseTime12h = (timeStr: string): string => {
-                const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
-                if (!match) {
-                  return '00:00';
+              const parseToHHMM = (timeStr: string): string => {
+                // Try 12h format first (e.g., "06:30 AM")
+                const match12 = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+                if (match12) {
+                  let hour = parseInt(match12[1], 10);
+                  const minutes = match12[2];
+                  const period = match12[3].toUpperCase();
+                  if (period === 'PM' && hour !== 12) hour += 12;
+                  else if (period === 'AM' && hour === 12) hour = 0;
+                  return `${String(hour).padStart(2, '0')}:${minutes}`;
                 }
-
-                let hour = parseInt(match[1], 10);
-                const minutes = match[2];
-                const period = match[3].toUpperCase();
-
-                // Convert to 24-hour format
-                if (period === 'PM' && hour !== 12) {
-                  hour += 12;
-                } else if (period === 'AM' && hour === 12) {
-                  hour = 0;
+                // 24h format (e.g., "17:30")
+                const match24 = timeStr.match(/(\d{1,2}):(\d{2})/);
+                if (match24) {
+                  return `${match24[1].padStart(2, '0')}:${match24[2]}`;
                 }
-
-                return `${String(hour).padStart(2, '0')}:${minutes}`;
+                return '00:00';
               };
 
-              this.selectedStart = parseTime12h(fromTimeStr);
-              this.selectedEnd = parseTime12h(toTimeStr);
-
-              // Call the confirm callback with the selected times in 24-hour format
+              this.selectedStart = parseToHHMM(fromTimeStr);
+              this.selectedEnd = parseToHHMM(toTimeStr);
               this.config.onConfirm(this.selectedStart, this.selectedEnd);
-
-              // Clean up
               this.destroy();
             }
           } catch (error) {

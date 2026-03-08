@@ -18,7 +18,7 @@ const { RETIRED, WALKOVER, DEFAULTED, SUSPENDED, CANCELLED, INCOMPLETE, DEAD_RUB
 const CHC_STATUS_SUCCESS = 'var(--chc-status-success)';
 
 export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
-  const { matchUp, container, onScoreChange } = params;
+  const { matchUp, container, onScoreChange, labels = {} } = params;
 
   // Clear container
   container.innerHTML = '';
@@ -165,7 +165,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
     formatInfo.style.gap = '0.5em';
 
     const formatLabel = document.createElement('span');
-    formatLabel.textContent = 'Format:';
+    formatLabel.textContent = (labels.format || 'Format') + ':';
     formatLabel.style.color = 'var(--chc-text-secondary)';
     formatInfo.appendChild(formatLabel);
 
@@ -370,25 +370,26 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
       indicator.style.color = CHC_STATUS_SUCCESS;
 
       // Show match status
-      let statusText = 'Valid score';
+      const validLabel = labels.validScore || 'Valid score';
+      let statusText = validLabel;
       if (result.matchUpStatus === RETIRED) {
-        statusText = 'Valid score - RETIRED';
+        statusText = `${validLabel} - ${labels.retired || 'RETIRED'}`;
       } else if (result.matchUpStatus === WALKOVER) {
-        statusText = 'Valid score - WALKOVER';
+        statusText = `${validLabel} - ${labels.walkover || 'WALKOVER'}`;
       } else if (result.matchUpStatus === DEFAULTED) {
-        statusText = 'Valid score - DEFAULTED';
+        statusText = `${validLabel} - ${labels.defaulted || 'DEFAULTED'}`;
       } else if (result.matchUpStatus === SUSPENDED) {
-        statusText = 'Valid score - SUSPENDED';
+        statusText = `${validLabel} - SUSPENDED`;
       } else if (result.matchUpStatus === CANCELLED) {
-        statusText = 'Valid score - CANCELLED';
+        statusText = `${validLabel} - CANCELLED`;
       } else if (result.matchUpStatus === INCOMPLETE) {
-        statusText = 'Valid score - INCOMPLETE';
+        statusText = `${validLabel} - INCOMPLETE`;
       } else if (result.matchUpStatus === DEAD_RUBBER) {
-        statusText = 'Valid score - DEAD RUBBER';
+        statusText = `${validLabel} - DEAD RUBBER`;
       } else if (result.matchUpStatus === IN_PROGRESS) {
-        statusText = 'Valid score - IN PROGRESS';
+        statusText = `${validLabel} - IN PROGRESS`;
       } else if (result.matchUpStatus === AWAITING_RESULT) {
-        statusText = 'Valid score - AWAITING RESULT';
+        statusText = `${validLabel} - AWAITING RESULT`;
       }
       validationMessage.textContent = statusText;
       validationMessage.style.color = CHC_STATUS_SUCCESS;

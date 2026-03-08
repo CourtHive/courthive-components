@@ -77,10 +77,14 @@ export function renderStructure({
   div.addEventListener('mouseover', (e) => {
     const target = (e.target as HTMLElement).closest('.tmx-i') as HTMLElement | null;
     const pid = target?.id;
-    if (!pid || pid === 'undefined' || pid === hoveredParticipantId) return;
-    if (hoveredParticipantId) setHover(hoveredParticipantId, false);
-    hoveredParticipantId = pid;
-    setHover(pid, true);
+    if (pid && pid !== 'undefined' && pid !== hoveredParticipantId) {
+      if (hoveredParticipantId) setHover(hoveredParticipantId, false);
+      hoveredParticipantId = pid;
+      setHover(pid, true);
+    } else if ((!pid || pid === 'undefined') && hoveredParticipantId) {
+      setHover(hoveredParticipantId, false);
+      hoveredParticipantId = null;
+    }
   });
   div.addEventListener('mouseleave', () => {
     if (hoveredParticipantId) {

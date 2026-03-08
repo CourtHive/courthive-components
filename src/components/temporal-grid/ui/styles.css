@@ -2,7 +2,7 @@
  * Temporal Grid Styles
  *
  * Complete styling for the temporal resource grid component.
- * Uses custom CourtTimeline (.tg-*) classes instead of vis-timeline.
+ * Uses custom CourtTimeline (.tg-*) classes
  */
 
 /* ============================================================================
@@ -103,7 +103,6 @@
 .tg-stats-bar b {
   color: var(--tg-accent);
 }
-
 
 /* ============================================================================
    Capacity Indicator

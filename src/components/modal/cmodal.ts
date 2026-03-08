@@ -231,7 +231,11 @@ export const cModal = (() => {
     const modalHeader = document.createElement('div');
     const titleDiv = document.createElement('div');
     modalHeader.appendChild(titleDiv);
-    
+
+    // Header right container for info icon and menu caret
+    const headerRight = document.createElement('div');
+    headerRight.style.cssText = 'display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0;';
+
     // Add info icon if config.info is present
     let infoIcon: HTMLElement | undefined;
     let infoPopover: HTMLElement | undefined;
@@ -253,20 +257,20 @@ export const cModal = (() => {
         flex-shrink: 0;
         user-select: none;
       `;
-      
+
       infoIcon.onclick = (e) => {
         e.stopPropagation();
-        
+
         // Close existing popover if open
         if (infoPopover && document.body.contains(infoPopover)) {
           infoPopover.remove();
           infoPopover = undefined;
           return;
         }
-        
+
         // Create popover
         infoPopover = document.createElement('div');
-        infoPopover.setAttribute('data-modal-popover', 'true');
+        infoPopover.dataset.modalPopover = 'true';
         infoPopover.style.cssText = `
           position: absolute;
           z-index: 10000;
@@ -281,7 +285,7 @@ export const cModal = (() => {
           line-height: 1.5;
           color: var(--chc-text-primary);
         `;
-        
+
         // Ensure strong tags render in black
         const style = document.createElement('style');
         style.textContent = `
@@ -291,24 +295,24 @@ export const cModal = (() => {
           }
         `;
         if (!document.querySelector('[data-modal-popover-styles]')) {
-          style.setAttribute('data-modal-popover-styles', 'true');
+          style.dataset.modalPopoverStyles = 'true';
           document.head.appendChild(style);
         }
-        
+
         if (isString(config.info)) {
           infoPopover.innerHTML = config.info;
         } else {
           infoPopover.textContent = String(config.info);
         }
-        
+
         document.body.appendChild(infoPopover);
-        
+
         // Position the popover to the left of the info icon
-        const rect = infoIcon!.getBoundingClientRect();
+        const rect = infoIcon.getBoundingClientRect();
         infoPopover.style.right = `${window.innerWidth - rect.left + 5}px`;
         infoPopover.style.top = `${rect.bottom + 5}px`;
         infoPopover.style.left = 'auto';
-        
+
         // Close on click anywhere else (after a short delay to avoid immediate closure)
         setTimeout(() => {
           const closePopover = (event: MouseEvent) => {
@@ -321,27 +325,105 @@ export const cModal = (() => {
           document.addEventListener('click', closePopover);
         }, 100);
       };
-      
-      modalHeader.appendChild(infoIcon);
+
+      headerRight.appendChild(infoIcon);
     }
-    
+
+    // Add menu caret if config.menu is present
+    let menuDropdown: HTMLElement | undefined;
+    if (config?.menu?.menuItems?.length) {
+      const menuCaret = document.createElement('span');
+      menuCaret.className = 'chc-modal-menu-caret';
+      menuCaret.innerHTML = '&#9662;'; // down-pointing triangle
+      menuCaret.style.cssText = `
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 4px;
+        font-size: 14px;
+        flex-shrink: 0;
+        user-select: none;
+        color: var(--chc-text-secondary, #666);
+        transition: background-color 0.15s;
+      `;
+
+      menuCaret.onmouseenter = () => {
+        menuCaret.style.backgroundColor = 'var(--chc-hover-bg, #f0f0f0)';
+      };
+      menuCaret.onmouseleave = () => {
+        menuCaret.style.backgroundColor = '';
+      };
+
+      menuCaret.onclick = (e) => {
+        e.stopPropagation();
+
+        // Toggle dropdown
+        if (menuDropdown && document.body.contains(menuDropdown)) {
+          menuDropdown.remove();
+          menuDropdown = undefined;
+          return;
+        }
+
+        menuDropdown = document.createElement('div');
+        menuDropdown.dataset.modalPopover = 'true';
+        menuDropdown.className = 'chc-modal-menu-dropdown';
+
+        for (const item of config.menu.menuItems) {
+          const menuItem = document.createElement('div');
+          menuItem.className = 'chc-modal-menu-item' + (item.active ? ' chc-modal-menu-item--active' : '');
+          menuItem.textContent = item.label;
+          menuItem.onclick = (ev) => {
+            ev.stopPropagation();
+            menuDropdown?.remove();
+            menuDropdown = undefined;
+            item.onClick();
+          };
+          menuDropdown.appendChild(menuItem);
+        }
+
+        document.body.appendChild(menuDropdown);
+
+        // Position below the caret
+        const rect = menuCaret.getBoundingClientRect();
+        menuDropdown.style.top = `${rect.bottom + 4}px`;
+        menuDropdown.style.right = `${window.innerWidth - rect.right}px`;
+
+        // Close on click elsewhere
+        setTimeout(() => {
+          const closeMenu = (event: MouseEvent) => {
+            if (menuDropdown && !menuDropdown.contains(event.target as Node) && event.target !== menuCaret) {
+              menuDropdown.remove();
+              menuDropdown = undefined;
+              document.removeEventListener('click', closeMenu);
+            }
+          };
+          document.addEventListener('click', closeMenu);
+        }, 100);
+      };
+
+      headerRight.appendChild(menuCaret);
+    }
+
+    if (config?.info || config?.menu?.menuItems?.length) {
+      modalHeader.appendChild(headerRight);
+    }
+
     dialog.appendChild(modalHeader);
 
+    const hasHeaderRight = config?.info || config?.menu?.menuItems?.length;
     const setTitle = ({ title, config }: { title?: string; config?: ModalConfig }) => {
       modalHeader.className = title ? modalHeaderStyle() : '';
       modalHeader.style.padding = getUnitValue({ config, attrs: ['title.padding', 'padding'], value: defaultPadding });
-      modalHeader.style.display = title || config?.info ? 'flex' : '';
+      modalHeader.style.display = title || hasHeaderRight ? 'flex' : '';
       modalHeader.style.alignItems = 'center';
       modalHeader.style.justifyContent = title ? 'space-between' : 'flex-end';
       titleDiv.className = title ? modalTitleStyle() : '';
       titleDiv.innerHTML = title;
-      
-      // Adjust icon margin based on title presence
-      if (infoIcon) {
-        infoIcon.style.marginLeft = title ? 'auto' : '0';
-      }
     };
-    if (title || config?.info) setTitle({ title, config });
+    if (title || hasHeaderRight) setTitle({ title, config });
 
     const modalBody = document.createElement('div');
     dialog.appendChild(modalBody);

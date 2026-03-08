@@ -10,7 +10,8 @@ export function generateMatchUps({
   drawSize = 4,
   eventType,
   outcomes,
-  drawType
+  drawType,
+  withRatings
 }: {
   matchUpFormat?: string;
   randomWinningSide?: boolean;
@@ -21,6 +22,7 @@ export function generateMatchUps({
   eventType?: string;
   outcomes?: any;
   drawType?: string;
+  withRatings?: { scaleName: string; scaleType?: string; eventType?: string };
 } = {}): { matchUps: MatchUp[] } {
   const complete = completionGoal < 100 ? Math.floor(drawSize * 0.01 * completionGoal) : undefined;
 
@@ -65,6 +67,25 @@ export function generateMatchUps({
   tournamentEngine.setState(tournamentRecord);
 
   tournamentEngine.createTeamsFromParticipantAttributes({ personAttribute: 'nationalityCode', addParticipants: true });
+
+  if (withRatings) {
+    const { participants } = tournamentEngine.getParticipants({
+      participantFilters: { participantTypes: ['INDIVIDUAL'] }
+    });
+    participants.forEach((participant: any) => {
+      const value = +(10 + Math.random() * 6).toFixed(2);
+      tournamentEngine.setParticipantScaleItem({
+        participantId: participant.participantId,
+        scaleItem: {
+          scaleValue: { [withRatings.scaleName]: value },
+          scaleName: withRatings.scaleName,
+          scaleType: withRatings.scaleType || 'RATING',
+          eventType: withRatings.eventType || 'SINGLES'
+        }
+      });
+    });
+  }
+
   const { matchUps: allMatchUps } = tournamentEngine.allTournamentMatchUps({
     participantsProfile: { withGroupings: true }
   });
@@ -80,7 +101,7 @@ export function generateMatchUps({
   tournamentEngine.bulkScheduleMatchUps({ matchUpIds, schedule });
 
   const { matchUps } = tournamentEngine.allTournamentMatchUps({
-    participantsProfile: { withISO2: true, withIOC: true }
+    participantsProfile: { withISO2: true, withIOC: true, withScaleValues: !!withRatings }
   });
 
   return { matchUps };

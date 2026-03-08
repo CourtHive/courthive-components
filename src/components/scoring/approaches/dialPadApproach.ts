@@ -64,7 +64,7 @@ function scoreToDigits(scoreObject: any): string {
 }
 
 export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
-  const { matchUp, container, onScoreChange } = params;
+  const { matchUp, container, onScoreChange, labels = {} } = params;
 
   try {
     container.innerHTML = '';
@@ -136,7 +136,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       formatDisplay.style.gap = '0.5em';
 
       const formatLabel = document.createElement('span');
-      formatLabel.textContent = 'Format:';
+      formatLabel.textContent = (labels.format || 'Format') + ':';
       formatLabel.style.color = CHC_TEXT_SECONDARY;
       formatDisplay.appendChild(formatLabel);
 
@@ -160,7 +160,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
                 state.digits = '';
 
                 container.innerHTML = '';
-                renderDialPadScoreEntry({ matchUp, container, onScoreChange });
+                renderDialPadScoreEntry({ matchUp, container, onScoreChange, labels });
               }
             },
             modalConfig: {
@@ -204,7 +204,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     irregularEndingContainer.style.borderRadius = '4px';
 
     const irregularLabel = document.createElement('div');
-    irregularLabel.textContent = 'Irregular Ending:';
+    irregularLabel.textContent = (labels.irregularEnding || 'Irregular Ending') + ':';
     irregularLabel.style.fontSize = '0.8em';
     irregularLabel.style.fontWeight = '600';
     irregularLabel.style.marginBottom = '0.3em';
@@ -217,7 +217,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     winnerSelectionContainer.style.marginTop = '0.3em';
 
     const winnerLabel = document.createElement('div');
-    winnerLabel.textContent = 'Winner:';
+    winnerLabel.textContent = (labels.winner || 'Winner') + ':';
     winnerLabel.style.fontSize = '0.75em';
     winnerLabel.style.fontWeight = '500';
     winnerLabel.style.marginBottom = '0.2em';

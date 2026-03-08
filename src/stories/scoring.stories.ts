@@ -2,8 +2,8 @@
  * Scoring Modal Stories
  * Demonstrates the various scoring approaches available in courthive-components
  */
+import { setScoringConfig, getScoringConfig } from '../components/scoring/config';
 import { scoringModal } from '../components/scoring/scoringModal';
-import { setScoringConfig } from '../components/scoring/config';
 import { compositions } from '../compositions/compositions';
 import { generateMatchUps } from '../data/generateMatchUps';
 import '../components/forms/styles';
@@ -424,6 +424,137 @@ export const DialPad = {
 };
 
 /**
+ * Approach Switcher (TMX-like behavior)
+ * Demonstrates the caret menu in the scoring modal title bar
+ * that allows switching approaches without closing the modal.
+ * This mirrors how TMX users would change their scoring preference
+ * while entering a score — the new approach takes effect immediately
+ * and persists via setScoringConfig.
+ */
+export const ApproachSwitcher = {
+  args: {
+    composition: 'Australian',
+    smartComplements: true
+  },
+  render: (args: any) => {
+    const container = document.createElement('div');
+    container.style.padding = '2em';
+    container.style.maxWidth = '700px';
+
+    // Title
+    const title = document.createElement('h2');
+    title.textContent = 'Approach Switcher';
+    title.style.marginBottom = '0.5em';
+    title.style.color = CHC_TEXT_PRIMARY;
+    container.appendChild(title);
+
+    const desc = document.createElement('p');
+    desc.style.marginBottom = '1.5em';
+    desc.style.lineHeight = '1.6';
+    desc.style.color = CHC_TEXT_SECONDARY;
+    desc.innerHTML =
+      'Simulates the TMX workflow. The scoring modal includes a <strong style="color: var(--chc-text-primary);">caret menu</strong> ' +
+      'in the title bar. Click the <strong style="color: var(--chc-text-primary);">&#9662;</strong> icon to switch between ' +
+      'Dynamic Sets, Free Score, and Dial Pad — the content swaps seamlessly without closing the modal, and the preference persists.';
+    container.appendChild(desc);
+
+    // Settings display (mirrors TMX settings panel)
+    const settingsPanel = document.createElement('div');
+    settingsPanel.style.cssText =
+      'padding: 1.25em; border-radius: 6px; margin-bottom: 1.5em; border: 1px solid var(--chc-border-primary); background-color: var(--chc-bg-secondary);';
+
+    const settingsTitle = document.createElement('div');
+    settingsTitle.style.cssText =
+      'font-weight: 600; margin-bottom: 0.75em; font-size: 14px; color: var(--chc-text-primary);';
+    settingsTitle.textContent = 'Current Settings';
+    settingsPanel.appendChild(settingsTitle);
+
+    const approachLabel = document.createElement('div');
+    approachLabel.style.cssText = 'font-size: 14px; color: var(--chc-text-secondary);';
+    const updateSettingsDisplay = () => {
+      const cfg = getScoringConfig();
+      const labels: Record<string, string> = {
+        dynamicSets: 'Dynamic Sets',
+        freeScore: 'Free Score',
+        dialPad: 'Dial Pad'
+      };
+      approachLabel.innerHTML = `Scoring Approach: <strong style="color: var(--chc-status-info, #3273dc);">${
+        labels[cfg.scoringApproach || 'dynamicSets']
+      }</strong>`;
+    };
+    settingsPanel.appendChild(approachLabel);
+    container.appendChild(settingsPanel);
+
+    // Open modal button
+    const button = document.createElement('button');
+    button.className = 'button is-primary';
+    button.textContent = 'Open Scoring Modal';
+    button.style.marginRight = '1em';
+    button.onclick = () => {
+      setScoringConfig({
+        scoringApproach: getScoringConfig().scoringApproach || 'dynamicSets',
+        smartComplements: args.smartComplements,
+        composition: args.composition
+      });
+
+      scoringModal({
+        matchUp: createMockMatchUp(),
+        callback: (outcome: any) => {
+          handleScoreSubmit(outcome);
+          // After modal closes, update the settings display
+          // to reflect any approach change made via the menu
+          updateSettingsDisplay();
+        }
+      });
+    };
+    container.appendChild(button);
+
+    // Hint text
+    const hint = document.createElement('p');
+    hint.style.cssText = 'margin-top: 1.5em; font-size: 13px; color: var(--chc-text-secondary); line-height: 1.6;';
+    hint.innerHTML =
+      'After the modal opens, look for the <strong style="color: var(--chc-text-primary);">&#9662;</strong> caret in the upper-right of the title bar. ' +
+      'Click it to switch approaches. The "Current Settings" panel above will update after you close the modal, ' +
+      'reflecting your last choice — just like TMX persists the preference to localStorage.';
+    container.appendChild(hint);
+
+    // Initialize display
+    updateSettingsDisplay();
+
+    // Poll for config changes while modal is open (so settings display updates live)
+    let pollInterval: any;
+    const startPolling = () => {
+      let lastApproach = getScoringConfig().scoringApproach;
+      pollInterval = setInterval(() => {
+        const current = getScoringConfig().scoringApproach;
+        if (current !== lastApproach) {
+          lastApproach = current;
+          updateSettingsDisplay();
+        }
+      }, 200);
+    };
+    const stopPolling = () => clearInterval(pollInterval);
+
+    // Override button click to add polling
+    const origClick = button.onclick;
+    button.onclick = (e) => {
+      startPolling();
+      (origClick as any)?.(e);
+      // Stop polling when modal is gone (check periodically)
+      const checkModal = setInterval(() => {
+        if (!document.querySelector('[role="dialog"]')) {
+          stopPolling();
+          updateSettingsDisplay();
+          clearInterval(checkModal);
+        }
+      }, 300);
+    };
+
+    return container;
+  }
+};
+
+/**
  * Clear Global Score
  * Resets the globally persisted score state
  */
@@ -463,7 +594,11 @@ export const ClearGlobalScore = {
 
         scoreDisplay.innerHTML = `
           <div style="font-weight: 600; margin-bottom: 0.5em; color: var(--chc-text-primary);">Current Global Score:</div>
-          ${scoreText ? `<div style="color: var(--chc-border-focus); font-size: 1.1em; margin-bottom: 0.5em;">${scoreText}</div>` : ''}
+          ${
+            scoreText
+              ? `<div style="color: var(--chc-border-focus); font-size: 1.1em; margin-bottom: 0.5em;">${scoreText}</div>`
+              : ''
+          }
           ${
             globalMatchUpState.winningSide
               ? `<div style="color: #28a745;">Winner: Side ${globalMatchUpState.winningSide}</div>`
@@ -528,7 +663,7 @@ export const AllApproaches = {
       button.textContent = label;
       button.onclick = () => {
         setScoringConfig({
-          scoringApproach: approach as any,
+          scoringApproach: approach,
           smartComplements: false // Default to false in comparison view
         });
 

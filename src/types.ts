@@ -162,6 +162,7 @@ export interface Configuration {
   allDrawPositions?: boolean;
   bracketedSeeds?: boolean | 'square';
   scheduleInfo?: boolean;
+  matchUpFooter?: boolean;
   showAddress?: boolean;
   seedingElement?: 'sup' | 'span';
   matchUpHover?: boolean | string;
@@ -195,6 +196,9 @@ export interface Configuration {
   className?: string; // Custom class for modal dialog container
   style?: Partial<CSSStyleDeclaration>; // Custom inline styles for modal dialog container
   info?: string; // Info text to display in a popover when clicking the info icon in the title
+  menu?: {
+    menuItems: Array<{ label: string; onClick: () => void; active?: boolean }>;
+  };
   title?: {
     padding?: string;
   };

@@ -19,7 +19,7 @@ export {
   TemporalViewState,
   type ViewChangeEvent,
   type ViewChangeListener,
-  type ViewStateSnapshot,
+  type ViewStateSnapshot
 } from './engine/viewState';
 
 // ============================================================================
@@ -29,7 +29,7 @@ export {
 export {
   createTemporalGridControl,
   TemporalGridControl,
-  type TemporalGridControlConfig,
+  type TemporalGridControlConfig
 } from './controller/temporalGridControl';
 
 export {
@@ -58,7 +58,7 @@ export {
   type TimelineGroup,
   type TimelineItem,
   type ProjectionConfig,
-  type ResourceGroupingMode,
+  type ResourceGroupingMode
 } from './controller/viewProjections';
 
 // ============================================================================
@@ -70,40 +70,26 @@ export {
   TemporalGrid,
   type TemporalGridCallbacks,
   type TemporalGridConfig,
-  type TemporalGridLabels,
+  type TemporalGridLabels
 } from './ui/temporalGrid';
 
-export {
-  ModernTimePicker,
-  showModernTimePicker,
-  type TimePickerConfig,
-} from './ui/modernTimePicker';
+export { ModernTimePicker, showModernTimePicker, type TimePickerConfig } from './ui/modernTimePicker';
 
 export {
   createBlockPopoverManager,
   type BlockPopoverManager,
   type BlockPopoverOptions,
-  type EngineBlockPopoverOptions,
+  type EngineBlockPopoverOptions
 } from './ui/blockPopover';
 
-export {
-  buildStatsBar,
-  type StatsBarUpdate,
-} from './ui/statsBar';
+export { buildStatsBar, type StatsBarUpdate } from './ui/statsBar';
 
-export {
-  buildViewToolbar,
-  VIEW_PRESETS,
-  type ViewPreset,
-} from './ui/viewToolbar';
+export { buildViewToolbar, VIEW_PRESETS, type ViewPreset } from './ui/viewToolbar';
 
-export {
-  showCourtAvailabilityModal,
-  type CourtAvailabilityModalConfig,
-} from './ui/courtAvailabilityModal';
+export { showCourtAvailabilityModal, type CourtAvailabilityModalConfig } from './ui/courtAvailabilityModal';
 
 // ============================================================================
-// CourtTimeline (custom timeline component, replaces vis-timeline)
+// CourtTimeline (custom timeline component)
 // ============================================================================
 
 export { CourtTimeline } from './timeline/CourtTimeline';
@@ -112,7 +98,7 @@ export type {
   TimelineItemData,
   TimelineOptions,
   TimelineCallbacks,
-  MultiRowSpan,
+  MultiRowSpan
 } from './timeline/types';
 
 // ============================================================================

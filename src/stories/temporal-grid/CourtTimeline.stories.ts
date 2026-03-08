@@ -1,5 +1,5 @@
 /**
- * CourtTimeline stories — custom timeline component (replaces vis-timeline).
+ * CourtTimeline stories — custom timeline component
  *
  * Demonstrates:
  * - Engine-backed timeline with full CRUD
@@ -8,13 +8,13 @@
  * - Stats bar driven by engine capacity curve
  */
 
+import type { TimelineGroupData, TimelineItemData, MultiRowSpan } from '../../components/temporal-grid/timeline/types';
+import { showCourtAvailabilityModal } from '../../components/temporal-grid/ui/courtAvailabilityModal';
 import { mocksEngine, tournamentEngine, TemporalEngine, temporal } from 'tods-competition-factory';
 import { buildViewToolbar, VIEW_PRESETS } from '../../components/temporal-grid/ui/viewToolbar';
 import { createBlockPopoverManager } from '../../components/temporal-grid/ui/blockPopover';
-import { showCourtAvailabilityModal } from '../../components/temporal-grid/ui/courtAvailabilityModal';
-import { buildStatsBar } from '../../components/temporal-grid/ui/statsBar';
 import { CourtTimeline } from '../../components/temporal-grid/timeline/CourtTimeline';
-import type { TimelineGroupData, TimelineItemData, MultiRowSpan } from '../../components/temporal-grid/timeline/types';
+import { buildStatsBar } from '../../components/temporal-grid/ui/statsBar';
 import {
   buildResourcesFromTimelines,
   buildEventsFromTimelines,
@@ -44,7 +44,8 @@ const STYLE_HEADER =
   'padding: 10px 12px; font-weight: 600; font-size: 14px; color: var(--chc-text-primary); border-bottom: 1px solid var(--chc-border-primary); background: var(--chc-bg-elevated);';
 const STYLE_GROUP_ROW = 'padding: 4px 0;';
 const STYLE_COURT_LIST = 'padding-left: 28px;';
-const STYLE_COURT_ROW = 'display: flex; align-items: center; gap: 6px; padding: 3px 0; cursor: pointer; color: var(--chc-text-secondary);';
+const STYLE_COURT_ROW =
+  'display: flex; align-items: center; gap: 6px; padding: 3px 0; cursor: pointer; color: var(--chc-text-secondary);';
 const STYLE_ROOT =
   'display:flex; flex-direction:column; width:100%; height:600px; border:1px solid var(--chc-border-primary); border-radius:4px; overflow:hidden;';
 const STYLE_MAIN_ROW = 'display:flex; flex:1; min-height:0;';
@@ -71,9 +72,7 @@ function getDateRange(startDate: string, count: number): string[] {
   const dates: string[] = [];
   const d = new Date(`${startDate}T12:00:00`); // noon to avoid DST issues
   for (let i = 0; i < count; i++) {
-    dates.push(
-      `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-    );
+    dates.push(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`);
     d.setDate(d.getDate() + 1);
   }
   return dates;
@@ -180,24 +179,28 @@ function createEngineSetup(options?: { includeBookings?: boolean }) {
     if (mainCourts[0]) {
       tournamentEngine.modifyCourtAvailability({
         courtId: mainCourts[0].courtId,
-        dateAvailability: [{
-          date: startDate,
-          startTime: '08:00',
-          endTime: '20:00',
-          bookings: [{ startTime: '09:00', endTime: '11:00', bookingType: 'MAINTENANCE' }]
-        }]
+        dateAvailability: [
+          {
+            date: startDate,
+            startTime: '08:00',
+            endTime: '20:00',
+            bookings: [{ startTime: '09:00', endTime: '11:00', bookingType: 'MAINTENANCE' }]
+          }
+        ]
       });
     }
 
     if (mainCourts[2]) {
       tournamentEngine.modifyCourtAvailability({
         courtId: mainCourts[2].courtId,
-        dateAvailability: [{
-          date: startDate,
-          startTime: '08:00',
-          endTime: '20:00',
-          bookings: [{ startTime: '14:00', endTime: '16:00', bookingType: 'PRACTICE' }]
-        }]
+        dateAvailability: [
+          {
+            date: startDate,
+            startTime: '08:00',
+            endTime: '20:00',
+            bookings: [{ startTime: '14:00', endTime: '16:00', bookingType: 'PRACTICE' }]
+          }
+        ]
       });
     }
   }
@@ -248,7 +251,15 @@ function createEngineSetup(options?: { includeBookings?: boolean }) {
     initialBlockSnapshot.set(courtId, JSON.stringify(blocks));
   });
 
-  return { engine, tournamentRecord: recordWithBookings, startDate, courtNameMap, venueInfos, allCourtIds, initialBlockSnapshot };
+  return {
+    engine,
+    tournamentRecord: recordWithBookings,
+    startDate,
+    courtNameMap,
+    venueInfos,
+    allCourtIds,
+    initialBlockSnapshot
+  };
 }
 
 /** Parameterized engine setup — accepts start/end dates, no bookings, no initialBlockSnapshot */
@@ -379,8 +390,12 @@ function buildCourtTreeWithEditIcons(
     venueRow.appendChild(courtCount);
     group.appendChild(venueRow);
 
-    venueRow.addEventListener('mouseenter', () => { venueEditBtn.style.opacity = '1'; });
-    venueRow.addEventListener('mouseleave', () => { venueEditBtn.style.opacity = '0'; });
+    venueRow.addEventListener('mouseenter', () => {
+      venueEditBtn.style.opacity = '1';
+    });
+    venueRow.addEventListener('mouseleave', () => {
+      venueEditBtn.style.opacity = '0';
+    });
 
     const courtList = document.createElement('div');
     courtList.style.cssText = STYLE_COURT_LIST;
@@ -425,8 +440,12 @@ function buildCourtTreeWithEditIcons(
       courtRow.appendChild(courtEditBtn);
       courtList.appendChild(courtRow);
 
-      courtRow.addEventListener('mouseenter', () => { courtEditBtn.style.opacity = '1'; });
-      courtRow.addEventListener('mouseleave', () => { courtEditBtn.style.opacity = '0'; });
+      courtRow.addEventListener('mouseenter', () => {
+        courtEditBtn.style.opacity = '1';
+      });
+      courtRow.addEventListener('mouseleave', () => {
+        courtEditBtn.style.opacity = '0';
+      });
     }
 
     venueCb.addEventListener('change', () => {
@@ -453,7 +472,7 @@ function getGroups(
   engine: TemporalEngine,
   startDate: string,
   visibleCourts: Set<string>,
-  courtNameMap: Map<string, string>,
+  courtNameMap: Map<string, string>
 ): TimelineGroupData[] {
   const timelines = engine.getDayTimeline(startDate);
   const courtMeta = engine.listCourtMeta();
@@ -468,7 +487,7 @@ function getGroups(
       surface: g.surface,
       indoor: g.indoor,
       hasLights: g.hasLights,
-      tags: g.tags,
+      tags: g.tags
     }));
 }
 
@@ -498,7 +517,7 @@ function getItems(
     content: item.content,
     start: item.start,
     end: item.end,
-    type: item.type === 'background' ? 'background' as const : 'range' as const,
+    type: item.type === 'background' ? ('background' as const) : ('range' as const),
     className: item.className,
     style: item.style,
     title: item.title,
@@ -508,17 +527,13 @@ function getItems(
     reason: item.reason,
     isBlock: item.isBlock,
     isSegment: item.isSegment,
-    isConflict: item.isConflict,
+    isConflict: item.isConflict
   }));
 }
 
 // ── Simple court tree (checkboxes, no edit icons) ────────────────────────────
 
-function buildCourtTree(
-  venues: VenueInfo[],
-  visibleCourts: Set<string>,
-  onChange: () => void
-): HTMLElement {
+function buildCourtTree(venues: VenueInfo[], visibleCourts: Set<string>, onChange: () => void): HTMLElement {
   const panel = document.createElement('div');
   panel.style.cssText = `
     width: 220px; flex-shrink: 0; border-right: 1px solid var(--chc-border-primary);
@@ -637,7 +652,8 @@ function buildDateControlsPanel(params: {
   startInput.type = 'text';
   startInput.value = params.startDate;
   startInput.readOnly = true;
-  startInput.style.cssText = 'font-size: 13px; padding: 2px 6px; border: 1px solid var(--chc-border-primary); border-radius: 4px; width: 110px; cursor: pointer; background: var(--chc-bg-elevated); color: var(--chc-text-primary);';
+  startInput.style.cssText =
+    'font-size: 13px; padding: 2px 6px; border: 1px solid var(--chc-border-primary); border-radius: 4px; width: 110px; cursor: pointer; background: var(--chc-bg-elevated); color: var(--chc-text-primary);';
 
   const endLabel = document.createElement('span');
   endLabel.textContent = 'End:';
@@ -646,7 +662,8 @@ function buildDateControlsPanel(params: {
   endInput.type = 'text';
   endInput.value = params.endDate;
   endInput.readOnly = true;
-  endInput.style.cssText = 'font-size: 13px; padding: 2px 6px; border: 1px solid var(--chc-border-primary); border-radius: 4px; width: 110px; cursor: pointer; background: var(--chc-bg-elevated); color: var(--chc-text-primary);';
+  endInput.style.cssText =
+    'font-size: 13px; padding: 2px 6px; border: 1px solid var(--chc-border-primary); border-radius: 4px; width: 110px; cursor: pointer; background: var(--chc-bg-elevated); color: var(--chc-text-primary);';
 
   // Pickers are initialized after DOM attachment via initPickers()
   let startPicker: Datepicker | null = null;
@@ -728,10 +745,7 @@ function buildDateControlsPanel(params: {
 
 // ── Day navigation bar ───────────────────────────────────────────────────────
 
-function buildDayNavBar(params: {
-  onPrev: () => void;
-  onNext: () => void;
-}): {
+function buildDayNavBar(params: { onPrev: () => void; onNext: () => void }): {
   element: HTMLElement;
   update: (day: string, sortedAvailable: string[], index: number) => void;
 } {
@@ -896,7 +910,13 @@ export const FactoryBacked = {
     const mainRow = document.createElement('div');
     mainRow.style.cssText = STYLE_MAIN_ROW;
 
-    const treePanel = buildCourtTreeWithEditIcons(venueInfos, visibleCourts, rebuildItems, handleVenueEdit, handleCourtEdit);
+    const treePanel = buildCourtTreeWithEditIcons(
+      venueInfos,
+      visibleCourts,
+      rebuildItems,
+      handleVenueEdit,
+      handleCourtEdit
+    );
     const timelineContainer = document.createElement('div');
     timelineContainer.style.cssText = STYLE_TIMELINE_CONTAINER;
 
@@ -934,7 +954,7 @@ export const FactoryBacked = {
         height: '100%',
         timeAxis: { scale: 'hour', step: 1 },
         showTooltips: true,
-        rowHeight: 40,
+        rowHeight: 40
       });
 
       // Set daily bounds to collapse overnight gaps
@@ -1176,7 +1196,13 @@ export const MultiRowCreation = {
     const mainRow = document.createElement('div');
     mainRow.style.cssText = STYLE_MAIN_ROW;
 
-    const treePanel = buildCourtTreeWithEditIcons(venueInfos, visibleCourts, rebuildItems, handleVenueEdit, handleCourtEdit);
+    const treePanel = buildCourtTreeWithEditIcons(
+      venueInfos,
+      visibleCourts,
+      rebuildItems,
+      handleVenueEdit,
+      handleCourtEdit
+    );
     const timelineContainer = document.createElement('div');
     timelineContainer.style.cssText = STYLE_TIMELINE_CONTAINER;
 
@@ -1224,7 +1250,7 @@ export const MultiRowCreation = {
         },
         height: '100%',
         timeAxis: { scale: 'hour', step: 1 },
-        rowHeight: 40,
+        rowHeight: 40
       });
 
       // Set daily bounds to collapse overnight gaps
@@ -1258,7 +1284,7 @@ export const MultiRowCreation = {
           const availEnd = new Date(`${itemDay}T${avail.endTime}:00`);
           return {
             start: item.start < availStart ? availStart : item.start,
-            end: item.end > availEnd ? availEnd : item.end,
+            end: item.end > availEnd ? availEnd : item.end
           };
         }
         return { start: item.start, end: item.end };
@@ -1505,9 +1531,7 @@ export const RoundTrip = {
     defaultAvailBtn.addEventListener('click', () => {
       // Read from first venue's default (not court availability, which resolves through intersection)
       const firstVenueId = venueInfos[0]?.id;
-      const venueAvail = firstVenueId
-        ? engine.getVenueAvailability(config.tournamentId, firstVenueId)
-        : null;
+      const venueAvail = firstVenueId ? engine.getVenueAvailability(config.tournamentId, firstVenueId) : null;
       const avail = venueAvail || { startTime: config.dayStartTime, endTime: config.dayEndTime };
       showCourtAvailabilityModal({
         title: 'Default Availability (All Courts)',
@@ -1618,7 +1642,13 @@ export const RoundTrip = {
     const mainRow = document.createElement('div');
     mainRow.style.cssText = STYLE_MAIN_ROW;
 
-    const treePanel = buildCourtTreeWithEditIcons(venueInfos, visibleCourts, rebuildItems, handleVenueEdit, handleCourtEdit);
+    const treePanel = buildCourtTreeWithEditIcons(
+      venueInfos,
+      visibleCourts,
+      rebuildItems,
+      handleVenueEdit,
+      handleCourtEdit
+    );
     const timelineContainer = document.createElement('div');
     timelineContainer.style.cssText = STYLE_TIMELINE_CONTAINER;
 
@@ -1656,7 +1686,7 @@ export const RoundTrip = {
         height: '100%',
         timeAxis: { scale: 'hour', step: 1 },
         showTooltips: true,
-        rowHeight: 40,
+        rowHeight: 40
       });
 
       // Set daily bounds to collapse overnight gaps
@@ -1690,7 +1720,7 @@ export const RoundTrip = {
           const availEnd = new Date(`${itemDay}T${avail.endTime}:00`);
           return {
             start: item.start < availStart ? availStart : item.start,
-            end: item.end > availEnd ? availEnd : item.end,
+            end: item.end > availEnd ? availEnd : item.end
           };
         }
         return { start: item.start, end: item.end };
@@ -1857,7 +1887,7 @@ export const AvailableDates = {
         content: item.content,
         start: item.start,
         end: item.end,
-        type: item.type === 'background' ? 'background' as const : 'range' as const,
+        type: item.type === 'background' ? ('background' as const) : ('range' as const),
         className: item.className,
         style: item.style,
         title: item.title,
@@ -1867,7 +1897,7 @@ export const AvailableDates = {
         reason: item.reason,
         isBlock: item.isBlock,
         isSegment: item.isSegment,
-        isConflict: item.isConflict,
+        isConflict: item.isConflict
       }));
     };
 
@@ -1978,7 +2008,8 @@ export const AvailableDates = {
     dateInput.type = 'text';
     dateInput.value = currentDay;
     dateInput.readOnly = true;
-    dateInput.style.cssText = 'font-size: 13px; padding: 2px 6px; border: 1px solid var(--chc-border-primary); border-radius: 4px; margin-right: 8px; width: 110px; cursor: pointer; background: var(--chc-bg-elevated); color: var(--chc-text-primary);';
+    dateInput.style.cssText =
+      'font-size: 13px; padding: 2px 6px; border: 1px solid var(--chc-border-primary); border-radius: 4px; margin-right: 8px; width: 110px; cursor: pointer; background: var(--chc-bg-elevated); color: var(--chc-text-primary);';
     // viewDatePicker initialized after DOM attachment in constructTimeline()
     let viewDatePicker: Datepicker | null = null;
     dateInput.addEventListener('changeDate', () => {
@@ -1989,10 +2020,14 @@ export const AvailableDates = {
       } else if (val) {
         const sorted = getSortedAvailable();
         if (sorted.length === 0) return;
-        const nearest = sorted.reduce((best, d) =>
-          Math.abs(new Date(d).getTime() - new Date(val).getTime()) <
-          Math.abs(new Date(best).getTime() - new Date(val).getTime()) ? d : best
-        , sorted[0]);
+        const nearest = sorted.reduce(
+          (best, d) =>
+            Math.abs(new Date(d).getTime() - new Date(val).getTime()) <
+            Math.abs(new Date(best).getTime() - new Date(val).getTime())
+              ? d
+              : best,
+          sorted[0]
+        );
         currentDay = nearest;
         if (viewDatePicker) viewDatePicker.setDate(nearest, { clear: true });
         else dateInput.value = nearest;
@@ -2151,7 +2186,7 @@ export const AvailableDates = {
         height: '100%',
         timeAxis: { scale: 'hour', step: 1 },
         showTooltips: true,
-        rowHeight: 40,
+        rowHeight: 40
       });
 
       timeline.setDailyBounds(timeRange.startTime, timeRange.endTime);
@@ -2182,7 +2217,7 @@ export const AvailableDates = {
           const availEnd = new Date(`${itemDay}T${avail.endTime}:00`);
           return {
             start: item.start < availStart ? availStart : item.start,
-            end: item.end > availEnd ? availEnd : item.end,
+            end: item.end > availEnd ? availEnd : item.end
           };
         }
         return { start: item.start, end: item.end };
