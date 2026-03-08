@@ -17,6 +17,8 @@ import type {
 
 import './schedule-grid-cell.css';
 
+const CONFLICT_HIGHLIGHT = CONFLICT_HIGHLIGHT;
+
 // ============================================================================
 // Default Config
 // ============================================================================
@@ -139,17 +141,17 @@ function buildMatchUpCell(data: ScheduleCellData, cfg: ScheduleCellConfig): HTML
   // Conflict hover
   if (data.issueIds?.length) {
     cell.addEventListener('mouseenter', () => {
-      cell.classList.add('spl-cell--conflict-highlight');
+      cell.classList.add(CONFLICT_HIGHLIGHT);
       for (const id of data.issueIds!) {
         const related = document.querySelectorAll(`[data-matchup-id="${id}"]`);
-        related.forEach((el) => el.classList.add('spl-cell--conflict-highlight'));
+        related.forEach((el) => el.classList.add(CONFLICT_HIGHLIGHT));
       }
     });
     cell.addEventListener('mouseleave', () => {
-      cell.classList.remove('spl-cell--conflict-highlight');
+      cell.classList.remove(CONFLICT_HIGHLIGHT);
       for (const id of data.issueIds!) {
         const related = document.querySelectorAll(`[data-matchup-id="${id}"]`);
-        related.forEach((el) => el.classList.remove('spl-cell--conflict-highlight'));
+        related.forEach((el) => el.classList.remove(CONFLICT_HIGHLIGHT));
       }
     });
   }

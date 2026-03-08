@@ -37,6 +37,7 @@ export default {
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 const ROOT_STYLE = 'background: var(--sp-bg); min-height: 100vh;';
+const CONTAINER_HEIGHT = CONTAINER_HEIGHT;
 const INFO_STYLE =
   'font-size: 12px; color: var(--sp-muted); padding: 12px 16px; font-family: ui-sans-serif, system-ui, sans-serif;';
 
@@ -72,7 +73,7 @@ export const Default = {
     root.appendChild(info);
 
     const container = document.createElement('div');
-    container.style.height = 'calc(100vh - 100px)';
+    container.style.height = CONTAINER_HEIGHT;
     root.appendChild(container);
 
     const logFn = addEventLog(root);
@@ -105,7 +106,7 @@ export const BuiltinOnly = {
     root.appendChild(info);
 
     const container = document.createElement('div');
-    container.style.height = 'calc(100vh - 100px)';
+    container.style.height = CONTAINER_HEIGHT;
     root.appendChild(container);
 
     createPolicyCatalog(
@@ -132,7 +133,7 @@ export const EmptyCatalog = {
     root.appendChild(info);
 
     const container = document.createElement('div');
-    container.style.height = 'calc(100vh - 100px)';
+    container.style.height = CONTAINER_HEIGHT;
     root.appendChild(container);
 
     createPolicyCatalog(

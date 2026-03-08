@@ -2,6 +2,9 @@ import { describe, it, expect, vi } from 'vitest';
 import { SchedulePageStore } from '../engine/schedulePageStore';
 import type { SchedulePageConfig, CatalogMatchUpItem, ScheduleDate } from '../types';
 
+const DATE_DAY1 = '2026-06-15';
+const DATE_DAY2 = '2026-06-16';
+
 const matchUpCatalog: CatalogMatchUpItem[] = [
   {
     matchUpId: 'M1', eventId: 'E1', eventName: 'Boys U16', drawId: 'D1', drawName: 'Main',
@@ -17,8 +20,8 @@ const matchUpCatalog: CatalogMatchUpItem[] = [
 ];
 
 const scheduleDates: ScheduleDate[] = [
-  { date: '2026-06-15', isActive: true, matchUpCount: 10 },
-  { date: '2026-06-16', isActive: true, matchUpCount: 8 },
+  { date: DATE_DAY1, isActive: true, matchUpCount: 10 },
+  { date: DATE_DAY2, isActive: true, matchUpCount: 8 },
   { date: '2026-06-17', isActive: false },
 ];
 
@@ -33,7 +36,7 @@ describe('SchedulePageStore', () => {
       const state = store.getState();
       expect(state.matchUpCatalog).toEqual(matchUpCatalog);
       expect(state.scheduleDates).toEqual(scheduleDates);
-      expect(state.selectedDate).toBe('2026-06-15');
+      expect(state.selectedDate).toBe(DATE_DAY1);
       expect(state.selectedMatchUp).toBeNull();
       expect(state.catalogSearchQuery).toBe('');
       expect(state.catalogGroupBy).toBe('event');
@@ -56,22 +59,22 @@ describe('SchedulePageStore', () => {
   describe('selectDate', () => {
     it('updates selected date', () => {
       const store = new SchedulePageStore(makeConfig());
-      store.selectDate('2026-06-16');
-      expect(store.getState().selectedDate).toBe('2026-06-16');
+      store.selectDate(DATE_DAY2);
+      expect(store.getState().selectedDate).toBe(DATE_DAY2);
     });
 
     it('calls onDateSelected callback', () => {
       const onDateSelected = vi.fn();
       const store = new SchedulePageStore(makeConfig({ onDateSelected }));
-      store.selectDate('2026-06-16');
-      expect(onDateSelected).toHaveBeenCalledWith('2026-06-16');
+      store.selectDate(DATE_DAY2);
+      expect(onDateSelected).toHaveBeenCalledWith(DATE_DAY2);
     });
 
     it('does not emit when selecting same date', () => {
       const store = new SchedulePageStore(makeConfig());
       const listener = vi.fn();
       store.subscribe(listener);
-      store.selectDate('2026-06-15');
+      store.selectDate(DATE_DAY1);
       expect(listener).not.toHaveBeenCalled();
     });
   });
@@ -266,9 +269,9 @@ describe('SchedulePageStore', () => {
       const store = new SchedulePageStore(makeConfig());
       const listener = vi.fn();
       store.subscribe(listener);
-      store.selectDate('2026-06-16');
+      store.selectDate(DATE_DAY2);
       expect(listener).toHaveBeenCalled();
-      expect(listener.mock.calls[0][0].selectedDate).toBe('2026-06-16');
+      expect(listener.mock.calls[0][0].selectedDate).toBe(DATE_DAY2);
     });
 
     it('returns unsubscribe function', () => {
@@ -276,7 +279,7 @@ describe('SchedulePageStore', () => {
       const listener = vi.fn();
       const unsub = store.subscribe(listener);
       unsub();
-      store.selectDate('2026-06-16');
+      store.selectDate(DATE_DAY2);
       expect(listener).not.toHaveBeenCalled();
     });
   });

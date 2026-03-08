@@ -7,7 +7,9 @@
  */
 
 import type { ScheduleCellData } from '../../components/schedule-page';
-import { mocksEngine, genderConstants, matchUpStatusConstants } from 'tods-competition-factory';
+import { mocksEngine, genderConstants, matchUpStatusConstants, fixtures } from 'tods-competition-factory';
+
+const { FORMAT_STANDARD, FORMAT_ATP_DOUBLES } = fixtures.matchUpFormats;
 
 const { MALE, FEMALE } = genderConstants;
 const { COMPLETED, IN_PROGRESS, TO_BE_PLAYED, WALKOVER, RETIRED, DEFAULTED, ABANDONED, DOUBLE_WALKOVER, BYE } = matchUpStatusConstants;
@@ -21,6 +23,10 @@ const { participants: females } = mocksEngine.generateParticipants({ participant
 const M = males.map((p) => p.participantName);
 const F = females.map((p) => p.participantName);
 
+const MENS_SINGLES = MENS_SINGLES;
+const WOMENS_SINGLES = WOMENS_SINGLES;
+const DAVIS_CUP_SF = DAVIS_CUP_SF;
+
 // ============================================================================
 // Singles — Seeded, various statuses
 // ============================================================================
@@ -29,9 +35,9 @@ const F = females.map((p) => p.participantName);
 export const SINGLES_COMPLETED: ScheduleCellData = {
   matchUpId: 'cell-s01',
   drawId: 'D1',
-  eventName: "Men's Singles",
+  eventName: MENS_SINGLES,
   roundName: 'QF',
-  matchUpFormat: 'SET3-S:6/TB7',
+  matchUpFormat: FORMAT_STANDARD,
   matchUpType: 'SINGLES',
   matchUpStatus: COMPLETED,
   winningSide: 1,
@@ -47,9 +53,9 @@ export const SINGLES_COMPLETED: ScheduleCellData = {
 export const SINGLES_IN_PROGRESS: ScheduleCellData = {
   matchUpId: 'cell-s02',
   drawId: 'D1',
-  eventName: "Men's Singles",
+  eventName: MENS_SINGLES,
   roundName: 'SF',
-  matchUpFormat: 'SET3-S:6/TB7',
+  matchUpFormat: FORMAT_STANDARD,
   matchUpType: 'SINGLES',
   matchUpStatus: IN_PROGRESS,
   sides: [
@@ -64,9 +70,9 @@ export const SINGLES_IN_PROGRESS: ScheduleCellData = {
 export const SINGLES_TO_BE_PLAYED: ScheduleCellData = {
   matchUpId: 'cell-s03',
   drawId: 'D1',
-  eventName: "Women's Singles",
+  eventName: WOMENS_SINGLES,
   roundName: 'R32',
-  matchUpFormat: 'SET3-S:6/TB7',
+  matchUpFormat: FORMAT_STANDARD,
   matchUpType: 'SINGLES',
   matchUpStatus: TO_BE_PLAYED,
   sides: [
@@ -80,7 +86,7 @@ export const SINGLES_TO_BE_PLAYED: ScheduleCellData = {
 export const SINGLES_WALKOVER: ScheduleCellData = {
   matchUpId: 'cell-s04',
   drawId: 'D1',
-  eventName: "Men's Singles",
+  eventName: MENS_SINGLES,
   roundName: 'R16',
   matchUpType: 'SINGLES',
   matchUpStatus: WALKOVER,
@@ -96,7 +102,7 @@ export const SINGLES_WALKOVER: ScheduleCellData = {
 export const SINGLES_RETIRED: ScheduleCellData = {
   matchUpId: 'cell-s05',
   drawId: 'D1',
-  eventName: "Women's Singles",
+  eventName: WOMENS_SINGLES,
   roundName: 'R16',
   matchUpType: 'SINGLES',
   matchUpStatus: RETIRED,
@@ -113,7 +119,7 @@ export const SINGLES_RETIRED: ScheduleCellData = {
 export const SINGLES_DEFAULTED: ScheduleCellData = {
   matchUpId: 'cell-s06',
   drawId: 'D1',
-  eventName: "Men's Singles",
+  eventName: MENS_SINGLES,
   roundName: 'R32',
   matchUpType: 'SINGLES',
   matchUpStatus: DEFAULTED,
@@ -129,7 +135,7 @@ export const SINGLES_DEFAULTED: ScheduleCellData = {
 export const SINGLES_ABANDONED: ScheduleCellData = {
   matchUpId: 'cell-s07',
   drawId: 'D1',
-  eventName: "Women's Singles",
+  eventName: WOMENS_SINGLES,
   roundName: 'QF',
   matchUpType: 'SINGLES',
   matchUpStatus: ABANDONED,
@@ -145,7 +151,7 @@ export const SINGLES_ABANDONED: ScheduleCellData = {
 export const SINGLES_DOUBLE_WALKOVER: ScheduleCellData = {
   matchUpId: 'cell-s08',
   drawId: 'D1',
-  eventName: "Men's Singles",
+  eventName: MENS_SINGLES,
   roundName: 'R32',
   matchUpType: 'SINGLES',
   matchUpStatus: DOUBLE_WALKOVER,
@@ -163,7 +169,7 @@ export const SINGLES_DOUBLE_WALKOVER: ScheduleCellData = {
 export const BYE_MATCHUP: ScheduleCellData = {
   matchUpId: 'cell-bye1',
   drawId: 'D1',
-  eventName: "Men's Singles",
+  eventName: MENS_SINGLES,
   roundName: 'R64',
   matchUpType: 'SINGLES',
   matchUpStatus: BYE,
@@ -177,7 +183,7 @@ export const BYE_MATCHUP: ScheduleCellData = {
 export const BYE_EXPLICIT: ScheduleCellData = {
   matchUpId: 'cell-bye2',
   drawId: 'D2',
-  eventName: "Women's Singles",
+  eventName: WOMENS_SINGLES,
   roundName: 'R64',
   matchUpType: 'SINGLES',
   matchUpStatus: BYE,
@@ -212,7 +218,7 @@ export const DOUBLES_COMPLETED: ScheduleCellData = {
   drawId: 'D3',
   eventName: "Men's Doubles",
   roundName: 'QF',
-  matchUpFormat: 'SET3-S:6/TB7-F:TB10',
+  matchUpFormat: FORMAT_ATP_DOUBLES,
   matchUpType: 'DOUBLES',
   matchUpStatus: COMPLETED,
   winningSide: 2,
@@ -230,7 +236,7 @@ export const DOUBLES_TO_BE_PLAYED: ScheduleCellData = {
   drawId: 'D3',
   eventName: "Women's Doubles",
   roundName: 'SF',
-  matchUpFormat: 'SET3-S:6/TB7-F:TB10',
+  matchUpFormat: FORMAT_ATP_DOUBLES,
   matchUpType: 'DOUBLES',
   matchUpStatus: TO_BE_PLAYED,
   sides: [
@@ -248,9 +254,9 @@ export const DOUBLES_TO_BE_PLAYED: ScheduleCellData = {
 export const TIE_SINGLES_COMPLETED: ScheduleCellData = {
   matchUpId: 'cell-t01',
   drawId: 'D4',
-  eventName: 'Davis Cup SF',
+  eventName: DAVIS_CUP_SF,
   roundName: 'Singles 1',
-  matchUpFormat: 'SET3-S:6/TB7',
+  matchUpFormat: FORMAT_STANDARD,
   matchUpType: 'SINGLES',
   matchUpStatus: COMPLETED,
   winningSide: 1,
@@ -266,9 +272,9 @@ export const TIE_SINGLES_COMPLETED: ScheduleCellData = {
 export const TIE_SINGLES_IN_PROGRESS: ScheduleCellData = {
   matchUpId: 'cell-t02',
   drawId: 'D4',
-  eventName: 'Davis Cup SF',
+  eventName: DAVIS_CUP_SF,
   roundName: 'Singles 2',
-  matchUpFormat: 'SET3-S:6/TB7',
+  matchUpFormat: FORMAT_STANDARD,
   matchUpType: 'SINGLES',
   matchUpStatus: IN_PROGRESS,
   sides: [
@@ -283,9 +289,9 @@ export const TIE_SINGLES_IN_PROGRESS: ScheduleCellData = {
 export const TIE_DOUBLES_TO_BE_PLAYED: ScheduleCellData = {
   matchUpId: 'cell-t03',
   drawId: 'D4',
-  eventName: 'Davis Cup SF',
+  eventName: DAVIS_CUP_SF,
   roundName: 'Doubles',
-  matchUpFormat: 'SET3-S:6/TB7-F:TB10',
+  matchUpFormat: FORMAT_ATP_DOUBLES,
   matchUpType: 'DOUBLES',
   matchUpStatus: TO_BE_PLAYED,
   sides: [
@@ -303,7 +309,7 @@ export const TIE_DOUBLES_TO_BE_PLAYED: ScheduleCellData = {
 export const POTENTIAL_PARTICIPANTS: ScheduleCellData = {
   matchUpId: 'cell-pot01',
   drawId: 'D1',
-  eventName: "Men's Singles",
+  eventName: MENS_SINGLES,
   roundName: 'SF',
   matchUpType: 'SINGLES',
   matchUpStatus: TO_BE_PLAYED,
@@ -319,7 +325,7 @@ export const POTENTIAL_PARTICIPANTS: ScheduleCellData = {
 export const PARTIAL_POTENTIAL: ScheduleCellData = {
   matchUpId: 'cell-pot02',
   drawId: 'D1',
-  eventName: "Women's Singles",
+  eventName: WOMENS_SINGLES,
   roundName: 'Final',
   matchUpType: 'SINGLES',
   matchUpStatus: TO_BE_PLAYED,
@@ -341,7 +347,7 @@ export const PARTIAL_POTENTIAL: ScheduleCellData = {
 export const CONFLICT_DOUBLE_BOOKING: ScheduleCellData = {
   matchUpId: 'cell-conf01',
   drawId: 'D1',
-  eventName: "Men's Singles",
+  eventName: MENS_SINGLES,
   roundName: 'R16',
   matchUpType: 'SINGLES',
   matchUpStatus: TO_BE_PLAYED,
@@ -377,7 +383,7 @@ export const CONFLICT_OTHER: ScheduleCellData = {
 export const CONFLICT_WARNING: ScheduleCellData = {
   matchUpId: 'cell-warn01',
   drawId: 'D1',
-  eventName: "Men's Singles",
+  eventName: MENS_SINGLES,
   roundName: 'R32',
   matchUpType: 'SINGLES',
   matchUpStatus: TO_BE_PLAYED,
@@ -393,7 +399,7 @@ export const CONFLICT_WARNING: ScheduleCellData = {
 export const CONFLICT_ERROR: ScheduleCellData = {
   matchUpId: 'cell-err01',
   drawId: 'D2',
-  eventName: "Women's Singles",
+  eventName: WOMENS_SINGLES,
   roundName: 'R32',
   matchUpType: 'SINGLES',
   matchUpStatus: TO_BE_PLAYED,
@@ -409,7 +415,7 @@ export const CONFLICT_ERROR: ScheduleCellData = {
 export const CONFLICT_ISSUE: ScheduleCellData = {
   matchUpId: 'cell-iss01',
   drawId: 'D1',
-  eventName: "Men's Singles",
+  eventName: MENS_SINGLES,
   roundName: 'R16',
   matchUpType: 'SINGLES',
   matchUpStatus: TO_BE_PLAYED,
@@ -428,7 +434,7 @@ export const CONFLICT_ISSUE: ScheduleCellData = {
 export const WITH_UMPIRE: ScheduleCellData = {
   matchUpId: 'cell-ump01',
   drawId: 'D1',
-  eventName: "Men's Singles",
+  eventName: MENS_SINGLES,
   roundName: 'Final',
   matchUpFormat: 'SET5-S:6/TB7',
   matchUpType: 'SINGLES',

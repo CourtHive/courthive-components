@@ -11,9 +11,18 @@ import type {
   ScheduleIssue,
   SchedulePageConfig,
 } from '../../components/schedule-page';
-import { mocksEngine, genderConstants } from 'tods-competition-factory';
+import { mocksEngine, genderConstants, fixtures } from 'tods-competition-factory';
 
 const { MALE, FEMALE } = genderConstants;
+const { FORMAT_STANDARD, FORMAT_ATP_DOUBLES } = fixtures.matchUpFormats;
+
+const BOYS_U16_SINGLES = BOYS_U16_SINGLES;
+const GIRLS_U16_SINGLES = GIRLS_U16_SINGLES;
+const BOYS_U18_SINGLES = BOYS_U18_SINGLES;
+const GIRLS_U18_SINGLES = GIRLS_U18_SINGLES;
+const DATE_DAY1 = DATE_DAY1;
+const DATE_DAY2 = DATE_DAY2;
+const DATA_COURT_ATTR = DATA_COURT_ATTR;
 
 // ============================================================================
 // Participant Names (generated via mocksEngine)
@@ -51,24 +60,24 @@ function femaleSides(a: number, b: number) {
 
 export const MATCHUP_CATALOG: CatalogMatchUpItem[] = [
   // Event 1: Boys U16 Singles — Main Draw, R32 (4 matchUps)
-  { matchUpId: 'M01', eventId: 'E1', eventName: 'Boys U16 Singles', drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 1, roundName: 'R32', matchUpType: 'SINGLES', matchUpFormat: 'SET3-S:6/TB7', isScheduled: false, sides: maleSides(0, 1) },
-  { matchUpId: 'M02', eventId: 'E1', eventName: 'Boys U16 Singles', drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 1, roundName: 'R32', matchUpType: 'SINGLES', matchUpFormat: 'SET3-S:6/TB7', isScheduled: false, sides: maleSides(2, 3) },
-  { matchUpId: 'M03', eventId: 'E1', eventName: 'Boys U16 Singles', drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 1, roundName: 'R32', matchUpType: 'SINGLES', matchUpFormat: 'SET3-S:6/TB7', isScheduled: false, sides: maleSides(4, 5) },
-  { matchUpId: 'M04', eventId: 'E1', eventName: 'Boys U16 Singles', drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 1, roundName: 'R32', matchUpType: 'SINGLES', matchUpFormat: 'SET3-S:6/TB7', isScheduled: false, sides: maleSides(6, 7) },
+  { matchUpId: 'M01', eventId: 'E1', eventName: BOYS_U16_SINGLES, drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 1, roundName: 'R32', matchUpType: 'SINGLES', matchUpFormat: FORMAT_STANDARD, isScheduled: false, sides: maleSides(0, 1) },
+  { matchUpId: 'M02', eventId: 'E1', eventName: BOYS_U16_SINGLES, drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 1, roundName: 'R32', matchUpType: 'SINGLES', matchUpFormat: FORMAT_STANDARD, isScheduled: false, sides: maleSides(2, 3) },
+  { matchUpId: 'M03', eventId: 'E1', eventName: BOYS_U16_SINGLES, drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 1, roundName: 'R32', matchUpType: 'SINGLES', matchUpFormat: FORMAT_STANDARD, isScheduled: false, sides: maleSides(4, 5) },
+  { matchUpId: 'M04', eventId: 'E1', eventName: BOYS_U16_SINGLES, drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 1, roundName: 'R32', matchUpType: 'SINGLES', matchUpFormat: FORMAT_STANDARD, isScheduled: false, sides: maleSides(6, 7) },
 
   // Event 1: Boys U16 Singles — Main Draw, R16 (2 matchUps, already scheduled)
-  { matchUpId: 'M05', eventId: 'E1', eventName: 'Boys U16 Singles', drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 2, roundName: 'R16', matchUpType: 'SINGLES', matchUpFormat: 'SET3-S:6/TB7', isScheduled: true, scheduledTime: '09:00', scheduledCourtName: 'Court 1', sides: maleSides(0, 2) },
-  { matchUpId: 'M06', eventId: 'E1', eventName: 'Boys U16 Singles', drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 2, roundName: 'R16', matchUpType: 'SINGLES', matchUpFormat: 'SET3-S:6/TB7', isScheduled: true, scheduledTime: '09:00', scheduledCourtName: 'Court 2', sides: maleSides(4, 6) },
+  { matchUpId: 'M05', eventId: 'E1', eventName: BOYS_U16_SINGLES, drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 2, roundName: 'R16', matchUpType: 'SINGLES', matchUpFormat: FORMAT_STANDARD, isScheduled: true, scheduledTime: '09:00', scheduledCourtName: 'Court 1', sides: maleSides(0, 2) },
+  { matchUpId: 'M06', eventId: 'E1', eventName: BOYS_U16_SINGLES, drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 2, roundName: 'R16', matchUpType: 'SINGLES', matchUpFormat: FORMAT_STANDARD, isScheduled: true, scheduledTime: '09:00', scheduledCourtName: 'Court 2', sides: maleSides(4, 6) },
 
   // Event 2: Girls U16 Singles — Main Draw, R32 (4 matchUps)
-  { matchUpId: 'M07', eventId: 'E2', eventName: 'Girls U16 Singles', drawId: 'D2', drawName: 'Main', structureId: 'S2', roundNumber: 1, roundName: 'R32', matchUpType: 'SINGLES', matchUpFormat: 'SET3-S:6/TB7', isScheduled: false, sides: femaleSides(0, 1) },
-  { matchUpId: 'M08', eventId: 'E2', eventName: 'Girls U16 Singles', drawId: 'D2', drawName: 'Main', structureId: 'S2', roundNumber: 1, roundName: 'R32', matchUpType: 'SINGLES', matchUpFormat: 'SET3-S:6/TB7', isScheduled: false, sides: femaleSides(2, 3) },
-  { matchUpId: 'M09', eventId: 'E2', eventName: 'Girls U16 Singles', drawId: 'D2', drawName: 'Main', structureId: 'S2', roundNumber: 1, roundName: 'R32', matchUpType: 'SINGLES', matchUpFormat: 'SET3-S:6/TB7', isScheduled: false, sides: femaleSides(4, 5) },
-  { matchUpId: 'M10', eventId: 'E2', eventName: 'Girls U16 Singles', drawId: 'D2', drawName: 'Main', structureId: 'S2', roundNumber: 1, roundName: 'R32', matchUpType: 'SINGLES', matchUpFormat: 'SET3-S:6/TB7', isScheduled: false, sides: femaleSides(6, 7) },
+  { matchUpId: 'M07', eventId: 'E2', eventName: GIRLS_U16_SINGLES, drawId: 'D2', drawName: 'Main', structureId: 'S2', roundNumber: 1, roundName: 'R32', matchUpType: 'SINGLES', matchUpFormat: FORMAT_STANDARD, isScheduled: false, sides: femaleSides(0, 1) },
+  { matchUpId: 'M08', eventId: 'E2', eventName: GIRLS_U16_SINGLES, drawId: 'D2', drawName: 'Main', structureId: 'S2', roundNumber: 1, roundName: 'R32', matchUpType: 'SINGLES', matchUpFormat: FORMAT_STANDARD, isScheduled: false, sides: femaleSides(2, 3) },
+  { matchUpId: 'M09', eventId: 'E2', eventName: GIRLS_U16_SINGLES, drawId: 'D2', drawName: 'Main', structureId: 'S2', roundNumber: 1, roundName: 'R32', matchUpType: 'SINGLES', matchUpFormat: FORMAT_STANDARD, isScheduled: false, sides: femaleSides(4, 5) },
+  { matchUpId: 'M10', eventId: 'E2', eventName: GIRLS_U16_SINGLES, drawId: 'D2', drawName: 'Main', structureId: 'S2', roundNumber: 1, roundName: 'R32', matchUpType: 'SINGLES', matchUpFormat: FORMAT_STANDARD, isScheduled: false, sides: femaleSides(6, 7) },
 
   // Event 3: Boys U16 Doubles — Main Draw (2 matchUps, no sides yet)
-  { matchUpId: 'M11', eventId: 'E3', eventName: 'Boys U16 Doubles', drawId: 'D3', drawName: 'Main', structureId: 'S3', roundNumber: 1, roundName: 'R16', matchUpType: 'DOUBLES', matchUpFormat: 'SET3-S:6/TB7-F:TB10', isScheduled: false },
-  { matchUpId: 'M12', eventId: 'E3', eventName: 'Boys U16 Doubles', drawId: 'D3', drawName: 'Main', structureId: 'S3', roundNumber: 1, roundName: 'R16', matchUpType: 'DOUBLES', matchUpFormat: 'SET3-S:6/TB7-F:TB10', isScheduled: false },
+  { matchUpId: 'M11', eventId: 'E3', eventName: 'Boys U16 Doubles', drawId: 'D3', drawName: 'Main', structureId: 'S3', roundNumber: 1, roundName: 'R16', matchUpType: 'DOUBLES', matchUpFormat: FORMAT_ATP_DOUBLES, isScheduled: false },
+  { matchUpId: 'M12', eventId: 'E3', eventName: 'Boys U16 Doubles', drawId: 'D3', drawName: 'Main', structureId: 'S3', roundNumber: 1, roundName: 'R16', matchUpType: 'DOUBLES', matchUpFormat: FORMAT_ATP_DOUBLES, isScheduled: false },
 ];
 
 // ============================================================================
@@ -78,10 +87,10 @@ export const MATCHUP_CATALOG: CatalogMatchUpItem[] = [
 export const LARGE_CATALOG: CatalogMatchUpItem[] = [
   ...MATCHUP_CATALOG,
   // Extra QF round
-  { matchUpId: 'M13', eventId: 'E1', eventName: 'Boys U16 Singles', drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 3, roundName: 'QF', matchUpType: 'SINGLES', matchUpFormat: 'SET3-S:6/TB7', isScheduled: false, sides: maleSides(0, 4) },
-  { matchUpId: 'M14', eventId: 'E2', eventName: 'Girls U16 Singles', drawId: 'D2', drawName: 'Main', structureId: 'S2', roundNumber: 2, roundName: 'R16', matchUpType: 'SINGLES', matchUpFormat: 'SET3-S:6/TB7', isScheduled: true, scheduledTime: '11:00', scheduledCourtName: 'Court 3', sides: femaleSides(0, 2) },
-  { matchUpId: 'M15', eventId: 'E2', eventName: 'Girls U16 Singles', drawId: 'D2', drawName: 'Main', structureId: 'S2', roundNumber: 2, roundName: 'R16', matchUpType: 'SINGLES', matchUpFormat: 'SET3-S:6/TB7', isScheduled: true, scheduledTime: '11:00', scheduledCourtName: 'Court 4', sides: femaleSides(4, 6) },
-  { matchUpId: 'M16', eventId: 'E2', eventName: 'Girls U16 Singles', drawId: 'D2', drawName: 'Main', structureId: 'S2', roundNumber: 3, roundName: 'QF', matchUpType: 'SINGLES', matchUpFormat: 'SET3-S:6/TB7', isScheduled: false, sides: femaleSides(0, 4) },
+  { matchUpId: 'M13', eventId: 'E1', eventName: BOYS_U16_SINGLES, drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 3, roundName: 'QF', matchUpType: 'SINGLES', matchUpFormat: FORMAT_STANDARD, isScheduled: false, sides: maleSides(0, 4) },
+  { matchUpId: 'M14', eventId: 'E2', eventName: GIRLS_U16_SINGLES, drawId: 'D2', drawName: 'Main', structureId: 'S2', roundNumber: 2, roundName: 'R16', matchUpType: 'SINGLES', matchUpFormat: FORMAT_STANDARD, isScheduled: true, scheduledTime: '11:00', scheduledCourtName: 'Court 3', sides: femaleSides(0, 2) },
+  { matchUpId: 'M15', eventId: 'E2', eventName: GIRLS_U16_SINGLES, drawId: 'D2', drawName: 'Main', structureId: 'S2', roundNumber: 2, roundName: 'R16', matchUpType: 'SINGLES', matchUpFormat: FORMAT_STANDARD, isScheduled: true, scheduledTime: '11:00', scheduledCourtName: 'Court 4', sides: femaleSides(4, 6) },
+  { matchUpId: 'M16', eventId: 'E2', eventName: GIRLS_U16_SINGLES, drawId: 'D2', drawName: 'Main', structureId: 'S2', roundNumber: 3, roundName: 'QF', matchUpType: 'SINGLES', matchUpFormat: FORMAT_STANDARD, isScheduled: false, sides: femaleSides(0, 4) },
 ];
 
 // ============================================================================
@@ -111,27 +120,27 @@ let seqId = 1;
 // Boys U18 Singles — 8 R32 matchUps
 for (let i = 0; i < 8; i++) {
   SCROLLING_CATALOG.push({
-    matchUpId: `X${String(seqId++).padStart(2, '0')}`, eventId: 'E10', eventName: 'Boys U18 Singles',
+    matchUpId: `X${String(seqId++).padStart(2, '0')}`, eventId: 'E10', eventName: BOYS_U18_SINGLES,
     drawId: 'D10', drawName: 'Main', structureId: 'S10', roundNumber: 1, roundName: 'R32',
-    matchUpType: 'SINGLES', matchUpFormat: 'SET3-S:6/TB7', isScheduled: false,
+    matchUpType: 'SINGLES', matchUpFormat: FORMAT_STANDARD, isScheduled: false,
     sides: xMaleSides(i * 2, i * 2 + 1),
   });
 }
 // Girls U18 Singles — 8 R32 matchUps
 for (let i = 0; i < 8; i++) {
   SCROLLING_CATALOG.push({
-    matchUpId: `X${String(seqId++).padStart(2, '0')}`, eventId: 'E11', eventName: 'Girls U18 Singles',
+    matchUpId: `X${String(seqId++).padStart(2, '0')}`, eventId: 'E11', eventName: GIRLS_U18_SINGLES,
     drawId: 'D11', drawName: 'Main', structureId: 'S11', roundNumber: 1, roundName: 'R32',
-    matchUpType: 'SINGLES', matchUpFormat: 'SET3-S:6/TB7', isScheduled: false,
+    matchUpType: 'SINGLES', matchUpFormat: FORMAT_STANDARD, isScheduled: false,
     sides: xFemaleSides(i * 2, i * 2 + 1),
   });
 }
 // Boys U18 Singles — 4 R16 matchUps (some scheduled)
 for (let i = 0; i < 4; i++) {
   SCROLLING_CATALOG.push({
-    matchUpId: `X${String(seqId++).padStart(2, '0')}`, eventId: 'E10', eventName: 'Boys U18 Singles',
+    matchUpId: `X${String(seqId++).padStart(2, '0')}`, eventId: 'E10', eventName: BOYS_U18_SINGLES,
     drawId: 'D10', drawName: 'Main', structureId: 'S10', roundNumber: 2, roundName: 'R16',
-    matchUpType: 'SINGLES', matchUpFormat: 'SET3-S:6/TB7',
+    matchUpType: 'SINGLES', matchUpFormat: FORMAT_STANDARD,
     isScheduled: i < 2, scheduledTime: i < 2 ? '10:00' : undefined,
     scheduledCourtName: i < 2 ? `Court ${i + 1}` : undefined,
     sides: xMaleSides(i * 2, i * 2 + 1),
@@ -140,9 +149,9 @@ for (let i = 0; i < 4; i++) {
 // Girls U18 Singles — 4 R16 matchUps
 for (let i = 0; i < 4; i++) {
   SCROLLING_CATALOG.push({
-    matchUpId: `X${String(seqId++).padStart(2, '0')}`, eventId: 'E11', eventName: 'Girls U18 Singles',
+    matchUpId: `X${String(seqId++).padStart(2, '0')}`, eventId: 'E11', eventName: GIRLS_U18_SINGLES,
     drawId: 'D11', drawName: 'Main', structureId: 'S11', roundNumber: 2, roundName: 'R16',
-    matchUpType: 'SINGLES', matchUpFormat: 'SET3-S:6/TB7', isScheduled: false,
+    matchUpType: 'SINGLES', matchUpFormat: FORMAT_STANDARD, isScheduled: false,
     sides: xFemaleSides(i * 2, i * 2 + 1),
   });
 }
@@ -151,24 +160,24 @@ for (let i = 0; i < 4; i++) {
   SCROLLING_CATALOG.push({
     matchUpId: `X${String(seqId++).padStart(2, '0')}`, eventId: 'E12', eventName: 'Mixed Doubles',
     drawId: 'D12', drawName: 'Main', structureId: 'S12', roundNumber: 1, roundName: 'R16',
-    matchUpType: 'DOUBLES', matchUpFormat: 'SET3-S:6/TB7-F:TB10', isScheduled: false,
+    matchUpType: 'DOUBLES', matchUpFormat: FORMAT_ATP_DOUBLES, isScheduled: false,
   });
 }
 // Boys U18 QF — 2 matchUps
 for (let i = 0; i < 2; i++) {
   SCROLLING_CATALOG.push({
-    matchUpId: `X${String(seqId++).padStart(2, '0')}`, eventId: 'E10', eventName: 'Boys U18 Singles',
+    matchUpId: `X${String(seqId++).padStart(2, '0')}`, eventId: 'E10', eventName: BOYS_U18_SINGLES,
     drawId: 'D10', drawName: 'Main', structureId: 'S10', roundNumber: 3, roundName: 'QF',
-    matchUpType: 'SINGLES', matchUpFormat: 'SET3-S:6/TB7', isScheduled: false,
+    matchUpType: 'SINGLES', matchUpFormat: FORMAT_STANDARD, isScheduled: false,
     sides: xMaleSides(i * 4, i * 4 + 2),
   });
 }
 // Girls U18 QF — 2 matchUps
 for (let i = 0; i < 2; i++) {
   SCROLLING_CATALOG.push({
-    matchUpId: `X${String(seqId++).padStart(2, '0')}`, eventId: 'E11', eventName: 'Girls U18 Singles',
+    matchUpId: `X${String(seqId++).padStart(2, '0')}`, eventId: 'E11', eventName: GIRLS_U18_SINGLES,
     drawId: 'D11', drawName: 'Main', structureId: 'S11', roundNumber: 3, roundName: 'QF',
-    matchUpType: 'SINGLES', matchUpFormat: 'SET3-S:6/TB7', isScheduled: false,
+    matchUpType: 'SINGLES', matchUpFormat: FORMAT_STANDARD, isScheduled: false,
     sides: xFemaleSides(i * 4, i * 4 + 2),
   });
 }
@@ -178,15 +187,15 @@ for (let i = 0; i < 2; i++) {
 // ============================================================================
 
 export const SCHEDULE_DATES: ScheduleDate[] = [
-  { date: '2026-06-15', isActive: true, matchUpCount: 8, issueCount: 0 },
-  { date: '2026-06-16', isActive: true, matchUpCount: 6, issueCount: 2 },
+  { date: DATE_DAY1, isActive: true, matchUpCount: 8, issueCount: 0 },
+  { date: DATE_DAY2, isActive: true, matchUpCount: 6, issueCount: 2 },
   { date: '2026-06-17', isActive: true, matchUpCount: 4 },
   { date: '2026-06-18', isActive: false },
 ];
 
 export const SCHEDULE_DATES_WEEK: ScheduleDate[] = [
-  { date: '2026-06-15', isActive: true, matchUpCount: 12, issueCount: 0 },
-  { date: '2026-06-16', isActive: true, matchUpCount: 10, issueCount: 1 },
+  { date: DATE_DAY1, isActive: true, matchUpCount: 12, issueCount: 0 },
+  { date: DATE_DAY2, isActive: true, matchUpCount: 10, issueCount: 1 },
   { date: '2026-06-17', isActive: true, matchUpCount: 8 },
   { date: '2026-06-18', isActive: true, matchUpCount: 6 },
   { date: '2026-06-19', isActive: true, matchUpCount: 4 },
@@ -201,11 +210,11 @@ export const SCHEDULE_DATES_WEEK: ScheduleDate[] = [
 export const NO_ISSUES: ScheduleIssue[] = [];
 
 export const SAMPLE_ISSUES: ScheduleIssue[] = [
-  { severity: 'ERROR', message: `${MALE_NAMES[0]} has back-to-back matches with no recovery time`, matchUpId: 'M01', date: '2026-06-16' },
-  { severity: 'WARN', message: 'Court 1 has 6 consecutive hours of matches \u2014 consider rest window', date: '2026-06-16' },
-  { severity: 'INFO', message: 'Boys U16 Doubles R16 has no assigned court yet', matchUpId: 'M11', date: '2026-06-15' },
-  { severity: 'ERROR', message: `${MALE_NAMES[4]} is scheduled on two courts at the same time`, matchUpId: 'M03', date: '2026-06-16' },
-  { severity: 'WARN', message: 'Girls U16 Singles R32 matchUps exceed available court capacity', date: '2026-06-15' },
+  { severity: 'ERROR', message: `${MALE_NAMES[0]} has back-to-back matches with no recovery time`, matchUpId: 'M01', date: DATE_DAY2 },
+  { severity: 'WARN', message: 'Court 1 has 6 consecutive hours of matches \u2014 consider rest window', date: DATE_DAY2 },
+  { severity: 'INFO', message: 'Boys U16 Doubles R16 has no assigned court yet', matchUpId: 'M11', date: DATE_DAY1 },
+  { severity: 'ERROR', message: `${MALE_NAMES[4]} is scheduled on two courts at the same time`, matchUpId: 'M03', date: DATE_DAY2 },
+  { severity: 'WARN', message: 'Girls U16 Singles R32 matchUps exceed available court capacity', date: DATE_DAY1 },
 ];
 
 // ============================================================================
@@ -285,7 +294,7 @@ export function makeMockCourtGrid(
 
   function fillCell(cell: HTMLElement, m: CatalogMatchUpItem): void {
     const time = cell.getAttribute('data-time')!;
-    const court = cell.getAttribute('data-court')!;
+    const court = cell.getAttribute(DATA_COURT_ATTR)!;
     cellData.set(cellKey(time, court), m);
     cell.textContent = matchUpLabel(m);
     cell.style.cssText = FILLED_CELL;
@@ -294,7 +303,7 @@ export function makeMockCourtGrid(
 
   function clearCell(cell: HTMLElement): void {
     const time = cell.getAttribute('data-time')!;
-    const court = cell.getAttribute('data-court')!;
+    const court = cell.getAttribute(DATA_COURT_ATTR)!;
     cellData.delete(cellKey(time, court));
     cell.textContent = '';
     cell.style.cssText = EMPTY_CELL;
@@ -332,7 +341,7 @@ export function makeMockCourtGrid(
       const cell = document.createElement('div');
       cell.style.cssText = EMPTY_CELL;
       cell.setAttribute('data-time', time);
-      cell.setAttribute('data-court', courtName);
+      cell.setAttribute(DATA_COURT_ATTR, courtName);
       cell.draggable = false;
 
       // ── Drag start (from filled cells) ──

@@ -13,6 +13,7 @@ const LOSER = 'LOSER';
 const POSITION = 'POSITION';
 const TPL_EDGE_1 = 'tpl-edge-1';
 const TPL_EDGE_2 = 'tpl-edge-2';
+const LABEL_R1_LOSERS_R1 = 'R1 losers → R1';
 
 export const standardTemplates: TopologyTemplate[] = [
   {
@@ -83,7 +84,7 @@ export const standardTemplates: TopologyTemplate[] = [
           linkType: LOSER,
           sourceRoundNumber: 1,
           targetRoundNumber: 1,
-          label: 'R1 losers → R1'
+          label: LABEL_R1_LOSERS_R1
         }
       ]
     }
@@ -119,7 +120,7 @@ export const standardTemplates: TopologyTemplate[] = [
           linkType: LOSER,
           sourceRoundNumber: 1,
           targetRoundNumber: 1,
-          label: 'R1 losers → R1'
+          label: LABEL_R1_LOSERS_R1
         },
         {
           id: TPL_EDGE_2,
@@ -244,7 +245,7 @@ export const standardTemplates: TopologyTemplate[] = [
           linkType: LOSER,
           sourceRoundNumber: 1,
           targetRoundNumber: 1,
-          label: 'R1 losers → R1'
+          label: LABEL_R1_LOSERS_R1
         },
         {
           id: TPL_EDGE_2,
@@ -272,7 +273,7 @@ export const standardTemplates: TopologyTemplate[] = [
           linkType: LOSER,
           sourceRoundNumber: 1,
           targetRoundNumber: 1,
-          label: 'R1 losers → R1'
+          label: LABEL_R1_LOSERS_R1
         },
         {
           id: 'tpl-edge-5',
@@ -291,7 +292,7 @@ export const standardTemplates: TopologyTemplate[] = [
           linkType: LOSER,
           sourceRoundNumber: 1,
           targetRoundNumber: 1,
-          label: 'R1 losers → R1'
+          label: LABEL_R1_LOSERS_R1
         },
         // South → losers
         {
@@ -301,7 +302,7 @@ export const standardTemplates: TopologyTemplate[] = [
           linkType: LOSER,
           sourceRoundNumber: 1,
           targetRoundNumber: 1,
-          label: 'R1 losers → R1'
+          label: LABEL_R1_LOSERS_R1
         }
       ]
     }
