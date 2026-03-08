@@ -112,7 +112,7 @@ export function scoringModal(params: ScoringModalParams): void {
 
   const buildModalConfig = () => ({
     info: activeApproach === 'freeScore' ? freeScoreHelp : undefined,
-    menu: { menuItems: buildMenuItems() }
+    menu: { menuItems: buildMenuItems() },
   });
 
   const clearButton = () => {

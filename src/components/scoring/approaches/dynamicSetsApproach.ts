@@ -439,6 +439,32 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       composition: compositions[compositionName] || compositions.Australian,
     });
     matchUpContainer.appendChild(matchUpElement);
+    fitMatchUpDisplay();
+  };
+
+  // Scale the matchUp element to fit within its container
+  const fitMatchUpDisplay = () => {
+    requestAnimationFrame(() => {
+      const el = matchUpContainer.firstElementChild as HTMLElement;
+      if (!el) return;
+
+      // Let the matchUp box expand to fit its content so backgrounds/shadows cover everything
+      el.style.width = 'fit-content';
+      el.style.minWidth = '100%';
+
+      // Reset previous scaling so measurements are accurate
+      el.style.transform = '';
+      matchUpContainer.style.height = '';
+
+      const containerWidth = matchUpContainer.clientWidth;
+      const contentWidth = el.scrollWidth;
+      if (contentWidth > containerWidth && containerWidth > 0) {
+        const scale = containerWidth / contentWidth;
+        el.style.transformOrigin = 'top left';
+        el.style.transform = `scale(${scale})`;
+        matchUpContainer.style.height = `${el.offsetHeight * scale}px`;
+      }
+    });
   };
 
   // Function to create a set input row

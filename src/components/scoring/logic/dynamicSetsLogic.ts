@@ -365,6 +365,16 @@ export function shouldApplySmartComplement(
     };
   }
 
+  // No smart complement for timed sets — scores have no predictable relationship
+  if (isSetTimed(setFormat)) {
+    return {
+      field1Value: digit,
+      field2Value: 0,
+      shouldApply: false,
+      reason: 'Timed set',
+    };
+  }
+
   // Calculate complement
   const complement = calculateComplement(digit, setFormat);
   if (complement === null) {

@@ -170,7 +170,11 @@ export function renderIndividual(params: {
       type: 'scale',
       ...params
     });
-    if (scale) name.appendChild(scale);
+    if (scale) {
+      scale.style.marginInlineStart = '0.5em';
+      scale.style.marginInlineEnd = '0';
+      name.appendChild(scale);
+    }
   }
 
   const seeding = renderFrill({
