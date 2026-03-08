@@ -5,7 +5,7 @@
  * Following the TMX controlBar pattern: engine handles state, controller handles UI.
  *
  * Responsibilities:
- * - Create and configure CourtTimeline (replaces vis-timeline)
+ * - Create and configure CourtTimeline
  * - Convert engine data → timeline format
  * - Handle user interactions → engine commands
  * - Subscribe to engine events → update timeline
@@ -203,9 +203,10 @@ export class TemporalGridControl {
     if (this.visibleCourts !== null && this.visibleCourts.size > 0) {
       groups = groups.filter((g) => this.visibleCourts!.has(String(g.id)));
     }
-    const visibleGroupIds = this.visibleCourts !== null && this.visibleCourts.size > 0 && groups.length > 0
-      ? new Set(groups.map((g) => String(g.id)))
-      : null;
+    const visibleGroupIds =
+      this.visibleCourts !== null && this.visibleCourts.size > 0 && groups.length > 0
+        ? new Set(groups.map((g) => String(g.id)))
+        : null;
 
     // In single-day view, build items for ALL active days so horizontal
     // panning reveals correctly-shaded adjacent days (daily bounds collapse
@@ -225,9 +226,7 @@ export class TemporalGridControl {
     const filteredSegments = visibleGroupIds
       ? allSegments.filter((e) => visibleGroupIds.has(String(e.group)))
       : allSegments;
-    const filteredBlocks = visibleGroupIds
-      ? allBlocks.filter((e) => visibleGroupIds.has(String(e.group)))
-      : allBlocks;
+    const filteredBlocks = visibleGroupIds ? allBlocks.filter((e) => visibleGroupIds.has(String(e.group))) : allBlocks;
 
     const items = [...filteredSegments, ...filteredBlocks];
 
@@ -240,7 +239,7 @@ export class TemporalGridControl {
       surface: g.surface,
       indoor: g.indoor,
       hasLights: g.hasLights,
-      tags: g.tags,
+      tags: g.tags
     }));
 
     const tlItems: TimelineItemData[] = items.map((item) => ({
@@ -249,7 +248,7 @@ export class TemporalGridControl {
       content: item.content,
       start: item.start,
       end: item.end,
-      type: item.type === 'background' ? 'background' as const : 'range' as const,
+      type: item.type === 'background' ? ('background' as const) : ('range' as const),
       className: item.className,
       style: item.style,
       title: item.title,
@@ -259,7 +258,7 @@ export class TemporalGridControl {
       reason: item.reason,
       isBlock: item.isBlock,
       isSegment: item.isSegment,
-      isConflict: item.isConflict,
+      isConflict: item.isConflict
     }));
 
     return { groups: tlGroups, items: tlItems };
@@ -286,9 +285,7 @@ export class TemporalGridControl {
     });
 
     const preset = VIEW_PRESETS[this.currentView];
-    const windowEnd = viewDays.length > 1
-      ? new Date(`${lastDay}T${lastTimeRange.endTime}:00`)
-      : windowConfig.end;
+    const windowEnd = viewDays.length > 1 ? new Date(`${lastDay}T${lastTimeRange.endTime}:00`) : windowConfig.end;
 
     // Pan limits span the active tournament days so horizontal scrolling works
     const activeDays = this.engine.getActiveDays();
@@ -319,7 +316,7 @@ export class TemporalGridControl {
       rowHeight: 40,
       height: '100%',
       timeAxis: preset ? preset.timeAxis : { scale: 'hour', step: 1 },
-      showTooltips: true,
+      showTooltips: true
     });
 
     // Set daily bounds to collapse times outside availability window.
@@ -490,9 +487,7 @@ export class TemporalGridControl {
     });
 
     const preset = VIEW_PRESETS[this.currentView];
-    const windowEnd = viewDays.length > 1
-      ? new Date(`${lastDay}T${lastTimeRange.endTime}:00`)
-      : windowConfig.end;
+    const windowEnd = viewDays.length > 1 ? new Date(`${lastDay}T${lastTimeRange.endTime}:00`) : windowConfig.end;
 
     // Pan limits span the active tournament days
     const activeDays = this.engine.getActiveDays();
@@ -599,9 +594,12 @@ export class TemporalGridControl {
    * Destroys active popover, clamps to court availability.
    * Returns clamped start/end, or null to reject.
    */
-  private handleOnMoving = (
-    item: { id: string; group: string; start: Date; end: Date }
-  ): { start: Date; end: Date } | null => {
+  private handleOnMoving = (item: {
+    id: string;
+    group: string;
+    start: Date;
+    end: Date;
+  }): { start: Date; end: Date } | null => {
     this.popoverManager.destroy();
 
     // Look up the original item to check if it's a segment
@@ -670,7 +668,7 @@ export class TemporalGridControl {
         blockId,
         engine: this.engine,
         day,
-        onBlockChanged: () => this.render(),
+        onBlockChanged: () => this.render()
       });
     }
 
@@ -700,7 +698,7 @@ export class TemporalGridControl {
       courts,
       timeRange: { start: startStr, end: endStr },
       type: BLOCK_TYPES.BLOCKED,
-      reason: 'New Block',
+      reason: 'New Block'
     });
 
     this.render();
@@ -718,7 +716,7 @@ export class TemporalGridControl {
             blockId: newBlockId,
             engine: this.engine,
             day,
-            onBlockChanged: () => this.render(),
+            onBlockChanged: () => this.render()
           });
         }
       }, 50);

@@ -1,10 +1,10 @@
 /**
- * CourtTimeline — Assembler with vis-timeline-compatible API.
+ * CourtTimeline
  *
  * Wires together TimeScale, TimeAxis, RowLayout, ItemRenderer, and
  * InteractionManager into a single public surface.
  *
- * Public API mirrors vis-timeline's essentials:
+ * Public API:
  *   setGroups, setItems, setWindow, setOptions, on, destroy
  * Plus new:
  *   onMultiRowCreate
@@ -15,13 +15,7 @@ import { TimeAxis } from './TimeAxis';
 import { RowLayout } from './RowLayout';
 import { ItemRenderer } from './ItemRenderer';
 import { InteractionManager } from './InteractionManager';
-import type {
-  TimelineGroupData,
-  TimelineItemData,
-  TimelineOptions,
-  TimelineCallbacks,
-  MultiRowSpan,
-} from './types';
+import type { TimelineGroupData, TimelineItemData, TimelineOptions, TimelineCallbacks, MultiRowSpan } from './types';
 
 export class CourtTimeline {
   private options: TimelineOptions;
@@ -42,14 +36,14 @@ export class CourtTimeline {
   // Batch-update flag: when true, renderAll() is deferred
   private _batchUpdating = false;
 
-  // Event listeners (vis-timeline compatible 'on' API)
+  // Event listeners
   private eventListeners = new Map<string, Set<(...args: any[]) => void>>();
 
   constructor(
     container: HTMLElement,
     items: TimelineItemData[],
     groups: TimelineGroupData[],
-    options: TimelineOptions = {},
+    options: TimelineOptions = {}
   ) {
     this.options = { rowHeight: 40, ...options };
 
@@ -66,7 +60,7 @@ export class CourtTimeline {
         min: options.min,
         max: options.max,
         zoomMin: options.zoomMin,
-        zoomMax: options.zoomMax,
+        zoomMax: options.zoomMax
       });
     }
 
@@ -82,7 +76,7 @@ export class CourtTimeline {
       this.renderer,
       this.callbacks,
       snapMinutes,
-      options.enablePinchZoom ?? false,
+      options.enablePinchZoom ?? false
     );
 
     // Build DOM
@@ -152,9 +146,8 @@ export class CourtTimeline {
     this.resizeObserver.observe(scrollWrapper);
   }
 
-
   // ============================================================================
-  // Public API (vis-timeline compatible)
+  // Public API
   // ============================================================================
 
   setGroups(groups: TimelineGroupData[]): void {
@@ -179,7 +172,7 @@ export class CourtTimeline {
         min: opts.min,
         max: opts.max,
         zoomMin: opts.zoomMin,
-        zoomMax: opts.zoomMax,
+        zoomMax: opts.zoomMax
       });
     }
     if (opts.timeAxis) {
@@ -192,12 +185,11 @@ export class CourtTimeline {
     this.renderAll();
   }
 
-  /** vis-timeline compatible event registration */
   on(event: string, handler: (...args: any[]) => void): void {
     if (!this.eventListeners.has(event)) {
       this.eventListeners.set(event, new Set());
     }
-    this.eventListeners.get(event)!.add(handler);
+    this.eventListeners.get(event).add(handler);
 
     // Wire common events to the callback interface
     if (event === 'click') {
@@ -219,7 +211,7 @@ export class CourtTimeline {
   }
 
   // ============================================================================
-  // New API (beyond vis-timeline)
+  // New API
   // ============================================================================
 
   /** Register callback for multi-row ghost creation */
@@ -239,7 +231,7 @@ export class CourtTimeline {
 
   /** Register onMoving callback (live validation during drag) */
   onMoving(
-    handler: (item: { id: string; group: string; start: Date; end: Date }) => { start: Date; end: Date } | null,
+    handler: (item: { id: string; group: string; start: Date; end: Date }) => { start: Date; end: Date } | null
   ): void {
     this.callbacks.onMoving = handler;
   }
