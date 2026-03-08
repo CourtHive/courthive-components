@@ -165,7 +165,7 @@ export const InitialRound = {
             .map(Number)
             .sort((a, b) => a - b)
         : [];
-      const lastRound = roundNumbers[roundNumbers.length - 1] || 1;
+      const lastRound = roundNumbers.at(-1) || 1;
 
       if (!roundNumbers.includes(currentRound)) currentRound = roundNumbers[0] || 1;
 
@@ -288,7 +288,7 @@ export const Lucky = {
       }
 
       // Check if this round needs lucky advancement (skip final round — no next round to advance to)
-      if (roundNumber === roundNumbers[roundNumbers.length - 1]) continue;
+      if (roundNumber === roundNumbers.at(-1)) continue;
 
       const status = tournamentEngine.getLuckyDrawRoundStatus({ drawId });
       const roundStatus = status.rounds?.find((r: any) => r.roundNumber === roundNumber);
