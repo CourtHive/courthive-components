@@ -220,13 +220,25 @@ function renderField(
 
 function renderTime(data: ScheduleCellData): HTMLElement | null {
   const time = data.schedule?.scheduledTime;
-  if (!time) return null;
+  const modifiers = data.schedule?.timeModifiers;
+  const courtAnnotation = data.schedule?.courtAnnotation;
+
+  if (!time && !modifiers?.length && !courtAnnotation) return null;
 
   const el = document.createElement('div');
   el.className = 'spl-grid-cell__time';
 
-  const modifiers = data.schedule?.timeModifiers;
-  el.textContent = modifiers?.length ? `${modifiers.join(' ')} ${time}` : time;
+  const parts: string[] = [];
+  if (modifiers?.length) parts.push(modifiers.join(' '));
+  if (time) parts.push(time);
+  el.textContent = parts.join(' ') || '';
+
+  if (courtAnnotation) {
+    const anno = document.createElement('span');
+    anno.className = 'spl-grid-cell__court-annotation';
+    anno.textContent = ` ${courtAnnotation}`;
+    el.appendChild(anno);
+  }
 
   return el;
 }
@@ -498,6 +510,7 @@ export function mapMatchUpToCellData(matchUp: any): ScheduleCellData {
       ? {
           scheduledTime: matchUp.schedule.scheduledTime,
           timeModifiers: matchUp.schedule.timeModifiers,
+          courtAnnotation: matchUp.schedule.courtAnnotation,
           courtId: matchUp.schedule.courtId,
           courtOrder: matchUp.schedule.courtOrder,
           venueId: matchUp.schedule.venueId,

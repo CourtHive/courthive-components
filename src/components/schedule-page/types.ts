@@ -252,6 +252,7 @@ export interface ScheduleCellData {
   schedule?: {
     scheduledTime?: string;
     timeModifiers?: string[];
+    courtAnnotation?: string;
     courtId?: string;
     courtOrder?: number;
     venueId?: string;

@@ -10,6 +10,7 @@
  * - Doubles: Doubles pair names
  * - ByeMatchUps: BYE matchUps (single participant + BYE marker)
  * - Potentials: TBD / potential participant rendering
+ * - TimeModifiers: NB, NA, AR, FB, TBA and combined modifiers
  * - Conflicts: Conflict states — error, warning, issue, double-booking with hover
  * - SearchHighlight: Search-match purple highlight for finding team members, etc.
  * - BlockedCells: Maintenance, practice, generic blocked
@@ -47,6 +48,7 @@ import {
   ALL_BYES,
   ALL_CONFLICTS,
   ALL_BLOCKED,
+  ALL_TIME_MODIFIERS,
 } from './cellData';
 
 export default {
@@ -369,6 +371,34 @@ export const Potentials = {
       labeledCell(PARTIAL_POTENTIAL, 'One side known', undefined, WIDE_CELL),
     ];
     return gridLayout(cells, 'Potential (TBD) Participants');
+  },
+};
+
+// ============================================================================
+// Time Modifiers — NB, NA, AR, FB, TBA and combinations
+// ============================================================================
+
+export const TimeModifiers = {
+  render: () => {
+    const root = document.createElement('div');
+    root.style.cssText = STORY_ROOT_STYLE + ' max-width: 1100px;';
+
+    const info = document.createElement('div');
+    info.style.cssText = STORY_INFO_STYLE;
+    info.textContent =
+      'Time modifiers appear before the scheduled time. NB (Not Before) can combine with NA (Next Available) or AR (After Rest). Mutually-exclusive modifiers (NA, AR, FB, TBA) cannot combine with each other — only with NB.';
+    root.appendChild(info);
+
+    const labels = ['NB 14:00', 'NB NA 16:00', 'NB AR 15:00', 'NA (no time)', 'AR (no time)', 'FB (no time)', 'TBA (no time)', 'Court TBA 14:00', 'NB Court TBA 16:00'];
+    const cells = ALL_TIME_MODIFIERS.map((data, i) =>
+      labeledCell(data, labels[i], undefined, WIDE_CELL),
+    );
+    const grid = document.createElement('div');
+    grid.style.cssText = FLEX_GAP_12;
+    for (const c of cells) grid.appendChild(c);
+    root.appendChild(grid);
+
+    return root;
   },
 };
 

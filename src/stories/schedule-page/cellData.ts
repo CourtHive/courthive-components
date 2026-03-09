@@ -448,6 +448,158 @@ export const WITH_UMPIRE: ScheduleCellData = {
 };
 
 // ============================================================================
+// Time Modifier Variants
+// ============================================================================
+
+/** Not Before — NB prefix before the time */
+export const NB_SINGLES: ScheduleCellData = {
+  matchUpId: 'cell-nb01',
+  drawId: 'D1',
+  eventName: MENS_SINGLES,
+  roundName: 'QF',
+  matchUpType: 'SINGLES',
+  matchUpStatus: TO_BE_PLAYED,
+  sides: [
+    { sideNumber: 1, participantName: M[0], participantId: 'P01', seedNumber: 1, nationality: 'ESP' },
+    { sideNumber: 2, participantName: M[1], participantId: 'P02', seedNumber: 5, nationality: 'SRB' },
+  ],
+  schedule: { scheduledTime: '14:00', timeModifiers: ['NB'], courtId: 'C1', courtOrder: 2 },
+};
+
+/** Not Before + Next Available — NB NA (e.g. not before 2pm, next available court) */
+export const NB_NEXT_AVAILABLE: ScheduleCellData = {
+  matchUpId: 'cell-nb02',
+  drawId: 'D1',
+  eventName: MENS_SINGLES,
+  roundName: 'SF',
+  matchUpType: 'SINGLES',
+  matchUpStatus: TO_BE_PLAYED,
+  sides: [
+    { sideNumber: 1, participantName: M[2], participantId: 'P03', seedNumber: 3, nationality: 'GBR' },
+    { sideNumber: 2, participantName: M[3], participantId: 'P04', seedNumber: 2, nationality: 'RUS' },
+  ],
+  schedule: { scheduledTime: '16:00', timeModifiers: ['NB', 'NA'], courtId: 'C1', courtOrder: 3 },
+};
+
+/** Not Before + After Rest — NB AR (not before time, after required rest period) */
+export const NB_AFTER_REST: ScheduleCellData = {
+  matchUpId: 'cell-nb03',
+  drawId: 'D1',
+  eventName: WOMENS_SINGLES,
+  roundName: 'QF',
+  matchUpType: 'SINGLES',
+  matchUpStatus: TO_BE_PLAYED,
+  sides: [
+    { sideNumber: 1, participantName: F[0], participantId: 'PF01', seedNumber: 1, nationality: 'POL' },
+    { sideNumber: 2, participantName: F[1], participantId: 'PF02', nationality: 'USA' },
+  ],
+  schedule: { scheduledTime: '15:00', timeModifiers: ['NB', 'AR'], courtId: 'C2', courtOrder: 4 },
+};
+
+/** Next Available only (no specific time) */
+export const NEXT_AVAILABLE_ONLY: ScheduleCellData = {
+  matchUpId: 'cell-na01',
+  drawId: 'D1',
+  eventName: MENS_SINGLES,
+  roundName: 'R16',
+  matchUpType: 'SINGLES',
+  matchUpStatus: TO_BE_PLAYED,
+  sides: [
+    { sideNumber: 1, participantName: M[4], participantId: 'P05', seedNumber: 4, nationality: 'FRA' },
+    { sideNumber: 2, participantName: M[5], participantId: 'P06', nationality: 'GER' },
+  ],
+  schedule: { timeModifiers: ['NA'], courtId: 'C3' },
+};
+
+/** After Rest only (no specific time) */
+export const AFTER_REST_ONLY: ScheduleCellData = {
+  matchUpId: 'cell-ar01',
+  drawId: 'D1',
+  eventName: WOMENS_SINGLES,
+  roundName: 'R16',
+  matchUpType: 'SINGLES',
+  matchUpStatus: TO_BE_PLAYED,
+  sides: [
+    { sideNumber: 1, participantName: F[2], participantId: 'PF03', seedNumber: 7, nationality: 'AUS' },
+    { sideNumber: 2, participantName: F[3], participantId: 'PF04', seedNumber: 3, nationality: 'JPN' },
+  ],
+  schedule: { timeModifiers: ['AR'], courtId: 'C4' },
+};
+
+/** Followed By — FB (this matchUp follows previous on same court) */
+export const FOLLOWED_BY_ONLY: ScheduleCellData = {
+  matchUpId: 'cell-fb01',
+  drawId: 'D1',
+  eventName: MENS_SINGLES,
+  roundName: 'R32',
+  matchUpType: 'SINGLES',
+  matchUpStatus: TO_BE_PLAYED,
+  sides: [
+    { sideNumber: 1, participantName: M[6], participantId: 'P07', nationality: 'ITA' },
+    { sideNumber: 2, participantName: M[7], participantId: 'P08', seedNumber: 8, nationality: 'CAN' },
+  ],
+  schedule: { timeModifiers: ['FB'], courtId: 'C1' },
+};
+
+/** To Be Announced — TBA (time not yet determined) */
+export const TBA_ONLY: ScheduleCellData = {
+  matchUpId: 'cell-tba01',
+  drawId: 'D1',
+  eventName: MENS_SINGLES,
+  roundName: 'Final',
+  matchUpType: 'SINGLES',
+  matchUpStatus: TO_BE_PLAYED,
+  sides: [
+    { sideNumber: 1, participantName: M[0], participantId: 'P01', seedNumber: 1, nationality: 'ESP' },
+    { sideNumber: 2, participantName: M[2], participantId: 'P03', seedNumber: 3, nationality: 'GBR' },
+  ],
+  schedule: { timeModifiers: ['TBA'], courtId: 'C1' },
+};
+
+/** Court TBA — time known but court not yet assigned */
+export const COURT_TBA: ScheduleCellData = {
+  matchUpId: 'cell-ctba01',
+  drawId: 'D1',
+  eventName: MENS_SINGLES,
+  roundName: 'SF',
+  matchUpType: 'SINGLES',
+  matchUpStatus: TO_BE_PLAYED,
+  sides: [
+    { sideNumber: 1, participantName: M[0], participantId: 'P01', seedNumber: 1, nationality: 'ESP' },
+    { sideNumber: 2, participantName: M[3], participantId: 'P04', seedNumber: 2, nationality: 'RUS' },
+  ],
+  schedule: { scheduledTime: '14:00', courtAnnotation: 'Court TBA' },
+};
+
+/** Court TBA with NB — not before time, court not yet assigned */
+export const NB_COURT_TBA: ScheduleCellData = {
+  matchUpId: 'cell-ctba02',
+  drawId: 'D1',
+  eventName: WOMENS_SINGLES,
+  roundName: 'Final',
+  matchUpType: 'SINGLES',
+  matchUpStatus: TO_BE_PLAYED,
+  sides: [
+    { sideNumber: 1, participantName: F[0], participantId: 'PF01', seedNumber: 1, nationality: 'POL' },
+    { sideNumber: 2, participantName: F[2], participantId: 'PF03', seedNumber: 7, nationality: 'AUS' },
+  ],
+  schedule: { scheduledTime: '16:00', timeModifiers: ['NB'], courtAnnotation: 'Court TBA' },
+};
+
+/** All time modifier examples */
+export const ALL_TIME_MODIFIERS: ScheduleCellData[] = [
+  NB_SINGLES,
+  NB_NEXT_AVAILABLE,
+  NB_AFTER_REST,
+  NEXT_AVAILABLE_ONLY,
+  AFTER_REST_ONLY,
+  FOLLOWED_BY_ONLY,
+  TBA_ONLY,
+  COURT_TBA,
+  NB_COURT_TBA,
+];
+
+// ============================================================================
 // Blocked Cells
 // ============================================================================
 

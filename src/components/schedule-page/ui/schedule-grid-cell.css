@@ -55,6 +55,12 @@
   white-space: nowrap;
 }
 
+.spl-grid-cell__court-annotation {
+  font-weight: 400;
+  font-style: italic;
+  color: var(--sp-muted);
+}
+
 .spl-grid-cell__event-round {
   font-style: italic;
   font-size: 9px;
