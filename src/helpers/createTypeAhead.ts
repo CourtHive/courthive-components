@@ -39,6 +39,8 @@ export function createTypeAhead({
   }
 
   let selectionFlag = false;
+  let valueOnFocus = ''; // Track value when field receives focus
+
   const selectComplete = (c: any) => {
     selectionFlag = true;
     if (isFunction(callback)) callback(c.text.value);
@@ -57,6 +59,12 @@ export function createTypeAhead({
   }
   if (typeof onChange === 'function') element.addEventListener('change', onChange);
   element.setAttribute('autocomplete', 'off');
+
+  // Capture the value when the field receives focus to detect unchanged Tab-through
+  element.addEventListener('focus', () => {
+    valueOnFocus = element.value;
+  });
+
   element.addEventListener('awesomplete-selectcomplete', (c: any) => selectComplete(c), false);
   element.addEventListener('keyup', function (evt: any) {
     // Don't auto-select on Shift+Tab (backward navigation)
@@ -65,6 +73,12 @@ export function createTypeAhead({
     if ((evt.key === 'Enter' || (evt.key === 'Tab' && !isShiftTab)) && !selectionFlag) {
       const fieldValue = element.value.trim();
       const isFieldEmpty = fieldValue === '';
+
+      // If Tab landed on a field whose value hasn't changed, don't auto-select.
+      // The user is just tabbing through — let normal tab order proceed.
+      if (evt.key === 'Tab' && fieldValue === valueOnFocus && !isFieldEmpty) {
+        return;
+      }
 
       // CRITICAL: Check if field is empty FIRST, before checking suggestions
       // Empty field + Enter = user wants to clear/remove assignment
