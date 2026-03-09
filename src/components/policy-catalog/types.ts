@@ -9,6 +9,7 @@
 export type PolicyTypeGroup =
   | 'Tournament Operations'
   | 'Scoring & Results'
+  | 'Ranking Points'
   | 'Draw Configuration'
   | 'Participants'
   | 'Display & Audit';

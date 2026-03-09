@@ -26,6 +26,7 @@ export const POLICY_TYPE_PRIVACY = 'participant';
 
 const GROUP_TOURNAMENT_OPS: PolicyTypeGroup = 'Tournament Operations';
 const GROUP_SCORING: PolicyTypeGroup = 'Scoring & Results';
+const GROUP_RANKING_POINTS: PolicyTypeGroup = 'Ranking Points';
 const GROUP_DRAW_CONFIG: PolicyTypeGroup = 'Draw Configuration';
 const GROUP_PARTICIPANTS: PolicyTypeGroup = 'Participants';
 const GROUP_DISPLAY_AUDIT: PolicyTypeGroup = 'Display & Audit';
@@ -48,7 +49,7 @@ export const POLICY_TYPE_METADATA: PolicyTypeMeta[] = [
   // Scoring & Results
   meta(POLICY_TYPE_SCORING, 'Scoring', 'Score entry validation and completion rules', GROUP_SCORING, false),
   meta(POLICY_TYPE_ROUND_ROBIN_TALLY, 'Round Robin Tally', 'Round-robin group standing calculation method', GROUP_SCORING, false),
-  meta(POLICY_TYPE_RANKING_POINTS, 'Ranking Points', 'Point allocation by draw size, round, and result', GROUP_SCORING, false),
+  meta(POLICY_TYPE_RANKING_POINTS, 'Ranking Points', 'Point allocation by draw size, round, and result', GROUP_RANKING_POINTS, false),
   meta(POLICY_TYPE_COMPETITIVE_BANDS, 'Competitive Bands', 'Rating/ranking band definitions for competitive grouping', GROUP_SCORING, false),
 
   // Draw Configuration
@@ -76,6 +77,7 @@ export function getPolicyTypeMeta(policyType: string): PolicyTypeMeta | undefine
 export const POLICY_TYPE_GROUPS: PolicyTypeGroup[] = [
   GROUP_TOURNAMENT_OPS,
   GROUP_SCORING,
+  GROUP_RANKING_POINTS,
   GROUP_DRAW_CONFIG,
   GROUP_PARTICIPANTS,
   GROUP_DISPLAY_AUDIT,
