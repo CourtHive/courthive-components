@@ -212,7 +212,7 @@ export async function showCourtAvailabilityModal(config: CourtAvailabilityModalC
       toLabel: labels.endTime || 'End'
     },
     clock: {
-      type: '24h',
+      type: '12h',
       incrementMinutes: 5
     },
     ui: {

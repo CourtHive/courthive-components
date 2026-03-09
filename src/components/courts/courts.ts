@@ -2,6 +2,8 @@
 // baseball, hockey, pickleball, and badminton.
 // All courts use a consistent coordinate system scaled to fit their container.
 
+const COURT_LINE = 'court-line';
+
 function svgEl(tag: string, attrs: Record<string, string>): SVGElement {
   const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
   for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
@@ -39,7 +41,7 @@ export function tennisCourt(className: string): SVGSVGElement {
   ];
 
   for (const d of lines) {
-    svg.appendChild(svgEl('path', { d, class: 'court-line' }));
+    svg.appendChild(svgEl('path', { d, class: COURT_LINE }));
   }
 
   return svg;
@@ -51,21 +53,21 @@ export function basketballCourt(className: string): SVGSVGElement {
 
   const elements: SVGElement[] = [
     // Outer boundary
-    svgEl('rect', { x: '0', y: '0', width: '500', height: '470', class: 'court-line' }),
+    svgEl('rect', { x: '0', y: '0', width: '500', height: '470', class: COURT_LINE }),
     // Center circle
-    svgEl('circle', { cx: '250', cy: '470', r: '60', class: 'court-line' }),
+    svgEl('circle', { cx: '250', cy: '470', r: '60', class: COURT_LINE }),
     // Half court line
-    svgEl('line', { x1: '0', y1: '470', x2: '500', y2: '470', class: 'court-line' }),
+    svgEl('line', { x1: '0', y1: '470', x2: '500', y2: '470', class: COURT_LINE }),
     // Key/paint area
-    svgEl('rect', { x: '170', y: '0', width: '160', height: '190', class: 'court-line' }),
+    svgEl('rect', { x: '170', y: '0', width: '160', height: '190', class: COURT_LINE }),
     // Free throw circle
-    svgEl('circle', { cx: '250', cy: '190', r: '60', class: 'court-line' }),
+    svgEl('circle', { cx: '250', cy: '190', r: '60', class: COURT_LINE }),
     // Backboard
-    svgEl('line', { x1: '220', y1: '40', x2: '280', y2: '40', class: 'court-line' }),
+    svgEl('line', { x1: '220', y1: '40', x2: '280', y2: '40', class: COURT_LINE }),
     // Rim
-    svgEl('circle', { cx: '250', cy: '52', r: '12', class: 'court-line' }),
+    svgEl('circle', { cx: '250', cy: '52', r: '12', class: COURT_LINE }),
     // Three-point arc
-    svgEl('path', { d: 'M 30 0 L 30 90 A 220 220 0 0 0 470 90 L 470 0', class: 'court-line' }),
+    svgEl('path', { d: 'M 30 0 L 30 90 A 220 220 0 0 0 470 90 L 470 0', class: COURT_LINE }),
   ];
 
   for (const el of elements) svg.appendChild(el);
@@ -90,42 +92,42 @@ export function baseballDiamond(className: string): SVGSVGElement {
   const elements: SVGElement[] = [
     // Outfield wall — arc from left foul pole to right foul pole
     // Elliptical: 325ft at foul lines, ~400ft at center
-    svgEl('path', { d: 'M 20 170 A 350 400 0 0 1 480 170', class: 'court-line' }),
+    svgEl('path', { d: 'M 20 170 A 350 400 0 0 1 480 170', class: COURT_LINE }),
     // Left foul line (3B side)
-    svgEl('line', { x1: '250', y1: '400', x2: '20', y2: '170', class: 'court-line' }),
+    svgEl('line', { x1: '250', y1: '400', x2: '20', y2: '170', class: COURT_LINE }),
     // Right foul line (1B side)
-    svgEl('line', { x1: '250', y1: '400', x2: '480', y2: '170', class: 'court-line' }),
+    svgEl('line', { x1: '250', y1: '400', x2: '480', y2: '170', class: COURT_LINE }),
     // Infield diamond — 90ft square rotated 45°
-    svgEl('path', { d: 'M 250 400 L 314 336 L 250 273 L 186 336 Z', class: 'court-line' }),
+    svgEl('path', { d: 'M 250 400 L 314 336 L 250 273 L 186 336 Z', class: COURT_LINE }),
     // Infield dirt arc — ~95ft radius from pitcher's area, curves behind 2B
-    svgEl('path', { d: 'M 340 355 A 100 100 0 0 1 160 355', class: 'court-line' }),
+    svgEl('path', { d: 'M 340 355 A 100 100 0 0 1 160 355', class: COURT_LINE }),
     // Dirt cutout paths along baselines from infield to home area
-    svgEl('line', { x1: '340', y1: '355', x2: '265', y2: '405', class: 'court-line' }),
-    svgEl('line', { x1: '160', y1: '355', x2: '235', y2: '405', class: 'court-line' }),
+    svgEl('line', { x1: '340', y1: '355', x2: '265', y2: '405', class: COURT_LINE }),
+    svgEl('line', { x1: '160', y1: '355', x2: '235', y2: '405', class: COURT_LINE }),
     // Home plate dirt circle
-    svgEl('path', { d: 'M 235 405 A 18 18 0 0 1 265 405', class: 'court-line' }),
+    svgEl('path', { d: 'M 235 405 A 18 18 0 0 1 265 405', class: COURT_LINE }),
     // Pitcher's mound circle (18ft diameter = 9ft radius)
-    svgEl('circle', { cx: '250', cy: '340', r: '9', class: 'court-line' }),
+    svgEl('circle', { cx: '250', cy: '340', r: '9', class: COURT_LINE }),
     // Pitcher's rubber (6ft wide)
-    svgEl('line', { x1: '247', y1: '339', x2: '253', y2: '339', class: 'court-line' }),
+    svgEl('line', { x1: '247', y1: '339', x2: '253', y2: '339', class: COURT_LINE }),
     // Home plate (pentagon pointing up-field)
-    svgEl('path', { d: 'M 244 398 L 244 404 L 250 408 L 256 404 L 256 398 Z', class: 'court-line' }),
+    svgEl('path', { d: 'M 244 398 L 244 404 L 250 408 L 256 404 L 256 398 Z', class: COURT_LINE }),
     // Bases (small squares, rotated to match diamond orientation)
     svgEl('rect', {
       x: '310', y: '332', width: '8', height: '8',
-      transform: 'rotate(45 314 336)', class: 'court-line',
+      transform: 'rotate(45 314 336)', class: COURT_LINE,
     }), // 1B
     svgEl('rect', {
       x: '246', y: '269', width: '8', height: '8',
-      transform: 'rotate(45 250 273)', class: 'court-line',
+      transform: 'rotate(45 250 273)', class: COURT_LINE,
     }), // 2B
     svgEl('rect', {
       x: '182', y: '332', width: '8', height: '8',
-      transform: 'rotate(45 186 336)', class: 'court-line',
+      transform: 'rotate(45 186 336)', class: COURT_LINE,
     }), // 3B
     // Batter's boxes
-    svgEl('rect', { x: '230', y: '393', width: '8', height: '18', class: 'court-line' }),
-    svgEl('rect', { x: '262', y: '393', width: '8', height: '18', class: 'court-line' }),
+    svgEl('rect', { x: '230', y: '393', width: '8', height: '18', class: COURT_LINE }),
+    svgEl('rect', { x: '262', y: '393', width: '8', height: '18', class: COURT_LINE }),
   ];
 
   for (const el of elements) svg.appendChild(el);
@@ -138,25 +140,25 @@ export function hockeyRink(className: string): SVGSVGElement {
 
   const elements: SVGElement[] = [
     // Rink outline with rounded ends
-    svgEl('rect', { x: '0', y: '0', width: '850', height: '2000', rx: '280', ry: '280', class: 'court-line' }),
+    svgEl('rect', { x: '0', y: '0', width: '850', height: '2000', rx: '280', ry: '280', class: COURT_LINE }),
     // Center line
-    svgEl('line', { x1: '0', y1: '1000', x2: '850', y2: '1000', class: 'court-line' }),
+    svgEl('line', { x1: '0', y1: '1000', x2: '850', y2: '1000', class: COURT_LINE }),
     // Center circle
-    svgEl('circle', { cx: '425', cy: '1000', r: '60', class: 'court-line' }),
+    svgEl('circle', { cx: '425', cy: '1000', r: '60', class: COURT_LINE }),
     // Blue lines
-    svgEl('line', { x1: '0', y1: '650', x2: '850', y2: '650', class: 'court-line' }),
-    svgEl('line', { x1: '0', y1: '1350', x2: '850', y2: '1350', class: 'court-line' }),
+    svgEl('line', { x1: '0', y1: '650', x2: '850', y2: '650', class: COURT_LINE }),
+    svgEl('line', { x1: '0', y1: '1350', x2: '850', y2: '1350', class: COURT_LINE }),
     // Goal lines
-    svgEl('line', { x1: '140', y1: '300', x2: '710', y2: '300', class: 'court-line' }),
-    svgEl('line', { x1: '140', y1: '1700', x2: '710', y2: '1700', class: 'court-line' }),
+    svgEl('line', { x1: '140', y1: '300', x2: '710', y2: '300', class: COURT_LINE }),
+    svgEl('line', { x1: '140', y1: '1700', x2: '710', y2: '1700', class: COURT_LINE }),
     // Goal creases
-    svgEl('path', { d: 'M 395 300 A 40 40 0 0 1 455 300', class: 'court-line' }),
-    svgEl('path', { d: 'M 395 1700 A 40 40 0 0 0 455 1700', class: 'court-line' }),
+    svgEl('path', { d: 'M 395 300 A 40 40 0 0 1 455 300', class: COURT_LINE }),
+    svgEl('path', { d: 'M 395 1700 A 40 40 0 0 0 455 1700', class: COURT_LINE }),
     // Face-off circles
-    svgEl('circle', { cx: '270', cy: '650', r: '50', class: 'court-line' }),
-    svgEl('circle', { cx: '580', cy: '650', r: '50', class: 'court-line' }),
-    svgEl('circle', { cx: '270', cy: '1350', r: '50', class: 'court-line' }),
-    svgEl('circle', { cx: '580', cy: '1350', r: '50', class: 'court-line' }),
+    svgEl('circle', { cx: '270', cy: '650', r: '50', class: COURT_LINE }),
+    svgEl('circle', { cx: '580', cy: '650', r: '50', class: COURT_LINE }),
+    svgEl('circle', { cx: '270', cy: '1350', r: '50', class: COURT_LINE }),
+    svgEl('circle', { cx: '580', cy: '1350', r: '50', class: COURT_LINE }),
   ];
 
   for (const el of elements) svg.appendChild(el);
@@ -179,7 +181,7 @@ export function pickleballCourt(className: string): SVGSVGElement {
   ];
 
   for (const d of lines) {
-    svg.appendChild(svgEl('path', { d, class: 'court-line' }));
+    svg.appendChild(svgEl('path', { d, class: COURT_LINE }));
   }
 
   return svg;
@@ -205,7 +207,7 @@ export function badmintonCourt(className: string): SVGSVGElement {
   ];
 
   for (const d of lines) {
-    svg.appendChild(svgEl('path', { d, class: 'court-line' }));
+    svg.appendChild(svgEl('path', { d, class: COURT_LINE }));
   }
 
   return svg;
@@ -232,7 +234,7 @@ export function padelCourt(className: string): SVGSVGElement {
   ];
 
   for (const d of lines) {
-    svg.appendChild(svgEl('path', { d, class: 'court-line' }));
+    svg.appendChild(svgEl('path', { d, class: COURT_LINE }));
   }
 
   return svg;

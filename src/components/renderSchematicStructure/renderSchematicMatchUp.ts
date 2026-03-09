@@ -1,4 +1,7 @@
+import { drawDefinitionConstants } from 'tods-competition-factory';
 import cx from 'classnames';
+
+const { QUALIFYING } = drawDefinitionConstants;
 
 export interface SchematicMatchUp {
   matchUpId: string;
@@ -35,7 +38,7 @@ export function renderSchematicMatchUp({
   initialRoundNumber?: number;
 }): HTMLElement {
   const { stage, preFeedRound } = matchUp;
-  const isQualifying = stage === 'QUALIFYING' && isFinalRound;
+  const isQualifying = stage === QUALIFYING && isFinalRound;
   const noProgression = isFinalRound;
 
   const link =

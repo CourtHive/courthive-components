@@ -2,7 +2,9 @@ import { renderContainer } from '../components/renderStructure/renderContainer';
 import { renderMatchUp } from '../components/renderStructure/renderMatchUp';
 import { compositions } from '../compositions/compositions';
 import { generateMatchUps } from '../data/generateMatchUps';
-import { matchUpStatusConstants } from 'tods-competition-factory';
+import { matchUpStatusConstants, entryStatusConstants } from 'tods-competition-factory';
+
+const { LUCKY_LOSER } = entryStatusConstants;
 
 const {
   RETIRED,
@@ -78,7 +80,7 @@ export const LuckyLoser = {
 
     // Simulate a lucky loser on side 2
     if (matchUp.sides?.[1]?.participant) {
-      matchUp.sides[1].participant.entryStatus = 'LUCKY_LOSER';
+      matchUp.sides[1].participant.entryStatus = LUCKY_LOSER;
     }
 
     const renderedMatchUp = renderMatchUp({

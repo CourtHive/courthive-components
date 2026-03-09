@@ -9,6 +9,18 @@ import type {
   SchedulingEditorConfig,
 } from '../../components/policy-catalog';
 
+import { fixtures } from 'tods-competition-factory';
+
+const {
+  FORMAT_STANDARD,
+  FORMAT_ATP_DOUBLES,
+  FORMAT_SHORT_SETS,
+  FORMAT_PRO_SET,
+} = fixtures.matchUpFormats;
+
+const FORMAT_ONE_SET = 'SET1-S:6/TB7';
+const FORMAT_MATCH_TIEBREAK = 'SET1-S:TB10';
+
 // ============================================================================
 // Scheduling Policy Fixtures (mirrors factory POLICY_SCHEDULING_DEFAULT)
 // ============================================================================
@@ -29,50 +41,50 @@ export const SCHEDULING_POLICY_DEFAULT: SchedulingPolicyData = {
   },
   matchUpAverageTimes: [
     {
-      matchUpFormatCodes: ['SET3-S:6/TB7'],
+      matchUpFormatCodes: [FORMAT_STANDARD],
       averageTimes: [
         { categoryNames: [], minutes: { default: 90 } },
         { categoryTypes: ['WHEELCHAIR'], minutes: { default: 120 } },
       ],
     },
     {
-      matchUpFormatCodes: ['SET3-S:6/TB7-F:TB10'],
+      matchUpFormatCodes: [FORMAT_ATP_DOUBLES],
       averageTimes: [{ categoryNames: [], minutes: { default: 85 } }],
     },
     {
-      matchUpFormatCodes: ['SET3-S:4/TB7'],
+      matchUpFormatCodes: [FORMAT_SHORT_SETS],
       averageTimes: [{ categoryNames: [], minutes: { default: 60 } }],
     },
     {
-      matchUpFormatCodes: ['SET1-S:8/TB7', 'SET1-S:8/TB7@7'],
+      matchUpFormatCodes: [FORMAT_PRO_SET, 'SET1-S:8/TB7@7'],
       averageTimes: [{ categoryNames: [], minutes: { default: 40 } }],
     },
     {
-      matchUpFormatCodes: ['SET1-S:6/TB7'],
+      matchUpFormatCodes: [FORMAT_ONE_SET],
       averageTimes: [{ categoryNames: [], minutes: { default: 30 } }],
     },
     {
-      matchUpFormatCodes: ['SET1-S:TB10'],
+      matchUpFormatCodes: [FORMAT_MATCH_TIEBREAK],
       averageTimes: [{ categoryNames: [], minutes: { default: 10 } }],
     },
   ],
   matchUpRecoveryTimes: [
     {
-      matchUpFormatCodes: ['SET3-S:6/TB7', 'SET3-S:6/TB7-F:TB10'],
+      matchUpFormatCodes: [FORMAT_STANDARD, FORMAT_ATP_DOUBLES],
       recoveryTimes: [
         { categoryTypes: ['ADULT', 'WHEELCHAIR'], minutes: { default: 60, DOUBLES: 30 } },
         { categoryTypes: ['JUNIOR'], minutes: { default: 60, DOUBLES: 60 } },
       ],
     },
     {
-      matchUpFormatCodes: ['SET3-S:4/TB7', 'SET3-S:4/TB7-F:TB7'],
+      matchUpFormatCodes: [FORMAT_SHORT_SETS, 'SET3-S:4/TB7-F:TB7'],
       recoveryTimes: [
         { categoryTypes: ['ADULT', 'WHEELCHAIR'], minutes: { default: 30 } },
         { categoryTypes: ['JUNIOR'], minutes: { default: 60 } },
       ],
     },
     {
-      matchUpFormatCodes: ['SET1-S:TB10'],
+      matchUpFormatCodes: [FORMAT_MATCH_TIEBREAK],
       recoveryTimes: [
         { categoryNames: [], minutes: { default: 15 } },
       ],

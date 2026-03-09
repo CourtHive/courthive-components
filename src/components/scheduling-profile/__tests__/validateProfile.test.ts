@@ -7,6 +7,8 @@ import { drawDefinitionConstants } from 'tods-competition-factory';
 
 const { ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } = drawDefinitionConstants;
 
+const CROSS_DATE = 'cross-date';
+
 function makeRound(overrides: Record<string, unknown> = {}) {
   return {
     tournamentId: 'T1',
@@ -295,7 +297,7 @@ describe('validateProfile', () => {
       const results = validateProfile({ profile });
       const violations = results.filter((r) => r.code === 'ROUND_ORDER_VIOLATION');
       expect(violations).toHaveLength(1);
-      expect(violations[0].context.reason).toBe('cross-date');
+      expect(violations[0].context.reason).toBe(CROSS_DATE);
       expect(violations[0].fixActions).toBeDefined();
       expect(violations[0].fixActions!.some((a) => a.kind === 'JUMP_TO_ITEM')).toBe(true);
     });
@@ -312,7 +314,7 @@ describe('validateProfile', () => {
         }
       ];
       const results = validateProfile({ profile });
-      const violations = results.filter((r) => r.code === 'ROUND_ORDER_VIOLATION' && r.context.reason === 'cross-date');
+      const violations = results.filter((r) => r.code === 'ROUND_ORDER_VIOLATION' && r.context.reason === CROSS_DATE);
       expect(violations).toHaveLength(1);
     });
 
@@ -366,7 +368,7 @@ describe('validateProfile', () => {
       ];
       const results = validateProfile({ profile });
       const violations = results.filter(
-        (r) => r.code === 'ROUND_ORDER_VIOLATION' && r.context.reason === 'cross-date'
+        (r) => r.code === 'ROUND_ORDER_VIOLATION' && r.context.reason === CROSS_DATE
       );
       // QF on Day 2 but R16 on Day 3 — QF depends on R16 completing
       expect(violations).toHaveLength(1);
@@ -432,7 +434,7 @@ describe('validateProfile', () => {
       const deps = results.filter((r) => r.code === 'DEPENDENCY_VIOLATION');
       expect(deps).toHaveLength(1);
       expect(deps[0].severity).toBe('ERROR');
-      expect(deps[0].context.reason).toBe('cross-date');
+      expect(deps[0].context.reason).toBe(CROSS_DATE);
     });
 
     it('does not flag when cross-date order is correct', () => {

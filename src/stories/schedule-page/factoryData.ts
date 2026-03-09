@@ -13,6 +13,7 @@ import {
   tieFormatConstants,
   scheduleConstants,
   matchUpStatusConstants,
+  genderConstants,
 } from 'tods-competition-factory';
 
 import type {
@@ -32,6 +33,7 @@ import {
 const { DOMINANT_DUO } = tieFormatConstants;
 const { DOUBLES, TEAM } = eventConstants;
 const { BYE } = matchUpStatusConstants;
+const { MALE, FEMALE } = genderConstants;
 const {
   SCHEDULE_ERROR,
   SCHEDULE_CONFLICT,
@@ -71,9 +73,11 @@ interface FactoryGridCallbacks {
 
 const START_DATE = '2026-06-13';
 const END_DATE = '2026-06-21';
+const ATTR_MATCHUP_ID = 'data-matchup-id';
+const ATTR_DRAW_ID = 'data-draw-id';
 
 /** Only weekend days are active */
-const ACTIVE_DATES = ['2026-06-13', '2026-06-14', '2026-06-20', '2026-06-21'];
+const ACTIVE_DATES = [START_DATE, '2026-06-14', '2026-06-20', END_DATE];
 
 const VENUE_PROFILES = [
   {
@@ -95,24 +99,24 @@ const VENUE_PROFILES = [
 const EVENT_PROFILES = [
   {
     eventName: "Men's Singles",
-    gender: 'MALE',
+    gender: MALE,
     drawProfiles: [{ drawSize: 32 }],
   },
   {
     eventName: "Men's Doubles",
     eventType: DOUBLES,
-    gender: 'MALE',
+    gender: MALE,
     drawProfiles: [{ drawSize: 16 }],
   },
   {
     eventName: "Women's Singles",
-    gender: 'FEMALE',
+    gender: FEMALE,
     drawProfiles: [{ drawSize: 32 }],
   },
   {
     eventName: "Women's Doubles",
     eventType: DOUBLES,
-    gender: 'FEMALE',
+    gender: FEMALE,
     drawProfiles: [{ drawSize: 16 }],
   },
   {
@@ -389,10 +393,10 @@ export function buildFactoryGrid(
         cell.setAttribute('data-court-index', String(ci));
 
         // Transfer data attributes from the rendered cell to the wrapper
-        const matchUpId = cellContent.getAttribute('data-matchup-id');
-        const drawId = cellContent.getAttribute('data-draw-id');
-        if (matchUpId) cell.setAttribute('data-matchup-id', matchUpId);
-        if (drawId) cell.setAttribute('data-draw-id', drawId);
+        const matchUpId = cellContent.getAttribute(ATTR_MATCHUP_ID);
+        const drawId = cellContent.getAttribute(ATTR_DRAW_ID);
+        if (matchUpId) cell.setAttribute(ATTR_MATCHUP_ID, matchUpId);
+        if (drawId) cell.setAttribute(ATTR_DRAW_ID, drawId);
 
         // Append the rendered cell content
         cell.appendChild(cellContent);
@@ -483,8 +487,8 @@ export function buildFactoryGrid(
         el.appendChild(emptyCell);
         el.draggable = false;
         el.style.cursor = '';
-        el.removeAttribute('data-matchup-id');
-        el.removeAttribute('data-draw-id');
+        el.removeAttribute(ATTR_MATCHUP_ID);
+        el.removeAttribute(ATTR_DRAW_ID);
       }
     },
     rebuild: (date: string) => {

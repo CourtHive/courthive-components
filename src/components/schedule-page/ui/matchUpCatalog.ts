@@ -43,6 +43,7 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
   const root = document.createElement('div');
   root.className = spPanelStyle();
 
+  const CATALOG_DROP_OVER = 'spl-catalog-drop-over';
   const collapsedGroups = new Set<string>();
   let lastState: SchedulePageState | null = null;
 
@@ -50,17 +51,17 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
 
   root.addEventListener('dragover', (e) => {
     e.preventDefault();
-    root.classList.add('spl-catalog-drop-over');
+    root.classList.add(CATALOG_DROP_OVER);
     e.dataTransfer!.dropEffect = 'move';
   });
   root.addEventListener('dragleave', (e) => {
     // Only remove highlight when leaving the panel itself, not child elements
     if (!root.contains(e.relatedTarget as Node)) {
-      root.classList.remove('spl-catalog-drop-over');
+      root.classList.remove(CATALOG_DROP_OVER);
     }
   });
   root.addEventListener('drop', (e) => {
-    root.classList.remove('spl-catalog-drop-over');
+    root.classList.remove(CATALOG_DROP_OVER);
     e.preventDefault();
     if (!callbacks.onDropRemove) return;
 

@@ -13,6 +13,9 @@
 
 import { TimeScale } from './TimeScale';
 
+const TG_TICK_DAY = 'tg-tick-day';
+const TG_TICK_HOUR = 'tg-tick-hour';
+
 /** Tick configuration derived from time axis scale/step */
 interface TickConfig {
   /** 'hour' or 'day' */
@@ -48,7 +51,7 @@ export class TimeAxis {
 
     // Day label click → navigate to that day
     this.dayEl.addEventListener('click', (e) => {
-      const tick = (e.target as Element).closest?.('.tg-tick-day') as HTMLElement | null;
+      const tick = (e.target as Element).closest?.(`.${TG_TICK_DAY}`) as HTMLElement | null;
       const dayStr = tick?.dataset.day;
       if (!dayStr) return;
       if (this.onDayClick) this.onDayClick(dayStr);
@@ -103,7 +106,7 @@ export class TimeAxis {
         const d = new Date(startMs);
         d.setHours(0, 0, 0, 0);
         const tick = document.createElement('div');
-        tick.className = 'tg-tick-day';
+        tick.className = TG_TICK_DAY;
         tick.style.left = '0px';
         tick.style.maxWidth = `${this.scale.width}px`;
         tick.dataset.day = localDateStr(d);
@@ -115,7 +118,7 @@ export class TimeAxis {
       for (const t of dayTimes) {
         const x = this.scale.timeToX(t);
         const tick = document.createElement('div');
-        tick.className = 'tg-tick-day';
+        tick.className = TG_TICK_DAY;
         tick.style.left = `${x}px`;
         tick.dataset.day = localDateStr(t);
         tick.textContent = dayFormat.format(t);
@@ -128,7 +131,7 @@ export class TimeAxis {
       for (const t of weekTimes) {
         const x = this.scale.timeToX(t);
         const tick = document.createElement('div');
-        tick.className = 'tg-tick-day';
+        tick.className = TG_TICK_DAY;
         tick.style.left = `${x}px`;
         tick.dataset.day = localDateStr(t);
         tick.textContent = this.tickConfig.dayFormat.format(t);
@@ -159,7 +162,7 @@ export class TimeAxis {
 
         const x = this.scale.timeToX(dayOpStart);
         const tick = document.createElement('div');
-        tick.className = 'tg-tick-day';
+        tick.className = TG_TICK_DAY;
         tick.style.left = `${x}px`;
         tick.style.maxWidth = `${Math.floor(pxPerDay) - 4}px`;
         tick.dataset.day = localDateStr(d);
@@ -189,7 +192,7 @@ export class TimeAxis {
         if (labelWidth <= 0) continue;
 
         const tick = document.createElement('div');
-        tick.className = 'tg-tick-day';
+        tick.className = TG_TICK_DAY;
         tick.style.left = `${clampedLeft}px`;
         tick.style.maxWidth = `${labelWidth}px`;
         tick.dataset.day = localDateStr(d);
@@ -226,7 +229,7 @@ export class TimeAxis {
         if (daySet.has(t.getTime())) continue; // skip midnight — it's in the day row
         const x = this.scale.timeToX(t);
         const tick = document.createElement('div');
-        tick.className = 'tg-tick-hour';
+        tick.className = TG_TICK_HOUR;
         tick.style.left = `${x}px`;
         tick.textContent = hourFormat.format(t);
         this.hourEl.appendChild(tick);
@@ -238,7 +241,7 @@ export class TimeAxis {
         if (weekSet.has(t.getTime())) continue;
         const x = this.scale.timeToX(t);
         const tick = document.createElement('div');
-        tick.className = 'tg-tick-hour';
+        tick.className = TG_TICK_HOUR;
         tick.style.left = `${x}px`;
         tick.textContent = new Intl.DateTimeFormat(undefined, { weekday: 'short', day: 'numeric' }).format(t);
         this.hourEl.appendChild(tick);
@@ -277,7 +280,7 @@ export class TimeAxis {
         if (h.getTime() !== dayOpStart.getTime()) {
           const hx = this.scale.timeToX(h);
           const tick = document.createElement('div');
-          tick.className = 'tg-tick-hour';
+          tick.className = TG_TICK_HOUR;
           tick.style.left = `${hx}px`;
           tick.textContent = hourFormat.format(h);
           this.hourEl.appendChild(tick);

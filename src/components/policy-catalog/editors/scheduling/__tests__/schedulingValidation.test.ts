@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { validateSchedulingPolicy } from '../domain/schedulingValidation';
 import type { SchedulingPolicyData } from '../types';
+import { fixtures } from 'tods-competition-factory';
+
+const { FORMAT_STANDARD } = fixtures.matchUpFormats;
 
 describe('validateSchedulingPolicy', () => {
   it('returns no errors for valid policy', () => {
@@ -12,7 +15,7 @@ describe('validateSchedulingPolicy', () => {
       defaultDailyLimits: { SINGLES: 2, DOUBLES: 2, total: 3 },
       matchUpAverageTimes: [
         {
-          matchUpFormatCodes: ['SET3-S:6/TB7'],
+          matchUpFormatCodes: [FORMAT_STANDARD],
           averageTimes: [{ categoryNames: [], minutes: { default: 90 } }],
         },
       ],
@@ -70,24 +73,24 @@ describe('validateSchedulingPolicy', () => {
     const policy: SchedulingPolicyData = {
       matchUpAverageTimes: [
         {
-          matchUpFormatCodes: ['SET3-S:6/TB7'],
+          matchUpFormatCodes: [FORMAT_STANDARD],
           averageTimes: [{ categoryNames: [], minutes: { default: 90 } }],
         },
         {
-          matchUpFormatCodes: ['SET3-S:6/TB7'],
+          matchUpFormatCodes: [FORMAT_STANDARD],
           averageTimes: [{ categoryNames: [], minutes: { default: 80 } }],
         },
       ],
     };
     const results = validateSchedulingPolicy(policy);
-    expect(results.some((r) => r.severity === 'warning' && r.message.includes('SET3-S:6/TB7'))).toBe(true);
+    expect(results.some((r) => r.severity === 'warning' && r.message.includes(FORMAT_STANDARD))).toBe(true);
   });
 
   it('flags negative doubles time in format group', () => {
     const policy: SchedulingPolicyData = {
       matchUpAverageTimes: [
         {
-          matchUpFormatCodes: ['SET3-S:6/TB7'],
+          matchUpFormatCodes: [FORMAT_STANDARD],
           averageTimes: [{ categoryNames: [], minutes: { default: 90, DOUBLES: -5 } }],
         },
       ],

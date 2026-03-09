@@ -1,4 +1,7 @@
-import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { mocksEngine, tournamentEngine, drawDefinitionConstants, matchUpStatusConstants } from 'tods-competition-factory';
+
+const { FEED_IN, ROUND_ROBIN, AD_HOC, LUCKY_DRAW } = drawDefinitionConstants;
+const { COMPLETED } = matchUpStatusConstants;
 import { renderParticipant } from '../components/renderStructure/renderParticipant';
 import { renderContainer } from '../components/renderStructure/renderContainer';
 import { renderStructure } from '../components/renderStructure/renderStructure';
@@ -66,7 +69,7 @@ function buildStructureView(args: any) {
   elem.innerHTML = 'Generate Round';
   buttonColumn.appendChild(elem);
 
-  const finalColumn = args.drawType === 'AD_HOC' && buttonColumn;
+  const finalColumn = args.drawType === AD_HOC && buttonColumn;
 
   return { composition, matchUps, context, finalColumn, roundMatchUps };
 }
@@ -165,7 +168,7 @@ export const InitialRound = {
             .map(Number)
             .sort((a, b) => a - b)
         : [];
-      const lastRound = roundNumbers[roundNumbers.length - 1] || 1;
+      const lastRound = roundNumbers.at(-1) || 1;
 
       if (!roundNumbers.includes(currentRound)) currentRound = roundNumbers[0] || 1;
 
@@ -216,7 +219,7 @@ export const InitialRound = {
   },
   args: {
     completeAllMatchUps: false,
-    drawType: 'FEED_IN',
+    drawType: FEED_IN,
     composition: 'National',
     drawSize: 32
   }
@@ -233,20 +236,20 @@ export const Team = {
   }
 };
 export const RoundRobin = {
-  args: { drawSize: 16, drawType: 'ROUND_ROBIN', composition: 'National' }
+  args: { drawSize: 16, drawType: ROUND_ROBIN, composition: 'National' }
 };
 export const AdHoc = {
-  args: { drawSize: 16, drawType: 'AD_HOC', composition: 'National', automated: true }
+  args: { drawSize: 16, drawType: AD_HOC, composition: 'National', automated: true }
 };
 export const Lucky = {
-  args: { drawSize: 10, drawType: 'LUCKY_DRAW', composition: 'National' },
+  args: { drawSize: 10, drawType: LUCKY_DRAW, composition: 'National' },
   render: ({ ...args }) => {
     const composition = compositions[args.composition || 'National'];
     const drawSize = args.drawSize || 10;
 
     // Generate tournament with LUCKY_DRAW but don't complete matchUps automatically
     const { tournamentRecord, drawIds, eventIds } = mocksEngine.generateTournamentRecord({
-      drawProfiles: [{ drawSize, drawType: 'LUCKY_DRAW', seedsCount: 0 }],
+      drawProfiles: [{ drawSize, drawType: LUCKY_DRAW, seedsCount: 0 }],
       completeAllMatchUps: false
     });
     const drawId = drawIds[0];
@@ -276,7 +279,7 @@ export const Lucky = {
       // Score all matchUps in this round
       for (const matchUp of roundMatchUps) {
         const { outcome } = mocksEngine.generateOutcomeFromScoreString({
-          matchUpStatus: 'COMPLETED',
+          matchUpStatus: COMPLETED,
           scoreString: '6-3 6-4',
           winningSide: 1
         });
@@ -288,7 +291,7 @@ export const Lucky = {
       }
 
       // Check if this round needs lucky advancement (skip final round — no next round to advance to)
-      if (roundNumber === roundNumbers[roundNumbers.length - 1]) continue;
+      if (roundNumber === roundNumbers.at(-1)) continue;
 
       const status = tournamentEngine.getLuckyDrawRoundStatus({ drawId });
       const roundStatus = status.rounds?.find((r: any) => r.roundNumber === roundNumber);

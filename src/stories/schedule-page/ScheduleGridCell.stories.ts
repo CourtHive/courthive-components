@@ -22,6 +22,9 @@ import {
   buildScheduleGridCell,
   DEFAULT_SCHEDULE_CELL_CONFIG,
 } from '../../components/schedule-page';
+import { matchUpStatusConstants } from 'tods-competition-factory';
+
+const { TO_BE_PLAYED, IN_PROGRESS, COMPLETED, WALKOVER, RETIRED, DEFAULTED, ABANDONED, DOUBLE_WALKOVER } = matchUpStatusConstants;
 
 import {
   SINGLES_COMPLETED,
@@ -58,6 +61,11 @@ export default {
 
 const CELL_SIZE = { width: '130px', height: '80px' };
 const WIDE_CELL = { width: '160px', height: '80px' };
+const STORY_ROOT_STYLE =
+  'font-family: ui-sans-serif, system-ui, sans-serif; color: var(--sp-text); padding: 24px; max-width: 900px;';
+const STORY_INFO_STYLE = 'font-size: 12px; color: var(--sp-muted); margin-bottom: 16px;';
+const FLEX_GAP_8 = 'display: flex; gap: 8px; flex-wrap: wrap;';
+const FLEX_GAP_12 = 'display: flex; gap: 12px; flex-wrap: wrap;';
 
 function cellWrapper(
   data: ScheduleCellData,
@@ -83,7 +91,7 @@ function gridLayout(cells: HTMLElement[], label?: string): HTMLElement {
   }
 
   const grid = document.createElement('div');
-  grid.style.cssText = 'display: flex; gap: 8px; flex-wrap: wrap;';
+  grid.style.cssText = FLEX_GAP_8;
   for (const c of cells) grid.appendChild(c);
   container.appendChild(grid);
 
@@ -141,10 +149,10 @@ export const Default = {
   render: () => {
     const root = document.createElement('div');
     root.style.cssText =
-      'font-family: ui-sans-serif, system-ui, sans-serif; color: var(--sp-text); padding: 24px; max-width: 900px;';
+      STORY_ROOT_STYLE;
 
     const info = document.createElement('div');
-    info.style.cssText = 'font-size: 12px; color: var(--sp-muted); margin-bottom: 16px;';
+    info.style.cssText = STORY_INFO_STYLE;
     info.textContent =
       'Default config: header=[time], body=[eventRound, participants], footer=[score]. Shows a range of matchUp types.';
     root.appendChild(info);
@@ -161,7 +169,7 @@ export const Default = {
     ];
 
     const grid = document.createElement('div');
-    grid.style.cssText = 'display: flex; gap: 12px; flex-wrap: wrap;';
+    grid.style.cssText = FLEX_GAP_12;
     for (const c of cells) grid.appendChild(c);
     root.appendChild(grid);
 
@@ -176,8 +184,8 @@ export const Default = {
 export const Statuses = {
   render: () => {
     const labels = [
-      'TO_BE_PLAYED', 'IN_PROGRESS', 'COMPLETED', 'WALKOVER',
-      'RETIRED', 'DEFAULTED', 'ABANDONED', 'DOUBLE_WALKOVER',
+      TO_BE_PLAYED, IN_PROGRESS, COMPLETED, WALKOVER,
+      RETIRED, DEFAULTED, ABANDONED, DOUBLE_WALKOVER,
     ];
     const cells = ALL_STATUSES.map((data, i) => labeledCell(data, labels[i]));
     return gridLayout(cells, 'MatchUp Status Variants');
@@ -192,7 +200,7 @@ export const SeedsAndRankings = {
   render: () => {
     const root = document.createElement('div');
     root.style.cssText =
-      'font-family: ui-sans-serif, system-ui, sans-serif; color: var(--sp-text); padding: 24px; max-width: 900px;';
+      STORY_ROOT_STYLE;
 
     const configs: { label: string; config: ScheduleCellConfig }[] = [
       {
@@ -229,7 +237,7 @@ export const SeedsAndRankings = {
         cellWrapper(SINGLES_TO_BE_PLAYED, config, WIDE_CELL),
       ];
       const row = document.createElement('div');
-      row.style.cssText = 'display: flex; gap: 8px; flex-wrap: wrap;';
+      row.style.cssText = FLEX_GAP_8;
       for (const c of cells) row.appendChild(c);
       root.appendChild(section(label, row));
     }
@@ -246,7 +254,7 @@ export const NameFormats = {
   render: () => {
     const root = document.createElement('div');
     root.style.cssText =
-      'font-family: ui-sans-serif, system-ui, sans-serif; color: var(--sp-text); padding: 24px; max-width: 900px;';
+      STORY_ROOT_STYLE;
 
     const formats: Array<'full' | 'last' | 'lastFirst' | 'firstLast'> = ['full', 'last', 'lastFirst', 'firstLast'];
 
@@ -265,7 +273,7 @@ export const NameFormats = {
         cellWrapper(TIE_SINGLES_COMPLETED, config),
       ];
       const row = document.createElement('div');
-      row.style.cssText = 'display: flex; gap: 8px; flex-wrap: wrap;';
+      row.style.cssText = FLEX_GAP_8;
       for (const c of cells) row.appendChild(c);
       root.appendChild(section(`nameFormat: '${fmt}'`, row));
     }
@@ -282,10 +290,10 @@ export const Teams = {
   render: () => {
     const root = document.createElement('div');
     root.style.cssText =
-      'font-family: ui-sans-serif, system-ui, sans-serif; color: var(--sp-text); padding: 24px; max-width: 900px;';
+      STORY_ROOT_STYLE;
 
     const info = document.createElement('div');
-    info.style.cssText = 'font-size: 12px; color: var(--sp-muted); margin-bottom: 16px;';
+    info.style.cssText = STORY_INFO_STYLE;
     info.textContent =
       'Individual matchUps within a tie/team event (e.g. Davis Cup). Each participant shows their team name beneath their name.';
     root.appendChild(info);
@@ -302,7 +310,7 @@ export const Teams = {
       labeledCell(data, `${data.roundName} — ${data.matchUpStatus}`, config, WIDE_CELL),
     );
     const grid = document.createElement('div');
-    grid.style.cssText = 'display: flex; gap: 12px; flex-wrap: wrap;';
+    grid.style.cssText = FLEX_GAP_12;
     for (const c of cells) grid.appendChild(c);
     root.appendChild(grid);
 
@@ -372,10 +380,10 @@ export const Conflicts = {
   render: () => {
     const root = document.createElement('div');
     root.style.cssText =
-      'font-family: ui-sans-serif, system-ui, sans-serif; color: var(--sp-text); padding: 24px; max-width: 900px;';
+      STORY_ROOT_STYLE;
 
     const info = document.createElement('div');
-    info.style.cssText = 'font-size: 12px; color: var(--sp-muted); margin-bottom: 16px;';
+    info.style.cssText = STORY_INFO_STYLE;
     info.textContent =
       'Conflict states from proConflicts: left-border accent + subtle tint per severity. ERROR (rose), WARNING (amber), ISSUE (blue), CONFLICT/DOUBLE_BOOKING (rose). Hover over double-booking cells to see the related cell highlighted.';
     root.appendChild(info);
@@ -383,7 +391,7 @@ export const Conflicts = {
     const labels = ['Double Booking', 'Related Cell', 'Warning', 'Error', 'Issue'];
     const cells = ALL_CONFLICTS.map((data, i) => labeledCell(data, labels[i], undefined, WIDE_CELL));
     const grid = document.createElement('div');
-    grid.style.cssText = 'display: flex; gap: 12px; flex-wrap: wrap;';
+    grid.style.cssText = FLEX_GAP_12;
     for (const c of cells) grid.appendChild(c);
     root.appendChild(grid);
 
@@ -399,10 +407,10 @@ export const SearchHighlight = {
   render: () => {
     const root = document.createElement('div');
     root.style.cssText =
-      'font-family: ui-sans-serif, system-ui, sans-serif; color: var(--sp-text); padding: 24px; max-width: 900px;';
+      STORY_ROOT_STYLE;
 
     const info = document.createElement('div');
-    info.style.cssText = 'font-size: 12px; color: var(--sp-muted); margin-bottom: 16px;';
+    info.style.cssText = STORY_INFO_STYLE;
     info.textContent =
       'Search highlight applied via .spl-cell--search-match class. Use case: search for a team name to highlight all cells containing members of that team.';
     root.appendChild(info);

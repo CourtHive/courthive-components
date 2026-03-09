@@ -45,11 +45,33 @@ export class DrawStateManager {
   }
 
   /**
-   * Get all participants in the tournament
+   * Get participant IDs from draw entries (via flight profile or drawDefinition.entries)
+   */
+  private getDrawEntryParticipantIds(): string[] {
+    const { event, drawDefinition } = tournamentEngine.getEvent({ drawId: this.drawId }) || {};
+    if (!event) return [];
+
+    // Check flight profile first (multi-draw events allocate entries per flight)
+    const { flightProfile } = tournamentEngine.getFlightProfile({ eventId: this.eventId }) || {};
+    const flight = flightProfile?.flights?.find((f: any) => f.drawId === this.drawId);
+    const drawEntries = flight?.drawEntries || drawDefinition?.entries || [];
+
+    return drawEntries.map((entry: any) => entry.participantId).filter(Boolean);
+  }
+
+  /**
+   * Get participants entered in the draw (including qualifiers)
    */
   getAllParticipants(): Participant[] {
     tournamentEngine.setState(this.tournamentRecord);
-    const { participants = [] } = tournamentEngine.getParticipants() || {};
+
+    const drawEntryIds = this.getDrawEntryParticipantIds();
+    if (!drawEntryIds.length) return [];
+
+    const { participants = [] } =
+      tournamentEngine.getParticipants({
+        participantFilters: { participantIds: drawEntryIds }
+      }) || {};
 
     return participants.map((p: any) => ({
       participantId: p.participantId,

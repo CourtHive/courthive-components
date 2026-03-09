@@ -2,6 +2,9 @@ import { cModal } from '../components/modal/cmodal';
 import '../components/forms/styles';
 
 const IS_PRIMARY = 'is-primary';
+const TEXT_SECONDARY = 'var(--chc-text-secondary)';
+const BTN_PRIMARY = 'button is-primary';
+const BTN_SUCCESS = 'button is-success';
 
 export default {
   title: 'Components/Modal',
@@ -21,11 +24,11 @@ export const MenuDropdown = {
     description.innerHTML =
       'Demonstrates <code>config.menu</code> — a caret icon in the title bar that opens a dropdown menu. Active items are highlighted.';
     description.style.marginBottom = '1.5em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = TEXT_SECONDARY;
 
     // Basic menu
     const basicButton = document.createElement('button');
-    basicButton.className = 'button is-primary';
+    basicButton.className = BTN_PRIMARY;
     basicButton.textContent = 'Modal with Menu';
     basicButton.style.marginRight = '1em';
     basicButton.onclick = () => {
@@ -52,7 +55,7 @@ export const MenuDropdown = {
 
     // Menu + Info combined
     const comboButton = document.createElement('button');
-    comboButton.className = 'button is-success';
+    comboButton.className = BTN_SUCCESS;
     comboButton.textContent = 'Menu + Info Icon';
     comboButton.style.marginRight = '1em';
     comboButton.onclick = () => {
@@ -138,7 +141,7 @@ export const InfoIcon = {
 
     // Modal with info icon
     const infoButton = document.createElement('button');
-    infoButton.className = 'button is-primary';
+    infoButton.className = BTN_PRIMARY;
     infoButton.textContent = 'Open Modal with Info Icon';
     infoButton.style.marginRight = '1em';
     infoButton.onclick = () => {
@@ -155,7 +158,7 @@ export const InfoIcon = {
 
     // Modal with info icon and HTML content
     const htmlInfoButton = document.createElement('button');
-    htmlInfoButton.className = 'button is-success';
+    htmlInfoButton.className = BTN_SUCCESS;
     htmlInfoButton.textContent = 'Modal with HTML Info';
     htmlInfoButton.style.marginRight = '1em';
     htmlInfoButton.onclick = () => {
@@ -191,7 +194,7 @@ export const InfoIcon = {
     description.innerHTML =
       'Demonstrates the new <code>config.info</code> option that displays an info icon (?) in the modal title bar with a popover on click.';
     description.style.marginBottom = '1.5em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = TEXT_SECONDARY;
 
     container.appendChild(title);
     container.appendChild(description);
@@ -210,7 +213,7 @@ export const Styling = {
 
     // Standard modal button
     const standardButton = document.createElement('button');
-    standardButton.className = 'button is-primary';
+    standardButton.className = BTN_PRIMARY;
     standardButton.textContent = 'Open Standard Modal';
     standardButton.style.marginRight = '1em';
     standardButton.onclick = () => {
@@ -248,7 +251,7 @@ export const Styling = {
 
     // Custom class modal button
     const classButton = document.createElement('button');
-    classButton.className = 'button is-success';
+    classButton.className = BTN_SUCCESS;
     classButton.textContent = 'Open Modal with Custom Class';
     classButton.style.marginRight = '1em';
     classButton.onclick = () => {
@@ -316,7 +319,7 @@ export const Styling = {
     description.innerHTML =
       'Demonstrates the new <code>className</code> and <code>style</code> config options for customizing modal appearance.';
     description.style.marginBottom = '1.5em';
-    description.style.color = 'var(--chc-text-secondary)';
+    description.style.color = TEXT_SECONDARY;
 
     container.appendChild(title);
     container.appendChild(description);

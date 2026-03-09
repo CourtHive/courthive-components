@@ -14,6 +14,10 @@ const {
   SINGLE_ELIMINATION,
   ROUND_ROBIN,
   FEED_IN,
+  FEED_IN_CHAMPIONSHIP,
+  FIRST_MATCH_LOSER_CONSOLATION,
+  COMPASS,
+  OLYMPIC,
   AD_HOC,
   MAIN,
   QUALIFYING,
@@ -27,10 +31,10 @@ const POSITION = 'POSITION';
 const PLAYOFF_DRAW_TYPES = [
   { label: 'Single Elimination', value: SINGLE_ELIMINATION },
   { label: 'Round Robin', value: ROUND_ROBIN },
-  { label: 'Feed-In Championship', value: 'FEED_IN_CHAMPIONSHIP' },
-  { label: 'FMLC', value: 'FIRST_MATCH_LOSER_CONSOLATION' },
-  { label: 'Compass', value: 'COMPASS' },
-  { label: 'Olympic', value: 'OLYMPIC' },
+  { label: 'Feed-In Championship', value: FEED_IN_CHAMPIONSHIP },
+  { label: 'FMLC', value: FIRST_MATCH_LOSER_CONSOLATION },
+  { label: 'Compass', value: COMPASS },
+  { label: 'Olympic', value: OLYMPIC },
   { label: 'Ad-hoc', value: AD_HOC },
 ];
 

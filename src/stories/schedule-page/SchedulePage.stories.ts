@@ -61,6 +61,7 @@ export default {
 const ROOT_STYLE = 'background: var(--sp-bg); height: 100vh; display: flex; flex-direction: column;';
 const INFO_STYLE =
   'font-size: 12px; color: var(--sp-muted); padding: 12px 16px; font-family: ui-sans-serif, system-ui, sans-serif; flex-shrink: 0;';
+const FLEX_CONTAINER = 'flex: 1; min-height: 0;';
 
 function addFooter(
   container: HTMLElement,
@@ -100,6 +101,15 @@ function makeBtn(text: string, handler: () => void): HTMLElement {
   return btn;
 }
 
+function createLogFn(logEl: HTMLElement): (msg: string) => void {
+  return (msg: string) => {
+    const line = document.createElement('div');
+    line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  };
+}
+
 // ============================================================================
 // Empty
 // ============================================================================
@@ -116,7 +126,7 @@ export const Empty = {
     root.appendChild(info);
 
     const container = document.createElement('div');
-    container.style.cssText = 'flex: 1; min-height: 0;';
+    container.style.cssText = FLEX_CONTAINER;
     root.appendChild(container);
 
     const control = createSchedulePage(
@@ -149,7 +159,7 @@ export const WithMatchUps = {
     root.appendChild(info);
 
     const container = document.createElement('div');
-    container.style.cssText = 'flex: 1; min-height: 0;';
+    container.style.cssText = FLEX_CONTAINER;
     root.appendChild(container);
 
     const control = createSchedulePage(
@@ -188,7 +198,7 @@ export const WithIssues = {
     root.appendChild(info);
 
     const container = document.createElement('div');
-    container.style.cssText = 'flex: 1; min-height: 0;';
+    container.style.cssText = FLEX_CONTAINER;
     root.appendChild(container);
 
     const control = createSchedulePage(
@@ -217,7 +227,7 @@ export const BulkMode = {
     root.appendChild(info);
 
     const container = document.createElement('div');
-    container.style.cssText = 'flex: 1; min-height: 0;';
+    container.style.cssText = FLEX_CONTAINER;
     root.appendChild(container);
 
     const statusEl = document.createElement('div');
@@ -288,7 +298,7 @@ export const ManyMatchUps = {
     root.appendChild(info);
 
     const container = document.createElement('div');
-    container.style.cssText = 'flex: 1; min-height: 0;';
+    container.style.cssText = FLEX_CONTAINER;
     root.appendChild(container);
 
     const control = createSchedulePage(
@@ -322,7 +332,7 @@ export const HideScheduled = {
     root.appendChild(info);
 
     const container = document.createElement('div');
-    container.style.cssText = 'flex: 1; min-height: 0;';
+    container.style.cssText = FLEX_CONTAINER;
     root.appendChild(container);
 
     const control = createSchedulePage(
@@ -357,7 +367,7 @@ export const ProgrammaticControl = {
     root.appendChild(btnBar);
 
     const container = document.createElement('div');
-    container.style.cssText = 'flex: 1; min-height: 0;';
+    container.style.cssText = FLEX_CONTAINER;
     root.appendChild(container);
 
     const control = createSchedulePage(makeConfig(), container);
@@ -438,7 +448,7 @@ export const NoCourtGrid = {
     root.appendChild(info);
 
     const container = document.createElement('div');
-    container.style.cssText = 'flex: 1; min-height: 0;';
+    container.style.cssText = FLEX_CONTAINER;
     root.appendChild(container);
 
     const control = createSchedulePage(
@@ -476,26 +486,26 @@ export const InteractiveGrid = {
       'max-height: 120px; overflow: auto; padding: 8px 16px; font-size: 11px; color: var(--sp-muted); font-family: monospace; background: var(--sp-card-bg); border-top: 1px solid var(--sp-line); flex-shrink: 0;';
     logEl.innerHTML = '<div style="font-weight:700; margin-bottom:4px;">Event Log</div>';
 
-    function log(msg: string): void {
-      const line = document.createElement('div');
-      line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-      logEl.appendChild(line);
-      logEl.scrollTop = logEl.scrollHeight;
-    }
+    const log = createLogFn(logEl);
 
     const container = document.createElement('div');
-    container.style.cssText = 'flex: 1; min-height: 0;';
+    container.style.cssText = FLEX_CONTAINER;
     root.appendChild(container);
 
     const mockGrid = makeMockCourtGrid(10, {
       onCellClick: (time, court, m) => {
-        log(`CLICK: ${court} @ ${time} — ${m ? `${m.matchUpId}: ${m.eventName}` : '(empty cell)'}`);
+        const detail = m ? m.matchUpId + ': ' + m.eventName : '(empty cell)';
+        log(`CLICK: ${court} @ ${time} — ${detail}`);
       },
       onCellDblClick: (time, court, m) => {
-        log(`DBLCLICK: ${court} @ ${time} — ${m ? `${m.matchUpId}: ${m.sides?.[0]?.participantName ?? 'TBD'} vs ${m.sides?.[1]?.participantName ?? 'TBD'}` : '(empty cell)'}`);
+        const side1 = m?.sides?.[0]?.participantName ?? 'TBD';
+        const side2 = m?.sides?.[1]?.participantName ?? 'TBD';
+        const detail = m ? m.matchUpId + ': ' + side1 + ' vs ' + side2 : '(empty cell)';
+        log(`DBLCLICK: ${court} @ ${time} — ${detail}`);
       },
       onCellRightClick: (time, court, m) => {
-        log(`RIGHT-CLICK: ${court} @ ${time} — ${m ? `${m.matchUpId}: context menu for ${m.eventName}` : '(empty cell — could show "Add matchUp" menu)'}`);
+        const detail = m ? m.matchUpId + ': context menu for ' + m.eventName : '(empty cell — could show "Add matchUp" menu)';
+        log(`RIGHT-CLICK: ${court} @ ${time} — ${detail}`);
       },
     });
 
@@ -536,7 +546,7 @@ export const ScrollingCatalog = {
     root.appendChild(info);
 
     const container = document.createElement('div');
-    container.style.cssText = 'flex: 1; min-height: 0;';
+    container.style.cssText = FLEX_CONTAINER;
     root.appendChild(container);
 
     const control = createSchedulePage(
@@ -580,17 +590,12 @@ export const GridCellEvents = {
       'max-height: 150px; overflow: auto; padding: 8px 16px; font-size: 11px; color: var(--sp-muted); font-family: monospace; background: var(--sp-card-bg); border: 1px solid var(--sp-line); margin: 0 16px; border-radius: 8px; flex-shrink: 0;';
     logEl.innerHTML = '<div style="font-weight:700; margin-bottom:4px;">Event Log (click, double-click, or right-click any grid cell)</div>';
 
-    function log(msg: string): void {
-      const line = document.createElement('div');
-      line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-      logEl.appendChild(line);
-      logEl.scrollTop = logEl.scrollHeight;
-    }
+    const log = createLogFn(logEl);
 
     root.appendChild(logEl);
 
     const container = document.createElement('div');
-    container.style.cssText = 'flex: 1; min-height: 0;';
+    container.style.cssText = FLEX_CONTAINER;
     root.appendChild(container);
 
     // Pre-fill some cells by placing already-scheduled matchUps in the catalog
@@ -667,12 +672,7 @@ export const FactoryBacked = {
       'max-height: 100px; overflow: auto; padding: 6px 16px; font-size: 10px; color: var(--sp-muted); font-family: monospace; background: var(--sp-card-bg); border-top: 1px solid var(--sp-line); flex-shrink: 0;';
     logEl.innerHTML = '<div style="font-weight:700; margin-bottom:2px;">Event Log</div>';
 
-    function log(msg: string): void {
-      const line = document.createElement('div');
-      line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-      logEl.appendChild(line);
-      logEl.scrollTop = logEl.scrollHeight;
-    }
+    const log = createLogFn(logEl);
 
     // Cell config state
     let cellConfig: ScheduleCellConfig = {
@@ -719,7 +719,7 @@ export const FactoryBacked = {
 
     // 4. Create the schedule page
     const container = document.createElement('div');
-    container.style.cssText = 'flex: 1; min-height: 0;';
+    container.style.cssText = FLEX_CONTAINER;
     root.appendChild(container);
 
     // Refresh helper — rebuilds everything from factory state

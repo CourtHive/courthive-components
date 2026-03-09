@@ -1,5 +1,8 @@
 import '../components/forms/styles';
 import { renderForm } from '../components/forms/renderForm';
+import { genderConstants } from 'tods-competition-factory';
+
+const { MALE, FEMALE } = genderConstants;
 
 const PLACEHOLDER_DATE = 'YYYY-MM-DD';
 const PLACEHOLDER_EMAIL = 'john@example.com';
@@ -159,8 +162,8 @@ export const ParticipantForm = {
         field: 'sex',
         options: [
           { label: 'Unknown', value: undefined, selected: true },
-          { label: 'Male', value: 'MALE' },
-          { label: 'Female', value: 'FEMALE' }
+          { label: 'Male', value: MALE },
+          { label: 'Female', value: FEMALE }
         ]
       },
       {

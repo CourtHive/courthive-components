@@ -5,7 +5,10 @@
 import { renderContainer } from '../components/renderStructure/renderContainer';
 import { renderStructure } from '../components/renderStructure/renderStructure';
 import { compositions } from '../compositions/compositions';
-import { mocksEngine } from 'tods-competition-factory';
+import { mocksEngine, drawDefinitionConstants, participantConstants } from 'tods-competition-factory';
+
+const { SINGLE_ELIMINATION, FEED_IN, MAIN, QUALIFYING } = drawDefinitionConstants;
+const { INDIVIDUAL } = participantConstants;
 import { DrawStateManager } from '../helpers/drawStateManager';
 import type { MatchUp } from '../types';
 
@@ -22,7 +25,7 @@ const argTypes = {
     control: { type: 'select' }
   },
   drawType: {
-    options: ['SINGLE_ELIMINATION', 'FEED_IN'],
+    options: [SINGLE_ELIMINATION, FEED_IN],
     control: { type: 'select' },
     description: 'Draw type - FEED_IN allows assignment in round 2 feed-in positions'
   },
@@ -46,7 +49,7 @@ export default {
   render: ({ composition: compositionKey, fontSize, persistInputFields, ...args }) => {
     const composition = compositions[compositionKey || 'Basic'];
     const drawSize = args.drawSize || 16;
-    const drawType = args.drawType || 'SINGLE_ELIMINATION';
+    const drawType = args.drawType || SINGLE_ELIMINATION;
 
     // Track persist mode state locally for UI toggle
     let currentPersistMode = persistInputFields || false;
@@ -65,7 +68,7 @@ export default {
       ],
       participantsProfile: {
         participantsCount: drawSize * 2, // Generate 2x participants for selection
-        participantType: 'INDIVIDUAL'
+        participantType: INDIVIDUAL
       }
     });
 
@@ -356,7 +359,7 @@ export const FeedIn24 = {
   args: {
     composition: 'Wimbledon',
     drawSize: 24,
-    drawType: 'FEED_IN',
+    drawType: FEED_IN,
     fontSize: '14px'
   }
 };
@@ -365,7 +368,7 @@ export const FeedIn18 = {
   args: {
     composition: 'Australian',
     drawSize: 18,
-    drawType: 'FEED_IN',
+    drawType: FEED_IN,
     fontSize: '14px'
   }
 };
@@ -401,7 +404,7 @@ export const DrawWithQualifying = {
       ],
       participantsProfile: {
         participantsCount: 48,
-        participantType: 'INDIVIDUAL'
+        participantType: INDIVIDUAL
       }
     });
 
@@ -409,10 +412,10 @@ export const DrawWithQualifying = {
     const drawDefinition = tournamentRecord.events[0].drawDefinitions.find((dd: any) => dd.drawId === drawId);
 
     // Find MAIN structure with stageSequence 1
-    const mainStructure = drawDefinition.structures.find((s: any) => s.stage === 'MAIN' && s.stageSequence === 1);
+    const mainStructure = drawDefinition.structures.find((s: any) => s.stage === MAIN && s.stageSequence === 1);
 
     const structureId = mainStructure?.structureId;
-    const hasQualifying = drawDefinition.structures.some((s: any) => s.stage === 'QUALIFYING');
+    const hasQualifying = drawDefinition.structures.some((s: any) => s.stage === QUALIFYING);
 
     const stateManager = new DrawStateManager({ tournamentRecord, drawId, structureId, eventId });
 

@@ -1,4 +1,6 @@
-import { fixtures, tools, mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { fixtures, tools, mocksEngine, tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
+
+const { AD_HOC } = drawDefinitionConstants;
 
 export function generateEventData({
   matchUpFormat = 'SET3-S:6/TB7',
@@ -45,7 +47,7 @@ export function generateEventData({
   };
   if (addQualifying)
     drawProfile.qualifyingProfiles = [{ structureProfiles: [{ drawSize: 16, qualifyingPositions: 4 }] }];
-  if (drawType === 'AD_HOC') Object.assign(drawProfile, { drawMatic: true, roundsCount: 3 });
+  if (drawType === AD_HOC) Object.assign(drawProfile, { drawMatic: true, roundsCount: 3 });
 
   return genData({ drawProfile, completeAllMatchUps, autoSchedule });
 }

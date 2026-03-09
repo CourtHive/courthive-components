@@ -2,6 +2,24 @@
  * Shared utilities for formatting scores for display in scoring modals
  */
 
+import { matchUpStatusConstants } from 'tods-competition-factory';
+
+const {
+  RETIRED,
+  WALKOVER,
+  DEFAULTED,
+  DOUBLE_WALKOVER,
+  DOUBLE_DEFAULT,
+  SUSPENDED,
+  CANCELLED,
+  INCOMPLETE,
+  DEAD_RUBBER,
+  IN_PROGRESS,
+  AWAITING_RESULT,
+  COMPLETED,
+  TO_BE_PLAYED,
+} = matchUpStatusConstants;
+
 /**
  * Format existing score object into string for input field
  */
@@ -29,7 +47,7 @@ export function formatExistingScore(scoreObject: any, matchUpStatus?: string): s
   }
   
   // Append matchUpStatus abbreviation if present (but not for TO_BE_PLAYED or COMPLETED)
-  if (matchUpStatus && matchUpStatus !== 'COMPLETED' && matchUpStatus !== 'TO_BE_PLAYED') {
+  if (matchUpStatus && matchUpStatus !== COMPLETED && matchUpStatus !== TO_BE_PLAYED) {
     const statusAbbrev = getStatusAbbreviation(matchUpStatus);
     if (statusAbbrev) {
       return scoreString ? `${scoreString} ${statusAbbrev}` : statusAbbrev;
@@ -45,17 +63,17 @@ export function formatExistingScore(scoreObject: any, matchUpStatus?: string): s
  */
 export function getStatusAbbreviation(status: string): string {
   const abbrevMap: Record<string, string> = {
-    'RETIRED': 'ret',
-    'WALKOVER': 'wo',
-    'DEFAULTED': 'def',
-    'DOUBLE_WALKOVER': 'wo',  // Map to same abbreviation as WALKOVER
-    'DOUBLE_DEFAULT': 'def',  // Map to same abbreviation as DEFAULTED
-    'SUSPENDED': 'susp',
-    'CANCELLED': 'canc',
-    'INCOMPLETE': 'inc',
-    'DEAD_RUBBER': 'dr',
-    'IN_PROGRESS': 'in',
-    'AWAITING_RESULT': 'await',
+    [RETIRED]: 'ret',
+    [WALKOVER]: 'wo',
+    [DEFAULTED]: 'def',
+    [DOUBLE_WALKOVER]: 'wo',  // Map to same abbreviation as WALKOVER
+    [DOUBLE_DEFAULT]: 'def',  // Map to same abbreviation as DEFAULTED
+    [SUSPENDED]: 'susp',
+    [CANCELLED]: 'canc',
+    [INCOMPLETE]: 'inc',
+    [DEAD_RUBBER]: 'dr',
+    [IN_PROGRESS]: 'in',
+    [AWAITING_RESULT]: 'await',
   };
   return abbrevMap[status] || '';
 }

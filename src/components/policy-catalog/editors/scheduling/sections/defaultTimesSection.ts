@@ -7,6 +7,9 @@ import type { SchedulingEditorState } from '../types';
 import type { SchedulingEditorStore } from '../schedulingEditorStore';
 import { seFieldRowStyle, seFieldLabelStyle, seFieldInputStyle, seFieldUnitStyle } from '../styles';
 
+const IS_SUCCESS = 'is-success';
+const IS_DANGER = 'is-danger';
+
 function isValidMinutes(value: string): boolean {
   if (value === '') return true;
   const n = parseInt(value, 10);
@@ -15,15 +18,15 @@ function isValidMinutes(value: string): boolean {
 
 function applyValidation(input: HTMLInputElement, value: string, allowEmpty: boolean): void {
   if (value === '' && allowEmpty) {
-    input.classList.remove('is-success', 'is-danger');
+    input.classList.remove(IS_SUCCESS, IS_DANGER);
     return;
   }
   if (isValidMinutes(value) && (value !== '' || allowEmpty)) {
-    input.classList.remove('is-danger');
-    input.classList.add('is-success');
+    input.classList.remove(IS_DANGER);
+    input.classList.add(IS_SUCCESS);
   } else {
-    input.classList.remove('is-success');
-    input.classList.add('is-danger');
+    input.classList.remove(IS_SUCCESS);
+    input.classList.add(IS_DANGER);
   }
 }
 

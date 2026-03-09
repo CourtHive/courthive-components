@@ -5,7 +5,9 @@
 import { renderContainer } from '../components/renderStructure/renderContainer';
 import { renderMatchUp } from '../components/renderStructure/renderMatchUp';
 import { compositions } from '../compositions/compositions';
-import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { mocksEngine, tournamentEngine, participantConstants } from 'tods-competition-factory';
+
+const { INDIVIDUAL, PAIR } = participantConstants;
 import type { MatchUp, Participant } from '../types';
 
 const argTypes = {
@@ -20,7 +22,7 @@ function getAvailableParticipants(count: number = 16, eventType: 'SINGLES' | 'DO
   const { tournamentRecord } = mocksEngine.generateTournamentRecord({
     participantsProfile: {
       participantsCount: count,
-      participantType: eventType === 'DOUBLES' ? 'PAIR' : 'INDIVIDUAL'
+      participantType: eventType === 'DOUBLES' ? PAIR : INDIVIDUAL
     }
   });
 

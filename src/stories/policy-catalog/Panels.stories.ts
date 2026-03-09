@@ -41,6 +41,8 @@ const SP_ROOT =
   'background: var(--sp-bg); min-height: 400px; padding: 20px; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: var(--sp-text);';
 const SP_ROOT_NARROW = SP_ROOT + ' max-width: 400px;';
 const SP_ROOT_WIDE = SP_ROOT + ' max-width: 700px;';
+const CONTENT_MAX_700 = 'max-width: 700px;';
+const INFO_MUTED_STYLE = 'font-size: 12px; color: var(--sp-muted); margin-bottom: 12px;';
 
 const GRID_STYLE =
   'display: grid; grid-template-columns: 1fr 280px; gap: 16px; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: var(--sp-text); background: var(--sp-bg); min-height: 400px; padding: 20px;';
@@ -207,7 +209,7 @@ export const EditorShellWithSelection = {
     grid.style.cssText = GRID_STYLE;
 
     const content = document.createElement('div');
-    content.style.cssText = 'max-width: 700px;';
+    content.style.cssText = CONTENT_MAX_700;
     const { element: logEl, log: logFn } = createLogPanel();
 
     const shell = buildEditorShell({
@@ -252,11 +254,11 @@ export const JsonEditor = {
     grid.style.cssText = GRID_STYLE;
 
     const content = document.createElement('div');
-    content.style.cssText = 'max-width: 700px;';
+    content.style.cssText = CONTENT_MAX_700;
     const { element: logEl, log: logFn } = createLogPanel();
 
     const info = document.createElement('div');
-    info.style.cssText = 'font-size: 12px; color: var(--sp-muted); margin-bottom: 12px;';
+    info.style.cssText = INFO_MUTED_STYLE;
     info.textContent =
       'Fallback JSON editor for policy types without a custom editor. Try editing the JSON — invalid JSON shows an error.';
     content.appendChild(info);
@@ -284,7 +286,7 @@ export const ModificationFlagsSection = {
     grid.style.cssText = GRID_STYLE;
 
     const content = document.createElement('div');
-    content.style.cssText = 'max-width: 700px;';
+    content.style.cssText = CONTENT_MAX_700;
     const { element: logEl, log: logFn } = createLogPanel();
 
     const config = makeSchedulingEditorConfig();
@@ -313,7 +315,7 @@ export const DailyLimitsSection = {
     grid.style.cssText = GRID_STYLE;
 
     const content = document.createElement('div');
-    content.style.cssText = 'max-width: 700px;';
+    content.style.cssText = CONTENT_MAX_700;
     const { element: logEl, log: logFn } = createLogPanel();
 
     const config = makeSchedulingEditorConfig();
@@ -342,7 +344,7 @@ export const DefaultTimesSection = {
     grid.style.cssText = GRID_STYLE;
 
     const content = document.createElement('div');
-    content.style.cssText = 'max-width: 700px;';
+    content.style.cssText = CONTENT_MAX_700;
     const { element: logEl, log: logFn } = createLogPanel();
 
     const config = makeSchedulingEditorConfig();
@@ -372,11 +374,11 @@ export const AverageTimesSection = {
     grid.style.cssText = GRID_STYLE;
 
     const content = document.createElement('div');
-    content.style.cssText = 'max-width: 700px;';
+    content.style.cssText = CONTENT_MAX_700;
     const { element: logEl, log: logFn } = createLogPanel();
 
     const info = document.createElement('div');
-    info.style.cssText = 'font-size: 12px; color: var(--sp-muted); margin-bottom: 12px;';
+    info.style.cssText = INFO_MUTED_STYLE;
     info.textContent =
       'Format groups with category overrides. ' +
       'Click [+] to add format codes via the format editor, [+] Add Override to add category-specific times, ' +
@@ -428,11 +430,11 @@ export const RecoveryTimesSection = {
     grid.style.cssText = GRID_STYLE;
 
     const content = document.createElement('div');
-    content.style.cssText = 'max-width: 700px;';
+    content.style.cssText = CONTENT_MAX_700;
     const { element: logEl, log: logFn } = createLogPanel();
 
     const info = document.createElement('div');
-    info.style.cssText = 'font-size: 12px; color: var(--sp-muted); margin-bottom: 12px;';
+    info.style.cssText = INFO_MUTED_STYLE;
     info.textContent =
       'Recovery time format groups. Same structure as average times, with emphasis on categoryTypes (age-group correlation for recovery).';
     content.appendChild(info);
@@ -467,7 +469,7 @@ export const FullSchedulingEditorPanel = {
     root.style.cssText = SP_ROOT_WIDE;
 
     const info = document.createElement('div');
-    info.style.cssText = 'font-size: 12px; color: var(--sp-muted); margin-bottom: 12px;';
+    info.style.cssText = INFO_MUTED_STYLE;
     info.textContent =
       'Complete scheduling editor panel with all 5 accordion sections. ' +
       'This is the panel that gets mounted inside the catalog editor shell.';

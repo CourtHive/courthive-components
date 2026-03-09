@@ -294,6 +294,22 @@ export default {
   argTypes
 };
 
+// ── Shared render helper ─────────────────────────────────────────
+function createRenderCurrentState(
+  engine: InstanceType<typeof ScoringEngine>,
+  fixture: McpFixture,
+  matchUpContainer: HTMLElement,
+  composition: Composition
+): () => void {
+  return () => {
+    const matchUp = engineToMatchUp(engine, fixture);
+    matchUpContainer.innerHTML = '';
+    const rendered = renderMatchUp({ matchUp, composition, isLucky: true });
+    const themed = renderContainer({ theme: composition.theme, content: rendered });
+    matchUpContainer.appendChild(themed);
+  };
+}
+
 /**
  * Live Playback — Points feed automatically from an MCP fixture.
  *
@@ -316,14 +332,7 @@ export const LivePlayback = {
     wrapper.style.maxWidth = '550px';
 
     const matchUpContainer = document.createElement('div');
-
-    function renderCurrentState() {
-      const matchUp = engineToMatchUp(engine, fixture);
-      matchUpContainer.innerHTML = '';
-      const rendered = renderMatchUp({ matchUp, composition, isLucky: true });
-      const themed = renderContainer({ theme: composition.theme, content: rendered });
-      matchUpContainer.appendChild(themed);
-    }
+    const renderCurrentState = createRenderCurrentState(engine, fixture, matchUpContainer, composition);
 
     const state: PlaybackState = {
       engine,
@@ -447,14 +456,7 @@ export const LeadingPosition = {
     wrapper.style.maxWidth = '550px';
 
     const matchUpContainer = document.createElement('div');
-
-    function renderCurrentState() {
-      const matchUp = engineToMatchUp(engine, fixture);
-      matchUpContainer.innerHTML = '';
-      const rendered = renderMatchUp({ matchUp, composition, isLucky: true });
-      const themed = renderContainer({ theme: composition.theme, content: rendered });
-      matchUpContainer.appendChild(themed);
-    }
+    const renderCurrentState = createRenderCurrentState(engine, fixture, matchUpContainer, composition);
 
     const state: PlaybackState = {
       engine,
@@ -551,14 +553,7 @@ export const NotInverted = {
     wrapper.style.maxWidth = '550px';
 
     const matchUpContainer = document.createElement('div');
-
-    function renderCurrentState() {
-      const matchUp = engineToMatchUp(engine, fixture);
-      matchUpContainer.innerHTML = '';
-      const rendered = renderMatchUp({ matchUp, composition, isLucky: true });
-      const themed = renderContainer({ theme: composition.theme, content: rendered });
-      matchUpContainer.appendChild(themed);
-    }
+    const renderCurrentState = createRenderCurrentState(engine, fixture, matchUpContainer, composition);
 
     const state: PlaybackState = {
       engine,
@@ -607,13 +602,7 @@ export const FixturePlayback = {
 
       const matchUpContainer = document.createElement('div');
 
-      function renderCurrentState() {
-        const matchUp = engineToMatchUp(engine, fixture);
-        matchUpContainer.innerHTML = '';
-        const rendered = renderMatchUp({ matchUp, composition, isLucky: true });
-        const themed = renderContainer({ theme: composition.theme, content: rendered });
-        matchUpContainer.appendChild(themed);
-      }
+      const renderCurrentState = createRenderCurrentState(engine, fixture, matchUpContainer, composition);
 
       // Format row
       const formatRow = document.createElement('div');

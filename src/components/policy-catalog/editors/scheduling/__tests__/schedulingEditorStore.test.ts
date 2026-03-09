@@ -1,12 +1,12 @@
-import { describe, it, expect, vi } from 'vitest';
-import { SchedulingEditorStore } from '../schedulingEditorStore';
 import type { SchedulingEditorConfig, SchedulingPolicyData } from '../types';
+import { SchedulingEditorStore } from '../schedulingEditorStore';
+import { describe, it, expect, vi } from 'vitest';
 
 const samplePolicy: SchedulingPolicyData = {
   allowModificationWhenMatchUpsScheduled: { courts: false, venues: false },
   defaultTimes: {
     averageTimes: [{ categoryNames: [], minutes: { default: 90 } }],
-    recoveryTimes: [{ minutes: { default: 60, DOUBLES: 30 } }],
+    recoveryTimes: [{ minutes: { default: 60, DOUBLES: 30 } }]
   },
   defaultDailyLimits: { SINGLES: 2, DOUBLES: 2, total: 3 },
   matchUpAverageTimes: [
@@ -14,12 +14,12 @@ const samplePolicy: SchedulingPolicyData = {
       matchUpFormatCodes: ['SET3-S:6/TB7'],
       averageTimes: [
         { categoryNames: [], minutes: { default: 90 } },
-        { categoryTypes: ['WHEELCHAIR'], minutes: { default: 120 } },
-      ],
-    },
+        { categoryTypes: ['WHEELCHAIR'], minutes: { default: 120 } }
+      ]
+    }
   ],
   matchUpRecoveryTimes: [],
-  matchUpDailyLimits: [],
+  matchUpDailyLimits: []
 };
 
 function makeConfig(overrides: Partial<SchedulingEditorConfig> = {}): SchedulingEditorConfig {
@@ -170,7 +170,7 @@ describe('SchedulingEditorStore', () => {
       expect(store.getState().dirty).toBe(true);
 
       const newPolicy: SchedulingPolicyData = {
-        defaultDailyLimits: { SINGLES: 1, DOUBLES: 1, total: 2 },
+        defaultDailyLimits: { SINGLES: 1, DOUBLES: 1, total: 2 }
       };
       store.setData(newPolicy);
       expect(store.getData().defaultDailyLimits?.SINGLES).toBe(1);
@@ -184,9 +184,11 @@ describe('SchedulingEditorStore', () => {
       const store = new SchedulingEditorStore(makeConfig({ onChange }));
       store.setDailyLimit('SINGLES', 5);
       expect(onChange).toHaveBeenCalledTimes(1);
-      expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-        defaultDailyLimits: expect.objectContaining({ SINGLES: 5 }),
-      }));
+      expect(onChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          defaultDailyLimits: expect.objectContaining({ SINGLES: 5 })
+        })
+      );
     });
   });
 

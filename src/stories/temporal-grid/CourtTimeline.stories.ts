@@ -51,6 +51,9 @@ const STYLE_ROOT =
 const STYLE_MAIN_ROW = 'display:flex; flex:1; min-height:0;';
 const STYLE_TIMELINE_CONTAINER = 'flex:1; min-width:0;';
 const VENUE_COLORS = ['rgba(33, 141, 141, 0.06)', 'rgba(33, 96, 200, 0.06)', 'rgba(156, 39, 176, 0.06)'];
+const STYLE_VENUE_LABEL = 'font-weight: 600; color: var(--chc-text-primary);';
+const DATE_PICKER_FORMAT = 'yyyy-mm-dd';
+const CURSOR_NOT_ALLOWED = 'not-allowed';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -364,7 +367,7 @@ function buildCourtTreeWithEditIcons(
 
     const venueLabel = document.createElement('span');
     venueLabel.textContent = venue.name;
-    venueLabel.style.cssText = 'font-weight: 600; color: var(--chc-text-primary);';
+    venueLabel.style.cssText = STYLE_VENUE_LABEL;
 
     const venueEditBtn = document.createElement('button');
     venueEditBtn.textContent = '\u270E';
@@ -560,7 +563,7 @@ function buildCourtTree(venues: VenueInfo[], visibleCourts: Set<string>, onChang
 
     const venueLabel = document.createElement('span');
     venueLabel.textContent = venue.name;
-    venueLabel.style.cssText = 'font-weight: 600; color: var(--chc-text-primary);';
+    venueLabel.style.cssText = STYLE_VENUE_LABEL;
 
     const courtCount = document.createElement('span');
     courtCount.style.cssText = 'margin-left: auto; color: var(--chc-text-muted); font-weight: 400; font-size: 12px;';
@@ -671,8 +674,8 @@ function buildDateControlsPanel(params: {
 
   const initPickers = () => {
     if (startPicker) return; // already initialized
-    startPicker = new Datepicker(startInput, { format: 'yyyy-mm-dd', autohide: true });
-    endPicker = new Datepicker(endInput, { format: 'yyyy-mm-dd', autohide: true });
+    startPicker = new Datepicker(startInput, { format: DATE_PICKER_FORMAT, autohide: true });
+    endPicker = new Datepicker(endInput, { format: DATE_PICKER_FORMAT, autohide: true });
   };
 
   const applyBtn = document.createElement('button');
@@ -707,11 +710,8 @@ function buildDateControlsPanel(params: {
   row2.style.cssText = 'display: flex; flex-wrap: wrap; gap: 4px;';
   panel.appendChild(row2);
 
-  const chipEls: HTMLButtonElement[] = [];
-
   const refreshChips = () => {
     row2.innerHTML = '';
-    chipEls.length = 0;
     updateSummary();
     if (startPicker) startPicker.setDate(params.startDate, { clear: true });
     else startInput.value = params.startDate;
@@ -734,7 +734,6 @@ function buildDateControlsPanel(params: {
       `;
 
       chip.addEventListener('click', () => params.onToggleDate(day));
-      chipEls.push(chip);
       row2.appendChild(chip);
     }
   };
@@ -760,7 +759,7 @@ function buildDayNavBar(params: { onPrev: () => void; onNext: () => void }): {
   prevBtn.addEventListener('click', params.onPrev);
 
   const dayLabel = document.createElement('span');
-  dayLabel.style.cssText = 'font-weight: 600; color: var(--chc-text-primary);';
+  dayLabel.style.cssText = STYLE_VENUE_LABEL;
 
   const nextBtn = document.createElement('button');
   nextBtn.textContent = 'Next \u25B6';
@@ -781,13 +780,116 @@ function buildDayNavBar(params: { onPrev: () => void; onNext: () => void }): {
     indexLabel.textContent = `(${index + 1} of ${sortedAvailable.length} available)`;
     prevBtn.disabled = index <= 0;
     prevBtn.style.opacity = index <= 0 ? '0.4' : '1';
-    prevBtn.style.cursor = index <= 0 ? 'not-allowed' : 'pointer';
+    prevBtn.style.cursor = index <= 0 ? CURSOR_NOT_ALLOWED : 'pointer';
     nextBtn.disabled = index >= sortedAvailable.length - 1;
     nextBtn.style.opacity = index >= sortedAvailable.length - 1 ? '0.4' : '1';
-    nextBtn.style.cursor = index >= sortedAvailable.length - 1 ? 'not-allowed' : 'pointer';
+    nextBtn.style.cursor = index >= sortedAvailable.length - 1 ? CURSOR_NOT_ALLOWED : 'pointer';
   };
 
   return { element: bar, update };
+}
+
+// ── Shared story helpers ─────────────────────────────────────────────────────
+
+interface StoryContext {
+  engine: TemporalEngine;
+  startDate: string;
+  visibleCourts: Set<string>;
+  courtNameMap: Map<string, string>;
+  statsBar: ReturnType<typeof buildStatsBar>;
+  timelineRef: { current: CourtTimeline | null };
+  config: ReturnType<TemporalEngine['getConfig']>;
+  /** Optional extra work after rebuild (e.g. dirty-check save button) */
+  afterRebuild?: () => void;
+}
+
+function createUpdateStats(ctx: StoryContext): () => void {
+  return () => {
+    const curve = ctx.engine.getCapacityCurve(ctx.startDate);
+    const stats = calculateCapacityStats(curve);
+    ctx.statsBar.update({
+      totalHours: stats.totalCourtHours,
+      blockedHours: stats.totalUnavailableHours ?? 0,
+      availableHours: stats.totalAvailableHours ?? 0,
+      avgPerCourt: (stats.totalCourts ?? 0) > 0 ? (stats.totalAvailableHours ?? 0) / stats.totalCourts! : 0
+    });
+  };
+}
+
+function createRebuildItems(ctx: StoryContext, updateStats: () => void): () => void {
+  return () => {
+    if (!ctx.timelineRef.current) return;
+    const groups = getGroups(ctx.engine, ctx.startDate, ctx.visibleCourts, ctx.courtNameMap);
+    const items = getItems(ctx.engine, ctx.startDate, ctx.visibleCourts);
+    ctx.timelineRef.current.setGroups(groups);
+    ctx.timelineRef.current.setItems(items);
+    const timeRange = ctx.engine.getVisibleTimeRange(ctx.startDate);
+    ctx.timelineRef.current.setDailyBounds(timeRange.startTime, timeRange.endTime);
+    updateStats();
+    ctx.afterRebuild?.();
+  };
+}
+
+function createHandleVenueEdit(ctx: StoryContext, rebuildItems: () => void): (venueId: string, venueName: string) => void {
+  return (venueId: string, venueName: string) => {
+    const avail = ctx.engine.getVenueAvailability(ctx.config.tournamentId, venueId);
+    showCourtAvailabilityModal({
+      title: `${venueName} \u2014 Venue Defaults`,
+      currentDay: ctx.startDate,
+      currentStartTime: avail?.startTime || ctx.config.dayStartTime,
+      currentEndTime: avail?.endTime || ctx.config.dayEndTime,
+      showScopeToggle: false,
+      onConfirm: ({ startTime, endTime }) => {
+        ctx.engine.setVenueDefaultAvailability(ctx.config.tournamentId, venueId, { startTime, endTime });
+        rebuildItems();
+      }
+    });
+  };
+}
+
+function createHandleCourtEdit(ctx: StoryContext, rebuildItems: () => void): (courtResourceId: string, courtName: string) => void {
+  return (courtResourceId: string, courtName: string) => {
+    const courtRef = parseResourceId(courtResourceId);
+    if (!courtRef) return;
+    const avail = ctx.engine.getCourtAvailability(courtRef, ctx.startDate);
+    showCourtAvailabilityModal({
+      title: `${courtName} Availability`,
+      currentDay: ctx.startDate,
+      currentStartTime: avail.startTime,
+      currentEndTime: avail.endTime,
+      showScopeToggle: true,
+      venueBounds: ctx.engine.getVenueAvailability(courtRef.tournamentId, courtRef.venueId) || undefined,
+      onConfirm: ({ startTime, endTime, scope }) => {
+        if (scope === 'all-days') {
+          ctx.engine.setCourtAvailabilityAllDays(courtRef, { startTime, endTime });
+        } else {
+          ctx.engine.setCourtAvailability(courtRef, ctx.startDate, { startTime, endTime });
+        }
+        const venueAvail = ctx.engine.getVenueAvailability(courtRef.tournamentId, courtRef.venueId);
+        if (venueAvail) {
+          const widened = { startTime: venueAvail.startTime, endTime: venueAvail.endTime };
+          if (startTime < venueAvail.startTime) widened.startTime = startTime;
+          if (endTime > venueAvail.endTime) widened.endTime = endTime;
+          if (widened.startTime !== venueAvail.startTime || widened.endTime !== venueAvail.endTime) {
+            ctx.engine.setVenueDefaultAvailability(courtRef.tournamentId, courtRef.venueId, widened);
+          }
+        }
+        rebuildItems();
+      }
+    });
+  };
+}
+
+function createSetView(ctx: StoryContext): (viewKey: string) => void {
+  return (viewKey: string) => {
+    if (!ctx.timelineRef.current) return;
+    const view = VIEW_PRESETS[viewKey];
+    const timeRange = ctx.engine.getVisibleTimeRange(ctx.startDate);
+    const windowStart = new Date(`${ctx.startDate}T${timeRange.startTime}:00`);
+    const end = new Date(windowStart.getTime() + view.days * 16 * 60 * 60 * 1000);
+    ctx.timelineRef.current.setWindow(windowStart, end);
+    ctx.timelineRef.current.setOptions({ timeAxis: view.timeAxis });
+  };
 }
 
 // ── Story: FactoryBacked ─────────────────────────────────────────────────────
@@ -810,98 +912,22 @@ export const FactoryBacked = {
   render: () => {
     const { engine, startDate, courtNameMap, venueInfos, allCourtIds } = createEngineSetup();
     const visibleCourts = new Set(allCourtIds);
-    let timeline: CourtTimeline | null = null;
 
     const popoverManager = createBlockPopoverManager();
     const statsBar = buildStatsBar();
     const config = engine.getConfig();
 
-    const updateStats = () => {
-      const curve = engine.getCapacityCurve(startDate);
-      const stats = calculateCapacityStats(curve);
-      statsBar.update({
-        totalHours: stats.totalCourtHours,
-        blockedHours: stats.totalUnavailableHours ?? 0,
-        availableHours: stats.totalAvailableHours ?? 0,
-        avgPerCourt: (stats.totalCourts ?? 0) > 0 ? (stats.totalAvailableHours ?? 0) / stats.totalCourts! : 0
-      });
-    };
-
-    const rebuildItems = () => {
-      if (!timeline) return;
-      const groups = getGroups(engine, startDate, visibleCourts, courtNameMap);
-      const items = getItems(engine, startDate, visibleCourts);
-      timeline.setGroups(groups);
-      timeline.setItems(items);
-      // Recalculate daily bounds from current availability
-      const timeRange = engine.getVisibleTimeRange(startDate);
-      timeline.setDailyBounds(timeRange.startTime, timeRange.endTime);
-      updateStats();
-    };
-
-    // Venue edit handler
-    const handleVenueEdit = (venueId: string, venueName: string) => {
-      const avail = engine.getVenueAvailability(config.tournamentId, venueId);
-      showCourtAvailabilityModal({
-        title: `${venueName} \u2014 Venue Defaults`,
-        currentDay: startDate,
-        currentStartTime: avail?.startTime || config.dayStartTime,
-        currentEndTime: avail?.endTime || config.dayEndTime,
-        showScopeToggle: false,
-        onConfirm: ({ startTime, endTime }) => {
-          engine.setVenueDefaultAvailability(config.tournamentId, venueId, { startTime, endTime });
-          rebuildItems();
-        }
-      });
-    };
-
-    // Court edit handler
-    const handleCourtEdit = (courtResourceId: string, courtName: string) => {
-      const courtRef = parseResourceId(courtResourceId);
-      if (!courtRef) return;
-      const avail = engine.getCourtAvailability(courtRef, startDate);
-      showCourtAvailabilityModal({
-        title: `${courtName} Availability`,
-        currentDay: startDate,
-        currentStartTime: avail.startTime,
-        currentEndTime: avail.endTime,
-        showScopeToggle: true,
-        venueBounds: engine.getVenueAvailability(courtRef.tournamentId, courtRef.venueId) || undefined,
-        onConfirm: ({ startTime, endTime, scope }) => {
-          if (scope === 'all-days') {
-            engine.setCourtAvailabilityAllDays(courtRef, { startTime, endTime });
-          } else {
-            engine.setCourtAvailability(courtRef, startDate, { startTime, endTime });
-          }
-          // If court range is wider than venue, widen venue to accommodate
-          // (the engine intersects court+venue, so court can't exceed venue)
-          const venueAvail = engine.getVenueAvailability(courtRef.tournamentId, courtRef.venueId);
-          if (venueAvail) {
-            const widened = { startTime: venueAvail.startTime, endTime: venueAvail.endTime };
-            if (startTime < venueAvail.startTime) widened.startTime = startTime;
-            if (endTime > venueAvail.endTime) widened.endTime = endTime;
-            if (widened.startTime !== venueAvail.startTime || widened.endTime !== venueAvail.endTime) {
-              engine.setVenueDefaultAvailability(courtRef.tournamentId, courtRef.venueId, widened);
-            }
-          }
-          rebuildItems();
-        }
-      });
-    };
+    const ctx: StoryContext = { engine, startDate, visibleCourts, courtNameMap, statsBar, timelineRef: { current: null }, config };
+    const updateStats = createUpdateStats(ctx);
+    const rebuildItems = createRebuildItems(ctx, updateStats);
+    const handleVenueEdit = createHandleVenueEdit(ctx, rebuildItems);
+    const handleCourtEdit = createHandleCourtEdit(ctx, rebuildItems);
 
     // DOM structure
     const root = document.createElement('div');
     root.style.cssText = STYLE_ROOT;
 
-    const setView = (viewKey: string) => {
-      if (!timeline) return;
-      const view = VIEW_PRESETS[viewKey];
-      const timeRange = engine.getVisibleTimeRange(startDate);
-      const windowStart = new Date(`${startDate}T${timeRange.startTime}:00`);
-      const end = new Date(windowStart.getTime() + view.days * 16 * 60 * 60 * 1000);
-      timeline.setWindow(windowStart, end);
-      timeline.setOptions({ timeAxis: view.timeAxis });
-    };
+    const setView = createSetView(ctx);
 
     const { element: toolbar } = buildViewToolbar(setView, 'day');
     root.appendChild(toolbar);
@@ -939,7 +965,7 @@ export const FactoryBacked = {
       const groups = getGroups(engine, startDate, visibleCourts, courtNameMap);
       const items = getItems(engine, startDate, visibleCourts);
 
-      timeline = new CourtTimeline(timelineContainer, items, groups, {
+      const timeline = new CourtTimeline(timelineContainer, items, groups, {
         start: windowConfig.start,
         end: windowConfig.end,
         min: windowConfig.min,
@@ -956,6 +982,7 @@ export const FactoryBacked = {
         showTooltips: true,
         rowHeight: 40
       });
+      ctx.timelineRef.current = timeline;
 
       // Set daily bounds to collapse overnight gaps
       timeline.setDailyBounds(timeRange.startTime, timeRange.endTime);
@@ -1102,83 +1129,16 @@ export const MultiRowCreation = {
   render: () => {
     const { engine, startDate, courtNameMap, venueInfos, allCourtIds } = createEngineSetup();
     const visibleCourts = new Set(allCourtIds);
-    let timeline: CourtTimeline | null = null;
 
     const popoverManager = createBlockPopoverManager();
     const statsBar = buildStatsBar();
     const config = engine.getConfig();
 
-    const updateStats = () => {
-      const curve = engine.getCapacityCurve(startDate);
-      const stats = calculateCapacityStats(curve);
-      statsBar.update({
-        totalHours: stats.totalCourtHours,
-        blockedHours: stats.totalUnavailableHours ?? 0,
-        availableHours: stats.totalAvailableHours ?? 0,
-        avgPerCourt: (stats.totalCourts ?? 0) > 0 ? (stats.totalAvailableHours ?? 0) / stats.totalCourts! : 0
-      });
-    };
-
-    const rebuildItems = () => {
-      if (!timeline) return;
-      const groups = getGroups(engine, startDate, visibleCourts, courtNameMap);
-      const items = getItems(engine, startDate, visibleCourts);
-      timeline.setGroups(groups);
-      timeline.setItems(items);
-      // Recalculate daily bounds from current availability
-      const timeRange = engine.getVisibleTimeRange(startDate);
-      timeline.setDailyBounds(timeRange.startTime, timeRange.endTime);
-      updateStats();
-    };
-
-    // Venue/court edit handlers
-    const handleVenueEdit = (venueId: string, venueName: string) => {
-      const avail = engine.getVenueAvailability(config.tournamentId, venueId);
-      showCourtAvailabilityModal({
-        title: `${venueName} \u2014 Venue Defaults`,
-        currentDay: startDate,
-        currentStartTime: avail?.startTime || config.dayStartTime,
-        currentEndTime: avail?.endTime || config.dayEndTime,
-        showScopeToggle: false,
-        onConfirm: ({ startTime, endTime }) => {
-          engine.setVenueDefaultAvailability(config.tournamentId, venueId, { startTime, endTime });
-          rebuildItems();
-        }
-      });
-    };
-
-    const handleCourtEdit = (courtResourceId: string, courtName: string) => {
-      const courtRef = parseResourceId(courtResourceId);
-      if (!courtRef) return;
-      const avail = engine.getCourtAvailability(courtRef, startDate);
-      showCourtAvailabilityModal({
-        title: `${courtName} Availability`,
-        currentDay: startDate,
-        currentStartTime: avail.startTime,
-        currentEndTime: avail.endTime,
-        showScopeToggle: true,
-        venueBounds: engine.getVenueAvailability(courtRef.tournamentId, courtRef.venueId) || undefined,
-        onConfirm: ({ startTime, endTime, scope }) => {
-          if (scope === 'all-days') {
-            engine.setCourtAvailabilityAllDays(courtRef, { startTime, endTime });
-          } else {
-            engine.setCourtAvailability(courtRef, startDate, { startTime, endTime });
-          }
-          // If court range is wider than venue, widen venue to accommodate
-          // (the engine intersects court+venue, so court can't exceed venue)
-          const venueAvail = engine.getVenueAvailability(courtRef.tournamentId, courtRef.venueId);
-          if (venueAvail) {
-            const widened = { startTime: venueAvail.startTime, endTime: venueAvail.endTime };
-            if (startTime < venueAvail.startTime) widened.startTime = startTime;
-            if (endTime > venueAvail.endTime) widened.endTime = endTime;
-            if (widened.startTime !== venueAvail.startTime || widened.endTime !== venueAvail.endTime) {
-              engine.setVenueDefaultAvailability(courtRef.tournamentId, courtRef.venueId, widened);
-            }
-          }
-          rebuildItems();
-        }
-      });
-    };
+    const ctx: StoryContext = { engine, startDate, visibleCourts, courtNameMap, statsBar, timelineRef: { current: null }, config };
+    const updateStats = createUpdateStats(ctx);
+    const rebuildItems = createRebuildItems(ctx, updateStats);
+    const handleVenueEdit = createHandleVenueEdit(ctx, rebuildItems);
+    const handleCourtEdit = createHandleCourtEdit(ctx, rebuildItems);
 
     const root = document.createElement('div');
     root.style.cssText = STYLE_ROOT;
@@ -1236,7 +1196,7 @@ export const MultiRowCreation = {
       const groups = getGroups(engine, startDate, visibleCourts, courtNameMap);
       const items = getItems(engine, startDate, visibleCourts);
 
-      timeline = new CourtTimeline(timelineContainer, items, groups, {
+      const timeline = new CourtTimeline(timelineContainer, items, groups, {
         start: windowConfig.start,
         end: windowConfig.end,
         min: windowConfig.min,
@@ -1252,6 +1212,7 @@ export const MultiRowCreation = {
         timeAxis: { scale: 'hour', step: 1 },
         rowHeight: 40
       });
+      ctx.timelineRef.current = timeline;
 
       // Set daily bounds to collapse overnight gaps
       timeline.setDailyBounds(timeRange.startTime, timeRange.endTime);
@@ -1391,22 +1352,10 @@ export const RoundTrip = {
     const { engine, startDate, courtNameMap, venueInfos, allCourtIds, initialBlockSnapshot } = setup;
     let { tournamentRecord } = setup;
     const visibleCourts = new Set(allCourtIds);
-    let timeline: CourtTimeline | null = null;
 
     const popoverManager = createBlockPopoverManager();
     const statsBar = buildStatsBar();
     const config = engine.getConfig();
-
-    const updateStats = () => {
-      const curve = engine.getCapacityCurve(startDate);
-      const stats = calculateCapacityStats(curve);
-      statsBar.update({
-        totalHours: stats.totalCourtHours,
-        blockedHours: stats.totalUnavailableHours ?? 0,
-        availableHours: stats.totalAvailableHours ?? 0,
-        avgPerCourt: (stats.totalCourts ?? 0) > 0 ? (stats.totalAvailableHours ?? 0) / stats.totalCourts! : 0
-      });
-    };
 
     // Track current block snapshot for dirty-checking
     let currentBlockSnapshot = new Map(initialBlockSnapshot);
@@ -1438,84 +1387,24 @@ export const RoundTrip = {
       const dirty = hasPendingChanges();
       saveBtn.disabled = !dirty;
       saveBtn.style.opacity = dirty ? '1' : '0.5';
-      saveBtn.style.cursor = dirty ? 'pointer' : 'not-allowed';
+      saveBtn.style.cursor = dirty ? 'pointer' : CURSOR_NOT_ALLOWED;
     };
 
-    const rebuildItems = () => {
-      if (!timeline) return;
-      const groups = getGroups(engine, startDate, visibleCourts, courtNameMap);
-      const items = getItems(engine, startDate, visibleCourts);
-      timeline.setGroups(groups);
-      timeline.setItems(items);
-      // Recalculate daily bounds from current availability
-      const timeRange = engine.getVisibleTimeRange(startDate);
-      timeline.setDailyBounds(timeRange.startTime, timeRange.endTime);
-      updateStats();
-      updateSaveButtonState();
+    const ctx: StoryContext = {
+      engine, startDate, visibleCourts, courtNameMap, statsBar,
+      timelineRef: { current: null }, config,
+      afterRebuild: updateSaveButtonState
     };
-
-    // Venue/court edit handlers
-    const handleVenueEdit = (venueId: string, venueName: string) => {
-      const avail = engine.getVenueAvailability(config.tournamentId, venueId);
-      showCourtAvailabilityModal({
-        title: `${venueName} \u2014 Venue Defaults`,
-        currentDay: startDate,
-        currentStartTime: avail?.startTime || config.dayStartTime,
-        currentEndTime: avail?.endTime || config.dayEndTime,
-        showScopeToggle: false,
-        onConfirm: ({ startTime, endTime }) => {
-          engine.setVenueDefaultAvailability(config.tournamentId, venueId, { startTime, endTime });
-          rebuildItems();
-        }
-      });
-    };
-
-    const handleCourtEdit = (courtResourceId: string, courtName: string) => {
-      const courtRef = parseResourceId(courtResourceId);
-      if (!courtRef) return;
-      const avail = engine.getCourtAvailability(courtRef, startDate);
-      showCourtAvailabilityModal({
-        title: `${courtName} Availability`,
-        currentDay: startDate,
-        currentStartTime: avail.startTime,
-        currentEndTime: avail.endTime,
-        showScopeToggle: true,
-        venueBounds: engine.getVenueAvailability(courtRef.tournamentId, courtRef.venueId) || undefined,
-        onConfirm: ({ startTime, endTime, scope }) => {
-          if (scope === 'all-days') {
-            engine.setCourtAvailabilityAllDays(courtRef, { startTime, endTime });
-          } else {
-            engine.setCourtAvailability(courtRef, startDate, { startTime, endTime });
-          }
-          // If court range is wider than venue, widen venue to accommodate
-          // (the engine intersects court+venue, so court can't exceed venue)
-          const venueAvail = engine.getVenueAvailability(courtRef.tournamentId, courtRef.venueId);
-          if (venueAvail) {
-            const widened = { startTime: venueAvail.startTime, endTime: venueAvail.endTime };
-            if (startTime < venueAvail.startTime) widened.startTime = startTime;
-            if (endTime > venueAvail.endTime) widened.endTime = endTime;
-            if (widened.startTime !== venueAvail.startTime || widened.endTime !== venueAvail.endTime) {
-              engine.setVenueDefaultAvailability(courtRef.tournamentId, courtRef.venueId, widened);
-            }
-          }
-          rebuildItems();
-        }
-      });
-    };
+    const updateStats = createUpdateStats(ctx);
+    const rebuildItems = createRebuildItems(ctx, updateStats);
+    const handleVenueEdit = createHandleVenueEdit(ctx, rebuildItems);
+    const handleCourtEdit = createHandleCourtEdit(ctx, rebuildItems);
 
     // DOM structure
     const root = document.createElement('div');
     root.style.cssText = STYLE_ROOT;
 
-    const setView = (viewKey: string) => {
-      if (!timeline) return;
-      const view = VIEW_PRESETS[viewKey];
-      const timeRange = engine.getVisibleTimeRange(startDate);
-      const windowStart = new Date(`${startDate}T${timeRange.startTime}:00`);
-      const end = new Date(windowStart.getTime() + view.days * 16 * 60 * 60 * 1000);
-      timeline.setWindow(windowStart, end);
-      timeline.setOptions({ timeAxis: view.timeAxis });
-    };
+    const setView = createSetView(ctx);
 
     // Toolbar with Save buttons
     const { element: toolbar } = buildViewToolbar(setView, 'day');
@@ -1671,7 +1560,7 @@ export const RoundTrip = {
       const groups = getGroups(engine, startDate, visibleCourts, courtNameMap);
       const items = getItems(engine, startDate, visibleCourts);
 
-      timeline = new CourtTimeline(timelineContainer, items, groups, {
+      const timeline = new CourtTimeline(timelineContainer, items, groups, {
         start: windowConfig.start,
         end: windowConfig.end,
         min: windowConfig.min,
@@ -1688,6 +1577,7 @@ export const RoundTrip = {
         showTooltips: true,
         rowHeight: 40
       });
+      ctx.timelineRef.current = timeline;
 
       // Set daily bounds to collapse overnight gaps
       timeline.setDailyBounds(timeRange.startTime, timeRange.endTime);
@@ -2150,7 +2040,7 @@ export const AvailableDates = {
     const constructTimeline = () => {
       // Initialize datepickers now that elements are in the DOM
       if (!viewDatePicker) {
-        viewDatePicker = new Datepicker(dateInput, { format: 'yyyy-mm-dd', autohide: true });
+        viewDatePicker = new Datepicker(dateInput, { format: DATE_PICKER_FORMAT, autohide: true });
       }
       dateControls.initPickers();
 
