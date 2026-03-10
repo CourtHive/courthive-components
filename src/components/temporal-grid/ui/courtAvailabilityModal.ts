@@ -103,13 +103,6 @@ export async function showCourtAvailabilityModal(config: CourtAvailabilityModalC
       width: 328px !important;
       box-shadow: 0 8px 32px rgba(0,0,0,0.2) !important;
     }
-    #${containerId} .tp-ui-range-mode .tp-ui-select-time {
-      display: block !important;
-      text-align: center;
-      font-size: 16px;
-      font-weight: 600;
-      padding: 12px 0 12px;
-    }
   `;
   dialog.appendChild(styleTag);
 
@@ -225,8 +218,7 @@ export async function showCourtAvailabilityModal(config: CourtAvailabilityModalC
     },
     labels: {
       ok: labels.apply || 'Apply',
-      cancel: labels.cancel || 'Cancel',
-      time: title
+      cancel: labels.cancel || 'Cancel'
     },
     callbacks: {
       onRangeConfirm: (data: any) => {
@@ -244,15 +236,29 @@ export async function showCourtAvailabilityModal(config: CourtAvailabilityModalC
 
   picker.create();
 
-  // Inject our extra content (scope radios, warning) into the inline modal,
-  // between the clock and the footer buttons.
+  // Inject title and extra content into the inline modal's wrapper,
+  // so they inherit the timepicker's [data-theme] CSS variables.
   // DOM structure: .tp-ui-modal > .tp-ui-wrapper > [header, clock, .tp-ui-footer]
   const wrapper = clockContainer.querySelector('.tp-ui-wrapper');
   const footer = wrapper?.querySelector('.tp-ui-footer');
+
+  // Title — prepend inside wrapper so it inherits --tp-bg / --tp-text from the theme
+  const titleEl = document.createElement('div');
+  titleEl.textContent = title;
+  titleEl.style.cssText = `
+    text-align: center; font-size: 16px; font-weight: 600;
+    padding: 12px 24px 4px;
+    background: var(--tp-bg); color: var(--tp-text);
+  `;
+  if (wrapper) {
+    wrapper.prepend(titleEl);
+  } else {
+    clockContainer.prepend(titleEl);
+  }
+
   if (footer && wrapper) {
     footer.before(extraContent);
   } else {
-    // Fallback: append after clock container
     dialog.appendChild(extraContent);
   }
 
