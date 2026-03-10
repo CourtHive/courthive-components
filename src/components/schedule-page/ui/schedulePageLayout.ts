@@ -45,9 +45,13 @@ export function buildSchedulePageLayout(
   const leftContent = document.createElement('div');
   leftContent.className = 'spl-left-content';
   leftContent.style.cssText = 'display:flex;flex-direction:column;gap:12px;flex:1;min-height:0';
+  panels.dateStrip.element.style.flex = '1';
+  panels.dateStrip.element.style.minHeight = '0';
+  panels.dateStrip.element.style.overflow = 'auto';
   leftContent.appendChild(panels.dateStrip.element);
   panels.issuesPanel.element.style.flex = '1';
   panels.issuesPanel.element.style.minHeight = '0';
+  panels.issuesPanel.element.style.overflow = 'auto';
   leftContent.appendChild(panels.issuesPanel.element);
   left.appendChild(leftContent);
 
@@ -57,9 +61,13 @@ export function buildSchedulePageLayout(
   // Right column
   const right = document.createElement('div');
   right.className = splRightStyle();
-  panels.matchUpCatalog.element.style.flex = '1';
+  panels.matchUpCatalog.element.style.flex = '3';
   panels.matchUpCatalog.element.style.minHeight = '0';
+  panels.matchUpCatalog.element.style.overflow = 'auto';
   right.appendChild(panels.matchUpCatalog.element);
+  panels.inspectorPanel.element.style.flex = '1';
+  panels.inspectorPanel.element.style.minHeight = '120px';
+  panels.inspectorPanel.element.style.overflow = 'auto';
   right.appendChild(panels.inspectorPanel.element);
 
   root.appendChild(left);

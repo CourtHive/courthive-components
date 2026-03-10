@@ -173,14 +173,15 @@ function applyStatusClasses(cell: HTMLElement, data: ScheduleCellData): void {
   else if (status === 'DOUBLE_WALKOVER') cell.classList.add('spl-cell--double-walkover');
   else if (status === 'WALKOVER') cell.classList.add('spl-cell--complete');
 
-  // Schedule state from proConflicts
+  // Schedule state from proConflicts — accept both prefixed ("SCHEDULE_ERROR")
+  // and raw factory values ("ERROR", "CONFLICT", "WARNING", "ISSUE")
   const schedState = data.scheduleState?.toUpperCase();
-  if (schedState === 'SCHEDULE_ERROR') cell.classList.add('spl-cell--error');
-  else if (schedState === 'SCHEDULE_CONFLICT') cell.classList.add('spl-cell--conflict');
-  else if (schedState === 'SCHEDULE_WARNING') cell.classList.add('spl-cell--warning');
-  else if (schedState === 'SCHEDULE_ISSUE') cell.classList.add('spl-cell--issue');
+  if (schedState === 'SCHEDULE_ERROR' || schedState === 'ERROR') cell.classList.add('spl-cell--error');
+  else if (schedState === 'SCHEDULE_CONFLICT' || schedState === 'CONFLICT') cell.classList.add('spl-cell--conflict');
+  else if (schedState === 'SCHEDULE_WARNING' || schedState === 'WARNING') cell.classList.add('spl-cell--warning');
+  else if (schedState === 'SCHEDULE_ISSUE' || schedState === 'ISSUE') cell.classList.add('spl-cell--issue');
 
-  if (data.issueType === 'DOUBLE_BOOKING') cell.classList.add('spl-cell--double-booking');
+  if (data.issueType === 'DOUBLE_BOOKING' || data.issueType === 'courtDoubleBooking') cell.classList.add('spl-cell--double-booking');
 }
 
 // ============================================================================
@@ -220,13 +221,25 @@ function renderField(
 
 function renderTime(data: ScheduleCellData): HTMLElement | null {
   const time = data.schedule?.scheduledTime;
-  if (!time) return null;
+  const modifiers = data.schedule?.timeModifiers;
+  const courtAnnotation = data.schedule?.courtAnnotation;
+
+  if (!time && !modifiers?.length && !courtAnnotation) return null;
 
   const el = document.createElement('div');
   el.className = 'spl-grid-cell__time';
 
-  const modifiers = data.schedule?.timeModifiers;
-  el.textContent = modifiers?.length ? `${modifiers.join(' ')} ${time}` : time;
+  const parts: string[] = [];
+  if (modifiers?.length) parts.push(modifiers.join(' '));
+  if (time) parts.push(time);
+  el.textContent = parts.join(' ') || '';
+
+  if (courtAnnotation) {
+    const anno = document.createElement('span');
+    anno.className = 'spl-grid-cell__court-annotation';
+    anno.textContent = ` ${courtAnnotation}`;
+    el.appendChild(anno);
+  }
 
   return el;
 }
@@ -498,6 +511,7 @@ export function mapMatchUpToCellData(matchUp: any): ScheduleCellData {
       ? {
           scheduledTime: matchUp.schedule.scheduledTime,
           timeModifiers: matchUp.schedule.timeModifiers,
+          courtAnnotation: matchUp.schedule.courtAnnotation,
           courtId: matchUp.schedule.courtId,
           courtOrder: matchUp.schedule.courtOrder,
           venueId: matchUp.schedule.venueId,
