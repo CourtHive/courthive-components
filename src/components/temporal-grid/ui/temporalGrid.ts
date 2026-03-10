@@ -584,6 +584,7 @@ export class TemporalGrid {
             <span class="venue-name">${venueName}</span>
             <button class="sp-btn-icon sp-btn-icon--ghost venue-edit-icon"
                     data-venue="${venueId}" data-tournament-id="${tournamentId}"
+                    data-venue-name="${venueName}"
                     title="Edit venue defaults">&#9998;</button>
           </div>
           <div class="courts-list">
@@ -603,6 +604,7 @@ export class TemporalGrid {
                   <button class="sp-btn-icon sp-btn-icon--ghost court-edit-icon"
                           data-court-id="${court.ref.courtId}" data-venue-id="${court.ref.venueId}"
                           data-tournament-id="${court.ref.tournamentId}"
+                          data-court-name="${court.name}"
                           title="Edit court availability">&#9998;</button>
                 </div>
               `;
@@ -635,11 +637,12 @@ export class TemporalGrid {
         const el = e.currentTarget as HTMLElement;
         const vid = el.dataset.venue!;
         const tid = el.dataset.tournamentId!;
+        const venueName = el.dataset.venueName || vid;
         const currentDay = this.control?.getDay() || this.engine.getActiveDays()[0] || '2026-01-01';
         const existing = this.engine.getVenueAvailability(tid, vid);
         const config = this.engine.getConfig();
         showCourtAvailabilityModal({
-          title: `Venue Defaults \u2014 ${vid}`,
+          title: `Venue Defaults \u2014 ${venueName}`,
           currentDay,
           currentStartTime: existing?.startTime || config.dayStartTime,
           currentEndTime: existing?.endTime || config.dayEndTime,
@@ -662,11 +665,12 @@ export class TemporalGrid {
         const cid = el.dataset.courtId!;
         const vid = el.dataset.venueId!;
         const tid = el.dataset.tournamentId!;
+        const courtName = el.dataset.courtName || cid;
         const courtRef = { tournamentId: tid, venueId: vid, courtId: cid };
         const currentDay = this.control?.getDay() || this.engine.getActiveDays()[0] || '2026-01-01';
         const existing = this.engine.getCourtAvailability(courtRef, currentDay);
         showCourtAvailabilityModal({
-          title: `Court \u2014 ${cid}`,
+          title: `Court \u2014 ${courtName}`,
           currentDay,
           currentStartTime: existing.startTime,
           currentEndTime: existing.endTime,
