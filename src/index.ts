@@ -230,6 +230,9 @@ export {
   buildScheduleInspectorPanel,
   buildCourtGridSlot,
   buildSchedulePageLayout,
+  buildScheduleGridCell,
+  mapMatchUpToCellData,
+  DEFAULT_SCHEDULE_CELL_CONFIG,
 } from './components/schedule-page';
 
 export type {
@@ -250,6 +253,11 @@ export type {
   SchedulePageConfig,
   SchedulePageState,
   SchedulePageChangeListener,
+  ScheduleCellConfig,
+  ScheduleCellField,
+  ParticipantDisplayConfig,
+  ScheduleCellData,
+  ScheduleCellSide,
 } from './components/schedule-page';
 
 // Policy Catalog

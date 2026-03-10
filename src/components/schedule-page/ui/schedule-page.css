@@ -32,16 +32,9 @@
   flex-direction: column;
   gap: 12px;
   min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--sp-scrollbar) transparent;
+  overflow: hidden;
   transition: width 0.2s ease;
 }
-
-.spl-left::-webkit-scrollbar { width: 6px; }
-.spl-left::-webkit-scrollbar-track { background: transparent; }
-.spl-left::-webkit-scrollbar-thumb { background: var(--sp-scrollbar); border-radius: 3px; }
 
 .spl-left-collapsed .spl-left {
   overflow: hidden;
@@ -122,15 +115,8 @@
   flex-direction: column;
   gap: 12px;
   min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--sp-scrollbar) transparent;
+  overflow: hidden;
 }
-
-.spl-right::-webkit-scrollbar { width: 6px; }
-.spl-right::-webkit-scrollbar-track { background: transparent; }
-.spl-right::-webkit-scrollbar-thumb { background: var(--sp-scrollbar); border-radius: 3px; }
 
 /* ── MatchUp Card ───────────────────────────────────────── */
 
