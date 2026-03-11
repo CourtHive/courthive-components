@@ -5,6 +5,8 @@ export { renderStructure } from './components/renderStructure/renderStructure';
 export { renderContainer } from './components/renderStructure/renderContainer';
 export { renderMatchUp } from './components/renderStructure/renderMatchUp';
 export { compositions } from './compositions/compositions';
+export { resolvePublishedComposition } from './compositions/resolvePublishedComposition';
+export type { DisplayExtensionValue } from './compositions/resolvePublishedComposition';
 export { renderRound } from './components/renderStructure/renderRound';
 
 // Schematic Structure — compact bracket preview (no participant details)
