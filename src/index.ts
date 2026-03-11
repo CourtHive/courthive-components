@@ -208,6 +208,9 @@ export type {
   IssueIndex,
   ProfileStoreState,
   SchedulingProfileConfig,
+  TemporalAdapter,
+  DemandAdapter,
+  DependencyAdapter,
   UIPanel,
 } from './components/scheduling-profile';
 
@@ -259,6 +262,34 @@ export type {
   ScheduleCellData,
   ScheduleCellSide,
 } from './components/schedule-page';
+
+// Composition Editor
+export { createCompositionEditor } from './components/composition-editor/compositionEditor';
+export { CompositionEditorStore } from './components/composition-editor/compositionEditorStore';
+export type {
+  CompositionEditorConfig,
+  SavedComposition,
+  CompositionEditorState,
+  CompositionEditorListener,
+  SectionId as CompositionEditorSectionId,
+  EditorPanel as CompositionEditorPanel,
+} from './components/composition-editor/compositionEditorTypes';
+
+// Inline Scoring
+import './components/inline-scoring/inline-scoring.css';
+export {
+  InlineScoringManager,
+  renderInlineMatchUp,
+  engineToMatchUp,
+  createInlineScoringFooter,
+  createEntryFields,
+} from './components/inline-scoring';
+export type {
+  InlineScoringMode,
+  InlineScoringConfig,
+  InlineScoringCallbacks,
+  InlineScoringEngineState,
+} from './components/inline-scoring';
 
 // Policy Catalog
 import './components/policy-catalog/ui/policy-catalog.css';

@@ -91,7 +91,7 @@ function engineToMatchUp(engine: any, fixture: { matchId?: number; players: stri
     matchUpType: 'SINGLES',
     structureId: 'live',
     matchUpStatus: isComplete ? COMPLETED : IN_PROGRESS,
-    winningSide: winner === null ? undefined : winner + 1,
+    winningSide: winner ?? undefined,
     score: {
       sets,
       scoreStringSide1: engine.getScoreboard() || (engine.getPointCount() > 0 ? '0-0' : undefined)

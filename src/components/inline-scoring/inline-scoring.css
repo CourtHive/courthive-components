@@ -1,0 +1,179 @@
+/* ── Inline Scoring ─────────────────────────────────────────── */
+
+.chc-inline-scoring-wrapper {
+  position: relative;
+}
+
+.chc-inline-scoring-active {
+  outline: 2px solid var(--chc-inline-scoring-border, var(--chc-color-primary, #3b82f6));
+  outline-offset: -1px;
+  border-radius: 4px;
+}
+
+/* Clickable score/side areas in point/game mode */
+.chc-inline-scoring-clickable {
+  position: relative;
+  transition: background-color 0.1s ease;
+}
+
+.chc-inline-scoring-clickable:hover {
+  background-color: var(--chc-inline-scoring-hover, rgba(59, 130, 246, 0.08));
+}
+
+.chc-inline-scoring-side {
+  cursor: pointer;
+}
+
+.chc-inline-scoring-side:hover {
+  background-color: var(--chc-inline-scoring-side-hover, rgba(59, 130, 246, 0.04));
+}
+
+/* ── Footer bar ──────────────────────────────────────────── */
+
+.chc-inline-scoring-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+  font-family: sans-serif;
+  background: var(--chc-inline-scoring-footer-bg, var(--chc-bg-secondary, #f8f9fa));
+  border-top: 1px solid var(--chc-inline-scoring-footer-border, var(--chc-border-primary, #dee2e6));
+  border-radius: 0 0 4px 4px;
+}
+
+.chc-inline-scoring-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.chc-inline-scoring-btn {
+  padding: 0.15rem 0.4rem;
+  border: 1px solid var(--chc-border-primary, #dee2e6);
+  border-radius: 3px;
+  background: var(--chc-bg-primary, #fff);
+  color: var(--chc-text-primary, #212529);
+  cursor: pointer;
+  font-size: 0.65rem;
+  font-family: inherit;
+  line-height: 1.4;
+  transition: background-color 0.1s ease, opacity 0.1s ease;
+}
+
+.chc-inline-scoring-btn:hover:not(:disabled) {
+  background: var(--chc-inline-scoring-btn-hover, #e9ecef);
+}
+
+.chc-inline-scoring-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ── End dropdown ─────────────────────────────────────────── */
+
+.chc-inline-scoring-end-group {
+  position: relative;
+  display: inline-block;
+}
+
+.chc-inline-scoring-end-menu {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  z-index: 100;
+  min-width: 7rem;
+  padding: 0.2rem 0;
+  margin-bottom: 0.2rem;
+  background: var(--chc-bg-primary, #fff);
+  border: 1px solid var(--chc-border-primary, #dee2e6);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.chc-inline-scoring-end-menu.chc-is-open {
+  display: block;
+}
+
+.chc-inline-scoring-end-item {
+  display: block;
+  width: 100%;
+  padding: 0.3rem 0.6rem;
+  border: none;
+  background: none;
+  color: var(--chc-text-primary, #212529);
+  font-size: 0.65rem;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.chc-inline-scoring-end-item:hover {
+  background: var(--chc-inline-scoring-btn-hover, #e9ecef);
+}
+
+/* ── Situation flags ──────────────────────────────────────── */
+
+.chc-inline-scoring-situation {
+  color: var(--chc-inline-scoring-situation-color, var(--chc-color-primary, #3b82f6));
+  font-weight: 600;
+  font-size: 0.65rem;
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+/* ── Entry mode (set-score input fields) ─────────────────── */
+
+.chc-inline-scoring-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.35rem 0.5rem;
+  font-family: sans-serif;
+  font-size: 0.7rem;
+  background: var(--chc-inline-scoring-footer-bg, var(--chc-bg-secondary, #f8f9fa));
+  border-top: 1px solid var(--chc-inline-scoring-footer-border, var(--chc-border-primary, #dee2e6));
+}
+
+.chc-inline-scoring-entry-row {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.chc-inline-scoring-entry-row.chc-is-readonly {
+  opacity: 0.6;
+}
+
+.chc-inline-scoring-entry-label {
+  min-width: 3rem;
+  color: var(--chc-text-secondary, #6c757d);
+  font-size: 0.65rem;
+}
+
+.chc-inline-scoring-entry-input {
+  width: 2.5em;
+  padding: 0.15rem 0.25rem;
+  border: 1px solid var(--chc-border-primary, #dee2e6);
+  border-radius: 3px;
+  background: var(--chc-bg-primary, #fff);
+  color: var(--chc-text-primary, #212529);
+  font-size: 0.7rem;
+  font-family: inherit;
+  text-align: center;
+}
+
+.chc-inline-scoring-entry-input:focus {
+  outline: 2px solid var(--chc-color-primary, #3b82f6);
+  outline-offset: -1px;
+}
+
+.chc-inline-scoring-entry-input:disabled {
+  background: transparent;
+  border-color: transparent;
+}
+
+.chc-inline-scoring-entry-dash {
+  color: var(--chc-text-secondary, #6c757d);
+}

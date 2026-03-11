@@ -54,7 +54,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--sp-muted);
   flex-shrink: 0;
 }
@@ -89,11 +89,11 @@
 
 .spl-center-title {
   font-weight: 700;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 .spl-center-meta {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--sp-muted);
 }
 
@@ -161,25 +161,25 @@
   right: 10px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--sp-ok-text, #4ade80);
   pointer-events: none;
 }
 
 .spl-card-title {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
 .spl-card-sides {
   margin-top: 4px;
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--sp-text);
 }
 
 .spl-card-meta {
   margin-top: 4px;
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--sp-muted);
 }
 
@@ -191,7 +191,7 @@
 }
 
 .spl-card-chip {
-  font-size: 10px;
+  font-size: 0.625rem;
   padding: 2px 6px;
   border-radius: 999px;
   border: 1px solid var(--sp-border-light);
@@ -224,7 +224,7 @@
 /* ── Date Strip (left panel) ────────────────────────────── */
 
 .spl-date-badge {
-  font-size: 10px;
+  font-size: 0.625rem;
   padding: 2px 6px;
   border-radius: 999px;
   font-weight: 600;
@@ -250,13 +250,13 @@
 }
 
 .spl-inspector-side {
-  font-size: 12px;
+  font-size: 0.75rem;
   display: flex;
   gap: 8px;
   align-items: center;
 }
 
 .spl-inspector-seed {
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--sp-muted);
 }

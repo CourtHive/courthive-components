@@ -182,8 +182,9 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     radio.addEventListener('change', (e) => {
       selectedOutcome = (e.target as HTMLInputElement).value as any;
 
-      // Clear all set inputs and scores for irregular endings
-      if (selectedOutcome === WALKOVER || selectedOutcome === RETIRED || selectedOutcome === DEFAULTED) {
+      // For walkovers, clear all scores (no play occurred).
+      // For retirements and defaults, keep existing set scores (incomplete sets are valid).
+      if (selectedOutcome === WALKOVER) {
         // Clear all set inputs
         const allInputs = setsContainer.querySelectorAll('input');
         allInputs.forEach((input) => {
@@ -196,8 +197,10 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
           allSetRows[i].remove();
         }
 
-        // Reset currentSets and clear internal score state
+        // Reset currentSets, game score selects, and clear internal score state
         currentSets = [];
+        side1PointSelect.value = '';
+        side2PointSelect.value = '';
         internalScore = undefined; // CRITICAL: Clear internal score so it doesn't show in display
       }
 
@@ -318,6 +321,124 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   setsContainer.style.gap = '0.5em';
   container.appendChild(setsContainer);
 
+  // Game score row — visible when last set is incomplete and an irregular ending is selected
+  const gameScoreContainer = document.createElement('div');
+  gameScoreContainer.className = 'game-score-row';
+  gameScoreContainer.style.display = 'none';
+  gameScoreContainer.style.alignItems = 'center';
+  gameScoreContainer.style.gap = '0.5em';
+  gameScoreContainer.style.marginTop = '0.25em';
+  gameScoreContainer.style.paddingLeft = '0.5em';
+  gameScoreContainer.style.borderLeft = '3px solid var(--chc-clear-btn-bg, #ccc)';
+
+  const gameScoreLabel = document.createElement('div');
+  gameScoreLabel.textContent = 'Game:';
+  gameScoreLabel.style.width = '3em';
+  gameScoreLabel.style.fontSize = '0.85em';
+  gameScoreLabel.style.fontWeight = '500';
+  gameScoreLabel.style.color = CHC_TEXT_SECONDARY;
+  gameScoreContainer.appendChild(gameScoreLabel);
+
+  const STANDARD_POINTS = ['0', '15', '30', '40', 'AD'];
+  const createPointSelect = (side: '1' | '2'): HTMLSelectElement => {
+    const select = document.createElement('select');
+    select.className = 'input';
+    select.style.width = '4em';
+    select.style.textAlign = 'center';
+    select.style.fontSize = '0.85em';
+    select.dataset.side = side;
+    select.dataset.type = 'pointScore';
+
+    const emptyOpt = document.createElement('option');
+    emptyOpt.value = '';
+    emptyOpt.textContent = '—';
+    select.appendChild(emptyOpt);
+
+    // Default to standard point values; will be updated dynamically for tiebreaks
+    for (const pt of STANDARD_POINTS) {
+      const opt = document.createElement('option');
+      opt.value = pt;
+      opt.textContent = pt;
+      select.appendChild(opt);
+    }
+    select.addEventListener('change', () => {
+      updateScoreFromInputs();
+    });
+    return select;
+  };
+
+  const side1PointSelect = createPointSelect('1');
+  const side2PointSelect = createPointSelect('2');
+
+  const pointDash = document.createElement('span');
+  pointDash.textContent = '-';
+  pointDash.style.fontWeight = 'bold';
+  pointDash.style.color = CHC_TEXT_SECONDARY;
+
+  gameScoreContainer.appendChild(side1PointSelect);
+  gameScoreContainer.appendChild(pointDash);
+  gameScoreContainer.appendChild(side2PointSelect);
+  container.appendChild(gameScoreContainer);
+
+  // Helper to update game score row visibility and point value options
+  const updateGameScoreRow = () => {
+    // Show game score row when:
+    // 1. An irregular ending is selected (RET, DEF) — not WO (no score for walkover)
+    // 2. The last set is incomplete (no winningSide)
+    const isIrregularWithScore = selectedOutcome === RETIRED || selectedOutcome === DEFAULTED;
+    const lastSet = currentSets[currentSets.length - 1];
+    const lastSetIncomplete = lastSet && lastSet.winningSide === undefined;
+    const shouldShow = isIrregularWithScore && lastSetIncomplete;
+
+    gameScoreContainer.style.display = shouldShow ? 'flex' : 'none';
+
+    if (!shouldShow) {
+      side1PointSelect.value = '';
+      side2PointSelect.value = '';
+      return;
+    }
+
+    // Determine if last set is in a tiebreak state
+    const lastSetIndex = currentSets.length - 1;
+    const setFormat = getSetFormat(lastSetIndex);
+    const isTiebreakOnly = setFormat?.tiebreakSet?.tiebreakTo !== undefined;
+    const isTiebreakState = isTiebreakOnly ||
+      (lastSet.side1Score !== undefined && lastSet.side2Score !== undefined &&
+       shouldShowTiebreakLogic(lastSetIndex, { side1: lastSet.side1Score, side2: lastSet.side2Score }, matchConfig));
+
+    // Update options based on game type
+    const updateOptions = (select: HTMLSelectElement) => {
+      const currentValue = select.value;
+      // Remove all options except the empty one
+      while (select.options.length > 1) select.remove(1);
+
+      if (isTiebreakState) {
+        // Tiebreak: numeric values 0-20 (covers reasonable range)
+        for (let i = 0; i <= 20; i++) {
+          const opt = document.createElement('option');
+          opt.value = String(i);
+          opt.textContent = String(i);
+          select.appendChild(opt);
+        }
+      } else {
+        // Standard game: 0, 15, 30, 40, AD
+        for (const pt of STANDARD_POINTS) {
+          const opt = document.createElement('option');
+          opt.value = pt;
+          opt.textContent = pt;
+          select.appendChild(opt);
+        }
+      }
+      // Restore previous value if still valid
+      if (currentValue && Array.from(select.options).some(o => o.value === currentValue)) {
+        select.value = currentValue;
+      }
+    };
+
+    updateOptions(side1PointSelect);
+    updateOptions(side2PointSelect);
+  };
+
   // Score state
   let currentSets: SetScore[] = [];
 
@@ -331,6 +452,11 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     
     // Reset smart complement tracking
     setsWithSmartComplement.clear();
+
+    // Reset game score selects
+    side1PointSelect.value = '';
+    side2PointSelect.value = '';
+    gameScoreContainer.style.display = 'none';
 
     // Reset irregular ending
     selectedOutcome = COMPLETED;
@@ -632,6 +758,20 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
     currentSets = newSets;
 
+    // Update game score row visibility/options based on current state
+    updateGameScoreRow();
+
+    // Attach point score values to the last incomplete set (if game score row is visible)
+    if (gameScoreContainer.style.display !== 'none' && currentSets.length > 0) {
+      const lastSet = currentSets[currentSets.length - 1];
+      if (lastSet.winningSide === undefined) {
+        const p1 = side1PointSelect.value;
+        const p2 = side2PointSelect.value;
+        if (p1) lastSet.side1PointsScore = p1;
+        if (p2) lastSet.side2PointsScore = p2;
+      }
+    }
+
     // CRITICAL: Remove unnecessary set rows
     // This handles both:
     // 1. Empty trailing rows when a set is cleared
@@ -694,6 +834,8 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
             side2TiebreakScore: s.side2TiebreakScore,
           };
           if (s.winningSide !== undefined) result.winningSide = s.winningSide;
+          if (s.side1PointsScore !== undefined) result.side1PointsScore = s.side1PointsScore;
+          if (s.side2PointsScore !== undefined) result.side2PointsScore = s.side2PointsScore;
           return result;
         } else {
           // Regular set: include game scores, tiebreak scores (if any), and winningSide
@@ -704,6 +846,8 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
           if (s.side1TiebreakScore !== undefined) result.side1TiebreakScore = s.side1TiebreakScore;
           if (s.side2TiebreakScore !== undefined) result.side2TiebreakScore = s.side2TiebreakScore;
           if (s.winningSide !== undefined) result.winningSide = s.winningSide;
+          if (s.side1PointsScore !== undefined) result.side1PointsScore = s.side1PointsScore;
+          if (s.side2PointsScore !== undefined) result.side2PointsScore = s.side2PointsScore;
           return result;
         }
       });
@@ -713,6 +857,23 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
         matchUp.matchUpFormat,
         selectedOutcome !== COMPLETED, // Allow incomplete if irregular ending
       );
+
+      // Re-attach point scores to validation sets (score string round-trip loses them)
+      if (validation.sets && validation.scoreObject?.sets) {
+        for (let i = 0; i < setsForValidation.length && i < validation.scoreObject.sets.length; i++) {
+          const src = setsForValidation[i];
+          if (src.side1PointsScore !== undefined) validation.scoreObject.sets[i].side1PointsScore = src.side1PointsScore;
+          if (src.side2PointsScore !== undefined) validation.scoreObject.sets[i].side2PointsScore = src.side2PointsScore;
+        }
+      }
+      // Also attach to the flat sets array in the outcome
+      if (validation.sets) {
+        for (let i = 0; i < setsForValidation.length && i < validation.sets.length; i++) {
+          const src = setsForValidation[i];
+          if (src.side1PointsScore !== undefined) validation.sets[i].side1PointsScore = src.side1PointsScore;
+          if (src.side2PointsScore !== undefined) validation.sets[i].side2PointsScore = src.side2PointsScore;
+        }
+      }
 
       // CRITICAL: Check if match is complete based on VALIDATION result, not raw currentSets
       // The validation may have stripped winningSide from invalid sets
@@ -1333,6 +1494,19 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
             tiebreakInput.value = set.side2TiebreakScore.toString();
           }
         }
+      }
+
+      // Pre-populate game score selects if this is the last set and has point scores
+      if (set.side1PointsScore !== undefined || set.side2PointsScore !== undefined) {
+        // Store for later — we'll populate after updateGameScoreRow runs
+        const storedP1 = set.side1PointsScore?.toString() || '';
+        const storedP2 = set.side2PointsScore?.toString() || '';
+        // Defer to after initialization completes so updateGameScoreRow can set options first
+        setTimeout(() => {
+          updateGameScoreRow();
+          if (storedP1) side1PointSelect.value = storedP1;
+          if (storedP2) side2PointSelect.value = storedP2;
+        }, 0);
       }
 
       // Update completion tracking after filling this set

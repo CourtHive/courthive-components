@@ -54,10 +54,10 @@ export function buildScheduleDateStrip(callbacks: DateStripCallbacks): UIPanel<S
 
       const left = document.createElement('div');
       const dateLabel = document.createElement('div');
-      dateLabel.style.cssText = 'font-weight:800;font-size:12px';
+      dateLabel.style.cssText = 'font-weight:800;font-size:0.75rem';
       dateLabel.textContent = d.date;
       const statusLabel = document.createElement('div');
-      statusLabel.style.cssText = 'font-size:11px;color:var(--sp-muted)';
+      statusLabel.style.cssText = 'font-size:0.6875rem;color:var(--sp-muted)';
       statusLabel.textContent = d.isActive ? 'Active' : 'Inactive';
       left.appendChild(dateLabel);
       left.appendChild(statusLabel);

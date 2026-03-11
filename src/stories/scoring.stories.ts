@@ -389,6 +389,102 @@ const result = shouldApplySmartComplement(
 };
 
 /**
+ * Game Score Capture
+ * Demonstrates capturing game-level point scores (e.g., 15-30) when a match
+ * has an irregular ending (Retired/Defaulted) with an incomplete final set.
+ */
+export const GameScoreCapture = {
+  args: {
+    composition: 'Australian',
+    smartComplements: false
+  },
+  render: (args: any) => {
+    const container = document.createElement('div');
+    container.style.padding = '2em';
+    container.style.maxWidth = '700px';
+
+    const title = document.createElement('h2');
+    title.textContent = 'Game Score Capture';
+    title.style.marginBottom = '0.5em';
+    title.style.color = CHC_TEXT_PRIMARY;
+    container.appendChild(title);
+
+    const desc = document.createElement('p');
+    desc.style.marginBottom = '1.5em';
+    desc.style.lineHeight = '1.6';
+    desc.style.color = CHC_TEXT_SECONDARY;
+    desc.innerHTML =
+      'When a match ends with an <strong style="color: var(--chc-text-primary);">irregular ending</strong> (Retired or Defaulted) ' +
+      'and the last set is incomplete, a <strong style="color: var(--chc-text-primary);">Game Score row</strong> appears below the set inputs. ' +
+      'This lets you capture the exact point score at the time of interruption (e.g., 15-30, 40-AD). ' +
+      'For tiebreak states, the options switch to numeric values (0-20).';
+    container.appendChild(desc);
+
+    const steps = document.createElement('ol');
+    steps.style.marginBottom = '1.5em';
+    steps.style.marginLeft = '1.5em';
+    steps.style.lineHeight = '2';
+    steps.style.color = CHC_TEXT_SECONDARY;
+    steps.innerHTML = `
+      <li>Open the modal and enter a partial score (e.g., Set 1: <strong>6-4</strong>, Set 2: <strong>3-2</strong>)</li>
+      <li>Select <strong>"Retired"</strong> or <strong>"Defaulted"</strong> as the irregular ending</li>
+      <li>A <strong>"Game:"</strong> row appears — select point scores from dropdowns</li>
+      <li>Select a winner and submit</li>
+    `;
+    container.appendChild(steps);
+
+    // Pre-loaded matchUp with partial score
+    const button = document.createElement('button');
+    button.className = 'button is-success';
+    button.textContent = 'Open Dynamic Sets (Fresh)';
+    button.style.marginRight = '1em';
+    button.onclick = () => {
+      setScoringConfig({
+        scoringApproach: 'dynamicSets',
+        smartComplements: args.smartComplements,
+        composition: args.composition
+      });
+
+      scoringModal({
+        matchUp: createMockMatchUp(),
+        callback: handleScoreSubmit
+      });
+    };
+    container.appendChild(button);
+
+    // Pre-loaded with partial score + retirement
+    const preloadedButton = document.createElement('button');
+    preloadedButton.className = 'button is-warning';
+    preloadedButton.textContent = 'Open with Existing Retirement (15-30)';
+    preloadedButton.onclick = () => {
+      setScoringConfig({
+        scoringApproach: 'dynamicSets',
+        smartComplements: args.smartComplements,
+        composition: args.composition
+      });
+
+      const matchUp = createMockMatchUp();
+      matchUp.matchUpStatus = 'RETIRED';
+      matchUp.winningSide = 1;
+      matchUp.score = {
+        sets: [
+          { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
+          { setNumber: 2, side1Score: 3, side2Score: 2, side1PointsScore: '15', side2PointsScore: '30' }
+        ]
+      };
+
+      scoringModal({
+        matchUp,
+        callback: handleScoreSubmit
+      });
+    };
+    container.appendChild(preloadedButton);
+
+    return container;
+  }
+};
+
+/**
  * Dial Pad Approach
  * Mobile-friendly numeric keypad entry
  */

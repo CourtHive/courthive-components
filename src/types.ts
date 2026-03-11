@@ -173,6 +173,11 @@ export interface Configuration {
   assignmentInputFontSize?: string; // Font size for participant assignment inputs (e.g., '14px', '0.875rem')
   persistInputFields?: boolean; // Keep input fields visible after assignment, allow re-assignment
   hasQualifying?: boolean; // If true, show QUALIFIER option in typeahead
+  inlineScoring?: {
+    mode: 'points' | 'games' | 'entry';
+    showFooter?: boolean;
+    showSituation?: boolean;
+  };
   genderColor?: boolean | string; // Color coding by gender (from index.d.ts)
   winnerColor?: boolean | string; // Color coding for winners (from index.d.ts)
   placeHolders?: {
