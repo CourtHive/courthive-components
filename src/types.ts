@@ -160,6 +160,7 @@ export interface Configuration {
   };
   drawPositions?: boolean;
   allDrawPositions?: boolean;
+  drawPositionColor?: string;
   bracketedSeeds?: boolean | 'square';
   scheduleInfo?: boolean;
   matchUpFooter?: boolean;

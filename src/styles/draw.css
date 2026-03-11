@@ -741,7 +741,7 @@
   align-content: center;
   inset-inline-start: -10px;
   position: absolute;
-  color: var(--chc-status-info);
+  color: var(--chc-draw-position-color, #b8860b);
   display: flex;
   width: 20px;
 }

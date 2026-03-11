@@ -85,6 +85,9 @@ export function renderParticipant({
     });
     if (drawPosition) {
       participantContainer.dataset.drawPosition = String(drawPosition);
+      if (configuration?.drawPositionColor) {
+        participantContainer.style.setProperty('--chc-draw-position-color', configuration.drawPositionColor);
+      }
     }
   }
 
