@@ -110,7 +110,7 @@ export const EditorWithPreview = {
     const preset = compositions[presetName];
 
     const outer = document.createElement('div');
-    outer.style.cssText = 'max-width:900px; font-family:sans-serif;';
+    outer.style.cssText = 'max-width:900px; font-family:sans-serif; color:var(--chc-text-primary, #212529);';
 
     // Editor (has built-in Preview panel on the right)
     const editorContainer = document.createElement('div');
@@ -148,7 +148,7 @@ export const FullWorkflow = {
     const customStore: SavedComposition[] = [];
 
     const outer = document.createElement('div');
-    outer.style.cssText = 'max-width:900px; font-family:sans-serif;';
+    outer.style.cssText = 'max-width:900px; font-family:sans-serif; color:var(--chc-text-primary, #212529);';
 
     const title = document.createElement('h3');
     title.textContent = 'Composition Catalog — Full Workflow';
@@ -187,7 +187,7 @@ export const FullWorkflow = {
       for (const [name, comp] of Object.entries(compositions)) {
         const card = document.createElement('button');
         card.style.cssText =
-          'display:block; width:100%; text-align:left; padding:6px 8px; margin-bottom:4px; border:1px solid var(--chc-border-primary, #dee2e6); border-radius:4px; background:var(--chc-bg-primary, #fff); cursor:pointer; font-size:12px; font-family:inherit;';
+          'display:block; width:100%; text-align:left; padding:6px 8px; margin-bottom:4px; border:1px solid var(--chc-border-primary, #dee2e6); border-radius:4px; background:var(--chc-bg-primary, #fff); color:var(--chc-text-primary, #212529); cursor:pointer; font-size:12px; font-family:inherit;';
         card.textContent = name;
         card.onclick = () => selectBuiltin(name, comp);
         catalogCol.appendChild(card);

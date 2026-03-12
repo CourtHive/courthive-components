@@ -174,9 +174,13 @@ export interface Configuration {
   persistInputFields?: boolean; // Keep input fields visible after assignment, allow re-assignment
   hasQualifying?: boolean; // If true, show QUALIFIER option in typeahead
   inlineScoring?: {
-    mode: 'points' | 'games' | 'entry';
+    mode: 'points' | 'games';
     showFooter?: boolean;
     showSituation?: boolean;
+    canUndo?: boolean;
+    canRedo?: boolean;
+    isComplete?: boolean;
+    situationText?: string;
   };
   genderColor?: boolean | string; // Color coding by gender (from index.d.ts)
   winnerColor?: boolean | string; // Color coding for winners (from index.d.ts)

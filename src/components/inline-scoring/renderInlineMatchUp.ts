@@ -87,10 +87,10 @@ export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElem
 
         if (result) render();
       },
-      pillClick: ({ pointerEvent, matchUp: mu, sideNumber }) => {
+      pillClick: ({ pointerEvent, sideNumber }) => {
         pointerEvent.stopPropagation();
         const currentStatus = baseMatchUp.matchUpStatus;
-        showEndMatchPopover(pointerEvent, mu.matchUpId, sideNumber, manager, currentStatus, (status) => {
+        showEndMatchPopover(pointerEvent, sideNumber, currentStatus, (status) => {
           if (status === 'IN_PROGRESS') {
             // Resume scoring — restore to active state
             baseMatchUp = {
@@ -105,8 +105,10 @@ export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElem
               manager.reset(matchUpId, baseMatchUp);
             }
 
-            // sideNumber is the LOSING side — winner is the other
-            const winningSide = sideNumber === 1 ? 2 : 1;
+            // Statuses that produce a winner (other side wins)
+            const winnerStatuses = ['RETIRED', 'DEFAULTED', 'WALKOVER', 'DOUBLE_WALKOVER', 'DOUBLE_DEFAULT'];
+            // Statuses like SUSPENDED, CANCELLED, ABANDONED don't assign a winner
+            const winningSide = winnerStatuses.includes(status) ? (sideNumber === 1 ? 2 : 1) : undefined;
 
             baseMatchUp = {
               ...baseMatchUp,
@@ -183,9 +185,7 @@ export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElem
  */
 function showEndMatchPopover(
   event: MouseEvent,
-  matchUpId: string,
   sideNumber: number,
-  manager: InlineScoringManager,
   currentStatus: string | undefined,
   onSelect: (status: string) => void,
 ) {

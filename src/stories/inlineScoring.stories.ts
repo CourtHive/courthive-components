@@ -476,7 +476,7 @@ export const DrawStructure = {
     const structures = eventData?.drawsData?.[0]?.structures || [];
     const structure = structures[0];
     const roundMatchUps = structure?.roundMatchUps;
-    const allMatchUps: MatchUp[] = roundMatchUps ? Object.values(roundMatchUps).flat() : [];
+    const allMatchUps = (roundMatchUps ? Object.values(roundMatchUps).flat() : []) as MatchUp[];
 
     if (!allMatchUps.length) {
       const el = document.createElement('div');
