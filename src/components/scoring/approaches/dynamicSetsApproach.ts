@@ -8,7 +8,7 @@ import { validateSetScores } from '../utils/scoreValidator';
 import { parseMatchUpFormat, shouldExpandSets } from '../utils/setExpansionLogic';
 import type { RenderScoreEntryParams, SetScore } from '../types';
 import { loadSettings, getScoringConfig } from '../config';
-import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
+import { matchUpFormatCode, matchUpStatusConstants, scoreGovernor } from 'tods-competition-factory';
 import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
 import {
   isMatchComplete as isMatchCompleteLogic,
@@ -197,10 +197,11 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
           allSetRows[i].remove();
         }
 
-        // Reset currentSets, game score selects, and clear internal score state
+        // Reset currentSets, game score engine, and clear internal score state
         currentSets = [];
-        side1PointSelect.value = '';
-        side2PointSelect.value = '';
+        gameScoreEngine = null;
+        gameScorePointCount = 0;
+        updateGameScoreDisplay();
         internalScore = undefined; // CRITICAL: Clear internal score so it doesn't show in display
       }
 
@@ -321,7 +322,8 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   setsContainer.style.gap = '0.5em';
   container.appendChild(setsContainer);
 
-  // Game score row — visible when last set is incomplete and an irregular ending is selected
+  // Game score row — ScoringEngine-backed point entry
+  // Visible when last set is incomplete and an irregular ending is selected
   const gameScoreContainer = document.createElement('div');
   gameScoreContainer.className = 'game-score-row';
   gameScoreContainer.style.display = 'none';
@@ -339,48 +341,186 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   gameScoreLabel.style.color = CHC_TEXT_SECONDARY;
   gameScoreContainer.appendChild(gameScoreLabel);
 
-  const STANDARD_POINTS = ['0', '15', '30', '40', 'AD'];
-  const createPointSelect = (side: '1' | '2'): HTMLSelectElement => {
-    const select = document.createElement('select');
-    select.className = 'input';
-    select.style.width = '4em';
-    select.style.textAlign = 'center';
-    select.style.fontSize = '0.85em';
-    select.dataset.side = side;
-    select.dataset.type = 'pointScore';
+  // ScoringEngine for game-level point tracking
+  const { ScoringEngine } = scoreGovernor;
+  let gameScoreEngine: any = null;
+  let gameScorePointCount = 0;
 
-    const emptyOpt = document.createElement('option');
-    emptyOpt.value = '';
-    emptyOpt.textContent = '—';
-    select.appendChild(emptyOpt);
+  const side1Name = side1?.participant?.participantName || 'Side 1';
+  const side2Name = side2?.participant?.participantName || 'Side 2';
 
-    // Default to standard point values; will be updated dynamically for tiebreaks
-    for (const pt of STANDARD_POINTS) {
-      const opt = document.createElement('option');
-      opt.value = pt;
-      opt.textContent = pt;
-      select.appendChild(opt);
-    }
-    select.addEventListener('change', () => {
-      updateScoreFromInputs();
-    });
-    return select;
+  const mkPointBtn = (label: string, className: string): HTMLButtonElement => {
+    const btn = document.createElement('button');
+    btn.textContent = label;
+    btn.className = className;
+    btn.style.cssText = 'padding:0.25em 0.5em; font-size:0.8em; cursor:pointer; border:1px solid var(--chc-clear-btn-bg, #ccc); border-radius:3px; background:var(--chc-bg, #fff); color:' + CHC_TEXT_PRIMARY;
+    btn.addEventListener('mouseover', () => { btn.style.background = 'var(--chc-clear-btn-bg, #e0e0e0)'; });
+    btn.addEventListener('mouseout', () => { btn.style.background = 'var(--chc-bg, #fff)'; });
+    return btn;
   };
 
-  const side1PointSelect = createPointSelect('1');
-  const side2PointSelect = createPointSelect('2');
+  const side1PointBtn = mkPointBtn(`${side1Name} ▸`, 'game-score-side1-btn');
+  const side2PointBtn = mkPointBtn(`◂ ${side2Name}`, 'game-score-side2-btn');
+  const pointDisplay = document.createElement('span');
+  pointDisplay.style.cssText = 'font-weight:bold; font-size:0.9em; min-width:4em; text-align:center; color:' + CHC_TEXT_PRIMARY;
+  pointDisplay.textContent = '0 - 0';
 
-  const pointDash = document.createElement('span');
-  pointDash.textContent = '-';
-  pointDash.style.fontWeight = 'bold';
-  pointDash.style.color = CHC_TEXT_SECONDARY;
+  const pointUndoBtn = mkPointBtn('↩', 'game-score-undo-btn');
+  pointUndoBtn.title = 'Undo last point';
+  pointUndoBtn.style.fontSize = '0.9em';
 
-  gameScoreContainer.appendChild(side1PointSelect);
-  gameScoreContainer.appendChild(pointDash);
-  gameScoreContainer.appendChild(side2PointSelect);
+  side1PointBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (!gameScoreEngine) return;
+    const server = (gameScorePointCount % 2) as 0 | 1;
+    gameScoreEngine.addPoint({ winner: 0, server, result: 'Winner' });
+    gameScorePointCount++;
+    updateGameScoreDisplay();
+    updateScoreFromInputs();
+  });
+
+  side2PointBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (!gameScoreEngine) return;
+    const server = (gameScorePointCount % 2) as 0 | 1;
+    gameScoreEngine.addPoint({ winner: 1, server, result: 'Winner' });
+    gameScorePointCount++;
+    updateGameScoreDisplay();
+    updateScoreFromInputs();
+  });
+
+  pointUndoBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (!gameScoreEngine || !gameScoreEngine.canUndo()) return;
+    gameScoreEngine.undo();
+    if (gameScorePointCount > 0) gameScorePointCount--;
+    updateGameScoreDisplay();
+    updateScoreFromInputs();
+  });
+
+  gameScoreContainer.appendChild(side1PointBtn);
+  gameScoreContainer.appendChild(pointDisplay);
+  gameScoreContainer.appendChild(side2PointBtn);
+  gameScoreContainer.appendChild(pointUndoBtn);
   container.appendChild(gameScoreContainer);
 
-  // Helper to update game score row visibility and point value options
+  /** Update the point display text and undo button state from the engine */
+  const updateGameScoreDisplay = () => {
+    if (!gameScoreEngine) {
+      pointDisplay.textContent = '0 - 0';
+      pointUndoBtn.disabled = true;
+      return;
+    }
+    const score = gameScoreEngine.getScore();
+    const pd = score?.pointDisplay;
+    if (pd) {
+      pointDisplay.textContent = `${pd[0]} - ${pd[1]}`;
+    } else {
+      pointDisplay.textContent = '0 - 0';
+    }
+    pointUndoBtn.disabled = !gameScoreEngine.canUndo();
+    // Disable side buttons if the engine advanced beyond our incomplete set (shouldn't happen normally)
+    const complete = gameScoreEngine.isComplete();
+    side1PointBtn.disabled = complete;
+    side2PointBtn.disabled = complete;
+  };
+
+  /**
+   * Initialize or re-initialize the ScoringEngine with the current set scores.
+   * Called when the game score row becomes visible or when set scores change.
+   */
+  const initGameScoreEngine = () => {
+    if (!matchUp.matchUpFormat) return;
+    gameScoreEngine = new ScoringEngine({ matchUpFormat: matchUp.matchUpFormat });
+    gameScorePointCount = 0;
+
+    // Load current completed set scores into the engine
+    const setsForEngine = currentSets
+      .filter((s) => s.winningSide !== undefined)
+      .map((s) => ({
+        side1Score: s.side1Score,
+        side2Score: s.side2Score,
+        side1TiebreakScore: s.side1TiebreakScore,
+        side2TiebreakScore: s.side2TiebreakScore,
+        winningSide: s.winningSide,
+      }));
+
+    // Also include the incomplete last set (game scores without winningSide)
+    const lastSet = currentSets[currentSets.length - 1];
+    if (lastSet && lastSet.winningSide === undefined && (lastSet.side1Score || lastSet.side2Score)) {
+      setsForEngine.push({
+        side1Score: lastSet.side1Score,
+        side2Score: lastSet.side2Score,
+        side1TiebreakScore: lastSet.side1TiebreakScore,
+        side2TiebreakScore: lastSet.side2TiebreakScore,
+        winningSide: undefined,
+      });
+    }
+
+    if (setsForEngine.length > 0) {
+      try {
+        gameScoreEngine.setInitialScore({ sets: setsForEngine });
+      } catch {
+        // If loading fails, engine stays at initial state
+      }
+    }
+
+    updateGameScoreDisplay();
+  };
+
+  /** Get current point scores from the engine for the active set */
+  const getEnginePointScores = (): { side1?: string; side2?: string } => {
+    if (!gameScoreEngine) return {};
+    const score = gameScoreEngine.getScore();
+    const pd = score?.pointDisplay;
+    if (!pd || (pd[0] === '0' && pd[1] === '0' && gameScorePointCount === 0)) return {};
+    return { side1: String(pd[0]), side2: String(pd[1]) };
+  };
+
+  /**
+   * Replay addPoint() calls to reach a target point score (e.g., "15" and "30").
+   * Used to pre-populate the engine when loading an existing retirement score.
+   * Standard points: 0→15→30→40→AD. Tiebreak: numeric 0,1,2,...
+   */
+  const replayPointsToScore = (targetSide1: string, targetSide2: string) => {
+    if (!gameScoreEngine) return;
+
+    const STANDARD_MAP: Record<string, number> = { '0': 0, '15': 1, '30': 2, '40': 3, 'AD': 4 };
+    const isStandard = targetSide1 in STANDARD_MAP || targetSide2 in STANDARD_MAP;
+
+    if (isStandard) {
+      const s1Count = STANDARD_MAP[targetSide1] ?? 0;
+      const s2Count = STANDARD_MAP[targetSide2] ?? 0;
+      // Replay the minimum points needed: all of side1's points first, then side2's
+      // The engine handles deuce/advantage transitions internally
+      for (let i = 0; i < s1Count; i++) {
+        const server = (gameScorePointCount % 2) as 0 | 1;
+        gameScoreEngine.addPoint({ winner: 0, server, result: 'Winner' });
+        gameScorePointCount++;
+      }
+      for (let i = 0; i < s2Count; i++) {
+        const server = (gameScorePointCount % 2) as 0 | 1;
+        gameScoreEngine.addPoint({ winner: 1, server, result: 'Winner' });
+        gameScorePointCount++;
+      }
+    } else {
+      // Tiebreak: numeric values
+      const s1Count = parseInt(targetSide1, 10) || 0;
+      const s2Count = parseInt(targetSide2, 10) || 0;
+      for (let i = 0; i < s1Count; i++) {
+        const server = (gameScorePointCount % 2) as 0 | 1;
+        gameScoreEngine.addPoint({ winner: 0, server, result: 'Winner' });
+        gameScorePointCount++;
+      }
+      for (let i = 0; i < s2Count; i++) {
+        const server = (gameScorePointCount % 2) as 0 | 1;
+        gameScoreEngine.addPoint({ winner: 1, server, result: 'Winner' });
+        gameScorePointCount++;
+      }
+    }
+  };
+
+  // Helper to update game score row visibility
   const updateGameScoreRow = () => {
     // Show game score row when:
     // 1. An irregular ending is selected (RET, DEF) — not WO (no score for walkover)
@@ -393,50 +533,14 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     gameScoreContainer.style.display = shouldShow ? 'flex' : 'none';
 
     if (!shouldShow) {
-      side1PointSelect.value = '';
-      side2PointSelect.value = '';
+      gameScoreEngine = null;
+      gameScorePointCount = 0;
+      updateGameScoreDisplay();
       return;
     }
 
-    // Determine if last set is in a tiebreak state
-    const lastSetIndex = currentSets.length - 1;
-    const setFormat = getSetFormat(lastSetIndex);
-    const isTiebreakOnly = setFormat?.tiebreakSet?.tiebreakTo !== undefined;
-    const isTiebreakState = isTiebreakOnly ||
-      (lastSet.side1Score !== undefined && lastSet.side2Score !== undefined &&
-       shouldShowTiebreakLogic(lastSetIndex, { side1: lastSet.side1Score, side2: lastSet.side2Score }, matchConfig));
-
-    // Update options based on game type
-    const updateOptions = (select: HTMLSelectElement) => {
-      const currentValue = select.value;
-      // Remove all options except the empty one
-      while (select.options.length > 1) select.remove(1);
-
-      if (isTiebreakState) {
-        // Tiebreak: numeric values 0-20 (covers reasonable range)
-        for (let i = 0; i <= 20; i++) {
-          const opt = document.createElement('option');
-          opt.value = String(i);
-          opt.textContent = String(i);
-          select.appendChild(opt);
-        }
-      } else {
-        // Standard game: 0, 15, 30, 40, AD
-        for (const pt of STANDARD_POINTS) {
-          const opt = document.createElement('option');
-          opt.value = pt;
-          opt.textContent = pt;
-          select.appendChild(opt);
-        }
-      }
-      // Restore previous value if still valid
-      if (currentValue && Array.from(select.options).some(o => o.value === currentValue)) {
-        select.value = currentValue;
-      }
-    };
-
-    updateOptions(side1PointSelect);
-    updateOptions(side2PointSelect);
+    // Re-initialize engine when set scores change
+    initGameScoreEngine();
   };
 
   // Score state
@@ -453,9 +557,10 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     // Reset smart complement tracking
     setsWithSmartComplement.clear();
 
-    // Reset game score selects
-    side1PointSelect.value = '';
-    side2PointSelect.value = '';
+    // Reset game score engine
+    gameScoreEngine = null;
+    gameScorePointCount = 0;
+    updateGameScoreDisplay();
     gameScoreContainer.style.display = 'none';
 
     // Reset irregular ending
@@ -761,14 +866,13 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     // Update game score row visibility/options based on current state
     updateGameScoreRow();
 
-    // Attach point score values to the last incomplete set (if game score row is visible)
+    // Attach point score values from engine to the last incomplete set
     if (gameScoreContainer.style.display !== 'none' && currentSets.length > 0) {
       const lastSet = currentSets[currentSets.length - 1];
       if (lastSet.winningSide === undefined) {
-        const p1 = side1PointSelect.value;
-        const p2 = side2PointSelect.value;
-        if (p1) lastSet.side1PointsScore = p1;
-        if (p2) lastSet.side2PointsScore = p2;
+        const pts = getEnginePointScores();
+        if (pts.side1) lastSet.side1PointsScore = pts.side1;
+        if (pts.side2) lastSet.side2PointsScore = pts.side2;
       }
     }
 
@@ -1496,16 +1600,18 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
         }
       }
 
-      // Pre-populate game score selects if this is the last set and has point scores
+      // Pre-populate game score engine if this is the last set and has point scores
       if (set.side1PointsScore !== undefined || set.side2PointsScore !== undefined) {
-        // Store for later — we'll populate after updateGameScoreRow runs
-        const storedP1 = set.side1PointsScore?.toString() || '';
-        const storedP2 = set.side2PointsScore?.toString() || '';
-        // Defer to after initialization completes so updateGameScoreRow can set options first
+        const storedP1 = set.side1PointsScore?.toString() || '0';
+        const storedP2 = set.side2PointsScore?.toString() || '0';
+        // Defer to after initialization completes so updateGameScoreRow can create the engine first
         setTimeout(() => {
           updateGameScoreRow();
-          if (storedP1) side1PointSelect.value = storedP1;
-          if (storedP2) side2PointSelect.value = storedP2;
+          if (gameScoreEngine) {
+            replayPointsToScore(storedP1, storedP2);
+            updateGameScoreDisplay();
+            updateScoreFromInputs();
+          }
         }, 0);
       }
 

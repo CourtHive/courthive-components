@@ -10,7 +10,6 @@
  */
 
 import { createCompositionEditor } from '../components/composition-editor/compositionEditor';
-import { renderContainer } from '../components/renderStructure/renderContainer';
 import { renderMatchUp } from '../components/renderStructure/renderMatchUp';
 import { compositions } from '../compositions/compositions';
 import type { Composition, MatchUp } from '../types';
@@ -28,7 +27,10 @@ function generatePreviewMatchUps(): MatchUp[] {
     participantsProfile: { withScaleValues: true },
   }).tournamentRecord;
 
-  return (queryGovernor.allTournamentMatchUps({ tournamentRecord }).matchUps ?? [])
+  return (queryGovernor.allTournamentMatchUps({
+    tournamentRecord,
+    participantsProfile: { withISO2: true, withIOC: true },
+  }).matchUps ?? [])
     .filter((m: any) => m.matchUpType === 'SINGLES')
     .slice(0, 3) as MatchUp[];
 }
@@ -38,8 +40,10 @@ function renderPreviewRow(comp: Composition, matchUps: MatchUp[]): HTMLElement {
   row.style.cssText = 'margin-bottom:8px;';
   for (const mu of matchUps.slice(0, 2)) {
     const el = renderMatchUp({ matchUp: mu, composition: comp, isLucky: true });
-    const themed = renderContainer({ theme: comp.theme, content: el });
-    themed.style.marginBottom = '4px';
+    const themed = document.createElement('div');
+    themed.className = `chc-container ${comp.theme}`;
+    themed.style.cssText = 'height:auto; overflow:visible; margin-bottom:4px;';
+    themed.appendChild(el);
     row.appendChild(themed);
   }
   return row;
@@ -52,37 +56,39 @@ export const BrowseBuiltins = {
     const matchUps = generatePreviewMatchUps();
 
     const outer = document.createElement('div');
-    outer.style.cssText = 'max-width:700px; font-family:sans-serif;';
+    outer.style.cssText = 'font-family:sans-serif;';
 
     const title = document.createElement('h3');
     title.textContent = `Built-in Compositions (${Object.keys(compositions).length})`;
     title.style.cssText = 'font-size:14px; margin-bottom:12px;';
     outer.appendChild(title);
 
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:12px;';
+    outer.appendChild(grid);
+
     for (const [name, comp] of Object.entries(compositions)) {
       const card = document.createElement('div');
       card.style.cssText =
-        'border:1px solid var(--chc-border-primary, #dee2e6); border-radius:6px; padding:12px; margin-bottom:12px; background:var(--chc-bg-primary, #fff);';
+        'border:1px solid var(--chc-border-primary, #dee2e6); border-radius:6px; padding:10px; background:var(--chc-bg-primary, #fff);';
 
-      const header = document.createElement('div');
-      header.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;';
-
-      const nameEl = document.createElement('strong');
+      const nameEl = document.createElement('div');
       nameEl.textContent = name;
-      nameEl.style.fontSize = '13px';
+      nameEl.style.cssText = 'font-size:12px; font-weight:600; margin-bottom:6px;';
+      card.appendChild(nameEl);
 
-      const flags = Object.entries(comp.configuration || {})
-        .filter(([, v]) => v === true)
-        .map(([k]) => k);
-      const flagsEl = document.createElement('span');
-      flagsEl.textContent = flags.length ? flags.join(', ') : '(no flags)';
-      flagsEl.style.cssText = 'font-size:11px; color:var(--chc-text-muted, #999);';
+      // Single matchUp preview per card — use a minimal themed wrapper (not renderContainer which has height:1000px)
+      const mu = matchUps[0];
+      if (mu) {
+        const el = renderMatchUp({ matchUp: mu, composition: comp, isLucky: true });
+        const themed = document.createElement('div');
+        themed.className = `chc-container ${comp.theme}`;
+        themed.style.cssText = 'height:auto; overflow:visible;';
+        themed.appendChild(el);
+        card.appendChild(themed);
+      }
 
-      header.append(nameEl, flagsEl);
-      card.appendChild(header);
-      card.appendChild(renderPreviewRow(comp, matchUps));
-
-      outer.appendChild(card);
+      grid.appendChild(card);
     }
 
     return outer;
@@ -102,41 +108,15 @@ export const EditorWithPreview = {
   render: (args: any) => {
     const presetName = args.preset || 'Australian';
     const preset = compositions[presetName];
-    const matchUps = generatePreviewMatchUps();
 
     const outer = document.createElement('div');
     outer.style.cssText = 'max-width:900px; font-family:sans-serif;';
 
-    const info = document.createElement('p');
-    info.style.cssText = 'font-size:12px; color:var(--chc-text-muted); margin-bottom:12px;';
-    info.textContent = `Editing "${presetName}" composition. Changes update the live preview below.`;
-    outer.appendChild(info);
-
-    // Live preview area
-    const previewArea = document.createElement('div');
-    previewArea.style.cssText = 'margin-bottom:16px; padding:12px; border:1px solid var(--chc-border-primary, #dee2e6); border-radius:6px; background:var(--chc-bg-primary, #fff);';
-    const previewLabel = document.createElement('div');
-    previewLabel.style.cssText = 'font-size:11px; color:var(--chc-text-muted); margin-bottom:8px;';
-    previewLabel.textContent = 'Live Preview';
-    previewArea.appendChild(previewLabel);
-
-    function updatePreview(comp: Composition) {
-      // Remove old matchUps but keep label
-      while (previewArea.children.length > 1) previewArea.removeChild(previewArea.lastChild!);
-      previewArea.appendChild(renderPreviewRow(comp, matchUps));
-    }
-
-    updatePreview(preset);
-    outer.appendChild(previewArea);
-
-    // Editor
+    // Editor (has built-in Preview panel on the right)
     const editorContainer = document.createElement('div');
     const editor = createCompositionEditor(editorContainer, {
       compositionName: presetName,
       composition: preset,
-      onChange: ({ theme, configuration }) => {
-        updatePreview({ theme, configuration });
-      },
     });
     outer.appendChild(editorContainer);
 

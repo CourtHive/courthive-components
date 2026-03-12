@@ -23,24 +23,14 @@ for (const [, comp] of Object.entries(compositions)) {
 export function buildThemeSection(store: CompositionEditorStore): EditorPanel {
   const root = document.createElement('div');
 
-  // Theme selector
-  const themeField = buildSelectField(
-    'Theme',
-    THEME_MAP,
-    store.getState().theme,
-    (val) => store.setTheme(val),
-    store.getState().readOnly,
-  );
-  root.appendChild(themeField.element);
-
-  // Preset loader
+  // Preset loader — loads a complete built-in composition (theme + all settings)
   const presetOptions = [
     { value: '', label: '— Load preset —' },
     ...Object.keys(compositions).map((name) => ({ value: name, label: name })),
   ];
 
   const presetField = buildSelectField(
-    'Preset',
+    'Load preset',
     presetOptions,
     '',
     (val) => {
@@ -55,6 +45,26 @@ export function buildThemeSection(store: CompositionEditorStore): EditorPanel {
     store.getState().readOnly,
   );
   root.appendChild(presetField.element);
+
+  const presetHint = document.createElement('div');
+  presetHint.style.cssText = 'font-size:0.7rem; color:var(--chc-text-secondary, #999); padding:0 0 0.3rem; line-height:1.3;';
+  presetHint.textContent = 'Replaces all settings with a built-in composition.';
+  root.appendChild(presetHint);
+
+  // Theme selector — changes only the color scheme
+  const themeField = buildSelectField(
+    'Color theme',
+    THEME_MAP,
+    store.getState().theme,
+    (val) => store.setTheme(val),
+    store.getState().readOnly,
+  );
+  root.appendChild(themeField.element);
+
+  const themeHint = document.createElement('div');
+  themeHint.style.cssText = 'font-size:0.7rem; color:var(--chc-text-secondary, #999); padding:0 0 0.3rem; line-height:1.3;';
+  themeHint.textContent = 'Changes only the color scheme, not the display settings.';
+  root.appendChild(themeHint);
 
   function update(state: CompositionEditorState): void {
     themeField.setValue(state.theme);

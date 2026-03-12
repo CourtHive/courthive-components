@@ -95,7 +95,7 @@ export function renderParticipant({
   participantContainer.setAttribute('id', participant?.participantId || '');
 
   if (teamLogo) {
-    const logo = renderTeamLogo({ teamLogo });
+    const logo = renderTeamLogo({ teamLogo, participantId: participant?.participantId });
     participantContainer.appendChild(logo);
   }
 

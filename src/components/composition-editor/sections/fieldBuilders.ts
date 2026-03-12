@@ -18,7 +18,7 @@ export function buildToggleField(
   checked: boolean,
   onChange: (val: boolean) => void,
   disabled = false,
-): { element: HTMLElement; setChecked: (v: boolean) => void } {
+): { element: HTMLElement; setChecked: (v: boolean) => void; setDisabled: (v: boolean) => void } {
   const row = document.createElement('div');
   row.className = ceField();
 
@@ -51,6 +51,9 @@ export function buildToggleField(
     element: row,
     setChecked: (v: boolean) => {
       input.checked = v;
+    },
+    setDisabled: (v: boolean) => {
+      input.disabled = v;
     },
   };
 }

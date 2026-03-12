@@ -358,3 +358,60 @@
   cursor: default;
   min-height: 44px;
 }
+
+/* ── TypeAhead Active State ────────────────────────────── */
+
+.spl-cell--typeahead {
+  overflow: visible !important;
+  z-index: 5;
+  position: relative;
+}
+
+.spl-cell--typeahead-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 2px;
+  box-sizing: border-box;
+}
+
+.spl-cell--typeahead input {
+  width: 100%;
+  font-size: 0.75rem;
+  padding: 4px 6px;
+  border: 1px solid var(--sp-accent, #3b82f6);
+  border-radius: 3px;
+  outline: none;
+  box-sizing: border-box;
+  min-height: 36px;
+  background: var(--sp-card-bg, #fff);
+  color: var(--sp-text, #1f2937);
+}
+
+.spl-cell--typeahead input::placeholder {
+  color: var(--sp-muted, #9ca3af);
+}
+
+.spl-cell--typeahead .awesomplete,
+.spl-cell--typeahead-wrapper .awesomplete {
+  width: 100%;
+}
+
+.spl-cell--typeahead .awesomplete > ul[role="listbox"] {
+  z-index: 10000 !important;
+  max-height: 200px;
+  overflow-y: auto;
+  font-size: 0.75rem;
+  min-width: 200px;
+  background: var(--sp-card-bg, #fff);
+  color: var(--sp-text, #1f2937);
+  border: 1px solid var(--sp-border, #e5e7eb);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.spl-cell--typeahead .awesomplete > ul[role="listbox"] li {
+  cursor: pointer;
+}

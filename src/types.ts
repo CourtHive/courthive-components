@@ -192,6 +192,7 @@ export interface Configuration {
     accessor?: string;
     eventType?: string;
     fallback?: boolean;
+    scalePosition?: 'left' | 'right';
     rawValue?: any;
   };
   clickAway?: boolean;

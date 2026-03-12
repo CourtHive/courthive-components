@@ -63,10 +63,11 @@ export function renderIndividual(params: {
 
   const flags = configuration?.flags;
   const hasScale = configuration?.scaleAttributes;
+  const scalePosition = flags ? 'left' : (configuration?.scaleAttributes?.scalePosition || 'left');
   const flag = flags && renderFrill({ ...params, type: 'flag' });
   if (flag) {
     individual.appendChild(flag);
-  } else {
+  } else if (scalePosition === 'left') {
     const scale = renderFrill({
       type: 'scale',
       ...params
@@ -169,8 +170,8 @@ export function renderIndividual(params: {
     name.appendChild(placeholder);
   }
 
-  // When both flag and scale are configured, place scale after the name
-  if (flag && hasScale) {
+  // Place scale after the name when: flags+scale combo, or explicit right position
+  if (hasScale && (flag || scalePosition === 'right')) {
     const scale = renderFrill({
       type: 'scale',
       ...params

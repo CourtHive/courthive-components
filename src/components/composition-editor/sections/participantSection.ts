@@ -7,19 +7,22 @@ export function buildParticipantSection(store: CompositionEditorStore): EditorPa
   const readOnly = store.getState().readOnly;
   const cfg = store.getState().configuration;
 
-  const showAddress = buildToggleField('Show address', !!cfg.showAddress, (v) => store.setConfigField('showAddress', v), readOnly);
   const genderColor = buildToggleField('Gender color', !!cfg.genderColor, (v) => store.setConfigField('genderColor', v), readOnly);
   const winnerColor = buildToggleField('Winner color', !!cfg.winnerColor, (v) => store.setConfigField('winnerColor', v), readOnly);
 
   const participantDetail = buildSelectField(
-    'Detail level',
+    'Detail',
     [
       { value: '', label: 'Default' },
       { value: 'TEAM', label: 'Team' },
       { value: 'ADDRESS', label: 'Address' },
     ],
     cfg.participantDetail || '',
-    (v) => store.setConfigField('participantDetail', v || undefined),
+    (v) => {
+      store.setConfigField('participantDetail', v || undefined);
+      // Sync showAddress for renderers that check it directly
+      store.setConfigField('showAddress', v === 'ADDRESS');
+    },
     readOnly,
   );
 
@@ -31,7 +34,6 @@ export function buildParticipantSection(store: CompositionEditorStore): EditorPa
     readOnly,
   );
 
-  root.appendChild(showAddress.element);
   root.appendChild(genderColor.element);
   root.appendChild(winnerColor.element);
   root.appendChild(participantDetail.element);
@@ -39,7 +41,6 @@ export function buildParticipantSection(store: CompositionEditorStore): EditorPa
 
   function update(state: CompositionEditorState): void {
     const c = state.configuration;
-    showAddress.setChecked(!!c.showAddress);
     genderColor.setChecked(!!c.genderColor);
     winnerColor.setChecked(!!c.winnerColor);
     participantDetail.setValue(c.participantDetail || '');

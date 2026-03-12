@@ -89,11 +89,13 @@
 /* ── Team Logo ───────────────────────────────────────────── */
 
 .chc-team-logo {
-  margin-inline-end: 0.5rem;
-  background-color: pink;
+  display: flex;
+  align-items: center;
+  margin-inline-end: 0.25rem;
   margin-inline-start: 2px;
-  height: 40px;
-  width: 40px;
+  height: 28px;
+  width: 60px;
+  flex-shrink: 0;
 }
 
 /* ── Group ───────────────────────────────────────────────── */

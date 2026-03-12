@@ -416,8 +416,8 @@ export const GameScoreCapture = {
     desc.innerHTML =
       'When a match ends with an <strong style="color: var(--chc-text-primary);">irregular ending</strong> (Retired or Defaulted) ' +
       'and the last set is incomplete, a <strong style="color: var(--chc-text-primary);">Game Score row</strong> appears below the set inputs. ' +
-      'This lets you capture the exact point score at the time of interruption (e.g., 15-30, 40-AD). ' +
-      'For tiebreak states, the options switch to numeric values (0-20).';
+      'Click the side buttons to add points — the ScoringEngine tracks the game score automatically (e.g., 15-30, 40-AD). ' +
+      'For tiebreak states, point values are numeric. Use Undo to remove points.';
     container.appendChild(desc);
 
     const steps = document.createElement('ol');
@@ -428,7 +428,7 @@ export const GameScoreCapture = {
     steps.innerHTML = `
       <li>Open the modal and enter a partial score (e.g., Set 1: <strong>6-4</strong>, Set 2: <strong>3-2</strong>)</li>
       <li>Select <strong>"Retired"</strong> or <strong>"Defaulted"</strong> as the irregular ending</li>
-      <li>A <strong>"Game:"</strong> row appears — select point scores from dropdowns</li>
+      <li>A <strong>"Game:"</strong> row appears — click side buttons to add points</li>
       <li>Select a winner and submit</li>
     `;
     container.appendChild(steps);

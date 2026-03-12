@@ -46,6 +46,9 @@ export {
   DEFAULT_SCHEDULE_CELL_CONFIG,
 } from './ui/scheduleGridCell';
 
+export { activateScheduleCellTypeAhead } from './ui/scheduleCellTypeAhead';
+export type { ScheduleCellTypeAheadOptions } from './ui/scheduleCellTypeAhead';
+
 // ============================================================================
 // Types
 // ============================================================================

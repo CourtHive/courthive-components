@@ -5,12 +5,13 @@
   gap: 1rem;
   height: 100%;
   min-height: 400px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .ce-left {
-  flex: 1;
-  min-width: 260px;
-  max-width: 380px;
+  flex: 1 1 260px;
+  min-width: 220px;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -18,15 +19,16 @@
 }
 
 .ce-right {
-  flex: 1;
+  flex: 2 1 400px;
   display: flex;
   flex-direction: column;
-  min-width: 300px;
+  min-width: 0;
 }
 
 /* ── Name input ── */
 .ce-name-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr;
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
@@ -41,13 +43,13 @@
 }
 
 .ce-name-input {
-  flex: 1;
   font-size: 0.85rem;
   padding: 0.25rem 0.5rem;
   border: 1px solid var(--chc-border-default, #ddd);
   border-radius: 4px;
   background: var(--chc-bg-elevated, #fff);
   color: var(--chc-text-primary, #333);
+  min-width: 0;
 }
 
 .ce-name-input:focus {
@@ -82,17 +84,18 @@
   width: 1rem;
   text-align: center;
   color: var(--chc-text-secondary, #666);
+  flex-shrink: 0;
 }
 
 .ce-section-body {
   padding: 0.5rem 0.75rem;
 }
 
-/* ── Form controls ── */
+/* ── Form controls (grid layout) ── */
 .ce-field {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto;
   align-items: center;
-  justify-content: space-between;
   padding: 0.3rem 0;
   gap: 0.5rem;
 }
@@ -100,11 +103,14 @@
 .ce-field-label {
   font-size: 0.8rem;
   color: var(--chc-text-secondary, #666);
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 
 .ce-field-control {
-  flex-shrink: 0;
+  /* auto column — takes exactly its content width */
 }
 
 .ce-select {
@@ -114,7 +120,8 @@
   border-radius: 4px;
   background: var(--chc-bg-elevated, #fff);
   color: var(--chc-text-primary, #333);
-  min-width: 100px;
+  max-width: 140px;
+  min-width: 0;
 }
 
 .ce-select:focus {
@@ -149,6 +156,7 @@
 /* ── Toggle switch ── */
 .ce-toggle {
   position: relative;
+  display: inline-block;
   width: 36px;
   height: 20px;
   flex-shrink: 0;
@@ -215,11 +223,11 @@
 
 .ce-preview-body {
   flex: 1;
-  overflow-y: auto;
+  overflow: auto;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding: 0.5rem 0;
+  padding: 0.5rem 1rem 0.5rem 2.5rem;
 }
 
 .ce-preview-matchup {
@@ -228,7 +236,8 @@
 
 /* ── Preset selector ── */
 .ce-preset-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr;
   align-items: center;
   gap: 0.5rem;
   padding: 0.25rem 0;

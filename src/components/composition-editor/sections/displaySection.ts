@@ -34,9 +34,10 @@ export function buildDisplaySection(store: CompositionEditorStore): EditorPanel 
     (v) => store.setConfigField('seedingElement', (v || undefined) as 'sup' | 'span' | undefined),
     readOnly,
   );
-  const drawPositions = buildToggleField('Draw positions', !!cfg.drawPositions, (v) => store.setConfigField('drawPositions', v), readOnly);
-  const allDrawPositions = buildToggleField('All draw positions', !!cfg.allDrawPositions, (v) => store.setConfigField('allDrawPositions', v), readOnly);
-  const roundHeader = buildToggleField('Round header', !!cfg.roundHeader, (v) => store.setConfigField('roundHeader', v), readOnly);
+  const drawPositions = buildToggleField('Draw positions (1st round)', !!cfg.drawPositions, (v) => store.setConfigField('drawPositions', v), readOnly);
+  const allDrawPositions = buildToggleField('Draw positions (all rounds)', !!cfg.allDrawPositions, (v) => store.setConfigField('allDrawPositions', v), readOnly);
+  // Normalize: if teamLogo is undefined, treat as true and persist so the renderer sees it
+  if (cfg.teamLogo === undefined) store.setConfigField('teamLogo', true);
   const teamLogo = buildToggleField('Team logo', cfg.teamLogo !== false, (v) => store.setConfigField('teamLogo', v), readOnly);
 
   root.appendChild(flags.element);
@@ -44,7 +45,6 @@ export function buildDisplaySection(store: CompositionEditorStore): EditorPanel 
   root.appendChild(seedingElement.element);
   root.appendChild(drawPositions.element);
   root.appendChild(allDrawPositions.element);
-  root.appendChild(roundHeader.element);
   root.appendChild(teamLogo.element);
 
   function update(state: CompositionEditorState): void {
@@ -54,7 +54,6 @@ export function buildDisplaySection(store: CompositionEditorStore): EditorPanel 
     seedingElement.setValue(c.seedingElement || '');
     drawPositions.setChecked(!!c.drawPositions);
     allDrawPositions.setChecked(!!c.allDrawPositions);
-    roundHeader.setChecked(!!c.roundHeader);
     teamLogo.setChecked(c.teamLogo !== false);
   }
 

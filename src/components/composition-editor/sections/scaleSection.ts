@@ -1,6 +1,7 @@
 import type { CompositionEditorStore } from '../compositionEditorStore';
 import type { CompositionEditorState, EditorPanel } from '../compositionEditorTypes';
-import { buildTextInputField, buildSelectField, buildToggleField, buildColorField } from './fieldBuilders';
+import { buildSelectField, buildToggleField, buildColorField } from './fieldBuilders';
+import { KNOWN_SCALES } from '../scaleConstants';
 
 export function buildScaleSection(store: CompositionEditorStore): EditorPanel {
   const root = document.createElement('div');
@@ -21,19 +22,21 @@ export function buildScaleSection(store: CompositionEditorStore): EditorPanel {
     readOnly,
   );
 
-  const scaleName = buildTextInputField(
-    'Scale name',
-    scale.scaleName || '',
-    (v) => store.setConfigNestedField('scaleAttributes', 'scaleName', v || undefined),
-    'WTN',
-    readOnly,
-  );
+  const scaleNameOptions = [
+    { value: '', label: 'None' },
+    ...KNOWN_SCALES.map((s) => ({ value: s.scaleName, label: s.label })),
+  ];
 
-  const accessor = buildTextInputField(
-    'Accessor',
-    scale.accessor || '',
-    (v) => store.setConfigNestedField('scaleAttributes', 'accessor', v || undefined),
-    'wtnRating',
+  const scaleName = buildSelectField(
+    'Scale name',
+    scaleNameOptions,
+    scale.scaleName || '',
+    (v) => {
+      store.setConfigNestedField('scaleAttributes', 'scaleName', v || undefined);
+      // Auto-set accessor from known scales
+      const known = KNOWN_SCALES.find((s) => s.scaleName === v);
+      store.setConfigNestedField('scaleAttributes', 'accessor', known?.accessor || undefined);
+    },
     readOnly,
   );
 
@@ -63,21 +66,39 @@ export function buildScaleSection(store: CompositionEditorStore): EditorPanel {
     readOnly,
   );
 
+  // Right-side position toggle — auto-disabled when flags are on (flags force scale to right already)
+  const rightSide = buildToggleField(
+    'Right of name',
+    scale.scalePosition === 'right',
+    (v) => store.setConfigNestedField('scaleAttributes', 'scalePosition', v ? 'right' : 'left'),
+    readOnly,
+  );
+
   root.appendChild(scaleType.element);
   root.appendChild(scaleName.element);
-  root.appendChild(accessor.element);
   root.appendChild(scaleColor.element);
   root.appendChild(eventType.element);
   root.appendChild(fallback.element);
+  root.appendChild(rightSide.element);
 
   function update(state: CompositionEditorState): void {
     const s = state.configuration.scaleAttributes || {};
+    const flagsOn = !!state.configuration.flags;
+
     scaleType.setValue(s.scaleType || '');
     scaleName.setValue(s.scaleName || '');
-    accessor.setValue(s.accessor || '');
     scaleColor.setValue(s.scaleColor || '#ff0000');
     eventType.setValue(s.eventType || '');
     fallback.setChecked(!!s.fallback);
+
+    // When flags are on, scale is always placed right of name — disable the toggle
+    if (flagsOn) {
+      rightSide.setChecked(true);
+      rightSide.setDisabled(true);
+    } else {
+      rightSide.setChecked(s.scalePosition === 'right');
+      rightSide.setDisabled(false);
+    }
   }
 
   return { element: root, update };

@@ -62,7 +62,7 @@ export interface FactoryGrid {
 }
 
 interface FactoryGridCallbacks {
-  onCellClick?: (courtId: string, courtOrder: number, matchUp: any | null) => void;
+  onCellClick?: (courtId: string, courtOrder: number, matchUp: any | null, event: MouseEvent, cell: HTMLElement) => void;
   onCellDblClick?: (courtId: string, courtOrder: number, matchUp: any | null) => void;
   onCellRightClick?: (courtId: string, courtOrder: number, matchUp: any | null, event: MouseEvent) => void;
 }
@@ -448,9 +448,9 @@ export function buildFactoryGrid(
         }
 
         // Click events
-        cell.addEventListener('click', () => {
+        cell.addEventListener('click', (e) => {
           const m = cellData?.matchUpId ? cellData : null;
-          callbacks?.onCellClick?.(courtId, courtOrder, m);
+          callbacks?.onCellClick?.(courtId, courtOrder, m, e, cell);
         });
         cell.addEventListener('dblclick', () => {
           const m = cellData?.matchUpId ? cellData : null;
