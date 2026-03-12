@@ -89,11 +89,13 @@
 /* ── Team Logo ───────────────────────────────────────────── */
 
 .chc-team-logo {
-  margin-inline-end: 0.5rem;
-  background-color: pink;
+  display: flex;
+  align-items: center;
+  margin-inline-end: 0.25rem;
   margin-inline-start: 2px;
-  height: 40px;
-  width: 40px;
+  height: 28px;
+  width: 60px;
+  flex-shrink: 0;
 }
 
 /* ── Group ───────────────────────────────────────────────── */
@@ -348,6 +350,42 @@
 
 .chc-point-score--trailing {
   margin-inline-start: 2px;
+}
+
+/* ── Game score inline buttons ────────────────────────── */
+
+.chc-game-btn-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  margin-inline-start: 2px;
+}
+
+.chc-game-btn {
+  min-width: var(--chc-point-score-width);
+  line-height: var(--chc-line-height-game-score);
+  font-size: var(--chc-font-size-1);
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--chc-border-secondary, #ccc);
+  background: var(--chc-bg-primary, #fff);
+  color: var(--chc-text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+}
+
+.chc-game-btn:hover {
+  background: var(--chc-bg-secondary, #e0e0e0);
+}
+
+.chc-game-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
 }
 
 /* ── Results ─────────────────────────────────────────────── */
@@ -741,7 +779,7 @@
   align-content: center;
   inset-inline-start: -10px;
   position: absolute;
-  color: var(--chc-status-info);
+  color: var(--chc-draw-position-color, #b8860b);
   display: flex;
   width: 20px;
 }

@@ -8,7 +8,7 @@ import { validateSetScores } from '../utils/scoreValidator';
 import { parseMatchUpFormat, shouldExpandSets } from '../utils/setExpansionLogic';
 import type { RenderScoreEntryParams, SetScore } from '../types';
 import { loadSettings, getScoringConfig } from '../config';
-import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
+import { matchUpFormatCode, matchUpStatusConstants, scoreGovernor } from 'tods-competition-factory';
 import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
 import {
   isMatchComplete as isMatchCompleteLogic,
@@ -182,8 +182,9 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     radio.addEventListener('change', (e) => {
       selectedOutcome = (e.target as HTMLInputElement).value as any;
 
-      // Clear all set inputs and scores for irregular endings
-      if (selectedOutcome === WALKOVER || selectedOutcome === RETIRED || selectedOutcome === DEFAULTED) {
+      // For walkovers, clear all scores (no play occurred).
+      // For retirements and defaults, keep existing set scores (incomplete sets are valid).
+      if (selectedOutcome === WALKOVER) {
         // Clear all set inputs
         const allInputs = setsContainer.querySelectorAll('input');
         allInputs.forEach((input) => {
@@ -196,8 +197,11 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
           allSetRows[i].remove();
         }
 
-        // Reset currentSets and clear internal score state
+        // Reset currentSets, game score engine, and clear internal score state
         currentSets = [];
+        gameScoreEngine = null;
+        gameScorePointCount = 0;
+        updateGameScoreDisplay();
         internalScore = undefined; // CRITICAL: Clear internal score so it doesn't show in display
       }
 
@@ -238,6 +242,10 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     selectedOutcome = COMPLETED;
     selectedWinner = undefined;
     winnerSelectionContainer.style.display = 'none';
+
+    // Clear internal matchUp status so it doesn't persist from the previous irregular ending
+    internalMatchUpStatus = undefined;
+    internalWinningSide = undefined;
 
     // Clear winner selection
     const winnerRadios = irregularEndingContainer.querySelectorAll<HTMLInputElement>(WINNER_SELECTOR);
@@ -318,6 +326,151 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   setsContainer.style.gap = '0.5em';
   container.appendChild(setsContainer);
 
+  // ScoringEngine for game-level point tracking
+  // Buttons are rendered inline in the matchUp preview (see updateMatchUpDisplay)
+  const { ScoringEngine } = scoreGovernor;
+  let gameScoreEngine: any = null;
+  let gameScorePointCount = 0;
+  let gameScoreActive = false;
+
+  // Flag to skip engine re-init when the point change itself triggers updateScoreFromInputs
+  let pointChangeInProgress = false;
+
+  const addPointForSide = (winner: 0 | 1) => {
+    if (!gameScoreEngine) return;
+    const server = (gameScorePointCount % 2) as 0 | 1;
+    gameScoreEngine.addPoint({ winner, server, result: 'Winner' });
+    gameScorePointCount++;
+    pointChangeInProgress = true;
+    updateScoreFromInputs();
+    pointChangeInProgress = false;
+  };
+
+  // No undo button — points cycle naturally (0→15→30→40→game)
+
+  /** No-op retained for call sites; display now handled by renderMatchUp inline point scores */
+  const updateGameScoreDisplay = () => {
+    // Point scores are rendered inline in the matchUp preview via side1PointScore/side2PointScore
+  };
+
+  /**
+   * Initialize or re-initialize the ScoringEngine with the current set scores.
+   * Called when the game score row becomes visible or when set scores change.
+   */
+  const initGameScoreEngine = () => {
+    if (!matchUp.matchUpFormat) return;
+    gameScoreEngine = new ScoringEngine({ matchUpFormat: matchUp.matchUpFormat });
+    gameScorePointCount = 0;
+
+    // Load current completed set scores into the engine
+    const setsForEngine = currentSets
+      .filter((s) => s.winningSide !== undefined)
+      .map((s) => ({
+        side1Score: s.side1Score,
+        side2Score: s.side2Score,
+        side1TiebreakScore: s.side1TiebreakScore,
+        side2TiebreakScore: s.side2TiebreakScore,
+        winningSide: s.winningSide,
+      }));
+
+    // Also include the incomplete last set (game scores without winningSide)
+    const lastSet = currentSets[currentSets.length - 1];
+    if (lastSet && lastSet.winningSide === undefined && (lastSet.side1Score || lastSet.side2Score)) {
+      setsForEngine.push({
+        side1Score: lastSet.side1Score,
+        side2Score: lastSet.side2Score,
+        side1TiebreakScore: lastSet.side1TiebreakScore,
+        side2TiebreakScore: lastSet.side2TiebreakScore,
+        winningSide: undefined,
+      });
+    }
+
+    if (setsForEngine.length > 0) {
+      try {
+        gameScoreEngine.setInitialScore({ sets: setsForEngine });
+      } catch {
+        // If loading fails, engine stays at initial state
+      }
+    }
+
+    updateGameScoreDisplay();
+  };
+
+  /** Get current point scores from the engine for the active set */
+  const getEnginePointScores = (): { side1?: string; side2?: string } => {
+    if (!gameScoreEngine) return {};
+    const score = gameScoreEngine.getScore();
+    const pd = score?.pointDisplay;
+    if (!pd || (pd[0] === '0' && pd[1] === '0' && gameScorePointCount === 0)) return {};
+    return { side1: String(pd[0]), side2: String(pd[1]) };
+  };
+
+  /**
+   * Replay addPoint() calls to reach a target point score (e.g., "15" and "30").
+   * Used to pre-populate the engine when loading an existing retirement score.
+   * Standard points: 0→15→30→40→AD. Tiebreak: numeric 0,1,2,...
+   */
+  const replayPointsToScore = (targetSide1: string, targetSide2: string) => {
+    if (!gameScoreEngine) return;
+
+    const STANDARD_MAP: Record<string, number> = { '0': 0, '15': 1, '30': 2, '40': 3, 'AD': 4 };
+    const isStandard = targetSide1 in STANDARD_MAP || targetSide2 in STANDARD_MAP;
+
+    if (isStandard) {
+      const s1Count = STANDARD_MAP[targetSide1] ?? 0;
+      const s2Count = STANDARD_MAP[targetSide2] ?? 0;
+      // Replay the minimum points needed: all of side1's points first, then side2's
+      // The engine handles deuce/advantage transitions internally
+      for (let i = 0; i < s1Count; i++) {
+        const server = (gameScorePointCount % 2) as 0 | 1;
+        gameScoreEngine.addPoint({ winner: 0, server, result: 'Winner' });
+        gameScorePointCount++;
+      }
+      for (let i = 0; i < s2Count; i++) {
+        const server = (gameScorePointCount % 2) as 0 | 1;
+        gameScoreEngine.addPoint({ winner: 1, server, result: 'Winner' });
+        gameScorePointCount++;
+      }
+    } else {
+      // Tiebreak: numeric values
+      const s1Count = parseInt(targetSide1, 10) || 0;
+      const s2Count = parseInt(targetSide2, 10) || 0;
+      for (let i = 0; i < s1Count; i++) {
+        const server = (gameScorePointCount % 2) as 0 | 1;
+        gameScoreEngine.addPoint({ winner: 0, server, result: 'Winner' });
+        gameScorePointCount++;
+      }
+      for (let i = 0; i < s2Count; i++) {
+        const server = (gameScorePointCount % 2) as 0 | 1;
+        gameScoreEngine.addPoint({ winner: 1, server, result: 'Winner' });
+        gameScorePointCount++;
+      }
+    }
+  };
+
+  // Helper to update game score activation state
+  const updateGameScoreRow = () => {
+    // Activate game score buttons when:
+    // 1. An irregular ending is selected (RET, DEF) — not WO (no score for walkover)
+    // 2. The last set is incomplete (no winningSide)
+    const isIrregularWithScore = selectedOutcome === RETIRED || selectedOutcome === DEFAULTED;
+    const lastSet = currentSets[currentSets.length - 1];
+    const lastSetIncomplete = lastSet && lastSet.winningSide === undefined;
+    gameScoreActive = !!(isIrregularWithScore && lastSetIncomplete);
+
+    if (!gameScoreActive) {
+      gameScoreEngine = null;
+      gameScorePointCount = 0;
+      return;
+    }
+
+    // Skip re-init when triggered by a point add/undo — the engine already has the correct state
+    if (pointChangeInProgress) return;
+
+    // Re-initialize engine when set scores change
+    initGameScoreEngine();
+  };
+
   // Score state
   let currentSets: SetScore[] = [];
 
@@ -331,6 +484,11 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     
     // Reset smart complement tracking
     setsWithSmartComplement.clear();
+
+    // Reset game score engine
+    gameScoreEngine = null;
+    gameScorePointCount = 0;
+    gameScoreActive = false;
 
     // Reset irregular ending
     selectedOutcome = COMPLETED;
@@ -407,12 +565,10 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       internalWinningSide = undefined;
       internalMatchUpStatus = undefined;
     } else {
-      // Update all properties that are present (not mutually exclusive)
-      if (validationResult?.winningSide !== undefined) {
+      // Update all properties from validation result — clear when absent
+      if (validationResult) {
         internalWinningSide = validationResult.winningSide;
-      }
-      if (validationResult?.matchUpStatus) {
-        internalMatchUpStatus = validationResult.matchUpStatus;
+        internalMatchUpStatus = validationResult.matchUpStatus || undefined;
         
         // CRITICAL: For irregular endings (WO/RET/DEF/DOUBLE_*) with no sets, clear the score display
         const isIrregularEnding = [WALKOVER, RETIRED, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT].includes(internalMatchUpStatus);
@@ -438,7 +594,36 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       isLucky: true,
       composition: compositions[compositionName] || compositions.Australian,
     });
+
+    if (gameScoreActive) {
+      // Add a + button to each side's score row
+      const isComplete = gameScoreEngine?.isComplete();
+
+      const side1Row = matchUpElement.querySelector('.tmx-sd[sideNumber="1"] .sideScore');
+      if (side1Row) {
+        const s1Btn = document.createElement('button');
+        s1Btn.className = 'chc-game-btn';
+        s1Btn.textContent = '+';
+        s1Btn.title = 'Point for side 1';
+        s1Btn.disabled = isComplete;
+        s1Btn.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); addPointForSide(0); });
+        side1Row.appendChild(s1Btn);
+      }
+
+      const side2Row = matchUpElement.querySelector('.tmx-sd[sideNumber="2"] .sideScore');
+      if (side2Row) {
+        const s2Btn = document.createElement('button');
+        s2Btn.className = 'chc-game-btn';
+        s2Btn.textContent = '+';
+        s2Btn.title = 'Point for side 2';
+        s2Btn.disabled = isComplete;
+        s2Btn.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); addPointForSide(1); });
+        side2Row.appendChild(s2Btn);
+      }
+    }
+
     matchUpContainer.appendChild(matchUpElement);
+
     fitMatchUpDisplay();
   };
 
@@ -632,6 +817,19 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
     currentSets = newSets;
 
+    // Update game score row visibility/options based on current state
+    updateGameScoreRow();
+
+    // Attach point score values from engine to the last incomplete set
+    if (gameScoreActive && currentSets.length > 0) {
+      const lastSet = currentSets[currentSets.length - 1];
+      if (lastSet.winningSide === undefined) {
+        const pts = getEnginePointScores();
+        if (pts.side1) lastSet.side1PointScore = pts.side1;
+        if (pts.side2) lastSet.side2PointScore = pts.side2;
+      }
+    }
+
     // CRITICAL: Remove unnecessary set rows
     // This handles both:
     // 1. Empty trailing rows when a set is cleared
@@ -694,6 +892,8 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
             side2TiebreakScore: s.side2TiebreakScore,
           };
           if (s.winningSide !== undefined) result.winningSide = s.winningSide;
+          if (s.side1PointScore !== undefined) result.side1PointScore = s.side1PointScore;
+          if (s.side2PointScore !== undefined) result.side2PointScore = s.side2PointScore;
           return result;
         } else {
           // Regular set: include game scores, tiebreak scores (if any), and winningSide
@@ -704,6 +904,8 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
           if (s.side1TiebreakScore !== undefined) result.side1TiebreakScore = s.side1TiebreakScore;
           if (s.side2TiebreakScore !== undefined) result.side2TiebreakScore = s.side2TiebreakScore;
           if (s.winningSide !== undefined) result.winningSide = s.winningSide;
+          if (s.side1PointScore !== undefined) result.side1PointScore = s.side1PointScore;
+          if (s.side2PointScore !== undefined) result.side2PointScore = s.side2PointScore;
           return result;
         }
       });
@@ -713,6 +915,23 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
         matchUp.matchUpFormat,
         selectedOutcome !== COMPLETED, // Allow incomplete if irregular ending
       );
+
+      // Re-attach point scores to validation sets (score string round-trip loses them)
+      if (validation.sets && validation.scoreObject?.sets) {
+        for (let i = 0; i < setsForValidation.length && i < validation.scoreObject.sets.length; i++) {
+          const src = setsForValidation[i];
+          if (src.side1PointScore !== undefined) validation.scoreObject.sets[i].side1PointScore = src.side1PointScore;
+          if (src.side2PointScore !== undefined) validation.scoreObject.sets[i].side2PointScore = src.side2PointScore;
+        }
+      }
+      // Also attach to the flat sets array in the outcome
+      if (validation.sets) {
+        for (let i = 0; i < setsForValidation.length && i < validation.sets.length; i++) {
+          const src = setsForValidation[i];
+          if (src.side1PointScore !== undefined) validation.sets[i].side1PointScore = src.side1PointScore;
+          if (src.side2PointScore !== undefined) validation.sets[i].side2PointScore = src.side2PointScore;
+        }
+      }
 
       // CRITICAL: Check if match is complete based on VALIDATION result, not raw currentSets
       // The validation may have stripped winningSide from invalid sets
@@ -1333,6 +1552,21 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
             tiebreakInput.value = set.side2TiebreakScore.toString();
           }
         }
+      }
+
+      // Pre-populate game score engine if this is the last set and has point scores
+      if (set.side1PointScore !== undefined || set.side2PointScore !== undefined) {
+        const storedP1 = set.side1PointScore?.toString() || '0';
+        const storedP2 = set.side2PointScore?.toString() || '0';
+        // Defer to after initialization completes so updateGameScoreRow can create the engine first
+        setTimeout(() => {
+          updateGameScoreRow();
+          if (gameScoreEngine) {
+            replayPointsToScore(storedP1, storedP2);
+            updateGameScoreDisplay();
+            updateScoreFromInputs();
+          }
+        }, 0);
       }
 
       // Update completion tracking after filling this set

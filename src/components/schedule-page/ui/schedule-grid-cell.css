@@ -15,7 +15,7 @@
   min-height: 44px;
   padding: 4px;
   background: var(--sp-card-bg);
-  font-size: 10px;
+  font-size: 0.625rem;
   color: var(--sp-text);
   overflow: hidden;
   box-sizing: border-box;
@@ -26,7 +26,7 @@
 .spl-grid-cell__header {
   width: 100%;
   text-align: center;
-  font-size: 9px;
+  font-size: 0.5625rem;
   color: var(--sp-muted);
   flex-shrink: 0;
 }
@@ -44,7 +44,7 @@
 .spl-grid-cell__footer {
   width: 100%;
   text-align: center;
-  font-size: 9px;
+  font-size: 0.5625rem;
   flex-shrink: 0;
 }
 
@@ -63,7 +63,7 @@
 
 .spl-grid-cell__event-round {
   font-style: italic;
-  font-size: 9px;
+  font-size: 0.5625rem;
   color: var(--sp-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -88,11 +88,11 @@
 }
 
 .spl-grid-cell__name {
-  font-size: 10px;
+  font-size: 0.625rem;
 }
 
 .spl-grid-cell__vs {
-  font-size: 8px;
+  font-size: 0.5rem;
   color: var(--sp-muted);
   line-height: 1;
 }
@@ -109,7 +109,7 @@
 }
 
 .spl-grid-cell__format {
-  font-size: 8px;
+  font-size: 0.5rem;
   padding: 1px 4px;
   border-radius: 4px;
   background: var(--sp-chip-bg);
@@ -118,7 +118,7 @@
 }
 
 .spl-grid-cell__umpire {
-  font-size: 8px;
+  font-size: 0.5rem;
   color: var(--sp-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -129,7 +129,7 @@
 /* ── Status Badge ───────────────────────────────────────── */
 
 .spl-grid-cell__status-badge {
-  font-size: 8px;
+  font-size: 0.5rem;
   font-weight: 700;
   padding: 1px 5px;
   border-radius: 4px;
@@ -227,7 +227,7 @@
 
 .spl-grid-cell__bye {
   font-weight: 700;
-  font-size: 10px;
+  font-size: 0.625rem;
   font-style: italic;
   color: var(--sp-muted);
 }
@@ -235,7 +235,7 @@
 /* ── Team Name (under participant name) ─────────────────── */
 
 .spl-grid-cell__team-name {
-  font-size: 8px;
+  font-size: 0.5rem;
   color: var(--sp-muted);
   font-style: italic;
   white-space: nowrap;
@@ -289,16 +289,60 @@
   font-weight: 700;
   color: var(--sp-warn-text);
   text-transform: uppercase;
-  font-size: 10px;
+  font-size: 0.625rem;
+}
+
+/* ── Per-booking-type colours ─────────────────────────── */
+/* MAINTENANCE: orange (default — matches --sp-warn) */
+
+/* PRACTICE: blue */
+.spl-cell--blocked[data-booking-type='PRACTICE'] {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--sp-card-bg),
+    var(--sp-card-bg) 4px,
+    rgba(59, 130, 246, 0.15) 4px,
+    rgba(59, 130, 246, 0.15) 8px
+  );
+}
+
+.spl-cell--blocked[data-booking-type='PRACTICE'] .spl-grid-cell__block-type {
+  color: var(--sp-accent-text);
+}
+
+/* BLOCKED: red */
+.spl-cell--blocked[data-booking-type='BLOCKED'] {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--sp-card-bg),
+    var(--sp-card-bg) 4px,
+    rgba(244, 63, 94, 0.15) 4px,
+    rgba(244, 63, 94, 0.15) 8px
+  );
+}
+
+.spl-cell--blocked[data-booking-type='BLOCKED'] .spl-grid-cell__block-type {
+  color: var(--sp-err-text);
+}
+
+/* MAINTENANCE: orange (explicit for clarity) */
+.spl-cell--blocked[data-booking-type='MAINTENANCE'] {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--sp-card-bg),
+    var(--sp-card-bg) 4px,
+    rgba(245, 158, 11, 0.15) 4px,
+    rgba(245, 158, 11, 0.15) 8px
+  );
 }
 
 .spl-grid-cell__block-rows {
-  font-size: 8px;
+  font-size: 0.5rem;
   color: var(--sp-muted);
 }
 
 .spl-grid-cell__block-notes {
-  font-size: 8px;
+  font-size: 0.5rem;
   color: var(--sp-muted);
   font-style: italic;
   max-width: 100%;
@@ -313,4 +357,61 @@
   background: var(--sp-card-bg);
   cursor: default;
   min-height: 44px;
+}
+
+/* ── TypeAhead Active State ────────────────────────────── */
+
+.spl-cell--typeahead {
+  overflow: visible !important;
+  z-index: 5;
+  position: relative;
+}
+
+.spl-cell--typeahead-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 2px;
+  box-sizing: border-box;
+}
+
+.spl-cell--typeahead input {
+  width: 100%;
+  font-size: 0.75rem;
+  padding: 4px 6px;
+  border: 1px solid var(--sp-accent, #3b82f6);
+  border-radius: 3px;
+  outline: none;
+  box-sizing: border-box;
+  min-height: 36px;
+  background: var(--sp-card-bg, #fff);
+  color: var(--sp-text, #1f2937);
+}
+
+.spl-cell--typeahead input::placeholder {
+  color: var(--sp-muted, #9ca3af);
+}
+
+.spl-cell--typeahead .awesomplete,
+.spl-cell--typeahead-wrapper .awesomplete {
+  width: 100%;
+}
+
+.spl-cell--typeahead .awesomplete > ul[role="listbox"] {
+  z-index: 10000 !important;
+  max-height: 200px;
+  overflow-y: auto;
+  font-size: 0.75rem;
+  min-width: 200px;
+  background: var(--sp-card-bg, #fff);
+  color: var(--sp-text, #1f2937);
+  border: 1px solid var(--sp-border, #e5e7eb);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.spl-cell--typeahead .awesomplete > ul[role="listbox"] li {
+  cursor: pointer;
 }

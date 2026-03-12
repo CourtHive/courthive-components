@@ -14,7 +14,7 @@
    ============================================================================ */
 
 .sp-btn {
-  font-size: 12px;
+  font-size: 0.75rem;
   padding: 6px 12px;
   border-radius: 10px;
   border: 1px solid var(--sp-border-light);
@@ -33,7 +33,7 @@
 .sp-btn:hover { border-color: var(--sp-border-hover); }
 
 /* ── Size ── */
-.sp-btn--sm { font-size: 11px; padding: 6px 10px; }
+.sp-btn--sm { font-size: 0.6875rem; padding: 6px 10px; }
 
 /* ── Intent ── */
 .sp-btn--accent { border-color: var(--sp-accent-border); color: var(--sp-accent-text); }
@@ -101,7 +101,7 @@
    ============================================================================ */
 
 .sp-btn-icon {
-  font-size: 14px;
+  font-size: 0.875rem;
   width: 24px;
   height: 24px;
   border-radius: 50%;
@@ -156,7 +156,7 @@
    ============================================================================ */
 
 .sp-chip {
-  font-size: 12px;
+  font-size: 0.75rem;
   padding: 5px 10px;
   border-radius: 999px;
   border: 1px solid var(--sp-accent-border);
@@ -176,7 +176,7 @@
 
 .sp-chip__remove {
   cursor: pointer;
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1;
   opacity: 0.6;
 }

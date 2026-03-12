@@ -20,7 +20,7 @@ export { SchedulePageStore } from './engine/schedulePageStore';
 // Domain (for advanced consumers)
 // ============================================================================
 
-export { filterMatchUpCatalog, groupMatchUpCatalog } from './domain/matchUpCatalogProjections';
+export { filterMatchUpCatalog, groupMatchUpCatalog, isCompletedStatus } from './domain/matchUpCatalogProjections';
 export { buildScheduleIssueIndex } from './domain/scheduleIssues';
 export { matchUpLabel, participantLabel, matchUpSearchKey, deepClone } from './domain/utils';
 
@@ -46,12 +46,16 @@ export {
   DEFAULT_SCHEDULE_CELL_CONFIG,
 } from './ui/scheduleGridCell';
 
+export { activateScheduleCellTypeAhead } from './ui/scheduleCellTypeAhead';
+export type { ScheduleCellTypeAheadOptions } from './ui/scheduleCellTypeAhead';
+
 // ============================================================================
 // Types
 // ============================================================================
 
 export type {
   CatalogMatchUpItem,
+  CatalogFilters,
   MatchUpSide,
   ScheduleDate,
   ScheduleIssue,

@@ -391,16 +391,16 @@ export const cModal = (() => {
         menuDropdown.style.top = `${rect.bottom + 4}px`;
         menuDropdown.style.right = `${window.innerWidth - rect.right}px`;
 
-        // Close on click elsewhere
+        // Close on click elsewhere — use capture phase so dialog's stopPropagation doesn't block it
         setTimeout(() => {
           const closeMenu = (event: MouseEvent) => {
             if (menuDropdown && !menuDropdown.contains(event.target as Node) && event.target !== menuCaret) {
               menuDropdown.remove();
               menuDropdown = undefined;
-              document.removeEventListener('click', closeMenu);
+              document.removeEventListener('click', closeMenu, true);
             }
           };
-          document.addEventListener('click', closeMenu);
+          document.addEventListener('click', closeMenu, true);
         }, 100);
       };
 

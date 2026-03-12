@@ -15,7 +15,8 @@ export function generateMatchUps({
   eventType,
   outcomes,
   drawType,
-  withRatings
+  withRatings,
+  withAllRatings
 }: {
   matchUpFormat?: string;
   randomWinningSide?: boolean;
@@ -27,6 +28,7 @@ export function generateMatchUps({
   outcomes?: any;
   drawType?: string;
   withRatings?: { scaleName: string; scaleType?: string; eventType?: string };
+  withAllRatings?: Array<{ scaleName: string; accessor: string; scaleType?: string; eventType?: string }>;
 } = {}): { matchUps: MatchUp[] } {
   const complete = completionGoal < 100 ? Math.floor(drawSize * 0.01 * completionGoal) : undefined;
 
@@ -72,22 +74,25 @@ export function generateMatchUps({
 
   tournamentEngine.createTeamsFromParticipantAttributes({ personAttribute: 'nationalityCode', addParticipants: true });
 
-  if (withRatings) {
+  const ratingsToApply = withAllRatings || (withRatings ? [{ ...withRatings, accessor: withRatings.scaleName }] : []);
+  if (ratingsToApply.length > 0) {
     const { participants } = tournamentEngine.getParticipants({
       participantFilters: { participantTypes: [INDIVIDUAL] }
     });
-    participants.forEach((participant: any) => {
-      const value = +(10 + Math.random() * 6).toFixed(2);
-      tournamentEngine.setParticipantScaleItem({
-        participantId: participant.participantId,
-        scaleItem: {
-          scaleValue: { [withRatings.scaleName]: value },
-          scaleName: withRatings.scaleName,
-          scaleType: withRatings.scaleType || 'RATING',
-          eventType: withRatings.eventType || SINGLES
-        }
+    for (const rating of ratingsToApply) {
+      participants.forEach((participant: any) => {
+        const value = +(10 + Math.random() * 6).toFixed(2);
+        tournamentEngine.setParticipantScaleItem({
+          participantId: participant.participantId,
+          scaleItem: {
+            scaleValue: { [rating.accessor]: value },
+            scaleName: rating.scaleName,
+            scaleType: rating.scaleType || 'RATING',
+            eventType: rating.eventType || SINGLES
+          }
+        });
       });
-    });
+    }
   }
 
   const { matchUps: allMatchUps } = tournamentEngine.allTournamentMatchUps({
@@ -105,7 +110,7 @@ export function generateMatchUps({
   tournamentEngine.bulkScheduleMatchUps({ matchUpIds, schedule });
 
   const { matchUps } = tournamentEngine.allTournamentMatchUps({
-    participantsProfile: { withISO2: true, withIOC: true, withScaleValues: !!withRatings }
+    participantsProfile: { withISO2: true, withIOC: true, withScaleValues: !!(withRatings || withAllRatings) }
   });
 
   return { matchUps };

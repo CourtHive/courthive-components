@@ -37,6 +37,7 @@
   --chc-status-warning: orange;
   --chc-status-error: red;
   --chc-status-info: blue;
+  --chc-draw-position-color: #b8860b;
 
   /* ── Components ──────────────────────────────────────── */
   --chc-modal-bg: #fff;
@@ -201,6 +202,7 @@
   --chc-status-warning: #ffb366;
   --chc-status-error: #ff8a8a;
   --chc-status-info: #5b9bd5;
+  --chc-draw-position-color: #d4a017;
 
   /* ── Components ──────────────────────────────────────── */
   --chc-modal-bg: #222244;

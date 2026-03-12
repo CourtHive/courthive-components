@@ -17,6 +17,7 @@ import { SchedulePageStore } from '../engine/schedulePageStore';
 import type {
   SchedulePageConfig,
   CatalogMatchUpItem,
+  CatalogFilters,
   ScheduleDate,
   ScheduleIssue,
   MatchUpCatalogGroupBy,
@@ -52,6 +53,8 @@ export class SchedulePageControl {
     const matchUpCatalog = buildMatchUpCatalog({
       onSearchChange: (query: string) => this.store.setCatalogSearch(query),
       onGroupByChange: (mode: MatchUpCatalogGroupBy) => this.store.setCatalogGroupBy(mode),
+      onFilterChange: (filters: CatalogFilters) => this.store.setCatalogFilters(filters),
+      onShowCompletedChange: (show: boolean) => this.store.setShowCompleted(show),
       onMatchUpSelected: (matchUp: CatalogMatchUpItem) => this.store.selectMatchUp(matchUp),
       onDropRemove: (matchUpId: string) => {
         this.store.handleMatchUpRemove(matchUpId);

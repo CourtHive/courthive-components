@@ -5,6 +5,8 @@ export { renderStructure } from './components/renderStructure/renderStructure';
 export { renderContainer } from './components/renderStructure/renderContainer';
 export { renderMatchUp } from './components/renderStructure/renderMatchUp';
 export { compositions } from './compositions/compositions';
+export { resolvePublishedComposition } from './compositions/resolvePublishedComposition';
+export type { DisplayExtensionValue } from './compositions/resolvePublishedComposition';
 export { renderRound } from './components/renderStructure/renderRound';
 
 // Schematic Structure — compact bracket preview (no participant details)
@@ -208,6 +210,9 @@ export type {
   IssueIndex,
   ProfileStoreState,
   SchedulingProfileConfig,
+  TemporalAdapter,
+  DemandAdapter,
+  DependencyAdapter,
   UIPanel,
 } from './components/scheduling-profile';
 
@@ -219,6 +224,7 @@ export {
   createSchedulePage,
   filterMatchUpCatalog,
   groupMatchUpCatalog,
+  isCompletedStatus,
   buildScheduleIssueIndex,
   matchUpLabel,
   participantLabel,
@@ -233,10 +239,12 @@ export {
   buildScheduleGridCell,
   mapMatchUpToCellData,
   DEFAULT_SCHEDULE_CELL_CONFIG,
+  activateScheduleCellTypeAhead,
 } from './components/schedule-page';
 
 export type {
   CatalogMatchUpItem,
+  CatalogFilters,
   MatchUpSide,
   ScheduleDate,
   ScheduleIssue,
@@ -258,7 +266,36 @@ export type {
   ParticipantDisplayConfig,
   ScheduleCellData,
   ScheduleCellSide,
+  ScheduleCellTypeAheadOptions,
 } from './components/schedule-page';
+
+// Composition Editor
+export { createCompositionEditor } from './components/composition-editor/compositionEditor';
+export { CompositionEditorStore } from './components/composition-editor/compositionEditorStore';
+export type {
+  CompositionEditorConfig,
+  SavedComposition,
+  CompositionEditorState,
+  CompositionEditorListener,
+  SectionId as CompositionEditorSectionId,
+  EditorPanel as CompositionEditorPanel,
+} from './components/composition-editor/compositionEditorTypes';
+
+// Inline Scoring
+import './components/inline-scoring/inline-scoring.css';
+export {
+  InlineScoringManager,
+  renderInlineMatchUp,
+  engineToMatchUp,
+  createInlineScoringFooter,
+  createEntryFields,
+} from './components/inline-scoring';
+export type {
+  InlineScoringMode,
+  InlineScoringConfig,
+  InlineScoringCallbacks,
+  InlineScoringEngineState,
+} from './components/inline-scoring';
 
 // Policy Catalog
 import './components/policy-catalog/ui/policy-catalog.css';

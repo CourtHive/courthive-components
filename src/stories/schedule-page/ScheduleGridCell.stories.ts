@@ -16,11 +16,13 @@
  * - BlockedCells: Maintenance, practice, generic blocked
  * - AllFields: All 7 fields enabled across all zones
  * - ConfigPlayground: Interactive buttons to toggle every config option
+ * - TypeAhead: Inline autocomplete on empty cell click (activateScheduleCellTypeAhead)
  */
 
 import type { ScheduleCellConfig, ScheduleCellData } from '../../components/schedule-page';
 import {
   buildScheduleGridCell,
+  activateScheduleCellTypeAhead,
   DEFAULT_SCHEDULE_CELL_CONFIG,
 } from '../../components/schedule-page';
 import { matchUpStatusConstants } from 'tods-competition-factory';
@@ -720,6 +722,175 @@ export const ConfigPlayground = {
 
     // Initial render
     rerenderCells();
+
+    return root;
+  },
+};
+
+// ============================================================================
+// TypeAhead — menu-first inline autocomplete on empty cell click
+// ============================================================================
+
+import { tipster } from '../../components/popover/tipster';
+
+/** Mock unscheduled matchUps for the typeahead dropdown */
+const MOCK_UNSCHEDULED = [
+  { label: "Men's Singles QF — Nadal vs Djokovic", value: 'mu-001' },
+  { label: "Men's Singles QF — Federer vs Murray", value: 'mu-002' },
+  { label: "Women's Singles SF — Swiatek vs Sabalenka", value: 'mu-003' },
+  { label: "Women's Singles SF — Gauff vs Rybakina", value: 'mu-004' },
+  { label: "Men's Doubles R16 — Bryan/Sock vs Cabal/Farah", value: 'mu-005' },
+  { label: "Mixed Doubles QF — Krejcikova/Mektovic vs Dabrowski/Pavic", value: 'mu-006' },
+  { label: "Men's Singles R32 — Alcaraz vs Rune", value: 'mu-007' },
+  { label: "Women's Singles R16 — Osaka vs Keys", value: 'mu-008' },
+];
+
+export const TypeAhead = {
+  name: 'TypeAhead',
+  render: () => {
+    const root = document.createElement('div');
+    root.style.cssText = 'padding: 2rem; max-width: 800px; font-family: system-ui, sans-serif;';
+
+    // Description
+    const desc = document.createElement('p');
+    desc.style.cssText = 'margin: 0 0 1rem; color: #6b7280; font-size: 0.875rem;';
+    desc.textContent =
+      'Click an empty cell to see a context menu. Select "Assign matchUp" to activate the inline typeahead. ' +
+      'Clicking outside the typeahead dismisses it; the next click shows the menu again.';
+    root.appendChild(desc);
+
+    // Status log
+    const log = document.createElement('div');
+    log.style.cssText =
+      'margin-bottom: 1rem; padding: 8px 12px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.75rem; color: #374151; min-height: 1.5em;';
+    log.textContent = 'Click an empty cell below...';
+    root.appendChild(log);
+
+    // Build a small mock grid: 3 courts × 3 rows, mix of matchUps and empty cells
+    const gridContainer = document.createElement('div');
+    gridContainer.style.cssText =
+      'display: grid; grid-template-columns: 80px repeat(3, 1fr); gap: 1px; background: #e5e7eb; border: 1px solid #e5e7eb; border-radius: 6px; overflow: visible;';
+
+    const courts = ['Court 1', 'Court 2', 'Court 3'];
+    const rows = ['Row 1', 'Row 2', 'Row 3'];
+
+    // Grid data: some cells have matchUps, some are empty (clickable for typeahead)
+    const gridData: (ScheduleCellData | null)[][] = [
+      [SINGLES_TO_BE_PLAYED, null, DOUBLES_TO_BE_PLAYED],
+      [null, SINGLES_IN_PROGRESS, null],
+      [null, null, null],
+    ];
+
+    // Court headers
+    const cornerHeader = document.createElement('div');
+    cornerHeader.style.cssText = 'padding: 6px; font-size: 0.625rem; font-weight: 700; color: #6b7280; background: #f3f4f6; text-align: center;';
+    gridContainer.appendChild(cornerHeader);
+
+    for (const court of courts) {
+      const hdr = document.createElement('div');
+      hdr.style.cssText = 'padding: 6px; font-size: 0.625rem; font-weight: 700; color: #374151; background: #f3f4f6; text-align: center;';
+      hdr.textContent = court;
+      gridContainer.appendChild(hdr);
+    }
+
+    // Helper: show the empty cell menu (tipster) for a given cell
+    const showEmptyCellMenu = (target: HTMLElement, wrapper: HTMLElement, courtLabel: string, rowLabel: string) => {
+      const assignMatchUp = () => {
+        log.textContent = `TypeAhead activated on ${courtLabel}, ${rowLabel}...`;
+        log.style.color = '#2563eb';
+
+        activateScheduleCellTypeAhead({
+          cell: wrapper,
+          listProvider: () => MOCK_UNSCHEDULED,
+          onSelect: (matchUpId: string) => {
+            const item = MOCK_UNSCHEDULED.find((m) => m.value === matchUpId);
+            log.textContent = `Selected: ${item?.label || matchUpId} → assigned to ${courtLabel}, ${rowLabel}`;
+            log.style.color = '#059669';
+
+            // Re-render the cell with a mock "assigned" matchUp
+            wrapper.innerHTML = '';
+            const assigned = buildScheduleGridCell(
+              {
+                matchUpId,
+                eventName: item?.label.split(' — ')[0] || '',
+                roundName: '',
+                matchUpType: 'SINGLES',
+                matchUpStatus: 'TO_BE_PLAYED',
+                sides: [
+                  { sideNumber: 1, participantName: (item?.label.split(' — ')[1] || '').split(' vs ')[0]?.trim() },
+                  { sideNumber: 2, participantName: (item?.label.split(' — ')[1] || '').split(' vs ')[1]?.trim() },
+                ],
+                schedule: { courtId: wrapper.getAttribute('data-court-id') || '', courtOrder: 1 },
+              } as ScheduleCellData,
+              DEFAULT_SCHEDULE_CELL_CONFIG,
+            );
+            wrapper.appendChild(assigned);
+          },
+          onCancel: () => {
+            log.textContent = `TypeAhead cancelled on ${courtLabel}, ${rowLabel}`;
+            log.style.color = '#9ca3af';
+          },
+        });
+      };
+
+      const blockCourt = (rowCount: number, bookingType: string) => {
+        log.textContent = `${bookingType} (${rowCount} row${rowCount > 1 ? 's' : ''}) on ${courtLabel}, ${rowLabel}`;
+        log.style.color = '#d97706';
+      };
+
+      const options = [
+        { option: 'Assign matchUp', onClick: assignMatchUp },
+        { option: 'Block court (1 row)', onClick: () => blockCourt(1, 'BLOCKED') },
+        { option: 'Block court (2 rows)', onClick: () => blockCourt(2, 'BLOCKED') },
+        { option: 'Block court (3 rows)', onClick: () => blockCourt(3, 'BLOCKED') },
+        { option: 'Mark court for practice (1 row)', onClick: () => blockCourt(1, 'PRACTICE') },
+        { option: 'Mark court for maintenance (1 row)', onClick: () => blockCourt(1, 'MAINTENANCE') },
+      ];
+
+      tipster({ options, target, config: { placement: 'right' } });
+    };
+
+    // Grid rows
+    for (let r = 0; r < rows.length; r++) {
+      // Row label
+      const rowLabelEl = document.createElement('div');
+      rowLabelEl.style.cssText = 'padding: 6px; font-size: 0.5625rem; font-weight: 600; color: #6b7280; background: #f9fafb; display: flex; align-items: center; justify-content: center;';
+      rowLabelEl.textContent = rows[r];
+      gridContainer.appendChild(rowLabelEl);
+
+      for (let c = 0; c < courts.length; c++) {
+        const data = gridData[r][c];
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'min-height: 60px; background: white; position: relative;';
+        wrapper.setAttribute('data-court-id', `court-${c + 1}`);
+        wrapper.setAttribute('data-venue-id', 'venue-1');
+
+        if (data) {
+          // Render a matchUp cell
+          const cell = buildScheduleGridCell(data, DEFAULT_SCHEDULE_CELL_CONFIG);
+          wrapper.appendChild(cell);
+        } else {
+          // Empty cell — render empty state and attach click handler for menu
+          const emptyCell = buildScheduleGridCell({ matchUpId: '' } as ScheduleCellData, DEFAULT_SCHEDULE_CELL_CONFIG);
+          emptyCell.style.cursor = 'pointer';
+          wrapper.appendChild(emptyCell);
+
+          wrapper.addEventListener('click', (ev) => {
+            showEmptyCellMenu(ev.target as HTMLElement, wrapper, courts[c], rows[r]);
+          });
+        }
+
+        gridContainer.appendChild(wrapper);
+      }
+    }
+
+    root.appendChild(gridContainer);
+
+    // Instructions
+    const hint = document.createElement('p');
+    hint.style.cssText = 'margin: 1rem 0 0; color: #9ca3af; font-size: 0.75rem;';
+    hint.textContent = 'Tip: Select "Assign matchUp" from the menu, then type to filter. Press Escape or click outside to dismiss. Click the cell again to re-open the menu.';
+    root.appendChild(hint);
 
     return root;
   },

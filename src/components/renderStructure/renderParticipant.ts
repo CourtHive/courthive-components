@@ -85,6 +85,9 @@ export function renderParticipant({
     });
     if (drawPosition) {
       participantContainer.dataset.drawPosition = String(drawPosition);
+      if (configuration?.drawPositionColor) {
+        participantContainer.style.setProperty('--chc-draw-position-color', configuration.drawPositionColor);
+      }
     }
   }
 
@@ -92,7 +95,7 @@ export function renderParticipant({
   participantContainer.setAttribute('id', participant?.participantId || '');
 
   if (teamLogo) {
-    const logo = renderTeamLogo({ teamLogo });
+    const logo = renderTeamLogo({ teamLogo, participantId: participant?.participantId });
     participantContainer.appendChild(logo);
   }
 

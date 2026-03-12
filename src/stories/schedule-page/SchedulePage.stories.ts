@@ -48,6 +48,10 @@ import {
   buildIssuesFromFactory,
 } from './factoryData';
 
+import { activateScheduleCellTypeAhead } from '../../components/schedule-page';
+import { tipster } from '../../components/popover/tipster';
+import { matchUpLabel } from '../../components/schedule-page/domain/utils';
+
 export default {
   title: 'Schedule Page/Full',
   parameters: {
@@ -698,10 +702,75 @@ export const FactoryBacked = {
     // 2. Track selected date
     let selectedDate = setup.activeDates[0];
 
+    // Forward-declare control so callbacks can reference it
+    let control: SchedulePageControl;
+
+    // Refresh helper — rebuilds everything from factory state
+    function refresh(): void {
+      grid.rebuild(selectedDate);
+      const catalog = buildCatalogFromFactory(selectedDate);
+      const dates = buildScheduleDates();
+      const issues = buildIssuesFromFactory(selectedDate);
+      control.setMatchUpCatalog(catalog);
+      control.setScheduleDates(dates);
+      control.setIssues(issues);
+    }
+
+    // Show tipster menu on empty cell click, with "Assign matchUp" → typeahead
+    function showEmptyCellMenu(event: MouseEvent, cell: HTMLElement, courtId: string, venueId: string, courtOrder: number): void {
+      const assignMatchUp = () => {
+        activateScheduleCellTypeAhead({
+          cell,
+          listProvider: () => {
+            const catalog = buildCatalogFromFactory(selectedDate);
+            return catalog
+              .filter((m) => !m.isScheduled && (m.sides?.length ?? 0) >= 1)
+              .map((m) => ({
+                label: `${m.eventName} ${m.roundName || ''} — ${matchUpLabel(m)}`.trim(),
+                value: m.matchUpId,
+              }));
+          },
+          onSelect: (matchUpId: string) => {
+            const catalog = buildCatalogFromFactory(selectedDate);
+            const item = catalog.find((m) => m.matchUpId === matchUpId);
+            const drawId = item?.drawId ?? '';
+
+            log(`Assigning ${matchUpId} → court=${courtId} row=${courtOrder}`);
+            const result = scheduleMatchUpViaFactory(matchUpId, drawId, courtId, venueId, courtOrder, selectedDate);
+
+            if (result.error) {
+              log(`Assign ERROR: ${JSON.stringify(result.error)}`);
+            } else {
+              log(`Assigned ${matchUpId} successfully`);
+            }
+
+            refresh();
+          },
+          onCancel: () => {
+            log(`TypeAhead cancelled on court=${courtId} row=${courtOrder}`);
+          },
+        });
+      };
+
+      const options = [
+        { option: 'Assign matchUp', onClick: assignMatchUp },
+        { option: 'Block court (1 row)', onClick: () => log(`Block 1 row on court=${courtId}`) },
+        { option: 'Block court (2 rows)', onClick: () => log(`Block 2 rows on court=${courtId}`) },
+      ];
+
+      tipster({ options, target: event.target as HTMLElement, config: { placement: 'right' } });
+    }
+
     // 3. Build initial data
     const grid = buildFactoryGrid(selectedDate, {
-      onCellClick: (courtId, courtOrder, m) => {
-        log(`CLICK: court=${courtId} row=${courtOrder} ${m ? m.matchUpId : '(empty)'}`);
+      onCellClick: (courtId, courtOrder, m, event, cell) => {
+        if (m) {
+          log(`CLICK: court=${courtId} row=${courtOrder} ${m.matchUpId}`);
+        } else {
+          // Empty cell — show menu with typeahead option
+          const venueId = cell.getAttribute('data-venue-id') || '';
+          showEmptyCellMenu(event, cell, courtId, venueId, courtOrder);
+        }
       },
       onCellDblClick: (courtId, courtOrder, m) => {
         log(`DBLCLICK: court=${courtId} row=${courtOrder} ${m ? m.matchUpId : '(empty)'}`);
@@ -722,18 +791,7 @@ export const FactoryBacked = {
     container.style.cssText = FLEX_CONTAINER;
     root.appendChild(container);
 
-    // Refresh helper — rebuilds everything from factory state
-    function refresh(ctrl: SchedulePageControl): void {
-      grid.rebuild(selectedDate);
-      const catalog = buildCatalogFromFactory(selectedDate);
-      const dates = buildScheduleDates();
-      const issues = buildIssuesFromFactory(selectedDate);
-      ctrl.setMatchUpCatalog(catalog);
-      ctrl.setScheduleDates(dates);
-      ctrl.setIssues(issues);
-    }
-
-    const control = createSchedulePage(
+    control = createSchedulePage(
       {
         matchUpCatalog: initialCatalog,
         scheduleDates: initialDates,
@@ -744,7 +802,7 @@ export const FactoryBacked = {
         onDateSelected: (date) => {
           selectedDate = date;
           log(`Date selected: ${date}`);
-          refresh(control);
+          refresh();
         },
 
         onMatchUpDrop: (payload, event) => {
@@ -799,7 +857,7 @@ export const FactoryBacked = {
             log(`Scheduled ${matchUp.matchUpId} successfully`);
           }
 
-          refresh(control);
+          refresh();
         },
 
         onMatchUpRemove: (matchUpId) => {
@@ -817,7 +875,7 @@ export const FactoryBacked = {
             log(`Unscheduled ${matchUpId} successfully`);
           }
 
-          refresh(control);
+          refresh();
         },
 
         onMatchUpSelected: (m) => {
@@ -913,7 +971,7 @@ export const FactoryBacked = {
 
     footer.appendChild(
       makeBtn('Refresh', () => {
-        refresh(control);
+        refresh();
         log('Manual refresh');
       }),
     );

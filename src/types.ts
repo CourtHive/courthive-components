@@ -122,8 +122,8 @@ export interface SetScore {
   side2Score?: number;
   side1TiebreakScore?: number;
   side2TiebreakScore?: number;
-  side1PointsScore?: number | string;
-  side2PointsScore?: number | string;
+  side1PointScore?: number | string;
+  side2PointScore?: number | string;
   winningSide?: number;
 }
 
@@ -160,6 +160,7 @@ export interface Configuration {
   };
   drawPositions?: boolean;
   allDrawPositions?: boolean;
+  drawPositionColor?: string;
   bracketedSeeds?: boolean | 'square';
   scheduleInfo?: boolean;
   matchUpFooter?: boolean;
@@ -172,6 +173,11 @@ export interface Configuration {
   assignmentInputFontSize?: string; // Font size for participant assignment inputs (e.g., '14px', '0.875rem')
   persistInputFields?: boolean; // Keep input fields visible after assignment, allow re-assignment
   hasQualifying?: boolean; // If true, show QUALIFIER option in typeahead
+  inlineScoring?: {
+    mode: 'points' | 'games' | 'entry';
+    showFooter?: boolean;
+    showSituation?: boolean;
+  };
   genderColor?: boolean | string; // Color coding by gender (from index.d.ts)
   winnerColor?: boolean | string; // Color coding for winners (from index.d.ts)
   placeHolders?: {
@@ -186,6 +192,7 @@ export interface Configuration {
     accessor?: string;
     eventType?: string;
     fallback?: boolean;
+    scalePosition?: 'left' | 'right';
     rawValue?: any;
   };
   clickAway?: boolean;
