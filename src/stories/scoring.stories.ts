@@ -684,6 +684,9 @@ export const ClearGlobalScore = {
               const tbScore = set.winningSide === 1 ? set.side2TiebreakScore : set.side1TiebreakScore;
               setScore += `(${tbScore})`;
             }
+            if (set.side1PointScore != null || set.side2PointScore != null) {
+              setScore += ` [${set.side1PointScore ?? 0}-${set.side2PointScore ?? 0}]`;
+            }
             return setScore;
           })
           .join(' ');
