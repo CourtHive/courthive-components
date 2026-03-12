@@ -104,7 +104,7 @@
     "class-variance-authority": "0.7.1",
     "classnames": "2.5.1",
     "d3": "^7.9.0",
-    "dayjs": "1.11.19",
+    "dayjs": "1.11.20",
     "focus-trap": "^8.0.0",
     "timepicker-ui": "^4.1.2",
     "tippy.js": "6.3.7",
