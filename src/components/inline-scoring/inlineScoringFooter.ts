@@ -1,9 +1,6 @@
 import type { InlineScoringManager } from './inlineScoringManager';
 import type { MatchUp } from '../../types';
 
-const END_PREFIX = 'chc-inline-scoring-end';
-const OPEN_CLASS = 'chc-is-open';
-
 interface FooterParams {
   matchUpId: string;
   manager: InlineScoringManager;
@@ -14,7 +11,7 @@ interface FooterParams {
 
 /**
  * Creates an interactive footer bar for inline scoring:
- * [Undo] [Redo] [Clear] [End ▾]  |  situation flags
+ * [Undo] [Redo] [Clear] [Submit]  |  situation flags
  */
 export function createInlineScoringFooter(params: FooterParams): {
   element: HTMLElement;
@@ -39,38 +36,7 @@ export function createInlineScoringFooter(params: FooterParams): {
   const undoBtn = mkBtn('Undo', 'chc-is-undo');
   const redoBtn = mkBtn('Redo', 'chc-is-redo');
   const clearBtn = mkBtn('Clear', 'chc-is-clear');
-
-  // End dropdown button
-  const endBtn = document.createElement('div');
-  endBtn.className = `${END_PREFIX}-group`;
-  const endTrigger = mkBtn('End \u25BE', 'chc-is-end');
-  const endMenu = document.createElement('div');
-  endMenu.className = `${END_PREFIX}-menu`;
-
-  const endOptions = [
-    { label: 'Retired', status: 'RETIRED' },
-    { label: 'Walkover', status: 'WALKOVER' },
-    { label: 'Defaulted', status: 'DEFAULTED' },
-    { label: 'Suspended', status: 'SUSPENDED' },
-  ];
-  for (const opt of endOptions) {
-    const item = document.createElement('button');
-    item.className = `${END_PREFIX}-item`;
-    item.textContent = opt.label;
-    item.onclick = (e) => {
-      e.stopPropagation();
-      endMenu.classList.remove(OPEN_CLASS);
-      manager.callbacks?.onEndMatch?.({ matchUpId, matchUpStatus: opt.status, engine: manager.get(matchUpId)?.engine });
-    };
-    endMenu.appendChild(item);
-  }
-
-  endTrigger.onclick = (e) => {
-    e.stopPropagation();
-    endMenu.classList.toggle(OPEN_CLASS);
-  };
-  endBtn.appendChild(endTrigger);
-  endBtn.appendChild(endMenu);
+  const submitBtn = mkBtn('Submit', 'chc-is-submit');
 
   // Situation display
   let situationEl: HTMLElement | undefined;
@@ -107,13 +73,18 @@ export function createInlineScoringFooter(params: FooterParams): {
     }
   };
 
-  buttonBar.append(undoBtn, redoBtn, clearBtn, endBtn);
+  submitBtn.onclick = (e) => {
+    e.stopPropagation();
+    const state = manager.get(matchUpId);
+    if (state) {
+      const matchUp = manager.getMatchUp(matchUpId, baseMatchUp);
+      manager.callbacks?.onSubmit?.({ matchUpId, matchUp, engine: state.engine });
+    }
+  };
+
+  buttonBar.append(undoBtn, redoBtn, clearBtn, submitBtn);
   footer.appendChild(buttonBar);
   if (situationEl) footer.appendChild(situationEl);
-
-  // Close end menu on outside click
-  const closeEndMenu = () => endMenu.classList.remove(OPEN_CLASS);
-  document.addEventListener('click', closeEndMenu);
 
   function update() {
     const canUndo = manager.canUndo(matchUpId);
@@ -123,7 +94,6 @@ export function createInlineScoringFooter(params: FooterParams): {
     undoBtn.disabled = !canUndo;
     redoBtn.disabled = !canRedo;
     clearBtn.disabled = !canUndo && !canRedo;
-    endTrigger.disabled = isComplete;
 
     if (situationEl) {
       const situation = manager.getSituation(matchUpId);
@@ -146,3 +116,4 @@ export function createInlineScoringFooter(params: FooterParams): {
 
   return { element: footer, update };
 }
+

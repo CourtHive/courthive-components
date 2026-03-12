@@ -4,10 +4,10 @@
   position: relative;
 }
 
-.chc-inline-scoring-active {
-  outline: 2px solid var(--chc-inline-scoring-border, var(--chc-color-primary, #3b82f6));
-  outline-offset: -1px;
-  border-radius: 4px;
+
+/* Suppress the matchUp hover border flash during inline scoring re-renders */
+.chc-inline-scoring-wrapper .chc-matchup:hover {
+  border-color: inherit;
 }
 
 /* Clickable score/side areas in point/game mode */
@@ -17,7 +17,11 @@
 }
 
 .chc-inline-scoring-clickable:hover {
-  background-color: var(--chc-inline-scoring-hover, rgba(59, 130, 246, 0.08));
+  filter: brightness(1.5);
+}
+
+[data-theme='dark'] .chc-inline-scoring-clickable:hover {
+  filter: brightness(0.85);
 }
 
 .chc-inline-scoring-side {
@@ -45,135 +49,123 @@
 .chc-inline-scoring-buttons {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.2rem;
+  flex-shrink: 0;
 }
 
 .chc-inline-scoring-btn {
-  padding: 0.15rem 0.4rem;
+  padding: 0.15rem 0.35rem;
   border: 1px solid var(--chc-border-primary, #dee2e6);
   border-radius: 3px;
-  background: var(--chc-bg-primary, #fff);
-  color: var(--chc-text-primary, #212529);
+  background: var(--chc-bg-secondary, #f8f9fa);
+  color: var(--chc-text-secondary, #6c757d);
   cursor: pointer;
-  font-size: 0.65rem;
+  font-size: 0.55rem;
   font-family: inherit;
-  line-height: 1.4;
+  font-weight: 600;
+  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: background-color 0.1s ease, opacity 0.1s ease;
 }
 
 .chc-inline-scoring-btn:hover:not(:disabled) {
-  background: var(--chc-inline-scoring-btn-hover, #e9ecef);
+  background: var(--chc-inline-scoring-btn-hover, #e2e6ea);
+  color: var(--chc-text-primary, #212529);
 }
 
 .chc-inline-scoring-btn:disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: default;
 }
 
-/* ── End dropdown ─────────────────────────────────────────── */
-
-.chc-inline-scoring-end-group {
-  position: relative;
-  display: inline-block;
-}
-
-.chc-inline-scoring-end-menu {
-  display: none;
-  position: absolute;
-  bottom: 100%;
-  left: 0;
-  z-index: 100;
-  min-width: 7rem;
-  padding: 0.2rem 0;
-  margin-bottom: 0.2rem;
-  background: var(--chc-bg-primary, #fff);
-  border: 1px solid var(--chc-border-primary, #dee2e6);
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-}
-
-.chc-inline-scoring-end-menu.chc-is-open {
-  display: block;
-}
-
-.chc-inline-scoring-end-item {
-  display: block;
-  width: 100%;
-  padding: 0.3rem 0.6rem;
-  border: none;
-  background: none;
-  color: var(--chc-text-primary, #212529);
-  font-size: 0.65rem;
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.chc-inline-scoring-end-item:hover {
-  background: var(--chc-inline-scoring-btn-hover, #e9ecef);
-}
 
 /* ── Situation flags ──────────────────────────────────────── */
 
 .chc-inline-scoring-situation {
   color: var(--chc-inline-scoring-situation-color, var(--chc-color-primary, #3b82f6));
   font-weight: 600;
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   white-space: nowrap;
   margin-left: auto;
+  text-transform: uppercase;
 }
 
-/* ── Entry mode (set-score input fields) ─────────────────── */
+/* ── LIVE chip ───────────────────────────────────────────── */
 
-.chc-inline-scoring-entry {
+.chc-live-chip {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* ── LIVE chip popover ───────────────────────────────────── */
+
+.chc-live-chip-popover {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.35rem 0.5rem;
+  flex-direction: row;
+  gap: 0.3rem;
+  padding: 0.35rem;
+  background: var(--chc-bg-primary, #fff);
+  border: 1px solid var(--chc-border-primary, #dee2e6);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   font-family: sans-serif;
-  font-size: 0.7rem;
-  background: var(--chc-inline-scoring-footer-bg, var(--chc-bg-secondary, #f8f9fa));
-  border-top: 1px solid var(--chc-inline-scoring-footer-border, var(--chc-border-primary, #dee2e6));
 }
 
-.chc-inline-scoring-entry-row {
+/* Popover items use renderStatusPill — just add cursor + hover opacity */
+.chc-live-chip-popover-item {
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.chc-live-chip-popover-item:hover {
+  opacity: 0.75;
+}
+
+/* ── Footer slot (inside matchUp footer) ─────────────────── */
+
+.chc-matchup-footer.chc-inline-scoring-footer-slot {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.7rem;
+  font-family: sans-serif;
+  overflow: visible;
+  background-color: var(--chc-color-matchup);
+}
+
+.chc-matchup-footer-round {
+  font-size: 0.6rem;
+  color: var(--chc-text-secondary, #6c757d);
+  white-space: nowrap;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+
+.chc-inline-scoring-footer-buttons {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.35rem;
+  margin-left: auto;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
-.chc-inline-scoring-entry-row.chc-is-readonly {
+/* ── Submit button accent ─────────────────────────────────── */
+
+.chc-is-submit {
+  background: var(--chc-color-primary, #3b82f6);
+  color: #fff;
+  border-color: var(--chc-color-primary, #3b82f6);
   opacity: 0.6;
 }
 
-.chc-inline-scoring-entry-label {
-  min-width: 3rem;
-  color: var(--chc-text-secondary, #6c757d);
-  font-size: 0.65rem;
-}
-
-.chc-inline-scoring-entry-input {
-  width: 2.5em;
-  padding: 0.15rem 0.25rem;
-  border: 1px solid var(--chc-border-primary, #dee2e6);
-  border-radius: 3px;
-  background: var(--chc-bg-primary, #fff);
-  color: var(--chc-text-primary, #212529);
-  font-size: 0.7rem;
-  font-family: inherit;
-  text-align: center;
-}
-
-.chc-inline-scoring-entry-input:focus {
-  outline: 2px solid var(--chc-color-primary, #3b82f6);
-  outline-offset: -1px;
-}
-
-.chc-inline-scoring-entry-input:disabled {
-  background: transparent;
-  border-color: transparent;
-}
-
-.chc-inline-scoring-entry-dash {
-  color: var(--chc-text-secondary, #6c757d);
+.chc-is-submit:hover:not(:disabled) {
+  opacity: 0.85;
 }

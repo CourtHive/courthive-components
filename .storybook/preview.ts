@@ -11,6 +11,7 @@ import '../src/styles/components/ui.css';
 import '../src/components/forms/checkradio.css';
 import '../src/styles/accessibility.css';
 import '../src/components/courts/courts.css';
+import '../src/components/inline-scoring/inline-scoring.css';
 
 const preview: Preview = {
   globalTypes: {

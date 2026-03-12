@@ -288,7 +288,6 @@ export {
   renderInlineMatchUp,
   engineToMatchUp,
   createInlineScoringFooter,
-  createEntryFields,
 } from './components/inline-scoring';
 export type {
   InlineScoringMode,

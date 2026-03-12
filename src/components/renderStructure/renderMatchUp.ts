@@ -118,11 +118,57 @@ export function renderMatchUp(params: {
 
   if (configuration?.matchUpFooter) {
     const footer = document.createElement('div');
-    footer.className = 'chc-matchup-footer';
-    const roundName = matchUp.roundName || '';
-    const roundPosition = matchUp.roundPosition;
-    const label = roundPosition ? `${roundName} \u2022 Match ${roundPosition}` : roundName;
-    footer.textContent = label;
+    const inlineScoring = configuration?.inlineScoring;
+
+    if (inlineScoring && inlineScoring.showFooter !== false) {
+      footer.className = 'chc-matchup-footer chc-inline-scoring-footer-slot';
+      // Round label on the left
+      const roundLabel = document.createElement('span');
+      roundLabel.className = 'chc-matchup-footer-round';
+      const roundName = matchUp.roundName || '';
+      const roundPosition = matchUp.roundPosition;
+      roundLabel.textContent = roundPosition ? `${roundName} \u2022 M${roundPosition}` : roundName;
+      footer.appendChild(roundLabel);
+
+      // Buttons on the right — driven by eventHandlers
+      const buttonsContainer = document.createElement('div');
+      buttonsContainer.className = 'chc-inline-scoring-footer-buttons';
+
+      const mkBtn = (label: string, cls: string, handler?: (params: { matchUpId: string }) => void) => {
+        const btn = document.createElement('button');
+        btn.textContent = label;
+        btn.className = `chc-inline-scoring-btn ${cls}`;
+        if (handler) {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            handler({ matchUpId: matchUp.matchUpId });
+          };
+        }
+        return btn;
+      };
+
+      const undoBtn = mkBtn('Undo', 'chc-is-undo', eventHandlers.inlineUndo);
+      const redoBtn = mkBtn('Redo', 'chc-is-redo', eventHandlers.inlineRedo);
+      const clearBtn = mkBtn('Clear', 'chc-is-clear', eventHandlers.inlineClear);
+      const submitBtn = mkBtn('Submit', 'chc-is-submit', eventHandlers.inlineSubmit);
+
+      undoBtn.disabled = !inlineScoring.canUndo;
+      redoBtn.disabled = !inlineScoring.canRedo;
+      clearBtn.disabled = !inlineScoring.canUndo && !inlineScoring.canRedo;
+
+      const buttonBar = document.createElement('div');
+      buttonBar.className = 'chc-inline-scoring-buttons';
+      buttonBar.append(undoBtn, redoBtn, clearBtn, submitBtn);
+      buttonsContainer.appendChild(buttonBar);
+
+      footer.appendChild(buttonsContainer);
+    } else {
+      footer.className = 'chc-matchup-footer';
+      const roundName = matchUp.roundName || '';
+      const roundPosition = matchUp.roundPosition;
+      const label = roundPosition ? `${roundName} \u2022 Match ${roundPosition}` : roundName;
+      footer.textContent = label;
+    }
     component.appendChild(footer);
   }
 

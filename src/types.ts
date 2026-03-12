@@ -261,6 +261,12 @@ export interface EventHandlers {
     pointerEvent?: Event;
   }) => void;
   scoreClick?: (params: { pointerEvent: MouseEvent; matchUp: MatchUp }) => void;
+  pillClick?: (params: { pointerEvent: MouseEvent; matchUp: MatchUp; sideNumber: number }) => void;
+  scoreIncrement?: (params: { matchUpId: string; sideNumber: number; scoreType: 'point' | 'game' | 'set' }) => void;
+  inlineUndo?: (params: { matchUpId: string }) => void;
+  inlineRedo?: (params: { matchUpId: string }) => void;
+  inlineClear?: (params: { matchUpId: string }) => void;
+  inlineSubmit?: (params: { matchUpId: string }) => void;
   [key: string]: any;
 }
 

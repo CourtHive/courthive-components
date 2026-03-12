@@ -141,7 +141,20 @@ export function renderParticipant({
 
   if (sideContainer) {
     const endMatter = document.createElement('div');
-    if (isWinningSide && !gameScoreOnly) {
+    const inlineScoring = configuration?.inlineScoring;
+    const isReadyToScore = matchUp?.readyToScore;
+    const isCompleted = Boolean(winningSide || matchUpStatus === 'COMPLETED');
+
+    if (inlineScoring && isReadyToScore && !isCompleted) {
+      // Show LIVE pill for ready-to-score matchUps in inline scoring mode (both sides)
+      const livePill = renderStatusPill({ matchUpStatus: IN_PROGRESS });
+      livePill.classList.add('chc-live-chip');
+      livePill.addEventListener('click', (e) => {
+        e.stopPropagation();
+        eventHandlers?.pillClick?.({ pointerEvent: e, matchUp: matchUp!, sideNumber: sideNumber! });
+      });
+      endMatter.appendChild(livePill);
+    } else if (isWinningSide && !gameScoreOnly) {
       const tick = renderTick();
       if (typeof tick === 'string') {
         endMatter.innerHTML = tick;
@@ -150,6 +163,14 @@ export function renderParticipant({
       }
     } else if (irregularEnding) {
       const statusPill = renderStatusPill({ matchUpStatus });
+      // In inline scoring mode, status pills are clickable to change the status
+      if (inlineScoring) {
+        statusPill.classList.add('chc-live-chip');
+        statusPill.addEventListener('click', (e) => {
+          e.stopPropagation();
+          eventHandlers?.pillClick?.({ pointerEvent: e, matchUp: matchUp!, sideNumber: sideNumber! });
+        });
+      }
       endMatter.appendChild(statusPill);
     }
 

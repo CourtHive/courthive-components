@@ -299,7 +299,10 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       selectedWinner = sideNum;
       setTimeout(() => {
         if (typeof updateScoreFromInputs === 'function') {
+          // Guard: selecting a winner shouldn't re-init the game score engine
+          pointChangeInProgress = true;
           updateScoreFromInputs();
+          pointChangeInProgress = false;
         }
       }, 0);
     });
@@ -464,7 +467,8 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       return;
     }
 
-    // Skip re-init when triggered by a point add/undo — the engine already has the correct state
+    // Skip re-init when the engine already has the correct state:
+    // - pointChangeInProgress: triggered by a point add, replay, or winner selection
     if (pointChangeInProgress) return;
 
     // Re-initialize engine when set scores change
@@ -825,8 +829,10 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       const lastSet = currentSets[currentSets.length - 1];
       if (lastSet.winningSide === undefined) {
         const pts = getEnginePointScores();
-        if (pts.side1) lastSet.side1PointScore = pts.side1;
-        if (pts.side2) lastSet.side2PointScore = pts.side2;
+        if (pts.side1 || pts.side2) {
+          lastSet.side1PointScore = pts.side1 || '0';
+          lastSet.side2PointScore = pts.side2 || '0';
+        }
       }
     }
 
@@ -1564,7 +1570,11 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
           if (gameScoreEngine) {
             replayPointsToScore(storedP1, storedP2);
             updateGameScoreDisplay();
+            // Guard against re-init: updateScoreFromInputs calls updateGameScoreRow
+            // which would wipe the just-replayed points
+            pointChangeInProgress = true;
             updateScoreFromInputs();
+            pointChangeInProgress = false;
           }
         }, 0);
       }

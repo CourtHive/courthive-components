@@ -43,6 +43,8 @@ function makeStoreState(overrides: Partial<SchedulePageState> = {}): SchedulePag
     selectedMatchUp: null,
     catalogSearchQuery: '',
     catalogGroupBy: 'event',
+    catalogFilters: {},
+    showCompleted: false,
     scheduledBehavior: 'dim',
     schedulingMode: 'immediate',
     pendingActions: [],

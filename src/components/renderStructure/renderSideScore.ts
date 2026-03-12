@@ -110,6 +110,18 @@ export function renderSideScore({
       pointScoreEl = document.createElement('p');
       pointScoreEl.className = pointScoreStyle({ inverted, position });
       pointScoreEl.textContent = pointValue != null ? String(pointValue) : '';
+
+      // Make point scores clickable in inline scoring mode
+      const inlineConfig = composition?.configuration?.inlineScoring;
+      if (inlineConfig && !lastSet.winningSide) {
+        pointScoreEl.classList.add('chc-inline-scoring-clickable');
+        pointScoreEl.style.cursor = 'pointer';
+        pointScoreEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          eventHandlers?.scoreIncrement?.({ matchUpId: matchUp.matchUpId, sideNumber, scoreType: 'point' });
+        });
+      }
     }
   }
 
@@ -144,6 +156,8 @@ export function renderSideScore({
     }
   }
 
+  const inlineScoringConfig = composition?.configuration?.inlineScoring;
+
   for (const set of sets || []) {
     const setScoreDisplay = setScore({
       gameScoreOnly,
@@ -151,6 +165,18 @@ export function renderSideScore({
       sideNumber,
       set
     });
+
+    // Make unwon set scores clickable in inline scoring mode
+    if (inlineScoringConfig && !set.winningSide) {
+      (setScoreDisplay as HTMLElement).classList.add('chc-inline-scoring-clickable');
+      (setScoreDisplay as HTMLElement).style.cursor = 'pointer';
+      (setScoreDisplay as HTMLElement).addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const scoreType = inlineScoringConfig.mode === 'games' ? 'game' : 'point';
+        eventHandlers?.scoreIncrement?.({ matchUpId: matchUp.matchUpId, sideNumber, scoreType });
+      });
+    }
 
     if (resultsInfo) {
       gameWrapper.appendChild(wrapCol(setScoreDisplay, String(set.setNumber), 'set'));
