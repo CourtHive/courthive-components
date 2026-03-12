@@ -31,6 +31,8 @@ export interface CatalogMatchUpItem {
   roundName?: string;
   matchUpFormat?: string;
   matchUpType?: 'SINGLES' | 'DOUBLES';
+  matchUpStatus?: string;
+  gender?: string;
   sides?: MatchUpSide[];
   isScheduled: boolean;
   scheduledTime?: string;
@@ -66,6 +68,18 @@ export interface ScheduleIssue {
 // ============================================================================
 
 export type MatchUpCatalogGroupBy = 'event' | 'draw' | 'round' | 'structure';
+
+// ============================================================================
+// Catalog Filters
+// ============================================================================
+
+export interface CatalogFilters {
+  eventType?: string;
+  eventName?: string;
+  drawName?: string;
+  gender?: string;
+  roundName?: string;
+}
 
 // ============================================================================
 // Scheduled Behavior
@@ -144,6 +158,8 @@ export interface SchedulePageState {
   selectedMatchUp: CatalogMatchUpItem | null;
   catalogSearchQuery: string;
   catalogGroupBy: MatchUpCatalogGroupBy;
+  catalogFilters: CatalogFilters;
+  showCompleted: boolean;
   scheduledBehavior: ScheduledBehavior;
   schedulingMode: SchedulingMode;
   pendingActions: PendingScheduleAction[];

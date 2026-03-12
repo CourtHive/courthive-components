@@ -896,7 +896,7 @@ export const GameScoreInProgress = {
       scoreStringSide1: '6-4 4-5',
       sets: [
         { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
-        { setNumber: 2, side1Score: 4, side2Score: 5, side1PointsScore: 15, side2PointsScore: 30 }
+        { setNumber: 2, side1Score: 4, side2Score: 5, side1PointScore: 15, side2PointScore: 30 }
       ]
     };
     matchUp.winningSide = undefined;
@@ -919,7 +919,7 @@ export const GameScoreLeading = {
       scoreStringSide1: '6-4 4-5',
       sets: [
         { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
-        { setNumber: 2, side1Score: 4, side2Score: 5, side1PointsScore: 40, side2PointsScore: 30 }
+        { setNumber: 2, side1Score: 4, side2Score: 5, side1PointScore: 40, side2PointScore: 30 }
       ]
     };
     matchUp.winningSide = undefined;
@@ -942,7 +942,7 @@ export const GameScoreDeuce = {
       scoreStringSide1: '6-4 5-6',
       sets: [
         { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
-        { setNumber: 2, side1Score: 5, side2Score: 6, side1PointsScore: 'AD', side2PointsScore: 40 }
+        { setNumber: 2, side1Score: 5, side2Score: 6, side1PointScore: 'AD', side2PointScore: 40 }
       ]
     };
     matchUp.winningSide = undefined;
@@ -965,7 +965,7 @@ export const GameScoreTiebreak = {
       scoreStringSide1: '6-4 6-6',
       sets: [
         { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
-        { setNumber: 2, side1Score: 6, side2Score: 6, side1PointsScore: 5, side2PointsScore: 3 }
+        { setNumber: 2, side1Score: 6, side2Score: 6, side1PointScore: 5, side2PointScore: 3 }
       ]
     };
     matchUp.winningSide = undefined;
@@ -988,7 +988,7 @@ export const GameScoreNotInverted = {
       scoreStringSide1: '6-4 3-2',
       sets: [
         { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
-        { setNumber: 2, side1Score: 3, side2Score: 2, side1PointsScore: 0, side2PointsScore: 15 }
+        { setNumber: 2, side1Score: 3, side2Score: 2, side1PointScore: 0, side2PointScore: 15 }
       ]
     };
     matchUp.winningSide = undefined;
@@ -1011,7 +1011,7 @@ export const GameScoreSuspended = {
       scoreStringSide1: '6-4 3-5',
       sets: [
         { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
-        { setNumber: 2, side1Score: 3, side2Score: 5, side1PointsScore: 30, side2PointsScore: 40 }
+        { setNumber: 2, side1Score: 3, side2Score: 5, side1PointScore: 30, side2PointScore: 40 }
       ]
     };
     matchUp.winningSide = undefined;
@@ -1034,7 +1034,7 @@ export const GameScoreRetired = {
       scoreStringSide1: '6-4 3-2',
       sets: [
         { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
-        { setNumber: 2, side1Score: 3, side2Score: 2, side1PointsScore: 15, side2PointsScore: 0 }
+        { setNumber: 2, side1Score: 3, side2Score: 2, side1PointScore: 15, side2PointScore: 0 }
       ]
     };
     matchUp.winningSide = 1;
@@ -1078,7 +1078,7 @@ export const GameScoreZeroZero = {
       scoreStringSide1: '6-4 2-3',
       sets: [
         { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
-        { setNumber: 2, side1Score: 2, side2Score: 3, side1PointsScore: 0, side2PointsScore: 0 }
+        { setNumber: 2, side1Score: 2, side2Score: 3, side1PointScore: 0, side2PointScore: 0 }
       ]
     };
     matchUp.winningSide = undefined;

@@ -122,8 +122,8 @@ export interface SetScore {
   side2Score?: number;
   side1TiebreakScore?: number;
   side2TiebreakScore?: number;
-  side1PointsScore?: number | string;
-  side2PointsScore?: number | string;
+  side1PointScore?: number | string;
+  side2PointScore?: number | string;
   winningSide?: number;
 }
 

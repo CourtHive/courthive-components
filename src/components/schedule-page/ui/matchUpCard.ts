@@ -6,6 +6,7 @@
 
 import type { CatalogMatchUpItem } from '../types';
 import { matchUpLabel } from '../domain/utils';
+import { isCompletedStatus } from '../domain/matchUpCatalogProjections';
 import {
   splMatchUpCardStyle,
   splCardTitleStyle,
@@ -27,8 +28,13 @@ export function buildMatchUpCard(
   card.className = splMatchUpCardStyle();
   card.setAttribute('data-matchup-id', item.matchUpId);
 
+  const completed = isCompletedStatus(item.matchUpStatus);
+
   if (item.isScheduled) {
     card.classList.add('scheduled');
+    card.draggable = false;
+  } else if (completed) {
+    card.classList.add('completed');
     card.draggable = false;
   } else {
     card.draggable = true;
@@ -83,6 +89,12 @@ export function buildMatchUpCard(
   }
   if (item.matchUpFormat) {
     chips.appendChild(makeChip(item.matchUpFormat, 'type'));
+  }
+
+  // Status chip for completed matchUps
+  if (completed && item.matchUpStatus) {
+    const statusLabel = item.matchUpStatus.replace(/_/g, ' ');
+    chips.appendChild(makeChip(statusLabel, 'status'));
   }
 
   if (chips.children.length) card.appendChild(chips);

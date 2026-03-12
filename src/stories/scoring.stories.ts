@@ -469,7 +469,7 @@ export const GameScoreCapture = {
       matchUp.score = {
         sets: [
           { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
-          { setNumber: 2, side1Score: 3, side2Score: 2, side1PointsScore: '15', side2PointsScore: '30' }
+          { setNumber: 2, side1Score: 3, side2Score: 2, side1PointScore: '15', side2PointScore: '30' }
         ]
       };
 

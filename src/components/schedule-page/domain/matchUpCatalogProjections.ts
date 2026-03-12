@@ -5,18 +5,45 @@
  * Search matches on participant names (primary), event/draw/round names.
  */
 
-import type { CatalogMatchUpItem, MatchUpCatalogGroupBy, ScheduledBehavior } from '../types';
+import type { CatalogMatchUpItem, CatalogFilters, MatchUpCatalogGroupBy, ScheduledBehavior } from '../types';
 import { matchUpSearchKey } from './utils';
+
+/** MatchUp statuses that indicate the matchUp is finished. */
+const COMPLETED_STATUSES = new Set([
+  'COMPLETED',
+  'RETIRED',
+  'WALKOVER',
+  'DEFAULTED',
+  'DOUBLE_WALKOVER',
+  'DOUBLE_DEFAULT',
+  'CANCELLED',
+  'ABANDONED',
+  'DEAD_RUBBER',
+]);
+
+export function isCompletedStatus(status?: string): boolean {
+  return !!status && COMPLETED_STATUSES.has(status);
+}
 
 export function filterMatchUpCatalog(
   catalog: CatalogMatchUpItem[],
   query: string,
   behavior: ScheduledBehavior = 'dim',
+  filters?: CatalogFilters,
+  showCompleted = false,
 ): CatalogMatchUpItem[] {
   const q = query.toLowerCase().trim();
 
   return catalog.filter((item) => {
     if (behavior === 'hide' && item.isScheduled) return false;
+    if (!showCompleted && isCompletedStatus(item.matchUpStatus)) return false;
+    if (filters) {
+      if (filters.eventType && item.matchUpType !== filters.eventType) return false;
+      if (filters.eventName && item.eventName !== filters.eventName) return false;
+      if (filters.drawName && (item.drawName ?? item.drawId) !== filters.drawName) return false;
+      if (filters.gender && item.gender !== filters.gender) return false;
+      if (filters.roundName && item.roundName !== filters.roundName) return false;
+    }
     if (!q) return true;
     return matchUpSearchKey(item).includes(q);
   });

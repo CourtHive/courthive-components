@@ -142,7 +142,7 @@ describe('renderSideScore', () => {
 
   it('renders point scores when gameScore config is set (trailing)', () => {
     const sets: SetScore[] = [
-      { setNumber: 1, side1Score: 4, side2Score: 5, side1PointsScore: '30', side2PointsScore: '40' },
+      { setNumber: 1, side1Score: 4, side2Score: 5, side1PointScore: '30', side2PointScore: '40' },
     ];
     const composition: Composition = {
       theme: 'test',
@@ -158,7 +158,7 @@ describe('renderSideScore', () => {
 
   it('renders point scores in leading position', () => {
     const sets: SetScore[] = [
-      { setNumber: 1, side1Score: 4, side2Score: 5, side1PointsScore: '15', side2PointsScore: '0' },
+      { setNumber: 1, side1Score: 4, side2Score: 5, side1PointScore: '15', side2PointScore: '0' },
     ];
     const composition: Composition = {
       theme: 'test',
@@ -176,7 +176,7 @@ describe('renderSideScore', () => {
 
   it('does not render point scores when gameScore config is absent', () => {
     const sets: SetScore[] = [
-      { setNumber: 1, side1Score: 4, side2Score: 5, side1PointsScore: '30', side2PointsScore: '40' },
+      { setNumber: 1, side1Score: 4, side2Score: 5, side1PointScore: '30', side2PointScore: '40' },
     ];
     const el = renderSideScore({
       matchUp: makeMatchUp(sets),

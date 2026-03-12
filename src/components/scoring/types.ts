@@ -8,8 +8,8 @@ export type SetScore = {
   side2Score?: number;
   side1TiebreakScore?: number;
   side2TiebreakScore?: number;
-  side1PointsScore?: string | number;
-  side2PointsScore?: string | number;
+  side1PointScore?: string | number;
+  side2PointScore?: string | number;
   winningSide?: number;
 };
 

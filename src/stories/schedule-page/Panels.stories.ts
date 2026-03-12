@@ -222,6 +222,16 @@ export const MatchUpCatalogByEvent = {
         panel.update(store.getState());
         logFn(`Group by: ${mode}`);
       },
+      onFilterChange: (filters) => {
+        store.setCatalogFilters(filters);
+        panel.update(store.getState());
+        logFn(`Filters: ${JSON.stringify(filters)}`);
+      },
+      onShowCompletedChange: (show) => {
+        store.setShowCompleted(show);
+        panel.update(store.getState());
+        logFn(`Show completed: ${show}`);
+      },
       onMatchUpSelected: (m) => {
         store.selectMatchUp(m);
         panel.update(store.getState());
@@ -258,6 +268,14 @@ export const MatchUpCatalogWithScheduled = {
       },
       onGroupByChange: (mode) => {
         store.setCatalogGroupBy(mode);
+        panel.update(store.getState());
+      },
+      onFilterChange: (filters) => {
+        store.setCatalogFilters(filters);
+        panel.update(store.getState());
+      },
+      onShowCompletedChange: (show) => {
+        store.setShowCompleted(show);
         panel.update(store.getState());
       },
       onMatchUpSelected: (m) => {

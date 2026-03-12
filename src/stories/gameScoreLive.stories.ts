@@ -79,8 +79,8 @@ function engineToMatchUp(engine: any, fixture: { matchId?: number; players: stri
     ...(score.pointDisplay &&
       !s.winningSide &&
       !isComplete && {
-        side1PointsScore: score.pointDisplay[0],
-        side2PointsScore: score.pointDisplay[1]
+        side1PointScore: score.pointDisplay[0],
+        side2PointScore: score.pointDisplay[1]
       })
   }));
 

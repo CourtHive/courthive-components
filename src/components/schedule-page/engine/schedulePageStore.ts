@@ -14,6 +14,7 @@ import type {
   SchedulePageChangeListener,
   SchedulePageConfig,
   CatalogMatchUpItem,
+  CatalogFilters,
   ScheduleDate,
   ScheduleIssue,
   MatchUpCatalogGroupBy,
@@ -37,6 +38,8 @@ export class SchedulePageStore {
       selectedMatchUp: null,
       catalogSearchQuery: '',
       catalogGroupBy: 'event',
+      catalogFilters: {},
+      showCompleted: false,
       scheduledBehavior: config.scheduledBehavior ?? 'dim',
       schedulingMode: config.schedulingMode ?? 'immediate',
       pendingActions: [],
@@ -160,6 +163,14 @@ export class SchedulePageStore {
 
   setCatalogGroupBy(mode: MatchUpCatalogGroupBy): void {
     this.setState({ catalogGroupBy: mode });
+  }
+
+  setCatalogFilters(filters: CatalogFilters): void {
+    this.setState({ catalogFilters: filters });
+  }
+
+  setShowCompleted(show: boolean): void {
+    this.setState({ showCompleted: show });
   }
 
   toggleLeftPanel(): void {

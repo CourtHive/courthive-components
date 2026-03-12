@@ -224,6 +224,7 @@ export {
   createSchedulePage,
   filterMatchUpCatalog,
   groupMatchUpCatalog,
+  isCompletedStatus,
   buildScheduleIssueIndex,
   matchUpLabel,
   participantLabel,
@@ -243,6 +244,7 @@ export {
 
 export type {
   CatalogMatchUpItem,
+  CatalogFilters,
   MatchUpSide,
   ScheduleDate,
   ScheduleIssue,

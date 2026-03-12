@@ -41,8 +41,8 @@ describe('engineToMatchUp', () => {
     // The active set should have point scores injected
     const activeSet = sets.find((s: any) => !s.winningSide);
     if (activeSet) {
-      expect(activeSet.side1PointsScore).toBeDefined();
-      expect(activeSet.side2PointsScore).toBeDefined();
+      expect(activeSet.side1PointScore).toBeDefined();
+      expect(activeSet.side2PointScore).toBeDefined();
     }
   });
 
@@ -83,9 +83,9 @@ describe('engineToMatchUp', () => {
 
     const result = engineToMatchUp(engine, baseMatchUp());
     const sets = result.score?.sets || [];
-    // No set should have side1PointsScore since match is complete
+    // No set should have side1PointScore since match is complete
     for (const s of sets) {
-      expect((s as any).side1PointsScore).toBeUndefined();
+      expect((s as any).side1PointScore).toBeUndefined();
     }
   });
 });

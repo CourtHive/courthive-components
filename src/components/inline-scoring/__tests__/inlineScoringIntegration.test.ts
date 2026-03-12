@@ -208,8 +208,8 @@ describe('Integration: engineToMatchUp with ScoringEngine directly', () => {
     // Should have exactly 1 set (active)
     expect(sets.length).toBe(1);
     // Active set should have point display
-    expect(sets[0].side1PointsScore).toBeDefined();
-    expect(sets[0].side2PointsScore).toBeDefined();
+    expect(sets[0].side1PointScore).toBeDefined();
+    expect(sets[0].side2PointScore).toBeDefined();
   });
 
   it('does not inject points into completed sets', () => {
@@ -226,10 +226,10 @@ describe('Integration: engineToMatchUp with ScoringEngine directly', () => {
 
     // Set 1 (completed) should NOT have point scores
     expect(sets[0].winningSide).toBe(1);
-    expect((sets[0] as any).side1PointsScore).toBeUndefined();
+    expect((sets[0] as any).side1PointScore).toBeUndefined();
 
     // Set 2 (active) should have point scores
-    expect(sets[1].side1PointsScore).toBeDefined();
+    expect(sets[1].side1PointScore).toBeDefined();
   });
 
   it('scoreboard string is populated', () => {

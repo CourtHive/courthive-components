@@ -95,16 +95,17 @@ export function renderSideScore({
   const gameWrapper = document.createElement('div');
   gameWrapper.className = gameWrapperStyle();
 
-  // Build point score element if configured and data is present
+  // Build point score element when data is present
+  // Renders whenever the last set has point score data, regardless of gameScore config
   let pointScoreEl: HTMLElement | undefined;
-  if (gameScoreConfig && sets.length > 0) {
+  if (sets.length > 0) {
     const lastSet = sets[sets.length - 1];
-    const hasPointScore = lastSet.side1PointsScore != null || lastSet.side2PointsScore != null;
+    const hasPointScore = lastSet.side1PointScore != null || lastSet.side2PointScore != null;
 
     if (hasPointScore) {
-      const pointValue = sideNumber === 2 ? lastSet.side2PointsScore : lastSet.side1PointsScore;
-      const position = gameScoreConfig.position || 'trailing';
-      const inverted = gameScoreConfig.inverted !== false;
+      const pointValue = sideNumber === 2 ? lastSet.side2PointScore : lastSet.side1PointScore;
+      const position = gameScoreConfig?.position || 'trailing';
+      const inverted = gameScoreConfig?.inverted !== false;
 
       pointScoreEl = document.createElement('p');
       pointScoreEl.className = pointScoreStyle({ inverted, position });
@@ -134,7 +135,8 @@ export function renderSideScore({
   };
 
   // Insert leading point score before set scores
-  if (pointScoreEl && gameScoreConfig?.position === 'leading') {
+  const pointPosition = gameScoreConfig?.position || 'trailing';
+  if (pointScoreEl && pointPosition === 'leading') {
     if (resultsInfo) {
       gameWrapper.appendChild(wrapCol(pointScoreEl, 'PTS', 'points'));
     } else {
@@ -158,7 +160,7 @@ export function renderSideScore({
   }
 
   // Append trailing point score after set scores (default)
-  if (pointScoreEl && gameScoreConfig?.position !== 'leading') {
+  if (pointScoreEl && pointPosition !== 'leading') {
     if (resultsInfo) {
       gameWrapper.appendChild(wrapCol(pointScoreEl, 'PTS', 'points'));
     } else {
