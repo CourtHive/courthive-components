@@ -51,6 +51,14 @@ export const compositions: Record<string, Composition> = {
     },
     theme: basicCardTheme
   },
+  InlineScoring: {
+    configuration: {
+      matchUpFooter: true,
+      gameScore: { position: 'trailing', inverted: true },
+      inlineScoring: { mode: 'points', showFooter: true, showSituation: true },
+    },
+    theme: basicCardTheme,
+  },
   National: {
     configuration: {
       bracketedSeeds: 'square',

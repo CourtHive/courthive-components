@@ -70,6 +70,8 @@ export function renderSide({
     sideRow.appendChild(box);
   }
 
+  const inlineScoring = configuration?.inlineScoring;
+
   if (hasScore) {
     const sideScore = renderSideScore({
       eventHandlers,
@@ -78,9 +80,32 @@ export function renderSide({
       matchUp
     });
     sideRow.appendChild(sideScore);
+  } else if (inlineScoring && matchUp?.readyToScore && !isCompleted) {
+    // In inline scoring mode, show initial 0-0 for ready-to-score matchUps
+    const syntheticMatchUp: MatchUp = {
+      ...matchUp,
+      score: {
+        sets: [{
+          setNumber: 1,
+          side1Score: 0,
+          side2Score: 0,
+          ...(inlineScoring.mode === 'points' && {
+            side1PointScore: '0',
+            side2PointScore: '0',
+          }),
+        }],
+      },
+    };
+    const sideScore = renderSideScore({
+      eventHandlers,
+      composition,
+      sideNumber,
+      matchUp: syntheticMatchUp,
+    });
+    sideRow.appendChild(sideScore);
   }
 
-  if (readyToScore) {
+  if (readyToScore && !inlineScoring) {
     const handleScoreClick = (pointerEvent: MouseEvent) => {
       if (isFunction(eventHandlers?.scoreClick)) {
         pointerEvent.stopPropagation();

@@ -13,6 +13,7 @@ const EXPECTED_NAMES = [
   'US Open',
   'ITF',
   'BasicCard',
+  'InlineScoring',
   'National',
 ];
 
