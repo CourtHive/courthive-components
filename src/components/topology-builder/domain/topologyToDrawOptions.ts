@@ -23,6 +23,8 @@ const {
   LOSER,
   ROUND_ROBIN,
   AD_HOC,
+  LUCKY_DRAW,
+  ADAPTIVE,
 } = drawDefinitionConstants;
 
 const POSITION = 'POSITION';
@@ -50,6 +52,14 @@ function inferFactoryDrawType(state: TopologyState, mainNode: TopologyNode): str
   }
   if (mainNode.structureType === AD_HOC) return AD_HOC;
   if (mainNode.structureType === FEED_IN) return FEED_IN;
+  if (mainNode.structureType === LUCKY_DRAW) {
+    // If lucky draw main has consolation structures with loser links → ADAPTIVE
+    const hasConsolationLoserLinks = consolationNodes.length > 0 && state.edges.some(
+      (e) => e.linkType === LOSER && e.sourceNodeId === mainNode.id &&
+        consolationNodes.some((n) => n.id === e.targetNodeId),
+    );
+    return hasConsolationLoserLinks ? ADAPTIVE : LUCKY_DRAW;
+  }
 
   // From here, main is SINGLE_ELIMINATION
   // Check for compass: 7 consolation structures with loser links from main at R1/R2/R3

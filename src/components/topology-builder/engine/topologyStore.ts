@@ -3,6 +3,7 @@
  * Manages nodes, edges, selection, and auto-layout.
  */
 import { drawDefinitionConstants } from 'tods-competition-factory';
+import { getNodeLosersForRound } from '../domain/feedRounds';
 import { getCardWidth } from '../ui/structureCard';
 import type {
   TopologyNode,
@@ -202,9 +203,8 @@ export class TopologyStore {
       const source = this.state.nodes.find((n) => n.id === edge.sourceNodeId);
       if (!source) continue;
       if (edge.linkType === LOSER) {
-        // Losers from a specific round = drawSize / 2^round; default round 1
         const round = edge.sourceRoundNumber || 1;
-        total += Math.floor(source.drawSize / Math.pow(2, round));
+        total += getNodeLosersForRound(source.structureType, source.drawSize, round);
       } else {
         // WINNER or POSITION links carry qualifyingPositions or drawSize/2
         total += source.qualifyingPositions || Math.floor(source.drawSize / 2);

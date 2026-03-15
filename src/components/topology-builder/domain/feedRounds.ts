@@ -1,7 +1,12 @@
 /**
  * Feed Rounds — Compute which rounds in an elimination bracket are feed rounds
  * and how many positions feed in at each.
+ *
+ * Also provides lucky-draw-aware helpers for round count and loser computation.
  */
+import { drawDefinitionConstants } from 'tods-competition-factory';
+
+const { LUCKY_DRAW, ROUND_ROBIN, AD_HOC } = drawDefinitionConstants;
 
 /**
  * For a given drawSize, return a Map from round number → feed capacity.
@@ -46,4 +51,85 @@ export function getTotalRounds(drawSize: number): number {
     mc = Math.floor(mc / 2);
   }
   return numRounds;
+}
+
+/**
+ * Compute round profiles for a lucky draw — mirrors the factory's luckyRoundProfiles().
+ * Returns array of { participantsCount, preFeedRound, feedRound } per round.
+ */
+export function luckyRoundProfiles(
+  drawSize: number,
+): { participantsCount: number; preFeedRound: boolean; feedRound?: boolean }[] {
+  const n = Math.max(2, drawSize);
+  let participantsCount = n % 2 ? n + 1 : n;
+  const preFeedRound = !!(Math.ceil(participantsCount / 2) % 2);
+  const rounds: { participantsCount: number; preFeedRound: boolean; feedRound?: boolean }[] = [
+    { participantsCount, preFeedRound },
+  ];
+
+  while (participantsCount > 2) {
+    const nextRound = Math.ceil(participantsCount / 2);
+    const nextIsFinal = nextRound === 1;
+    const feedRound = !!(!nextIsFinal && nextRound % 2);
+    participantsCount = !nextIsFinal && feedRound ? nextRound + 1 : nextRound;
+    const pf = !!(participantsCount !== 2 && Math.ceil(participantsCount / 2) % 2);
+    rounds.push({ participantsCount, preFeedRound: pf, feedRound });
+  }
+
+  return rounds;
+}
+
+/** Total rounds for a lucky draw structure. */
+export function getLuckyDrawTotalRounds(drawSize: number): number {
+  const n = Math.max(2, drawSize);
+  if ((n & (n - 1)) === 0) return Math.ceil(Math.log2(n));
+  return luckyRoundProfiles(drawSize).length;
+}
+
+/**
+ * Number of losers that exit a lucky draw structure at a given round.
+ * For pre-feed rounds, one lucky loser is retained → losers = matchUps - 1.
+ * For non-pre-feed rounds, all losers exit → losers = matchUps.
+ */
+export function getLuckyDrawLosersForRound(drawSize: number, roundNumber: number): number {
+  const n = Math.max(2, drawSize);
+  if ((n & (n - 1)) === 0) {
+    // Power of 2 → standard elimination
+    return Math.floor(n / Math.pow(2, roundNumber));
+  }
+  const profiles = luckyRoundProfiles(drawSize);
+  const idx = roundNumber - 1;
+  if (idx < 0 || idx >= profiles.length) return 0;
+  const { participantsCount, preFeedRound } = profiles[idx];
+  const matchUps = participantsCount / 2;
+  return preFeedRound ? matchUps - 1 : matchUps;
+}
+
+/**
+ * Structure-type-aware total rounds.
+ * Dispatches to the correct algorithm based on structureType.
+ */
+export function getNodeTotalRounds(structureType: string, drawSize: number, structureOptions?: any): number {
+  if (structureType === ROUND_ROBIN) {
+    return (structureOptions?.groupSize || Math.min(drawSize, 4)) - 1;
+  }
+  if (structureType === AD_HOC) {
+    return structureOptions?.roundsCount || 1;
+  }
+  if (structureType === LUCKY_DRAW) {
+    return getLuckyDrawTotalRounds(drawSize);
+  }
+  return getTotalRounds(drawSize);
+}
+
+/**
+ * Structure-type-aware losers count for a given round.
+ * For elimination/feed-in: drawSize / 2^round
+ * For lucky draw: uses luckyRoundProfiles
+ */
+export function getNodeLosersForRound(structureType: string, drawSize: number, roundNumber: number): number {
+  if (structureType === LUCKY_DRAW) {
+    return getLuckyDrawLosersForRound(drawSize, roundNumber);
+  }
+  return Math.floor(drawSize / Math.pow(2, roundNumber));
 }

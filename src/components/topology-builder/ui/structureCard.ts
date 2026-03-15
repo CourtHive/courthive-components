@@ -6,9 +6,10 @@ import { drawDefinitionConstants } from 'tods-competition-factory';
 import { renderSchematicStructure } from '../../renderSchematicStructure';
 import { generatePreviewMatchUps } from '../domain/previewGenerator';
 import { getPlayoffProfiles } from '../domain/playoffProfilesCache';
+import { getLuckyDrawTotalRounds } from '../domain/feedRounds';
 import type { TopologyNode } from '../types';
 
-const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, ROUND_ROBIN, AD_HOC, WINNER, LOSER } = drawDefinitionConstants;
+const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, ROUND_ROBIN, AD_HOC, LUCKY_DRAW, WINNER, LOSER } = drawDefinitionConstants;
 
 const MIN_CARD_WIDTH = 240;
 const ROUND_LAYOUT_WIDTH = 48; // 40px matchup + 4px margin each side
@@ -26,6 +27,9 @@ export function getNumRounds(node: TopologyNode): number {
   }
   if (node.structureType === AD_HOC) {
     return node.structureOptions?.roundsCount || 1;
+  }
+  if (node.structureType === LUCKY_DRAW) {
+    return getLuckyDrawTotalRounds(node.drawSize);
   }
   const n = Math.max(2, node.drawSize);
   const base = Math.pow(2, Math.floor(Math.log2(n)));

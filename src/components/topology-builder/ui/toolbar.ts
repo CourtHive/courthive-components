@@ -6,10 +6,10 @@ import { controlBar } from '../../controlBar/controlBar';
 import { validateTopology } from '../domain/topologyValidator';
 import type { TopologyState, TopologyTemplate, UIPanel } from '../types';
 
-const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF } = drawDefinitionConstants;
+const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, LUCKY_DRAW } = drawDefinitionConstants;
 
 export interface ToolbarCallbacks {
-  onAddStructure: (stage: string) => void;
+  onAddStructure: (stage: string, structureType?: string) => void;
   onLoadTemplate: (template: TopologyTemplate) => void;
   onAutoLayout: () => void;
   onGenerate: () => void;
@@ -84,6 +84,7 @@ export function buildToolbar(
   if (!options.readOnly) {
     const stageOptions = [
       { label: 'Main', value: MAIN, onClick: () => callbacks.onAddStructure(MAIN), close: true },
+      { label: 'Lucky Draw', value: LUCKY_DRAW, onClick: () => callbacks.onAddStructure(MAIN, LUCKY_DRAW), close: true },
       { label: 'Qualifying', value: QUALIFYING, onClick: () => callbacks.onAddStructure(QUALIFYING), close: true },
       { label: 'Consolation', value: CONSOLATION, onClick: () => callbacks.onAddStructure(CONSOLATION), close: true },
       { label: 'Playoff', value: PLAY_OFF, onClick: () => callbacks.onAddStructure(PLAY_OFF), close: true },

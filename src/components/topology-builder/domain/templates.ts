@@ -6,7 +6,7 @@ import type { TopologyNode, TopologyTemplate } from '../types';
 
 type Stage = TopologyNode['stage'];
 
-const { SINGLE_ELIMINATION, FEED_IN, ROUND_ROBIN, MAIN, QUALIFYING, CONSOLATION, PLAY_OFF } = drawDefinitionConstants;
+const { SINGLE_ELIMINATION, FEED_IN, ROUND_ROBIN, LUCKY_DRAW, MAIN, QUALIFYING, CONSOLATION, PLAY_OFF } = drawDefinitionConstants;
 
 const WINNER = 'WINNER';
 const LOSER = 'LOSER';
@@ -355,6 +355,149 @@ export const standardTemplates: TopologyTemplate[] = [
           linkType: POSITION,
           finishingPositions: [3, 4],
           label: 'positions 3,4'
+        }
+      ]
+    }
+  },
+  {
+    name: 'Lucky Draw + Consolation',
+    description: 'Lucky draw main with consolation receiving R1 losers',
+    state: {
+      drawName: 'Lucky + Consolation',
+      nodes: [
+        {
+          id: 'tpl-main',
+          structureName: 'Main Draw',
+          stage: MAIN as Stage,
+          structureType: LUCKY_DRAW,
+          drawSize: 11,
+          position: { x: 40, y: 40 }
+        },
+        {
+          id: 'tpl-cons',
+          structureName: 'Consolation',
+          stage: CONSOLATION as Stage,
+          structureType: SINGLE_ELIMINATION,
+          drawSize: 4,
+          position: { x: 340, y: 40 }
+        }
+      ],
+      edges: [
+        {
+          id: TPL_EDGE_1,
+          sourceNodeId: 'tpl-main',
+          targetNodeId: 'tpl-cons',
+          linkType: LOSER,
+          sourceRoundNumber: 1,
+          targetRoundNumber: 1,
+          label: LABEL_R1_LOSERS_R1
+        }
+      ]
+    }
+  },
+  {
+    name: 'Lucky Draw → Round Robin',
+    description: 'Lucky draw main with R1 losers feeding into round robin consolation',
+    state: {
+      drawName: 'Lucky → RR',
+      nodes: [
+        {
+          id: 'tpl-main',
+          structureName: 'Main Draw',
+          stage: MAIN as Stage,
+          structureType: LUCKY_DRAW,
+          drawSize: 25,
+          position: { x: 40, y: 40 }
+        },
+        {
+          id: 'tpl-cons-rr',
+          structureName: 'Consolation RR',
+          stage: CONSOLATION as Stage,
+          structureType: ROUND_ROBIN,
+          drawSize: 12,
+          structureOptions: { groupSize: 4 },
+          position: { x: 500, y: 40 }
+        }
+      ],
+      edges: [
+        {
+          id: TPL_EDGE_1,
+          sourceNodeId: 'tpl-main',
+          targetNodeId: 'tpl-cons-rr',
+          linkType: LOSER,
+          sourceRoundNumber: 1,
+          targetRoundNumber: 1,
+          label: LABEL_R1_LOSERS_R1
+        }
+      ]
+    }
+  },
+  {
+    name: 'Adaptive (drawSize 11)',
+    description: 'Compass-like multi-structure topology with lucky draw structures',
+    state: {
+      drawName: 'Adaptive',
+      nodes: [
+        {
+          id: 'tpl-east',
+          structureName: 'East',
+          stage: MAIN as Stage,
+          structureType: LUCKY_DRAW,
+          drawSize: 11,
+          position: { x: 40, y: 40 }
+        },
+        {
+          id: 'tpl-west',
+          structureName: 'West',
+          stage: CONSOLATION as Stage,
+          structureType: LUCKY_DRAW,
+          drawSize: 6,
+          position: { x: 340, y: 40 }
+        },
+        {
+          id: 'tpl-north',
+          structureName: 'North',
+          stage: CONSOLATION as Stage,
+          structureType: SINGLE_ELIMINATION,
+          drawSize: 2,
+          position: { x: 340, y: 250 }
+        },
+        {
+          id: 'tpl-south',
+          structureName: 'South',
+          stage: CONSOLATION as Stage,
+          structureType: SINGLE_ELIMINATION,
+          drawSize: 2,
+          position: { x: 600, y: 40 }
+        }
+      ],
+      edges: [
+        {
+          id: TPL_EDGE_1,
+          sourceNodeId: 'tpl-east',
+          targetNodeId: 'tpl-west',
+          linkType: LOSER,
+          sourceRoundNumber: 1,
+          targetRoundNumber: 1,
+          label: 'R1 losers → R1 (6 losers)'
+        },
+        {
+          id: TPL_EDGE_2,
+          sourceNodeId: 'tpl-east',
+          targetNodeId: 'tpl-north',
+          linkType: LOSER,
+          sourceRoundNumber: 2,
+          targetRoundNumber: 1,
+          label: 'R2 losers → R1 (2 losers)'
+        },
+        {
+          id: 'tpl-edge-3',
+          sourceNodeId: 'tpl-west',
+          targetNodeId: 'tpl-south',
+          linkType: LOSER,
+          sourceRoundNumber: 1,
+          targetRoundNumber: 1,
+          label: 'R1 losers → R1 (2 losers)'
         }
       ]
     }

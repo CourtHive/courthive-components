@@ -125,3 +125,13 @@
   width: 0;
   border-width: 0;
 }
+
+/* ── Pre-feed round highlight (lucky draw) ───────────────── */
+.chc-schematic-round--pre-feed .chc-schematic-slot {
+  background-color: var(--chc-color-pre-feed, #4caf50);
+}
+
+.chc-schematic-round--pre-feed .chc-schematic-round-header {
+  color: var(--chc-color-pre-feed, #4caf50);
+  font-weight: 700;
+}

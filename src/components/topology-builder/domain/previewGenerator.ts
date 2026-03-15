@@ -3,9 +3,10 @@
  * Pure geometry with feed-round support for non-power-of-2 draw sizes.
  */
 import { drawDefinitionConstants } from 'tods-competition-factory';
+import { luckyRoundProfiles } from './feedRounds';
 import type { SchematicMatchUp } from '../../renderSchematicStructure';
 
-const { ROUND_ROBIN, AD_HOC } = drawDefinitionConstants;
+const { ROUND_ROBIN, AD_HOC, LUCKY_DRAW } = drawDefinitionConstants;
 
 let matchUpCounter = 0;
 
@@ -30,6 +31,9 @@ export function generatePreviewMatchUps({
   if (structureType === AD_HOC) {
     const roundsCount = structureOptions?.roundsCount || 1;
     return generateAdHocPreview({ drawSize, stage, structureId, roundsCount });
+  }
+  if (structureType === LUCKY_DRAW) {
+    return generateLuckyDrawPreview({ drawSize, stage, structureId });
   }
   return generateEliminationPreview({ drawSize, stage, structureId, qualifyingPositions });
 }
@@ -163,6 +167,62 @@ function generateRoundRobinPreview({
           structureId: `${structureId}-g${g}`,
         });
       }
+    }
+  }
+
+  return matchUps;
+}
+
+/**
+ * Generates lucky draw preview matchUps with correct non-power-of-2 round profiles.
+ *
+ * Lucky draws differ from feed-in structures: each pre-feed round has only ONE
+ * fed participant (the lucky loser), whereas feed-in structures feed half the
+ * previous round size. The round profile algorithm mirrors the factory's
+ * luckyRoundProfiles() logic.
+ *
+ * Example — drawSize 25: rounds [13, 7, 4, 2, 1] matchUps
+ *   (vs feed-in which would produce [8, 8*, 4, 2, 1, 1*])
+ */
+function generateLuckyDrawPreview({
+  drawSize,
+  stage,
+  structureId,
+}: {
+  drawSize: number;
+  stage?: string;
+  structureId?: string;
+}): SchematicMatchUp[] {
+  const n = Math.max(2, drawSize);
+
+  // Power-of-2 falls back to standard elimination
+  if ((n & (n - 1)) === 0) {
+    return generateEliminationPreview({ drawSize, stage, structureId });
+  }
+
+  const roundProfiles = luckyRoundProfiles(n);
+  const totalRounds = roundProfiles.length;
+  const matchUps: SchematicMatchUp[] = [];
+  let drawPosCounter = 1;
+
+  for (let r = 0; r < totalRounds; r++) {
+    const { participantsCount, preFeedRound } = roundProfiles[r];
+    const matchUpsInRound = participantsCount / 2;
+    const roundNumber = r + 1;
+
+    for (let pos = 1; pos <= matchUpsInRound; pos++) {
+      const isFirstRound = roundNumber === 1;
+      matchUps.push({
+        matchUpId: `preview-${++matchUpCounter}`,
+        roundNumber,
+        roundPosition: pos,
+        drawPositions: isFirstRound ? [drawPosCounter++, drawPosCounter++] : [],
+        finishingRound: totalRounds - r,
+        roundFactor: 1, // Lucky draws don't use merge connectors
+        preFeedRound: !!preFeedRound,
+        stage,
+        structureId,
+      });
     }
   }
 
