@@ -11,10 +11,11 @@ import { buildToolbar } from '../ui/toolbar';
 import { buildTopologyBuilderLayout } from '../ui/topologyBuilderLayout';
 import { standardTemplates } from '../domain/templates';
 import { validateTopology } from '../domain/topologyValidator';
+import { getNodeTotalRounds } from '../domain/feedRounds';
 import { getCardWidth } from '../ui/structureCard';
 import type { TopologyState, TopologyNode, TopologyBuilderConfig, UIPanel } from '../types';
 
-const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, SINGLE_ELIMINATION, WINNER, LOSER } = drawDefinitionConstants;
+const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, SINGLE_ELIMINATION, LUCKY_DRAW, WINNER, LOSER } = drawDefinitionConstants;
 const POSITION = 'POSITION';
 
 export class TopologyBuilderControl {
@@ -33,7 +34,7 @@ export class TopologyBuilderControl {
     // Build toolbar
     const toolbar = buildToolbar(
       {
-        onAddStructure: (stage) => this.addDefaultStructure(stage),
+        onAddStructure: (stage, structureType) => this.addDefaultStructure(stage, structureType),
         onLoadTemplate: (template) => {
           this.store.loadState({
             ...template.state,
@@ -101,7 +102,7 @@ export class TopologyBuilderControl {
                   .getState()
                   .edges.filter((e) => e.sourceNodeId === sourceNodeId && e.linkType === LOSER);
                 const claimedRounds = new Set(existingLoserEdges.map((e) => e.sourceRoundNumber));
-                const maxRound = source ? Math.ceil(Math.log2(source.drawSize)) : 1;
+                const maxRound = source ? getNodeTotalRounds(source.structureType, source.drawSize, source.structureOptions) : 1;
                 let defaultRound = 1;
                 for (let r = 1; r <= maxRound; r++) {
                   if (!claimedRounds.has(r)) {
@@ -184,16 +185,17 @@ export class TopologyBuilderControl {
     this.store.loadState(state);
   }
 
-  private addDefaultStructure(stage: string): void {
+  private addDefaultStructure(stage: string, structureType?: string): void {
+    const isLucky = structureType === LUCKY_DRAW;
     const existingCount = this.store.getState().nodes.filter((n) => n.stage === stage).length;
     const nameMap: Record<string, string> = {
-      [MAIN]: 'Main Draw',
+      [MAIN]: isLucky ? 'Lucky Draw' : 'Main Draw',
       [QUALIFYING]: `Qualifying ${existingCount + 1}`,
       [CONSOLATION]: 'Consolation',
       [PLAY_OFF]: `Playoff ${existingCount + 1}`
     };
     const sizeMap: Record<string, number> = {
-      [MAIN]: 32,
+      [MAIN]: isLucky ? 11 : 32,
       [QUALIFYING]: 16,
       [CONSOLATION]: 16,
       [PLAY_OFF]: 4
@@ -203,7 +205,7 @@ export class TopologyBuilderControl {
     const node = this.store.addNode({
       structureName: nameMap[stage] || stage,
       stage: stage as any,
-      structureType: SINGLE_ELIMINATION,
+      structureType: structureType || SINGLE_ELIMINATION,
       drawSize,
       ...(stage === QUALIFYING && { qualifyingPositions: Math.floor(drawSize / 4) })
     });

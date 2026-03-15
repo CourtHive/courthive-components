@@ -763,6 +763,7 @@
   padding: 0.35rem 0.75rem;
   font-size: 0.75rem;
   color: var(--chc-text-muted);
+  background-color: var(--chc-color-matchup);
 }
 
 /* ── Participant hover highlight (all appearances) ─────── */

@@ -120,7 +120,15 @@ export function renderMatchUp(params: {
     const footer = document.createElement('div');
     const inlineScoring = configuration?.inlineScoring;
 
-    if (inlineScoring && inlineScoring.showFooter !== false) {
+    // Show scoring buttons when inline scoring is active and match has no decided winner.
+    // Covers: readyToScore (LIVE), and non-terminal statuses (SUSPENDED, CANCELLED, ABANDONED).
+    // Excludes: completed matches (winningSide set), and TBD matchUps (no participants).
+    const hasBothSides = matchUp.sides?.length === 2
+      && matchUp.sides[0]?.participant && matchUp.sides[1]?.participant;
+    const isActiveScoringMatchUp = inlineScoring && inlineScoring.showFooter !== false
+      && !matchUp.winningSide && hasBothSides;
+
+    if (isActiveScoringMatchUp) {
       footer.className = 'chc-matchup-footer chc-inline-scoring-footer-slot';
       // Round label on the left
       const roundLabel = document.createElement('span');

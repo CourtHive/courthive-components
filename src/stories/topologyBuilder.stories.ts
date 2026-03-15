@@ -184,6 +184,37 @@ export const RoundRobinPlayoff: Story = {
 };
 
 /**
+ * Lucky Draw + Consolation — Lucky draw with consolation receiving R1 losers.
+ *
+ * Demonstrates loser links from a lucky structure: R1 of drawSize 11
+ * produces 6 losers (not 5.5 as the naive formula would suggest).
+ */
+export const LuckyDrawConsolation: Story = {
+  render: () => renderTemplate('Lucky Draw + Consolation')
+};
+
+/**
+ * Lucky Draw → Round Robin — Lucky draw with losers feeding into RR consolation.
+ *
+ * Demonstrates non-power-of-2 losers (12 from R1 of drawSize 25) flowing
+ * into a round robin consolation structure.
+ */
+export const LuckyToRoundRobin: Story = {
+  render: () => renderTemplate('Lucky Draw → Round Robin')
+};
+
+/**
+ * Adaptive (drawSize 11) — Compass-like topology with lucky draw structures.
+ *
+ * East (LUCKY_DRAW, 11) feeds losers to West (LUCKY_DRAW, 6) from R1
+ * and to North (SE, 2) from R2. West feeds losers to South (SE, 2) from R1.
+ * Each structure uses lucky draw logic for non-power-of-2 participant counts.
+ */
+export const Adaptive: Story = {
+  render: () => renderTemplate('Adaptive (drawSize 11)')
+};
+
+/**
  * All Templates — Browse and load any standard template from the toolbar.
  *
  * Click "Templates" in the toolbar to load a pre-built topology.

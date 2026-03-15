@@ -2,7 +2,7 @@
  * Topology Validator — Validates topology state for correctness.
  */
 import { drawDefinitionConstants } from 'tods-competition-factory';
-import { getFeedRoundCapacities, getTotalRounds } from './feedRounds';
+import { getFeedRoundCapacities, getNodeTotalRounds, getNodeLosersForRound } from './feedRounds';
 import type { TopologyState } from '../types';
 
 const {
@@ -95,9 +95,7 @@ export function validateTopology(state: TopologyState): ValidationError[] {
     }
 
     if (source && edge.sourceRoundNumber) {
-      const maxRound = source.structureType === ROUND_ROBIN
-        ? (source.structureOptions?.groupSize || 4) - 1
-        : getTotalRounds(source.drawSize);
+      const maxRound = getNodeTotalRounds(source.structureType, source.drawSize, source.structureOptions);
       if (edge.sourceRoundNumber > maxRound || edge.sourceRoundNumber < 1) {
         errors.push({
           severity: 'warning',
@@ -108,9 +106,7 @@ export function validateTopology(state: TopologyState): ValidationError[] {
     }
 
     if (target && edge.targetRoundNumber) {
-      const maxRound = target.structureType === ROUND_ROBIN
-        ? (target.structureOptions?.groupSize || 4) - 1
-        : getTotalRounds(target.drawSize);
+      const maxRound = getNodeTotalRounds(target.structureType, target.drawSize, target.structureOptions);
       if (edge.targetRoundNumber > maxRound || edge.targetRoundNumber < 1) {
         errors.push({
           severity: 'warning',
@@ -240,8 +236,8 @@ export function validateTopology(state: TopologyState): ValidationError[] {
     const sourceRound = edge.sourceRoundNumber || 1;
     const targetRound = edge.targetRoundNumber || 1;
 
-    // Losers produced by the source round
-    const losersProduced = Math.floor(source.drawSize / Math.pow(2, sourceRound));
+    // Losers produced by the source round (lucky-draw-aware)
+    const losersProduced = getNodeLosersForRound(source.structureType, source.drawSize, sourceRound);
 
     // Target round capacity: R1 takes participants directly (drawSize / 2 matchup sides);
     // feed rounds have specific capacity from the drawSize geometry.
@@ -287,7 +283,7 @@ export function validateTopology(state: TopologyState): ValidationError[] {
       if (!source) continue;
       if (edge.linkType === LOSER) {
         const round = edge.sourceRoundNumber || 1;
-        capacity += Math.floor(source.drawSize / Math.pow(2, round));
+        capacity += getNodeLosersForRound(source.structureType, source.drawSize, round);
       } else {
         capacity += source.qualifyingPositions || Math.floor(source.drawSize / 2);
       }

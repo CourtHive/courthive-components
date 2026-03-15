@@ -5,6 +5,7 @@
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { renderForm } from '../../forms/renderForm';
 import { getPlayoffProfiles } from '../domain/playoffProfilesCache';
+import { getNodeTotalRounds } from '../domain/feedRounds';
 import type { TopologyEdge, TopologyState, UIPanel } from '../types';
 
 const { WINNER, LOSER, TOP_DOWN, BOTTOM_UP, QUALIFYING, ROUND_ROBIN } = drawDefinitionConstants;
@@ -61,8 +62,8 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
     body.appendChild(info);
 
     const isQualifyingWinner = edge.linkType === WINNER && source?.stage === QUALIFYING;
-    const sourceMaxRound = source ? Math.ceil(Math.log2(source.drawSize)) : 8;
-    const targetMaxRound = target ? Math.ceil(Math.log2(target.drawSize)) : 8;
+    const sourceMaxRound = source ? getNodeTotalRounds(source.structureType, source.drawSize, source.structureOptions) : 8;
+    const targetMaxRound = target ? getNodeTotalRounds(target.structureType, target.drawSize, target.structureOptions) : 8;
     const isRRPosition = edge.linkType === POSITION && source && isRoundRobin(source.structureType);
 
     const items: any[] = [

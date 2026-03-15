@@ -19,6 +19,7 @@ const {
   COMPASS,
   OLYMPIC,
   AD_HOC,
+  LUCKY_DRAW,
   MAIN,
   QUALIFYING,
   CONSOLATION,
@@ -41,6 +42,7 @@ const PLAYOFF_DRAW_TYPES = [
 const STRUCTURE_TYPES = [
   { label: 'Single Elimination', value: SINGLE_ELIMINATION },
   { label: 'Round Robin', value: ROUND_ROBIN },
+  { label: 'Lucky Draw', value: LUCKY_DRAW },
   { label: 'Staggered Entry', value: FEED_IN },
   { label: 'Ad-hoc', value: AD_HOC },
 ];

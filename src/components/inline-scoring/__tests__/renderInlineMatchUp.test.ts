@@ -29,6 +29,7 @@ function makeMatchUp(overrides: Partial<MatchUp> = {}): MatchUp {
     structureId: 'struct-1',
     matchUpStatus: 'IN_PROGRESS',
     matchUpFormat: STANDARD_FORMAT,
+    readyToScore: true,
     roundNumber: 1,
     roundPosition: 1,
     finishingRound: 3,

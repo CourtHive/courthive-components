@@ -63,6 +63,12 @@ export function renderSchematicRound({
     round.appendChild(m);
   });
 
+  // Mark pre-feed rounds for visual highlighting (lucky draw)
+  const isPreFeed = roundMatchUps.some((m) => m.preFeedRound) && !isFinalRound;
+  if (isPreFeed) {
+    roundContainer.classList.add('chc-schematic-round--pre-feed');
+  }
+
   roundContainer.appendChild(round);
   return roundContainer;
 }
