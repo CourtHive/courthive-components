@@ -13,7 +13,6 @@ const {
   LOSER,
   SINGLE_ELIMINATION,
   ROUND_ROBIN,
-  LUCKY_DRAW,
 } = drawDefinitionConstants;
 
 const POSITION = 'POSITION';

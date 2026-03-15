@@ -13,6 +13,11 @@ const LOSER = 'LOSER';
 const POSITION = 'POSITION';
 const TPL_EDGE_1 = 'tpl-edge-1';
 const TPL_EDGE_2 = 'tpl-edge-2';
+const TPL_EDGE_3 = 'tpl-edge-3';
+const TPL_EDGE_4 = 'tpl-edge-4';
+const TPL_EDGE_5 = 'tpl-edge-5';
+const TPL_EDGE_6 = 'tpl-edge-6';
+const TPL_EDGE_7 = 'tpl-edge-7';
 const LABEL_R1_LOSERS_R1 = 'R1 losers → R1';
 
 export const standardTemplates: TopologyTemplate[] = [
@@ -132,7 +137,7 @@ export const standardTemplates: TopologyTemplate[] = [
           label: 'R2 losers → R2'
         },
         {
-          id: 'tpl-edge-3',
+          id: TPL_EDGE_3,
           sourceNodeId: 'tpl-main',
           targetNodeId: 'tpl-cons',
           linkType: LOSER,
@@ -141,7 +146,7 @@ export const standardTemplates: TopologyTemplate[] = [
           label: 'R3 losers → R4'
         },
         {
-          id: 'tpl-edge-4',
+          id: TPL_EDGE_4,
           sourceNodeId: 'tpl-main',
           targetNodeId: 'tpl-cons',
           linkType: LOSER,
@@ -150,7 +155,7 @@ export const standardTemplates: TopologyTemplate[] = [
           label: 'R4 losers → R6'
         },
         {
-          id: 'tpl-edge-5',
+          id: TPL_EDGE_5,
           sourceNodeId: 'tpl-main',
           targetNodeId: 'tpl-cons',
           linkType: LOSER,
@@ -257,7 +262,7 @@ export const standardTemplates: TopologyTemplate[] = [
           label: 'R2 losers → R1'
         },
         {
-          id: 'tpl-edge-3',
+          id: TPL_EDGE_3,
           sourceNodeId: 'tpl-east',
           targetNodeId: 'tpl-ne',
           linkType: LOSER,
@@ -267,7 +272,7 @@ export const standardTemplates: TopologyTemplate[] = [
         },
         // West → losers
         {
-          id: 'tpl-edge-4',
+          id: TPL_EDGE_4,
           sourceNodeId: 'tpl-west',
           targetNodeId: 'tpl-south',
           linkType: LOSER,
@@ -276,7 +281,7 @@ export const standardTemplates: TopologyTemplate[] = [
           label: LABEL_R1_LOSERS_R1
         },
         {
-          id: 'tpl-edge-5',
+          id: TPL_EDGE_5,
           sourceNodeId: 'tpl-west',
           targetNodeId: 'tpl-sw',
           linkType: LOSER,
@@ -286,7 +291,7 @@ export const standardTemplates: TopologyTemplate[] = [
         },
         // North → losers
         {
-          id: 'tpl-edge-6',
+          id: TPL_EDGE_6,
           sourceNodeId: 'tpl-north',
           targetNodeId: 'tpl-nw',
           linkType: LOSER,
@@ -296,7 +301,7 @@ export const standardTemplates: TopologyTemplate[] = [
         },
         // South → losers
         {
-          id: 'tpl-edge-7',
+          id: TPL_EDGE_7,
           sourceNodeId: 'tpl-south',
           targetNodeId: 'tpl-se',
           linkType: LOSER,
@@ -491,7 +496,7 @@ export const standardTemplates: TopologyTemplate[] = [
           label: 'R2 losers → R1 (2 losers)'
         },
         {
-          id: 'tpl-edge-3',
+          id: TPL_EDGE_3,
           sourceNodeId: 'tpl-west',
           targetNodeId: 'tpl-south',
           linkType: LOSER,

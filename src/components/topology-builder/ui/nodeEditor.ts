@@ -5,7 +5,7 @@
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
 import { renderForm } from '../../forms/renderForm';
-import { getFeedRoundCapacities, getNodeTotalRounds } from '../domain/feedRounds';
+import { getFeedRoundCapacities } from '../domain/feedRounds';
 import { nameValidator } from '../../../validators/nameValidator';
 import { numericRange } from '../../../validators/numericRange';
 import type { TopologyEdge, TopologyNode, TopologyState, UIPanel } from '../types';
