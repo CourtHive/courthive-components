@@ -181,4 +181,27 @@ describe('renderInlineMatchUp', () => {
     expect(submitBtn).not.toBeNull();
     expect(submitBtn?.textContent).toBe('Submit');
   });
+
+  it('shows clickable status pill on losing side after irregular ending', () => {
+    const manager = new InlineScoringManager();
+    const el = renderInlineMatchUp({
+      matchUp: makeMatchUp({
+        matchUpStatus: 'RETIRED',
+        winningSide: 2,
+        readyToScore: false,
+        score: { sets: [{ setNumber: 1, side1Score: 2, side2Score: 1 }] },
+      }),
+      composition: makeComposition('games'),
+      manager,
+      isLucky: true,
+    });
+
+    // Should have a clickable status pill (chc-live-chip) on the losing side
+    const liveChips = el.querySelectorAll('.chc-live-chip');
+    expect(liveChips.length).toBeGreaterThanOrEqual(1);
+
+    // The pill should contain "RET" text
+    const retPill = Array.from(liveChips).find((chip) => chip.textContent?.includes('RET'));
+    expect(retPill).toBeDefined();
+  });
 });

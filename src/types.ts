@@ -180,6 +180,7 @@ export interface Configuration {
     canUndo?: boolean;
     canRedo?: boolean;
     isComplete?: boolean;
+    isDirty?: boolean;
     situationText?: string;
   };
   genderColor?: boolean | string; // Color coding by gender (from index.d.ts)

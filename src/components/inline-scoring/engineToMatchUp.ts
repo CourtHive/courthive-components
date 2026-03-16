@@ -44,10 +44,13 @@ export function engineToMatchUp(engine: any, baseMatchUp: MatchUp): MatchUp {
       }),
   }));
 
-  // Skip placeholder sets and point injection for irregular endings (WO, etc.)
-  // where the engine has been reset but the match is over
+  // Skip placeholder sets and point injection only for irregular endings that
+  // produce a winner (RET, WO, DEF) — the match is decided, no more scoring.
+  // Statuses like SUSPENDED, CANCELLED, ABANDONED don't have a winner and
+  // should still show game/point scores for display and resumption.
+  const terminalIrregularStatuses = ['RETIRED', 'DEFAULTED', 'WALKOVER', 'DOUBLE_WALKOVER', 'DOUBLE_DEFAULT'];
   const hasIrregularStatus = baseMatchUp.matchUpStatus &&
-    !['IN_PROGRESS', 'COMPLETED', 'TO_BE_PLAYED'].includes(baseMatchUp.matchUpStatus);
+    terminalIrregularStatuses.includes(baseMatchUp.matchUpStatus);
 
   // Ensure there's always an active (unwon) set when the match isn't complete.
   // The engine only adds a new set entry once the first point of that set is scored,
@@ -59,8 +62,8 @@ export function engineToMatchUp(engine: any, baseMatchUp: MatchUp): MatchUp {
     }
   }
 
-  // Inject initial point scores into the active set for point-tracking modes only
-  if (usePointDisplay && !isComplete && !hasIrregularStatus && sets.length > 0) {
+  // Inject initial point scores into the active set (provides clickable targets in all modes)
+  if (!isComplete && !hasIrregularStatus && sets.length > 0) {
     const lastSet = sets[sets.length - 1];
     if (!lastSet.winningSide && lastSet.side1PointScore == null && lastSet.side2PointScore == null) {
       lastSet.side1PointScore = '0';

@@ -163,9 +163,8 @@
   background: var(--chc-color-primary, #3b82f6);
   color: #fff;
   border-color: var(--chc-color-primary, #3b82f6);
-  opacity: 0.6;
 }
 
 .chc-is-submit:hover:not(:disabled) {
-  opacity: 0.85;
+  filter: brightness(1.1);
 }

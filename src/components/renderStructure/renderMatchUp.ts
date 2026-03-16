@@ -125,7 +125,7 @@ export function renderMatchUp(params: {
     // so completed draw matchUps rendered normally won't get the footer.
     const hasBothSides = matchUp.sides?.length === 2
       && matchUp.sides[0]?.participant && matchUp.sides[1]?.participant;
-    const hasActiveSession = inlineScoring?.canUndo || inlineScoring?.canRedo || inlineScoring?.isComplete;
+    const hasActiveSession = inlineScoring?.canUndo || inlineScoring?.canRedo || inlineScoring?.isComplete || inlineScoring?.isDirty;
     const isActiveScoringMatchUp = inlineScoring && inlineScoring.showFooter !== false
       && hasBothSides && (!matchUp.winningSide || hasActiveSession);
 
@@ -164,6 +164,7 @@ export function renderMatchUp(params: {
       undoBtn.disabled = !inlineScoring.canUndo;
       redoBtn.disabled = !inlineScoring.canRedo;
       clearBtn.disabled = !inlineScoring.canUndo && !inlineScoring.canRedo;
+      submitBtn.disabled = !inlineScoring.isDirty;
 
       const buttonBar = document.createElement('div');
       buttonBar.className = 'chc-inline-scoring-buttons';
