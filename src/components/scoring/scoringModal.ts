@@ -3,6 +3,7 @@
  * Supports multiple scoring approaches with validation
  * Menu caret allows seamless switching between approaches
  */
+import { renderInlineScoringEntry } from './approaches/inlineScoringApproach';
 import { renderDynamicSetsScoreEntry } from './approaches/dynamicSetsApproach';
 import { renderDialPadScoreEntry } from './approaches/dialPadApproach';
 import { renderFreeScoreEntry } from './approaches/freeScoreApproach';
@@ -10,15 +11,16 @@ import type { ScoringModalParams, ScoreOutcome } from './types';
 import { getScoringConfig, setScoringConfig } from './config';
 import { cModal } from '../modal/cmodal';
 
-type ScoringApproach = 'dynamicSets' | 'freeScore' | 'dialPad';
+type ScoringApproach = 'dynamicSets' | 'freeScore' | 'dialPad' | 'inlineScoring';
 
 const APPROACH_LABELS: Record<ScoringApproach, string> = {
   dynamicSets: 'Dynamic Sets',
   freeScore: 'Free Score',
-  dialPad: 'Dial Pad'
+  dialPad: 'Dial Pad',
+  inlineScoring: 'Inline Scoring',
 };
 
-const APPROACHES: ScoringApproach[] = ['dynamicSets', 'freeScore', 'dialPad'];
+const APPROACHES: ScoringApproach[] = ['dynamicSets', 'freeScore', 'dialPad', 'inlineScoring'];
 
 export function scoringModal(params: ScoringModalParams): void {
   const { matchUp, callback, onClose, labels = {} } = params;
@@ -69,6 +71,9 @@ export function scoringModal(params: ScoringModalParams): void {
     if ((window as any).resetDynamicSets) {
       (window as any).resetDynamicSets = undefined;
     }
+    if ((window as any).resetInlineScoring) {
+      (window as any).resetInlineScoring = undefined;
+    }
   };
 
   const renderApproach = (approach: ScoringApproach): HTMLElement => {
@@ -81,6 +86,8 @@ export function scoringModal(params: ScoringModalParams): void {
       renderDynamicSetsScoreEntry({ matchUp, container, onScoreChange: handleScoreChange, labels });
     } else if (approach === 'dialPad') {
       renderDialPadScoreEntry({ matchUp, container, onScoreChange: handleScoreChange, labels });
+    } else if (approach === 'inlineScoring') {
+      renderInlineScoringEntry({ matchUp, container, onScoreChange: handleScoreChange, labels });
     }
 
     return container;
@@ -125,10 +132,19 @@ export function scoringModal(params: ScoringModalParams): void {
     }</strong> Use the status dropdown to set Retired, Walkover, Default, etc.
   `;
 
+  const inlineScoringHelp = `
+    <strong>Inline Scoring:</strong><br><br>
+    Click on <strong>game scores</strong> to add a game for that side.<br><br>
+    Click on <strong>point scores</strong> to award a point.<br><br>
+    Use the <strong>LIVE</strong> pill to set an irregular ending (Retired, Walkover, etc.).<br><br>
+    <strong>Undo/Redo/Clear</strong> buttons control scoring history.
+  `;
+
   const approachHelp: Record<ScoringApproach, string> = {
     freeScore: freeScoreHelp,
     dynamicSets: dynamicSetsHelp,
-    dialPad: dialPadHelp
+    dialPad: dialPadHelp,
+    inlineScoring: inlineScoringHelp,
   };
 
   const buildMenuItems = () =>
@@ -212,6 +228,8 @@ export function scoringModal(params: ScoringModalParams): void {
           (window as any).resetDynamicSets();
         } else if (activeApproach === 'dialPad' && (window as any).resetDialPad) {
           (window as any).resetDialPad();
+        } else if (activeApproach === 'inlineScoring' && (window as any).resetInlineScoring) {
+          (window as any).resetInlineScoring();
         }
       }
     },

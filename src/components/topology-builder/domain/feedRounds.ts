@@ -90,6 +90,7 @@ export function getLuckyDrawTotalRounds(drawSize: number): number {
  * Number of losers that exit a lucky draw structure at a given round.
  * For pre-feed rounds, one lucky loser is retained → losers = matchUps - 1.
  * For non-pre-feed rounds, all losers exit → losers = matchUps.
+ * In round 1, BYE positions don't produce real losers, so subtract BYEs.
  */
 export function getLuckyDrawLosersForRound(drawSize: number, roundNumber: number): number {
   const n = Math.max(2, drawSize);
@@ -102,7 +103,15 @@ export function getLuckyDrawLosersForRound(drawSize: number, roundNumber: number
   if (idx < 0 || idx >= profiles.length) return 0;
   const { participantsCount, preFeedRound } = profiles[idx];
   const matchUps = participantsCount / 2;
-  return preFeedRound ? matchUps - 1 : matchUps;
+  let losers = preFeedRound ? matchUps - 1 : matchUps;
+
+  // Round 1: odd drawSize is padded to even, creating BYE matchUps that have no real loser
+  if (roundNumber === 1 && n % 2 !== 0) {
+    const byes = participantsCount - n;
+    losers -= byes;
+  }
+
+  return losers;
 }
 
 /**

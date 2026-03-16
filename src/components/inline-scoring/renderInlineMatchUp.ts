@@ -14,6 +14,12 @@ interface RenderInlineMatchUpParams {
   isLucky?: boolean;
   isAdHoc?: boolean;
   className?: string;
+  // Connector-related params — passed through to renderMatchUp for correct bracket lines
+  moiety?: boolean;
+  initialRoundNumber?: number;
+  isFinalRound?: boolean;
+  searchActive?: boolean;
+  selectedMatchUpId?: string;
 }
 
 /**
@@ -139,12 +145,13 @@ export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElem
       },
       inlineClear: () => {
         manager.reset(matchUpId, baseMatchUp);
-        // Also clear any irregular ending status, restoring to active scoring
+        // Clear score, irregular ending status, restoring to active scoring
         baseMatchUp = {
           ...baseMatchUp,
           matchUpStatus: 'IN_PROGRESS',
           winningSide: undefined,
           readyToScore: true,
+          score: undefined,
         };
         render();
       },

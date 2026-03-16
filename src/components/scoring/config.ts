@@ -4,7 +4,7 @@
  */
 
 export interface ScoringConfig {
-  scoringApproach?: 'freeScore' | 'dynamicSets' | 'dialPad';
+  scoringApproach?: 'freeScore' | 'dynamicSets' | 'dialPad' | 'inlineScoring';
   smartComplements?: boolean;
   composition?: string; // Composition name: 'Australian', 'Basic', 'French', 'Wimbledon', 'US Open', 'ITF', 'National'
   idiom?: string;

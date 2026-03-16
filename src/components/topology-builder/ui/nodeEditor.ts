@@ -134,7 +134,7 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
         options: STRUCTURE_TYPES.map((d) => ({ ...d, selected: d.value === node.structureType }))
       },
       {
-        label: 'Draw Size',
+        label: node.stage === MAIN ? 'Draw Size' : 'Structure Size',
         field: 'drawSize',
         type: 'number',
         value: String(node.drawSize),

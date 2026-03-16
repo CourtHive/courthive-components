@@ -61,7 +61,21 @@
 
 .chc-theme-basiccard .chc-matchup {
   border-radius: 8px;
-  overflow: hidden;
+}
+
+/* Round all elements with backgrounds at the card corners so they don't bleed
+   past the border-radius — avoids overflow:hidden on .chc-matchup which would
+   clip draw position pseudo-elements positioned outside the card. */
+.chc-theme-basiccard .chc-matchup > :first-child,
+.chc-theme-basiccard .chc-matchup > :first-child .chc-participant-container,
+.chc-theme-basiccard .chc-matchup > :first-child .chc-score-wrapper {
+  border-radius: 8px 8px 0 0;
+}
+.chc-theme-basiccard .chc-matchup > :last-child,
+.chc-theme-basiccard .chc-matchup > :last-child .chc-participant-container,
+.chc-theme-basiccard .chc-matchup > :last-child .chc-score-wrapper,
+.chc-theme-basiccard .chc-matchup > :last-child .chc-matchup-footer {
+  border-radius: 0 0 8px 8px;
 }
 
 .chc-theme-basiccard .chc-scheduling {

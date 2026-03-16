@@ -55,7 +55,7 @@ export const compositions: Record<string, Composition> = {
     configuration: {
       matchUpFooter: true,
       gameScore: { position: 'trailing', inverted: true },
-      inlineScoring: { mode: 'points', showFooter: true, showSituation: true },
+      inlineScoring: { mode: 'games', showFooter: true, showSituation: true },
     },
     theme: basicCardTheme,
   },

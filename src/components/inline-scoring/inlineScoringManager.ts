@@ -27,11 +27,45 @@ export class InlineScoringManager {
 
     const engine = new ScoringEngine({ matchUpFormat });
 
-    // If matchUp has existing score, load it via setInitialScore
+    // If matchUp has existing score, load it via setInitialScore.
+    // Split sets into completed (with winningSide) and the current in-progress set.
+    // The current set must be passed as currentSetScore so the engine creates it
+    // with internal tracking arrays (side1GameScores/side2GameScores) that addPoint needs.
     if (existingMatchUp?.score?.sets?.length) {
       try {
+        const allSets = existingMatchUp.score.sets;
+        const completedSets = allSets.filter((s: any) => s.winningSide);
+        const currentSet = allSets.find((s: any) => !s.winningSide);
+
+        // Convert tennis display point scores ("15","30","40","AD") to raw point counts
+        // so the engine can resume mid-game state
+        let currentGameScore: { side1Points: number; side2Points: number } | undefined;
+        if (currentSet?.side1PointScore != null && currentSet?.side2PointScore != null) {
+          const toRaw = (display: string | number): number => {
+            const s = String(display);
+            if (s === '0') return 0;
+            if (s === '15') return 1;
+            if (s === '30') return 2;
+            if (s === '40') return 3;
+            if (s === 'AD') return 4;
+            const n = Number(display);
+            return isNaN(n) ? 0 : n;
+          };
+          currentGameScore = {
+            side1Points: toRaw(currentSet.side1PointScore),
+            side2Points: toRaw(currentSet.side2PointScore),
+          };
+        }
+
         engine.setInitialScore({
-          sets: existingMatchUp.score.sets,
+          sets: completedSets,
+          ...(currentSet && {
+            currentSetScore: {
+              side1Score: currentSet.side1Score || 0,
+              side2Score: currentSet.side2Score || 0,
+            },
+          }),
+          ...(currentGameScore && { currentGameScore }),
           matchUpStatus: existingMatchUp.matchUpStatus,
           winningSide: existingMatchUp.winningSide,
         } as any);

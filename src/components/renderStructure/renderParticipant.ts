@@ -60,7 +60,7 @@ export function renderParticipant({
 
   const firstParticipant = isDoubles ? participant?.individualParticipants?.[0] : participant;
   const secondParticipant = isDoubles && participant?.individualParticipants?.[1];
-  const isWinningSide = Boolean(sideNumber === winningSide || (matchUpStatus === 'BYE' && participant));
+  const isWinningSide = Boolean((winningSide && sideNumber === winningSide) || (matchUpStatus === 'BYE' && participant));
   const winnerChevron = configuration?.winnerChevron && isWinningSide;
 
   const teamLogo = configuration?.teamLogo;
