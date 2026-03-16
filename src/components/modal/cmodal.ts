@@ -9,6 +9,8 @@ import {
   modalStyle,
   modalTitleStyle
 } from './cmodalStyles';
+
+// types
 import type { ModalButton, ModalConfig, ModalParams } from '../../types';
 
 const EMPTY = 'Nothing to see here';
@@ -258,15 +260,24 @@ export const cModal = (() => {
         user-select: none;
       `;
 
+      const closeInfoPopover = () => {
+        if (infoPopover && document.body.contains(infoPopover)) {
+          infoPopover.remove();
+          infoPopover = undefined;
+        }
+      };
+
       infoIcon.onclick = (e) => {
         e.stopPropagation();
 
         // Close existing popover if open
         if (infoPopover && document.body.contains(infoPopover)) {
-          infoPopover.remove();
-          infoPopover = undefined;
+          closeInfoPopover();
           return;
         }
+
+        // Do not render if info is undefined
+        if (!config?.info) return;
 
         // Create popover
         infoPopover = document.createElement('div');
@@ -286,7 +297,25 @@ export const cModal = (() => {
           color: var(--chc-text-primary);
         `;
 
-        // Ensure strong tags render in black
+        // Close button (x)
+        const closeBtn = document.createElement('span');
+        closeBtn.textContent = '\u00d7';
+        closeBtn.style.cssText = `
+          position: absolute;
+          top: 4px;
+          right: 8px;
+          cursor: pointer;
+          font-size: 18px;
+          line-height: 1;
+          color: var(--chc-text-secondary, #666);
+        `;
+        closeBtn.onclick = (ev) => {
+          ev.stopPropagation();
+          closeInfoPopover();
+        };
+        infoPopover.appendChild(closeBtn);
+
+        // Ensure strong tags render correctly
         const style = document.createElement('style');
         style.textContent = `
           [data-modal-popover] strong {
@@ -299,11 +328,13 @@ export const cModal = (() => {
           document.head.appendChild(style);
         }
 
+        const contentEl = document.createElement('div');
         if (isString(config.info)) {
-          infoPopover.innerHTML = config.info;
+          contentEl.innerHTML = config.info;
         } else {
-          infoPopover.textContent = String(config.info);
+          contentEl.textContent = String(config.info);
         }
+        infoPopover.appendChild(contentEl);
 
         document.body.appendChild(infoPopover);
 
@@ -313,16 +344,15 @@ export const cModal = (() => {
         infoPopover.style.top = `${rect.bottom + 5}px`;
         infoPopover.style.left = 'auto';
 
-        // Close on click anywhere else (after a short delay to avoid immediate closure)
+        // Close on click anywhere else — use capture phase so dialog's stopPropagation doesn't block it
         setTimeout(() => {
           const closePopover = (event: MouseEvent) => {
             if (infoPopover && !infoPopover.contains(event.target as Node) && event.target !== infoIcon) {
-              infoPopover.remove();
-              infoPopover = undefined;
-              document.removeEventListener('click', closePopover);
+              closeInfoPopover();
+              document.removeEventListener('click', closePopover, true);
             }
           };
-          document.addEventListener('click', closePopover);
+          document.addEventListener('click', closePopover, true);
         }, 100);
       };
 
@@ -503,6 +533,17 @@ export const cModal = (() => {
       onClose?: (params: { content?: any }) => void;
     }) => {
       config = newConfig || config;
+
+      // Close any open info popover when config changes (content may be stale)
+      if (infoPopover && document.body.contains(infoPopover)) {
+        infoPopover.remove();
+        infoPopover = undefined;
+      }
+
+      // Update info icon visibility based on new config
+      if (infoIcon) {
+        infoIcon.style.display = config?.info ? '' : 'none';
+      }
 
       if (newContent) setContent({ content: newContent, config });
       if (buttons) setButtons({ buttons, config });

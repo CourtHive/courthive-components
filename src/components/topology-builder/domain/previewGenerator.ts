@@ -241,7 +241,8 @@ function generateAdHocPreview({
   roundsCount?: number;
 }): SchematicMatchUp[] {
   const matchUps: SchematicMatchUp[] = [];
-  const matchUpsPerRound = Math.max(1, Math.floor(drawSize / 2));
+  if (drawSize < 2) return matchUps;
+  const matchUpsPerRound = Math.floor(drawSize / 2);
 
   for (let r = 1; r <= roundsCount; r++) {
     for (let pos = 1; pos <= matchUpsPerRound; pos++) {

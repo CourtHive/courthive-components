@@ -3,12 +3,12 @@
  * Supports multiple scoring approaches with validation
  * Menu caret allows seamless switching between approaches
  */
-import { cModal } from '../modal/cmodal';
-import { renderFreeScoreEntry } from './approaches/freeScoreApproach';
 import { renderDynamicSetsScoreEntry } from './approaches/dynamicSetsApproach';
 import { renderDialPadScoreEntry } from './approaches/dialPadApproach';
+import { renderFreeScoreEntry } from './approaches/freeScoreApproach';
 import type { ScoringModalParams, ScoreOutcome } from './types';
 import { getScoringConfig, setScoringConfig } from './config';
+import { cModal } from '../modal/cmodal';
 
 type ScoringApproach = 'dynamicSets' | 'freeScore' | 'dialPad';
 
@@ -89,7 +89,9 @@ export function scoringModal(params: ScoringModalParams): void {
   const freeScoreHelp = `
     <strong>${labels.scoreTips || 'Score Entry Tips:'}</strong><br><br>
     <strong>${labels.setScores || 'Set Scores:'}</strong> Enter space or dash-separated (e.g., "6-4 6-3")<br><br>
-    <strong>${labels.tiebreaks || 'Tiebreaks:'}</strong> Auto-detected from digits (e.g., "67 3" becomes "6-7(3)")<br><br>
+    <strong>${
+      labels.tiebreaks || 'Tiebreaks:'
+    }</strong> Auto-detected from digits (e.g., "67 3" becomes "6-7(3)")<br><br>
     <strong>${labels.matchTiebreaks || 'Match Tiebreaks:'}</strong> Use dash separator (e.g., "10-7")<br><br>
     <strong>${labels.irregularEndings || 'Irregular Endings:'}</strong><br>
     <strong>r</strong> = ${labels.retired || 'Retired'}<br>
@@ -103,6 +105,32 @@ export function scoringModal(params: ScoringModalParams): void {
     <strong>dr</strong> = Dead Rubber
   `;
 
+  const dynamicSetsHelp = `
+    <strong>${labels.dynamicSetsTips || 'Dynamic Sets Scoring:'}</strong><br><br>
+    Enter scores set by set using individual inputs.<br><br>
+    <strong>${labels.addSet || 'Add Set:'}</strong> Click "+" to add another set<br><br>
+    <strong>${labels.tiebreaks || 'Tiebreaks:'}</strong> Enter tiebreak score in the TB field when a set is tied<br><br>
+    <strong>${
+      labels.irregularEndings || 'Irregular Endings:'
+    }</strong> Use the status dropdown to set Retired, Walkover, Default, etc.
+  `;
+
+  const dialPadHelp = `
+    <strong>${labels.dialPadTips || 'Dial Pad Scoring:'}</strong><br><br>
+    Tap the number buttons to enter scores for each side.<br><br>
+    <strong>${labels.setScores || 'Set Scores:'}</strong> Select a side, then tap the game score<br><br>
+    <strong>${labels.tiebreaks || 'Tiebreaks:'}</strong> Enter tiebreak score when prompted<br><br>
+    <strong>${
+      labels.irregularEndings || 'Irregular Endings:'
+    }</strong> Use the status dropdown to set Retired, Walkover, Default, etc.
+  `;
+
+  const approachHelp: Record<ScoringApproach, string> = {
+    freeScore: freeScoreHelp,
+    dynamicSets: dynamicSetsHelp,
+    dialPad: dialPadHelp
+  };
+
   const buildMenuItems = () =>
     APPROACHES.map((a) => ({
       label: APPROACH_LABELS[a],
@@ -111,8 +139,8 @@ export function scoringModal(params: ScoringModalParams): void {
     }));
 
   const buildModalConfig = () => ({
-    info: activeApproach === 'freeScore' ? freeScoreHelp : undefined,
-    menu: { menuItems: buildMenuItems() },
+    info: approachHelp[activeApproach],
+    menu: { menuItems: buildMenuItems() }
   });
 
   const clearButton = () => {

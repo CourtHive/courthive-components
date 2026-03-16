@@ -2,12 +2,14 @@
  * Node Editor — Side panel form for editing selected node properties.
  * Uses renderForm (items + relationships) pattern.
  */
-import { drawDefinitionConstants } from 'tods-competition-factory';
 import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
-import { renderForm } from '../../forms/renderForm';
-import { getFeedRoundCapacities } from '../domain/feedRounds';
 import { nameValidator } from '../../../validators/nameValidator';
 import { numericRange } from '../../../validators/numericRange';
+import { getFeedRoundCapacities } from '../domain/feedRounds';
+import { renderForm } from '../../forms/renderForm';
+
+// constants and types
+import { drawDefinitionConstants } from 'tods-competition-factory';
 import type { TopologyEdge, TopologyNode, TopologyState, UIPanel } from '../types';
 
 const {
@@ -24,7 +26,7 @@ const {
   QUALIFYING,
   CONSOLATION,
   PLAY_OFF,
-  WINNER,
+  WINNER
 } = drawDefinitionConstants;
 
 const POSITION = 'POSITION';
@@ -36,7 +38,7 @@ const PLAYOFF_DRAW_TYPES = [
   { label: 'FMLC', value: FIRST_MATCH_LOSER_CONSOLATION },
   { label: 'Compass', value: COMPASS },
   { label: 'Olympic', value: OLYMPIC },
-  { label: 'Ad-hoc', value: AD_HOC },
+  { label: 'Ad-hoc', value: AD_HOC }
 ];
 
 const STRUCTURE_TYPES = [
@@ -44,14 +46,14 @@ const STRUCTURE_TYPES = [
   { label: 'Round Robin', value: ROUND_ROBIN },
   { label: 'Lucky Draw', value: LUCKY_DRAW },
   { label: 'Staggered Entry', value: FEED_IN },
-  { label: 'Ad-hoc', value: AD_HOC },
+  { label: 'Ad-hoc', value: AD_HOC }
 ];
 
 const STAGES = [
   { label: 'Main', value: MAIN },
   { label: 'Qualifying', value: QUALIFYING },
   { label: 'Consolation', value: CONSOLATION },
-  { label: 'Playoff', value: PLAY_OFF },
+  { label: 'Playoff', value: PLAY_OFF }
 ];
 
 export interface NodeEditorCallbacks {
@@ -85,12 +87,7 @@ function getValidGroupSizes(drawSize: number, groupSizeLimit = 8): number[] {
     const byesCount = groupsCount * gs - drawSize;
     const maxPerGroup = Math.ceil(drawSize / groupsCount);
     const maxByesPerGroup = Math.ceil(byesCount / groupsCount);
-    if (
-      (!byesCount || byesCount < gs) &&
-      maxPerGroup === gs &&
-      maxPerGroup >= 3 &&
-      maxByesPerGroup < 2
-    ) {
+    if ((!byesCount || byesCount < gs) && maxPerGroup === gs && maxPerGroup >= 3 && maxByesPerGroup < 2) {
       valid.push(gs);
     }
   }
@@ -103,9 +100,7 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
 
   function update(state: TopologyState): void {
     root.innerHTML = '';
-    const node = state.selectedNodeId
-      ? state.nodes.find((n) => n.id === state.selectedNodeId)
-      : null;
+    const node = state.selectedNodeId ? state.nodes.find((n) => n.id === state.selectedNodeId) : null;
 
     if (!node) return;
 
@@ -122,65 +117,70 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
         label: 'Name',
         field: 'structureName',
         value: node.structureName,
-        ...(isReadOnly ? { disabled: true } : { validator: nameValidator(1), error: 'Name required' }),
+        ...(isReadOnly ? { disabled: true } : { validator: nameValidator(1), error: 'Name required' })
       },
       {
         label: 'Stage',
         field: 'stage',
         value: node.stage,
         disabled: isReadOnly,
-        options: STAGES.map((s) => ({ ...s, selected: s.value === node.stage })),
+        options: STAGES.map((s) => ({ ...s, selected: s.value === node.stage }))
       },
       {
         label: 'Structure Type',
         field: 'structureType',
         value: node.structureType,
         disabled: isReadOnly,
-        options: STRUCTURE_TYPES.map((d) => ({ ...d, selected: d.value === node.structureType })),
+        options: STRUCTURE_TYPES.map((d) => ({ ...d, selected: d.value === node.structureType }))
       },
       {
         label: 'Draw Size',
         field: 'drawSize',
         type: 'number',
         value: String(node.drawSize),
-        ...(isReadOnly ? { disabled: true } : { validator: numericRange(2, 256), error: 'Must be 2-256' }),
-      },
+        ...(isReadOnly
+          ? { disabled: true }
+          : node.structureType === AD_HOC
+          ? { validator: numericRange(0, 256), error: 'Must be 0-256' }
+          : { validator: numericRange(2, 256), error: 'Must be 2-256' })
+      }
     ];
 
-    const relationships: any[] = isReadOnly ? [] : [
-      {
-        control: 'structureName',
-        onChange: ({ inputs }: any) =>
-          callbacks.onUpdateNode(node.id, { structureName: inputs.structureName.value }),
-      },
-      {
-        control: 'stage',
-        onChange: ({ e }: any) =>
-          callbacks.onUpdateNode(node.id, { stage: e.target.value }),
-      },
-      {
-        control: 'structureType',
-        onChange: ({ e }: any) =>
-          callbacks.onUpdateNode(node.id, { structureType: e.target.value }),
-      },
-      {
-        control: 'drawSize',
-        onChange: ({ inputs }: any) => {
-          const size = parseInt(inputs.drawSize.value);
-          if (size < 2) return;
-          const updates: Partial<TopologyNode> = { drawSize: size };
-          // Auto-correct groupSize if it becomes invalid for the new drawSize
-          if (node.structureType === ROUND_ROBIN) {
-            const currentGS = node.structureOptions?.groupSize || 4;
-            const valid = getValidGroupSizes(size);
-            if (!valid.includes(currentGS) && valid.length > 0) {
-              updates.structureOptions = { ...node.structureOptions, groupSize: valid[0] };
+    const relationships: any[] = isReadOnly
+      ? []
+      : [
+          {
+            control: 'structureName',
+            onChange: ({ inputs }: any) =>
+              callbacks.onUpdateNode(node.id, { structureName: inputs.structureName.value })
+          },
+          {
+            control: 'stage',
+            onChange: ({ e }: any) => callbacks.onUpdateNode(node.id, { stage: e.target.value })
+          },
+          {
+            control: 'structureType',
+            onChange: ({ e }: any) => callbacks.onUpdateNode(node.id, { structureType: e.target.value })
+          },
+          {
+            control: 'drawSize',
+            onChange: ({ inputs }: any) => {
+              const size = parseInt(inputs.drawSize.value);
+              const minSize = node.structureType === AD_HOC ? 0 : 2;
+              if (size < minSize) return;
+              const updates: Partial<TopologyNode> = { drawSize: size };
+              // Auto-correct groupSize if it becomes invalid for the new drawSize
+              if (node.structureType === ROUND_ROBIN) {
+                const currentGS = node.structureOptions?.groupSize || 4;
+                const valid = getValidGroupSizes(size);
+                if (!valid.includes(currentGS) && valid.length > 0) {
+                  updates.structureOptions = { ...node.structureOptions, groupSize: valid[0] };
+                }
+              }
+              callbacks.onUpdateNode(node.id, updates);
             }
           }
-          callbacks.onUpdateNode(node.id, updates);
-        },
-      },
-    ];
+        ];
 
     // Round Robin group size field
     const isRR = node.structureType === ROUND_ROBIN;
@@ -201,15 +201,15 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
         options: groupSizeOptions.map((n: number) => ({
           label: String(n),
           value: String(n),
-          selected: n === currentGroupSize,
-        })),
+          selected: n === currentGroupSize
+        }))
       });
 
       items.push({
         label: 'Groups',
         field: 'groupCount',
         value: String(groupCount),
-        disabled: true,
+        disabled: true
       });
 
       if (!isReadOnly) {
@@ -218,16 +218,14 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
           onChange: ({ e }: any) => {
             const newGroupSize = parseInt(e.target.value);
             callbacks.onUpdateNode(node.id, {
-              structureOptions: { ...node.structureOptions, groupSize: newGroupSize },
+              structureOptions: { ...node.structureOptions, groupSize: newGroupSize }
             });
-          },
+          }
         });
       }
 
       // Advance Per Group — editable dropdown (1 to groupSize)
-      const positionEdges = state.edges.filter(
-        (e) => e.sourceNodeId === node.id && e.linkType === POSITION,
-      );
+      const positionEdges = state.edges.filter((e) => e.sourceNodeId === node.id && e.linkType === POSITION);
       const allPositions = new Set(positionEdges.flatMap((e) => e.finishingPositions || []));
       const advanceCount = allPositions.size || 0;
       const advanceOptions = Array.from({ length: currentGroupSize }, (_, i) => i + 1);
@@ -240,8 +238,8 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
         options: advanceOptions.map((n: number) => ({
           label: String(n),
           value: String(n),
-          selected: n === advanceCount,
-        })),
+          selected: n === advanceCount
+        }))
       });
 
       if (!isReadOnly && positionEdges.length > 0) {
@@ -261,7 +259,7 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
               }
               if (toAdd.length > 0) {
                 callbacks.onUpdateEdge(lastEdge.id, {
-                  finishingPositions: [...(lastEdge.finishingPositions || []), ...toAdd].sort((a, b) => a - b),
+                  finishingPositions: [...(lastEdge.finishingPositions || []), ...toAdd].sort((a, b) => a - b)
                 });
               }
             } else {
@@ -275,7 +273,7 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
                 }
               }
             }
-          },
+          }
         });
       }
 
@@ -300,7 +298,7 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
             label: 'Playoff Groups',
             field: 'playoffSummary',
             value: targetSummaries.join('\n'),
-            disabled: true,
+            disabled: true
           });
         }
       }
@@ -308,9 +306,7 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
 
     // Playoff draw type for PLAY_OFF nodes receiving POSITION edges from RR
     if (node.stage === PLAY_OFF) {
-      const inboundPositionEdge = state.edges.find(
-        (e) => e.targetNodeId === node.id && e.linkType === POSITION,
-      );
+      const inboundPositionEdge = state.edges.find((e) => e.targetNodeId === node.id && e.linkType === POSITION);
       if (inboundPositionEdge) {
         const sourceNode = state.nodes.find((n) => n.id === inboundPositionEdge.sourceNodeId);
         if (sourceNode?.structureType === ROUND_ROBIN) {
@@ -320,15 +316,15 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
             field: 'playoffDrawType',
             value: currentDrawType,
             disabled: isReadOnly,
-            options: PLAYOFF_DRAW_TYPES.map((d) => ({ ...d, selected: d.value === currentDrawType })),
+            options: PLAYOFF_DRAW_TYPES.map((d) => ({ ...d, selected: d.value === currentDrawType }))
           });
           if (!isReadOnly) {
             relationships.push({
               control: 'playoffDrawType',
               onChange: ({ e }: any) =>
                 callbacks.onUpdateNode(node.id, {
-                  structureOptions: { ...node.structureOptions, playoffDrawType: e.target.value },
-                }),
+                  structureOptions: { ...node.structureOptions, playoffDrawType: e.target.value }
+                })
             });
           }
 
@@ -343,16 +339,16 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
               options: [3, 4, 5, 6, 8].map((n: number) => ({
                 label: String(n),
                 value: String(n),
-                selected: n === playoffGroupSize,
-              })),
+                selected: n === playoffGroupSize
+              }))
             });
             if (!isReadOnly) {
               relationships.push({
                 control: 'playoffGroupSize',
                 onChange: ({ e }: any) =>
                   callbacks.onUpdateNode(node.id, {
-                    structureOptions: { ...node.structureOptions, groupSize: parseInt(e.target.value) },
-                  }),
+                    structureOptions: { ...node.structureOptions, groupSize: parseInt(e.target.value) }
+                  })
               });
             }
           }
@@ -372,14 +368,13 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
         options: qualifierOptions.map((n: number) => ({
           label: String(n),
           value: String(n),
-          selected: n === current,
-        })),
+          selected: n === current
+        }))
       });
       if (!isReadOnly) {
         relationships.push({
           control: 'qualifyingPositions',
-          onChange: ({ e }: any) =>
-            callbacks.onUpdateNode(node.id, { qualifyingPositions: parseInt(e.target.value) }),
+          onChange: ({ e }: any) => callbacks.onUpdateNode(node.id, { qualifyingPositions: parseInt(e.target.value) })
         });
       }
     }
@@ -409,7 +404,7 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
           callback: (format: string) => {
             callbacks.onUpdateNode(node.id, { matchUpFormat: format || undefined });
             formatTrigger.textContent = format || 'Not set';
-          },
+          }
         });
       };
     }
@@ -439,11 +434,11 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
       if (capacity >= demand) continue;
       if (capacity === 0) {
         feedWarnings.push(
-          `Round ${entry.targetRound} is not a feed round — ${entry.sourceName} sends ${entry.qp} qualifiers`,
+          `Round ${entry.targetRound} is not a feed round — ${entry.sourceName} sends ${entry.qp} qualifiers`
         );
       } else {
         feedWarnings.push(
-          `Round ${entry.targetRound} has ${capacity} feed positions but ${entry.sourceName} sends ${entry.qp} qualifiers`,
+          `Round ${entry.targetRound} has ${capacity} feed positions but ${entry.sourceName} sends ${entry.qp} qualifiers`
         );
       }
     }
@@ -458,7 +453,8 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
       }
       const hint = document.createElement('div');
       hint.style.marginTop = '6px';
-      hint.textContent = 'Change the target round to a feed round, or increase the draw size to create feed positions at that round.';
+      hint.textContent =
+        'Change the target round to a feed round, or increase the draw size to create feed positions at that round.';
       warningBox.appendChild(hint);
       body.appendChild(warningBox);
     }
