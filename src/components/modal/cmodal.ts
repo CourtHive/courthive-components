@@ -256,6 +256,7 @@ export const cModal = (() => {
         color: white;
         font-size: 14px;
         font-weight: bold;
+        line-height: 1;
         flex-shrink: 0;
         user-select: none;
       `;
@@ -542,7 +543,7 @@ export const cModal = (() => {
 
       // Update info icon visibility based on new config
       if (infoIcon) {
-        infoIcon.style.display = config?.info ? '' : 'none';
+        infoIcon.style.display = config?.info ? 'inline-flex' : 'none';
       }
 
       if (newContent) setContent({ content: newContent, config });

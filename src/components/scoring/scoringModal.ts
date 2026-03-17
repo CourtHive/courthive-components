@@ -42,7 +42,7 @@ export function scoringModal(params: ScoringModalParams): void {
 
     const submitBtn = document.getElementById('submitScoreV2') as HTMLButtonElement;
     if (submitBtn) {
-      const canSubmit = outcome.isValid || (wasCleared && hadExistingScore);
+      const canSubmit = activeApproach === 'inlineScoring' || outcome.isValid || (wasCleared && hadExistingScore);
       submitBtn.disabled = !canSubmit;
     }
 
@@ -232,9 +232,10 @@ export function scoringModal(params: ScoringModalParams): void {
       id: 'submitScoreV2',
       label: labels.submit || 'Submit Score',
       intent: 'is-primary',
-      disabled: true,
+      disabled: activeApproach !== 'inlineScoring',
       onClick: () => {
-        const canSubmit = currentOutcome && (currentOutcome.isValid || (wasCleared && hadExistingScore));
+        const canSubmit =
+          currentOutcome && (activeApproach === 'inlineScoring' || currentOutcome.isValid || (wasCleared && hadExistingScore));
         if (canSubmit) {
           cleanupCurrentApproach();
           callback(currentOutcome);
