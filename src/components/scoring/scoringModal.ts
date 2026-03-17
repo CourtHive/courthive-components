@@ -17,7 +17,7 @@ const APPROACH_LABELS: Record<ScoringApproach, string> = {
   dynamicSets: 'Dynamic Sets',
   freeScore: 'Free Score',
   dialPad: 'Dial Pad',
-  inlineScoring: 'Inline Scoring',
+  inlineScoring: 'Inline Scoring'
 };
 
 const APPROACHES: ScoringApproach[] = ['dynamicSets', 'freeScore', 'dialPad', 'inlineScoring'];
@@ -95,7 +95,7 @@ export function scoringModal(params: ScoringModalParams): void {
 
   const freeScoreHelp = `
     <strong>${labels.scoreTips || 'Score Entry Tips:'}</strong><br><br>
-    <strong>${labels.setScores || 'Set Scores:'}</strong> Enter space or dash-separated (e.g., "6-4 6-3")<br><br>
+    <strong>${labels.setScores || 'Set Scores:'}</strong> Space or dash-separated (e.g., "6-4 6-3")<br><br>
     <strong>${
       labels.tiebreaks || 'Tiebreaks:'
     }</strong> Auto-detected from digits (e.g., "67 3" becomes "6-7(3)")<br><br>
@@ -115,21 +115,16 @@ export function scoringModal(params: ScoringModalParams): void {
   const dynamicSetsHelp = `
     <strong>${labels.dynamicSetsTips || 'Dynamic Sets Scoring:'}</strong><br><br>
     Enter scores set by set using individual inputs.<br><br>
-    <strong>${labels.addSet || 'Add Set:'}</strong> Click "+" to add another set<br><br>
     <strong>${labels.tiebreaks || 'Tiebreaks:'}</strong> Enter tiebreak score in the TB field when a set is tied<br><br>
-    <strong>${
-      labels.irregularEndings || 'Irregular Endings:'
-    }</strong> Use the status dropdown to set Retired, Walkover, Default, etc.
+    <strong>${labels.irregularEndings || 'Irregular Endings:'}</strong> Click Retired, Walkover, Default.
   `;
 
   const dialPadHelp = `
     <strong>${labels.dialPadTips || 'Dial Pad Scoring:'}</strong><br><br>
     Tap the number buttons to enter scores for each side.<br><br>
-    <strong>${labels.setScores || 'Set Scores:'}</strong> Select a side, then tap the game score<br><br>
-    <strong>${labels.tiebreaks || 'Tiebreaks:'}</strong> Enter tiebreak score when prompted<br><br>
     <strong>${
       labels.irregularEndings || 'Irregular Endings:'
-    }</strong> Use the status dropdown to set Retired, Walkover, Default, etc.
+    }</strong> Retired, Walkover, Default available for irregular endings.
   `;
 
   const inlineScoringHelp = `
@@ -144,7 +139,7 @@ export function scoringModal(params: ScoringModalParams): void {
     freeScore: freeScoreHelp,
     dynamicSets: dynamicSetsHelp,
     dialPad: dialPadHelp,
-    inlineScoring: inlineScoringHelp,
+    inlineScoring: inlineScoringHelp
   };
 
   const buildMenuItems = () =>
