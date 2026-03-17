@@ -33,8 +33,8 @@ importers:
         specifier: 6.3.7
         version: 6.3.7
       tods-competition-factory:
-        specifier: 2.4.6-beta.27
-        version: 2.4.6-beta.27
+        specifier: 2.4.6-beta.28
+        version: 2.4.6-beta.28
       vanillajs-datepicker:
         specifier: 1.3.4
         version: 1.3.4
@@ -4105,8 +4105,8 @@ packages:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
 
-  tods-competition-factory@2.4.6-beta.27:
-    resolution: {integrity: sha512-zWU2m1ZuCYyStn53FxWrzqdFq3mBhBqPmruASdHe//23VMWTC416H97nkhnfqzvuMZ2Zso4U794CJeC0Am12iQ==}
+  tods-competition-factory@2.4.6-beta.28:
+    resolution: {integrity: sha512-zs41PEOtrFPWVWw4m1waNfPDJ9elKT6IC0ZiNEO2EC01shGKR1n8hcuocisRvXoSmGb9HghiUyCQ53aO6KFAhQ==}
     engines: {node: '>=20'}
 
   totalist@3.0.1:
@@ -8741,7 +8741,7 @@ snapshots:
     dependencies:
       is-number: 7.0.0
 
-  tods-competition-factory@2.4.6-beta.27: {}
+  tods-competition-factory@2.4.6-beta.28: {}
 
   totalist@3.0.1: {}
 
