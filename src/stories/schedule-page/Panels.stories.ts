@@ -45,11 +45,13 @@ function makeStoreState(overrides: Partial<SchedulePageState> = {}): SchedulePag
     catalogGroupBy: 'event',
     catalogFilters: {},
     showCompleted: false,
+    showScheduled: false,
     scheduledBehavior: 'dim',
     schedulingMode: 'immediate',
     pendingActions: [],
     hasUnsavedChanges: false,
     leftCollapsed: false,
+    hideLeft: false,
     ...overrides,
   };
 }

@@ -13,6 +13,8 @@ import { cModal } from '../modal/cmodal';
 
 type ScoringApproach = 'dynamicSets' | 'freeScore' | 'dialPad' | 'inlineScoring';
 
+const IRREGULAR_ENDINGS_LABEL = 'Irregular Endings:';
+
 const APPROACH_LABELS: Record<ScoringApproach, string> = {
   dynamicSets: 'Dynamic Sets',
   freeScore: 'Free Score',
@@ -100,7 +102,7 @@ export function scoringModal(params: ScoringModalParams): void {
       labels.tiebreaks || 'Tiebreaks:'
     }</strong> Auto-detected from digits (e.g., "67 3" becomes "6-7(3)")<br><br>
     <strong>${labels.matchTiebreaks || 'Match Tiebreaks:'}</strong> Use dash separator (e.g., "10-7")<br><br>
-    <strong>${labels.irregularEndings || 'Irregular Endings:'}</strong><br>
+    <strong>${labels.irregularEndings || IRREGULAR_ENDINGS_LABEL}</strong><br>
     <strong>r</strong> = ${labels.retired || 'Retired'}<br>
     <strong>w</strong> = ${labels.walkover || 'Walkover'}<br>
     <strong>d</strong> = ${labels.defaulted || 'Defaulted'}<br>
@@ -116,14 +118,14 @@ export function scoringModal(params: ScoringModalParams): void {
     <strong>${labels.dynamicSetsTips || 'Dynamic Sets Scoring:'}</strong><br><br>
     Enter scores set by set using individual inputs.<br><br>
     <strong>${labels.tiebreaks || 'Tiebreaks:'}</strong> Enter tiebreak score in the TB field when a set is tied<br><br>
-    <strong>${labels.irregularEndings || 'Irregular Endings:'}</strong> Click Retired, Walkover, Default.
+    <strong>${labels.irregularEndings || IRREGULAR_ENDINGS_LABEL}</strong> Click Retired, Walkover, Default.
   `;
 
   const dialPadHelp = `
     <strong>${labels.dialPadTips || 'Dial Pad Scoring:'}</strong><br><br>
     Tap the number buttons to enter scores for each side.<br><br>
     <strong>${
-      labels.irregularEndings || 'Irregular Endings:'
+      labels.irregularEndings || IRREGULAR_ENDINGS_LABEL
     }</strong> Retired, Walkover, Default available for irregular endings.
   `;
 
