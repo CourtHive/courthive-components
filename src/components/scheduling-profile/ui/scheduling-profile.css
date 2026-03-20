@@ -17,6 +17,14 @@
   box-sizing: border-box;
 }
 
+.sp-layout.sp-no-left {
+  grid-template-columns: 1fr 360px;
+}
+
+.sp-layout.sp-catalog-left {
+  grid-template-columns: 360px 1fr;
+}
+
 .sp-layout * {
   box-sizing: border-box;
 }

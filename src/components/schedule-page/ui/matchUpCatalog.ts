@@ -14,7 +14,7 @@ import type {
   MatchUpCatalogGroupBy,
   CatalogMatchUpItem,
   CatalogFilters,
-  SchedulePageDragPayload,
+  SchedulePageDragPayload
 } from '../types';
 import { filterMatchUpCatalog, groupMatchUpCatalog } from '../domain/matchUpCatalogProjections';
 import { buildMatchUpCard } from './matchUpCard';
@@ -30,7 +30,7 @@ import {
   spGroupStyle,
   spGroupHeaderStyle,
   spGroupBodyStyle,
-  spGroupChevronStyle,
+  spGroupChevronStyle
 } from './styles';
 
 import tippy, { Instance } from 'tippy.js';
@@ -40,6 +40,7 @@ export interface MatchUpCatalogCallbacks {
   onGroupByChange: (mode: MatchUpCatalogGroupBy) => void;
   onFilterChange: (filters: CatalogFilters) => void;
   onShowCompletedChange: (show: boolean) => void;
+  onShowScheduledChange?: (show: boolean) => void;
   onMatchUpSelected?: (matchUp: CatalogMatchUpItem) => void;
   onDropRemove?: (matchUpId: string) => void;
 }
@@ -69,7 +70,7 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
   root.addEventListener('dragover', (e) => {
     e.preventDefault();
     root.classList.add(CATALOG_DROP_OVER);
-    e.dataTransfer!.dropEffect = 'move';
+    e.dataTransfer.dropEffect = 'move';
   });
   root.addEventListener('dragleave', (e) => {
     // Only remove highlight when leaving the panel itself, not child elements
@@ -84,7 +85,7 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
 
     let payload: SchedulePageDragPayload;
     try {
-      payload = JSON.parse(e.dataTransfer!.getData('application/json'));
+      payload = JSON.parse(e.dataTransfer.getData('application/json'));
     } catch {
       return;
     }
@@ -133,16 +134,14 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
     ['event', 'By Event'],
     ['draw', 'By Draw'],
     ['round', 'By Round'],
-    ['structure', 'By Structure'],
+    ['structure', 'By Structure']
   ] as const) {
     const opt = document.createElement('option');
     opt.value = val;
     opt.textContent = label;
     groupSelect.appendChild(opt);
   }
-  groupSelect.addEventListener('change', () =>
-    callbacks.onGroupByChange(groupSelect.value as MatchUpCatalogGroupBy),
-  );
+  groupSelect.addEventListener('change', () => callbacks.onGroupByChange(groupSelect.value as MatchUpCatalogGroupBy));
 
   toolbar.appendChild(searchInput);
   toolbar.appendChild(groupSelect);
@@ -158,7 +157,13 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
   }
 
   function isAnyFilterActive(): boolean {
-    return !!(currentFilters.eventType || currentFilters.eventName || currentFilters.drawName || currentFilters.gender || currentFilters.roundName);
+    return !!(
+      currentFilters.eventType ||
+      currentFilters.eventName ||
+      currentFilters.drawName ||
+      currentFilters.gender ||
+      currentFilters.roundName
+    );
   }
 
   function updateFilterBadge(): void {
@@ -206,7 +211,7 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
       { label: 'All Events', key: 'eventName', values: uniqueValues(catalog, (m) => m.eventName) },
       { label: 'All Flights', key: 'drawName', values: uniqueValues(catalog, (m) => m.drawName) },
       { label: 'All Genders', key: 'gender', values: uniqueValues(catalog, (m) => m.gender) },
-      { label: 'All Rounds', key: 'roundName', values: uniqueValues(catalog, (m) => m.roundName) },
+      { label: 'All Rounds', key: 'roundName', values: uniqueValues(catalog, (m) => m.roundName) }
     ];
 
     for (const section of sections) {
@@ -245,6 +250,20 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
       container.appendChild(select);
     }
 
+    // "Show scheduled" toggle
+    const scheduledToggleRow = document.createElement('label');
+    scheduledToggleRow.className = 'spl-filter-toggle';
+
+    const scheduledCheckbox = document.createElement('input');
+    scheduledCheckbox.type = 'checkbox';
+    scheduledCheckbox.checked = lastState?.showScheduled ?? false;
+    scheduledCheckbox.addEventListener('change', () => {
+      callbacks.onShowScheduledChange?.(scheduledCheckbox.checked);
+    });
+    scheduledToggleRow.appendChild(scheduledCheckbox);
+    scheduledToggleRow.appendChild(document.createTextNode(' Show assigned'));
+    container.appendChild(scheduledToggleRow);
+
     // "Show completed" toggle
     const toggleRow = document.createElement('label');
     toggleRow.className = 'spl-filter-toggle';
@@ -256,9 +275,7 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
       callbacks.onShowCompletedChange(checkbox.checked);
     });
     toggleRow.appendChild(checkbox);
-
-    const toggleLabel = document.createTextNode(' Show completed');
-    toggleRow.appendChild(toggleLabel);
+    toggleRow.appendChild(document.createTextNode(' Show completed'));
     container.appendChild(toggleRow);
 
     return container;
@@ -274,7 +291,7 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
       trigger: 'manual',
       appendTo: () => root,
       onClickOutside: () => destroyFilterTip(),
-      theme: '',
+      theme: ''
     });
     filterTip.show();
   });
@@ -289,8 +306,14 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
     currentFilters = state.catalogFilters ?? {};
     updateFilterBadge();
 
-    const behavior = state.scheduledBehavior;
-    const filtered = filterMatchUpCatalog(state.matchUpCatalog, state.catalogSearchQuery, behavior, state.catalogFilters, state.showCompleted);
+    const behavior = state.showScheduled ? state.scheduledBehavior : 'hide';
+    const filtered = filterMatchUpCatalog(
+      state.matchUpCatalog,
+      state.catalogSearchQuery,
+      behavior,
+      state.catalogFilters,
+      state.showCompleted
+    );
     const groups = groupMatchUpCatalog(filtered, state.catalogGroupBy);
 
     const unscheduledCount = filtered.filter((m) => !m.isScheduled).length;
@@ -341,7 +364,7 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
 
       for (const item of items) {
         const card = buildMatchUpCard(item, {
-          onClick: (m) => callbacks.onMatchUpSelected?.(m),
+          onClick: (m) => callbacks.onMatchUpSelected?.(m)
         });
 
         if (state.selectedMatchUp?.matchUpId === item.matchUpId) {

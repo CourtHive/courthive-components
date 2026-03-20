@@ -25,6 +25,22 @@
   grid-template-columns: 40px 1fr 340px;
 }
 
+.spl-layout.spl-no-left {
+  grid-template-columns: 1fr 340px;
+}
+
+.spl-layout.spl-catalog-left {
+  grid-template-columns: 340px 1fr;
+}
+
+.spl-layout.spl-sidebar-collapsed {
+  grid-template-columns: 1fr;
+}
+
+.spl-sidebar-collapsed > :first-child {
+  display: none !important;
+}
+
 /* ── Left Column ────────────────────────────────────────── */
 
 .spl-left {

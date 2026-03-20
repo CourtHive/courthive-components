@@ -81,7 +81,7 @@ export function buildVenueBoard(callbacks: VenueBoardCallbacks): UIPanel<Profile
       vtitle.textContent = v.name;
       const vsub = document.createElement('div');
       vsub.className = spVenueSubStyle();
-      vsub.textContent = v.venueId;
+      vsub.textContent = '';
       titleWrap.appendChild(vtitle);
       titleWrap.appendChild(vsub);
 
@@ -105,14 +105,9 @@ export function buildVenueBoard(callbacks: VenueBoardCallbacks): UIPanel<Profile
       // Drop zone
       const dz = document.createElement('div');
       dz.className = spDropzoneStyle();
-      dz.setAttribute('data-venue', v.venueId);
+      dz.dataset.venue = v.venueId;
 
-      if (!date) {
-        const hint = document.createElement('div');
-        hint.className = spSmallStyle();
-        hint.textContent = 'Select a date to plan.';
-        dz.appendChild(hint);
-      } else {
+      if (date) {
         const rounds = getVenueRounds(state.profileDraft, date, v.venueId);
 
         if (!rounds.length) {
@@ -144,6 +139,11 @@ export function buildVenueBoard(callbacks: VenueBoardCallbacks): UIPanel<Profile
           );
           dz.appendChild(card);
         });
+      } else {
+        const hint = document.createElement('div');
+        hint.className = spSmallStyle();
+        hint.textContent = 'Select a date to plan.';
+        dz.appendChild(hint);
       }
 
       // Insertion line element
@@ -156,7 +156,7 @@ export function buildVenueBoard(callbacks: VenueBoardCallbacks): UIPanel<Profile
         if (!date) return;
         e.preventDefault();
         dz.classList.add('over');
-        e.dataTransfer!.dropEffect = 'move';
+        e.dataTransfer.dropEffect = 'move';
 
         const idx = calcInsertionIndex(dz, e.clientY, insertionLine);
         const cards = getDraggableCards(dz, insertionLine);
@@ -181,7 +181,7 @@ export function buildVenueBoard(callbacks: VenueBoardCallbacks): UIPanel<Profile
 
         let payload: DragPayload;
         try {
-          payload = JSON.parse(e.dataTransfer!.getData('application/json'));
+          payload = JSON.parse(e.dataTransfer.getData('application/json'));
         } catch {
           return;
         }
@@ -200,9 +200,7 @@ export function buildVenueBoard(callbacks: VenueBoardCallbacks): UIPanel<Profile
 }
 
 function getDraggableCards(dz: HTMLElement, exclude: HTMLElement): HTMLElement[] {
-  return Array.from(dz.querySelectorAll<HTMLElement>('[draggable="true"]')).filter(
-    (el) => el !== exclude,
-  );
+  return Array.from(dz.querySelectorAll<HTMLElement>('[draggable="true"]')).filter((el) => el !== exclude);
 }
 
 function calcInsertionIndex(dz: HTMLElement, clientY: number, exclude: HTMLElement): number {

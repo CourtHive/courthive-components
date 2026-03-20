@@ -4,15 +4,13 @@
  * Stateless factory pattern: { element, update }.
  */
 
-import type {
-  ProfileStoreState,
-  UIPanel,
-  CatalogGroupBy,
-  CatalogRoundItem,
-  DragPayload,
-  RoundLocator,
-} from '../types';
+import type { ProfileStoreState, UIPanel, CatalogGroupBy, CatalogRoundItem, DragPayload, RoundLocator } from '../types';
 import { filterCatalog, groupCatalog, getPlannedRoundKeys } from '../domain/catalogProjections';
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function isUUID(s: string): boolean {
+  return UUID_RE.test(s);
+}
 import {
   spPanelStyle,
   spPanelHeaderStyle,
@@ -28,7 +26,7 @@ import {
   spCatalogItemStyle,
   spCardTitleStyle,
   spCardMetaStyle,
-  spGroupChevronStyle,
+  spGroupChevronStyle
 } from './styles';
 
 export interface RoundCatalogCallbacks {
@@ -76,16 +74,14 @@ export function buildRoundCatalog(callbacks: RoundCatalogCallbacks): UIPanel<Pro
   for (const [val, label] of [
     ['event', 'By Event'],
     ['draw', 'By Draw'],
-    ['round', 'By Round'],
+    ['round', 'By Round']
   ]) {
     const opt = document.createElement('option');
     opt.value = val;
     opt.textContent = label;
     groupSelect.appendChild(opt);
   }
-  groupSelect.addEventListener('change', () =>
-    callbacks.onGroupByChange(groupSelect.value as CatalogGroupBy),
-  );
+  groupSelect.addEventListener('change', () => callbacks.onGroupByChange(groupSelect.value as CatalogGroupBy));
 
   toolbar.appendChild(searchInput);
   toolbar.appendChild(groupSelect);
@@ -100,7 +96,7 @@ export function buildRoundCatalog(callbacks: RoundCatalogCallbacks): UIPanel<Pro
   body.addEventListener('dragover', (e) => {
     e.preventDefault();
     body.classList.add('over');
-    e.dataTransfer!.dropEffect = 'move';
+    e.dataTransfer.dropEffect = 'move';
   });
   body.addEventListener('dragleave', (e) => {
     if (!body.contains(e.relatedTarget as Node)) {
@@ -114,7 +110,7 @@ export function buildRoundCatalog(callbacks: RoundCatalogCallbacks): UIPanel<Pro
 
     let payload: DragPayload;
     try {
-      payload = JSON.parse(e.dataTransfer!.getData('application/json'));
+      payload = JSON.parse(e.dataTransfer.getData('application/json'));
     } catch {
       return;
     }
@@ -191,23 +187,23 @@ export function buildRoundCatalog(callbacks: RoundCatalogCallbacks): UIPanel<Pro
           div.draggable = true;
           div.addEventListener('dragstart', (e) => {
             e.stopPropagation();
-            e.dataTransfer!.setDragImage(div, div.offsetWidth / 2, 20);
-            e.dataTransfer!.setData(
-              'application/json',
-              JSON.stringify({ type: 'CATALOG_ROUND', roundRef: item }),
-            );
-            e.dataTransfer!.effectAllowed = 'copyMove';
+            e.dataTransfer.setDragImage(div, div.offsetWidth / 2, 20);
+            e.dataTransfer.setData('application/json', JSON.stringify({ type: 'CATALOG_ROUND', roundRef: item }));
+            e.dataTransfer.effectAllowed = 'copyMove';
           });
         }
 
         const t = document.createElement('div');
         t.className = spCardTitleStyle();
-        t.textContent = `${item.eventName} \u2014 ${item.roundName ?? 'Round ' + item.roundNumber}`;
+        const roundLabel =
+          item.roundName && !item.roundName.startsWith('rn=') ? item.roundName : 'Round ' + item.roundNumber;
+        t.textContent = `${item.eventName} \u2014 ${roundLabel}`;
 
         const m = document.createElement('div');
         m.className = spCardMetaStyle();
-        const matchInfo = item.matchCountEstimate ? ' \u00b7 est ' + item.matchCountEstimate + ' matches' : '';
-        m.textContent = `${item.drawName ?? item.drawId} (${item.drawId}/${item.structureId})${matchInfo}`;
+        const matchInfo = item.matchCountEstimate ? ' \u00b7 ' + item.matchCountEstimate + ' matches' : '';
+        const drawLabel = item.drawName && !isUUID(item.drawName) ? item.drawName : '';
+        m.textContent = drawLabel ? `${drawLabel}${matchInfo}` : matchInfo.replace(' \u00b7 ', '') || '';
 
         div.appendChild(t);
         div.appendChild(m);

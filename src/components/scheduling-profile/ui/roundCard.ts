@@ -5,13 +5,7 @@
  */
 
 import type { RoundProfile, RoundLocator, Severity } from '../types';
-import {
-  spCardStyle,
-  spCardTitleStyle,
-  spCardMetaStyle,
-  spChipsStyle,
-  spChipStyle,
-} from './styles';
+import { spCardStyle, spCardTitleStyle, spCardMetaStyle, spChipsStyle, spChipStyle } from './styles';
 
 export interface RoundCardData {
   round: RoundProfile;
@@ -25,10 +19,7 @@ export interface RoundCardCallbacks {
   onContextMenu?: (locator: RoundLocator, target: HTMLElement) => void;
 }
 
-export function buildRoundCard(
-  data: RoundCardData,
-  callbacks: RoundCardCallbacks,
-): HTMLElement {
+export function buildRoundCard(data: RoundCardData, callbacks: RoundCardCallbacks): HTMLElement {
   const { round: r, locator, isSelected, severity } = data;
   const card = document.createElement('div');
   card.className = spCardStyle();
@@ -40,12 +31,9 @@ export function buildRoundCard(
 
   card.addEventListener('dragstart', (e) => {
     e.stopPropagation();
-    e.dataTransfer!.setDragImage(card, card.offsetWidth / 2, 20);
-    e.dataTransfer!.setData(
-      'application/json',
-      JSON.stringify({ type: 'PLANNED_ROUND', locator }),
-    );
-    e.dataTransfer!.effectAllowed = 'copyMove';
+    e.dataTransfer.setDragImage(card, card.offsetWidth / 2, 20);
+    e.dataTransfer.setData('application/json', JSON.stringify({ type: 'PLANNED_ROUND', locator }));
+    e.dataTransfer.effectAllowed = 'copyMove';
   });
 
   card.addEventListener('click', (e) => {
@@ -57,21 +45,23 @@ export function buildRoundCard(
     card.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      callbacks.onContextMenu!(locator, card);
+      callbacks.onContextMenu(locator, card);
     });
   }
 
   // Title
   const titleEl = document.createElement('div');
   titleEl.className = spCardTitleStyle();
-  titleEl.textContent =
-    (r.eventName ? r.eventName + ' \u2014 ' : '') + (r.roundName ?? 'Round ' + r.roundNumber);
+  const roundLabel = r.roundName && !r.roundName.startsWith('rn=') ? r.roundName : 'Round ' + r.roundNumber;
+  titleEl.textContent = (r.eventName ? r.eventName + ' \u2014 ' : '') + roundLabel;
   card.appendChild(titleEl);
 
   // Meta
   const metaEl = document.createElement('div');
   metaEl.className = spCardMetaStyle();
-  metaEl.textContent = `${r.drawId}/${r.structureId} \u00b7 rn=${r.roundNumber}`;
+  const drawLabel = r.drawName || '';
+  const matchCount = r.matchCountEstimate ? `${r.matchCountEstimate} matches` : '';
+  metaEl.textContent = [drawLabel, matchCount].filter(Boolean).join(' \u00b7 ');
   card.appendChild(metaEl);
 
   // Chips
@@ -79,9 +69,7 @@ export function buildRoundCard(
   chips.className = spChipsStyle();
 
   if (r.roundSegment) {
-    chips.appendChild(
-      makeChip(`Seg ${r.roundSegment.segmentNumber}/${r.roundSegment.segmentsCount}`, 'seg'),
-    );
+    chips.appendChild(makeChip(`Seg ${r.roundSegment.segmentNumber}/${r.roundSegment.segmentsCount}`, 'seg'));
   }
   if (r.notBeforeTime) {
     chips.appendChild(makeChip(`NB ${r.notBeforeTime}`, 'nb'));

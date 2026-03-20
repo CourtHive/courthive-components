@@ -250,6 +250,10 @@ export interface SchedulingProfileConfig {
   roundCatalog: CatalogRoundItem[];
   schedulableDates: string[];
   activeDates?: string[];
+  /** When true, the left column (date strip + issues panel) is not rendered. */
+  hideLeft?: boolean;
+  /** Which side to place the round catalog. Defaults to 'right'. */
+  catalogSide?: 'left' | 'right';
   initialProfile?: SchedulingProfile;
   selectedDate?: string;
   temporalAdapter?: TemporalAdapter;
