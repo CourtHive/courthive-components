@@ -61,6 +61,13 @@ export interface ScheduleIssue {
   message: string;
   matchUpId?: string;
   date?: string;
+  /** Structured conflict data for rich rendering */
+  issueType?: string;
+  prefix?: string;
+  participants?: string;
+  conflictParticipants?: string[];
+  /** All matchUpIds involved in this conflict (for click-to-scroll fallback) */
+  conflictMatchUpIds?: string[];
 }
 
 // ============================================================================

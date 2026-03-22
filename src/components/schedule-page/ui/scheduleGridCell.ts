@@ -159,11 +159,13 @@ function applyStatusClasses(cell: HTMLElement, data: ScheduleCellData): void {
   const status = data.matchUpStatus?.toUpperCase();
 
   if (status === 'COMPLETED') cell.classList.add('spl-cell--complete');
+  else if (status === 'RETIRED') cell.classList.add('spl-cell--complete');
+  else if (status === 'DEFAULTED') cell.classList.add('spl-cell--complete');
+  else if (status === 'WALKOVER') cell.classList.add('spl-cell--complete');
   else if (status === 'IN_PROGRESS') cell.classList.add('spl-cell--inprogress');
   else if (status === 'ABANDONED') cell.classList.add('spl-cell--abandoned');
   else if (status === 'CANCELLED') cell.classList.add('spl-cell--cancelled');
   else if (status === 'DOUBLE_WALKOVER') cell.classList.add('spl-cell--double-walkover');
-  else if (status === 'WALKOVER') cell.classList.add('spl-cell--complete');
 
   // Schedule state from proConflicts — accept both prefixed ("SCHEDULE_ERROR")
   // and raw factory values ("ERROR", "CONFLICT", "WARNING", "ISSUE")
@@ -427,7 +429,7 @@ function renderMatchUpStatus(data: ScheduleCellData): HTMLElement | null {
   if (status === 'IN_PROGRESS') {
     el.textContent = 'LIVE';
     el.classList.add('spl-grid-cell__status-badge--live');
-  } else if (status === 'COMPLETED' || status === 'WALKOVER') {
+  } else if (status === 'COMPLETED' || status === 'RETIRED' || status === 'DEFAULTED' || status === 'WALKOVER') {
     el.textContent = 'DONE';
     el.classList.add('spl-grid-cell__status-badge--done');
   } else {

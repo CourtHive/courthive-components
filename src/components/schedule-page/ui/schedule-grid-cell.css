@@ -415,3 +415,20 @@
 .spl-cell--typeahead .awesomplete > ul[role="listbox"] li {
   cursor: pointer;
 }
+
+/* ── Issue Focus Pulse (click-to-navigate from issues panel) ── */
+
+@keyframes spl-issue-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+  25% { box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.5); }
+  50% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+  75% { box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.5); }
+}
+
+.spl-cell--issue-pulse {
+  animation: spl-issue-pulse 1.5s ease-in-out;
+  outline: 2px solid var(--sp-warn, #f59e0b);
+  outline-offset: -2px;
+  z-index: 2;
+  position: relative;
+}

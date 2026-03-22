@@ -65,12 +65,81 @@ export function buildScheduleIssuesPanel(): UIPanel<SchedulePageState> {
 
       const msg = document.createElement('div');
       msg.className = spIssueMsgStyle();
-      msg.textContent = issue.message;
+
+      if (issue.participants) {
+        // Structured rendering with colored participant names
+        if (issue.prefix) {
+          const prefixSpan = document.createElement('span');
+          prefixSpan.textContent = issue.prefix;
+          prefixSpan.style.opacity = '0.7';
+          msg.appendChild(prefixSpan);
+        }
+        const typeSpan = document.createElement('span');
+        typeSpan.textContent = (issue.issueType || '') + ': ';
+        typeSpan.style.opacity = '0.7';
+        msg.appendChild(typeSpan);
+
+        const p1 = document.createElement('span');
+        p1.textContent = issue.participants;
+        p1.style.color = 'var(--spl-issue-participant1, #4fc3f7)';
+        p1.style.fontWeight = '600';
+        msg.appendChild(p1);
+
+        if (issue.conflictParticipants?.length) {
+          const sep = document.createElement('span');
+          sep.textContent = ' conflicts with ';
+          sep.style.opacity = '0.7';
+          msg.appendChild(sep);
+
+          issue.conflictParticipants.forEach((cp, i) => {
+            if (i > 0) {
+              const comma = document.createElement('span');
+              comma.textContent = ', ';
+              comma.style.opacity = '0.7';
+              msg.appendChild(comma);
+            }
+            const p2 = document.createElement('span');
+            p2.textContent = cp;
+            p2.style.color = 'var(--spl-issue-participant2, #ffb74d)';
+            p2.style.fontWeight = '600';
+            msg.appendChild(p2);
+          });
+        }
+      } else {
+        msg.textContent = issue.message;
+      }
+
+      if (issue.matchUpId) {
+        div.style.cursor = 'pointer';
+        const mid = issue.matchUpId;
+        div.addEventListener('click', () => {
+          console.log('[issuesPanel] clicked issue row, matchUpId:', mid);
+          scrollToMatchUp(mid);
+        });
+      } else {
+        console.log('[issuesPanel] issue has no matchUpId:', issue.message);
+      }
 
       div.appendChild(code);
       div.appendChild(msg);
       body.appendChild(div);
     }
+  }
+
+  function scrollToMatchUp(matchUpId: string): void {
+    const selector = `.spl-grid-cell[data-matchup-id="${matchUpId}"]`;
+    const cell = document.querySelector(selector) as HTMLElement | null;
+    console.log('[issuesPanel] scrollToMatchUp selector:', selector, 'found:', !!cell);
+    if (!cell) return;
+
+    cell.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+
+    // Remove any existing pulse, then re-apply to retrigger animation
+    cell.classList.remove('spl-cell--issue-pulse');
+    // Force reflow so removing and re-adding the class restarts the animation
+    void cell.offsetWidth;
+    cell.classList.add('spl-cell--issue-pulse');
+    cell.addEventListener('animationend', () => cell.classList.remove('spl-cell--issue-pulse'), { once: true });
   }
 
   return { element: root, update };
