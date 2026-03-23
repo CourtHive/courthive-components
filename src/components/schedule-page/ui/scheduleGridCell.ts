@@ -13,6 +13,7 @@ import type { ScheduleCellConfig, ScheduleCellData, ScheduleCellSide, Participan
 import './schedule-grid-cell.css';
 
 const CONFLICT_HIGHLIGHT = 'spl-cell--conflict-highlight';
+const COMPLETED_MATCHUP = 'spl-cell--complete';
 
 // ============================================================================
 // Default Config
@@ -158,10 +159,10 @@ function buildMatchUpCell(data: ScheduleCellData, cfg: ScheduleCellConfig): HTML
 function applyStatusClasses(cell: HTMLElement, data: ScheduleCellData): void {
   const status = data.matchUpStatus?.toUpperCase();
 
-  if (status === 'COMPLETED') cell.classList.add('spl-cell--complete');
-  else if (status === 'RETIRED') cell.classList.add('spl-cell--complete');
-  else if (status === 'DEFAULTED') cell.classList.add('spl-cell--complete');
-  else if (status === 'WALKOVER') cell.classList.add('spl-cell--complete');
+  if (status === 'COMPLETED') cell.classList.add(COMPLETED_MATCHUP);
+  else if (status === 'RETIRED') cell.classList.add(COMPLETED_MATCHUP);
+  else if (status === 'DEFAULTED') cell.classList.add(COMPLETED_MATCHUP);
+  else if (status === 'WALKOVER') cell.classList.add(COMPLETED_MATCHUP);
   else if (status === 'IN_PROGRESS') cell.classList.add('spl-cell--inprogress');
   else if (status === 'ABANDONED') cell.classList.add('spl-cell--abandoned');
   else if (status === 'CANCELLED') cell.classList.add('spl-cell--cancelled');
