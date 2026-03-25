@@ -281,6 +281,11 @@ export type {
   EditorPanel as CompositionEditorPanel,
 } from './components/composition-editor/compositionEditorTypes';
 
+// Team Scorecard
+import './components/scorecard/scorecard.css';
+export { renderScorecard, renderTeamVsHeader, updateTieScore } from './components/scorecard';
+export type { ScorecardOptions, TeamVsOptions } from './components/scorecard';
+
 // Inline Scoring
 import './components/inline-scoring/inline-scoring.css';
 export {

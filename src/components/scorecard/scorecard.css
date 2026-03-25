@@ -1,0 +1,120 @@
+/* Team Scorecard */
+.chc-scorecard {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* Team vs header */
+.chc-scorecard-header {
+  background-color: var(--chc-bg-primary, #fff);
+  padding: 1rem 0.5rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  margin-top: 1rem;
+}
+.chc-scorecard-header-body {
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+  display: flex;
+  gap: 0.5rem;
+}
+.chc-scorecard-side {
+  align-items: center;
+  padding: 0.5rem 0;
+  flex-shrink: 1;
+  flex-basis: 0%;
+  display: flex;
+  flex-grow: 1;
+  gap: 0.5rem;
+}
+.chc-scorecard-side--start { justify-content: flex-start; }
+.chc-scorecard-side--end { justify-content: flex-end; }
+.chc-scorecard-side-name {
+  vertical-align: middle;
+  font-weight: bold;
+  font-size: 2rem;
+}
+.chc-scorecard-side-score {
+  font-size: 2.4rem;
+  font-weight: bold;
+  padding: 0.5rem;
+}
+.chc-scorecard-side-score--winner {
+  color: var(--chc-text-success, #48c78e);
+}
+.chc-scorecard-score-box {
+  padding: 0;
+}
+.chc-scorecard-score-flex {
+  display: flex;
+}
+.chc-scorecard-vs {
+  justify-content: center;
+  place-self: center;
+  font-size: 1.2rem;
+}
+
+/* Collection panels */
+.chc-scorecard-panel {
+  border: 1px solid var(--chc-border-primary, #e0e0e0);
+  border-radius: 14px;
+  margin: 12px 16px;
+  overflow: hidden;
+  background: var(--chc-bg-secondary, #fff);
+}
+.chc-scorecard-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--chc-border-secondary, #e0e0e0);
+  background: var(--chc-bg-primary, #fff);
+}
+.chc-scorecard-panel-name {
+  font-size: 15px;
+  font-weight: 700;
+}
+.chc-scorecard-panel-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.chc-scorecard-type-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+}
+.chc-scorecard-type-badge--singles { background: #3273dc; }
+.chc-scorecard-type-badge--doubles { background: #f59e0b; }
+.chc-scorecard-count-badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--chc-border-primary, #ccc);
+  color: var(--chc-text-secondary, #999);
+}
+
+/* MatchUp grid */
+.chc-scorecard-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+}
+.chc-scorecard-card {
+  flex: 1 1 280px;
+  max-width: 340px;
+}
+/* Remove connector lines inside scorecard matchUp cards */
+.chc-scorecard-card .chc-link::before,
+.chc-scorecard-card .chc-link::after {
+  display: none;
+}
