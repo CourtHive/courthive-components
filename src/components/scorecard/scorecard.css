@@ -2,15 +2,19 @@
 .chc-scorecard {
   max-width: 720px;
   margin: 0 auto;
+  background: var(--chc-bg-secondary, #f5f5f5);
+  border-radius: 16px;
+  padding: 4px 0 12px;
 }
 
 /* Team vs header */
 .chc-scorecard-header {
-  background-color: var(--chc-bg-primary, #fff);
-  padding: 1rem 0.5rem;
-  margin-bottom: 1rem;
+  background: var(--chc-bg-primary, #fff);
+  border: 1px solid var(--chc-border-primary, #e0e0e0);
+  border-radius: 14px;
+  padding: 1.25rem 1rem;
+  margin: 12px 16px;
   text-align: center;
-  margin-top: 1rem;
 }
 .chc-scorecard-header-body {
   justify-content: center;
@@ -67,13 +71,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 14px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--chc-border-secondary, #e0e0e0);
-  background: var(--chc-bg-primary, #fff);
+  background: var(--chc-bg-tertiary, #fafafa);
 }
 .chc-scorecard-panel-name {
   font-size: 15px;
   font-weight: 700;
+  letter-spacing: 0.02em;
 }
 .chc-scorecard-panel-meta {
   display: flex;
@@ -106,12 +111,13 @@
 .chc-scorecard-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
   padding: 12px;
 }
 .chc-scorecard-card {
   flex: 1 1 280px;
   max-width: 340px;
+  min-width: 0;
 }
 /* Remove connector lines inside scorecard matchUp cards */
 .chc-scorecard-card .chc-link::before,

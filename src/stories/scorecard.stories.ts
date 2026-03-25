@@ -6,7 +6,7 @@ const { TEAM: TEAM_EVENT } = eventConstants;
 
 function generateTeamMatchUp({ completeAllMatchUps = false } = {}) {
   mocksEngine.generateTournamentRecord({
-    drawProfiles: [{ drawSize: 4, eventType: TEAM_EVENT, drawType: 'ELIMINATION' }],
+    drawProfiles: [{ drawSize: 4, eventType: TEAM_EVENT, drawType: 'SINGLE_ELIMINATION' }],
     completeAllMatchUps,
     setState: true,
   });

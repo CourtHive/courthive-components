@@ -15,8 +15,10 @@ import {
   spIssueStyle,
   spIssueCodeStyle,
   spIssueMsgStyle,
-  spSmallStyle,
+  spSmallStyle
 } from './styles';
+
+const pulseClass = 'spl-cell--issue-pulse';
 
 export function buildScheduleIssuesPanel(): UIPanel<SchedulePageState> {
   const root = document.createElement('div');
@@ -128,18 +130,18 @@ export function buildScheduleIssuesPanel(): UIPanel<SchedulePageState> {
 
   function scrollToMatchUp(matchUpId: string): void {
     const selector = `.spl-grid-cell[data-matchup-id="${matchUpId}"]`;
-    const cell = document.querySelector(selector) as HTMLElement | null;
+    const cell = document.querySelector(selector) as HTMLElement | null; //NOSONAR
     console.log('[issuesPanel] scrollToMatchUp selector:', selector, 'found:', !!cell);
     if (!cell) return;
 
     cell.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
 
     // Remove any existing pulse, then re-apply to retrigger animation
-    cell.classList.remove('spl-cell--issue-pulse');
+    cell.classList.remove(pulseClass);
     // Force reflow so removing and re-adding the class restarts the animation
-    void cell.offsetWidth;
-    cell.classList.add('spl-cell--issue-pulse');
-    cell.addEventListener('animationend', () => cell.classList.remove('spl-cell--issue-pulse'), { once: true });
+    void cell.offsetWidth; // NOSONAR
+    cell.classList.add(pulseClass);
+    cell.addEventListener('animationend', () => cell.classList.remove(pulseClass), { once: true });
   }
 
   return { element: root, update };
