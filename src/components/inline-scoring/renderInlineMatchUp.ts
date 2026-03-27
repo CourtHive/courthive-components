@@ -14,6 +14,12 @@ interface RenderInlineMatchUpParams {
   isLucky?: boolean;
   isAdHoc?: boolean;
   className?: string;
+  // Connector-related params — passed through to renderMatchUp for correct bracket lines
+  moiety?: boolean;
+  initialRoundNumber?: number;
+  isFinalRound?: boolean;
+  searchActive?: boolean;
+  selectedMatchUpId?: string;
 }
 
 /**
@@ -33,6 +39,9 @@ export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElem
   // Get or create the engine for this matchUp
   const format = matchUpFormat || params.matchUp.matchUpFormat || 'SET3-S:6/TB7';
   manager.getOrCreate(matchUpId, format, params.matchUp);
+
+  // Track whether the score has changed since initial load
+  let isDirty = false;
 
   // Keep a mutable reference to the "base" matchUp (original data minus engine-derived score)
   let baseMatchUp = params.matchUp;
@@ -62,6 +71,7 @@ export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElem
           canUndo: manager.canUndo(matchUpId),
           canRedo: manager.canRedo(matchUpId),
           isComplete,
+          isDirty,
         },
       },
     };
@@ -85,7 +95,10 @@ export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElem
           result = manager.addGame(mId, winner, baseMatchUp);
         }
 
-        if (result) render();
+        if (result) {
+          isDirty = true;
+          render();
+        }
       },
       pillClick: ({ pointerEvent, sideNumber }) => {
         pointerEvent.stopPropagation();
@@ -126,26 +139,35 @@ export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElem
             });
           }
 
+          isDirty = true;
           render();
         });
       },
       inlineUndo: () => {
         const result = manager.undo(matchUpId, baseMatchUp);
-        if (result) render();
+        if (result) {
+          isDirty = true;
+          render();
+        }
       },
       inlineRedo: () => {
         const result = manager.redo(matchUpId, baseMatchUp);
-        if (result) render();
+        if (result) {
+          isDirty = true;
+          render();
+        }
       },
       inlineClear: () => {
         manager.reset(matchUpId, baseMatchUp);
-        // Also clear any irregular ending status, restoring to active scoring
+        // Clear score, irregular ending status, restoring to active scoring
         baseMatchUp = {
           ...baseMatchUp,
           matchUpStatus: 'IN_PROGRESS',
           winningSide: undefined,
           readyToScore: true,
+          score: undefined,
         };
+        isDirty = true;
         render();
       },
       inlineSubmit: () => {
@@ -153,6 +175,8 @@ export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElem
         if (state) {
           const matchUp = manager.getMatchUp(matchUpId, baseMatchUp);
           manager.callbacks?.onSubmit?.({ matchUpId, matchUp, engine: state.engine });
+          isDirty = false;
+          render();
         }
       },
     };
@@ -217,6 +241,8 @@ function showEndMatchPopover(
     right: ${document.documentElement.clientWidth - rect.right}px;
     z-index: 1000;
     display: flex;
+    flex-wrap: wrap;
+    max-width: 12rem;
     gap: 0.3rem;
     padding: 0.35rem;
     background: ${bg};

@@ -59,9 +59,10 @@ export function buildInspectorPanel(): UIPanel<ProfileStoreState> {
     const issues = findIssuesForLocator(state.ruleResults, loc);
     const sev = maxSeverity(issues);
 
-    appendKv(body, 'Event', r.eventName ?? r.eventId);
-    appendKv(body, 'Draw', `${r.drawId} / ${r.structureId}`);
-    appendKv(body, 'Round', `${r.roundName ?? 'Round ' + r.roundNumber} (rn=${r.roundNumber})`);
+    appendKv(body, 'Event', r.eventName ?? '');
+    appendKv(body, 'Draw', r.drawName || '');
+    const roundLabel = r.roundName && !/^rn=/.test(r.roundName) ? r.roundName : 'Round ' + r.roundNumber;
+    appendKv(body, 'Round', roundLabel);
     appendKv(
       body,
       'Segment',

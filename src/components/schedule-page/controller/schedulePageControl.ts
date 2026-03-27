@@ -21,7 +21,7 @@ import type {
   ScheduleDate,
   ScheduleIssue,
   MatchUpCatalogGroupBy,
-  PendingScheduleAction,
+  PendingScheduleAction
 } from '../types';
 
 export class SchedulePageControl {
@@ -35,7 +35,7 @@ export class SchedulePageControl {
 
     // Create all panels
     const dateStrip = buildScheduleDateStrip({
-      onDateSelected: (date: string) => this.store.selectDate(date),
+      onDateSelected: (date: string) => this.store.selectDate(date)
     });
 
     const issuesPanel = buildScheduleIssuesPanel();
@@ -45,9 +45,9 @@ export class SchedulePageControl {
       {
         onMatchUpDrop: (payload, event) => {
           this.store.handleMatchUpDrop(payload, event);
-        },
+        }
       },
-      { gridMaxHeight: config.gridMaxHeight },
+      { gridMaxHeight: config.gridMaxHeight }
     );
 
     const matchUpCatalog = buildMatchUpCatalog({
@@ -55,10 +55,11 @@ export class SchedulePageControl {
       onGroupByChange: (mode: MatchUpCatalogGroupBy) => this.store.setCatalogGroupBy(mode),
       onFilterChange: (filters: CatalogFilters) => this.store.setCatalogFilters(filters),
       onShowCompletedChange: (show: boolean) => this.store.setShowCompleted(show),
+      onShowScheduledChange: (show: boolean) => this.store.setShowScheduled(show),
       onMatchUpSelected: (matchUp: CatalogMatchUpItem) => this.store.selectMatchUp(matchUp),
       onDropRemove: (matchUpId: string) => {
         this.store.handleMatchUpRemove(matchUpId);
-      },
+      }
     });
 
     const inspectorPanel = buildScheduleInspectorPanel();
@@ -67,6 +68,7 @@ export class SchedulePageControl {
     this.layout = buildSchedulePageLayout(
       { dateStrip, issuesPanel, courtGridSlot, matchUpCatalog, inspectorPanel },
       { onToggleLeft: () => this.store.toggleLeftPanel() },
+      { hideLeft: config.hideLeft, catalogSide: config.catalogSide }
     );
 
     // Subscribe and do initial render
@@ -86,7 +88,7 @@ export class SchedulePageControl {
   destroy(): void {
     this.unsubscribe();
     if (this.container && this.layout.element.parentNode === this.container) {
-      this.container.removeChild(this.layout.element);
+      this.layout.element.remove();
     }
     this.container = null;
   }

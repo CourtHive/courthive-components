@@ -5,15 +5,8 @@ import { drawDefinitionConstants } from 'tods-competition-factory';
 import { getFeedRoundCapacities, getNodeTotalRounds, getNodeLosersForRound } from './feedRounds';
 import type { TopologyState } from '../types';
 
-const {
-  MAIN,
-  QUALIFYING,
-  CONSOLATION,
-  WINNER,
-  LOSER,
-  SINGLE_ELIMINATION,
-  ROUND_ROBIN,
-} = drawDefinitionConstants;
+const { MAIN, QUALIFYING, CONSOLATION, WINNER, LOSER, SINGLE_ELIMINATION, ROUND_ROBIN, AD_HOC } =
+  drawDefinitionConstants;
 
 const POSITION = 'POSITION';
 
@@ -55,8 +48,9 @@ export function validateTopology(state: TopologyState): ValidationError[] {
     if (count > 1) nodesWithFeedLinks.add(nodeId);
   }
 
-  // Draw sizes: power of 2 for MAIN elimination types without fed positions
-  // Consolation, playoff, and fed structures can have any drawSize (they'll be coerced to FEED_IN)
+  // Draw sizes: power of 2 for MAIN elimination types without fed positions.
+  // AD_HOC, ROUND_ROBIN, consolation, playoff, and fed structures can have any drawSize.
+  // (AD_HOC drawSize simply controls matchups-per-round via drawSize/2, no bracket geometry.)
   for (const node of state.nodes) {
     if (node.structureType === SINGLE_ELIMINATION && !nodesWithFeedLinks.has(node.id)) {
       const isTarget = state.edges.some((e) => e.targetNodeId === node.id);
@@ -67,17 +61,19 @@ export function validateTopology(state: TopologyState): ValidationError[] {
           errors.push({
             severity: 'error',
             message: `"${node.structureName}" draw size must be a power of 2`,
-            nodeId: node.id,
+            nodeId: node.id
           });
         }
       }
     }
 
-    if (node.drawSize < 2) {
+    // AD_HOC structures allow drawSize 0 (no matchups yet); all others require ≥ 2
+    const minDrawSize = node.structureType === AD_HOC ? 0 : 2;
+    if (node.drawSize < minDrawSize) {
       errors.push({
+        message: `"${node.structureName}" draw size must be at least ${minDrawSize}`,
         severity: 'error',
-        message: `"${node.structureName}" draw size must be at least 2`,
-        nodeId: node.id,
+        nodeId: node.id
       });
     }
   }
@@ -100,7 +96,7 @@ export function validateTopology(state: TopologyState): ValidationError[] {
         errors.push({
           severity: 'warning',
           message: `Edge source round ${edge.sourceRoundNumber} is outside "${source.structureName}" range (1-${maxRound})`,
-          edgeId: edge.id,
+          edgeId: edge.id
         });
       }
     }
@@ -111,7 +107,7 @@ export function validateTopology(state: TopologyState): ValidationError[] {
         errors.push({
           severity: 'warning',
           message: `Edge target round ${edge.targetRoundNumber} is outside "${target.structureName}" range (1-${maxRound})`,
-          edgeId: edge.id,
+          edgeId: edge.id
         });
       }
     }
@@ -131,7 +127,7 @@ export function validateTopology(state: TopologyState): ValidationError[] {
         errors.push({
           severity: 'error',
           message: `"${sourceName}" has multiple winner links (only one allowed)`,
-          edgeId,
+          edgeId
         });
       }
     }
@@ -152,7 +148,7 @@ export function validateTopology(state: TopologyState): ValidationError[] {
         errors.push({
           severity: 'error',
           message: `"${sourceName}" has multiple links from round ${round}`,
-          edgeId,
+          edgeId
         });
       } else {
         seen.set(round, edgeId);
@@ -165,14 +161,14 @@ export function validateTopology(state: TopologyState): ValidationError[] {
 
   for (const qNode of qualifyingNodes) {
     const winnerEdge = state.edges.find(
-      (e) => e.sourceNodeId === qNode.id && e.linkType === WINNER && mainNodes.some((m) => m.id === e.targetNodeId),
+      (e) => e.sourceNodeId === qNode.id && e.linkType === WINNER && mainNodes.some((m) => m.id === e.targetNodeId)
     );
 
     if (!winnerEdge) {
       errors.push({
         severity: 'warning',
         message: `Qualifying structure "${qNode.structureName}" has no winner link to a main structure`,
-        nodeId: qNode.id,
+        nodeId: qNode.id
       });
     }
 
@@ -182,7 +178,7 @@ export function validateTopology(state: TopologyState): ValidationError[] {
         errors.push({
           severity: 'warning',
           message: `Qualifying positions (${winnerEdge.qualifyingPositions}) exceeds half of "${qNode.structureName}" draw size (${maxPositions})`,
-          edgeId: winnerEdge.id,
+          edgeId: winnerEdge.id
         });
       }
     }
@@ -190,7 +186,10 @@ export function validateTopology(state: TopologyState): ValidationError[] {
 
   // Qualifying links targeting round > 1 need that round to be a feed
   // round with sufficient capacity in the target structure.
-  const feedEdgesByTarget = new Map<string, { edgeId: string; targetRound: number; qp: number; sourceName: string }[]>();
+  const feedEdgesByTarget = new Map<
+    string,
+    { edgeId: string; targetRound: number; qp: number; sourceName: string }[]
+  >();
   for (const edge of state.edges) {
     if (edge.linkType !== WINNER) continue;
     const targetRound = edge.targetRoundNumber || 1;
@@ -199,7 +198,9 @@ export function validateTopology(state: TopologyState): ValidationError[] {
     if (!source || source.stage !== QUALIFYING) continue;
     if (!feedEdgesByTarget.has(edge.targetNodeId)) feedEdgesByTarget.set(edge.targetNodeId, []);
     const qp = source.qualifyingPositions || Math.floor(source.drawSize / 4);
-    feedEdgesByTarget.get(edge.targetNodeId)!.push({ edgeId: edge.id, targetRound, qp, sourceName: source.structureName });
+    feedEdgesByTarget
+      .get(edge.targetNodeId)!
+      .push({ edgeId: edge.id, targetRound, qp, sourceName: source.structureName });
   }
   for (const [targetId, entries] of feedEdgesByTarget) {
     const target = state.nodes.find((n) => n.id === targetId);
@@ -218,7 +219,7 @@ export function validateTopology(state: TopologyState): ValidationError[] {
           severity: 'warning',
           message: `"${target.structureName}" round ${targetRound} is not a feed round or has insufficient capacity for ${sourceName} link`,
           nodeId: targetId,
-          edgeId,
+          edgeId
         });
       }
     }
@@ -253,19 +254,21 @@ export function validateTopology(state: TopologyState): ValidationError[] {
         errors.push({
           severity: 'error',
           message: `"${target.structureName}" R${targetRound} is not a feed round — cannot receive ${losersProduced} losers from "${source.structureName}" R${sourceRound}`,
-          edgeId: edge.id,
+          edgeId: edge.id
         });
       } else if (losersProduced > feedCap) {
         errors.push({
           severity: 'error',
           message: `"${source.structureName}" R${sourceRound} produces ${losersProduced} losers but "${target.structureName}" R${targetRound} only has ${feedCap} feed positions`,
-          edgeId: edge.id,
+          edgeId: edge.id
         });
       } else if (losersProduced < feedCap) {
         errors.push({
           severity: 'warning',
-          message: `"${source.structureName}" R${sourceRound} produces ${losersProduced} losers but "${target.structureName}" R${targetRound} has ${feedCap} feed positions — ${feedCap - losersProduced} will be empty`,
-          edgeId: edge.id,
+          message: `"${source.structureName}" R${sourceRound} produces ${losersProduced} losers but "${
+            target.structureName
+          }" R${targetRound} has ${feedCap} feed positions — ${feedCap - losersProduced} will be empty`,
+          edgeId: edge.id
         });
       }
     }
@@ -293,7 +296,7 @@ export function validateTopology(state: TopologyState): ValidationError[] {
       errors.push({
         severity: 'warning',
         message: `"${cNode.structureName}" draw size (${cNode.drawSize}) exceeds inbound capacity (${capacity})`,
-        nodeId: cNode.id,
+        nodeId: cNode.id
       });
     }
 
@@ -301,7 +304,7 @@ export function validateTopology(state: TopologyState): ValidationError[] {
       errors.push({
         severity: 'error',
         message: `"${cNode.structureName}" receives ${capacity} participants but only has ${cNode.drawSize} positions`,
-        nodeId: cNode.id,
+        nodeId: cNode.id
       });
     }
   }
@@ -321,7 +324,7 @@ export function validateTopology(state: TopologyState): ValidationError[] {
           errors.push({
             severity: 'error',
             message: `Position ${pos} is outside valid range (1-${groupSize}) for "${source.structureName}"`,
-            edgeId: edge.id,
+            edgeId: edge.id
           });
         }
       }
@@ -339,7 +342,7 @@ export function validateTopology(state: TopologyState): ValidationError[] {
           errors.push({
             severity: 'warning',
             message: `Position ${pos} from "${sourceName}" is used by multiple POSITION links`,
-            edgeId,
+            edgeId
           });
         } else {
           seen.set(pos, edgeId);

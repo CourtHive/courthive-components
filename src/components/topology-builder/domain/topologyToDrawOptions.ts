@@ -155,8 +155,49 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
     drawOptions.qualifyingPlaceholder = true;
   }
 
-  // Post-generation methods for playoff structures
   const postGenerationMethods: any[] = [];
+
+  // Consolation structures linked via LOSER edges from main
+  const consolationNodes = state.nodes.filter((n) => n.stage === CONSOLATION);
+  const consolationLoserEdges = state.edges.filter(
+    (e) => e.linkType === LOSER && e.sourceNodeId === mainNode.id && consolationNodes.some((n) => n.id === e.targetNodeId),
+  );
+
+  // Only emit consolation post-generation when NOT handled by inferFactoryDrawType
+  // (i.e., when the drawType is not already a composite type like FMLC, FIC, COMPASS)
+  const compositeTypes = [FIRST_MATCH_LOSER_CONSOLATION, FEED_IN_CHAMPIONSHIP, COMPASS];
+  if (consolationLoserEdges.length > 0 && !compositeTypes.includes(drawType)) {
+    // Group edges by target consolation node
+    const byTarget = new Map<string, TopologyEdge[]>();
+    for (const edge of consolationLoserEdges) {
+      if (!byTarget.has(edge.targetNodeId)) byTarget.set(edge.targetNodeId, []);
+      byTarget.get(edge.targetNodeId)!.push(edge);
+    }
+
+    for (const [targetId, edges] of byTarget) {
+      const consNode = consolationNodes.find((n) => n.id === targetId);
+      if (!consNode) continue;
+
+      const links = edges.map((edge) => ({
+        sourceRoundNumber: edge.sourceRoundNumber || 1,
+        targetRoundNumber: edge.targetRoundNumber || 1,
+      }));
+
+      postGenerationMethods.push({
+        method: 'attachConsolationStructures',
+        params: {
+          structureName: consNode.structureName,
+          structureType: consNode.structureType,
+          drawSize: consNode.drawSize,
+          matchUpFormat: consNode.matchUpFormat || undefined,
+          structureOptions: consNode.structureOptions || undefined,
+          links,
+        },
+      });
+    }
+  }
+
+  // Post-generation methods for playoff structures
   const isMainRR = mainNode.structureType === ROUND_ROBIN;
 
   // Collect POSITION edges from the main RR node to playoff nodes

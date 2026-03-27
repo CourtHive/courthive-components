@@ -8,16 +8,12 @@
  * Does NOT handle drag events — those are the consumer's responsibility.
  */
 
-import type {
-  ScheduleCellConfig,
-  ScheduleCellData,
-  ScheduleCellSide,
-  ParticipantDisplayConfig,
-} from '../types';
+import type { ScheduleCellConfig, ScheduleCellData, ScheduleCellSide, ParticipantDisplayConfig } from '../types';
 
 import './schedule-grid-cell.css';
 
 const CONFLICT_HIGHLIGHT = 'spl-cell--conflict-highlight';
+const COMPLETED_MATCHUP = 'spl-cell--complete';
 
 // ============================================================================
 // Default Config
@@ -33,18 +29,15 @@ export const DEFAULT_SCHEDULE_CELL_CONFIG: ScheduleCellConfig = {
     showRanking: false,
     showNationality: false,
     boldWinner: true,
-    showPotentials: true,
-  },
+    showPotentials: true
+  }
 };
 
 // ============================================================================
 // Main Builder
 // ============================================================================
 
-export function buildScheduleGridCell(
-  data: ScheduleCellData,
-  config?: ScheduleCellConfig,
-): HTMLElement {
+export function buildScheduleGridCell(data: ScheduleCellData, config?: ScheduleCellConfig): HTMLElement {
   const cfg = config ?? DEFAULT_SCHEDULE_CELL_CONFIG;
 
   if (data.isBlocked) return buildBlockedCell(data);
@@ -61,7 +54,7 @@ function buildBlockedCell(data: ScheduleCellData): HTMLElement {
   cell.className = 'spl-grid-cell spl-cell--blocked';
 
   const bookingType = data.booking?.bookingType || 'BLOCKED';
-  cell.setAttribute('data-booking-type', bookingType);
+  cell.dataset.bookingType = bookingType;
 
   const label = document.createElement('div');
   label.className = 'spl-grid-cell__block-label';
@@ -108,8 +101,8 @@ function buildMatchUpCell(data: ScheduleCellData, cfg: ScheduleCellConfig): HTML
   cell.className = 'spl-grid-cell';
 
   // Data attributes
-  cell.setAttribute('data-matchup-id', data.matchUpId);
-  if (data.drawId) cell.setAttribute('data-draw-id', data.drawId);
+  cell.dataset.matchupId = data.matchUpId;
+  if (data.drawId) cell.dataset.drawId = data.drawId;
 
   // Status modifier classes
   applyStatusClasses(cell, data);
@@ -142,14 +135,14 @@ function buildMatchUpCell(data: ScheduleCellData, cfg: ScheduleCellConfig): HTML
   if (data.issueIds?.length) {
     cell.addEventListener('mouseenter', () => {
       cell.classList.add(CONFLICT_HIGHLIGHT);
-      for (const id of data.issueIds!) {
+      for (const id of data.issueIds) {
         const related = document.querySelectorAll(`[data-matchup-id="${id}"]`);
         related.forEach((el) => el.classList.add(CONFLICT_HIGHLIGHT));
       }
     });
     cell.addEventListener('mouseleave', () => {
       cell.classList.remove(CONFLICT_HIGHLIGHT);
-      for (const id of data.issueIds!) {
+      for (const id of data.issueIds) {
         const related = document.querySelectorAll(`[data-matchup-id="${id}"]`);
         related.forEach((el) => el.classList.remove(CONFLICT_HIGHLIGHT));
       }
@@ -166,12 +159,14 @@ function buildMatchUpCell(data: ScheduleCellData, cfg: ScheduleCellConfig): HTML
 function applyStatusClasses(cell: HTMLElement, data: ScheduleCellData): void {
   const status = data.matchUpStatus?.toUpperCase();
 
-  if (status === 'COMPLETED') cell.classList.add('spl-cell--complete');
+  if (status === 'COMPLETED') cell.classList.add(COMPLETED_MATCHUP);
+  else if (status === 'RETIRED') cell.classList.add(COMPLETED_MATCHUP);
+  else if (status === 'DEFAULTED') cell.classList.add(COMPLETED_MATCHUP);
+  else if (status === 'WALKOVER') cell.classList.add(COMPLETED_MATCHUP);
   else if (status === 'IN_PROGRESS') cell.classList.add('spl-cell--inprogress');
   else if (status === 'ABANDONED') cell.classList.add('spl-cell--abandoned');
   else if (status === 'CANCELLED') cell.classList.add('spl-cell--cancelled');
   else if (status === 'DOUBLE_WALKOVER') cell.classList.add('spl-cell--double-walkover');
-  else if (status === 'WALKOVER') cell.classList.add('spl-cell--complete');
 
   // Schedule state from proConflicts — accept both prefixed ("SCHEDULE_ERROR")
   // and raw factory values ("ERROR", "CONFLICT", "WARNING", "ISSUE")
@@ -181,7 +176,8 @@ function applyStatusClasses(cell: HTMLElement, data: ScheduleCellData): void {
   else if (schedState === 'SCHEDULE_WARNING' || schedState === 'WARNING') cell.classList.add('spl-cell--warning');
   else if (schedState === 'SCHEDULE_ISSUE' || schedState === 'ISSUE') cell.classList.add('spl-cell--issue');
 
-  if (data.issueType === 'DOUBLE_BOOKING' || data.issueType === 'courtDoubleBooking') cell.classList.add('spl-cell--double-booking');
+  if (data.issueType === 'DOUBLE_BOOKING' || data.issueType === 'courtDoubleBooking')
+    cell.classList.add('spl-cell--double-booking');
 }
 
 // ============================================================================
@@ -192,7 +188,7 @@ function renderFields(
   container: HTMLElement,
   fields: ScheduleCellConfig['header'],
   data: ScheduleCellData,
-  cfg: ScheduleCellConfig,
+  cfg: ScheduleCellConfig
 ): void {
   for (const field of fields) {
     const el = renderField(field, data, cfg);
@@ -200,27 +196,31 @@ function renderFields(
   }
 }
 
-function renderField(
-  field: string,
-  data: ScheduleCellData,
-  cfg: ScheduleCellConfig,
-): HTMLElement | null {
+function renderField(field: string, data: ScheduleCellData, cfg: ScheduleCellConfig): HTMLElement | null {
   switch (field) {
-    case 'time': return renderTime(data);
-    case 'eventRound': return renderEventRound(data);
-    case 'participants': return renderParticipants(data, cfg.participantDisplay);
-    case 'score': return renderScore(data);
-    case 'matchUpStatus': return renderMatchUpStatus(data);
-    case 'matchUpFormat': return renderMatchUpFormat(data);
-    case 'umpire': return renderUmpire(data);
-    default: return null;
+    case 'time':
+      return renderTime(data);
+    case 'eventRound':
+      return renderEventRound(data);
+    case 'participants':
+      return renderParticipants(data, cfg.participantDisplay);
+    case 'score':
+      return renderScore(data);
+    case 'matchUpStatus':
+      return renderMatchUpStatus(data);
+    case 'matchUpFormat':
+      return renderMatchUpFormat(data);
+    case 'umpire':
+      return renderUmpire(data);
+    default:
+      return null;
   }
 }
 
 // ── Time ──
 
 function renderTime(data: ScheduleCellData): HTMLElement | null {
-  const time = data.schedule?.scheduledTime;
+  const time = data.schedule?.scheduledTime || data.schedule?.startTime;
   const modifiers = data.schedule?.timeModifiers;
   const courtAnnotation = data.schedule?.courtAnnotation;
 
@@ -258,11 +258,8 @@ function renderEventRound(data: ScheduleCellData): HTMLElement | null {
 
 // ── Participants ──
 
-function renderParticipants(
-  data: ScheduleCellData,
-  displayConfig?: ParticipantDisplayConfig,
-): HTMLElement | null {
-  const dc = displayConfig ?? DEFAULT_SCHEDULE_CELL_CONFIG.participantDisplay!;
+function renderParticipants(data: ScheduleCellData, displayConfig?: ParticipantDisplayConfig): HTMLElement | null {
+  const dc = displayConfig ?? DEFAULT_SCHEDULE_CELL_CONFIG.participantDisplay;
   const container = document.createElement('div');
   container.className = 'spl-grid-cell__participants';
 
@@ -277,9 +274,7 @@ function renderParticipants(
     for (let i = 0; i < data.potentialParticipants.length; i++) {
       if (i > 0) container.appendChild(buildVsDivider());
       const potentials = data.potentialParticipants[i];
-      const names = potentials
-        .map((p: any) => p?.participantName || 'TBD')
-        .join(' / ');
+      const names = potentials.map((p: any) => p?.participantName || 'TBD').join(' / ');
       const el = document.createElement('div');
       el.className = 'spl-grid-cell__side spl-grid-cell__potential';
       el.textContent = names || 'TBD';
@@ -313,7 +308,7 @@ function buildSideElement(
   side: ScheduleCellSide,
   data: ScheduleCellData,
   dc: ParticipantDisplayConfig,
-  sideNumber: number,
+  sideNumber: number
 ): HTMLElement {
   const sideEl = document.createElement('div');
   sideEl.className = 'spl-grid-cell__side';
@@ -376,13 +371,13 @@ function formatName(name: string | undefined, format?: string): string {
       // Take last name (first token if "LastName, First" or last token if "First Last")
       if (name.includes(',')) return name.split(',')[0].trim();
       const parts = name.trim().split(/\s+/);
-      return parts[parts.length - 1];
+      return parts.at(-1);
     }
     case 'lastFirst': {
       if (name.includes(',')) return name.trim(); // already "Last, First"
       const parts = name.trim().split(/\s+/);
       if (parts.length < 2) return name;
-      return `${parts[parts.length - 1]}, ${parts.slice(0, -1).join(' ')}`;
+      return `${parts.at(-1)}, ${parts.slice(0, -1).join(' ')}`;
     }
     case 'firstLast': {
       if (!name.includes(',')) return name.trim(); // already "First Last"
@@ -403,12 +398,17 @@ function renderScore(data: ScheduleCellData): HTMLElement | null {
 
   // Show status text for walkover/default/retired etc.
   const statusText =
-    status === 'WALKOVER' ? 'WALKOVER'
-    : status === 'DEFAULTED' ? 'DEFAULT'
-    : status === 'RETIRED' ? 'RET.'
-    : status === 'DOUBLE_WALKOVER' ? 'D.W/O'
-    : status === 'ABANDONED' ? 'ABN.'
-    : null;
+    status === 'WALKOVER'
+      ? 'WALKOVER'
+      : status === 'DEFAULTED'
+      ? 'DEFAULT'
+      : status === 'RETIRED'
+      ? 'RET.'
+      : status === 'DOUBLE_WALKOVER'
+      ? 'D.W/O'
+      : status === 'ABANDONED'
+      ? 'ABN.'
+      : null;
 
   if (!score && !statusText) return null;
 
@@ -430,11 +430,11 @@ function renderMatchUpStatus(data: ScheduleCellData): HTMLElement | null {
   if (status === 'IN_PROGRESS') {
     el.textContent = 'LIVE';
     el.classList.add('spl-grid-cell__status-badge--live');
-  } else if (status === 'COMPLETED' || status === 'WALKOVER') {
+  } else if (status === 'COMPLETED' || status === 'RETIRED' || status === 'DEFAULTED' || status === 'WALKOVER') {
     el.textContent = 'DONE';
     el.classList.add('spl-grid-cell__status-badge--done');
   } else {
-    el.textContent = data.matchUpStatus.replace(/_/g, ' ');
+    el.textContent = data.matchUpStatus.replaceAll('_', ' ');
   }
 
   return el;
@@ -478,7 +478,7 @@ export function mapMatchUpToCellData(matchUp: any): ScheduleCellData {
     return {
       matchUpId: '',
       isBlocked: true,
-      booking: matchUp.booking,
+      booking: matchUp.booking
     };
   }
 
@@ -488,12 +488,9 @@ export function mapMatchUpToCellData(matchUp: any): ScheduleCellData {
     participantId: s.participantId ?? s.participant?.participantId,
     seedNumber: s.seedValue ?? s.seedNumber,
     ranking: s.ranking,
-    nationality:
-      s.participant?.nationalityCode ??
-      s.participant?.person?.nationalityCode ??
-      s.nationalityCode,
+    nationality: s.participant?.nationalityCode ?? s.participant?.person?.nationalityCode ?? s.nationalityCode,
     teamName: s.teamParticipant?.participantName ?? s.teamName,
-    bye: s.bye || undefined,
+    bye: s.bye || undefined
   }));
 
   return {
@@ -510,22 +507,23 @@ export function mapMatchUpToCellData(matchUp: any): ScheduleCellData {
     schedule: matchUp.schedule
       ? {
           scheduledTime: matchUp.schedule.scheduledTime,
+          startTime: matchUp.schedule.startTime,
           timeModifiers: matchUp.schedule.timeModifiers,
           courtAnnotation: matchUp.schedule.courtAnnotation,
           courtId: matchUp.schedule.courtId,
           courtOrder: matchUp.schedule.courtOrder,
-          venueId: matchUp.schedule.venueId,
+          venueId: matchUp.schedule.venueId
         }
       : undefined,
     score: matchUp.score
       ? {
           scoreStringSide1: matchUp.score.scoreStringSide1,
-          scoreStringSide2: matchUp.score.scoreStringSide2,
+          scoreStringSide2: matchUp.score.scoreStringSide2
         }
       : undefined,
     umpire: matchUp.umpire?.participantName ?? matchUp.umpireName,
     scheduleState: matchUp.scheduleState,
     issueType: matchUp.issueType,
-    issueIds: matchUp.issueIds,
+    issueIds: matchUp.issueIds
   };
 }

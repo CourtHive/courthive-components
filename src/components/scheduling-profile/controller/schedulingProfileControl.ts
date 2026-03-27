@@ -77,13 +77,10 @@ export class SchedulingProfileControl {
     const inspectorPanel = buildInspectorPanel();
 
     // Assemble layout
-    this.layout = buildSchedulingProfileLayout({
-      dateStrip,
-      issuesPanel,
-      venueBoard,
-      roundCatalog,
-      inspectorPanel
-    });
+    this.layout = buildSchedulingProfileLayout(
+      { dateStrip, issuesPanel, venueBoard, roundCatalog, inspectorPanel },
+      { hideLeft: config.hideLeft, catalogSide: config.catalogSide }
+    );
 
     // Subscribe and do initial render
     this.unsubscribe = this.store.subscribe((state) => {
@@ -103,7 +100,7 @@ export class SchedulingProfileControl {
     this.unsubscribe();
     this.popover.destroy();
     if (this.container && this.layout.element.parentNode === this.container) {
-      this.container.removeChild(this.layout.element);
+      this.layout.element.remove();
     }
     this.container = null;
   }

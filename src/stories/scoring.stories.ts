@@ -485,6 +485,69 @@ export const GameScoreCapture = {
 };
 
 /**
+ * Inline Scoring Approach
+ * Point-by-point or game-by-game scoring with undo/redo
+ */
+export const InlineScoring = {
+  args: {
+    composition: 'Australian',
+    smartComplements: false
+  },
+  render: (args: any) => {
+    const container = document.createElement('div');
+    container.style.padding = '2em';
+    container.style.maxWidth = '700px';
+
+    const title = document.createElement('h2');
+    title.textContent = 'Inline Scoring Entry';
+    title.style.marginBottom = '0.5em';
+    title.style.color = CHC_TEXT_PRIMARY;
+    container.appendChild(title);
+
+    const desc = document.createElement('p');
+    desc.style.marginBottom = '1.5em';
+    desc.style.lineHeight = '1.6';
+    desc.style.color = CHC_TEXT_SECONDARY;
+    desc.innerHTML =
+      'Point-by-point or game-by-game scoring with <strong style="color: var(--chc-text-primary);">undo/redo</strong> support. ' +
+      'Click the side buttons to award points or games. The engine tracks set completion, tiebreaks, and match completion automatically. ' +
+      'Partial scores can be submitted at any time — the Submit Score button is always active.';
+    container.appendChild(desc);
+
+    const features = document.createElement('ul');
+    features.style.marginBottom = '1.5em';
+    features.style.marginLeft = '1.5em';
+    features.style.lineHeight = '2';
+    features.style.color = CHC_TEXT_SECONDARY;
+    features.innerHTML = `
+      <li><strong style="color: var(--chc-text-primary);">Side buttons</strong> — click to award a point/game to that side</li>
+      <li><strong style="color: var(--chc-text-primary);">Undo / Redo</strong> — step through scoring history</li>
+      <li><strong style="color: var(--chc-text-primary);">Partial submit</strong> — submit incomplete scores (e.g., mid-set) for IN_PROGRESS matchUps</li>
+      <li><strong style="color: var(--chc-text-primary);">Auto tiebreaks</strong> — tiebreak scoring activates automatically at the configured game count</li>
+    `;
+    container.appendChild(features);
+
+    const button = document.createElement('button');
+    button.className = 'button is-primary';
+    button.textContent = 'Open Inline Scoring Modal';
+    button.onclick = () => {
+      setScoringConfig({
+        scoringApproach: 'inlineScoring',
+        composition: args.composition
+      });
+
+      scoringModal({
+        matchUp: createMockMatchUp(),
+        callback: handleScoreSubmit
+      });
+    };
+    container.appendChild(button);
+
+    return container;
+  }
+};
+
+/**
  * Dial Pad Approach
  * Mobile-friendly numeric keypad entry
  */
@@ -572,7 +635,8 @@ export const ApproachSwitcher = {
       const labels: Record<string, string> = {
         dynamicSets: 'Dynamic Sets',
         freeScore: 'Free Score',
-        dialPad: 'Dial Pad'
+        dialPad: 'Dial Pad',
+        inlineScoring: 'Inline Scoring'
       };
       approachLabel.innerHTML = `Scoring Approach: <strong style="color: var(--chc-status-info, #3273dc);">${
         labels[cfg.scoringApproach || 'dynamicSets']
@@ -753,7 +817,8 @@ export const AllApproaches = {
     const approaches: Array<{ approach: any; label: string; intent: string }> = [
       { approach: 'freeScore', label: 'Free Score', intent: 'is-info' },
       { approach: 'dynamicSets', label: 'Dynamic Sets', intent: 'is-success' },
-      { approach: 'dialPad', label: 'Dial Pad', intent: 'is-warning' }
+      { approach: 'dialPad', label: 'Dial Pad', intent: 'is-warning' },
+      { approach: 'inlineScoring', label: 'Inline Scoring', intent: 'is-primary' }
     ];
 
     approaches.forEach(({ approach, label, intent }) => {

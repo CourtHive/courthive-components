@@ -60,7 +60,7 @@ export function renderParticipant({
 
   const firstParticipant = isDoubles ? participant?.individualParticipants?.[0] : participant;
   const secondParticipant = isDoubles && participant?.individualParticipants?.[1];
-  const isWinningSide = Boolean(sideNumber === winningSide || (matchUpStatus === 'BYE' && participant));
+  const isWinningSide = Boolean((winningSide && sideNumber === winningSide) || (matchUpStatus === 'BYE' && participant));
   const winnerChevron = configuration?.winnerChevron && isWinningSide;
 
   const teamLogo = configuration?.teamLogo;
@@ -145,7 +145,8 @@ export function renderParticipant({
     const isReadyToScore = matchUp?.readyToScore;
     const isCompleted = Boolean(winningSide || matchUpStatus === 'COMPLETED');
 
-    if (inlineScoring && isReadyToScore && !isCompleted) {
+    const isLiveStatus = !matchUpStatus || matchUpStatus === 'IN_PROGRESS' || matchUpStatus === 'TO_BE_PLAYED';
+    if (inlineScoring && isReadyToScore && !isCompleted && isLiveStatus) {
       // Show LIVE pill for ready-to-score matchUps in inline scoring mode (both sides)
       const livePill = renderStatusPill({ matchUpStatus: IN_PROGRESS });
       livePill.classList.add('chc-live-chip');

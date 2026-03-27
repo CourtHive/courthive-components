@@ -3,22 +3,26 @@
  * Supports multiple scoring approaches with validation
  * Menu caret allows seamless switching between approaches
  */
-import { cModal } from '../modal/cmodal';
-import { renderFreeScoreEntry } from './approaches/freeScoreApproach';
+import { renderInlineScoringEntry } from './approaches/inlineScoringApproach';
 import { renderDynamicSetsScoreEntry } from './approaches/dynamicSetsApproach';
 import { renderDialPadScoreEntry } from './approaches/dialPadApproach';
+import { renderFreeScoreEntry } from './approaches/freeScoreApproach';
 import type { ScoringModalParams, ScoreOutcome } from './types';
 import { getScoringConfig, setScoringConfig } from './config';
+import { cModal } from '../modal/cmodal';
 
-type ScoringApproach = 'dynamicSets' | 'freeScore' | 'dialPad';
+type ScoringApproach = 'dynamicSets' | 'freeScore' | 'dialPad' | 'inlineScoring';
+
+const IRREGULAR_ENDINGS_LABEL = 'Irregular Endings:';
 
 const APPROACH_LABELS: Record<ScoringApproach, string> = {
   dynamicSets: 'Dynamic Sets',
   freeScore: 'Free Score',
-  dialPad: 'Dial Pad'
+  dialPad: 'Dial Pad',
+  inlineScoring: 'Inline Scoring'
 };
 
-const APPROACHES: ScoringApproach[] = ['dynamicSets', 'freeScore', 'dialPad'];
+const APPROACHES: ScoringApproach[] = ['dynamicSets', 'freeScore', 'dialPad', 'inlineScoring'];
 
 export function scoringModal(params: ScoringModalParams): void {
   const { matchUp, callback, onClose, labels = {} } = params;
@@ -40,7 +44,7 @@ export function scoringModal(params: ScoringModalParams): void {
 
     const submitBtn = document.getElementById('submitScoreV2') as HTMLButtonElement;
     if (submitBtn) {
-      const canSubmit = outcome.isValid || (wasCleared && hadExistingScore);
+      const canSubmit = activeApproach === 'inlineScoring' || outcome.isValid || (wasCleared && hadExistingScore);
       submitBtn.disabled = !canSubmit;
     }
 
@@ -69,6 +73,9 @@ export function scoringModal(params: ScoringModalParams): void {
     if ((window as any).resetDynamicSets) {
       (window as any).resetDynamicSets = undefined;
     }
+    if ((window as any).resetInlineScoring) {
+      (window as any).resetInlineScoring = undefined;
+    }
   };
 
   const renderApproach = (approach: ScoringApproach): HTMLElement => {
@@ -81,6 +88,8 @@ export function scoringModal(params: ScoringModalParams): void {
       renderDynamicSetsScoreEntry({ matchUp, container, onScoreChange: handleScoreChange, labels });
     } else if (approach === 'dialPad') {
       renderDialPadScoreEntry({ matchUp, container, onScoreChange: handleScoreChange, labels });
+    } else if (approach === 'inlineScoring') {
+      renderInlineScoringEntry({ matchUp, container, onScoreChange: handleScoreChange, labels });
     }
 
     return container;
@@ -88,10 +97,12 @@ export function scoringModal(params: ScoringModalParams): void {
 
   const freeScoreHelp = `
     <strong>${labels.scoreTips || 'Score Entry Tips:'}</strong><br><br>
-    <strong>${labels.setScores || 'Set Scores:'}</strong> Enter space or dash-separated (e.g., "6-4 6-3")<br><br>
-    <strong>${labels.tiebreaks || 'Tiebreaks:'}</strong> Auto-detected from digits (e.g., "67 3" becomes "6-7(3)")<br><br>
+    <strong>${labels.setScores || 'Set Scores:'}</strong> Space or dash-separated (e.g., "6-4 6-3")<br><br>
+    <strong>${
+      labels.tiebreaks || 'Tiebreaks:'
+    }</strong> Auto-detected from digits (e.g., "67 3" becomes "6-7(3)")<br><br>
     <strong>${labels.matchTiebreaks || 'Match Tiebreaks:'}</strong> Use dash separator (e.g., "10-7")<br><br>
-    <strong>${labels.irregularEndings || 'Irregular Endings:'}</strong><br>
+    <strong>${labels.irregularEndings || IRREGULAR_ENDINGS_LABEL}</strong><br>
     <strong>r</strong> = ${labels.retired || 'Retired'}<br>
     <strong>w</strong> = ${labels.walkover || 'Walkover'}<br>
     <strong>d</strong> = ${labels.defaulted || 'Defaulted'}<br>
@@ -103,6 +114,36 @@ export function scoringModal(params: ScoringModalParams): void {
     <strong>dr</strong> = Dead Rubber
   `;
 
+  const dynamicSetsHelp = `
+    <strong>${labels.dynamicSetsTips || 'Dynamic Sets Scoring:'}</strong><br><br>
+    Enter scores set by set using individual inputs.<br><br>
+    <strong>${labels.tiebreaks || 'Tiebreaks:'}</strong> Enter tiebreak score in the TB field when a set is tied<br><br>
+    <strong>${labels.irregularEndings || IRREGULAR_ENDINGS_LABEL}</strong> Click Retired, Walkover, Default.
+  `;
+
+  const dialPadHelp = `
+    <strong>${labels.dialPadTips || 'Dial Pad Scoring:'}</strong><br><br>
+    Tap the number buttons to enter scores for each side.<br><br>
+    <strong>${
+      labels.irregularEndings || IRREGULAR_ENDINGS_LABEL
+    }</strong> Retired, Walkover, Default available for irregular endings.
+  `;
+
+  const inlineScoringHelp = `
+    <strong>Inline Scoring:</strong><br><br>
+    Click on <strong>game scores</strong> to add a game for that side.<br><br>
+    Click on <strong>point scores</strong> to award a point.<br><br>
+    Use the <strong>LIVE</strong> pill to set an irregular ending (Retired, Walkover, etc.).<br><br>
+    <strong>Undo/Redo/Clear</strong> buttons control scoring history.
+  `;
+
+  const approachHelp: Record<ScoringApproach, string> = {
+    freeScore: freeScoreHelp,
+    dynamicSets: dynamicSetsHelp,
+    dialPad: dialPadHelp,
+    inlineScoring: inlineScoringHelp
+  };
+
   const buildMenuItems = () =>
     APPROACHES.map((a) => ({
       label: APPROACH_LABELS[a],
@@ -111,8 +152,8 @@ export function scoringModal(params: ScoringModalParams): void {
     }));
 
   const buildModalConfig = () => ({
-    info: activeApproach === 'freeScore' ? freeScoreHelp : undefined,
-    menu: { menuItems: buildMenuItems() },
+    info: approachHelp[activeApproach],
+    menu: { menuItems: buildMenuItems() }
   });
 
   const clearButton = () => {
@@ -184,6 +225,8 @@ export function scoringModal(params: ScoringModalParams): void {
           (window as any).resetDynamicSets();
         } else if (activeApproach === 'dialPad' && (window as any).resetDialPad) {
           (window as any).resetDialPad();
+        } else if (activeApproach === 'inlineScoring' && (window as any).resetInlineScoring) {
+          (window as any).resetInlineScoring();
         }
       }
     },
@@ -191,9 +234,10 @@ export function scoringModal(params: ScoringModalParams): void {
       id: 'submitScoreV2',
       label: labels.submit || 'Submit Score',
       intent: 'is-primary',
-      disabled: true,
+      disabled: activeApproach !== 'inlineScoring',
       onClick: () => {
-        const canSubmit = currentOutcome && (currentOutcome.isValid || (wasCleared && hadExistingScore));
+        const canSubmit =
+          currentOutcome && (activeApproach === 'inlineScoring' || currentOutcome.isValid || (wasCleared && hadExistingScore));
         if (canSubmit) {
           cleanupCurrentApproach();
           callback(currentOutcome);

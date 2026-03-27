@@ -40,11 +40,13 @@ export class SchedulePageStore {
       catalogGroupBy: 'event',
       catalogFilters: {},
       showCompleted: false,
+      showScheduled: false,
       scheduledBehavior: config.scheduledBehavior ?? 'dim',
       schedulingMode: config.schedulingMode ?? 'immediate',
       pendingActions: [],
       hasUnsavedChanges: false,
-      leftCollapsed: false,
+      leftCollapsed: !!config.hideLeft,
+      hideLeft: !!config.hideLeft,
     };
   }
 
@@ -171,6 +173,10 @@ export class SchedulePageStore {
 
   setShowCompleted(show: boolean): void {
     this.setState({ showCompleted: show });
+  }
+
+  setShowScheduled(show: boolean): void {
+    this.setState({ showScheduled: show });
   }
 
   toggleLeftPanel(): void {

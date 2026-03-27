@@ -1,4 +1,6 @@
 #!/bin/bash
-sed -i '' "s/@VERSION@/$1/g" dist/*.js
-sed -i '' "s/@VERSION@/$1/g" dist/*.es.js
-sed -i '' "s/@VERSION@/$1/g" dist/*.umd.js
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  sed -i '' "s/@VERSION@/$1/g" dist/*.js dist/*.es.js dist/*.umd.js 2>/dev/null || true
+else
+  sed -i "s/@VERSION@/$1/g" dist/*.js dist/*.es.js dist/*.umd.js 2>/dev/null || true
+fi

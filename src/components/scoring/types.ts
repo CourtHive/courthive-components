@@ -44,6 +44,9 @@ export type ScoringModalLabels = {
   tiebreaks?: string;
   matchTiebreaks?: string;
   irregularEndings?: string;
+  addSet?: boolean;
+  dynamicSetsTips?: string;
+  dialPadTips?: string;
 };
 
 export type ScoringModalParams = {

@@ -61,6 +61,13 @@ export interface ScheduleIssue {
   message: string;
   matchUpId?: string;
   date?: string;
+  /** Structured conflict data for rich rendering */
+  issueType?: string;
+  prefix?: string;
+  participants?: string;
+  conflictParticipants?: string[];
+  /** All matchUpIds involved in this conflict (for click-to-scroll fallback) */
+  conflictMatchUpIds?: string[];
 }
 
 // ============================================================================
@@ -136,6 +143,10 @@ export interface SchedulePageConfig {
   courtGridElement?: HTMLElement;
   /** Max height for the court grid viewport (e.g. '500px', '60vh'). Defaults to none (fills available space). */
   gridMaxHeight?: string;
+  /** When true, the left column (date strip + issues panel) is not rendered at all. */
+  hideLeft?: boolean;
+  /** Which side to place the matchUp catalog. Defaults to 'right'. */
+  catalogSide?: 'left' | 'right';
   scheduledBehavior?: ScheduledBehavior;
   schedulingMode?: SchedulingMode;
   onDateSelected?: (date: string) => void;
@@ -160,11 +171,13 @@ export interface SchedulePageState {
   catalogGroupBy: MatchUpCatalogGroupBy;
   catalogFilters: CatalogFilters;
   showCompleted: boolean;
+  showScheduled: boolean;
   scheduledBehavior: ScheduledBehavior;
   schedulingMode: SchedulingMode;
   pendingActions: PendingScheduleAction[];
   hasUnsavedChanges: boolean;
   leftCollapsed: boolean;
+  hideLeft: boolean;
 }
 
 export type SchedulePageChangeListener = (state: SchedulePageState) => void;
@@ -267,6 +280,7 @@ export interface ScheduleCellData {
 
   schedule?: {
     scheduledTime?: string;
+    startTime?: string;
     timeModifiers?: string[];
     courtAnnotation?: string;
     courtId?: string;

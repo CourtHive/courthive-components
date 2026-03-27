@@ -90,24 +90,31 @@ export function renderRound({
   const roundIndex = roundNumbers.indexOf(roundNumber);
   const roundOrder = (roundIndex === 0 && 'first') || (roundIndex === roundNumbers.length - 1 && 'last');
 
+  let currentGroupWrapper: HTMLElement | null = null;
+
   roundMatchUps.forEach((matchUp, i) => {
     const rrGroupSepator = per && !(i % per);
     const groupIndex = per && Math.floor(i / per);
     const rrGroupName = per && structureNames[groupIndex];
 
     if (rrGroupSepator) {
+      currentGroupWrapper = document.createElement('div');
+      currentGroupWrapper.className = 'chc-rr-group';
+      currentGroupWrapper.setAttribute('data-group-id', structureIds[groupIndex]);
+      div.appendChild(currentGroupWrapper);
+
       const separator = document.createElement('div');
-      separator.className = groupSeparatorStyle({ 
-        ...(groupIndex === 0 && { variant: 0 }), 
+      separator.className = groupSeparatorStyle({
+        ...(groupIndex === 0 && { variant: 0 }),
         ...(roundOrder && { roundOrder })
       });
-      div.appendChild(separator);
+      currentGroupWrapper.appendChild(separator);
 
       const groupName = document.createElement('div');
       groupName.className = groupNameStyle();
       if (isFunction(eventHandlers?.groupHeaderClick)) {
         const { drawId, containerStructureId } = roundMatchUps[0];
-        div.onclick = (pointerEvent) =>
+        currentGroupWrapper.onclick = (pointerEvent) =>
           eventHandlers.groupHeaderClick({
             structureId: structureIds[groupIndex],
             containerStructureId,
@@ -116,7 +123,7 @@ export function renderRound({
           });
       }
       if (roundNumber === initialRoundNumber) groupName.innerHTML = rrGroupName;
-      div.appendChild(groupName);
+      currentGroupWrapper.appendChild(groupName);
     }
 
     const moiety = i % 2 === 0;
@@ -140,7 +147,8 @@ export function renderRound({
       matchUp,
       moiety
     });
-    div.appendChild(m);
+    const target = currentGroupWrapper || div;
+    target.appendChild(m);
   });
 
   roundContainer.appendChild(div);

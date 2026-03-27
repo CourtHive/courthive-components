@@ -17,43 +17,61 @@ export interface LayoutPanels {
   inspectorPanel: UIPanel<ProfileStoreState>;
 }
 
-export function buildSchedulingProfileLayout(panels: LayoutPanels): {
+export function buildSchedulingProfileLayout(
+  panels: LayoutPanels,
+  options?: { hideLeft?: boolean; catalogSide?: 'left' | 'right' },
+): {
   element: HTMLElement;
   update: (state: ProfileStoreState) => void;
 } {
+  const hideLeft = !!options?.hideLeft;
+  const catalogLeft = options?.catalogSide === 'left';
   const root = document.createElement('div');
   root.className = spLayoutStyle();
 
-  // Left column
-  const left = document.createElement('div');
-  left.className = spColumnStyle();
-  left.appendChild(panels.dateStrip.element);
-  panels.issuesPanel.element.style.flex = '1';
-  panels.issuesPanel.element.style.minHeight = '0';
-  left.appendChild(panels.issuesPanel.element);
+  if (!hideLeft) {
+    // Left column
+    const left = document.createElement('div');
+    left.className = spColumnStyle();
+    left.appendChild(panels.dateStrip.element);
+    panels.issuesPanel.element.style.flex = '1';
+    panels.issuesPanel.element.style.minHeight = '0';
+    left.appendChild(panels.issuesPanel.element);
+    root.appendChild(left);
+  } else if (catalogLeft) {
+    root.classList.add('sp-catalog-left');
+  } else {
+    root.classList.add('sp-no-left');
+  }
 
-  // Center column
+  // Center column (venue board)
   const center = document.createElement('div');
   center.className = spColumnStyle();
   panels.venueBoard.element.style.flex = '1';
   panels.venueBoard.element.style.minHeight = '0';
   center.appendChild(panels.venueBoard.element);
 
-  // Right column
-  const right = document.createElement('div');
-  right.className = spColumnStyle();
+  // Catalog + inspector sidebar
+  const sidebar = document.createElement('div');
+  sidebar.className = spColumnStyle();
   panels.roundCatalog.element.style.flex = '1';
   panels.roundCatalog.element.style.minHeight = '0';
-  right.appendChild(panels.roundCatalog.element);
-  right.appendChild(panels.inspectorPanel.element);
+  sidebar.appendChild(panels.roundCatalog.element);
+  sidebar.appendChild(panels.inspectorPanel.element);
 
-  root.appendChild(left);
-  root.appendChild(center);
-  root.appendChild(right);
+  if (catalogLeft && hideLeft) {
+    root.appendChild(sidebar);
+    root.appendChild(center);
+  } else {
+    root.appendChild(center);
+    root.appendChild(sidebar);
+  }
 
   function update(state: ProfileStoreState): void {
-    panels.dateStrip.update(state);
-    panels.issuesPanel.update(state);
+    if (!hideLeft) {
+      panels.dateStrip.update(state);
+      panels.issuesPanel.update(state);
+    }
     panels.venueBoard.update(state);
     panels.roundCatalog.update(state);
     panels.inspectorPanel.update(state);
