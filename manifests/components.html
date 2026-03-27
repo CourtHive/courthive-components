@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Components Manifest</title>
+  <style>
+      :root {
+          --bg: #0b0c10;
+          --panel: #121318;
+          --muted: #9aa0a6;
+          --fg: #e8eaed;
+          --ok: #22c55e;
+          --info: #1e88e5;
+          --err: #c62828;
+          --ok-bg: #0c1a13;
+          --info-bg: #0c1624;
+          --err-bg: #1a0e0e;
+          --chip: #1f2330;
+          --border: #2b2f3a;
+          --link: #8ab4f8;
+          --active-ring: 1px; /* 1px active ring for pills and toggles */
+      }
+
+      * {
+          box-sizing: border-box;
+      }
+
+      html,
+      body {
+          margin: 0;
+          background: var(--bg);
+          color: var(--fg);
+          font: 14px/1.5 system-ui,
+          -apple-system,
+          Segoe UI,
+          Roboto,
+          Ubuntu,
+          Cantarell,
+          'Helvetica Neue',
+          Arial,
+          'Noto Sans';
+      }
+
+      .wrap {
+          max-width: 1100px;
+          margin: 0 auto;
+          padding: 16px 20px;
+      }
+
+      header {
+          position: sticky;
+          top: 0;
+          backdrop-filter: blur(6px);
+          background: color-mix(in srgb, var(--bg) 84%, transparent);
+          border-bottom: 1px solid var(--border);
+          z-index: 10;
+      }
+
+      h1 {
+          font-size: 20px;
+          margin: 0 0 6px;
+      }
+
+      .summary {
+          display: flex;
+          gap: 12px;
+          flex-wrap: wrap;
+          align-items: center;
+      }
+
+      /* Top filter pills */
+      .filter-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 12px;
+          border: 1px solid var(--border);
+          border-radius: 999px;
+          background: var(--panel);
+          text-decoration: none;
+          cursor: pointer;
+          user-select: none;
+          color: var(--fg);
+      }
+
+      .filter-pill.ok {
+          color: #b9f6ca;
+          border-color: color-mix(in srgb, var(--ok) 55%, var(--border));
+          background: color-mix(in srgb, var(--ok) 18%, #000);
+      }
+
+      .filter-pill.info {
+          color: #b3d9ff;
+          border-color: color-mix(in srgb, var(--info) 55%, var(--border));
+          background: var(--info-bg);
+      }
+
+      .filter-pill.err {
+          color: #ff9aa0;
+          border-color: color-mix(in srgb, var(--err) 55%, var(--border));
+          background: var(--err-bg);
+      }
+
+      .filter-pill.all {
+          color: #d7dbe0;
+          border-color: var(--border);
+          background: var(--panel);
+      }
+
+      .filter-pill[aria-disabled='true'] {
+          cursor: default;
+          text-decoration: none;
+      }
+
+      .filter-pill:focus,
+      .filter-pill:active {
+          outline: none;
+          box-shadow: none;
+      }
+
+      /* Selected top pill ring via :target */
+      #filter-all:target ~ header .filter-pill[data-k='all'],
+      #filter-errors:target ~ header .filter-pill[data-k='errors'],
+      #filter-infos:target ~ header .filter-pill[data-k='infos'],
+      #filter-story-errors:target ~ header .filter-pill[data-k='story-errors'],
+      #filter-doc-errors:target ~ header .filter-pill[data-k='docs'],
+      #filter-docs:target ~ header .filter-pill[data-k='docs'] {
+          box-shadow: 0 0 0 var(--active-ring) currentColor;
+          border-color: currentColor;
+      }
+
+      /* Hidden targets for filtering */
+      #filter-all,
+      #filter-errors,
+      #filter-infos,
+      #filter-story-errors,
+      #filter-doc-errors,
+      #filter-docs {
+          display: none;
+      }
+
+      main {
+          padding: 36px 0 40px;
+      }
+
+      .grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 18px;
+      }
+
+      /* one card per row */
+
+      .card {
+          border: 1px solid var(--border);
+          background: var(--panel);
+          border-radius: 14px;
+          padding: 14px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+      }
+
+      .head {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+      }
+
+      .title {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+      }
+
+      .title h2 {
+          font-size: 16px;
+          margin: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+      }
+
+      .meta {
+          font-size: 12px;
+          color: var(--muted);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+      }
+
+      .kv {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+      }
+
+      .chip {
+          font-size: 12px;
+          padding: 4px 8px;
+          border-radius: 999px;
+          background: var(--chip);
+          border: 1px solid var(--border);
+      }
+
+      .hint {
+          color: var(--muted);
+          font-size: 12px;
+      }
+
+      .badges {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+      }
+
+      /* Per-card badges: labels become toggles when clickable */
+      .badge {
+          font-size: 12px;
+          padding: 3px 8px;
+          border-radius: 999px;
+          border: 1px solid var(--border);
+          background: var(--chip);
+          color: #d7dbe0;
+      }
+
+      .badge.ok {
+          color: #b9f6ca;
+          border-color: color-mix(in srgb, var(--ok) 55%, var(--border));
+      }
+
+      .badge.info {
+          color: #b3d9ff;
+          border-color: color-mix(in srgb, var(--info) 55%, var(--border));
+      }
+
+      .badge.err {
+          color: #ff9aa0;
+          border-color: color-mix(in srgb, var(--err) 55%, var(--border));
+      }
+
+      .as-toggle {
+          cursor: pointer;
+      }
+
+      /* 1px ring on active toggle */
+      .tg-err:checked + label.as-toggle,
+      .tg-info:checked + label.as-toggle,
+      .tg-stories:checked + label.as-toggle,
+      .tg-docs:checked + label.as-toggle,
+      .tg-content:checked + label.as-toggle,
+      .tg-props:checked + label.as-toggle {
+          box-shadow: 0 0 0 var(--active-ring) currentColor;
+          border-color: currentColor;
+      }
+
+      /* Panels: hidden by default, shown when respective toggle checked */
+      .panels {
+          display: grid;
+          gap: 10px;
+      }
+
+      .panel {
+          display: none;
+      }
+
+      .tg-err:checked ~ .panels .panel-err {
+          display: grid;
+      }
+
+      .tg-info:checked ~ .panels .panel-info {
+          display: grid;
+          gap: 8px;
+      }
+
+      .tg-stories:checked ~ .panels .panel-stories {
+          display: grid;
+          gap: 8px;
+      }
+
+      .tg-docs:checked ~ .panels .panel-docs {
+          display: grid;
+          gap: 8px;
+      }
+
+      .tg-content:checked ~ .panels .panel-content {
+          display: grid;
+          gap: 8px;
+      }
+
+      .tg-props:checked ~ .panels .panel-props {
+          display: grid;
+      }
+
+      /* Colored notes for prop type error + info */
+      .note {
+          padding: 12px;
+          border: 1px solid var(--border);
+          border-radius: 10px;
+      }
+
+      .note.err {
+          border-color: color-mix(in srgb, var(--err) 55%, var(--border));
+          background: var(--err-bg);
+          color: #ffd1d4;
+      }
+
+      .note.info {
+          border-color: color-mix(in srgb, var(--info) 55%, var(--border));
+          background: var(--info-bg);
+          color: #d6e8ff;
+      }
+
+      .note.ok {
+          border-color: color-mix(in srgb, var(--ok) 55%, var(--border));
+          background: var(--ok-bg);
+          color: var(--fg);
+      }
+
+      .note-title {
+          font-weight: 600;
+          margin-bottom: 6px;
+      }
+
+      .note-body {
+          white-space: normal;
+      }
+
+      /* Story error cards */
+      .ex {
+          padding: 10px;
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          background: #0f131b;
+      }
+
+      .ex.err {
+          border-color: color-mix(in srgb, var(--err) 55%, var(--border));
+      }
+
+      .row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+      }
+
+      .status-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          display: inline-block;
+      }
+
+      .dot-ok {
+          background: var(--ok);
+      }
+
+      .dot-err {
+          background: var(--err);
+      }
+
+      .ex-name {
+          font-weight: 600;
+      }
+
+      /* Error groups (visible in errors filter) */
+      .error-groups {
+          display: none;
+          margin-bottom: 16px;
+      }
+
+      .group {
+          border: 1px solid var(--border);
+          background: var(--panel);
+          border-radius: 14px;
+          overflow: hidden;
+      }
+
+      .group + .group {
+          margin-top: 12px;
+      }
+
+      .group-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 12px 14px;
+          cursor: pointer;
+          border-bottom: 1px solid var(--border);
+      }
+
+      .group-header:hover {
+          background: #141722;
+      }
+
+      .group-title {
+          font-weight: 600;
+          flex: 1;
+      }
+
+      .group-count {
+          font-size: 12px;
+          color: var(--muted);
+      }
+
+      .group-cards {
+          display: none;
+          padding: 12px;
+      }
+
+      .group .card {
+          margin: 12px 0;
+      }
+
+      .group .card:first-child {
+          margin-top: 0;
+      }
+
+      .group .card:last-child {
+          margin-bottom: 0;
+      }
+
+      /* caret rotation */
+      .group-tg:checked + label .caret {
+          transform: rotate(90deg);
+      }
+
+      .caret {
+          transition: transform 0.15s ease;
+      }
+
+      /* toggle body */
+      .group-tg:checked ~ .group-cards {
+          display: block;
+      }
+
+      /* CSS-only filtering of cards via top pills */
+      #filter-errors:target ~ main .card:not(.has-error):not(.has-story-error) {
+          display: none;
+      }
+
+      #filter-infos:target ~ main .card:not(.has-info) {
+          display: none;
+      }
+
+      #filter-story-errors:target ~ main .card:not(.has-story-error) {
+          display: none;
+      }
+
+      #filter-doc-errors:target ~ main .card:not(.has-doc-error) {
+          display: none;
+      }
+
+      #filter-docs:target ~ main .card:has(> .tg-docs),
+      #filter-docs:target ~ main .card.is-doc {
+          display: block;
+      }
+
+      #filter-docs:target ~ main .card:not(:has(> .tg-docs)):not(.is-doc) {
+          display: none;
+      }
+
+      #filter-all:target ~ main .card {
+          display: block;
+      }
+
+      /* In errors view, hide standalone component-error cards in the regular grid (they will appear in groups) */
+      #filter-errors:target ~ main .grid .card.has-error {
+          display: none;
+      }
+
+      /* Show grouped section only in errors view */
+      #filter-errors:target ~ main .error-groups {
+          display: block;
+      }
+
+      /* Section titles */
+      .section-title {
+          font-size: 16px;
+          font-weight: 600;
+          color: var(--muted);
+          margin: 24px 0 12px;
+          padding-bottom: 8px;
+          border-bottom: 1px solid var(--border);
+      }
+      .section-title:first-child {
+          margin-top: 0;
+      }
+
+      /* When a toggle is checked, show the corresponding panel */
+      .card > .tg-err:checked ~ .panels .panel-err {
+          display: grid;
+      }
+      
+      .card > .tg-info:checked ~ .panels .panel-info {
+          display: grid;
+      }
+      
+      .card > .tg-stories:checked ~ .panels .panel-stories {
+          display: grid;
+      }
+
+      .card > .tg-docs:checked ~ .panels .panel-docs {
+          display: grid;
+      }
+
+      .card > .tg-content:checked ~ .panels .panel-content {
+          display: grid;
+      }
+
+      /* Add vertical spacing around panels only when any panel is visible */
+      .card > .tg-err:checked ~ .panels,
+      .card > .tg-info:checked ~ .panels,
+      .card > .tg-stories:checked ~ .panels,
+      .card > .tg-docs:checked ~ .panels,
+      .card > .tg-content:checked ~ .panels,
+      .card > .tg-props:checked ~ .panels {
+          margin: 10px 0;
+      }
+
+      /* Optional: a subtle 1px ring on the active badge, using :has() if available */
+      @supports selector(.card:has(.tg-err:checked)) {
+          .card:has(.tg-err:checked) label[for$='-err'],
+          .card:has(.tg-info:checked) label[for$='-info'],
+          .card:has(.tg-stories:checked) label[for$='-stories'],
+          .card:has(.tg-docs:checked) label[for$='-docs'],
+          .card:has(.tg-content:checked) label[for$='-content'],
+          .card:has(.tg-props:checked) label[for$='-props'] {
+              box-shadow: 0 0 0 1px currentColor;
+              border-color: currentColor;
+          }
+      }
+
+      /* Wrap long lines in code blocks at ~120 characters */
+      pre, code {
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      }
+      pre {
+          white-space: pre-wrap;
+          overflow-wrap: anywhere;
+          word-break: break-word;
+          overflow-x: auto; /* fallback for extremely long tokens */
+          margin: 8px 0 0;
+      }
+      pre > code {
+          display: block;
+          white-space: inherit;
+          overflow-wrap: inherit;
+          word-break: inherit;
+          inline-size: min(100%, 120ch);
+      }
+
+      /* MDX content container for docs */
+      .mdx-content {
+          background: #0f131b;
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          padding: 12px;
+          max-height: 400px;
+          overflow-y: auto;
+          margin-top: 8px;
+      }
+  </style>
+</head>
+<body>
+<!-- Hidden targets for the top-level filters -->
+<span id="filter-all"></span>
+<span id="filter-errors"></span>
+<span id="filter-infos"></span>
+<span id="filter-story-errors"></span>
+<span id="filter-doc-errors"></span>
+<span id="filter-docs"></span>
+<header>
+  <div class="wrap">
+    <h1>Manifest Debugger</h1>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill ok" data-k="docs" href="#filter-docs">1 doc ok</a></div>
+  </div>
+</header>
+<main>
+  <div class="wrap">
+    <div class="note info" style="margin-bottom: 16px;">
+            <strong>Tip:</strong> You are using <code>react-docgen</code> (the default). Generation took <strong>0.0s</strong>. For higher quality prop types, consider switching to <code>react-docgen-typescript</code> in your <code>main.ts</code>:
+            <pre><code>typescript: {
+  reactDocgen: 'react-docgen-typescript',
+}</code></pre>
+            Note: <code>react-docgen-typescript</code> can be slower. If performance is acceptable for your project, it generally produces better results.
+            <a href="https://storybook.js.org/docs/api/main-config/main-config-typescript#reactdocgen" target="_blank">Learn more</a>
+          </div>
+    
+    
+    <h2 class="section-title">Unattached Docs</h2>
+    <div class="grid" role="list">
+      
+<article
+  class="card is-doc no-doc-error"
+  role="listitem"
+  aria-label="Docs">
+  <div class="head">
+    <div class="title">
+      <h2><span class="status-dot dot-ok"></span> Overview</h2>
+      <div class="badges">
+        
+        <label for="doc-0-overview-docs-content" class="badge ok as-toggle">view content</label>
+      </div>
+    </div>
+    <div class="meta" title="./src/stories/Overview.mdx">overview--docs · ./src/stories/Overview.mdx</div>
+    
+  </div>
+
+  <!-- Hidden toggles must be siblings BEFORE .panels -->
+  
+  <input id="doc-0-overview-docs-content" class="tg tg-content" type="checkbox" hidden />
+
+  <div class="panels">
+    
+    
+        <div class="panel panel-content">
+          <div class="mdx-content">
+            <pre><code>import { Meta } from &#39;@storybook/addon-docs/blocks&#39;;
+import logo from &#39;./CourtHive.png&#39;;
+
+&lt;Meta title=&quot;Overview&quot; /&gt;
+
+&lt;div style={{ display: &#39;flex&#39;, alignItems: &#39;center&#39;, gap: &#39;16px&#39;, marginBottom: &#39;8px&#39; }}&gt;
+  &lt;img src={logo} alt=&quot;CourtHive&quot; style={{ height: &#39;48px&#39;, width: &#39;auto&#39; }} /&gt;
+  &lt;h1 style={{ margin: 0 }}&gt;CourtHive Components&lt;/h1&gt;
+&lt;/div&gt;
+
+&lt;div style={{ fontSize: &#39;16px&#39;, color: &#39;var(--chc-text-secondary, #666)&#39;, marginBottom: &#39;32px&#39; }}&gt;
+  CourtHive Components is a framework-agnostic UI library for tournament and competition management.
+  From draw bracket rendering and live scoring to visual topology design and schedule optimization,
+  these components provide the building blocks for rich competition interfaces — all built on vanilla
+  HTML/CSS/JS with no framework lock-in. Powered by{&#39; &#39;}
+  &lt;a href=&quot;https://courthive.github.io/competition-factory/&quot; target=&quot;_blank&quot;&gt;Competition Factory&lt;/a&gt;{&#39; &#39;}
+  for TODS-compliant tournament data modeling and business logic.
+&lt;/div&gt;
+
+&lt;hr /&gt;
+
+&lt;h2&gt;Component Categories&lt;/h2&gt;
+
+&lt;h3&gt;Draws&lt;/h3&gt;
+&lt;p&gt;Tournament draw rendering and interaction.&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;&lt;th style={{ textAlign: &#39;left&#39; }}&gt;Story&lt;/th&gt;&lt;th style={{ textAlign: &#39;left&#39; }}&gt;Description&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Structure&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Full draw structure rendering with bracket connectors, participant names, scores, and seed positions. Supports multiple visual compositions (themes).&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Rounds&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Individual round rendering within a draw structure.&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Round Visibility&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Controls for showing/hiding specific rounds in a draw.&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Participant Assignment&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Drag-and-drop and interactive assignment of participants to draw positions.&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Scratch&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Experimental draw rendering workspace.&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3&gt;MatchUps&lt;/h3&gt;
+&lt;p&gt;Match-level rendering and scoring.&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;&lt;th style={{ textAlign: &#39;left&#39; }}&gt;Story&lt;/th&gt;&lt;th style={{ textAlign: &#39;left&#39; }}&gt;Description&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;MatchUp&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Individual matchUp card rendering with participants, scores, schedule info, and status indicators.&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Sides&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Participant side rendering within a matchUp (names, seeds, nationality flags).&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Game Score&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Point-by-point game score display.&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Tick&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Compact tick/check indicator for matchUp completion status.&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Status&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Status pill badges for matchUp states (upcoming, in progress, complete, etc.).&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3&gt;Participants&lt;/h3&gt;
+&lt;p&gt;Participant display components.&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;&lt;th style={{ textAlign: &#39;left&#39; }}&gt;Story&lt;/th&gt;&lt;th style={{ textAlign: &#39;left&#39; }}&gt;Description&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Participant&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Participant name rendering with seed numbers, entry status, and rankings.&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Individual&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Individual participant detail card.&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Flag&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Country/nationality flag rendering using IOC and ISO codes.&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Frill&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Decorative elements for participant display (seed badges, entry indicators).&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3&gt;Components&lt;/h3&gt;
+&lt;p&gt;Interactive UI components and complex widgets.&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;&lt;th style={{ textAlign: &#39;left&#39; }}&gt;Story&lt;/th&gt;&lt;th style={{ textAlign: &#39;left&#39; }}&gt;Description&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;TopologyBuilder&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Visual editor for designing tournament draw topologies. Add structures (Main, Qualifying, Consolation, Playoff), connect them with winner/loser/position links, validate, and generate draw options. Includes templates for common patterns (SE, FMLC, FIC, Compass, etc.).&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Scoring&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Scoring modal with multiple input approaches (buttons, gamepad, keyboard). Configurable for different match formats and sports.&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;MatchUpFormat&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;MatchUp format code editor for defining scoring rules (sets, games, tiebreaks, points).&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Modal&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;General-purpose modal dialog with configurable content, buttons, info panels, and styling.&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Drawer&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Slide-in panel (left/right) for forms, configuration, and detail views.&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;ControlBar&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Toolbar with search, filters, action buttons, and tabulator table integration.&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;FlightProfile&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Flight/section configuration for splitting draws into multiple flights.&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Categories&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Age category and tournament category configuration editors.&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;MockParticipants&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Test data generator for creating realistic participant records with configurable age ranges, genders, and nationalities.&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Tipster&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Dropdown suggestion/autocomplete component for search and selection.&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3&gt;Renderers&lt;/h3&gt;
+&lt;p&gt;Low-level rendering utilities for building custom UIs.&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;&lt;th style={{ textAlign: &#39;left&#39; }}&gt;Story&lt;/th&gt;&lt;th style={{ textAlign: &#39;left&#39; }}&gt;Description&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Form&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Declarative form renderer from field configuration arrays. Supports text, select, checkbox, radio, and custom controls with validation and relationships.&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Field&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Individual form field renderer.&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Buttons&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Button bar renderer with configurable styles, icons, and click handlers.&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Menu&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Context menu and dropdown menu renderer.&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3&gt;Visualizations&lt;/h3&gt;
+&lt;p&gt;Data visualization components.&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;&lt;th style={{ textAlign: &#39;left&#39; }}&gt;Story&lt;/th&gt;&lt;th style={{ textAlign: &#39;left&#39; }}&gt;Description&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Burst Chart&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Sunburst/radial chart for visualizing tournament draw progressions, bracket paths, and hierarchical competition data.&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3&gt;Scheduling Profile&lt;/h3&gt;
+&lt;p&gt;Venue and court scheduling configuration.&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;&lt;th style={{ textAlign: &#39;left&#39; }}&gt;Story&lt;/th&gt;&lt;th style={{ textAlign: &#39;left&#39; }}&gt;Description&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Full&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Complete scheduling profile editor with venue selection, court assignment, and time slot configuration.&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Panels&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Individual scheduling profile panels (venue, court, time slot editors).&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Factory&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Factory-backed scheduling profile with live tournament engine integration.&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3&gt;Temporal Grid&lt;/h3&gt;
+&lt;p&gt;Timeline-based scheduling and conflict detection.&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;&lt;th style={{ textAlign: &#39;left&#39; }}&gt;Story&lt;/th&gt;&lt;th style={{ textAlign: &#39;left&#39; }}&gt;Description&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Timeline&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Interactive CourtTimeline for visualizing and editing court schedules across time.&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Engine&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Temporal grid scheduling engine with automatic matchUp placement.&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;Conflict Evaluators&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Conflict detection strategies for identifying scheduling issues (participant conflicts, rest time violations, venue capacity).&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;hr /&gt;
+
+&lt;h2&gt;Architecture&lt;/h2&gt;
+
+&lt;pre style={{ background: &#39;var(--chc-bg-secondary, #f5f5f5)&#39;, padding: &#39;16px&#39;, borderRadius: &#39;6px&#39;, fontSize: &#39;13px&#39;, overflow: &#39;auto&#39; }}&gt;
+{`src/
+  components/              Component source code
+    topology-builder/        Controller / Domain / Engine / UI layers
+    scheduling-profile/      Controller / Domain / Engine / UI layers
+    temporal-grid/           Controller / Engine / UI layers
+    scoring/                 Approaches / Logic / Utils
+    renderStructure/         Draw bracket rendering
+    renderSchematicStructure/  Compact schematic previews
+    forms/                   Declarative form system
+    ...
+  compositions/            Visual theme definitions
+  styles/                  CSS custom properties and base styles
+  stories/                 Storybook stories`}
+&lt;/pre&gt;
+
+&lt;h3&gt;Key Patterns&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Framework-agnostic&lt;/strong&gt; — All components render to vanilla DOM elements. No React, Vue, or Angular dependency.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;CSS custom properties&lt;/strong&gt; — Theming via &lt;code&gt;--chc-*&lt;/code&gt; CSS variables with light/dark mode support.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Factory integration&lt;/strong&gt; — Tournament logic powered by &lt;a href=&quot;https://courthive.github.io/competition-factory/&quot; target=&quot;_blank&quot;&gt;Competition Factory&lt;/a&gt; for TODS-compliant data modeling.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Controller pattern&lt;/strong&gt; — Complex features (topology builder, scheduling profile, temporal grid) use a controller layer that wires store, domain logic, and UI panels together.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;h2&gt;Getting Started&lt;/h2&gt;
+
+&lt;pre style={{ background: &#39;var(--chc-bg-secondary, #f5f5f5)&#39;, padding: &#39;16px&#39;, borderRadius: &#39;6px&#39;, fontSize: &#39;13px&#39;, overflow: &#39;auto&#39; }}&gt;
+{`# Install dependencies
+pnpm install
+
+# Start Storybook
+pnpm storybook
+
+# Build the library
+pnpm build`}
+&lt;/pre&gt;
+
+&lt;h3&gt;Usage&lt;/h3&gt;
+
+&lt;pre style={{ background: &#39;var(--chc-bg-secondary, #f5f5f5)&#39;, padding: &#39;16px&#39;, borderRadius: &#39;6px&#39;, fontSize: &#39;13px&#39;, overflow: &#39;auto&#39; }}&gt;
+{`import {
+  renderStructure,
+  scoringModal,
+  TopologyBuilderControl,
+} from &#39;courthive-components&#39;;
+import &#39;courthive-components/dist/courthive-components.css&#39;;`}
+&lt;/pre&gt;
+
+&lt;div style={{ marginTop: &#39;32px&#39;, padding: &#39;12px 16px&#39;, background: &#39;var(--chc-bg-secondary, #f5f5f5)&#39;, borderRadius: &#39;6px&#39;, fontSize: &#39;13px&#39; }}&gt;
+  &lt;strong&gt;Repository:&lt;/strong&gt;{&#39; &#39;}
+  &lt;a href=&quot;https://github.com/CourtHive/courthive-components&quot; target=&quot;_blank&quot;&gt;github.com/CourtHive/courthive-components&lt;/a&gt;
+  &lt;br /&gt;
+  &lt;strong&gt;Factory docs:&lt;/strong&gt;{&#39; &#39;}
+  &lt;a href=&quot;https://courthive.github.io/competition-factory/&quot; target=&quot;_blank&quot;&gt;courthive.github.io/competition-factory&lt;/a&gt;
+&lt;/div&gt;
+</code></pre>
+          </div>
+        </div>
+  </div>
+</article>
+    </div>
+    
+  </div>
+</main>
+</body>
+</html>  
