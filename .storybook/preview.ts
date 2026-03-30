@@ -8,6 +8,7 @@ import '../src/styles/components/buttons.css';
 import '../src/styles/components/forms.css';
 import '../src/styles/components/switch.css';
 import '../src/styles/components/ui.css';
+import '../src/styles/components/sp-buttons.css';
 import '../src/components/forms/checkradio.css';
 import '../src/styles/accessibility.css';
 import '../src/components/courts/courts.css';
@@ -35,7 +36,7 @@ const preview: Preview = {
   decorators: [
     (storyFn, context) => {
       const theme = context.globals.theme || 'light';
-      document.documentElement.setAttribute('data-theme', theme);
+      document.documentElement.dataset.theme = theme;
       document.body.style.backgroundColor = theme === 'dark' ? '#1a1a2e' : '#ffffff';
       document.body.style.color = theme === 'dark' ? '#e0e0e0' : '#363636';
       return storyFn();
