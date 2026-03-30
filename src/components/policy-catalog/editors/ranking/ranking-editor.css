@@ -1,0 +1,329 @@
+/**
+ * Ranking Editor styles — plain CSS.
+ * Uses --sp-* variables for theme-aware dark mode support.
+ * Mirrors scheduling-editor.css patterns with re-* prefix.
+ */
+
+/* ── Accordion ───────────────────────────────────────────── */
+
+.re-section {
+  border: 1px solid var(--sp-border-group);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.re-section-header {
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+
+.re-section-header:hover { background: var(--sp-hover-bg); }
+
+.re-section-chevron {
+  font-size: 10px;
+  color: var(--sp-muted);
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+}
+
+.re-section-count {
+  font-size: 11px;
+  color: var(--sp-muted);
+  font-weight: 400;
+}
+
+.re-section-body {
+  padding: 12px;
+  border-top: 1px solid var(--sp-border-subtle);
+}
+
+/* ── Field Rows ──────────────────────────────────────────── */
+
+.re-field-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.re-field-row:last-child {
+  margin-bottom: 0;
+}
+
+.re-field-label {
+  font-size: 12px;
+  color: var(--sp-text);
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.re-field-input {
+  background: var(--sp-input-bg);
+  border: 1px solid var(--sp-border);
+  color: var(--sp-text);
+  border-radius: 10px;
+  padding: 6px 8px;
+  font-size: 12px;
+  outline: none;
+}
+
+.re-field-input:focus { border-color: var(--sp-accent-focus); }
+
+.re-field-input[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.re-field-input--text {
+  width: 200px;
+}
+
+.re-field-input--number {
+  width: 80px;
+  text-align: right;
+}
+
+.re-field-input--date {
+  width: 140px;
+}
+
+.re-field-select {
+  background: var(--sp-input-bg);
+  border: 1px solid var(--sp-border);
+  color: var(--sp-text);
+  border-radius: 10px;
+  padding: 6px 8px;
+  font-size: 12px;
+  outline: none;
+  min-width: 140px;
+}
+
+.re-field-select:focus { border-color: var(--sp-accent-focus); }
+
+.re-field-select[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Checkbox ────────────────────────────────────────────── */
+
+.re-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.re-checkbox-row:last-child {
+  margin-bottom: 0;
+}
+
+.re-checkbox-row input[type="checkbox"] {
+  accent-color: var(--sp-accent);
+}
+
+.re-checkbox-row input[type="checkbox"][disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.re-checkbox-row label {
+  font-size: 12px;
+  color: var(--sp-text);
+  cursor: pointer;
+}
+
+/* ── Points Table Input ──────────────────────────────────── */
+
+.re-points-input {
+  width: 60px;
+  background: var(--sp-input-bg);
+  border: 1px solid transparent;
+  color: var(--sp-text);
+  border-radius: 6px;
+  padding: 3px 6px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  outline: none;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.re-points-input:hover { border-color: var(--sp-border); }
+.re-points-input:focus { border-color: var(--sp-accent-focus); }
+
+.re-points-input[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+  border-color: transparent;
+}
+
+.re-points-input::-webkit-inner-spin-button,
+.re-points-input::-webkit-outer-spin-button {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* ── Profile Card ────────────────────────────────────────── */
+
+.re-profile-card {
+  border: 1px solid var(--sp-border);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.re-profile-card:last-child {
+  margin-bottom: 0;
+}
+
+.re-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  background: var(--sp-card-bg);
+  user-select: none;
+}
+
+.re-profile-header:hover { background: var(--sp-hover-bg); }
+
+.re-profile-name-input {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--sp-text);
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  outline: none;
+  min-width: 100px;
+  max-width: 250px;
+}
+
+.re-profile-name-input:hover { border-color: var(--sp-border); }
+.re-profile-name-input:focus { border-color: var(--sp-accent-focus); cursor: text; }
+
+.re-profile-name-input[disabled] {
+  border-color: transparent;
+  cursor: pointer;
+}
+
+.re-profile-body {
+  padding: 8px 10px;
+}
+
+.re-profile-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ── Icon Buttons ────────────────────────────────────────── */
+
+.re-icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--sp-muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.re-icon-btn:hover { color: var(--sp-text); background: var(--sp-hover-bg); }
+.re-icon-btn--danger:hover { color: var(--sp-err-text); }
+
+/* ── Add Button ──────────────────────────────────────────── */
+
+.re-add-btn {
+  margin-top: 8px;
+}
+
+/* ── Remove Row Button ───────────────────────────────────── */
+
+.re-remove-btn {
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--sp-muted);
+  flex-shrink: 0;
+}
+
+.re-remove-btn:hover { color: var(--sp-err-text); }
+
+/* ── Empty State ─────────────────────────────────────────── */
+
+.re-empty {
+  font-size: 12px;
+  color: var(--sp-muted);
+  font-style: italic;
+  padding: 6px 0;
+}
+
+/* ── Scope Badges ────────────────────────────────────────── */
+
+.re-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 3px 7px;
+  border-radius: 6px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.re-badge--neutral {
+  border-color: var(--sp-border);
+  color: var(--sp-muted);
+  background: var(--sp-card-bg);
+}
+
+.re-badge--accent {
+  border-color: var(--sp-accent-border);
+  color: var(--sp-accent-text);
+  background: transparent;
+}
+
+.re-badge--success {
+  border-color: var(--sp-ok-border);
+  color: var(--sp-ok-text);
+  background: transparent;
+}
+
+.re-badge--warn {
+  border-color: var(--sp-warn-border);
+  color: var(--sp-warn-text);
+  background: transparent;
+}
+
+.re-badge--info {
+  border-color: var(--sp-accent-border);
+  color: var(--sp-accent-text);
+  background: var(--sp-selected-bg);
+}
+
+.re-badge--primary {
+  border-color: var(--sp-border-focus);
+  color: var(--sp-text);
+  background: transparent;
+}
+
+/* ── Editor Root ─────────────────────────────────────────── */
+
+.re-editor {
+  padding: 12px;
+}
