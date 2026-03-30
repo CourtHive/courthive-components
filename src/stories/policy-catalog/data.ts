@@ -7,7 +7,11 @@ import type {
   PolicyCatalogConfig,
   SchedulingPolicyData,
   SchedulingEditorConfig,
+  RankingPolicyData,
+  RankingPointsEditorConfig,
 } from '../../components/policy-catalog';
+
+import { emptyRankingPolicy } from '../../components/policy-catalog';
 
 import { fixtures } from 'tods-competition-factory';
 
@@ -112,6 +116,88 @@ export const SCHEDULING_POLICY_EMPTY: SchedulingPolicyData = {
   matchUpRecoveryTimes: [],
   matchUpDailyLimits: [],
 };
+
+// ============================================================================
+// Ranking Policy Fixtures
+// ============================================================================
+
+export const RANKING_POLICY_BASIC: RankingPolicyData = {
+  policyName: 'Basic Ranking Points',
+  policyVersion: '1.0',
+  requireWinForPoints: true,
+  doublesAttribution: 'fullToEach',
+  awardProfiles: [
+    {
+      profileName: 'Default',
+      finishingPositionRanges: {
+        1: 100, 2: 70, 4: 50, 8: 30, 16: 15, 32: 8,
+      },
+    },
+  ],
+};
+
+export const RANKING_POLICY_MULTILEVEL: RankingPolicyData = {
+  policyName: 'Multi-Level Tournament Points',
+  policyVersion: '2.0',
+  requireWinForPoints: true,
+  requireWinFirstRound: false,
+  doublesAttribution: 'halfToEach',
+  categoryResolution: 'eventCategory',
+  validDateRange: { startDate: '2026-01-01', endDate: '2026-12-31' },
+  awardProfiles: [
+    {
+      profileName: 'Main Draw',
+      stages: ['MAIN'],
+      levels: [1, 2, 3],
+      finishingPositionRanges: {
+        1: { level: { 1: 500, 2: 250, 3: 100 } },
+        2: { level: { 1: 350, 2: 175, 3: 70 } },
+        4: { level: { 1: 200, 2: 100, 3: 40 } },
+        8: { level: { 1: 100, 2: 50, 3: 20 } },
+        16: { level: { 1: 50, 2: 25, 3: 10 } },
+        32: { level: { 1: 25, 2: 12, 3: 5 } },
+      },
+      pointsPerWin: 5,
+      bonusPoints: [
+        { finishingPositions: [1], value: 50 },
+      ],
+    },
+    {
+      profileName: 'Qualifying',
+      stages: ['QUALIFYING'],
+      finishingPositionRanges: {
+        1: 20, 2: 10, 4: 5,
+      },
+    },
+    {
+      profileName: 'Consolation',
+      stages: ['CONSOLATION'],
+      finishingPositionRanges: {
+        1: 15, 2: 8, 4: 4,
+      },
+      requireWinForPoints: true,
+    },
+  ],
+  qualityWinProfiles: [
+    {
+      rankingScaleName: 'National',
+      rankingRanges: [
+        { rankRange: [1, 10], value: 30 },
+        { rankRange: [11, 25], value: 20 },
+        { rankRange: [26, 50], value: 10 },
+      ],
+      maxBonusPerTournament: 60,
+    },
+  ],
+  aggregationRules: {
+    rollingPeriodDays: 365,
+    bestOfCount: 8,
+    separateByGender: true,
+    tiebreakCriteria: ['totalPoints', 'bestResult', 'headToHead'],
+  },
+};
+
+export const RANKING_POLICY_EMPTY: RankingPolicyData = emptyRankingPolicy();
 
 // ============================================================================
 // Other Policy Fixtures
@@ -228,6 +314,22 @@ export const BUILTIN_POLICIES: PolicyCatalogItem[] = [
     description: 'Audit trail enabled at INFO level',
     policyData: AUDIT_POLICY,
   },
+  {
+    id: 'builtin-ranking-basic',
+    name: 'Basic Ranking Points',
+    policyType: 'rankingPoints',
+    source: 'builtin',
+    description: 'Simple finishing-position points for any event',
+    policyData: RANKING_POLICY_BASIC as unknown as Record<string, unknown>,
+  },
+  {
+    id: 'builtin-ranking-multilevel',
+    name: 'Multi-Level Tournament Points',
+    policyType: 'rankingPoints',
+    source: 'builtin',
+    description: 'Level-keyed points with quality wins and aggregation rules',
+    policyData: RANKING_POLICY_MULTILEVEL as unknown as Record<string, unknown>,
+  },
 ];
 
 export const USER_POLICIES: PolicyCatalogItem[] = [
@@ -265,6 +367,23 @@ export const USER_POLICIES: PolicyCatalogItem[] = [
     source: 'user',
     description: 'Fewer seeds for smaller draws',
     policyData: { seedsCount: { 8: 2, 16: 4, 32: 8, 64: 16, 128: 16 } },
+  },
+  {
+    id: 'user-ranking-custom',
+    name: 'Custom Ranking Points',
+    policyType: 'rankingPoints',
+    source: 'user',
+    description: 'User-defined ranking points for local events',
+    policyData: {
+      ...RANKING_POLICY_BASIC,
+      policyName: 'Custom Ranking Points',
+      awardProfiles: [
+        {
+          profileName: 'Local Events',
+          finishingPositionRanges: { 1: 50, 2: 35, 4: 20, 8: 10 },
+        },
+      ],
+    } as unknown as Record<string, unknown>,
   },
 ];
 
@@ -305,6 +424,15 @@ export function makeCatalogConfig(overrides: Partial<PolicyCatalogConfig> = {}):
   return {
     builtinPolicies: BUILTIN_POLICIES,
     userPolicies: USER_POLICIES,
+    ...overrides,
+  };
+}
+
+export function makeRankingEditorConfig(
+  overrides: Partial<RankingPointsEditorConfig> = {},
+): RankingPointsEditorConfig {
+  return {
+    initialPolicy: RANKING_POLICY_BASIC,
     ...overrides,
   };
 }

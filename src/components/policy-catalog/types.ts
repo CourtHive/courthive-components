@@ -83,6 +83,8 @@ export interface PolicyCatalogConfig {
   editorPlugins?: PolicyEditorPlugin[];
   onPolicySaved?: (item: PolicyCatalogItem) => void;
   onPolicyApplied?: (item: PolicyCatalogItem) => void;
+  onPolicyCreated?: (item: PolicyCatalogItem) => void;
+  onPolicyDeleted?: (id: string) => void;
   onSelectionChanged?: (item: PolicyCatalogItem | null) => void;
 }
 

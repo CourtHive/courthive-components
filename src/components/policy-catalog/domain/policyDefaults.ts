@@ -3,6 +3,8 @@
  */
 
 import type { PolicyTypeMeta, PolicyTypeGroup } from '../types';
+import { emptyRankingPolicy } from '../editors/ranking/domain/emptyRankingPolicy';
+import { emptySchedulingPolicy } from '../editors/scheduling/domain/schedulingProjections';
 
 // Policy type constants (mirrored from tods-competition-factory)
 export const POLICY_TYPE_SCHEDULING = 'scheduling';
@@ -49,7 +51,7 @@ export const POLICY_TYPE_METADATA: PolicyTypeMeta[] = [
   // Scoring & Results
   meta(POLICY_TYPE_SCORING, 'Scoring', 'Score entry validation and completion rules', GROUP_SCORING, false),
   meta(POLICY_TYPE_ROUND_ROBIN_TALLY, 'Round Robin Tally', 'Round-robin group standing calculation method', GROUP_SCORING, false),
-  meta(POLICY_TYPE_RANKING_POINTS, 'Ranking Points', 'Point allocation by draw size, round, and result', GROUP_RANKING_POINTS, false),
+  meta(POLICY_TYPE_RANKING_POINTS, 'Ranking Points', 'Point allocation by draw size, round, and result', GROUP_RANKING_POINTS, true),
   meta(POLICY_TYPE_COMPETITIVE_BANDS, 'Competitive Bands', 'Rating/ranking band definitions for competitive grouping', GROUP_SCORING, false),
 
   // Draw Configuration
@@ -71,6 +73,13 @@ export const POLICY_TYPE_METADATA: PolicyTypeMeta[] = [
 /** Lookup metadata by policyType string */
 export function getPolicyTypeMeta(policyType: string): PolicyTypeMeta | undefined {
   return POLICY_TYPE_METADATA.find((m) => m.policyType === policyType);
+}
+
+/** Get empty policy data for a given policy type */
+export function getEmptyPolicyData(policyType: string): Record<string, unknown> {
+  if (policyType === POLICY_TYPE_RANKING_POINTS) return emptyRankingPolicy() as unknown as Record<string, unknown>;
+  if (policyType === POLICY_TYPE_SCHEDULING) return emptySchedulingPolicy() as unknown as Record<string, unknown>;
+  return {};
 }
 
 /** Get all unique group names in display order */

@@ -6,6 +6,7 @@
  */
 
 import { deepClone } from '../domain/utils';
+import { getEmptyPolicyData } from '../domain/policyDefaults';
 import type {
   PolicyCatalogState,
   PolicyCatalogChangeListener,
@@ -22,9 +23,11 @@ export class PolicyCatalogStore {
   constructor(config: PolicyCatalogConfig) {
     this.config = config;
 
+    // Merge builtin + user, deduplicating by ID (builtins take precedence)
+    const builtinIds = new Set((config.builtinPolicies ?? []).map((p) => p.id));
     const catalog = [
       ...(config.builtinPolicies ?? []),
-      ...(config.userPolicies ?? []),
+      ...(config.userPolicies ?? []).filter((p) => !builtinIds.has(p.id)),
     ];
 
     this.state = {
@@ -140,6 +143,73 @@ export class PolicyCatalogStore {
         : deepClone(item.policyData),
     };
     this.config.onPolicyApplied?.(applied);
+  }
+
+  // ---------- New / Duplicate / Delete ----------
+
+  addNewPolicy(policyType: string): string {
+    const id = `user-${policyType}-${Date.now()}`;
+    const item: PolicyCatalogItem = {
+      id,
+      name: `New ${policyType} policy`,
+      policyType,
+      source: 'user',
+      description: '',
+      policyData: getEmptyPolicyData(policyType),
+    };
+    const catalog = [...this.state.catalog, item];
+    this.state = {
+      ...this.state,
+      catalog,
+      selectedId: id,
+      editorDraft: deepClone(item.policyData),
+      dirty: false,
+    };
+    this.emit();
+    this.config.onPolicyCreated?.(item);
+    this.config.onSelectionChanged?.(item);
+    return id;
+  }
+
+  duplicatePolicy(sourceId: string): string | null {
+    const source = this.state.catalog.find((p) => p.id === sourceId);
+    if (!source) return null;
+    const id = `user-${source.policyType}-${Date.now()}`;
+    const item: PolicyCatalogItem = {
+      id,
+      name: `${source.name} (Copy)`,
+      policyType: source.policyType,
+      source: 'user',
+      description: source.description,
+      policyData: deepClone(source.policyData),
+    };
+    const catalog = [...this.state.catalog, item];
+    this.state = {
+      ...this.state,
+      catalog,
+      selectedId: id,
+      editorDraft: deepClone(item.policyData),
+      dirty: false,
+    };
+    this.emit();
+    this.config.onPolicyCreated?.(item);
+    this.config.onSelectionChanged?.(item);
+    return id;
+  }
+
+  deletePolicy(id: string): void {
+    const item = this.state.catalog.find((p) => p.id === id);
+    if (!item || item.source === 'builtin') return;
+    const catalog = this.state.catalog.filter((p) => p.id !== id);
+    const wasSelected = this.state.selectedId === id;
+    this.state = {
+      ...this.state,
+      catalog,
+      ...(wasSelected ? { selectedId: null, editorDraft: null, dirty: false } : {}),
+    };
+    this.emit();
+    this.config.onPolicyDeleted?.(id);
+    if (wasSelected) this.config.onSelectionChanged?.(null);
   }
 
   // ---------- Subscription ----------

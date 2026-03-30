@@ -9,7 +9,7 @@
   {
     "key": "atpd",
     "name": "Standard Doubles",
-    "format": "SET3-S:6/TB7-F:TB10",
+    "format": "SET3-S:6NOAD/TB7-F:TB10",
     "desc": "Best of 3 Sets to 6, no Ad",
     "desc2": "Final Set Tiebreak to 10"
   },
