@@ -2,6 +2,7 @@
  * Editor Shell — Right panel container.
  *
  * Header with selected policy name, type badge, Save/Reset/Apply buttons.
+ * Builtin policies show read-only mode with "Use as Template" button.
  * Body div where the active editor is mounted.
  * Empty state when nothing selected.
  */
@@ -27,10 +28,10 @@ export interface EditorShellCallbacks {
   onSave: () => void;
   onReset: () => void;
   onApply: () => void;
+  onDuplicate: () => void;
 }
 
 export interface EditorShellPanel extends UIPanel<PolicyCatalogState> {
-  /** The body element where editors should be mounted */
   bodyElement: HTMLElement;
 }
 
@@ -54,6 +55,11 @@ export function buildEditorShell(callbacks: EditorShellCallbacks): EditorShellPa
   const typeBadge = document.createElement('span');
   typeBadge.className = pcTypeBadgeStyle();
 
+  const readonlyBadge = document.createElement('span');
+  readonlyBadge.className = pcTypeBadgeStyle();
+  readonlyBadge.textContent = 'read-only';
+  readonlyBadge.style.display = 'none';
+
   const dirtyDot = document.createElement('div');
   dirtyDot.className = pcDirtyDotStyle();
   dirtyDot.style.display = 'none';
@@ -62,9 +68,11 @@ export function buildEditorShell(callbacks: EditorShellCallbacks): EditorShellPa
   headerLeft.appendChild(dirtyDot);
   headerLeft.appendChild(titleEl);
   headerLeft.appendChild(typeBadge);
+  headerLeft.appendChild(readonlyBadge);
 
-  const actionsEl = document.createElement('div');
-  actionsEl.className = pcEditorActionsStyle();
+  // User actions (Save/Reset/Apply)
+  const userActionsEl = document.createElement('div');
+  userActionsEl.className = pcEditorActionsStyle();
 
   const resetBtn = document.createElement('button');
   resetBtn.className = pcBtnStyle();
@@ -81,12 +89,30 @@ export function buildEditorShell(callbacks: EditorShellCallbacks): EditorShellPa
   applyBtn.textContent = 'Apply';
   applyBtn.addEventListener('click', () => callbacks.onApply());
 
-  actionsEl.appendChild(resetBtn);
-  actionsEl.appendChild(saveBtn);
-  actionsEl.appendChild(applyBtn);
+  const dupBtnSmall = document.createElement('button');
+  dupBtnSmall.className = pcBtnStyle();
+  dupBtnSmall.textContent = 'Duplicate';
+  dupBtnSmall.addEventListener('click', () => callbacks.onDuplicate());
+
+  userActionsEl.appendChild(resetBtn);
+  userActionsEl.appendChild(saveBtn);
+  userActionsEl.appendChild(applyBtn);
+  userActionsEl.appendChild(dupBtnSmall);
+
+  // Builtin actions (Use as Template only)
+  const builtinActionsEl = document.createElement('div');
+  builtinActionsEl.className = pcEditorActionsStyle();
+
+  const templateBtn = document.createElement('button');
+  templateBtn.className = pcBtnPrimaryStyle();
+  templateBtn.textContent = 'Use as Template';
+  templateBtn.addEventListener('click', () => callbacks.onDuplicate());
+
+  builtinActionsEl.appendChild(templateBtn);
 
   headerEl.appendChild(headerLeft);
-  headerEl.appendChild(actionsEl);
+  headerEl.appendChild(userActionsEl);
+  headerEl.appendChild(builtinActionsEl);
 
   // Body
   const bodyEl = document.createElement('div');
@@ -114,10 +140,17 @@ export function buildEditorShell(callbacks: EditorShellCallbacks): EditorShellPa
     const item = state.catalog.find((p) => p.id === state.selectedId);
     if (!item) return;
 
+    const isBuiltin = item.source === 'builtin';
+
     titleEl.textContent = item.name;
     const meta = getPolicyTypeMeta(item.policyType);
     typeBadge.textContent = meta?.label ?? item.policyType;
-    dirtyDot.style.display = state.dirty ? 'block' : 'none';
+
+    // Builtin vs user mode
+    readonlyBadge.style.display = isBuiltin ? '' : 'none';
+    userActionsEl.style.display = isBuiltin ? 'none' : 'flex';
+    builtinActionsEl.style.display = isBuiltin ? 'flex' : 'none';
+    dirtyDot.style.display = !isBuiltin && state.dirty ? 'block' : 'none';
   }
 
   return {

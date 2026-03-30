@@ -5,18 +5,16 @@
  * manages editor lifecycle. Follows SchedulingProfileControl pattern.
  */
 
-import { PolicyCatalogStore } from '../engine/policyCatalogStore';
-import { buildPolicyCatalogPanel } from '../ui/policyCatalogPanel';
-import { buildEditorShell } from '../ui/editorShell';
-import { buildPolicyCatalogLayout } from '../ui/policyCatalogLayout';
-import { buildJsonEditor } from '../ui/jsonEditor';
+import { RankingPointsEditorControl } from '../editors/ranking/rankingPointsEditorControl';
 import { SchedulingEditorControl } from '../editors/scheduling/schedulingEditorControl';
-import { POLICY_TYPE_SCHEDULING } from '../domain/policyDefaults';
-import type {
-  PolicyCatalogConfig,
-  PolicyEditorInstance,
-  CatalogGroupBy,
-} from '../types';
+import { buildPolicyCatalogLayout } from '../ui/policyCatalogLayout';
+import { buildPolicyCatalogPanel } from '../ui/policyCatalogPanel';
+import { PolicyCatalogStore } from '../engine/policyCatalogStore';
+import { buildEditorShell } from '../ui/editorShell';
+import { buildJsonEditor } from '../ui/jsonEditor';
+
+import { POLICY_TYPE_SCHEDULING, POLICY_TYPE_RANKING_POINTS } from '../domain/policyDefaults';
+import type { PolicyCatalogConfig, PolicyEditorInstance, CatalogGroupBy } from '../types';
 
 export class PolicyCatalogControl {
   private readonly store: PolicyCatalogStore;
@@ -33,6 +31,20 @@ export class PolicyCatalogControl {
       onSearchChange: (query: string) => this.store.setCatalogSearch(query),
       onGroupByChange: (mode: CatalogGroupBy) => this.store.setCatalogGroupBy(mode),
       onSelectPolicy: (id: string) => this.handleSelectPolicy(id),
+      onNewPolicy: (policyType: string) => {
+        this.store.addNewPolicy(policyType);
+        this.mountEditorForSelection();
+      },
+      onDuplicatePolicy: (id: string) => {
+        this.store.duplicatePolicy(id);
+        this.mountEditorForSelection();
+      },
+      onDeletePolicy: (id: string) => {
+        this.store.deletePolicy(id);
+        if (!this.store.getSelectedItem()) {
+          this.destroyCurrentEditor();
+        }
+      },
     });
 
     this.editorShell = buildEditorShell({
@@ -42,6 +54,13 @@ export class PolicyCatalogControl {
         this.syncEditorFromStore();
       },
       onApply: () => this.store.applyPolicy(),
+      onDuplicate: () => {
+        const selected = this.store.getSelectedItem();
+        if (selected) {
+          this.store.duplicatePolicy(selected.id);
+          this.mountEditorForSelection();
+        }
+      },
     });
 
     this.layout = buildPolicyCatalogLayout({
@@ -66,7 +85,7 @@ export class PolicyCatalogControl {
     this.destroyCurrentEditor();
     this.unsubscribe();
     if (this.container && this.layout.element.parentNode === this.container) {
-      this.container.removeChild(this.layout.element);
+      this.layout.element.remove();
     }
     this.container = null;
   }
@@ -88,16 +107,20 @@ export class PolicyCatalogControl {
     const item = this.store.getSelectedItem();
     if (!item) return;
 
+    const isBuiltin = item.source === 'builtin';
+
     const editorConfig = {
       initialData: { ...item.policyData },
       onChange: (data: Record<string, unknown>) => {
         this.store.updateEditorDraft(data);
       },
+      readonly: isBuiltin,
     };
 
-    // Use scheduling editor for scheduling policies, JSON editor for everything else
     if (item.policyType === POLICY_TYPE_SCHEDULING) {
       this.currentEditor = SchedulingEditorControl.createEditorInstance(editorConfig);
+    } else if (item.policyType === POLICY_TYPE_RANKING_POINTS) {
+      this.currentEditor = RankingPointsEditorControl.createEditorInstance(editorConfig);
     } else {
       this.currentEditor = buildJsonEditor(editorConfig);
     }
