@@ -51,14 +51,13 @@ export function openScheduleCellConfigModal(options: ScheduleCellConfigOptions =
       { header: true, text: 'Schedule Cell Content' },
       { text: 'Select which information appears in each schedule grid cell.', style: 'color: var(--chc-text-muted); font-size: 13px;' },
       { spacer: 0.5 },
-      { field: 'showParticipantNames', label: 'Participant Names', checkbox: true, value: initial.showParticipantNames },
-      { field: 'showNationality', label: 'Nationality (country code)', checkbox: true, value: initial.showNationality },
-      { field: 'showSeedings', label: 'Seedings', checkbox: true, value: initial.showSeedings },
-      { field: 'showEventRound', label: 'Event & Round', checkbox: true, value: initial.showEventRound },
-      { field: 'showScheduledTime', label: 'Scheduled Time / Not Before', checkbox: true, value: initial.showScheduledTime },
-      { field: 'showScore', label: 'Score (for completed matches)', checkbox: true, value: initial.showScore },
-      { field: 'showMatchNumber', label: 'Match Number', checkbox: true, value: initial.showMatchNumber },
-      { field: 'showMatchFormat', label: 'Match Format Code', checkbox: true, value: initial.showMatchFormat },
+      { field: 'showNationality', label: 'Nationality (country code)', checkbox: true, checked: initial.showNationality },
+      { field: 'showSeedings', label: 'Seedings', checkbox: true, checked: initial.showSeedings },
+      { field: 'showEventRound', label: 'Event & Round', checkbox: true, checked: initial.showEventRound },
+      { field: 'showScheduledTime', label: 'Scheduled Time / Not Before', checkbox: true, checked: initial.showScheduledTime },
+      { field: 'showScore', label: 'Score (for completed matches)', checkbox: true, checked: initial.showScore },
+      { field: 'showMatchNumber', label: 'Match Number', checkbox: true, checked: initial.showMatchNumber },
+      { field: 'showMatchFormat', label: 'Match Format Code', checkbox: true, checked: initial.showMatchFormat },
       { divider: true },
       {
         field: 'nameFormat',
@@ -81,7 +80,7 @@ export function openScheduleCellConfigModal(options: ScheduleCellConfigOptions =
   };
 
   const getConfig = (): ScheduleCellConfig => ({
-    showParticipantNames: inputs.showParticipantNames?.checked ?? true,
+    showParticipantNames: true,
     showNationality: inputs.showNationality?.checked ?? true,
     showSeedings: inputs.showSeedings?.checked ?? true,
     showMatchNumber: inputs.showMatchNumber?.checked ?? false,
@@ -111,7 +110,6 @@ export function openScheduleCellConfigModal(options: ScheduleCellConfigOptions =
     btn.onclick = () => {
       // Apply preset values to form inputs
       const c = preset.config;
-      if (inputs.showParticipantNames) inputs.showParticipantNames.checked = c.showParticipantNames;
       if (inputs.showNationality) inputs.showNationality.checked = c.showNationality;
       if (inputs.showSeedings) inputs.showSeedings.checked = c.showSeedings;
       if (inputs.showMatchNumber) inputs.showMatchNumber.checked = c.showMatchNumber;
