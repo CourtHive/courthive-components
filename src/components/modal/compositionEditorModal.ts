@@ -8,12 +8,59 @@
 
 import { cModal } from './cmodal';
 import { renderForm } from '../forms/renderForm';
-import {
-  COMPOSITION_CATALOG,
-  listCatalogPresets,
-  type CompositionPreset,
-} from 'pdf-factory';
-import type { HeaderConfig, FooterConfig } from 'pdf-factory';
+
+// Types match pdf-factory's HeaderConfig/FooterConfig but defined locally
+// to avoid pulling the full pdf-factory bundle (includes jsPDF/Node APIs)
+export interface HeaderConfig {
+  layout: string;
+  tournamentName: string;
+  subtitle?: string;
+  startDate?: string;
+  endDate?: string;
+  location?: string;
+  city?: string;
+  country?: string;
+  surface?: string;
+  prizeMoney?: string;
+  currency?: string;
+  supervisor?: string;
+  grade?: string;
+  sectionLabel?: string;
+  organizer?: string;
+  chiefUmpire?: string;
+  tournamentId?: string;
+}
+
+export interface FooterConfig {
+  layout: string;
+  showPageNumbers?: boolean;
+  showTimestamp?: boolean;
+  releaseDate?: string;
+  drawCeremonyDate?: string;
+  notes?: string[];
+}
+
+interface CatalogEntry {
+  id: string;
+  name: string;
+  category: string;
+  tier: number;
+}
+
+const CATALOG_PRESETS: CatalogEntry[] = [
+  { id: 'grand-slam', name: 'Grand Slam', category: 'grand-slam', tier: 1 },
+  { id: 'wimbledon', name: 'Wimbledon', category: 'grand-slam', tier: 1 },
+  { id: 'australian-open', name: 'Australian Open', category: 'grand-slam', tier: 2 },
+  { id: 'wta-500', name: 'WTA 500', category: 'tour', tier: 2 },
+  { id: 'wta-1000', name: 'WTA 1000', category: 'tour', tier: 2 },
+  { id: 'atp-250', name: 'ATP 250', category: 'tour', tier: 2 },
+  { id: 'atp-finals', name: 'ATP Finals', category: 'tour', tier: 3 },
+  { id: 'itf-junior', name: 'ITF Junior', category: 'itf', tier: 3 },
+  { id: 'itf-pro-circuit', name: 'ITF Pro Circuit', category: 'itf', tier: 2 },
+  { id: 'national-federation', name: 'National Federation', category: 'national', tier: 3 },
+  { id: 'collegiate-ncaa', name: 'NCAA Collegiate', category: 'collegiate', tier: 1 },
+  { id: 'club-basic', name: 'Club Basic', category: 'club', tier: 1 },
+];
 
 export interface CompositionEditorResult {
   header: HeaderConfig;
@@ -36,8 +83,7 @@ export function openCompositionEditorModal(options: CompositionEditorOptions = {
   let modalHandle: any;
 
   const buildPresetContent = (container: HTMLElement) => {
-    const presets = listCatalogPresets();
-    const presetOptions = presets.map((p) => ({
+    const presetOptions = CATALOG_PRESETS.map((p) => ({
       label: `${p.name} (${p.category}, Tier ${p.tier})`,
       value: p.id,
       selected: p.id === (options.initialPreset || 'club-basic'),
