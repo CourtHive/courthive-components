@@ -3,5 +3,6 @@ packages:
 
 ignoredBuiltDependencies:
   - '@swc/core'
+  - core-js
   - esbuild
   - unrs-resolver
