@@ -149,6 +149,30 @@
   color: var(--sp-ok-text);
 }
 
+/* ── Gender Colors ─────────────────────────────────────── */
+/* Non-completed: participant names colored by gender.
+   Completed: event/round line colored for MALE/FEMALE only. */
+
+.spl-grid-cell[data-gender='MALE']:not(.spl-cell--complete) .spl-grid-cell__name {
+  color: var(--chc-gender-male, #2E86C1);
+}
+
+.spl-grid-cell[data-gender='FEMALE']:not(.spl-cell--complete) .spl-grid-cell__name {
+  color: var(--chc-gender-female, #E07BAF);
+}
+
+.spl-grid-cell[data-gender='MIXED']:not(.spl-cell--complete) .spl-grid-cell__name {
+  color: var(--chc-gender-mixed, #8E44AD);
+}
+
+.spl-grid-cell[data-gender='MALE'].spl-cell--complete .spl-grid-cell__event-round {
+  color: var(--chc-gender-male, #2E86C1);
+}
+
+.spl-grid-cell[data-gender='FEMALE'].spl-cell--complete .spl-grid-cell__event-round {
+  color: var(--chc-gender-female, #E07BAF);
+}
+
 /* ── Status Modifiers ───────────────────────────────────── */
 
 .spl-cell--complete {

@@ -82,6 +82,11 @@
   --chc-font-size-1: 0.875rem;
   --chc-score-set-width: 1.3rem;
 
+  /* ── Gender Colors ──────────────────────────────────────── */
+  --chc-gender-male: #2E86C1;
+  --chc-gender-female: #E07BAF;
+  --chc-gender-mixed: #8E44AD;
+
   /* ── Participant ───────────────────────────────────────── */
   --chc-participant-text-transform: capitalize;
   --chc-participant-min-height: 2rem;
@@ -232,6 +237,11 @@
   /* ── Point score (dark overrides) ─────────────────────── */
   --chc-point-score-bg: var(--chc-text-primary);
   --chc-point-score-text: var(--chc-bg-primary);
+
+  /* ── Gender Colors (dark) ──────────────────────────────── */
+  --chc-gender-male: #5DADE2;
+  --chc-gender-female: #F1948A;
+  --chc-gender-mixed: #BB8FCE;
 
   /* ── Participant hover highlight (dark) ───────────────── */
   --chc-participant-hover-bg: rgba(255, 230, 0, 0.22);
