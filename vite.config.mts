@@ -30,9 +30,11 @@ export default defineConfig({
       name
     },
     rollupOptions: {
-      external: [],
+      external: ['tods-competition-factory'],
       output: {
-        globals: {}
+        globals: {
+          'tods-competition-factory': 'competitionFactory'
+        }
       }
     }
   }
