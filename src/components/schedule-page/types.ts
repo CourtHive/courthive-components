@@ -274,6 +274,7 @@ export interface ScheduleCellData {
   matchUpType?: string;
   matchUpStatus?: string;
   winningSide?: number;
+  gender?: string;
 
   sides?: ScheduleCellSide[];
   potentialParticipants?: any[][];

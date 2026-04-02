@@ -13,7 +13,7 @@ import {
   tieFormatConstants,
   scheduleConstants,
   matchUpStatusConstants,
-  genderConstants,
+  genderConstants
 } from 'tods-competition-factory';
 
 import type {
@@ -21,25 +21,20 @@ import type {
   ScheduleDate,
   ScheduleIssue,
   ScheduleIssueSeverity,
-  ScheduleCellConfig,
+  ScheduleCellConfig
 } from '../../components/schedule-page';
 
 import {
   buildScheduleGridCell,
   mapMatchUpToCellData,
-  DEFAULT_SCHEDULE_CELL_CONFIG,
+  DEFAULT_SCHEDULE_CELL_CONFIG
 } from '../../components/schedule-page';
 
 const { DOMINANT_DUO } = tieFormatConstants;
 const { DOUBLES, TEAM } = eventConstants;
 const { BYE } = matchUpStatusConstants;
 const { MALE, FEMALE } = genderConstants;
-const {
-  SCHEDULE_ERROR,
-  SCHEDULE_CONFLICT,
-  SCHEDULE_WARNING,
-  SCHEDULE_ISSUE,
-} = scheduleConstants;
+const { SCHEDULE_ERROR, SCHEDULE_CONFLICT, SCHEDULE_WARNING, SCHEDULE_ISSUE } = scheduleConstants;
 
 // ============================================================================
 // Types
@@ -62,9 +57,9 @@ export interface FactoryGrid {
 }
 
 interface FactoryGridCallbacks {
-  onCellClick?: (courtId: string, courtOrder: number, matchUp: any | null, event: MouseEvent, cell: HTMLElement) => void;
-  onCellDblClick?: (courtId: string, courtOrder: number, matchUp: any | null) => void;
-  onCellRightClick?: (courtId: string, courtOrder: number, matchUp: any | null, event: MouseEvent) => void;
+  onCellClick?: (courtId: string, courtOrder: number, matchUp: any, event: MouseEvent, cell: HTMLElement) => void;
+  onCellDblClick?: (courtId: string, courtOrder: number, matchUp: any) => void;
+  onCellRightClick?: (courtId: string, courtOrder: number, matchUp: any, event: MouseEvent) => void;
 }
 
 // ============================================================================
@@ -85,45 +80,45 @@ const VENUE_PROFILES = [
     venueAbbreviation: 'CC',
     courtsCount: 6,
     startTime: '08:00',
-    endTime: '20:00',
+    endTime: '20:00'
   },
   {
     venueName: 'Outer Courts',
     venueAbbreviation: 'OC',
     courtsCount: 6,
     startTime: '08:00',
-    endTime: '20:00',
-  },
+    endTime: '20:00'
+  }
 ];
 
 const EVENT_PROFILES = [
   {
     eventName: "Men's Singles",
     gender: MALE,
-    drawProfiles: [{ drawSize: 32 }],
+    drawProfiles: [{ drawSize: 32 }]
   },
   {
     eventName: "Men's Doubles",
     eventType: DOUBLES,
     gender: MALE,
-    drawProfiles: [{ drawSize: 16 }],
+    drawProfiles: [{ drawSize: 16 }]
   },
   {
     eventName: "Women's Singles",
     gender: FEMALE,
-    drawProfiles: [{ drawSize: 32 }],
+    drawProfiles: [{ drawSize: 32 }]
   },
   {
     eventName: "Women's Doubles",
     eventType: DOUBLES,
     gender: FEMALE,
-    drawProfiles: [{ drawSize: 16 }],
+    drawProfiles: [{ drawSize: 16 }]
   },
   {
     eventName: 'Team',
     eventType: TEAM,
-    drawProfiles: [{ drawSize: 8, tieFormatName: DOMINANT_DUO }],
-  },
+    drawProfiles: [{ drawSize: 8, tieFormatName: DOMINANT_DUO }]
+  }
 ];
 
 // ============================================================================
@@ -151,7 +146,7 @@ export function createSchedulePageSetup(): SchedulePageSetup {
     venueProfiles: VENUE_PROFILES,
     eventProfiles: EVENT_PROFILES,
     startDate: START_DATE,
-    endDate: END_DATE,
+    endDate: END_DATE
   });
 
   const { tournamentRecord } = result;
@@ -174,7 +169,7 @@ export function createSchedulePageSetup(): SchedulePageSetup {
       scheduledDate: '2026-06-13',
       bookingType: 'MAINTENANCE',
       courtOrder: 1,
-      rowCount: 3,
+      rowCount: 3
     });
   }
 
@@ -186,7 +181,7 @@ export function createSchedulePageSetup(): SchedulePageSetup {
       scheduledDate: '2026-06-14',
       bookingType: 'PRACTICE',
       courtOrder: 8,
-      rowCount: 3,
+      rowCount: 3
     });
   }
 
@@ -197,7 +192,7 @@ export function createSchedulePageSetup(): SchedulePageSetup {
 
   const { matchUps: allMatchUps } = tournamentEngine.allTournamentMatchUps({
     inContext: true,
-    nextMatchUps: true,
+    nextMatchUps: true
   });
 
   // Collect all courts across venues
@@ -214,7 +209,7 @@ export function createSchedulePageSetup(): SchedulePageSetup {
     endDate: END_DATE,
     activeDates: ACTIVE_DATES,
     courts,
-    allMatchUps,
+    allMatchUps
   };
 }
 
@@ -225,7 +220,7 @@ export function createSchedulePageSetup(): SchedulePageSetup {
 export function buildCatalogFromFactory(selectedDate?: string): CatalogMatchUpItem[] {
   const { matchUps } = tournamentEngine.allTournamentMatchUps({
     inContext: true,
-    nextMatchUps: true,
+    nextMatchUps: true
   });
 
   return (matchUps || [])
@@ -245,14 +240,15 @@ export function buildCatalogFromFactory(selectedDate?: string): CatalogMatchUpIt
         roundName: m.roundName,
         matchUpFormat: m.matchUpFormat,
         matchUpType: m.matchUpType,
+        gender: m.gender,
         sides: (m.sides || []).map((s: any) => ({
           participantName: s.participant?.participantName ?? s.participantName,
           participantId: s.participantId ?? s.participant?.participantId,
-          seedNumber: s.seedValue ?? s.seedNumber,
+          seedNumber: s.seedValue ?? s.seedNumber
         })),
         isScheduled: isScheduled && onSelectedDate,
         scheduledTime: isScheduled ? m.schedule?.scheduledTime : undefined,
-        scheduledCourtName: isScheduled ? m.schedule?.courtName : undefined,
+        scheduledCourtName: isScheduled ? m.schedule?.courtName : undefined
       } satisfies CatalogMatchUpItem;
     });
 }
@@ -275,7 +271,7 @@ export function buildScheduleDates(): ScheduleDate[] {
   return allDates.map((date) => ({
     date,
     isActive: ACTIVE_DATES.includes(date),
-    matchUpCount: dateCounts.get(date) ?? 0,
+    matchUpCount: dateCounts.get(date) ?? 0
   }));
 }
 
@@ -286,7 +282,7 @@ export function buildScheduleDates(): ScheduleDate[] {
 export function buildFactoryGrid(
   selectedDate: string,
   callbacks?: FactoryGridCallbacks,
-  cellConfig?: ScheduleCellConfig,
+  cellConfig?: ScheduleCellConfig
 ): FactoryGrid {
   const MIN_COURT_WIDTH = 110;
   const TIME_COL_WIDTH = 50;
@@ -303,7 +299,7 @@ export function buildFactoryGrid(
       matchUpFilters: { scheduledDate: date },
       courtCompletedMatchUps: true,
       withCourtGridRows: true,
-      minCourtGridRows: 20,
+      minCourtGridRows: 20
     });
 
     const rows: any[] = scheduleResult.rows || [];
@@ -324,22 +320,36 @@ export function buildFactoryGrid(
       'gap: 1px',
       'background: var(--sp-line)',
       `min-width: ${TIME_COL_WIDTH + courtCount * MIN_COURT_WIDTH}px`,
-      `grid-template-columns: ${TIME_COL_WIDTH}px repeat(${courtCount}, minmax(${MIN_COURT_WIDTH}px, 1fr))`,
+      `grid-template-columns: ${TIME_COL_WIDTH}px repeat(${courtCount}, minmax(${MIN_COURT_WIDTH}px, 1fr))`
     ].join('; ');
 
     // ── Styles ──
     const STICKY_HEADER = [
-      'position: sticky', 'top: 0', 'z-index: 2',
-      'background: var(--sp-panel-bg)', 'padding: 6px 4px',
-      'font-size: 10px', 'font-weight: 700', 'text-align: center',
-      'white-space: nowrap', 'overflow: hidden', 'text-overflow: ellipsis',
+      'position: sticky',
+      'top: 0',
+      'z-index: 2',
+      'background: var(--sp-panel-bg)',
+      'padding: 6px 4px',
+      'font-size: 10px',
+      'font-weight: 700',
+      'text-align: center',
+      'white-space: nowrap',
+      'overflow: hidden',
+      'text-overflow: ellipsis'
     ].join('; ');
 
     const STICKY_ROW = [
-      'position: sticky', 'left: 0', 'z-index: 1',
-      'background: var(--sp-panel-bg)', 'padding: 6px 4px',
-      'font-size: 10px', 'font-weight: 600', 'color: var(--sp-muted)',
-      'display: flex', 'align-items: center', 'justify-content: center',
+      'position: sticky',
+      'left: 0',
+      'z-index: 1',
+      'background: var(--sp-panel-bg)',
+      'padding: 6px 4px',
+      'font-size: 10px',
+      'font-weight: 600',
+      'color: var(--sp-muted)',
+      'display: flex',
+      'align-items: center',
+      'justify-content: center'
     ].join('; ');
 
     // ── Corner cell ──
@@ -379,18 +389,15 @@ export function buildFactoryGrid(
         const courtOrder = cellData?.schedule?.courtOrder ?? ri + 1;
 
         // Build the cell content using the configurable renderer
-        const cellContent = buildScheduleGridCell(
-          mapMatchUpToCellData(cellData || {}),
-          activeCellConfig,
-        );
+        const cellContent = buildScheduleGridCell(mapMatchUpToCellData(cellData || {}), activeCellConfig);
 
         // Wrap in a container that carries grid-level data attributes
         const cell = document.createElement('div');
-        cell.setAttribute('data-court-id', courtId);
-        cell.setAttribute('data-venue-id', venueId);
-        cell.setAttribute('data-court-order', String(courtOrder));
-        cell.setAttribute('data-row-index', String(ri));
-        cell.setAttribute('data-court-index', String(ci));
+        cell.dataset.courtId = courtId;
+        cell.dataset.venueId = venueId;
+        cell.dataset.courtOrder = String(courtOrder);
+        cell.dataset.rowIndex = String(ri);
+        cell.dataset.courtIndex = String(ci);
 
         // Transfer data attributes from the rendered cell to the wrapper
         const matchUpId = cellContent.getAttribute(ATTR_MATCHUP_ID);
@@ -408,7 +415,7 @@ export function buildFactoryGrid(
           cell.title = `${cellData.eventName || ''} ${cellData.roundName || ''}`.trim();
 
           cell.addEventListener('dragstart', (e) => {
-            e.dataTransfer!.setData(
+            e.dataTransfer.setData(
               'application/json',
               JSON.stringify({
                 type: 'GRID_MATCHUP',
@@ -421,15 +428,17 @@ export function buildFactoryGrid(
                   matchUpType: cellData.matchUpType,
                   sides: (cellData.sides || []).map((s: any) => ({
                     participantName: s.participant?.participantName ?? s.participantName,
-                    participantId: s.participantId ?? s.participant?.participantId,
-                  })),
-                },
-              }),
+                    participantId: s.participantId ?? s.participant?.participantId
+                  }))
+                }
+              })
             );
-            e.dataTransfer!.effectAllowed = 'move';
+            e.dataTransfer.effectAllowed = 'move';
             cell.style.opacity = '0.4';
           });
-          cell.addEventListener('dragend', () => { cell.style.opacity = ''; });
+          cell.addEventListener('dragend', () => {
+            cell.style.opacity = '';
+          });
         }
 
         // Drop target (only non-blocked cells)
@@ -438,9 +447,11 @@ export function buildFactoryGrid(
             e.preventDefault();
             cell.style.outline = '2px solid var(--sp-accent-focus)';
             cell.style.outlineOffset = '-2px';
-            e.dataTransfer!.dropEffect = 'move';
+            e.dataTransfer.dropEffect = 'move';
           });
-          cell.addEventListener('dragleave', () => { cell.style.outline = ''; });
+          cell.addEventListener('dragleave', () => {
+            cell.style.outline = '';
+          });
           cell.addEventListener('drop', (e) => {
             e.preventDefault();
             cell.style.outline = '';
@@ -480,10 +491,7 @@ export function buildFactoryGrid(
       const el = root.querySelector(`[data-matchup-id="${matchUpId}"]`) as HTMLElement | null;
       if (el) {
         el.innerHTML = '';
-        const emptyCell = buildScheduleGridCell(
-          mapMatchUpToCellData({}),
-          activeCellConfig,
-        );
+        const emptyCell = buildScheduleGridCell(mapMatchUpToCellData({}), activeCellConfig);
         el.appendChild(emptyCell);
         el.draggable = false;
         el.style.cursor = '';
@@ -498,7 +506,7 @@ export function buildFactoryGrid(
     setCellConfig: (config: ScheduleCellConfig) => {
       activeCellConfig = config;
       render(currentDate);
-    },
+    }
   };
 }
 
@@ -512,7 +520,7 @@ export function scheduleMatchUpViaFactory(
   courtId: string,
   venueId: string,
   courtOrder: number,
-  scheduledDate: string,
+  scheduledDate: string
 ): { success?: boolean; error?: any } {
   const result = tournamentEngine.addMatchUpScheduleItems({
     matchUpId,
@@ -521,17 +529,14 @@ export function scheduleMatchUpViaFactory(
       courtId,
       venueId,
       courtOrder,
-      scheduledDate,
+      scheduledDate
     },
-    removePriorValues: true,
+    removePriorValues: true
   });
   return result;
 }
 
-export function unscheduleMatchUpViaFactory(
-  matchUpId: string,
-  drawId: string,
-): { success?: boolean; error?: any } {
+export function unscheduleMatchUpViaFactory(matchUpId: string, drawId: string): { success?: boolean; error?: any } {
   const result = tournamentEngine.addMatchUpScheduleItems({
     matchUpId,
     drawId,
@@ -540,9 +545,9 @@ export function unscheduleMatchUpViaFactory(
       venueId: '',
       courtOrder: '',
       scheduledDate: '',
-      scheduledTime: '',
+      scheduledTime: ''
     } as any,
-    removePriorValues: true,
+    removePriorValues: true
   });
   return result;
 }
@@ -554,7 +559,7 @@ export function unscheduleMatchUpViaFactory(
 export function buildIssuesFromFactory(selectedDate?: string): ScheduleIssue[] {
   const { matchUps } = tournamentEngine.allTournamentMatchUps({
     inContext: true,
-    nextMatchUps: true,
+    nextMatchUps: true
   });
 
   // Filter to scheduled matchUps for the selected date
@@ -584,9 +589,11 @@ export function buildIssuesFromFactory(selectedDate?: string): ScheduleIssue[] {
     for (const ci of courtIssues as any[]) {
       issues.push({
         severity: mapSeverity(ci.issue),
-        message: `${ci.issueType}: ${ci.matchUpId}${ci.issueIds?.length ? ' conflicts with ' + ci.issueIds.join(', ') : ''}`,
+        message: `${ci.issueType}: ${ci.matchUpId}${
+          ci.issueIds?.length ? ' conflicts with ' + ci.issueIds.join(', ') : ''
+        }`,
         matchUpId: ci.matchUpId,
-        date: selectedDate,
+        date: selectedDate
       });
     }
   }
@@ -596,9 +603,11 @@ export function buildIssuesFromFactory(selectedDate?: string): ScheduleIssue[] {
     for (const ri of rowIssues as any[]) {
       issues.push({
         severity: mapSeverity(ri.issue),
-        message: `Row ${rowIdx}: ${ri.issueType}: ${ri.matchUpId}${ri.issueIds?.length ? ' conflicts with ' + ri.issueIds.join(', ') : ''}`,
+        message: `Row ${rowIdx}: ${ri.issueType}: ${ri.matchUpId}${
+          ri.issueIds?.length ? ' conflicts with ' + ri.issueIds.join(', ') : ''
+        }`,
         matchUpId: ri.matchUpId,
-        date: selectedDate,
+        date: selectedDate
       });
     }
   }

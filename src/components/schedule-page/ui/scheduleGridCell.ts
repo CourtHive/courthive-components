@@ -103,6 +103,7 @@ function buildMatchUpCell(data: ScheduleCellData, cfg: ScheduleCellConfig): HTML
   // Data attributes
   cell.dataset.matchupId = data.matchUpId;
   if (data.drawId) cell.dataset.drawId = data.drawId;
+  if (data.gender) cell.dataset.gender = data.gender;
 
   // Status modifier classes
   applyStatusClasses(cell, data);
@@ -502,6 +503,7 @@ export function mapMatchUpToCellData(matchUp: any): ScheduleCellData {
     matchUpType: matchUp.matchUpType,
     matchUpStatus: matchUp.matchUpStatus,
     winningSide: matchUp.winningSide,
+    gender: matchUp.gender ?? matchUp.eventGender,
     sides,
     potentialParticipants: matchUp.potentialParticipants,
     schedule: matchUp.schedule

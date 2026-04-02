@@ -25,6 +25,7 @@ const F = females.map((p) => p.participantName);
 
 const MENS_SINGLES = "Men's Singles";
 const WOMENS_SINGLES = "Women's Singles";
+const MIXED_DOUBLES = 'Mixed Doubles';
 const DAVIS_CUP_SF = 'Davis Cup SF';
 
 // ============================================================================
@@ -41,6 +42,7 @@ export const SINGLES_COMPLETED: ScheduleCellData = {
   matchUpType: 'SINGLES',
   matchUpStatus: COMPLETED,
   winningSide: 1,
+  gender: MALE,
   sides: [
     { sideNumber: 1, participantName: M[0], participantId: 'P01', seedNumber: 1, ranking: 3, nationality: 'ESP' },
     { sideNumber: 2, participantName: M[1], participantId: 'P02', seedNumber: 5, ranking: 18, nationality: 'SRB' },
@@ -58,6 +60,7 @@ export const SINGLES_IN_PROGRESS: ScheduleCellData = {
   matchUpFormat: FORMAT_STANDARD,
   matchUpType: 'SINGLES',
   matchUpStatus: IN_PROGRESS,
+  gender: MALE,
   sides: [
     { sideNumber: 1, participantName: M[2], participantId: 'P03', seedNumber: 3, ranking: 7, nationality: 'GBR' },
     { sideNumber: 2, participantName: M[3], participantId: 'P04', seedNumber: 2, ranking: 5, nationality: 'RUS' },
@@ -75,6 +78,7 @@ export const SINGLES_TO_BE_PLAYED: ScheduleCellData = {
   matchUpFormat: FORMAT_STANDARD,
   matchUpType: 'SINGLES',
   matchUpStatus: TO_BE_PLAYED,
+  gender: FEMALE,
   sides: [
     { sideNumber: 1, participantName: F[0], participantId: 'PF01', seedNumber: 1, ranking: 1, nationality: 'POL' },
     { sideNumber: 2, participantName: F[1], participantId: 'PF02', nationality: 'USA' },
@@ -90,6 +94,7 @@ export const SINGLES_WALKOVER: ScheduleCellData = {
   roundName: 'R16',
   matchUpType: 'SINGLES',
   matchUpStatus: WALKOVER,
+  gender: MALE,
   winningSide: 1,
   sides: [
     { sideNumber: 1, participantName: M[4], participantId: 'P05', seedNumber: 4, nationality: 'FRA' },
@@ -106,6 +111,7 @@ export const SINGLES_RETIRED: ScheduleCellData = {
   roundName: 'R16',
   matchUpType: 'SINGLES',
   matchUpStatus: RETIRED,
+  gender: FEMALE,
   winningSide: 2,
   sides: [
     { sideNumber: 1, participantName: F[2], participantId: 'PF03', seedNumber: 7, nationality: 'AUS' },
@@ -123,6 +129,7 @@ export const SINGLES_DEFAULTED: ScheduleCellData = {
   roundName: 'R32',
   matchUpType: 'SINGLES',
   matchUpStatus: DEFAULTED,
+  gender: MALE,
   winningSide: 2,
   sides: [
     { sideNumber: 1, participantName: M[6], participantId: 'P07', nationality: 'ITA' },
@@ -139,6 +146,7 @@ export const SINGLES_ABANDONED: ScheduleCellData = {
   roundName: 'QF',
   matchUpType: 'SINGLES',
   matchUpStatus: ABANDONED,
+  gender: FEMALE,
   sides: [
     { sideNumber: 1, participantName: F[4], participantId: 'PF05', seedNumber: 2, nationality: 'CZE' },
     { sideNumber: 2, participantName: F[5], participantId: 'PF06', nationality: 'BEL' },
@@ -155,6 +163,7 @@ export const SINGLES_DOUBLE_WALKOVER: ScheduleCellData = {
   roundName: 'R32',
   matchUpType: 'SINGLES',
   matchUpStatus: DOUBLE_WALKOVER,
+  gender: MALE,
   sides: [
     { sideNumber: 1, participantName: M[8], participantId: 'P09' },
     { sideNumber: 2, participantName: M[9], participantId: 'P10' },
@@ -222,6 +231,7 @@ export const DOUBLES_COMPLETED: ScheduleCellData = {
   matchUpType: 'DOUBLES',
   matchUpStatus: COMPLETED,
   winningSide: 2,
+  gender: MALE,
   sides: [
     { sideNumber: 1, participantName: `${M[0]} / ${M[1]}`, participantId: 'DP01', seedNumber: 1 },
     { sideNumber: 2, participantName: `${M[2]} / ${M[3]}`, participantId: 'DP02', seedNumber: 4 },
@@ -239,11 +249,48 @@ export const DOUBLES_TO_BE_PLAYED: ScheduleCellData = {
   matchUpFormat: FORMAT_ATP_DOUBLES,
   matchUpType: 'DOUBLES',
   matchUpStatus: TO_BE_PLAYED,
+  gender: FEMALE,
   sides: [
     { sideNumber: 1, participantName: `${F[0]} / ${F[1]}`, participantId: 'DPF01', seedNumber: 1 },
     { sideNumber: 2, participantName: `${F[2]} / ${F[3]}`, participantId: 'DPF02', seedNumber: 2 },
   ],
   schedule: { scheduledTime: '15:00', courtId: 'C3', courtOrder: 4 },
+};
+
+/** Mixed doubles to be played */
+export const MIXED_DOUBLES_TO_BE_PLAYED: ScheduleCellData = {
+  matchUpId: 'cell-mx01',
+  drawId: 'D5',
+  eventName: MIXED_DOUBLES,
+  roundName: 'QF',
+  matchUpFormat: FORMAT_ATP_DOUBLES,
+  matchUpType: 'DOUBLES',
+  matchUpStatus: TO_BE_PLAYED,
+  gender: 'MIXED',
+  sides: [
+    { sideNumber: 1, participantName: `${M[0]} / ${F[0]}`, participantId: 'MX01', seedNumber: 1 },
+    { sideNumber: 2, participantName: `${M[2]} / ${F[2]}`, participantId: 'MX02', seedNumber: 3 },
+  ],
+  schedule: { scheduledTime: '17:00', courtId: 'C2', courtOrder: 5 },
+};
+
+/** Mixed doubles completed */
+export const MIXED_DOUBLES_COMPLETED: ScheduleCellData = {
+  matchUpId: 'cell-mx02',
+  drawId: 'D5',
+  eventName: MIXED_DOUBLES,
+  roundName: 'SF',
+  matchUpFormat: FORMAT_ATP_DOUBLES,
+  matchUpType: 'DOUBLES',
+  matchUpStatus: COMPLETED,
+  gender: 'MIXED',
+  winningSide: 1,
+  sides: [
+    { sideNumber: 1, participantName: `${M[4]} / ${F[4]}`, participantId: 'MX03', seedNumber: 2 },
+    { sideNumber: 2, participantName: `${M[6]} / ${F[6]}`, participantId: 'MX04' },
+  ],
+  schedule: { scheduledTime: '12:00', courtId: 'C3', courtOrder: 2 },
+  score: { scoreStringSide1: '6-4 7-5', scoreStringSide2: '4-6 5-7' },
 };
 
 // ============================================================================
@@ -439,6 +486,7 @@ export const WITH_UMPIRE: ScheduleCellData = {
   matchUpFormat: 'SET5-S:6/TB7',
   matchUpType: 'SINGLES',
   matchUpStatus: TO_BE_PLAYED,
+  gender: MALE,
   sides: [
     { sideNumber: 1, participantName: M[0], participantId: 'P01', seedNumber: 1, ranking: 3, nationality: 'ESP' },
     { sideNumber: 2, participantName: M[2], participantId: 'P03', seedNumber: 3, ranking: 7, nationality: 'GBR' },
@@ -679,4 +727,14 @@ export const ALL_BLOCKED: ScheduleCellData[] = [
   BLOCKED_MAINTENANCE,
   BLOCKED_PRACTICE,
   BLOCKED_GENERIC,
+];
+
+/** Gender color demo — male, female, mixed in to-be-played and completed states */
+export const ALL_GENDER_COLORS: { data: ScheduleCellData; label: string }[] = [
+  { data: SINGLES_TO_BE_PLAYED, label: "Women's Singles" },
+  { data: { ...WITH_UMPIRE, umpire: undefined, matchUpFormat: undefined }, label: "Men's Singles" },
+  { data: MIXED_DOUBLES_TO_BE_PLAYED, label: 'Mixed Doubles' },
+  { data: DOUBLES_TO_BE_PLAYED, label: "Women's Doubles" },
+  { data: SINGLES_COMPLETED, label: "Men's (completed)" },
+  { data: MIXED_DOUBLES_COMPLETED, label: 'Mixed (completed)' },
 ];

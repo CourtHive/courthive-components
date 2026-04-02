@@ -13,6 +13,7 @@
  * - TimeModifiers: NB, NA, AR, FB, TBA and combined modifiers
  * - Conflicts: Conflict states — error, warning, issue, double-booking with hover
  * - SearchHighlight: Search-match purple highlight for finding team members, etc.
+ * - GenderColors: Gendered name colors — male (blue), female (pink), mixed (purple)
  * - BlockedCells: Maintenance, practice, generic blocked
  * - AllFields: All 7 fields enabled across all zones
  * - ConfigPlayground: Interactive buttons to toggle every config option
@@ -23,11 +24,12 @@ import type { ScheduleCellConfig, ScheduleCellData } from '../../components/sche
 import {
   buildScheduleGridCell,
   activateScheduleCellTypeAhead,
-  DEFAULT_SCHEDULE_CELL_CONFIG,
+  DEFAULT_SCHEDULE_CELL_CONFIG
 } from '../../components/schedule-page';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 
-const { TO_BE_PLAYED, IN_PROGRESS, COMPLETED, WALKOVER, RETIRED, DEFAULTED, ABANDONED, DOUBLE_WALKOVER } = matchUpStatusConstants;
+const { TO_BE_PLAYED, IN_PROGRESS, COMPLETED, WALKOVER, RETIRED, DEFAULTED, ABANDONED, DOUBLE_WALKOVER } =
+  matchUpStatusConstants;
 
 import {
   SINGLES_COMPLETED,
@@ -51,14 +53,15 @@ import {
   ALL_CONFLICTS,
   ALL_BLOCKED,
   ALL_TIME_MODIFIERS,
+  ALL_GENDER_COLORS
 } from './cellData';
 
 export default {
   title: 'Schedule Page/Grid Cell',
   parameters: {
     layout: 'centered',
-    backgrounds: { default: 'dark' },
-  },
+    backgrounds: { default: 'dark' }
+  }
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -71,11 +74,7 @@ const STORY_INFO_STYLE = 'font-size: 12px; color: var(--sp-muted); margin-bottom
 const FLEX_GAP_8 = 'display: flex; gap: 8px; flex-wrap: wrap;';
 const FLEX_GAP_12 = 'display: flex; gap: 12px; flex-wrap: wrap;';
 
-function cellWrapper(
-  data: ScheduleCellData,
-  config?: ScheduleCellConfig,
-  size = CELL_SIZE,
-): HTMLElement {
+function cellWrapper(data: ScheduleCellData, config?: ScheduleCellConfig, size = CELL_SIZE): HTMLElement {
   const wrap = document.createElement('div');
   wrap.style.cssText = `width: ${size.width}; height: ${size.height}; border: 1px solid var(--sp-line); border-radius: 4px; overflow: hidden;`;
   wrap.appendChild(buildScheduleGridCell(data, config));
@@ -84,8 +83,7 @@ function cellWrapper(
 
 function gridLayout(cells: HTMLElement[], label?: string): HTMLElement {
   const container = document.createElement('div');
-  container.style.cssText =
-    'font-family: ui-sans-serif, system-ui, sans-serif; color: var(--sp-text); padding: 24px;';
+  container.style.cssText = 'font-family: ui-sans-serif, system-ui, sans-serif; color: var(--sp-text); padding: 24px;';
 
   if (label) {
     const h = document.createElement('h3');
@@ -106,7 +104,7 @@ function labeledCell(
   data: ScheduleCellData,
   label: string,
   config?: ScheduleCellConfig,
-  size = CELL_SIZE,
+  size = CELL_SIZE
 ): HTMLElement {
   const wrap = document.createElement('div');
   wrap.style.cssText = 'display: flex; flex-direction: column; gap: 4px; align-items: center;';
@@ -152,8 +150,7 @@ function makeBtn(text: string, handler: () => void): HTMLElement {
 export const Default = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText =
-      STORY_ROOT_STYLE;
+    root.style.cssText = STORY_ROOT_STYLE;
 
     const info = document.createElement('div');
     info.style.cssText = STORY_INFO_STYLE;
@@ -169,7 +166,7 @@ export const Default = {
       labeledCell(TIE_SINGLES_COMPLETED, 'Tie (Team)'),
       labeledCell(BYE_MATCHUP, 'BYE'),
       labeledCell(BLOCKED_MAINTENANCE, 'Blocked'),
-      labeledCell(EMPTY_CELL, 'Empty'),
+      labeledCell(EMPTY_CELL, 'Empty')
     ];
 
     const grid = document.createElement('div');
@@ -178,7 +175,7 @@ export const Default = {
     root.appendChild(grid);
 
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -187,13 +184,10 @@ export const Default = {
 
 export const Statuses = {
   render: () => {
-    const labels = [
-      TO_BE_PLAYED, IN_PROGRESS, COMPLETED, WALKOVER,
-      RETIRED, DEFAULTED, ABANDONED, DOUBLE_WALKOVER,
-    ];
+    const labels = [TO_BE_PLAYED, IN_PROGRESS, COMPLETED, WALKOVER, RETIRED, DEFAULTED, ABANDONED, DOUBLE_WALKOVER];
     const cells = ALL_STATUSES.map((data, i) => labeledCell(data, labels[i]));
     return gridLayout(cells, 'MatchUp Status Variants');
-  },
+  }
 };
 
 // ============================================================================
@@ -203,42 +197,45 @@ export const Statuses = {
 export const SeedsAndRankings = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText =
-      STORY_ROOT_STYLE;
+    root.style.cssText = STORY_ROOT_STYLE;
 
     const configs: { label: string; config: ScheduleCellConfig }[] = [
       {
         label: 'Default (no extras)',
-        config: { ...DEFAULT_SCHEDULE_CELL_CONFIG },
+        config: { ...DEFAULT_SCHEDULE_CELL_CONFIG }
       },
       {
         label: 'Seeds only',
         config: {
           ...DEFAULT_SCHEDULE_CELL_CONFIG,
-          participantDisplay: { ...DEFAULT_SCHEDULE_CELL_CONFIG.participantDisplay, showSeed: true },
-        },
+          participantDisplay: { ...DEFAULT_SCHEDULE_CELL_CONFIG.participantDisplay, showSeed: true }
+        }
       },
       {
         label: 'Seeds + Rankings',
         config: {
           ...DEFAULT_SCHEDULE_CELL_CONFIG,
-          participantDisplay: { ...DEFAULT_SCHEDULE_CELL_CONFIG.participantDisplay, showSeed: true, showRanking: true },
-        },
+          participantDisplay: { ...DEFAULT_SCHEDULE_CELL_CONFIG.participantDisplay, showSeed: true, showRanking: true }
+        }
       },
       {
         label: 'Seeds + Nationality',
         config: {
           ...DEFAULT_SCHEDULE_CELL_CONFIG,
-          participantDisplay: { ...DEFAULT_SCHEDULE_CELL_CONFIG.participantDisplay, showSeed: true, showNationality: true },
-        },
-      },
+          participantDisplay: {
+            ...DEFAULT_SCHEDULE_CELL_CONFIG.participantDisplay,
+            showSeed: true,
+            showNationality: true
+          }
+        }
+      }
     ];
 
     for (const { label, config } of configs) {
       const cells = [
         cellWrapper(SINGLES_COMPLETED, config, WIDE_CELL),
         cellWrapper(SINGLES_IN_PROGRESS, config, WIDE_CELL),
-        cellWrapper(SINGLES_TO_BE_PLAYED, config, WIDE_CELL),
+        cellWrapper(SINGLES_TO_BE_PLAYED, config, WIDE_CELL)
       ];
       const row = document.createElement('div');
       row.style.cssText = FLEX_GAP_8;
@@ -247,7 +244,7 @@ export const SeedsAndRankings = {
     }
 
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -257,8 +254,7 @@ export const SeedsAndRankings = {
 export const NameFormats = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText =
-      STORY_ROOT_STYLE;
+    root.style.cssText = STORY_ROOT_STYLE;
 
     const formats: Array<'full' | 'last' | 'lastFirst' | 'firstLast'> = ['full', 'last', 'lastFirst', 'firstLast'];
 
@@ -268,13 +264,13 @@ export const NameFormats = {
         participantDisplay: {
           ...DEFAULT_SCHEDULE_CELL_CONFIG.participantDisplay,
           nameFormat: fmt,
-          showSeed: true,
-        },
+          showSeed: true
+        }
       };
       const cells = [
         cellWrapper(SINGLES_COMPLETED, config, WIDE_CELL),
         cellWrapper(DOUBLES_COMPLETED, config, { width: '180px', height: '80px' }),
-        cellWrapper(TIE_SINGLES_COMPLETED, config),
+        cellWrapper(TIE_SINGLES_COMPLETED, config)
       ];
       const row = document.createElement('div');
       row.style.cssText = FLEX_GAP_8;
@@ -283,7 +279,7 @@ export const NameFormats = {
     }
 
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -293,8 +289,7 @@ export const NameFormats = {
 export const Teams = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText =
-      STORY_ROOT_STYLE;
+    root.style.cssText = STORY_ROOT_STYLE;
 
     const info = document.createElement('div');
     info.style.cssText = STORY_INFO_STYLE;
@@ -307,11 +302,11 @@ export const Teams = {
       participantDisplay: {
         ...DEFAULT_SCHEDULE_CELL_CONFIG.participantDisplay,
         showSeed: true,
-        showNationality: true,
-      },
+        showNationality: true
+      }
     };
     const cells = ALL_TEAMS.map((data) =>
-      labeledCell(data, `${data.roundName} — ${data.matchUpStatus}`, config, WIDE_CELL),
+      labeledCell(data, `${data.roundName} — ${data.matchUpStatus}`, config, WIDE_CELL)
     );
     const grid = document.createElement('div');
     grid.style.cssText = FLEX_GAP_12;
@@ -319,7 +314,7 @@ export const Teams = {
     root.appendChild(grid);
 
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -332,14 +327,14 @@ export const Doubles = {
       ...DEFAULT_SCHEDULE_CELL_CONFIG,
       participantDisplay: {
         ...DEFAULT_SCHEDULE_CELL_CONFIG.participantDisplay,
-        showSeed: true,
-      },
+        showSeed: true
+      }
     };
     const cells = ALL_DOUBLES.map((data) =>
-      labeledCell(data, `${data.roundName} — ${data.matchUpStatus}`, config, WIDE_CELL),
+      labeledCell(data, `${data.roundName} — ${data.matchUpStatus}`, config, WIDE_CELL)
     );
     return gridLayout(cells, 'Doubles MatchUps');
-  },
+  }
 };
 
 // ============================================================================
@@ -353,13 +348,13 @@ export const ByeMatchUps = {
       participantDisplay: {
         ...DEFAULT_SCHEDULE_CELL_CONFIG.participantDisplay,
         showSeed: true,
-        showNationality: true,
-      },
+        showNationality: true
+      }
     };
     const labels = ['Implicit BYE', 'Explicit BYE side', 'BYE + Team Member'];
     const cells = ALL_BYES.map((data, i) => labeledCell(data, labels[i], config));
     return gridLayout(cells, 'BYE MatchUps — BYE marker rendered on cell');
-  },
+  }
 };
 
 // ============================================================================
@@ -370,10 +365,10 @@ export const Potentials = {
   render: () => {
     const cells = [
       labeledCell(POTENTIAL_PARTICIPANTS, 'Both sides TBD', undefined, WIDE_CELL),
-      labeledCell(PARTIAL_POTENTIAL, 'One side known', undefined, WIDE_CELL),
+      labeledCell(PARTIAL_POTENTIAL, 'One side known', undefined, WIDE_CELL)
     ];
     return gridLayout(cells, 'Potential (TBD) Participants');
-  },
+  }
 };
 
 // ============================================================================
@@ -391,17 +386,25 @@ export const TimeModifiers = {
       'Time modifiers appear before the scheduled time. NB (Not Before) can combine with NA (Next Available) or AR (After Rest). Mutually-exclusive modifiers (NA, AR, FB, TBA) cannot combine with each other — only with NB.';
     root.appendChild(info);
 
-    const labels = ['NB 14:00', 'NB NA 16:00', 'NB AR 15:00', 'NA (no time)', 'AR (no time)', 'FB (no time)', 'TBA (no time)', 'Court TBA 14:00', 'NB Court TBA 16:00'];
-    const cells = ALL_TIME_MODIFIERS.map((data, i) =>
-      labeledCell(data, labels[i], undefined, WIDE_CELL),
-    );
+    const labels = [
+      'NB 14:00',
+      'NB NA 16:00',
+      'NB AR 15:00',
+      'NA (no time)',
+      'AR (no time)',
+      'FB (no time)',
+      'TBA (no time)',
+      'Court TBA 14:00',
+      'NB Court TBA 16:00'
+    ];
+    const cells = ALL_TIME_MODIFIERS.map((data, i) => labeledCell(data, labels[i], undefined, WIDE_CELL));
     const grid = document.createElement('div');
     grid.style.cssText = FLEX_GAP_12;
     for (const c of cells) grid.appendChild(c);
     root.appendChild(grid);
 
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -411,8 +414,7 @@ export const TimeModifiers = {
 export const Conflicts = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText =
-      STORY_ROOT_STYLE;
+    root.style.cssText = STORY_ROOT_STYLE;
 
     const info = document.createElement('div');
     info.style.cssText = STORY_INFO_STYLE;
@@ -428,7 +430,7 @@ export const Conflicts = {
     root.appendChild(grid);
 
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -438,8 +440,7 @@ export const Conflicts = {
 export const SearchHighlight = {
   render: () => {
     const root = document.createElement('div');
-    root.style.cssText =
-      STORY_ROOT_STYLE;
+    root.style.cssText = STORY_ROOT_STYLE;
 
     const info = document.createElement('div');
     info.style.cssText = STORY_INFO_STYLE;
@@ -453,8 +454,8 @@ export const SearchHighlight = {
       participantDisplay: {
         ...DEFAULT_SCHEDULE_CELL_CONFIG.participantDisplay,
         showSeed: true,
-        showNationality: true,
-      },
+        showNationality: true
+      }
     };
 
     // "Spain" team members highlighted; others not
@@ -463,7 +464,7 @@ export const SearchHighlight = {
       { data: TIE_SINGLES_IN_PROGRESS, highlight: false, label: 'No match' },
       { data: TIE_DOUBLES_TO_BE_PLAYED, highlight: true, label: 'Spain member' },
       { data: SINGLES_COMPLETED, highlight: false, label: 'No match' },
-      { data: SINGLES_IN_PROGRESS, highlight: false, label: 'No match' },
+      { data: SINGLES_IN_PROGRESS, highlight: false, label: 'No match' }
     ];
 
     const searchLabel = document.createElement('div');
@@ -498,7 +499,34 @@ export const SearchHighlight = {
     root.appendChild(grid);
 
     return root;
-  },
+  }
+};
+
+// ============================================================================
+// GenderColors — gendered name colors on unscored cells
+// ============================================================================
+
+export const GenderColors = {
+  render: () => {
+    const root = document.createElement('div');
+    root.style.cssText = STORY_ROOT_STYLE;
+
+    const info = document.createElement('div');
+    info.style.cssText = STORY_INFO_STYLE;
+    info.textContent =
+      "Unscored cells: participant names colored by gender — blue (Men's), pink (Women's), purple (Mixed). " +
+      "Completed cells: event/round line colored for Men's and Women's events. " +
+      'Colors adapt to dark mode and are overridable via --chc-gender-male, --chc-gender-female, --chc-gender-mixed.';
+    root.appendChild(info);
+
+    const cells = ALL_GENDER_COLORS.map(({ data, label }) => labeledCell(data, label, undefined, WIDE_CELL));
+    const grid = document.createElement('div');
+    grid.style.cssText = FLEX_GAP_12;
+    for (const c of cells) grid.appendChild(c);
+    root.appendChild(grid);
+
+    return root;
+  }
 };
 
 // ============================================================================
@@ -507,12 +535,10 @@ export const SearchHighlight = {
 
 export const BlockedCells = {
   render: () => {
-    const cells = ALL_BLOCKED.map((data) =>
-      labeledCell(data, data.booking?.bookingType || 'BLOCKED'),
-    );
+    const cells = ALL_BLOCKED.map((data) => labeledCell(data, data.booking?.bookingType || 'BLOCKED'));
     cells.push(labeledCell(EMPTY_CELL, 'Empty'));
     return gridLayout(cells, 'Blocked & Empty Cells');
-  },
+  }
 };
 
 // ============================================================================
@@ -531,8 +557,8 @@ export const AllFields = {
         showRanking: true,
         showNationality: true,
         boldWinner: true,
-        showPotentials: true,
-      },
+        showPotentials: true
+      }
     };
 
     const tallCell = { width: '160px', height: '120px' };
@@ -542,11 +568,14 @@ export const AllFields = {
       labeledCell(SINGLES_COMPLETED, 'Completed', config, tallCell),
       labeledCell(SINGLES_IN_PROGRESS, 'In Progress', config, tallCell),
       labeledCell(TIE_SINGLES_IN_PROGRESS, 'Tie (Team)', config, tallCell),
-      labeledCell(DOUBLES_COMPLETED, 'Doubles', config, tallCell),
+      labeledCell(DOUBLES_COMPLETED, 'Doubles', config, tallCell)
     ];
 
-    return gridLayout(cells, 'All Fields Enabled (header: time+status, body: event+participants, footer: score+format+umpire)');
-  },
+    return gridLayout(
+      cells,
+      'All Fields Enabled (header: time+status, body: event+participants, footer: score+format+umpire)'
+    );
+  }
 };
 
 // ============================================================================
@@ -575,8 +604,8 @@ export const ConfigPlayground = {
         showRanking: false,
         showNationality: false,
         boldWinner: true,
-        showPotentials: true,
-      },
+        showPotentials: true
+      }
     };
 
     // Config display
@@ -601,7 +630,7 @@ export const ConfigPlayground = {
       WITH_UMPIRE,
       POTENTIAL_PARTICIPANTS,
       BLOCKED_MAINTENANCE,
-      EMPTY_CELL,
+      EMPTY_CELL
     ];
 
     function rerenderCells(): void {
@@ -636,7 +665,7 @@ export const ConfigPlayground = {
       { label: 'body: participants', zone: 'body', field: 'participants' },
       { label: 'footer: score', zone: 'footer', field: 'score' },
       { label: 'footer: format', zone: 'footer', field: 'matchUpFormat' },
-      { label: 'footer: umpire', zone: 'footer', field: 'umpire' },
+      { label: 'footer: umpire', zone: 'footer', field: 'umpire' }
     ];
 
     for (const t of fieldToggles) {
@@ -649,72 +678,86 @@ export const ConfigPlayground = {
     btnBar.appendChild(sep);
 
     // Participant display toggles
-    btnBar.appendChild(makeBtn('seeds', () => {
-      config.participantDisplay = {
-        ...config.participantDisplay,
-        showSeed: !config.participantDisplay?.showSeed,
-      };
-      rerenderCells();
-    }));
-    btnBar.appendChild(makeBtn('rankings', () => {
-      config.participantDisplay = {
-        ...config.participantDisplay,
-        showRanking: !config.participantDisplay?.showRanking,
-      };
-      rerenderCells();
-    }));
-    btnBar.appendChild(makeBtn('nationality', () => {
-      config.participantDisplay = {
-        ...config.participantDisplay,
-        showNationality: !config.participantDisplay?.showNationality,
-      };
-      rerenderCells();
-    }));
-    btnBar.appendChild(makeBtn('bold winner', () => {
-      config.participantDisplay = {
-        ...config.participantDisplay,
-        boldWinner: !config.participantDisplay?.boldWinner,
-      };
-      rerenderCells();
-    }));
-    btnBar.appendChild(makeBtn('potentials', () => {
-      config.participantDisplay = {
-        ...config.participantDisplay,
-        showPotentials: !config.participantDisplay?.showPotentials,
-      };
-      rerenderCells();
-    }));
+    btnBar.appendChild(
+      makeBtn('seeds', () => {
+        config.participantDisplay = {
+          ...config.participantDisplay,
+          showSeed: !config.participantDisplay?.showSeed
+        };
+        rerenderCells();
+      })
+    );
+    btnBar.appendChild(
+      makeBtn('rankings', () => {
+        config.participantDisplay = {
+          ...config.participantDisplay,
+          showRanking: !config.participantDisplay?.showRanking
+        };
+        rerenderCells();
+      })
+    );
+    btnBar.appendChild(
+      makeBtn('nationality', () => {
+        config.participantDisplay = {
+          ...config.participantDisplay,
+          showNationality: !config.participantDisplay?.showNationality
+        };
+        rerenderCells();
+      })
+    );
+    btnBar.appendChild(
+      makeBtn('bold winner', () => {
+        config.participantDisplay = {
+          ...config.participantDisplay,
+          boldWinner: !config.participantDisplay?.boldWinner
+        };
+        rerenderCells();
+      })
+    );
+    btnBar.appendChild(
+      makeBtn('potentials', () => {
+        config.participantDisplay = {
+          ...config.participantDisplay,
+          showPotentials: !config.participantDisplay?.showPotentials
+        };
+        rerenderCells();
+      })
+    );
 
     // Name format cycle
     const nameFormats: Array<'full' | 'last' | 'lastFirst' | 'firstLast'> = ['full', 'last', 'lastFirst', 'firstLast'];
     let nameIdx = 0;
-    btnBar.appendChild(makeBtn('cycle name format', () => {
-      nameIdx = (nameIdx + 1) % nameFormats.length;
-      config.participantDisplay = {
-        ...config.participantDisplay,
-        nameFormat: nameFormats[nameIdx],
-      };
-      rerenderCells();
-    }));
+    btnBar.appendChild(
+      makeBtn('cycle name format', () => {
+        nameIdx = (nameIdx + 1) % nameFormats.length;
+        config.participantDisplay = {
+          ...config.participantDisplay,
+          nameFormat: nameFormats[nameIdx]
+        };
+        rerenderCells();
+      })
+    );
 
     // Reset
-    btnBar.appendChild(makeBtn('RESET', () => {
-      config = {
-        header: ['time'],
-        body: ['eventRound', 'participants'],
-        footer: ['score'],
-        participantDisplay: {
-          nameFormat: 'full',
-          showSeed: false,
-          showRanking: false,
-          showNationality: false,
-          boldWinner: true,
-          showPotentials: true,
-        },
-      };
-      nameIdx = 0;
-      rerenderCells();
-    }));
+    btnBar.appendChild(
+      makeBtn('RESET', () => {
+        config = {
+          header: ['time'],
+          body: ['eventRound', 'participants'],
+          footer: ['score'],
+          participantDisplay: {
+            nameFormat: 'full',
+            showSeed: false,
+            showRanking: false,
+            showNationality: false,
+            boldWinner: true,
+            showPotentials: true
+          }
+        };
+        nameIdx = 0;
+        rerenderCells();
+      })
+    );
 
     root.appendChild(btnBar);
     root.appendChild(configDisplay);
@@ -724,7 +767,7 @@ export const ConfigPlayground = {
     rerenderCells();
 
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -740,9 +783,9 @@ const MOCK_UNSCHEDULED = [
   { label: "Women's Singles SF — Swiatek vs Sabalenka", value: 'mu-003' },
   { label: "Women's Singles SF — Gauff vs Rybakina", value: 'mu-004' },
   { label: "Men's Doubles R16 — Bryan/Sock vs Cabal/Farah", value: 'mu-005' },
-  { label: "Mixed Doubles QF — Krejcikova/Mektovic vs Dabrowski/Pavic", value: 'mu-006' },
+  { label: 'Mixed Doubles QF — Krejcikova/Mektovic vs Dabrowski/Pavic', value: 'mu-006' },
   { label: "Men's Singles R32 — Alcaraz vs Rune", value: 'mu-007' },
-  { label: "Women's Singles R16 — Osaka vs Keys", value: 'mu-008' },
+  { label: "Women's Singles R16 — Osaka vs Keys", value: 'mu-008' }
 ];
 
 export const TypeAhead = {
@@ -778,17 +821,19 @@ export const TypeAhead = {
     const gridData: (ScheduleCellData | null)[][] = [
       [SINGLES_TO_BE_PLAYED, null, DOUBLES_TO_BE_PLAYED],
       [null, SINGLES_IN_PROGRESS, null],
-      [null, null, null],
+      [null, null, null]
     ];
 
     // Court headers
     const cornerHeader = document.createElement('div');
-    cornerHeader.style.cssText = 'padding: 6px; font-size: 0.625rem; font-weight: 700; color: #6b7280; background: #f3f4f6; text-align: center;';
+    cornerHeader.style.cssText =
+      'padding: 6px; font-size: 0.625rem; font-weight: 700; color: #6b7280; background: #f3f4f6; text-align: center;';
     gridContainer.appendChild(cornerHeader);
 
     for (const court of courts) {
       const hdr = document.createElement('div');
-      hdr.style.cssText = 'padding: 6px; font-size: 0.625rem; font-weight: 700; color: #374151; background: #f3f4f6; text-align: center;';
+      hdr.style.cssText =
+        'padding: 6px; font-size: 0.625rem; font-weight: 700; color: #374151; background: #f3f4f6; text-align: center;';
       hdr.textContent = court;
       gridContainer.appendChild(hdr);
     }
@@ -818,18 +863,18 @@ export const TypeAhead = {
                 matchUpStatus: 'TO_BE_PLAYED',
                 sides: [
                   { sideNumber: 1, participantName: (item?.label.split(' — ')[1] || '').split(' vs ')[0]?.trim() },
-                  { sideNumber: 2, participantName: (item?.label.split(' — ')[1] || '').split(' vs ')[1]?.trim() },
+                  { sideNumber: 2, participantName: (item?.label.split(' — ')[1] || '').split(' vs ')[1]?.trim() }
                 ],
-                schedule: { courtId: wrapper.getAttribute('data-court-id') || '', courtOrder: 1 },
+                schedule: { courtId: wrapper.dataset.courtId || '', courtOrder: 1 }
               } as ScheduleCellData,
-              DEFAULT_SCHEDULE_CELL_CONFIG,
+              DEFAULT_SCHEDULE_CELL_CONFIG
             );
             wrapper.appendChild(assigned);
           },
           onCancel: () => {
             log.textContent = `TypeAhead cancelled on ${courtLabel}, ${rowLabel}`;
             log.style.color = '#9ca3af';
-          },
+          }
         });
       };
 
@@ -844,7 +889,7 @@ export const TypeAhead = {
         { option: 'Block court (2 rows)', onClick: () => blockCourt(2, 'BLOCKED') },
         { option: 'Block court (3 rows)', onClick: () => blockCourt(3, 'BLOCKED') },
         { option: 'Mark court for practice (1 row)', onClick: () => blockCourt(1, 'PRACTICE') },
-        { option: 'Mark court for maintenance (1 row)', onClick: () => blockCourt(1, 'MAINTENANCE') },
+        { option: 'Mark court for maintenance (1 row)', onClick: () => blockCourt(1, 'MAINTENANCE') }
       ];
 
       tipster({ options, target, config: { placement: 'right' } });
@@ -854,7 +899,8 @@ export const TypeAhead = {
     for (let r = 0; r < rows.length; r++) {
       // Row label
       const rowLabelEl = document.createElement('div');
-      rowLabelEl.style.cssText = 'padding: 6px; font-size: 0.5625rem; font-weight: 600; color: #6b7280; background: #f9fafb; display: flex; align-items: center; justify-content: center;';
+      rowLabelEl.style.cssText =
+        'padding: 6px; font-size: 0.5625rem; font-weight: 600; color: #6b7280; background: #f9fafb; display: flex; align-items: center; justify-content: center;';
       rowLabelEl.textContent = rows[r];
       gridContainer.appendChild(rowLabelEl);
 
@@ -862,8 +908,8 @@ export const TypeAhead = {
         const data = gridData[r][c];
         const wrapper = document.createElement('div');
         wrapper.style.cssText = 'min-height: 60px; background: white; position: relative;';
-        wrapper.setAttribute('data-court-id', `court-${c + 1}`);
-        wrapper.setAttribute('data-venue-id', 'venue-1');
+        wrapper.dataset.courtId = `court-${c + 1}`;
+        wrapper.dataset.venueId = 'venue-1';
 
         if (data) {
           // Render a matchUp cell
@@ -889,9 +935,10 @@ export const TypeAhead = {
     // Instructions
     const hint = document.createElement('p');
     hint.style.cssText = 'margin: 1rem 0 0; color: #9ca3af; font-size: 0.75rem;';
-    hint.textContent = 'Tip: Select "Assign matchUp" from the menu, then type to filter. Press Escape or click outside to dismiss. Click the cell again to re-open the menu.';
+    hint.textContent =
+      'Tip: Select "Assign matchUp" from the menu, then type to filter. Press Escape or click outside to dismiss. Click the cell again to re-open the menu.';
     root.appendChild(hint);
 
     return root;
-  },
+  }
 };
