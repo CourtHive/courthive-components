@@ -25,6 +25,104 @@ const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT
 
 const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
 const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
+
+function mapSetToValidationData(s: SetScore): any {
+  const isTiebreakOnlySet =
+    s.side1Score === 0 &&
+    s.side2Score === 0 &&
+    (s.side1TiebreakScore !== undefined || s.side2TiebreakScore !== undefined);
+
+  const result: any = isTiebreakOnlySet
+    ? {
+        side1TiebreakScore: s.side1TiebreakScore,
+        side2TiebreakScore: s.side2TiebreakScore
+      }
+    : {
+        side1: s.side1Score,
+        side2: s.side2Score
+      };
+
+  if (!isTiebreakOnlySet && s.side1TiebreakScore !== undefined) result.side1TiebreakScore = s.side1TiebreakScore;
+  if (!isTiebreakOnlySet && s.side2TiebreakScore !== undefined) result.side2TiebreakScore = s.side2TiebreakScore;
+  if (s.winningSide !== undefined) result.winningSide = s.winningSide;
+  if (s.side1PointScore !== undefined) result.side1PointScore = s.side1PointScore;
+  if (s.side2PointScore !== undefined) result.side2PointScore = s.side2PointScore;
+  return result;
+}
+
+function reattachPointScores(setsForValidation: any[], validation: any): void {
+  if (validation.sets && validation.scoreObject?.sets) {
+    for (let i = 0; i < setsForValidation.length && i < validation.scoreObject.sets.length; i++) {
+      const src = setsForValidation[i];
+      if (src.side1PointScore !== undefined) validation.scoreObject.sets[i].side1PointScore = src.side1PointScore;
+      if (src.side2PointScore !== undefined) validation.scoreObject.sets[i].side2PointScore = src.side2PointScore;
+    }
+  }
+  if (validation.sets) {
+    for (let i = 0; i < setsForValidation.length && i < validation.sets.length; i++) {
+      const src = setsForValidation[i];
+      if (src.side1PointScore !== undefined) validation.sets[i].side1PointScore = src.side1PointScore;
+      if (src.side2PointScore !== undefined) validation.sets[i].side2PointScore = src.side2PointScore;
+    }
+  }
+}
+
+function updateContainerVisibility(
+  selectedOutcome: string,
+  matchComplete: boolean,
+  irregularEndingContainer: HTMLElement,
+  winnerSelectionContainer: HTMLElement
+): void {
+  if (selectedOutcome !== COMPLETED) {
+    irregularEndingContainer.style.display = 'block';
+    winnerSelectionContainer.style.display = 'block';
+  } else {
+    winnerSelectionContainer.style.display = 'none';
+    irregularEndingContainer.style.display = matchComplete ? 'none' : 'block';
+  }
+}
+
+function applyIrregularEndingToValidation(
+  validation: any,
+  selectedOutcome: string,
+  selectedWinner: number | undefined
+): void {
+  if (selectedOutcome === COMPLETED) return;
+
+  if (selectedWinner) {
+    validation.matchUpStatus = selectedOutcome;
+    validation.winningSide = selectedWinner;
+    validation.isValid = true;
+  } else if (selectedOutcome === WALKOVER) {
+    validation.matchUpStatus = DOUBLE_WALKOVER;
+    validation.isValid = true;
+  } else if (selectedOutcome === DEFAULTED) {
+    validation.matchUpStatus = DOUBLE_DEFAULT;
+    validation.isValid = true;
+  } else {
+    validation.matchUpStatus = selectedOutcome;
+    validation.isValid = false;
+  }
+}
+
+function computeRowsToKeep(
+  currentSets: SetScore[],
+  matchComplete: boolean,
+  bestOf: number
+): number {
+  if (matchComplete) {
+    const completeSetsCount = currentSets.filter((s) => s.winningSide !== undefined).length;
+    return Math.max(1, completeSetsCount);
+  }
+
+  const lastSetIndex = currentSets.length - 1;
+  const lastSetComplete = lastSetIndex >= 0 && currentSets[lastSetIndex].winningSide !== undefined;
+
+  if (lastSetComplete && currentSets.length < bestOf) {
+    return currentSets.length + 1;
+  }
+  return Math.max(1, currentSets.length);
+}
 const OUTCOME_SELECTOR = 'input[name="matchOutcome"]';
 const WINNER_SELECTOR = 'input[name="irregularWinner"]';
 const TIEBREAK_CONTAINER_CLASS = '.tiebreak-container';
@@ -832,38 +930,10 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       }
     }
 
-    // CRITICAL: Remove unnecessary set rows
-    // This handles both:
-    // 1. Empty trailing rows when a set is cleared
-    // 2. Extra rows when match becomes complete
-    // 3. Extra rows when a set becomes incomplete (e.g., removing tiebreak score)
     const allSetRows = setsContainer.querySelectorAll('.set-row');
-
-    // Determine how many rows we should have
-    // If match is complete, only keep completed sets
-    // If match is incomplete, keep one extra row for next set
     const matchComplete = isMatchCompleteLogic(currentSets, getBestOf(), getExactly());
+    const rowsToKeep = computeRowsToKeep(currentSets, matchComplete, getBestOf());
 
-    let rowsToKeep: number;
-    if (matchComplete) {
-      // Match complete: only keep rows with complete sets
-      const completeSetsCount = currentSets.filter((s) => s.winningSide !== undefined).length;
-      rowsToKeep = Math.max(1, completeSetsCount);
-    } else {
-      // Match incomplete: keep current sets + 1 empty row (if not at bestOf limit)
-      const lastSetIndex = currentSets.length - 1;
-      const lastSetComplete = lastSetIndex >= 0 && currentSets[lastSetIndex].winningSide !== undefined;
-
-      if (lastSetComplete && currentSets.length < getBestOf()) {
-        // Last set complete and we can add more: keep +1 for next set
-        rowsToKeep = currentSets.length + 1;
-      } else {
-        // Either last set incomplete or at bestOf limit: just keep current sets
-        rowsToKeep = Math.max(1, currentSets.length);
-      }
-    }
-
-    // Remove excess rows
     for (let i = allSetRows.length - 1; i >= rowsToKeep; i--) {
       allSetRows[i].remove();
     }
@@ -879,122 +949,31 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       const matchInProgress = selectedOutcome !== COMPLETED || hasIncompleteSets;
       const setsToValidate = matchInProgress ? currentSets : currentSets.filter((s) => s.winningSide !== undefined);
 
-      const setsForValidation = setsToValidate.map((s) => {
-        // For tiebreak-only sets (where side1Score and side2Score are 0),
-        // don't include side1/side2 in validation data - factory expects undefined for TB-only sets
-        const isTiebreakOnlySet =
-          s.side1Score === 0 &&
-          s.side2Score === 0 &&
-          (s.side1TiebreakScore !== undefined || s.side2TiebreakScore !== undefined);
-
-        if (isTiebreakOnlySet) {
-          // Tiebreak-only set: only include tiebreak scores and winningSide
-          const result: any = {
-            side1TiebreakScore: s.side1TiebreakScore,
-            side2TiebreakScore: s.side2TiebreakScore
-          };
-          if (s.winningSide !== undefined) result.winningSide = s.winningSide;
-          if (s.side1PointScore !== undefined) result.side1PointScore = s.side1PointScore;
-          if (s.side2PointScore !== undefined) result.side2PointScore = s.side2PointScore;
-          return result;
-        } else {
-          // Regular set: include game scores, tiebreak scores (if any), and winningSide
-          const result: any = {
-            side1: s.side1Score,
-            side2: s.side2Score
-          };
-          if (s.side1TiebreakScore !== undefined) result.side1TiebreakScore = s.side1TiebreakScore;
-          if (s.side2TiebreakScore !== undefined) result.side2TiebreakScore = s.side2TiebreakScore;
-          if (s.winningSide !== undefined) result.winningSide = s.winningSide;
-          if (s.side1PointScore !== undefined) result.side1PointScore = s.side1PointScore;
-          if (s.side2PointScore !== undefined) result.side2PointScore = s.side2PointScore;
-          return result;
-        }
-      });
+      const setsForValidation = setsToValidate.map(mapSetToValidationData);
 
       const validation = validateSetScores(
         setsForValidation,
         matchUp.matchUpFormat,
-        selectedOutcome !== COMPLETED // Allow incomplete if irregular ending
+        selectedOutcome !== COMPLETED
       );
 
-      // Re-attach point scores to validation sets (score string round-trip loses them)
-      if (validation.sets && validation.scoreObject?.sets) {
-        for (let i = 0; i < setsForValidation.length && i < validation.scoreObject.sets.length; i++) {
-          const src = setsForValidation[i];
-          if (src.side1PointScore !== undefined) validation.scoreObject.sets[i].side1PointScore = src.side1PointScore;
-          if (src.side2PointScore !== undefined) validation.scoreObject.sets[i].side2PointScore = src.side2PointScore;
-        }
-      }
-      // Also attach to the flat sets array in the outcome
-      if (validation.sets) {
-        for (let i = 0; i < setsForValidation.length && i < validation.sets.length; i++) {
-          const src = setsForValidation[i];
-          if (src.side1PointScore !== undefined) validation.sets[i].side1PointScore = src.side1PointScore;
-          if (src.side2PointScore !== undefined) validation.sets[i].side2PointScore = src.side2PointScore;
-        }
-      }
+      reattachPointScores(setsForValidation, validation);
 
-      // CRITICAL: Check if match is complete based on VALIDATION result, not raw currentSets
-      // The validation may have stripped winningSide from invalid sets
-      // So we need to check the validated outcome, not the raw input
-      // For tiebreak-only sets (TB10), the factory won't return winningSide until the score
-      // reaches the required threshold (e.g., 10-12 or 11-13), so 3-6 is incomplete
       const matchComplete = validation.isValid && validation.winningSide !== undefined;
 
-      // Hide/show irregular ending based on validated match completion
-      // CRITICAL: Always show irregular ending if an irregular outcome is selected
-      // Otherwise hide it when match is complete
-      if (selectedOutcome !== COMPLETED) {
-        // Always show irregular ending when an irregular outcome is selected
-        irregularEndingContainer.style.display = 'block';
-        winnerSelectionContainer.style.display = 'block'; // Always show winner selection
-      } else {
-        // When COMPLETED (no irregular ending selected)
-        // Hide winner selection always
-        winnerSelectionContainer.style.display = 'none';
+      updateContainerVisibility(
+        selectedOutcome,
+        matchComplete,
+        irregularEndingContainer,
+        winnerSelectionContainer
+      );
 
-        if (matchComplete) {
-          // Hide irregular ending only when match is complete AND no irregular outcome selected
-          irregularEndingContainer.style.display = 'none';
-        } else {
-          // Show irregular ending when match incomplete
-          irregularEndingContainer.style.display = 'block';
-        }
-      }
+      applyIrregularEndingToValidation(validation, selectedOutcome, selectedWinner);
 
-      // Add matchUpStatus and winningSide if irregular ending
-      if (selectedOutcome !== COMPLETED) {
-        // Override winningSide if manually selected
-        if (selectedWinner) {
-          validation.matchUpStatus = selectedOutcome;
-          validation.winningSide = selectedWinner;
-          // For irregular endings, valid if winner is selected
-          validation.isValid = true;
-        } else {
-          // No winner selected
-          // For walkover and defaulted, use DOUBLE_* status and enable submit
-          if (selectedOutcome === WALKOVER) {
-            validation.matchUpStatus = DOUBLE_WALKOVER;
-            validation.isValid = true;
-          } else if (selectedOutcome === DEFAULTED) {
-            validation.matchUpStatus = DOUBLE_DEFAULT;
-            validation.isValid = true;
-          } else {
-            // For retired, still need winner selection
-            validation.matchUpStatus = selectedOutcome;
-            validation.isValid = false;
-          }
-        }
-      }
-
-      // Update matchUp display with validation results
       updateMatchUpDisplay(validation);
 
-      // Pass to parent
       onScoreChange(validation);
     } else {
-      // Show irregular ending when no sets
       irregularEndingContainer.style.display = 'block';
 
       updateMatchUpDisplay();
@@ -1076,121 +1055,103 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     );
   };
 
-  // Handle input changes
+  function clearIrregularEndingState(): void {
+    selectedOutcome = COMPLETED;
+    selectedWinner = undefined;
+    const outcomeRadios = irregularEndingContainer.querySelectorAll(OUTCOME_SELECTOR);
+    outcomeRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
+    winnerSelectionContainer.style.display = 'none';
+  }
+
+  function clampInputValue(input: HTMLInputElement, isTiebreak: boolean, setIndex: number, side: string): void {
+    const setFormat = getSetFormat(setIndex);
+    const setIsTiebreakOnly = setFormat?.tiebreakSet?.tiebreakTo !== undefined;
+
+    if (isTiebreak) {
+      if (input.value.length > 2) {
+        input.value = input.value.slice(0, 2);
+      }
+    } else if (setIsTiebreakOnly) {
+      if (input.value.length > 3) {
+        input.value = input.value.slice(0, 3);
+      }
+    } else {
+      const maxAllowed = getMaxAllowedScore(setIndex, side);
+      const numValue = Number.parseInt(input.value) || 0;
+      if (numValue > maxAllowed) {
+        input.value = maxAllowed.toString();
+      }
+    }
+  }
+
+  function adjustOppositeInput(setIndex: number, side: string): void {
+    const setFormat = getSetFormat(setIndex);
+    const setIsTiebreakOnly = setFormat?.tiebreakSet?.tiebreakTo !== undefined;
+    if (setIsTiebreakOnly) return;
+
+    const oppositeSide = side === '1' ? '2' : '1';
+    const oppositeInput = setsContainer.querySelector(
+      `input[data-set-index="${setIndex}"][data-side="${oppositeSide}"]`
+    ) as HTMLInputElement;
+
+    if (oppositeInput?.value.trim()) {
+      const oppositeValue = Number.parseInt(oppositeInput.value) || 0;
+      const oppositeMaxAllowed = getMaxAllowedScore(setIndex, oppositeSide);
+      if (oppositeValue > oppositeMaxAllowed) {
+        oppositeInput.value = oppositeMaxAllowed.toString();
+      }
+    }
+  }
+
+  function autoExpandSets(setIndex: number): void {
+    const currentSetComplete = isSetComplete(setIndex);
+    if (!currentSetComplete) return;
+
+    const matchComplete = isMatchCompleteLogic(currentSets, getBestOf(), getExactly());
+    if (matchComplete || !shouldExpandSets(currentSets, matchUp.matchUpFormat)) return;
+
+    const nextSetIndex = currentSets.length;
+    const nextSetExists = setsContainer.querySelector(`input[data-set-index="${nextSetIndex}"]`);
+    if (nextSetIndex < getBestOf() && !nextSetExists) {
+      const newSetRow = createSetRow(nextSetIndex);
+      setsContainer.appendChild(newSetRow);
+
+      const newInputs = newSetRow.querySelectorAll('input');
+      newInputs.forEach((inp) => {
+        inp.addEventListener('input', handleInput);
+        inp.addEventListener('keydown', handleKeydown);
+      });
+
+      updateClearButtonState();
+    }
+  }
+
   const handleInput = (event: Event) => {
     const input = event.target as HTMLInputElement;
     const isTiebreak = input.dataset.type === 'tiebreak';
 
-    // Clear irregular ending when user starts entering a score
-    // This handles the case where user had RETIRED/WALKOVER/DEFAULTED and now enters new digits
     if (selectedOutcome !== COMPLETED && input.value) {
-      selectedOutcome = COMPLETED;
-      selectedWinner = undefined;
-      // Uncheck irregular ending radios
-      const outcomeRadios = irregularEndingContainer.querySelectorAll(OUTCOME_SELECTOR);
-      outcomeRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
-      // Hide winner selection
-      winnerSelectionContainer.style.display = 'none';
+      clearIrregularEndingState();
     }
 
-    // Only allow numeric input
     const value = input.value.replace(/\D/g, '');
     if (value !== input.value) {
       input.value = value;
     }
 
-    // Get set-specific information (used in multiple places below)
     const setIndex = Number.parseInt(input.dataset.setIndex || '0');
     const side = input.dataset.side || '1';
-    const setFormat = getSetFormat(setIndex);
-    const setIsTiebreakOnly = setFormat?.tiebreakSet?.tiebreakTo !== undefined;
 
-    // Limit based on type
-    if (isTiebreak) {
-      // Tiebreak can go higher (e.g., 18-20)
-      if (input.value.length > 2) {
-        input.value = input.value.slice(0, 2);
-      }
-    } else {
-      // Game scores limited based on opposite side's value
+    clampInputValue(input, isTiebreak, setIndex, side);
 
-      // For tiebreak-only sets (TB10), allow continued input even after match shows complete
-      // This lets users build the final score like 11-13
-      const isBuildingTiebreakSet = setIsTiebreakOnly;
-
-      if (isBuildingTiebreakSet) {
-        // For TB10, allow extended tiebreak scores (up to 3 digits)
-        // Reasonable max is 999 (extremely long tiebreaks like 99-101 are possible)
-        if (input.value.length > 3) {
-          input.value = input.value.slice(0, 3);
-        }
-      } else {
-        const maxAllowed = getMaxAllowedScore(setIndex, side);
-        const numValue = Number.parseInt(input.value) || 0;
-
-        if (numValue > maxAllowed) {
-          input.value = maxAllowed.toString();
-        }
-      }
-    }
-
-    // Update tiebreak visibility and opposite input max if this is a game score input
     if (!isTiebreak) {
       updateTiebreakVisibility(setIndex);
-
-      // For tiebreak-only sets (TB10), don't coerce the opposite input
-      // Allow users to build scores like 33-35 without interference
-      if (!setIsTiebreakOnly) {
-        // Recalculate and potentially adjust opposite side's value (only for regular sets)
-        const oppositeSide = side === '1' ? '2' : '1';
-        const oppositeInput = setsContainer.querySelector(
-          `input[data-set-index="${setIndex}"][data-side="${oppositeSide}"]`
-        ) as HTMLInputElement;
-
-        if (oppositeInput?.value.trim()) {
-          const oppositeValue = Number.parseInt(oppositeInput.value) || 0;
-          const oppositeMaxAllowed = getMaxAllowedScore(setIndex, oppositeSide);
-
-          if (oppositeValue > oppositeMaxAllowed) {
-            // Adjust opposite value to new max
-            oppositeInput.value = oppositeMaxAllowed.toString();
-          }
-        }
-      }
+      adjustOppositeInput(setIndex, side);
     }
 
     updateScoreFromInputs();
     updateClearButtonState();
-
-    // Auto-expand sets if needed: only when current set is complete and we need another set
-    const currentSetComplete = isSetComplete(setIndex);
-
-    if (currentSetComplete) {
-      // REFACTORED: Use pure logic function for match completion check
-      const matchComplete = isMatchCompleteLogic(currentSets, getBestOf(), getExactly());
-
-      // Only expand if match not complete and we should expand
-      if (!matchComplete && shouldExpandSets(currentSets, matchUp.matchUpFormat)) {
-        // Check if next set row already exists
-        const nextSetIndex = currentSets.length;
-        const nextSetExists = setsContainer.querySelector(`input[data-set-index="${nextSetIndex}"]`);
-
-        // Only add if we're within bestOf limit and row doesn't exist
-        if (nextSetIndex < getBestOf() && !nextSetExists) {
-          const newSetRow = createSetRow(nextSetIndex);
-          setsContainer.appendChild(newSetRow);
-
-          // Attach handlers to new inputs
-          const newInputs = newSetRow.querySelectorAll('input');
-          newInputs.forEach((inp) => {
-            inp.addEventListener('input', handleInput);
-            inp.addEventListener('keydown', handleKeydown);
-          });
-
-          updateClearButtonState();
-        }
-      }
-    }
+    autoExpandSets(setIndex);
   };
 
   // Helper: focus and select contents of a score input when tabbing
@@ -1199,6 +1160,152 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     el.select();
   };
 
+  function createNextSetAndFocus(nextSetIndex: number): void {
+    const newSetRow = createSetRow(nextSetIndex);
+    setsContainer.appendChild(newSetRow);
+
+    const newInputs = newSetRow.querySelectorAll('input');
+    newInputs.forEach((inp) => {
+      inp.addEventListener('input', handleInput);
+      inp.addEventListener('keydown', handleKeydown);
+    });
+
+    const firstInput = newInputs[0];
+    if (firstInput instanceof HTMLInputElement) {
+      focusAndSelect(firstInput);
+    }
+    updateClearButtonState();
+  }
+
+  function handleSmartComplement(event: KeyboardEvent, input: HTMLInputElement, setIndex: number): boolean {
+    const settings = loadSettings();
+    const smartComplementsEnabled = settings?.smartComplements === true;
+
+    const digitMatch = event.code.match(/^Digit(\d)$/);
+    if (!digitMatch || input.value !== '') return false;
+
+    const digit = Number.parseInt(digitMatch[1]);
+    const result = shouldApplySmartComplement(
+      digit,
+      event.shiftKey,
+      setIndex,
+      currentSets,
+      matchConfig,
+      setsWithSmartComplement,
+      smartComplementsEnabled
+    );
+
+    if (!result.shouldApply) return false;
+
+    event.preventDefault();
+    input.value = result.field1Value.toString();
+
+    const side2Input = setsContainer.querySelector(
+      `input[data-set-index="${setIndex}"][data-side="2"]`
+    ) as HTMLInputElement;
+    if (side2Input) {
+      side2Input.value = result.field2Value.toString();
+    }
+
+    setsWithSmartComplement.add(setIndex);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+
+    setTimeout(() => {
+      updateScoreFromInputs();
+      const matchComplete = isMatchCompleteLogic(currentSets, getBestOf(), getExactly());
+      if (matchComplete) return;
+
+      const nextSetSide1 = setsContainer.querySelector(
+        `input[data-set-index="${setIndex + 1}"][data-side="1"]`
+      ) as HTMLInputElement;
+
+      if (nextSetSide1) {
+        focusAndSelect(nextSetSide1);
+      } else if (setIndex + 1 < getBestOf()) {
+        createNextSetAndFocus(setIndex + 1);
+      }
+    }, 10);
+
+    return true;
+  }
+
+  function handleShiftTab(setIndex: number, side: string, isTiebreak: boolean): void {
+    if (isTiebreak) {
+      const side2Input = setsContainer.querySelector(
+        `input[data-set-index="${setIndex}"][data-side="2"]`
+      ) as HTMLInputElement;
+      if (side2Input) focusAndSelect(side2Input);
+    } else if (side === '2') {
+      const side1Input = setsContainer.querySelector(
+        `input[data-set-index="${setIndex}"][data-side="1"]`
+      ) as HTMLInputElement;
+      if (side1Input) focusAndSelect(side1Input);
+    } else if (setIndex > 0) {
+      focusPreviousSetInput(setIndex);
+    }
+  }
+
+  function focusPreviousSetInput(setIndex: number): void {
+    const prevTiebreakInput = setsContainer.querySelector(
+      `input[data-set-index="${setIndex - 1}"][data-type="tiebreak"]`
+    ) as HTMLInputElement;
+    const prevSide2Input = setsContainer.querySelector(
+      `input[data-set-index="${setIndex - 1}"][data-side="2"]`
+    ) as HTMLInputElement;
+
+    const prevTiebreakContainer = prevTiebreakInput?.closest(TIEBREAK_CONTAINER_CLASS) as HTMLElement;
+    if (prevTiebreakInput && prevTiebreakContainer && prevTiebreakContainer.style.display !== 'none') {
+      focusAndSelect(prevTiebreakInput);
+    } else if (prevSide2Input) {
+      focusAndSelect(prevSide2Input);
+    }
+  }
+
+  function handleForwardTabFromSide2(setIndex: number): void {
+    const tiebreakInput = setsContainer.querySelector(
+      `input[data-set-index="${setIndex}"][data-type="tiebreak"]`
+    ) as HTMLInputElement;
+    const tiebreakContainer = tiebreakInput?.closest(TIEBREAK_CONTAINER_CLASS) as HTMLElement;
+
+    if (tiebreakInput && tiebreakContainer && tiebreakContainer.style.display !== 'none') {
+      focusAndSelect(tiebreakInput);
+      return;
+    }
+
+    const nextInput = setsContainer.querySelector(
+      `input[data-set-index="${setIndex + 1}"][data-side="1"]`
+    ) as HTMLInputElement;
+    if (nextInput) {
+      focusAndSelect(nextInput);
+    } else if (setIndex + 1 < getBestOf()) {
+      const currentSetComplete = isSetComplete(setIndex);
+      if (!currentSetComplete) return;
+
+      const matchComplete = isMatchCompleteLogic(currentSets, getBestOf(), getExactly());
+      if (matchComplete) return;
+
+      createNextSetAndFocus(setIndex + 1);
+    }
+  }
+
+  function handleForwardTabFromTiebreak(setIndex: number): void {
+    const nextInput = setsContainer.querySelector(
+      `input[data-set-index="${setIndex + 1}"][data-side="1"]`
+    ) as HTMLInputElement;
+    if (nextInput) {
+      focusAndSelect(nextInput);
+    } else if (setIndex + 1 < getBestOf()) {
+      const currentSetComplete = isSetComplete(setIndex);
+      if (!currentSetComplete) return;
+
+      updateScoreFromInputs();
+      const matchComplete = isMatchCompleteLogic(currentSets, getBestOf(), getExactly());
+      if (matchComplete) return;
+
+      createNextSetAndFocus(setIndex + 1);
+    }
+  }
+
   // Handle keyboard navigation
   const handleKeydown = (event: KeyboardEvent) => {
     const input = event.target as HTMLInputElement;
@@ -1206,239 +1313,25 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     const side = input.dataset.side || '1';
     const isTiebreak = input.dataset.type === 'tiebreak';
 
-    // SMART COMPLEMENT ENTRY FEATURE
-    // REFACTORED: Now uses pure logic from dynamicSetsLogic.ts
-    // Only enabled if user has turned it on in settings
-    const settings = loadSettings();
-    const smartComplementsEnabled = settings?.smartComplements === true;
-
-    // If in side1 field, handle smart complement using pure logic
-    if (side === '1' && !isTiebreak) {
-      // Handle number keys (0-9)
-      // Use event.code to detect digit keys even when Shift is pressed (event.key would be @ for Shift+2)
-      const digitMatch = event.code.match(/^Digit(\d)$/);
-      if (digitMatch) {
-        const digit = Number.parseInt(digitMatch[1]);
-        const currentValue = input.value;
-
-        // Only apply smart complement if field is empty (first entry for this set)
-        if (currentValue === '') {
-          const isShiftPressed = event.shiftKey;
-
-          // Use pure logic function to determine if/how to apply complement
-          const result = shouldApplySmartComplement(
-            digit,
-            isShiftPressed,
-            setIndex,
-            currentSets,
-            matchConfig,
-            setsWithSmartComplement,
-            smartComplementsEnabled
-          );
-
-          if (result.shouldApply) {
-            event.preventDefault();
-
-            // Apply the calculated complement values
-            input.value = result.field1Value.toString();
-
-            const side2Input = setsContainer.querySelector(
-              `input[data-set-index="${setIndex}"][data-side="2"]`
-            ) as HTMLInputElement;
-            if (side2Input) {
-              side2Input.value = result.field2Value.toString();
-            }
-
-            // Mark this set as having smart complement applied
-            setsWithSmartComplement.add(setIndex);
-
-            // Trigger input events to update validation
-            input.dispatchEvent(new Event('input', { bubbles: true }));
-
-            // Move to next set's side1 field (if needed)
-            // Need to wait for validation to complete to check if match is complete
-            setTimeout(() => {
-              // Force update to ensure currentSets is updated with the new values
-              updateScoreFromInputs();
-
-              // REFACTORED: Use pure logic function for match completion check
-              const matchComplete = isMatchCompleteLogic(currentSets, getBestOf(), getExactly());
-
-              if (matchComplete) {
-                // Match is complete, don't create next set or move focus
-                return;
-              }
-
-              // Match not complete, check if next set exists or needs to be created
-              const nextSetSide1 = setsContainer.querySelector(
-                `input[data-set-index="${setIndex + 1}"][data-side="1"]`
-              ) as HTMLInputElement;
-
-              if (nextSetSide1) {
-                focusAndSelect(nextSetSide1);
-              } else if (setIndex + 1 < getBestOf()) {
-                // Create next set
-                const newSetRow = createSetRow(setIndex + 1);
-                setsContainer.appendChild(newSetRow);
-
-                const newInputs = newSetRow.querySelectorAll('input');
-                newInputs.forEach((inp) => {
-                  inp.addEventListener('input', handleInput);
-                  inp.addEventListener('keydown', handleKeydown);
-                });
-
-                const firstInput = newInputs[0];
-                if (firstInput instanceof HTMLInputElement) {
-                  focusAndSelect(firstInput);
-                }
-                updateClearButtonState();
-              }
-            }, 10);
-
-            return; // Don't process the key further
-          }
-        }
-      }
+    if (side === '1' && !isTiebreak && handleSmartComplement(event, input, setIndex)) {
+      return;
     }
 
-    // Tab: move to next input (with proper forward/backward handling)
     if (event.key === 'Tab') {
       event.preventDefault();
 
       if (event.shiftKey) {
-        // Shift+Tab: Move backward
-        if (isTiebreak) {
-          // From tiebreak to side 2
-          const side2Input = setsContainer.querySelector(
-            `input[data-set-index="${setIndex}"][data-side="2"]`
-          ) as HTMLInputElement;
-          if (side2Input) focusAndSelect(side2Input);
-        } else if (side === '2') {
-          // From side 2 to side 1
-          const side1Input = setsContainer.querySelector(
-            `input[data-set-index="${setIndex}"][data-side="1"]`
-          ) as HTMLInputElement;
-          if (side1Input) focusAndSelect(side1Input);
-        } else if (setIndex > 0) {
-          // From side 1 to previous set's tiebreak (if exists) or side 2
-          const prevTiebreakInput = setsContainer.querySelector(
-            `input[data-set-index="${setIndex - 1}"][data-type="tiebreak"]`
-          ) as HTMLInputElement;
-          const prevSide2Input = setsContainer.querySelector(
-            `input[data-set-index="${setIndex - 1}"][data-side="2"]`
-          ) as HTMLInputElement;
-
-          // Check if tiebreak is visible
-          const prevTiebreakContainer = prevTiebreakInput?.closest(TIEBREAK_CONTAINER_CLASS) as HTMLElement;
-          if (prevTiebreakInput && prevTiebreakContainer && prevTiebreakContainer.style.display !== 'none') {
-            focusAndSelect(prevTiebreakInput);
-          } else if (prevSide2Input) {
-            focusAndSelect(prevSide2Input);
-          }
-        }
-      } else {
-        // Forward Tab
-        // Check isTiebreak FIRST before checking side (tiebreak doesn't have side attribute)
-        if (isTiebreak) {
-          // From tiebreak to next set's side 1
-          const nextInput = setsContainer.querySelector(
-            `input[data-set-index="${setIndex + 1}"][data-side="1"]`
-          ) as HTMLInputElement;
-          if (nextInput) {
-            focusAndSelect(nextInput);
-          } else if (setIndex + 1 < getBestOf()) {
-            // Only create next set if current set is valid and match not complete
-            const currentSetComplete = isSetComplete(setIndex);
-            if (!currentSetComplete) {
-              return;
-            }
-
-            // Update score to ensure currentSets reflects the latest tiebreak input
-            updateScoreFromInputs();
-
-            // REFACTORED: Use pure logic function for match completion check
-            const matchComplete = isMatchCompleteLogic(currentSets, getBestOf(), getExactly());
-
-            if (matchComplete) {
-              return; // Don't create next set if match complete
-            }
-
-            // Create next set
-            const newSetRow = createSetRow(setIndex + 1);
-            setsContainer.appendChild(newSetRow);
-
-            // Attach handlers
-            const newInputs = newSetRow.querySelectorAll('input');
-            newInputs.forEach((inp) => {
-              inp.addEventListener('input', handleInput);
-              inp.addEventListener('keydown', handleKeydown);
-            });
-
-            // Focus first input of new set
-            const firstInput = newInputs[0];
-            if (firstInput instanceof HTMLInputElement) {
-              focusAndSelect(firstInput);
-            }
-            updateClearButtonState();
-          }
-        } else if (side === '1') {
-          // Move from side 1 to side 2 of same set
-          const side2Input = setsContainer.querySelector(
-            `input[data-set-index="${setIndex}"][data-side="2"]`
-          ) as HTMLInputElement;
-          if (side2Input) focusAndSelect(side2Input);
-        } else if (side === '2') {
-          // First, update score to ensure currentSets reflects the latest input
-          updateScoreFromInputs();
-
-          // Check if tiebreak input is visible
-          const tiebreakInput = setsContainer.querySelector(
-            `input[data-set-index="${setIndex}"][data-type="tiebreak"]`
-          ) as HTMLInputElement;
-          const tiebreakContainer = tiebreakInput?.closest(TIEBREAK_CONTAINER_CLASS) as HTMLElement;
-
-          if (tiebreakInput && tiebreakContainer && tiebreakContainer.style.display !== 'none') {
-            // Move to tiebreak if visible
-            focusAndSelect(tiebreakInput);
-          } else {
-            // Move to next set's side 1
-            const nextInput = setsContainer.querySelector(
-              `input[data-set-index="${setIndex + 1}"][data-side="1"]`
-            ) as HTMLInputElement;
-            if (nextInput) {
-              focusAndSelect(nextInput);
-            } else if (setIndex + 1 < getBestOf()) {
-              // Only create next set if current set is complete and match not complete
-              const currentSetComplete = isSetComplete(setIndex);
-
-              if (!currentSetComplete) {
-                return;
-              }
-
-              // REFACTORED: Use pure logic function for match completion check
-              const matchComplete = isMatchCompleteLogic(currentSets, getBestOf(), getExactly());
-
-              if (matchComplete) {
-                return; // Don't create next set if match complete
-              }
-
-              // Create next set
-              const newSetRow = createSetRow(setIndex + 1);
-              setsContainer.appendChild(newSetRow);
-
-              // Attach handlers
-              const newInputs = newSetRow.querySelectorAll('input');
-              newInputs.forEach((inp) => {
-                inp.addEventListener('input', handleInput);
-                inp.addEventListener('keydown', handleKeydown);
-              });
-
-              // Focus first input of new set
-              focusAndSelect(newInputs[0] as HTMLInputElement);
-              updateClearButtonState();
-            }
-          }
-        }
+        handleShiftTab(setIndex, side, isTiebreak);
+      } else if (isTiebreak) {
+        handleForwardTabFromTiebreak(setIndex);
+      } else if (side === '1') {
+        const side2Input = setsContainer.querySelector(
+          `input[data-set-index="${setIndex}"][data-side="2"]`
+        ) as HTMLInputElement;
+        if (side2Input) focusAndSelect(side2Input);
+      } else if (side === '2') {
+        updateScoreFromInputs();
+        handleForwardTabFromSide2(setIndex);
       }
     }
 
@@ -1450,39 +1343,9 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       }
     }
 
-    // Backspace: clear and move back if empty
     if (event.key === 'Backspace' && input.value === '') {
       event.preventDefault();
-
-      if (isTiebreak) {
-        // From tiebreak to side 2
-        const side2Input = setsContainer.querySelector(
-          `input[data-set-index="${setIndex}"][data-side="2"]`
-        ) as HTMLInputElement;
-        if (side2Input) focusAndSelect(side2Input);
-      } else if (side === '2') {
-        // Move back to side 1 of same set
-        const side1Input = setsContainer.querySelector(
-          `input[data-set-index="${setIndex}"][data-side="1"]`
-        ) as HTMLInputElement;
-        if (side1Input) focusAndSelect(side1Input);
-      } else if (setIndex > 0) {
-        // Move back to previous set's tiebreak (if visible) or side 2
-        const prevTiebreakInput = setsContainer.querySelector(
-          `input[data-set-index="${setIndex - 1}"][data-type="tiebreak"]`
-        ) as HTMLInputElement;
-        const prevSide2Input = setsContainer.querySelector(
-          `input[data-set-index="${setIndex - 1}"][data-side="2"]`
-        ) as HTMLInputElement;
-
-        // Check if tiebreak is visible
-        const prevTiebreakContainer = prevTiebreakInput?.closest(TIEBREAK_CONTAINER_CLASS) as HTMLElement;
-        if (prevTiebreakInput && prevTiebreakContainer && prevTiebreakContainer.style.display !== 'none') {
-          focusAndSelect(prevTiebreakInput);
-        } else if (prevSide2Input) {
-          focusAndSelect(prevSide2Input);
-        }
-      }
+      handleShiftTab(setIndex, side, isTiebreak);
     }
   };
 

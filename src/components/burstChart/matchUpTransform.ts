@@ -73,7 +73,28 @@ const ROUND_KEYS = ['R128', 'R64', 'R32', 'R16', 'QF', 'SF', 'F'] as const;
  * into the TODS-aligned SunburstDrawData.
  */
 export function fromLegacyDraw(tournamentDraw: any): SunburstDrawData {
-  // Determine which rounds have data, ordered outermost → innermost
+  const activeRounds = getActiveRounds(tournamentDraw);
+
+  if (activeRounds.length === 0) {
+    return { drawSize: 0, roundMatchUps: {} };
+  }
+
+  const firstRoundData = activeRounds[0].data;
+  const drawSize = firstRoundData.length;
+  const playerInfoMap = buildPlayerInfoMap(firstRoundData);
+  const winnerSets = buildWinnerSets(activeRounds, tournamentDraw);
+
+  const roundMatchUps: Record<number, SunburstMatchUp[]> = {};
+  roundMatchUps[1] = buildRound1MatchUps(firstRoundData, winnerSets, activeRounds);
+
+  for (let ri = 1; ri < activeRounds.length; ri++) {
+    roundMatchUps[ri + 1] = buildSubsequentRoundMatchUps(ri, activeRounds, winnerSets, playerInfoMap);
+  }
+
+  return { drawSize, roundMatchUps };
+}
+
+function getActiveRounds(tournamentDraw: any): { key: string; data: any[] }[] {
   const activeRounds: { key: string; data: any[] }[] = [];
   let found = false;
   for (const key of ROUND_KEYS) {
@@ -83,15 +104,12 @@ export function fromLegacyDraw(tournamentDraw: any): SunburstDrawData {
       activeRounds.push({ key, data });
     }
   }
+  return activeRounds;
+}
 
-  if (activeRounds.length === 0) {
-    return { drawSize: 0, roundMatchUps: {} };
-  }
-
-  const firstRoundData = activeRounds[0].data;
-  const drawSize = firstRoundData.length;
-
-  // Build a lookup from player name → first-round info for drawPosition/seed/country
+function buildPlayerInfoMap(
+  firstRoundData: any[]
+): Map<string, { drawPosition: number; country: string; seed?: string | number; entry?: string }> {
   const playerInfoMap = new Map<
     string,
     { drawPosition: number; country: string; seed?: string | number; entry?: string }
@@ -107,9 +125,13 @@ export function fromLegacyDraw(tournamentDraw: any): SunburstDrawData {
       });
     }
   });
+  return playerInfoMap;
+}
 
-  // Build a set of winners for each round (player names appearing in the next round)
-  // For round i, winners are the players that appear in round i+1 (or in 'W' for the final)
+function buildWinnerSets(
+  activeRounds: { key: string; data: any[] }[],
+  tournamentDraw: any
+): Map<string, Set<string>> {
   const winnerSets: Map<string, Set<string>> = new Map();
   for (let i = 0; i < activeRounds.length; i++) {
     const nextRoundData = i + 1 < activeRounds.length ? activeRounds[i + 1].data : tournamentDraw['W'] || [];
@@ -120,10 +142,28 @@ export function fromLegacyDraw(tournamentDraw: any): SunburstDrawData {
     }
     winnerSets.set(activeRounds[i].key, winners);
   }
+  return winnerSets;
+}
 
-  const roundMatchUps: Record<number, SunburstMatchUp[]> = {};
+function resolveWinningSide(
+  name1: string,
+  name2: string,
+  winners: Set<string>
+): number | undefined {
+  const isBye = name1 === 'BYE' || name2 === 'BYE';
+  if (isBye) {
+    return name1 === 'BYE' ? 2 : 1;
+  }
+  if (winners.has(name1)) return 1;
+  if (winners.has(name2)) return 2;
+  return undefined;
+}
 
-  // Round 1 (outermost): pair consecutive players into matchUps
+function buildRound1MatchUps(
+  firstRoundData: any[],
+  winnerSets: Map<string, Set<string>>,
+  activeRounds: { key: string; data: any[] }[]
+): SunburstMatchUp[] {
   const round1MatchUps: SunburstMatchUp[] = [];
   const winners1 = winnerSets.get(activeRounds[0].key) || new Set();
 
@@ -134,17 +174,8 @@ export function fromLegacyDraw(tournamentDraw: any): SunburstDrawData {
     const name2 = normalizeName(p2?.player);
 
     const isBye = name1 === 'BYE' || name2 === 'BYE';
-    const winningSide = isBye
-      ? name1 === 'BYE'
-        ? 2
-        : 1
-      : winners1.has(name1)
-        ? 1
-        : winners1.has(name2)
-          ? 2
-          : undefined;
+    const winningSide = resolveWinningSide(name1, name2, winners1);
 
-    // Determine score: the winner's score from round 2 data
     let scoreString: string | undefined;
     if (!isBye && activeRounds.length > 1) {
       const nextRound = activeRounds[1].data;
@@ -164,42 +195,41 @@ export function fromLegacyDraw(tournamentDraw: any): SunburstDrawData {
       sides: [makeSide(1, p1, i + 1), makeSide(2, p2, i + 2)]
     });
   }
-  roundMatchUps[1] = round1MatchUps;
+  return round1MatchUps;
+}
 
-  // Subsequent rounds (2, 3, ...): each player is a winner from the previous round
-  for (let ri = 1; ri < activeRounds.length; ri++) {
-    const roundNumber = ri + 1;
-    const roundData = activeRounds[ri].data;
-    const winners = winnerSets.get(activeRounds[ri].key) || new Set();
-    const matchUps: SunburstMatchUp[] = [];
+function buildSubsequentRoundMatchUps(
+  ri: number,
+  activeRounds: { key: string; data: any[] }[],
+  winnerSets: Map<string, Set<string>>,
+  playerInfoMap: Map<string, { drawPosition: number; country: string; seed?: string | number; entry?: string }>
+): SunburstMatchUp[] {
+  const roundNumber = ri + 1;
+  const roundData = activeRounds[ri].data;
+  const winners = winnerSets.get(activeRounds[ri].key) || new Set();
+  const matchUps: SunburstMatchUp[] = [];
 
-    for (let i = 0; i < roundData.length; i += 2) {
-      const p1 = roundData[i];
-      const p2 = roundData[i + 1];
-      const name1 = normalizeName(p1?.player);
-      const name2 = normalizeName(p2?.player);
+  for (let i = 0; i < roundData.length; i += 2) {
+    const p1 = roundData[i];
+    const p2 = roundData[i + 1];
+    const name1 = normalizeName(p1?.player);
+    const name2 = normalizeName(p2?.player);
 
-      const winningSide = winners.has(name1) ? 1 : winners.has(name2) ? 2 : undefined;
+    const winningSide = winners.has(name1) ? 1 : winners.has(name2) ? 2 : undefined;
+    const winnerEntry = winningSide === 1 ? p1 : winningSide === 2 ? p2 : undefined;
+    const scoreString = winnerEntry?.score;
+    const matchUpStatus = winningSide ? 'COMPLETED' : 'TO_BE_PLAYED';
 
-      // Score for THIS match: the winner's score in the data
-      const winnerEntry = winningSide === 1 ? p1 : winningSide === 2 ? p2 : undefined;
-      const scoreString = winnerEntry?.score;
-
-      const matchUpStatus = winningSide ? 'COMPLETED' : 'TO_BE_PLAYED';
-
-      matchUps.push({
-        roundNumber,
-        matchUpStatus,
-        winningSide,
-        drawPositions: [playerInfoMap.get(name1)?.drawPosition ?? 0, playerInfoMap.get(name2)?.drawPosition ?? 0],
-        scoreString,
-        sides: [makeSideFromLookup(1, p1, playerInfoMap), makeSideFromLookup(2, p2, playerInfoMap)]
-      });
-    }
-    roundMatchUps[roundNumber] = matchUps;
+    matchUps.push({
+      roundNumber,
+      matchUpStatus,
+      winningSide,
+      drawPositions: [playerInfoMap.get(name1)?.drawPosition ?? 0, playerInfoMap.get(name2)?.drawPosition ?? 0],
+      scoreString,
+      sides: [makeSideFromLookup(1, p1, playerInfoMap), makeSideFromLookup(2, p2, playerInfoMap)]
+    });
   }
-
-  return { drawSize, roundMatchUps };
+  return matchUps;
 }
 
 // ============================================================================

@@ -11,81 +11,57 @@ import type {
   MatchUpRecoveryTime
 } from '../types';
 
+function validateNonNegative(
+  value: number | undefined,
+  path: string,
+  message: string,
+  results: SchedulingValidationResult[]
+): void {
+  if (value !== undefined && value < 0) {
+    results.push({ severity: 'error', path, message });
+  }
+}
+
+function validateDefaultTimes(data: SchedulingPolicyData, results: SchedulingValidationResult[]): void {
+  if (!data.defaultTimes) return;
+
+  const avg = data.defaultTimes.averageTimes;
+  if (avg) {
+    for (let i = 0; i < avg.length; i++) {
+      validateNonNegative(avg[i].minutes.default, `defaultTimes.averageTimes[${i}].minutes.default`, 'Default average time must be non-negative', results);
+      validateNonNegative(avg[i].minutes.DOUBLES, `defaultTimes.averageTimes[${i}].minutes.DOUBLES`, 'Doubles average time must be non-negative', results);
+    }
+  }
+  const rec = data.defaultTimes.recoveryTimes;
+  if (rec) {
+    for (let i = 0; i < rec.length; i++) {
+      validateNonNegative(rec[i].minutes.default, `defaultTimes.recoveryTimes[${i}].minutes.default`, 'Default recovery time must be non-negative', results);
+    }
+  }
+}
+
+function validateDailyLimits(data: SchedulingPolicyData, results: SchedulingValidationResult[]): void {
+  if (!data.defaultDailyLimits) return;
+  const dl = data.defaultDailyLimits;
+  validateNonNegative(dl.SINGLES, 'defaultDailyLimits.SINGLES', 'Singles daily limit must be non-negative', results);
+  validateNonNegative(dl.DOUBLES, 'defaultDailyLimits.DOUBLES', 'Doubles daily limit must be non-negative', results);
+  validateNonNegative(dl.total, 'defaultDailyLimits.total', 'Total daily limit must be non-negative', results);
+}
+
 export function validateSchedulingPolicy(data: SchedulingPolicyData): SchedulingValidationResult[] {
   const results: SchedulingValidationResult[] = [];
 
-  // Validate default times
-  if (data.defaultTimes) {
-    const avg = data.defaultTimes.averageTimes;
-    if (avg) {
-      for (let i = 0; i < avg.length; i++) {
-        if (avg[i].minutes.default < 0) {
-          results.push({
-            severity: 'error',
-            path: `defaultTimes.averageTimes[${i}].minutes.default`,
-            message: 'Default average time must be non-negative'
-          });
-        }
-        if (avg[i].minutes.DOUBLES !== undefined && avg[i].minutes.DOUBLES! < 0) {
-          results.push({
-            severity: 'error',
-            path: `defaultTimes.averageTimes[${i}].minutes.DOUBLES`,
-            message: 'Doubles average time must be non-negative'
-          });
-        }
-      }
-    }
-    const rec = data.defaultTimes.recoveryTimes;
-    if (rec) {
-      for (let i = 0; i < rec.length; i++) {
-        if (rec[i].minutes.default < 0) {
-          results.push({
-            severity: 'error',
-            path: `defaultTimes.recoveryTimes[${i}].minutes.default`,
-            message: 'Default recovery time must be non-negative'
-          });
-        }
-      }
-    }
-  }
+  validateDefaultTimes(data, results);
+  validateDailyLimits(data, results);
 
-  // Validate daily limits
-  if (data.defaultDailyLimits) {
-    const dl = data.defaultDailyLimits;
-    if (dl.SINGLES !== undefined && dl.SINGLES < 0) {
-      results.push({
-        severity: 'error',
-        path: 'defaultDailyLimits.SINGLES',
-        message: 'Singles daily limit must be non-negative'
-      });
-    }
-    if (dl.DOUBLES !== undefined && dl.DOUBLES < 0) {
-      results.push({
-        severity: 'error',
-        path: 'defaultDailyLimits.DOUBLES',
-        message: 'Doubles daily limit must be non-negative'
-      });
-    }
-    if (dl.total !== undefined && dl.total < 0) {
-      results.push({
-        severity: 'error',
-        path: 'defaultDailyLimits.total',
-        message: 'Total daily limit must be non-negative'
-      });
-    }
-  }
-
-  // Validate matchUpAverageTimes
   if (data.matchUpAverageTimes) {
     validateFormatGroups(data.matchUpAverageTimes, 'matchUpAverageTimes', 'averageTimes', results);
   }
 
-  // Validate matchUpRecoveryTimes
   if (data.matchUpRecoveryTimes) {
     validateRecoveryGroups(data.matchUpRecoveryTimes, 'matchUpRecoveryTimes', results);
   }
 
-  // Check for duplicate format codes across groups (warning)
   checkDuplicateFormats(data, results);
 
   return results;
@@ -109,20 +85,8 @@ function validateFormatGroups(
     const times = group[timesKey as keyof typeof group] as { minutes: { default: number; DOUBLES?: number } }[];
     if (times) {
       for (let t = 0; t < times.length; t++) {
-        if (times[t].minutes.default < 0) {
-          results.push({
-            severity: 'error',
-            path: `${basePath}[${g}].${timesKey}[${t}].minutes.default`,
-            message: 'Time must be non-negative'
-          });
-        }
-        if (times[t].minutes.DOUBLES !== undefined && times[t].minutes.DOUBLES! < 0) {
-          results.push({
-            severity: 'error',
-            path: `${basePath}[${g}].${timesKey}[${t}].minutes.DOUBLES`,
-            message: 'Doubles time must be non-negative'
-          });
-        }
+        validateNonNegative(times[t].minutes.default, `${basePath}[${g}].${timesKey}[${t}].minutes.default`, 'Time must be non-negative', results);
+        validateNonNegative(times[t].minutes.DOUBLES, `${basePath}[${g}].${timesKey}[${t}].minutes.DOUBLES`, 'Doubles time must be non-negative', results);
       }
     }
   }
@@ -143,20 +107,8 @@ function validateRecoveryGroups(
       });
     }
     for (let t = 0; t < group.recoveryTimes.length; t++) {
-      if (group.recoveryTimes[t].minutes.default < 0) {
-        results.push({
-          severity: 'error',
-          path: `${basePath}[${g}].recoveryTimes[${t}].minutes.default`,
-          message: 'Recovery time must be non-negative'
-        });
-      }
-      if (group.recoveryTimes[t].minutes.DOUBLES !== undefined && group.recoveryTimes[t].minutes.DOUBLES! < 0) {
-        results.push({
-          severity: 'error',
-          path: `${basePath}[${g}].recoveryTimes[${t}].minutes.DOUBLES`,
-          message: 'Doubles recovery time must be non-negative'
-        });
-      }
+      validateNonNegative(group.recoveryTimes[t].minutes.default, `${basePath}[${g}].recoveryTimes[${t}].minutes.default`, 'Recovery time must be non-negative', results);
+      validateNonNegative(group.recoveryTimes[t].minutes.DOUBLES, `${basePath}[${g}].recoveryTimes[${t}].minutes.DOUBLES`, 'Doubles recovery time must be non-negative', results);
     }
   }
 }

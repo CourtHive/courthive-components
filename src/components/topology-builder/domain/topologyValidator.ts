@@ -20,16 +20,37 @@ export interface ValidationError {
 export function validateTopology(state: TopologyState): ValidationError[] {
   const errors: ValidationError[] = [];
 
-  // Exactly one MAIN node required
+  const mainNodes = validateMainNodes(state, errors);
+  const nodesWithFeedLinks = computeNodesWithFeedLinks(state);
+
+  validateDrawSizes(state, nodesWithFeedLinks, errors);
+  validateEdgeRoundNumbers(state, errors);
+  validateWinnerLinks(state, errors);
+  validateDuplicateSourceRounds(state, errors);
+  validateQualifyingStructures(state, mainNodes, errors);
+  validateQualifyingFeedCapacity(state, errors);
+  validateLoserLinkFeedCapacity(state, errors);
+  validateConsolationDrawSizes(state, errors);
+  validatePositionLinks(state, errors);
+
+  if (hasCircularDependency(state)) {
+    errors.push({ severity: 'error', message: 'Circular dependency detected between structures' });
+  }
+
+  return errors;
+}
+
+function validateMainNodes(state: TopologyState, errors: ValidationError[]): TopologyState['nodes'] {
   const mainNodes = state.nodes.filter((n) => n.stage === MAIN);
   if (mainNodes.length === 0) {
     errors.push({ severity: 'error', message: 'A main draw structure is required' });
   } else if (mainNodes.length > 1) {
     errors.push({ severity: 'error', message: 'Only one main draw structure is allowed' });
   }
+  return mainNodes;
+}
 
-  // Pre-compute nodes that have fed positions (qualifying links at round > 1
-  // OR multiple inbound loser links from different source rounds)
+function computeNodesWithFeedLinks(state: TopologyState): Set<string> {
   const nodesWithFeedLinks = new Set<string>();
   for (const edge of state.edges) {
     if (edge.linkType === WINNER && (edge.targetRoundNumber || 1) > 1) {
@@ -37,7 +58,6 @@ export function validateTopology(state: TopologyState): ValidationError[] {
       if (source?.stage === QUALIFYING) nodesWithFeedLinks.add(edge.targetNodeId);
     }
   }
-  // Nodes receiving multiple loser links are effectively feed-in structures
   const loserLinkCountByTarget = new Map<string, number>();
   for (const edge of state.edges) {
     if (edge.linkType === LOSER) {
@@ -47,10 +67,10 @@ export function validateTopology(state: TopologyState): ValidationError[] {
   for (const [nodeId, count] of loserLinkCountByTarget) {
     if (count > 1) nodesWithFeedLinks.add(nodeId);
   }
+  return nodesWithFeedLinks;
+}
 
-  // Draw sizes: power of 2 for MAIN elimination types without fed positions.
-  // AD_HOC, ROUND_ROBIN, consolation, playoff, and fed structures can have any drawSize.
-  // (AD_HOC drawSize simply controls matchups-per-round via drawSize/2, no bracket geometry.)
+function validateDrawSizes(state: TopologyState, nodesWithFeedLinks: Set<string>, errors: ValidationError[]): void {
   for (const node of state.nodes) {
     if (node.structureType === SINGLE_ELIMINATION && !nodesWithFeedLinks.has(node.id)) {
       const isTarget = state.edges.some((e) => e.targetNodeId === node.id);
@@ -67,7 +87,6 @@ export function validateTopology(state: TopologyState): ValidationError[] {
       }
     }
 
-    // AD_HOC structures allow drawSize 0 (no matchups yet); all others require ≥ 2
     const minDrawSize = node.structureType === AD_HOC ? 0 : 2;
     if (node.drawSize < minDrawSize) {
       errors.push({
@@ -77,8 +96,9 @@ export function validateTopology(state: TopologyState): ValidationError[] {
       });
     }
   }
+}
 
-  // Valid round numbers on edges
+function validateEdgeRoundNumbers(state: TopologyState, errors: ValidationError[]): void {
   for (const edge of state.edges) {
     const source = state.nodes.find((n) => n.id === edge.sourceNodeId);
     const target = state.nodes.find((n) => n.id === edge.targetNodeId);
@@ -112,8 +132,9 @@ export function validateTopology(state: TopologyState): ValidationError[] {
       }
     }
   }
+}
 
-  // Only one winner link per source structure
+function validateWinnerLinks(state: TopologyState, errors: ValidationError[]): void {
   const winnerEdgesBySource = new Map<string, string[]>();
   for (const edge of state.edges) {
     if (edge.linkType !== WINNER) continue;
@@ -132,8 +153,9 @@ export function validateTopology(state: TopologyState): ValidationError[] {
       }
     }
   }
+}
 
-  // Duplicate source round detection
+function validateDuplicateSourceRounds(state: TopologyState, errors: ValidationError[]): void {
   const edgesBySource = new Map<string, { round: number; edgeId: string }[]>();
   for (const edge of state.edges) {
     if (!edge.sourceRoundNumber) continue;
@@ -155,8 +177,13 @@ export function validateTopology(state: TopologyState): ValidationError[] {
       }
     }
   }
+}
 
-  // Qualifying structure validations
+function validateQualifyingStructures(
+  state: TopologyState,
+  mainNodes: TopologyState['nodes'],
+  errors: ValidationError[]
+): void {
   const qualifyingNodes = state.nodes.filter((n) => n.stage === QUALIFYING);
 
   for (const qNode of qualifyingNodes) {
@@ -183,9 +210,9 @@ export function validateTopology(state: TopologyState): ValidationError[] {
       }
     }
   }
+}
 
-  // Qualifying links targeting round > 1 need that round to be a feed
-  // round with sufficient capacity in the target structure.
+function validateQualifyingFeedCapacity(state: TopologyState, errors: ValidationError[]): void {
   const feedEdgesByTarget = new Map<
     string,
     { edgeId: string; targetRound: number; qp: number; sourceName: string }[]
@@ -206,7 +233,6 @@ export function validateTopology(state: TopologyState): ValidationError[] {
     const target = state.nodes.find((n) => n.id === targetId);
     if (!target) continue;
     const feedCapacities = getFeedRoundCapacities(target.drawSize);
-    // Accumulate demand per round
     const demandByRound = new Map<number, number>();
     for (const entry of entries) {
       demandByRound.set(entry.targetRound, (demandByRound.get(entry.targetRound) || 0) + entry.qp);
@@ -224,10 +250,9 @@ export function validateTopology(state: TopologyState): ValidationError[] {
       }
     }
   }
+}
 
-  // Loser link feed capacity validation — check that each loser link's
-  // source round produces enough losers for the target round's capacity,
-  // and that the target round is a valid feed round (or R1).
+function validateLoserLinkFeedCapacity(state: TopologyState, errors: ValidationError[]): void {
   for (const edge of state.edges) {
     if (edge.linkType !== LOSER) continue;
     const source = state.nodes.find((n) => n.id === edge.sourceNodeId);
@@ -237,44 +262,50 @@ export function validateTopology(state: TopologyState): ValidationError[] {
     const sourceRound = edge.sourceRoundNumber || 1;
     const targetRound = edge.targetRoundNumber || 1;
 
-    // Losers produced by the source round (lucky-draw-aware)
     const losersProduced = getNodeLosersForRound(source.structureType, source.drawSize, sourceRound);
-
-    // Target round capacity: R1 takes participants directly (drawSize / 2 matchup sides);
-    // feed rounds have specific capacity from the drawSize geometry.
     const feedCapacities = getFeedRoundCapacities(target.drawSize);
 
-    if (targetRound === 1) {
-      // R1 of the target can accommodate drawSize/2 matchups = drawSize participants
-      // (each matchup has 2 sides, but for the first round losers fill the bracket)
-      // No additional validation needed for R1 — the consolation drawSize check covers it
-    } else {
-      const feedCap = feedCapacities.get(targetRound);
-      if (feedCap === undefined) {
-        errors.push({
-          severity: 'error',
-          message: `"${target.structureName}" R${targetRound} is not a feed round — cannot receive ${losersProduced} losers from "${source.structureName}" R${sourceRound}`,
-          edgeId: edge.id
-        });
-      } else if (losersProduced > feedCap) {
-        errors.push({
-          severity: 'error',
-          message: `"${source.structureName}" R${sourceRound} produces ${losersProduced} losers but "${target.structureName}" R${targetRound} only has ${feedCap} feed positions`,
-          edgeId: edge.id
-        });
-      } else if (losersProduced < feedCap) {
-        errors.push({
-          severity: 'warning',
-          message: `"${source.structureName}" R${sourceRound} produces ${losersProduced} losers but "${
-            target.structureName
-          }" R${targetRound} has ${feedCap} feed positions — ${feedCap - losersProduced} will be empty`,
-          edgeId: edge.id
-        });
-      }
+    if (targetRound !== 1) {
+      validateLoserFeedRound(feedCapacities, targetRound, losersProduced, source, target, sourceRound, edge.id, errors);
     }
   }
+}
 
-  // Consolation structure drawSize validation
+function validateLoserFeedRound(
+  feedCapacities: Map<number, number>,
+  targetRound: number,
+  losersProduced: number,
+  source: TopologyState['nodes'][number],
+  target: TopologyState['nodes'][number],
+  sourceRound: number,
+  edgeId: string,
+  errors: ValidationError[]
+): void {
+  const feedCap = feedCapacities.get(targetRound);
+  if (feedCap === undefined) {
+    errors.push({
+      severity: 'error',
+      message: `"${target.structureName}" R${targetRound} is not a feed round — cannot receive ${losersProduced} losers from "${source.structureName}" R${sourceRound}`,
+      edgeId
+    });
+  } else if (losersProduced > feedCap) {
+    errors.push({
+      severity: 'error',
+      message: `"${source.structureName}" R${sourceRound} produces ${losersProduced} losers but "${target.structureName}" R${targetRound} only has ${feedCap} feed positions`,
+      edgeId
+    });
+  } else if (losersProduced < feedCap) {
+    errors.push({
+      severity: 'warning',
+      message: `"${source.structureName}" R${sourceRound} produces ${losersProduced} losers but "${
+        target.structureName
+      }" R${targetRound} has ${feedCap} feed positions — ${feedCap - losersProduced} will be empty`,
+      edgeId
+    });
+  }
+}
+
+function validateConsolationDrawSizes(state: TopologyState, errors: ValidationError[]): void {
   const consolationNodes = state.nodes.filter((n) => n.stage === CONSOLATION);
   for (const cNode of consolationNodes) {
     const inbound = state.edges.filter((e) => e.targetNodeId === cNode.id);
@@ -308,8 +339,9 @@ export function validateTopology(state: TopologyState): ValidationError[] {
       });
     }
   }
+}
 
-  // POSITION link validation
+function validatePositionLinks(state: TopologyState, errors: ValidationError[]): void {
   const positionEdgesBySource = new Map<string, { edgeId: string; positions: number[] }[]>();
   for (const edge of state.edges) {
     if (edge.linkType !== POSITION) continue;
@@ -331,7 +363,6 @@ export function validateTopology(state: TopologyState): ValidationError[] {
     }
   }
 
-  // Warn on overlapping finishing positions across POSITION links from the same source
   for (const [sourceId, entries] of positionEdgesBySource) {
     if (entries.length < 2) continue;
     const sourceName = state.nodes.find((n) => n.id === sourceId)?.structureName || 'Unknown';
@@ -350,13 +381,6 @@ export function validateTopology(state: TopologyState): ValidationError[] {
       }
     }
   }
-
-  // Circular dependency detection
-  if (hasCircularDependency(state)) {
-    errors.push({ severity: 'error', message: 'Circular dependency detected between structures' });
-  }
-
-  return errors;
 }
 
 function hasCircularDependency(state: TopologyState): boolean {

@@ -38,10 +38,33 @@ export function analyzePositionValueShape(ranges: Record<string, any> | undefine
   const values = Object.values(ranges);
   if (!values.length) return { type: 'flat' };
 
-  // Check if all values are flat numbers
   if (values.every((v) => typeof v === 'number')) return { type: 'flat' };
 
-  // Collect all levels and flights seen across values
+  const classified = collectClassifications(values);
+
+  if (classified.hasConditionalArray) return { type: 'conditional' };
+
+  if (classified.hasLevelFlightNesting) {
+    return buildLevelFlightLayout(values, classified.allLevels);
+  }
+
+  if (classified.allLevels.size > 0) {
+    return { type: 'level-columns', levels: [...classified.allLevels].sort((a, b) => a - b) };
+  }
+
+  if (classified.allFlights.size > 0) {
+    return { type: 'flight-columns', flights: [...classified.allFlights].sort((a, b) => a - b) };
+  }
+
+  return { type: 'flat' };
+}
+
+function collectClassifications(values: any[]): {
+  allLevels: Set<number>;
+  allFlights: Set<number>;
+  hasConditionalArray: boolean;
+  hasLevelFlightNesting: boolean;
+} {
   const allLevels = new Set<number>();
   const allFlights = new Set<number>();
   let hasConditionalArray = false;
@@ -57,38 +80,27 @@ export function analyzePositionValueShape(ranges: Record<string, any> | undefine
     } else if (info.type === 'conditional-array') {
       hasConditionalArray = true;
     }
-    // flat numbers mixed in are fine — they apply to all columns
   }
 
-  if (hasConditionalArray) return { type: 'conditional' };
+  return { allLevels, allFlights, hasConditionalArray, hasLevelFlightNesting };
+}
 
-  if (hasLevelFlightNesting) {
-    const flightsPerLevel: Record<number, number[]> = {};
-    const levels = [...allLevels].sort((a, b) => a - b);
-    for (const v of values) {
-      const info = classifyValue(v);
-      if (info.type === LEVEL_KEYED && info.flightDetails) {
-        for (const [lv, flights] of Object.entries(info.flightDetails)) {
-          const lvNum = Number(lv);
-          if (!flightsPerLevel[lvNum]) flightsPerLevel[lvNum] = [];
-          for (const f of flights) {
-            if (!flightsPerLevel[lvNum].includes(f)) flightsPerLevel[lvNum].push(f);
-          }
+function buildLevelFlightLayout(values: any[], allLevels: Set<number>): TableLayout {
+  const flightsPerLevel: Record<number, number[]> = {};
+  const levels = [...allLevels].sort((a, b) => a - b);
+  for (const v of values) {
+    const info = classifyValue(v);
+    if (info.type === LEVEL_KEYED && info.flightDetails) {
+      for (const [lv, flights] of Object.entries(info.flightDetails)) {
+        const lvNum = Number(lv);
+        if (!flightsPerLevel[lvNum]) flightsPerLevel[lvNum] = [];
+        for (const f of flights) {
+          if (!flightsPerLevel[lvNum].includes(f)) flightsPerLevel[lvNum].push(f);
         }
       }
     }
-    return { type: 'level-flight-tabs', levels, flightsPerLevel };
   }
-
-  if (allLevels.size > 0) {
-    return { type: 'level-columns', levels: [...allLevels].sort((a, b) => a - b) };
-  }
-
-  if (allFlights.size > 0) {
-    return { type: 'flight-columns', flights: [...allFlights].sort((a, b) => a - b) };
-  }
-
-  return { type: 'flat' };
+  return { type: 'level-flight-tabs', levels, flightsPerLevel };
 }
 
 interface ValueClassification {
@@ -155,42 +167,16 @@ export function resolvePositionValue(
   if (typeof value === 'number') return value;
   if (value === null || value === undefined) return undefined;
 
-  // Array form (conditional)
   if (Array.isArray(value)) {
-    for (const entry of value) {
-      if (entry.drawSizes && context.drawSize && entry.drawSizes.includes(context.drawSize)) {
-        return resolvePositionValue(entry, context);
-      }
-      if (entry.drawSize !== undefined && context.drawSize !== undefined) {
-        if (entry.threshold ? context.drawSize >= entry.drawSize : context.drawSize === entry.drawSize) {
-          return resolvePositionValue(
-            { ...entry, drawSize: undefined, drawSizes: undefined, threshold: undefined },
-            context
-          );
-        }
-      }
-      // Default entry (no drawSize constraints)
-      if (entry.drawSize === undefined && entry.drawSizes === undefined) {
-        return resolvePositionValue(entry, context);
-      }
-    }
-    return undefined;
+    return resolveConditionalArray(value, context);
   }
 
   if (typeof value !== 'object') return undefined;
 
-  // Level-keyed
   if (value.level !== undefined && context.level !== undefined) {
-    const levelValue = Array.isArray(value.level) ? value.level[context.level - 1] : value.level[context.level];
-    if (levelValue === undefined) return undefined;
-    // Level value could itself be a flight-keyed value
-    if (typeof levelValue === 'object' && levelValue !== null) {
-      return resolvePositionValue(levelValue, context);
-    }
-    return typeof levelValue === 'number' ? levelValue : undefined;
+    return resolveLevelKeyed(value, context);
   }
 
-  // Flight-keyed
   if (context.flight !== undefined) {
     const flights = value.flights ?? value.f;
     if (Array.isArray(flights)) {
@@ -198,10 +184,46 @@ export function resolvePositionValue(
     }
   }
 
-  // Explicit flat
   if (value.value !== undefined) return value.value;
 
   return undefined;
+}
+
+function resolveConditionalArray(
+  value: any[],
+  context: { level?: number; flight?: number; drawSize?: number }
+): number | undefined {
+  for (const entry of value) {
+    if (entry.drawSizes && context.drawSize && entry.drawSizes.includes(context.drawSize)) {
+      return resolvePositionValue(entry, context);
+    }
+    if (
+      entry.drawSize !== undefined &&
+      context.drawSize !== undefined &&
+      (entry.threshold ? context.drawSize >= entry.drawSize : context.drawSize === entry.drawSize)
+    ) {
+      return resolvePositionValue(
+        { ...entry, drawSize: undefined, drawSizes: undefined, threshold: undefined },
+        context
+      );
+    }
+    if (entry.drawSize === undefined && entry.drawSizes === undefined) {
+      return resolvePositionValue(entry, context);
+    }
+  }
+  return undefined;
+}
+
+function resolveLevelKeyed(
+  value: any,
+  context: { level?: number; flight?: number; drawSize?: number }
+): number | undefined {
+  const levelValue = Array.isArray(value.level) ? value.level[context.level! - 1] : value.level[context.level!];
+  if (levelValue === undefined) return undefined;
+  if (typeof levelValue === 'object' && levelValue !== null) {
+    return resolvePositionValue(levelValue, context);
+  }
+  return typeof levelValue === 'number' ? levelValue : undefined;
 }
 
 // ── Profile Summary ─────────────────────────────────────────────────────────
