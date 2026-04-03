@@ -103,7 +103,7 @@ export function createInlineScoringFooter(params: FooterParams): {
           situation.isBreakPoint && 'Break',
           situation.isGamePoint && 'Game',
           situation.isSetPoint && 'Set',
-          situation.isMatchPoint && 'Match',
+          situation.isMatchPoint && 'Match'
         ].filter(Boolean);
         situationEl.textContent = flags.length ? flags.join(' \u2022 ') : '';
       } else {
@@ -116,4 +116,3 @@ export function createInlineScoringFooter(params: FooterParams): {
 
   return { element: footer, update };
 }
-

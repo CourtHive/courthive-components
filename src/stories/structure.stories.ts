@@ -1,4 +1,9 @@
-import { mocksEngine, tournamentEngine, drawDefinitionConstants, matchUpStatusConstants } from 'tods-competition-factory';
+import {
+  mocksEngine,
+  tournamentEngine,
+  drawDefinitionConstants,
+  matchUpStatusConstants
+} from 'tods-competition-factory';
 
 const { FEED_IN, ROUND_ROBIN, AD_HOC, LUCKY_DRAW } = drawDefinitionConstants;
 const { COMPLETED } = matchUpStatusConstants;

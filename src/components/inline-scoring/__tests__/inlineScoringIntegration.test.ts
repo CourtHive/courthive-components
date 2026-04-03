@@ -19,9 +19,9 @@ function makeMatchUp(overrides: Partial<MatchUp> = {}): MatchUp {
     matchUpFormat: STANDARD_FORMAT,
     sides: [
       { sideNumber: 1, participant: { participantId: 'p1', participantName: 'Player 1' } },
-      { sideNumber: 2, participant: { participantId: 'p2', participantName: 'Player 2' } },
+      { sideNumber: 2, participant: { participantId: 'p2', participantName: 'Player 2' } }
     ],
-    ...overrides,
+    ...overrides
   } as MatchUp;
 }
 
@@ -248,7 +248,7 @@ describe('Integration: callback sequencing', () => {
     const callOrder: string[] = [];
     const manager = new InlineScoringManager({
       onScoreChange: () => callOrder.push('scoreChange'),
-      onMatchComplete: () => callOrder.push('matchComplete'),
+      onMatchComplete: () => callOrder.push('matchComplete')
     });
     const mu = makeMatchUp();
     manager.getOrCreate('mu-1', STANDARD_FORMAT, mu);
@@ -289,8 +289,8 @@ describe('Integration: callback sequencing', () => {
     manager.getOrCreate('mu-1', STANDARD_FORMAT, mu);
 
     manager.addGame('mu-1', 0, mu); // 1
-    manager.undo('mu-1', mu);        // 2
-    manager.redo('mu-1', mu);        // 3
+    manager.undo('mu-1', mu); // 2
+    manager.redo('mu-1', mu); // 3
 
     expect(onScoreChange).toHaveBeenCalledTimes(3);
   });

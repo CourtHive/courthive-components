@@ -249,7 +249,7 @@ export class ProfileStore {
       code: 'DROP_REJECTED',
       severity: 'WARN',
       message: `Drop rejected: ${message}`,
-      context: {},
+      context: {}
     };
     const results = [...this.state.ruleResults.filter((r) => r.code !== 'DROP_REJECTED'), notice];
     const index = buildIssueIndex(results);

@@ -70,13 +70,13 @@ tipster({
   target: button,
   title: 'Actions',
   items: [
-    { 
-      text: 'Edit', 
+    {
+      text: 'Edit',
       onClick: () => console.log('Edit'),
       style: { color: 'blue' }
     },
-    { 
-      text: 'Delete', 
+    {
+      text: 'Delete',
       onClick: () => console.log('Delete'),
       style: { color: 'red' }
     }
@@ -103,14 +103,14 @@ Creates and shows a tippy.js popover menu.
 
 ```typescript
 type TipsterParams = {
-  target?: HTMLElement;           // Element to attach popover to
-  title?: string;                 // Menu title
-  options?: any[];                // Array of options (string or object with 'option' key)
-  items?: any[];                  // Array of menu items with text, onClick, and style
-  menuItems?: any[];              // Additional menu sections
-  coords?: any;                   // Coordinate-based positioning (uses evt.target if provided)
+  target?: HTMLElement; // Element to attach popover to
+  title?: string; // Menu title
+  options?: any[]; // Array of options (string or object with 'option' key)
+  items?: any[]; // Array of menu items with text, onClick, and style
+  menuItems?: any[]; // Additional menu sections
+  coords?: any; // Coordinate-based positioning (uses evt.target if provided)
   callback?: (result: any) => void; // Callback for option selection
-  config?: any;                   // Additional tippy.js configuration
+  config?: any; // Additional tippy.js configuration
 };
 ```
 
@@ -141,6 +141,7 @@ tipster({
 ## Themes
 
 Tipster uses the `light-border` theme by default. Available tippy.js themes:
+
 - `light`
 - `light-border` (default)
 - `material`

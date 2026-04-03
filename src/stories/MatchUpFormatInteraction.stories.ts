@@ -4,7 +4,8 @@
  */
 // @ts-expect-error - Storybook types not in published package
 import type { Meta, StoryObj } from '@storybook/html';
-import { within, waitFor, userEvent, expect } from '@storybook/test';
+// @ts-expect-error - Storybook 10 exports not resolved under current moduleResolution
+import { within, waitFor, userEvent, expect } from 'storybook/test';
 import { getMatchUpFormatModal } from '../components/matchUpFormat/matchUpFormat';
 
 const SELECTED_FORMAT_PLACEHOLDER = '<strong>Selected format will appear here</strong>';
@@ -240,8 +241,6 @@ export const PreserveExistingFinalSetTiebreak: Story = {
     button.textContent = 'Open with Explicit F:6';
     button.id = 'open-modal-button-3';
     button.onclick = async () => {
-
-
       // Open with format where main HAS tiebreak but final DOES NOT
       getMatchUpFormatModal({
         existingMatchUpFormat: 'SET3-S:6/TB7-F:6',

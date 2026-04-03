@@ -40,11 +40,7 @@ export { buildSchedulePageLayout } from './ui/schedulePageLayout';
 // Schedule Grid Cell (configurable cell renderer)
 // ============================================================================
 
-export {
-  buildScheduleGridCell,
-  mapMatchUpToCellData,
-  DEFAULT_SCHEDULE_CELL_CONFIG,
-} from './ui/scheduleGridCell';
+export { buildScheduleGridCell, mapMatchUpToCellData, DEFAULT_SCHEDULE_CELL_CONFIG } from './ui/scheduleGridCell';
 
 export { activateScheduleCellTypeAhead } from './ui/scheduleCellTypeAhead';
 export type { ScheduleCellTypeAheadOptions } from './ui/scheduleCellTypeAhead';
@@ -77,7 +73,7 @@ export type {
   ScheduleCellField,
   ParticipantDisplayConfig,
   ScheduleCellData,
-  ScheduleCellSide,
+  ScheduleCellSide
 } from './types';
 
 // ============================================================================
@@ -87,10 +83,7 @@ export type {
 import type { SchedulePageConfig } from './types';
 import { SchedulePageControl } from './controller/schedulePageControl';
 
-export function createSchedulePage(
-  config: SchedulePageConfig,
-  container: HTMLElement,
-): SchedulePageControl {
+export function createSchedulePage(config: SchedulePageConfig, container: HTMLElement): SchedulePageControl {
   const control = new SchedulePageControl(config);
   control.render(container);
   return control;

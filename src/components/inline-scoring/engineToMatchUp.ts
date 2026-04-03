@@ -15,8 +15,8 @@ export function engineToMatchUp(engine: any, baseMatchUp: MatchUp): MatchUp {
   if (!hasEngineHistory && baseMatchUp.score?.sets?.length) {
     return {
       ...baseMatchUp,
-      matchUpStatus: isComplete ? 'COMPLETED' : (baseMatchUp.matchUpStatus || 'IN_PROGRESS'),
-      winningSide: engine.getWinner() ?? baseMatchUp.winningSide ?? undefined,
+      matchUpStatus: isComplete ? 'COMPLETED' : baseMatchUp.matchUpStatus || 'IN_PROGRESS',
+      winningSide: engine.getWinner() ?? baseMatchUp.winningSide ?? undefined
     };
   }
 
@@ -40,8 +40,8 @@ export function engineToMatchUp(engine: any, baseMatchUp: MatchUp): MatchUp {
       !s.winningSide &&
       !isComplete && {
         side1PointScore: score.pointDisplay[0],
-        side2PointScore: score.pointDisplay[1],
-      }),
+        side2PointScore: score.pointDisplay[1]
+      })
   }));
 
   // Skip placeholder sets and point injection only for irregular endings that
@@ -49,8 +49,7 @@ export function engineToMatchUp(engine: any, baseMatchUp: MatchUp): MatchUp {
   // Statuses like SUSPENDED, CANCELLED, ABANDONED don't have a winner and
   // should still show game/point scores for display and resumption.
   const terminalIrregularStatuses = ['RETIRED', 'DEFAULTED', 'WALKOVER', 'DOUBLE_WALKOVER', 'DOUBLE_DEFAULT'];
-  const hasIrregularStatus = baseMatchUp.matchUpStatus &&
-    terminalIrregularStatuses.includes(baseMatchUp.matchUpStatus);
+  const hasIrregularStatus = baseMatchUp.matchUpStatus && terminalIrregularStatuses.includes(baseMatchUp.matchUpStatus);
 
   // Ensure there's always an active (unwon) set when the match isn't complete.
   // The engine only adds a new set entry once the first point of that set is scored,
@@ -75,11 +74,11 @@ export function engineToMatchUp(engine: any, baseMatchUp: MatchUp): MatchUp {
 
   return {
     ...baseMatchUp,
-    matchUpStatus: isComplete ? 'COMPLETED' : (baseMatchUp.matchUpStatus || 'IN_PROGRESS'),
+    matchUpStatus: isComplete ? 'COMPLETED' : baseMatchUp.matchUpStatus || 'IN_PROGRESS',
     winningSide: winner ?? baseMatchUp.winningSide ?? undefined,
     score: {
       sets,
-      scoreStringSide1: engine.getScoreboard() || undefined,
-    },
+      scoreStringSide1: engine.getScoreboard() || undefined
+    }
   };
 }

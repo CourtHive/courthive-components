@@ -1,4 +1,10 @@
-import { mocksEngine, tournamentEngine, eventConstants, drawDefinitionConstants, participantConstants } from 'tods-competition-factory';
+import {
+  mocksEngine,
+  tournamentEngine,
+  eventConstants,
+  drawDefinitionConstants,
+  participantConstants
+} from 'tods-competition-factory';
 
 const { DOUBLES, SINGLES } = eventConstants;
 const { AD_HOC } = drawDefinitionConstants;

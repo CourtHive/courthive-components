@@ -1,12 +1,7 @@
 import { teamLogoStyle } from '../../styles/teamLogoStyle';
 import { getTeamLogo, hashString } from '../../assets/team-logos';
 
-export function renderTeamLogo({
-  participantId,
-}: {
-  teamLogo?: any;
-  participantId?: string;
-}): HTMLElement {
+export function renderTeamLogo({ participantId }: { teamLogo?: any; participantId?: string }): HTMLElement {
   const div = document.createElement('div');
   div.className = teamLogoStyle();
 

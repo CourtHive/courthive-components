@@ -16,19 +16,11 @@ import 'tippy.js/dist/tippy.css';
 
 import { tournamentEngine, temporal } from 'tods-competition-factory';
 
-import {
-  SchedulingProfileControl,
-  createSchedulingProfile,
-} from '../../components/scheduling-profile';
+import { SchedulingProfileControl, createSchedulingProfile } from '../../components/scheduling-profile';
 
 import type { SchedulingProfile } from '../../components/scheduling-profile';
 
-import {
-  createFactorySetup,
-  profileToFactoryFormat,
-  buildHeavyProfile,
-  buildSpreadProfile,
-} from './factoryData';
+import { createFactorySetup, profileToFactoryFormat, buildHeavyProfile, buildSpreadProfile } from './factoryData';
 
 const { calculateCapacityStats } = temporal;
 
@@ -36,14 +28,13 @@ export default {
   title: 'Scheduling Profile/Factory',
   parameters: {
     layout: 'fullscreen',
-    backgrounds: { default: 'dark' },
-  },
+    backgrounds: { default: 'dark' }
+  }
 };
 
 // ── Shared Styles ────────────────────────────────────────────────────────────
 
-const ROOT_STYLE =
-  'background: var(--sp-bg); min-height: 100vh;';
+const ROOT_STYLE = 'background: var(--sp-bg); min-height: 100vh;';
 
 const INFO_STYLE =
   'font-size: 12px; color: var(--sp-muted); padding: 12px 16px; font-family: ui-sans-serif, system-ui, sans-serif;';
@@ -104,7 +95,7 @@ export const FactoryBacked = {
       `${new Set(setup.roundCatalog.map((r) => r.eventId)).size} events,`,
       `${setup.venues.length} venues,`,
       `TemporalEngine-backed availability.`,
-      `Date range: ${setup.startDate} to ${setup.endDate}.`,
+      `Date range: ${setup.startDate} to ${setup.endDate}.`
     ].join(' ');
     root.appendChild(info);
 
@@ -118,12 +109,12 @@ export const FactoryBacked = {
         onProfileChanged: (profile) => {
           const totalRounds = profile.reduce(
             (sum, day) => sum + day.venues.reduce((vs, v) => vs + v.rounds.length, 0),
-            0,
+            0
           );
           console.log(`Profile changed: ${totalRounds} rounds placed`);
-        },
+        }
       },
-      container,
+      container
     );
 
     // Footer with stats
@@ -135,7 +126,7 @@ export const FactoryBacked = {
       `Events: ${new Set(setup.roundCatalog.map((r) => r.eventId)).size}`,
       `Venues: ${setup.venues.length}`,
       `Dates: ${setup.schedulableDates.length} (${setup.startDate} \u2192 ${setup.endDate})`,
-      `Tournament: ${setup.tournamentId.slice(0, 8)}\u2026`,
+      `Tournament: ${setup.tournamentId.slice(0, 8)}\u2026`
     ].join(' \u2502 ');
 
     const statsEl = document.createElement('span');
@@ -145,7 +136,7 @@ export const FactoryBacked = {
 
     addConsoleLog(root, control);
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -165,7 +156,7 @@ export const RoundTrip = {
     info.innerHTML = [
       '<strong>Round-Trip</strong> &mdash; Place rounds in the profile, then click',
       '"Schedule Profile Rounds" to run the factory scheduler.',
-      'Results appear in the panel below.',
+      'Results appear in the panel below.'
     ].join(' ');
     root.appendChild(info);
 
@@ -194,7 +185,7 @@ export const RoundTrip = {
       // Set the scheduling profile on the tournament
       tournamentEngine.setState(setup.tournamentRecord);
       const setResult = tournamentEngine.setSchedulingProfile({
-        schedulingProfile: factoryProfile,
+        schedulingProfile: factoryProfile
       });
 
       if (setResult?.error) {
@@ -259,7 +250,7 @@ export const RoundTrip = {
 
     addConsoleLog(root, control);
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -280,7 +271,7 @@ export const CapacityAware = {
     info.innerHTML = [
       '<strong>Capacity-Aware</strong> &mdash; Day 1 is overloaded with many rounds at one venue.',
       'Court bookings (maintenance + practice) reduce available capacity.',
-      'The capacity panel below updates in real-time as you add/remove rounds.',
+      'The capacity panel below updates in real-time as you add/remove rounds.'
     ].join(' ');
     root.appendChild(info);
 
@@ -301,9 +292,7 @@ export const CapacityAware = {
         const ratio = capacityMinutes > 0 ? Math.round((demandMinutes / capacityMinutes) * 100) : 0;
         const status = demandMinutes === 0 ? 'EMPTY' : ratio > 100 ? 'OVERLOADED' : 'OK';
 
-        lines.push(
-          `${date}: ${demandMinutes}min demand / ${capacityMinutes}min capacity (${ratio}%) [${status}]`,
-        );
+        lines.push(`${date}: ${demandMinutes}min demand / ${capacityMinutes}min capacity (${ratio}%) [${status}]`);
       }
 
       // Engine-level stats for day 1
@@ -328,15 +317,15 @@ export const CapacityAware = {
         initialProfile: heavyProfile,
         onProfileChanged: (profile) => {
           updateCapacityPanel(profile);
-        },
+        }
       },
-      container,
+      container
     );
 
     root.appendChild(capacityPanel);
     addConsoleLog(root, control);
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -355,7 +344,7 @@ export const PreScheduled = {
     tournamentEngine.setState(setup.tournamentRecord);
     const factoryProfile = profileToFactoryFormat(spreadProfile);
     const setResult = tournamentEngine.setSchedulingProfile({
-      schedulingProfile: factoryProfile,
+      schedulingProfile: factoryProfile
     });
 
     let schedulerInfo = '';
@@ -377,7 +366,7 @@ export const PreScheduled = {
       '<strong>Pre-Scheduled</strong> &mdash; Rounds are pre-distributed across dates',
       'respecting round-number precedence.',
       schedulerInfo,
-      'Review the distribution and adjust as needed.',
+      'Review the distribution and adjust as needed.'
     ].join(' ');
     root.appendChild(info);
 
@@ -392,17 +381,17 @@ export const PreScheduled = {
         onProfileChanged: (profile) => {
           const totalRounds = profile.reduce(
             (sum, day) => sum + day.venues.reduce((vs, v) => vs + v.rounds.length, 0),
-            0,
+            0
           );
           console.log(`Profile changed: ${totalRounds} rounds placed`);
-        },
+        }
       },
-      container,
+      container
     );
 
     addConsoleLog(root, control);
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -418,7 +407,7 @@ export const FullHeight = {
     createSchedulingProfile(setup.config, root);
 
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -440,7 +429,7 @@ function venueCountStory(venueCount: number) {
         venueCount > 4
           ? 'Day Plan scrolls horizontally (min 240px per venue column).'
           : 'Venues fit within the available width.',
-        `${setup.roundCatalog.length} rounds across ${setup.venues.length} venues.`,
+        `${setup.roundCatalog.length} rounds across ${setup.venues.length} venues.`
       ].join(' ');
       root.appendChild(info);
 
@@ -451,7 +440,7 @@ function venueCountStory(venueCount: number) {
       addConsoleLog(root, control);
 
       return root;
-    },
+    }
   };
 }
 

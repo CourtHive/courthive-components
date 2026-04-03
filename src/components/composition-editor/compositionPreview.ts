@@ -21,8 +21,8 @@ function getMockMatchUps() {
       matchUpFormat: 'SET3-S:6/TB7',
       withAllRatings: KNOWN_SCALES.map((s) => ({
         scaleName: s.scaleName,
-        accessor: s.accessor,
-      })),
+        accessor: s.accessor
+      }))
     });
 
     // 2 completed first-round matchUps — show seeds, scores, flags, draw positions
@@ -45,15 +45,15 @@ function getMockMatchUps() {
           drawPosition: 5,
           seedNumber: 3,
           seedValue: '3',
-          participant: sampleParticipant,
+          participant: sampleParticipant
         },
         {
           sideNumber: 2,
           drawPosition: 6,
           seedNumber: 6,
           seedValue: '6',
-          participant: sampleParticipant2,
-        },
+          participant: sampleParticipant2
+        }
       ],
       score: {
         scoreStringSide1: '6-4 3-2',
@@ -65,10 +65,10 @@ function getMockMatchUps() {
             side1Score: 3,
             side2Score: 2,
             side1PointScore: '30',
-            side2PointScore: '15',
-          },
-        ],
-      },
+            side2PointScore: '15'
+          }
+        ]
+      }
     };
 
     // BYE matchUp — one real participant vs BYE
@@ -83,14 +83,14 @@ function getMockMatchUps() {
           drawPosition: 7,
           seedNumber: 2,
           seedValue: '2',
-          participant: sampleParticipant,
+          participant: sampleParticipant
         },
         {
           sideNumber: 2,
           drawPosition: 8,
-          bye: true,
-        },
-      ],
+          bye: true
+        }
+      ]
     };
 
     // TBD matchUp — one real participant vs unassigned position
@@ -105,13 +105,13 @@ function getMockMatchUps() {
           drawPosition: 9,
           seedNumber: 3,
           seedValue: '3',
-          participant: sampleParticipant,
+          participant: sampleParticipant
         },
         {
           sideNumber: 2,
-          drawPosition: 10,
-        },
-      ],
+          drawPosition: 10
+        }
+      ]
     };
 
     // Qualifier matchUp — one real participant vs qualifier placeholder
@@ -124,16 +124,16 @@ function getMockMatchUps() {
         {
           sideNumber: 1,
           drawPosition: 11,
-          qualifier: true,
+          qualifier: true
         },
         {
           sideNumber: 2,
           drawPosition: 12,
           seedNumber: 4,
           seedValue: '4',
-          participant: sampleParticipant,
-        },
-      ],
+          participant: sampleParticipant
+        }
+      ]
     };
 
     cachedMatchUps = [...completed, inProgressMatchUp, byeMatchUp, tbdMatchUp, qualifierMatchUp];
@@ -168,7 +168,7 @@ export function buildCompositionPreview(): EditorPanel {
 
     const composition: Composition = {
       theme: state.theme,
-      configuration: { ...state.configuration },
+      configuration: { ...state.configuration }
     };
 
     const matchUps = getMockMatchUps();
@@ -179,7 +179,7 @@ export function buildCompositionPreview(): EditorPanel {
       const rendered = renderMatchUp({
         matchUp,
         composition,
-        isLucky: true,
+        isLucky: true
       });
       wrapper.appendChild(rendered);
       body.appendChild(wrapper);

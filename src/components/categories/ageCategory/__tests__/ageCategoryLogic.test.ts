@@ -6,7 +6,7 @@ import {
   internalToCategory,
   getAgeOptions,
   getCategoryTypeOptions,
-  getDefaultPredefinedCodes,
+  getDefaultPredefinedCodes
 } from '../ageCategoryLogic';
 
 const SIMPLE_UNDER = 'Simple Under';
@@ -28,7 +28,7 @@ describe('parseAgeCategoryCode', () => {
     expect(result).toEqual({
       type: 'under',
       ageValue: 18,
-      uPosition: 'pre',
+      uPosition: 'pre'
     });
   });
 
@@ -37,7 +37,7 @@ describe('parseAgeCategoryCode', () => {
     expect(result).toEqual({
       type: 'under',
       ageValue: 18,
-      uPosition: 'post',
+      uPosition: 'post'
     });
   });
 
@@ -46,7 +46,7 @@ describe('parseAgeCategoryCode', () => {
     expect(result).toEqual({
       type: 'over',
       ageValue: 10,
-      oPosition: 'pre',
+      oPosition: 'pre'
     });
   });
 
@@ -55,7 +55,7 @@ describe('parseAgeCategoryCode', () => {
     expect(result).toEqual({
       type: 'over',
       ageValue: 10,
-      oPosition: 'post',
+      oPosition: 'post'
     });
   });
 
@@ -65,7 +65,7 @@ describe('parseAgeCategoryCode', () => {
       type: 'combined',
       ageMin: 50,
       ageMax: 70,
-      isCombined: true,
+      isCombined: true
     });
   });
 
@@ -77,7 +77,7 @@ describe('parseAgeCategoryCode', () => {
       ageMax: 17,
       uPosition: 'pre',
       oPosition: 'post',
-      rangeOrder: 'max-min',
+      rangeOrder: 'max-min'
     });
   });
 
@@ -89,7 +89,7 @@ describe('parseAgeCategoryCode', () => {
       ageMax: 18,
       uPosition: 'post',
       oPosition: 'post',
-      rangeOrder: 'min-max',
+      rangeOrder: 'min-max'
     });
   });
 
@@ -104,7 +104,7 @@ describe('parseAgeCategoryCode', () => {
     expect(result).toEqual({
       type: 'under',
       ageValue: 8,
-      uPosition: 'post',
+      uPosition: 'post'
     });
   });
 
@@ -113,7 +113,7 @@ describe('parseAgeCategoryCode', () => {
     expect(result).toEqual({
       type: 'over',
       ageValue: 80,
-      oPosition: 'post',
+      oPosition: 'post'
     });
   });
 });
@@ -128,7 +128,7 @@ describe('buildAgeCategoryCode', () => {
     const code = buildAgeCategoryCode({
       type: 'under',
       ageValue: 18,
-      uPosition: 'pre',
+      uPosition: 'pre'
     });
     expect(code).toBe('U18');
   });
@@ -137,7 +137,7 @@ describe('buildAgeCategoryCode', () => {
     const code = buildAgeCategoryCode({
       type: 'under',
       ageValue: 18,
-      uPosition: 'post',
+      uPosition: 'post'
     });
     expect(code).toBe('18U');
   });
@@ -145,7 +145,7 @@ describe('buildAgeCategoryCode', () => {
   it('should default to post position for under', () => {
     const code = buildAgeCategoryCode({
       type: 'under',
-      ageValue: 18,
+      ageValue: 18
     });
     expect(code).toBe('18U');
   });
@@ -154,7 +154,7 @@ describe('buildAgeCategoryCode', () => {
     const code = buildAgeCategoryCode({
       type: 'over',
       ageValue: 10,
-      oPosition: 'pre',
+      oPosition: 'pre'
     });
     expect(code).toBe('O10');
   });
@@ -163,7 +163,7 @@ describe('buildAgeCategoryCode', () => {
     const code = buildAgeCategoryCode({
       type: 'over',
       ageValue: 10,
-      oPosition: 'post',
+      oPosition: 'post'
     });
     expect(code).toBe('10O');
   });
@@ -171,7 +171,7 @@ describe('buildAgeCategoryCode', () => {
   it('should default to post position for over', () => {
     const code = buildAgeCategoryCode({
       type: 'over',
-      ageValue: 10,
+      ageValue: 10
     });
     expect(code).toBe('10O');
   });
@@ -181,7 +181,7 @@ describe('buildAgeCategoryCode', () => {
       type: 'combined',
       ageMin: 50,
       ageMax: 70,
-      isCombined: true,
+      isCombined: true
     });
     expect(code).toBe('C50-70');
   });
@@ -192,7 +192,7 @@ describe('buildAgeCategoryCode', () => {
       ageMin: 10,
       ageMax: 18,
       oPosition: 'post',
-      uPosition: 'post',
+      uPosition: 'post'
     });
     expect(code).toBe('10O-18U');
   });
@@ -201,7 +201,7 @@ describe('buildAgeCategoryCode', () => {
     const code = buildAgeCategoryCode({
       type: 'range',
       ageMin: 10,
-      oPosition: 'post',
+      oPosition: 'post'
     });
     expect(code).toBe('10O');
   });
@@ -210,14 +210,14 @@ describe('buildAgeCategoryCode', () => {
     const code = buildAgeCategoryCode({
       type: 'range',
       ageMax: 18,
-      uPosition: 'post',
+      uPosition: 'post'
     });
     expect(code).toBe('18U');
   });
 
   it('should return empty string for incomplete config', () => {
     const code = buildAgeCategoryCode({
-      type: 'under',
+      type: 'under'
       // missing ageValue
     });
     expect(code).toBe('');
@@ -225,16 +225,7 @@ describe('buildAgeCategoryCode', () => {
 });
 
 describe('roundtrip parsing and building', () => {
-  const testCases = [
-    'OPEN',
-    'U18',
-    '18U',
-    'O10',
-    '10O',
-    'C50-70',
-    'U18-10O',
-    '10O-18U',
-  ];
+  const testCases = ['OPEN', 'U18', '18U', 'O10', '10O', 'C50-70', 'U18-10O', '10O-18U'];
 
   testCases.forEach((code) => {
     it(`should roundtrip: ${code}`, () => {

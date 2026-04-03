@@ -17,9 +17,7 @@ import type { TopologyNode } from '../types';
 
 function computeAdvanceInfo(node: TopologyNode, state: TopologyState): string | undefined {
   if (!isRoundRobin(node.structureType)) return undefined;
-  const positionEdges = state.edges.filter(
-    (e) => e.sourceNodeId === node.id && e.linkType === POSITION,
-  );
+  const positionEdges = state.edges.filter((e) => e.sourceNodeId === node.id && e.linkType === POSITION);
   if (!positionEdges.length) return undefined;
   const allPositions = new Set(positionEdges.flatMap((e) => e.finishingPositions || []));
   const groupSize = node.structureOptions?.groupSize || 4;
@@ -31,7 +29,7 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 const EDGE_COLORS: Record<string, string> = {
   [WINNER]: 'tb-edge--winner',
   [LOSER]: 'tb-edge--loser',
-  [POSITION]: 'tb-edge--position',
+  [POSITION]: 'tb-edge--position'
 };
 
 export interface CanvasCallbacks {
@@ -125,11 +123,7 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
     if (activeDrag && currentState) {
       const dx = e.clientX - activeDrag.startX;
       const dy = e.clientY - activeDrag.startY;
-      callbacks.onMoveNode(
-        activeDrag.nodeId,
-        Math.max(0, activeDrag.origX + dx),
-        Math.max(0, activeDrag.origY + dy),
-      );
+      callbacks.onMoveNode(activeDrag.nodeId, Math.max(0, activeDrag.origX + dx), Math.max(0, activeDrag.origY + dy));
     }
 
     if (linkCreation?.tempLine) {
@@ -145,7 +139,9 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
       justDragged = true;
       activeDrag = null;
       // Reset after current event cycle so click handler can read justDragged
-      setTimeout(() => { justDragged = false; }, 0);
+      setTimeout(() => {
+        justDragged = false;
+      }, 0);
     }
     pendingDrag = null;
     if (linkCreation?.tempLine) {
@@ -168,7 +164,7 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
         .filter((id) => {
           const node = state.nodes.find((n) => n.id === id);
           return node && node.stage === QUALIFYING && !isRoundRobin(node.structureType);
-        }),
+        })
     );
 
     // Pre-compute round annotations per node from edges
@@ -194,7 +190,7 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
           linkType: edge.linkType,
           direction: 'source',
           edgeId: edge.id,
-          isSelected: sel,
+          isSelected: sel
         });
       }
       if (tgtRound) {
@@ -204,7 +200,7 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
           linkType: edge.linkType,
           direction: 'target',
           edgeId: edge.id,
-          isSelected: sel,
+          isSelected: sel
         });
       }
     }
@@ -223,7 +219,7 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
       feedEdgesByTarget.get(edge.targetNodeId)!.push({
         targetRound,
         qp,
-        warning: `Round ${targetRound} needs fed drawPositions to accommodate ${source.structureName} link`,
+        warning: `Round ${targetRound} needs fed drawPositions to accommodate ${source.structureName} link`
       });
     }
     const nodeWarnings = new Map<string, string[]>();
@@ -249,9 +245,7 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
     const positionChipsByNode = new Map<string, PositionChip[]>();
     for (const node of state.nodes) {
       if (!isRoundRobin(node.structureType)) continue;
-      const posEdges = state.edges.filter(
-        (e) => e.sourceNodeId === node.id && e.linkType === POSITION,
-      );
+      const posEdges = state.edges.filter((e) => e.sourceNodeId === node.id && e.linkType === POSITION);
       if (!posEdges.length) continue;
       const chips: PositionChip[] = [];
       for (const edge of posEdges) {
@@ -275,9 +269,7 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
           onSelectEdge: (edgeId) => {
             callbacks.onSelectEdge(edgeId);
           },
-          onDoubleClick: callbacks.onDoubleClickNode
-            ? (nodeId) => callbacks.onDoubleClickNode!(nodeId)
-            : undefined,
+          onDoubleClick: callbacks.onDoubleClickNode ? (nodeId) => callbacks.onDoubleClickNode!(nodeId) : undefined,
           onPortMouseDown: (nodeId, portType) => {
             const sourceNode = state.nodes.find((n) => n.id === nodeId);
             if (!sourceNode) return;
@@ -325,17 +317,17 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
                 startX,
                 startY,
                 origX: node.position.x,
-                origY: node.position.y,
+                origY: node.position.y
               };
             }
-          },
+          }
         },
         state.selectedNodeId === node.id,
         nodesWithWinnerLink.has(node.id),
         annotationsByNode.get(node.id),
         nodeWarnings.get(node.id),
         computeAdvanceInfo(node, state),
-        positionChipsByNode.get(node.id),
+        positionChipsByNode.get(node.id)
       );
       nodesLayer.appendChild(card);
     }

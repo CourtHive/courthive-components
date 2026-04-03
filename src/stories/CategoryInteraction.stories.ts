@@ -6,7 +6,7 @@ const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
 
 export default {
   title: 'Components/Categories/Category',
-  tags: ['autodocs'],
+  tags: ['autodocs']
 };
 
 // Global variable to preserve last edited category for round-trip testing
@@ -62,21 +62,21 @@ export const BasicEditor = {
               <pre style="background: var(--chc-bg-secondary); padding: 1em; border-radius: 4px; overflow: auto; color: var(--chc-text-primary);">${JSON.stringify(
                 category,
                 null,
-                2,
+                2
               )}</pre>
               <div style="margin-top: 0.5em; font-size: 0.9em; color: var(--chc-text-secondary); font-style: italic;">
                 Click the button again to test round-trip editing
               </div>
             </div>
           `;
-        },
+        }
       });
     };
     container.appendChild(button);
     container.appendChild(resultDisplay);
 
     return container;
-  },
+  }
 };
 
 /**
@@ -97,8 +97,7 @@ export const EditExisting = {
     const description = document.createElement('p');
     description.style.marginBottom = '1.5em';
     description.style.color = CHC_TEXT_SECONDARY;
-    description.textContent =
-      'Opens the editor with pre-populated data demonstrating how to edit existing categories.';
+    description.textContent = 'Opens the editor with pre-populated data demonstrating how to edit existing categories.';
     container.appendChild(description);
 
     // Sample existing categories
@@ -108,7 +107,7 @@ export const EditExisting = {
         type: 'AGE',
         ageCategoryCode: '18U',
         ballType: 'TYPE1FAST',
-        notes: 'Standard ITF boys under 18',
+        notes: 'Standard ITF boys under 18'
       },
       {
         categoryName: 'Mixed 3.5-4.0',
@@ -117,7 +116,7 @@ export const EditExisting = {
         ratingMin: 3.5,
         ratingMax: 4.0,
         ballType: 'T2STANDARD_PRESSURISED',
-        notes: 'Recreational level mixed doubles',
+        notes: 'Recreational level mixed doubles'
       },
       {
         categoryName: 'Junior Advanced 14-16',
@@ -127,8 +126,8 @@ export const EditExisting = {
         ratingMin: 8.0,
         ratingMax: 12.0,
         ballType: 'TYPE1FAST',
-        notes: 'Advanced juniors ages 14-16 with UTR 8-12',
-      },
+        notes: 'Advanced juniors ages 14-16 with UTR 8-12'
+      }
     ];
 
     sampleCategories.forEach((sampleCategory, index) => {
@@ -148,11 +147,11 @@ export const EditExisting = {
                 <pre style="background: var(--chc-bg-secondary); padding: 1em; border-radius: 4px; overflow: auto; color: var(--chc-text-primary);">${JSON.stringify(
                   category,
                   null,
-                  2,
+                  2
                 )}</pre>
               </div>
             `;
-          },
+          }
         });
       };
       container.appendChild(button);
@@ -163,7 +162,7 @@ export const EditExisting = {
     container.appendChild(resultDisplay);
 
     return container;
-  },
+  }
 };
 
 /**
@@ -198,8 +197,8 @@ export const CategoryTypes = {
         category: {
           categoryName: 'Girls U14',
           type: 'AGE' as const,
-          ageCategoryCode: '14U',
-        },
+          ageCategoryCode: '14U'
+        }
       },
       {
         label: 'RATING Category',
@@ -208,8 +207,8 @@ export const CategoryTypes = {
           categoryName: 'Open 4.5+',
           type: 'RATING' as const,
           ratingType: 'NTRP',
-          ratingMin: 4.5,
-        },
+          ratingMin: 4.5
+        }
       },
       {
         label: 'BOTH Category',
@@ -219,9 +218,9 @@ export const CategoryTypes = {
           type: 'BOTH' as const,
           ageCategoryCode: '16U',
           ratingType: 'UTR',
-          ratingMin: 10.0,
-        },
-      },
+          ratingMin: 10.0
+        }
+      }
     ];
 
     types.forEach(({ label, intent, category }) => {
@@ -241,11 +240,11 @@ export const CategoryTypes = {
                 <pre style="background: var(--chc-bg-secondary); padding: 1em; border-radius: 4px; overflow: auto; color: var(--chc-text-primary);">${JSON.stringify(
                   result,
                   null,
-                  2,
+                  2
                 )}</pre>
               </div>
             `;
-          },
+          }
         });
       };
       container.appendChild(button);
@@ -256,7 +255,7 @@ export const CategoryTypes = {
     container.appendChild(resultDisplay);
 
     return container;
-  },
+  }
 };
 
 /**
@@ -277,8 +276,7 @@ export const CustomConfiguration = {
     const description = document.createElement('p');
     description.style.marginBottom = '1.5em';
     description.style.color = CHC_TEXT_SECONDARY;
-    description.textContent =
-      'The editor can be customized with different labels, rating types, and ball types.';
+    description.textContent = 'The editor can be customized with different labels, rating types, and ball types.';
     container.appendChild(description);
 
     const button = document.createElement('button');
@@ -292,12 +290,12 @@ export const CustomConfiguration = {
             categoryNameLabel: 'Division Name',
             typeLabel: 'Division Type',
             ratingTypeLabel: 'Ranking System',
-            ballTypeLabel: 'Ball Specification',
+            ballTypeLabel: 'Ball Specification'
           },
           options: {
             ratingTypes: ['WTN', 'UTR', 'Custom'],
-            ballTypes: ['TYPE1FAST', 'STAGE2ORANGE', 'STAGE3RED'],
-          },
+            ballTypes: ['TYPE1FAST', 'STAGE2ORANGE', 'STAGE3RED']
+          }
         },
         callback: (category: Category) => {
           console.log('Custom configured category:', category);
@@ -307,11 +305,11 @@ export const CustomConfiguration = {
               <pre style="background: var(--chc-bg-secondary); padding: 1em; border-radius: 4px; overflow: auto; color: var(--chc-text-primary);">${JSON.stringify(
                 category,
                 null,
-                2,
+                2
               )}</pre>
             </div>
           `;
-        },
+        }
       });
     };
     container.appendChild(button);
@@ -321,7 +319,7 @@ export const CustomConfiguration = {
     container.appendChild(resultDisplay);
 
     return container;
-  },
+  }
 };
 
 /**
@@ -355,7 +353,7 @@ export const AgeCategoryIntegration = {
       getCategoryModal({
         existingCategory: {
           type: 'AGE',
-          categoryName: 'Boys Under 16',
+          categoryName: 'Boys Under 16'
         },
         callback: (category: Category) => {
           console.log('Category with age:', category);
@@ -365,7 +363,7 @@ export const AgeCategoryIntegration = {
               <pre style="background: var(--chc-bg-secondary); padding: 1em; border-radius: 4px; overflow: auto; color: var(--chc-text-primary);">${JSON.stringify(
                 category,
                 null,
-                2,
+                2
               )}</pre>
               ${
                 category.ageCategoryCode
@@ -380,7 +378,7 @@ export const AgeCategoryIntegration = {
               }
             </div>
           `;
-        },
+        }
       });
     };
     container.appendChild(button);
@@ -390,5 +388,5 @@ export const AgeCategoryIntegration = {
     container.appendChild(resultDisplay);
 
     return container;
-  },
+  }
 };

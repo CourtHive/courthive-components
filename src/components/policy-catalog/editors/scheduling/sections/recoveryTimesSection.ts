@@ -10,7 +10,7 @@ import { seAddBtnStyle } from '../styles';
 
 export function buildRecoveryTimesSection(
   store: SchedulingEditorStore,
-  config: SchedulingEditorConfig,
+  config: SchedulingEditorConfig
 ): {
   element: HTMLElement;
   update(state: SchedulingEditorState): void;
@@ -39,7 +39,7 @@ export function buildRecoveryTimesSection(
           categoryLabel: cats.length === 0 && idx === 0 ? 'All categories' : cats.join(', ') || 'All categories',
           isDefault: cats.length === 0 && idx === 0,
           defaultMinutes: rt.minutes.default,
-          doublesMinutes: rt.minutes.DOUBLES,
+          doublesMinutes: rt.minutes.DOUBLES
         };
       });
 
@@ -49,11 +49,10 @@ export function buildRecoveryTimesSection(
         overrides,
         availableFormats: config.matchUpFormatCodes ?? getDefaultFormatCodes(),
         onFormatCodesChange: (codes) => store.setRecoveryFormatCodes(groupIdx, codes),
-        onTimeChange: (overrideIndex, field, value) =>
-          store.setRecoveryTime(groupIdx, overrideIndex, field, value),
+        onTimeChange: (overrideIndex, field, value) => store.setRecoveryTime(groupIdx, overrideIndex, field, value),
         onAddOverride: () => store.addRecoveryCategoryOverride(groupIdx),
         onRemoveOverride: (idx) => store.removeRecoveryCategoryOverride(groupIdx, idx),
-        onRemoveGroup: () => store.removeRecoveryFormatGroup(groupIdx),
+        onRemoveGroup: () => store.removeRecoveryFormatGroup(groupIdx)
       });
 
       groupsContainer.appendChild(row);
@@ -62,7 +61,8 @@ export function buildRecoveryTimesSection(
     if (groups.length === 0) {
       const empty = document.createElement('div');
       empty.style.cssText = 'font-size:12px;color:var(--sp-muted);padding:8px 0;';
-      empty.textContent = 'No format-specific recovery times configured. Add a format group to set per-format recovery.';
+      empty.textContent =
+        'No format-specific recovery times configured. Add a format group to set per-format recovery.';
       groupsContainer.appendChild(empty);
     }
   }
@@ -90,6 +90,6 @@ function getDefaultFormatCodes(): string[] {
     'SET1-S:4NOAD',
     'SET3-S:TB10',
     'SET1-S:T20',
-    'SET1-S:TB10',
+    'SET1-S:TB10'
   ];
 }

@@ -13,7 +13,7 @@ import type {
   SchedulingEditorChangeListener,
   SchedulingEditorConfig,
   AverageTimeEntry,
-  RecoveryTimeEntry,
+  RecoveryTimeEntry
 } from './types';
 
 function deepClone<T>(obj: T): T {
@@ -35,9 +35,9 @@ export class SchedulingEditorStore {
         'dailyLimits',
         'defaultTimes',
         'averageTimes',
-        'recoveryTimes',
+        'recoveryTimes'
       ]),
-      dirty: false,
+      dirty: false
     };
   }
 
@@ -57,7 +57,7 @@ export class SchedulingEditorStore {
     this.state = {
       ...this.state,
       draft: deepClone(data),
-      dirty: false,
+      dirty: false
     };
     this.emit();
   }
@@ -142,7 +142,7 @@ export class SchedulingEditorStore {
     if (!draft.matchUpAverageTimes) draft.matchUpAverageTimes = [];
     draft.matchUpAverageTimes.push({
       matchUpFormatCodes: [],
-      averageTimes: [{ categoryNames: [], minutes: { default: 60 } }],
+      averageTimes: [{ categoryNames: [], minutes: { default: 60 } }]
     });
     this.commitDraft(draft);
   }
@@ -162,7 +162,12 @@ export class SchedulingEditorStore {
     this.commitDraft(draft);
   }
 
-  setAverageTime(groupIndex: number, overrideIndex: number, field: 'default' | 'DOUBLES', value: number | undefined): void {
+  setAverageTime(
+    groupIndex: number,
+    overrideIndex: number,
+    field: 'default' | 'DOUBLES',
+    value: number | undefined
+  ): void {
     const draft = deepClone(this.state.draft);
     const entry = draft.matchUpAverageTimes?.[groupIndex]?.averageTimes?.[overrideIndex];
     if (!entry) return;
@@ -195,7 +200,7 @@ export class SchedulingEditorStore {
     groupIndex: number,
     overrideIndex: number,
     key: 'categoryNames' | 'categoryTypes',
-    values: string[],
+    values: string[]
   ): void {
     const draft = deepClone(this.state.draft);
     const entry = draft.matchUpAverageTimes?.[groupIndex]?.averageTimes?.[overrideIndex];
@@ -218,7 +223,7 @@ export class SchedulingEditorStore {
     if (!draft.matchUpRecoveryTimes) draft.matchUpRecoveryTimes = [];
     draft.matchUpRecoveryTimes.push({
       matchUpFormatCodes: [],
-      recoveryTimes: [{ categoryNames: [], minutes: { default: 30 } }],
+      recoveryTimes: [{ categoryNames: [], minutes: { default: 30 } }]
     });
     this.commitDraft(draft);
   }
@@ -238,7 +243,12 @@ export class SchedulingEditorStore {
     this.commitDraft(draft);
   }
 
-  setRecoveryTime(groupIndex: number, overrideIndex: number, field: 'default' | 'DOUBLES', value: number | undefined): void {
+  setRecoveryTime(
+    groupIndex: number,
+    overrideIndex: number,
+    field: 'default' | 'DOUBLES',
+    value: number | undefined
+  ): void {
     const draft = deepClone(this.state.draft);
     const entry = draft.matchUpRecoveryTimes?.[groupIndex]?.recoveryTimes?.[overrideIndex];
     if (!entry) return;
@@ -271,7 +281,7 @@ export class SchedulingEditorStore {
     groupIndex: number,
     overrideIndex: number,
     key: 'categoryNames' | 'categoryTypes',
-    values: string[],
+    values: string[]
   ): void {
     const draft = deepClone(this.state.draft);
     const entry = draft.matchUpRecoveryTimes?.[groupIndex]?.recoveryTimes?.[overrideIndex];

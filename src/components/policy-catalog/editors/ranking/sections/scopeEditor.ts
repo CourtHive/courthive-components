@@ -9,7 +9,15 @@ import type { RankingPointsEditorStore } from '../rankingPointsEditorStore';
 import { reFieldRowStyle, reFieldLabelStyle, reFieldInputNumberStyle } from '../styles';
 
 const EVENT_TYPES = ['SINGLES', 'DOUBLES', 'TEAM'];
-const DRAW_TYPES = ['SINGLE_ELIMINATION', 'DOUBLE_ELIMINATION', 'ROUND_ROBIN', 'COMPASS', 'FEED_IN', 'AD_HOC', 'LUCKY_DRAW'];
+const DRAW_TYPES = [
+  'SINGLE_ELIMINATION',
+  'DOUBLE_ELIMINATION',
+  'ROUND_ROBIN',
+  'COMPASS',
+  'FEED_IN',
+  'AD_HOC',
+  'LUCKY_DRAW'
+];
 const STAGES = ['MAIN', 'QUALIFYING', 'CONSOLATION', 'PLAY_OFF'];
 
 interface ChipFieldDef {
@@ -23,19 +31,19 @@ const CHIP_FIELDS: ChipFieldDef[] = [
   { field: 'eventTypes', label: 'Event types', options: EVENT_TYPES },
   { field: 'drawTypes', label: 'Draw types', options: DRAW_TYPES },
   { field: 'stages', label: 'Stages', options: STAGES },
-  { field: 'levels', label: 'Levels', options: [], isNumeric: true },
+  { field: 'levels', label: 'Levels', options: [], isNumeric: true }
 ];
 
 const NUMERIC_FIELDS: [string, string][] = [
   ['maxDrawSize', 'Max draw size'],
   ['maxLevel', 'Max level'],
   ['priority', 'Priority'],
-  ['participationOrder', 'Participation order'],
+  ['participationOrder', 'Participation order']
 ];
 
 export function buildScopeEditor(
   store: RankingPointsEditorStore,
-  profileIndex: number,
+  profileIndex: number
 ): {
   element: HTMLElement;
   update(state: RankingPointsEditorState): void;
@@ -88,7 +96,11 @@ export function buildScopeEditor(
           x.style.cssText = 'cursor:pointer;font-size:0.6rem;opacity:0.7';
           x.textContent = '\u00D7';
           x.addEventListener('click', () => {
-            store.setProfileScope(profileIndex, def.field, currentValues.filter((v: any) => v !== val));
+            store.setProfileScope(
+              profileIndex,
+              def.field,
+              currentValues.filter((v: any) => v !== val)
+            );
           });
           chip.appendChild(x);
         }
@@ -108,7 +120,11 @@ export function buildScopeEditor(
             if (e.key === 'Enter') {
               const n = parseInt(numInput.value, 10);
               if (!isNaN(n) && n > 0 && !currentValues.includes(n)) {
-                store.setProfileScope(profileIndex, def.field, [...currentValues, n].sort((a, b) => a - b));
+                store.setProfileScope(
+                  profileIndex,
+                  def.field,
+                  [...currentValues, n].sort((a, b) => a - b)
+                );
                 numInput.value = '';
               }
             }

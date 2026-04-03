@@ -20,12 +20,12 @@ import {
   reProfileActionsStyle,
   reIconBtnStyle,
   reIconBtnDangerStyle,
-  reSectionChevronStyle,
+  reSectionChevronStyle
 } from '../styles';
 
 export function buildProfileCard(
   store: RankingPointsEditorStore,
-  profileIndex: number,
+  profileIndex: number
 ): {
   element: HTMLElement;
   update(state: RankingPointsEditorState): void;
@@ -64,13 +64,19 @@ export function buildProfileCard(
   dupBtn.className = reIconBtnStyle();
   dupBtn.textContent = '\u2398'; // ⎘ copy
   dupBtn.title = 'Duplicate profile';
-  dupBtn.addEventListener('click', (e) => { e.stopPropagation(); store.duplicateProfile(profileIndex); });
+  dupBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    store.duplicateProfile(profileIndex);
+  });
 
   const delBtn = document.createElement('button');
   delBtn.className = reIconBtnDangerStyle();
   delBtn.textContent = '\u2715'; // ✕
   delBtn.title = 'Delete profile';
-  delBtn.addEventListener('click', (e) => { e.stopPropagation(); store.removeProfile(profileIndex); });
+  delBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    store.removeProfile(profileIndex);
+  });
 
   actionsEl.appendChild(dupBtn);
   actionsEl.appendChild(delBtn);

@@ -12,8 +12,19 @@ import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-fact
 import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
 import { getScoringConfig } from '../config';
 
-const { RETIRED, WALKOVER, DEFAULTED, SUSPENDED, CANCELLED, INCOMPLETE, DEAD_RUBBER, IN_PROGRESS, AWAITING_RESULT, DOUBLE_WALKOVER, DOUBLE_DEFAULT } =
-  matchUpStatusConstants;
+const {
+  RETIRED,
+  WALKOVER,
+  DEFAULTED,
+  SUSPENDED,
+  CANCELLED,
+  INCOMPLETE,
+  DEAD_RUBBER,
+  IN_PROGRESS,
+  AWAITING_RESULT,
+  DOUBLE_WALKOVER,
+  DOUBLE_DEFAULT
+} = matchUpStatusConstants;
 
 const CHC_STATUS_SUCCESS = 'var(--chc-status-success)';
 
@@ -417,7 +428,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
         if (!effectiveWinningSide) {
           // No winner selected
           const currentStatus = result.matchUpStatus || parseResult.matchUpStatus;
-          
+
           // For walkover and defaulted, use DOUBLE_* status and enable submit
           if (currentStatus === WALKOVER) {
             onScoreChange({
@@ -604,7 +615,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
   // Focus input and trigger validation if there's an existing score or irregular status
   setTimeout(() => {
     input.focus();
-    
+
     // Special case: for DOUBLE_* statuses, don't trigger handleInput as it would
     // re-parse and lose the DOUBLE_* distinction. Just update display directly.
     if (internalMatchUpStatus === DOUBLE_WALKOVER || internalMatchUpStatus === DOUBLE_DEFAULT) {
@@ -620,7 +631,10 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
         winningSide: internalWinningSide,
         matchUpStatus: internalMatchUpStatus
       });
-    } else if (input.value || (internalMatchUpStatus && internalMatchUpStatus !== 'TO_BE_PLAYED' && internalMatchUpStatus !== 'COMPLETED')) {
+    } else if (
+      input.value ||
+      (internalMatchUpStatus && internalMatchUpStatus !== 'TO_BE_PLAYED' && internalMatchUpStatus !== 'COMPLETED')
+    ) {
       handleInput(); // Trigger validation for pre-populated score or status
     }
   }, 100);

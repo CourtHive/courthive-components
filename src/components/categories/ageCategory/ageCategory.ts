@@ -152,7 +152,8 @@ function updateCalculatedDetailsDisplay(): void {
 
   const { ageMin, ageMax, ageMinDate, ageMaxDate, errors } = calculatedDetails;
 
-  let html = '<div style="margin-top: 1em; padding: 0.75em; background: var(--chc-bg-secondary); border-radius: 4px; color: var(--chc-text-primary);">';
+  let html =
+    '<div style="margin-top: 1em; padding: 0.75em; background: var(--chc-bg-secondary); border-radius: 4px; color: var(--chc-text-primary);">';
 
   if (errors && errors.length > 0) {
     html +=
@@ -164,7 +165,8 @@ function updateCalculatedDetailsDisplay(): void {
   }
 
   if (ageMin !== undefined || ageMax !== undefined) {
-    html += '<div style="margin-bottom: 0.5em; color: var(--chc-text-primary);"><strong style="color: var(--chc-text-primary);">Age Range:</strong> ';
+    html +=
+      '<div style="margin-bottom: 0.5em; color: var(--chc-text-primary);"><strong style="color: var(--chc-text-primary);">Age Range:</strong> ';
     if (ageMin !== undefined && ageMax !== undefined) {
       html += `${ageMin} - ${ageMax}`;
     } else if (ageMin !== undefined) {
@@ -406,7 +408,8 @@ export function getAgeCategoryModal({
       intent: 'none',
       footer: {
         className: 'button',
-        style: 'background-color: var(--chc-bg-primary); color: var(--chc-text-primary); border: 1px solid var(--chc-border-primary);'
+        style:
+          'background-color: var(--chc-bg-primary); color: var(--chc-text-primary); border: 1px solid var(--chc-border-primary);'
       },
       close: true
     },

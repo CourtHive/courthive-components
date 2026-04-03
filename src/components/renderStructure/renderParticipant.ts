@@ -9,17 +9,8 @@ import { renderTick } from './renderTick';
 import type { Composition, EventHandlers, MatchUp, Participant } from '../../types';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 
-const { 
-  WALKOVER, 
-  DEFAULTED, 
-  DOUBLE_WALKOVER, 
-  DOUBLE_DEFAULT, 
-  RETIRED, 
-  SUSPENDED, 
-  CANCELLED, 
-  IN_PROGRESS,
-  ABANDONED
-} = matchUpStatusConstants;
+const { WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, RETIRED, SUSPENDED, CANCELLED, IN_PROGRESS, ABANDONED } =
+  matchUpStatusConstants;
 
 export function renderParticipant({
   initialRoundNumber = 1,
@@ -60,21 +51,24 @@ export function renderParticipant({
 
   const firstParticipant = isDoubles ? participant?.individualParticipants?.[0] : participant;
   const secondParticipant = isDoubles && participant?.individualParticipants?.[1];
-  const isWinningSide = Boolean((winningSide && sideNumber === winningSide) || (matchUpStatus === 'BYE' && participant));
+  const isWinningSide = Boolean(
+    (winningSide && sideNumber === winningSide) || (matchUpStatus === 'BYE' && participant)
+  );
   const winnerChevron = configuration?.winnerChevron && isWinningSide;
 
   const teamLogo = configuration?.teamLogo;
-  const irregularEnding = [
-    RETIRED, 
-    WALKOVER, 
-    DEFAULTED, 
-    DOUBLE_WALKOVER, 
-    DOUBLE_DEFAULT, 
-    SUSPENDED, 
-    CANCELLED, 
-    IN_PROGRESS,
-    ABANDONED
-  ].includes(matchUpStatus) && !isWinningSide;
+  const irregularEnding =
+    [
+      RETIRED,
+      WALKOVER,
+      DEFAULTED,
+      DOUBLE_WALKOVER,
+      DOUBLE_DEFAULT,
+      SUSPENDED,
+      CANCELLED,
+      IN_PROGRESS,
+      ABANDONED
+    ].includes(matchUpStatus) && !isWinningSide;
   const gameScoreOnly = configuration?.gameScoreOnly;
 
   const participantContainer = document.createElement('div');

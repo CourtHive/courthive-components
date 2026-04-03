@@ -13,7 +13,7 @@ import {
   spDateStripStyle,
   spDateChipStyle,
   spBadgesStyle,
-  spBadgeStyle,
+  spBadgeStyle
 } from './styles';
 
 export interface DateStripCallbacks {

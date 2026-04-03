@@ -177,7 +177,7 @@ function getGameFormatLabels(): Record<string, string> {
     TN: editorConfig.labels?.traditional || 'Traditional',
     '2C': editorConfig.labels?.consecutive2 || '2 consecutive',
     '3C': editorConfig.labels?.consecutive3 || '3 consecutive',
-    '4C': editorConfig.labels?.consecutive4 || '4 consecutive',
+    '4C': editorConfig.labels?.consecutive4 || '4 consecutive'
   };
 }
 
@@ -185,7 +185,7 @@ function getDeuceRuleLabels(): Record<string, string> {
   return {
     None: editorConfig.labels?.none || 'None',
     '1D': editorConfig.labels?.goldenPoint || 'Golden point',
-    '3D': editorConfig.labels?.starPoint || 'Star point',
+    '3D': editorConfig.labels?.starPoint || 'Star point'
   };
 }
 
@@ -199,8 +199,7 @@ function gameFormatLabel(gf: any): string {
   else if (gf.type === 'CONSECUTIVE') {
     const countKey = `${gf.count}C`;
     label = gfLabels[countKey] || `${gf.count} consecutive`;
-  }
-  else return editorConfig.labels?.none || 'None';
+  } else return editorConfig.labels?.none || 'None';
   if (gf.deuceAfter) {
     const deuceKey = `${gf.deuceAfter}D`;
     label += ` + ${drLabels[deuceKey] || deuceKey}`;
@@ -230,7 +229,9 @@ interface SetFormatConfig {
 interface FormatConfig {
   matchRoot?: string;
   aggregate?: boolean;
-  gameFormat?: { type: 'CONSECUTIVE'; count: number; deuceAfter?: number } | { type: 'TRADITIONAL'; deuceAfter?: number };
+  gameFormat?:
+    | { type: 'CONSECUTIVE'; count: number; deuceAfter?: number }
+    | { type: 'TRADITIONAL'; deuceAfter?: number };
   setFormat: SetFormatConfig;
   finalSetFormat: SetFormatConfig;
 }
@@ -541,8 +542,7 @@ const setComponents: SetComponent[] = [
     getValue: (pmf, isFinal) => {
       const setFormat = whichSetFormat(pmf, isFinal);
       // Extract modifier from tiebreakSet, tiebreakFormat, or timed set
-      const modifier =
-        setFormat?.tiebreakSet?.modifier || setFormat?.tiebreakFormat?.modifier || setFormat?.modifier;
+      const modifier = setFormat?.tiebreakSet?.modifier || setFormat?.tiebreakFormat?.modifier || setFormat?.modifier;
       return modifier || undefined;
     },
     options: () => editorConfig.options?.modifiers || defaultConfig.options!.modifiers!,
@@ -797,9 +797,10 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
       const currentBestOf = format.setFormat.bestOf;
       if (currentBestOf && !bestOfOptions.includes(currentBestOf)) {
         // Reset to nearest valid value
-        const validBestOf = bestOfOptions[bestOfOptions.length - 1] >= currentBestOf
-          ? bestOfOptions.reduce((prev, curr) => (curr <= currentBestOf ? curr : prev), bestOfOptions[0])
-          : bestOfOptions[bestOfOptions.length - 1];
+        const validBestOf =
+          bestOfOptions[bestOfOptions.length - 1] >= currentBestOf
+            ? bestOfOptions.reduce((prev, curr) => (curr <= currentBestOf ? curr : prev), bestOfOptions[0])
+            : bestOfOptions[bestOfOptions.length - 1];
         format.setFormat.bestOf = validBestOf;
         const bestOfElem = getEl('bestOf');
         if (bestOfElem) {
@@ -936,7 +937,8 @@ export function getMatchUpFormatModal({
       intent: 'none',
       footer: {
         className: 'button',
-        style: 'background-color: var(--chc-bg-primary); color: var(--chc-text-primary); border: 1px solid var(--chc-border-primary);'
+        style:
+          'background-color: var(--chc-bg-primary); color: var(--chc-text-primary); border: 1px solid var(--chc-border-primary);'
       },
       close: true
     },
@@ -1369,7 +1371,15 @@ export function getMatchUpFormatModal({
   finalSetFormat.style.marginBottom = '1em';
   finalSetFormat.id = 'finalSetFormat';
   modalInputs['finalSetFormatDiv'] = finalSetFormat;
-  ([{ label: `<div style='font-weight: bold'>${editorConfig.labels?.finalSetLabel || 'Final set'}</div>`, options: [] as any[], finalSet: true }] as any[])
+  (
+    [
+      {
+        label: `<div style='font-weight: bold'>${editorConfig.labels?.finalSetLabel || 'Final set'}</div>`,
+        options: [] as any[],
+        finalSet: true
+      }
+    ] as any[]
+  )
     .concat(
       setComponents.map((component) => {
         const value = component.getValue ? component.getValue(parsedMatchUpFormat, true) : undefined;
@@ -1585,11 +1595,7 @@ function closeCurrentDropdown() {
   currentDropdown = null;
 }
 
-function createGameFormatDropdown(
-  e: Event,
-  currentGameFormat: any,
-  onUpdate: (gf: any) => void
-) {
+function createGameFormatDropdown(e: Event, currentGameFormat: any, onUpdate: (gf: any) => void) {
   closeCurrentDropdown();
 
   const dropdown = document.createElement('div');
@@ -1618,8 +1624,12 @@ function createGameFormatDropdown(
     if (type === 'none' && deuce === 'none') return undefined;
     const gf: any = {};
     if (type === 'TN') gf.type = 'TRADITIONAL';
-    else if (/^\d+C$/.test(type)) { gf.type = 'CONSECUTIVE'; gf.count = Number(type.slice(0, -1)); }
-    else { gf.type = 'TRADITIONAL'; } // deuce without explicit type defaults to TRADITIONAL
+    else if (/^\d+C$/.test(type)) {
+      gf.type = 'CONSECUTIVE';
+      gf.count = Number(type.slice(0, -1));
+    } else {
+      gf.type = 'TRADITIONAL';
+    } // deuce without explicit type defaults to TRADITIONAL
     if (deuce !== 'none') gf.deuceAfter = Number(deuce.slice(0, -1));
     return gf;
   }
@@ -1633,16 +1643,22 @@ function createGameFormatDropdown(
   }
 
   // Shared styles
-  const itemStyle = 'padding: 0.4em 1em; cursor: pointer; background-color: var(--chc-dropdown-bg); color: var(--chc-text-primary); font-size: 1rem;';
-  const headerStyle = 'padding: 0.3em 1em; font-weight: bold; font-size: 0.85rem; color: var(--chc-text-muted); text-transform: uppercase; letter-spacing: 0.5px;';
+  const itemStyle =
+    'padding: 0.4em 1em; cursor: pointer; background-color: var(--chc-dropdown-bg); color: var(--chc-text-primary); font-size: 1rem;';
+  const headerStyle =
+    'padding: 0.3em 1em; font-weight: bold; font-size: 0.85rem; color: var(--chc-text-muted); text-transform: uppercase; letter-spacing: 0.5px;';
   const separatorStyle = 'border-top: 1px solid #eee; margin: 0.25em 0;';
 
   // "None" button at top — clears everything and closes dropdown
   const noneItem = document.createElement('div');
   noneItem.textContent = editorConfig.labels?.none || 'None';
   noneItem.style.cssText = itemStyle;
-  noneItem.onmouseenter = () => { noneItem.style.backgroundColor = CHC_HOVER_BG; };
-  noneItem.onmouseleave = () => { noneItem.style.backgroundColor = CHC_DROPDOWN_BG; };
+  noneItem.onmouseenter = () => {
+    noneItem.style.backgroundColor = CHC_HOVER_BG;
+  };
+  noneItem.onmouseleave = () => {
+    noneItem.style.backgroundColor = CHC_DROPDOWN_BG;
+  };
   noneItem.onclick = (clickEvent) => {
     clickEvent.preventDefault();
     clickEvent.stopPropagation();
@@ -1654,9 +1670,14 @@ function createGameFormatDropdown(
   // Helper to create a radio option row
   function createRadioRow(name: string, value: string, label: string, checked: boolean): HTMLElement {
     const row = document.createElement('label');
-    row.style.cssText = 'display: flex; align-items: center; padding: 0.3em 1em; cursor: pointer; gap: 0.4em; font-size: 1rem; color: var(--chc-text-primary);';
-    row.onmouseenter = () => { row.style.backgroundColor = CHC_HOVER_BG; };
-    row.onmouseleave = () => { row.style.backgroundColor = CHC_DROPDOWN_BG; };
+    row.style.cssText =
+      'display: flex; align-items: center; padding: 0.3em 1em; cursor: pointer; gap: 0.4em; font-size: 1rem; color: var(--chc-text-primary);';
+    row.onmouseenter = () => {
+      row.style.backgroundColor = CHC_HOVER_BG;
+    };
+    row.onmouseleave = () => {
+      row.style.backgroundColor = CHC_DROPDOWN_BG;
+    };
 
     const radio = document.createElement('input');
     radio.type = 'radio';
@@ -1691,7 +1712,7 @@ function createGameFormatDropdown(
     { value: 'TN', label: gfLabels['TN'] },
     { value: '2C', label: gfLabels['2C'] },
     { value: '3C', label: gfLabels['3C'] },
-    { value: '4C', label: gfLabels['4C'] },
+    { value: '4C', label: gfLabels['4C'] }
   ];
   for (const opt of gameTypeOptions) {
     dropdownMenu.appendChild(createRadioRow('gameType', opt.value, opt.label, currentType === opt.value));
@@ -1712,7 +1733,7 @@ function createGameFormatDropdown(
   const deuceOptions = [
     { value: 'none', label: editorConfig.labels?.none || 'None' },
     { value: '1D', label: drLabels['1D'] },
-    { value: '3D', label: drLabels['3D'] },
+    { value: '3D', label: drLabels['3D'] }
   ];
   for (const opt of deuceOptions) {
     dropdownMenu.appendChild(createRadioRow('deuceRule', opt.value, opt.label, currentDeuce === opt.value));

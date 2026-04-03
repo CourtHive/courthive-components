@@ -154,23 +154,23 @@
    Completed: event/round line colored for MALE/FEMALE only. */
 
 .spl-grid-cell[data-gender='MALE']:not(.spl-cell--complete) .spl-grid-cell__name {
-  color: var(--chc-gender-male, #2E86C1);
+  color: var(--chc-gender-male, #2e86c1);
 }
 
 .spl-grid-cell[data-gender='FEMALE']:not(.spl-cell--complete) .spl-grid-cell__name {
-  color: var(--chc-gender-female, #E07BAF);
+  color: var(--chc-gender-female, #e07baf);
 }
 
 .spl-grid-cell[data-gender='MIXED']:not(.spl-cell--complete) .spl-grid-cell__name {
-  color: var(--chc-gender-mixed, #8E44AD);
+  color: var(--chc-gender-mixed, #8e44ad);
 }
 
 .spl-grid-cell[data-gender='MALE'].spl-cell--complete .spl-grid-cell__event-round {
-  color: var(--chc-gender-male, #2E86C1);
+  color: var(--chc-gender-male, #2e86c1);
 }
 
 .spl-grid-cell[data-gender='FEMALE'].spl-cell--complete .spl-grid-cell__event-round {
-  color: var(--chc-gender-female, #E07BAF);
+  color: var(--chc-gender-female, #e07baf);
 }
 
 /* ── Status Modifiers ───────────────────────────────────── */
@@ -423,7 +423,7 @@
   width: 100%;
 }
 
-.spl-cell--typeahead .awesomplete > ul[role="listbox"] {
+.spl-cell--typeahead .awesomplete > ul[role='listbox'] {
   z-index: 10000 !important;
   max-height: 200px;
   overflow-y: auto;
@@ -436,17 +436,26 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.spl-cell--typeahead .awesomplete > ul[role="listbox"] li {
+.spl-cell--typeahead .awesomplete > ul[role='listbox'] li {
   cursor: pointer;
 }
 
 /* ── Issue Focus Pulse (click-to-navigate from issues panel) ── */
 
 @keyframes spl-issue-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
-  25% { box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.5); }
-  50% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
-  75% { box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.5); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+  }
+  25% {
+    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+  }
+  75% {
+    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.5);
+  }
 }
 
 .spl-cell--issue-pulse {

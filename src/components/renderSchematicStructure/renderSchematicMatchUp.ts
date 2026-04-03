@@ -27,7 +27,7 @@ export function renderSchematicMatchUp({
   isFirstRound,
   isFinalRound,
   isRoundRobin,
-  isLucky,
+  isLucky
 }: {
   matchUp: SchematicMatchUp;
   moiety?: boolean;

@@ -15,16 +15,16 @@ export function buildScaleSection(store: CompositionEditorStore): EditorPanel {
       { value: '', label: 'None' },
       { value: 'RATING', label: 'Rating' },
       { value: 'RANKING', label: 'Ranking' },
-      { value: 'SEEDING', label: 'Seeding' },
+      { value: 'SEEDING', label: 'Seeding' }
     ],
     scale.scaleType || '',
     (v) => store.setConfigNestedField('scaleAttributes', 'scaleType', v || undefined),
-    readOnly,
+    readOnly
   );
 
   const scaleNameOptions = [
     { value: '', label: 'None' },
-    ...KNOWN_SCALES.map((s) => ({ value: s.scaleName, label: s.label })),
+    ...KNOWN_SCALES.map((s) => ({ value: s.scaleName, label: s.label }))
   ];
 
   const scaleName = buildSelectField(
@@ -37,14 +37,14 @@ export function buildScaleSection(store: CompositionEditorStore): EditorPanel {
       const known = KNOWN_SCALES.find((s) => s.scaleName === v);
       store.setConfigNestedField('scaleAttributes', 'accessor', known?.accessor || undefined);
     },
-    readOnly,
+    readOnly
   );
 
   const scaleColor = buildColorField(
     'Color',
     scale.scaleColor || '#ff0000',
     (v) => store.setConfigNestedField('scaleAttributes', 'scaleColor', v),
-    readOnly,
+    readOnly
   );
 
   const eventType = buildSelectField(
@@ -52,18 +52,18 @@ export function buildScaleSection(store: CompositionEditorStore): EditorPanel {
     [
       { value: '', label: 'Any' },
       { value: 'SINGLES', label: 'Singles' },
-      { value: 'DOUBLES', label: 'Doubles' },
+      { value: 'DOUBLES', label: 'Doubles' }
     ],
     scale.eventType || '',
     (v) => store.setConfigNestedField('scaleAttributes', 'eventType', v || undefined),
-    readOnly,
+    readOnly
   );
 
   const fallback = buildToggleField(
     'Fallback',
     !!scale.fallback,
     (v) => store.setConfigNestedField('scaleAttributes', 'fallback', v),
-    readOnly,
+    readOnly
   );
 
   // Right-side position toggle — auto-disabled when flags are on (flags force scale to right already)
@@ -71,7 +71,7 @@ export function buildScaleSection(store: CompositionEditorStore): EditorPanel {
     'Right of name',
     scale.scalePosition === 'right',
     (v) => store.setConfigNestedField('scaleAttributes', 'scalePosition', v ? 'right' : 'left'),
-    readOnly,
+    readOnly
   );
 
   root.appendChild(scaleType.element);

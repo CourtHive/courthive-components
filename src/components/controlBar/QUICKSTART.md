@@ -27,14 +27,14 @@ const items = [
     location: 'LEFT',
     search: true,
     clearSearch: () => table.clearFilter(),
-    onKeyUp: (e) => table.setFilter('name', 'like', e.target.value),
+    onKeyUp: (e) => table.setFilter('name', 'like', e.target.value)
   },
   {
     label: 'Add',
     location: 'RIGHT',
     intent: 'is-primary',
-    onClick: () => handleAdd(),
-  },
+    onClick: () => handleAdd()
+  }
 ];
 
 const target = document.getElementById('control-container');
@@ -96,14 +96,20 @@ container.appendChild(controlContainer);
 const table = new Tabulator(tableElement, {
   data: myData,
   columns: myColumns,
-  selectableRows: true,
+  selectableRows: true
 });
 
 // 4. Set up control bar
 const items = [
-  { /* search */ },
-  { /* filters */ },
-  { /* actions */ },
+  {
+    /* search */
+  },
+  {
+    /* filters */
+  },
+  {
+    /* actions */
+  }
 ];
 
 controlBar({ table, target: controlContainer, items });
@@ -134,15 +140,15 @@ table.on('dataFiltered', (_, rows) => {
 
 ## Common Item Types
 
-| Type | Key Properties |
-|------|---------------|
-| **Search** | `search: true`, `clearSearch`, `onKeyUp` |
-| **Button** | `label`, `onClick`, `intent` |
-| **Dropdown** | `label`, `options: [...]` |
-| **Filter** | `modifyLabel: true`, `selection: true` |
-| **Tabs** | `tabs: [...]` |
-| **Text/HTML** | `text: '<div>...</div>'` |
-| **Input** | `placeholder`, `validator` |
+| Type          | Key Properties                           |
+| ------------- | ---------------------------------------- |
+| **Search**    | `search: true`, `clearSearch`, `onKeyUp` |
+| **Button**    | `label`, `onClick`, `intent`             |
+| **Dropdown**  | `label`, `options: [...]`                |
+| **Filter**    | `modifyLabel: true`, `selection: true`   |
+| **Tabs**      | `tabs: [...]`                            |
+| **Text/HTML** | `text: '<div>...</div>'`                 |
+| **Input**     | `placeholder`, `validator`               |
 
 ## Intent Classes (Button Colors)
 

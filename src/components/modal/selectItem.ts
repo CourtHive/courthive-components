@@ -72,7 +72,7 @@ export function selectItem(params: SelectItemParams) {
       anchorId,
       data: options,
       selectionLimit,
-      onSelected,
+      onSelected
     });
     tableInstance = result.table;
     destroyFn = result.destroy;
@@ -86,8 +86,8 @@ export function selectItem(params: SelectItemParams) {
         clearSearch: () => setSearchFilter(''),
         placeholder: placeholder || 'Search',
         location: LEFT,
-        search: true,
-      },
+        search: true
+      }
     ];
 
     const target = document.getElementById(controlId) || undefined;
@@ -113,8 +113,8 @@ export function selectItem(params: SelectItemParams) {
           clearSearch: () => filterList(''),
           placeholder: placeholder || 'Search',
           location: LEFT,
-          search: true,
-        },
+          search: true
+        }
       ];
 
       const target = document.getElementById(controlId) || undefined;
@@ -126,7 +126,7 @@ export function selectItem(params: SelectItemParams) {
 function renderSimpleList({
   container,
   options,
-  onSelected,
+  onSelected
 }: {
   container: HTMLElement;
   options: SelectItemOption[];

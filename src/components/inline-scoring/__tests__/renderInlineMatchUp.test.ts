@@ -17,8 +17,8 @@ function makeComposition(mode: 'points' | 'games' = 'points'): Composition {
       ...base.configuration,
       matchUpFooter: true,
       gameScore: { position: 'trailing', inverted: true },
-      inlineScoring: { mode, showFooter: true, showSituation: true },
-    },
+      inlineScoring: { mode, showFooter: true, showSituation: true }
+    }
   };
 }
 
@@ -35,9 +35,9 @@ function makeMatchUp(overrides: Partial<MatchUp> = {}): MatchUp {
     finishingRound: 3,
     sides: [
       { sideNumber: 1, participant: { participantId: 'p1', participantName: 'Player 1' } },
-      { sideNumber: 2, participant: { participantId: 'p2', participantName: 'Player 2' } },
+      { sideNumber: 2, participant: { participantId: 'p2', participantName: 'Player 2' } }
     ],
-    ...overrides,
+    ...overrides
   } as MatchUp;
 }
 
@@ -49,7 +49,7 @@ describe('renderInlineMatchUp', () => {
       composition: makeComposition(),
       manager,
       matchUpFormat: STANDARD_FORMAT,
-      isLucky: true,
+      isLucky: true
     });
     expect(el).toBeInstanceOf(HTMLElement);
     expect(el.classList.contains('chc-inline-scoring-wrapper')).toBe(true);
@@ -61,7 +61,7 @@ describe('renderInlineMatchUp', () => {
       matchUp: makeMatchUp({ matchUpId: 'test-id' }),
       composition: makeComposition(),
       manager,
-      isLucky: true,
+      isLucky: true
     });
     expect(el.getAttribute('data-matchup-id')).toBe('test-id');
   });
@@ -72,7 +72,7 @@ describe('renderInlineMatchUp', () => {
       matchUp: makeMatchUp(),
       composition: makeComposition(),
       manager,
-      isLucky: true,
+      isLucky: true
     });
     expect(el.classList.contains('chc-inline-scoring-active')).toBe(true);
   });
@@ -83,7 +83,7 @@ describe('renderInlineMatchUp', () => {
       matchUp: makeMatchUp(),
       composition: makeComposition(),
       manager,
-      isLucky: true,
+      isLucky: true
     });
     const footer = el.querySelector('.chc-inline-scoring-footer-slot');
     expect(footer).not.toBeNull();
@@ -95,7 +95,7 @@ describe('renderInlineMatchUp', () => {
       matchUp: makeMatchUp(),
       composition: makeComposition(),
       manager,
-      isLucky: true,
+      isLucky: true
     });
     const buttons = el.querySelectorAll('.chc-inline-scoring-btn');
     expect(buttons.length).toBeGreaterThanOrEqual(4); // Undo, Redo, Clear, Submit
@@ -109,7 +109,7 @@ describe('renderInlineMatchUp', () => {
       matchUp: makeMatchUp(),
       composition: comp,
       manager,
-      isLucky: true,
+      isLucky: true
     });
     const footer = el.querySelector('.chc-inline-scoring-footer-slot');
     expect(footer).toBeNull();
@@ -122,7 +122,7 @@ describe('renderInlineMatchUp', () => {
       composition: makeComposition(),
       manager,
       matchUpFormat: STANDARD_FORMAT,
-      isLucky: true,
+      isLucky: true
     });
     expect(manager.has('mu-new')).toBe(true);
   });
@@ -130,13 +130,13 @@ describe('renderInlineMatchUp', () => {
   it('adds clickable class to score areas in points mode', () => {
     const manager = new InlineScoringManager();
     const matchUp = makeMatchUp({
-      score: { sets: [{ setNumber: 1, side1Score: 0, side2Score: 0 }], scoreStringSide1: '0-0' },
+      score: { sets: [{ setNumber: 1, side1Score: 0, side2Score: 0 }], scoreStringSide1: '0-0' }
     });
     const el = renderInlineMatchUp({
       matchUp,
       composition: makeComposition('points'),
       manager,
-      isLucky: true,
+      isLucky: true
     });
     const clickable = el.querySelectorAll('.chc-inline-scoring-clickable');
     // Score areas should be marked clickable
@@ -149,7 +149,7 @@ describe('renderInlineMatchUp', () => {
       matchUp: makeMatchUp(),
       composition: makeComposition('games'),
       manager,
-      isLucky: true,
+      isLucky: true
     });
     // Score elements get clickable class via renderSideScore
     const clickable = el.querySelectorAll('.chc-inline-scoring-clickable');
@@ -162,7 +162,7 @@ describe('renderInlineMatchUp', () => {
       matchUp: makeMatchUp(),
       composition: makeComposition(),
       manager,
-      isLucky: true,
+      isLucky: true
     });
     // Footer buttons container should exist even if situation text is empty
     const buttonsContainer = el.querySelector('.chc-inline-scoring-footer-buttons');
@@ -175,7 +175,7 @@ describe('renderInlineMatchUp', () => {
       matchUp: makeMatchUp(),
       composition: makeComposition(),
       manager,
-      isLucky: true,
+      isLucky: true
     });
     const submitBtn = el.querySelector('.chc-is-submit');
     expect(submitBtn).not.toBeNull();
@@ -189,11 +189,11 @@ describe('renderInlineMatchUp', () => {
         matchUpStatus: 'RETIRED',
         winningSide: 2,
         readyToScore: false,
-        score: { sets: [{ setNumber: 1, side1Score: 2, side2Score: 1 }] },
+        score: { sets: [{ setNumber: 1, side1Score: 2, side2Score: 1 }] }
       }),
       composition: makeComposition('games'),
       manager,
-      isLucky: true,
+      isLucky: true
     });
 
     // Should have a clickable status pill (chc-live-chip) on the losing side

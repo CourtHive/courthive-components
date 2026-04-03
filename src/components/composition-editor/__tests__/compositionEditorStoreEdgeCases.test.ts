@@ -45,7 +45,7 @@ describe('CompositionEditorStore — edge cases', () => {
 
   it('setConfigField with same value still marks dirty', () => {
     const store = new CompositionEditorStore({
-      composition: { theme: 'x', configuration: { flags: true } },
+      composition: { theme: 'x', configuration: { flags: true } }
     });
     store.setConfigField('flags', true);
     expect(store.getState().isDirty).toBe(true);

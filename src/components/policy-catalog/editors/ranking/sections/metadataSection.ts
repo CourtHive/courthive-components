@@ -11,7 +11,7 @@ import {
   reFieldInputTextStyle,
   reFieldInputDateStyle,
   reFieldSelectStyle,
-  reCheckboxRowStyle,
+  reCheckboxRowStyle
 } from '../styles';
 
 export function buildMetadataSection(store: RankingPointsEditorStore): {
@@ -90,7 +90,7 @@ export function buildMetadataSection(store: RankingPointsEditorStore): {
     ['', '(none)'],
     ['fullToEach', 'Full to each'],
     ['halfToEach', 'Half to each'],
-    ['split', 'Split'],
+    ['split', 'Split']
   ] as const) {
     const opt = document.createElement('option');
     opt.value = val;
@@ -113,7 +113,7 @@ export function buildMetadataSection(store: RankingPointsEditorStore): {
   for (const [val, label] of [
     ['', '(none)'],
     ['matchCategory', 'Match category'],
-    ['eventCategory', 'Event category'],
+    ['eventCategory', 'Event category']
   ] as const) {
     const opt = document.createElement('option');
     opt.value = val;

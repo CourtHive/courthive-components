@@ -222,7 +222,7 @@ export class TemporalGrid {
           }
           this.updateCapacityStats();
           this.updateStatsBar();
-        },
+        }
       });
 
       // Don't set visibleCourts on controller initially - let it show all
@@ -289,8 +289,8 @@ export class TemporalGrid {
       {
         labels,
         onSetDefaultAvailability: this.config.onSetDefaultAvailability,
-        onSave: this.config.onSave,
-      },
+        onSave: this.config.onSave
+      }
     );
     header.appendChild(this.viewToolbarResult.element);
 
@@ -327,7 +327,7 @@ export class TemporalGrid {
           return { classes: 'tg-datepicker-active-day' };
         }
         return {};
-      },
+      }
     });
 
     // Set initial date
@@ -344,10 +344,14 @@ export class TemporalGrid {
     // Find nearest tournament day
     let targetDay = dateStr;
     if (!days.includes(dateStr)) {
-      targetDay = days.reduce((best, d) =>
-        Math.abs(new Date(d).getTime() - new Date(dateStr).getTime()) <
-        Math.abs(new Date(best).getTime() - new Date(dateStr).getTime()) ? d : best
-      , days[0]);
+      targetDay = days.reduce(
+        (best, d) =>
+          Math.abs(new Date(d).getTime() - new Date(dateStr).getTime()) <
+          Math.abs(new Date(best).getTime() - new Date(dateStr).getTime())
+            ? d
+            : best,
+        days[0]
+      );
     }
 
     this.control?.setDay(targetDay);
@@ -431,8 +435,11 @@ export class TemporalGrid {
     const data: any[] = [];
     for (const day of days) {
       const blocks = this.engine.getDayBlocks(day).map((b: any) => ({
-        id: b.id, type: b.type, start: b.start, end: b.end,
-        court: `${b.court?.venueId}|${b.court?.courtId}`,
+        id: b.id,
+        type: b.type,
+        start: b.start,
+        end: b.end,
+        court: `${b.court?.venueId}|${b.court?.courtId}`
       }));
       const avails = courtMeta.map((m) => {
         const a = this.engine.getCourtAvailability(m.ref, day);
@@ -496,7 +503,7 @@ export class TemporalGrid {
       totalHours: totalCourtHours,
       blockedHours: totalUnavailableHours,
       availableHours: totalAvailableHours,
-      avgPerCourt: totalAvailableHours / courts,
+      avgPerCourt: totalAvailableHours / courts
     });
   }
 
@@ -768,9 +775,7 @@ export class TemporalGrid {
     });
 
     // Update all court checkboxes in this venue
-    const courtCheckboxes = this.venueTreeElement?.querySelectorAll(
-      `.court-checkbox[data-venue-id="${venueId}"]`
-    );
+    const courtCheckboxes = this.venueTreeElement?.querySelectorAll(`.court-checkbox[data-venue-id="${venueId}"]`);
     courtCheckboxes?.forEach((cb) => {
       (cb as HTMLInputElement).checked = checkbox.checked;
     });

@@ -14,9 +14,9 @@ describe('FreeText Validation - Set Type Matching', () => {
     it('should reject tiebreak-only set in third position when format has no F:TB', () => {
       const scoreString = '6-7(3) 7-6(3) [1-10]';
       const matchUpFormat = FORMAT_SET3_TB7; // No F:TB10
-      
+
       const result = validateScore(scoreString, matchUpFormat);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.error).toContain(ERROR_EXPECTS_REGULAR);
     });
@@ -24,9 +24,9 @@ describe('FreeText Validation - Set Type Matching', () => {
     it('should reject tiebreak-only set in any position for standard format', () => {
       const scoreString = '[10-8] 6-4';
       const matchUpFormat = FORMAT_SET3_TB7;
-      
+
       const result = validateScore(scoreString, matchUpFormat);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.error).toContain(ERROR_EXPECTS_REGULAR);
     });
@@ -34,18 +34,18 @@ describe('FreeText Validation - Set Type Matching', () => {
     it('should accept regular sets when format expects regular sets', () => {
       const scoreString = '6-4 4-6 6-3';
       const matchUpFormat = FORMAT_SET3_TB7;
-      
+
       const result = validateScore(scoreString, matchUpFormat);
-      
+
       expect(result.isValid).toBe(true);
     });
 
     it('should accept set tiebreaks in regular format', () => {
       const scoreString = '6-7(3) 7-6(5) 6-4';
       const matchUpFormat = FORMAT_SET3_TB7;
-      
+
       const result = validateScore(scoreString, matchUpFormat);
-      
+
       expect(result.isValid).toBe(true);
     });
   });
@@ -54,18 +54,18 @@ describe('FreeText Validation - Set Type Matching', () => {
     it('should accept tiebreak-only set in third position when format has F:TB10', () => {
       const scoreString = '6-4 4-6 [10-8]';
       const matchUpFormat = FORMAT_SET3_TB7_F_TB10;
-      
+
       const result = validateScore(scoreString, matchUpFormat);
-      
+
       expect(result.isValid).toBe(true);
     });
 
     it('should reject regular set in third position when format expects F:TB10', () => {
       const scoreString = '6-4 4-6 6-3';
       const matchUpFormat = FORMAT_SET3_TB7_F_TB10;
-      
+
       const result = validateScore(scoreString, matchUpFormat);
-      
+
       // The third set should be invalid because format expects tiebreak-only
       expect(result.isValid).toBe(false);
       expect(result.error).toContain('tiebreak-only');
@@ -74,27 +74,27 @@ describe('FreeText Validation - Set Type Matching', () => {
     it('should accept regular sets in non-final positions with F:TB format', () => {
       const scoreString = '6-7(3) 7-6(5) [11-9]';
       const matchUpFormat = FORMAT_SET3_TB7_F_TB10;
-      
+
       const result = validateScore(scoreString, matchUpFormat);
-      
+
       expect(result.isValid).toBe(true);
     });
 
     it('should work for SET5 F:TB10 format', () => {
       const scoreString = '6-4 3-6 6-3 4-6 [10-8]';
       const matchUpFormat = 'SET5-S:6/TB7-F:TB10';
-      
+
       const result = validateScore(scoreString, matchUpFormat);
-      
+
       expect(result.isValid).toBe(true);
     });
 
     it('should reject tiebreak-only set in non-final position even with F:TB', () => {
       const scoreString = '[10-8] 6-4 [11-9]';
       const matchUpFormat = FORMAT_SET3_TB7_F_TB10;
-      
+
       const result = validateScore(scoreString, matchUpFormat);
-      
+
       // First set should be invalid
       expect(result.isValid).toBe(false);
       expect(result.error).toContain(ERROR_EXPECTS_REGULAR);
@@ -105,18 +105,18 @@ describe('FreeText Validation - Set Type Matching', () => {
     it('should accept tiebreak-only set when format is SET1-S:TB10', () => {
       const scoreString = '[10-8]';
       const matchUpFormat = 'SET1-S:TB10';
-      
+
       const result = validateScore(scoreString, matchUpFormat);
-      
+
       expect(result.isValid).toBe(true);
     });
 
     it('should reject regular set when format expects tiebreak-only', () => {
       const scoreString = '6-4';
       const matchUpFormat = 'SET1-S:TB10';
-      
+
       const result = validateScore(scoreString, matchUpFormat);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.error).toContain('Format expects tiebreak-only set');
     });

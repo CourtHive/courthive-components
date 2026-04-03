@@ -18,10 +18,7 @@
 
 import 'tippy.js/dist/tippy.css';
 
-import {
-  SchedulingProfileControl,
-  createSchedulingProfile,
-} from '../../components/scheduling-profile';
+import { SchedulingProfileControl, createSchedulingProfile } from '../../components/scheduling-profile';
 
 import {
   ROUND_CATALOG,
@@ -31,21 +28,20 @@ import {
   VALID_PROFILE,
   ERROR_PROFILE,
   makeBaseConfig,
-  makeTemporalAdapter,
+  makeTemporalAdapter
 } from './data';
 
 export default {
   title: 'Scheduling Profile/Full',
   parameters: {
     layout: 'fullscreen',
-    backgrounds: { default: 'dark' },
-  },
+    backgrounds: { default: 'dark' }
+  }
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-const ROOT_STYLE =
-  'background: var(--sp-bg); min-height: 100vh;';
+const ROOT_STYLE = 'background: var(--sp-bg); min-height: 100vh;';
 const INFO_STYLE =
   'font-size: 12px; color: var(--sp-muted); padding: 12px 16px; font-family: ui-sans-serif, system-ui, sans-serif;';
 
@@ -98,17 +94,17 @@ export const EmptyProfile = {
         onProfileChanged: (profile) => {
           const totalRounds = profile.reduce(
             (sum, day) => sum + day.venues.reduce((vs, v) => vs + v.rounds.length, 0),
-            0,
+            0
           );
           console.log(`Profile changed: ${totalRounds} rounds placed`);
-        },
+        }
       }),
-      container,
+      container
     );
 
     addConsoleLog(root, control);
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -129,14 +125,11 @@ export const PrePopulated = {
     const container = document.createElement('div');
     root.appendChild(container);
 
-    const control = createSchedulingProfile(
-      makeBaseConfig({ initialProfile: VALID_PROFILE }),
-      container,
-    );
+    const control = createSchedulingProfile(makeBaseConfig({ initialProfile: VALID_PROFILE }), container);
 
     addConsoleLog(root, control);
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -154,7 +147,7 @@ export const WithErrors = {
       '<strong>Intentional validation errors:</strong>',
       '1. <em>Precedence violation</em> \u2014 R16 is placed before R32 in the same draw (Boys U16 Singles Main)',
       '2. <em>Duplicate round</em> \u2014 R16 appears in both Venue A and Venue B',
-      'Check the Issues panel (left) for details and fix actions.',
+      'Check the Issues panel (left) for details and fix actions.'
     ].join('<br>');
     root.appendChild(info);
 
@@ -166,14 +159,14 @@ export const WithErrors = {
         initialProfile: ERROR_PROFILE,
         onFixAction: (action) => {
           console.log('Fix action delegated to host:', action.kind, action);
-        },
+        }
       }),
-      container,
+      container
     );
 
     addConsoleLog(root, control);
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -198,14 +191,14 @@ export const MultiVenueExtended = {
       makeBaseConfig({
         schedulableDates: DATES_EXTENDED,
         temporalAdapter: makeTemporalAdapter(DATES_EXTENDED),
-        initialProfile: EMPTY_PROFILE,
+        initialProfile: EMPTY_PROFILE
       }),
-      container,
+      container
     );
 
     addConsoleLog(root, control);
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -232,10 +225,7 @@ export const ProgrammaticControl = {
     const container = document.createElement('div');
     root.appendChild(container);
 
-    const control = createSchedulingProfile(
-      makeBaseConfig({ initialProfile: EMPTY_PROFILE }),
-      container,
-    );
+    const control = createSchedulingProfile(makeBaseConfig({ initialProfile: EMPTY_PROFILE }), container);
     const store = control.getStore();
 
     // Status text
@@ -248,7 +238,7 @@ export const ProgrammaticControl = {
       const state = store.getState();
       const total = state.profileDraft.reduce(
         (sum, day) => sum + day.venues.reduce((vs, v) => vs + v.rounds.length, 0),
-        0,
+        0
       );
       status.textContent = `Rounds placed: ${total} | Issues: ${state.issueIndex.counts.total} (${state.issueIndex.counts.ERROR} errors) | Date: ${state.selectedDate}`;
     }
@@ -270,11 +260,9 @@ export const ProgrammaticControl = {
     makeBtn('Add R32 to Day 1 / Venue A', () => {
       const result = store.dropRound(
         { type: 'CATALOG_ROUND', roundRef: ROUND_CATALOG[0] },
-        { date: DATES[0], venueId: 'VENUE_A', index: 0 },
+        { date: DATES[0], venueId: 'VENUE_A', index: 0 }
       );
-      status.textContent = result.ok
-        ? 'Added R32 successfully!'
-        : `Rejected: ${result.errorMessage}`;
+      status.textContent = result.ok ? 'Added R32 successfully!' : `Rejected: ${result.errorMessage}`;
     });
 
     // Add R16 to day 2, venue A
@@ -282,11 +270,9 @@ export const ProgrammaticControl = {
       store.selectDate(DATES[1]);
       const result = store.dropRound(
         { type: 'CATALOG_ROUND', roundRef: ROUND_CATALOG[1] },
-        { date: DATES[1], venueId: 'VENUE_A', index: 0 },
+        { date: DATES[1], venueId: 'VENUE_A', index: 0 }
       );
-      status.textContent = result.ok
-        ? 'Added R16 successfully!'
-        : `Rejected: ${result.errorMessage}`;
+      status.textContent = result.ok ? 'Added R16 successfully!' : `Rejected: ${result.errorMessage}`;
     });
 
     // Navigate dates
@@ -305,5 +291,5 @@ export const ProgrammaticControl = {
 
     addConsoleLog(root, control);
     return root;
-  },
+  }
 };

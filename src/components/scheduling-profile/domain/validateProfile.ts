@@ -6,7 +6,14 @@
  * DUPLICATE_SEGMENT, ROUND_ORDER_VIOLATION.
  */
 
-import type { SchedulingProfile, ValidationResult, TemporalAdapter, DependencyAdapter, FlattenedRound, RoundLocator } from '../types';
+import type {
+  SchedulingProfile,
+  ValidationResult,
+  TemporalAdapter,
+  DependencyAdapter,
+  FlattenedRound,
+  RoundLocator
+} from '../types';
 import { roundKeyString, roundLabel, pickRoundKey } from './utils';
 
 import { drawDefinitionConstants } from 'tods-competition-factory';
@@ -26,7 +33,12 @@ export interface ValidateProfileParams {
   venueOrder?: string[];
 }
 
-export function validateProfile({ profile, temporal, dependencies, venueOrder }: ValidateProfileParams): ValidationResult[] {
+export function validateProfile({
+  profile,
+  temporal,
+  dependencies,
+  venueOrder
+}: ValidateProfileParams): ValidationResult[] {
   const results: ValidationResult[] = [];
 
   // Date availability: ERROR
@@ -136,7 +148,7 @@ export function validateProfile({ profile, temporal, dependencies, venueOrder }:
 const UNORDERED_STRUCTURE_TYPES = new Set([ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF]);
 
 export function validateRoundPrecedenceLocal({
-  profile,
+  profile
 }: {
   profile: SchedulingProfile;
   venueOrder?: string[];
@@ -145,9 +157,7 @@ export function validateRoundPrecedenceLocal({
   const planned = flatten(profile);
 
   // Same-day, same-venue ordering check.
-  const byScope = groupBy(planned, (p) =>
-    `${p.round.structureId}|${p.locator.date}|${p.locator.venueId}`
-  );
+  const byScope = groupBy(planned, (p) => `${p.round.structureId}|${p.locator.date}|${p.locator.venueId}`);
 
   for (const [scope, items] of byScope.entries()) {
     // Skip structures where round order doesn't imply precedence
@@ -253,11 +263,9 @@ export function validateRoundPrecedenceLocal({
               venueId: maxRoundItem.locator.venueId,
               locator: maxRoundItem.locator,
               prerequisite: item.locator,
-              reason: 'cross-date',
+              reason: 'cross-date'
             },
-            fixActions: [
-              { kind: 'JUMP_TO_ITEM', locator: item.locator, label: JUMP_TO_PREREQUISITE_LABEL },
-            ],
+            fixActions: [{ kind: 'JUMP_TO_ITEM', locator: item.locator, label: JUMP_TO_PREREQUISITE_LABEL }]
           });
         }
       }
@@ -279,10 +287,7 @@ export function validateRoundPrecedenceLocal({
 // Dependency Validation (cross-structure / cross-date)
 // ============================================================================
 
-function validateRoundDependencies(
-  planned: FlattenedRound[],
-  dependencies: DependencyAdapter
-): ValidationResult[] {
+function validateRoundDependencies(planned: FlattenedRound[], dependencies: DependencyAdapter): ValidationResult[] {
   const out: ValidationResult[] = [];
 
   // Build lookup: roundKeyString → FlattenedRound[]
@@ -318,11 +323,9 @@ function validateRoundDependencies(
                 venueId: item.locator.venueId,
                 locator: item.locator,
                 prerequisite: prereq.locator,
-                reason: 'cross-date',
+                reason: 'cross-date'
               },
-              fixActions: [
-                { kind: 'JUMP_TO_ITEM', locator: prereq.locator, label: JUMP_TO_PREREQUISITE_LABEL },
-              ],
+              fixActions: [{ kind: 'JUMP_TO_ITEM', locator: prereq.locator, label: JUMP_TO_PREREQUISITE_LABEL }]
             });
             continue;
           }
@@ -343,7 +346,7 @@ function validateRoundDependencies(
                 venueId: item.locator.venueId,
                 locator: item.locator,
                 prerequisite: prereq.locator,
-                reason: 'cross-structure-same-day',
+                reason: 'cross-structure-same-day'
               },
               fixActions: [
                 { kind: 'JUMP_TO_ITEM', locator: prereq.locator, label: JUMP_TO_PREREQUISITE_LABEL },
@@ -351,15 +354,15 @@ function validateRoundDependencies(
                   kind: 'MOVE_ITEM_AFTER',
                   locator: item.locator,
                   after: prereq.locator,
-                  label: 'Move after prerequisite',
+                  label: 'Move after prerequisite'
                 },
                 {
                   kind: 'MOVE_ITEM_BEFORE',
                   locator: prereq.locator,
                   before: item.locator,
-                  label: 'Move prerequisite before',
-                },
-              ],
+                  label: 'Move prerequisite before'
+                }
+              ]
             });
           }
         }
@@ -424,7 +427,6 @@ function groupBy<T>(items: T[], keyFn: (item: T) => string): Map<string, T[]> {
   }
   return m;
 }
-
 
 function dedupe(results: ValidationResult[]): ValidationResult[] {
   const seen = new Set<string>();

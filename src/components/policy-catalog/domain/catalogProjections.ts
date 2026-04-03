@@ -11,24 +11,13 @@ import { getPolicyTypeMeta, POLICY_TYPE_GROUPS } from './policyDefaults';
  * Filter catalog items by search query.
  * Matches against name, policyType label, description, and source.
  */
-export function filterPolicyCatalog(
-  catalog: PolicyCatalogItem[],
-  searchQuery: string,
-): PolicyCatalogItem[] {
+export function filterPolicyCatalog(catalog: PolicyCatalogItem[], searchQuery: string): PolicyCatalogItem[] {
   const q = searchQuery.toLowerCase().trim();
   if (!q) return catalog;
 
   return catalog.filter((item) => {
     const meta = getPolicyTypeMeta(item.policyType);
-    const hay = [
-      item.name,
-      item.description,
-      item.policyType,
-      meta?.label ?? '',
-      item.source,
-    ]
-      .join(' ')
-      .toLowerCase();
+    const hay = [item.name, item.description, item.policyType, meta?.label ?? '', item.source].join(' ').toLowerCase();
     return hay.includes(q);
   });
 }
@@ -39,7 +28,7 @@ export function filterPolicyCatalog(
  */
 export function groupPolicyCatalog(
   catalog: PolicyCatalogItem[],
-  groupBy: CatalogGroupBy,
+  groupBy: CatalogGroupBy
 ): Map<string, PolicyCatalogItem[]> {
   const m = new Map<string, PolicyCatalogItem[]>();
 

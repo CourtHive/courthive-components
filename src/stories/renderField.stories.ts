@@ -126,9 +126,9 @@ export const MultiSelect = {
       { label: 'Basketball', value: 'basketball', selected: true },
       { label: 'Soccer', value: 'soccer' },
       { label: 'Swimming', value: 'swimming', selected: true },
-      { label: 'Running', value: 'running' },
-    ],
-  },
+      { label: 'Running', value: 'running' }
+    ]
+  }
 };
 
 /**

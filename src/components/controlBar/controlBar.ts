@@ -59,7 +59,7 @@ export function controlBar(params: {
         removeAllChildNodes(elem);
         return { [location]: elem };
       })
-      .filter(Boolean),
+      .filter(Boolean)
   );
 
   const stateChange = toggleOverlay({ table, target: target } as any);
@@ -279,7 +279,7 @@ function createControlElement(): { elements: Record<string, HTMLElement>; anchor
     optionsOverlay: document.createElement('div'),
     optionsLeft: document.createElement('div'),
     optionsCenter: document.createElement('div'),
-    optionsRight: document.createElement('div'),
+    optionsRight: document.createElement('div')
   };
   elements.optionsOverlay.className = 'options_overlay';
   elements.optionsCenter.className = 'options_center';

@@ -83,9 +83,9 @@
   --chc-score-set-width: 1.3rem;
 
   /* ── Gender Colors ──────────────────────────────────────── */
-  --chc-gender-male: #2E86C1;
-  --chc-gender-female: #E07BAF;
-  --chc-gender-mixed: #8E44AD;
+  --chc-gender-male: #2e86c1;
+  --chc-gender-female: #e07baf;
+  --chc-gender-mixed: #8e44ad;
 
   /* ── Participant ───────────────────────────────────────── */
   --chc-participant-text-transform: capitalize;
@@ -157,7 +157,7 @@
   --sp-accent-border-light: rgba(59, 130, 246, 0.2);
 
   /* ── Temporal Grid Accent ─────────────────────────────────── */
-  --tg-accent: #218D8D;
+  --tg-accent: #218d8d;
   --tg-accent-hover: #1a7a7a;
   --tg-accent-bg-light: rgba(33, 141, 141, 0.08);
   --tg-accent-bg-medium: rgba(33, 141, 141, 0.25);
@@ -239,9 +239,9 @@
   --chc-point-score-text: var(--chc-bg-primary);
 
   /* ── Gender Colors (dark) ──────────────────────────────── */
-  --chc-gender-male: #5DADE2;
-  --chc-gender-female: #F1948A;
-  --chc-gender-mixed: #BB8FCE;
+  --chc-gender-male: #5dade2;
+  --chc-gender-female: #f1948a;
+  --chc-gender-mixed: #bb8fce;
 
   /* ── Participant hover highlight (dark) ───────────────── */
   --chc-participant-hover-bg: rgba(255, 230, 0, 0.22);
@@ -320,7 +320,9 @@
 }
 [data-theme='dark'] .datepicker-dropdown .datepicker-picker {
   border: 1px solid var(--chc-border-primary);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 [data-theme='dark'] .datepicker-title {
   background-color: var(--chc-bg-secondary);
@@ -374,7 +376,7 @@
 [data-theme='dark'] .awesomplete > ul {
   background: var(--chc-dropdown-bg);
   border-color: var(--chc-border-primary);
-  box-shadow: 0 .1em .6em rgba(0, 0, 0, .5);
+  box-shadow: 0 0.1em 0.6em rgba(0, 0, 0, 0.5);
   color: var(--chc-text-primary);
 }
 [data-theme='dark'] .awesomplete > ul::before {
@@ -384,7 +386,7 @@
   background: var(--chc-border-focus);
   color: #fff;
 }
-[data-theme='dark'] .awesomplete > ul > li[aria-selected="true"] {
+[data-theme='dark'] .awesomplete > ul > li[aria-selected='true'] {
   background: var(--chc-border-focus);
   color: #fff;
 }
@@ -396,7 +398,7 @@
   background: hsl(68, 80%, 30%);
   color: #fff;
 }
-[data-theme='dark'] .awesomplete li[aria-selected="true"] mark {
+[data-theme='dark'] .awesomplete li[aria-selected='true'] mark {
   background: hsl(86, 70%, 28%);
   color: inherit;
 }

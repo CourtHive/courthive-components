@@ -12,7 +12,7 @@ import {
   spPanelMetaStyle,
   spDateStripStyle,
   spDateChipStyle,
-  spBadgesStyle,
+  spBadgesStyle
 } from './styles';
 
 export interface DateStripCallbacks {

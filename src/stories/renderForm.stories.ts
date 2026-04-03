@@ -18,7 +18,7 @@ export default {
     wrapper.style.border = '1px solid var(--chc-border-primary)';
     wrapper.style.borderRadius = '8px';
     wrapper.style.backgroundColor = 'var(--chc-bg-elevated)';
-    
+
     // Add title if provided
     if (title) {
       const titleElement = document.createElement('h2');
@@ -30,9 +30,9 @@ export default {
       titleElement.style.color = 'var(--chc-text-primary)';
       wrapper.appendChild(titleElement);
     }
-    
+
     const container = document.createElement('div');
-    
+
     // Add style tag to force vertical stacking of fields
     const style = document.createElement('style');
     style.textContent = `
@@ -68,9 +68,9 @@ export default {
     `;
     wrapper.appendChild(style);
     wrapper.appendChild(container);
-    
+
     const inputs = renderForm(container, items, relationships);
-    
+
     // Add submit button to demonstrate form values
     const submitBtn = document.createElement('button');
     submitBtn.className = 'button is-primary';
@@ -78,7 +78,7 @@ export default {
     submitBtn.style.marginTop = '20px';
     submitBtn.onclick = () => {
       const values: any = {};
-      Object.keys(inputs).forEach(key => {
+      Object.keys(inputs).forEach((key) => {
         if (key.includes('.date')) return; // Skip datepicker instances
         const input = inputs[key];
         if (input.type === 'checkbox') {
@@ -94,7 +94,7 @@ export default {
       alert('Form values logged to console');
     };
     wrapper.appendChild(submitBtn);
-    
+
     return wrapper;
   }
 };
@@ -349,7 +349,7 @@ export const DynamicRelationships = {
           const newPwd = inputs.newPassword.value;
           const confirmPwd = inputs.confirmPassword.value;
           const status = document.getElementById('matchStatus');
-          
+
           if (status) {
             if (confirmPwd && newPwd !== confirmPwd) {
               status.style.display = 'block';

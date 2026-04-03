@@ -19,10 +19,7 @@
  * - GridCellEvents: Focused demo of click, double-click, and right-click on grid cells
  */
 
-import {
-  createSchedulePage,
-  SchedulePageControl,
-} from '../../components/schedule-page';
+import { createSchedulePage, SchedulePageControl } from '../../components/schedule-page';
 
 import {
   LARGE_CATALOG,
@@ -32,7 +29,7 @@ import {
   SCHEDULE_DATES_WEEK,
   SAMPLE_ISSUES,
   makeMockCourtGrid,
-  makeConfig,
+  makeConfig
 } from './data';
 
 import type { ScheduleCellConfig } from '../../components/schedule-page';
@@ -45,7 +42,7 @@ import {
   buildFactoryGrid,
   scheduleMatchUpViaFactory,
   unscheduleMatchUpViaFactory,
-  buildIssuesFromFactory,
+  buildIssuesFromFactory
 } from './factoryData';
 
 import { activateScheduleCellTypeAhead } from '../../components/schedule-page';
@@ -56,8 +53,8 @@ export default {
   title: 'Schedule Page/Full',
   parameters: {
     layout: 'fullscreen',
-    backgrounds: { default: 'dark' },
-  },
+    backgrounds: { default: 'dark' }
+  }
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -67,11 +64,7 @@ const INFO_STYLE =
   'font-size: 12px; color: var(--sp-muted); padding: 12px 16px; font-family: ui-sans-serif, system-ui, sans-serif; flex-shrink: 0;';
 const FLEX_CONTAINER = 'flex: 1; min-height: 0;';
 
-function addFooter(
-  container: HTMLElement,
-  control: SchedulePageControl,
-  extra?: (bar: HTMLElement) => void,
-): void {
+function addFooter(container: HTMLElement, control: SchedulePageControl, extra?: (bar: HTMLElement) => void): void {
   const footer = document.createElement('div');
   footer.style.cssText =
     'padding: 12px 16px; border-top: 1px solid var(--sp-line); font-size: 12px; color: var(--sp-muted); font-family: ui-sans-serif, system-ui, sans-serif; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; flex-shrink: 0;';
@@ -137,14 +130,14 @@ export const Empty = {
       makeConfig({
         matchUpCatalog: [],
         scheduleDates: SCHEDULE_DATES,
-        courtGridElement: makeMockCourtGrid(4).element,
+        courtGridElement: makeMockCourtGrid(4).element
       }),
-      container,
+      container
     );
 
     addFooter(root, control);
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -173,14 +166,14 @@ export const WithMatchUps = {
           console.log('MatchUp dropped:', payload.matchUp.matchUpId, event);
         },
         onMatchUpRemove: (id) => console.log('MatchUp unscheduled:', id),
-        onMatchUpSelected: (m) => console.log('MatchUp selected:', m?.matchUpId ?? 'none'),
+        onMatchUpSelected: (m) => console.log('MatchUp selected:', m?.matchUpId ?? 'none')
       }),
-      container,
+      container
     );
 
     addFooter(root, control);
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -197,7 +190,7 @@ export const WithIssues = {
     info.innerHTML = [
       '<strong>5 scheduling conflicts:</strong>',
       '2 ERRORs (back-to-back, double-booked), 2 WARNs (overloaded court, capacity), 1 INFO (no court assigned).',
-      'The Issues panel in the left sidebar shows all conflicts sorted by severity.',
+      'The Issues panel in the left sidebar shows all conflicts sorted by severity.'
     ].join('<br>');
     root.appendChild(info);
 
@@ -205,14 +198,11 @@ export const WithIssues = {
     container.style.cssText = FLEX_CONTAINER;
     root.appendChild(container);
 
-    const control = createSchedulePage(
-      makeConfig({ issues: SAMPLE_ISSUES }),
-      container,
-    );
+    const control = createSchedulePage(makeConfig({ issues: SAMPLE_ISSUES }), container);
 
     addFooter(root, control);
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -246,9 +236,9 @@ export const BulkMode = {
           console.log('Bulk save:', actions);
           statusEl.textContent = `Saved ${actions.length} actions! See console.`;
           statusEl.style.color = 'var(--sp-ok-text)';
-        },
+        }
       }),
-      container,
+      container
     );
 
     const store = control.getStore();
@@ -268,22 +258,22 @@ export const BulkMode = {
       bar.appendChild(
         makeBtn('Save', () => {
           control.save();
-        }),
+        })
       );
       bar.appendChild(
         makeBtn('Discard', () => {
           control.discardPending();
-        }),
+        })
       );
       bar.appendChild(
         makeBtn('Check hasUnsavedChanges', () => {
           console.log('hasUnsavedChanges:', control.hasUnsavedChanges);
-        }),
+        })
       );
     });
 
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -310,14 +300,14 @@ export const ManyMatchUps = {
         matchUpCatalog: LARGE_CATALOG,
         scheduleDates: SCHEDULE_DATES_WEEK,
         issues: SAMPLE_ISSUES.slice(0, 3),
-        courtGridElement: makeMockCourtGrid(8).element,
+        courtGridElement: makeMockCourtGrid(8).element
       }),
-      container,
+      container
     );
 
     addFooter(root, control);
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -339,14 +329,11 @@ export const HideScheduled = {
     container.style.cssText = FLEX_CONTAINER;
     root.appendChild(container);
 
-    const control = createSchedulePage(
-      makeConfig({ scheduledBehavior: 'hide' }),
-      container,
-    );
+    const control = createSchedulePage(makeConfig({ scheduledBehavior: 'hide' }), container);
 
     addFooter(root, control);
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -386,8 +373,7 @@ export const ProgrammaticControl = {
     function updateStatus(): void {
       const state = store.getState();
       const unscheduled = state.matchUpCatalog.filter((m) => !m.isScheduled).length;
-      status.textContent =
-        `MatchUps: ${state.matchUpCatalog.length} total, ${unscheduled} unscheduled | Date: ${state.selectedDate} | Search: "${state.catalogSearchQuery}" | Group: ${state.catalogGroupBy}`;
+      status.textContent = `MatchUps: ${state.matchUpCatalog.length} total, ${unscheduled} unscheduled | Date: ${state.selectedDate} | Search: "${state.catalogSearchQuery}" | Group: ${state.catalogGroupBy}`;
     }
     store.subscribe(updateStatus);
     updateStatus();
@@ -416,24 +402,24 @@ export const ProgrammaticControl = {
       makeBtn('Add Issues', () => {
         control.setIssues(SAMPLE_ISSUES);
         status.textContent = 'Issues pushed!';
-      }),
+      })
     );
     btnBar.appendChild(
       makeBtn('Clear Issues', () => {
         control.setIssues([]);
         status.textContent = 'Issues cleared.';
-      }),
+      })
     );
     btnBar.appendChild(
       makeBtn(`Load ${LARGE_CATALOG.length} MatchUps`, () => {
         const before = store.getState().matchUpCatalog.length;
         control.setMatchUpCatalog(LARGE_CATALOG);
         status.textContent = `Catalog: ${before} → ${LARGE_CATALOG.length} matchUps (added QF rounds + extra R16 scheduled)`;
-      }),
+      })
     );
 
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -455,14 +441,11 @@ export const NoCourtGrid = {
     container.style.cssText = FLEX_CONTAINER;
     root.appendChild(container);
 
-    const control = createSchedulePage(
-      makeConfig({ courtGridElement: undefined }),
-      container,
-    );
+    const control = createSchedulePage(makeConfig({ courtGridElement: undefined }), container);
 
     addFooter(root, control);
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -480,7 +463,7 @@ export const InteractiveGrid = {
       '<strong>Interactive Grid Demo:</strong>',
       'Drag matchUps from the catalog onto the grid. Once placed, drag them between cells or back to the catalog to unschedule.',
       '<strong>Cell events:</strong> Click, double-click, or right-click any grid cell (empty or filled) — events appear in the log below.',
-      'Grid has sticky headers (scroll to verify), max-height of 500px, and 10 courts for horizontal scroll.',
+      'Grid has sticky headers (scroll to verify), max-height of 500px, and 10 courts for horizontal scroll.'
     ].join('<br>');
     root.appendChild(info);
 
@@ -508,9 +491,11 @@ export const InteractiveGrid = {
         log(`DBLCLICK: ${court} @ ${time} — ${detail}`);
       },
       onCellRightClick: (time, court, m) => {
-        const detail = m ? m.matchUpId + ': context menu for ' + m.eventName : '(empty cell — could show "Add matchUp" menu)';
+        const detail = m
+          ? m.matchUpId + ': context menu for ' + m.eventName
+          : '(empty cell — could show "Add matchUp" menu)';
         log(`RIGHT-CLICK: ${court} @ ${time} — ${detail}`);
-      },
+      }
     });
 
     const control = createSchedulePage(
@@ -523,15 +508,15 @@ export const InteractiveGrid = {
         onMatchUpRemove: (id) => {
           mockGrid.removeMatchUp(id);
           log(`Unschedule callback: ${id} — removed from grid`);
-        },
+        }
       }),
-      container,
+      container
     );
 
     root.appendChild(logEl);
     addFooter(root, control);
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -545,8 +530,7 @@ export const ScrollingCatalog = {
 
     const info = document.createElement('div');
     info.style.cssText = INFO_STYLE;
-    info.textContent =
-      `${SCROLLING_CATALOG.length} matchUps across 5 events. The matchUp catalog on the right scrolls vertically — header and toolbar stay fixed while the card list scrolls. Expand all groups to see the full list.`;
+    info.textContent = `${SCROLLING_CATALOG.length} matchUps across 5 events. The matchUp catalog on the right scrolls vertically — header and toolbar stay fixed while the card list scrolls. Expand all groups to see the full list.`;
     root.appendChild(info);
 
     const container = document.createElement('div');
@@ -558,14 +542,14 @@ export const ScrollingCatalog = {
         matchUpCatalog: SCROLLING_CATALOG,
         scheduleDates: SCHEDULE_DATES_WEEK,
         issues: SAMPLE_ISSUES,
-        courtGridElement: makeMockCourtGrid(6).element,
+        courtGridElement: makeMockCourtGrid(6).element
       }),
-      container,
+      container
     );
 
     addFooter(root, control);
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -584,7 +568,7 @@ export const GridCellEvents = {
       '&bull; <strong>Click</strong> any cell (empty or filled) — logs cell coordinates and matchUp info',
       '&bull; <strong>Double-click</strong> a cell — logs detailed participant info',
       '&bull; <strong>Right-click</strong> a cell — prevents browser context menu, logs a custom event',
-      'Some cells are pre-filled with matchUps so you can try events on both empty and occupied cells.',
+      'Some cells are pre-filled with matchUps so you can try events on both empty and occupied cells.'
     ].join('<br>');
     root.appendChild(info);
 
@@ -592,7 +576,8 @@ export const GridCellEvents = {
     const logEl = document.createElement('div');
     logEl.style.cssText =
       'max-height: 150px; overflow: auto; padding: 8px 16px; font-size: 11px; color: var(--sp-muted); font-family: monospace; background: var(--sp-card-bg); border: 1px solid var(--sp-line); margin: 0 16px; border-radius: 8px; flex-shrink: 0;';
-    logEl.innerHTML = '<div style="font-weight:700; margin-bottom:4px;">Event Log (click, double-click, or right-click any grid cell)</div>';
+    logEl.innerHTML =
+      '<div style="font-weight:700; margin-bottom:4px;">Event Log (click, double-click, or right-click any grid cell)</div>';
 
     const log = createLogFn(logEl);
 
@@ -605,31 +590,37 @@ export const GridCellEvents = {
     // Pre-fill some cells by placing already-scheduled matchUps in the catalog
     const prefilled = MATCHUP_CATALOG.slice(0, 6).map((m, i) => ({
       ...m,
-      isScheduled: i < 3, // first 3 are scheduled (dimmed in catalog)
+      isScheduled: i < 3 // first 3 are scheduled (dimmed in catalog)
     }));
 
     const mockGrid = makeMockCourtGrid(4, {
       onCellClick: (time, court, m) => {
         if (m) {
-          log(`CLICK — ${court} @ ${time}: ${m.eventName} — ${m.sides?.[0]?.participantName ?? 'TBD'} vs ${m.sides?.[1]?.participantName ?? 'TBD'}`);
+          log(
+            `CLICK — ${court} @ ${time}: ${m.eventName} — ${m.sides?.[0]?.participantName ?? 'TBD'} vs ${m.sides?.[1]?.participantName ?? 'TBD'}`
+          );
         } else {
           log(`CLICK — ${court} @ ${time}: (empty cell)`);
         }
       },
       onCellDblClick: (time, court, m) => {
         if (m) {
-          log(`DBLCLICK — ${court} @ ${time}: matchUpId=${m.matchUpId}, format=${m.matchUpFormat}, round=${m.roundName}`);
+          log(
+            `DBLCLICK — ${court} @ ${time}: matchUpId=${m.matchUpId}, format=${m.matchUpFormat}, round=${m.roundName}`
+          );
         } else {
           log(`DBLCLICK — ${court} @ ${time}: (empty cell — could open "schedule matchUp" dialog)`);
         }
       },
       onCellRightClick: (time, court, m) => {
         if (m) {
-          log(`RIGHT-CLICK — ${court} @ ${time}: context menu for ${m.sides?.[0]?.participantName ?? 'TBD'} vs ${m.sides?.[1]?.participantName ?? 'TBD'}`);
+          log(
+            `RIGHT-CLICK — ${court} @ ${time}: context menu for ${m.sides?.[0]?.participantName ?? 'TBD'} vs ${m.sides?.[1]?.participantName ?? 'TBD'}`
+          );
         } else {
           log(`RIGHT-CLICK — ${court} @ ${time}: (empty cell — could show "Add matchUp" or "Block time" menu)`);
         }
-      },
+      }
     });
 
     const control = createSchedulePage(
@@ -639,14 +630,14 @@ export const GridCellEvents = {
         onMatchUpRemove: (id) => {
           mockGrid.removeMatchUp(id);
           log(`Unscheduled: ${id} — removed from grid`);
-        },
+        }
       }),
-      container,
+      container
     );
 
     addFooter(root, control);
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -666,7 +657,7 @@ export const FactoryBacked = {
       '5 events (MS 32, MD 16, WS 32, WD 16, Team 8), 2 venues (12 courts), 4 active weekend dates.',
       'Drag matchUps from the catalog onto the grid to schedule. Drag from grid back to catalog to unschedule.',
       'Date navigation rebuilds the grid from factory state. Conflicts appear in the issues panel.',
-      '<strong>Cell Config:</strong> Use the buttons below the grid to toggle fields and name formats.',
+      '<strong>Cell Config:</strong> Use the buttons below the grid to toggle fields and name formats.'
     ].join('<br>');
     root.appendChild(info);
 
@@ -683,14 +674,16 @@ export const FactoryBacked = {
       header: [...DEFAULT_SCHEDULE_CELL_CONFIG.header],
       body: [...DEFAULT_SCHEDULE_CELL_CONFIG.body],
       footer: [...DEFAULT_SCHEDULE_CELL_CONFIG.footer],
-      participantDisplay: { ...DEFAULT_SCHEDULE_CELL_CONFIG.participantDisplay },
+      participantDisplay: { ...DEFAULT_SCHEDULE_CELL_CONFIG.participantDisplay }
     };
 
     // 1. Create factory setup
     let setup: ReturnType<typeof createSchedulePageSetup>;
     try {
       setup = createSchedulePageSetup();
-      log(`Tournament created: ${setup.tournamentId} — ${setup.allMatchUps.length} matchUps, ${setup.courts.length} courts`);
+      log(
+        `Tournament created: ${setup.tournamentId} — ${setup.allMatchUps.length} matchUps, ${setup.courts.length} courts`
+      );
     } catch (err: any) {
       const errDiv = document.createElement('div');
       errDiv.style.cssText = 'padding: 20px; color: red; font-family: monospace;';
@@ -717,7 +710,13 @@ export const FactoryBacked = {
     }
 
     // Show tipster menu on empty cell click, with "Assign matchUp" → typeahead
-    function showEmptyCellMenu(event: MouseEvent, cell: HTMLElement, courtId: string, venueId: string, courtOrder: number): void {
+    function showEmptyCellMenu(
+      event: MouseEvent,
+      cell: HTMLElement,
+      courtId: string,
+      venueId: string,
+      courtOrder: number
+    ): void {
       const assignMatchUp = () => {
         activateScheduleCellTypeAhead({
           cell,
@@ -727,7 +726,7 @@ export const FactoryBacked = {
               .filter((m) => !m.isScheduled && (m.sides?.length ?? 0) >= 1)
               .map((m) => ({
                 label: `${m.eventName} ${m.roundName || ''} — ${matchUpLabel(m)}`.trim(),
-                value: m.matchUpId,
+                value: m.matchUpId
               }));
           },
           onSelect: (matchUpId: string) => {
@@ -748,37 +747,41 @@ export const FactoryBacked = {
           },
           onCancel: () => {
             log(`TypeAhead cancelled on court=${courtId} row=${courtOrder}`);
-          },
+          }
         });
       };
 
       const options = [
         { option: 'Assign matchUp', onClick: assignMatchUp },
         { option: 'Block court (1 row)', onClick: () => log(`Block 1 row on court=${courtId}`) },
-        { option: 'Block court (2 rows)', onClick: () => log(`Block 2 rows on court=${courtId}`) },
+        { option: 'Block court (2 rows)', onClick: () => log(`Block 2 rows on court=${courtId}`) }
       ];
 
       tipster({ options, target: event.target as HTMLElement, config: { placement: 'right' } });
     }
 
     // 3. Build initial data
-    const grid = buildFactoryGrid(selectedDate, {
-      onCellClick: (courtId, courtOrder, m, event, cell) => {
-        if (m) {
-          log(`CLICK: court=${courtId} row=${courtOrder} ${m.matchUpId}`);
-        } else {
-          // Empty cell — show menu with typeahead option
-          const venueId = cell.getAttribute('data-venue-id') || '';
-          showEmptyCellMenu(event, cell, courtId, venueId, courtOrder);
+    const grid = buildFactoryGrid(
+      selectedDate,
+      {
+        onCellClick: (courtId, courtOrder, m, event, cell) => {
+          if (m) {
+            log(`CLICK: court=${courtId} row=${courtOrder} ${m.matchUpId}`);
+          } else {
+            // Empty cell — show menu with typeahead option
+            const venueId = cell.getAttribute('data-venue-id') || '';
+            showEmptyCellMenu(event, cell, courtId, venueId, courtOrder);
+          }
+        },
+        onCellDblClick: (courtId, courtOrder, m) => {
+          log(`DBLCLICK: court=${courtId} row=${courtOrder} ${m ? m.matchUpId : '(empty)'}`);
+        },
+        onCellRightClick: (courtId, courtOrder, m) => {
+          log(`RIGHT-CLICK: court=${courtId} row=${courtOrder} ${m ? m.matchUpId : '(empty)'}`);
         }
       },
-      onCellDblClick: (courtId, courtOrder, m) => {
-        log(`DBLCLICK: court=${courtId} row=${courtOrder} ${m ? m.matchUpId : '(empty)'}`);
-      },
-      onCellRightClick: (courtId, courtOrder, m) => {
-        log(`RIGHT-CLICK: court=${courtId} row=${courtOrder} ${m ? m.matchUpId : '(empty)'}`);
-      },
-    }, cellConfig);
+      cellConfig
+    );
 
     const initialCatalog = buildCatalogFromFactory(selectedDate);
     const initialDates = buildScheduleDates();
@@ -848,7 +851,7 @@ export const FactoryBacked = {
             courtId,
             venueId,
             parseInt(courtOrder, 10),
-            selectedDate,
+            selectedDate
           );
 
           if (result.error) {
@@ -882,9 +885,9 @@ export const FactoryBacked = {
           if (m) {
             log(`Selected: ${m.matchUpId} — ${m.eventName} ${m.roundName ?? ''}`);
           }
-        },
+        }
       },
-      container,
+      container
     );
 
     root.appendChild(logEl);
@@ -899,7 +902,14 @@ export const FactoryBacked = {
     configLabel.textContent = 'Cell Config:';
     configBar.appendChild(configLabel);
 
-    type ScheduleCellField = 'time' | 'eventRound' | 'participants' | 'score' | 'matchUpStatus' | 'matchUpFormat' | 'umpire';
+    type ScheduleCellField =
+      | 'time'
+      | 'eventRound'
+      | 'participants'
+      | 'score'
+      | 'matchUpStatus'
+      | 'matchUpFormat'
+      | 'umpire';
 
     function toggleField(zone: 'header' | 'body' | 'footer', field: ScheduleCellField): void {
       const arr = cellConfig[zone];
@@ -920,36 +930,42 @@ export const FactoryBacked = {
 
     const nameFormats: Array<'full' | 'last' | 'lastFirst' | 'firstLast'> = ['full', 'last', 'lastFirst', 'firstLast'];
     let nameFormatIdx = 0;
-    configBar.appendChild(makeBtn('Cycle name format', () => {
-      nameFormatIdx = (nameFormatIdx + 1) % nameFormats.length;
-      cellConfig.participantDisplay = {
-        ...cellConfig.participantDisplay,
-        nameFormat: nameFormats[nameFormatIdx],
-      };
-      grid.setCellConfig({ ...cellConfig });
-      log(`Name format: ${nameFormats[nameFormatIdx]}`);
-    }));
+    configBar.appendChild(
+      makeBtn('Cycle name format', () => {
+        nameFormatIdx = (nameFormatIdx + 1) % nameFormats.length;
+        cellConfig.participantDisplay = {
+          ...cellConfig.participantDisplay,
+          nameFormat: nameFormats[nameFormatIdx]
+        };
+        grid.setCellConfig({ ...cellConfig });
+        log(`Name format: ${nameFormats[nameFormatIdx]}`);
+      })
+    );
 
-    configBar.appendChild(makeBtn('Toggle seeds', () => {
-      cellConfig.participantDisplay = {
-        ...cellConfig.participantDisplay,
-        showSeed: !cellConfig.participantDisplay?.showSeed,
-      };
-      grid.setCellConfig({ ...cellConfig });
-      log(`Show seeds: ${cellConfig.participantDisplay.showSeed}`);
-    }));
+    configBar.appendChild(
+      makeBtn('Toggle seeds', () => {
+        cellConfig.participantDisplay = {
+          ...cellConfig.participantDisplay,
+          showSeed: !cellConfig.participantDisplay?.showSeed
+        };
+        grid.setCellConfig({ ...cellConfig });
+        log(`Show seeds: ${cellConfig.participantDisplay.showSeed}`);
+      })
+    );
 
-    configBar.appendChild(makeBtn('Reset config', () => {
-      cellConfig = {
-        header: [...DEFAULT_SCHEDULE_CELL_CONFIG.header],
-        body: [...DEFAULT_SCHEDULE_CELL_CONFIG.body],
-        footer: [...DEFAULT_SCHEDULE_CELL_CONFIG.footer],
-        participantDisplay: { ...DEFAULT_SCHEDULE_CELL_CONFIG.participantDisplay },
-      };
-      nameFormatIdx = 0;
-      grid.setCellConfig(cellConfig);
-      log('Cell config reset to default');
-    }));
+    configBar.appendChild(
+      makeBtn('Reset config', () => {
+        cellConfig = {
+          header: [...DEFAULT_SCHEDULE_CELL_CONFIG.header],
+          body: [...DEFAULT_SCHEDULE_CELL_CONFIG.body],
+          footer: [...DEFAULT_SCHEDULE_CELL_CONFIG.footer],
+          participantDisplay: { ...DEFAULT_SCHEDULE_CELL_CONFIG.participantDisplay }
+        };
+        nameFormatIdx = 0;
+        grid.setCellConfig(cellConfig);
+        log('Cell config reset to default');
+      })
+    );
 
     root.appendChild(configBar);
 
@@ -966,17 +982,17 @@ export const FactoryBacked = {
       makeBtn('Log State', () => {
         console.log('Schedule Page State:', control.getStore().getState());
         log('State logged to console');
-      }),
+      })
     );
 
     footer.appendChild(
       makeBtn('Refresh', () => {
         refresh();
         log('Manual refresh');
-      }),
+      })
     );
 
     root.appendChild(footer);
     return root;
-  },
+  }
 };

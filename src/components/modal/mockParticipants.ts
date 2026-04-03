@@ -108,7 +108,7 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
     title = 'Generate mock participants',
     labels = {},
     defaults = {},
-    roleOptions,
+    roleOptions
   } = config;
 
   let inputs: any;
@@ -130,16 +130,13 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
     generate: labels.generate,
     genderAny: labels.genderAny,
     genderFemale: labels.genderFemale,
-    genderMale: labels.genderMale,
+    genderMale: labels.genderMale
   };
 
   // Backward compatibility: convert legacy wtnRating/utrRating booleans to ratings array
   const selectedRatings: string[] = defaults.ratings
     ? [...defaults.ratings]
-    : [
-        ...(defaults.wtnRating ? [WTN] : []),
-        ...(defaults.utrRating ? [UTR] : []),
-      ];
+    : [...(defaults.wtnRating ? [WTN] : []), ...(defaults.utrRating ? [UTR] : [])];
 
   // Merge default values with custom defaults
   const finalDefaults = {
@@ -147,7 +144,7 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
     participantsCount: defaults.participantsCount || 32,
     ageMin: defaults.ageMin,
     ageMax: defaults.ageMax,
-    nationalityCodesCount: defaults.nationalityCodesCount,
+    nationalityCodesCount: defaults.nationalityCodesCount
   };
 
   // Build rating options for multi-select dropdown (exclude deprecated)
@@ -156,7 +153,7 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
     .map(([key]: [string, any]) => ({
       label: key,
       value: key,
-      selected: selectedRatings.includes(key),
+      selected: selectedRatings.includes(key)
     }));
 
   const generate = () => {
@@ -249,12 +246,12 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
           options: roleOptions!.map((opt) => ({
             label: opt.label,
             value: opt.value,
-            selected: opt.value === defaultRole,
+            selected: opt.value === defaultRole
           })),
           label: finalLabels.role,
           field: 'participantRole',
-          value: defaultRole,
-        },
+          value: defaultRole
+        }
       ]
     : [];
 
@@ -298,8 +295,8 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
             field: 'ageMax',
             placeholder: 'e.g., 18',
             type: 'number',
-            value: finalDefaults.ageMax,
-          },
+            value: finalDefaults.ageMax
+          }
         },
         {
           label: finalLabels.countries,
@@ -307,14 +304,14 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
           id: 'nationalityCodesCount',
           placeholder: 'e.g., 10',
           type: 'number',
-          value: finalDefaults.nationalityCodesCount,
+          value: finalDefaults.nationalityCodesCount
         },
         {
           label: finalLabels.ratings,
           field: 'ratings',
           id: 'ratings',
           multiple: true,
-          options: ratingOptions,
+          options: ratingOptions
         }
       ],
       relationships

@@ -26,7 +26,7 @@ describe('roundKeyString', () => {
       eventId: 'E1',
       drawId: 'D1',
       structureId: 'S1',
-      roundNumber: 5,
+      roundNumber: 5
     };
     expect(roundKeyString(r)).toBe('T1|E1|D1|S1|5');
   });
@@ -41,7 +41,7 @@ describe('roundLabel', () => {
       drawId: 'D1',
       structureId: 'S1',
       roundNumber: 5,
-      roundName: 'QF',
+      roundName: 'QF'
     };
     expect(roundLabel(r)).toBe('Boys U16 \u2013 QF');
   });
@@ -52,7 +52,7 @@ describe('roundLabel', () => {
       eventId: 'E1',
       drawId: 'D1',
       structureId: 'S1',
-      roundNumber: 3,
+      roundNumber: 3
     };
     expect(roundLabel(r)).toBe('Round 3');
   });
@@ -66,7 +66,7 @@ describe('roundLabel', () => {
       structureId: 'S1',
       roundNumber: 5,
       roundName: 'R32',
-      roundSegment: { segmentNumber: 1, segmentsCount: 2 },
+      roundSegment: { segmentNumber: 1, segmentsCount: 2 }
     };
     expect(roundLabel(r)).toBe('Boys U16 \u2013 R32 (seg 1/2)');
   });
@@ -77,7 +77,7 @@ describe('sameLocator', () => {
     date: '2026-06-15',
     venueId: 'V1',
     index: 0,
-    roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 },
+    roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 }
   };
 
   it('returns true for matching locators', () => {
@@ -105,14 +105,14 @@ describe('pickRoundKey', () => {
       drawName: 'Main',
       structureId: 'S1',
       roundNumber: 7,
-      roundName: 'QF',
+      roundName: 'QF'
     };
     expect(pickRoundKey(r)).toEqual({
       tournamentId: 'T1',
       eventId: 'E1',
       drawId: 'D1',
       structureId: 'S1',
-      roundNumber: 7,
+      roundNumber: 7
     });
   });
 });

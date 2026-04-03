@@ -8,12 +8,12 @@ function generateTeamMatchUp({ completeAllMatchUps = false } = {}) {
   mocksEngine.generateTournamentRecord({
     drawProfiles: [{ drawSize: 4, eventType: TEAM_EVENT, drawType: 'SINGLE_ELIMINATION' }],
     completeAllMatchUps,
-    setState: true,
+    setState: true
   });
 
   const { matchUps } = tournamentEngine.allTournamentMatchUps({
     participantsProfile: { withISO2: true },
-    inContext: true,
+    inContext: true
   });
 
   // Find a TEAM matchUp that has tieMatchUps
@@ -23,7 +23,7 @@ function generateTeamMatchUp({ completeAllMatchUps = false } = {}) {
 const eventHandlers = {
   scoreClick: (params) => console.log('score click', params),
   matchUpClick: (params) => console.log('matchUp click', params),
-  participantClick: (params) => console.log('participant click', params),
+  participantClick: (params) => console.log('participant click', params)
 };
 
 export default {
@@ -44,37 +44,37 @@ export default {
     compositionName: {
       control: 'select',
       options: Object.keys(compositions).filter((k) => k !== 'Night' && k !== 'InlineScoring'),
-      description: 'Draw composition theme',
+      description: 'Draw composition theme'
     },
     completeAllMatchUps: {
       control: 'boolean',
-      description: 'Generate with all matchUps completed',
-    },
-  },
+      description: 'Generate with all matchUps completed'
+    }
+  }
 };
 
 export const InProgress = {
-  args: { compositionName: 'National', completeAllMatchUps: false },
+  args: { compositionName: 'National', completeAllMatchUps: false }
 };
 
 export const Completed = {
-  args: { compositionName: 'National', completeAllMatchUps: true },
+  args: { compositionName: 'National', completeAllMatchUps: true }
 };
 
 export const FrenchTheme = {
-  args: { compositionName: 'French', completeAllMatchUps: true },
+  args: { compositionName: 'French', completeAllMatchUps: true }
 };
 
 export const WimbledonTheme = {
-  args: { compositionName: 'Wimbledon', completeAllMatchUps: true },
+  args: { compositionName: 'Wimbledon', completeAllMatchUps: true }
 };
 
 export const ITFTheme = {
-  args: { compositionName: 'ITF', completeAllMatchUps: true },
+  args: { compositionName: 'ITF', completeAllMatchUps: true }
 };
 
 export const AustralianTheme = {
-  args: { compositionName: 'Australian', completeAllMatchUps: true },
+  args: { compositionName: 'Australian', completeAllMatchUps: true }
 };
 
 export const TeamVsHeaderOnly = {
@@ -91,7 +91,7 @@ export const TeamVsHeaderOnly = {
       side1Name: side1,
       side2Name: side2,
       sets: matchUp.score?.sets,
-      winningSide: matchUp.winningSide,
+      winningSide: matchUp.winningSide
     });
-  },
+  }
 };

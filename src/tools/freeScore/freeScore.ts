@@ -78,7 +78,7 @@ export enum TokenizerState {
   PARSING_TIEBREAK_SIDE2 = 'PARSING_TIEBREAK_SIDE2',
   SET_COMPLETE = 'SET_COMPLETE',
   MATCH_COMPLETE = 'MATCH_COMPLETE',
-  ERROR = 'ERROR',
+  ERROR = 'ERROR'
 }
 
 export interface ParseError {
@@ -336,7 +336,7 @@ function parseTiebreakSet(setString: string, setNumber: number): ParsedSet {
     side1TiebreakScore: side1,
     side2TiebreakScore: side2,
     setNumber,
-    winningSide: side1 > side2 ? 1 : 2,
+    winningSide: side1 > side2 ? 1 : 2
   };
 }
 
@@ -351,7 +351,7 @@ function parseRegularTimedSet(setString: string, setNumber: number, errors: Pars
       position: 0,
       message: `Set ${setNumber}: Invalid format "${setString}". Expected "#-#" (e.g., "5-3")`,
       expected: '#-#',
-      got: setString,
+      got: setString
     });
     return null;
   }
@@ -364,7 +364,7 @@ function parseRegularTimedSet(setString: string, setNumber: number, errors: Pars
       position: 0,
       message: `Set ${setNumber}: Invalid format "${setString}". Expected "#-#" (e.g., "5-3")`,
       expected: '#-#',
-      got: setString,
+      got: setString
     });
     return null;
   }
@@ -375,7 +375,7 @@ function parseRegularTimedSet(setString: string, setNumber: number, errors: Pars
   return {
     side1Score: side1,
     side2Score: side2,
-    setNumber,
+    setNumber
   };
 }
 
@@ -390,7 +390,7 @@ function parseFinalSetWithConditionalTB(setString: string, setNumber: number, er
       position: 0,
       message: `Final set: Invalid format "${setString}". Expected TB format "1-0" or "0-1", or regular "#-#"`,
       expected: '1-0, 0-1, or #-#',
-      got: setString,
+      got: setString
     });
     return null;
   }
@@ -403,7 +403,7 @@ function parseFinalSetWithConditionalTB(setString: string, setNumber: number, er
       position: 0,
       message: `Final set: Invalid format "${setString}". Expected TB format "1-0" or "0-1", or regular "#-#"`,
       expected: '1-0, 0-1, or #-#',
-      got: setString,
+      got: setString
     });
     return null;
   }
@@ -414,7 +414,7 @@ function parseFinalSetWithConditionalTB(setString: string, setNumber: number, er
   return {
     side1Score: side1,
     side2Score: side2,
-    setNumber,
+    setNumber
   };
 }
 
@@ -428,18 +428,14 @@ function calculateAggregateTotals(sets: ParsedSet[], count: number): { side1: nu
       totals.side2 += set.side2Score || 0;
       return totals;
     },
-    { side1: 0, side2: 0 },
+    { side1: 0, side2: 0 }
   );
 }
 
 /**
  * Validate aggregate scoring with conditional tiebreak
  */
-function validateAggregateScoring(
-  sets: ParsedSet[],
-  timedSetsCount: number,
-  errors: ParseError[],
-): void {
+function validateAggregateScoring(sets: ParsedSet[], timedSetsCount: number, errors: ParseError[]): void {
   const timedSets = sets.filter((s) => s.side1Score !== undefined);
   const hasTBSet = sets.some((s) => s.side1TiebreakScore !== undefined);
 
@@ -456,23 +452,23 @@ function validateAggregateScoring(
       const finalSet = timedSets[timedSetsCount];
       errors.push({
         position: 0,
-        message: `Aggregate tied (${aggregateTotals.side1}-${aggregateTotals.side2}). Final set score "${finalSet.side1Score}-${finalSet.side2Score}" invalid. TB1 only accepts "1-0" or "0-1"`,
+        message: `Aggregate tied (${aggregateTotals.side1}-${aggregateTotals.side2}). Final set score "${finalSet.side1Score}-${finalSet.side2Score}" invalid. TB1 only accepts "1-0" or "0-1"`
       });
     } else {
       errors.push({
         position: 0,
-        message: `Aggregate tied (${aggregateTotals.side1}-${aggregateTotals.side2}), final TB required`,
+        message: `Aggregate tied (${aggregateTotals.side1}-${aggregateTotals.side2}), final TB required`
       });
     }
   } else if (!aggregateTied && hasTBSet) {
     errors.push({
       position: 0,
-      message: `Aggregate not tied (${aggregateTotals.side1}-${aggregateTotals.side2}), final TB not allowed`,
+      message: `Aggregate not tied (${aggregateTotals.side1}-${aggregateTotals.side2}), final TB not allowed`
     });
   } else if (!aggregateTied && finalSetIsTimed) {
     errors.push({
       position: 0,
-      message: `Aggregate not tied (${aggregateTotals.side1}-${aggregateTotals.side2}), extra sets not allowed`,
+      message: `Aggregate not tied (${aggregateTotals.side1}-${aggregateTotals.side2}), extra sets not allowed`
     });
   }
 }
@@ -484,7 +480,7 @@ function parseTimedSetStrings(
   setStrings: string[],
   conditionalFinalTB: boolean,
   expectedSetCount: number,
-  errors: ParseError[],
+  errors: ParseError[]
 ): ParsedSet[] {
   const sets: ParsedSet[] = [];
 
@@ -525,7 +521,7 @@ function createEmptyTimedExactlyResult(conditionalFinalTB: boolean, expectedSetC
       ? [`Enter ${expectedSetCount - 1} timed sets (final TB only if tied)`]
       : [`Enter ${expectedSetCount} sets in format: #-# #-# ...`],
     incomplete: true,
-    matchComplete: false,
+    matchComplete: false
   };
 }
 
@@ -537,13 +533,13 @@ function validateTimedSetCount(
   minSets: number,
   maxSets: number,
   conditionalFinalTB: boolean,
-  errors: ParseError[],
+  errors: ParseError[]
 ): void {
   if (setsLength > maxSets) {
     const expectedSetsText = conditionalFinalTB ? `${minSets}-${maxSets}` : `${maxSets}`;
     errors.push({
       position: 0,
-      message: `Too many sets: got ${setsLength}, expected ${expectedSetsText}`,
+      message: `Too many sets: got ${setsLength}, expected ${expectedSetsText}`
     });
   }
 }
@@ -556,7 +552,7 @@ function generateTimedSetSuggestions(
   conditionalFinalTB: boolean,
   minSets: number,
   setsLength: number,
-  expectedSetCount: number,
+  expectedSetCount: number
 ): string[] {
   if (!incomplete) return [];
 
@@ -577,7 +573,7 @@ function formatTimedSets(sets: ParsedSet[]): string {
     .map((s) =>
       s.side1TiebreakScore !== undefined
         ? `${s.side1TiebreakScore}-${s.side2TiebreakScore}`
-        : `${s.side1Score}-${s.side2Score}`,
+        : `${s.side1Score}-${s.side2Score}`
     )
     .join(' ');
 }
@@ -633,7 +629,7 @@ function parseTimedExactlyScore(input: string, parsedFormat: ParsedFormat): Pars
     ambiguities: [],
     suggestions: generateTimedSetSuggestions(incomplete, conditionalFinalTB, minSets, sets.length, expectedSetCount),
     incomplete,
-    matchComplete,
+    matchComplete
   };
 }
 
@@ -657,14 +653,14 @@ export function parseScore(input: string, matchUpFormat: string | ParsedFormat):
       errors: [
         {
           position: 0,
-          message: 'Invalid matchUpFormat',
-        },
+          message: 'Invalid matchUpFormat'
+        }
       ],
       warnings: [],
       ambiguities: [],
       suggestions: [],
       incomplete: false,
-      matchComplete: false,
+      matchComplete: false
     };
   }
 
@@ -696,7 +692,7 @@ export function parseScore(input: string, matchUpFormat: string | ParsedFormat):
     warnings: [],
     confidence: 1,
     ambiguities: [],
-    suggestions: [],
+    suggestions: []
   };
 
   // Check if first set is tiebreak-only
@@ -752,7 +748,7 @@ export function parseScore(input: string, matchUpFormat: string | ParsedFormat):
     suggestions: state.suggestions,
     incomplete: !matchComplete && finalSets.length > 0,
     matchComplete,
-    matchUpStatus,
+    matchUpStatus
   };
 }
 
@@ -802,7 +798,7 @@ function processCharacter(state: ParserState): void {
     position: state.position,
     message: `Unexpected character '${char}'`,
     got: char,
-    context: getContext(state),
+    context: getContext(state)
   });
   state.isValid = false;
 }
@@ -953,7 +949,7 @@ function handleSide1GameDigit(state: ParserState, char: string, maxGameScore: nu
 
     if (wouldExceedMaxScore(state.currentSide1Buffer, nextDigit, maxGameScore)) {
       state.warnings.push(
-        `Potential score issue: "${state.currentSide1Buffer}${nextDigit}" would exceed max game score ${maxGameScore}`,
+        `Potential score issue: "${state.currentSide1Buffer}${nextDigit}" would exceed max game score ${maxGameScore}`
       );
       state.state = TokenizerState.PARSING_SIDE2;
     }
@@ -1099,7 +1095,7 @@ function createTiebreakOnlySet(state: ParserState): ParsedSet | null {
     side1TiebreakScore: tb1,
     side2TiebreakScore: tb2,
     setNumber: state.setIndex + 1,
-    winningSide: tb1 > tb2 ? 1 : 2,
+    winningSide: tb1 > tb2 ? 1 : 2
   };
 }
 
@@ -1181,7 +1177,7 @@ function createRegularSet(state: ParserState, currentSetFormat: any): ParsedSet 
   const set: ParsedSet = {
     side1Score,
     side2Score,
-    setNumber: state.setIndex + 1,
+    setNumber: state.setIndex + 1
   };
 
   // Add tiebreak scores if present

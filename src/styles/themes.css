@@ -14,8 +14,8 @@
 /* ── Basic ──────────────────────────────────────────────── */
 .chc-theme-basic {
   --chc-color-internal-dividers: transparent;
-  --chc-color-winner: #50B649;
-  --chc-color-loser: #E61A1A;
+  --chc-color-winner: #50b649;
+  --chc-color-loser: #e61a1a;
   --chc-color-connector: #999;
   --chc-space-game-margin: 0.75rem;
   --chc-participant-seed-color: transparent;

@@ -9,7 +9,8 @@ function createCompositionStory(): HTMLElement {
   container.style.cssText = 'padding: 24px; font-family: sans-serif;';
 
   const resultDiv = document.createElement('pre');
-  resultDiv.style.cssText = 'margin-top: 16px; padding: 12px; background: var(--chc-bg-secondary); border-radius: 4px; font-size: 12px; max-height: 400px; overflow: auto; color: var(--chc-text-primary);';
+  resultDiv.style.cssText =
+    'margin-top: 16px; padding: 12px; background: var(--chc-bg-secondary); border-radius: 4px; font-size: 12px; max-height: 400px; overflow: auto; color: var(--chc-text-primary);';
   resultDiv.textContent = 'Click a button to open a configurator...';
 
   const btnRow = document.createElement('div');
@@ -27,7 +28,7 @@ function createCompositionStory(): HTMLElement {
     openCompositionEditorModal({
       onApply: (result: CompositionEditorResult) => {
         resultDiv.textContent = JSON.stringify(result, null, 2);
-      },
+      }
     });
   });
 
@@ -35,7 +36,7 @@ function createCompositionStory(): HTMLElement {
     openScheduleCellConfigModal({
       onApply: (config: ScheduleCellConfig) => {
         resultDiv.textContent = JSON.stringify(config, null, 2);
-      },
+      }
     });
   });
 
@@ -47,7 +48,7 @@ function createCompositionStory(): HTMLElement {
 
 const meta: Meta = {
   title: 'Modals/PDF Composition',
-  render: createCompositionStory,
+  render: createCompositionStory
 };
 
 export default meta;

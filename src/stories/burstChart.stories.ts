@@ -11,7 +11,12 @@
  * This replaces the broken D3v3-based BurstChart story.
  */
 
-import { mocksEngine, tournamentEngine, drawDefinitionConstants, matchUpStatusConstants } from 'tods-competition-factory';
+import {
+  mocksEngine,
+  tournamentEngine,
+  drawDefinitionConstants,
+  matchUpStatusConstants
+} from 'tods-competition-factory';
 import { fromLegacyDraw, fromFactoryDrawData } from '../components/burstChart/matchUpTransform';
 import type { BurstChartInstance } from '../components/burstChart/burstChart';
 import { burstChart } from '../components/burstChart/burstChart';

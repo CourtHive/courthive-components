@@ -23,7 +23,7 @@ const {
   LOSER,
   ROUND_ROBIN,
   AD_HOC,
-  LUCKY_DRAW,
+  LUCKY_DRAW
 } = drawDefinitionConstants;
 
 const POSITION = 'POSITION';
@@ -44,8 +44,10 @@ function inferFactoryDrawType(state: TopologyState, mainNode: TopologyNode): str
   // RR with POSITION links to playoff nodes → ROUND_ROBIN_WITH_PLAYOFF
   if (mainNode.structureType === ROUND_ROBIN) {
     const hasPlayoffs = state.edges.some(
-      (e) => e.sourceNodeId === mainNode.id && e.linkType === POSITION &&
-        state.nodes.some((n) => n.id === e.targetNodeId && n.stage === PLAY_OFF),
+      (e) =>
+        e.sourceNodeId === mainNode.id &&
+        e.linkType === POSITION &&
+        state.nodes.some((n) => n.id === e.targetNodeId && n.stage === PLAY_OFF)
     );
     return hasPlayoffs ? 'ROUND_ROBIN_WITH_PLAYOFF' : ROUND_ROBIN;
   }
@@ -56,9 +58,7 @@ function inferFactoryDrawType(state: TopologyState, mainNode: TopologyNode): str
   // From here, main is SINGLE_ELIMINATION
   // Check for compass: 7 consolation structures with loser links from main at R1/R2/R3
   if (consolationNodes.length === 7 && qualifyingNodes.length === 0 && playoffNodes.length === 0) {
-    const mainLoserEdges = state.edges.filter(
-      (e) => e.linkType === LOSER && e.sourceNodeId === mainNode.id,
-    );
+    const mainLoserEdges = state.edges.filter((e) => e.linkType === LOSER && e.sourceNodeId === mainNode.id);
     const mainLoserRounds = new Set(mainLoserEdges.map((e) => e.sourceRoundNumber));
     if (mainLoserRounds.has(1) && mainLoserRounds.has(2) && mainLoserRounds.has(3)) {
       return COMPASS;
@@ -69,7 +69,7 @@ function inferFactoryDrawType(state: TopologyState, mainNode: TopologyNode): str
   if (consolationNodes.length === 1 && qualifyingNodes.length === 0 && playoffNodes.length === 0) {
     const consNode = consolationNodes[0];
     const mainLoserEdges = state.edges.filter(
-      (e) => e.linkType === LOSER && e.sourceNodeId === mainNode.id && e.targetNodeId === consNode.id,
+      (e) => e.linkType === LOSER && e.sourceNodeId === mainNode.id && e.targetNodeId === consNode.id
     );
 
     // FIC: consolation is FEED_IN, or multiple loser round links
@@ -160,7 +160,8 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
   // Consolation structures linked via LOSER edges from main
   const consolationNodes = state.nodes.filter((n) => n.stage === CONSOLATION);
   const consolationLoserEdges = state.edges.filter(
-    (e) => e.linkType === LOSER && e.sourceNodeId === mainNode.id && consolationNodes.some((n) => n.id === e.targetNodeId),
+    (e) =>
+      e.linkType === LOSER && e.sourceNodeId === mainNode.id && consolationNodes.some((n) => n.id === e.targetNodeId)
   );
 
   // Only emit consolation post-generation when NOT handled by inferFactoryDrawType
@@ -180,7 +181,7 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
 
       const links = edges.map((edge) => ({
         sourceRoundNumber: edge.sourceRoundNumber || 1,
-        targetRoundNumber: edge.targetRoundNumber || 1,
+        targetRoundNumber: edge.targetRoundNumber || 1
       }));
 
       postGenerationMethods.push({
@@ -191,8 +192,8 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
           drawSize: consNode.drawSize,
           matchUpFormat: consNode.matchUpFormat || undefined,
           structureOptions: consNode.structureOptions || undefined,
-          links,
-        },
+          links
+        }
       });
     }
   }
@@ -227,7 +228,7 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
       const group: any = {
         finishingPositions,
         structureName: playoffNode.structureName,
-        drawType: playoffDrawType,
+        drawType: playoffDrawType
       };
 
       // Pass through structureOptions for nested draw types (e.g., RR groupSize)
@@ -241,7 +242,7 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
     if (playoffGroups.length > 0) {
       drawOptions.structureOptions = {
         ...drawOptions.structureOptions,
-        playoffGroups,
+        playoffGroups
       };
     }
   } else if (playoffNodes.length > 0) {
@@ -255,15 +256,10 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
   return { drawOptions, postGenerationMethods };
 }
 
-function buildPlayoffTree(
-  sourceNodeId: string,
-  playoffNodes: TopologyNode[],
-  edges: TopologyEdge[]
-): any | undefined {
+function buildPlayoffTree(sourceNodeId: string, playoffNodes: TopologyNode[], edges: TopologyEdge[]): any | undefined {
   // Find LOSER edges FROM this source node TO playoff nodes
   const outEdges = edges.filter(
-    (e) =>
-      e.sourceNodeId === sourceNodeId && e.linkType === LOSER && playoffNodes.some((n) => n.id === e.targetNodeId)
+    (e) => e.sourceNodeId === sourceNodeId && e.linkType === LOSER && playoffNodes.some((n) => n.id === e.targetNodeId)
   );
   if (!outEdges.length) return undefined;
 

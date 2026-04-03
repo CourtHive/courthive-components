@@ -18,7 +18,7 @@ import {
   getMaxAllowedScore as getMaxAllowedScoreLogic,
   shouldApplySmartComplement,
   buildSetScore,
-  type MatchUpConfig,
+  type MatchUpConfig
 } from '../logic/dynamicSetsLogic';
 
 const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT } = matchUpStatusConstants;
@@ -41,7 +41,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   // Parse match format
   // NOTE: These are wrapped in a function to allow dynamic re-parsing when format changes
   let currentMatchUpFormat = matchUp.matchUpFormat || 'SET3-S:6/TB7';
-  
+
   const getMatchUpConfig = (): MatchUpConfig => {
     const formatInfo = parseMatchUpFormat(currentMatchUpFormat);
     const parsedFormat = matchUpFormatCode.parse(currentMatchUpFormat);
@@ -49,10 +49,10 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       bestOf: formatInfo.bestOf,
       exactly: parsedFormat?.exactly,
       setFormat: parsedFormat?.setFormat,
-      finalSetFormat: parsedFormat?.finalSetFormat,
+      finalSetFormat: parsedFormat?.finalSetFormat
     };
   };
-  
+
   // Create matchConfig that always uses current format
   // This ensures format changes are immediately reflected
   let matchConfig = getMatchUpConfig();
@@ -118,9 +118,9 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
           modalConfig: {
             style: {
               fontSize: '12px', // Smaller base font size for TMX
-              border: '3px solid #0066cc',
-            },
-          },
+              border: '3px solid #0066cc'
+            }
+          }
         } as any);
       } catch (error) {
         console.error('[DynamicSets] Error opening format selector:', error);
@@ -134,7 +134,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   // Irregular ending selector
   let selectedOutcome: typeof COMPLETED | typeof RETIRED | typeof WALKOVER | typeof DEFAULTED = COMPLETED;
   let selectedWinner: number | undefined = undefined; // For irregular endings
-  
+
   // Track which sets have had smart complement applied (for efficiency feature)
   // REFACTORED: Changed from Map to Set for compatibility with pure logic
   const setsWithSmartComplement = new Set<number>();
@@ -164,7 +164,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   const outcomes = [
     { value: RETIRED, label: labels.retired || 'Retired' },
     { value: WALKOVER, label: labels.walkover || 'Walkover' },
-    { value: DEFAULTED, label: labels.defaulted || 'Defaulted' },
+    { value: DEFAULTED, label: labels.defaulted || 'Defaulted' }
   ];
 
   outcomes.forEach((outcome) => {
@@ -233,9 +233,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   clearOutcomeBtn.style.padding = '0.2em 0.5em';
   clearOutcomeBtn.addEventListener('click', () => {
     // Uncheck all radio buttons
-    const radios = irregularEndingContainer.querySelectorAll(
-      OUTCOME_SELECTOR,
-    ) as NodeListOf<HTMLInputElement>;
+    const radios = irregularEndingContainer.querySelectorAll(OUTCOME_SELECTOR) as NodeListOf<HTMLInputElement>;
     radios.forEach((r) => (r.checked = false));
 
     // Reset to COMPLETED
@@ -373,7 +371,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
         side2Score: s.side2Score,
         side1TiebreakScore: s.side1TiebreakScore,
         side2TiebreakScore: s.side2TiebreakScore,
-        winningSide: s.winningSide,
+        winningSide: s.winningSide
       }));
 
     // Also include the incomplete last set (game scores without winningSide)
@@ -384,7 +382,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
         side2Score: lastSet.side2Score,
         side1TiebreakScore: lastSet.side1TiebreakScore,
         side2TiebreakScore: lastSet.side2TiebreakScore,
-        winningSide: undefined,
+        winningSide: undefined
       });
     }
 
@@ -416,7 +414,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   const replayPointsToScore = (targetSide1: string, targetSide2: string) => {
     if (!gameScoreEngine) return;
 
-    const STANDARD_MAP: Record<string, number> = { '0': 0, '15': 1, '30': 2, '40': 3, 'AD': 4 };
+    const STANDARD_MAP: Record<string, number> = { '0': 0, '15': 1, '30': 2, '40': 3, AD: 4 };
     const isStandard = targetSide1 in STANDARD_MAP || targetSide2 in STANDARD_MAP;
 
     if (isStandard) {
@@ -485,7 +483,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
     // Reset state
     currentSets = [];
-    
+
     // Reset smart complement tracking
     setsWithSmartComplement.clear();
 
@@ -508,9 +506,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     outcomeRadios.forEach((r) => (r.checked = false));
 
     // Clear winner selection
-    const winnerRadios = irregularEndingContainer.querySelectorAll(
-      WINNER_SELECTOR,
-    ) as NodeListOf<HTMLInputElement>;
+    const winnerRadios = irregularEndingContainer.querySelectorAll(WINNER_SELECTOR) as NodeListOf<HTMLInputElement>;
     winnerRadios.forEach((r) => (r.checked = false));
 
     // Hide irregular ending and winner selection containers
@@ -530,10 +526,10 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
     // Update display and validation - explicitly clear everything
     updateMatchUpDisplay({ clearAll: true });
-    onScoreChange({ 
-      isValid: false, 
-      sets: [], 
-      matchUpStatus: 'TO_BE_PLAYED' 
+    onScoreChange({
+      isValid: false,
+      sets: [],
+      matchUpStatus: 'TO_BE_PLAYED'
     });
 
     // Focus first input
@@ -573,9 +569,11 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       if (validationResult) {
         internalWinningSide = validationResult.winningSide;
         internalMatchUpStatus = validationResult.matchUpStatus || undefined;
-        
+
         // CRITICAL: For irregular endings (WO/RET/DEF/DOUBLE_*) with no sets, clear the score display
-        const isIrregularEnding = [WALKOVER, RETIRED, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT].includes(internalMatchUpStatus);
+        const isIrregularEnding = [WALKOVER, RETIRED, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT].includes(
+          internalMatchUpStatus
+        );
         if (isIrregularEnding && currentSets.length === 0) {
           displayScore = undefined;
           internalScore = undefined;
@@ -588,7 +586,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       ...matchUp,
       score: displayScore,
       winningSide: internalWinningSide,
-      matchUpStatus: internalMatchUpStatus,
+      matchUpStatus: internalMatchUpStatus
     };
 
     const config = getScoringConfig();
@@ -596,7 +594,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     const matchUpElement = renderMatchUp({
       matchUp: displayMatchUp,
       isLucky: true,
-      composition: compositions[compositionName] || compositions.Australian,
+      composition: compositions[compositionName] || compositions.Australian
     });
 
     if (gameScoreActive) {
@@ -610,7 +608,11 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
         s1Btn.textContent = '+';
         s1Btn.title = 'Point for side 1';
         s1Btn.disabled = isComplete;
-        s1Btn.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); addPointForSide(0); });
+        s1Btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          addPointForSide(0);
+        });
         side1Row.appendChild(s1Btn);
       }
 
@@ -621,7 +623,11 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
         s2Btn.textContent = '+';
         s2Btn.title = 'Point for side 2';
         s2Btn.disabled = isComplete;
-        s2Btn.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); addPointForSide(1); });
+        s2Btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          addPointForSide(1);
+        });
         side2Row.appendChild(s2Btn);
       }
     }
@@ -746,13 +752,13 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   // REFACTORED: Now uses pure logic from dynamicSetsLogic.ts
   const isSetComplete = (setIndex: number): boolean => {
     const side1Input = setsContainer.querySelector(
-      `input[data-set-index="${setIndex}"][data-side="1"]`,
+      `input[data-set-index="${setIndex}"][data-side="1"]`
     ) as HTMLInputElement;
     const side2Input = setsContainer.querySelector(
-      `input[data-set-index="${setIndex}"][data-side="2"]`,
+      `input[data-set-index="${setIndex}"][data-side="2"]`
     ) as HTMLInputElement;
     const tiebreakInput = setsContainer.querySelector(
-      `input[data-set-index="${setIndex}"][data-type="tiebreak"]`,
+      `input[data-set-index="${setIndex}"][data-type="tiebreak"]`
     ) as HTMLInputElement;
 
     if (!side1Input || !side2Input) return false;
@@ -768,11 +774,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     const tiebreakScore = tiebreakInput?.value.trim() ? Number.parseInt(tiebreakInput.value) : undefined;
 
     // Use pure logic function
-    return isSetCompleteLogic(
-      setIndex,
-      { side1: side1Score, side2: side2Score, tiebreak: tiebreakScore },
-      matchConfig,
-    );
+    return isSetCompleteLogic(setIndex, { side1: side1Score, side2: side2Score, tiebreak: tiebreakScore }, matchConfig);
   };
 
   // Function to update score from inputs
@@ -790,7 +792,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       const side1Input = setsContainer.querySelector(`input[data-set-index="${i}"][data-side="1"]`) as HTMLInputElement;
       const side2Input = setsContainer.querySelector(`input[data-set-index="${i}"][data-side="2"]`) as HTMLInputElement;
       const tiebreakInput = setsContainer.querySelector(
-        `input[data-set-index="${i}"][data-type="tiebreak"]`,
+        `input[data-set-index="${i}"][data-type="tiebreak"]`
       ) as HTMLInputElement;
 
       if (!side1Input || !side2Input) break;
@@ -808,13 +810,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       // - Tiebreak-only sets vs regular sets
       // - Winner determination based on completion rules
       // - Tiebreak score calculation and assignment
-      const setData = buildSetScore(
-        i,
-        side1Value,
-        side2Value,
-        tiebreakValue,
-        matchConfig,
-      );
+      const setData = buildSetScore(i, side1Value, side2Value, tiebreakValue, matchConfig);
 
       newSets.push(setData);
     }
@@ -842,22 +838,22 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     // 2. Extra rows when match becomes complete
     // 3. Extra rows when a set becomes incomplete (e.g., removing tiebreak score)
     const allSetRows = setsContainer.querySelectorAll('.set-row');
-    
+
     // Determine how many rows we should have
     // If match is complete, only keep completed sets
     // If match is incomplete, keep one extra row for next set
     const matchComplete = isMatchCompleteLogic(currentSets, getBestOf(), getExactly());
-    
+
     let rowsToKeep: number;
     if (matchComplete) {
       // Match complete: only keep rows with complete sets
-      const completeSetsCount = currentSets.filter(s => s.winningSide !== undefined).length;
+      const completeSetsCount = currentSets.filter((s) => s.winningSide !== undefined).length;
       rowsToKeep = Math.max(1, completeSetsCount);
     } else {
       // Match incomplete: keep current sets + 1 empty row (if not at bestOf limit)
       const lastSetIndex = currentSets.length - 1;
       const lastSetComplete = lastSetIndex >= 0 && currentSets[lastSetIndex].winningSide !== undefined;
-      
+
       if (lastSetComplete && currentSets.length < getBestOf()) {
         // Last set complete and we can add more: keep +1 for next set
         rowsToKeep = currentSets.length + 1;
@@ -895,7 +891,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
           // Tiebreak-only set: only include tiebreak scores and winningSide
           const result: any = {
             side1TiebreakScore: s.side1TiebreakScore,
-            side2TiebreakScore: s.side2TiebreakScore,
+            side2TiebreakScore: s.side2TiebreakScore
           };
           if (s.winningSide !== undefined) result.winningSide = s.winningSide;
           if (s.side1PointScore !== undefined) result.side1PointScore = s.side1PointScore;
@@ -905,7 +901,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
           // Regular set: include game scores, tiebreak scores (if any), and winningSide
           const result: any = {
             side1: s.side1Score,
-            side2: s.side2Score,
+            side2: s.side2Score
           };
           if (s.side1TiebreakScore !== undefined) result.side1TiebreakScore = s.side1TiebreakScore;
           if (s.side2TiebreakScore !== undefined) result.side2TiebreakScore = s.side2TiebreakScore;
@@ -919,7 +915,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       const validation = validateSetScores(
         setsForValidation,
         matchUp.matchUpFormat,
-        selectedOutcome !== COMPLETED, // Allow incomplete if irregular ending
+        selectedOutcome !== COMPLETED // Allow incomplete if irregular ending
       );
 
       // Re-attach point scores to validation sets (score string round-trip loses them)
@@ -1002,10 +998,10 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       irregularEndingContainer.style.display = 'block';
 
       updateMatchUpDisplay();
-      onScoreChange({ 
-        isValid: false, 
-        sets: [], 
-        matchUpStatus: 'TO_BE_PLAYED' 
+      onScoreChange({
+        isValid: false,
+        sets: [],
+        matchUpStatus: 'TO_BE_PLAYED'
       });
     }
   };
@@ -1027,16 +1023,16 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   // REFACTORED: Now uses pure logic from dynamicSetsLogic.ts
   const updateTiebreakVisibility = (setIndex: number) => {
     const side1Input = setsContainer.querySelector(
-      `input[data-set-index="${setIndex}"][data-side="1"]`,
+      `input[data-set-index="${setIndex}"][data-side="1"]`
     ) as HTMLInputElement;
     const side2Input = setsContainer.querySelector(
-      `input[data-set-index="${setIndex}"][data-side="2"]`,
+      `input[data-set-index="${setIndex}"][data-side="2"]`
     ) as HTMLInputElement;
     const tiebreakContainer = setsContainer.querySelector(
-      `.set-row:nth-child(${setIndex + 1}) .tiebreak-container`,
+      `.set-row:nth-child(${setIndex + 1}) .tiebreak-container`
     ) as HTMLElement;
     const tiebreakInput = setsContainer.querySelector(
-      `input[data-set-index="${setIndex}"][data-type="tiebreak"]`,
+      `input[data-set-index="${setIndex}"][data-type="tiebreak"]`
     ) as HTMLInputElement;
 
     if (!side1Input || !side2Input || !tiebreakContainer) return;
@@ -1045,11 +1041,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     const side2Score = Number.parseInt(side2Input.value) || 0;
 
     // Use pure logic function
-    const showTiebreak = shouldShowTiebreakLogic(
-      setIndex,
-      { side1: side1Score, side2: side2Score },
-      matchConfig,
-    );
+    const showTiebreak = shouldShowTiebreakLogic(setIndex, { side1: side1Score, side2: side2Score }, matchConfig);
 
     if (showTiebreak) {
       tiebreakContainer.style.display = 'inline';
@@ -1065,11 +1057,11 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   const getMaxAllowedScore = (setIndex: number, side: string): number => {
     const oppositeSide = side === '1' ? '2' : '1';
     const oppositeInput = setsContainer.querySelector(
-      `input[data-set-index="${setIndex}"][data-side="${oppositeSide}"]`,
+      `input[data-set-index="${setIndex}"][data-side="${oppositeSide}"]`
     ) as HTMLInputElement;
 
     const ownInput = setsContainer.querySelector(
-      `input[data-set-index="${setIndex}"][data-side="${side}"]`,
+      `input[data-set-index="${setIndex}"][data-side="${side}"]`
     ) as HTMLInputElement;
 
     const ownValue = Number.parseInt(ownInput?.value) || 0;
@@ -1080,7 +1072,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       setIndex,
       side === '1' ? 1 : 2,
       { side1: side === '1' ? ownValue : oppositeValue, side2: side === '2' ? ownValue : oppositeValue },
-      matchConfig,
+      matchConfig
     );
   };
 
@@ -1152,7 +1144,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
         // Recalculate and potentially adjust opposite side's value (only for regular sets)
         const oppositeSide = side === '1' ? '2' : '1';
         const oppositeInput = setsContainer.querySelector(
-          `input[data-set-index="${setIndex}"][data-side="${oppositeSide}"]`,
+          `input[data-set-index="${setIndex}"][data-side="${oppositeSide}"]`
         ) as HTMLInputElement;
 
         if (oppositeInput?.value.trim()) {
@@ -1202,7 +1194,10 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   };
 
   // Helper: focus and select contents of a score input when tabbing
-  const focusAndSelect = (el: HTMLInputElement) => { el.focus(); el.select(); };
+  const focusAndSelect = (el: HTMLInputElement) => {
+    el.focus();
+    el.select();
+  };
 
   // Handle keyboard navigation
   const handleKeydown = (event: KeyboardEvent) => {
@@ -1216,7 +1211,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     // Only enabled if user has turned it on in settings
     const settings = loadSettings();
     const smartComplementsEnabled = settings?.smartComplements === true;
-    
+
     // If in side1 field, handle smart complement using pure logic
     if (side === '1' && !isTiebreak) {
       // Handle number keys (0-9)
@@ -1225,11 +1220,11 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       if (digitMatch) {
         const digit = Number.parseInt(digitMatch[1]);
         const currentValue = input.value;
-        
+
         // Only apply smart complement if field is empty (first entry for this set)
         if (currentValue === '') {
           const isShiftPressed = event.shiftKey;
-          
+
           // Use pure logic function to determine if/how to apply complement
           const result = shouldApplySmartComplement(
             digit,
@@ -1238,47 +1233,47 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
             currentSets,
             matchConfig,
             setsWithSmartComplement,
-            smartComplementsEnabled,
+            smartComplementsEnabled
           );
-          
+
           if (result.shouldApply) {
             event.preventDefault();
-            
+
             // Apply the calculated complement values
             input.value = result.field1Value.toString();
-            
+
             const side2Input = setsContainer.querySelector(
-              `input[data-set-index="${setIndex}"][data-side="2"]`,
+              `input[data-set-index="${setIndex}"][data-side="2"]`
             ) as HTMLInputElement;
             if (side2Input) {
               side2Input.value = result.field2Value.toString();
             }
-            
+
             // Mark this set as having smart complement applied
             setsWithSmartComplement.add(setIndex);
-            
+
             // Trigger input events to update validation
             input.dispatchEvent(new Event('input', { bubbles: true }));
-            
+
             // Move to next set's side1 field (if needed)
             // Need to wait for validation to complete to check if match is complete
             setTimeout(() => {
               // Force update to ensure currentSets is updated with the new values
               updateScoreFromInputs();
-              
+
               // REFACTORED: Use pure logic function for match completion check
               const matchComplete = isMatchCompleteLogic(currentSets, getBestOf(), getExactly());
-              
+
               if (matchComplete) {
                 // Match is complete, don't create next set or move focus
                 return;
               }
-              
+
               // Match not complete, check if next set exists or needs to be created
               const nextSetSide1 = setsContainer.querySelector(
-                `input[data-set-index="${setIndex + 1}"][data-side="1"]`,
+                `input[data-set-index="${setIndex + 1}"][data-side="1"]`
               ) as HTMLInputElement;
-              
+
               if (nextSetSide1) {
                 focusAndSelect(nextSetSide1);
               } else if (setIndex + 1 < getBestOf()) {
@@ -1299,7 +1294,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
                 updateClearButtonState();
               }
             }, 10);
-            
+
             return; // Don't process the key further
           }
         }
@@ -1315,22 +1310,22 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
         if (isTiebreak) {
           // From tiebreak to side 2
           const side2Input = setsContainer.querySelector(
-            `input[data-set-index="${setIndex}"][data-side="2"]`,
+            `input[data-set-index="${setIndex}"][data-side="2"]`
           ) as HTMLInputElement;
           if (side2Input) focusAndSelect(side2Input);
         } else if (side === '2') {
           // From side 2 to side 1
           const side1Input = setsContainer.querySelector(
-            `input[data-set-index="${setIndex}"][data-side="1"]`,
+            `input[data-set-index="${setIndex}"][data-side="1"]`
           ) as HTMLInputElement;
           if (side1Input) focusAndSelect(side1Input);
         } else if (setIndex > 0) {
           // From side 1 to previous set's tiebreak (if exists) or side 2
           const prevTiebreakInput = setsContainer.querySelector(
-            `input[data-set-index="${setIndex - 1}"][data-type="tiebreak"]`,
+            `input[data-set-index="${setIndex - 1}"][data-type="tiebreak"]`
           ) as HTMLInputElement;
           const prevSide2Input = setsContainer.querySelector(
-            `input[data-set-index="${setIndex - 1}"][data-side="2"]`,
+            `input[data-set-index="${setIndex - 1}"][data-side="2"]`
           ) as HTMLInputElement;
 
           // Check if tiebreak is visible
@@ -1347,7 +1342,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
         if (isTiebreak) {
           // From tiebreak to next set's side 1
           const nextInput = setsContainer.querySelector(
-            `input[data-set-index="${setIndex + 1}"][data-side="1"]`,
+            `input[data-set-index="${setIndex + 1}"][data-side="1"]`
           ) as HTMLInputElement;
           if (nextInput) {
             focusAndSelect(nextInput);
@@ -1389,7 +1384,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
         } else if (side === '1') {
           // Move from side 1 to side 2 of same set
           const side2Input = setsContainer.querySelector(
-            `input[data-set-index="${setIndex}"][data-side="2"]`,
+            `input[data-set-index="${setIndex}"][data-side="2"]`
           ) as HTMLInputElement;
           if (side2Input) focusAndSelect(side2Input);
         } else if (side === '2') {
@@ -1398,7 +1393,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
           // Check if tiebreak input is visible
           const tiebreakInput = setsContainer.querySelector(
-            `input[data-set-index="${setIndex}"][data-type="tiebreak"]`,
+            `input[data-set-index="${setIndex}"][data-type="tiebreak"]`
           ) as HTMLInputElement;
           const tiebreakContainer = tiebreakInput?.closest(TIEBREAK_CONTAINER_CLASS) as HTMLElement;
 
@@ -1408,7 +1403,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
           } else {
             // Move to next set's side 1
             const nextInput = setsContainer.querySelector(
-              `input[data-set-index="${setIndex + 1}"][data-side="1"]`,
+              `input[data-set-index="${setIndex + 1}"][data-side="1"]`
             ) as HTMLInputElement;
             if (nextInput) {
               focusAndSelect(nextInput);
@@ -1462,22 +1457,22 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       if (isTiebreak) {
         // From tiebreak to side 2
         const side2Input = setsContainer.querySelector(
-          `input[data-set-index="${setIndex}"][data-side="2"]`,
+          `input[data-set-index="${setIndex}"][data-side="2"]`
         ) as HTMLInputElement;
         if (side2Input) focusAndSelect(side2Input);
       } else if (side === '2') {
         // Move back to side 1 of same set
         const side1Input = setsContainer.querySelector(
-          `input[data-set-index="${setIndex}"][data-side="1"]`,
+          `input[data-set-index="${setIndex}"][data-side="1"]`
         ) as HTMLInputElement;
         if (side1Input) focusAndSelect(side1Input);
       } else if (setIndex > 0) {
         // Move back to previous set's tiebreak (if visible) or side 2
         const prevTiebreakInput = setsContainer.querySelector(
-          `input[data-set-index="${setIndex - 1}"][data-type="tiebreak"]`,
+          `input[data-set-index="${setIndex - 1}"][data-type="tiebreak"]`
         ) as HTMLInputElement;
         const prevSide2Input = setsContainer.querySelector(
-          `input[data-set-index="${setIndex - 1}"][data-side="2"]`,
+          `input[data-set-index="${setIndex - 1}"][data-side="2"]`
         ) as HTMLInputElement;
 
         // Check if tiebreak is visible
@@ -1528,22 +1523,22 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       }
 
       const side1Input = setsContainer.querySelector(
-        `input[data-set-index="${index}"][data-side="1"]`,
+        `input[data-set-index="${index}"][data-side="1"]`
       ) as HTMLInputElement;
       const side2Input = setsContainer.querySelector(
-        `input[data-set-index="${index}"][data-side="2"]`,
+        `input[data-set-index="${index}"][data-side="2"]`
       ) as HTMLInputElement;
       const tiebreakInput = setsContainer.querySelector(
-        `input[data-set-index="${index}"][data-type="tiebreak"]`,
+        `input[data-set-index="${index}"][data-type="tiebreak"]`
       ) as HTMLInputElement;
 
       if (side1Input && side2Input) {
         side1Input.value = set.side1Score?.toString() || '';
         side2Input.value = set.side2Score?.toString() || '';
-        
+
         // Update tiebreak visibility based on game scores
         updateTiebreakVisibility(index);
-        
+
         // Populate tiebreak value if it exists
         if (tiebreakInput && (set.side1TiebreakScore !== undefined || set.side2TiebreakScore !== undefined)) {
           // Determine which tiebreak score to show (the losing side's tiebreak)

@@ -123,11 +123,11 @@ export function renderMatchUp(params: {
     // Show scoring buttons when inline scoring is active.
     // The runtime state (canUndo/canRedo/isComplete) is only set by renderInlineMatchUp,
     // so completed draw matchUps rendered normally won't get the footer.
-    const hasBothSides = matchUp.sides?.length === 2
-      && matchUp.sides[0]?.participant && matchUp.sides[1]?.participant;
-    const hasActiveSession = inlineScoring?.canUndo || inlineScoring?.canRedo || inlineScoring?.isComplete || inlineScoring?.isDirty;
-    const isActiveScoringMatchUp = inlineScoring && inlineScoring.showFooter !== false
-      && hasBothSides && (!matchUp.winningSide || hasActiveSession);
+    const hasBothSides = matchUp.sides?.length === 2 && matchUp.sides[0]?.participant && matchUp.sides[1]?.participant;
+    const hasActiveSession =
+      inlineScoring?.canUndo || inlineScoring?.canRedo || inlineScoring?.isComplete || inlineScoring?.isDirty;
+    const isActiveScoringMatchUp =
+      inlineScoring && inlineScoring.showFooter !== false && hasBothSides && (!matchUp.winningSide || hasActiveSession);
 
     if (isActiveScoringMatchUp) {
       footer.className = 'chc-matchup-footer chc-inline-scoring-footer-slot';

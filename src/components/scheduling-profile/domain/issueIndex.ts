@@ -18,14 +18,12 @@ export function buildIssueIndex(results: ValidationResult[]): IssueIndex {
     INFO: 0,
     byDate: {} as Record<string, SeverityCounts>,
     byVenue: {} as Record<string, SeverityCounts>,
-    byDraw: {} as Record<string, SeverityCounts>,
+    byDraw: {} as Record<string, SeverityCounts>
   };
 
   const sevRank = (s: Severity) => (s === 'ERROR' ? 0 : s === 'WARN' ? 1 : 2);
   const stableSort = (a: ValidationResult, b: ValidationResult) =>
-    sevRank(a.severity) - sevRank(b.severity) ||
-    a.code.localeCompare(b.code) ||
-    a.message.localeCompare(b.message);
+    sevRank(a.severity) - sevRank(b.severity) || a.code.localeCompare(b.code) || a.message.localeCompare(b.message);
 
   for (const r of results) {
     bySeverity[r.severity].push(r);
@@ -35,9 +33,7 @@ export function buildIssueIndex(results: ValidationResult[]): IssueIndex {
     const venueId = r.context?.venueId ?? r.context?.locator?.venueId;
     const drawKey =
       r.context?.scope ??
-      (r.context?.drawId && r.context?.structureId
-        ? `${r.context.drawId}|${r.context.structureId}`
-        : undefined);
+      (r.context?.drawId && r.context?.structureId ? `${r.context.drawId}|${r.context.structureId}` : undefined);
 
     if (date) (byDate[date] ??= []).push(r);
     if (venueId) (byVenue[venueId] ??= []).push(r);
@@ -56,11 +52,7 @@ export function buildIssueIndex(results: ValidationResult[]): IssueIndex {
   return { all: results, bySeverity, byDate, byVenue, byDraw, counts };
 }
 
-function bump(
-  bucket: Record<string, SeverityCounts>,
-  key: string | undefined,
-  sev: Severity,
-): void {
+function bump(bucket: Record<string, SeverityCounts>, key: string | undefined, sev: Severity): void {
   if (!key) return;
   const c = (bucket[key] ??= { total: 0, ERROR: 0, WARN: 0, INFO: 0 });
   c.total++;

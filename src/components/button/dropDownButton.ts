@@ -10,7 +10,7 @@ const FONT_MEDIUM = 'font-medium';
 export function dropDownButton({
   target,
   button,
-  stateChange,
+  stateChange
 }: {
   target?: HTMLElement;
   button: any;

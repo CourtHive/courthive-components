@@ -93,21 +93,27 @@ interface FlightProfileConfig {
 ## Split Methods
 
 ### Waterfall (splitWaterfall)
+
 Distributes participants evenly like dealing cards.
+
 - Example with rankings 1-15 into 3 flights:
   - Flight 1: [1, 4, 7, 10, 13]
   - Flight 2: [2, 5, 8, 11, 14]
   - Flight 3: [3, 6, 9, 12, 15]
 
 ### Level Based (splitLevelBased) - Default
+
 Groups participants by skill tiers.
+
 - Example with rankings 1-15 into 3 flights:
   - Flight 1: [1, 2, 3, 4, 5]
   - Flight 2: [6, 7, 8, 9, 10]
   - Flight 3: [11, 12, 13, 14, 15]
 
 ### Shuttle (splitShuttle)
+
 Snake/serpentine distribution pattern.
+
 - Example with rankings 1-15 into 3 flights:
   - Flight 1: [1, 6, 7, 12, 13]
   - Flight 2: [2, 5, 8, 11, 14]
@@ -139,7 +145,7 @@ Snake/serpentine distribution pattern.
     flightNumber: number;
     drawId: string;
     drawName: string; // Updated name
-  }>
+  }>;
 }
 ```
 

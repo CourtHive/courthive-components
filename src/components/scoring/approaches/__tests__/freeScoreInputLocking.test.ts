@@ -1,9 +1,9 @@
 /**
  * Test suite for freeScore input locking behavior
- * 
+ *
  * Tests the logic that prevents additional input after a complete score + separator.
  * This ensures users cannot enter garbage after match completion.
- * 
+ *
  * Key behaviors tested:
  * 1. Match locks when complete score + separator typed
  * 2. Match unlocks when separator removed via backspace
@@ -21,11 +21,7 @@ import { MATCH_FORMATS } from '../../../../constants/matchUpFormats';
  * Simulates the input locking logic from freeScoreApproach.ts
  * Returns whether input should be locked based on current value
  */
-function shouldLockInput(
-  currentValue: string,
-  previouslyLocked: boolean,
-  matchUpFormat: any
-): boolean {
+function shouldLockInput(currentValue: string, previouslyLocked: boolean, matchUpFormat: any): boolean {
   const rawValue = currentValue;
   const scoreString = rawValue.trim();
 
@@ -55,10 +51,7 @@ function shouldLockInput(
 /**
  * Simulates a sequence of input changes and returns lock states
  */
-function simulateInputSequence(
-  inputs: string[],
-  matchUpFormat: any
-): boolean[] {
+function simulateInputSequence(inputs: string[], matchUpFormat: any): boolean[] {
   let locked = false;
   const lockStates: boolean[] = [];
 
@@ -88,7 +81,7 @@ describe('freeScore Input Locking Logic', () => {
         false, // "63 76" - incomplete (6-3 6-7, needs tiebreak)
         false, // "63 763" - incomplete (6-3 6-7(3), needs separator to lock)
         false, // "63 7633" - incomplete (can still extend tiebreak)
-        true,  // "63 7633 " - LOCKED (complete + separator)
+        true // "63 7633 " - LOCKED (complete + separator)
       ]);
     });
 
@@ -102,7 +95,7 @@ describe('freeScore Input Locking Logic', () => {
         false, // "64 46" - incomplete (1-1)
         false, // "64 46 " - incomplete (1-1)
         false, // "64 46 63" - complete but no separator
-        true,  // "64 46 63 " - LOCKED
+        true // "64 46 63 " - LOCKED
       ]);
     });
 
@@ -116,7 +109,7 @@ describe('freeScore Input Locking Logic', () => {
         false, // "63-76" - incomplete
         false, // "63-763" - incomplete
         false, // "63-7633" - complete but no trailing separator
-        true,  // "63-7633-" - LOCKED (dash is separator)
+        true // "63-7633-" - LOCKED (dash is separator)
       ]);
     });
   });
@@ -127,10 +120,10 @@ describe('freeScore Input Locking Logic', () => {
         '36',
         '36 ',
         '36 67',
-        '36 673',   // Could be 6-7(3) complete
-        '36 6733',  // Extended to 6-7(33)
+        '36 673', // Could be 6-7(3) complete
+        '36 6733', // Extended to 6-7(33)
         '36 67102', // Extended to 6-7(102)
-        '36 67102 ', // NOW locked
+        '36 67102 ' // NOW locked
       ];
       const lockStates = simulateInputSequence(inputs, SET3_FORMAT);
 
@@ -141,7 +134,7 @@ describe('freeScore Input Locking Logic', () => {
         false, // "36 673" - can still extend
         false, // "36 6733" - can still extend
         false, // "36 67102" - can still extend
-        true,  // "36 67102 " - LOCKED
+        true // "36 67102 " - LOCKED
       ]);
     });
 
@@ -156,7 +149,7 @@ describe('freeScore Input Locking Logic', () => {
         false, // "76102" - incomplete (7-6(102), need 2nd set)
         false, // "76102 " - incomplete (need 2nd set)
         false, // "76102 64" - complete but no separator
-        true,  // "76102 64 " - LOCKED
+        true // "76102 64 " - LOCKED
       ]);
     });
   });
@@ -165,7 +158,7 @@ describe('freeScore Input Locking Logic', () => {
     it('should unlock when separator removed', () => {
       // Simulate: type "63 7633 " → locked → backspace → unlocked
       let locked = false;
-      
+
       // Build up to complete score with separator
       locked = shouldLockInput('63 7633 ', locked, SET3_FORMAT);
       expect(locked).toBe(true);
@@ -177,18 +170,18 @@ describe('freeScore Input Locking Logic', () => {
 
     it('should allow re-typing after unlocking', () => {
       const inputs = [
-        '63 7633 ',  // Locked
-        '63 7633',   // Unlocked (backspace)
-        '63 76333',  // Still unlocked (extended tiebreak)
-        '63 76333 ', // Locked again
+        '63 7633 ', // Locked
+        '63 7633', // Unlocked (backspace)
+        '63 76333', // Still unlocked (extended tiebreak)
+        '63 76333 ' // Locked again
       ];
       const lockStates = simulateInputSequence(inputs, SET3_FORMAT);
 
       expect(lockStates).toEqual([
-        true,  // Locked with separator
+        true, // Locked with separator
         false, // Unlocked when separator removed
         false, // Can continue typing
-        true,  // Locked again with new separator
+        true // Locked again with new separator
       ]);
     });
 
@@ -243,7 +236,7 @@ describe('freeScore Input Locking Logic', () => {
       expect(lockStates).toEqual([
         false, // "6" - incomplete
         false, // "63" - incomplete
-        false, // "63 " - incomplete (separator but only 1 set)
+        false // "63 " - incomplete (separator but only 1 set)
       ]);
     });
 
@@ -255,7 +248,7 @@ describe('freeScore Input Locking Logic', () => {
         false, // "64" - incomplete
         false, // "64 " - incomplete
         false, // "64 46" - incomplete (tied 1-1)
-        false, // "64 46 " - incomplete (tied, need 3rd set)
+        false // "64 46 " - incomplete (tied, need 3rd set)
       ]);
     });
 
@@ -265,7 +258,7 @@ describe('freeScore Input Locking Logic', () => {
 
       expect(lockStates).toEqual([
         false, // "66" - invalid
-        false, // "66 " - invalid (can't have 6-6)
+        false // "66 " - invalid (can't have 6-6)
       ]);
     });
 
@@ -275,7 +268,7 @@ describe('freeScore Input Locking Logic', () => {
 
       expect(lockStates).toEqual([
         false, // "67" - incomplete (needs tiebreak)
-        false, // "67 " - incomplete (needs tiebreak)
+        false // "67 " - incomplete (needs tiebreak)
       ]);
     });
   });
@@ -289,7 +282,7 @@ describe('freeScore Input Locking Logic', () => {
         false, // "64" - incomplete
         false, // "64 63" - incomplete (2-0, need 3 to win)
         false, // "64 63 62" - complete (3-0) but no separator
-        true,  // "64 63 62 " - LOCKED
+        true // "64 63 62 " - LOCKED
       ]);
     });
 
@@ -300,7 +293,7 @@ describe('freeScore Input Locking Logic', () => {
         '64 46 63',
         `${SCORE_64_63_SPACE}36`,
         `${SCORE_64_63_SPACE}36 75`,
-        `${SCORE_64_63_SPACE}36 75 `,
+        `${SCORE_64_63_SPACE}36 75 `
       ];
       const lockStates = simulateInputSequence(inputs, SET5_FORMAT);
 
@@ -310,7 +303,7 @@ describe('freeScore Input Locking Logic', () => {
         false, // "64 46 63" - incomplete (2-1)
         false, // "64 46 63 36" - incomplete (2-2)
         false, // "64 46 63 36 75" - complete but no separator
-        true,  // "64 46 63 36 75 " - LOCKED
+        true // "64 46 63 36 75 " - LOCKED
       ]);
     });
 
@@ -323,7 +316,7 @@ describe('freeScore Input Locking Logic', () => {
         false, // "64 46" - incomplete
         false, // "64 46 63" - incomplete
         false, // "64 46 63 36" - incomplete (2-2)
-        false, // "64 46 63 36 " - incomplete (need 5th set)
+        false // "64 46 63 36 " - incomplete (need 5th set)
       ]);
     });
   });
@@ -367,39 +360,39 @@ describe('freeScore Input Locking Logic', () => {
   describe('Integration: Complete Input Flows', () => {
     it('should handle typical match entry flow', () => {
       const typingSequence = [
-        '6',        // Start first set
-        '63',       // First set complete
-        '63 ',      // Separator
-        '63 7',     // Start second set
-        '63 76',    // Second set score
-        '63 763',   // Tiebreak score
-        '63 7633',  // Extended tiebreak
-        '63 7633 ', // Complete! SHOULD LOCK (side 2 wins 2-0)
+        '6', // Start first set
+        '63', // First set complete
+        '63 ', // Separator
+        '63 7', // Start second set
+        '63 76', // Second set score
+        '63 763', // Tiebreak score
+        '63 7633', // Extended tiebreak
+        '63 7633 ' // Complete! SHOULD LOCK (side 2 wins 2-0)
       ];
 
       const lockStates = simulateInputSequence(typingSequence, SET3_FORMAT);
 
       expect(lockStates[lockStates.length - 1]).toBe(true);
-      expect(lockStates.slice(0, -1).every(state => state === false)).toBe(true);
+      expect(lockStates.slice(0, -1).every((state) => state === false)).toBe(true);
     });
 
     it('should handle mistake correction flow', () => {
       const sequence = [
         '63 7633 ', // Complete and locked (side 2 wins)
-        '63 7633',  // Backspace → unlocked
-        '63 763',   // Continue backspacing
-        '63 7636',  // Correct tiebreak score
-        '63 7636 ', // Lock again
+        '63 7633', // Backspace → unlocked
+        '63 763', // Continue backspacing
+        '63 7636', // Correct tiebreak score
+        '63 7636 ' // Lock again
       ];
 
       const lockStates = simulateInputSequence(sequence, SET3_FORMAT);
 
       expect(lockStates).toEqual([
-        true,  // Locked
+        true, // Locked
         false, // Unlocked
         false, // Still unlocked
         false, // Still unlocked
-        true,  // Locked again
+        true // Locked again
       ]);
     });
 
@@ -407,11 +400,11 @@ describe('freeScore Input Locking Logic', () => {
       const sequence = [
         '76',
         '763',
-        '7633',     // Extended
-        '76102',    // Extended more
-        '76102 ',   // Separator but incomplete (need 2nd set)
+        '7633', // Extended
+        '76102', // Extended more
+        '76102 ', // Separator but incomplete (need 2nd set)
         '76102 64', // Complete (side 1 wins 2-0)
-        '76102 64 ', // LOCK
+        '76102 64 ' // LOCK
       ];
 
       const lockStates = simulateInputSequence(sequence, SET3_FORMAT);
@@ -423,7 +416,7 @@ describe('freeScore Input Locking Logic', () => {
         false, // Incomplete
         false, // Incomplete (only 1 set)
         false, // Complete but no trailing separator
-        true,  // LOCKED
+        true // LOCKED
       ]);
     });
   });

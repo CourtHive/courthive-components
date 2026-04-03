@@ -141,8 +141,8 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
         ...(isReadOnly
           ? { disabled: true }
           : node.structureType === AD_HOC
-          ? { validator: numericRange(0, 256), error: 'Must be 0-256' }
-          : { validator: numericRange(2, 256), error: 'Must be 2-256' })
+            ? { validator: numericRange(0, 256), error: 'Must be 0-256' }
+            : { validator: numericRange(2, 256), error: 'Must be 2-256' })
       }
     ];
 

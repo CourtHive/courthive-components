@@ -6,7 +6,8 @@ import type { TopologyNode, TopologyTemplate } from '../types';
 
 type Stage = TopologyNode['stage'];
 
-const { SINGLE_ELIMINATION, FEED_IN, ROUND_ROBIN, LUCKY_DRAW, MAIN, QUALIFYING, CONSOLATION, PLAY_OFF } = drawDefinitionConstants;
+const { SINGLE_ELIMINATION, FEED_IN, ROUND_ROBIN, LUCKY_DRAW, MAIN, QUALIFYING, CONSOLATION, PLAY_OFF } =
+  drawDefinitionConstants;
 
 const WINNER = 'WINNER';
 const LOSER = 'LOSER';

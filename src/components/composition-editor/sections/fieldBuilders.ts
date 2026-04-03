@@ -10,14 +10,14 @@ import {
   ceToggleTrack,
   ceSelect,
   ceTextInput,
-  ceColorInput,
+  ceColorInput
 } from '../styles';
 
 export function buildToggleField(
   label: string,
   checked: boolean,
   onChange: (val: boolean) => void,
-  disabled = false,
+  disabled = false
 ): { element: HTMLElement; setChecked: (v: boolean) => void; setDisabled: (v: boolean) => void } {
   const row = document.createElement('div');
   row.className = ceField();
@@ -54,7 +54,7 @@ export function buildToggleField(
     },
     setDisabled: (v: boolean) => {
       input.disabled = v;
-    },
+    }
   };
 }
 
@@ -63,7 +63,7 @@ export function buildSelectField(
   options: Array<{ value: string; label: string }>,
   currentValue: string,
   onChange: (val: string) => void,
-  disabled = false,
+  disabled = false
 ): { element: HTMLElement; setValue: (v: string) => void } {
   const row = document.createElement('div');
   row.className = ceField();
@@ -96,7 +96,7 @@ export function buildSelectField(
     element: row,
     setValue: (v: string) => {
       select.value = v;
-    },
+    }
   };
 }
 
@@ -105,7 +105,7 @@ export function buildTextInputField(
   currentValue: string,
   onChange: (val: string) => void,
   placeholder = '',
-  disabled = false,
+  disabled = false
 ): { element: HTMLElement; setValue: (v: string) => void } {
   const row = document.createElement('div');
   row.className = ceField();
@@ -132,7 +132,7 @@ export function buildTextInputField(
     element: row,
     setValue: (v: string) => {
       input.value = v;
-    },
+    }
   };
 }
 
@@ -140,7 +140,7 @@ export function buildColorField(
   label: string,
   currentValue: string,
   onChange: (val: string) => void,
-  disabled = false,
+  disabled = false
 ): { element: HTMLElement; setValue: (v: string) => void } {
   const row = document.createElement('div');
   row.className = ceField();
@@ -166,6 +166,6 @@ export function buildColorField(
     element: row,
     setValue: (v: string) => {
       input.value = v || '#000000';
-    },
+    }
   };
 }

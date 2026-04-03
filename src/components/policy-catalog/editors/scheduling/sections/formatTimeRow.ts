@@ -22,7 +22,7 @@ import {
   seFieldUnitStyle,
   seOverrideRemoveStyle,
   seAddBtnStyle,
-  seRemoveGroupBtnStyle,
+  seRemoveGroupBtnStyle
 } from '../styles';
 
 export interface FormatTimeRowConfig {
@@ -99,7 +99,7 @@ export function buildFormatTimeRow(config: FormatTimeRowConfig): HTMLElement {
           if (!newFormat || newFormat === code) return;
           const updated = config.formatCodes.map((c) => (c === code ? newFormat : c));
           config.onFormatCodesChange(updated);
-        },
+        }
       });
     });
 
@@ -134,7 +134,7 @@ export function buildFormatTimeRow(config: FormatTimeRowConfig): HTMLElement {
         if (format && !config.formatCodes.includes(format)) {
           config.onFormatCodesChange([...config.formatCodes, format]);
         }
-      },
+      }
     });
   });
 

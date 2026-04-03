@@ -58,13 +58,13 @@ export function getTotalRounds(drawSize: number): number {
  * Returns array of { participantsCount, preFeedRound, feedRound } per round.
  */
 export function luckyRoundProfiles(
-  drawSize: number,
+  drawSize: number
 ): { participantsCount: number; preFeedRound: boolean; feedRound?: boolean }[] {
   const n = Math.max(2, drawSize);
   let participantsCount = n % 2 ? n + 1 : n;
   const preFeedRound = !!(Math.ceil(participantsCount / 2) % 2);
   const rounds: { participantsCount: number; preFeedRound: boolean; feedRound?: boolean }[] = [
-    { participantsCount, preFeedRound },
+    { participantsCount, preFeedRound }
   ];
 
   while (participantsCount > 2) {

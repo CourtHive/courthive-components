@@ -17,7 +17,7 @@ const {
   IN_PROGRESS,
   AWAITING_RESULT,
   COMPLETED,
-  TO_BE_PLAYED,
+  TO_BE_PLAYED
 } = matchUpStatusConstants;
 
 /**
@@ -26,26 +26,24 @@ const {
 export function formatExistingScore(scoreObject: any, matchUpStatus?: string): string {
   // Build score string from sets (if present)
   let scoreString = '';
-  
+
   if (scoreObject) {
     const sets = scoreObject.sets || [];
     scoreString = sets
       .map((set: any) => {
         let setStr = `${set.side1Score || 0}-${set.side2Score || 0}`;
-        
+
         // Add tiebreak score if present
         if (set.side1TiebreakScore !== undefined || set.side2TiebreakScore !== undefined) {
-          const tbScore = set.winningSide === 1 
-            ? set.side2TiebreakScore 
-            : set.side1TiebreakScore;
+          const tbScore = set.winningSide === 1 ? set.side2TiebreakScore : set.side1TiebreakScore;
           setStr += `(${tbScore})`;
         }
-        
+
         return setStr;
       })
       .join(' ');
   }
-  
+
   // Append matchUpStatus abbreviation if present (but not for TO_BE_PLAYED or COMPLETED)
   if (matchUpStatus && matchUpStatus !== COMPLETED && matchUpStatus !== TO_BE_PLAYED) {
     const statusAbbrev = getStatusAbbreviation(matchUpStatus);
@@ -53,7 +51,7 @@ export function formatExistingScore(scoreObject: any, matchUpStatus?: string): s
       return scoreString ? `${scoreString} ${statusAbbrev}` : statusAbbrev;
     }
   }
-  
+
   return scoreString;
 }
 
@@ -66,14 +64,14 @@ export function getStatusAbbreviation(status: string): string {
     [RETIRED]: 'ret',
     [WALKOVER]: 'wo',
     [DEFAULTED]: 'def',
-    [DOUBLE_WALKOVER]: 'wo',  // Map to same abbreviation as WALKOVER
-    [DOUBLE_DEFAULT]: 'def',  // Map to same abbreviation as DEFAULTED
+    [DOUBLE_WALKOVER]: 'wo', // Map to same abbreviation as WALKOVER
+    [DOUBLE_DEFAULT]: 'def', // Map to same abbreviation as DEFAULTED
     [SUSPENDED]: 'susp',
     [CANCELLED]: 'canc',
     [INCOMPLETE]: 'inc',
     [DEAD_RUBBER]: 'dr',
     [IN_PROGRESS]: 'in',
-    [AWAITING_RESULT]: 'await',
+    [AWAITING_RESULT]: 'await'
   };
   return abbrevMap[status] || '';
 }

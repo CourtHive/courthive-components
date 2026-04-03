@@ -15,7 +15,8 @@ import { getNodeTotalRounds } from '../domain/feedRounds';
 import { getCardWidth } from '../ui/structureCard';
 import type { TopologyState, TopologyNode, TopologyBuilderConfig, UIPanel } from '../types';
 
-const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, SINGLE_ELIMINATION, LUCKY_DRAW, WINNER, LOSER } = drawDefinitionConstants;
+const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, SINGLE_ELIMINATION, LUCKY_DRAW, WINNER, LOSER } =
+  drawDefinitionConstants;
 const POSITION = 'POSITION';
 
 export class TopologyBuilderControl {
@@ -102,7 +103,9 @@ export class TopologyBuilderControl {
                   .getState()
                   .edges.filter((e) => e.sourceNodeId === sourceNodeId && e.linkType === LOSER);
                 const claimedRounds = new Set(existingLoserEdges.map((e) => e.sourceRoundNumber));
-                const maxRound = source ? getNodeTotalRounds(source.structureType, source.drawSize, source.structureOptions) : 1;
+                const maxRound = source
+                  ? getNodeTotalRounds(source.structureType, source.drawSize, source.structureOptions)
+                  : 1;
                 let defaultRound = 1;
                 for (let r = 1; r <= maxRound; r++) {
                   if (!claimedRounds.has(r)) {

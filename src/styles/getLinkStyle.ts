@@ -32,11 +32,7 @@ export function getLinkStyle({
   const m1Height = baseHeight * roundFactor;
   const m2Height = (baseHeight + scheduleHeight) * roundFactor;
 
-  return (opts: {
-    isFirstRound?: boolean;
-    link?: string;
-    noProgression?: boolean;
-  }) => {
+  return (opts: { isFirstRound?: boolean; link?: string; noProgression?: boolean }) => {
     const className = cx(
       'chc-link',
       opts.isFirstRound && 'chc-link--first-round',

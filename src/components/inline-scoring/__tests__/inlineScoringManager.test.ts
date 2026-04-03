@@ -13,9 +13,9 @@ function makeMatchUp(overrides: Partial<MatchUp> = {}): MatchUp {
     matchUpFormat: STANDARD_FORMAT,
     sides: [
       { sideNumber: 1, participant: { participantId: 'p1', participantName: 'Player 1' } },
-      { sideNumber: 2, participant: { participantId: 'p2', participantName: 'Player 2' } },
+      { sideNumber: 2, participant: { participantId: 'p2', participantName: 'Player 2' } }
     ],
-    ...overrides,
+    ...overrides
   } as MatchUp;
 }
 

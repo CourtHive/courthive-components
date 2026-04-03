@@ -11,7 +11,7 @@ export {
   positionToRoundLabel,
   formatPointValue,
   getProfileScopeBadges,
-  profileSummaryText,
+  profileSummaryText
 } from './domain/rankingProjections';
 export { emptyRankingPolicy } from './domain/emptyRankingPolicy';
 
@@ -24,5 +24,5 @@ export type {
   AwardProfileData,
   QualityWinProfileData,
   AggregationRulesData,
-  TableLayout,
+  TableLayout
 } from './types';

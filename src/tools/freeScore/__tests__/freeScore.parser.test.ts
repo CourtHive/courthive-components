@@ -23,7 +23,7 @@ describe('freeScore Parser', () => {
       expect(result.sets[0]).toMatchObject({
         side1Score: 6,
         side2Score: 4,
-        winningSide: 1,
+        winningSide: 1
       });
       expect(result.matchComplete).toBe(true);
     });
@@ -65,7 +65,7 @@ describe('freeScore Parser', () => {
         side2Score: 7,
         side1TiebreakScore: 5, // (5) is the losing tiebreak score for side1
         side2TiebreakScore: 7, // Inferred winning score (min of tiebreakTo or losingScore+2)
-        winningSide: 2,
+        winningSide: 2
       });
     });
 
@@ -76,7 +76,7 @@ describe('freeScore Parser', () => {
       expect(result.formattedScore).toBe(SCORE_64_46_TB10_7);
       expect(result.sets[2]).toMatchObject({
         side1TiebreakScore: 10,
-        side2TiebreakScore: 7,
+        side2TiebreakScore: 7
       });
     });
 
@@ -100,7 +100,7 @@ describe('freeScore Parser', () => {
         setNumber: 3,
         side1TiebreakScore: 200,
         side2TiebreakScore: 202,
-        winningSide: 2,
+        winningSide: 2
       });
       // Verify it's a tiebreak-only set (match tiebreak)
       expect(result.sets[2].side1Score).toBe(0);

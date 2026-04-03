@@ -2,17 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { parseScore } from '../freeScore';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 
-const {
-  RETIRED,
-  WALKOVER,
-  DEFAULTED,
-  SUSPENDED,
-  CANCELLED,
-  INCOMPLETE,
-  DEAD_RUBBER,
-  IN_PROGRESS,
-  AWAITING_RESULT,
-} = matchUpStatusConstants;
+const { RETIRED, WALKOVER, DEFAULTED, SUSPENDED, CANCELLED, INCOMPLETE, DEAD_RUBBER, IN_PROGRESS, AWAITING_RESULT } =
+  matchUpStatusConstants;
 
 const FORMAT_SET3_TB7 = 'SET3-S:6/TB7';
 
@@ -20,7 +11,7 @@ describe('freeScore Parser - Irregular Endings', () => {
   describe('RETIRED', () => {
     it('should detect "ret" after score', () => {
       const result = parseScore('6-4 3-2 ret', FORMAT_SET3_TB7);
-      
+
       expect(result.valid).toBe(true);
       expect(result.matchUpStatus).toBe(RETIRED);
       expect(result.sets).toHaveLength(2);
@@ -30,31 +21,31 @@ describe('freeScore Parser - Irregular Endings', () => {
 
     it('should detect "RET" (uppercase)', () => {
       const result = parseScore('6-4 3-2 RET', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(RETIRED);
     });
 
     it('should detect "retired" (full word)', () => {
       const result = parseScore('6-4 3-2 retired', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(RETIRED);
     });
 
     it('should detect "retire" (partial word)', () => {
       const result = parseScore('6-4 3-2 retire', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(RETIRED);
     });
 
     it('should detect "reti" (partial word)', () => {
       const result = parseScore('6-4 3-2 reti', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(RETIRED);
     });
 
     it('should handle retired without preceding score', () => {
       const result = parseScore('ret', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(RETIRED);
       expect(result.sets).toHaveLength(0);
     });
@@ -63,7 +54,7 @@ describe('freeScore Parser - Irregular Endings', () => {
   describe('WALKOVER', () => {
     it('should detect "wo" and remove preceding score', () => {
       const result = parseScore('6-4 wo', FORMAT_SET3_TB7);
-      
+
       expect(result.valid).toBe(true);
       expect(result.matchUpStatus).toBe(WALKOVER);
       expect(result.sets).toHaveLength(0); // Score removed for walkover
@@ -72,32 +63,32 @@ describe('freeScore Parser - Irregular Endings', () => {
 
     it('should detect "WO" (uppercase)', () => {
       const result = parseScore('WO', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(WALKOVER);
       expect(result.sets).toHaveLength(0);
     });
 
     it('should detect "w/o" (with slash)', () => {
       const result = parseScore('w/o', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(WALKOVER);
     });
 
     it('should detect "walkover" (full word)', () => {
       const result = parseScore('walkover', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(WALKOVER);
     });
 
     it('should detect "walk" (partial word)', () => {
       const result = parseScore('walk', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(WALKOVER);
     });
 
     it('should detect "walko" (partial word)', () => {
       const result = parseScore('walko', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(WALKOVER);
     });
   });
@@ -105,7 +96,7 @@ describe('freeScore Parser - Irregular Endings', () => {
   describe('DEFAULTED', () => {
     it('should detect "def" after score', () => {
       const result = parseScore('6-4 3-2 def', FORMAT_SET3_TB7);
-      
+
       expect(result.valid).toBe(true);
       expect(result.matchUpStatus).toBe(DEFAULTED);
       expect(result.sets).toHaveLength(2);
@@ -115,25 +106,25 @@ describe('freeScore Parser - Irregular Endings', () => {
 
     it('should detect "DEF" (uppercase)', () => {
       const result = parseScore('DEF', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(DEFAULTED);
     });
 
     it('should detect "defaulted" (full word)', () => {
       const result = parseScore('6-4 defaulted', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(DEFAULTED);
     });
 
     it('should detect "default" (partial word)', () => {
       const result = parseScore('default', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(DEFAULTED);
     });
 
     it('should detect "defau" (partial word)', () => {
       const result = parseScore('defau', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(DEFAULTED);
     });
   });
@@ -141,7 +132,7 @@ describe('freeScore Parser - Irregular Endings', () => {
   describe('SUSPENDED', () => {
     it('should detect "susp" after score', () => {
       const result = parseScore('6-4 3-2 susp', FORMAT_SET3_TB7);
-      
+
       expect(result.valid).toBe(true);
       expect(result.matchUpStatus).toBe(SUSPENDED);
       expect(result.sets).toHaveLength(2); // Score preserved
@@ -151,20 +142,20 @@ describe('freeScore Parser - Irregular Endings', () => {
 
     it('should detect "SUSPENDED" (uppercase)', () => {
       const result = parseScore('6-4 SUSPENDED', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(SUSPENDED);
       expect(result.sets).toHaveLength(1);
     });
 
     it('should detect "suspend" (partial word)', () => {
       const result = parseScore('6-4 suspend', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(SUSPENDED);
     });
 
     it('should handle suspended without score', () => {
       const result = parseScore('suspended', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(SUSPENDED);
       expect(result.sets).toHaveLength(0);
     });
@@ -173,7 +164,7 @@ describe('freeScore Parser - Irregular Endings', () => {
   describe('CANCELLED', () => {
     it('should detect "canc" and remove score', () => {
       const result = parseScore('6-4 canc', FORMAT_SET3_TB7);
-      
+
       expect(result.valid).toBe(true);
       expect(result.matchUpStatus).toBe(CANCELLED);
       expect(result.sets).toHaveLength(0); // Score removed (match won't happen)
@@ -182,21 +173,21 @@ describe('freeScore Parser - Irregular Endings', () => {
 
     it('should detect "CANCELLED" (British spelling)', () => {
       const result = parseScore('CANCELLED', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(CANCELLED);
       expect(result.sets).toHaveLength(0);
     });
 
     it('should detect "canceled" (American spelling)', () => {
       const result = parseScore('canceled', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(CANCELLED);
       expect(result.sets).toHaveLength(0);
     });
 
     it('should detect "cancel" (partial word)', () => {
       const result = parseScore('6-4 cancel', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(CANCELLED);
       expect(result.sets).toHaveLength(0);
     });
@@ -205,7 +196,7 @@ describe('freeScore Parser - Irregular Endings', () => {
   describe('INCOMPLETE', () => {
     it('should detect "inc" after score', () => {
       const result = parseScore('6-4 3-2 inc', FORMAT_SET3_TB7);
-      
+
       expect(result.valid).toBe(true);
       expect(result.matchUpStatus).toBe(INCOMPLETE);
       expect(result.sets).toHaveLength(2); // Score preserved
@@ -215,14 +206,14 @@ describe('freeScore Parser - Irregular Endings', () => {
 
     it('should detect "INCOMPLETE" (uppercase)', () => {
       const result = parseScore('INCOMPLETE', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(INCOMPLETE);
       expect(result.sets).toHaveLength(0);
     });
 
     it('should detect "incomplet" (partial word)', () => {
       const result = parseScore('6-4 incomplet', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(INCOMPLETE);
     });
   });
@@ -230,7 +221,7 @@ describe('freeScore Parser - Irregular Endings', () => {
   describe('DEAD RUBBER', () => {
     it('should detect "dead" and remove score', () => {
       const result = parseScore('6-4 dead', FORMAT_SET3_TB7);
-      
+
       expect(result.valid).toBe(true);
       expect(result.matchUpStatus).toBe(DEAD_RUBBER);
       expect(result.sets).toHaveLength(0); // Score removed (match not played)
@@ -239,14 +230,14 @@ describe('freeScore Parser - Irregular Endings', () => {
 
     it('should detect "DEAD RUBBER" (full phrase)', () => {
       const result = parseScore('DEAD RUBBER', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(DEAD_RUBBER);
       expect(result.sets).toHaveLength(0);
     });
 
     it('should detect "dead rubber" with score before', () => {
       const result = parseScore('6-4 3-2 dead rubber', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(DEAD_RUBBER);
       expect(result.sets).toHaveLength(0);
     });
@@ -255,7 +246,7 @@ describe('freeScore Parser - Irregular Endings', () => {
   describe('IN PROGRESS', () => {
     it('should detect "in prog" after score', () => {
       const result = parseScore('6-4 3-2 in prog', FORMAT_SET3_TB7);
-      
+
       expect(result.valid).toBe(true);
       expect(result.matchUpStatus).toBe(IN_PROGRESS);
       expect(result.sets).toHaveLength(2); // Score preserved
@@ -265,14 +256,14 @@ describe('freeScore Parser - Irregular Endings', () => {
 
     it('should detect "IN PROGRESS" (full phrase)', () => {
       const result = parseScore('6-4 IN PROGRESS', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(IN_PROGRESS);
       expect(result.sets).toHaveLength(1);
     });
 
     it('should detect "in progress" lowercase', () => {
       const result = parseScore('in progress', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(IN_PROGRESS);
       expect(result.sets).toHaveLength(0);
     });
@@ -281,7 +272,7 @@ describe('freeScore Parser - Irregular Endings', () => {
   describe('AWAITING RESULT', () => {
     it('should detect "await" after score', () => {
       const result = parseScore('6-4 6-3 await', FORMAT_SET3_TB7);
-      
+
       expect(result.valid).toBe(true);
       expect(result.matchUpStatus).toBe(AWAITING_RESULT);
       expect(result.sets).toHaveLength(2); // Score preserved
@@ -290,14 +281,14 @@ describe('freeScore Parser - Irregular Endings', () => {
 
     it('should detect "AWAITING RESULT" (full phrase)', () => {
       const result = parseScore('AWAITING RESULT', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(AWAITING_RESULT);
       expect(result.sets).toHaveLength(0);
     });
 
     it('should detect "awaiting" (partial)', () => {
       const result = parseScore('6-4 awaiting', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(AWAITING_RESULT);
     });
   });
@@ -305,14 +296,14 @@ describe('freeScore Parser - Irregular Endings', () => {
   describe('Mixed scenarios', () => {
     it('should handle irregular ending with spaces', () => {
       const result = parseScore('6-4 3-2   retired', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(RETIRED);
       expect(result.sets).toHaveLength(2);
     });
 
     it('should handle irregular ending with various separators', () => {
       const result = parseScore('6-4;3-2 - ret', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBe(RETIRED);
       expect(result.sets).toHaveLength(2);
     });
@@ -320,7 +311,7 @@ describe('freeScore Parser - Irregular Endings', () => {
     it('should not confuse "wo" in middle of input', () => {
       // This would only match if "wo" is at start of remaining chars after score
       const result = parseScore('6-4 6-3', FORMAT_SET3_TB7);
-      
+
       expect(result.matchUpStatus).toBeUndefined();
       expect(result.sets).toHaveLength(2);
     });
@@ -329,17 +320,17 @@ describe('freeScore Parser - Irregular Endings', () => {
       // Score preserved
       const retired = parseScore('6-4 ret', FORMAT_SET3_TB7);
       expect(retired.sets).toHaveLength(1);
-      
+
       const suspended = parseScore('6-4 susp', FORMAT_SET3_TB7);
       expect(suspended.sets).toHaveLength(1);
-      
+
       // Score removed
       const walkover = parseScore('6-4 wo', FORMAT_SET3_TB7);
       expect(walkover.sets).toHaveLength(0);
-      
+
       const cancelled = parseScore('6-4 canc', FORMAT_SET3_TB7);
       expect(cancelled.sets).toHaveLength(0);
-      
+
       const deadRubber = parseScore('6-4 dead', FORMAT_SET3_TB7);
       expect(deadRubber.sets).toHaveLength(0);
     });

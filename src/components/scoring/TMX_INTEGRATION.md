@@ -433,14 +433,14 @@ The scoring modal uses `cModal` from courthive-components, which supports custom
 
 ```typescript
 // Cancel button has explicit white styling
-{ 
-  label: 'Cancel', 
+{
+  label: 'Cancel',
   intent: 'none',
-  footer: { 
+  footer: {
     className: 'button',
     style: 'background-color: white; color: #363636; border: 1px solid #dbdbdb;'
   },
-  close: true 
+  close: true
 }
 
 // Clear button gets yellow styling via setTimeout
@@ -462,6 +462,7 @@ The scoring modal uses `cModal` from courthive-components, which supports custom
 ### Customizing in TMX
 
 **Option 1: CSS Override (Simplest)**
+
 ```css
 /* In your TMX CSS file */
 .modal button {
@@ -482,27 +483,28 @@ The scoring modal uses `cModal` from courthive-components, which supports custom
 ```
 
 **Option 2: Wrap scoringModal (Advanced)**
+
 ```typescript
 // Create wrapper function in TMX to customize buttons
 import { cModal } from 'courthive-components';
 
 export function customScoringModal({ matchUp, callback }) {
   // Your custom rendering logic...
-  
+
   cModal({
     title: 'Score Entry',
     content: myContent,
     buttons: [
-      { 
-        label: 'Cancel', 
+      {
+        label: 'Cancel',
         intent: 'none',
-        footer: { 
+        footer: {
           className: 'button',
           // Custom TMX styling
           style: 'background-color: #f0f0f0; color: #000; border: 2px solid #999;'
         },
-        close: true 
-      },
+        close: true
+      }
       // ... other buttons with custom styles
     ]
   });
@@ -512,6 +514,7 @@ export function customScoringModal({ matchUp, callback }) {
 ### Available Style Properties
 
 Set any CSS in `footer.style`:
+
 - `background-color` - Button background
 - `color` - Text color
 - `border` - Border style
@@ -528,8 +531,8 @@ const TMX_PRIMARY = '#1a73e8';
 const TMX_DANGER = '#d93025';
 const TMX_NEUTRAL = '#f1f3f4';
 
-footer: { 
-  style: `background-color: ${TMX_PRIMARY}; color: white; border: none;`
+footer: {
+  style: `background-color: ${TMX_PRIMARY}; color: white; border: none;`;
 }
 ```
 

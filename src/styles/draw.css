@@ -180,7 +180,9 @@
 }
 
 .chc-modal-dialog {
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  box-shadow:
+    0 3px 6px rgba(0, 0, 0, 0.16),
+    0 3px 6px rgba(0, 0, 0, 0.23);
   background-color: var(--chc-modal-bg);
   position: relative;
   border-radius: 3px;
@@ -653,9 +655,9 @@
 
 .chc-matchup {
   background-color: var(--chc-color-matchup-bg);
-  -webkit-transition: all 0.30s linear;
+  -webkit-transition: all 0.3s linear;
   box-shadow: var(--chc-matchup-box-shadow);
-  transition: all 0.30s linear;
+  transition: all 0.3s linear;
   border: solid var(--chc-color-border);
   margin-bottom: var(--chc-space-matchup);
   margin-top: var(--chc-space-matchup);
@@ -744,7 +746,7 @@
 
 /* Qualifying lucky loser — solid orange text */
 .chc-lucky-loser-badge {
-  color: var(--chc-lucky-loser-color, #EE7F2D);
+  color: var(--chc-lucky-loser-color, #ee7f2d);
   margin-inline-start: 0.4rem;
   font-size: 0.7rem;
   font-weight: 700;
@@ -753,8 +755,8 @@
 
 /* Lucky draw advancement — orange bordered box, no fill */
 .chc-lucky-advancement-badge {
-  color: var(--chc-lucky-loser-color, #EE7F2D);
-  border: 1.5px solid var(--chc-lucky-loser-color, #EE7F2D);
+  color: var(--chc-lucky-loser-color, #ee7f2d);
+  border: 1.5px solid var(--chc-lucky-loser-color, #ee7f2d);
   background: transparent;
   margin-inline-start: 0.4rem;
   padding: 0 0.25rem;

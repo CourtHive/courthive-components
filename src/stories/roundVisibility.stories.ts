@@ -191,8 +191,7 @@ export const EliminationDraw = {
 export const AdHocDraw = {
   render: ({ ...args }) => {
     const composition = compositions[args.composition || 'National'];
-    const { eventData } =
-      generateEventData({ drawSize: 16, drawType: 'AD_HOC', automated: true, ...args }) || {};
+    const { eventData } = generateEventData({ drawSize: 16, drawType: 'AD_HOC', automated: true, ...args }) || {};
     const structures = eventData?.drawsData?.[0]?.structures || [];
     const structure = structures[0];
     const roundMatchUps = structure?.roundMatchUps;
@@ -219,8 +218,7 @@ export const AdHocDraw = {
 export const AdHocMixedStates = {
   render: ({ ...args }) => {
     const composition = compositions[args.composition || 'National'];
-    const { eventData } =
-      generateEventData({ drawSize: 16, drawType: 'AD_HOC', automated: true, ...args }) || {};
+    const { eventData } = generateEventData({ drawSize: 16, drawType: 'AD_HOC', automated: true, ...args }) || {};
     const structures = eventData?.drawsData?.[0]?.structures || [];
     const structure = structures[0];
     const roundMatchUps = structure?.roundMatchUps;
@@ -252,8 +250,7 @@ export const AdHocMixedStates = {
 export const AdHocAllHidden = {
   render: ({ ...args }) => {
     const composition = compositions[args.composition || 'National'];
-    const { eventData } =
-      generateEventData({ drawSize: 16, drawType: 'AD_HOC', automated: true, ...args }) || {};
+    const { eventData } = generateEventData({ drawSize: 16, drawType: 'AD_HOC', automated: true, ...args }) || {};
     const structures = eventData?.drawsData?.[0]?.structures || [];
     const structure = structures[0];
     const roundMatchUps = structure?.roundMatchUps;

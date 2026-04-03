@@ -36,7 +36,7 @@ const FORMAT_DESCRIPTIONS: Record<string, string> = {
   'SET1-S:8': 'Pro-set to 8',
   'SET1-S:10': 'Pro-set to 10',
   'SET1-S:T7': 'TB7 only',
-  'SET1-S:T21': 'TB21 only',
+  'SET1-S:T21': 'TB21 only'
 };
 
 /** Create empty scheduling policy with sensible structure */
@@ -45,11 +45,11 @@ export function emptySchedulingPolicy(): SchedulingPolicyData {
     allowModificationWhenMatchUpsScheduled: { courts: false, venues: false },
     defaultTimes: {
       averageTimes: [{ categoryNames: [], minutes: { default: 90 } }],
-      recoveryTimes: [{ minutes: { default: 60 } }],
+      recoveryTimes: [{ minutes: { default: 60 } }]
     },
     defaultDailyLimits: { SINGLES: 2, DOUBLES: 2, total: 3 },
     matchUpAverageTimes: [],
     matchUpRecoveryTimes: [],
-    matchUpDailyLimits: [],
+    matchUpDailyLimits: []
   };
 }

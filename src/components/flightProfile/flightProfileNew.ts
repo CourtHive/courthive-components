@@ -68,7 +68,8 @@ export function getFlightProfileModal(params: {
     if (isExisting) {
       const header = document.createElement('div');
       header.className = 'notification is-info is-light';
-      header.innerHTML = editorConfig.labels?.existingNote ||
+      header.innerHTML =
+        editorConfig.labels?.existingNote ||
         '<strong style="color: #000;">Note:</strong> Flight split has already been performed. You can only rename the flights.';
       elem.appendChild(header);
     }

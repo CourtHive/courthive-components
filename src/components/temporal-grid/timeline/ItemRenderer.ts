@@ -132,12 +132,7 @@ export class ItemRenderer {
 
   // ---- Ghost (multi-row creation) ----
 
-  showGhost(opts: {
-    startTime: Date;
-    endTime: Date;
-    topRowIndex: number;
-    bottomRowIndex: number;
-  }): void {
+  showGhost(opts: { startTime: Date; endTime: Date; topRowIndex: number; bottomRowIndex: number }): void {
     if (!this.ghostEl) {
       this.ghostEl = document.createElement('div');
       this.ghostEl.className = 'tg-ghost';

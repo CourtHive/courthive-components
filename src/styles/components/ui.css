@@ -37,7 +37,9 @@
   background-color: var(--chc-dropdown-bg);
   border: 1px solid var(--chc-border-primary);
   border-radius: 4px;
-  box-shadow: 0 0.5em 1em -0.125em rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.02);
+  box-shadow:
+    0 0.5em 1em -0.125em rgba(10, 10, 10, 0.1),
+    0 0 0 1px rgba(10, 10, 10, 0.02);
   padding-bottom: 0.5rem;
   padding-top: 0.5rem;
 }
@@ -289,7 +291,9 @@
 }
 
 /* ── Dark mode notification overrides ───────────────────── */
-[data-theme='dark'] .notification.is-warning { color: #fff; }
+[data-theme='dark'] .notification.is-warning {
+  color: #fff;
+}
 [data-theme='dark'] .notification.is-info.is-light {
   background-color: rgba(53, 113, 179, 0.15);
   color: #7ab8e8;

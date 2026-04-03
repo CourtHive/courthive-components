@@ -237,7 +237,8 @@ export function scoringModal(params: ScoringModalParams): void {
       disabled: activeApproach !== 'inlineScoring',
       onClick: () => {
         const canSubmit =
-          currentOutcome && (activeApproach === 'inlineScoring' || currentOutcome.isValid || (wasCleared && hadExistingScore));
+          currentOutcome &&
+          (activeApproach === 'inlineScoring' || currentOutcome.isValid || (wasCleared && hadExistingScore));
         if (canSubmit) {
           cleanupCurrentApproach();
           callback(currentOutcome);

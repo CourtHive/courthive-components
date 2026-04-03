@@ -32,8 +32,8 @@ export function fromFactoryDrawData(structure: any): SunburstDrawData {
         mu.winningSide === 1
           ? mu.score?.scoreStringSide1
           : mu.winningSide === 2
-          ? mu.score?.scoreStringSide2
-          : undefined,
+            ? mu.score?.scoreStringSide2
+            : undefined,
       sides: (mu.sides || []).map((s: any) => ({
         sideNumber: s.sideNumber,
         drawPosition: s.drawPosition,
@@ -139,10 +139,10 @@ export function fromLegacyDraw(tournamentDraw: any): SunburstDrawData {
         ? 2
         : 1
       : winners1.has(name1)
-      ? 1
-      : winners1.has(name2)
-      ? 2
-      : undefined;
+        ? 1
+        : winners1.has(name2)
+          ? 2
+          : undefined;
 
     // Determine score: the winner's score from round 2 data
     let scoreString: string | undefined;

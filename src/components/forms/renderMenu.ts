@@ -1,26 +1,26 @@
 /**
  * Render menu with items, inputs, and dividers.
- * 
+ *
  * OVERVIEW:
  * Creates a hierarchical menu structure with clickable items, sections, dividers,
  * and embedded form inputs. Used for context menus, dropdowns, and list pickers.
  * Supports nested item groups with optional labels, custom styling, and disabled states.
- * 
+ *
  * PARAMETERS:
  * @param elem - Container element where menu will be rendered
  * @param menu - Array of menu section/item configuration objects
  * @param close - Optional callback to close the menu after item click
  * @returns Object with { focusElement } - Element to receive focus (if focus: true)
- * 
+ *
  * ============================================================================
  * MENU STRUCTURE
  * ============================================================================
- * 
+ *
  * MENU SECTIONS:
  * - text: String - section label (rendered as bold menu-label)
  * - items: Array - menu items within this section
  * - hide: Boolean - if true, section is not rendered
- * 
+ *
  * MENU ITEMS (within items array):
  * - heading: String - bold item text (acts as heading, not clickable)
  * - text: String - regular item text
@@ -34,20 +34,20 @@
  * - class: String - CSS class to add to anchor element
  * - color: String - custom text color
  * - fontSize: String - custom font size (default: '1em')
- * 
+ *
  * INPUT FIELDS:
  * - type: 'input' - marks this as an input field (uses renderField)
  * - field: String - field name (used as key in inputs object)
  * - focus: Boolean - if true, this input receives focus
  * - (all renderField properties apply - see renderField.ts documentation)
- * 
+ *
  * DIVIDERS:
  * - type: 'divider' - renders horizontal divider line
- * 
+ *
  * ============================================================================
  * BEHAVIOR
  * ============================================================================
- * 
+ *
  * CLICK FLOW:
  * 1. User clicks menu item
  * 2. Event propagation is stopped (e.stopPropagation)
@@ -56,32 +56,32 @@
  *    - item.onClick() is called
  * 4. If no close callback or item.close === false:
  *    - Only item.onClick() is called
- * 
+ *
  * DISABLED ITEMS:
  * - Rendered with opacity: 0.4
  * - No onClick handler attached
  * - Visual indicator only - cannot be clicked
- * 
+ *
  * AUTO-CLOSE:
  * - By default, menu closes after clicking any item (if close callback provided)
  * - Set item.close = false to keep menu open after click
  * - Useful for: validation items, preview actions, multi-select scenarios
- * 
+ *
  * FOCUS:
  * - Input fields can have focus: true to receive initial focus
  * - Focus element returned for manual focus control if needed
  * - Uses renderField focus timing (200ms delay in renderForm)
- * 
+ *
  * ============================================================================
  * STYLING
  * ============================================================================
- * 
+ *
  * MENU STRUCTURE:
  * - Container: <aside class="menu">
  * - Section labels: <p class="menu-label"> (bold)
  * - Item lists: <ul class="menu-list">
  * - Items: <li> with <a> for clickable items
- * 
+ *
  * CUSTOMIZATION:
  * - item.heading: font-weight: bold
  * - item.disabled: opacity: 0.4
@@ -89,11 +89,11 @@
  * - item.fontSize: custom font size (default: 1em)
  * - item.style: custom CSS string for list item
  * - item.class: CSS class added to anchor element
- * 
+ *
  * ============================================================================
  * EXAMPLE USAGE
  * ============================================================================
- * 
+ *
  * @example
  * // Simple list picker menu
  * const menu = [
@@ -106,7 +106,7 @@
  *   }
  * ];
  * renderMenu(container, menu, closeMenu);
- * 
+ *
  * @example
  * // Menu with sections and labels
  * const menu = [
@@ -130,7 +130,7 @@
  *   }
  * ];
  * renderMenu(container, menu, closeMenu);
- * 
+ *
  * @example
  * // Menu with custom styling
  * const menu = [
@@ -140,9 +140,9 @@
  *       { text: 'Document 1', onClick: openDoc1 },
  *       { text: 'Document 2', onClick: openDoc2 },
  *       { divider: true },
- *       { 
- *         text: 'Delete All', 
- *         color: 'red', 
+ *       {
+ *         text: 'Delete All',
+ *         color: 'red',
  *         onClick: deleteAll,
  *         disabled: isEmpty
  *       }
@@ -150,7 +150,7 @@
  *   }
  * ];
  * renderMenu(container, menu);
- * 
+ *
  * @example
  * // Menu with input field
  * const menu = [
@@ -174,19 +174,19 @@
  *   }
  * ];
  * const { focusElement } = renderMenu(container, menu);
- * 
+ *
  * @example
  * // Menu with close control
  * const menu = [
  *   {
  *     items: [
- *       { 
- *         text: 'Preview', 
+ *       {
+ *         text: 'Preview',
  *         close: false,  // Keep menu open
  *         onClick: () => showPreview()
  *       },
- *       { 
- *         text: 'Confirm', 
+ *       {
+ *         text: 'Confirm',
  *         onClick: () => confirmAction()  // Closes menu
  *       }
  *     ]

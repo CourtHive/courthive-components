@@ -19,7 +19,7 @@ const defaultConfig: ScoringConfig = {
   composition: 'Australian',
   idiom: 'en',
   dateFormat: 'YYYY-MM-DD',
-  timeFormat: 'HH:mm',
+  timeFormat: 'HH:mm'
 };
 
 // Internal config state
@@ -53,6 +53,6 @@ export function loadSettings(): any {
   return {
     scoringApproach: currentConfig.scoringApproach,
     smartComplements: currentConfig.smartComplements,
-    composition: currentConfig.composition,
+    composition: currentConfig.composition
   };
 }

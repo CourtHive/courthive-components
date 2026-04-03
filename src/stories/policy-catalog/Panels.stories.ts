@@ -28,11 +28,11 @@ import {
   SCHEDULING_POLICY_DEFAULT,
   SCHEDULING_POLICY_EMPTY,
   makeCatalogConfig,
-  makeSchedulingEditorConfig,
+  makeSchedulingEditorConfig
 } from './data';
 
 export default {
-  title: 'Policy Catalog/Panels',
+  title: 'Policy Catalog/Panels'
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -95,7 +95,7 @@ export const CatalogPanelGroupByType = {
         panel.update(store.getState());
         const item = store.getSelectedItem();
         logFn(`Selected: ${item?.name ?? id}`);
-      },
+      }
     });
 
     content.appendChild(panel.element);
@@ -104,7 +104,7 @@ export const CatalogPanelGroupByType = {
     grid.appendChild(content);
     grid.appendChild(logEl);
     return grid;
-  },
+  }
 };
 
 export const CatalogPanelGroupBySource = {
@@ -128,14 +128,14 @@ export const CatalogPanelGroupBySource = {
       onSelectPolicy: (id) => {
         store.selectPolicy(id);
         panel.update(store.getState());
-      },
+      }
     });
 
     root.appendChild(panel.element);
     panel.update(store.getState());
 
     return root;
-  },
+  }
 };
 
 export const CatalogPanelWithSelection = {
@@ -159,14 +159,14 @@ export const CatalogPanelWithSelection = {
       onSelectPolicy: (id) => {
         store.selectPolicy(id);
         panel.update(store.getState());
-      },
+      }
     });
 
     root.appendChild(panel.element);
     panel.update(store.getState());
 
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -182,7 +182,7 @@ export const EditorShellEmpty = {
     const shell = buildEditorShell({
       onSave: () => {},
       onReset: () => {},
-      onApply: () => {},
+      onApply: () => {}
     });
 
     const state: PolicyCatalogState = {
@@ -191,7 +191,7 @@ export const EditorShellEmpty = {
       groupBy: 'type',
       selectedId: null,
       editorDraft: null,
-      dirty: false,
+      dirty: false
     };
 
     root.appendChild(shell.element);
@@ -199,7 +199,7 @@ export const EditorShellEmpty = {
     shell.update(state);
 
     return root;
-  },
+  }
 };
 
 export const EditorShellWithSelection = {
@@ -215,7 +215,7 @@ export const EditorShellWithSelection = {
     const shell = buildEditorShell({
       onSave: () => logFn('Save clicked'),
       onReset: () => logFn('Reset clicked'),
-      onApply: () => logFn('Apply clicked'),
+      onApply: () => logFn('Apply clicked')
     });
 
     const state: PolicyCatalogState = {
@@ -224,7 +224,7 @@ export const EditorShellWithSelection = {
       groupBy: 'type',
       selectedId: 'builtin-scheduling-default',
       editorDraft: SCHEDULING_POLICY_DEFAULT as unknown as Record<string, unknown>,
-      dirty: true,
+      dirty: true
     };
 
     content.appendChild(shell.element);
@@ -234,14 +234,14 @@ export const EditorShellWithSelection = {
     // Mount a JSON editor in the body for demonstration
     const editor = buildJsonEditor({
       initialData: SCHEDULING_POLICY_DEFAULT as unknown as Record<string, unknown>,
-      onChange: (data) => logFn(`JSON changed: ${JSON.stringify(data).substring(0, 80)}...`),
+      onChange: (data) => logFn(`JSON changed: ${JSON.stringify(data).substring(0, 80)}...`)
     });
     shell.bodyElement.appendChild(editor.element);
 
     grid.appendChild(content);
     grid.appendChild(logEl);
     return grid;
-  },
+  }
 };
 
 // ============================================================================
@@ -265,14 +265,14 @@ export const JsonEditor = {
 
     const editor = buildJsonEditor({
       initialData: { requireCompleteScores: true, allowRetirement: true, allowDefault: true },
-      onChange: (data) => logFn(`Valid JSON change: ${JSON.stringify(data)}`),
+      onChange: (data) => logFn(`Valid JSON change: ${JSON.stringify(data)}`)
     });
 
     content.appendChild(editor.element);
     grid.appendChild(content);
     grid.appendChild(logEl);
     return grid;
-  },
+  }
 };
 
 // ============================================================================
@@ -305,7 +305,7 @@ export const ModificationFlagsSection = {
     grid.appendChild(content);
     grid.appendChild(logEl);
     return grid;
-  },
+  }
 };
 
 export const DailyLimitsSection = {
@@ -334,7 +334,7 @@ export const DailyLimitsSection = {
     grid.appendChild(content);
     grid.appendChild(logEl);
     return grid;
-  },
+  }
 };
 
 export const DefaultTimesSection = {
@@ -353,7 +353,9 @@ export const DefaultTimesSection = {
     store.subscribe((state) => {
       const avg = state.draft.defaultTimes?.averageTimes?.[0];
       const rec = state.draft.defaultTimes?.recoveryTimes?.[0];
-      logFn(`Avg: ${avg?.minutes.default}min (dbl=${avg?.minutes.DOUBLES ?? '-'}) | Rec: ${rec?.minutes.default}min (dbl=${rec?.minutes.DOUBLES ?? '-'})`);
+      logFn(
+        `Avg: ${avg?.minutes.default}min (dbl=${avg?.minutes.DOUBLES ?? '-'}) | Rec: ${rec?.minutes.default}min (dbl=${rec?.minutes.DOUBLES ?? '-'})`
+      );
       section.update(state);
     });
 
@@ -364,7 +366,7 @@ export const DefaultTimesSection = {
     grid.appendChild(content);
     grid.appendChild(logEl);
     return grid;
-  },
+  }
 };
 
 export const AverageTimesSection = {
@@ -401,7 +403,7 @@ export const AverageTimesSection = {
     grid.appendChild(content);
     grid.appendChild(logEl);
     return grid;
-  },
+  }
 };
 
 export const AverageTimesSectionEmpty = {
@@ -420,7 +422,7 @@ export const AverageTimesSectionEmpty = {
     section.update(store.getState());
 
     return root;
-  },
+  }
 };
 
 export const RecoveryTimesSection = {
@@ -455,7 +457,7 @@ export const RecoveryTimesSection = {
     grid.appendChild(content);
     grid.appendChild(logEl);
     return grid;
-  },
+  }
 };
 
 // ============================================================================
@@ -485,5 +487,5 @@ export const FullSchedulingEditorPanel = {
 
     root.appendChild(panel.element);
     return root;
-  },
+  }
 };

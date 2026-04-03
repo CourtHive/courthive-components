@@ -27,20 +27,39 @@
   gap: 4px;
   white-space: nowrap;
   line-height: 1;
-  transition: border-color 0.15s, background 0.15s, color 0.15s, opacity 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    color 0.15s,
+    opacity 0.15s;
 }
 
-.sp-btn:hover { border-color: var(--sp-border-hover); }
+.sp-btn:hover {
+  border-color: var(--sp-border-hover);
+}
 
 /* ── Size ── */
-.sp-btn--sm { font-size: 0.6875rem; padding: 6px 10px; }
+.sp-btn--sm {
+  font-size: 0.6875rem;
+  padding: 6px 10px;
+}
 
 /* ── Intent ── */
-.sp-btn--accent { border-color: var(--sp-accent-border); color: var(--sp-accent-text); }
-.sp-btn--accent:hover { border-color: var(--sp-accent-focus); }
+.sp-btn--accent {
+  border-color: var(--sp-accent-border);
+  color: var(--sp-accent-text);
+}
+.sp-btn--accent:hover {
+  border-color: var(--sp-accent-focus);
+}
 
-.sp-btn--success { border-color: var(--sp-ok-border); color: var(--sp-ok-text); }
-.sp-btn--success:hover { border-color: var(--sp-ok); }
+.sp-btn--success {
+  border-color: var(--sp-ok-border);
+  color: var(--sp-ok-text);
+}
+.sp-btn--success:hover {
+  border-color: var(--sp-ok);
+}
 
 .sp-btn--danger {
   border-color: var(--sp-err-border);
@@ -53,8 +72,13 @@
   border-color: var(--sp-err);
 }
 
-.sp-btn--warn { border-color: var(--sp-warn-border); color: var(--sp-warn-text); }
-.sp-btn--warn:hover { border-color: var(--sp-warn); }
+.sp-btn--warn {
+  border-color: var(--sp-warn-border);
+  color: var(--sp-warn-text);
+}
+.sp-btn--warn:hover {
+  border-color: var(--sp-warn);
+}
 
 /* ── Shape ── */
 .sp-btn--outline {
@@ -62,7 +86,10 @@
   background: transparent;
   color: var(--sp-muted);
 }
-.sp-btn--outline:hover { border-color: var(--sp-border-hover); color: var(--sp-text); }
+.sp-btn--outline:hover {
+  border-color: var(--sp-border-hover);
+  color: var(--sp-text);
+}
 
 .sp-btn--fill {
   background: var(--sp-accent);
@@ -70,7 +97,9 @@
   color: #fff;
   font-weight: 600;
 }
-.sp-btn--fill:hover { opacity: 0.9; }
+.sp-btn--fill:hover {
+  opacity: 0.9;
+}
 
 .sp-btn--fill-muted {
   background: #666;
@@ -78,10 +107,14 @@
   color: #fff;
   font-weight: 600;
 }
-.sp-btn--fill-muted:hover { opacity: 0.9; }
+.sp-btn--fill-muted:hover {
+  opacity: 0.9;
+}
 
 /* ── Layout ── */
-.sp-btn--full { width: 100%; }
+.sp-btn--full {
+  width: 100%;
+}
 
 /* ── State ── */
 .sp-btn--active {
@@ -115,10 +148,16 @@
   line-height: 1;
   padding: 0;
   flex-shrink: 0;
-  transition: border-color 0.15s, color 0.15s, background 0.15s, opacity 0.15s;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s,
+    opacity 0.15s;
 }
 
-.sp-btn-icon:hover { border-color: var(--sp-border-hover); }
+.sp-btn-icon:hover {
+  border-color: var(--sp-border-hover);
+}
 
 /* ── Danger variant ── */
 .sp-btn-icon--danger:hover {
@@ -132,7 +171,10 @@
   background: transparent;
   opacity: 0;
   border-radius: 3px;
-  transition: opacity 0.15s, color 0.15s, background 0.15s;
+  transition:
+    opacity 0.15s,
+    color 0.15s,
+    background 0.15s;
 }
 
 .venue-header:hover .sp-btn-icon--ghost,
@@ -166,7 +208,9 @@
   gap: 6px;
   white-space: nowrap;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
 }
 
 .sp-chip:hover {
@@ -181,4 +225,6 @@
   opacity: 0.6;
 }
 
-.sp-chip__remove:hover { opacity: 1; }
+.sp-chip__remove:hover {
+  opacity: 1;
+}

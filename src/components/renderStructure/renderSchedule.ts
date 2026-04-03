@@ -4,12 +4,12 @@ import { isFunction } from '../modal/cmodal';
 import dayjs from 'dayjs';
 import type { EventHandlers, MatchUp } from '../../types';
 
-export function renderSchedule({ 
-  matchUp, 
-  eventHandlers 
-}: { 
-  matchUp?: MatchUp; 
-  eventHandlers?: EventHandlers 
+export function renderSchedule({
+  matchUp,
+  eventHandlers
+}: {
+  matchUp?: MatchUp;
+  eventHandlers?: EventHandlers;
 }): HTMLElement {
   const { scheduledTime, scheduledDate, venueAbbreviation, courtName } = matchUp?.schedule || {};
   const {

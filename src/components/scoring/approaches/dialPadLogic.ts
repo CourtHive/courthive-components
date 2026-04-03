@@ -55,9 +55,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
 
       // For timed sets, allow effectively unlimited scores (up to 999)
       // For regular sets, use normal boundaries
-      const setTo = currentSetIsTimed 
-        ? 999 
-        : (currentTiebreakSetTo || currentRegularSetTo || 6);
+      const setTo = currentSetIsTimed ? 999 : currentTiebreakSetTo || currentRegularSetTo || 6;
       const tiebreakAt = currentSetFormat?.tiebreakAt || setTo;
 
       let side1 = '';
@@ -91,7 +89,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
         // For setTo=6: valid scores are 0-7, so if val>7 after adding digit, stop
         // For setTo=10+: need to allow 2-digit scores (10, 11, 12, etc.)
         // For timed sets: effectively unlimited (999)
-        const maxScore = currentSetIsTimed ? 999 : (setTo + 1);
+        const maxScore = currentSetIsTimed ? 999 : setTo + 1;
 
         if (val > maxScore) break;
 
@@ -143,7 +141,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
         const potentialValue = side2 + nextDigit;
         const val = Number.parseInt(potentialValue);
 
-        const maxScore = currentSetIsTimed ? 999 : (setTo + 1);
+        const maxScore = currentSetIsTimed ? 999 : setTo + 1;
 
         // Allow up to setTo+3 temporarily for parsing, will coerce later if needed
         // This allows [3,8] and [3,9] to be parsed, then coerced to [3,6]
@@ -262,7 +260,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
         } else {
           result += `${side1}-${side2}`;
         }
-        
+
         // Only increment setCount if the set has a winner
         // For timed sets, having both scores means it's complete
         // For regular sets, must meet traditional winner criteria

@@ -8,12 +8,12 @@ const SIMPLE_OVER = 'Simple Over';
 
 export interface ParsedAgeCategory {
   type: 'under' | 'over' | 'range' | 'combined' | 'open';
-  ageValue?: number;      // For simple under/over
-  ageMin?: number;        // For ranges and combined
-  ageMax?: number;        // For ranges and combined
-  uPosition?: 'pre' | 'post';  // U18 vs 18U
-  oPosition?: 'pre' | 'post';  // O10 vs 10O
-  isCombined?: boolean;        // C prefix
+  ageValue?: number; // For simple under/over
+  ageMin?: number; // For ranges and combined
+  ageMax?: number; // For ranges and combined
+  uPosition?: 'pre' | 'post'; // U18 vs 18U
+  oPosition?: 'pre' | 'post'; // O10 vs 10O
+  isCombined?: boolean; // C prefix
   rangeOrder?: 'max-min' | 'min-max'; // For preserving order in ranges like U18-10O vs 10O-18U
 }
 
@@ -49,7 +49,7 @@ export function parseAgeCategoryCode(code: string): ParsedAgeCategory | null {
       type: 'combined',
       ageMin: parseInt(min, 10),
       ageMax: parseInt(max, 10),
-      isCombined: true,
+      isCombined: true
     };
   }
 
@@ -119,7 +119,7 @@ export function parseAgeCategoryCode(code: string): ParsedAgeCategory | null {
           ageMax,
           uPosition,
           oPosition,
-          rangeOrder,
+          rangeOrder
         };
       }
     }
@@ -133,7 +133,7 @@ export function parseAgeCategoryCode(code: string): ParsedAgeCategory | null {
     return {
       type: 'under',
       ageValue: age,
-      uPosition,
+      uPosition
     };
   }
 
@@ -145,7 +145,7 @@ export function parseAgeCategoryCode(code: string): ParsedAgeCategory | null {
     return {
       type: 'over',
       ageValue: age,
-      oPosition,
+      oPosition
     };
   }
 
@@ -178,20 +178,22 @@ export function buildAgeCategoryCode(config: AgeCategoryCodeConfig): string {
     // For ranges, we need to convert back to the original age value, not the calculated min/max
     // If uPosition is 'pre', we had U18 which means ageMax=17, so original age was 18
     // If uPosition is 'post', we had 18U which means ageMax=18, so original age was 18
-    
-    const maxPart = ageMax !== undefined && uPosition
-      ? (() => {
-          const originalAge = uPosition === 'pre' ? ageMax + 1 : ageMax;
-          return uPosition === 'pre' ? `U${originalAge}` : `${originalAge}U`;
-        })()
-      : null;
 
-    const minPart = ageMin !== undefined && oPosition
-      ? (() => {
-          const originalAge = oPosition === 'pre' ? ageMin - 1 : ageMin;
-          return oPosition === 'pre' ? `O${originalAge}` : `${originalAge}O`;
-        })()
-      : null;
+    const maxPart =
+      ageMax !== undefined && uPosition
+        ? (() => {
+            const originalAge = uPosition === 'pre' ? ageMax + 1 : ageMax;
+            return uPosition === 'pre' ? `U${originalAge}` : `${originalAge}U`;
+          })()
+        : null;
+
+    const minPart =
+      ageMin !== undefined && oPosition
+        ? (() => {
+            const originalAge = oPosition === 'pre' ? ageMin - 1 : ageMin;
+            return oPosition === 'pre' ? `O${originalAge}` : `${originalAge}O`;
+          })()
+        : null;
 
     // Preserve original order
     if (rangeOrder === 'max-min') {
@@ -283,6 +285,6 @@ export function getDefaultPredefinedCodes(): Array<{ code: string; text: string 
     { code: '65O', text: '65 and Over' },
     { code: '70O', text: '70 and Over' },
     { code: '75O', text: '75 and Over' },
-    { code: '80O', text: '80 and Over' },
+    { code: '80O', text: '80 and Over' }
   ];
 }

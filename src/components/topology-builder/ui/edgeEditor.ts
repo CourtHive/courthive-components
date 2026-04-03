@@ -17,13 +17,13 @@ const isRoundRobin = (structureType: string) => structureType === ROUND_ROBIN;
 const LINK_TYPES = [
   { label: 'Winner', value: WINNER },
   { label: 'Loser', value: LOSER },
-  { label: 'Position', value: POSITION },
+  { label: 'Position', value: POSITION }
 ];
 
 const FEED_PROFILES = [
   { label: 'Top-Down', value: TOP_DOWN },
   { label: 'Bottom-Up', value: BOTTOM_UP },
-  { label: 'Alternating', value: ALTERNATING },
+  { label: 'Alternating', value: ALTERNATING }
 ];
 
 export interface EdgeEditorCallbacks {
@@ -38,9 +38,7 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
 
   function update(state: TopologyState): void {
     root.innerHTML = '';
-    const edge = state.selectedEdgeId
-      ? state.edges.find((e) => e.id === state.selectedEdgeId)
-      : null;
+    const edge = state.selectedEdgeId ? state.edges.find((e) => e.id === state.selectedEdgeId) : null;
 
     if (!edge) return;
 
@@ -62,8 +60,12 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
     body.appendChild(info);
 
     const isQualifyingWinner = edge.linkType === WINNER && source?.stage === QUALIFYING;
-    const sourceMaxRound = source ? getNodeTotalRounds(source.structureType, source.drawSize, source.structureOptions) : 8;
-    const targetMaxRound = target ? getNodeTotalRounds(target.structureType, target.drawSize, target.structureOptions) : 8;
+    const sourceMaxRound = source
+      ? getNodeTotalRounds(source.structureType, source.drawSize, source.structureOptions)
+      : 8;
+    const targetMaxRound = target
+      ? getNodeTotalRounds(target.structureType, target.drawSize, target.structureOptions)
+      : 8;
     const isRRPosition = edge.linkType === POSITION && source && isRoundRobin(source.structureType);
 
     const items: any[] = [
@@ -72,17 +74,18 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
         field: 'linkType',
         value: edge.linkType,
         disabled: isReadOnly,
-        options: LINK_TYPES.map((lt) => ({ ...lt, selected: lt.value === edge.linkType })),
-      },
+        options: LINK_TYPES.map((lt) => ({ ...lt, selected: lt.value === edge.linkType }))
+      }
     ];
 
-    const relationships: any[] = isReadOnly ? [] : [
-      {
-        control: 'linkType',
-        onChange: ({ e }: any) =>
-          callbacks.onUpdateEdge(edge.id, { linkType: e.target.value }),
-      },
-    ];
+    const relationships: any[] = isReadOnly
+      ? []
+      : [
+          {
+            control: 'linkType',
+            onChange: ({ e }: any) => callbacks.onUpdateEdge(edge.id, { linkType: e.target.value })
+          }
+        ];
 
     // Hide round fields for RR POSITION links (not applicable)
     if (!isRRPosition) {
@@ -96,14 +99,14 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
         const roundOptions = profiles.playoffRoundsRanges!.map((r) => ({
           label: `R${r.roundNumber} (${r.finishingPositionRange})`,
           value: String(r.roundNumber),
-          selected: r.roundNumber === (edge.sourceRoundNumber || sourceMaxRound),
+          selected: r.roundNumber === (edge.sourceRoundNumber || sourceMaxRound)
         }));
         items.push({
           label: 'Source Round',
           field: 'sourceRoundNumber',
           value: String(edge.sourceRoundNumber || sourceMaxRound),
           disabled: isReadOnly,
-          options: roundOptions,
+          options: roundOptions
         });
       } else {
         items.push({
@@ -111,7 +114,7 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
           field: 'sourceRoundNumber',
           type: 'number',
           value: String(edge.sourceRoundNumber || sourceMaxRound),
-          disabled: isReadOnly,
+          disabled: isReadOnly
         });
       }
 
@@ -120,7 +123,7 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
         field: 'targetRoundNumber',
         type: 'number',
         value: String(edge.targetRoundNumber || 0),
-        disabled: isReadOnly,
+        disabled: isReadOnly
       });
 
       if (!isReadOnly) {
@@ -130,7 +133,7 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
             onChange: ({ e }: any) => {
               const val = parseInt(e.target.value) || 0;
               callbacks.onUpdateEdge(edge.id, { sourceRoundNumber: val || undefined });
-            },
+            }
           });
         } else {
           relationships.push({
@@ -139,7 +142,7 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
               const val = parseInt(inputs.sourceRoundNumber.value) || 0;
               const clamped = Math.max(0, Math.min(val, sourceMaxRound));
               callbacks.onUpdateEdge(edge.id, { sourceRoundNumber: clamped || undefined });
-            },
+            }
           });
         }
 
@@ -149,7 +152,7 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
             const val = parseInt(inputs.targetRoundNumber.value) || 0;
             const clamped = Math.max(0, Math.min(val, targetMaxRound));
             callbacks.onUpdateEdge(edge.id, { targetRoundNumber: clamped || undefined });
-          },
+          }
         });
       }
     }
@@ -164,7 +167,7 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
         field: 'qualifyingPositions',
         type: 'number',
         value: String(currentValue),
-        disabled: isReadOnly,
+        disabled: isReadOnly
       });
       if (!isReadOnly) {
         relationships.push({
@@ -173,7 +176,7 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
             const val = parseInt(inputs.qualifyingPositions.value) || 1;
             const clamped = Math.max(1, Math.min(val, maxPositions));
             callbacks.onUpdateEdge(edge.id, { qualifyingPositions: clamped });
-          },
+          }
         });
       }
     }
@@ -187,14 +190,13 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
         disabled: isReadOnly,
         options: FEED_PROFILES.map((fp) => ({
           ...fp,
-          selected: fp.value === (edge.feedProfile || TOP_DOWN),
-        })),
+          selected: fp.value === (edge.feedProfile || TOP_DOWN)
+        }))
       });
       if (!isReadOnly) {
         relationships.push({
           control: 'feedProfile',
-          onChange: ({ e }: any) =>
-            callbacks.onUpdateEdge(edge.id, { feedProfile: e.target.value }),
+          onChange: ({ e }: any) => callbacks.onUpdateEdge(edge.id, { feedProfile: e.target.value })
         });
       }
     }
@@ -206,7 +208,7 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
         field: 'finishingPositions',
         value: (edge.finishingPositions || []).join(', '),
         placeholder: 'e.g., 1, 2',
-        disabled: isReadOnly,
+        disabled: isReadOnly
       });
       if (!isReadOnly) {
         relationships.push({
@@ -217,7 +219,7 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
               .map((v: string) => parseInt(v.trim()))
               .filter((n: number) => !isNaN(n));
             callbacks.onUpdateEdge(edge.id, { finishingPositions: positions });
-          },
+          }
         });
       }
     }
@@ -231,7 +233,7 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
 
       // Check which positions are claimed by other POSITION links from the same source
       const otherPositionEdges = state.edges.filter(
-        (e) => e.id !== edge.id && e.sourceNodeId === edge.sourceNodeId && e.linkType === POSITION,
+        (e) => e.id !== edge.id && e.sourceNodeId === edge.sourceNodeId && e.linkType === POSITION
       );
       const claimedPositions = new Set<number>();
       for (const other of otherPositionEdges) {
@@ -245,7 +247,8 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
       posField.style.marginBottom = '10px';
 
       const posLabel = document.createElement('label');
-      posLabel.style.cssText = 'font-size:11px;font-weight:600;color:var(--chc-text-secondary);margin-bottom:3px;display:block;';
+      posLabel.style.cssText =
+        'font-size:11px;font-weight:600;color:var(--chc-text-secondary);margin-bottom:3px;display:block;';
       posLabel.textContent = 'Finishing Positions';
       posField.appendChild(posLabel);
 

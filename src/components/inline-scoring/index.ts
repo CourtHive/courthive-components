@@ -6,5 +6,5 @@ export type {
   InlineScoringMode,
   InlineScoringConfig,
   InlineScoringCallbacks,
-  InlineScoringEngineState,
+  InlineScoringEngineState
 } from './inlineScoringTypes';

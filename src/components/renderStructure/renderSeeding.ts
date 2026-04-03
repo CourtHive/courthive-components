@@ -1,6 +1,14 @@
 import type { Composition, Side } from '../../types';
 
-export function renderSeeding({ className, composition, side }: { className?: string; composition?: Composition; side?: Side }): HTMLElement | string {
+export function renderSeeding({
+  className,
+  composition,
+  side
+}: {
+  className?: string;
+  composition?: Composition;
+  side?: Side;
+}): HTMLElement | string {
   const seedValue =
     side?.seedValue === '~' ? '' : (side?.seedValue !== undefined && side.seedValue) || side?.seedNumber;
 

@@ -121,9 +121,15 @@
 }
 
 /* ── Edge colors ─────────────────────────────────────────── */
-.tb-edge--winner { stroke: var(--chc-status-success); }
-.tb-edge--loser { stroke: var(--chc-status-error); }
-.tb-edge--position { stroke: var(--chc-status-info); }
+.tb-edge--winner {
+  stroke: var(--chc-status-success);
+}
+.tb-edge--loser {
+  stroke: var(--chc-status-error);
+}
+.tb-edge--position {
+  stroke: var(--chc-status-info);
+}
 
 /* ── Structure Card ──────────────────────────────────────── */
 .tb-card {
@@ -168,10 +174,18 @@
   flex-shrink: 0;
 }
 
-.tb-card-badge--main { background: var(--chc-border-focus, #0066cc); }
-.tb-card-badge--qualifying { background: var(--chc-status-warning, orange); }
-.tb-card-badge--consolation { background: var(--chc-status-error, red); }
-.tb-card-badge--playoff { background: var(--chc-status-success, green); }
+.tb-card-badge--main {
+  background: var(--chc-border-focus, #0066cc);
+}
+.tb-card-badge--qualifying {
+  background: var(--chc-status-warning, orange);
+}
+.tb-card-badge--consolation {
+  background: var(--chc-status-error, red);
+}
+.tb-card-badge--playoff {
+  background: var(--chc-status-success, green);
+}
 
 .tb-card-name {
   font-size: 12px;
@@ -281,7 +295,9 @@
   background: var(--chc-status-info, #0066cc);
   color: #fff;
   cursor: pointer;
-  transition: transform 0.1s, box-shadow 0.1s;
+  transition:
+    transform 0.1s,
+    box-shadow 0.1s;
 }
 
 .tb-card-chip:hover {

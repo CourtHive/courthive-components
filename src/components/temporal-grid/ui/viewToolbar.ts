@@ -42,7 +42,7 @@ export const VIEW_PRESETS: Record<string, ViewPreset> = {
   day: { label: '1 Day', days: 1, timeAxis: { scale: 'hour', step: 1 } },
   days3: { label: '3 Days', days: 3, timeAxis: { scale: 'hour', step: 3 } },
   week: { label: 'Week', days: 7, timeAxis: { scale: 'hour', step: 6 } },
-  all: { label: 'Tournament', days: 0, timeAxis: { scale: 'hour', step: 6 } },
+  all: { label: 'Tournament', days: 0, timeAxis: { scale: 'hour', step: 6 } }
 };
 
 // ============================================================================
@@ -57,7 +57,7 @@ export function buildViewToolbar(
     labels?: ViewToolbarLabels;
     onSetDefaultAvailability?: () => void;
     onSave?: () => void;
-  },
+  }
 ): ViewToolbarResult {
   const labels = options?.labels;
 
@@ -86,7 +86,7 @@ export function buildViewToolbar(
     day: labels?.day1 ?? '1 Day',
     days3: labels?.days3 ?? '3 Days',
     week: labels?.week ?? 'Week',
-    all: labels?.tournament ?? 'Tournament',
+    all: labels?.tournament ?? 'Tournament'
   };
 
   const buttons: HTMLButtonElement[] = [];

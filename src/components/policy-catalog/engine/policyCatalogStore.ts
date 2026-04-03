@@ -12,7 +12,7 @@ import type {
   PolicyCatalogChangeListener,
   PolicyCatalogConfig,
   PolicyCatalogItem,
-  CatalogGroupBy,
+  CatalogGroupBy
 } from '../types';
 
 export class PolicyCatalogStore {
@@ -27,7 +27,7 @@ export class PolicyCatalogStore {
     const builtinIds = new Set((config.builtinPolicies ?? []).map((p) => p.id));
     const catalog = [
       ...(config.builtinPolicies ?? []),
-      ...(config.userPolicies ?? []).filter((p) => !builtinIds.has(p.id)),
+      ...(config.userPolicies ?? []).filter((p) => !builtinIds.has(p.id))
     ];
 
     this.state = {
@@ -36,7 +36,7 @@ export class PolicyCatalogStore {
       groupBy: 'type',
       selectedId: null,
       editorDraft: null,
-      dirty: false,
+      dirty: false
     };
   }
 
@@ -71,7 +71,7 @@ export class PolicyCatalogStore {
     this.setState({
       selectedId: id,
       editorDraft: deepClone(item.policyData),
-      dirty: false,
+      dirty: false
     });
     this.config.onSelectionChanged?.(item);
   }
@@ -81,7 +81,7 @@ export class PolicyCatalogStore {
     this.setState({
       selectedId: null,
       editorDraft: null,
-      dirty: false,
+      dirty: false
     });
     this.config.onSelectionChanged?.(null);
   }
@@ -112,7 +112,7 @@ export class PolicyCatalogStore {
 
     const updated: PolicyCatalogItem = {
       ...item,
-      policyData: deepClone(this.state.editorDraft),
+      policyData: deepClone(this.state.editorDraft)
     };
 
     // Update catalog in place
@@ -128,7 +128,7 @@ export class PolicyCatalogStore {
     if (!item) return;
     this.setState({
       editorDraft: deepClone(item.policyData),
-      dirty: false,
+      dirty: false
     });
   }
 
@@ -138,9 +138,7 @@ export class PolicyCatalogStore {
 
     const applied: PolicyCatalogItem = {
       ...item,
-      policyData: this.state.editorDraft
-        ? deepClone(this.state.editorDraft)
-        : deepClone(item.policyData),
+      policyData: this.state.editorDraft ? deepClone(this.state.editorDraft) : deepClone(item.policyData)
     };
     this.config.onPolicyApplied?.(applied);
   }
@@ -155,7 +153,7 @@ export class PolicyCatalogStore {
       policyType,
       source: 'user',
       description: '',
-      policyData: getEmptyPolicyData(policyType),
+      policyData: getEmptyPolicyData(policyType)
     };
     const catalog = [...this.state.catalog, item];
     this.state = {
@@ -163,7 +161,7 @@ export class PolicyCatalogStore {
       catalog,
       selectedId: id,
       editorDraft: deepClone(item.policyData),
-      dirty: false,
+      dirty: false
     };
     this.emit();
     this.config.onPolicyCreated?.(item);
@@ -181,7 +179,7 @@ export class PolicyCatalogStore {
       policyType: source.policyType,
       source: 'user',
       description: source.description,
-      policyData: deepClone(source.policyData),
+      policyData: deepClone(source.policyData)
     };
     const catalog = [...this.state.catalog, item];
     this.state = {
@@ -189,7 +187,7 @@ export class PolicyCatalogStore {
       catalog,
       selectedId: id,
       editorDraft: deepClone(item.policyData),
-      dirty: false,
+      dirty: false
     };
     this.emit();
     this.config.onPolicyCreated?.(item);
@@ -205,7 +203,7 @@ export class PolicyCatalogStore {
     this.state = {
       ...this.state,
       catalog,
-      ...(wasSelected ? { selectedId: null, editorDraft: null, dirty: false } : {}),
+      ...(wasSelected ? { selectedId: null, editorDraft: null, dirty: false } : {})
     };
     this.emit();
     this.config.onPolicyDeleted?.(id);

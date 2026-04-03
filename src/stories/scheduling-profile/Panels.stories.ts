@@ -16,17 +16,10 @@ import { buildRoundCatalog } from '../../components/scheduling-profile/ui/roundC
 import { buildInspectorPanel } from '../../components/scheduling-profile/ui/inspectorPanel';
 import { buildRoundCard } from '../../components/scheduling-profile/ui/roundCard';
 
-import {
-  VENUES,
-  ROUND_CATALOG,
-  DATES,
-  VALID_PROFILE,
-  ERROR_PROFILE,
-  makeBaseConfig,
-} from './data';
+import { VENUES, ROUND_CATALOG, DATES, VALID_PROFILE, ERROR_PROFILE, makeBaseConfig } from './data';
 
 export default {
-  title: 'Scheduling Profile/Panels',
+  title: 'Scheduling Profile/Panels'
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -44,7 +37,7 @@ function makeEmptyIndex(): IssueIndex {
     byDate: {},
     byVenue: {},
     byDraw: {},
-    counts: { total: 0, ERROR: 0, WARN: 0, INFO: 0, byDate: {}, byVenue: {}, byDraw: {} },
+    counts: { total: 0, ERROR: 0, WARN: 0, INFO: 0, byDate: {}, byVenue: {}, byDraw: {} }
   };
 }
 
@@ -61,7 +54,7 @@ function makeStoreState(overrides: Partial<ProfileStoreState> = {}): ProfileStor
     catalogSearchQuery: '',
     catalogGroupBy: 'event',
     plannedRoundBehavior: 'dim',
-    ...overrides,
+    ...overrides
   };
 }
 
@@ -108,9 +101,9 @@ export const RoundCard = {
         round: { ...roundKey, eventName: EVENT_NAME, roundName: 'R32' },
         locator: { date: DAY1, venueId: 'VENUE_A', index: 0, roundKey },
         isSelected: false,
-        severity: null,
+        severity: null
       },
-      { onClick: (loc) => logFn(`Clicked: ${loc.date} ${loc.venueId} idx=${loc.index}`) },
+      { onClick: (loc) => logFn(`Clicked: ${loc.date} ${loc.venueId} idx=${loc.index}`) }
     );
     grid.appendChild(labelCard('Normal', card1));
 
@@ -120,9 +113,9 @@ export const RoundCard = {
         round: { ...roundKey, eventName: EVENT_NAME, roundName: 'R16', roundNumber: 6 },
         locator: { date: DAY1, venueId: 'VENUE_A', index: 1, roundKey: { ...roundKey, roundNumber: 6 } },
         isSelected: true,
-        severity: null,
+        severity: null
       },
-      { onClick: (loc) => logFn(`Clicked selected card: idx=${loc.index}`) },
+      { onClick: (loc) => logFn(`Clicked selected card: idx=${loc.index}`) }
     );
     grid.appendChild(labelCard('Selected', card2));
 
@@ -132,9 +125,9 @@ export const RoundCard = {
         round: { ...roundKey, eventName: EVENT_NAME, roundName: 'QF', roundNumber: 7 },
         locator: { date: DAY1, venueId: 'VENUE_A', index: 2, roundKey: { ...roundKey, roundNumber: 7 } },
         isSelected: false,
-        severity: 'ERROR',
+        severity: 'ERROR'
       },
-      { onClick: (loc) => logFn(`Clicked error card: idx=${loc.index}`) },
+      { onClick: (loc) => logFn(`Clicked error card: idx=${loc.index}`) }
     );
     grid.appendChild(labelCard('Error', card3));
 
@@ -144,21 +137,32 @@ export const RoundCard = {
         round: { ...roundKey, eventName: EVENT_NAME, roundName: 'SF', roundNumber: 8 },
         locator: { date: DAY1, venueId: 'VENUE_A', index: 3, roundKey: { ...roundKey, roundNumber: 8 } },
         isSelected: false,
-        severity: 'WARN',
+        severity: 'WARN'
       },
-      { onClick: (loc) => logFn(`Clicked warn card: idx=${loc.index}`) },
+      { onClick: (loc) => logFn(`Clicked warn card: idx=${loc.index}`) }
     );
     grid.appendChild(labelCard('Warning', card4));
 
     // Segment card
     const card5 = buildRoundCard(
       {
-        round: { ...roundKey, eventName: EVENT_NAME, roundName: 'R32', roundSegment: { segmentNumber: 1, segmentsCount: 2 } },
-        locator: { date: DAY1, venueId: 'VENUE_A', index: 4, roundKey, roundSegment: { segmentNumber: 1, segmentsCount: 2 } },
+        round: {
+          ...roundKey,
+          eventName: EVENT_NAME,
+          roundName: 'R32',
+          roundSegment: { segmentNumber: 1, segmentsCount: 2 }
+        },
+        locator: {
+          date: DAY1,
+          venueId: 'VENUE_A',
+          index: 4,
+          roundKey,
+          roundSegment: { segmentNumber: 1, segmentsCount: 2 }
+        },
         isSelected: false,
-        severity: null,
+        severity: null
       },
-      { onClick: (loc) => logFn(`Clicked segment card: idx=${loc.index}`) },
+      { onClick: (loc) => logFn(`Clicked segment card: idx=${loc.index}`) }
     );
     grid.appendChild(labelCard('With Segment', card5));
 
@@ -168,14 +172,14 @@ export const RoundCard = {
         round: { ...roundKey, eventName: EVENT_NAME, roundName: 'F', roundNumber: 9, notBeforeTime: '14:00' },
         locator: { date: DAY1, venueId: 'VENUE_A', index: 5, roundKey: { ...roundKey, roundNumber: 9 } },
         isSelected: false,
-        severity: null,
+        severity: null
       },
-      { onClick: (loc) => logFn(`Clicked NB card: idx=${loc.index}`) },
+      { onClick: (loc) => logFn(`Clicked NB card: idx=${loc.index}`) }
     );
     grid.appendChild(labelCard('Not Before Time', card6));
 
     return root;
-  },
+  }
 };
 
 function labelCard(label: string, card: HTMLElement): HTMLElement {
@@ -203,7 +207,7 @@ export const DateStrip = {
         store.selectDate(date);
         panel.update(store.getState());
         logFn(`Selected date: ${date}`);
-      },
+      }
     });
 
     root.appendChild(panel.element);
@@ -212,7 +216,7 @@ export const DateStrip = {
     const logFn = addStatusLog(root);
 
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -232,14 +236,14 @@ export const IssuesPanel = {
         logFn(`Fix action: ${action.kind} — ${action.label}`);
         store.applyFixAction(action);
         panel.update(store.getState());
-      },
+      }
     });
 
     root.appendChild(panel.element);
     panel.update(store.getState());
 
     return root;
-  },
+  }
 };
 
 export const IssuesPanelEmpty = {
@@ -248,14 +252,14 @@ export const IssuesPanelEmpty = {
     root.style.cssText = SP_ROOT_NARROW;
 
     const panel = buildIssuesPanel({
-      onFixAction: () => {},
+      onFixAction: () => {}
     });
 
     root.appendChild(panel.element);
     panel.update(makeStoreState());
 
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -287,14 +291,14 @@ export const VenueBoard = {
       },
       onCardContextMenu: (locator) => {
         logFn(`Context menu: ${locator.venueId} idx=${locator.index}`);
-      },
+      }
     });
 
     root.appendChild(panel.element);
     panel.update(store.getState());
 
     return root;
-  },
+  }
 };
 
 export const VenueBoardWithErrors = {
@@ -315,14 +319,14 @@ export const VenueBoardWithErrors = {
         store.selectCard(locator);
         panel.update(store.getState());
         logFn(`Selected: ${locator.venueId} idx=${locator.index}`);
-      },
+      }
     });
 
     root.appendChild(panel.element);
     panel.update(store.getState());
 
     return root;
-  },
+  }
 };
 
 export const VenueBoardEmpty = {
@@ -332,14 +336,14 @@ export const VenueBoardEmpty = {
 
     const panel = buildVenueBoard({
       onDrop: () => {},
-      onCardClick: () => {},
+      onCardClick: () => {}
     });
 
     root.appendChild(panel.element);
     panel.update(makeStoreState());
 
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -364,14 +368,14 @@ export const RoundCatalogByEvent = {
         store.setCatalogGroupBy(mode);
         panel.update(store.getState());
         logFn(`Group by: ${mode}`);
-      },
+      }
     });
 
     root.appendChild(panel.element);
     panel.update(store.getState());
 
     return root;
-  },
+  }
 };
 
 export const RoundCatalogWithPlanned = {
@@ -399,7 +403,7 @@ export const RoundCatalogWithPlanned = {
       onGroupByChange: (mode) => {
         store.setCatalogGroupBy(mode);
         panel.update(store.getState());
-      },
+      }
     });
 
     // Panel fills remaining space in the flex column
@@ -409,7 +413,7 @@ export const RoundCatalogWithPlanned = {
     panel.update(store.getState());
 
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -426,7 +430,7 @@ export const InspectorEmpty = {
     panel.update(makeStoreState());
 
     return root;
-  },
+  }
 };
 
 export const InspectorWithSelection = {
@@ -441,7 +445,7 @@ export const InspectorWithSelection = {
       date: DAY1,
       venueId: 'VENUE_A',
       index: 0,
-      roundKey: { tournamentId: 'T1', eventId: 'E_MS_U16', drawId: 'D1_MAIN', structureId: 'S1', roundNumber: 5 },
+      roundKey: { tournamentId: 'T1', eventId: 'E_MS_U16', drawId: 'D1_MAIN', structureId: 'S1', roundNumber: 5 }
     });
 
     const panel = buildInspectorPanel();
@@ -449,7 +453,7 @@ export const InspectorWithSelection = {
     panel.update(store.getState());
 
     return root;
-  },
+  }
 };
 
 export const InspectorWithErrors = {
@@ -464,7 +468,7 @@ export const InspectorWithErrors = {
       date: DAY1,
       venueId: 'VENUE_A',
       index: 0,
-      roundKey: { tournamentId: 'T1', eventId: 'E_MS_U16', drawId: 'D1_MAIN', structureId: 'S1', roundNumber: 6 },
+      roundKey: { tournamentId: 'T1', eventId: 'E_MS_U16', drawId: 'D1_MAIN', structureId: 'S1', roundNumber: 6 }
     });
 
     const panel = buildInspectorPanel();
@@ -472,5 +476,5 @@ export const InspectorWithErrors = {
     panel.update(store.getState());
 
     return root;
-  },
+  }
 };

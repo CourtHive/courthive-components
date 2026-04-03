@@ -21,7 +21,7 @@ describe('CompositionEditorStore', () => {
   it('initializes from provided composition', () => {
     const store = new CompositionEditorStore({
       composition: { theme: THEME_AUSTRALIAN, configuration: { flags: true, scoreBox: true } },
-      compositionName: 'Test',
+      compositionName: 'Test'
     });
     const state = store.getState();
     expect(state.compositionName).toBe('Test');
@@ -72,7 +72,7 @@ describe('CompositionEditorStore', () => {
 
   it('setConfiguration replaces entire config', () => {
     const store = new CompositionEditorStore({
-      composition: { theme: 'x', configuration: { flags: true, scoreBox: true } },
+      composition: { theme: 'x', configuration: { flags: true, scoreBox: true } }
     });
     store.setConfiguration({ centerInfo: true });
     const state = store.getState();
@@ -97,7 +97,7 @@ describe('CompositionEditorStore', () => {
   it('resetToInitial restores original values', () => {
     const store = new CompositionEditorStore({
       composition: { theme: THEME_AUSTRALIAN, configuration: { flags: true } },
-      compositionName: 'Original',
+      compositionName: 'Original'
     });
 
     store.setTheme(THEME_FRENCH);
@@ -134,7 +134,7 @@ describe('CompositionEditorStore', () => {
     store.setTheme(THEME_BASIC);
     expect(onChange).toHaveBeenCalledWith({
       theme: THEME_BASIC,
-      configuration: {},
+      configuration: {}
     });
 
     store.setConfigField('flags', true);
@@ -150,7 +150,7 @@ describe('CompositionEditorStore', () => {
   it('does not mutate original config on setConfigField', () => {
     const original = { flags: true };
     const store = new CompositionEditorStore({
-      composition: { theme: 'x', configuration: original },
+      composition: { theme: 'x', configuration: original }
     });
     store.setConfigField('scoreBox', true);
     expect(original).toEqual({ flags: true }); // Original not mutated

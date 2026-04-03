@@ -63,7 +63,7 @@ export function renderIndividual(params: {
 
   const flags = configuration?.flags;
   const hasScale = configuration?.scaleAttributes;
-  const scalePosition = flags ? 'left' : (configuration?.scaleAttributes?.scalePosition || 'left');
+  const scalePosition = flags ? 'left' : configuration?.scaleAttributes?.scalePosition || 'left';
   const flag = flags && renderFrill({ ...params, type: 'flag' });
   if (flag) {
     individual.appendChild(flag);
@@ -92,7 +92,7 @@ export function renderIndividual(params: {
 
   // In persist mode, BYE should also be assignable (can change BYE to participant)
   const persistMode = configuration?.persistInputFields;
-  
+
   const canAssign =
     configuration?.inlineAssignment &&
     isFunction(eventHandlers?.assignParticipant) &&
@@ -102,12 +102,13 @@ export function renderIndividual(params: {
     (!side?.qualifier || persistMode); // In persist mode, QUALIFIER can be reassigned
 
   // Determine whether to show input field or participant name/BYE/QUALIFIER
-  const shouldShowInput = canAssign && matchUp && (
-    !participantName || // No participant assigned yet
-    side?.bye || // BYE assigned (in persist mode, since canAssign checks persistMode)
-    side?.qualifier || // QUALIFIER assigned (in persist mode, since canAssign checks persistMode)
-    persistMode // Or persistInputFields mode is enabled
-  );
+  const shouldShowInput =
+    canAssign &&
+    matchUp &&
+    (!participantName || // No participant assigned yet
+      side?.bye || // BYE assigned (in persist mode, since canAssign checks persistMode)
+      side?.qualifier || // QUALIFIER assigned (in persist mode, since canAssign checks persistMode)
+      persistMode); // Or persistInputFields mode is enabled
 
   if (shouldShowInput) {
     // Render typeahead input for participant assignment
@@ -120,14 +121,14 @@ export function renderIndividual(params: {
     } else {
       currentAssignment = individualParticipant;
     }
-    
+
     const inputField = renderParticipantInput({
       matchUp,
       side,
       sideNumber,
       eventHandlers,
       composition,
-      currentParticipant: currentAssignment, // Pass current assignment (BYE or participant)
+      currentParticipant: currentAssignment // Pass current assignment (BYE or participant)
     });
     name.appendChild(inputField);
   } else if (participantName) {

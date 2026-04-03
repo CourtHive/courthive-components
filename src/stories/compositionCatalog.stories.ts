@@ -17,20 +17,22 @@ import type { SavedComposition } from '../components/composition-editor/composit
 import { mocksEngine, queryGovernor } from 'tods-competition-factory';
 
 export default {
-  title: 'Components/Composition Catalog',
+  title: 'Components/Composition Catalog'
 };
 
 function generatePreviewMatchUps(): MatchUp[] {
   const tournamentRecord = mocksEngine.generateTournamentRecord({
     drawProfiles: [{ drawSize: 4, generate: true, eventName: 'Singles', completeAllMatchUps: true }],
     completeAllMatchUps: true,
-    participantsProfile: { withScaleValues: true },
+    participantsProfile: { withScaleValues: true }
   }).tournamentRecord;
 
-  return (queryGovernor.allTournamentMatchUps({
-    tournamentRecord,
-    participantsProfile: { withISO2: true, withIOC: true },
-  }).matchUps ?? [])
+  return (
+    queryGovernor.allTournamentMatchUps({
+      tournamentRecord,
+      participantsProfile: { withISO2: true, withIOC: true }
+    }).matchUps ?? []
+  )
     .filter((m: any) => m.matchUpType === 'SINGLES')
     .slice(0, 3) as MatchUp[];
 }
@@ -92,7 +94,7 @@ export const BrowseBuiltins = {
     }
 
     return outer;
-  },
+  }
 };
 
 // ── Editor Integration ───────────────────────────────────
@@ -102,8 +104,8 @@ export const EditorWithPreview = {
   argTypes: {
     preset: {
       options: Object.keys(compositions),
-      control: { type: 'select' },
-    },
+      control: { type: 'select' }
+    }
   },
   render: (args: any) => {
     const presetName = args.preset || 'Australian';
@@ -116,7 +118,7 @@ export const EditorWithPreview = {
     const editorContainer = document.createElement('div');
     const editor = createCompositionEditor(editorContainer, {
       compositionName: presetName,
-      composition: preset,
+      composition: preset
     });
     outer.appendChild(editorContainer);
 
@@ -137,7 +139,7 @@ export const EditorWithPreview = {
     outer.appendChild(btnRow);
 
     return outer;
-  },
+  }
 };
 
 // ── Full Catalog Workflow (Browse → Copy → Edit → Save) ──
@@ -157,7 +159,8 @@ export const FullWorkflow = {
 
     const subtitle = document.createElement('p');
     subtitle.style.cssText = 'font-size:12px; color:var(--chc-text-muted); margin-bottom:16px;';
-    subtitle.textContent = 'Click a built-in to view (read-only) → "Use as template" to copy → edit → save. Custom compositions appear at bottom.';
+    subtitle.textContent =
+      'Click a built-in to view (read-only) → "Use as template" to copy → edit → save. Custom compositions appear at bottom.';
     outer.appendChild(subtitle);
 
     // Layout: catalog left, editor right
@@ -180,7 +183,8 @@ export const FullWorkflow = {
 
       // Built-in group
       const builtinHeader = document.createElement('div');
-      builtinHeader.style.cssText = 'font-size:11px; font-weight:600; color:var(--chc-text-muted); margin-bottom:6px; text-transform:uppercase;';
+      builtinHeader.style.cssText =
+        'font-size:11px; font-weight:600; color:var(--chc-text-muted); margin-bottom:6px; text-transform:uppercase;';
       builtinHeader.textContent = `Default (${Object.keys(compositions).length})`;
       catalogCol.appendChild(builtinHeader);
 
@@ -196,7 +200,8 @@ export const FullWorkflow = {
       // Custom group
       if (customStore.length > 0) {
         const customHeader = document.createElement('div');
-        customHeader.style.cssText = 'font-size:11px; font-weight:600; color:var(--chc-text-muted); margin-top:12px; margin-bottom:6px; text-transform:uppercase;';
+        customHeader.style.cssText =
+          'font-size:11px; font-weight:600; color:var(--chc-text-muted); margin-top:12px; margin-bottom:6px; text-transform:uppercase;';
         customHeader.textContent = `Custom (${customStore.length})`;
         catalogCol.appendChild(customHeader);
 
@@ -211,13 +216,15 @@ export const FullWorkflow = {
           card.onclick = () => selectCustom(saved);
 
           const delBtn = document.createElement('button');
-          delBtn.style.cssText = 'border:none; background:none; color:#dc3545; cursor:pointer; font-size:14px; padding:2px 4px;';
+          delBtn.style.cssText =
+            'border:none; background:none; color:#dc3545; cursor:pointer; font-size:14px; padding:2px 4px;';
           delBtn.textContent = '×';
           delBtn.onclick = () => {
             const idx = customStore.indexOf(saved);
             if (idx >= 0) customStore.splice(idx, 1);
             renderCatalog();
-            editorCol.innerHTML = '<p style="font-size:12px; color:var(--chc-text-muted);">Deleted. Select another composition.</p>';
+            editorCol.innerHTML =
+              '<p style="font-size:12px; color:var(--chc-text-muted);">Deleted. Select another composition.</p>';
           };
 
           row.append(card, delBtn);
@@ -253,7 +260,7 @@ export const FullWorkflow = {
       activeEditor = createCompositionEditor(editorBox, {
         compositionName: name,
         composition: comp,
-        readOnly: true,
+        readOnly: true
       });
       editorCol.appendChild(editorBox);
     }
@@ -301,7 +308,7 @@ export const FullWorkflow = {
       const editorBox = document.createElement('div');
       activeEditor = createCompositionEditor(editorBox, {
         compositionName: name,
-        composition: comp,
+        composition: comp
       });
       editorCol.appendChild(editorBox);
     }
@@ -321,5 +328,5 @@ export const FullWorkflow = {
     editorCol.appendChild(emptyMsg);
 
     return outer;
-  },
+  }
 };

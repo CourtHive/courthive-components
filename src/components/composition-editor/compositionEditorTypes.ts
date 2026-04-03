@@ -23,14 +23,7 @@ export interface CompositionEditorConfig {
   availableThemes?: string[];
 }
 
-export type SectionId =
-  | 'theme'
-  | 'display'
-  | 'score'
-  | 'participant'
-  | 'placeholder'
-  | 'scale'
-  | 'layout';
+export type SectionId = 'theme' | 'display' | 'score' | 'participant' | 'placeholder' | 'scale' | 'layout';
 
 export interface CompositionEditorState {
   compositionName: string;

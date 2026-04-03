@@ -16,7 +16,7 @@ export function generatePreviewMatchUps({
   stage,
   structureId,
   qualifyingPositions,
-  structureOptions,
+  structureOptions
 }: {
   structureType: string;
   drawSize: number;
@@ -58,7 +58,7 @@ function generateEliminationPreview({
   drawSize,
   stage,
   structureId,
-  qualifyingPositions,
+  qualifyingPositions
 }: {
   drawSize: number;
   stage?: string;
@@ -104,9 +104,7 @@ function generateEliminationPreview({
   for (let r = 0; r < totalRounds; r++) {
     const { count, isFeed } = rounds[r];
     const roundNumber = r + 1;
-    const roundFactor = isFeed
-      ? Math.pow(2, Math.max(0, eliminationLevel - 1))
-      : Math.pow(2, eliminationLevel);
+    const roundFactor = isFeed ? Math.pow(2, Math.max(0, eliminationLevel - 1)) : Math.pow(2, eliminationLevel);
 
     // Mark both feed rounds and the normal round immediately before
     // a feed round as preFeedRound so they get m0 (horizontal-only)
@@ -119,16 +117,12 @@ function generateEliminationPreview({
         matchUpId: `preview-${++matchUpCounter}`,
         roundNumber,
         roundPosition: pos,
-        drawPositions: isFirstNormalRound
-          ? [(pos - 1) * 2 + 1, (pos - 1) * 2 + 2]
-          : isFeed
-            ? [drawPosCounter++]
-            : [],
+        drawPositions: isFirstNormalRound ? [(pos - 1) * 2 + 1, (pos - 1) * 2 + 2] : isFeed ? [drawPosCounter++] : [],
         finishingRound: totalRounds - r,
         roundFactor,
         preFeedRound: isPreFeed,
         stage,
-        structureId,
+        structureId
       });
     }
 
@@ -142,7 +136,7 @@ function generateRoundRobinPreview({
   drawSize,
   stage,
   structureId,
-  structureOptions,
+  structureOptions
 }: {
   drawSize: number;
   stage?: string;
@@ -164,7 +158,7 @@ function generateRoundRobinPreview({
           roundPosition: g * matchUpsInRound + pos,
           isRoundRobin: true,
           stage,
-          structureId: `${structureId}-g${g}`,
+          structureId: `${structureId}-g${g}`
         });
       }
     }
@@ -187,7 +181,7 @@ function generateRoundRobinPreview({
 function generateLuckyDrawPreview({
   drawSize,
   stage,
-  structureId,
+  structureId
 }: {
   drawSize: number;
   stage?: string;
@@ -221,7 +215,7 @@ function generateLuckyDrawPreview({
         roundFactor: 1, // Lucky draws don't use merge connectors
         preFeedRound: !!preFeedRound,
         stage,
-        structureId,
+        structureId
       });
     }
   }
@@ -233,7 +227,7 @@ function generateAdHocPreview({
   drawSize,
   stage,
   structureId,
-  roundsCount = 1,
+  roundsCount = 1
 }: {
   drawSize: number;
   stage?: string;
@@ -252,7 +246,7 @@ function generateAdHocPreview({
         roundPosition: pos,
         finishingRound: 1,
         stage,
-        structureId,
+        structureId
       });
     }
   }

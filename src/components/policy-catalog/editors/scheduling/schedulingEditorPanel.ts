@@ -11,7 +11,13 @@ import { buildDailyLimitsSection } from './sections/dailyLimitsSection';
 import { buildDefaultTimesSection } from './sections/defaultTimesSection';
 import { buildAverageTimesSection } from './sections/averageTimesSection';
 import { buildRecoveryTimesSection } from './sections/recoveryTimesSection';
-import { seEditorStyle, seSectionStyle, seSectionHeaderStyle, seSectionChevronStyle, seSectionBodyStyle } from './styles';
+import {
+  seEditorStyle,
+  seSectionStyle,
+  seSectionHeaderStyle,
+  seSectionChevronStyle,
+  seSectionBodyStyle
+} from './styles';
 
 interface SectionDef {
   id: SchedulingEditorSection;
@@ -21,7 +27,7 @@ interface SectionDef {
 
 export function buildSchedulingEditorPanel(
   store: SchedulingEditorStore,
-  config: SchedulingEditorConfig,
+  config: SchedulingEditorConfig
 ): {
   element: HTMLElement;
   update(state: SchedulingEditorState): void;
@@ -34,7 +40,7 @@ export function buildSchedulingEditorPanel(
     { id: 'dailyLimits', label: 'Daily Limits', factory: () => buildDailyLimitsSection(store) },
     { id: 'defaultTimes', label: 'Default Times', factory: () => buildDefaultTimesSection(store) },
     { id: 'averageTimes', label: 'Match Average Times', factory: () => buildAverageTimesSection(store, config) },
-    { id: 'recoveryTimes', label: 'Match Recovery Times', factory: () => buildRecoveryTimesSection(store, config) },
+    { id: 'recoveryTimes', label: 'Match Recovery Times', factory: () => buildRecoveryTimesSection(store, config) }
   ];
 
   const sections: {

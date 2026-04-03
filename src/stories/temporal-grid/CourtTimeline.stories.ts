@@ -830,7 +830,10 @@ function createRebuildItems(ctx: StoryContext, updateStats: () => void): () => v
   };
 }
 
-function createHandleVenueEdit(ctx: StoryContext, rebuildItems: () => void): (venueId: string, venueName: string) => void {
+function createHandleVenueEdit(
+  ctx: StoryContext,
+  rebuildItems: () => void
+): (venueId: string, venueName: string) => void {
   return (venueId: string, venueName: string) => {
     const avail = ctx.engine.getVenueAvailability(ctx.config.tournamentId, venueId);
     showCourtAvailabilityModal({
@@ -847,7 +850,10 @@ function createHandleVenueEdit(ctx: StoryContext, rebuildItems: () => void): (ve
   };
 }
 
-function createHandleCourtEdit(ctx: StoryContext, rebuildItems: () => void): (courtResourceId: string, courtName: string) => void {
+function createHandleCourtEdit(
+  ctx: StoryContext,
+  rebuildItems: () => void
+): (courtResourceId: string, courtName: string) => void {
   return (courtResourceId: string, courtName: string) => {
     const courtRef = parseResourceId(courtResourceId);
     if (!courtRef) return;
@@ -917,7 +923,15 @@ export const FactoryBacked = {
     const statsBar = buildStatsBar();
     const config = engine.getConfig();
 
-    const ctx: StoryContext = { engine, startDate, visibleCourts, courtNameMap, statsBar, timelineRef: { current: null }, config };
+    const ctx: StoryContext = {
+      engine,
+      startDate,
+      visibleCourts,
+      courtNameMap,
+      statsBar,
+      timelineRef: { current: null },
+      config
+    };
     const updateStats = createUpdateStats(ctx);
     const rebuildItems = createRebuildItems(ctx, updateStats);
     const handleVenueEdit = createHandleVenueEdit(ctx, rebuildItems);
@@ -1134,7 +1148,15 @@ export const MultiRowCreation = {
     const statsBar = buildStatsBar();
     const config = engine.getConfig();
 
-    const ctx: StoryContext = { engine, startDate, visibleCourts, courtNameMap, statsBar, timelineRef: { current: null }, config };
+    const ctx: StoryContext = {
+      engine,
+      startDate,
+      visibleCourts,
+      courtNameMap,
+      statsBar,
+      timelineRef: { current: null },
+      config
+    };
     const updateStats = createUpdateStats(ctx);
     const rebuildItems = createRebuildItems(ctx, updateStats);
     const handleVenueEdit = createHandleVenueEdit(ctx, rebuildItems);
@@ -1391,8 +1413,13 @@ export const RoundTrip = {
     };
 
     const ctx: StoryContext = {
-      engine, startDate, visibleCourts, courtNameMap, statsBar,
-      timelineRef: { current: null }, config,
+      engine,
+      startDate,
+      visibleCourts,
+      courtNameMap,
+      statsBar,
+      timelineRef: { current: null },
+      config,
       afterRebuild: updateSaveButtonState
     };
     const updateStats = createUpdateStats(ctx);

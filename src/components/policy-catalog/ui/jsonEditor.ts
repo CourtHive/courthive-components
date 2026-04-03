@@ -48,6 +48,6 @@ export function buildJsonEditor(config: {
     },
     destroy() {
       root.remove();
-    },
+    }
   };
 }

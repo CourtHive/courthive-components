@@ -8,7 +8,7 @@ import type {
   SchedulingPolicyData,
   SchedulingValidationResult,
   MatchUpAverageTime,
-  MatchUpRecoveryTime,
+  MatchUpRecoveryTime
 } from '../types';
 
 export function validateSchedulingPolicy(data: SchedulingPolicyData): SchedulingValidationResult[] {
@@ -23,14 +23,14 @@ export function validateSchedulingPolicy(data: SchedulingPolicyData): Scheduling
           results.push({
             severity: 'error',
             path: `defaultTimes.averageTimes[${i}].minutes.default`,
-            message: 'Default average time must be non-negative',
+            message: 'Default average time must be non-negative'
           });
         }
         if (avg[i].minutes.DOUBLES !== undefined && avg[i].minutes.DOUBLES! < 0) {
           results.push({
             severity: 'error',
             path: `defaultTimes.averageTimes[${i}].minutes.DOUBLES`,
-            message: 'Doubles average time must be non-negative',
+            message: 'Doubles average time must be non-negative'
           });
         }
       }
@@ -42,7 +42,7 @@ export function validateSchedulingPolicy(data: SchedulingPolicyData): Scheduling
           results.push({
             severity: 'error',
             path: `defaultTimes.recoveryTimes[${i}].minutes.default`,
-            message: 'Default recovery time must be non-negative',
+            message: 'Default recovery time must be non-negative'
           });
         }
       }
@@ -56,21 +56,21 @@ export function validateSchedulingPolicy(data: SchedulingPolicyData): Scheduling
       results.push({
         severity: 'error',
         path: 'defaultDailyLimits.SINGLES',
-        message: 'Singles daily limit must be non-negative',
+        message: 'Singles daily limit must be non-negative'
       });
     }
     if (dl.DOUBLES !== undefined && dl.DOUBLES < 0) {
       results.push({
         severity: 'error',
         path: 'defaultDailyLimits.DOUBLES',
-        message: 'Doubles daily limit must be non-negative',
+        message: 'Doubles daily limit must be non-negative'
       });
     }
     if (dl.total !== undefined && dl.total < 0) {
       results.push({
         severity: 'error',
         path: 'defaultDailyLimits.total',
-        message: 'Total daily limit must be non-negative',
+        message: 'Total daily limit must be non-negative'
       });
     }
   }
@@ -95,7 +95,7 @@ function validateFormatGroups(
   groups: MatchUpAverageTime[],
   basePath: string,
   timesKey: string,
-  results: SchedulingValidationResult[],
+  results: SchedulingValidationResult[]
 ): void {
   for (let g = 0; g < groups.length; g++) {
     const group = groups[g];
@@ -103,7 +103,7 @@ function validateFormatGroups(
       results.push({
         severity: 'error',
         path: `${basePath}[${g}].matchUpFormatCodes`,
-        message: 'At least one format code is required per format group',
+        message: 'At least one format code is required per format group'
       });
     }
     const times = group[timesKey as keyof typeof group] as { minutes: { default: number; DOUBLES?: number } }[];
@@ -113,14 +113,14 @@ function validateFormatGroups(
           results.push({
             severity: 'error',
             path: `${basePath}[${g}].${timesKey}[${t}].minutes.default`,
-            message: 'Time must be non-negative',
+            message: 'Time must be non-negative'
           });
         }
         if (times[t].minutes.DOUBLES !== undefined && times[t].minutes.DOUBLES! < 0) {
           results.push({
             severity: 'error',
             path: `${basePath}[${g}].${timesKey}[${t}].minutes.DOUBLES`,
-            message: 'Doubles time must be non-negative',
+            message: 'Doubles time must be non-negative'
           });
         }
       }
@@ -131,7 +131,7 @@ function validateFormatGroups(
 function validateRecoveryGroups(
   groups: MatchUpRecoveryTime[],
   basePath: string,
-  results: SchedulingValidationResult[],
+  results: SchedulingValidationResult[]
 ): void {
   for (let g = 0; g < groups.length; g++) {
     const group = groups[g];
@@ -139,7 +139,7 @@ function validateRecoveryGroups(
       results.push({
         severity: 'error',
         path: `${basePath}[${g}].matchUpFormatCodes`,
-        message: 'At least one format code is required per format group',
+        message: 'At least one format code is required per format group'
       });
     }
     for (let t = 0; t < group.recoveryTimes.length; t++) {
@@ -147,31 +147,22 @@ function validateRecoveryGroups(
         results.push({
           severity: 'error',
           path: `${basePath}[${g}].recoveryTimes[${t}].minutes.default`,
-          message: 'Recovery time must be non-negative',
+          message: 'Recovery time must be non-negative'
         });
       }
-      if (
-        group.recoveryTimes[t].minutes.DOUBLES !== undefined &&
-        group.recoveryTimes[t].minutes.DOUBLES! < 0
-      ) {
+      if (group.recoveryTimes[t].minutes.DOUBLES !== undefined && group.recoveryTimes[t].minutes.DOUBLES! < 0) {
         results.push({
           severity: 'error',
           path: `${basePath}[${g}].recoveryTimes[${t}].minutes.DOUBLES`,
-          message: 'Doubles recovery time must be non-negative',
+          message: 'Doubles recovery time must be non-negative'
         });
       }
     }
   }
 }
 
-function checkDuplicateFormats(
-  data: SchedulingPolicyData,
-  results: SchedulingValidationResult[],
-): void {
-  const checkSection = (
-    groups: { matchUpFormatCodes: string[] }[] | undefined,
-    sectionPath: string,
-  ) => {
+function checkDuplicateFormats(data: SchedulingPolicyData, results: SchedulingValidationResult[]): void {
+  const checkSection = (groups: { matchUpFormatCodes: string[] }[] | undefined, sectionPath: string) => {
     if (!groups) return;
     const seen = new Map<string, number>();
     for (let g = 0; g < groups.length; g++) {
@@ -180,7 +171,7 @@ function checkDuplicateFormats(
           results.push({
             severity: 'warning',
             path: `${sectionPath}[${g}].matchUpFormatCodes`,
-            message: `Format code "${code}" also appears in group ${seen.get(code)}`,
+            message: `Format code "${code}" also appears in group ${seen.get(code)}`
           });
         } else {
           seen.set(code, g);

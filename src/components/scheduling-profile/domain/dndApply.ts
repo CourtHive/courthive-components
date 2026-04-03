@@ -5,14 +5,18 @@
  * Handles CATALOG_ROUND (new placement) and PLANNED_ROUND (move/reorder).
  */
 
-import type { SchedulingProfile, DragPayload, DropTarget, DropResult, ScheduleDay, VenueSchedule, RoundProfile } from '../types';
+import type {
+  SchedulingProfile,
+  DragPayload,
+  DropTarget,
+  DropResult,
+  ScheduleDay,
+  VenueSchedule,
+  RoundProfile
+} from '../types';
 import { deepClone, clamp } from './utils';
 
-export function applyDropCommit(
-  profileDraft: SchedulingProfile,
-  drag: DragPayload,
-  drop: DropTarget,
-): DropResult {
+export function applyDropCommit(profileDraft: SchedulingProfile, drag: DragPayload, drop: DropTarget): DropResult {
   const next = deepClone(profileDraft);
   const { date, venueId } = drop;
   const day = ensureDay(next, date);
@@ -28,7 +32,7 @@ export function applyDropCommit(
       structureId: drag.roundRef.structureId,
       structureType: drag.roundRef.structureType,
       roundNumber: drag.roundRef.roundNumber,
-      roundName: drag.roundRef.roundName,
+      roundName: drag.roundRef.roundName
     };
     const idx = clamp(drop.index, 0, venue.rounds.length);
     venue.rounds.splice(idx, 0, roundProfile);

@@ -13,17 +13,14 @@ import {
   splCardSidesStyle,
   splCardMetaStyle,
   splCardChipsStyle,
-  splCardChipStyle,
+  splCardChipStyle
 } from './styles';
 
 export interface MatchUpCardCallbacks {
   onClick?: (matchUp: CatalogMatchUpItem) => void;
 }
 
-export function buildMatchUpCard(
-  item: CatalogMatchUpItem,
-  callbacks: MatchUpCardCallbacks,
-): HTMLElement {
+export function buildMatchUpCard(item: CatalogMatchUpItem, callbacks: MatchUpCardCallbacks): HTMLElement {
   const card = document.createElement('div');
   card.className = splMatchUpCardStyle();
   card.setAttribute('data-matchup-id', item.matchUpId);
@@ -41,10 +38,7 @@ export function buildMatchUpCard(
     card.addEventListener('dragstart', (e) => {
       e.stopPropagation();
       e.dataTransfer!.setDragImage(card, card.offsetWidth / 2, 20);
-      e.dataTransfer!.setData(
-        'application/json',
-        JSON.stringify({ type: 'CATALOG_MATCHUP', matchUp: item }),
-      );
+      e.dataTransfer!.setData('application/json', JSON.stringify({ type: 'CATALOG_MATCHUP', matchUp: item }));
       e.dataTransfer!.effectAllowed = 'copyMove';
     });
   }

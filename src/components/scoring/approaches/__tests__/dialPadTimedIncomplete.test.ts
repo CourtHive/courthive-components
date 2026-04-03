@@ -15,7 +15,7 @@ describe('dialPadLogic - Timed sets incomplete handling', () => {
     // This is 2 complete sets + partial third set (only side1 = 1)
     const digits = '10-1 1-0 1';
     const result = formatScoreString(digits, { matchUpFormat: format });
-    
+
     // Should show all 3 "sets" but third is incomplete
     expect(result).toBe('10-1 1-0 1');
   });
@@ -24,7 +24,7 @@ describe('dialPadLogic - Timed sets incomplete handling', () => {
     // User enters: "10-1 1-0 1" then "-0"
     const digits = SCORE_3_SETS_COMPLETE;
     const result = formatScoreString(digits, { matchUpFormat: format });
-    
+
     // Should now show 3 complete sets
     expect(result).toBe(SCORE_3_SETS_COMPLETE);
   });
@@ -32,7 +32,7 @@ describe('dialPadLogic - Timed sets incomplete handling', () => {
   it('should handle incomplete second set', () => {
     const digits = '10-1 5';
     const result = formatScoreString(digits, { matchUpFormat: format });
-    
+
     // First set complete, second set incomplete
     expect(result).toBe('10-1 5');
   });
@@ -40,7 +40,7 @@ describe('dialPadLogic - Timed sets incomplete handling', () => {
   it('should handle incomplete first set', () => {
     const digits = '10';
     const result = formatScoreString(digits, { matchUpFormat: format });
-    
+
     // Only side1 of first set
     expect(result).toBe('10');
   });
@@ -48,7 +48,7 @@ describe('dialPadLogic - Timed sets incomplete handling', () => {
   it('should handle first set complete, second incomplete', () => {
     const digits = '10-1-0';
     const result = formatScoreString(digits, { matchUpFormat: format });
-    
+
     // First set complete (10-1), second set incomplete (only side1 = 0)
     expect(result).toBe('10-1 0');
   });
@@ -57,7 +57,7 @@ describe('dialPadLogic - Timed sets incomplete handling', () => {
     const format = 'SET3XA-S:T10';
     const digits = '30-25 25';
     const result = formatScoreString(digits, { matchUpFormat: format });
-    
+
     // First set complete, second incomplete
     expect(result).toBe('30-25 25');
   });
@@ -66,14 +66,14 @@ describe('dialPadLogic - Timed sets incomplete handling', () => {
     // Edge case: scores like "1" shouldn't auto-complete
     const digits = '1';
     const result = formatScoreString(digits, { matchUpFormat: format });
-    
+
     expect(result).toBe('1');
   });
 
   it('should handle all incomplete sets', () => {
     const digits = '1 2 3';
     const result = formatScoreString(digits, { matchUpFormat: format });
-    
+
     // Three incomplete sets (each missing side2)
     expect(result).toBe('1 2 3');
   });
@@ -85,7 +85,7 @@ describe('dialPadLogic - Timed sets completion detection', () => {
   it('should recognize truly complete match (3 sets, both scores each)', () => {
     const digits = SCORE_3_SETS_COMPLETE;
     const result = formatScoreString(digits, { matchUpFormat: format });
-    
+
     expect(result).toBe(SCORE_3_SETS_COMPLETE);
     // This should be treated as complete (3 sets with both scores)
   });
@@ -93,7 +93,7 @@ describe('dialPadLogic - Timed sets completion detection', () => {
   it('should NOT treat partial third set as complete', () => {
     const digits = '10-1 1-0 5';
     const result = formatScoreString(digits, { matchUpFormat: format });
-    
+
     // Only 2 complete sets + 1 incomplete
     expect(result).toBe('10-1 1-0 5');
     // This should NOT be treated as complete
@@ -102,7 +102,7 @@ describe('dialPadLogic - Timed sets completion detection', () => {
   it('should recognize 2 complete sets as incomplete match', () => {
     const digits = '10-1 1-0';
     const result = formatScoreString(digits, { matchUpFormat: format });
-    
+
     expect(result).toBe('10-1 1-0');
     // Only 2 sets, need 3 for SET3X
   });

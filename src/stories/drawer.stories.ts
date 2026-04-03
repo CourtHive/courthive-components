@@ -11,7 +11,7 @@ const BUTTON_IS_SUCCESS = 'button is-success';
 
 export default {
   title: 'Components/Drawer',
-  tags: ['autodocs'],
+  tags: ['autodocs']
 };
 
 // Initialize drawer on first story load
@@ -64,13 +64,13 @@ export const BasicDrawer = {
       d.open({
         title: 'Basic Drawer',
         content: '<p>This is a simple drawer with text content.</p><p>Click outside or press ESC to close.</p>',
-        side: 'right',
+        side: 'right'
       });
     };
 
     container.appendChild(button);
     return container;
-  },
+  }
 };
 
 /**
@@ -92,13 +92,13 @@ export const LeftDrawer = {
       d.open({
         title: 'Left Drawer',
         content: '<p>This drawer opens from the left side.</p>',
-        side: 'left',
+        side: 'left'
       });
     };
 
     container.appendChild(button);
     return container;
-  },
+  }
 };
 
 /**
@@ -125,7 +125,7 @@ export const CustomWidth = {
         title: 'Small Drawer',
         content: '<p>A narrow drawer for compact content.</p>',
         side: 'right',
-        width: '300px',
+        width: '300px'
       });
     };
 
@@ -138,7 +138,7 @@ export const CustomWidth = {
         title: 'Large Drawer',
         content: '<p>A wide drawer for detailed content or forms.</p><p>Perfect for complex configurations.</p>',
         side: 'right',
-        width: '800px',
+        width: '800px'
       });
     };
 
@@ -146,7 +146,7 @@ export const CustomWidth = {
     buttonContainer.appendChild(largeButton);
     container.appendChild(buttonContainer);
     return container;
-  },
+  }
 };
 
 /**
@@ -174,7 +174,7 @@ export const DynamicContent = {
 
           const list = document.createElement('ul');
           list.style.marginLeft = '1.5em';
-          
+
           for (let i = 1; i <= 5; i++) {
             const item = document.createElement('li');
             item.textContent = `Dynamic item ${i}`;
@@ -192,13 +192,13 @@ export const DynamicContent = {
           contentElement.appendChild(list);
           contentElement.appendChild(button);
         },
-        side: 'right',
+        side: 'right'
       });
     };
 
     container.appendChild(button);
     return container;
-  },
+  }
 };
 
 /**
@@ -258,13 +258,13 @@ export const WithFooter = {
           footerElement.appendChild(saveBtn);
         },
         side: 'right',
-        width: '600px',
+        width: '600px'
       });
     };
 
     container.appendChild(button);
     return container;
-  },
+  }
 };
 
 /**
@@ -273,17 +273,14 @@ export const WithFooter = {
  */
 export const ScrollableContent = {
   render: () => {
-    const container = createStoryContainer(
-      'Scrollable Content',
-      'Long content will scroll within the drawer.'
-    );
+    const container = createStoryContainer('Scrollable Content', 'Long content will scroll within the drawer.');
 
     const button = document.createElement('button');
     button.className = BUTTON_IS_PRIMARY;
     button.textContent = 'Open Scrollable Drawer';
     button.onclick = () => {
       const d = getDrawer();
-      
+
       let longContent = '<h3>Long Content Example</h3>';
       for (let i = 1; i <= 50; i++) {
         longContent += `<p>Paragraph ${i}: Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>`;
@@ -292,13 +289,13 @@ export const ScrollableContent = {
       d.open({
         title: 'Scrollable Drawer',
         content: longContent,
-        side: 'right',
+        side: 'right'
       });
     };
 
     container.appendChild(button);
     return container;
-  },
+  }
 };
 
 /**
@@ -307,10 +304,7 @@ export const ScrollableContent = {
  */
 export const WithCloseCallback = {
   render: () => {
-    const container = createStoryContainer(
-      'Close Callback',
-      'Execute code when the drawer is closed.'
-    );
+    const container = createStoryContainer('Close Callback', 'Execute code when the drawer is closed.');
 
     const status = document.createElement('p');
     status.style.marginTop = '1em';
@@ -325,7 +319,7 @@ export const WithCloseCallback = {
     button.textContent = 'Open Drawer';
     button.onclick = () => {
       status.textContent = 'Drawer is open...';
-      
+
       const d = getDrawer();
       d.open({
         title: 'Drawer with Callback',
@@ -335,14 +329,14 @@ export const WithCloseCallback = {
           status.textContent = `Drawer closed at ${new Date().toLocaleTimeString()}`;
           status.style.backgroundColor = 'var(--chc-status-success)';
           status.style.color = 'var(--chc-text-inverse)';
-        },
+        }
       });
     };
 
     container.appendChild(button);
     container.appendChild(status);
     return container;
-  },
+  }
 };
 
 /**
@@ -369,7 +363,7 @@ export const AllFeatures = {
       d.open({
         title: 'Right Drawer',
         content: '<p>Right-aligned drawer</p>',
-        side: 'right',
+        side: 'right'
       });
     };
 
@@ -381,7 +375,7 @@ export const AllFeatures = {
       d.open({
         title: 'Left Drawer',
         content: '<p>Left-aligned drawer</p>',
-        side: 'left',
+        side: 'left'
       });
     };
 
@@ -408,7 +402,7 @@ export const AllFeatures = {
           footerElement.appendChild(btn);
         },
         side: 'right',
-        width: '600px',
+        width: '600px'
       });
     };
 
@@ -421,7 +415,7 @@ export const AllFeatures = {
         title: 'Wide Drawer',
         content: '<p>Extra wide drawer for detailed content</p>',
         side: 'right',
-        width: '800px',
+        width: '800px'
       });
     };
 
@@ -431,5 +425,5 @@ export const AllFeatures = {
     buttonContainer.appendChild(wideBtn);
     container.appendChild(buttonContainer);
     return container;
-  },
+  }
 };

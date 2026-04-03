@@ -14,8 +14,8 @@ function baseMatchUp(): MatchUp {
     matchUpStatus: 'IN_PROGRESS',
     sides: [
       { sideNumber: 1, participant: { participantId: 'p1', participantName: 'Player 1' } },
-      { sideNumber: 2, participant: { participantId: 'p2', participantName: 'Player 2' } },
-    ],
+      { sideNumber: 2, participant: { participantId: 'p2', participantName: 'Player 2' } }
+    ]
   } as MatchUp;
 }
 

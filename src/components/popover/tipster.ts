@@ -48,7 +48,7 @@ export function tipster(params: TipsterParams): Instance | undefined {
           onClick: () => {
             destroyTipster(tippyMenu);
             if (isFunction(i.onClick)) i.onClick();
-          },
+          }
         })) ||
       options
         ?.filter((o) => !o.hide && !o.disabled)
@@ -69,7 +69,7 @@ export function tipster(params: TipsterParams): Instance | undefined {
                 callback(o);
               }
             }
-          },
+          }
         }));
 
     const menu = [{ text: title, items }, ...menuItems];
@@ -90,7 +90,7 @@ export function tipster(params: TipsterParams): Instance | undefined {
           setTimeout(() => focusElement?.focus(), 0);
         }
       },
-      ...config, // Spread config last to allow theme override
+      ...config // Spread config last to allow theme override
     });
     tip.show();
     tip.setProps({ interactive: true });

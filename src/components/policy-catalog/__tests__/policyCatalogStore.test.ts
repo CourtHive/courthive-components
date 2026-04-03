@@ -3,12 +3,33 @@ import { PolicyCatalogStore } from '../engine/policyCatalogStore';
 import type { PolicyCatalogConfig, PolicyCatalogItem } from '../types';
 
 const builtinPolicies: PolicyCatalogItem[] = [
-  { id: 'b1', name: 'Default Scheduling', policyType: 'scheduling', source: 'builtin', description: 'Default', policyData: { averageTimes: 90 } },
-  { id: 'b2', name: 'Default Scoring', policyType: 'scoring', source: 'builtin', description: 'Default', policyData: { rules: true } },
+  {
+    id: 'b1',
+    name: 'Default Scheduling',
+    policyType: 'scheduling',
+    source: 'builtin',
+    description: 'Default',
+    policyData: { averageTimes: 90 }
+  },
+  {
+    id: 'b2',
+    name: 'Default Scoring',
+    policyType: 'scoring',
+    source: 'builtin',
+    description: 'Default',
+    policyData: { rules: true }
+  }
 ];
 
 const userPolicies: PolicyCatalogItem[] = [
-  { id: 'u1', name: 'My Scheduling', policyType: 'scheduling', source: 'user', description: 'Custom', policyData: { averageTimes: 60 } },
+  {
+    id: 'u1',
+    name: 'My Scheduling',
+    policyType: 'scheduling',
+    source: 'user',
+    description: 'Custom',
+    policyData: { averageTimes: 60 }
+  }
 ];
 
 function makeConfig(overrides: Partial<PolicyCatalogConfig> = {}): PolicyCatalogConfig {

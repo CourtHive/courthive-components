@@ -3,11 +3,46 @@ import { filterPolicyCatalog, groupPolicyCatalog } from '../domain/catalogProjec
 import type { PolicyCatalogItem } from '../types';
 
 const items: PolicyCatalogItem[] = [
-  { id: '1', name: 'Default Scheduling', policyType: 'scheduling', source: 'builtin', description: 'Default scheduling policy', policyData: {} },
-  { id: '2', name: 'Custom Scoring', policyType: 'scoring', source: 'user', description: 'Custom scoring rules', policyData: {} },
-  { id: '3', name: 'Seeding Rules', policyType: 'seeding', source: 'builtin', description: 'Standard seeding', policyData: {} },
-  { id: '4', name: 'Draw Policy', policyType: 'draws', source: 'user', description: 'Custom draw rules', policyData: {} },
-  { id: '5', name: 'Avoidance Rules', policyType: 'avoidance', source: 'builtin', description: 'Club avoidance', policyData: {} },
+  {
+    id: '1',
+    name: 'Default Scheduling',
+    policyType: 'scheduling',
+    source: 'builtin',
+    description: 'Default scheduling policy',
+    policyData: {}
+  },
+  {
+    id: '2',
+    name: 'Custom Scoring',
+    policyType: 'scoring',
+    source: 'user',
+    description: 'Custom scoring rules',
+    policyData: {}
+  },
+  {
+    id: '3',
+    name: 'Seeding Rules',
+    policyType: 'seeding',
+    source: 'builtin',
+    description: 'Standard seeding',
+    policyData: {}
+  },
+  {
+    id: '4',
+    name: 'Draw Policy',
+    policyType: 'draws',
+    source: 'user',
+    description: 'Custom draw rules',
+    policyData: {}
+  },
+  {
+    id: '5',
+    name: 'Avoidance Rules',
+    policyType: 'avoidance',
+    source: 'builtin',
+    description: 'Club avoidance',
+    policyData: {}
+  }
 ];
 
 describe('filterPolicyCatalog', () => {
@@ -65,7 +100,7 @@ describe('groupPolicyCatalog', () => {
 
   it('removes empty groups when grouping by type', () => {
     const singleItem: PolicyCatalogItem[] = [
-      { id: '1', name: 'Test', policyType: 'scheduling', source: 'builtin', description: '', policyData: {} },
+      { id: '1', name: 'Test', policyType: 'scheduling', source: 'builtin', description: '', policyData: {} }
     ];
     const result = groupPolicyCatalog(singleItem, 'type');
     // Only one group should remain

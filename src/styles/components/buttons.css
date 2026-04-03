@@ -23,7 +23,10 @@
   white-space: nowrap;
   vertical-align: top;
   user-select: none;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .button:hover {
@@ -54,8 +57,12 @@
   border-color: transparent;
   color: #fff;
 }
-.button.is-info:hover { background-color: #3082c5; }
-.button.is-info:active { background-color: #2b74b1; }
+.button.is-info:hover {
+  background-color: #3082c5;
+}
+.button.is-info:active {
+  background-color: #2b74b1;
+}
 .button.is-info.is-outlined {
   background-color: transparent;
   border-color: #3e8ed0;
@@ -69,7 +76,9 @@
   background-color: #eff5fb;
   color: #296fa8;
 }
-.button.is-info.is-light:hover { background-color: #e4eff9; }
+.button.is-info.is-light:hover {
+  background-color: #e4eff9;
+}
 
 /* Success */
 .button.is-success {
@@ -77,8 +86,12 @@
   border-color: transparent;
   color: #fff;
 }
-.button.is-success:hover { background-color: #3ec487; }
-.button.is-success:active { background-color: #34b37b; }
+.button.is-success:hover {
+  background-color: #3ec487;
+}
+.button.is-success:active {
+  background-color: #34b37b;
+}
 .button.is-success.is-outlined {
   background-color: transparent;
   border-color: #48c78e;
@@ -92,7 +105,9 @@
   background-color: #effaf5;
   color: #257953;
 }
-.button.is-success.is-light:hover { background-color: #e6f7ef; }
+.button.is-success.is-light:hover {
+  background-color: #e6f7ef;
+}
 
 /* Danger */
 .button.is-danger {
@@ -100,8 +115,12 @@
   border-color: transparent;
   color: #fff;
 }
-.button.is-danger:hover { background-color: #ef2e55; }
-.button.is-danger:active { background-color: #eb1c47; }
+.button.is-danger:hover {
+  background-color: #ef2e55;
+}
+.button.is-danger:active {
+  background-color: #eb1c47;
+}
 .button.is-danger.is-outlined {
   background-color: transparent;
   border-color: #f14668;
@@ -115,7 +134,9 @@
   background-color: #feecf0;
   color: #cc0f35;
 }
-.button.is-danger.is-light:hover { background-color: #fde0e6; }
+.button.is-danger.is-light:hover {
+  background-color: #fde0e6;
+}
 
 /* Warning */
 .button.is-warning {
@@ -123,8 +144,12 @@
   border-color: transparent;
   color: rgba(0, 0, 0, 0.7);
 }
-.button.is-warning:hover { background-color: #ffdc7d; }
-.button.is-warning:active { background-color: #ffd970; }
+.button.is-warning:hover {
+  background-color: #ffdc7d;
+}
+.button.is-warning:active {
+  background-color: #ffd970;
+}
 .button.is-warning.is-outlined {
   background-color: transparent;
   border-color: #ffe08a;
@@ -138,7 +163,9 @@
   background-color: #fffaeb;
   color: #946c00;
 }
-.button.is-warning.is-light:hover { background-color: #fff6db; }
+.button.is-warning.is-light:hover {
+  background-color: #fff6db;
+}
 
 /* Primary */
 .button.is-primary {
@@ -146,8 +173,12 @@
   border-color: transparent;
   color: #fff;
 }
-.button.is-primary:hover { background-color: #00c4a7; }
-.button.is-primary:active { background-color: #00b89c; }
+.button.is-primary:hover {
+  background-color: #00c4a7;
+}
+.button.is-primary:active {
+  background-color: #00b89c;
+}
 .button.is-primary.is-outlined {
   background-color: transparent;
   border-color: #00d1b2;
@@ -161,7 +192,9 @@
   background-color: #ebfffc;
   color: #00947e;
 }
-.button.is-primary.is-light:hover { background-color: #defffa; }
+.button.is-primary.is-light:hover {
+  background-color: #defffa;
+}
 
 /* Link */
 .button.is-link {
@@ -169,8 +202,12 @@
   border-color: transparent;
   color: #fff;
 }
-.button.is-link:hover { background-color: #3e56c4; }
-.button.is-link:active { background-color: #3a51bb; }
+.button.is-link:hover {
+  background-color: #3e56c4;
+}
+.button.is-link:active {
+  background-color: #3a51bb;
+}
 .button.is-link.is-outlined {
   background-color: transparent;
   border-color: #485fc7;
@@ -184,7 +221,9 @@
   background-color: #eff1fa;
   color: #3850b7;
 }
-.button.is-link.is-light:hover { background-color: #e6e9f7; }
+.button.is-link.is-light:hover {
+  background-color: #e6e9f7;
+}
 
 /* White */
 .button.is-white {
@@ -192,7 +231,9 @@
   border-color: transparent;
   color: #0a0a0a;
 }
-.button.is-white:hover { background-color: #f9f9f9; }
+.button.is-white:hover {
+  background-color: #f9f9f9;
+}
 
 /* ── Size modifiers ──────────────────────────────────────── */
 .button.is-small {
@@ -275,16 +316,42 @@
 }
 
 /* ── Dark mode intent overrides ─────────────────────────── */
-[data-theme='dark'] .button.is-info:hover { background-color: #3d82c4; }
-[data-theme='dark'] .button.is-info:active { background-color: #2e6ea6; }
-[data-theme='dark'] .button.is-success:hover { background-color: #2e8b55; }
-[data-theme='dark'] .button.is-success:active { background-color: #236b42; }
-[data-theme='dark'] .button.is-danger:hover { background-color: #c74444; }
-[data-theme='dark'] .button.is-danger:active { background-color: #a03232; }
-[data-theme='dark'] .button.is-warning { color: #fff; }
-[data-theme='dark'] .button.is-warning:hover { background-color: #b8962e; }
-[data-theme='dark'] .button.is-warning:active { background-color: #8a7118; }
-[data-theme='dark'] .button.is-primary:hover { background-color: #108575; }
-[data-theme='dark'] .button.is-primary:active { background-color: #0a5e53; }
-[data-theme='dark'] .button.is-link:hover { background-color: #3e74b8; }
-[data-theme='dark'] .button.is-link:active { background-color: #2c5892; }
+[data-theme='dark'] .button.is-info:hover {
+  background-color: #3d82c4;
+}
+[data-theme='dark'] .button.is-info:active {
+  background-color: #2e6ea6;
+}
+[data-theme='dark'] .button.is-success:hover {
+  background-color: #2e8b55;
+}
+[data-theme='dark'] .button.is-success:active {
+  background-color: #236b42;
+}
+[data-theme='dark'] .button.is-danger:hover {
+  background-color: #c74444;
+}
+[data-theme='dark'] .button.is-danger:active {
+  background-color: #a03232;
+}
+[data-theme='dark'] .button.is-warning {
+  color: #fff;
+}
+[data-theme='dark'] .button.is-warning:hover {
+  background-color: #b8962e;
+}
+[data-theme='dark'] .button.is-warning:active {
+  background-color: #8a7118;
+}
+[data-theme='dark'] .button.is-primary:hover {
+  background-color: #108575;
+}
+[data-theme='dark'] .button.is-primary:active {
+  background-color: #0a5e53;
+}
+[data-theme='dark'] .button.is-link:hover {
+  background-color: #3e74b8;
+}
+[data-theme='dark'] .button.is-link:active {
+  background-color: #2c5892;
+}

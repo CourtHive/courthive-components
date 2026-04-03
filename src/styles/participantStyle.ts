@@ -19,10 +19,7 @@ export function getParticipantContainerStyle({
   drawPosition?: number | string;
   sideNumber?: number;
 }): string {
-  const classes = cx(
-    'chc-participant-container',
-    sideNumber === 1 && 'chc-participant-container--side1'
-  );
+  const classes = cx('chc-participant-container', sideNumber === 1 && 'chc-participant-container--side1');
 
   // Draw position is handled via data attribute in the CSS:
   // .chc-participant-container[data-draw-position]::before { content: attr(data-draw-position); }

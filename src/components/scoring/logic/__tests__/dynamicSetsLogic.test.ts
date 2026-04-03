@@ -3,9 +3,6 @@
  * These tests verify business logic without any DOM dependencies
  */
 
- 
- 
-
 import { describe, it, expect } from 'vitest';
 import {
   getSetFormatForIndex,
@@ -20,7 +17,7 @@ import {
   shouldShowTiebreak,
   shouldCreateNextSet,
   buildSetScore,
-  type MatchUpConfig,
+  type MatchUpConfig
 } from '../dynamicSetsLogic';
 import type { SetScore } from '../../types';
 import { MATCH_FORMATS } from '../../../../constants/matchUpFormats';
@@ -32,26 +29,26 @@ function parseFormat(formatString: string): MatchUpConfig {
   const regex = /SET(\d+)/;
   const bestOfMatch = regex.exec(formatString);
   const bestOf = bestOfMatch ? Number.parseInt(bestOfMatch[1]) : 3;
-  
+
   return {
     bestOf,
     setFormat: parsed?.setFormat,
-    finalSetFormat: parsed?.finalSetFormat,
+    finalSetFormat: parsed?.finalSetFormat
   };
 }
 
 describe('dynamicSetsLogic - Pure Functions', () => {
   // Use constants and parse them dynamically
   const standardBestOf3 = parseFormat(MATCH_FORMATS.SET3_S6_TB7);
-  
+
   // Note: Can't parse this format cleanly because F:TB10 creates tiebreakSet (tiebreak-only) not tiebreakFormat
   // Using inline config to match original test expectations
   const standardBestOf5: MatchUpConfig = {
     bestOf: 5,
     setFormat: { setTo: 6, tiebreakAt: 6, tiebreakFormat: { tiebreakTo: 7 } },
-    finalSetFormat: { setTo: 6, tiebreakAt: 6, tiebreakFormat: { tiebreakTo: 10 } },
+    finalSetFormat: { setTo: 6, tiebreakAt: 6, tiebreakFormat: { tiebreakTo: 10 } }
   };
-  
+
   const set8Config = parseFormat(MATCH_FORMATS.SET1_S8_TB7);
   const tb10Config = parseFormat(MATCH_FORMATS.SET3_S6_TB7_F_TB10);
 
@@ -303,7 +300,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
     it('returns true when side 1 wins 2-0 in best-of-3', () => {
       const sets: SetScore[] = [
         { side1Score: 6, side2Score: 4, winningSide: 1 },
-        { side1Score: 6, side2Score: 3, winningSide: 1 },
+        { side1Score: 6, side2Score: 3, winningSide: 1 }
       ];
       expect(isMatchComplete(sets, 3)).toBe(true);
     });
@@ -311,7 +308,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
     it('returns true when side 2 wins 2-0 in best-of-3', () => {
       const sets: SetScore[] = [
         { side1Score: 4, side2Score: 6, winningSide: 2 },
-        { side1Score: 3, side2Score: 6, winningSide: 2 },
+        { side1Score: 3, side2Score: 6, winningSide: 2 }
       ];
       expect(isMatchComplete(sets, 3)).toBe(true);
     });
@@ -320,7 +317,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
       const sets: SetScore[] = [
         { side1Score: 6, side2Score: 4, winningSide: 1 },
         { side1Score: 3, side2Score: 6, winningSide: 2 },
-        { side1Score: 6, side2Score: 2, winningSide: 1 },
+        { side1Score: 6, side2Score: 2, winningSide: 1 }
       ];
       expect(isMatchComplete(sets, 3)).toBe(true);
     });
@@ -328,7 +325,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
     it('returns false when match is 1-1 in best-of-3', () => {
       const sets: SetScore[] = [
         { side1Score: 6, side2Score: 4, winningSide: 1 },
-        { side1Score: 3, side2Score: 6, winningSide: 2 },
+        { side1Score: 3, side2Score: 6, winningSide: 2 }
       ];
       expect(isMatchComplete(sets, 3)).toBe(false);
     });
@@ -342,7 +339,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
       const sets: SetScore[] = [
         { side1Score: 6, side2Score: 4, winningSide: 1 },
         { side1Score: 6, side2Score: 3, winningSide: 1 },
-        { side1Score: 6, side2Score: 2, winningSide: 1 },
+        { side1Score: 6, side2Score: 2, winningSide: 1 }
       ];
       expect(isMatchComplete(sets, 5)).toBe(true);
     });
@@ -352,7 +349,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
         { side1Score: 6, side2Score: 4, winningSide: 1 },
         { side1Score: 3, side2Score: 6, winningSide: 2 },
         { side1Score: 6, side2Score: 2, winningSide: 1 },
-        { side1Score: 2, side2Score: 6, winningSide: 2 },
+        { side1Score: 2, side2Score: 6, winningSide: 2 }
       ];
       expect(isMatchComplete(sets, 5)).toBe(false);
     });
@@ -362,7 +359,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
     it('returns 1 when side 1 wins 2-0', () => {
       const sets: SetScore[] = [
         { side1Score: 6, side2Score: 4, winningSide: 1 },
-        { side1Score: 6, side2Score: 3, winningSide: 1 },
+        { side1Score: 6, side2Score: 3, winningSide: 1 }
       ];
       expect(getMatchWinner(sets, 3)).toBe(1);
     });
@@ -371,7 +368,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
       const sets: SetScore[] = [
         { side1Score: 6, side2Score: 4, winningSide: 1 },
         { side1Score: 3, side2Score: 6, winningSide: 2 },
-        { side1Score: 2, side2Score: 6, winningSide: 2 },
+        { side1Score: 2, side2Score: 6, winningSide: 2 }
       ];
       expect(getMatchWinner(sets, 3)).toBe(2);
     });
@@ -379,7 +376,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
     it('returns undefined when match is 1-1', () => {
       const sets: SetScore[] = [
         { side1Score: 6, side2Score: 4, winningSide: 1 },
-        { side1Score: 3, side2Score: 6, winningSide: 2 },
+        { side1Score: 3, side2Score: 6, winningSide: 2 }
       ];
       expect(getMatchWinner(sets, 3)).toBeUndefined();
     });
@@ -479,7 +476,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
     const oneSetWon: SetScore[] = [{ side1Score: 6, side2Score: 4, winningSide: 1 }];
     const matchComplete: SetScore[] = [
       { side1Score: 6, side2Score: 4, winningSide: 1 },
-      { side1Score: 6, side2Score: 3, winningSide: 1 },
+      { side1Score: 6, side2Score: 3, winningSide: 1 }
     ];
 
     it('applies complement: digit 2 → field1=2, field2=6', () => {
@@ -525,7 +522,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
       const timedConfig: MatchUpConfig = {
         bestOf: 7,
         exactly: 7,
-        setFormat: { timed: true, minutes: 10 },
+        setFormat: { timed: true, minutes: 10 }
       };
       const result = shouldApplySmartComplement(5, false, 0, emptySet, timedConfig, new Set(), true);
       expect(result.shouldApply).toBe(false);
@@ -609,7 +606,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
     it('does not create when match is complete', () => {
       const sets: SetScore[] = [
         { side1Score: 6, side2Score: 4, winningSide: 1 },
-        { side1Score: 6, side2Score: 3, winningSide: 1 },
+        { side1Score: 6, side2Score: 3, winningSide: 1 }
       ];
       expect(shouldCreateNextSet(1, sets, standardBestOf3)).toBe(false);
     });
@@ -618,7 +615,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
       const sets: SetScore[] = [
         { side1Score: 6, side2Score: 4, winningSide: 1 },
         { side1Score: 3, side2Score: 6, winningSide: 2 },
-        { side1Score: 6, side2Score: 2, winningSide: 1 },
+        { side1Score: 6, side2Score: 2, winningSide: 1 }
       ];
       expect(shouldCreateNextSet(2, sets, standardBestOf3)).toBe(false);
     });

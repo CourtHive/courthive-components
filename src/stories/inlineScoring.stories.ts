@@ -36,19 +36,18 @@ function makeCallbacks() {
       console.log('[InlineScoring] Match complete:', matchUpId, 'Winner: Side', winningSide),
     onEndMatch: ({ matchUpId, matchUpStatus }: any) =>
       console.log('[InlineScoring] End match:', matchUpId, matchUpStatus),
-    onSubmit: ({ matchUpId, matchUp }: any) =>
-      console.log('[InlineScoring] Submit:', matchUpId, matchUp?.score),
+    onSubmit: ({ matchUpId, matchUp }: any) => console.log('[InlineScoring] Submit:', matchUpId, matchUp?.score)
   };
 }
 
 export default {
-  title: 'Components/Inline Scoring',
+  title: 'Components/Inline Scoring'
 };
 
 function generateSampleMatchUps(count = 3): MatchUp[] {
   const tournamentRecord = mocksEngine.generateTournamentRecord({
     drawProfiles: [{ drawSize: 8, generate: true, eventName: 'Singles' }],
-    participantsProfile: { withScaleValues: true },
+    participantsProfile: { withScaleValues: true }
   }).tournamentRecord;
 
   const allMatchUps = queryGovernor.allTournamentMatchUps({ tournamentRecord }).matchUps ?? [];
@@ -59,7 +58,7 @@ function generateSampleMatchUps(count = 3): MatchUp[] {
       ...m,
       matchUpStatus: IN_PROGRESS,
       readyToScore: true,
-      matchUpFormat: STANDARD_ADVANTAGE,
+      matchUpFormat: STANDARD_ADVANTAGE
     }));
 }
 
@@ -73,9 +72,9 @@ function makeComposition(baseName: string, mode: 'points' | 'games'): Compositio
       gameScore: { position: 'trailing', inverted: true },
       inlineScoring: {
         mode,
-        showFooter: true,
-      },
-    },
+        showFooter: true
+      }
+    }
   };
 }
 
@@ -94,8 +93,8 @@ export const PointByPoint = {
   argTypes: {
     composition: {
       options: Object.keys(compositions),
-      control: { type: 'select' },
-    },
+      control: { type: 'select' }
+    }
   },
   render: (args: any) => {
     const composition = makeComposition(args.composition || 'InlineScoring', 'points');
@@ -113,7 +112,8 @@ export const PointByPoint = {
 
     const info = document.createElement('p');
     info.style.cssText = INFO_STYLE;
-    info.textContent = 'Click score numbers to award a point. LIVE chip opens end-match popover. Footer has Undo/Redo/Clear/Submit.';
+    info.textContent =
+      'Click score numbers to award a point. LIVE chip opens end-match popover. Footer has Undo/Redo/Clear/Submit.';
     outer.appendChild(info);
 
     const rendered = renderInlineMatchUp({
@@ -121,12 +121,12 @@ export const PointByPoint = {
       composition,
       manager,
       matchUpFormat: STANDARD_ADVANTAGE,
-      isLucky: true,
+      isLucky: true
     });
 
     outer.appendChild(storyWrap(composition.theme, rendered));
     return outer;
-  },
+  }
 };
 
 // ── Game-by-Game Mode ────────────────────────────────────────
@@ -136,8 +136,8 @@ export const GameByGame = {
   argTypes: {
     composition: {
       options: Object.keys(compositions),
-      control: { type: 'select' },
-    },
+      control: { type: 'select' }
+    }
   },
   render: (args: any) => {
     const composition = makeComposition(args.composition || 'InlineScoring', 'games');
@@ -163,12 +163,12 @@ export const GameByGame = {
       composition,
       manager,
       matchUpFormat: STANDARD_ADVANTAGE,
-      isLucky: true,
+      isLucky: true
     });
 
     outer.appendChild(storyWrap(composition.theme, rendered));
     return outer;
-  },
+  }
 };
 
 // ── Multiple MatchUps (Draw Bracket Simulation) ─────────────
@@ -178,12 +178,12 @@ export const MultipleScoringMatchUps = {
   argTypes: {
     composition: {
       options: Object.keys(compositions),
-      control: { type: 'select' },
+      control: { type: 'select' }
     },
     mode: {
       options: ['points', 'games'],
-      control: { type: 'radio' },
-    },
+      control: { type: 'radio' }
+    }
   },
   render: (args: any) => {
     const mode = args.mode || 'games';
@@ -207,7 +207,7 @@ export const MultipleScoringMatchUps = {
         composition,
         manager,
         matchUpFormat: STANDARD_ADVANTAGE,
-        isLucky: true,
+        isLucky: true
       });
       rendered.style.marginBottom = '12px';
       inner.appendChild(rendered);
@@ -215,7 +215,7 @@ export const MultipleScoringMatchUps = {
     outer.appendChild(renderContainer({ theme: composition.theme, content: inner }));
 
     return outer;
-  },
+  }
 };
 
 // ── With Existing Score ─────────────────────────────────────
@@ -225,8 +225,8 @@ export const WithExistingScore = {
   argTypes: {
     composition: {
       options: Object.keys(compositions),
-      control: { type: 'select' },
-    },
+      control: { type: 'select' }
+    }
   },
   render: (args: any) => {
     const composition = makeComposition(args.composition || 'InlineScoring', 'games');
@@ -242,8 +242,8 @@ export const WithExistingScore = {
       scoreStringSide1: '6-4 3-2',
       sets: [
         { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
-        { setNumber: 2, side1Score: 3, side2Score: 2 },
-      ],
+        { setNumber: 2, side1Score: 3, side2Score: 2 }
+      ]
     };
     matchUp.matchUpStatus = IN_PROGRESS;
 
@@ -261,12 +261,12 @@ export const WithExistingScore = {
       composition,
       manager,
       matchUpFormat: STANDARD_ADVANTAGE,
-      isLucky: true,
+      isLucky: true
     });
 
     outer.appendChild(storyWrap(composition.theme, rendered));
     return outer;
-  },
+  }
 };
 
 // ── Mixed States (ready, completed, not-yet-ready) ──────────
@@ -276,8 +276,8 @@ export const MixedStates = {
   argTypes: {
     composition: {
       options: Object.keys(compositions),
-      control: { type: 'select' },
-    },
+      control: { type: 'select' }
+    }
   },
   render: (args: any) => {
     const composition = makeComposition(args.composition || 'InlineScoring', 'games');
@@ -287,7 +287,8 @@ export const MixedStates = {
 
     const info = document.createElement('p');
     info.style.cssText = INFO_STYLE;
-    info.innerHTML = 'Mixed matchUp states (game-by-game mode):<br>1. Ready to score (LIVE chip, 0-0)<br>2. Completed (6-4 6-3, tick mark)<br>3. Not yet ready (no sides assigned)<br>4. Retired mid-match (status pill)';
+    info.innerHTML =
+      'Mixed matchUp states (game-by-game mode):<br>1. Ready to score (LIVE chip, 0-0)<br>2. Completed (6-4 6-3, tick mark)<br>3. Not yet ready (no sides assigned)<br>4. Retired mid-match (status pill)';
     outer.appendChild(info);
 
     const manager = new InlineScoringManager(makeCallbacks());
@@ -304,7 +305,7 @@ export const MixedStates = {
         composition,
         manager,
         matchUpFormat: STANDARD_ADVANTAGE,
-        isLucky: true,
+        isLucky: true
       });
       el.style.marginBottom = '12px';
       inner.appendChild(el);
@@ -320,13 +321,13 @@ export const MixedStates = {
         scoreStringSide1: '6-4 6-3',
         sets: [
           { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
-          { setNumber: 2, side1Score: 6, side2Score: 3, winningSide: 1 },
-        ],
+          { setNumber: 2, side1Score: 6, side2Score: 3, winningSide: 1 }
+        ]
       };
       const el = renderMatchUp({
         matchUp: completedMatchUp,
         composition,
-        isLucky: true,
+        isLucky: true
       });
       el.style.marginBottom = '12px';
       inner.appendChild(el);
@@ -337,14 +338,11 @@ export const MixedStates = {
     if (notReadyMatchUp) {
       notReadyMatchUp.readyToScore = false;
       notReadyMatchUp.matchUpStatus = undefined;
-      notReadyMatchUp.sides = [
-        { sideNumber: 1 },
-        { sideNumber: 2 },
-      ];
+      notReadyMatchUp.sides = [{ sideNumber: 1 }, { sideNumber: 2 }];
       const el = renderMatchUp({
         matchUp: notReadyMatchUp,
         composition,
-        isLucky: true,
+        isLucky: true
       });
       el.style.marginBottom = '12px';
       inner.appendChild(el);
@@ -360,13 +358,13 @@ export const MixedStates = {
         scoreStringSide1: '6-4 2-1',
         sets: [
           { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
-          { setNumber: 2, side1Score: 2, side2Score: 1 },
-        ],
+          { setNumber: 2, side1Score: 2, side2Score: 1 }
+        ]
       };
       const el = renderMatchUp({
         matchUp: retiredMatchUp,
         composition,
-        isLucky: true,
+        isLucky: true
       });
       el.style.marginBottom = '12px';
       inner.appendChild(el);
@@ -374,21 +372,21 @@ export const MixedStates = {
 
     outer.appendChild(renderContainer({ theme: composition.theme, content: inner }));
     return outer;
-  },
+  }
 };
 
 // ── Composition Editor: Inline Scoring Mode ─────────────────
 
 export const CompositionInlineScoringMode = {
   args: {
-    baseComposition: 'Australian',
+    baseComposition: 'Australian'
   },
   argTypes: {
     baseComposition: {
       options: Object.keys(compositions).filter((k) => k !== 'InlineScoring'),
       control: { type: 'select' },
-      description: 'Select a base composition to see how it looks when inline scoring is activated',
-    },
+      description: 'Select a base composition to see how it looks when inline scoring is activated'
+    }
   },
   render: (args: any) => {
     const baseName = args.baseComposition || 'Australian';
@@ -416,12 +414,12 @@ export const CompositionInlineScoringMode = {
       matchUp: normalMatchUp,
       composition: {
         ...base,
-        configuration: { ...base.configuration, matchUpFooter: true },
+        configuration: { ...base.configuration, matchUpFooter: true }
       },
       isLucky: true,
       eventHandlers: {
-        scoreClick: () => console.log('[Normal] scoreClick'),
-      },
+        scoreClick: () => console.log('[Normal] scoreClick')
+      }
     });
     normalEl.style.marginBottom = '16px';
     inner.appendChild(normalEl);
@@ -441,13 +439,13 @@ export const CompositionInlineScoringMode = {
       composition: inlineComposition,
       manager,
       matchUpFormat: STANDARD_ADVANTAGE,
-      isLucky: true,
+      isLucky: true
     });
     inner.appendChild(inlineEl);
 
     outer.appendChild(renderContainer({ theme: inlineComposition.theme, content: inner }));
     return outer;
-  },
+  }
 };
 
 // ── Draw Structure with Partial Completion ────────────────────
@@ -457,8 +455,8 @@ export const DrawStructure = {
   argTypes: {
     composition: {
       options: Object.keys(compositions),
-      control: { type: 'select' },
-    },
+      control: { type: 'select' }
+    }
   },
   render: (args: any) => {
     const composition = makeComposition(args.composition || 'InlineScoring', 'games');
@@ -470,7 +468,7 @@ export const DrawStructure = {
       participantsCount: 16,
       completionGoal: 38,
       completeAllMatchUps: false,
-      matchUpFormat: STANDARD_ADVANTAGE,
+      matchUpFormat: STANDARD_ADVANTAGE
     });
 
     const structures = eventData?.drawsData?.[0]?.structures || [];
@@ -485,9 +483,9 @@ export const DrawStructure = {
     }
 
     // Identify ready-to-score matchUps: have two sides with participants and no winner
-    const readyMatchUps = allMatchUps.filter((m: any) =>
-      m.readyToScore && !m.winningSide && m.sides?.length === 2 &&
-      m.sides[0]?.participant && m.sides[1]?.participant
+    const readyMatchUps = allMatchUps.filter(
+      (m: any) =>
+        m.readyToScore && !m.winningSide && m.sides?.length === 2 && m.sides[0]?.participant && m.sides[1]?.participant
     );
 
     // Mark ready-to-score matchUps as IN_PROGRESS for LIVE chip display
@@ -498,14 +496,14 @@ export const DrawStructure = {
     const manager = new InlineScoringManager(makeCallbacks());
     const context = {
       structureId: structure?.structureId,
-      drawId: eventData?.drawsData?.[0].drawId,
+      drawId: eventData?.drawsData?.[0].drawId
     };
 
     // First render the full structure (provides bracket layout with connectors)
     const structureEl = renderStructure({
       composition,
       matchUps: allMatchUps as any,
-      context,
+      context
     });
 
     // Now replace each ready-to-score matchUp element with an interactive
@@ -520,7 +518,7 @@ export const DrawStructure = {
         matchUp: matchUp as MatchUp,
         composition,
         manager,
-        matchUpFormat: STANDARD_ADVANTAGE,
+        matchUpFormat: STANDARD_ADVANTAGE
       });
 
       // Preserve the original element's classes for bracket connector styling
@@ -534,5 +532,5 @@ export const DrawStructure = {
     outer.appendChild(info);
     outer.appendChild(renderContainer({ theme: composition.theme, content: structureEl }));
     return outer;
-  },
+  }
 };
