@@ -35,7 +35,7 @@ export default [
       ...tseslint.configs.recommended.rules,
       'no-unused-expressions': 'off',
       'no-useless-assignment': 'warn',
-      'sonarjs/cognitive-complexity': 'off',
+      'sonarjs/cognitive-complexity': ['warn', 30],
       'sonarjs/no-all-duplicated-branches': 'warn',
       'sonarjs/no-collapsible-if': 'warn',
       'sonarjs/no-collection-size-mischeck': 'warn',
