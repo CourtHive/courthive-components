@@ -5,7 +5,6 @@
  * Shows each evaluator in isolation and combined scenarios.
  */
 
-// @ts-expect-error - Storybook types not resolved under current moduleResolution
 import type { Meta, StoryObj } from '@storybook/html';
 import { TemporalEngine, temporal } from 'tods-competition-factory';
 const {

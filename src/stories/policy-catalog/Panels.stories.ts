@@ -182,7 +182,8 @@ export const EditorShellEmpty = {
     const shell = buildEditorShell({
       onSave: () => {},
       onReset: () => {},
-      onApply: () => {}
+      onApply: () => {},
+      onDuplicate: () => {}
     });
 
     const state: PolicyCatalogState = {
@@ -215,7 +216,8 @@ export const EditorShellWithSelection = {
     const shell = buildEditorShell({
       onSave: () => logFn('Save clicked'),
       onReset: () => logFn('Reset clicked'),
-      onApply: () => logFn('Apply clicked')
+      onApply: () => logFn('Apply clicked'),
+      onDuplicate: () => logFn('Duplicate clicked')
     });
 
     const state: PolicyCatalogState = {

@@ -56,7 +56,7 @@ interface SetParseResult {
   complete: boolean;
 }
 
-function getSetConfig(setCount: number, bestOf: number, getSetFormat: (n: number) => any) {
+function getSetConfig(setCount: number, _bestOf: number, getSetFormat: (n: number) => any) {
   const currentSetFormat = getSetFormat(setCount + 1);
   const tiebreakSetTo = currentSetFormat?.tiebreakSet?.tiebreakTo;
   const regularSetTo = currentSetFormat?.setTo;

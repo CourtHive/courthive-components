@@ -2,9 +2,7 @@
  * Interaction tests for matchUpFormat modal
  * Tests the final set tiebreak initialization bug fix
  */
-// @ts-expect-error - Storybook types not in published package
 import type { Meta, StoryObj } from '@storybook/html';
-// @ts-expect-error - Storybook 10 exports not resolved under current moduleResolution
 import { within, waitFor, userEvent, expect } from 'storybook/test';
 import { getMatchUpFormatModal } from '../components/matchUpFormat/matchUpFormat';
 

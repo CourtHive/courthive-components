@@ -9,7 +9,6 @@ import '../styles/theme.css';
 import '../styles/schematic.css';
 import '../components/topology-builder/ui/topology-builder.css';
 
-// @ts-expect-error - Storybook types not in published package
 import type { Meta, StoryObj } from '@storybook/html';
 import { TopologyBuilderControl } from '../components/topology-builder/controller/topologyBuilderControl';
 import { standardTemplates } from '../components/topology-builder/domain/templates';

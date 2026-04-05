@@ -39,7 +39,7 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
   function buildRoundItems(
     edge: TopologyEdge,
     source: any,
-    target: any,
+    _target: any,
     sourceMaxRound: number,
     targetMaxRound: number,
     isQualifyingWinner: boolean

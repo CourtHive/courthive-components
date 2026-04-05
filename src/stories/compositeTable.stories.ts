@@ -8,7 +8,6 @@
 import '../components/controlBar/controlBar.css';
 import '../styles/tabulator.css';
 
-// @ts-expect-error - Storybook types not in published package
 import type { Meta, StoryObj } from '@storybook/html';
 import { controlBar } from '../components/controlBar/controlBar';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';

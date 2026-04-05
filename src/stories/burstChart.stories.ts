@@ -26,7 +26,6 @@ import australianOpenData from '../data/burstChart/australian_open.json';
 import rolandGarrosData from '../data/burstChart/roland_garros.json';
 import wimbledonData from '../data/burstChart/wimbledon.json';
 
-// @ts-expect-error - Storybook types not in published package
 import type { Meta, StoryObj } from '@storybook/html';
 
 const { SINGLE_ELIMINATION } = drawDefinitionConstants;

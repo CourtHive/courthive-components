@@ -3,7 +3,6 @@
  *
  * This file provides comprehensive documentation for using the ControlBar component.
  */
-// @ts-expect-error - Storybook types not in published package
 import type { Meta, StoryObj } from '@storybook/html';
 
 const meta: Meta = {

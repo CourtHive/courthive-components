@@ -11,7 +11,7 @@
 import { cModal } from './cmodal';
 import { renderForm } from '../forms/renderForm';
 
-export interface ScheduleCellConfig {
+export interface ScheduleCellDisplayConfig {
   showParticipantNames: boolean;
   showNationality: boolean;
   showSeedings: boolean;
@@ -24,7 +24,7 @@ export interface ScheduleCellConfig {
   cellStyle: 'detailed' | 'compact';
 }
 
-const DEFAULT_CONFIG: ScheduleCellConfig = {
+const DEFAULT_CONFIG: ScheduleCellDisplayConfig = {
   showParticipantNames: true,
   showNationality: true,
   showSeedings: true,
@@ -38,8 +38,8 @@ const DEFAULT_CONFIG: ScheduleCellConfig = {
 };
 
 export interface ScheduleCellConfigOptions {
-  initial?: Partial<ScheduleCellConfig>;
-  onApply?: (config: ScheduleCellConfig) => void;
+  initial?: Partial<ScheduleCellDisplayConfig>;
+  onApply?: (config: ScheduleCellDisplayConfig) => void;
 }
 
 export function openScheduleCellConfigModal(options: ScheduleCellConfigOptions = {}) {
@@ -118,7 +118,7 @@ export function openScheduleCellConfigModal(options: ScheduleCellConfigOptions =
     ]);
   };
 
-  const getConfig = (): ScheduleCellConfig => ({
+  const getConfig = (): ScheduleCellDisplayConfig => ({
     showParticipantNames: true,
     showNationality: inputs.showNationality?.checked ?? true,
     showSeedings: inputs.showSeedings?.checked ?? true,

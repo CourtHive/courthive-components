@@ -13,7 +13,7 @@ import { standardTemplates } from '../domain/templates';
 import { validateTopology } from '../domain/topologyValidator';
 import { getNodeTotalRounds } from '../domain/feedRounds';
 import { getCardWidth } from '../ui/structureCard';
-import type { TopologyState, TopologyNode, TopologyBuilderConfig, UIPanel } from '../types';
+import type { TopologyState, TopologyNode, TopologyEdge, TopologyBuilderConfig, UIPanel } from '../types';
 
 const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, SINGLE_ELIMINATION, LUCKY_DRAW, WINNER, LOSER } =
   drawDefinitionConstants;
@@ -108,7 +108,7 @@ export class TopologyBuilderControl {
     });
   }
 
-  private handleCreateEdge(sourceNodeId: string, targetNodeId: string, linkType: string): void {
+  private handleCreateEdge(sourceNodeId: string, targetNodeId: string, linkType: TopologyEdge['linkType']): void {
     const source = this.store.getState().nodes.find((n) => n.id === sourceNodeId);
 
     if (linkType === POSITION) {
