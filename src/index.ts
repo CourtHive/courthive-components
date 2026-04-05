@@ -85,6 +85,11 @@ import './styles/components/forms.css';
 import './styles/components/switch.css';
 import './styles/components/ui.css';
 
+// Notes toolbar (rich text editor toolbar)
+import './components/notes-toolbar/notesToolbar.css';
+export { notesToolbar, updateToolbarState, updateHeadingSelect } from './components/notes-toolbar/notesToolbar';
+export type { NotesToolbarOptions } from './components/notes-toolbar/notesToolbar';
+
 // Tippy.js popover (CSS bundled in courthive-components.css)
 import './styles/tippy.css';
 import './styles/tipster.css';
