@@ -4,7 +4,7 @@
 import { notesToolbar, updateToolbarState, updateHeadingSelect } from '../notesToolbar';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const sel = (name: string) => `[data-action="${name}"]`;
+const sel = (action: string) => `[data-action="${action}"]`;
 const URL_PANEL = '.notes-url-panel';
 const URL_INPUT = '.notes-url-input';
 const URL_CONFIRM = '.notes-url-confirm';
@@ -44,8 +44,8 @@ describe('notesToolbar', () => {
 
   it('renders alignment buttons with SVG icons', () => {
     const el = notesToolbar();
-    for (const name of ['alignLeft', 'alignCenter', 'alignRight', 'alignJustify']) {
-      const btn = el.querySelector(sel(name));
+    for (const action of ['alignLeft', 'alignCenter', 'alignRight', 'alignJustify']) {
+      const btn = el.querySelector(sel(action));
       expect(btn).toBeTruthy();
       expect(btn?.querySelector('svg')).toBeTruthy();
     }
@@ -53,8 +53,8 @@ describe('notesToolbar', () => {
 
   it('renders list buttons with SVG icons', () => {
     const el = notesToolbar();
-    for (const name of ['orderedList', 'bulletList']) {
-      const btn = el.querySelector(sel(name));
+    for (const action of ['orderedList', 'bulletList']) {
+      const btn = el.querySelector(sel(action));
       expect(btn).toBeTruthy();
       expect(btn?.querySelector('svg')).toBeTruthy();
     }
@@ -156,16 +156,16 @@ describe('toolbar callbacks', () => {
     const onAlign = vi.fn();
     const el = notesToolbar({ onAlign });
 
-    (el.querySelector(sel('alignLeft')) as HTMLElement).click();
+    (el.querySelector('[data-action="alignLeft"]') as HTMLElement).click();
     expect(onAlign).toHaveBeenLastCalledWith('left');
 
-    (el.querySelector(sel('alignCenter')) as HTMLElement).click();
+    (el.querySelector('[data-action="alignCenter"]') as HTMLElement).click();
     expect(onAlign).toHaveBeenLastCalledWith('center');
 
-    (el.querySelector(sel('alignRight')) as HTMLElement).click();
+    (el.querySelector('[data-action="alignRight"]') as HTMLElement).click();
     expect(onAlign).toHaveBeenLastCalledWith('right');
 
-    (el.querySelector(sel('alignJustify')) as HTMLElement).click();
+    (el.querySelector('[data-action="alignJustify"]') as HTMLElement).click();
     expect(onAlign).toHaveBeenLastCalledWith('justify');
 
     expect(onAlign).toHaveBeenCalledTimes(4);
@@ -262,11 +262,7 @@ describe('link/video popovers', () => {
 
     const panel = document.querySelector(URL_PANEL);
     expect(panel).toBeTruthy();
-
-    const input = panel?.querySelector(URL_INPUT) as HTMLInputElement;
-    expect(input).toBeTruthy();
-    expect(input.type).toBe('url');
-
+    expect((panel?.querySelector(URL_INPUT) as HTMLInputElement).type).toBe('url');
     expect(panel?.querySelector(URL_CONFIRM)).toBeTruthy();
     expect(panel?.querySelector(URL_CANCEL)).toBeTruthy();
 
@@ -279,8 +275,7 @@ describe('link/video popovers', () => {
 
     (el.querySelector(sel('video')) as HTMLElement).click();
 
-    const panel = document.querySelector(URL_PANEL);
-    expect(panel).toBeTruthy();
+    expect(document.querySelector(URL_PANEL)).toBeTruthy();
 
     document.body.removeChild(el);
   });
@@ -311,7 +306,7 @@ describe('link/video popovers', () => {
 
     (el.querySelector(sel('video')) as HTMLElement).click();
 
-    const confirmBtn = document.querySelector(URL_CONFIRM) as HTMLElement;
+    const confirmBtn = document.querySelector(URL_PANEL)?.querySelector(URL_CONFIRM) as HTMLElement;
     confirmBtn.click();
 
     expect(onVideo).not.toHaveBeenCalled();
