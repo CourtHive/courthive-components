@@ -9,6 +9,11 @@
 import { cModal } from './cmodal';
 import { renderForm } from '../forms/renderForm';
 
+const GRAND_SLAM = 'grand-slam';
+const TOUR = 'tour';
+const ITF = 'itf';
+const NATIONAL_FEDERATION = 'national-federation';
+
 // Types match pdf-factory's HeaderConfig/FooterConfig but defined locally
 // to avoid pulling the full pdf-factory bundle (includes jsPDF/Node APIs)
 export interface HeaderConfig {
@@ -48,16 +53,16 @@ interface CatalogEntry {
 }
 
 const CATALOG_PRESETS: CatalogEntry[] = [
-  { id: 'grand-slam', name: 'Grand Slam', category: 'grand-slam', tier: 1 },
-  { id: 'wimbledon', name: 'Wimbledon', category: 'grand-slam', tier: 1 },
-  { id: 'australian-open', name: 'Australian Open', category: 'grand-slam', tier: 2 },
-  { id: 'wta-500', name: 'WTA 500', category: 'tour', tier: 2 },
-  { id: 'wta-1000', name: 'WTA 1000', category: 'tour', tier: 2 },
-  { id: 'atp-250', name: 'ATP 250', category: 'tour', tier: 2 },
-  { id: 'atp-finals', name: 'ATP Finals', category: 'tour', tier: 3 },
-  { id: 'itf-junior', name: 'ITF Junior', category: 'itf', tier: 3 },
-  { id: 'itf-pro-circuit', name: 'ITF Pro Circuit', category: 'itf', tier: 2 },
-  { id: 'national-federation', name: 'National Federation', category: 'national', tier: 3 },
+  { id: GRAND_SLAM, name: 'Grand Slam', category: GRAND_SLAM, tier: 1 },
+  { id: 'wimbledon', name: 'Wimbledon', category: GRAND_SLAM, tier: 1 },
+  { id: 'australian-open', name: 'Australian Open', category: GRAND_SLAM, tier: 2 },
+  { id: 'wta-500', name: 'WTA 500', category: TOUR, tier: 2 },
+  { id: 'wta-1000', name: 'WTA 1000', category: TOUR, tier: 2 },
+  { id: 'atp-250', name: 'ATP 250', category: TOUR, tier: 2 },
+  { id: 'atp-finals', name: 'ATP Finals', category: TOUR, tier: 3 },
+  { id: 'itf-junior', name: 'ITF Junior', category: ITF, tier: 3 },
+  { id: 'itf-pro-circuit', name: 'ITF Pro Circuit', category: ITF, tier: 2 },
+  { id: NATIONAL_FEDERATION, name: 'National Federation', category: 'national', tier: 3 },
   { id: 'collegiate-ncaa', name: 'NCAA Collegiate', category: 'collegiate', tier: 1 },
   { id: 'club-basic', name: 'Club Basic', category: 'club', tier: 1 }
 ];
@@ -114,10 +119,10 @@ export function openCompositionEditorModal(options: CompositionEditorOptions = {
         field: 'layout',
         label: 'Layout',
         options: [
-          { label: 'Grand Slam', value: 'grand-slam', selected: ih.layout === 'grand-slam' },
-          { label: 'ITF / Professional', value: 'itf', selected: ih.layout === 'itf' },
+          { label: 'Grand Slam', value: GRAND_SLAM, selected: ih.layout === GRAND_SLAM },
+          { label: 'ITF / Professional', value: ITF, selected: ih.layout === ITF },
           { label: 'WTA / ATP Tour', value: 'wta-tour', selected: ih.layout === 'wta-tour' },
-          { label: 'National Federation', value: 'national-federation', selected: ih.layout === 'national-federation' },
+          { label: 'National Federation', value: NATIONAL_FEDERATION, selected: ih.layout === NATIONAL_FEDERATION },
           { label: 'Minimal', value: 'minimal', selected: ih.layout === 'minimal' || !ih.layout },
           { label: 'None', value: 'none', selected: ih.layout === 'none' }
         ]
