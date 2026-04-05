@@ -64,6 +64,7 @@ export interface ScalesByType {
 }
 
 export interface IndividualParticipant {
+  participantOtherName?: string;
   participantId: string;
   participantName?: string;
   person?: Person;
@@ -183,6 +184,7 @@ export interface Configuration {
     isDirty?: boolean;
     situationText?: string;
   };
+  useParticipantName?: boolean; // When true, always render participantName even when participantOtherName is present
   genderColor?: boolean | string; // Color coding by gender (from index.d.ts)
   winnerColor?: boolean | string; // Color coding for winners (from index.d.ts)
   placeHolders?: {
