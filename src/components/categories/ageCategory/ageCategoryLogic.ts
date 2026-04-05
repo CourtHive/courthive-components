@@ -8,12 +8,12 @@ const SIMPLE_OVER = 'Simple Over';
 
 export interface ParsedAgeCategory {
   type: 'under' | 'over' | 'range' | 'combined' | 'open';
-  ageValue?: number;      // For simple under/over
-  ageMin?: number;        // For ranges and combined
-  ageMax?: number;        // For ranges and combined
-  uPosition?: 'pre' | 'post';  // U18 vs 18U
-  oPosition?: 'pre' | 'post';  // O10 vs 10O
-  isCombined?: boolean;        // C prefix
+  ageValue?: number; // For simple under/over
+  ageMin?: number; // For ranges and combined
+  ageMax?: number; // For ranges and combined
+  uPosition?: 'pre' | 'post'; // U18 vs 18U
+  oPosition?: 'pre' | 'post'; // O10 vs 10O
+  isCombined?: boolean; // C prefix
   rangeOrder?: 'max-min' | 'min-max'; // For preserving order in ranges like U18-10O vs 10O-18U
 }
 
@@ -36,116 +36,116 @@ export function parseAgeCategoryCode(code: string): ParsedAgeCategory | null {
 
   const upperCode = code.trim().toUpperCase();
 
-  // OPEN category
   if (upperCode === 'OPEN') {
     return { type: 'open' };
   }
 
-  // Combined format: C50-70
   const combinedMatch = upperCode.match(/^C(\d{1,2})-(\d{1,2})$/);
   if (combinedMatch) {
     const [, min, max] = combinedMatch;
     return {
       type: 'combined',
-      ageMin: parseInt(min, 10),
-      ageMax: parseInt(max, 10),
-      isCombined: true,
+      ageMin: Number.parseInt(min, 10),
+      ageMax: Number.parseInt(max, 10),
+      isCombined: true
     };
   }
 
-  // Range format: U18-10O or 10O-18U
   if (upperCode.includes('-')) {
-    const parts = upperCode.split('-');
-    if (parts.length === 2) {
-      const part1 = parts[0];
-      const part2 = parts[1];
-
-      let ageMin: number | undefined;
-      let ageMax: number | undefined;
-      let uPosition: 'pre' | 'post' | undefined;
-      let oPosition: 'pre' | 'post' | undefined;
-      let rangeOrder: 'max-min' | 'min-max' | undefined;
-
-      // Parse first part
-      const match1U = part1.match(/^U?(\d{1,2})U?$/);
-      const match1O = part1.match(/^O?(\d{1,2})O?$/);
-
-      // Parse second part
-      const match2U = part2.match(/^U?(\d{1,2})U?$/);
-      const match2O = part2.match(/^O?(\d{1,2})O?$/);
-
-      // Determine order: if first part is U/under, order is max-min
-      // If first part is O/over, order is min-max
-      if (part1.startsWith('U') || part1.endsWith('U')) {
-        rangeOrder = 'max-min';
-      } else if (part1.startsWith('O') || part1.endsWith('O')) {
-        rangeOrder = 'min-max';
-      }
-
-      // First part is Under (sets max)
-      if (part1.startsWith('U') || part1.endsWith('U')) {
-        if (match1U) {
-          const age = parseInt(match1U[1], 10);
-          ageMax = part1.startsWith('U') ? age - 1 : age; // U18 = max 17, 18U = max 18
-          uPosition = part1.startsWith('U') ? 'pre' : 'post';
-        }
-      }
-      // First part is Over (sets min)
-      else if ((part1.startsWith('O') || part1.endsWith('O')) && match1O) {
-        const age = parseInt(match1O[1], 10);
-        ageMin = part1.startsWith('O') ? age + 1 : age; // O10 = min 11, 10O = min 10
-        oPosition = part1.startsWith('O') ? 'pre' : 'post';
-      }
-
-      // Second part is Under (sets max)
-      if (part2.startsWith('U') || part2.endsWith('U')) {
-        if (match2U) {
-          const age = parseInt(match2U[1], 10);
-          ageMax = part2.startsWith('U') ? age - 1 : age;
-          uPosition = part2.startsWith('U') ? 'pre' : 'post';
-        }
-      }
-      // Second part is Over (sets min)
-      else if ((part2.startsWith('O') || part2.endsWith('O')) && match2O) {
-        const age = parseInt(match2O[1], 10);
-        ageMin = part2.startsWith('O') ? age + 1 : age;
-        oPosition = part2.startsWith('O') ? 'pre' : 'post';
-      }
-
-      if (ageMin !== undefined || ageMax !== undefined) {
-        return {
-          type: 'range',
-          ageMin,
-          ageMax,
-          uPosition,
-          oPosition,
-          rangeOrder,
-        };
-      }
-    }
+    const rangeResult = parseRangeCode(upperCode);
+    if (rangeResult) return rangeResult;
   }
 
-  // Simple Under: U18 or 18U
+  return parseSimpleCode(upperCode);
+}
+
+function parseUnderPart(part: string): { age: number; position: 'pre' | 'post' } | undefined {
+  if (!part.startsWith('U') && !part.endsWith('U')) return undefined;
+  const match = part.match(/^U?(\d{1,2})U?$/);
+  if (!match) return undefined;
+  const age = Number.parseInt(match[1], 10);
+  const position: 'pre' | 'post' = part.startsWith('U') ? 'pre' : 'post';
+  return { age, position };
+}
+
+function parseOverPart(part: string): { age: number; position: 'pre' | 'post' } | undefined {
+  if (!part.startsWith('O') && !part.endsWith('O')) return undefined;
+  const match = part.match(/^O?(\d{1,2})O?$/);
+  if (!match) return undefined;
+  const age = Number.parseInt(match[1], 10);
+  const position: 'pre' | 'post' = part.startsWith('O') ? 'pre' : 'post';
+  return { age, position };
+}
+
+function parseRangeCode(upperCode: string): ParsedAgeCategory | null {
+  const parts = upperCode.split('-');
+  if (parts.length !== 2) return null;
+
+  const [part1, part2] = parts;
+  let ageMin: number | undefined;
+  let ageMax: number | undefined;
+  let uPosition: 'pre' | 'post' | undefined;
+  let oPosition: 'pre' | 'post' | undefined;
+  let rangeOrder: 'max-min' | 'min-max' | undefined;
+
+  const under1 = parseUnderPart(part1);
+  const over1 = parseOverPart(part1);
+
+  if (under1) {
+    rangeOrder = 'max-min';
+    ageMax = under1.position === 'pre' ? under1.age - 1 : under1.age;
+    uPosition = under1.position;
+  } else if (over1) {
+    rangeOrder = 'min-max';
+    ageMin = over1.position === 'pre' ? over1.age + 1 : over1.age;
+    oPosition = over1.position;
+  }
+
+  const under2 = parseUnderPart(part2);
+  const over2 = parseOverPart(part2);
+
+  if (under2) {
+    ageMax = under2.position === 'pre' ? under2.age - 1 : under2.age;
+    uPosition = under2.position;
+  } else if (over2) {
+    ageMin = over2.position === 'pre' ? over2.age + 1 : over2.age;
+    oPosition = over2.position;
+  }
+
+  if (ageMin !== undefined || ageMax !== undefined) {
+    return {
+      type: 'range',
+      ageMin,
+      ageMax,
+      uPosition,
+      oPosition,
+      rangeOrder
+    };
+  }
+
+  return null;
+}
+
+function parseSimpleCode(upperCode: string): ParsedAgeCategory | null {
   const underMatch = upperCode.match(/^U(\d{1,2})$|^(\d{1,2})U$/);
   if (underMatch) {
-    const age = parseInt(underMatch[1] || underMatch[2], 10);
-    const uPosition = underMatch[1] ? 'pre' : 'post'; // U18 = pre, 18U = post
+    const age = Number.parseInt(underMatch[1] || underMatch[2], 10);
+    const uPosition: 'pre' | 'post' = underMatch[1] ? 'pre' : 'post';
     return {
       type: 'under',
       ageValue: age,
-      uPosition,
+      uPosition
     };
   }
 
-  // Simple Over: O10 or 10O
   const overMatch = upperCode.match(/^O(\d{1,2})$|^(\d{1,2})O$/);
   if (overMatch) {
-    const age = parseInt(overMatch[1] || overMatch[2], 10);
-    const oPosition = overMatch[1] ? 'pre' : 'post'; // O10 = pre, 10O = post
+    const age = Number.parseInt(overMatch[1] || overMatch[2], 10);
+    const oPosition: 'pre' | 'post' = overMatch[1] ? 'pre' : 'post';
     return {
       type: 'over',
       ageValue: age,
-      oPosition,
+      oPosition
     };
   }
 
@@ -178,20 +178,22 @@ export function buildAgeCategoryCode(config: AgeCategoryCodeConfig): string {
     // For ranges, we need to convert back to the original age value, not the calculated min/max
     // If uPosition is 'pre', we had U18 which means ageMax=17, so original age was 18
     // If uPosition is 'post', we had 18U which means ageMax=18, so original age was 18
-    
-    const maxPart = ageMax !== undefined && uPosition
-      ? (() => {
-          const originalAge = uPosition === 'pre' ? ageMax + 1 : ageMax;
-          return uPosition === 'pre' ? `U${originalAge}` : `${originalAge}U`;
-        })()
-      : null;
 
-    const minPart = ageMin !== undefined && oPosition
-      ? (() => {
-          const originalAge = oPosition === 'pre' ? ageMin - 1 : ageMin;
-          return oPosition === 'pre' ? `O${originalAge}` : `${originalAge}O`;
-        })()
-      : null;
+    const maxPart =
+      ageMax !== undefined && uPosition
+        ? (() => {
+            const originalAge = uPosition === 'pre' ? ageMax + 1 : ageMax;
+            return uPosition === 'pre' ? `U${originalAge}` : `${originalAge}U`;
+          })()
+        : null;
+
+    const minPart =
+      ageMin !== undefined && oPosition
+        ? (() => {
+            const originalAge = oPosition === 'pre' ? ageMin - 1 : ageMin;
+            return oPosition === 'pre' ? `O${originalAge}` : `${originalAge}O`;
+          })()
+        : null;
 
     // Preserve original order
     if (rangeOrder === 'max-min') {
@@ -283,6 +285,6 @@ export function getDefaultPredefinedCodes(): Array<{ code: string; text: string 
     { code: '65O', text: '65 and Over' },
     { code: '70O', text: '70 and Over' },
     { code: '75O', text: '75 and Over' },
-    { code: '80O', text: '80 and Over' },
+    { code: '80O', text: '80 and Over' }
   ];
 }

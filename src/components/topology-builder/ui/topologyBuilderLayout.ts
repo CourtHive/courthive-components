@@ -8,7 +8,7 @@ export function buildTopologyBuilderLayout({
   toolbar,
   canvas,
   nodeEditor,
-  edgeEditor,
+  edgeEditor
 }: {
   toolbar: UIPanel<TopologyState>;
   canvas: UIPanel<TopologyState>;

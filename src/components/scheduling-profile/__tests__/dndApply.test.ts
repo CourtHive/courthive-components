@@ -12,7 +12,7 @@ const catalogRound = {
   drawName: 'Main',
   structureId: 'S1',
   roundNumber: 5,
-  roundName: 'R32',
+  roundName: 'R32'
 };
 
 function makeProfile(): SchedulingProfile {
@@ -23,22 +23,36 @@ function makeProfile(): SchedulingProfile {
         {
           venueId: 'V1',
           rounds: [
-            { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5, roundName: 'R32', sortOrder: 1 },
-            { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 6, roundName: 'R16', sortOrder: 2 },
-          ],
+            {
+              tournamentId: 'T1',
+              eventId: 'E1',
+              drawId: 'D1',
+              structureId: 'S1',
+              roundNumber: 5,
+              roundName: 'R32',
+              sortOrder: 1
+            },
+            {
+              tournamentId: 'T1',
+              eventId: 'E1',
+              drawId: 'D1',
+              structureId: 'S1',
+              roundNumber: 6,
+              roundName: 'R16',
+              sortOrder: 2
+            }
+          ]
         },
-        { venueId: 'V2', rounds: [] },
-      ],
-    },
+        { venueId: 'V2', rounds: [] }
+      ]
+    }
   ];
 }
 
 describe('applyDropCommit', () => {
   describe('CATALOG_ROUND drops', () => {
     it('adds a round from catalog to an empty venue', () => {
-      const profile: SchedulingProfile = [
-        { scheduleDate: DAY1, venues: [{ venueId: 'V1', rounds: [] }] },
-      ];
+      const profile: SchedulingProfile = [{ scheduleDate: DAY1, venues: [{ venueId: 'V1', rounds: [] }] }];
       const drag: CatalogDragPayload = { type: 'CATALOG_ROUND', roundRef: catalogRound };
       const result = applyDropCommit(profile, drag, { date: DAY1, venueId: 'V1', index: 0 });
 
@@ -52,7 +66,7 @@ describe('applyDropCommit', () => {
       const profile = makeProfile();
       const drag: CatalogDragPayload = {
         type: 'CATALOG_ROUND',
-        roundRef: { ...catalogRound, roundNumber: 7, roundName: 'QF' },
+        roundRef: { ...catalogRound, roundNumber: 7, roundName: 'QF' }
       };
       const result = applyDropCommit(profile, drag, { date: DAY1, venueId: 'V1', index: 1 });
 
@@ -95,8 +109,8 @@ describe('applyDropCommit', () => {
           date: DAY1,
           venueId: 'V1',
           index: 0,
-          roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 },
-        },
+          roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 }
+        }
       };
       const result = applyDropCommit(profile, drag, { date: DAY1, venueId: 'V2', index: 0 });
 
@@ -115,13 +129,37 @@ describe('applyDropCommit', () => {
             {
               venueId: 'V1',
               rounds: [
-                { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5, roundName: 'R32', sortOrder: 1 },
-                { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 6, roundName: 'R16', sortOrder: 2 },
-                { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 7, roundName: 'QF', sortOrder: 3 },
-              ],
-            },
-          ],
-        },
+                {
+                  tournamentId: 'T1',
+                  eventId: 'E1',
+                  drawId: 'D1',
+                  structureId: 'S1',
+                  roundNumber: 5,
+                  roundName: 'R32',
+                  sortOrder: 1
+                },
+                {
+                  tournamentId: 'T1',
+                  eventId: 'E1',
+                  drawId: 'D1',
+                  structureId: 'S1',
+                  roundNumber: 6,
+                  roundName: 'R16',
+                  sortOrder: 2
+                },
+                {
+                  tournamentId: 'T1',
+                  eventId: 'E1',
+                  drawId: 'D1',
+                  structureId: 'S1',
+                  roundNumber: 7,
+                  roundName: 'QF',
+                  sortOrder: 3
+                }
+              ]
+            }
+          ]
+        }
       ];
       const drag: PlannedDragPayload = {
         type: 'PLANNED_ROUND',
@@ -129,8 +167,8 @@ describe('applyDropCommit', () => {
           date: DAY1,
           venueId: 'V1',
           index: 0,
-          roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 },
-        },
+          roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 }
+        }
       };
       // Move index 0 (R32) to index 3 (end). Adjust: 3-1=2, clamp(2,0,2)=2 → insert at 2
       const result = applyDropCommit(profile, drag, { date: DAY1, venueId: 'V1', index: 3 });
@@ -152,8 +190,8 @@ describe('applyDropCommit', () => {
           date: DAY1,
           venueId: 'V1',
           index: 0,
-          roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 },
-        },
+          roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 }
+        }
       };
       // Move R32(index 0) to end (index 2). Adjust: 2-1=1, clamp(1,0,1)=1 → insert at 1
       const result = applyDropCommit(profile, drag, { date: DAY1, venueId: 'V1', index: 2 });

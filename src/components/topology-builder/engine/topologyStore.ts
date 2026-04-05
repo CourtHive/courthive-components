@@ -5,12 +5,7 @@
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { getNodeLosersForRound } from '../domain/feedRounds';
 import { getCardWidth } from '../ui/structureCard';
-import type {
-  TopologyNode,
-  TopologyEdge,
-  TopologyState,
-  TopologyChangeListener,
-} from '../types';
+import type { TopologyNode, TopologyEdge, TopologyState, TopologyChangeListener } from '../types';
 
 const { MAIN, QUALIFYING, CONSOLATION, WINNER, LOSER, ROUND_ROBIN } = drawDefinitionConstants;
 const POSITION = 'POSITION';
@@ -42,7 +37,7 @@ export class TopologyStore {
       selectedNodeId: null,
       selectedEdgeId: null,
       drawName: 'New Draw',
-      ...initialState,
+      ...initialState
     };
   }
 
@@ -71,7 +66,7 @@ export class TopologyStore {
     const node: TopologyNode = {
       ...partial,
       id: generateId('node'),
-      position: this.nextNodePosition(),
+      position: this.nextNodePosition()
     };
     this.state.nodes.push(node);
     this.state.templateName = undefined;
@@ -92,14 +87,10 @@ export class TopologyStore {
 
   removeNode(nodeId: string): void {
     // Find consolation nodes that will lose inbound edges from the removed node
-    const affectedTargets = this.state.edges
-      .filter((e) => e.sourceNodeId === nodeId)
-      .map((e) => e.targetNodeId);
+    const affectedTargets = this.state.edges.filter((e) => e.sourceNodeId === nodeId).map((e) => e.targetNodeId);
 
     this.state.nodes = this.state.nodes.filter((n) => n.id !== nodeId);
-    this.state.edges = this.state.edges.filter(
-      (e) => e.sourceNodeId !== nodeId && e.targetNodeId !== nodeId,
-    );
+    this.state.edges = this.state.edges.filter((e) => e.sourceNodeId !== nodeId && e.targetNodeId !== nodeId);
     if (this.state.selectedNodeId === nodeId) this.state.selectedNodeId = null;
     this.state.templateName = undefined;
 
@@ -112,9 +103,7 @@ export class TopologyStore {
   addEdge(partial: Omit<TopologyEdge, 'id' | 'label'>): TopologyEdge | null {
     // Only one winner link per source structure
     if (partial.linkType === WINNER) {
-      const existing = this.state.edges.find(
-        (e) => e.sourceNodeId === partial.sourceNodeId && e.linkType === WINNER,
-      );
+      const existing = this.state.edges.find((e) => e.sourceNodeId === partial.sourceNodeId && e.linkType === WINNER);
       if (existing) return null;
     }
 
@@ -140,7 +129,7 @@ export class TopologyStore {
       ...partial,
       id: generateId('edge'),
       targetRoundNumber: partial.targetRoundNumber || 1,
-      label: this.computeEdgeLabel(partial),
+      label: this.computeEdgeLabel(partial)
     };
     this.state.edges.push(edge);
     this.state.templateName = undefined;
@@ -241,7 +230,7 @@ export class TopologyStore {
     // Qualifying nodes get column = rootCol - 1 (placed before main).
     // All other nodes get column = max(source columns) + 1.
 
-    const inbound = new Map<string, string[]>();  // nodeId → source node ids
+    const inbound = new Map<string, string[]>(); // nodeId → source node ids
     const outbound = new Map<string, string[]>(); // nodeId → target node ids
 
     for (const edge of edges) {
@@ -265,9 +254,7 @@ export class TopologyStore {
     // First pass: identify qualifying nodes (they feed into another node
     // via WINNER and have stage QUALIFYING). They get column -1 relative
     // to their target.  Start by assigning all roots column 0.
-    const qualifyingIds = new Set(
-      nodes.filter((n) => n.stage === QUALIFYING).map((n) => n.id),
-    );
+    const qualifyingIds = new Set(nodes.filter((n) => n.stage === QUALIFYING).map((n) => n.id));
 
     // BFS from roots
     const queue: string[] = [];
@@ -325,7 +312,7 @@ export class TopologyStore {
       colNodes.forEach((node, rowIndex) => {
         node.position = {
           x: xOffset,
-          y: rowIndex * (CARD_HEIGHT + ROW_GAP) + 40,
+          y: rowIndex * (CARD_HEIGHT + ROW_GAP) + 40
         };
       });
 

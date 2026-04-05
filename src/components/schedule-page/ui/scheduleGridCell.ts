@@ -402,14 +402,14 @@ function renderScore(data: ScheduleCellData): HTMLElement | null {
     status === 'WALKOVER'
       ? 'WALKOVER'
       : status === 'DEFAULTED'
-      ? 'DEFAULT'
-      : status === 'RETIRED'
-      ? 'RET.'
-      : status === 'DOUBLE_WALKOVER'
-      ? 'D.W/O'
-      : status === 'ABANDONED'
-      ? 'ABN.'
-      : null;
+        ? 'DEFAULT'
+        : status === 'RETIRED'
+          ? 'RET.'
+          : status === 'DOUBLE_WALKOVER'
+            ? 'D.W/O'
+            : status === 'ABANDONED'
+              ? 'ABN.'
+              : null;
 
   if (!score && !statusText) return null;
 

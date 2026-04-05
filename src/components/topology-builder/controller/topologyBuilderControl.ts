@@ -15,7 +15,8 @@ import { getNodeTotalRounds } from '../domain/feedRounds';
 import { getCardWidth } from '../ui/structureCard';
 import type { TopologyState, TopologyNode, TopologyBuilderConfig, UIPanel } from '../types';
 
-const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, SINGLE_ELIMINATION, LUCKY_DRAW, WINNER, LOSER } = drawDefinitionConstants;
+const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, SINGLE_ELIMINATION, LUCKY_DRAW, WINNER, LOSER } =
+  drawDefinitionConstants;
 const POSITION = 'POSITION';
 
 export class TopologyBuilderControl {
@@ -31,105 +32,9 @@ export class TopologyBuilderControl {
     const allTemplates = [...standardTemplates, ...(config.templates || [])];
     const isReadOnly = !!config.readOnly;
 
-    // Build toolbar
-    const toolbar = buildToolbar(
-      {
-        onAddStructure: (stage, structureType) => this.addDefaultStructure(stage, structureType),
-        onLoadTemplate: (template) => {
-          this.store.loadState({
-            ...template.state,
-            selectedNodeId: null,
-            selectedEdgeId: null,
-            templateName: template.name
-          });
-        },
-        onAutoLayout: () => {
-          this.store.autoLayout();
-          // Re-notify
-          const state = this.store.getState();
-          this.store.loadState(state);
-        },
-        onGenerate: () => this.handleGenerate(),
-        onSaveTemplate: config.onSaveTemplate ? () => config.onSaveTemplate(this.store.getState()) : undefined,
-        onClear: config.onClear
-      },
-      allTemplates,
-      { hideTemplates: config.hideTemplates, hideGenerate: config.hideGenerate, readOnly: isReadOnly }
-    );
+    const toolbar = this.buildToolbarPanel(allTemplates, isReadOnly);
+    const canvas = this.buildCanvasPanel(isReadOnly);
 
-    // Build canvas
-    const canvas = buildTopologyCanvas({
-      onSelectNode: (nodeId) => this.store.selectNode(nodeId),
-      onSelectEdge: (edgeId) => this.store.selectEdge(edgeId),
-      onDoubleClickNode: config.onDoubleClickNode
-        ? (nodeId) => {
-            const state = this.store.getState();
-            const node = state.nodes.find((n) => n.id === nodeId);
-            if (node) config.onDoubleClickNode(node, state);
-          }
-        : undefined,
-      onMoveNode: (nodeId, x, y) => this.store.updateNode(nodeId, { position: { x, y } }),
-      onCreateEdge: isReadOnly
-        ? () => {}
-        : (sourceNodeId, targetNodeId, linkType) => {
-            const source = this.store.getState().nodes.find((n) => n.id === sourceNodeId);
-
-            if (linkType === POSITION) {
-              // Pick the first unclaimed finishing position
-              const existingEdges = this.store
-                .getState()
-                .edges.filter((e) => e.sourceNodeId === sourceNodeId && e.linkType === POSITION);
-              const claimed = new Set(existingEdges.flatMap((e) => e.finishingPositions || []));
-              const groupSize = source?.structureOptions?.groupSize || 4;
-              let defaultPos = 1;
-              for (let p = 1; p <= groupSize; p++) {
-                if (!claimed.has(p)) {
-                  defaultPos = p;
-                  break;
-                }
-              }
-              this.store.addEdge({
-                sourceNodeId,
-                targetNodeId,
-                linkType,
-                finishingPositions: [defaultPos]
-              });
-            } else {
-              const isQualifyingWinner = linkType === WINNER && source?.stage === QUALIFYING;
-              if (linkType === LOSER) {
-                // Default to the first unclaimed source round
-                const existingLoserEdges = this.store
-                  .getState()
-                  .edges.filter((e) => e.sourceNodeId === sourceNodeId && e.linkType === LOSER);
-                const claimedRounds = new Set(existingLoserEdges.map((e) => e.sourceRoundNumber));
-                const maxRound = source ? getNodeTotalRounds(source.structureType, source.drawSize, source.structureOptions) : 1;
-                let defaultRound = 1;
-                for (let r = 1; r <= maxRound; r++) {
-                  if (!claimedRounds.has(r)) {
-                    defaultRound = r;
-                    break;
-                  }
-                }
-                this.store.addEdge({
-                  sourceNodeId,
-                  targetNodeId,
-                  linkType,
-                  sourceRoundNumber: defaultRound
-                });
-              } else {
-                this.store.addEdge({
-                  sourceNodeId,
-                  targetNodeId,
-                  linkType,
-                  ...(isQualifyingWinner && { targetRoundNumber: 1 })
-                });
-              }
-            }
-          },
-      onPortMouseDown: () => {}
-    });
-
-    // Build editors
     const nodeEditor = buildNodeEditor({
       onUpdateNode: isReadOnly ? () => {} : (nodeId, updates) => this.store.updateNode(nodeId, updates),
       onUpdateEdge: isReadOnly ? () => {} : (edgeId, updates) => this.store.updateEdge(edgeId, updates),
@@ -144,7 +49,6 @@ export class TopologyBuilderControl {
       readOnly: isReadOnly
     });
 
-    // Build layout
     this.layout = buildTopologyBuilderLayout({
       toolbar,
       canvas,
@@ -152,13 +56,110 @@ export class TopologyBuilderControl {
       edgeEditor
     });
 
-    // Subscribe to state changes
     this.unsubscribe = this.store.subscribe((state) => {
       this.layout.update(state);
     });
 
-    // Initial render
     this.layout.update(this.store.getState());
+  }
+
+  private buildToolbarPanel(allTemplates: any[], isReadOnly: boolean) {
+    return buildToolbar(
+      {
+        onAddStructure: (stage, structureType) => this.addDefaultStructure(stage, structureType),
+        onLoadTemplate: (template) => {
+          this.store.loadState({
+            ...template.state,
+            selectedNodeId: null,
+            selectedEdgeId: null,
+            templateName: template.name
+          });
+        },
+        onAutoLayout: () => {
+          this.store.autoLayout();
+          const state = this.store.getState();
+          this.store.loadState(state);
+        },
+        onGenerate: () => this.handleGenerate(),
+        onSaveTemplate: this.config.onSaveTemplate ? () => this.config.onSaveTemplate(this.store.getState()) : undefined,
+        onClear: this.config.onClear
+      },
+      allTemplates,
+      { hideTemplates: this.config.hideTemplates, hideGenerate: this.config.hideGenerate, readOnly: isReadOnly }
+    );
+  }
+
+  private buildCanvasPanel(isReadOnly: boolean) {
+    return buildTopologyCanvas({
+      onSelectNode: (nodeId) => this.store.selectNode(nodeId),
+      onSelectEdge: (edgeId) => this.store.selectEdge(edgeId),
+      onDoubleClickNode: this.config.onDoubleClickNode
+        ? (nodeId) => {
+            const state = this.store.getState();
+            const node = state.nodes.find((n) => n.id === nodeId);
+            if (node) this.config.onDoubleClickNode(node, state);
+          }
+        : undefined,
+      onMoveNode: (nodeId, x, y) => this.store.updateNode(nodeId, { position: { x, y } }),
+      onCreateEdge: isReadOnly ? () => {} : (sourceNodeId, targetNodeId, linkType) => {
+        this.handleCreateEdge(sourceNodeId, targetNodeId, linkType);
+      },
+      onPortMouseDown: () => {}
+    });
+  }
+
+  private handleCreateEdge(sourceNodeId: string, targetNodeId: string, linkType: string): void {
+    const source = this.store.getState().nodes.find((n) => n.id === sourceNodeId);
+
+    if (linkType === POSITION) {
+      const existingEdges = this.store
+        .getState()
+        .edges.filter((e) => e.sourceNodeId === sourceNodeId && e.linkType === POSITION);
+      const claimed = new Set(existingEdges.flatMap((e) => e.finishingPositions || []));
+      const groupSize = source?.structureOptions?.groupSize || 4;
+      let defaultPos = 1;
+      for (let p = 1; p <= groupSize; p++) {
+        if (!claimed.has(p)) {
+          defaultPos = p;
+          break;
+        }
+      }
+      this.store.addEdge({
+        sourceNodeId,
+        targetNodeId,
+        linkType,
+        finishingPositions: [defaultPos]
+      });
+    } else if (linkType === LOSER) {
+      const existingLoserEdges = this.store
+        .getState()
+        .edges.filter((e) => e.sourceNodeId === sourceNodeId && e.linkType === LOSER);
+      const claimedRounds = new Set(existingLoserEdges.map((e) => e.sourceRoundNumber));
+      const maxRound = source
+        ? getNodeTotalRounds(source.structureType, source.drawSize, source.structureOptions)
+        : 1;
+      let defaultRound = 1;
+      for (let r = 1; r <= maxRound; r++) {
+        if (!claimedRounds.has(r)) {
+          defaultRound = r;
+          break;
+        }
+      }
+      this.store.addEdge({
+        sourceNodeId,
+        targetNodeId,
+        linkType,
+        sourceRoundNumber: defaultRound
+      });
+    } else {
+      const isQualifyingWinner = linkType === WINNER && source?.stage === QUALIFYING;
+      this.store.addEdge({
+        sourceNodeId,
+        targetNodeId,
+        linkType,
+        ...(isQualifyingWinner && { targetRoundNumber: 1 })
+      });
+    }
   }
 
   render(container: HTMLElement): void {

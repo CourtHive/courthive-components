@@ -1,6 +1,6 @@
 /**
  * Test suite for score formatting utilities
- * 
+ *
  * Tests formatExistingScore() and getStatusAbbreviation() functions
  * that are used to display existing scores in text input fields.
  */
@@ -40,8 +40,8 @@ describe('scoreFormatters', () => {
         const scoreObject = {
           sets: [
             { side1Score: 6, side2Score: 4, winningSide: 1 },
-            { side1Score: 6, side2Score: 3, winningSide: 1 },
-          ],
+            { side1Score: 6, side2Score: 3, winningSide: 1 }
+          ]
         };
         expect(formatExistingScore(scoreObject)).toBe('6-4 6-3');
       });
@@ -51,8 +51,8 @@ describe('scoreFormatters', () => {
           sets: [
             { side1Score: 6, side2Score: 4, winningSide: 1 },
             { side1Score: 4, side2Score: 6, winningSide: 2 },
-            { side1Score: 6, side2Score: 3, winningSide: 1 },
-          ],
+            { side1Score: 6, side2Score: 3, winningSide: 1 }
+          ]
         };
         expect(formatExistingScore(scoreObject)).toBe('6-4 4-6 6-3');
       });
@@ -61,8 +61,8 @@ describe('scoreFormatters', () => {
         const scoreObject = {
           sets: [
             { side1Score: 6, side2Score: 0, winningSide: 1 },
-            { side1Score: 6, side2Score: 1, winningSide: 1 },
-          ],
+            { side1Score: 6, side2Score: 1, winningSide: 1 }
+          ]
         };
         expect(formatExistingScore(scoreObject)).toBe('6-0 6-1');
       });
@@ -72,14 +72,14 @@ describe('scoreFormatters', () => {
       it('should format tiebreak when side1 wins set', () => {
         const scoreObject = {
           sets: [
-            { 
-              side1Score: 7, 
-              side2Score: 6, 
+            {
+              side1Score: 7,
+              side2Score: 6,
               winningSide: 1,
               side1TiebreakScore: 7,
-              side2TiebreakScore: 3,
-            },
-          ],
+              side2TiebreakScore: 3
+            }
+          ]
         };
         expect(formatExistingScore(scoreObject)).toBe('7-6(3)');
       });
@@ -87,14 +87,14 @@ describe('scoreFormatters', () => {
       it('should format tiebreak when side2 wins set', () => {
         const scoreObject = {
           sets: [
-            { 
-              side1Score: 6, 
-              side2Score: 7, 
+            {
+              side1Score: 6,
+              side2Score: 7,
               winningSide: 2,
               side1TiebreakScore: 3,
-              side2TiebreakScore: 7,
-            },
-          ],
+              side2TiebreakScore: 7
+            }
+          ]
         };
         expect(formatExistingScore(scoreObject)).toBe('6-7(3)');
       });
@@ -102,22 +102,22 @@ describe('scoreFormatters', () => {
       it('should format multiple sets with tiebreaks', () => {
         const scoreObject = {
           sets: [
-            { 
-              side1Score: 7, 
-              side2Score: 6, 
+            {
+              side1Score: 7,
+              side2Score: 6,
               winningSide: 1,
               side1TiebreakScore: 7,
-              side2TiebreakScore: 5,
+              side2TiebreakScore: 5
             },
-            { 
-              side1Score: 6, 
-              side2Score: 7, 
+            {
+              side1Score: 6,
+              side2Score: 7,
               winningSide: 2,
               side1TiebreakScore: 8,
-              side2TiebreakScore: 10,
+              side2TiebreakScore: 10
             },
-            { side1Score: 6, side2Score: 4, winningSide: 1 },
-          ],
+            { side1Score: 6, side2Score: 4, winningSide: 1 }
+          ]
         };
         expect(formatExistingScore(scoreObject)).toBe('7-6(5) 6-7(8) 6-4');
       });
@@ -125,14 +125,14 @@ describe('scoreFormatters', () => {
       it('should format extended tiebreak scores', () => {
         const scoreObject = {
           sets: [
-            { 
-              side1Score: 7, 
-              side2Score: 6, 
+            {
+              side1Score: 7,
+              side2Score: 6,
               winningSide: 1,
               side1TiebreakScore: 102,
-              side2TiebreakScore: 100,
-            },
-          ],
+              side2TiebreakScore: 100
+            }
+          ]
         };
         expect(formatExistingScore(scoreObject)).toBe('7-6(100)');
       });
@@ -143,8 +143,8 @@ describe('scoreFormatters', () => {
         const scoreObject = {
           sets: [
             { side1Score: 6, side2Score: 4, winningSide: 1 },
-            { side1Score: 3, side2Score: 4, winningSide: undefined },
-          ],
+            { side1Score: 3, side2Score: 4, winningSide: undefined }
+          ]
         };
         expect(formatExistingScore(scoreObject, 'RETIRED')).toBe('6-4 3-4 ret');
       });
@@ -156,9 +156,7 @@ describe('scoreFormatters', () => {
 
       it('should append status abbreviation for DEFAULTED', () => {
         const scoreObject = {
-          sets: [
-            { side1Score: 6, side2Score: 4, winningSide: 1 },
-          ],
+          sets: [{ side1Score: 6, side2Score: 4, winningSide: 1 }]
         };
         expect(formatExistingScore(scoreObject, 'DEFAULTED')).toBe('6-4 def');
       });
@@ -167,8 +165,8 @@ describe('scoreFormatters', () => {
         const scoreObject = {
           sets: [
             { side1Score: 6, side2Score: 4, winningSide: 1 },
-            { side1Score: 6, side2Score: 3, winningSide: 1 },
-          ],
+            { side1Score: 6, side2Score: 3, winningSide: 1 }
+          ]
         };
         expect(formatExistingScore(scoreObject, 'COMPLETED')).toBe('6-4 6-3');
       });
@@ -180,9 +178,7 @@ describe('scoreFormatters', () => {
 
       it('should NOT append unknown status', () => {
         const scoreObject = {
-          sets: [
-            { side1Score: 6, side2Score: 4, winningSide: 1 },
-          ],
+          sets: [{ side1Score: 6, side2Score: 4, winningSide: 1 }]
         };
         expect(formatExistingScore(scoreObject, 'UNKNOWN_STATUS')).toBe('6-4');
       });
@@ -208,18 +204,14 @@ describe('scoreFormatters', () => {
 
       it('should handle sets with undefined scores', () => {
         const scoreObject = {
-          sets: [
-            { side1Score: undefined, side2Score: undefined, winningSide: undefined },
-          ],
+          sets: [{ side1Score: undefined, side2Score: undefined, winningSide: undefined }]
         };
         expect(formatExistingScore(scoreObject)).toBe('0-0');
       });
 
       it('should handle sets with null scores', () => {
         const scoreObject = {
-          sets: [
-            { side1Score: null, side2Score: null, winningSide: null },
-          ],
+          sets: [{ side1Score: null, side2Score: null, winningSide: null }]
         };
         expect(formatExistingScore(scoreObject)).toBe('0-0');
       });
@@ -228,8 +220,8 @@ describe('scoreFormatters', () => {
         const scoreObject = {
           sets: [
             { side1Score: 6, side2Score: 4, winningSide: 1 },
-            { side1Score: 3, side2Score: 2, winningSide: undefined },
-          ],
+            { side1Score: 3, side2Score: 2, winningSide: undefined }
+          ]
         };
         expect(formatExistingScore(scoreObject)).toBe('6-4 3-2');
       });
@@ -237,14 +229,14 @@ describe('scoreFormatters', () => {
       it('should handle tiebreak with undefined losing side score', () => {
         const scoreObject = {
           sets: [
-            { 
-              side1Score: 7, 
-              side2Score: 6, 
+            {
+              side1Score: 7,
+              side2Score: 6,
               winningSide: 1,
               side1TiebreakScore: 7,
-              side2TiebreakScore: undefined,
-            },
-          ],
+              side2TiebreakScore: undefined
+            }
+          ]
         };
         // Should show (undefined) if losing side's tiebreak score is undefined
         expect(formatExistingScore(scoreObject)).toBe('7-6(undefined)');
@@ -257,14 +249,14 @@ describe('scoreFormatters', () => {
           sets: [
             { side1Score: 6, side2Score: 4, winningSide: 1 },
             { side1Score: 3, side2Score: 6, winningSide: 2 },
-            { 
-              side1Score: 7, 
-              side2Score: 6, 
+            {
+              side1Score: 7,
+              side2Score: 6,
               winningSide: 1,
               side1TiebreakScore: 7,
-              side2TiebreakScore: 5,
-            },
-          ],
+              side2TiebreakScore: 5
+            }
+          ]
         };
         expect(formatExistingScore(scoreObject, 'COMPLETED')).toBe('6-4 3-6 7-6(5)');
       });
@@ -273,8 +265,8 @@ describe('scoreFormatters', () => {
         const scoreObject = {
           sets: [
             { side1Score: 6, side2Score: 4, winningSide: 1 },
-            { side1Score: 2, side2Score: 3, winningSide: undefined },
-          ],
+            { side1Score: 2, side2Score: 3, winningSide: undefined }
+          ]
         };
         expect(formatExistingScore(scoreObject, 'RETIRED')).toBe('6-4 2-3 ret');
       });
@@ -288,8 +280,8 @@ describe('scoreFormatters', () => {
         const scoreObject = {
           sets: [
             { side1Score: 6, side2Score: 7, winningSide: 2, side1TiebreakScore: 5, side2TiebreakScore: 7 },
-            { side1Score: 5, side2Score: 4, winningSide: undefined },
-          ],
+            { side1Score: 5, side2Score: 4, winningSide: undefined }
+          ]
         };
         expect(formatExistingScore(scoreObject, 'DEFAULTED')).toBe('6-7(5) 5-4 def');
       });
@@ -299,8 +291,8 @@ describe('scoreFormatters', () => {
           sets: [
             { side1Score: 6, side2Score: 4, winningSide: 1 },
             { side1Score: 4, side2Score: 6, winningSide: 2 },
-            { side1Score: 3, side2Score: 3, winningSide: undefined },
-          ],
+            { side1Score: 3, side2Score: 3, winningSide: undefined }
+          ]
         };
         expect(formatExistingScore(scoreObject, 'SUSPENDED')).toBe('6-4 4-6 3-3 susp');
       });

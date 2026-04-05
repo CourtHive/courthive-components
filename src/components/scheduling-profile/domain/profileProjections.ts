@@ -4,39 +4,22 @@
  * Derives board-renderable data from the scheduling profile state.
  */
 
-import type {
-  SchedulingProfile,
-  RoundProfile,
-  RoundKey,
-  RoundLocator,
-  ValidationResult,
-  Severity,
-} from '../types';
+import type { SchedulingProfile, RoundProfile, RoundKey, RoundLocator, ValidationResult, Severity } from '../types';
 import { roundKeyString, pickRoundKey } from './utils';
 
-export function getVenueRounds(
-  profile: SchedulingProfile,
-  date: string,
-  venueId: string,
-): RoundProfile[] {
+export function getVenueRounds(profile: SchedulingProfile, date: string, venueId: string): RoundProfile[] {
   const day = profile.find((d) => d.scheduleDate === date);
   const venue = day?.venues?.find((v) => v.venueId === venueId);
   return venue?.rounds ?? [];
 }
 
-export function getRoundAt(
-  profile: SchedulingProfile,
-  locator: RoundLocator,
-): RoundProfile | null {
+export function getRoundAt(profile: SchedulingProfile, locator: RoundLocator): RoundProfile | null {
   const day = profile.find((d) => d.scheduleDate === locator.date);
   const venue = day?.venues?.find((v) => v.venueId === locator.venueId);
   return venue?.rounds?.[locator.index] ?? null;
 }
 
-export function findIssuesForLocator(
-  ruleResults: ValidationResult[],
-  locator: RoundLocator,
-): ValidationResult[] {
+export function findIssuesForLocator(ruleResults: ValidationResult[], locator: RoundLocator): ValidationResult[] {
   return ruleResults.filter((r) => {
     return locatorMatch(r.context?.locator, locator) || locatorMatch(r.context?.prerequisite, locator);
   });
@@ -53,10 +36,7 @@ export function maxSeverity(issues: ValidationResult[]): Severity | null {
   return 'INFO';
 }
 
-export function findRoundInProfile(
-  profile: SchedulingProfile,
-  roundKey: RoundKey,
-): RoundLocator | null {
+export function findRoundInProfile(profile: SchedulingProfile, roundKey: RoundKey): RoundLocator | null {
   const target = roundKeyString(roundKey);
   for (const day of profile) {
     for (const venue of day.venues) {
@@ -68,7 +48,7 @@ export function findRoundInProfile(
             venueId: venue.venueId,
             index: i,
             roundKey: pickRoundKey(r),
-            roundSegment: r.roundSegment,
+            roundSegment: r.roundSegment
           };
         }
       }

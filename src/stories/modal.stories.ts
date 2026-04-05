@@ -38,9 +38,30 @@ export const MenuDropdown = {
       logArea.textContent = `Current selection: ${current}`;
 
       const makeMenuItems = () => [
-        { label: 'Option A', active: current === 'Option A', onClick: () => { current = 'Option A'; logArea.textContent = `Current selection: ${current}`; } },
-        { label: 'Option B', active: current === 'Option B', onClick: () => { current = 'Option B'; logArea.textContent = `Current selection: ${current}`; } },
-        { label: 'Option C', active: current === 'Option C', onClick: () => { current = 'Option C'; logArea.textContent = `Current selection: ${current}`; } },
+        {
+          label: 'Option A',
+          active: current === 'Option A',
+          onClick: () => {
+            current = 'Option A';
+            logArea.textContent = `Current selection: ${current}`;
+          }
+        },
+        {
+          label: 'Option B',
+          active: current === 'Option B',
+          onClick: () => {
+            current = 'Option B';
+            logArea.textContent = `Current selection: ${current}`;
+          }
+        },
+        {
+          label: 'Option C',
+          active: current === 'Option C',
+          onClick: () => {
+            current = 'Option C';
+            logArea.textContent = `Current selection: ${current}`;
+          }
+        }
       ];
 
       cModal.open({
@@ -68,7 +89,7 @@ export const MenuDropdown = {
           menu: {
             menuItems: [
               { label: 'View A', active: true, onClick: () => alert('View A selected') },
-              { label: 'View B', active: false, onClick: () => alert('View B selected') },
+              { label: 'View B', active: false, onClick: () => alert('View B selected') }
             ]
           }
         }

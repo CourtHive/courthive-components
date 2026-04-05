@@ -26,7 +26,7 @@ export interface ToolbarOptions {
 export function buildToolbar(
   callbacks: ToolbarCallbacks,
   templates: TopologyTemplate[],
-  options: ToolbarOptions = {},
+  options: ToolbarOptions = {}
 ): UIPanel<TopologyState> {
   const wrapper = document.createElement('div');
   wrapper.className = 'tb-toolbar-wrapper';
@@ -75,7 +75,9 @@ export function buildToolbar(
         validationPanel.appendChild(item);
       }
     }
-    setTimeout(() => { validationPanel.style.display = 'none'; }, 5000);
+    setTimeout(() => {
+      validationPanel.style.display = 'none';
+    }, 5000);
   };
 
   // Build controlBar items
@@ -84,10 +86,15 @@ export function buildToolbar(
   if (!options.readOnly) {
     const stageOptions = [
       { label: 'Main', value: MAIN, onClick: () => callbacks.onAddStructure(MAIN), close: true },
-      { label: 'Lucky Draw', value: LUCKY_DRAW, onClick: () => callbacks.onAddStructure(MAIN, LUCKY_DRAW), close: true },
+      {
+        label: 'Lucky Draw',
+        value: LUCKY_DRAW,
+        onClick: () => callbacks.onAddStructure(MAIN, LUCKY_DRAW),
+        close: true
+      },
       { label: 'Qualifying', value: QUALIFYING, onClick: () => callbacks.onAddStructure(QUALIFYING), close: true },
       { label: 'Consolation', value: CONSOLATION, onClick: () => callbacks.onAddStructure(CONSOLATION), close: true },
-      { label: 'Playoff', value: PLAY_OFF, onClick: () => callbacks.onAddStructure(PLAY_OFF), close: true },
+      { label: 'Playoff', value: PLAY_OFF, onClick: () => callbacks.onAddStructure(PLAY_OFF), close: true }
     ];
     items.push({ label: 'Add Structure', location: 'right', options: stageOptions });
   }
@@ -100,7 +107,7 @@ export function buildToolbar(
         const template = templates.find((tmpl) => tmpl.name === t.name);
         if (template) callbacks.onLoadTemplate(template);
       },
-      close: true,
+      close: true
     }));
     items.push({ label: 'Templates', location: 'right', options: templateOptions });
   }
@@ -112,16 +119,26 @@ export function buildToolbar(
   if (!options.readOnly) {
     items.push(
       { label: 'Auto Layout', location: 'right', onClick: () => callbacks.onAutoLayout() },
-      { label: 'Validate', location: 'right', onClick: () => showValidation() },
+      { label: 'Validate', location: 'right', onClick: () => showValidation() }
     );
   }
 
   if (!options.readOnly && callbacks.onSaveTemplate) {
-    items.push({ label: 'Save Template', location: 'right', intent: 'is-success', onClick: () => callbacks.onSaveTemplate!() });
+    items.push({
+      label: 'Save Template',
+      location: 'right',
+      intent: 'is-success',
+      onClick: () => callbacks.onSaveTemplate!()
+    });
   }
 
   if (!options.readOnly && !options.hideGenerate) {
-    items.push({ label: 'Generate Draw', location: 'right', intent: 'is-success', onClick: () => callbacks.onGenerate() });
+    items.push({
+      label: 'Generate Draw',
+      location: 'right',
+      intent: 'is-success',
+      onClick: () => callbacks.onGenerate()
+    });
   }
 
   controlBar({ target, items });

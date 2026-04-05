@@ -14,7 +14,7 @@ import {
   spKvStyle,
   spKvKeyStyle,
   spKvValueStyle,
-  spSmallStyle,
+  spSmallStyle
 } from './styles';
 
 export function buildInspectorPanel(): UIPanel<ProfileStoreState> {
@@ -66,7 +66,7 @@ export function buildInspectorPanel(): UIPanel<ProfileStoreState> {
     appendKv(
       body,
       'Segment',
-      r.roundSegment ? `${r.roundSegment.segmentNumber}/${r.roundSegment.segmentsCount}` : '\u2014',
+      r.roundSegment ? `${r.roundSegment.segmentNumber}/${r.roundSegment.segmentsCount}` : '\u2014'
     );
     appendKv(body, 'Not before', r.notBeforeTime ?? '\u2014');
     appendKv(body, 'Status', sev ?? 'OK');

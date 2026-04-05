@@ -9,7 +9,12 @@ export function buildScoreSection(store: CompositionEditorStore): EditorPanel {
   const cfg = store.getState().configuration;
 
   const scoreBox = buildToggleField('Score box', !!cfg.scoreBox, (v) => store.setConfigField('scoreBox', v), readOnly);
-  const gameScoreOnly = buildToggleField('Game score only', !!cfg.gameScoreOnly, (v) => store.setConfigField('gameScoreOnly', v), readOnly);
+  const gameScoreOnly = buildToggleField(
+    'Game score only',
+    !!cfg.gameScoreOnly,
+    (v) => store.setConfigField('gameScoreOnly', v),
+    readOnly
+  );
 
   root.appendChild(scoreBox.element);
   root.appendChild(gameScoreOnly.element);
@@ -28,17 +33,17 @@ export function buildScoreSection(store: CompositionEditorStore): EditorPanel {
     [
       { value: '', label: 'Default' },
       { value: 'leading', label: 'Leading' },
-      { value: 'trailing', label: 'Trailing' },
+      { value: 'trailing', label: 'Trailing' }
     ],
     cfg.gameScore?.position || '',
     (v) => store.setConfigNestedField('gameScore', 'position', v || undefined),
-    readOnly,
+    readOnly
   );
   const gameScoreInverted = buildToggleField(
     'Inverted',
     !!cfg.gameScore?.inverted,
     (v) => store.setConfigNestedField('gameScore', 'inverted', v),
-    readOnly,
+    readOnly
   );
 
   subgroup.appendChild(gameScorePosition.element);

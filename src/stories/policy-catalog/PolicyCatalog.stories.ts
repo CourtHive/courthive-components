@@ -17,21 +17,16 @@
 import '../../components/policy-catalog/ui/policy-catalog.css';
 import '../../components/policy-catalog/editors/scheduling/scheduling-editor.css';
 
-import {
-  PolicyCatalogControl,
-  createPolicyCatalog,
-} from '../../components/policy-catalog';
+import { PolicyCatalogControl, createPolicyCatalog } from '../../components/policy-catalog';
 
-import {
-  makeCatalogConfig,
-} from './data';
+import { makeCatalogConfig } from './data';
 
 export default {
   title: 'Policy Catalog/Full',
   parameters: {
     layout: 'fullscreen',
-    backgrounds: { default: 'dark' },
-  },
+    backgrounds: { default: 'dark' }
+  }
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -82,13 +77,13 @@ export const Default = {
       makeCatalogConfig({
         onPolicySaved: (item) => logFn(`Saved: ${item.name}`),
         onPolicyApplied: (item) => logFn(`Applied: ${item.name}`),
-        onSelectionChanged: (item) => logFn(item ? `Selected: ${item.name}` : 'Selection cleared'),
+        onSelectionChanged: (item) => logFn(item ? `Selected: ${item.name}` : 'Selection cleared')
       }),
-      container,
+      container
     );
 
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -109,13 +104,10 @@ export const BuiltinOnly = {
     container.style.height = CONTAINER_HEIGHT;
     root.appendChild(container);
 
-    createPolicyCatalog(
-      makeCatalogConfig({ userPolicies: [] }),
-      container,
-    );
+    createPolicyCatalog(makeCatalogConfig({ userPolicies: [] }), container);
 
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -136,13 +128,10 @@ export const EmptyCatalog = {
     container.style.height = CONTAINER_HEIGHT;
     root.appendChild(container);
 
-    createPolicyCatalog(
-      makeCatalogConfig({ builtinPolicies: [], userPolicies: [] }),
-      container,
-    );
+    createPolicyCatalog(makeCatalogConfig({ builtinPolicies: [], userPolicies: [] }), container);
 
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -161,7 +150,7 @@ export const WithCallbacks = {
       '- <em>Save</em> persists changes to the catalog store and fires onPolicySaved.',
       '- <em>Reset</em> reverts the editor draft to the last saved state.',
       '- <em>Apply</em> fires onPolicyApplied with the current data (for immediate use in tournament).',
-      'Check the Event Log below for callback invocations.',
+      'Check the Event Log below for callback invocations.'
     ].join('<br>');
     root.appendChild(info);
 
@@ -182,13 +171,13 @@ export const WithCallbacks = {
         },
         onSelectionChanged: (item) => {
           logFn(item ? `onSelectionChanged: "${item.name}" (${item.source})` : 'onSelectionChanged: null');
-        },
+        }
       }),
-      container,
+      container
     );
 
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -216,9 +205,11 @@ export const ProgrammaticControl = {
 
     const logFn = addEventLog(root);
 
-    const control = new PolicyCatalogControl(makeCatalogConfig({
-      onSelectionChanged: (item) => logFn(item ? `Selected: ${item.name}` : 'Cleared'),
-    }));
+    const control = new PolicyCatalogControl(
+      makeCatalogConfig({
+        onSelectionChanged: (item) => logFn(item ? `Selected: ${item.name}` : 'Cleared')
+      })
+    );
     control.render(container);
     const store = control.getStore();
 
@@ -242,5 +233,5 @@ export const ProgrammaticControl = {
     makeBtn('Group by Source', () => store.setCatalogGroupBy('source'));
 
     return root;
-  },
+  }
 };

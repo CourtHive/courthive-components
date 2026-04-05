@@ -15,7 +15,12 @@ export const compositions: Record<string, Composition> = {
     theme: australianTheme
   },
   Basic: {
-    configuration: { gameScoreOnly: true, teamLogo: false, roundHeader: true, placeHolders: { tbd: 'TBD', bye: 'Bye' } },
+    configuration: {
+      gameScoreOnly: true,
+      teamLogo: false,
+      roundHeader: true,
+      placeHolders: { tbd: 'TBD', bye: 'Bye' }
+    },
     theme: basicTheme
   },
   DrawPositions: {
@@ -55,9 +60,9 @@ export const compositions: Record<string, Composition> = {
     configuration: {
       matchUpFooter: true,
       gameScore: { position: 'trailing', inverted: true },
-      inlineScoring: { mode: 'games', showFooter: true, showSituation: true },
+      inlineScoring: { mode: 'games', showFooter: true, showSituation: true }
     },
-    theme: basicCardTheme,
+    theme: basicCardTheme
   },
   National: {
     configuration: {
@@ -75,5 +80,5 @@ export const compositions: Record<string, Composition> = {
       }
     },
     theme: australianTheme
-  },
+  }
 };

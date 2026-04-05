@@ -62,7 +62,7 @@ export class SchedulingEditorControl {
   }): CatalogEditorInstance {
     const editorConfig: SchedulingEditorConfig = {
       initialPolicy: config.initialData as unknown as SchedulingPolicyData,
-      onChange: (policy) => config.onChange(policy as unknown as Record<string, unknown>),
+      onChange: (policy) => config.onChange(policy as unknown as Record<string, unknown>)
     };
 
     const control = new SchedulingEditorControl(editorConfig);
@@ -77,7 +77,7 @@ export class SchedulingEditorControl {
       },
       destroy() {
         control.destroy();
-      },
+      }
     };
   }
 }
@@ -87,7 +87,7 @@ export class SchedulingEditorControl {
  */
 export function createSchedulingEditor(
   config: SchedulingEditorConfig,
-  container: HTMLElement,
+  container: HTMLElement
 ): SchedulingEditorControl {
   const control = new SchedulingEditorControl(config);
   control.render(container);

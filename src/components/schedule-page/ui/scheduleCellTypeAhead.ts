@@ -23,7 +23,7 @@ export function activateScheduleCellTypeAhead({
   cell,
   listProvider,
   onSelect,
-  onCancel,
+  onCancel
 }: ScheduleCellTypeAheadOptions): { destroy: () => void } {
   const savedHTML = cell.innerHTML;
   const overflowElements: Array<{ el: HTMLElement; overflow: string; overflowX: string; overflowY: string }> = [];
@@ -59,7 +59,7 @@ export function activateScheduleCellTypeAhead({
         el: ancestor,
         overflow: ancestor.style.overflow,
         overflowX: ancestor.style.overflowX,
-        overflowY: ancestor.style.overflowY,
+        overflowY: ancestor.style.overflowY
       });
       ancestor.style.setProperty('overflow', 'visible', 'important');
       ancestor.style.setProperty('overflow-x', 'visible', 'important');
@@ -81,7 +81,7 @@ export function activateScheduleCellTypeAhead({
         cleanup();
         onSelect(value);
       }
-    },
+    }
   });
 
   // Escape to cancel

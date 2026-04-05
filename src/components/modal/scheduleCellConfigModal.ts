@@ -34,7 +34,7 @@ const DEFAULT_CONFIG: ScheduleCellConfig = {
   showMatchFormat: false,
   showScore: true,
   nameFormat: 'full',
-  cellStyle: 'detailed',
+  cellStyle: 'detailed'
 };
 
 export interface ScheduleCellConfigOptions {
@@ -49,15 +49,54 @@ export function openScheduleCellConfigModal(options: ScheduleCellConfigOptions =
   const buildContent = (container: HTMLElement) => {
     inputs = renderForm(container, [
       { header: true, text: 'Schedule Cell Content' },
-      { text: 'Select which information appears in each schedule grid cell.', style: 'color: var(--chc-text-muted); font-size: 13px;' },
+      {
+        text: 'Select which information appears in each schedule grid cell.',
+        style: 'color: var(--chc-text-muted); font-size: 13px;'
+      },
       { spacer: 0.5 },
-      { field: 'showNationality', id: 'scc-nationality', label: 'Nationality (country code)', checkbox: true, checked: initial.showNationality },
+      {
+        field: 'showNationality',
+        id: 'scc-nationality',
+        label: 'Nationality (country code)',
+        checkbox: true,
+        checked: initial.showNationality
+      },
       { field: 'showSeedings', id: 'scc-seedings', label: 'Seedings', checkbox: true, checked: initial.showSeedings },
-      { field: 'showEventRound', id: 'scc-eventround', label: 'Event & Round', checkbox: true, checked: initial.showEventRound },
-      { field: 'showScheduledTime', id: 'scc-time', label: 'Scheduled Time / Not Before', checkbox: true, checked: initial.showScheduledTime },
-      { field: 'showScore', id: 'scc-score', label: 'Score (for completed matches)', checkbox: true, checked: initial.showScore },
-      { field: 'showMatchNumber', id: 'scc-matchnum', label: 'Match Number', checkbox: true, checked: initial.showMatchNumber },
-      { field: 'showMatchFormat', id: 'scc-format', label: 'Match Format Code', checkbox: true, checked: initial.showMatchFormat },
+      {
+        field: 'showEventRound',
+        id: 'scc-eventround',
+        label: 'Event & Round',
+        checkbox: true,
+        checked: initial.showEventRound
+      },
+      {
+        field: 'showScheduledTime',
+        id: 'scc-time',
+        label: 'Scheduled Time / Not Before',
+        checkbox: true,
+        checked: initial.showScheduledTime
+      },
+      {
+        field: 'showScore',
+        id: 'scc-score',
+        label: 'Score (for completed matches)',
+        checkbox: true,
+        checked: initial.showScore
+      },
+      {
+        field: 'showMatchNumber',
+        id: 'scc-matchnum',
+        label: 'Match Number',
+        checkbox: true,
+        checked: initial.showMatchNumber
+      },
+      {
+        field: 'showMatchFormat',
+        id: 'scc-format',
+        label: 'Match Format Code',
+        checkbox: true,
+        checked: initial.showMatchFormat
+      },
       { divider: true },
       {
         field: 'nameFormat',
@@ -65,17 +104,17 @@ export function openScheduleCellConfigModal(options: ScheduleCellConfigOptions =
         options: [
           { label: 'Full (LASTNAME, First)', value: 'full', selected: initial.nameFormat === 'full' },
           { label: 'Abbreviated (F. LASTNAME)', value: 'abbreviated', selected: initial.nameFormat === 'abbreviated' },
-          { label: 'Last Name Only', value: 'lastOnly', selected: initial.nameFormat === 'lastOnly' },
-        ],
+          { label: 'Last Name Only', value: 'lastOnly', selected: initial.nameFormat === 'lastOnly' }
+        ]
       },
       {
         field: 'cellStyle',
         label: 'Cell Density',
         options: [
           { label: 'Detailed', value: 'detailed', selected: initial.cellStyle === 'detailed' },
-          { label: 'Compact', value: 'compact', selected: initial.cellStyle === 'compact' },
-        ],
-      },
+          { label: 'Compact', value: 'compact', selected: initial.cellStyle === 'compact' }
+        ]
+      }
     ]);
   };
 
@@ -89,7 +128,7 @@ export function openScheduleCellConfigModal(options: ScheduleCellConfigOptions =
     showMatchFormat: inputs.showMatchFormat?.checked ?? false,
     showScore: inputs.showScore?.checked ?? true,
     nameFormat: inputs.nameFormat?.value || 'full',
-    cellStyle: inputs.cellStyle?.value || 'detailed',
+    cellStyle: inputs.cellStyle?.value || 'detailed'
   });
 
   const presetButtons = document.createElement('div');
@@ -97,16 +136,39 @@ export function openScheduleCellConfigModal(options: ScheduleCellConfigOptions =
 
   const presets = [
     { label: 'Detailed', config: { ...DEFAULT_CONFIG } },
-    { label: 'Compact', config: { ...DEFAULT_CONFIG, showNationality: false, showScheduledTime: false, showMatchFormat: false, nameFormat: 'abbreviated' as const, cellStyle: 'compact' as const } },
+    {
+      label: 'Compact',
+      config: {
+        ...DEFAULT_CONFIG,
+        showNationality: false,
+        showScheduledTime: false,
+        showMatchFormat: false,
+        nameFormat: 'abbreviated' as const,
+        cellStyle: 'compact' as const
+      }
+    },
     { label: 'Broadcast', config: { ...DEFAULT_CONFIG, showMatchNumber: true, showMatchFormat: true } },
-    { label: 'Minimal', config: { ...DEFAULT_CONFIG, showNationality: false, showSeedings: false, showScheduledTime: false, showMatchFormat: false, showScore: false, nameFormat: 'lastOnly' as const, cellStyle: 'compact' as const } },
+    {
+      label: 'Minimal',
+      config: {
+        ...DEFAULT_CONFIG,
+        showNationality: false,
+        showSeedings: false,
+        showScheduledTime: false,
+        showMatchFormat: false,
+        showScore: false,
+        nameFormat: 'lastOnly' as const,
+        cellStyle: 'compact' as const
+      }
+    }
   ];
 
   for (const preset of presets) {
     const btn = document.createElement('button');
     btn.textContent = preset.label;
     btn.className = 'chc-button chc-button--sm';
-    btn.style.cssText = 'padding: 2px 8px; font-size: 11px; cursor: pointer; border: 1px solid var(--chc-border-primary); border-radius: 3px; background: var(--chc-bg-secondary);';
+    btn.style.cssText =
+      'padding: 2px 8px; font-size: 11px; cursor: pointer; border: 1px solid var(--chc-border-primary); border-radius: 3px; background: var(--chc-bg-secondary);';
     btn.onclick = () => {
       // Apply preset values to form inputs
       const c = preset.config;
@@ -140,11 +202,11 @@ export function openScheduleCellConfigModal(options: ScheduleCellConfigOptions =
         onClick: () => {
           options.onApply?.(getConfig());
           cModal.close();
-        },
+        }
       },
-      { label: 'Cancel', close: true },
+      { label: 'Cancel', close: true }
     ],
-    config: { maxWidth: 440 },
+    config: { maxWidth: 440 }
   });
 
   return modalHandle;

@@ -29,15 +29,18 @@ export function tennisCourt(className: string): SVGSVGElement {
     // Outer doubles boundary
     'M 0 0 L 360 0 L 360 780 L 0 780 Z',
     // Singles sidelines
-    'M 45 0 L 45 780', 'M 315 0 L 315 780',
+    'M 45 0 L 45 780',
+    'M 315 0 L 315 780',
     // Net
     'M 0 390 L 360 390',
     // Service lines
-    'M 45 210 L 315 210', 'M 45 570 L 315 570',
+    'M 45 210 L 315 210',
+    'M 45 570 L 315 570',
     // Center service line
     'M 180 210 L 180 570',
     // Center marks
-    'M 180 0 L 180 20', 'M 180 760 L 180 780',
+    'M 180 0 L 180 20',
+    'M 180 760 L 180 780'
   ];
 
   for (const d of lines) {
@@ -67,7 +70,7 @@ export function basketballCourt(className: string): SVGSVGElement {
     // Rim
     svgEl('circle', { cx: '250', cy: '52', r: '12', class: COURT_LINE }),
     // Three-point arc
-    svgEl('path', { d: 'M 30 0 L 30 90 A 220 220 0 0 0 470 90 L 470 0', class: COURT_LINE }),
+    svgEl('path', { d: 'M 30 0 L 30 90 A 220 220 0 0 0 470 90 L 470 0', class: COURT_LINE })
   ];
 
   for (const el of elements) svg.appendChild(el);
@@ -114,20 +117,32 @@ export function baseballDiamond(className: string): SVGSVGElement {
     svgEl('path', { d: 'M 244 398 L 244 404 L 250 408 L 256 404 L 256 398 Z', class: COURT_LINE }),
     // Bases (small squares, rotated to match diamond orientation)
     svgEl('rect', {
-      x: '310', y: '332', width: '8', height: '8',
-      transform: 'rotate(45 314 336)', class: COURT_LINE,
+      x: '310',
+      y: '332',
+      width: '8',
+      height: '8',
+      transform: 'rotate(45 314 336)',
+      class: COURT_LINE
     }), // 1B
     svgEl('rect', {
-      x: '246', y: '269', width: '8', height: '8',
-      transform: 'rotate(45 250 273)', class: COURT_LINE,
+      x: '246',
+      y: '269',
+      width: '8',
+      height: '8',
+      transform: 'rotate(45 250 273)',
+      class: COURT_LINE
     }), // 2B
     svgEl('rect', {
-      x: '182', y: '332', width: '8', height: '8',
-      transform: 'rotate(45 186 336)', class: COURT_LINE,
+      x: '182',
+      y: '332',
+      width: '8',
+      height: '8',
+      transform: 'rotate(45 186 336)',
+      class: COURT_LINE
     }), // 3B
     // Batter's boxes
     svgEl('rect', { x: '230', y: '393', width: '8', height: '18', class: COURT_LINE }),
-    svgEl('rect', { x: '262', y: '393', width: '8', height: '18', class: COURT_LINE }),
+    svgEl('rect', { x: '262', y: '393', width: '8', height: '18', class: COURT_LINE })
   ];
 
   for (const el of elements) svg.appendChild(el);
@@ -158,7 +173,7 @@ export function hockeyRink(className: string): SVGSVGElement {
     svgEl('circle', { cx: '270', cy: '650', r: '50', class: COURT_LINE }),
     svgEl('circle', { cx: '580', cy: '650', r: '50', class: COURT_LINE }),
     svgEl('circle', { cx: '270', cy: '1350', r: '50', class: COURT_LINE }),
-    svgEl('circle', { cx: '580', cy: '1350', r: '50', class: COURT_LINE }),
+    svgEl('circle', { cx: '580', cy: '1350', r: '50', class: COURT_LINE })
   ];
 
   for (const el of elements) svg.appendChild(el);
@@ -175,9 +190,11 @@ export function pickleballCourt(className: string): SVGSVGElement {
     // Net
     'M 0 220 L 200 220',
     // Non-volley zone (kitchen) lines — 7ft from net
-    'M 0 150 L 200 150', 'M 0 290 L 200 290',
+    'M 0 150 L 200 150',
+    'M 0 290 L 200 290',
     // Center service lines
-    'M 100 0 L 100 150', 'M 100 290 L 100 440',
+    'M 100 0 L 100 150',
+    'M 100 290 L 100 440'
   ];
 
   for (const d of lines) {
@@ -195,15 +212,19 @@ export function badmintonCourt(className: string): SVGSVGElement {
     // Outer doubles boundary
     'M 0 0 L 200 0 L 200 440 L 0 440 Z',
     // Singles sidelines
-    'M 18 0 L 18 440', 'M 182 0 L 182 440',
+    'M 18 0 L 18 440',
+    'M 182 0 L 182 440',
     // Net
     'M 0 220 L 200 220',
     // Short service lines
-    'M 0 146 L 200 146', 'M 0 294 L 200 294',
+    'M 0 146 L 200 146',
+    'M 0 294 L 200 294',
     // Long service lines (doubles)
-    'M 0 30 L 200 30', 'M 0 410 L 200 410',
+    'M 0 30 L 200 30',
+    'M 0 410 L 200 410',
     // Center lines
-    'M 100 146 L 100 220', 'M 100 220 L 100 294',
+    'M 100 146 L 100 220',
+    'M 100 220 L 100 294'
   ];
 
   for (const d of lines) {
@@ -230,7 +251,7 @@ export function padelCourt(className: string): SVGSVGElement {
     'M 0 130.5 L 100 130.5',
     // Center service marks (0.20m = 2 units past service line toward back wall)
     'M 50 69.5 L 50 67.5',
-    'M 50 130.5 L 50 132.5',
+    'M 50 130.5 L 50 132.5'
   ];
 
   for (const d of lines) {

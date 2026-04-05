@@ -127,17 +127,17 @@ export const FlagAndRating = {
     individualParticipant: {
       participantName,
       person: { iso2NationalityCode: 'USA' },
-      ratings: { SINGLES: [{ scaleName: 'UTR', scaleValue: { utrRating: 10.43 } }] },
+      ratings: { SINGLES: [{ scaleName: 'UTR', scaleValue: { utrRating: 10.43 } }] }
     },
     side: { seedValue: 3 },
     composition: {
       configuration: {
         scaleAttributes: { scaleType: 'RATING', scaleName: 'UTR', accessor: 'utrRating' },
         bracketedSeeds: 'square',
-        flags: true,
-      },
-    },
-  },
+        flags: true
+      }
+    }
+  }
 };
 
 export const FlagAndRatingWTN = {
@@ -146,17 +146,17 @@ export const FlagAndRatingWTN = {
     individualParticipant: {
       participantName,
       person: { iso2NationalityCode: 'GBR' },
-      ratings: { SINGLES: [{ scaleName: 'WTN', scaleValue: { wtnRating: 13.53 } }] },
+      ratings: { SINGLES: [{ scaleName: 'WTN', scaleValue: { wtnRating: 13.53 } }] }
     },
     side: { seedValue: 1 },
     composition: {
       configuration: {
         scaleAttributes: { scaleType: 'RATING', scaleName: 'WTN', accessor: 'wtnRating', scaleColor: 'green' },
         bracketedSeeds: 'square',
-        flags: true,
-      },
-    },
-  },
+        flags: true
+      }
+    }
+  }
 };
 
 export const LuckyLoser = {

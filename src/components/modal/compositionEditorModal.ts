@@ -59,7 +59,7 @@ const CATALOG_PRESETS: CatalogEntry[] = [
   { id: 'itf-pro-circuit', name: 'ITF Pro Circuit', category: 'itf', tier: 2 },
   { id: 'national-federation', name: 'National Federation', category: 'national', tier: 3 },
   { id: 'collegiate-ncaa', name: 'NCAA Collegiate', category: 'collegiate', tier: 1 },
-  { id: 'club-basic', name: 'Club Basic', category: 'club', tier: 1 },
+  { id: 'club-basic', name: 'Club Basic', category: 'club', tier: 1 }
 ];
 
 export interface CompositionEditorResult {
@@ -86,7 +86,7 @@ export function openCompositionEditorModal(options: CompositionEditorOptions = {
     const presetOptions = CATALOG_PRESETS.map((p) => ({
       label: `${p.name} (${p.category}, Tier ${p.tier})`,
       value: p.id,
-      selected: p.id === (options.initialPreset || 'club-basic'),
+      selected: p.id === (options.initialPreset || 'club-basic')
     }));
 
     presetInputs = renderForm(container, [
@@ -95,10 +95,13 @@ export function openCompositionEditorModal(options: CompositionEditorOptions = {
       {
         field: 'preset',
         label: 'Select Preset',
-        options: presetOptions,
+        options: presetOptions
       },
       { spacer: 1 },
-      { text: 'Select a preset to populate header and footer settings, then customize in the Header and Footer tabs.', style: 'color: var(--chc-text-muted); font-size: 13px;' },
+      {
+        text: 'Select a preset to populate header and footer settings, then customize in the Header and Footer tabs.',
+        style: 'color: var(--chc-text-muted); font-size: 13px;'
+      }
     ]);
   };
 
@@ -116,27 +119,43 @@ export function openCompositionEditorModal(options: CompositionEditorOptions = {
           { label: 'WTA / ATP Tour', value: 'wta-tour', selected: ih.layout === 'wta-tour' },
           { label: 'National Federation', value: 'national-federation', selected: ih.layout === 'national-federation' },
           { label: 'Minimal', value: 'minimal', selected: ih.layout === 'minimal' || !ih.layout },
-          { label: 'None', value: 'none', selected: ih.layout === 'none' },
-        ],
+          { label: 'None', value: 'none', selected: ih.layout === 'none' }
+        ]
       },
       { divider: true },
-      { field: 'tournamentName', label: 'Tournament Name', value: ih.tournamentName || '', placeholder: 'e.g., Australian Open 2026' },
+      {
+        field: 'tournamentName',
+        label: 'Tournament Name',
+        value: ih.tournamentName || '',
+        placeholder: 'e.g., Australian Open 2026'
+      },
       { field: 'subtitle', label: 'Subtitle / Event', value: ih.subtitle || '', placeholder: 'e.g., Womens Singles' },
       { divider: true },
       {
-        field: 'startDate', label: 'Start Date', value: ih.startDate || '', placeholder: 'e.g., 19 Jan 2026',
-        fieldPair: { field: 'endDate', label: 'End Date', value: ih.endDate || '', placeholder: 'e.g., 1 Feb 2026' },
+        field: 'startDate',
+        label: 'Start Date',
+        value: ih.startDate || '',
+        placeholder: 'e.g., 19 Jan 2026',
+        fieldPair: { field: 'endDate', label: 'End Date', value: ih.endDate || '', placeholder: 'e.g., 1 Feb 2026' }
       },
       {
-        field: 'city', label: 'City', value: ih.city || '', placeholder: 'e.g., Melbourne',
-        fieldPair: { field: 'country', label: 'Country', value: ih.country || '', placeholder: 'e.g., AUS' },
+        field: 'city',
+        label: 'City',
+        value: ih.city || '',
+        placeholder: 'e.g., Melbourne',
+        fieldPair: { field: 'country', label: 'Country', value: ih.country || '', placeholder: 'e.g., AUS' }
       },
       { field: 'surface', label: 'Surface', value: ih.surface || '', placeholder: 'e.g., Hard' },
       { field: 'prizeMoney', label: 'Prize Money', value: ih.prizeMoney || '', placeholder: 'e.g., 1,520,600' },
       { divider: true },
       { field: 'supervisor', label: 'Supervisor', value: ih.supervisor || '' },
       { field: 'grade', label: 'Grade', value: ih.grade || '', placeholder: 'e.g., J300' },
-      { field: 'sectionLabel', label: 'Section Label', value: ih.sectionLabel || '', placeholder: 'e.g., SINGLES MAIN DRAW' },
+      {
+        field: 'sectionLabel',
+        label: 'Section Label',
+        value: ih.sectionLabel || '',
+        placeholder: 'e.g., SINGLES MAIN DRAW'
+      }
     ]);
   };
 
@@ -154,15 +173,37 @@ export function openCompositionEditorModal(options: CompositionEditorOptions = {
           { label: 'Prize Money', value: 'prize-money', selected: fi.layout === 'prize-money' },
           { label: 'Officials Sign-off', value: 'officials-signoff', selected: fi.layout === 'officials-signoff' },
           { label: 'Combined Tour (WTA/ATP)', value: 'combined-tour', selected: fi.layout === 'combined-tour' },
-          { label: 'None', value: 'none', selected: fi.layout === 'none' },
-        ],
+          { label: 'None', value: 'none', selected: fi.layout === 'none' }
+        ]
       },
       { divider: true },
-      { field: 'showPageNumbers', id: 'comp-pagenums', label: 'Show Page Numbers', checkbox: true, checked: fi.showPageNumbers !== false },
-      { field: 'showTimestamp', id: 'comp-timestamp', label: 'Show Timestamp', checkbox: true, checked: fi.showTimestamp !== false },
+      {
+        field: 'showPageNumbers',
+        id: 'comp-pagenums',
+        label: 'Show Page Numbers',
+        checkbox: true,
+        checked: fi.showPageNumbers !== false
+      },
+      {
+        field: 'showTimestamp',
+        id: 'comp-timestamp',
+        label: 'Show Timestamp',
+        checkbox: true,
+        checked: fi.showTimestamp !== false
+      },
       { divider: true },
-      { field: 'releaseDate', label: 'Release Date', value: fi.releaseDate || '', placeholder: 'e.g., 18 Jan 2026 at 15:30' },
-      { field: 'drawCeremonyDate', label: 'Draw Ceremony', value: fi.drawCeremonyDate || '', placeholder: 'e.g., 18 Jan 2026 at 14:00' },
+      {
+        field: 'releaseDate',
+        label: 'Release Date',
+        value: fi.releaseDate || '',
+        placeholder: 'e.g., 18 Jan 2026 at 15:30'
+      },
+      {
+        field: 'drawCeremonyDate',
+        label: 'Draw Ceremony',
+        value: fi.drawCeremonyDate || '',
+        placeholder: 'e.g., 18 Jan 2026 at 14:00'
+      }
     ]);
   };
 
@@ -178,7 +219,7 @@ export function openCompositionEditorModal(options: CompositionEditorOptions = {
     prizeMoney: headerInputs.prizeMoney?.value || undefined,
     supervisor: headerInputs.supervisor?.value || undefined,
     grade: headerInputs.grade?.value || undefined,
-    sectionLabel: headerInputs.sectionLabel?.value || undefined,
+    sectionLabel: headerInputs.sectionLabel?.value || undefined
   });
 
   const getFooterConfig = (): FooterConfig => ({
@@ -186,7 +227,7 @@ export function openCompositionEditorModal(options: CompositionEditorOptions = {
     showPageNumbers: footerInputs.showPageNumbers?.checked ?? true,
     showTimestamp: footerInputs.showTimestamp?.checked ?? true,
     releaseDate: footerInputs.releaseDate?.value || undefined,
-    drawCeremonyDate: footerInputs.drawCeremonyDate?.value || undefined,
+    drawCeremonyDate: footerInputs.drawCeremonyDate?.value || undefined
   });
 
   const menuItems = [
@@ -196,7 +237,7 @@ export function openCompositionEditorModal(options: CompositionEditorOptions = {
       onClick: () => {
         currentTab = 'preset';
         updateModal();
-      },
+      }
     },
     {
       label: 'Header',
@@ -204,7 +245,7 @@ export function openCompositionEditorModal(options: CompositionEditorOptions = {
       onClick: () => {
         currentTab = 'header';
         updateModal();
-      },
+      }
     },
     {
       label: 'Footer',
@@ -212,8 +253,8 @@ export function openCompositionEditorModal(options: CompositionEditorOptions = {
       onClick: () => {
         currentTab = 'footer';
         updateModal();
-      },
-    },
+      }
+    }
   ];
 
   const updateModal = () => {
@@ -225,7 +266,7 @@ export function openCompositionEditorModal(options: CompositionEditorOptions = {
     if (modalHandle) {
       modalHandle.update({
         content: contentFn,
-        config: { menu: { menuItems }, maxWidth: 520 },
+        config: { menu: { menuItems }, maxWidth: 520 }
       });
     }
   };
@@ -241,18 +282,18 @@ export function openCompositionEditorModal(options: CompositionEditorOptions = {
           const result: CompositionEditorResult = {
             header: getHeaderConfig(),
             footer: getFooterConfig(),
-            preset: presetInputs.preset?.value,
+            preset: presetInputs.preset?.value
           };
           options.onApply?.(result);
           cModal.close();
-        },
+        }
       },
-      { label: 'Cancel', close: true },
+      { label: 'Cancel', close: true }
     ],
     config: {
       menu: { menuItems },
-      maxWidth: 520,
-    },
+      maxWidth: 520
+    }
   });
 
   return modalHandle;

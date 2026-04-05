@@ -11,7 +11,7 @@ import {
   splCenterHeaderStyle,
   splCenterTitleStyle,
   splCenterMetaStyle,
-  splGridSlotStyle,
+  splGridSlotStyle
 } from './styles';
 
 export interface CourtGridSlotCallbacks {
@@ -25,7 +25,7 @@ export interface CourtGridSlotOptions {
 export function buildCourtGridSlot(
   courtGridElement: HTMLElement | undefined,
   callbacks: CourtGridSlotCallbacks,
-  options?: CourtGridSlotOptions,
+  options?: CourtGridSlotOptions
 ): UIPanel<SchedulePageState> {
   const root = document.createElement('div');
   root.className = splCenterStyle();

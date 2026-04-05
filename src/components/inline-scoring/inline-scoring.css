@@ -4,7 +4,6 @@
   position: relative;
 }
 
-
 /* Suppress the matchUp hover border flash during inline scoring re-renders */
 .chc-inline-scoring-wrapper .chc-matchup:hover {
   border-color: inherit;
@@ -68,7 +67,9 @@
   letter-spacing: 0.03em;
   white-space: nowrap;
   flex-shrink: 0;
-  transition: background-color 0.1s ease, opacity 0.1s ease;
+  transition:
+    background-color 0.1s ease,
+    opacity 0.1s ease;
 }
 
 .chc-inline-scoring-btn:hover:not(:disabled) {
@@ -80,7 +81,6 @@
   opacity: 0.35;
   cursor: default;
 }
-
 
 /* ── Situation flags ──────────────────────────────────────── */
 

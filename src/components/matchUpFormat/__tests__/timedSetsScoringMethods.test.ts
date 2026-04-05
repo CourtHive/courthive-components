@@ -21,7 +21,7 @@ describe('Timed Sets Scoring Methods (factory v2.4.2+)', () => {
         tiebreakAt: 6,
         tiebreakTo: 7,
         winBy: 2,
-        advantage: 'Ad',
+        advantage: 'Ad'
       };
 
       const built = buildSetFormat(config, false);
@@ -60,7 +60,7 @@ describe('Timed Sets Scoring Methods (factory v2.4.2+)', () => {
         tiebreakAt: 6,
         tiebreakTo: 7,
         winBy: 2,
-        advantage: 'Ad',
+        advantage: 'Ad'
       };
 
       const built = buildSetFormat(config, false);

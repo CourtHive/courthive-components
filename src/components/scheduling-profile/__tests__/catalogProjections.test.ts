@@ -7,9 +7,39 @@ const GIRLS_U16 = 'Girls U16 Singles';
 const ROUND_KEY_R32 = 'T1|E1|D1|S1|5';
 
 const catalog: CatalogRoundItem[] = [
-  { tournamentId: 'T1', eventId: 'E1', eventName: BOYS_U16, drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 5, roundName: 'R32', matchCountEstimate: 16 },
-  { tournamentId: 'T1', eventId: 'E1', eventName: BOYS_U16, drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 6, roundName: 'R16', matchCountEstimate: 8 },
-  { tournamentId: 'T1', eventId: 'E2', eventName: GIRLS_U16, drawId: 'D2', drawName: 'Main', structureId: 'S2', roundNumber: 5, roundName: 'R32', matchCountEstimate: 16 },
+  {
+    tournamentId: 'T1',
+    eventId: 'E1',
+    eventName: BOYS_U16,
+    drawId: 'D1',
+    drawName: 'Main',
+    structureId: 'S1',
+    roundNumber: 5,
+    roundName: 'R32',
+    matchCountEstimate: 16
+  },
+  {
+    tournamentId: 'T1',
+    eventId: 'E1',
+    eventName: BOYS_U16,
+    drawId: 'D1',
+    drawName: 'Main',
+    structureId: 'S1',
+    roundNumber: 6,
+    roundName: 'R16',
+    matchCountEstimate: 8
+  },
+  {
+    tournamentId: 'T1',
+    eventId: 'E2',
+    eventName: GIRLS_U16,
+    drawId: 'D2',
+    drawName: 'Main',
+    structureId: 'S2',
+    roundNumber: 5,
+    roundName: 'R32',
+    matchCountEstimate: 16
+  }
 ];
 
 describe('filterCatalog', () => {
@@ -111,11 +141,19 @@ describe('getPlannedRoundKeys', () => {
             venueId: 'V1',
             rounds: [
               { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5, roundName: 'R32' },
-              { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5, roundName: 'R32', roundSegment: { segmentNumber: 1, segmentsCount: 2 } },
-            ],
-          },
-        ],
-      },
+              {
+                tournamentId: 'T1',
+                eventId: 'E1',
+                drawId: 'D1',
+                structureId: 'S1',
+                roundNumber: 5,
+                roundName: 'R32',
+                roundSegment: { segmentNumber: 1, segmentsCount: 2 }
+              }
+            ]
+          }
+        ]
+      }
     ];
     const keys = getPlannedRoundKeys(profile);
     expect(keys.size).toBe(1); // Only the non-segmented one

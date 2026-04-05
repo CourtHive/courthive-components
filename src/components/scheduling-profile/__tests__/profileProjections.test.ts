@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { getVenueRounds, getRoundAt, findIssuesForLocator, maxSeverity, findRoundInProfile } from '../domain/profileProjections';
+import {
+  getVenueRounds,
+  getRoundAt,
+  findIssuesForLocator,
+  maxSeverity,
+  findRoundInProfile
+} from '../domain/profileProjections';
 import type { SchedulingProfile, RoundLocator, ValidationResult } from '../types';
 
 const DAY1 = '2026-06-15';
@@ -12,12 +18,12 @@ const profile: SchedulingProfile = [
         venueId: 'V1',
         rounds: [
           { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5, roundName: 'R32' },
-          { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 6, roundName: 'R16' },
-        ],
+          { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 6, roundName: 'R16' }
+        ]
       },
-      { venueId: 'V2', rounds: [] },
-    ],
-  },
+      { venueId: 'V2', rounds: [] }
+    ]
+  }
 ];
 
 describe('getVenueRounds', () => {
@@ -42,7 +48,7 @@ describe('getRoundAt', () => {
       date: DAY1,
       venueId: 'V1',
       index: 1,
-      roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 6 },
+      roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 6 }
     };
     const round = getRoundAt(profile, loc);
     expect(round).not.toBeNull();
@@ -54,7 +60,7 @@ describe('getRoundAt', () => {
       date: DAY1,
       venueId: 'V1',
       index: 99,
-      roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 },
+      roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 }
     };
     expect(getRoundAt(profile, loc)).toBeNull();
   });
@@ -65,7 +71,7 @@ describe('findIssuesForLocator', () => {
     date: DAY1,
     venueId: 'V1',
     index: 0,
-    roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 },
+    roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 }
   };
 
   it('returns matching issues', () => {
@@ -74,14 +80,14 @@ describe('findIssuesForLocator', () => {
         code: 'DUPLICATE_ROUND',
         severity: 'ERROR',
         message: 'Dup',
-        context: { locator },
+        context: { locator }
       },
       {
         code: 'ROUND_ORDER_VIOLATION',
         severity: 'ERROR',
         message: 'Order',
-        context: { locator: { ...locator, index: 1 } },
-      },
+        context: { locator: { ...locator, index: 1 } }
+      }
     ];
     expect(findIssuesForLocator(results, locator)).toHaveLength(1);
   });
@@ -92,8 +98,8 @@ describe('findIssuesForLocator', () => {
         code: 'DATE_UNAVAILABLE',
         severity: 'ERROR',
         message: 'Unavailable',
-        context: { date: DAY1 },
-      },
+        context: { date: DAY1 }
+      }
     ];
     expect(findIssuesForLocator(results, locator)).toHaveLength(0);
   });
@@ -107,22 +113,18 @@ describe('maxSeverity', () => {
   it('returns ERROR when errors exist', () => {
     const results: ValidationResult[] = [
       { code: 'DUPLICATE_ROUND', severity: 'ERROR', message: 'E', context: {} },
-      { code: 'DAY_OVERLOAD', severity: 'WARN', message: 'W', context: {} },
+      { code: 'DAY_OVERLOAD', severity: 'WARN', message: 'W', context: {} }
     ];
     expect(maxSeverity(results)).toBe('ERROR');
   });
 
   it('returns WARN when only warnings exist', () => {
-    const results: ValidationResult[] = [
-      { code: 'DAY_OVERLOAD', severity: 'WARN', message: 'W', context: {} },
-    ];
+    const results: ValidationResult[] = [{ code: 'DAY_OVERLOAD', severity: 'WARN', message: 'W', context: {} }];
     expect(maxSeverity(results)).toBe('WARN');
   });
 
   it('returns INFO when only info exists', () => {
-    const results: ValidationResult[] = [
-      { code: 'DAY_OVERLOAD', severity: 'INFO', message: 'I', context: {} },
-    ];
+    const results: ValidationResult[] = [{ code: 'DAY_OVERLOAD', severity: 'INFO', message: 'I', context: {} }];
     expect(maxSeverity(results)).toBe('INFO');
   });
 });
@@ -134,7 +136,7 @@ describe('findRoundInProfile', () => {
       eventId: 'E1',
       drawId: 'D1',
       structureId: 'S1',
-      roundNumber: 6,
+      roundNumber: 6
     });
     expect(locator).not.toBeNull();
     expect(locator!.date).toBe(DAY1);
@@ -148,7 +150,7 @@ describe('findRoundInProfile', () => {
       eventId: 'E1',
       drawId: 'D99',
       structureId: 'S1',
-      roundNumber: 5,
+      roundNumber: 5
     });
     expect(locator).toBeNull();
   });

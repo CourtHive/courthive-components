@@ -72,7 +72,7 @@ export class InteractionManager {
     renderer: ItemRenderer,
     callbacks: TimelineCallbacks,
     snapMinutes: number = 5,
-    enablePinchZoom: boolean = false,
+    enablePinchZoom: boolean = false
   ) {
     this.scale = scale;
     this.layout = layout;
@@ -136,7 +136,17 @@ export class InteractionManager {
       // Ghost sub-interactions
       if (itemId === '__ghost__' && handle) {
         // Start resizing a ghost edge
-        this.startGesture(e, '__ghost__', handle === 'left' ? 'RESIZING_LEFT' : handle === 'right' ? 'RESIZING_RIGHT' : handle === 'top' ? 'RESIZING_TOP' : 'RESIZING_BOTTOM');
+        this.startGesture(
+          e,
+          '__ghost__',
+          handle === 'left'
+            ? 'RESIZING_LEFT'
+            : handle === 'right'
+              ? 'RESIZING_RIGHT'
+              : handle === 'top'
+                ? 'RESIZING_TOP'
+                : 'RESIZING_BOTTOM'
+        );
         return;
       }
       if (itemId === '__ghost__' && !handle) {
@@ -196,7 +206,7 @@ export class InteractionManager {
       originalGroup,
       currentX: e.clientX,
       currentY: e.clientY,
-      thresholdExceeded: false,
+      thresholdExceeded: false
     };
 
     this.mode = mode;
@@ -252,10 +262,7 @@ export class InteractionManager {
     const deltaMs = deltaX * this.scale.msPerPx;
     const duration = this.gesture.originalEnd.getTime() - this.gesture.originalStart.getTime();
 
-    let newStart = this.scale.snap(
-      new Date(this.gesture.originalStart.getTime() + deltaMs),
-      this.snapMinutes,
-    );
+    let newStart = this.scale.snap(new Date(this.gesture.originalStart.getTime() + deltaMs), this.snapMinutes);
     let newEnd = new Date(newStart.getTime() + duration);
 
     // Determine target group from pointer Y
@@ -269,7 +276,7 @@ export class InteractionManager {
         id: this.gesture.itemId,
         group: targetGroupId,
         start: newStart,
-        end: newEnd,
+        end: newEnd
       });
       if (result === null) return; // Rejected
       newStart = result.start;
@@ -301,16 +308,10 @@ export class InteractionManager {
     let newEnd = this.gesture.originalEnd;
 
     if (this.mode === 'RESIZING_LEFT') {
-      newStart = this.scale.snap(
-        new Date(this.gesture.originalStart.getTime() + deltaMs),
-        this.snapMinutes,
-      );
+      newStart = this.scale.snap(new Date(this.gesture.originalStart.getTime() + deltaMs), this.snapMinutes);
       if (newStart >= newEnd) newStart = new Date(newEnd.getTime() - this.snapMinutes * 60 * 1000);
     } else {
-      newEnd = this.scale.snap(
-        new Date(this.gesture.originalEnd.getTime() + deltaMs),
-        this.snapMinutes,
-      );
+      newEnd = this.scale.snap(new Date(this.gesture.originalEnd.getTime() + deltaMs), this.snapMinutes);
       if (newEnd <= newStart) newEnd = new Date(newStart.getTime() + this.snapMinutes * 60 * 1000);
     }
 
@@ -320,7 +321,7 @@ export class InteractionManager {
         id: this.gesture.itemId,
         group: this.gesture.originalGroup,
         start: newStart,
-        end: newEnd,
+        end: newEnd
       });
       if (result === null) return;
       newStart = result.start;
@@ -364,7 +365,7 @@ export class InteractionManager {
       // Ghost resize complete — stay in GHOST_EDITING
       this.gesture = null;
       this.mode = 'GHOST_EDITING';
-            return;
+      return;
     }
 
     // Commit drag/resize
@@ -381,10 +382,7 @@ export class InteractionManager {
       let targetGroup = this.gesture.originalGroup;
 
       if (this.mode === 'DRAGGING') {
-        newStart = this.scale.snap(
-          new Date(this.gesture.originalStart.getTime() + deltaMs),
-          this.snapMinutes,
-        );
+        newStart = this.scale.snap(new Date(this.gesture.originalStart.getTime() + deltaMs), this.snapMinutes);
         newEnd = new Date(newStart.getTime() + duration);
 
         // Determine target group
@@ -392,18 +390,12 @@ export class InteractionManager {
         const relY = e.clientY - rect.top + this.contentArea.scrollTop;
         targetGroup = this.layout.yToGroupId(relY) || this.gesture.originalGroup;
       } else if (this.mode === 'RESIZING_LEFT') {
-        newStart = this.scale.snap(
-          new Date(this.gesture.originalStart.getTime() + deltaMs),
-          this.snapMinutes,
-        );
+        newStart = this.scale.snap(new Date(this.gesture.originalStart.getTime() + deltaMs), this.snapMinutes);
         newEnd = this.gesture.originalEnd;
         if (newStart >= newEnd) newStart = new Date(newEnd.getTime() - this.snapMinutes * 60 * 1000);
       } else {
         newStart = this.gesture.originalStart;
-        newEnd = this.scale.snap(
-          new Date(this.gesture.originalEnd.getTime() + deltaMs),
-          this.snapMinutes,
-        );
+        newEnd = this.scale.snap(new Date(this.gesture.originalEnd.getTime() + deltaMs), this.snapMinutes);
         if (newEnd <= newStart) newEnd = new Date(newStart.getTime() + this.snapMinutes * 60 * 1000);
       }
 
@@ -411,7 +403,7 @@ export class InteractionManager {
         id: this.gesture.itemId,
         group: targetGroup,
         start: newStart,
-        end: newEnd,
+        end: newEnd
       });
 
       if (accepted === false) {
@@ -457,7 +449,7 @@ export class InteractionManager {
       startTime: snappedStart,
       endTime: snappedEnd,
       topRowIndex: rowIndex,
-      bottomRowIndex: rowIndex,
+      bottomRowIndex: rowIndex
     });
 
     this.renderer.highlightRows([rowIndex]);
@@ -513,7 +505,7 @@ export class InteractionManager {
       startTime: this.ghostStartTime!,
       endTime: this.ghostEndTime!,
       topRowIndex: this.ghostTopRow,
-      bottomRowIndex: this.ghostBottomRow,
+      bottomRowIndex: this.ghostBottomRow
     });
 
     // Highlight covered rows
@@ -548,7 +540,7 @@ export class InteractionManager {
       topRowIndex: this.ghostTopRow,
       bottomRowIndex: this.ghostBottomRow,
       startTime: this.ghostStartTime,
-      endTime: this.ghostEndTime,
+      endTime: this.ghostEndTime
     };
 
     this.renderer.clearGhost();
@@ -567,7 +559,7 @@ export class InteractionManager {
     this.mode = 'IDLE';
     this.ghostStartTime = null;
     this.ghostEndTime = null;
-      }
+  }
 
   // ---- Wheel → pan / zoom ----
 

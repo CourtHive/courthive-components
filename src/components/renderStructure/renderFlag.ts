@@ -2,10 +2,14 @@ import { fixtures } from 'tods-competition-factory';
 import { flagStyle } from '../../styles/flagStyle';
 import type { IndividualParticipant, MatchUp } from '../../types';
 
-export function renderFlag({ matchUp, individualParticipant, spacer }: { 
-  matchUp?: MatchUp; 
-  individualParticipant?: IndividualParticipant; 
-  spacer?: boolean 
+export function renderFlag({
+  matchUp,
+  individualParticipant,
+  spacer
+}: {
+  matchUp?: MatchUp;
+  individualParticipant?: IndividualParticipant;
+  spacer?: boolean;
 }): HTMLElement {
   // const alt = individualParticipant?.person?.nationalityCode || "";
   const nationalityCode = individualParticipant?.person?.iso2NationalityCode || '';

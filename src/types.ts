@@ -247,24 +247,9 @@ export interface EventHandlers {
     participant: Participant;
     pointerEvent?: Event;
   }) => void;
-  assignBye?: (params: {
-    matchUp: MatchUp;
-    side: Side;
-    sideNumber: number;
-    pointerEvent?: Event;
-  }) => void;
-  assignQualifier?: (params: {
-    matchUp: MatchUp;
-    side: Side;
-    sideNumber: number;
-    pointerEvent?: Event;
-  }) => void;
-  removeAssignment?: (params: {
-    matchUp: MatchUp;
-    side: Side;
-    sideNumber: number;
-    pointerEvent?: Event;
-  }) => void;
+  assignBye?: (params: { matchUp: MatchUp; side: Side; sideNumber: number; pointerEvent?: Event }) => void;
+  assignQualifier?: (params: { matchUp: MatchUp; side: Side; sideNumber: number; pointerEvent?: Event }) => void;
+  removeAssignment?: (params: { matchUp: MatchUp; side: Side; sideNumber: number; pointerEvent?: Event }) => void;
   scoreClick?: (params: { pointerEvent: MouseEvent; matchUp: MatchUp }) => void;
   pillClick?: (params: { pointerEvent: MouseEvent; matchUp: MatchUp; sideNumber: number }) => void;
   scoreIncrement?: (params: { matchUpId: string; sideNumber: number; scoreType: 'point' | 'game' | 'set' }) => void;

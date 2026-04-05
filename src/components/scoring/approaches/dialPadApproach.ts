@@ -32,34 +32,32 @@ type EntryState = {
  */
 function scoreToDigits(scoreObject: any): string {
   if (!scoreObject?.sets || scoreObject.sets.length === 0) return '';
-  
+
   const digitParts: string[] = [];
-  
+
   scoreObject.sets.forEach((set: any, index: number) => {
     // Add separator between sets (use space for simplicity)
     if (index > 0) {
       digitParts.push(' ');
     }
-    
+
     // Add game scores
     digitParts.push(set.side1Score?.toString() || '0');
     digitParts.push(set.side2Score?.toString() || '0');
-    
+
     // Add tiebreak scores if present
     if (set.side1TiebreakScore !== undefined || set.side2TiebreakScore !== undefined) {
       // For dialPad, we use minus to separate tiebreak
       // The losing score is what we track
-      const losingScore = set.winningSide === 1 
-        ? set.side2TiebreakScore 
-        : set.side1TiebreakScore;
-      
+      const losingScore = set.winningSide === 1 ? set.side2TiebreakScore : set.side1TiebreakScore;
+
       if (losingScore !== undefined) {
         digitParts.push('-');
         digitParts.push(losingScore.toString());
       }
     }
   });
-  
+
   return digitParts.join('');
 }
 
@@ -87,21 +85,24 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       digits: '',
       setTo,
       tiebreakAt,
-      isMatchComplete: false,
+      isMatchComplete: false
     };
-    
+
     // Initialize state with existing score if available (not for DOUBLE_* statuses)
     if (internalScore) {
       state.digits = scoreToDigits(internalScore);
-      
+
       // CRITICAL: Validate initial score to set isMatchComplete
       // This prevents RET/DEF from being enabled when score is already complete
-      const initialScoreString = formatScoreString(state.digits, { matchUpFormat: matchUp.matchUpFormat || DEFAULT_FORMAT });
+      const initialScoreString = formatScoreString(state.digits, {
+        matchUpFormat: matchUp.matchUpFormat || DEFAULT_FORMAT
+      });
       if (initialScoreString && initialScoreString.includes('-')) {
         const initialValidation = validateScore(initialScoreString, matchUp.matchUpFormat);
-        state.isMatchComplete = initialValidation.isValid && 
-                               initialValidation.winningSide !== undefined && 
-                               (initialValidation.matchUpStatus === COMPLETED || initialValidation.matchUpStatus === undefined);
+        state.isMatchComplete =
+          initialValidation.isValid &&
+          initialValidation.winningSide !== undefined &&
+          (initialValidation.matchUpStatus === COMPLETED || initialValidation.matchUpStatus === undefined);
       }
     }
 
@@ -166,9 +167,9 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
             modalConfig: {
               style: {
                 fontSize: '12px', // Smaller base font size for TMX
-                border: '3px solid #0066cc',
-              },
-            },
+                border: '3px solid #0066cc'
+              }
+            }
           } as any);
         } catch (error) {
           console.error('Error opening format selector:', error);
@@ -287,7 +288,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
       // When outcome has no sets/score, display empty matchUp - use internal state only
       const hasOutcomeScore = (outcome as ScoreOutcome)?.scoreObject?.sets?.length > 0;
-      
+
       // Update internal state
       if ((outcome as any)?.clearAll) {
         internalScore = undefined;
@@ -308,14 +309,12 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           internalMatchUpStatus = (outcome as ScoreOutcome)?.matchUpStatus;
         }
       }
-      
+
       const displayMatchUp = {
         ...matchUp,
-        score: (outcome as any)?.clearAll 
-          ? undefined 
-          : (hasOutcomeScore ? internalScore : undefined),
+        score: (outcome as any)?.clearAll ? undefined : hasOutcomeScore ? internalScore : undefined,
         winningSide: internalWinningSide,
-        matchUpStatus: internalMatchUpStatus,
+        matchUpStatus: internalMatchUpStatus
       };
 
       const config = getScoringConfig();
@@ -323,7 +322,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       const matchUpElement = renderMatchUp({
         matchUp: displayMatchUp,
         isLucky: true,
-        composition: compositions[compositionName] || compositions.Australian,
+        composition: compositions[compositionName] || compositions.Australian
       });
 
       if (matchUpElement) {
@@ -343,10 +342,11 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         scoreDisplay.style.display = 'block';
         scoreDisplay.textContent = '-';
       }
-      
+
       // Show irregular ending section ONLY when non-COMPLETED outcome explicitly selected
       // This should only happen when RET/WO/DEF buttons are clicked
-      const isIrregularEnding = selectedOutcome === RETIRED || selectedOutcome === WALKOVER || selectedOutcome === DEFAULTED;
+      const isIrregularEnding =
+        selectedOutcome === RETIRED || selectedOutcome === WALKOVER || selectedOutcome === DEFAULTED;
       if (isIrregularEnding) {
         irregularEndingContainer.style.display = 'block';
         // Show winner selection when irregular ending is active
@@ -368,9 +368,10 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
       // Track if match is complete (validation returns isComplete for completed matches)
       // Match is complete if validation has winningSide and matchUpStatus is COMPLETED
-      state.isMatchComplete = validation.isValid && 
-                             validation.winningSide !== undefined && 
-                             (validation.matchUpStatus === COMPLETED || validation.matchUpStatus === undefined);
+      state.isMatchComplete =
+        validation.isValid &&
+        validation.winningSide !== undefined &&
+        (validation.matchUpStatus === COMPLETED || validation.matchUpStatus === undefined);
 
       // Add irregular ending info if selected
       if (selectedOutcome !== COMPLETED) {
@@ -410,7 +411,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
       // Enable/disable RET and DEF buttons based on score presence and match completion
       updateIrregularButtonStates();
-      
+
       // Enable/disable digit buttons based on match completion
       updateDigitButtonStates();
     };
@@ -428,14 +429,14 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         // Hide winner selection
         winnerSelectionContainer.style.display = 'none';
       }
-      
+
       // Block invalid digits at the start of scoring
       // If this is the first digit and it's > setTo, clamp it to setTo
       if (typeof digit === 'number' && state.digits === '' && digit > setTo) {
         // Replace invalid digit with setTo (e.g., '8' becomes '6' for SET3-S:6/TB7)
         digit = setTo;
       }
-      
+
       const currentScoreString = formatScore(state.digits);
 
       // Check if we're in an incomplete tiebreak (regular set tiebreak) OR
@@ -567,15 +568,15 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       scoreDisplay.textContent = '-';
       // Update matchUp display to clear everything
       updateMatchUpDisplay({ clearAll: true });
-      
+
       // Re-enable digit buttons after clearing
       updateDigitButtonStates();
-      
+
       // Report cleared state with TO_BE_PLAYED status
-      onScoreChange({ 
-        isValid: false, 
-        sets: [], 
-        matchUpStatus: 'TO_BE_PLAYED' 
+      onScoreChange({
+        isValid: false,
+        sets: [],
+        matchUpStatus: 'TO_BE_PLAYED'
       });
     };
 
@@ -608,8 +609,9 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     // Function to disable/enable all digit input buttons
     const updateDigitButtonStates = () => {
       // Check if we have a completed score (irregular ending with winner, or complete match score)
-      const hasCompletedScore = (selectedOutcome !== COMPLETED && selectedWinner !== undefined) || state.isMatchComplete;
-      
+      const hasCompletedScore =
+        (selectedOutcome !== COMPLETED && selectedWinner !== undefined) || state.isMatchComplete;
+
       // Get all digit buttons (numbers and minus)
       const allButtons = dialPadContainer.querySelectorAll('button');
       allButtons.forEach((button) => {
@@ -638,7 +640,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       { label: '⌫', value: 'delete', isSpecial: true },
       { label: '0', value: 0 },
       { label: '-', value: 'minus', isSpecial: true },
-      { label: '', value: 'empty', isSpecial: true, disabled: true },
+      { label: '', value: 'empty', isSpecial: true, disabled: true }
     ];
 
     buttons.forEach((btn) => {
@@ -767,11 +769,12 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     // Only set selectedOutcome for ACTUAL irregular endings (RETIRED, WALKOVER, DEFAULTED)
     // Also handle DOUBLE_* statuses by mapping them back to base status without winner
     // Don't treat TO_BE_PLAYED as irregular
-    const isActualIrregularEnding = internalMatchUpStatus === RETIRED || 
-                                    internalMatchUpStatus === WALKOVER || 
-                                    internalMatchUpStatus === DEFAULTED ||
-                                    internalMatchUpStatus === DOUBLE_WALKOVER ||
-                                    internalMatchUpStatus === DOUBLE_DEFAULT;
+    const isActualIrregularEnding =
+      internalMatchUpStatus === RETIRED ||
+      internalMatchUpStatus === WALKOVER ||
+      internalMatchUpStatus === DEFAULTED ||
+      internalMatchUpStatus === DOUBLE_WALKOVER ||
+      internalMatchUpStatus === DOUBLE_DEFAULT;
     if (isActualIrregularEnding) {
       // Map DOUBLE_* statuses to their base status
       if (internalMatchUpStatus === DOUBLE_WALKOVER) {
@@ -784,25 +787,25 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         selectedOutcome = internalMatchUpStatus as any;
         selectedWinner = internalWinningSide;
       }
-      
+
       // Check the appropriate irregular ending radio button
       const outcomeRadios = irregularEndingContainer.querySelectorAll(OUTCOME_SELECTOR) as NodeListOf<HTMLInputElement>;
-      outcomeRadios.forEach(radio => {
+      outcomeRadios.forEach((radio) => {
         if (radio.value === selectedOutcome) {
           radio.checked = true;
         }
       });
-      
+
       // Initialize winner if present (only for non-DOUBLE statuses)
       if (selectedWinner) {
         // Check the appropriate winner radio button
         const winnerRadios = irregularEndingContainer.querySelectorAll(WINNER_SELECTOR) as NodeListOf<HTMLInputElement>;
-        winnerRadios.forEach(radio => {
+        winnerRadios.forEach((radio) => {
           if (Number.parseInt(radio.value) === selectedWinner) {
             radio.checked = true;
           }
         });
-        
+
         // Show winner selection container
         winnerSelectionContainer.style.display = 'block';
       }
@@ -817,7 +820,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     if (state.digits || isActualIrregularEnding) {
       // Call updateDisplay to initialize display, validate, and set button states
       updateDisplay();
-      
+
       // CRITICAL: The Clear button is created by cModal AFTER this function returns
       // So we need to update button states after the modal finishes rendering
       setTimeout(() => {

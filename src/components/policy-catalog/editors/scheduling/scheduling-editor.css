@@ -23,7 +23,9 @@
   user-select: none;
 }
 
-.se-section-header:hover { background: var(--sp-hover-bg); }
+.se-section-header:hover {
+  background: var(--sp-hover-bg);
+}
 
 .se-section-chevron {
   font-size: 10px;
@@ -70,9 +72,16 @@
   text-align: right;
 }
 
-.se-field-input:focus { border-color: var(--sp-accent-focus); }
-.se-field-input.is-success { border-color: var(--sp-accent); }
-.se-field-input.is-danger { border-color: var(--sp-err-border, #e74c3c); color: var(--sp-err-text, #e74c3c); }
+.se-field-input:focus {
+  border-color: var(--sp-accent-focus);
+}
+.se-field-input.is-success {
+  border-color: var(--sp-accent);
+}
+.se-field-input.is-danger {
+  border-color: var(--sp-err-border, #e74c3c);
+  color: var(--sp-err-text, #e74c3c);
+}
 
 .se-field-unit {
   font-size: 11px;
@@ -92,7 +101,7 @@
   margin-bottom: 0;
 }
 
-.se-checkbox-row input[type="checkbox"] {
+.se-checkbox-row input[type='checkbox'] {
   accent-color: var(--sp-accent);
 }
 
@@ -172,7 +181,9 @@
   margin-bottom: 4px;
 }
 
-.se-tag-dropdown-input:focus { border-color: var(--sp-accent-focus); }
+.se-tag-dropdown-input:focus {
+  border-color: var(--sp-accent-focus);
+}
 
 .se-tag-dropdown-item {
   padding: 6px 8px;
@@ -182,7 +193,9 @@
   color: var(--sp-text);
 }
 
-.se-tag-dropdown-item:hover { background: var(--sp-hover-bg); }
+.se-tag-dropdown-item:hover {
+  background: var(--sp-hover-bg);
+}
 
 .se-tag-dropdown-empty {
   padding: 6px 8px;
@@ -223,7 +236,9 @@
   flex-shrink: 0;
 }
 
-.se-override-remove:hover { color: var(--sp-err-text); }
+.se-override-remove:hover {
+  color: var(--sp-err-text);
+}
 
 /* ── Add Button ──────────────────────────────────────────── */
 

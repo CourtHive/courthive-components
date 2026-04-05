@@ -217,10 +217,7 @@ export function buildVenueGroups(timelines: VenueDayTimeline[]): TimelineGroup[]
  * Build timeline items from facility timelines.
  * Converts rail segments into background items showing availability status.
  */
-export function buildEventsFromTimelines(
-  timelines: VenueDayTimeline[],
-  config: ProjectionConfig = {}
-): TimelineItem[] {
+export function buildEventsFromTimelines(timelines: VenueDayTimeline[], config: ProjectionConfig = {}): TimelineItem[] {
   const { layerVisibility = new Map(), showSegmentLabels = false, colorScheme = DEFAULT_COLOR_SCHEME } = config;
 
   const items: TimelineItem[] = [];

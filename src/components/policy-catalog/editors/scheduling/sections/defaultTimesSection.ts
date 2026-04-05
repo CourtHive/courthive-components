@@ -128,7 +128,11 @@ export function buildDefaultTimesSection(store: SchedulingEditorStore): {
   return { element: root, update };
 }
 
-function createFieldRow(label: string, unit: string, allowEmpty: boolean): {
+function createFieldRow(
+  label: string,
+  unit: string,
+  allowEmpty: boolean
+): {
   row: HTMLElement;
   input: HTMLInputElement;
 } {

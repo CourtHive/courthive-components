@@ -49,10 +49,7 @@ export type SmartComplementResult = {
  * Get the format for a specific set index
  * Uses finalSetFormat for deciding set if available
  */
-export function getSetFormatForIndex(
-  setIndex: number,
-  config: MatchUpConfig,
-): SetFormat | undefined {
+export function getSetFormatForIndex(setIndex: number, config: MatchUpConfig): SetFormat | undefined {
   const isDecidingSet = config.bestOf === 1 || setIndex + 1 === config.bestOf;
 
   // Use finalSetFormat for deciding set if it exists
@@ -80,23 +77,23 @@ export function isSetTimed(format?: SetFormat): boolean {
 /**
  * Calculate the maximum allowed score for a regular set game score
  * based on the opponent's score and set rules
- * 
+ *
  * For timed sets, returns Infinity (no maximum) since scores don't need relationships
  */
 export function getMaxAllowedScore(
   setIndex: number,
   side: 1 | 2,
   currentScores: { side1: number; side2: number },
-  config: MatchUpConfig,
+  config: MatchUpConfig
 ): number {
   const setFormat = getSetFormatForIndex(setIndex, config);
-  
+
   // IMPORTANT: For timed sets, there is no maximum score
   // Scores don't need any relationship to each other
   if (isSetTimed(setFormat)) {
     return Infinity;
   }
-  
+
   const setTo = setFormat?.setTo || 6;
   const tiebreakAt = setFormat?.tiebreakAt || setTo;
 
@@ -106,7 +103,7 @@ export function getMaxAllowedScore(
   // - If tiebreakAt === setTo (or not specified): max is setTo + 1 (e.g., S:6 allows 7-6)
   // - If tiebreakAt < setTo: max is setTo (e.g., S:6@5 allows 6-5 max, S:5@4 allows 5-4 max)
   const absoluteMax = tiebreakAt === setTo ? setTo + 1 : setTo;
-  
+
   // If opponent hasn't entered score yet, allow up to absoluteMax
   if (oppScore === 0) {
     return absoluteMax;
@@ -157,15 +154,14 @@ export function isSetComplete(
     side2: number;
     tiebreak?: number;
   },
-  config: MatchUpConfig,
+  config: MatchUpConfig
 ): boolean {
   const setFormat = getSetFormatForIndex(setIndex, config);
 
   // For timed sets, a set is complete when both sides have values
   // Scores don't need any relationship - any values are valid
   if (isSetTimed(setFormat)) {
-    return scores.side1 !== undefined && scores.side1 !== null && 
-           scores.side2 !== undefined && scores.side2 !== null;
+    return scores.side1 !== undefined && scores.side1 !== null && scores.side2 !== undefined && scores.side2 !== null;
   }
 
   // Check if this is a tiebreak-only set
@@ -191,10 +187,11 @@ export function isSetComplete(
   // 2. Score indicates tiebreak was played, with tiebreak score entered
   // - If tiebreakAt === setTo: tiebreak at (setTo+1) vs setTo (e.g., 7-6 for S:6@6)
   // - If tiebreakAt < setTo: tiebreak at setTo vs tiebreakAt (e.g., 5-4 for S:5@4)
-  const tiebreakScorePattern = tiebreakAt === setTo
-    ? maxScore === tiebreakAt + 1 && minScore === tiebreakAt
-    : maxScore === setTo && minScore === tiebreakAt;
-  
+  const tiebreakScorePattern =
+    tiebreakAt === setTo
+      ? maxScore === tiebreakAt + 1 && minScore === tiebreakAt
+      : maxScore === setTo && minScore === tiebreakAt;
+
   if (tiebreakScorePattern && scores.tiebreak !== undefined) {
     return true;
   }
@@ -213,7 +210,7 @@ export function getSetWinner(
     side2: number;
     tiebreak?: number;
   },
-  config: MatchUpConfig,
+  config: MatchUpConfig
 ): 1 | 2 | undefined {
   if (!isSetComplete(setIndex, scores, config)) {
     return undefined;
@@ -237,9 +234,7 @@ export function isMatchComplete(sets: SetScore[], bestOf: number, exactly?: numb
 
   if (exactly) {
     // For exactly formats, all sets must have scores entered
-    const completedSets = sets.filter(
-      (s) => s.side1Score !== undefined && s.side2Score !== undefined,
-    ).length;
+    const completedSets = sets.filter((s) => s.side1Score !== undefined && s.side2Score !== undefined).length;
     return completedSets >= exactly;
   }
 
@@ -267,7 +262,7 @@ export function getMatchWinner(sets: SetScore[], bestOf: number, exactly?: numbe
 /**
  * Calculate the complement score for smart complement entry
  * Returns null if no predictable complement exists
- * 
+ *
  * @param digit - The digit entered (0-9)
  * @param setFormat - The format for this set
  * @returns Complement value or null if digit >= setTo (no predictable complement)
@@ -285,14 +280,14 @@ export function calculateComplement(digit: number, setFormat?: SetFormat): numbe
   // - S:6/TB7@5 (tiebreakAt === setTo-1): entering 2 → complement is 6
   // - S:5/TB9@4 (tiebreakAt === setTo-1): entering 2 → complement is 5
   // NOTE: tiebreakAt can ONLY be setTo or setTo-1 (never less)
-  
+
   const tiebreakAt = setFormat?.tiebreakAt || setTo;
 
   // When digit < setTo - 1: complement is setTo (winning before tiebreak)
   if (digit < setTo - 1) {
     return setTo;
   }
-  
+
   // When digit === setTo - 1: depends on format
   // - If tiebreakAt === setTo: complement is setTo + 1 (e.g., 5 → 7 for S:6@6)
   // - If tiebreakAt < setTo: complement is setTo (e.g., 4 → 5 for S:5@4)
@@ -305,7 +300,7 @@ export function calculateComplement(digit: number, setFormat?: SetFormat): numbe
 
 /**
  * Determine if smart complement should be applied for a given input
- * 
+ *
  * @param digit - The digit being entered
  * @param isShiftPressed - Whether Shift key is pressed
  * @param setIndex - Index of the current set
@@ -322,7 +317,7 @@ export function shouldApplySmartComplement(
   sets: SetScore[],
   config: MatchUpConfig,
   smartComplementsUsed: Set<number>,
-  smartComplementsEnabled: boolean,
+  smartComplementsEnabled: boolean
 ): SmartComplementResult {
   // Feature disabled
   if (!smartComplementsEnabled) {
@@ -330,7 +325,7 @@ export function shouldApplySmartComplement(
       field1Value: digit,
       field2Value: 0,
       shouldApply: false,
-      reason: 'Feature disabled in settings',
+      reason: 'Feature disabled in settings'
     };
   }
 
@@ -340,7 +335,7 @@ export function shouldApplySmartComplement(
       field1Value: digit,
       field2Value: 0,
       shouldApply: false,
-      reason: 'Already used for this set',
+      reason: 'Already used for this set'
     };
   }
 
@@ -350,7 +345,7 @@ export function shouldApplySmartComplement(
       field1Value: digit,
       field2Value: 0,
       shouldApply: false,
-      reason: 'Match already complete',
+      reason: 'Match already complete'
     };
   }
 
@@ -361,7 +356,7 @@ export function shouldApplySmartComplement(
       field1Value: digit,
       field2Value: 0,
       shouldApply: false,
-      reason: 'Tiebreak-only set',
+      reason: 'Tiebreak-only set'
     };
   }
 
@@ -371,7 +366,7 @@ export function shouldApplySmartComplement(
       field1Value: digit,
       field2Value: 0,
       shouldApply: false,
-      reason: 'Timed set',
+      reason: 'Timed set'
     };
   }
 
@@ -382,7 +377,7 @@ export function shouldApplySmartComplement(
       field1Value: digit,
       field2Value: 0,
       shouldApply: false,
-      reason: 'No predictable complement for this digit',
+      reason: 'No predictable complement for this digit'
     };
   }
 
@@ -392,14 +387,14 @@ export function shouldApplySmartComplement(
     return {
       field1Value: complement,
       field2Value: digit,
-      shouldApply: true,
+      shouldApply: true
     };
   } else {
     // Just digit: digit in field1, complement in field2
     return {
       field1Value: digit,
       field2Value: complement,
-      shouldApply: true,
+      shouldApply: true
     };
   }
 }
@@ -410,7 +405,7 @@ export function shouldApplySmartComplement(
 export function shouldShowTiebreak(
   setIndex: number,
   scores: { side1: number; side2: number },
-  config: MatchUpConfig,
+  config: MatchUpConfig
 ): boolean {
   const setFormat = getSetFormatForIndex(setIndex, config);
 
@@ -444,11 +439,7 @@ export function shouldShowTiebreak(
 /**
  * Determine if a new set row should be created
  */
-export function shouldCreateNextSet(
-  currentSetIndex: number,
-  sets: SetScore[],
-  config: MatchUpConfig,
-): boolean {
+export function shouldCreateNextSet(currentSetIndex: number, sets: SetScore[], config: MatchUpConfig): boolean {
   // Don't exceed bestOf
   if (currentSetIndex + 1 >= config.bestOf) {
     return false;
@@ -477,7 +468,7 @@ export function buildSetScore(
   side1Value: string,
   side2Value: string,
   tiebreakValue: string | undefined,
-  config: MatchUpConfig,
+  config: MatchUpConfig
 ): SetScore {
   const side1Score = Number.parseInt(side1Value) || 0;
   const side2Score = Number.parseInt(side2Value) || 0;
@@ -489,11 +480,7 @@ export function buildSetScore(
   if (isSetTiebreakOnly(setFormat)) {
     // Main inputs are tiebreak scores
     const winningSide =
-      side1Score > 0 && side2Score > 0 && side1Score !== side2Score
-        ? side1Score > side2Score
-          ? 1
-          : 2
-        : undefined;
+      side1Score > 0 && side2Score > 0 && side1Score !== side2Score ? (side1Score > side2Score ? 1 : 2) : undefined;
 
     return {
       setNumber: setIndex + 1,
@@ -501,7 +488,7 @@ export function buildSetScore(
       side2Score: 0,
       side1TiebreakScore: side1Score,
       side2TiebreakScore: side2Score,
-      winningSide,
+      winningSide
     };
   }
 
@@ -513,7 +500,7 @@ export function buildSetScore(
     setNumber: setIndex + 1,
     side1Score,
     side2Score,
-    winningSide,
+    winningSide
   };
 
   // Add tiebreak scores if present

@@ -19,7 +19,7 @@ import type {
   ScheduleIssue,
   MatchUpCatalogGroupBy,
   PendingScheduleAction,
-  SchedulePageDragPayload,
+  SchedulePageDragPayload
 } from '../types';
 
 export class SchedulePageStore {
@@ -46,7 +46,7 @@ export class SchedulePageStore {
       pendingActions: [],
       hasUnsavedChanges: false,
       leftCollapsed: !!config.hideLeft,
-      hideLeft: !!config.hideLeft,
+      hideLeft: !!config.hideLeft
     };
   }
 
@@ -88,11 +88,11 @@ export class SchedulePageStore {
         kind: 'schedule',
         matchUpId: payload.matchUp.matchUpId,
         matchUp: payload.matchUp,
-        event,
+        event
       };
       this.setState({
         pendingActions: [...this.state.pendingActions, action],
-        hasUnsavedChanges: true,
+        hasUnsavedChanges: true
       });
     }
   }
@@ -103,20 +103,20 @@ export class SchedulePageStore {
     } else {
       // If there's a pending 'schedule' for this matchUp, just remove it instead of adding an unschedule
       const pendingScheduleIdx = this.state.pendingActions.findIndex(
-        (a) => a.kind === 'schedule' && a.matchUpId === matchUpId,
+        (a) => a.kind === 'schedule' && a.matchUpId === matchUpId
       );
       if (pendingScheduleIdx >= 0) {
         const next = [...this.state.pendingActions];
         next.splice(pendingScheduleIdx, 1);
         this.setState({
           pendingActions: next,
-          hasUnsavedChanges: next.length > 0,
+          hasUnsavedChanges: next.length > 0
         });
       } else {
         const action: PendingScheduleAction = { kind: 'unschedule', matchUpId };
         this.setState({
           pendingActions: [...this.state.pendingActions, action],
-          hasUnsavedChanges: true,
+          hasUnsavedChanges: true
         });
       }
     }

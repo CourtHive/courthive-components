@@ -8,7 +8,7 @@ import { reFieldRowStyle, reFieldLabelStyle, rePointsInputStyle } from '../style
 
 export function buildPerWinPointsRow(
   store: RankingPointsEditorStore,
-  profileIndex: number,
+  profileIndex: number
 ): {
   element: HTMLElement;
   update(state: RankingPointsEditorState): void;

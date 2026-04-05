@@ -19,7 +19,7 @@ import {
   autoAdjustTiebreakAt,
   isValidTiebreakAt,
   shouldShowFinalSetOption,
-  initializeFormatFromString,
+  initializeFormatFromString
 } from '../matchUpFormatLogic';
 
 const FORMAT_SET3_TB7 = 'SET3-S:6/TB7';
@@ -53,7 +53,7 @@ describe('matchUpFormatLogic', () => {
   describe('isTiebreakOnlySet', () => {
     it('should return true for tiebreak-only set', () => {
       const setFormat = {
-        tiebreakSet: { tiebreakTo: 10 },
+        tiebreakSet: { tiebreakTo: 10 }
       };
       expect(isTiebreakOnlySet(setFormat)).toBe(true);
     });
@@ -61,7 +61,7 @@ describe('matchUpFormatLogic', () => {
     it('should return false for regular set', () => {
       const setFormat = {
         setTo: 6,
-        tiebreakFormat: { tiebreakTo: 7 },
+        tiebreakFormat: { tiebreakTo: 7 }
       };
       expect(isTiebreakOnlySet(setFormat)).toBe(false);
     });
@@ -75,7 +75,7 @@ describe('matchUpFormatLogic', () => {
     it('should build regular set format', () => {
       const config = createDefaultSetFormat(false);
       const setFormat = buildSetFormat(config, false);
-      
+
       expect(setFormat.setTo).toBe(6);
       expect(setFormat.tiebreakAt).toBeUndefined();
       expect(setFormat.tiebreakFormat).toBeUndefined();
@@ -84,7 +84,7 @@ describe('matchUpFormatLogic', () => {
     it('should build set format with tiebreak', () => {
       const config = createDefaultSetFormat(false);
       const setFormat = buildSetFormat(config, true);
-      
+
       expect(setFormat.setTo).toBe(6);
       expect(setFormat.tiebreakAt).toBe(6);
       expect(setFormat.tiebreakFormat.tiebreakTo).toBe(7);
@@ -93,14 +93,14 @@ describe('matchUpFormatLogic', () => {
     it('should build set format with NoAD', () => {
       const config = { ...createDefaultSetFormat(false), advantage: NOAD };
       const setFormat = buildSetFormat(config, false);
-      
+
       expect(setFormat.NoAD).toBe(true);
     });
 
     it('should build tiebreak-only set format', () => {
       const config = { ...createDefaultSetFormat(false), what: TIEBREAKS, tiebreakTo: 10 };
       const setFormat = buildSetFormat(config, false);
-      
+
       expect(setFormat.tiebreakSet).toBeDefined();
       expect(setFormat.tiebreakSet.tiebreakTo).toBe(10);
     });
@@ -108,7 +108,7 @@ describe('matchUpFormatLogic', () => {
     it('should build timed set format', () => {
       const config = { ...createDefaultSetFormat(false), what: TIMED_SETS, minutes: 20 };
       const setFormat = buildSetFormat(config, false);
-      
+
       expect(setFormat.timed).toBe(true);
       expect(setFormat.minutes).toBe(20);
     });
@@ -116,14 +116,14 @@ describe('matchUpFormatLogic', () => {
     it('should add NoAD to tiebreak format when winBy is 1', () => {
       const config = { ...createDefaultSetFormat(false), winBy: 1 };
       const setFormat = buildSetFormat(config, true);
-      
+
       expect(setFormat.tiebreakFormat.NoAD).toBe(true);
     });
 
     it('should add NoAD to tiebreak set when winBy is 1', () => {
       const config = { ...createDefaultSetFormat(false), what: TIEBREAKS, winBy: 1 };
       const setFormat = buildSetFormat(config, false);
-      
+
       expect(setFormat.tiebreakSet.NoAD).toBe(true);
     });
   });
@@ -132,7 +132,7 @@ describe('matchUpFormatLogic', () => {
     it('should build basic parsed format with bestOf', () => {
       const config = createDefaultFormat();
       const parsed = buildParsedFormat(config, false, false, false);
-      
+
       expect(parsed.bestOf).toBe(3);
       expect(parsed.exactly).toBeUndefined();
       expect(parsed.setFormat.setTo).toBe(6);
@@ -144,7 +144,7 @@ describe('matchUpFormatLogic', () => {
       config.setFormat.exactly = 4;
       delete config.setFormat.bestOf;
       const parsed = buildParsedFormat(config, false, false, false);
-      
+
       expect(parsed.exactly).toBe(4);
       expect(parsed.bestOf).toBeUndefined();
       expect(parsed.setFormat.setTo).toBe(6);
@@ -153,7 +153,7 @@ describe('matchUpFormatLogic', () => {
     it('should include final set when requested', () => {
       const config = createDefaultFormat();
       const parsed = buildParsedFormat(config, false, true, false);
-      
+
       expect(parsed.finalSetFormat).toBeDefined();
       expect(parsed.finalSetFormat.setTo).toBe(6);
     });
@@ -161,7 +161,7 @@ describe('matchUpFormatLogic', () => {
     it('should include tiebreaks when requested', () => {
       const config = createDefaultFormat();
       const parsed = buildParsedFormat(config, true, false, false);
-      
+
       expect(parsed.setFormat.tiebreakAt).toBe(6);
       expect(parsed.setFormat.tiebreakFormat.tiebreakTo).toBe(7);
     });
@@ -170,7 +170,7 @@ describe('matchUpFormatLogic', () => {
   describe('getComponentVisibility', () => {
     it('should show correct components for SETS', () => {
       const visibility = getComponentVisibility(SETS);
-      
+
       expect(visibility.setTo).toBe(true);
       expect(visibility.tiebreakAt).toBe(true);
       expect(visibility.tiebreakTo).toBe(true);
@@ -181,7 +181,7 @@ describe('matchUpFormatLogic', () => {
 
     it('should show correct components for TIEBREAKS', () => {
       const visibility = getComponentVisibility(TIEBREAKS);
-      
+
       expect(visibility.setTo).toBe(false);
       expect(visibility.tiebreakAt).toBe(false);
       expect(visibility.tiebreakTo).toBe(true);
@@ -192,7 +192,7 @@ describe('matchUpFormatLogic', () => {
 
     it('should show correct components for TIMED_SETS', () => {
       const visibility = getComponentVisibility(TIMED_SETS);
-      
+
       expect(visibility.setTo).toBe(false);
       expect(visibility.minutes).toBe(true);
       expect(visibility.tiebreakAt).toBe(false);
@@ -270,45 +270,45 @@ describe('matchUpFormatLogic', () => {
       if (format === FORMAT_SET3_TB7) {
         return {
           bestOf: 3,
-          setFormat: { setTo: 6, tiebreakAt: 6, tiebreakFormat: { tiebreakTo: 7 } },
+          setFormat: { setTo: 6, tiebreakAt: 6, tiebreakFormat: { tiebreakTo: 7 } }
         };
       }
       if (format === 'SET3X-S:T10') {
         return {
           exactly: 3,
-          setFormat: { timed: true, minutes: 10 },
+          setFormat: { timed: true, minutes: 10 }
         };
       }
       if (format === 'SET4X-S:T20') {
         return {
           exactly: 4,
-          setFormat: { timed: true, minutes: 20 },
+          setFormat: { timed: true, minutes: 20 }
         };
       }
       if (format === 'SET3-S:6') {
         return {
           bestOf: 3,
-          setFormat: { setTo: 6, tiebreakAt: 6 },
+          setFormat: { setTo: 6, tiebreakAt: 6 }
         };
       }
       if (format === 'SET3-S:6/TB7-F:6') {
         return {
           bestOf: 3,
           setFormat: { setTo: 6, tiebreakAt: 6, tiebreakFormat: { tiebreakTo: 7 } },
-          finalSetFormat: { setTo: 6, tiebreakAt: 6 },
+          finalSetFormat: { setTo: 6, tiebreakAt: 6 }
         };
       }
       if (format === 'SET3-S:6/TB7-F:TB10') {
         return {
           bestOf: 3,
           setFormat: { setTo: 6, tiebreakAt: 6, tiebreakFormat: { tiebreakTo: 7 } },
-          finalSetFormat: { tiebreakSet: { tiebreakTo: 10 } },
+          finalSetFormat: { tiebreakSet: { tiebreakTo: 10 } }
         };
       }
       if (format === 'SET3-S:4/TB7') {
         return {
           bestOf: 3,
-          setFormat: { setTo: 4, tiebreakAt: 4, tiebreakFormat: { tiebreakTo: 7 } },
+          setFormat: { setTo: 4, tiebreakAt: 4, tiebreakFormat: { tiebreakTo: 7 } }
         };
       }
       return { bestOf: 3, setFormat: {} };
@@ -326,7 +326,7 @@ describe('matchUpFormatLogic', () => {
 
     it('should initialize from format with exactly (SET3X)', () => {
       const format = initializeFormatFromString('SET3X-S:T10', mockParse);
-      
+
       expect(format.setFormat.exactly).toBe(3);
       expect(format.setFormat.bestOf).toBeUndefined();
       expect(format.setFormat.descriptor).toBe('Exactly');
@@ -334,7 +334,7 @@ describe('matchUpFormatLogic', () => {
 
     it('should initialize from format with exactly (SET4X)', () => {
       const format = initializeFormatFromString('SET4X-S:T20', mockParse);
-      
+
       expect(format.setFormat.exactly).toBe(4);
       expect(format.setFormat.bestOf).toBeUndefined();
       expect(format.setFormat.descriptor).toBe('Exactly');
@@ -342,21 +342,21 @@ describe('matchUpFormatLogic', () => {
 
     it('should initialize with tiebreak-only final set', () => {
       const format = initializeFormatFromString('SET3-S:6/TB7-F:TB10', mockParse);
-      
+
       expect(format.finalSetFormat.what).toBe(TIEBREAKS);
       expect(format.finalSetFormat.tiebreakTo).toBe(10);
     });
 
     it('should initialize with different setTo', () => {
       const format = initializeFormatFromString('SET3-S:4/TB7', mockParse);
-      
+
       expect(format.setFormat.setTo).toBe(4);
       expect(format.setFormat.tiebreakAt).toBe(4);
     });
 
     it('should merge with defaults for missing properties', () => {
       const format = initializeFormatFromString('UNKNOWN', mockParse);
-      
+
       // Should have all default properties
       expect(format.setFormat.advantage).toBe(AD);
       expect(format.setFormat.what).toBe(SETS);
@@ -369,13 +369,13 @@ describe('matchUpFormatLogic', () => {
     it('should initialize with format that will enable correct tiebreak default', () => {
       // When main set has tiebreak
       const formatWithTiebreak = initializeFormatFromString(FORMAT_SET3_TB7, mockParse);
-      
+
       // The final set format should have default properties that match main set
       // (UI will use this to initialize checkboxes)
       expect(formatWithTiebreak.setFormat.tiebreakAt).toBe(6);
       expect(formatWithTiebreak.finalSetFormat.setTo).toBe(6); // Default
       expect(formatWithTiebreak.finalSetFormat.tiebreakAt).toBe(6); // Default
-      
+
       // When main set has NO tiebreak
       const formatWithoutTiebreak = initializeFormatFromString('SET3-S:6', mockParse);
       expect(formatWithoutTiebreak.setFormat.tiebreakAt).toBe(6);
@@ -385,14 +385,14 @@ describe('matchUpFormatLogic', () => {
       // This tests that if user explicitly sets F:6 (no tiebreak) while main has TB7,
       // we preserve that choice
       const format = initializeFormatFromString('SET3-S:6/TB7-F:6', mockParse);
-      
+
       // Main set has tiebreak
       expect(format.setFormat.tiebreakAt).toBe(6);
-      
+
       // Final set properties
       expect(format.finalSetFormat.setTo).toBe(6);
       expect(format.finalSetFormat.tiebreakAt).toBe(6);
-      
+
       // The key is that buildSetFormat() will be called with hasTiebreak flag
       // from the checkbox state, which should reflect the parsed format
     });
@@ -400,20 +400,20 @@ describe('matchUpFormatLogic', () => {
     it('should round-trip SET3X-S:T10-F:TB1NOAD format', () => {
       const formatString = 'SET3X-S:T10-F:TB1NOAD';
       const format = initializeFormatFromString(formatString, matchUpFormatCode.parse);
-      
+
       // Check final set is tiebreak-only with NoAD
       expect(format.finalSetFormat.what).toBe(TIEBREAKS);
       expect(format.finalSetFormat.tiebreakTo).toBe(1);
       expect(format.finalSetFormat.winBy).toBe(1); // NoAD = win by 1
-      
+
       // Build the parsed format
       const parsed = buildParsedFormat(format, false, true, false);
-      
+
       // Verify NoAD is preserved in tiebreakSet
       expect(parsed.finalSetFormat.tiebreakSet).toBeDefined();
       expect(parsed.finalSetFormat.tiebreakSet.tiebreakTo).toBe(1);
       expect(parsed.finalSetFormat.tiebreakSet.NoAD).toBe(true);
-      
+
       // Stringify back
       const roundTrip = matchUpFormatCode.stringify(parsed);
       expect(roundTrip).toBe('SET3X-S:T10-F:TB1NOAD');

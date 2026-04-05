@@ -15,6 +15,54 @@ const QUALIFIER = 'Qualifier';
 const BYE = 'BYE';
 const TBD = 'TBD';
 
+function buildParticipantInputField(side, individualParticipant, matchUp, sideNumber, eventHandlers, composition) {
+  let currentAssignment;
+  if (side?.bye) {
+    currentAssignment = { participantId: '__BYE__', participantName: '— BYE —' };
+  } else if (side?.qualifier) {
+    currentAssignment = { participantId: '__QUALIFIER__', participantName: '— QUALIFIER —' };
+  } else {
+    currentAssignment = individualParticipant;
+  }
+
+  return renderParticipantInput({
+    matchUp,
+    side,
+    sideNumber,
+    eventHandlers,
+    composition,
+    currentParticipant: currentAssignment
+  });
+}
+
+function buildParticipantNameDisplay(name, participantName, isWinningSide, configuration, individualParticipant, side) {
+  const span = document.createElement('span');
+  if (isWinningSide && configuration?.winnerColor) {
+    span.style.color = typeof configuration.winnerColor === 'string' ? configuration.winnerColor : 'green';
+  } else if (configuration?.genderColor) {
+    const gender = individualParticipant?.person?.sex;
+    const color =
+      (gender === MALE && 'var(--chc-gender-male, #2E86C1)') ||
+      (gender === FEMALE && 'var(--chc-gender-female, #E07BAF)') ||
+      '';
+    span.style.color = typeof configuration.genderColor === 'string' ? configuration.genderColor : color;
+  }
+  span.innerHTML = participantName;
+  name.appendChild(span);
+
+  if (side?.participant?.luckyAdvancement) {
+    const ll = document.createElement('span');
+    ll.className = 'chc-lucky-advancement-badge';
+    ll.textContent = 'LL';
+    name.appendChild(ll);
+  } else if (side?.participant?.entryStatus === LUCKY_LOSER) {
+    const ll = document.createElement('span');
+    ll.className = 'chc-lucky-loser-badge';
+    ll.textContent = 'LL';
+    name.appendChild(ll);
+  }
+}
+
 export function renderIndividual(params: {
   isWinningSide?: boolean;
   side?: Side;
@@ -63,7 +111,7 @@ export function renderIndividual(params: {
 
   const flags = configuration?.flags;
   const hasScale = configuration?.scaleAttributes;
-  const scalePosition = flags ? 'left' : (configuration?.scaleAttributes?.scalePosition || 'left');
+  const scalePosition = flags ? 'left' : configuration?.scaleAttributes?.scalePosition || 'left';
   const flag = flags && renderFrill({ ...params, type: 'flag' });
   if (flag) {
     individual.appendChild(flag);
@@ -92,7 +140,7 @@ export function renderIndividual(params: {
 
   // In persist mode, BYE should also be assignable (can change BYE to participant)
   const persistMode = configuration?.persistInputFields;
-  
+
   const canAssign =
     configuration?.inlineAssignment &&
     isFunction(eventHandlers?.assignParticipant) &&
@@ -102,68 +150,20 @@ export function renderIndividual(params: {
     (!side?.qualifier || persistMode); // In persist mode, QUALIFIER can be reassigned
 
   // Determine whether to show input field or participant name/BYE/QUALIFIER
-  const shouldShowInput = canAssign && matchUp && (
-    !participantName || // No participant assigned yet
-    side?.bye || // BYE assigned (in persist mode, since canAssign checks persistMode)
-    side?.qualifier || // QUALIFIER assigned (in persist mode, since canAssign checks persistMode)
-    persistMode // Or persistInputFields mode is enabled
-  );
+  const shouldShowInput =
+    canAssign &&
+    matchUp &&
+    (!participantName || // No participant assigned yet
+      side?.bye || // BYE assigned (in persist mode, since canAssign checks persistMode)
+      side?.qualifier || // QUALIFIER assigned (in persist mode, since canAssign checks persistMode)
+      persistMode); // Or persistInputFields mode is enabled
 
   if (shouldShowInput) {
-    // Render typeahead input for participant assignment
-    // In persist mode, if BYE or QUALIFIER is assigned, pass a special marker
-    let currentAssignment;
-    if (side?.bye) {
-      currentAssignment = { participantId: '__BYE__', participantName: '— BYE —' };
-    } else if (side?.qualifier) {
-      currentAssignment = { participantId: '__QUALIFIER__', participantName: '— QUALIFIER —' };
-    } else {
-      currentAssignment = individualParticipant;
-    }
-    
-    const inputField = renderParticipantInput({
-      matchUp,
-      side,
-      sideNumber,
-      eventHandlers,
-      composition,
-      currentParticipant: currentAssignment, // Pass current assignment (BYE or participant)
-    });
-    name.appendChild(inputField);
+    name.appendChild(buildParticipantInputField(side, individualParticipant, matchUp, sideNumber, eventHandlers, composition));
   } else if (participantName) {
-    // Show participant name (normal mode)
-    const span = document.createElement('span');
-    if (isWinningSide && configuration?.winnerColor) {
-      span.style.color = typeof configuration.winnerColor === 'string' ? configuration.winnerColor : 'green';
-    } else if (configuration?.genderColor) {
-      const gender = individualParticipant?.person?.sex;
-      const color =
-        (gender === MALE && 'var(--chc-gender-male, #2E86C1)') ||
-        (gender === FEMALE && 'var(--chc-gender-female, #E07BAF)') ||
-        '';
-      span.style.color = typeof configuration.genderColor === 'string' ? configuration.genderColor : color;
-    }
-    span.innerHTML = participantName;
-    name.appendChild(span);
-
-    // Lucky loser badge — two variants:
-    // 1. luckyAdvancement: re-entered after losing in a lucky draw (orange bordered box)
-    // 2. entryStatus LUCKY_LOSER without luckyAdvancement: qualifying lucky loser (solid orange text)
-    if (side?.participant?.luckyAdvancement) {
-      const ll = document.createElement('span');
-      ll.className = 'chc-lucky-advancement-badge';
-      ll.textContent = 'LL';
-      name.appendChild(ll);
-    } else if (side?.participant?.entryStatus === LUCKY_LOSER) {
-      const ll = document.createElement('span');
-      ll.className = 'chc-lucky-loser-badge';
-      ll.textContent = 'LL';
-      name.appendChild(ll);
-    }
+    buildParticipantNameDisplay(name, participantName, isWinningSide, configuration, individualParticipant, side);
   } else {
-    // Render placeholder (TBD/Qualifier/BYE)
     const placeholder = document.createElement('abbr');
-    // if { showAddress: true } pad placeholder
     placeholder.className = getPlacholderStyle({ variant: configuration?.showAddress ? 'showAddress' : '' });
     placeholder.innerHTML =
       (side?.bye && placeHolders.BYE) || (side?.qualifier && placeHolders.QUALIFIER) || placeHolders.TBD;

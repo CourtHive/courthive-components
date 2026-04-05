@@ -27,8 +27,8 @@ export function renderInlineScoringEntry(params: RenderScoreEntryParams): void {
     configuration: {
       ...baseComposition.configuration,
       matchUpFooter: true,
-      inlineScoring: { mode: 'games' as const, showFooter: true, showSituation: true },
-    },
+      inlineScoring: { mode: 'games' as const, showFooter: true, showSituation: true }
+    }
   };
 
   const format = matchUp.matchUpFormat || 'SET3-S:6/TB7';
@@ -38,7 +38,7 @@ export function renderInlineScoringEntry(params: RenderScoreEntryParams): void {
     ...matchUp,
     matchUpStatus: 'IN_PROGRESS',
     readyToScore: true,
-    winningSide: undefined,
+    winningSide: undefined
   };
 
   const emitOutcome = (scoredMatchUp: any, isComplete: boolean) => {
@@ -49,7 +49,7 @@ export function renderInlineScoringEntry(params: RenderScoreEntryParams): void {
       winningSide: scoredMatchUp?.winningSide,
       matchUpStatus: scoredMatchUp?.matchUpStatus,
       matchUpFormat: format,
-      score: scoredMatchUp?.score?.scoreStringSide1,
+      score: scoredMatchUp?.score?.scoreStringSide1
     };
     onScoreChange(outcome);
   };
@@ -65,7 +65,7 @@ export function renderInlineScoringEntry(params: RenderScoreEntryParams): void {
     onEndMatch: ({ matchUpId: mId, matchUpStatus }) => {
       const scoredMatchUp = manager.getMatchUp(mId, inlineMatchUp);
       emitOutcome({ ...scoredMatchUp, matchUpStatus }, true);
-    },
+    }
   });
 
   const inlineEl = renderInlineMatchUp({
@@ -73,7 +73,7 @@ export function renderInlineScoringEntry(params: RenderScoreEntryParams): void {
     composition,
     manager,
     matchUpFormat: format,
-    isLucky: true, // suppress connectors in modal context
+    isLucky: true // suppress connectors in modal context
   });
 
   container.appendChild(inlineEl);
@@ -88,7 +88,7 @@ export function renderInlineScoringEntry(params: RenderScoreEntryParams): void {
       ...matchUp,
       matchUpStatus: 'IN_PROGRESS',
       readyToScore: true,
-      winningSide: undefined,
+      winningSide: undefined
     };
 
     const freshEl = renderInlineMatchUp({
@@ -96,7 +96,7 @@ export function renderInlineScoringEntry(params: RenderScoreEntryParams): void {
       composition,
       manager,
       matchUpFormat: format,
-      isLucky: true,
+      isLucky: true
     });
     container.appendChild(freshEl);
 

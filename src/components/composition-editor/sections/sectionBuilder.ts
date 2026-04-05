@@ -11,10 +11,7 @@ export interface SectionDef {
   factory: (store: CompositionEditorStore) => EditorPanel;
 }
 
-export function buildSection(
-  def: SectionDef,
-  store: CompositionEditorStore,
-): EditorPanel {
+export function buildSection(def: SectionDef, store: CompositionEditorStore): EditorPanel {
   const root = document.createElement('div');
   root.className = ceSection();
 

@@ -107,10 +107,7 @@ export function buildRankingPointsEditorPanel(
   let lastFilter = '';
   let addProfileBtn: HTMLElement | null = null;
 
-  const update = (state: RankingPointsEditorState) => {
-    const { draft, expandedSections, profileFilter } = state;
-
-    // Update chevrons, counts, and body visibility
+  function updateSectionHeaders(expandedSections: Set<string>, state: RankingPointsEditorState): void {
     for (let i = 0; i < sectionDefs.length; i++) {
       const def = sectionDefs[i];
       const el = sectionEls[i];
@@ -124,84 +121,86 @@ export function buildRankingPointsEditorPanel(
         el.countEl.textContent = count ? `(${count})` : '';
       }
     }
+  }
 
-    // Metadata — persistent inner, just call update
+  function rebuildProfileCards(state: RankingPointsEditorState, filter: string): void {
+    const profilesBody = sectionEls[1].bodyEl;
+    profilesBody.innerHTML = '';
+    profileCards = [];
+
+    const profiles = state.draft.awardProfiles ?? [];
+    let visibleCount = 0;
+
+    for (let i = 0; i < profiles.length; i++) {
+      const profile = profiles[i];
+
+      if (filter) {
+        const searchable = [
+          profile.profileName ?? '',
+          ...(profile.eventTypes ?? []),
+          ...(profile.stages ?? []),
+          ...(profile.levels ?? []).map((l) => `L${l}`),
+          ...(profile.drawTypes ?? [])
+        ]
+          .join(' ')
+          .toLowerCase();
+        if (!searchable.includes(filter)) continue;
+      }
+
+      const card = buildProfileCard(store, i);
+      profileCards.push(card);
+      profilesBody.appendChild(card.element);
+      visibleCount++;
+    }
+
+    if (!visibleCount) {
+      const empty = document.createElement('div');
+      empty.className = reEmptyStyle();
+      empty.textContent = filter ? 'No profiles match filter' : 'No award profiles defined';
+      profilesBody.appendChild(empty);
+    }
+
+    if (!state.readonly) {
+      addProfileBtn = document.createElement('button');
+      addProfileBtn.className = 'sp-btn sp-btn--sm sp-btn--outline re-add-btn';
+      addProfileBtn.textContent = '+ Add Profile';
+      addProfileBtn.addEventListener('click', () => store.addProfile());
+      profilesBody.appendChild(addProfileBtn);
+    }
+  }
+
+  const update = (state: RankingPointsEditorState) => {
+    const { draft, expandedSections, profileFilter } = state;
+
+    updateSectionHeaders(expandedSections, state);
+
     if (expandedSections.has('metadata')) {
       metadataInner.update(state);
     }
 
-    // Award Profiles — track card instances
     if (expandedSections.has('awardProfiles')) {
-      const profilesBody = sectionEls[1].bodyEl;
       const profileCount = draft.awardProfiles?.length ?? 0;
       const filter = profileFilter.toLowerCase();
 
-      // Rebuild cards if count or filter changed
       if (profileCount !== lastProfileCount || filter !== lastFilter) {
         lastProfileCount = profileCount;
         lastFilter = filter;
-        profilesBody.innerHTML = '';
-        profileCards = [];
-
-        const profiles = draft.awardProfiles ?? [];
-        let visibleCount = 0;
-
-        for (let i = 0; i < profiles.length; i++) {
-          const profile = profiles[i];
-
-          if (filter) {
-            const searchable = [
-              profile.profileName ?? '',
-              ...(profile.eventTypes ?? []),
-              ...(profile.stages ?? []),
-              ...(profile.levels ?? []).map((l) => `L${l}`),
-              ...(profile.drawTypes ?? [])
-            ]
-              .join(' ')
-              .toLowerCase();
-            if (!searchable.includes(filter)) continue;
-          }
-
-          const card = buildProfileCard(store, i);
-          profileCards.push(card);
-          profilesBody.appendChild(card.element);
-          visibleCount++;
-        }
-
-        if (!visibleCount) {
-          const empty = document.createElement('div');
-          empty.className = reEmptyStyle();
-          empty.textContent = filter ? 'No profiles match filter' : 'No award profiles defined';
-          profilesBody.appendChild(empty);
-        }
-
-        // Add Profile button
-        if (!state.readonly) {
-          addProfileBtn = document.createElement('button');
-          addProfileBtn.className = 'sp-btn sp-btn--sm sp-btn--outline re-add-btn';
-          addProfileBtn.textContent = '+ Add Profile';
-          addProfileBtn.addEventListener('click', () => store.addProfile());
-          profilesBody.appendChild(addProfileBtn);
-        }
+        rebuildProfileCards(state, filter);
       }
 
-      // Update all visible cards
       for (const card of profileCards) {
         card.update(state);
       }
 
-      // Toggle add button visibility based on readonly
       if (addProfileBtn) {
         addProfileBtn.style.display = state.readonly ? 'none' : '';
       }
     }
 
-    // Quality Win Profiles — persistent inner
     if (expandedSections.has('qualityWinProfiles')) {
       qualityWinInner.update(state);
     }
 
-    // Aggregation Rules — persistent inner
     if (expandedSections.has('aggregationRules')) {
       aggregationInner.update(state);
     }

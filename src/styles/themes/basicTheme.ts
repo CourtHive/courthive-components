@@ -1,19 +1,19 @@
-import { createTheme } from "./createTheme";
+import { createTheme } from './createTheme';
 
-export const basicTheme = createTheme("basic-theme", {
+export const basicTheme = createTheme('basic-theme', {
   colors: {
-    internalDividers: "transparent",
-    winner: "#50B649!important",
-    loser: "#E61A1A!important",
-    connector: "#999",
+    internalDividers: 'transparent',
+    winner: '#50B649!important',
+    loser: '#E61A1A!important',
+    connector: '#999'
   },
   space: {
-    gameMarginInlineEnd: "0.75rem",
+    gameMarginInlineEnd: '0.75rem'
   },
   participant: {
-    seed: "transparent",
+    seed: 'transparent'
   },
   fontSizes: {
-    1: "1.5rem",
-  },
+    1: '1.5rem'
+  }
 });

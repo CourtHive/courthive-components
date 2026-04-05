@@ -12,13 +12,15 @@ export default {
     container.style.padding = '20px';
     container.style.border = '1px solid var(--chc-border-primary)';
     container.style.borderRadius = '4px';
-    
-    const closeCallback = hasClose ? () => {
-      alert('Close callback triggered!');
-    } : undefined;
-    
+
+    const closeCallback = hasClose
+      ? () => {
+          alert('Close callback triggered!');
+        }
+      : undefined;
+
     renderButtons(container, buttons, closeCallback);
-    
+
     return container;
   },
   argTypes: {
@@ -32,9 +34,7 @@ export default {
 export const Basic = {
   args: {
     hasClose: false,
-    buttons: [
-      { label: 'Click Me', onClick: () => alert('Button clicked!') }
-    ]
+    buttons: [{ label: 'Click Me', onClick: () => alert('Button clicked!') }]
   }
 };
 
@@ -59,11 +59,11 @@ export const WithIDs = {
   args: {
     hasClose: false,
     buttons: [
-      { 
-        label: 'Disable Me', 
+      {
+        label: 'Disable Me',
         id: 'disableBtn',
         intent: 'is-info',
-        onClick: function() {
+        onClick: function () {
           const btn = document.getElementById('disableBtn') as HTMLButtonElement;
           if (btn) {
             btn.disabled = true;
@@ -71,11 +71,11 @@ export const WithIDs = {
           }
         }
       },
-      { 
-        label: 'Change Text', 
+      {
+        label: 'Change Text',
         id: 'changeBtn',
         intent: IS_WARNING,
-        onClick: function() {
+        onClick: function () {
           const btn = document.getElementById('changeBtn') as HTMLButtonElement;
           if (btn) btn.innerHTML = 'Text Changed!';
         }
@@ -104,14 +104,14 @@ export const PreventClose = {
   args: {
     hasClose: true,
     buttons: [
-      { 
-        label: 'Validate Only', 
+      {
+        label: 'Validate Only',
         intent: IS_WARNING,
         close: false,
         onClick: () => alert('Validation run - modal stays open!')
       },
-      { 
-        label: 'Submit & Close', 
+      {
+        label: 'Submit & Close',
         intent: IS_SUCCESS,
         onClick: () => alert('Submitting and closing!')
       }
@@ -159,8 +159,8 @@ export const ModalFooterExample = {
     hasClose: true,
     buttons: [
       { label: 'Cancel', intent: 'none' },
-      { 
-        label: 'Save Changes', 
+      {
+        label: 'Save Changes',
         id: 'saveBtn',
         intent: IS_SUCCESS,
         disabled: false,

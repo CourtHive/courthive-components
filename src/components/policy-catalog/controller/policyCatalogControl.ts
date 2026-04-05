@@ -44,7 +44,7 @@ export class PolicyCatalogControl {
         if (!this.store.getSelectedItem()) {
           this.destroyCurrentEditor();
         }
-      },
+      }
     });
 
     this.editorShell = buildEditorShell({
@@ -60,12 +60,12 @@ export class PolicyCatalogControl {
           this.store.duplicatePolicy(selected.id);
           this.mountEditorForSelection();
         }
-      },
+      }
     });
 
     this.layout = buildPolicyCatalogLayout({
       catalogPanel,
-      editorShell: this.editorShell,
+      editorShell: this.editorShell
     });
 
     this.unsubscribe = this.store.subscribe((state) => {
@@ -114,7 +114,7 @@ export class PolicyCatalogControl {
       onChange: (data: Record<string, unknown>) => {
         this.store.updateEditorDraft(data);
       },
-      readonly: isBuiltin,
+      readonly: isBuiltin
     };
 
     if (item.policyType === POLICY_TYPE_SCHEDULING) {

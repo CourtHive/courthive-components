@@ -21,6 +21,154 @@ export function buildQualityWinSection(store: RankingPointsEditorStore): {
   const container = document.createElement('div');
   let lastJSON = '';
 
+  function buildProfileHeader(qi: number, qw: any, readonly: boolean): HTMLElement {
+    const header = document.createElement('div');
+    header.style.cssText = 'display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem';
+
+    if (readonly) {
+      const nameEl = document.createElement('span');
+      nameEl.style.cssText = 'font-weight:600;font-size:0.85rem;color:var(--sp-text)';
+      nameEl.textContent = qw.rankingScaleName;
+      header.appendChild(nameEl);
+    } else {
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.className = reFieldInputTextStyle();
+      nameInput.style.cssText = 'width:150px;font-weight:600';
+      nameInput.value = qw.rankingScaleName;
+      nameInput.addEventListener('change', () => store.setQualityWinField(qi, 'rankingScaleName', nameInput.value));
+      header.appendChild(nameInput);
+
+      const spacer = document.createElement('div');
+      spacer.style.flexGrow = '1';
+      header.appendChild(spacer);
+
+      const delBtn = document.createElement('span');
+      delBtn.className = reIconBtnDangerStyle();
+      delBtn.textContent = '\u2715';
+      delBtn.title = 'Delete profile';
+      delBtn.style.cursor = 'pointer';
+      delBtn.addEventListener('click', () => store.removeQualityWinProfile(qi));
+      header.appendChild(delBtn);
+    }
+    return header;
+  }
+
+  const CELL_ALIGN_STYLE = 'text-align:right;padding:2px 4px';
+  const HEADER_CELL_STYLE = 'text-align:right;width:4rem';
+
+  function buildRangeRow(qi: number, ri: number, range: any, readonly: boolean): HTMLElement {
+    const row = document.createElement('tr');
+
+    if (readonly) {
+      for (const val of [range.rankRange[0], range.rankRange[1], range.value]) {
+        const td = document.createElement('td');
+        td.style.cssText = 'text-align:right;font-variant-numeric:tabular-nums;padding:2px 4px';
+        td.textContent = val.toLocaleString();
+        row.appendChild(td);
+      }
+    } else {
+      const fromCell = document.createElement('td');
+      fromCell.style.cssText = CELL_ALIGN_STYLE;
+      fromCell.appendChild(makeNumInput(range.rankRange[0], (val) => {
+        store.setQualityWinRange(qi, ri, 'rankRange', [val, range.rankRange[1]]);
+      }));
+      row.appendChild(fromCell);
+
+      const toCell = document.createElement('td');
+      toCell.style.cssText = CELL_ALIGN_STYLE;
+      toCell.appendChild(makeNumInput(range.rankRange[1], (val) => {
+        store.setQualityWinRange(qi, ri, 'rankRange', [range.rankRange[0], val]);
+      }));
+      row.appendChild(toCell);
+
+      const valCell = document.createElement('td');
+      valCell.style.cssText = CELL_ALIGN_STYLE;
+      valCell.appendChild(makeNumInput(range.value, (val) => {
+        store.setQualityWinRange(qi, ri, 'value', val);
+      }));
+      row.appendChild(valCell);
+
+      const actCell = document.createElement('td');
+      actCell.style.cssText = 'text-align:center;padding:2px';
+      const removeBtn = document.createElement('span');
+      removeBtn.className = reIconBtnDangerStyle();
+      removeBtn.textContent = '\u00D7';
+      removeBtn.style.cursor = 'pointer';
+      removeBtn.addEventListener('click', () => store.removeQualityWinRange(qi, ri));
+      actCell.appendChild(removeBtn);
+      row.appendChild(actCell);
+    }
+
+    return row;
+  }
+
+  function buildRankingRangesTable(qi: number, qw: any, readonly: boolean): HTMLElement {
+    const table = document.createElement('table');
+    table.style.cssText = 'font-size:0.8rem;margin-bottom:0.3rem;border-collapse:collapse';
+
+    const thead = document.createElement('thead');
+    const hrow = document.createElement('tr');
+    for (const [h, style] of [
+      ['From', HEADER_CELL_STYLE],
+      ['To', HEADER_CELL_STYLE],
+      ['Bonus', HEADER_CELL_STYLE]
+    ] as [string, string][]) {
+      const th = document.createElement('th');
+      th.textContent = h;
+      th.style.cssText = style + ';padding:2px 4px';
+      hrow.appendChild(th);
+    }
+    if (!readonly) {
+      const th = document.createElement('th');
+      th.style.cssText = 'width:2rem;padding:2px';
+      hrow.appendChild(th);
+    }
+    thead.appendChild(hrow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    for (let ri = 0; ri < qw.rankingRanges.length; ri++) {
+      tbody.appendChild(buildRangeRow(qi, ri, qw.rankingRanges[ri], readonly));
+    }
+    table.appendChild(tbody);
+    return table;
+  }
+
+  function buildConfigField(qi: number, field: string, label: string, value: any, readonly: boolean): HTMLElement {
+    const row = document.createElement('div');
+    row.className = reFieldRowStyle();
+    const lbl = document.createElement('div');
+    lbl.className = reFieldLabelStyle();
+    lbl.style.minWidth = '100px';
+    lbl.style.fontSize = '0.75rem';
+    lbl.textContent = label;
+    row.appendChild(lbl);
+
+    if (readonly) {
+      const val = document.createElement('span');
+      val.style.cssText = 'font-size:0.75rem;color:var(--sp-muted)';
+      val.textContent = String(value);
+      row.appendChild(val);
+    } else {
+      const input = document.createElement('input');
+      input.type = typeof value === 'number' ? 'number' : 'text';
+      input.className = typeof value === 'number' ? reFieldInputNumberStyle() : reFieldInputTextStyle();
+      input.style.fontSize = '0.75rem';
+      input.value = value === undefined ? '' : String(value);
+      input.addEventListener('change', () => {
+        const v = input.value.trim();
+        if (typeof value === 'number' || field === 'maxBonusPerTournament') {
+          store.setQualityWinField(qi, field, v ? Number.parseFloat(v) : undefined);
+        } else {
+          store.setQualityWinField(qi, field, v || undefined);
+        }
+      });
+      row.appendChild(input);
+    }
+    return row;
+  }
+
   function rebuild(state: RankingPointsEditorState): void {
     const profiles = state.draft.qualityWinProfiles;
     container.innerHTML = '';
@@ -46,120 +194,10 @@ export function buildQualityWinSection(store: RankingPointsEditorStore): {
       const card = document.createElement('div');
       card.style.cssText = 'border:1px solid var(--sp-border);border-radius:10px;padding:0.5rem;margin-bottom:0.5rem';
 
-      // Header: name + delete
-      const header = document.createElement('div');
-      header.style.cssText = 'display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem';
+      card.appendChild(buildProfileHeader(qi, qw, state.readonly));
 
-      if (state.readonly) {
-        const nameEl = document.createElement('span');
-        nameEl.style.cssText = 'font-weight:600;font-size:0.85rem;color:var(--sp-text)';
-        nameEl.textContent = qw.rankingScaleName;
-        header.appendChild(nameEl);
-      } else {
-        const nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.className = reFieldInputTextStyle();
-        nameInput.style.cssText = 'width:150px;font-weight:600';
-        nameInput.value = qw.rankingScaleName;
-        nameInput.addEventListener('change', () => store.setQualityWinField(qi, 'rankingScaleName', nameInput.value));
-        header.appendChild(nameInput);
-
-        const spacer = document.createElement('div');
-        spacer.style.flexGrow = '1';
-        header.appendChild(spacer);
-
-        const delBtn = document.createElement('span');
-        delBtn.className = reIconBtnDangerStyle();
-        delBtn.textContent = '\u2715';
-        delBtn.title = 'Delete profile';
-        delBtn.style.cursor = 'pointer';
-        delBtn.addEventListener('click', () => store.removeQualityWinProfile(qi));
-        header.appendChild(delBtn);
-      }
-
-      card.appendChild(header);
-
-      // Ranking ranges table
       if (qw.rankingRanges?.length) {
-        const table = document.createElement('table');
-        table.style.cssText = 'font-size:0.8rem;margin-bottom:0.3rem;border-collapse:collapse';
-
-        const thead = document.createElement('thead');
-        const hrow = document.createElement('tr');
-        for (const [h, style] of [
-          ['From', 'text-align:right;width:4rem'],
-          ['To', 'text-align:right;width:4rem'],
-          ['Bonus', 'text-align:right;width:4rem']
-        ] as const) {
-          const th = document.createElement('th');
-          th.textContent = h;
-          th.style.cssText = style + ';padding:2px 4px';
-          hrow.appendChild(th);
-        }
-        if (!state.readonly) {
-          const th = document.createElement('th');
-          th.style.cssText = 'width:2rem;padding:2px';
-          hrow.appendChild(th);
-        }
-        thead.appendChild(hrow);
-        table.appendChild(thead);
-
-        const tbody = document.createElement('tbody');
-        for (let ri = 0; ri < qw.rankingRanges.length; ri++) {
-          const range = qw.rankingRanges[ri];
-          const row = document.createElement('tr');
-
-          if (state.readonly) {
-            for (const val of [range.rankRange[0], range.rankRange[1], range.value]) {
-              const td = document.createElement('td');
-              td.style.cssText = 'text-align:right;font-variant-numeric:tabular-nums;padding:2px 4px';
-              td.textContent = val.toLocaleString();
-              row.appendChild(td);
-            }
-          } else {
-            // From
-            const fromCell = document.createElement('td');
-            fromCell.style.cssText = 'text-align:right;padding:2px 4px';
-            const fromInput = makeNumInput(range.rankRange[0], (val) => {
-              store.setQualityWinRange(qi, ri, 'rankRange', [val, range.rankRange[1]]);
-            });
-            fromCell.appendChild(fromInput);
-            row.appendChild(fromCell);
-
-            // To
-            const toCell = document.createElement('td');
-            toCell.style.cssText = 'text-align:right;padding:2px 4px';
-            const toInput = makeNumInput(range.rankRange[1], (val) => {
-              store.setQualityWinRange(qi, ri, 'rankRange', [range.rankRange[0], val]);
-            });
-            toCell.appendChild(toInput);
-            row.appendChild(toCell);
-
-            // Value
-            const valCell = document.createElement('td');
-            valCell.style.cssText = 'text-align:right;padding:2px 4px';
-            const valInput = makeNumInput(range.value, (val) => {
-              store.setQualityWinRange(qi, ri, 'value', val);
-            });
-            valCell.appendChild(valInput);
-            row.appendChild(valCell);
-
-            // Remove
-            const actCell = document.createElement('td');
-            actCell.style.cssText = 'text-align:center;padding:2px';
-            const removeBtn = document.createElement('span');
-            removeBtn.className = reIconBtnDangerStyle();
-            removeBtn.textContent = '\u00D7';
-            removeBtn.style.cursor = 'pointer';
-            removeBtn.addEventListener('click', () => store.removeQualityWinRange(qi, ri));
-            actCell.appendChild(removeBtn);
-            row.appendChild(actCell);
-          }
-
-          tbody.appendChild(row);
-        }
-        table.appendChild(tbody);
-        card.appendChild(table);
+        card.appendChild(buildRankingRangesTable(qi, qw, state.readonly));
 
         if (!state.readonly) {
           const addRange = document.createElement('button');
@@ -171,7 +209,6 @@ export function buildQualityWinSection(store: RankingPointsEditorStore): {
         }
       }
 
-      // Config fields
       const configFields: [string, string, any][] = [
         ['maxBonusPerTournament', 'Max bonus/tournament', qw.maxBonusPerTournament],
         ['rankingSnapshot', 'Ranking snapshot', qw.rankingSnapshot]
@@ -179,40 +216,9 @@ export function buildQualityWinSection(store: RankingPointsEditorStore): {
 
       for (const [field, label, value] of configFields) {
         if (value === undefined && state.readonly) continue;
-        const row = document.createElement('div');
-        row.className = reFieldRowStyle();
-        const lbl = document.createElement('div');
-        lbl.className = reFieldLabelStyle();
-        lbl.style.minWidth = '100px';
-        lbl.style.fontSize = '0.75rem';
-        lbl.textContent = label;
-        row.appendChild(lbl);
-
-        if (state.readonly) {
-          const val = document.createElement('span');
-          val.style.cssText = 'font-size:0.75rem;color:var(--sp-muted)';
-          val.textContent = String(value);
-          row.appendChild(val);
-        } else {
-          const input = document.createElement('input');
-          input.type = typeof value === 'number' ? 'number' : 'text';
-          input.className = typeof value === 'number' ? reFieldInputNumberStyle() : reFieldInputTextStyle();
-          input.style.fontSize = '0.75rem';
-          input.value = value === undefined ? '' : String(value);
-          input.addEventListener('change', () => {
-            const v = input.value.trim();
-            if (typeof value === 'number' || field === 'maxBonusPerTournament') {
-              store.setQualityWinField(qi, field, v ? Number.parseFloat(v) : undefined);
-            } else {
-              store.setQualityWinField(qi, field, v || undefined);
-            }
-          });
-          row.appendChild(input);
-        }
-        card.appendChild(row);
+        card.appendChild(buildConfigField(qi, field, label, value, state.readonly));
       }
 
-      // includeWalkovers
       if (qw.includeWalkovers !== undefined || !state.readonly) {
         const cbRow = document.createElement('div');
         cbRow.className = reCheckboxRowStyle();
@@ -232,7 +238,6 @@ export function buildQualityWinSection(store: RankingPointsEditorStore): {
       container.appendChild(card);
     }
 
-    // Add button
     if (!state.readonly) {
       const addBtn = document.createElement('button');
       addBtn.className = 'sp-btn sp-btn--sm sp-btn--outline re-add-btn';

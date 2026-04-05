@@ -3,14 +3,14 @@ import { getAttr } from '../../helpers/getAttr';
 import cx from 'classnames';
 import type { IndividualParticipant } from '../../types';
 
-export function renderPersonAttribute({ 
-  individualParticipant, 
-  attribute, 
-  className 
-}: { 
-  individualParticipant?: IndividualParticipant; 
-  attribute: string; 
-  className?: string 
+export function renderPersonAttribute({
+  individualParticipant,
+  attribute,
+  className
+}: {
+  individualParticipant?: IndividualParticipant;
+  attribute: string;
+  className?: string;
 }): HTMLElement | string {
   const person = individualParticipant?.person;
   const value = getAttr({ element: person, attr: attribute });

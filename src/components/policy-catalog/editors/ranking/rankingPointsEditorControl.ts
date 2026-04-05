@@ -63,7 +63,7 @@ export class RankingPointsEditorControl {
     const editorConfig: RankingPointsEditorConfig = {
       initialPolicy: config.initialData as unknown as RankingPolicyData,
       onChange: (policy) => config.onChange(policy as unknown as Record<string, unknown>),
-      readonly: config.readonly,
+      readonly: config.readonly
     };
 
     const control = new RankingPointsEditorControl(editorConfig);

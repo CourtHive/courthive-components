@@ -45,5 +45,5 @@ export type {
   AverageTimeEntry,
   RecoveryTimeEntry,
   MatchUpAverageTime,
-  MatchUpRecoveryTime,
+  MatchUpRecoveryTime
 } from './types';

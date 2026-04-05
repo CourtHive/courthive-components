@@ -3,7 +3,7 @@ import type {
   CompositionEditorConfig,
   CompositionEditorState,
   CompositionEditorListener,
-  SectionId,
+  SectionId
 } from './compositionEditorTypes';
 
 export class CompositionEditorStore {
@@ -19,7 +19,7 @@ export class CompositionEditorStore {
       configuration: { ...(config.composition?.configuration || {}) },
       expandedSections: new Set<SectionId>(['theme', 'display']),
       isDirty: false,
-      readOnly: config.readOnly || false,
+      readOnly: config.readOnly || false
     };
   }
 
@@ -62,11 +62,7 @@ export class CompositionEditorStore {
   }
 
   /** Update a nested object field (e.g., gameScore, placeHolders, scaleAttributes) */
-  setConfigNestedField<K extends keyof Configuration>(
-    key: K,
-    nestedKey: string,
-    value: unknown,
-  ): void {
+  setConfigNestedField<K extends keyof Configuration>(key: K, nestedKey: string, value: unknown): void {
     const existing = (this.state.configuration[key] as Record<string, unknown>) || {};
     const updated = { ...existing, [nestedKey]: value };
     this.setConfigField(key, updated as Configuration[K]);
@@ -84,7 +80,7 @@ export class CompositionEditorStore {
       compositionName: name,
       theme,
       configuration: { ...configuration },
-      isDirty: false,
+      isDirty: false
     });
     this.notifyChange();
   }
@@ -95,7 +91,7 @@ export class CompositionEditorStore {
       compositionName: this.config.compositionName || 'Custom',
       theme: this.config.composition?.theme || '',
       configuration: { ...(this.config.composition?.configuration || {}) },
-      isDirty: false,
+      isDirty: false
     });
     this.notifyChange();
   }
@@ -115,7 +111,7 @@ export class CompositionEditorStore {
   private notifyChange(): void {
     this.config.onChange?.({
       theme: this.state.theme,
-      configuration: this.state.configuration,
+      configuration: this.state.configuration
     });
   }
 }

@@ -2,12 +2,12 @@ import { participantDetailStyle } from '../../styles/participantDetailStyle';
 import cx from 'classnames';
 import type { IndividualParticipant } from '../../types';
 
-export function renderTeam({ 
-  individualParticipant, 
-  className 
-}: { 
-  individualParticipant?: IndividualParticipant; 
-  className?: string 
+export function renderTeam({
+  individualParticipant,
+  className
+}: {
+  individualParticipant?: IndividualParticipant;
+  className?: string;
 }): HTMLElement {
   const team = individualParticipant?.teams?.[0];
   const teamName = team?.participantName || ' ';

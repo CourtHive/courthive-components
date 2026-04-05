@@ -21,9 +21,7 @@ export function roundKeyString(r: RoundKey | RoundProfile): string {
 export function roundLabel(r: RoundProfile): string {
   const e = r.eventName ? `${r.eventName} \u2013 ` : '';
   const rn = r.roundName ?? `Round ${r.roundNumber}`;
-  const seg = r.roundSegment
-    ? ` (seg ${r.roundSegment.segmentNumber}/${r.roundSegment.segmentsCount})`
-    : '';
+  const seg = r.roundSegment ? ` (seg ${r.roundSegment.segmentNumber}/${r.roundSegment.segmentsCount})` : '';
   return `${e}${rn}${seg}`;
 }
 
@@ -38,6 +36,6 @@ export function pickRoundKey(r: RoundProfile): RoundKey {
     eventId: r.eventId,
     drawId: r.drawId,
     structureId: r.structureId,
-    roundNumber: r.roundNumber,
+    roundNumber: r.roundNumber
   };
 }

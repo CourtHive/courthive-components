@@ -4,13 +4,43 @@ import type { SchedulingProfileConfig, SchedulingProfile, TemporalAdapter } from
 
 const venues = [
   { venueId: 'V1', name: 'Venue A' },
-  { venueId: 'V2', name: 'Venue B' },
+  { venueId: 'V2', name: 'Venue B' }
 ];
 
 const roundCatalog = [
-  { tournamentId: 'T1', eventId: 'E1', eventName: 'Boys U16', drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 5, roundName: 'R32', matchCountEstimate: 16 },
-  { tournamentId: 'T1', eventId: 'E1', eventName: 'Boys U16', drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 6, roundName: 'R16', matchCountEstimate: 8 },
-  { tournamentId: 'T1', eventId: 'E1', eventName: 'Boys U16', drawId: 'D1', drawName: 'Main', structureId: 'S1', roundNumber: 7, roundName: 'QF', matchCountEstimate: 4 },
+  {
+    tournamentId: 'T1',
+    eventId: 'E1',
+    eventName: 'Boys U16',
+    drawId: 'D1',
+    drawName: 'Main',
+    structureId: 'S1',
+    roundNumber: 5,
+    roundName: 'R32',
+    matchCountEstimate: 16
+  },
+  {
+    tournamentId: 'T1',
+    eventId: 'E1',
+    eventName: 'Boys U16',
+    drawId: 'D1',
+    drawName: 'Main',
+    structureId: 'S1',
+    roundNumber: 6,
+    roundName: 'R16',
+    matchCountEstimate: 8
+  },
+  {
+    tournamentId: 'T1',
+    eventId: 'E1',
+    eventName: 'Boys U16',
+    drawId: 'D1',
+    drawName: 'Main',
+    structureId: 'S1',
+    roundNumber: 7,
+    roundName: 'QF',
+    matchCountEstimate: 4
+  }
 ];
 
 const DAY1 = '2026-06-15';
@@ -25,7 +55,7 @@ function makeConfig(overrides: Partial<SchedulingProfileConfig> = {}): Schedulin
 function makeTemporal(): TemporalAdapter {
   return {
     isDateAvailable: (date: string) =>
-      schedulableDates.includes(date) ? { ok: true } : { ok: false, reason: 'Not schedulable' },
+      schedulableDates.includes(date) ? { ok: true } : { ok: false, reason: 'Not schedulable' }
   };
 }
 
@@ -40,9 +70,7 @@ describe('ProfileStore', () => {
     });
 
     it('initializes with provided profile', () => {
-      const initial: SchedulingProfile = [
-        { scheduleDate: DAY1, venues: [{ venueId: 'V1', rounds: [] }] },
-      ];
+      const initial: SchedulingProfile = [{ scheduleDate: DAY1, venues: [{ venueId: 'V1', rounds: [] }] }];
       const store = new ProfileStore(makeConfig({ initialProfile: initial }));
       expect(store.getState().profileDraft).toHaveLength(1);
     });
@@ -55,12 +83,19 @@ describe('ProfileStore', () => {
             {
               venueId: 'V1',
               rounds: [
-                { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5, roundName: 'R32' },
-                { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5, roundName: 'R32' },
-              ],
-            },
-          ],
-        },
+                {
+                  tournamentId: 'T1',
+                  eventId: 'E1',
+                  drawId: 'D1',
+                  structureId: 'S1',
+                  roundNumber: 5,
+                  roundName: 'R32'
+                },
+                { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5, roundName: 'R32' }
+              ]
+            }
+          ]
+        }
       ];
       const store = new ProfileStore(makeConfig({ initialProfile: profile }));
       expect(store.getState().ruleResults.length).toBeGreaterThan(0);
@@ -81,7 +116,7 @@ describe('ProfileStore', () => {
         date: DAY1,
         venueId: 'V1',
         index: 0,
-        roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 },
+        roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 }
       });
       store.selectDate(DAY2);
       expect(store.getState().selectedLocator).toBeNull();
@@ -93,7 +128,7 @@ describe('ProfileStore', () => {
       const store = new ProfileStore(makeConfig({ temporalAdapter: makeTemporal() }));
       const result = store.dropRound(
         { type: 'CATALOG_ROUND', roundRef: roundCatalog[0] },
-        { date: DAY1, venueId: 'V1', index: 0 },
+        { date: DAY1, venueId: 'V1', index: 0 }
       );
       expect(result.ok).toBe(true);
       expect(store.getState().profileDraft).toHaveLength(1);
@@ -108,18 +143,18 @@ describe('ProfileStore', () => {
             {
               venueId: 'V1',
               rounds: [
-                { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5, roundName: 'R32' },
-              ],
-            },
-          ],
-        },
+                { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5, roundName: 'R32' }
+              ]
+            }
+          ]
+        }
       ];
       const store = new ProfileStore(makeConfig({ initialProfile: profile, temporalAdapter: makeTemporal() }));
 
       // Dropping the same round again should cause DUPLICATE_ROUND
       const result = store.dropRound(
         { type: 'CATALOG_ROUND', roundRef: roundCatalog[0] },
-        { date: DAY1, venueId: 'V2', index: 0 },
+        { date: DAY1, venueId: 'V2', index: 0 }
       );
       expect(result.ok).toBe(false);
       expect(result.errorMessage).toBeDefined();
@@ -134,12 +169,19 @@ describe('ProfileStore', () => {
             {
               venueId: 'V1',
               rounds: [
-                { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5, roundName: 'R32' },
-                { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5, roundName: 'R32' },
-              ],
-            },
-          ],
-        },
+                {
+                  tournamentId: 'T1',
+                  eventId: 'E1',
+                  drawId: 'D1',
+                  structureId: 'S1',
+                  roundNumber: 5,
+                  roundName: 'R32'
+                },
+                { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5, roundName: 'R32' }
+              ]
+            }
+          ]
+        }
       ];
       const store = new ProfileStore(makeConfig({ initialProfile: profile, temporalAdapter: makeTemporal() }));
       expect(store.getState().issueIndex.counts.ERROR).toBeGreaterThan(0);
@@ -152,10 +194,10 @@ describe('ProfileStore', () => {
             date: DAY1,
             venueId: 'V1',
             index: 1,
-            roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 },
-          },
+            roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 }
+          }
         },
-        { date: DAY1, venueId: 'V2', index: 0 },
+        { date: DAY1, venueId: 'V2', index: 0 }
       );
       expect(result.ok).toBe(true);
     });
@@ -170,18 +212,18 @@ describe('ProfileStore', () => {
             {
               venueId: 'V1',
               rounds: [
-                { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5, roundName: 'R32' },
-              ],
-            },
-          ],
-        },
+                { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5, roundName: 'R32' }
+              ]
+            }
+          ]
+        }
       ];
       const store = new ProfileStore(makeConfig({ initialProfile: profile }));
       store.removeRound({
         date: DAY1,
         venueId: 'V1',
         index: 0,
-        roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 },
+        roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 }
       });
       expect(store.getState().profileDraft[0].venues[0].rounds).toHaveLength(0);
     });
@@ -196,18 +238,18 @@ describe('ProfileStore', () => {
             {
               venueId: 'V1',
               rounds: [
-                { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5, roundName: 'R32' },
-              ],
-            },
-          ],
-        },
+                { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5, roundName: 'R32' }
+              ]
+            }
+          ]
+        }
       ];
       const store = new ProfileStore(makeConfig({ initialProfile: profile }));
       const locator = {
         date: DAY1,
         venueId: 'V1',
         index: 0,
-        roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 },
+        roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 }
       };
       store.setNotBeforeTime(locator, '10:00');
       expect(store.getState().profileDraft[0].venues[0].rounds[0].notBeforeTime).toBe('10:00');
@@ -221,18 +263,26 @@ describe('ProfileStore', () => {
             {
               venueId: 'V1',
               rounds: [
-                { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5, roundName: 'R32', notBeforeTime: '10:00' },
-              ],
-            },
-          ],
-        },
+                {
+                  tournamentId: 'T1',
+                  eventId: 'E1',
+                  drawId: 'D1',
+                  structureId: 'S1',
+                  roundNumber: 5,
+                  roundName: 'R32',
+                  notBeforeTime: '10:00'
+                }
+              ]
+            }
+          ]
+        }
       ];
       const store = new ProfileStore(makeConfig({ initialProfile: profile }));
       const locator = {
         date: DAY1,
         venueId: 'V1',
         index: 0,
-        roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 },
+        roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 }
       };
       store.setNotBeforeTime(locator, undefined);
       expect(store.getState().profileDraft[0].venues[0].rounds[0].notBeforeTime).toBeUndefined();
@@ -280,9 +330,7 @@ describe('ProfileStore', () => {
 
   describe('getSchedulingProfile', () => {
     it('returns a deep copy', () => {
-      const profile: SchedulingProfile = [
-        { scheduleDate: DAY1, venues: [{ venueId: 'V1', rounds: [] }] },
-      ];
+      const profile: SchedulingProfile = [{ scheduleDate: DAY1, venues: [{ venueId: 'V1', rounds: [] }] }];
       const store = new ProfileStore(makeConfig({ initialProfile: profile }));
       const copy = store.getSchedulingProfile();
       copy[0].scheduleDate = '9999-01-01';

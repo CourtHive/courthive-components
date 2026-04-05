@@ -28,12 +28,12 @@ export function renderStatusPill({ matchUpStatus }: { matchUpStatus?: string }):
   const statusText = [WALKOVER, DOUBLE_WALKOVER].includes(matchUpStatus || '')
     ? 'WO'
     : [DEFAULTED, DOUBLE_DEFAULT].includes(matchUpStatus || '')
-    ? 'DEF'
-    : matchUpStatus === ABANDONED
-    ? 'ABD'
-    : matchUpStatus === IN_PROGRESS
-    ? 'LIVE'
-    : matchUpStatus?.split('_').join('').slice(0, 3) || '';
+      ? 'DEF'
+      : matchUpStatus === ABANDONED
+        ? 'ABD'
+        : matchUpStatus === IN_PROGRESS
+          ? 'LIVE'
+          : matchUpStatus?.split('_').join('').slice(0, 3) || '';
 
   const div = document.createElement('div');
   div.className = pillStyle(variant ? { variant } : {});

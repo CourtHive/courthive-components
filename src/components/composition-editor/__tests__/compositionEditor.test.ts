@@ -38,7 +38,7 @@ describe('createCompositionEditor', () => {
   it('renders with composition data', () => {
     const { container } = setup({
       compositionName: 'Australian',
-      composition: compositions.Australian,
+      composition: compositions.Australian
     });
     const input = container.querySelector(NAME_INPUT_SELECTOR) as HTMLInputElement;
     expect(input!.value).toBe('Australian');
@@ -73,7 +73,7 @@ describe('createCompositionEditor', () => {
   it('getComposition returns SavedComposition with version', () => {
     const { editor } = setup({
       compositionName: 'Test',
-      composition: { theme: 'chc-theme-french', configuration: { flags: true } },
+      composition: { theme: 'chc-theme-french', configuration: { flags: true } }
     });
     const saved = editor.getComposition();
     expect(saved.compositionName).toBe('Test');
@@ -90,9 +90,9 @@ describe('createCompositionEditor', () => {
           flags: true,
           participantProvider: () => [],
           persistInputFields: true,
-          inlineAssignment: true,
-        } as any,
-      },
+          inlineAssignment: true
+        } as any
+      }
     });
     const saved = editor.getComposition();
     expect(saved.configuration.flags).toBe(true);
@@ -114,7 +114,7 @@ describe('createCompositionEditor', () => {
   it('renders a preview panel in the right column', () => {
     const { container } = setup({
       composition: compositions.Australian,
-      compositionName: 'Australian',
+      compositionName: 'Australian'
     });
     const root = container.children[0];
     const right = root.children[1];

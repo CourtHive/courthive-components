@@ -1,6 +1,6 @@
 /**
  * Conflict Evaluators Stories
- * 
+ *
  * Demonstrates the pluggable conflict detection system.
  * Shows each evaluator in isolation and combined scenarios.
  */
@@ -18,7 +18,7 @@ const {
   maintenanceWindowEvaluator,
   defaultEvaluators,
   formatConflicts,
-  getHighestSeverity,
+  getHighestSeverity
 } = temporal;
 
 // ============================================================================
@@ -40,14 +40,16 @@ const mockTournament = {
   tournamentId: TEST_TOURNAMENT,
   startDate: '2026-06-15',
   endDate: '2026-06-20',
-  venues: [{
-    venueId: 'venue-1',
-    venueName: 'Main Stadium',
-    courts: [
-      { courtId: 'court-1', courtName: 'Court 1', indoor: false },
-      { courtId: 'court-2', courtName: 'Court 2', indoor: true },
-    ],
-  }],
+  venues: [
+    {
+      venueId: 'venue-1',
+      venueName: 'Main Stadium',
+      courts: [
+        { courtId: 'court-1', courtName: 'Court 1', indoor: false },
+        { courtId: 'court-2', courtName: 'Court 2', indoor: true }
+      ]
+    }
+  ]
 };
 
 // ============================================================================
@@ -80,10 +82,10 @@ Pluggable conflict detection system with three severity levels:
 7. **Maintenance Window** - Guides maintenance scheduling
 
 All evaluators are optional and configurable.
-        `,
-      },
-    },
-  },
+        `
+      }
+    }
+  }
 };
 
 export default meta;
@@ -128,34 +130,35 @@ const renderEvaluatorDemo = (title: string, demoFn: () => string) => {
  * Court Overlap Evaluator
  */
 export const CourtOverlap: Story = {
-  render: () => renderEvaluatorDemo('Court Overlap Evaluator', () => {
-    const engine = new TemporalEngine();
-    engine.init(mockTournament, {
-      conflictEvaluators: [courtOverlapEvaluator],
-    });
+  render: () =>
+    renderEvaluatorDemo('Court Overlap Evaluator', () => {
+      const engine = new TemporalEngine();
+      engine.init(mockTournament, {
+        conflictEvaluators: [courtOverlapEvaluator]
+      });
 
-    const court = {
-      tournamentId: TEST_TOURNAMENT,
-      venueId: 'venue-1',
-      courtId: 'court-1',
-    };
+      const court = {
+        tournamentId: TEST_TOURNAMENT,
+        venueId: 'venue-1',
+        courtId: 'court-1'
+      };
 
-    // Create HARD_BLOCK
-    engine.applyBlock({
-      courts: [court],
-      timeRange: { start: T_1000, end: T_1400 },
-      type: 'HARD_BLOCK',
-      reason: 'Championship match',
-    });
+      // Create HARD_BLOCK
+      engine.applyBlock({
+        courts: [court],
+        timeRange: { start: T_1000, end: T_1400 },
+        type: 'HARD_BLOCK',
+        reason: 'Championship match'
+      });
 
-    // Try to overlap
-    const result = engine.applyBlock({
-      courts: [court],
-      timeRange: { start: T_1200, end: '2026-06-15T16:00:00' },
-      type: 'AVAILABLE',
-    });
+      // Try to overlap
+      const result = engine.applyBlock({
+        courts: [court],
+        timeRange: { start: T_1200, end: '2026-06-15T16:00:00' },
+        type: 'AVAILABLE'
+      });
 
-    return `
+      return `
 Evaluator: courtOverlapEvaluator
 
 Rule: Prevents double-booking courts
@@ -175,43 +178,44 @@ HARD_BLOCK overlaps are ERROR severity and prevent
 the operation. This ensures critical time slots like
 championship matches cannot be double-booked.
     `.trim();
-  }),
+    }),
   parameters: {
     docs: {
       description: {
-        story: 'Prevents double-booking courts. HARD_BLOCK overlaps are ERROR severity and block the operation.',
-      },
-    },
-  },
+        story: 'Prevents double-booking courts. HARD_BLOCK overlaps are ERROR severity and block the operation.'
+      }
+    }
+  }
 };
 
 /**
  * Day Boundary Evaluator
  */
 export const DayBoundary: Story = {
-  render: () => renderEvaluatorDemo('Day Boundary Evaluator', () => {
-    const engine = new TemporalEngine();
-    engine.init(mockTournament, {
-      conflictEvaluators: [dayBoundaryEvaluator],
-    });
+  render: () =>
+    renderEvaluatorDemo('Day Boundary Evaluator', () => {
+      const engine = new TemporalEngine();
+      engine.init(mockTournament, {
+        conflictEvaluators: [dayBoundaryEvaluator]
+      });
 
-    const court = {
-      tournamentId: TEST_TOURNAMENT,
-      venueId: 'venue-1',
-      courtId: 'court-1',
-    };
+      const court = {
+        tournamentId: TEST_TOURNAMENT,
+        venueId: 'venue-1',
+        courtId: 'court-1'
+      };
 
-    // Try to create multi-day block
-    const result = engine.applyBlock({
-      courts: [court],
-      timeRange: {
-        start: T_2000,
-        end: '2026-06-16T02:00:00', // Next day!
-      },
-      type: 'AVAILABLE',
-    });
+      // Try to create multi-day block
+      const result = engine.applyBlock({
+        courts: [court],
+        timeRange: {
+          start: T_2000,
+          end: '2026-06-16T02:00:00' // Next day!
+        },
+        type: 'AVAILABLE'
+      });
 
-    return `
+      return `
 Evaluator: dayBoundaryEvaluator
 
 Rule: Blocks must not cross day boundaries
@@ -231,53 +235,54 @@ The temporal grid uses a day-based model where each
 day is scheduled independently. Multi-day blocks would
 complicate the model and are not allowed.
     `.trim();
-  }),
+    }),
   parameters: {
     docs: {
       description: {
-        story: 'Enforces single-day blocks. The temporal grid uses a day-based scheduling model.',
-      },
-    },
-  },
+        story: 'Enforces single-day blocks. The temporal grid uses a day-based scheduling model.'
+      }
+    }
+  }
 };
 
 /**
  * Block Duration Evaluator
  */
 export const BlockDuration: Story = {
-  render: () => renderEvaluatorDemo('Block Duration Evaluator', () => {
-    const engine = new TemporalEngine();
-    engine.init(mockTournament, {
-      conflictEvaluators: [blockDurationEvaluator],
-    });
+  render: () =>
+    renderEvaluatorDemo('Block Duration Evaluator', () => {
+      const engine = new TemporalEngine();
+      engine.init(mockTournament, {
+        conflictEvaluators: [blockDurationEvaluator]
+      });
 
-    const court = {
-      tournamentId: TEST_TOURNAMENT,
-      venueId: 'venue-1',
-      courtId: 'court-1',
-    };
+      const court = {
+        tournamentId: TEST_TOURNAMENT,
+        venueId: 'venue-1',
+        courtId: 'court-1'
+      };
 
-    // Try very short block
-    const shortResult = engine.applyBlock({
-      courts: [court],
-      timeRange: {
-        start: T_1000,
-        end: '2026-06-15T10:05:00', // 5 minutes
-      },
-      type: 'AVAILABLE',
-    });
+      // Try very short block
+      const shortResult = engine.applyBlock({
+        courts: [court],
+        timeRange: {
+          start: T_1000,
+          end: '2026-06-15T10:05:00' // 5 minutes
+        },
+        type: 'AVAILABLE'
+      });
 
-    // Try very long block
-    const longResult = engine.applyBlock({
-      courts: [court],
-      timeRange: {
-        start: '2026-06-15T06:00:00',
-        end: '2026-06-15T23:00:00', // 17 hours
-      },
-      type: 'AVAILABLE',
-    });
+      // Try very long block
+      const longResult = engine.applyBlock({
+        courts: [court],
+        timeRange: {
+          start: '2026-06-15T06:00:00',
+          end: '2026-06-15T23:00:00' // 17 hours
+        },
+        type: 'AVAILABLE'
+      });
 
-    return `
+      return `
 Evaluator: blockDurationEvaluator
 
 Rule: Blocks should have reasonable durations
@@ -298,43 +303,44 @@ Duration evaluator helps catch mistakes like:
 - All-day blocks that should be split
 Both are allowed but flagged for review.
     `.trim();
-  }),
+    }),
   parameters: {
     docs: {
       description: {
-        story: 'Validates block durations are reasonable (15min - 14hr). Issues warnings but allows the operation.',
-      },
-    },
-  },
+        story: 'Validates block durations are reasonable (15min - 14hr). Issues warnings but allows the operation.'
+      }
+    }
+  }
 };
 
 /**
  * Match Window Evaluator
  */
 export const MatchWindow: Story = {
-  render: () => renderEvaluatorDemo('Match Window Evaluator', () => {
-    const engine = new TemporalEngine();
-    engine.init(mockTournament, {
-      conflictEvaluators: [matchWindowEvaluator],
-    });
+  render: () =>
+    renderEvaluatorDemo('Match Window Evaluator', () => {
+      const engine = new TemporalEngine();
+      engine.init(mockTournament, {
+        conflictEvaluators: [matchWindowEvaluator]
+      });
 
-    const court = {
-      tournamentId: TEST_TOURNAMENT,
-      venueId: 'venue-1',
-      courtId: 'court-1',
-    };
+      const court = {
+        tournamentId: TEST_TOURNAMENT,
+        venueId: 'venue-1',
+        courtId: 'court-1'
+      };
 
-    // Create short available window
-    const result = engine.applyBlock({
-      courts: [court],
-      timeRange: {
-        start: T_1000,
-        end: '2026-06-15T10:45:00', // 45 minutes
-      },
-      type: 'AVAILABLE',
-    });
+      // Create short available window
+      const result = engine.applyBlock({
+        courts: [court],
+        timeRange: {
+          start: T_1000,
+          end: '2026-06-15T10:45:00' // 45 minutes
+        },
+        type: 'AVAILABLE'
+      });
 
-    return `
+      return `
 Evaluator: matchWindowEvaluator
 
 Rule: AVAILABLE blocks should allow >= 60min for match
@@ -356,47 +362,48 @@ when available windows might be too short for a match.
 
 Note: Still allowed as some formats (fast4) are shorter.
     `.trim();
-  }),
+    }),
   parameters: {
     docs: {
       description: {
-        story: 'Ensures AVAILABLE blocks are long enough for matches (>= 60min recommended).',
-      },
-    },
-  },
+        story: 'Ensures AVAILABLE blocks are long enough for matches (>= 60min recommended).'
+      }
+    }
+  }
 };
 
 /**
  * Adjacent Block Evaluator
  */
 export const AdjacentBlock: Story = {
-  render: () => renderEvaluatorDemo('Adjacent Block Evaluator', () => {
-    const engine = new TemporalEngine();
-    engine.init(mockTournament, {
-      conflictEvaluators: [adjacentBlockEvaluator],
-    });
+  render: () =>
+    renderEvaluatorDemo('Adjacent Block Evaluator', () => {
+      const engine = new TemporalEngine();
+      engine.init(mockTournament, {
+        conflictEvaluators: [adjacentBlockEvaluator]
+      });
 
-    const court = {
-      tournamentId: TEST_TOURNAMENT,
-      venueId: 'venue-1',
-      courtId: 'court-1',
-    };
+      const court = {
+        tournamentId: TEST_TOURNAMENT,
+        venueId: 'venue-1',
+        courtId: 'court-1'
+      };
 
-    // Create first block
-    engine.applyBlock({
-      courts: [court],
-      timeRange: { start: T_1000, end: T_1200 },
-      type: 'AVAILABLE',
-    });
+      // Create first block
+      engine.applyBlock({
+        courts: [court],
+        timeRange: { start: T_1000, end: T_1200 },
+        type: 'AVAILABLE'
+      });
 
-    // Create adjacent block (no buffer)
-    const result = engine.applyBlock({
-      courts: [court],
-      timeRange: { start: T_1200, end: T_1400 },
-      type: 'AVAILABLE',
-    });
+      // Create adjacent block (no buffer)
+      const result = engine.applyBlock({
+        courts: [court],
+        timeRange: { start: T_1200, end: T_1400 },
+        type: 'AVAILABLE'
+      });
 
-    return `
+      return `
 Evaluator: adjacentBlockEvaluator
 
 Rule: Recommends 15min buffer between blocks
@@ -421,59 +428,60 @@ A 15-minute buffer helps with:
 
 This is a suggestion, not a requirement.
     `.trim();
-  }),
+    }),
   parameters: {
     docs: {
       description: {
-        story: 'Recommends 15-minute buffers between adjacent blocks for transitions. INFO level only.',
-      },
-    },
-  },
+        story: 'Recommends 15-minute buffers between adjacent blocks for transitions. INFO level only.'
+      }
+    }
+  }
 };
 
 /**
  * Lighting Evaluator
  */
 export const Lighting: Story = {
-  render: () => renderEvaluatorDemo('Lighting Evaluator', () => {
-    const engine = new TemporalEngine();
-    engine.init(mockTournament, {
-      conflictEvaluators: [lightingEvaluator],
-    });
+  render: () =>
+    renderEvaluatorDemo('Lighting Evaluator', () => {
+      const engine = new TemporalEngine();
+      engine.init(mockTournament, {
+        conflictEvaluators: [lightingEvaluator]
+      });
 
-    const outdoorCourt = {
-      tournamentId: TEST_TOURNAMENT,
-      venueId: 'venue-1',
-      courtId: 'court-1', // Outdoor
-    };
+      const outdoorCourt = {
+        tournamentId: TEST_TOURNAMENT,
+        venueId: 'venue-1',
+        courtId: 'court-1' // Outdoor
+      };
 
-    const indoorCourt = {
-      tournamentId: TEST_TOURNAMENT,
-      venueId: 'venue-1',
-      courtId: 'court-2', // Indoor
-    };
+      const indoorCourt = {
+        tournamentId: TEST_TOURNAMENT,
+        venueId: 'venue-1',
+        courtId: 'court-2' // Indoor
+      };
 
-    // Schedule outdoor court after sunset
-    const outdoorResult = engine.applyBlock({
-      courts: [outdoorCourt],
-      timeRange: {
-        start: T_2000,
-        end: '2026-06-15T21:00:00',
-      },
-      type: 'AVAILABLE',
-    });
+      // Schedule outdoor court after sunset
+      const outdoorResult = engine.applyBlock({
+        courts: [outdoorCourt],
+        timeRange: {
+          start: T_2000,
+          end: '2026-06-15T21:00:00'
+        },
+        type: 'AVAILABLE'
+      });
 
-    // Schedule indoor court after sunset (should be fine)
-    const indoorResult = engine.applyBlock({
-      courts: [indoorCourt],
-      timeRange: {
-        start: T_2000,
-        end: '2026-06-15T21:00:00',
-      },
-      type: 'AVAILABLE',
-    });
+      // Schedule indoor court after sunset (should be fine)
+      const indoorResult = engine.applyBlock({
+        courts: [indoorCourt],
+        timeRange: {
+          start: T_2000,
+          end: '2026-06-15T21:00:00'
+        },
+        type: 'AVAILABLE'
+      });
 
-    return `
+      return `
 Evaluator: lightingEvaluator
 
 Rule: Outdoor courts after sunset require lighting
@@ -496,43 +504,44 @@ artificial lighting. The evaluator:
 
 Indoor courts are exempt from this check.
     `.trim();
-  }),
+    }),
   parameters: {
     docs: {
       description: {
-        story: 'Warns when scheduling outdoor courts after sunset. Indoor courts are exempt.',
-      },
-    },
-  },
+        story: 'Warns when scheduling outdoor courts after sunset. Indoor courts are exempt.'
+      }
+    }
+  }
 };
 
 /**
  * Maintenance Window Evaluator
  */
 export const MaintenanceWindow: Story = {
-  render: () => renderEvaluatorDemo('Maintenance Window Evaluator', () => {
-    const engine = new TemporalEngine();
-    engine.init(mockTournament, {
-      conflictEvaluators: [maintenanceWindowEvaluator],
-    });
+  render: () =>
+    renderEvaluatorDemo('Maintenance Window Evaluator', () => {
+      const engine = new TemporalEngine();
+      engine.init(mockTournament, {
+        conflictEvaluators: [maintenanceWindowEvaluator]
+      });
 
-    const court = {
-      tournamentId: TEST_TOURNAMENT,
-      venueId: 'venue-1',
-      courtId: 'court-1',
-    };
+      const court = {
+        tournamentId: TEST_TOURNAMENT,
+        venueId: 'venue-1',
+        courtId: 'court-1'
+      };
 
-    // Schedule maintenance during peak hours
-    const result = engine.applyBlock({
-      courts: [court],
-      timeRange: {
-        start: T_1400,
-        end: '2026-06-15T16:00:00',
-      },
-      type: 'MAINTENANCE',
-    });
+      // Schedule maintenance during peak hours
+      const result = engine.applyBlock({
+        courts: [court],
+        timeRange: {
+          start: T_1400,
+          end: '2026-06-15T16:00:00'
+        },
+        type: 'MAINTENANCE'
+      });
 
-    return `
+      return `
 Evaluator: maintenanceWindowEvaluator
 
 Rule: Maintenance best scheduled outside peak hours
@@ -556,53 +565,54 @@ This evaluator suggests best practices for maintenance:
 It's informational only - emergency maintenance
 during peak hours is sometimes necessary.
     `.trim();
-  }),
+    }),
   parameters: {
     docs: {
       description: {
-        story: 'Suggests scheduling maintenance outside peak hours (10am-6pm). Informational guidance only.',
-      },
-    },
-  },
+        story: 'Suggests scheduling maintenance outside peak hours (10am-6pm). Informational guidance only.'
+      }
+    }
+  }
 };
 
 /**
  * All Evaluators Combined
  */
 export const AllEvaluators: Story = {
-  render: () => renderEvaluatorDemo('All Evaluators Combined', () => {
-    const engine = new TemporalEngine();
-    engine.init(mockTournament, {
-      conflictEvaluators: defaultEvaluators,
-    });
+  render: () =>
+    renderEvaluatorDemo('All Evaluators Combined', () => {
+      const engine = new TemporalEngine();
+      engine.init(mockTournament, {
+        conflictEvaluators: defaultEvaluators
+      });
 
-    const court = {
-      tournamentId: TEST_TOURNAMENT,
-      venueId: 'venue-1',
-      courtId: 'court-1',
-    };
+      const court = {
+        tournamentId: TEST_TOURNAMENT,
+        venueId: 'venue-1',
+        courtId: 'court-1'
+      };
 
-    // Complex scenario with multiple issues
-    engine.applyBlock({
-      courts: [court],
-      timeRange: { start: T_1000, end: T_1400 },
-      type: 'HARD_BLOCK',
-    });
+      // Complex scenario with multiple issues
+      engine.applyBlock({
+        courts: [court],
+        timeRange: { start: T_1000, end: T_1400 },
+        type: 'HARD_BLOCK'
+      });
 
-    const result = engine.applyBlock({
-      courts: [court],
-      timeRange: {
-        start: T_1200,
-        end: '2026-06-15T12:05:00', // Short + overlapping
-      },
-      type: 'AVAILABLE',
-    });
+      const result = engine.applyBlock({
+        courts: [court],
+        timeRange: {
+          start: T_1200,
+          end: '2026-06-15T12:05:00' // Short + overlapping
+        },
+        type: 'AVAILABLE'
+      });
 
-    const highestSeverity = getHighestSeverity(result.conflicts);
+      const highestSeverity = getHighestSeverity(result.conflicts);
 
-    return `
+      return `
 All Evaluators Running:
-${defaultEvaluators.map(e => `- ${e.id}`).join('\n')}
+${defaultEvaluators.map((e) => `- ${e.id}`).join('\n')}
 
 Scenario:
 1. Create HARD_BLOCK at 10:00-14:00
@@ -615,88 +625,104 @@ Highest Severity: ${highestSeverity}
 Conflicts by Severity:
 
 ERROR:
-${result.conflicts.filter(c => c.severity === 'ERROR').map(c => `  - ${c.code}: ${c.message}`).join('\n') || '  (none)'}
+${
+  result.conflicts
+    .filter((c) => c.severity === 'ERROR')
+    .map((c) => `  - ${c.code}: ${c.message}`)
+    .join('\n') || '  (none)'
+}
 
 WARN:
-${result.conflicts.filter(c => c.severity === 'WARN').map(c => `  - ${c.code}: ${c.message}`).join('\n') || '  (none)'}
+${
+  result.conflicts
+    .filter((c) => c.severity === 'WARN')
+    .map((c) => `  - ${c.code}: ${c.message}`)
+    .join('\n') || '  (none)'
+}
 
 INFO:
-${result.conflicts.filter(c => c.severity === 'INFO').map(c => `  - ${c.code}: ${c.message}`).join('\n') || '  (none)'}
+${
+  result.conflicts
+    .filter((c) => c.severity === 'INFO')
+    .map((c) => `  - ${c.code}: ${c.message}`)
+    .join('\n') || '  (none)'
+}
 
 Decision:
 Any ERROR severity conflict rejects the operation.
 WARN and INFO are recorded but don't block.
     `.trim();
-  }),
+    }),
   parameters: {
     docs: {
       description: {
-        story: 'Shows all evaluators working together. ERROR severity blocks operations, WARN/INFO are recorded.',
-      },
-    },
-  },
+        story: 'Shows all evaluators working together. ERROR severity blocks operations, WARN/INFO are recorded.'
+      }
+    }
+  }
 };
 
 /**
  * Custom Evaluator
  */
 export const CustomEvaluator: Story = {
-  render: () => renderEvaluatorDemo('Custom Evaluator', () => {
-    // Create custom evaluator
-    const noWeekendMaintenanceEvaluator = {
-      id: 'noWeekendMaintenance',
-      description: 'Discourage maintenance on weekends',
-      evaluate: (_ctx: any, mutations: any[]) => {
-        const conflicts: any[] = [];
-        for (const mutation of mutations) {
-          if (mutation.kind !== 'ADD_BLOCK') continue;
-          const block = mutation.block;
-          if (block.type !== 'MAINTENANCE') continue;
+  render: () =>
+    renderEvaluatorDemo('Custom Evaluator', () => {
+      // Create custom evaluator
+      const noWeekendMaintenanceEvaluator = {
+        id: 'noWeekendMaintenance',
+        description: 'Discourage maintenance on weekends',
+        evaluate: (_ctx: any, mutations: any[]) => {
+          const conflicts: any[] = [];
+          for (const mutation of mutations) {
+            if (mutation.kind !== 'ADD_BLOCK') continue;
+            const block = mutation.block;
+            if (block.type !== 'MAINTENANCE') continue;
 
-          const date = new Date(block.start);
-          const dayOfWeek = date.getDay();
-          const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+            const date = new Date(block.start);
+            const dayOfWeek = date.getDay();
+            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-          if (isWeekend) {
-            conflicts.push({
-              code: 'WEEKEND_MAINTENANCE',
-              severity: 'WARN' as const,
-              message: 'Maintenance scheduled on weekend - consider weekday instead',
-              timeRange: { start: block.start, end: block.end },
-              courts: [block.court],
-            });
+            if (isWeekend) {
+              conflicts.push({
+                code: 'WEEKEND_MAINTENANCE',
+                severity: 'WARN' as const,
+                message: 'Maintenance scheduled on weekend - consider weekday instead',
+                timeRange: { start: block.start, end: block.end },
+                courts: [block.court]
+              });
+            }
           }
+          return conflicts;
         }
-        return conflicts;
-      },
-    };
+      };
 
-    const engine = new TemporalEngine();
-    engine.init(mockTournament, {
-      conflictEvaluators: [noWeekendMaintenanceEvaluator],
-    });
+      const engine = new TemporalEngine();
+      engine.init(mockTournament, {
+        conflictEvaluators: [noWeekendMaintenanceEvaluator]
+      });
 
-    const court = {
-      tournamentId: TEST_TOURNAMENT,
-      venueId: 'venue-1',
-      courtId: 'court-1',
-    };
+      const court = {
+        tournamentId: TEST_TOURNAMENT,
+        venueId: 'venue-1',
+        courtId: 'court-1'
+      };
 
-    // June 15, 2026 is a Monday
-    const weekdayResult = engine.applyBlock({
-      courts: [court],
-      timeRange: { start: T_1000, end: T_1200 },
-      type: 'MAINTENANCE',
-    });
+      // June 15, 2026 is a Monday
+      const weekdayResult = engine.applyBlock({
+        courts: [court],
+        timeRange: { start: T_1000, end: T_1200 },
+        type: 'MAINTENANCE'
+      });
 
-    // June 20, 2026 is a Saturday
-    const weekendResult = engine.applyBlock({
-      courts: [court],
-      timeRange: { start: '2026-06-20T10:00:00', end: '2026-06-20T12:00:00' },
-      type: 'MAINTENANCE',
-    });
+      // June 20, 2026 is a Saturday
+      const weekendResult = engine.applyBlock({
+        courts: [court],
+        timeRange: { start: '2026-06-20T10:00:00', end: '2026-06-20T12:00:00' },
+        type: 'MAINTENANCE'
+      });
 
-    return `
+      return `
 Custom Evaluator: noWeekendMaintenance
 
 Rule: Discourage maintenance on weekends
@@ -729,12 +755,12 @@ The evaluator system is completely pluggable.
 You can create custom evaluators for any business
 rule specific to your tournament or organization.
     `.trim();
-  }),
+    }),
   parameters: {
     docs: {
       description: {
-        story: 'Demonstrates creating custom evaluators for organization-specific rules. Fully pluggable architecture.',
-      },
-    },
-  },
+        story: 'Demonstrates creating custom evaluators for organization-specific rules. Fully pluggable architecture.'
+      }
+    }
+  }
 };

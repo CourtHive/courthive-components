@@ -41,7 +41,7 @@ export function buildDailyLimitsSection(store: SchedulingEditorStore): {
   for (const [key, label] of [
     ['SINGLES', 'Singles limit'],
     ['DOUBLES', 'Doubles limit'],
-    ['total', 'Total limit'],
+    ['total', 'Total limit']
   ] as const) {
     const row = document.createElement('div');
     row.className = seFieldRowStyle();

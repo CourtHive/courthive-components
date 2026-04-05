@@ -26,12 +26,12 @@ const SECTION_DEFS: SectionDef[] = [
   { id: 'participant', label: 'Participant', factory: buildParticipantSection },
   { id: 'placeholder', label: 'Placeholders', factory: buildPlaceholderSection },
   { id: 'scale', label: 'Scale Attributes', factory: buildScaleSection },
-  { id: 'layout', label: 'Layout & Info', factory: buildLayoutSection },
+  { id: 'layout', label: 'Layout & Info', factory: buildLayoutSection }
 ];
 
 export function createCompositionEditor(
   container: HTMLElement,
-  config: CompositionEditorConfig,
+  config: CompositionEditorConfig
 ): {
   destroy: () => void;
   getComposition: () => SavedComposition;
@@ -106,14 +106,18 @@ export function createCompositionEditor(
     getComposition: (): SavedComposition => {
       const state = store.getState();
       // Strip runtime-only fields that aren't serializable
-      const { participantProvider: _pp, persistInputFields: _pi, inlineAssignment: _ia, ...serializableConfig } =
-        state.configuration as any;
+      const {
+        participantProvider: _pp,
+        persistInputFields: _pi,
+        inlineAssignment: _ia,
+        ...serializableConfig
+      } = state.configuration as any;
       return {
         compositionName: state.compositionName,
         theme: state.theme,
         configuration: serializableConfig,
-        version: 1,
+        version: 1
       };
-    },
+    }
   };
 }

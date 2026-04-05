@@ -68,7 +68,7 @@ describe('validateScore - Aggregate incomplete handling', () => {
 
   it('should work with SET4X format', () => {
     const format = 'SET4XA-S:T10';
-    
+
     // 3 complete sets + 1 incomplete
     const scoreString = '10-1 0-1 5-3 2';
     const result = validateScore(scoreString, format);
@@ -79,7 +79,7 @@ describe('validateScore - Aggregate incomplete handling', () => {
 
   it('should validate 4 complete sets for SET4X', () => {
     const format = 'SET4XA-S:T10';
-    
+
     const scoreString = '10-1 0-1 5-3 2-8';
     const result = validateScore(scoreString, format);
 

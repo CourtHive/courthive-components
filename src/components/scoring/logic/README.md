@@ -5,6 +5,7 @@ This directory contains pure, testable business logic extracted from the Dynamic
 ## Purpose
 
 The goal is to separate business logic from UI rendering, making the code:
+
 - ✅ **Testable** - Functions can be tested without DOM dependencies
 - ✅ **Reusable** - Logic can be used in other contexts (CLI, API, etc.)
 - ✅ **Maintainable** - Clear separation of concerns
@@ -15,13 +16,16 @@ The goal is to separate business logic from UI rendering, making the code:
 ### Files Created
 
 #### `dynamicSetsLogic.ts` (464 lines)
+
 Pure business logic functions with no DOM or side effect dependencies:
 
 **Configuration Functions:**
+
 - `getSetFormatForIndex()` - Get format for specific set (handles deciding set)
 - `isSetTiebreakOnly()` - Check if set is tiebreak-only (TB10)
 
 **Score Calculation Functions:**
+
 - `getMaxAllowedScore()` - Calculate max allowed score based on tennis rules
 - `isSetComplete()` - Determine if a set is complete
 - `getSetWinner()` - Get set winner (or undefined if incomplete)
@@ -29,17 +33,21 @@ Pure business logic functions with no DOM or side effect dependencies:
 - `getMatchWinner()` - Get match winner (or undefined if incomplete)
 
 **Smart Complement Functions:**
+
 - `calculateComplement()` - Calculate complement score for smart entry
 - `shouldApplySmartComplement()` - Determine if/how to apply smart complement
 
 **UI Helper Functions:**
+
 - `shouldShowTiebreak()` - Determine if tiebreak input should be visible
 - `shouldCreateNextSet()` - Determine if next set row should be created
 
 **Data Building Functions:**
+
 - `buildSetScore()` - Build SetScore object from input values
 
 #### `__tests__/dynamicSetsLogic.test.ts` (583 lines)
+
 Comprehensive test suite with **76 tests** covering:
 
 1. **Set Format Detection** (7 tests)
@@ -114,6 +122,7 @@ Comprehensive test suite with **76 tests** covering:
 ### Coverage Analysis
 
 **Business Logic Coverage:**
+
 - Set completion rules: ✅ 100%
 - Match completion rules: ✅ 100%
 - Smart complement logic: ✅ 100%
@@ -121,6 +130,7 @@ Comprehensive test suite with **76 tests** covering:
 - Edge cases: ✅ Comprehensive
 
 **Format Support:**
+
 - S:6/TB7: ✅ Tested
 - S:8/TB7: ✅ Tested
 - TB10 (tiebreak-only): ✅ Tested
@@ -138,12 +148,7 @@ These functions are **standalone and ready to use** but have NOT yet been integr
 ### Example Usage
 
 ```typescript
-import {
-  isSetComplete,
-  isMatchComplete,
-  shouldApplySmartComplement,
-  buildSetScore,
-} from './logic/dynamicSetsLogic';
+import { isSetComplete, isMatchComplete, shouldApplySmartComplement, buildSetScore } from './logic/dynamicSetsLogic';
 
 // Check if set is complete
 const complete = isSetComplete(0, { side1: 6, side2: 4 }, config);
@@ -200,6 +205,7 @@ const setScore = buildSetScore(0, '6', '4', undefined, config);
 ## Next Steps (Phase 2)
 
 ### Option A: Continue Full Refactor
+
 Proceed to extract state machine and refactor UI layer to use these pure functions.
 
 **Timeline:** 2-3 weeks
@@ -207,6 +213,7 @@ Proceed to extract state machine and refactor UI layer to use these pure functio
 **Risk:** Medium (requires significant refactoring)
 
 ### Option B: Incremental Integration
+
 Gradually replace closure-based logic in `dynamicSetsApproach.ts` with calls to these functions.
 
 **Timeline:** 1-2 weeks
@@ -214,6 +221,7 @@ Gradually replace closure-based logic in `dynamicSetsApproach.ts` with calls to 
 **Risk:** Low (one function at a time)
 
 ### Option C: Use as Library
+
 Keep existing code as-is, use these functions only for new features and testing.
 
 **Timeline:** Ongoing
@@ -223,12 +231,14 @@ Keep existing code as-is, use these functions only for new features and testing.
 ## Recommendation
 
 **Start with Option B (Incremental Integration)** because:
+
 1. Low risk - one function at a time
 2. Immediate improvement - code gets cleaner with each change
 3. Validates the extracted functions - ensures they work in production
 4. Builds momentum - team sees value quickly
 
 **Example first steps:**
+
 1. Replace closure `isSetComplete()` with imported function
 2. Replace closure `isMatchComplete()` with imported function
 3. Replace closure `calculateComplement()` with imported function

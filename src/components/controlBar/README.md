@@ -24,14 +24,14 @@ const items = [
     location: 'LEFT',
     search: true,
     clearSearch: () => handleClear(),
-    onKeyUp: (e) => handleSearch(e.target.value),
+    onKeyUp: (e) => handleSearch(e.target.value)
   },
   {
     label: 'Add Item',
     location: 'RIGHT',
     intent: 'is-primary',
-    onClick: () => handleAdd(),
-  },
+    onClick: () => handleAdd()
+  }
 ];
 
 const target = document.getElementById('control-container');
@@ -277,7 +277,7 @@ controlBar({
   onSelection: (rows) => {
     console.log(`${rows.length} rows selected`);
     // Overlay items automatically show/hide
-  },
+  }
 });
 ```
 

@@ -21,11 +21,11 @@ import {
   NO_ISSUES,
   SAMPLE_ISSUES,
   makeMockCourtGrid,
-  makeConfig,
+  makeConfig
 } from './data';
 
 export default {
-  title: 'Schedule Page/Panels',
+  title: 'Schedule Page/Panels'
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -52,7 +52,7 @@ function makeStoreState(overrides: Partial<SchedulePageState> = {}): SchedulePag
     hasUnsavedChanges: false,
     leftCollapsed: false,
     hideLeft: false,
-    ...overrides,
+    ...overrides
   };
 }
 
@@ -103,47 +103,50 @@ export const MatchUpCards = {
 
     // Unscheduled with sides
     const card1 = buildMatchUpCard(MATCHUP_CATALOG[0], {
-      onClick: (m) => logFn(`Clicked: ${m.matchUpId}`),
+      onClick: (m) => logFn(`Clicked: ${m.matchUpId}`)
     });
     grid.appendChild(labelCard('Unscheduled (draggable)', card1));
 
     // Scheduled (dimmed + checkmark)
     const card2 = buildMatchUpCard(MATCHUP_CATALOG[4], {
-      onClick: (m) => logFn(`Clicked scheduled: ${m.matchUpId}`),
+      onClick: (m) => logFn(`Clicked scheduled: ${m.matchUpId}`)
     });
     grid.appendChild(labelCard('Scheduled (dimmed)', card2));
 
     // Doubles (no sides)
     const card3 = buildMatchUpCard(MATCHUP_CATALOG[10], {
-      onClick: (m) => logFn(`Clicked doubles: ${m.matchUpId}`),
+      onClick: (m) => logFn(`Clicked doubles: ${m.matchUpId}`)
     });
     grid.appendChild(labelCard('Doubles — No sides', card3));
 
     // With seed numbers
-    const seeded = { ...MATCHUP_CATALOG[0], sides: [
-      { participantName: MALE_NAMES[0], participantId: 'PM0', seedNumber: 1 },
-      { participantName: MALE_NAMES[1], participantId: 'PM1', seedNumber: 8 },
-    ]};
+    const seeded = {
+      ...MATCHUP_CATALOG[0],
+      sides: [
+        { participantName: MALE_NAMES[0], participantId: 'PM0', seedNumber: 1 },
+        { participantName: MALE_NAMES[1], participantId: 'PM1', seedNumber: 8 }
+      ]
+    };
     const card4 = buildMatchUpCard(seeded, {
-      onClick: (m) => logFn(`Clicked seeded: ${m.matchUpId}`),
+      onClick: (m) => logFn(`Clicked seeded: ${m.matchUpId}`)
     });
     grid.appendChild(labelCard('With Seeds [1] vs [8]', card4));
 
     // Scheduled with time + court chips
     const card5 = buildMatchUpCard(MATCHUP_CATALOG[5], {
-      onClick: (m) => logFn(`Clicked: ${m.matchUpId}`),
+      onClick: (m) => logFn(`Clicked: ${m.matchUpId}`)
     });
     grid.appendChild(labelCard('Scheduled — Time + Court chips', card5));
 
     // Selected state
     const card6 = buildMatchUpCard(MATCHUP_CATALOG[2], {
-      onClick: (m) => logFn(`Clicked selected: ${m.matchUpId}`),
+      onClick: (m) => logFn(`Clicked selected: ${m.matchUpId}`)
     });
     card6.classList.add('selected');
     grid.appendChild(labelCard('Selected', card6));
 
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -163,14 +166,14 @@ export const DateStrip = {
         store.selectDate(date);
         panel.update(store.getState());
         logFn(`Selected date: ${date}`);
-      },
+      }
     });
 
     root.appendChild(panel.element);
     panel.update(store.getState());
 
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -187,7 +190,7 @@ export const IssuesPanel = {
     panel.update(makeStoreState({ issues: SAMPLE_ISSUES }));
 
     return root;
-  },
+  }
 };
 
 export const IssuesPanelEmpty = {
@@ -200,7 +203,7 @@ export const IssuesPanelEmpty = {
     panel.update(makeStoreState());
 
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -240,14 +243,14 @@ export const MatchUpCatalogByEvent = {
         store.selectMatchUp(m);
         panel.update(store.getState());
         logFn(`Selected: ${m.matchUpId}`);
-      },
+      }
     });
 
     root.appendChild(panel.element);
     panel.update(store.getState());
 
     return root;
-  },
+  }
 };
 
 export const MatchUpCatalogWithScheduled = {
@@ -288,7 +291,7 @@ export const MatchUpCatalogWithScheduled = {
       },
       onDropRemove: (id) => {
         console.log('Unschedule:', id);
-      },
+      }
     });
 
     panel.element.style.flex = '1';
@@ -297,7 +300,7 @@ export const MatchUpCatalogWithScheduled = {
     panel.update(store.getState());
 
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -314,7 +317,7 @@ export const InspectorEmpty = {
     panel.update(makeStoreState());
 
     return root;
-  },
+  }
 };
 
 export const InspectorWithSelection = {
@@ -327,7 +330,7 @@ export const InspectorWithSelection = {
     panel.update(makeStoreState({ selectedMatchUp: MATCHUP_CATALOG[0] }));
 
     return root;
-  },
+  }
 };
 
 export const InspectorScheduledMatchUp = {
@@ -340,7 +343,7 @@ export const InspectorScheduledMatchUp = {
     panel.update(makeStoreState({ selectedMatchUp: MATCHUP_CATALOG[4] }));
 
     return root;
-  },
+  }
 };
 
 // ============================================================================
@@ -362,7 +365,7 @@ export const CourtGridSlot = {
     const panel = buildCourtGridSlot(makeMockCourtGrid(6).element, {
       onMatchUpDrop: (payload, event) => {
         logFn(`Dropped: ${payload.matchUp.matchUpId} at (${event.clientX}, ${event.clientY})`);
-      },
+      }
     });
 
     panel.element.style.flex = '1';
@@ -371,7 +374,7 @@ export const CourtGridSlot = {
     panel.update(makeStoreState());
 
     return root;
-  },
+  }
 };
 
 export const CourtGridSlotEmpty = {
@@ -391,5 +394,5 @@ export const CourtGridSlotEmpty = {
     panel.update(makeStoreState());
 
     return root;
-  },
+  }
 };

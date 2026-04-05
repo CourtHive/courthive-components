@@ -16,11 +16,11 @@ export function emptyRankingPolicy(): RankingPolicyData {
           4: 50,
           8: 30,
           16: 15,
-          32: 8,
-        },
-      },
+          32: 8
+        }
+      }
     ],
     requireWinForPoints: true,
-    doublesAttribution: 'fullToEach',
+    doublesAttribution: 'fullToEach'
   };
 }

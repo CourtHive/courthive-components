@@ -21,7 +21,7 @@ import {
   pcBtnStyle,
   pcBtnPrimaryStyle,
   pcEditorBodyStyle,
-  pcEmptyStyle,
+  pcEmptyStyle
 } from './styles';
 
 export interface EditorShellCallbacks {
@@ -156,6 +156,6 @@ export function buildEditorShell(callbacks: EditorShellCallbacks): EditorShellPa
   return {
     element: root,
     update,
-    bodyElement: bodyEl,
+    bodyElement: bodyEl
   };
 }

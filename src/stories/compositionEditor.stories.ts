@@ -10,7 +10,7 @@ const DESC_COLOR = 'var(--chc-text-secondary, #666)';
 
 export default {
   title: 'Components/Composition Editor',
-  tags: ['autodocs'],
+  tags: ['autodocs']
 };
 
 /**
@@ -42,7 +42,7 @@ export const Default = {
       },
       onSave: (saved) => {
         console.log('[CompositionEditor] onSave:', saved);
-      },
+      }
     });
 
     // Save button
@@ -58,7 +58,7 @@ export const Default = {
     container.appendChild(saveBtn);
 
     return container;
-  },
+  }
 };
 
 /**
@@ -78,7 +78,8 @@ export const NationalPreset = {
     container.appendChild(title);
 
     const desc = document.createElement('p');
-    desc.textContent = 'Demonstrates the most complex built-in composition with scale attributes, draw positions, and address display.';
+    desc.textContent =
+      'Demonstrates the most complex built-in composition with scale attributes, draw positions, and address display.';
     desc.style.marginBottom = '1em';
     desc.style.color = DESC_COLOR;
     container.appendChild(desc);
@@ -90,11 +91,11 @@ export const NationalPreset = {
 
     createCompositionEditor(editorContainer, {
       composition: compositions.National,
-      compositionName: 'National',
+      compositionName: 'National'
     });
 
     return container;
-  },
+  }
 };
 
 /**
@@ -127,11 +128,11 @@ export const ReadOnly = {
     createCompositionEditor(editorContainer, {
       composition: compositions.ITF,
       compositionName: 'ITF',
-      readOnly: true,
+      readOnly: true
     });
 
     return container;
-  },
+  }
 };
 
 /**
@@ -151,7 +152,8 @@ export const EmptyStart = {
     container.appendChild(title);
 
     const desc = document.createElement('p');
-    desc.textContent = 'No initial composition — use the Theme & Preset section to load a starting point, or configure from empty.';
+    desc.textContent =
+      'No initial composition — use the Theme & Preset section to load a starting point, or configure from empty.';
     desc.style.marginBottom = '1em';
     desc.style.color = DESC_COLOR;
     container.appendChild(desc);
@@ -165,7 +167,7 @@ export const EmptyStart = {
       compositionName: 'My Custom',
       onChange: (comp) => {
         console.log('[CompositionEditor] onChange:', comp);
-      },
+      }
     });
 
     const saveBtn = document.createElement('button');
@@ -179,5 +181,5 @@ export const EmptyStart = {
     container.appendChild(saveBtn);
 
     return container;
-  },
+  }
 };

@@ -273,9 +273,9 @@ describe('validateProfile', () => {
           scheduleDate: DAY1,
           venues: [
             { venueId: 'V1', rounds: [makeRound({ roundNumber: 6, roundName: 'R16' })] },
-            { venueId: 'V2', rounds: [makeRound({ roundNumber: 5, roundName: 'R32' })] },
-          ],
-        },
+            { venueId: 'V2', rounds: [makeRound({ roundNumber: 5, roundName: 'R32' })] }
+          ]
+        }
       ];
       const results = validateProfile({ profile, venueOrder: ['V1', 'V2'] });
       const violations = results.filter((r) => r.code === 'ROUND_ORDER_VIOLATION');
@@ -322,11 +322,15 @@ describe('validateProfile', () => {
       const profile: SchedulingProfile = [
         {
           scheduleDate: DAY1,
-          venues: [{ venueId: 'V1', rounds: [makeRound({ structureType: ROUND_ROBIN, roundNumber: 3, roundName: 'Round 3' })] }]
+          venues: [
+            { venueId: 'V1', rounds: [makeRound({ structureType: ROUND_ROBIN, roundNumber: 3, roundName: 'Round 3' })] }
+          ]
         },
         {
           scheduleDate: DAY2,
-          venues: [{ venueId: 'V1', rounds: [makeRound({ structureType: ROUND_ROBIN, roundNumber: 1, roundName: 'Round 1' })] }]
+          venues: [
+            { venueId: 'V1', rounds: [makeRound({ structureType: ROUND_ROBIN, roundNumber: 1, roundName: 'Round 1' })] }
+          ]
         }
       ];
       const results = validateProfile({ profile });
@@ -367,9 +371,7 @@ describe('validateProfile', () => {
         }
       ];
       const results = validateProfile({ profile });
-      const violations = results.filter(
-        (r) => r.code === 'ROUND_ORDER_VIOLATION' && r.context.reason === CROSS_DATE
-      );
+      const violations = results.filter((r) => r.code === 'ROUND_ORDER_VIOLATION' && r.context.reason === CROSS_DATE);
       // QF on Day 2 but R16 on Day 3 — QF depends on R16 completing
       expect(violations).toHaveLength(1);
     });
@@ -399,7 +401,7 @@ describe('validateProfile', () => {
   describe('DEPENDENCY_VIOLATION', () => {
     function makeDependencyAdapter(deps: Record<string, string[]>): DependencyAdapter {
       return {
-        getRoundDependencies: (key: string) => deps[key] ?? [],
+        getRoundDependencies: (key: string) => deps[key] ?? []
       };
     }
 
@@ -416,18 +418,22 @@ describe('validateProfile', () => {
       const profile: SchedulingProfile = [
         {
           scheduleDate: DAY1,
-          venues: [{
-            venueId: 'V1',
-            rounds: [makeRound({ drawId: 'D2', structureId: 'S2', roundNumber: 1, roundName: PLAYOFF_R1 })]
-          }]
+          venues: [
+            {
+              venueId: 'V1',
+              rounds: [makeRound({ drawId: 'D2', structureId: 'S2', roundNumber: 1, roundName: PLAYOFF_R1 })]
+            }
+          ]
         },
         {
           scheduleDate: DAY2,
-          venues: [{
-            venueId: 'V1',
-            rounds: [makeRound({ drawId: 'D1', structureId: 'S1', roundNumber: 1, roundName: 'RR R1' })]
-          }]
-        },
+          venues: [
+            {
+              venueId: 'V1',
+              rounds: [makeRound({ drawId: 'D1', structureId: 'S1', roundNumber: 1, roundName: 'RR R1' })]
+            }
+          ]
+        }
       ];
       const adapter = makeDependencyAdapter({ [S2_R1_KEY]: [S1_R1_KEY] });
       const results = validateProfile({ profile, dependencies: adapter });
@@ -442,18 +448,22 @@ describe('validateProfile', () => {
       const profile: SchedulingProfile = [
         {
           scheduleDate: DAY1,
-          venues: [{
-            venueId: 'V1',
-            rounds: [makeRound({ drawId: 'D1', structureId: 'S1', roundNumber: 1, roundName: 'RR R1' })]
-          }]
+          venues: [
+            {
+              venueId: 'V1',
+              rounds: [makeRound({ drawId: 'D1', structureId: 'S1', roundNumber: 1, roundName: 'RR R1' })]
+            }
+          ]
         },
         {
           scheduleDate: DAY2,
-          venues: [{
-            venueId: 'V1',
-            rounds: [makeRound({ drawId: 'D2', structureId: 'S2', roundNumber: 1, roundName: PLAYOFF_R1 })]
-          }]
-        },
+          venues: [
+            {
+              venueId: 'V1',
+              rounds: [makeRound({ drawId: 'D2', structureId: 'S2', roundNumber: 1, roundName: PLAYOFF_R1 })]
+            }
+          ]
+        }
       ];
       const adapter = makeDependencyAdapter({ [S2_R1_KEY]: [S1_R1_KEY] });
       const results = validateProfile({ profile, dependencies: adapter });
@@ -466,14 +476,16 @@ describe('validateProfile', () => {
       const profile: SchedulingProfile = [
         {
           scheduleDate: DAY1,
-          venues: [{
-            venueId: 'V1',
-            rounds: [
-              makeRound({ drawId: 'D2', structureId: 'S2', roundNumber: 1, roundName: CONSOLATION_R1 }),
-              makeRound({ drawId: 'D1', structureId: 'S1', roundNumber: 1, roundName: MAIN_DRAW_R1 }),
-            ]
-          }]
-        },
+          venues: [
+            {
+              venueId: 'V1',
+              rounds: [
+                makeRound({ drawId: 'D2', structureId: 'S2', roundNumber: 1, roundName: CONSOLATION_R1 }),
+                makeRound({ drawId: 'D1', structureId: 'S1', roundNumber: 1, roundName: MAIN_DRAW_R1 })
+              ]
+            }
+          ]
+        }
       ];
       const adapter = makeDependencyAdapter({ [S2_R1_KEY]: [S1_R1_KEY] });
       const results = validateProfile({ profile, dependencies: adapter });
@@ -489,14 +501,16 @@ describe('validateProfile', () => {
       const profile: SchedulingProfile = [
         {
           scheduleDate: DAY1,
-          venues: [{
-            venueId: 'V1',
-            rounds: [
-              makeRound({ drawId: 'D1', structureId: 'S1', roundNumber: 1, roundName: MAIN_DRAW_R1 }),
-              makeRound({ drawId: 'D2', structureId: 'S2', roundNumber: 1, roundName: CONSOLATION_R1 }),
-            ]
-          }]
-        },
+          venues: [
+            {
+              venueId: 'V1',
+              rounds: [
+                makeRound({ drawId: 'D1', structureId: 'S1', roundNumber: 1, roundName: MAIN_DRAW_R1 }),
+                makeRound({ drawId: 'D2', structureId: 'S2', roundNumber: 1, roundName: CONSOLATION_R1 })
+              ]
+            }
+          ]
+        }
       ];
       const adapter = makeDependencyAdapter({ [S2_R1_KEY]: [S1_R1_KEY] });
       const results = validateProfile({ profile, dependencies: adapter });
@@ -508,14 +522,16 @@ describe('validateProfile', () => {
       const profile: SchedulingProfile = [
         {
           scheduleDate: DAY1,
-          venues: [{
-            venueId: 'V1',
-            rounds: [
-              makeRound({ drawId: 'D2', structureId: 'S2', roundNumber: 1, roundName: CONSOLATION_R1 }),
-              makeRound({ drawId: 'D1', structureId: 'S1', roundNumber: 1, roundName: MAIN_DRAW_R1 }),
-            ]
-          }]
-        },
+          venues: [
+            {
+              venueId: 'V1',
+              rounds: [
+                makeRound({ drawId: 'D2', structureId: 'S2', roundNumber: 1, roundName: CONSOLATION_R1 }),
+                makeRound({ drawId: 'D1', structureId: 'S1', roundNumber: 1, roundName: MAIN_DRAW_R1 })
+              ]
+            }
+          ]
+        }
       ];
       // No dependencies adapter
       const results = validateProfile({ profile });
@@ -528,11 +544,13 @@ describe('validateProfile', () => {
       const profile: SchedulingProfile = [
         {
           scheduleDate: DAY1,
-          venues: [{
-            venueId: 'V1',
-            rounds: [makeRound({ drawId: 'D2', structureId: 'S2', roundNumber: 1, roundName: PLAYOFF_R1 })]
-          }]
-        },
+          venues: [
+            {
+              venueId: 'V1',
+              rounds: [makeRound({ drawId: 'D2', structureId: 'S2', roundNumber: 1, roundName: PLAYOFF_R1 })]
+            }
+          ]
+        }
       ];
       const adapter = makeDependencyAdapter({ [S2_R1_KEY]: [S1_R1_KEY] });
       const results = validateProfile({ profile, dependencies: adapter });
@@ -545,14 +563,16 @@ describe('validateProfile', () => {
       const profile: SchedulingProfile = [
         {
           scheduleDate: DAY1,
-          venues: [{
-            venueId: 'V1',
-            rounds: [
-              makeRound({ structureId: 'S1', roundNumber: 2, roundName: 'R16' }),
-              makeRound({ structureId: 'S1', roundNumber: 1, roundName: 'R32' }),
-            ]
-          }]
-        },
+          venues: [
+            {
+              venueId: 'V1',
+              rounds: [
+                makeRound({ structureId: 'S1', roundNumber: 2, roundName: 'R16' }),
+                makeRound({ structureId: 'S1', roundNumber: 1, roundName: 'R32' })
+              ]
+            }
+          ]
+        }
       ];
       // Adapter says R2 depends on R1 (same structure)
       const s1R1 = 'T1|E1|D1|S1|1';

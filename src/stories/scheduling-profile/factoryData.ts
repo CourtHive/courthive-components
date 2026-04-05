@@ -12,7 +12,7 @@ import {
   TemporalEngine,
   temporal,
   drawDefinitionConstants,
-  eventConstants,
+  eventConstants
 } from 'tods-competition-factory';
 
 import type {
@@ -23,7 +23,7 @@ import type {
   DemandAdapter,
   DependencyAdapter,
   SchedulingProfileConfig,
-  RoundProfile,
+  RoundProfile
 } from '../../components/scheduling-profile';
 
 const { calculateCapacityStats } = temporal;
@@ -69,7 +69,7 @@ const VENUE_PROFILES = [
     venueAbbreviation: 'MS',
     courtsCount: 8,
     startTime: '08:00',
-    endTime: '20:00',
+    endTime: '20:00'
   },
   {
     venueId: 'venue-practice-center',
@@ -77,7 +77,7 @@ const VENUE_PROFILES = [
     venueAbbreviation: 'PC',
     courtsCount: 4,
     startTime: '07:00',
-    endTime: '21:00',
+    endTime: '21:00'
   },
   {
     venueId: 'venue-outdoor-complex',
@@ -85,8 +85,8 @@ const VENUE_PROFILES = [
     venueAbbreviation: 'OC',
     courtsCount: 6,
     startTime: '08:00',
-    endTime: '19:00',
-  },
+    endTime: '19:00'
+  }
 ];
 
 const EVENT_PROFILES = [
@@ -94,23 +94,21 @@ const EVENT_PROFILES = [
     eventName: 'Boys U16 Singles',
     category: { categoryName: 'U16' },
     gender: 'MALE',
-    drawProfiles: [
-      { drawSize: 32, drawType: FIRST_MATCH_LOSER_CONSOLATION },
-    ],
+    drawProfiles: [{ drawSize: 32, drawType: FIRST_MATCH_LOSER_CONSOLATION }]
   },
   {
     eventName: 'Girls U16 Singles',
     category: { categoryName: 'U16' },
     gender: 'FEMALE',
-    drawProfiles: [{ drawSize: 32 }],
+    drawProfiles: [{ drawSize: 32 }]
   },
   {
     eventName: 'Boys U16 Doubles',
     eventType: DOUBLES,
     category: { categoryName: 'U16' },
     gender: 'MALE',
-    drawProfiles: [{ drawSize: 16 }],
-  },
+    drawProfiles: [{ drawSize: 16 }]
+  }
 ];
 
 // ============================================================================
@@ -161,7 +159,7 @@ export function buildDependencyAdapter(tournamentId: string): DependencyAdapter 
   }
 
   return {
-    getRoundDependencies: (key: string): string[] => [...(roundDeps.get(key) ?? [])],
+    getRoundDependencies: (key: string): string[] => [...(roundDeps.get(key) ?? [])]
   };
 }
 
@@ -170,9 +168,18 @@ export function buildDependencyAdapter(tournamentId: string): DependencyAdapter 
 // ============================================================================
 
 const VENUE_NAMES = [
-  'Main Stadium', 'Practice Center', 'Outdoor Complex', 'Indoor Arena',
-  'Clay Courts', 'Grass Courts', 'Training Center', 'Community Courts',
-  'Riverside Courts', 'Hilltop Courts', 'South Wing', 'North Wing',
+  'Main Stadium',
+  'Practice Center',
+  'Outdoor Complex',
+  'Indoor Arena',
+  'Clay Courts',
+  'Grass Courts',
+  'Training Center',
+  'Community Courts',
+  'Riverside Courts',
+  'Hilltop Courts',
+  'South Wing',
+  'North Wing'
 ];
 
 function generateVenueProfiles(count: number) {
@@ -182,7 +189,7 @@ function generateVenueProfiles(count: number) {
     venueAbbreviation: `V${i + 1}`,
     courtsCount: Math.max(2, 8 - i),
     startTime: '08:00',
-    endTime: '20:00',
+    endTime: '20:00'
   }));
 }
 
@@ -192,15 +199,13 @@ function generateVenueProfiles(count: number) {
 
 export function createFactorySetup(options?: FactorySetupOptions): FactorySetup {
   // 1. Generate tournament
-  const venueProfiles = options?.venueCount
-    ? generateVenueProfiles(options.venueCount)
-    : VENUE_PROFILES;
+  const venueProfiles = options?.venueCount ? generateVenueProfiles(options.venueCount) : VENUE_PROFILES;
 
   const result = mocksEngine.generateTournamentRecord({
     venueProfiles,
     eventProfiles: EVENT_PROFILES,
     startDate: START_DATE,
-    endDate: END_DATE,
+    endDate: END_DATE
   });
 
   const { tournamentRecord } = result;
@@ -223,9 +228,9 @@ export function createFactorySetup(options?: FactorySetupOptions): FactorySetup 
             date: START_DATE,
             startTime: '08:00',
             endTime: '20:00',
-            bookings: [{ startTime: '09:00', endTime: '11:00', bookingType: 'MAINTENANCE' }],
-          },
-        ],
+            bookings: [{ startTime: '09:00', endTime: '11:00', bookingType: 'MAINTENANCE' }]
+          }
+        ]
       });
     }
 
@@ -237,9 +242,9 @@ export function createFactorySetup(options?: FactorySetupOptions): FactorySetup 
             date: START_DATE,
             startTime: '08:00',
             endTime: '20:00',
-            bookings: [{ startTime: '14:00', endTime: '16:00', bookingType: 'PRACTICE' }],
-          },
-        ],
+            bookings: [{ startTime: '14:00', endTime: '16:00', bookingType: 'PRACTICE' }]
+          }
+        ]
       });
     }
   }
@@ -252,7 +257,7 @@ export function createFactorySetup(options?: FactorySetupOptions): FactorySetup 
   // 3. Extract VenueInfo[]
   const venues: VenueInfo[] = (record.venues || []).map((v: any) => ({
     venueId: v.venueId,
-    name: v.venueName,
+    name: v.venueName
   }));
 
   // 4. Extract round catalog via getRounds()
@@ -268,7 +273,7 @@ export function createFactorySetup(options?: FactorySetupOptions): FactorySetup 
     structureId: r.structureId,
     roundNumber: r.roundNumber,
     roundName: r.roundName,
-    matchCountEstimate: r.matchUpsCount,
+    matchCountEstimate: r.matchUpsCount
   }));
 
   // 5. Compute schedulable dates
@@ -279,7 +284,7 @@ export function createFactorySetup(options?: FactorySetupOptions): FactorySetup 
   engine.init(record, {
     dayStartTime: '06:00',
     dayEndTime: '22:00',
-    slotMinutes: 15,
+    slotMinutes: 15
   });
 
   // 7. Create TemporalAdapter
@@ -299,7 +304,7 @@ export function createFactorySetup(options?: FactorySetupOptions): FactorySetup 
       const curve = engine.getCapacityCurve(date);
       const stats = calculateCapacityStats(curve);
       return Math.round((stats.totalAvailableHours ?? stats.totalCourtHours) * 60);
-    },
+    }
   };
 
   // 8. Create DemandAdapter
@@ -312,15 +317,13 @@ export function createFactorySetup(options?: FactorySetupOptions): FactorySetup 
         for (const round of venue.rounds) {
           const catalogEntry = roundCatalog.find(
             (c) =>
-              c.structureId === round.structureId &&
-              c.roundNumber === round.roundNumber &&
-              c.drawId === round.drawId,
+              c.structureId === round.structureId && c.roundNumber === round.roundNumber && c.drawId === round.drawId
           );
           totalMatches += catalogEntry?.matchCountEstimate ?? round.matchCountEstimate ?? 4;
         }
       }
       return totalMatches * AVG_MATCH_MINUTES;
-    },
+    }
   };
 
   // 9. Build dependency adapter
@@ -328,8 +331,8 @@ export function createFactorySetup(options?: FactorySetupOptions): FactorySetup 
 
   // 10. Extract activeDates from tournament record (if set)
   const tournamentInfo = tournamentEngine.getTournamentInfo?.() ?? {};
-  const activeDates: string[] | undefined = (tournamentInfo as any).activeDates?.map(
-    (d: Date | string) => (typeof d === 'string' ? d.slice(0, 10) : (d as Date).toISOString().slice(0, 10)),
+  const activeDates: string[] | undefined = (tournamentInfo as any).activeDates?.map((d: Date | string) =>
+    typeof d === 'string' ? d.slice(0, 10) : (d as Date).toISOString().slice(0, 10)
   );
 
   // 11. Build config
@@ -341,7 +344,7 @@ export function createFactorySetup(options?: FactorySetupOptions): FactorySetup 
     venueOrder: venues.map((v) => v.venueId),
     temporalAdapter,
     demandAdapter,
-    dependencyAdapter,
+    dependencyAdapter
   };
 
   return {
@@ -356,7 +359,7 @@ export function createFactorySetup(options?: FactorySetupOptions): FactorySetup 
     temporalAdapter,
     demandAdapter,
     dependencyAdapter,
-    config,
+    config
   };
 }
 
@@ -379,13 +382,13 @@ export function profileToFactoryFormat(profile: SchedulingProfile): SchedulingPr
           eventId: r.eventId,
           drawId: r.drawId,
           structureId: r.structureId,
-          roundNumber: r.roundNumber,
+          roundNumber: r.roundNumber
         };
         if (r.roundSegment) base.roundSegment = r.roundSegment;
         if (r.notBeforeTime) base.notBeforeTime = r.notBeforeTime;
         return base;
-      }),
-    })),
+      })
+    }))
   }));
 }
 
@@ -413,7 +416,7 @@ export function buildHeavyProfile(setup: FactorySetup): SchedulingProfile {
     roundNumber: c.roundNumber,
     roundName: c.roundName,
     matchCountEstimate: c.matchCountEstimate,
-    sortOrder: i + 1,
+    sortOrder: i + 1
   }));
 
   return [
@@ -421,9 +424,9 @@ export function buildHeavyProfile(setup: FactorySetup): SchedulingProfile {
       scheduleDate: day1,
       venues: setup.venues.map((v) => ({
         venueId: v.venueId,
-        rounds: v.venueId === firstVenueId ? heavyRounds : [],
-      })),
-    },
+        rounds: v.venueId === firstVenueId ? heavyRounds : []
+      }))
+    }
   ];
 }
 
@@ -479,7 +482,7 @@ export function buildSpreadProfile(setup: FactorySetup): SchedulingProfile {
         roundNumber: c.roundNumber,
         roundName: c.roundName,
         matchCountEstimate: c.matchCountEstimate,
-        sortOrder: rounds.length + 1,
+        sortOrder: rounds.length + 1
       });
     }
     dateIndex++;
@@ -493,7 +496,7 @@ export function buildSpreadProfile(setup: FactorySetup): SchedulingProfile {
 
     const venueSchedules = venues.map((v, vi) => ({
       venueId: v.venueId,
-      rounds: dayRounds.filter((_, ri) => ri % venues.length === vi),
+      rounds: dayRounds.filter((_, ri) => ri % venues.length === vi)
     }));
 
     profile.push({ scheduleDate: date, venues: venueSchedules });

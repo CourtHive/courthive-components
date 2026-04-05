@@ -12,7 +12,7 @@ export function buildPlaceholderSection(store: CompositionEditorStore): EditorPa
     cfg.placeHolders?.tbd || '',
     (v) => store.setConfigNestedField('placeHolders', 'tbd', v || undefined),
     'TBD',
-    readOnly,
+    readOnly
   );
 
   const bye = buildTextInputField(
@@ -20,7 +20,7 @@ export function buildPlaceholderSection(store: CompositionEditorStore): EditorPa
     cfg.placeHolders?.bye || '',
     (v) => store.setConfigNestedField('placeHolders', 'bye', v || undefined),
     'Bye',
-    readOnly,
+    readOnly
   );
 
   const qualifier = buildTextInputField(
@@ -28,7 +28,7 @@ export function buildPlaceholderSection(store: CompositionEditorStore): EditorPa
     cfg.placeHolders?.qualifier || '',
     (v) => store.setConfigNestedField('placeHolders', 'qualifier', v || undefined),
     'Qualifier',
-    readOnly,
+    readOnly
   );
 
   root.appendChild(tbd.element);

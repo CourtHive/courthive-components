@@ -12,13 +12,15 @@ export default {
     container.style.border = '1px solid var(--chc-border-primary)';
     container.style.borderRadius = '8px';
     container.style.backgroundColor = 'var(--chc-bg-elevated)';
-    
-    const closeCallback = hasClose ? () => {
-      alert('Menu closed!');
-    } : undefined;
-    
+
+    const closeCallback = hasClose
+      ? () => {
+          alert('Menu closed!');
+        }
+      : undefined;
+
     renderMenu(container, menu, closeCallback);
-    
+
     return container;
   },
   argTypes: {
@@ -121,15 +123,15 @@ export const CustomStyling = {
     menu: [
       {
         items: [
-          { 
-            heading: 'Recent Items', 
+          {
+            heading: 'Recent Items',
             fontSize: '1.2em'
           },
           { text: 'Document 1', onClick: () => alert('Doc 1') },
           { text: 'Document 2', onClick: () => alert('Doc 2') },
           { divider: true },
-          { 
-            text: 'Delete All', 
+          {
+            text: 'Delete All',
             color: 'red',
             onClick: () => alert('Delete All')
           }
@@ -149,19 +151,19 @@ export const PreventClose = {
       {
         text: 'Actions',
         items: [
-          { 
-            text: 'Preview (stays open)', 
+          {
+            text: 'Preview (stays open)',
             close: false,
             onClick: () => alert('Preview mode - menu stays open!')
           },
-          { 
-            text: 'Edit (stays open)', 
+          {
+            text: 'Edit (stays open)',
             close: false,
             onClick: () => alert('Edit mode - menu stays open!')
           },
           { divider: true },
-          { 
-            text: 'Confirm & Close', 
+          {
+            text: 'Confirm & Close',
             onClick: () => alert('Confirmed and closing!')
           }
         ]

@@ -12,8 +12,19 @@ import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-fact
 import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
 import { getScoringConfig } from '../config';
 
-const { RETIRED, WALKOVER, DEFAULTED, SUSPENDED, CANCELLED, INCOMPLETE, DEAD_RUBBER, IN_PROGRESS, AWAITING_RESULT, DOUBLE_WALKOVER, DOUBLE_DEFAULT } =
-  matchUpStatusConstants;
+const {
+  RETIRED,
+  WALKOVER,
+  DEFAULTED,
+  SUSPENDED,
+  CANCELLED,
+  INCOMPLETE,
+  DEAD_RUBBER,
+  IN_PROGRESS,
+  AWAITING_RESULT,
+  DOUBLE_WALKOVER,
+  DOUBLE_DEFAULT
+} = matchUpStatusConstants;
 
 const CHC_STATUS_SUCCESS = 'var(--chc-status-success)';
 
@@ -285,6 +296,83 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
   side1Radio.addEventListener('change', handleWinnerSelection);
   side2Radio.addEventListener('change', handleWinnerSelection);
 
+  function resetRadioState(): void {
+    radioContainer.style.display = 'none';
+    side1Radio.checked = false;
+    side2Radio.checked = false;
+    side1RadioLabel.style.fontWeight = '';
+    side1RadioLabel.style.color = '';
+    side2RadioLabel.style.fontWeight = '';
+    side2RadioLabel.style.color = '';
+    manualWinningSide = undefined;
+  }
+
+  const STATUS_LABEL_MAP: Record<string, string> = {
+    [RETIRED]: labels.retired || 'RETIRED',
+    [WALKOVER]: labels.walkover || 'WALKOVER',
+    [DEFAULTED]: labels.defaulted || 'DEFAULTED',
+    [SUSPENDED]: 'SUSPENDED',
+    [CANCELLED]: 'CANCELLED',
+    [INCOMPLETE]: 'INCOMPLETE',
+    [DEAD_RUBBER]: 'DEAD RUBBER',
+    [IN_PROGRESS]: 'IN PROGRESS',
+    [AWAITING_RESULT]: 'AWAITING RESULT'
+  };
+
+  function getStatusText(matchUpStatus: string | undefined): string {
+    const validLabel = labels.validScore || 'Valid score';
+    const statusLabel = matchUpStatus && STATUS_LABEL_MAP[matchUpStatus];
+    return statusLabel ? `${validLabel} - ${statusLabel}` : validLabel;
+  }
+
+  function handleIrregularWinnerSelection(result: any, parseResult: any, scoreString: string): number | undefined {
+    const currentStatus = result.matchUpStatus || parseResult.matchUpStatus;
+    const requiresWinnerSelection = [RETIRED, WALKOVER, DEFAULTED].includes(currentStatus);
+    const noWinnerNeeded =
+      [CANCELLED, DEAD_RUBBER, AWAITING_RESULT, INCOMPLETE, IN_PROGRESS, SUSPENDED].includes(currentStatus);
+
+    if (requiresWinnerSelection) {
+      radioContainer.style.display = 'flex';
+      const effectiveWinningSide = manualWinningSide;
+
+      if (!effectiveWinningSide) {
+        if (currentStatus === WALKOVER) {
+          onScoreChange({
+            ...result,
+            isValid: true,
+            matchUpStatus: DOUBLE_WALKOVER,
+            score: parseResult.formattedScore || scoreString
+          });
+        } else if (currentStatus === DEFAULTED) {
+          onScoreChange({
+            ...result,
+            isValid: true,
+            matchUpStatus: DOUBLE_DEFAULT,
+            score: parseResult.formattedScore || scoreString
+          });
+        } else {
+          onScoreChange({
+            ...result,
+            isValid: false,
+            error: 'Winner must be selected for irregular ending',
+            matchUpStatus: currentStatus,
+            score: parseResult.formattedScore || scoreString
+          });
+        }
+        return undefined;
+      }
+      return effectiveWinningSide;
+    }
+
+    if (noWinnerNeeded) {
+      resetRadioState();
+      return undefined;
+    }
+
+    resetRadioState();
+    return result.winningSide;
+  }
+
   // Validation handler
   const handleInput = () => {
     const scoreString = input.value.trim();
@@ -294,16 +382,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
       formattedDisplay.textContent = '';
       validationMessage.textContent = '';
       validationMessage.style.color = '';
-      // Hide radio buttons
-      radioContainer.style.display = 'none';
-      side1Radio.checked = false;
-      side2Radio.checked = false;
-      side1RadioLabel.style.fontWeight = '';
-      side1RadioLabel.style.color = '';
-      side2RadioLabel.style.fontWeight = '';
-      side2RadioLabel.style.color = '';
-      manualWinningSide = undefined;
-      // Reset matchUp display - clear score and winningSide
+      resetRadioState();
       updateMatchUpDisplay({ clearAll: true });
       onScoreChange({
         isValid: false,
@@ -313,217 +392,79 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
       return;
     }
 
-    // Use freeScore parser - it returns ParseResult with all needed data
     const parseResult = parseScore(scoreString, matchUp.matchUpFormat);
 
-    // Show formatted score if available
-    if (parseResult.formattedScore) {
-      formattedDisplay.textContent = parseResult.formattedScore;
-    } else {
-      formattedDisplay.textContent = '';
-    }
+    formattedDisplay.textContent = parseResult.formattedScore || '';
 
-    // Check if irregular ending from parser
-    const isIrregularEnding =
-      parseResult.matchUpStatus &&
-      [
-        RETIRED,
-        WALKOVER,
-        DEFAULTED,
-        SUSPENDED,
-        CANCELLED,
-        INCOMPLETE,
-        DEAD_RUBBER,
-        IN_PROGRESS,
-        AWAITING_RESULT
-      ].includes(parseResult.matchUpStatus);
+    const IRREGULAR_STATUSES = new Set([
+      RETIRED, WALKOVER, DEFAULTED, SUSPENDED, CANCELLED,
+      INCOMPLETE, DEAD_RUBBER, IN_PROGRESS, AWAITING_RESULT
+    ]);
+    const isIrregularEnding = parseResult.matchUpStatus && IRREGULAR_STATUSES.has(parseResult.matchUpStatus);
 
-    // CRITICAL: Validate the formatted score using factory validation
-    // This ensures "6-5" is rejected for SET3-S:6/TB7 format
     const result = parseResult.formattedScore
       ? validateScore(parseResult.formattedScore, matchUp.matchUpFormat, parseResult.matchUpStatus)
       : { isValid: false, sets: [], error: 'No score to validate' };
 
-    // Always update matchUp display if we have validated sets OR irregular ending
     const hasSets = result.sets && result.sets.length > 0;
-
-    // PROGRESSIVE RENDERING: Update matchUp display immediately with validated scoreObject
-    // Also update for irregular endings (like WALKOVER) even without sets
-    // Use manualWinningSide if available (for irregular endings), otherwise use validated result
     const displayWinningSide = manualWinningSide || result.winningSide;
 
     if ((hasSets && result.scoreObject) || isIrregularEnding) {
-      // Update for both: scores with sets OR irregular endings (like WALKOVER)
       updateMatchUpDisplay({
-        scoreObject: result.scoreObject, // May be undefined for WALKOVER/CANCELLED/DEAD_RUBBER
+        scoreObject: result.scoreObject,
         winningSide: displayWinningSide,
         matchUpStatus: result.matchUpStatus || parseResult.matchUpStatus
       });
     }
 
-    // Check if score is complete and valid
     const isComplete = result.isValid || isIrregularEnding;
 
-    // For complete scores (or irregular endings), show green checkmark
     if (isComplete) {
-      indicator.textContent = '✓';
+      indicator.textContent = '\u2713';
       indicator.style.color = CHC_STATUS_SUCCESS;
-
-      // Show match status
-      const validLabel = labels.validScore || 'Valid score';
-      let statusText = validLabel;
-      if (result.matchUpStatus === RETIRED) {
-        statusText = `${validLabel} - ${labels.retired || 'RETIRED'}`;
-      } else if (result.matchUpStatus === WALKOVER) {
-        statusText = `${validLabel} - ${labels.walkover || 'WALKOVER'}`;
-      } else if (result.matchUpStatus === DEFAULTED) {
-        statusText = `${validLabel} - ${labels.defaulted || 'DEFAULTED'}`;
-      } else if (result.matchUpStatus === SUSPENDED) {
-        statusText = `${validLabel} - SUSPENDED`;
-      } else if (result.matchUpStatus === CANCELLED) {
-        statusText = `${validLabel} - CANCELLED`;
-      } else if (result.matchUpStatus === INCOMPLETE) {
-        statusText = `${validLabel} - INCOMPLETE`;
-      } else if (result.matchUpStatus === DEAD_RUBBER) {
-        statusText = `${validLabel} - DEAD RUBBER`;
-      } else if (result.matchUpStatus === IN_PROGRESS) {
-        statusText = `${validLabel} - IN PROGRESS`;
-      } else if (result.matchUpStatus === AWAITING_RESULT) {
-        statusText = `${validLabel} - AWAITING RESULT`;
-      }
-      validationMessage.textContent = statusText;
+      validationMessage.textContent = getStatusText(result.matchUpStatus || parseResult.matchUpStatus);
       validationMessage.style.color = CHC_STATUS_SUCCESS;
 
-      // Determine winner
-      let effectiveWinningSide: number | undefined;
-
-      // Categorize irregular endings: some require winner selection, others don't
-      const requiresWinnerSelection =
-        isIrregularEnding && [RETIRED, WALKOVER, DEFAULTED].includes(result.matchUpStatus || parseResult.matchUpStatus);
-
-      const noWinnerNeeded =
-        isIrregularEnding &&
-        [CANCELLED, DEAD_RUBBER, AWAITING_RESULT, INCOMPLETE, IN_PROGRESS, SUSPENDED].includes(
-          result.matchUpStatus || parseResult.matchUpStatus
-        );
-
-      if (requiresWinnerSelection) {
-        // Show radio buttons for irregular endings that require winner
-        radioContainer.style.display = 'flex';
-
-        // Use manual selection
-        effectiveWinningSide = manualWinningSide;
-
-        if (!effectiveWinningSide) {
-          // No winner selected
-          const currentStatus = result.matchUpStatus || parseResult.matchUpStatus;
-          
-          // For walkover and defaulted, use DOUBLE_* status and enable submit
-          if (currentStatus === WALKOVER) {
-            onScoreChange({
-              ...result,
-              isValid: true,
-              matchUpStatus: DOUBLE_WALKOVER,
-              score: parseResult.formattedScore || scoreString
-            });
-            return;
-          } else if (currentStatus === DEFAULTED) {
-            onScoreChange({
-              ...result,
-              isValid: true,
-              matchUpStatus: DOUBLE_DEFAULT,
-              score: parseResult.formattedScore || scoreString
-            });
-            return;
-          } else {
-            // For retired, still need winner selection
-            onScoreChange({
-              ...result,
-              isValid: false,
-              error: 'Winner must be selected for irregular ending',
-              matchUpStatus: currentStatus,
-              score: parseResult.formattedScore || scoreString
-            });
-            return;
-          }
+      if (isIrregularEnding) {
+        const effectiveWinningSide = handleIrregularWinnerSelection(result, parseResult, scoreString);
+        if (effectiveWinningSide === undefined && [RETIRED, WALKOVER, DEFAULTED].includes(result.matchUpStatus || parseResult.matchUpStatus) && !manualWinningSide) {
+          return;
         }
-      } else if (noWinnerNeeded) {
-        // Hide radio buttons - no winner needed for these statuses
-        radioContainer.style.display = 'none';
-        side1Radio.checked = false;
-        side2Radio.checked = false;
-        side1RadioLabel.style.fontWeight = '';
-        side1RadioLabel.style.color = '';
-        side2RadioLabel.style.fontWeight = '';
-        side2RadioLabel.style.color = '';
-        manualWinningSide = undefined;
-
-        // No winningSide for these statuses
-        effectiveWinningSide = undefined;
+        onScoreChange({
+          ...result,
+          isValid: true,
+          winningSide: effectiveWinningSide,
+          matchUpStatus: result.matchUpStatus || parseResult.matchUpStatus,
+          score: parseResult.formattedScore || scoreString
+        });
       } else {
-        // Hide radio buttons for normal completion
-        radioContainer.style.display = 'none';
-        side1Radio.checked = false;
-        side2Radio.checked = false;
-        side1RadioLabel.style.fontWeight = '';
-        side1RadioLabel.style.color = '';
-        side2RadioLabel.style.fontWeight = '';
-        side2RadioLabel.style.color = '';
-        manualWinningSide = undefined;
-
-        // Use winner from validated result
-        effectiveWinningSide = result.winningSide;
+        resetRadioState();
+        onScoreChange({
+          ...result,
+          isValid: true,
+          winningSide: result.winningSide,
+          matchUpStatus: result.matchUpStatus || parseResult.matchUpStatus,
+          score: parseResult.formattedScore || scoreString
+        });
       }
-
-      // MatchUp already rendered above, pass validated result with effective winner
-      onScoreChange({
-        ...result,
-        isValid: true,
-        winningSide: effectiveWinningSide,
-        matchUpStatus: result.matchUpStatus || parseResult.matchUpStatus,
-        score: parseResult.formattedScore || scoreString
-      });
     } else if (!result.isValid && hasSets) {
-      // Has validated sets but incomplete - show orange indicator
-      indicator.textContent = '⋯';
+      indicator.textContent = '\u22EF';
       indicator.style.color = 'var(--chc-status-warning)';
       validationMessage.textContent = result.error || 'Score incomplete - continue typing';
       validationMessage.style.color = 'var(--chc-status-warning)';
-
-      // Hide radio buttons for incomplete scores
-      radioContainer.style.display = 'none';
-      side1Radio.checked = false;
-      side2Radio.checked = false;
-      side1RadioLabel.style.fontWeight = '';
-      side1RadioLabel.style.color = '';
-      side2RadioLabel.style.fontWeight = '';
-      side2RadioLabel.style.color = '';
-      manualWinningSide = undefined;
-
-      // Not valid for submission yet
+      resetRadioState();
       onScoreChange(result);
     } else {
-      // No valid sets at all - show error
-      indicator.textContent = '✗';
+      indicator.textContent = '\u2717';
       indicator.style.color = 'var(--chc-status-error)';
       validationMessage.textContent = result.error || 'Invalid score';
       validationMessage.style.color = 'var(--chc-status-error)';
-      // Hide radio buttons
-      radioContainer.style.display = 'none';
-      side1Radio.checked = false;
-      side2Radio.checked = false;
-      side1RadioLabel.style.fontWeight = '';
-      side1RadioLabel.style.color = '';
-      side2RadioLabel.style.fontWeight = '';
-      side2RadioLabel.style.color = '';
-      manualWinningSide = undefined;
-      // Reset matchUp display - explicitly clear status and winner
+      resetRadioState();
       updateMatchUpDisplay({
         scoreObject: undefined,
         winningSide: undefined,
         matchUpStatus: undefined
       });
-
       onScoreChange(result);
     }
   };
@@ -604,7 +545,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
   // Focus input and trigger validation if there's an existing score or irregular status
   setTimeout(() => {
     input.focus();
-    
+
     // Special case: for DOUBLE_* statuses, don't trigger handleInput as it would
     // re-parse and lose the DOUBLE_* distinction. Just update display directly.
     if (internalMatchUpStatus === DOUBLE_WALKOVER || internalMatchUpStatus === DOUBLE_DEFAULT) {
@@ -620,7 +561,10 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
         winningSide: internalWinningSide,
         matchUpStatus: internalMatchUpStatus
       });
-    } else if (input.value || (internalMatchUpStatus && internalMatchUpStatus !== 'TO_BE_PLAYED' && internalMatchUpStatus !== 'COMPLETED')) {
+    } else if (
+      input.value ||
+      (internalMatchUpStatus && internalMatchUpStatus !== 'TO_BE_PLAYED' && internalMatchUpStatus !== 'COMPLETED')
+    ) {
       handleInput(); // Trigger validation for pre-populated score or status
     }
   }, 100);

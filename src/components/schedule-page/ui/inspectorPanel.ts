@@ -14,7 +14,7 @@ import {
   spKvStyle,
   spKvKeyStyle,
   spKvValueStyle,
-  spSmallStyle,
+  spSmallStyle
 } from './styles';
 
 export function buildScheduleInspectorPanel(): UIPanel<SchedulePageState> {

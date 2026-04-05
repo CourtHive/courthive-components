@@ -9,7 +9,15 @@ import type { RankingPointsEditorStore } from '../rankingPointsEditorStore';
 import { reFieldRowStyle, reFieldLabelStyle, reFieldInputNumberStyle } from '../styles';
 
 const EVENT_TYPES = ['SINGLES', 'DOUBLES', 'TEAM'];
-const DRAW_TYPES = ['SINGLE_ELIMINATION', 'DOUBLE_ELIMINATION', 'ROUND_ROBIN', 'COMPASS', 'FEED_IN', 'AD_HOC', 'LUCKY_DRAW'];
+const DRAW_TYPES = [
+  'SINGLE_ELIMINATION',
+  'DOUBLE_ELIMINATION',
+  'ROUND_ROBIN',
+  'COMPASS',
+  'FEED_IN',
+  'AD_HOC',
+  'LUCKY_DRAW'
+];
 const STAGES = ['MAIN', 'QUALIFYING', 'CONSOLATION', 'PLAY_OFF'];
 
 interface ChipFieldDef {
@@ -23,19 +31,19 @@ const CHIP_FIELDS: ChipFieldDef[] = [
   { field: 'eventTypes', label: 'Event types', options: EVENT_TYPES },
   { field: 'drawTypes', label: 'Draw types', options: DRAW_TYPES },
   { field: 'stages', label: 'Stages', options: STAGES },
-  { field: 'levels', label: 'Levels', options: [], isNumeric: true },
+  { field: 'levels', label: 'Levels', options: [], isNumeric: true }
 ];
 
 const NUMERIC_FIELDS: [string, string][] = [
   ['maxDrawSize', 'Max draw size'],
   ['maxLevel', 'Max level'],
   ['priority', 'Priority'],
-  ['participationOrder', 'Participation order'],
+  ['participationOrder', 'Participation order']
 ];
 
 export function buildScopeEditor(
   store: RankingPointsEditorStore,
-  profileIndex: number,
+  profileIndex: number
 ): {
   element: HTMLElement;
   update(state: RankingPointsEditorState): void;
@@ -53,6 +61,99 @@ export function buildScopeEditor(
 
   let lastJSON = '';
 
+  function buildChipAddControl(def: any, currentValues: any[]): HTMLElement | undefined {
+    if (def.isNumeric) {
+      const numInput = document.createElement('input');
+      numInput.type = 'number';
+      numInput.min = '1';
+      numInput.placeholder = '+';
+      numInput.style.cssText =
+        'width:36px;font-size:0.7rem;padding:2px 4px;border:1px dashed var(--sp-border);' +
+        'border-radius:4px;background:transparent;color:var(--sp-text);outline:none;text-align:center';
+      numInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          const n = Number.parseInt(numInput.value, 10);
+          if (!Number.isNaN(n) && n > 0 && !currentValues.includes(n)) {
+            store.setProfileScope(
+              profileIndex,
+              def.field,
+              [...currentValues, n].sort((a, b) => a - b)
+            );
+            numInput.value = '';
+          }
+        }
+      });
+      return numInput;
+    }
+
+    const available = def.options.filter((o) => !currentValues.includes(o));
+    if (!available.length) return undefined;
+
+    const select = document.createElement('select');
+    select.style.cssText =
+      'font-size:0.65rem;padding:2px 4px;border:1px dashed var(--sp-border);' +
+      'border-radius:4px;background:transparent;color:var(--sp-muted);outline:none;cursor:pointer';
+    const ph = document.createElement('option');
+    ph.value = '';
+    ph.textContent = '+';
+    select.appendChild(ph);
+    for (const opt of available) {
+      const o = document.createElement('option');
+      o.value = opt;
+      o.textContent = opt;
+      select.appendChild(o);
+    }
+    select.addEventListener('change', () => {
+      if (select.value) {
+        store.setProfileScope(profileIndex, def.field, [...currentValues, select.value]);
+      }
+    });
+    return select;
+  }
+
+  function buildChipRow(def: any, currentValues: any[], ro: boolean): HTMLElement {
+    const row = document.createElement('div');
+    row.style.cssText = 'margin-bottom:6px';
+
+    const label = document.createElement('div');
+    label.style.cssText = 'font-size:0.7rem;color:var(--sp-muted);margin-bottom:2px';
+    label.textContent = def.label;
+    row.appendChild(label);
+
+    const chips = document.createElement('div');
+    chips.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;align-items:center';
+
+    for (const val of currentValues) {
+      const chip = document.createElement('span');
+      chip.className = 're-badge re-badge--accent';
+      chip.style.cssText = 'display:inline-flex;align-items:center;gap:3px';
+      chip.textContent = def.isNumeric ? `L${val}` : String(val);
+
+      if (!ro) {
+        const x = document.createElement('span');
+        x.style.cssText = 'cursor:pointer;font-size:0.6rem;opacity:0.7';
+        x.textContent = '\u00D7';
+        x.addEventListener('click', () => {
+          store.setProfileScope(
+            profileIndex,
+            def.field,
+            currentValues.filter((v: any) => v !== val)
+          );
+        });
+        chip.appendChild(x);
+      }
+      chips.appendChild(chip);
+    }
+
+    if (!ro) {
+      const addControl = buildChipAddControl(def, currentValues);
+      if (addControl) chips.appendChild(addControl);
+    }
+
+    row.appendChild(chips);
+    return row;
+  }
+
   function rebuild(state: RankingPointsEditorState): void {
     content.innerHTML = '';
 
@@ -61,91 +162,12 @@ export function buildScopeEditor(
 
     const ro = state.readonly;
 
-    // Chip fields (arrays)
     for (const def of CHIP_FIELDS) {
       const currentValues: any[] = (profile as any)[def.field] ?? [];
       if (ro && !currentValues.length) continue;
-
-      const row = document.createElement('div');
-      row.style.cssText = 'margin-bottom:6px';
-
-      const label = document.createElement('div');
-      label.style.cssText = 'font-size:0.7rem;color:var(--sp-muted);margin-bottom:2px';
-      label.textContent = def.label;
-      row.appendChild(label);
-
-      const chips = document.createElement('div');
-      chips.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;align-items:center';
-
-      for (const val of currentValues) {
-        const chip = document.createElement('span');
-        chip.className = 're-badge re-badge--accent';
-        chip.style.cssText = 'display:inline-flex;align-items:center;gap:3px';
-        chip.textContent = def.isNumeric ? `L${val}` : String(val);
-
-        if (!ro) {
-          const x = document.createElement('span');
-          x.style.cssText = 'cursor:pointer;font-size:0.6rem;opacity:0.7';
-          x.textContent = '\u00D7';
-          x.addEventListener('click', () => {
-            store.setProfileScope(profileIndex, def.field, currentValues.filter((v: any) => v !== val));
-          });
-          chip.appendChild(x);
-        }
-        chips.appendChild(chip);
-      }
-
-      if (!ro) {
-        if (def.isNumeric) {
-          const numInput = document.createElement('input');
-          numInput.type = 'number';
-          numInput.min = '1';
-          numInput.placeholder = '+';
-          numInput.style.cssText =
-            'width:36px;font-size:0.7rem;padding:2px 4px;border:1px dashed var(--sp-border);' +
-            'border-radius:4px;background:transparent;color:var(--sp-text);outline:none;text-align:center';
-          numInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-              const n = parseInt(numInput.value, 10);
-              if (!isNaN(n) && n > 0 && !currentValues.includes(n)) {
-                store.setProfileScope(profileIndex, def.field, [...currentValues, n].sort((a, b) => a - b));
-                numInput.value = '';
-              }
-            }
-          });
-          chips.appendChild(numInput);
-        } else {
-          const available = def.options.filter((o) => !currentValues.includes(o));
-          if (available.length) {
-            const select = document.createElement('select');
-            select.style.cssText =
-              'font-size:0.65rem;padding:2px 4px;border:1px dashed var(--sp-border);' +
-              'border-radius:4px;background:transparent;color:var(--sp-muted);outline:none;cursor:pointer';
-            const ph = document.createElement('option');
-            ph.value = '';
-            ph.textContent = '+';
-            select.appendChild(ph);
-            for (const opt of available) {
-              const o = document.createElement('option');
-              o.value = opt;
-              o.textContent = opt;
-              select.appendChild(o);
-            }
-            select.addEventListener('change', () => {
-              if (select.value) {
-                store.setProfileScope(profileIndex, def.field, [...currentValues, select.value]);
-              }
-            });
-            chips.appendChild(select);
-          }
-        }
-      }
-
-      row.appendChild(chips);
-      content.appendChild(row);
+      content.appendChild(buildChipRow(def, currentValues, ro));
     }
 
-    // Scalar numeric fields
     for (const [field, label] of NUMERIC_FIELDS) {
       const value = (profile as any)[field];
       if (ro && value === undefined) continue;
@@ -170,10 +192,10 @@ export function buildScopeEditor(
         input.className = reFieldInputNumberStyle();
         input.style.fontSize = '0.75rem';
         input.value = value !== undefined ? String(value) : '';
-        input.placeholder = '—';
+        input.placeholder = '\u2014';
         input.addEventListener('change', () => {
           const v = input.value.trim();
-          store.setProfileField(profileIndex, field, v ? parseInt(v, 10) : undefined);
+          store.setProfileField(profileIndex, field, v ? Number.parseInt(v, 10) : undefined);
         });
         row.appendChild(input);
       }
@@ -181,7 +203,6 @@ export function buildScopeEditor(
       content.appendChild(row);
     }
 
-    // Hide entire scope section if nothing visible in readonly mode
     const hasContent = content.children.length > 0;
     container.style.display = hasContent ? '' : 'none';
   }

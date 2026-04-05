@@ -1,6 +1,6 @@
 /**
  * Temporal Grid Engine Stories
- * 
+ *
  * Demonstrates the core engine capabilities without UI.
  * Shows the pure state machine functionality.
  */
@@ -35,10 +35,10 @@ const mockTournament = {
       courts: [
         { courtId: 'court-1', courtName: 'Court 1', surfaceType: 'hard' },
         { courtId: 'court-2', courtName: 'Court 2', surfaceType: 'clay' },
-        { courtId: 'court-3', courtName: 'Court 3', surfaceType: 'grass' },
-      ],
-    },
-  ],
+        { courtId: 'court-3', courtName: 'Court 3', surfaceType: 'grass' }
+      ]
+    }
+  ]
 };
 
 // ============================================================================
@@ -78,10 +78,10 @@ Capacity Curves (Computed)
 \`\`\`
 
 All state is derived from blocks, ensuring consistency and testability.
-        `,
-      },
-    },
-  },
+        `
+      }
+    }
+  }
 };
 
 export default meta;
@@ -126,18 +126,19 @@ const renderEngineDemo = (title: string, demoFn: () => string) => {
  * Basic engine initialization
  */
 export const Initialization: Story = {
-  render: () => renderEngineDemo('Engine Initialization', () => {
-    const engine = new TemporalEngine();
-    engine.init(mockTournament, {
-      dayStartTime: '08:00',
-      dayEndTime: '20:00',
-      slotMinutes: 15,
-    });
+  render: () =>
+    renderEngineDemo('Engine Initialization', () => {
+      const engine = new TemporalEngine();
+      engine.init(mockTournament, {
+        dayStartTime: '08:00',
+        dayEndTime: '20:00',
+        slotMinutes: 15
+      });
 
-    const config = engine.getConfig();
-    const courts = engine.listCourtMeta();
+      const config = engine.getConfig();
+      const courts = engine.listCourtMeta();
 
-    return `
+      return `
 ✓ Engine initialized
 
 Configuration:
@@ -147,44 +148,45 @@ Configuration:
 - Slot Minutes: ${config.slotMinutes}
 
 Courts Found: ${courts.length}
-${courts.map(c => `- ${c.name} (${c.surface})`).join('\n')}
+${courts.map((c) => `- ${c.name} (${c.surface})`).join('\n')}
     `.trim();
-  }),
+    }),
   parameters: {
     docs: {
       description: {
-        story: 'Shows how to initialize the engine with a tournament record and configuration.',
-      },
-    },
-  },
+        story: 'Shows how to initialize the engine with a tournament record and configuration.'
+      }
+    }
+  }
 };
 
 /**
  * Creating blocks
  */
 export const CreatingBlocks: Story = {
-  render: () => renderEngineDemo('Creating Blocks', () => {
-    const engine = new TemporalEngine();
-    engine.init(mockTournament);
+  render: () =>
+    renderEngineDemo('Creating Blocks', () => {
+      const engine = new TemporalEngine();
+      engine.init(mockTournament);
 
-    const court = {
-      tournamentId: TEST_TOURNAMENT,
-      venueId: 'venue-1',
-      courtId: 'court-1',
-    };
+      const court = {
+        tournamentId: TEST_TOURNAMENT,
+        venueId: 'venue-1',
+        courtId: 'court-1'
+      };
 
-    // Create an AVAILABLE block
-    const result = engine.applyBlock({
-      courts: [court],
-      timeRange: {
-        start: '2026-06-15T10:00:00',
-        end: '2026-06-15T18:00:00',
-      },
-      type: 'AVAILABLE',
-      reason: 'Open for scheduling',
-    });
+      // Create an AVAILABLE block
+      const result = engine.applyBlock({
+        courts: [court],
+        timeRange: {
+          start: '2026-06-15T10:00:00',
+          end: '2026-06-15T18:00:00'
+        },
+        type: 'AVAILABLE',
+        reason: 'Open for scheduling'
+      });
 
-    return `
+      return `
 Block Created!
 
 Applied: ${result.applied.length} blocks
@@ -192,115 +194,124 @@ Rejected: ${result.rejected.length} blocks
 Warnings: ${result.warnings.length}
 Conflicts: ${result.conflicts.length}
 
-${result.applied.length > 0 ? `
+${
+  result.applied.length > 0
+    ? `
 Block Details:
 - Type: ${result.applied[0].block.type}
 - Court: ${result.applied[0].block.court.courtId}
 - Start: ${result.applied[0].block.start}
 - End: ${result.applied[0].block.end}
-` : ''}
+`
+    : ''
+}
     `.trim();
-  }),
+    }),
   parameters: {
     docs: {
       description: {
-        story: 'Demonstrates creating availability blocks on courts.',
-      },
-    },
-  },
+        story: 'Demonstrates creating availability blocks on courts.'
+      }
+    }
+  }
 };
 
 /**
  * Rail derivation
  */
 export const RailDerivation: Story = {
-  render: () => renderEngineDemo('Rail Derivation', () => {
-    const engine = new TemporalEngine();
-    engine.init(mockTournament);
+  render: () =>
+    renderEngineDemo('Rail Derivation', () => {
+      const engine = new TemporalEngine();
+      engine.init(mockTournament);
 
+      const court = {
+        tournamentId: TEST_TOURNAMENT,
+        venueId: 'venue-1',
+        courtId: 'court-1'
+      };
 
-    const court = {
-      tournamentId: TEST_TOURNAMENT,
-      venueId: 'venue-1',
-      courtId: 'court-1',
-    };
+      // Create overlapping blocks
+      engine.applyBlock({
+        courts: [court],
+        timeRange: { start: T_0800, end: '2026-06-15T18:00:00' },
+        type: 'AVAILABLE'
+      });
 
-    // Create overlapping blocks
-    engine.applyBlock({
-      courts: [court],
-      timeRange: { start: T_0800, end: '2026-06-15T18:00:00' },
-      type: 'AVAILABLE',
-    });
+      engine.applyBlock({
+        courts: [court],
+        timeRange: { start: T_1200, end: '2026-06-15T13:00:00' },
+        type: 'MAINTENANCE'
+      });
 
-    engine.applyBlock({
-      courts: [court],
-      timeRange: { start: T_1200, end: '2026-06-15T13:00:00' },
-      type: 'MAINTENANCE',
-    });
+      // Get derived rail
+      const rail = engine.getCourtRail(TEST_DATE, court);
 
-    // Get derived rail
-    const rail = engine.getCourtRail(TEST_DATE, court);
+      if (!rail) return 'No rail found';
 
-    if (!rail) return 'No rail found';
-
-    return `
+      return `
 Rail Segments Derived:
 
-${rail.segments.map((seg, i) => `
+${rail.segments
+  .map(
+    (seg, i) => `
 Segment ${i + 1}:
 - Status: ${seg.status}
 - Start: ${seg.start.slice(11, 16)}
 - End: ${seg.end.slice(11, 16)}
 - Contributing Blocks: ${seg.contributingBlocks.length}
-`).join('')}
+`
+  )
+  .join('')}
 
 Total Segments: ${rail.segments.length}
     `.trim();
-  }),
+    }),
   parameters: {
     docs: {
       description: {
-        story: 'Shows how overlapping blocks are converted to non-overlapping rail segments using the sweep-line algorithm.',
-      },
-    },
-  },
+        story:
+          'Shows how overlapping blocks are converted to non-overlapping rail segments using the sweep-line algorithm.'
+      }
+    }
+  }
 };
 
 /**
  * Capacity curve generation
  */
 export const CapacityCurve: Story = {
-  render: () => renderEngineDemo('Capacity Curve', () => {
-    const engine = new TemporalEngine();
-    engine.init(mockTournament);
+  render: () =>
+    renderEngineDemo('Capacity Curve', () => {
+      const engine = new TemporalEngine();
+      engine.init(mockTournament);
 
+      // Add some blocks to create interesting capacity
+      const courts = [
+        { tournamentId: TEST_TOURNAMENT, venueId: 'venue-1', courtId: 'court-1' },
+        { tournamentId: TEST_TOURNAMENT, venueId: 'venue-1', courtId: 'court-2' },
+        { tournamentId: TEST_TOURNAMENT, venueId: 'venue-1', courtId: 'court-3' }
+      ];
 
-    // Add some blocks to create interesting capacity
-    const courts = [
-      { tournamentId: TEST_TOURNAMENT, venueId: 'venue-1', courtId: 'court-1' },
-      { tournamentId: TEST_TOURNAMENT, venueId: 'venue-1', courtId: 'court-2' },
-      { tournamentId: TEST_TOURNAMENT, venueId: 'venue-1', courtId: 'court-3' },
-    ];
-
-    courts.forEach(court => {
-      engine.applyBlock({
-        courts: [court],
-        timeRange: { start: T_0800, end: '2026-06-15T20:00:00' },
-        type: 'AVAILABLE',
+      courts.forEach((court) => {
+        engine.applyBlock({
+          courts: [court],
+          timeRange: { start: T_0800, end: '2026-06-15T20:00:00' },
+          type: 'AVAILABLE'
+        });
       });
-    });
 
-    // Block one court during lunch
-    engine.applyBlock({
-      courts: [courts[0]],
-      timeRange: { start: T_1200, end: '2026-06-15T13:00:00' },
-      type: 'MAINTENANCE',
-    });
+      // Block one court during lunch
+      engine.applyBlock({
+        courts: [courts[0]],
+        timeRange: { start: T_1200, end: '2026-06-15T13:00:00' },
+        type: 'MAINTENANCE'
+      });
 
-    const curve = engine.getCapacityCurve(TEST_DATE);
-    const stats = calculateCapacityStats(curve);
+      const curve = engine.getCapacityCurve(TEST_DATE);
+      const stats = calculateCapacityStats(curve);
 
-    return `
+      return `
 Capacity Statistics:
 
 Peak Available: ${stats.peakAvailable} courts
@@ -317,71 +328,76 @@ Utilization: ${stats.utilizationPercent.toFixed(0)}%
 
 Sample Points: ${curve.points.length}
     `.trim();
-  }),
+    }),
   parameters: {
     docs: {
       description: {
-        story: 'Demonstrates capacity curve generation and statistical analysis.',
-      },
-    },
-  },
+        story: 'Demonstrates capacity curve generation and statistical analysis.'
+      }
+    }
+  }
 };
 
 /**
  * Conflict detection
  */
 export const ConflictDetection: Story = {
-  render: () => renderEngineDemo('Conflict Detection', () => {
-    const engine = new TemporalEngine();
-    engine.init(mockTournament, {
-      conflictEvaluators: [courtOverlapEvaluator, dayBoundaryEvaluator],
-    });
+  render: () =>
+    renderEngineDemo('Conflict Detection', () => {
+      const engine = new TemporalEngine();
+      engine.init(mockTournament, {
+        conflictEvaluators: [courtOverlapEvaluator, dayBoundaryEvaluator]
+      });
 
-    const court = {
-      tournamentId: TEST_TOURNAMENT,
-      venueId: 'venue-1',
-      courtId: 'court-1',
-    };
+      const court = {
+        tournamentId: TEST_TOURNAMENT,
+        venueId: 'venue-1',
+        courtId: 'court-1'
+      };
 
-    // Create first block
-    engine.applyBlock({
-      courts: [court],
-      timeRange: { start: '2026-06-15T10:00:00', end: '2026-06-15T14:00:00' },
-      type: 'HARD_BLOCK',
-    });
+      // Create first block
+      engine.applyBlock({
+        courts: [court],
+        timeRange: { start: '2026-06-15T10:00:00', end: '2026-06-15T14:00:00' },
+        type: 'HARD_BLOCK'
+      });
 
-    // Try to create overlapping block
-    const result = engine.applyBlock({
-      courts: [court],
-      timeRange: { start: T_1200, end: '2026-06-15T16:00:00' },
-      type: 'AVAILABLE',
-    });
+      // Try to create overlapping block
+      const result = engine.applyBlock({
+        courts: [court],
+        timeRange: { start: T_1200, end: '2026-06-15T16:00:00' },
+        type: 'AVAILABLE'
+      });
 
-    return `
+      return `
 Conflict Detection Result:
 
 Applied: ${result.applied.length} blocks
 Rejected: ${result.rejected.length} blocks
 
 Conflicts Found: ${result.conflicts.length}
-${result.conflicts.map((c, i) => `
+${result.conflicts
+  .map(
+    (c, i) => `
 Conflict ${i + 1}:
 - Code: ${c.code}
 - Severity: ${c.severity}
 - Message: ${c.message}
 - Time: ${c.timeRange.start.slice(11, 16)} - ${c.timeRange.end.slice(11, 16)}
-`).join('')}
+`
+  )
+  .join('')}
 
 Result: ${result.rejected.length > 0 ? '❌ BLOCKED' : '✓ ALLOWED'}
     `.trim();
-  }),
+    }),
   parameters: {
     docs: {
       description: {
-        story: 'Shows how the pluggable conflict detection system prevents invalid operations.',
-      },
-    },
-  },
+        story: 'Shows how the pluggable conflict detection system prevents invalid operations.'
+      }
+    }
+  }
 };
 
 /**
@@ -444,16 +460,18 @@ export const EventSubscription: Story = {
     button.addEventListener('click', () => {
       blockCount++;
       engine.applyBlock({
-        courts: [{
-          tournamentId: TEST_TOURNAMENT,
-          venueId: 'venue-1',
-          courtId: 'court-1',
-        }],
+        courts: [
+          {
+            tournamentId: TEST_TOURNAMENT,
+            venueId: 'venue-1',
+            courtId: 'court-1'
+          }
+        ],
         timeRange: {
           start: `2026-06-15T${(10 + blockCount).toString().padStart(2, '0')}:00:00`,
-          end: `2026-06-15T${(11 + blockCount).toString().padStart(2, '0')}:00:00`,
+          end: `2026-06-15T${(11 + blockCount).toString().padStart(2, '0')}:00:00`
         },
-        type: 'AVAILABLE',
+        type: 'AVAILABLE'
       });
     });
 
@@ -462,61 +480,61 @@ export const EventSubscription: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Interactive demonstration of event subscription. Click the button to see events in real-time.',
-      },
-    },
-  },
+        story: 'Interactive demonstration of event subscription. Click the button to see events in real-time.'
+      }
+    }
+  }
 };
 
 /**
  * What-if simulation
  */
 export const WhatIfSimulation: Story = {
-  render: () => renderEngineDemo('What-If Simulation', () => {
-    const engine = new TemporalEngine();
-    engine.init(mockTournament);
+  render: () =>
+    renderEngineDemo('What-If Simulation', () => {
+      const engine = new TemporalEngine();
+      engine.init(mockTournament);
 
+      const courts = [
+        { tournamentId: TEST_TOURNAMENT, venueId: 'venue-1', courtId: 'court-1' },
+        { tournamentId: TEST_TOURNAMENT, venueId: 'venue-1', courtId: 'court-2' },
+        { tournamentId: TEST_TOURNAMENT, venueId: 'venue-1', courtId: 'court-3' }
+      ];
 
-    const courts = [
-      { tournamentId: TEST_TOURNAMENT, venueId: 'venue-1', courtId: 'court-1' },
-      { tournamentId: TEST_TOURNAMENT, venueId: 'venue-1', courtId: 'court-2' },
-      { tournamentId: TEST_TOURNAMENT, venueId: 'venue-1', courtId: 'court-3' },
-    ];
-
-    // Add availability for all courts
-    courts.forEach(court => {
-      engine.applyBlock({
-        courts: [court],
-        timeRange: { start: T_0800, end: '2026-06-15T20:00:00' },
-        type: 'AVAILABLE',
+      // Add availability for all courts
+      courts.forEach((court) => {
+        engine.applyBlock({
+          courts: [court],
+          timeRange: { start: T_0800, end: '2026-06-15T20:00:00' },
+          type: 'AVAILABLE'
+        });
       });
-    });
 
-    // Get current capacity
-    const beforeCurve = engine.getCapacityCurve(TEST_DATE);
-    const beforeStats = calculateCapacityStats(beforeCurve);
+      // Get current capacity
+      const beforeCurve = engine.getCapacityCurve(TEST_DATE);
+      const beforeStats = calculateCapacityStats(beforeCurve);
 
-    // Simulate adding maintenance block to court-1
-    const simulation = engine.simulateBlocks([{
-      kind: 'ADD_BLOCK',
-      block: {
-        id: 'sim-block',
-        court: courts[0],
-        start: T_1200,
-        end: '2026-06-15T14:00:00',
-        type: 'MAINTENANCE',
-      },
-    }]);
+      // Simulate adding maintenance block to court-1
+      const simulation = engine.simulateBlocks([
+        {
+          kind: 'ADD_BLOCK',
+          block: {
+            id: 'sim-block',
+            court: courts[0],
+            start: T_1200,
+            end: '2026-06-15T14:00:00',
+            type: 'MAINTENANCE'
+          }
+        }
+      ]);
 
-    const afterStats = simulation.capacityImpact 
-      ? calculateCapacityStats(simulation.capacityImpact)
-      : null;
+      const afterStats = simulation.capacityImpact ? calculateCapacityStats(simulation.capacityImpact) : null;
 
-    // Calculate the impact
-    const peakChange = afterStats ? afterStats.peakAvailable - beforeStats.peakAvailable : 0;
-    const avgChange = afterStats ? afterStats.avgAvailable - beforeStats.avgAvailable : 0;
+      // Calculate the impact
+      const peakChange = afterStats ? afterStats.peakAvailable - beforeStats.peakAvailable : 0;
+      const avgChange = afterStats ? afterStats.avgAvailable - beforeStats.avgAvailable : 0;
 
-    return `
+      return `
 What-If Simulation:
 
 Question: What if we add 2-hour maintenance to Court 1 at noon?
@@ -541,53 +559,55 @@ Conflicts: ${simulation.conflicts.length}
 Note: Simulation does NOT modify actual state.
 Use applyBlock() to commit changes.
     `.trim();
-  }),
+    }),
   parameters: {
     docs: {
       description: {
-        story: 'Demonstrates what-if simulation for testing changes before applying them. Shows how maintenance affects overall capacity.',
-      },
-    },
-  },
+        story:
+          'Demonstrates what-if simulation for testing changes before applying them. Shows how maintenance affects overall capacity.'
+      }
+    }
+  }
 };
 
 /**
  * Performance test
  */
 export const Performance: Story = {
-  render: () => renderEngineDemo('Performance Test', () => {
-    const startTime = performance.now();
+  render: () =>
+    renderEngineDemo('Performance Test', () => {
+      const startTime = performance.now();
 
-    const engine = new TemporalEngine();
-    engine.init(mockTournament);
+      const engine = new TemporalEngine();
+      engine.init(mockTournament);
 
-    const court = {
-      tournamentId: TEST_TOURNAMENT,
-      venueId: 'venue-1',
-      courtId: 'court-1',
-    };
+      const court = {
+        tournamentId: TEST_TOURNAMENT,
+        venueId: 'venue-1',
+        courtId: 'court-1'
+      };
 
-    // Create 100 blocks
-    const blockCount = 100;
-    for (let i = 0; i < blockCount; i++) {
-      const hour = 8 + (i % 10);
-      engine.applyBlock({
-        courts: [court],
-        timeRange: {
-          start: `2026-06-15T${hour.toString().padStart(2, '0')}:00:00`,
-          end: `2026-06-15T${hour.toString().padStart(2, '0')}:30:00`,
-        },
-        type: i % 2 === 0 ? 'AVAILABLE' : 'BLOCKED',
-      });
-    }
+      // Create 100 blocks
+      const blockCount = 100;
+      for (let i = 0; i < blockCount; i++) {
+        const hour = 8 + (i % 10);
+        engine.applyBlock({
+          courts: [court],
+          timeRange: {
+            start: `2026-06-15T${hour.toString().padStart(2, '0')}:00:00`,
+            end: `2026-06-15T${hour.toString().padStart(2, '0')}:30:00`
+          },
+          type: i % 2 === 0 ? 'AVAILABLE' : 'BLOCKED'
+        });
+      }
 
-    // Generate rail
-    const rail = engine.getCourtRail(TEST_DATE, court);
+      // Generate rail
+      const rail = engine.getCourtRail(TEST_DATE, court);
 
-    const endTime = performance.now();
-    const duration = endTime - startTime;
+      const endTime = performance.now();
+      const duration = endTime - startTime;
 
-    return `
+      return `
 Performance Metrics:
 
 Operations:
@@ -603,12 +623,12 @@ Results:
 Algorithm: O(n log n) sweep-line
 Performance: ✓ Excellent
     `.trim();
-  }),
+    }),
   parameters: {
     docs: {
       description: {
-        story: 'Performance test showing the engine can handle many blocks efficiently.',
-      },
-    },
-  },
+        story: 'Performance test showing the engine can handle many blocks efficiently.'
+      }
+    }
+  }
 };

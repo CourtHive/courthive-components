@@ -7,22 +7,37 @@ const DATE_DAY2 = '2026-06-16';
 
 const matchUpCatalog: CatalogMatchUpItem[] = [
   {
-    matchUpId: 'M1', eventId: 'E1', eventName: 'Boys U16', drawId: 'D1', drawName: 'Main',
-    structureId: 'S1', roundNumber: 1, roundName: 'R32', isScheduled: false,
-    sides: [{ participantName: 'Alice' }, { participantName: 'Bob' }],
+    matchUpId: 'M1',
+    eventId: 'E1',
+    eventName: 'Boys U16',
+    drawId: 'D1',
+    drawName: 'Main',
+    structureId: 'S1',
+    roundNumber: 1,
+    roundName: 'R32',
+    isScheduled: false,
+    sides: [{ participantName: 'Alice' }, { participantName: 'Bob' }]
   },
   {
-    matchUpId: 'M2', eventId: 'E1', eventName: 'Boys U16', drawId: 'D1', drawName: 'Main',
-    structureId: 'S1', roundNumber: 2, roundName: 'R16', isScheduled: true,
-    scheduledTime: '10:00', scheduledCourtName: 'Court 1',
-    sides: [{ participantName: 'Charlie' }, { participantName: 'David' }],
-  },
+    matchUpId: 'M2',
+    eventId: 'E1',
+    eventName: 'Boys U16',
+    drawId: 'D1',
+    drawName: 'Main',
+    structureId: 'S1',
+    roundNumber: 2,
+    roundName: 'R16',
+    isScheduled: true,
+    scheduledTime: '10:00',
+    scheduledCourtName: 'Court 1',
+    sides: [{ participantName: 'Charlie' }, { participantName: 'David' }]
+  }
 ];
 
 const scheduleDates: ScheduleDate[] = [
   { date: DATE_DAY1, isActive: true, matchUpCount: 10 },
   { date: DATE_DAY2, isActive: true, matchUpCount: 8 },
-  { date: '2026-06-17', isActive: false },
+  { date: '2026-06-17', isActive: false }
 ];
 
 function makeConfig(overrides: Partial<SchedulePageConfig> = {}): SchedulePageConfig {
@@ -201,7 +216,7 @@ describe('SchedulePageStore', () => {
       expect(store.getState().pendingActions).toHaveLength(1);
       expect(store.getState().pendingActions[0]).toMatchObject({
         kind: 'schedule',
-        matchUpId: 'M1',
+        matchUpId: 'M1'
       });
       expect(store.getState().hasUnsavedChanges).toBe(true);
     });
@@ -213,7 +228,7 @@ describe('SchedulePageStore', () => {
       expect(store.getState().pendingActions).toHaveLength(1);
       expect(store.getState().pendingActions[0]).toEqual({
         kind: 'unschedule',
-        matchUpId: 'M2',
+        matchUpId: 'M2'
       });
       expect(store.getState().hasUnsavedChanges).toBe(true);
     });

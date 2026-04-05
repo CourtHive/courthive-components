@@ -20,21 +20,21 @@ function makeMatchUp(overrides: Partial<MatchUp> = {}): MatchUp {
     sides: [
       {
         sideNumber: 1,
-        participant: { participantId: 'p1', participantName: 'Alice Smith' },
+        participant: { participantId: 'p1', participantName: 'Alice Smith' }
       },
       {
         sideNumber: 2,
-        participant: { participantId: 'p2', participantName: 'Bob Jones' },
-      },
+        participant: { participantId: 'p2', participantName: 'Bob Jones' }
+      }
     ],
     score: {
       scoreStringSide1: '6-4 3-2',
       sets: [
         { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
-        { setNumber: 2, side1Score: 3, side2Score: 2 },
-      ],
+        { setNumber: 2, side1Score: 3, side2Score: 2 }
+      ]
     },
-    ...overrides,
+    ...overrides
   } as MatchUp;
 }
 
@@ -85,7 +85,7 @@ describe('renderMatchUp', () => {
   it('renders matchUpFooter when configured', () => {
     const composition: Composition = {
       theme: TEST_THEME,
-      configuration: { matchUpFooter: true },
+      configuration: { matchUpFooter: true }
     };
     const matchUp = makeMatchUp({ roundName: 'Quarterfinals', roundPosition: 2 });
     const el = renderMatchUp({ matchUp, composition });
@@ -98,7 +98,7 @@ describe('renderMatchUp', () => {
   it('does not render footer when matchUpFooter is false', () => {
     const composition: Composition = {
       theme: TEST_THEME,
-      configuration: { matchUpFooter: false },
+      configuration: { matchUpFooter: false }
     };
     const el = renderMatchUp({ matchUp: makeMatchUp(), composition });
     expect(el.querySelector(FOOTER_SELECTOR)).toBeNull();
@@ -107,7 +107,7 @@ describe('renderMatchUp', () => {
   it('footer shows only roundName when no roundPosition', () => {
     const composition: Composition = {
       theme: TEST_THEME,
-      configuration: { matchUpFooter: true },
+      configuration: { matchUpFooter: true }
     };
     const matchUp = makeMatchUp({ roundName: 'Final', roundPosition: undefined });
     const el = renderMatchUp({ matchUp, composition });
@@ -118,7 +118,7 @@ describe('renderMatchUp', () => {
   it('renders selected state when selectedMatchUpId matches', () => {
     const el = renderMatchUp({
       matchUp: makeMatchUp({ matchUpId: 'mu-sel' }),
-      selectedMatchUpId: 'mu-sel',
+      selectedMatchUpId: 'mu-sel'
     });
     // Should have more than one child (component + selected indicator)
     expect(el.children.length).toBe(2);
@@ -127,7 +127,7 @@ describe('renderMatchUp', () => {
   it('does not render selected state when IDs do not match', () => {
     const el = renderMatchUp({
       matchUp: makeMatchUp({ matchUpId: 'mu-1' }),
-      selectedMatchUpId: 'mu-other',
+      selectedMatchUpId: 'mu-other'
     });
     expect(el.children.length).toBe(1);
   });
@@ -135,7 +135,7 @@ describe('renderMatchUp', () => {
   it('renders with centerInfo configuration', () => {
     const composition: Composition = {
       theme: TEST_THEME,
-      configuration: { centerInfo: true },
+      configuration: { centerInfo: true }
     };
     const el = renderMatchUp({ matchUp: makeMatchUp(), composition });
     // centerInfo adds entry status elements between sides
@@ -160,7 +160,7 @@ describe('renderMatchUp', () => {
     const el = renderMatchUp({
       matchUp: makeMatchUp(),
       isLucky: true,
-      composition: compositions.Australian,
+      composition: compositions.Australian
     });
     expect(el).toBeInstanceOf(HTMLElement);
   });
@@ -168,7 +168,7 @@ describe('renderMatchUp', () => {
   it('isAdHoc adds mr link class', () => {
     const el = renderMatchUp({
       matchUp: makeMatchUp(),
-      isAdHoc: true,
+      isAdHoc: true
     });
     expect(el).toBeInstanceOf(HTMLElement);
   });

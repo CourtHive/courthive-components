@@ -13,8 +13,8 @@ describe('validateSetScores - Timed formats', () => {
     it('should calculate winningSide correctly for 10-0 0-1 0-1 (side 2 wins)', () => {
       const sets = [
         { side1: 10, side2: 0 }, // Set 1: side 1 wins
-        { side1: 0, side2: 1 },  // Set 2: side 2 wins
-        { side1: 0, side2: 1 },  // Set 3: side 2 wins
+        { side1: 0, side2: 1 }, // Set 2: side 2 wins
+        { side1: 0, side2: 1 } // Set 3: side 2 wins
       ];
 
       const result = validateSetScores(sets, FORMAT_SET3X_T10, false);
@@ -27,9 +27,9 @@ describe('validateSetScores - Timed formats', () => {
 
     it('should calculate winningSide correctly for 10-5 10-3 0-1 (side 1 wins)', () => {
       const sets = [
-        { side1: 10, side2: 5 },  // Set 1: side 1 wins
-        { side1: 10, side2: 3 },  // Set 2: side 1 wins
-        { side1: 0, side2: 1 },   // Set 3: side 2 wins
+        { side1: 10, side2: 5 }, // Set 1: side 1 wins
+        { side1: 10, side2: 3 }, // Set 2: side 1 wins
+        { side1: 0, side2: 1 } // Set 3: side 2 wins
       ];
 
       const result = validateSetScores(sets, FORMAT_SET3X_T10, false);
@@ -42,7 +42,7 @@ describe('validateSetScores - Timed formats', () => {
     it('should handle incomplete match (only 2 sets entered)', () => {
       const sets = [
         { side1: 10, side2: 0 },
-        { side1: 0, side2: 1 },
+        { side1: 0, side2: 1 }
       ];
 
       const result = validateSetScores(sets, FORMAT_SET3X_T10, false);
@@ -53,7 +53,7 @@ describe('validateSetScores - Timed formats', () => {
 
     it('should allow incomplete match with allowIncomplete=true', () => {
       const sets = [
-        { side1: 10, side2: 0 }, // Complete set but incomplete match (need 3 sets)
+        { side1: 10, side2: 0 } // Complete set but incomplete match (need 3 sets)
       ];
 
       const result = validateSetScores(sets, FORMAT_SET3X_T10, true);
@@ -67,9 +67,9 @@ describe('validateSetScores - Timed formats', () => {
   describe('SET3XA-S:T10 (timed aggregate scoring)', () => {
     it('should calculate winningSide by aggregate score', () => {
       const sets = [
-        { side1: 30, side2: 1 },  // +29 for side 1
-        { side1: 0, side2: 1 },   // +1 for side 2
-        { side1: 0, side2: 1 },   // +1 for side 2
+        { side1: 30, side2: 1 }, // +29 for side 1
+        { side1: 0, side2: 1 }, // +1 for side 2
+        { side1: 0, side2: 1 } // +1 for side 2
       ];
 
       const result = validateSetScores(sets, 'SET3XA-S:T10', false);
@@ -81,9 +81,9 @@ describe('validateSetScores - Timed formats', () => {
 
     it('should handle aggregate tie resolved by TB1', () => {
       const sets = [
-        { side1: 30, side2: 25 },  // +5 for side 1
-        { side1: 25, side2: 30 },  // +5 for side 2
-        { side1TiebreakScore: 1, side2TiebreakScore: 0 }, // TB: side 1 wins
+        { side1: 30, side2: 25 }, // +5 for side 1
+        { side1: 25, side2: 30 }, // +5 for side 2
+        { side1TiebreakScore: 1, side2TiebreakScore: 0 } // TB: side 1 wins
       ];
 
       const result = validateSetScores(sets, 'SET3XA-S:T10-F:TB1', false);
@@ -99,7 +99,7 @@ describe('validateSetScores - Timed formats', () => {
       const sets = [
         { side1: 10, side2: 0 },
         { side1: 0, side2: 1 },
-        { side1: 0, side2: 1 },
+        { side1: 0, side2: 1 }
       ];
 
       const result = validateSetScores(sets, FORMAT_SET3X_T10, false);
@@ -111,7 +111,7 @@ describe('validateSetScores - Timed formats', () => {
       const sets = [
         { side1: 30, side2: 25 },
         { side1: 25, side2: 30 },
-        { side1TiebreakScore: 1, side2TiebreakScore: 0 },
+        { side1TiebreakScore: 1, side2TiebreakScore: 0 }
       ];
 
       const result = validateSetScores(sets, 'SET3XA-S:T10-F:TB1', false);

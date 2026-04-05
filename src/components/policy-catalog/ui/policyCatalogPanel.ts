@@ -23,7 +23,7 @@ import {
   pcCardStyle,
   pcCardTitleStyle,
   pcCardMetaStyle,
-  pcTypeBadgeStyle,
+  pcTypeBadgeStyle
 } from './styles';
 
 export interface PolicyCatalogPanelCallbacks {
@@ -35,9 +35,7 @@ export interface PolicyCatalogPanelCallbacks {
   onDeletePolicy?: (id: string) => void;
 }
 
-export function buildPolicyCatalogPanel(
-  callbacks: PolicyCatalogPanelCallbacks,
-): UIPanel<PolicyCatalogState> {
+export function buildPolicyCatalogPanel(callbacks: PolicyCatalogPanelCallbacks): UIPanel<PolicyCatalogState> {
   const root = document.createElement('div');
   root.className = pcPanelStyle();
   root.style.overflowY = 'auto';
@@ -74,16 +72,14 @@ export function buildPolicyCatalogPanel(
   groupSelect.className = pcSelectStyle();
   for (const [val, label] of [
     ['type', 'By Type'],
-    ['source', 'By Source'],
+    ['source', 'By Source']
   ] as const) {
     const opt = document.createElement('option');
     opt.value = val;
     opt.textContent = label;
     groupSelect.appendChild(opt);
   }
-  groupSelect.addEventListener('change', () =>
-    callbacks.onGroupByChange(groupSelect.value as CatalogGroupBy),
-  );
+  groupSelect.addEventListener('change', () => callbacks.onGroupByChange(groupSelect.value as CatalogGroupBy));
 
   // "+" New policy button with dropdown
   const newBtnWrap = document.createElement('div');
@@ -105,11 +101,14 @@ export function buildPolicyCatalogPanel(
   const creatableTypes = POLICY_TYPE_METADATA.filter((m) => m.hasEditor);
   for (const typeMeta of creatableTypes) {
     const item = document.createElement('div');
-    item.style.cssText =
-      'padding:6px 10px;font-size:12px;border-radius:8px;cursor:pointer;color:var(--sp-text)';
+    item.style.cssText = 'padding:6px 10px;font-size:12px;border-radius:8px;cursor:pointer;color:var(--sp-text)';
     item.textContent = typeMeta.label;
-    item.addEventListener('mouseenter', () => { item.style.background = 'var(--sp-hover-bg)'; });
-    item.addEventListener('mouseleave', () => { item.style.background = ''; });
+    item.addEventListener('mouseenter', () => {
+      item.style.background = 'var(--sp-hover-bg)';
+    });
+    item.addEventListener('mouseleave', () => {
+      item.style.background = '';
+    });
     item.addEventListener('click', (e) => {
       e.stopPropagation();
       dropdown.style.display = 'none';
@@ -124,7 +123,9 @@ export function buildPolicyCatalogPanel(
   });
 
   // Close dropdown on outside click
-  document.addEventListener('click', () => { dropdown.style.display = 'none'; });
+  document.addEventListener('click', () => {
+    dropdown.style.display = 'none';
+  });
 
   newBtnWrap.appendChild(newBtn);
   newBtnWrap.appendChild(dropdown);

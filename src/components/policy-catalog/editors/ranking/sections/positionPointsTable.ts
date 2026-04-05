@@ -114,8 +114,9 @@ function buildFlatTable(
       );
     } else {
       pointsCell.appendChild(
-        makePointsInput(typeof ranges[pos] === 'number' ? ranges[pos] : resolvePositionValue(ranges[pos]) ?? 0, (val) =>
-          store.setFlatPositionPoints(profileIndex, pos, val)
+        makePointsInput(
+          typeof ranges[pos] === 'number' ? ranges[pos] : (resolvePositionValue(ranges[pos]) ?? 0),
+          (val) => store.setFlatPositionPoints(profileIndex, pos, val)
         )
       );
     }

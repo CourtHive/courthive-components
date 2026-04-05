@@ -18,7 +18,12 @@ import { validateTopology } from '../components/topology-builder/domain/topology
 import { generateDrawFromTopology } from '../components/topology-builder/domain/generateDrawFromTopology';
 import { cModal } from '../components/modal/cmodal';
 import { getNumRounds } from '../components/topology-builder/ui/structureCard';
-import type { TopologyBuilderConfig, TopologyNode, TopologyState, TopologyTemplate } from '../components/topology-builder/types';
+import type {
+  TopologyBuilderConfig,
+  TopologyNode,
+  TopologyState,
+  TopologyTemplate
+} from '../components/topology-builder/types';
 
 const CANVAS_HEIGHT = '800px';
 
@@ -54,8 +59,7 @@ function showGenerateModal(payload: Record<string, unknown>): void {
   title.textContent = 'Generated Draw Options';
 
   const closeBtn = document.createElement('button');
-  closeBtn.style.cssText =
-    'background:none;border:none;color:#d4d4d4;font-size:18px;cursor:pointer;padding:0 4px;';
+  closeBtn.style.cssText = 'background:none;border:none;color:#d4d4d4;font-size:18px;cursor:pointer;padding:0 4px;';
   closeBtn.textContent = '\u00d7';
   closeBtn.onclick = () => overlay.remove();
 
@@ -64,8 +68,7 @@ function showGenerateModal(payload: Record<string, unknown>): void {
 
   const pre = document.createElement('pre');
   pre.style.cssText =
-    'margin:0;padding:16px;font-family:monospace;font-size:12px;overflow:auto;' +
-    'flex:1;white-space:pre-wrap;';
+    'margin:0;padding:16px;font-family:monospace;font-size:12px;overflow:auto;' + 'flex:1;white-space:pre-wrap;';
   pre.textContent = JSON.stringify(payload, null, 2);
 
   modal.appendChild(header);
@@ -104,8 +107,8 @@ function renderBuilder(config: TopologyBuilderConfig = {}): HTMLElement {
         success: generationResult.success,
         ...(generationResult.structures ? { structures: generationResult.structures } : {}),
         ...(generationResult.linkCount != null ? { linkCount: generationResult.linkCount } : {}),
-        ...(generationResult.error ? { error: generationResult.error } : {}),
-      },
+        ...(generationResult.error ? { error: generationResult.error } : {})
+      }
     };
 
     showGenerateModal(payload);
@@ -114,7 +117,7 @@ function renderBuilder(config: TopologyBuilderConfig = {}): HTMLElement {
 
   const controller = new TopologyBuilderControl({
     onGenerate,
-    ...config,
+    ...config
   });
   controller.render(container);
 
@@ -129,7 +132,7 @@ function renderTemplate(templateName: string): HTMLElement {
       ...template.state,
       selectedNodeId: null,
       selectedEdgeId: null,
-      templateName: template.name,
+      templateName: template.name
     }
   });
 }
@@ -259,7 +262,7 @@ export const DoubleClickModal: Story = {
         ['Stage', node.stage],
         ['Structure Type', node.structureType],
         ['Draw Size', String(node.drawSize)],
-        ['Rounds', String(getNumRounds(node))],
+        ['Rounds', String(getNumRounds(node))]
       ];
 
       if (node.qualifyingPositions) {
@@ -275,7 +278,8 @@ export const DoubleClickModal: Story = {
       for (const [label, value] of rows) {
         const tr = document.createElement('tr');
         const td1 = document.createElement('td');
-        td1.style.cssText = 'padding:6px 12px 6px 0;font-weight:600;white-space:nowrap;color:var(--chc-text-secondary);';
+        td1.style.cssText =
+          'padding:6px 12px 6px 0;font-weight:600;white-space:nowrap;color:var(--chc-text-secondary);';
         td1.textContent = label;
         const td2 = document.createElement('td');
         td2.style.cssText = 'padding:6px 0;';
@@ -289,7 +293,8 @@ export const DoubleClickModal: Story = {
       // Links section
       if (inbound.length > 0 || outbound.length > 0) {
         const linksHeader = document.createElement('div');
-        linksHeader.style.cssText = 'margin-top:12px;padding-top:12px;border-top:1px solid var(--chc-border-secondary);font-weight:600;font-size:13px;margin-bottom:6px;';
+        linksHeader.style.cssText =
+          'margin-top:12px;padding-top:12px;border-top:1px solid var(--chc-border-secondary);font-weight:600;font-size:13px;margin-bottom:6px;';
         linksHeader.textContent = 'Links';
         content.appendChild(linksHeader);
 
@@ -320,7 +325,7 @@ export const DoubleClickModal: Story = {
         title: `Structure: ${node.structureName}`,
         content,
         buttons: [{ label: 'Close', intent: 'is-info' }],
-        config: { maxWidth: 480, clickAway: true },
+        config: { maxWidth: 480, clickAway: true }
       });
     };
 
@@ -331,8 +336,8 @@ export const DoubleClickModal: Story = {
         ...template.state,
         selectedNodeId: null,
         selectedEdgeId: null,
-        templateName: template.name,
-      },
+        templateName: template.name
+      }
     });
   }
 };

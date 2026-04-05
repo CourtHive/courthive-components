@@ -20,7 +20,7 @@ export const TEAM_LOGOS: TeamLogo[] = [
   { name: 'Ridge', src: ridge },
   { name: 'Rips', src: rips },
   { name: 'Rise', src: rise },
-  { name: 'Smash', src: smash },
+  { name: 'Smash', src: smash }
 ];
 
 /** Get a team logo by index (wraps around) */

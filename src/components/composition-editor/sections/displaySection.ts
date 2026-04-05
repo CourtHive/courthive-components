@@ -13,7 +13,7 @@ export function buildDisplaySection(store: CompositionEditorStore): EditorPanel 
     [
       { value: '', label: 'None' },
       { value: 'true', label: 'Parentheses' },
-      { value: 'square', label: 'Square brackets' },
+      { value: 'square', label: 'Square brackets' }
     ],
     cfg.bracketedSeeds === 'square' ? 'square' : cfg.bracketedSeeds ? 'true' : '',
     (v) => {
@@ -21,22 +21,37 @@ export function buildDisplaySection(store: CompositionEditorStore): EditorPanel 
       else if (v === 'true') store.setConfigField('bracketedSeeds', true);
       else store.setConfigField('bracketedSeeds', undefined);
     },
-    readOnly,
+    readOnly
   );
   const seedingElement = buildSelectField(
     'Seed element',
     [
       { value: '', label: 'Default' },
       { value: 'sup', label: 'Superscript' },
-      { value: 'span', label: 'Inline' },
+      { value: 'span', label: 'Inline' }
     ],
     cfg.seedingElement || '',
     (v) => store.setConfigField('seedingElement', (v || undefined) as 'sup' | 'span' | undefined),
-    readOnly,
+    readOnly
   );
-  const drawPositions = buildToggleField('Draw positions (1st round)', !!cfg.drawPositions, (v) => store.setConfigField('drawPositions', v), readOnly);
-  const allDrawPositions = buildToggleField('Draw positions (all rounds)', !!cfg.allDrawPositions, (v) => store.setConfigField('allDrawPositions', v), readOnly);
-  const teamLogo = buildToggleField('Team logo', cfg.teamLogo !== false, (v) => store.setConfigField('teamLogo', v), readOnly);
+  const drawPositions = buildToggleField(
+    'Draw positions (1st round)',
+    !!cfg.drawPositions,
+    (v) => store.setConfigField('drawPositions', v),
+    readOnly
+  );
+  const allDrawPositions = buildToggleField(
+    'Draw positions (all rounds)',
+    !!cfg.allDrawPositions,
+    (v) => store.setConfigField('allDrawPositions', v),
+    readOnly
+  );
+  const teamLogo = buildToggleField(
+    'Team logo',
+    cfg.teamLogo !== false,
+    (v) => store.setConfigField('teamLogo', v),
+    readOnly
+  );
 
   root.appendChild(flags.element);
   root.appendChild(bracketedSeeds.element);

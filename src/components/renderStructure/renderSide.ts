@@ -12,13 +12,13 @@ import type { Composition, EventHandlers, MatchUp } from '../../types';
 import { factoryConstants } from 'tods-competition-factory';
 const { completedMatchUpStatuses } = factoryConstants;
 
-export function renderSide({ 
-  initialRoundNumber = 1, 
-  eventHandlers, 
-  composition, 
-  sideNumber, 
-  className, 
-  matchUp 
+export function renderSide({
+  initialRoundNumber = 1,
+  eventHandlers,
+  composition,
+  sideNumber,
+  className,
+  matchUp
 }: {
   initialRoundNumber?: number;
   eventHandlers?: EventHandlers;
@@ -34,8 +34,8 @@ export function renderSide({
   const scoreBox = composition?.configuration?.scoreBox && hasScore;
   const isCompleted = matchUp?.matchUpStatus && completedMatchUpStatuses.includes(matchUp.matchUpStatus);
   const readyToScore =
-    matchUp?.readyToScore && 
-    eventHandlers?.scoreClick && 
+    matchUp?.readyToScore &&
+    eventHandlers?.scoreClick &&
     !tournamentEngine.checkScoreHasValue({ matchUp }) &&
     !isCompleted;
 
@@ -85,22 +85,24 @@ export function renderSide({
     const syntheticMatchUp: MatchUp = {
       ...matchUp,
       score: {
-        sets: [{
-          setNumber: 1,
-          side1Score: 0,
-          side2Score: 0,
-          ...(inlineScoring.mode === 'points' && {
-            side1PointScore: '0',
-            side2PointScore: '0',
-          }),
-        }],
-      },
+        sets: [
+          {
+            setNumber: 1,
+            side1Score: 0,
+            side2Score: 0,
+            ...(inlineScoring.mode === 'points' && {
+              side1PointScore: '0',
+              side2PointScore: '0'
+            })
+          }
+        ]
+      }
     };
     const sideScore = renderSideScore({
       eventHandlers,
       composition,
       sideNumber,
-      matchUp: syntheticMatchUp,
+      matchUp: syntheticMatchUp
     });
     sideRow.appendChild(sideScore);
   }
@@ -114,7 +116,7 @@ export function renderSide({
     };
     const score = document.createElement('div');
     score.className = scoreWrapperStyle()({
-      ...((!scoreBox && sideNumber === 1) && { sideNumber: 1 }),
+      ...(!scoreBox && sideNumber === 1 && { sideNumber: 1 }),
       fontSize: 'small'
     });
     score.onclick = handleScoreClick;

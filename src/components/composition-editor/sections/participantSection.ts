@@ -7,15 +7,25 @@ export function buildParticipantSection(store: CompositionEditorStore): EditorPa
   const readOnly = store.getState().readOnly;
   const cfg = store.getState().configuration;
 
-  const genderColor = buildToggleField('Gender color', !!cfg.genderColor, (v) => store.setConfigField('genderColor', v), readOnly);
-  const winnerColor = buildToggleField('Winner color', !!cfg.winnerColor, (v) => store.setConfigField('winnerColor', v), readOnly);
+  const genderColor = buildToggleField(
+    'Gender color',
+    !!cfg.genderColor,
+    (v) => store.setConfigField('genderColor', v),
+    readOnly
+  );
+  const winnerColor = buildToggleField(
+    'Winner color',
+    !!cfg.winnerColor,
+    (v) => store.setConfigField('winnerColor', v),
+    readOnly
+  );
 
   const participantDetail = buildSelectField(
     'Detail',
     [
       { value: '', label: 'Default' },
       { value: 'TEAM', label: 'Team' },
-      { value: 'ADDRESS', label: 'Address' },
+      { value: 'ADDRESS', label: 'Address' }
     ],
     cfg.participantDetail || '',
     (v) => {
@@ -23,7 +33,7 @@ export function buildParticipantSection(store: CompositionEditorStore): EditorPa
       // Sync showAddress for renderers that check it directly
       store.setConfigField('showAddress', v === 'ADDRESS');
     },
-    readOnly,
+    readOnly
   );
 
   const drawPositionColor = buildTextInputField(
@@ -31,7 +41,7 @@ export function buildParticipantSection(store: CompositionEditorStore): EditorPa
     cfg.drawPositionColor || '',
     (v) => store.setConfigField('drawPositionColor', v || undefined),
     '#999',
-    readOnly,
+    readOnly
   );
 
   root.appendChild(genderColor.element);

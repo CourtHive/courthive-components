@@ -13,7 +13,7 @@ describe('dialPadLogic - Timed sets multi-set entry', () => {
     // This should parse as: Set 1: "10-1", Set 2: (starting)
     const digits = '10-1-';
     const result = formatScoreString(digits, { matchUpFormat: format });
-    
+
     // Should show first set complete, ready for second set
     expect(result).toBe('10-1');
   });
@@ -22,7 +22,7 @@ describe('dialPadLogic - Timed sets multi-set entry', () => {
     // User enters: 1, 0, -, 1, -, 0, -, 1
     const digits = '10-1-0-1';
     const result = formatScoreString(digits, { matchUpFormat: format });
-    
+
     // Should parse as: Set 1: "10-1", Set 2: "0-1"
     expect(result).toBe('10-1 0-1');
   });

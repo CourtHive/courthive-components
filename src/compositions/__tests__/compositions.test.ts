@@ -14,7 +14,7 @@ const EXPECTED_NAMES = [
   'ITF',
   'BasicCard',
   'InlineScoring',
-  'National',
+  'National'
 ];
 
 describe('compositions', () => {
@@ -42,17 +42,50 @@ describe('compositions', () => {
 
       it('configuration contains only valid keys', () => {
         const validKeys = new Set([
-          'flags', 'flag', 'teamLogo', 'roundHeader', 'winnerChevron', 'centerInfo',
-          'resultsInfo', 'scoreBox', 'gameScoreOnly', 'gameScore', 'drawPositions',
-          'allDrawPositions', 'drawPositionColor', 'bracketedSeeds', 'scheduleInfo',
-          'matchUpFooter', 'showAddress', 'seedingElement', 'matchUpHover',
-          'participantDetail', 'inlineAssignment', 'participantProvider',
-          'assignmentInputFontSize', 'persistInputFields', 'hasQualifying',
-          'genderColor', 'winnerColor', 'placeHolders', 'scaleAttributes',
+          'flags',
+          'flag',
+          'teamLogo',
+          'roundHeader',
+          'winnerChevron',
+          'centerInfo',
+          'resultsInfo',
+          'scoreBox',
+          'gameScoreOnly',
+          'gameScore',
+          'drawPositions',
+          'allDrawPositions',
+          'drawPositionColor',
+          'bracketedSeeds',
+          'scheduleInfo',
+          'matchUpFooter',
+          'showAddress',
+          'seedingElement',
+          'matchUpHover',
+          'participantDetail',
+          'inlineAssignment',
+          'participantProvider',
+          'assignmentInputFontSize',
+          'persistInputFields',
+          'hasQualifying',
+          'genderColor',
+          'winnerColor',
+          'placeHolders',
+          'scaleAttributes',
           'inlineScoring',
           // Modal-specific config keys (shared Configuration type)
-          'clickAway', 'backdrop', 'maxWidth', 'fontSize', 'padding',
-          'className', 'style', 'info', 'menu', 'title', 'content', 'footer', 'dictionary',
+          'clickAway',
+          'backdrop',
+          'maxWidth',
+          'fontSize',
+          'padding',
+          'className',
+          'style',
+          'info',
+          'menu',
+          'title',
+          'content',
+          'footer',
+          'dictionary'
         ]);
 
         for (const key of Object.keys(compositions[name].configuration!)) {

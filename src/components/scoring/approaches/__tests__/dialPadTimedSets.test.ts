@@ -173,32 +173,30 @@ describe('dialPadLogic - Timed sets (T10)', () => {
 describe('dialPadApproach - scoreToDigits for timed sets', () => {
   function scoreToDigits(scoreObject: any): string {
     if (!scoreObject?.sets || scoreObject.sets.length === 0) return '';
-    
+
     const parts: string[] = [];
-    
+
     scoreObject.sets.forEach((set: any, index: number) => {
       if (index > 0) {
         parts.push(' ');
       }
-      
+
       const side1 = set.side1Score?.toString() || '0';
       const side2 = set.side2Score?.toString() || '0';
-      
+
       // Always use minus separator for timed sets or any ambiguous scores
       parts.push(`${side1}-${side2}`);
-      
+
       // Add tiebreak if present
       if (set.side1TiebreakScore !== undefined || set.side2TiebreakScore !== undefined) {
-        const losingScore = set.winningSide === 1 
-          ? set.side2TiebreakScore 
-          : set.side1TiebreakScore;
-        
+        const losingScore = set.winningSide === 1 ? set.side2TiebreakScore : set.side1TiebreakScore;
+
         if (losingScore !== undefined) {
           parts.push(`-${losingScore}`);
         }
       }
     });
-    
+
     return parts.join('');
   }
 

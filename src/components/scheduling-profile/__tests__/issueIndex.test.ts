@@ -11,7 +11,7 @@ function makeResult(overrides: Partial<ValidationResult> = {}): ValidationResult
     severity: 'ERROR',
     message: 'Test error',
     context: { date: DAY1, venueId: 'V1' },
-    ...overrides,
+    ...overrides
   };
 }
 
@@ -28,7 +28,7 @@ describe('buildIssueIndex', () => {
     const results = [
       makeResult({ severity: 'ERROR' }),
       makeResult({ severity: 'WARN', code: 'DAY_OVERLOAD', message: 'Overloaded' }),
-      makeResult({ severity: 'ERROR', message: 'Another error' }),
+      makeResult({ severity: 'ERROR', message: 'Another error' })
     ];
     const idx = buildIssueIndex(results);
     expect(idx.counts.ERROR).toBe(2);
@@ -41,7 +41,7 @@ describe('buildIssueIndex', () => {
     const results = [
       makeResult({ context: { date: DAY1 } }),
       makeResult({ context: { date: DAY1 }, message: 'Second' }),
-      makeResult({ context: { date: DAY2 }, message: 'Third' }),
+      makeResult({ context: { date: DAY2 }, message: 'Third' })
     ];
     const idx = buildIssueIndex(results);
     expect(idx.byDate[DAY1]).toHaveLength(2);
@@ -52,7 +52,7 @@ describe('buildIssueIndex', () => {
   it('indexes by venue', () => {
     const results = [
       makeResult({ context: { venueId: 'V1' } }),
-      makeResult({ context: { venueId: 'V2' }, message: 'Second' }),
+      makeResult({ context: { venueId: 'V2' }, message: 'Second' })
     ];
     const idx = buildIssueIndex(results);
     expect(idx.byVenue['V1']).toHaveLength(1);
@@ -62,7 +62,7 @@ describe('buildIssueIndex', () => {
   it('indexes by draw scope', () => {
     const results = [
       makeResult({ context: { scope: 'D1|S1', date: DAY1 } }),
-      makeResult({ context: { scope: 'D1|S1', date: DAY1 }, message: 'Another' }),
+      makeResult({ context: { scope: 'D1|S1', date: DAY1 }, message: 'Another' })
     ];
     const idx = buildIssueIndex(results);
     expect(idx.byDraw['D1|S1']).toHaveLength(2);
@@ -72,7 +72,7 @@ describe('buildIssueIndex', () => {
   it('sorts by severity within each group', () => {
     const results = [
       makeResult({ severity: 'WARN', code: 'DAY_OVERLOAD', message: 'Warn' }),
-      makeResult({ severity: 'ERROR', message: 'Error' }),
+      makeResult({ severity: 'ERROR', message: 'Error' })
     ];
     const idx = buildIssueIndex(results);
     expect(idx.all[0].severity).toBe('WARN');

@@ -9,7 +9,8 @@ import { getPlayoffProfiles } from '../domain/playoffProfilesCache';
 import { getLuckyDrawTotalRounds } from '../domain/feedRounds';
 import type { TopologyNode } from '../types';
 
-const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, ROUND_ROBIN, AD_HOC, LUCKY_DRAW, WINNER, LOSER } = drawDefinitionConstants;
+const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, ROUND_ROBIN, AD_HOC, LUCKY_DRAW, WINNER, LOSER } =
+  drawDefinitionConstants;
 
 const MIN_CARD_WIDTH = 240;
 const ROUND_LAYOUT_WIDTH = 48; // 40px matchup + 4px margin each side
@@ -65,7 +66,7 @@ const BADGE_CLASS: Record<string, string> = {
   [MAIN]: 'tb-card-badge--main',
   [QUALIFYING]: 'tb-card-badge--qualifying',
   [CONSOLATION]: 'tb-card-badge--consolation',
-  [PLAY_OFF]: 'tb-card-badge--playoff',
+  [PLAY_OFF]: 'tb-card-badge--playoff'
 };
 
 export interface RoundAnnotation {
@@ -99,7 +100,7 @@ export function buildStructureCard(
   roundAnnotations?: RoundAnnotation[],
   warnings?: string[],
   advanceInfo?: string,
-  positionChips?: PositionChip[],
+  positionChips?: PositionChip[]
 ): HTMLElement {
   const hasWarnings = warnings && warnings.length > 0;
   const card = document.createElement('div');
@@ -141,28 +142,31 @@ export function buildStructureCard(
   const preview = document.createElement('div');
   preview.className = 'tb-card-preview';
 
-  const matchUps = node.matchUps || generatePreviewMatchUps({
-    structureType: node.structureType,
-    drawSize: node.drawSize,
-    stage: node.stage,
-    structureId: node.id,
-    qualifyingPositions: node.qualifyingPositions,
-    structureOptions: node.structureOptions,
-  });
+  const matchUps =
+    node.matchUps ||
+    generatePreviewMatchUps({
+      structureType: node.structureType,
+      drawSize: node.drawSize,
+      stage: node.stage,
+      structureId: node.id,
+      qualifyingPositions: node.qualifyingPositions,
+      structureOptions: node.structureOptions
+    });
 
   if (matchUps.length > 0) {
     try {
       const schematic = renderSchematicStructure({
         matchUps,
         structureId: node.id,
-        showHeaders: false,
+        showHeaders: false
       });
       schematic.style.transform = 'scale(0.8)';
       schematic.style.transformOrigin = 'top left';
       preview.appendChild(schematic);
     } catch {
       preview.textContent = `${node.structureType} \u00d7${node.drawSize}`;
-      preview.style.cssText += 'font-size:11px;color:var(--chc-text-muted);display:flex;align-items:center;justify-content:center;';
+      preview.style.cssText +=
+        'font-size:11px;color:var(--chc-text-muted);display:flex;align-items:center;justify-content:center;';
     }
   }
 
@@ -177,8 +181,11 @@ export function buildStructureCard(
       // Apply CSS class to color the matchup slots in this round
       // Prefer selected annotation, then pick by priority: loser > winner > position
       const selected = annotations.find((a) => a.isSelected);
-      const primary = selected || annotations.find((a) => a.linkType === LOSER)
-        || annotations.find((a) => a.linkType === WINNER) || annotations[0];
+      const primary =
+        selected ||
+        annotations.find((a) => a.linkType === LOSER) ||
+        annotations.find((a) => a.linkType === WINNER) ||
+        annotations[0];
 
       container.classList.add('tb-round-linked');
       container.classList.add(`tb-round-linked--${primary.linkType.toLowerCase()}`);
@@ -327,10 +334,7 @@ export function buildStructureCard(
 /**
  * Get port position relative to canvas for SVG edge rendering.
  */
-export function getPortPosition(
-  node: TopologyNode,
-  portType: 'input' | 'winner' | 'loser',
-): { x: number; y: number } {
+export function getPortPosition(node: TopologyNode, portType: 'input' | 'winner' | 'loser'): { x: number; y: number } {
   const cardWidth = getCardWidth(node);
   const cardHeight = 160;
 

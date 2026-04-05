@@ -19,7 +19,7 @@ export interface LayoutPanels {
 
 export function buildSchedulingProfileLayout(
   panels: LayoutPanels,
-  options?: { hideLeft?: boolean; catalogSide?: 'left' | 'right' },
+  options?: { hideLeft?: boolean; catalogSide?: 'left' | 'right' }
 ): {
   element: HTMLElement;
   update: (state: ProfileStoreState) => void;

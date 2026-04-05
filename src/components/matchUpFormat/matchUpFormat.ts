@@ -177,7 +177,7 @@ function getGameFormatLabels(): Record<string, string> {
     TN: editorConfig.labels?.traditional || 'Traditional',
     '2C': editorConfig.labels?.consecutive2 || '2 consecutive',
     '3C': editorConfig.labels?.consecutive3 || '3 consecutive',
-    '4C': editorConfig.labels?.consecutive4 || '4 consecutive',
+    '4C': editorConfig.labels?.consecutive4 || '4 consecutive'
   };
 }
 
@@ -185,7 +185,7 @@ function getDeuceRuleLabels(): Record<string, string> {
   return {
     None: editorConfig.labels?.none || 'None',
     '1D': editorConfig.labels?.goldenPoint || 'Golden point',
-    '3D': editorConfig.labels?.starPoint || 'Star point',
+    '3D': editorConfig.labels?.starPoint || 'Star point'
   };
 }
 
@@ -199,8 +199,7 @@ function gameFormatLabel(gf: any): string {
   else if (gf.type === 'CONSECUTIVE') {
     const countKey = `${gf.count}C`;
     label = gfLabels[countKey] || `${gf.count} consecutive`;
-  }
-  else return editorConfig.labels?.none || 'None';
+  } else return editorConfig.labels?.none || 'None';
   if (gf.deuceAfter) {
     const deuceKey = `${gf.deuceAfter}D`;
     label += ` + ${drLabels[deuceKey] || deuceKey}`;
@@ -230,7 +229,9 @@ interface SetFormatConfig {
 interface FormatConfig {
   matchRoot?: string;
   aggregate?: boolean;
-  gameFormat?: { type: 'CONSECUTIVE'; count: number; deuceAfter?: number } | { type: 'TRADITIONAL'; deuceAfter?: number };
+  gameFormat?:
+    | { type: 'CONSECUTIVE'; count: number; deuceAfter?: number }
+    | { type: 'TRADITIONAL'; deuceAfter?: number };
   setFormat: SetFormatConfig;
   finalSetFormat: SetFormatConfig;
 }
@@ -541,8 +542,7 @@ const setComponents: SetComponent[] = [
     getValue: (pmf, isFinal) => {
       const setFormat = whichSetFormat(pmf, isFinal);
       // Extract modifier from tiebreakSet, tiebreakFormat, or timed set
-      const modifier =
-        setFormat?.tiebreakSet?.modifier || setFormat?.tiebreakFormat?.modifier || setFormat?.modifier;
+      const modifier = setFormat?.tiebreakSet?.modifier || setFormat?.tiebreakFormat?.modifier || setFormat?.modifier;
       return modifier || undefined;
     },
     options: () => editorConfig.options?.modifiers || defaultConfig.options!.modifiers!,
@@ -555,102 +555,92 @@ const setComponents: SetComponent[] = [
   }
 ];
 
+function switchToExactlyMode(currentValue: number): void {
+  if (format.setFormat.what !== TIMED_SETS) {
+    delete format.setFormat.setTo;
+    delete format.setFormat.tiebreakAt;
+    delete format.setFormat.tiebreakTo;
+    delete format.setFormat.winBy;
+    delete format.setFormat.tiebreakFormat;
+    delete format.setFormat.NoAD;
+
+    format.setFormat.what = TIMED_SETS;
+    if (!format.setFormat.minutes) {
+      format.setFormat.minutes = 10;
+    }
+
+    onClicks.changeWhat(new Event('click'), undefined, TIMED_SETS);
+
+    const whatElem = getEl('what');
+    if (whatElem) {
+      const plural = currentValue > 1 ? 's' : '';
+      whatElem.innerHTML = `${TIMED_SETS}${plural}${clickable}`;
+    }
+
+    const minutesElem = getEl('minutes');
+    if (minutesElem) {
+      minutesElem.innerHTML = `${format.setFormat.minutes} Minutes${clickable}`;
+      minutesElem.style.display = '';
+    }
+
+    const basedElem = getEl('based');
+    if (basedElem) {
+      const basedCode = format.setFormat.based || 'G';
+      basedElem.innerHTML = `${getBasedLabels()[basedCode] || basedCode}${clickable}`;
+      basedElem.style.display = '';
+    }
+  }
+
+  format.setFormat.exactly = currentValue;
+  delete format.setFormat.bestOf;
+}
+
+function switchToBestOfMode(currentValue: number): void {
+  const validBestOf = currentValue % 2 === 0 ? currentValue + 1 : currentValue;
+  format.setFormat.bestOf = validBestOf;
+  delete format.setFormat.exactly;
+
+  const bestOfElem = getEl('bestOf');
+  if (bestOfElem) {
+    bestOfElem.innerHTML = `${validBestOf}${clickable}`;
+  }
+
+  if (validBestOf !== currentValue) {
+    onClicks.pluralize(new Event('click'), undefined, validBestOf);
+  }
+}
+
+function refreshFinalSetTiebreakTo(): void {
+  const finalSetTiebreakToElem = getEl('tiebreakTo-1');
+  if (!finalSetTiebreakToElem || finalSetTiebreakToElem.style.display === NONE) return;
+
+  const currentTiebreakTo = format.finalSetFormat.tiebreakTo || 7;
+  const tiebreakComponent = setComponents.find((c) => c.id === 'tiebreakTo');
+  if (!tiebreakComponent) return;
+
+  const { prefix = '', suffix = '' } = tiebreakComponent;
+  const newOptions = isFunction(tiebreakComponent.options)
+    ? tiebreakComponent.options(1)
+    : tiebreakComponent.options;
+  const validValue = newOptions.includes(currentTiebreakTo) ? currentTiebreakTo : 7;
+  if (validValue !== currentTiebreakTo) {
+    format.finalSetFormat.tiebreakTo = validValue;
+  }
+  finalSetTiebreakToElem.innerHTML = `${prefix}${validValue}${suffix}${clickable}`;
+}
+
 const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) => void> = {
   changeDescriptor: (_e, _index, opt) => {
     format.setFormat.descriptor = opt;
-
-    // When switching between 'Best of' and 'Exactly', ensure the value is valid
     const currentValue = format.setFormat.bestOf || format.setFormat.exactly || 3;
 
     if (opt === 'Exactly') {
-      // IMPORTANT: 'Exactly' is only valid with timed sets
-      // Switch to timed format if not already
-      if (format.setFormat.what !== TIMED_SETS) {
-        // Clean out regular set properties before switching to timed
-        delete format.setFormat.setTo;
-        delete format.setFormat.tiebreakAt;
-        delete format.setFormat.tiebreakTo;
-        delete format.setFormat.winBy;
-        delete format.setFormat.tiebreakFormat;
-        delete format.setFormat.NoAD;
-
-        format.setFormat.what = TIMED_SETS;
-        // Set default timed set values if not already set
-        if (!format.setFormat.minutes) {
-          format.setFormat.minutes = 10;
-        }
-        // Keep existing 'based' or leave undefined (defaults to Games)
-
-        // Trigger UI update for component visibility
-        onClicks.changeWhat(new Event('click'), undefined, TIMED_SETS);
-
-        // Update the "what" button text to show "Timed set" or "Timed sets"
-        const whatElem = getEl('what');
-        if (whatElem) {
-          const plural = currentValue > 1 ? 's' : '';
-          whatElem.innerHTML = `${TIMED_SETS}${plural}${clickable}`;
-        }
-
-        // Update the Minutes button display
-        const minutesElem = getEl('minutes');
-        if (minutesElem) {
-          minutesElem.innerHTML = `${format.setFormat.minutes} Minutes${clickable}`;
-          minutesElem.style.display = '';
-        }
-
-        // Update the based button display
-        const basedElem = getEl('based');
-        if (basedElem) {
-          const basedCode = format.setFormat.based || 'G';
-          basedElem.innerHTML = `${getBasedLabels()[basedCode] || basedCode}${clickable}`;
-          basedElem.style.display = '';
-        }
-      }
-
-      // Switch to exactly mode
-      format.setFormat.exactly = currentValue;
-      delete format.setFormat.bestOf;
+      switchToExactlyMode(currentValue);
     } else {
-      // Switch to bestOf mode
-      // If current value is even (2, 4), change to nearest odd (3, 5)
-      const validBestOf = currentValue % 2 === 0 ? currentValue + 1 : currentValue;
-      format.setFormat.bestOf = validBestOf;
-      delete format.setFormat.exactly;
-
-      // Always update the bestOf button display with the valid odd number
-      const bestOfElem = getEl('bestOf');
-      if (bestOfElem) {
-        bestOfElem.innerHTML = `${validBestOf}${clickable}`;
-      }
-
-      // Trigger pluralize to update the "what" text if needed
-      if (validBestOf !== currentValue) {
-        onClicks.pluralize(new Event('click'), undefined, validBestOf);
-      }
+      switchToBestOfMode(currentValue);
     }
 
-    // Refresh tiebreakTo options for Final Set (index=1) when descriptor changes
-    // This adds/removes [1,3] options based on Exactly vs Best of
-    const finalSetTiebreakToElem = getEl('tiebreakTo-1');
-    if (finalSetTiebreakToElem && finalSetTiebreakToElem.style.display !== NONE) {
-      // Just refresh the button - the options function will automatically return the correct list
-      const currentTiebreakTo = format.finalSetFormat.tiebreakTo || 7;
-      const tiebreakComponent = setComponents.find((c) => c.id === 'tiebreakTo');
-      if (tiebreakComponent) {
-        const { prefix = '', suffix = '' } = tiebreakComponent;
-        // Ensure current value is still valid for new descriptor
-        const newOptions = isFunction(tiebreakComponent.options)
-          ? tiebreakComponent.options(1) // Final set (index=1)
-          : tiebreakComponent.options;
-        // If current value is not in new options, reset to default
-        const validValue = newOptions.includes(currentTiebreakTo) ? currentTiebreakTo : 7;
-        if (validValue !== currentTiebreakTo) {
-          format.finalSetFormat.tiebreakTo = validValue;
-        }
-        finalSetTiebreakToElem.innerHTML = `${prefix}${validValue}${suffix}${clickable}`;
-      }
-    }
-
+    refreshFinalSetTiebreakTo();
     setMatchUpFormatString();
   },
   changeWhat: (_e, index, opt) => {
@@ -797,9 +787,10 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
       const currentBestOf = format.setFormat.bestOf;
       if (currentBestOf && !bestOfOptions.includes(currentBestOf)) {
         // Reset to nearest valid value
-        const validBestOf = bestOfOptions[bestOfOptions.length - 1] >= currentBestOf
-          ? bestOfOptions.reduce((prev, curr) => (curr <= currentBestOf ? curr : prev), bestOfOptions[0])
-          : bestOfOptions[bestOfOptions.length - 1];
+        const validBestOf =
+          bestOfOptions[bestOfOptions.length - 1] >= currentBestOf
+            ? bestOfOptions.reduce((prev, curr) => (curr <= currentBestOf ? curr : prev), bestOfOptions[0])
+            : bestOfOptions[bestOfOptions.length - 1];
         format.setFormat.bestOf = validBestOf;
         const bestOfElem = getEl('bestOf');
         if (bestOfElem) {
@@ -936,7 +927,8 @@ export function getMatchUpFormatModal({
       intent: 'none',
       footer: {
         className: 'button',
-        style: 'background-color: var(--chc-bg-primary); color: var(--chc-text-primary); border: 1px solid var(--chc-border-primary);'
+        style:
+          'background-color: var(--chc-bg-primary); color: var(--chc-text-primary); border: 1px solid var(--chc-border-primary);'
       },
       close: true
     },
@@ -1015,6 +1007,82 @@ export function getMatchUpFormatModal({
 
   modalInputs['matchUpFormatSelector'] = select;
 
+  function updateComponentButton(component: any, elemId: string, isFinal: boolean): void {
+    if (!component.getValue) return;
+    const value = component.getValue(parsedMatchUpFormat, isFinal);
+    const elem = getEl(elemId);
+    if (elem && value !== undefined && value !== null) {
+      const { prefix = '', suffix = '', pluralize } = component;
+      const setCount = parsedMatchUpFormat.bestOf || parsedMatchUpFormat.exactly;
+      const plural = pluralize && setCount > 1 ? 's' : '';
+      elem.innerHTML = `${prefix}${value}${plural}${suffix}${clickable}`;
+      elem.style.display = '';
+    } else if (elem) {
+      elem.style.display = NONE;
+    }
+  }
+
+  function updateMatchLevelControls(
+    finalSetFormatEl: HTMLElement,
+    finalSetConfigEl: HTMLElement,
+    finalSetOptionEl: HTMLInputElement,
+    setTiebreakEl: HTMLInputElement,
+    finalSetTiebreakEl: HTMLInputElement
+  ): void {
+    const matchRootElem = getEl('matchRoot');
+    if (matchRootElem) {
+      const rootLabel = format.matchRoot || 'SET';
+      matchRootElem.innerHTML = `${MATCH_ROOT_LABELS[rootLabel] || rootLabel}${clickable}`;
+    }
+
+    const aggElem = getEl('aggregateOption') as HTMLInputElement;
+    if (aggElem) aggElem.checked = !!format.aggregate;
+
+    const gfElem = getEl('gameFormat');
+    if (gfElem) {
+      gfElem.innerHTML = `${editorConfig.labels?.game || 'Game'}: ${gameFormatLabel(format.gameFormat)}${clickable}`;
+      gfElem.style.display = format.setFormat.based === 'P' ? NONE : '';
+    }
+
+    const setCount = parsedMatchUpFormat.bestOf || parsedMatchUpFormat.exactly;
+    onClicks.updateFinalSetVisibility(null, 0, setCount);
+
+    const finalSet = parsedMatchUpFormat.finalSetFormat;
+    finalSetFormatEl.style.display = finalSet ? '' : NONE;
+    finalSetConfigEl.style.display = finalSet ? '' : NONE;
+    finalSetOptionEl.checked = !!finalSet;
+
+    const finalSetIsTiebreakOnly = finalSet?.tiebreakSet?.tiebreakTo && !finalSet?.setTo;
+    finalSetTiebreakEl.checked = !!finalSet?.tiebreakFormat;
+    finalSetTiebreakEl.style.display = finalSetIsTiebreakOnly ? NONE : '';
+    const finalSetTiebreakLabelElem = getEl('finalSetTiebreakToggle');
+    if (finalSetTiebreakLabelElem) finalSetTiebreakLabelElem.style.display = finalSetIsTiebreakOnly ? NONE : '';
+
+    const mainWhat = format.setFormat.what;
+    const mainSetHasTiebreak = !!parsedMatchUpFormat.setFormat.tiebreakFormat;
+
+    setTiebreakEl.checked = mainSetHasTiebreak;
+    const tiebreakToggleVisible = mainWhat === SETS;
+    setTiebreakEl.style.display = tiebreakToggleVisible ? '' : NONE;
+    const setTiebreakToggleElem = getEl('setTiebreakToggle');
+    if (setTiebreakToggleElem) setTiebreakToggleElem.style.display = tiebreakToggleVisible ? '' : NONE;
+
+    setComponents.forEach((component) => {
+      updateComponentButton(component, component.id, false);
+
+      if (component.tb && mainWhat === SETS) {
+        const tbElem = getEl(component.id);
+        if (tbElem) {
+          tbElem.style.display = mainSetHasTiebreak ? tbElem.style.display : NONE;
+        }
+      }
+
+      if (finalSet) {
+        updateComponentButton(component, `${component.id}-1`, true);
+      }
+    });
+  }
+
   select.onchange = (e) => {
     selectedMatchUpFormat = (e.target as HTMLSelectElement).value;
     setMatchUpFormatString(selectedMatchUpFormat);
@@ -1038,95 +1106,7 @@ export function getMatchUpFormatModal({
     format.setFormat = { ...initialized.setFormat };
     format.finalSetFormat = { ...initialized.finalSetFormat };
 
-    // Update match-level controls
-    const matchRootElem = getEl('matchRoot');
-    if (matchRootElem) {
-      const rootLabel = format.matchRoot || 'SET';
-      matchRootElem.innerHTML = `${MATCH_ROOT_LABELS[rootLabel] || rootLabel}${clickable}`;
-    }
-
-    const aggElem = getEl('aggregateOption') as HTMLInputElement;
-    if (aggElem) {
-      aggElem.checked = !!format.aggregate;
-    }
-
-    const gfElem = getEl('gameFormat');
-    if (gfElem) {
-      gfElem.innerHTML = `${editorConfig.labels?.game || 'Game'}: ${gameFormatLabel(format.gameFormat)}${clickable}`;
-      // Hide game format when scoring is Points-based
-      gfElem.style.display = format.setFormat.based === 'P' ? NONE : '';
-    }
-
-    // Update Final Set toggle visibility based on bestOf/exactly value
-    const setCount = parsedMatchUpFormat.bestOf || parsedMatchUpFormat.exactly;
-    onClicks.updateFinalSetVisibility(null, 0, setCount);
-
-    const finalSet = parsedMatchUpFormat.finalSetFormat;
-    finalSetFormat.style.display = finalSet ? '' : NONE;
-    finalSetConfig.style.display = finalSet ? '' : NONE;
-    finalSetOption.checked = !!finalSet;
-
-    // Check if final set is tiebreak-only (e.g., F:TB10)
-    const finalSetIsTiebreakOnly = finalSet?.tiebreakSet?.tiebreakTo && !finalSet?.setTo;
-    finalSetTiebreak.checked = !!finalSet?.tiebreakFormat;
-    // Hide tiebreak checkbox/label if final set is tiebreak-only
-    finalSetTiebreak.style.display = finalSetIsTiebreakOnly ? NONE : '';
-    const finalSetTiebreakLabelElem = getEl('finalSetTiebreakToggle');
-    if (finalSetTiebreakLabelElem) finalSetTiebreakLabelElem.style.display = finalSetIsTiebreakOnly ? NONE : '';
-
-    // Determine the main set 'what' type from the parsed format
-    const mainWhat = format.setFormat.what;
-    const mainSetHasTiebreak = !!parsedMatchUpFormat.setFormat.tiebreakFormat;
-
-    // Update tiebreak checkbox and toggle visibility based on 'what' type
-    setTiebreak.checked = mainSetHasTiebreak;
-    const tiebreakToggleVisible = mainWhat === SETS;
-    setTiebreak.style.display = tiebreakToggleVisible ? '' : NONE;
-    const setTiebreakToggleElem = getEl('setTiebreakToggle');
-    if (setTiebreakToggleElem) setTiebreakToggleElem.style.display = tiebreakToggleVisible ? '' : NONE;
-
-    // Update all button values to match the selected format
-    setComponents.forEach((component) => {
-      if (component.getValue) {
-        const setComponentValue = component.getValue(parsedMatchUpFormat);
-        const elem = getEl(component.id);
-
-        if (elem && setComponentValue !== undefined && setComponentValue !== null) {
-          const { prefix = '', suffix = '', pluralize } = component;
-          const setCount = parsedMatchUpFormat.bestOf || parsedMatchUpFormat.exactly;
-          const plural = pluralize && setCount > 1 ? 's' : '';
-          elem.innerHTML = `${prefix}${setComponentValue}${plural}${suffix}${clickable}`;
-          elem.style.display = '';
-        } else if (elem) {
-          elem.style.display = NONE;
-        }
-
-        // For tb (tiebreak-related) components: update visibility based on what type
-        // In SETS mode: only visible when tiebreak is checked
-        // In TIEBREAKS/TIMED_SETS mode: visibility determined by whats and getValue above
-        if (component.tb && mainWhat === SETS) {
-          const tbElem = getEl(component.id);
-          if (tbElem) {
-            tbElem.style.display = mainSetHasTiebreak ? tbElem.style.display : NONE;
-          }
-        }
-
-        if (finalSet) {
-          const finalComponentValue = component.getValue(parsedMatchUpFormat, true);
-          const finalElem = getEl(`${component.id}-1`);
-
-          if (finalElem && finalComponentValue !== undefined && finalComponentValue !== null) {
-            const { prefix = '', suffix = '', pluralize } = component;
-            const setCount = parsedMatchUpFormat.bestOf || parsedMatchUpFormat.exactly;
-            const plural = pluralize && setCount > 1 ? 's' : '';
-            finalElem.innerHTML = `${prefix}${finalComponentValue}${plural}${suffix}${clickable}`;
-            finalElem.style.display = '';
-          } else if (finalElem) {
-            finalElem.style.display = NONE;
-          }
-        }
-      }
-    });
+    updateMatchLevelControls(finalSetFormat, finalSetConfig, finalSetOption, setTiebreak, finalSetTiebreak);
   };
   standardFormatSelector.appendChild(select);
   content.appendChild(standardFormatSelector);
@@ -1369,7 +1349,15 @@ export function getMatchUpFormatModal({
   finalSetFormat.style.marginBottom = '1em';
   finalSetFormat.id = 'finalSetFormat';
   modalInputs['finalSetFormatDiv'] = finalSetFormat;
-  ([{ label: `<div style='font-weight: bold'>${editorConfig.labels?.finalSetLabel || 'Final set'}</div>`, options: [] as any[], finalSet: true }] as any[])
+  (
+    [
+      {
+        label: `<div style='font-weight: bold'>${editorConfig.labels?.finalSetLabel || 'Final set'}</div>`,
+        options: [] as any[],
+        finalSet: true
+      }
+    ] as any[]
+  )
     .concat(
       setComponents.map((component) => {
         const value = component.getValue ? component.getValue(parsedMatchUpFormat, true) : undefined;
@@ -1585,11 +1573,7 @@ function closeCurrentDropdown() {
   currentDropdown = null;
 }
 
-function createGameFormatDropdown(
-  e: Event,
-  currentGameFormat: any,
-  onUpdate: (gf: any) => void
-) {
+function createGameFormatDropdown(e: Event, currentGameFormat: any, onUpdate: (gf: any) => void) {
   closeCurrentDropdown();
 
   const dropdown = document.createElement('div');
@@ -1618,8 +1602,12 @@ function createGameFormatDropdown(
     if (type === 'none' && deuce === 'none') return undefined;
     const gf: any = {};
     if (type === 'TN') gf.type = 'TRADITIONAL';
-    else if (/^\d+C$/.test(type)) { gf.type = 'CONSECUTIVE'; gf.count = Number(type.slice(0, -1)); }
-    else { gf.type = 'TRADITIONAL'; } // deuce without explicit type defaults to TRADITIONAL
+    else if (/^\d+C$/.test(type)) {
+      gf.type = 'CONSECUTIVE';
+      gf.count = Number(type.slice(0, -1));
+    } else {
+      gf.type = 'TRADITIONAL';
+    } // deuce without explicit type defaults to TRADITIONAL
     if (deuce !== 'none') gf.deuceAfter = Number(deuce.slice(0, -1));
     return gf;
   }
@@ -1633,16 +1621,22 @@ function createGameFormatDropdown(
   }
 
   // Shared styles
-  const itemStyle = 'padding: 0.4em 1em; cursor: pointer; background-color: var(--chc-dropdown-bg); color: var(--chc-text-primary); font-size: 1rem;';
-  const headerStyle = 'padding: 0.3em 1em; font-weight: bold; font-size: 0.85rem; color: var(--chc-text-muted); text-transform: uppercase; letter-spacing: 0.5px;';
+  const itemStyle =
+    'padding: 0.4em 1em; cursor: pointer; background-color: var(--chc-dropdown-bg); color: var(--chc-text-primary); font-size: 1rem;';
+  const headerStyle =
+    'padding: 0.3em 1em; font-weight: bold; font-size: 0.85rem; color: var(--chc-text-muted); text-transform: uppercase; letter-spacing: 0.5px;';
   const separatorStyle = 'border-top: 1px solid #eee; margin: 0.25em 0;';
 
   // "None" button at top — clears everything and closes dropdown
   const noneItem = document.createElement('div');
   noneItem.textContent = editorConfig.labels?.none || 'None';
   noneItem.style.cssText = itemStyle;
-  noneItem.onmouseenter = () => { noneItem.style.backgroundColor = CHC_HOVER_BG; };
-  noneItem.onmouseleave = () => { noneItem.style.backgroundColor = CHC_DROPDOWN_BG; };
+  noneItem.onmouseenter = () => {
+    noneItem.style.backgroundColor = CHC_HOVER_BG;
+  };
+  noneItem.onmouseleave = () => {
+    noneItem.style.backgroundColor = CHC_DROPDOWN_BG;
+  };
   noneItem.onclick = (clickEvent) => {
     clickEvent.preventDefault();
     clickEvent.stopPropagation();
@@ -1654,9 +1648,14 @@ function createGameFormatDropdown(
   // Helper to create a radio option row
   function createRadioRow(name: string, value: string, label: string, checked: boolean): HTMLElement {
     const row = document.createElement('label');
-    row.style.cssText = 'display: flex; align-items: center; padding: 0.3em 1em; cursor: pointer; gap: 0.4em; font-size: 1rem; color: var(--chc-text-primary);';
-    row.onmouseenter = () => { row.style.backgroundColor = CHC_HOVER_BG; };
-    row.onmouseleave = () => { row.style.backgroundColor = CHC_DROPDOWN_BG; };
+    row.style.cssText =
+      'display: flex; align-items: center; padding: 0.3em 1em; cursor: pointer; gap: 0.4em; font-size: 1rem; color: var(--chc-text-primary);';
+    row.onmouseenter = () => {
+      row.style.backgroundColor = CHC_HOVER_BG;
+    };
+    row.onmouseleave = () => {
+      row.style.backgroundColor = CHC_DROPDOWN_BG;
+    };
 
     const radio = document.createElement('input');
     radio.type = 'radio';
@@ -1691,7 +1690,7 @@ function createGameFormatDropdown(
     { value: 'TN', label: gfLabels['TN'] },
     { value: '2C', label: gfLabels['2C'] },
     { value: '3C', label: gfLabels['3C'] },
-    { value: '4C', label: gfLabels['4C'] },
+    { value: '4C', label: gfLabels['4C'] }
   ];
   for (const opt of gameTypeOptions) {
     dropdownMenu.appendChild(createRadioRow('gameType', opt.value, opt.label, currentType === opt.value));
@@ -1712,7 +1711,7 @@ function createGameFormatDropdown(
   const deuceOptions = [
     { value: 'none', label: editorConfig.labels?.none || 'None' },
     { value: '1D', label: drLabels['1D'] },
-    { value: '3D', label: drLabels['3D'] },
+    { value: '3D', label: drLabels['3D'] }
   ];
   for (const opt of deuceOptions) {
     dropdownMenu.appendChild(createRadioRow('deuceRule', opt.value, opt.label, currentDeuce === opt.value));

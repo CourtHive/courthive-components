@@ -29,11 +29,7 @@ export interface PlayoffProfiles {
 
 const cache = new Map<string, PlayoffProfiles>();
 
-export function getPlayoffProfiles(
-  structureType: string,
-  drawSize: number,
-  groupSize?: number,
-): PlayoffProfiles {
+export function getPlayoffProfiles(structureType: string, drawSize: number, groupSize?: number): PlayoffProfiles {
   const key = `${structureType}:${drawSize}:${groupSize || ''}`;
   const cached = cache.get(key);
   if (cached) return cached;
@@ -45,7 +41,7 @@ export function getPlayoffProfiles(
     }
 
     const { tournamentRecord } = mocksEngine.generateTournamentRecord({
-      drawProfiles: [drawProfile],
+      drawProfiles: [drawProfile]
     });
 
     tournamentEngine.setState(tournamentRecord);
@@ -65,20 +61,21 @@ export function getPlayoffProfiles(
 
     if (isContainer || structureType === ROUND_ROBIN) {
       // RR / container: call without structureId
-      const { availablePlayoffProfiles } =
-        tournamentEngine.getAvailablePlayoffProfiles({ drawId });
+      const { availablePlayoffProfiles } = tournamentEngine.getAvailablePlayoffProfiles({ drawId });
       const profile = availablePlayoffProfiles?.[0];
       if (profile) {
         result = {
           playoffFinishingPositionRanges: profile.playoffFinishingPositionRanges,
-          finishingPositionsAvailable: profile.finishingPositionsAvailable,
+          finishingPositionsAvailable: profile.finishingPositionsAvailable
         };
       }
     } else {
       // SE / elimination: call with structureId
       const structureId = mainStructure.structureId;
-      const { playoffRounds, playoffRoundsRanges } =
-        tournamentEngine.getAvailablePlayoffProfiles({ drawId, structureId });
+      const { playoffRounds, playoffRoundsRanges } = tournamentEngine.getAvailablePlayoffProfiles({
+        drawId,
+        structureId
+      });
       result = { playoffRounds, playoffRoundsRanges };
     }
 

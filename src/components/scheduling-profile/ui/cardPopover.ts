@@ -7,11 +7,7 @@
 
 import tippy, { type Instance as TippyInstance } from 'tippy.js';
 import type { RoundLocator } from '../types';
-import {
-  spPopoverItemStyle,
-  spPopoverDeleteStyle,
-  spPopoverDividerStyle,
-} from './styles';
+import { spPopoverItemStyle, spPopoverDeleteStyle, spPopoverDividerStyle } from './styles';
 
 export interface CardPopoverCallbacks {
   onDelete: (locator: RoundLocator) => void;
@@ -95,7 +91,7 @@ export function createCardPopoverManager(callbacks: CardPopoverCallbacks): CardP
         onHidden: () => {
           activeTip = null;
           activeLocatorKey = null;
-        },
+        }
       });
 
       activeTip = tip;
@@ -109,6 +105,6 @@ export function createCardPopoverManager(callbacks: CardPopoverCallbacks): CardP
 
     isActiveFor(locator: RoundLocator): boolean {
       return activeLocatorKey === locatorKey(locator);
-    },
+    }
   };
 }

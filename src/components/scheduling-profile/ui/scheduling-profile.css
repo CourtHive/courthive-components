@@ -12,7 +12,15 @@
   gap: 12px;
   padding: 12px;
   height: 100%;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
   color: var(--sp-text);
   box-sizing: border-box;
 }
@@ -40,9 +48,16 @@
   scrollbar-color: var(--sp-scrollbar) transparent;
 }
 
-.sp-column::-webkit-scrollbar { width: 6px; }
-.sp-column::-webkit-scrollbar-track { background: transparent; }
-.sp-column::-webkit-scrollbar-thumb { background: var(--sp-scrollbar); border-radius: 3px; }
+.sp-column::-webkit-scrollbar {
+  width: 6px;
+}
+.sp-column::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sp-column::-webkit-scrollbar-thumb {
+  background: var(--sp-scrollbar);
+  border-radius: 3px;
+}
 
 /* ── Panel ───────────────────────────────────────────────── */
 
@@ -99,10 +114,21 @@
   cursor: pointer;
 }
 
-.sp-date-chip:hover { border-color: var(--sp-border-hover); }
-.sp-date-chip.selected { border-color: var(--sp-accent-focus); background: var(--sp-selected-bg); }
-.sp-date-chip.unavailable { opacity: 0.55; border-style: dashed; }
-.sp-date-chip.inactive { opacity: 0.45; border-style: dashed; }
+.sp-date-chip:hover {
+  border-color: var(--sp-border-hover);
+}
+.sp-date-chip.selected {
+  border-color: var(--sp-accent-focus);
+  background: var(--sp-selected-bg);
+}
+.sp-date-chip.unavailable {
+  opacity: 0.55;
+  border-style: dashed;
+}
+.sp-date-chip.inactive {
+  opacity: 0.45;
+  border-style: dashed;
+}
 
 /* ── Badges & Chips ──────────────────────────────────────── */
 
@@ -120,9 +146,18 @@
   color: var(--sp-muted);
 }
 
-.sp-badge.ok { border-color: var(--sp-ok-border); color: var(--sp-ok-text); }
-.sp-badge.warn { border-color: var(--sp-warn-border); color: var(--sp-warn-text); }
-.sp-badge.err { border-color: var(--sp-err-border); color: var(--sp-err-text); }
+.sp-badge.ok {
+  border-color: var(--sp-ok-border);
+  color: var(--sp-ok-text);
+}
+.sp-badge.warn {
+  border-color: var(--sp-warn-border);
+  color: var(--sp-warn-text);
+}
+.sp-badge.err {
+  border-color: var(--sp-err-border);
+  color: var(--sp-err-text);
+}
 
 .sp-chips {
   display: flex;
@@ -139,10 +174,22 @@
   color: var(--sp-muted);
 }
 
-.sp-chip.seg { border-color: var(--sp-accent-border); color: var(--sp-accent-text); }
-.sp-chip.nb { border-color: var(--sp-ok-border); color: var(--sp-ok-text); }
-.sp-chip.err { border-color: var(--sp-err-border); color: var(--sp-err-text); }
-.sp-chip.warn { border-color: var(--sp-warn-border); color: var(--sp-warn-text); }
+.sp-chip.seg {
+  border-color: var(--sp-accent-border);
+  color: var(--sp-accent-text);
+}
+.sp-chip.nb {
+  border-color: var(--sp-ok-border);
+  color: var(--sp-ok-text);
+}
+.sp-chip.err {
+  border-color: var(--sp-err-border);
+  color: var(--sp-err-text);
+}
+.sp-chip.warn {
+  border-color: var(--sp-warn-border);
+  color: var(--sp-warn-text);
+}
 
 /* ── Venue Board ─────────────────────────────────────────── */
 
@@ -212,10 +259,18 @@
   cursor: grab;
 }
 
-.sp-card:active { cursor: grabbing; }
-.sp-card.selected { border-color: var(--sp-selected-border); }
-.sp-card.error { border-color: var(--sp-err-border-strong); }
-.sp-card.warn { border-color: var(--sp-warn-border-strong); }
+.sp-card:active {
+  cursor: grabbing;
+}
+.sp-card.selected {
+  border-color: var(--sp-selected-border);
+}
+.sp-card.error {
+  border-color: var(--sp-err-border-strong);
+}
+.sp-card.warn {
+  border-color: var(--sp-warn-border-strong);
+}
 
 .sp-card-title {
   font-size: 12px;
@@ -247,9 +302,15 @@
   background: var(--sp-card-bg);
 }
 
-.sp-issue.error { border-color: var(--sp-err-border-light); }
-.sp-issue.warn { border-color: var(--sp-warn-border-light); }
-.sp-issue.info { border-color: var(--sp-accent-border-light); }
+.sp-issue.error {
+  border-color: var(--sp-err-border-light);
+}
+.sp-issue.warn {
+  border-color: var(--sp-warn-border-light);
+}
+.sp-issue.info {
+  border-color: var(--sp-accent-border-light);
+}
 
 .sp-issue-code {
   font-size: 11px;
@@ -303,7 +364,9 @@
   outline: none;
 }
 
-.sp-input:focus { border-color: var(--sp-accent-focus); }
+.sp-input:focus {
+  border-color: var(--sp-accent-focus);
+}
 
 .sp-select {
   max-width: 170px;
@@ -335,7 +398,9 @@
   user-select: none;
 }
 
-.sp-group-header:hover { background: var(--sp-hover-bg); }
+.sp-group-header:hover {
+  background: var(--sp-hover-bg);
+}
 
 .sp-group-body {
   padding: 10px;
@@ -352,7 +417,9 @@
   cursor: grab;
 }
 
-.sp-catalog-item:hover { border-color: var(--sp-border-hover); }
+.sp-catalog-item:hover {
+  border-color: var(--sp-border-hover);
+}
 
 .sp-catalog-item.dimmed {
   opacity: 0.5;
@@ -366,7 +433,9 @@
   color: var(--sp-dimmed-text, color-mix(in srgb, var(--sp-muted) 80%, transparent 20%));
 }
 
-.sp-catalog-item.dimmed:hover { border-color: var(--sp-border); }
+.sp-catalog-item.dimmed:hover {
+  border-color: var(--sp-border);
+}
 
 .sp-catalog-item.dimmed .sp-catalog-check {
   position: absolute;
@@ -378,8 +447,14 @@
   pointer-events: none;
 }
 
-.sp-catalog-item.navigate { cursor: pointer; border-color: var(--sp-accent-border); }
-.sp-catalog-item.navigate:hover { border-color: var(--sp-accent-focus); opacity: 1; }
+.sp-catalog-item.navigate {
+  cursor: pointer;
+  border-color: var(--sp-accent-border);
+}
+.sp-catalog-item.navigate:hover {
+  border-color: var(--sp-accent-focus);
+  opacity: 1;
+}
 
 /* ── Inspector ───────────────────────────────────────────── */
 
@@ -423,7 +498,10 @@
   font-size: 13px;
 }
 
-.sp-popover-item:hover { background: var(--sp-popover-hover-bg); color: var(--sp-popover-hover-text); }
+.sp-popover-item:hover {
+  background: var(--sp-popover-hover-bg);
+  color: var(--sp-popover-hover-text);
+}
 
 .sp-popover-delete {
   padding: 6px 12px;
@@ -435,7 +513,9 @@
   font-size: 13px;
 }
 
-.sp-popover-delete:hover { background: var(--sp-popover-delete-bg); }
+.sp-popover-delete:hover {
+  background: var(--sp-popover-delete-bg);
+}
 
 .sp-popover-divider {
   border-top: 1px solid var(--sp-popover-divider);

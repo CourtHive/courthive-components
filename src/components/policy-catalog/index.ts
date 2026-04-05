@@ -21,7 +21,12 @@ export { PolicyCatalogStore } from './engine/policyCatalogStore';
 // ============================================================================
 
 export { filterPolicyCatalog, groupPolicyCatalog } from './domain/catalogProjections';
-export { POLICY_TYPE_METADATA, POLICY_TYPE_GROUPS, getPolicyTypeMeta, getEmptyPolicyData } from './domain/policyDefaults';
+export {
+  POLICY_TYPE_METADATA,
+  POLICY_TYPE_GROUPS,
+  getPolicyTypeMeta,
+  getEmptyPolicyData
+} from './domain/policyDefaults';
 export { deepClone } from './domain/utils';
 
 // ============================================================================
@@ -44,7 +49,7 @@ export {
   validateSchedulingPolicy,
   formatCodeLabel,
   emptySchedulingPolicy,
-  buildSchedulingEditorPanel,
+  buildSchedulingEditorPanel
 } from './editors/scheduling';
 
 // ============================================================================
@@ -56,7 +61,7 @@ export {
   createRankingPointsEditor,
   RankingPointsEditorStore,
   buildRankingPointsEditorPanel,
-  emptyRankingPolicy,
+  emptyRankingPolicy
 } from './editors/ranking';
 
 // ============================================================================
@@ -74,7 +79,7 @@ export type {
   PolicyTypeGroup,
   PolicyTypeMeta,
   CatalogGroupBy,
-  UIPanel,
+  UIPanel
 } from './types';
 
 export type {
@@ -89,7 +94,7 @@ export type {
   AverageTimeEntry,
   RecoveryTimeEntry,
   MatchUpAverageTime,
-  MatchUpRecoveryTime,
+  MatchUpRecoveryTime
 } from './editors/scheduling';
 
 export type {
@@ -101,7 +106,7 @@ export type {
   AwardProfileData,
   QualityWinProfileData,
   AggregationRulesData,
-  TableLayout,
+  TableLayout
 } from './editors/ranking';
 
 // ============================================================================
@@ -111,10 +116,7 @@ export type {
 import type { PolicyCatalogConfig } from './types';
 import { PolicyCatalogControl } from './controller/policyCatalogControl';
 
-export function createPolicyCatalog(
-  config: PolicyCatalogConfig,
-  container: HTMLElement,
-): PolicyCatalogControl {
+export function createPolicyCatalog(config: PolicyCatalogConfig, container: HTMLElement): PolicyCatalogControl {
   const control = new PolicyCatalogControl(config);
   control.render(container);
   return control;

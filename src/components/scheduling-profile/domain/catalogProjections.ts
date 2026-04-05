@@ -11,7 +11,7 @@ export function filterCatalog(
   catalog: CatalogRoundItem[],
   query: string,
   plannedKeys: Set<string>,
-  behavior: PlannedRoundBehavior = 'dim',
+  behavior: PlannedRoundBehavior = 'dim'
 ): Array<CatalogRoundItem & { isPlanned: boolean }> {
   const q = query.toLowerCase().trim();
 
@@ -24,13 +24,13 @@ export function filterCatalog(
     })
     .map((r) => ({
       ...r,
-      isPlanned: plannedKeys.has(roundKeyString(r)),
+      isPlanned: plannedKeys.has(roundKeyString(r))
     }));
 }
 
 export function groupCatalog(
   items: Array<CatalogRoundItem & { isPlanned: boolean }>,
-  mode: CatalogGroupBy,
+  mode: CatalogGroupBy
 ): Map<string, Array<CatalogRoundItem & { isPlanned: boolean }>> {
   const m = new Map<string, Array<CatalogRoundItem & { isPlanned: boolean }>>();
   const keyFn = (it: CatalogRoundItem): string => {

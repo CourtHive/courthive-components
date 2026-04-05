@@ -24,7 +24,7 @@ export interface SchedulePageLayoutCallbacks {
 export function buildSchedulePageLayout(
   panels: SchedulePageLayoutPanels,
   callbacks: SchedulePageLayoutCallbacks,
-  options?: { hideLeft?: boolean; catalogSide?: 'left' | 'right' },
+  options?: { hideLeft?: boolean; catalogSide?: 'left' | 'right' }
 ): {
   element: HTMLElement;
   update: (state: SchedulePageState) => void;

@@ -18,7 +18,7 @@ const COMPLETED_STATUSES = new Set([
   'DOUBLE_DEFAULT',
   'CANCELLED',
   'ABANDONED',
-  'DEAD_RUBBER',
+  'DEAD_RUBBER'
 ]);
 
 export function isCompletedStatus(status?: string): boolean {
@@ -30,7 +30,7 @@ export function filterMatchUpCatalog(
   query: string,
   behavior: ScheduledBehavior = 'dim',
   filters?: CatalogFilters,
-  showCompleted = false,
+  showCompleted = false
 ): CatalogMatchUpItem[] {
   const q = query.toLowerCase().trim();
 
@@ -51,7 +51,7 @@ export function filterMatchUpCatalog(
 
 export function groupMatchUpCatalog(
   items: CatalogMatchUpItem[],
-  mode: MatchUpCatalogGroupBy,
+  mode: MatchUpCatalogGroupBy
 ): Map<string, CatalogMatchUpItem[]> {
   const m = new Map<string, CatalogMatchUpItem[]>();
 

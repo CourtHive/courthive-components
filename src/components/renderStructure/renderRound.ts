@@ -71,7 +71,9 @@ export function renderRound({
       const sumDiff = sum(a.drawPositions) - sum(b.drawPositions);
       const aPositions = a.drawPositions || [];
       const bPositions = b.drawPositions || [];
-      const minDiff = (aPositions.length ? Math.min.apply(null, aPositions) : 0) - (bPositions.length ? Math.min.apply(null, bPositions) : 0);
+      const minDiff =
+        (aPositions.length ? Math.min.apply(null, aPositions) : 0) -
+        (bPositions.length ? Math.min.apply(null, bPositions) : 0);
       return sumDiff || minDiff;
     });
     const structureDetails = roundMatchUps.reduce((obj, matchUp) => {

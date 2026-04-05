@@ -24,7 +24,9 @@
   user-select: none;
 }
 
-.re-section-header:hover { background: var(--sp-hover-bg); }
+.re-section-header:hover {
+  background: var(--sp-hover-bg);
+}
 
 .re-section-chevron {
   font-size: 10px;
@@ -75,7 +77,9 @@
   outline: none;
 }
 
-.re-field-input:focus { border-color: var(--sp-accent-focus); }
+.re-field-input:focus {
+  border-color: var(--sp-accent-focus);
+}
 
 .re-field-input[disabled] {
   opacity: 0.6;
@@ -106,7 +110,9 @@
   min-width: 140px;
 }
 
-.re-field-select:focus { border-color: var(--sp-accent-focus); }
+.re-field-select:focus {
+  border-color: var(--sp-accent-focus);
+}
 
 .re-field-select[disabled] {
   opacity: 0.6;
@@ -126,11 +132,11 @@
   margin-bottom: 0;
 }
 
-.re-checkbox-row input[type="checkbox"] {
+.re-checkbox-row input[type='checkbox'] {
   accent-color: var(--sp-accent);
 }
 
-.re-checkbox-row input[type="checkbox"][disabled] {
+.re-checkbox-row input[type='checkbox'][disabled] {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -158,8 +164,12 @@
   -moz-appearance: textfield;
 }
 
-.re-points-input:hover { border-color: var(--sp-border); }
-.re-points-input:focus { border-color: var(--sp-accent-focus); }
+.re-points-input:hover {
+  border-color: var(--sp-border);
+}
+.re-points-input:focus {
+  border-color: var(--sp-accent-focus);
+}
 
 .re-points-input[disabled] {
   opacity: 0.6;
@@ -197,7 +207,9 @@
   user-select: none;
 }
 
-.re-profile-header:hover { background: var(--sp-hover-bg); }
+.re-profile-header:hover {
+  background: var(--sp-hover-bg);
+}
 
 .re-profile-name-input {
   background: transparent;
@@ -212,8 +224,13 @@
   max-width: 250px;
 }
 
-.re-profile-name-input:hover { border-color: var(--sp-border); }
-.re-profile-name-input:focus { border-color: var(--sp-accent-focus); cursor: text; }
+.re-profile-name-input:hover {
+  border-color: var(--sp-border);
+}
+.re-profile-name-input:focus {
+  border-color: var(--sp-accent-focus);
+  cursor: text;
+}
 
 .re-profile-name-input[disabled] {
   border-color: transparent;
@@ -244,8 +261,13 @@
   line-height: 1;
 }
 
-.re-icon-btn:hover { color: var(--sp-text); background: var(--sp-hover-bg); }
-.re-icon-btn--danger:hover { color: var(--sp-err-text); }
+.re-icon-btn:hover {
+  color: var(--sp-text);
+  background: var(--sp-hover-bg);
+}
+.re-icon-btn--danger:hover {
+  color: var(--sp-err-text);
+}
 
 /* ── Add Button ──────────────────────────────────────────── */
 
@@ -262,7 +284,9 @@
   flex-shrink: 0;
 }
 
-.re-remove-btn:hover { color: var(--sp-err-text); }
+.re-remove-btn:hover {
+  color: var(--sp-err-text);
+}
 
 /* ── Empty State ─────────────────────────────────────────── */
 

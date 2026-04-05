@@ -53,7 +53,7 @@ export class InlineScoringManager {
           };
           currentGameScore = {
             side1Points: toRaw(currentSet.side1PointScore),
-            side2Points: toRaw(currentSet.side2PointScore),
+            side2Points: toRaw(currentSet.side2PointScore)
           };
         }
 
@@ -62,12 +62,12 @@ export class InlineScoringManager {
           ...(currentSet && {
             currentSetScore: {
               side1Score: currentSet.side1Score || 0,
-              side2Score: currentSet.side2Score || 0,
-            },
+              side2Score: currentSet.side2Score || 0
+            }
           }),
           ...(currentGameScore && { currentGameScore }),
           matchUpStatus: existingMatchUp.matchUpStatus,
-          winningSide: existingMatchUp.winningSide,
+          winningSide: existingMatchUp.winningSide
         } as any);
       } catch {
         // If initial score load fails, start fresh

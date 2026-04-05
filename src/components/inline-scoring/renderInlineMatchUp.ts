@@ -71,9 +71,9 @@ export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElem
           canUndo: manager.canUndo(matchUpId),
           canRedo: manager.canRedo(matchUpId),
           isComplete,
-          isDirty,
-        },
-      },
+          isDirty
+        }
+      }
     };
 
     // Build event handlers that route to manager
@@ -110,7 +110,7 @@ export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElem
               ...baseMatchUp,
               matchUpStatus: 'IN_PROGRESS',
               winningSide: undefined,
-              readyToScore: true,
+              readyToScore: true
             };
           } else {
             // For WALKOVER, clear the score
@@ -127,7 +127,7 @@ export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElem
               ...baseMatchUp,
               matchUpStatus: status,
               winningSide,
-              readyToScore: false,
+              readyToScore: false
             };
 
             // Notify consumer
@@ -135,7 +135,7 @@ export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElem
               matchUpId,
               matchUpStatus: status,
               sideNumber,
-              engine: manager.get(matchUpId)?.engine,
+              engine: manager.get(matchUpId)?.engine
             });
           }
 
@@ -165,7 +165,7 @@ export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElem
           matchUpStatus: 'IN_PROGRESS',
           winningSide: undefined,
           readyToScore: true,
-          score: undefined,
+          score: undefined
         };
         isDirty = true;
         render();
@@ -178,7 +178,7 @@ export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElem
           isDirty = false;
           render();
         }
-      },
+      }
     };
 
     // Render the standard matchUp element — footer buttons are created by renderMatchUp
@@ -186,7 +186,7 @@ export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElem
       ...params,
       composition: compositionWithState,
       matchUp: currentMatchUp,
-      eventHandlers: inlineEventHandlers,
+      eventHandlers: inlineEventHandlers
     });
 
     // Update wrapper outline: show when scoring is active, hide when complete
@@ -211,7 +211,7 @@ function showEndMatchPopover(
   event: MouseEvent,
   sideNumber: number,
   currentStatus: string | undefined,
-  onSelect: (status: string) => void,
+  onSelect: (status: string) => void
 ) {
   // Remove any existing popover
   document.querySelectorAll('.chc-live-chip-popover').forEach((el) => el.remove());
@@ -226,14 +226,13 @@ function showEndMatchPopover(
   const isDark = !!document.querySelector('[data-theme="dark"]');
   const bg = isDark ? '#222244' : '#fff';
   const border = isDark ? '#444' : '#dee2e6';
-  const shadow = isDark
-    ? '0 2px 12px rgba(0,0,0,0.4), 0 0 0 1px rgba(91,155,213,0.3)'
-    : '0 2px 8px rgba(0,0,0,0.12)';
+  const shadow = isDark ? '0 2px 12px rgba(0,0,0,0.4), 0 0 0 1px rgba(91,155,213,0.3)' : '0 2px 8px rgba(0,0,0,0.12)';
 
   // Side 1 (top): popover below the pill. Side 2 (bottom): popover above the pill.
-  const verticalPos = sideNumber === 2
-    ? `bottom: ${document.documentElement.clientHeight - rect.top + 4}px;`
-    : `top: ${rect.bottom + 4}px;`;
+  const verticalPos =
+    sideNumber === 2
+      ? `bottom: ${document.documentElement.clientHeight - rect.top + 4}px;`
+      : `top: ${rect.bottom + 4}px;`;
 
   popover.style.cssText = `
     position: fixed;
@@ -251,8 +250,7 @@ function showEndMatchPopover(
     box-shadow: ${shadow};
   `;
 
-  const hasIrregularStatus = currentStatus &&
-    !['IN_PROGRESS', 'COMPLETED', 'TO_BE_PLAYED'].includes(currentStatus);
+  const hasIrregularStatus = currentStatus && !['IN_PROGRESS', 'COMPLETED', 'TO_BE_PLAYED'].includes(currentStatus);
 
   // When an irregular status is active, offer LIVE (resume scoring) as the first option
   const statuses = hasIrregularStatus

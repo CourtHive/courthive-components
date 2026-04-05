@@ -16,13 +16,13 @@ describe('Factory generateOutcomeFromScoreString with preserveSideOrder', () => 
       const { outcome } = tournamentEngine.generateOutcomeFromScoreString({
         scoreString: SCORE_30_1_01_01,
         matchUpFormat: format,
-        preserveSideOrder: true,
+        preserveSideOrder: true
       });
 
       // Side order preserved
       expect(outcome.score.sets[0].side1Score).toBe(30);
       expect(outcome.score.sets[0].side2Score).toBe(1);
-      
+
       // winningSide calculated correctly (aggregate: 30-3)
       expect(outcome.winningSide).toBe(1);
     });
@@ -32,7 +32,7 @@ describe('Factory generateOutcomeFromScoreString with preserveSideOrder', () => 
       const { outcome } = tournamentEngine.generateOutcomeFromScoreString({
         scoreString: '30-25 25-30 [1-0]',
         matchUpFormat: format,
-        preserveSideOrder: true,
+        preserveSideOrder: true
       });
 
       // Side order preserved
@@ -40,7 +40,7 @@ describe('Factory generateOutcomeFromScoreString with preserveSideOrder', () => 
       expect(outcome.score.sets[0].side2Score).toBe(25);
       expect(outcome.score.sets[2].side1Score).toBe(1);
       expect(outcome.score.sets[2].side2Score).toBe(0);
-      
+
       // winningSide from tiebreak (aggregate 55-55, TB 1-0)
       expect(outcome.winningSide).toBe(1);
     });
@@ -52,7 +52,7 @@ describe('Factory generateOutcomeFromScoreString with preserveSideOrder', () => 
       const { outcome } = tournamentEngine.generateOutcomeFromScoreString({
         scoreString: '3-6 4-6',
         matchUpFormat: format,
-        preserveSideOrder: true,
+        preserveSideOrder: true
       });
 
       // Side order preserved (side 1 lost)
@@ -60,7 +60,7 @@ describe('Factory generateOutcomeFromScoreString with preserveSideOrder', () => 
       expect(outcome.score.sets[0].side2Score).toBe(6);
       expect(outcome.score.sets[1].side1Score).toBe(4);
       expect(outcome.score.sets[1].side2Score).toBe(6);
-      
+
       // winningSide calculated correctly (side 2 won)
       expect(outcome.winningSide).toBe(2);
     });
@@ -70,13 +70,13 @@ describe('Factory generateOutcomeFromScoreString with preserveSideOrder', () => 
       const { outcome } = tournamentEngine.generateOutcomeFromScoreString({
         scoreString: '6-3 6-4',
         matchUpFormat: format,
-        preserveSideOrder: true,
+        preserveSideOrder: true
       });
 
       // Side order preserved (side 1 won)
       expect(outcome.score.sets[0].side1Score).toBe(6);
       expect(outcome.score.sets[0].side2Score).toBe(3);
-      
+
       // winningSide calculated correctly (side 1 won)
       expect(outcome.winningSide).toBe(1);
     });
@@ -86,14 +86,14 @@ describe('Factory generateOutcomeFromScoreString with preserveSideOrder', () => 
       const { outcome } = tournamentEngine.generateOutcomeFromScoreString({
         scoreString: '6-3 4-6 6-4',
         matchUpFormat: format,
-        preserveSideOrder: true,
+        preserveSideOrder: true
       });
 
       // All side orders preserved
       expect(outcome.score.sets[0].side1Score).toBe(6);
       expect(outcome.score.sets[1].side1Score).toBe(4);
       expect(outcome.score.sets[2].side1Score).toBe(6);
-      
+
       // winningSide calculated correctly (side 1 won 2-1)
       expect(outcome.winningSide).toBe(1);
     });
@@ -105,7 +105,7 @@ describe('Factory generateOutcomeFromScoreString with preserveSideOrder', () => 
       const { outcome } = tournamentEngine.generateOutcomeFromScoreString({
         scoreString: '3-6 4-6',
         matchUpFormat: format,
-        preserveSideOrder: true,
+        preserveSideOrder: true
       });
 
       // Side 1 perspective: what they scored
@@ -119,7 +119,7 @@ describe('Factory generateOutcomeFromScoreString with preserveSideOrder', () => 
       const { outcome } = tournamentEngine.generateOutcomeFromScoreString({
         scoreString: SCORE_30_1_01_01,
         matchUpFormat: format,
-        preserveSideOrder: true,
+        preserveSideOrder: true
       });
 
       expect(outcome.score.scoreStringSide1).toBe(SCORE_30_1_01_01);

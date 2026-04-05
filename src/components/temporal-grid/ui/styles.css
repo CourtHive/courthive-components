@@ -510,7 +510,9 @@
   border-radius: 4px;
   z-index: 5;
   cursor: pointer;
-  transition: height 0.1s ease, top 0.1s ease;
+  transition:
+    height 0.1s ease,
+    top 0.1s ease;
   box-sizing: border-box;
 }
 

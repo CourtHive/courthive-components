@@ -10,16 +10,16 @@ describe('validateSchedulingPolicy', () => {
     const policy: SchedulingPolicyData = {
       defaultTimes: {
         averageTimes: [{ categoryNames: [], minutes: { default: 90 } }],
-        recoveryTimes: [{ minutes: { default: 60 } }],
+        recoveryTimes: [{ minutes: { default: 60 } }]
       },
       defaultDailyLimits: { SINGLES: 2, DOUBLES: 2, total: 3 },
       matchUpAverageTimes: [
         {
           matchUpFormatCodes: [FORMAT_STANDARD],
-          averageTimes: [{ categoryNames: [], minutes: { default: 90 } }],
-        },
+          averageTimes: [{ categoryNames: [], minutes: { default: 90 } }]
+        }
       ],
-      matchUpRecoveryTimes: [],
+      matchUpRecoveryTimes: []
     };
     const results = validateSchedulingPolicy(policy);
     expect(results.filter((r) => r.severity === 'error')).toHaveLength(0);
@@ -28,8 +28,8 @@ describe('validateSchedulingPolicy', () => {
   it('flags negative default average time', () => {
     const policy: SchedulingPolicyData = {
       defaultTimes: {
-        averageTimes: [{ categoryNames: [], minutes: { default: -10 } }],
-      },
+        averageTimes: [{ categoryNames: [], minutes: { default: -10 } }]
+      }
     };
     const results = validateSchedulingPolicy(policy);
     expect(results.some((r) => r.severity === 'error' && r.path.includes('averageTimes'))).toBe(true);
@@ -37,7 +37,7 @@ describe('validateSchedulingPolicy', () => {
 
   it('flags negative daily limits', () => {
     const policy: SchedulingPolicyData = {
-      defaultDailyLimits: { SINGLES: -1, DOUBLES: 2, total: 3 },
+      defaultDailyLimits: { SINGLES: -1, DOUBLES: 2, total: 3 }
     };
     const results = validateSchedulingPolicy(policy);
     expect(results.some((r) => r.severity === 'error' && r.path.includes('SINGLES'))).toBe(true);
@@ -48,9 +48,9 @@ describe('validateSchedulingPolicy', () => {
       matchUpAverageTimes: [
         {
           matchUpFormatCodes: [],
-          averageTimes: [{ categoryNames: [], minutes: { default: 90 } }],
-        },
-      ],
+          averageTimes: [{ categoryNames: [], minutes: { default: 90 } }]
+        }
+      ]
     };
     const results = validateSchedulingPolicy(policy);
     expect(results.some((r) => r.severity === 'error' && r.message.includes('format code'))).toBe(true);
@@ -61,9 +61,9 @@ describe('validateSchedulingPolicy', () => {
       matchUpRecoveryTimes: [
         {
           matchUpFormatCodes: [],
-          recoveryTimes: [{ categoryNames: [], minutes: { default: 30 } }],
-        },
-      ],
+          recoveryTimes: [{ categoryNames: [], minutes: { default: 30 } }]
+        }
+      ]
     };
     const results = validateSchedulingPolicy(policy);
     expect(results.some((r) => r.severity === 'error' && r.message.includes('format code'))).toBe(true);
@@ -74,13 +74,13 @@ describe('validateSchedulingPolicy', () => {
       matchUpAverageTimes: [
         {
           matchUpFormatCodes: [FORMAT_STANDARD],
-          averageTimes: [{ categoryNames: [], minutes: { default: 90 } }],
+          averageTimes: [{ categoryNames: [], minutes: { default: 90 } }]
         },
         {
           matchUpFormatCodes: [FORMAT_STANDARD],
-          averageTimes: [{ categoryNames: [], minutes: { default: 80 } }],
-        },
-      ],
+          averageTimes: [{ categoryNames: [], minutes: { default: 80 } }]
+        }
+      ]
     };
     const results = validateSchedulingPolicy(policy);
     expect(results.some((r) => r.severity === 'warning' && r.message.includes(FORMAT_STANDARD))).toBe(true);
@@ -91,9 +91,9 @@ describe('validateSchedulingPolicy', () => {
       matchUpAverageTimes: [
         {
           matchUpFormatCodes: [FORMAT_STANDARD],
-          averageTimes: [{ categoryNames: [], minutes: { default: 90, DOUBLES: -5 } }],
-        },
-      ],
+          averageTimes: [{ categoryNames: [], minutes: { default: 90, DOUBLES: -5 } }]
+        }
+      ]
     };
     const results = validateSchedulingPolicy(policy);
     expect(results.some((r) => r.severity === 'error' && r.path.includes('DOUBLES'))).toBe(true);

@@ -70,7 +70,8 @@ export const FullParticipantsExample: Story = {
     // Header
     const header = document.createElement('div');
     header.className = 'tabHeader';
-    header.style.cssText = 'padding: 0.75rem 0.5rem; font-size: 1.1rem; font-weight: bold; background: var(--chc-bg-secondary); color: var(--chc-text-primary);';
+    header.style.cssText =
+      'padding: 0.75rem 0.5rem; font-size: 1.1rem; font-weight: bold; background: var(--chc-bg-secondary); color: var(--chc-text-primary);';
     header.innerHTML = 'Participants (0)';
     container.appendChild(header);
 

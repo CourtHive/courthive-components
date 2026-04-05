@@ -15,23 +15,20 @@
 import '../../components/policy-catalog/ui/policy-catalog.css';
 import '../../components/policy-catalog/editors/scheduling/scheduling-editor.css';
 
-import {
-  SchedulingEditorControl,
-  createSchedulingEditor,
-} from '../../components/policy-catalog';
+import { SchedulingEditorControl, createSchedulingEditor } from '../../components/policy-catalog';
 
 import {
   SCHEDULING_POLICY_DEFAULT,
   SCHEDULING_POLICY_MINIMAL,
   SCHEDULING_POLICY_EMPTY,
-  makeSchedulingEditorConfig,
+  makeSchedulingEditorConfig
 } from './data';
 
 export default {
   title: 'Policy Catalog/Scheduling Editor',
   parameters: {
-    layout: 'padded',
-  },
+    layout: 'padded'
+  }
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -41,8 +38,7 @@ const GRID_STYLE =
   'background: var(--sp-bg); min-height: 500px; padding: 20px; ' +
   'font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: var(--sp-text);';
 
-const INFO_STYLE =
-  'font-size: 12px; color: var(--sp-muted); margin-bottom: 16px;';
+const INFO_STYLE = 'font-size: 12px; color: var(--sp-muted); margin-bottom: 16px;';
 
 function createExportPanel(control: SchedulingEditorControl): {
   element: HTMLElement;
@@ -111,17 +107,14 @@ export const DefaultPolicy = {
     const editorContainer = document.createElement('div');
     content.appendChild(editorContainer);
 
-    const control = createSchedulingEditor(
-      makeSchedulingEditorConfig(),
-      editorContainer,
-    );
+    const control = createSchedulingEditor(makeSchedulingEditorConfig(), editorContainer);
 
     const { element: panelEl } = createExportPanel(control);
 
     grid.appendChild(content);
     grid.appendChild(panelEl);
     return grid;
-  },
+  }
 };
 
 // ============================================================================
@@ -147,7 +140,7 @@ export const MinimalPolicy = {
 
     const control = createSchedulingEditor(
       makeSchedulingEditorConfig({ initialPolicy: SCHEDULING_POLICY_MINIMAL }),
-      editorContainer,
+      editorContainer
     );
 
     const { element: panelEl } = createExportPanel(control);
@@ -155,7 +148,7 @@ export const MinimalPolicy = {
     grid.appendChild(content);
     grid.appendChild(panelEl);
     return grid;
-  },
+  }
 };
 
 // ============================================================================
@@ -171,8 +164,7 @@ export const EmptyPolicy = {
 
     const info = document.createElement('div');
     info.style.cssText = INFO_STYLE;
-    info.textContent =
-      'Fresh empty policy with sensible defaults. Build a scheduling policy from scratch.';
+    info.textContent = 'Fresh empty policy with sensible defaults. Build a scheduling policy from scratch.';
     content.appendChild(info);
 
     const editorContainer = document.createElement('div');
@@ -180,7 +172,7 @@ export const EmptyPolicy = {
 
     const control = createSchedulingEditor(
       makeSchedulingEditorConfig({ initialPolicy: SCHEDULING_POLICY_EMPTY }),
-      editorContainer,
+      editorContainer
     );
 
     const { element: panelEl } = createExportPanel(control);
@@ -188,7 +180,7 @@ export const EmptyPolicy = {
     grid.appendChild(content);
     grid.appendChild(panelEl);
     return grid;
-  },
+  }
 };
 
 // ============================================================================
@@ -220,14 +212,18 @@ export const WithOnChange = {
         onChange: (policy) => {
           changeCount++;
           const summary = [
-            policy.defaultDailyLimits ? `limits: S=${policy.defaultDailyLimits.SINGLES}/D=${policy.defaultDailyLimits.DOUBLES}/T=${policy.defaultDailyLimits.total}` : '',
+            policy.defaultDailyLimits
+              ? `limits: S=${policy.defaultDailyLimits.SINGLES}/D=${policy.defaultDailyLimits.DOUBLES}/T=${policy.defaultDailyLimits.total}`
+              : '',
             `avgGroups: ${policy.matchUpAverageTimes?.length ?? 0}`,
-            `recGroups: ${policy.matchUpRecoveryTimes?.length ?? 0}`,
-          ].filter(Boolean).join(', ');
+            `recGroups: ${policy.matchUpRecoveryTimes?.length ?? 0}`
+          ]
+            .filter(Boolean)
+            .join(', ');
           logMsg?.(`#${changeCount} onChange: ${summary}`);
-        },
+        }
       }),
-      editorContainer,
+      editorContainer
     );
 
     const { element: panelEl, log } = createExportPanel(control);
@@ -236,7 +232,7 @@ export const WithOnChange = {
     grid.appendChild(content);
     grid.appendChild(panelEl);
     return grid;
-  },
+  }
 };
 
 // ============================================================================
@@ -252,8 +248,7 @@ export const AccordionBehavior = {
 
     const info = document.createElement('div');
     info.style.cssText = INFO_STYLE;
-    info.textContent =
-      'Demonstrates section collapse/expand. Use the buttons to programmatically toggle sections.';
+    info.textContent = 'Demonstrates section collapse/expand. Use the buttons to programmatically toggle sections.';
     content.appendChild(info);
 
     const btnBar = document.createElement('div');
@@ -265,7 +260,7 @@ export const AccordionBehavior = {
 
     const control = createSchedulingEditor(
       makeSchedulingEditorConfig({ initialPolicy: SCHEDULING_POLICY_DEFAULT }),
-      editorContainer,
+      editorContainer
     );
 
     const store = control.getStore();
@@ -285,7 +280,7 @@ export const AccordionBehavior = {
     grid.appendChild(content);
     grid.appendChild(panelEl);
     return grid;
-  },
+  }
 };
 
 // ============================================================================
@@ -301,8 +296,7 @@ export const ProgrammaticSetData = {
 
     const info = document.createElement('div');
     info.style.cssText = INFO_STYLE;
-    info.textContent =
-      'Demonstrates programmatic setData() — switch between different policy presets.';
+    info.textContent = 'Demonstrates programmatic setData() — switch between different policy presets.';
     content.appendChild(info);
 
     const btnBar = document.createElement('div');
@@ -314,7 +308,7 @@ export const ProgrammaticSetData = {
 
     const control = createSchedulingEditor(
       makeSchedulingEditorConfig({ initialPolicy: SCHEDULING_POLICY_DEFAULT }),
-      editorContainer,
+      editorContainer
     );
 
     const makeBtn = (text: string, handler: () => void) => {
@@ -335,5 +329,5 @@ export const ProgrammaticSetData = {
     grid.appendChild(content);
     grid.appendChild(panelEl);
     return grid;
-  },
+  }
 };

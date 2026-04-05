@@ -49,7 +49,8 @@ export function createMultiSelect(item: MultiSelectItem): { container: HTMLDivEl
   // chevron
   const chevron = document.createElement('span');
   chevron.textContent = '▾';
-  chevron.style.cssText = 'margin-left: auto; padding-left: 8px; user-select: none; color: var(--chc-text-secondary, #666);';
+  chevron.style.cssText =
+    'margin-left: auto; padding-left: 8px; user-select: none; color: var(--chc-text-secondary, #666);';
 
   trigger.appendChild(tagsArea);
   trigger.appendChild(chevron);
@@ -69,7 +70,7 @@ export function createMultiSelect(item: MultiSelectItem): { container: HTMLDivEl
     'border-top: none',
     'border-radius: 0 0 4px 4px',
     'background: var(--chc-dropdown-bg, #fff)',
-    'box-shadow: 0 4px 8px rgba(0,0,0,0.1)',
+    'box-shadow: 0 4px 8px rgba(0,0,0,0.1)'
   ].join('; ');
 
   // build rows
@@ -83,7 +84,7 @@ export function createMultiSelect(item: MultiSelectItem): { container: HTMLDivEl
       'gap: 8px',
       'padding: 6px 10px',
       'cursor: pointer',
-      'color: var(--chc-text-primary, #363636)',
+      'color: var(--chc-text-primary, #363636)'
     ].join('; ');
     row.addEventListener('mouseenter', () => {
       row.style.background = 'var(--chc-hover-bg, #f5f5f5)';
@@ -146,7 +147,7 @@ export function createMultiSelect(item: MultiSelectItem): { container: HTMLDivEl
         'background: var(--chc-status-info, blue)',
         'color: var(--chc-text-inverse, #fff)',
         'font-size: 0.85em',
-        'white-space: nowrap',
+        'white-space: nowrap'
       ].join('; ');
       tag.textContent = opt.label;
 
@@ -204,11 +205,11 @@ export function createMultiSelect(item: MultiSelectItem): { container: HTMLDivEl
   const element = container as MultiSelectElement;
   Object.defineProperty(element, 'selectedValues', {
     get: () => [...state],
-    enumerable: true,
+    enumerable: true
   });
   Object.defineProperty(element, 'value', {
     get: () => [...state].join(','),
-    enumerable: true,
+    enumerable: true
   });
 
   return { container, element };

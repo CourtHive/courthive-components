@@ -32,8 +32,12 @@
   flex-grow: 1;
   gap: 0.5rem;
 }
-.chc-scorecard-side--start { justify-content: flex-start; }
-.chc-scorecard-side--end { justify-content: flex-end; }
+.chc-scorecard-side--start {
+  justify-content: flex-start;
+}
+.chc-scorecard-side--end {
+  justify-content: flex-end;
+}
 .chc-scorecard-side-name {
   vertical-align: middle;
   font-weight: bold;
@@ -118,8 +122,12 @@
   font-weight: 700;
   color: #fff;
 }
-.chc-scorecard-type-badge--singles { background: #3273dc; }
-.chc-scorecard-type-badge--doubles { background: #f59e0b; }
+.chc-scorecard-type-badge--singles {
+  background: #3273dc;
+}
+.chc-scorecard-type-badge--doubles {
+  background: #f59e0b;
+}
 .chc-scorecard-count-badge {
   font-size: 12px;
   font-weight: 700;

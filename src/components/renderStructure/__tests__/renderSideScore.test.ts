@@ -17,8 +17,8 @@ function makeMatchUp(sets: SetScore[]): MatchUp {
     score: { sets, scoreStringSide1: '6-4' },
     sides: [
       { sideNumber: 1, participant: { participantId: 'p1', participantName: 'Player 1' } },
-      { sideNumber: 2, participant: { participantId: 'p2', participantName: 'Player 2' } },
-    ],
+      { sideNumber: 2, participant: { participantId: 'p2', participantName: 'Player 2' } }
+    ]
   } as MatchUp;
 }
 
@@ -78,7 +78,7 @@ describe('setScore', () => {
   it('renders empty string for undefined score', () => {
     const el = setScore({
       set: { setNumber: 1, side1Score: undefined, side2Score: undefined } as any,
-      sideNumber: 1,
+      sideNumber: 1
     });
     expect(el.textContent?.trim()).toBe('');
   });
@@ -100,7 +100,7 @@ describe('setScore', () => {
       side2Score: undefined as any,
       side1TiebreakScore: 10,
       side2TiebreakScore: 8,
-      winningSide: 1,
+      winningSide: 1
     };
     const el = setScore({ set, sideNumber: 1 });
     // Should display tiebreak score directly
@@ -113,7 +113,7 @@ describe('renderSideScore', () => {
     const sets = [makeSet()];
     const el = renderSideScore({
       matchUp: makeMatchUp(sets),
-      sideNumber: 1,
+      sideNumber: 1
     });
     expect(el.classList.contains('sideScore')).toBe(true);
     expect(el.classList.contains('tmx-scr')).toBe(true);
@@ -122,7 +122,7 @@ describe('renderSideScore', () => {
   it('renders all set scores', () => {
     const sets = [
       makeSet({ setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 }),
-      makeSet({ setNumber: 2, side1Score: 3, side2Score: 6, winningSide: 2 }),
+      makeSet({ setNumber: 2, side1Score: 3, side2Score: 6, winningSide: 2 })
     ];
     const el = renderSideScore({ matchUp: makeMatchUp(sets), sideNumber: 1 });
     const setElements = el.querySelectorAll('.tmx-st');
@@ -134,7 +134,7 @@ describe('renderSideScore', () => {
     const el = renderSideScore({
       matchUp: makeMatchUp([makeSet()]),
       sideNumber: 1,
-      eventHandlers: { scoreClick },
+      eventHandlers: { scoreClick }
     });
     el.click();
     expect(scoreClick).toHaveBeenCalledTimes(1);
@@ -142,32 +142,32 @@ describe('renderSideScore', () => {
 
   it('renders point scores when gameScore config is set (trailing)', () => {
     const sets: SetScore[] = [
-      { setNumber: 1, side1Score: 4, side2Score: 5, side1PointScore: '30', side2PointScore: '40' },
+      { setNumber: 1, side1Score: 4, side2Score: 5, side1PointScore: '30', side2PointScore: '40' }
     ];
     const composition: Composition = {
       theme: 'test',
-      configuration: { gameScore: { position: 'trailing', inverted: true } },
+      configuration: { gameScore: { position: 'trailing', inverted: true } }
     };
     const el = renderSideScore({
       matchUp: makeMatchUp(sets),
       sideNumber: 1,
-      composition,
+      composition
     });
     expect(el.textContent).toContain('30');
   });
 
   it('renders point scores in leading position', () => {
     const sets: SetScore[] = [
-      { setNumber: 1, side1Score: 4, side2Score: 5, side1PointScore: '15', side2PointScore: '0' },
+      { setNumber: 1, side1Score: 4, side2Score: 5, side1PointScore: '15', side2PointScore: '0' }
     ];
     const composition: Composition = {
       theme: 'test',
-      configuration: { gameScore: { position: 'leading' } },
+      configuration: { gameScore: { position: 'leading' } }
     };
     const el = renderSideScore({
       matchUp: makeMatchUp(sets),
       sideNumber: 1,
-      composition,
+      composition
     });
     // Leading point score should appear before set scores
     const children = el.querySelector('div')!.children;
@@ -176,11 +176,11 @@ describe('renderSideScore', () => {
 
   it('does not render point scores when gameScore config is absent', () => {
     const sets: SetScore[] = [
-      { setNumber: 1, side1Score: 4, side2Score: 5, side1PointScore: '30', side2PointScore: '40' },
+      { setNumber: 1, side1Score: 4, side2Score: 5, side1PointScore: '30', side2PointScore: '40' }
     ];
     const el = renderSideScore({
       matchUp: makeMatchUp(sets),
-      sideNumber: 1,
+      sideNumber: 1
     });
     // Without gameScore config, point scores should not appear
     // Only game scores should be rendered
@@ -191,7 +191,7 @@ describe('renderSideScore', () => {
   it('handles empty sets array', () => {
     const el = renderSideScore({
       matchUp: makeMatchUp([]),
-      sideNumber: 1,
+      sideNumber: 1
     });
     expect(el).toBeInstanceOf(HTMLElement);
     expect(el.querySelectorAll('.tmx-st').length).toBe(0);
@@ -201,7 +201,7 @@ describe('renderSideScore', () => {
     const el = renderSideScore({
       matchUp: makeMatchUp([makeSet()]),
       sideNumber: 2,
-      participantHeight: 40,
+      participantHeight: 40
     });
     expect(el.style.height).toBe('40px');
   });
@@ -209,16 +209,13 @@ describe('renderSideScore', () => {
   it('renders with resultsInfo enabled', () => {
     const composition: Composition = {
       theme: 'test',
-      configuration: { resultsInfo: true },
+      configuration: { resultsInfo: true }
     };
-    const sets = [
-      makeSet({ setNumber: 1 }),
-      makeSet({ setNumber: 2, side1Score: 3, side2Score: 6, winningSide: 2 }),
-    ];
+    const sets = [makeSet({ setNumber: 1 }), makeSet({ setNumber: 2, side1Score: 3, side2Score: 6, winningSide: 2 })];
     const el = renderSideScore({
       matchUp: makeMatchUp(sets),
       sideNumber: 1,
-      composition,
+      composition
     });
     // resultsInfo wraps each set score in a column with a label
     expect(el).toBeInstanceOf(HTMLElement);
@@ -227,12 +224,12 @@ describe('renderSideScore', () => {
   it('renders with winnerChevron (scoreStripes)', () => {
     const composition: Composition = {
       theme: 'test',
-      configuration: { winnerChevron: true },
+      configuration: { winnerChevron: true }
     };
     const el = renderSideScore({
       matchUp: makeMatchUp([makeSet()]),
       sideNumber: 1,
-      composition,
+      composition
     });
     expect(el).toBeInstanceOf(HTMLElement);
   });

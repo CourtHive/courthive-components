@@ -5,11 +5,11 @@ import {
   hockeyRink,
   pickleballCourt,
   badmintonCourt,
-  padelCourt,
+  padelCourt
 } from '../components/courts';
 
 export default {
-  title: 'Assets/Courts',
+  title: 'Assets/Courts'
 };
 
 interface CourtDef {
@@ -25,7 +25,7 @@ const COURTS: CourtDef[] = [
   { factory: hockeyRink, className: 'court--hockey', label: 'Hockey' },
   { factory: pickleballCourt, className: 'court--pickleball', label: 'Pickleball' },
   { factory: badmintonCourt, className: 'court--badminton', label: 'Badminton' },
-  { factory: padelCourt, className: 'court--padel', label: 'Padel' },
+  { factory: padelCourt, className: 'court--padel', label: 'Padel' }
 ];
 
 function createGallery(): HTMLElement {

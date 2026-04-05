@@ -16,7 +16,7 @@ export interface DisplayExtensionValue {
  */
 export function resolvePublishedComposition(
   display?: DisplayExtensionValue,
-  fallbackName = DEFAULT_COMPOSITION,
+  fallbackName = DEFAULT_COMPOSITION
 ): Composition {
   const compositionName = display?.compositionName ?? fallbackName;
   const base = compositions[compositionName] ?? compositions[fallbackName] ?? compositions[DEFAULT_COMPOSITION];
@@ -25,7 +25,7 @@ export function resolvePublishedComposition(
     theme: display?.theme ?? base.theme,
     configuration: {
       ...base.configuration,
-      ...display?.configuration,
-    },
+      ...display?.configuration
+    }
   };
 }

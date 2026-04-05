@@ -9,5 +9,5 @@ export const KNOWN_SCALES: ScaleDef[] = [
   { scaleName: 'WTN', accessor: 'wtnRating', label: 'WTN' },
   { scaleName: 'UTR', accessor: 'utrRating', label: 'UTR' },
   { scaleName: 'NTRP', accessor: 'ntrpRating', label: 'NTRP' },
-  { scaleName: 'ELO', accessor: 'eloRating', label: 'ELO' },
+  { scaleName: 'ELO', accessor: 'eloRating', label: 'ELO' }
 ];

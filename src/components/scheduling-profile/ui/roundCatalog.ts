@@ -119,6 +119,52 @@ export function buildRoundCatalog(callbacks: RoundCatalogCallbacks): UIPanel<Pro
     }
   });
 
+  function buildCatalogItem(item: any, behavior: string): HTMLElement {
+    const div = document.createElement('div');
+    div.className = spCatalogItemStyle();
+
+    if (item.isPlanned) {
+      div.classList.add(behavior === 'navigate' ? 'navigate' : 'dimmed');
+      div.draggable = false;
+      if (behavior === 'navigate') {
+        div.addEventListener('click', () => {
+          callbacks.onNavigateToPlanned?.(item);
+        });
+      }
+    } else {
+      div.draggable = true;
+      div.addEventListener('dragstart', (e) => {
+        e.stopPropagation();
+        e.dataTransfer.setDragImage(div, div.offsetWidth / 2, 20);
+        e.dataTransfer.setData('application/json', JSON.stringify({ type: 'CATALOG_ROUND', roundRef: item }));
+        e.dataTransfer.effectAllowed = 'copyMove';
+      });
+    }
+
+    const t = document.createElement('div');
+    t.className = spCardTitleStyle();
+    const roundLbl =
+      item.roundName && !item.roundName.startsWith('rn=') ? item.roundName : 'Round ' + item.roundNumber;
+    t.textContent = `${item.eventName} \u2014 ${roundLbl}`;
+
+    const m = document.createElement('div');
+    m.className = spCardMetaStyle();
+    const matchInfo = item.matchCountEstimate ? ' \u00b7 ' + item.matchCountEstimate + ' matches' : '';
+    const drawLabel = item.drawName && !isUUID(item.drawName) ? item.drawName : '';
+    m.textContent = drawLabel ? `${drawLabel}${matchInfo}` : matchInfo.replace(' \u00b7 ', '') || '';
+
+    div.appendChild(t);
+    div.appendChild(m);
+
+    if (item.isPlanned && behavior !== 'navigate') {
+      const check = document.createElement('span');
+      check.className = 'sp-catalog-check';
+      check.textContent = '\u2713';
+      div.appendChild(check);
+    }
+    return div;
+  }
+
   function update(state: ProfileStoreState): void {
     lastState = state;
     const behavior = state.plannedRoundBehavior;
@@ -172,49 +218,7 @@ export function buildRoundCatalog(callbacks: RoundCatalogCallbacks): UIPanel<Pro
       if (isCollapsed) gb.style.display = 'none';
 
       for (const item of items) {
-        const div = document.createElement('div');
-        div.className = spCatalogItemStyle();
-
-        if (item.isPlanned) {
-          div.classList.add(behavior === 'navigate' ? 'navigate' : 'dimmed');
-          div.draggable = false;
-          if (behavior === 'navigate') {
-            div.addEventListener('click', () => {
-              callbacks.onNavigateToPlanned?.(item);
-            });
-          }
-        } else {
-          div.draggable = true;
-          div.addEventListener('dragstart', (e) => {
-            e.stopPropagation();
-            e.dataTransfer.setDragImage(div, div.offsetWidth / 2, 20);
-            e.dataTransfer.setData('application/json', JSON.stringify({ type: 'CATALOG_ROUND', roundRef: item }));
-            e.dataTransfer.effectAllowed = 'copyMove';
-          });
-        }
-
-        const t = document.createElement('div');
-        t.className = spCardTitleStyle();
-        const roundLabel =
-          item.roundName && !item.roundName.startsWith('rn=') ? item.roundName : 'Round ' + item.roundNumber;
-        t.textContent = `${item.eventName} \u2014 ${roundLabel}`;
-
-        const m = document.createElement('div');
-        m.className = spCardMetaStyle();
-        const matchInfo = item.matchCountEstimate ? ' \u00b7 ' + item.matchCountEstimate + ' matches' : '';
-        const drawLabel = item.drawName && !isUUID(item.drawName) ? item.drawName : '';
-        m.textContent = drawLabel ? `${drawLabel}${matchInfo}` : matchInfo.replace(' \u00b7 ', '') || '';
-
-        div.appendChild(t);
-        div.appendChild(m);
-
-        if (item.isPlanned && behavior !== 'navigate') {
-          const check = document.createElement('span');
-          check.className = 'sp-catalog-check';
-          check.textContent = '\u2713';
-          div.appendChild(check);
-        }
-        gb.appendChild(div);
+        gb.appendChild(buildCatalogItem(item, behavior));
       }
 
       group.appendChild(gh);

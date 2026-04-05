@@ -14,7 +14,7 @@ const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
 
 const meta: Meta = {
   title: 'Components/Categories/AgeCategory',
-  tags: ['autodocs'],
+  tags: ['autodocs']
 };
 
 export default meta;
@@ -60,7 +60,7 @@ export const BasicEditor: Story = {
               </div>
             `;
           }
-        },
+        }
       });
     };
 
@@ -80,7 +80,7 @@ export const BasicEditor: Story = {
     container.appendChild(resultDisplay);
 
     return container;
-  },
+  }
 };
 
 /**
@@ -99,7 +99,7 @@ export const DifferentCategoryTypes: Story = {
       { code: 'O35', label: 'Over 35' },
       { code: '10O-18U', label: 'Range: 10-18' },
       { code: 'U18-10O', label: 'Range: 10-17' },
-      { code: 'C50-70', label: 'Combined: 50-70' },
+      { code: 'C50-70', label: 'Combined: 50-70' }
     ];
 
     const title = document.createElement('h2');
@@ -142,7 +142,7 @@ export const DifferentCategoryTypes: Story = {
           consideredDate: CONSIDERED_DATE_2024,
           callback: (category) => {
             alert(`Selected: ${category.ageCategoryCode}`);
-          },
+          }
         });
       };
 
@@ -154,7 +154,7 @@ export const DifferentCategoryTypes: Story = {
 
     container.appendChild(grid);
     return container;
-  },
+  }
 };
 
 /**
@@ -178,10 +178,10 @@ export const CustomConfiguration: Story = {
         config: {
           labels: {
             title: 'Junior Age Category',
-            consideredDateLabel: 'Tournament Date',
+            consideredDateLabel: 'Tournament Date'
           },
           options: {
-            ages: [8, 10, 12, 14, 16, 18], // Junior ages only
+            ages: [8, 10, 12, 14, 16, 18] // Junior ages only
           },
           preDefinedCodes: [
             { code: '8U', text: '8 and Under' },
@@ -189,9 +189,9 @@ export const CustomConfiguration: Story = {
             { code: '12U', text: '12 and Under' },
             { code: '14U', text: '14 and Under' },
             { code: '16U', text: '16 and Under' },
-            { code: '18U', text: '18 and Under' },
-          ],
-        },
+            { code: '18U', text: '18 and Under' }
+          ]
+        }
       });
     };
 
@@ -210,7 +210,7 @@ export const CustomConfiguration: Story = {
     container.appendChild(button);
 
     return container;
-  },
+  }
 };
 
 /**
@@ -242,7 +242,7 @@ export const CalculatedAgeDetails: Story = {
             {
               const result = eventGovernor.getCategoryAgeDetails({
                 category: { ageCategoryCode: category.ageCategoryCode },
-                consideredDate: CONSIDERED_DATE_2024,
+                consideredDate: CONSIDERED_DATE_2024
               });
 
               resultDisplay.innerHTML = `
@@ -258,7 +258,7 @@ export const CalculatedAgeDetails: Story = {
               `;
             }
           }
-        },
+        }
       });
     };
 
@@ -278,7 +278,7 @@ export const CalculatedAgeDetails: Story = {
     container.appendChild(resultDisplay);
 
     return container;
-  },
+  }
 };
 
 /**
@@ -308,7 +308,7 @@ export const StandardCategories: Story = {
         consideredDate: CONSIDERED_DATE_2024,
         callback: (category) => {
           alert(`Selected: ${category.ageCategoryCode}`);
-        },
+        }
       });
     };
 
@@ -317,7 +317,7 @@ export const StandardCategories: Story = {
     container.appendChild(button);
 
     return container;
-  },
+  }
 };
 
 /**
@@ -349,7 +349,7 @@ export const HistoricalDates14U: Story = {
 
     // Test multiple dates
     const testDates = ['2010-01-01', '2012-06-15', '2015-12-31'];
-    
+
     const grid = document.createElement('div');
     grid.style.display = 'grid';
     grid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(150px, 1fr))';
@@ -368,7 +368,7 @@ export const HistoricalDates14U: Story = {
             // Show the result with factory calculation
             const result = eventGovernor.getCategoryAgeDetails({
               category: { ageCategoryCode: category.ageCategoryCode },
-              consideredDate: testDate,
+              consideredDate: testDate
             });
 
             let html = `<div style="color: ${CHC_TEXT_PRIMARY};">`;
@@ -393,7 +393,7 @@ export const HistoricalDates14U: Story = {
             html += '</div>';
 
             resultDisplay.innerHTML = html;
-          },
+          }
         });
       };
       grid.appendChild(button);
@@ -405,5 +405,5 @@ export const HistoricalDates14U: Story = {
     container.appendChild(resultDisplay);
 
     return container;
-  },
+  }
 };

@@ -30,11 +30,7 @@ export function participantLabel(side?: MatchUpSide): string {
 }
 
 export function matchUpSearchKey(item: CatalogMatchUpItem): string {
-  const parts = [
-    item.eventName,
-    item.drawName ?? '',
-    item.roundName ?? '',
-  ];
+  const parts = [item.eventName, item.drawName ?? '', item.roundName ?? ''];
   if (item.sides) {
     for (const s of item.sides) {
       if (s.participantName) parts.push(s.participantName);

@@ -9,7 +9,7 @@ import { seAddBtnStyle } from '../styles';
 
 export function buildAverageTimesSection(
   store: SchedulingEditorStore,
-  config: SchedulingEditorConfig,
+  config: SchedulingEditorConfig
 ): {
   element: HTMLElement;
   update(state: SchedulingEditorState): void;
@@ -38,7 +38,7 @@ export function buildAverageTimesSection(
           categoryLabel: cats.length === 0 && idx === 0 ? 'All categories' : cats.join(', ') || 'All categories',
           isDefault: cats.length === 0 && idx === 0,
           defaultMinutes: at.minutes.default,
-          doublesMinutes: at.minutes.DOUBLES,
+          doublesMinutes: at.minutes.DOUBLES
         };
       });
 
@@ -48,11 +48,10 @@ export function buildAverageTimesSection(
         overrides,
         availableFormats: config.matchUpFormatCodes ?? getDefaultFormatCodes(),
         onFormatCodesChange: (codes) => store.setAverageFormatCodes(groupIdx, codes),
-        onTimeChange: (overrideIndex, field, value) =>
-          store.setAverageTime(groupIdx, overrideIndex, field, value),
+        onTimeChange: (overrideIndex, field, value) => store.setAverageTime(groupIdx, overrideIndex, field, value),
         onAddOverride: () => store.addAverageCategoryOverride(groupIdx),
         onRemoveOverride: (idx) => store.removeAverageCategoryOverride(groupIdx, idx),
-        onRemoveGroup: () => store.removeAverageFormatGroup(groupIdx),
+        onRemoveGroup: () => store.removeAverageFormatGroup(groupIdx)
       });
 
       groupsContainer.appendChild(row);
@@ -89,6 +88,6 @@ function getDefaultFormatCodes(): string[] {
     'SET1-S:4NOAD',
     'SET3-S:TB10',
     'SET1-S:T20',
-    'SET1-S:TB10',
+    'SET1-S:TB10'
   ];
 }

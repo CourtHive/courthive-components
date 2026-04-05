@@ -3,18 +3,18 @@ import { isFunction } from '../modal/cmodal';
 import cx from 'classnames';
 import type { EventHandlers, MatchUp } from '../../types';
 
-export function renderCenterInfo({ 
-  eventHandlers, 
-  entryStatus, 
-  sideNumber, 
-  className, 
-  matchUp 
-}: { 
-  eventHandlers?: EventHandlers; 
-  entryStatus?: string; 
-  sideNumber?: number; 
-  className?: string; 
-  matchUp?: MatchUp 
+export function renderCenterInfo({
+  eventHandlers,
+  entryStatus,
+  sideNumber,
+  className,
+  matchUp
+}: {
+  eventHandlers?: EventHandlers;
+  entryStatus?: string;
+  sideNumber?: number;
+  className?: string;
+  matchUp?: MatchUp;
 }): { element: HTMLElement } {
   const div = document.createElement('div');
   if (isFunction(eventHandlers?.centerInfoClick)) {

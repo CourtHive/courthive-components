@@ -2,12 +2,18 @@ import { scaleStyle } from '../../styles/scaleStyle';
 import cx from 'classnames';
 import type { Composition, IndividualParticipant, MatchUp } from '../../types';
 
-export function renderScale({ individualParticipant, composition, className, matchUp, spacer }: { 
-  individualParticipant?: IndividualParticipant; 
-  composition?: Composition; 
-  className?: string; 
-  matchUp?: MatchUp; 
-  spacer?: boolean 
+export function renderScale({
+  individualParticipant,
+  composition,
+  className,
+  matchUp,
+  spacer
+}: {
+  individualParticipant?: IndividualParticipant;
+  composition?: Composition;
+  className?: string;
+  matchUp?: MatchUp;
+  spacer?: boolean;
 }): HTMLElement {
   // allow configuration to override matchUpType in derivation of eventType
 
@@ -33,7 +39,7 @@ export function renderScale({ individualParticipant, composition, className, mat
 
   const span = document.createElement('span');
   const scaleColor = configuration?.scaleAttributes?.scaleColor;
-  const validColor = (scaleColor === 'green' || scaleColor === 'red') ? scaleColor : undefined;
+  const validColor = scaleColor === 'green' || scaleColor === 'red' ? scaleColor : undefined;
   if (value) span.className = cx(className, scaleStyle(validColor ? { color: validColor } : {}));
   span.innerHTML = value || '';
 

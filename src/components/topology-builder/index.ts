@@ -37,5 +37,5 @@ export type {
   TopologyChangeListener,
   TopologyBuilderConfig,
   TopologyTemplate,
-  UIPanel,
+  UIPanel
 } from './types';

@@ -21,7 +21,7 @@ export const MATCH_ROOT_LABELS: Record<string, string> = {
   INN: 'Inning',
   RND: 'Round',
   FRM: 'Frame',
-  MAP: 'Map',
+  MAP: 'Map'
 };
 
 /**
@@ -53,9 +53,11 @@ export interface SetFormatConfig {
 }
 
 export interface FormatConfig {
-  matchRoot?: string;      // 'SET'|'HAL'|'QTR'|'PER'|'INN'|'RND'|'FRM'|'MAP'
+  matchRoot?: string; // 'SET'|'HAL'|'QTR'|'PER'|'INN'|'RND'|'FRM'|'MAP'
   aggregate?: boolean;
-  gameFormat?: { type: 'CONSECUTIVE'; count: number; deuceAfter?: number } | { type: 'TRADITIONAL'; deuceAfter?: number };
+  gameFormat?:
+    | { type: 'CONSECUTIVE'; count: number; deuceAfter?: number }
+    | { type: 'TRADITIONAL'; deuceAfter?: number };
   setFormat: SetFormatConfig;
   finalSetFormat: SetFormatConfig;
 }
@@ -63,7 +65,9 @@ export interface FormatConfig {
 export interface ParsedMatchUpFormat {
   matchRoot?: string;
   aggregate?: boolean;
-  gameFormat?: { type: 'CONSECUTIVE'; count: number; deuceAfter?: number } | { type: 'TRADITIONAL'; deuceAfter?: number };
+  gameFormat?:
+    | { type: 'CONSECUTIVE'; count: number; deuceAfter?: number }
+    | { type: 'TRADITIONAL'; deuceAfter?: number };
   bestOf?: number;
   exactly?: number;
   setFormat: any;

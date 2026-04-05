@@ -16,7 +16,7 @@ import {
   spIssueMsgStyle,
   spIssueActionsStyle,
   spIssueActionBtnStyle,
-  spSmallStyle,
+  spSmallStyle
 } from './styles';
 
 export interface IssuesPanelCallbacks {

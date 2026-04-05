@@ -10,7 +10,11 @@ export type { DisplayExtensionValue } from './compositions/resolvePublishedCompo
 export { renderRound } from './components/renderStructure/renderRound';
 
 // Schematic Structure — compact bracket preview (no participant details)
-export { renderSchematicStructure, renderSchematicRound, renderSchematicMatchUp } from './components/renderSchematicStructure';
+export {
+  renderSchematicStructure,
+  renderSchematicRound,
+  renderSchematicMatchUp
+} from './components/renderSchematicStructure';
 export type { SchematicMatchUp } from './components/renderSchematicStructure';
 
 export { cModal } from './components/modal/cmodal';
@@ -88,7 +92,15 @@ export { tipster, destroyTipster } from './components/popover/tipster';
 
 // Court/field SVG factories
 import './components/courts/courts.css';
-export { tennisCourt, basketballCourt, baseballDiamond, hockeyRink, pickleballCourt, badmintonCourt, padelCourt } from './components/courts';
+export {
+  tennisCourt,
+  basketballCourt,
+  baseballDiamond,
+  hockeyRink,
+  pickleballCourt,
+  badmintonCourt,
+  padelCourt
+} from './components/courts';
 
 // Version API
 export { courthiveComponentsVersion } from './version';
@@ -160,7 +172,7 @@ export {
   buildIssuesPanel,
   buildRoundCard,
   createCardPopoverManager,
-  buildSchedulingProfileLayout,
+  buildSchedulingProfileLayout
 } from './components/scheduling-profile';
 
 // Temporal Grid
@@ -182,7 +194,7 @@ export {
   buildNodeEditor,
   buildEdgeEditor,
   buildToolbar,
-  buildTopologyBuilderLayout,
+  buildTopologyBuilderLayout
 } from './components/topology-builder';
 export type {
   TopologyNode,
@@ -192,7 +204,7 @@ export type {
   TopologyBuilderConfig,
   TopologyTemplate,
   DrawOptionsResult,
-  ValidationError,
+  ValidationError
 } from './components/topology-builder';
 
 export type {
@@ -219,7 +231,7 @@ export type {
   TemporalAdapter,
   DemandAdapter,
   DependencyAdapter,
-  UIPanel,
+  UIPanel
 } from './components/scheduling-profile';
 
 // Schedule Page
@@ -245,7 +257,7 @@ export {
   buildScheduleGridCell,
   mapMatchUpToCellData,
   DEFAULT_SCHEDULE_CELL_CONFIG,
-  activateScheduleCellTypeAhead,
+  activateScheduleCellTypeAhead
 } from './components/schedule-page';
 
 export type {
@@ -272,7 +284,7 @@ export type {
   ParticipantDisplayConfig,
   ScheduleCellData,
   ScheduleCellSide,
-  ScheduleCellTypeAheadOptions,
+  ScheduleCellTypeAheadOptions
 } from './components/schedule-page';
 
 // Composition Editor
@@ -284,7 +296,7 @@ export type {
   CompositionEditorState,
   CompositionEditorListener,
   SectionId as CompositionEditorSectionId,
-  EditorPanel as CompositionEditorPanel,
+  EditorPanel as CompositionEditorPanel
 } from './components/composition-editor/compositionEditorTypes';
 
 // Team Scorecard
@@ -298,13 +310,13 @@ export {
   InlineScoringManager,
   renderInlineMatchUp,
   engineToMatchUp,
-  createInlineScoringFooter,
+  createInlineScoringFooter
 } from './components/inline-scoring';
 export type {
   InlineScoringMode,
   InlineScoringConfig,
   InlineScoringCallbacks,
-  InlineScoringEngineState,
+  InlineScoringEngineState
 } from './components/inline-scoring';
 
 // Policy Catalog
@@ -330,7 +342,7 @@ export {
   validateSchedulingPolicy,
   formatCodeLabel,
   emptySchedulingPolicy,
-  buildSchedulingEditorPanel,
+  buildSchedulingEditorPanel
 } from './components/policy-catalog';
 
 export type {
@@ -355,5 +367,5 @@ export type {
   AverageTimeEntry,
   RecoveryTimeEntry,
   MatchUpAverageTime,
-  MatchUpRecoveryTime,
+  MatchUpRecoveryTime
 } from './components/policy-catalog';

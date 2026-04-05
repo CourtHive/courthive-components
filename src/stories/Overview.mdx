@@ -9,11 +9,12 @@ import logo from './CourtHive.png';
 </div>
 
 <div style={{ fontSize: '16px', color: 'var(--chc-text-secondary, #666)', marginBottom: '32px' }}>
-  CourtHive Components is a framework-agnostic UI library for tournament and competition management.
-  From draw bracket rendering and live scoring to visual topology design and schedule optimization,
-  these components provide the building blocks for rich competition interfaces — all built on vanilla
-  HTML/CSS/JS with no framework lock-in. Powered by{' '}
-  <a href="https://courthive.github.io/competition-factory/" target="_blank">Competition Factory</a>{' '}
+  CourtHive Components is a framework-agnostic UI library for tournament and competition management. From draw bracket
+  rendering and live scoring to visual topology design and schedule optimization, these components provide the building
+  blocks for rich competition interfaces — all built on vanilla HTML/CSS/JS with no framework lock-in. Powered by{' '}
+  <a href="https://courthive.github.io/competition-factory/" target="_blank">
+    Competition Factory
+  </a>{' '}
   for TODS-compliant tournament data modeling and business logic.
 </div>
 
@@ -25,14 +26,45 @@ import logo from './CourtHive.png';
 <p>Tournament draw rendering and interaction.</p>
 <table>
   <thead>
-    <tr><th style={{ textAlign: 'left' }}>Story</th><th style={{ textAlign: 'left' }}>Description</th></tr>
+    <tr>
+      <th style={{ textAlign: 'left' }}>Story</th>
+      <th style={{ textAlign: 'left' }}>Description</th>
+    </tr>
   </thead>
   <tbody>
-    <tr><td><strong>Structure</strong></td><td>Full draw structure rendering with bracket connectors, participant names, scores, and seed positions. Supports multiple visual compositions (themes).</td></tr>
-    <tr><td><strong>Rounds</strong></td><td>Individual round rendering within a draw structure.</td></tr>
-    <tr><td><strong>Round Visibility</strong></td><td>Controls for showing/hiding specific rounds in a draw.</td></tr>
-    <tr><td><strong>Participant Assignment</strong></td><td>Drag-and-drop and interactive assignment of participants to draw positions.</td></tr>
-    <tr><td><strong>Scratch</strong></td><td>Experimental draw rendering workspace.</td></tr>
+    <tr>
+      <td>
+        <strong>Structure</strong>
+      </td>
+      <td>
+        Full draw structure rendering with bracket connectors, participant names, scores, and seed positions. Supports
+        multiple visual compositions (themes).
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Rounds</strong>
+      </td>
+      <td>Individual round rendering within a draw structure.</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Round Visibility</strong>
+      </td>
+      <td>Controls for showing/hiding specific rounds in a draw.</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Participant Assignment</strong>
+      </td>
+      <td>Drag-and-drop and interactive assignment of participants to draw positions.</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Scratch</strong>
+      </td>
+      <td>Experimental draw rendering workspace.</td>
+    </tr>
   </tbody>
 </table>
 
@@ -40,14 +72,42 @@ import logo from './CourtHive.png';
 <p>Match-level rendering and scoring.</p>
 <table>
   <thead>
-    <tr><th style={{ textAlign: 'left' }}>Story</th><th style={{ textAlign: 'left' }}>Description</th></tr>
+    <tr>
+      <th style={{ textAlign: 'left' }}>Story</th>
+      <th style={{ textAlign: 'left' }}>Description</th>
+    </tr>
   </thead>
   <tbody>
-    <tr><td><strong>MatchUp</strong></td><td>Individual matchUp card rendering with participants, scores, schedule info, and status indicators.</td></tr>
-    <tr><td><strong>Sides</strong></td><td>Participant side rendering within a matchUp (names, seeds, nationality flags).</td></tr>
-    <tr><td><strong>Game Score</strong></td><td>Point-by-point game score display.</td></tr>
-    <tr><td><strong>Tick</strong></td><td>Compact tick/check indicator for matchUp completion status.</td></tr>
-    <tr><td><strong>Status</strong></td><td>Status pill badges for matchUp states (upcoming, in progress, complete, etc.).</td></tr>
+    <tr>
+      <td>
+        <strong>MatchUp</strong>
+      </td>
+      <td>Individual matchUp card rendering with participants, scores, schedule info, and status indicators.</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Sides</strong>
+      </td>
+      <td>Participant side rendering within a matchUp (names, seeds, nationality flags).</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Game Score</strong>
+      </td>
+      <td>Point-by-point game score display.</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Tick</strong>
+      </td>
+      <td>Compact tick/check indicator for matchUp completion status.</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Status</strong>
+      </td>
+      <td>Status pill badges for matchUp states (upcoming, in progress, complete, etc.).</td>
+    </tr>
   </tbody>
 </table>
 
@@ -55,13 +115,36 @@ import logo from './CourtHive.png';
 <p>Participant display components.</p>
 <table>
   <thead>
-    <tr><th style={{ textAlign: 'left' }}>Story</th><th style={{ textAlign: 'left' }}>Description</th></tr>
+    <tr>
+      <th style={{ textAlign: 'left' }}>Story</th>
+      <th style={{ textAlign: 'left' }}>Description</th>
+    </tr>
   </thead>
   <tbody>
-    <tr><td><strong>Participant</strong></td><td>Participant name rendering with seed numbers, entry status, and rankings.</td></tr>
-    <tr><td><strong>Individual</strong></td><td>Individual participant detail card.</td></tr>
-    <tr><td><strong>Flag</strong></td><td>Country/nationality flag rendering using IOC and ISO codes.</td></tr>
-    <tr><td><strong>Frill</strong></td><td>Decorative elements for participant display (seed badges, entry indicators).</td></tr>
+    <tr>
+      <td>
+        <strong>Participant</strong>
+      </td>
+      <td>Participant name rendering with seed numbers, entry status, and rankings.</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Individual</strong>
+      </td>
+      <td>Individual participant detail card.</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Flag</strong>
+      </td>
+      <td>Country/nationality flag rendering using IOC and ISO codes.</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Frill</strong>
+      </td>
+      <td>Decorative elements for participant display (seed badges, entry indicators).</td>
+    </tr>
   </tbody>
 </table>
 
@@ -69,19 +152,82 @@ import logo from './CourtHive.png';
 <p>Interactive UI components and complex widgets.</p>
 <table>
   <thead>
-    <tr><th style={{ textAlign: 'left' }}>Story</th><th style={{ textAlign: 'left' }}>Description</th></tr>
+    <tr>
+      <th style={{ textAlign: 'left' }}>Story</th>
+      <th style={{ textAlign: 'left' }}>Description</th>
+    </tr>
   </thead>
   <tbody>
-    <tr><td><strong>TopologyBuilder</strong></td><td>Visual editor for designing tournament draw topologies. Add structures (Main, Qualifying, Consolation, Playoff), connect them with winner/loser/position links, validate, and generate draw options. Includes templates for common patterns (SE, FMLC, FIC, Compass, etc.).</td></tr>
-    <tr><td><strong>Scoring</strong></td><td>Scoring modal with multiple input approaches (buttons, gamepad, keyboard). Configurable for different match formats and sports.</td></tr>
-    <tr><td><strong>MatchUpFormat</strong></td><td>MatchUp format code editor for defining scoring rules (sets, games, tiebreaks, points).</td></tr>
-    <tr><td><strong>Modal</strong></td><td>General-purpose modal dialog with configurable content, buttons, info panels, and styling.</td></tr>
-    <tr><td><strong>Drawer</strong></td><td>Slide-in panel (left/right) for forms, configuration, and detail views.</td></tr>
-    <tr><td><strong>ControlBar</strong></td><td>Toolbar with search, filters, action buttons, and tabulator table integration.</td></tr>
-    <tr><td><strong>FlightProfile</strong></td><td>Flight/section configuration for splitting draws into multiple flights.</td></tr>
-    <tr><td><strong>Categories</strong></td><td>Age category and tournament category configuration editors.</td></tr>
-    <tr><td><strong>MockParticipants</strong></td><td>Test data generator for creating realistic participant records with configurable age ranges, genders, and nationalities.</td></tr>
-    <tr><td><strong>Tipster</strong></td><td>Dropdown suggestion/autocomplete component for search and selection.</td></tr>
+    <tr>
+      <td>
+        <strong>TopologyBuilder</strong>
+      </td>
+      <td>
+        Visual editor for designing tournament draw topologies. Add structures (Main, Qualifying, Consolation, Playoff),
+        connect them with winner/loser/position links, validate, and generate draw options. Includes templates for
+        common patterns (SE, FMLC, FIC, Compass, etc.).
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Scoring</strong>
+      </td>
+      <td>
+        Scoring modal with multiple input approaches (buttons, gamepad, keyboard). Configurable for different match
+        formats and sports.
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <strong>MatchUpFormat</strong>
+      </td>
+      <td>MatchUp format code editor for defining scoring rules (sets, games, tiebreaks, points).</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Modal</strong>
+      </td>
+      <td>General-purpose modal dialog with configurable content, buttons, info panels, and styling.</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Drawer</strong>
+      </td>
+      <td>Slide-in panel (left/right) for forms, configuration, and detail views.</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>ControlBar</strong>
+      </td>
+      <td>Toolbar with search, filters, action buttons, and tabulator table integration.</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>FlightProfile</strong>
+      </td>
+      <td>Flight/section configuration for splitting draws into multiple flights.</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Categories</strong>
+      </td>
+      <td>Age category and tournament category configuration editors.</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>MockParticipants</strong>
+      </td>
+      <td>
+        Test data generator for creating realistic participant records with configurable age ranges, genders, and
+        nationalities.
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Tipster</strong>
+      </td>
+      <td>Dropdown suggestion/autocomplete component for search and selection.</td>
+    </tr>
   </tbody>
 </table>
 
@@ -89,13 +235,39 @@ import logo from './CourtHive.png';
 <p>Low-level rendering utilities for building custom UIs.</p>
 <table>
   <thead>
-    <tr><th style={{ textAlign: 'left' }}>Story</th><th style={{ textAlign: 'left' }}>Description</th></tr>
+    <tr>
+      <th style={{ textAlign: 'left' }}>Story</th>
+      <th style={{ textAlign: 'left' }}>Description</th>
+    </tr>
   </thead>
   <tbody>
-    <tr><td><strong>Form</strong></td><td>Declarative form renderer from field configuration arrays. Supports text, select, checkbox, radio, and custom controls with validation and relationships.</td></tr>
-    <tr><td><strong>Field</strong></td><td>Individual form field renderer.</td></tr>
-    <tr><td><strong>Buttons</strong></td><td>Button bar renderer with configurable styles, icons, and click handlers.</td></tr>
-    <tr><td><strong>Menu</strong></td><td>Context menu and dropdown menu renderer.</td></tr>
+    <tr>
+      <td>
+        <strong>Form</strong>
+      </td>
+      <td>
+        Declarative form renderer from field configuration arrays. Supports text, select, checkbox, radio, and custom
+        controls with validation and relationships.
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Field</strong>
+      </td>
+      <td>Individual form field renderer.</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Buttons</strong>
+      </td>
+      <td>Button bar renderer with configurable styles, icons, and click handlers.</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Menu</strong>
+      </td>
+      <td>Context menu and dropdown menu renderer.</td>
+    </tr>
   </tbody>
 </table>
 
@@ -103,10 +275,21 @@ import logo from './CourtHive.png';
 <p>Data visualization components.</p>
 <table>
   <thead>
-    <tr><th style={{ textAlign: 'left' }}>Story</th><th style={{ textAlign: 'left' }}>Description</th></tr>
+    <tr>
+      <th style={{ textAlign: 'left' }}>Story</th>
+      <th style={{ textAlign: 'left' }}>Description</th>
+    </tr>
   </thead>
   <tbody>
-    <tr><td><strong>Burst Chart</strong></td><td>Sunburst/radial chart for visualizing tournament draw progressions, bracket paths, and hierarchical competition data.</td></tr>
+    <tr>
+      <td>
+        <strong>Burst Chart</strong>
+      </td>
+      <td>
+        Sunburst/radial chart for visualizing tournament draw progressions, bracket paths, and hierarchical competition
+        data.
+      </td>
+    </tr>
   </tbody>
 </table>
 
@@ -114,12 +297,30 @@ import logo from './CourtHive.png';
 <p>Venue and court scheduling configuration.</p>
 <table>
   <thead>
-    <tr><th style={{ textAlign: 'left' }}>Story</th><th style={{ textAlign: 'left' }}>Description</th></tr>
+    <tr>
+      <th style={{ textAlign: 'left' }}>Story</th>
+      <th style={{ textAlign: 'left' }}>Description</th>
+    </tr>
   </thead>
   <tbody>
-    <tr><td><strong>Full</strong></td><td>Complete scheduling profile editor with venue selection, court assignment, and time slot configuration.</td></tr>
-    <tr><td><strong>Panels</strong></td><td>Individual scheduling profile panels (venue, court, time slot editors).</td></tr>
-    <tr><td><strong>Factory</strong></td><td>Factory-backed scheduling profile with live tournament engine integration.</td></tr>
+    <tr>
+      <td>
+        <strong>Full</strong>
+      </td>
+      <td>Complete scheduling profile editor with venue selection, court assignment, and time slot configuration.</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Panels</strong>
+      </td>
+      <td>Individual scheduling profile panels (venue, court, time slot editors).</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Factory</strong>
+      </td>
+      <td>Factory-backed scheduling profile with live tournament engine integration.</td>
+    </tr>
   </tbody>
 </table>
 
@@ -127,12 +328,33 @@ import logo from './CourtHive.png';
 <p>Timeline-based scheduling and conflict detection.</p>
 <table>
   <thead>
-    <tr><th style={{ textAlign: 'left' }}>Story</th><th style={{ textAlign: 'left' }}>Description</th></tr>
+    <tr>
+      <th style={{ textAlign: 'left' }}>Story</th>
+      <th style={{ textAlign: 'left' }}>Description</th>
+    </tr>
   </thead>
   <tbody>
-    <tr><td><strong>Timeline</strong></td><td>Interactive CourtTimeline for visualizing and editing court schedules across time.</td></tr>
-    <tr><td><strong>Engine</strong></td><td>Temporal grid scheduling engine with automatic matchUp placement.</td></tr>
-    <tr><td><strong>Conflict Evaluators</strong></td><td>Conflict detection strategies for identifying scheduling issues (participant conflicts, rest time violations, venue capacity).</td></tr>
+    <tr>
+      <td>
+        <strong>Timeline</strong>
+      </td>
+      <td>Interactive CourtTimeline for visualizing and editing court schedules across time.</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Engine</strong>
+      </td>
+      <td>Temporal grid scheduling engine with automatic matchUp placement.</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Conflict Evaluators</strong>
+      </td>
+      <td>
+        Conflict detection strategies for identifying scheduling issues (participant conflicts, rest time violations,
+        venue capacity).
+      </td>
+    </tr>
   </tbody>
 </table>
 
@@ -140,8 +362,16 @@ import logo from './CourtHive.png';
 
 <h2>Architecture</h2>
 
-<pre style={{ background: 'var(--chc-bg-secondary, #f5f5f5)', padding: '16px', borderRadius: '6px', fontSize: '13px', overflow: 'auto' }}>
-{`src/
+<pre
+  style={{
+    background: 'var(--chc-bg-secondary, #f5f5f5)',
+    padding: '16px',
+    borderRadius: '6px',
+    fontSize: '13px',
+    overflow: 'auto'
+  }}
+>
+  {`src/
   components/              Component source code
     topology-builder/        Controller / Domain / Engine / UI layers
     scheduling-profile/      Controller / Domain / Engine / UI layers
@@ -159,18 +389,41 @@ import logo from './CourtHive.png';
 <h3>Key Patterns</h3>
 
 <ul>
-  <li><strong>Framework-agnostic</strong> — All components render to vanilla DOM elements. No React, Vue, or Angular dependency.</li>
-  <li><strong>CSS custom properties</strong> — Theming via <code>--chc-*</code> CSS variables with light/dark mode support.</li>
-  <li><strong>Factory integration</strong> — Tournament logic powered by <a href="https://courthive.github.io/competition-factory/" target="_blank">Competition Factory</a> for TODS-compliant data modeling.</li>
-  <li><strong>Controller pattern</strong> — Complex features (topology builder, scheduling profile, temporal grid) use a controller layer that wires store, domain logic, and UI panels together.</li>
+  <li>
+    <strong>Framework-agnostic</strong> — All components render to vanilla DOM elements. No React, Vue, or Angular
+    dependency.
+  </li>
+  <li>
+    <strong>CSS custom properties</strong> — Theming via <code>--chc-*</code> CSS variables with light/dark mode
+    support.
+  </li>
+  <li>
+    <strong>Factory integration</strong> — Tournament logic powered by{' '}
+    <a href="https://courthive.github.io/competition-factory/" target="_blank">
+      Competition Factory
+    </a>{' '}
+    for TODS-compliant data modeling.
+  </li>
+  <li>
+    <strong>Controller pattern</strong> — Complex features (topology builder, scheduling profile, temporal grid) use a
+    controller layer that wires store, domain logic, and UI panels together.
+  </li>
 </ul>
 
 <hr />
 
 <h2>Getting Started</h2>
 
-<pre style={{ background: 'var(--chc-bg-secondary, #f5f5f5)', padding: '16px', borderRadius: '6px', fontSize: '13px', overflow: 'auto' }}>
-{`# Install dependencies
+<pre
+  style={{
+    background: 'var(--chc-bg-secondary, #f5f5f5)',
+    padding: '16px',
+    borderRadius: '6px',
+    fontSize: '13px',
+    overflow: 'auto'
+  }}
+>
+  {`# Install dependencies
 pnpm install
 
 # Start Storybook
@@ -182,8 +435,16 @@ pnpm build`}
 
 <h3>Usage</h3>
 
-<pre style={{ background: 'var(--chc-bg-secondary, #f5f5f5)', padding: '16px', borderRadius: '6px', fontSize: '13px', overflow: 'auto' }}>
-{`import {
+<pre
+  style={{
+    background: 'var(--chc-bg-secondary, #f5f5f5)',
+    padding: '16px',
+    borderRadius: '6px',
+    fontSize: '13px',
+    overflow: 'auto'
+  }}
+>
+  {`import {
   renderStructure,
   scoringModal,
   TopologyBuilderControl,
@@ -191,10 +452,22 @@ pnpm build`}
 import 'courthive-components/dist/courthive-components.css';`}
 </pre>
 
-<div style={{ marginTop: '32px', padding: '12px 16px', background: 'var(--chc-bg-secondary, #f5f5f5)', borderRadius: '6px', fontSize: '13px' }}>
+<div
+  style={{
+    marginTop: '32px',
+    padding: '12px 16px',
+    background: 'var(--chc-bg-secondary, #f5f5f5)',
+    borderRadius: '6px',
+    fontSize: '13px'
+  }}
+>
   <strong>Repository:</strong>{' '}
-  <a href="https://github.com/CourtHive/courthive-components" target="_blank">github.com/CourtHive/courthive-components</a>
+  <a href="https://github.com/CourtHive/courthive-components" target="_blank">
+    github.com/CourtHive/courthive-components
+  </a>
   <br />
   <strong>Factory docs:</strong>{' '}
-  <a href="https://courthive.github.io/competition-factory/" target="_blank">courthive.github.io/competition-factory</a>
+  <a href="https://courthive.github.io/competition-factory/" target="_blank">
+    courthive.github.io/competition-factory
+  </a>
 </div>

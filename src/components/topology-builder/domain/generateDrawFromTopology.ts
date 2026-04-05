@@ -24,10 +24,7 @@ export interface GenerationResult {
   error?: string;
 }
 
-export function generateDrawFromTopology(
-  state: TopologyState,
-  participantsCount?: number
-): GenerationResult {
+export function generateDrawFromTopology(state: TopologyState, participantsCount?: number): GenerationResult {
   let drawOptions: any;
   let postGenerationMethods: any[];
 
