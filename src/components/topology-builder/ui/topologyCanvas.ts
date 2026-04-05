@@ -150,14 +150,8 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
     }
   });
 
-  function update(state: TopologyState): void {
-    currentState = state;
-    nodesLayer.innerHTML = '';
-
-    // Pre-compute which nodes have their winner port locked.
-    // Only qualifying structures lock the winner port (one winner link to main).
-    // Main/consolation structures keep the winner port available.
-    const nodesWithWinnerLink = new Set(
+  function computeNodesWithWinnerLink(state: TopologyState): Set<string> {
+    return new Set(
       state.edges
         .filter((e) => e.linkType === WINNER)
         .map((e) => e.sourceNodeId)
@@ -166,16 +160,15 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
           return node && node.stage === QUALIFYING && !isRoundRobin(node.structureType);
         })
     );
+  }
 
-    // Pre-compute round annotations per node from edges
+  function computeAnnotationsByNode(state: TopologyState): Map<string, RoundAnnotation[]> {
     const annotationsByNode = new Map<string, RoundAnnotation[]>();
     for (const edge of state.edges) {
       let srcRound = edge.sourceRoundNumber;
       const tgtRound = edge.targetRoundNumber;
       const sel = edge.id === state.selectedEdgeId;
 
-      // For WINNER links without an explicit sourceRoundNumber, infer
-      // the last round of the source structure (the qualifying round)
       if (!srcRound && edge.linkType === WINNER) {
         const sourceNode = state.nodes.find((n) => n.id === edge.sourceNodeId);
         if (sourceNode) {
@@ -204,9 +197,10 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
         });
       }
     }
+    return annotationsByNode;
+  }
 
-    // Pre-compute node warnings: qualifying links targeting round > 1
-    // need that round to be a feed round with sufficient capacity.
+  function computeNodeWarnings(state: TopologyState): Map<string, string[]> {
     const feedEdgesByTarget = new Map<string, { targetRound: number; qp: number; warning: string }[]>();
     for (const edge of state.edges) {
       if (edge.linkType !== WINNER) continue;
@@ -227,7 +221,6 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
       const target = state.nodes.find((n) => n.id === targetId);
       if (!target) continue;
       const feedCapacities = getFeedRoundCapacities(target.drawSize);
-      // Accumulate demand per round
       const demandByRound = new Map<number, number>();
       for (const entry of entries) {
         demandByRound.set(entry.targetRound, (demandByRound.get(entry.targetRound) || 0) + entry.qp);
@@ -240,8 +233,10 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
       }
       if (warnings.length > 0) nodeWarnings.set(targetId, warnings);
     }
+    return nodeWarnings;
+  }
 
-    // Pre-compute position chips for RR nodes
+  function computePositionChipsByNode(state: TopologyState): Map<string, PositionChip[]> {
     const positionChipsByNode = new Map<string, PositionChip[]>();
     for (const node of state.nodes) {
       if (!isRoundRobin(node.structureType)) continue;
@@ -257,71 +252,87 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
       chips.sort((a, b) => a.position - b.position);
       positionChipsByNode.set(node.id, chips);
     }
+    return positionChipsByNode;
+  }
 
-    // Render nodes
+  function determineLinkType(
+    sourceNode: TopologyNode | undefined,
+    targetNode: TopologyNode | undefined,
+    portType: 'winner' | 'loser'
+  ): 'WINNER' | 'LOSER' | 'POSITION' {
+    if (sourceNode && isRoundRobin(sourceNode.structureType)) return POSITION;
+    if (portType === 'loser') return LOSER;
+    if (targetNode?.stage === CONSOLATION) return LOSER;
+    return WINNER;
+  }
+
+  function buildCardCallbacks(state: TopologyState) {
+    return {
+      onSelect: (nodeId) => {
+        callbacks.onSelectNode(nodeId);
+      },
+      onSelectEdge: (edgeId) => {
+        callbacks.onSelectEdge(edgeId);
+      },
+      onDoubleClick: callbacks.onDoubleClickNode ? (nodeId) => callbacks.onDoubleClickNode!(nodeId) : undefined,
+      onPortMouseDown: (nodeId, portType) => {
+        const sourceNode = state.nodes.find((n) => n.id === nodeId);
+        if (!sourceNode) return;
+        const pos = getPortPosition(sourceNode, portType);
+
+        const tempLine = document.createElementNS(SVG_NS, 'line');
+        tempLine.setAttribute('x1', String(pos.x));
+        tempLine.setAttribute('y1', String(pos.y));
+        tempLine.setAttribute('x2', String(pos.x));
+        tempLine.setAttribute('y2', String(pos.y));
+        tempLine.setAttribute('stroke', portType === 'winner' ? 'green' : 'red');
+        tempLine.setAttribute('stroke-width', '2');
+        tempLine.setAttribute('stroke-dasharray', '4 2');
+        svg.appendChild(tempLine);
+
+        linkCreation = { sourceNodeId: nodeId, portType, tempLine };
+      },
+      onPortMouseUp: (targetNodeId) => {
+        if (linkCreation && linkCreation.sourceNodeId !== targetNodeId) {
+          const sourceNode = state.nodes.find((n) => n.id === linkCreation!.sourceNodeId);
+          const targetNode = state.nodes.find((n) => n.id === targetNodeId);
+          const linkType = determineLinkType(sourceNode, targetNode, linkCreation.portType);
+          callbacks.onCreateEdge(linkCreation.sourceNodeId, targetNodeId, linkType);
+        }
+        if (linkCreation?.tempLine) {
+          svg.removeChild(linkCreation.tempLine);
+        }
+        linkCreation = null;
+      },
+      onDragStart: (nodeId, startX, startY) => {
+        const node = state.nodes.find((n) => n.id === nodeId);
+        if (node) {
+          pendingDrag = {
+            nodeId,
+            startX,
+            startY,
+            origX: node.position.x,
+            origY: node.position.y
+          };
+        }
+      }
+    };
+  }
+
+  function update(state: TopologyState): void {
+    currentState = state;
+    nodesLayer.innerHTML = '';
+
+    const nodesWithWinnerLink = computeNodesWithWinnerLink(state);
+    const annotationsByNode = computeAnnotationsByNode(state);
+    const nodeWarnings = computeNodeWarnings(state);
+    const positionChipsByNode = computePositionChipsByNode(state);
+    const cardCallbacks = buildCardCallbacks(state);
+
     for (const node of state.nodes) {
       const card = buildStructureCard(
         node,
-        {
-          onSelect: (nodeId) => {
-            callbacks.onSelectNode(nodeId);
-          },
-          onSelectEdge: (edgeId) => {
-            callbacks.onSelectEdge(edgeId);
-          },
-          onDoubleClick: callbacks.onDoubleClickNode ? (nodeId) => callbacks.onDoubleClickNode!(nodeId) : undefined,
-          onPortMouseDown: (nodeId, portType) => {
-            const sourceNode = state.nodes.find((n) => n.id === nodeId);
-            if (!sourceNode) return;
-            const pos = getPortPosition(sourceNode, portType);
-
-            const tempLine = document.createElementNS(SVG_NS, 'line');
-            tempLine.setAttribute('x1', String(pos.x));
-            tempLine.setAttribute('y1', String(pos.y));
-            tempLine.setAttribute('x2', String(pos.x));
-            tempLine.setAttribute('y2', String(pos.y));
-            tempLine.setAttribute('stroke', portType === 'winner' ? 'green' : 'red');
-            tempLine.setAttribute('stroke-width', '2');
-            tempLine.setAttribute('stroke-dasharray', '4 2');
-            svg.appendChild(tempLine);
-
-            linkCreation = { sourceNodeId: nodeId, portType, tempLine };
-          },
-          onPortMouseUp: (targetNodeId) => {
-            if (linkCreation && linkCreation.sourceNodeId !== targetNodeId) {
-              let linkType: 'WINNER' | 'LOSER' | 'POSITION';
-              const sourceNode = state.nodes.find((n) => n.id === linkCreation!.sourceNodeId);
-              const targetNode = state.nodes.find((n) => n.id === targetNodeId);
-              if (sourceNode && isRoundRobin(sourceNode.structureType)) {
-                linkType = POSITION;
-              } else if (linkCreation.portType === 'loser') {
-                linkType = LOSER;
-              } else if (targetNode?.stage === CONSOLATION) {
-                // Winner port to consolation target creates a loser link
-                linkType = LOSER;
-              } else {
-                linkType = WINNER;
-              }
-              callbacks.onCreateEdge(linkCreation.sourceNodeId, targetNodeId, linkType);
-            }
-            if (linkCreation?.tempLine) {
-              svg.removeChild(linkCreation.tempLine);
-            }
-            linkCreation = null;
-          },
-          onDragStart: (nodeId, startX, startY) => {
-            const node = state.nodes.find((n) => n.id === nodeId);
-            if (node) {
-              pendingDrag = {
-                nodeId,
-                startX,
-                startY,
-                origX: node.position.x,
-                origY: node.position.y
-              };
-            }
-          }
-        },
+        cardCallbacks,
         state.selectedNodeId === node.id,
         nodesWithWinnerLink.has(node.id),
         annotationsByNode.get(node.id),

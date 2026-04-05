@@ -31,7 +31,7 @@ export type { GenerateTeamsConfig } from './components/modal/generateTeamsModal'
 export { openCompositionEditorModal } from './components/modal/compositionEditorModal';
 export type { CompositionEditorResult, CompositionEditorOptions } from './components/modal/compositionEditorModal';
 export { openScheduleCellConfigModal } from './components/modal/scheduleCellConfigModal';
-export type { ScheduleCellConfig, ScheduleCellConfigOptions } from './components/modal/scheduleCellConfigModal';
+export type { ScheduleCellDisplayConfig, ScheduleCellConfigOptions } from './components/modal/scheduleCellConfigModal';
 
 // Match format selector modal
 export { getMatchUpFormatModal } from './components/matchUpFormat/matchUpFormat';

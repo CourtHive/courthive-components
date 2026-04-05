@@ -7,7 +7,6 @@
 
 import './timepicker-ui.css';
 
-// Lazy imports shared with modernTimePicker
 let TimepickerUI: any;
 let PluginRegistry: any;
 let RangePlugin: any;
@@ -19,7 +18,6 @@ async function ensureTimepickerLoaded() {
     TimepickerUI = timepickerModule.TimepickerUI;
     PluginRegistry = timepickerModule.PluginRegistry;
 
-    // @ts-expect-error - TS doesn't handle dynamic imports well
     const rangeModule = await import('timepicker-ui/plugins/range');
     RangePlugin = rangeModule.RangePlugin;
 

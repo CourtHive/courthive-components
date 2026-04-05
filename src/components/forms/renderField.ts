@@ -272,137 +272,22 @@ export function renderField(item: any): {
     div.innerHTML = item.text;
     control.appendChild(div);
   } else if (item.radio) {
-    const radioGroup = document.createElement('div');
-    radioGroup.id = item.id;
-    radioGroup.className = 'control';
-    for (const option of item.options ?? []) {
-      const label = document.createElement('label');
-      label.className = 'radio';
-      const input = document.createElement('input');
-      if (option.field) subFields.push({ input, field: option.field });
-      if (option.id) input.id = option.id;
-      input.name = item.id;
-      input.type = 'radio';
-      input.value = option.text;
-      if (option.checked) input.checked = true;
-      if (isFunction(item.onChange)) input.addEventListener('change', (e) => item.onChange(e, item));
-      label.appendChild(input);
-      radioGroup.appendChild(label);
-      const text = document.createElement('span');
-      text.style.marginLeft = '.25em';
-      text.style.marginRight = '1em';
-      text.style.color = 'var(--chc-text-primary)';
-      text.innerHTML = option.text;
-      radioGroup.appendChild(text);
-    }
-    control.appendChild(radioGroup);
-    inputElement = radioGroup;
+    const result = buildRadioGroup(item, subFields);
+    control.appendChild(result);
+    inputElement = result;
   } else if (item.options && item.multiple) {
     const { container: msContainer, element } = createMultiSelect(item);
     if (item.id) msContainer.id = item.id;
     control.appendChild(msContainer);
     inputElement = element;
   } else if (item.options) {
-    const div = document.createElement('div');
-    div.className = 'select font-medium';
-    div.style.cssText = 'width: 100%';
-    if (item.zIndex) div.style.zIndex = item.zIndex;
-    const select = document.createElement('select');
-    if (item.dataPlaceholder) select.setAttribute('data-placeholder', item.dataPlaceholder);
-    if (item.dataType) select.setAttribute('data-type', item.dataType);
-    if (item.disabled) select.disabled = true;
-    if (item.id) div.id = item.id;
-    select.style.cssText = 'width: 100%';
-    renderOptions(select, item);
-    div.appendChild(select);
-    control.appendChild(div);
-
-    if (item.help) {
-      const help = document.createElement('p');
-      help.className = 'help font-medium is-info';
-      help.innerHTML = item.help?.text;
-      help.style.display = item.help?.visible ? '' : NONE;
-      control.appendChild(help);
-    }
-
-    inputElement = select;
-    if (isFunction(item.onChange)) select.addEventListener('change', (e) => item.onChange(e, item));
+    inputElement = buildSelectField(item, control);
   } else if (item.checkbox) {
-    const div = document.createElement('div');
-    div.className = 'flexrow nowrap';
-    div.style.display = 'inline-block';
-    const input = document.createElement('input');
-    if (isFunction(item.onChange)) input.addEventListener('change', (e) => item.onChange(e, item));
-    inputElement = input; // Return the actual checkbox input, not the wrapper
-    const intent = item.intent ?? 'is-success';
-    input.className = `is-checkradio ${intent}`;
-    input.type = 'checkbox';
-    input.id = item.id;
-    if (item.checked) input.checked = true;
-    div.appendChild(input);
-    const label = document.createElement('label');
-    label.setAttribute('for', item.id);
-    if (item.color) label.style.color = item.color;
-    label.innerHTML = item.label;
-    div.appendChild(label);
-    control.appendChild(div);
+    inputElement = buildCheckboxField(item, control);
   } else {
-    const input = document.createElement('input');
-    input.className = 'input font-medium';
-    if (item.class) input.classList.add(item.class);
-    input.setAttribute('type', item.type || 'text');
-    input.setAttribute('autocomplete', item.autocomplete || 'off');
-    input.setAttribute('placeholder', item.placeholder || '');
-    if (item.disabled) input.setAttribute('disabled', 'true');
-    if (item.id) input.setAttribute('id', item.id);
-    control.appendChild(input);
-    if (item.iconLeft) {
-      control.classList.add('has-icons-left');
-      const span = document.createElement('span');
-      span.className = 'icon is-small is-left font-medium';
-      const icon = document.createElement('i');
-      icon.className = item.iconLeft;
-      span.appendChild(icon);
-      control.appendChild(span);
-    }
-    if (item.type === 'password') {
-      control.classList.add('has-icons-right');
-      const span = document.createElement('span');
-      span.className = 'icon is-small is-right font-medium';
-      const icon = document.createElement('i');
-      icon.className = item.iconRight;
-      span.appendChild(icon);
-      control.appendChild(span);
-    }
-    inputElement = input as any;
-    const help = document.createElement('p');
-    help.className = 'help font-medium';
-    control.appendChild(help);
-    if (item.validator) {
-      input.addEventListener('input', (e) => validator(item, e, input, help, item.validator));
-    }
-    if (item.date) {
-      const maxNumberOfDates = item.maxNumberOfDates || 1;
-      const autohide = !item.maxNumberOfDates || maxNumberOfDates === 1;
-      datepicker = new Datepicker(input, {
-        maxDate: item.maxDate,
-        minDate: item.minDate,
-        format: 'yyyy-mm-dd',
-        language: item.language || 'en',
-        maxNumberOfDates,
-        autohide
-      });
-    } else if (item.typeAhead) {
-      createTypeAhead({ ...item.typeAhead, element: input });
-    }
-    if (isFunction(item.onKeyDown)) input.addEventListener('keydown', (e) => item.onKeyDown(e, item));
-    if (isFunction(item.onChange)) input.addEventListener('change', (e) => item.onChange(e, item));
-    if (isFunction(item.onInput)) input.addEventListener('input', (e) => item.onInput(e, item));
-    if (isFunction(item.onKeyUp)) input.addEventListener('keyup', (e) => item.onKeyUp(e, item));
-    if (item.value !== undefined) input.value = item.value;
-    if (item.selectOnFocus) {
-      input.addEventListener('focus', () => input.select());
-    }
+    const result = buildTextInputField(item, control);
+    inputElement = result.inputElement;
+    datepicker = result.datepicker;
   }
 
   field.appendChild(control);
@@ -411,4 +296,142 @@ export function renderField(item: any): {
   }
 
   return { field, inputElement, datepicker, subFields };
+}
+
+function buildRadioGroup(item: any, subFields: any[]): HTMLDivElement {
+  const radioGroup = document.createElement('div');
+  radioGroup.id = item.id;
+  radioGroup.className = 'control';
+  for (const option of item.options ?? []) {
+    const label = document.createElement('label');
+    label.className = 'radio';
+    const input = document.createElement('input');
+    if (option.field) subFields.push({ input, field: option.field });
+    if (option.id) input.id = option.id;
+    input.name = item.id;
+    input.type = 'radio';
+    input.value = option.text;
+    if (option.checked) input.checked = true;
+    if (isFunction(item.onChange)) input.addEventListener('change', (e) => item.onChange(e, item));
+    label.appendChild(input);
+    radioGroup.appendChild(label);
+    const text = document.createElement('span');
+    text.style.marginLeft = '.25em';
+    text.style.marginRight = '1em';
+    text.style.color = 'var(--chc-text-primary)';
+    text.innerHTML = option.text;
+    radioGroup.appendChild(text);
+  }
+  return radioGroup;
+}
+
+function buildSelectField(item: any, control: HTMLElement): HTMLSelectElement {
+  const div = document.createElement('div');
+  div.className = 'select font-medium';
+  div.style.cssText = 'width: 100%';
+  if (item.zIndex) div.style.zIndex = item.zIndex;
+  const select = document.createElement('select');
+  if (item.dataPlaceholder) select.setAttribute('data-placeholder', item.dataPlaceholder);
+  if (item.dataType) select.setAttribute('data-type', item.dataType);
+  if (item.disabled) select.disabled = true;
+  if (item.id) div.id = item.id;
+  select.style.cssText = 'width: 100%';
+  renderOptions(select, item);
+  div.appendChild(select);
+  control.appendChild(div);
+
+  if (item.help) {
+    const help = document.createElement('p');
+    help.className = 'help font-medium is-info';
+    help.innerHTML = item.help?.text;
+    help.style.display = item.help?.visible ? '' : NONE;
+    control.appendChild(help);
+  }
+
+  if (isFunction(item.onChange)) select.addEventListener('change', (e) => item.onChange(e, item));
+  return select;
+}
+
+function buildCheckboxField(item: any, control: HTMLElement): any {
+  const div = document.createElement('div');
+  div.className = 'flexrow nowrap';
+  div.style.display = 'inline-block';
+  const input = document.createElement('input');
+  if (isFunction(item.onChange)) input.addEventListener('change', (e) => item.onChange(e, item));
+  const intent = item.intent ?? 'is-success';
+  input.className = `is-checkradio ${intent}`;
+  input.type = 'checkbox';
+  input.id = item.id;
+  if (item.checked) input.checked = true;
+  div.appendChild(input);
+  const label = document.createElement('label');
+  label.setAttribute('for', item.id);
+  if (item.color) label.style.color = item.color;
+  label.innerHTML = item.label;
+  div.appendChild(label);
+  control.appendChild(div);
+  return input;
+}
+
+function buildTextInputField(item: any, control: HTMLElement): { inputElement: any; datepicker: any } {
+  let datepicker: any;
+  const input = document.createElement('input');
+  input.className = 'input font-medium';
+  if (item.class) input.classList.add(item.class);
+  input.setAttribute('type', item.type || 'text');
+  input.setAttribute('autocomplete', item.autocomplete || 'off');
+  input.setAttribute('placeholder', item.placeholder || '');
+  if (item.disabled) input.setAttribute('disabled', 'true');
+  if (item.id) input.setAttribute('id', item.id);
+  control.appendChild(input);
+
+  if (item.iconLeft) {
+    control.classList.add('has-icons-left');
+    const span = document.createElement('span');
+    span.className = 'icon is-small is-left font-medium';
+    const icon = document.createElement('i');
+    icon.className = item.iconLeft;
+    span.appendChild(icon);
+    control.appendChild(span);
+  }
+  if (item.type === 'password') {
+    control.classList.add('has-icons-right');
+    const span = document.createElement('span');
+    span.className = 'icon is-small is-right font-medium';
+    const icon = document.createElement('i');
+    icon.className = item.iconRight;
+    span.appendChild(icon);
+    control.appendChild(span);
+  }
+
+  const help = document.createElement('p');
+  help.className = 'help font-medium';
+  control.appendChild(help);
+  if (item.validator) {
+    input.addEventListener('input', (e) => validator(item, e, input, help, item.validator));
+  }
+  if (item.date) {
+    const maxNumberOfDates = item.maxNumberOfDates || 1;
+    const autohide = !item.maxNumberOfDates || maxNumberOfDates === 1;
+    datepicker = new Datepicker(input, {
+      maxDate: item.maxDate,
+      minDate: item.minDate,
+      format: 'yyyy-mm-dd',
+      language: item.language || 'en',
+      maxNumberOfDates,
+      autohide
+    });
+  } else if (item.typeAhead) {
+    createTypeAhead({ ...item.typeAhead, element: input });
+  }
+  if (isFunction(item.onKeyDown)) input.addEventListener('keydown', (e) => item.onKeyDown(e, item));
+  if (isFunction(item.onChange)) input.addEventListener('change', (e) => item.onChange(e, item));
+  if (isFunction(item.onInput)) input.addEventListener('input', (e) => item.onInput(e, item));
+  if (isFunction(item.onKeyUp)) input.addEventListener('keyup', (e) => item.onKeyUp(e, item));
+  if (item.value !== undefined) input.value = item.value;
+  if (item.selectOnFocus) {
+    input.addEventListener('focus', () => input.select());
+  }
+
+  return { inputElement: input, datepicker };
 }

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/html';
 import { openCompositionEditorModal } from '../components/modal/compositionEditorModal';
 import { openScheduleCellConfigModal } from '../components/modal/scheduleCellConfigModal';
 import type { CompositionEditorResult } from '../components/modal/compositionEditorModal';
-import type { ScheduleCellConfig } from '../components/modal/scheduleCellConfigModal';
+import type { ScheduleCellDisplayConfig } from '../components/modal/scheduleCellConfigModal';
 
 function createCompositionStory(): HTMLElement {
   const container = document.createElement('div');
@@ -34,7 +34,7 @@ function createCompositionStory(): HTMLElement {
 
   addBtn('Schedule Cell Config', '#2d8a4e', () => {
     openScheduleCellConfigModal({
-      onApply: (config: ScheduleCellConfig) => {
+      onApply: (config: ScheduleCellDisplayConfig) => {
         resultDiv.textContent = JSON.stringify(config, null, 2);
       }
     });

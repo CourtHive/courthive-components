@@ -39,7 +39,7 @@ export function setScore({
     p.setAttribute('setNumber', set.setNumber);
 
     p.style.backgroundColor = stripedScore;
-    p.innerHTML = !isNaN(scoreDisplay) ? scoreDisplay : '';
+    p.innerHTML = scoreDisplay != null && !Number.isNaN(Number(scoreDisplay)) ? scoreDisplay : '';
 
     if (!gameScoreOnly) {
       const span = document.createElement('span');
@@ -50,6 +50,46 @@ export function setScore({
   }
 
   return p;
+}
+
+function buildPointScoreEl(sets, sideNumber, gameScoreConfig, composition, eventHandlers, matchUp): HTMLElement | undefined {
+  if (sets.length === 0) return undefined;
+
+  const lastSet = sets.at(-1);
+  const hasPointScore = lastSet.side1PointScore != null || lastSet.side2PointScore != null;
+  if (!hasPointScore) return undefined;
+
+  const pointValue = sideNumber === 2 ? lastSet.side2PointScore : lastSet.side1PointScore;
+  const position = gameScoreConfig?.position || 'trailing';
+  const inverted = gameScoreConfig?.inverted !== false;
+
+  const pointScoreEl = document.createElement('p');
+  pointScoreEl.className = pointScoreStyle({ inverted, position });
+  pointScoreEl.textContent = pointValue != null ? String(pointValue) : '';
+
+  const inlineConfig = composition?.configuration?.inlineScoring;
+  if (inlineConfig && !lastSet.winningSide) {
+    pointScoreEl.classList.add('chc-inline-scoring-clickable');
+    pointScoreEl.style.cursor = 'pointer';
+    pointScoreEl.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      eventHandlers?.scoreIncrement?.({ matchUpId: matchUp.matchUpId, sideNumber, scoreType: 'point' });
+    });
+  }
+
+  return pointScoreEl;
+}
+
+function makeInlineScoringClickable(el, inlineScoringConfig, eventHandlers, matchUp, sideNumber): void {
+  el.classList.add('chc-inline-scoring-clickable');
+  el.style.cursor = 'pointer';
+  el.addEventListener('click', (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const scoreType = inlineScoringConfig.mode === 'games' ? 'game' : 'point';
+    eventHandlers?.scoreIncrement?.({ matchUpId: matchUp.matchUpId, sideNumber, scoreType });
+  });
 }
 
 export function renderSideScore({
@@ -95,40 +135,10 @@ export function renderSideScore({
   const gameWrapper = document.createElement('div');
   gameWrapper.className = gameWrapperStyle();
 
-  // Build point score element when data is present
-  // Renders whenever the last set has point score data, regardless of gameScore config
-  let pointScoreEl: HTMLElement | undefined;
-  if (sets.length > 0) {
-    const lastSet = sets[sets.length - 1];
-    const hasPointScore = lastSet.side1PointScore != null || lastSet.side2PointScore != null;
-
-    if (hasPointScore) {
-      const pointValue = sideNumber === 2 ? lastSet.side2PointScore : lastSet.side1PointScore;
-      const position = gameScoreConfig?.position || 'trailing';
-      const inverted = gameScoreConfig?.inverted !== false;
-
-      pointScoreEl = document.createElement('p');
-      pointScoreEl.className = pointScoreStyle({ inverted, position });
-      pointScoreEl.textContent = pointValue != null ? String(pointValue) : '';
-
-      // Make point scores clickable in inline scoring mode
-      const inlineConfig = composition?.configuration?.inlineScoring;
-      if (inlineConfig && !lastSet.winningSide) {
-        pointScoreEl.classList.add('chc-inline-scoring-clickable');
-        pointScoreEl.style.cursor = 'pointer';
-        pointScoreEl.addEventListener('click', (e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          eventHandlers?.scoreIncrement?.({ matchUpId: matchUp.matchUpId, sideNumber, scoreType: 'point' });
-        });
-      }
-    }
-  }
+  const pointScoreEl = buildPointScoreEl(sets, sideNumber, gameScoreConfig, composition, eventHandlers, matchUp);
 
   const resultsInfo = composition?.configuration?.resultsInfo && sideNumber === 1;
 
-  // When resultsInfo is enabled, the game-wrapper and its column children must
-  // stretch to the full score-wrapper height so labels anchor at the dividing line.
   if (resultsInfo) {
     gameWrapper.style.alignSelf = 'stretch';
   }
@@ -146,14 +156,9 @@ export function renderSideScore({
     return col;
   };
 
-  // Insert leading point score before set scores
   const pointPosition = gameScoreConfig?.position || 'trailing';
   if (pointScoreEl && pointPosition === 'leading') {
-    if (resultsInfo) {
-      gameWrapper.appendChild(wrapCol(pointScoreEl, 'PTS', 'points'));
-    } else {
-      gameWrapper.appendChild(pointScoreEl);
-    }
+    gameWrapper.appendChild(resultsInfo ? wrapCol(pointScoreEl, 'PTS', 'points') : pointScoreEl);
   }
 
   const inlineScoringConfig = composition?.configuration?.inlineScoring;
@@ -166,32 +171,15 @@ export function renderSideScore({
       set
     });
 
-    // Make unwon set scores clickable in inline scoring mode
     if (inlineScoringConfig && !set.winningSide) {
-      (setScoreDisplay as HTMLElement).classList.add('chc-inline-scoring-clickable');
-      (setScoreDisplay as HTMLElement).style.cursor = 'pointer';
-      (setScoreDisplay as HTMLElement).addEventListener('click', (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        const scoreType = inlineScoringConfig.mode === 'games' ? 'game' : 'point';
-        eventHandlers?.scoreIncrement?.({ matchUpId: matchUp.matchUpId, sideNumber, scoreType });
-      });
+      makeInlineScoringClickable(setScoreDisplay, inlineScoringConfig, eventHandlers, matchUp, sideNumber);
     }
 
-    if (resultsInfo) {
-      gameWrapper.appendChild(wrapCol(setScoreDisplay, String(set.setNumber), 'set'));
-    } else {
-      gameWrapper.appendChild(setScoreDisplay);
-    }
+    gameWrapper.appendChild(resultsInfo ? wrapCol(setScoreDisplay, String(set.setNumber), 'set') : setScoreDisplay);
   }
 
-  // Append trailing point score after set scores (default)
   if (pointScoreEl && pointPosition !== 'leading') {
-    if (resultsInfo) {
-      gameWrapper.appendChild(wrapCol(pointScoreEl, 'PTS', 'points'));
-    } else {
-      gameWrapper.appendChild(pointScoreEl);
-    }
+    gameWrapper.appendChild(resultsInfo ? wrapCol(pointScoreEl, 'PTS', 'points') : pointScoreEl);
   }
 
   div.appendChild(gameWrapper);

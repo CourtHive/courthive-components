@@ -2,6 +2,7 @@ import { roundContainerStyle } from '../../styles/roundContainerStyle';
 import { tournamentEngine } from 'tods-competition-factory';
 import { structureStyle } from '../../styles/structureStyle';
 import { roundStyle } from '../../styles/roundStyle';
+import { isLuckyDraw } from './isLuckyDraw';
 import { renderRound } from './renderRound';
 import type { Composition, EventHandlers, MatchUp } from '../../types';
 
@@ -34,7 +35,7 @@ export function renderStructure({
 
   structureId = structureId || context?.structureId || matchUps?.[0]?.structureId;
   const isRoundRobin = matchUps.some(({ isRoundRobin }) => isRoundRobin);
-  const isLucky = roundsNotPowerOf2 || hasNoRoundPositions;
+  const isLucky = isLuckyDraw({ roundsNotPowerOf2, hasNoRoundPositions, roundNumbers, roundProfile });
 
   const div = document.createElement('div');
   div.className = structureStyle();

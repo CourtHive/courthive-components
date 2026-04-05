@@ -18,6 +18,8 @@ import {
 import { rePointsInputStyle, reIconBtnDangerStyle, reEmptyStyle } from '../styles';
 
 const STANDARD_POSITIONS = [1, 2, 4, 8, 16, 32, 64, 128];
+const TABLE_STYLE = 'font-size:0.8rem;margin-bottom:0;border-collapse:collapse';
+const POS_TH_STYLE = 'width:3.5rem;text-align:center';
 
 export function buildPositionPointsTable(
   store: RankingPointsEditorStore,
@@ -90,11 +92,11 @@ function buildFlatTable(
   profileIndex: number
 ): void {
   const table = document.createElement('table');
-  table.style.cssText = 'font-size:0.8rem;margin-bottom:0;border-collapse:collapse';
+  table.style.cssText = TABLE_STYLE;
 
   const thead = document.createElement('thead');
   const headerRow = document.createElement('tr');
-  addTh(headerRow, 'Pos', 'width:3.5rem;text-align:center');
+  addTh(headerRow, 'Pos', POS_TH_STYLE);
   addTh(headerRow, 'Points', 'text-align:right');
   if (!readonly) addTh(headerRow, '', 'width:2rem');
   thead.appendChild(headerRow);
@@ -143,11 +145,11 @@ function buildLevelColumnsTable(
   profileIndex: number
 ): void {
   const table = document.createElement('table');
-  table.style.cssText = 'font-size:0.8rem;margin-bottom:0;border-collapse:collapse';
+  table.style.cssText = TABLE_STYLE;
 
   const thead = document.createElement('thead');
   const headerRow = document.createElement('tr');
-  addTh(headerRow, 'Pos', 'width:3.5rem;text-align:center');
+  addTh(headerRow, 'Pos', POS_TH_STYLE);
   for (const level of levels) {
     const th = document.createElement('th');
     th.style.cssText = 'text-align:right;min-width:3.5rem;padding:2px 4px';
@@ -245,11 +247,11 @@ function buildReadOnlyTable(wrapper: HTMLElement, positions: number[], ranges: R
   wrapper.appendChild(badge);
 
   const table = document.createElement('table');
-  table.style.cssText = 'font-size:0.8rem;margin-bottom:0;border-collapse:collapse';
+  table.style.cssText = TABLE_STYLE;
 
   const thead = document.createElement('thead');
   const headerRow = document.createElement('tr');
-  addTh(headerRow, 'Pos', 'width:3.5rem;text-align:center');
+  addTh(headerRow, 'Pos', POS_TH_STYLE);
 
   if (layout.type === 'flight-columns') {
     for (const flight of layout.flights) addTh(headerRow, `F${flight}`, 'text-align:right;min-width:3.5rem');

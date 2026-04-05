@@ -6,10 +6,8 @@
  */
 
 import { tools } from 'tods-competition-factory';
-// Import timepicker-ui styles (copied from node_modules to avoid Vite import issues)
 import './timepicker-ui.css';
 
-// Lazy imports to avoid issues with Storybook/HMR
 let TimepickerUI: any;
 let PluginRegistry: any;
 let RangePlugin: any;
@@ -21,11 +19,9 @@ async function ensureTimepickerLoaded() {
     TimepickerUI = timepickerModule.TimepickerUI;
     PluginRegistry = timepickerModule.PluginRegistry;
 
-    // @ts-expect-error - TS doesn't handle dynamic imports well
     const rangeModule = await import('timepicker-ui/plugins/range');
     RangePlugin = rangeModule.RangePlugin;
 
-    // Register the range plugin (only once)
     if (!pluginRegistered && PluginRegistry && RangePlugin) {
       PluginRegistry.register(RangePlugin);
       pluginRegistered = true;

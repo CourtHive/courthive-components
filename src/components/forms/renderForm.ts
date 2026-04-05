@@ -184,34 +184,7 @@ export function renderForm(elem: HTMLElement, items: any[], relationships?: any[
 
   for (const item of items) {
     if ((item.text || item.html) && !item.field) {
-      const container = item.fieldPair && document.createElement('div');
-      if (container) container.className = 'flexrow';
-
-      const text = document.createElement('div');
-      text.className = 'flexaligncenter';
-      text.style.cssText =
-        item.style || (item.header && 'font-weight: bold; font-size: larger;') || 'height: 2.5em; padding-right: 1em;';
-      const content = document.createElement('div');
-      if (item.id) content.id = item.id;
-      content.className = 'content';
-      content.innerHTML = item.text;
-      text.appendChild(content);
-
-      if (container) {
-        container.appendChild(text);
-        const { field: pair, inputElement, datepicker } = renderField(item.fieldPair);
-        if (datepicker) inputs[`${item.field}.date`] = datepicker;
-        if (inputElement) {
-          inputs[item.fieldPair.field] = inputElement;
-          if (item.fieldPair.focus) focus = inputElement as HTMLElement;
-        }
-        fields[item.fieldPair.field] = pair;
-        container.appendChild(pair);
-        div.appendChild(container);
-      } else {
-        div.appendChild(text);
-      }
-
+      focus = renderTextItem(item, div, inputs, fields, focus);
       continue;
     }
     if (item.divider) {
@@ -233,30 +206,7 @@ export function renderForm(elem: HTMLElement, items: any[], relationships?: any[
     if ((!item.label && !item.field) || item.hide) continue;
 
     if (item.field) {
-      const container = item.fieldPair && document.createElement('div');
-      if (container) container.className = 'flexrow';
-
-      const { field, inputElement, datepicker, subFields } = renderField(item);
-      if (subFields) subFields.forEach((subField: any) => (inputs[subField.field] = subField.input));
-      if (datepicker) inputs[`${item.field}.date`] = datepicker;
-      if (item.focus) focus = inputElement as HTMLElement;
-      inputs[item.field] = inputElement;
-      fields[item.field] = field;
-
-      if (container) {
-        container.appendChild(field);
-        const { field: pair, inputElement, datepicker } = renderField(item.fieldPair);
-        if (datepicker) inputs[`${item.field}.date`] = datepicker;
-        if (inputElement) {
-          inputs[item.fieldPair.field] = inputElement;
-          if (item.fieldPair.focus) focus = inputElement as HTMLElement;
-        }
-        fields[item.fieldPair.field] = pair;
-        container.appendChild(pair);
-        div.appendChild(container);
-      } else {
-        div.appendChild(field);
-      }
+      focus = renderFieldItem(item, div, inputs, fields, focus);
     }
   }
   if (focus) setTimeout(() => focus!.focus(), 200);
@@ -264,44 +214,128 @@ export function renderForm(elem: HTMLElement, items: any[], relationships?: any[
   elem.appendChild(div);
 
   if (relationships?.length) {
-    for (const relationship of relationships) {
-      if (relationship.dateRange && Array.isArray(relationship.fields)) {
-        const [field1, field2] = relationship.fields;
-
-        if (inputs[field1] && inputs[field2]) {
-          const langItem = items.find((i: any) => i.field === field1);
-          const datepicker = new DateRangePicker(inputs[field1], {
-            inputs: [inputs[field1], inputs[field2]],
-            minDate: relationship.minDate,
-            maxDate: relationship.maxDate,
-            format: 'yyyy-mm-dd',
-            language: langItem?.language || 'en',
-            autohide: true
-          });
-
-          inputs[`${field1}.date`] = datepicker;
-        }
-      }
-
-      if (relationship.control) {
-        if (isFunction(relationship.onChange)) {
-          inputs[relationship.control].addEventListener('change', (e: Event) =>
-            relationship.onChange({ e, inputs, fields })
-          );
-        }
-        if (isFunction(relationship.onInput) && inputs[relationship.control]) {
-          inputs[relationship.control].addEventListener('input', (e: Event) =>
-            relationship.onInput({ e, inputs, fields })
-          );
-        }
-        if (isFunction(relationship.onFocusOut) && inputs[relationship.control]) {
-          inputs[relationship.control].addEventListener('focusout', (e: Event) =>
-            relationship.onFocusOut({ e, inputs, fields })
-          );
-        }
-      }
-    }
+    applyRelationships(relationships, items, inputs, fields);
   }
 
   return inputs;
+}
+
+function renderPairedField(
+  item: any,
+  inputs: any,
+  fields: any,
+  currentFocus: HTMLElement | undefined
+): HTMLElement | undefined {
+  let focus = currentFocus;
+  const { field: pair, inputElement, datepicker } = renderField(item.fieldPair);
+  if (datepicker) inputs[`${item.field}.date`] = datepicker;
+  if (inputElement) {
+    inputs[item.fieldPair.field] = inputElement;
+    if (item.fieldPair.focus) focus = inputElement as HTMLElement;
+  }
+  fields[item.fieldPair.field] = pair;
+  return focus;
+}
+
+function renderTextItem(
+  item: any,
+  div: HTMLElement,
+  inputs: any,
+  fields: any,
+  currentFocus: HTMLElement | undefined
+): HTMLElement | undefined {
+  let focus = currentFocus;
+  const container = item.fieldPair && document.createElement('div');
+  if (container) container.className = 'flexrow';
+
+  const text = document.createElement('div');
+  text.className = 'flexaligncenter';
+  text.style.cssText =
+    item.style || (item.header && 'font-weight: bold; font-size: larger;') || 'height: 2.5em; padding-right: 1em;';
+  const content = document.createElement('div');
+  if (item.id) content.id = item.id;
+  content.className = 'content';
+  content.innerHTML = item.text;
+  text.appendChild(content);
+
+  if (container) {
+    container.appendChild(text);
+    focus = renderPairedField(item, inputs, fields, focus);
+    container.appendChild(fields[item.fieldPair.field]);
+    div.appendChild(container);
+  } else {
+    div.appendChild(text);
+  }
+
+  return focus;
+}
+
+function renderFieldItem(
+  item: any,
+  div: HTMLElement,
+  inputs: any,
+  fields: any,
+  currentFocus: HTMLElement | undefined
+): HTMLElement | undefined {
+  let focus = currentFocus;
+  const container = item.fieldPair && document.createElement('div');
+  if (container) container.className = 'flexrow';
+
+  const { field, inputElement, datepicker, subFields } = renderField(item);
+  if (subFields) subFields.forEach((subField: any) => (inputs[subField.field] = subField.input));
+  if (datepicker) inputs[`${item.field}.date`] = datepicker;
+  if (item.focus) focus = inputElement as HTMLElement;
+  inputs[item.field] = inputElement;
+  fields[item.field] = field;
+
+  if (container) {
+    container.appendChild(field);
+    focus = renderPairedField(item, inputs, fields, focus);
+    container.appendChild(fields[item.fieldPair.field]);
+    div.appendChild(container);
+  } else {
+    div.appendChild(field);
+  }
+
+  return focus;
+}
+
+function applyRelationships(relationships: any[], items: any[], inputs: any, fields: any): void {
+  for (const relationship of relationships) {
+    if (relationship.dateRange && Array.isArray(relationship.fields)) {
+      const [field1, field2] = relationship.fields;
+
+      if (inputs[field1] && inputs[field2]) {
+        const langItem = items.find((i: any) => i.field === field1);
+        const datepicker = new DateRangePicker(inputs[field1], {
+          inputs: [inputs[field1], inputs[field2]],
+          minDate: relationship.minDate,
+          maxDate: relationship.maxDate,
+          format: 'yyyy-mm-dd',
+          language: langItem?.language || 'en',
+          autohide: true
+        });
+
+        inputs[`${field1}.date`] = datepicker;
+      }
+    }
+
+    if (relationship.control) {
+      if (isFunction(relationship.onChange)) {
+        inputs[relationship.control].addEventListener('change', (e: Event) =>
+          relationship.onChange({ e, inputs, fields })
+        );
+      }
+      if (isFunction(relationship.onInput) && inputs[relationship.control]) {
+        inputs[relationship.control].addEventListener('input', (e: Event) =>
+          relationship.onInput({ e, inputs, fields })
+        );
+      }
+      if (isFunction(relationship.onFocusOut) && inputs[relationship.control]) {
+        inputs[relationship.control].addEventListener('focusout', (e: Event) =>
+          relationship.onFocusOut({ e, inputs, fields })
+        );
+      }
+    }
+  }
 }
