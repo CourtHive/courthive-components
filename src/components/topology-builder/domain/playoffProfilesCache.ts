@@ -1,12 +1,12 @@
 /**
  * Playoff Profiles Cache — Generates a temporary draw via mocksEngine
- * and calls tournamentEngine.getAvailablePlayoffProfiles() to determine
- * which rounds/positions are available for playoff links.
+ * and calls getAvailablePlayoffProfiles() directly on the drawDefinition
+ * to determine which rounds/positions are available for playoff links.
  *
  * Results are cached by drawType:drawSize:groupSize so the temporary
  * tournament is only generated once per unique configuration.
  */
-import { mocksEngine, tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
+import { mocksEngine, drawsGovernor, drawDefinitionConstants } from 'tods-competition-factory';
 
 const { ROUND_ROBIN } = drawDefinitionConstants;
 
@@ -41,16 +41,12 @@ export function getPlayoffProfiles(structureType: string, drawSize: number, grou
     }
 
     const { tournamentRecord } = mocksEngine.generateTournamentRecord({
-      drawProfiles: [drawProfile]
+      drawProfiles: [drawProfile],
     });
 
-    tournamentEngine.setState(tournamentRecord);
-
-    // Extract drawId and structure info from the generated record
     const drawDefinition = tournamentRecord?.events?.[0]?.drawDefinitions?.[0];
     if (!drawDefinition) return cacheAndReturn(key, {});
 
-    const drawId = drawDefinition.drawId;
     const structures = drawDefinition.structures || [];
     const mainStructure = structures[0];
     if (!mainStructure) return cacheAndReturn(key, {});
@@ -60,21 +56,19 @@ export function getPlayoffProfiles(structureType: string, drawSize: number, grou
     let result: PlayoffProfiles = {};
 
     if (isContainer || structureType === ROUND_ROBIN) {
-      // RR / container: call without structureId
-      const { availablePlayoffProfiles } = tournamentEngine.getAvailablePlayoffProfiles({ drawId });
+      const { availablePlayoffProfiles } = drawsGovernor.getAvailablePlayoffProfiles({ drawDefinition });
       const profile = availablePlayoffProfiles?.[0];
       if (profile) {
         result = {
           playoffFinishingPositionRanges: profile.playoffFinishingPositionRanges,
-          finishingPositionsAvailable: profile.finishingPositionsAvailable
+          finishingPositionsAvailable: profile.finishingPositionsAvailable,
         };
       }
     } else {
-      // SE / elimination: call with structureId
       const structureId = mainStructure.structureId;
-      const { playoffRounds, playoffRoundsRanges } = tournamentEngine.getAvailablePlayoffProfiles({
-        drawId,
-        structureId
+      const { playoffRounds, playoffRoundsRanges } = drawsGovernor.getAvailablePlayoffProfiles({
+        drawDefinition,
+        structureId,
       });
       result = { playoffRounds, playoffRoundsRanges };
     }
