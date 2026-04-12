@@ -324,6 +324,15 @@ export type {
   InlineScoringEngineState
 } from './components/inline-scoring';
 
+// Interactive Scoring Shell (courthive-public Phase 2)
+import './components/interactive-scoring/interactive-scoring.css';
+export { buildInteractiveScoringShell } from './components/interactive-scoring';
+export type {
+  InteractiveScoringShell,
+  InteractiveScoringShellConfig,
+  StateChangedDetail
+} from './components/interactive-scoring';
+
 // Policy Catalog
 import './components/policy-catalog/ui/policy-catalog.css';
 import './components/policy-catalog/editors/scheduling/scheduling-editor.css';
