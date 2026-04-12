@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Mentat Orchestration (READ FIRST)
+
+Before doing anything else, read `../Mentat/CLAUDE.md`, `../Mentat/TASKS.md`, `../Mentat/standards/coding-standards.md`, and every file in `../Mentat/in-flight/`. Mentat is the orchestration layer for the entire CourtHive ecosystem; its standards override per-repo conventions when they conflict. If you are about to start **building** (not just planning), you must claim a surface in `../Mentat/in-flight/` and run the air-traffic-control conflict check first. See the parent `../CLAUDE.md` "Mentat Orchestration" section for the full protocol.
+
 ## Project Overview
 
 Vanilla JavaScript UI component library for the CourtHive tournament management platform. No framework -- all components use direct DOM manipulation (`createElement`, `innerHTML`). Published as `courthive-components` on npm. Used by TMX (client PWA) and other CourtHive apps.
@@ -9,22 +13,22 @@ Vanilla JavaScript UI component library for the CourtHive tournament management 
 ## Commands
 
 ```bash
-npm install               # Install dependencies
-npm run dev               # Vite dev server
-npm run build             # Vite production build to dist/
-npm run test              # Vitest (single run)
-npm run test:watch        # Vitest watch mode
-npm run lint              # ESLint with auto-fix
-npm run format            # Prettier on src/
-npm run storybook         # Storybook dev server on :6006
-npm run build-storybook   # Build static Storybook
+pnpm install              # Install dependencies (pnpm only)
+pnpm dev                  # Vite dev server
+pnpm build                # Vite production build to dist/
+pnpm test                 # Vitest (single run)
+pnpm test:watch           # Vitest watch mode
+pnpm lint                 # ESLint with auto-fix
+pnpm format               # Prettier on src/
+pnpm storybook            # Storybook dev server on :6006
+pnpm build-storybook      # Build static Storybook
 ```
 
 ## Architecture
 
 ### Source Layout
 
-```
+```text
 src/
   components/    -- individual UI components (drawBracket, scoring, dialogs, etc.)
   compositions/  -- higher-level composed views (tournament pages, event views)
@@ -54,7 +58,7 @@ Vite builds to `dist/` as both ES module (`courthive-components.es.js`) and UMD 
 
 ## Key Conventions
 
-- **Package manager**: npm (not pnpm for this repo)
+- **Package manager**: pnpm only
 - **No framework**: Vanilla JS/TS only -- no React, Vue, or Angular
 - **Theme variables**: Use `--sp-*` / `--chc-*` CSS custom properties -- never use `--bulma-*` or Bulma classes
 - **DOM data attributes**: Use `.dataset` not `.getAttribute()`
