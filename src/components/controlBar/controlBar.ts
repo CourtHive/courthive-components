@@ -165,7 +165,7 @@ function buildInputItem(
   itemConfig: any
 ): { elem: HTMLElement; input: HTMLInputElement } {
   const elem = document.createElement('p');
-  elem.style.cssText = 'margin-right: 1em';
+  // Spacing handled by container gap — no individual margin needed.
   elem.className = `control ${itemConfig.search ? 'has-icons-left has-icons-right' : ''}`;
   const input = document.createElement('input');
   input.className = 'input font-medium';

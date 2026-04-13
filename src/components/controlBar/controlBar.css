@@ -58,6 +58,7 @@
   flex-direction: row;
   align-items: center;
   align-content: center;
+  gap: 0.25rem;
 }
 
 .options_left {
