@@ -83,7 +83,7 @@ export function renderIndividual(params: {
     TBD: configuration?.placeHolders?.tbd || TBD
   };
 
-  const participantName = (!configuration?.useParticipantName && individualParticipant?.participantOtherName) || individualParticipant?.participantName;
+  const participantName = (individualParticipant?.useOtherName && individualParticipant?.participantOtherName) || individualParticipant?.participantName;
 
   const handleOnClick = (pointerEvent) => {
     if (isFunction(eventHandlers?.participantClick)) {
