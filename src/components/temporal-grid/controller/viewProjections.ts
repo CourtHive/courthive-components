@@ -392,7 +392,7 @@ export function sortResources(resources: TimelineGroup[]): TimelineGroup[] {
   return resources.slice().sort((a, b) => {
     const contentA = typeof a.content === 'string' ? a.content : '';
     const contentB = typeof b.content === 'string' ? b.content : '';
-    return contentA.localeCompare(contentB);
+    return contentA.localeCompare(contentB, undefined, { numeric: true });
   });
 }
 

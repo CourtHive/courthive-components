@@ -197,7 +197,7 @@ function buildPlayoffOptions(
       const playoffNode = playoffNodes.find((n) => n.id === targetId);
       if (!playoffNode) continue;
 
-      const finishingPositions = Array.from(new Set(edges.flatMap((e) => e.finishingPositions || []))).sort();
+      const finishingPositions = Array.from(new Set(edges.flatMap((e) => e.finishingPositions || []))).sort((a, b) => a - b);
       const playoffDrawType = playoffNode.structureOptions?.playoffDrawType || SINGLE_ELIMINATION;
 
       const group: any = {

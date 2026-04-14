@@ -52,7 +52,7 @@ function uniqueValues(catalog: CatalogMatchUpItem[], fn: (m: CatalogMatchUpItem)
     const v = fn(m);
     if (v) set.add(v);
   }
-  return [...set].sort();
+  return [...set].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 }
 
 export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel<SchedulePageState> {

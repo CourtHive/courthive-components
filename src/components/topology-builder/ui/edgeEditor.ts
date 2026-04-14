@@ -162,7 +162,7 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
           } else {
             updated.delete(i);
           }
-          callbacks.onUpdateEdge(edge.id, { finishingPositions: Array.from(updated).sort() });
+          callbacks.onUpdateEdge(edge.id, { finishingPositions: Array.from(updated).sort((a, b) => a - b) });
         });
       }
 

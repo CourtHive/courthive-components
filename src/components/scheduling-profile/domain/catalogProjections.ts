@@ -46,7 +46,7 @@ export function groupCatalog(
     else m.set(k, [it]);
   }
 
-  return new Map([...m.entries()].sort((a, b) => a[0].localeCompare(b[0])));
+  return new Map([...m.entries()].sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true })));
 }
 
 export function getPlannedRoundKeys(profile: { venues: { rounds: { roundSegment?: unknown }[] }[] }[]): Set<string> {
