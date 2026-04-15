@@ -6,3 +6,5 @@ ignoredBuiltDependencies:
   - core-js
   - esbuild
   - unrs-resolver
+overrides:
+  tods-competition-factory: link:../factory

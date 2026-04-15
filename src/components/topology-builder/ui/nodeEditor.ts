@@ -210,7 +210,7 @@ function addPlayoffTargetsSummary(
   const targetSummaries: string[] = [];
   for (const [targetId, positions] of byTarget) {
     const targetNode = state.nodes.find((n) => n.id === targetId);
-    const sorted = [...new Set(positions)].sort();
+    const sorted = [...new Set(positions)].sort((a, b) => a - b);
     const posLabel = sorted.length === 1 ? `P${sorted[0]}` : `P${sorted.join(',')}`;
     targetSummaries.push(`${posLabel} → ${targetNode?.structureName || '?'} (${sorted.length * groupCount})`);
   }

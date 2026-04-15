@@ -7,7 +7,6 @@
 import tippy from 'tippy.js';
 
 const NONE = 'none';
-const RIGHT = 'right';
 
 export function barButton(itemConfig: any): HTMLButtonElement {
   const elem = document.createElement('button');
@@ -16,11 +15,8 @@ export function barButton(itemConfig: any): HTMLButtonElement {
   if (itemConfig.class) elem.classList.add(itemConfig.class);
   if (itemConfig.id) elem.id = itemConfig.id;
 
-  if (itemConfig.location === RIGHT) {
-    elem.style.marginLeft = '1em';
-  } else {
-    elem.style.marginRight = '1em';
-  }
+  // Spacing between buttons is handled by the container's gap property.
+  // No individual margins needed.
 
   if (itemConfig.intent) elem.classList.add(itemConfig.intent);
   if (itemConfig.toolTip?.content) tippy(elem, itemConfig.toolTip);

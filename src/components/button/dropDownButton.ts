@@ -29,9 +29,6 @@ export function dropDownButton({
 
   if (button.align === RIGHT) {
     elem.classList.add('is-right');
-    elem.style.cssText = 'margin-left: 1em';
-  } else {
-    elem.style.cssText = 'margin-right: 1em';
   }
   const isActive = (e: HTMLElement) => e.classList.contains('is-active');
   const closeDropDown = () => {

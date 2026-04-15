@@ -95,12 +95,21 @@ export function controlBar(params: {
   const panelHeader = target.getElementsByClassName('panelHeader')[0] as HTMLElement;
   if (panelHeader) panelHeader.style.display = headerCount ? EMPTY_STRING : NONE;
 
-  table?.on('rowSelectionChanged', (_data: any, rows: any[]) => {
+  // Remove any previous controlBar listener to prevent accumulation across rebuilds
+  if (table?._controlBarSelectionHandler) {
+    table.off('rowSelectionChanged', table._controlBarSelectionHandler);
+  }
+  const selectionHandler = (_data: any, rows: any[]) => {
     if (isFunction(onSelection)) onSelection(rows);
     if (overlayCount) stateChange(rows);
-  });
+  };
+  if (table) table._controlBarSelectionHandler = selectionHandler;
+  table?.on('rowSelectionChanged', selectionHandler);
 
-  stateChange();
+  // Initialize overlay visibility from the table's current selection state
+  // (handles the case where the controlBar is rebuilt while rows are already selected)
+  const currentRows = table?.getSelectedRows?.() ?? [];
+  stateChange(currentRows);
   if (focus) setTimeout(() => focus.focus(), 200);
 
   return { elements, inputs };
@@ -165,7 +174,7 @@ function buildInputItem(
   itemConfig: any
 ): { elem: HTMLElement; input: HTMLInputElement } {
   const elem = document.createElement('p');
-  elem.style.cssText = 'margin-right: 1em';
+  // Spacing handled by container gap — no individual margin needed.
   elem.className = `control ${itemConfig.search ? 'has-icons-left has-icons-right' : ''}`;
   const input = document.createElement('input');
   input.className = 'input font-medium';

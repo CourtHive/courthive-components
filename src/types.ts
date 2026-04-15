@@ -45,11 +45,13 @@ export interface Side {
 export interface Participant {
   participantId: string;
   participantName?: string;
+  participantOtherName?: string;
   participantType?: 'INDIVIDUAL' | 'PAIR' | 'TEAM';
   individualParticipants?: IndividualParticipant[];
   entryStatus?: string;
   luckyAdvancement?: boolean;
   person?: Person;
+  useOtherName?: boolean;
 }
 
 export interface ScaleItem {
@@ -71,6 +73,7 @@ export interface IndividualParticipant {
   teams?: Participant[];
   rankings?: ScalesByType;
   ratings?: ScalesByType;
+  useOtherName?: boolean;
 }
 
 export interface Person {

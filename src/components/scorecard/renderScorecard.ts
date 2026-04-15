@@ -12,6 +12,7 @@ export interface ScorecardOptions {
   matchUp: any;
   composition?: any;
   eventHandlers?: any;
+  swapSides?: boolean;
 }
 
 export interface TeamVsOptions {
@@ -28,18 +29,22 @@ const winningClass = 'chc-scorecard-side-score--winner';
 /**
  * Render a full team scorecard: header + collection panels + matchUp grids.
  */
-export function renderScorecard({ matchUp, composition, eventHandlers }: ScorecardOptions): HTMLDivElement {
+export function renderScorecard({ matchUp, composition, eventHandlers, swapSides }: ScorecardOptions): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'chc-scorecard';
 
-  // Team vs team header
-  const side1Name = getParticipantName(matchUp, 1) || '';
-  const side2Name = getParticipantName(matchUp, 2) || '';
+  // Team vs team header — when swapSides is true, side 2 renders on the left
+  const leftSide = swapSides ? 2 : 1;
+  const rightSide = swapSides ? 1 : 2;
+  const side1Name = getParticipantName(matchUp, leftSide) || '';
+  const side2Name = getParticipantName(matchUp, rightSide) || '';
+  const swappedWinningSide = swapSides ? swapWinningSide(matchUp.winningSide) : matchUp.winningSide;
+  const swappedSets = swapSides ? swapSetScores(matchUp.score?.sets) : matchUp.score?.sets;
   const header = renderTeamVsHeader({
     side1Name,
     side2Name,
-    sets: matchUp.score?.sets,
-    winningSide: matchUp.winningSide,
+    sets: swappedSets,
+    winningSide: swappedWinningSide,
     side1Id: 'chc-sc-side1',
     side2Id: 'chc-sc-side2'
   });
@@ -60,7 +65,8 @@ export function renderScorecard({ matchUp, composition, eventHandlers }: Scoreca
       collectionDefinition,
       collectionMatchUps,
       composition,
-      eventHandlers
+      eventHandlers,
+      swapSides
     });
     container.appendChild(panel);
   }
@@ -114,7 +120,12 @@ export function renderTeamVsHeader({
 /**
  * Update the aggregate tie score in-place (avoids full re-render).
  */
-export function updateTieScore(result: any, side1Id = 'chc-sc-side1', side2Id = 'chc-sc-side2'): void {
+export function updateTieScore(
+  result: any,
+  side1Id = 'chc-sc-side1',
+  side2Id = 'chc-sc-side2',
+  swapSides?: boolean
+): void {
   const set = result?.score?.sets?.[0];
   if (!set) return;
 
@@ -124,11 +135,15 @@ export function updateTieScore(result: any, side1Id = 'chc-sc-side1', side2Id = 
 
   s1.classList.remove(winningClass);
   s2.classList.remove(winningClass);
-  s1.textContent = String(set.side1Score ?? 0);
-  s2.textContent = String(set.side2Score ?? 0);
 
-  if (result.winningSide === 1) s1.classList.add(winningClass);
-  if (result.winningSide === 2) s2.classList.add(winningClass);
+  const leftScoreKey = swapSides ? 'side2Score' : 'side1Score';
+  const rightScoreKey = swapSides ? 'side1Score' : 'side2Score';
+  s1.textContent = String(set[leftScoreKey] ?? 0);
+  s2.textContent = String(set[rightScoreKey] ?? 0);
+
+  const winningSide = swapSides ? swapWinningSide(result.winningSide) : result.winningSide;
+  if (winningSide === 1) s1.classList.add(winningClass);
+  if (winningSide === 2) s2.classList.add(winningClass);
 }
 
 // ── Internal helpers ──
@@ -164,12 +179,14 @@ function renderCollectionPanel({
   collectionDefinition,
   collectionMatchUps,
   composition,
-  eventHandlers
+  eventHandlers,
+  swapSides
 }: {
   collectionDefinition: any;
   collectionMatchUps: any[];
   composition?: any;
   eventHandlers?: any;
+  swapSides?: boolean;
 }): HTMLDivElement {
   const panel = document.createElement('div');
   panel.className = 'chc-scorecard-panel';
@@ -207,8 +224,9 @@ function renderCollectionPanel({
   grid.className = 'chc-scorecard-grid';
 
   for (const tieMatchUp of collectionMatchUps) {
+    const rendered = swapSides ? swapMatchUpSides(tieMatchUp) : tieMatchUp;
     const card = renderMatchUp({
-      matchUp: tieMatchUp,
+      matchUp: rendered,
       isLucky: true,
       eventHandlers,
       composition
@@ -219,6 +237,36 @@ function renderCollectionPanel({
 
   panel.appendChild(grid);
   return panel;
+}
+
+function swapWinningSide(winningSide?: number): number | undefined {
+  if (winningSide === 1) return 2;
+  if (winningSide === 2) return 1;
+  return undefined;
+}
+
+function swapSetScores(sets?: any[]): any[] | undefined {
+  if (!sets) return undefined;
+  return sets.map((set: any) => ({
+    ...set,
+    side1Score: set.side2Score,
+    side2Score: set.side1Score,
+    side1TiebreakScore: set.side2TiebreakScore,
+    side2TiebreakScore: set.side1TiebreakScore
+  }));
+}
+
+function swapMatchUpSides(matchUp: any): any {
+  const swappedSides = matchUp.sides?.map((side: any) => ({
+    ...side,
+    sideNumber: side.sideNumber === 1 ? 2 : 1
+  }));
+  return {
+    ...matchUp,
+    sides: swappedSides,
+    score: matchUp.score ? { ...matchUp.score, sets: swapSetScores(matchUp.score.sets) } : matchUp.score,
+    winningSide: swapWinningSide(matchUp.winningSide)
+  };
 }
 
 function getParticipantName(matchUp: any, sideNumber: number): string | undefined {
