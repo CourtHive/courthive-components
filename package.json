@@ -82,7 +82,7 @@
     "@vitest/browser-playwright": "^4.0.16",
     "@vitest/coverage-v8": "^4.0.16",
     "eslint": "10.2.0",
-    "eslint-plugin-sonarjs": "4.0.2",
+    "eslint-plugin-sonarjs": "4.0.3",
     "eslint-plugin-storybook": "^10.2.17",
     "gh-pages": "6.3.0",
     "globals": "^17.3.0",
