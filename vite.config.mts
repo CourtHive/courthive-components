@@ -12,7 +12,7 @@ export default defineConfig({
   plugins: [
     dts({
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.test.ts', 'src/**/__tests__/**'],
+      exclude: ['src/**/*.test.ts', 'src/**/__tests__/**', 'src/stories/**'],
       outDir: 'dist',
       insertTypesEntry: true,
       rollupTypes: true, // Bundle all .d.ts files into one
