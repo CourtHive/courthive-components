@@ -268,7 +268,13 @@ export class TopologyStore {
       queue.push(root.id);
     }
 
-    while (queue.length) {
+    // Guard against infinite loops from cyclic topologies (e.g. Double Elimination
+    // where CONSOLATION winner feeds back into MAIN). Limit iterations to
+    // N * (N-1) which is the max edges in a complete directed graph.
+    const maxIterations = nodes.length * (nodes.length - 1) + nodes.length;
+    let iterations = 0;
+    while (queue.length && iterations < maxIterations) {
+      iterations++;
       const nodeId = queue.shift()!;
       const srcCol = colOf.get(nodeId)!;
       const targets = outbound.get(nodeId) || [];
