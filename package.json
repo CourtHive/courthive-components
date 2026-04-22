@@ -44,7 +44,6 @@
     "test:ui": "vitest --ui",
     "dev": "vite",
     "build": "vite build",
-    "postbuild": "./addVersion $npm_package_version",
     "prepublishOnly": "npm run build",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",

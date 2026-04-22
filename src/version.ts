@@ -1,3 +1,5 @@
+import pkg from '../package.json';
+
 export function courthiveComponentsVersion() {
-  return '@VERSION@';
+  return pkg.version;
 }
