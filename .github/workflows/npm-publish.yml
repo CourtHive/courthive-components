@@ -24,7 +24,31 @@ jobs:
           registry-url: https://registry.npmjs.org
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - name: Strip link overrides for CI
+        run: |
+          node -e "
+          const fs = require('fs');
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          if (pkg.pnpm?.overrides) {
+            for (const k of Object.keys(pkg.pnpm.overrides))
+              if (pkg.pnpm.overrides[k].startsWith('link:')) delete pkg.pnpm.overrides[k];
+            if (!Object.keys(pkg.pnpm.overrides).length) delete pkg.pnpm.overrides;
+            if (pkg.pnpm && !Object.keys(pkg.pnpm).length) delete pkg.pnpm;
+          }
+          fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+          node -e "
+          const fs = require('fs');
+          const ws = 'pnpm-workspace.yaml';
+          if (fs.existsSync(ws)) {
+            let y = fs.readFileSync(ws, 'utf8');
+            y = y.replace(/^overrides:\n(  [^\n]*\n)*/m, '');
+            fs.writeFileSync(ws, y);
+          }
+          "
+          rm -f pnpm-lock.yaml
+
+      - run: pnpm install
 
       - run: pnpm lint
 
@@ -45,3 +69,5 @@ jobs:
           fi
 
       - run: npm publish --provenance --access public --tag ${{ steps.tag.outputs.tag }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
