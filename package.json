@@ -55,10 +55,10 @@
     "lint": "eslint src --fix --cache",
     "lint:report": "eslint src & eslint --cache src -f json > eslint-report.json",
     "format": "prettier --write src",
-    "release:major": "npm run commits && npm version $(semver $npm_package_version -i major) && npm publish --tag latest",
-    "release:minor": "npm run commits && npm version $(semver $npm_package_version -i minor) && npm publish --tag latest",
-    "release:patch": "npm run commits && npm version $(semver $npm_package_version -i patch) && npm publish --tag latest",
-    "release:beta": "npm run commits && npm version $(semver $npm_package_version -i prerelease --preid beta) && npm publish --tag beta",
+    "release:major": "npm run commits && npm version $(semver $npm_package_version -i major) && git push && git push --tags",
+    "release:minor": "npm run commits && npm version $(semver $npm_package_version -i minor) && git push && git push --tags",
+    "release:patch": "npm run commits && npm version $(semver $npm_package_version -i patch) && git push && git push --tags",
+    "release:beta": "npm run commits && npm version $(semver $npm_package_version -i prerelease --preid beta) && git push && git push --tags",
     "patch:beta": "npm run commits && npm version $(semver $npm_package_version -i prerelease --preid beta) && npm publish --tag beta"
   },
   "lint-staged": {
