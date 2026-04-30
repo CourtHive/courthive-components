@@ -2,7 +2,7 @@
   "name": "courthive-components",
   "version": "1.0.4",
   "engines": {
-    "node": ">=20.19.0 < 25"
+    "node": ">=22"
   },
   "description": "Components for competitions projects",
   "files": [
