@@ -304,6 +304,20 @@ export type {
   EditorPanel as CompositionEditorPanel
 } from './components/composition-editor/compositionEditorTypes';
 
+// Print Composition Editor (pdf-factory CompositionConfig — distinct from
+// the matchUp-visualization Composition above)
+export { createPrintCompositionEditor } from './components/print-composition-editor/printCompositionEditor';
+export type {
+  PrintCompositionConfig,
+  PrintCompositionEditorConfig,
+  PrintCompositionEditorHandle,
+  PrintType,
+  HeaderLayout as PrintHeaderLayout,
+  FooterLayout as PrintFooterLayout,
+  PageSize as PrintPageSize,
+  PageOrientation as PrintPageOrientation
+} from './components/print-composition-editor/printCompositionEditorTypes';
+
 // Team Scorecard
 import './components/scorecard/scorecard.css';
 export { renderScorecard, renderTeamVsHeader, updateTieScore } from './components/scorecard';
