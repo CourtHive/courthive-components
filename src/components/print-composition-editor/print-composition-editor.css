@@ -1,14 +1,22 @@
+/**
+ * Print Composition Editor styles.
+ *
+ * Uses canonical --chc-* variables from src/styles/theme.css so the
+ * editor adopts the host's [data-theme='dark'] override automatically.
+ * Light fallbacks preserve standalone use (no theme set).
+ */
+
 .pce-root {
   display: grid;
   grid-template-columns: 1fr 320px;
   gap: 16px;
-  font-family: var(--chc-font-family, system-ui, sans-serif);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
   font-size: 14px;
   color: var(--chc-text-primary, #222);
-  background: var(--chc-surface, #fff);
+  background: var(--chc-bg-elevated, #fff);
   padding: 16px;
   border-radius: 8px;
-  border: 1px solid var(--chc-border, #ddd);
+  border: 1px solid var(--chc-border-primary, #ddd);
 }
 
 .pce-form {
@@ -22,14 +30,14 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  border-left: 1px solid var(--chc-border, #eee);
+  border-left: 1px solid var(--chc-border-primary, #eee);
   padding-left: 16px;
 }
 
 .pce-section {
-  border: 1px solid var(--chc-border, #ddd);
+  border: 1px solid var(--chc-border-primary, #ddd);
   border-radius: 6px;
-  background: var(--chc-surface-alt, #fafafa);
+  background: var(--chc-bg-secondary, #fafafa);
 }
 
 .pce-section-header {
@@ -39,8 +47,8 @@
   letter-spacing: 0.04em;
   color: var(--chc-text-secondary, #555);
   padding: 10px 12px;
-  border-bottom: 1px solid var(--chc-border, #eee);
-  background: var(--chc-surface, #fff);
+  border-bottom: 1px solid var(--chc-border-primary, #eee);
+  background: var(--chc-bg-elevated, #fff);
   border-top-left-radius: 6px;
   border-top-right-radius: 6px;
 }
@@ -72,9 +80,9 @@
 .pce-input,
 .pce-select {
   padding: 6px 8px;
-  border: 1px solid var(--chc-border, #ccc);
+  border: 1px solid var(--chc-input-border, #7a7a7a);
   border-radius: 4px;
-  background: var(--chc-surface, #fff);
+  background: var(--chc-input-bg, #fff);
   color: var(--chc-text-primary, #222);
   font: inherit;
   width: 100%;
@@ -83,7 +91,7 @@
 
 .pce-input:focus,
 .pce-select:focus {
-  outline: 2px solid var(--chc-accent, #2d7ff9);
+  outline: 2px solid var(--chc-border-focus, #2d7ff9);
   outline-offset: 0;
 }
 
@@ -110,7 +118,7 @@
   gap: 8px;
   justify-content: flex-end;
   padding-top: 8px;
-  border-top: 1px solid var(--chc-border, #eee);
+  border-top: 1px solid var(--chc-border-primary, #eee);
 }
 
 .pce-button {
@@ -118,15 +126,15 @@
   border-radius: 4px;
   font: inherit;
   cursor: pointer;
-  border: 1px solid var(--chc-border, #ccc);
-  background: var(--chc-surface, #fff);
+  border: 1px solid var(--chc-border-primary, #ccc);
+  background: var(--chc-bg-elevated, #fff);
   color: var(--chc-text-primary, #222);
 }
 
 .pce-button-primary {
-  background: var(--chc-accent, #2d7ff9);
-  color: #fff;
-  border-color: var(--chc-accent, #2d7ff9);
+  background: var(--chc-border-focus, #2d7ff9);
+  color: var(--chc-text-inverse, #fff);
+  border-color: var(--chc-border-focus, #2d7ff9);
 }
 
 .pce-button:disabled {
@@ -146,8 +154,11 @@
   display: inline-block;
   padding: 2px 8px;
   border-radius: 12px;
-  background: var(--chc-accent-soft, #e6f0fe);
-  color: var(--chc-accent, #2d7ff9);
+  /* Soft tinted background using the focus color with alpha so the pill
+     reads at low contrast against the surface in both light and dark
+     themes. color-mix is supported in all evergreen browsers. */
+  background: color-mix(in srgb, var(--chc-border-focus, #2d7ff9) 15%, transparent);
+  color: var(--chc-border-focus, #2d7ff9);
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
@@ -155,11 +166,11 @@
 }
 
 .pce-preview-stub {
-  background: var(--chc-surface, #fff);
-  border: 1px dashed var(--chc-border, #ccc);
+  background: var(--chc-bg-secondary, #fafafa);
+  border: 1px dashed var(--chc-border-primary, #ccc);
   border-radius: 4px;
   padding: 12px;
-  font-family: var(--chc-font-mono, ui-monospace, monospace);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 11px;
   color: var(--chc-text-secondary, #666);
   white-space: pre-wrap;
@@ -170,6 +181,6 @@
 
 .pce-preview-note {
   font-size: 11px;
-  color: var(--chc-text-tertiary, #888);
+  color: var(--chc-text-muted, #888);
   font-style: italic;
 }
