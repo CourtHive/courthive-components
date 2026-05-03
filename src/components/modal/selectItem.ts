@@ -40,7 +40,7 @@ export function selectItem(params: SelectItemParams) {
   let tableInstance: any;
   let destroyFn: (() => void) | undefined;
 
-  const buttons = [{ label: 'Cancel', intent: 'is-none', close: true }];
+  const buttons = [{ label: 'Cancel', intent: 'none', close: true }];
   const onClose = () => {
     if (destroyFn) {
       destroyFn();

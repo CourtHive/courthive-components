@@ -13,23 +13,16 @@ export const participantTypeStyle = (opts?: { variant?: string }) =>
   cx('chc-participant-type', opts?.variant && `chc-participant-type--${opts.variant}`);
 
 export function getParticipantContainerStyle({
-  drawPosition,
+  drawPosition: _drawPosition,
   sideNumber
 }: {
   drawPosition?: number | string;
   sideNumber?: number;
 }): string {
-  const classes = cx('chc-participant-container', sideNumber === 1 && 'chc-participant-container--side1');
-
-  // Draw position is handled via data attribute in the CSS:
-  // .chc-participant-container[data-draw-position]::before { content: attr(data-draw-position); }
-  // The caller must set element.dataset.drawPosition = String(drawPosition) on the DOM element.
-  // We store the drawPosition on a custom property of the returned string for the caller to read.
-  if (drawPosition) {
-    return `${classes} chc-has-draw-position`;
-  }
-
-  return classes;
+  // Draw position is rendered via the `data-draw-position` attribute selector:
+  //   .chc-participant-container[data-draw-position]::before { content: attr(data-draw-position); }
+  // Callers set element.dataset.drawPosition = String(drawPosition); we don't add a class for it.
+  return cx('chc-participant-container', sideNumber === 1 && 'chc-participant-container--side1');
 }
 
 // Utility: the drawPosition value to set as a data attribute

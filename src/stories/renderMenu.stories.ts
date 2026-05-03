@@ -304,7 +304,7 @@ export const WithCustomClasses = {
       {
         items: [
           { text: 'Normal Item', onClick: () => alert('Normal') },
-          { text: 'Bold Item', class: 'has-text-weight-bold', onClick: () => alert('Bold') },
+          { text: 'Bold Item', style: 'font-weight: 700;', onClick: () => alert('Bold') },
           { text: 'Italic Item', style: 'font-style: italic;', onClick: () => alert('Italic') }
         ]
       }

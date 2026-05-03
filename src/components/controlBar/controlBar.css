@@ -85,6 +85,7 @@
   -webkit-align-items: center;
   align-items: center;
   display: none;
+  gap: 0.25rem;
 }
 
 .flexcol {

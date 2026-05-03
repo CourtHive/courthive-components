@@ -183,7 +183,6 @@ export const cModal = (() => {
       elem.onclick = (e) => {
         e.stopPropagation();
         if (isFunction(buttonConfig.onClick)) {
-          // elem.classList.add('is-loading'); // disabled for now; issues in client
           buttonConfig.onClick({ e, content: bodyContent[modalNumber] });
         }
         if (buttonConfig.close !== false) {
