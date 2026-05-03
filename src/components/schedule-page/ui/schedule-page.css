@@ -467,7 +467,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
+  /* Sticky-pin to the left edge of the scroll container, mirroring the grid's
+     row-number column. Opaque background so cells slide cleanly behind it. */
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--sp-panel-bg);
   /* Used as the leading column when display:grid is set so court cells line up
      with the grid below the row-number column. */
 }
