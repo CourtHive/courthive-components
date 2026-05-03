@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0](https://github.com/CourtHive/courthive-components/compare/v1.1.1...v1.2.0) (2026-05-03)
+
+
+### Features
+
+* **schedule-page:** active courts strip above the grid ([0111048](https://github.com/CourtHive/courthive-components/commit/01110486dc8400eed16125b79685ff399e70ed4b))
+
+
+### Bug Fixes
+
+* **schedule-page:** sticky-left the active strip spacer ([1a9cdce](https://github.com/CourtHive/courthive-components/commit/1a9cdce425700c523b67dc766e5639d5e8edb8ce))
+
 ## [1.1.1](https://github.com/CourtHive/courthive-components/compare/v1.1.0...v1.1.1) (2026-05-01)
 
 
