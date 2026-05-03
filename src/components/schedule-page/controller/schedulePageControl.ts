@@ -107,6 +107,20 @@ export class SchedulePageControl {
     this.store.setIssues(issues);
   }
 
+  // ---------- Active Strip Visibility ----------
+
+  setActiveStripVisible(visible: boolean): void {
+    this.store.setActiveStripVisible(visible);
+  }
+
+  toggleActiveStrip(): void {
+    this.store.toggleActiveStrip();
+  }
+
+  get activeStripVisible(): boolean {
+    return this.store.getState().activeStripVisible;
+  }
+
   // ---------- Bulk Scheduling API ----------
 
   save(): PendingScheduleAction[] {

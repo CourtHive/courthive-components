@@ -46,7 +46,8 @@ export class SchedulePageStore {
       pendingActions: [],
       hasUnsavedChanges: false,
       leftCollapsed: !!config.hideLeft,
-      hideLeft: !!config.hideLeft
+      hideLeft: !!config.hideLeft,
+      activeStripVisible: config.activeStripVisible ?? true
     };
   }
 
@@ -181,6 +182,15 @@ export class SchedulePageStore {
 
   toggleLeftPanel(): void {
     this.setState({ leftCollapsed: !this.state.leftCollapsed });
+  }
+
+  setActiveStripVisible(visible: boolean): void {
+    if (this.state.activeStripVisible === visible) return;
+    this.setState({ activeStripVisible: visible });
+  }
+
+  toggleActiveStrip(): void {
+    this.setState({ activeStripVisible: !this.state.activeStripVisible });
   }
 
   // ---------- Subscription ----------

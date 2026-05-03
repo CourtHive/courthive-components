@@ -149,6 +149,8 @@ export interface SchedulePageConfig {
   catalogSide?: 'left' | 'right';
   scheduledBehavior?: ScheduledBehavior;
   schedulingMode?: SchedulingMode;
+  /** Initial visibility of the active strip (one-row court summary above the grid). Defaults to true. */
+  activeStripVisible?: boolean;
   onDateSelected?: (date: string) => void;
   onMatchUpDrop?: (payload: SchedulePageDragPayload, event: DragEvent) => void;
   onMatchUpRemove?: (matchUpId: string) => void;
@@ -178,6 +180,7 @@ export interface SchedulePageState {
   hasUnsavedChanges: boolean;
   leftCollapsed: boolean;
   hideLeft: boolean;
+  activeStripVisible: boolean;
 }
 
 export type SchedulePageChangeListener = (state: SchedulePageState) => void;

@@ -441,3 +441,112 @@
   font-size: 0.6875rem;
   color: var(--sp-muted);
 }
+
+/* ── Active Strip (one-row court summary above the grid) ─── */
+
+.spl-active-strip {
+  display: flex;
+  align-items: stretch;
+  gap: 1px;
+  /* Tinted backdrop so the strip reads as a separate "now-playing" band. */
+  background: color-mix(in srgb, var(--sp-panel-bg) 88%, var(--sp-accent-border, var(--tmx-accent-blue, #3b82f6)) 12%);
+  /* 2px accent rule between the strip and the grid below. */
+  border-bottom: 2px solid var(--sp-accent-border, var(--tmx-accent-blue, #3b82f6));
+  flex-shrink: 0;
+  /* When consumer sets gridTemplateColumns, JS switches display to 'grid'. */
+}
+
+/* `display: grid` is set inline when gridTemplateColumns is supplied,
+   which beats this selector by specificity. Use !important so the toggle
+   actually hides the strip. */
+.spl-active-strip[hidden] {
+  display: none !important;
+}
+
+.spl-active-strip-spacer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  /* Used as the leading column when display:grid is set so court cells line up
+     with the grid below the row-number column. */
+}
+
+.spl-active-strip-spacer-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--sp-muted);
+  /* Subtle so it doesn't shout from the corner. */
+  opacity: 0.7;
+}
+
+.spl-active-strip-cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: stretch;
+  background: var(--sp-panel-bg);
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  cursor: default;
+  position: relative;
+  /* 3px colored left edge (per-state below) — communicates state at a glance. */
+  border-left: 3px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.spl-active-strip-cell > * {
+  flex: 1;
+  min-height: 0;
+}
+
+.spl-active-strip-cell.drop-over {
+  outline: 2px dashed var(--sp-accent-focus);
+  outline-offset: -2px;
+}
+
+.spl-active-strip-cell.state-free {
+  /* No content when free — column reads as empty above the grid. */
+  background: var(--sp-panel-bg);
+}
+
+.spl-active-strip-cell.state-in-progress {
+  border-left-color: var(--sp-accent-border, var(--tmx-accent-blue, #3b82f6));
+}
+
+.spl-active-strip-cell.state-next {
+  border-left-color: var(--sp-muted, #9ca3af);
+  opacity: 0.92;
+}
+
+/* Status pill at top-right of cells with a matchUp. */
+.spl-active-strip-state-pill {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  padding: 1px 5px;
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 1;
+  text-transform: uppercase;
+  background: rgba(127, 127, 127, 0.18);
+  color: var(--sp-muted);
+}
+
+.spl-active-strip-cell.state-in-progress .spl-active-strip-state-pill {
+  background: var(--sp-accent-border, var(--tmx-accent-blue, #3b82f6));
+  color: #fff;
+}
+
+.spl-active-strip-body {
+  padding: 4px 8px;
+  font-size: 0.6875rem;
+  color: var(--sp-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

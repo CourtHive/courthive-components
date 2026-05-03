@@ -262,7 +262,8 @@ export {
   buildScheduleGridCell,
   mapMatchUpToCellData,
   DEFAULT_SCHEDULE_CELL_CONFIG,
-  activateScheduleCellTypeAhead
+  activateScheduleCellTypeAhead,
+  buildActiveStripPanel
 } from './components/schedule-page';
 
 export type {
@@ -289,7 +290,12 @@ export type {
   ParticipantDisplayConfig,
   ScheduleCellData,
   ScheduleCellSide,
-  ScheduleCellTypeAheadOptions
+  ScheduleCellTypeAheadOptions,
+  ActiveStripPanel,
+  ActiveStripPanelCallbacks,
+  ActiveStripPanelData,
+  ActiveStripPanelOptions,
+  ActiveStripCourtMeta
 } from './components/schedule-page';
 
 // Composition Editor

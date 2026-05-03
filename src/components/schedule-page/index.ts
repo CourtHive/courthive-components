@@ -23,6 +23,21 @@ export { SchedulePageStore } from './engine/schedulePageStore';
 export { filterMatchUpCatalog, groupMatchUpCatalog, isCompletedStatus } from './domain/matchUpCatalogProjections';
 export { buildScheduleIssueIndex } from './domain/scheduleIssues';
 export { matchUpLabel, participantLabel, matchUpSearchKey, deepClone } from './domain/utils';
+export {
+  computeActiveStrip,
+  computeActiveStripCell,
+  computeActiveStripDropTarget
+} from './domain/activeStrip';
+export type {
+  ActiveStripCell,
+  ActiveStripCellState,
+  ActiveStripCourtColumn,
+  ActiveStripDropCandidate,
+  ActiveStripDropTarget,
+  ActiveStripGrid,
+  ActiveStripGridMatchUp,
+  ActiveStripStatusOptions
+} from './domain/activeStrip';
 
 // ============================================================================
 // UI Components (for custom layouts)
@@ -35,6 +50,14 @@ export { buildMatchUpCard } from './ui/matchUpCard';
 export { buildScheduleInspectorPanel } from './ui/inspectorPanel';
 export { buildCourtGridSlot } from './ui/courtGridSlot';
 export { buildSchedulePageLayout } from './ui/schedulePageLayout';
+export { buildActiveStripPanel } from './ui/activeStrip';
+export type {
+  ActiveStripPanel,
+  ActiveStripPanelCallbacks,
+  ActiveStripPanelData,
+  ActiveStripPanelOptions,
+  ActiveStripCourtMeta
+} from './ui/activeStrip';
 
 // ============================================================================
 // Schedule Grid Cell (configurable cell renderer)
