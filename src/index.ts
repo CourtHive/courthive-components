@@ -142,6 +142,15 @@ export type {
 } from './components/burstChart/burstChart';
 export { fromFactoryDrawData, fromLegacyDraw } from './components/burstChart/matchUpTransform';
 
+// Rating Distribution Chart — histogram + donut visualization for the format wizard
+export { buildRatingDistributionChart } from './components/ratingDistributionChart';
+export type {
+  RatingDistributionChartOptions,
+  RatingDistributionChartMode,
+  RatingDistributionStats,
+  RatingDistributionBin
+} from './components/ratingDistributionChart';
+
 // Control Bar (CSS bundled in courthive-components.css)
 import './components/controlBar/controlBar.css';
 export { controlBar } from './components/controlBar/controlBar';
