@@ -1,7 +1,7 @@
 import { buildRatingDistributionChart } from '../components/ratingDistributionChart';
 
 // constants and types
-import type { RatingDistributionStats } from '../components/ratingDistributionChart';
+import { RatingDistributionStats } from 'tods-competition-factory';
 
 export default { title: 'Charts/Rating Distribution' };
 
@@ -13,10 +13,12 @@ const tightPool: RatingDistributionStats = {
     { binStart: 5.5, binEnd: 6, count: 6 },
     { binStart: 6, binEnd: 6.5, count: 2 },
   ],
+  gaps: [],
   count: 28,
   mean: 5.1,
   median: 5.0,
   stddev: 0.5,
+  iqr: 0.7,
   min: 4,
   max: 6.5,
 };
@@ -32,10 +34,12 @@ const widePool: RatingDistributionStats = {
     { binStart: 6, binEnd: 6.5, count: 4 },
     { binStart: 6.5, binEnd: 7, count: 2 },
   ],
+  gaps: [],
   count: 34,
   mean: 4.95,
   median: 5,
   stddev: 1.05,
+  iqr: 1.5,
   min: 3,
   max: 7,
 };
@@ -51,10 +55,12 @@ const bimodalPool: RatingDistributionStats = {
     { binStart: 6, binEnd: 6.5, count: 7 },
     { binStart: 6.5, binEnd: 7, count: 3 },
   ],
+  gaps: [{ start: 4.4, end: 5.7, size: 1.3 }],
   count: 26,
   mean: 4.85,
   median: 5,
   stddev: 1.4,
+  iqr: 2.5,
   min: 3,
   max: 7,
 };
@@ -113,7 +119,17 @@ export const DonutCompact = {
 export const Empty = {
   render: () =>
     withCaption(
-      buildRatingDistributionChart({ histogram: [], count: 0, mean: 0 }),
+      buildRatingDistributionChart({
+        histogram: [],
+        gaps: [],
+        count: 0,
+        mean: 0,
+        median: 0,
+        stddev: 0,
+        iqr: 0,
+        min: 0,
+        max: 0,
+      }),
       'Empty pool — graceful no-data render',
     ),
 };

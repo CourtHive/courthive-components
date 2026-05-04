@@ -1,26 +1,7 @@
 import { scaleLinear, scaleBand, axisBottom, max as d3Max, select } from 'd3';
 
-// ============================================================================
-// Types — structurally compatible with the factory's RatingDistributionStats
-// (factory/src/types/formatWizardTypes.ts) but defined locally so this
-// component has no compile-time dependency on a specific factory version.
-// ============================================================================
-
-export interface RatingDistributionBin {
-  binStart: number;
-  binEnd: number;
-  count: number;
-}
-
-export interface RatingDistributionStats {
-  histogram: RatingDistributionBin[];
-  count: number;
-  mean: number;
-  median?: number;
-  stddev?: number;
-  min?: number;
-  max?: number;
-}
+// constants and types
+import { DistributionBin, RatingDistributionStats } from 'tods-competition-factory';
 
 export type RatingDistributionChartMode = 'HISTOGRAM' | 'DONUT';
 
@@ -32,7 +13,7 @@ export interface RatingDistributionChartOptions {
   showCounts?: boolean;
   showMean?: boolean;
   margin?: { top: number; right: number; bottom: number; left: number };
-  binColor?: (bin: RatingDistributionBin, index: number) => string;
+  binColor?: (bin: DistributionBin, index: number) => string;
   ariaLabel?: string;
 }
 
@@ -68,7 +49,7 @@ function createSvg(width: number, height: number, ariaLabel: string | undefined)
   return svg;
 }
 
-function defaultBinColor(_bin: RatingDistributionBin, index: number, total: number): string {
+function defaultBinColor(_bin: DistributionBin, index: number, total: number): string {
   if (total <= 1) return DEFAULT_BIN_COLORS[0];
   const t = index / (total - 1);
   // Lazy gradient: alternate the two color tokens by interpolated
@@ -78,7 +59,7 @@ function defaultBinColor(_bin: RatingDistributionBin, index: number, total: numb
 }
 
 function resolveBinColor(
-  bin: RatingDistributionBin,
+  bin: DistributionBin,
   index: number,
   total: number,
   override: RatingDistributionChartOptions['binColor'],
@@ -87,7 +68,7 @@ function resolveBinColor(
   return defaultBinColor(bin, index, total);
 }
 
-function formatBinLabel(bin: RatingDistributionBin): string {
+function formatBinLabel(bin: DistributionBin): string {
   return `${bin.binStart.toFixed(1)}–${bin.binEnd.toFixed(1)}`;
 }
 

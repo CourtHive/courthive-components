@@ -3,7 +3,7 @@ import { buildRatingDistributionChart } from '../ratingDistributionChart';
 import { expect, it, describe } from 'vitest';
 
 // constants and types
-import type { RatingDistributionStats } from '../ratingDistributionChart';
+import { RatingDistributionStats } from 'tods-competition-factory';
 
 const BAR_SELECTOR = 'rect.chc-rdc-bar';
 const COUNT_LABEL_SELECTOR = 'text.chc-rdc-count';
@@ -17,8 +17,14 @@ function buildStats(overrides: Partial<RatingDistributionStats> = {}): RatingDis
       { binStart: 4.5, binEnd: 5, count: 5 },
       { binStart: 5, binEnd: 5.5, count: 2 },
     ],
+    gaps: [],
     count: 10,
     mean: 4.65,
+    median: 4.65,
+    stddev: 0.4,
+    iqr: 0.5,
+    min: 4,
+    max: 5.5,
     ...overrides,
   };
 }

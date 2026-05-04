@@ -143,12 +143,11 @@ export type {
 export { fromFactoryDrawData, fromLegacyDraw } from './components/burstChart/matchUpTransform';
 
 // Rating Distribution Chart — histogram + donut visualization for the format wizard
+// (data shape comes from tods-competition-factory: RatingDistributionStats / DistributionBin)
 export { buildRatingDistributionChart } from './components/ratingDistributionChart';
 export type {
   RatingDistributionChartOptions,
-  RatingDistributionChartMode,
-  RatingDistributionStats,
-  RatingDistributionBin
+  RatingDistributionChartMode
 } from './components/ratingDistributionChart';
 
 // Control Bar (CSS bundled in courthive-components.css)
