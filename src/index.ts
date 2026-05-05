@@ -95,7 +95,7 @@ import './styles/tippy.css';
 import './styles/tipster.css';
 export { tipster, destroyTipster } from './components/popover/tipster';
 
-// Court/field SVG factories
+// Court/field SVG factories + sport-resolution helpers
 import './components/courts/courts.css';
 export {
   tennisCourt,
@@ -104,8 +104,13 @@ export {
   hockeyRink,
   pickleballCourt,
   badmintonCourt,
-  padelCourt
+  padelCourt,
+  createCourtSvg,
+  resolveCourtSport,
+  sportFromMatchUpFormat,
+  COURT_SVG_RESOURCE_SUB_TYPE
 } from './components/courts';
+export type { CourtSport } from './components/courts';
 
 // Version API
 export { courthiveComponentsVersion } from './version';
