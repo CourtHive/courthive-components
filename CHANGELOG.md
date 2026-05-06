@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.0](https://github.com/CourtHive/courthive-components/compare/v1.2.0...v1.3.0) (2026-05-06)
+
+
+### Features
+
+* **courts:** promote courtSvgUtil to public API ([d681762](https://github.com/CourtHive/courthive-components/commit/d6817625763c540a6d8f32452d871650833dd102))
+* **rating-distribution-chart:** SVG histogram + donut for format wizard ([7d1556e](https://github.com/CourtHive/courthive-components/commit/7d1556e0124d68b6c0a59ff29a76e04a9ad696f3))
+
 ## [1.2.0](https://github.com/CourtHive/courthive-components/compare/v1.1.1...v1.2.0) (2026-05-03)
 
 
