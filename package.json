@@ -87,7 +87,7 @@
     "globals": "^17.3.0",
     "happy-dom": "^20.8.3",
     "husky": "9.1.7",
-    "lint-staged": "16.4.0",
+    "lint-staged": "17.0.2",
     "playwright": "^1.57.0",
     "prettier": "^3.8.1",
     "semver": "7.7.4",
