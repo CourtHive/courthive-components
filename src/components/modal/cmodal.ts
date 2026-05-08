@@ -345,15 +345,13 @@ export const cModal = (() => {
         infoPopover.style.left = 'auto';
 
         // Close on click anywhere else — use capture phase so dialog's stopPropagation doesn't block it
-        setTimeout(() => {
-          const closePopover = (event: MouseEvent) => {
-            if (infoPopover && !infoPopover.contains(event.target as Node) && event.target !== infoIcon) {
-              closeInfoPopover();
-              document.removeEventListener('click', closePopover, true);
-            }
-          };
-          document.addEventListener('click', closePopover, true);
-        }, 100);
+        const closePopover = (event: MouseEvent) => {
+          if (infoPopover && !infoPopover.contains(event.target as Node) && event.target !== infoIcon) {
+            closeInfoPopover();
+            document.removeEventListener('click', closePopover, true);
+          }
+        };
+        setTimeout(() => document.addEventListener('click', closePopover, true), 100);
       };
 
       headerRight.appendChild(infoIcon);
@@ -422,16 +420,14 @@ export const cModal = (() => {
         menuDropdown.style.right = `${window.innerWidth - rect.right}px`;
 
         // Close on click elsewhere — use capture phase so dialog's stopPropagation doesn't block it
-        setTimeout(() => {
-          const closeMenu = (event: MouseEvent) => {
-            if (menuDropdown && !menuDropdown.contains(event.target as Node) && event.target !== menuCaret) {
-              menuDropdown.remove();
-              menuDropdown = undefined;
-              document.removeEventListener('click', closeMenu, true);
-            }
-          };
-          document.addEventListener('click', closeMenu, true);
-        }, 100);
+        const closeMenu = (event: MouseEvent) => {
+          if (menuDropdown && !menuDropdown.contains(event.target as Node) && event.target !== menuCaret) {
+            menuDropdown.remove();
+            menuDropdown = undefined;
+            document.removeEventListener('click', closeMenu, true);
+          }
+        };
+        setTimeout(() => document.addEventListener('click', closeMenu, true), 100);
       };
 
       headerRight.appendChild(menuCaret);
