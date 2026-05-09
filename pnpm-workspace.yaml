@@ -1,10 +1,16 @@
 packages:
   - .
 
-ignoredBuiltDependencies:
-  - '@swc/core'
-  - core-js
-  - esbuild
-  - unrs-resolver
+allowBuilds:
+  '@dep-tree/cli': true
+  '@nestjs/core': true
+  '@scarf/scarf': true
+  '@swc/core': true
+  classic-level: true
+  core-js: true
+  esbuild: true
+  rollup: true
+  unrs-resolver: true
+
 overrides:
   tods-competition-factory: link:../factory
