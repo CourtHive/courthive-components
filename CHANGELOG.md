@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.1](https://github.com/CourtHive/courthive-components/compare/v1.3.0...v1.3.1) (2026-05-10)
+
+
+### Bug Fixes
+
+* consolidate pnpm config into workspace.yaml with allowBuilds ([b02ef22](https://github.com/CourtHive/courthive-components/commit/b02ef22b8c85077b591cc3ac614ca7492517f984))
+* pnpm 11 install — kebab-case .npmrc + ignoredBuiltDependencies ([cea2c00](https://github.com/CourtHive/courthive-components/commit/cea2c006f832642d19adcb17c47e3b7069901c10))
+
 ## [1.3.0](https://github.com/CourtHive/courthive-components/compare/v1.2.0...v1.3.0) (2026-05-06)
 
 
