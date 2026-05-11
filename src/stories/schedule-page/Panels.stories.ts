@@ -33,6 +33,8 @@ export default {
 const SP_ROOT =
   'background: var(--sp-bg); min-height: 400px; padding: 20px; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: var(--sp-text);';
 const SP_ROOT_NARROW = SP_ROOT + ' max-width: 400px;';
+const HEADING_STYLE = 'font-size: 12px; color: var(--sp-muted); margin-bottom: 12px; flex-shrink: 0;';
+const ARIA_PRESSED = 'aria-pressed';
 
 function makeStoreState(overrides: Partial<SchedulePageState> = {}): SchedulePageState {
   return {
@@ -356,7 +358,7 @@ export const CourtGridSlot = {
     root.style.cssText = SP_ROOT + ' height: 600px; display: flex; flex-direction: column;';
 
     const heading = document.createElement('div');
-    heading.style.cssText = 'font-size: 12px; color: var(--sp-muted); margin-bottom: 12px; flex-shrink: 0;';
+    heading.style.cssText = HEADING_STYLE;
     heading.textContent = 'Court grid slot with a mock 6-court grid. Drag matchUps onto cells.';
     root.appendChild(heading);
 
@@ -383,11 +385,72 @@ export const CourtGridSlotEmpty = {
     root.style.cssText = SP_ROOT + ' height: 400px; display: flex; flex-direction: column;';
 
     const heading = document.createElement('div');
-    heading.style.cssText = 'font-size: 12px; color: var(--sp-muted); margin-bottom: 12px; flex-shrink: 0;';
+    heading.style.cssText = HEADING_STYLE;
     heading.textContent = 'Court grid slot with no injected element — empty center panel.';
     root.appendChild(heading);
 
     const panel = buildCourtGridSlot(undefined, {});
+    panel.element.style.flex = '1';
+    panel.element.style.minHeight = '0';
+    root.appendChild(panel.element);
+    panel.update(makeStoreState());
+
+    return root;
+  }
+};
+
+export const CourtGridSlotWithActions = {
+  render: () => {
+    const root = document.createElement('div');
+    root.style.cssText = SP_ROOT + ' height: 600px; display: flex; flex-direction: column;';
+
+    const heading = document.createElement('div');
+    heading.style.cssText = HEADING_STYLE;
+    heading.textContent =
+      'Court grid slot with three consumer-injected header actions. Consumer keeps live refs and mutates the buttons directly (toggle ARIA-pressed below).';
+    root.appendChild(heading);
+
+    const logFn = addStatusLog(root);
+
+    const BTN = [
+      'font-size: 12px',
+      'padding: 4px 8px',
+      'border-radius: 6px',
+      'border: 1px solid var(--sp-line)',
+      'background: var(--sp-panel-bg)',
+      'color: var(--sp-text)',
+      'cursor: pointer'
+    ].join('; ');
+
+    const makeToggle = (label: string): HTMLButtonElement => {
+      const btn = document.createElement('button');
+      btn.textContent = label;
+      btn.style.cssText = BTN;
+      btn.setAttribute(ARIA_PRESSED, 'true');
+      btn.addEventListener('click', () => {
+        const pressed = btn.getAttribute(ARIA_PRESSED) === 'true';
+        btn.setAttribute(ARIA_PRESSED, pressed ? 'false' : 'true');
+        btn.style.opacity = pressed ? '0.5' : '1';
+        logFn(`${label} → ${pressed ? 'off' : 'on'}`);
+      });
+      return btn;
+    };
+
+    const catalogBtn = makeToggle('Catalog');
+    const stripBtn = makeToggle('Active strip');
+    const printBtn = document.createElement('button');
+    printBtn.textContent = 'Print';
+    printBtn.style.cssText = BTN;
+    printBtn.addEventListener('click', () => logFn('Print clicked'));
+
+    const panel = buildCourtGridSlot(
+      makeMockCourtGrid(6).element,
+      {
+        onMatchUpDrop: (payload) => logFn(`Dropped ${payload.matchUp.matchUpId}`)
+      },
+      { headerActions: [catalogBtn, stripBtn, printBtn] }
+    );
+
     panel.element.style.flex = '1';
     panel.element.style.minHeight = '0';
     root.appendChild(panel.element);

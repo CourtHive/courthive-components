@@ -734,6 +734,10 @@ export function makeConfig(overrides: Partial<SchedulePageConfig> = {}): Schedul
     scheduleDates: SCHEDULE_DATES,
     issues: NO_ISSUES,
     courtGridElement: makeMockCourtGrid().element,
+    // Default to TMX layout: catalog on the left, no built-in date/issues sidebar.
+    // (TMX renders its own header for date selection + issues popover.)
+    hideLeft: true,
+    catalogSide: 'left',
     ...overrides
   };
 }

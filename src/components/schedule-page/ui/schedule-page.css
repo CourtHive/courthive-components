@@ -103,7 +103,7 @@
   border-bottom: 1px solid var(--sp-border-subtle);
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
   background: var(--sp-panel-bg);
   border: 1px solid var(--sp-line);
@@ -116,9 +116,10 @@
   font-size: 0.8125rem;
 }
 
-.spl-center-meta {
-  font-size: 0.75rem;
-  color: var(--sp-muted);
+.spl-center-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .spl-grid-slot {

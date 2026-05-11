@@ -151,6 +151,9 @@ export interface SchedulePageConfig {
   schedulingMode?: SchedulingMode;
   /** Initial visibility of the active strip (one-row court summary above the grid). Defaults to true. */
   activeStripVisible?: boolean;
+  /** Consumer-owned buttons rendered right-aligned in the court grid header.
+   *  Consumer keeps live refs and mutates state (visibility, disabled, label) directly. */
+  headerActions?: HTMLElement | HTMLElement[];
   onDateSelected?: (date: string) => void;
   onMatchUpDrop?: (payload: SchedulePageDragPayload, event: DragEvent) => void;
   onMatchUpRemove?: (matchUpId: string) => void;

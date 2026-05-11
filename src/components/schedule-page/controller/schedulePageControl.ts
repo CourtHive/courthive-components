@@ -47,7 +47,7 @@ export class SchedulePageControl {
           this.store.handleMatchUpDrop(payload, event);
         }
       },
-      { gridMaxHeight: config.gridMaxHeight }
+      { gridMaxHeight: config.gridMaxHeight, headerActions: config.headerActions }
     );
 
     const matchUpCatalog = buildMatchUpCatalog({

@@ -1,17 +1,20 @@
 /**
  * Court Grid Slot — Center panel: wraps consumer-injected court grid element.
  *
- * Provides a panel header ("Court Grid" + selected date) and a slot for the
- * consumer-provided element (Tabulator table or custom grid).
+ * Provides a panel header ("Court Grid" + right-aligned action slot) and a slot
+ * for the consumer-provided element (Tabulator table or custom grid).
+ *
+ * Header actions are owned by the consumer — pass live `HTMLElement` refs in
+ * `headerActions` and mutate them directly (visibility, disabled, label).
  */
 
-import type { SchedulePageState, UIPanel, SchedulePageDragPayload } from '../types';
+import { SchedulePageDragPayload, SchedulePageState, UIPanel } from '../types';
 import {
   splCenterStyle,
-  splCenterHeaderStyle,
+  splGridSlotStyle,
   splCenterTitleStyle,
-  splCenterMetaStyle,
-  splGridSlotStyle
+  splCenterActionsStyle,
+  splCenterHeaderStyle
 } from './styles';
 
 export interface CourtGridSlotCallbacks {
@@ -20,6 +23,9 @@ export interface CourtGridSlotCallbacks {
 
 export interface CourtGridSlotOptions {
   gridMaxHeight?: string;
+  /** Consumer-owned buttons rendered right-aligned in the header.
+   *  Consumer keeps live refs and mutates state (visibility, disabled, label) directly. */
+  headerActions?: HTMLElement | HTMLElement[];
 }
 
 export function buildCourtGridSlot(
@@ -36,10 +42,17 @@ export function buildCourtGridSlot(
   const title = document.createElement('div');
   title.className = splCenterTitleStyle();
   title.textContent = 'Court Grid';
-  const dateMeta = document.createElement('div');
-  dateMeta.className = splCenterMetaStyle();
   header.appendChild(title);
-  header.appendChild(dateMeta);
+
+  const actions = options?.headerActions;
+  if (actions) {
+    const actionsContainer = document.createElement('div');
+    actionsContainer.className = splCenterActionsStyle();
+    const list = Array.isArray(actions) ? actions : [actions];
+    for (const el of list) actionsContainer.appendChild(el);
+    header.appendChild(actionsContainer);
+  }
+
   root.appendChild(header);
 
   // Grid slot
@@ -76,8 +89,8 @@ export function buildCourtGridSlot(
 
   root.appendChild(slot);
 
-  function update(state: SchedulePageState): void {
-    dateMeta.textContent = state.selectedDate ?? 'No date selected';
+  function update(_state: SchedulePageState): void {
+    // No-op: header has no state-driven content. Stub preserves UIPanel contract.
   }
 
   return { element: root, update };

@@ -1,20 +1,20 @@
 /**
  * Schedule Page — Full Integration Stories
  *
- * Tests the complete 3-column schedule page with:
- * - Date strip + issues panel (collapsible left)
- * - Court grid slot (center, consumer-injected)
- * - MatchUp catalog + inspector panel (right)
- * - Scheduling modes: immediate and bulk
+ * Stories default to the TMX layout: matchUp catalog on the left, court grid on
+ * the right, no built-in date/issues sidebar (`hideLeft: true, catalogSide: 'left'`).
+ * Consumers wire date selection and issues display via their own header — see
+ * `WithHeaderActions` for the consumer-injected header slot.
  *
  * Stories:
- * - Empty: No matchUps, no issues — baseline layout
+ * - Empty: No matchUps, no issues — baseline TMX layout
  * - WithMatchUps: 12 matchUps, mock court grid, search/group/drag
- * - WithIssues: Scheduling conflicts displayed in left panel
+ * - WithIssues: ALTERNATE layout (`hideLeft: false, catalogSide: 'right'`) for non-TMX consumers that want the in-component date/issues sidebar
  * - BulkMode: Demonstrates bulk scheduling with save/discard
  * - ManyMatchUps: Larger catalog, 7-day schedule, 8-court grid
  * - HideScheduled: scheduledBehavior='hide' filters scheduled matchUps
  * - ProgrammaticControl: Button-driven store manipulation
+ * - WithHeaderActions: TMX-style icons (Catalog/Active strip/Print) injected into the grid header
  * - InteractiveGrid: Drag within grid, drag-back-to-catalog, click/dblclick, max-height
  * - GridCellEvents: Focused demo of click, double-click, and right-click on grid cells
  */
@@ -70,7 +70,7 @@ function addFooter(container: HTMLElement, control: SchedulePageControl, extra?:
     'padding: 12px 16px; border-top: 1px solid var(--sp-line); font-size: 12px; color: var(--sp-muted); font-family: ui-sans-serif, system-ui, sans-serif; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; flex-shrink: 0;';
 
   const statusEl = document.createElement('span');
-  statusEl.textContent = 'Drag matchUps from the catalog (right) onto the court grid (center).';
+  statusEl.textContent = 'Drag matchUps from the catalog (left) onto the court grid (center).';
 
   const stateBtn = document.createElement('button');
   stateBtn.textContent = 'Log State (console)';
@@ -119,7 +119,7 @@ export const Empty = {
     const info = document.createElement('div');
     info.style.cssText = INFO_STYLE;
     info.textContent =
-      'Empty schedule page with no matchUps. Shows the 3-column layout with collapsible left panel. Click the arrow button to toggle the sidebar.';
+      'Empty schedule page with no matchUps. TMX layout: matchUp catalog on the left, court grid on the right. Consumers wire date selection and issue display via their own header (see WithHeaderActions for the slot).';
     root.appendChild(info);
 
     const container = document.createElement('div');
@@ -152,7 +152,7 @@ export const WithMatchUps = {
     const info = document.createElement('div');
     info.style.cssText = INFO_STYLE;
     info.textContent =
-      '12 matchUps across 3 events. Drag unscheduled matchUps from the catalog onto the court grid. Search by participant name. Group by event/draw/round/structure. Scheduled matchUps appear dimmed with a checkmark.';
+      '12 matchUps across 3 events. Drag unscheduled matchUps from the catalog (left) onto the court grid (right). Search by participant name. Group by event/draw/round/structure. Scheduled matchUps appear dimmed with a checkmark.';
     root.appendChild(info);
 
     const container = document.createElement('div');
@@ -188,9 +188,8 @@ export const WithIssues = {
     const info = document.createElement('div');
     info.style.cssText = INFO_STYLE;
     info.innerHTML = [
-      '<strong>5 scheduling conflicts:</strong>',
-      '2 ERRORs (back-to-back, double-booked), 2 WARNs (overloaded court, capacity), 1 INFO (no court assigned).',
-      'The Issues panel in the left sidebar shows all conflicts sorted by severity.'
+      '<strong>Alternate layout — built-in date/issues sidebar:</strong> overrides the default TMX layout by setting <code>hideLeft: false, catalogSide: \'right\'</code>. TMX does not use this layout (it renders its own header instead) — kept here for consumers that prefer the in-component sidebar.',
+      '5 scheduling conflicts: 2 ERRORs (back-to-back, double-booked), 2 WARNs (overloaded court, capacity), 1 INFO (no court assigned). Sorted by severity in the Issues panel.'
     ].join('<br>');
     root.appendChild(info);
 
@@ -198,7 +197,10 @@ export const WithIssues = {
     container.style.cssText = FLEX_CONTAINER;
     root.appendChild(container);
 
-    const control = createSchedulePage(makeConfig({ issues: SAMPLE_ISSUES }), container);
+    const control = createSchedulePage(
+      makeConfig({ issues: SAMPLE_ISSUES, hideLeft: false, catalogSide: 'right' }),
+      container
+    );
 
     addFooter(root, control);
     return root;
@@ -394,9 +396,6 @@ export const ProgrammaticControl = {
     btnBar.appendChild(makeBtn('Group: Round', () => store.setCatalogGroupBy('round')));
     btnBar.appendChild(makeBtn('Group: Structure', () => store.setCatalogGroupBy('structure')));
 
-    // Toggle sidebar
-    btnBar.appendChild(makeBtn('Toggle Sidebar', () => store.toggleLeftPanel()));
-
     // Push new data
     btnBar.appendChild(
       makeBtn('Add Issues', () => {
@@ -418,6 +417,80 @@ export const ProgrammaticControl = {
       })
     );
 
+    return root;
+  }
+};
+
+// ============================================================================
+// With Header Actions — TMX-style icons in the court grid header
+// ============================================================================
+
+export const WithHeaderActions = {
+  render: () => {
+    const root = document.createElement('div');
+    root.style.cssText = ROOT_STYLE;
+
+    const info = document.createElement('div');
+    info.style.cssText = INFO_STYLE;
+    info.innerHTML = [
+      '<strong>Consumer-injected header actions:</strong> three buttons mounted in the right side of the court grid header — Catalog toggle, Active strip toggle, Print. This matches how TMX uses the slot (see <code>schedule2Header.ts</code>).',
+      'Consumer keeps live refs to each button and mutates state directly. Catalog toggle is wired here to add/remove <code>spl-sidebar-collapsed</code> on the layout root, exactly as TMX does it.'
+    ].join('<br>');
+    root.appendChild(info);
+
+    const container = document.createElement('div');
+    container.style.cssText = FLEX_CONTAINER;
+    root.appendChild(container);
+
+    const BTN_STYLE = [
+      'font-size: 12px',
+      'padding: 4px 8px',
+      'border-radius: 6px',
+      'border: 1px solid var(--sp-line)',
+      'background: var(--sp-card-bg)',
+      'color: var(--sp-text)',
+      'cursor: pointer',
+      'display: inline-flex',
+      'align-items: center',
+      'gap: 4px'
+    ].join('; ');
+    const ARIA = 'aria-pressed';
+
+    const makeToggle = (label: string, onChange: (pressed: boolean) => void): HTMLButtonElement => {
+      const btn = document.createElement('button');
+      btn.textContent = label;
+      btn.style.cssText = BTN_STYLE;
+      btn.setAttribute(ARIA, 'true');
+      btn.addEventListener('click', () => {
+        const wasPressed = btn.getAttribute(ARIA) === 'true';
+        const nowPressed = !wasPressed;
+        btn.setAttribute(ARIA, nowPressed ? 'true' : 'false');
+        btn.style.opacity = nowPressed ? '1' : '0.5';
+        onChange(nowPressed);
+      });
+      return btn;
+    };
+
+    let layoutEl: HTMLElement | null = null;
+    const catalogBtn = makeToggle('Catalog', (pressed) => {
+      if (layoutEl) layoutEl.classList.toggle('spl-sidebar-collapsed', !pressed);
+    });
+    const stripBtn = makeToggle('Active strip', () => {
+      // No-op demo (real strip toggle wires through the store; this story only shows the slot)
+    });
+    const printBtn = document.createElement('button');
+    printBtn.textContent = 'Print';
+    printBtn.style.cssText = BTN_STYLE;
+    printBtn.addEventListener('click', () => console.log('Print clicked'));
+
+    const control = createSchedulePage(
+      makeConfig({ headerActions: [catalogBtn, stripBtn, printBtn] }),
+      container
+    );
+
+    layoutEl = container.firstElementChild as HTMLElement;
+
+    addFooter(root, control);
     return root;
   }
 };
