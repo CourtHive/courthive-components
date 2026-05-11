@@ -346,6 +346,63 @@ export const VenueBoardEmpty = {
   }
 };
 
+export const VenueBoardWithActions = {
+  render: () => {
+    const root = document.createElement('div');
+    root.style.cssText = SP_ROOT;
+
+    const store = new ProfileStore(makeBaseConfig({ initialProfile: VALID_PROFILE }));
+    const logFn = addStatusLog(root);
+
+    const BTN_STYLE = [
+      'font-size: 12px',
+      'padding: 4px 8px',
+      'border-radius: 6px',
+      'border: 1px solid var(--sp-line)',
+      'background: var(--sp-card-bg)',
+      'color: var(--sp-text)',
+      'cursor: pointer',
+      'display: inline-flex',
+      'align-items: center',
+      'gap: 4px'
+    ].join('; ');
+
+    const makeIcon = (icon: string, hover: string, onClick: () => void): HTMLButtonElement => {
+      const btn = document.createElement('button');
+      btn.style.cssText = BTN_STYLE;
+      btn.title = hover;
+      btn.innerHTML = `<i class="fa-solid ${icon}" style="font-size: 12px;"></i>`;
+      btn.addEventListener('click', onClick);
+      return btn;
+    };
+
+    const saveBtn = makeIcon('fa-floppy-disk', 'Save Profile', () => logFn('Save Profile clicked'));
+    const applyTimesBtn = makeIcon('fa-clock', 'Apply Times', () => logFn('Apply Times clicked'));
+    const applyGridBtn = makeIcon('fa-table-cells', 'Apply Grid', () => logFn('Apply Grid clicked'));
+    const clearBtn = makeIcon('fa-eraser', 'Clear Profile', () => logFn('Clear Profile clicked'));
+
+    const panel = buildVenueBoard(
+      {
+        onDrop: (drag, drop) => {
+          const result = store.dropRound(drag, drop);
+          logFn(result.ok ? `Drop OK: ${drop.venueId} idx=${drop.index}` : `Drop REJECTED: ${result.errorMessage}`);
+          panel.update(store.getState());
+        },
+        onCardClick: (locator) => {
+          store.selectCard(locator);
+          panel.update(store.getState());
+        }
+      },
+      { headerActions: [saveBtn, applyTimesBtn, applyGridBtn, clearBtn] }
+    );
+
+    root.appendChild(panel.element);
+    panel.update(store.getState());
+
+    return root;
+  }
+};
+
 // ============================================================================
 // Round Catalog
 // ============================================================================

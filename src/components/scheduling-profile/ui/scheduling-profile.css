@@ -76,7 +76,7 @@
   border-bottom: 1px solid var(--sp-border-subtle);
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
 }
 
@@ -88,6 +88,12 @@
 .sp-panel-meta {
   font-size: 12px;
   color: var(--sp-muted);
+}
+
+.sp-panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .sp-panel-body {

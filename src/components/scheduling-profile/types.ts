@@ -257,6 +257,9 @@ export interface SchedulingProfileConfig {
   dependencyAdapter?: DependencyAdapter;
   venueOrder?: string[];
   plannedRoundBehavior?: PlannedRoundBehavior;
+  /** Consumer-owned buttons rendered right-aligned in the Day Plan header.
+   *  Consumer keeps live refs and mutates state (visibility, disabled, label) directly. */
+  headerActions?: HTMLElement | HTMLElement[];
   onProfileChanged?: (profile: SchedulingProfile) => void;
   onFixAction?: (action: FixAction) => void;
 }

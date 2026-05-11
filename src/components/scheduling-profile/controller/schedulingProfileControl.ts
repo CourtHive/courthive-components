@@ -57,15 +57,18 @@ export class SchedulingProfileControl {
       onFixAction: (action: FixAction) => this.store.applyFixAction(action)
     });
 
-    const venueBoard = buildVenueBoard({
-      onDrop: (drag: DragPayload, drop: DropTarget) => {
-        this.store.dropRound(drag, drop);
+    const venueBoard = buildVenueBoard(
+      {
+        onDrop: (drag: DragPayload, drop: DropTarget) => {
+          this.store.dropRound(drag, drop);
+        },
+        onCardClick: (locator: RoundLocator) => this.store.selectCard(locator),
+        onCardContextMenu: (locator: RoundLocator, target: HTMLElement) => {
+          this.popover.show(target, locator);
+        }
       },
-      onCardClick: (locator: RoundLocator) => this.store.selectCard(locator),
-      onCardContextMenu: (locator: RoundLocator, target: HTMLElement) => {
-        this.popover.show(target, locator);
-      }
-    });
+      { headerActions: config.headerActions }
+    );
 
     const roundCatalog = buildRoundCatalog({
       onSearchChange: (query: string) => this.store.setCatalogSearch(query),

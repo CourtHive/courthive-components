@@ -4,23 +4,23 @@
  * Stateless factory pattern: { element, update }.
  */
 
-import type { ProfileStoreState, UIPanel, DragPayload, DropTarget, RoundLocator } from '../types';
+import { ProfileStoreState, UIPanel, DragPayload, DropTarget, RoundLocator } from '../types';
 import { getVenueRounds, findIssuesForLocator, maxSeverity } from '../domain/profileProjections';
 import { sameLocator, pickRoundKey } from '../domain/utils';
 import { buildRoundCard } from './roundCard';
 import {
   spPanelStyle,
-  spPanelHeaderStyle,
-  spPanelTitleStyle,
-  spPanelMetaStyle,
   spBoardStyle,
-  spVenueStyle,
-  spVenueHeaderStyle,
-  spVenueTitleStyle,
-  spVenueSubStyle,
-  spDropzoneStyle,
   spBadgeStyle,
   spSmallStyle,
+  spVenueStyle,
+  spVenueSubStyle,
+  spDropzoneStyle,
+  spPanelTitleStyle,
+  spVenueTitleStyle,
+  spPanelHeaderStyle,
+  spVenueHeaderStyle,
+  spPanelActionsStyle,
   spInsertionLineStyle
 } from './styles';
 
@@ -30,7 +30,13 @@ export interface VenueBoardCallbacks {
   onCardContextMenu?: (locator: RoundLocator, target: HTMLElement) => void;
 }
 
-export function buildVenueBoard(callbacks: VenueBoardCallbacks): UIPanel<ProfileStoreState> {
+export interface VenueBoardOptions {
+  /** Consumer-owned buttons rendered right-aligned in the Day Plan header.
+   *  Consumer keeps live refs and mutates state (visibility, disabled, label) directly. */
+  headerActions?: HTMLElement | HTMLElement[];
+}
+
+export function buildVenueBoard(callbacks: VenueBoardCallbacks, options?: VenueBoardOptions): UIPanel<ProfileStoreState> {
   const root = document.createElement('div');
   root.className = spPanelStyle();
 
@@ -40,10 +46,17 @@ export function buildVenueBoard(callbacks: VenueBoardCallbacks): UIPanel<Profile
   const title = document.createElement('div');
   title.className = spPanelTitleStyle();
   title.textContent = 'Day Plan';
-  const meta = document.createElement('div');
-  meta.className = spPanelMetaStyle();
   header.appendChild(title);
-  header.appendChild(meta);
+
+  const actions = options?.headerActions;
+  if (actions) {
+    const actionsContainer = document.createElement('div');
+    actionsContainer.className = spPanelActionsStyle();
+    const list = Array.isArray(actions) ? actions : [actions];
+    for (const el of list) actionsContainer.appendChild(el);
+    header.appendChild(actionsContainer);
+  }
+
   root.appendChild(header);
 
   // Board
@@ -53,7 +66,6 @@ export function buildVenueBoard(callbacks: VenueBoardCallbacks): UIPanel<Profile
 
   function update(state: ProfileStoreState): void {
     const date = state.selectedDate;
-    meta.textContent = date ? `Selected: ${date}` : 'Select a date';
     board.innerHTML = '';
 
     // When many venues, switch to horizontal scroll with minimum column width
