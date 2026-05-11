@@ -33,6 +33,16 @@
   grid-template-columns: 360px 1fr;
 }
 
+/* Consumer-controlled sidebar collapse: hides the first column (catalog
+   when catalog-left is set) and lets the venue board take full width.
+   Mirrors the schedule-page rule of the same name so consumers can use
+   one class regardless of which layout they're working with. The
+   global `.spl-sidebar-collapsed > :first-child { display: none }` rule
+   handles the visibility; this one fixes the grid track sizing. */
+.sp-layout.spl-sidebar-collapsed {
+  grid-template-columns: 1fr;
+}
+
 .sp-layout * {
   box-sizing: border-box;
 }
