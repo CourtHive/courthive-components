@@ -95,7 +95,7 @@
     "storybook": "^10.2.17",
     "tabulator-tables": "6.4.0",
     "typescript": "^6.0.2",
-    "vite": "8.0.11",
+    "vite": "8.0.12",
     "vite-plugin-dts": "^5.0.0",
     "vitest": "^4.0.16"
   },
