@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.4.0](https://github.com/CourtHive/courthive-components/compare/v1.3.1...v1.4.0) (2026-05-12)
+
+
+### Features
+
+* **schedule-page:** consumer-injected header actions in court grid slot ([190b1e9](https://github.com/CourtHive/courthive-components/commit/190b1e944f3d1f412fbb337a7c5d91e68cb522df))
+* **scheduling-profile:** consumer-injected header actions in Day Plan ([3b6a8b1](https://github.com/CourtHive/courthive-components/commit/3b6a8b1fd0fda189ed46d51cd9e7319b3bc6715e))
+
+
+### Bug Fixes
+
+* **scheduling-profile:** expand venue board when sidebar is collapsed ([3709e02](https://github.com/CourtHive/courthive-components/commit/3709e021718bba13514df53a342e4364c1658049))
+
 ## [1.3.1](https://github.com/CourtHive/courthive-components/compare/v1.3.0...v1.3.1) (2026-05-10)
 
 
