@@ -106,6 +106,28 @@ describe('setScore', () => {
     // Should display tiebreak score directly
     expect(el.innerHTML).toContain('10');
   });
+
+  it('handles match-tiebreak final set normalised by the engine (tiebreakSet flag set, game score collapsed to 1/0)', () => {
+    // For SET3-S:6/TB7-F:TB10, the engine normalises the final-set match tiebreak to
+    // side1Score/side2Score 1/0 with the actual points carried on side*TiebreakScore and
+    // `tiebreakSet: true` on the set. The renderer must honour the flag and show the
+    // tiebreak points; otherwise the draw cell collapses to 1/0 and the points disappear.
+    const set: SetScore = {
+      setNumber: 3,
+      side1Score: 1,
+      side2Score: 0,
+      side1TiebreakScore: 10,
+      side2TiebreakScore: 7,
+      tiebreakSet: true,
+      winningSide: 1
+    };
+    const side1El = setScore({ set, sideNumber: 1 });
+    expect(side1El.innerHTML).toContain('10');
+    expect(side1El.innerHTML).not.toMatch(/>1</);
+    const side2El = setScore({ set, sideNumber: 2 });
+    expect(side2El.innerHTML).toContain('7');
+    expect(side2El.innerHTML).not.toMatch(/>0</);
+  });
 });
 
 describe('renderSideScore', () => {
@@ -195,6 +217,41 @@ describe('renderSideScore', () => {
     });
     expect(el).toBeInstanceOf(HTMLElement);
     expect(el.querySelectorAll('.tmx-st').length).toBe(0);
+  });
+
+  it('renders tiebreak points from scoreStringSide bracket token when the set lacks side*TiebreakScore', () => {
+    // Reproduces the SET3-S:6/TB7-F:TB10 case: factory persists the final-set match tiebreak
+    // with side1Score:1/side2Score:0/tiebreakSet:true and parks the actual points (e.g. "[10-7]")
+    // only in scoreStringSide1/2. The renderer must recover the TB points from those strings.
+    const sets: SetScore[] = [
+      { setNumber: 1, side1Score: 7, side2Score: 5, winningSide: 1 },
+      { setNumber: 2, side1Score: 6, side2Score: 7, side1TiebreakScore: 4, side2TiebreakScore: 7, winningSide: 2 },
+      { setNumber: 3, side1Score: 1, side2Score: 0, tiebreakSet: true, winningSide: 1 }
+    ];
+    const matchUp = {
+      matchUpId: 'mu-tb',
+      matchUpType: 'SINGLES',
+      structureId: 'struct-1',
+      score: {
+        sets,
+        scoreStringSide1: '7-5 6-7(4) [10-7]',
+        scoreStringSide2: '5-7 7-6(4) [7-10]'
+      },
+      sides: [
+        { sideNumber: 1, participant: { participantId: 'p1', participantName: 'Player 1' } },
+        { sideNumber: 2, participant: { participantId: 'p2', participantName: 'Player 2' } }
+      ]
+    } as MatchUp;
+
+    const side1El = renderSideScore({ matchUp, sideNumber: 1 });
+    const side1SetEls = side1El.querySelectorAll('.tmx-st');
+    expect(side1SetEls[2].innerHTML).toContain('10');
+    expect(side1SetEls[2].innerHTML).not.toMatch(/>1</);
+
+    const side2El = renderSideScore({ matchUp, sideNumber: 2 });
+    const side2SetEls = side2El.querySelectorAll('.tmx-st');
+    expect(side2SetEls[2].innerHTML).toContain('7');
+    expect(side2SetEls[2].innerHTML).not.toMatch(/>0</);
   });
 
   it('applies participantHeight when provided', () => {

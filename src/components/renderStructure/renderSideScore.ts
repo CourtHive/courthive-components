@@ -19,10 +19,14 @@ export function setScore({
   const isWinningSide = sideNumber === set?.winningSide;
   const variant = (isWinningSide && 'winner') || set?.winningSide ? 'loser' : undefined;
   const gameScore = sideNumber === 2 ? set.side2Score : set.side1Score;
-  const hasTiebreakScore = set.side2TiebreakScore || set.side1TiebreakScore;
+  const hasTiebreakScore = set.side2TiebreakScore !== undefined || set.side1TiebreakScore !== undefined;
   const tieBreakScore = sideNumber === 2 ? set.side2TiebreakScore : set.side1TiebreakScore;
-  const tieBreakSet = gameScore === undefined && tieBreakScore;
-  const scoreDisplay = tieBreakSet || gameScore;
+  // A "tiebreak set" is either a tiebreak-only set (no game score) or a final-set match
+  // tiebreak normalised by the engine to side{1,2}Score 1/0 with `tiebreakSet: true` and
+  // the actual points carried on side{1,2}TiebreakScore. In both cases the displayed value
+  // should be the tiebreak points, not the collapsed 1-0 game count.
+  const tieBreakSet = (gameScore === undefined || set.tiebreakSet === true) && tieBreakScore !== undefined;
+  const scoreDisplay = tieBreakSet ? tieBreakScore : gameScore;
   const stripedScore = scoreStripes && set.setNumber % 2 ? 'var(--chc-bg-secondary)' : 'transparent';
 
   const editing = set.editing;
@@ -163,7 +167,26 @@ export function renderSideScore({
 
   const inlineScoringConfig = composition?.configuration?.inlineScoring;
 
-  for (const set of sets || []) {
+  // Defensive enrichment: the factory persists tiebreakSet final sets with side1Score/side2Score
+  // collapsed to 1/0 and the actual tiebreak points only in `scoreStringSide{1,2}` (e.g. "[10-7]"),
+  // not on the set object. Without this fallback the per-set renderer has no TB points to display
+  // and shows the collapsed 1/0 instead.
+  const tokens1 = matchUp?.score?.scoreStringSide1?.split(/\s+/);
+  const tokens2 = matchUp?.score?.scoreStringSide2?.split(/\s+/);
+  const enrichTiebreakSet = (set: SetScore, index: number): SetScore => {
+    if (!set.tiebreakSet || set.side1TiebreakScore !== undefined || set.side2TiebreakScore !== undefined) return set;
+    const match1 = tokens1?.[index]?.match(/^\[(\d+)-(\d+)\]$/);
+    const match2 = tokens2?.[index]?.match(/^\[(\d+)-(\d+)\]$/);
+    if (!match1 && !match2) return set;
+    return {
+      ...set,
+      side1TiebreakScore: match1 ? Number(match1[1]) : match2 ? Number(match2[2]) : undefined,
+      side2TiebreakScore: match2 ? Number(match2[1]) : match1 ? Number(match1[2]) : undefined
+    };
+  };
+
+  for (const [index, rawSet] of (sets || []).entries()) {
+    const set = enrichTiebreakSet(rawSet, index);
     const setScoreDisplay = setScore({
       gameScoreOnly,
       scoreStripes,
