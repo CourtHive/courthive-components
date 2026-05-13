@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/CourtHive/courthive-components/compare/v1.4.0...v1.4.1) (2026-05-13)
+
+
+### Bug Fixes
+
+* **renderSideScore:** show tiebreak points for match-tiebreak final sets ([#370](https://github.com/CourtHive/courthive-components/issues/370)) ([7443e32](https://github.com/CourtHive/courthive-components/commit/7443e32ac808b0c03e01a78382479a77f5cf6866))
+
 ## [1.4.0](https://github.com/CourtHive/courthive-components/compare/v1.3.1...v1.4.0) (2026-05-12)
 
 
