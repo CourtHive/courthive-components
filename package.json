@@ -49,6 +49,7 @@
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
+    "test-storybook": "test-storybook --url http://localhost:6006",
     "deploy-storybook": "gh-pages -d storybook-static",
     "pre-commit": "lint-staged",
     "predeploy": "npm run build-storybook",

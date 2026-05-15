@@ -13,10 +13,14 @@ const SCORE_CELL_CLASS = 'chc-iss-score-cell';
  * consumers subscribe to `stateChanged` events and handle
  * persistence (IndexedDB in courthive-public's case).
  *
- * Phase 2 targets standard tennis matchUpFormats (`SET3-S:6/TB7`,
- * `SET5-S:6/TB7`, etc.). INTENNSE bolt scoring, pickleball score
- * caps, doubles lineup changes, and other format-specific behaviors
- * are deferred to Phase 2.5+.
+ * Any format the factory ScoringEngine accepts is supported here —
+ * tennis (`SET3-S:6/TB7`, `SET5-S:6/TB7`), pickleball (`SET3-S:TB11`),
+ * badminton (`SET3-S:TB21`), squash (`SET5-S:TB11`), no-ad and short-set
+ * variants. Engine state is passed through unchanged by the UI layer;
+ * format-specific score caps, win-by-2, and side-out scoring are handled
+ * by the engine. See `src/stories/inlineScoringFormats.stories.ts` for
+ * the verified format matrix. INTENNSE bolt scoring lives in epixodic's
+ * separate `BoltScoringPage` — not adopted into this shell.
  *
  * The DOM structure:
  * ```
