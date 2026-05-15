@@ -53,6 +53,14 @@
 .spl-grid-cell__time {
   font-weight: 700;
   white-space: nowrap;
+  /* Override the muted color inherited from .spl-grid-cell__header — the
+     start time is primary information, not metadata. */
+  color: var(--sp-text);
+}
+
+[data-theme='dark'] .spl-grid-cell__time {
+  /* Dark mode: make the time pop against the dark cell background. */
+  color: var(--sp-ok);
 }
 
 .spl-grid-cell__court-annotation {

@@ -489,21 +489,28 @@
 }
 
 .spl-active-strip-cell {
-  display: flex;
-  flex-direction: column;
-  justify-content: stretch;
+  /* Grid zones: top row holds the state pill (auto-sized, right-aligned);
+     row 2 holds the matchUp content spanning both columns. Keeps the pill
+     and the time/participants out of the same visual lane when columns
+     get narrow. */
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto 1fr;
   background: var(--sp-panel-bg);
   font-size: 0.6875rem;
   line-height: 1.2;
   cursor: default;
-  position: relative;
   /* 3px colored left edge (per-state below) — communicates state at a glance. */
   border-left: 3px solid transparent;
   transition: background 0.15s, border-color 0.15s;
 }
 
-.spl-active-strip-cell > * {
-  flex: 1;
+/* Everything that isn't the state pill (the consumer-rendered matchUp
+   content, or the .spl-active-strip-body fallback) lives in row 2 and
+   spans the full cell width. */
+.spl-active-strip-cell > :not(.spl-active-strip-state-pill) {
+  grid-column: 1 / -1;
+  grid-row: 2;
   min-height: 0;
 }
 
@@ -526,26 +533,49 @@
   opacity: 0.92;
 }
 
-/* Status pill at top-right of cells with a matchUp. */
+/* Status pill in the top-right grid zone of cells with a matchUp. */
 .spl-active-strip-state-pill {
-  position: absolute;
-  top: 4px;
-  right: 4px;
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+  justify-self: end;
+  margin: 4px 4px 0 0;
   font-size: 0.5625rem;
   font-weight: 700;
   letter-spacing: 0.4px;
   padding: 1px 5px;
   border-radius: 8px;
   pointer-events: none;
-  z-index: 1;
   text-transform: uppercase;
   background: rgba(127, 127, 127, 0.18);
   color: var(--sp-muted);
 }
 
+/* LIVE pill: --sp-accent-border is a 30%-alpha tint designed for borders,
+   not for filled backgrounds — over a light cell it composites to a pale
+   blue that fails WCAG contrast with white text. Use a solid darker blue
+   (#1d4ed8 — tailwind blue-700, ~5.8:1 contrast with white) so the pill
+   reads cleanly in both light and dark themes. */
 .spl-active-strip-cell.state-in-progress .spl-active-strip-state-pill {
-  background: var(--sp-accent-border, var(--tmx-accent-blue, #3b82f6));
+  background: #1d4ed8;
   color: #fff;
+}
+
+/* NEXT pill — light mode: the default rgba gray-on-gray fails contrast.
+   Solid muted amber-200 with dark amber-800 text (~5.6:1) mirrors the
+   yellow language already established for dark mode below, so "NEXT"
+   reads as the same status regardless of theme. */
+.spl-active-strip-cell.state-next .spl-active-strip-state-pill {
+  background: #fde68a;
+  color: #92400e;
+}
+
+/* NEXT pill — dark mode: the default muted gray-on-gray is illegible
+   against the dark cell. A softly tinted yellow differentiates from
+   the green time without shouting like a warning would. */
+[data-theme='dark'] .spl-active-strip-cell.state-next .spl-active-strip-state-pill {
+  background: rgba(251, 191, 36, 0.15);
+  color: var(--sp-warn);
 }
 
 .spl-active-strip-body {
