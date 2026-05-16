@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.5.0](https://github.com/CourtHive/courthive-components/compare/v1.4.1...v1.5.0) (2026-05-16)
+
+
+### Features
+
+* **scoring:** Phase 2.5 format verification stories (pickleball, badminton, squash, no-ad) ([b79f32c](https://github.com/CourtHive/courthive-components/commit/b79f32cc53e97df7fbfd00e2cbbbc631a448f1a1))
+
+
+### Bug Fixes
+
+* **schedule-page:** readable grid-cell time and active-strip pill colors ([7524132](https://github.com/CourtHive/courthive-components/commit/75241329349b4d657702b0481d7d9df82ca7e86f))
+
 ## [1.4.1](https://github.com/CourtHive/courthive-components/compare/v1.4.0...v1.4.1) (2026-05-13)
 
 
