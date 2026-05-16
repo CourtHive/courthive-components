@@ -30,17 +30,19 @@ export class SchedulePageStore {
   constructor(config: SchedulePageConfig) {
     this.config = config;
 
+    const seed = config.initialCatalogState ?? {};
+
     this.state = {
       matchUpCatalog: config.matchUpCatalog,
       scheduleDates: config.scheduleDates,
       issues: config.issues ?? [],
       selectedDate: config.scheduleDates[0]?.date ?? null,
       selectedMatchUp: null,
-      catalogSearchQuery: '',
-      catalogGroupBy: 'event',
-      catalogFilters: {},
-      showCompleted: false,
-      showScheduled: false,
+      catalogSearchQuery: seed.catalogSearchQuery ?? '',
+      catalogGroupBy: seed.catalogGroupBy ?? 'event',
+      catalogFilters: seed.catalogFilters ?? {},
+      showCompleted: seed.showCompleted ?? false,
+      showScheduled: seed.showScheduled ?? false,
       scheduledBehavior: config.scheduledBehavior ?? 'dim',
       schedulingMode: config.schedulingMode ?? 'immediate',
       pendingActions: [],

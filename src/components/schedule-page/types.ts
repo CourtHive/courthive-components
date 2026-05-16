@@ -136,11 +136,27 @@ export type SchedulePageDragPayload = CatalogMatchUpDragPayload | GridMatchUpDra
 // Configuration
 // ============================================================================
 
+/**
+ * Persisted catalog filter state. The consumer can seed the store from a
+ * previously captured snapshot (e.g. when re-entering the schedule page
+ * within the same session) and subscribe to the store to write it back.
+ */
+export interface SchedulePageCatalogState {
+  catalogSearchQuery?: string;
+  catalogGroupBy?: MatchUpCatalogGroupBy;
+  catalogFilters?: CatalogFilters;
+  showCompleted?: boolean;
+  showScheduled?: boolean;
+}
+
 export interface SchedulePageConfig {
   matchUpCatalog: CatalogMatchUpItem[];
   scheduleDates: ScheduleDate[];
   issues?: ScheduleIssue[];
   courtGridElement?: HTMLElement;
+  /** Seed the store's catalog filter fields. Any field omitted falls back
+   *  to the built-in default. */
+  initialCatalogState?: SchedulePageCatalogState;
   /** Max height for the court grid viewport (e.g. '500px', '60vh'). Defaults to none (fills available space). */
   gridMaxHeight?: string;
   /** When true, the left column (date strip + issues panel) is not rendered at all. */

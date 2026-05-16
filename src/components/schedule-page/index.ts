@@ -89,6 +89,7 @@ export type {
   GridMatchUpDragPayload,
   SchedulePageDragPayload,
   SchedulePageConfig,
+  SchedulePageCatalogState,
   SchedulePageState,
   SchedulePageChangeListener,
   UIPanel,

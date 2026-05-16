@@ -69,6 +69,38 @@ describe('SchedulePageStore', () => {
       const store = new SchedulePageStore(makeConfig({ scheduleDates: [] }));
       expect(store.getState().selectedDate).toBeNull();
     });
+
+    it('seeds catalog filter fields from initialCatalogState', () => {
+      const store = new SchedulePageStore(
+        makeConfig({
+          initialCatalogState: {
+            catalogSearchQuery: 'alice',
+            catalogGroupBy: 'draw',
+            catalogFilters: { eventName: 'Boys U16' },
+            showCompleted: true,
+            showScheduled: true
+          }
+        })
+      );
+      const state = store.getState();
+      expect(state.catalogSearchQuery).toBe('alice');
+      expect(state.catalogGroupBy).toBe('draw');
+      expect(state.catalogFilters).toEqual({ eventName: 'Boys U16' });
+      expect(state.showCompleted).toBe(true);
+      expect(state.showScheduled).toBe(true);
+    });
+
+    it('falls back to defaults for fields omitted in initialCatalogState', () => {
+      const store = new SchedulePageStore(
+        makeConfig({ initialCatalogState: { catalogSearchQuery: 'bob' } })
+      );
+      const state = store.getState();
+      expect(state.catalogSearchQuery).toBe('bob');
+      expect(state.catalogGroupBy).toBe('event');
+      expect(state.catalogFilters).toEqual({});
+      expect(state.showCompleted).toBe(false);
+      expect(state.showScheduled).toBe(false);
+    });
   });
 
   describe('selectDate', () => {
