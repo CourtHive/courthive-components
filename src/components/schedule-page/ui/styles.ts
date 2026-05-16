@@ -17,6 +17,7 @@ export const splCenterStyle = () => 'spl-center';
 export const splCenterHeaderStyle = () => 'spl-center-header';
 export const splCenterTitleStyle = () => 'spl-center-title';
 export const splCenterActionsStyle = () => 'spl-center-actions';
+export const splCenterLeadingStyle = () => 'spl-center-leading';
 export const splGridSlotStyle = () => 'spl-grid-slot';
 export const splRightStyle = () => 'spl-right';
 

@@ -13,6 +13,7 @@ import {
   splCenterStyle,
   splGridSlotStyle,
   splCenterTitleStyle,
+  splCenterLeadingStyle,
   splCenterActionsStyle,
   splCenterHeaderStyle
 } from './styles';
@@ -26,6 +27,10 @@ export interface CourtGridSlotOptions {
   /** Consumer-owned buttons rendered right-aligned in the header.
    *  Consumer keeps live refs and mutates state (visibility, disabled, label) directly. */
   headerActions?: HTMLElement | HTMLElement[];
+  /** Consumer-owned buttons rendered immediately before the "Court Grid" title.
+   *  Use this slot for controls that act on content to the LEFT of the panel
+   *  (e.g. a catalog show/hide toggle when the catalog sits on the left). */
+  titleLeadingActions?: HTMLElement | HTMLElement[];
 }
 
 export function buildCourtGridSlot(
@@ -39,10 +44,22 @@ export function buildCourtGridSlot(
   // Header
   const header = document.createElement('div');
   header.className = splCenterHeaderStyle();
+
+  const leading = options?.titleLeadingActions;
   const title = document.createElement('div');
   title.className = splCenterTitleStyle();
   title.textContent = 'Court Grid';
-  header.appendChild(title);
+
+  if (leading) {
+    const leadingContainer = document.createElement('div');
+    leadingContainer.className = splCenterLeadingStyle();
+    const list = Array.isArray(leading) ? leading : [leading];
+    for (const el of list) leadingContainer.appendChild(el);
+    leadingContainer.appendChild(title);
+    header.appendChild(leadingContainer);
+  } else {
+    header.appendChild(title);
+  }
 
   const actions = options?.headerActions;
   if (actions) {

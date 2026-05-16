@@ -9,6 +9,7 @@ import { SchedulePageDragPayload, SchedulePageState } from '../types';
 const HEADER = '.spl-center-header';
 const TITLE = '.spl-center-title';
 const ACTIONS = '.spl-center-actions';
+const LEADING = '.spl-center-leading';
 const GRID_SLOT = '.spl-grid-slot';
 
 const makeButton = (label: string): HTMLButtonElement => {
@@ -117,5 +118,32 @@ describe('buildCourtGridSlot', () => {
     grid.dataset.testid = 'grid';
     const panel = buildCourtGridSlot(grid, {});
     expect(panel.element.querySelector('[data-testid="grid"]')).toBe(grid);
+  });
+
+  it('renders no leading container when titleLeadingActions omitted', () => {
+    const panel = buildCourtGridSlot(undefined, {});
+    expect(panel.element.querySelector(LEADING)).toBeNull();
+  });
+
+  it('renders titleLeadingActions before the title within a leading container', () => {
+    const toggle = makeButton('Catalog');
+    const panel = buildCourtGridSlot(undefined, {}, { titleLeadingActions: toggle });
+    const leading = panel.element.querySelector(LEADING);
+    expect(leading).toBeTruthy();
+    expect(leading?.children).toHaveLength(2);
+    expect(leading?.firstElementChild).toBe(toggle);
+    expect(leading?.lastElementChild?.textContent).toBe('Court Grid');
+  });
+
+  it('supports titleLeadingActions and headerActions together', () => {
+    const toggle = makeButton('Catalog');
+    const print = makeButton('Print');
+    const panel = buildCourtGridSlot(
+      undefined,
+      {},
+      { titleLeadingActions: toggle, headerActions: print }
+    );
+    expect(panel.element.querySelector(LEADING)?.firstElementChild).toBe(toggle);
+    expect(panel.element.querySelector(ACTIONS)?.firstElementChild).toBe(print);
   });
 });

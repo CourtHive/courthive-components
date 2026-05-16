@@ -18,6 +18,7 @@ import {
   spDropzoneStyle,
   spPanelTitleStyle,
   spVenueTitleStyle,
+  spPanelLeadingStyle,
   spPanelHeaderStyle,
   spVenueHeaderStyle,
   spPanelActionsStyle,
@@ -34,6 +35,10 @@ export interface VenueBoardOptions {
   /** Consumer-owned buttons rendered right-aligned in the Day Plan header.
    *  Consumer keeps live refs and mutates state (visibility, disabled, label) directly. */
   headerActions?: HTMLElement | HTMLElement[];
+  /** Consumer-owned buttons rendered immediately before the "Day Plan" title.
+   *  Use this slot for controls that act on content to the LEFT of the panel
+   *  (e.g. a catalog show/hide toggle when the catalog sits on the left). */
+  titleLeadingActions?: HTMLElement | HTMLElement[];
 }
 
 export function buildVenueBoard(callbacks: VenueBoardCallbacks, options?: VenueBoardOptions): UIPanel<ProfileStoreState> {
@@ -43,10 +48,22 @@ export function buildVenueBoard(callbacks: VenueBoardCallbacks, options?: VenueB
   // Header
   const header = document.createElement('div');
   header.className = spPanelHeaderStyle();
+
+  const leading = options?.titleLeadingActions;
   const title = document.createElement('div');
   title.className = spPanelTitleStyle();
   title.textContent = 'Day Plan';
-  header.appendChild(title);
+
+  if (leading) {
+    const leadingContainer = document.createElement('div');
+    leadingContainer.className = spPanelLeadingStyle();
+    const list = Array.isArray(leading) ? leading : [leading];
+    for (const el of list) leadingContainer.appendChild(el);
+    leadingContainer.appendChild(title);
+    header.appendChild(leadingContainer);
+  } else {
+    header.appendChild(title);
+  }
 
   const actions = options?.headerActions;
   if (actions) {

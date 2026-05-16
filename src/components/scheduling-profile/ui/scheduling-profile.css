@@ -106,6 +106,12 @@
   gap: 6px;
 }
 
+.sp-panel-leading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .sp-panel-body {
   padding: 12px;
 }

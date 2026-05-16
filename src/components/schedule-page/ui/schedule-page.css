@@ -122,6 +122,12 @@
   gap: 6px;
 }
 
+.spl-center-leading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .spl-grid-slot {
   flex: 1;
   min-height: 0;

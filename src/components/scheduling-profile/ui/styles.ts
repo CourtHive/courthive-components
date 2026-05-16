@@ -15,6 +15,7 @@ export const spPanelHeaderStyle = () => 'sp-panel-header';
 export const spPanelTitleStyle = () => 'sp-panel-title';
 export const spPanelMetaStyle = () => 'sp-panel-meta';
 export const spPanelActionsStyle = () => 'sp-panel-actions';
+export const spPanelLeadingStyle = () => 'sp-panel-leading';
 export const spPanelBodyStyle = () => 'sp-panel-body';
 
 // Date Strip

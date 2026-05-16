@@ -67,7 +67,7 @@ export class SchedulingProfileControl {
           this.popover.show(target, locator);
         }
       },
-      { headerActions: config.headerActions }
+      { headerActions: config.headerActions, titleLeadingActions: config.titleLeadingActions }
     );
 
     const roundCatalog = buildRoundCatalog({

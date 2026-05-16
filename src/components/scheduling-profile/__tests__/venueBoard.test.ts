@@ -10,6 +10,7 @@ const HEADER = '.sp-panel-header';
 const TITLE = '.sp-panel-title';
 const META = '.sp-panel-meta';
 const ACTIONS = '.sp-panel-actions';
+const LEADING = '.sp-panel-leading';
 const BOARD = '.sp-board';
 
 const makeButton = (label: string): HTMLButtonElement => {
@@ -88,5 +89,41 @@ describe('buildVenueBoard', () => {
     const containerAfter = panel.element.querySelector(ACTIONS);
     expect(containerAfter).toBe(containerBefore);
     expect(containerAfter?.firstElementChild).toBe(btn);
+  });
+
+  it('renders no leading container when titleLeadingActions omitted', () => {
+    const panel = buildVenueBoard(callbacks);
+    expect(panel.element.querySelector(LEADING)).toBeNull();
+  });
+
+  it('renders titleLeadingActions before the title within a leading container', () => {
+    const toggle = makeButton('Catalog');
+    const panel = buildVenueBoard(callbacks, { titleLeadingActions: toggle });
+    const leading = panel.element.querySelector(LEADING);
+    expect(leading).toBeTruthy();
+    // The leading container holds [toggle, title] in that order
+    expect(leading?.children).toHaveLength(2);
+    expect(leading?.firstElementChild).toBe(toggle);
+    expect(leading?.lastElementChild?.textContent).toBe('Day Plan');
+  });
+
+  it('renders an array of titleLeadingActions in the order provided', () => {
+    const a = makeButton('A');
+    const b = makeButton('B');
+    const panel = buildVenueBoard(callbacks, { titleLeadingActions: [a, b] });
+    const leading = panel.element.querySelector(LEADING);
+    expect(leading?.children).toHaveLength(3); // a, b, title
+    expect(Array.from(leading!.children).slice(0, 2)).toEqual([a, b]);
+  });
+
+  it('supports titleLeadingActions and headerActions together', () => {
+    const toggle = makeButton('Catalog');
+    const save = makeButton('Save');
+    const panel = buildVenueBoard(callbacks, {
+      titleLeadingActions: toggle,
+      headerActions: save
+    });
+    expect(panel.element.querySelector(LEADING)?.firstElementChild).toBe(toggle);
+    expect(panel.element.querySelector(ACTIONS)?.firstElementChild).toBe(save);
   });
 });

@@ -154,6 +154,10 @@ export interface SchedulePageConfig {
   /** Consumer-owned buttons rendered right-aligned in the court grid header.
    *  Consumer keeps live refs and mutates state (visibility, disabled, label) directly. */
   headerActions?: HTMLElement | HTMLElement[];
+  /** Consumer-owned buttons rendered immediately before the "Court Grid" title.
+   *  Use this slot for controls that act on content to the LEFT of the panel
+   *  (e.g. a catalog show/hide toggle when the catalog sits on the left). */
+  titleLeadingActions?: HTMLElement | HTMLElement[];
   onDateSelected?: (date: string) => void;
   onMatchUpDrop?: (payload: SchedulePageDragPayload, event: DragEvent) => void;
   onMatchUpRemove?: (matchUpId: string) => void;
