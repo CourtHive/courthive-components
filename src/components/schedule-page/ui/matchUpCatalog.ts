@@ -61,6 +61,7 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
   root.className = spPanelStyle();
 
   const CATALOG_DROP_OVER = 'spl-catalog-drop-over';
+  const FILTERING_CLASS = 'is-filtering';
   const collapsedGroups = new Set<string>();
   let lastState: SchedulePageState | null = null;
   let filterTip: Instance | undefined;
@@ -194,9 +195,14 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
       currentFilters = {};
       callbacks.onFilterChange(currentFilters);
       updateFilterBadge();
-      // Reset all selects in the popover
-      for (const sel of container.querySelectorAll('select')) {
-        (sel as HTMLSelectElement).value = '';
+      // Reset all selects in the popover + clear the active-filter highlight
+      // on both the select and its preceding label so the user gets a single
+      // unambiguous "everything is cleared" snapshot.
+      for (const sel of container.querySelectorAll<HTMLSelectElement>('select')) {
+        sel.value = '';
+        sel.classList.remove(FILTERING_CLASS);
+        const lbl = sel.previousElementSibling;
+        if (lbl?.classList.contains('spl-filter-label')) lbl.classList.remove(FILTERING_CLASS);
       }
     });
     popoverHeader.appendChild(clearAll);
@@ -248,10 +254,21 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
       // Set current filter value
       select.value = currentFilters[section.key] ?? '';
 
+      // Highlight the select + its label when an actual value (not "All") is
+      // chosen. Without this it's hard to spot which dropdown is causing the
+      // filter button to pulse, especially when 4+ dropdowns are visible.
+      const syncFilteringHighlight = () => {
+        const filtering = select.value !== '';
+        select.classList.toggle(FILTERING_CLASS, filtering);
+        label.classList.toggle(FILTERING_CLASS, filtering);
+      };
+      syncFilteringHighlight();
+
       select.addEventListener('change', () => {
         currentFilters = { ...currentFilters, [section.key]: select.value || undefined };
         callbacks.onFilterChange(currentFilters);
         updateFilterBadge();
+        syncFilteringHighlight();
       });
 
       container.appendChild(select);
