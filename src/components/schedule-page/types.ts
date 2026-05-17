@@ -174,6 +174,11 @@ export interface SchedulePageConfig {
    *  Use this slot for controls that act on content to the LEFT of the panel
    *  (e.g. a catalog show/hide toggle when the catalog sits on the left). */
   titleLeadingActions?: HTMLElement | HTMLElement[];
+  /** Optional element rendered in place of the default "Court Grid" title.
+   *  When set, replaces both the default text and the `.spl-center-title`
+   *  wrapper — consumer owns layout (e.g. inject a search input here so
+   *  the header reads as a single clean field). */
+  titleSlot?: HTMLElement;
   onDateSelected?: (date: string) => void;
   onMatchUpDrop?: (payload: SchedulePageDragPayload, event: DragEvent) => void;
   onMatchUpRemove?: (matchUpId: string) => void;

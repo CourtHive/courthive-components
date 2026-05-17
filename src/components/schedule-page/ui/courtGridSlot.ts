@@ -31,6 +31,11 @@ export interface CourtGridSlotOptions {
    *  Use this slot for controls that act on content to the LEFT of the panel
    *  (e.g. a catalog show/hide toggle when the catalog sits on the left). */
   titleLeadingActions?: HTMLElement | HTMLElement[];
+  /** Optional element rendered in place of the default "Court Grid" title.
+   *  When set, replaces both the default text and the `.spl-center-title`
+   *  wrapper — consumer is responsible for its own styling and any layout
+   *  growth it needs. */
+  titleSlot?: HTMLElement;
 }
 
 export function buildCourtGridSlot(
@@ -46,9 +51,14 @@ export function buildCourtGridSlot(
   header.className = splCenterHeaderStyle();
 
   const leading = options?.titleLeadingActions;
-  const title = document.createElement('div');
-  title.className = splCenterTitleStyle();
-  title.textContent = 'Court Grid';
+  let title: HTMLElement;
+  if (options?.titleSlot) {
+    title = options.titleSlot;
+  } else {
+    title = document.createElement('div');
+    title.className = splCenterTitleStyle();
+    title.textContent = 'Court Grid';
+  }
 
   if (leading) {
     const leadingContainer = document.createElement('div');

@@ -50,7 +50,8 @@ export class SchedulePageControl {
       {
         gridMaxHeight: config.gridMaxHeight,
         headerActions: config.headerActions,
-        titleLeadingActions: config.titleLeadingActions
+        titleLeadingActions: config.titleLeadingActions,
+        titleSlot: config.titleSlot
       }
     );
 
