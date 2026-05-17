@@ -112,7 +112,7 @@ function renderHistogram(args: HistogramArgs): SVGSVGElement {
     .range([innerHeight, 0]);
 
   const total = stats.histogram.length;
-  inner
+  const bars = inner
     .selectAll('rect.chc-rdc-bar')
     .data(stats.histogram)
     .enter()
@@ -123,6 +123,11 @@ function renderHistogram(args: HistogramArgs): SVGSVGElement {
     .attr('width', x.bandwidth())
     .attr('height', (b) => innerHeight - y(b.count))
     .attr('fill', (b, i) => resolveBinColor(b, i, total, binColor));
+
+  // Native SVG <title> child becomes a browser tooltip on hover. Cheap
+  // accessible alternative to a custom popover, and the bin range never
+  // overlaps the axis even when many bins compress the chart width.
+  bars.append('title').text((b) => `${formatBinLabel(b)}: ${b.count}`);
 
   if (showCounts) {
     inner
@@ -139,11 +144,23 @@ function renderHistogram(args: HistogramArgs): SVGSVGElement {
   }
 
   if (showAxis) {
+    // Bin labels read as "12.5–13.0" — ~55 px wide at font-size 10.
+    // When bins compress below that, every label rendered = overlap
+    // soup. Strategy:
+    //   - if all labels fit, render all of them
+    //   - otherwise render just the first and last as range anchors;
+    //     per-bin precision comes from the hover <title> on each bar
+    const labels = stats.histogram.map(formatBinLabel);
+    const MIN_PX_PER_LABEL = 55;
+    const pxPerBin = innerWidth / total;
+    const fitsAll = pxPerBin >= MIN_PX_PER_LABEL;
+    const tickValues = fitsAll ? labels : [labels[0], labels.at(-1)!].filter((v, i, a) => a.indexOf(v) === i);
+
     inner
       .append('g')
       .attr('class', 'chc-rdc-axis')
       .attr('transform', `translate(0, ${innerHeight})`)
-      .call(axisBottom(x).tickSize(0))
+      .call(axisBottom(x).tickValues(tickValues).tickSize(0))
       .call((g) => g.select('.domain').remove())
       .call((g) => g.selectAll('text').attr('font-size', '10').attr('dy', '0.9em'));
   }
