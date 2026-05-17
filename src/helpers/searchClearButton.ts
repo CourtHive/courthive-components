@@ -18,7 +18,10 @@ const CLEAR_SVG =
   '<path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c9.4-9.4 24.6-9.4 33.9 0l47 47 47-47c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-47 47 47 47c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-47-47-47 47c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l47-47-47-47c-9.4-9.4-9.4-24.6 0-33.9z"/>' +
   '</svg>';
 
-const SYNC_KEY = '__syncClearVisibility';
+// Associates the wrapper element with its sync function without
+// monkey-patching the DOM type. Keys are weakly held so the entry
+// disappears when the wrapper is GC'd.
+const syncByWrap = new WeakMap<HTMLElement, () => void>();
 
 export function wrapSearchWithClear(input: HTMLInputElement, onClear: () => void): HTMLElement {
   const wrap = document.createElement('div');
@@ -72,14 +75,14 @@ export function wrapSearchWithClear(input: HTMLInputElement, onClear: () => void
 
   input.addEventListener('input', sync);
 
-  // Stash the sync function on the wrapper so callers can refresh
-  // visibility after programmatic `input.value =` assignments.
-  (wrap as Record<string, unknown>)[SYNC_KEY] = sync;
+  // Associate sync with the wrapper so callers can refresh visibility
+  // after programmatic `input.value =` assignments (the native `input`
+  // event doesn't fire for direct value writes).
+  syncByWrap.set(wrap, sync);
   wrap.appendChild(clearBtn);
   return wrap;
 }
 
 export function syncClearVisibility(wrap: HTMLElement): void {
-  const fn = (wrap as Record<string, unknown>)[SYNC_KEY];
-  if (typeof fn === 'function') fn();
+  syncByWrap.get(wrap)?.();
 }
