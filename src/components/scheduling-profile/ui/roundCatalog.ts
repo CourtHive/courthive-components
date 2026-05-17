@@ -6,6 +6,7 @@
 
 import type { ProfileStoreState, UIPanel, CatalogGroupBy, CatalogRoundItem, DragPayload, RoundLocator } from '../types';
 import { filterCatalog, groupCatalog, getPlannedRoundKeys } from '../domain/catalogProjections';
+import { wrapSearchWithClear, syncClearVisibility } from '../../../helpers/searchClearButton';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function isUUID(s: string): boolean {
@@ -69,6 +70,12 @@ export function buildRoundCatalog(callbacks: RoundCatalogCallbacks): UIPanel<Pro
   searchInput.className = spInputStyle();
   searchInput.addEventListener('input', () => callbacks.onSearchChange(searchInput.value));
 
+  const searchWrap = wrapSearchWithClear(searchInput, () => {
+    searchInput.value = '';
+    callbacks.onSearchChange('');
+    searchInput.focus();
+  });
+
   const groupSelect = document.createElement('select');
   groupSelect.className = spSelectStyle();
   for (const [val, label] of [
@@ -83,7 +90,7 @@ export function buildRoundCatalog(callbacks: RoundCatalogCallbacks): UIPanel<Pro
   }
   groupSelect.addEventListener('change', () => callbacks.onGroupByChange(groupSelect.value as CatalogGroupBy));
 
-  toolbar.appendChild(searchInput);
+  toolbar.appendChild(searchWrap);
   toolbar.appendChild(groupSelect);
   root.appendChild(toolbar);
 
@@ -177,6 +184,7 @@ export function buildRoundCatalog(callbacks: RoundCatalogCallbacks): UIPanel<Pro
     // Sync controls
     if (searchInput.value !== state.catalogSearchQuery) {
       searchInput.value = state.catalogSearchQuery;
+      syncClearVisibility(searchWrap);
     }
     if (groupSelect.value !== state.catalogGroupBy) {
       groupSelect.value = state.catalogGroupBy;

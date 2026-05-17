@@ -17,6 +17,7 @@ import type {
   SchedulePageDragPayload
 } from '../types';
 import { filterMatchUpCatalog, groupMatchUpCatalog } from '../domain/matchUpCatalogProjections';
+import { wrapSearchWithClear, syncClearVisibility } from '../../../helpers/searchClearButton';
 import { buildMatchUpCard } from './matchUpCard';
 import {
   spPanelStyle,
@@ -128,6 +129,12 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
   searchInput.className = spInputStyle();
   searchInput.addEventListener('input', () => callbacks.onSearchChange(searchInput.value));
 
+  const searchWrap = wrapSearchWithClear(searchInput, () => {
+    searchInput.value = '';
+    callbacks.onSearchChange('');
+    searchInput.focus();
+  });
+
   const groupSelect = document.createElement('select');
   groupSelect.className = spSelectStyle();
   for (const [val, label] of [
@@ -143,7 +150,7 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
   }
   groupSelect.addEventListener('change', () => callbacks.onGroupByChange(groupSelect.value as MatchUpCatalogGroupBy));
 
-  toolbar.appendChild(searchInput);
+  toolbar.appendChild(searchWrap);
   toolbar.appendChild(groupSelect);
   root.appendChild(toolbar);
 
@@ -322,6 +329,7 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
     // Sync controls
     if (searchInput.value !== state.catalogSearchQuery) {
       searchInput.value = state.catalogSearchQuery;
+      syncClearVisibility(searchWrap);
     }
     if (groupSelect.value !== state.catalogGroupBy) {
       groupSelect.value = state.catalogGroupBy;

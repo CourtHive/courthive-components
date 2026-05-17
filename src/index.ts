@@ -134,6 +134,12 @@ export * as validators from './validators';
 export { DrawStateManager } from './helpers/drawStateManager';
 export type { RenderCallback } from './helpers/drawStateManager';
 
+// Search input helper — adds a consistent (x) clear button to bare <input>
+// search fields. Used by the scheduling-profile and schedule-page catalogs
+// internally; exported so TMX and other consumers can match the styling on
+// inputs that don't go through controlBar.
+export { wrapSearchWithClear, syncClearVisibility } from './helpers/searchClearButton';
+
 // Burst Chart — D3v7 Sunburst Tournament Visualization
 export { burstChart } from './components/burstChart/burstChart';
 export type {
