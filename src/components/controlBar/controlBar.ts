@@ -228,7 +228,18 @@ function appendSearchIcons(elem: HTMLElement, input: HTMLInputElement, itemConfi
       e.stopPropagation();
       input.value = '';
       itemConfig.clearSearch();
+      syncVisibility();
     };
+    // Only show the clear icon when there's something to clear — matches
+    // the schedule-page / matchUp-catalog / rounds-catalog behaviour and
+    // keeps the field uncluttered when empty. Initial render is honored
+    // via `itemConfig.value` on the input (line ~198), so syncing once
+    // here covers the "restored filter on remount" case too.
+    const syncVisibility = () => {
+      clear.style.display = input.value ? '' : 'none';
+    };
+    input.addEventListener('input', syncVisibility);
+    syncVisibility();
     elem.appendChild(clear);
   }
 }
