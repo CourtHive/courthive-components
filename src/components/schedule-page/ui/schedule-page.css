@@ -180,8 +180,9 @@
 
 .spl-catalog-filter-btn.active {
   opacity: 1;
-  color: var(--sp-accent-text);
-  background: rgba(59, 130, 246, 0.1);
+  color: #e67e22;
+  background: rgba(230, 126, 34, 0.1);
+  animation: spl-catalog-filter-pulse 1.5s ease-in-out infinite;
 }
 
 .spl-catalog-filter-btn.active::after {
@@ -193,6 +194,16 @@
   height: 7px;
   background: var(--sp-accent, #3b82f6);
   border-radius: 50%;
+}
+
+@keyframes spl-catalog-filter-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
 }
 
 /* ── Filter Popover ────────────────────────────────────── */
