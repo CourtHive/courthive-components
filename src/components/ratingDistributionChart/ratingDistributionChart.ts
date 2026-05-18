@@ -140,6 +140,7 @@ function renderHistogram(args: HistogramArgs): SVGSVGElement {
       .attr('y', (b) => y(b.count) - 4)
       .attr(ATTR_TEXT_ANCHOR, TEXT_ANCHOR_MIDDLE)
       .attr('font-size', '11')
+      .attr('fill', 'var(--chc-rdc-count-color, var(--chc-text-primary, #111827))')
       .text((b) => (b.count > 0 ? String(b.count) : ''));
   }
 
