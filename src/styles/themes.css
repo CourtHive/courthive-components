@@ -94,3 +94,19 @@
   --chc-participant-text-transform: uppercase;
   --chc-border-width-inline-start: 10px;
 }
+
+/* ── TYPTI (orange borders + connectors, adaptive surface) ─ */
+/* TYPTI's brand color (orange) carries both the matchUp border AND the
+   connecting lines — the opposite of Wimbledon (no connectors, thick left bar).
+   Orange is mode-agnostic; surfaces + dividers reference semantic tokens
+   so the theme inverts cleanly under [data-theme='dark']. */
+.chc-theme-typti {
+  --chc-color-border: #ff6a00;
+  --chc-color-border-hover: #ff6a00;
+  --chc-color-connector: #ff6a00;
+  --chc-color-score: #ff6a00;
+  --chc-color-round-header: #ff6a00;
+  --chc-color-matchup: var(--chc-bg-elevated);
+  --chc-color-matchup-bg: var(--chc-bg-primary);
+  --chc-color-internal-dividers: var(--chc-border-secondary);
+}

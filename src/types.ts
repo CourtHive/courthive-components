@@ -232,9 +232,35 @@ export interface Configuration {
   };
 }
 
+export interface CompositionColors {
+  /** matchUp border color — sets `--chc-color-border` on the draw container */
+  border?: string;
+  /** matchUp border color on hover — sets `--chc-color-border-hover` */
+  borderHover?: string;
+  /** inline-start (left) border color — sets `--chc-color-border-inline-start`. Falls back to `border` when unset. */
+  borderInlineStart?: string;
+  /** inline-start (left) border width, e.g. '10px' — sets `--chc-border-width-inline-start` */
+  borderInlineStartWidth?: string;
+  /** connector line color between matchUps — sets `--chc-color-connector` */
+  connector?: string;
+  /** matchUp background color — sets `--chc-color-matchup` */
+  matchUpBackground?: string;
+  /** divider color between participants within a matchUp — sets `--chc-color-internal-dividers` */
+  internalDividers?: string;
+  /** placeholder "[Score]" text color — sets `--chc-color-score`. Falls back to `--chc-status-info`. */
+  score?: string;
+  /** round header text + underline color — sets `--chc-color-round-header`.
+   * Underline falls back to `--chc-text-primary`; text falls back to inherit. */
+  roundHeader?: string;
+}
+
 export interface Composition {
   theme: string;
   configuration?: Configuration;
+  /** Per-composition color overrides. Applied as inline CSS custom properties on the draw root,
+   * cascading to `.chc-matchup` borders and `.chc-link` connector pseudo-elements. Unspecified
+   * fields fall back to the theme's defaults. */
+  colors?: CompositionColors;
 }
 
 export interface EventHandlers {

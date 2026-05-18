@@ -1,11 +1,12 @@
 import {
   australianTheme,
   basicCardTheme,
-  basicTheme,
-  itfTheme,
-  frenchTheme,
   wimbledonTheme,
-  usOpenTheme
+  frenchTheme,
+  usOpenTheme,
+  basicTheme,
+  typtiTheme,
+  itfTheme
 } from '../styles/themes';
 import type { Composition } from '../types';
 
@@ -46,6 +47,14 @@ export const compositions: Record<string, Composition> = {
   ITF: {
     configuration: { winnerChevron: true, centerInfo: true, flags: true, roundHeader: true },
     theme: itfTheme
+  },
+  TYPTI: {
+    configuration: {
+      flags: true,
+      roundHeader: true,
+      placeHolders: { tbd: 'TBD', bye: 'Bye' }
+    },
+    theme: typtiTheme
   },
   BasicCard: {
     configuration: {

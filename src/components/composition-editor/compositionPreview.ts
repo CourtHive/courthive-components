@@ -2,6 +2,7 @@
  * Live matchUp preview panel for composition editor.
  * Renders mock matchUps using the current composition settings.
  */
+import { applyCompositionColors, clearCompositionColors } from '../../styles/applyCompositionColors';
 import { renderMatchUp } from '../renderStructure/renderMatchUp';
 import { generateMatchUps } from '../../data/generateMatchUps';
 import { cePreview, cePreviewHeader, cePreviewBody, cePreviewMatchup } from './styles';
@@ -156,19 +157,26 @@ export function buildCompositionPreview(): EditorPanel {
 
   let lastTheme = '';
   let lastConfigJson = '';
+  let lastColorsJson = '';
 
   function update(state: CompositionEditorState): void {
     // Only re-render if something changed
     const configJson = JSON.stringify(state.configuration);
-    if (state.theme === lastTheme && configJson === lastConfigJson) return;
+    const colorsJson = JSON.stringify(state.colors || {});
+    if (state.theme === lastTheme && configJson === lastConfigJson && colorsJson === lastColorsJson) return;
     lastTheme = state.theme;
     lastConfigJson = configJson;
+    lastColorsJson = colorsJson;
 
     body.innerHTML = '';
+    // Clear any previously-applied color custom properties before re-applying
+    clearCompositionColors(body);
+    applyCompositionColors(body, state.colors);
 
     const composition: Composition = {
       theme: state.theme,
-      configuration: { ...state.configuration }
+      configuration: { ...state.configuration },
+      colors: state.colors ? { ...state.colors } : undefined
     };
 
     const matchUps = getMockMatchUps();

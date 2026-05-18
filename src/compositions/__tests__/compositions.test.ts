@@ -12,6 +12,7 @@ const EXPECTED_NAMES = [
   'Wimbledon',
   'US Open',
   'ITF',
+  'TYPTI',
   'BasicCard',
   'InlineScoring',
   'National'

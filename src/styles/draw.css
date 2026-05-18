@@ -42,7 +42,8 @@
 }
 
 .chc-round-header {
-  border-bottom: solid 1px var(--chc-text-primary);
+  border-bottom: solid 1px var(--chc-color-round-header, var(--chc-text-primary));
+  color: var(--chc-color-round-header, inherit);
   margin-inline-start: 16px;
   margin-inline-end: 16px;
   font-weight: bold;
@@ -565,7 +566,7 @@
 .chc-score-wrapper--small {
   font-size: smaller;
   padding-right: 1em;
-  color: var(--chc-status-info);
+  color: var(--chc-color-score, var(--chc-status-info));
 }
 
 /* ── Center info ─────────────────────────────────────────── */
@@ -666,6 +667,7 @@
   width: 100%;
   border-width: var(--chc-border-width-matchup);
   border-inline-start-width: var(--chc-border-width-inline-start);
+  border-inline-start-color: var(--chc-color-border-inline-start, var(--chc-color-border));
 }
 
 .chc-matchup:hover {

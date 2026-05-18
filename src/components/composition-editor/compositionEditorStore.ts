@@ -1,4 +1,4 @@
-import type { Configuration } from '../../types';
+import type { CompositionColors, Configuration } from '../../types';
 import type {
   CompositionEditorConfig,
   CompositionEditorState,
@@ -17,6 +17,7 @@ export class CompositionEditorStore {
       compositionName: config.compositionName || 'Custom',
       theme: config.composition?.theme || '',
       configuration: { ...(config.composition?.configuration || {}) },
+      colors: config.composition?.colors ? { ...config.composition.colors } : undefined,
       expandedSections: new Set<SectionId>(['theme', 'display']),
       isDirty: false,
       readOnly: config.readOnly || false
@@ -49,6 +50,24 @@ export class CompositionEditorStore {
     this.notifyChange();
   }
 
+  // ── Colors ──
+  setColorField<K extends keyof CompositionColors>(key: K, value: CompositionColors[K] | undefined): void {
+    const next: CompositionColors = { ...(this.state.colors || {}) };
+    if (value === undefined || value === '') {
+      delete next[key];
+    } else {
+      next[key] = value;
+    }
+    const hasAny = Object.keys(next).length > 0;
+    this.setState({ colors: hasAny ? next : undefined, isDirty: true });
+    this.notifyChange();
+  }
+
+  clearColors(): void {
+    this.setState({ colors: undefined, isDirty: true });
+    this.notifyChange();
+  }
+
   // ── Name ──
   setCompositionName(name: string): void {
     this.setState({ compositionName: name, isDirty: true });
@@ -74,12 +93,13 @@ export class CompositionEditorStore {
     this.notifyChange();
   }
 
-  /** Load a full composition (theme + config + name) */
-  loadComposition(name: string, theme: string, configuration: Configuration): void {
+  /** Load a full composition (theme + config + name + colors) */
+  loadComposition(name: string, theme: string, configuration: Configuration, colors?: CompositionColors): void {
     this.setState({
       compositionName: name,
       theme,
       configuration: { ...configuration },
+      colors: colors ? { ...colors } : undefined,
       isDirty: false
     });
     this.notifyChange();
@@ -91,6 +111,7 @@ export class CompositionEditorStore {
       compositionName: this.config.compositionName || 'Custom',
       theme: this.config.composition?.theme || '',
       configuration: { ...(this.config.composition?.configuration || {}) },
+      colors: this.config.composition?.colors ? { ...this.config.composition.colors } : undefined,
       isDirty: false
     });
     this.notifyChange();
@@ -111,7 +132,8 @@ export class CompositionEditorStore {
   private notifyChange(): void {
     this.config.onChange?.({
       theme: this.state.theme,
-      configuration: this.state.configuration
+      configuration: this.state.configuration,
+      ...(this.state.colors ? { colors: { ...this.state.colors } } : {})
     });
   }
 }

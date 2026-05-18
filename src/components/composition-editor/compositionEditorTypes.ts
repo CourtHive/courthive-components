@@ -1,10 +1,11 @@
-import type { Composition, Configuration } from '../../types';
+import type { Composition, CompositionColors, Configuration } from '../../types';
 
 /** JSON-serializable snapshot of a composition (no functions/DOM refs) */
 export interface SavedComposition {
   compositionName: string;
   theme: string;
   configuration: Configuration;
+  colors?: CompositionColors;
   version?: number;
 }
 
@@ -23,12 +24,21 @@ export interface CompositionEditorConfig {
   availableThemes?: string[];
 }
 
-export type SectionId = 'theme' | 'display' | 'score' | 'participant' | 'placeholder' | 'scale' | 'layout';
+export type SectionId =
+  | 'theme'
+  | 'colors'
+  | 'display'
+  | 'score'
+  | 'participant'
+  | 'placeholder'
+  | 'scale'
+  | 'layout';
 
 export interface CompositionEditorState {
   compositionName: string;
   theme: string;
   configuration: Configuration;
+  colors?: CompositionColors;
   expandedSections: Set<SectionId>;
   isDirty: boolean;
   readOnly: boolean;

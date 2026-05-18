@@ -101,14 +101,14 @@ describe('createCompositionEditor', () => {
     expect((saved.configuration as any).inlineAssignment).toBeUndefined();
   });
 
-  it('renders 7 accordion sections', () => {
+  it('renders 8 accordion sections', () => {
     const { container } = setup();
     // Each section has a header button — look for section containers
     // The sections are in the left column (first child of root)
     const root = container.children[0];
     const left = root.children[0];
-    // Left has: nameRow + 7 sections = 8 children
-    expect(left.children.length).toBe(8);
+    // Left has: nameRow + 8 sections = 9 children
+    expect(left.children.length).toBe(9);
   });
 
   it('renders a preview panel in the right column', () => {

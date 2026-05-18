@@ -9,6 +9,7 @@ import type { CompositionEditorConfig, SavedComposition, EditorPanel } from './c
 import { ceLayout, ceLeft, ceRight, ceNameRow, ceNameLabel, ceNameInput } from './styles';
 import { buildSection, type SectionDef } from './sections/sectionBuilder';
 import { buildThemeSection } from './sections/themeSection';
+import { buildColorsSection } from './sections/colorsSection';
 import { buildDisplaySection } from './sections/displaySection';
 import { buildScoreSection } from './sections/scoreSection';
 import { buildParticipantSection } from './sections/participantSection';
@@ -21,6 +22,7 @@ export type { CompositionEditorConfig, SavedComposition };
 
 const SECTION_DEFS: SectionDef[] = [
   { id: 'theme', label: 'Theme & Preset', factory: buildThemeSection },
+  { id: 'colors', label: 'Colors', factory: buildColorsSection },
   { id: 'display', label: 'Display', factory: buildDisplaySection },
   { id: 'score', label: 'Score', factory: buildScoreSection },
   { id: 'participant', label: 'Participant', factory: buildParticipantSection },
@@ -116,6 +118,7 @@ export function createCompositionEditor(
         compositionName: state.compositionName,
         theme: state.theme,
         configuration: serializableConfig,
+        ...(state.colors ? { colors: { ...state.colors } } : {}),
         version: 1
       };
     }

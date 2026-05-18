@@ -37,7 +37,7 @@ export function buildThemeSection(store: CompositionEditorStore): EditorPanel {
       if (!val) return;
       const preset = compositions[val];
       if (preset) {
-        store.loadComposition(val, preset.theme, preset.configuration || {});
+        store.loadComposition(val, preset.theme, preset.configuration || {}, preset.colors);
       }
       // Reset the dropdown back to placeholder
       presetField.setValue('');

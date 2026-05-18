@@ -4,4 +4,5 @@ export { wimbledonTheme } from './wimbledonTheme';
 export { frenchTheme } from './frenchTheme';
 export { usOpenTheme } from './usOpenTheme';
 export { basicTheme } from './basicTheme';
+export { typtiTheme } from './typtiTheme';
 export { itfTheme } from './itfTheme';

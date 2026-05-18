@@ -1,3 +1,4 @@
+import { applyCompositionColors } from '../../styles/applyCompositionColors';
 import { roundContainerStyle } from '../../styles/roundContainerStyle';
 import { tournamentEngine } from 'tods-competition-factory';
 import { structureStyle } from '../../styles/structureStyle';
@@ -42,6 +43,8 @@ export function renderStructure({
 
   div.classList.add('tmx-str');
   div.setAttribute('id', structureId || '');
+
+  applyCompositionColors(div, composition?.colors);
 
   const finalRoundNumber = roundNumbers.length ? Math.max.apply(null, roundNumbers) : 0;
 
