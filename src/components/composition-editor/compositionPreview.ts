@@ -3,6 +3,7 @@
  * Renders mock matchUps using the current composition settings.
  */
 import { applyCompositionColors, clearCompositionColors } from '../../styles/applyCompositionColors';
+import { renderStructure } from '../renderStructure/renderStructure';
 import { renderMatchUp } from '../renderStructure/renderMatchUp';
 import { generateMatchUps } from '../../data/generateMatchUps';
 import { cePreview, cePreviewHeader, cePreviewBody, cePreviewMatchup } from './styles';
@@ -142,6 +143,25 @@ function getMockMatchUps() {
   return cachedMatchUps;
 }
 
+// A small, connected bracket so connector + border colors are visible.
+// Uses real matchUps (with structureId / roundNumber / roundPosition) so
+// renderStructure draws the chc-link pseudo-elements between rounds.
+let cachedBracketMatchUps: any[] | null = null;
+
+function getBracketMockMatchUps() {
+  if (!cachedBracketMatchUps) {
+    const { matchUps } = generateMatchUps({
+      drawSize: 4,
+      eventType: 'SINGLES',
+      matchUpFormat: 'SET3-S:6/TB7',
+      completionGoal: 50,
+      randomWinningSide: true
+    });
+    cachedBracketMatchUps = matchUps;
+  }
+  return cachedBracketMatchUps;
+}
+
 export function buildCompositionPreview(): EditorPanel {
   const root = document.createElement('div');
   root.className = cePreview();
@@ -192,6 +212,21 @@ export function buildCompositionPreview(): EditorPanel {
       wrapper.appendChild(rendered);
       body.appendChild(wrapper);
     }
+
+    // Connector-preview panel: small connected bracket so the connector
+    // and border colors set on the composition can actually be seen.
+    const bracketLabel = document.createElement('div');
+    bracketLabel.style.cssText =
+      'margin-top:1.5rem; padding:0 0.25rem; font-size:0.7rem; ' +
+      'color:var(--chc-text-secondary, #999); text-transform:uppercase; letter-spacing:0.05em;';
+    bracketLabel.textContent = 'Connector preview';
+    body.appendChild(bracketLabel);
+
+    const bracket = renderStructure({
+      matchUps: getBracketMockMatchUps(),
+      composition
+    });
+    body.appendChild(bracket);
   }
 
   return { element: root, update };
