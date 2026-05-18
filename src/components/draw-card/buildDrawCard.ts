@@ -17,6 +17,7 @@ import {
   dcProgressStyle,
   dcSecondaryBadgeStyle,
   dcStatusPillStyle,
+  dcTitleRowStyle,
   dcTitleStyle
 } from './styles';
 import {
@@ -55,11 +56,7 @@ export function buildDrawCard(
     });
   }
 
-  if (cfg.cornerBadges.length) {
-    const badges = buildCornerBadges(data, cfg.cornerBadges);
-    if (badges) card.appendChild(badges);
-  }
-  if (cfg.body.length) card.appendChild(buildBodyZone(data, cfg));
+  if (cfg.body.length || cfg.cornerBadges.length) card.appendChild(buildBodyZone(data, cfg));
   if (cfg.footer.length) card.appendChild(buildFooterZone(data, cfg));
 
   return card;
@@ -207,10 +204,36 @@ function renderField(field: DrawCardField, data: DrawCardData): HTMLElement | nu
   return null;
 }
 
+function buildTitleRow(data: DrawCardData, cornerBadgeFields: DrawCardCornerField[]): HTMLElement {
+  const row = document.createElement('div');
+  row.className = dcTitleRowStyle();
+  const title = renderTitle(data);
+  if (title) row.appendChild(title);
+  const badges = buildCornerBadges(data, cornerBadgeFields);
+  if (badges) row.appendChild(badges);
+  return row;
+}
+
 function buildBodyZone(data: DrawCardData, cfg: DrawCardConfig): HTMLElement {
   const body = document.createElement('div');
   body.className = dcBodyStyle();
+
+  const hasTitleField = cfg.body.includes('title');
+  const hasBadges = cfg.cornerBadges.length > 0;
+
+  // Badges with no title field → prepend their column at the top of body.
+  if (hasBadges && !hasTitleField) {
+    const badges = buildCornerBadges(data, cfg.cornerBadges);
+    if (badges) body.appendChild(badges);
+  }
+
   for (const f of cfg.body) {
+    // The title field is rendered inside a flex row with the corner badges
+    // so the two share horizontal space instead of overlapping.
+    if (f === 'title' && hasBadges) {
+      body.appendChild(buildTitleRow(data, cfg.cornerBadges));
+      continue;
+    }
     const el = renderField(f, data);
     if (el) body.appendChild(el);
   }

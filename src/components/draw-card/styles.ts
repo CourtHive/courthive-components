@@ -10,6 +10,7 @@ export const dcCornerBadgesStyle = () => 'chc-dc-corner-badges';
 export const dcStatusPillStyle = () => 'chc-dc-status-pill';
 export const dcSecondaryBadgeStyle = () => 'chc-dc-secondary-badge';
 export const dcBodyStyle = () => 'chc-dc-body';
+export const dcTitleRowStyle = () => 'chc-dc-title-row';
 export const dcTitleStyle = () => 'chc-dc-title';
 export const dcDrawTypeLabelStyle = () => 'chc-dc-draw-type';
 export const dcMetaLineStyle = () => 'chc-dc-meta';

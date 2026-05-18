@@ -60,15 +60,25 @@
   transform: translateY(-1px);
 }
 
-/* ── Corner badges ── */
+/* ── Title row + corner badges (in normal flow) ── */
+
+.chc-dc-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.chc-dc-title-row .chc-dc-title {
+  flex: 1 1 auto;
+  min-width: 0; /* enables -webkit-line-clamp ellipsis inside a flex item */
+}
 
 .chc-dc-corner-badges {
-  position: absolute;
-  top: 0.5rem; right: 0.5rem;
   display: flex; flex-direction: column;
   align-items: flex-end;
   gap: 0.25rem;
-  z-index: 2;
+  flex-shrink: 0;
   pointer-events: none;
 }
 
@@ -126,8 +136,6 @@
   -webkit-box-orient: vertical;
   overflow: hidden; text-overflow: ellipsis;
   line-height: 1.25;
-  padding-right: 4rem; /* leave room for corner badges */
-  text-wrap: balance;
 }
 
 .chc-dc-draw-type {
