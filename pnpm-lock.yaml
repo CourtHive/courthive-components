@@ -28,7 +28,7 @@ importers:
         version: 1.11.20
       focus-trap:
         specifier: ^8.0.0
-        version: 8.2.0
+        version: 8.2.1
       timepicker-ui:
         specifier: ^4.1.2
         version: 4.3.0
@@ -2678,8 +2678,8 @@ packages:
   flatted@3.4.2:
     resolution: {integrity: sha512-PjDse7RzhcPkIJwy5t7KPWQSZ9cAbzQXcafsetQoD7sOJRQlGikNbx7yZp2OotDnJyrDcbyRq3Ttb18iYOqkxA==}
 
-  focus-trap@8.2.0:
-    resolution: {integrity: sha512-CaBdQ9P4fa/yCA6pDf/3aJd8bf9IOG5QGK21/E+86o2V4V8kzXaR4A9E6tNR7KkkS1+T5ZIU1tJDBDLwsucz9g==}
+  focus-trap@8.2.1:
+    resolution: {integrity: sha512-6CxwrrFRquH7pDXb1mWxudkU9LSfYBMRZutpgddb2o6iwCk7cIRrBhyY3c8SGKcmIKdeMTrGSNg4Bedh2RSF/w==}
 
   follow-redirects@1.16.0:
     resolution: {integrity: sha512-y5rN/uOsadFT/JfYwhxRS5R7Qce+g3zG97+JrtFZlC9klX/W5hD7iiLzScI4nZqUS7DNUdhPgw4xI8W2LuXlUw==}
@@ -6968,7 +6968,7 @@ snapshots:
 
   flatted@3.4.2: {}
 
-  focus-trap@8.2.0:
+  focus-trap@8.2.1:
     dependencies:
       tabbable: 6.4.0
 
