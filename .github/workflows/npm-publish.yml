@@ -42,8 +42,9 @@ jobs:
           ref: ${{ steps.ref.outputs.tag }}
 
       - uses: pnpm/action-setup@v6
-        with:
-          version: 11
+        # pnpm version is resolved from package.json's `packageManager` field.
+        # Specifying `version:` here too makes the action error out with
+        # "Multiple versions of pnpm specified" (ERR_PNPM_BAD_PM_VERSION).
 
       - uses: actions/setup-node@v6
         with:
