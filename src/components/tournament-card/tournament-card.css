@@ -1,0 +1,320 @@
+/* Tournament Card — component-owned styles.
+ * Variables prefixed --chc-tc-* with sensible defaults.
+ * Semantic tokens (--chc-bg-elevated, --chc-text-*, etc.) flow through so
+ * [data-theme='dark'] on any ancestor automatically rethemes the card.
+ * Consumers can override --chc-tc-* at any scope. */
+
+.chc-tc-card {
+  /* surface — semantic tokens drive theme adaptation */
+  --chc-tc-radius: 0.75rem;
+  --chc-tc-bg: var(--chc-bg-elevated, #ffffff);
+  --chc-tc-hover-bg: var(--chc-hover-bg, #f9fafb);
+  --chc-tc-border-color: var(--chc-border-primary, #e5e7eb);
+  --chc-tc-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --chc-tc-hover-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+
+  /* typography */
+  --chc-tc-title-color: var(--chc-text-primary, #111827);
+  --chc-tc-location-color: var(--chc-text-secondary, #4b5563);
+  --chc-tc-date-color: var(--chc-text-primary, #374151);
+  --chc-tc-muted-color: var(--chc-text-muted, #6b7280);
+
+  /* image surfaces */
+  --chc-tc-image-bg: var(--chc-bg-secondary, #f3f4f6);
+  --chc-tc-placeholder-stripe: var(--chc-border-primary, #e5e7eb);
+
+  /* fee badge — intentional brand accent; explicit dark override below */
+  --chc-tc-fee-bg: #15803d;
+  --chc-tc-fee-color: #ffffff;
+
+  /* status pill defaults */
+  --chc-tc-status-bg: #15803d;
+  --chc-tc-status-color: #ffffff;
+  --chc-tc-status-live-bg: #b91c1c;
+  --chc-tc-status-live-color: #ffffff;
+  --chc-tc-status-closing-soon-bg: #15803d;
+  --chc-tc-status-closing-soon-color: #ffffff;
+  --chc-tc-status-completed-bg: #6b7280;
+  --chc-tc-status-completed-color: #ffffff;
+  --chc-tc-status-cancelled-bg: #9ca3af;
+  --chc-tc-status-cancelled-color: #ffffff;
+  --chc-tc-status-registration-bg: #2563eb;
+  --chc-tc-status-registration-color: #ffffff;
+
+  /* skeleton shimmer */
+  --chc-tc-skeleton-bg: var(--chc-bg-secondary, #e5e7eb);
+  --chc-tc-skeleton-shimmer: var(--chc-hover-bg, #f3f4f6);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: var(--chc-tc-bg);
+  border: 1px solid var(--chc-tc-border-color);
+  border-radius: var(--chc-tc-radius);
+  box-shadow: var(--chc-tc-shadow);
+  overflow: hidden;
+  transition: box-shadow 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+/* Dark-mode tweaks for surfaces that need stronger contrast than the
+ * semantic tokens give, and for the brand-accent pills that would otherwise
+ * stay at their light-mode intensity. Activated by [data-theme='dark']
+ * anywhere up the ancestor chain. */
+[data-theme='dark'] .chc-tc-card {
+  --chc-tc-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --chc-tc-hover-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
+
+  --chc-tc-image-bg: #0f1726;
+  --chc-tc-placeholder-stripe: #1f2a3d;
+
+  --chc-tc-fee-bg: #16a34a;
+  --chc-tc-status-bg: #16a34a;
+  --chc-tc-status-live-bg: #ef4444;
+  --chc-tc-status-closing-soon-bg: #16a34a;
+  --chc-tc-status-completed-bg: #4b5563;
+  --chc-tc-status-cancelled-bg: #6b7280;
+  --chc-tc-status-registration-bg: #3b82f6;
+
+  --chc-tc-skeleton-bg: #1f2a3d;
+  --chc-tc-skeleton-shimmer: #2a3550;
+}
+
+.chc-tc-card--clickable {
+  cursor: pointer;
+}
+
+.chc-tc-card--clickable:hover {
+  box-shadow: var(--chc-tc-hover-shadow);
+  background: var(--chc-tc-hover-bg);
+  transform: translateY(-1px);
+}
+
+.chc-tc-card--offline {
+  outline: 2px dashed var(--chc-tc-muted-color);
+  outline-offset: -2px;
+}
+
+/* ── Image zone ── */
+
+.chc-tc-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--chc-tc-image-bg);
+  border-bottom: 1px solid var(--chc-tc-border-color);
+  overflow: hidden;
+}
+
+.chc-tc-image-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.chc-tc-image-svg {
+  width: 80%;
+  height: 80%;
+}
+
+.chc-tc-image-placeholder {
+  width: 100%;
+  height: 100%;
+  background:
+    repeating-linear-gradient(
+      135deg,
+      var(--chc-tc-image-bg),
+      var(--chc-tc-image-bg) 8px,
+      var(--chc-tc-placeholder-stripe) 8px,
+      var(--chc-tc-placeholder-stripe) 16px
+    );
+}
+
+/* ── Corner badges ── */
+
+.chc-tc-corner-badges {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.chc-tc-status-pill {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  background: var(--chc-tc-status-bg);
+  color: var(--chc-tc-status-color);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.chc-tc-status-pill[data-kind='live'] {
+  background: var(--chc-tc-status-live-bg);
+  color: var(--chc-tc-status-live-color);
+}
+
+.chc-tc-status-pill[data-kind='closing-soon'] {
+  background: var(--chc-tc-status-closing-soon-bg);
+  color: var(--chc-tc-status-closing-soon-color);
+}
+
+.chc-tc-status-pill[data-kind='completed'] {
+  background: var(--chc-tc-status-completed-bg);
+  color: var(--chc-tc-status-completed-color);
+}
+
+.chc-tc-status-pill[data-kind='cancelled'] {
+  background: var(--chc-tc-status-cancelled-bg);
+  color: var(--chc-tc-status-cancelled-color);
+}
+
+.chc-tc-status-pill[data-kind='registration-opens'],
+.chc-tc-status-pill[data-kind='registration-open'] {
+  background: var(--chc-tc-status-registration-bg);
+  color: var(--chc-tc-status-registration-color);
+}
+
+.chc-tc-offline-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  background: var(--chc-tc-muted-color);
+  color: var(--chc-tc-bg);
+}
+
+/* ── Body ── */
+
+.chc-tc-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem 0.5rem;
+  flex: 1 1 auto;
+}
+
+/* Title — up to 3 lines for long titles (e.g. promo names with locations).
+ * `min-height` reserves space for 2 lines so 1-line titles still align
+ * visually with their neighbours in the same grid row.
+ * `text-wrap: balance` distributes characters evenly across lines for
+ * better visual rhythm on modern browsers (no-op on older ones). */
+.chc-tc-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--chc-tc-title-color);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 2.5rem;
+  line-height: 1.25;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.chc-tc-location {
+  font-size: 0.875rem;
+  color: var(--chc-tc-location-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chc-tc-date-range {
+  font-size: 0.875rem;
+  color: var(--chc-tc-date-color);
+}
+
+.chc-tc-organizer {
+  font-size: 0.75rem;
+  color: var(--chc-tc-muted-color);
+}
+
+.chc-tc-updated-at {
+  font-size: 0.75rem;
+  color: var(--chc-tc-muted-color);
+}
+
+/* ── Footer ── */
+
+.chc-tc-footer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem;
+  padding: 0.5rem 1rem 0.75rem;
+}
+
+.chc-tc-fee-badge {
+  padding: 0.25rem 0.5rem;
+  background: var(--chc-tc-fee-bg);
+  color: var(--chc-tc-fee-color);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.chc-tc-player-count,
+.chc-tc-event-count {
+  font-size: 0.75rem;
+  color: var(--chc-tc-muted-color);
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.75rem;
+}
+
+/* ── Skeleton ── */
+
+.chc-tc-skeleton {
+  pointer-events: none;
+}
+
+.chc-tc-skeleton-block {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--chc-tc-skeleton-bg) 0%,
+    var(--chc-tc-skeleton-shimmer) 50%,
+    var(--chc-tc-skeleton-bg) 100%
+  );
+  background-size: 200% 100%;
+  animation: chc-tc-shimmer 1.4s ease-in-out infinite;
+}
+
+.chc-tc-skeleton-line {
+  height: 0.75rem;
+  border-radius: 0.25rem;
+  background: linear-gradient(
+    90deg,
+    var(--chc-tc-skeleton-bg) 0%,
+    var(--chc-tc-skeleton-shimmer) 50%,
+    var(--chc-tc-skeleton-bg) 100%
+  );
+  background-size: 200% 100%;
+  animation: chc-tc-shimmer 1.4s ease-in-out infinite;
+}
+
+.chc-tc-skeleton-line + .chc-tc-skeleton-line {
+  margin-top: 0.5rem;
+}
+
+@keyframes chc-tc-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

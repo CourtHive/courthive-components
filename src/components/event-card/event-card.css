@@ -1,0 +1,227 @@
+/* Event Card — component-owned styles.
+ * Gender chip colors flow through existing `--chc-gender-*` tokens.
+ * EventType colors use new `--chc-eventtype-*` tokens (see theme.css). */
+
+.chc-ec-card {
+  --chc-ec-radius: 0.75rem;
+  --chc-ec-bg: var(--chc-bg-elevated, #ffffff);
+  --chc-ec-hover-bg: var(--chc-hover-bg, #f9fafb);
+  --chc-ec-border-color: var(--chc-border-primary, #e5e7eb);
+  --chc-ec-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --chc-ec-hover-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+
+  --chc-ec-title-color: var(--chc-text-primary, #111827);
+  --chc-ec-category-color: var(--chc-text-secondary, #4b5563);
+  --chc-ec-muted-color: var(--chc-text-muted, #6b7280);
+
+  --chc-ec-image-bg: var(--chc-bg-secondary, #f3f4f6);
+  --chc-ec-placeholder-stripe: var(--chc-border-primary, #e5e7eb);
+
+  --chc-ec-status-bg: #15803d;
+  --chc-ec-status-color: #ffffff;
+  --chc-ec-status-live-bg: #b91c1c;
+  --chc-ec-status-completed-bg: #6b7280;
+  --chc-ec-status-cancelled-bg: #9ca3af;
+  --chc-ec-status-drawing-bg: #d97706;
+  --chc-ec-status-entries-open-bg: #2563eb;
+  --chc-ec-status-upcoming-bg: #0891b2;
+
+  --chc-ec-skeleton-bg: var(--chc-bg-secondary, #e5e7eb);
+  --chc-ec-skeleton-shimmer: var(--chc-hover-bg, #f3f4f6);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: var(--chc-ec-bg);
+  border: 1px solid var(--chc-ec-border-color);
+  border-radius: var(--chc-ec-radius);
+  box-shadow: var(--chc-ec-shadow);
+  overflow: hidden;
+  transition: box-shadow 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+[data-theme='dark'] .chc-ec-card {
+  --chc-ec-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --chc-ec-hover-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
+  --chc-ec-image-bg: #0f1726;
+  --chc-ec-placeholder-stripe: #1f2a3d;
+
+  --chc-ec-status-bg: #16a34a;
+  --chc-ec-status-live-bg: #ef4444;
+  --chc-ec-status-completed-bg: #4b5563;
+  --chc-ec-status-cancelled-bg: #6b7280;
+  --chc-ec-status-drawing-bg: #f59e0b;
+  --chc-ec-status-entries-open-bg: #3b82f6;
+  --chc-ec-status-upcoming-bg: #0ea5e9;
+
+  --chc-ec-skeleton-bg: #1f2a3d;
+  --chc-ec-skeleton-shimmer: #2a3550;
+}
+
+.chc-ec-card--clickable { cursor: pointer; }
+.chc-ec-card--clickable:hover {
+  box-shadow: var(--chc-ec-hover-shadow);
+  background: var(--chc-ec-hover-bg);
+  transform: translateY(-1px);
+}
+
+/* ── Image zone ── */
+
+.chc-ec-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--chc-ec-image-bg);
+  border-bottom: 1px solid var(--chc-ec-border-color);
+  overflow: hidden;
+}
+
+.chc-ec-image-img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.chc-ec-image-svg { width: 80%; height: 80%; }
+
+.chc-ec-image-placeholder {
+  width: 100%; height: 100%;
+  background:
+    repeating-linear-gradient(
+      135deg,
+      var(--chc-ec-image-bg),
+      var(--chc-ec-image-bg) 8px,
+      var(--chc-ec-placeholder-stripe) 8px,
+      var(--chc-ec-placeholder-stripe) 16px
+    );
+}
+
+/* ── Corner badges ── */
+
+.chc-ec-corner-badges {
+  position: absolute;
+  top: 0.5rem; left: 0.5rem;
+  display: flex; flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.chc-ec-status-pill {
+  font-size: 0.75rem; font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  background: var(--chc-ec-status-bg);
+  color: var(--chc-ec-status-color);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.chc-ec-status-pill[data-kind='live']         { background: var(--chc-ec-status-live-bg); }
+.chc-ec-status-pill[data-kind='completed']    { background: var(--chc-ec-status-completed-bg); }
+.chc-ec-status-pill[data-kind='cancelled']    { background: var(--chc-ec-status-cancelled-bg); }
+.chc-ec-status-pill[data-kind='drawing']      { background: var(--chc-ec-status-drawing-bg); }
+.chc-ec-status-pill[data-kind='entries-open'] { background: var(--chc-ec-status-entries-open-bg); }
+.chc-ec-status-pill[data-kind='upcoming']     { background: var(--chc-ec-status-upcoming-bg); }
+
+.chc-ec-eventtype-badge,
+.chc-ec-gender-badge {
+  font-size: 0.7rem; font-weight: 700;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  color: #ffffff;
+  line-height: 1.2;
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+}
+
+.chc-ec-eventtype-badge[data-kind='SINGLES'] { background: var(--chc-eventtype-singles, #6366f1); }
+.chc-ec-eventtype-badge[data-kind='DOUBLES'] { background: var(--chc-eventtype-doubles, #14b8a6); }
+.chc-ec-eventtype-badge[data-kind='TEAM']    { background: var(--chc-eventtype-team, #f59e0b); }
+.chc-ec-eventtype-badge[data-kind='HYBRID']  { background: var(--chc-eventtype-hybrid, #db2777); }
+
+.chc-ec-gender-badge[data-kind='MALE']   { background: var(--chc-gender-male, #2e86c1); }
+.chc-ec-gender-badge[data-kind='FEMALE'] { background: var(--chc-gender-female, #e07baf); }
+.chc-ec-gender-badge[data-kind='MIXED']  { background: var(--chc-gender-mixed, #8e44ad); }
+
+/* ── Body ── */
+
+.chc-ec-body {
+  display: flex; flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem 0.5rem;
+  flex: 1 1 auto;
+}
+
+.chc-ec-title {
+  font-size: 0.875rem; font-weight: 500;
+  color: var(--chc-ec-title-color);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden; text-overflow: ellipsis;
+  line-height: 1.25;
+  min-height: 2.5rem;
+  text-wrap: balance;
+}
+
+.chc-ec-category {
+  font-size: 0.8rem;
+  color: var(--chc-ec-category-color);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.chc-ec-draw-summary,
+.chc-ec-date-range {
+  font-size: 0.8rem;
+  color: var(--chc-ec-category-color);
+}
+
+.chc-ec-updated-at {
+  font-size: 0.75rem;
+  color: var(--chc-ec-muted-color);
+}
+
+/* ── Footer ── */
+
+.chc-ec-footer {
+  display: flex; flex-wrap: wrap;
+  align-items: center; justify-content: space-between;
+  gap: 0.25rem;
+  padding: 0.5rem 1rem 0.75rem;
+}
+
+.chc-ec-player-count,
+.chc-ec-matchup-progress {
+  font-size: 0.75rem;
+  color: var(--chc-ec-muted-color);
+  display: inline-flex; align-items: center;
+  min-height: 1.5rem;
+}
+
+/* ── Skeleton ── */
+
+.chc-ec-skeleton { pointer-events: none; }
+.chc-ec-skeleton-block,
+.chc-ec-skeleton-line {
+  background: linear-gradient(
+    90deg,
+    var(--chc-ec-skeleton-bg) 0%,
+    var(--chc-ec-skeleton-shimmer) 50%,
+    var(--chc-ec-skeleton-bg) 100%
+  );
+  background-size: 200% 100%;
+  animation: chc-ec-shimmer 1.4s ease-in-out infinite;
+}
+.chc-ec-skeleton-block { width: 100%; height: 100%; }
+.chc-ec-skeleton-line { height: 0.75rem; border-radius: 0.25rem; }
+.chc-ec-skeleton-line + .chc-ec-skeleton-line { margin-top: 0.5rem; }
+
+@keyframes chc-ec-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

@@ -87,6 +87,12 @@
   --chc-gender-female: #e07baf;
   --chc-gender-mixed: #8e44ad;
 
+  /* ── EventType Colors (used by event-card badges) ───────── */
+  --chc-eventtype-singles: #6366f1;
+  --chc-eventtype-doubles: #14b8a6;
+  --chc-eventtype-team: #f59e0b;
+  --chc-eventtype-hybrid: #db2777;
+
   /* ── Participant ───────────────────────────────────────── */
   --chc-participant-text-transform: capitalize;
   --chc-participant-min-height: 2rem;
@@ -242,6 +248,12 @@
   --chc-gender-male: #5dade2;
   --chc-gender-female: #f1948a;
   --chc-gender-mixed: #bb8fce;
+
+  /* ── EventType Colors (dark) ──────────────────────────── */
+  --chc-eventtype-singles: #818cf8;
+  --chc-eventtype-doubles: #2dd4bf;
+  --chc-eventtype-team: #fbbf24;
+  --chc-eventtype-hybrid: #f472b6;
 
   /* ── Participant hover highlight (dark) ───────────────── */
   --chc-participant-hover-bg: rgba(255, 230, 0, 0.22);
