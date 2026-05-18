@@ -1,0 +1,209 @@
+/* Draw Card — component-owned styles.
+ * Reuses --chc-* semantic tokens so the card adapts to dark mode automatically. */
+
+.chc-dc-card {
+  --chc-dc-radius: 0.75rem;
+  --chc-dc-bg: var(--chc-bg-elevated, #ffffff);
+  --chc-dc-hover-bg: var(--chc-hover-bg, #f9fafb);
+  --chc-dc-border-color: var(--chc-border-primary, #e5e7eb);
+  --chc-dc-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --chc-dc-hover-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+
+  --chc-dc-title-color: var(--chc-text-primary, #111827);
+  --chc-dc-secondary-color: var(--chc-text-secondary, #4b5563);
+  --chc-dc-muted-color: var(--chc-text-muted, #6b7280);
+
+  --chc-dc-status-bg: #15803d;
+  --chc-dc-status-color: #ffffff;
+  --chc-dc-status-ready-bg: #2563eb;
+  --chc-dc-status-in-progress-bg: #d97706;
+  --chc-dc-status-completed-bg: #6b7280;
+  --chc-dc-status-cancelled-bg: #9ca3af;
+  --chc-dc-status-ungenerated-bg: #9ca3af;
+
+  --chc-dc-chip-bg: var(--chc-bg-secondary, #f3f4f6);
+  --chc-dc-chip-color: var(--chc-text-secondary, #4b5563);
+
+  --chc-dc-progress-track: var(--chc-bg-secondary, #e5e7eb);
+  --chc-dc-progress-fill: var(--chc-status-success, #16a34a);
+
+  --chc-dc-skeleton-bg: var(--chc-bg-secondary, #e5e7eb);
+  --chc-dc-skeleton-shimmer: var(--chc-hover-bg, #f3f4f6);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: var(--chc-dc-bg);
+  border: 1px solid var(--chc-dc-border-color);
+  border-radius: var(--chc-dc-radius);
+  box-shadow: var(--chc-dc-shadow);
+  overflow: hidden;
+  transition: box-shadow 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+[data-theme='dark'] .chc-dc-card {
+  --chc-dc-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --chc-dc-hover-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
+  --chc-dc-status-bg: #16a34a;
+  --chc-dc-status-ready-bg: #3b82f6;
+  --chc-dc-status-in-progress-bg: #f59e0b;
+  --chc-dc-status-completed-bg: #4b5563;
+  --chc-dc-status-cancelled-bg: #6b7280;
+  --chc-dc-status-ungenerated-bg: #4b5563;
+}
+
+.chc-dc-card--clickable { cursor: pointer; }
+.chc-dc-card--clickable:hover {
+  box-shadow: var(--chc-dc-hover-shadow);
+  background: var(--chc-dc-hover-bg);
+  transform: translateY(-1px);
+}
+
+/* ── Corner badges ── */
+
+.chc-dc-corner-badges {
+  position: absolute;
+  top: 0.5rem; right: 0.5rem;
+  display: flex; flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.chc-dc-status-pill {
+  font-size: 0.7rem; font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.375rem;
+  background: var(--chc-dc-status-bg);
+  color: var(--chc-dc-status-color);
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.chc-dc-status-pill[data-kind='ready']        { background: var(--chc-dc-status-ready-bg); }
+.chc-dc-status-pill[data-kind='in-progress']  { background: var(--chc-dc-status-in-progress-bg); }
+.chc-dc-status-pill[data-kind='completed']    { background: var(--chc-dc-status-completed-bg); }
+.chc-dc-status-pill[data-kind='cancelled']    { background: var(--chc-dc-status-cancelled-bg); }
+.chc-dc-status-pill[data-kind='ungenerated']  { background: var(--chc-dc-status-ungenerated-bg); }
+
+.chc-dc-secondary-badge {
+  font-size: 0.65rem; font-weight: 700;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  background: var(--chc-bg-secondary, #f3f4f6);
+  color: var(--chc-text-secondary, #4b5563);
+  line-height: 1.2;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.chc-dc-secondary-badge[data-kind='published'] {
+  background: var(--chc-status-success, #16a34a);
+  color: #ffffff;
+}
+.chc-dc-secondary-badge[data-kind='embargo'] {
+  background: var(--chc-status-warning, #f59e0b);
+  color: #ffffff;
+}
+
+/* ── Body ── */
+
+.chc-dc-body {
+  display: flex; flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.85rem 1rem 0.5rem;
+  flex: 1 1 auto;
+}
+
+.chc-dc-title {
+  font-size: 0.95rem; font-weight: 600;
+  color: var(--chc-dc-title-color);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden; text-overflow: ellipsis;
+  line-height: 1.25;
+  padding-right: 4rem; /* leave room for corner badges */
+  text-wrap: balance;
+}
+
+.chc-dc-draw-type {
+  font-size: 0.8rem;
+  color: var(--chc-dc-secondary-color);
+}
+
+.chc-dc-meta {
+  display: flex; flex-wrap: wrap;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--chc-dc-muted-color);
+}
+
+/* ── Footer ── */
+
+.chc-dc-footer {
+  display: flex; flex-wrap: wrap;
+  align-items: center; gap: 0.5rem;
+  padding: 0.5rem 1rem 0.85rem;
+  font-size: 0.75rem;
+  color: var(--chc-dc-muted-color);
+}
+
+.chc-dc-chip {
+  display: inline-flex; align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: var(--chc-dc-chip-bg);
+  color: var(--chc-dc-chip-color);
+  font-size: 0.7rem; font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+/* ── Match progress bar ── */
+
+.chc-dc-progress {
+  display: flex; flex-direction: column;
+  gap: 0.2rem;
+  flex: 1 1 100%;
+  min-width: 100%;
+}
+.chc-dc-progress-bar {
+  position: relative;
+  height: 0.3rem;
+  background: var(--chc-dc-progress-track);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.chc-dc-progress-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--chc-dc-progress-fill);
+  border-radius: 999px;
+}
+
+/* ── Skeleton ── */
+
+.chc-dc-skeleton { pointer-events: none; }
+.chc-dc-skeleton .chc-dc-body { gap: 0.5rem; }
+.chc-dc-skeleton-line {
+  height: 0.75rem;
+  border-radius: 0.25rem;
+  background: linear-gradient(
+    90deg,
+    var(--chc-dc-skeleton-bg) 0%,
+    var(--chc-dc-skeleton-shimmer) 50%,
+    var(--chc-dc-skeleton-bg) 100%
+  );
+  background-size: 200% 100%;
+  animation: chc-dc-shimmer 1.4s ease-in-out infinite;
+}
+.chc-dc-skeleton-line + .chc-dc-skeleton-line { margin-top: 0.25rem; }
+
+@keyframes chc-dc-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

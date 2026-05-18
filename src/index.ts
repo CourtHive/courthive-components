@@ -188,6 +188,27 @@ export type {
   MapCourtOptions
 } from './components/court-card';
 
+// Draw Card — card-grid renderer for the per-event draws list
+import './components/draw-card/draw-card.css';
+export {
+  buildDrawCard,
+  buildDrawSkeletonCard,
+  mapDrawDefinitionToCardData,
+  DEFAULT_DRAW_CARD_CONFIG,
+  mergeDrawCardConfig
+} from './components/draw-card';
+export type {
+  DrawCardCallbacks,
+  DrawCardConfig,
+  DrawCardCornerField,
+  DrawCardData,
+  DrawCardField,
+  DrawMatchUpCounts,
+  DrawStatusKind,
+  DrawStatusPill,
+  MapDrawOptions
+} from './components/draw-card';
+
 // Event Card — card-grid renderer for tournament events
 import './components/event-card/event-card.css';
 export {
