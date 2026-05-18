@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.6.0](https://github.com/CourtHive/courthive-components/compare/v1.5.0...v1.6.0) (2026-05-18)
+
+
+### Features
+
+* **cards:** introduce card primitives family with shared helpers ([35914f6](https://github.com/CourtHive/courthive-components/commit/35914f6027598ac9093f819cae05fb9ae208906b))
+* **schedule-page:** add initialCatalogState seed to SchedulePageConfig ([d500f3a](https://github.com/CourtHive/courthive-components/commit/d500f3a5b517a04a5ddb312364f36bc2911bd4bb))
+* **schedule-page:** add titleSlot option to replace the "Court Grid" label ([51da6ef](https://github.com/CourtHive/courthive-components/commit/51da6ef5093562edc77f9fb25f2da35b3a9762a1))
+* **schedule-page:** highlight active filter selects in the catalog popover ([f9c96d6](https://github.com/CourtHive/courthive-components/commit/f9c96d6510da220892a0de9c1cfa5727e6f87f17))
+* **schedule-page:** pulse the catalog filter button orange when active ([2790301](https://github.com/CourtHive/courthive-components/commit/279030102acade48e864823037774390b0e60473))
+* **schedule:** add titleLeadingActions slot to Court Grid and Day Plan headers ([09ee1b3](https://github.com/CourtHive/courthive-components/commit/09ee1b35bdcf242a68f4ac1fdc4e7cbb5cf53847))
+* **search:** add (x) clear button to matchUp + rounds catalog search fields ([30c134c](https://github.com/CourtHive/courthive-components/commit/30c134c73afd29cae38649d3d6f5a5bc30c307f1))
+
+
+### Bug Fixes
+
+* **controlBar:** hide the search (x) clear icon when the input is empty ([8662ec0](https://github.com/CourtHive/courthive-components/commit/8662ec01a9d2174378614a3696ab551130de622d))
+* **ratingDistributionChart:** dark-mode-aware count labels ([ecc3bbc](https://github.com/CourtHive/courthive-components/commit/ecc3bbc33535e0267aae84d18de1ab0391fc3dd8))
+* **ratingDistributionChart:** de-clutter axis when bins compress, add hover tooltip ([92c24f9](https://github.com/CourtHive/courthive-components/commit/92c24f9ef0c7cb779df2c7920026a4b78dc5e97e))
+* **searchClearButton:** use WeakMap instead of unsafe HTMLElement cast ([182058c](https://github.com/CourtHive/courthive-components/commit/182058cd696cfc91ced361ff1c8360d7be333afd))
+
 ## [1.5.0](https://github.com/CourtHive/courthive-components/compare/v1.4.1...v1.5.0) (2026-05-16)
 
 
