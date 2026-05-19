@@ -188,6 +188,20 @@ export type {
   MapCourtOptions
 } from './components/court-card';
 
+// Competitiveness Bar — segmented bar showing competitiveness distribution
+import './components/competitivenessBar/competitiveness-bar.css';
+export {
+  buildCompetitivenessBar,
+  aggregateCompetitiveness,
+  totalBuckets,
+  COMPETITIVENESS_BUCKETS
+} from './components/competitivenessBar';
+export type {
+  BuildCompetitivenessBarResult,
+  CompetitivenessBucket,
+  CompetitivenessBuckets
+} from './components/competitivenessBar';
+
 // Draw Card — card-grid renderer for the per-event draws list
 import './components/draw-card/draw-card.css';
 export {

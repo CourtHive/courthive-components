@@ -1,0 +1,40 @@
+/* Competitiveness Bar — segmented horizontal bar showing competitive /
+ * routine / decisive / walkover distribution across a set of matchUps.
+ * Color tokens can be overridden per consumer via --chc-cb-* vars. */
+
+.chc-cb {
+  --chc-cb-competitive: var(--chc-status-success, #16a34a);
+  --chc-cb-routine: var(--chc-status-info, #3b82f6);
+  --chc-cb-decisive: #8e44ad;
+  --chc-cb-walkover: var(--chc-text-muted, #6b7280);
+  --chc-cb-text: #ffffff;
+
+  display: none; /* shown by buildCompetitivenessBar when total > 0 */
+  flex-direction: row;
+  align-items: stretch;
+  gap: 2px;
+  overflow: hidden;
+  min-width: 0;
+  height: 1.5em;
+}
+
+.chc-cb__seg {
+  background: var(--chc-cb-bucket-bg);
+  color: var(--chc-cb-text);
+  font-size: 0.85em;
+  font-weight: 600;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 2px;
+  flex: 0 0 0;
+  padding: 0;
+}
+
+.chc-cb__seg[data-bucket='COMPETITIVE'] { --chc-cb-bucket-bg: var(--chc-cb-competitive); }
+.chc-cb__seg[data-bucket='ROUTINE']     { --chc-cb-bucket-bg: var(--chc-cb-routine); }
+.chc-cb__seg[data-bucket='DECISIVE']    { --chc-cb-bucket-bg: var(--chc-cb-decisive); }
+.chc-cb__seg[data-bucket='WALKOVER']    { --chc-cb-bucket-bg: var(--chc-cb-walkover); }
