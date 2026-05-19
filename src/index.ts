@@ -188,16 +188,19 @@ export type {
   MapCourtOptions
 } from './components/court-card';
 
-// Competitiveness Bar — segmented bar showing competitiveness distribution
+// Competitiveness — segmented bar + donut showing competitiveness distribution
 import './components/competitivenessBar/competitiveness-bar.css';
+import './components/competitivenessBar/competitiveness-donut.css';
 export {
   buildCompetitivenessBar,
+  buildCompetitivenessDonut,
   aggregateCompetitiveness,
   totalBuckets,
   COMPETITIVENESS_BUCKETS
 } from './components/competitivenessBar';
 export type {
   BuildCompetitivenessBarResult,
+  BuildCompetitivenessDonutResult,
   CompetitivenessBucket,
   CompetitivenessBuckets
 } from './components/competitivenessBar';
