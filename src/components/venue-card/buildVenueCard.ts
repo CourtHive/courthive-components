@@ -49,25 +49,71 @@ export function buildVenueCard(
   card.className = vcCardStyle();
   card.dataset.venueId = data.venueId;
 
-  if (callbacks?.onClick) {
-    card.classList.add(vcCardClickableStyle());
-    card.tabIndex = 0;
-    card.addEventListener('click', (e) => {
+  // Build zones first so we can inspect the image zone before binding clicks.
+  // When the image zone shows an interactive map (iframe), the user must be
+  // able to pan/zoom — so clicks are bound to the body + footer only. For
+  // image / svg / placeholder fallbacks the whole card is clickable.
+  let imageZone: HTMLElement | null = null;
+  if (cfg.showImage !== false) {
+    imageZone = buildImageZone(data, cfg, () => rebindClicks());
+    card.appendChild(imageZone);
+  }
+  const bodyZone = cfg.body.length ? buildBodyZone(data, cfg) : null;
+  if (bodyZone) card.appendChild(bodyZone);
+  const footerZone = cfg.footer.length ? buildFooterZone(data, cfg) : null;
+  if (footerZone) card.appendChild(footerZone);
+
+  function imageZoneHasMap(): boolean {
+    return !!imageZone?.querySelector('iframe');
+  }
+
+  const boundTargets = new Map<HTMLElement, { click: (e: Event) => void; keydown: (e: KeyboardEvent) => void }>();
+
+  function bindClickTarget(target: HTMLElement, onClick: () => void) {
+    if (boundTargets.has(target)) return;
+    const click = (e: Event) => {
       e.stopPropagation();
-      callbacks.onClick!(data);
-    });
-    card.addEventListener('keydown', (e) => {
+      onClick();
+    };
+    const keydown = (e: KeyboardEvent) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         e.stopPropagation();
-        callbacks.onClick!(data);
+        onClick();
       }
-    });
+    };
+    target.classList.add(vcCardClickableStyle());
+    target.tabIndex = 0;
+    target.addEventListener('click', click);
+    target.addEventListener('keydown', keydown);
+    boundTargets.set(target, { click, keydown });
   }
 
-  if (cfg.showImage !== false) card.appendChild(buildImageZone(data, cfg));
-  if (cfg.body.length) card.appendChild(buildBodyZone(data, cfg));
-  if (cfg.footer.length) card.appendChild(buildFooterZone(data, cfg));
+  function unbindClickTarget(target: HTMLElement) {
+    const handlers = boundTargets.get(target);
+    if (!handlers) return;
+    target.removeEventListener('click', handlers.click);
+    target.removeEventListener('keydown', handlers.keydown);
+    target.classList.remove(vcCardClickableStyle());
+    target.removeAttribute('tabindex');
+    boundTargets.delete(target);
+  }
+
+  function rebindClicks() {
+    if (!callbacks?.onClick) return;
+    const onClick = () => callbacks.onClick!(data);
+    if (imageZoneHasMap()) {
+      unbindClickTarget(card);
+      if (bodyZone) bindClickTarget(bodyZone, onClick);
+      if (footerZone) bindClickTarget(footerZone, onClick);
+    } else {
+      if (bodyZone) unbindClickTarget(bodyZone);
+      if (footerZone) unbindClickTarget(footerZone);
+      bindClickTarget(card, onClick);
+    }
+  }
+
+  rebindClicks();
 
   return card;
 }
@@ -108,7 +154,7 @@ function appendSvgOrPlaceholder(container: HTMLElement, data: VenueCardData): vo
   container.appendChild(placeholder);
 }
 
-function buildImageZone(data: VenueCardData, cfg: VenueCardConfig): HTMLElement {
+function buildImageZone(data: VenueCardData, cfg: VenueCardConfig, onContentChange?: () => void): HTMLElement {
   const image = document.createElement('div');
   image.className = vcImageStyle();
 
@@ -122,6 +168,7 @@ function buildImageZone(data: VenueCardData, cfg: VenueCardConfig): HTMLElement 
       img.remove();
       if (cfg.showMap !== false && hasCoords(data)) image.appendChild(buildOsmIframe(data));
       else appendSvgOrPlaceholder(image, data);
+      onContentChange?.();
     });
     image.appendChild(img);
   } else if (cfg.showMap !== false && hasCoords(data)) {
