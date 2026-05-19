@@ -86,6 +86,7 @@ function appendSvgOrPlaceholder(container: HTMLElement, data: CourtCardData): vo
 function buildImageZone(data: CourtCardData, cfg: CourtCardConfig): HTMLElement {
   const image = document.createElement('div');
   image.className = ccImageStyle();
+  if (data.surfaceCategory) image.dataset.surface = data.surfaceCategory;
   appendSvgOrPlaceholder(image, data);
   if (cfg.cornerBadges.length) {
     const badges = buildCornerBadges(data, cfg.cornerBadges);

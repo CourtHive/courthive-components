@@ -68,6 +68,49 @@
   overflow: hidden;
 }
 
+/* Surface-based color tint for the image zone (bg + diagonal stripes). */
+.chc-cc-image[data-surface='HARD'] {
+  --chc-cc-image-bg: #dbeafe;
+  --chc-cc-placeholder-stripe: #93c5fd;
+}
+.chc-cc-image[data-surface='CLAY'] {
+  --chc-cc-image-bg: #fed7aa;
+  --chc-cc-placeholder-stripe: #f97316;
+}
+.chc-cc-image[data-surface='GRASS'] {
+  --chc-cc-image-bg: #bbf7d0;
+  --chc-cc-placeholder-stripe: #22c55e;
+}
+.chc-cc-image[data-surface='ARTIFICIAL'] {
+  --chc-cc-image-bg: #e0f2fe;
+  --chc-cc-placeholder-stripe: #7dd3fc;
+}
+.chc-cc-image[data-surface='CARPET'] {
+  --chc-cc-image-bg: #e7d3c1;
+  --chc-cc-placeholder-stripe: #a16e4b;
+}
+
+[data-theme='dark'] .chc-cc-image[data-surface='HARD'] {
+  --chc-cc-image-bg: #1e3a8a;
+  --chc-cc-placeholder-stripe: #2563eb;
+}
+[data-theme='dark'] .chc-cc-image[data-surface='CLAY'] {
+  --chc-cc-image-bg: #7c2d12;
+  --chc-cc-placeholder-stripe: #ea580c;
+}
+[data-theme='dark'] .chc-cc-image[data-surface='GRASS'] {
+  --chc-cc-image-bg: #14532d;
+  --chc-cc-placeholder-stripe: #16a34a;
+}
+[data-theme='dark'] .chc-cc-image[data-surface='ARTIFICIAL'] {
+  --chc-cc-image-bg: #0c4a6e;
+  --chc-cc-placeholder-stripe: #0ea5e9;
+}
+[data-theme='dark'] .chc-cc-image[data-surface='CARPET'] {
+  --chc-cc-image-bg: #44291a;
+  --chc-cc-placeholder-stripe: #92633f;
+}
+
 .chc-cc-image-svg { width: 75%; height: 75%; opacity: 0.85; }
 
 .chc-cc-image-placeholder {
