@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.7.0](https://github.com/CourtHive/courthive-components/compare/v1.6.0...v1.7.0) (2026-05-19)
+
+
+### Features
+
+* **competitivenessBar:** lift segmented bar primitive from TMX ([42b5041](https://github.com/CourtHive/courthive-components/commit/42b504147f41f739ea824d8c531fb35afec203fe))
+* **competitiveness:** buildCompetitivenessDonut companion to the bar ([caac0d5](https://github.com/CourtHive/courthive-components/commit/caac0d59db0d7a98f38668df390c210ef3085561))
+* **composition-editor:** show connector lines in preview ([69b349d](https://github.com/CourtHive/courthive-components/commit/69b349d5a6a5918604250f5fbf0f23061857303f))
+* **composition:** per-composition color overrides + TYPTI preset ([06c49f4](https://github.com/CourtHive/courthive-components/commit/06c49f46b4d2e8ef93f1dd48690e05488a8f54b4))
+* **compositions:** pass through colors in resolvePublishedComposition ([49dff99](https://github.com/CourtHive/courthive-components/commit/49dff996cfb1bb90d3a5b6e1d4ef7824b57eaf43))
+* **court-card:** surface-based tint for the image zone ([f4e158a](https://github.com/CourtHive/courthive-components/commit/f4e158a9cbbc24c6fd463fa1a6a0a0fa6f4d31c5))
+* **draw-card:** add draw card primitive ([0811b73](https://github.com/CourtHive/courthive-components/commit/0811b73d1b0cd7b15eb007f3801a1a675d986b14))
+* **draw-card:** viz zone for histogram / competitiveness / sunburst ([bef3c75](https://github.com/CourtHive/courthive-components/commit/bef3c75a56ef38f854337008e8cb36366e0b696a))
+
+
+### Bug Fixes
+
+* **ci:** drop pnpm version input — it conflicts with packageManager ([78ac44c](https://github.com/CourtHive/courthive-components/commit/78ac44c083e5e6b09b08b1823a42c12b4c4f6011))
+* **court-card:** resolve surface category from surfaceType fallback ([bfdf414](https://github.com/CourtHive/courthive-components/commit/bfdf41438e735e0c8f5eefbecc37eedf70420525))
+* **draw-card:** keep title text from clipping under corner badges ([b9351af](https://github.com/CourtHive/courthive-components/commit/b9351af7828d13e8e49f177cb8b5d8594e881f57))
+* **venue-card:** enable pointer events on OSM map iframe ([2b44422](https://github.com/CourtHive/courthive-components/commit/2b44422c3b8033be57bc284e3e00748a292e7c72))
+* **venue-card:** scope click handler to body + footer when map renders ([3106107](https://github.com/CourtHive/courthive-components/commit/31061071b1d87b17cfc54cda1889e77a5fd04424))
+
+
+### Documentation
+
+* **stories:** add Competitiveness Donut storybook gallery ([47fb1d6](https://github.com/CourtHive/courthive-components/commit/47fb1d6e3c0e0a4344878cbbc48f08f8b91f0100))
+
 ## [1.6.0](https://github.com/CourtHive/courthive-components/compare/v1.5.0...v1.6.0) (2026-05-18)
 
 
