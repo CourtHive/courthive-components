@@ -26,6 +26,16 @@ describe('mapCourtToCardData', () => {
     expect(mapCourtToCardData({ courtId: 'c1', surfaceCategory: 'hard' }).surfaceCategory).toBe('HARD');
   });
 
+  it('falls back to surfaceType when it holds a known category', () => {
+    expect(mapCourtToCardData({ courtId: 'c1', surfaceType: 'CLAY' }).surfaceCategory).toBe('CLAY');
+    expect(mapCourtToCardData({ courtId: 'c1', surfaceType: 'grass' }).surfaceCategory).toBe('GRASS');
+  });
+
+  it('prefers surfaceCategory over surfaceType when both are set', () => {
+    const out = mapCourtToCardData({ courtId: 'c1', surfaceCategory: 'HARD', surfaceType: 'AC' });
+    expect(out.surfaceCategory).toBe('HARD');
+  });
+
   it('builds surfaceLabel from indoorOutdoor + surfaceCategory', () => {
     const out = mapCourtToCardData({ courtId: 'c1', indoorOutdoor: 'OUTDOOR', surfaceCategory: 'HARD' });
     expect(out.surfaceLabel).toContain('Outdoor');
