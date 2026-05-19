@@ -47,6 +47,11 @@ export interface DrawCardData {
   status?: DrawStatusPill | null;
   /** Back-reference for callers that need it on click; not rendered. */
   eventId?: string;
+  /** Optional visualization element rendered above the body (e.g. histogram,
+   * competitiveness bar, sunburst). The card is intentionally agnostic about
+   * which viz lives here — the consumer instantiates it. Pair with
+   * `DrawCardConfig.showVisualization = true`. */
+  visualization?: HTMLElement | null;
 }
 
 export type DrawCardField =
@@ -65,6 +70,9 @@ export interface DrawCardConfig {
   cornerBadges: DrawCardCornerField[];
   body: DrawCardField[];
   footer: DrawCardField[];
+  /** When true and `DrawCardData.visualization` is set, the visualization
+   * element renders in a dedicated zone above the body. Default `false`. */
+  showVisualization?: boolean;
 }
 
 export interface DrawCardCallbacks {

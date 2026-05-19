@@ -60,6 +60,26 @@
   transform: translateY(-1px);
 }
 
+/* ── Viz zone (histogram / sunburst / competitiveness bar) ── */
+
+.chc-dc-viz {
+  position: relative;
+  width: 100%;
+  padding: 0.75rem 1rem 0.25rem;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--chc-dc-border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  overflow: hidden;
+}
+
+.chc-dc-viz > svg,
+.chc-dc-viz > * {
+  max-width: 100%;
+}
+
 /* ── Title row + corner badges (in normal flow) ── */
 
 .chc-dc-title-row {

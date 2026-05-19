@@ -18,7 +18,8 @@ import {
   dcSecondaryBadgeStyle,
   dcStatusPillStyle,
   dcTitleRowStyle,
-  dcTitleStyle
+  dcTitleStyle,
+  dcVizZoneStyle
 } from './styles';
 import {
   DrawCardCallbacks,
@@ -56,6 +57,12 @@ export function buildDrawCard(
     });
   }
 
+  if (cfg.showVisualization && data.visualization) {
+    const viz = document.createElement('div');
+    viz.className = dcVizZoneStyle();
+    viz.appendChild(data.visualization);
+    card.appendChild(viz);
+  }
   if (cfg.body.length || cfg.cornerBadges.length) card.appendChild(buildBodyZone(data, cfg));
   if (cfg.footer.length) card.appendChild(buildFooterZone(data, cfg));
 

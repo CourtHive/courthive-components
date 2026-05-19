@@ -7,6 +7,7 @@
 import { buildDrawCard } from '../components/draw-card/buildDrawCard';
 import { buildDrawSkeletonCard } from '../components/draw-card/buildSkeletonCard';
 import { mapDrawDefinitionToCardData } from '../components/draw-card/mapDraw';
+import { buildCompetitivenessBar } from '../components/competitivenessBar/buildCompetitivenessBar';
 import type { DrawCardData } from '../components/draw-card/types';
 
 export default {
@@ -92,6 +93,56 @@ export const SkeletonLoading = {
   render: () => {
     const wrap = gridWrap();
     for (let i = 0; i < 5; i += 1) wrap.appendChild(buildDrawSkeletonCard());
+    return wrap;
+  }
+};
+
+function buildCompetitivenessViz(): HTMLElement {
+  const { element, update } = buildCompetitivenessBar();
+  update({ COMPETITIVE: 14, ROUTINE: 9, DECISIVE: 5, WALKOVER: 2 });
+  return element;
+}
+
+function buildPlaceholderHistogramViz(): HTMLElement {
+  // Lightweight CSS-only mock; real consumer would inject `ratingDistributionChart`.
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex; align-items:flex-end; gap:2px; height:60px; width:100%;';
+  for (const h of [12, 26, 38, 52, 48, 32, 22, 12, 6]) {
+    const b = document.createElement('div');
+    b.style.cssText = `flex:1 1 0; height:${h}px; background:var(--chc-status-info, #3b82f6); border-radius:1px;`;
+    wrap.appendChild(b);
+  }
+  return wrap;
+}
+
+export const WithCompetitiveness = {
+  render: () => {
+    const wrap = gridWrap();
+    for (const data of [READY, IN_PROGRESS, COMPLETED]) {
+      wrap.appendChild(
+        buildDrawCard(
+          { ...data, visualization: buildCompetitivenessViz() },
+          { showVisualization: true },
+          { onClick: (d) => console.log('click', d) }
+        )
+      );
+    }
+    return wrap;
+  }
+};
+
+export const WithHistogramPlaceholder = {
+  render: () => {
+    const wrap = gridWrap();
+    for (const data of [READY, IN_PROGRESS]) {
+      wrap.appendChild(
+        buildDrawCard(
+          { ...data, visualization: buildPlaceholderHistogramViz() },
+          { showVisualization: true },
+          { onClick: (d) => console.log('click', d) }
+        )
+      );
+    }
     return wrap;
   }
 };
