@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.7.1](https://github.com/CourtHive/courthive-components/compare/v1.7.0...v1.7.1) (2026-05-20)
+
+
+### Bug Fixes
+
+* **deps:** update dependency tods-competition-factory to v4.0.0 ([8c16502](https://github.com/CourtHive/courthive-components/commit/8c1650258a212c85877d14e6d080e81066c86b65))
+* **forms:** always emit option value attribute, even for empty string ([cb2c0d3](https://github.com/CourtHive/courthive-components/commit/cb2c0d313787a4270a9a14a1a5633b8394aba87c))
+
 ## [1.7.0](https://github.com/CourtHive/courthive-components/compare/v1.6.0...v1.7.0) (2026-05-19)
 
 
