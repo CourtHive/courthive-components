@@ -224,7 +224,13 @@ export function renderOptions(select: HTMLSelectElement, item: any): void {
     if (option.hide) continue;
     const opt = document.createElement('option');
     opt.className = 'font-medium';
-    if (option.value) opt.setAttribute('value', option.value);
+    // Always set value, even when it's the empty string — without an
+    // explicit value attribute, <select>.value falls back to the option
+    // text. That caused dropdowns with a "label: '------------', value: ''"
+    // placeholder to round-trip the dashes as the saved value.
+    if (option.value !== undefined && option.value !== null) {
+      opt.setAttribute('value', option.value);
+    }
     if (option.selected || item.value === option.value) opt.setAttribute('selected', 'true');
     if (option.disabled) opt.setAttribute('disabled', 'true');
     opt.innerHTML = option.label;
