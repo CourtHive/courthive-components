@@ -35,14 +35,29 @@ function normalizeGender(raw: string | undefined): EventGenderKind | undefined {
 
 function deriveCategoryLabel(category: any): string | undefined {
   if (!category) return undefined;
-  if (category.categoryName) return category.categoryName;
+  const name = cleanLabel(category.categoryName);
+  if (name) return name;
   if (typeof category.ageMin === 'number' && typeof category.ageMax === 'number') {
     if (category.ageMin === category.ageMax) return `Age ${category.ageMin}`;
     return `Age ${category.ageMin}–${category.ageMax}`;
   }
-  if (category.ageCategoryCode) return category.ageCategoryCode;
+  const code = cleanLabel(category.ageCategoryCode);
+  if (code) return code;
   if (category.ratingMin && category.ratingMax) return `Rating ${category.ratingMin}–${category.ratingMax}`;
   return undefined;
+}
+
+/**
+ * Returns the trimmed value, or undefined if the input is empty or a
+ * dashes-only placeholder (e.g. the `------------` "no selection" option
+ * exposed by some TMX dropdowns).
+ */
+function cleanLabel(value: any): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  if (/^[-—–_]+$/.test(trimmed)) return undefined;
+  return trimmed;
 }
 
 // ============================================================================

@@ -29,6 +29,9 @@
   --chc-ec-skeleton-bg: var(--chc-bg-secondary, #e5e7eb);
   --chc-ec-skeleton-shimmer: var(--chc-hover-bg, #f3f4f6);
 
+  --chc-ec-progress-track: var(--chc-bg-secondary, #e5e7eb);
+  --chc-ec-progress-fill: var(--chc-status-success, #16a34a);
+
   position: relative;
   display: flex;
   flex-direction: column;
@@ -201,6 +204,32 @@
   color: var(--chc-ec-muted-color);
   display: inline-flex; align-items: center;
   min-height: 1.5rem;
+}
+
+/* ── Match progress bar (matches draw-card) ── */
+
+.chc-ec-progress {
+  display: flex; flex-direction: column;
+  gap: 0.2rem;
+  flex: 1 1 100%;
+  min-width: 100%;
+}
+.chc-ec-progress-meta {
+  font-size: 0.75rem;
+  color: var(--chc-ec-muted-color);
+}
+.chc-ec-progress-bar {
+  position: relative;
+  height: 0.3rem;
+  background: var(--chc-ec-progress-track);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.chc-ec-progress-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--chc-ec-progress-fill);
+  border-radius: 999px;
 }
 
 /* ── Skeleton ── */

@@ -19,8 +19,11 @@ import {
   ecImagePlaceholderStyle,
   ecImageStyle,
   ecImageSvgStyle,
-  ecMatchUpProgressStyle,
   ecPlayerCountStyle,
+  ecProgressBarStyle,
+  ecProgressFillStyle,
+  ecProgressMetaStyle,
+  ecProgressStyle,
   ecStatusPillStyle,
   ecTitleStyle,
   ecUpdatedAtStyle
@@ -222,10 +225,25 @@ function renderPlayerCount(data: EventCardData): HTMLElement | null {
 function renderMatchUpProgress(data: EventCardData): HTMLElement | null {
   if (!data.matchUpCounts || data.matchUpCounts.total === 0) return null;
   const { total, completed } = data.matchUpCounts;
-  const el = document.createElement('div');
-  el.className = ecMatchUpProgressStyle();
-  el.textContent = `${completed}/${total} matches`;
-  return el;
+  const pct = Math.round((completed / total) * 100);
+
+  const wrap = document.createElement('div');
+  wrap.className = ecProgressStyle();
+
+  const label = document.createElement('div');
+  label.className = ecProgressMetaStyle();
+  label.textContent = `${completed}/${total} matches · ${pct}%`;
+  wrap.appendChild(label);
+
+  const bar = document.createElement('div');
+  bar.className = ecProgressBarStyle();
+  const fill = document.createElement('div');
+  fill.className = ecProgressFillStyle();
+  fill.style.right = `${100 - pct}%`;
+  bar.appendChild(fill);
+  wrap.appendChild(bar);
+
+  return wrap;
 }
 
 function renderBodyField(field: EventCardField, data: EventCardData): HTMLElement | null {

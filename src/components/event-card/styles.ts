@@ -22,6 +22,10 @@ export const ecDateRangeStyle = () => 'chc-ec-date-range';
 export const ecFooterStyle = () => 'chc-ec-footer';
 export const ecPlayerCountStyle = () => 'chc-ec-player-count';
 export const ecMatchUpProgressStyle = () => 'chc-ec-matchup-progress';
+export const ecProgressStyle = () => 'chc-ec-progress';
+export const ecProgressMetaStyle = () => 'chc-ec-progress-meta';
+export const ecProgressBarStyle = () => 'chc-ec-progress-bar';
+export const ecProgressFillStyle = () => 'chc-ec-progress-fill';
 export const ecUpdatedAtStyle = () => 'chc-ec-updated-at';
 
 // Skeleton
