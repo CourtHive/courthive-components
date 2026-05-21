@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.0](https://github.com/CourtHive/courthive-components/compare/v1.7.1...v1.8.0) (2026-05-21)
+
+
+### Features
+
+* **schedule-page:** prominent time header on matchUp card ([2145639](https://github.com/CourtHive/courthive-components/commit/2145639b25bd82bf5cd6dc5b22cdeca776581262))
+* **scheduling-profile:** split chips, placement chips, remove inspector ([66dcd3f](https://github.com/CourtHive/courthive-components/commit/66dcd3fdf9dc7750af8d08ceac8c8c2653567283))
+
 ## [1.7.1](https://github.com/CourtHive/courthive-components/compare/v1.7.0...v1.7.1) (2026-05-20)
 
 
