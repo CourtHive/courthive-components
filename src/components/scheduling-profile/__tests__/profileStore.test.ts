@@ -300,6 +300,22 @@ describe('ProfileStore', () => {
       expect(listener.mock.calls[0][0].selectedDate).toBe(DAY2);
     });
 
+    it('emits new selectedLocator to subscribers when selectCard is called (inspector wiring)', () => {
+      const store = new ProfileStore(makeConfig());
+      const listener = vi.fn();
+      store.subscribe(listener);
+      const locator = {
+        date: DAY1,
+        venueId: 'V1',
+        index: 0,
+        roundKey: { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 }
+      };
+      store.selectCard(locator);
+      // Most recent emission carries the new selectedLocator
+      const last = listener.mock.calls.at(-1)?.[0];
+      expect(last?.selectedLocator).toEqual(locator);
+    });
+
     it('returns unsubscribe function', () => {
       const store = new ProfileStore(makeConfig());
       const listener = vi.fn();

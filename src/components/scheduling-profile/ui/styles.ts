@@ -59,11 +59,7 @@ export const spGroupHeaderStyle = () => 'sp-group-header';
 export const spGroupBodyStyle = () => 'sp-group-body';
 export const spCatalogItemStyle = () => 'sp-catalog-item';
 
-// Inspector
-export const spInspectorStyle = () => 'sp-inspector';
-export const spKvStyle = () => 'sp-kv';
-export const spKvKeyStyle = () => 'sp-kv-key';
-export const spKvValueStyle = () => 'sp-kv-value';
+// Shared small-text utility (used by issuesPanel + venueBoard hints)
 export const spSmallStyle = () => 'sp-small';
 
 // Popover

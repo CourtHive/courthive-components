@@ -40,7 +40,6 @@ export { deepClone, clamp, roundKeyString, roundLabel, sameLocator, pickRoundKey
 export { buildDateStrip } from './ui/dateStrip';
 export { buildVenueBoard } from './ui/venueBoard';
 export { buildRoundCatalog } from './ui/roundCatalog';
-export { buildInspectorPanel } from './ui/inspectorPanel';
 export { buildIssuesPanel } from './ui/issuesPanel';
 export { buildRoundCard } from './ui/roundCard';
 export { createCardPopoverManager } from './ui/cardPopover';

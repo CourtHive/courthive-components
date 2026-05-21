@@ -295,13 +295,13 @@
 }
 
 .sp-card-title {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
 .sp-card-meta {
   margin-top: 4px;
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--sp-muted);
 }
 
@@ -435,38 +435,119 @@
   border: 1px solid var(--sp-border);
   border-radius: 14px;
   padding: 10px;
+  padding-right: 56px;
   background: var(--sp-card-bg);
   cursor: grab;
+  position: relative;
 }
+
+.sp-catalog-item.segment {
+  border-left: 3px solid var(--sp-accent-border);
+}
+
+.sp-split-ctl {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 4px;
+  pointer-events: auto;
+}
+
+/* Vertical stack of × buttons (one per placement) sitting in the same
+ * right-edge slot used by the ½ / ¼ split chips on un-planned rows. */
+.sp-split-ctl.sp-split-ctl-stack {
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sp-split-chip {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 3px 6px;
+  min-width: 20px;
+  border-radius: 999px;
+  border: 1px solid var(--sp-border-light);
+  background: transparent;
+  color: var(--sp-muted);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.sp-split-chip:hover {
+  border-color: var(--sp-accent-border);
+  color: var(--sp-accent-text);
+}
+
+.sp-split-chip.sp-split-collapse {
+  font-size: 0.8125rem;
+  padding: 2px 7px;
+}
+
+.sp-split-chip.sp-split-collapse:hover {
+  border-color: var(--sp-err-border);
+  color: var(--sp-err-text);
+}
+
 
 .sp-catalog-item:hover {
   border-color: var(--sp-border-hover);
 }
 
 .sp-catalog-item.dimmed {
-  opacity: 0.5;
-  background: var(--sp-dimmed-bg, color-mix(in srgb, var(--sp-card-bg) 60%, var(--sp-text) 40%));
+  /* Placed rows: a deliberate shade shift from the card background plus a
+   * subtle opacity knock-back so they read as "spent". Still high enough
+   * contrast for the title + placement chips to remain easily scannable. */
+  background: color-mix(in srgb, var(--sp-card-bg) 70%, var(--sp-muted) 30%);
+  border-style: dashed;
+  border-color: var(--sp-border-light);
   cursor: default;
-  position: relative;
+  opacity: 0.85;
 }
 
-.sp-catalog-item.dimmed .sp-card-title,
+.sp-catalog-item.dimmed .sp-card-title {
+  color: color-mix(in srgb, var(--sp-text) 75%, transparent 25%);
+}
+
 .sp-catalog-item.dimmed .sp-card-meta {
-  color: var(--sp-dimmed-text, color-mix(in srgb, var(--sp-muted) 80%, transparent 20%));
+  color: var(--sp-muted);
 }
 
 .sp-catalog-item.dimmed:hover {
   border-color: var(--sp-border);
 }
 
-.sp-catalog-item.dimmed .sp-catalog-check {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 14px;
-  color: var(--sp-ok-text, #4ade80);
-  pointer-events: none;
+.sp-catalog-placements {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sp-catalog-placement {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.6875rem;
+  color: var(--sp-accent-text, var(--sp-text));
+  padding: 2px 0;
+}
+
+.sp-catalog-placement-icon {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sp-accent-border);
+  flex-shrink: 0;
+}
+
+.sp-catalog-placement-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sp-catalog-item.navigate {

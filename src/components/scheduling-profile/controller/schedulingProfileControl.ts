@@ -9,7 +9,6 @@
 
 import { buildSchedulingProfileLayout } from '../ui/schedulingProfileLayout';
 import { createCardPopoverManager } from '../ui/cardPopover';
-import { buildInspectorPanel } from '../ui/inspectorPanel';
 import { buildRoundCatalog } from '../ui/roundCatalog';
 import { buildIssuesPanel } from '../ui/issuesPanel';
 import { ProfileStore } from '../engine/profileStore';
@@ -77,11 +76,9 @@ export class SchedulingProfileControl {
       onNavigateToPlanned: (item: CatalogRoundItem) => this.store.navigateToRound(item)
     });
 
-    const inspectorPanel = buildInspectorPanel();
-
     // Assemble layout
     this.layout = buildSchedulingProfileLayout(
-      { dateStrip, issuesPanel, venueBoard, roundCatalog, inspectorPanel },
+      { dateStrip, issuesPanel, venueBoard, roundCatalog },
       { hideLeft: config.hideLeft, catalogSide: config.catalogSide }
     );
 

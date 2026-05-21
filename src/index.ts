@@ -332,7 +332,6 @@ export {
   buildDateStrip,
   buildVenueBoard,
   buildRoundCatalog,
-  buildInspectorPanel,
   buildIssuesPanel,
   buildRoundCard,
   createCardPopoverManager,

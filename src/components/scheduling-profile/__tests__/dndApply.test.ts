@@ -98,6 +98,28 @@ describe('applyDropCommit', () => {
 
       expect(profile[0].venues[0].rounds).toHaveLength(originalLen);
     });
+
+    it('preserves roundSegment from the drag payload (split-round catalog drop)', () => {
+      const profile: SchedulingProfile = [{ scheduleDate: DAY1, venues: [{ venueId: 'V1', rounds: [] }] }];
+      const drag: CatalogDragPayload = {
+        type: 'CATALOG_ROUND',
+        roundRef: catalogRound,
+        roundSegment: { segmentNumber: 2, segmentsCount: 4 }
+      };
+      const result = applyDropCommit(profile, drag, { date: DAY1, venueId: 'V1', index: 0 });
+
+      expect(result.ok).toBe(true);
+      const placed = result.profile[0].venues[0].rounds[0];
+      expect(placed.roundSegment).toEqual({ segmentNumber: 2, segmentsCount: 4 });
+    });
+
+    it('omits roundSegment for whole-round drops (no segment in payload)', () => {
+      const profile: SchedulingProfile = [{ scheduleDate: DAY1, venues: [{ venueId: 'V1', rounds: [] }] }];
+      const drag: CatalogDragPayload = { type: 'CATALOG_ROUND', roundRef: catalogRound };
+      const result = applyDropCommit(profile, drag, { date: DAY1, venueId: 'V1', index: 0 });
+
+      expect(result.profile[0].venues[0].rounds[0].roundSegment).toBeUndefined();
+    });
   });
 
   describe('PLANNED_ROUND moves', () => {

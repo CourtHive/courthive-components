@@ -13,7 +13,6 @@ import { buildDateStrip } from '../../components/scheduling-profile/ui/dateStrip
 import { buildIssuesPanel } from '../../components/scheduling-profile/ui/issuesPanel';
 import { buildVenueBoard } from '../../components/scheduling-profile/ui/venueBoard';
 import { buildRoundCatalog } from '../../components/scheduling-profile/ui/roundCatalog';
-import { buildInspectorPanel } from '../../components/scheduling-profile/ui/inspectorPanel';
 import { buildRoundCard } from '../../components/scheduling-profile/ui/roundCard';
 
 import { VENUES, ROUND_CATALOG, DATES, VALID_PROFILE, ERROR_PROFILE, makeBaseConfig } from './data';
@@ -473,65 +472,3 @@ export const RoundCatalogWithPlanned = {
   }
 };
 
-// ============================================================================
-// Inspector Panel
-// ============================================================================
-
-export const InspectorEmpty = {
-  render: () => {
-    const root = document.createElement('div');
-    root.style.cssText = SP_ROOT_NARROW;
-
-    const panel = buildInspectorPanel();
-    root.appendChild(panel.element);
-    panel.update(makeStoreState());
-
-    return root;
-  }
-};
-
-export const InspectorWithSelection = {
-  render: () => {
-    const root = document.createElement('div');
-    root.style.cssText = SP_ROOT_NARROW;
-
-    const store = new ProfileStore(makeBaseConfig({ initialProfile: VALID_PROFILE }));
-
-    // Select the first card
-    store.selectCard({
-      date: DAY1,
-      venueId: 'VENUE_A',
-      index: 0,
-      roundKey: { tournamentId: 'T1', eventId: 'E_MS_U16', drawId: 'D1_MAIN', structureId: 'S1', roundNumber: 5 }
-    });
-
-    const panel = buildInspectorPanel();
-    root.appendChild(panel.element);
-    panel.update(store.getState());
-
-    return root;
-  }
-};
-
-export const InspectorWithErrors = {
-  render: () => {
-    const root = document.createElement('div');
-    root.style.cssText = SP_ROOT_NARROW;
-
-    const store = new ProfileStore(makeBaseConfig({ initialProfile: ERROR_PROFILE }));
-
-    // Select a card that has errors
-    store.selectCard({
-      date: DAY1,
-      venueId: 'VENUE_A',
-      index: 0,
-      roundKey: { tournamentId: 'T1', eventId: 'E_MS_U16', drawId: 'D1_MAIN', structureId: 'S1', roundNumber: 6 }
-    });
-
-    const panel = buildInspectorPanel();
-    root.appendChild(panel.element);
-    panel.update(store.getState());
-
-    return root;
-  }
-};

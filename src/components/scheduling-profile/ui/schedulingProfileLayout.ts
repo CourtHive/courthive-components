@@ -3,7 +3,7 @@
  *
  * Left:   dateStrip + issuesPanel
  * Center: venueBoard
- * Right:  roundCatalog + inspectorPanel
+ * Right:  roundCatalog (full height)
  */
 
 import { spLayoutStyle, spColumnStyle } from './styles';
@@ -14,7 +14,6 @@ export interface LayoutPanels {
   issuesPanel: UIPanel<ProfileStoreState>;
   venueBoard: UIPanel<ProfileStoreState>;
   roundCatalog: UIPanel<ProfileStoreState>;
-  inspectorPanel: UIPanel<ProfileStoreState>;
 }
 
 export function buildSchedulingProfileLayout(
@@ -51,13 +50,12 @@ export function buildSchedulingProfileLayout(
   panels.venueBoard.element.style.minHeight = '0';
   center.appendChild(panels.venueBoard.element);
 
-  // Catalog + inspector sidebar
+  // Catalog sidebar — single full-height panel.
   const sidebar = document.createElement('div');
   sidebar.className = spColumnStyle();
-  panels.roundCatalog.element.style.flex = '1';
+  panels.roundCatalog.element.style.flex = '1 1 0';
   panels.roundCatalog.element.style.minHeight = '0';
   sidebar.appendChild(panels.roundCatalog.element);
-  sidebar.appendChild(panels.inspectorPanel.element);
 
   if (catalogLeft && hideLeft) {
     root.appendChild(sidebar);
@@ -74,7 +72,6 @@ export function buildSchedulingProfileLayout(
     }
     panels.venueBoard.update(state);
     panels.roundCatalog.update(state);
-    panels.inspectorPanel.update(state);
   }
 
   return { element: root, update };

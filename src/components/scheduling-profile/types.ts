@@ -99,6 +99,7 @@ export interface RoundLocator {
 export interface CatalogDragPayload {
   type: 'CATALOG_ROUND';
   roundRef: CatalogRoundItem;
+  roundSegment?: RoundSegment;
 }
 
 export interface PlannedDragPayload {

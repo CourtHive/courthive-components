@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { filterCatalog, groupCatalog, getPlannedRoundKeys } from '../domain/catalogProjections';
+import {
+  filterCatalog,
+  groupCatalog,
+  getPlannedRoundKeys,
+  getPlannedSegmentKeys,
+  segmentKeyString
+} from '../domain/catalogProjections';
 import type { CatalogRoundItem } from '../types';
 
 const BOYS_U16 = 'Boys U16 Singles';
@@ -128,6 +134,51 @@ describe('groupCatalog', () => {
     const groups = groupCatalog(items, 'event');
     const keys = [...groups.keys()];
     expect(keys).toEqual([BOYS_U16, GIRLS_U16]);
+  });
+});
+
+describe('getPlannedSegmentKeys', () => {
+  it('returns one key per placed segment, ignoring whole-round placements', () => {
+    const profile = [
+      {
+        scheduleDate: '2026-06-15',
+        venues: [
+          {
+            venueId: 'V1',
+            rounds: [
+              { tournamentId: 'T1', eventId: 'E1', drawId: 'D1', structureId: 'S1', roundNumber: 5 },
+              {
+                tournamentId: 'T1',
+                eventId: 'E1',
+                drawId: 'D1',
+                structureId: 'S1',
+                roundNumber: 5,
+                roundSegment: { segmentNumber: 1, segmentsCount: 4 }
+              },
+              {
+                tournamentId: 'T1',
+                eventId: 'E1',
+                drawId: 'D1',
+                structureId: 'S1',
+                roundNumber: 5,
+                roundSegment: { segmentNumber: 3, segmentsCount: 4 }
+              }
+            ]
+          }
+        ]
+      }
+    ];
+    const keys = getPlannedSegmentKeys(profile);
+    expect(keys.size).toBe(2);
+    expect(keys.has(segmentKeyString(ROUND_KEY_R32, { segmentNumber: 1, segmentsCount: 4 }))).toBe(true);
+    expect(keys.has(segmentKeyString(ROUND_KEY_R32, { segmentNumber: 3, segmentsCount: 4 }))).toBe(true);
+    expect(keys.has(segmentKeyString(ROUND_KEY_R32, { segmentNumber: 2, segmentsCount: 4 }))).toBe(false);
+  });
+});
+
+describe('segmentKeyString', () => {
+  it('formats as `{roundKey}|{n}/{count}`', () => {
+    expect(segmentKeyString(ROUND_KEY_R32, { segmentNumber: 2, segmentsCount: 4 })).toBe(`${ROUND_KEY_R32}|2/4`);
   });
 });
 

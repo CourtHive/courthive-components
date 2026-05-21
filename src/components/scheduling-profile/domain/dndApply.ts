@@ -34,6 +34,7 @@ export function applyDropCommit(profileDraft: SchedulingProfile, drag: DragPaylo
       roundNumber: drag.roundRef.roundNumber,
       roundName: drag.roundRef.roundName
     };
+    if (drag.roundSegment) roundProfile.roundSegment = drag.roundSegment;
     const idx = clamp(drop.index, 0, venue.rounds.length);
     venue.rounds.splice(idx, 0, roundProfile);
     normalizeSortOrder(venue.rounds);
