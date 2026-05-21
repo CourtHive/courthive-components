@@ -376,6 +376,36 @@
   font-weight: 800;
 }
 
+.spl-card-title.with-time {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.spl-card-title-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spl-card-time-header {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--sp-ok-text, #10b981);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Scheduled-tab card whose matchUp has a date but no scheduledTime —
+ * dashed border + softened opacity hint that a time still needs to be set. */
+.spl-matchup-card.no-time {
+  border-style: dashed;
+  opacity: 0.75;
+}
+
 .spl-card-sides {
   margin-top: 4px;
   font-size: 0.6875rem;

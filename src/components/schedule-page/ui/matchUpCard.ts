@@ -20,7 +20,18 @@ export interface MatchUpCardCallbacks {
   onClick?: (matchUp: CatalogMatchUpItem) => void;
 }
 
-export function buildMatchUpCard(item: CatalogMatchUpItem, callbacks: MatchUpCardCallbacks): HTMLElement {
+export interface MatchUpCardOptions {
+  /** When true, render `scheduledTime` as a prominent header in the title row
+   *  (top-right) and suppress the standard time chip. Used by the schedule
+   *  grid's Scheduled tab where the time is the card's primary signal. */
+  prominentTime?: boolean;
+}
+
+export function buildMatchUpCard(
+  item: CatalogMatchUpItem,
+  callbacks: MatchUpCardCallbacks,
+  options: MatchUpCardOptions = {}
+): HTMLElement {
   const card = document.createElement('div');
   card.className = splMatchUpCardStyle();
   card.setAttribute('data-matchup-id', item.matchUpId);
@@ -53,7 +64,21 @@ export function buildMatchUpCard(item: CatalogMatchUpItem, callbacks: MatchUpCar
   // Title: event — round
   const titleEl = document.createElement('div');
   titleEl.className = splCardTitleStyle();
-  titleEl.textContent = `${item.eventName} \u2014 ${item.roundName ?? 'Round ' + item.roundNumber}`;
+  const titleText = `${item.eventName} \u2014 ${item.roundName ?? 'Round ' + item.roundNumber}`;
+  const showProminentTime = options.prominentTime && !!item.scheduledTime;
+  if (showProminentTime) {
+    titleEl.classList.add('with-time');
+    const textEl = document.createElement('span');
+    textEl.className = 'spl-card-title-text';
+    textEl.textContent = titleText;
+    const timeEl = document.createElement('span');
+    timeEl.className = 'spl-card-time-header';
+    timeEl.textContent = item.scheduledTime!;
+    titleEl.appendChild(textEl);
+    titleEl.appendChild(timeEl);
+  } else {
+    titleEl.textContent = titleText;
+  }
   card.appendChild(titleEl);
 
   // Sides: "Player A vs Player B" (or "TBD vs TBD" for unknown)
@@ -75,7 +100,7 @@ export function buildMatchUpCard(item: CatalogMatchUpItem, callbacks: MatchUpCar
   const chips = document.createElement('div');
   chips.className = splCardChipsStyle();
 
-  if (item.scheduledTime) {
+  if (item.scheduledTime && !showProminentTime) {
     chips.appendChild(makeChip(item.scheduledTime, 'time'));
   }
   if (item.scheduledCourtName) {
