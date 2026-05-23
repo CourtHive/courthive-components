@@ -40,7 +40,7 @@ export function removeAllChildNodes(parent: HTMLElement | null): void {
 export const cModal = (() => {
   const scrollStop = bodyFreeze();
   const conditionalClose: Record<number, boolean | undefined> = {};
-  const defaultPadding = '.5';
+  const defaultPadding = '1';
   const bodyContent: any[] = [];
   let scrollPosition: number;
   const closeFx: Array<((params: { content?: any }) => void) | undefined> = [];
