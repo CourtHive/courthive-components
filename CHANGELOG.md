@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.1](https://github.com/CourtHive/courthive-components/compare/v1.8.0...v1.8.1) (2026-05-23)
+
+
+### Bug Fixes
+
+* **modal:** raise default modal padding from .5 to 1em ([445bdce](https://github.com/CourtHive/courthive-components/commit/445bdce37a428beb7a129c67c79ede9674ecf79b))
+
 ## [1.8.0](https://github.com/CourtHive/courthive-components/compare/v1.7.1...v1.8.0) (2026-05-21)
 
 
