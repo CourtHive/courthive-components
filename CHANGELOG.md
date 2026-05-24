@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0](https://github.com/CourtHive/courthive-components/compare/v1.8.1...v1.9.0) (2026-05-24)
+
+
+### Features
+
+* **modal:** add cModal setButtonState for in-place footer button updates ([d27d803](https://github.com/CourtHive/courthive-components/commit/d27d8030bcc1783d328cf3ebd44f75cc09db12f2))
+
 ## [1.8.1](https://github.com/CourtHive/courthive-components/compare/v1.8.0...v1.8.1) (2026-05-23)
 
 
