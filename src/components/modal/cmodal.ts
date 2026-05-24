@@ -146,12 +146,15 @@ export const cModal = (() => {
   const footerButtons = ({
     buttons,
     config,
-    modalNumber
+    modalNumber,
+    registry
   }: {
     buttons: ModalButton[];
     config?: ModalConfig;
     modalNumber: number;
+    registry?: Map<string, HTMLButtonElement>;
   }): HTMLElement => {
+    registry?.clear();
     const modalFooter = document.createElement('div');
     modalFooter.className = modalFooterStyle();
     modalFooter.style.padding = getUnitValue({ config, attrs: ['footer.padding', 'padding'], value: defaultPadding });
@@ -168,7 +171,10 @@ export const cModal = (() => {
       const elem = document.createElement('button');
 
       if (buttonConfig.disabled !== undefined) elem.disabled = buttonConfig.disabled;
-      if (buttonConfig.id) elem.id = buttonConfig.id;
+      if (buttonConfig.id) {
+        elem.id = buttonConfig.id;
+        registry?.set(buttonConfig.id, elem);
+      }
 
       elem.className = buttonConfig?.footer?.className || 'button font-medium';
       // Only add intent class if it's not 'none'
@@ -471,9 +477,14 @@ export const cModal = (() => {
     };
     attachContent({ content, config });
 
+    // Live references to the footer button elements cModal owns, keyed by id.
+    // Lets callers flip a button's disabled state / label via setButtonState
+    // without reaching into the footer DOM or rebuilding the whole footer.
+    const buttonElements = new Map<string, HTMLButtonElement>();
+
     let footerElement: HTMLElement | undefined;
     if (isArray(buttons)) {
-      footerElement = footerButtons({ buttons, config, modalNumber });
+      footerElement = footerButtons({ buttons, config, modalNumber, registry: buttonElements });
       dialog.appendChild(footerElement);
     } else if (footer) {
       const modalFooter = document.createElement('div');
@@ -506,8 +517,17 @@ export const cModal = (() => {
 
     const setButtons = ({ buttons, config }: { buttons: ModalButton[]; config?: ModalConfig }) => {
       if (footerElement) footerElement.remove();
-      footerElement = footerButtons({ buttons, config, modalNumber });
+      footerElement = footerButtons({ buttons, config, modalNumber, registry: buttonElements });
       dialog.appendChild(footerElement);
+    };
+
+    // Update a single footer button in place — no DOM query by the caller and
+    // no footer rebuild. Use this to gate a submit button as the user types.
+    const setButtonState = (id: string, state: { disabled?: boolean; label?: string } = {}) => {
+      const btn = buttonElements.get(id);
+      if (!btn) return;
+      if (state.disabled !== undefined) btn.disabled = state.disabled;
+      if (state.label !== undefined) btn.innerHTML = state.label;
     };
 
     const setOnClose = ({ onClose }: { onClose?: (params: { content?: any }) => void }) => {
@@ -547,7 +567,7 @@ export const cModal = (() => {
       if (title) setTitle({ title, config });
     };
 
-    return { setContent, setButtons, update };
+    return { setContent, setButtons, update, setButtonState };
   };
 
   return { close, open };
