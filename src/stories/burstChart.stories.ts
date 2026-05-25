@@ -84,6 +84,68 @@ function buildCompetitivenessLegend(): HTMLElement {
   return legend;
 }
 
+const COMPETITIVENESS_USAGE_SNIPPET = `import { burstChart, fromFactoryDrawData } from 'courthive-components';
+
+// Enabling competitiveness coloring is a single option — that's all it takes:
+const chart = burstChart({ colorMode: 'competitiveness' });
+chart.render(container, fromFactoryDrawData(structure), title);
+
+// Optional:
+// - toggle at runtime without re-rendering
+const instance = chart.render(container, drawData, title);
+instance.setColorMode('default');          // back to seed/entry coloring
+instance.setColorMode('competitiveness');  // ...and back again
+
+// - override the bucket palette
+burstChart({
+  colorMode: 'competitiveness',
+  competitivenessColors: { COMPETITIVE: '#16a34a', DECISIVE: '#b91c1c' },
+});`;
+
+/** Build a panel that documents the minimal usage for competitiveness coloring. */
+function buildUsagePanel(): HTMLElement {
+  const panel = document.createElement('div');
+  panel.style.margin = '16px 0';
+  panel.style.padding = '16px';
+  panel.style.backgroundColor = CHC_BG_ELEVATED;
+  panel.style.border = BORDER_STYLE_1;
+  panel.style.borderRadius = '8px';
+
+  const heading = document.createElement('h3');
+  heading.textContent = 'Usage';
+  heading.style.margin = '0 0 8px 0';
+  heading.style.color = CHC_TEXT_PRIMARY;
+  panel.appendChild(heading);
+
+  const lead = document.createElement('p');
+  lead.style.margin = '0 0 12px 0';
+  lead.style.fontSize = '14px';
+  lead.style.color = CHC_TEXT_SECONDARY;
+  lead.innerHTML =
+    "Pass <code>colorMode: 'competitiveness'</code> when creating the chart — nothing else is required. " +
+    'The competitiveness of each decided matchUp is computed automatically inside the draw adapters ' +
+    '(<code>fromFactoryDrawData</code> / <code>fromLegacyDraw</code>), so the data you already pass to ' +
+    '<code>render()</code> is enough. Winner-ring segments are colored by bucket; the outer entrant ring stays neutral.';
+  panel.appendChild(lead);
+
+  const pre = document.createElement('pre');
+  pre.style.margin = '0';
+  pre.style.padding = '12px';
+  pre.style.backgroundColor = CHC_BG_SECONDARY;
+  pre.style.borderRadius = '4px';
+  pre.style.overflowX = 'auto';
+  pre.style.fontSize = '12.5px';
+  pre.style.lineHeight = '1.5';
+  pre.style.color = CHC_TEXT_PRIMARY;
+
+  const code = document.createElement('code');
+  code.textContent = COMPETITIVENESS_USAGE_SNIPPET;
+  pre.appendChild(code);
+  panel.appendChild(pre);
+
+  return panel;
+}
+
 /** Build a Default / Competitiveness mode toggle wired to the supplied callback. */
 function buildModeToggle(onChange: (mode: BurstColorMode) => void): HTMLElement {
   const group = document.createElement('div');
@@ -999,14 +1061,30 @@ export const AustralianOpenPlayerSearch: Story = {
  * Competitiveness Coloring - color each winner-ring segment by the competitiveness
  * bucket of the matchUp it represents.
  *
- * With colorMode 'competitiveness', every segment that represents a decided match
- * (the winner rings, from round 1 on the outside to the final at the center) is
- * filled by how close that match was: Competitive / Routine / Decisive / Walkover.
- * The outer entrant ring stays neutral. This makes two things visible at a glance:
+ * ## How to use it
+ *
+ * Enabling this is a single option — pass `colorMode: 'competitiveness'` when you
+ * create the chart and you're done:
+ *
+ * ```ts
+ * const chart = burstChart({ colorMode: 'competitiveness' });
+ * chart.render(container, fromFactoryDrawData(structure), title);
+ * ```
+ *
+ * No extra data is required: the competitiveness of each decided matchUp is computed
+ * automatically inside the draw adapters (`fromFactoryDrawData` / `fromLegacyDraw`),
+ * so whatever you already pass to `render()` is enough. You can flip modes at runtime
+ * without re-rendering via `instance.setColorMode('default' | 'competitiveness')`, and
+ * override the bucket palette with the `competitivenessColors` option.
+ *
+ * ## What it shows
+ *
+ * Every segment that represents a decided match (the winner rings, from round 1 on the
+ * outside to the final at the center) is filled by how close that match was:
+ * Competitive / Routine / Decisive / Walkover. The outer entrant ring stays neutral.
+ * This makes two things visible at a glance:
  * - whether matches get more competitive toward the final (read radially, inward)
  * - whether a given player kept having close matches or routine wins (follow their wedge)
- *
- * Toggle between Default (seed/entry coloring) and Competitiveness without re-rendering.
  */
 export const CompetitivenessColoring: Story = {
   args: {
@@ -1124,6 +1202,7 @@ export const CompetitivenessColoring: Story = {
     wrapper.appendChild(controls);
     wrapper.appendChild(legend);
     wrapper.appendChild(chartContainer);
+    wrapper.appendChild(buildUsagePanel());
 
     return wrapper;
   }
