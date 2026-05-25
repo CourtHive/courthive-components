@@ -287,11 +287,21 @@ export type {
   SunburstMatchUp,
   SunburstSide,
   SegmentData,
+  BurstColorMode,
   BurstChartEventHandlers,
   BurstChartOptions,
   BurstChartInstance
 } from './components/burstChart/burstChart';
 export { fromFactoryDrawData, fromLegacyDraw } from './components/burstChart/matchUpTransform';
+export {
+  competitivenessColor,
+  getCompetitivenessBand,
+  COMPETITIVENESS_COLORS,
+  NEUTRAL_SEGMENT_COLOR,
+  DEFAULT_COMPETITIVE_BANDS,
+  getCompetitivenessFromScoreString
+} from './components/burstChart/competitiveness';
+export type { CompetitiveBands } from './components/burstChart/competitiveness';
 
 // Rating Distribution Chart — histogram + donut visualization for the format wizard
 // (data shape comes from tods-competition-factory: RatingDistributionStats / DistributionBin)
