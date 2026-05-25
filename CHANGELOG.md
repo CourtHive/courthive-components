@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0](https://github.com/CourtHive/courthive-components/compare/v1.9.0...v1.10.0) (2026-05-25)
+
+
+### Features
+
+* **burstChart:** color segments by matchUp competitiveness ([#394](https://github.com/CourtHive/courthive-components/issues/394)) ([59a7eb8](https://github.com/CourtHive/courthive-components/commit/59a7eb8948da6024d660638bfb002315c4ecd5c6))
+
 ## [1.9.0](https://github.com/CourtHive/courthive-components/compare/v1.8.1...v1.9.0) (2026-05-24)
 
 
