@@ -19,6 +19,8 @@ import { fixtures, entryStatusConstants } from 'tods-competition-factory';
 
 const { WILDCARD, QUALIFIER, LUCKY_LOSER } = entryStatusConstants;
 import { wordwrap } from './textHelpers';
+import { competitivenessColor, NEUTRAL_SEGMENT_COLOR } from './competitiveness';
+import { CompetitivenessBucket } from '../competitivenessBar/types';
 
 // ============================================================================
 // Constants
@@ -52,6 +54,7 @@ export interface SunburstMatchUp {
   winningSide?: number; // 1 or 2
   drawPositions: number[]; // [1, 2]
   scoreString?: string; // "6-2 7-6(2)"
+  competitiveness?: CompetitivenessBucket; // COMPETITIVE | ROUTINE | DECISIVE | WALKOVER (decided matchUps only)
   sides: SunburstSide[];
 }
 
@@ -78,10 +81,12 @@ export interface HierarchyNode {
   roundName?: string;
   scoreString?: string;
   matchUpStatus?: string;
+  competitiveness?: CompetitivenessBucket;
   matchUp?: SunburstMatchUp;
   depth: number;
   value?: number;
-  color?: string;
+  color?: string; // default (seed/entry) fill
+  competitivenessColor?: string; // fill used when colorMode === 'competitiveness'
   children?: HierarchyNode[];
   opponent?: HierarchyNode; // Set during hover to track opponent for flag display
 }
@@ -94,6 +99,7 @@ export interface SegmentData {
   nationalityCode?: string;
   scoreString?: string;
   matchUpStatus?: string;
+  competitiveness?: CompetitivenessBucket;
   roundName?: string;
   depth: number;
   matchUp?: SunburstMatchUp;
@@ -104,11 +110,25 @@ export interface BurstChartEventHandlers {
   clickCenter?: () => void;
 }
 
+/**
+ * Determines how segments are filled.
+ * - 'default' — seed / entry-status / draw-position coloring (original behavior)
+ * - 'competitiveness' — winner-ring segments colored by the competitiveness
+ *   bucket of the matchUp they represent; the outer entrant ring stays neutral.
+ *
+ * Modeled as an open string union so further modes can be added later.
+ */
+export type BurstColorMode = 'default' | 'competitiveness';
+
 export interface BurstChartOptions {
   width?: number;
   height?: number;
   title?: string;
   colorBySeeds?: boolean;
+  /** Initial color mode (default 'default'). Toggle at runtime via instance.setColorMode(). */
+  colorMode?: BurstColorMode;
+  /** Override the default competitiveness bucket palette. */
+  competitivenessColors?: Partial<Record<CompetitivenessBucket, string>>;
   countryCodes?: Record<string, string>;
   eventHandlers?: BurstChartEventHandlers;
   textScaleFactor?: number;
@@ -120,6 +140,8 @@ export interface BurstChartInstance {
   highlightPlayer: (playerName?: string) => number;
   /** Show or hide the entire chart SVG */
   hide: (hidden: boolean) => void;
+  /** Switch the segment coloring mode in place (no re-render). */
+  setColorMode: (mode: BurstColorMode) => void;
 }
 
 type GSelection = Selection<SVGGElement, unknown, null, undefined>;
@@ -220,6 +242,7 @@ function buildRoundParents(
       nationalityCode: winnerSide?.nationalityCode ?? winnerLookup?.nationalityCode,
       scoreString: mu.scoreString,
       matchUpStatus: mu.matchUpStatus,
+      competitiveness: mu.competitiveness,
       matchUp: mu,
       depth,
       children: children.length > 0 ? children : undefined
@@ -359,6 +382,24 @@ function applyColors(node: HierarchyNode, colorScale: ScaleLinear<number, number
       applyColors(child, colorScale);
     });
   }
+}
+
+/**
+ * Assign each node a `competitivenessColor` (used when colorMode is
+ * 'competitiveness'). Only winner-ring segments — nodes that have children and
+ * therefore represent the winner of a decided matchUp — are bucket-colored; the
+ * outer entrant ring (leaves) and undecided/BYE matches stay neutral, giving one
+ * competitiveness ring per round from R1 (outer) to the final (center).
+ */
+function applyCompetitivenessColors(
+  node: HierarchyNode,
+  overrides?: Partial<Record<CompetitivenessBucket, string>>
+): void {
+  if (!node) return;
+  const isWinnerRing = !!node.children?.length;
+  node.competitivenessColor =
+    isWinnerRing && node.competitiveness ? competitivenessColor(node.competitiveness, overrides) : NEUTRAL_SEGMENT_COLOR;
+  node.children?.forEach((child) => applyCompetitivenessColors(child, overrides));
 }
 
 // ============================================================================
@@ -577,6 +618,12 @@ export function renderburstChart(
     .range([0, 1]);
 
   applyColors(tournamentHierarchy, colorScale);
+  applyCompetitivenessColors(tournamentHierarchy, options.competitivenessColors);
+
+  // Active segment-coloring mode (toggled at runtime via setColorMode)
+  let colorMode: BurstColorMode = options.colorMode ?? 'default';
+  const fillForNode = (data: HierarchyNode): string =>
+    colorMode === 'competitiveness' ? data.competitivenessColor || NEUTRAL_SEGMENT_COLOR : data.color || '#ccc';
 
   // After partition(), nodes have x0/y0/x1/y1 properties
   const descendants = rootHierarchy.descendants() as HierarchyRectangularNode<HierarchyNode>[];
@@ -796,6 +843,7 @@ export function renderburstChart(
       nationalityCode: nodeData.nationalityCode,
       scoreString: nodeData.scoreString,
       matchUpStatus: nodeData.matchUpStatus,
+      competitiveness: nodeData.competitiveness,
       roundName: nodeData.roundName,
       depth: nodeData.depth,
       matchUp: nodeData.matchUp
@@ -808,7 +856,7 @@ export function renderburstChart(
     .data(descendants)
     .join('path')
     .attr('d', (d) => arc(d))
-    .attr('fill', (d) => d.data.color || '#ccc')
+    .attr('fill', (d) => fillForNode(d.data))
     .attr(ATTR_FILL_OPACITY, 0.8)
     .attr('stroke', '#fff')
     .attr('stroke-width', 1)
@@ -820,9 +868,11 @@ export function renderburstChart(
   }
 
   paths.append('title').text((node: any) => {
-    const nodeData = node.data;
+    const nodeData = node.data as HierarchyNode;
     if (nodeData.participantName) {
-      return `${nodeData.participantName}\nDraw: ${nodeData.drawPosition || 'N/A'}`;
+      const lines = [nodeData.participantName, `Draw: ${nodeData.drawPosition || 'N/A'}`];
+      if (nodeData.competitiveness) lines.push(`Competitiveness: ${nodeData.competitiveness}`);
+      return lines.join('\n');
     }
     return `${nodeData.name}\nDepth: ${node.depth}`;
   });
@@ -853,7 +903,14 @@ export function renderburstChart(
     svg.style('display', hidden ? 'none' : 'block');
   }
 
-  return { highlightPlayer, hide };
+  function setColorMode(mode: BurstColorMode): void {
+    colorMode = mode;
+    g.selectAll<SVGPathElement, HierarchyRectangularNode<HierarchyNode>>('path').attr('fill', (d) =>
+      fillForNode(d.data)
+    );
+  }
+
+  return { highlightPlayer, hide, setColorMode };
 }
 
 /**

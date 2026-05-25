@@ -18,8 +18,9 @@ import {
   matchUpStatusConstants
 } from 'tods-competition-factory';
 import { fromLegacyDraw, fromFactoryDrawData } from '../components/burstChart/matchUpTransform';
-import type { BurstChartInstance } from '../components/burstChart/burstChart';
+import type { BurstChartInstance, BurstColorMode } from '../components/burstChart/burstChart';
 import { burstChart } from '../components/burstChart/burstChart';
+import { COMPETITIVENESS_COLORS, NEUTRAL_SEGMENT_COLOR } from '../components/burstChart/competitiveness';
 
 // data imports
 import australianOpenData from '../data/burstChart/australian_open.json';
@@ -40,6 +41,152 @@ const BORDER_STYLE_1 = '1px solid var(--chc-border-secondary)';
 const BORDER_STYLE_2 = '1px solid var(--chc-border-primary)';
 const CLICKED_SEGMENT = 'Clicked segment:';
 const CLICKED_CENTER = 'Clicked center!';
+
+const COMPETITIVENESS_LEGEND: { bucket: string; label: string; color: string }[] = [
+  { bucket: 'COMPETITIVE', label: 'Competitive', color: COMPETITIVENESS_COLORS.COMPETITIVE },
+  { bucket: 'ROUTINE', label: 'Routine', color: COMPETITIVENESS_COLORS.ROUTINE },
+  { bucket: 'DECISIVE', label: 'Decisive', color: COMPETITIVENESS_COLORS.DECISIVE },
+  { bucket: 'WALKOVER', label: 'Walkover', color: COMPETITIVENESS_COLORS.WALKOVER },
+  { bucket: 'NEUTRAL', label: 'Entrant / not played', color: NEUTRAL_SEGMENT_COLOR }
+];
+
+/** Build a small swatch legend describing the competitiveness palette. */
+function buildCompetitivenessLegend(): HTMLElement {
+  const legend = document.createElement('div');
+  legend.style.display = 'flex';
+  legend.style.flexWrap = 'wrap';
+  legend.style.gap = '14px';
+  legend.style.alignItems = 'center';
+  legend.style.fontSize = '13px';
+  legend.style.color = CHC_TEXT_SECONDARY;
+
+  for (const { label, color } of COMPETITIVENESS_LEGEND) {
+    const item = document.createElement('span');
+    item.style.display = 'inline-flex';
+    item.style.alignItems = 'center';
+    item.style.gap = '6px';
+
+    const swatch = document.createElement('span');
+    swatch.style.width = '14px';
+    swatch.style.height = '14px';
+    swatch.style.borderRadius = '3px';
+    swatch.style.background = color;
+    swatch.style.display = 'inline-block';
+
+    const text = document.createElement('span');
+    text.textContent = label;
+
+    item.appendChild(swatch);
+    item.appendChild(text);
+    legend.appendChild(item);
+  }
+
+  return legend;
+}
+
+const COMPETITIVENESS_USAGE_SNIPPET = `import { burstChart, fromFactoryDrawData } from 'courthive-components';
+
+// Enabling competitiveness coloring is a single option — that's all it takes:
+const chart = burstChart({ colorMode: 'competitiveness' });
+chart.render(container, fromFactoryDrawData(structure), title);
+
+// Optional:
+// - toggle at runtime without re-rendering
+const instance = chart.render(container, drawData, title);
+instance.setColorMode('default');          // back to seed/entry coloring
+instance.setColorMode('competitiveness');  // ...and back again
+
+// - override the bucket palette
+burstChart({
+  colorMode: 'competitiveness',
+  competitivenessColors: { COMPETITIVE: '#16a34a', DECISIVE: '#b91c1c' },
+});`;
+
+/** Build a panel that documents the minimal usage for competitiveness coloring. */
+function buildUsagePanel(): HTMLElement {
+  const panel = document.createElement('div');
+  panel.style.margin = '16px 0';
+  panel.style.padding = '16px';
+  panel.style.backgroundColor = CHC_BG_ELEVATED;
+  panel.style.border = BORDER_STYLE_1;
+  panel.style.borderRadius = '8px';
+
+  const heading = document.createElement('h3');
+  heading.textContent = 'Usage';
+  heading.style.margin = '0 0 8px 0';
+  heading.style.color = CHC_TEXT_PRIMARY;
+  panel.appendChild(heading);
+
+  const lead = document.createElement('p');
+  lead.style.margin = '0 0 12px 0';
+  lead.style.fontSize = '14px';
+  lead.style.color = CHC_TEXT_SECONDARY;
+  lead.innerHTML =
+    "Pass <code>colorMode: 'competitiveness'</code> when creating the chart — nothing else is required. " +
+    'The competitiveness of each decided matchUp is computed automatically inside the draw adapters ' +
+    '(<code>fromFactoryDrawData</code> / <code>fromLegacyDraw</code>), so the data you already pass to ' +
+    '<code>render()</code> is enough. Winner-ring segments are colored by bucket; the outer entrant ring stays neutral.';
+  panel.appendChild(lead);
+
+  const pre = document.createElement('pre');
+  pre.style.margin = '0';
+  pre.style.padding = '12px';
+  pre.style.backgroundColor = CHC_BG_SECONDARY;
+  pre.style.borderRadius = '4px';
+  pre.style.overflowX = 'auto';
+  pre.style.fontSize = '12.5px';
+  pre.style.lineHeight = '1.5';
+  pre.style.color = CHC_TEXT_PRIMARY;
+
+  const code = document.createElement('code');
+  code.textContent = COMPETITIVENESS_USAGE_SNIPPET;
+  pre.appendChild(code);
+  panel.appendChild(pre);
+
+  return panel;
+}
+
+/** Build a Default / Competitiveness mode toggle wired to the supplied callback. */
+function buildModeToggle(onChange: (mode: BurstColorMode) => void): HTMLElement {
+  const group = document.createElement('div');
+  group.style.display = 'inline-flex';
+  group.style.gap = '8px';
+  group.style.alignItems = 'center';
+
+  const modes: { mode: BurstColorMode; label: string }[] = [
+    { mode: 'default', label: 'Default (seeds)' },
+    { mode: 'competitiveness', label: 'Competitiveness' }
+  ];
+
+  const buttons: HTMLButtonElement[] = [];
+  const paint = (active: BurstColorMode) => {
+    for (const btn of buttons) {
+      const isActive = btn.dataset.mode === active;
+      btn.style.background = isActive ? '#1565C0' : CHC_BG_PRIMARY;
+      btn.style.color = isActive ? '#fff' : CHC_TEXT_PRIMARY;
+    }
+  };
+
+  for (const { mode, label } of modes) {
+    const btn = document.createElement('button');
+    btn.textContent = label;
+    btn.dataset.mode = mode;
+    btn.style.padding = '6px 12px';
+    btn.style.fontSize = '14px';
+    btn.style.borderRadius = '4px';
+    btn.style.border = BORDER_STYLE_2;
+    btn.style.cursor = 'pointer';
+    btn.addEventListener('click', () => {
+      onChange(mode);
+      paint(mode);
+    });
+    buttons.push(btn);
+    group.appendChild(btn);
+  }
+
+  paint('competitiveness');
+  return group;
+}
 
 interface BurstChartArgs {
   width: number;
@@ -905,6 +1052,157 @@ export const AustralianOpenPlayerSearch: Story = {
     searchInput.addEventListener('blur', () => {
       searchInput.style.borderColor = 'var(--chc-border-secondary)';
     });
+
+    return wrapper;
+  }
+};
+
+/**
+ * Competitiveness Coloring - color each winner-ring segment by the competitiveness
+ * bucket of the matchUp it represents.
+ *
+ * ## How to use it
+ *
+ * Enabling this is a single option — pass `colorMode: 'competitiveness'` when you
+ * create the chart and you're done:
+ *
+ * ```ts
+ * const chart = burstChart({ colorMode: 'competitiveness' });
+ * chart.render(container, fromFactoryDrawData(structure), title);
+ * ```
+ *
+ * No extra data is required: the competitiveness of each decided matchUp is computed
+ * automatically inside the draw adapters (`fromFactoryDrawData` / `fromLegacyDraw`),
+ * so whatever you already pass to `render()` is enough. You can flip modes at runtime
+ * without re-rendering via `instance.setColorMode('default' | 'competitiveness')`, and
+ * override the bucket palette with the `competitivenessColors` option.
+ *
+ * ## What it shows
+ *
+ * Every segment that represents a decided match (the winner rings, from round 1 on the
+ * outside to the final at the center) is filled by how close that match was:
+ * Competitive / Routine / Decisive / Walkover. The outer entrant ring stays neutral.
+ * This makes two things visible at a glance:
+ * - whether matches get more competitive toward the final (read radially, inward)
+ * - whether a given player kept having close matches or routine wins (follow their wedge)
+ */
+export const CompetitivenessColoring: Story = {
+  args: {
+    width: 800,
+    height: 800,
+    title: 'Competitiveness'
+  },
+  render: (args: any) => {
+    const wrapper = document.createElement('div');
+    wrapper.style.padding = '20px';
+    wrapper.style.backgroundColor = CHC_BG_SECONDARY;
+    wrapper.style.color = CHC_TEXT_PRIMARY;
+
+    // Controls row: color-mode toggle + draw size + regenerate
+    const controls = document.createElement('div');
+    controls.style.display = 'flex';
+    controls.style.flexWrap = 'wrap';
+    controls.style.gap = '16px';
+    controls.style.alignItems = 'center';
+    controls.style.marginBottom = '16px';
+    controls.style.padding = '15px';
+    controls.style.backgroundColor = CHC_BG_ELEVATED;
+    controls.style.borderRadius = '8px';
+    controls.style.border = BORDER_STYLE_1;
+
+    const sizeLabel = document.createElement('span');
+    sizeLabel.textContent = 'Draw Size: ';
+    sizeLabel.style.fontWeight = 'bold';
+    const sizeSelect = document.createElement('select');
+    sizeSelect.style.padding = '6px 10px';
+    sizeSelect.style.fontSize = '14px';
+    sizeSelect.style.borderRadius = '4px';
+    sizeSelect.style.border = BORDER_STYLE_2;
+    sizeSelect.style.backgroundColor = CHC_BG_PRIMARY;
+    sizeSelect.style.color = CHC_TEXT_PRIMARY;
+    for (const size of [16, 32, 64, 128]) {
+      const opt = document.createElement('option');
+      opt.value = String(size);
+      opt.textContent = String(size);
+      if (size === 32) opt.selected = true;
+      sizeSelect.appendChild(opt);
+    }
+
+    const regenButton = document.createElement('button');
+    regenButton.textContent = 'Regenerate';
+    regenButton.style.padding = '8px 16px';
+    regenButton.style.fontSize = '14px';
+    regenButton.style.borderRadius = '4px';
+    regenButton.style.border = '1px solid #1565C0';
+    regenButton.style.backgroundColor = '#1565C0';
+    regenButton.style.color = '#fff';
+    regenButton.style.cursor = 'pointer';
+
+    // Chart + legend
+    const chartContainer = document.createElement('div');
+    chartContainer.style.backgroundColor = CHC_BG_ELEVATED;
+    chartContainer.style.border = BORDER_STYLE_1;
+    chartContainer.style.borderRadius = '8px';
+    chartContainer.style.display = 'flex';
+    chartContainer.style.alignItems = 'center';
+    chartContainer.style.justifyContent = 'center';
+
+    const legend = buildCompetitivenessLegend();
+    legend.style.margin = '16px 0';
+
+    let instance: BurstChartInstance | undefined;
+    let mode: BurstColorMode = 'competitiveness';
+
+    function generate() {
+      const drawSize = Number.parseInt(sizeSelect.value, 10);
+      const seedsCount = Math.min(8, drawSize / 2);
+
+      const { tournamentRecord, drawIds } = mocksEngine.generateTournamentRecord({
+        drawProfiles: [{ drawSize, drawType: SINGLE_ELIMINATION, seedsCount }],
+        completeAllMatchUps: true,
+        randomWinningSide: true
+      });
+      tournamentEngine.setState(tournamentRecord);
+
+      const drawId = drawIds[0];
+      const { eventData } = tournamentEngine.getEventData({ drawId });
+      const structure = eventData.drawsData.find((d: any) => d.drawId === drawId).structures[0];
+      const drawData = fromFactoryDrawData(structure);
+
+      chartContainer.innerHTML = '';
+      const chart = burstChart({
+        width: args.width,
+        height: args.height,
+        colorMode: mode,
+        eventHandlers: {
+          clickSegment: (data) => {
+            console.log(CLICKED_SEGMENT, data.participantName, '|', data.competitiveness, '|', data.scoreString);
+          }
+        }
+      });
+
+      instance = chart.render(chartContainer, drawData, `${args.title} (${drawSize}-draw)`);
+    }
+
+    const toggle = buildModeToggle((m) => {
+      mode = m;
+      instance?.setColorMode(m);
+    });
+
+    controls.appendChild(toggle);
+    controls.appendChild(sizeLabel);
+    controls.appendChild(sizeSelect);
+    controls.appendChild(regenButton);
+
+    regenButton.addEventListener('click', generate);
+    sizeSelect.addEventListener('change', generate);
+
+    generate();
+
+    wrapper.appendChild(controls);
+    wrapper.appendChild(legend);
+    wrapper.appendChild(chartContainer);
+    wrapper.appendChild(buildUsagePanel());
 
     return wrapper;
   }

@@ -8,6 +8,7 @@
  */
 
 import { entryStatusConstants } from 'tods-competition-factory';
+import { competitivenessForMatchUp } from './competitiveness';
 import type { SunburstDrawData, SunburstMatchUp, SunburstSide } from './burstChart';
 
 const { LUCKY_LOSER, WILDCARD, QUALIFIER } = entryStatusConstants;
@@ -28,6 +29,11 @@ export function fromFactoryDrawData(structure: any): SunburstDrawData {
       ...mu,
       winningSide: mu.winningSide,
       drawPositions: mu.drawPositions || [],
+      competitiveness: competitivenessForMatchUp({
+        winningSide: mu.winningSide,
+        matchUpStatus: mu.matchUpStatus,
+        sets: mu.score?.sets
+      }),
       scoreString:
         mu.winningSide === 1
           ? mu.score?.scoreStringSide1
@@ -191,6 +197,7 @@ function buildRound1MatchUps(
       matchUpStatus,
       winningSide,
       drawPositions: [p1?.Draw ?? i + 1, p2?.Draw ?? i + 2],
+      competitiveness: competitivenessForMatchUp({ winningSide, matchUpStatus, scoreString }),
       scoreString,
       sides: [makeSide(1, p1, i + 1), makeSide(2, p2, i + 2)]
     });
@@ -225,6 +232,7 @@ function buildSubsequentRoundMatchUps(
       matchUpStatus,
       winningSide,
       drawPositions: [playerInfoMap.get(name1)?.drawPosition ?? 0, playerInfoMap.get(name2)?.drawPosition ?? 0],
+      competitiveness: competitivenessForMatchUp({ winningSide, matchUpStatus, scoreString }),
       scoreString,
       sides: [makeSideFromLookup(1, p1, playerInfoMap), makeSideFromLookup(2, p2, playerInfoMap)]
     });
