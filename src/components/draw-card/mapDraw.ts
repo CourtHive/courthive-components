@@ -43,7 +43,7 @@ function walkDrawMatchUps(drawDefinition: any): DrawMatchUpCounts {
   for (const structure of drawDefinition?.structures ?? []) {
     for (const matchUp of structure?.matchUps ?? []) {
       total += 1;
-      if (matchUp?.winningSide) completed += 1;
+      if (matchUp?.winningSide || matchUp?.matchUpStatus === 'BYE') completed += 1;
       else if (matchUp?.schedule?.scheduledTime) scheduled += 1;
       if (matchUp?.matchUpStatus === 'IN_PROGRESS') inProgress += 1;
     }
