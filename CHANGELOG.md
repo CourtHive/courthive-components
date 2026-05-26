@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.1](https://github.com/CourtHive/courthive-components/compare/v1.10.0...v1.10.1) (2026-05-26)
+
+
+### Bug Fixes
+
+* :bug: correct progress bar calculation for draw card ([a40ad99](https://github.com/CourtHive/courthive-components/commit/a40ad99ee31f1acaefe48505e28eb7e323a4c26a))
+
 ## [1.10.0](https://github.com/CourtHive/courthive-components/compare/v1.9.0...v1.10.0) (2026-05-25)
 
 
