@@ -90,6 +90,11 @@ import './components/notes-toolbar/notesToolbar.css';
 export { notesToolbar, updateToolbarState, updateHeadingSelect } from './components/notes-toolbar/notesToolbar';
 export type { NotesToolbarOptions } from './components/notes-toolbar/notesToolbar';
 
+// Notes editor — Tiptap-based wiring on top of notesToolbar. Lifted from TMX
+// 2026-05-26 so TMX and AMS console share one implementation.
+export { createNotesEditor } from './components/editor/notesEditor';
+export type { NotesEditorOptions, NotesEditorHandle } from './components/editor/notesEditor';
+
 // Tippy.js popover (CSS bundled in courthive-components.css)
 import './styles/tippy.css';
 import './styles/tipster.css';
