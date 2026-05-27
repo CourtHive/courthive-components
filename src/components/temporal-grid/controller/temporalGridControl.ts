@@ -78,6 +78,15 @@ export interface TemporalGridControlConfig {
 
   /** Callback when a day label is double-clicked (for navigating to 1-Day view) */
   onDayNavigate?: (day: string) => void;
+
+  /**
+   * Callback invoked when an action can't complete because of scheduling
+   * conflicts. The controller never opens a dialog itself — the consumer
+   * wires this hook to its own themed-toast / modal system. When omitted,
+   * conflicts are written to console.warn only (NEVER falls back to a
+   * native browser alert).
+   */
+  onConflict?: (conflicts: any[]) => void;
 }
 
 // ============================================================================
@@ -788,14 +797,21 @@ export class TemporalGridControl {
     )}:${pad(date.getSeconds())}`;
   }
 
-  /** Show conflict dialog */
+  /**
+   * Surface scheduling conflicts to the consumer. We never open a dialog
+   * here — the consumer's `onConflict` hook routes them to whatever themed
+   * notification system the host app uses (TMX toast, AMS console modal,
+   * etc.). When no hook is wired, conflicts go to console.warn only.
+   */
   private showConflictDialog(conflicts: any[]): void {
-    const messages = conflicts
-      .filter((c) => c.severity === 'ERROR')
-      .map((c) => c.message)
-      .join('\n');
-
-    alert(`Cannot complete operation:\n\n${messages}`);
+    const errorConflicts = conflicts.filter((c) => c.severity === 'ERROR');
+    if (errorConflicts.length === 0) return;
+    if (this.config.onConflict) {
+      this.config.onConflict(errorConflicts);
+      return;
+    }
+    const messages = errorConflicts.map((c) => c.message).join('\n');
+    console.warn(`[temporal-grid] cannot complete operation:\n${messages}`);
   }
 
   /** Get timeline instance (for advanced usage) */

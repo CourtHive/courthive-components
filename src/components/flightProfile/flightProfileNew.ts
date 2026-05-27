@@ -62,6 +62,7 @@ export function getFlightProfileModal(params: {
   const isExisting = !!existingFlightProfile;
 
   let inputs: any;
+  let errorBox: HTMLDivElement | null = null;
 
   const content = (elem: HTMLElement) => {
     // Add info message if editing existing profile
@@ -87,6 +88,22 @@ export function getFlightProfileModal(params: {
     elem.appendChild(formContainer);
 
     inputs = renderForm(formContainer, items, relationships);
+
+    // Inline error display — populated by checkParams on validation failure.
+    // NEVER fall back to window.alert: the modal stays in our themed chrome.
+    // Uses --chc-status-error (defined light + dark in theme.css) for the
+    // border + accent; bg + text ride the elevated/page palette so contrast
+    // works in both themes.
+    errorBox = document.createElement('div');
+    errorBox.className = 'chc-flight-profile-errors';
+    errorBox.style.cssText =
+      'display: none; margin-top: 0.75em; padding: 0.6em 0.9em; border-radius: 4px; ' +
+      'background: var(--chc-bg-elevated, #fff); color: var(--chc-status-error, #b91c1c); ' +
+      'border: 1px solid var(--chc-status-error, #b91c1c); ' +
+      'font-size: 0.9em; white-space: pre-line;';
+    errorBox.setAttribute('role', 'alert');
+    errorBox.setAttribute('aria-live', 'polite');
+    elem.appendChild(errorBox);
 
     // Editable flight names for existing profiles
     if (isExisting && existingFlightProfile?.flights) {
@@ -148,8 +165,15 @@ export function getFlightProfileModal(params: {
 
       const errors = validateFlightProfile(state);
       if (errors.length > 0) {
-        alert(errors.join('\n'));
+        if (errorBox) {
+          errorBox.textContent = errors.join('\n');
+          errorBox.style.display = 'block';
+        }
         return false; // Prevent modal from closing
+      }
+      if (errorBox) {
+        errorBox.textContent = '';
+        errorBox.style.display = 'none';
       }
 
       const drawNames = generateFlightNames(state);
