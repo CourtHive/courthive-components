@@ -10,7 +10,7 @@
 
 import type { TimelineGroupData, TimelineItemData, MultiRowSpan } from '../../components/temporal-grid/timeline/types';
 import { showCourtAvailabilityModal } from '../../components/temporal-grid/ui/courtAvailabilityModal';
-import { mocksEngine, tournamentEngine, TemporalEngine, temporal } from 'tods-competition-factory';
+import { mocksEngine, tournamentEngine, AvailabilityEngine, availability } from 'tods-competition-factory';
 import { buildViewToolbar, VIEW_PRESETS } from '../../components/temporal-grid/ui/viewToolbar';
 import { createBlockPopoverManager } from '../../components/temporal-grid/ui/blockPopover';
 import { CourtTimeline } from '../../components/temporal-grid/timeline/CourtTimeline';
@@ -29,7 +29,7 @@ import '../../components/temporal-grid/ui/styles.css';
 import 'vanillajs-datepicker/css/datepicker.css';
 import 'tippy.js/dist/tippy.css';
 
-const { BLOCK_TYPES, calculateCapacityStats } = temporal;
+const { BLOCK_TYPES, calculateCapacityStats } = availability;
 
 export default {
   title: 'Temporal Grid/CourtTimeline'
@@ -101,7 +101,7 @@ function formatDayLabel(dateStr: string): string {
 
 /** Aggregate capacity stats across multiple days */
 function computeMultiDayStats(
-  engine: TemporalEngine,
+  engine: AvailabilityEngine,
   days: string[]
 ): { totalHours: number; blockedHours: number; availableHours: number; avgPerCourt: number } {
   let totalCourtHours = 0;
@@ -211,7 +211,7 @@ function createEngineSetup(options?: { includeBookings?: boolean }) {
   const stateResult = tournamentEngine.getState();
   const recordWithBookings = stateResult?.tournamentRecord ?? tournamentRecord;
 
-  const engine = new TemporalEngine();
+  const engine = new AvailabilityEngine();
   engine.init(recordWithBookings, {
     dayStartTime: '06:00',
     dayEndTime: '22:00',
@@ -302,7 +302,7 @@ function createEngineSetupWithDates({ startDate, endDate }: { startDate: string;
   const stateResult = tournamentEngine.getState();
   const recordWithBookings = stateResult?.tournamentRecord ?? tournamentRecord;
 
-  const engine = new TemporalEngine();
+  const engine = new AvailabilityEngine();
   engine.init(recordWithBookings, {
     dayStartTime: '06:00',
     dayEndTime: '22:00',
@@ -472,7 +472,7 @@ function buildCourtTreeWithEditIcons(
 // ── Data builders ────────────────────────────────────────────────────────────
 
 function getGroups(
-  engine: TemporalEngine,
+  engine: AvailabilityEngine,
   startDate: string,
   visibleCourts: Set<string>,
   courtNameMap: Map<string, string>
@@ -495,7 +495,7 @@ function getGroups(
 }
 
 function getItems(
-  engine: TemporalEngine,
+  engine: AvailabilityEngine,
   startDate: string,
   visibleCourts: Set<string>,
   dayCount: number = MAX_VISIBLE_DAYS
@@ -792,13 +792,13 @@ function buildDayNavBar(params: { onPrev: () => void; onNext: () => void }): {
 // ── Shared story helpers ─────────────────────────────────────────────────────
 
 interface StoryContext {
-  engine: TemporalEngine;
+  engine: AvailabilityEngine;
   startDate: string;
   visibleCourts: Set<string>;
   courtNameMap: Map<string, string>;
   statsBar: ReturnType<typeof buildStatsBar>;
   timelineRef: { current: CourtTimeline | null };
-  config: ReturnType<TemporalEngine['getConfig']>;
+  config: ReturnType<AvailabilityEngine['getConfig']>;
   /** Optional extra work after rebuild (e.g. dirty-check save button) */
   afterRebuild?: () => void;
 }
@@ -905,7 +905,7 @@ function createSetView(ctx: StoryContext): (viewKey: string) => void {
  *
  * Data flow:
  *   mocksEngine.generateTournamentRecord()
- *     -> TemporalEngine.init(tournamentRecord)
+ *     -> AvailabilityEngine.init(tournamentRecord)
  *     -> engine.getDayTimeline() -> viewProjections -> CourtTimeline
  *
  * All block CRUD round-trips through the engine:

@@ -2,7 +2,7 @@
  * Scheduling Profile — Factory-Backed Stories
  *
  * Demonstrates the scheduling-profile component using mocksEngine-generated
- * tournament data, TemporalEngine-backed adapters, and the full round-trip
+ * tournament data, AvailabilityEngine-backed adapters, and the full round-trip
  * to scheduleProfileRounds().
  *
  * Stories:
@@ -14,7 +14,7 @@
 
 import 'tippy.js/dist/tippy.css';
 
-import { tournamentEngine, temporal } from 'tods-competition-factory';
+import { tournamentEngine, availability } from 'tods-competition-factory';
 
 import { SchedulingProfileControl, createSchedulingProfile } from '../../components/scheduling-profile';
 
@@ -22,7 +22,7 @@ import type { SchedulingProfile } from '../../components/scheduling-profile';
 
 import { createFactorySetup, profileToFactoryFormat, buildHeavyProfile, buildSpreadProfile } from './factoryData';
 
-const { calculateCapacityStats } = temporal;
+const { calculateCapacityStats } = availability;
 
 export default {
   title: 'Scheduling Profile/Factory',
@@ -94,7 +94,7 @@ export const FactoryBacked = {
       `${setup.roundCatalog.length} rounds across`,
       `${new Set(setup.roundCatalog.map((r) => r.eventId)).size} events,`,
       `${setup.venues.length} venues,`,
-      `TemporalEngine-backed availability.`,
+      `AvailabilityEngine-backed availability.`,
       `Date range: ${setup.startDate} to ${setup.endDate}.`
     ].join(' ');
     root.appendChild(info);

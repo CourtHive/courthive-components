@@ -6,8 +6,8 @@
  */
 
 import type { Meta, StoryObj } from '@storybook/html';
-import { TemporalEngine, temporal } from 'tods-competition-factory';
-const { calculateCapacityStats, courtOverlapEvaluator, dayBoundaryEvaluator } = temporal;
+import { AvailabilityEngine, availability } from 'tods-competition-factory';
+const { calculateCapacityStats, courtOverlapEvaluator, dayBoundaryEvaluator } = availability;
 
 // ============================================================================
 // Constants
@@ -127,7 +127,7 @@ const renderEngineDemo = (title: string, demoFn: () => string) => {
 export const Initialization: Story = {
   render: () =>
     renderEngineDemo('Engine Initialization', () => {
-      const engine = new TemporalEngine();
+      const engine = new AvailabilityEngine();
       engine.init(mockTournament, {
         dayStartTime: '08:00',
         dayEndTime: '20:00',
@@ -165,7 +165,7 @@ ${courts.map((c) => `- ${c.name} (${c.surface})`).join('\n')}
 export const CreatingBlocks: Story = {
   render: () =>
     renderEngineDemo('Creating Blocks', () => {
-      const engine = new TemporalEngine();
+      const engine = new AvailabilityEngine();
       engine.init(mockTournament);
 
       const court = {
@@ -221,7 +221,7 @@ Block Details:
 export const RailDerivation: Story = {
   render: () =>
     renderEngineDemo('Rail Derivation', () => {
-      const engine = new TemporalEngine();
+      const engine = new AvailabilityEngine();
       engine.init(mockTournament);
 
       const court = {
@@ -282,7 +282,7 @@ Total Segments: ${rail.segments.length}
 export const CapacityCurve: Story = {
   render: () =>
     renderEngineDemo('Capacity Curve', () => {
-      const engine = new TemporalEngine();
+      const engine = new AvailabilityEngine();
       engine.init(mockTournament);
 
       // Add some blocks to create interesting capacity
@@ -343,7 +343,7 @@ Sample Points: ${curve.points.length}
 export const ConflictDetection: Story = {
   render: () =>
     renderEngineDemo('Conflict Detection', () => {
-      const engine = new TemporalEngine();
+      const engine = new AvailabilityEngine();
       engine.init(mockTournament, {
         conflictEvaluators: [courtOverlapEvaluator, dayBoundaryEvaluator]
       });
@@ -439,7 +439,7 @@ export const EventSubscription: Story = {
     container.appendChild(button);
 
     // Setup engine
-    const engine = new TemporalEngine();
+    const engine = new AvailabilityEngine();
     engine.init(mockTournament);
 
     const events: string[] = [];
@@ -491,7 +491,7 @@ export const EventSubscription: Story = {
 export const WhatIfSimulation: Story = {
   render: () =>
     renderEngineDemo('What-If Simulation', () => {
-      const engine = new TemporalEngine();
+      const engine = new AvailabilityEngine();
       engine.init(mockTournament);
 
       const courts = [
@@ -577,7 +577,7 @@ export const Performance: Story = {
     renderEngineDemo('Performance Test', () => {
       const startTime = performance.now();
 
-      const engine = new TemporalEngine();
+      const engine = new AvailabilityEngine();
       engine.init(mockTournament);
 
       const court = {

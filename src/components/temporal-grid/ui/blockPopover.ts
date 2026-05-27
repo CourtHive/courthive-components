@@ -8,10 +8,10 @@
 import tippy, { type Instance as TippyInstance } from 'tippy.js';
 import 'tippy.js/dist/tippy.css';
 import { showModernTimePicker } from './modernTimePicker';
-import { temporal, type TemporalEngine } from 'tods-competition-factory';
+import { availability, type AvailabilityEngine } from 'tods-competition-factory';
 
-const { BLOCK_TYPES } = temporal;
-type BlockType = temporal.BlockType;
+const { BLOCK_TYPES } = availability;
+type BlockType = availability.BlockType;
 import { DEFAULT_COLOR_SCHEME } from '../controller/viewProjections';
 
 const POPOVER_ITEM_STYLE = 'padding:6px 12px; cursor:pointer; display:flex; align-items:center; gap:8px;';
@@ -36,7 +36,7 @@ export interface BlockPopoverOptions {
 export interface EngineBlockPopoverOptions {
   itemId: string;
   blockId: string;
-  engine: TemporalEngine;
+  engine: AvailabilityEngine;
   day: string;
   onBlockChanged: () => void;
 }

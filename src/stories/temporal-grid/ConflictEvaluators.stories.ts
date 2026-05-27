@@ -6,7 +6,7 @@
  */
 
 import type { Meta, StoryObj } from '@storybook/html';
-import { TemporalEngine, temporal } from 'tods-competition-factory';
+import { AvailabilityEngine, availability } from 'tods-competition-factory';
 const {
   courtOverlapEvaluator,
   dayBoundaryEvaluator,
@@ -18,7 +18,7 @@ const {
   defaultEvaluators,
   formatConflicts,
   getHighestSeverity
-} = temporal;
+} = availability;
 
 // ============================================================================
 // Constants
@@ -131,7 +131,7 @@ const renderEvaluatorDemo = (title: string, demoFn: () => string) => {
 export const CourtOverlap: Story = {
   render: () =>
     renderEvaluatorDemo('Court Overlap Evaluator', () => {
-      const engine = new TemporalEngine();
+      const engine = new AvailabilityEngine();
       engine.init(mockTournament, {
         conflictEvaluators: [courtOverlapEvaluator]
       });
@@ -193,7 +193,7 @@ championship matches cannot be double-booked.
 export const DayBoundary: Story = {
   render: () =>
     renderEvaluatorDemo('Day Boundary Evaluator', () => {
-      const engine = new TemporalEngine();
+      const engine = new AvailabilityEngine();
       engine.init(mockTournament, {
         conflictEvaluators: [dayBoundaryEvaluator]
       });
@@ -250,7 +250,7 @@ complicate the model and are not allowed.
 export const BlockDuration: Story = {
   render: () =>
     renderEvaluatorDemo('Block Duration Evaluator', () => {
-      const engine = new TemporalEngine();
+      const engine = new AvailabilityEngine();
       engine.init(mockTournament, {
         conflictEvaluators: [blockDurationEvaluator]
       });
@@ -318,7 +318,7 @@ Both are allowed but flagged for review.
 export const MatchWindow: Story = {
   render: () =>
     renderEvaluatorDemo('Match Window Evaluator', () => {
-      const engine = new TemporalEngine();
+      const engine = new AvailabilityEngine();
       engine.init(mockTournament, {
         conflictEvaluators: [matchWindowEvaluator]
       });
@@ -377,7 +377,7 @@ Note: Still allowed as some formats (fast4) are shorter.
 export const AdjacentBlock: Story = {
   render: () =>
     renderEvaluatorDemo('Adjacent Block Evaluator', () => {
-      const engine = new TemporalEngine();
+      const engine = new AvailabilityEngine();
       engine.init(mockTournament, {
         conflictEvaluators: [adjacentBlockEvaluator]
       });
@@ -443,7 +443,7 @@ This is a suggestion, not a requirement.
 export const Lighting: Story = {
   render: () =>
     renderEvaluatorDemo('Lighting Evaluator', () => {
-      const engine = new TemporalEngine();
+      const engine = new AvailabilityEngine();
       engine.init(mockTournament, {
         conflictEvaluators: [lightingEvaluator]
       });
@@ -519,7 +519,7 @@ Indoor courts are exempt from this check.
 export const MaintenanceWindow: Story = {
   render: () =>
     renderEvaluatorDemo('Maintenance Window Evaluator', () => {
-      const engine = new TemporalEngine();
+      const engine = new AvailabilityEngine();
       engine.init(mockTournament, {
         conflictEvaluators: [maintenanceWindowEvaluator]
       });
@@ -580,7 +580,7 @@ during peak hours is sometimes necessary.
 export const AllEvaluators: Story = {
   render: () =>
     renderEvaluatorDemo('All Evaluators Combined', () => {
-      const engine = new TemporalEngine();
+      const engine = new AvailabilityEngine();
       engine.init(mockTournament, {
         conflictEvaluators: defaultEvaluators
       });
@@ -696,7 +696,7 @@ export const CustomEvaluator: Story = {
         }
       };
 
-      const engine = new TemporalEngine();
+      const engine = new AvailabilityEngine();
       engine.init(mockTournament, {
         conflictEvaluators: [noWeekendMaintenanceEvaluator]
       });

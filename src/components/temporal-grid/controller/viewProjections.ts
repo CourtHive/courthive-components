@@ -12,13 +12,13 @@
  * Design: Pure functions, no side effects, testable in isolation.
  */
 
-import type { temporal } from 'tods-competition-factory';
+import type { availability } from 'tods-competition-factory';
 
-type BlockType = temporal.BlockType;
-type CourtMeta = temporal.CourtMeta;
-type CourtRef = temporal.CourtRef;
-type VenueDayTimeline = temporal.VenueDayTimeline;
-type RailSegment = temporal.RailSegment;
+type BlockType = availability.BlockType;
+type CourtMeta = availability.CourtMeta;
+type CourtRef = availability.CourtRef;
+type VenueDayTimeline = availability.VenueDayTimeline;
+type RailSegment = availability.RailSegment;
 
 // ============================================================================
 // Timeline Type Definitions

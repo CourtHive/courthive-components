@@ -10,11 +10,11 @@
  * This is the entry point for using the temporal grid in applications.
  */
 
-import { TemporalEngine, temporal } from 'tods-competition-factory';
+import { AvailabilityEngine, availability } from 'tods-competition-factory';
 
-const { calculateCapacityStats } = temporal;
-type CourtRef = temporal.CourtRef;
-type DayId = temporal.DayId;
+const { calculateCapacityStats } = availability;
+type CourtRef = availability.CourtRef;
+type DayId = availability.DayId;
 import { TemporalGridControl, type TemporalGridControlConfig } from '../controller/temporalGridControl';
 import { buildStatsBar, type StatsBarUpdate } from './statsBar';
 import { buildViewToolbar, type ViewToolbarResult } from './viewToolbar';
@@ -117,7 +117,7 @@ export interface TemporalGridConfig extends Partial<TemporalGridControlConfig>, 
 // ============================================================================
 
 export class TemporalGrid {
-  private engine: TemporalEngine;
+  private engine: AvailabilityEngine;
   private control: TemporalGridControl | null = null;
   private config: Required<TemporalGridConfig>;
 
@@ -149,7 +149,7 @@ export class TemporalGrid {
     } as Required<TemporalGridConfig>;
 
     // Create engine
-    this.engine = new TemporalEngine();
+    this.engine = new AvailabilityEngine();
     this.engine.init(config.tournamentRecord, config.engineConfig);
 
     // Take initial snapshot for dirty tracking
@@ -824,7 +824,7 @@ export class TemporalGrid {
   /**
    * Get the engine instance
    */
-  getEngine(): TemporalEngine {
+  getEngine(): AvailabilityEngine {
     return this.engine;
   }
 

@@ -2,15 +2,15 @@
  * Factory-backed data helpers for Scheduling Profile stories.
  *
  * Generates a realistic multi-event tournament via mocksEngine and extracts
- * everything needed for SchedulingProfileConfig. Uses TemporalEngine for
+ * everything needed for SchedulingProfileConfig. Uses AvailabilityEngine for
  * real capacity data instead of stub adapters.
  */
 
 import {
   mocksEngine,
   tournamentEngine,
-  TemporalEngine,
-  temporal,
+  AvailabilityEngine,
+  availability,
   drawDefinitionConstants,
   eventConstants
 } from 'tods-competition-factory';
@@ -26,7 +26,7 @@ import type {
   RoundProfile
 } from '../../components/scheduling-profile';
 
-const { calculateCapacityStats } = temporal;
+const { calculateCapacityStats } = availability;
 const { FIRST_MATCH_LOSER_CONSOLATION } = drawDefinitionConstants;
 const { DOUBLES } = eventConstants;
 
@@ -42,7 +42,7 @@ export interface FactorySetup {
   schedulableDates: string[];
   startDate: string;
   endDate: string;
-  engine: TemporalEngine;
+  engine: AvailabilityEngine;
   temporalAdapter: TemporalAdapter;
   demandAdapter: DemandAdapter;
   dependencyAdapter: DependencyAdapter;
@@ -279,8 +279,8 @@ export function createFactorySetup(options?: FactorySetupOptions): FactorySetup 
   // 5. Compute schedulable dates
   const schedulableDates = dateRange(START_DATE, END_DATE);
 
-  // 6. Initialize TemporalEngine
-  const engine = new TemporalEngine();
+  // 6. Initialize AvailabilityEngine
+  const engine = new AvailabilityEngine();
   engine.init(record, {
     dayStartTime: '06:00',
     dayEndTime: '22:00',

@@ -9,7 +9,7 @@
 // Engine (re-exported from factory)
 // ============================================================================
 
-export { TemporalEngine, TemporalEngine as TemporalGridEngine, temporal } from 'tods-competition-factory';
+export { AvailabilityEngine, AvailabilityEngine as TemporalGridEngine, availability } from 'tods-competition-factory';
 
 // ============================================================================
 // View State (UI-specific, stays in courthive-components)

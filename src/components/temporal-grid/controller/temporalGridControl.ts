@@ -14,12 +14,12 @@
  * Design: Stateful controller, but all domain logic stays in engine.
  */
 
-import { tools, temporal, type TemporalEngine } from 'tods-competition-factory';
+import { tools, availability, type AvailabilityEngine } from 'tods-competition-factory';
 
-const { BLOCK_TYPES } = temporal;
-type BlockType = temporal.BlockType;
-type CourtRef = temporal.CourtRef;
-type DayId = temporal.DayId;
+const { BLOCK_TYPES } = availability;
+type BlockType = availability.BlockType;
+type CourtRef = availability.CourtRef;
+type DayId = availability.DayId;
 import { TemporalViewState } from '../engine/viewState';
 import {
   buildBlockEvents,
@@ -94,7 +94,7 @@ export interface TemporalGridControlConfig {
 // ============================================================================
 
 export class TemporalGridControl {
-  private readonly engine: TemporalEngine;
+  private readonly engine: AvailabilityEngine;
   private timeline: CourtTimeline | null = null;
   private readonly config: TemporalGridControlConfig;
   private unsubscribe: (() => void) | null = null;
@@ -115,7 +115,7 @@ export class TemporalGridControl {
   private selectedCourts: Set<CourtRef> = new Set();
   private visibleCourts: Set<string> | null = null; // null = all visible, Set = filtered
 
-  constructor(engine: TemporalEngine, config: TemporalGridControlConfig) {
+  constructor(engine: AvailabilityEngine, config: TemporalGridControlConfig) {
     this.engine = engine;
     this.config = {
       groupingMode: 'BY_VENUE',
@@ -820,7 +820,7 @@ export class TemporalGridControl {
   }
 
   /** Get engine instance */
-  getEngine(): TemporalEngine {
+  getEngine(): AvailabilityEngine {
     return this.engine;
   }
 
@@ -836,7 +836,7 @@ export class TemporalGridControl {
 
 /** Create a temporal grid controller */
 export function createTemporalGridControl(
-  engine: TemporalEngine,
+  engine: AvailabilityEngine,
   config: TemporalGridControlConfig
 ): TemporalGridControl {
   return new TemporalGridControl(engine, config);

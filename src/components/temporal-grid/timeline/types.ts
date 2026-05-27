@@ -2,9 +2,9 @@
  * Shared types for the custom CourtTimeline component.
  */
 
-import type { temporal } from 'tods-competition-factory';
+import type { availability } from 'tods-competition-factory';
 
-type CourtRef = temporal.CourtRef;
+type CourtRef = availability.CourtRef;
 
 // ============================================================================
 // Data types (passed in by controller)
