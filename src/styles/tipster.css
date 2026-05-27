@@ -136,3 +136,24 @@
   width: 16px;
   height: 6px;
 }
+
+/* Dark-mode overrides — the `light-border` theme uses dark-tinted rgba borders
+ * + drop shadows that vanish against the dark background. Swap to light-tinted
+ * rgba so the popover keeps its edge in dark mode. The popover bg + text are
+ * already theme-aware via --chc-bg-elevated / --chc-text-primary. */
+[data-theme='dark'] .tippy-box[data-theme~='light-border'] {
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.45);
+}
+[data-theme='dark'] .tippy-box[data-theme~='light-border'][data-placement^='top'] > .tippy-arrow:after {
+  border-top-color: rgba(255, 255, 255, 0.22);
+}
+[data-theme='dark'] .tippy-box[data-theme~='light-border'][data-placement^='bottom'] > .tippy-arrow:after {
+  border-bottom-color: rgba(255, 255, 255, 0.22);
+}
+[data-theme='dark'] .tippy-box[data-theme~='light-border'][data-placement^='left'] > .tippy-arrow:after {
+  border-left-color: rgba(255, 255, 255, 0.22);
+}
+[data-theme='dark'] .tippy-box[data-theme~='light-border'][data-placement^='right'] > .tippy-arrow:after {
+  border-right-color: rgba(255, 255, 255, 0.22);
+}
