@@ -31,6 +31,14 @@ export interface InteractiveScoringShellConfig {
    * IndexedDB. If omitted, the shell starts at 0-0.
    */
   initialMatchUp?: MatchUp;
+  /**
+   * Hook to confirm a reset before the engine clears the matchUp. Return
+   * `true` to proceed, `false` to abort. Consumers wire this to whatever
+   * themed-modal primitive their app uses (e.g. cModal in
+   * courthive-public). When omitted, Reset fires immediately without any
+   * prompt — the shell NEVER falls back to a native browser dialog.
+   */
+  confirmReset?: () => boolean | Promise<boolean>;
 }
 
 /**

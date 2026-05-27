@@ -100,9 +100,11 @@ export function buildInteractiveScoringShell(config: InteractiveScoringShellConf
     dispatchStateChanged(manager.getMatchUp(config.matchUpId, baseMatchUp), manager.isComplete(config.matchUpId));
   }
 
-  function onReset(): void {
-    const confirmed = confirmReset();
-    if (!confirmed) return;
+  async function onReset(): Promise<void> {
+    if (config.confirmReset) {
+      const confirmed = await config.confirmReset();
+      if (!confirmed) return;
+    }
     manager.reset(config.matchUpId, baseMatchUp);
     render();
     dispatchStateChanged(manager.getMatchUp(config.matchUpId, baseMatchUp), false);
@@ -304,7 +306,7 @@ function renderControlBar(
   manager: InlineScoringManager,
   config: InteractiveScoringShellConfig,
   onUndo: () => void,
-  onReset: () => void
+  onReset: () => void | Promise<void>,
 ): HTMLElement {
   const container = document.createElement('div');
   container.className = 'chc-iss-control-bar';
@@ -320,16 +322,10 @@ function renderControlBar(
   resetButton.type = 'button';
   resetButton.className = 'chc-iss-control-button chc-iss-control-reset';
   resetButton.textContent = 'Reset';
-  resetButton.addEventListener('click', onReset);
+  resetButton.addEventListener('click', () => {
+    onReset();
+  });
 
   container.append(undoButton, resetButton);
   return container;
-}
-
-function confirmReset(): boolean {
-  if (typeof globalThis === 'undefined' || typeof globalThis.confirm !== 'function') {
-    // Non-browser environment — default to no-op (used in tests)
-    return false;
-  }
-  return globalThis.confirm('Reset the scoring session? This will clear all points.');
 }

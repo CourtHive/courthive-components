@@ -1,7 +1,7 @@
 /**
  * @vitest-environment happy-dom
  */
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 
 import { buildInteractiveScoringShell } from '../buildInteractiveScoringShell';
 import type { StateChangedDetail } from '../types';
@@ -19,11 +19,10 @@ const BASE_CONFIG = {
   side2Name: 'Bob'
 };
 
-// Stub globalThis.confirm so `reset()` with confirmReset returns true in tests
-beforeEach(() => {
-  globalThis.confirm = vi.fn(() => true);
-});
-
+// Reset gate is now consumer-injected via config.confirmReset; the default
+// config has no hook, so reset-button clicks proceed unconditionally —
+// individual tests that need the "user cancels" path pass confirmReset
+// in their own config (see "does not reset when confirm returns false").
 afterEach(() => {
   vi.restoreAllMocks();
 });
@@ -224,9 +223,8 @@ describe('buildInteractiveScoringShell', () => {
       expect(undo.disabled).toBe(true);
     });
 
-    it('does not reset when confirm returns false', () => {
-      globalThis.confirm = vi.fn(() => false);
-      const shell = buildInteractiveScoringShell(BASE_CONFIG);
+    it('does not reset when confirmReset returns false', () => {
+      const shell = buildInteractiveScoringShell({ ...BASE_CONFIG, confirmReset: () => false });
       const side1Button = shell.element.querySelector(SIDE1_BUTTON_SELECTOR) as HTMLButtonElement;
       side1Button.click();
 
