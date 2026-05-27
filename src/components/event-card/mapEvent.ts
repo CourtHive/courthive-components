@@ -101,7 +101,11 @@ function walkMatchUps(drawDefinitions: any[]): EventMatchUpCounts {
 // Draft-state detection
 // ============================================================================
 
-function hasDraftStateExtension(draw: any): boolean {
+function hasDraftState(draw: any): boolean {
+  // CODES 5.0.0: draftState may be a first-class draw attribute (NATIVE mode)
+  // or a legacy extension (LEGACY mode). Check both — components is a pure
+  // UI library and does not call the factory engine.
+  if (draw?.draftState != null) return true;
   const extensions = draw?.extensions;
   if (!Array.isArray(extensions)) return false;
   return extensions.some((ext: any) => ext?.name === DRAFT_STATE_EXTENSION);
@@ -109,7 +113,7 @@ function hasDraftStateExtension(draw: any): boolean {
 
 function hasSeedsOnlyDraw(drawDefinitions: any[]): boolean {
   return drawDefinitions.some(
-    (d) => d?.automated?.seedsOnly === true || hasDraftStateExtension(d)
+    (d) => d?.automated?.seedsOnly === true || hasDraftState(d)
   );
 }
 
@@ -182,7 +186,7 @@ export function mapEventToCardData(event: any, options?: MapEventOptions): Event
             startDate: event?.startDate,
             endDate: event?.endDate,
             matchUpCounts,
-            hasDraftState: drawDefinitions.some(hasDraftStateExtension),
+            hasDraftState: drawDefinitions.some(hasDraftState),
             hasSeedsOnlyDraw: hasSeedsOnlyDraw(drawDefinitions)
           },
           options?.now
