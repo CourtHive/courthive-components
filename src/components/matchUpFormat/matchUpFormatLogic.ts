@@ -140,6 +140,12 @@ export function buildSetFormat(config: SetFormatConfig, hasTiebreak: boolean): a
     }
   }
 
+  // Standard set with no tiebreak: surface set-level winBy override (TYPTI 4–5, 1–5).
+  // Default is win-by 2 (advantage set); only emit when explicitly overridden to a different value.
+  if (what === SETS && !hasTiebreak && winBy && winBy !== 2) {
+    setFormat.winBy = winBy;
+  }
+
   if (what === TIMED_SETS) {
     setFormat.minutes = minutes;
     setFormat.timed = true;

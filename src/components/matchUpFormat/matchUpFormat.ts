@@ -496,19 +496,21 @@ const setComponents: SetComponent[] = [
   {
     getValue: (pmf, isFinal) => {
       const setFormat = whichSetFormat(pmf, isFinal);
-      if (!setFormat.tiebreakFormat && !setFormat.tiebreakSet) return undefined;
-      // Check both tiebreakFormat (regular sets) and tiebreakSet (tiebreak-only sets)
-      const NoAD = setFormat.tiebreakFormat?.NoAD || setFormat.tiebreakSet?.NoAD;
-      return NoAD ? 1 : 2;
+      // Tiebreak controls win-by via the tiebreak's NoAD flag (standard set with tiebreak,
+      // or tiebreak-only set). Returns 1 for NoAD, 2 for advantage.
+      if (setFormat.tiebreakFormat) return setFormat.tiebreakFormat.NoAD ? 1 : 2;
+      if (setFormat.tiebreakSet) return setFormat.tiebreakSet.NoAD ? 1 : 2;
+      // Standard set with no tiebreak: surface set-level winBy override (e.g. TYPTI WB1).
+      // Default is win-by 2 (advantage); winBy is omitted from the parsed shape in that case.
+      if (setFormat.setTo && !setFormat.timed) return setFormat.winBy ?? 2;
+      return undefined;
     },
     whats: [SETS, TIEBREAKS],
     onChange: 'changeWinBy',
     prefix: 'Win by ',
     options: [1, 2],
     defaultValue: 2,
-    tbSet: true,
-    id: 'winBy',
-    tb: true
+    id: 'winBy'
   },
   {
     getValue: (pmf, isFinal) => {

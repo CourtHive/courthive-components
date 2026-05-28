@@ -126,6 +126,22 @@ describe('matchUpFormatLogic', () => {
 
       expect(setFormat.tiebreakSet.NoAD).toBe(true);
     });
+
+    it('should emit set-level winBy on standard sets without a tiebreak (TYPTI WB1)', () => {
+      const config = { ...createDefaultSetFormat(false), setTo: 5, winBy: 1 };
+      const setFormat = buildSetFormat(config, false);
+
+      expect(setFormat.setTo).toBe(5);
+      expect(setFormat.winBy).toBe(1);
+      expect(setFormat.tiebreakFormat).toBeUndefined();
+    });
+
+    it('should omit setFormat.winBy when default (2) on no-tiebreak sets', () => {
+      const config = { ...createDefaultSetFormat(false), setTo: 6, winBy: 2 };
+      const setFormat = buildSetFormat(config, false);
+
+      expect(setFormat.winBy).toBeUndefined();
+    });
   });
 
   describe('buildParsedFormat', () => {
