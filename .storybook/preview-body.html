@@ -1,13 +1,21 @@
 <style>
+  /*
+   * Storybook 10.3's preview iframe no longer ships defaults that Storybook 10.0 did:
+   *   - body font-family fell back to the UA default (form elements via forms.css's
+   *     `font-family: inherit` then rendered in a different font from inline-styled labels).
+   *   - the root font-size baseline changed, so em-cascaded inline styles (e.g.
+   *     `formatDisplay 0.9em` → `formatButton 0.75em` in dynamicSetsApproach.ts) ended up
+   *     visibly smaller than before.
+   * Pin both explicitly so modal content areas match Storybook 10.0 layout without
+   * touching library CSS (TMX keeps its own base).
+   */
+  html {
+    font-size: 16px;
+  }
   body {
     background-color: #ffffff;
-    /*
-     * Explicit body font-family. Storybook 10.3's preview iframe no longer ships its own
-     * default body font (10.0 did), so without this declaration the page falls back to the
-     * browser UA serif/sans default and form elements (which inherit via forms.css) wind up
-     * in a different font from inline-styled labels and headings. The stack matches the one
-     * already used by temporal-grid/styles.css so the look is consistent across components.
-     */
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+    font-size: 1rem;
+    line-height: 1.5;
   }
 </style>
