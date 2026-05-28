@@ -175,7 +175,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   // Match format info (clickable to edit)
   if (matchUp.matchUpFormat) {
     const formatDisplay = document.createElement('div');
-    formatDisplay.style.fontSize = '0.9em';
+    formatDisplay.style.fontSize = '0.9rem';
     formatDisplay.style.marginBottom = '0.5em';
     formatDisplay.style.display = 'flex';
     formatDisplay.style.alignItems = 'center';
@@ -189,7 +189,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     const formatButton = document.createElement('button');
     formatButton.textContent = matchUp.matchUpFormat;
     formatButton.className = 'button is-small is-white';
-    formatButton.style.fontSize = '0.75em';
+    formatButton.style.fontSize = '0.75rem';
     formatButton.style.padding = '0.2em 0.5em';
     formatButton.style.cursor = 'pointer';
     formatButton.title = 'Click to edit format';
@@ -247,7 +247,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
   const irregularLabel = document.createElement('div');
   irregularLabel.textContent = (labels.irregularEnding || 'Irregular Ending') + ':';
-  irregularLabel.style.fontSize = '0.75em';
+  irregularLabel.style.fontSize = '0.75rem';
   irregularLabel.style.fontWeight = '500';
   irregularLabel.style.marginBottom = '0.3em';
   irregularLabel.style.color = CHC_TEXT_PRIMARY;
@@ -316,7 +316,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
     const labelText = document.createElement('span');
     labelText.textContent = outcome.label;
-    labelText.style.fontSize = '0.75em';
+    labelText.style.fontSize = '0.75rem';
 
     radioLabel.appendChild(radio);
     radioLabel.appendChild(labelText);
@@ -327,7 +327,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   const clearOutcomeBtn = document.createElement('button');
   clearOutcomeBtn.textContent = labels.clear || 'Clear';
   clearOutcomeBtn.className = 'button';
-  clearOutcomeBtn.style.fontSize = '0.7em';
+  clearOutcomeBtn.style.fontSize = '0.7rem';
   clearOutcomeBtn.style.padding = '0.2em 0.5em';
   clearOutcomeBtn.addEventListener('click', () => {
     // Uncheck all radio buttons
@@ -367,7 +367,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
   const winnerLabel = document.createElement('div');
   winnerLabel.textContent = (labels.winner || 'Winner') + ':';
-  winnerLabel.style.fontSize = '0.75em';
+  winnerLabel.style.fontSize = '0.75rem';
   winnerLabel.style.fontWeight = '500';
   winnerLabel.style.marginBottom = '0.2em';
   winnerLabel.style.color = CHC_TEXT_PRIMARY;
@@ -406,7 +406,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     const winnerText = document.createElement('span');
     const side = sideNum === 1 ? side1 : side2;
     winnerText.textContent = side?.participant?.participantName || `Side ${sideNum}`;
-    winnerText.style.fontSize = '0.75em';
+    winnerText.style.fontSize = '0.75rem';
 
     winnerRadioLabel.appendChild(winnerRadio);
     winnerRadioLabel.appendChild(winnerText);
@@ -773,7 +773,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     const setLabel = document.createElement('div');
     setLabel.textContent = `Set ${setIndex + 1}:`;
     setLabel.style.width = '3.5em';
-    setLabel.style.fontSize = '0.9em';
+    setLabel.style.fontSize = '0.9rem';
     setLabel.style.fontWeight = '500';
     setLabel.style.color = CHC_TEXT_PRIMARY;
     setRow.appendChild(setLabel);
@@ -839,7 +839,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     // Validation indicator
     const indicator = document.createElement('span');
     indicator.className = 'set-indicator';
-    indicator.style.fontSize = '1.2em';
+    indicator.style.fontSize = '1.2rem';
     indicator.style.minWidth = '1.5em';
     setRow.appendChild(indicator);
 

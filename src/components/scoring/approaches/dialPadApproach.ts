@@ -115,7 +115,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     const isAggregateScoring = !!parsedFormat?.aggregate;
     if (isAggregateScoring) {
       const aggregateIndicator = document.createElement('div');
-      aggregateIndicator.style.fontSize = '0.75em';
+      aggregateIndicator.style.fontSize = '0.75rem';
       aggregateIndicator.style.color = CHC_TEXT_SECONDARY;
       aggregateIndicator.style.marginTop = '0.25em';
       aggregateIndicator.style.marginBottom = '0.5em';
@@ -130,7 +130,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     // Match format selector
     if (matchUp.matchUpFormat) {
       const formatDisplay = document.createElement('div');
-      formatDisplay.style.fontSize = '0.9em';
+      formatDisplay.style.fontSize = '0.9rem';
       formatDisplay.style.marginBottom = '0.5em';
       formatDisplay.style.display = 'flex';
       formatDisplay.style.alignItems = 'center';
@@ -144,7 +144,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       const formatButton = document.createElement('button');
       formatButton.textContent = matchUp.matchUpFormat;
       formatButton.className = 'button is-small is-white';
-      formatButton.style.fontSize = '0.75em';
+      formatButton.style.fontSize = '0.75rem';
       formatButton.style.padding = '0.2em 0.5em';
       formatButton.style.cursor = 'pointer';
       formatButton.title = 'Click to edit format';
@@ -181,7 +181,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
     // Score display (light blue)
     const scoreDisplay = document.createElement('div');
-    scoreDisplay.style.fontSize = '1.2em';
+    scoreDisplay.style.fontSize = '1.2rem';
     scoreDisplay.style.color = '#64B5F6';
     scoreDisplay.style.textAlign = 'center';
     scoreDisplay.style.padding = '0.25em 0.5em';
@@ -206,7 +206,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
     const irregularLabel = document.createElement('div');
     irregularLabel.textContent = (labels.irregularEnding || 'Irregular Ending') + ':';
-    irregularLabel.style.fontSize = '0.8em';
+    irregularLabel.style.fontSize = '0.8rem';
     irregularLabel.style.fontWeight = '600';
     irregularLabel.style.marginBottom = '0.3em';
     irregularLabel.style.color = CHC_TEXT_SECONDARY;
@@ -219,7 +219,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
     const winnerLabel = document.createElement('div');
     winnerLabel.textContent = (labels.winner || 'Winner') + ':';
-    winnerLabel.style.fontSize = '0.75em';
+    winnerLabel.style.fontSize = '0.75rem';
     winnerLabel.style.fontWeight = '500';
     winnerLabel.style.marginBottom = '0.2em';
     winnerLabel.style.color = CHC_TEXT_SECONDARY;
@@ -255,7 +255,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       const winnerText = document.createElement('span');
       const side = sideNum === 1 ? side1 : side2;
       winnerText.textContent = side?.participant?.participantName || `Side ${sideNum}`;
-      winnerText.style.fontSize = '0.75em';
+      winnerText.style.fontSize = '0.75rem';
       winnerText.style.color = CHC_TEXT_SECONDARY;
 
       winnerRadioLabel.appendChild(winnerRadio);
@@ -658,15 +658,15 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
       // Adjust font size for longer labels
       if (btn.label.length > 1 && !btn.isSpecial) {
-        button.style.fontSize = '1.3em';
+        button.style.fontSize = '1.3rem';
       } else if (btn.isSpecial && ['RET', 'WO', 'DEF'].includes(btn.label)) {
-        button.style.fontSize = '0.95em';
+        button.style.fontSize = '0.95rem';
         button.style.setProperty('background-color', CHC_BG_SECONDARY, 'important');
       } else if (btn.isSpecial) {
-        button.style.fontSize = '1.3em';
+        button.style.fontSize = '1.3rem';
         button.style.setProperty('background-color', CHC_BG_SECONDARY, 'important');
       } else {
-        button.style.fontSize = '1.3em';
+        button.style.fontSize = '1.3rem';
       }
 
       // Add data attribute for button type (for state management)

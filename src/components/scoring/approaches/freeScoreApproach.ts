@@ -74,7 +74,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
 
   const side1RadioText = document.createElement('span');
   side1RadioText.textContent = side1?.participant?.participantName || 'Side 1';
-  side1RadioText.style.fontSize = '0.75em'; // Reduced from 0.85em
+  side1RadioText.style.fontSize = '0.75rem'; // Reduced from 0.85em
 
   side1RadioLabel.appendChild(side1Radio);
   side1RadioLabel.appendChild(side1RadioText);
@@ -92,7 +92,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
 
   const side2RadioText = document.createElement('span');
   side2RadioText.textContent = side2?.participant?.participantName || 'Side 2';
-  side2RadioText.style.fontSize = '0.75em'; // Reduced from 0.85em
+  side2RadioText.style.fontSize = '0.75rem'; // Reduced from 0.85em
 
   side2RadioLabel.appendChild(side2Radio);
   side2RadioLabel.appendChild(side2RadioText);
@@ -169,7 +169,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
   // Match format info (clickable to edit)
   if (matchUp.matchUpFormat) {
     const formatInfo = document.createElement('div');
-    formatInfo.style.fontSize = '0.9em';
+    formatInfo.style.fontSize = '0.9rem';
     formatInfo.style.marginBottom = '0.5em';
     formatInfo.style.display = 'flex';
     formatInfo.style.alignItems = 'center';
@@ -183,7 +183,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
     const formatButton = document.createElement('button');
     formatButton.textContent = matchUp.matchUpFormat;
     formatButton.className = 'button is-small is-white';
-    formatButton.style.fontSize = '0.75em';
+    formatButton.style.fontSize = '0.75rem';
     formatButton.style.padding = '0.2em 0.5em';
     formatButton.style.cursor = 'pointer';
     formatButton.title = 'Click to edit format';
@@ -248,7 +248,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
 
   // Validation indicator
   const indicator = document.createElement('span');
-  indicator.style.fontSize = '1.2em';
+  indicator.style.fontSize = '1.2rem';
   indicator.style.minWidth = '1.5em';
 
   inputWrapper.appendChild(input);
@@ -257,7 +257,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
 
   // Formatted score display (non-editable)
   const formattedDisplay = document.createElement('div');
-  formattedDisplay.style.fontSize = '0.9em';
+  formattedDisplay.style.fontSize = '0.9rem';
   formattedDisplay.style.color = 'var(--chc-border-focus)';
   formattedDisplay.style.fontFamily = 'monospace';
   formattedDisplay.style.minHeight = '1.5em';
@@ -266,7 +266,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
 
   // Validation message
   const validationMessage = document.createElement('div');
-  validationMessage.style.fontSize = '0.9em';
+  validationMessage.style.fontSize = '0.9rem';
   validationMessage.style.minHeight = '1.5em';
   container.appendChild(validationMessage);
 
