@@ -1,5 +1,13 @@
 <style>
   body {
     background-color: #ffffff;
+    /*
+     * Explicit body font-family. Storybook 10.3's preview iframe no longer ships its own
+     * default body font (10.0 did), so without this declaration the page falls back to the
+     * browser UA serif/sans default and form elements (which inherit via forms.css) wind up
+     * in a different font from inline-styled labels and headings. The stack matches the one
+     * already used by temporal-grid/styles.css so the look is consistent across components.
+     */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
   }
 </style>
