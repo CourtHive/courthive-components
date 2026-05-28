@@ -2,7 +2,7 @@
  * @vitest-environment happy-dom
  */
 import { notesToolbar, updateToolbarState, updateHeadingSelect } from '../notesToolbar';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const sel = (action: string) => `[data-action="${action}"]`;
 const URL_PANEL = '.notes-url-panel';
@@ -221,8 +221,31 @@ describe('updateHeadingSelect', () => {
 });
 
 describe('color palette', () => {
+  // happy-dom v20 does not expose `localStorage` on the test global; provide a
+  // small in-memory stub so the recent-colors persistence path in notesToolbar
+  // (getItem/setItem in `notesToolbar.ts`) works under unit tests.
   beforeEach(() => {
-    localStorage.clear();
+    const store: Record<string, string> = {};
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => (k in store ? store[k] : null),
+      setItem: (k: string, v: string) => {
+        store[k] = String(v);
+      },
+      removeItem: (k: string) => {
+        delete store[k];
+      },
+      clear: () => {
+        for (const k of Object.keys(store)) delete store[k];
+      },
+      key: (i: number) => Object.keys(store)[i] ?? null,
+      get length() {
+        return Object.keys(store).length;
+      }
+    });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('opens color panel on color button click', () => {
