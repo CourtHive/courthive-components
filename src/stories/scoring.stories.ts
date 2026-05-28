@@ -136,7 +136,7 @@ export const FreeScore = {
 export const DynamicSets = {
   args: {
     composition: 'Australian',
-    smartComplements: false
+    smartComplements: true
   },
   render: (args: any) => {
     const container = document.createElement('div');

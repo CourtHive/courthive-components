@@ -215,6 +215,12 @@
     "desc": "Best of 5 sets to 5, 3 consecutive points/game"
   },
   {
+    "key": "typtiWB1",
+    "name": "TYPTI Win-by-1",
+    "format": "SET5-S:5WB1-G:3C",
+    "desc": "Best of 5 sets to 5, win-by-1 (4-5, 1-5 are legal), 3 consecutive points/game"
+  },
+  {
     "key": "intennse",
     "name": "INTENNSE",
     "format": "SET7XA-S:T10P",
