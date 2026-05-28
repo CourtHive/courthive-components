@@ -276,6 +276,34 @@ describe('dynamicSetsLogic - Pure Functions', () => {
         expect(isSetComplete(0, { side1: 4, side2: 3 }, s5at4Config)).toBe(false);
       });
     });
+
+    describe('S:5WB1 no-tiebreak win-by-1 format (TYPTI variant)', () => {
+      const wb1Config = parseFormat('SET3-S:5WB1');
+
+      it('recognizes 5-0 as complete', () => {
+        expect(isSetComplete(0, { side1: 5, side2: 0 }, wb1Config)).toBe(true);
+      });
+
+      it('recognizes 5-4 as complete (win-by 1, no tiebreak)', () => {
+        expect(isSetComplete(0, { side1: 5, side2: 4 }, wb1Config)).toBe(true);
+      });
+
+      it('recognizes 4-5 as complete (side 2 wins by 1)', () => {
+        expect(isSetComplete(0, { side1: 4, side2: 5 }, wb1Config)).toBe(true);
+      });
+
+      it('recognizes 1-5 as complete (side 2 wins by 4)', () => {
+        expect(isSetComplete(0, { side1: 1, side2: 5 }, wb1Config)).toBe(true);
+      });
+
+      it('recognizes 4-4 as incomplete', () => {
+        expect(isSetComplete(0, { side1: 4, side2: 4 }, wb1Config)).toBe(false);
+      });
+
+      it('recognizes 5-5 as incomplete (no winner)', () => {
+        expect(isSetComplete(0, { side1: 5, side2: 5 }, wb1Config)).toBe(false);
+      });
+    });
   });
 
   describe('getSetWinner', () => {
@@ -467,6 +495,26 @@ describe('dynamicSetsLogic - Pure Functions', () => {
 
       it('returns null for digit 6 with S:6@5 (at setTo)', () => {
         expect(calculateComplement(6, s6at5Format)).toBeNull();
+      });
+    });
+
+    describe('S:5WB1 no-tiebreak win-by-1 format (TYPTI variant)', () => {
+      const wb1Format = parseFormat('SET3-S:5WB1').setFormat!;
+
+      it('returns 5 for digit 0 with S:5WB1', () => {
+        expect(calculateComplement(0, wb1Format)).toBe(5);
+      });
+
+      it('returns 5 for digit 1 with S:5WB1 (low loser → 1-5)', () => {
+        expect(calculateComplement(1, wb1Format)).toBe(5);
+      });
+
+      it('returns 5 for digit 4 with S:5WB1 (4-5, no win-by-2 extension)', () => {
+        expect(calculateComplement(4, wb1Format)).toBe(5);
+      });
+
+      it('returns null for digit 5 with S:5WB1 (at setTo)', () => {
+        expect(calculateComplement(5, wb1Format)).toBeNull();
       });
     });
   });

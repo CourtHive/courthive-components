@@ -22,6 +22,8 @@ export type SetFormat = {
   };
   timed?: boolean;
   minutes?: number;
+  noTiebreak?: boolean;
+  winBy?: number; // Game-margin override on no-tiebreak sets (e.g. WB1); omitted when 2 (advantage default)
 };
 
 /**
@@ -99,6 +101,13 @@ export function getMaxAllowedScore(
 
   const oppScore = side === 1 ? currentScores.side2 : currentScores.side1;
 
+  // No-tiebreak WB1: first to setTo wins outright; max input is setTo regardless of opponent.
+  const hasTiebreakFormat = !!setFormat?.tiebreakFormat;
+  const winBy = setFormat?.winBy ?? 2;
+  if (!hasTiebreakFormat && winBy === 1) {
+    return setTo;
+  }
+
   // Determine absolute max based on tiebreakAt position
   // - If tiebreakAt === setTo (or not specified): max is setTo + 1 (e.g., S:6 allows 7-6)
   // - If tiebreakAt < setTo: max is setTo (e.g., S:6@5 allows 6-5 max, S:5@4 allows 5-4 max)
@@ -174,13 +183,18 @@ export function isSetComplete(
   // Regular set: check tennis scoring rules
   const setTo = setFormat?.setTo || 6;
   const tiebreakAt = setFormat?.tiebreakAt || setTo;
+  const hasTiebreakFormat = !!setFormat?.tiebreakFormat;
+  const winBy = setFormat?.winBy ?? 2;
   const maxScore = Math.max(scores.side1, scores.side2);
   const minScore = Math.min(scores.side1, scores.side2);
   const scoreDiff = Math.abs(scores.side1 - scores.side2);
 
   // Complete if:
-  // 1. Winner reached setTo with 2+ game margin
-  if (maxScore >= setTo && scoreDiff >= 2) {
+  // 1. Winner reached setTo with the required game margin (winBy, default 2; WB1 = first to setTo)
+  // For no-tiebreak sets honor setFormat.winBy; tiebreak sets keep the standard win-by-2 margin
+  // (tiebreak completion is handled separately below).
+  const requiredMargin = hasTiebreakFormat ? 2 : winBy;
+  if (maxScore >= setTo && scoreDiff >= requiredMargin) {
     return true;
   }
 
@@ -279,7 +293,15 @@ export function calculateComplement(digit: number, setFormat?: SetFormat): numbe
   // - S:6/TB7@6 (tiebreakAt === setTo): entering 2 → complement is 6
   // - S:6/TB7@5 (tiebreakAt === setTo-1): entering 2 → complement is 6
   // - S:5/TB9@4 (tiebreakAt === setTo-1): entering 2 → complement is 5
+  // - S:5WB1 (no tiebreak, win-by 1): entering 4 → complement is 5 (e.g. TYPTI 4–5)
   // NOTE: tiebreakAt can ONLY be setTo or setTo-1 (never less)
+
+  // No-tiebreak set with explicit WB1: complement is always setTo (first past the post)
+  const hasTiebreak = !!setFormat?.tiebreakFormat;
+  const winBy = setFormat?.winBy ?? 2;
+  if (!hasTiebreak && winBy === 1) {
+    return setTo;
+  }
 
   const tiebreakAt = setFormat?.tiebreakAt || setTo;
 
