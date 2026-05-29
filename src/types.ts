@@ -1,6 +1,9 @@
 export interface MatchUp {
   matchUpId: string;
-  matchUpType?: 'SINGLES' | 'DOUBLES';
+  // Mirrors factory's EventTypeUnion. TEAM/HYBRID matchUps reach this
+  // component via tooltip/popover paths even though most rendering branches
+  // only act on SINGLES/DOUBLES.
+  matchUpType?: 'SINGLES' | 'DOUBLES' | 'TEAM' | 'HYBRID';
   matchUpFormat?: string;
   matchUpStatus?: string;
   winningSide?: number;
@@ -29,7 +32,10 @@ export interface MatchUp {
 }
 
 export interface Side {
-  sideNumber: number;
+  // Optional to match factory's Side shape (raw matchUp sides may lack
+  // sideNumber until structures are positioned). Consumers default-check
+  // or treat absence as side 1 by convention.
+  sideNumber?: number;
   drawPosition?: number;
   participant?: Participant;
   participantFed?: string;
@@ -46,7 +52,9 @@ export interface Participant {
   participantId: string;
   participantName?: string;
   participantOtherName?: string;
-  participantType?: 'INDIVIDUAL' | 'PAIR' | 'TEAM';
+  // Mirrors factory's ParticipantTypeUnion; GROUP is the team-of-teams
+  // category factory supports for league formats.
+  participantType?: 'INDIVIDUAL' | 'PAIR' | 'TEAM' | 'GROUP';
   individualParticipants?: IndividualParticipant[];
   entryStatus?: string;
   luckyAdvancement?: boolean;
