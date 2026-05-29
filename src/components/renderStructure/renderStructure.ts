@@ -30,8 +30,13 @@ export function renderStructure({
   minWidth?: string;
   context?: any;
 }): HTMLElement {
+  // courthive-components' local `MatchUp` requires `structureId` while factory's
+  // `MatchUp` doesn't declare it (it lives on the parent structure in the raw
+  // shape). Cross-package cast at the boundary — getRoundMatchUps only reads
+  // base fields (`roundNumber`, `matchUpType`, `roundPosition`, etc.) so the
+  // cast is honest.
   const { roundNumbers, roundProfile, roundsNotPowerOf2, hasNoRoundPositions } = tournamentEngine.getRoundMatchUps({
-    matchUps
+    matchUps: matchUps as any,
   });
 
   structureId = structureId || context?.structureId || matchUps?.[0]?.structureId;
