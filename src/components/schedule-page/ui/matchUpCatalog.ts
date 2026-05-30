@@ -16,7 +16,12 @@ import type {
   CatalogFilters,
   SchedulePageDragPayload
 } from '../types';
-import { filterMatchUpCatalog, groupMatchUpCatalog, isCompletedStatus } from '../domain/matchUpCatalogProjections';
+import {
+  filterMatchUpCatalog,
+  groupMatchUpCatalog,
+  isCompletedStatus,
+  computeBaseRoundByEvent
+} from '../domain/matchUpCatalogProjections';
 import { wrapSearchWithClear, syncClearVisibility } from '../../../helpers/searchClearButton';
 import { buildMatchUpCard } from './matchUpCard';
 import {
@@ -54,27 +59,6 @@ function uniqueValues(catalog: CatalogMatchUpItem[], fn: (m: CatalogMatchUpItem)
     if (v) set.add(v);
   }
   return [...set].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-}
-
-/**
- * For each event, returns the lowest `roundNumber` among items that are
- * unscheduled and not completed. Drives the round-emphasis tier on each
- * catalog card — offset 0 means "this round is what should be scheduled
- * next within its event," offset >= 1 deemphasizes future rounds.
- *
- * Computed against the FULL catalog (not the filtered set) so a search /
- * filter that narrows the visible items doesn't shift the priority
- * assignment underneath the operator.
- */
-function computeBaseRoundByEvent(catalog: CatalogMatchUpItem[]): Map<string, number> {
-  const base = new Map<string, number>();
-  for (const item of catalog) {
-    if (item.isScheduled) continue;
-    if (isCompletedStatus(item.matchUpStatus)) continue;
-    const cur = base.get(item.eventId);
-    if (cur === undefined || item.roundNumber < cur) base.set(item.eventId, item.roundNumber);
-  }
-  return base;
 }
 
 export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel<SchedulePageState> {

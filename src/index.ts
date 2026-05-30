@@ -425,6 +425,7 @@ export {
   createSchedulePage,
   filterMatchUpCatalog,
   groupMatchUpCatalog,
+  computeBaseRoundByEvent,
   isCompletedStatus,
   buildScheduleIssueIndex,
   matchUpLabel,

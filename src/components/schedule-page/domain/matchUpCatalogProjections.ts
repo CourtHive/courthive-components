@@ -49,6 +49,27 @@ export function filterMatchUpCatalog(
   });
 }
 
+/**
+ * For each event, returns the lowest `roundNumber` among items that are
+ * unscheduled and not completed. Drives the round-emphasis tier on each
+ * catalog card — offset 0 means "this round is what should be scheduled
+ * next within its event," offset >= 1 deemphasizes future rounds.
+ *
+ * Computed against the FULL catalog (not the filtered set) by the catalog
+ * widget's `update()` so a search / filter that narrows the visible items
+ * doesn't shift the priority assignment underneath the operator.
+ */
+export function computeBaseRoundByEvent(catalog: CatalogMatchUpItem[]): Map<string, number> {
+  const base = new Map<string, number>();
+  for (const item of catalog) {
+    if (item.isScheduled) continue;
+    if (isCompletedStatus(item.matchUpStatus)) continue;
+    const cur = base.get(item.eventId);
+    if (cur === undefined || item.roundNumber < cur) base.set(item.eventId, item.roundNumber);
+  }
+  return base;
+}
+
 export function groupMatchUpCatalog(
   items: CatalogMatchUpItem[],
   mode: MatchUpCatalogGroupBy

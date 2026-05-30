@@ -20,7 +20,12 @@ export { SchedulePageStore } from './engine/schedulePageStore';
 // Domain (for advanced consumers)
 // ============================================================================
 
-export { filterMatchUpCatalog, groupMatchUpCatalog, isCompletedStatus } from './domain/matchUpCatalogProjections';
+export {
+  filterMatchUpCatalog,
+  groupMatchUpCatalog,
+  computeBaseRoundByEvent,
+  isCompletedStatus
+} from './domain/matchUpCatalogProjections';
 export { buildScheduleIssueIndex } from './domain/scheduleIssues';
 export { matchUpLabel, participantLabel, matchUpSearchKey, deepClone } from './domain/utils';
 export {

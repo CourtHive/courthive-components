@@ -1,4 +1,8 @@
-import { filterMatchUpCatalog, groupMatchUpCatalog } from '../domain/matchUpCatalogProjections';
+import {
+  filterMatchUpCatalog,
+  groupMatchUpCatalog,
+  computeBaseRoundByEvent
+} from '../domain/matchUpCatalogProjections';
 import type { CatalogMatchUpItem } from '../types';
 import { describe, it, expect } from 'vitest';
 
@@ -121,5 +125,84 @@ describe('groupMatchUpCatalog', () => {
     const groups = groupMatchUpCatalog(catalog, 'event');
     const keys = [...groups.keys()];
     expect(keys).toEqual([BOYS_U16_SINGLES, GIRLS_U16_SINGLES]);
+  });
+});
+
+// ── computeBaseRoundByEvent ──
+// Helper to build a CatalogMatchUpItem with sensible defaults so each test
+// only needs to spell out the fields it cares about.
+const baseItem = (overrides: Partial<CatalogMatchUpItem> = {}): CatalogMatchUpItem => ({
+  matchUpId: overrides.matchUpId ?? 'M',
+  eventId: 'E1',
+  eventName: 'Event 1',
+  drawId: 'D1',
+  structureId: 'S1',
+  roundNumber: 1,
+  isScheduled: false,
+  ...overrides
+});
+
+describe('computeBaseRoundByEvent', () => {
+  it('returns an empty map for an empty catalog', () => {
+    expect(computeBaseRoundByEvent([])).toEqual(new Map());
+  });
+
+  it('returns an empty map when every item is already scheduled', () => {
+    const items = [
+      baseItem({ matchUpId: 'M1', roundNumber: 1, isScheduled: true }),
+      baseItem({ matchUpId: 'M2', roundNumber: 2, isScheduled: true })
+    ];
+    expect(computeBaseRoundByEvent(items)).toEqual(new Map());
+  });
+
+  it('returns an empty map when every item is completed', () => {
+    const items = [
+      baseItem({ matchUpId: 'M1', roundNumber: 1, matchUpStatus: 'COMPLETED' }),
+      baseItem({ matchUpId: 'M2', roundNumber: 2, matchUpStatus: 'WALKOVER' })
+    ];
+    expect(computeBaseRoundByEvent(items)).toEqual(new Map());
+  });
+
+  it('picks the lowest unscheduled, non-completed round per event', () => {
+    const items = [
+      baseItem({ matchUpId: 'M1', roundNumber: 3 }),
+      baseItem({ matchUpId: 'M2', roundNumber: 2 }),
+      baseItem({ matchUpId: 'M3', roundNumber: 5 })
+    ];
+    const result = computeBaseRoundByEvent(items);
+    expect(result.get('E1')).toBe(2);
+  });
+
+  it('still picks a round as base when some of its members are already scheduled', () => {
+    // The user-confirmed semantic: a partially-scheduled round (R16 with some
+    // items placed) still wins as base because there is unfinished work in it.
+    const items = [
+      baseItem({ matchUpId: 'M1', roundNumber: 2, isScheduled: true }),
+      baseItem({ matchUpId: 'M2', roundNumber: 2, isScheduled: false }), // still in R2
+      baseItem({ matchUpId: 'M3', roundNumber: 3, isScheduled: false })
+    ];
+    expect(computeBaseRoundByEvent(items).get('E1')).toBe(2);
+  });
+
+  it('tracks each event independently — no bleed across eventIds', () => {
+    const items = [
+      baseItem({ matchUpId: 'A1', eventId: 'A', roundNumber: 2 }),
+      baseItem({ matchUpId: 'A2', eventId: 'A', roundNumber: 5 }),
+      baseItem({ matchUpId: 'B1', eventId: 'B', roundNumber: 3 }),
+      baseItem({ matchUpId: 'B2', eventId: 'B', roundNumber: 4 })
+    ];
+    const result = computeBaseRoundByEvent(items);
+    expect(result.get('A')).toBe(2);
+    expect(result.get('B')).toBe(3);
+    expect(result.size).toBe(2);
+  });
+
+  it('skips completed items in a round but still selects that round via its unscheduled siblings', () => {
+    const items = [
+      baseItem({ matchUpId: 'M1', roundNumber: 2, matchUpStatus: 'COMPLETED' }),
+      baseItem({ matchUpId: 'M2', roundNumber: 2, isScheduled: false }),
+      baseItem({ matchUpId: 'M3', roundNumber: 4 })
+    ];
+    expect(computeBaseRoundByEvent(items).get('E1')).toBe(2);
   });
 });
