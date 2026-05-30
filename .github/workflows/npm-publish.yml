@@ -84,6 +84,22 @@ jobs:
 
       - run: pnpm test
 
+      # Storybook play-function tests. test-storybook needs Storybook
+      # serving, so we build a static bundle, host it on :6006, wait for
+      # the iframe, then run the runner. Mirrors the operational pattern
+      # documented in MEMORY.md > feedback_one_dom_test_layer_per_ecosystem.
+      - run: pnpm build-storybook
+      - name: Serve static Storybook
+        run: |
+          npx --yes http-server@14 storybook-static -p 6006 -s &
+          echo "STORYBOOK_PID=$!" >> "$GITHUB_ENV"
+      - name: Wait for Storybook iframe
+        run: npx --yes wait-on@8 http://localhost:6006/iframe.html --timeout 60000
+      - run: pnpm test-storybook
+      - name: Stop static Storybook
+        if: always()
+        run: kill "$STORYBOOK_PID" 2>/dev/null || true
+
       - name: Determine npm dist-tag
         id: distTag
         run: |
