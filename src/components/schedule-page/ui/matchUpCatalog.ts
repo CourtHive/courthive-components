@@ -16,7 +16,7 @@ import type {
   CatalogFilters,
   SchedulePageDragPayload
 } from '../types';
-import { filterMatchUpCatalog, groupMatchUpCatalog } from '../domain/matchUpCatalogProjections';
+import { filterMatchUpCatalog, groupMatchUpCatalog, isCompletedStatus } from '../domain/matchUpCatalogProjections';
 import { wrapSearchWithClear, syncClearVisibility } from '../../../helpers/searchClearButton';
 import { buildMatchUpCard } from './matchUpCard';
 import {
@@ -54,6 +54,27 @@ function uniqueValues(catalog: CatalogMatchUpItem[], fn: (m: CatalogMatchUpItem)
     if (v) set.add(v);
   }
   return [...set].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+}
+
+/**
+ * For each event, returns the lowest `roundNumber` among items that are
+ * unscheduled and not completed. Drives the round-emphasis tier on each
+ * catalog card — offset 0 means "this round is what should be scheduled
+ * next within its event," offset >= 1 deemphasizes future rounds.
+ *
+ * Computed against the FULL catalog (not the filtered set) so a search /
+ * filter that narrows the visible items doesn't shift the priority
+ * assignment underneath the operator.
+ */
+function computeBaseRoundByEvent(catalog: CatalogMatchUpItem[]): Map<string, number> {
+  const base = new Map<string, number>();
+  for (const item of catalog) {
+    if (item.isScheduled) continue;
+    if (isCompletedStatus(item.matchUpStatus)) continue;
+    const cur = base.get(item.eventId);
+    if (cur === undefined || item.roundNumber < cur) base.set(item.eventId, item.roundNumber);
+  }
+  return base;
 }
 
 export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel<SchedulePageState> {
@@ -330,6 +351,14 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
     currentFilters = state.catalogFilters ?? {};
     updateFilterBadge();
 
+    // Compute baseRoundByEvent off the FULL catalog (not the filtered set) so
+    // the round-emphasis on each card answers "which round of this event
+    // should be scheduled next overall," not "which round shows up first
+    // under the current search / filter view." A search for one player can
+    // dramatically reduce the visible set, but the operator's underlying
+    // scheduling priority hasn't changed.
+    const baseRoundByEvent = computeBaseRoundByEvent(state.matchUpCatalog);
+
     const behavior = state.showScheduled ? state.scheduledBehavior : 'hide';
     const filtered = filterMatchUpCatalog(
       state.matchUpCatalog,
@@ -388,9 +417,21 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
       if (isCollapsed) gb.style.display = 'none';
 
       for (const item of items) {
-        const card = buildMatchUpCard(item, {
-          onClick: (m) => callbacks.onMatchUpSelected?.(m)
-        });
+        // Round-offset only attached when this event has an eligible base
+        // round (i.e. at least one unscheduled, non-completed item exists).
+        // Skip for scheduled / completed items — their card class already
+        // marks them visually distinct and a round-priority tier on top of
+        // that would compete with the scheduled-state styling.
+        const base = baseRoundByEvent.get(item.eventId);
+        const roundOffset =
+          base !== undefined && !item.isScheduled && !isCompletedStatus(item.matchUpStatus)
+            ? Math.max(0, item.roundNumber - base)
+            : undefined;
+        const card = buildMatchUpCard(
+          item,
+          { onClick: (m) => callbacks.onMatchUpSelected?.(m) },
+          { roundOffset }
+        );
 
         if (state.selectedMatchUp?.matchUpId === item.matchUpId) {
           card.classList.add('selected');

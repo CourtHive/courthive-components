@@ -27,6 +27,11 @@ export interface CatalogMatchUpItem {
   drawId: string;
   drawName?: string;
   structureId: string;
+  /** Draw stage — MAIN / CONSOLATION / PLAYOFF / QUALIFYING / ROUND_ROBIN /
+   *  etc. Rendered as a chip when present and not MAIN so a Quarterfinal in
+   *  the consolation bracket reads distinctly from a Quarterfinal in the
+   *  main draw of the same event. */
+  stage?: string;
   roundNumber: number;
   roundName?: string;
   matchUpFormat?: string;

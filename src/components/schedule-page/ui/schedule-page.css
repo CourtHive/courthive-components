@@ -383,6 +383,23 @@
   gap: 8px;
 }
 
+/* Round-emphasis tiers — see `buildMatchUpCard` MatchUpCardOptions.roundOffset.
+ * The catalog computes the earliest unscheduled, non-completed round per
+ * event and tags each card with offset 0 / 1 / >= 2. Operators scan the
+ * panel for "what should I schedule next inside event X" and the colour
+ * tiers answer that visually without forcing a sort. */
+.spl-card-title--round-current {
+  color: var(--sp-accent-text, #3273dc);
+}
+.spl-card-title--round-next {
+  color: var(--sp-text, inherit);
+  opacity: 0.85;
+}
+.spl-card-title--round-later {
+  color: var(--sp-muted, inherit);
+  opacity: 0.6;
+}
+
 .spl-card-title-text {
   min-width: 0;
   overflow: hidden;
@@ -455,6 +472,19 @@
   text-transform: uppercase;
   font-size: 0.5625rem;
   letter-spacing: 0.3px;
+}
+
+/* Stage chip — distinct accent so CONSOLATION / PLAYOFF / QUALIFYING reads
+ * unmistakably against the main draw cards. Sits last in the chip row by
+ * virtue of being appended last in `buildMatchUpCard`. */
+.spl-card-chip.stage {
+  border-color: var(--sp-accent-border);
+  background: var(--sp-accent-bg, transparent);
+  color: var(--sp-accent-text);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.5625rem;
+  letter-spacing: 0.4px;
 }
 
 /* ── MatchUp Catalog drop highlight ────────────────────── */

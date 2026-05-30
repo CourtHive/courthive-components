@@ -25,6 +25,14 @@ export interface MatchUpCardOptions {
    *  (top-right) and suppress the standard time chip. Used by the schedule
    *  grid's Scheduled tab where the time is the card's primary signal. */
   prominentTime?: boolean;
+  /** Distance from the earliest unscheduled round within this card's event.
+   *  0 = this round is the next-to-schedule (highest emphasis on the title),
+   *  1 = one round behind, ≥ 2 = further out (lowest emphasis). Mapped to
+   *  `spl-card-title--round-current / next / later` classes so consumers can
+   *  re-theme via CSS without touching the JS. Omit to leave the title at
+   *  its default styling (used for non-catalog renders + scheduled / completed
+   *  cards where round priority is meaningless). */
+  roundOffset?: number;
 }
 
 export function buildMatchUpCard(
@@ -64,6 +72,18 @@ export function buildMatchUpCard(
   // Title: event — round
   const titleEl = document.createElement('div');
   titleEl.className = splCardTitleStyle();
+  if (typeof options.roundOffset === 'number') {
+    // Round-offset class encodes scheduling priority for the operator's eye:
+    // current (0) > next (1) > later (>= 2). Only attached when the option is
+    // supplied; scheduled / completed cards skip the offset entirely.
+    const offsetClass =
+      options.roundOffset === 0
+        ? 'spl-card-title--round-current'
+        : options.roundOffset === 1
+          ? 'spl-card-title--round-next'
+          : 'spl-card-title--round-later';
+    titleEl.classList.add(offsetClass);
+  }
   const titleText = `${item.eventName} \u2014 ${item.roundName ?? 'Round ' + item.roundNumber}`;
   const showProminentTime = options.prominentTime && !!item.scheduledTime;
   if (showProminentTime) {
@@ -114,6 +134,15 @@ export function buildMatchUpCard(
   if (completed && item.matchUpStatus) {
     const statusLabel = item.matchUpStatus.replace(/_/g, ' ');
     chips.appendChild(makeChip(statusLabel, 'status'));
+  }
+
+  // STAGE chip — last so it sits bottom-right of the chip row. Only renders
+  // for non-MAIN stages (CONSOLATION / PLAYOFF / QUALIFYING / ROUND_ROBIN …);
+  // MAIN is the silent default so 80%+ of cards in a standard draw don't
+  // accumulate a redundant "MAIN" chip.
+  if (item.stage && item.stage !== 'MAIN') {
+    const stageLabel = item.stage.replace(/_/g, ' ');
+    chips.appendChild(makeChip(stageLabel, 'stage'));
   }
 
   if (chips.children.length) card.appendChild(chips);
