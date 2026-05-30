@@ -1,0 +1,60 @@
+/**
+ * Team Card — header-style card primitive.
+ *
+ * Themed via courthive-components' `--chc-*` custom properties so
+ * consumers can re-skin without touching the markup. Matches the
+ * visual language of `tournament-card` / `court-card` (rounded corners,
+ * 1px secondary border, secondary-bg fill).
+ */
+
+.chc-team-card {
+  padding: 1em 1.25em;
+  border: 1px solid var(--chc-border-secondary, #555);
+  border-radius: 6px;
+  background-color: var(--chc-bg-secondary, #2c2c2c);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.chc-team-card--clickable {
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.chc-team-card--clickable:hover {
+  border-color: var(--chc-border-focus, #0066cc);
+  background-color: var(--chc-hover-bg, rgba(255, 255, 255, 0.04));
+}
+
+.chc-team-card--clickable:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--chc-border-focus, #0066cc);
+}
+
+.chc-team-card__title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75em;
+  flex-wrap: wrap;
+}
+
+.chc-team-card__name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--chc-text-primary, #eee);
+}
+
+.chc-team-card__nickname {
+  font-size: 0.95rem;
+  font-style: italic;
+  color: var(--chc-text-secondary, #999);
+}
+
+.chc-team-card__counts {
+  display: flex;
+  gap: 1em;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  color: var(--chc-text-secondary, #aaa);
+}

@@ -193,6 +193,11 @@ export type {
   MapCourtOptions
 } from './components/court-card';
 
+// Team Card — header-style card primitive for a TEAM participant
+import './components/team-card/team-card.css';
+export { buildTeamCard } from './components/team-card';
+export type { TeamCardCallbacks, TeamCardData } from './components/team-card';
+
 // Competitiveness — segmented bar + donut showing competitiveness distribution
 import './components/competitivenessBar/competitiveness-bar.css';
 import './components/competitivenessBar/competitiveness-donut.css';
