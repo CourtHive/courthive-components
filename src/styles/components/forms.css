@@ -78,6 +78,17 @@ textarea {
   border-color: #f14668;
 }
 
+/* Size modifier — mirrors `.button.is-small` (font-size 0.75rem, height 2em)
+ * so an `.input.is-small` placed next to a `.button.is-small` in a flex row
+ * aligns vertically without needing per-call-site overrides. Previously
+ * `.input.is-small` fell through to the default `.input { height: 2.5em }`,
+ * which left the (2em) button floating above the (2.5em) input baseline. */
+.input.is-small {
+  font-size: 0.75rem;
+  height: 2em;
+  padding: calc(0.25em - 1px) calc(0.5em - 1px);
+}
+
 /* ── Select ──────────────────────────────────────────────── */
 .select {
   display: inline-block;
