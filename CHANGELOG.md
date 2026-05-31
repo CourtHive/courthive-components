@@ -1,5 +1,40 @@
 # Changelog
 
+## [2.0.0](https://github.com/CourtHive/courthive-components/compare/v1.10.1...v2.0.0) (2026-05-31)
+
+
+### ⚠ BREAKING CHANGES
+
+* import AvailabilityEngine from factory 5.0.0
+
+### Features
+
+* **catalog:** round-emphasis tiers + non-MAIN stage chip on cards ([60ef41d](https://github.com/CourtHive/courthive-components/commit/60ef41df2da7c5cfbe9b6e4f07305cc8716f9589))
+* **editor:** add createNotesEditor (Tiptap) for cross-app reuse ([c40f691](https://github.com/CourtHive/courthive-components/commit/c40f6915b71370b9228b2598855a8bee5fc5d1fd))
+* **hive-id-login:** public-side signup / login / magic-link component (PR-I) ([64aa9b9](https://github.com/CourtHive/courthive-components/commit/64aa9b948df7fe59054b0c7a67b1e8a841f34d5f))
+* **matchUpFormat:** expose WB1 set modifier in the format editor ([bb0bb0b](https://github.com/CourtHive/courthive-components/commit/bb0bb0b2c83e4b9069858ad0eb43c50c17c7f802))
+* **presets:** add TYPTI Win-by-1 preset + default smartComplements on ([8c2ef2b](https://github.com/CourtHive/courthive-components/commit/8c2ef2b89e6133f9e98a34c6f85f6684e56c8c64))
+* **team-card:** header-style card primitive for TEAM participants ([1ff9483](https://github.com/CourtHive/courthive-components/commit/1ff948356bcdb7a504801019cf98c3617cca4bf1))
+
+
+### Bug Fixes
+
+* **forms:** give .input.is-small a matching 2em height for button parity ([103a8b3](https://github.com/CourtHive/courthive-components/commit/103a8b3f51dde5ce96f4020803068429e88ef812))
+* **interactive-scoring:** drop globalThis.confirm fallback; accept confirmReset hook ([35e5dfa](https://github.com/CourtHive/courthive-components/commit/35e5dfad22cc33583db73977174bf897ced485de))
+* **modals:** drop bare window.alert from flightProfile + temporal-grid ([3f4a14b](https://github.com/CourtHive/courthive-components/commit/3f4a14bf07fbb43712e3f1ba8aadf72e3df35bc1))
+* **scoring:** honor setFormat.winBy in dynamic-sets logic ([cec9101](https://github.com/CourtHive/courthive-components/commit/cec91014c7de5e75c8f3e46fcf3050079707f944))
+* **scoring:** use rem (not em) for inline fontSize in score-entry approaches ([d47d805](https://github.com/CourtHive/courthive-components/commit/d47d8059c823e0c66bcbf8c95dfe575a2e94ca7d))
+* **storybook:** declare body font-family in preview iframe ([1e7535c](https://github.com/CourtHive/courthive-components/commit/1e7535cb04e09e7aead7d5ed9604500cec55af89))
+* **storybook:** pin html/body font-size baseline in preview iframe ([3d022db](https://github.com/CourtHive/courthive-components/commit/3d022db801c10b0c2bceae729243d0ea00e62e55))
+* **tipster:** dark-mode border + arrow color for light-border theme ([0f1d6f0](https://github.com/CourtHive/courthive-components/commit/0f1d6f0efdce2d068198be579f53dc159058f862))
+* **types:** cross-package boundary casts to factory v5 typed shapes ([ea11d3c](https://github.com/CourtHive/courthive-components/commit/ea11d3c5d7a10f84739932aad2343948e78b03c9))
+* **types:** widen MatchUp / Side / Participant unions to factory shapes ([e6616a7](https://github.com/CourtHive/courthive-components/commit/e6616a74eb3dc1835cb38f76be26b8faa9d2936f))
+
+
+### Refactor
+
+* import AvailabilityEngine from factory 5.0.0 ([1677e2b](https://github.com/CourtHive/courthive-components/commit/1677e2b3fe6acee6cc6d12788559a0642af61625))
+
 ## [1.10.1](https://github.com/CourtHive/courthive-components/compare/v1.10.0...v1.10.1) (2026-05-26)
 
 
