@@ -39,6 +39,21 @@ export interface EngineBlockPopoverOptions {
   engine: AvailabilityEngine;
   day: string;
   onBlockChanged: () => void;
+  /**
+   * Optional callback rendered as a "Manage Registrations" menu item for
+   * PRACTICE blocks. Provides the resolved block descriptor (courtId, date,
+   * sub-window times) so the consumer can resolve to its bookingId without
+   * a round trip — the factory derives bookingId from `${courtId}-${date}-${startTime}`
+   * when the booking lacks an explicit one.
+   */
+  onManageRegistrations?: (args: {
+    blockId: string;
+    courtId: string;
+    venueId: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+  }) => void;
 }
 
 export interface BlockPopoverManager {
@@ -160,7 +175,7 @@ export function createBlockPopoverManager(): BlockPopoverManager {
   }
 
   function buildEngineContent(opts: EngineBlockPopoverOptions): HTMLElement {
-    const { blockId, engine, day, onBlockChanged } = opts;
+    const { blockId, engine, day, onBlockChanged, onManageRegistrations } = opts;
 
     const wrap = document.createElement('div');
     wrap.style.cssText = 'font-family:sans-serif; font-size:13px; min-width:150px;';
@@ -238,6 +253,37 @@ export function createBlockPopoverManager(): BlockPopoverManager {
     });
     wrap.appendChild(timeBtn);
 
+    // Manage Registrations (PRACTICE only — Manage practice court registrants
+    // for this booking's sub-windows. The consumer provides the modal.)
+    const currentBlock = engine.getDayBlocks(day).find((b) => b.id === blockId);
+    if (onManageRegistrations && currentBlock?.type === BLOCK_TYPES.PRACTICE) {
+      const manageBtn = document.createElement('div');
+      manageBtn.style.cssText = POPOVER_ITEM_STYLE;
+      manageBtn.innerHTML = `<span style="font-size:14px;">&#128101;</span> Manage Registrations`;
+      manageBtn.addEventListener('mouseenter', () => {
+        manageBtn.style.background = CHC_HOVER_BG;
+        manageBtn.style.color = CHC_TEXT_PRIMARY;
+      });
+      manageBtn.addEventListener('mouseleave', () => {
+        manageBtn.style.background = 'transparent';
+        manageBtn.style.color = '';
+      });
+      manageBtn.addEventListener('click', () => {
+        destroyActive();
+        const block = engine.getDayBlocks(day).find((b) => b.id === blockId);
+        if (!block) return;
+        onManageRegistrations({
+          blockId,
+          courtId: block.court.courtId,
+          venueId: block.court.venueId,
+          date: day,
+          startTime: extractHM(block.start),
+          endTime: extractHM(block.end),
+        });
+      });
+      wrap.appendChild(manageBtn);
+    }
+
     // Delete
     const delBtn = document.createElement('div');
     delBtn.style.cssText =
@@ -257,6 +303,16 @@ export function createBlockPopoverManager(): BlockPopoverManager {
     wrap.appendChild(delBtn);
 
     return wrap;
+  }
+
+  /**
+   * Extracts an `HH:MM` string from either an ISO datetime (`2026-06-15T14:00:00`)
+   * or a bare time (`14:00:00` / `14:00`). The engine produces ISO times; the
+   * factory's bookingId derivation uses bare HH:MM.
+   */
+  function extractHM(iso: string): string {
+    const timePart = iso.includes('T') ? iso.split('T')[1] : iso;
+    return timePart.slice(0, 5);
   }
 
   function showTip(target: HTMLElement, content: HTMLElement, itemId: string): void {

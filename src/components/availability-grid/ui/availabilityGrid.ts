@@ -209,6 +209,7 @@ export class AvailabilityGrid {
         onBlockSelected: this.handleBlockSelected,
         onCourtSelected: this.handleCourtSelected,
         onTimeRangeSelected: this.handleTimeRangeSelected,
+        onManageRegistrations: this.config.onManageRegistrations,
         onBlocksChanged: () => {
           this.updateCapacityStats();
           this.updateStatsBar();

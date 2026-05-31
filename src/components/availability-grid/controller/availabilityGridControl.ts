@@ -87,6 +87,21 @@ export interface AvailabilityGridControlConfig {
    * native browser alert).
    */
   onConflict?: (conflicts: any[]) => void;
+
+  /**
+   * Optional callback rendered as a "Manage Registrations" menu item on
+   * the block popover for PRACTICE blocks. The argument carries the
+   * resolved block descriptor — consumers use it to open their practice-
+   * registration management surface (e.g. a cModal in TMX).
+   */
+  onManageRegistrations?: (args: {
+    blockId: string;
+    courtId: string;
+    venueId: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+  }) => void;
 }
 
 // ============================================================================
@@ -677,7 +692,8 @@ export class AvailabilityGridControl {
         blockId,
         engine: this.engine,
         day,
-        onBlockChanged: () => this.render()
+        onBlockChanged: () => this.render(),
+        onManageRegistrations: this.config.onManageRegistrations
       });
     }
 
@@ -725,7 +741,8 @@ export class AvailabilityGridControl {
             blockId: newBlockId,
             engine: this.engine,
             day,
-            onBlockChanged: () => this.render()
+            onBlockChanged: () => this.render(),
+            onManageRegistrations: this.config.onManageRegistrations
           });
         }
       }, 50);
