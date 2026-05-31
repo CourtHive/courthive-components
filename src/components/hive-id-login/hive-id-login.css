@@ -1,0 +1,155 @@
+/* HiveID Login — themed via --chc-* tokens for light/dark parity. */
+
+.chc-hil-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 24rem;
+  padding: 1.25rem;
+  background: var(--chc-bg-elevated, var(--chc-bg-primary, #fff));
+  color: var(--chc-text-primary, #363636);
+  border: 1px solid var(--chc-border-primary, #dbdbdb);
+  border-radius: 0.5rem;
+  font-family: inherit;
+}
+
+.chc-hil-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.chc-hil-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--chc-text-primary, #363636);
+}
+
+.chc-hil-tabs {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--chc-border-secondary, #ddd);
+}
+
+.chc-hil-tab {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--chc-text-secondary, #666);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+
+.chc-hil-tab:hover {
+  color: var(--chc-text-primary, #363636);
+  background: var(--chc-hover-bg, #f5f5f5);
+}
+
+.chc-hil-tab--active {
+  color: var(--chc-text-primary, #363636);
+  border-bottom-color: var(--chc-border-focus, #0066cc);
+}
+
+.chc-hil-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.chc-hil-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chc-hil-row > .chc-hil-field {
+  flex: 1;
+}
+
+.chc-hil-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.chc-hil-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--chc-text-secondary, #666);
+}
+
+.chc-hil-input {
+  padding: 0.5rem 0.625rem;
+  font-size: 0.875rem;
+  background: var(--chc-input-bg, #fff);
+  color: var(--chc-text-primary, #363636);
+  border: 1px solid var(--chc-input-border, #7a7a7a);
+  border-radius: 0.25rem;
+  outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.chc-hil-input:focus {
+  border-color: var(--chc-border-focus, #0066cc);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--chc-border-focus, #0066cc) 25%, transparent);
+}
+
+.chc-hil-submit {
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--chc-text-inverse, #fff);
+  background: var(--chc-border-focus, #0066cc);
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: opacity 120ms ease;
+}
+
+.chc-hil-submit:hover {
+  opacity: 0.9;
+}
+
+.chc-hil-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.chc-hil-message {
+  padding: 0.5rem 0.625rem;
+  font-size: 0.8125rem;
+  border-radius: 0.25rem;
+  background: var(--chc-bg-secondary, #f5f5f5);
+  color: var(--chc-text-secondary, #666);
+}
+
+.chc-hil-message--error {
+  background: color-mix(in srgb, var(--chc-status-error, red) 12%, transparent);
+  color: var(--chc-status-error, red);
+}
+
+.chc-hil-message--success {
+  background: color-mix(in srgb, var(--chc-status-success, green) 12%, transparent);
+  color: var(--chc-status-success, green);
+}
+
+.chc-hil-switch-mode {
+  font-size: 0.75rem;
+  color: var(--chc-text-secondary, #666);
+  text-align: center;
+}
+
+.chc-hil-switch-mode button {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--chc-border-focus, #0066cc);
+  cursor: pointer;
+  text-decoration: underline;
+}

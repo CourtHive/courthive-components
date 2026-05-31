@@ -262,6 +262,37 @@ export type {
   MapEventOptions
 } from './components/event-card';
 
+// HiveID Login — public-side signup / verify / magic-link UI
+import './components/hive-id-login/hive-id-login.css';
+export {
+  buildHiveIDLogin,
+  completeMagicLink,
+  consumeMagicLink,
+  isExistingUserConflict,
+  requestMagicLink,
+  signup,
+  verifyExisting
+} from './components/hive-id-login';
+export type {
+  CachedPersonFields,
+  HiveIDAuthenticatedDetail,
+  HiveIDClientError,
+  HiveIDFederationId,
+  HiveIDLoginConfig,
+  HiveIDLoginShell,
+  HiveIDMode,
+  MagicLinkConsumeRequest,
+  MagicLinkConsumeResponse,
+  MagicLinkRequest,
+  MagicLinkResponse,
+  SignupCandidate,
+  SignupRequest,
+  SignupResolved,
+  SignupResponse,
+  VerifyExistingRequest,
+  VerifyExistingResponse
+} from './components/hive-id-login';
+
 // Version API
 export { courthiveComponentsVersion } from './version';
 
