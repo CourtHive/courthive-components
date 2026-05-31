@@ -8,13 +8,13 @@
  * - Stats bar driven by engine capacity curve
  */
 
-import type { TimelineGroupData, TimelineItemData, MultiRowSpan } from '../../components/temporal-grid/timeline/types';
-import { showCourtAvailabilityModal } from '../../components/temporal-grid/ui/courtAvailabilityModal';
+import type { TimelineGroupData, TimelineItemData, MultiRowSpan } from '../../components/availability-grid/timeline/types';
+import { showCourtAvailabilityModal } from '../../components/availability-grid/ui/courtAvailabilityModal';
 import { mocksEngine, tournamentEngine, AvailabilityEngine, availability } from 'tods-competition-factory';
-import { buildViewToolbar, VIEW_PRESETS } from '../../components/temporal-grid/ui/viewToolbar';
-import { createBlockPopoverManager } from '../../components/temporal-grid/ui/blockPopover';
-import { CourtTimeline } from '../../components/temporal-grid/timeline/CourtTimeline';
-import { buildStatsBar } from '../../components/temporal-grid/ui/statsBar';
+import { buildViewToolbar, VIEW_PRESETS } from '../../components/availability-grid/ui/viewToolbar';
+import { createBlockPopoverManager } from '../../components/availability-grid/ui/blockPopover';
+import { CourtTimeline } from '../../components/availability-grid/timeline/CourtTimeline';
+import { buildStatsBar } from '../../components/availability-grid/ui/statsBar';
 import {
   buildResourcesFromTimelines,
   buildEventsFromTimelines,
@@ -22,17 +22,17 @@ import {
   buildTimelineWindowConfig,
   parseResourceId,
   parseBlockEventId
-} from '../../components/temporal-grid/controller/viewProjections';
+} from '../../components/availability-grid/controller/viewProjections';
 
 import { Datepicker } from 'vanillajs-datepicker';
-import '../../components/temporal-grid/ui/styles.css';
+import '../../components/availability-grid/ui/styles.css';
 import 'vanillajs-datepicker/css/datepicker.css';
 import 'tippy.js/dist/tippy.css';
 
 const { BLOCK_TYPES, calculateCapacityStats } = availability;
 
 export default {
-  title: 'Temporal Grid/CourtTimeline'
+  title: 'Availability Grid/CourtTimeline'
 };
 
 // ── Shared constants ─────────────────────────────────────────────────────────

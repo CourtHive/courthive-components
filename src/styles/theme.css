@@ -162,7 +162,7 @@
   --sp-warn-border-light: rgba(245, 158, 11, 0.25);
   --sp-accent-border-light: rgba(59, 130, 246, 0.2);
 
-  /* ── Temporal Grid Accent ─────────────────────────────────── */
+  /* ── Availability Grid Accent ─────────────────────────────────── */
   --tg-accent: #218d8d;
   --tg-accent-hover: #1a7a7a;
   --tg-accent-bg-light: rgba(33, 141, 141, 0.08);
@@ -263,7 +263,7 @@
      and participant layout tokens are identical in dark mode.
      Color tokens automatically adapt via their var(--chc-*) references. */
 
-  /* ── Temporal Grid Accent ─────────────────────────────────── */
+  /* ── Availability Grid Accent ─────────────────────────────────── */
   --tg-accent: #2ec4c4;
   --tg-accent-hover: #178a7f;
   --tg-accent-bg-light: rgba(46, 196, 196, 0.1);

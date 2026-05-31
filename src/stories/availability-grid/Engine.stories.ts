@@ -1,5 +1,5 @@
 /**
- * Temporal Grid Engine Stories
+ * AvailabilityEngine Stories
  *
  * Demonstrates the core engine capabilities without UI.
  * Shows the pure state machine functionality.
@@ -45,15 +45,15 @@ const mockTournament = {
 // ============================================================================
 
 const meta: Meta = {
-  title: 'Temporal Grid/Engine',
+  title: 'Availability Grid/Engine',
   tags: ['autodocs'],
   parameters: {
     docs: {
       description: {
         component: `
-# Temporal Grid Engine
+# AvailabilityEngine
 
-The pure JavaScript state machine that powers the temporal grid.
+The pure JavaScript state machine that powers the availability grid.
 
 ## Key Features
 

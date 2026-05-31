@@ -1,13 +1,13 @@
 /**
- * Temporal Grid Component
+ * Availability Grid Component
  *
- * Main component that assembles the complete Temporal Grid interface:
+ * Main component that assembles the complete Availability Grid interface:
  * - Venue tree (left panel)
  * - Calendar timeline (center)
  * - Capacity indicator (top)
  * - Toolbar controls (top)
  *
- * This is the entry point for using the temporal grid in applications.
+ * This is the entry point for using the availability grid in applications.
  */
 
 import { AvailabilityEngine, availability } from 'tods-competition-factory';
@@ -15,7 +15,7 @@ import { AvailabilityEngine, availability } from 'tods-competition-factory';
 const { calculateCapacityStats } = availability;
 type CourtRef = availability.CourtRef;
 type DayId = availability.DayId;
-import { TemporalGridControl, type TemporalGridControlConfig } from '../controller/temporalGridControl';
+import { AvailabilityGridControl, type AvailabilityGridControlConfig } from '../controller/availabilityGridControl';
 import { buildStatsBar, type StatsBarUpdate } from './statsBar';
 import { buildViewToolbar, type ViewToolbarResult } from './viewToolbar';
 import { showCourtAvailabilityModal } from './courtAvailabilityModal';
@@ -26,10 +26,10 @@ import Datepicker from 'vanillajs-datepicker/Datepicker';
 // ============================================================================
 
 /**
- * i18n labels for the temporal grid component.
+ * i18n labels for the availability grid component.
  * All fields are optional — English defaults are used when omitted.
  */
-export interface TemporalGridLabels {
+export interface AvailabilityGridLabels {
   view?: string;
   day1?: string;
   days3?: string;
@@ -44,14 +44,14 @@ export interface TemporalGridLabels {
   saveToTournament?: string;
 }
 
-export interface TemporalGridCallbacks {
+export interface AvailabilityGridCallbacks {
   /**
    * Called when dirty state changes (blocks/availability modified vs initial)
    */
   onDirtyChange?: (isDirty: boolean) => void;
 }
 
-export interface TemporalGridConfig extends Partial<TemporalGridControlConfig>, TemporalGridCallbacks {
+export interface AvailabilityGridConfig extends Partial<AvailabilityGridControlConfig>, AvailabilityGridCallbacks {
   /**
    * Tournament record (TODS format)
    */
@@ -89,7 +89,7 @@ export interface TemporalGridConfig extends Partial<TemporalGridControlConfig>, 
   /**
    * i18n labels
    */
-  labels?: TemporalGridLabels;
+  labels?: AvailabilityGridLabels;
 
   /**
    * Language code for datepicker localization (e.g. 'en', 'fr', 'de')
@@ -113,13 +113,13 @@ export interface TemporalGridConfig extends Partial<TemporalGridControlConfig>, 
 }
 
 // ============================================================================
-// Temporal Grid Component
+// Availability Grid Component
 // ============================================================================
 
-export class TemporalGrid {
+export class AvailabilityGrid {
   private engine: AvailabilityEngine;
-  private control: TemporalGridControl | null = null;
-  private config: Required<TemporalGridConfig>;
+  private control: AvailabilityGridControl | null = null;
+  private config: Required<AvailabilityGridConfig>;
 
   // UI Elements
   private rootElement: HTMLElement | null = null;
@@ -137,7 +137,7 @@ export class TemporalGrid {
   private initialSnapshot: string = '';
   private isDirty: boolean = false;
 
-  constructor(config: TemporalGridConfig) {
+  constructor(config: AvailabilityGridConfig) {
     this.config = {
       showVenueTree: true,
       showCapacity: true,
@@ -146,7 +146,7 @@ export class TemporalGrid {
       showConflicts: true,
       showSegmentLabels: false,
       ...config
-    } as Required<TemporalGridConfig>;
+    } as Required<AvailabilityGridConfig>;
 
     // Create engine
     this.engine = new AvailabilityEngine();
@@ -183,12 +183,12 @@ export class TemporalGrid {
       this.renderCapacityIndicator();
     }
 
-    const mainArea = this.rootElement.querySelector('.temporal-grid-main') as HTMLElement;
+    const mainArea = this.rootElement.querySelector('.availability-grid-main') as HTMLElement;
     if (!mainArea) return;
 
     // Create layout
     const layoutContainer = document.createElement('div');
-    layoutContainer.className = 'temporal-grid-layout';
+    layoutContainer.className = 'availability-grid-layout';
     mainArea.appendChild(layoutContainer);
 
     if (this.config.showVenueTree) {
@@ -199,7 +199,7 @@ export class TemporalGrid {
 
     // Create controller
     if (this.calendarElement) {
-      this.control = new TemporalGridControl(this.engine, {
+      this.control = new AvailabilityGridControl(this.engine, {
         container: this.calendarElement,
         initialDay: this.config.initialDay,
         initialView: this.config.initialView,
@@ -267,16 +267,16 @@ export class TemporalGrid {
 
   private createRootElement(): HTMLElement {
     const root = document.createElement('div');
-    root.className = 'temporal-grid-root';
+    root.className = 'availability-grid-root';
     root.innerHTML = `
-      <div class="temporal-grid-header"></div>
-      <div class="temporal-grid-main"></div>
+      <div class="availability-grid-header"></div>
+      <div class="availability-grid-main"></div>
     `;
     return root;
   }
 
   private renderToolbar(): void {
-    const header = this.rootElement?.querySelector('.temporal-grid-header');
+    const header = this.rootElement?.querySelector('.availability-grid-header');
     if (!header) return;
 
     const labels = this.config.labels;
@@ -366,7 +366,7 @@ export class TemporalGrid {
   }
 
   private renderCapacityIndicator(): void {
-    const header = this.rootElement?.querySelector('.temporal-grid-header');
+    const header = this.rootElement?.querySelector('.availability-grid-header');
     if (!header) return;
 
     const labels = this.config.labels;
@@ -375,7 +375,7 @@ export class TemporalGrid {
     const avgPerCourtLabel = labels?.avgPerCourt ?? 'Avg/Court';
 
     const capacity = document.createElement('div');
-    capacity.className = 'temporal-grid-capacity';
+    capacity.className = 'availability-grid-capacity';
     capacity.innerHTML = `
       <div class="capacity-label">${courtAvailLabel}:</div>
       <div class="capacity-stats">
@@ -399,7 +399,7 @@ export class TemporalGrid {
 
   private renderVenueTree(container: HTMLElement): void {
     const tree = document.createElement('div');
-    tree.className = 'temporal-grid-venue-tree';
+    tree.className = 'availability-grid-venue-tree';
     tree.innerHTML = `
       <div class="tree-header">
         <h3>Venues & Courts</h3>
@@ -418,7 +418,7 @@ export class TemporalGrid {
 
   private renderCalendar(container: HTMLElement): void {
     const calendar = document.createElement('div');
-    calendar.className = 'temporal-grid-calendar';
+    calendar.className = 'availability-grid-calendar';
 
     container.appendChild(calendar);
     this.calendarElement = calendar;
@@ -831,7 +831,7 @@ export class TemporalGrid {
   /**
    * Get the controller instance
    */
-  getControl(): TemporalGridControl | null {
+  getControl(): AvailabilityGridControl | null {
     return this.control;
   }
 
@@ -858,10 +858,10 @@ export class TemporalGrid {
 // ============================================================================
 
 /**
- * Create and render a temporal grid
+ * Create and render a availability grid
  */
-export function createTemporalGrid(config: TemporalGridConfig, container: HTMLElement): TemporalGrid {
-  const grid = new TemporalGrid(config);
+export function createAvailabilityGrid(config: AvailabilityGridConfig, container: HTMLElement): AvailabilityGrid {
+  const grid = new AvailabilityGrid(config);
   grid.render(container);
   return grid;
 }

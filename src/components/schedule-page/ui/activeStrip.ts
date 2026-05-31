@@ -4,7 +4,7 @@
  * For each court column the strip shows what's "active": in-progress matchUp,
  * else next pending, else free (completed-only columns render empty).
  * Each cell is a drop target — when a matchUp is dropped, the strip uses the
- * temporal floor inference (computeActiveStripDropTarget) to pick a sensible
+ * scheduled floor inference (computeActiveStripDropTarget) to pick a sensible
  * row in the underlying grid and fires onMatchUpDrop with the resolved target.
  *
  * Layout: when the consumer supplies `gridTemplateColumns` matching the grid

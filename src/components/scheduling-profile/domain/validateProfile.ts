@@ -1,7 +1,7 @@
 /**
  * Scheduling Profile — Validation Rules Engine
  *
- * Validates a scheduling profile draft against temporal constraints.
+ * Validates a scheduling profile draft against availability constraints.
  * Rules: DATE_UNAVAILABLE, INVALID_SEGMENT_CONFIG, DUPLICATE_ROUND,
  * DUPLICATE_SEGMENT, ROUND_ORDER_VIOLATION.
  */
@@ -9,7 +9,7 @@
 import type {
   SchedulingProfile,
   ValidationResult,
-  TemporalAdapter,
+  AvailabilityAdapter,
   DependencyAdapter,
   FlattenedRound,
   RoundLocator
@@ -28,30 +28,30 @@ const JUMP_TO_PREREQUISITE_LABEL = 'Jump to prerequisite';
 
 export interface ValidateProfileParams {
   profile: SchedulingProfile;
-  temporal?: TemporalAdapter;
+  availability?: AvailabilityAdapter;
   dependencies?: DependencyAdapter;
   venueOrder?: string[];
 }
 
 export function validateProfile({
   profile,
-  temporal,
+  availability,
   dependencies,
   venueOrder
 }: ValidateProfileParams): ValidationResult[] {
   const results: ValidationResult[] = [];
 
   // Date availability: ERROR
-  if (temporal?.isDateAvailable) {
+  if (availability?.isDateAvailable) {
     for (const day of profile) {
-      const a = temporal.isDateAvailable(day.scheduleDate);
+      const a = availability.isDateAvailable(day.scheduleDate);
       if (!a.ok) {
         results.push({
           code: 'DATE_UNAVAILABLE',
           severity: 'ERROR',
           message: `Can't schedule on ${day.scheduleDate} \u2014 day is unavailable${a.reason ? ': ' + a.reason : ''}.`,
           context: { date: day.scheduleDate },
-          fixActions: [{ kind: 'OPEN_TEMPORAL_GRID', date: day.scheduleDate, label: 'Open Temporal Grid' }]
+          fixActions: [{ kind: 'OPEN_TEMPORAL_GRID', date: day.scheduleDate, label: 'Open Availability Grid' }]
         });
       }
     }

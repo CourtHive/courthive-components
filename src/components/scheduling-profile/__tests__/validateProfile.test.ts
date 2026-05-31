@@ -1,4 +1,4 @@
-import type { SchedulingProfile, TemporalAdapter, DependencyAdapter } from '../types';
+import type { SchedulingProfile, AvailabilityAdapter, DependencyAdapter } from '../types';
 import { validateProfile } from '../domain/validateProfile';
 import { describe, it, expect } from 'vitest';
 
@@ -22,7 +22,7 @@ function makeRound(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function makeTemporal(schedulable: string[]): TemporalAdapter {
+function makeAvailability(schedulable: string[]): AvailabilityAdapter {
   return {
     isDateAvailable: (date: string) =>
       schedulable.includes(date) ? { ok: true } : { ok: false, reason: 'Not schedulable' }
@@ -43,7 +43,7 @@ describe('validateProfile', () => {
       const profile: SchedulingProfile = [{ scheduleDate: DAY1, venues: [{ venueId: 'V1', rounds: [makeRound()] }] }];
       const results = validateProfile({
         profile,
-        temporal: makeTemporal([DAY2])
+        availability: makeAvailability([DAY2])
       });
       expect(results).toHaveLength(1);
       expect(results[0].code).toBe('DATE_UNAVAILABLE');
@@ -56,7 +56,7 @@ describe('validateProfile', () => {
       const profile: SchedulingProfile = [{ scheduleDate: DAY1, venues: [{ venueId: 'V1', rounds: [makeRound()] }] }];
       const results = validateProfile({
         profile,
-        temporal: makeTemporal([DAY1])
+        availability: makeAvailability([DAY1])
       });
       const dateIssues = results.filter((r) => r.code === 'DATE_UNAVAILABLE');
       expect(dateIssues).toHaveLength(0);

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { ProfileStore } from '../engine/profileStore';
-import type { SchedulingProfileConfig, SchedulingProfile, TemporalAdapter } from '../types';
+import type { SchedulingProfileConfig, SchedulingProfile, AvailabilityAdapter } from '../types';
 
 const venues = [
   { venueId: 'V1', name: 'Venue A' },
@@ -52,7 +52,7 @@ function makeConfig(overrides: Partial<SchedulingProfileConfig> = {}): Schedulin
   return { venues, roundCatalog, schedulableDates, ...overrides };
 }
 
-function makeTemporal(): TemporalAdapter {
+function makeAvailability(): AvailabilityAdapter {
   return {
     isDateAvailable: (date: string) =>
       schedulableDates.includes(date) ? { ok: true } : { ok: false, reason: 'Not schedulable' }
@@ -125,7 +125,7 @@ describe('ProfileStore', () => {
 
   describe('dropRound', () => {
     it('adds catalog round to profile', () => {
-      const store = new ProfileStore(makeConfig({ temporalAdapter: makeTemporal() }));
+      const store = new ProfileStore(makeConfig({ availabilityAdapter: makeAvailability() }));
       const result = store.dropRound(
         { type: 'CATALOG_ROUND', roundRef: roundCatalog[0] },
         { date: DAY1, venueId: 'V1', index: 0 }
@@ -149,7 +149,7 @@ describe('ProfileStore', () => {
           ]
         }
       ];
-      const store = new ProfileStore(makeConfig({ initialProfile: profile, temporalAdapter: makeTemporal() }));
+      const store = new ProfileStore(makeConfig({ initialProfile: profile, availabilityAdapter: makeAvailability() }));
 
       // Dropping the same round again should cause DUPLICATE_ROUND
       const result = store.dropRound(
@@ -183,7 +183,7 @@ describe('ProfileStore', () => {
           ]
         }
       ];
-      const store = new ProfileStore(makeConfig({ initialProfile: profile, temporalAdapter: makeTemporal() }));
+      const store = new ProfileStore(makeConfig({ initialProfile: profile, availabilityAdapter: makeAvailability() }));
       expect(store.getState().issueIndex.counts.ERROR).toBeGreaterThan(0);
 
       // Moving one duplicate to V2 should be allowed — it doesn't add new errors

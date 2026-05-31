@@ -287,7 +287,7 @@ export const CapacityAware = {
       const lines: string[] = ['=== Per-Day Capacity vs Demand ===', ''];
 
       for (const date of setup.schedulableDates) {
-        const capacityMinutes = setup.temporalAdapter.getDayCapacityMinutes?.(date) ?? 0;
+        const capacityMinutes = setup.availabilityAdapter.getDayCapacityMinutes?.(date) ?? 0;
         const demandMinutes = setup.demandAdapter.estimateDayDemandMinutes(date, profile);
         const ratio = capacityMinutes > 0 ? Math.round((demandMinutes / capacityMinutes) * 100) : 0;
         const status = demandMinutes === 0 ? 'EMPTY' : ratio > 100 ? 'OVERLOADED' : 'OK';

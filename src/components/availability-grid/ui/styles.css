@@ -1,7 +1,7 @@
 /**
- * Temporal Grid Styles
+ * Availability Grid Styles
  *
- * Complete styling for the temporal resource grid component.
+ * Complete styling for the availability grid component.
  * Uses custom CourtTimeline (.tg-*) classes
  */
 
@@ -9,7 +9,7 @@
    Root Container
    ============================================================================ */
 
-.temporal-grid-root {
+.availability-grid-root {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -21,7 +21,7 @@
    Header Section
    ============================================================================ */
 
-.temporal-grid-header {
+.availability-grid-header {
   border-bottom: 1px solid var(--chc-border-primary);
   background: var(--chc-bg-secondary);
 }
@@ -108,7 +108,7 @@
    Capacity Indicator
    ============================================================================ */
 
-.temporal-grid-capacity {
+.availability-grid-capacity {
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -146,13 +146,13 @@
    Main Layout
    ============================================================================ */
 
-.temporal-grid-main {
+.availability-grid-main {
   flex: 1;
   min-height: 0;
   overflow: hidden;
 }
 
-.temporal-grid-layout {
+.availability-grid-layout {
   display: flex;
   height: 100%;
 }
@@ -161,7 +161,7 @@
    Venue Tree (Left Panel)
    ============================================================================ */
 
-.temporal-grid-venue-tree {
+.availability-grid-venue-tree {
   width: 250px;
   border-right: 1px solid var(--chc-border-primary);
   overflow-y: auto;
@@ -250,7 +250,7 @@
    Calendar Area (CourtTimeline container)
    ============================================================================ */
 
-.temporal-grid-calendar {
+.availability-grid-calendar {
   flex: 1;
   min-width: 0;
   position: relative;
@@ -614,14 +614,14 @@
    Block Styles
    ============================================================================ */
 
-.temporal-block {
+.availability-block {
   cursor: move;
   border-radius: 4px;
   font-size: 0.875rem;
   padding: 0.25rem 0.5rem;
 }
 
-.temporal-block:hover {
+.availability-block:hover {
   opacity: 0.9;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
@@ -630,7 +630,7 @@
    Conflict Indicators
    ============================================================================ */
 
-.temporal-conflict {
+.availability-conflict {
   opacity: 0.4;
   pointer-events: none;
 }
@@ -674,13 +674,13 @@
    ============================================================================ */
 
 @media (max-width: 768px) {
-  .temporal-grid-venue-tree {
+  .availability-grid-venue-tree {
     width: 200px;
   }
 }
 
 @media (max-width: 480px) {
-  .temporal-grid-venue-tree {
+  .availability-grid-venue-tree {
     display: none;
   }
 
@@ -694,14 +694,14 @@
    Accessibility
    ============================================================================ */
 
-.temporal-grid-root:focus-within {
+.availability-grid-root:focus-within {
   outline: 2px solid var(--tg-accent);
   outline-offset: 2px;
 }
 
-.temporal-grid-root button:focus,
-.temporal-grid-root input:focus,
-.temporal-grid-root select:focus {
+.availability-grid-root button:focus,
+.availability-grid-root input:focus,
+.availability-grid-root select:focus {
   outline: 2px solid var(--tg-accent);
   outline-offset: 2px;
 }
@@ -723,7 +723,7 @@
    Loading & Empty States
    ============================================================================ */
 
-.temporal-grid-loading {
+.availability-grid-loading {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -731,7 +731,7 @@
   color: var(--chc-text-muted);
 }
 
-.temporal-grid-empty {
+.availability-grid-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -742,12 +742,12 @@
   text-align: center;
 }
 
-.temporal-grid-empty h3 {
+.availability-grid-empty h3 {
   margin: 0 0 0.5rem 0;
   color: var(--chc-text-secondary);
 }
 
-.temporal-grid-empty p {
+.availability-grid-empty p {
   margin: 0;
   color: var(--chc-text-muted);
 }
@@ -756,7 +756,7 @@
    Tooltips
    ============================================================================ */
 
-.temporal-tooltip {
+.availability-tooltip {
   position: absolute;
   background: rgba(0, 0, 0, 0.9);
   color: white;
@@ -768,7 +768,7 @@
   max-width: 300px;
 }
 
-.temporal-tooltip::after {
+.availability-tooltip::after {
   content: '';
   position: absolute;
   top: 100%;
@@ -910,7 +910,7 @@
   /* inherits page background */
 }
 
-[data-theme='dark'] .temporal-grid-venue-tree {
+[data-theme='dark'] .availability-grid-venue-tree {
   border-color: var(--chc-border-primary);
 }
 

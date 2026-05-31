@@ -1,5 +1,5 @@
 /**
- * Scheduling Profile Control — Orchestrator (follows TemporalGridControl pattern).
+ * Scheduling Profile Control — Orchestrator (follows AvailabilityGridControl pattern).
  *
  * Creates ProfileStore from config, creates layout and all panels,
  * subscribes to store, routes events to panel.update() calls,
