@@ -383,6 +383,25 @@
   white-space: nowrap;
 }
 
+.spl-grid-cell__block-registrations {
+  list-style: none;
+  margin: 0.15rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  width: 100%;
+}
+
+.spl-grid-cell__block-registration {
+  font-size: 0.55rem;
+  color: var(--sp-text);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ── Empty Cell ─────────────────────────────────────────── */
 
 .spl-cell--empty {
