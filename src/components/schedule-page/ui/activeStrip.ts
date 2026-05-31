@@ -165,7 +165,15 @@ function buildCellElement(
 ): HTMLElement {
   const root = document.createElement('div');
   root.className = `spl-active-strip-cell state-${cell.state}`;
-  if (courtBlock) root.classList.add('has-availability-block');
+  if (courtBlock) {
+    root.classList.add('has-availability-block');
+    // When the court has an active block AND an active matchUp at the same
+    // clock time, the cell flashes — surfacing the conflict at a glance.
+    // Free cells (no matchUp) don't conflict; just the block banner shows.
+    if (cell.state !== 'free' && cell.matchUp) {
+      root.classList.add('has-block-conflict');
+    }
+  }
   root.dataset.courtId = cell.courtId;
   if (cell.rowIndex !== undefined) root.dataset.rowIndex = String(cell.rowIndex);
   if (options.cellHeight) root.style.minHeight = options.cellHeight;
