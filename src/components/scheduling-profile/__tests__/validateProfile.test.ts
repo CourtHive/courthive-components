@@ -49,7 +49,7 @@ describe('validateProfile', () => {
       expect(results[0].code).toBe('DATE_UNAVAILABLE');
       expect(results[0].severity).toBe('ERROR');
       expect(results[0].fixActions).toHaveLength(1);
-      expect(results[0].fixActions![0].kind).toBe('OPEN_TEMPORAL_GRID');
+      expect(results[0].fixActions![0].kind).toBe('OPEN_AVAILABILITY_GRID');
     });
 
     it('does not report available dates', () => {

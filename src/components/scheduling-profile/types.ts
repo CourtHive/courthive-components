@@ -136,7 +136,7 @@ export type ValidationCode =
   | 'DAY_OVERLOAD'
   | 'DROP_REJECTED';
 
-export type FixActionKind = 'JUMP_TO_ITEM' | 'OPEN_TEMPORAL_GRID' | 'MOVE_ITEM_AFTER' | 'MOVE_ITEM_BEFORE';
+export type FixActionKind = 'JUMP_TO_ITEM' | 'OPEN_AVAILABILITY_GRID' | 'MOVE_ITEM_AFTER' | 'MOVE_ITEM_BEFORE';
 
 export interface FixAction {
   kind: FixActionKind;

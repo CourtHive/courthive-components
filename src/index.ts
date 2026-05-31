@@ -506,7 +506,8 @@ export type {
   ActiveStripPanelCallbacks,
   ActiveStripPanelData,
   ActiveStripPanelOptions,
-  ActiveStripCourtMeta
+  ActiveStripCourtMeta,
+  ActiveStripCourtBlock
 } from './components/schedule-page';
 
 // Composition Editor

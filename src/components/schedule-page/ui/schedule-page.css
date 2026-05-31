@@ -611,6 +611,88 @@
   outline-offset: -2px;
 }
 
+/* Active availability-block banner: shown when a court has a non-matchUp
+   reservation (PRACTICE / MAINTENANCE / etc.) active at the current clock
+   time. Sits at the top of the cell, full-width, color-coded by block type. */
+.spl-active-strip-block-banner {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 3px 6px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  background: rgba(127, 127, 127, 0.18);
+  color: var(--sp-text);
+  border-left: 3px solid var(--sp-text-muted, #888);
+  z-index: 1;
+}
+
+.spl-active-strip-block-banner .spl-active-strip-block-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spl-active-strip-block-banner .spl-active-strip-block-detail {
+  font-size: 0.625rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 0.78;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Type-specific accents — color the left border (and a tinted background)
+   so PRACTICE reads differently from MAINTENANCE at a glance. */
+.spl-active-strip-block-banner.block-practice {
+  background: rgba(56, 161, 105, 0.18);
+  border-left-color: #38a169;
+}
+
+.spl-active-strip-block-banner.block-maintenance {
+  background: rgba(214, 158, 46, 0.20);
+  border-left-color: #d69e2e;
+}
+
+.spl-active-strip-block-banner.block-blocked,
+.spl-active-strip-block-banner.block-hard_block,
+.spl-active-strip-block-banner.block-closed,
+.spl-active-strip-block-banner.block-locked {
+  background: rgba(229, 62, 62, 0.18);
+  border-left-color: #e53e3e;
+}
+
+.spl-active-strip-block-banner.block-reserved,
+.spl-active-strip-block-banner.block-soft_block {
+  background: rgba(99, 102, 241, 0.18);
+  border-left-color: #6366f1;
+}
+
+/* When a court has an active block AND a scheduled matchUp at the same
+   time, draw the cell with a flashing border so the conflict surfaces.
+   The .has-availability-block class is added by buildCellElement; the
+   conflict flag is layered on by the consumer via .has-block-conflict. */
+.spl-active-strip-cell.has-block-conflict {
+  animation: spl-strip-conflict-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes spl-strip-conflict-pulse {
+  0%, 100% {
+    outline: 2px solid rgba(229, 62, 62, 0.3);
+    outline-offset: -2px;
+  }
+  50% {
+    outline: 2px solid rgba(229, 62, 62, 0.85);
+    outline-offset: -2px;
+  }
+}
+
 .spl-active-strip-cell.state-free {
   /* No content when free — column reads as empty above the grid. */
   background: var(--sp-panel-bg);

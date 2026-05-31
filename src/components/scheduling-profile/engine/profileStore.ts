@@ -130,6 +130,7 @@ export class ProfileStore {
       const proposedResults = validateProfile({
         profile: result.profile,
         availability: this.config.availabilityAdapter,
+        demand: this.config.demandAdapter,
         dependencies: this.config.dependencyAdapter,
         venueOrder: this.config.venueOrder
       });
@@ -202,7 +203,7 @@ export class ProfileStore {
       return;
     }
 
-    if (action.kind === 'OPEN_TEMPORAL_GRID') {
+    if (action.kind === 'OPEN_AVAILABILITY_GRID') {
       this.config.onFixAction?.(action);
       return;
     }
@@ -261,6 +262,7 @@ export class ProfileStore {
     const results = validateProfile({
       profile: this.state.profileDraft,
       availability: this.config.availabilityAdapter,
+        demand: this.config.demandAdapter,
       dependencies: this.config.dependencyAdapter,
       venueOrder: this.config.venueOrder
     });

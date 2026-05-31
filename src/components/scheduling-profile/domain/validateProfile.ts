@@ -10,6 +10,7 @@ import type {
   SchedulingProfile,
   ValidationResult,
   AvailabilityAdapter,
+  DemandAdapter,
   DependencyAdapter,
   FlattenedRound,
   RoundLocator
@@ -29,6 +30,7 @@ const JUMP_TO_PREREQUISITE_LABEL = 'Jump to prerequisite';
 export interface ValidateProfileParams {
   profile: SchedulingProfile;
   availability?: AvailabilityAdapter;
+  demand?: DemandAdapter;
   dependencies?: DependencyAdapter;
   venueOrder?: string[];
 }
@@ -36,6 +38,7 @@ export interface ValidateProfileParams {
 export function validateProfile({
   profile,
   availability,
+  demand,
   dependencies,
   venueOrder
 }: ValidateProfileParams): ValidationResult[] {
@@ -51,11 +54,14 @@ export function validateProfile({
           severity: 'ERROR',
           message: `Can't schedule on ${day.scheduleDate} \u2014 day is unavailable${a.reason ? ': ' + a.reason : ''}.`,
           context: { date: day.scheduleDate },
-          fixActions: [{ kind: 'OPEN_TEMPORAL_GRID', date: day.scheduleDate, label: 'Open Availability Grid' }]
+          fixActions: [{ kind: 'OPEN_AVAILABILITY_GRID', date: day.scheduleDate, label: 'Tune availability' }]
         });
       }
     }
   }
+
+  // Day overload: WARN when planned demand exceeds available capacity.
+  results.push(...checkDayOverload(profile, availability, demand));
 
   const planned = flatten(profile);
 
@@ -138,6 +144,35 @@ export function validateProfile({
   }
 
   return results;
+}
+
+// ============================================================================
+// Capacity vs Demand
+// ============================================================================
+
+function checkDayOverload(
+  profile: SchedulingProfile,
+  availability: AvailabilityAdapter | undefined,
+  demand: DemandAdapter | undefined
+): ValidationResult[] {
+  if (!availability?.getDayCapacityMinutes || !demand?.estimateDayDemandMinutes) return [];
+
+  const out: ValidationResult[] = [];
+  for (const day of profile) {
+    const cap = availability.getDayCapacityMinutes(day.scheduleDate);
+    const dem = demand.estimateDayDemandMinutes(day.scheduleDate, profile);
+    if (cap > 0 && dem > cap) {
+      const hoursOver = Math.round(((dem - cap) / 60) * 10) / 10;
+      out.push({
+        code: 'DAY_OVERLOAD',
+        severity: 'WARN',
+        message: `${day.scheduleDate} is overloaded by ~${hoursOver}h (${Math.round(dem / 60)}h planned vs ${Math.round(cap / 60)}h available).`,
+        context: { date: day.scheduleDate },
+        fixActions: [{ kind: 'OPEN_AVAILABILITY_GRID', date: day.scheduleDate, label: 'Tune availability' }]
+      });
+    }
+  }
+  return out;
 }
 
 // ============================================================================
