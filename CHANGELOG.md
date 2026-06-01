@@ -1,5 +1,29 @@
 # Changelog
 
+## [3.0.0](https://github.com/CourtHive/courthive-components/compare/v2.0.0...v3.0.0) (2026-06-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* **scheduling-profile:** emit DAY_OVERLOAD + rename fix kind to OPEN_AVAILABILITY_GRID
+* consumers must update to the new export names. No deprecated re-exports; rip the band-aid.
+
+### Features
+
+* **active-strip:** apply has-block-conflict when matchUp overlaps active block ([e32d260](https://github.com/CourtHive/courthive-components/commit/e32d2607a7470b29337ff3f7e698413c3cb04cc5))
+* **availability-grid:** onManageRegistrations callback on block popover ([f6647d5](https://github.com/CourtHive/courthive-components/commit/f6647d5d3eb06efd32200bdac4d3816a32d875ff))
+* **availability-grid:** wire onManageRegistrations callback through block popover ([69e0cd1](https://github.com/CourtHive/courthive-components/commit/69e0cd189e376305b431a3d8baf679f2af33bd06))
+* **draws:** re-land bracket minimap navigator with viewport-fit sticky sizing ([e708340](https://github.com/CourtHive/courthive-components/commit/e708340a921913e309040b6ecc1b5d38e23a9dd1))
+* rename TemporalGrid → AvailabilityGrid (v3.0.0) ([29d4cdb](https://github.com/CourtHive/courthive-components/commit/29d4cdb4f6a20df85ecd1949f7843931498cc982))
+* **schedule-page:** render practice registrations on PRACTICE cells ([1d948ea](https://github.com/CourtHive/courthive-components/commit/1d948ea2e4b44e3d9be584af25230760cfa2dd47))
+* **schedule-page:** render practice registrations on PRACTICE cells ([958c23f](https://github.com/CourtHive/courthive-components/commit/958c23f18ee096a4d7eebf8300a8777ed825cafa))
+* **scheduling-profile:** emit DAY_OVERLOAD + rename fix kind to OPEN_AVAILABILITY_GRID ([53230a1](https://github.com/CourtHive/courthive-components/commit/53230a1d2160f1678697fdfdbf24f8a893144b22))
+
+
+### Documentation
+
+* **schedule-page:** mark booking.registrations as dormant ([552717a](https://github.com/CourtHive/courthive-components/commit/552717a78f2415f336f5c426de8438f4088f3447))
+
 ## [2.0.0](https://github.com/CourtHive/courthive-components/compare/v1.10.1...v2.0.0) (2026-05-31)
 
 
