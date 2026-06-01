@@ -67,7 +67,7 @@ export interface MockParticipantsConfig {
  *
  * Features:
  * - Gender selection (Any/Male/Female)
- * - Participant count (8-256)
+ * - Participant count (8-128)
  * - Age range with automatic validation (ageMax >= ageMin)
  * - Number of countries to limit nationality diversity
  * - Optional WTN/UTR ratings
@@ -276,8 +276,7 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
             { label: '16', value: 16, selected: finalDefaults.participantsCount === 16 },
             { label: '32', value: 32, selected: finalDefaults.participantsCount === 32 },
             { label: '64', value: 64, selected: finalDefaults.participantsCount === 64 },
-            { label: '128', value: 128, selected: finalDefaults.participantsCount === 128 },
-            { label: '256', value: 256, selected: finalDefaults.participantsCount === 256 }
+            { label: '128', value: 128, selected: finalDefaults.participantsCount === 128 }
           ],
           label: finalLabels.count,
           field: 'participantsCount',

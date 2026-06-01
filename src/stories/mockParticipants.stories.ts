@@ -3,7 +3,7 @@
  *
  * Interactive modal for generating mock participants with configurable options:
  * - Gender selection (Any/Male/Female)
- * - Participant count (8-256)
+ * - Participant count (8-128)
  * - Age range with automatic validation
  * - Optional WTN/UTR ratings
  * - Birthdate generation based on consideredDate
