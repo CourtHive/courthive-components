@@ -78,6 +78,19 @@ function buildBlockedCell(data: ScheduleCellData): HTMLElement {
     label.appendChild(notesEl);
   }
 
+  const registrations = data.booking?.registrations ?? [];
+  if (registrations.length) {
+    const regsEl = document.createElement('ul');
+    regsEl.className = 'spl-grid-cell__block-registrations';
+    for (const entry of registrations) {
+      const item = document.createElement('li');
+      item.className = 'spl-grid-cell__block-registration';
+      item.textContent = entry;
+      regsEl.appendChild(item);
+    }
+    label.appendChild(regsEl);
+  }
+
   cell.appendChild(label);
   return cell;
 }

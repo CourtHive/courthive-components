@@ -684,6 +684,17 @@ export const BLOCKED_GENERIC: ScheduleCellData = {
   booking: { bookingType: 'BLOCKED', rowCount: 1 }
 };
 
+export const BLOCKED_PRACTICE_WITH_REGISTRATIONS: ScheduleCellData = {
+  matchUpId: '',
+  isBlocked: true,
+  booking: {
+    bookingType: 'PRACTICE',
+    rowCount: 2,
+    notes: 'Open hitting',
+    registrations: ['Smith / Jones (14:00–14:30)', 'Ortiz (14:30–15:00)', 'Park / Chen (15:00–15:30)']
+  }
+};
+
 // ============================================================================
 // Empty Cell
 // ============================================================================
@@ -727,7 +738,12 @@ export const ALL_CONFLICTS: ScheduleCellData[] = [
 ];
 
 /** Blocked cells */
-export const ALL_BLOCKED: ScheduleCellData[] = [BLOCKED_MAINTENANCE, BLOCKED_PRACTICE, BLOCKED_GENERIC];
+export const ALL_BLOCKED: ScheduleCellData[] = [
+  BLOCKED_MAINTENANCE,
+  BLOCKED_PRACTICE,
+  BLOCKED_PRACTICE_WITH_REGISTRATIONS,
+  BLOCKED_GENERIC
+];
 
 /** Gender color demo — male, female, mixed in to-be-played and completed states */
 export const ALL_GENDER_COLORS: { data: ScheduleCellData; label: string }[] = [

@@ -45,6 +45,7 @@ import {
   PARTIAL_POTENTIAL,
   WITH_UMPIRE,
   BLOCKED_MAINTENANCE,
+  BLOCKED_PRACTICE_WITH_REGISTRATIONS,
   EMPTY_CELL,
   ALL_STATUSES,
   ALL_TEAMS,
@@ -55,6 +56,8 @@ import {
   ALL_TIME_MODIFIERS,
   ALL_GENDER_COLORS
 } from './cellData';
+
+import { within, expect } from 'storybook/test';
 
 export default {
   title: 'Schedule Page/Grid Cell',
@@ -538,6 +541,37 @@ export const BlockedCells = {
     const cells = ALL_BLOCKED.map((data) => labeledCell(data, data.booking?.bookingType || 'BLOCKED'));
     cells.push(labeledCell(EMPTY_CELL, 'Empty'));
     return gridLayout(cells, 'Blocked & Empty Cells');
+  }
+};
+
+// ============================================================================
+// PracticeWithRegistrations — PRACTICE booking + per-window participant list
+// ============================================================================
+
+export const PracticeWithRegistrations = {
+  name: 'Blocked / PRACTICE with registrations',
+  render: () => {
+    const root = document.createElement('div');
+    root.style.cssText = STORY_ROOT_STYLE;
+
+    const info = document.createElement('div');
+    info.style.cssText = STORY_INFO_STYLE;
+    info.textContent =
+      'PRACTICE blocks with registered participants — each registration is a pre-formatted string rendered as a list item under the bookingType label. The cell stays display-only; consumers (TMX) compose the strings (name + sub-window).';
+    root.appendChild(info);
+
+    const cell = cellWrapper(BLOCKED_PRACTICE_WITH_REGISTRATIONS, undefined, { width: '180px', height: '120px' });
+    root.appendChild(cell);
+
+    return root;
+  },
+  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+    const canvas = within(canvasElement);
+    const items = await canvas.findAllByRole('listitem');
+    expect(items.length).toBe(3);
+    expect(items[0].textContent).toBe('Smith / Jones (14:00–14:30)');
+    expect(items[1].textContent).toBe('Ortiz (14:30–15:00)');
+    expect(items[2].textContent).toBe('Park / Chen (15:00–15:30)');
   }
 };
 

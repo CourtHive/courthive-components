@@ -343,5 +343,13 @@ export interface ScheduleCellData {
     bookingType?: string;
     rowCount?: number;
     notes?: string;
+    /**
+     * Participant labels to render below the booking type. Pre-formatted
+     * by the consumer so the cell stays display-only — e.g.
+     * `["Smith / Jones (14:00–14:30)", "Ortiz (14:30–15:00)"]`. The
+     * Now/Live strip integration for PRACTICE bookings (practice court
+     * registration) is the first consumer.
+     */
+    registrations?: string[];
   };
 }
