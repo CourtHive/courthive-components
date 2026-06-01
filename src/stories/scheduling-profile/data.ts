@@ -8,7 +8,7 @@ import type {
   VenueInfo,
   CatalogRoundItem,
   SchedulingProfile,
-  TemporalAdapter,
+  AvailabilityAdapter,
   SchedulingProfileConfig
 } from '../../components/scheduling-profile';
 
@@ -255,10 +255,10 @@ export const DATES = [DATE_1, DATE_2, DATE_3];
 export const DATES_EXTENDED = [DATE_1, DATE_2, DATE_3, '2026-06-18', '2026-06-19', '2026-06-20', '2026-06-21'];
 
 // ============================================================================
-// Temporal Adapters
+// Availability Adapters
 // ============================================================================
 
-export function makeTemporalAdapter(schedulable: string[]): TemporalAdapter {
+export function makeAvailabilityAdapter(schedulable: string[]): AvailabilityAdapter {
   return {
     isDateAvailable: (date: string) =>
       schedulable.includes(date) ? { ok: true } : { ok: false, reason: 'Not schedulable' }
@@ -469,7 +469,7 @@ export function makeBaseConfig(overrides: Partial<SchedulingProfileConfig> = {})
     roundCatalog: ROUND_CATALOG,
     schedulableDates: DATES,
     venueOrder: VENUES.map((v) => v.venueId),
-    temporalAdapter: makeTemporalAdapter(DATES),
+    availabilityAdapter: makeAvailabilityAdapter(DATES),
     ...overrides
   };
 }

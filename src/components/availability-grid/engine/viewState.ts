@@ -33,10 +33,10 @@ export interface ViewChangeEvent {
 export type ViewChangeListener = (event: ViewChangeEvent) => void;
 
 // ============================================================================
-// TemporalViewState
+// AvailabilityViewState
 // ============================================================================
 
-export class TemporalViewState {
+export class AvailabilityViewState {
   private selectedDay: DayId | null = null;
   private selectedVenue: string | null = null;
   private selectedCourt: string | null = null;

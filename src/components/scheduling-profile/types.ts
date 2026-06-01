@@ -136,7 +136,7 @@ export type ValidationCode =
   | 'DAY_OVERLOAD'
   | 'DROP_REJECTED';
 
-export type FixActionKind = 'JUMP_TO_ITEM' | 'OPEN_TEMPORAL_GRID' | 'MOVE_ITEM_AFTER' | 'MOVE_ITEM_BEFORE';
+export type FixActionKind = 'JUMP_TO_ITEM' | 'OPEN_AVAILABILITY_GRID' | 'MOVE_ITEM_AFTER' | 'MOVE_ITEM_BEFORE';
 
 export interface FixAction {
   kind: FixActionKind;
@@ -217,10 +217,10 @@ export interface ProfileStoreState {
 export type ProfileChangeListener = (state: ProfileStoreState) => void;
 
 // ============================================================================
-// Validation Adapter (injected temporal/demand interfaces)
+// Validation Adapter (injected availability/demand interfaces)
 // ============================================================================
 
-export interface TemporalAdapter {
+export interface AvailabilityAdapter {
   isDateAvailable: (date: string) => { ok: boolean; reason?: string };
   getDayCapacityMinutes?: (date: string) => number;
 }
@@ -253,7 +253,7 @@ export interface SchedulingProfileConfig {
   catalogSide?: 'left' | 'right';
   initialProfile?: SchedulingProfile;
   selectedDate?: string;
-  temporalAdapter?: TemporalAdapter;
+  availabilityAdapter?: AvailabilityAdapter;
   demandAdapter?: DemandAdapter;
   dependencyAdapter?: DependencyAdapter;
   venueOrder?: string[];

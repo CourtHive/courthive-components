@@ -4,7 +4,7 @@
  * For each court column the strip shows what's "active": in-progress matchUp,
  * else next pending, else free (completed-only columns render empty).
  * Each cell is a drop target — when a matchUp is dropped, the strip uses the
- * temporal floor inference (computeActiveStripDropTarget) to pick a sensible
+ * scheduled floor inference (computeActiveStripDropTarget) to pick a sensible
  * row in the underlying grid and fires onMatchUpDrop with the resolved target.
  *
  * Layout: when the consumer supplies `gridTemplateColumns` matching the grid
@@ -35,11 +35,35 @@ export interface ActiveStripCourtMeta {
   label: string;
 }
 
+/**
+ * Active availability block surfaced on a court for the current clock time.
+ * When present, the strip renders a labeled banner inside the court's cell
+ * (e.g. "PRACTICE 14:00–16:00") so the TD sees at a glance that the court
+ * has a non-matchUp time reservation in effect.
+ *
+ * The strip itself is data-driven and does NOT poll the clock; consumers
+ * are expected to refresh `ActiveStripPanelData` periodically (e.g. every
+ * 30s) with the blocks active at "now".
+ */
+export interface ActiveStripCourtBlock {
+  /** Block type label, used as the banner intent class (e.g. "PRACTICE", "MAINTENANCE"). */
+  type: string;
+  /** Banner text. Caller controls formatting — e.g. "PRACTICE 14:00–16:00". */
+  label: string;
+  /** Optional short note (block.reason, registrant name from a future practice-registration system, etc.). */
+  detail?: string;
+}
+
 export interface ActiveStripPanelData {
   /** Court columns, in display order. The strip computes one cell per column. */
   grid: ActiveStripGrid;
   /** Optional display labels per courtId. Falls back to courtId. */
   courts?: ActiveStripCourtMeta[];
+  /**
+   * Optional map of courtId → active availability block. When provided, the
+   * strip renders a colored banner inside the court's active cell.
+   */
+  courtBlocks?: Record<string, ActiveStripCourtBlock>;
   /**
    * CSS grid-template-columns applied to the strip root. When provided, the
    * strip lays out as `display: grid` with a leading spacer occupying the
@@ -136,13 +160,39 @@ function buildCellElement(
   cell: ActiveStripCell,
   callbacks: ActiveStripPanelCallbacks,
   getGrid: () => ActiveStripGrid,
-  options: ActiveStripPanelOptions
+  options: ActiveStripPanelOptions,
+  courtBlock?: ActiveStripCourtBlock
 ): HTMLElement {
   const root = document.createElement('div');
   root.className = `spl-active-strip-cell state-${cell.state}`;
+  if (courtBlock) {
+    root.classList.add('has-availability-block');
+    // When the court has an active block AND an active matchUp at the same
+    // clock time, the cell flashes — surfacing the conflict at a glance.
+    // Free cells (no matchUp) don't conflict; just the block banner shows.
+    if (cell.state !== 'free' && cell.matchUp) {
+      root.classList.add('has-block-conflict');
+    }
+  }
   root.dataset.courtId = cell.courtId;
   if (cell.rowIndex !== undefined) root.dataset.rowIndex = String(cell.rowIndex);
   if (options.cellHeight) root.style.minHeight = options.cellHeight;
+
+  if (courtBlock) {
+    const banner = document.createElement('div');
+    banner.className = `spl-active-strip-block-banner block-${courtBlock.type.toLowerCase()}`;
+    const label = document.createElement('span');
+    label.className = 'spl-active-strip-block-label';
+    label.textContent = courtBlock.label;
+    banner.appendChild(label);
+    if (courtBlock.detail) {
+      const detail = document.createElement('span');
+      detail.className = 'spl-active-strip-block-detail';
+      detail.textContent = courtBlock.detail;
+      banner.appendChild(detail);
+    }
+    root.appendChild(banner);
+  }
 
   if (cell.state !== 'free' && cell.matchUp) {
     const content = options.renderCell?.(cell.matchUp);
@@ -210,7 +260,8 @@ export function buildActiveStripPanel(
 
     const cells = computeActiveStrip(data.grid, options.statusOptions);
     for (const cell of cells) {
-      root.appendChild(buildCellElement(cell, callbacks, getGrid, options));
+      const block = data.courtBlocks?.[cell.courtId];
+      root.appendChild(buildCellElement(cell, callbacks, getGrid, options, block));
     }
   }
 

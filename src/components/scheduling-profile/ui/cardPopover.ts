@@ -1,7 +1,7 @@
 /**
  * Card Popover — Singleton Tippy.js popover for card actions.
  *
- * Follows the blockPopover.ts pattern from temporal-grid.
+ * Follows the blockPopover.ts pattern from availability-grid.
  * Actions: delete round, set notBeforeTime.
  */
 

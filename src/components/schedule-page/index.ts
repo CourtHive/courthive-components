@@ -61,7 +61,8 @@ export type {
   ActiveStripPanelCallbacks,
   ActiveStripPanelData,
   ActiveStripPanelOptions,
-  ActiveStripCourtMeta
+  ActiveStripCourtMeta,
+  ActiveStripCourtBlock
 } from './ui/activeStrip';
 
 // ============================================================================

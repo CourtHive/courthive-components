@@ -19,7 +19,7 @@ import type {
   VenueInfo,
   CatalogRoundItem,
   SchedulingProfile,
-  TemporalAdapter,
+  AvailabilityAdapter,
   DemandAdapter,
   DependencyAdapter,
   SchedulingProfileConfig,
@@ -43,7 +43,7 @@ export interface FactorySetup {
   startDate: string;
   endDate: string;
   engine: AvailabilityEngine;
-  temporalAdapter: TemporalAdapter;
+  availabilityAdapter: AvailabilityAdapter;
   demandAdapter: DemandAdapter;
   dependencyAdapter: DependencyAdapter;
   config: SchedulingProfileConfig;
@@ -287,8 +287,8 @@ export function createFactorySetup(options?: FactorySetupOptions): FactorySetup 
     slotMinutes: 15
   });
 
-  // 7. Create TemporalAdapter
-  const temporalAdapter: TemporalAdapter = {
+  // 7. Create AvailabilityAdapter
+  const availabilityAdapter: AvailabilityAdapter = {
     isDateAvailable: (date: string) => {
       if (!schedulableDates.includes(date)) {
         return { ok: false, reason: 'Date outside tournament range' };
@@ -342,7 +342,7 @@ export function createFactorySetup(options?: FactorySetupOptions): FactorySetup 
     schedulableDates,
     activeDates,
     venueOrder: venues.map((v) => v.venueId),
-    temporalAdapter,
+    availabilityAdapter,
     demandAdapter,
     dependencyAdapter
   };
@@ -356,7 +356,7 @@ export function createFactorySetup(options?: FactorySetupOptions): FactorySetup 
     startDate: START_DATE,
     endDate: END_DATE,
     engine,
-    temporalAdapter,
+    availabilityAdapter,
     demandAdapter,
     dependencyAdapter,
     config

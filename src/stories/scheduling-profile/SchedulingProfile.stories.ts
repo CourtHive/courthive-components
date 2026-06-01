@@ -28,7 +28,7 @@ import {
   VALID_PROFILE,
   ERROR_PROFILE,
   makeBaseConfig,
-  makeTemporalAdapter
+  makeAvailabilityAdapter
 } from './data';
 
 export default {
@@ -190,7 +190,7 @@ export const MultiVenueExtended = {
     const control = createSchedulingProfile(
       makeBaseConfig({
         schedulableDates: DATES_EXTENDED,
-        temporalAdapter: makeTemporalAdapter(DATES_EXTENDED),
+        availabilityAdapter: makeAvailabilityAdapter(DATES_EXTENDED),
         initialProfile: EMPTY_PROFILE
       }),
       container

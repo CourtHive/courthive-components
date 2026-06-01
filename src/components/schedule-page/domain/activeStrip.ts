@@ -13,7 +13,7 @@
  *
  *   - computeActiveStripDropTarget(grid, courtId, dragged)
  *       Picks a row when a matchUp is dropped onto a court's strip cell.
- *       It infers a "temporal floor" from the existing grid:
+ *       It infers a "scheduled floor" from the existing grid:
  *         (a) any row across all courts where the dragged matchUp's
  *             participants already appear — the dragged matchUp must land
  *             below those rows;

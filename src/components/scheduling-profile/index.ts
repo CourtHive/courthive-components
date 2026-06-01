@@ -74,7 +74,7 @@ export type {
   IssueIndex,
   ProfileStoreState,
   ProfileChangeListener,
-  TemporalAdapter,
+  AvailabilityAdapter,
   DemandAdapter,
   DependencyAdapter,
   SchedulingProfileConfig,

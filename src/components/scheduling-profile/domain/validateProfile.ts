@@ -1,7 +1,7 @@
 /**
  * Scheduling Profile — Validation Rules Engine
  *
- * Validates a scheduling profile draft against temporal constraints.
+ * Validates a scheduling profile draft against availability constraints.
  * Rules: DATE_UNAVAILABLE, INVALID_SEGMENT_CONFIG, DUPLICATE_ROUND,
  * DUPLICATE_SEGMENT, ROUND_ORDER_VIOLATION.
  */
@@ -9,7 +9,8 @@
 import type {
   SchedulingProfile,
   ValidationResult,
-  TemporalAdapter,
+  AvailabilityAdapter,
+  DemandAdapter,
   DependencyAdapter,
   FlattenedRound,
   RoundLocator
@@ -28,34 +29,39 @@ const JUMP_TO_PREREQUISITE_LABEL = 'Jump to prerequisite';
 
 export interface ValidateProfileParams {
   profile: SchedulingProfile;
-  temporal?: TemporalAdapter;
+  availability?: AvailabilityAdapter;
+  demand?: DemandAdapter;
   dependencies?: DependencyAdapter;
   venueOrder?: string[];
 }
 
 export function validateProfile({
   profile,
-  temporal,
+  availability,
+  demand,
   dependencies,
   venueOrder
 }: ValidateProfileParams): ValidationResult[] {
   const results: ValidationResult[] = [];
 
   // Date availability: ERROR
-  if (temporal?.isDateAvailable) {
+  if (availability?.isDateAvailable) {
     for (const day of profile) {
-      const a = temporal.isDateAvailable(day.scheduleDate);
+      const a = availability.isDateAvailable(day.scheduleDate);
       if (!a.ok) {
         results.push({
           code: 'DATE_UNAVAILABLE',
           severity: 'ERROR',
           message: `Can't schedule on ${day.scheduleDate} \u2014 day is unavailable${a.reason ? ': ' + a.reason : ''}.`,
           context: { date: day.scheduleDate },
-          fixActions: [{ kind: 'OPEN_TEMPORAL_GRID', date: day.scheduleDate, label: 'Open Temporal Grid' }]
+          fixActions: [{ kind: 'OPEN_AVAILABILITY_GRID', date: day.scheduleDate, label: 'Tune availability' }]
         });
       }
     }
   }
+
+  // Day overload: WARN when planned demand exceeds available capacity.
+  results.push(...checkDayOverload(profile, availability, demand));
 
   const planned = flatten(profile);
 
@@ -138,6 +144,35 @@ export function validateProfile({
   }
 
   return results;
+}
+
+// ============================================================================
+// Capacity vs Demand
+// ============================================================================
+
+function checkDayOverload(
+  profile: SchedulingProfile,
+  availability: AvailabilityAdapter | undefined,
+  demand: DemandAdapter | undefined
+): ValidationResult[] {
+  if (!availability?.getDayCapacityMinutes || !demand?.estimateDayDemandMinutes) return [];
+
+  const out: ValidationResult[] = [];
+  for (const day of profile) {
+    const cap = availability.getDayCapacityMinutes(day.scheduleDate);
+    const dem = demand.estimateDayDemandMinutes(day.scheduleDate, profile);
+    if (cap > 0 && dem > cap) {
+      const hoursOver = Math.round(((dem - cap) / 60) * 10) / 10;
+      out.push({
+        code: 'DAY_OVERLOAD',
+        severity: 'WARN',
+        message: `${day.scheduleDate} is overloaded by ~${hoursOver}h (${Math.round(dem / 60)}h planned vs ${Math.round(cap / 60)}h available).`,
+        context: { date: day.scheduleDate },
+        fixActions: [{ kind: 'OPEN_AVAILABILITY_GRID', date: day.scheduleDate, label: 'Tune availability' }]
+      });
+    }
+  }
+  return out;
 }
 
 // ============================================================================

@@ -389,10 +389,10 @@ export {
   buildSchedulingProfileLayout
 } from './components/scheduling-profile';
 
-// Temporal Grid
-import './components/temporal-grid/ui/styles.css';
-export { createTemporalGrid, TemporalGrid, showCourtAvailabilityModal } from './components/temporal-grid';
-export type { TemporalGridConfig, TemporalGridLabels } from './components/temporal-grid';
+// Availability Grid
+import './components/availability-grid/ui/styles.css';
+export { createAvailabilityGrid, AvailabilityGrid, showCourtAvailabilityModal } from './components/availability-grid';
+export type { AvailabilityGridConfig, AvailabilityGridLabels } from './components/availability-grid';
 
 // Topology Builder
 export {
@@ -442,7 +442,7 @@ export type {
   IssueIndex,
   ProfileStoreState,
   SchedulingProfileConfig,
-  TemporalAdapter,
+  AvailabilityAdapter,
   DemandAdapter,
   DependencyAdapter,
   UIPanel
@@ -506,7 +506,8 @@ export type {
   ActiveStripPanelCallbacks,
   ActiveStripPanelData,
   ActiveStripPanelOptions,
-  ActiveStripCourtMeta
+  ActiveStripCourtMeta,
+  ActiveStripCourtBlock
 } from './components/schedule-page';
 
 // Composition Editor

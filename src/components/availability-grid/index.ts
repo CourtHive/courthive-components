@@ -1,7 +1,7 @@
 /**
- * Temporal Grid - Main Entry Point
+ * Availability Grid - Main Entry Point
  *
- * Engine modules re-exported from tods-competition-factory via `temporal` namespace.
+ * Engine modules re-exported from tods-competition-factory via `availability` namespace.
  * Controller, UI, and view state are local to courthive-components.
  */
 
@@ -9,14 +9,14 @@
 // Engine (re-exported from factory)
 // ============================================================================
 
-export { AvailabilityEngine, AvailabilityEngine as TemporalGridEngine, availability } from 'tods-competition-factory';
+export { AvailabilityEngine, AvailabilityEngine as AvailabilityGridEngine, availability } from 'tods-competition-factory';
 
 // ============================================================================
 // View State (UI-specific, stays in courthive-components)
 // ============================================================================
 
 export {
-  TemporalViewState,
+  AvailabilityViewState,
   type ViewChangeEvent,
   type ViewChangeListener,
   type ViewStateSnapshot
@@ -27,10 +27,10 @@ export {
 // ============================================================================
 
 export {
-  createTemporalGridControl,
-  TemporalGridControl,
-  type TemporalGridControlConfig
-} from './controller/temporalGridControl';
+  createAvailabilityGridControl,
+  AvailabilityGridControl,
+  type AvailabilityGridControlConfig
+} from './controller/availabilityGridControl';
 
 export {
   buildBlockEvents,
@@ -66,12 +66,12 @@ export {
 // ============================================================================
 
 export {
-  createTemporalGrid,
-  TemporalGrid,
-  type TemporalGridCallbacks,
-  type TemporalGridConfig,
-  type TemporalGridLabels
-} from './ui/temporalGrid';
+  createAvailabilityGrid,
+  AvailabilityGrid,
+  type AvailabilityGridCallbacks,
+  type AvailabilityGridConfig,
+  type AvailabilityGridLabels
+} from './ui/availabilityGrid';
 
 export { ModernTimePicker, showModernTimePicker, type TimePickerConfig } from './ui/modernTimePicker';
 

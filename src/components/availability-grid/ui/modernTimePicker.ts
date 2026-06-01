@@ -184,7 +184,7 @@ export class ModernTimePicker {
         incrementMinutes: this.config.minuteIncrement || 5
       },
       ui: {
-        theme: 'crane' // TODO: should also come from TemporalGrid config
+        theme: 'crane' // TODO: should also come from AvailabilityGrid config
       },
       callbacks: {
         onRangeConfirm: (data: any) => {

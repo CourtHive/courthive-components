@@ -2,7 +2,7 @@
  * Tournament Card — Status Pill Resolver
  *
  * Resolves a tournament's status pill from its dates + tournamentStatus +
- * registrationProfile temporal gates. Pure function.
+ * registrationProfile registration gates. Pure function.
  *
  * Rules (precedence order):
  *   1. tournamentStatus === 'CANCELLED'                                  -> "Cancelled"

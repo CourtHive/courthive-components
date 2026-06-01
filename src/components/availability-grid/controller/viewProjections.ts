@@ -1,7 +1,7 @@
 /**
  * View Projections
  *
- * Converts Temporal Grid Engine data structures into CourtTimeline format.
+ * Converts AvailabilityEngine data structures into CourtTimeline format.
  * This module is the translation layer between our domain model and the timeline UI.
  *
  * Key Transformations:
@@ -241,7 +241,7 @@ export function buildEventsFromTimelines(timelines: VenueDayTimeline[], config: 
           start: segment.start,
           end: segment.end,
           type: 'background',
-          className: `temporal-segment segment-${segment.status.toLowerCase()}`,
+          className: `availability-segment segment-${segment.status.toLowerCase()}`,
           style: color !== 'transparent' ? `background-color: ${color};` : undefined,
           title: `${segment.status} segment`,
           editable: false,
@@ -299,7 +299,7 @@ export function buildBlockEvents(
       start: block.start,
       end: block.end,
       type: 'range',
-      className: `temporal-block block-${block.type.toLowerCase()}`,
+      className: `availability-block block-${block.type.toLowerCase()}`,
       style: `background-color: ${color}; border-color: ${borderColor};`,
       title: block.reason || block.type,
       editable: { updateTime: true, updateGroup: true, remove: false },
@@ -343,7 +343,7 @@ export function buildConflictEvents(
         start: conflict.timeRange.start,
         end: conflict.timeRange.end,
         type: 'background',
-        className: `temporal-conflict conflict-${conflict.severity.toLowerCase()}`,
+        className: `availability-conflict conflict-${conflict.severity.toLowerCase()}`,
         title: conflict.message,
         editable: false,
         selectable: false,
@@ -558,7 +558,7 @@ export function generateBlockPatternCSS(): string {
     }
 
     /* Conflict indicators */
-    .temporal-conflict {
+    .availability-conflict {
       opacity: 0.4;
       pointer-events: none;
     }

@@ -56,7 +56,7 @@ const mockTournament = {
 // ============================================================================
 
 const meta: Meta = {
-  title: 'Temporal Grid/Conflict Evaluators',
+  title: 'Availability Grid/Conflict Evaluators',
   tags: ['autodocs'],
   parameters: {
     docs: {
@@ -230,7 +230,7 @@ Conflicts:
 ${formatConflicts(result.conflicts)}
 
 Explanation:
-The temporal grid uses a day-based model where each
+The availability grid uses a day-based model where each
 day is scheduled independently. Multi-day blocks would
 complicate the model and are not allowed.
     `.trim();
@@ -238,7 +238,7 @@ complicate the model and are not allowed.
   parameters: {
     docs: {
       description: {
-        story: 'Enforces single-day blocks. The temporal grid uses a day-based scheduling model.'
+        story: 'Enforces single-day blocks. The availability grid uses a day-based scheduling model.'
       }
     }
   }

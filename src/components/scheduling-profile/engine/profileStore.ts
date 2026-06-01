@@ -2,7 +2,7 @@
  * Scheduling Profile — Profile Store
  *
  * Observable state management for the scheduling profile builder.
- * Follows the TemporalViewState pattern: subscribe/emit with typed events.
+ * Follows the AvailabilityViewState pattern: subscribe/emit with typed events.
  *
  * Every profile mutation triggers revalidation then emits change events.
  * Drop is validated before commit — rejected if it produces ERRORs.
@@ -129,7 +129,8 @@ export class ProfileStore {
 
       const proposedResults = validateProfile({
         profile: result.profile,
-        temporal: this.config.temporalAdapter,
+        availability: this.config.availabilityAdapter,
+        demand: this.config.demandAdapter,
         dependencies: this.config.dependencyAdapter,
         venueOrder: this.config.venueOrder
       });
@@ -202,7 +203,7 @@ export class ProfileStore {
       return;
     }
 
-    if (action.kind === 'OPEN_TEMPORAL_GRID') {
+    if (action.kind === 'OPEN_AVAILABILITY_GRID') {
       this.config.onFixAction?.(action);
       return;
     }
@@ -260,7 +261,8 @@ export class ProfileStore {
   private revalidate(): void {
     const results = validateProfile({
       profile: this.state.profileDraft,
-      temporal: this.config.temporalAdapter,
+      availability: this.config.availabilityAdapter,
+        demand: this.config.demandAdapter,
       dependencies: this.config.dependencyAdapter,
       venueOrder: this.config.venueOrder
     });

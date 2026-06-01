@@ -324,7 +324,7 @@ import logo from './CourtHive.png';
   </tbody>
 </table>
 
-<h3>Temporal Grid</h3>
+<h3>Availability Grid</h3>
 <p>Timeline-based scheduling and conflict detection.</p>
 <table>
   <thead>
@@ -344,7 +344,7 @@ import logo from './CourtHive.png';
       <td>
         <strong>Engine</strong>
       </td>
-      <td>Temporal grid scheduling engine with automatic matchUp placement.</td>
+      <td>Availability grid scheduling engine with automatic matchUp placement.</td>
     </tr>
     <tr>
       <td>
@@ -375,7 +375,7 @@ import logo from './CourtHive.png';
   components/              Component source code
     topology-builder/        Controller / Domain / Engine / UI layers
     scheduling-profile/      Controller / Domain / Engine / UI layers
-    temporal-grid/           Controller / Engine / UI layers
+    availability-grid/           Controller / Engine / UI layers
     scoring/                 Approaches / Logic / Utils
     renderStructure/         Draw bracket rendering
     renderSchematicStructure/  Compact schematic previews
@@ -405,7 +405,7 @@ import logo from './CourtHive.png';
     for TODS-compliant data modeling.
   </li>
   <li>
-    <strong>Controller pattern</strong> — Complex features (topology builder, scheduling profile, temporal grid) use a
+    <strong>Controller pattern</strong> — Complex features (topology builder, scheduling profile, availability grid) use a
     controller layer that wires store, domain logic, and UI panels together.
   </li>
 </ul>

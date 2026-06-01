@@ -1,7 +1,7 @@
 /**
- * Temporal Grid Controller
+ * Availability Grid Controller
  *
- * Manages the CourtTimeline instance and wires it to the Temporal Grid Engine.
+ * Manages the CourtTimeline instance and wires it to the AvailabilityEngine.
  * Following the TMX controlBar pattern: engine handles state, controller handles UI.
  *
  * Responsibilities:
@@ -20,7 +20,7 @@ const { BLOCK_TYPES } = availability;
 type BlockType = availability.BlockType;
 type CourtRef = availability.CourtRef;
 type DayId = availability.DayId;
-import { TemporalViewState } from '../engine/viewState';
+import { AvailabilityViewState } from '../engine/viewState';
 import {
   buildBlockEvents,
   buildEventsFromTimelines,
@@ -42,7 +42,7 @@ import type { TimelineGroupData, TimelineItemData, MultiRowSpan } from '../timel
 // Controller Configuration
 // ============================================================================
 
-export interface TemporalGridControlConfig {
+export interface AvailabilityGridControlConfig {
   /** Container element for the timeline */
   container: HTMLElement;
 
@@ -90,13 +90,13 @@ export interface TemporalGridControlConfig {
 }
 
 // ============================================================================
-// Temporal Grid Controller
+// Availability Grid Controller
 // ============================================================================
 
-export class TemporalGridControl {
+export class AvailabilityGridControl {
   private readonly engine: AvailabilityEngine;
   private timeline: CourtTimeline | null = null;
-  private readonly config: TemporalGridControlConfig;
+  private readonly config: AvailabilityGridControlConfig;
   private unsubscribe: (() => void) | null = null;
 
   // Local item lookup for click handler
@@ -109,13 +109,13 @@ export class TemporalGridControl {
   private popoverManager: BlockPopoverManager = createBlockPopoverManager();
 
   // View state (UI-specific, not part of engine)
-  private viewState: TemporalViewState = new TemporalViewState();
+  private viewState: AvailabilityViewState = new AvailabilityViewState();
   private currentDay: DayId | null = null;
   private currentView: string = 'day';
   private selectedCourts: Set<CourtRef> = new Set();
   private visibleCourts: Set<string> | null = null; // null = all visible, Set = filtered
 
-  constructor(engine: AvailabilityEngine, config: TemporalGridControlConfig) {
+  constructor(engine: AvailabilityEngine, config: AvailabilityGridControlConfig) {
     this.engine = engine;
     this.config = {
       groupingMode: 'BY_VENUE',
@@ -811,7 +811,7 @@ export class TemporalGridControl {
       return;
     }
     const messages = errorConflicts.map((c) => c.message).join('\n');
-    console.warn(`[temporal-grid] cannot complete operation:\n${messages}`);
+    console.warn(`[availability-grid] cannot complete operation:\n${messages}`);
   }
 
   /** Get timeline instance (for advanced usage) */
@@ -825,7 +825,7 @@ export class TemporalGridControl {
   }
 
   /** Get view state (for external consumers to subscribe to view changes) */
-  getViewState(): TemporalViewState {
+  getViewState(): AvailabilityViewState {
     return this.viewState;
   }
 }
@@ -834,10 +834,10 @@ export class TemporalGridControl {
 // Factory Function
 // ============================================================================
 
-/** Create a temporal grid controller */
-export function createTemporalGridControl(
+/** Create a availability grid controller */
+export function createAvailabilityGridControl(
   engine: AvailabilityEngine,
-  config: TemporalGridControlConfig
-): TemporalGridControl {
-  return new TemporalGridControl(engine, config);
+  config: AvailabilityGridControlConfig
+): AvailabilityGridControl {
+  return new AvailabilityGridControl(engine, config);
 }
