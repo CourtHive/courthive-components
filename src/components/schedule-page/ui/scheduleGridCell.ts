@@ -78,6 +78,12 @@ function buildBlockedCell(data: ScheduleCellData): HTMLElement {
     label.appendChild(notesEl);
   }
 
+  // NOTE: dormant as of 2026-06-01 — no production consumer populates
+  // `booking.registrations`. PRACTICE bookings are time-windowed; cells
+  // have fixed row positions; the Now/Live strip uses its own banner
+  // path (`ActiveStripCourtBlock.detail`). Kept available so a future
+  // surface that materializes PRACTICE bookings as cells gets correct
+  // rendering for free. See the field doc in `types.ts` for context.
   const registrations = data.booking?.registrations ?? [];
   if (registrations.length) {
     const regsEl = document.createElement('ul');

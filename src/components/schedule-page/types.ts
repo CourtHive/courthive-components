@@ -346,9 +346,15 @@ export interface ScheduleCellData {
     /**
      * Participant labels to render below the booking type. Pre-formatted
      * by the consumer so the cell stays display-only — e.g.
-     * `["Smith / Jones (14:00–14:30)", "Ortiz (14:30–15:00)"]`. The
-     * Now/Live strip integration for PRACTICE bookings (practice court
-     * registration) is the first consumer.
+     * `["Smith / Jones (14:00–14:30)", "Ortiz (14:30–15:00)"]`.
+     *
+     * NOTE: as of 2026-06-01 there is no expected consumer. The Now/Live
+     * strip uses a separate banner path (`ActiveStripCourtBlock.detail`),
+     * and PRACTICE bookings are time-windowed — they don't currently
+     * surface as grid cells, which have fixed row positions, not fixed
+     * times. The field is kept available for future use (e.g. if a
+     * tournament chooses to materialize PRACTICE bookings as cells) but
+     * no production callsite populates it today.
      */
     registrations?: string[];
   };
