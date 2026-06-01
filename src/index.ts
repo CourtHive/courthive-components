@@ -8,6 +8,8 @@ export { compositions } from './compositions/compositions';
 export { resolvePublishedComposition } from './compositions/resolvePublishedComposition';
 export type { DisplayExtensionValue } from './compositions/resolvePublishedComposition';
 export { renderRound } from './components/renderStructure/renderRound';
+export { buildStructureMinimap } from './components/renderStructure/renderStructureMinimap';
+export type { StructureMinimapOptions } from './components/renderStructure/renderStructureMinimap';
 
 // Schematic Structure — compact bracket preview (no participant details)
 export {

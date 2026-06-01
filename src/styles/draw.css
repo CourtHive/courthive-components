@@ -14,6 +14,79 @@
   height: 1000px;
 }
 
+/* ── Draw frame + minimap navigator ──────────────────────── */
+/* Optional flex wrapper around .chc-container when the bracket is large
+   enough to benefit from a sticky left-side minimap. The frame matches
+   the container's fixed height; the container flexes inside. */
+
+.chc-draw-frame {
+  background-color: var(--chc-color-container-bg);
+  flex-direction: row;
+  align-items: stretch;
+  position: relative;
+  display: flex;
+  height: 1000px;
+}
+
+.chc-draw-frame > .chc-container {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: auto;
+}
+
+.chc-minimap {
+  border-inline-end: 1px solid var(--chc-border-primary, currentColor);
+  background-color: var(--chc-bg-secondary, transparent);
+  flex: 0 0 auto;
+  align-self: flex-start;
+  user-select: none;
+  /* Pinned to the top of the bracket scroll context — the caller (e.g.
+     TMX `wireDrawMinimap`) sets the rendered pixel height on the element
+     itself so the strip always fills the visible viewport from the top of
+     the bracket container down to its bottom edge. */
+  position: sticky;
+  top: 0;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.chc-minimap-svg {
+  height: 100%;
+  width: 100%;
+  display: block;
+  overflow: visible;
+}
+
+.chc-minimap-quarter {
+  fill: transparent;
+  cursor: pointer;
+  transition: fill 0.12s linear;
+}
+
+.chc-minimap-quarter--alt {
+  fill: var(--chc-bg-tertiary, rgba(127, 127, 127, 0.05));
+}
+
+.chc-minimap-quarter:hover {
+  fill: var(--chc-hover-bg, rgba(50, 115, 220, 0.12));
+}
+
+.chc-minimap-line {
+  stroke: var(--chc-color-connector, var(--chc-border-primary, currentColor));
+  stroke-width: 1;
+  fill: none;
+  pointer-events: none;
+}
+
+.chc-minimap-viewport {
+  stroke: var(--chc-status-info, #3273dc);
+  fill: var(--chc-status-info, #3273dc);
+  stroke-opacity: 0.45;
+  fill-opacity: 0.12;
+  stroke-width: 1;
+  pointer-events: none;
+}
+
 .chc-structure {
   flex-direction: row;
   display: flex;
@@ -795,3 +868,4 @@
   display: flex;
   width: 20px;
 }
+
