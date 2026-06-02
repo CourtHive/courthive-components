@@ -18,12 +18,24 @@ overrides:
 # pnpm v11 reads project-level settings from pnpm-workspace.yaml (not from
 # .npmrc, which pnpm v11.1.3 no longer merges for non-auth keys).
 #
-# minimumReleaseAge: 0 disables pnpm v11's supply-chain freshness policy
-#   so Renovate bumps to recently-published deps don't block installs or
-#   husky pre-commit hooks.
+# minimumReleaseAge: 1440 (1 day, in minutes) keeps pnpm v11's supply-chain
+#   freshness check active for third-party packages — protects against
+#   typosquat + compromised-publish attacks that rely on installs hitting
+#   a brand-new version within minutes of publish.
+# minimumReleaseAgeExclude exempts every package we publish ourselves so
+#   cross-package CourtHive releases (factory -> components -> TMX cascade,
+#   etc.) don't get blocked by their own freshness — we routinely consume
+#   our own packages within hours of publishing them.
 # verifyDepsBeforeRun: false suppresses the deps-status check that fires
 #   before every `pnpm <script>` invocation. Lockfiles are routinely
 #   briefly stale (mentat-pull-all.sh deletes lockfiles before each
 #   build cycle), so the check is noise.
-minimumReleaseAge: 0
+minimumReleaseAge: 1440
+minimumReleaseAgeExclude:
+  - 'tods-competition-factory'
+  - 'courthive-*'
+  - '@courthive/*'
+  - 'pdf-factory'
+  - 'scoring-visualizations'
+  - 'tabulator-scorecards'
 verifyDepsBeforeRun: false
