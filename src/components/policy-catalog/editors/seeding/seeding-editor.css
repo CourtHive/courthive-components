@@ -1,0 +1,278 @@
+/**
+ * Seeding Editor styles — plain CSS.
+ * Mirrors scheduling-editor.css conventions; uses --sp-* tokens.
+ */
+
+/* ── Accordion ───────────────────────────────────────────── */
+
+.sd-editor {
+  padding: 12px;
+}
+
+.sd-section {
+  border: 1px solid var(--sp-border-group);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.sd-section-header {
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+
+.sd-section-header:hover {
+  background: var(--sp-hover-bg);
+}
+
+.sd-section-chevron {
+  font-size: 10px;
+  color: var(--sp-muted);
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+}
+
+.sd-section-body {
+  padding: 12px;
+  border-top: 1px solid var(--sp-border-subtle);
+}
+
+/* ── Field Rows ──────────────────────────────────────────── */
+
+.sd-field-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.sd-field-row--top {
+  align-items: flex-start;
+}
+
+.sd-field-row:last-child {
+  margin-bottom: 0;
+}
+
+.sd-field-label {
+  font-size: 12px;
+  color: var(--sp-text);
+  min-width: 140px;
+  flex-shrink: 0;
+}
+
+.sd-field-input {
+  background: var(--sp-input-bg);
+  border: 1px solid var(--sp-border);
+  color: var(--sp-text);
+  border-radius: 10px;
+  padding: 6px 8px;
+  font-size: 12px;
+  outline: none;
+}
+
+.sd-field-input:focus {
+  border-color: var(--sp-accent-focus);
+}
+
+.sd-field-input--wide {
+  width: 260px;
+  max-width: 100%;
+}
+
+/* ── Checkbox rows ───────────────────────────────────────── */
+
+.sd-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.sd-checkbox-row:last-child {
+  margin-bottom: 0;
+}
+
+.sd-checkbox-row input[type='checkbox'] {
+  accent-color: var(--sp-accent);
+  margin-top: 2px;
+}
+
+.sd-checkbox-row label {
+  font-size: 12px;
+  color: var(--sp-text);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.sd-checkbox-desc {
+  font-size: 11px;
+  color: var(--sp-muted);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+/* ── Radio group (positioning) ───────────────────────────── */
+
+.sd-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.sd-radio-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--sp-border-subtle);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--sp-text);
+}
+
+.sd-radio-option:hover {
+  background: var(--sp-hover-bg);
+}
+
+.sd-radio-option input[type='radio'] {
+  accent-color: var(--sp-accent);
+  margin-top: 2px;
+}
+
+.sd-radio-desc {
+  font-size: 11px;
+  color: var(--sp-muted);
+  font-weight: 400;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+/* ── Thresholds table ────────────────────────────────────── */
+
+.sd-table-wrap {
+  overflow-x: auto;
+}
+
+.sd-table {
+  width: auto;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.sd-table thead th {
+  text-align: left;
+  font-size: 11px;
+  color: var(--sp-muted);
+  font-weight: 700;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--sp-border-subtle);
+}
+
+.sd-table tbody td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--sp-border-subtle);
+  vertical-align: middle;
+}
+
+.sd-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.sd-number-cell-input {
+  background: var(--sp-input-bg);
+  border: 1px solid var(--sp-border);
+  color: var(--sp-text);
+  border-radius: 8px;
+  padding: 4px 6px;
+  font-size: 12px;
+  outline: none;
+  width: 90px;
+  text-align: left;
+}
+
+.sd-number-cell-input:focus {
+  border-color: var(--sp-accent-focus);
+}
+
+/* ── Empty state ─────────────────────────────────────────── */
+
+.sd-empty {
+  font-size: 12px;
+  color: var(--sp-muted);
+  padding: 8px 0;
+}
+
+/* ── Actions row ─────────────────────────────────────────── */
+
+.sd-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.sd-add-btn {
+  margin-top: 0;
+}
+
+.sd-remove-btn {
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px 6px;
+}
+
+/* ── Draw type overrides ─────────────────────────────────── */
+
+.sd-override-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-top: 1px solid var(--sp-border-subtle);
+}
+
+.sd-override-row:first-child {
+  border-top: none;
+}
+
+.sd-override-drawtype {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sp-text);
+  flex: 1;
+  font-family: var(--sp-font-mono, ui-monospace, SFMono-Regular, monospace);
+}
+
+.sd-override-add-row {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--sp-border-subtle);
+}
+
+/* ── Select ──────────────────────────────────────────────── */
+
+.sd-select {
+  background: var(--sp-input-bg);
+  border: 1px solid var(--sp-border);
+  color: var(--sp-text);
+  border-radius: 8px;
+  padding: 5px 8px;
+  font-size: 12px;
+  outline: none;
+  min-width: 140px;
+}
+
+.sd-select:focus {
+  border-color: var(--sp-accent-focus);
+}

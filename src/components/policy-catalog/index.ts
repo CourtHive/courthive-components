@@ -65,6 +65,20 @@ export {
 } from './editors/ranking';
 
 // ============================================================================
+// Seeding Editor (re-export standalone)
+// ============================================================================
+
+export {
+  SeedingEditorControl,
+  createSeedingEditor,
+  SeedingEditorStore,
+  buildSeedingEditorPanel,
+  emptySeedingPolicy,
+  POSITIONING_OPTIONS,
+  DRAW_TYPE_OPTIONS
+} from './editors/seeding';
+
+// ============================================================================
 // Types
 // ============================================================================
 
@@ -108,6 +122,17 @@ export type {
   AggregationRulesData,
   TableLayout
 } from './editors/ranking';
+
+export type {
+  SeedingPolicyData,
+  SeedingProfile,
+  SeedingPositioning,
+  SeedsCountThreshold,
+  SeedingEditorState,
+  SeedingEditorSection,
+  SeedingEditorChangeListener,
+  SeedingEditorConfig
+} from './editors/seeding';
 
 // ============================================================================
 // Convenience Factory

@@ -7,13 +7,14 @@
 
 import { RankingPointsEditorControl } from '../editors/ranking/rankingPointsEditorControl';
 import { SchedulingEditorControl } from '../editors/scheduling/schedulingEditorControl';
+import { SeedingEditorControl } from '../editors/seeding/seedingEditorControl';
 import { buildPolicyCatalogLayout } from '../ui/policyCatalogLayout';
 import { buildPolicyCatalogPanel } from '../ui/policyCatalogPanel';
 import { PolicyCatalogStore } from '../engine/policyCatalogStore';
 import { buildEditorShell } from '../ui/editorShell';
 import { buildJsonEditor } from '../ui/jsonEditor';
 
-import { POLICY_TYPE_SCHEDULING, POLICY_TYPE_RANKING_POINTS } from '../domain/policyDefaults';
+import { POLICY_TYPE_SCHEDULING, POLICY_TYPE_RANKING_POINTS, POLICY_TYPE_SEEDING } from '../domain/policyDefaults';
 import type { PolicyCatalogConfig, PolicyEditorInstance, CatalogGroupBy } from '../types';
 
 export class PolicyCatalogControl {
@@ -121,6 +122,8 @@ export class PolicyCatalogControl {
       this.currentEditor = SchedulingEditorControl.createEditorInstance(editorConfig);
     } else if (item.policyType === POLICY_TYPE_RANKING_POINTS) {
       this.currentEditor = RankingPointsEditorControl.createEditorInstance(editorConfig);
+    } else if (item.policyType === POLICY_TYPE_SEEDING) {
+      this.currentEditor = SeedingEditorControl.createEditorInstance(editorConfig);
     } else {
       this.currentEditor = buildJsonEditor(editorConfig);
     }

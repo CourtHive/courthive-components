@@ -5,6 +5,7 @@
 import type { PolicyTypeMeta, PolicyTypeGroup } from '../types';
 import { emptyRankingPolicy } from '../editors/ranking/domain/emptyRankingPolicy';
 import { emptySchedulingPolicy } from '../editors/scheduling/domain/schedulingProjections';
+import { emptySeedingPolicy } from '../editors/seeding/domain/seedingProjections';
 
 // Policy type constants (mirrored from tods-competition-factory)
 export const POLICY_TYPE_SCHEDULING = 'scheduling';
@@ -98,7 +99,7 @@ export const POLICY_TYPE_METADATA: PolicyTypeMeta[] = [
 
   // Draw Configuration
   meta(POLICY_TYPE_DRAWS, 'Draws', 'Draw generation rules and structure options', GROUP_DRAW_CONFIG, false),
-  meta(POLICY_TYPE_SEEDING, 'Seeding', 'Seeding thresholds and placement rules by draw size', GROUP_DRAW_CONFIG, false),
+  meta(POLICY_TYPE_SEEDING, 'Seeding', 'Seeding thresholds and placement rules by draw size', GROUP_DRAW_CONFIG, true),
   meta(POLICY_TYPE_FEED_IN, 'Feed-In', 'Feed-in consolation structure rules', GROUP_DRAW_CONFIG, false),
   meta(POLICY_TYPE_PROGRESSION, 'Progression', 'Player progression between draw structures', GROUP_DRAW_CONFIG, false),
   meta(
@@ -139,6 +140,7 @@ export function getPolicyTypeMeta(policyType: string): PolicyTypeMeta | undefine
 export function getEmptyPolicyData(policyType: string): Record<string, unknown> {
   if (policyType === POLICY_TYPE_RANKING_POINTS) return emptyRankingPolicy() as unknown as Record<string, unknown>;
   if (policyType === POLICY_TYPE_SCHEDULING) return emptySchedulingPolicy() as unknown as Record<string, unknown>;
+  if (policyType === POLICY_TYPE_SEEDING) return emptySeedingPolicy() as unknown as Record<string, unknown>;
   return {};
 }
 
