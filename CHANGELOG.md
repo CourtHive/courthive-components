@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.1](https://github.com/CourtHive/courthive-components/compare/v3.0.0...v3.0.1) (2026-06-02)
+
+
+### Bug Fixes
+
+* **deps:** require tods-competition-factory 5.2.1 ([1a846ae](https://github.com/CourtHive/courthive-components/commit/1a846ae27c0938fad018cdfd7ac74d6d622eb3bf))
+
 ## [3.0.0](https://github.com/CourtHive/courthive-components/compare/v2.0.0...v3.0.0) (2026-06-01)
 
 
