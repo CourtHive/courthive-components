@@ -18,12 +18,12 @@ This library provides a comprehensive set of UI components for building tourname
 ## Installation
 
 ```bash
-npm install courthive-components
-# or
-yarn add courthive-components
-# or
 pnpm add courthive-components
 ```
+
+(External consumers may also use `npm install courthive-components` or
+`yarn add courthive-components`. Inside the CourtHive monorepo,
+pnpm is the only supported manager.)
 
 ## Quick Start
 
