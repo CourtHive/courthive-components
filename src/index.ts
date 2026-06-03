@@ -349,6 +349,13 @@ export type { CompetitiveBands } from './components/burstChart/competitiveness';
 // Rating Distribution Chart — histogram + donut visualization for the format wizard
 // (data shape comes from tods-competition-factory: RatingDistributionStats / DistributionBin)
 export { buildRatingDistributionChart } from './components/ratingDistributionChart';
+export { buildLadderChart } from './components/ladderChart';
+export type {
+  LadderChartConfig,
+  LadderChartDatum,
+  LadderChartInstance,
+  LadderChartMargins,
+} from './components/ladderChart';
 export type {
   RatingDistributionChartOptions,
   RatingDistributionChartMode
