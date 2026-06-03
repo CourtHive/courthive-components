@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.1.0](https://github.com/CourtHive/courthive-components/compare/v3.0.1...v3.1.0) (2026-06-03)
+
+
+### Features
+
+* **policy-catalog:** add seeding policy editor ([849ac54](https://github.com/CourtHive/courthive-components/commit/849ac544ac1acb0ea23d296e45307200d91d923f))
+
+
+### Documentation
+
+* **readme:** lead with pnpm in installation block ([a9c1885](https://github.com/CourtHive/courthive-components/commit/a9c1885c605e2ea85db92e4a89f66f6b4dfc2f3d))
+
 ## [3.0.1](https://github.com/CourtHive/courthive-components/compare/v3.0.0...v3.0.1) (2026-06-02)
 
 
