@@ -10,15 +10,24 @@
  *      in which the SAME named cohort of 32 players enters every
  *      tournament, each tournament is fully scored under a deterministic
  *      seed, and we then derive a per-player ladder directly from the
- *      resulting positionAssignments + finishingPositions. Demonstrates
+ *      resulting matchUps' `finishingPositionRange` data. Demonstrates
  *      that the chart consumes data straight out of TODS structures
  *      without an intermediate format. Names are stable because
  *      participantsProfile.personData fixes personId per player; the
  *      same personIds drive consistent participantId derivation across
  *      tournaments.
+ *
+ *      Note: mocksEngine does not populate
+ *      `positionAssignments[].finishingPosition` for SINGLE_ELIMINATION
+ *      draws — that field is only set by some draw types and by the
+ *      automated-positioning post-processing step. Final placement for
+ *      an SE draw lives on `matchUps[].finishingPositionRange` (loser
+ *      range = where that match's loser ends up; winner range = where
+ *      they're currently bracketed). We walk matchUps to compute each
+ *      participant's actual placement.
  */
 
-import { drawDefinitionConstants, mocksEngine } from 'tods-competition-factory';
+import { drawDefinitionConstants, mocksEngine, tournamentEngine } from 'tods-competition-factory';
 
 import { buildLadderChart } from '../components/ladderChart';
 import type { LadderChartDatum } from '../components/ladderChart';
@@ -116,6 +125,12 @@ function generateCohortSeries(): Map<string, LadderChartDatum[]> {
   }));
 
   for (const tournament of TOURNAMENTS) {
+    // NOTE: do not pass `gender: 'ANY'` on the drawProfile. When combined
+    // with a personData array, the factory doubles the participant pool
+    // (32 → 64) to satisfy an implicit per-gender quota and assigns zero
+    // participants to drawPositions, leaving every matchUp uncompleted.
+    // Without a gender setting the event accepts all 32 mixed-sex
+    // participants as supplied and `completeAllMatchUps` scores normally.
     const { tournamentRecord } = mocksEngine.generateTournamentRecord({
       tournamentAttributes: {
         tournamentName: tournament.name,
@@ -132,7 +147,6 @@ function generateCohortSeries(): Map<string, LadderChartDatum[]> {
           drawType: SINGLE_ELIMINATION,
           eventType: 'SINGLES',
           eventName: 'Open Singles',
-          gender: 'ANY',
         },
       ],
       completeAllMatchUps: true,
@@ -140,32 +154,72 @@ function generateCohortSeries(): Map<string, LadderChartDatum[]> {
       nonRandom: tournament.seed,
     });
 
-    const events = (tournamentRecord as any).events ?? [];
-    for (const ev of events) {
-      for (const dd of ev.drawDefinitions ?? []) {
-        for (const s of dd.structures ?? []) {
-          for (const pa of s.positionAssignments ?? []) {
-            if (!pa.participantId || typeof pa.finishingPosition !== 'number') continue;
-            const participant = (tournamentRecord as any).participants?.find(
-              (p: any) => p.participantId === pa.participantId
-            );
-            const personId = participant?.person?.personId;
-            if (!personId || !ladders.has(personId)) continue;
+    // sides[].participantId on the raw `structures.matchUps[]` is undefined
+    // until the record passes through tournamentEngine.setState() and is
+    // re-queried via allTournamentMatchUps(), which hydrates sides from
+    // each matchUp's drawPositions + the structure's positionAssignments.
+    tournamentEngine.setState(tournamentRecord);
+    const hydrated = (tournamentEngine.allTournamentMatchUps() as any).matchUps ?? [];
 
-            const rung = pos32ToRung(pa.finishingPosition);
-            ladders.get(personId)!.push({
-              date: tournament.endDate,
-              rung,
-              label: tournament.name,
-              detail: `${RUNGS_32[rung]} · finished #${pa.finishingPosition}`,
-            });
-          }
-        }
-      }
+    const finishingPositionByPid = computeFinishingPositions(hydrated);
+    const participantById = new Map<string, any>();
+    for (const p of (tournamentRecord as any).participants ?? []) {
+      participantById.set(p.participantId, p);
+    }
+
+    for (const [participantId, position] of finishingPositionByPid) {
+      const personId = participantById.get(participantId)?.person?.personId;
+      if (!personId || !ladders.has(personId)) continue;
+      const rung = pos32ToRung(position);
+      ladders.get(personId)!.push({
+        date: tournament.endDate,
+        rung,
+        label: tournament.name,
+        detail: `${RUNGS_32[rung]} · finished #${position}`,
+      });
     }
   }
 
   return ladders;
+}
+
+/**
+ * Derive each participant's final placement from `matchUps[].finishingPositionRange`.
+ *
+ * SINGLE_ELIMINATION rules:
+ *   - When a participant loses a matchUp, their finishing position is
+ *     `finishingPositionRange.loser[0]` (the best position in that loser bracket
+ *     range, e.g. 17 for an R32 loser, 9 for an R16 loser, ...).
+ *   - The eventual tournament winner never loses; they appear as the winner of
+ *     the final whose `finishingPositionRange.winner` is `[1, 1]`.
+ *   - A participant who only had byes / no completed matchUps gets no entry.
+ *
+ * Caller is responsible for passing matchUps with sides[] hydrated — i.e.
+ * the result of `tournamentEngine.allTournamentMatchUps()` rather than
+ * the raw `drawDefinition.structures[].matchUps[]` (which carry only
+ * drawPositions, not participantIds).
+ */
+function computeFinishingPositions(matchUps: any[]): Map<string, number> {
+  const positions = new Map<string, number>();
+  for (const m of matchUps) {
+    if (!m.winningSide || !m.finishingPositionRange) continue;
+    const sides = m.sides ?? [];
+    const winnerIdx = m.winningSide - 1;
+    const loserIdx = winnerIdx === 0 ? 1 : 0;
+    const loserPid = sides[loserIdx]?.participantId;
+    if (loserPid && typeof m.finishingPositionRange.loser?.[0] === 'number') {
+      const pos = m.finishingPositionRange.loser[0];
+      const existing = positions.get(loserPid);
+      if (existing === undefined || pos < existing) positions.set(loserPid, pos);
+    }
+    const winnerPid = sides[winnerIdx]?.participantId;
+    const winRange = m.finishingPositionRange.winner;
+    // Only the final's winner has a single-position winner-range like [1,1].
+    if (winnerPid && winRange?.[0] === 1 && winRange?.[1] === 1) {
+      positions.set(winnerPid, 1);
+    }
+  }
+  return positions;
 }
 
 const meta: Meta = {
