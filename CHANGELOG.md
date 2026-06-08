@@ -1,5 +1,21 @@
 # Changelog
 
+## [3.2.0](https://github.com/CourtHive/courthive-components/compare/v3.1.0...v3.2.0) (2026-06-08)
+
+
+### Features
+
+* **ladderChart:** rescue + modernize tennisvisuals D3v3 ladder chart ([95e4294](https://github.com/CourtHive/courthive-components/commit/95e4294855593ff6efd390e435325d16619ac49d))
+* **ladderChart:** Storybook stories — single sample + mocksEngine cohort series ([46ec663](https://github.com/CourtHive/courthive-components/commit/46ec66304594300cba6a217e37862073444e61c4))
+* **tournament-card:** render tier classification chip + extend type ([e834b12](https://github.com/CourtHive/courthive-components/commit/e834b12a074ee73da8be9fb002f684c0f6985c4e))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 5.3.0 ([8bcae57](https://github.com/CourtHive/courthive-components/commit/8bcae57268d9dfaa6f8d118208c4c4f1c4b83f2d))
+* **deps:** update tods-competition-factory to 5.4.0 ([14b4252](https://github.com/CourtHive/courthive-components/commit/14b4252155d9c83aa548ea0660b89d4d548e347e))
+* **ladderChart:** cohort series now produces per-player data ([9851f05](https://github.com/CourtHive/courthive-components/commit/9851f0576cf9f31bee2643eb2289a89826dffa10))
+
 ## [3.1.0](https://github.com/CourtHive/courthive-components/compare/v3.0.1...v3.1.0) (2026-06-03)
 
 
