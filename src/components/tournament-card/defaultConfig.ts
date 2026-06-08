@@ -10,7 +10,7 @@ import { TournamentCardConfig } from './types';
 export const DEFAULT_TOURNAMENT_CARD_CONFIG: TournamentCardConfig = {
   showImage: true,
   cornerBadges: ['status'],
-  body: ['title', 'location', 'dateRange'],
+  body: ['title', 'tier', 'location', 'dateRange'],
   footer: ['feeBadge', 'playerCount']
 };
 

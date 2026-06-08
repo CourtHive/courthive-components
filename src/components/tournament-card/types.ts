@@ -25,6 +25,28 @@ export interface TournamentStatusPill {
 }
 
 // ============================================================================
+// Tier Classification (mirrors factory TierClassification)
+// ============================================================================
+
+/**
+ * Federation-specific competitive tier. Mirrors the factory's
+ * `TierClassification` shape (kept in lockstep but duplicated here to
+ * avoid pulling tods-competition-factory into the component's runtime
+ * dependency graph).
+ *
+ * - `system`: federation namespace, e.g. `'ITF_JUNIOR'`, `'ATP'`, `'PPA'`.
+ * - `value`: the tier within that system, e.g. `'J500'`, `'Masters 1000'`, `'Gold'`.
+ * - `numericRank`: optional sort key — lower = more prestigious. Used by
+ *   the card / table column to sort tournaments without round-tripping
+ *   through a ranking policy.
+ */
+export interface TierClassification {
+  system: string;
+  value: string;
+  numericRank?: number;
+}
+
+// ============================================================================
 // Entry Fee (mapper input shape)
 // ============================================================================
 
@@ -68,6 +90,14 @@ export interface TournamentCardData {
   updatedAt?: string;
   /** When true, render an offline/local indicator */
   offline?: boolean;
+  /**
+   * Competitive tier classification (federation-specific). When present
+   * and the `'tier'` field is in `TournamentCardConfig.body` (default), the
+   * card renders a small chip displaying `tournamentTier.value`. The
+   * Tabulator list view sorts on `numericRank` ascending with `value`
+   * lex fallback.
+   */
+  tournamentTier?: TierClassification;
 }
 
 // ============================================================================
@@ -76,6 +106,7 @@ export interface TournamentCardData {
 
 export type TournamentCardField =
   | 'title'
+  | 'tier'
   | 'location'
   | 'dateRange'
   | 'feeBadge'

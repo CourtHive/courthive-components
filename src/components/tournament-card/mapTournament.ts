@@ -78,6 +78,21 @@ export function mapTournamentToCardData(tournament: any, options?: MapTournament
     status,
     feeFormatted: formatFeeRange(extractEntryFees(tournament)),
     updatedAt: tournament?.updatedAt,
-    offline: detectOffline(tournament)
+    offline: detectOffline(tournament),
+    tournamentTier: extractTier(tournament)
   };
+}
+
+function extractTier(tournament: any): TournamentCardData['tournamentTier'] {
+  const tier = tournament?.tournamentTier;
+  if (!tier || typeof tier !== 'object') return undefined;
+  if (typeof tier.system !== 'string' || typeof tier.value !== 'string') return undefined;
+  const out: { system: string; value: string; numericRank?: number } = {
+    system: tier.system,
+    value: tier.value
+  };
+  if (typeof tier.numericRank === 'number' && Number.isFinite(tier.numericRank)) {
+    out.numericRank = tier.numericRank;
+  }
+  return out;
 }

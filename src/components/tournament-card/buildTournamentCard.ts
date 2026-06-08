@@ -26,6 +26,7 @@ import {
   tcOrganizerStyle,
   tcPlayerCountStyle,
   tcStatusPillStyle,
+  tcTierBadgeStyle,
   tcTitleStyle,
   tcUpdatedAtStyle
 } from './styles';
@@ -178,6 +179,8 @@ function renderBodyField(field: TournamentCardField, data: TournamentCardData): 
   switch (field) {
     case 'title':
       return renderTitle(data);
+    case 'tier':
+      return renderTier(data);
     case 'location':
       return renderLocation(data);
     case 'dateRange':
@@ -197,6 +200,21 @@ function renderTitle(data: TournamentCardData): HTMLElement | null {
   el.className = tcTitleStyle();
   el.textContent = data.tournamentName;
   el.title = data.tournamentName;
+  return el;
+}
+
+/**
+ * Tier chip. Shows `tournamentTier.value` only — federation name is noise
+ * to operators who already know their context. Provider config can swap the
+ * `'tier'` slot for a custom field if a different label format is needed.
+ */
+function renderTier(data: TournamentCardData): HTMLElement | null {
+  const value = data.tournamentTier?.value;
+  if (!value) return null;
+  const el = document.createElement('div');
+  el.className = tcTierBadgeStyle();
+  el.textContent = value;
+  el.title = data.tournamentTier?.system ? `${data.tournamentTier.system}: ${value}` : value;
   return el;
 }
 

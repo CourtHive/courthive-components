@@ -193,3 +193,67 @@ export const ResponsiveGrid = {
 export const SkeletonGrid = {
   render: () => makeGrid(Array.from({ length: 6 }, () => buildSkeletonCard()))
 };
+
+// ── Tier chip variants ──
+
+export const TierITFJunior = {
+  render: () =>
+    makeFrame(
+      buildTournamentCard({
+        ...BASE,
+        tournamentName: 'Wimbledon Junior Championships',
+        tournamentTier: { system: 'ITF_JUNIOR', value: 'J500', numericRank: 4 }
+      })
+    )
+};
+
+export const TierATP1000 = {
+  render: () =>
+    makeFrame(
+      buildTournamentCard({
+        ...BASE,
+        tournamentName: 'Miami Open',
+        tournamentTier: { system: 'ATP', value: 'Masters 1000', numericRank: 2 }
+      })
+    )
+};
+
+export const TierPPAGold = {
+  render: () =>
+    makeFrame(
+      buildTournamentCard({
+        ...BASE,
+        tournamentName: 'Mesa Pickleball Classic',
+        tournamentTier: { system: 'PPA', value: 'Gold' }
+      })
+    )
+};
+
+export const TierGrid = {
+  render: () =>
+    makeGrid([
+      buildTournamentCard({
+        ...BASE,
+        tournamentId: 'g1',
+        tournamentName: 'Grand Slam',
+        tournamentTier: { system: 'ATP', value: 'Grand Slam', numericRank: 1 }
+      }),
+      buildTournamentCard({
+        ...BASE,
+        tournamentId: 'g2',
+        tournamentName: 'Masters 1000',
+        tournamentTier: { system: 'ATP', value: '1000', numericRank: 2 }
+      }),
+      buildTournamentCard({
+        ...BASE,
+        tournamentId: 'g3',
+        tournamentName: 'No Tier Set'
+      }),
+      buildTournamentCard({
+        ...BASE,
+        tournamentId: 'g4',
+        tournamentName: 'ITF Junior J500',
+        tournamentTier: { system: 'ITF_JUNIOR', value: 'J500', numericRank: 4 }
+      })
+    ])
+};

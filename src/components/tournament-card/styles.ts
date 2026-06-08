@@ -28,6 +28,7 @@ export const tcFooterStyle = () => 'chc-tc-footer';
 export const tcFeeBadgeStyle = () => 'chc-tc-fee-badge';
 export const tcPlayerCountStyle = () => 'chc-tc-player-count';
 export const tcEventCountStyle = () => 'chc-tc-event-count';
+export const tcTierBadgeStyle = () => 'chc-tc-tier-badge';
 
 // ── Skeleton ──
 

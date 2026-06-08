@@ -111,4 +111,49 @@ describe('mapTournamentToCardData', () => {
     );
     expect(out.status).toBeNull();
   });
+
+  describe('tournamentTier', () => {
+    it('passes through a well-formed tier with numericRank', () => {
+      const out = mapTournamentToCardData({
+        tournamentId: 't1',
+        tournamentTier: { system: 'ITF_JUNIOR', value: 'J500', numericRank: 4 }
+      });
+      expect(out.tournamentTier).toEqual({ system: 'ITF_JUNIOR', value: 'J500', numericRank: 4 });
+    });
+
+    it('omits numericRank when not present on the source', () => {
+      const out = mapTournamentToCardData({
+        tournamentId: 't1',
+        tournamentTier: { system: 'PPA', value: 'Gold' }
+      });
+      expect(out.tournamentTier).toEqual({ system: 'PPA', value: 'Gold' });
+      expect(out.tournamentTier?.numericRank).toBeUndefined();
+    });
+
+    it('drops malformed tiers (non-object, missing system, missing value, non-string types)', () => {
+      // A bad tier shouldn't render a broken chip — better to render no chip
+      // than a chip with "undefined" text. Mirrors the defensive shape checks
+      // around the rest of the mapper.
+      const cases = [
+        { tournamentId: 't1', tournamentTier: 'J500' },
+        { tournamentId: 't1', tournamentTier: { system: 'ITF_JUNIOR' } },
+        { tournamentId: 't1', tournamentTier: { value: 'J500' } },
+        { tournamentId: 't1', tournamentTier: { system: 123, value: 'J500' } },
+        { tournamentId: 't1', tournamentTier: null },
+        { tournamentId: 't1' }
+      ];
+      for (const input of cases) {
+        const out = mapTournamentToCardData(input as any);
+        expect(out.tournamentTier).toBeUndefined();
+      }
+    });
+
+    it('drops a non-finite numericRank but keeps the rest of the tier', () => {
+      const out = mapTournamentToCardData({
+        tournamentId: 't1',
+        tournamentTier: { system: 'ATP', value: '1000', numericRank: Number.NaN }
+      });
+      expect(out.tournamentTier).toEqual({ system: 'ATP', value: '1000' });
+    });
+  });
 });
