@@ -13,6 +13,12 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
     (v) => store.setConfigField('scheduleInfo', v),
     readOnly
   );
+  const roundHeader = buildToggleField(
+    'Round header',
+    !!cfg.roundHeader,
+    (v) => store.setConfigField('roundHeader', v),
+    readOnly
+  );
   const matchUpFooter = buildToggleField(
     'MatchUp footer',
     !!cfg.matchUpFooter,
@@ -39,6 +45,7 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
   );
 
   root.appendChild(scheduleInfo.element);
+  root.appendChild(roundHeader.element);
   root.appendChild(matchUpFooter.element);
   root.appendChild(centerInfo.element);
   root.appendChild(resultsInfo.element);
@@ -47,6 +54,7 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
   function update(state: CompositionEditorState): void {
     const c = state.configuration;
     scheduleInfo.setChecked(!!c.scheduleInfo);
+    roundHeader.setChecked(!!c.roundHeader);
     matchUpFooter.setChecked(!!c.matchUpFooter);
     centerInfo.setChecked(!!c.centerInfo);
     resultsInfo.setChecked(!!c.resultsInfo);

@@ -135,12 +135,12 @@
   font-size: 0.7rem;
   font-family: sans-serif;
   overflow: visible;
-  background-color: var(--chc-color-matchup);
+  background-color: var(--chc-color-matchup-footer-bg, var(--chc-color-matchup));
 }
 
 .chc-matchup-footer-round {
   font-size: 0.6rem;
-  color: var(--chc-text-secondary, #6c757d);
+  color: var(--chc-color-matchup-footer-text, var(--chc-text-secondary, #6c757d));
   white-space: nowrap;
   text-transform: uppercase;
   font-weight: 600;

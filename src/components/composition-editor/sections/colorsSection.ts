@@ -17,7 +17,12 @@ const COLOR_ROWS: ColorRowDef[] = [
   { key: 'matchUpBackground', label: 'MatchUp background' },
   { key: 'internalDividers', label: 'Participant dividers' },
   { key: 'score', label: '[Score] placeholder text' },
-  { key: 'roundHeader', label: 'Round header' }
+  { key: 'roundHeader', label: 'Round header text' },
+  { key: 'roundHeaderBackground', label: 'Round header background', hint: 'Leave blank for transparent' },
+  { key: 'roundHeaderUnderline', label: 'Round header underline', hint: 'Divider below header' },
+  { key: 'matchUpFooterText', label: 'MatchUp footer text' },
+  { key: 'matchUpFooterBackground', label: 'MatchUp footer background' },
+  { key: 'matchUpFooterDivider', label: 'MatchUp footer divider', hint: 'Border above footer' }
 ];
 
 const HEX_PATTERN = /^#[0-9a-f]{6}$/i;

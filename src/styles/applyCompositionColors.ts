@@ -9,7 +9,12 @@ const COLOR_TO_CSS_VAR: Record<keyof CompositionColors, string> = {
   matchUpBackground: '--chc-color-matchup',
   internalDividers: '--chc-color-internal-dividers',
   score: '--chc-color-score',
-  roundHeader: '--chc-color-round-header'
+  roundHeader: '--chc-color-round-header',
+  roundHeaderBackground: '--chc-color-round-header-bg',
+  roundHeaderUnderline: '--chc-color-round-header-underline',
+  matchUpFooterBackground: '--chc-color-matchup-footer-bg',
+  matchUpFooterText: '--chc-color-matchup-footer-text',
+  matchUpFooterDivider: '--chc-color-matchup-footer-divider'
 };
 
 /**

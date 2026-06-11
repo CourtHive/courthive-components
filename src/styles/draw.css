@@ -115,12 +115,15 @@
 }
 
 .chc-round-header {
-  border-bottom: solid 1px var(--chc-color-round-header, var(--chc-text-primary));
+  border-bottom: solid 1px
+    var(--chc-color-round-header-underline, var(--chc-color-round-header, var(--chc-text-primary)));
   color: var(--chc-color-round-header, inherit);
+  background-color: var(--chc-color-round-header-bg, transparent);
   margin-inline-start: 16px;
   margin-inline-end: 16px;
+  padding-inline: 6px;
   font-weight: bold;
-  height: 1.5em;
+  min-height: 1.5em;
 }
 
 /* ── Side styles ─────────────────────────────────────────── */
@@ -846,8 +849,9 @@
 .chc-matchup-footer {
   padding: 0.35rem 0.75rem;
   font-size: 0.75rem;
-  color: var(--chc-text-muted);
-  background-color: var(--chc-color-matchup);
+  color: var(--chc-color-matchup-footer-text, var(--chc-text-muted));
+  background-color: var(--chc-color-matchup-footer-bg, var(--chc-color-matchup));
+  border-top: 1px solid var(--chc-color-matchup-footer-divider, transparent);
 }
 
 /* ── Participant hover highlight (all appearances) ─────── */

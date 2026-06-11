@@ -257,9 +257,21 @@ export interface CompositionColors {
   internalDividers?: string;
   /** placeholder "[Score]" text color — sets `--chc-color-score`. Falls back to `--chc-status-info`. */
   score?: string;
-  /** round header text + underline color — sets `--chc-color-round-header`.
-   * Underline falls back to `--chc-text-primary`; text falls back to inherit. */
+  /** round header text color — sets `--chc-color-round-header`. Falls back to inherit.
+   * Also acts as the underline-color fallback when `roundHeaderUnderline` is unset. */
   roundHeader?: string;
+  /** round header background color — sets `--chc-color-round-header-bg`. Falls back to transparent. */
+  roundHeaderBackground?: string;
+  /** round header underline (divider between header and participants) — sets
+   * `--chc-color-round-header-underline`. Falls back to `roundHeader`, then `--chc-text-primary`. */
+  roundHeaderUnderline?: string;
+  /** matchUp footer background color — sets `--chc-color-matchup-footer-bg`. Falls back to `matchUpBackground`. */
+  matchUpFooterBackground?: string;
+  /** matchUp footer text color — sets `--chc-color-matchup-footer-text`. Falls back to `--chc-text-muted`. */
+  matchUpFooterText?: string;
+  /** matchUp footer top divider (border between matchUp body and footer) — sets
+   * `--chc-color-matchup-footer-divider`. Falls back to transparent. */
+  matchUpFooterDivider?: string;
 }
 
 export interface Composition {

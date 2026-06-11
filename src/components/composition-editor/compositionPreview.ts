@@ -3,6 +3,7 @@
  * Renders mock matchUps using the current composition settings.
  */
 import { applyCompositionColors, clearCompositionColors } from '../../styles/applyCompositionColors';
+import { renderRoundHeader } from '../renderStructure/renderRoundHeader';
 import { renderStructure } from '../renderStructure/renderStructure';
 import { renderMatchUp } from '../renderStructure/renderMatchUp';
 import { generateMatchUps } from '../../data/generateMatchUps';
@@ -193,11 +194,26 @@ export function buildCompositionPreview(): EditorPanel {
     clearCompositionColors(body);
     applyCompositionColors(body, state.colors);
 
+    // Force-on matchUpFooter in the preview so the footer color controls
+    // have something to paint regardless of whether the composition itself
+    // enables the footer. Symmetric with the sample round header rendered
+    // unconditionally below. The user's saved composition keeps its own
+    // matchUpFooter flag — only the preview render is overridden.
     const composition: Composition = {
       theme: state.theme,
-      configuration: { ...state.configuration },
+      configuration: { ...state.configuration, matchUpFooter: true },
       colors: state.colors ? { ...state.colors } : undefined
     };
+
+    // Sample round header above the matchUp cards so the round-header
+    // color controls (text / background / underline) have something to
+    // paint in the preview, regardless of whether `roundHeader` is on in
+    // this composition's configuration.
+    const sampleHeader = renderRoundHeader({
+      roundNumber: 1,
+      roundProfile: { 1: { roundName: 'Round 1' } }
+    });
+    body.appendChild(sampleHeader);
 
     const matchUps = getMockMatchUps();
     for (const matchUp of matchUps) {
