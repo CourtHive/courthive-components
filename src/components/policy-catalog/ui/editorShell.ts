@@ -29,6 +29,7 @@ export interface EditorShellCallbacks {
   onReset: () => void;
   onApply: () => void;
   onDuplicate: () => void;
+  onRename: (name: string) => void;
 }
 
 export interface EditorShellPanel extends UIPanel<PolicyCatalogState> {
@@ -49,8 +50,19 @@ export function buildEditorShell(callbacks: EditorShellCallbacks): EditorShellPa
   const headerLeft = document.createElement('div');
   headerLeft.className = pcEditorHeaderLeftStyle();
 
+  // User policies: editable name input that flows through the store rename
+  // action (drives dirty + savePolicy). Builtins: static title — we hide the
+  // input and show titleEl instead.
   const titleEl = document.createElement('div');
   titleEl.className = pcPanelTitleStyle();
+
+  const nameInput = document.createElement('input');
+  nameInput.type = 'text';
+  nameInput.className = `${pcPanelTitleStyle()} pc-name-input`;
+  nameInput.setAttribute('aria-label', 'Policy name');
+  nameInput.setAttribute('data-testid', 'pc-name-input');
+  nameInput.placeholder = 'Policy name';
+  nameInput.addEventListener('input', () => callbacks.onRename(nameInput.value));
 
   const typeBadge = document.createElement('span');
   typeBadge.className = pcTypeBadgeStyle();
@@ -67,6 +79,7 @@ export function buildEditorShell(callbacks: EditorShellCallbacks): EditorShellPa
 
   headerLeft.appendChild(dirtyDot);
   headerLeft.appendChild(titleEl);
+  headerLeft.appendChild(nameInput);
   headerLeft.appendChild(typeBadge);
   headerLeft.appendChild(readonlyBadge);
 
@@ -141,12 +154,20 @@ export function buildEditorShell(callbacks: EditorShellCallbacks): EditorShellPa
     if (!item) return;
 
     const isBuiltin = item.source === 'builtin';
+    const displayName = state.editedName ?? item.name;
 
-    titleEl.textContent = item.name;
+    titleEl.textContent = displayName;
+    // Don't clobber the input while the user is typing — only sync from store
+    // when the value actually differs (covers selection changes + resetDraft).
+    if (document.activeElement !== nameInput && nameInput.value !== displayName) {
+      nameInput.value = displayName;
+    }
     const meta = getPolicyTypeMeta(item.policyType);
     typeBadge.textContent = meta?.label ?? item.policyType;
 
     // Builtin vs user mode
+    titleEl.style.display = isBuiltin ? '' : 'none';
+    nameInput.style.display = isBuiltin ? 'none' : '';
     readonlyBadge.style.display = isBuiltin ? '' : 'none';
     userActionsEl.style.display = isBuiltin ? 'none' : 'flex';
     builtinActionsEl.style.display = isBuiltin ? 'flex' : 'none';

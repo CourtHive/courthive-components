@@ -183,7 +183,8 @@ export const EditorShellEmpty = {
       onSave: () => {},
       onReset: () => {},
       onApply: () => {},
-      onDuplicate: () => {}
+      onDuplicate: () => {},
+      onRename: () => {}
     });
 
     const state: PolicyCatalogState = {
@@ -192,6 +193,7 @@ export const EditorShellEmpty = {
       groupBy: 'type',
       selectedId: null,
       editorDraft: null,
+      editedName: null,
       dirty: false
     };
 
@@ -217,7 +219,8 @@ export const EditorShellWithSelection = {
       onSave: () => logFn('Save clicked'),
       onReset: () => logFn('Reset clicked'),
       onApply: () => logFn('Apply clicked'),
-      onDuplicate: () => logFn('Duplicate clicked')
+      onDuplicate: () => logFn('Duplicate clicked'),
+      onRename: (name: string) => logFn(`Rename → "${name}"`)
     });
 
     const state: PolicyCatalogState = {
@@ -226,6 +229,7 @@ export const EditorShellWithSelection = {
       groupBy: 'type',
       selectedId: 'builtin-scheduling-default',
       editorDraft: SCHEDULING_POLICY_DEFAULT as unknown as Record<string, unknown>,
+      editedName: 'Default Scheduling',
       dirty: true
     };
 

@@ -61,7 +61,8 @@ export class PolicyCatalogControl {
           this.store.duplicatePolicy(selected.id);
           this.mountEditorForSelection();
         }
-      }
+      },
+      onRename: (name: string) => this.store.renamePolicy(name)
     });
 
     this.layout = buildPolicyCatalogLayout({

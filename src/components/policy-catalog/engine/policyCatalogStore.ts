@@ -36,6 +36,7 @@ export class PolicyCatalogStore {
       groupBy: 'type',
       selectedId: null,
       editorDraft: null,
+      editedName: null,
       dirty: false
     };
   }
@@ -71,6 +72,7 @@ export class PolicyCatalogStore {
     this.setState({
       selectedId: id,
       editorDraft: deepClone(item.policyData),
+      editedName: item.name,
       dirty: false
     });
     this.config.onSelectionChanged?.(item);
@@ -81,9 +83,18 @@ export class PolicyCatalogStore {
     this.setState({
       selectedId: null,
       editorDraft: null,
+      editedName: null,
       dirty: false
     });
     this.config.onSelectionChanged?.(null);
+  }
+
+  renamePolicy(name: string): void {
+    if (!this.state.selectedId) return;
+    const item = this.getSelectedItem();
+    if (!item || item.source === 'builtin') return;
+    if (this.state.editedName === name) return;
+    this.setState({ editedName: name, dirty: true });
   }
 
   // ---------- Editor Draft ----------
@@ -112,6 +123,7 @@ export class PolicyCatalogStore {
 
     const updated: PolicyCatalogItem = {
       ...item,
+      name: this.state.editedName ?? item.name,
       policyData: deepClone(this.state.editorDraft)
     };
 
@@ -128,6 +140,7 @@ export class PolicyCatalogStore {
     if (!item) return;
     this.setState({
       editorDraft: deepClone(item.policyData),
+      editedName: item.name,
       dirty: false
     });
   }
@@ -146,7 +159,7 @@ export class PolicyCatalogStore {
   // ---------- New / Duplicate / Delete ----------
 
   addNewPolicy(policyType: string): string {
-    const id = `user-${policyType}-${Date.now()}`;
+    const id = this.nextLocalId(policyType);
     const item: PolicyCatalogItem = {
       id,
       name: `New ${policyType} policy`,
@@ -155,24 +168,15 @@ export class PolicyCatalogStore {
       description: '',
       policyData: getEmptyPolicyData(policyType)
     };
-    const catalog = [...this.state.catalog, item];
-    this.state = {
-      ...this.state,
-      catalog,
-      selectedId: id,
-      editorDraft: deepClone(item.policyData),
-      dirty: false
-    };
-    this.emit();
-    this.config.onPolicyCreated?.(item);
-    this.config.onSelectionChanged?.(item);
+    this.appendAndSelect(item);
+    this.runCreateAndReconcile(item);
     return id;
   }
 
   duplicatePolicy(sourceId: string): string | null {
     const source = this.state.catalog.find((p) => p.id === sourceId);
     if (!source) return null;
-    const id = `user-${source.policyType}-${Date.now()}`;
+    const id = this.nextLocalId(source.policyType);
     const item: PolicyCatalogItem = {
       id,
       name: `${source.name} (Copy)`,
@@ -181,18 +185,28 @@ export class PolicyCatalogStore {
       description: source.description,
       policyData: deepClone(source.policyData)
     };
-    const catalog = [...this.state.catalog, item];
+    this.appendAndSelect(item);
+    this.runCreateAndReconcile(item);
+    return id;
+  }
+
+  /**
+   * Swap a placeholder id (returned from addNewPolicy/duplicatePolicy) for a
+   * canonical id assigned by the persistence backend. Idempotent and a no-op
+   * when the placeholder is gone (e.g. user deleted before reconciliation).
+   */
+  reconcilePolicyId(localId: string, serverId: string): void {
+    if (localId === serverId) return;
+    const idx = this.state.catalog.findIndex((p) => p.id === localId);
+    if (idx === -1) return;
+    const catalog = this.state.catalog.map((p) => (p.id === localId ? { ...p, id: serverId } : p));
+    const wasSelected = this.state.selectedId === localId;
     this.state = {
       ...this.state,
       catalog,
-      selectedId: id,
-      editorDraft: deepClone(item.policyData),
-      dirty: false
+      ...(wasSelected ? { selectedId: serverId } : {})
     };
     this.emit();
-    this.config.onPolicyCreated?.(item);
-    this.config.onSelectionChanged?.(item);
-    return id;
   }
 
   deletePolicy(id: string): void {
@@ -230,5 +244,48 @@ export class PolicyCatalogStore {
     for (const listener of this.listeners) {
       listener(this.state);
     }
+  }
+
+  private localIdCounter = 0;
+  private nextLocalId(policyType: string): string {
+    // Date.now() collides when two new policies are created within the same
+    // millisecond (Storybook button-mashing, tests). Append a counter so
+    // placeholder ids stay unique even before reconciliation.
+    this.localIdCounter += 1;
+    return `user-${policyType}-${Date.now()}-${this.localIdCounter}`;
+  }
+
+  private appendAndSelect(item: PolicyCatalogItem): void {
+    const catalog = [...this.state.catalog, item];
+    this.state = {
+      ...this.state,
+      catalog,
+      selectedId: item.id,
+      editorDraft: deepClone(item.policyData),
+      editedName: item.name,
+      dirty: false
+    };
+    this.emit();
+    this.config.onSelectionChanged?.(item);
+  }
+
+  private runCreateAndReconcile(item: PolicyCatalogItem): void {
+    const result = this.config.onPolicyCreated?.(item);
+    if (result === undefined) return;
+    if (typeof result === 'string') {
+      this.reconcilePolicyId(item.id, result);
+      return;
+    }
+    Promise.resolve(result)
+      .then((serverId) => {
+        if (typeof serverId === 'string') {
+          this.reconcilePolicyId(item.id, serverId);
+        }
+      })
+      // Consumer's onPolicyCreated is expected to handle its own user-facing
+      // error reporting (toast, etc.). The store just absorbs the rejection so
+      // it doesn't surface as an unhandled-rejection; the placeholder id stays
+      // in the catalog, which is the correct state for a failed create.
+      .catch(() => {});
   }
 }

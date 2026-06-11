@@ -49,6 +49,12 @@ export interface PolicyCatalogState {
   groupBy: CatalogGroupBy;
   selectedId: string | null;
   editorDraft: Record<string, unknown> | null;
+  /**
+   * Live name buffer for the selected policy. Populated on selection from the
+   * catalog item and mutated by the rename input so renames survive across
+   * editor remounts. `savePolicy` writes this back to the catalog item.
+   */
+  editedName: string | null;
   dirty: boolean;
 }
 
@@ -83,7 +89,13 @@ export interface PolicyCatalogConfig {
   editorPlugins?: PolicyEditorPlugin[];
   onPolicySaved?: (item: PolicyCatalogItem) => void;
   onPolicyApplied?: (item: PolicyCatalogItem) => void;
-  onPolicyCreated?: (item: PolicyCatalogItem) => void;
+  /**
+   * Fired when "+" creates a new policy. If the host persists the new policy
+   * to a backend that mints its own canonical id, return that id (sync or
+   * Promise) — the store will reconcile the local placeholder id so subsequent
+   * Save calls hit the right backend record. Return void to keep the local id.
+   */
+  onPolicyCreated?: (item: PolicyCatalogItem) => string | void | Promise<string | void>;
   onPolicyDeleted?: (id: string) => void;
   onSelectionChanged?: (item: PolicyCatalogItem | null) => void;
 }

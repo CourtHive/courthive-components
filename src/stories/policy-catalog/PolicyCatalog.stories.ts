@@ -181,6 +181,93 @@ export const WithCallbacks = {
 };
 
 // ============================================================================
+// Rename a policy (user policy)
+// ============================================================================
+
+export const RenamePolicy = {
+  render: () => {
+    const root = document.createElement('div');
+    root.style.cssText = ROOT_STYLE;
+
+    const info = document.createElement('div');
+    info.style.cssText = INFO_STYLE;
+    info.innerHTML = [
+      '<strong>Rename:</strong> Pick a user policy (e.g. "Junior Scheduling") to focus the editor,',
+      'edit the name input in the header, then click <em>Save</em>.',
+      'The Event Log below shows the final name passed to <code>onPolicySaved</code>.',
+      'Try selecting a built-in policy after — the name renders read-only.'
+    ].join(' ');
+    root.appendChild(info);
+
+    const container = document.createElement('div');
+    container.style.height = 'calc(100vh - 220px)';
+    root.appendChild(container);
+
+    const logFn = addEventLog(root);
+
+    createPolicyCatalog(
+      makeCatalogConfig({
+        onPolicySaved: (item) => logFn(`onPolicySaved name="${item.name}" (${item.id})`),
+        onSelectionChanged: (item) => logFn(item ? `Selected: ${item.name} [${item.source}]` : 'Cleared')
+      }),
+      container
+    );
+
+    return root;
+  }
+};
+
+// ============================================================================
+// Create + rename + reconcile (server-assigned id flow)
+// ============================================================================
+
+export const CreateRenameAndReconcile = {
+  render: () => {
+    const root = document.createElement('div');
+    root.style.cssText = ROOT_STYLE;
+
+    const info = document.createElement('div');
+    info.style.cssText = INFO_STYLE;
+    info.innerHTML = [
+      '<strong>Bug regression demo:</strong> Click "+" → pick "Scheduling".',
+      'The store creates a placeholder id (<code>user-scheduling-…</code>) and fires <code>onPolicyCreated</code>.',
+      'This story\'s callback resolves with a fake server id (<code>srv-…</code>) after 400ms, simulating a POST.',
+      'After reconciliation, edit the name + body and click <em>Save</em>.',
+      '<code>onPolicySaved</code> must fire against the server id — prior bug PUT to the placeholder and got "not found".'
+    ].join(' ');
+    root.appendChild(info);
+
+    const container = document.createElement('div');
+    container.style.height = 'calc(100vh - 240px)';
+    root.appendChild(container);
+
+    const logFn = addEventLog(root);
+
+    let serverIdCounter = 0;
+    createPolicyCatalog(
+      makeCatalogConfig({
+        userPolicies: [],
+        onPolicyCreated: (item) => {
+          serverIdCounter += 1;
+          const serverId = `srv-${item.policyType}-${serverIdCounter}`;
+          logFn(`POST start (placeholder ${item.id}) → will reconcile to ${serverId}`);
+          return new Promise<string>((resolve) => {
+            setTimeout(() => {
+              logFn(`POST done → reconciled to ${serverId}`);
+              resolve(serverId);
+            }, 400);
+          });
+        },
+        onPolicySaved: (item) => logFn(`onPolicySaved id=${item.id} name="${item.name}"`)
+      }),
+      container
+    );
+
+    return root;
+  }
+};
+
+// ============================================================================
 // Programmatic Control
 // ============================================================================
 

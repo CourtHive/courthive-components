@@ -245,6 +245,26 @@
   white-space: nowrap;
 }
 
+.pc-editor-header-left .pc-name-input {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--sp-text);
+  font: inherit;
+  font-weight: 600;
+  outline: none;
+}
+.pc-editor-header-left .pc-name-input:hover {
+  border-color: var(--sp-border-subtle);
+}
+.pc-editor-header-left .pc-name-input:focus {
+  border-color: var(--sp-accent);
+  background: var(--sp-input-bg, var(--sp-card-bg));
+}
+
 .pc-editor-actions {
   display: flex;
   gap: 6px;
