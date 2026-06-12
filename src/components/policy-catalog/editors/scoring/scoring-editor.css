@@ -1,0 +1,390 @@
+/**
+ * Scoring Editor styles — plain CSS.
+ * Tracks the seeding-editor.css/scheduling-editor.css conventions; uses
+ * --sp-* tokens. Class prefix: sc-* (scoring editor).
+ */
+
+/* ── Accordion shell ─────────────────────────────────── */
+
+.sc-editor {
+  padding: 12px;
+  font-size: 13px;
+}
+
+.sc-section {
+  border: 1px solid var(--sp-border-group);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  background: var(--sp-panel-bg, transparent);
+}
+
+.sc-section-header {
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sc-section-header:hover {
+  background: var(--sp-hover-bg);
+}
+
+.sc-section-chevron {
+  font-size: 10px;
+  color: var(--sp-muted);
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+}
+
+.sc-section-body {
+  border-top: 1px solid var(--sp-border-subtle, var(--sp-border-group));
+}
+
+.sc-section-body-inner {
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Field rows ──────────────────────────────────────── */
+
+.sc-field-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sc-field-block-label {
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--sp-text, inherit);
+}
+
+.sc-field-help {
+  font-size: 11px;
+  color: var(--sp-muted);
+  line-height: 1.4;
+}
+
+.sc-field-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sc-field-label {
+  flex: 1 1 auto;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sc-field-input {
+  min-width: 220px;
+  padding: 6px 8px;
+  border: 1px solid var(--sp-border-input, var(--sp-border-group));
+  border-radius: 8px;
+  background: var(--sp-input-bg, transparent);
+  color: inherit;
+  font: inherit;
+}
+
+/* ── Checkbox row ────────────────────────────────────── */
+
+.sc-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.sc-checkbox-row input[type='checkbox'] {
+  margin-top: 2px;
+}
+
+.sc-checkbox-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sc-checkbox-text label {
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.sc-checkbox-help {
+  font-size: 11px;
+  color: var(--sp-muted);
+}
+
+/* ── Format picker ───────────────────────────────────── */
+
+.sc-format-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--sp-border-subtle, var(--sp-border-group));
+  border-radius: 10px;
+  background: var(--sp-subpanel-bg, transparent);
+}
+
+.sc-format-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sc-format-checkbox-row {
+  gap: 6px;
+}
+
+.sc-format-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sc-format-label {
+  min-width: 130px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sc-format-select,
+.sc-format-input {
+  flex: 1 1 auto;
+  padding: 6px 8px;
+  border: 1px solid var(--sp-border-input, var(--sp-border-group));
+  border-radius: 8px;
+  background: var(--sp-input-bg, transparent);
+  color: inherit;
+  font: inherit;
+}
+
+.sc-format-radio-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sc-format-radio-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.sc-format-builder-toggle {
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  color: var(--sp-accent, var(--sp-link, inherit));
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 4px;
+}
+
+.sc-format-builder-body {
+  border-top: 1px dashed var(--sp-border-subtle, var(--sp-border-group));
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sc-format-result {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.sc-format-chip {
+  padding: 2px 6px;
+  border: 1px solid var(--sp-border-input, var(--sp-border-group));
+  border-radius: 6px;
+  background: var(--sp-code-bg, rgba(0, 0, 0, 0.05));
+  font-family: var(--sp-mono, ui-monospace, SFMono-Regular, monospace);
+  font-size: 12px;
+}
+
+.sc-format-validity[data-valid='true'] {
+  color: var(--sp-success, #15803d);
+  font-weight: 700;
+}
+
+.sc-format-validity[data-valid='false'] {
+  color: var(--sp-danger, #b91c1c);
+  font-weight: 700;
+}
+
+/* ── Tag list editor ─────────────────────────────────── */
+
+.sc-taglist {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sc-taglist-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 22px;
+}
+
+.sc-taglist-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px 2px 6px;
+  border: 1px solid var(--sp-border-input, var(--sp-border-group));
+  border-radius: 12px;
+  background: var(--sp-code-bg, rgba(0, 0, 0, 0.05));
+  font-size: 11px;
+}
+
+.sc-taglist-chip code {
+  font-family: var(--sp-mono, ui-monospace, SFMono-Regular, monospace);
+}
+
+.sc-taglist-chip-remove {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+  color: var(--sp-muted);
+}
+
+.sc-taglist-chip-remove:hover {
+  color: var(--sp-danger, #b91c1c);
+}
+
+.sc-taglist-empty {
+  color: var(--sp-muted);
+  font-size: 11px;
+  font-style: italic;
+}
+
+.sc-taglist-input-row {
+  display: flex;
+  gap: 6px;
+}
+
+.sc-taglist-input {
+  flex: 1 1 auto;
+  padding: 5px 8px;
+  border: 1px solid var(--sp-border-input, var(--sp-border-group));
+  border-radius: 8px;
+  background: var(--sp-input-bg, transparent);
+  color: inherit;
+  font: inherit;
+}
+
+.sc-taglist-error {
+  font-size: 11px;
+  color: var(--sp-danger, #b91c1c);
+}
+
+/* ── Status code groups ──────────────────────────────── */
+
+.sc-status-group {
+  border: 1px solid var(--sp-border-subtle, var(--sp-border-group));
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.sc-status-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sc-status-header:hover {
+  background: var(--sp-hover-bg);
+}
+
+.sc-status-chevron {
+  color: var(--sp-muted);
+  width: 12px;
+  text-align: center;
+  display: inline-block;
+}
+
+.sc-status-label {
+  flex: 1 1 auto;
+}
+
+.sc-status-count-wrap {
+  color: var(--sp-muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.sc-status-body {
+  padding: 8px 10px 10px;
+  border-top: 1px solid var(--sp-border-subtle, var(--sp-border-group));
+}
+
+/* ── Advanced (process codes) ─────────────────────────── */
+
+.sc-advanced {
+  border: 1px dashed var(--sp-border-subtle, var(--sp-border-group));
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.sc-advanced-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sp-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sc-advanced-header:hover {
+  background: var(--sp-hover-bg);
+}
+
+.sc-advanced-chevron {
+  width: 12px;
+  text-align: center;
+  display: inline-block;
+}
+
+.sc-advanced-body {
+  padding: 8px 10px 10px;
+  border-top: 1px dashed var(--sp-border-subtle, var(--sp-border-group));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
