@@ -233,6 +233,127 @@
   font-weight: 700;
 }
 
+/* ── Allowed formats list ────────────────────────────── */
+
+.sc-format-list-header,
+.sc-format-list-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(180px, 1fr) minmax(160px, 1.6fr) 28px;
+  gap: 8px;
+  align-items: center;
+}
+
+.sc-format-list-header {
+  padding: 0 4px;
+}
+
+.sc-format-list-header-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sp-muted);
+}
+
+.sc-format-list-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sc-format-list-row {
+  padding: 6px 4px;
+  border-radius: 8px;
+}
+
+.sc-format-list-row:hover {
+  background: var(--sp-hover-bg);
+}
+
+.sc-format-list-input {
+  width: 100%;
+  padding: 5px 8px;
+  border: 1px solid var(--sp-border-input, var(--sp-border-group));
+  border-radius: 8px;
+  background: var(--sp-input-bg, transparent);
+  color: inherit;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.sc-format-list-format-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sc-format-list-format-input {
+  font-family: var(--sp-mono, ui-monospace, SFMono-Regular, monospace);
+  font-size: 12px;
+}
+
+.sc-format-list-validity {
+  font-size: 13px;
+  font-weight: 700;
+  width: 14px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.sc-format-list-validity[data-state='valid'] {
+  color: var(--sp-success, #15803d);
+}
+
+.sc-format-list-validity[data-state='invalid'] {
+  color: var(--sp-danger, #b91c1c);
+}
+
+.sc-format-list-row-remove {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 4px;
+  color: var(--sp-muted);
+  border-radius: 6px;
+}
+
+.sc-format-list-row-remove:hover:not(:disabled) {
+  color: var(--sp-danger, #b91c1c);
+  background: var(--sp-hover-bg);
+}
+
+.sc-format-list-row-remove:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.sc-format-list-empty {
+  font-size: 11px;
+  color: var(--sp-muted);
+  font-style: italic;
+  padding: 8px 4px;
+}
+
+.sc-format-list-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.sc-format-list-preset-picker {
+  flex: 1 1 auto;
+  padding: 5px 8px;
+  border: 1px solid var(--sp-border-input, var(--sp-border-group));
+  border-radius: 8px;
+  background: var(--sp-input-bg, transparent);
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+}
+
 /* ── Tag list editor ─────────────────────────────────── */
 
 .sc-taglist {

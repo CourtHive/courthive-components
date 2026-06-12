@@ -41,18 +41,25 @@ export interface StageSequenceOverride {
   requireAllPositionsAssigned?: boolean;
 }
 
-// Allowed match-up format entries can ship as either a bare format
-// string OR the richer factory shape (used by TMX's built-in
-// POLICY_SCORING). The editor reads both shapes and writes the
-// canonical object shape on every add — matching what the factory
-// fixtures consume.
+// Allowed match-up format entries. The MatchUp Format Dialog (which
+// downstream consumers like TMX surface to operators) renders one
+// option per entry using `name` as the dropdown label and
+// `description` as the sub-text — so policies need to carry both.
+// The legacy factory shape carried only `{ matchUpFormat, description,
+// categoryNames?, categoryTypes? }`; the catalog reads either shape
+// and writes the richer one on every edit.
 export interface MatchUpFormatEntry {
-  matchUpFormat: string;
+  name?: string;
   description?: string;
+  matchUpFormat: string;
   categoryNames?: string[];
   categoryTypes?: string[];
 }
 export type AllowedFormatEntry = string | MatchUpFormatEntry;
+
+// What the section editor exposes per row; categoryNames / Types stay
+// hidden behind an advanced expander (v2) but round-trip on save.
+export type AllowedFormatField = 'name' | 'description' | 'matchUpFormat';
 
 export interface ScoringPolicyData {
   // Catalog metadata (the catalog item carries name/source separately,

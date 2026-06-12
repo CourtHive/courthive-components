@@ -13,15 +13,33 @@
 import type { ScoringPolicyData, MatchUpFormatPreset, AllowedFormatEntry } from '../types';
 
 // matchUpFormats entries can be either a bare string or the richer
-// { matchUpFormat, description, ... } object shape (TMX ships the
-// latter for its built-in POLICY_SCORING). Display chips always need
-// the format string itself.
+// { name?, description?, matchUpFormat, ... } object shape (TMX ships
+// the latter for its built-in POLICY_SCORING). Projections always read
+// from the shape the editor surfaces; the canonical object form is
+// what the editor writes back on every edit.
 export function formatStringOf(entry: AllowedFormatEntry): string {
   return typeof entry === 'string' ? entry : entry.matchUpFormat;
 }
 
-export function formatDescriptionOf(entry: AllowedFormatEntry): string | undefined {
-  return typeof entry === 'string' ? undefined : entry.description;
+export function formatNameOf(entry: AllowedFormatEntry): string {
+  return typeof entry === 'string' ? '' : entry.name ?? '';
+}
+
+export function formatDescriptionOf(entry: AllowedFormatEntry): string {
+  return typeof entry === 'string' ? '' : entry.description ?? '';
+}
+
+// Lift a (possibly string) entry into its object form, preserving any
+// existing extra fields (categoryNames/Types).
+export function asMatchUpFormatEntry(entry: AllowedFormatEntry): {
+  name?: string;
+  description?: string;
+  matchUpFormat: string;
+  categoryNames?: string[];
+  categoryTypes?: string[];
+} {
+  if (typeof entry === 'string') return { matchUpFormat: entry };
+  return { ...entry };
 }
 
 // The factory default uses FORMAT_STANDARD = 'SET3-S:6/TB7'. Hard-coding

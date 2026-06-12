@@ -8,7 +8,7 @@
  * (panel update) and the config.onChange callback (catalog persistence).
  */
 
-import { emptyScoringPolicy, formatStringOf } from './domain/scoringProjections';
+import { emptyScoringPolicy, formatStringOf, asMatchUpFormatEntry } from './domain/scoringProjections';
 import type {
   ScoringPolicyData,
   ScoringEditorState,
@@ -16,6 +16,8 @@ import type {
   ScoringEditorChangeListener,
   ScoringEditorConfig,
   MatchUpStatusKey,
+  AllowedFormatField,
+  MatchUpFormatEntry,
 } from './types';
 
 function deepClone<T>(obj: T): T {
@@ -129,19 +131,13 @@ export class ScoringEditorStore {
 
   // ───── Allowed match-up formats ────────────────────────
 
-  addAllowedFormat(value: string): void {
+  // Push a fresh blank row — operator fills it in via inline inputs.
+  addAllowedFormat(seed?: Partial<MatchUpFormatEntry>): void {
     if (this.isReadonly()) return;
-    const trimmed = value.trim();
-    if (!trimmed) return;
     const draft = deepClone(this.state.draft);
     draft.matchUpFormats ??= [];
-    // De-dup against either shape (string or object entry).
-    const exists = draft.matchUpFormats.some((entry) => formatStringOf(entry) === trimmed);
-    if (exists) return;
-    // Write the richer factory shape so the saved policy round-trips
-    // cleanly with the rest of the catalog (TMX's built-in policy uses
-    // { matchUpFormat, description? } entries).
-    draft.matchUpFormats.push({ matchUpFormat: trimmed });
+    const entry: MatchUpFormatEntry = { matchUpFormat: '', ...seed };
+    draft.matchUpFormats.push(entry);
     this.commitDraft(draft);
   }
 
@@ -151,6 +147,37 @@ export class ScoringEditorStore {
     if (!draft.matchUpFormats) return;
     draft.matchUpFormats.splice(index, 1);
     this.commitDraft(draft);
+  }
+
+  // In-place field update. The current entry might be a bare string
+  // (legacy shape) — we lift it to the object form before mutating
+  // and write the lifted entry back so the saved policy carries the
+  // richer fields the MatchUp Format Dialog reads.
+  setAllowedFormatField(index: number, field: AllowedFormatField, value: string): void {
+    if (this.isReadonly()) return;
+    const draft = deepClone(this.state.draft);
+    if (!draft.matchUpFormats?.[index]) return;
+    const entry = asMatchUpFormatEntry(draft.matchUpFormats[index]);
+    if (field === 'name') entry.name = value;
+    else if (field === 'description') entry.description = value;
+    else entry.matchUpFormat = value;
+    // Drop empty optional fields so the saved policy isn't littered
+    // with `name: ""`/`description: ""` keys.
+    if (entry.name === '') delete entry.name;
+    if (entry.description === '') delete entry.description;
+    draft.matchUpFormats[index] = entry;
+    this.commitDraft(draft);
+  }
+
+  // Suppress the "duplicate format" or other validation checks at the
+  // caller's discretion. The store doesn't gate adds because operators
+  // routinely paste a preset then edit the format string in place.
+  // Use formatStringOf when callers need to de-dup themselves.
+  isAllowedFormatDuplicate(format: string, excludeIndex?: number): boolean {
+    const trimmed = format.trim();
+    if (!trimmed) return false;
+    const list = this.state.draft.matchUpFormats ?? [];
+    return list.some((entry, i) => i !== excludeIndex && formatStringOf(entry) === trimmed);
   }
 
   // ───── Status code refinements ─────────────────────────
