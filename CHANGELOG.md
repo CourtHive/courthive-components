@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.3.0](https://github.com/CourtHive/courthive-components/compare/v3.2.0...v3.3.0) (2026-06-12)
+
+
+### Features
+
+* **composition-editor:** round-header bg/underline + matchUp-footer color controls ([21efa7f](https://github.com/CourtHive/courthive-components/commit/21efa7fc35682f3b30175b5d4b7d9d82d58fc191))
+* **policy-catalog:** editable policy name + server id reconciliation ([eb13ca5](https://github.com/CourtHive/courthive-components/commit/eb13ca518f9200d2fd968d58fb1a62300f4f8bf4))
+
 ## [3.2.0](https://github.com/CourtHive/courthive-components/compare/v3.1.0...v3.2.0) (2026-06-08)
 
 
