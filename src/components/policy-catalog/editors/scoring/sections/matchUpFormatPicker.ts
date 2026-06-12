@@ -451,8 +451,18 @@ export function buildMatchUpFormatPicker(config: MatchUpFormatPickerConfig): Mat
 
   return {
     element: root,
+    // Sync from external state (e.g. store.setData or a re-render after
+    // any other field changes). MUST be quiet — if this fired onChange,
+    // the store would re-emit and the panel would re-call setValue,
+    // producing an infinite update loop on every render. User-initiated
+    // changes still emit via the preset/builder/custom-input handlers.
     setValue(value: string) {
-      commit(value || FORMAT_STANDARD);
+      const next = value || FORMAT_STANDARD;
+      if (next === current) return;
+      current = next;
+      builderState = builderStateFromFormat(next);
+      syncTopLevel();
+      if (builderOpen) renderBuilder();
     },
     destroy() {
       root.remove();
