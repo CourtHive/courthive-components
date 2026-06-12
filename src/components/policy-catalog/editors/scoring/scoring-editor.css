@@ -238,9 +238,15 @@
 .sc-format-list-header,
 .sc-format-list-row {
   display: grid;
-  grid-template-columns: minmax(120px, 1fr) minmax(180px, 1fr) minmax(160px, 1.6fr) 28px;
+  grid-template-columns: 22px minmax(120px, 1fr) minmax(180px, 1fr) minmax(160px, 1.6fr) 28px;
   gap: 8px;
   align-items: center;
+}
+
+.sc-format-list-row-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .sc-format-list-header {
@@ -327,6 +333,54 @@
 .sc-format-list-row-remove:disabled {
   cursor: not-allowed;
   opacity: 0.4;
+}
+
+.sc-format-list-row-expand {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+  padding: 4px 2px;
+  color: var(--sp-muted);
+  border-radius: 6px;
+  position: relative;
+}
+
+.sc-format-list-row-expand[data-has-content='true']::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 0;
+  width: 6px;
+  height: 6px;
+  background: var(--sp-accent, var(--sp-link, #2563eb));
+  border-radius: 50%;
+}
+
+.sc-format-list-row-advanced {
+  padding: 8px 12px 10px 30px;
+  margin-top: -2px;
+  background: var(--sp-subpanel-bg, rgba(0, 0, 0, 0.025));
+  border: 1px dashed var(--sp-border-subtle, var(--sp-border-group));
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sc-format-list-category-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sc-format-list-category-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sp-muted);
 }
 
 .sc-format-list-empty {

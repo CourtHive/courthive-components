@@ -13,14 +13,16 @@
  */
 
 import { matchUpFormatCode } from 'tods-competition-factory';
-import type { ScoringEditorState, MatchUpFormatEntry } from '../types';
+import type { ScoringEditorState, MatchUpFormatEntry, AllowedFormatEntry } from '../types';
 import type { ScoringEditorStore } from '../scoringEditorStore';
 import {
-  MATCH_UP_FORMAT_PRESETS,
+  MATCH_UP_FORMAT_REGISTRY_SORTED,
+  asMatchUpFormatEntry,
   formatStringOf,
   formatNameOf,
   formatDescriptionOf,
 } from '../domain/scoringProjections';
+import { buildTagListEditor, type TagListEditorHandle } from './tagListEditor';
 
 interface RowHandle {
   element: HTMLElement;
@@ -45,6 +47,7 @@ export function buildAllowedFormatsSection(store: ScoringEditorStore): {
   // Column header row — kept simple so it tracks the row layout in CSS.
   const headerRow = document.createElement('div');
   headerRow.className = 'sc-format-list-header';
+  headerRow.appendChild(headerLabel('')); // expander column
   headerRow.appendChild(headerLabel('Name'));
   headerRow.appendChild(headerLabel('Format'));
   headerRow.appendChild(headerLabel('Description'));
@@ -76,21 +79,23 @@ export function buildAllowedFormatsSection(store: ScoringEditorStore): {
   presetPlaceholder.value = '';
   presetPlaceholder.textContent = 'Add from preset…';
   presetSelect.appendChild(presetPlaceholder);
-  for (const preset of MATCH_UP_FORMAT_PRESETS) {
+  // Sourced from matchUpFormat/matchUpFormats.json so the dropdown
+  // tracks the same canonical list the MatchUp Format Dialog reads.
+  for (const preset of MATCH_UP_FORMAT_REGISTRY_SORTED) {
     const opt = document.createElement('option');
-    opt.value = preset.format;
-    opt.textContent = preset.description ? `${preset.label} — ${preset.description}` : preset.label;
+    opt.value = preset.format ?? '';
+    opt.textContent = preset.desc ? `${preset.name} — ${preset.desc}` : preset.name ?? '';
     presetSelect.appendChild(opt);
   }
   presetSelect.addEventListener('change', () => {
     const value = presetSelect.value;
     if (!value) return;
-    const preset = MATCH_UP_FORMAT_PRESETS.find((p) => p.format === value);
-    if (preset) {
+    const preset = MATCH_UP_FORMAT_REGISTRY_SORTED.find((p) => p.format === value);
+    if (preset?.format) {
       store.addAllowedFormat({
         matchUpFormat: preset.format,
-        name: preset.label,
-        description: preset.description,
+        name: preset.name,
+        description: preset.desc,
       });
     }
     presetSelect.value = '';
@@ -151,15 +156,32 @@ function headerLabel(text: string): HTMLElement {
 
 function buildRow(store: ScoringEditorStore, initialIndex: number): RowHandle {
   let index = initialIndex;
+  let expanded = false;
   const readonly = store.isReadonly();
+
+  // The row mounts as a vertical wrapper so the advanced body can hang
+  // beneath the main columns. The main row stays a 5-column grid; the
+  // advanced body spans the full width.
+  const wrapper = document.createElement('div');
+  wrapper.className = 'sc-format-list-row-wrap';
 
   const row = document.createElement('div');
   row.className = 'sc-format-list-row';
 
-  const nameInput = textInput('Standard', readonly);
+  const expandBtn = document.createElement('button');
+  expandBtn.type = 'button';
+  expandBtn.className = 'sc-format-list-row-expand';
+  expandBtn.setAttribute('aria-label', 'Expand advanced fields');
+  expandBtn.textContent = '▸';
+
+  // Placeholders are intentionally generic — when the entry has no
+  // explicit name/description, formatNameOf falls back to the
+  // matchUpFormats.json registry, so the displayed value is already
+  // the "Standard Advantage"/"Best of 3 Sets…" pair the dialog uses.
+  const nameInput = textInput('Display name', readonly);
   const formatInput = textInput('SET3-S:6/TB7', readonly);
   formatInput.classList.add('sc-format-list-format-input');
-  const descInput = textInput('Best of 3 sets, TB7 at 6-6', readonly);
+  const descInput = textInput('Description shown beneath the name', readonly);
 
   const validityChip = document.createElement('span');
   validityChip.className = 'sc-format-list-validity';
@@ -177,10 +199,55 @@ function buildRow(store: ScoringEditorStore, initialIndex: number): RowHandle {
   formatCell.appendChild(formatInput);
   formatCell.appendChild(validityChip);
 
+  row.appendChild(expandBtn);
   row.appendChild(nameInput);
   row.appendChild(formatCell);
   row.appendChild(descInput);
   row.appendChild(removeBtn);
+
+  // Advanced body (categoryNames + categoryTypes) — created up front but
+  // hidden until expanded so the tag-list instances can reuse focus
+  // when the operator toggles back and forth.
+  const advancedBody = document.createElement('div');
+  advancedBody.className = 'sc-format-list-row-advanced';
+  advancedBody.style.display = 'none';
+
+  const advancedHelp = document.createElement('div');
+  advancedHelp.className = 'sc-field-help';
+  advancedHelp.textContent =
+    'Category filters scope this format to events with matching categoryNames / categoryTypes. Empty = applies to all categories.';
+  advancedBody.appendChild(advancedHelp);
+
+  const categoryNamesField = buildCategoryField({
+    label: 'Category names',
+    placeholder: 'e.g. U18',
+    initial: [],
+    readonly,
+    onAdd: (value) => store.addAllowedFormatCategory(index, 'categoryNames', value),
+    onRemove: (valueIndex) => store.removeAllowedFormatCategory(index, 'categoryNames', valueIndex),
+  });
+  advancedBody.appendChild(categoryNamesField.element);
+
+  const categoryTypesField = buildCategoryField({
+    label: 'Category types',
+    placeholder: 'e.g. AGE',
+    initial: [],
+    readonly,
+    onAdd: (value) => store.addAllowedFormatCategory(index, 'categoryTypes', value),
+    onRemove: (valueIndex) => store.removeAllowedFormatCategory(index, 'categoryTypes', valueIndex),
+  });
+  advancedBody.appendChild(categoryTypesField.element);
+
+  wrapper.appendChild(row);
+  wrapper.appendChild(advancedBody);
+
+  // Behavior ──────────────────────────────────────────────
+
+  expandBtn.addEventListener('click', () => {
+    expanded = !expanded;
+    expandBtn.textContent = expanded ? '▾' : '▸';
+    advancedBody.style.display = expanded ? '' : 'none';
+  });
 
   // Hook inputs to store. Use input event so the live validity chip
   // tracks the user's typing; the store update fires onChange on
@@ -212,8 +279,9 @@ function buildRow(store: ScoringEditorStore, initialIndex: number): RowHandle {
   }
 
   return {
-    element: row,
-    setEntry(entry) {
+    element: wrapper,
+    setEntry(entry: AllowedFormatEntry) {
+      const lifted = asMatchUpFormatEntry(entry);
       const nextName = formatNameOf(entry);
       const nextFormat = formatStringOf(entry);
       const nextDescription = formatDescriptionOf(entry);
@@ -222,15 +290,55 @@ function buildRow(store: ScoringEditorStore, initialIndex: number): RowHandle {
       if (nameInput.value !== nextName) nameInput.value = nextName;
       if (formatInput.value !== nextFormat) formatInput.value = nextFormat;
       if (descInput.value !== nextDescription) descInput.value = nextDescription;
+      categoryNamesField.tagList.setValues(lifted.categoryNames ?? []);
+      categoryTypesField.tagList.setValues(lifted.categoryTypes ?? []);
+      // Visually flag rows whose advanced body has data even when the
+      // operator hasn't expanded — a small dot on the chevron makes
+      // categoryNames/Types discoverable without forcing every row
+      // open by default.
+      const hasAdvanced = (lifted.categoryNames?.length ?? 0) + (lifted.categoryTypes?.length ?? 0) > 0;
+      expandBtn.dataset.hasContent = hasAdvanced ? 'true' : 'false';
       refreshValidity();
     },
     setIndex(next) {
       index = next;
     },
     destroy() {
-      row.remove();
+      wrapper.remove();
     },
   };
+}
+
+interface CategoryFieldConfig {
+  label: string;
+  placeholder: string;
+  initial: string[];
+  readonly: boolean;
+  onAdd: (value: string) => void;
+  onRemove: (valueIndex: number) => void;
+}
+
+function buildCategoryField(config: CategoryFieldConfig): {
+  element: HTMLElement;
+  tagList: TagListEditorHandle;
+} {
+  const wrap = document.createElement('div');
+  wrap.className = 'sc-format-list-category-field';
+
+  const label = document.createElement('div');
+  label.className = 'sc-format-list-category-label';
+  label.textContent = config.label;
+  wrap.appendChild(label);
+
+  const tagList = buildTagListEditor({
+    values: config.initial,
+    placeholder: config.placeholder,
+    readonly: config.readonly,
+    onAdd: config.onAdd,
+    onRemove: config.onRemove,
+  });
+  wrap.appendChild(tagList.element);
+  return { element: wrap, tagList };
 }
 
 function textInput(placeholder: string, readonly: boolean): HTMLInputElement {

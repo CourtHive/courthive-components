@@ -180,6 +180,46 @@ export class ScoringEditorStore {
     return list.some((entry, i) => i !== excludeIndex && formatStringOf(entry) === trimmed);
   }
 
+  // Add a category filter (name or type) to an allowed-format entry.
+  // The entry is lifted to object form if it's still a bare string.
+  // De-dupes within the list (trimmed, case-sensitive — TODS category
+  // identifiers are case-sensitive in the rest of the engine).
+  addAllowedFormatCategory(
+    index: number,
+    kind: 'categoryNames' | 'categoryTypes',
+    value: string,
+  ): void {
+    if (this.isReadonly()) return;
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    const draft = deepClone(this.state.draft);
+    if (!draft.matchUpFormats?.[index]) return;
+    const entry = asMatchUpFormatEntry(draft.matchUpFormats[index]);
+    entry[kind] ??= [];
+    if (entry[kind]!.includes(trimmed)) return;
+    entry[kind]!.push(trimmed);
+    draft.matchUpFormats[index] = entry;
+    this.commitDraft(draft);
+  }
+
+  removeAllowedFormatCategory(
+    index: number,
+    kind: 'categoryNames' | 'categoryTypes',
+    valueIndex: number,
+  ): void {
+    if (this.isReadonly()) return;
+    const draft = deepClone(this.state.draft);
+    const entryRaw = draft.matchUpFormats?.[index];
+    if (!entryRaw) return;
+    const entry = asMatchUpFormatEntry(entryRaw);
+    const list = entry[kind];
+    if (!list) return;
+    list.splice(valueIndex, 1);
+    if (list.length === 0) delete entry[kind];
+    draft.matchUpFormats![index] = entry;
+    this.commitDraft(draft);
+  }
+
   // ───── Status code refinements ─────────────────────────
 
   addStatusCode(status: MatchUpStatusKey, value: string): void {
