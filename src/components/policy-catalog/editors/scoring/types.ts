@@ -41,6 +41,19 @@ export interface StageSequenceOverride {
   requireAllPositionsAssigned?: boolean;
 }
 
+// Allowed match-up format entries can ship as either a bare format
+// string OR the richer factory shape (used by TMX's built-in
+// POLICY_SCORING). The editor reads both shapes and writes the
+// canonical object shape on every add — matching what the factory
+// fixtures consume.
+export interface MatchUpFormatEntry {
+  matchUpFormat: string;
+  description?: string;
+  categoryNames?: string[];
+  categoryTypes?: string[];
+}
+export type AllowedFormatEntry = string | MatchUpFormatEntry;
+
 export interface ScoringPolicyData {
   // Catalog metadata (the catalog item carries name/source separately,
   // but the policy itself can also carry a `policyName` per the
@@ -49,7 +62,7 @@ export interface ScoringPolicyData {
 
   // Primary scoring rules
   defaultMatchUpFormat?: string;
-  matchUpFormats?: string[];
+  matchUpFormats?: AllowedFormatEntry[];
   requireParticipantsForScoring?: boolean;
   requireAllPositionsAssigned?: boolean;
   allowChangePropagation?: boolean;

@@ -8,7 +8,7 @@
  * (panel update) and the config.onChange callback (catalog persistence).
  */
 
-import { emptyScoringPolicy } from './domain/scoringProjections';
+import { emptyScoringPolicy, formatStringOf } from './domain/scoringProjections';
 import type {
   ScoringPolicyData,
   ScoringEditorState,
@@ -135,8 +135,13 @@ export class ScoringEditorStore {
     if (!trimmed) return;
     const draft = deepClone(this.state.draft);
     draft.matchUpFormats ??= [];
-    if (draft.matchUpFormats.includes(trimmed)) return; // de-dup; treat re-add as no-op
-    draft.matchUpFormats.push(trimmed);
+    // De-dup against either shape (string or object entry).
+    const exists = draft.matchUpFormats.some((entry) => formatStringOf(entry) === trimmed);
+    if (exists) return;
+    // Write the richer factory shape so the saved policy round-trips
+    // cleanly with the rest of the catalog (TMX's built-in policy uses
+    // { matchUpFormat, description? } entries).
+    draft.matchUpFormats.push({ matchUpFormat: trimmed });
     this.commitDraft(draft);
   }
 

@@ -10,7 +10,19 @@
  *   builder + free-text fallback.
  */
 
-import type { ScoringPolicyData, MatchUpFormatPreset } from '../types';
+import type { ScoringPolicyData, MatchUpFormatPreset, AllowedFormatEntry } from '../types';
+
+// matchUpFormats entries can be either a bare string or the richer
+// { matchUpFormat, description, ... } object shape (TMX ships the
+// latter for its built-in POLICY_SCORING). Display chips always need
+// the format string itself.
+export function formatStringOf(entry: AllowedFormatEntry): string {
+  return typeof entry === 'string' ? entry : entry.matchUpFormat;
+}
+
+export function formatDescriptionOf(entry: AllowedFormatEntry): string | undefined {
+  return typeof entry === 'string' ? undefined : entry.description;
+}
 
 // The factory default uses FORMAT_STANDARD = 'SET3-S:6/TB7'. Hard-coding
 // the literal here avoids a dev-time runtime dependency on the factory

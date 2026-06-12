@@ -10,6 +10,7 @@ import { matchUpFormatCode } from 'tods-competition-factory';
 import type { ScoringEditorState } from '../types';
 import type { ScoringEditorStore } from '../scoringEditorStore';
 import { buildTagListEditor } from './tagListEditor';
+import { formatStringOf } from '../domain/scoringProjections';
 
 export function buildAllowedFormatsSection(store: ScoringEditorStore): {
   element: HTMLElement;
@@ -24,7 +25,7 @@ export function buildAllowedFormatsSection(store: ScoringEditorStore): {
   root.appendChild(help);
 
   const tagList = buildTagListEditor({
-    values: store.getData().matchUpFormats ?? [],
+    values: (store.getData().matchUpFormats ?? []).map(formatStringOf),
     placeholder: 'e.g. SET3-S:6/TB7',
     readonly: store.isReadonly(),
     validate: (value) => !!matchUpFormatCode.parse?.(value),
@@ -35,7 +36,7 @@ export function buildAllowedFormatsSection(store: ScoringEditorStore): {
   root.appendChild(tagList.element);
 
   function update(state: ScoringEditorState): void {
-    tagList.setValues(state.draft.matchUpFormats ?? []);
+    tagList.setValues((state.draft.matchUpFormats ?? []).map(formatStringOf));
   }
 
   return { element: root, update };
