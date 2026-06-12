@@ -106,13 +106,3 @@ export interface ScoringEditorConfig {
   onChange?: (policy: ScoringPolicyData) => void;
 }
 
-// A curated matchUp-format preset surfaced in the picker dropdown.
-// The picker also accepts arbitrary format strings; presets just make
-// the common cases one-click.
-export interface MatchUpFormatPreset {
-  label: string;
-  // Short, sport-tagged description shown beneath the label in the dropdown.
-  description?: string;
-  format: string;
-  sport: 'tennis' | 'pickleball' | 'padel' | 'squash' | 'badminton' | 'table-tennis' | 'other';
-}

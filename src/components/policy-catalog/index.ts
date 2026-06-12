@@ -85,7 +85,8 @@ export {
 export {
   ScoringEditorControl,
   createScoringEditor,
-  MATCH_UP_FORMAT_PRESETS,
+  MATCH_UP_FORMAT_REGISTRY_SORTED,
+  lookupRegistryFormat,
   emptyScoringPolicy,
   FORMAT_STANDARD,
 } from './editors/scoring';
@@ -93,7 +94,8 @@ export type {
   ScoringPolicyData,
   ScoringEditorConfig,
   MatchUpStatusKey,
-  MatchUpFormatPreset,
+  MatchUpFormatEntry,
+  AllowedFormatEntry,
 } from './editors/scoring';
 
 // ============================================================================

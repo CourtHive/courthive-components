@@ -24,7 +24,11 @@
  */
 
 import { matchUpFormatCode } from 'tods-competition-factory';
-import { MATCH_UP_FORMAT_PRESETS, findPresetByFormat, FORMAT_STANDARD } from '../domain/scoringProjections';
+import {
+  MATCH_UP_FORMAT_REGISTRY_SORTED,
+  lookupRegistryFormat,
+  FORMAT_STANDARD,
+} from '../domain/scoringProjections';
 
 export interface MatchUpFormatPickerConfig {
   initialValue?: string;
@@ -223,10 +227,13 @@ export function buildMatchUpFormatPicker(config: MatchUpFormatPickerConfig): Mat
   presetLabel.className = CLASS_FORMAT_LABEL;
   const presetSelect = document.createElement('select');
   presetSelect.className = CLASS_FORMAT_SELECT;
-  for (const preset of MATCH_UP_FORMAT_PRESETS) {
+  // Sourced from matchUpFormat/matchUpFormats.json — the same registry
+  // the runtime MatchUp Format Dialog reads, so the names operators see
+  // in this dropdown match exactly what they see at scoring time.
+  for (const preset of MATCH_UP_FORMAT_REGISTRY_SORTED) {
     const opt = document.createElement('option');
-    opt.value = preset.format;
-    opt.textContent = preset.description ? `${preset.label} — ${preset.description}` : preset.label;
+    opt.value = preset.format ?? '';
+    opt.textContent = preset.desc ? `${preset.name} — ${preset.desc}` : preset.name ?? '';
     presetSelect.appendChild(opt);
   }
   const customOption = document.createElement('option');
@@ -295,8 +302,8 @@ export function buildMatchUpFormatPicker(config: MatchUpFormatPickerConfig): Mat
   }
 
   function syncTopLevel(): void {
-    const matchedPreset = findPresetByFormat(current);
-    if (matchedPreset) {
+    const matchedPreset = lookupRegistryFormat(current);
+    if (matchedPreset?.format) {
       presetSelect.value = matchedPreset.format;
       customRow.style.display = 'none';
     } else {
