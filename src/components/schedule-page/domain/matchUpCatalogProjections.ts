@@ -70,6 +70,42 @@ export function computeBaseRoundByEvent(catalog: CatalogMatchUpItem[]): Map<stri
   return base;
 }
 
+// Labels for non-MAIN stages \u2014 used as the structure-label fallback
+// when the factory hasn't surfaced an explicit structureName. MAIN +
+// undefined intentionally absent: those groups render as just the
+// event name (no suffix).
+const STAGE_LABEL: Record<string, string> = {
+  CONSOLATION: 'Consolation',
+  PLAYOFF: 'Playoff',
+  QUALIFYING: 'Qualifying',
+  ROUND_ROBIN: 'Round Robin',
+  PLAY_OFF: 'Playoff',
+  Q_PLAYOFF: 'Qualifying Playoff',
+  COMPASS: 'Compass',
+  VOLUNTARY_CONSOLATION: 'Voluntary Consolation',
+};
+
+const TIME_UNSCHEDULED = 'Unscheduled';
+
+function structureLabel(item: CatalogMatchUpItem): string {
+  // Factory-surfaced name takes precedence (rarely user-edited, but
+  // when set carries the full canonical structure label).
+  if (item.structureName && item.structureName.trim()) return item.structureName.trim();
+  const stage = item.stage;
+  if (!stage || stage === 'MAIN') return '';
+  return STAGE_LABEL[stage] ?? stage.charAt(0) + stage.slice(1).toLowerCase().replace(/_/g, ' ');
+}
+
+function minTimeInGroup(items: CatalogMatchUpItem[]): string | undefined {
+  let earliest: string | undefined;
+  for (const item of items) {
+    const t = item.scheduledTime;
+    if (!t) continue;
+    if (earliest === undefined || t.localeCompare(earliest) < 0) earliest = t;
+  }
+  return earliest;
+}
+
 export function groupMatchUpCatalog(
   items: CatalogMatchUpItem[],
   mode: MatchUpCatalogGroupBy
@@ -79,7 +115,11 @@ export function groupMatchUpCatalog(
   const keyFn = (it: CatalogMatchUpItem): string => {
     if (mode === 'draw') return `${it.eventName} \u2014 ${it.drawName ?? it.drawId}`;
     if (mode === 'round') return it.roundName ?? `Round ${it.roundNumber}`;
-    if (mode === 'structure') return `${it.eventName} \u2014 ${it.structureId}`;
+    if (mode === 'structure') {
+      const suffix = structureLabel(it);
+      return suffix ? `${it.eventName} \u2014 ${suffix}` : it.eventName;
+    }
+    if (mode === 'time') return it.scheduledTime ?? TIME_UNSCHEDULED;
     return it.eventName;
   };
 
@@ -90,5 +130,20 @@ export function groupMatchUpCatalog(
     else m.set(k, [it]);
   }
 
-  return new Map([...m.entries()].sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true })));
+  // Smart sort: order top-line groups by the earliest scheduledTime
+  // they contain so the group whose next matchUp starts soonest sits
+  // at the top. Groups whose items are unscheduled (no scheduledTime
+  // anywhere) sink to the bottom. Within an equal-time tier, fall
+  // back to natural-numeric alpha sort on the key so "Round 2"
+  // precedes "Round 10" rather than the per-character default.
+  return new Map(
+    [...m.entries()].sort((a, b) => {
+      const at = minTimeInGroup(a[1]);
+      const bt = minTimeInGroup(b[1]);
+      if (at !== undefined && bt !== undefined && at !== bt) return at.localeCompare(bt);
+      if (at !== undefined && bt === undefined) return -1;
+      if (at === undefined && bt !== undefined) return 1;
+      return a[0].localeCompare(b[0], undefined, { numeric: true });
+    }),
+  );
 }

@@ -27,6 +27,12 @@ export interface CatalogMatchUpItem {
   drawId: string;
   drawName?: string;
   structureId: string;
+  /** Human-readable structure label set by the factory (e.g. "Main",
+   *  "Consolation", "Compass NE"). Optional because some structures
+   *  ship without one — the catalog falls back to a labeled stage and
+   *  finally the eventName alone so the "by structure" group header
+   *  never shows a raw structureId GUID. */
+  structureName?: string;
   /** Draw stage — MAIN / CONSOLATION / PLAYOFF / QUALIFYING / ROUND_ROBIN /
    *  etc. Rendered as a chip when present and not MAIN so a Quarterfinal in
    *  the consolation bracket reads distinctly from a Quarterfinal in the
@@ -79,7 +85,7 @@ export interface ScheduleIssue {
 // Catalog GroupBy
 // ============================================================================
 
-export type MatchUpCatalogGroupBy = 'event' | 'draw' | 'round' | 'structure';
+export type MatchUpCatalogGroupBy = 'event' | 'draw' | 'round' | 'structure' | 'time';
 
 // ============================================================================
 // Catalog Filters
