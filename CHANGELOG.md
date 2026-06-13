@@ -1,5 +1,23 @@
 # Changelog
 
+## [3.4.0](https://github.com/CourtHive/courthive-components/compare/v3.3.0...v3.4.0) (2026-06-13)
+
+
+### Features
+
+* **policy-catalog:** structured scoring policy editor ([e7d5ac4](https://github.com/CourtHive/courthive-components/commit/e7d5ac4fe7695fc38a9feca7167415907fa6380e))
+* **schedule:** time grouping + smart sort + structure label cleanup ([6439442](https://github.com/CourtHive/courthive-components/commit/643944212dc7e4bb5c7cd61dd62ec96e3e7b7598))
+* **scoring-editor:** per-row category filters + name/description fallback from registry ([a779266](https://github.com/CourtHive/courthive-components/commit/a77926688e6e302e4d4ded87cfd117fdf32d70a0))
+* **scoring-editor:** structured allowed-formats list with name + description ([89eb2b4](https://github.com/CourtHive/courthive-components/commit/89eb2b4e773875748b0a6d8a9688a3313690551a))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 5.6.0 ([6e31630](https://github.com/CourtHive/courthive-components/commit/6e31630576fcfaf3cce559ab6b3978d28e5e167a))
+* **policy-catalog:** enable scoring template + new-policy affordances ([3c2f4d6](https://github.com/CourtHive/courthive-components/commit/3c2f4d66a61169f1b9f6b0ba8deed49bf6134b02))
+* **scoring-editor:** break setValue feedback loop crashing editor mount ([4f9efe4](https://github.com/CourtHive/courthive-components/commit/4f9efe485932a738885cb674e393888ee9871e69))
+* **scoring-editor:** render matchUpFormats objects as their format string ([d08ec7c](https://github.com/CourtHive/courthive-components/commit/d08ec7cc898135d9bec2e3af9a6bacb5b4397845))
+
 ## [3.3.0](https://github.com/CourtHive/courthive-components/compare/v3.2.0...v3.3.0) (2026-06-12)
 
 
