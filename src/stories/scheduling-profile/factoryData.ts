@@ -260,8 +260,12 @@ export function createFactorySetup(options?: FactorySetupOptions): FactorySetup 
     name: v.venueName
   }));
 
-  // 4. Extract round catalog via getRounds()
-  const roundsResult = tournamentEngine.getRounds({ tournamentRecord: record });
+  // 4. Extract round catalog via getRounds(). The engine returns a
+  // discriminated union: { error, inContextMatchUps? } on failure,
+  // { rounds, excludedRounds, success } on success. The narrowing
+  // boilerplate isn't worth it for an internal helper that already
+  // tolerates the empty/error case with a fallback to [].
+  const roundsResult: any = tournamentEngine.getRounds({ tournamentRecord: record });
   const factoryRounds: any[] = roundsResult?.rounds || [];
 
   const roundCatalog: CatalogRoundItem[] = factoryRounds.map((r: any) => ({

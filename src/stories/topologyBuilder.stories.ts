@@ -9,7 +9,7 @@ import '../styles/theme.css';
 import '../styles/schematic.css';
 import '../components/topology-builder/ui/topology-builder.css';
 
-import type { Meta, StoryObj } from '@storybook/html';
+import type { Meta, StoryObj } from '@storybook/html-vite';
 import { TopologyBuilderControl } from '../components/topology-builder/controller/topologyBuilderControl';
 import { standardTemplates } from '../components/topology-builder/domain/templates';
 import { topologyToDrawOptions } from '../components/topology-builder/domain/topologyToDrawOptions';

@@ -193,9 +193,12 @@ export const RoundTrip = {
         return;
       }
 
-      // Run the scheduler
+      // Run the scheduler. The engine returns a discriminated union;
+      // we widen to `any` here because the story isn't type-checking
+      // the engine's contract — it's just rendering whatever shape
+      // came back so the operator can inspect it.
       const scheduleDates = profile.map((d) => d.scheduleDate);
-      const scheduleResult = tournamentEngine.scheduleProfileRounds({ scheduleDates });
+      const scheduleResult: any = tournamentEngine.scheduleProfileRounds({ scheduleDates });
 
       // Display results
       const lines: string[] = ['=== Schedule Profile Rounds Result ===', ''];
@@ -350,7 +353,10 @@ export const PreScheduled = {
     let schedulerInfo = '';
     if (!setResult?.error) {
       const scheduleDates = spreadProfile.map((d) => d.scheduleDate);
-      const scheduleResult = tournamentEngine.scheduleProfileRounds({ scheduleDates });
+      // The factory's scheduleProfileRounds union now narrows in TS;
+      // this story renders whichever shape comes back, so widen to
+      // any for the inspector-style read access.
+      const scheduleResult: any = tournamentEngine.scheduleProfileRounds({ scheduleDates });
       const scheduledIds = scheduleResult?.scheduledMatchUpIds || {};
       let totalScheduled = 0;
       for (const ids of Object.values(scheduledIds)) {

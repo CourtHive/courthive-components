@@ -5,7 +5,7 @@
  * Shows the pure state machine functionality.
  */
 
-import type { Meta, StoryObj } from '@storybook/html';
+import type { Meta, StoryObj } from '@storybook/html-vite';
 import { AvailabilityEngine, availability } from 'tods-competition-factory';
 const { calculateCapacityStats, courtOverlapEvaluator, dayBoundaryEvaluator } = availability;
 

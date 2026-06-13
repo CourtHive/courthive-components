@@ -27,7 +27,7 @@ import australianOpenData from '../data/burstChart/australian_open.json';
 import rolandGarrosData from '../data/burstChart/roland_garros.json';
 import wimbledonData from '../data/burstChart/wimbledon.json';
 
-import type { Meta, StoryObj } from '@storybook/html';
+import type { Meta, StoryObj } from '@storybook/html-vite';
 
 const { SINGLE_ELIMINATION } = drawDefinitionConstants;
 const { BYE } = matchUpStatusConstants;

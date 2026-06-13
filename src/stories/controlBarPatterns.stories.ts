@@ -3,7 +3,7 @@
  *
  * This file provides comprehensive documentation for using the ControlBar component.
  */
-import type { Meta, StoryObj } from '@storybook/html';
+import type { Meta, StoryObj } from '@storybook/html-vite';
 
 const meta: Meta = {
   title: 'Components/ControlBar/Patterns & Best Practices',

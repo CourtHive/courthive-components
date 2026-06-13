@@ -5,7 +5,7 @@
  * Shows each evaluator in isolation and combined scenarios.
  */
 
-import type { Meta, StoryObj } from '@storybook/html';
+import type { Meta, StoryObj } from '@storybook/html-vite';
 import { AvailabilityEngine, availability } from 'tods-competition-factory';
 const {
   courtOverlapEvaluator,

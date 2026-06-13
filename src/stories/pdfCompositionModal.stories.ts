@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/html';
+import type { Meta, StoryObj } from '@storybook/html-vite';
 import { openCompositionEditorModal } from '../components/modal/compositionEditorModal';
 import { openScheduleCellConfigModal } from '../components/modal/scheduleCellConfigModal';
 import type { CompositionEditorResult } from '../components/modal/compositionEditorModal';

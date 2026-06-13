@@ -571,8 +571,14 @@ export function buildIssuesFromFactory(selectedDate?: string): ScheduleIssue[] {
 
   if (!scheduledMatchUps.length) return [];
 
+  // proConflicts returns a discriminated union: { error, info? } on
+  // failure, { courtIssues, rowIssues } on success. The `in` checks
+  // (and the cast away from the error variant via the early return)
+  // are how we land on the success branch so courtIssues/rowIssues
+  // are accessible without TS narrowing complaints.
   const conflictsResult = tournamentEngine.proConflicts({ matchUps: scheduledMatchUps });
-  if (conflictsResult.error) return [];
+  if ('error' in conflictsResult && conflictsResult.error) return [];
+  if (!('courtIssues' in conflictsResult)) return [];
 
   const issues: ScheduleIssue[] = [];
 

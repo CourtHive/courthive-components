@@ -2,7 +2,7 @@
  * Interaction tests for matchUpFormat modal
  * Tests the final set tiebreak initialization bug fix
  */
-import type { Meta, StoryObj } from '@storybook/html';
+import type { Meta, StoryObj } from '@storybook/html-vite';
 import { within, waitFor, userEvent, expect } from 'storybook/test';
 import { getMatchUpFormatModal } from '../components/matchUpFormat/matchUpFormat';
 

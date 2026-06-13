@@ -16,7 +16,7 @@
 import '../components/controlBar/controlBar.css';
 import '../styles/tabulator.css';
 
-import type { Meta, StoryObj } from '@storybook/html';
+import type { Meta, StoryObj } from '@storybook/html-vite';
 import { controlBar } from '../components/controlBar/controlBar';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { mocksEngine, tournamentEngine, genderConstants, participantConstants } from 'tods-competition-factory';

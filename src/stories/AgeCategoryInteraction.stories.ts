@@ -1,7 +1,7 @@
 /**
  * Interaction stories for Age Category Code modal
  */
-import type { Meta, StoryObj } from '@storybook/html';
+import type { Meta, StoryObj } from '@storybook/html-vite';
 import { getAgeCategoryModal } from '../components/categories/ageCategory/ageCategory';
 import { eventGovernor } from 'tods-competition-factory';
 
