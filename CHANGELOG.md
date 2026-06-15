@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.2](https://github.com/CourtHive/courthive-components/compare/v3.4.1...v3.4.2) (2026-06-15)
+
+
+### Bug Fixes
+
+* **deps:** pin tods-competition-factory to 5.6.0 for publish ([3e20463](https://github.com/CourtHive/courthive-components/commit/3e20463ac2a48a69b3e90c0aa776a36d1041b561))
+
 ## [3.4.1](https://github.com/CourtHive/courthive-components/compare/v3.4.0...v3.4.1) (2026-06-15)
 
 
