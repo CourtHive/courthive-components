@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.1](https://github.com/CourtHive/courthive-components/compare/v3.4.0...v3.4.1) (2026-06-15)
+
+
+### Bug Fixes
+
+* **cards:** delegate matchUp walks to factory queries for nested-structure correctness ([bc5f1d2](https://github.com/CourtHive/courthive-components/commit/bc5f1d2ba2317c5a2b6f181822bd16306f80ea1a))
+
 ## [3.4.0](https://github.com/CourtHive/courthive-components/compare/v3.3.0...v3.4.0) (2026-06-15)
 
 
