@@ -48,12 +48,14 @@ describe('mapEventToCardData', () => {
       eventId: 'e1',
       drawDefinitions: [
         {
+          drawId: 'd1',
           structures: [
             {
+              structureId: 's1',
               matchUps: [
-                { winningSide: 1 },
-                { winningSide: 0, schedule: { scheduledTime: '12:00' } },
-                { matchUpStatus: 'IN_PROGRESS' }
+                { matchUpId: 'm1', winningSide: 1 },
+                { matchUpId: 'm2', winningSide: 0, schedule: { scheduledTime: '12:00' } },
+                { matchUpId: 'm3', matchUpStatus: 'IN_PROGRESS' }
               ]
             }
           ]
@@ -62,6 +64,113 @@ describe('mapEventToCardData', () => {
     };
     const out = mapEventToCardData(event, { now: NOW });
     expect(out.matchUpCounts).toEqual({ total: 3, completed: 1, scheduled: 1, inProgress: 1 });
+  });
+
+  // Regression: Round Robin draws nest real matchUps in `structure.structures[].matchUps`
+  // (CONTAINER -> ITEM groups). The hand-rolled walker only iterated
+  // `draw.structures[].matchUps` and missed every RR matchUp; the factory's
+  // `allEventMatchUps` walks the nested ITEM groups correctly.
+  it('counts matchUps nested inside RR CONTAINER->ITEM structures', () => {
+    const event = {
+      eventId: 'e-rr',
+      drawDefinitions: [
+        {
+          drawId: 'd-rr',
+          drawType: 'ROUND_ROBIN',
+          structures: [
+            {
+              structureId: 's-main',
+              structureType: 'CONTAINER',
+              stage: 'MAIN',
+              matchUps: [],
+              structures: [
+                {
+                  structureId: 's-grp-1',
+                  structureType: 'ITEM',
+                  stage: 'MAIN',
+                  matchUps: [
+                    { matchUpId: 'g1-r1', winningSide: 1 },
+                    { matchUpId: 'g1-r2', winningSide: 2 },
+                    { matchUpId: 'g1-r3', winningSide: 1 }
+                  ]
+                },
+                {
+                  structureId: 's-grp-2',
+                  structureType: 'ITEM',
+                  stage: 'MAIN',
+                  matchUps: [
+                    { matchUpId: 'g2-r1', winningSide: 1 },
+                    { matchUpId: 'g2-r2', winningSide: 2 },
+                    { matchUpId: 'g2-r3', matchUpStatus: 'IN_PROGRESS' }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    };
+    const out = mapEventToCardData(event, { now: NOW });
+    expect(out.matchUpCounts).toEqual({ total: 6, completed: 5, scheduled: 0, inProgress: 1 });
+  });
+
+  // Regression: when an event has both a fully-completed RR draw and an unstarted
+  // SE draw, the event card aggregates across them. The hand-rolled walker
+  // reported 0/15 (missed the RR entirely + counted only the SE); the factory
+  // path reports 36/51 (or, in this small fixture, 6/9).
+  it('aggregates matchUp counts across multiple drawDefinitions within an event', () => {
+    const event = {
+      eventId: 'e-mix',
+      drawDefinitions: [
+        // RR — 6 matchUps, all completed, nested in CONTAINER->ITEM
+        {
+          drawId: 'd-rr',
+          drawType: 'ROUND_ROBIN',
+          structures: [
+            {
+              structureId: 's-rr-main',
+              structureType: 'CONTAINER',
+              stage: 'MAIN',
+              matchUps: [],
+              structures: [
+                {
+                  structureId: 's-rr-grp',
+                  structureType: 'ITEM',
+                  stage: 'MAIN',
+                  matchUps: [
+                    { matchUpId: 'r1', winningSide: 1 },
+                    { matchUpId: 'r2', winningSide: 2 },
+                    { matchUpId: 'r3', winningSide: 1 },
+                    { matchUpId: 'r4', winningSide: 2 },
+                    { matchUpId: 'r5', winningSide: 1 },
+                    { matchUpId: 'r6', winningSide: 2 }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        // SE — 3 matchUps, all unstarted/TO_BE_PLAYED
+        {
+          drawId: 'd-se',
+          drawType: 'SINGLE_ELIMINATION',
+          structures: [
+            {
+              structureId: 's-se-main',
+              structureType: 'ITEM',
+              stage: 'MAIN',
+              matchUps: [
+                { matchUpId: 's1', matchUpStatus: 'TO_BE_PLAYED' },
+                { matchUpId: 's2', matchUpStatus: 'TO_BE_PLAYED' },
+                { matchUpId: 's3', matchUpStatus: 'TO_BE_PLAYED' }
+              ]
+            }
+          ]
+        }
+      ]
+    };
+    const out = mapEventToCardData(event, { now: NOW });
+    expect(out.matchUpCounts).toEqual({ total: 9, completed: 6, scheduled: 0, inProgress: 0 });
   });
 
   it('respects matchUpStats override', () => {

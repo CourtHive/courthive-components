@@ -1,9 +1,14 @@
 /**
  * Draw Card — Data Mapper
  *
- * Pure function: TODS drawDefinition → flat DrawCardData.
- * Caller decides whether to walk matchUps (`lightMode: true` skips it).
+ * TODS drawDefinition → flat DrawCardData. MatchUp counts come from the
+ * factory's `getAllDrawMatchUps` so every structure shape (RR CONTAINER →
+ * nested ITEM groups, DE feed-ins, BYEs, etc.) is handled the same way the
+ * factory handles it everywhere else. Caller can skip the walk with
+ * `lightMode: true` or override with a pre-computed `matchUpStats`.
  */
+
+import { tournamentEngine } from 'tods-competition-factory';
 
 import { DrawCardData, DrawMatchUpCounts, DrawStatusPill } from './types';
 
@@ -35,18 +40,17 @@ function labelForDrawType(code: string | undefined): string | undefined {
     .join(' ');
 }
 
-function walkDrawMatchUps(drawDefinition: any): DrawMatchUpCounts {
+function countDrawMatchUps(drawDefinition: any): DrawMatchUpCounts {
+  const { matchUps = [] } = tournamentEngine.getAllDrawMatchUps({ drawDefinition });
   let total = 0;
   let completed = 0;
   let scheduled = 0;
   let inProgress = 0;
-  for (const structure of drawDefinition?.structures ?? []) {
-    for (const matchUp of structure?.matchUps ?? []) {
-      total += 1;
-      if (matchUp?.winningSide || matchUp?.matchUpStatus === 'BYE') completed += 1;
-      else if (matchUp?.schedule?.scheduledTime) scheduled += 1;
-      if (matchUp?.matchUpStatus === 'IN_PROGRESS') inProgress += 1;
-    }
+  for (const matchUp of matchUps as any[]) {
+    total += 1;
+    if (matchUp?.winningSide || matchUp?.matchUpStatus === 'BYE') completed += 1;
+    else if (matchUp?.schedule?.scheduledTime) scheduled += 1;
+    if (matchUp?.matchUpStatus === 'IN_PROGRESS') inProgress += 1;
   }
   return { total, completed, scheduled, inProgress };
 }
@@ -94,7 +98,7 @@ export function mapDrawDefinitionToCardData(drawDefinition: any, options?: MapDr
   const generated = Array.isArray(drawDefinition?.structures) && drawDefinition.structures.length > 0;
   const matchUpCounts =
     options?.matchUpStats ??
-    (options?.lightMode || !generated ? undefined : walkDrawMatchUps(drawDefinition));
+    (options?.lightMode || !generated ? undefined : countDrawMatchUps(drawDefinition));
 
   const cancelled = drawDefinition?.drawStatus === 'CANCELLED';
   const status =

@@ -1,9 +1,14 @@
 /**
  * Event Card — Data Mapper
  *
- * Pure function: TODS event record -> flat EventCardData.
- * Caller decides whether to walk matchUps (`lightMode: true` skips it).
+ * TODS event record -> flat EventCardData. MatchUp counts come from the
+ * factory's `allEventMatchUps`, which aggregates across every drawDefinition
+ * in the event and walks every structure shape correctly (RR CONTAINER →
+ * nested ITEM groups, DE feed-ins, BYEs, etc.). Caller can skip the walk
+ * with `lightMode: true` or override with a pre-computed `matchUpStats`.
  */
+
+import { tournamentEngine } from 'tods-competition-factory';
 
 import { extractCourtSvgSport, extractImageURL, formatDateRange } from '../../helpers/cards';
 import { EventCardData, EventGenderKind, EventMatchUpCounts, EventStatusPill, EventTypeKind } from './types';
@@ -79,20 +84,17 @@ function deriveDrawSummary(drawDefinitions: any[]): string | undefined {
 // MatchUp walk (only when not lightMode)
 // ============================================================================
 
-function walkMatchUps(drawDefinitions: any[]): EventMatchUpCounts {
+function countEventMatchUps(event: any): EventMatchUpCounts {
+  const { matchUps = [] } = tournamentEngine.allEventMatchUps({ event }) ?? {};
   let total = 0;
   let completed = 0;
   let scheduled = 0;
   let inProgress = 0;
-  for (const draw of drawDefinitions) {
-    for (const structure of draw?.structures ?? []) {
-      for (const matchUp of structure?.matchUps ?? []) {
-        total += 1;
-        if (matchUp?.winningSide) completed += 1;
-        else if (matchUp?.schedule?.scheduledTime) scheduled += 1;
-        if (matchUp?.matchUpStatus === 'IN_PROGRESS') inProgress += 1;
-      }
-    }
+  for (const matchUp of matchUps as any[]) {
+    total += 1;
+    if (matchUp?.winningSide || matchUp?.matchUpStatus === 'BYE') completed += 1;
+    else if (matchUp?.schedule?.scheduledTime) scheduled += 1;
+    if (matchUp?.matchUpStatus === 'IN_PROGRESS') inProgress += 1;
   }
   return { total, completed, scheduled, inProgress };
 }
@@ -172,8 +174,7 @@ export function mapEventToCardData(event: any, options?: MapEventOptions): Event
   const resources = Array.isArray(event?.onlineResources) ? event.onlineResources : undefined;
 
   const matchUpCounts =
-    options?.matchUpStats ??
-    (options?.lightMode ? undefined : walkMatchUps(drawDefinitions));
+    options?.matchUpStats ?? (options?.lightMode ? undefined : countEventMatchUps(event));
 
   const status =
     options?.statusOverride !== undefined
