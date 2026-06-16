@@ -48,7 +48,11 @@ export function mapTournamentToCardData(tournament: any, options?: MapTournament
             startDate: tournament?.startDate,
             endDate: tournament?.endDate,
             entriesOpen: tournament?.registrationProfile?.entriesOpen,
-            entriesClose: tournament?.registrationProfile?.entriesClose
+            entriesClose: tournament?.registrationProfile?.entriesClose,
+            // IANA zone (e.g. "America/New_York"). When absent the resolver
+            // falls back to the host machine's local timezone — for TMX that
+            // is the TD's own laptop, which is the right default.
+            timeZone: tournament?.timeZone
           },
           options?.now
         );
