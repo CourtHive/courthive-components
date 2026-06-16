@@ -85,7 +85,14 @@ function deriveDrawSummary(drawDefinitions: any[]): string | undefined {
 // ============================================================================
 
 function countEventMatchUps(event: any): EventMatchUpCounts {
-  const { matchUps = [] } = tournamentEngine.allEventMatchUps({ event }) ?? {};
+  // Pass the full `event` (rather than `eventId`) because this helper is
+  // designed to work without tournament-engine state — Storybook, admin-
+  // client, and any consumer that hasn't called `setState` rely on the
+  // factory's convenience of walking a passed-in event. `inContext: false`
+  // skips the per-side participant/draw/event enrichment we don't read in
+  // this loop — only winningSide, matchUpStatus, and schedule.scheduledTime
+  // matter, and the enrichment was the bulk of the per-call cost.
+  const { matchUps = [] } = tournamentEngine.allEventMatchUps({ event, inContext: false }) ?? {};
   let total = 0;
   let completed = 0;
   let scheduled = 0;
