@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.4.3](https://github.com/CourtHive/courthive-components/compare/v3.4.2...v3.4.3) (2026-06-16)
+
+
+### Bug Fixes
+
+* **tournament-card:** accept legacy 'timeZone' shorthand alongside canonical 'localTimeZone' ([e7cf037](https://github.com/CourtHive/courthive-components/commit/e7cf0371827998b486120983c795f5d6098eac9f))
+* **tournament-card:** treat startDate/endDate as inclusive zoned-day boundaries ([f663302](https://github.com/CourtHive/courthive-components/commit/f663302b02e3fbf9f79bbf80adb5b5a5da7735e2))
+
+
+### Performance
+
+* **event-card:** drop inContext enrichment from cards-view matchUp walk ([293d8bb](https://github.com/CourtHive/courthive-components/commit/293d8bb15b32b9c845a179547ba0664c3647a20c))
+
 ## [3.4.2](https://github.com/CourtHive/courthive-components/compare/v3.4.1...v3.4.2) (2026-06-15)
 
 
