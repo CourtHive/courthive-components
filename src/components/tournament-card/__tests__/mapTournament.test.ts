@@ -2,6 +2,7 @@ import { mapTournamentToCardData } from '../mapTournament';
 import { describe, it, expect } from 'vitest';
 
 const NOW = new Date('2026-05-17T12:00:00Z');
+const MAY_17 = '2026-05-17';
 
 describe('mapTournamentToCardData', () => {
   it('returns empty defaults for null input', () => {
@@ -110,6 +111,40 @@ describe('mapTournamentToCardData', () => {
       { now: NOW, statusOverride: null }
     );
     expect(out.status).toBeNull();
+  });
+
+  // The TODS canonical field is `localTimeZone`. Some inbound payloads use
+  // `timeZone` as a shorthand — accept either so the chip reflects the
+  // tournament's actual local-day boundary regardless of which dialect the
+  // caller hands us. Without this, a tournament with `timeZone` only would
+  // silently fall through to host-local resolution.
+  it('forwards localTimeZone to the status resolver (canonical field)', () => {
+    // NY is UTC-4 in May. endDate "2026-05-17" in NY runs through 03:59 UTC
+    // on the 18th. At 04:00 UTC on the 17th (= midnight NY) the tournament
+    // is Live; at 03:59 UTC on the 18th it's still Live.
+    const out = mapTournamentToCardData(
+      {
+        tournamentId: 't1',
+        startDate: MAY_17,
+        endDate: MAY_17,
+        localTimeZone: 'America/New_York'
+      },
+      { now: new Date('2026-05-18T03:59:59Z') }
+    );
+    expect(out.status?.kind).toBe('live');
+  });
+
+  it('forwards the legacy `timeZone` shorthand when localTimeZone is absent', () => {
+    const out = mapTournamentToCardData(
+      {
+        tournamentId: 't1',
+        startDate: MAY_17,
+        endDate: MAY_17,
+        timeZone: 'America/New_York'
+      },
+      { now: new Date('2026-05-18T03:59:59Z') }
+    );
+    expect(out.status?.kind).toBe('live');
   });
 
   describe('tournamentTier', () => {

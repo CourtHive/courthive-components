@@ -49,10 +49,13 @@ export function mapTournamentToCardData(tournament: any, options?: MapTournament
             endDate: tournament?.endDate,
             entriesOpen: tournament?.registrationProfile?.entriesOpen,
             entriesClose: tournament?.registrationProfile?.entriesClose,
-            // IANA zone (e.g. "America/New_York"). When absent the resolver
-            // falls back to the host machine's local timezone — for TMX that
-            // is the TD's own laptop, which is the right default.
-            timeZone: tournament?.timeZone
+            // IANA zone (e.g. "America/New_York"). Canonical TODS field is
+            // `localTimeZone`; some external payload shapes use `timeZone`
+            // as a shorthand — accept both so the chip behaves correctly
+            // regardless of which dialect the consumer hands us. When
+            // neither is present the resolver falls back to the host
+            // machine's local timezone (the TD's own laptop in TMX).
+            timeZone: tournament?.localTimeZone || tournament?.timeZone
           },
           options?.now
         );
