@@ -47,8 +47,12 @@ function countDrawMatchUps(drawDefinition: any): DrawMatchUpCounts {
   let scheduled = 0;
   let inProgress = 0;
   for (const matchUp of matchUps as any[]) {
+    // BYEs are not real matches — exclude them from BOTH the total and the
+    // completed count, otherwise a draw full of first-round byes reads as
+    // partially "played" before anyone has stepped on court.
+    if (matchUp?.matchUpStatus === 'BYE' || matchUp?.matchUpStatus === 'DOUBLE_BYE') continue;
     total += 1;
-    if (matchUp?.winningSide || matchUp?.matchUpStatus === 'BYE') completed += 1;
+    if (matchUp?.winningSide) completed += 1;
     else if (matchUp?.schedule?.scheduledTime) scheduled += 1;
     if (matchUp?.matchUpStatus === 'IN_PROGRESS') inProgress += 1;
   }

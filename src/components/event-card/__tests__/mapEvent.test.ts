@@ -66,6 +66,33 @@ describe('mapEventToCardData', () => {
     expect(out.matchUpCounts).toEqual({ total: 3, completed: 1, scheduled: 1, inProgress: 1 });
   });
 
+  // Regression: BYE matchUps must NOT count toward total or completed, otherwise a
+  // draw full of first-round byes reads as partially played before anyone steps on
+  // court (e.g. 64-draw with 38 entries → 26 byes showed 26/63 ≈ 41%).
+  it('excludes BYE matchUps from total and completed', () => {
+    const event = {
+      eventId: 'e1',
+      drawDefinitions: [
+        {
+          drawId: 'd1',
+          structures: [
+            {
+              structureId: 's1',
+              matchUps: [
+                { matchUpId: 'b1', matchUpStatus: 'BYE' },
+                { matchUpId: 'b2', matchUpStatus: 'BYE' },
+                { matchUpId: 'm1', matchUpStatus: 'TO_BE_PLAYED', schedule: { scheduledTime: '08:00' } },
+                { matchUpId: 'm2', winningSide: 1 }
+              ]
+            }
+          ]
+        }
+      ]
+    };
+    const out = mapEventToCardData(event, { now: NOW });
+    expect(out.matchUpCounts).toEqual({ total: 2, completed: 1, scheduled: 1, inProgress: 0 });
+  });
+
   // Regression: Round Robin draws nest real matchUps in `structure.structures[].matchUps`
   // (CONTAINER -> ITEM groups). The hand-rolled walker only iterated
   // `draw.structures[].matchUps` and missed every RR matchUp; the factory's
