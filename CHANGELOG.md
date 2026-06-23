@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.4.4](https://github.com/CourtHive/courthive-components/compare/v3.4.3...v3.4.4) (2026-06-23)
+
+
+### Bug Fixes
+
+* **cards:** exclude BYE matchUps from event/draw card completion counts ([c26e1c8](https://github.com/CourtHive/courthive-components/commit/c26e1c893d1ea3e2396882e940a91857dfa2bb80))
+* **deps:** update tods-competition-factory to 5.7.0 ([d73efaa](https://github.com/CourtHive/courthive-components/commit/d73efaa2b5aa21f1776748a861aaa329f9f03c4e))
+
 ## [3.4.3](https://github.com/CourtHive/courthive-components/compare/v3.4.2...v3.4.3) (2026-06-16)
 
 
