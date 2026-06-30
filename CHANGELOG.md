@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.6](https://github.com/CourtHive/courthive-components/compare/v3.4.5...v3.4.6) (2026-06-30)
+
+
+### Maintenance
+
+* force release 3.4.6 (pins tods-competition-factory 5.9.0) ([f26ddb9](https://github.com/CourtHive/courthive-components/commit/f26ddb98ecb72f4200d6c04da329d57724a2ab37))
+
 ## [3.4.5](https://github.com/CourtHive/courthive-components/compare/v3.4.4...v3.4.5) (2026-06-24)
 
 
