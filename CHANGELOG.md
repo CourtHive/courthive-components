@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.9](https://github.com/CourtHive/courthive-components/compare/v3.4.8...v3.4.9) (2026-07-02)
+
+
+### Bug Fixes
+
+* **publish:** drop storybook test-runner from the npm publish gate ([bdcff6a](https://github.com/CourtHive/courthive-components/commit/bdcff6ab43ee0043ab5cde162b1e9d19a6a99c5c))
+
 ## [3.4.8](https://github.com/CourtHive/courthive-components/compare/v3.4.7...v3.4.8) (2026-07-02)
 
 
