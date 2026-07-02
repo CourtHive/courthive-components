@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.7](https://github.com/CourtHive/courthive-components/compare/v3.4.6...v3.4.7) (2026-07-02)
+
+
+### Bug Fixes
+
+* **cards:** render calendar-day date labels in local time ([36b0c93](https://github.com/CourtHive/courthive-components/commit/36b0c93c81c16f1dd1b95bc0302fa813148dfb08))
+
 ## [3.4.6](https://github.com/CourtHive/courthive-components/compare/v3.4.5...v3.4.6) (2026-06-30)
 
 
