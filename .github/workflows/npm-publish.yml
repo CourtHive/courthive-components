@@ -48,7 +48,11 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: 24
+          # Pinned to 24.17.0: node 24.18.0 trips @storybook/test-runner@0.24.4's
+          # injected harness on the Linux runner (StorybookTestRunnerError TDZ,
+          # all stories fail). 24.17.0 was the last green publish (v3.4.6). Lift
+          # this pin once test-runner is compatible with a newer node 24.x.
+          node-version: 24.17.0
           registry-url: https://registry.npmjs.org
           cache: pnpm
 
