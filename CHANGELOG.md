@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.8](https://github.com/CourtHive/courthive-components/compare/v3.4.7...v3.4.8) (2026-07-02)
+
+
+### Bug Fixes
+
+* **publish:** pin node to 24.17.0 so storybook test-runner passes on CI ([d59bd0a](https://github.com/CourtHive/courthive-components/commit/d59bd0a752623cb497e4d6b93ee495b8805ca5c3))
+
 ## [3.4.7](https://github.com/CourtHive/courthive-components/compare/v3.4.6...v3.4.7) (2026-07-02)
 
 
