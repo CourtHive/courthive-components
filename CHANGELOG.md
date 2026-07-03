@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.5.0](https://github.com/CourtHive/courthive-components/compare/v3.4.9...v3.5.0) (2026-07-03)
+
+
+### Features
+
+* **policy-catalog:** add participant privacy editor ([#455](https://github.com/CourtHive/courthive-components/issues/455)) ([cfde00d](https://github.com/CourtHive/courthive-components/commit/cfde00d2540134048f1783884f79b69433c73a13))
+
 ## [3.4.9](https://github.com/CourtHive/courthive-components/compare/v3.4.8...v3.4.9) (2026-07-02)
 
 
