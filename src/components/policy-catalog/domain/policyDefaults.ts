@@ -7,6 +7,7 @@ import { emptyRankingPolicy } from '../editors/ranking/domain/emptyRankingPolicy
 import { emptySchedulingPolicy } from '../editors/scheduling/domain/schedulingProjections';
 import { emptyScoringPolicy } from '../editors/scoring/domain/scoringProjections';
 import { emptySeedingPolicy } from '../editors/seeding/domain/seedingProjections';
+import { emptyPrivacyPolicy } from '../editors/privacy/domain/privacyProjections';
 
 // Policy type constants (mirrored from tods-competition-factory)
 export const POLICY_TYPE_SCHEDULING = 'scheduling';
@@ -119,7 +120,13 @@ export const POLICY_TYPE_METADATA: PolicyTypeMeta[] = [
   ),
 
   // Participants
-  meta(POLICY_TYPE_PARTICIPANT, 'Participant', 'Participant display and data rules', GROUP_PARTICIPANTS, false),
+  meta(
+    POLICY_TYPE_PARTICIPANT,
+    'Participant Privacy',
+    'Which participant details are published publicly',
+    GROUP_PARTICIPANTS,
+    true,
+  ),
 
   // Display & Audit
   meta(
@@ -143,6 +150,7 @@ export function getEmptyPolicyData(policyType: string): Record<string, unknown> 
   if (policyType === POLICY_TYPE_SCHEDULING) return emptySchedulingPolicy() as unknown as Record<string, unknown>;
   if (policyType === POLICY_TYPE_SCORING) return emptyScoringPolicy() as unknown as Record<string, unknown>;
   if (policyType === POLICY_TYPE_SEEDING) return emptySeedingPolicy() as unknown as Record<string, unknown>;
+  if (policyType === POLICY_TYPE_PARTICIPANT) return emptyPrivacyPolicy() as unknown as Record<string, unknown>;
   return {};
 }
 

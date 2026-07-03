@@ -9,6 +9,7 @@ import { RankingPointsEditorControl } from '../editors/ranking/rankingPointsEdit
 import { SchedulingEditorControl } from '../editors/scheduling/schedulingEditorControl';
 import { ScoringEditorControl } from '../editors/scoring/scoringEditorControl';
 import { SeedingEditorControl } from '../editors/seeding/seedingEditorControl';
+import { PrivacyEditorControl } from '../editors/privacy/privacyEditorControl';
 import { buildPolicyCatalogLayout } from '../ui/policyCatalogLayout';
 import { buildPolicyCatalogPanel } from '../ui/policyCatalogPanel';
 import { PolicyCatalogStore } from '../engine/policyCatalogStore';
@@ -18,6 +19,7 @@ import { buildJsonEditor } from '../ui/jsonEditor';
 import {
   POLICY_TYPE_SCHEDULING,
   POLICY_TYPE_RANKING_POINTS,
+  POLICY_TYPE_PARTICIPANT,
   POLICY_TYPE_SCORING,
   POLICY_TYPE_SEEDING,
 } from '../domain/policyDefaults';
@@ -133,6 +135,8 @@ export class PolicyCatalogControl {
       this.currentEditor = SeedingEditorControl.createEditorInstance(editorConfig);
     } else if (item.policyType === POLICY_TYPE_SCORING) {
       this.currentEditor = ScoringEditorControl.createEditorInstance(editorConfig);
+    } else if (item.policyType === POLICY_TYPE_PARTICIPANT) {
+      this.currentEditor = PrivacyEditorControl.createEditorInstance(editorConfig);
     } else {
       this.currentEditor = buildJsonEditor(editorConfig);
     }
