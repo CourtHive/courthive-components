@@ -99,6 +99,20 @@ export type {
 } from './editors/scoring';
 
 // ============================================================================
+// Participant Privacy Editor (re-export standalone)
+// ============================================================================
+
+export {
+  PrivacyEditorControl,
+  createPrivacyEditor,
+  PrivacyEditorStore,
+  buildPrivacyEditorPanel,
+  emptyPrivacyPolicy,
+  privacyFields,
+} from './editors/privacy';
+export type { PrivacyPolicyData, PrivacyEditorConfig, PrivacyFieldMeta } from './editors/privacy';
+
+// ============================================================================
 // Types
 // ============================================================================
 

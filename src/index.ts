@@ -577,6 +577,7 @@ export type {
 // Policy Catalog
 import './components/policy-catalog/ui/policy-catalog.css';
 import './components/policy-catalog/editors/scheduling/scheduling-editor.css';
+import './components/policy-catalog/editors/privacy/privacy-editor.css';
 export {
   PolicyCatalogControl,
   PolicyCatalogStore,
