@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.5.1](https://github.com/CourtHive/courthive-components/compare/v3.5.0...v3.5.1) (2026-07-04)
+
+
+### Bug Fixes
+
+* **deps:** bump tods-competition-factory to 6.0.2 ([#458](https://github.com/CourtHive/courthive-components/issues/458)) ([d61481c](https://github.com/CourtHive/courthive-components/commit/d61481cd0c230ab48642aabdb7d94930c789b320))
+
+
+### Documentation
+
+* add court-card storybook stories ([1009538](https://github.com/CourtHive/courthive-components/commit/10095383ac94bb648b791d5c9dca2d1484a8ba73))
+
 ## [3.5.0](https://github.com/CourtHive/courthive-components/compare/v3.4.9...v3.5.0) (2026-07-03)
 
 
