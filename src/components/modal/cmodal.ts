@@ -82,14 +82,21 @@ export const cModal = (() => {
     const popovers = document.querySelectorAll('[data-modal-popover]');
     popovers.forEach((popover) => popover.remove());
 
-    document.body.classList.remove(scrollStop);
-    document.body.style.top = null;
-    window.scrollTo({
-      top: scrollPosition,
-      behavior: 'instant'
-    });
-    closeBackdrop();
+    // Remove the top modal first, then tear down the SHARED chrome (scroll
+    // freeze + backdrop) only once the stack is empty. Doing it unconditionally
+    // stripped the backdrop and unfroze scroll out from under a still-open modal
+    // beneath — the nested-modal teardown bug (e.g. a date picker opened from a
+    // reschedule dialog closing the whole stack).
     destroy();
+    if (modals.length === 0) {
+      document.body.classList.remove(scrollStop);
+      document.body.style.top = null;
+      window.scrollTo({
+        top: scrollPosition,
+        behavior: 'instant'
+      });
+      closeBackdrop();
+    }
   };
 
   const createBackdrop = (): void => {
@@ -103,9 +110,15 @@ export const cModal = (() => {
   };
 
   const freezeBackground = ({ config }: { config?: ModalConfig }): void => {
-    scrollPosition = window.scrollY;
-    document.body.classList.add(scrollStop);
-    document.body.style.top = `-${scrollPosition}px`;
+    // Capture scroll + freeze the body for the FIRST modal only. freezeBackground
+    // runs before modals.push, so length 0 === first open. A nested open would
+    // otherwise re-capture scrollY while the body is already position-fixed (≈0),
+    // corrupting the scroll restore when the last modal finally closes.
+    if (modals.length === 0) {
+      scrollPosition = window.scrollY;
+      document.body.classList.add(scrollStop);
+      document.body.style.top = `-${scrollPosition}px`;
+    }
 
     if (!backdrop) createBackdrop();
     backdrop.style.display = '';

@@ -352,3 +352,51 @@ export const Styling = {
     return container;
   }
 };
+
+export const NestedModals = {
+  render: () => {
+    const container = document.createElement('div');
+    container.style.padding = '2em';
+
+    const title = document.createElement('h2');
+    title.textContent = 'Nested (stacked) modals';
+    title.style.marginBottom = '1em';
+
+    const description = document.createElement('p');
+    description.innerHTML =
+      'Opens a second modal from within the first. Closing the inner modal must leave the outer modal open with its backdrop intact and scroll still frozen — the stack-aware close(). Repeat opening/closing the inner modal to confirm the outer never tears down.';
+    description.style.marginBottom = '1.5em';
+    description.style.color = TEXT_SECONDARY;
+
+    const openOuter = document.createElement('button');
+    openOuter.className = BTN_PRIMARY;
+    openOuter.textContent = 'Open outer modal';
+    openOuter.onclick = () => {
+      const openInnerBtn = document.createElement('button');
+      openInnerBtn.className = BTN_SUCCESS;
+      openInnerBtn.textContent = 'Open inner modal';
+      openInnerBtn.onclick = () => {
+        cModal.open({
+          title: 'Inner modal',
+          content: '<p>Closing me should leave the outer modal — and its backdrop — in place.</p>',
+          buttons: [{ label: 'Close inner', intent: IS_PRIMARY }]
+        });
+      };
+
+      const innerWrap = document.createElement('div');
+      innerWrap.appendChild(openInnerBtn);
+
+      cModal.open({
+        title: 'Outer modal',
+        content: innerWrap,
+        buttons: [{ label: 'Close outer', intent: 'is-info' }]
+      });
+    };
+
+    container.appendChild(title);
+    container.appendChild(description);
+    container.appendChild(openOuter);
+
+    return container;
+  }
+};
