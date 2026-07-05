@@ -702,6 +702,10 @@
   border-left-color: var(--sp-accent-border, var(--tmx-accent-blue, #3b82f6));
 }
 
+.spl-active-strip-cell.state-suspended {
+  border-left-color: #b45309;
+}
+
 .spl-active-strip-cell.state-next {
   border-left-color: var(--sp-muted, #9ca3af);
   opacity: 0.92;
@@ -733,6 +737,22 @@
 .spl-active-strip-cell.state-in-progress .spl-active-strip-state-pill {
   background: #1d4ed8;
   color: #fff;
+}
+
+/* SUSPENDED pill: a suspended matchUp still occupies the court but is NOT
+   live, so it supersedes the blue LIVE pill with its own burnt-amber fill.
+   Distinct hue from NEXT's pale yellow (filled + dark) so the three active
+   states read apart at a glance. #b45309 (amber-700) is ~5.9:1 on white. */
+.spl-active-strip-cell.state-suspended .spl-active-strip-state-pill {
+  background: #b45309;
+  color: #fff;
+}
+
+/* SUSPENDED pill — dark mode: softly tinted orange fill with orange-300 text,
+   mirroring the NEXT dark-mode treatment but in the amber/orange family. */
+[data-theme='dark'] .spl-active-strip-cell.state-suspended .spl-active-strip-state-pill {
+  background: rgba(234, 88, 12, 0.2);
+  color: #fdba74;
 }
 
 /* NEXT pill — light mode: the default rgba gray-on-gray fails contrast.

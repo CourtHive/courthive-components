@@ -50,7 +50,7 @@ export interface ActiveStripGrid {
   columns: ActiveStripCourtColumn[];
 }
 
-export type ActiveStripCellState = 'free' | 'in-progress' | 'next' | 'completed';
+export type ActiveStripCellState = 'free' | 'in-progress' | 'suspended' | 'next' | 'completed';
 
 export interface ActiveStripCell {
   courtId: string;
@@ -73,10 +73,19 @@ export interface ActiveStripDropTarget {
 
 export interface ActiveStripStatusOptions {
   inProgressStatuses?: ReadonlySet<string>;
+  suspendedStatuses?: ReadonlySet<string>;
   completedStatuses?: ReadonlySet<string>;
 }
 
-const DEFAULT_IN_PROGRESS_STATUSES: ReadonlySet<string> = new Set(['IN_PROGRESS', 'SUSPENDED']);
+const DEFAULT_IN_PROGRESS_STATUSES: ReadonlySet<string> = new Set(['IN_PROGRESS']);
+
+// SUSPENDED is an active-but-paused court: it still occupies the court (same
+// surfacing precedence as in-progress) but is NOT live, so it carries its own
+// state and the UI renders a "Suspended" pill that supersedes "Live". Split
+// out of the in-progress set 2026-07-05 — folding it into in-progress made
+// Suspend All flip every pill to "Live". Pass suspendedStatuses: new Set() to
+// opt back into the old behavior.
+const DEFAULT_SUSPENDED_STATUSES: ReadonlySet<string> = new Set(['SUSPENDED']);
 
 const DEFAULT_COMPLETED_STATUSES: ReadonlySet<string> = new Set([
   'CANCELLED',
@@ -91,17 +100,24 @@ const DEFAULT_COMPLETED_STATUSES: ReadonlySet<string> = new Set([
 ]);
 
 const KIND_IN_PROGRESS = 'in-progress';
+const KIND_SUSPENDED = 'suspended';
 const KIND_PENDING = 'pending';
 const KIND_COMPLETED = 'completed';
 
-type Classification = typeof KIND_IN_PROGRESS | typeof KIND_PENDING | typeof KIND_COMPLETED;
+type Classification =
+  | typeof KIND_IN_PROGRESS
+  | typeof KIND_SUSPENDED
+  | typeof KIND_PENDING
+  | typeof KIND_COMPLETED;
 
 function classify(
   cell: ActiveStripGridMatchUp,
   inProgress: ReadonlySet<string>,
+  suspended: ReadonlySet<string>,
   completed: ReadonlySet<string>
 ): Classification {
   const status = cell.matchUpStatus;
+  if (status && suspended.has(status)) return KIND_SUSPENDED;
   if (status && inProgress.has(status)) return KIND_IN_PROGRESS;
   if (cell.hasScore && cell.winningSide === undefined && (!status || !completed.has(status))) {
     return KIND_IN_PROGRESS;
@@ -116,6 +132,7 @@ export function computeActiveStripCell(
   options?: ActiveStripStatusOptions
 ): ActiveStripCell {
   const inProgress = options?.inProgressStatuses ?? DEFAULT_IN_PROGRESS_STATUSES;
+  const suspended = options?.suspendedStatuses ?? DEFAULT_SUSPENDED_STATUSES;
   const completed = options?.completedStatuses ?? DEFAULT_COMPLETED_STATUSES;
   const cells = column.cells;
 
@@ -125,10 +142,13 @@ export function computeActiveStripCell(
     const cell = cells[i];
     if (!cell) continue;
 
-    const kind = classify(cell, inProgress, completed);
+    const kind = classify(cell, inProgress, suspended, completed);
 
-    if (kind === KIND_IN_PROGRESS) {
-      return { courtId: column.courtId, state: KIND_IN_PROGRESS, matchUp: cell, rowIndex: i };
+    // A suspended court is still "active" (occupies the court) so it surfaces
+    // with the same precedence as in-progress; state === kind carries the
+    // distinction through to the pill ('suspended' supersedes 'in-progress').
+    if (kind === KIND_IN_PROGRESS || kind === KIND_SUSPENDED) {
+      return { courtId: column.courtId, state: kind, matchUp: cell, rowIndex: i };
     }
     if (kind === KIND_PENDING && firstPendingIndex === -1) {
       firstPendingIndex = i;

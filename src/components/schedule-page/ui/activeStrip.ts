@@ -152,6 +152,7 @@ function attachDropTarget(
 
 function statePillLabel(state: ActiveStripCell['state']): string | null {
   if (state === 'in-progress') return 'LIVE';
+  if (state === 'suspended') return 'SUSP';
   if (state === 'next') return 'NEXT';
   return null;
 }
@@ -211,6 +212,8 @@ function buildCellElement(
     const pill = document.createElement('span');
     pill.className = 'spl-active-strip-state-pill';
     pill.textContent = pillText;
+    // 'SUSP' is abbreviated for the compact pill zone — spell it out on hover.
+    if (cell.state === 'suspended') pill.title = 'Suspended';
     root.appendChild(pill);
   }
 

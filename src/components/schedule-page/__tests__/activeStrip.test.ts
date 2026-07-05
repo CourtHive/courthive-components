@@ -95,9 +95,26 @@ describe('computeActiveStripCell', () => {
     expect(result).toEqual({ courtId: 'C1', state: 'free' });
   });
 
-  it('treats SUSPENDED as in-progress under default options', () => {
+  it('surfaces SUSPENDED as its own suspended state (supersedes live) under default options', () => {
     const sus = cell({ matchUpId: 'M1', matchUpStatus: 'SUSPENDED' });
     const result = computeActiveStripCell(column('C1', [sus]));
+    expect(result).toEqual({ courtId: 'C1', state: 'suspended', matchUp: sus, rowIndex: 0 });
+  });
+
+  it('surfaces a suspended matchUp with the same precedence as in-progress (over pending rows)', () => {
+    const tbp = cell({ matchUpId: 'M1' });
+    const sus = cell({ matchUpId: 'M2', matchUpStatus: 'SUSPENDED' });
+    const result = computeActiveStripCell(column('C1', [tbp, sus]));
+    expect(result.state).toBe('suspended');
+    expect(result.matchUp?.matchUpId).toBe('M2');
+  });
+
+  it('can opt SUSPENDED back into in-progress via an empty suspendedStatuses set', () => {
+    const sus = cell({ matchUpId: 'M1', matchUpStatus: 'SUSPENDED' });
+    const result = computeActiveStripCell(column('C1', [sus]), {
+      inProgressStatuses: new Set(['IN_PROGRESS', 'SUSPENDED']),
+      suspendedStatuses: new Set()
+    });
     expect(result.state).toBe(IN_PROGRESS_STATE);
   });
 
