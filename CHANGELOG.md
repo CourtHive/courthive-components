@@ -1,5 +1,24 @@
 # Changelog
 
+## [3.6.0](https://github.com/CourtHive/courthive-components/compare/v3.5.1...v3.6.0) (2026-07-05)
+
+
+### Features
+
+* **schedule-page:** computeReschedulePlacements for cross-date re-seating ([ca9709d](https://github.com/CourtHive/courthive-components/commit/ca9709d5a457274f01ecfe5b5411a3ff2e1ab6cc))
+* **schedule-page:** export computeActiveStrip/computeActiveStripCell from root ([1116c8d](https://github.com/CourtHive/courthive-components/commit/1116c8dd5576e27c753db39668b28d5eba208d86))
+* **schedule-page:** sort unscheduled catalog by matchUp readiness ([abab495](https://github.com/CourtHive/courthive-components/commit/abab495523f50590e33f0084e1acc6f3d4f843d9))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 6.2.0 ([6679672](https://github.com/CourtHive/courthive-components/commit/6679672dcea14ea8013d3a8f6953dec1dc3a9e20))
+* **modal:** make cModal backdrop + scroll-freeze stack-aware for nested modals ([06d2f91](https://github.com/CourtHive/courthive-components/commit/06d2f91e9716ef8fe0239f78a1577acf4d08599c))
+* **modal:** stop double-unit'ing the modal body font-size ([ef8e80a](https://github.com/CourtHive/courthive-components/commit/ef8e80a5f5fe4a2335e2d2f14134d77e155fd82f))
+* **schedule-page:** keep now-strip drops at or below the active match ([a2fcf56](https://github.com/CourtHive/courthive-components/commit/a2fcf569ea358c8d478965a3303b7ba1c6b2c71b))
+* **schedule-page:** strip surfaces only in-progress or called matches ([05f959f](https://github.com/CourtHive/courthive-components/commit/05f959fe3b3b74ae75a8b367282fbc242c59f979))
+* **schedule:** distinct Suspended active-strip pill that supersedes Live ([2a8223f](https://github.com/CourtHive/courthive-components/commit/2a8223faba326e64e23c58e29bff655ca760ea9b))
+
 ## [3.5.1](https://github.com/CourtHive/courthive-components/compare/v3.5.0...v3.5.1) (2026-07-04)
 
 
