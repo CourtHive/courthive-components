@@ -482,7 +482,9 @@ export {
   mapMatchUpToCellData,
   DEFAULT_SCHEDULE_CELL_CONFIG,
   activateScheduleCellTypeAhead,
-  buildActiveStripPanel
+  buildActiveStripPanel,
+  computeActiveStrip,
+  computeActiveStripCell
 } from './components/schedule-page';
 
 export type {
@@ -516,7 +518,11 @@ export type {
   ActiveStripPanelData,
   ActiveStripPanelOptions,
   ActiveStripCourtMeta,
-  ActiveStripCourtBlock
+  ActiveStripCourtBlock,
+  ActiveStripCell,
+  ActiveStripCellState,
+  ActiveStripGrid,
+  ActiveStripGridMatchUp
 } from './components/schedule-page';
 
 // Composition Editor
