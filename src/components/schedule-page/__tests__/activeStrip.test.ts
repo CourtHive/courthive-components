@@ -15,6 +15,8 @@ import type {
 
 const TBP = 'TO_BE_PLAYED';
 const IN_PROGRESS_STATE = 'in-progress';
+// A pending matchUp only surfaces on the strip once it has been called to court.
+const CALLED = '2024-01-01T08:00:00.000Z';
 
 const cell = (overrides: Partial<ActiveStripGridMatchUp> & { matchUpId: string }): ActiveStripGridMatchUp => ({
   participantIds: [],
@@ -43,10 +45,16 @@ describe('computeActiveStripCell', () => {
     expect(result).toEqual({ courtId: 'C1', state: 'free' });
   });
 
-  it('returns the only TBP matchUp as next', () => {
-    const m = cell({ matchUpId: 'M1', matchUpStatus: TBP });
+  it('returns the only called TBP matchUp as next', () => {
+    const m = cell({ matchUpId: 'M1', matchUpStatus: TBP, calledAt: CALLED });
     const result = computeActiveStripCell(column('C1', [m]));
     expect(result).toEqual({ courtId: 'C1', state: 'next', matchUp: m, rowIndex: 0 });
+  });
+
+  it('leaves the court free when its only pending matchUp has not been called', () => {
+    const m = cell({ matchUpId: 'M1', matchUpStatus: TBP });
+    const result = computeActiveStripCell(column('C1', [m]));
+    expect(result).toEqual({ courtId: 'C1', state: 'free' });
   });
 
   it('returns IN_PROGRESS as in-progress even when other rows exist', () => {
@@ -71,21 +79,29 @@ describe('computeActiveStripCell', () => {
     expect(result.state).toBe('free');
   });
 
-  it('skips completed rows when picking the next pending', () => {
+  it('skips completed rows when picking the next called matchUp', () => {
     const finished = cell({ matchUpId: 'M0', matchUpStatus: 'COMPLETED', winningSide: 1 });
-    const tbpA = cell({ matchUpId: 'M1', matchUpStatus: TBP });
-    const tbpB = cell({ matchUpId: 'M2', matchUpStatus: TBP });
+    const tbpA = cell({ matchUpId: 'M1', matchUpStatus: TBP, calledAt: CALLED });
+    const tbpB = cell({ matchUpId: 'M2', matchUpStatus: TBP, calledAt: CALLED });
     const result = computeActiveStripCell(column('C1', [finished, tbpA, tbpB]));
     expect(result.state).toBe('next');
     expect(result.matchUp?.matchUpId).toBe('M1');
     expect(result.rowIndex).toBe(1);
   });
 
-  it('picks the lowest-row pending matchUp', () => {
-    const tbpA = cell({ matchUpId: 'M1', matchUpStatus: TBP });
-    const tbpB = cell({ matchUpId: 'M2', matchUpStatus: TBP });
+  it('picks the lowest-row called matchUp', () => {
+    const tbpA = cell({ matchUpId: 'M1', matchUpStatus: TBP, calledAt: CALLED });
+    const tbpB = cell({ matchUpId: 'M2', matchUpStatus: TBP, calledAt: CALLED });
     const result = computeActiveStripCell(column('C1', [null, tbpA, null, tbpB]));
     expect(result.matchUp?.matchUpId).toBe('M1');
+    expect(result.rowIndex).toBe(1);
+  });
+
+  it('skips an un-called pending row and surfaces a later called one', () => {
+    const uncalled = cell({ matchUpId: 'M1', matchUpStatus: TBP });
+    const called = cell({ matchUpId: 'M2', matchUpStatus: TBP, calledAt: CALLED });
+    const result = computeActiveStripCell(column('C1', [uncalled, called]));
+    expect(result.matchUp?.matchUpId).toBe('M2');
     expect(result.rowIndex).toBe(1);
   });
 
@@ -137,7 +153,7 @@ describe('computeActiveStrip', () => {
   it('emits one cell per column in order', () => {
     const c1 = column('C1', [cell({ matchUpId: 'M1', matchUpStatus: 'IN_PROGRESS' })]);
     const c2 = column('C2', []);
-    const c3 = column('C3', [cell({ matchUpId: 'M2', matchUpStatus: TBP })]);
+    const c3 = column('C3', [cell({ matchUpId: 'M2', matchUpStatus: TBP, calledAt: CALLED })]);
     const result = computeActiveStrip(grid(c1, c2, c3));
     expect(result.map((r) => r.courtId)).toEqual(['C1', 'C2', 'C3']);
     expect(result[0].state).toBe(IN_PROGRESS_STATE);
@@ -330,13 +346,23 @@ describe('computeActiveStripDropTarget', () => {
     expect(result).toEqual({ courtId: 'C1', rowIndex: 3 });
   });
 
-  it('lands at or below the court next match when nothing is in progress', () => {
-    // Empty row 0, a pending "next" match at row 1. Drop settles below it (row 2).
+  it('lands at or below the court called next match when nothing is in progress', () => {
+    // Empty row 0, a called "next" match at row 1. Drop settles below it (row 2).
     const g = grid(
-      column('C1', [null, cell({ matchUpId: 'NEXT', matchUpStatus: TBP, participantIds: ['p1', 'p2'] })])
+      column('C1', [null, cell({ matchUpId: 'NEXT', matchUpStatus: TBP, calledAt: CALLED, participantIds: ['p1', 'p2'] })])
     );
     const result = computeActiveStripDropTarget(g, 'C1', dragged({ matchUpId: 'X', participantIds: ['p9'] }));
     expect(result).toEqual({ courtId: 'C1', rowIndex: 2 });
+  });
+
+  it('an un-called pending match is not an active floor (drop may land above it)', () => {
+    // Un-called pending at row 2 no longer anchors the drop; with no active cell
+    // and no participant/round floor, the drop lands at the first free row (0).
+    const g = grid(
+      column('C1', [null, null, cell({ matchUpId: 'P', matchUpStatus: TBP, participantIds: ['p1', 'p2'] })])
+    );
+    const result = computeActiveStripDropTarget(g, 'C1', dragged({ matchUpId: 'X', participantIds: ['p9'] }));
+    expect(result).toEqual({ courtId: 'C1', rowIndex: 0 });
   });
 
   it('is a stable no-op when the active match is re-dropped onto its own court', () => {

@@ -30,6 +30,12 @@ export interface ActiveStripGridMatchUp {
   roundNumber?: number;
   matchUpStatus?: string;
   winningSide?: number;
+  /**
+   * ISO timestamp set when the matchUp is "called to court". A pending matchUp
+   * surfaces on the strip as `next` ONLY once it has been called (or started) —
+   * merely organizing the grid must not populate the strip.
+   */
+  calledAt?: string;
   /** True when at least one set/score has been entered. */
   hasScore?: boolean;
   participantIds: string[];
@@ -150,7 +156,10 @@ export function computeActiveStripCell(
     if (kind === KIND_IN_PROGRESS || kind === KIND_SUSPENDED) {
       return { courtId: column.courtId, state: kind, matchUp: cell, rowIndex: i };
     }
-    if (kind === KIND_PENDING && firstPendingIndex === -1) {
+    // A pending matchUp surfaces as `next` ONLY once it has been called to court
+    // (calledAt set). An un-called pending match is grid organization, not
+    // something happening on the court, so it stays off the strip.
+    if (kind === KIND_PENDING && cell.calledAt && firstPendingIndex === -1) {
       firstPendingIndex = i;
     }
   }
@@ -164,9 +173,9 @@ export function computeActiveStripCell(
     };
   }
 
-  // No active or pending matchUps — render the cell as free even when the
-  // column has only completed matchUps. The grid below already shows the
-  // history; the strip is for what's "active".
+  // No in-progress and no called matchUp — the court reads as free even when it
+  // has un-called pending or only completed matchUps. The grid below shows the
+  // history/plan; the strip is only for what's live or called.
   return { courtId: column.courtId, state: 'free' };
 }
 
