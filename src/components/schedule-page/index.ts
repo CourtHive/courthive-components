@@ -31,7 +31,8 @@ export { matchUpLabel, participantLabel, matchUpSearchKey, deepClone } from './d
 export {
   computeActiveStrip,
   computeActiveStripCell,
-  computeActiveStripDropTarget
+  computeActiveStripDropTarget,
+  computeReschedulePlacements
 } from './domain/activeStrip';
 export type {
   ActiveStripCell,
@@ -41,7 +42,9 @@ export type {
   ActiveStripDropTarget,
   ActiveStripGrid,
   ActiveStripGridMatchUp,
-  ActiveStripStatusOptions
+  ActiveStripStatusOptions,
+  RescheduleCandidate,
+  ReschedulePlacement
 } from './domain/activeStrip';
 
 // ============================================================================

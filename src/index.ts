@@ -484,7 +484,8 @@ export {
   activateScheduleCellTypeAhead,
   buildActiveStripPanel,
   computeActiveStrip,
-  computeActiveStripCell
+  computeActiveStripCell,
+  computeReschedulePlacements
 } from './components/schedule-page';
 
 export type {
@@ -522,7 +523,9 @@ export type {
   ActiveStripCell,
   ActiveStripCellState,
   ActiveStripGrid,
-  ActiveStripGridMatchUp
+  ActiveStripGridMatchUp,
+  RescheduleCandidate,
+  ReschedulePlacement
 } from './components/schedule-page';
 
 // Composition Editor

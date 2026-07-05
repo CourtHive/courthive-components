@@ -3,7 +3,8 @@ import { describe, it, expect } from 'vitest';
 import {
   computeActiveStrip,
   computeActiveStripCell,
-  computeActiveStripDropTarget
+  computeActiveStripDropTarget,
+  computeReschedulePlacements
 } from '../domain/activeStrip';
 import type {
   ActiveStripCourtColumn,
@@ -355,5 +356,64 @@ describe('computeActiveStripDropTarget', () => {
     expect(() =>
       computeActiveStripDropTarget(g, 'NOPE', dragged({ matchUpId: 'X' }))
     ).toThrow(/not present in grid/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// computeReschedulePlacements
+// ---------------------------------------------------------------------------
+
+describe('computeReschedulePlacements', () => {
+  it('seats a moved matchUp at row 0 on its court in an empty target date', () => {
+    const g = grid(column('C1', []), column('C2', []));
+    const result = computeReschedulePlacements(g, [{ matchUpId: 'M1', courtId: 'C1', participantIds: ['p1', 'p2'] }]);
+    expect(result).toEqual([{ matchUpId: 'M1', courtId: 'C1', rowIndex: 0, placed: true }]);
+  });
+
+  it('seats below an existing target-date matchUp on the same court', () => {
+    const g = grid(column('C1', [cell({ matchUpId: 'E1', participantIds: ['x'] })]));
+    const result = computeReschedulePlacements(g, [{ matchUpId: 'M1', courtId: 'C1', participantIds: ['p1'] }]);
+    expect(result[0]).toEqual({ matchUpId: 'M1', courtId: 'C1', rowIndex: 1, placed: true });
+  });
+
+  it('sends to catalog (placed:false) when the matchUp has no court', () => {
+    const g = grid(column('C1', []));
+    const result = computeReschedulePlacements(g, [{ matchUpId: 'M1', participantIds: ['p1'] }]);
+    expect(result).toEqual([{ matchUpId: 'M1', placed: false }]);
+  });
+
+  it('sends to catalog when the court is absent from the target grid', () => {
+    const g = grid(column('C1', []));
+    const result = computeReschedulePlacements(g, [{ matchUpId: 'M1', courtId: 'GONE', participantIds: ['p1'] }]);
+    expect(result).toEqual([{ matchUpId: 'M1', placed: false }]);
+  });
+
+  it('keeps earlier rounds above later rounds of the same draw when both are moved', () => {
+    const g = grid(column('C1', []));
+    const result = computeReschedulePlacements(g, [
+      { matchUpId: 'R2', courtId: 'C1', drawId: 'D', roundNumber: 2, participantIds: ['p1'] },
+      { matchUpId: 'R1', courtId: 'C1', drawId: 'D', roundNumber: 1, participantIds: ['p1'] }
+    ]);
+    const byId = Object.fromEntries(result.map((r) => [r.matchUpId, r]));
+    expect(byId.R1.rowIndex).toBeLessThan(byId.R2.rowIndex);
+  });
+
+  it('sends to catalog when the only free row is below a later round of the same draw (out of order)', () => {
+    // Court already holds a later round (round 3) at row 0; the moved earlier
+    // round (round 1) cannot legally seat at or below it and there is no gap
+    // above, so it falls to the catalog rather than playing after its own final.
+    const g = grid(column('C1', [cell({ matchUpId: 'FINAL', drawId: 'D', roundNumber: 3, participantIds: ['p9'] })]));
+    const result = computeReschedulePlacements(g, [
+      { matchUpId: 'SEMI', courtId: 'C1', drawId: 'D', roundNumber: 1, participantIds: ['p1'] }
+    ]);
+    expect(result).toEqual([{ matchUpId: 'SEMI', placed: false }]);
+  });
+
+  it('seats above a later round of the same draw when a free row exists there', () => {
+    const g = grid(column('C1', [null, cell({ matchUpId: 'FINAL', drawId: 'D', roundNumber: 3, participantIds: ['p9'] })]));
+    const result = computeReschedulePlacements(g, [
+      { matchUpId: 'SEMI', courtId: 'C1', drawId: 'D', roundNumber: 1, participantIds: ['p1'] }
+    ]);
+    expect(result[0]).toEqual({ matchUpId: 'SEMI', courtId: 'C1', rowIndex: 0, placed: true });
   });
 });

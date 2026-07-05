@@ -260,3 +260,98 @@ export function computeActiveStripDropTarget(
 
   return { courtId: targetCourtId, rowIndex };
 }
+
+// ── Bulk reschedule placement ────────────────────────────────────────
+//
+// When matchUps are rescheduled onto a different date (e.g. a rain delay), they
+// keep their court but must be re-seated in that date's grid — their old row is
+// meaningless there. computeReschedulePlacements re-drops each moved matchUp
+// onto its SAME court in the target date's grid, respecting the same ordering
+// constraints as a manual drop, and returns null (→ caller clears the court so
+// the matchUp falls into the scheduled catalog) when no legal row exists.
+
+export interface RescheduleCandidate {
+  matchUpId: string;
+  /** Court to re-seat on in the target grid. Absent → cannot place (catalog). */
+  courtId?: string;
+  drawId?: string;
+  roundNumber?: number;
+  participantIds: string[];
+}
+
+export interface ReschedulePlacement {
+  matchUpId: string;
+  /** When placed: the (unchanged) court + 0-based row. Absent when sent to catalog. */
+  courtId?: string;
+  rowIndex?: number;
+  /** false → no legal row; caller should clear the court assignment. */
+  placed: boolean;
+}
+
+// The lowest row on a column occupied by a matchUp that must play AFTER `cand`
+// (a later round of the same draw). `cand` may not seat at or below it, so this
+// is a hard ceiling. Infinity when the court holds no such matchUp.
+function laterRoundCeiling(column: ActiveStripCourtColumn, cand: RescheduleCandidate): number {
+  if (cand.roundNumber === undefined || cand.drawId === undefined) return Infinity;
+  for (let r = 0; r < column.cells.length; r++) {
+    const cell = column.cells[r];
+    if (!cell || cell.matchUpId === cand.matchUpId) continue;
+    if (cell.drawId === cand.drawId && cell.roundNumber !== undefined && cell.roundNumber > cand.roundNumber) {
+      return r;
+    }
+  }
+  return Infinity;
+}
+
+export function computeReschedulePlacements(
+  targetGrid: ActiveStripGrid,
+  candidates: RescheduleCandidate[]
+): ReschedulePlacement[] {
+  // Mutable working copy so sequential placements constrain one another (two
+  // moved matchUps sharing a participant, or earlier/later rounds of one draw).
+  const columns = targetGrid.columns.map((c) => ({ courtId: c.courtId, cells: c.cells.slice() }));
+  const workingGrid: ActiveStripGrid = { columns };
+  const byCourt = new Map(columns.map((c) => [c.courtId, c]));
+
+  // Seat earlier rounds first so they take the higher rows; stable by id.
+  const ordered = candidates.toSorted(
+    (a, b) => (a.roundNumber ?? 0) - (b.roundNumber ?? 0) || a.matchUpId.localeCompare(b.matchUpId)
+  );
+
+  return ordered.map((cand) => {
+    const column = cand.courtId ? byCourt.get(cand.courtId) : undefined;
+    if (!column) return { matchUpId: cand.matchUpId, placed: false };
+
+    const dragged: ActiveStripDropCandidate = {
+      matchUpId: cand.matchUpId,
+      drawId: cand.drawId,
+      roundNumber: cand.roundNumber,
+      participantIds: cand.participantIds
+    };
+    const { participantFloor, earlierRoundFloor } = computeFloors(workingGrid, dragged);
+    const floorRow = Math.max(0, participantFloor + 1, earlierRoundFloor + 1);
+    const ceiling = laterRoundCeiling(column, cand);
+
+    // First free row on the court within [floorRow, ceiling). Rows beyond the
+    // current length are free (the grid extends), so appending is allowed only
+    // when nothing that must play later sits below (ceiling === Infinity).
+    let placedRow = -1;
+    for (let r = floorRow; r <= column.cells.length && r < ceiling; r++) {
+      const cell = column.cells[r];
+      if (!cell || cell.matchUpId === cand.matchUpId) {
+        placedRow = r;
+        break;
+      }
+    }
+
+    if (placedRow === -1) return { matchUpId: cand.matchUpId, placed: false };
+
+    column.cells[placedRow] = {
+      matchUpId: cand.matchUpId,
+      drawId: cand.drawId,
+      roundNumber: cand.roundNumber,
+      participantIds: cand.participantIds
+    };
+    return { matchUpId: cand.matchUpId, courtId: cand.courtId, rowIndex: placedRow, placed: true };
+  });
+}
