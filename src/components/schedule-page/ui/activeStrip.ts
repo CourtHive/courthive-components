@@ -113,7 +113,8 @@ function attachDropTarget(
   root: HTMLElement,
   cell: ActiveStripCell,
   callbacks: ActiveStripPanelCallbacks,
-  getGrid: () => ActiveStripGrid
+  getGrid: () => ActiveStripGrid,
+  statusOptions?: ActiveStripStatusOptions
 ): void {
   root.addEventListener('dragover', (e) => {
     e.preventDefault();
@@ -145,7 +146,7 @@ function attachDropTarget(
         .filter((id): id is string => !!id)
     };
 
-    const target = computeActiveStripDropTarget(getGrid(), cell.courtId, candidate);
+    const target = computeActiveStripDropTarget(getGrid(), cell.courtId, candidate, statusOptions);
     callbacks.onMatchUpDrop(payload, target, e);
   });
 }
@@ -217,7 +218,7 @@ function buildCellElement(
     root.appendChild(pill);
   }
 
-  attachDropTarget(root, cell, callbacks, getGrid);
+  attachDropTarget(root, cell, callbacks, getGrid, options.statusOptions);
   return root;
 }
 

@@ -237,7 +237,8 @@ function findFirstFreeRow(
 export function computeActiveStripDropTarget(
   grid: ActiveStripGrid,
   targetCourtId: string,
-  dragged: ActiveStripDropCandidate
+  dragged: ActiveStripDropCandidate,
+  options?: ActiveStripStatusOptions
 ): ActiveStripDropTarget {
   const targetColumn = grid.columns.find((c) => c.courtId === targetCourtId);
   if (!targetColumn) {
@@ -245,7 +246,16 @@ export function computeActiveStripDropTarget(
   }
 
   const { participantFloor, earlierRoundFloor } = computeFloors(grid, dragged);
-  const baseRow = Math.max(0, participantFloor + 1, earlierRoundFloor + 1);
+
+  // The court's active match (in-progress, else next) must stay on top: a drop
+  // may never land above it. Its row is a floor, so the drop settles at or below
+  // it. `options` matches the classification the rendered strip uses. Re-dropping
+  // the active match onto its own court is a stable no-op (findFirstFreeRow treats
+  // the dragged matchUp's own row as free and returns it).
+  const activeCell = computeActiveStripCell(targetColumn, options);
+  const activeFloor = activeCell.state !== 'free' && activeCell.rowIndex !== undefined ? activeCell.rowIndex : -1;
+
+  const baseRow = Math.max(0, participantFloor + 1, earlierRoundFloor + 1, activeFloor);
   const rowIndex = findFirstFreeRow(targetColumn, baseRow, dragged.matchUpId);
 
   return { courtId: targetCourtId, rowIndex };

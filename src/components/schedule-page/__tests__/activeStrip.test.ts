@@ -315,6 +315,41 @@ describe('computeActiveStripDropTarget', () => {
     expect(result).toEqual({ courtId: 'C2', rowIndex: 0 });
   });
 
+  it('never lands above the court in-progress match, even with empty rows above it', () => {
+    // Rows 0-1 empty, live match at row 2. An unrelated drop must land BELOW the
+    // live match (row 3), never in the empty rows above the called match.
+    const g = grid(
+      column('C1', [
+        null,
+        null,
+        cell({ matchUpId: 'LIVE', matchUpStatus: 'IN_PROGRESS', participantIds: ['p1', 'p2'] })
+      ])
+    );
+    const result = computeActiveStripDropTarget(g, 'C1', dragged({ matchUpId: 'X', participantIds: ['p9'] }));
+    expect(result).toEqual({ courtId: 'C1', rowIndex: 3 });
+  });
+
+  it('lands at or below the court next match when nothing is in progress', () => {
+    // Empty row 0, a pending "next" match at row 1. Drop settles below it (row 2).
+    const g = grid(
+      column('C1', [null, cell({ matchUpId: 'NEXT', matchUpStatus: TBP, participantIds: ['p1', 'p2'] })])
+    );
+    const result = computeActiveStripDropTarget(g, 'C1', dragged({ matchUpId: 'X', participantIds: ['p9'] }));
+    expect(result).toEqual({ courtId: 'C1', rowIndex: 2 });
+  });
+
+  it('is a stable no-op when the active match is re-dropped onto its own court', () => {
+    const g = grid(
+      column('C1', [
+        null,
+        null,
+        cell({ matchUpId: 'LIVE', matchUpStatus: 'IN_PROGRESS', participantIds: ['p1', 'p2'] })
+      ])
+    );
+    const result = computeActiveStripDropTarget(g, 'C1', dragged({ matchUpId: 'LIVE', participantIds: ['p1', 'p2'] }));
+    expect(result).toEqual({ courtId: 'C1', rowIndex: 2 });
+  });
+
   it('throws when the target courtId is not in the grid', () => {
     const g = grid(column('C1', []));
     expect(() =>
