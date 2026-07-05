@@ -106,6 +106,35 @@ function minTimeInGroup(items: CatalogMatchUpItem[]): string | undefined {
   return earliest;
 }
 
+// Readiness tier for a matchUp: how many of its two sides have a participant
+// present (2 = fully ready to play, 1 = awaiting a feeder, 0 = TBD v TBD).
+// Drives catalog ordering so real matches float above placeholder ones.
+function sideReadiness(item: CatalogMatchUpItem): number {
+  const present = (item.sides ?? []).filter((s) => !!s.participantId).length;
+  return present > 2 ? 2 : present;
+}
+
+// A group's readiness is its best matchUp — a group with any fully-ready match
+// outranks one that only has partial/TBD matches.
+function groupReadiness(items: CatalogMatchUpItem[]): number {
+  let best = 0;
+  for (const item of items) {
+    const r = sideReadiness(item);
+    if (r > best) best = r;
+    if (best === 2) break;
+  }
+  return best;
+}
+
+// Stable readiness sort within a group: ready matches first, TBD last, otherwise
+// preserve the incoming (factory-traversal) order.
+function sortItemsByReadiness(items: CatalogMatchUpItem[]): CatalogMatchUpItem[] {
+  return items
+    .map((item, index) => ({ item, index, readiness: sideReadiness(item) }))
+    .sort((a, b) => b.readiness - a.readiness || a.index - b.index)
+    .map((entry) => entry.item);
+}
+
 export function groupMatchUpCatalog(
   items: CatalogMatchUpItem[],
   mode: MatchUpCatalogGroupBy
@@ -130,20 +159,28 @@ export function groupMatchUpCatalog(
     else m.set(k, [it]);
   }
 
-  // Smart sort: order top-line groups by the earliest scheduledTime
-  // they contain so the group whose next matchUp starts soonest sits
-  // at the top. Groups whose items are unscheduled (no scheduledTime
-  // anywhere) sink to the bottom. Within an equal-time tier, fall
-  // back to natural-numeric alpha sort on the key so "Round 2"
-  // precedes "Round 10" rather than the per-character default.
+  // Smart sort, in priority order:
+  //   1. Readiness tier — a group with a fully-ready match (both participants
+  //      present) floats above one that only has partial/TBD matches, which
+  //      float above all-TBD groups. A "Round 5: TBD v TBD" group no longer
+  //      sits above "Round 1: real players".
+  //   2. Earliest scheduledTime — within a readiness tier, the group whose next
+  //      matchUp starts soonest sits higher; unscheduled groups sink.
+  //   3. Natural-numeric alpha on the key so "Round 2" precedes "Round 10".
+  // Items within each group are readiness-sorted too (ready above TBD).
   return new Map(
-    [...m.entries()].sort((a, b) => {
-      const at = minTimeInGroup(a[1]);
-      const bt = minTimeInGroup(b[1]);
-      if (at !== undefined && bt !== undefined && at !== bt) return at.localeCompare(bt);
-      if (at !== undefined && bt === undefined) return -1;
-      if (at === undefined && bt !== undefined) return 1;
-      return a[0].localeCompare(b[0], undefined, { numeric: true });
-    }),
+    [...m.entries()]
+      .map(([key, arr]): [string, CatalogMatchUpItem[]] => [key, sortItemsByReadiness(arr)])
+      .sort((a, b) => {
+        const ra = groupReadiness(a[1]);
+        const rb = groupReadiness(b[1]);
+        if (ra !== rb) return rb - ra;
+        const at = minTimeInGroup(a[1]);
+        const bt = minTimeInGroup(b[1]);
+        if (at !== undefined && bt !== undefined && at !== bt) return at.localeCompare(bt);
+        if (at !== undefined && bt === undefined) return -1;
+        if (at === undefined && bt !== undefined) return 1;
+        return a[0].localeCompare(b[0], undefined, { numeric: true });
+      }),
   );
 }

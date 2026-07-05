@@ -22,11 +22,17 @@ function item(overrides: Partial<CatalogMatchUpItem>): CatalogMatchUpItem {
     roundNumber: overrides.roundNumber ?? 1,
     roundName: overrides.roundName,
     matchUpStatus: overrides.matchUpStatus,
+    sides: overrides.sides,
     isScheduled: overrides.isScheduled ?? false,
     scheduledTime: overrides.scheduledTime,
     scheduledCourtName: overrides.scheduledCourtName,
   };
 }
+
+// Side-readiness fixtures: both participants present, one present, or TBD v TBD.
+const BOTH = [{ participantId: 'p1' }, { participantId: 'p2' }];
+const ONE = [{ participantId: 'p1' }, {}];
+const NONE = [{}, {}];
 
 describe('groupMatchUpCatalog — smart sort', () => {
   it('sorts top-line groups by the earliest scheduledTime in each group', () => {
@@ -155,5 +161,54 @@ describe("groupMatchUpCatalog — 'structure' label", () => {
 
     expect(groups[0]).toBe("Men's Doubles");
     expect(groups[0]).not.toContain('2d34ce78');
+  });
+});
+
+describe('groupMatchUpCatalog — readiness sort', () => {
+  it('floats groups with real participants above all-TBD groups, even if TBD sorts earlier by key', () => {
+    const items = [
+      item({ matchUpId: 'a', roundName: 'Round 1', sides: NONE }),
+      item({ matchUpId: 'b', roundName: 'Round 2', sides: BOTH }),
+    ];
+
+    const groups = [...groupMatchUpCatalog(items, 'round').keys()];
+
+    expect(groups).toEqual(['Round 2', 'Round 1']);
+  });
+
+  it('ranks fully-ready groups above partial above TBD', () => {
+    const items = [
+      item({ matchUpId: 'a', roundName: 'All TBD', sides: NONE }),
+      item({ matchUpId: 'b', roundName: 'One side', sides: ONE }),
+      item({ matchUpId: 'c', roundName: 'Both sides', sides: BOTH }),
+    ];
+
+    const groups = [...groupMatchUpCatalog(items, 'round').keys()];
+
+    expect(groups).toEqual(['Both sides', 'One side', 'All TBD']);
+  });
+
+  it('a scheduled TBD group still sinks below an unscheduled ready group', () => {
+    const items = [
+      item({ matchUpId: 'a', roundName: 'Scheduled TBD', sides: NONE, scheduledTime: '08:00' }),
+      item({ matchUpId: 'b', roundName: 'Unscheduled ready', sides: BOTH }),
+    ];
+
+    const groups = [...groupMatchUpCatalog(items, 'round').keys()];
+
+    expect(groups).toEqual(['Unscheduled ready', 'Scheduled TBD']);
+  });
+
+  it('within a group, ready matches float above TBD ones (stable otherwise)', () => {
+    const items = [
+      item({ matchUpId: 'tbd1', roundName: 'R1', sides: NONE }),
+      item({ matchUpId: 'ready', roundName: 'R1', sides: BOTH }),
+      item({ matchUpId: 'tbd2', roundName: 'R1', sides: NONE }),
+      item({ matchUpId: 'partial', roundName: 'R1', sides: ONE }),
+    ];
+
+    const order = groupMatchUpCatalog(items, 'round').get('R1')!.map((i) => i.matchUpId);
+
+    expect(order).toEqual(['ready', 'partial', 'tbd1', 'tbd2']);
   });
 });
