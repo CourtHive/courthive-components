@@ -153,6 +153,12 @@ export const cModal = (() => {
     if (attrValue !== undefined) value = attrValue;
     if (Number.isNaN(value)) return value;
 
+    // A value that already carries a CSS unit (e.g. '15px', '1.2rem') is returned
+    // as-is; only bare numbers get the default unit appended. Without this the
+    // fontSize default '15px' became '15pxem' — an invalid value the browser
+    // drops, so modal body text inherited a large ancestor font.
+    if (typeof value === 'string' && !/^-?\d*\.?\d+$/.test(value.trim())) return value;
+
     return `${value}${unit}`;
   };
 
