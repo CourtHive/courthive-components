@@ -18,12 +18,20 @@ const LABEL_MAP: Record<CompetitivenessBucket, string> = {
   WALKOVER: 'Walkover / Defaulted',
 };
 
+export interface BuildCompetitivenessBarOptions {
+  /** When supplied, segments become clickable filter drivers. */
+  onSegmentClick?: (bucket: CompetitivenessBucket) => void;
+}
+
 export interface BuildCompetitivenessBarResult {
   element: HTMLElement;
   update: (buckets: CompetitivenessBuckets) => void;
+  /** Highlight the active bucket (dimming the rest); pass null to clear. */
+  setActive: (bucket: CompetitivenessBucket | null) => void;
 }
 
-export function buildCompetitivenessBar(): BuildCompetitivenessBarResult {
+export function buildCompetitivenessBar(options: BuildCompetitivenessBarOptions = {}): BuildCompetitivenessBarResult {
+  const { onSegmentClick } = options;
   const element = document.createElement('div');
   element.className = 'chc-cb';
 
@@ -32,6 +40,11 @@ export function buildCompetitivenessBar(): BuildCompetitivenessBarResult {
     const seg = document.createElement('div');
     seg.className = 'chc-cb__seg';
     seg.dataset.bucket = bucket;
+    if (onSegmentClick) {
+      seg.classList.add('is-clickable');
+      seg.setAttribute('role', 'button');
+      seg.addEventListener('click', () => onSegmentClick(bucket));
+    }
     segments[bucket] = seg;
     element.appendChild(seg);
   }
@@ -58,5 +71,12 @@ export function buildCompetitivenessBar(): BuildCompetitivenessBarResult {
     }
   };
 
-  return { element, update };
+  const setActive = (bucket: CompetitivenessBucket | null): void => {
+    element.classList.toggle('has-active', !!bucket);
+    for (const b of COMPETITIVENESS_BUCKETS) {
+      segments[b].classList.toggle('is-active', b === bucket);
+    }
+  };
+
+  return { element, update, setActive };
 }

@@ -217,6 +217,11 @@ export type {
   CompetitivenessBuckets
 } from './components/competitivenessBar';
 
+// Segmented Bar — generic clickable segmented bar (Today-view + other summaries)
+import './components/segmentedBar/segmented-bar.css';
+export { buildSegmentedBar } from './components/segmentedBar';
+export type { SegmentDef, BuildSegmentedBarOptions, BuildSegmentedBarResult } from './components/segmentedBar';
+
 // Draw Card — card-grid renderer for the per-event draws list
 import './components/draw-card/draw-card.css';
 export {

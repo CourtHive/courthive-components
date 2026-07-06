@@ -32,6 +32,20 @@
   border-radius: 2px;
   flex: 0 0 0;
   padding: 0;
+  transition: opacity 0.15s ease;
+}
+
+.chc-cb__seg.is-clickable {
+  cursor: pointer;
+}
+
+.chc-cb__seg.is-clickable:hover {
+  filter: brightness(1.1);
+}
+
+/* When one segment is active, dim the rest so the selection reads clearly. */
+.chc-cb.has-active .chc-cb__seg:not(.is-active) {
+  opacity: 0.35;
 }
 
 .chc-cb__seg[data-bucket='COMPETITIVE'] { --chc-cb-bucket-bg: var(--chc-cb-competitive); }

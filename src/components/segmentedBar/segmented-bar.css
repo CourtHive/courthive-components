@@ -1,0 +1,44 @@
+/* Segmented Bar — generic horizontal segmented bar. Each segment grows in
+ * proportion to its count and can optionally be clicked to drive a filter.
+ * Per-segment color is supplied inline via the `--seg-bg` custom property so
+ * the same primitive renders arbitrary segment sets without hardcoded rules. */
+
+.chc-sb {
+  display: none; /* shown by buildSegmentedBar when total > 0 */
+  flex-direction: row;
+  align-items: stretch;
+  gap: 2px;
+  overflow: hidden;
+  min-width: 0;
+  height: 1.5em;
+}
+
+.chc-sb__seg {
+  background: var(--seg-bg, var(--chc-text-muted, #6b7280));
+  color: #ffffff;
+  font-size: 0.85em;
+  font-weight: 600;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 2px;
+  flex: 0 0 0;
+  padding: 0;
+  transition: opacity 0.15s ease;
+}
+
+.chc-sb__seg.is-clickable {
+  cursor: pointer;
+}
+
+.chc-sb__seg.is-clickable:hover {
+  filter: brightness(1.1);
+}
+
+/* When one segment is active, dim the rest so the selection reads clearly. */
+.chc-sb.has-active .chc-sb__seg:not(.is-active) {
+  opacity: 0.35;
+}
