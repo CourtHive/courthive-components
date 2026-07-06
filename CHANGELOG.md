@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.7.0](https://github.com/CourtHive/courthive-components/compare/v3.6.0...v3.7.0) (2026-07-06)
+
+
+### Features
+
+* add segmentedBar primitive and make competitiveness bar clickable ([fd137ec](https://github.com/CourtHive/courthive-components/commit/fd137ec7b3c9980b3762c4ff38c5ae35d9bdfeab))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 6.3.0 ([883eeda](https://github.com/CourtHive/courthive-components/commit/883eeda04d84ac842fab7382f46ca2e5e8b1bd7f))
+
 ## [3.6.0](https://github.com/CourtHive/courthive-components/compare/v3.5.1...v3.6.0) (2026-07-05)
 
 
