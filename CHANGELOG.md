@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.8.0](https://github.com/CourtHive/courthive-components/compare/v3.7.0...v3.8.0) (2026-07-08)
+
+
+### Features
+
+* **schedule-page:** add isPublished flag to ScheduleDate ([#465](https://github.com/CourtHive/courthive-components/issues/465)) ([7fb6836](https://github.com/CourtHive/courthive-components/commit/7fb68365e6db3d24b6919580ca193175f470a625))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 6.4.0 ([09c13f2](https://github.com/CourtHive/courthive-components/commit/09c13f2b03655666d287cecb6dbb2baf8cc73ae2))
+* **deps:** update tods-competition-factory to 6.5.0 ([56fa03c](https://github.com/CourtHive/courthive-components/commit/56fa03cb4471f5208b8fca6c4159ffe8dd5abe32))
+
 ## [3.7.0](https://github.com/CourtHive/courthive-components/compare/v3.6.0...v3.7.0) (2026-07-06)
 
 
