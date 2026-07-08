@@ -57,6 +57,8 @@ export interface CatalogMatchUpItem {
 export interface ScheduleDate {
   date: string;
   isActive: boolean;
+  /** Order of play for this date is published (drives the selector publish cue). */
+  isPublished?: boolean;
   matchUpCount?: number;
   issueCount?: number;
 }
