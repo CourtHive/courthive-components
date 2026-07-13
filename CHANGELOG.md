@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.8.1](https://github.com/CourtHive/courthive-components/compare/v3.8.0...v3.8.1) (2026-07-13)
+
+
+### Bug Fixes
+
+* **burstChart:** no-op instead of throwing when a draw has no bracket rounds ([a6f9551](https://github.com/CourtHive/courthive-components/commit/a6f9551f898fc24a2cc7639374708ca4215b2a07))
+* **deps:** pin typescript to 6.0.3 to block native ts7 ([6f79e8c](https://github.com/CourtHive/courthive-components/commit/6f79e8cc059490aeb12de32a185a426c618ac030))
+* **deps:** update tods-competition-factory to 6.6.0 ([d9f603a](https://github.com/CourtHive/courthive-components/commit/d9f603afecde38ff49817a6f0820f2cfb1e5f4f0))
+
 ## [3.8.0](https://github.com/CourtHive/courthive-components/compare/v3.7.0...v3.8.0) (2026-07-08)
 
 

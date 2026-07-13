@@ -1,7 +1,7 @@
 {
   "name": "courthive-components",
   "packageManager": "pnpm@11.11.0",
-  "version": "3.8.0",
+  "version": "3.8.1",
   "engines": {
     "node": ">=22"
   },
