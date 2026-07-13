@@ -592,6 +592,15 @@ export function renderburstChart(
     ...fixtures.countries.filter((c) => c.label).map((c) => ({ [c.ioc]: c.label }))
   );
 
+  // A round-robin container, an ungenerated MAIN, or any structure without bracket
+  // rounds has no sunburst to draw. No-op (return an inert handle) instead of throwing,
+  // so a single non-bracket draw can't crash a whole grid of draw cards. Regression: an
+  // INTENNSE round-robin-qualifying draw threw "No round data found in draw" and broke the
+  // draws tab.
+  if (!Object.keys(drawData?.roundMatchUps ?? {}).length) {
+    return { highlightPlayer: () => 0, hide: () => undefined, setColorMode: () => undefined };
+  }
+
   // Convert draw data to hierarchy
   const tournamentHierarchy = buildTournamentHierarchy(drawData);
 
