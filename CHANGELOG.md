@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.9.0](https://github.com/CourtHive/courthive-components/compare/v3.8.2...v3.9.0) (2026-07-14)
+
+
+### Features
+
+* **event-card:** show gender badge by default ([3b5f0e3](https://github.com/CourtHive/courthive-components/commit/3b5f0e3b6242935cc2c12fb5a4a0f7e4cc8687fe))
+
 ## [3.8.2](https://github.com/CourtHive/courthive-components/compare/v3.8.1...v3.8.2) (2026-07-14)
 
 
