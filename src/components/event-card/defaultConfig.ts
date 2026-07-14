@@ -6,7 +6,10 @@ import { EventCardConfig } from './types';
 
 export const DEFAULT_EVENT_CARD_CONFIG: EventCardConfig = {
   showImage: true,
-  cornerBadges: ['status', 'eventTypeBadge'],
+  // genderBadge (M/W/X) sits alongside the event-type badge so e.g. a men's
+  // singles vs women's singles event is distinguishable at a glance. It
+  // self-hides when the event has no gender (renderGenderBadge returns null).
+  cornerBadges: ['status', 'eventTypeBadge', 'genderBadge'],
   body: ['title', 'categoryLabel', 'drawSummary'],
   footer: ['playerCount', 'matchUpProgress']
 };
