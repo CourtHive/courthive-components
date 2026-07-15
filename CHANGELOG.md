@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.10.0](https://github.com/CourtHive/courthive-components/compare/v3.9.0...v3.10.0) (2026-07-15)
+
+
+### Features
+
+* **burst:** select elimination structure + guard round-robin in sunburst adapters ([#473](https://github.com/CourtHive/courthive-components/issues/473)) ([cf5ec9d](https://github.com/CourtHive/courthive-components/commit/cf5ec9df3c93db63939d796d60a146d025d3f76b))
+* **forms:** opt-in &lt;form&gt; mode on renderForm for password managers + enter-to-submit ([#475](https://github.com/CourtHive/courthive-components/issues/475)) ([ae591f1](https://github.com/CourtHive/courthive-components/commit/ae591f107733ef6f99320f5f4ad313fc4626e245))
+
+
+### Documentation
+
+* **forms:** document renderForm opt-in &lt;form&gt; mode (README + autodocs demo) ([#476](https://github.com/CourtHive/courthive-components/issues/476)) ([b3656d2](https://github.com/CourtHive/courthive-components/commit/b3656d267e64b4f6353459fd4d7c9d5ccc90d650))
+
 ## [3.9.0](https://github.com/CourtHive/courthive-components/compare/v3.8.2...v3.9.0) (2026-07-14)
 
 
