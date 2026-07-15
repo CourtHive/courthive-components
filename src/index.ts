@@ -340,7 +340,11 @@ export type {
   BurstChartOptions,
   BurstChartInstance
 } from './components/burstChart/burstChart';
-export { fromFactoryDrawData, fromLegacyDraw } from './components/burstChart/matchUpTransform';
+export {
+  fromFactoryDrawData,
+  fromLegacyDraw,
+  pickProgressionStructure
+} from './components/burstChart/matchUpTransform';
 export {
   competitivenessColor,
   getCompetitivenessBand,

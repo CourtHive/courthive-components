@@ -7,11 +7,43 @@
  * - fromLegacyDraw: legacy TournamentDraw JSON (R128/R64/.../W) → SunburstDrawData
  */
 
-import { entryStatusConstants } from 'tods-competition-factory';
+import { drawDefinitionConstants, entryStatusConstants } from 'tods-competition-factory';
 import { competitivenessForMatchUp } from './competitiveness';
 import type { SunburstDrawData, SunburstMatchUp, SunburstSide } from './burstChart';
 
 const { LUCKY_LOSER, WILDCARD, QUALIFIER } = entryStatusConstants;
+const { WIN_RATIO, ROUND_OUTCOME, MAIN, CONTAINER } = drawDefinitionConstants;
+
+// The sunburst is a single-elimination bracket: it assumes each round halves.
+// Only a `ROUND_OUTCOME` (elimination) structure has that progression; a
+// round-robin structure (`finishingPosition: WIN_RATIO`, `structureType:
+// CONTAINER`) does not — force-fitting its non-halving rounds into a bracket
+// lumps in every RR matchUp unconnected.
+function isEliminationStructure(structure: any): boolean {
+  return structure?.finishingPosition === ROUND_OUTCOME && structure?.structureType !== CONTAINER;
+}
+
+// Only DEFINITE round-robin structures are rejected by the transform guard, so a
+// structure lacking `finishingPosition` (legacy / hand-built fixtures) still
+// transforms as before — the guard never blanks an ambiguous input.
+function isRoundRobinStructure(structure: any): boolean {
+  return structure?.finishingPosition === WIN_RATIO || structure?.structureType === CONTAINER;
+}
+
+/**
+ * Pick the structure the progression sunburst should render from a draw's
+ * `getEventData().drawsData[i].structures`. A composite draw (round-robin
+ * qualifying → single-elimination main, or round-robin main → elimination
+ * playoff) must render its ELIMINATION structure, never the round-robin one.
+ * Returns the elimination structure (MAIN preferred, else the first), or
+ * `undefined` when the draw has no bracket (pure round-robin).
+ */
+export function pickProgressionStructure(structures?: any[]): any | undefined {
+  if (!structures?.length) return undefined;
+  const elimination = structures.filter(isEliminationStructure);
+  if (!elimination.length) return undefined;
+  return elimination.find((structure: any) => structure.stage === MAIN) ?? elimination[0];
+}
 
 // ============================================================================
 // fromFactoryDrawData — tods-competition-factory → SunburstDrawData
@@ -22,6 +54,14 @@ const { LUCKY_LOSER, WILDCARD, QUALIFIER } = entryStatusConstants;
  * object into the TODS-aligned SunburstDrawData that the sunburst consumes.
  */
 export function fromFactoryDrawData(structure: any): SunburstDrawData {
+  // Defensive: a round-robin (non-bracket) structure passed in directly renders
+  // nothing rather than force-fitting its rounds into a bracket. Consumers should
+  // select the bracket via `pickProgressionStructure`; this backstops a naive
+  // `structures[0]` call.
+  if (isRoundRobinStructure(structure)) {
+    return { drawSize: 0, roundMatchUps: {} };
+  }
+
   const roundMatchUps: Record<number, SunburstMatchUp[]> = {};
 
   for (const [roundNum, matchUps] of Object.entries(structure.roundMatchUps)) {
@@ -151,11 +191,7 @@ function buildWinnerSets(
   return winnerSets;
 }
 
-function resolveWinningSide(
-  name1: string,
-  name2: string,
-  winners: Set<string>
-): number | undefined {
+function resolveWinningSide(name1: string, name2: string, winners: Set<string>): number | undefined {
   const isBye = name1 === 'BYE' || name2 === 'BYE';
   if (isBye) {
     return name1 === 'BYE' ? 2 : 1;
