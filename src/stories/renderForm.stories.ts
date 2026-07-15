@@ -6,11 +6,12 @@ const { MALE, FEMALE } = genderConstants;
 
 const PLACEHOLDER_DATE = 'YYYY-MM-DD';
 const PLACEHOLDER_EMAIL = 'john@example.com';
+const ICON_EMAIL = 'fas fa-envelope';
 
 export default {
   title: 'Renderers/Form',
   tags: ['autodocs'],
-  render: ({ title, items, relationships }) => {
+  render: ({ title, items, relationships, options }) => {
     const wrapper = document.createElement('div');
     wrapper.style.maxWidth = '600px';
     wrapper.style.margin = '20px';
@@ -69,7 +70,7 @@ export default {
     wrapper.appendChild(style);
     wrapper.appendChild(container);
 
-    const inputs = renderForm(container, items, relationships);
+    const inputs = renderForm(container, items, relationships, options);
 
     // Add submit button to demonstrate form values
     const submitBtn = document.createElement('button');
@@ -196,7 +197,7 @@ export const RegistrationForm = {
         field: 'email',
         type: 'email',
         placeholder: PLACEHOLDER_EMAIL,
-        iconLeft: 'fas fa-envelope',
+        iconLeft: ICON_EMAIL,
         validator: (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
         error: 'Please enter a valid email'
       },
@@ -505,7 +506,7 @@ export const CompleteExample = {
         field: 'email',
         type: 'email',
         placeholder: PLACEHOLDER_EMAIL,
-        iconLeft: 'fas fa-envelope',
+        iconLeft: ICON_EMAIL,
         fieldPair: {
           label: 'Phone',
           field: 'phone',
@@ -545,6 +546,44 @@ export const CompleteExample = {
         id: 'rulesCheck',
         checkbox: true,
         checked: false
+      }
+    ]
+  }
+};
+
+/**
+ * Form mode — `options.form` wraps the fields in a real `<form>` so password
+ * managers (1Password, …) bind to it and native Enter submits. A visually-hidden
+ * submit button is the keyboard/password-manager target; `onSubmit` fires on
+ * Enter or a password manager's fill-and-submit. (Try: type into the fields and
+ * press Enter.)
+ */
+export const FormMode = {
+  args: {
+    title: 'Login (form mode)',
+    options: {
+      form: {
+        onSubmit: ({ inputs }: any) =>
+          alert(`Submitted via <form> (Enter / password manager) — email: ${inputs.email.value}`)
+      }
+    },
+    items: [
+      {
+        label: 'Email',
+        field: 'email',
+        type: 'email',
+        placeholder: PLACEHOLDER_EMAIL,
+        iconLeft: ICON_EMAIL,
+        autocomplete: 'email',
+        focus: true
+      },
+      {
+        label: 'Password',
+        field: 'password',
+        type: 'password',
+        placeholder: 'Enter password',
+        iconLeft: 'fas fa-lock',
+        autocomplete: 'current-password'
       }
     ]
   }

@@ -198,6 +198,32 @@ const inputs = renderForm(
 );
 ```
 
+**Form Mode (`<form>` wrapper for password managers + Enter-to-submit):**
+
+By default `renderForm` renders a `<div>`. Pass a 4th `options` argument with `form` to wrap the fields in
+a real `<form>` — password managers (1Password, etc.) bind to it and native <kbd>Enter</kbd> submits. A
+visually-hidden submit button is the keyboard/password-manager target, so a modal's visible actions can stay
+in its footer. `form.onSubmit({ e, inputs, fields })` runs on submit (after `preventDefault`).
+
+```typescript
+const inputs = renderForm(
+  container,
+  [
+    { label: 'Email', field: 'email', type: 'email', autocomplete: 'email' },
+    { label: 'Password', field: 'password', type: 'password', autocomplete: 'current-password' }
+  ],
+  relationships,
+  {
+    form: {
+      onSubmit: () => {
+        if (!emailValidator(inputs.email.value) || !inputs.password.value) return;
+        submitCredentials();
+      }
+    }
+  }
+);
+```
+
 **See:** [renderForm.stories.ts](../../stories/renderForm.stories.ts) for complete form examples
 
 ---
