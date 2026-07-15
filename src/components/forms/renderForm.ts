@@ -10,6 +10,10 @@
  * @param elem - Container element where the form will be rendered
  * @param items - Array of field configuration objects (see ITEM PROPERTIES below)
  * @param relationships - Optional array of field relationships for validation and events
+ * @param options - Optional. `{ form }` wraps the fields in a real `<form>` with a
+ *   visually-hidden submit button so password managers and native Enter-to-submit
+ *   have an unambiguous target; `form.onSubmit({ e, inputs, fields })` runs on submit.
+ *   Default (omitted) keeps the historical `<div>` container.
  * @returns Object containing all input elements keyed by field name
  *
  * ============================================================================
@@ -158,6 +162,22 @@
  * ]);
  *
  * @example
+ * // Form mode — real <form> so 1Password / Enter submit deterministically.
+ * // The modal's visible Login/Cancel buttons live in the footer; this hidden
+ * // submit is only the keyboard/password-manager target.
+ * const inputs = renderForm(elem, [
+ *   { label: 'Email', field: 'email', type: 'email', autocomplete: 'email' },
+ *   { label: 'Password', field: 'password', type: 'password', autocomplete: 'current-password' }
+ * ], relationships, {
+ *   form: {
+ *     onSubmit: () => {
+ *       if (!emailValidator(inputs.email.value) || !inputs.password.value) return;
+ *       submitCredentials();
+ *     }
+ *   }
+ * });
+ *
+ * @example
  * // Form with mixed item types
  * const inputs = renderForm(container, [
  *   { text: '<h3>User Registration</h3>', header: true },
@@ -172,10 +192,23 @@ import { DateRangePicker } from 'vanillajs-datepicker';
 import { isFunction } from '../../helpers/typeOf';
 import { renderField } from './renderField';
 
-export function renderForm(elem: HTMLElement, items: any[], relationships?: any[]): any {
-  const div = document.createElement('div');
-  div.style.cssText = 'display: flex; flex-direction: column; width: 100%;';
-  div.classList.add('flexcol');
+export interface RenderFormOptions {
+  /**
+   * Wrap the fields in a real `<form>` so password managers and native
+   * Enter-to-submit have an unambiguous target. `true` uses defaults; pass an
+   * object to wire an `onSubmit` handler. Omitted (the default) keeps the
+   * historical `<div>` container, so existing callers are unaffected.
+   */
+  form?: boolean | { onSubmit?: (args: { e: Event; inputs: any; fields: any }) => void };
+}
+
+export function renderForm(elem: HTMLElement, items: any[], relationships?: any[], options?: RenderFormOptions): any {
+  const useForm = !!options?.form;
+  const formConfig = (typeof options?.form === 'object' && options.form) || {};
+
+  const container = document.createElement(useForm ? 'form' : 'div');
+  container.style.cssText = `display: flex; flex-direction: column; width: 100%;${useForm ? ' margin: 0;' : ''}`;
+  container.classList.add('flexcol');
 
   const inputs: any = {},
     fields: any = {};
@@ -184,13 +217,13 @@ export function renderForm(elem: HTMLElement, items: any[], relationships?: any[
 
   for (const item of items) {
     if ((item.text || item.html) && !item.field) {
-      focus = renderTextItem(item, div, inputs, fields, focus);
+      focus = renderTextItem(item, container, inputs, fields, focus);
       continue;
     }
     if (item.divider) {
       const hr = document.createElement('hr');
       hr.classList.add('dropdown-divider');
-      div.appendChild(hr);
+      container.appendChild(hr);
       continue;
     }
     if (item.spacer) {
@@ -200,24 +233,51 @@ export function renderForm(elem: HTMLElement, items: any[], relationships?: any[
         (typeof item.spacer === 'string' && item.spacer) ||
         `1em`;
       spacer.style.marginBlockEnd = spaceValue;
-      div.appendChild(spacer);
+      container.appendChild(spacer);
       continue;
     }
     if ((!item.label && !item.field) || item.hide) continue;
 
     if (item.field) {
-      focus = renderFieldItem(item, div, inputs, fields, focus);
+      focus = renderFieldItem(item, container, inputs, fields, focus);
     }
   }
   if (focus) setTimeout(() => focus!.focus(), 200);
 
-  elem.appendChild(div);
+  if (useForm) attachFormSubmit(container as HTMLFormElement, formConfig, inputs, fields);
+
+  elem.appendChild(container);
 
   if (relationships?.length) {
     applyRelationships(relationships, items, inputs, fields);
   }
 
   return inputs;
+}
+
+// A real submit control is what makes native Enter submit the form and what
+// password managers target. It's visually hidden — a form-mode caller's visible
+// actions typically live elsewhere (e.g. a modal footer). The submit handler
+// preventDefaults and routes to the caller's onSubmit with the same
+// `{ e, inputs, fields }` shape relationship handlers receive.
+function attachFormSubmit(
+  form: HTMLFormElement,
+  config: { onSubmit?: (args: { e: Event; inputs: any; fields: any }) => void },
+  inputs: any,
+  fields: any
+): void {
+  const submit = document.createElement('button');
+  submit.type = 'submit';
+  submit.tabIndex = -1;
+  submit.setAttribute('aria-hidden', 'true');
+  submit.style.cssText =
+    'position:absolute;width:1px;height:1px;padding:0;border:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);';
+  form.appendChild(submit);
+
+  form.addEventListener('submit', (e: Event) => {
+    e.preventDefault();
+    config.onSubmit?.({ e, inputs, fields });
+  });
 }
 
 function renderPairedField(
