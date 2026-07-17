@@ -46,7 +46,7 @@ jobs:
         # Specifying `version:` here too makes the action error out with
         # "Multiple versions of pnpm specified" (ERR_PNPM_BAD_PM_VERSION).
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
