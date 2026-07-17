@@ -42,7 +42,9 @@ import {
 } from './hiveIDClient';
 import type {
   CachedPersonFields,
+  FederationIdCaptureConfig,
   HiveIDAuthenticatedDetail,
+  HiveIDFederationId,
   HiveIDLoginConfig,
   HiveIDLoginShell,
   HiveIDMode
@@ -172,6 +174,59 @@ export function buildHiveIDLogin(config: HiveIDLoginConfig): HiveIDLoginShell {
     form.appendChild(wrap);
   }
 
+  // Optional signup federation-id capture. Renders an id field (+ a provider
+  // select when >1 provider) and returns a getter for the entered id, so a
+  // person can quote an existing provider id and be RESOLVED to their canonical
+  // person at signup. Returns null when the id is left blank.
+  function renderFederationCapture(capture: FederationIdCaptureConfig): () => HiveIDFederationId | null {
+    if (capture.note) {
+      const note = document.createElement('p');
+      note.className = hilLabelStyle();
+      note.textContent = capture.note;
+      form.appendChild(note);
+    }
+    let providerSelect: HTMLSelectElement | null = null;
+    if (capture.providers.length > 1) {
+      const wrap = document.createElement('div');
+      wrap.className = hilFieldStyle();
+      const lbl = document.createElement('label');
+      lbl.className = hilLabelStyle();
+      lbl.textContent = 'Provider';
+      lbl.htmlFor = 'chc-hil-fedProvider';
+      const sel = document.createElement('select');
+      sel.id = 'chc-hil-fedProvider';
+      sel.className = hilInputStyle();
+      capture.providers.forEach((p) => {
+        const opt = document.createElement('option');
+        opt.value = p.value;
+        opt.textContent = p.label;
+        sel.appendChild(opt);
+      });
+      wrap.append(lbl, sel);
+      form.appendChild(wrap);
+      providerSelect = sel;
+    }
+    const idWrap = document.createElement('div');
+    idWrap.className = hilFieldStyle();
+    const idLbl = document.createElement('label');
+    idLbl.className = hilLabelStyle();
+    idLbl.textContent = capture.idLabel ?? 'Player ID';
+    idLbl.htmlFor = 'chc-hil-federationId';
+    const idInput = document.createElement('input');
+    idInput.id = 'chc-hil-federationId';
+    idInput.type = 'text';
+    idInput.className = hilInputStyle();
+    idWrap.append(idLbl, idInput);
+    form.appendChild(idWrap);
+    const singleProvider = capture.providers[0]?.value ?? '';
+    return () => {
+      const externalId = idInput.value.trim();
+      if (!externalId) return null;
+      const provider = providerSelect ? providerSelect.value : singleProvider;
+      return provider ? { provider, externalId } : null;
+    };
+  }
+
   function emitAuthenticated(detail: HiveIDAuthenticatedDetail): void {
     root.dispatchEvent(new CustomEvent(AUTHENTICATED_EVENT, { detail, bubbles: true }));
   }
@@ -192,7 +247,12 @@ export function buildHiveIDLogin(config: HiveIDLoginConfig): HiveIDLoginShell {
     };
   }
 
-  async function handleSignup(emailInput: HTMLInputElement, firstNameInput: HTMLInputElement, lastNameInput: HTMLInputElement): Promise<void> {
+  async function handleSignup(
+    emailInput: HTMLInputElement,
+    firstNameInput: HTMLInputElement,
+    lastNameInput: HTMLInputElement,
+    federationIds?: HiveIDFederationId[]
+  ): Promise<void> {
     const email = emailInput.value.trim();
     const firstName = firstNameInput.value.trim();
     const lastName = lastNameInput.value.trim();
@@ -201,7 +261,7 @@ export function buildHiveIDLogin(config: HiveIDLoginConfig): HiveIDLoginShell {
       return;
     }
     try {
-      const resp = await signup(config.cfsBaseUrl, { email, firstName, lastName, federationIds: config.federationIds }, config.fetchImpl);
+      const resp = await signup(config.cfsBaseUrl, { email, firstName, lastName, federationIds }, config.fetchImpl);
       if (resp.status === 'candidate') {
         setMessage('We found possible matches — please log in with your existing account.', 'info');
         setMode('login');
@@ -297,8 +357,13 @@ export function buildHiveIDLogin(config: HiveIDLoginConfig): HiveIDLoginShell {
       row.append(wrapFirst, wrapLast);
 
       const email = makeField('email', 'Email', 'email', config.defaultEmail ?? '');
+      const getFederationId = config.federationIdCapture
+        ? renderFederationCapture(config.federationIdCapture)
+        : () => null;
       const submit = makeSubmit('Create account');
-      form.onsubmit = withBusy(submit, () => handleSignup(email, firstName, lastName));
+      form.onsubmit = withBusy(submit, () =>
+        handleSignup(email, firstName, lastName, mergeFederationIds(getFederationId(), config.federationIds))
+      );
       makeSwitch('Already have an account?', 'login', 'Log in');
     } else if (currentMode === 'login') {
       const email = makeField('email', 'Email', 'email', config.defaultEmail ?? '');
@@ -354,6 +419,30 @@ export async function completeMagicLink(
     personId: resp.personId,
     cached: resp.cached ?? emptyCached()
   };
+}
+
+/**
+ * Merge a user-entered federation id (from the signup capture field) with any
+ * consumer-supplied `config.federationIds`, de-duped by `provider::externalId`.
+ * Returns undefined when there is nothing to send (so the signup fragment stays
+ * name-only, matching prior behavior).
+ */
+export function mergeFederationIds(
+  entered: HiveIDFederationId | null,
+  configIds?: HiveIDFederationId[]
+): HiveIDFederationId[] | undefined {
+  const merged: HiveIDFederationId[] = [];
+  const seen = new Set<string>();
+  const add = (f?: HiveIDFederationId | null): void => {
+    if (!f?.provider || !f?.externalId) return;
+    const key = `${f.provider}::${f.externalId}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    merged.push({ provider: f.provider, externalId: f.externalId });
+  };
+  (configIds ?? []).forEach(add);
+  add(entered);
+  return merged.length ? merged : undefined;
 }
 
 function emptyCached(): CachedPersonFields {

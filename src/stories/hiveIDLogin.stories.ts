@@ -1,5 +1,5 @@
 import { buildHiveIDLogin } from '../components/hive-id-login/buildHiveIDLogin';
-import type { HiveIDAuthenticatedDetail, HiveIDMode } from '../components/hive-id-login/types';
+import type { FederationIdCaptureConfig, HiveIDAuthenticatedDetail, HiveIDMode } from '../components/hive-id-login/types';
 
 export default {
   title: 'Components/HiveIDLogin',
@@ -80,14 +80,19 @@ function mockFetch(scenario: 'success' | 'existing-user' | 'incomplete' | 'wrong
   }) as typeof fetch;
 }
 
-function buildStory(mode: HiveIDMode, scenario: Parameters<typeof mockFetch>[0] = 'success'): HTMLElement {
+function buildStory(
+  mode: HiveIDMode,
+  scenario: Parameters<typeof mockFetch>[0] = 'success',
+  federationIdCapture?: FederationIdCaptureConfig
+): HTMLElement {
   const container = document.createElement('div');
   container.style.cssText = 'padding: 24px; background: var(--chc-bg-secondary, #f3f4f6); min-height: 100vh;';
 
   const shell = buildHiveIDLogin({
     cfsBaseUrl: 'https://courthive.test',
     mode,
-    fetchImpl: mockFetch(scenario)
+    fetchImpl: mockFetch(scenario),
+    federationIdCapture
   });
   container.appendChild(shell.root);
 
@@ -116,6 +121,20 @@ export const SignupExistingUser = {
 export const SignupIncomplete = {
   name: 'Signup — 422 incomplete',
   render: () => buildStory('signup', 'incomplete')
+};
+
+export const SignupFederationId = {
+  name: 'Signup — federation-id capture (claim identity)',
+  render: () =>
+    buildStory('signup', 'success', {
+      providers: [
+        { value: 'BOBOCA', label: 'BOBOCA' },
+        { value: 'HTS', label: 'HTS' },
+        { value: 'CTS', label: 'CTS' }
+      ],
+      idLabel: 'Player ID',
+      note: 'Already have a player ID from your club or federation? Enter it to link your existing record.'
+    })
 };
 
 export const Login = {

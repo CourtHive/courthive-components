@@ -88,6 +88,30 @@ export interface MagicLinkConsumeResponse {
   cached: CachedPersonFields;
 }
 
+export interface FederationIdCaptureProvider {
+  /** Provider key sent to the registry, e.g. 'BOBOCA'. */
+  value: string;
+  /** Display label, e.g. 'BOBOCA'. */
+  label: string;
+}
+
+/**
+ * Opt-in federation-id capture on the signup form. When present, the signup
+ * form shows an optional "player id" field (+ a provider select when more than
+ * one provider is offered). A person who quotes an id that matches a
+ * `(provider, externalId)` alias in courthive-persons is strong-match RESOLVED
+ * at signup — the only way the name-only signup fragment can acquire a
+ * `personId` today. This is the "claim your existing (e.g. BOBOCA) identity" path.
+ */
+export interface FederationIdCaptureConfig {
+  /** One or more providers to offer. A single entry renders no select (fixed provider). */
+  providers: FederationIdCaptureProvider[];
+  /** Label for the id input. Default: 'Player ID'. */
+  idLabel?: string;
+  /** Optional helper text shown above the field. */
+  note?: string;
+}
+
 export interface HiveIDLoginConfig {
   /** Which CFS instance to talk to (no trailing slash). */
   cfsBaseUrl: string;
@@ -101,6 +125,12 @@ export interface HiveIDLoginConfig {
    * strong-match likelihood. Most callers leave this empty.
    */
   federationIds?: HiveIDFederationId[];
+  /**
+   * Opt-in: show an optional federation-id field on the signup form so a person
+   * can quote an existing provider id and be RESOLVED to their canonical
+   * person. Merged with `federationIds`. See FederationIdCaptureConfig.
+   */
+  federationIdCapture?: FederationIdCaptureConfig;
   /** Optional fetch implementation (tests stub this). */
   fetchImpl?: typeof fetch;
 }
