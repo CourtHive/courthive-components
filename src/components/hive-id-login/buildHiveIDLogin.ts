@@ -42,13 +42,20 @@ import {
 } from './hiveIDClient';
 import type {
   CachedPersonFields,
+  DobSexCaptureConfig,
   FederationIdCaptureConfig,
   HiveIDAuthenticatedDetail,
   HiveIDFederationId,
   HiveIDLoginConfig,
   HiveIDLoginShell,
-  HiveIDMode
+  HiveIDMode,
+  SignupSexOption
 } from './types';
+
+const DEFAULT_SEX_OPTIONS: SignupSexOption[] = [
+  { value: 'M', label: 'Male' },
+  { value: 'F', label: 'Female' }
+];
 
 const MODE_SIGNUP: HiveIDMode = 'signup';
 const MODE_LOGIN: HiveIDMode = 'login';
@@ -68,6 +75,14 @@ const TITLE_BY_MODE: Record<HiveIDMode, string> = {
   [MODE_LOGIN]: 'Log in to CourtHive',
   [MODE_MAGIC_LINK]: 'Email me a sign-in link'
 };
+
+interface SignupExtras {
+  federationIds?: HiveIDFederationId[];
+  birthDate?: string;
+  sex?: string;
+  provider?: string;
+  requirePii?: boolean;
+}
 
 export function buildHiveIDLogin(config: HiveIDLoginConfig): HiveIDLoginShell {
   if (!config?.cfsBaseUrl) {
@@ -227,6 +242,59 @@ export function buildHiveIDLogin(config: HiveIDLoginConfig): HiveIDLoginShell {
     };
   }
 
+  // Optional signup DOB + sex capture. Renders a date input + a sex select and
+  // returns a getter for the entered values (trimmed; empty → undefined), so a
+  // brand-new person can be deduped-or-MINTED. The consumer gates collection
+  // behind a consent notice (decision #4) before mounting this component.
+  function renderDobSexCapture(capture: DobSexCaptureConfig): () => { birthDate?: string; sex?: string } {
+    if (capture.note) {
+      const note = document.createElement('p');
+      note.className = hilLabelStyle();
+      note.textContent = capture.note;
+      form.appendChild(note);
+    }
+    const required = capture.required !== false;
+
+    const dobWrap = document.createElement('div');
+    dobWrap.className = hilFieldStyle();
+    const dobLbl = document.createElement('label');
+    dobLbl.className = hilLabelStyle();
+    dobLbl.textContent = capture.dobLabel ?? 'Date of birth';
+    dobLbl.htmlFor = 'chc-hil-birthDate';
+    const dobInput = document.createElement('input');
+    dobInput.id = 'chc-hil-birthDate';
+    dobInput.type = 'date';
+    dobInput.required = required;
+    dobInput.className = hilInputStyle();
+    dobWrap.append(dobLbl, dobInput);
+    form.appendChild(dobWrap);
+
+    const sexWrap = document.createElement('div');
+    sexWrap.className = hilFieldStyle();
+    const sexLbl = document.createElement('label');
+    sexLbl.className = hilLabelStyle();
+    sexLbl.textContent = capture.sexLabel ?? 'Sex';
+    sexLbl.htmlFor = 'chc-hil-sex';
+    const sexSelect = document.createElement('select');
+    sexSelect.id = 'chc-hil-sex';
+    sexSelect.required = required;
+    sexSelect.className = hilInputStyle();
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Select…';
+    sexSelect.appendChild(placeholder);
+    (capture.sexOptions ?? DEFAULT_SEX_OPTIONS).forEach((o) => {
+      const opt = document.createElement('option');
+      opt.value = o.value;
+      opt.textContent = o.label;
+      sexSelect.appendChild(opt);
+    });
+    sexWrap.append(sexLbl, sexSelect);
+    form.appendChild(sexWrap);
+
+    return () => normalizeSignupPii({ birthDate: dobInput.value, sex: sexSelect.value });
+  }
+
   function emitAuthenticated(detail: HiveIDAuthenticatedDetail): void {
     root.dispatchEvent(new CustomEvent(AUTHENTICATED_EVENT, { detail, bubbles: true }));
   }
@@ -251,7 +319,7 @@ export function buildHiveIDLogin(config: HiveIDLoginConfig): HiveIDLoginShell {
     emailInput: HTMLInputElement,
     firstNameInput: HTMLInputElement,
     lastNameInput: HTMLInputElement,
-    federationIds?: HiveIDFederationId[]
+    extras: SignupExtras = {}
   ): Promise<void> {
     const email = emailInput.value.trim();
     const firstName = firstNameInput.value.trim();
@@ -260,8 +328,17 @@ export function buildHiveIDLogin(config: HiveIDLoginConfig): HiveIDLoginShell {
       setMessage('Email, first name, and last name are required.', 'error');
       return;
     }
+    const { federationIds, birthDate, sex, provider, requirePii } = extras;
+    if (requirePii && (!birthDate || !sex)) {
+      setMessage('Date of birth and sex are required.', 'error');
+      return;
+    }
     try {
-      const resp = await signup(config.cfsBaseUrl, { email, firstName, lastName, federationIds }, config.fetchImpl);
+      const resp = await signup(
+        config.cfsBaseUrl,
+        { email, firstName, lastName, federationIds, birthDate, sex, provider },
+        config.fetchImpl
+      );
       if (resp.status === 'candidate') {
         setMessage('We found possible matches — please log in with your existing account.', 'info');
         setMode('login');
@@ -360,9 +437,16 @@ export function buildHiveIDLogin(config: HiveIDLoginConfig): HiveIDLoginShell {
       const getFederationId = config.federationIdCapture
         ? renderFederationCapture(config.federationIdCapture)
         : () => null;
+      const getPii = config.dobSexCapture ? renderDobSexCapture(config.dobSexCapture) : () => ({});
+      const requirePii = !!config.dobSexCapture && config.dobSexCapture.required !== false;
       const submit = makeSubmit('Create account');
       form.onsubmit = withBusy(submit, () =>
-        handleSignup(email, firstName, lastName, mergeFederationIds(getFederationId(), config.federationIds))
+        handleSignup(email, firstName, lastName, {
+          federationIds: mergeFederationIds(getFederationId(), config.federationIds),
+          ...getPii(),
+          provider: config.provider,
+          requirePii
+        })
       );
       makeSwitch('Already have an account?', 'login', 'Log in');
     } else if (currentMode === 'login') {
@@ -443,6 +527,20 @@ export function mergeFederationIds(
   (configIds ?? []).forEach(add);
   add(entered);
   return merged.length ? merged : undefined;
+}
+
+/**
+ * Normalize the raw DOB + sex captured on the signup form: trim, and drop empty
+ * values (so an untouched field stays `undefined` and the signup fragment omits
+ * it rather than sending an empty string). Pure — unit-tested without the DOM.
+ */
+export function normalizeSignupPii(raw: { birthDate?: string; sex?: string }): { birthDate?: string; sex?: string } {
+  const out: { birthDate?: string; sex?: string } = {};
+  const birthDate = raw.birthDate?.trim();
+  const sex = raw.sex?.trim();
+  if (birthDate) out.birthDate = birthDate;
+  if (sex) out.sex = sex;
+  return out;
 }
 
 function emptyCached(): CachedPersonFields {

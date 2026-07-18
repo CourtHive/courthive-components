@@ -35,6 +35,12 @@ export interface SignupRequest {
   firstName: string;
   lastName: string;
   federationIds?: HiveIDFederationId[];
+  /** Date of birth (YYYY-MM-DD), collected behind a consent gate. */
+  birthDate?: string;
+  /** Sex ('M' | 'F'), collected behind a consent gate. */
+  sex?: string;
+  /** Provider context — anchors a fresh mint to the registering tournament's tenant. */
+  provider?: string;
 }
 
 export interface VerifyExistingRequest {
@@ -112,6 +118,34 @@ export interface FederationIdCaptureConfig {
   note?: string;
 }
 
+export interface SignupSexOption {
+  /** Value sent verbatim to courthive-persons — 'M' / 'F' (the backfill encoding). */
+  value: string;
+  /** Display label, e.g. 'Male'. */
+  label: string;
+}
+
+/**
+ * Opt-in date-of-birth + sex capture on the signup form. When present (and the
+ * consumer has already gated collection behind a consent notice — decision #4 of
+ * PUBLIC_REGISTRATION_AND_ONBOARDING), the signup form shows a DOB field and a sex
+ * select. Together with a `provider` context these let courthive-persons dedupe on
+ * name+DOB+sex, or MINT a canonical person when no match exists (the only path a
+ * brand-new public person can acquire a personId without a pre-existing provider id).
+ */
+export interface DobSexCaptureConfig {
+  /** Sex options offered. Defaults to Male→'M' / Female→'F' (persons encoding). */
+  sexOptions?: SignupSexOption[];
+  /** Label for the DOB input. Default: 'Date of birth'. */
+  dobLabel?: string;
+  /** Label for the sex select. Default: 'Sex'. */
+  sexLabel?: string;
+  /** Optional helper text shown above the fields. */
+  note?: string;
+  /** Require both DOB and sex before signup can proceed. Default: true. */
+  required?: boolean;
+}
+
 export interface HiveIDLoginConfig {
   /** Which CFS instance to talk to (no trailing slash). */
   cfsBaseUrl: string;
@@ -131,6 +165,17 @@ export interface HiveIDLoginConfig {
    * person. Merged with `federationIds`. See FederationIdCaptureConfig.
    */
   federationIdCapture?: FederationIdCaptureConfig;
+  /**
+   * Opt-in: show DOB + sex fields on the signup form so a brand-new person can be
+   * deduped-or-MINTED. The consumer is responsible for the consent gate that must
+   * precede collection (decision #4). See DobSexCaptureConfig.
+   */
+  dobSexCapture?: DobSexCaptureConfig;
+  /**
+   * Provider context forwarded on signup (e.g. the registering tournament's
+   * provider). Anchors a fresh mint to that tenant. Paired with `dobSexCapture`.
+   */
+  provider?: string;
   /** Optional fetch implementation (tests stub this). */
   fetchImpl?: typeof fetch;
 }

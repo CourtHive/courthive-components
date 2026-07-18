@@ -1,5 +1,16 @@
 import { buildHiveIDLogin } from '../components/hive-id-login/buildHiveIDLogin';
-import type { FederationIdCaptureConfig, HiveIDAuthenticatedDetail, HiveIDMode } from '../components/hive-id-login/types';
+import type {
+  DobSexCaptureConfig,
+  FederationIdCaptureConfig,
+  HiveIDAuthenticatedDetail,
+  HiveIDMode
+} from '../components/hive-id-login/types';
+
+interface StoryExtras {
+  federationIdCapture?: FederationIdCaptureConfig;
+  dobSexCapture?: DobSexCaptureConfig;
+  provider?: string;
+}
 
 export default {
   title: 'Components/HiveIDLogin',
@@ -83,7 +94,7 @@ function mockFetch(scenario: 'success' | 'existing-user' | 'incomplete' | 'wrong
 function buildStory(
   mode: HiveIDMode,
   scenario: Parameters<typeof mockFetch>[0] = 'success',
-  federationIdCapture?: FederationIdCaptureConfig
+  extras: StoryExtras = {}
 ): HTMLElement {
   const container = document.createElement('div');
   container.style.cssText = 'padding: 24px; background: var(--chc-bg-secondary, #f3f4f6); min-height: 100vh;';
@@ -92,7 +103,9 @@ function buildStory(
     cfsBaseUrl: 'https://courthive.test',
     mode,
     fetchImpl: mockFetch(scenario),
-    federationIdCapture
+    federationIdCapture: extras.federationIdCapture,
+    dobSexCapture: extras.dobSexCapture,
+    provider: extras.provider
   });
   container.appendChild(shell.root);
 
@@ -127,13 +140,31 @@ export const SignupFederationId = {
   name: 'Signup — federation-id capture (claim identity)',
   render: () =>
     buildStory('signup', 'success', {
-      providers: [
-        { value: 'BOBOCA', label: 'BOBOCA' },
-        { value: 'HTS', label: 'HTS' },
-        { value: 'CTS', label: 'CTS' }
-      ],
-      idLabel: 'Player ID',
-      note: 'Already have a player ID from your club or federation? Enter it to link your existing record.'
+      federationIdCapture: {
+        providers: [
+          { value: 'BOBOCA', label: 'BOBOCA' },
+          { value: 'HTS', label: 'HTS' },
+          { value: 'CTS', label: 'CTS' }
+        ],
+        idLabel: 'Player ID',
+        note: 'Already have a player ID from your club or federation? Enter it to link your existing record.'
+      }
+    })
+};
+
+export const SignupDobSex = {
+  name: 'Signup — DOB + sex capture (mint-on-signup)',
+  render: () =>
+    buildStory('signup', 'success', {
+      provider: 'BOBOCA',
+      dobSexCapture: {
+        note: 'Your date of birth and sex let us find or create your player record.'
+      },
+      federationIdCapture: {
+        providers: [{ value: 'BOBOCA', label: 'BOBOCA' }],
+        idLabel: 'Player ID (optional)',
+        note: 'Already have a BOBOCA player ID? Enter it to link your existing record instead.'
+      }
     })
 };
 
