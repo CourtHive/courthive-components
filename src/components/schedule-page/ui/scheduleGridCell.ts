@@ -41,8 +41,51 @@ export function buildScheduleGridCell(data: ScheduleCellData, config?: ScheduleC
   const cfg = config ?? DEFAULT_SCHEDULE_CELL_CONFIG;
 
   if (data.isBlocked) return buildBlockedCell(data);
+  if (data.isReserved) return buildReservedCell(data);
   if (data.matchUpId) return buildMatchUpCell(data, cfg);
   return buildEmptyCell();
+}
+
+// ============================================================================
+// Reserved Cell
+// ============================================================================
+
+/**
+ * A court slot taken by another facility-sharing tournament the viewer can't author. Opaque and
+ * read-only — shows only "Reserved" plus whatever slim label the consumer passes (tournament name,
+ * time). Never renders participants/scores. The consumer is responsible for NOT wiring drag/move on it.
+ */
+function buildReservedCell(data: ScheduleCellData): HTMLElement {
+  const cell = document.createElement('div');
+  cell.className = 'spl-grid-cell spl-cell--reserved';
+  cell.dataset.reserved = 'true';
+
+  const label = document.createElement('div');
+  label.className = 'spl-grid-cell__reserved-label';
+
+  const typeEl = document.createElement('div');
+  typeEl.className = 'spl-grid-cell__reserved-type';
+  typeEl.textContent = 'Reserved';
+  label.appendChild(typeEl);
+
+  const name = data.reservation?.tournamentName;
+  if (name) {
+    const nameEl = document.createElement('div');
+    nameEl.className = 'spl-grid-cell__reserved-name';
+    nameEl.textContent = name;
+    label.appendChild(nameEl);
+  }
+
+  const time = data.reservation?.scheduledTime ?? data.schedule?.scheduledTime;
+  if (time) {
+    const timeEl = document.createElement('div');
+    timeEl.className = 'spl-grid-cell__reserved-time';
+    timeEl.textContent = time;
+    label.appendChild(timeEl);
+  }
+
+  cell.appendChild(label);
+  return cell;
 }
 
 // ============================================================================

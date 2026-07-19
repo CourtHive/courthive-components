@@ -366,4 +366,18 @@ export interface ScheduleCellData {
      */
     registrations?: string[];
   };
+
+  /**
+   * Reserved cell (alternative to matchUp) — a court slot occupied by ANOTHER, facility-sharing
+   * tournament that the viewer does not author. Read-only and opaque: it carries no matchUp/participant
+   * detail, only the slim information the consumer chooses to surface from a schedule projection. The
+   * consumer renders it non-interactive (no drag/move) — the widget only handles its appearance.
+   */
+  isReserved?: boolean;
+  reservation?: {
+    /** Display label for the occupying tournament (e.g. its name), pre-formatted by the consumer. */
+    tournamentName?: string;
+    /** Optional scheduled time to show on the cell. */
+    scheduledTime?: string;
+  };
 }

@@ -402,6 +402,54 @@
   white-space: nowrap;
 }
 
+/* ── Reserved Cell ──────────────────────────────────────── */
+/* A court slot taken by another facility-sharing tournament the viewer can't
+   author. Muted diagonal wash distinguishes it from own matchUp cells and from
+   BLOCKED/PRACTICE bookings; read-only (cursor:default, no drag affordance). */
+
+.spl-cell--reserved {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--sp-card-bg),
+    var(--sp-card-bg) 5px,
+    var(--sp-border) 5px,
+    var(--sp-border) 10px
+  );
+  cursor: default;
+  opacity: 0.85;
+}
+
+.spl-grid-cell__reserved-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+}
+
+.spl-grid-cell__reserved-type {
+  font-weight: 700;
+  color: var(--sp-muted);
+  text-transform: uppercase;
+  font-size: 0.625rem;
+  letter-spacing: 0.04em;
+}
+
+.spl-grid-cell__reserved-name {
+  font-size: 0.6875rem;
+  color: var(--sp-muted);
+  text-align: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spl-grid-cell__reserved-time {
+  font-size: 0.625rem;
+  color: var(--sp-muted);
+}
+
 /* ── Empty Cell ─────────────────────────────────────────── */
 
 .spl-cell--empty {

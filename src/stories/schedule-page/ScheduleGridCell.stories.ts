@@ -545,6 +545,31 @@ export const BlockedCells = {
 };
 
 // ============================================================================
+// ReservedCells — a court slot taken by another facility-sharing tournament
+// ============================================================================
+
+export const ReservedCells = {
+  name: 'Reserved (facility-sharing)',
+  render: () => {
+    const cells = [
+      labeledCell(
+        { matchUpId: '', isReserved: true, reservation: { tournamentName: 'City Open', scheduledTime: '14:00' } },
+        'Name + time',
+      ),
+      labeledCell(
+        { matchUpId: '', isReserved: true, reservation: { tournamentName: 'Regional U16 Championships' } },
+        'Long name (ellipsis)',
+      ),
+      labeledCell({ matchUpId: '', isReserved: true }, 'Bare'),
+    ];
+    return gridLayout(
+      cells,
+      'Reserved — court taken by another facility-sharing tournament (opaque, read-only; consumer wires no drag)',
+    );
+  },
+};
+
+// ============================================================================
 // PracticeWithRegistrations — PRACTICE booking + per-window participant list
 // ============================================================================
 
