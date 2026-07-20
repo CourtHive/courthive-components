@@ -1,5 +1,20 @@
 # Changelog
 
+## [3.11.0](https://github.com/CourtHive/courthive-components/compare/v3.10.0...v3.11.0) (2026-07-20)
+
+
+### Features
+
+* **hive-id-login:** optional dob + sex signup capture for mint-on-signup ([a7cb8a5](https://github.com/CourtHive/courthive-components/commit/a7cb8a5ecaa9078b30d7df434048b5d4f2cec785))
+* **hiveid-login:** optional federation-id capture on signup ([ac446be](https://github.com/CourtHive/courthive-components/commit/ac446be3e6a682a9c4cc0978edcf1c00017ed59e))
+* **schedule-page:** add reserved schedule-cell kind for shared facilities ([65c7448](https://github.com/CourtHive/courthive-components/commit/65c74489e302c4984edce5f27d9d77d3ed5d690b))
+* **schedule-page:** reserved schedule-cell kind for shared facilities ([6df6618](https://github.com/CourtHive/courthive-components/commit/6df661817c9967ebd9028aa9efb8b48cc241c4a8))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 6.10.0 ([da993e9](https://github.com/CourtHive/courthive-components/commit/da993e924f92f7d7c6bb43731aeb9e2feba5d2d0))
+
 ## [3.10.0](https://github.com/CourtHive/courthive-components/compare/v3.9.0...v3.10.0) (2026-07-15)
 
 
