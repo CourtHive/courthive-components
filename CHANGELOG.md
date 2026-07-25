@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.11.1](https://github.com/CourtHive/courthive-components/compare/v3.11.0...v3.11.1) (2026-07-25)
+
+
+### Bug Fixes
+
+* **deps:** override brace-expansion to patched versions to clear audit ([af97133](https://github.com/CourtHive/courthive-components/commit/af9713395cb299dd46e0973b9ea4e759d6a046c2))
+* **deps:** patch fast-uri to 3.1.4 (host confusion advisory) ([98f0bc7](https://github.com/CourtHive/courthive-components/commit/98f0bc7d0cd122a48b24ce18150fbd7282b8028d))
+* **deps:** update tods-competition-factory to 6.11.0 ([962d1d9](https://github.com/CourtHive/courthive-components/commit/962d1d9250eb96c46d7d85dbcf84ecd04dc80dd3))
+* **deps:** update tods-competition-factory to 6.12.0 ([9933a2e](https://github.com/CourtHive/courthive-components/commit/9933a2e35cfc2ac2c556b4f316c3ff99e9124183))
+* **deps:** update tods-competition-factory to 6.13.0 ([678af61](https://github.com/CourtHive/courthive-components/commit/678af61a88a71d2b75bdd302b570ea062e36a591))
+
 ## [3.11.0](https://github.com/CourtHive/courthive-components/compare/v3.10.0...v3.11.0) (2026-07-20)
 
 
