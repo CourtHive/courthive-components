@@ -48,3 +48,32 @@ describe('buildScheduleGridCell — reserved cell', () => {
     expect(el.querySelector('.spl-grid-cell__reserved-name')).toBeNull();
   });
 });
+
+/**
+ * Blocked cells key their colour off `data-booking-type` in schedule-grid-cell.css.
+ * A booking type with no matching selector silently falls through to the MAINTENANCE
+ * default — so the attribute has to carry the raw type verbatim for the styling to
+ * land. DRYING is the case that motivated this: it must read as weather loss, not as
+ * planned maintenance.
+ */
+describe('buildScheduleGridCell — blocked cell booking type', () => {
+  const blocked = (bookingType: string) =>
+    buildScheduleGridCell({ matchUpId: '', isBlocked: true, booking: { bookingType } } as any);
+
+  it('exposes DRYING as its own data-booking-type so the teal styling applies', () => {
+    const el = blocked('DRYING');
+
+    expect(el.classList.contains('spl-cell--blocked')).toBe(true);
+    expect(el.dataset.bookingType).toBe('DRYING');
+    expect(el.querySelector('.spl-grid-cell__block-type')?.textContent).toBe('DRYING');
+  });
+
+  it('keeps DRYING distinct from MAINTENANCE rather than collapsing them', () => {
+    expect(blocked('DRYING').dataset.bookingType).not.toBe(blocked('MAINTENANCE').dataset.bookingType);
+  });
+
+  it('still defaults a booking with no type to BLOCKED', () => {
+    const el = buildScheduleGridCell({ matchUpId: '', isBlocked: true, booking: {} } as any);
+    expect(el.dataset.bookingType).toBe('BLOCKED');
+  });
+});

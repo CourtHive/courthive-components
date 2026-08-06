@@ -152,6 +152,10 @@
   --sp-err-text: rgba(244, 63, 94, 0.9);
   --sp-accent-border: rgba(59, 130, 246, 0.3);
   --sp-accent-text: rgba(59, 130, 246, 0.9);
+  /* teal — used for DRYING court blocks; deliberately distinct from both the
+     amber warn (planned maintenance) and the blue accent (practice) */
+  --sp-info-border: rgba(13, 148, 136, 0.3);
+  --sp-info-text: rgba(13, 148, 136, 0.9);
   --sp-accent-focus: rgba(59, 130, 246, 0.45);
   --sp-selected-border: rgba(59, 130, 246, 0.5);
 
@@ -306,6 +310,8 @@
   --sp-err-text: rgba(251, 113, 133, 0.95);
   --sp-accent-border: rgba(96, 165, 250, 0.35);
   --sp-accent-text: rgba(96, 165, 250, 0.95);
+  --sp-info-border: rgba(45, 212, 191, 0.35);
+  --sp-info-text: rgba(45, 212, 191, 0.95);
   --sp-accent-focus: rgba(96, 165, 250, 0.55);
   --sp-selected-border: rgba(96, 165, 250, 0.6);
 

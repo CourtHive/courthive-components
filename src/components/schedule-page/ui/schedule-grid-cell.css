@@ -357,6 +357,24 @@
   color: var(--sp-err-text);
 }
 
+/* DRYING: teal. Deliberately not the maintenance amber — drying is reactive
+   weather loss, maintenance is planned, and a TD reading the grid needs to tell
+   them apart at a glance. The stripe sits over --sp-card-bg and the label uses a
+   token, so both adapt to dark mode. */
+.spl-cell--blocked[data-booking-type='DRYING'] {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--sp-card-bg),
+    var(--sp-card-bg) 4px,
+    rgba(20, 184, 166, 0.15) 4px,
+    rgba(20, 184, 166, 0.15) 8px
+  );
+}
+
+.spl-cell--blocked[data-booking-type='DRYING'] .spl-grid-cell__block-type {
+  color: var(--sp-info-text);
+}
+
 /* MAINTENANCE: orange (explicit for clarity) */
 .spl-cell--blocked[data-booking-type='MAINTENANCE'] {
   background: repeating-linear-gradient(
