@@ -1,5 +1,26 @@
 # Changelog
 
+## [3.12.0](https://github.com/CourtHive/courthive-components/compare/v3.11.1...v3.12.0) (2026-08-07)
+
+
+### Features
+
+* **schedule-page:** distinct DRYING colour for blocked cells ([660a578](https://github.com/CourtHive/courthive-components/commit/660a578983f7a533eb74e544fa32eb34fe5e658e))
+
+
+### Bug Fixes
+
+* **deps:** declare tods-competition-factory as a peer, not a dependency ([473c003](https://github.com/CourtHive/courthive-components/commit/473c003a448011206f52ee27e595b4a74d862a65))
+* **deps:** update tods-competition-factory to 6.13.1 ([8b4c4df](https://github.com/CourtHive/courthive-components/commit/8b4c4df869b7ccdfbe69c02217de1e1346b3c617))
+* **deps:** update tods-competition-factory to 6.13.2 ([cda0f0a](https://github.com/CourtHive/courthive-components/commit/cda0f0ac8dd54f16fe46a5451f7f1e1e8b172bd9))
+* **deps:** update tods-competition-factory to 6.14.0 ([2c23750](https://github.com/CourtHive/courthive-components/commit/2c23750e492cf448f1b95565ee584044aef2c128))
+* **deps:** update tods-competition-factory to 6.14.1 ([c317318](https://github.com/CourtHive/courthive-components/commit/c317318bd6768117a8f46cc6b3df1eacf816923b))
+* **deps:** update tods-competition-factory to 6.15.0 ([149f36f](https://github.com/CourtHive/courthive-components/commit/149f36f1e0622732457d9d0a0147643e948f6f0b))
+* **deps:** update tods-competition-factory to 6.16.0 ([a5a083d](https://github.com/CourtHive/courthive-components/commit/a5a083deb0e68029696ad9aa7fe0b8fd4520dae8))
+* **deps:** update tods-competition-factory to 6.17.0 ([3540969](https://github.com/CourtHive/courthive-components/commit/3540969d598919954fd77ac4094673bdb8368bf7))
+* **deps:** update tods-competition-factory to 6.18.0 ([41e4e02](https://github.com/CourtHive/courthive-components/commit/41e4e02f558238412bce33f937ae0fde690570a2))
+* **deps:** update tods-competition-factory to 6.19.0 ([f9e360f](https://github.com/CourtHive/courthive-components/commit/f9e360f61149a4dea93078f697fa8aafad602a3a))
+
 ## [3.11.1](https://github.com/CourtHive/courthive-components/compare/v3.11.0...v3.11.1) (2026-07-25)
 
 
