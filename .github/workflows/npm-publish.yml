@@ -102,6 +102,11 @@ jobs:
 
       - run: pnpm lint
 
+      # Explicit type gate. `build` also runs tsc now, but a dedicated step fails with a
+      # clear signal instead of burying type errors in a bundler log. This repo shipped
+      # 3.12.0 with 11 type errors because `build` was bundler-only and nothing ran tsc.
+      - run: pnpm check-types
+
       - run: pnpm build
 
       - run: pnpm test

@@ -180,7 +180,7 @@ function checkDayOverload(
 // ============================================================================
 
 // Structure types where round ordering is not meaningful
-const UNORDERED_STRUCTURE_TYPES = new Set([ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF]);
+const UNORDERED_STRUCTURE_TYPES = new Set<string>([ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF]);
 
 export function validateRoundPrecedenceLocal({
   profile

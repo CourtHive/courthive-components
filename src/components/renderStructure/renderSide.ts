@@ -10,7 +10,9 @@ import type { Composition, EventHandlers, MatchUp } from '../../types';
 
 // Import factory constants
 import { factoryConstants } from 'tods-competition-factory';
-const { completedMatchUpStatuses } = factoryConstants;
+// `: string[]` — factory 6.19.0 made these constant arrays `as const`, narrowing the element
+// type, so `.includes()` on a plain matchUpStatus string no longer type-checks.
+const completedMatchUpStatuses: string[] = factoryConstants.completedMatchUpStatuses;
 
 export function renderSide({
   initialRoundNumber = 1,

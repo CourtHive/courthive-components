@@ -105,7 +105,7 @@ export function renderParticipant({
 
   const teamLogo = configuration?.teamLogo;
   const irregularEnding =
-    [
+    ([
       RETIRED,
       WALKOVER,
       DEFAULTED,
@@ -115,7 +115,7 @@ export function renderParticipant({
       CANCELLED,
       IN_PROGRESS,
       ABANDONED
-    ].includes(matchUpStatus) && !isWinningSide;
+    ] as string[]).includes(matchUpStatus) && !isWinningSide;
   const gameScoreOnly = configuration?.gameScoreOnly;
 
   const participantContainer = document.createElement('div');

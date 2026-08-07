@@ -25,9 +25,9 @@ export function renderStatusPill({ matchUpStatus }: { matchUpStatus?: string }):
     ? (variantValue as (typeof validVariants)[number])
     : undefined;
 
-  const statusText = [WALKOVER, DOUBLE_WALKOVER].includes(matchUpStatus || '')
+  const statusText = ([WALKOVER, DOUBLE_WALKOVER] as string[]).includes(matchUpStatus || '')
     ? 'WO'
-    : [DEFAULTED, DOUBLE_DEFAULT].includes(matchUpStatus || '')
+    : ([DEFAULTED, DOUBLE_DEFAULT] as string[]).includes(matchUpStatus || '')
       ? 'DEF'
       : matchUpStatus === ABANDONED
         ? 'ABD'

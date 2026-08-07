@@ -99,7 +99,7 @@ function checkMatchComplete(
  */
 export function validateScore(scoreString: string, matchUpFormat?: string, matchUpStatus?: string): ScoreOutcome {
   const { WALKOVER, CANCELLED, DEAD_RUBBER } = matchUpStatusConstants;
-  const scoresRemovedStatuses = [WALKOVER, CANCELLED, DEAD_RUBBER];
+  const scoresRemovedStatuses: string[] = [WALKOVER, CANCELLED, DEAD_RUBBER];
 
   if (!scoreString?.trim()) {
     if (matchUpStatus && scoresRemovedStatuses.includes(matchUpStatus)) {

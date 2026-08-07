@@ -138,7 +138,7 @@ function buildConsolationMethods(
       e.linkType === LOSER && e.sourceNodeId === mainNode.id && consolationNodes.some((n) => n.id === e.targetNodeId)
   );
 
-  const compositeTypes = [FIRST_MATCH_LOSER_CONSOLATION, FEED_IN_CHAMPIONSHIP, COMPASS];
+  const compositeTypes: string[] = [FIRST_MATCH_LOSER_CONSOLATION, FEED_IN_CHAMPIONSHIP, COMPASS];
   if (consolationLoserEdges.length === 0 || compositeTypes.includes(drawType)) return;
 
   const byTarget = new Map<string, TopologyEdge[]>();

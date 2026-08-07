@@ -110,7 +110,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
   }) => {
     // For WALKOVER/CANCELLED/DEAD_RUBBER, score should be cleared
     const { WALKOVER, CANCELLED, DEAD_RUBBER } = matchUpStatusConstants;
-    const scoresRemovedStatuses = [WALKOVER, CANCELLED, DEAD_RUBBER];
+    const scoresRemovedStatuses: string[] = [WALKOVER, CANCELLED, DEAD_RUBBER];
     const shouldClearScore = currentScore?.matchUpStatus && scoresRemovedStatuses.includes(currentScore.matchUpStatus);
 
     // Determine the score to display - ONLY use internal state, never matchUp.score
@@ -396,7 +396,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
 
     formattedDisplay.textContent = parseResult.formattedScore || '';
 
-    const IRREGULAR_STATUSES = new Set([
+    const IRREGULAR_STATUSES = new Set<string>([
       RETIRED, WALKOVER, DEFAULTED, SUSPENDED, CANCELLED,
       INCOMPLETE, DEAD_RUBBER, IN_PROGRESS, AWAITING_RESULT
     ]);
@@ -427,7 +427,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
 
       if (isIrregularEnding) {
         const effectiveWinningSide = handleIrregularWinnerSelection(result, parseResult, scoreString);
-        if (effectiveWinningSide === undefined && [RETIRED, WALKOVER, DEFAULTED].includes(result.matchUpStatus || parseResult.matchUpStatus) && !manualWinningSide) {
+        if (effectiveWinningSide === undefined && ([RETIRED, WALKOVER, DEFAULTED] as string[]).includes(result.matchUpStatus || parseResult.matchUpStatus) && !manualWinningSide) {
           return;
         }
         onScoreChange({
