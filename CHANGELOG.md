@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.12.1](https://github.com/CourtHive/courthive-components/compare/v3.12.0...v3.12.1) (2026-08-07)
+
+
+### Bug Fixes
+
+* **types:** add a type gate and fix 11 errors it exposed ([adbe5fc](https://github.com/CourtHive/courthive-components/commit/adbe5fca255199100ba5a8b772d4c297db0d3ec1))
+
 ## [3.12.0](https://github.com/CourtHive/courthive-components/compare/v3.11.1...v3.12.0) (2026-08-07)
 
 
