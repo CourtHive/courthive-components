@@ -96,6 +96,7 @@
     "semver": "7.8.5",
     "storybook": "^10.2.17",
     "tabulator-tables": "6.5.2",
+    "tods-competition-factory": "6.18.0",
     "typescript": "^6.0.2",
     "vite": "8.1.5",
     "vite-plugin-dts": "^5.0.0",
@@ -117,7 +118,9 @@
     "focus-trap": "^8.0.0",
     "timepicker-ui": "^4.1.2",
     "tippy.js": "6.3.7",
-    "tods-competition-factory": "6.18.0",
     "vanillajs-datepicker": "1.3.4"
+  },
+  "peerDependencies": {
+    "tods-competition-factory": "^6.0.0"
   }
 }
