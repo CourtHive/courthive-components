@@ -18,7 +18,8 @@ pnpm dev                  # Vite dev server
 pnpm build                # Vite production build to dist/
 pnpm test                 # Vitest (single run)
 pnpm test:watch           # Vitest watch mode
-pnpm lint                 # ESLint with auto-fix
+pnpm lint                 # ESLint — non-mutating, fails on any warning
+pnpm lint:fix             # ESLint with auto-fix (rewrites source)
 pnpm format               # Prettier on src/
 pnpm storybook            # Storybook dev server on :6006
 pnpm build-storybook      # Build static Storybook
