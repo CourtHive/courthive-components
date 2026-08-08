@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.12.2](https://github.com/CourtHive/courthive-components/compare/v3.12.1...v3.12.2) (2026-08-08)
+
+
+### Bug Fixes
+
+* **build:** stop wiping dist before the build can fail ([e40cb48](https://github.com/CourtHive/courthive-components/commit/e40cb4867ec1f2eaf6a801219845baa3c6964d05))
+
 ## [3.12.1](https://github.com/CourtHive/courthive-components/compare/v3.12.0...v3.12.1) (2026-08-07)
 
 
