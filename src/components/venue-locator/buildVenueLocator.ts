@@ -11,6 +11,7 @@
  */
 
 import { mergeVenueLocatorConfig } from './defaultConfig';
+import { sortCourtsByOrder } from '../../helpers/cards';
 import {
   vlAddressStyle,
   vlBodyBelowStyle,
@@ -57,16 +58,9 @@ export function hasVenueGeo(data: VenueLocatorData): boolean {
   return Number.isFinite(data.latitude) && Number.isFinite(data.longitude);
 }
 
-/** courtOrder ascending when present; otherwise name, natural-numeric so Court 2 precedes Court 10. */
+/** Re-exported so the locator's public surface stays stable; the comparator is shared with court-layout. */
 export function sortVenueCourts(courts: VenueLocatorCourt[]): VenueLocatorCourt[] {
-  return courts.slice().sort((a, b) => {
-    const ao = a.courtOrder;
-    const bo = b.courtOrder;
-    if (Number.isFinite(ao) && Number.isFinite(bo) && ao !== bo) return (ao as number) - (bo as number);
-    if (Number.isFinite(ao) && !Number.isFinite(bo)) return -1;
-    if (!Number.isFinite(ao) && Number.isFinite(bo)) return 1;
-    return a.courtName.localeCompare(b.courtName, undefined, { numeric: true });
-  });
+  return sortCourtsByOrder(courts);
 }
 
 export function describeCourt(court: VenueLocatorCourt): string {

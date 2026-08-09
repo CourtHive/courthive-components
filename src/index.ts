@@ -195,6 +195,19 @@ export type {
   MapCourtOptions
 } from './components/court-card';
 
+// Court Layout — a venue's courts as an ordered, grouped grid (schematic, not a map)
+import './components/court-layout/court-layout.css';
+export { buildCourtLayout, cellCardConfig, groupCourts, settingOf, summarizeCourts, surfaceOf,
+  DEFAULT_COURT_LAYOUT_CONFIG, mergeCourtLayoutConfig } from './components/court-layout';
+export type {
+  CourtGroup,
+  CourtLayoutCallbacks,
+  CourtLayoutConfig,
+  CourtLayoutCourt,
+  CourtLayoutData,
+  CourtLayoutGrouping
+} from './components/court-layout';
+
 // Venue Locator — one venue on a Leaflet map, with its courts listed beside it.
 // `leaflet` is an OPTIONAL peerDependency, dynamically imported; hosts that render this component
 // install it (plus 'leaflet/dist/leaflet.css'). Without it the component degrades to header + courts.

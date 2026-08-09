@@ -1,0 +1,78 @@
+/* Court Layout — component-owned styles. The cards themselves are court-card's. */
+
+.chc-cl {
+  --chc-cl-gap: 0.875rem;
+  --chc-cl-heading-color: var(--chc-text-muted, #6b7280);
+  --chc-cl-summary-color: var(--chc-text-secondary, #4b5563);
+  --chc-cl-strong-color: var(--chc-text-primary, #111827);
+  --chc-cl-rule-color: var(--chc-border-primary, #e5e7eb);
+
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.chc-cl-summary {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--chc-cl-summary-color);
+}
+.chc-cl-summary-count {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--chc-cl-strong-color);
+}
+
+.chc-cl-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+.chc-cl-group-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--chc-cl-heading-color);
+}
+/* a hairline that fills the rest of the row, so groups read as sections without heavy chrome */
+.chc-cl-group-heading::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--chc-cl-rule-color);
+}
+.chc-cl-group-count {
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.chc-cl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--chc-cl-min-card, 11rem), 1fr));
+  gap: var(--chc-cl-gap);
+}
+
+.chc-cl-empty {
+  padding: 1.5rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--chc-cl-heading-color);
+  border: 1px dashed var(--chc-cl-rule-color);
+  border-radius: 0.75rem;
+}
+
+[data-theme='dark'] .chc-cl {
+  --chc-cl-heading-color: var(--chc-text-muted, #9ca3af);
+  --chc-cl-summary-color: var(--chc-text-secondary, #d1d5db);
+  --chc-cl-strong-color: var(--chc-text-primary, #f9fafb);
+  --chc-cl-rule-color: var(--chc-border-primary, #374151);
+}

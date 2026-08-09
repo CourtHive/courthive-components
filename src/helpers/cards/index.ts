@@ -7,6 +7,8 @@
 
 export { formatAddress, formatVenueLocation } from './formatAddress';
 export { formatDateRange } from './formatDateRange';
+export { sortCourtsByOrder } from './sortCourts';
+export type { CourtOrderable } from './sortCourts';
 export { extractImageURL, extractCourtSvgSport } from './resourceExtraction';
 export { buildCardSkeleton } from './buildCardSkeleton';
 export type { CardSkeletonConfig } from './buildCardSkeleton';
