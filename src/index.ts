@@ -195,6 +195,30 @@ export type {
   MapCourtOptions
 } from './components/court-card';
 
+// Venue Locator — one venue on a Leaflet map, with its courts listed beside it.
+// `leaflet` is an OPTIONAL peerDependency, dynamically imported; hosts that render this component
+// install it (plus 'leaflet/dist/leaflet.css'). Without it the component degrades to header + courts.
+import './components/venue-locator/venue-locator.css';
+export {
+  buildVenueLocator,
+  destroyVenueLocator,
+  describeCourt,
+  hasVenueGeo,
+  sortVenueCourts,
+  mapVenueToLocatorData,
+  DEFAULT_VENUE_LOCATOR_CONFIG,
+  mergeVenueLocatorConfig
+} from './components/venue-locator';
+export type {
+  VenueLocatorCallbacks,
+  VenueLocatorConfig,
+  VenueLocatorCourt,
+  VenueLocatorData,
+  VenueLocatorLayout,
+  VenueLocatorTileLayer,
+  VenueLocatorView
+} from './components/venue-locator';
+
 // Team Card — header-style card primitive for a TEAM participant
 import './components/team-card/team-card.css';
 export { buildTeamCard } from './components/team-card';
