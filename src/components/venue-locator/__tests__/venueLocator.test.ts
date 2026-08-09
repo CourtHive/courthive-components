@@ -1,4 +1,4 @@
-import { describeCourt, hasVenueGeo, leafletCssMissing, sortVenueCourts } from '../buildVenueLocator';
+import { describeCourt, hasVenueGeo, leafletCssMissing, resolveTileLayer, sortVenueCourts } from '../buildVenueLocator';
 import { mergeVenueLocatorConfig, DEFAULT_VENUE_LOCATOR_CONFIG } from '../defaultConfig';
 import { mapVenueToLocatorData } from '../mapVenue';
 import { describe, it, expect } from 'vitest';
@@ -154,5 +154,45 @@ describe('leafletCssMissing', () => {
     // a false alarm in every non-DOM/SSR context
     expect(leafletCssMissing(undefined)).toBe(false);
     expect(leafletCssMissing('')).toBe(false);
+  });
+});
+
+describe('resolveTileLayer', () => {
+  const cfg = DEFAULT_VENUE_LOCATOR_CONFIG;
+
+  it('uses the light street tiles under a light theme', () => {
+    expect(resolveTileLayer(cfg, 'map', false)).toBe(cfg.tiles.map);
+  });
+
+  it('swaps to the dark basemap under a dark theme', () => {
+    expect(resolveTileLayer(cfg, 'map', true)).toBe(cfg.darkTileLayer);
+  });
+
+  it('never darkens satellite — there is no dark equivalent of a photograph', () => {
+    expect(resolveTileLayer(cfg, 'satellite', true)).toBe(cfg.tiles.satellite);
+  });
+
+  it('honours darkTiles:never', () => {
+    const never = mergeVenueLocatorConfig({ darkTiles: 'never' });
+    expect(resolveTileLayer(never, 'map', true)).toBe(never.tiles.map);
+  });
+
+  it('falls back to the light street tiles when no dark basemap is configured', () => {
+    // this is the CSS-inversion path: the layer stays light and venue-locator.css inverts it
+    const noDark = mergeVenueLocatorConfig({ darkTileLayer: null });
+    expect(noDark.darkTileLayer).toBeNull();
+    expect(resolveTileLayer(noDark, 'map', true)).toBe(noDark.tiles.map);
+  });
+
+  it('accepts a host-supplied dark basemap', () => {
+    const custom = { tileLayer: 'https://example.test/{z}/{x}/{y}.png', attribution: 'test' };
+    const cfg2 = mergeVenueLocatorConfig({ darkTileLayer: custom });
+    expect(resolveTileLayer(cfg2, 'map', true)).toBe(custom);
+  });
+
+  it('ships a dark basemap by default that is a different source from the light one', () => {
+    expect(cfg.darkTileLayer).not.toBeNull();
+    expect(cfg.darkTileLayer?.tileLayer).not.toBe(cfg.tiles.map.tileLayer);
+    expect(cfg.darkTileLayer?.attribution).toMatch(/CARTO/);
   });
 });

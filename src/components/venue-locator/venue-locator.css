@@ -235,6 +235,21 @@
   background: var(--chc-vl-bg);
   color: var(--chc-vl-title-color);
 }
+/* Leaflet's zoom control is white by default and glares against a dark basemap. */
+[data-theme='dark'] .chc-vl .leaflet-bar,
+[data-theme='dark'] .chc-vl .leaflet-bar a {
+  background: var(--chc-vl-bg);
+  color: var(--chc-vl-title-color);
+  border-color: var(--chc-vl-border-color);
+}
+[data-theme='dark'] .chc-vl .leaflet-bar a:hover {
+  background: var(--chc-vl-hover-bg);
+  color: var(--chc-vl-title-color);
+}
+[data-theme='dark'] .chc-vl .leaflet-bar a.leaflet-disabled {
+  background: var(--chc-vl-surface-2);
+  color: var(--chc-vl-muted-color);
+}
 [data-theme='dark'] .chc-vl .leaflet-control-attribution {
   background: rgba(17, 24, 39, 0.8);
   color: var(--chc-vl-muted-color);

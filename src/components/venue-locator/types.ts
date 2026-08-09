@@ -71,6 +71,12 @@ export type VenueLocatorLayout = 'side' | 'below' | 'none';
 export interface VenueLocatorConfig {
   /** Tile sources. Defaults mirror TMX's leafletConfig defaults (OSM + Esri imagery). */
   tiles: Record<VenueLocatorView, VenueLocatorTileLayer>;
+  /**
+   * Street tiles used under a dark theme. Kept OUT of `tiles` on purpose: `tiles` is keyed by
+   * VenueLocatorView and drives the view toggle, and a dark basemap is the same view rendered
+   * differently, not a third thing to choose. Set to `null` to force the CSS-filter path.
+   */
+  darkTileLayer: VenueLocatorTileLayer | null;
   /** Which tile source to show first. */
   view: VenueLocatorView;
   /** Render the map/satellite toggle. Hidden when only one tile source is configured. */
@@ -88,9 +94,12 @@ export interface VenueLocatorConfig {
   /** Allow scroll-wheel zoom. Off by default so the map doesn't hijack page scroll. */
   scrollWheelZoom: boolean;
   /**
-   * Invert map tiles under `[data-theme='dark']` so the map reads as dark without a
-   * second tile subscription. 'auto' applies it to the street view only — inverting
-   * satellite imagery produces a false-colour photo, which is worse than leaving it.
+   * Dark-theme handling for the street view.
+   *  'auto'  — swap to `darkTileLayer` when the theme is dark; if no dark layer is configured,
+   *            fall back to inverting the street tiles in CSS (legible, but not pretty).
+   *  'never' — always render the light street tiles.
+   * Satellite is never darkened either way: inverting imagery yields a false-colour photo, and
+   * there is no dark equivalent of a photograph.
    */
   darkTiles: 'auto' | 'never';
 }

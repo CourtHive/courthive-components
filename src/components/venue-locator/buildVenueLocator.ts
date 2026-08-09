@@ -43,6 +43,7 @@ import {
   VenueLocatorConfig,
   VenueLocatorCourt,
   VenueLocatorData,
+  VenueLocatorTileLayer,
   VenueLocatorView
 } from './types';
 
@@ -310,8 +311,16 @@ async function mountMap({ root, mapEl, data, cfg, callbacks }: MountArgs): Promi
     const map = L.map(mapEl, { scrollWheelZoom: cfg.scrollWheelZoom, attributionControl: true });
     map.setView([data.latitude, data.longitude], cfg.zoom);
 
-    let tiles = addTileLayer(L, map, cfg, cfg.view);
-    applyDarkTiles(mapEl, cfg, cfg.view);
+    let currentView = cfg.view;
+    let tiles = addTileLayer(L, map, cfg, currentView);
+    applyDarkTiles(mapEl, cfg, currentView);
+
+    const showView = (view: VenueLocatorView) => {
+      currentView = view;
+      map.removeLayer(tiles);
+      tiles = addTileLayer(L, map, cfg, view);
+      applyDarkTiles(mapEl, cfg, view);
+    };
 
     const icon = L.divIcon({ className: '', html: `<div class="${vlMarkerStyle()}"></div>`, iconSize: [14, 14] });
     const marker = L.marker([data.latitude, data.longitude], { icon }).addTo(map);
@@ -321,11 +330,7 @@ async function mountMap({ root, mapEl, data, cfg, callbacks }: MountArgs): Promi
     // The toggle owns its own pressed state (see buildViewToggle); this listener only swaps tiles.
     root.querySelector('[data-view-toggle]')?.addEventListener('click', (event) => {
       const button = (event.target as HTMLElement)?.closest('button[data-view]') as HTMLElement | null;
-      if (!button) return;
-      const view = button.dataset.view as VenueLocatorView;
-      map.removeLayer(tiles);
-      tiles = addTileLayer(L, map, cfg, view);
-      applyDarkTiles(mapEl, cfg, view);
+      if (button) showView(button.dataset.view as VenueLocatorView);
     });
 
     warnIfLeafletCssMissing(mapEl);
@@ -334,8 +339,24 @@ async function mountMap({ root, mapEl, data, cfg, callbacks }: MountArgs): Promi
     const observer = new ResizeObserver(() => map.invalidateSize());
     observer.observe(mapEl);
 
+    // A dark basemap is a different tile URL, so unlike the colour tokens it cannot follow the theme
+    // through CSS alone — re-resolve the street layer when [data-theme] changes.
+    let themeObserver: MutationObserver | undefined;
+    const root_ = globalThis.document?.documentElement;
+    if (root_ && cfg.darkTiles !== 'never' && cfg.darkTileLayer) {
+      let wasDark = isDarkTheme();
+      themeObserver = new MutationObserver(() => {
+        const dark = isDarkTheme();
+        if (dark === wasDark) return;
+        wasDark = dark;
+        if (currentView !== 'satellite') showView(currentView);
+      });
+      themeObserver.observe(root_, { attributes: true, attributeFilter: ['data-theme'] });
+    }
+
     teardowns.set(root, () => {
       observer.disconnect();
+      themeObserver?.disconnect();
       map.remove();
     });
   } catch (cause) {
@@ -372,17 +393,37 @@ function warnIfLeafletCssMissing(mapEl: HTMLElement): void {
   }
 }
 
+export function isDarkTheme(): boolean {
+  return globalThis.document?.documentElement?.getAttribute('data-theme') === 'dark';
+}
+
+/**
+ * Which tile source a given view should render right now. The street view swaps to a real dark
+ * basemap under a dark theme — filtering light tiles to fake one produces a false-colour negative.
+ * Satellite never swaps: there is no dark equivalent of a photograph.
+ */
+export function resolveTileLayer(
+  cfg: VenueLocatorConfig,
+  view: VenueLocatorView,
+  dark: boolean
+): VenueLocatorTileLayer {
+  const base = cfg.tiles[view] ?? cfg.tiles.map;
+  if (view === 'satellite' || cfg.darkTiles === 'never' || !dark) return base;
+  return cfg.darkTileLayer ?? base;
+}
+
 function addTileLayer(L: any, map: any, cfg: VenueLocatorConfig, view: VenueLocatorView): any {
-  const tile = cfg.tiles[view] ?? cfg.tiles.map;
+  const tile = resolveTileLayer(cfg, view, isDarkTheme());
   return L.tileLayer(tile.tileLayer, { attribution: tile.attribution, maxZoom: tile.maxZoom ?? 19 }).addTo(map);
 }
 
 /**
- * Marks the street view as eligible for dark-theme tile inversion. Whether the filter actually
- * applies is decided by CSS under [data-theme='dark'], so switching theme at runtime needs no
- * re-render. Satellite is never eligible — inverting imagery yields a false-colour photo.
+ * The CSS inversion filter is now only a FALLBACK: it applies when the street view is showing under
+ * a dark theme and no dark basemap is configured. With `darkTileLayer` set (the default) the tiles
+ * are already dark and inverting them would undo that. The class only marks eligibility — CSS gated
+ * on [data-theme='dark'] decides whether it takes effect.
  */
 function applyDarkTiles(mapEl: HTMLElement, cfg: VenueLocatorConfig, view: VenueLocatorView): void {
-  const eligible = cfg.darkTiles === 'auto' && view !== 'satellite';
+  const eligible = cfg.darkTiles === 'auto' && view !== 'satellite' && !cfg.darkTileLayer;
   mapEl.classList.toggle(vlMapInvertibleStyle(), eligible);
 }

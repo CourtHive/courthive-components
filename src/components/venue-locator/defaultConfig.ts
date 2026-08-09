@@ -19,6 +19,17 @@ export const DEFAULT_VENUE_LOCATOR_CONFIG: VenueLocatorConfig = {
       attribution: 'Tiles &copy; Esri'
     }
   },
+  // CARTO Dark Matter — a purpose-designed dark basemap, keyless, zoom to 20. Chosen over inverting
+  // the OSM street tiles (a muddy false-colour negative) and over Esri's Dark Gray Canvas, which
+  // needs no new provider but stops at zoom 16 — too shallow for looking at a single club.
+  // Attribution is required and carried below. Hosts at production volume should review CARTO's
+  // basemap terms, or pass their own `darkTileLayer`.
+  darkTileLayer: {
+    tileLayer: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    attribution:
+      '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> Contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    maxZoom: 20
+  },
   view: 'map',
   showViewToggle: true,
   zoom: 16,
@@ -34,6 +45,9 @@ export function mergeVenueLocatorConfig(override?: Partial<VenueLocatorConfig>):
   if (!override) return DEFAULT_VENUE_LOCATOR_CONFIG;
   return {
     tiles: override.tiles ?? DEFAULT_VENUE_LOCATOR_CONFIG.tiles,
+    // `!== undefined` not `??`: an explicit null means "no dark basemap, use the filter"
+    darkTileLayer:
+      override.darkTileLayer !== undefined ? override.darkTileLayer : DEFAULT_VENUE_LOCATOR_CONFIG.darkTileLayer,
     view: override.view ?? DEFAULT_VENUE_LOCATOR_CONFIG.view,
     showViewToggle: override.showViewToggle ?? DEFAULT_VENUE_LOCATOR_CONFIG.showViewToggle,
     zoom: override.zoom ?? DEFAULT_VENUE_LOCATOR_CONFIG.zoom,

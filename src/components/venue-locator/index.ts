@@ -12,7 +12,9 @@ export {
   destroyVenueLocator,
   describeCourt,
   hasVenueGeo,
+  isDarkTheme,
   leafletCssMissing,
+  resolveTileLayer,
   sortVenueCourts
 } from './buildVenueLocator';
 export { mapVenueToLocatorData } from './mapVenue';
