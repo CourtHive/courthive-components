@@ -1,5 +1,19 @@
 # Changelog
 
+## [3.13.0](https://github.com/CourtHive/courthive-components/compare/v3.12.3...v3.13.0) (2026-08-10)
+
+
+### Features
+
+* **court-layout:** a venue's courts as an ordered, grouped grid ([367846d](https://github.com/CourtHive/courthive-components/commit/367846d7b5a9be4735d94352494ffc512c6012b9))
+* **venue-locator:** single-venue Leaflet map with its courts listed beside it ([34a28ea](https://github.com/CourtHive/courthive-components/commit/34a28ead5c9ca32e0353a068356711dc9fad5c5d))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 6.21.0 ([2fcbcad](https://github.com/CourtHive/courthive-components/commit/2fcbcad49c3103ecfa3a55ce6abba73901bf73a3))
+* **venue-locator:** real dark basemap instead of inverted light tiles ([7b21bc2](https://github.com/CourtHive/courthive-components/commit/7b21bc2170a9dee378bd3d63109865d5f87c4a7e))
+
 ## [3.12.3](https://github.com/CourtHive/courthive-components/compare/v3.12.2...v3.12.3) (2026-08-09)
 
 
