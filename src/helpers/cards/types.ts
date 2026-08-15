@@ -16,8 +16,10 @@ export interface CardAddress {
   region?: string;
   countryCode?: string;
   country?: string;
-  latitude?: number;
-  longitude?: number;
+  // Both forms occur: production venue records store numbers, some producers
+  // stringify. Coerce with `toCoordinate` rather than gating on typeof.
+  latitude?: number | string;
+  longitude?: number | string;
 }
 
 export interface CardVenueLike {

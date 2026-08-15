@@ -5,7 +5,7 @@
  * Caller passes the parent tournament's resolved sport for the court-SVG fallback.
  */
 
-import { extractCourtSvgSport, extractImageURL, formatAddress } from '../../helpers/cards';
+import { extractCourtSvgSport, extractImageURL, formatAddress, toCoordinate } from '../../helpers/cards';
 import { CourtSport } from '../courts/courtSvgUtil';
 import { VenueCardData } from './types';
 
@@ -57,8 +57,8 @@ export function mapVenueToCardData(venue: any, options?: MapVenueOptions): Venue
     venueName: venue?.venueName ?? '',
     venueAbbreviation: venue?.venueAbbreviation,
     addressFormatted: formatAddress(address),
-    latitude: typeof address?.latitude === 'number' ? address.latitude : undefined,
-    longitude: typeof address?.longitude === 'number' ? address.longitude : undefined,
+    latitude: toCoordinate(address?.latitude),
+    longitude: toCoordinate(address?.longitude),
     courtCount: courts.length || undefined,
     courtBreakdown: summarizeCourts(courts),
     indoorCount: countWhere(courts, (c) => c.indoorOutdoor === 'INDOOR') || undefined,
@@ -67,8 +67,7 @@ export function mapVenueToCardData(venue: any, options?: MapVenueOptions): Venue
     isPrimary: !!venue?.isPrimary,
     venueImageURL: venue?.venueImageURL ?? extractImageURL(resources, VENUE_IMAGE_RESOURCE_NAME),
     courtSvgSport: (venue?.courtSvgSport ?? extractCourtSvgSport(resources) ?? options?.sport) as
-      | CourtSport
-      | undefined,
+      CourtSport | undefined,
     notes: venue?.notes
   };
 }

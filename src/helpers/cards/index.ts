@@ -10,6 +10,7 @@ export { formatDateRange } from './formatDateRange';
 export { sortCourtsByOrder } from './sortCourts';
 export type { CourtOrderable } from './sortCourts';
 export { extractImageURL, extractCourtSvgSport } from './resourceExtraction';
+export { toCoordinate, firstCoordinate } from './coordinates';
 export { buildCardSkeleton } from './buildCardSkeleton';
 export type { CardSkeletonConfig } from './buildCardSkeleton';
 export type { CardAddress, CardOnlineResource, CardVenueLike } from './types';
