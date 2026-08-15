@@ -73,3 +73,29 @@ describe('mapVenueToCardData', () => {
     expect(out.isPrimary).toBe(true);
   });
 });
+
+describe('mapVenueToCardData — coordinates', () => {
+  const venue = (address: any) => ({ venueId: 'v1', venueName: 'TC Chrudim', addresses: [address] });
+
+  it('carries numeric coordinates through', () => {
+    // How production venue records store them.
+    const out = mapVenueToCardData(venue({ latitude: 26.3816192, longitude: -80.2219808 }));
+    expect(out.latitude).toBe(26.3816192);
+    expect(out.longitude).toBe(-80.2219808);
+  });
+
+  it('coerces string coordinates instead of dropping them', () => {
+    // TODS/CODES declared these as string and some producers still emit strings.
+    // Gating on typeof === 'number' dropped them, so the card rendered no map
+    // for a venue whose record looked correctly populated.
+    const out = mapVenueToCardData(venue({ latitude: '49.95523296', longitude: '15.79134167' }));
+    expect(out.latitude).toBe(49.95523296);
+    expect(out.longitude).toBe(15.79134167);
+  });
+
+  it('drops coordinates that cannot coerce', () => {
+    const out = mapVenueToCardData(venue({ latitude: 'N 49.955', longitude: '' }));
+    expect(out.latitude).toBeUndefined();
+    expect(out.longitude).toBeUndefined();
+  });
+});
