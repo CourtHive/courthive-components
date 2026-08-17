@@ -107,9 +107,30 @@ export function controlBar(params: {
   table?.on('rowSelectionChanged', selectionHandler);
 
   // Initialize overlay visibility from the table's current selection state
-  // (handles the case where the controlBar is rebuilt while rows are already selected)
-  const currentRows = table?.getSelectedRows?.() ?? [];
-  stateChange(currentRows);
+  // (handles the case where the controlBar is rebuilt while rows are already selected).
+  //
+  // ⚠️ Only once Tabulator has finished building. A control bar is normally
+  // constructed in the same tick as its table, and Tabulator builds
+  // asynchronously — so reading selection here logs
+  //   "Table Not Initialized - Calling the getSelectedRows function before the
+  //    table is initialized may result in inconsistent behavior"
+  // on every page that pairs the two, TMX's matchUps page among them. A
+  // not-yet-built table also has no selection to read, so the eager call could
+  // only ever return [].
+  //
+  // `initialized` is Tabulator's own flag (the one its initGuard checks).
+  // Subscribing to `tableBuilt` after the fact would never fire, hence the
+  // branch rather than an unconditional `on`.
+  const applySelectionState = () => stateChange(table?.getSelectedRows?.() ?? []);
+  if (!table || table.initialized) {
+    applySelectionState();
+  } else {
+    // `tableBuilt` fires once per table instance, and this branch is only
+    // reachable for a table that has not built yet — so a plain `on` cannot
+    // accumulate across control-bar rebuilds (a rebuild against an
+    // already-built table takes the branch above).
+    table.on('tableBuilt', applySelectionState);
+  }
   if (focus) setTimeout(() => focus.focus(), 200);
 
   return { elements, inputs };
