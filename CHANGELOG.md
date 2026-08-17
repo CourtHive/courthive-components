@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.14.1](https://github.com/CourtHive/courthive-components/compare/v3.14.0...v3.14.1) (2026-08-17)
+
+
+### Bug Fixes
+
+* **controlBar:** read table selection only once Tabulator has built ([#515](https://github.com/CourtHive/courthive-components/issues/515)) ([5aacdcf](https://github.com/CourtHive/courthive-components/commit/5aacdcf55fe092b05ea0c45fcf6743d2fc4b0cdb))
+* **deps:** update tods-competition-factory to 6.28.1 ([4afaba5](https://github.com/CourtHive/courthive-components/commit/4afaba543cdecff46b863349898817f017e46347))
+
 ## [3.14.0](https://github.com/CourtHive/courthive-components/compare/v3.13.2...v3.14.0) (2026-08-17)
 
 
