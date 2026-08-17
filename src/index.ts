@@ -561,6 +561,7 @@ export type {
   ScheduleCellData,
   ScheduleCellSide,
   ScheduleCellTypeAheadOptions,
+  ScheduleInspectorPanelOptions,
   ActiveStripPanel,
   ActiveStripPanelCallbacks,
   ActiveStripPanelData,

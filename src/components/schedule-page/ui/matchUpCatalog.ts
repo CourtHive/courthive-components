@@ -64,6 +64,10 @@ function uniqueValues(catalog: CatalogMatchUpItem[], fn: (m: CatalogMatchUpItem)
 export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel<SchedulePageState> {
   const root = document.createElement('div');
   root.className = spPanelStyle();
+  // Stable identity for consumers that reach into a mounted layout — the
+  // catalog and the inspector share `spPanelStyle()` and cannot otherwise be
+  // told apart without relying on sibling order.
+  root.dataset.panel = 'catalog';
 
   const CATALOG_DROP_OVER = 'spl-catalog-drop-over';
   const FILTERING_CLASS = 'is-filtering';

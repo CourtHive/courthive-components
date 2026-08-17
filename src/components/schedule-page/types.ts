@@ -180,6 +180,15 @@ export interface SchedulePageConfig {
   schedulingMode?: SchedulingMode;
   /** Initial visibility of the active strip (one-row court summary above the grid). Defaults to true. */
   activeStripVisible?: boolean;
+  /** Initial visibility of the inspector panel beneath the matchUp catalog. Defaults to true.
+   *  Seed this from persisted consumer state so the first toggle dispatches a real change
+   *  rather than a no-op against the default. */
+  inspectorVisible?: boolean;
+  /** Consumer-supplied detail appended below the inspector's built-in fields for the
+   *  selected matchUp. Called on every inspector render — the panel rebuilds its body
+   *  from scratch on each state change — so return a freshly created element rather than
+   *  a cached one. Return null to render nothing. Not called when no matchUp is selected. */
+  renderInspectorExtra?: (matchUp: CatalogMatchUpItem, state: SchedulePageState) => HTMLElement | null;
   /** Consumer-owned buttons rendered right-aligned in the court grid header.
    *  Consumer keeps live refs and mutates state (visibility, disabled, label) directly. */
   headerActions?: HTMLElement | HTMLElement[];
@@ -222,6 +231,7 @@ export interface SchedulePageState {
   leftCollapsed: boolean;
   hideLeft: boolean;
   activeStripVisible: boolean;
+  inspectorVisible: boolean;
 }
 
 export type SchedulePageChangeListener = (state: SchedulePageState) => void;

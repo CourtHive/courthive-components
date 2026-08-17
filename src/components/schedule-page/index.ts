@@ -56,6 +56,7 @@ export { buildScheduleIssuesPanel } from './ui/issuesPanel';
 export { buildMatchUpCatalog } from './ui/matchUpCatalog';
 export { buildMatchUpCard } from './ui/matchUpCard';
 export { buildScheduleInspectorPanel } from './ui/inspectorPanel';
+export type { ScheduleInspectorPanelOptions } from './ui/inspectorPanel';
 export { buildCourtGridSlot } from './ui/courtGridSlot';
 export { buildSchedulePageLayout } from './ui/schedulePageLayout';
 export { buildActiveStripPanel } from './ui/activeStrip';

@@ -49,7 +49,8 @@ export class SchedulePageStore {
       hasUnsavedChanges: false,
       leftCollapsed: !!config.hideLeft,
       hideLeft: !!config.hideLeft,
-      activeStripVisible: config.activeStripVisible ?? true
+      activeStripVisible: config.activeStripVisible ?? true,
+      inspectorVisible: config.inspectorVisible ?? true
     };
   }
 
@@ -193,6 +194,15 @@ export class SchedulePageStore {
 
   toggleActiveStrip(): void {
     this.setState({ activeStripVisible: !this.state.activeStripVisible });
+  }
+
+  setInspectorVisible(visible: boolean): void {
+    if (this.state.inspectorVisible === visible) return;
+    this.setState({ inspectorVisible: visible });
+  }
+
+  toggleInspector(): void {
+    this.setState({ inspectorVisible: !this.state.inspectorVisible });
   }
 
   // ---------- Subscription ----------
