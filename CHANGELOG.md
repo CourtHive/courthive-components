@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.14.0](https://github.com/CourtHive/courthive-components/compare/v3.13.2...v3.14.0) (2026-08-17)
+
+
+### Features
+
+* **schedule-page:** inspector extension points — renderExtra, visibility, panel identity ([#511](https://github.com/CourtHive/courthive-components/issues/511)) ([ef51f90](https://github.com/CourtHive/courthive-components/commit/ef51f90e191441e9a1613b9306c0415b41a38371))
+
+
+### Bug Fixes
+
+* **venue:** coerce string coordinates so venues with string lat/lng render ([#508](https://github.com/CourtHive/courthive-components/issues/508)) ([c5abaf3](https://github.com/CourtHive/courthive-components/commit/c5abaf358e2b5999ea736cc30b311ab1567c2770))
+
 ## [3.13.2](https://github.com/CourtHive/courthive-components/compare/v3.13.1...v3.13.2) (2026-08-15)
 
 
