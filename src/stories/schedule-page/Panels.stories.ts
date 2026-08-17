@@ -55,6 +55,7 @@ function makeStoreState(overrides: Partial<SchedulePageState> = {}): SchedulePag
     leftCollapsed: false,
     hideLeft: false,
     activeStripVisible: true,
+    inspectorVisible: true,
     ...overrides
   };
 }

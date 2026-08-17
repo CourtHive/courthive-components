@@ -2,9 +2,14 @@
  * Inspector Panel — Right panel: selected matchUp details.
  *
  * Stateless factory pattern: { element, update }.
+ *
+ * The panel rebuilds its body on every `update`, so consumer-supplied detail
+ * cannot be appended from the outside — it would be wiped by the next state
+ * change. `options.renderExtra` is the supported seam: it is invoked as part
+ * of each render, after the built-in fields.
  */
 
-import type { SchedulePageState, UIPanel } from '../types';
+import type { CatalogMatchUpItem, SchedulePageState, UIPanel } from '../types';
 import { participantLabel } from '../domain/utils';
 import {
   spPanelStyle,
@@ -17,9 +22,20 @@ import {
   spSmallStyle
 } from './styles';
 
-export function buildScheduleInspectorPanel(): UIPanel<SchedulePageState> {
+export interface ScheduleInspectorPanelOptions {
+  /** Consumer-supplied detail rendered below the built-in fields, for the selected
+   *  matchUp only. Must return a freshly created element (or null) — the body is
+   *  rebuilt on every render, so a cached node would be re-parented, not reused. */
+  renderExtra?: (matchUp: CatalogMatchUpItem, state: SchedulePageState) => HTMLElement | null;
+}
+
+export function buildScheduleInspectorPanel(options: ScheduleInspectorPanelOptions = {}): UIPanel<SchedulePageState> {
   const root = document.createElement('div');
   root.className = spPanelStyle();
+  // Stable identity for consumers that reach into a mounted layout (e.g. to show
+  // or hide this panel independently of the catalog). Sibling panels share
+  // `spPanelStyle()`, so class alone cannot tell them apart.
+  root.dataset.panel = 'inspector';
 
   // Header
   const header = document.createElement('div');
@@ -82,9 +98,30 @@ export function buildScheduleInspectorPanel(): UIPanel<SchedulePageState> {
       }
       body.appendChild(sidesDiv);
     }
+
+    appendExtra(body, options, m, state);
   }
 
   return { element: root, update };
+}
+
+/** Render the consumer's extra detail block, if one was supplied. */
+function appendExtra(
+  body: HTMLElement,
+  options: ScheduleInspectorPanelOptions,
+  matchUp: CatalogMatchUpItem,
+  state: SchedulePageState
+): void {
+  if (!options.renderExtra) return;
+  try {
+    const extra = options.renderExtra(matchUp, state);
+    if (extra) body.appendChild(extra);
+  } catch (err) {
+    // Fail soft, but never silently: a consumer's detail block must not take
+    // down the whole inspector, and an operator seeing a missing section needs
+    // the console to say why.
+    console.error('[schedule-page] inspector renderExtra threw', err);
+  }
 }
 
 function appendKv(parent: HTMLElement, key: string, value: string): void {

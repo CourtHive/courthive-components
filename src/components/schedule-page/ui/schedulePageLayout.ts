@@ -108,6 +108,12 @@ export function buildSchedulePageLayout(
 
     panels.courtGridSlot.update(state);
     panels.matchUpCatalog.update(state);
+
+    // Visibility is applied on every render rather than once at build time so a
+    // consumer toggle survives subsequent state changes. The panel is updated
+    // even while hidden, so revealing it shows the current selection rather
+    // than whatever was selected when it was last visible.
+    panels.inspectorPanel.element.style.display = state.inspectorVisible === false ? 'none' : '';
     panels.inspectorPanel.update(state);
   }
 

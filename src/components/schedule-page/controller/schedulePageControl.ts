@@ -67,7 +67,7 @@ export class SchedulePageControl {
       }
     });
 
-    const inspectorPanel = buildScheduleInspectorPanel();
+    const inspectorPanel = buildScheduleInspectorPanel({ renderExtra: config.renderInspectorExtra });
 
     // Assemble layout
     this.layout = buildSchedulePageLayout(
@@ -124,6 +124,20 @@ export class SchedulePageControl {
 
   get activeStripVisible(): boolean {
     return this.store.getState().activeStripVisible;
+  }
+
+  // ---------- Inspector Visibility ----------
+
+  setInspectorVisible(visible: boolean): void {
+    this.store.setInspectorVisible(visible);
+  }
+
+  toggleInspector(): void {
+    this.store.toggleInspector();
+  }
+
+  get inspectorVisible(): boolean {
+    return this.store.getState().inspectorVisible;
   }
 
   // ---------- Bulk Scheduling API ----------

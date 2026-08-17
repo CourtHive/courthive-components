@@ -311,6 +311,51 @@ describe('SchedulePageStore', () => {
     });
   });
 
+  describe('inspector visibility', () => {
+    it('defaults to visible', () => {
+      const store = new SchedulePageStore(makeConfig());
+      expect(store.getState().inspectorVisible).toBe(true);
+    });
+
+    it('seeds from config so the consumer can restore a persisted choice', () => {
+      const store = new SchedulePageStore(makeConfig({ inspectorVisible: false }));
+      expect(store.getState().inspectorVisible).toBe(false);
+    });
+
+    it('setInspectorVisible emits when the value changes', () => {
+      const store = new SchedulePageStore(makeConfig());
+      const listener = vi.fn();
+      store.subscribe(listener);
+      store.setInspectorVisible(false);
+      expect(store.getState().inspectorVisible).toBe(false);
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it('setInspectorVisible is a no-op when the value is unchanged', () => {
+      const store = new SchedulePageStore(makeConfig());
+      const listener = vi.fn();
+      store.subscribe(listener);
+      store.setInspectorVisible(true);
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it('toggleInspector flips the flag in both directions', () => {
+      const store = new SchedulePageStore(makeConfig());
+      store.toggleInspector();
+      expect(store.getState().inspectorVisible).toBe(false);
+      store.toggleInspector();
+      expect(store.getState().inspectorVisible).toBe(true);
+    });
+
+    it('leaves selection intact while hidden, so revealing shows the current selection', () => {
+      const store = new SchedulePageStore(makeConfig({ inspectorVisible: false }));
+      store.selectMatchUp(matchUpCatalog[0]);
+      expect(store.getState().selectedMatchUp?.matchUpId).toBe('M1');
+      store.setInspectorVisible(true);
+      expect(store.getState().selectedMatchUp?.matchUpId).toBe('M1');
+    });
+  });
+
   describe('subscribe', () => {
     it('notifies listeners on state change', () => {
       const store = new SchedulePageStore(makeConfig());
