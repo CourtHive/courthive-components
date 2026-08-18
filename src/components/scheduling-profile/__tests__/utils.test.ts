@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { deepClone, clamp, roundKeyString, roundLabel, sameLocator, pickRoundKey } from '../domain/utils';
-import type { RoundProfile, RoundLocator } from '../types';
+import { RoundProfile, RoundLocator } from '../types';
 
 describe('deepClone', () => {
   it('returns a structurally equal but referentially distinct copy', () => {

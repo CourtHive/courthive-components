@@ -2,7 +2,7 @@
  * Policy Catalog — Static metadata for all 18 factory policy types.
  */
 
-import type { PolicyTypeMeta, PolicyTypeGroup } from '../types';
+import { PolicyTypeMeta, PolicyTypeGroup } from '../types';
 import { emptyRankingPolicy } from '../editors/ranking/domain/emptyRankingPolicy';
 import { emptySchedulingPolicy } from '../editors/scheduling/domain/schedulingProjections';
 import { emptyScoringPolicy } from '../editors/scoring/domain/scoringProjections';

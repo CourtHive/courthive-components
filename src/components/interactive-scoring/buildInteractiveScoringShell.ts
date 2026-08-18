@@ -1,6 +1,6 @@
 import { InlineScoringManager } from '../inline-scoring/inlineScoringManager';
-import type { MatchUp } from '../../types';
-import type { InteractiveScoringShell, InteractiveScoringShellConfig, StateChangedDetail } from './types';
+import { MatchUp } from '../../types';
+import { InteractiveScoringShell, InteractiveScoringShellConfig, StateChangedDetail } from './types';
 
 const SCORE_CELL_CLASS = 'chc-iss-score-cell';
 

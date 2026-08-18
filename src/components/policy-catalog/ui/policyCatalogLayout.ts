@@ -2,8 +2,8 @@
  * Policy Catalog Layout — Two-column grid assembly.
  */
 
-import type { PolicyCatalogState, UIPanel } from '../types';
-import type { EditorShellPanel } from './editorShell';
+import { PolicyCatalogState, UIPanel } from '../types';
+import { EditorShellPanel } from './editorShell';
 import { pcLayoutStyle } from './styles';
 
 export function buildPolicyCatalogLayout(panels: {

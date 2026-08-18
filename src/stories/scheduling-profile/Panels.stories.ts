@@ -7,7 +7,7 @@
 
 import 'tippy.js/dist/tippy.css';
 
-import type { ProfileStoreState, IssueIndex } from '../../components/scheduling-profile';
+import { ProfileStoreState, IssueIndex } from '../../components/scheduling-profile';
 import { ProfileStore } from '../../components/scheduling-profile';
 import { buildDateStrip } from '../../components/scheduling-profile/ui/dateStrip';
 import { buildIssuesPanel } from '../../components/scheduling-profile/ui/issuesPanel';

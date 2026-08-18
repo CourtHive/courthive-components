@@ -8,7 +8,7 @@ import {
   typtiTheme,
   itfTheme
 } from '../styles/themes';
-import type { Composition } from '../types';
+import { Composition } from '../types';
 
 export const compositions: Record<string, Composition> = {
   Australian: {

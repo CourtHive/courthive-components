@@ -7,7 +7,7 @@ import { compositions } from '../../../compositions/compositions';
 import { parseScore } from '../../../tools/freeScore/freeScore';
 import { validateScore } from '../utils/scoreValidator';
 import { formatExistingScore } from '../utils/scoreFormatters';
-import type { RenderScoreEntryParams } from '../types';
+import { RenderScoreEntryParams } from '../types';
 import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
 import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
 import { getScoringConfig } from '../config';

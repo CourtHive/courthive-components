@@ -4,8 +4,8 @@
  * factory template. Returns { element, update } like the other editors.
  */
 import { privacyFields, readField, readPolicyName } from './domain/privacyProjections';
-import type { PrivacyEditorStore } from './privacyEditorStore';
-import type { PrivacyEditorConfig, PrivacyEditorState } from './types';
+import { PrivacyEditorStore } from './privacyEditorStore';
+import { PrivacyEditorConfig, PrivacyEditorState } from './types';
 
 export function buildPrivacyEditorPanel(
   store: PrivacyEditorStore,

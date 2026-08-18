@@ -15,7 +15,7 @@ import {
   eventConstants
 } from 'tods-competition-factory';
 
-import type {
+import {
   VenueInfo,
   CatalogRoundItem,
   SchedulingProfile,

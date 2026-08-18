@@ -6,8 +6,8 @@
  */
 import { RankingPointsEditorStore } from './rankingPointsEditorStore';
 import { buildRankingPointsEditorPanel } from './rankingPointsEditorPanel';
-import type { RankingPolicyData, RankingPointsEditorConfig } from './types';
-import type { PolicyEditorInstance as CatalogEditorInstance } from '../../types';
+import { RankingPolicyData, RankingPointsEditorConfig } from './types';
+import { PolicyEditorInstance as CatalogEditorInstance } from '../../types';
 
 export class RankingPointsEditorControl {
   private readonly store: RankingPointsEditorStore;

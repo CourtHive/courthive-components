@@ -5,7 +5,7 @@
  * Boys events → MALE names, Girls events → FEMALE names.
  */
 
-import type {
+import {
   CatalogMatchUpItem,
   ScheduleDate,
   ScheduleIssue,
@@ -591,7 +591,7 @@ export function makeMockCourtGrid(courts: number = 6, callbacks?: MockGridCallba
   // ── Helper: populate or clear a cell ──
 
   function fillCell(cell: HTMLElement, m: CatalogMatchUpItem): void {
-    const time = cell.getAttribute('data-time')!;
+    const time = (cell as HTMLElement).dataset.time!;
     const court = cell.getAttribute(DATA_COURT_ATTR)!;
     cellData.set(cellKey(time, court), m);
     cell.textContent = matchUpLabel(m);
@@ -600,7 +600,7 @@ export function makeMockCourtGrid(courts: number = 6, callbacks?: MockGridCallba
   }
 
   function clearCell(cell: HTMLElement): void {
-    const time = cell.getAttribute('data-time')!;
+    const time = (cell as HTMLElement).dataset.time!;
     const court = cell.getAttribute(DATA_COURT_ATTR)!;
     cellData.delete(cellKey(time, court));
     cell.textContent = '';

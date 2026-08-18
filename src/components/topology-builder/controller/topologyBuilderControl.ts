@@ -13,7 +13,7 @@ import { standardTemplates } from '../domain/templates';
 import { validateTopology } from '../domain/topologyValidator';
 import { getNodeTotalRounds } from '../domain/feedRounds';
 import { getCardWidth } from '../ui/structureCard';
-import type { TopologyState, TopologyNode, TopologyEdge, TopologyBuilderConfig, UIPanel } from '../types';
+import { TopologyState, TopologyNode, TopologyEdge, TopologyBuilderConfig, UIPanel } from '../types';
 
 const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, SINGLE_ELIMINATION, LUCKY_DRAW, WINNER, LOSER } =
   drawDefinitionConstants;

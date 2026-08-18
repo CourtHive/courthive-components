@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { generateDrawFromTopology } from '../domain/generateDrawFromTopology';
 import { topologyToDrawOptions } from '../domain/topologyToDrawOptions';
-import type { TopologyState, TopologyNode } from '../types';
+import { TopologyState, TopologyNode } from '../types';
 
 const { SINGLE_ELIMINATION, FEED_IN, MAIN, QUALIFYING, PLAY_OFF, WINNER, LOSER } = drawDefinitionConstants;
 

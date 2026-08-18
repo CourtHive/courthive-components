@@ -9,7 +9,7 @@
  * of each render, after the built-in fields.
  */
 
-import type { CatalogMatchUpItem, SchedulePageState, UIPanel } from '../types';
+import { CatalogMatchUpItem, SchedulePageState, UIPanel } from '../types';
 import { participantLabel } from '../domain/utils';
 import {
   spPanelStyle,

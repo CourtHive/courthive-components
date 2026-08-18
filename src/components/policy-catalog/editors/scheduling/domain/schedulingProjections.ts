@@ -2,7 +2,7 @@
  * Scheduling Policy Editor — Query helpers
  */
 
-import type { SchedulingPolicyData } from '../types';
+import { SchedulingPolicyData } from '../types';
 
 /** Get a human-readable description for a matchUp format code */
 export function formatCodeLabel(code: string): string {

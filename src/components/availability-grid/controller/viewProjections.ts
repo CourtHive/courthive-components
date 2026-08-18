@@ -12,7 +12,7 @@
  * Design: Pure functions, no side effects, testable in isolation.
  */
 
-import type { availability } from 'tods-competition-factory';
+import { availability } from 'tods-competition-factory';
 
 type BlockType = availability.BlockType;
 type CourtMeta = availability.CourtMeta;

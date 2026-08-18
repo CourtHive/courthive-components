@@ -14,7 +14,7 @@ import { buildScheduleIssuesPanel } from '../ui/issuesPanel';
 import { buildScheduleDateStrip } from '../ui/dateStrip';
 import { buildCourtGridSlot } from '../ui/courtGridSlot';
 import { SchedulePageStore } from '../engine/schedulePageStore';
-import type {
+import {
   SchedulePageConfig,
   CatalogMatchUpItem,
   CatalogFilters,

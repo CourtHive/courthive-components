@@ -5,8 +5,8 @@
  * seedingProfile.drawTypes in the policy draft.
  */
 
-import type { SeedingEditorConfig, SeedingEditorState, SeedingPositioning } from '../types';
-import type { SeedingEditorStore } from '../seedingEditorStore';
+import { SeedingEditorConfig, SeedingEditorState, SeedingPositioning } from '../types';
+import { SeedingEditorStore } from '../seedingEditorStore';
 import { DRAW_TYPE_OPTIONS, POSITIONING_OPTIONS } from '../domain/seedingProjections';
 import {
   sdAddBtnStyle,

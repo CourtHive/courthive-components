@@ -172,7 +172,7 @@ export type {
 // Convenience Factory
 // ============================================================================
 
-import type { PolicyCatalogConfig } from './types';
+import { PolicyCatalogConfig } from './types';
 import { PolicyCatalogControl } from './controller/policyCatalogControl';
 
 export function createPolicyCatalog(config: PolicyCatalogConfig, container: HTMLElement): PolicyCatalogControl {

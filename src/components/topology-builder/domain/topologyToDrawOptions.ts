@@ -6,7 +6,7 @@
  * from individual node structureTypes, which only describe the
  * structure shape (SE, FEED_IN, ROUND_ROBIN, AD_HOC).
  */
-import type { TopologyState, TopologyNode, TopologyEdge } from '../types';
+import { TopologyState, TopologyNode, TopologyEdge } from '../types';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 
 const {

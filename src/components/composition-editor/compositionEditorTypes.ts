@@ -1,4 +1,4 @@
-import type { Composition, CompositionColors, Configuration } from '../../types';
+import { Composition, CompositionColors, Configuration } from '../../types';
 
 /** JSON-serializable snapshot of a composition (no functions/DOM refs) */
 export interface SavedComposition {

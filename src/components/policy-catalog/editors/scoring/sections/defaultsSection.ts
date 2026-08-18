@@ -11,8 +11,8 @@
  *     └ Structures        [ ]
  */
 
-import type { ScoringEditorState, RequireAllPositionsTriState } from '../types';
-import type { ScoringEditorStore } from '../scoringEditorStore';
+import { ScoringEditorState, RequireAllPositionsTriState } from '../types';
+import { ScoringEditorStore } from '../scoringEditorStore';
 import { buildMatchUpFormatPicker } from './matchUpFormatPicker';
 
 export function buildDefaultsSection(store: ScoringEditorStore): {

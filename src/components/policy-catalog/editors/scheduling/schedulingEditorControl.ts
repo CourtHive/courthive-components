@@ -7,8 +7,8 @@
 
 import { SchedulingEditorStore } from './schedulingEditorStore';
 import { buildSchedulingEditorPanel } from './schedulingEditorPanel';
-import type { SchedulingPolicyData, SchedulingEditorConfig } from './types';
-import type { PolicyEditorInstance as CatalogEditorInstance } from '../../types';
+import { SchedulingPolicyData, SchedulingEditorConfig } from './types';
+import { PolicyEditorInstance as CatalogEditorInstance } from '../../types';
 
 export class SchedulingEditorControl {
   private readonly store: SchedulingEditorStore;

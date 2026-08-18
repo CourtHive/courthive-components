@@ -3,8 +3,8 @@
  * Uses text inputs with real-time validation.
  */
 
-import type { SchedulingEditorState } from '../types';
-import type { SchedulingEditorStore } from '../schedulingEditorStore';
+import { SchedulingEditorState } from '../types';
+import { SchedulingEditorStore } from '../schedulingEditorStore';
 import { seFieldRowStyle, seFieldLabelStyle, seFieldInputStyle, seFieldUnitStyle } from '../styles';
 
 const IS_SUCCESS = 'is-success';

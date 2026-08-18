@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { filterPolicyCatalog, groupPolicyCatalog } from '../domain/catalogProjections';
-import type { PolicyCatalogItem } from '../types';
+import { PolicyCatalogItem } from '../types';
 
 const items: PolicyCatalogItem[] = [
   {

@@ -4,7 +4,7 @@
  * Aggregates validation results into indexed groups for badges and panels.
  */
 
-import type { ValidationResult, IssueIndex, Severity, SeverityCounts } from '../types';
+import { ValidationResult, IssueIndex, Severity, SeverityCounts } from '../types';
 
 export function buildIssueIndex(results: ValidationResult[]): IssueIndex {
   const bySeverity: Record<Severity, ValidationResult[]> = { ERROR: [], WARN: [], INFO: [] };

@@ -1,4 +1,4 @@
-import type { Composition, Side } from '../../types';
+import { Composition, Side } from '../../types';
 
 export function renderSeeding({
   className,

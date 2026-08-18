@@ -1,4 +1,4 @@
-import type { MatchUp } from '../../types';
+import { MatchUp } from '../../types';
 
 /**
  * Bridge: converts ScoringEngine state into a TODS-compatible MatchUp object

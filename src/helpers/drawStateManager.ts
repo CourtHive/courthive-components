@@ -3,7 +3,7 @@
  * Manages tournament draw state and participant assignments using tournamentEngine API
  */
 import { tournamentEngine } from 'tods-competition-factory';
-import type { Participant } from '../types';
+import { Participant } from '../types';
 
 export type RenderCallback = () => void;
 

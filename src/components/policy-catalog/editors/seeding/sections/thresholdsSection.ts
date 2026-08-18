@@ -6,8 +6,8 @@
  * factory/src/query/drawDefinition/getSeedsCount.ts.
  */
 
-import type { SeedingEditorState, SeedsCountThreshold } from '../types';
-import type { SeedingEditorStore } from '../seedingEditorStore';
+import { SeedingEditorState, SeedsCountThreshold } from '../types';
+import { SeedingEditorStore } from '../seedingEditorStore';
 import {
   sdAddBtnStyle,
   sdRemoveBtnStyle,

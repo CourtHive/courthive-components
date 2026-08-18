@@ -1,5 +1,5 @@
-import type { InlineScoringManager } from './inlineScoringManager';
-import type { MatchUp } from '../../types';
+import { InlineScoringManager } from './inlineScoringManager';
+import { MatchUp } from '../../types';
 
 interface FooterParams {
   matchUpId: string;

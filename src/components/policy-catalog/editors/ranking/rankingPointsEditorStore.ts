@@ -4,7 +4,7 @@
  * Manages ranking policy draft state. Follows the SchedulingEditorStore pattern.
  */
 import { emptyRankingPolicy } from './domain/emptyRankingPolicy';
-import type {
+import {
   RankingPolicyData,
   RankingPointsEditorState,
   RankingEditorSection,

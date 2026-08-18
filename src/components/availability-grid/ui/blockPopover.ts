@@ -5,10 +5,10 @@
  * Provides type-picker, adjust-time, and delete actions for timeline blocks.
  */
 
-import tippy, { type Instance as TippyInstance } from 'tippy.js';
+import tippy, { Instance as TippyInstance } from 'tippy.js';
 import 'tippy.js/dist/tippy.css';
 import { showModernTimePicker } from './modernTimePicker';
-import { availability, type AvailabilityEngine } from 'tods-competition-factory';
+import { availability, AvailabilityEngine } from 'tods-competition-factory';
 
 const { BLOCK_TYPES } = availability;
 type BlockType = availability.BlockType;

@@ -9,7 +9,7 @@
 
 import { drawDefinitionConstants, entryStatusConstants } from 'tods-competition-factory';
 import { competitivenessForMatchUp } from './competitiveness';
-import type { SunburstDrawData, SunburstMatchUp, SunburstSide } from './burstChart';
+import { SunburstDrawData, SunburstMatchUp, SunburstSide } from './burstChart';
 
 const { LUCKY_LOSER, WILDCARD, QUALIFIER } = entryStatusConstants;
 const { WIN_RATIO, ROUND_OUTCOME, MAIN, CONTAINER } = drawDefinitionConstants;

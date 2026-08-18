@@ -6,7 +6,7 @@
  */
 
 import { emptySchedulingPolicy } from './domain/schedulingProjections';
-import type {
+import {
   SchedulingPolicyData,
   SchedulingEditorState,
   SchedulingEditorSection,

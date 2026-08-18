@@ -4,8 +4,8 @@
  * Renders editable tag/chip rows for eventTypes, drawTypes, stages, levels,
  * and numeric fields like maxDrawSize, maxLevel, priority.
  */
-import type { RankingPointsEditorState } from '../types';
-import type { RankingPointsEditorStore } from '../rankingPointsEditorStore';
+import { RankingPointsEditorState } from '../types';
+import { RankingPointsEditorStore } from '../rankingPointsEditorStore';
 import { reFieldRowStyle, reFieldLabelStyle, reFieldInputNumberStyle } from '../styles';
 
 const EVENT_TYPES = ['SINGLES', 'DOUBLES', 'TEAM'];

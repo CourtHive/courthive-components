@@ -24,7 +24,7 @@ import {
 } from 'd3';
 
 import './ladderChart.css';
-import type { LadderChartConfig, LadderChartInstance, LadderChartMargins } from './types';
+import { LadderChartConfig, LadderChartInstance, LadderChartMargins } from './types';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 

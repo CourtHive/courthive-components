@@ -6,8 +6,8 @@
 
 import { SeedingEditorStore } from './seedingEditorStore';
 import { buildSeedingEditorPanel } from './seedingEditorPanel';
-import type { SeedingPolicyData, SeedingEditorConfig } from './types';
-import type { PolicyEditorInstance as CatalogEditorInstance } from '../../types';
+import { SeedingPolicyData, SeedingEditorConfig } from './types';
+import { PolicyEditorInstance as CatalogEditorInstance } from '../../types';
 
 export class SeedingEditorControl {
   private readonly store: SeedingEditorStore;

@@ -4,7 +4,7 @@
  * Pure helper functions shared across the schedule page domain layer.
  */
 
-import type { CatalogMatchUpItem, MatchUpSide } from '../types';
+import { CatalogMatchUpItem, MatchUpSide } from '../types';
 
 export function deepClone<T>(obj: T): T {
   return structuredClone(obj);

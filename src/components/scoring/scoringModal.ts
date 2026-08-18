@@ -7,7 +7,7 @@ import { renderInlineScoringEntry } from './approaches/inlineScoringApproach';
 import { renderDynamicSetsScoreEntry } from './approaches/dynamicSetsApproach';
 import { renderDialPadScoreEntry } from './approaches/dialPadApproach';
 import { renderFreeScoreEntry } from './approaches/freeScoreApproach';
-import type { ScoringModalParams, ScoreOutcome } from './types';
+import { ScoringModalParams, ScoreOutcome } from './types';
 import { getScoringConfig, setScoringConfig } from './config';
 import { cModal } from '../modal/cmodal';
 

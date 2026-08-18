@@ -7,8 +7,8 @@
  * - Flight-keyed: read-only multi-column
  * - Conditional/mixed: read-only single column
  */
-import type { RankingPointsEditorState } from '../types';
-import type { RankingPointsEditorStore } from '../rankingPointsEditorStore';
+import { RankingPointsEditorState } from '../types';
+import { RankingPointsEditorStore } from '../rankingPointsEditorStore';
 import {
   analyzePositionValueShape,
   resolvePositionValue,

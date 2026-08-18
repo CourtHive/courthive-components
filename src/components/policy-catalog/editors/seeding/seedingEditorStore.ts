@@ -5,7 +5,7 @@
  */
 
 import { emptySeedingPolicy } from './domain/seedingProjections';
-import type {
+import {
   SeedingPolicyData,
   SeedingEditorState,
   SeedingEditorSection,

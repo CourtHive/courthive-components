@@ -6,7 +6,7 @@ import { renderSideScore } from './renderSideScore';
 import { renderSchedule } from './renderSchedule';
 import { isFunction } from '../modal/cmodal';
 import cx from 'classnames';
-import type { Composition, EventHandlers, MatchUp } from '../../types';
+import { Composition, EventHandlers, MatchUp } from '../../types';
 
 // Import factory constants
 import { factoryConstants } from 'tods-competition-factory';

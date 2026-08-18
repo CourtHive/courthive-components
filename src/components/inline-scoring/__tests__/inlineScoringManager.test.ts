@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { InlineScoringManager } from '../inlineScoringManager';
-import type { MatchUp } from '../../../types';
+import { MatchUp } from '../../../types';
 
 const STANDARD_FORMAT = 'SET3-S:6/TB7';
 

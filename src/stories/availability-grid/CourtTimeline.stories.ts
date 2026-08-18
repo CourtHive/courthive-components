@@ -8,7 +8,7 @@
  * - Stats bar driven by engine capacity curve
  */
 
-import type { TimelineGroupData, TimelineItemData, MultiRowSpan } from '../../components/availability-grid/timeline/types';
+import { TimelineGroupData, TimelineItemData, MultiRowSpan } from '../../components/availability-grid/timeline/types';
 import { showCourtAvailabilityModal } from '../../components/availability-grid/ui/courtAvailabilityModal';
 import { mocksEngine, tournamentEngine, AvailabilityEngine, availability } from 'tods-competition-factory';
 import { buildViewToolbar, VIEW_PRESETS } from '../../components/availability-grid/ui/viewToolbar';

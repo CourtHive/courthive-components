@@ -2,8 +2,8 @@
  * Profile Section — Policy name + positioning radio.
  */
 
-import type { SeedingEditorState, SeedingPositioning } from '../types';
-import type { SeedingEditorStore } from '../seedingEditorStore';
+import { SeedingEditorState, SeedingPositioning } from '../types';
+import { SeedingEditorStore } from '../seedingEditorStore';
 import { POSITIONING_OPTIONS } from '../domain/seedingProjections';
 import { sdFieldInputStyle, sdFieldLabelStyle, sdFieldRowStyle, sdRadioGroupStyle, sdRadioOptionStyle } from '../styles';
 

@@ -14,9 +14,9 @@
  *                    `pnpm test-storybook -- --testPathPatterns TeamCardTests`
  */
 
-import type { Meta, StoryObj } from '@storybook/html-vite';
+import { Meta, StoryObj } from '@storybook/html-vite';
 import { expect, fn, userEvent } from 'storybook/test';
-import type { TeamCardData } from '../../components/team-card/types';
+import { TeamCardData } from '../../components/team-card/types';
 import { buildTeamCard } from '../../components/team-card/buildTeamCard';
 
 const meta: Meta = {

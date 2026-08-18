@@ -20,7 +20,7 @@
  * - TypeAhead: Inline autocomplete on empty cell click (activateScheduleCellTypeAhead)
  */
 
-import type { ScheduleCellConfig, ScheduleCellData } from '../../components/schedule-page';
+import { ScheduleCellConfig, ScheduleCellData } from '../../components/schedule-page';
 import {
   buildScheduleGridCell,
   activateScheduleCellTypeAhead,

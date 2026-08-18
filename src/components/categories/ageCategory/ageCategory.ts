@@ -13,7 +13,7 @@ import {
   categoryTypeToInternal,
   internalToCategory,
   getDefaultPredefinedCodes,
-  type ParsedAgeCategory
+  ParsedAgeCategory
 } from './ageCategoryLogic';
 
 const clickable = '▾'; // clickable character

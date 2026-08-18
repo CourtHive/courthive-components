@@ -1,5 +1,5 @@
 import { compositions } from './compositions';
-import type { Composition, CompositionColors, Configuration } from '../types';
+import { Composition, CompositionColors, Configuration } from '../types';
 
 const DEFAULT_COMPOSITION = 'National';
 

@@ -4,7 +4,7 @@
  * Includes "+" button for creating new policies and per-card actions.
  */
 
-import type { PolicyCatalogState, UIPanel, CatalogGroupBy } from '../types';
+import { PolicyCatalogState, UIPanel, CatalogGroupBy } from '../types';
 import { filterPolicyCatalog, groupPolicyCatalog } from '../domain/catalogProjections';
 import { getPolicyTypeMeta, POLICY_TYPE_METADATA } from '../domain/policyDefaults';
 import {

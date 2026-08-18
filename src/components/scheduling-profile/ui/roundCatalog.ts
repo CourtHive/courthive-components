@@ -4,7 +4,7 @@
  * Stateless factory pattern: { element, update }.
  */
 
-import type { ProfileStoreState, UIPanel, CatalogGroupBy, CatalogRoundItem, DragPayload, RoundLocator, RoundSegment, VenueInfo } from '../types';
+import { ProfileStoreState, UIPanel, CatalogGroupBy, CatalogRoundItem, DragPayload, RoundLocator, RoundSegment, VenueInfo } from '../types';
 import {
   filterCatalog,
   groupCatalog,
@@ -13,7 +13,7 @@ import {
   segmentKeyString,
   buildPlacementIndex,
   getPlacedSegmentsCount,
-  type RoundPlacement
+  RoundPlacement
 } from '../domain/catalogProjections';
 import { wrapSearchWithClear, syncClearVisibility } from '../../../helpers/searchClearButton';
 import { roundKeyString } from '../domain/utils';

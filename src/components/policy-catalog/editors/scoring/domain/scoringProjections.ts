@@ -14,7 +14,7 @@
  */
 
 import matchUpFormatRegistry from '../../../../matchUpFormat/matchUpFormats.json';
-import type { ScoringPolicyData, AllowedFormatEntry } from '../types';
+import { ScoringPolicyData, AllowedFormatEntry } from '../types';
 
 // matchUpFormats.json is the canonical registry of named formats the
 // MatchUp Format Dialog surfaces to operators (entries look like

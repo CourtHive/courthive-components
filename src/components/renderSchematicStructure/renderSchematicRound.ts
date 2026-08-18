@@ -1,5 +1,5 @@
 import { renderSchematicMatchUp } from './renderSchematicMatchUp';
-import type { SchematicMatchUp } from './renderSchematicMatchUp';
+import { SchematicMatchUp } from './renderSchematicMatchUp';
 
 /**
  * Renders a round column with optional simplified header (round number only)

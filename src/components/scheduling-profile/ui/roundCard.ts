@@ -4,7 +4,7 @@
  * Stateless factory pattern: { element, update }.
  */
 
-import type { RoundProfile, RoundLocator, Severity } from '../types';
+import { RoundProfile, RoundLocator, Severity } from '../types';
 import { spCardStyle, spCardTitleStyle, spCardMetaStyle, spChipsStyle, spChipStyle } from './styles';
 
 export interface RoundCardData {

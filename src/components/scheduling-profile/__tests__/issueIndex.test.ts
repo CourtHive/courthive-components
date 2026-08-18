@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildIssueIndex } from '../domain/issueIndex';
-import type { ValidationResult } from '../types';
+import { ValidationResult } from '../types';
 
 const DAY1 = '2026-06-15';
 const DAY2 = '2026-06-16';

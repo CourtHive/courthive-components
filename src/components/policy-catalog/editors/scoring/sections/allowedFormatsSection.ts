@@ -13,8 +13,8 @@
  */
 
 import { matchUpFormatCode } from 'tods-competition-factory';
-import type { ScoringEditorState, MatchUpFormatEntry, AllowedFormatEntry } from '../types';
-import type { ScoringEditorStore } from '../scoringEditorStore';
+import { ScoringEditorState, MatchUpFormatEntry, AllowedFormatEntry } from '../types';
+import { ScoringEditorStore } from '../scoringEditorStore';
 import {
   MATCH_UP_FORMAT_REGISTRY_SORTED,
   asMatchUpFormatEntry,
@@ -22,7 +22,7 @@ import {
   formatNameOf,
   formatDescriptionOf,
 } from '../domain/scoringProjections';
-import { buildTagListEditor, type TagListEditorHandle } from './tagListEditor';
+import { buildTagListEditor, TagListEditorHandle } from './tagListEditor';
 
 interface RowHandle {
   element: HTMLElement;

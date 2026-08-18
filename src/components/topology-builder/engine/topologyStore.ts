@@ -5,7 +5,7 @@
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { getNodeLosersForRound } from '../domain/feedRounds';
 import { getCardWidth } from '../ui/structureCard';
-import type { TopologyNode, TopologyEdge, TopologyState, TopologyChangeListener } from '../types';
+import { TopologyNode, TopologyEdge, TopologyState, TopologyChangeListener } from '../types';
 
 const { MAIN, QUALIFYING, CONSOLATION, WINNER, LOSER, ROUND_ROBIN } = drawDefinitionConstants;
 const POSITION = 'POSITION';

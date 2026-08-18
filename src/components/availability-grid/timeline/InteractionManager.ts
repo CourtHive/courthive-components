@@ -27,7 +27,7 @@
 import { TimeScale } from './TimeScale';
 import { RowLayout } from './RowLayout';
 import { ItemRenderer } from './ItemRenderer';
-import type { InteractionMode, GestureState, TimelineCallbacks, TimelineItemData, MultiRowSpan } from './types';
+import { InteractionMode, GestureState, TimelineCallbacks, TimelineItemData, MultiRowSpan } from './types';
 
 const DRAG_THRESHOLD = 3; // px
 const AUTO_SCROLL_EDGE = 30; // px from edge to trigger auto-scroll

@@ -9,7 +9,7 @@
  */
 
 import { emptyScoringPolicy, formatStringOf, asMatchUpFormatEntry } from './domain/scoringProjections';
-import type {
+import {
   ScoringPolicyData,
   ScoringEditorState,
   ScoringEditorSection,

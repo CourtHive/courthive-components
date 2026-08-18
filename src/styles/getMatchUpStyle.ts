@@ -1,4 +1,4 @@
-import type { Configuration } from '../types';
+import { Configuration } from '../types';
 
 export function getMatchUpStyle({ configuration }: { configuration?: Configuration }): string {
   // The base .chc-matchup class handles all static properties.

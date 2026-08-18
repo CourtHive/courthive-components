@@ -1,4 +1,4 @@
-import type { SchedulingEditorConfig, SchedulingPolicyData } from '../types';
+import { SchedulingEditorConfig, SchedulingPolicyData } from '../types';
 import { SchedulingEditorStore } from '../schedulingEditorStore';
 import { describe, it, expect, vi } from 'vitest';
 

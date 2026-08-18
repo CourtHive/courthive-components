@@ -3,8 +3,8 @@
  *
  * Returns { element, update } — built once, updated on state changes.
  */
-import type { RankingPointsEditorState } from '../types';
-import type { RankingPointsEditorStore } from '../rankingPointsEditorStore';
+import { RankingPointsEditorState } from '../types';
+import { RankingPointsEditorStore } from '../rankingPointsEditorStore';
 import {
   reFieldRowStyle,
   reFieldLabelStyle,

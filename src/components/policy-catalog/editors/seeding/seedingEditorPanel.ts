@@ -5,8 +5,8 @@
  * buildSchedulingEditorPanel.
  */
 
-import type { SeedingEditorState, SeedingEditorSection, SeedingEditorConfig } from './types';
-import type { SeedingEditorStore } from './seedingEditorStore';
+import { SeedingEditorState, SeedingEditorSection, SeedingEditorConfig } from './types';
+import { SeedingEditorStore } from './seedingEditorStore';
 import { buildProfileSection } from './sections/profileSection';
 import { buildFlagsSection } from './sections/flagsSection';
 import { buildThresholdsSection } from './sections/thresholdsSection';

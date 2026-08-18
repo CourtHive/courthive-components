@@ -9,7 +9,7 @@ import { renderContainer } from '../components/renderStructure/renderContainer';
 import { renderStructure } from '../components/renderStructure/renderStructure';
 import { generateEventData } from '../data/generateEventData';
 import { compositions } from '../compositions/compositions';
-import type { Composition, CompositionColors } from '../types';
+import { Composition, CompositionColors } from '../types';
 
 function buildMatchUps(drawSize = 8) {
   const { eventData } = generateEventData({ drawSize, completeAllMatchUps: true }) || {};

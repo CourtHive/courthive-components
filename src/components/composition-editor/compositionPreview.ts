@@ -8,8 +8,8 @@ import { renderStructure } from '../renderStructure/renderStructure';
 import { renderMatchUp } from '../renderStructure/renderMatchUp';
 import { generateMatchUps } from '../../data/generateMatchUps';
 import { cePreview, cePreviewHeader, cePreviewBody, cePreviewMatchup } from './styles';
-import type { CompositionEditorState, EditorPanel } from './compositionEditorTypes';
-import type { Composition } from '../../types';
+import { CompositionEditorState, EditorPanel } from './compositionEditorTypes';
+import { Composition } from '../../types';
 import { KNOWN_SCALES } from './scaleConstants';
 
 // Generate mock matchUps once — reuse across renders

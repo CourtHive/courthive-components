@@ -8,7 +8,7 @@ import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-fact
 import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
 import { formatScoreString } from './dialPadLogic';
 import { validateScore } from '../utils/scoreValidator';
-import type { RenderScoreEntryParams, ScoreOutcome } from '../types';
+import { RenderScoreEntryParams, ScoreOutcome } from '../types';
 import { getScoringConfig } from '../config';
 
 const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT } = matchUpStatusConstants;

@@ -2,7 +2,7 @@
  * Seeding Policy Editor — Defaults and lookup helpers.
  */
 
-import type { SeedingPolicyData, SeedingPositioning } from '../types';
+import { SeedingPolicyData, SeedingPositioning } from '../types';
 
 export const POSITIONING_OPTIONS: { value: SeedingPositioning; label: string; description: string }[] = [
   { value: 'SEPARATE', label: 'Separate', description: 'Each seed placed in its own section of the draw' },

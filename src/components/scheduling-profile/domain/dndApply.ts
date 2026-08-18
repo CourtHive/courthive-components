@@ -5,7 +5,7 @@
  * Handles CATALOG_ROUND (new placement) and PLANNED_ROUND (move/reorder).
  */
 
-import type {
+import {
   SchedulingProfile,
   DragPayload,
   DropTarget,

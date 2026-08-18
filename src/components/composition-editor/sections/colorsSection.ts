@@ -1,6 +1,6 @@
-import type { CompositionEditorStore } from '../compositionEditorStore';
-import type { CompositionEditorState, EditorPanel } from '../compositionEditorTypes';
-import type { CompositionColors } from '../../../types';
+import { CompositionEditorStore } from '../compositionEditorStore';
+import { CompositionEditorState, EditorPanel } from '../compositionEditorTypes';
+import { CompositionColors } from '../../../types';
 import { ceField, ceFieldLabel, ceFieldControl, ceColorInput, ceTextInput } from '../styles';
 
 interface ColorRowDef {

@@ -15,9 +15,9 @@ import { AvailabilityEngine, availability } from 'tods-competition-factory';
 const { calculateCapacityStats } = availability;
 type CourtRef = availability.CourtRef;
 type DayId = availability.DayId;
-import { AvailabilityGridControl, type AvailabilityGridControlConfig } from '../controller/availabilityGridControl';
-import { buildStatsBar, type StatsBarUpdate } from './statsBar';
-import { buildViewToolbar, type ViewToolbarResult } from './viewToolbar';
+import { AvailabilityGridControl, AvailabilityGridControlConfig } from '../controller/availabilityGridControl';
+import { buildStatsBar, StatsBarUpdate } from './statsBar';
+import { buildViewToolbar, ViewToolbarResult } from './viewToolbar';
 import { showCourtAvailabilityModal } from './courtAvailabilityModal';
 import Datepicker from 'vanillajs-datepicker/Datepicker';
 

@@ -6,7 +6,7 @@ import { drawDefinitionConstants } from 'tods-competition-factory';
 import { renderForm } from '../../forms/renderForm';
 import { getPlayoffProfiles } from '../domain/playoffProfilesCache';
 import { getNodeTotalRounds } from '../domain/feedRounds';
-import type { TopologyEdge, TopologyState, UIPanel } from '../types';
+import { TopologyEdge, TopologyState, UIPanel } from '../types';
 
 const { WINNER, LOSER, TOP_DOWN, BOTTOM_UP, QUALIFYING, ROUND_ROBIN } = drawDefinitionConstants;
 const POSITION = 'POSITION';

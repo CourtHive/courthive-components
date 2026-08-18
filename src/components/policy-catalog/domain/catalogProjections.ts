@@ -4,7 +4,7 @@
  * Pure functions to filter and group the policy catalog.
  */
 
-import type { PolicyCatalogItem, CatalogGroupBy } from '../types';
+import { PolicyCatalogItem, CatalogGroupBy } from '../types';
 import { getPolicyTypeMeta, POLICY_TYPE_GROUPS } from './policyDefaults';
 
 /**

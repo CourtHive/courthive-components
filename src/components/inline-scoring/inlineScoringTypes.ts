@@ -1,4 +1,4 @@
-import type { MatchUp } from '../../types';
+import { MatchUp } from '../../types';
 
 export type InlineScoringMode = 'points' | 'games';
 

@@ -5,7 +5,7 @@ import { describe, it, expect } from 'vitest';
 import { renderInlineMatchUp } from '../renderInlineMatchUp';
 import { InlineScoringManager } from '../inlineScoringManager';
 import { compositions } from '../../../compositions/compositions';
-import type { Composition, MatchUp } from '../../../types';
+import { Composition, MatchUp } from '../../../types';
 
 const STANDARD_FORMAT = 'SET3-S:6/TB7';
 
@@ -63,7 +63,7 @@ describe('renderInlineMatchUp', () => {
       manager,
       isLucky: true
     });
-    expect(el.getAttribute('data-matchup-id')).toBe('test-id');
+    expect(el.dataset.matchupId).toBe('test-id');
   });
 
   it('contains the inline-scoring-active class on wrapper element', () => {

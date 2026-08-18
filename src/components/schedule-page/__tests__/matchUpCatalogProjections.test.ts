@@ -3,7 +3,7 @@ import {
   groupMatchUpCatalog,
   computeBaseRoundByEvent
 } from '../domain/matchUpCatalogProjections';
-import type { CatalogMatchUpItem } from '../types';
+import { CatalogMatchUpItem } from '../types';
 import { describe, it, expect } from 'vitest';
 
 const BOYS_U16_SINGLES = 'Boys U16 Singles';

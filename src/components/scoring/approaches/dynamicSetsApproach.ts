@@ -6,7 +6,7 @@ import { renderMatchUp } from '../../renderStructure/renderMatchUp';
 import { compositions } from '../../../compositions/compositions';
 import { validateSetScores } from '../utils/scoreValidator';
 import { parseMatchUpFormat, shouldExpandSets } from '../utils/setExpansionLogic';
-import type { RenderScoreEntryParams, SetScore } from '../types';
+import { RenderScoreEntryParams, SetScore } from '../types';
 import { loadSettings, getScoringConfig } from '../config';
 import { matchUpFormatCode, matchUpStatusConstants, scoreGovernor } from 'tods-competition-factory';
 import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
@@ -18,7 +18,7 @@ import {
   getMaxAllowedScore as getMaxAllowedScoreLogic,
   shouldApplySmartComplement,
   buildSetScore,
-  type MatchUpConfig
+  MatchUpConfig
 } from '../logic/dynamicSetsLogic';
 
 const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT } = matchUpStatusConstants;

@@ -2,7 +2,7 @@
  * Standard Topology Templates — Pre-built topology configurations.
  */
 import { drawDefinitionConstants } from 'tods-competition-factory';
-import type { TopologyNode, TopologyTemplate } from '../types';
+import { TopologyNode, TopologyTemplate } from '../types';
 
 type Stage = TopologyNode['stage'];
 

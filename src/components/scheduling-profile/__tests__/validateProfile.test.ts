@@ -1,4 +1,4 @@
-import type { SchedulingProfile, AvailabilityAdapter, DependencyAdapter } from '../types';
+import { SchedulingProfile, AvailabilityAdapter, DependencyAdapter } from '../types';
 import { validateProfile } from '../domain/validateProfile';
 import { describe, it, expect } from 'vitest';
 

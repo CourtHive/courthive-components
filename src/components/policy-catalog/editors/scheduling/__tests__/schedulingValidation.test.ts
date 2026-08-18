@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { validateSchedulingPolicy } from '../domain/schedulingValidation';
-import type { SchedulingPolicyData } from '../types';
+import { SchedulingPolicyData } from '../types';
 import { fixtures } from 'tods-competition-factory';
 
 const { FORMAT_STANDARD } = fixtures.matchUpFormats;

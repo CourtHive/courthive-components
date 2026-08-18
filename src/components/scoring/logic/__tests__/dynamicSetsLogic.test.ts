@@ -17,9 +17,9 @@ import {
   shouldShowTiebreak,
   shouldCreateNextSet,
   buildSetScore,
-  type MatchUpConfig
+  MatchUpConfig
 } from '../dynamicSetsLogic';
-import type { SetScore } from '../../types';
+import { SetScore } from '../../types';
 import { MATCH_FORMATS } from '../../../../constants/matchUpFormats';
 import { matchUpFormatCode } from 'tods-competition-factory';
 

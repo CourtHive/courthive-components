@@ -1,5 +1,5 @@
 import { buildHiveIDLogin } from '../components/hive-id-login/buildHiveIDLogin';
-import type {
+import {
   DobSexCaptureConfig,
   FederationIdCaptureConfig,
   HiveIDAuthenticatedDetail,

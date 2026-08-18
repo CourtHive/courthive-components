@@ -1,8 +1,8 @@
 /**
  * Per-Win Points Row — Editable for simple pointsPerWin, read-only for complex perWinPoints.
  */
-import type { RankingPointsEditorState } from '../types';
-import type { RankingPointsEditorStore } from '../rankingPointsEditorStore';
+import { RankingPointsEditorState } from '../types';
+import { RankingPointsEditorStore } from '../rankingPointsEditorStore';
 import { formatPointValue, resolvePositionValue } from '../domain/rankingProjections';
 import { reFieldRowStyle, reFieldLabelStyle, rePointsInputStyle } from '../styles';
 

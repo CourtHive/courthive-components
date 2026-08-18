@@ -4,7 +4,7 @@
  * Builds the DOM structure and provides an update() method for re-rendering
  * when store state changes. Follows schedulingEditorPanel pattern.
  */
-import type { RankingPointsEditorStore } from './rankingPointsEditorStore';
+import { RankingPointsEditorStore } from './rankingPointsEditorStore';
 import { buildAggregationSection } from './sections/aggregationSection';
 import { buildQualityWinSection } from './sections/qualityWinSection';
 import { buildMetadataSection } from './sections/metadataSection';
@@ -22,7 +22,7 @@ import {
 } from './styles';
 
 // Types
-import type { RankingPointsEditorState, RankingEditorSection, RankingPointsEditorConfig } from './types';
+import { RankingPointsEditorState, RankingEditorSection, RankingPointsEditorConfig } from './types';
 
 interface SectionDef {
   id: RankingEditorSection;

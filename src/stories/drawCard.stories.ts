@@ -8,7 +8,7 @@ import { buildDrawCard } from '../components/draw-card/buildDrawCard';
 import { buildDrawSkeletonCard } from '../components/draw-card/buildSkeletonCard';
 import { mapDrawDefinitionToCardData } from '../components/draw-card/mapDraw';
 import { buildCompetitivenessBar } from '../components/competitivenessBar/buildCompetitivenessBar';
-import type { DrawCardData } from '../components/draw-card/types';
+import { DrawCardData } from '../components/draw-card/types';
 
 export default {
   title: 'Cards/Draw Card'

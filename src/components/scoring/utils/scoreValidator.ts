@@ -2,7 +2,7 @@
  * Score validation utilities using tournamentEngine
  */
 import { tournamentEngine, matchUpFormatCode, matchUpStatusConstants, governors } from 'tods-competition-factory';
-import type { ScoreOutcome } from '../types';
+import { ScoreOutcome } from '../types';
 
 const { COMPLETED } = matchUpStatusConstants;
 const { validateMatchUpScore, validateSetScore } = governors.scoreGovernor;

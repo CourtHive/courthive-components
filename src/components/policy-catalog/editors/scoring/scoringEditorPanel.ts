@@ -6,8 +6,8 @@
  * mechanics, and the top-level update pump.
  */
 
-import type { ScoringEditorState, ScoringEditorSection } from './types';
-import type { ScoringEditorStore } from './scoringEditorStore';
+import { ScoringEditorState, ScoringEditorSection } from './types';
+import { ScoringEditorStore } from './scoringEditorStore';
 import { buildDefaultsSection } from './sections/defaultsSection';
 import { buildAllowedFormatsSection } from './sections/allowedFormatsSection';
 import { buildStatusCodesSection } from './sections/statusCodesSection';

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { scoreGovernor } from 'tods-competition-factory';
 import { engineToMatchUp } from '../engineToMatchUp';
-import type { MatchUp } from '../../../types';
+import { MatchUp } from '../../../types';
 
 const { ScoringEngine } = scoreGovernor;
 const STANDARD_FORMAT = 'SET3-S:6/TB7';

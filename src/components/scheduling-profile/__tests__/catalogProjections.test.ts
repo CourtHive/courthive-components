@@ -6,7 +6,7 @@ import {
   getPlannedSegmentKeys,
   segmentKeyString
 } from '../domain/catalogProjections';
-import type { CatalogRoundItem } from '../types';
+import { CatalogRoundItem } from '../types';
 
 const BOYS_U16 = 'Boys U16 Singles';
 const GIRLS_U16 = 'Girls U16 Singles';

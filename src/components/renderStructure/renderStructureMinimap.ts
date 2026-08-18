@@ -16,7 +16,7 @@
  *   - quarter hit rects: `[data-quarter="<index>"]`
  *   - viewport indicator: `.chc-minimap-viewport`
  */
-import type { MatchUp } from '../../types';
+import { MatchUp } from '../../types';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const VIEWBOX_W = 100;

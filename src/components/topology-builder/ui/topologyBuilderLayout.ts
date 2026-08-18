@@ -2,7 +2,7 @@
  * Topology Builder Layout — Root layout component.
  * Toolbar on top, canvas (flex:1) + editor panel (250px) in body.
  */
-import type { TopologyState, UIPanel } from '../types';
+import { TopologyState, UIPanel } from '../types';
 
 export function buildTopologyBuilderLayout({
   toolbar,

@@ -12,9 +12,9 @@
  * fidelity on save.
  */
 
-import { MATCH_UP_STATUS_KEYS, type ScoringEditorState, type MatchUpStatusKey } from '../types';
-import type { ScoringEditorStore } from '../scoringEditorStore';
-import { buildTagListEditor, type TagListEditorHandle } from './tagListEditor';
+import { MATCH_UP_STATUS_KEYS, ScoringEditorState, MatchUpStatusKey } from '../types';
+import { ScoringEditorStore } from '../scoringEditorStore';
+import { buildTagListEditor, TagListEditorHandle } from './tagListEditor';
 
 interface StatusGroupHandle {
   key: MatchUpStatusKey;

@@ -7,7 +7,7 @@
  * Empty state when nothing selected.
  */
 
-import type { PolicyCatalogState, UIPanel } from '../types';
+import { PolicyCatalogState, UIPanel } from '../types';
 import { getPolicyTypeMeta } from '../domain/policyDefaults';
 import {
   pcPanelStyle,

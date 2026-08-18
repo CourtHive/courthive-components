@@ -114,7 +114,7 @@ export type {
 // Convenience Factory
 // ============================================================================
 
-import type { SchedulePageConfig } from './types';
+import { SchedulePageConfig } from './types';
 import { SchedulePageControl } from './controller/schedulePageControl';
 
 export function createSchedulePage(config: SchedulePageConfig, container: HTMLElement): SchedulePageControl {

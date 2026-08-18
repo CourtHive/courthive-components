@@ -388,7 +388,7 @@ function warnIfLeafletCssMissing(mapEl: HTMLElement): void {
 }
 
 export function isDarkTheme(): boolean {
-  return globalThis.document?.documentElement?.getAttribute('data-theme') === 'dark';
+  return globalThis.document?.documentElement?.dataset.theme === 'dark';
 }
 
 /**

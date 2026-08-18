@@ -21,7 +21,7 @@
  * Run as tests:      `pnpm storybook` + `pnpm test-storybook`
  */
 
-import type { Meta, StoryObj } from '@storybook/html-vite';
+import { Meta, StoryObj } from '@storybook/html-vite';
 import { expect } from 'storybook/test';
 import { controlBar } from '../components/controlBar/controlBar';
 

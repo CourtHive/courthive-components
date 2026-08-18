@@ -9,7 +9,7 @@ import '../styles/theme.css';
 import '../styles/schematic.css';
 import '../components/topology-builder/ui/topology-builder.css';
 
-import type { Meta, StoryObj } from '@storybook/html-vite';
+import { Meta, StoryObj } from '@storybook/html-vite';
 import { TopologyBuilderControl } from '../components/topology-builder/controller/topologyBuilderControl';
 import { standardTemplates } from '../components/topology-builder/domain/templates';
 import { topologyToDrawOptions } from '../components/topology-builder/domain/topologyToDrawOptions';
@@ -17,7 +17,7 @@ import { validateTopology } from '../components/topology-builder/domain/topology
 import { generateDrawFromTopology } from '../components/topology-builder/domain/generateDrawFromTopology';
 import { cModal } from '../components/modal/cmodal';
 import { getNumRounds } from '../components/topology-builder/ui/structureCard';
-import type {
+import {
   TopologyBuilderConfig,
   TopologyNode,
   TopologyState,

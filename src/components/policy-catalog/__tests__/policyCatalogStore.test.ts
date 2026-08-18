@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { PolicyCatalogStore } from '../engine/policyCatalogStore';
-import type { PolicyCatalogConfig, PolicyCatalogItem } from '../types';
+import { PolicyCatalogConfig, PolicyCatalogItem } from '../types';
 
 // Shared fixture strings — extracted to satisfy sonarjs/no-duplicate-string.
 const USER_SCHEDULING_NAME = 'My Scheduling';

@@ -4,7 +4,7 @@
  * Validates the scheduling policy data structure.
  */
 
-import type {
+import {
   SchedulingPolicyData,
   SchedulingValidationResult,
   MatchUpAverageTime,

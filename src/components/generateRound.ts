@@ -1,4 +1,4 @@
-import type { Composition, MatchUp } from '../types';
+import { Composition, MatchUp } from '../types';
 
 /* not used */
 export const generateRound = ({

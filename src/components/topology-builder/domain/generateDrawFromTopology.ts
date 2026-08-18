@@ -4,7 +4,7 @@
  */
 import { mocksEngine, tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
 import { topologyToDrawOptions } from './topologyToDrawOptions';
-import type { TopologyState } from '../types';
+import { TopologyState } from '../types';
 
 const { MAIN } = drawDefinitionConstants;
 

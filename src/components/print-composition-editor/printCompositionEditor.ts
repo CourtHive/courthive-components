@@ -15,7 +15,7 @@
  */
 
 import './print-composition-editor.css';
-import type {
+import {
   PrintCompositionConfig,
   PrintCompositionEditorConfig,
   PrintCompositionEditorHandle,

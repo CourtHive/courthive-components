@@ -10,8 +10,8 @@ import './scoring-editor.css';
 
 import { ScoringEditorStore } from './scoringEditorStore';
 import { buildScoringEditorPanel } from './scoringEditorPanel';
-import type { ScoringPolicyData, ScoringEditorConfig } from './types';
-import type { PolicyEditorInstance as CatalogEditorInstance } from '../../types';
+import { ScoringPolicyData, ScoringEditorConfig } from './types';
+import { PolicyEditorInstance as CatalogEditorInstance } from '../../types';
 
 export class ScoringEditorControl {
   private readonly store: ScoringEditorStore;

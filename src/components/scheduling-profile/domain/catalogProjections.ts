@@ -4,7 +4,7 @@
  * Transforms round catalog data into filterable, groupable catalog items.
  */
 
-import type {
+import {
   CatalogRoundItem,
   CatalogGroupBy,
   PlannedRoundBehavior,

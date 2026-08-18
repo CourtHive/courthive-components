@@ -2,7 +2,7 @@
  * Participant Privacy Editor — Observable store. Mirrors SeedingEditorStore.
  */
 import { emptyPrivacyPolicy, writeField, writePolicyName } from './domain/privacyProjections';
-import type { PrivacyEditorChangeListener, PrivacyEditorConfig, PrivacyEditorState, PrivacyPolicyData } from './types';
+import { PrivacyEditorChangeListener, PrivacyEditorConfig, PrivacyEditorState, PrivacyPolicyData } from './types';
 
 function deepClone<T>(value: T): T {
   return structuredClone(value);

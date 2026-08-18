@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { applyDropCommit } from '../domain/dndApply';
-import type { SchedulingProfile, CatalogDragPayload, PlannedDragPayload } from '../types';
+import { SchedulingProfile, CatalogDragPayload, PlannedDragPayload } from '../types';
 
 const DAY1 = '2026-06-15';
 

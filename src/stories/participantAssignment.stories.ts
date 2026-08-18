@@ -8,7 +8,7 @@ import { compositions } from '../compositions/compositions';
 import { mocksEngine, tournamentEngine, participantConstants } from 'tods-competition-factory';
 
 const { INDIVIDUAL, PAIR } = participantConstants;
-import type { MatchUp, Participant } from '../types';
+import { MatchUp, Participant } from '../types';
 
 const argTypes = {
   composition: {

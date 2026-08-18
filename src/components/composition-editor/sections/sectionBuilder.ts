@@ -2,8 +2,8 @@
  * Generic section builder — creates collapsible accordion sections.
  */
 import { ceSection, ceSectionHeader, ceSectionChevron, ceSectionBody } from '../styles';
-import type { CompositionEditorState, SectionId, EditorPanel } from '../compositionEditorTypes';
-import type { CompositionEditorStore } from '../compositionEditorStore';
+import { CompositionEditorState, SectionId, EditorPanel } from '../compositionEditorTypes';
+import { CompositionEditorStore } from '../compositionEditorStore';
 
 export interface SectionDef {
   id: SectionId;

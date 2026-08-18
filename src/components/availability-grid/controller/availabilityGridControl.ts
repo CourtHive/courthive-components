@@ -14,7 +14,7 @@
  * Design: Stateful controller, but all domain logic stays in engine.
  */
 
-import { tools, availability, type AvailabilityEngine } from 'tods-competition-factory';
+import { tools, availability, AvailabilityEngine } from 'tods-competition-factory';
 
 const { BLOCK_TYPES } = availability;
 type BlockType = availability.BlockType;
@@ -29,14 +29,14 @@ import {
   DEFAULT_COLOR_SCHEME,
   parseBlockEventId,
   parseResourceId,
-  type TimelineItem,
-  type ProjectionConfig,
-  type ResourceGroupingMode
+  TimelineItem,
+  ProjectionConfig,
+  ResourceGroupingMode
 } from './viewProjections';
-import { createBlockPopoverManager, type BlockPopoverManager } from '../ui/blockPopover';
+import { createBlockPopoverManager, BlockPopoverManager } from '../ui/blockPopover';
 import { VIEW_PRESETS } from '../ui/viewToolbar';
 import { CourtTimeline } from '../timeline/CourtTimeline';
-import type { TimelineGroupData, TimelineItemData, MultiRowSpan } from '../timeline/types';
+import { TimelineGroupData, TimelineItemData, MultiRowSpan } from '../timeline/types';
 
 // ============================================================================
 // Controller Configuration

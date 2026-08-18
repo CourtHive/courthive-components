@@ -16,7 +16,7 @@ import {
   genderConstants
 } from 'tods-competition-factory';
 
-import type {
+import {
   CatalogMatchUpItem,
   ScheduleDate,
   ScheduleIssue,

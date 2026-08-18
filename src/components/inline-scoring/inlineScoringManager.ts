@@ -2,8 +2,8 @@ import { scoreGovernor } from 'tods-competition-factory';
 
 const { ScoringEngine } = scoreGovernor;
 import { engineToMatchUp } from './engineToMatchUp';
-import type { MatchUp } from '../../types';
-import type { InlineScoringCallbacks, InlineScoringEngineState } from './inlineScoringTypes';
+import { MatchUp } from '../../types';
+import { InlineScoringCallbacks, InlineScoringEngineState } from './inlineScoringTypes';
 
 /**
  * Manages ScoringEngine instances for inline scoring in draw brackets.

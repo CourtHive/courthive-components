@@ -3,7 +3,7 @@ import { resultsItemStyle } from '../../styles/resultStyles';
 import { scoreWrapperStyle } from '../../styles/scoreWrapperStyle';
 import { renderGameScore } from './renderGameScore';
 import { isFunction } from '../modal/cmodal';
-import type { Composition, EventHandlers, MatchUp, SetScore } from '../../types';
+import { Composition, EventHandlers, MatchUp, SetScore } from '../../types';
 
 export function setScore({
   gameScoreOnly,

@@ -24,11 +24,11 @@
 
 import { buildScheduleInspectorPanel } from '../../components/schedule-page/ui/inspectorPanel';
 import { buildSchedulePageLayout } from '../../components/schedule-page/ui/schedulePageLayout';
-import type { Meta, StoryObj } from '@storybook/html-vite';
+import { Meta, StoryObj } from '@storybook/html-vite';
 import { expect } from 'storybook/test';
 
 // constants and types
-import type { CatalogMatchUpItem, SchedulePageState, UIPanel } from '../../components/schedule-page';
+import { CatalogMatchUpItem, SchedulePageState, UIPanel } from '../../components/schedule-page';
 
 const meta: Meta = {
   title: 'Schedule Page/Tests/InspectorPanel'

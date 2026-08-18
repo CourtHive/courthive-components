@@ -1,5 +1,5 @@
-import type { CompositionColors, Configuration } from '../../types';
-import type {
+import { CompositionColors, Configuration } from '../../types';
+import {
   CompositionEditorConfig,
   CompositionEditorState,
   CompositionEditorListener,

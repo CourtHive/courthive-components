@@ -16,7 +16,7 @@ import { getMatchUpFormatModal } from '../components/matchUpFormat/matchUpFormat
 import { renderContainer } from '../components/renderStructure/renderContainer';
 import { renderMatchUp } from '../components/renderStructure/renderMatchUp';
 import { compositions } from '../compositions/compositions';
-import type { MatchUp, Composition } from '../types';
+import { MatchUp, Composition } from '../types';
 import mcpFixtures from '../data/mcpFixtures.json';
 
 const { ScoringEngine } = scoreGovernor;

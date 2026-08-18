@@ -1,7 +1,7 @@
 import { renderMatchUp } from '../renderStructure/renderMatchUp';
 import { renderStatusPill } from '../renderStructure/renderStatusPill';
-import type { InlineScoringManager } from './inlineScoringManager';
-import type { Composition, EventHandlers, MatchUp } from '../../types';
+import { InlineScoringManager } from './inlineScoringManager';
+import { Composition, EventHandlers, MatchUp } from '../../types';
 
 const ACTIVE_CLASS = 'chc-inline-scoring-active';
 

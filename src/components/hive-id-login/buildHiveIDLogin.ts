@@ -40,7 +40,7 @@ import {
   signup,
   verifyExisting
 } from './hiveIDClient';
-import type {
+import {
   CachedPersonFields,
   DobSexCaptureConfig,
   FederationIdCaptureConfig,

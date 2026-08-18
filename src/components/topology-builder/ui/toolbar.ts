@@ -4,7 +4,7 @@
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { controlBar } from '../../controlBar/controlBar';
 import { validateTopology } from '../domain/topologyValidator';
-import type { TopologyState, TopologyTemplate, UIPanel } from '../types';
+import { TopologyState, TopologyTemplate, UIPanel } from '../types';
 
 const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, LUCKY_DRAW } = drawDefinitionConstants;
 

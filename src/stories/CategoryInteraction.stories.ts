@@ -1,5 +1,5 @@
 import { getCategoryModal } from '../components/categories/category/category';
-import type { Category } from '../components/categories/category/category';
+import { Category } from '../components/categories/category/category';
 
 const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
 const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';

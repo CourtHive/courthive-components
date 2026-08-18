@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi } from 'vitest';
 import { setScore, renderSideScore } from '../renderSideScore';
-import type { Composition, MatchUp, SetScore } from '../../../types';
+import { Composition, MatchUp, SetScore } from '../../../types';
 
 function makeSet(overrides: Partial<SetScore> = {}): SetScore {
   return { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1, ...overrides };

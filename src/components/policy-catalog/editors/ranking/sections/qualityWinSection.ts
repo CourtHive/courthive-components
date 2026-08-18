@@ -1,8 +1,8 @@
 /**
  * Quality Win Section — Editable quality win profiles with add/remove.
  */
-import type { RankingPointsEditorState } from '../types';
-import type { RankingPointsEditorStore } from '../rankingPointsEditorStore';
+import { RankingPointsEditorState } from '../types';
+import { RankingPointsEditorStore } from '../rankingPointsEditorStore';
 import {
   reFieldRowStyle,
   reFieldLabelStyle,

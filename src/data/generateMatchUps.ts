@@ -9,7 +9,7 @@ import {
 const { DOUBLES, SINGLES } = eventConstants;
 const { AD_HOC } = drawDefinitionConstants;
 const { INDIVIDUAL } = participantConstants;
-import type { MatchUp } from '../types';
+import { MatchUp } from '../types';
 
 export function generateMatchUps({
   matchUpFormat = 'SET5-S:6/TB7',

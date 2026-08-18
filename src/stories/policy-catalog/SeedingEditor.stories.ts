@@ -8,7 +8,7 @@ import '../../components/policy-catalog/ui/policy-catalog.css';
 import '../../components/policy-catalog/editors/seeding/seeding-editor.css';
 
 import { SeedingEditorControl, createSeedingEditor } from '../../components/policy-catalog';
-import type { SeedingPolicyData } from '../../components/policy-catalog';
+import { SeedingPolicyData } from '../../components/policy-catalog';
 
 export default {
   title: 'Policy Catalog/Seeding Editor',

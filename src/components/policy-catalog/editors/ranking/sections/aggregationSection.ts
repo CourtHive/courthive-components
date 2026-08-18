@@ -1,8 +1,8 @@
 /**
  * Aggregation Section — Editable aggregation rules (buckets, decay, tiebreakers).
  */
-import type { RankingPointsEditorStore } from '../rankingPointsEditorStore';
-import type { RankingPointsEditorState } from '../types';
+import { RankingPointsEditorStore } from '../rankingPointsEditorStore';
+import { RankingPointsEditorState } from '../types';
 import {
   reFieldRowStyle,
   reFieldLabelStyle,

@@ -12,8 +12,8 @@
 import { createCompositionEditor } from '../components/composition-editor/compositionEditor';
 import { renderMatchUp } from '../components/renderStructure/renderMatchUp';
 import { compositions } from '../compositions/compositions';
-import type { Composition, MatchUp } from '../types';
-import type { SavedComposition } from '../components/composition-editor/compositionEditorTypes';
+import { Composition, MatchUp } from '../types';
+import { SavedComposition } from '../components/composition-editor/compositionEditorTypes';
 import { mocksEngine, queryGovernor } from 'tods-competition-factory';
 
 export default {

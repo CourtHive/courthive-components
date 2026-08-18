@@ -1,7 +1,7 @@
 /**
  * Factory function for creating a blank ranking policy.
  */
-import type { RankingPolicyData } from '../types';
+import { RankingPolicyData } from '../types';
 
 export function emptyRankingPolicy(): RankingPolicyData {
   return {

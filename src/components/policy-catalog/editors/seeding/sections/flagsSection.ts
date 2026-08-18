@@ -2,8 +2,8 @@
  * Flags Section — Three boolean toggles.
  */
 
-import type { SeedingEditorState } from '../types';
-import type { SeedingEditorStore } from '../seedingEditorStore';
+import { SeedingEditorState } from '../types';
+import { SeedingEditorStore } from '../seedingEditorStore';
 import { sdCheckboxRowStyle, sdCheckboxDescStyle } from '../styles';
 
 interface FlagDef {

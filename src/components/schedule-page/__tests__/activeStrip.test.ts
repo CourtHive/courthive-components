@@ -6,7 +6,7 @@ import {
   computeActiveStripDropTarget,
   computeReschedulePlacements
 } from '../domain/activeStrip';
-import type {
+import {
   ActiveStripCourtColumn,
   ActiveStripDropCandidate,
   ActiveStripGrid,

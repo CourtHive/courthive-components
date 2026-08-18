@@ -8,7 +8,7 @@
  * Feed-in rounds (where the matchUp count stays the same between consecutive rounds)
  * are also a valid elimination pattern.
  */
-import type { RoundProfile } from 'tods-competition-factory';
+import { RoundProfile } from 'tods-competition-factory';
 
 interface IsLuckyDrawParams {
   roundsNotPowerOf2?: boolean;

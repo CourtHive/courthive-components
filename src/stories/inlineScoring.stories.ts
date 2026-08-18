@@ -21,7 +21,7 @@ import { renderStructure } from '../components/renderStructure/renderStructure';
 import { renderMatchUp } from '../components/renderStructure/renderMatchUp';
 import { generateEventData } from '../data/generateEventData';
 import { compositions } from '../compositions/compositions';
-import type { Composition, MatchUp } from '../types';
+import { Composition, MatchUp } from '../types';
 
 const { IN_PROGRESS, COMPLETED } = matchUpStatusConstants;
 

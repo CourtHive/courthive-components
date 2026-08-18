@@ -9,7 +9,7 @@
  * - 'bulk': actions queue in pendingActions; consumer calls save() to flush
  */
 
-import type {
+import {
   SchedulePageState,
   SchedulePageChangeListener,
   SchedulePageConfig,

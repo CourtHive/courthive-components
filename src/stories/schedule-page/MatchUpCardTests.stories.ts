@@ -18,9 +18,9 @@
  *                    `pnpm test-storybook` (other)
  */
 
-import type { Meta, StoryObj } from '@storybook/html-vite';
+import { Meta, StoryObj } from '@storybook/html-vite';
 import { expect } from 'storybook/test';
-import type { CatalogMatchUpItem } from '../../components/schedule-page';
+import { CatalogMatchUpItem } from '../../components/schedule-page';
 import { buildMatchUpCard } from '../../components/schedule-page/ui/matchUpCard';
 
 const meta: Meta = {

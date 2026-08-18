@@ -20,7 +20,7 @@ import { buildDefaultTimesSection } from '../../components/policy-catalog/editor
 import { buildAverageTimesSection } from '../../components/policy-catalog/editors/scheduling/sections/averageTimesSection';
 import { buildRecoveryTimesSection } from '../../components/policy-catalog/editors/scheduling/sections/recoveryTimesSection';
 
-import type { PolicyCatalogState } from '../../components/policy-catalog';
+import { PolicyCatalogState } from '../../components/policy-catalog';
 
 import {
   BUILTIN_POLICIES,

@@ -4,7 +4,7 @@
  * Pure helper functions shared across the scheduling profile domain layer.
  */
 
-import type { RoundProfile, RoundLocator, RoundKey } from '../types';
+import { RoundProfile, RoundLocator, RoundKey } from '../types';
 
 export function deepClone<T>(obj: T): T {
   return structuredClone(obj);

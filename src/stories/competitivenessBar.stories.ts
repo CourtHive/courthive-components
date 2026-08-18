@@ -3,7 +3,7 @@
  */
 import { buildCompetitivenessBar } from '../components/competitivenessBar/buildCompetitivenessBar';
 import { aggregateCompetitiveness } from '../components/competitivenessBar/aggregateCompetitiveness';
-import type { CompetitivenessBuckets } from '../components/competitivenessBar/types';
+import { CompetitivenessBuckets } from '../components/competitivenessBar/types';
 
 export default {
   title: 'Charts/Competitiveness Bar'

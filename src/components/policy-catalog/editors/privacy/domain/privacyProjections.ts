@@ -7,7 +7,7 @@
  */
 import { fixtures, factoryConstants } from 'tods-competition-factory';
 
-import type { PrivacyPolicyData } from '../types';
+import { PrivacyPolicyData } from '../types';
 
 const POLICY_TYPE_PARTICIPANT = factoryConstants.policyConstants.POLICY_TYPE_PARTICIPANT;
 

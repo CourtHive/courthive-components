@@ -2,7 +2,7 @@
  * Shared test data for Policy Catalog & Scheduling Editor stories.
  */
 
-import type {
+import {
   PolicyCatalogItem,
   PolicyCatalogConfig,
   SchedulingPolicyData,

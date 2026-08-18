@@ -7,7 +7,7 @@
  */
 
 import { spLayoutStyle, spColumnStyle } from './styles';
-import type { ProfileStoreState, UIPanel } from '../types';
+import { ProfileStoreState, UIPanel } from '../types';
 
 export interface LayoutPanels {
   dateStrip: UIPanel<ProfileStoreState>;

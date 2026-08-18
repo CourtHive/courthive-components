@@ -6,7 +6,7 @@ import { roundStyle } from '../../styles/roundStyle';
 import { tools } from 'tods-competition-factory';
 import { renderMatchUp } from './renderMatchUp';
 import { isFunction } from '../modal/cmodal';
-import type { Composition, EventHandlers, MatchUp } from '../../types';
+import { Composition, EventHandlers, MatchUp } from '../../types';
 
 export function renderRound({
   initialRoundNumber = 1,

@@ -7,7 +7,7 @@
  * testable without happy-dom (per the ecosystem feedback memory
  * `feedback_one_dom_test_layer_per_ecosystem`).
  */
-import type {
+import {
   HiveIDClientError,
   MagicLinkConsumeRequest,
   MagicLinkConsumeResponse,

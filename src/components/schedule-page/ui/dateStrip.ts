@@ -4,7 +4,7 @@
  * Stateless factory pattern: { element, update }.
  */
 
-import type { SchedulePageState, UIPanel } from '../types';
+import { SchedulePageState, UIPanel } from '../types';
 import {
   spPanelStyle,
   spPanelHeaderStyle,

@@ -8,7 +8,7 @@
 
 import { TimeScale } from './TimeScale';
 import { RowLayout } from './RowLayout';
-import type { TimelineItemData } from './types';
+import { TimelineItemData } from './types';
 
 export class ItemRenderer {
   private scale: TimeScale;

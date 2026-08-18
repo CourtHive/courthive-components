@@ -2,7 +2,7 @@
  * Shared types for the custom CourtTimeline component.
  */
 
-import type { availability } from 'tods-competition-factory';
+import { availability } from 'tods-competition-factory';
 
 type CourtRef = availability.CourtRef;
 

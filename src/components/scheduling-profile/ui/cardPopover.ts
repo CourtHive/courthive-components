@@ -5,8 +5,8 @@
  * Actions: delete round, set notBeforeTime.
  */
 
-import tippy, { type Instance as TippyInstance } from 'tippy.js';
-import type { RoundLocator } from '../types';
+import tippy, { Instance as TippyInstance } from 'tippy.js';
+import { RoundLocator } from '../types';
 import { spPopoverItemStyle, spPopoverDeleteStyle, spPopoverDividerStyle } from './styles';
 
 export interface CardPopoverCallbacks {

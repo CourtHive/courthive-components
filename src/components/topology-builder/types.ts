@@ -1,7 +1,7 @@
 /**
  * Topology Builder — Type Definitions
  */
-import type { SchematicMatchUp } from '../renderSchematicStructure';
+import { SchematicMatchUp } from '../renderSchematicStructure';
 
 export interface TopologyNode {
   id: string;

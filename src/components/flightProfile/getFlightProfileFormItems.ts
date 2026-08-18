@@ -4,7 +4,7 @@
  */
 import { factoryConstants } from 'tods-competition-factory';
 import { numericRange } from '../validators/numericRange';
-import { DEFAULT_COLORS, RATING_SYSTEMS, SPLIT_METHODS, type FlightProfileState } from './flightProfileLogic';
+import { DEFAULT_COLORS, RATING_SYSTEMS, SPLIT_METHODS, FlightProfileState } from './flightProfileLogic';
 
 const { RATING, RANKING } = factoryConstants.scaleConstants;
 

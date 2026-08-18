@@ -13,7 +13,7 @@ import { buildIssueIndex } from '../domain/issueIndex';
 import { applyDropCommit } from '../domain/dndApply';
 import { deepClone } from '../domain/utils';
 import { findRoundInProfile } from '../domain/profileProjections';
-import type {
+import {
   ProfileStoreState,
   ProfileChangeListener,
   SchedulingProfileConfig,

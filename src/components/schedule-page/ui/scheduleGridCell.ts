@@ -8,7 +8,7 @@
  * Does NOT handle drag events — those are the consumer's responsibility.
  */
 
-import type { ScheduleCellConfig, ScheduleCellData, ScheduleCellSide, ParticipantDisplayConfig } from '../types';
+import { ScheduleCellConfig, ScheduleCellData, ScheduleCellSide, ParticipantDisplayConfig } from '../types';
 
 import './schedule-grid-cell.css';
 

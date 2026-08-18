@@ -18,7 +18,7 @@ import { tournamentEngine, availability } from 'tods-competition-factory';
 
 import { SchedulingProfileControl, createSchedulingProfile } from '../../components/scheduling-profile';
 
-import type { SchedulingProfile } from '../../components/scheduling-profile';
+import { SchedulingProfile } from '../../components/scheduling-profile';
 
 import { createFactorySetup, profileToFactoryFormat, buildHeavyProfile, buildSpreadProfile } from './factoryData';
 

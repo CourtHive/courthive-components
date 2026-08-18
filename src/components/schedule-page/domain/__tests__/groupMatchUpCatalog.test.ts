@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { groupMatchUpCatalog } from '../matchUpCatalogProjections';
-import type { CatalogMatchUpItem } from '../../types';
+import { CatalogMatchUpItem } from '../../types';
 
 // Repeated string literal used across the structure-label cases —
 // extracted to satisfy sonarjs/no-duplicate-string.

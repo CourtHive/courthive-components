@@ -2,7 +2,7 @@ import { schedulingStyle } from '../../styles/schedulingStyle';
 import { tools } from 'tods-competition-factory';
 import { isFunction } from '../modal/cmodal';
 import dayjs from 'dayjs';
-import type { EventHandlers, MatchUp } from '../../types';
+import { EventHandlers, MatchUp } from '../../types';
 
 export function renderSchedule({
   matchUp,

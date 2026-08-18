@@ -8,7 +8,7 @@
  * to the catalog (unschedules it).
  */
 
-import type {
+import {
   SchedulePageState,
   UIPanel,
   MatchUpCatalogGroupBy,

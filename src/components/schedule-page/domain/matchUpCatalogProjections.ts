@@ -5,7 +5,7 @@
  * Search matches on participant names (primary), event/draw/round names.
  */
 
-import type { CatalogMatchUpItem, CatalogFilters, MatchUpCatalogGroupBy, ScheduledBehavior } from '../types';
+import { CatalogMatchUpItem, CatalogFilters, MatchUpCatalogGroupBy, ScheduledBehavior } from '../types';
 import { matchUpSearchKey } from './utils';
 
 /** MatchUp statuses that indicate the matchUp is finished. */

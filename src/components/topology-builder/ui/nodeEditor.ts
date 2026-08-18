@@ -10,7 +10,7 @@ import { renderForm } from '../../forms/renderForm';
 
 // constants and types
 import { drawDefinitionConstants } from 'tods-competition-factory';
-import type { TopologyEdge, TopologyNode, TopologyState, UIPanel } from '../types';
+import { TopologyEdge, TopologyNode, TopologyState, UIPanel } from '../types';
 
 const {
   SINGLE_ELIMINATION,

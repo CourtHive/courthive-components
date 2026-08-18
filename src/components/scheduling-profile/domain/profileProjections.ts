@@ -4,7 +4,7 @@
  * Derives board-renderable data from the scheduling profile state.
  */
 
-import type { SchedulingProfile, RoundProfile, RoundKey, RoundLocator, ValidationResult, Severity } from '../types';
+import { SchedulingProfile, RoundProfile, RoundKey, RoundLocator, ValidationResult, Severity } from '../types';
 import { roundKeyString, pickRoundKey } from './utils';
 
 export function getVenueRounds(profile: SchedulingProfile, date: string, venueId: string): RoundProfile[] {

@@ -5,7 +5,7 @@ import { structureStyle } from '../../styles/structureStyle';
 import { roundStyle } from '../../styles/roundStyle';
 import { isLuckyDraw } from './isLuckyDraw';
 import { renderRound } from './renderRound';
-import type { Composition, EventHandlers, MatchUp } from '../../types';
+import { Composition, EventHandlers, MatchUp } from '../../types';
 
 export function renderStructure({
   initialRoundNumber = 1,

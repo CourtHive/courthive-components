@@ -4,8 +4,8 @@
  * Collapsed: profile name + scope badges on one line.
  * Expanded: editable position-points table, per-win, bonus, overrides.
  */
-import type { RankingPointsEditorState } from '../types';
-import type { RankingPointsEditorStore } from '../rankingPointsEditorStore';
+import { RankingPointsEditorState } from '../types';
+import { RankingPointsEditorStore } from '../rankingPointsEditorStore';
 import { buildPositionPointsTable } from './positionPointsTable';
 import { buildPerWinPointsRow } from './perWinPointsRow';
 import { buildBonusPointsRow } from './bonusPointsRow';

@@ -12,7 +12,7 @@
  * Run as tests:     pnpm storybook (one terminal) + pnpm test-storybook (other)
  */
 
-import type { Meta, StoryObj } from '@storybook/html-vite';
+import { Meta, StoryObj } from '@storybook/html-vite';
 import { within, waitFor, userEvent, expect } from 'storybook/test';
 import { buildInteractiveScoringShell } from '../components/interactive-scoring/buildInteractiveScoringShell';
 

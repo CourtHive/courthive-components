@@ -6,7 +6,7 @@
  * blocked cells, and conflict states.
  */
 
-import type { ScheduleCellData } from '../../components/schedule-page';
+import { ScheduleCellData } from '../../components/schedule-page';
 import { mocksEngine, genderConstants, matchUpStatusConstants, fixtures } from 'tods-competition-factory';
 
 const { FORMAT_STANDARD, FORMAT_ATP_DOUBLES } = fixtures.matchUpFormats;

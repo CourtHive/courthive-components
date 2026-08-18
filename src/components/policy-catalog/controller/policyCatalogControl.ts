@@ -23,7 +23,7 @@ import {
   POLICY_TYPE_SCORING,
   POLICY_TYPE_SEEDING,
 } from '../domain/policyDefaults';
-import type { PolicyCatalogConfig, PolicyEditorInstance, CatalogGroupBy } from '../types';
+import { PolicyCatalogConfig, PolicyEditorInstance, CatalogGroupBy } from '../types';
 
 export class PolicyCatalogControl {
   private readonly store: PolicyCatalogStore;

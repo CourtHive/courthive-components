@@ -11,7 +11,7 @@ import {
 } from './cmodalStyles';
 
 // types
-import type { ModalButton, ModalConfig, ModalParams } from '../../types';
+import { ModalButton, ModalConfig, ModalParams } from '../../types';
 
 const EMPTY = 'Nothing to see here';
 

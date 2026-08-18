@@ -4,7 +4,7 @@
  */
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { luckyRoundProfiles } from './feedRounds';
-import type { SchematicMatchUp } from '../../renderSchematicStructure';
+import { SchematicMatchUp } from '../../renderSchematicStructure';
 
 const { ROUND_ROBIN, AD_HOC, LUCKY_DRAW } = drawDefinitionConstants;
 

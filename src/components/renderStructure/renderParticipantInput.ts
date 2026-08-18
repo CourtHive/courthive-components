@@ -4,7 +4,7 @@
  */
 import { renderField } from '../forms/renderField';
 import { isFunction } from '../modal/cmodal';
-import type { Composition, EventHandlers, MatchUp, Side } from '../../types';
+import { Composition, EventHandlers, MatchUp, Side } from '../../types';
 
 // Special values to identify BYE and QUALIFIER selection
 const BYE_VALUE = '__BYE__';

@@ -1,7 +1,7 @@
 /**
  * Scope Badges — Renders award profile scope as colored re-badge tags.
  */
-import type { AwardProfileData } from '../types';
+import { AwardProfileData } from '../types';
 import { getProfileScopeBadges } from '../domain/rankingProjections';
 
 export function buildScopeBadges(profile: AwardProfileData): HTMLElement {

@@ -15,7 +15,7 @@ import { TimeAxis } from './TimeAxis';
 import { RowLayout } from './RowLayout';
 import { ItemRenderer } from './ItemRenderer';
 import { InteractionManager } from './InteractionManager';
-import type { TimelineGroupData, TimelineItemData, TimelineOptions, TimelineCallbacks, MultiRowSpan } from './types';
+import { TimelineGroupData, TimelineItemData, TimelineOptions, TimelineCallbacks, MultiRowSpan } from './types';
 
 export class CourtTimeline {
   private options: TimelineOptions;

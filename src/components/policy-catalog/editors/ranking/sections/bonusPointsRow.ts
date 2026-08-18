@@ -1,8 +1,8 @@
 /**
  * Bonus Points Row — Editable bonus point entries with add/remove.
  */
-import type { RankingPointsEditorState } from '../types';
-import type { RankingPointsEditorStore } from '../rankingPointsEditorStore';
+import { RankingPointsEditorState } from '../types';
+import { RankingPointsEditorStore } from '../rankingPointsEditorStore';
 import { positionToRoundLabel } from '../domain/rankingProjections';
 import { rePointsInputStyle, reIconBtnDangerStyle } from '../styles';
 

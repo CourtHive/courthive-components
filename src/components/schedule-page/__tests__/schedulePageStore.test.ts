@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { SchedulePageStore } from '../engine/schedulePageStore';
-import type { SchedulePageConfig, CatalogMatchUpItem, ScheduleDate } from '../types';
+import { SchedulePageConfig, CatalogMatchUpItem, ScheduleDate } from '../types';
 
 const DATE_DAY1 = '2026-06-15';
 const DATE_DAY2 = '2026-06-16';

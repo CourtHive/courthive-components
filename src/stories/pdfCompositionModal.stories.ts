@@ -1,8 +1,8 @@
-import type { Meta, StoryObj } from '@storybook/html-vite';
+import { Meta, StoryObj } from '@storybook/html-vite';
 import { openCompositionEditorModal } from '../components/modal/compositionEditorModal';
 import { openScheduleCellConfigModal } from '../components/modal/scheduleCellConfigModal';
-import type { CompositionEditorResult } from '../components/modal/compositionEditorModal';
-import type { ScheduleCellDisplayConfig } from '../components/modal/scheduleCellConfigModal';
+import { CompositionEditorResult } from '../components/modal/compositionEditorModal';
+import { ScheduleCellDisplayConfig } from '../components/modal/scheduleCellConfigModal';
 
 function createCompositionStory(): HTMLElement {
   const container = document.createElement('div');

@@ -2,8 +2,8 @@
  * Average Times Section — Format groups with category overrides for match average times.
  */
 
-import type { SchedulingEditorState, SchedulingEditorConfig } from '../types';
-import type { SchedulingEditorStore } from '../schedulingEditorStore';
+import { SchedulingEditorState, SchedulingEditorConfig } from '../types';
+import { SchedulingEditorStore } from '../schedulingEditorStore';
 import { buildFormatTimeRow } from './formatTimeRow';
 import { seAddBtnStyle } from '../styles';
 

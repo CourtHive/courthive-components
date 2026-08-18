@@ -16,12 +16,12 @@
  * a richer DOM (e.g. the same buildScheduleGridCell DOM used in the grid).
  */
 
-import type { SchedulePageDragPayload, SchedulePageState, UIPanel } from '../types';
+import { SchedulePageDragPayload, SchedulePageState, UIPanel } from '../types';
 import {
   computeActiveStrip,
   computeActiveStripDropTarget
 } from '../domain/activeStrip';
-import type {
+import {
   ActiveStripCell,
   ActiveStripDropCandidate,
   ActiveStripDropTarget,

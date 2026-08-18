@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { ProfileStore } from '../engine/profileStore';
-import type { SchedulingProfileConfig, SchedulingProfile, AvailabilityAdapter } from '../types';
+import { SchedulingProfileConfig, SchedulingProfile, AvailabilityAdapter } from '../types';
 
 const venues = [
   { venueId: 'V1', name: 'Venue A' },

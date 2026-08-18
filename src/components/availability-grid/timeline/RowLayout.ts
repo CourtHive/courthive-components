@@ -5,7 +5,7 @@
  * on the right. Provides coordinate ↔ group lookups for interaction handling.
  */
 
-import type { TimelineGroupData } from './types';
+import { TimelineGroupData } from './types';
 
 export class RowLayout {
   private groups: TimelineGroupData[] = [];

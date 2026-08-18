@@ -1,6 +1,6 @@
 import { tournamentEngine } from 'tods-competition-factory';
 import { renderSchematicRound } from './renderSchematicRound';
-import type { SchematicMatchUp } from './renderSchematicMatchUp';
+import { SchematicMatchUp } from './renderSchematicMatchUp';
 
 /**
  * Compact bracket renderer showing structure shape without participant details.

@@ -6,7 +6,7 @@ import {
   maxSeverity,
   findRoundInProfile
 } from '../domain/profileProjections';
-import type { SchedulingProfile, RoundLocator, ValidationResult } from '../types';
+import { SchedulingProfile, RoundLocator, ValidationResult } from '../types';
 
 const DAY1 = '2026-06-15';
 

@@ -5,15 +5,15 @@
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { buildStructureCard, getPortPosition, getCardWidth, getNumRounds } from './structureCard';
 import { getFeedRoundCapacities } from '../domain/feedRounds';
-import type { RoundAnnotation, PositionChip } from './structureCard';
-import type { TopologyState, TopologyEdge, UIPanel } from '../types';
+import { RoundAnnotation, PositionChip } from './structureCard';
+import { TopologyState, TopologyEdge, UIPanel } from '../types';
 
 const { WINNER, LOSER, QUALIFYING, CONSOLATION, ROUND_ROBIN } = drawDefinitionConstants;
 const POSITION = 'POSITION';
 
 const isRoundRobin = (structureType: string) => structureType === ROUND_ROBIN;
 
-import type { TopologyNode } from '../types';
+import { TopologyNode } from '../types';
 
 function computeAdvanceInfo(node: TopologyNode, state: TopologyState): string | undefined {
   if (!isRoundRobin(node.structureType)) return undefined;

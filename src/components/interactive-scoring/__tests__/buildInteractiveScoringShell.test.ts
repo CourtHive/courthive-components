@@ -4,7 +4,7 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 
 import { buildInteractiveScoringShell } from '../buildInteractiveScoringShell';
-import type { StateChangedDetail } from '../types';
+import { StateChangedDetail } from '../types';
 
 const STANDARD_FORMAT = 'SET3-S:6/TB7';
 const SIDE1_BUTTON_SELECTOR = '.chc-iss-point-button-side1';

@@ -1,6 +1,6 @@
 import { lineHeights } from '../compositions/lineHeights';
 import cx from 'classnames';
-import type { Composition } from '../types';
+import { Composition } from '../types';
 
 /**
  * Computes connector line configuration and returns a two-call API

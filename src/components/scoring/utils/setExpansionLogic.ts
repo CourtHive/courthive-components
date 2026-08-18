@@ -2,7 +2,7 @@
  * Logic for determining when to expand set inputs dynamically
  */
 import { matchUpFormatCode } from 'tods-competition-factory';
-import type { SetScore } from '../types';
+import { SetScore } from '../types';
 
 type MatchUpFormatInfo = {
   bestOf: number;

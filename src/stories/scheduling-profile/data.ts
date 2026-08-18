@@ -4,7 +4,7 @@
  * Mirrors the vanilla prototype data for consistency.
  */
 
-import type {
+import {
   VenueInfo,
   CatalogRoundItem,
   SchedulingProfile,

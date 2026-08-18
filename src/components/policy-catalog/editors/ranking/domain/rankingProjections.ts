@@ -4,7 +4,7 @@
  * Analyzes PositionValue polymorphism and determines table layout.
  * Resolves values for display in specific contexts (level, flight, drawSize).
  */
-import type { AwardProfileData, TableLayout } from '../types';
+import { AwardProfileData, TableLayout } from '../types';
 
 // ── Position Labels ─────────────────────────────────────────────────────────
 

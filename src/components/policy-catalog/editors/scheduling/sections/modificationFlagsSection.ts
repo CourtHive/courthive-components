@@ -2,8 +2,8 @@
  * Modification Flags Section — 2 toggle checkboxes (courts, venues).
  */
 
-import type { SchedulingEditorState } from '../types';
-import type { SchedulingEditorStore } from '../schedulingEditorStore';
+import { SchedulingEditorState } from '../types';
+import { SchedulingEditorStore } from '../schedulingEditorStore';
 import { seCheckboxRowStyle } from '../styles';
 
 export function buildModificationFlagsSection(store: SchedulingEditorStore): {

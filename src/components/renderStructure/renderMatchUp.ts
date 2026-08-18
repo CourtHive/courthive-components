@@ -7,7 +7,7 @@ import { getLinkStyle } from '../../styles/getLinkStyle';
 import { isFunction } from '../modal/cmodal';
 import { renderSide } from './renderSide';
 import cx from 'classnames';
-import type { Composition, EventHandlers, MatchUp } from '../../types';
+import { Composition, EventHandlers, MatchUp } from '../../types';
 
 const { QUALIFYING } = drawDefinitionConstants;
 

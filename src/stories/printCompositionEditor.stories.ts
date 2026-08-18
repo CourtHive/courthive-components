@@ -6,7 +6,7 @@
  * `components/print-composition-editor/printCompositionEditor.ts`.
  */
 import { createPrintCompositionEditor } from '../components/print-composition-editor/printCompositionEditor';
-import type { PrintType } from '../components/print-composition-editor/printCompositionEditorTypes';
+import { PrintType } from '../components/print-composition-editor/printCompositionEditorTypes';
 
 export default {
   title: 'Components/Print Composition Editor',

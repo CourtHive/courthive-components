@@ -4,7 +4,7 @@
  * Consumer provides issues directly; this module indexes them for UI display.
  */
 
-import type { ScheduleIssue, ScheduleIssueSeverity, ScheduleIssueIndex, ScheduleIssueCounts } from '../types';
+import { ScheduleIssue, ScheduleIssueSeverity, ScheduleIssueIndex, ScheduleIssueCounts } from '../types';
 
 export function buildScheduleIssueIndex(issues: ScheduleIssue[]): ScheduleIssueIndex {
   const bySeverity: Record<ScheduleIssueSeverity, ScheduleIssue[]> = { ERROR: [], WARN: [], INFO: [] };

@@ -1,6 +1,6 @@
 import { scaleStyle } from '../../styles/scaleStyle';
 import cx from 'classnames';
-import type { Composition, IndividualParticipant, MatchUp } from '../../types';
+import { Composition, IndividualParticipant, MatchUp } from '../../types';
 
 export function renderScale({
   individualParticipant,

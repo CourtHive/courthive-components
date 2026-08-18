@@ -9,7 +9,7 @@
  * Design: Lightweight observable state. No engine dependency.
  */
 
-import type { availability } from 'tods-competition-factory';
+import { availability } from 'tods-competition-factory';
 
 type BlockType = availability.BlockType;
 type DayId = availability.DayId;

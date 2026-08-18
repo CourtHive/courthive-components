@@ -6,7 +6,7 @@
  * Right:  matchUpCatalog + inspectorPanel
  */
 
-import type { SchedulePageState, UIPanel } from '../types';
+import { SchedulePageState, UIPanel } from '../types';
 import { splLayoutStyle, splLeftStyle, splToggleStyle, splRightStyle } from './styles';
 
 export interface SchedulePageLayoutPanels {

@@ -14,7 +14,7 @@
  */
 
 import { select, scaleLinear, arc as d3Arc, partition as d3Partition, hierarchy, range as d3Range } from 'd3';
-import type { ScaleLinear, HierarchyRectangularNode, Selection } from 'd3';
+import { ScaleLinear, HierarchyRectangularNode, Selection } from 'd3';
 import { fixtures, entryStatusConstants } from 'tods-competition-factory';
 
 const { WILDCARD, QUALIFIER, LUCKY_LOSER } = entryStatusConstants;

@@ -8,7 +8,7 @@ import '../../components/policy-catalog/ui/policy-catalog.css';
 import '../../components/policy-catalog/editors/scoring/scoring-editor.css';
 
 import { ScoringEditorControl, createScoringEditor } from '../../components/policy-catalog';
-import type { ScoringPolicyData } from '../../components/policy-catalog';
+import { ScoringPolicyData } from '../../components/policy-catalog';
 
 export default {
   title: 'Policy Catalog/Scoring Editor',

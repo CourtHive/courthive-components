@@ -4,8 +4,8 @@
  * Creates all 5 sections as collapsible accordions.
  */
 
-import type { SchedulingEditorState, SchedulingEditorSection, SchedulingEditorConfig } from './types';
-import type { SchedulingEditorStore } from './schedulingEditorStore';
+import { SchedulingEditorState, SchedulingEditorSection, SchedulingEditorConfig } from './types';
+import { SchedulingEditorStore } from './schedulingEditorStore';
 import { buildModificationFlagsSection } from './sections/modificationFlagsSection';
 import { buildDailyLimitsSection } from './sections/dailyLimitsSection';
 import { buildDefaultTimesSection } from './sections/defaultTimesSection';

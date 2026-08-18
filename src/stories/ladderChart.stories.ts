@@ -30,9 +30,9 @@
 import { drawDefinitionConstants, mocksEngine, tournamentEngine } from 'tods-competition-factory';
 
 import { buildLadderChart } from '../components/ladderChart';
-import type { LadderChartDatum } from '../components/ladderChart';
+import { LadderChartDatum } from '../components/ladderChart';
 
-import type { Meta, StoryObj } from '@storybook/html-vite';
+import { Meta, StoryObj } from '@storybook/html-vite';
 
 const { SINGLE_ELIMINATION } = drawDefinitionConstants;
 

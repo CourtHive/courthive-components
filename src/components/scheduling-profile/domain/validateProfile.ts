@@ -6,7 +6,7 @@
  * DUPLICATE_SEGMENT, ROUND_ORDER_VIOLATION.
  */
 
-import type {
+import {
   SchedulingProfile,
   ValidationResult,
   AvailabilityAdapter,

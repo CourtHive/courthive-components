@@ -6,7 +6,7 @@ import { isElement } from '../../utilities/isElement';
 import { renderTeamLogo } from './renderTeamLogo';
 import { renderTick } from './renderTick';
 
-import type { Composition, EventHandlers, MatchUp, Participant } from '../../types';
+import { Composition, EventHandlers, MatchUp, Participant } from '../../types';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 
 const { WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, RETIRED, SUSPENDED, CANCELLED, IN_PROGRESS, ABANDONED } =

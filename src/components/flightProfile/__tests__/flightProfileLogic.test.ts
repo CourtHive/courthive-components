@@ -11,7 +11,7 @@ import {
   getSplitMethodConstant,
   parseExistingFlightProfile,
   validateFlightProfile,
-  type FlightProfileState
+  FlightProfileState
 } from '../flightProfileLogic';
 
 describe('Flight Profile Logic', () => {

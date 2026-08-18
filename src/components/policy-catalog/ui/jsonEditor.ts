@@ -2,7 +2,7 @@
  * JSON Editor — Fallback viewer/editor for policy types without custom editors.
  */
 
-import type { PolicyEditorInstance } from '../types';
+import { PolicyEditorInstance } from '../types';
 import { pcJsonEditorStyle, pcJsonErrorStyle } from './styles';
 
 export function buildJsonEditor(config: {

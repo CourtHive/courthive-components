@@ -5,7 +5,7 @@
  * and state updates independently before testing the full assembly.
  */
 
-import type { SchedulePageState } from '../../components/schedule-page';
+import { SchedulePageState } from '../../components/schedule-page';
 import { SchedulePageStore } from '../../components/schedule-page';
 import { buildMatchUpCard } from '../../components/schedule-page/ui/matchUpCard';
 import { buildMatchUpCatalog } from '../../components/schedule-page/ui/matchUpCatalog';

@@ -32,7 +32,7 @@ import {
   makeConfig
 } from './data';
 
-import type { ScheduleCellConfig } from '../../components/schedule-page';
+import { ScheduleCellConfig } from '../../components/schedule-page';
 import { DEFAULT_SCHEDULE_CELL_CONFIG } from '../../components/schedule-page';
 
 import {
@@ -842,7 +842,7 @@ export const FactoryBacked = {
             log(`CLICK: court=${courtId} row=${courtOrder} ${m.matchUpId}`);
           } else {
             // Empty cell — show menu with typeahead option
-            const venueId = cell.getAttribute('data-venue-id') || '';
+            const venueId = (cell as HTMLElement).dataset.venueId || '';
             showEmptyCellMenu(event, cell, courtId, venueId, courtOrder);
           }
         },
@@ -884,13 +884,13 @@ export const FactoryBacked = {
         onMatchUpDrop: (payload, event) => {
           // Walk up from event.target to find the grid cell with data attributes
           let target = event.target as HTMLElement | null;
-          while (target && !target.getAttribute('data-court-id')) {
+          while (target && !(target as HTMLElement).dataset.courtId) {
             target = target.parentElement;
           }
 
-          const courtId = target?.getAttribute('data-court-id');
-          const venueId = target?.getAttribute('data-venue-id');
-          const courtOrder = target?.getAttribute('data-court-order');
+          const courtId = (target as HTMLElement | null)?.dataset.courtId;
+          const venueId = (target as HTMLElement | null)?.dataset.venueId;
+          const courtOrder = (target as HTMLElement | null)?.dataset.courtOrder;
 
           if (!courtId || !venueId || !courtOrder) {
             log(`Drop failed: missing target attributes`);
@@ -898,8 +898,8 @@ export const FactoryBacked = {
           }
 
           // If the target cell already has a matchUp, unschedule it first (swap)
-          const existingMatchUpId = target?.getAttribute('data-matchup-id');
-          const existingDrawId = target?.getAttribute('data-draw-id');
+          const existingMatchUpId = (target as HTMLElement | null)?.dataset.matchupId;
+          const existingDrawId = (target as HTMLElement | null)?.dataset.drawId;
           if (existingMatchUpId) {
             log(`Swapping: unscheduling ${existingMatchUpId} from court=${courtId} row=${courtOrder}`);
             unscheduleMatchUpViaFactory(existingMatchUpId, existingDrawId ?? '');

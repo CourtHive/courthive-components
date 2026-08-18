@@ -5,9 +5,9 @@
  * Follows the store/control/panel pattern used by policy-catalog and schedule-page.
  */
 import { CompositionEditorStore } from './compositionEditorStore';
-import type { CompositionEditorConfig, SavedComposition, EditorPanel } from './compositionEditorTypes';
+import { CompositionEditorConfig, SavedComposition, EditorPanel } from './compositionEditorTypes';
 import { ceLayout, ceLeft, ceRight, ceNameRow, ceNameLabel, ceNameInput } from './styles';
-import { buildSection, type SectionDef } from './sections/sectionBuilder';
+import { buildSection, SectionDef } from './sections/sectionBuilder';
 import { buildThemeSection } from './sections/themeSection';
 import { buildColorsSection } from './sections/colorsSection';
 import { buildDisplaySection } from './sections/displaySection';

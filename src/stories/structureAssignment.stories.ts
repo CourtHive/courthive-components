@@ -10,7 +10,7 @@ import { mocksEngine, drawDefinitionConstants, participantConstants } from 'tods
 const { SINGLE_ELIMINATION, FEED_IN, MAIN, QUALIFYING } = drawDefinitionConstants;
 const { INDIVIDUAL } = participantConstants;
 import { DrawStateManager } from '../helpers/drawStateManager';
-import type { MatchUp } from '../types';
+import { MatchUp } from '../types';
 
 const CHC_BG_SECONDARY = 'var(--chc-bg-secondary)';
 const CHC_BORDER_FOCUS = 'var(--chc-border-focus)';

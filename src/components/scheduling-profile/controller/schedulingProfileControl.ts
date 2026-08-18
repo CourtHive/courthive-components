@@ -14,7 +14,7 @@ import { buildIssuesPanel } from '../ui/issuesPanel';
 import { ProfileStore } from '../engine/profileStore';
 import { buildVenueBoard } from '../ui/venueBoard';
 import { buildDateStrip } from '../ui/dateStrip';
-import type {
+import {
   SchedulingProfileConfig,
   SchedulingProfile,
   CatalogRoundItem,

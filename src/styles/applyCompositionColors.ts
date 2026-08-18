@@ -1,4 +1,4 @@
-import type { CompositionColors } from '../types';
+import { CompositionColors } from '../types';
 
 const COLOR_TO_CSS_VAR: Record<keyof CompositionColors, string> = {
   border: '--chc-color-border',

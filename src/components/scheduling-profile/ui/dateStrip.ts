@@ -4,7 +4,7 @@
  * Stateless factory pattern: { element, update }.
  */
 
-import type { ProfileStoreState, UIPanel } from '../types';
+import { ProfileStoreState, UIPanel } from '../types';
 import {
   spPanelStyle,
   spPanelHeaderStyle,

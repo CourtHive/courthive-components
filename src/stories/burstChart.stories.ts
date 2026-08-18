@@ -18,7 +18,7 @@ import {
   matchUpStatusConstants
 } from 'tods-competition-factory';
 import { fromLegacyDraw, fromFactoryDrawData } from '../components/burstChart/matchUpTransform';
-import type { BurstChartInstance, BurstColorMode } from '../components/burstChart/burstChart';
+import { BurstChartInstance, BurstColorMode } from '../components/burstChart/burstChart';
 import { burstChart } from '../components/burstChart/burstChart';
 import { COMPETITIVENESS_COLORS, NEUTRAL_SEGMENT_COLOR } from '../components/burstChart/competitiveness';
 
@@ -27,7 +27,7 @@ import australianOpenData from '../data/burstChart/australian_open.json';
 import rolandGarrosData from '../data/burstChart/roland_garros.json';
 import wimbledonData from '../data/burstChart/wimbledon.json';
 
-import type { Meta, StoryObj } from '@storybook/html-vite';
+import { Meta, StoryObj } from '@storybook/html-vite';
 
 const { SINGLE_ELIMINATION } = drawDefinitionConstants;
 const { BYE } = matchUpStatusConstants;

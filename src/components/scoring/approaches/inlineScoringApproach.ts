@@ -7,7 +7,7 @@ import { renderInlineMatchUp } from '../../inline-scoring/renderInlineMatchUp';
 import { InlineScoringManager } from '../../inline-scoring/inlineScoringManager';
 import { compositions } from '../../../compositions/compositions';
 import { getScoringConfig } from '../config';
-import type { RenderScoreEntryParams, ScoreOutcome } from '../types';
+import { RenderScoreEntryParams, ScoreOutcome } from '../types';
 
 export function renderInlineScoringEntry(params: RenderScoreEntryParams): void {
   const { matchUp, container, onScoreChange } = params;

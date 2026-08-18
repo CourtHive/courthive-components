@@ -7,7 +7,7 @@
 
 import { deepClone } from '../domain/utils';
 import { getEmptyPolicyData } from '../domain/policyDefaults';
-import type {
+import {
   PolicyCatalogState,
   PolicyCatalogChangeListener,
   PolicyCatalogConfig,

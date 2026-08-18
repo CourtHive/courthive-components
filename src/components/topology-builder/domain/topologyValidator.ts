@@ -3,7 +3,7 @@
  */
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { getFeedRoundCapacities, getNodeTotalRounds, getNodeLosersForRound } from './feedRounds';
-import type { TopologyState } from '../types';
+import { TopologyState } from '../types';
 
 const { MAIN, QUALIFYING, CONSOLATION, WINNER, LOSER, SINGLE_ELIMINATION, ROUND_ROBIN, AD_HOC } =
   drawDefinitionConstants;

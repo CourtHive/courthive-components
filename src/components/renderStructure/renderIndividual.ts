@@ -5,7 +5,7 @@ import { renderParticipantInput } from './renderParticipantInput';
 import { seedStyle } from '../../styles/seedStyle';
 import { renderFrill } from './renderFrill';
 import { isFunction } from '../modal/cmodal';
-import type { Composition, EventHandlers, IndividualParticipant, MatchUp, Side } from '../../types';
+import { Composition, EventHandlers, IndividualParticipant, MatchUp, Side } from '../../types';
 
 const { FEED_IN } = drawDefinitionConstants;
 const { MALE, FEMALE } = genderConstants;

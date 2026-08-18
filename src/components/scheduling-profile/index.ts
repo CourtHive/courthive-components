@@ -87,7 +87,7 @@ export type {
 // Convenience Factory
 // ============================================================================
 
-import type { SchedulingProfileConfig } from './types';
+import { SchedulingProfileConfig } from './types';
 import { SchedulingProfileControl } from './controller/schedulingProfileControl';
 
 export function createSchedulingProfile(

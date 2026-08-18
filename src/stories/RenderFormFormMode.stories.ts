@@ -12,7 +12,7 @@
  * Run as tests:      `pnpm storybook` (one terminal) +
  *                    `pnpm test-storybook -- --testPathPatterns RenderFormFormMode`
  */
-import type { Meta, StoryObj } from '@storybook/html-vite';
+import { Meta, StoryObj } from '@storybook/html-vite';
 import { expect, fn, userEvent } from 'storybook/test';
 import { renderForm } from '../components/forms/renderForm';
 

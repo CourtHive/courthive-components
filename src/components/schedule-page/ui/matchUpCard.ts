@@ -4,7 +4,7 @@
  * Shows "Player A vs Player B" with sides, event/round metadata, and chips.
  */
 
-import type { CatalogMatchUpItem } from '../types';
+import { CatalogMatchUpItem } from '../types';
 import { matchUpLabel } from '../domain/utils';
 import { isCompletedStatus } from '../domain/matchUpCatalogProjections';
 import {

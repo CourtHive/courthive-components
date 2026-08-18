@@ -4,8 +4,8 @@
  */
 import { PrivacyEditorStore } from './privacyEditorStore';
 import { buildPrivacyEditorPanel } from './privacyEditorPanel';
-import type { PrivacyEditorConfig, PrivacyPolicyData } from './types';
-import type { PolicyEditorInstance as CatalogEditorInstance } from '../../types';
+import { PrivacyEditorConfig, PrivacyPolicyData } from './types';
+import { PolicyEditorInstance as CatalogEditorInstance } from '../../types';
 
 export class PrivacyEditorControl {
   private readonly store: PrivacyEditorStore;

@@ -1,5 +1,5 @@
-import type { CompositionEditorStore } from '../compositionEditorStore';
-import type { CompositionEditorState, EditorPanel } from '../compositionEditorTypes';
+import { CompositionEditorStore } from '../compositionEditorStore';
+import { CompositionEditorState, EditorPanel } from '../compositionEditorTypes';
 import { buildToggleField } from './fieldBuilders';
 
 export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {

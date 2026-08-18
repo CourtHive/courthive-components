@@ -4,7 +4,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderMatchUp } from '../renderMatchUp';
 import { compositions } from '../../../compositions/compositions';
-import type { MatchUp, Composition } from '../../../types';
+import { MatchUp, Composition } from '../../../types';
 
 const TEST_THEME = 'test-theme';
 const FOOTER_SELECTOR = '.chc-matchup-footer';

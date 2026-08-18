@@ -4,7 +4,7 @@
  * No DOM dependencies, no side effects - pure business logic only
  */
 
-import type { SetScore } from '../types';
+import { SetScore } from '../types';
 
 /**
  * Set format information returned by matchUpFormatCode.parse()
