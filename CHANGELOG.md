@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.14.2](https://github.com/CourtHive/courthive-components/compare/v3.14.1...v3.14.2) (2026-08-18)
+
+
+### Bug Fixes
+
+* **typeAhead:** rename currentValue to currentCode and warn when it resolves to nothing ([#517](https://github.com/CourtHive/courthive-components/issues/517)) ([9e670e3](https://github.com/CourtHive/courthive-components/commit/9e670e3b356fa0cf5b92f4ef33d093583040c5a0))
+
 ## [3.14.1](https://github.com/CourtHive/courthive-components/compare/v3.14.0...v3.14.1) (2026-08-17)
 
 
