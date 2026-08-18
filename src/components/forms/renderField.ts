@@ -157,20 +157,37 @@
  * 6. TYPE-AHEAD / AUTOCOMPLETE
  * Properties:
  * - typeAhead: Object - type-ahead configuration
- *   - list: Array of suggestions
+ *   - list: Array of suggestions — plain strings, or { value, label } entries
  *   - callback: Function(value) - called when item selected
- *   - currentValue: String - initial value
+ *   - currentCode: String - a stored CODE to resolve to its display LABEL.
+ *       Requires a { value, label } list, because resolving only means anything
+ *       when the stored code differs from what is shown. It is NOT the input's
+ *       initial value — for that, set the field's own `value` (applied after the
+ *       type-ahead attaches, so it wins). Supplying a code that resolves to
+ *       nothing logs a warning rather than silently leaving the input empty.
+ *   - currentValue: String - @deprecated alias for currentCode; the name always
+ *       implied "initial value", which it never was.
+ *   - warnUnresolved: Boolean - false to silence that warning
  *   - onSelectComplete: Function() - called after selection is complete
  *
- * Example:
+ * Example — a code-to-label list, where resolving is meaningful:
  * {
  *   label: 'Country',
- *   field: 'country',
+ *   field: 'countryCode',
  *   typeAhead: {
- *     list: ['USA', 'GBR', 'FRA', 'ESP'],
+ *     list: [{ value: 'FRA', label: '🇫🇷 France' }, { value: 'ESP', label: '🇪🇸 Spain' }],
  *     callback: (value) => console.log('Selected:', value),
- *     currentValue: 'USA'
+ *     currentCode: 'FRA'
  *   }
+ * }
+ *
+ * Example — a plain-string list, where there is nothing to resolve, so the
+ * starting text is the field's own `value`:
+ * {
+ *   label: 'Time zone',
+ *   field: 'localTimeZone',
+ *   value: 'Europe/Paris',
+ *   typeAhead: { list: ['UTC', 'Europe/Paris', 'America/New_York'] }
  * }
  *
  * 7. STATIC TEXT/HTML
