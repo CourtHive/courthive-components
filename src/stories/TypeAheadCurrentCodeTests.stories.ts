@@ -20,8 +20,8 @@
  * Run as tests:      `pnpm storybook` + `pnpm test-storybook -- --testPathPatterns TypeAheadCurrentCode`
  */
 
-import type { Meta, StoryObj } from '@storybook/html-vite';
 import { createTypeAhead } from '../helpers/createTypeAhead';
+import { Meta, StoryObj } from '@storybook/html-vite';
 import { expect } from 'storybook/test';
 
 const meta: Meta = {
@@ -70,7 +70,7 @@ export const ResolvesCurrentCode: StoryObj = {
   play: async ({ canvasElement }) => {
     const input = canvasElement.querySelector(INPUT) as HTMLInputElement;
     await expect(input.value).toBe(FRANCE);
-    await expect(canvasElement.querySelector(WARN_HOST)?.getAttribute('data-warnings')).toBe('0');
+    await expect((canvasElement.querySelector(WARN_HOST) as HTMLElement).dataset.warnings).toBe('0');
   }
 };
 
