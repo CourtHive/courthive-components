@@ -389,5 +389,5 @@ function mergeConfig(base: PrintCompositionConfig, overlay: PrintCompositionConf
 }
 
 function deepClone<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value)) as T;
+  return structuredClone(value);
 }

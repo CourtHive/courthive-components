@@ -63,6 +63,18 @@ export default [
       '@typescript-eslint/no-use-before-define': 'off',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       'no-prototype-builtins': 'off',
+      // Ban `JSON.parse(JSON.stringify(x))` as a deep-copy idiom — it silently drops `undefined`,
+      // functions, `Date`/`Map`/`Set` and throws on cycles. Ecosystem-wide as of 2026-08-21; mirrors the
+      // rule in factory and competition-factory-server. Keep the three in step.
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "CallExpression[callee.object.name='JSON'][callee.property.name='parse'] > CallExpression[callee.object.name='JSON'][callee.property.name='stringify']",
+          message:
+            'Use structuredClone() to deep-copy — JSON.parse(JSON.stringify(x)) drops undefined/functions/Date/Map/Set and throws on cycles. For tournamentRecords use tools.makeDeepCopy, which carries factory extension semantics.',
+        },
+      ],
     },
   },
   {
