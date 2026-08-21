@@ -63,7 +63,7 @@ describe('renderInlineMatchUp', () => {
       manager,
       isLucky: true
     });
-    expect(el.getAttribute('data-matchup-id')).toBe('test-id');
+    expect(el.dataset.matchupId).toBe('test-id');
   });
 
   it('contains the inline-scoring-active class on wrapper element', () => {
