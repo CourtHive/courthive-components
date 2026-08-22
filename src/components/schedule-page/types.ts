@@ -189,6 +189,12 @@ export interface SchedulePageConfig {
    *  from scratch on each state change — so return a freshly created element rather than
    *  a cached one. Return null to render nothing. Not called when no matchUp is selected. */
   renderInspectorExtra?: (matchUp: CatalogMatchUpItem, state: SchedulePageState) => HTMLElement | null;
+  /** Consumer-supplied detail appended below each catalog card's built-in content.
+   *  Same contract as `renderInspectorExtra`: called on every card render, so return
+   *  a freshly created element rather than a cached one. Return null to render
+   *  nothing. Consumers that build cards themselves (e.g. a Scheduled panel calling
+   *  `buildMatchUpCard` directly) pass the same function as `MatchUpCardOptions.renderExtra`. */
+  renderCardExtra?: (matchUp: CatalogMatchUpItem) => HTMLElement | null;
   /** Consumer-owned buttons rendered right-aligned in the court grid header.
    *  Consumer keeps live refs and mutates state (visibility, disabled, label) directly. */
   headerActions?: HTMLElement | HTMLElement[];

@@ -25,6 +25,11 @@ export interface MatchUpCardOptions {
    *  (top-right) and suppress the standard time chip. Used by the schedule
    *  grid's Scheduled tab where the time is the card's primary signal. */
   prominentTime?: boolean;
+  /** Consumer-supplied detail appended below the card's built-in content. Called on
+   *  every card render — the catalog rebuilds its cards from scratch on each state
+   *  change — so return a freshly created element rather than a cached one, which
+   *  would be re-parented rather than reused. Return null to render nothing. */
+  renderExtra?: (matchUp: CatalogMatchUpItem) => HTMLElement | null;
   /** Distance from the earliest unscheduled round within this card's event.
    *  0 = this round is the next-to-schedule (highest emphasis on the title),
    *  1 = one round behind, ≥ 2 = further out (lowest emphasis). Mapped to
@@ -147,6 +152,8 @@ export function buildMatchUpCard(
 
   if (chips.children.length) card.appendChild(chips);
 
+  appendCardExtra(card, item, options);
+
   // Checkmark for scheduled
   if (item.isScheduled) {
     const check = document.createElement('span');
@@ -156,6 +163,24 @@ export function buildMatchUpCard(
   }
 
   return card;
+}
+
+/** Render the consumer's extra detail block, if one was supplied. */
+function appendCardExtra(card: HTMLElement, item: CatalogMatchUpItem, options: MatchUpCardOptions): void {
+  if (!options.renderExtra) return;
+  try {
+    const extra = options.renderExtra(item);
+    if (!extra) return;
+    const holder = document.createElement('div');
+    holder.className = 'spl-card-extra';
+    holder.appendChild(extra);
+    card.appendChild(holder);
+  } catch (err) {
+    // Fail soft, but never silently: a consumer's badge must not take down the
+    // whole catalog, and an operator seeing a missing badge needs the console to
+    // say why. Mirrors the inspector panel's renderExtra contract.
+    console.error('[schedule-page] card renderExtra threw', err);
+  }
 }
 
 function makeChip(text: string, kind: string): HTMLElement {

@@ -3,8 +3,15 @@
  *
  * Covers the two priority-hint signals on the catalog cards that landed
  * in commit `60ef41d` ("feat(catalog): round-emphasis tiers + non-MAIN
- * stage chip on cards") and the `prominentTime` option used by the
- * Scheduled-tab panel in the TMX schedule grid sidebar.
+ * stage chip on cards"), the `prominentTime` option used by the
+ * Scheduled-tab panel in the TMX schedule grid sidebar, and the
+ * `renderExtra` hook consumers use to hang their own badge off a card.
+ *
+ * `renderExtra` has to be a render hook rather than something the consumer
+ * appends from outside, for the same reason the Inspector's does: the catalog
+ * rebuilds its cards from scratch on every state change, so an externally
+ * appended node would be wiped rather than reused. It is also the only seam
+ * available to a consumer, since `MatchUpCardOptions` is otherwise internal.
  *
  * The pure data path (`computeBaseRoundByEvent` → `roundOffset`
  * computation) is covered by 7 unit cases in
@@ -36,6 +43,8 @@ const TIME_HEADER_SELECTOR = '.spl-card-time-header';
 const CLASS_ROUND_CURRENT = 'spl-card-title--round-current';
 const CLASS_ROUND_NEXT = 'spl-card-title--round-next';
 const CLASS_ROUND_LATER = 'spl-card-title--round-later';
+const EXTRA_HOLDER_SELECTOR = '.spl-card-extra';
+const EXTRA_MARKER_SELECTOR = '[data-test="card-extra"]';
 
 // ── Test fixtures ──
 
@@ -198,5 +207,83 @@ export const ProminentTimeWithoutScheduledTimeNoHeader: StoryObj = {
     expect(timeHeader).toBeNull();
     const title = canvasElement.querySelector(TITLE_SELECTOR);
     expect(title?.classList.contains('with-time')).toBe(false);
+  }
+};
+
+// ── renderExtra ──
+
+/** A consumer badge, freshly created per call as the hook contract requires. */
+function badge(text: string): HTMLElement {
+  const el = document.createElement('span');
+  el.dataset.test = 'card-extra';
+  el.textContent = text;
+  el.style.cssText = 'font-size: 0.6875rem; padding: 1px 6px; border-radius: 10px; background: rgba(128,128,128,0.2);';
+  return el;
+}
+
+export const RenderExtraAbsentRendersNoHolder: StoryObj = {
+  name: 'no renderExtra → no .spl-card-extra holder',
+  render: () => renderCard({}),
+  play: async ({ canvasElement }) => {
+    expect(canvasElement.querySelector(EXTRA_HOLDER_SELECTOR)).toBeNull();
+  }
+};
+
+export const RenderExtraAppendsConsumerElement: StoryObj = {
+  name: 'renderExtra → consumer element inside a .spl-card-extra holder',
+  render: () => renderCard({}, { renderExtra: () => badge('2h 14m') }),
+  play: async ({ canvasElement }) => {
+    const holder = canvasElement.querySelector(EXTRA_HOLDER_SELECTOR);
+    expect(holder).not.toBeNull();
+    expect(holder?.querySelector(EXTRA_MARKER_SELECTOR)?.textContent).toBe('2h 14m');
+  }
+};
+
+export const RenderExtraReceivesTheMatchUp: StoryObj = {
+  name: 'renderExtra is handed the matchUp it is rendering for',
+  render: () => renderCard({ matchUpId: 'mu-handed-through' }, { renderExtra: (m) => badge(m.matchUpId) }),
+  play: async ({ canvasElement }) => {
+    expect(canvasElement.querySelector(EXTRA_MARKER_SELECTOR)?.textContent).toBe('mu-handed-through');
+  }
+};
+
+export const RenderExtraNullRendersNoHolder: StoryObj = {
+  name: 'renderExtra returning null → no holder (not an empty one)',
+  render: () => renderCard({}, { renderExtra: () => null }),
+  play: async ({ canvasElement }) => {
+    expect(canvasElement.querySelector(EXTRA_HOLDER_SELECTOR)).toBeNull();
+  }
+};
+
+export const RenderExtraThrowingLeavesTheCardIntact: StoryObj = {
+  name: 'renderExtra throwing → card still complete and draggable',
+  render: () =>
+    renderCard(
+      {},
+      {
+        renderExtra: () => {
+          throw new Error('boom');
+        }
+      }
+    ),
+  play: async ({ canvasElement }) => {
+    // A badge failure must not cost the operator the card's title, sides or
+    // drag affordance — the whole point of the try/catch in appendCardExtra.
+    expect(canvasElement.querySelector(TITLE_SELECTOR)).not.toBeNull();
+    expect(canvasElement.querySelector(EXTRA_HOLDER_SELECTOR)).toBeNull();
+    const card = canvasElement.querySelector('.spl-matchup-card') as HTMLElement;
+    expect(card.draggable).toBe(true);
+  }
+};
+
+export const RenderExtraSitsAfterChipsBeforeCheck: StoryObj = {
+  name: 'extra is placed after the chips row and before the scheduled checkmark',
+  render: () =>
+    renderCard({ isScheduled: true, scheduledTime: '09:00' }, { renderExtra: () => badge('rested') }),
+  play: async ({ canvasElement }) => {
+    const card = canvasElement.querySelector('.spl-matchup-card') as HTMLElement;
+    const classes = [...card.children].map((c) => c.className);
+    expect(classes.indexOf('spl-card-extra')).toBeGreaterThan(classes.indexOf('spl-card-chips'));
+    expect(classes.indexOf('spl-card-extra')).toBeLessThan(classes.indexOf('spl-matchup-check'));
   }
 };
