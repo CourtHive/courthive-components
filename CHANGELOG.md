@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.15.0](https://github.com/CourtHive/courthive-components/compare/v3.14.4...v3.15.0) (2026-08-22)
+
+
+### Features
+
+* **schedule-page:** renderCardExtra hook for catalog matchUp cards ([#527](https://github.com/CourtHive/courthive-components/issues/527)) ([270c300](https://github.com/CourtHive/courthive-components/commit/270c300a63708eee6bce816c15d82d0f3cf98348))
+
 ## [3.14.4](https://github.com/CourtHive/courthive-components/compare/v3.14.3...v3.14.4) (2026-08-22)
 
 
