@@ -20,6 +20,40 @@ function extractEntryFees(tournament: any): TournamentEntryFee[] {
   return fees.filter((f: any) => f && typeof f.amount === 'number');
 }
 
+/**
+ * How many COMPETITORS this tournament has — the number the card renders as a player count.
+ *
+ * `participants.length` counted people: staff, officials, PAIRs, TEAMs and GROUPs alongside players. A
+ * tournament with 32 players and 8 officials read as 40, and TMX's tournaments-list SORT KEY inherits
+ * this value — so tournaments partly sorted by how many officials had been entered.
+ *
+ * Prefers a pre-baked `individualParticipantCount`, which `getTournamentInfo` has counted
+ * competitors-only since factory #4684 and which calendar-list responses can carry. Consuming the
+ * factory's number beats recomputing a filter in every consumer — four divergent hand-copied role
+ * lists is exactly how SCOREKEEPER and TIMEKEEPER went missing for months.
+ *
+ * The local fallback covers full records read straight from IDB, which carry `participants` and no
+ * count. It excludes PAIR, TEAM and GROUP as well as personnel: a PAIR competes but is not a *player*,
+ * and counting the pair alongside its two members double-counts a doubles field.
+ *
+ * Both tests are "present AND wrong", never "not right" — an absent `participantType` or
+ * `participantRole` does not exclude. A participant carrying neither is a player from a record written
+ * before those fields were universally present, and dropping them would under-report older
+ * tournaments. On real records this is indistinguishable from a strict check, because `addParticipant`
+ * requires both; it matters for partial payloads and fixtures.
+ */
+function resolveParticipantCount(tournament: any, participants: any[]): number | undefined {
+  const prebaked = tournament?.individualParticipantCount;
+  if (typeof prebaked === 'number') return prebaked || undefined;
+
+  const competitors = participants.filter(
+    (p: any) =>
+      (!p?.participantType || p.participantType === 'INDIVIDUAL') &&
+      (!p?.participantRole || p.participantRole === 'COMPETITOR'),
+  );
+  return competitors.length || undefined;
+}
+
 function detectOffline(tournament: any): boolean | undefined {
   const timeItems = tournament?.timeItems;
   if (!Array.isArray(timeItems)) return undefined;
@@ -79,7 +113,7 @@ export function mapTournamentToCardData(tournament: any, options?: MapTournament
     location: formatVenueLocation(venues),
     tournamentImageURL,
     courtSvgSport,
-    participantCount: participants.length || undefined,
+    participantCount: resolveParticipantCount(tournament, participants),
     eventCount: events.length || undefined,
     organizerName: tournament?.tournamentOrganizers?.find?.(Boolean)?.organizerName,
     status,
