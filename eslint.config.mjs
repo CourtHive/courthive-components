@@ -33,6 +33,34 @@ export default [
     },
     rules: {
       ...tseslint.configs.recommended.rules,
+
+      // ── CourtHive coding standards, machine-enforced ────────────────────
+      // Prose in Mentat/standards/coding-standards.md drifts, because lint, types AND prettier all
+      // pass while the code violates it.
+      //
+      // ⚠️ ONE key, both selectors. A JS object literal cannot carry `no-restricted-syntax` twice —
+      // the later wins and the earlier vanishes silently. `chore/dataset-lint-rule` and the
+      // deep-copy ban were authored independently and git merged them as two separate additions
+      // WITHOUT a conflict, producing exactly that duplicate. Lint stayed green, because the
+      // violations each rule targets had already been fixed. Add a selector here; never a second key.
+      //
+      // Severity is the stricter of the two ('error'): both are hard standards.
+      'no-restricted-syntax': [
+        'error',
+        {
+          // DOM data attributes are read via `.dataset`, never `.getAttribute`.
+          selector: "CallExpression[callee.property.name='getAttribute'][arguments.0.value=/^data-/]",
+          message: 'Use .dataset.propName instead of .getAttribute("data-*") — Mentat coding standards.',
+        },
+        {
+          // `JSON.parse(JSON.stringify(x))` as a deep copy silently drops `undefined`, functions,
+          // `Date`/`Map`/`Set` and throws on cycles. Mirrors factory and competition-factory-server.
+          selector:
+            "CallExpression[callee.object.name='JSON'][callee.property.name='parse'] > CallExpression[callee.object.name='JSON'][callee.property.name='stringify']",
+          message:
+            'Use structuredClone() to deep-copy — JSON.parse(JSON.stringify(x)) drops undefined/functions/Date/Map/Set and throws on cycles. For tournamentRecords use tools.makeDeepCopy, which carries factory extension semantics.',
+        },
+      ],
       'no-unused-expressions': 'off',
       'no-useless-assignment': 'warn',
       'sonarjs/cognitive-complexity': ['warn', 30],
@@ -63,18 +91,6 @@ export default [
       '@typescript-eslint/no-use-before-define': 'off',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       'no-prototype-builtins': 'off',
-      // Ban `JSON.parse(JSON.stringify(x))` as a deep-copy idiom — it silently drops `undefined`,
-      // functions, `Date`/`Map`/`Set` and throws on cycles. Ecosystem-wide as of 2026-08-21; mirrors the
-      // rule in factory and competition-factory-server. Keep the three in step.
-      'no-restricted-syntax': [
-        'error',
-        {
-          selector:
-            "CallExpression[callee.object.name='JSON'][callee.property.name='parse'] > CallExpression[callee.object.name='JSON'][callee.property.name='stringify']",
-          message:
-            'Use structuredClone() to deep-copy — JSON.parse(JSON.stringify(x)) drops undefined/functions/Date/Map/Set and throws on cycles. For tournamentRecords use tools.makeDeepCopy, which carries factory extension semantics.',
-        },
-      ],
     },
   },
   {

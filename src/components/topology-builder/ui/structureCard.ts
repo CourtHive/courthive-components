@@ -174,7 +174,7 @@ export function buildStructureCard(
   if (roundAnnotations?.length && preview.querySelector('.chc-schematic-structure')) {
     const roundContainers = preview.querySelectorAll<HTMLElement>('.chc-schematic-round-container[data-round-number]');
     for (const container of roundContainers) {
-      const rn = parseInt(container.getAttribute('data-round-number') || '0');
+      const rn = Number.parseInt(container.dataset.roundNumber || '0');
       const annotations = roundAnnotations.filter((a) => a.roundNumber === rn);
       if (!annotations.length) continue;
 
