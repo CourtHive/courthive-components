@@ -442,6 +442,17 @@
   margin-top: 6px;
 }
 
+/* Consumer slot for `MatchUpCardOptions.renderExtra`. Layout only — the
+   consumer owns everything visual about what it puts here, so no colour,
+   border or font is set. */
+.spl-card-extra {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 6px;
+}
+
 .spl-card-chip {
   font-size: 0.625rem;
   padding: 2px 6px;

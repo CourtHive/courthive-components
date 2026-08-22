@@ -49,6 +49,8 @@ export interface MatchUpCatalogCallbacks {
   onShowScheduledChange?: (show: boolean) => void;
   onMatchUpSelected?: (matchUp: CatalogMatchUpItem) => void;
   onDropRemove?: (matchUpId: string) => void;
+  /** Forwarded to every card as `MatchUpCardOptions.renderExtra`. See that contract. */
+  renderCardExtra?: (matchUp: CatalogMatchUpItem) => HTMLElement | null;
 }
 
 /** Extract unique sorted values for a field from the catalog. */
@@ -418,7 +420,7 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
         const card = buildMatchUpCard(
           item,
           { onClick: (m) => callbacks.onMatchUpSelected?.(m) },
-          { roundOffset }
+          { roundOffset, renderExtra: callbacks.renderCardExtra }
         );
 
         if (state.selectedMatchUp?.matchUpId === item.matchUpId) {
