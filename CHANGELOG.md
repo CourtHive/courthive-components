@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.15.0](https://github.com/CourtHive/courthive-components/compare/v3.14.4...v3.15.0) (2026-08-23)
+
+
+### Features
+
+* **schedule-page:** renderCardExtra hook for catalog matchUp cards ([#527](https://github.com/CourtHive/courthive-components/issues/527)) ([270c300](https://github.com/CourtHive/courthive-components/commit/270c300a63708eee6bce816c15d82d0f3cf98348))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 6.30.0 ([fa0a157](https://github.com/CourtHive/courthive-components/commit/fa0a157a8aa4ef69296a99ab5ab5cb9704818cf1))
+* **tournament-card:** count competitors, not people ([#529](https://github.com/CourtHive/courthive-components/issues/529)) ([bcd2ac4](https://github.com/CourtHive/courthive-components/commit/bcd2ac460273a0bdcbf5771034af12b2765cc2eb))
+
 ## [3.14.4](https://github.com/CourtHive/courthive-components/compare/v3.14.3...v3.14.4) (2026-08-22)
 
 
