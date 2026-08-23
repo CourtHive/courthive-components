@@ -79,6 +79,72 @@ describe('mapTournamentToCardData', () => {
     expect(out.participantCount).toBe(3);
   });
 
+  describe('participantCount counts competitors, not people', () => {
+    const record = (participants: any[], extra: any = {}) =>
+      mapTournamentToCardData({ tournamentId: 't1', participants, ...extra });
+
+    const player = (participantId: string) => ({
+      participantId,
+      participantType: 'INDIVIDUAL',
+      participantRole: 'COMPETITOR'
+    });
+
+    it('excludes staff and officials', () => {
+      // 2 players + 2 personnel read as "4 players" on the card, and TMX's tournaments-list sort key
+      // inherits the number.
+      const out = record([
+        player('p1'),
+        player('p2'),
+        { participantId: 's1', participantType: 'INDIVIDUAL', participantRole: 'OFFICIAL' },
+        { participantId: 's2', participantType: 'INDIVIDUAL', participantRole: 'PHYSIO' }
+      ]);
+      expect(out.participantCount).toBe(2);
+    });
+
+    it('excludes PAIR and TEAM so a doubles field is not double-counted', () => {
+      // The pair AND both its members are participants. Counting all three reports six players in a
+      // two-pair draw.
+      const out = record([
+        player('p1'),
+        player('p2'),
+        { participantId: 'd1', participantType: 'PAIR', participantRole: 'COMPETITOR' },
+        { participantId: 't1', participantType: 'TEAM', participantRole: 'COMPETITOR' }
+      ]);
+      expect(out.participantCount).toBe(2);
+    });
+
+    it('excludes GROUPs', () => {
+      const out = record([
+        player('p1'),
+        { participantId: 'g1', participantType: 'GROUP', participantRole: 'COACH', participantName: 'Van A' }
+      ]);
+      expect(out.participantCount).toBe(1);
+    });
+
+    it('counts participants carrying neither type nor role', () => {
+      // Absent does not exclude. A record written before these fields were universally present holds
+      // players, and dropping them would under-report every older tournament.
+      expect(record([{ participantId: 'p1' }, { participantId: 'p2' }]).participantCount).toBe(2);
+    });
+
+    it('PREFERS a pre-baked individualParticipantCount over the raw array', () => {
+      // getTournamentInfo has counted competitors-only since factory #4684. Consuming that beats
+      // recomputing a role filter in every consumer.
+      const out = record([player('p1'), player('p2')], { individualParticipantCount: 32 });
+      expect(out.participantCount).toBe(32);
+    });
+
+    it('falls back to the array when no count is pre-baked', () => {
+      expect(record([player('p1')], { individualParticipantCount: undefined }).participantCount).toBe(1);
+    });
+
+    it('reports undefined rather than 0 when nobody qualifies', () => {
+      // The card hides the chip on undefined; "0 players" is noise on a tournament with no entries yet.
+      expect(record([{ participantId: 's1', participantRole: 'OFFICIAL' }]).participantCount).toBeUndefined();
+      expect(record([], { individualParticipantCount: 0 }).participantCount).toBeUndefined();
+    });
+  });
+
   it('resolves status pill via statusResolver', () => {
     const out = mapTournamentToCardData(
       {
