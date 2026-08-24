@@ -126,6 +126,69 @@ describe('SchedulePageStore', () => {
     });
   });
 
+  /**
+   * `selectedDate` is what the Inspector reads. Seeding it from `scheduleDates[0]`
+   * made it mean "the tournament's first day" rather than "the day on screen",
+   * and a consumer that owns date selection — TMX renders one day at a time with
+   * the date strip collapsed, so `selectDate` is unreachable — had no way to
+   * correct it. Rest was computed against day one while the cards beside it were
+   * computed against today.
+   */
+  describe('selectedDate follows the consumer, not the array order', () => {
+    const DAY3 = '2026-06-17';
+
+    it('seeds from the date the consumer flagged active', () => {
+      const dates: ScheduleDate[] = [
+        { date: DATE_DAY1, isActive: false },
+        { date: DATE_DAY2, isActive: false },
+        { date: DAY3, isActive: true },
+      ];
+      const store = new SchedulePageStore(makeConfig({ scheduleDates: dates }));
+      expect(store.getState().selectedDate).toBe(DAY3);
+    });
+
+    it('falls back to the first date only when the consumer flags none', () => {
+      const dates: ScheduleDate[] = [
+        { date: DATE_DAY1, isActive: false },
+        { date: DATE_DAY2, isActive: false },
+      ];
+      const store = new SchedulePageStore(makeConfig({ scheduleDates: dates }));
+      expect(store.getState().selectedDate).toBe(DATE_DAY1);
+    });
+
+    it('follows the active flag onto a new day when the consumer pushes dates', () => {
+      const store = new SchedulePageStore(
+        makeConfig({ scheduleDates: [{ date: DATE_DAY1, isActive: true }, { date: DAY3, isActive: false }] }),
+      );
+      store.setScheduleDates([
+        { date: DATE_DAY1, isActive: false },
+        { date: DAY3, isActive: true },
+      ]);
+      expect(store.getState().selectedDate).toBe(DAY3);
+    });
+
+    it('does NOT yank back a user selection when the consumer re-pushes the same active day', () => {
+      const dates: ScheduleDate[] = [
+        { date: DATE_DAY1, isActive: true },
+        { date: DAY3, isActive: false },
+      ];
+      const store = new SchedulePageStore(makeConfig({ scheduleDates: dates }));
+      store.selectDate(DAY3);
+      // A refresh: same day still active, only the counts changed.
+      store.setScheduleDates([
+        { date: DATE_DAY1, isActive: true, matchUpCount: 4 },
+        { date: DAY3, isActive: false, matchUpCount: 9 },
+      ]);
+      expect(store.getState().selectedDate).toBe(DAY3);
+    });
+
+    it('leaves selectedDate null when the consumer pushes an empty strip', () => {
+      const store = new SchedulePageStore(makeConfig({ scheduleDates: [] }));
+      store.setScheduleDates([]);
+      expect(store.getState().selectedDate).toBeNull();
+    });
+  });
+
   describe('selectMatchUp', () => {
     it('sets selected matchUp', () => {
       const store = new SchedulePageStore(makeConfig());
