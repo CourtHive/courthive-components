@@ -22,6 +22,22 @@ import type {
   SchedulePageDragPayload
 } from '../types';
 
+/**
+ * The date the consumer says is on screen: the one it flagged `isActive`, and
+ * only the first date as a fallback when it flagged none.
+ *
+ * Seeding from `scheduleDates[0]` unconditionally made `selectedDate` mean "the
+ * tournament's first day" rather than "the day being viewed", and nothing ever
+ * corrected it — a consumer that drives the date itself (TMX collapses the date
+ * strip and renders one day at a time) has no way to reach `selectDate`. Anything
+ * reading `state.selectedDate` was then answering about the wrong day: TMX's
+ * Inspector computed participant rest against day one of the tournament while the
+ * cards beside it computed against the day on screen.
+ */
+function activeDate(dates: ScheduleDate[]): string | null {
+  return (dates.find((date) => date.isActive) ?? dates[0])?.date ?? null;
+}
+
 export class SchedulePageStore {
   private state: SchedulePageState;
   private readonly listeners: Set<SchedulePageChangeListener> = new Set();
@@ -36,7 +52,7 @@ export class SchedulePageStore {
       matchUpCatalog: config.matchUpCatalog,
       scheduleDates: config.scheduleDates,
       issues: config.issues ?? [],
-      selectedDate: config.scheduleDates[0]?.date ?? null,
+      selectedDate: activeDate(config.scheduleDates),
       selectedMatchUp: null,
       catalogSearchQuery: seed.catalogSearchQuery ?? '',
       catalogGroupBy: seed.catalogGroupBy ?? 'event',
@@ -74,8 +90,23 @@ export class SchedulePageStore {
     }
   }
 
+  /**
+   * Replace the date strip. Follows the consumer's `isActive` flag onto a new day
+   * when it moves, so a consumer that owns date selection stays in sync.
+   *
+   * Compared against the PREVIOUS active flag rather than against
+   * `selectedDate`: a user click through `selectDate` changes the selection
+   * without changing what the consumer declared, and re-syncing on every push
+   * would yank that click straight back.
+   */
   setScheduleDates(dates: ScheduleDate[]): void {
-    this.setState({ scheduleDates: dates });
+    const nextActive = activeDate(dates);
+    const previousActive = activeDate(this.state.scheduleDates);
+    const followsConsumer = !!nextActive && nextActive !== previousActive;
+    this.setState({
+      scheduleDates: dates,
+      selectedDate: followsConsumer ? nextActive : this.state.selectedDate,
+    });
   }
 
   setIssues(issues: ScheduleIssue[]): void {
