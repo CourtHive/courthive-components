@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.15.1](https://github.com/CourtHive/courthive-components/compare/v3.15.0...v3.15.1) (2026-08-25)
+
+
+### Bug Fixes
+
+* **schedule-page:** selectedDate names the day on screen, not the first date ([#531](https://github.com/CourtHive/courthive-components/issues/531)) ([0e7081a](https://github.com/CourtHive/courthive-components/commit/0e7081a93de5091a829648c4a9b41d483e7369ea))
+
 ## [3.15.0](https://github.com/CourtHive/courthive-components/compare/v3.14.4...v3.15.0) (2026-08-23)
 
 
