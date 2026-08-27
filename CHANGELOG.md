@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.15.2](https://github.com/CourtHive/courthive-components/compare/v3.15.1...v3.15.2) (2026-08-27)
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 6.32.0 ([492916f](https://github.com/CourtHive/courthive-components/commit/492916fa17341dcdec50fb348026b5c9ac66ca5e))
+* **deps:** update tods-competition-factory to 6.33.0 ([2fe1c48](https://github.com/CourtHive/courthive-components/commit/2fe1c481b9bab99bd70dbac26cbf1fbfd11dfad5))
+
 ## [3.15.1](https://github.com/CourtHive/courthive-components/compare/v3.15.0...v3.15.1) (2026-08-25)
 
 
