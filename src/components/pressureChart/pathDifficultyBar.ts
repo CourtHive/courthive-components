@@ -9,8 +9,12 @@
  * Sorted by `slotDifficulty` (unweighted), never `pathDifficulty` (reach-weighted):
  * a weak player's brutal draw has a LOW reach-weighted score precisely because
  * they are unlikely to survive to play the hard rounds, so ranking on it reports
- * the hardest draws in the field as the easiest. This is the view a TD reads as a
- * seeding sanity check, so getting that backwards would be worse than no view.
+ * the hardest draws in the field as the easiest.
+ *
+ * **Read this view as "who has the steepest road", not as a draw-imbalance
+ * detector.** Measured on production data, `slotDifficulty` correlates with the
+ * participant's own rating at Spearman -0.986, so the ordering is close to the
+ * rating order inverted. See the note on `slotDifficulty` in `types.ts`.
  *
  * Publishable before a ball is struck — it needs the draw and the ratings, not
  * results.
