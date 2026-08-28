@@ -319,9 +319,13 @@ function appendSeriesLabels({
 
   if (lastActual) {
     const index = points.indexOf(lastActual);
+    // A series eliminated before the last round ends mid-plot, where the label
+    // would sit on top of the projected line. Lift it clear and let the halo in
+    // the stylesheet handle whatever still overlaps.
+    const eliminatedEarly = index < points.length - 1;
     const text = createElementNS('text', 'chc-pc__series-label');
     text.setAttribute('x', String(geometry.x(index) + 8));
-    text.setAttribute('y', String(geometry.y(lastActual.actual as number)));
+    text.setAttribute('y', String(geometry.y(lastActual.actual as number) + (eliminatedEarly ? -12 : 0)));
     text.setAttribute(ATTR_DOMINANT_BASELINE, MIDDLE);
     text.textContent = 'actual';
     group.appendChild(text);

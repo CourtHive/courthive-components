@@ -125,6 +125,13 @@
   fill: var(--chc-pc-text-muted);
   font-size: 0.6875rem;
   font-weight: 600;
+  /* Halo: a series that is eliminated early ends its label mid-plot, where it
+     would otherwise sit directly on the projected line. Painting the stroke
+     first puts a surface-coloured outline behind the glyphs. */
+  paint-order: stroke;
+  stroke: var(--chc-pc-surface);
+  stroke-width: 3px;
+  stroke-linejoin: round;
 }
 
 .chc-pc__bye {
