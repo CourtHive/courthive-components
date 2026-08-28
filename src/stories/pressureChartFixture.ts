@@ -44,7 +44,7 @@ const WTN_STEP = 0.62;
 const CFS_PARTICIPANTS_PROFILE = {
   convertExtensions: true,
   withScaleValues: true,
-  withGroupings: true,
+  withGroupings: true
 };
 
 export type SeededDrawOptions = {
@@ -92,9 +92,9 @@ function applyRatings(participantIds: string[]): void {
         eventType: SINGLES,
         scaleDate: SCALE_DATE,
         scaleType: RATING,
-        scaleName: WTN,
-      },
-    ],
+        scaleName: WTN
+      }
+    ]
   }));
   tournamentEngine.setParticipantScaleItems({ scaleItemsWithParticipantIds });
 }
@@ -109,12 +109,20 @@ function strongerSide(matchUp: any, strength: Map<string, number>): number | und
   return ranks[0] < ranks[1] ? 1 : 2;
 }
 
-function playToForm({ drawId, strength, upsetsInRounds }: { drawId: string; strength: Map<string, number>; upsetsInRounds: Set<number> }): void {
+function playToForm({
+  drawId,
+  strength,
+  upsetsInRounds
+}: {
+  drawId: string;
+  strength: Map<string, number>;
+  upsetsInRounds: Set<number>;
+}): void {
   const rounds = new Set<number>(
     tournamentEngine
       .allDrawMatchUps({ drawId })
       .matchUps.map((matchUp: any) => matchUp.roundNumber)
-      .filter((roundNumber: number) => typeof roundNumber === 'number'),
+      .filter((roundNumber: number) => typeof roundNumber === 'number')
   );
 
   for (const roundNumber of [...rounds].toSorted((a, b) => a - b)) {
@@ -133,7 +141,7 @@ function playToForm({ drawId, strength, upsetsInRounds }: { drawId: string; stre
       const { outcome } = mocksEngine.generateOutcomeFromScoreString({
         matchUpStatus: 'COMPLETED',
         winningSide,
-        scoreString,
+        scoreString
       });
       // `winningSide` rides inside the generated outcome; setMatchUpStatus does
       // not accept it as a sibling param.
@@ -149,13 +157,13 @@ export function seededDraw({
   participantsCount,
   play = false,
   upsetsInRounds = [],
-  rated = true,
+  rated = true
 }: SeededDrawOptions = {}): SeededDrawFixture {
   const { tournamentRecord } = mocksEngine.generateTournamentRecord({
     drawProfiles: [{ drawSize, seedsCount, participantsCount, drawType: SINGLE_ELIMINATION }],
     participantsProfile: { category: { ratingType: WTN } },
     setState: true,
-    nonRandom: 1,
+    nonRandom: 1
   });
   tournamentEngine.setState(tournamentRecord);
 
@@ -174,7 +182,7 @@ export function seededDraw({
     participantsProfile: rated ? CFS_PARTICIPANTS_PROFILE : { withGroupings: true },
     contextProfile: { withCompetitiveness: true },
     eventId: event.eventId,
-    hydrateParticipants: true,
+    hydrateParticipants: true
   });
   const hydrated = eventData.drawsData[0].structures[0];
   const matchUps = Object.values(hydrated.roundMatchUps).flat() as any[];
@@ -185,7 +193,7 @@ export function seededDraw({
   const half = new Set(
     (structure.positionAssignments ?? [])
       .filter((assignment: any) => assignment.drawPosition <= drawSize / 2 && assignment.participantId)
-      .map((assignment: any) => assignment.participantId),
+      .map((assignment: any) => assignment.participantId)
   );
   const unseededId = ladder.slice(seedsCount).find((participantId) => half.has(participantId));
 

@@ -47,7 +47,7 @@ function ratingsParameters(): Record<string, RatingsParameter> {
 export function convertRange({
   value,
   sourceRange,
-  targetRange,
+  targetRange
 }: {
   value: number;
   sourceRange?: number[];
@@ -81,7 +81,7 @@ export function ratingToElo({ scaleName, value }: { scaleName?: string; value?: 
   return convertRange({
     value: invertedScale ? sourceRange[0] - value : value,
     sourceRange,
-    targetRange: eloRange,
+    targetRange: eloRange
   });
 }
 
@@ -117,7 +117,7 @@ function scaleValueToNumber(scaleName: string, scaleValue: any): number | undefi
 export function resolveParticipantRating({
   participant,
   matchUpType,
-  preferredScaleName,
+  preferredScaleName
 }: {
   participant?: any;
   matchUpType?: string;

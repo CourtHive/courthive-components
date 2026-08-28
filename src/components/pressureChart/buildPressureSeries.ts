@@ -12,8 +12,8 @@ import { getProjectedPressure } from './getProjectedPressure';
 import { getActualPressure } from './getActualPressure';
 
 // constants and types
-import type { GetProjectedPressureParams } from './getProjectedPressure';
 import type { ProjectedPressureResult, PressureSeries, PressureSeriesPoint } from './types';
+import type { GetProjectedPressureParams } from './getProjectedPressure';
 
 export type BuildPressureSeriesParams = GetProjectedPressureParams;
 
@@ -35,8 +35,8 @@ export function buildPressureSeries(params: BuildPressureSeriesParams): Pressure
     getActualPressure({
       matchUps: params.matchUps,
       matchUpType: params.matchUpType,
-      scaleName: params.scaleName,
-    }).map((entry) => [entry.participantId, entry]),
+      scaleName: params.scaleName
+    }).map((entry) => [entry.participantId, entry])
   );
 
   const series = projection.projections.map((participantProjection) => {
@@ -52,14 +52,14 @@ export function buildPressureSeries(params: BuildPressureSeriesParams): Pressure
         projected: {
           expected: round.expectedSignedDelta,
           low: range && ownElo !== null ? range[0] - ownElo : null,
-          high: range && ownElo !== null ? range[1] - ownElo : null,
+          high: range && ownElo !== null ? range[1] - ownElo : null
         },
         reachProbability: round.reachProbability,
         actual: played?.signedDelta ?? null,
         competitiveness: played?.competitiveness,
         won: played?.won,
         bye: round.bye || Boolean(played?.bye),
-        resolved: round.resolved,
+        resolved: round.resolved
       };
     });
 
@@ -71,7 +71,7 @@ export function buildPressureSeries(params: BuildPressureSeriesParams): Pressure
       pathDifficulty: participantProjection.pathDifficulty,
       slotDifficulty: participantProjection.slotDifficulty,
       facedDifficulty: actual?.facedDifficulty ?? null,
-      points,
+      points
     };
   });
 

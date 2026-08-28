@@ -14,8 +14,8 @@ function fourDraw() {
       { participantId: 'p1', rating: STRONG },
       { participantId: 'p2', rating: 6 },
       { participantId: 'p3', rating: WEAK },
-      { participantId: 'p4', rating: 31 },
-    ],
+      { participantId: 'p4', rating: 31 }
+    ]
   });
 }
 
@@ -43,8 +43,8 @@ describe('getActualPressure', () => {
       winningSide: 1,
       sets: [
         { side1Score: 7, side2Score: 6 },
-        { side1Score: 7, side2Score: 6 },
-      ],
+        { side1Score: 7, side2Score: 6 }
+      ]
     });
     const actual = getActualPressure({ matchUps }).find((entry) => entry.participantId === 'p1');
     const round1 = actual?.rounds.find((round) => round.roundNumber === 1);
@@ -65,8 +65,8 @@ describe('getActualPressure', () => {
       winningSide: 1,
       sets: [
         { side1Score: 6, side2Score: 0 },
-        { side1Score: 6, side2Score: 0 },
-      ],
+        { side1Score: 6, side2Score: 0 }
+      ]
     });
     const actual = getActualPressure({ matchUps }).find((entry) => entry.participantId === 'p1');
     expect(actual?.rounds[0].competitiveness).toBe('DECISIVE');
@@ -80,8 +80,8 @@ describe('getActualPressure', () => {
       winningSide: 1,
       sets: [
         { side1Score: 6, side2Score: 0 },
-        { side1Score: 6, side2Score: 0 },
-      ],
+        { side1Score: 6, side2Score: 0 }
+      ]
     });
     const target = matchUps.find((m) => m.matchUpId === 'r1p1');
     target.competitiveProfile = { competitiveness: 'ROUTINE' };
@@ -95,8 +95,8 @@ describe('getActualPressure', () => {
         { participantId: 'p1', rating: 10 },
         { bye: true, participantId: 'bye1' },
         { participantId: 'p3', rating: 12 },
-        { participantId: 'p4', rating: 14 },
-      ],
+        { participantId: 'p4', rating: 14 }
+      ]
     });
     const actual = getActualPressure({ matchUps }).find((entry) => entry.participantId === 'p1');
     expect(actual?.rounds[0].bye).toBe(true);
@@ -136,7 +136,7 @@ describe('buildPressureSeries', () => {
 
   it('returns an empty series — not a fabricated one — for an unrated field', () => {
     const matchUps = buildEliminationFixture({
-      entrants: [1, 2, 3, 4].map((n) => ({ participantId: `p${n}` })),
+      entrants: [1, 2, 3, 4].map((n) => ({ participantId: `p${n}` }))
     });
     const result = buildPressureSeries({ matchUps });
     expect(result.series).toHaveLength(0);
@@ -160,9 +160,7 @@ describe('byPathDifficulty', () => {
     // p4 even though p4 has strictly the harder road. If these two ever agree for
     // this fixture the metrics have been conflated and the ranked view is lying.
     const { series } = buildPressureSeries({ matchUps: fourDraw() });
-    const byReachWeighted = series.toSorted(
-      (a, b) => (b.pathDifficulty as number) - (a.pathDifficulty as number),
-    );
+    const byReachWeighted = series.toSorted((a, b) => (b.pathDifficulty as number) - (a.pathDifficulty as number));
     expect(byReachWeighted[0].participantId).toBe('p3');
     expect(byPathDifficulty(series)[0].participantId).toBe('p4');
   });
@@ -181,8 +179,8 @@ describe('byPathDifficulty', () => {
         { participantId: 'p1', rating: STRONG },
         { participantId: 'p2', rating: 6 },
         { participantId: 'p3', rating: WEAK },
-        { participantId: 'unrated' },
-      ],
+        { participantId: 'unrated' }
+      ]
     });
     const ordered = byPathDifficulty(buildPressureSeries({ matchUps }).series);
     expect(ordered).toHaveLength(4);

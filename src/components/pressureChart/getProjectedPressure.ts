@@ -21,21 +21,21 @@
  * two local pure modules.
  */
 
-import { resolveParticipantRating, dominantScaleName } from './ratingScale';
 import { buildEliminationGraph, feederPositions, isByeMatchUp } from './drawGraph';
+import { resolveParticipantRating, dominantScaleName } from './ratingScale';
 import { winProbability } from './winProbability';
 
 // constants and types
 import type { EliminationGraph, GraphMatchUp, GraphSide } from './drawGraph';
 import type { WinProbabilityModel } from './winProbability';
+import { PRESSURE_UNSUPPORTED } from './types';
 import type {
   ParticipantPressureProjection,
   ProjectedRoundPressure,
   ProjectedPressureResult,
   PossibleOpponent,
-  ResolvedRating,
+  ResolvedRating
 } from './types';
-import { PRESSURE_UNSUPPORTED } from './types';
 
 /** Opponents below this arrival probability are excluded from the displayed range. */
 export const DEFAULT_RANGE_THRESHOLD = 0.01;
@@ -85,7 +85,11 @@ function firstRoundDistribution(matchUp: GraphMatchUp, context: Context): Distri
   if (first && !second) distribution.set(first, 1);
   else if (second && !first) distribution.set(second, 1);
   else if (first && second) {
-    const probability = winProbability(context.eloOf.get(first) ?? null, context.eloOf.get(second) ?? null, context.model);
+    const probability = winProbability(
+      context.eloOf.get(first) ?? null,
+      context.eloOf.get(second) ?? null,
+      context.model
+    );
     distribution.set(first, probability);
     distribution.set(second, 1 - probability);
   }
@@ -116,7 +120,7 @@ function mergeDistributions(sideA: Distribution, sideB: Distribution, context: C
 function laterRoundDistribution(
   matchUp: GraphMatchUp,
   feeders: [Distribution, Distribution],
-  context: Context,
+  context: Context
 ): Distribution {
   if (context.respectResults && matchUp.winningSide) {
     const winnerId = sideParticipantIds(matchUp)[matchUp.winningSide - 1];
@@ -141,7 +145,7 @@ function buildWinnerDistributions(graph: EliminationGraph, context: Context): Ma
       const [firstFeeder, secondFeeder] = feederPositions(roundPosition);
       const feeders: [Distribution, Distribution] = [
         previous?.get(firstFeeder) ?? new Map(),
-        previous?.get(secondFeeder) ?? new Map(),
+        previous?.get(secondFeeder) ?? new Map()
       ];
       forRound.set(roundPosition, laterRoundDistribution(matchUp, feeders, context));
     }
@@ -159,7 +163,7 @@ function summariseOpponents({
   opponents,
   context,
   names,
-  rangeThreshold,
+  rangeThreshold
 }: {
   opponents: Distribution;
   context: Context;
@@ -177,7 +181,7 @@ function summariseOpponents({
       participantId: opponentId,
       participantName: names.get(opponentId),
       probability,
-      elo,
+      elo
     });
     if (elo === null) continue;
     weightTotal += probability;
@@ -190,8 +194,8 @@ function summariseOpponents({
     opponentEloRange: inRange.length ? [Math.min(...inRange), Math.max(...inRange)] : null,
     possibleOpponentCount: opponents.size,
     possibleOpponents: possibleOpponents.toSorted(
-      (a, b) => b.probability - a.probability || a.participantId.localeCompare(b.participantId, 'en'),
-    ),
+      (a, b) => b.probability - a.probability || a.participantId.localeCompare(b.participantId, 'en')
+    )
   };
 }
 
@@ -200,7 +204,7 @@ function opponentsAtRound({
   graph,
   winners,
   roundNumber,
-  feederPosition,
+  feederPosition
 }: {
   graph: EliminationGraph;
   winners: Map<number, Map<number, Distribution>>;
@@ -229,7 +233,7 @@ function projectParticipant({
   context,
   ratings,
   names,
-  rangeThreshold,
+  rangeThreshold
 }: {
   participantId: string;
   entryMatchUp: GraphMatchUp;
@@ -267,7 +271,7 @@ function projectParticipant({
       expectedSignedDelta,
       resolved: summary.possibleOpponentCount === 1,
       bye,
-      ...summary,
+      ...summary
     });
 
     reachProbability = winners.get(roundNumber)?.get(position)?.get(participantId) ?? 0;
@@ -283,7 +287,7 @@ function projectParticipant({
     rounds,
     pathDifficulty: weightedPathDifficulty(rounds),
     slotDifficulty: unweightedSlotDifficulty(rounds),
-    expectedMatchesPlayed: rounds.reduce((total, round) => total + (round.bye ? 0 : round.reachProbability), 0),
+    expectedMatchesPlayed: rounds.reduce((total, round) => total + (round.bye ? 0 : round.reachProbability), 0)
   };
 }
 
@@ -342,7 +346,7 @@ export function getProjectedPressure(params: GetProjectedPressureParams): Projec
     const rating = resolveParticipantRating({
       participant: side?.participant,
       matchUpType: params.matchUpType,
-      preferredScaleName: params.scaleName,
+      preferredScaleName: params.scaleName
     });
     ratings.set(participantId, rating);
     eloOf.set(participantId, rating?.elo ?? null);
@@ -359,12 +363,12 @@ export function getProjectedPressure(params: GetProjectedPressureParams): Projec
   const rangeThreshold = params.rangeThreshold ?? DEFAULT_RANGE_THRESHOLD;
 
   const projections = [...entrants.entries()].map(([participantId, entryMatchUp]) =>
-    projectParticipant({ participantId, entryMatchUp, graph, winners, context, ratings, names, rangeThreshold }),
+    projectParticipant({ participantId, entryMatchUp, graph, winners, context, ratings, names, rangeThreshold })
   );
 
   return {
     projections: projections.toSorted((a, b) => (a.drawPosition ?? 0) - (b.drawPosition ?? 0)),
     scaleName: dominantScaleName([...ratings.values()]),
-    unratedCount,
+    unratedCount
   };
 }

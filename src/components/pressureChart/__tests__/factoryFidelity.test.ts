@@ -27,14 +27,14 @@ const CFS_PARTICIPANTS_PROFILE = {
   withScaleValues: true,
   withGroupings: true,
   withISO2: true,
-  withIOC: true,
+  withIOC: true
 };
 
 function generate({
   drawSize,
   participantsCount,
   completeAllMatchUps,
-  withScaleValues = true,
+  withScaleValues = true
 }: {
   drawSize: number;
   participantsCount?: number;
@@ -46,13 +46,13 @@ function generate({
     participantsProfile: { category: { ratingType: 'WTN' } },
     completeAllMatchUps,
     setState: true,
-    nonRandom: 1,
+    nonRandom: 1
   });
   const { eventData }: any = tournamentEngine.getEventData({
     eventId: tournamentRecord.events[0].eventId,
     participantsProfile: withScaleValues ? CFS_PARTICIPANTS_PROFILE : { withGroupings: true },
     contextProfile: { withCompetitiveness: true },
-    hydrateParticipants: true,
+    hydrateParticipants: true
   });
   const structure = eventData.drawsData[0].structures[0];
   return { matchUps: Object.values(structure.roundMatchUps).flat() as any[] };
@@ -100,7 +100,7 @@ describe('getProjectedPressure — against real factory output', () => {
     const result = getProjectedPressure({ matchUps });
     const finalRoundReach = result.projections.reduce(
       (total, p) => total + (p.rounds.at(-1)?.reachProbability ?? 0),
-      0,
+      0
     );
     // Two participants reach the final, so reach-the-final probabilities sum to 2.
     expect(finalRoundReach).toBeCloseTo(2, 8);
@@ -171,12 +171,12 @@ describe('getProjectedPressure — non-elimination structures are refused, not g
       drawProfiles: [{ drawSize: 8, drawType: 'ROUND_ROBIN' }],
       participantsProfile: { category: { ratingType: 'WTN' } },
       setState: true,
-      nonRandom: 1,
+      nonRandom: 1
     });
     const { eventData }: any = tournamentEngine.getEventData({
       eventId: tournamentRecord.events[0].eventId,
       participantsProfile: CFS_PARTICIPANTS_PROFILE,
-      hydrateParticipants: true,
+      hydrateParticipants: true
     });
     const structure = eventData.drawsData[0].structures[0];
     const matchUps = Object.values(structure.roundMatchUps).flat() as any[];

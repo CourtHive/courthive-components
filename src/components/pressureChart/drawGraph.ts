@@ -48,7 +48,7 @@ function toSide(side: any): GraphSide {
     participantId: side?.participant?.participantId ?? side?.participantId,
     participant: side?.participant,
     drawPosition: side?.drawPosition,
-    bye: Boolean(side?.bye),
+    bye: Boolean(side?.bye)
   };
 }
 
@@ -66,7 +66,7 @@ function toGraphMatchUp(matchUp: any): GraphMatchUp | null {
     sides: [toSide(sideOne), toSide(sideTwo)],
     winningSide: matchUp.winningSide,
     matchUpStatus: matchUp.matchUpStatus,
-    raw: matchUp,
+    raw: matchUp
   };
 }
 
@@ -108,7 +108,8 @@ export function buildEliminationGraph(matchUps: any[]): {
   for (let index = 1; index < roundNumbers.length; index += 1) {
     const previousSize = byRound.get(roundNumbers[index - 1])?.size ?? 0;
     const currentSize = byRound.get(roundNumbers[index])?.size ?? 0;
-    if (roundNumbers[index] !== roundNumbers[index - 1] + 1) return { unsupported: PRESSURE_UNSUPPORTED.NOT_ELIMINATION };
+    if (roundNumbers[index] !== roundNumbers[index - 1] + 1)
+      return { unsupported: PRESSURE_UNSUPPORTED.NOT_ELIMINATION };
     if (currentSize * 2 !== previousSize) return { unsupported: PRESSURE_UNSUPPORTED.NOT_ELIMINATION };
   }
 

@@ -26,5 +26,5 @@ export type {
   PressureSeriesPoint,
   PossibleOpponent,
   ResolvedRating,
-  PressureSeries,
+  PressureSeries
 } from './types';

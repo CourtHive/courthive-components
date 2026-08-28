@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 
 import { resolveYDomain, niceStep, defaultRoundLabel } from '../pressureChart';
-import { buildEliminationFixture } from './buildFixture';
 import { buildPressureSeries } from '../buildPressureSeries';
 import { sharedYDomain } from '../pressureSmallMultiples';
+import { buildEliminationFixture } from './buildFixture';
 
 // constants and types
 import type { PressureSeriesPoint } from '../types';
@@ -16,7 +16,7 @@ function point(overrides: Partial<PressureSeriesPoint> = {}): PressureSeriesPoin
     actual: null,
     bye: false,
     resolved: false,
-    ...overrides,
+    ...overrides
   };
 }
 
@@ -54,7 +54,7 @@ describe('niceStep', () => {
       [420, 200],
       [250, 100],
       [120, 50],
-      [30, 10],
+      [30, 10]
     ] as [number, number][]) {
       expect(niceStep(extent)).toBe(expected);
     }
@@ -85,8 +85,8 @@ describe('sharedYDomain', () => {
         { participantId: 'p1', rating: 5 },
         { participantId: 'p2', rating: 6 },
         { participantId: 'p3', rating: 30 },
-        { participantId: 'p4', rating: 31 },
-      ],
+        { participantId: 'p4', rating: 31 }
+      ]
     });
     const { series } = buildPressureSeries({ matchUps });
     const shared = sharedYDomain(series);

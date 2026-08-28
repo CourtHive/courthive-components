@@ -34,7 +34,7 @@ function cellsFor(series: PressureSeries) {
       `${Math.round(point.reachProbability * 100)}%`,
       formatDelta(point.actual),
       point.competitiveness ? point.competitiveness.toLowerCase() : '—',
-      result,
+      result
     ];
   });
 }

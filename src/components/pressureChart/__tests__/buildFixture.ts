@@ -28,7 +28,7 @@ function participant(entrant: FixtureEntrant, scaleName: string) {
   return {
     participantId: entrant.participantId,
     participantName: entrant.participantId,
-    ratings,
+    ratings
   };
 }
 
@@ -39,7 +39,7 @@ function participant(entrant: FixtureEntrant, scaleName: string) {
  */
 export function buildEliminationFixture({
   entrants,
-  scaleName = WTN,
+  scaleName = WTN
 }: {
   entrants: FixtureEntrant[];
   scaleName?: string;
@@ -54,8 +54,13 @@ export function buildEliminationFixture({
     const first = entrants[roundPosition * 2 - 2];
     const second = entrants[roundPosition * 2 - 1];
     const sides = [
-      { sideNumber: 1, drawPosition: roundPosition * 2 - 1, bye: first.bye, participant: participant(first, scaleName) },
-      { sideNumber: 2, drawPosition: roundPosition * 2, bye: second.bye, participant: participant(second, scaleName) },
+      {
+        sideNumber: 1,
+        drawPosition: roundPosition * 2 - 1,
+        bye: first.bye,
+        participant: participant(first, scaleName)
+      },
+      { sideNumber: 2, drawPosition: roundPosition * 2, bye: second.bye, participant: participant(second, scaleName) }
     ];
     matchUps.push({
       matchUpId: `r1p${roundPosition}`,
@@ -63,7 +68,7 @@ export function buildEliminationFixture({
       roundPosition,
       drawPositions: [roundPosition * 2 - 1, roundPosition * 2],
       matchUpStatus: first.bye || second.bye ? 'BYE' : 'TO_BE_PLAYED',
-      sides,
+      sides
     });
   }
 
@@ -75,7 +80,7 @@ export function buildEliminationFixture({
         roundNumber,
         roundPosition,
         matchUpStatus: 'TO_BE_PLAYED',
-        sides: [{ sideNumber: 1 }, { sideNumber: 2 }],
+        sides: [{ sideNumber: 1 }, { sideNumber: 2 }]
       });
     }
   }
@@ -89,7 +94,7 @@ export function completeMatchUp({
   matchUpId,
   winningSide,
   sets,
-  participantIds,
+  participantIds
 }: {
   matchUps: any[];
   matchUpId: string;
@@ -101,7 +106,12 @@ export function completeMatchUp({
   if (!matchUp) throw new Error(`no matchUp ${matchUpId}`);
   matchUp.winningSide = winningSide;
   matchUp.matchUpStatus = 'COMPLETED';
-  matchUp.score = { sets: sets ?? [{ side1Score: 6, side2Score: 3 }, { side1Score: 6, side2Score: 4 }] };
+  matchUp.score = {
+    sets: sets ?? [
+      { side1Score: 6, side2Score: 3 },
+      { side1Score: 6, side2Score: 4 }
+    ]
+  };
   if (participantIds) {
     const lookup = new Map<string, any>();
     for (const candidate of matchUps) {
@@ -111,7 +121,7 @@ export function completeMatchUp({
     }
     matchUp.sides = participantIds.map((participantId, index) => ({
       sideNumber: index + 1,
-      participant: lookup.get(participantId),
+      participant: lookup.get(participantId)
     }));
   }
 }

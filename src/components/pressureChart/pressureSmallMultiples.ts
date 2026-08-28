@@ -46,7 +46,7 @@ export function sharedYDomain(series: PressureSeries[]): [number, number] {
 function buildCell({
   series,
   options,
-  chartOptions,
+  chartOptions
 }: {
   series: PressureSeries;
   options: PressureSmallMultiplesOptions;
@@ -83,7 +83,7 @@ function buildCell({
 export function buildPressureSmallMultiples(
   container: HTMLElement,
   series: PressureSeries[] = [],
-  options: PressureSmallMultiplesOptions = {},
+  options: PressureSmallMultiplesOptions = {}
 ): PressureSmallMultiplesInstance {
   const root = document.createElement('div');
   root.className = 'chc-psm';
@@ -115,9 +115,9 @@ export function buildPressureSmallMultiples(
             yDomain,
             width: currentOptions.cellWidth ?? DEFAULT_CELL_WIDTH,
             height: currentOptions.cellHeight ?? DEFAULT_CELL_HEIGHT,
-            scaleName: currentOptions.scaleName,
-          },
-        }),
+            scaleName: currentOptions.scaleName
+          }
+        })
       );
     }
     root.appendChild(grid);
@@ -136,6 +136,6 @@ export function buildPressureSmallMultiples(
 
   return {
     element: root,
-    update: (next, nextOptions) => render(next, { ...options, ...nextOptions }),
+    update: (next, nextOptions) => render(next, { ...options, ...nextOptions })
   };
 }

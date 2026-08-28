@@ -16,13 +16,13 @@
  */
 
 import { competitivenessForMatchUp } from '../burstChart/competitiveness';
-import { resolveParticipantRating } from './ratingScale';
 import { buildEliminationGraph, isByeMatchUp } from './drawGraph';
+import { resolveParticipantRating } from './ratingScale';
 
 // constants and types
+import type { ActualRoundPressure, ParticipantActualPressure, ResolvedRating } from './types';
 import type { CompetitivenessBucket } from '../competitivenessBar/types';
 import type { GraphMatchUp, GraphSide } from './drawGraph';
-import type { ActualRoundPressure, ParticipantActualPressure, ResolvedRating } from './types';
 
 export type GetActualPressureParams = {
   matchUps: any[];
@@ -37,7 +37,7 @@ function bucketFor(matchUp: GraphMatchUp): CompetitivenessBucket | undefined {
     winningSide: matchUp.winningSide,
     matchUpStatus: matchUp.matchUpStatus,
     sets: matchUp.raw?.score?.sets,
-    scoreString: matchUp.raw?.score?.scoreStringSide1,
+    scoreString: matchUp.raw?.score?.scoreStringSide1
   });
 }
 
@@ -45,7 +45,7 @@ function ratingFor(side: GraphSide | undefined, params: GetActualPressureParams)
   return resolveParticipantRating({
     participant: side?.participant,
     matchUpType: params.matchUpType,
-    preferredScaleName: params.scaleName,
+    preferredScaleName: params.scaleName
   });
 }
 
@@ -53,7 +53,7 @@ function roundFor({
   matchUp,
   participantId,
   ownElo,
-  params,
+  params
 }: {
   matchUp: GraphMatchUp;
   participantId: string;
@@ -81,7 +81,7 @@ function roundFor({
     signedDelta: opponentElo !== null && ownElo !== null ? opponentElo - ownElo : null,
     competitiveness: bye || !played ? undefined : bucketFor(matchUp),
     won: played ? matchUp.winningSide === ownIndex + 1 : undefined,
-    bye,
+    bye
   };
 }
 
@@ -125,7 +125,7 @@ export function getActualPressure(params: GetActualPressureParams): ParticipantA
       facedDifficulty: rated.length
         ? rated.reduce((total, round) => total + (round.signedDelta as number), 0) / rated.length
         : null,
-      matchesPlayed: rounds.filter((round) => !round.bye && round.won !== undefined).length,
+      matchesPlayed: rounds.filter((round) => !round.bye && round.won !== undefined).length
     };
   });
 }

@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 
 import { buildPressureSeries, byPathDifficulty } from '../buildPressureSeries';
-import { getProjectedPressure } from '../getProjectedPressure';
 import { seededDraw } from '../../../stories/pressureChartFixture';
+import { getProjectedPressure } from '../getProjectedPressure';
 
 /**
  * Validates the whole chain on a REALISTIC draw: rating-consistent seeding ->
@@ -27,7 +27,7 @@ describe('a rating-seeded draw', () => {
     const unseeded = rated.filter((entry) => !seeds.has(entry.participantId));
     expect(seeded.length).toBe(8);
     expect(mean(seeded.map((e) => e.slotDifficulty as number))).toBeLessThan(
-      mean(unseeded.map((e) => e.slotDifficulty as number)),
+      mean(unseeded.map((e) => e.slotDifficulty as number))
     );
   });
 

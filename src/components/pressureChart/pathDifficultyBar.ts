@@ -54,7 +54,7 @@ function buildRow({
   options,
   scale,
   midpoint,
-  barWidth,
+  barWidth
 }: {
   series: PressureSeries;
   options: PathDifficultyBarOptions;
@@ -127,7 +127,7 @@ function buildRow({
 export function buildPathDifficultyBar(
   container: HTMLElement,
   series: PressureSeries[] = [],
-  options: PathDifficultyBarOptions = {},
+  options: PathDifficultyBarOptions = {}
 ): PathDifficultyBarInstance {
   const root = document.createElement('div');
   root.className = 'chc-pdb';
@@ -175,6 +175,6 @@ export function buildPathDifficultyBar(
 
   return {
     element: root,
-    update: (next, nextOptions) => render(next, { ...options, ...nextOptions }),
+    update: (next, nextOptions) => render(next, { ...options, ...nextOptions })
   };
 }

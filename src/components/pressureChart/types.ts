@@ -22,7 +22,7 @@ import type { CompetitivenessBucket } from '../competitivenessBar/types';
 export const PRESSURE_UNSUPPORTED = {
   NO_MATCHUPS: 'NO_MATCHUPS',
   NOT_ELIMINATION: 'NOT_ELIMINATION',
-  NO_RATINGS: 'NO_RATINGS',
+  NO_RATINGS: 'NO_RATINGS'
 } as const;
 
 export type PressureUnsupportedReason = (typeof PRESSURE_UNSUPPORTED)[keyof typeof PRESSURE_UNSUPPORTED];

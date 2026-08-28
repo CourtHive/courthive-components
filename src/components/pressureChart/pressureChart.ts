@@ -17,7 +17,6 @@
  */
 
 import { scaleLinear, line as d3Line, area as d3Area, select } from 'd3';
-
 import { competitivenessColor } from '../burstChart/competitiveness';
 
 // constants and types
@@ -139,7 +138,7 @@ function appendLine({
   points,
   geometry,
   className,
-  accessor,
+  accessor
 }: {
   group: SVGElement;
   points: PressureSeriesPoint[];
@@ -166,7 +165,7 @@ function appendMarkers({
   points,
   geometry,
   radius,
-  onHover,
+  onHover
 }: {
   group: SVGElement;
   points: PressureSeriesPoint[];
@@ -178,7 +177,7 @@ function appendMarkers({
     if (point.actual === null) return;
     const marker = createElementNS(
       'circle',
-      point.won === false ? 'chc-pc__marker chc-pc__marker--lost' : 'chc-pc__marker',
+      point.won === false ? 'chc-pc__marker chc-pc__marker--lost' : 'chc-pc__marker'
     );
     marker.setAttribute('cx', String(geometry.x(index)));
     marker.setAttribute('cy', String(geometry.y(point.actual)));
@@ -237,7 +236,7 @@ function appendAxes({
   group,
   points,
   geometry,
-  options,
+  options
 }: {
   group: SVGElement;
   points: PressureSeriesPoint[];
@@ -297,7 +296,7 @@ function appendAxes({
 function appendSeriesLabels({
   group,
   points,
-  geometry,
+  geometry
 }: {
   group: SVGElement;
   points: PressureSeriesPoint[];
@@ -338,7 +337,7 @@ function buildLegend(): HTMLElement {
   const entries: [string, string][] = [
     ['chc-pc__legend-swatch chc-pc__legend-swatch--band', 'possible opponents'],
     ['chc-pc__legend-swatch chc-pc__legend-swatch--projected', 'projected'],
-    ['chc-pc__legend-swatch chc-pc__legend-swatch--line', 'actual'],
+    ['chc-pc__legend-swatch chc-pc__legend-swatch--line', 'actual']
   ];
   for (const [className, label] of entries) {
     const item = document.createElement('span');
@@ -413,7 +412,7 @@ function emptyState(message: string): HTMLElement {
 export function buildPressureChart(
   container: HTMLElement,
   series?: PressureSeries,
-  options: PressureChartOptions = {},
+  options: PressureChartOptions = {}
 ): PressureChartInstance {
   const root = document.createElement('div');
   root.className = 'chc-pc';
@@ -426,7 +425,7 @@ export function buildPressureChart(
     const points = current?.points ?? [];
     if (!current || !points.length || !current.rating) {
       root.appendChild(
-        emptyState(currentOptions.emptyMessage ?? 'No rating data for this draw, so no pressure to plot.'),
+        emptyState(currentOptions.emptyMessage ?? 'No rating data for this draw, so no pressure to plot.')
       );
       return;
     }
@@ -443,7 +442,7 @@ export function buildPressureChart(
     svg.setAttribute(
       'aria-label',
       currentOptions.ariaLabel ??
-        `Projected and actual opponent difficulty by round for ${current.participantName ?? current.participantId}`,
+        `Projected and actual opponent difficulty by round for ${current.participantName ?? current.participantId}`
     );
 
     const group = createElementNS('g');
@@ -457,7 +456,7 @@ export function buildPressureChart(
       points,
       geometry,
       className: 'chc-pc__projected-line',
-      accessor: (point) => point.projected.expected,
+      accessor: (point) => point.projected.expected
     });
     appendLine({ group, points, geometry, className: 'chc-pc__actual-line', accessor: (point) => point.actual });
     appendMarkers({
@@ -472,7 +471,7 @@ export function buildPressureChart(
             tooltip.dataset.visible = 'true';
             tooltip.style.left = `${event.offsetX + 12}px`;
             tooltip.style.top = `${event.offsetY + 12}px`;
-          },
+          }
     });
     if (!currentOptions.spark) appendSeriesLabels({ group, points, geometry });
 
@@ -493,6 +492,6 @@ export function buildPressureChart(
     update: (next, nextOptions) => render(next, { ...options, ...nextOptions }),
     destroy: () => {
       select(root).remove();
-    },
+    }
   };
 }

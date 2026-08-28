@@ -21,7 +21,7 @@ describe('getProjectedPressure — structural guards', () => {
       { matchUpId: 'a', roundNumber: 1, roundPosition: 1, sides: [{ sideNumber: 1 }, { sideNumber: 2 }] },
       { matchUpId: 'b', roundNumber: 1, roundPosition: 2, sides: [{ sideNumber: 1 }, { sideNumber: 2 }] },
       { matchUpId: 'c', roundNumber: 2, roundPosition: 1, sides: [{ sideNumber: 1 }, { sideNumber: 2 }] },
-      { matchUpId: 'd', roundNumber: 2, roundPosition: 2, sides: [{ sideNumber: 1 }, { sideNumber: 2 }] },
+      { matchUpId: 'd', roundNumber: 2, roundPosition: 2, sides: [{ sideNumber: 1 }, { sideNumber: 2 }] }
     ];
     expect(getProjectedPressure({ matchUps }).unsupported).toBe(PRESSURE_UNSUPPORTED.NOT_ELIMINATION);
   });
@@ -32,7 +32,7 @@ describe('getProjectedPressure — structural guards', () => {
 
   it('reports NO_RATINGS — and does NOT fall back to a default rating — when the field is unrated', () => {
     const matchUps = buildEliminationFixture({
-      entrants: [1, 2, 3, 4].map((n) => ({ participantId: `p${n}` })),
+      entrants: [1, 2, 3, 4].map((n) => ({ participantId: `p${n}` }))
     });
     const result = getProjectedPressure({ matchUps });
     expect(result.unsupported).toBe(PRESSURE_UNSUPPORTED.NO_RATINGS);
@@ -46,8 +46,8 @@ describe('getProjectedPressure — structural guards', () => {
         { participantId: 'p1', rating: 8 },
         { participantId: 'p2' },
         { participantId: 'p3', rating: 20 },
-        { participantId: 'p4', rating: 21 },
-      ],
+        { participantId: 'p4', rating: 21 }
+      ]
     });
     const result = getProjectedPressure({ matchUps });
     expect(result.unratedCount).toBe(1);
@@ -92,8 +92,8 @@ describe('getProjectedPressure — the opponent pool is the SIBLING sub-bracket'
       { participantId: 'p1', rating: 5 },
       { participantId: 'p2', rating: 6 },
       { participantId: 'p3', rating: 30 },
-      { participantId: 'p4', rating: 31 },
-    ],
+      { participantId: 'p4', rating: 31 }
+    ]
   });
   const result = getProjectedPressure({ matchUps });
 
@@ -155,8 +155,8 @@ describe('getProjectedPressure — byes', () => {
       { participantId: 'p1', rating: 10 },
       { bye: true, participantId: 'bye1' },
       { participantId: 'p3', rating: 12 },
-      { participantId: 'p4', rating: 14 },
-    ],
+      { participantId: 'p4', rating: 14 }
+    ]
   });
   const result = getProjectedPressure({ matchUps });
 
@@ -179,7 +179,7 @@ describe('getProjectedPressure — byes', () => {
     expect(result.projections.map((p) => p.participantId).toSorted((a, b) => a.localeCompare(b, 'en'))).toEqual([
       'p1',
       'p3',
-      'p4',
+      'p4'
     ]);
   });
 });
@@ -189,7 +189,7 @@ describe('getProjectedPressure — respectResults', () => {
     { participantId: 'p1', rating: 5 },
     { participantId: 'p2', rating: 6 },
     { participantId: 'p3', rating: 30 },
-    { participantId: 'p4', rating: 31 },
+    { participantId: 'p4', rating: 31 }
   ];
 
   it('leaves the projection untouched by results by default', () => {
@@ -215,8 +215,8 @@ describe('getProjectedPressure — winner distributions are proper', () => {
     const matchUps = buildEliminationFixture({
       entrants: [8, 9, 12, 14, 20, 21, 25, 30].map((rating, index) => ({
         participantId: `p${index + 1}`,
-        rating,
-      })),
+        rating
+      }))
     });
     const result = getProjectedPressure({ matchUps });
     // reachProbability of a hypothetical round after the final == P(win title).
@@ -227,11 +227,11 @@ describe('getProjectedPressure — winner distributions are proper', () => {
 
   it('ranks the strongest player as the most likely finalist', () => {
     const matchUps = buildEliminationFixture({
-      entrants: [8, 20, 21, 25].map((rating, index) => ({ participantId: `p${index + 1}`, rating })),
+      entrants: [8, 20, 21, 25].map((rating, index) => ({ participantId: `p${index + 1}`, rating }))
     });
     const result = getProjectedPressure({ matchUps });
     const byFinalReach = result.projections.toSorted(
-      (a, b) => (b.rounds.at(-1)?.reachProbability ?? 0) - (a.rounds.at(-1)?.reachProbability ?? 0),
+      (a, b) => (b.rounds.at(-1)?.reachProbability ?? 0) - (a.rounds.at(-1)?.reachProbability ?? 0)
     );
     expect(byFinalReach[0].participantId).toBe('p1');
   });
