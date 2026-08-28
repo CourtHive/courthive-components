@@ -408,6 +408,42 @@ export type {
   RatingDistributionChartMode
 } from './components/ratingDistributionChart';
 
+// Pressure Chart — projected vs actual path difficulty across the rounds.
+// `getProjectedPressure` is pure and dependency-light on purpose: it is a
+// candidate for promotion into tods-competition-factory.
+import './components/pressureChart/pressure-chart.css';
+export {
+  buildPressureSmallMultiples,
+  buildPathDifficultyBar,
+  resolveParticipantRating,
+  buildPressureSeries,
+  getProjectedPressure,
+  buildPressureChart,
+  buildPressureTable,
+  getActualPressure,
+  byPathDifficulty,
+  winProbability,
+  sharedYDomain,
+  ratingToElo,
+  PRESSURE_UNSUPPORTED
+} from './components/pressureChart';
+export type {
+  ParticipantPressureProjection,
+  PressureSmallMultiplesOptions,
+  GetProjectedPressureParams,
+  ParticipantActualPressure,
+  PressureUnsupportedReason,
+  ProjectedPressureResult,
+  PathDifficultyBarOptions,
+  ProjectedRoundPressure,
+  PressureChartOptions,
+  ActualRoundPressure,
+  PressureSeriesPoint,
+  PossibleOpponent,
+  PressureSeries,
+  ResolvedRating
+} from './components/pressureChart';
+
 // Control Bar (CSS bundled in courthive-components.css)
 import './components/controlBar/controlBar.css';
 export { controlBar } from './components/controlBar/controlBar';
