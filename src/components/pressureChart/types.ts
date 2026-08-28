@@ -98,8 +98,18 @@ export type ParticipantPressureProjection = {
    * rounds carrying a rated opponent — i.e. how hard this bracket slot is if you
    * had to walk the whole thing, independent of the occupant's own survival odds.
    *
-   * This is the number the ranked "path difficulty" view sorts on, and the one a
-   * TD reads as a seeding sanity check.
+   * This is the number the ranked "path difficulty" view sorts on.
+   *
+   * **Known limitation, measured on production data.** Because this is
+   * `mean(opponentElo) - ownElo` and the opponent mean varies far less across a
+   * field than the players' own ratings do, it is dominated by the participant's
+   * own rating: on the 2019 ITA DI Texas Men's Regional (99 rated entrants)
+   * Spearman rank correlation against own rating was **-0.986**. So ranking on it
+   * is close to ranking by rating inverted, and it does NOT by itself expose draw
+   * imbalance. Real draw-position signal is present but small — two entrants at
+   * UTR 10.42 and 10.55 in that draw differ by ~110 ELO of slot difficulty — and
+   * surfacing it needs the opponent-strength component on its own, or a residual
+   * against what a player of that rating typically faces. Not yet built.
    */
   slotDifficulty: number | null;
   /** Sum of `reachProbability` across rounds — the expected number of matches played. */

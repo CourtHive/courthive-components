@@ -85,15 +85,39 @@ export function ratingToElo({ scaleName, value }: { scaleName?: string; value?: 
   });
 }
 
-/** Read the numeric value out of a `scaleValue`, which may be a number or an accessor-keyed object. */
+/**
+ * Coerce one scale value to a number.
+ *
+ * **Real corpora store ratings as STRINGS.** Verified against the ITA records in
+ * production: `{"utrRating":"12.48"}`, not `{"utrRating":12.48}` — while
+ * mocksEngine emits numbers. A `typeof === 'number'` gate therefore passes every
+ * synthetic fixture and rejects every real rating, which is exactly the shape of
+ * bug that only a production corpus finds.
+ *
+ * Empty strings are also real and must NOT become 0: the same ITA records carry
+ * `{"utrRating":""}` on the DOUBLES block for players with no doubles rating.
+ * `Number.parseFloat('')` is NaN, so those are rejected — but only because the
+ * NaN check is here. Do not "simplify" this to `Number(value)`, which maps `''`
+ * to 0 and would silently rate every doubles-less player as the weakest in the
+ * field.
+ */
+function toNumber(value: unknown): number | undefined {
+  if (typeof value === 'number') return Number.isNaN(value) ? undefined : value;
+  if (typeof value !== 'string' || !value.trim()) return undefined;
+  const parsed = Number.parseFloat(value);
+  return Number.isNaN(parsed) ? undefined : parsed;
+}
+
+/** Read the numeric value out of a `scaleValue`, which may be a scalar or an accessor-keyed object. */
 function scaleValueToNumber(scaleName: string, scaleValue: any): number | undefined {
-  if (typeof scaleValue === 'number') return scaleValue;
+  const direct = toNumber(scaleValue);
+  if (direct !== undefined) return direct;
   if (!scaleValue || typeof scaleValue !== 'object') return undefined;
   const params = ratingsParameters()[scaleName];
   const accessors = [params?.accessor, ...(params?.accessors ?? [])].filter(Boolean) as string[];
   for (const accessor of accessors) {
-    const candidate = scaleValue[accessor];
-    if (typeof candidate === 'number' && !Number.isNaN(candidate)) return candidate;
+    const candidate = toNumber(scaleValue[accessor]);
+    if (candidate !== undefined) return candidate;
   }
   return undefined;
 }

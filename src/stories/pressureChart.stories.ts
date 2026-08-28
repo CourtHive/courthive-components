@@ -100,8 +100,8 @@ export const RankedPathDifficulty = () => {
   const fixture = seededDraw({ drawSize: 32, seedsCount: 8 });
   const { series } = buildPressureSeries({ matchUps: fixture.matchUps });
   const wrapper = panel(
-    'Ranked path difficulty — and a check that the seeding worked',
-    'Sorted hardest slot first, diverging around an even match. In a correctly seeded draw the seeds fill the bottom of this list: they are the players projected to play down. Anyone appearing out of order is a seeding question worth asking.'
+    'Ranked path difficulty — who has the steepest road',
+    'Sorted hardest slot first, diverging around an even match. In a correctly seeded draw the seeds fill the bottom: they are projected to play down. Read this as steepness, not as a draw-imbalance detector — measured on production data it tracks the player’s own rating at Spearman -0.986.'
   );
   buildPathDifficultyBar(wrapper, series, { width: 560 });
   return wrapper;
