@@ -157,18 +157,43 @@ describe('mapTournamentToCardData', () => {
     expect(out.status?.kind).toBe('live');
   });
 
+  // `unit` is required to place an amount on a scale — see feeFormatter. The fixture states it;
+  // the original assertions are unchanged.
   it('formats fee range from registrationProfile.entryFees', () => {
     const out = mapTournamentToCardData({
       tournamentId: 't1',
       registrationProfile: {
         entryFees: [
-          { amount: 40, currencyCode: 'USD' },
-          { amount: 85, currencyCode: 'USD' }
+          { amount: 40, currencyCode: 'USD', unit: 'MAJOR' },
+          { amount: 85, currencyCode: 'USD', unit: 'MAJOR' }
         ]
       }
     });
     expect(out.feeFormatted).toContain('40');
     expect(out.feeFormatted).toContain('85');
+  });
+
+  // The 100x bug, pinned. A federation surface that states entry fees in minor units used to
+  // render $60.00 as "$6,000.00" because Intl.NumberFormat formats MAJOR units.
+  it('renders minor units at the right scale', () => {
+    const out = mapTournamentToCardData({
+      tournamentId: 't1',
+      registrationProfile: {
+        entryFees: [{ amount: 6000, currencyCode: 'USD', unit: 'MINOR' }]
+      }
+    });
+    expect(out.feeFormatted).toContain('60.00');
+    expect(out.feeFormatted).not.toContain('6,000');
+  });
+
+  // A fee with no unit cannot be placed on a scale, so no badge is better than a badge that may be
+  // out by 100x.
+  it('renders no badge for a fee whose scale is unstated', () => {
+    const out = mapTournamentToCardData({
+      tournamentId: 't1',
+      registrationProfile: { entryFees: [{ amount: 6000, currencyCode: 'USD' }] }
+    });
+    expect(out.feeFormatted).toBeFalsy();
   });
 
   it('respects statusOverride', () => {
