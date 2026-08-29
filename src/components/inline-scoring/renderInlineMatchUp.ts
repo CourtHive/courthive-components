@@ -1,4 +1,5 @@
 import { renderMatchUp } from '../renderStructure/renderMatchUp';
+import { isScorable } from './isScorable';
 import { renderStatusPill } from '../renderStructure/renderStatusPill';
 import type { InlineScoringManager } from './inlineScoringManager';
 import type { Composition, EventHandlers, MatchUp } from '../../types';
@@ -28,17 +29,30 @@ interface RenderInlineMatchUpParams {
  * The footer buttons (Undo/Redo/Clear/Submit) are rendered by `renderMatchUp` itself,
  * driven by the inlineScoring config state and eventHandlers passed down.
  *
- * Returns a container element that re-renders itself after each scoring action.
+ * Returns a container element that re-renders itself after each scoring action, or **`null`** when the
+ * matchUp must not be offered for scoring — see `isScorable`. Callers must handle the null rather than
+ * replacing a rendered cell with it; the return type is what forces them to.
  */
-export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElement {
+export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElement | null {
   const { composition, manager, matchUpFormat, eventHandlers } = params;
   const inlineScoringConfig = composition?.configuration?.inlineScoring;
   const matchUpId = params.matchUp.matchUpId;
   const mode = inlineScoringConfig?.mode || 'points';
 
-  // Get or create the engine for this matchUp
-  const format = matchUpFormat || params.matchUp.matchUpFormat || 'SET3-S:6/TB7';
-  manager.getOrCreate(matchUpId, format, params.matchUp);
+  // The format is NOT defaulted. It used to fall back to a hardcoded 'SET3-S:6/TB7' here, which meant
+  // this library handed `new ScoringEngine(...)` an invented format for every consumer whenever one
+  // was missing — the single widest instance of the defect, since it served TMX and the public viewer
+  // alike. Refuse instead.
+  const format = matchUpFormat || params.matchUp.matchUpFormat;
+  if (!isScorable(params.matchUp, format)) {
+    console.error(
+      `[renderInlineMatchUp] refusing to offer scoring for ${matchUpId ?? '(no matchUpId)'} — ` +
+        `it needs the factory's matchUpFormat and two named participants.`,
+    );
+    return null;
+  }
+
+  manager.getOrCreate(matchUpId, format as string, params.matchUp);
 
   // Track whether the score has changed since initial load
   let isDirty = false;

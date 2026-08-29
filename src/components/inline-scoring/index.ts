@@ -1,5 +1,6 @@
 export { InlineScoringManager } from './inlineScoringManager';
 export { renderInlineMatchUp } from './renderInlineMatchUp';
+export { isScorable, sideParticipantName } from './isScorable';
 export { engineToMatchUp } from './engineToMatchUp';
 export { createInlineScoringFooter } from './inlineScoringFooter';
 export type {

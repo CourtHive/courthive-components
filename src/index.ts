@@ -648,6 +648,8 @@ import './components/inline-scoring/inline-scoring.css';
 export {
   InlineScoringManager,
   renderInlineMatchUp,
+  sideParticipantName,
+  isScorable,
   engineToMatchUp,
   createInlineScoringFooter
 } from './components/inline-scoring';
