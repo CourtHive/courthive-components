@@ -47,6 +47,30 @@ describe('isScorable', () => {
     expect(isScorable({ ...scorable(), sides: [pair, named(2, 'Bravo')] })).toBe(true);
   });
 
+  it('falls back to POSITION when sides carry no sideNumber', () => {
+    // Real payloads are not guaranteed to number their sides; the positional fallback is what keeps
+    // those scorable rather than silently refused.
+    const positional = {
+      matchUpId: 'mu-1',
+      matchUpFormat: FORMAT,
+      sides: [{ participant: { participantName: 'Alfa' } }, { participant: { participantName: 'Bravo' } }],
+    } as any;
+    expect(isScorable(positional)).toBe(true);
+  });
+
+  it('ignores a non-string participantName inside a pair rather than coercing it', () => {
+    // A numeric or object name must not become "[object Object]" — it contributes nothing, and if
+    // nothing else does either the pair is unnamed and refused.
+    const bad = { sideNumber: 1, participant: { individualParticipants: [{ participantName: 42 }] } };
+    expect(isScorable({ ...scorable(), sides: [bad, named(2, 'Bravo')] })).toBe(false);
+
+    const mixed = {
+      sideNumber: 1,
+      participant: { individualParticipants: [{ participantName: 42 }, { participantName: 'Charlie' }] },
+    };
+    expect(isScorable({ ...scorable(), sides: [mixed, named(2, 'Bravo')] })).toBe(true);
+  });
+
   it('REFUSES anything that is not exactly two sides', () => {
     expect(isScorable({ ...scorable(), sides: [named(1, 'Alfa')] })).toBe(false);
     expect(isScorable({ ...scorable(), sides: undefined })).toBe(false);
