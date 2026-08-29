@@ -53,6 +53,14 @@ export interface TierClassification {
 export interface TournamentEntryFee {
   amount: number;
   currencyCode?: string;
+  /**
+   * Whether `amount` is in the currency's smallest unit or in whole units.
+   *
+   * Optional here because a stored record written before the field existed still arrives without
+   * one — but a fee with no unit is NOT rendered as a number. See `feeFormatter`.
+   */
+  unit?: 'MINOR' | 'MAJOR';
+  eventId?: string;
   category?: string;
   eventType?: string;
 }
