@@ -1,7 +1,7 @@
 /**
  * @vitest-environment happy-dom
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { renderInlineMatchUp } from '../renderInlineMatchUp';
 import { InlineScoringManager } from '../inlineScoringManager';
 import { compositions } from '../../../compositions/compositions';
@@ -203,5 +203,31 @@ describe('renderInlineMatchUp', () => {
     // The pill should contain "RET" text
     const retPill = Array.from(liveChips).find((chip) => chip.textContent?.includes('RET'));
     expect(retPill).toBeDefined();
+  });
+});
+
+const namedSide = (sideNumber: number, participantName: string) => ({ sideNumber, participant: { participantName } });
+
+describe('renderInlineMatchUp refuses rather than fabricating', () => {
+  it('returns null for an ungated matchUp, without touching the engine', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    // A manager whose getOrCreate would throw: proves no engine is created for a refused matchUp,
+    // which is what stops a fabricated format reaching ScoringEngine.
+    const manager = {
+      getOrCreate: () => {
+        throw new Error('an engine must not be created for a matchUp that cannot be scored');
+      },
+    } as any;
+
+    const el = renderInlineMatchUp({
+      matchUp: { matchUpId: 'mu-1', sides: [namedSide(1, 'Alfa'), namedSide(2, 'Bravo')] } as any,
+      composition: { configuration: {} } as any,
+      manager,
+    });
+
+    expect(el).toBeNull();
+    expect(error).toHaveBeenCalledTimes(1);
+    expect(error.mock.calls[0][0]).toContain('mu-1');
+    error.mockRestore();
   });
 });
