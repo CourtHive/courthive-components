@@ -4,6 +4,10 @@ packages:
 allowBuilds:
   '@dep-tree/cli': true
   '@nestjs/core': true
+  # jest-haste-map@30 (via @storybook/test-runner) hard-depends on @parcel/watcher, whose
+  # install script only compiles when npm_config_build_from_source=true; the native binding
+  # ships in the per-platform optional packages, so denying the build costs nothing.
+  '@parcel/watcher': false
   '@scarf/scarf': true
   '@swc/core': true
   classic-level: true
