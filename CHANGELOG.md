@@ -1,5 +1,23 @@
 # Changelog
 
+## [4.0.0](https://github.com/CourtHive/courthive-components/compare/v3.15.2...v4.0.0) (2026-08-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* **inline-scoring:** renderInlineMatchUp returns HTMLElement | null. Callers must skip a null rather than replacing a rendered cell with it. TMX sets strictNullChecks and will get a compile error at the call site, which is the intended way to learn about the gate; courthive-public does not, so its call site is guarded separately.
+
+### Features
+
+* **inline-scoring:** refuse to score without a matchUpFormat and named participants ([#540](https://github.com/CourtHive/courthive-components/issues/540)) ([89274bb](https://github.com/CourtHive/courthive-components/commit/89274bb42a8bcca6f1077cea5135f6ecb221b7f5))
+* **pressure:** projected vs actual path difficulty ([#537](https://github.com/CourtHive/courthive-components/issues/537)) ([e107e0c](https://github.com/CourtHive/courthive-components/commit/e107e0c45ffafc038e74609b185b684da28f15ca))
+
+
+### Bug Fixes
+
+* **pressure:** read string rating values, which is how real records store them ([#539](https://github.com/CourtHive/courthive-components/issues/539)) ([1f92836](https://github.com/CourtHive/courthive-components/commit/1f9283667564e9580a0d16d445e502bc9014a27d))
+* **tournament-card:** render entry fees at the stated scale, and stop inventing currencies ([#542](https://github.com/CourtHive/courthive-components/issues/542)) ([3dff225](https://github.com/CourtHive/courthive-components/commit/3dff2259ff3335520791e027928707aecef0c45e))
+
 ## [3.15.2](https://github.com/CourtHive/courthive-components/compare/v3.15.1...v3.15.2) (2026-08-27)
 
 
