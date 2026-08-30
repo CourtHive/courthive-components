@@ -52,53 +52,21 @@ jobs:
           registry-url: https://registry.npmjs.org
           cache: pnpm
 
-      - name: Strip link overrides for CI
-        # Local-dev linkage (link:../factory etc.) is conventionally placed in
-        # pnpm.overrides (package.json) and the overrides: block of
-        # pnpm-workspace.yaml. Both are stripped here so CI resolves real
-        # npm versions. We also abort if any link: value slips into the
-        # dependency tables themselves (dependencies/devDependencies/
-        # peerDependencies) — those are required to pin real versions for
-        # publish. See https://github.com/CourtHive/courthive-components/...
-        # for the v3.4.1 incident this guard prevents.
-        run: |
-          node -e "
-          const fs = require('fs');
-          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-          if (pkg.pnpm?.overrides) {
-            for (const k of Object.keys(pkg.pnpm.overrides))
-              if (pkg.pnpm.overrides[k].startsWith('link:')) delete pkg.pnpm.overrides[k];
-            if (!Object.keys(pkg.pnpm.overrides).length) delete pkg.pnpm.overrides;
-            if (pkg.pnpm && !Object.keys(pkg.pnpm).length) delete pkg.pnpm;
-          }
-          const groups = ['dependencies', 'devDependencies', 'peerDependencies'];
-          const offenders = [];
-          for (const g of groups) {
-            const t = pkg[g]; if (!t) continue;
-            for (const [name, value] of Object.entries(t))
-              if (typeof value === 'string' && value.startsWith('link:'))
-                offenders.push(g + '.' + name + ' = ' + value);
-          }
-          if (offenders.length) {
-            console.error('[publish] Refusing to publish: link: values found in dependency tables.');
-            console.error('[publish] These must be pinned to real npm versions; move local linkage to pnpm.overrides or pnpm-workspace.yaml overrides:');
-            for (const o of offenders) console.error('  - ' + o);
-            process.exit(1);
-          }
-          fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
-          "
-          node -e "
-          const fs = require('fs');
-          const ws = 'pnpm-workspace.yaml';
-          if (fs.existsSync(ws)) {
-            let y = fs.readFileSync(ws, 'utf8');
-            y = y.replace(/^overrides:\n(  [^\n]*\n)*/m, '');
-            fs.writeFileSync(ws, y);
-          }
-          "
-          rm -f pnpm-lock.yaml
+      - name: Prepare checkout for CI
+        # Strips the local-dev `link:../<repo>` overrides (CI has no siblings on
+        # disk) and refuses to publish if a link: value has leaked into a
+        # dependency table. Shared with ci.yml so the release preflight and the
+        # PR preflight cannot drift apart.
+        run: node scripts/ci-prepare.mjs
 
-      - run: pnpm install
+      # The lockfile is kept deliberately. It used to be deleted here, which made
+      # every release resolve the whole graph afresh — so a release could install
+      # dependency versions no PR had ever run, and v4.0.0 failed on exactly that
+      # (jest-haste-map@30 dragging in @parcel/watcher's install script).
+      # --no-frozen-lockfile because ci-prepare.mjs just removed the link:
+      # override the lockfile was resolved with; only that entry re-resolves.
+      # ci.yml's weekly fresh-resolve job still exercises the lockfile-less path.
+      - run: pnpm install --no-frozen-lockfile
 
       - run: pnpm lint
 
