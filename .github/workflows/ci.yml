@@ -1,0 +1,84 @@
+name: CI
+
+# The repo had no pull-request CI at all: lint, types, build, tests and — the
+# expensive one — dependency resolution were first exercised by the publish
+# workflow, so a bad resolution only announced itself as a failed release.
+# v4.0.0 died that way on ERR_PNPM_IGNORED_BUILDS.
+#
+# `verify` runs the same preflight the release runs, on every PR.
+# `fresh-resolve` throws away the lockfile once a week so drift in transitive
+# dependencies (a new install script, a dropped optional dep) surfaces on a
+# schedule instead of on release day.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * 1' # Mondays, 06:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+        # pnpm version comes from package.json's `packageManager` field;
+        # naming it here too raises ERR_PNPM_BAD_PM_VERSION.
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Prepare checkout for CI
+        run: node scripts/ci-prepare.mjs
+
+      # --no-frozen-lockfile, not --frozen-lockfile: ci-prepare.mjs removed the
+      # link: override the lockfile was resolved with, so pnpm has to re-resolve
+      # that one entry. Everything else stays pinned to the committed lockfile.
+      - run: pnpm install --no-frozen-lockfile
+
+      - run: pnpm lint
+      - run: pnpm check-types
+      - run: pnpm build
+      - run: pnpm test
+
+  fresh-resolve:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Prepare checkout for CI, without the lockfile
+        run: node scripts/ci-prepare.mjs --drop-lockfile
+
+      - run: pnpm install
+
+      - run: pnpm lint
+      - run: pnpm check-types
+      - run: pnpm build
+      - run: pnpm test
+
+      - name: Explain a failure
+        if: failure()
+        run: |
+          echo "::notice::Resolving without the lockfile no longer works. Something in the"
+          echo "::notice::dependency graph moved — most often a new transitive package with an"
+          echo "::notice::install script (decide it in pnpm-workspace.yaml allowBuilds:), or a"
+          echo "::notice::breaking minor. Committed-lockfile builds are unaffected until the next"
+          echo "::notice::renovate lock-file-maintenance PR pulls the change in."
