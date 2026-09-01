@@ -22,15 +22,18 @@
 
 import { createDrawOrderGame, moveSlot, reshuffleDrawOrder, revealDrawOrder, swapSlots } from './drawOrderGameState';
 import { buildHorizonRowSvg } from './horizonRow';
+import { buildHorizonRibbonSvg } from './horizonRibbon';
 import { buildHorizonRows } from './horizonBands';
 import { buildHorizonLegend } from './horizonLegend';
 import { defaultRoundLabel } from '../pressureChart/pressureChart';
 
 // constants and types
 import { HORIZON_SOURCE } from './types';
+import { HORIZON_VARIANT } from './pressureHorizon';
 import type { DrawOrderGameState } from './drawOrderGameState';
-import type { PressureSeries } from '../pressureChart/types';
+import type { ProjectedPressureResult, PressureSeries } from '../pressureChart/types';
 import type { DrawOrderScore } from './scoreDrawOrder';
+import type { HorizonVariant } from './pressureHorizon';
 import type { HorizonRow } from './types';
 
 const ROOT_CLASS = 'chc-dog';
@@ -41,7 +44,7 @@ const DROP_TARGET_CLASS = 'is-drop-target';
 const DEALT_MESSAGE = 'New board dealt';
 
 const DEFAULT_WIDTH = 460;
-const DEFAULT_ROW_HEIGHT = 20;
+const DEFAULT_ROW_HEIGHT = { walls: 20, ribbon: 30 } as const;
 const DEFAULT_SEED = 20260831;
 
 export type DrawOrderGameOptions = {
@@ -50,6 +53,13 @@ export type DrawOrderGameOptions = {
   rowGap?: number;
   columnGap?: number;
   bands?: number;
+  /**
+   * `ribbon` is the gentler board: mirror pairs read as reflected curves, which is
+   * far easier to spot than comparing wall depths. `walls` is the hard mode.
+   */
+  variant?: HorizonVariant;
+  /** Enables the weighted fan on the ribbon. Carries no identities, so it cannot leak. */
+  projection?: ProjectedPressureResult;
   seed?: number;
   scaleName?: string;
   /** Cap the field so a 128-draw stays a game rather than a chore. */
@@ -139,10 +149,12 @@ export function buildDrawOrderGame(
 
   const {
     width = DEFAULT_WIDTH,
-    rowHeight = DEFAULT_ROW_HEIGHT,
+    rowHeight = DEFAULT_ROW_HEIGHT[options.variant ?? HORIZON_VARIANT.WALLS],
     rowGap = 2,
     columnGap = 2,
     bands,
+    variant = HORIZON_VARIANT.WALLS,
+    projection,
     scaleName,
     limit,
     roundLabels = defaultRoundLabel,
@@ -157,7 +169,7 @@ export function buildDrawOrderGame(
   const inDrawOrder = rated.toSorted((a, b) => (a.drawPosition ?? 0) - (b.drawPosition ?? 0));
   const field = limit ? inDrawOrder.slice(0, limit) : inDrawOrder;
 
-  const built = buildHorizonRows({ series: field, source: HORIZON_SOURCE.PROJECTED, bands });
+  const built = buildHorizonRows({ series: field, source: HORIZON_SOURCE.PROJECTED, bands, projection });
   const rowById = new Map<string, HorizonRow>(built.rows.map((row) => [row.participantId, row]));
   const seriesById = new Map(field.map((entry) => [entry.participantId, entry]));
 
@@ -197,16 +209,26 @@ export function buildDrawOrderGame(
     row.appendChild(handle);
 
     if (horizonRow) {
-      row.appendChild(
-        buildHorizonRowSvg(horizonRow, {
-          width,
-          height: rowHeight,
-          gap: columnGap,
-          // Load-bearing: a tooltip here would carry the opponent rating.
-          describe: false,
-          ariaLabel: `Path in slot ${slotIndex + 1}`
-        })
-      );
+      // `describe: false` is load-bearing in both variants: a tooltip would carry the
+      // opponent rating, which is the deduction the puzzle is asking for.
+      const svg =
+        variant === HORIZON_VARIANT.RIBBON
+          ? buildHorizonRibbonSvg(horizonRow, {
+              width,
+              height: rowHeight,
+              domainMax: built.domainMax,
+              bands: built.bands,
+              describe: false,
+              ariaLabel: `Path in slot ${slotIndex + 1}`
+            })
+          : buildHorizonRowSvg(horizonRow, {
+              width,
+              height: rowHeight,
+              gap: columnGap,
+              describe: false,
+              ariaLabel: `Path in slot ${slotIndex + 1}`
+            });
+      row.appendChild(svg);
     }
 
     if (state.revealed) {
@@ -296,13 +318,23 @@ export function buildDrawOrderGame(
     return toolbar;
   }
 
+  /**
+   * The hint has to describe the board that is actually on screen. On the walls a pair
+   * shows up as two blocks of equal depth growing from opposite edges; on the ribbon it
+   * shows up as two traces mirrored about the centre line. Telling a ribbon player to
+   * look for walls sends them hunting for a mark that is not there.
+   */
   function buildInstructions(): HTMLElement {
     const instructions = el('p', 'chc-dog__instructions');
-    instructions.textContent =
+    const common =
       'These are the projected paths of every player in one draw, shuffled and unnamed. ' +
       'Drag them into the real draw order — or focus a row and hold Alt with the arrow keys. ' +
-      'Players who meet in a round are each other’s wall in that column, so a deep-hard row and ' +
-      'a pale-easy row of the same size in the same column are probably a pair.';
+      'Players who meet in a round are each other’s opponent in that column, so ';
+    instructions.textContent =
+      common +
+      (variant === HORIZON_VARIANT.RIBBON
+        ? 'two traces that mirror each other about the centre line in the same column are probably a pair.'
+        : 'a deep-hard row and a pale-easy row of the same size in the same column are probably a pair.');
     return instructions;
   }
 
@@ -349,6 +381,7 @@ export function buildDrawOrderGame(
       buildHorizonLegend({
         bands: built.bands,
         scaleName,
+        variant,
         note: 'Deeper, darker bands mean a larger rating gap. Every path is on the same domain — that is what makes two rows comparable.'
       })
     );

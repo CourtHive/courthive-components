@@ -59,7 +59,24 @@ export type HorizonLayer = {
   fraction: number;
 };
 
-/** One round of one participant — a single wall. */
+/**
+ * The opponent spread for a round, in signed-delta space (opponent minus own).
+ *
+ * Two envelopes, because one would lie. See `opponentSpread` for the measurement
+ * that decided it. `null` where the round carries no rated opponent pool.
+ */
+export type HorizonSpread = {
+  /** Full range over opponents clearing the projection's arrival threshold. */
+  outerLow: number;
+  outerHigh: number;
+  /** Weighted interquartile range — where the arrival probability actually sits. */
+  innerLow: number;
+  innerHigh: number;
+  /** True when the inner envelope came from the projection rather than a low/high fallback. */
+  weighted: boolean;
+};
+
+/** One round of one participant — a single wall, or one vertex of a ribbon. */
 export type HorizonCell = {
   roundNumber: number;
   /** Signed delta, or `null` where the round carries no rated opponent. */
@@ -74,6 +91,12 @@ export type HorizonCell = {
   reachProbability: number;
   bye: boolean;
   resolved: boolean;
+  /**
+   * Where the possible opponents sit. Read by the ribbon renderer; the walls
+   * renderer ignores it, which is why it is `null` rather than absent when no
+   * projection was supplied.
+   */
+  spread: HorizonSpread | null;
 };
 
 /** One participant's full path, aligned to the shared round axis. */
@@ -90,6 +113,14 @@ export type BuildHorizonRowsParams = {
   bands?: number;
   /** Fix the domain across a set of rows. Omit to derive it from the series. */
   domainMax?: number;
+  /**
+   * The projection `buildPressureSeries` already returns beside `series`. Optional:
+   * supply it and each cell gains a probability-weighted inner envelope; omit it and
+   * the spread falls back to the projection's own low/high, which is a min/max over
+   * a 1% arrival threshold and therefore much wider. Taking it here rather than
+   * widening `PressureSeries` is what keeps `pressureChart/` untouched.
+   */
+  projection?: import('../pressureChart/types').ProjectedPressureResult;
 };
 
 export type HorizonRowsResult = {

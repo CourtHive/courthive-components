@@ -23,7 +23,7 @@ import { userEvent, expect } from 'storybook/test';
 
 import { buildPressureSeries } from '../components/pressureChart/buildPressureSeries';
 import { buildDrawOrderGame } from '../components/pressureHorizon/drawOrderGame';
-import { buildPressureHorizon } from '../components/pressureHorizon/pressureHorizon';
+import { buildPressureHorizon, HORIZON_VARIANT } from '../components/pressureHorizon/pressureHorizon';
 import { seededDraw } from './pressureChartFixture';
 
 const meta: Meta = {
@@ -40,6 +40,9 @@ const SCORE_HEADLINE = '.chc-dog__score-headline';
 const SCORE_EXACT = '.chc-dog__score-exact';
 const META = '.chc-dog__meta';
 const HORIZON_ROW = '.chc-ph__row';
+const TRACE = '.chc-ph__trace';
+const FAN = '.chc-ph__fan';
+const LEGEND_LABEL = '.chc-ph__legend-label';
 
 const DRAW_SIZE = 16;
 const SEED = 20260831;
@@ -47,8 +50,8 @@ const CHECK_BUTTON = 'Check my order';
 
 function fixtureSeries(drawSize = DRAW_SIZE) {
   const fixture = seededDraw({ drawSize, seedsCount: 4 });
-  const { series, scaleName } = buildPressureSeries({ matchUps: fixture.matchUps });
-  return { series, scaleName };
+  const { series, scaleName, projection } = buildPressureSeries({ matchUps: fixture.matchUps });
+  return { series, scaleName, projection };
 }
 
 /** Names present in the field — nothing that identifies them may reach the board. */
@@ -212,5 +215,99 @@ export const PlayAgainDealsAFreshBoard: StoryObj = {
     await expect(canvasElement.querySelectorAll(SCORE_HEADLINE)).toHaveLength(0);
     await expect(canvasElement.querySelectorAll(REVEAL)).toHaveLength(0);
     await expect(orderShapes()).not.toEqual(before);
+  }
+};
+
+// ── Ribbon variant ───────────────────────────────────────────────────────
+
+/**
+ * The ribbon introduces an anonymity risk the walls do not have: it needs a
+ * per-row `<linearGradient>` id. An id derived from a participantId would sit in the
+ * defs of an otherwise anonymous board and hand over the answer to anyone who
+ * opened dev tools. Nothing but a rendered-DOM assertion catches that.
+ */
+export const RibbonBoardLeaksNothingThroughGradientIds: StoryObj = {
+  render: () => document.createElement('div'),
+  play: async ({ canvasElement }) => {
+    const { series, scaleName, projection } = fixtureSeries();
+    const host = document.createElement('div');
+    canvasElement.appendChild(host);
+    buildDrawOrderGame(host, series, {
+      seed: SEED,
+      scaleName,
+      projection,
+      variant: HORIZON_VARIANT.RIBBON,
+      width: 380,
+      rowHeight: 28
+    });
+
+    const gradients = [...canvasElement.querySelectorAll('linearGradient')];
+    await expect(gradients).toHaveLength(DRAW_SIZE);
+
+    const markup = canvasElement.innerHTML;
+    for (const entry of series) {
+      await expect(markup).not.toContain(entry.participantId);
+      if (entry.participantName) await expect(markup).not.toContain(entry.participantName);
+    }
+    for (const gradient of gradients) {
+      await expect(gradient.id).toMatch(/^chc-ph-grad-\d+$/);
+    }
+    await expect(canvasElement.querySelectorAll('title')).toHaveLength(0);
+  }
+};
+
+export const RibbonDrawsATraceAndBothFansPerRow: StoryObj = {
+  render: () => document.createElement('div'),
+  play: async ({ canvasElement }) => {
+    const { series, scaleName, projection } = fixtureSeries();
+    buildPressureHorizon(canvasElement, series, {
+      scaleName,
+      projection,
+      variant: HORIZON_VARIANT.RIBBON,
+      width: 420
+    });
+
+    // Non-degenerate before anything is concluded from it.
+    await expect(canvasElement.querySelectorAll(HORIZON_ROW)).toHaveLength(DRAW_SIZE);
+    await expect(canvasElement.querySelectorAll(TRACE)).toHaveLength(DRAW_SIZE);
+    await expect(canvasElement.querySelectorAll(FAN)).toHaveLength(DRAW_SIZE * 2);
+
+    // Every fan path must reference its row's gradient, or the fold is not painted.
+    const fans = [...canvasElement.querySelectorAll<SVGPathElement>(FAN)];
+    await expect(fans.every((fan) => (fan.getAttribute('fill') ?? '').startsWith('url(#chc-ph-grad-'))).toBe(true);
+  }
+};
+
+/**
+ * The walls carry direction by which edge a block grows from; the ribbon carries it
+ * by which side of the centre line the trace sits on. A legend that described the
+ * walls' anchoring on a ribbon chart would be documenting a chart that is not there.
+ */
+export const RibbonLegendDescribesTheRibbonNotTheWalls: StoryObj = {
+  render: () => document.createElement('div'),
+  play: async ({ canvasElement }) => {
+    const { series, scaleName, projection } = fixtureSeries();
+
+    const ribbon = document.createElement('div');
+    canvasElement.appendChild(ribbon);
+    buildPressureHorizon(ribbon, series, {
+      scaleName,
+      projection,
+      variant: HORIZON_VARIANT.RIBBON,
+      width: 380
+    });
+    const ribbonLabels = [...ribbon.querySelectorAll(LEGEND_LABEL)].map((node) => node.textContent ?? '');
+    await expect(ribbonLabels).toHaveLength(2);
+    await expect(ribbonLabels.join(' ')).toContain('centre line');
+    await expect(ribbonLabels.join(' ')).not.toContain('baseline');
+
+    // Control: the walls legend over the SAME data still says baseline, so the
+    // assertion above is reading the variant rather than a string that never appears.
+    const walls = document.createElement('div');
+    canvasElement.appendChild(walls);
+    buildPressureHorizon(walls, series, { scaleName, variant: HORIZON_VARIANT.WALLS, width: 380 });
+    const wallLabels = [...walls.querySelectorAll(LEGEND_LABEL)].map((node) => node.textContent ?? '');
+    await expect(wallLabels.join(' ')).toContain('baseline');
+    await expect(wallLabels.join(' ')).not.toContain('centre line');
   }
 };

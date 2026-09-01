@@ -10,7 +10,7 @@
  * anything you can see in one view you can go and find in the other.
  */
 
-import { buildPressureHorizon, HORIZON_ORDER } from '../components/pressureHorizon/pressureHorizon';
+import { buildPressureHorizon, HORIZON_ORDER, HORIZON_VARIANT } from '../components/pressureHorizon/pressureHorizon';
 import { buildDrawOrderGame } from '../components/pressureHorizon/drawOrderGame';
 import { buildPressureSeries } from '../components/pressureChart/buildPressureSeries';
 import { buildPressureChart } from '../components/pressureChart/pressureChart';
@@ -156,5 +156,86 @@ export const DrawOrderGameLarge = () => {
       'round-1 mirror pairs are easier to spot, because a wrong pairing has to be wrong in both directions at once.'
   );
   buildDrawOrderGame(wrapper, series, { scaleName, seed: 7, width: 460, rowHeight: 16 });
+  return wrapper;
+};
+
+// ── Ribbon variant ────────────────────────────────────────────────────────
+
+export const Ribbon = () => {
+  const fixture = seededDraw({ drawSize: 32, seedsCount: 8 });
+  const { series, scaleName, projection } = buildPressureSeries({ matchUps: fixture.matchUps });
+  const wrapper = panel(
+    'The same 32-draw, as ribbons',
+    'The line is the expected opponent; the shading is who could actually arrive — solid for the likely ' +
+      'middle half, faint for the full range. Two things this shows that the walls cannot: the fan pinches ' +
+      'to a point at R1, because the first opponent is already known, and a near-even matchup sits visibly ' +
+      'on the centre line instead of collapsing to a 1px sliver.'
+  );
+  buildPressureHorizon(wrapper, series, {
+    scaleName,
+    projection,
+    variant: HORIZON_VARIANT.RIBBON,
+    width: 560
+  });
+  return wrapper;
+};
+
+export const RibbonVersusWalls = () => {
+  const fixture = seededDraw({ drawSize: 16, seedsCount: 4 });
+  const { series, scaleName, projection } = buildPressureSeries({ matchUps: fixture.matchUps });
+  const wrapper = panel(
+    'Walls and ribbon, same draw, same domain',
+    'Read them against each other. The walls win on density — they stay legible at 10px, where the ribbon ' +
+      'needs about 22px. The ribbon wins on continuity and on carrying the opponent spread at all. Neither ' +
+      'replaces the other, which is why both ship.'
+  );
+
+  for (const [heading, variant] of [
+    ['Walls', HORIZON_VARIANT.WALLS],
+    ['Ribbon', HORIZON_VARIANT.RIBBON]
+  ] as const) {
+    const section = document.createElement('div');
+    section.style.marginBottom = '1.25rem';
+    const label = document.createElement('div');
+    label.style.font = '600 0.75rem system-ui, sans-serif';
+    label.style.margin = '0 0 0.375rem';
+    label.textContent = heading;
+    section.appendChild(label);
+    buildPressureHorizon(section, series, { scaleName, projection, variant, width: 460, showLegend: false });
+    wrapper.appendChild(section);
+  }
+  return wrapper;
+};
+
+export const RibbonUnweightedFan = () => {
+  const fixture = seededDraw({ drawSize: 16, seedsCount: 4 });
+  const { series, scaleName } = buildPressureSeries({ matchUps: fixture.matchUps });
+  const wrapper = panel(
+    'The fan without the projection — deliberately worse',
+    'Identical call with `projection` withheld, so the fan falls back to `opponentEloRange`: a min/max over ' +
+      'everyone with a 1% chance of arriving. One long shot stretches it, so almost every row claims "could ' +
+      'meet almost anyone" and the shading stops discriminating. The caption says so rather than letting the ' +
+      'wider band imply more knowledge than there is.'
+  );
+  buildPressureHorizon(wrapper, series, { scaleName, variant: HORIZON_VARIANT.RIBBON, width: 460 });
+  return wrapper;
+};
+
+export const RibbonDrawOrderGame = () => {
+  const fixture = seededDraw({ drawSize: 16, seedsCount: 4 });
+  const { series, scaleName, projection } = buildPressureSeries({ matchUps: fixture.matchUps });
+  const wrapper = panel(
+    'Rebuild the draw — ribbon board',
+    'The gentler board. Mirror pairs read as reflected curves, which is much easier to spot than comparing ' +
+      'wall depths, so this is the assist mode and the walls are the hard one.'
+  );
+  buildDrawOrderGame(wrapper, series, {
+    scaleName,
+    projection,
+    variant: HORIZON_VARIANT.RIBBON,
+    seed: 20260901,
+    width: 420,
+    rowHeight: 32
+  });
   return wrapper;
 };
