@@ -13,10 +13,13 @@
  * a 16px row carry a range four times its own height.
  */
 
+import { opponentSpread } from './opponentSpread';
+
 // constants and types
 import { HORIZON_DIRECTION, HORIZON_SOURCE } from './types';
 import type {
   BuildHorizonRowsParams,
+  HorizonSpread,
   HorizonRowsResult,
   HorizonDirection,
   HorizonSource,
@@ -24,7 +27,12 @@ import type {
   HorizonCell,
   HorizonRow
 } from './types';
-import type { PressureSeries, PressureSeriesPoint } from '../pressureChart/types';
+import type {
+  ProjectedPressureResult,
+  ProjectedRoundPressure,
+  PressureSeriesPoint,
+  PressureSeries
+} from '../pressureChart/types';
 
 /** Four steps per arm. More than four stops reading as ordered at row heights this small. */
 export const DEFAULT_BANDS = 4;
@@ -92,6 +100,42 @@ export function resolveHorizonDomain(series: PressureSeries[], source: HorizonSo
   return Math.max(MIN_HORIZON_DOMAIN, ...magnitudes);
 }
 
+/**
+ * Where the possible opponents sit, in signed-delta space.
+ *
+ * Prefers the projection, because its `possibleOpponents` carry arrival
+ * probabilities and the resulting inner envelope is the honest one. Falls back to
+ * the projection's own low/high, where the inner and outer envelopes are the same
+ * interval — a wider, unweighted claim, flagged `weighted: false` so the caller can
+ * say so rather than imply a precision it does not have.
+ */
+function cellSpread({
+  point,
+  ownElo,
+  round
+}: {
+  point: PressureSeriesPoint;
+  ownElo: number | null;
+  round?: ProjectedRoundPressure;
+}): HorizonSpread | null {
+  if (ownElo !== null && round?.possibleOpponents?.length) {
+    const spread = opponentSpread(round.possibleOpponents);
+    if (spread) {
+      return {
+        outerLow: spread.outerLow - ownElo,
+        outerHigh: spread.outerHigh - ownElo,
+        innerLow: spread.innerLow - ownElo,
+        innerHigh: spread.innerHigh - ownElo,
+        weighted: true
+      };
+    }
+  }
+
+  const { low, high } = point.projected;
+  if (low === null || high === null) return null;
+  return { outerLow: low, outerHigh: high, innerLow: low, innerHigh: high, weighted: false };
+}
+
 function emptyCell(roundNumber: number, point?: PressureSeriesPoint): HorizonCell {
   return {
     roundNumber,
@@ -102,7 +146,8 @@ function emptyCell(roundNumber: number, point?: PressureSeriesPoint): HorizonCel
     fromActual: false,
     reachProbability: point?.reachProbability ?? 0,
     bye: Boolean(point?.bye),
-    resolved: Boolean(point?.resolved)
+    resolved: Boolean(point?.resolved),
+    spread: null
   };
 }
 
@@ -115,13 +160,17 @@ function buildCell({
   point,
   source,
   bands,
-  domainMax
+  domainMax,
+  ownElo,
+  round
 }: {
   roundNumber: number;
   point: PressureSeriesPoint | undefined;
   source: HorizonSource;
   bands: number;
   domainMax: number;
+  ownElo: number | null;
+  round?: ProjectedRoundPressure;
 }): HorizonCell {
   if (!point || point.bye) return emptyCell(roundNumber, point);
 
@@ -138,7 +187,8 @@ function buildCell({
     fromActual,
     reachProbability: point.reachProbability,
     bye: false,
-    resolved: point.resolved
+    resolved: point.resolved,
+    spread: cellSpread({ point, ownElo, round })
   };
 }
 
@@ -150,26 +200,46 @@ function buildCell({
  * rather than shifting every wall to its left, which would silently misalign the
  * stack.
  */
+/** participantId -> roundNumber -> the projected round, for spread lookup. */
+function indexProjection(projection?: ProjectedPressureResult): Map<string, Map<number, ProjectedRoundPressure>> {
+  const index = new Map<string, Map<number, ProjectedRoundPressure>>();
+  for (const participant of projection?.projections ?? []) {
+    index.set(participant.participantId, new Map(participant.rounds.map((round) => [round.roundNumber, round])));
+  }
+  return index;
+}
+
 export function buildHorizonRows({
   series,
   source = HORIZON_SOURCE.PROJECTED,
   bands = DEFAULT_BANDS,
-  domainMax
+  domainMax,
+  projection
 }: BuildHorizonRowsParams): HorizonRowsResult {
   const roundNumbers = [...new Set(series.flatMap((entry) => entry.points.map((point) => point.roundNumber)))].toSorted(
     (a, b) => a - b
   );
 
   const resolvedDomain = domainMax ?? resolveHorizonDomain(series, source);
+  const projected = indexProjection(projection);
 
   const rows: HorizonRow[] = series.map((entry) => {
     const byRound = new Map(entry.points.map((point) => [point.roundNumber, point]));
+    const rounds = projected.get(entry.participantId);
     return {
       participantId: entry.participantId,
       participantName: entry.participantName,
       drawPosition: entry.drawPosition,
       cells: roundNumbers.map((roundNumber) =>
-        buildCell({ roundNumber, point: byRound.get(roundNumber), source, bands, domainMax: resolvedDomain })
+        buildCell({
+          roundNumber,
+          point: byRound.get(roundNumber),
+          source,
+          bands,
+          domainMax: resolvedDomain,
+          ownElo: entry.rating?.elo ?? null,
+          round: rounds?.get(roundNumber)
+        })
       )
     };
   });

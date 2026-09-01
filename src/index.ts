@@ -452,8 +452,13 @@ export type {
 // shuffled and anonymised, drag to rebuild the real draw order.
 import './components/pressureHorizon/pressure-horizon.css';
 export {
+  buildHorizonRibbonSvg,
   resolveHorizonDomain,
   buildPressureHorizon,
+  INNER_QUANTILES,
+  HORIZON_VARIANT,
+  weightedQuantile,
+  opponentSpread,
   createDrawOrderGame,
   maxDisplacementFor,
   reshuffleDrawOrder,
@@ -475,6 +480,10 @@ export {
 export type {
   PressureHorizonInstance,
   BuildHorizonRowsParams,
+  HorizonRibbonOptions,
+  OpponentSpread,
+  HorizonVariant,
+  HorizonSpread,
   PressureHorizonOptions,
   DrawOrderGameInstance,
   DrawOrderGameOptions,

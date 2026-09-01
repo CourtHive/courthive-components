@@ -381,3 +381,78 @@
   gap: 0.5rem;
   margin-bottom: 0.25rem;
 }
+
+/* ── Ribbon variant ──────────────────────────────────────────────────────
+ *
+ * The fan and the trace are painted with one per-row linear gradient whose stops
+ * carry the SAME band colours the walls use, so a value that would darken a wall
+ * darkens the ribbon at the same point. Stops are classed rather than inlined so
+ * the light/dark token swap reaches them.
+ *
+ * `stop-color` is the only property that works on a <stop>; `fill` does nothing. */
+
+.chc-ph__stop--none {
+  stop-color: var(--chc-ph-neutral);
+}
+
+.chc-ph__stop--hard-0 {
+  stop-color: var(--chc-ph-hard-0);
+}
+.chc-ph__stop--hard-1 {
+  stop-color: var(--chc-ph-hard-1);
+}
+.chc-ph__stop--hard-2 {
+  stop-color: var(--chc-ph-hard-2);
+}
+.chc-ph__stop--hard-3 {
+  stop-color: var(--chc-ph-hard-3);
+}
+
+.chc-ph__stop--easy-0 {
+  stop-color: var(--chc-ph-easy-0);
+}
+.chc-ph__stop--easy-1 {
+  stop-color: var(--chc-ph-easy-1);
+}
+.chc-ph__stop--easy-2 {
+  stop-color: var(--chc-ph-easy-2);
+}
+.chc-ph__stop--easy-3 {
+  stop-color: var(--chc-ph-easy-3);
+}
+
+/* Outer = the full range clearing the arrival threshold; inner = the weighted
+ * middle half. The opacity gap is the encoding: dense where the outcome is likely,
+ * faint where it is merely possible. */
+.chc-ph__fan {
+  stroke: none;
+}
+
+/* The outer envelope is the 1%-threshold range, which saturates the row for most
+ * participants in a large draw — at 32 rows a heavier wash merges into a smear and
+ * stops discriminating. It stays faint; the weighted inner envelope carries the mass. */
+.chc-ph__fan--outer {
+  opacity: 0.12;
+}
+
+.chc-ph__fan--inner {
+  opacity: 0.45;
+}
+
+.chc-ph__trace {
+  fill: none;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chc-ph__zero {
+  stroke: var(--chc-ph-text-muted);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+  opacity: 0.35;
+}
+
+.chc-ph__hit {
+  fill: transparent;
+}

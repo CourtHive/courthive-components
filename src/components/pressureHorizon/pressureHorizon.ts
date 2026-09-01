@@ -18,6 +18,7 @@
  * a brutal one paint identically, which is the only way this chart can lie.
  */
 
+import { buildHorizonRibbonSvg } from './horizonRibbon';
 import { buildHorizonRowSvg } from './horizonRow';
 import { buildHorizonLegend } from './horizonLegend';
 import { buildHorizonRows } from './horizonBands';
@@ -26,18 +27,44 @@ import { byPathDifficulty } from '../pressureChart/buildPressureSeries';
 
 // constants and types
 import { HORIZON_SOURCE } from './types';
-import type { HorizonSource } from './types';
-import type { PressureSeries } from '../pressureChart/types';
+import type { HorizonSource, HorizonRow } from './types';
+import type { ProjectedPressureResult, PressureSeries } from '../pressureChart/types';
 
 const ROOT_CLASS = 'chc-ph';
 const ROW_CLASS = 'chc-ph__row';
 
 const DEFAULT_WIDTH = 520;
-const DEFAULT_ROW_HEIGHT = 16;
 const DEFAULT_LABEL_WIDTH = 132;
+
+/**
+ * Walls stay readable at 10px; a line plus a fan needs room for both, so the ribbon
+ * defaults taller. That is the trade the two variants exist to offer — connectedness
+ * costs roughly half the density.
+ */
+const DEFAULT_ROW_HEIGHT = { walls: 16, ribbon: 28 } as const;
+
+/**
+ * Bands of the domain mapped to half the ribbon's row height. Two of four measured
+ * best: the full domain leaves a median value moving ~3px, and one band saturates
+ * roughly two thirds of cells. Stated in the caption, because a reader cannot tell a
+ * saturated trace from one that genuinely sits at the edge.
+ */
+const RIBBON_POSITION_BANDS = 2;
 
 export const HORIZON_ORDER = { DRAW: 'draw', DIFFICULTY: 'difficulty' } as const;
 export type HorizonOrder = (typeof HORIZON_ORDER)[keyof typeof HORIZON_ORDER];
+
+/**
+ * How a row is drawn. Neither is a replacement for the other:
+ *
+ *  - WALLS  — one hard-edged column per round, magnitude folded into colour bands.
+ *             Maximum density; reads down to 10px rows.
+ *  - RIBBON — a connected line through the rounds inside a fan of possible
+ *             opponents. Carries the spread the walls discard, and makes a near-zero
+ *             delta visible instead of a 1px sliver. Wants ~22px.
+ */
+export const HORIZON_VARIANT = { WALLS: 'walls', RIBBON: 'ribbon' } as const;
+export type HorizonVariant = (typeof HORIZON_VARIANT)[keyof typeof HORIZON_VARIANT];
 
 export type PressureHorizonOptions = {
   /** Width of the wall strip, excluding the label gutter. */
@@ -47,7 +74,14 @@ export type PressureHorizonOptions = {
   /** Surface gap between round columns. */
   columnGap?: number;
   bands?: number;
+  variant?: HorizonVariant;
   source?: HorizonSource;
+  /**
+   * The projection `buildPressureSeries` returns beside `series`. Only the ribbon
+   * reads it, and only to weight the inner fan; without it the fan falls back to the
+   * unweighted low/high envelope and says so.
+   */
+  projection?: ProjectedPressureResult;
   /** Fix the domain across several stacks so they can be read against each other. */
   domainMax?: number;
   showLabels?: boolean;
@@ -123,6 +157,51 @@ function attachSelection(row: HTMLElement, entry: PressureSeries, onSelect: (ser
   });
 }
 
+/** Dispatch to the variant's renderer. Both consume the same `HorizonRow`. */
+function renderRow(
+  horizonRow: HorizonRow,
+  {
+    variant,
+    width,
+    rowHeight,
+    columnGap,
+    roundLabels,
+    scaleName,
+    domainMax,
+    bands
+  }: {
+    variant: HorizonVariant;
+    width: number;
+    rowHeight: number;
+    columnGap: number;
+    roundLabels: (roundNumber: number, index: number, total: number) => string;
+    scaleName?: string;
+    domainMax: number;
+    bands: number;
+  }
+): SVGElement {
+  if (variant === HORIZON_VARIANT.RIBBON) {
+    return buildHorizonRibbonSvg(horizonRow, {
+      width,
+      height: rowHeight,
+      domainMax,
+      bands,
+      positionBands: RIBBON_POSITION_BANDS,
+      describe: true,
+      roundLabels,
+      scaleName
+    });
+  }
+  return buildHorizonRowSvg(horizonRow, {
+    width,
+    height: rowHeight,
+    gap: columnGap,
+    describe: true,
+    roundLabels,
+    scaleName
+  });
+}
+
 function buildCaption({
   shown,
   ordered,
@@ -130,7 +209,9 @@ function buildCaption({
   domainMax,
   bands,
   clippedCells,
-  order
+  order,
+  variant,
+  unweightedFan
 }: {
   shown: number;
   ordered: number;
@@ -139,10 +220,18 @@ function buildCaption({
   bands: number;
   clippedCells: number;
   order: HorizonOrder;
+  variant: HorizonVariant;
+  unweightedFan: boolean;
 }): HTMLElement {
   const caption = el('div', 'chc-ph__caption');
   const sorted = order === HORIZON_ORDER.DRAW ? 'draw order' : 'hardest slot first';
   const parts = [`${shown} paths · ${sorted}`, `shared domain ±${Math.round(domainMax)} · ${bands} bands`];
+  if (variant === HORIZON_VARIANT.RIBBON) {
+    parts.push(`trace saturates past ${RIBBON_POSITION_BANDS} of ${bands} bands — colour carries the rest`);
+  }
+  if (variant === HORIZON_VARIANT.RIBBON && unweightedFan) {
+    parts.push('fan is the unweighted 1%-threshold range — pass `projection` to weight it');
+  }
   if (shown < ordered) parts.push(`${ordered - shown} of ${ordered} not shown`);
   if (dropped > 0) parts.push(`${dropped} unrated omitted`);
   if (clippedCells > 0) parts.push(`${clippedCells} walls capped at the top band`);
@@ -163,7 +252,8 @@ export function buildPressureHorizon(
 
     const {
       width = DEFAULT_WIDTH,
-      rowHeight = DEFAULT_ROW_HEIGHT,
+      variant = HORIZON_VARIANT.WALLS,
+      rowHeight = DEFAULT_ROW_HEIGHT[variant],
       rowGap = 2,
       columnGap = 2,
       bands,
@@ -176,6 +266,7 @@ export function buildPressureHorizon(
       limit,
       scaleName,
       onSelect,
+      projection,
       roundLabels = defaultRoundLabel
     } = currentOptions;
 
@@ -190,7 +281,7 @@ export function buildPressureHorizon(
 
     const ordered = orderSeries(rated, order);
     const shown = limit ? ordered.slice(0, limit) : ordered;
-    const built = buildHorizonRows({ series: shown, source, bands, domainMax });
+    const built = buildHorizonRows({ series: shown, source, bands, domainMax, projection });
     const labelWidth = showLabels ? (currentOptions.labelWidth ?? DEFAULT_LABEL_WIDTH) : 0;
 
     if (showRoundHeader) {
@@ -217,13 +308,15 @@ export function buildPressureHorizon(
       }
 
       row.appendChild(
-        buildHorizonRowSvg(horizonRow, {
+        renderRow(horizonRow, {
+          variant,
           width,
-          height: rowHeight,
-          gap: columnGap,
-          describe: true,
+          rowHeight,
+          columnGap,
           roundLabels,
-          scaleName
+          scaleName,
+          domainMax: built.domainMax,
+          bands: built.bands
         })
       );
 
@@ -232,7 +325,7 @@ export function buildPressureHorizon(
     }
     root.appendChild(rows);
 
-    if (showLegend) root.appendChild(buildHorizonLegend({ bands: built.bands, scaleName }));
+    if (showLegend) root.appendChild(buildHorizonLegend({ bands: built.bands, scaleName, variant }));
     root.appendChild(
       buildCaption({
         shown: shown.length,
@@ -241,7 +334,11 @@ export function buildPressureHorizon(
         domainMax: built.domainMax,
         bands: built.bands,
         clippedCells: built.clippedCells,
-        order
+        order,
+        variant,
+        unweightedFan: built.rows.some((horizonRow) =>
+          horizonRow.cells.some((cell) => cell.spread && !cell.spread.weighted)
+        )
       })
     );
   }
