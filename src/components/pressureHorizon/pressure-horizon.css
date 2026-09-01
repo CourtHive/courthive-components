@@ -1,0 +1,383 @@
+/* Pressure horizon — densely stacked round-by-round path difficulty.
+ *
+ * Diverging encoding: a red arm for "playing up", a blue arm for "playing down",
+ * a neutral grey for "nothing here". Four ordinal steps per arm, validated
+ * against both surfaces with the data-viz validator:
+ *
+ *   blue light 250/350/450/550   #86b6ef #5598e7 #2a78d6 #1c5cab
+ *   red  light                   #ee9a97 #e4706d #d03b3b #9d2020
+ *   blue dark  600/500/400/300   #184f95 #256abf #3987e5 #6da7ec
+ *   red  dark                    #8f2323 #bf3535 #e34948 #ef8785
+ *
+ * Each arm passes the ordinal checks in its own mode (monotone lightness, >=0.06
+ * step gaps, pale end clearing 2:1 against the surface). Across the arms, the
+ * worst same-level pair is CVD dE 12.5 (protan) light / 14.9 dark, comfortably
+ * over the 8.0 target.
+ *
+ * The pale end of each arm sits at ~2.1:1 against the surface, which is under the
+ * 3:1 mark contrast rule. That is the documented ordinal relax, and the relief it
+ * obliges is shipped: the legend is always present, and direction is carried a
+ * SECOND time by anchoring (hard rises from the baseline, easy hangs from the
+ * top) so no meaning is ever colour-alone.
+ *
+ * Dark is a SELECTED set of steps, not an inversion. Consumers may override any
+ * --chc-ph-* var. */
+
+.chc-ph,
+.chc-dog {
+  --chc-ph-surface: var(--chc-surface, #ffffff);
+  --chc-ph-text: var(--chc-text-primary, #111827);
+  --chc-ph-text-muted: var(--chc-text-muted, #6b7280);
+  --chc-ph-border: var(--chc-border, #e5e7eb);
+  --chc-ph-neutral: var(--chc-border, #e5e7eb);
+  --chc-ph-accent: #2a78d6;
+  --chc-ph-correct: #0ca30c;
+
+  --chc-ph-hard-0: #ee9a97;
+  --chc-ph-hard-1: #e4706d;
+  --chc-ph-hard-2: #d03b3b;
+  --chc-ph-hard-3: #9d2020;
+
+  --chc-ph-easy-0: #86b6ef;
+  --chc-ph-easy-1: #5598e7;
+  --chc-ph-easy-2: #2a78d6;
+  --chc-ph-easy-3: #1c5cab;
+
+  display: block;
+  position: relative;
+  color: var(--chc-ph-text);
+  font-size: 0.8125rem;
+}
+
+[data-theme='dark'] .chc-ph,
+[data-theme='dark'] .chc-dog {
+  --chc-ph-surface: var(--chc-surface, #111827);
+  --chc-ph-text: var(--chc-text-primary, #f3f4f6);
+  --chc-ph-text-muted: var(--chc-text-muted, #9ca3af);
+  --chc-ph-border: var(--chc-border, #374151);
+  --chc-ph-neutral: #374151;
+  --chc-ph-accent: #3987e5;
+  --chc-ph-correct: #0ca30c;
+
+  --chc-ph-hard-0: #8f2323;
+  --chc-ph-hard-1: #bf3535;
+  --chc-ph-hard-2: #e34948;
+  --chc-ph-hard-3: #ef8785;
+
+  --chc-ph-easy-0: #184f95;
+  --chc-ph-easy-1: #256abf;
+  --chc-ph-easy-2: #3987e5;
+  --chc-ph-easy-3: #6da7ec;
+}
+
+/* OS dark preference — only when no explicit data-theme is set. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .chc-ph,
+  :root:not([data-theme]) .chc-dog {
+    --chc-ph-surface: var(--chc-surface, #111827);
+    --chc-ph-text: var(--chc-text-primary, #f3f4f6);
+    --chc-ph-text-muted: var(--chc-text-muted, #9ca3af);
+    --chc-ph-border: var(--chc-border, #374151);
+    --chc-ph-neutral: #374151;
+    --chc-ph-accent: #3987e5;
+    --chc-ph-correct: #0ca30c;
+
+    --chc-ph-hard-0: #8f2323;
+    --chc-ph-hard-1: #bf3535;
+    --chc-ph-hard-2: #e34948;
+    --chc-ph-hard-3: #ef8785;
+
+    --chc-ph-easy-0: #184f95;
+    --chc-ph-easy-1: #256abf;
+    --chc-ph-easy-2: #3987e5;
+    --chc-ph-easy-3: #6da7ec;
+  }
+}
+
+.chc-ph__svg {
+  display: block;
+  flex: none;
+}
+
+/* Walls. No stroke: at 16px rows a hairline would eat a whole band step, and the
+ * 2px column gap already separates adjacent fills. */
+.chc-ph__wall {
+  stroke: none;
+}
+
+.chc-ph__wall--none {
+  fill: var(--chc-ph-neutral);
+}
+
+.chc-ph__wall--hard-0 {
+  fill: var(--chc-ph-hard-0);
+}
+.chc-ph__wall--hard-1 {
+  fill: var(--chc-ph-hard-1);
+}
+.chc-ph__wall--hard-2 {
+  fill: var(--chc-ph-hard-2);
+}
+.chc-ph__wall--hard-3 {
+  fill: var(--chc-ph-hard-3);
+}
+
+.chc-ph__wall--easy-0 {
+  fill: var(--chc-ph-easy-0);
+}
+.chc-ph__wall--easy-1 {
+  fill: var(--chc-ph-easy-1);
+}
+.chc-ph__wall--easy-2 {
+  fill: var(--chc-ph-easy-2);
+}
+.chc-ph__wall--easy-3 {
+  fill: var(--chc-ph-easy-3);
+}
+
+.chc-ph__head {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.chc-ph__rounds {
+  display: flex;
+}
+
+.chc-ph__round-label {
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+  font-size: 0.625rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--chc-ph-text-muted);
+}
+
+.chc-ph__rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.chc-ph__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 3px;
+}
+
+.chc-ph__row.is-clickable {
+  cursor: pointer;
+}
+
+.chc-ph__row.is-clickable:hover,
+.chc-ph__row.is-clickable:focus-visible {
+  background: color-mix(in srgb, var(--chc-ph-accent) 12%, transparent);
+  outline: none;
+}
+
+.chc-ph__label {
+  flex: none;
+  text-align: right;
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--chc-ph-text-muted);
+}
+
+.chc-ph__legend {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 1rem;
+}
+
+.chc-ph__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.chc-ph__swatch {
+  display: block;
+  flex: none;
+}
+
+.chc-ph__legend-label,
+.chc-ph__legend-note {
+  font-size: 0.6875rem;
+  color: var(--chc-ph-text-muted);
+}
+
+.chc-ph__legend-note {
+  flex-basis: 100%;
+}
+
+.chc-ph__caption {
+  margin-top: 0.5rem;
+  font-size: 0.6875rem;
+  color: var(--chc-ph-text-muted);
+}
+
+.chc-ph__empty {
+  padding: 1rem;
+  font-size: 0.8125rem;
+  color: var(--chc-ph-text-muted);
+}
+
+/* ── Draw-order game ─────────────────────────────────────────────────────── */
+
+.chc-dog__instructions {
+  margin: 0 0 0.75rem;
+  max-width: 46rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--chc-ph-text-muted);
+}
+
+.chc-dog__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.chc-dog__button {
+  font: inherit;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--chc-ph-border);
+  border-radius: 4px;
+  background: var(--chc-ph-surface);
+  color: var(--chc-ph-text);
+  cursor: pointer;
+}
+
+.chc-dog__button:hover,
+.chc-dog__button:focus-visible {
+  border-color: var(--chc-ph-accent);
+  outline: none;
+}
+
+.chc-dog__meta {
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--chc-ph-text-muted);
+}
+
+.chc-dog__rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.chc-dog__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1px 2px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: grab;
+}
+
+.chc-dog__row:focus-visible {
+  outline: none;
+  border-color: var(--chc-ph-accent);
+}
+
+.chc-dog__row.is-dragging {
+  opacity: 0.45;
+}
+
+.chc-dog__row.is-drop-target {
+  border-color: var(--chc-ph-accent);
+  background: color-mix(in srgb, var(--chc-ph-accent) 12%, transparent);
+}
+
+.chc-dog__slot,
+.chc-dog__slot-spacer {
+  flex: none;
+  width: 1.75rem;
+  text-align: right;
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--chc-ph-text-muted);
+}
+
+.chc-dog__reveal {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.6875rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--chc-ph-text-muted);
+}
+
+.chc-dog__reveal.is-correct {
+  color: var(--chc-ph-correct);
+  font-weight: 600;
+}
+
+.chc-dog__score {
+  margin-top: 0.875rem;
+  padding: 0.75rem;
+  border: 1px solid var(--chc-ph-border);
+  border-radius: 6px;
+  max-width: 46rem;
+}
+
+.chc-dog__score-headline {
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--chc-ph-text);
+}
+
+.chc-dog__score-summary {
+  font-size: 0.8125rem;
+  color: var(--chc-ph-text);
+}
+
+.chc-dog__score-levels {
+  margin: 0.5rem 0;
+  padding-left: 1.1rem;
+  font-size: 0.75rem;
+  color: var(--chc-ph-text-muted);
+}
+
+.chc-dog__score-exact {
+  font-size: 0.75rem;
+  color: var(--chc-ph-text-muted);
+}
+
+.chc-dog__score-note {
+  margin-top: 0.5rem;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  color: var(--chc-ph-text-muted);
+}
+
+/* Announcements for screen readers; visually removed without display:none, which
+ * would take it out of the accessibility tree too. */
+.chc-dog__live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.chc-dog__head {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}

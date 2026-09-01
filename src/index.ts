@@ -444,6 +444,54 @@ export type {
   ResolvedRating
 } from './components/pressureChart';
 
+// Pressure Horizon — a SECOND, independent take on the same `PressureSeries`.
+// The pressure chart is the detail view (one participant, a real y-axis); the
+// horizon is the density view (one 16px row per participant, magnitude folded
+// into colour bands so a whole draw stacks on one screen). Both ship; neither
+// replaces the other. `buildDrawOrderGame` is the gamified surface: the stack
+// shuffled and anonymised, drag to rebuild the real draw order.
+import './components/pressureHorizon/pressure-horizon.css';
+export {
+  resolveHorizonDomain,
+  buildPressureHorizon,
+  createDrawOrderGame,
+  maxDisplacementFor,
+  reshuffleDrawOrder,
+  buildDrawOrderGame,
+  buildHorizonRowSvg,
+  MIN_HORIZON_DOMAIN,
+  HORIZON_DIRECTION,
+  buildHorizonRows,
+  shuffleDeranged,
+  shuffleWithSeed,
+  revealDrawOrder,
+  scoreDrawOrder,
+  HORIZON_SOURCE,
+  HORIZON_ORDER,
+  blockLevels,
+  swapSlots,
+  moveSlot
+} from './components/pressureHorizon';
+export type {
+  PressureHorizonInstance,
+  BuildHorizonRowsParams,
+  PressureHorizonOptions,
+  DrawOrderGameInstance,
+  DrawOrderGameOptions,
+  DrawOrderGameState,
+  HorizonRowsResult,
+  HorizonRowOptions,
+  HorizonDirection,
+  BlockLevelScore,
+  DrawOrderScore,
+  HorizonSource,
+  HorizonLayer,
+  HorizonOrder,
+  HorizonCell,
+  SlotResult,
+  HorizonRow
+} from './components/pressureHorizon';
+
 // Control Bar (CSS bundled in courthive-components.css)
 import './components/controlBar/controlBar.css';
 export { controlBar } from './components/controlBar/controlBar';

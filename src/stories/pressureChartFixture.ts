@@ -41,6 +41,14 @@ const SINGLE_ELIMINATION = 'SINGLE_ELIMINATION';
 const BEST_WTN = 4;
 const WTN_STEP = 0.62;
 
+/**
+ * WTN runs 40 (beginner) to 1 (world class), so the default step only stays on
+ * the scale up to about a 48 draw. Past that a caller must tighten it or the
+ * fixture invents players who could not exist — which reads as a chart defect
+ * (an absurd shared domain) rather than as a fixture one.
+ */
+const MAX_WTN = 40;
+
 const CFS_PARTICIPANTS_PROFILE = {
   convertExtensions: true,
   withScaleValues: true,
@@ -57,6 +65,12 @@ export type SeededDrawOptions = {
   /** roundNumber values in which the LOWER-rated side wins instead. */
   upsetsInRounds?: number[];
   rated?: boolean;
+  /**
+   * Rating step between successive players on the strength ladder. Defaults to
+   * `WTN_STEP`; large fields should pass a smaller value so the weakest entrant
+   * stays inside the WTN scale.
+   */
+  wtnStep?: number;
 };
 
 export type SeededDrawFixture = {
@@ -83,12 +97,12 @@ function orderedByStrength(structure: any): string[] {
   return [...seeded, ...unseeded];
 }
 
-function applyRatings(participantIds: string[]): void {
+function applyRatings(participantIds: string[], wtnStep: number): void {
   const scaleItemsWithParticipantIds = participantIds.map((participantId, index) => ({
     participantId,
     scaleItems: [
       {
-        scaleValue: { wtnRating: Number((BEST_WTN + index * WTN_STEP).toFixed(2)), confidence: 90 },
+        scaleValue: { wtnRating: Number((BEST_WTN + index * wtnStep).toFixed(2)), confidence: 90 },
         eventType: SINGLES,
         scaleDate: SCALE_DATE,
         scaleType: RATING,
@@ -157,8 +171,11 @@ export function seededDraw({
   participantsCount,
   play = false,
   upsetsInRounds = [],
-  rated = true
+  rated = true,
+  wtnStep
 }: SeededDrawOptions = {}): SeededDrawFixture {
+  // Keep the whole ladder on the scale rather than silently emitting a WTN of 43.
+  const step = wtnStep ?? Math.min(WTN_STEP, (MAX_WTN - BEST_WTN) / Math.max(1, drawSize - 1));
   const { tournamentRecord } = mocksEngine.generateTournamentRecord({
     drawProfiles: [{ drawSize, seedsCount, participantsCount, drawType: SINGLE_ELIMINATION }],
     participantsProfile: { category: { ratingType: WTN } },
@@ -171,7 +188,7 @@ export function seededDraw({
   const drawDefinition = event.drawDefinitions[0];
   const structure = drawDefinition.structures[0];
   const ladder = orderedByStrength(structure);
-  if (rated) applyRatings(ladder);
+  if (rated) applyRatings(ladder, step);
 
   const strength = new Map(ladder.map((participantId, index) => [participantId, index]));
   if (play) {
