@@ -15,6 +15,7 @@ import '../src/components/courts/courts.css';
 import '../src/components/inline-scoring/inline-scoring.css';
 import '../src/components/scorecard/scorecard.css';
 import '../src/components/pressureChart/pressure-chart.css';
+import '../src/components/pressureHorizon/pressure-horizon.css';
 
 const preview: Preview = {
   globalTypes: {
