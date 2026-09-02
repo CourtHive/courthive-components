@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.1.0](https://github.com/CourtHive/courthive-components/compare/v4.0.1...v4.1.0) (2026-09-01)
+
+
+### Features
+
+* **pressure-horizon:** a connected ribbon variant beside the walls ([#550](https://github.com/CourtHive/courthive-components/issues/550)) ([791f9ca](https://github.com/CourtHive/courthive-components/commit/791f9ca2a05d6d85d76f3ecf0c07a199578781a6))
+* **pressure-horizon:** stackable horizon rows and a draw-order game ([#549](https://github.com/CourtHive/courthive-components/issues/549)) ([136ac72](https://github.com/CourtHive/courthive-components/commit/136ac720c42be3dbfb46475593f88939e734b3e0))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 6.36.0 ([d1d75e2](https://github.com/CourtHive/courthive-components/commit/d1d75e2323e107b5f45d7e1ecef2f988d136663a))
+
 ## [4.0.1](https://github.com/CourtHive/courthive-components/compare/v4.0.0...v4.0.1) (2026-08-30)
 
 
