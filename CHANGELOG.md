@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.1.1](https://github.com/CourtHive/courthive-components/compare/v4.1.0...v4.1.1) (2026-09-04)
+
+
+### Bug Fixes
+
+* **deps:** raise fast-uri to a patched version ([#552](https://github.com/CourtHive/courthive-components/issues/552)) ([87518da](https://github.com/CourtHive/courthive-components/commit/87518da6785b6fe81838d40d1107fd765007a23d))
+
 ## [4.1.0](https://github.com/CourtHive/courthive-components/compare/v4.0.1...v4.1.0) (2026-09-01)
 
 
