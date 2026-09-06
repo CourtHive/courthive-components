@@ -1,5 +1,14 @@
 # Changelog
 
+## [4.1.1](https://github.com/CourtHive/courthive-components/compare/v4.1.0...v4.1.1) (2026-09-06)
+
+
+### Bug Fixes
+
+* **deps:** raise fast-uri to a patched version ([#552](https://github.com/CourtHive/courthive-components/issues/552)) ([87518da](https://github.com/CourtHive/courthive-components/commit/87518da6785b6fe81838d40d1107fd765007a23d))
+* **deps:** update tods-competition-factory to 6.37.1 ([f9cd019](https://github.com/CourtHive/courthive-components/commit/f9cd019dc10918c2627d1fad910ca9c8ed1686d9))
+* **deps:** update tods-competition-factory to 6.37.2 ([7f8475b](https://github.com/CourtHive/courthive-components/commit/7f8475bcff79f83b233b217bbfcb3c59c3221cea))
+
 ## [4.1.0](https://github.com/CourtHive/courthive-components/compare/v4.0.1...v4.1.0) (2026-09-01)
 
 
