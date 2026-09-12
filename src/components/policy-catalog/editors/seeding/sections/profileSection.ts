@@ -4,7 +4,7 @@
 
 import type { SeedingEditorState, SeedingPositioning } from '../types';
 import type { SeedingEditorStore } from '../seedingEditorStore';
-import { POSITIONING_OPTIONS } from '../domain/seedingProjections';
+import { canonicalPositioning, POSITIONING_OPTIONS } from '../domain/seedingProjections';
 import { sdFieldInputStyle, sdFieldLabelStyle, sdFieldRowStyle, sdRadioGroupStyle, sdRadioOptionStyle } from '../styles';
 
 export function buildProfileSection(store: SeedingEditorStore): {
@@ -71,7 +71,7 @@ export function buildProfileSection(store: SeedingEditorStore): {
     if (document.activeElement !== nameInput) {
       nameInput.value = state.draft.policyName ?? '';
     }
-    const positioning = state.draft.seedingProfile?.positioning;
+    const positioning = canonicalPositioning(state.draft.seedingProfile?.positioning);
     for (const r of radios) {
       r.input.checked = r.value === positioning;
     }

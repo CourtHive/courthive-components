@@ -5,7 +5,9 @@
  */
 
 import { emptySeedingPolicy } from './domain/seedingProjections';
+import { toDraft } from './domain/seedingNormalise';
 import type {
+  SeedingPolicyDraft,
   SeedingPolicyData,
   SeedingEditorState,
   SeedingEditorSection,
@@ -28,7 +30,7 @@ export class SeedingEditorStore {
     this.config = config;
 
     this.state = {
-      draft: deepClone(config.initialPolicy ?? emptySeedingPolicy()),
+      draft: toDraft(deepClone(config.initialPolicy ?? emptySeedingPolicy())),
       expandedSections: new Set<SeedingEditorSection>(['profile', 'flags', 'thresholds', 'drawTypeOverrides']),
       dirty: false
     };
@@ -38,12 +40,12 @@ export class SeedingEditorStore {
     return this.state;
   }
 
-  getData(): SeedingPolicyData {
+  getData(): SeedingPolicyDraft {
     return deepClone(this.state.draft);
   }
 
   setData(data: SeedingPolicyData): void {
-    this.state = { ...this.state, draft: deepClone(data), dirty: false };
+    this.state = { ...this.state, draft: toDraft(deepClone(data)), dirty: false };
     this.emit();
   }
 
@@ -165,7 +167,7 @@ export class SeedingEditorStore {
     };
   }
 
-  private commitDraft(draft: SeedingPolicyData): void {
+  private commitDraft(draft: SeedingPolicyDraft): void {
     this.state = { ...this.state, draft, dirty: true };
     this.emit();
     this.config.onChange?.(deepClone(draft));
