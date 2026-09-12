@@ -9,6 +9,10 @@ export { emptySeedingPolicy, POSITIONING_OPTIONS, DRAW_TYPE_OPTIONS } from './do
 
 export type {
   SeedingPolicyData,
+  SeedingPolicyDraft,
+  NormalisedSeedingProfile,
+  PolicySeedingProfile,
+  DrawSeedingProfile,
   SeedingProfile,
   SeedingPositioning,
   SeedsCountThreshold,

@@ -6,7 +6,7 @@
 
 import { SeedingEditorStore } from './seedingEditorStore';
 import { buildSeedingEditorPanel } from './seedingEditorPanel';
-import type { SeedingPolicyData, SeedingEditorConfig } from './types';
+import type { SeedingPolicyDraft, SeedingPolicyData, SeedingEditorConfig } from './types';
 import type { PolicyEditorInstance as CatalogEditorInstance } from '../../types';
 
 export class SeedingEditorControl {
@@ -39,7 +39,7 @@ export class SeedingEditorControl {
     this.container = null;
   }
 
-  getData(): SeedingPolicyData {
+  getData(): SeedingPolicyDraft {
     return this.store.getData();
   }
 

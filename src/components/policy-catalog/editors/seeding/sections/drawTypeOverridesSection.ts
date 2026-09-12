@@ -7,7 +7,7 @@
 
 import type { SeedingEditorConfig, SeedingEditorState, SeedingPositioning } from '../types';
 import type { SeedingEditorStore } from '../seedingEditorStore';
-import { DRAW_TYPE_OPTIONS, POSITIONING_OPTIONS } from '../domain/seedingProjections';
+import { DRAW_TYPE_OPTIONS, POSITIONING_OPTIONS, canonicalPositioning } from '../domain/seedingProjections';
 import {
   sdAddBtnStyle,
   sdActionsRowStyle,
@@ -19,7 +19,10 @@ import {
   sdOverrideDrawTypeStyle
 } from '../styles';
 
-function buildPositioningSelect(value: SeedingPositioning, onChange: (v: SeedingPositioning) => void): HTMLSelectElement {
+function buildPositioningSelect(
+  value: SeedingPositioning | undefined,
+  onChange: (v: SeedingPositioning) => void
+): HTMLSelectElement {
   const select = document.createElement('select');
   select.className = sdSelectStyle();
   for (const opt of POSITIONING_OPTIONS) {
@@ -113,7 +116,9 @@ export function buildDrawTypeOverridesSection(
         name.className = sdOverrideDrawTypeStyle();
         name.textContent = drawType;
 
-        const select = buildPositioningSelect(positioning, (v) => store.setDrawTypeOverridePositioning(drawType, v));
+        const select = buildPositioningSelect(canonicalPositioning(positioning), (v) =>
+          store.setDrawTypeOverridePositioning(drawType, v)
+        );
 
         const removeBtn = document.createElement('button');
         removeBtn.type = 'button';
