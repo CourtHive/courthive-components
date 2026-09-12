@@ -44,5 +44,17 @@ export function emptySeedingPolicy(): SeedingPolicyData {
 }
 
 export function positioningLabel(value: SeedingPositioning | undefined): string {
-  return POSITIONING_OPTIONS.find((o) => o.value === value)?.label ?? value ?? '';
+  return POSITIONING_OPTIONS.find((o) => o.value === canonicalPositioning(value))?.label ?? value ?? '';
+}
+
+/**
+ * `ADJACENT` is the factory's synonym for `CLUSTER` — `generateBlockPattern` and
+ * `getContainerBlocks` treat them identically. The picker deliberately offers ONE option
+ * rather than two that do the same thing, so either stored value selects it.
+ *
+ * This is display-only: the stored value is left exactly as it arrived, because rewriting
+ * a caller's `ADJACENT` to `CLUSTER` would be an unrequested edit to their policy.
+ */
+export function canonicalPositioning(value?: SeedingPositioning): SeedingPositioning | undefined {
+  return value === 'ADJACENT' ? 'CLUSTER' : value;
 }

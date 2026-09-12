@@ -159,6 +159,10 @@ export type {
 
 export type {
   SeedingPolicyData,
+  SeedingPolicyDraft,
+  NormalisedSeedingProfile,
+  PolicySeedingProfile,
+  DrawSeedingProfile,
   SeedingProfile,
   SeedingPositioning,
   SeedsCountThreshold,
