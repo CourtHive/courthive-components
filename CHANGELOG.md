@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.2.0](https://github.com/CourtHive/courthive-components/compare/v4.1.2...v4.2.0) (2026-09-13)
+
+
+### Features
+
+* **schedule-page:** graded time header, related-matchUp hover highlight, and a re-pointed selection ([#564](https://github.com/CourtHive/courthive-components/issues/564)) ([4ce1fb0](https://github.com/CourtHive/courthive-components/commit/4ce1fb0c98f047ef8ce6a069ea645a4c1848fc67))
+
 ## [4.1.2](https://github.com/CourtHive/courthive-components/compare/v4.1.1...v4.1.2) (2026-09-13)
 
 
