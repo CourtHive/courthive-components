@@ -4,10 +4,10 @@
  * Shows "Player A vs Player B" with sides, event/round metadata, and chips.
  */
 
-import type { CatalogMatchUpItem } from '../types';
-import { attachRelatedHighlight } from './matchUpHighlight';
-import { matchUpLabel } from '../domain/utils';
 import { isCompletedStatus } from '../domain/matchUpCatalogProjections';
+import { attachRelatedHighlight } from './matchUpHighlight';
+import type { CatalogMatchUpItem } from '../types';
+import { matchUpLabel } from '../domain/utils';
 import {
   splMatchUpCardStyle,
   splCardTitleStyle,
