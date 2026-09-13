@@ -305,7 +305,10 @@ export const RelatedHighlightClearedOnDragStart: StoryObj = {
     card?.dispatchEvent(new MouseEvent('mouseenter'));
     expect(related?.classList.contains(RELATED_HIGHLIGHT)).toBe(true);
 
-    card?.dispatchEvent(new Event('dragstart'));
+    // A real DragEvent with a DataTransfer: the card's own dragstart listener
+    // calls `setDragImage`, which throws on a bare Event and surfaces as an
+    // uncaught error rather than as a failed assertion.
+    card?.dispatchEvent(new DragEvent('dragstart', { dataTransfer: new DataTransfer() }));
     expect(related?.classList.contains(RELATED_HIGHLIGHT)).toBe(false);
   }
 };
