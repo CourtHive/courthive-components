@@ -81,13 +81,25 @@ export class SchedulePageStore {
   setMatchUpCatalog(catalog: CatalogMatchUpItem[]): void {
     this.setState({ matchUpCatalog: catalog });
 
-    // Clear selection if selected matchUp is no longer in catalog
-    if (this.state.selectedMatchUp) {
-      const stillExists = catalog.some((m) => m.matchUpId === this.state.selectedMatchUp?.matchUpId);
-      if (!stillExists) {
-        this.setState({ selectedMatchUp: null });
-      }
+    if (!this.state.selectedMatchUp) return;
+    const fresh = catalog.find((m) => m.matchUpId === this.state.selectedMatchUp?.matchUpId);
+
+    // Gone from the catalog entirely — nothing left to inspect.
+    if (!fresh) {
+      this.setState({ selectedMatchUp: null });
+      return;
     }
+
+    // Re-point at the NEW item rather than keeping the one captured at
+    // selection time. `selectedMatchUp` is a snapshot, and the catalog is
+    // rebuilt whenever anything about the schedule moves — including by another
+    // client. Holding the old object meant the Inspector kept reporting
+    // "Scheduled: No" about a matchUp somebody had just dragged onto a court,
+    // and reported no Court at all for one that plainly had one, while the
+    // consumer's own sections (which re-query by matchUpId) showed the truth
+    // beside it. Two panels disagreeing about the same matchUp is worse than
+    // either being wrong alone.
+    if (fresh !== this.state.selectedMatchUp) this.setState({ selectedMatchUp: fresh });
   }
 
   /**
