@@ -92,6 +92,19 @@ export function renderRound({
   const roundIndex = roundNumbers.indexOf(roundNumber);
   const roundOrder = (roundIndex === 0 && 'first') || (roundIndex === roundNumbers.length - 1 && 'last');
 
+  // Connector heights scale by roundFactor, so a view that starts at a later round
+  // has to rescale: the round the view starts at must draw at 1 whatever its factor
+  // is in the full bracket. This is derived per render and handed to renderMatchUp
+  // — it is deliberately NOT written back onto the matchUp. Writing it back made the
+  // division compound across renders, so clicking through the round chips left the
+  // lines progressively shorter and going back to round one never restored them.
+  const baseRoundFactor = roundProfile?.[initialRoundNumber]?.roundFactor || 1;
+  const displayRoundFactor = (matchUp: MatchUp): number => {
+    if (roundFactor) return roundFactor;
+    if (!matchUp.roundFactor) return Math.pow(2, roundNumber - initialRoundNumber);
+    return initialRoundNumber > 1 ? matchUp.roundFactor / baseRoundFactor : matchUp.roundFactor;
+  };
+
   let currentGroupWrapper: HTMLElement | null = null;
 
   roundMatchUps.forEach((matchUp, i) => {
@@ -129,15 +142,8 @@ export function renderRound({
     }
 
     const moiety = i % 2 === 0;
-    if (roundFactor) {
-      matchUp.roundFactor = roundFactor;
-    } else if (initialRoundNumber > 1 && matchUp.roundFactor) {
-      const baseRoundFactor = roundProfile?.[initialRoundNumber]?.roundFactor || 1;
-      matchUp.roundFactor = matchUp.roundFactor / baseRoundFactor;
-    } else if (!matchUp.roundFactor) {
-      matchUp.roundFactor = Math.pow(2, roundNumber - initialRoundNumber);
-    }
     const m = renderMatchUp({
+      roundFactor: displayRoundFactor(matchUp),
       initialRoundNumber,
       selectedMatchUpId,
       eventHandlers,

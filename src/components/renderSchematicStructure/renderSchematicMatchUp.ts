@@ -27,6 +27,7 @@ export function renderSchematicMatchUp({
   isFirstRound,
   isFinalRound,
   isRoundRobin,
+  roundFactor: roundFactorParam,
   isLucky
 }: {
   matchUp: SchematicMatchUp;
@@ -36,6 +37,11 @@ export function renderSchematicMatchUp({
   isRoundRobin?: boolean;
   isLucky?: boolean;
   initialRoundNumber?: number;
+  /**
+   * Connector scale for THIS render, supplied by `renderSchematicRound`.
+   * Falls back to the matchUp's own factor for direct callers.
+   */
+  roundFactor?: number;
 }): HTMLElement {
   const { stage, preFeedRound } = matchUp;
   const isQualifying = stage === QUALIFYING && isFinalRound;
@@ -70,7 +76,7 @@ export function renderSchematicMatchUp({
   );
 
   // Apply schematic-scale connector dimensions
-  const roundFactor = matchUp.roundFactor || 1;
+  const roundFactor = roundFactorParam ?? matchUp.roundFactor ?? 1;
   const matchUpHeight = 11; // 5px slot + 1px divider + 5px slot
   const connectorWidth = 8;
   const m1Height = (matchUpHeight / 2) * roundFactor;

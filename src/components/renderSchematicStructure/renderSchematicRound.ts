@@ -42,16 +42,20 @@ export function renderSchematicRound({
   const round = document.createElement('div');
   round.className = 'chc-schematic-round';
 
+  // Derived per render and passed down — never written back onto the matchUp.
+  // See the same note in `renderStructure/renderRound.ts`: an in-place rescale
+  // compounds across renders and shortens the connectors a little more each time.
+  const displayRoundFactor = (matchUp: SchematicMatchUp): number => {
+    if (!matchUp.roundFactor) return Math.pow(2, roundNumber - initialRoundNumber);
+    return initialRoundFactor ? matchUp.roundFactor / initialRoundFactor : matchUp.roundFactor;
+  };
+
   roundMatchUps.forEach((matchUp, i) => {
-    if (initialRoundFactor && matchUp.roundFactor) {
-      matchUp.roundFactor = matchUp.roundFactor / initialRoundFactor;
-    } else if (!matchUp.roundFactor) {
-      matchUp.roundFactor = Math.pow(2, roundNumber - initialRoundNumber);
-    }
     const moiety = i % 2 === 0;
     const isFirstRound = roundNumber === initialRoundNumber;
 
     const m = renderSchematicMatchUp({
+      roundFactor: displayRoundFactor(matchUp),
       initialRoundNumber,
       isRoundRobin,
       isFinalRound,
