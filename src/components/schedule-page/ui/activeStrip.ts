@@ -57,6 +57,12 @@ export interface ActiveStripCourtBlock {
 export interface ActiveStripPanelData {
   /** Court columns, in display order. The strip computes one cell per column. */
   grid: ActiveStripGrid;
+  /**
+   * MatchUps that should have started by now and have not been called — see
+   * `ActiveStripStatusOptions.dueMatchUpIds`. Supplied per refresh because it
+   * moves with the clock.
+   */
+  dueMatchUpIds?: readonly string[];
   /** Optional display labels per courtId. Falls back to courtId. */
   courts?: ActiveStripCourtMeta[];
   /**
@@ -155,6 +161,7 @@ function statePillLabel(state: ActiveStripCell['state']): string | null {
   if (state === 'in-progress') return 'LIVE';
   if (state === 'suspended') return 'SUSP';
   if (state === 'next') return 'NEXT';
+  if (state === 'due') return 'DUE';
   return null;
 }
 
@@ -215,6 +222,7 @@ function buildCellElement(
     pill.textContent = pillText;
     // 'SUSP' is abbreviated for the compact pill zone — spell it out on hover.
     if (cell.state === 'suspended') pill.title = 'Suspended';
+    if (cell.state === 'due') pill.title = 'Should have started — not called to court';
     root.appendChild(pill);
   }
 
@@ -262,7 +270,13 @@ export function buildActiveStripPanel(
     // Leading spacer aligns court cells with the grid below the row-number column.
     root.appendChild(buildSpacer(options));
 
-    const cells = computeActiveStrip(data.grid, options.statusOptions);
+    // `dueMatchUpIds` rides on the DATA rather than the panel options: which
+    // matchUps are overdue changes with the clock and with every mutation, while
+    // `options` is fixed when the panel is built.
+    const statusOptions = data.dueMatchUpIds
+      ? { ...options.statusOptions, dueMatchUpIds: new Set(data.dueMatchUpIds) }
+      : options.statusOptions;
+    const cells = computeActiveStrip(data.grid, statusOptions);
     for (const cell of cells) {
       const block = data.courtBlocks?.[cell.courtId];
       root.appendChild(buildCellElement(cell, callbacks, getGrid, options, block));

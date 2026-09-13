@@ -56,7 +56,7 @@ export interface ActiveStripGrid {
   columns: ActiveStripCourtColumn[];
 }
 
-export type ActiveStripCellState = 'free' | 'in-progress' | 'suspended' | 'next' | 'completed';
+export type ActiveStripCellState = 'free' | 'in-progress' | 'suspended' | 'next' | 'due' | 'completed';
 
 export interface ActiveStripCell {
   courtId: string;
@@ -81,6 +81,18 @@ export interface ActiveStripStatusOptions {
   inProgressStatuses?: ReadonlySet<string>;
   suspendedStatuses?: ReadonlySet<string>;
   completedStatuses?: ReadonlySet<string>;
+  /**
+   * MatchUps that should have started by now and have not been called.
+   *
+   * The consumer decides — the rule needs a venue-local clock and knowledge of
+   * the schedule annotations (a "followed by" matchUp was never promised its
+   * `scheduledTime`), neither of which this component has.
+   *
+   * Only consulted for a court with nothing live and nothing called, which is
+   * the case where the `free` state was lying: the court is not free-and-fine,
+   * it is idle with work waiting on it.
+   */
+  dueMatchUpIds?: ReadonlySet<string>;
 }
 
 const DEFAULT_IN_PROGRESS_STATUSES: ReadonlySet<string> = new Set(['IN_PROGRESS']);
@@ -140,9 +152,11 @@ export function computeActiveStripCell(
   const inProgress = options?.inProgressStatuses ?? DEFAULT_IN_PROGRESS_STATUSES;
   const suspended = options?.suspendedStatuses ?? DEFAULT_SUSPENDED_STATUSES;
   const completed = options?.completedStatuses ?? DEFAULT_COMPLETED_STATUSES;
+  const due = options?.dueMatchUpIds;
   const cells = column.cells;
 
   let firstPendingIndex = -1;
+  let firstDueIndex = -1;
 
   for (let i = 0; i < cells.length; i++) {
     const cell = cells[i];
@@ -162,6 +176,9 @@ export function computeActiveStripCell(
     if (kind === KIND_PENDING && cell.calledAt && firstPendingIndex === -1) {
       firstPendingIndex = i;
     }
+    if (kind === KIND_PENDING && !cell.calledAt && firstDueIndex === -1 && due?.has(cell.matchUpId)) {
+      firstDueIndex = i;
+    }
   }
 
   if (firstPendingIndex !== -1) {
@@ -173,9 +190,21 @@ export function computeActiveStripCell(
     };
   }
 
-  // No in-progress and no called matchUp — the court reads as free even when it
-  // has un-called pending or only completed matchUps. The grid below shows the
-  // history/plan; the strip is only for what's live or called.
+  // `due` ranks BELOW `next` on purpose: a called match is what is actually
+  // about to happen on the court, and an overdue one behind it is the grid's
+  // problem rather than the strip's.
+  if (firstDueIndex !== -1) {
+    return {
+      courtId: column.courtId,
+      state: 'due',
+      matchUp: cells[firstDueIndex] as ActiveStripGridMatchUp,
+      rowIndex: firstDueIndex
+    };
+  }
+
+  // No in-progress, no called matchUp, nothing overdue — the court reads as free
+  // even when it has un-called pending or only completed matchUps. The grid below
+  // shows the history/plan; the strip is only for what's live, called, or late.
   return { courtId: column.courtId, state: 'free' };
 }
 
