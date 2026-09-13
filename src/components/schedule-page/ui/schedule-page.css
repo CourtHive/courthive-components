@@ -416,6 +416,18 @@
   flex-shrink: 0;
 }
 
+/* Graded time header — see `MatchUpCardOptions.timeStatus`. Green (the base
+ * rule above) is "this time can be met"; the consumer decides what compromises
+ * it. Only colour changes, so a time stays a time: an operator scanning the
+ * panel reads the same glyph in the same place and the hue is the only thing
+ * that has to be learned. `title` carries the reason. */
+.spl-card-time-header--warn {
+  color: var(--sp-warn-text, var(--sp-warn, #f59e0b));
+}
+.spl-card-time-header--alert {
+  color: var(--sp-err-text, #ef4444);
+}
+
 /* Scheduled-tab card whose matchUp has a date but no scheduledTime —
  * dashed border + softened opacity hint that a time still needs to be set. */
 .spl-matchup-card.no-time {

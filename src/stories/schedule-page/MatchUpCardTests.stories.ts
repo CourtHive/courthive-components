@@ -210,6 +210,54 @@ export const ProminentTimeWithoutScheduledTimeNoHeader: StoryObj = {
   }
 };
 
+// ── timeStatus ──
+
+export const TimeStatusAlertPaintsModifier: StoryObj = {
+  name: 'timeStatus alert → modifier class + data attribute + title',
+  render: () =>
+    renderCard(
+      { scheduledTime: '14:30', isScheduled: true },
+      { prominentTime: true, timeStatus: 'alert', timeTitle: 'Waiting on Quarterfinal — not before 15:30' }
+    ),
+  play: async ({ canvasElement }) => {
+    const timeHeader = canvasElement.querySelector<HTMLElement>(TIME_HEADER_SELECTOR);
+    expect(timeHeader?.classList.contains('spl-card-time-header--alert')).toBe(true);
+    expect(timeHeader?.dataset.timeStatus).toBe('alert');
+    expect(timeHeader?.title).toBe('Waiting on Quarterfinal — not before 15:30');
+  }
+};
+
+export const TimeStatusWarnPaintsModifier: StoryObj = {
+  name: 'timeStatus warn → warn modifier, not alert',
+  render: () =>
+    renderCard({ scheduledTime: '14:30', isScheduled: true }, { prominentTime: true, timeStatus: 'warn' }),
+  play: async ({ canvasElement }) => {
+    const timeHeader = canvasElement.querySelector<HTMLElement>(TIME_HEADER_SELECTOR);
+    expect(timeHeader?.classList.contains('spl-card-time-header--warn')).toBe(true);
+    expect(timeHeader?.classList.contains('spl-card-time-header--alert')).toBe(false);
+  }
+};
+
+export const TimeStatusOkCarriesNoModifier: StoryObj = {
+  name: 'timeStatus ok → data attribute only, default (green) paint retained',
+  render: () =>
+    renderCard({ scheduledTime: '14:30', isScheduled: true }, { prominentTime: true, timeStatus: 'ok' }),
+  play: async ({ canvasElement }) => {
+    const timeHeader = canvasElement.querySelector<HTMLElement>(TIME_HEADER_SELECTOR);
+    expect(timeHeader?.dataset.timeStatus).toBe('ok');
+    expect(timeHeader?.className).toBe('spl-card-time-header');
+  }
+};
+
+export const TimeStatusOmittedIsUngraded: StoryObj = {
+  name: 'timeStatus omitted → no data attribute at all (never graded)',
+  render: () => renderCard({ scheduledTime: '14:30', isScheduled: true }, { prominentTime: true }),
+  play: async ({ canvasElement }) => {
+    const timeHeader = canvasElement.querySelector<HTMLElement>(TIME_HEADER_SELECTOR);
+    expect(timeHeader?.dataset.timeStatus).toBeUndefined();
+  }
+};
+
 // ── renderExtra ──
 
 /** A consumer badge, freshly created per call as the hook contract requires. */
