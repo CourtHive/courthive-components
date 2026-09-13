@@ -23,9 +23,18 @@ export function renderMatchUp(params: {
   isAdHoc?: boolean;
   eventHandlers?: EventHandlers;
   className?: string;
+  /**
+   * Connector-height scale for THIS render. `renderRound` computes it for the
+   * round the view currently starts at and passes it down; direct callers can
+   * leave it out and the matchUp's own factor is used.
+   */
+  roundFactor?: number;
 }): HTMLElement {
   const { composition, initialRoundNumber = 1, matchUp, moiety, selectedMatchUpId, searchActive } = params;
-  const { roundFactor, roundNumber, finishingRound, matchUpType, preFeedRound, stage } = matchUp;
+  const { roundNumber, finishingRound, matchUpType, preFeedRound, stage } = matchUp;
+  // Never read back from `matchUp` when the caller supplied a factor, and never
+  // write to it: the scaled value belongs to one render, not to the record.
+  const roundFactor = params.roundFactor ?? matchUp.roundFactor;
   const isFinalRound = params.isFinalRound || (finishingRound ? Number.parseInt(String(finishingRound)) === 1 : false);
   const isQualifying = stage === QUALIFYING && isFinalRound;
 
