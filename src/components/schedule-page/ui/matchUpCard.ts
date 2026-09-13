@@ -5,6 +5,7 @@
  */
 
 import type { CatalogMatchUpItem } from '../types';
+import { attachRelatedHighlight } from './matchUpHighlight';
 import { matchUpLabel } from '../domain/utils';
 import { isCompletedStatus } from '../domain/matchUpCatalogProjections';
 import {
@@ -53,6 +54,11 @@ export interface MatchUpCardOptions {
    *  A colour that cannot be interrogated is a colour the operator learns to
    *  distrust, so a graded header should always carry one. */
   timeTitle?: string;
+  /** MatchUps this card depends on, resolved on hover and highlighted wherever
+   *  they are drawn — see `matchUpHighlight.ts`. The consumer owns the relation;
+   *  this component sees one matchUp and could not compute "waiting on". Omit to
+   *  leave the card without hover highlighting. */
+  relatedMatchUpIds?: (item: CatalogMatchUpItem) => string[];
 }
 
 export function buildMatchUpCard(
@@ -80,6 +86,10 @@ export function buildMatchUpCard(
       e.dataTransfer!.setData('application/json', JSON.stringify({ type: 'CATALOG_MATCHUP', matchUp: item }));
       e.dataTransfer!.effectAllowed = 'copyMove';
     });
+  }
+
+  if (options.relatedMatchUpIds) {
+    attachRelatedHighlight(card, () => options.relatedMatchUpIds!(item));
   }
 
   if (callbacks.onClick) {

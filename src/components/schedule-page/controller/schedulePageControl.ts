@@ -65,7 +65,8 @@ export class SchedulePageControl {
       onDropRemove: (matchUpId: string) => {
         this.store.handleMatchUpRemove(matchUpId);
       },
-      renderCardExtra: config.renderCardExtra
+      renderCardExtra: config.renderCardExtra,
+      relatedMatchUpIds: config.relatedMatchUpIds
     });
 
     const inspectorPanel = buildScheduleInspectorPanel({ renderExtra: config.renderInspectorExtra });
