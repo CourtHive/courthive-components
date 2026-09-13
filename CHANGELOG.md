@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.1.2](https://github.com/CourtHive/courthive-components/compare/v4.1.1...v4.1.2) (2026-09-13)
+
+
+### Bug Fixes
+
+* **structure:** scale connectors per render instead of mutating the matchUp ([#562](https://github.com/CourtHive/courthive-components/issues/562)) ([b816abe](https://github.com/CourtHive/courthive-components/commit/b816abeafe94891b8042bf8bcded3e2d34ebf662))
+
 ## [4.1.1](https://github.com/CourtHive/courthive-components/compare/v4.1.0...v4.1.1) (2026-09-06)
 
 
