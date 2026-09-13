@@ -4,9 +4,10 @@
  * Shows "Player A vs Player B" with sides, event/round metadata, and chips.
  */
 
+import { isCompletedStatus } from '../domain/matchUpCatalogProjections';
+import { attachRelatedHighlight } from './matchUpHighlight';
 import type { CatalogMatchUpItem } from '../types';
 import { matchUpLabel } from '../domain/utils';
-import { isCompletedStatus } from '../domain/matchUpCatalogProjections';
 import {
   splMatchUpCardStyle,
   splCardTitleStyle,
@@ -15,6 +16,14 @@ import {
   splCardChipsStyle,
   splCardChipStyle
 } from './styles';
+
+/**
+ * Grading for the prominent time header. The consumer owns the rule — the card
+ * knows only that `ok` is achievable, `warn` is achievable-but-compromised and
+ * `alert` is not achievable at all. Omitted leaves the header at its default
+ * (green) styling, which is what every consumer got before this option existed.
+ */
+export type CardTimeStatus = 'ok' | 'warn' | 'alert';
 
 export interface MatchUpCardCallbacks {
   onClick?: (matchUp: CatalogMatchUpItem) => void;
@@ -38,6 +47,18 @@ export interface MatchUpCardOptions {
    *  its default styling (used for non-catalog renders + scheduled / completed
    *  cards where round priority is meaningless). */
   roundOffset?: number;
+  /** Grading for the `prominentTime` header — see `CardTimeStatus`. Ignored when
+   *  the header is not rendered. */
+  timeStatus?: CardTimeStatus;
+  /** Hover text for the time header, explaining what the grading is reading.
+   *  A colour that cannot be interrogated is a colour the operator learns to
+   *  distrust, so a graded header should always carry one. */
+  timeTitle?: string;
+  /** MatchUps this card depends on, resolved on hover and highlighted wherever
+   *  they are drawn — see `matchUpHighlight.ts`. The consumer owns the relation;
+   *  this component sees one matchUp and could not compute "waiting on". Omit to
+   *  leave the card without hover highlighting. */
+  relatedMatchUpIds?: (item: CatalogMatchUpItem) => string[];
 }
 
 export function buildMatchUpCard(
@@ -67,6 +88,10 @@ export function buildMatchUpCard(
     });
   }
 
+  if (options.relatedMatchUpIds) {
+    attachRelatedHighlight(card, () => options.relatedMatchUpIds!(item));
+  }
+
   if (callbacks.onClick) {
     card.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -75,35 +100,7 @@ export function buildMatchUpCard(
   }
 
   // Title: event — round
-  const titleEl = document.createElement('div');
-  titleEl.className = splCardTitleStyle();
-  if (typeof options.roundOffset === 'number') {
-    // Round-offset class encodes scheduling priority for the operator's eye:
-    // current (0) > next (1) > later (>= 2). Only attached when the option is
-    // supplied; scheduled / completed cards skip the offset entirely.
-    const offsetClass =
-      options.roundOffset === 0
-        ? 'spl-card-title--round-current'
-        : options.roundOffset === 1
-          ? 'spl-card-title--round-next'
-          : 'spl-card-title--round-later';
-    titleEl.classList.add(offsetClass);
-  }
-  const titleText = `${item.eventName} \u2014 ${item.roundName ?? 'Round ' + item.roundNumber}`;
-  const showProminentTime = options.prominentTime && !!item.scheduledTime;
-  if (showProminentTime) {
-    titleEl.classList.add('with-time');
-    const textEl = document.createElement('span');
-    textEl.className = 'spl-card-title-text';
-    textEl.textContent = titleText;
-    const timeEl = document.createElement('span');
-    timeEl.className = 'spl-card-time-header';
-    timeEl.textContent = item.scheduledTime!;
-    titleEl.appendChild(textEl);
-    titleEl.appendChild(timeEl);
-  } else {
-    titleEl.textContent = titleText;
-  }
+  const titleEl = buildTitleRow(item, options);
   card.appendChild(titleEl);
 
   // Sides: "Player A vs Player B" (or "TBD vs TBD" for unknown)
@@ -125,7 +122,9 @@ export function buildMatchUpCard(
   const chips = document.createElement('div');
   chips.className = splCardChipsStyle();
 
-  if (item.scheduledTime && !showProminentTime) {
+  // The prominent header already carries the time; a chip beside it would say
+  // the same thing twice.
+  if (item.scheduledTime && !options.prominentTime) {
     chips.appendChild(makeChip(item.scheduledTime, 'time'));
   }
   if (item.scheduledCourtName) {
@@ -163,6 +162,61 @@ export function buildMatchUpCard(
   }
 
   return card;
+}
+
+/**
+ * The card's title row: "event — round", plus the prominent time header when the
+ * consumer asked for one.
+ *
+ * Extracted from `buildMatchUpCard` rather than inlined: the row carries two
+ * independent class decisions (round emphasis, time grading) and folding both
+ * into the card builder put it over the 30-point cognitive-complexity ceiling.
+ */
+function buildTitleRow(item: CatalogMatchUpItem, options: MatchUpCardOptions): HTMLElement {
+  const titleEl = document.createElement('div');
+  titleEl.className = splCardTitleStyle();
+  if (typeof options.roundOffset === 'number') {
+    // Round-offset class encodes scheduling priority for the operator's eye:
+    // current (0) > next (1) > later (>= 2). Only attached when the option is
+    // supplied; scheduled / completed cards skip the offset entirely.
+    const offsetClass =
+      options.roundOffset === 0
+        ? 'spl-card-title--round-current'
+        : options.roundOffset === 1
+          ? 'spl-card-title--round-next'
+          : 'spl-card-title--round-later';
+    titleEl.classList.add(offsetClass);
+  }
+
+  const titleText = `${item.eventName} \u2014 ${item.roundName ?? 'Round ' + item.roundNumber}`;
+  if (!(options.prominentTime && item.scheduledTime)) {
+    titleEl.textContent = titleText;
+    return titleEl;
+  }
+
+  titleEl.classList.add('with-time');
+  const textEl = document.createElement('span');
+  textEl.className = 'spl-card-title-text';
+  textEl.textContent = titleText;
+  titleEl.appendChild(textEl);
+  titleEl.appendChild(buildTimeHeader(item.scheduledTime, options));
+  return titleEl;
+}
+
+/** The prominent time header, graded by `timeStatus` when the consumer supplied one. */
+function buildTimeHeader(scheduledTime: string, options: MatchUpCardOptions): HTMLElement {
+  const timeEl = document.createElement('span');
+  timeEl.className = 'spl-card-time-header';
+  // `ok` is the default paint, so it earns no modifier class — but the data
+  // attribute is written for every supplied status so a test (or an operator in
+  // devtools) can tell "graded, and fine" from "never graded at all".
+  if (options.timeStatus) {
+    timeEl.dataset.timeStatus = options.timeStatus;
+    if (options.timeStatus !== 'ok') timeEl.classList.add(`spl-card-time-header--${options.timeStatus}`);
+  }
+  if (options.timeTitle) timeEl.title = options.timeTitle;
+  timeEl.textContent = scheduledTime;
+  return timeEl;
 }
 
 /** Render the consumer's extra detail block, if one was supplied. */

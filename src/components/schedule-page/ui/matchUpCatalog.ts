@@ -23,6 +23,7 @@ import {
   computeBaseRoundByEvent
 } from '../domain/matchUpCatalogProjections';
 import { wrapSearchWithClear, syncClearVisibility } from '../../../helpers/searchClearButton';
+import { clearRelatedHighlight } from './matchUpHighlight';
 import { buildMatchUpCard } from './matchUpCard';
 import {
   spPanelStyle,
@@ -51,6 +52,8 @@ export interface MatchUpCatalogCallbacks {
   onDropRemove?: (matchUpId: string) => void;
   /** Forwarded to every card as `MatchUpCardOptions.renderExtra`. See that contract. */
   renderCardExtra?: (matchUp: CatalogMatchUpItem) => HTMLElement | null;
+  /** Forwarded to every card as `MatchUpCardOptions.relatedMatchUpIds`. See that contract. */
+  relatedMatchUpIds?: (matchUp: CatalogMatchUpItem) => string[];
 }
 
 /** Extract unique sorted values for a field from the catalog. */
@@ -371,6 +374,9 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
       groupSelect.value = state.catalogGroupBy;
     }
 
+    // Any card the pointer was over is about to be destroyed without firing a
+    // `mouseleave`, which would strand its highlight on the grid.
+    clearRelatedHighlight();
     body.innerHTML = '';
 
     for (const [gk, items] of groups) {
@@ -420,7 +426,7 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
         const card = buildMatchUpCard(
           item,
           { onClick: (m) => callbacks.onMatchUpSelected?.(m) },
-          { roundOffset, renderExtra: callbacks.renderCardExtra }
+          { roundOffset, renderExtra: callbacks.renderCardExtra, relatedMatchUpIds: callbacks.relatedMatchUpIds }
         );
 
         if (state.selectedMatchUp?.matchUpId === item.matchUpId) {

@@ -287,6 +287,20 @@
   position: relative;
 }
 
+/* ── Related Highlight (hover from a catalog card) ───────── */
+/* Deliberately NOT the amber conflict colour above: the relation here is
+   "this matchUp is waiting on that one" or "that is where these players just
+   were", which is ordinary draw structure rather than a scheduling fault.
+   Applies to any element carrying data-matchup-id — grid cells, catalog cards,
+   strip cells — so one rule covers every surface the page draws. */
+.spl-related-highlight {
+  box-shadow: 0 0 6px 2px rgba(59, 130, 246, 0.3);
+  outline: 2px solid var(--sp-accent, #3273dc);
+  outline-offset: -2px;
+  z-index: 1;
+  position: relative;
+}
+
 /* ── Search Match Highlight ─────────────────────────────── */
 
 .spl-cell--search-match {

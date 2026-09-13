@@ -40,6 +40,7 @@ export default meta;
 const TITLE_SELECTOR = '[class^="spl-card-title"], [class*=" spl-card-title"]';
 const STAGE_CHIP_SELECTOR = '.spl-card-chip.stage';
 const TIME_HEADER_SELECTOR = '.spl-card-time-header';
+const RELATED_HIGHLIGHT = 'spl-related-highlight';
 const CLASS_ROUND_CURRENT = 'spl-card-title--round-current';
 const CLASS_ROUND_NEXT = 'spl-card-title--round-next';
 const CLASS_ROUND_LATER = 'spl-card-title--round-later';
@@ -207,6 +208,118 @@ export const ProminentTimeWithoutScheduledTimeNoHeader: StoryObj = {
     expect(timeHeader).toBeNull();
     const title = canvasElement.querySelector(TITLE_SELECTOR);
     expect(title?.classList.contains('with-time')).toBe(false);
+  }
+};
+
+// ── timeStatus ──
+
+export const TimeStatusAlertPaintsModifier: StoryObj = {
+  name: 'timeStatus alert → modifier class + data attribute + title',
+  render: () =>
+    renderCard(
+      { scheduledTime: '14:30', isScheduled: true },
+      { prominentTime: true, timeStatus: 'alert', timeTitle: 'Waiting on Quarterfinal — not before 15:30' }
+    ),
+  play: async ({ canvasElement }) => {
+    const timeHeader = canvasElement.querySelector<HTMLElement>(TIME_HEADER_SELECTOR);
+    expect(timeHeader?.classList.contains('spl-card-time-header--alert')).toBe(true);
+    expect(timeHeader?.dataset.timeStatus).toBe('alert');
+    expect(timeHeader?.title).toBe('Waiting on Quarterfinal — not before 15:30');
+  }
+};
+
+export const TimeStatusWarnPaintsModifier: StoryObj = {
+  name: 'timeStatus warn → warn modifier, not alert',
+  render: () =>
+    renderCard({ scheduledTime: '14:30', isScheduled: true }, { prominentTime: true, timeStatus: 'warn' }),
+  play: async ({ canvasElement }) => {
+    const timeHeader = canvasElement.querySelector<HTMLElement>(TIME_HEADER_SELECTOR);
+    expect(timeHeader?.classList.contains('spl-card-time-header--warn')).toBe(true);
+    expect(timeHeader?.classList.contains('spl-card-time-header--alert')).toBe(false);
+  }
+};
+
+export const TimeStatusOkCarriesNoModifier: StoryObj = {
+  name: 'timeStatus ok → data attribute only, default (green) paint retained',
+  render: () =>
+    renderCard({ scheduledTime: '14:30', isScheduled: true }, { prominentTime: true, timeStatus: 'ok' }),
+  play: async ({ canvasElement }) => {
+    const timeHeader = canvasElement.querySelector<HTMLElement>(TIME_HEADER_SELECTOR);
+    expect(timeHeader?.dataset.timeStatus).toBe('ok');
+    expect(timeHeader?.className).toBe('spl-card-time-header');
+  }
+};
+
+export const TimeStatusOmittedIsUngraded: StoryObj = {
+  name: 'timeStatus omitted → no data attribute at all (never graded)',
+  render: () => renderCard({ scheduledTime: '14:30', isScheduled: true }, { prominentTime: true }),
+  play: async ({ canvasElement }) => {
+    const timeHeader = canvasElement.querySelector<HTMLElement>(TIME_HEADER_SELECTOR);
+    expect(timeHeader?.dataset.timeStatus).toBeUndefined();
+  }
+};
+
+// ── relatedMatchUpIds ──
+
+export const RelatedHighlightOnHover: StoryObj = {
+  name: 'hovering a card highlights its related matchUps, and leaving clears them',
+  render: () => {
+    // A stand-in for whatever surface draws the related matchUp — a court-grid
+    // cell, another card, a strip cell. The highlight finds it by data attribute.
+    const wrap = document.createElement('div');
+    const related = document.createElement('div');
+    related.setAttribute('data-matchup-id', 'related-1');
+    related.textContent = 'a grid cell somewhere else on the page';
+    wrap.appendChild(renderCard({ matchUpId: 'card-1' }, { relatedMatchUpIds: () => ['related-1'] }));
+    wrap.appendChild(related);
+    return wrap;
+  },
+  play: async ({ canvasElement }) => {
+    const card = canvasElement.querySelector<HTMLElement>('[data-matchup-id="card-1"]');
+    const related = canvasElement.querySelector<HTMLElement>('[data-matchup-id="related-1"]');
+
+    card?.dispatchEvent(new MouseEvent('mouseenter'));
+    expect(related?.classList.contains(RELATED_HIGHLIGHT)).toBe(true);
+    // The card joins its own relation, so the set reads as a set.
+    expect(card?.classList.contains(RELATED_HIGHLIGHT)).toBe(true);
+
+    card?.dispatchEvent(new MouseEvent('mouseleave'));
+    expect(related?.classList.contains(RELATED_HIGHLIGHT)).toBe(false);
+  }
+};
+
+export const RelatedHighlightClearedOnDragStart: StoryObj = {
+  name: 'starting a drag clears the highlight rather than stranding it',
+  render: () => {
+    const wrap = document.createElement('div');
+    const related = document.createElement('div');
+    related.setAttribute('data-matchup-id', 'related-2');
+    wrap.appendChild(renderCard({ matchUpId: 'card-2' }, { relatedMatchUpIds: () => ['related-2'] }));
+    wrap.appendChild(related);
+    return wrap;
+  },
+  play: async ({ canvasElement }) => {
+    const card = canvasElement.querySelector<HTMLElement>('[data-matchup-id="card-2"]');
+    const related = canvasElement.querySelector<HTMLElement>('[data-matchup-id="related-2"]');
+
+    card?.dispatchEvent(new MouseEvent('mouseenter'));
+    expect(related?.classList.contains(RELATED_HIGHLIGHT)).toBe(true);
+
+    // A real DragEvent with a DataTransfer: the card's own dragstart listener
+    // calls `setDragImage`, which throws on a bare Event and surfaces as an
+    // uncaught error rather than as a failed assertion.
+    card?.dispatchEvent(new DragEvent('dragstart', { dataTransfer: new DataTransfer() }));
+    expect(related?.classList.contains(RELATED_HIGHLIGHT)).toBe(false);
+  }
+};
+
+export const NoRelationNoHighlight: StoryObj = {
+  name: 'a card whose relation is empty lights nothing up',
+  render: () => renderCard({ matchUpId: 'card-3' }, { relatedMatchUpIds: () => [] }),
+  play: async ({ canvasElement }) => {
+    const card = canvasElement.querySelector<HTMLElement>('[data-matchup-id="card-3"]');
+    card?.dispatchEvent(new MouseEvent('mouseenter'));
+    expect(card?.classList.contains(RELATED_HIGHLIGHT)).toBe(false);
   }
 };
 

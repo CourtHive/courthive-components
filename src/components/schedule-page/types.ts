@@ -195,6 +195,12 @@ export interface SchedulePageConfig {
    *  nothing. Consumers that build cards themselves (e.g. a Scheduled panel calling
    *  `buildMatchUpCard` directly) pass the same function as `MatchUpCardOptions.renderExtra`. */
   renderCardExtra?: (matchUp: CatalogMatchUpItem) => HTMLElement | null;
+  /** MatchUps a card is entangled with, resolved when the pointer enters it and
+   *  highlighted wherever the page draws them — grid cells, other cards, strip
+   *  cells. The consumer owns the relation; this component sees one matchUp at a
+   *  time and could not compute "waiting on" if it wanted to. Omit to leave
+   *  cards without hover highlighting. */
+  relatedMatchUpIds?: (matchUp: CatalogMatchUpItem) => string[];
   /** Consumer-owned buttons rendered right-aligned in the court grid header.
    *  Consumer keeps live refs and mutates state (visibility, disabled, label) directly. */
   headerActions?: HTMLElement | HTMLElement[];

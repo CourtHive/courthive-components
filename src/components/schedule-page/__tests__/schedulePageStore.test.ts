@@ -258,6 +258,26 @@ describe('SchedulePageStore', () => {
       expect(store.getState().selectedMatchUp).toEqual(matchUpCatalog[0]);
     });
 
+    it('re-points the selection at the NEW item rather than the snapshot it was selected from', () => {
+      // The catalog is rebuilt whenever anything about the schedule moves,
+      // including by another client. Holding the object captured at selection
+      // time meant the Inspector kept saying "Scheduled: No" about a matchUp
+      // somebody had just dragged onto a court.
+      const store = new SchedulePageStore(makeConfig());
+      store.selectMatchUp(matchUpCatalog[0]);
+
+      const placed = {
+        ...matchUpCatalog[0],
+        isScheduled: true,
+        scheduledTime: '14:30',
+        scheduledCourtName: 'Court 3'
+      };
+      store.setMatchUpCatalog([placed, ...matchUpCatalog.slice(1)]);
+
+      expect(store.getState().selectedMatchUp).toBe(placed);
+      expect(store.getState().selectedMatchUp?.scheduledCourtName).toBe('Court 3');
+    });
+
     it('updates schedule dates', () => {
       const store = new SchedulePageStore(makeConfig());
       const newDates: ScheduleDate[] = [{ date: '2026-07-01', isActive: true }];
