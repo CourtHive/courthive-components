@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.3.0](https://github.com/CourtHive/courthive-components/compare/v4.2.0...v4.3.0) (2026-09-13)
+
+
+### Features
+
+* **schedule-page:** a Now-strip court can read DUE instead of free ([#566](https://github.com/CourtHive/courthive-components/issues/566)) ([6252d40](https://github.com/CourtHive/courthive-components/commit/6252d40464fc249d96c99d675263d84d3fac0c62))
+
 ## [4.2.0](https://github.com/CourtHive/courthive-components/compare/v4.1.2...v4.2.0) (2026-09-13)
 
 
