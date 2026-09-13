@@ -443,3 +443,75 @@ describe('computeReschedulePlacements', () => {
     expect(result[0]).toEqual({ matchUpId: 'SEMI', courtId: 'C1', rowIndex: 0, placed: true });
   });
 });
+
+// ---------------------------------------------------------------------------
+// `due` — the court is idle and something should already have started
+// ---------------------------------------------------------------------------
+
+describe('computeActiveStripCell — due', () => {
+  const DUE = new Set(['M-late']);
+
+  it('surfaces an overdue uncalled matchUp on a court that would otherwise read free', () => {
+    // The `free` state was lying in exactly this case: nothing live, nothing
+    // called, and a matchUp whose time has passed sitting under the court.
+    const result = computeActiveStripCell(column('C1', [cell({ matchUpId: 'M-late', matchUpStatus: TBP })]), {
+      dueMatchUpIds: DUE
+    });
+    expect(result).toEqual({
+      courtId: 'C1',
+      state: 'due',
+      matchUp: cell({ matchUpId: 'M-late', matchUpStatus: TBP }),
+      rowIndex: 0
+    });
+  });
+
+  it('stays free when the consumer reports nothing due — the control', () => {
+    const result = computeActiveStripCell(column('C1', [cell({ matchUpId: 'M-late', matchUpStatus: TBP })]));
+    expect(result.state).toBe('free');
+  });
+
+  it('is outranked by a called matchUp — NEXT is what is actually about to happen', () => {
+    const result = computeActiveStripCell(
+      column('C1', [
+        cell({ matchUpId: 'M-late', matchUpStatus: TBP }),
+        cell({ matchUpId: 'M-called', matchUpStatus: TBP, calledAt: CALLED })
+      ]),
+      { dueMatchUpIds: DUE }
+    );
+    expect(result.state).toBe('next');
+    expect(result.matchUp?.matchUpId).toBe('M-called');
+  });
+
+  it('is outranked by a live matchUp', () => {
+    const result = computeActiveStripCell(
+      column('C1', [
+        cell({ matchUpId: 'M-late', matchUpStatus: TBP }),
+        cell({ matchUpId: 'M-live', matchUpStatus: 'IN_PROGRESS' })
+      ]),
+      { dueMatchUpIds: DUE }
+    );
+    expect(result.state).toBe(IN_PROGRESS_STATE);
+  });
+
+  it('never fires for a matchUp that has already been called', () => {
+    // A called overdue matchUp is `next`, not `due` — it has been actioned.
+    const result = computeActiveStripCell(
+      column('C1', [cell({ matchUpId: 'M-late', matchUpStatus: TBP, calledAt: CALLED })]),
+      { dueMatchUpIds: DUE }
+    );
+    expect(result.state).toBe('next');
+  });
+
+  it('takes the first due row when several are late', () => {
+    const result = computeActiveStripCell(
+      column('C1', [
+        cell({ matchUpId: 'M-other', matchUpStatus: TBP }),
+        cell({ matchUpId: 'M-late', matchUpStatus: TBP }),
+        cell({ matchUpId: 'M-later', matchUpStatus: TBP })
+      ]),
+      { dueMatchUpIds: new Set(['M-late', 'M-later']) }
+    );
+    expect(result.matchUp?.matchUpId).toBe('M-late');
+    expect(result.rowIndex).toBe(1);
+  });
+});

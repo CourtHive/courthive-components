@@ -734,6 +734,14 @@
   opacity: 0.92;
 }
 
+/* DUE: the court has nothing live and nothing called, and a matchUp whose time
+   has passed is sitting under it. Distinct from NEXT — that one IS about to
+   happen; this one should already have. Red rather than the amber family so it
+   does not read as a milder SUSPENDED. */
+.spl-active-strip-cell.state-due {
+  border-left-color: var(--sp-err-text, #dc2626);
+}
+
 /* Status pill in the top-right grid zone of cells with a matchUp. */
 .spl-active-strip-state-pill {
   grid-column: 2;
@@ -793,6 +801,20 @@
 [data-theme='dark'] .spl-active-strip-cell.state-next .spl-active-strip-state-pill {
   background: rgba(251, 191, 36, 0.15);
   color: var(--sp-warn);
+}
+
+/* DUE pill — light mode: red-700 on white is ~6.1:1. This is the one strip
+   state that means somebody should act, so it is the only one that shouts. */
+.spl-active-strip-cell.state-due .spl-active-strip-state-pill {
+  background: #b91c1c;
+  color: #fff;
+}
+
+/* DUE pill — dark mode: tinted fill with red-300 text, mirroring how SUSPENDED
+   and NEXT soften against a dark cell rather than keeping a solid fill. */
+[data-theme='dark'] .spl-active-strip-cell.state-due .spl-active-strip-state-pill {
+  background: rgba(220, 38, 38, 0.2);
+  color: #fca5a5;
 }
 
 .spl-active-strip-body {
