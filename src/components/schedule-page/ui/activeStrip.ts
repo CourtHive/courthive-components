@@ -54,6 +54,23 @@ export interface ActiveStripCourtBlock {
   detail?: string;
 }
 
+/**
+ * A block that has not started yet on a court that is free right now.
+ *
+ * Distinct from `ActiveStripCourtBlock`, which is a block in force. This one is
+ * about the runway left before it: the question a director asks of an idle court
+ * is "can I still put something on it", and the answer is a duration, not a
+ * banner.
+ */
+export interface ActiveStripUpcomingBlock {
+  /** Block type, for the colour — same vocabulary as `ActiveStripCourtBlock.type`. */
+  type: string;
+  /** Pre-formatted by the consumer, e.g. "40m → MAINTENANCE". */
+  label: string;
+  /** Hover text — the consumer owns the wording. */
+  title?: string;
+}
+
 export interface ActiveStripPanelData {
   /** Court columns, in display order. The strip computes one cell per column. */
   grid: ActiveStripGrid;
@@ -63,6 +80,23 @@ export interface ActiveStripPanelData {
    * moves with the clock.
    */
   dueMatchUpIds?: readonly string[];
+  /**
+   * courtId → the block bearing down on a court that is currently FREE. The
+   * consumer decides when one is worth showing; the strip only paints it.
+   *
+   * Ignored for a court that has a block in force (`courtBlocks` wins — a banner
+   * about now beats a countdown to later) and for one with a matchUp on it,
+   * where `courtBlockEdges` carries the same fact in the form that suits an
+   * occupied court.
+   */
+  courtUpcomingBlocks?: Record<string, ActiveStripUpcomingBlock>;
+  /**
+   * courtId → a block that will come into force while the matchUp currently on
+   * that court is still expected to be playing. Painted as a top-edge stripe:
+   * a separate axis from the left-border state language, so a LIVE match on a
+   * court about to close shows both rather than one hiding the other.
+   */
+  courtBlockEdges?: Record<string, ActiveStripUpcomingBlock>;
   /** Optional display labels per courtId. Falls back to courtId. */
   courts?: ActiveStripCourtMeta[];
   /**
@@ -170,7 +204,8 @@ function buildCellElement(
   callbacks: ActiveStripPanelCallbacks,
   getGrid: () => ActiveStripGrid,
   options: ActiveStripPanelOptions,
-  courtBlock?: ActiveStripCourtBlock
+  courtBlock?: ActiveStripCourtBlock,
+  edges?: { upcoming?: ActiveStripUpcomingBlock; edge?: ActiveStripUpcomingBlock }
 ): HTMLElement {
   const root = document.createElement('div');
   root.className = `spl-active-strip-cell state-${cell.state}`;
@@ -213,6 +248,25 @@ function buildCellElement(
       body.textContent = cell.matchUp.participantIds.join(' – ') || cell.matchUp.matchUpId;
       root.appendChild(body);
     }
+  }
+
+  // Runway on an idle court: how long before it is taken away. Suppressed while
+  // a block is already in force — a banner about now beats a countdown to later.
+  const occupied = cell.state !== 'free' && !!cell.matchUp;
+  if (!occupied && !courtBlock && edges?.upcoming) {
+    const runway = document.createElement('div');
+    runway.className = `spl-active-strip-runway block-${edges.upcoming.type.toLowerCase()}`;
+    runway.textContent = edges.upcoming.label;
+    if (edges.upcoming.title) runway.title = edges.upcoming.title;
+    root.appendChild(runway);
+  }
+
+  // A block arriving mid-match: a top-edge stripe, deliberately a different axis
+  // from the left border that carries LIVE / SUSP / NEXT / DUE, so the two
+  // compose instead of one hiding the other.
+  if (occupied && edges?.edge) {
+    root.classList.add('has-block-edge', `edge-${edges.edge.type.toLowerCase()}`);
+    if (edges.edge.title) root.title = edges.edge.title;
   }
 
   const pillText = statePillLabel(cell.state);
@@ -279,7 +333,11 @@ export function buildActiveStripPanel(
     const cells = computeActiveStrip(data.grid, statusOptions);
     for (const cell of cells) {
       const block = data.courtBlocks?.[cell.courtId];
-      root.appendChild(buildCellElement(cell, callbacks, getGrid, options, block));
+      const edges = {
+        upcoming: data.courtUpcomingBlocks?.[cell.courtId],
+        edge: data.courtBlockEdges?.[cell.courtId],
+      };
+      root.appendChild(buildCellElement(cell, callbacks, getGrid, options, block, edges));
     }
   }
 

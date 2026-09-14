@@ -667,6 +667,7 @@ export type {
   ActiveStripPanelOptions,
   ActiveStripCourtMeta,
   ActiveStripCourtBlock,
+  ActiveStripUpcomingBlock,
   ActiveStripCell,
   ActiveStripCellState,
   ActiveStripGrid,
