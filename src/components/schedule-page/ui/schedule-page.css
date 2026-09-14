@@ -697,6 +697,86 @@
   border-left-color: #6366f1;
 }
 
+/* ── Runway: an idle court counting down to its next block ──────────────
+   "40m → MAINTENANCE" — a duration, because the question a director asks of an
+   empty court is "can I still put something on it", and a clock time makes them
+   do the subtraction. Shown only while the court is free and unblocked; a block
+   in force paints the banner above instead. The consumer decides WHEN it is
+   worth showing at all. */
+.spl-active-strip-runway {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  align-self: center;
+  padding: 2px 6px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--sp-text-muted, #888);
+  border-left: 3px solid var(--sp-text-muted, #888);
+}
+
+.spl-active-strip-runway.block-practice {
+  color: #38a169;
+  border-left-color: #38a169;
+}
+
+.spl-active-strip-runway.block-maintenance {
+  color: #b7791f;
+  border-left-color: #d69e2e;
+}
+
+.spl-active-strip-runway.block-blocked,
+.spl-active-strip-runway.block-hard_block,
+.spl-active-strip-runway.block-closed,
+.spl-active-strip-runway.block-locked {
+  color: #c53030;
+  border-left-color: #e53e3e;
+}
+
+.spl-active-strip-runway.block-drying {
+  color: #0d9488;
+  border-left-color: #14b8a6;
+}
+
+.spl-active-strip-runway.block-reserved,
+.spl-active-strip-runway.block-soft_block {
+  color: #4f46e5;
+  border-left-color: #6366f1;
+}
+
+/* ── Block edge: a block arriving while THIS match is still expected to run ──
+   A top-edge stripe. Deliberately a different axis from the left border, which
+   carries LIVE / SUSP / NEXT / DUE — a live match on a court about to close has
+   both facts to tell, and neither may hide the other. */
+.spl-active-strip-cell.has-block-edge {
+  box-shadow: inset 0 3px 0 0 var(--sp-text-muted, #888);
+}
+
+.spl-active-strip-cell.has-block-edge.edge-practice {
+  box-shadow: inset 0 3px 0 0 #38a169;
+}
+
+.spl-active-strip-cell.has-block-edge.edge-maintenance {
+  box-shadow: inset 0 3px 0 0 #d69e2e;
+}
+
+.spl-active-strip-cell.has-block-edge.edge-blocked,
+.spl-active-strip-cell.has-block-edge.edge-hard_block,
+.spl-active-strip-cell.has-block-edge.edge-closed,
+.spl-active-strip-cell.has-block-edge.edge-locked {
+  box-shadow: inset 0 3px 0 0 #e53e3e;
+}
+
+.spl-active-strip-cell.has-block-edge.edge-drying {
+  box-shadow: inset 0 3px 0 0 #14b8a6;
+}
+
+.spl-active-strip-cell.has-block-edge.edge-reserved,
+.spl-active-strip-cell.has-block-edge.edge-soft_block {
+  box-shadow: inset 0 3px 0 0 #6366f1;
+}
+
 /* When a court has an active block AND a scheduled matchUp at the same
    time, draw the cell with a flashing border so the conflict surfaces.
    The .has-availability-block class is added by buildCellElement; the
