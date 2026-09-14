@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.4.0](https://github.com/CourtHive/courthive-components/compare/v4.3.0...v4.4.0) (2026-09-14)
+
+
+### Features
+
+* **schedule-page:** strip cells can show a runway and a block edge ([#568](https://github.com/CourtHive/courthive-components/issues/568)) ([b740374](https://github.com/CourtHive/courthive-components/commit/b740374f350fb019a0fd947602bf350ac6d7609f))
+
 ## [4.3.0](https://github.com/CourtHive/courthive-components/compare/v4.2.0...v4.3.0) (2026-09-13)
 
 
