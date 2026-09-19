@@ -10,6 +10,8 @@
  * dragging factory internals into courthive-components.
  */
 
+import type { StatusCodeEntry } from '../../../scoring/logic/statusCodes';
+
 // `matchUpStatusCodes` keys — the six statuses the factory's scoring
 // policy can refine with caller-defined codes (see ABANDONED, CANCELLED,
 // DEFAULTED, INCOMPLETE, RETIRED, WALKOVER in factory matchUpStatusConstants).
@@ -74,7 +76,12 @@ export interface ScoringPolicyData {
   requireAllPositionsAssigned?: boolean;
   allowChangePropagation?: boolean;
   allowDeletionWithScoresPresent?: AllowDeletionWithScoresPresent;
-  matchUpStatusCodes?: Partial<Record<MatchUpStatusKey, string[]>>;
+  // OBJECT-shaped, per CA's decision of 2026-09-19. The editor modelled this as `string[]` while
+  // the factory shipped objects, so every save through this editor DESTROYED the
+  // `matchUpStatusCodeDisplay` and `label` a policy had authored — the two fields the scoring
+  // modal's reason picker exists to render. A bare code cannot express them, so the two shapes were
+  // never symmetric: one direction lost data and this was that direction.
+  matchUpStatusCodes?: Partial<Record<MatchUpStatusKey, StatusCodeEntry[]>>;
 
   // Stage-keyed sequence overrides (the factory's POLICY_SCORING_DEFAULT
   // ships with `stage.MAIN.stageSequence[1].requireAllPositionsAssigned`).
