@@ -20,6 +20,14 @@ import {
   buildSetScore,
   type MatchUpConfig
 } from '../logic/dynamicSetsLogic';
+import {
+  applyIrregularEndingToValidation,
+  doubleExitWarning,
+  supportsNeitherSide,
+  carriesNoScore,
+  NEITHER_SIDE,
+  type WinnerSelection
+} from '../logic/irregularEnding';
 
 const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT } = matchUpStatusConstants;
 
@@ -79,29 +87,6 @@ function updateContainerVisibility(
   } else {
     winnerSelectionContainer.style.display = 'none';
     irregularEndingContainer.style.display = matchComplete ? 'none' : 'block';
-  }
-}
-
-function applyIrregularEndingToValidation(
-  validation: any,
-  selectedOutcome: string,
-  selectedWinner: number | undefined
-): void {
-  if (selectedOutcome === COMPLETED) return;
-
-  if (selectedWinner) {
-    validation.matchUpStatus = selectedOutcome;
-    validation.winningSide = selectedWinner;
-    validation.isValid = true;
-  } else if (selectedOutcome === WALKOVER) {
-    validation.matchUpStatus = DOUBLE_WALKOVER;
-    validation.isValid = true;
-  } else if (selectedOutcome === DEFAULTED) {
-    validation.matchUpStatus = DOUBLE_DEFAULT;
-    validation.isValid = true;
-  } else {
-    validation.matchUpStatus = selectedOutcome;
-    validation.isValid = false;
   }
 }
 
@@ -231,7 +216,9 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
   // Irregular ending selector
   let selectedOutcome: typeof COMPLETED | typeof RETIRED | typeof WALKOVER | typeof DEFAULTED = COMPLETED;
-  let selectedWinner: number | undefined = undefined; // For irregular endings
+  // Tri-state: undefined = the operator has not answered, 1|2 = that side won,
+  // NEITHER_SIDE = explicitly neither (a double exit). See logic/irregularEnding.ts.
+  let winnerSelection: WinnerSelection = undefined;
 
   // Track which sets have had smart complement applied (for efficiency feature)
   // REFACTORED: Changed from Map to Set for compatibility with pure logic
@@ -336,7 +323,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
     // Reset to COMPLETED
     selectedOutcome = COMPLETED;
-    selectedWinner = undefined;
+    winnerSelection = undefined;
     winnerSelectionContainer.style.display = 'none';
 
     // Clear internal matchUp status so it doesn't persist from the previous irregular ending
@@ -392,7 +379,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     winnerRadio.name = 'irregularWinner';
     winnerRadio.value = sideNum.toString();
     winnerRadio.addEventListener('change', () => {
-      selectedWinner = sideNum;
+      winnerSelection = sideNum as 1 | 2;
       setTimeout(() => {
         if (typeof updateScoreFromInputs === 'function') {
           // Guard: selecting a winner shouldn't re-init the game score engine
@@ -413,7 +400,63 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     winnerOptions.appendChild(winnerRadioLabel);
   });
 
+  // "Neither side" — the explicit double-exit answer. Offered only for the endings that HAVE a
+  // double form; the factory ships no double-retirement status, so it is hidden for Retired.
+  const neitherRadioLabel = document.createElement('label');
+  neitherRadioLabel.style.display = 'flex';
+  neitherRadioLabel.style.alignItems = 'center';
+  neitherRadioLabel.style.gap = '0.3em';
+  neitherRadioLabel.style.cursor = 'pointer';
+
+  const neitherRadio = document.createElement('input');
+  neitherRadio.type = 'radio';
+  neitherRadio.name = 'irregularWinner';
+  neitherRadio.value = NEITHER_SIDE;
+  neitherRadio.addEventListener('change', () => {
+    winnerSelection = NEITHER_SIDE;
+    setTimeout(() => {
+      if (typeof updateScoreFromInputs === 'function') {
+        pointChangeInProgress = true;
+        updateScoreFromInputs();
+        pointChangeInProgress = false;
+      }
+    }, 0);
+  });
+
+  const neitherText = document.createElement('span');
+  neitherText.textContent = labels.neitherSide || 'Neither side';
+  neitherText.style.fontSize = '0.75rem';
+
+  neitherRadioLabel.appendChild(neitherRadio);
+  neitherRadioLabel.appendChild(neitherText);
+  winnerOptions.appendChild(neitherRadioLabel);
+
   winnerSelectionContainer.appendChild(winnerOptions);
+
+  const doubleExitNotice = document.createElement('div');
+  doubleExitNotice.style.display = 'none';
+  doubleExitNotice.style.fontSize = '0.7rem';
+  doubleExitNotice.style.marginTop = '0.3em';
+  doubleExitNotice.style.color = 'var(--chc-text-warning, var(--chc-text-primary))';
+  winnerSelectionContainer.appendChild(doubleExitNotice);
+
+  /**
+   * Keep the winner group honest about what this ending can answer: hide "Neither side" where it has
+   * no meaning, and surface the consequence when it is the live selection.
+   */
+  function updateWinnerSelectionUI(isDoubleExit: boolean): void {
+    const neitherAllowed = supportsNeitherSide(selectedOutcome);
+    neitherRadioLabel.style.display = neitherAllowed ? 'flex' : 'none';
+
+    if (!neitherAllowed && winnerSelection === NEITHER_SIDE) {
+      winnerSelection = undefined;
+      neitherRadio.checked = false;
+    }
+
+    doubleExitNotice.style.display = isDoubleExit ? 'block' : 'none';
+    if (isDoubleExit) doubleExitNotice.textContent = doubleExitWarning(selectedOutcome);
+  }
+
   irregularEndingContainer.appendChild(winnerSelectionContainer);
 
   container.appendChild(irregularEndingContainer);
@@ -592,7 +635,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
     // Reset irregular ending
     selectedOutcome = COMPLETED;
-    selectedWinner = undefined;
+    winnerSelection = undefined;
 
     // CLEAR INTERNAL STATE - no more reference to original matchUp
     internalScore = undefined;
@@ -951,11 +994,12 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
       const setsForValidation = setsToValidate.map(mapSetToValidationData);
 
-      const validation = validateSetScores(
-        setsForValidation,
-        matchUp.matchUpFormat,
-        selectedOutcome !== COMPLETED
-      );
+      // A walkover has no score, so there is nothing to validate. Running set validation over it
+      // produces a failure about missing sets which the ending then has to override — the outcome
+      // came out right only because the override ran. Skip it: no score, no validation, no error.
+      const validation = carriesNoScore(selectedOutcome)
+        ? { isValid: false, sets: [] }
+        : validateSetScores(setsForValidation, matchUp.matchUpFormat, selectedOutcome !== COMPLETED);
 
       reattachPointScores(setsForValidation, validation);
 
@@ -968,7 +1012,8 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
         winnerSelectionContainer
       );
 
-      applyIrregularEndingToValidation(validation, selectedOutcome, selectedWinner);
+      const resolution = applyIrregularEndingToValidation(validation, selectedOutcome, winnerSelection);
+      updateWinnerSelectionUI(resolution.isDoubleExit);
 
       updateMatchUpDisplay(validation);
 
@@ -1057,7 +1102,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
   function clearIrregularEndingState(): void {
     selectedOutcome = COMPLETED;
-    selectedWinner = undefined;
+    winnerSelection = undefined;
     const outcomeRadios = irregularEndingContainer.querySelectorAll(OUTCOME_SELECTOR);
     outcomeRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
     winnerSelectionContainer.style.display = 'none';
@@ -1456,16 +1501,17 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     matchUp.matchUpStatus !== COMPLETED &&
     [RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT].includes(matchUp.matchUpStatus)
   ) {
-    // Map DOUBLE_* statuses to their base status
+    // Map DOUBLE_* statuses back to their base status plus the explicit "neither" answer, so
+    // reopening a double exit shows the selection that produced it rather than an empty winner group.
     if (matchUp.matchUpStatus === DOUBLE_WALKOVER) {
       selectedOutcome = WALKOVER;
-      selectedWinner = undefined; // No winner for double walkover
+      winnerSelection = NEITHER_SIDE;
     } else if (matchUp.matchUpStatus === DOUBLE_DEFAULT) {
       selectedOutcome = DEFAULTED;
-      selectedWinner = undefined; // No winner for double default
+      winnerSelection = NEITHER_SIDE;
     } else {
       selectedOutcome = matchUp.matchUpStatus;
-      selectedWinner = matchUp.winningSide;
+      winnerSelection = matchUp.winningSide;
     }
 
     // Check the appropriate irregular ending radio button
@@ -1476,18 +1522,17 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       }
     });
 
-    // Initialize winner if present (only for non-DOUBLE statuses)
-    if (selectedWinner) {
-      // Check the appropriate winner radio button
+    // Restore the winner answer — a side, or the explicit NEITHER_SIDE behind a double exit.
+    if (winnerSelection !== undefined) {
       const winnerRadios = irregularEndingContainer.querySelectorAll<HTMLInputElement>(WINNER_SELECTOR);
       winnerRadios.forEach((radio) => {
-        if (Number.parseInt(radio.value) === selectedWinner) {
+        if (radio.value === String(winnerSelection)) {
           radio.checked = true;
         }
       });
 
-      // Show winner selection container
       winnerSelectionContainer.style.display = 'block';
+      updateWinnerSelectionUI(winnerSelection === NEITHER_SIDE);
     }
   }
 

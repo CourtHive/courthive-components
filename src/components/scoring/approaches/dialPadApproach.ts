@@ -11,6 +11,15 @@ import { validateScore } from '../utils/scoreValidator';
 import type { RenderScoreEntryParams, ScoreOutcome } from '../types';
 import { getScoringConfig } from '../config';
 
+import {
+  applyIrregularEndingToValidation,
+  doubleExitWarning,
+  supportsNeitherSide,
+  carriesNoScore,
+  NEITHER_SIDE,
+  type WinnerSelection
+} from '../logic/irregularEnding';
+
 const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT } = matchUpStatusConstants;
 
 const DEFAULT_FORMAT = 'SET3-S:6/TB7';
@@ -194,7 +203,8 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
     // Irregular ending section
     let selectedOutcome: typeof COMPLETED | typeof RETIRED | typeof WALKOVER | typeof DEFAULTED = COMPLETED;
-    let selectedWinner: number | undefined = undefined;
+    // Tri-state: undefined = unanswered, 1|2 = that side won, NEITHER_SIDE = a double exit.
+    let winnerSelection: WinnerSelection = undefined;
 
     const irregularEndingContainer = document.createElement('div');
     irregularEndingContainer.style.display = 'none'; // Hidden by default
@@ -247,7 +257,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       winnerRadio.value = sideNum.toString();
       winnerRadio.addEventListener('change', () => {
         if (winnerRadio.checked) {
-          selectedWinner = sideNum;
+          winnerSelection = sideNum as 1 | 2;
           updateDisplay();
         }
       });
@@ -263,7 +273,56 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       winnerOptions.appendChild(winnerRadioLabel);
     });
 
+    // "Neither side" — the explicit double-exit answer, offered only for endings with a double form.
+    const neitherRadioLabel = document.createElement('label');
+    neitherRadioLabel.style.display = 'flex';
+    neitherRadioLabel.style.alignItems = 'center';
+    neitherRadioLabel.style.gap = '0.3em';
+    neitherRadioLabel.style.cursor = 'pointer';
+
+    const neitherRadio = document.createElement('input');
+    neitherRadio.type = 'radio';
+    neitherRadio.name = 'irregularWinner';
+    neitherRadio.value = NEITHER_SIDE;
+    neitherRadio.addEventListener('change', () => {
+      if (neitherRadio.checked) {
+        winnerSelection = NEITHER_SIDE;
+        updateDisplay();
+      }
+    });
+
+    const neitherText = document.createElement('span');
+    neitherText.textContent = labels.neitherSide || 'Neither side';
+    neitherText.style.fontSize = '0.75rem';
+    neitherText.style.color = CHC_TEXT_SECONDARY;
+
+    neitherRadioLabel.appendChild(neitherRadio);
+    neitherRadioLabel.appendChild(neitherText);
+    winnerOptions.appendChild(neitherRadioLabel);
+
     winnerSelectionContainer.appendChild(winnerOptions);
+
+    const doubleExitNotice = document.createElement('div');
+    doubleExitNotice.style.display = 'none';
+    doubleExitNotice.style.fontSize = '0.7rem';
+    doubleExitNotice.style.marginTop = '0.3em';
+    doubleExitNotice.style.color = 'var(--chc-text-warning, var(--chc-text-primary))';
+    winnerSelectionContainer.appendChild(doubleExitNotice);
+
+    /** Hide "Neither side" where it has no meaning; name the consequence when it is chosen. */
+    const updateWinnerSelectionUI = (isDoubleExit: boolean): void => {
+      const neitherAllowed = supportsNeitherSide(selectedOutcome);
+      neitherRadioLabel.style.display = neitherAllowed ? 'flex' : 'none';
+
+      if (!neitherAllowed && winnerSelection === NEITHER_SIDE) {
+        winnerSelection = undefined;
+        neitherRadio.checked = false;
+      }
+
+      doubleExitNotice.style.display = isDoubleExit ? 'block' : 'none';
+      if (isDoubleExit) doubleExitNotice.textContent = doubleExitWarning(selectedOutcome);
+    };
+
     irregularEndingContainer.appendChild(winnerSelectionContainer);
     container.appendChild(irregularEndingContainer);
 
@@ -363,8 +422,12 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         return;
       }
 
-      // Use validateScore for proper validation
-      let validation = validateScore(scoreString, matchUp.matchUpFormat);
+      // Use validateScore for proper validation — except for a walkover, which has no score to
+      // validate. Passing an empty score string in otherwise yields "Score is required", a failure
+      // about a score that is not supposed to exist.
+      let validation = carriesNoScore(selectedOutcome)
+        ? { isValid: false, sets: [] }
+        : validateScore(scoreString, matchUp.matchUpFormat);
 
       // Track if match is complete (validation returns isComplete for completed matches)
       // Match is complete if validation has winningSide and matchUpStatus is COMPLETED
@@ -373,29 +436,11 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         validation.winningSide !== undefined &&
         (validation.matchUpStatus === COMPLETED || validation.matchUpStatus === undefined);
 
-      // Add irregular ending info if selected
+      // Add irregular ending info if selected. The rule lives in logic/irregularEnding.ts so this
+      // approach cannot drift from dynamicSets and freeScore about what an unanswered winner means.
       if (selectedOutcome !== COMPLETED) {
-        // Override winningSide if manually selected
-        if (selectedWinner) {
-          validation.matchUpStatus = selectedOutcome;
-          validation.winningSide = selectedWinner;
-          validation.isValid = true;
-        } else {
-          // No winner selected
-          // For walkover and defaulted, use DOUBLE_* status and enable submit
-          if (selectedOutcome === WALKOVER) {
-            validation.matchUpStatus = DOUBLE_WALKOVER;
-            validation.isValid = true;
-          } else if (selectedOutcome === DEFAULTED) {
-            validation.matchUpStatus = DOUBLE_DEFAULT;
-            validation.isValid = true;
-          } else {
-            // For retired, still need winner selection
-            // BUT: Keep the score/sets that were entered (for RETIRED)
-            validation.matchUpStatus = selectedOutcome;
-            validation.isValid = false;
-          }
-        }
+        const resolution = applyIrregularEndingToValidation(validation, selectedOutcome, winnerSelection);
+        updateWinnerSelectionUI(resolution.isDoubleExit);
         // Irregular endings mean match is "complete" in a different way
         state.isMatchComplete = false; // Allow RET/DEF since irregular ending was selected
       }
@@ -422,7 +467,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       // This handles the case where user had RETIRED/WALKOVER/DEFAULTED and now enters new digits
       if (selectedOutcome !== COMPLETED && typeof digit === 'number') {
         selectedOutcome = COMPLETED;
-        selectedWinner = undefined;
+        winnerSelection = undefined;
         // Uncheck irregular ending radios
         const outcomeRadios = irregularEndingContainer.querySelectorAll(OUTCOME_SELECTOR);
         outcomeRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
@@ -549,7 +594,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       state.digits = '';
       state.isMatchComplete = false; // Reset match completion state
       selectedOutcome = COMPLETED;
-      selectedWinner = undefined;
+      winnerSelection = undefined;
       // CLEAR INTERNAL STATE - no more reference to original matchUp
       internalScore = undefined;
       internalWinningSide = undefined;
@@ -610,7 +655,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     const updateDigitButtonStates = () => {
       // Check if we have a completed score (irregular ending with winner, or complete match score)
       const hasCompletedScore =
-        (selectedOutcome !== COMPLETED && selectedWinner !== undefined) || state.isMatchComplete;
+        (selectedOutcome !== COMPLETED && winnerSelection !== undefined) || state.isMatchComplete;
 
       // Get all digit buttons (numbers and minus)
       const allButtons = dialPadContainer.querySelectorAll('button');
@@ -692,14 +737,14 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           handleDigitPress('-');
         } else if (btn.value === 'retired') {
           selectedOutcome = RETIRED;
-          selectedWinner = undefined;
+          winnerSelection = undefined;
           // Clear winner radio selections
           const winnerRadios = irregularEndingContainer.querySelectorAll(WINNER_SELECTOR);
           winnerRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
           updateDisplay();
         } else if (btn.value === 'walkover') {
           selectedOutcome = WALKOVER;
-          selectedWinner = undefined;
+          winnerSelection = undefined;
           // Clear score for walkover
           state.digits = '';
           // Clear winner radio selections
@@ -709,7 +754,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           updateDigitButtonStates(); // Update button states after selecting walkover
         } else if (btn.value === 'defaulted') {
           selectedOutcome = DEFAULTED;
-          selectedWinner = undefined;
+          winnerSelection = undefined;
           // Clear winner radio selections
           const winnerRadios = irregularEndingContainer.querySelectorAll(WINNER_SELECTOR);
           winnerRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
@@ -779,13 +824,13 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       // Map DOUBLE_* statuses to their base status
       if (internalMatchUpStatus === DOUBLE_WALKOVER) {
         selectedOutcome = WALKOVER;
-        selectedWinner = undefined; // No winner for double walkover
+        winnerSelection = NEITHER_SIDE;
       } else if (internalMatchUpStatus === DOUBLE_DEFAULT) {
         selectedOutcome = DEFAULTED;
-        selectedWinner = undefined; // No winner for double default
+        winnerSelection = NEITHER_SIDE;
       } else {
         selectedOutcome = internalMatchUpStatus as any;
-        selectedWinner = internalWinningSide;
+        winnerSelection = internalWinningSide;
       }
 
       // Check the appropriate irregular ending radio button
@@ -797,17 +842,16 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       });
 
       // Initialize winner if present (only for non-DOUBLE statuses)
-      if (selectedWinner) {
-        // Check the appropriate winner radio button
+      if (winnerSelection !== undefined) {
         const winnerRadios = irregularEndingContainer.querySelectorAll(WINNER_SELECTOR) as NodeListOf<HTMLInputElement>;
         winnerRadios.forEach((radio) => {
-          if (Number.parseInt(radio.value) === selectedWinner) {
+          if (radio.value === String(winnerSelection)) {
             radio.checked = true;
           }
         });
 
-        // Show winner selection container
         winnerSelectionContainer.style.display = 'block';
+        updateWinnerSelectionUI(winnerSelection === NEITHER_SIDE);
       }
     } else if (!internalScore && (!internalMatchUpStatus || internalMatchUpStatus === 'TO_BE_PLAYED')) {
       // ONLY call resetDialPad for truly fresh matchUps with NO score

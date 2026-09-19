@@ -33,6 +33,7 @@ export type ScoringModalLabels = {
   formatEditTitle?: string;
   irregularEnding?: string;
   winner?: string;
+  neitherSide?: string;
   retired?: string;
   walkover?: string;
   defaulted?: string;
