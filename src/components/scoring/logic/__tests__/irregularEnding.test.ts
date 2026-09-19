@@ -1,15 +1,19 @@
 import { describe, it, expect } from 'vitest';
-import { matchUpStatusConstants } from 'tods-competition-factory';
+import { matchUpStatusConstants, nonDirectingMatchUpStatuses } from 'tods-competition-factory';
 import {
   applyIrregularEndingToValidation,
   WINNER_REQUIRING_STATUSES,
+  NON_DIRECTING_ENDINGS,
   resolveIrregularEnding,
   WINNER_REQUIRED_ERROR,
+  SELECTABLE_ENDINGS,
   supportsNeitherSide,
+  requiresWinner,
   NEITHER_SIDE,
 } from '../irregularEnding';
 
-const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT } = matchUpStatusConstants;
+const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, ABANDONED, CANCELLED, INCOMPLETE } =
+  matchUpStatusConstants;
 
 describe('resolveIrregularEnding', () => {
   describe('a named winner keeps the selected status', () => {
@@ -171,3 +175,91 @@ describe('applyIrregularEndingToValidation', () => {
     expect(resolution.isDoubleExit).toBe(true);
   });
 });
+
+describe('the six selectable endings', () => {
+  // These six are exactly the keys the factory's scoring policy refines with matchUpStatusCodes.
+  // If that set ever diverges from what the modal offers, a code group becomes unreachable or a
+  // status becomes unrefinable — so pin it.
+  it('are the six matchUpStatusCodes policy keys', () => {
+    expect([...SELECTABLE_ENDINGS].toSorted((a, b) => a.localeCompare(b, 'en'))).toEqual(
+      [ABANDONED, CANCELLED, DEFAULTED, INCOMPLETE, RETIRED, WALKOVER].toSorted((a, b) => a.localeCompare(b, 'en')),
+    );
+  });
+
+  it('split cleanly into winner-requiring and non-directing, with no overlap and nothing left over', () => {
+    const winnerRequiring = SELECTABLE_ENDINGS.filter((s) => WINNER_REQUIRING_STATUSES.has(s));
+    const nonDirecting = SELECTABLE_ENDINGS.filter((s) => NON_DIRECTING_ENDINGS.has(s));
+
+    expect(winnerRequiring).toHaveLength(3);
+    expect(nonDirecting).toHaveLength(3);
+    expect(winnerRequiring.filter((s) => NON_DIRECTING_ENDINGS.has(s))).toEqual([]);
+    expect(winnerRequiring.length + nonDirecting.length).toBe(SELECTABLE_ENDINGS.length);
+  });
+
+  // Authority cross-check: our "resolves nobody" classification must agree with the factory's own,
+  // so a reclassification upstream fails here rather than silently changing what the modal submits.
+  it('agrees with the factory that the non-directing endings direct nobody', () => {
+    for (const status of NON_DIRECTING_ENDINGS) {
+      expect(nonDirectingMatchUpStatuses).toContain(status);
+    }
+  });
+
+  it('agrees with the factory that the winner-requiring endings are NOT non-directing', () => {
+    for (const status of WINNER_REQUIRING_STATUSES) {
+      expect(nonDirectingMatchUpStatuses).not.toContain(status);
+    }
+  });
+});
+
+describe('an ending that resolves nobody needs no winner', () => {
+  it.each([ABANDONED, CANCELLED, INCOMPLETE])('%s is valid as soon as it is chosen', (status) => {
+    const result = resolveIrregularEnding({ selectedOutcome: status, winnerSelection: undefined });
+
+    expect(result.isValid).toBe(true);
+    expect(result.awaitingWinner).toBe(false);
+    expect(result.matchUpStatus).toBe(status);
+    expect(result.winningSide).toBeUndefined();
+  });
+
+  it.each([ABANDONED, CANCELLED, INCOMPLETE])('%s ignores a winner selection rather than honouring it', (status) => {
+    const result = resolveIrregularEnding({ selectedOutcome: status, winnerSelection: 1 });
+
+    expect(result.winningSide).toBeUndefined();
+    expect(result.isValid).toBe(true);
+  });
+
+  it.each([ABANDONED, CANCELLED, INCOMPLETE])('%s is never a double exit', (status) => {
+    const result = resolveIrregularEnding({ selectedOutcome: status, winnerSelection: NEITHER_SIDE });
+
+    expect(result.isDoubleExit).toBe(false);
+    expect(result.matchUpStatus).toBe(status);
+  });
+
+  it('clears a stale validator error when applied', () => {
+    const validation: any = { isValid: false, sets: [], error: 'Incomplete match - need 2 sets to win' };
+
+    applyIrregularEndingToValidation(validation, ABANDONED, undefined);
+
+    expect(validation.isValid).toBe(true);
+    expect(validation.error).toBeUndefined();
+  });
+});
+
+describe('requiresWinner', () => {
+  it.each([
+    [RETIRED, true],
+    [WALKOVER, true],
+    [DEFAULTED, true],
+    [ABANDONED, false],
+    [CANCELLED, false],
+    [INCOMPLETE, false],
+    [COMPLETED, false],
+  ])('%s → %s', (status, expected) => {
+    expect(requiresWinner(status)).toBe(expected);
+  });
+
+  it('is false for undefined', () => {
+    expect(requiresWinner(undefined)).toBe(false);
+  });
+});
+

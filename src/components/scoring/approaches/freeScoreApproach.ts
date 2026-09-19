@@ -32,6 +32,7 @@ const {
   DEAD_RUBBER,
   IN_PROGRESS,
   AWAITING_RESULT,
+  ABANDONED,
   DOUBLE_WALKOVER,
   DOUBLE_DEFAULT
 } = matchUpStatusConstants;
@@ -367,7 +368,8 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
     [INCOMPLETE]: 'INCOMPLETE',
     [DEAD_RUBBER]: 'DEAD RUBBER',
     [IN_PROGRESS]: 'IN PROGRESS',
-    [AWAITING_RESULT]: 'AWAITING RESULT'
+    [AWAITING_RESULT]: 'AWAITING RESULT',
+    [ABANDONED]: labels.abandoned || 'ABANDONED'
   };
 
   /**
@@ -424,7 +426,9 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
     const currentStatus = result.matchUpStatus || parseResult.matchUpStatus;
     const requiresWinnerSelection = WINNER_REQUIRING_STATUSES.has(currentStatus);
     const noWinnerNeeded =
-      [CANCELLED, DEAD_RUBBER, AWAITING_RESULT, INCOMPLETE, IN_PROGRESS, SUSPENDED].includes(currentStatus);
+      [CANCELLED, DEAD_RUBBER, AWAITING_RESULT, INCOMPLETE, IN_PROGRESS, SUSPENDED, ABANDONED].includes(
+        currentStatus
+      );
 
     if (requiresWinnerSelection) {
       radioContainer.style.display = 'flex';
@@ -501,7 +505,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
 
     const IRREGULAR_STATUSES = new Set<string>([
       RETIRED, WALKOVER, DEFAULTED, SUSPENDED, CANCELLED,
-      INCOMPLETE, DEAD_RUBBER, IN_PROGRESS, AWAITING_RESULT
+      INCOMPLETE, DEAD_RUBBER, IN_PROGRESS, AWAITING_RESULT, ABANDONED
     ]);
     const isIrregularEnding = parseResult.matchUpStatus && IRREGULAR_STATUSES.has(parseResult.matchUpStatus);
 
