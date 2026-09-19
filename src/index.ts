@@ -52,6 +52,7 @@ export type { FlightProfileConfig } from './components/flightProfile/flightProfi
 export { scoringModal } from './components/scoring/scoringModal';
 export { setScoringConfig, getScoringConfig, resetScoringConfig } from './components/scoring/config';
 export type { ScoringModalParams, ScoringModalLabels, ScoreOutcome, SetScore } from './components/scoring/types';
+export type { StatusCodeGroups, StatusCodeEntry } from './components/scoring/logic/statusCodes';
 
 // Dynamic Sets state management API (pure functions, testable)
 export {

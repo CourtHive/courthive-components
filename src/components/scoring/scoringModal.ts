@@ -9,6 +9,7 @@ import { renderDialPadScoreEntry } from './approaches/dialPadApproach';
 import { renderFreeScoreEntry } from './approaches/freeScoreApproach';
 import type { ScoringModalParams, ScoreOutcome } from './types';
 import { getScoringConfig, setScoringConfig } from './config';
+import { buildStatusCodePicker } from './statusCodePicker';
 import { cModal } from '../modal/cmodal';
 
 type ScoringApproach = 'dynamicSets' | 'freeScore' | 'dialPad' | 'inlineScoring';
@@ -25,7 +26,11 @@ const APPROACH_LABELS: Record<ScoringApproach, string> = {
 const APPROACHES: ScoringApproach[] = ['dynamicSets', 'freeScore', 'dialPad', 'inlineScoring'];
 
 export function scoringModal(params: ScoringModalParams): void {
-  const { matchUp, callback, onClose, labels = {} } = params;
+  const { matchUp, callback, onClose, labels = {}, matchUpStatusCodes } = params;
+
+  // One reason-code control for every approach. It is driven by the outcome's matchUpStatus, which
+  // every approach already reports, so it needs no per-approach plumbing.
+  const statusCodePicker = buildStatusCodePicker({ groups: matchUpStatusCodes, labels });
 
   const config = getScoringConfig();
   let activeApproach: ScoringApproach = (config.scoringApproach as ScoringApproach) || 'dynamicSets';
@@ -37,6 +42,7 @@ export function scoringModal(params: ScoringModalParams): void {
 
   const handleScoreChange = (outcome: ScoreOutcome) => {
     currentOutcome = outcome;
+    statusCodePicker.update(outcome?.matchUpStatus);
 
     if (wasCleared && (outcome.sets?.length > 0 || outcome.score)) {
       wasCleared = false;
@@ -82,14 +88,20 @@ export function scoringModal(params: ScoringModalParams): void {
     const container = document.createElement('div');
     container.style.padding = '1em';
 
+    const approachContent = document.createElement('div');
+    container.appendChild(approachContent);
+    container.appendChild(statusCodePicker.element);
+    // Re-assert the picker against the outcome that survived the approach switch.
+    statusCodePicker.update(currentOutcome?.matchUpStatus);
+
     if (approach === 'freeScore') {
-      renderFreeScoreEntry({ matchUp, container, onScoreChange: handleScoreChange, labels });
+      renderFreeScoreEntry({ matchUp, container: approachContent, onScoreChange: handleScoreChange, labels });
     } else if (approach === 'dynamicSets') {
-      renderDynamicSetsScoreEntry({ matchUp, container, onScoreChange: handleScoreChange, labels });
+      renderDynamicSetsScoreEntry({ matchUp, container: approachContent, onScoreChange: handleScoreChange, labels });
     } else if (approach === 'dialPad') {
-      renderDialPadScoreEntry({ matchUp, container, onScoreChange: handleScoreChange, labels });
+      renderDialPadScoreEntry({ matchUp, container: approachContent, onScoreChange: handleScoreChange, labels });
     } else if (approach === 'inlineScoring') {
-      renderInlineScoringEntry({ matchUp, container, onScoreChange: handleScoreChange, labels });
+      renderInlineScoringEntry({ matchUp, container: approachContent, onScoreChange: handleScoreChange, labels });
     }
 
     return container;
@@ -241,7 +253,11 @@ export function scoringModal(params: ScoringModalParams): void {
           (activeApproach === 'inlineScoring' || currentOutcome.isValid || (wasCleared && hadExistingScore));
         if (canSubmit) {
           cleanupCurrentApproach();
-          callback(currentOutcome);
+          const reasonCode = statusCodePicker.getSelectedCode();
+          // Emit code STRINGS — modifyMatchUpScore types the field `matchUpStatusCodes?: string[]`.
+          // The policy objects are for rendering only. Omit the key entirely when no reason was
+          // given: an empty array is not "no reason", it is an instruction to blank the codes.
+          callback(reasonCode ? { ...currentOutcome, matchUpStatusCodes: [reasonCode] } : currentOutcome);
         }
       },
       close: true
