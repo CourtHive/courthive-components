@@ -1,5 +1,14 @@
 # Changelog
 
+## [4.5.0](https://github.com/CourtHive/courthive-components/compare/v4.4.0...v4.5.0) (2026-09-19)
+
+
+### Features
+
+* **scoring:** a double exit is a choice, not the absence of one ([#571](https://github.com/CourtHive/courthive-components/issues/571)) ([8a15919](https://github.com/CourtHive/courthive-components/commit/8a15919fe82178fd720ab7a0c3044d035ffec445))
+* **scoring:** offer the six endings the scoring policy can actually refine ([#573](https://github.com/CourtHive/courthive-components/issues/573)) ([7fe3978](https://github.com/CourtHive/courthive-components/commit/7fe3978d4ba13600aca555743151ac44494a2702))
+* **scoring:** record WHY a match ended, when a policy says what the reasons are ([#574](https://github.com/CourtHive/courthive-components/issues/574)) ([1e1b44b](https://github.com/CourtHive/courthive-components/commit/1e1b44bd9fafe3e476cb9d4e70091f52f81c35a3))
+
 ## [4.4.0](https://github.com/CourtHive/courthive-components/compare/v4.3.0...v4.4.0) (2026-09-14)
 
 
