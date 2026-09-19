@@ -1,6 +1,7 @@
 /**
  * Type definitions for scoring modal V2
  */
+import type { StatusCodeGroups } from './logic/statusCodes';
 
 export type SetScore = {
   setNumber?: number;
@@ -19,6 +20,8 @@ export type ScoreOutcome = {
   scoreObject?: any; // Full score object from generateOutcomeFromScoreString
   winningSide?: number;
   matchUpStatus?: string;
+  /** Policy reason codes chosen for this outcome, as code strings — e.g. `['RJ']`. */
+  matchUpStatusCodes?: string[];
   error?: string;
   matchUpFormat?: string;
   score?: string;
@@ -44,6 +47,8 @@ export type ScoringModalLabels = {
   scoreIncomplete?: string;
   invalidScore?: string;
   scoreTips?: string;
+  reasonCode?: string;
+  noReasonCode?: string;
   setScores?: string;
   tiebreaks?: string;
   matchTiebreaks?: string;
@@ -58,6 +63,13 @@ export type ScoringModalParams = {
   callback: (outcome: any) => void;
   onClose?: () => void;
   labels?: ScoringModalLabels;
+  /**
+   * The scoring policy's `matchUpStatusCodes` groups, resolved by the CALLER — components never
+   * reaches into factory fixtures or the engine. Omit it (or pass groups with no entries for the
+   * chosen status) and no reason control is drawn, which is the designed state for a tournament
+   * with no governing-body policy attached.
+   */
+  matchUpStatusCodes?: StatusCodeGroups;
 };
 
 export type ScoreChangeHandler = (outcome: ScoreOutcome) => void;
