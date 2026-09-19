@@ -11,6 +11,16 @@ import type { RenderScoreEntryParams } from '../types';
 import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
 import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
 import { getScoringConfig } from '../config';
+import {
+  WINNER_REQUIRING_STATUSES,
+  resolveIrregularEnding,
+  WINNER_REQUIRED_ERROR,
+  supportsNeitherSide,
+  doubleExitWarning,
+  carriesNoScore,
+  NEITHER_SIDE,
+  type WinnerSelection
+} from '../logic/irregularEnding';
 
 const {
   RETIRED,
@@ -97,8 +107,35 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
   side2RadioLabel.appendChild(side2Radio);
   side2RadioLabel.appendChild(side2RadioText);
 
+  // "Neither side" — the explicit double-exit answer. Shown only for endings with a double form;
+  // the factory ships no double-retirement status.
+  const neitherRadioLabel = document.createElement('label');
+  neitherRadioLabel.style.display = 'flex';
+  neitherRadioLabel.style.alignItems = 'center';
+  neitherRadioLabel.style.gap = '0.4em';
+  neitherRadioLabel.style.cursor = 'pointer';
+
+  const neitherRadio = document.createElement('input');
+  neitherRadio.type = 'radio';
+  neitherRadio.name = 'winnerSelection';
+  neitherRadio.value = NEITHER_SIDE;
+
+  const neitherRadioText = document.createElement('span');
+  neitherRadioText.textContent = labels.neitherSide || 'Neither side';
+  neitherRadioText.style.fontSize = '0.75rem';
+
+  neitherRadioLabel.appendChild(neitherRadio);
+  neitherRadioLabel.appendChild(neitherRadioText);
+
+  const doubleExitNotice = document.createElement('div');
+  doubleExitNotice.style.display = 'none';
+  doubleExitNotice.style.fontSize = '0.7rem';
+  doubleExitNotice.style.color = 'var(--chc-text-warning, var(--chc-text-primary))';
+
   radioContainer.appendChild(side1RadioLabel);
   radioContainer.appendChild(side2RadioLabel);
+  radioContainer.appendChild(neitherRadioLabel);
+  radioContainer.appendChild(doubleExitNotice);
   container.appendChild(radioContainer);
 
   // Function to render/update the matchUp display
@@ -271,7 +308,8 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
   container.appendChild(validationMessage);
 
   // Track manual winner selection
-  let manualWinningSide: number | undefined = internalWinningSide; // Initialize with internal state
+  // Tri-state: undefined = unanswered, 1|2 = that side won, NEITHER_SIDE = a double exit.
+  let manualWinningSide: WinnerSelection = internalWinningSide;
 
   const handleWinnerSelection = () => {
     if (side1Radio.checked) {
@@ -288,6 +326,14 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
       side2RadioLabel.style.color = CHC_STATUS_SUCCESS;
       side1RadioLabel.style.fontWeight = '';
       side1RadioLabel.style.color = '';
+    } else if (neitherRadio.checked) {
+      manualWinningSide = NEITHER_SIDE;
+      neitherRadioLabel.style.fontWeight = 'bold';
+      neitherRadioLabel.style.color = CHC_STATUS_SUCCESS;
+      side1RadioLabel.style.fontWeight = '';
+      side1RadioLabel.style.color = '';
+      side2RadioLabel.style.fontWeight = '';
+      side2RadioLabel.style.color = '';
     }
     // Re-trigger validation with new winner
     handleInput();
@@ -295,15 +341,20 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
 
   side1Radio.addEventListener('change', handleWinnerSelection);
   side2Radio.addEventListener('change', handleWinnerSelection);
+  neitherRadio.addEventListener('change', handleWinnerSelection);
 
   function resetRadioState(): void {
     radioContainer.style.display = 'none';
     side1Radio.checked = false;
     side2Radio.checked = false;
+    neitherRadio.checked = false;
     side1RadioLabel.style.fontWeight = '';
     side1RadioLabel.style.color = '';
     side2RadioLabel.style.fontWeight = '';
     side2RadioLabel.style.color = '';
+    neitherRadioLabel.style.fontWeight = '';
+    neitherRadioLabel.style.color = '';
+    doubleExitNotice.style.display = 'none';
     manualWinningSide = undefined;
   }
 
@@ -319,6 +370,50 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
     [AWAITING_RESULT]: 'AWAITING RESULT'
   };
 
+  /**
+   * Build the outcome for an irregular ending.
+   *
+   * freeScore runs the typed text through the score validator before it knows what the ending is,
+   * so `result` can arrive carrying an error about a score that is not the point — "No score to
+   * validate" for a walkover, "Incomplete match - need 2 sets to win" for a retirement. Both were
+   * being spread straight into the emitted outcome beside `isValid: true`.
+   *
+   * A no-score status also gets its score and sets stripped. A walkover was emitting
+   * `score: 'wo'` — the raw typed text, because there is no formatted score to fall back from —
+   * and TMX feeds a non-empty `score` to `parseScoreString`. The factory blanks the score for a
+   * walkover (`modifyMatchUpScore.ts:236`); the modal should not be sending one in the first place.
+   */
+  function buildIrregularOutcome(params: {
+    result: any;
+    matchUpStatus?: string;
+    winningSide?: number;
+    isValid: boolean;
+    error?: string;
+    scoreString: string;
+    formattedScore?: string;
+  }): any {
+    const { result, matchUpStatus, winningSide, isValid, error, scoreString, formattedScore } = params;
+    const noScore = carriesNoScore(matchUpStatus);
+
+    const outcome: any = {
+      ...result,
+      isValid,
+      matchUpStatus,
+      winningSide,
+      sets: noScore ? [] : result.sets,
+      scoreObject: noScore ? undefined : result.scoreObject,
+      score: noScore ? undefined : formattedScore || scoreString
+    };
+
+    if (error) {
+      outcome.error = error;
+    } else {
+      delete outcome.error;
+    }
+
+    return outcome;
+  }
+
   function getStatusText(matchUpStatus: string | undefined): string {
     const validLabel = labels.validScore || 'Valid score';
     const statusLabel = matchUpStatus && STATUS_LABEL_MAP[matchUpStatus];
@@ -327,41 +422,49 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
 
   function handleIrregularWinnerSelection(result: any, parseResult: any, scoreString: string): number | undefined {
     const currentStatus = result.matchUpStatus || parseResult.matchUpStatus;
-    const requiresWinnerSelection = [RETIRED, WALKOVER, DEFAULTED].includes(currentStatus);
+    const requiresWinnerSelection = WINNER_REQUIRING_STATUSES.has(currentStatus);
     const noWinnerNeeded =
       [CANCELLED, DEAD_RUBBER, AWAITING_RESULT, INCOMPLETE, IN_PROGRESS, SUSPENDED].includes(currentStatus);
 
     if (requiresWinnerSelection) {
       radioContainer.style.display = 'flex';
-      const effectiveWinningSide = manualWinningSide;
 
-      if (!effectiveWinningSide) {
-        if (currentStatus === WALKOVER) {
-          onScoreChange({
-            ...result,
-            isValid: true,
-            matchUpStatus: DOUBLE_WALKOVER,
-            score: parseResult.formattedScore || scoreString
-          });
-        } else if (currentStatus === DEFAULTED) {
-          onScoreChange({
-            ...result,
-            isValid: true,
-            matchUpStatus: DOUBLE_DEFAULT,
-            score: parseResult.formattedScore || scoreString
-          });
-        } else {
-          onScoreChange({
-            ...result,
-            isValid: false,
-            error: 'Winner must be selected for irregular ending',
-            matchUpStatus: currentStatus,
-            score: parseResult.formattedScore || scoreString
-          });
-        }
+      // Offer "Neither side" only where it resolves to a real status, and clear a stale one if the
+      // typed ending changed underneath it (e.g. "wo" edited to "ret").
+      const neitherAllowed = supportsNeitherSide(currentStatus);
+      neitherRadioLabel.style.display = neitherAllowed ? 'flex' : 'none';
+      if (!neitherAllowed && manualWinningSide === NEITHER_SIDE) {
+        manualWinningSide = undefined;
+        neitherRadio.checked = false;
+        neitherRadioLabel.style.fontWeight = '';
+        neitherRadioLabel.style.color = '';
+      }
+
+      const resolution = resolveIrregularEnding({
+        selectedOutcome: currentStatus,
+        winnerSelection: manualWinningSide
+      });
+
+      doubleExitNotice.style.display = resolution.isDoubleExit ? 'block' : 'none';
+      if (resolution.isDoubleExit) doubleExitNotice.textContent = doubleExitWarning(currentStatus);
+
+      if (resolution.winningSide === undefined) {
+        // Either an explicit double exit (valid, no winner) or an unanswered winner question
+        // (invalid). Both are emitted here; only the first is submittable.
+        onScoreChange(
+          buildIrregularOutcome({
+            result,
+            matchUpStatus: resolution.matchUpStatus,
+            winningSide: undefined,
+            isValid: resolution.isValid,
+            error: resolution.isValid ? undefined : WINNER_REQUIRED_ERROR,
+            formattedScore: parseResult.formattedScore,
+            scoreString
+          })
+        );
         return undefined;
       }
-      return effectiveWinningSide;
+      return resolution.winningSide;
     }
 
     if (noWinnerNeeded) {
@@ -407,7 +510,9 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
       : { isValid: false, sets: [], error: 'No score to validate' };
 
     const hasSets = result.sets && result.sets.length > 0;
-    const displayWinningSide = manualWinningSide || result.winningSide;
+    // NEITHER_SIDE is an answer, not a side — it must never reach the preview as a winner.
+    const manualSide = typeof manualWinningSide === 'number' ? manualWinningSide : undefined;
+    const displayWinningSide = manualSide ?? result.winningSide;
 
     if ((hasSets && result.scoreObject) || isIrregularEnding) {
       updateMatchUpDisplay({
@@ -427,16 +532,25 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
 
       if (isIrregularEnding) {
         const effectiveWinningSide = handleIrregularWinnerSelection(result, parseResult, scoreString);
-        if (effectiveWinningSide === undefined && ([RETIRED, WALKOVER, DEFAULTED] as string[]).includes(result.matchUpStatus || parseResult.matchUpStatus) && !manualWinningSide) {
+
+        // For a winner-requiring ending with no side, handleIrregularWinnerSelection has ALREADY
+        // emitted the outcome — the explicit double exit, or the unanswered-and-invalid state.
+        // Falling through here would emit a second, contradictory outcome (a bare WALKOVER over the
+        // DOUBLE_WALKOVER just reported), so stop.
+        const currentStatus = result.matchUpStatus || parseResult.matchUpStatus;
+        if (effectiveWinningSide === undefined && WINNER_REQUIRING_STATUSES.has(currentStatus)) {
           return;
         }
-        onScoreChange({
-          ...result,
-          isValid: true,
-          winningSide: effectiveWinningSide,
-          matchUpStatus: result.matchUpStatus || parseResult.matchUpStatus,
-          score: parseResult.formattedScore || scoreString
-        });
+        onScoreChange(
+          buildIrregularOutcome({
+            result,
+            matchUpStatus: currentStatus,
+            winningSide: effectiveWinningSide,
+            isValid: true,
+            formattedScore: parseResult.formattedScore,
+            scoreString
+          })
+        );
       } else {
         resetRadioState();
         onScoreChange({

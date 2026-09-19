@@ -1,8 +1,18 @@
+import { winnerFromExitingSide, carriesNoScore } from '../scoring/logic/irregularEnding';
 import { renderMatchUp } from '../renderStructure/renderMatchUp';
 import { isScorable } from './isScorable';
 import { renderStatusPill } from '../renderStructure/renderStatusPill';
 import type { InlineScoringManager } from './inlineScoringManager';
 import type { Composition, EventHandlers, MatchUp } from '../../types';
+
+/**
+ * Picker-only text for the double exits, following the display convention the federation scoring
+ * vocabulary already uses for them ("Wo/Wo", "Def/Def").
+ */
+const DOUBLE_EXIT_PILL_TEXT: Record<string, string> = {
+  DOUBLE_WALKOVER: 'WO/WO',
+  DOUBLE_DEFAULT: 'DEF/DEF'
+};
 
 const ACTIVE_CLASS = 'chc-inline-scoring-active';
 
@@ -127,15 +137,17 @@ export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElem
               readyToScore: true
             };
           } else {
-            // For WALKOVER, clear the score
-            if (status === 'WALKOVER') {
+            // A walkover has no score — and neither does a double walkover. Mirrors the factory,
+            // which blanks the score for exactly these two (modifyMatchUpScore.ts:236).
+            if (carriesNoScore(status)) {
               manager.reset(matchUpId, baseMatchUp);
             }
 
-            // Statuses that produce a winner (other side wins)
-            const winnerStatuses = ['RETIRED', 'DEFAULTED', 'WALKOVER', 'DOUBLE_WALKOVER', 'DOUBLE_DEFAULT'];
-            // Statuses like SUSPENDED, CANCELLED, ABANDONED don't assign a winner
-            const winningSide = winnerStatuses.includes(status) ? (sideNumber === 1 ? 2 : 1) : undefined;
+            // Clicking a side's pill means THAT side is exiting, so the other side wins — except
+            // for a double exit, where nobody does. The previous list named the double exits among
+            // the winner-producing statuses, which would have stamped a winner on an outcome that
+            // must carry none.
+            const winningSide = winnerFromExitingSide(status, sideNumber);
 
             baseMatchUp = {
               ...baseMatchUp,
@@ -144,10 +156,12 @@ export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElem
               readyToScore: false
             };
 
-            // Notify consumer
+            // Notify consumer. winningSide travels with the status: the consumer builds its outcome
+            // from the manager's matchUp, which never saw the selection made here.
             manager.callbacks?.onEndMatch?.({
               matchUpId,
               matchUpStatus: status,
+              winningSide,
               sideNumber,
               engine: manager.get(matchUpId)?.engine
             });
@@ -267,12 +281,28 @@ function showEndMatchPopover(
   const hasIrregularStatus = currentStatus && !['IN_PROGRESS', 'COMPLETED', 'TO_BE_PLAYED'].includes(currentStatus);
 
   // When an irregular status is active, offer LIVE (resume scoring) as the first option
-  const statuses = hasIrregularStatus
-    ? ['IN_PROGRESS', 'RETIRED', 'DEFAULTED', 'WALKOVER', 'SUSPENDED', 'CANCELLED', 'ABANDONED']
-    : ['RETIRED', 'DEFAULTED', 'WALKOVER', 'SUSPENDED', 'CANCELLED', 'ABANDONED'];
+  const endings = [
+    'RETIRED',
+    'DEFAULTED',
+    'WALKOVER',
+    'DOUBLE_WALKOVER',
+    'DOUBLE_DEFAULT',
+    'SUSPENDED',
+    'CANCELLED',
+    'ABANDONED'
+  ];
+  const statuses = hasIrregularStatus ? ['IN_PROGRESS', ...endings] : endings;
 
   for (const status of statuses) {
     const pill = renderStatusPill({ matchUpStatus: status });
+    // renderStatusPill abbreviates both walkover statuses to "WO" and both defaults to "DEF", which
+    // is fine on a finished matchUp and useless in a picker — two options would read identically.
+    // Override the text here only; how a scored matchUp renders elsewhere is not this file's call.
+    const doubleText = DOUBLE_EXIT_PILL_TEXT[status];
+    if (doubleText) {
+      const abbr = pill.querySelector('abbr');
+      if (abbr) abbr.textContent = doubleText;
+    }
     pill.classList.add('chc-live-chip-popover-item');
     pill.onclick = (e) => {
       e.stopPropagation();

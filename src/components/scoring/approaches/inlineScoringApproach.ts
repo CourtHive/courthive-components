@@ -6,6 +6,7 @@
 import { renderInlineMatchUp } from '../../inline-scoring/renderInlineMatchUp';
 import { InlineScoringManager } from '../../inline-scoring/inlineScoringManager';
 import { compositions } from '../../../compositions/compositions';
+import { carriesNoScore } from '../logic/irregularEnding';
 import { getScoringConfig } from '../config';
 import type { RenderScoreEntryParams, ScoreOutcome } from '../types';
 
@@ -42,14 +43,20 @@ export function renderInlineScoringEntry(params: RenderScoreEntryParams): void {
   };
 
   const emitOutcome = (scoredMatchUp: any, isComplete: boolean) => {
-    const sets = scoredMatchUp?.score?.sets || [];
+    const matchUpStatus = scoredMatchUp?.matchUpStatus;
+    // A walkover records no score, so neither the sets nor the score string survive into the
+    // outcome. This approach was emitting a walkover with a set still attached, because the
+    // manager's matchUp is what builds the outcome and resetting the manager does not reach it.
+    const noScore = carriesNoScore(matchUpStatus);
+    const sets = noScore ? [] : scoredMatchUp?.score?.sets || [];
+
     const outcome: ScoreOutcome = {
       isValid: isComplete || sets.some((s: any) => s.side1Score || s.side2Score),
       sets,
       winningSide: scoredMatchUp?.winningSide,
-      matchUpStatus: scoredMatchUp?.matchUpStatus,
+      matchUpStatus,
       matchUpFormat: format,
-      score: scoredMatchUp?.score?.scoreStringSide1
+      score: noScore ? undefined : scoredMatchUp?.score?.scoreStringSide1
     };
     onScoreChange(outcome);
   };
@@ -62,9 +69,12 @@ export function renderInlineScoringEntry(params: RenderScoreEntryParams): void {
       const scoredMatchUp = manager.getMatchUp(mId, inlineMatchUp);
       emitOutcome(scoredMatchUp, true);
     },
-    onEndMatch: ({ matchUpId: mId, matchUpStatus }) => {
+    onEndMatch: ({ matchUpId: mId, matchUpStatus, winningSide }) => {
+      // winningSide comes from the selection, NOT from the manager's matchUp — the manager never
+      // saw it. Reading it from `scoredMatchUp` is why every irregular ending entered here used to
+      // reach the consumer with no winner at all.
       const scoredMatchUp = manager.getMatchUp(mId, inlineMatchUp);
-      emitOutcome({ ...scoredMatchUp, matchUpStatus }, true);
+      emitOutcome({ ...scoredMatchUp, matchUpStatus, winningSide }, true);
     }
   });
 

@@ -16,7 +16,14 @@ export interface InlineScoringConfig {
 export interface InlineScoringCallbacks {
   onScoreChange?: (params: { matchUpId: string; matchUp: MatchUp; engine: any }) => void;
   onMatchComplete?: (params: { matchUpId: string; winningSide: number; engine: any }) => void;
-  onEndMatch?: (params: { matchUpId: string; matchUpStatus: string; sideNumber?: number; engine: any }) => void;
+  onEndMatch?: (params: {
+    matchUpId: string;
+    matchUpStatus: string;
+    /** Resolved from the exiting side; absent for a double exit and the non-directing statuses. */
+    winningSide?: number;
+    sideNumber?: number;
+    engine: any;
+  }) => void;
   onSubmit?: (params: { matchUpId: string; matchUp: MatchUp; engine: any }) => void;
 }
 
