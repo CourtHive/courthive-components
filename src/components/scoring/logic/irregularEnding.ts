@@ -19,7 +19,8 @@
 
 import { matchUpStatusConstants } from 'tods-competition-factory';
 
-const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT } = matchUpStatusConstants;
+const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, ABANDONED, CANCELLED, INCOMPLETE } =
+  matchUpStatusConstants;
 
 /**
  * The winner-selection value meaning "no side won this matchUp" — the explicit choice that produces
@@ -33,6 +34,32 @@ export const WINNER_REQUIRED_ERROR = 'Select a winner';
 
 /** The statuses whose selection opens the winner question at all. */
 export const WINNER_REQUIRING_STATUSES = new Set<string>([RETIRED, WALKOVER, DEFAULTED]);
+
+/**
+ * Endings that resolve nobody: the match did not produce a result, so there is no winner to name
+ * and no winner question to answer. The factory classifies these as non-directing
+ * (`nonDirectingMatchUpStatuses`) — nothing advances out of them.
+ *
+ * These are NOT a smaller version of the winner-requiring endings. Asking "who won an abandoned
+ * match" is not a question with a missing answer; it is not a question. So unlike a walkover with
+ * no winner selection, one of these is valid the moment it is chosen.
+ */
+export const NON_DIRECTING_ENDINGS = new Set<string>([ABANDONED, CANCELLED, INCOMPLETE]);
+
+/**
+ * Every irregular ending a set-entry approach offers, in display order.
+ *
+ * These six are exactly the keys the factory's scoring policy can refine with `matchUpStatusCodes`
+ * (ABANDONED, CANCELLED, DEFAULTED, INCOMPLETE, RETIRED, WALKOVER), which is why the list is this
+ * list: a status with no code group cannot carry a reason, and a code group with no status cannot
+ * be reached. Ordered so the three an operator reaches for most sit first.
+ */
+export const SELECTABLE_ENDINGS: string[] = [RETIRED, WALKOVER, DEFAULTED, ABANDONED, CANCELLED, INCOMPLETE];
+
+/** Whether choosing this ending obliges the operator to answer the winner question. */
+export function requiresWinner(selectedOutcome: string | undefined): boolean {
+  return !!selectedOutcome && WINNER_REQUIRING_STATUSES.has(selectedOutcome);
+}
 
 /**
  * Statuses that carry NO score at all, so there is nothing to validate and nothing to submit.
@@ -148,6 +175,13 @@ export function resolveIrregularEnding(params: {
 
   if (!selectedOutcome || selectedOutcome === COMPLETED) {
     return { isValid: false, awaitingWinner: false, isDoubleExit: false };
+  }
+
+  // An ending that resolves nobody needs no winner and is complete as soon as it is chosen. This
+  // must come before the winner branches: falling through to them would treat "no winner named" as
+  // an unanswered question and refuse to submit an abandoned match forever.
+  if (!requiresWinner(selectedOutcome)) {
+    return { matchUpStatus: selectedOutcome, isValid: true, awaitingWinner: false, isDoubleExit: false };
   }
 
   if (winnerSelection === 1 || winnerSelection === 2) {

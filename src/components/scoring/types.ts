@@ -35,6 +35,9 @@ export type ScoringModalLabels = {
   winner?: string;
   neitherSide?: string;
   retired?: string;
+  abandoned?: string;
+  cancelled?: string;
+  incomplete?: string;
   walkover?: string;
   defaulted?: string;
   validScore?: string;

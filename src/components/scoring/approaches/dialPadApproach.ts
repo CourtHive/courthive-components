@@ -13,14 +13,17 @@ import { getScoringConfig } from '../config';
 
 import {
   applyIrregularEndingToValidation,
-  doubleExitWarning,
+  NON_DIRECTING_ENDINGS,
   supportsNeitherSide,
+  doubleExitWarning,
+  requiresWinner,
   carriesNoScore,
   NEITHER_SIDE,
   type WinnerSelection
 } from '../logic/irregularEnding';
 
-const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT } = matchUpStatusConstants;
+const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, ABANDONED, CANCELLED, INCOMPLETE } =
+  matchUpStatusConstants;
 
 const DEFAULT_FORMAT = 'SET3-S:6/TB7';
 const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
@@ -336,6 +339,54 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     dialPadContainer.style.margin = '0 auto';
     container.appendChild(dialPadContainer);
 
+    // The dial pad grid is a fixed 4x4 and full, so the three endings that resolve nobody get their
+    // own row rather than being squeezed in beside the digits. They are not score entry, and
+    // grouping them apart says so.
+    const nonDirectingRow = document.createElement('div');
+    nonDirectingRow.style.display = 'flex';
+    nonDirectingRow.style.gap = '0.4em';
+    nonDirectingRow.style.justifyContent = 'center';
+    nonDirectingRow.style.flexWrap = 'wrap';
+    nonDirectingRow.style.margin = '0.6em auto 0';
+    nonDirectingRow.style.maxWidth = '320px';
+
+    const NON_DIRECTING_LABELS: Record<string, string> = {
+      [ABANDONED]: labels.abandoned || 'Abandoned',
+      [CANCELLED]: labels.cancelled || 'Cancelled',
+      [INCOMPLETE]: labels.incomplete || 'Incomplete'
+    };
+
+    const nonDirectingButtons = new Map<string, HTMLButtonElement>();
+    for (const status of NON_DIRECTING_ENDINGS) {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'button';
+      chip.dataset.ending = status;
+      chip.textContent = NON_DIRECTING_LABELS[status] ?? status;
+      chip.style.fontSize = '0.7rem';
+      chip.style.padding = '0.25em 0.6em';
+      chip.onclick = () => {
+        // Toggle: a second press returns the matchUp to an ordinary completed result.
+        selectedOutcome = selectedOutcome === status ? COMPLETED : (status as any);
+        winnerSelection = undefined;
+        const winnerRadios = irregularEndingContainer.querySelectorAll(WINNER_SELECTOR);
+        winnerRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
+        updateDisplay();
+      };
+      nonDirectingButtons.set(status, chip);
+      nonDirectingRow.appendChild(chip);
+    }
+    container.appendChild(nonDirectingRow);
+
+    const updateNonDirectingChips = () => {
+      for (const [status, chip] of nonDirectingButtons) {
+        const active = selectedOutcome === status;
+        chip.style.backgroundColor = active ? 'var(--chc-status-warning)' : '';
+        chip.style.fontWeight = active ? '600' : '';
+        chip.setAttribute('aria-pressed', String(active));
+      }
+    };
+
     // Format score string using shared logic
     const formatScore = (digits: string): string => {
       return formatScoreString(digits, { matchUpFormat: matchUp.matchUpFormat || DEFAULT_FORMAT });
@@ -402,18 +453,19 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         scoreDisplay.textContent = '-';
       }
 
-      // Show irregular ending section ONLY when non-COMPLETED outcome explicitly selected
-      // This should only happen when RET/WO/DEF buttons are clicked
-      const isIrregularEnding =
-        selectedOutcome === RETIRED || selectedOutcome === WALKOVER || selectedOutcome === DEFAULTED;
+      // Show the ending section whenever an ending is active — but only ask the winner question
+      // for the endings that name one. An abandoned match resolves nobody.
+      const isIrregularEnding = selectedOutcome !== COMPLETED;
       if (isIrregularEnding) {
         irregularEndingContainer.style.display = 'block';
-        // Show winner selection when irregular ending is active
-        winnerSelectionContainer.style.display = 'block';
+        winnerSelectionContainer.style.display = requiresWinner(selectedOutcome) ? 'block' : 'none';
       } else {
         irregularEndingContainer.style.display = 'none';
         winnerSelectionContainer.style.display = 'none';
       }
+
+      // Keep the non-directing chips reflecting the live selection.
+      updateNonDirectingChips();
 
       // If clearAll flag is set, explicitly clear matchUp display
       if (clearAll) {
@@ -465,7 +517,10 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     const handleDigitPress = (digit: number | string) => {
       // Clear irregular ending when user starts entering a score
       // This handles the case where user had RETIRED/WALKOVER/DEFAULTED and now enters new digits
-      if (selectedOutcome !== COMPLETED && typeof digit === 'number') {
+      // Typing a score clears a winner-requiring ending (the pre-existing contract: the operator is
+      // starting over). It must NOT clear a non-directing one — "6-4 3-2, abandoned" is the whole
+      // point of those, and the score is what says when it was abandoned.
+      if (selectedOutcome !== COMPLETED && !NON_DIRECTING_ENDINGS.has(selectedOutcome) && typeof digit === 'number') {
         selectedOutcome = COMPLETED;
         winnerSelection = undefined;
         // Uncheck irregular ending radios

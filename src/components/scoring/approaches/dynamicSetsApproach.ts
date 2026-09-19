@@ -22,14 +22,17 @@ import {
 } from '../logic/dynamicSetsLogic';
 import {
   applyIrregularEndingToValidation,
-  doubleExitWarning,
+  SELECTABLE_ENDINGS,
   supportsNeitherSide,
+  doubleExitWarning,
+  requiresWinner,
   carriesNoScore,
   NEITHER_SIDE,
   type WinnerSelection
 } from '../logic/irregularEnding';
 
-const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT } = matchUpStatusConstants;
+const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, ABANDONED, CANCELLED, INCOMPLETE } =
+  matchUpStatusConstants;
 
 const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
 const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
@@ -83,7 +86,8 @@ function updateContainerVisibility(
 ): void {
   if (selectedOutcome !== COMPLETED) {
     irregularEndingContainer.style.display = 'block';
-    winnerSelectionContainer.style.display = 'block';
+    // An abandoned or cancelled match has no winner to name, so the question is not asked.
+    winnerSelectionContainer.style.display = requiresWinner(selectedOutcome) ? 'block' : 'none';
   } else {
     winnerSelectionContainer.style.display = 'none';
     irregularEndingContainer.style.display = matchComplete ? 'none' : 'block';
@@ -245,12 +249,17 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   outcomeOptions.style.gap = '0.5em';
   outcomeOptions.style.flexWrap = 'wrap';
 
-  // Only irregular endings - Completed is the default
-  const outcomes = [
-    { value: RETIRED, label: labels.retired || 'Retired' },
-    { value: WALKOVER, label: labels.walkover || 'Walkover' },
-    { value: DEFAULTED, label: labels.defaulted || 'Defaulted' }
-  ];
+  // The six endings the factory's scoring policy can refine with matchUpStatusCodes. The first
+  // three name a winner; the last three resolve nobody and take none.
+  const ENDING_LABELS: Record<string, string> = {
+    [RETIRED]: labels.retired || 'Retired',
+    [WALKOVER]: labels.walkover || 'Walkover',
+    [DEFAULTED]: labels.defaulted || 'Defaulted',
+    [ABANDONED]: labels.abandoned || 'Abandoned',
+    [CANCELLED]: labels.cancelled || 'Cancelled',
+    [INCOMPLETE]: labels.incomplete || 'Incomplete'
+  };
+  const outcomes = SELECTABLE_ENDINGS.map((value) => ({ value, label: ENDING_LABELS[value] }));
 
   outcomes.forEach((outcome) => {
     const radioLabel = document.createElement('label');
@@ -290,8 +299,13 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
         internalScore = undefined; // CRITICAL: Clear internal score so it doesn't show in display
       }
 
-      // Show winner selection when irregular ending selected
-      winnerSelectionContainer.style.display = 'block';
+      // Only the endings that name a winner open the winner question.
+      winnerSelectionContainer.style.display = requiresWinner(selectedOutcome) ? 'block' : 'none';
+      if (!requiresWinner(selectedOutcome)) {
+        winnerSelection = undefined;
+        const winnerRadios = irregularEndingContainer.querySelectorAll<HTMLInputElement>(WINNER_SELECTOR);
+        winnerRadios.forEach((r) => (r.checked = false));
+      }
 
       // Will call updateScoreFromInputs when it's defined
       setTimeout(() => {
@@ -1499,7 +1513,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   if (
     matchUp.matchUpStatus &&
     matchUp.matchUpStatus !== COMPLETED &&
-    [RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT].includes(matchUp.matchUpStatus)
+    [...SELECTABLE_ENDINGS, DOUBLE_WALKOVER, DOUBLE_DEFAULT].includes(matchUp.matchUpStatus)
   ) {
     // Map DOUBLE_* statuses back to their base status plus the explicit "neither" answer, so
     // reopening a double exit shows the selection that produced it rather than an empty winner group.

@@ -13,7 +13,8 @@ import { matchUpStatusConstants } from 'tods-competition-factory';
 import { renderFreeScoreEntry } from '../freeScoreApproach';
 import { NEITHER_SIDE } from '../../logic/irregularEnding';
 
-const { WALKOVER, RETIRED, DOUBLE_WALKOVER, DOUBLE_DEFAULT } = matchUpStatusConstants;
+const { WALKOVER, RETIRED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, ABANDONED, AWAITING_RESULT, CANCELLED, INCOMPLETE } =
+  matchUpStatusConstants;
 
 const WINNER_SELECTOR = 'input[name="winnerSelection"]';
 const RETIRED_SCORE = '6-4 3-2 ret';
@@ -244,6 +245,46 @@ describe('freeScore — a retirement keeps what was played and needs no complete
     // The validator says "Incomplete match - need 2 sets to win". True, and not the question:
     // the retirement is what makes this a result.
     expect(h.last().error).toBeUndefined();
+  });
+});
+
+// M2: freeScore parses its ending from typed text, and had no ABANDONED at all. Its AWAITING_RESULT
+// pattern is anchored on a bare 'a', so it swallowed every spelling of "abandoned" — typing the word
+// in full recorded AWAITING RESULT, silently.
+describe('freeScore — abandonment is spellable, and no longer becomes AWAITING_RESULT', () => {
+  it.each(['ab', 'aband', 'abandoned'])('"%s" parses as ABANDONED', async (text) => {
+    const h = mount();
+
+    await h.type(text);
+
+    expect(h.last().matchUpStatus).toBe(ABANDONED);
+  });
+
+  it('a bare "a" still means AWAITING RESULT — the shorter prefix is unchanged', async () => {
+    const h = mount();
+
+    await h.type('a');
+
+    expect(h.last().matchUpStatus).toBe(AWAITING_RESULT);
+  });
+
+  it('keeps the score it was abandoned at', async () => {
+    const h = mount();
+
+    await h.type('6-4 3-2 ab');
+
+    expect(h.last().matchUpStatus).toBe(ABANDONED);
+    expect(h.last().sets).toHaveLength(2);
+  });
+
+  it.each([ABANDONED, CANCELLED, INCOMPLETE])('%s needs no winner selection to be valid', async (status) => {
+    const h = mount();
+    const text = { [ABANDONED]: 'ab', [CANCELLED]: 'c', [INCOMPLETE]: 'inc' }[status] as string;
+
+    await h.type(text);
+
+    expect(h.last().matchUpStatus).toBe(status);
+    expect(h.last().isValid).toBe(true);
   });
 });
 

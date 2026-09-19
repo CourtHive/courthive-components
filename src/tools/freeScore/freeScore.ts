@@ -18,8 +18,18 @@ import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-fact
 // Define locally to avoid import error
 type ParsedFormat = any;
 
-const { RETIRED, WALKOVER, DEFAULTED, SUSPENDED, CANCELLED, INCOMPLETE, DEAD_RUBBER, IN_PROGRESS, AWAITING_RESULT } =
-  matchUpStatusConstants;
+const {
+  RETIRED,
+  WALKOVER,
+  DEFAULTED,
+  SUSPENDED,
+  CANCELLED,
+  INCOMPLETE,
+  DEAD_RUBBER,
+  IN_PROGRESS,
+  AWAITING_RESULT,
+  ABANDONED
+} = matchUpStatusConstants;
 
 // ============================================================================
 // Types
@@ -162,6 +172,14 @@ function detectIrregularEnding(input: string, startPos: number): { ending?: stri
   const cancelledPattern = /^c(anc(ell?ed?)?)?/i;
   if (cancelledPattern.exec(remaining)) {
     return { ending: CANCELLED, endPos: input.length };
+  }
+
+  // ABANDONED: 'ab', 'aband', 'abandoned'. MUST precede AWAITING_RESULT, whose pattern is anchored
+  // on a bare 'a' and therefore swallows every one of these — before this, typing "abandoned"
+  // recorded AWAITING RESULT. 'a' alone still means awaiting; 'ab' is the shortest abandonment.
+  const abandonedPattern = /^ab(and(on(ed)?)?)?/i;
+  if (abandonedPattern.exec(remaining)) {
+    return { ending: ABANDONED, endPos: input.length };
   }
 
   // AWAITING RESULT: 'a', 'await', 'awaiting', 'awaiting result'

@@ -11,9 +11,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 import { renderDynamicSetsScoreEntry } from '../dynamicSetsApproach';
-import { NEITHER_SIDE } from '../../logic/irregularEnding';
+import { SELECTABLE_ENDINGS, NEITHER_SIDE } from '../../logic/irregularEnding';
 
-const { WALKOVER, DEFAULTED, RETIRED, DOUBLE_WALKOVER, DOUBLE_DEFAULT } = matchUpStatusConstants;
+const { WALKOVER, DEFAULTED, RETIRED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, ABANDONED, CANCELLED, INCOMPLETE } =
+  matchUpStatusConstants;
 
 const OUTCOME_SELECTOR = 'input[name="matchOutcome"]';
 const WINNER_SELECTOR = 'input[name="irregularWinner"]';
@@ -270,6 +271,75 @@ describe('dynamicSets — a walkover carries no score, a retirement carries what
     await h.selectWinner('1');
 
     expect(h.last().sets).toEqual([]);
+  });
+});
+
+// M2: the ending list is the six keys the scoring policy can refine with matchUpStatusCodes.
+// Before this, dynamicSets offered three, so half the code groups had no status to hang off.
+describe('dynamicSets — the six selectable endings', () => {
+  it('offers exactly the six policy-key endings', async () => {
+    const h = mount();
+
+    const offered = h.radios(OUTCOME_SELECTOR).map((r) => r.value);
+
+    expect(offered.toSorted((a, b) => a.localeCompare(b, 'en'))).toEqual(
+      [...SELECTABLE_ENDINGS].toSorted((a, b) => a.localeCompare(b, 'en')),
+    );
+  });
+
+  it.each([ABANDONED, CANCELLED, INCOMPLETE])('%s is submittable with no winner answer', async (status) => {
+    const h = mount();
+
+    await h.selectOutcome(status);
+
+    expect(h.last().isValid).toBe(true);
+    expect(h.last().matchUpStatus).toBe(status);
+    expect(h.last().winningSide).toBeUndefined();
+  });
+
+  it.each([ABANDONED, CANCELLED, INCOMPLETE])('%s does not ask the winner question at all', async (status) => {
+    const h = mount();
+
+    await h.selectOutcome(status);
+
+    const winnerBlock = h.radios(WINNER_SELECTOR)[0]?.closest('div')?.parentElement as HTMLElement;
+    expect(winnerBlock?.style.display).toBe('none');
+  });
+
+  // The distinction that matters: an unanswered winner blocks a walkover but is meaningless here.
+  it('a walkover still blocks on the winner question while an abandonment does not', async () => {
+    const h = mount();
+
+    await h.selectOutcome(WALKOVER);
+    expect(h.last().isValid).toBe(false);
+
+    await h.selectOutcome(ABANDONED);
+    expect(h.last().isValid).toBe(true);
+  });
+
+  it('switching from a double exit to an abandonment drops the Neither answer', async () => {
+    const h = mount();
+
+    await h.selectOutcome(WALKOVER);
+    await h.selectWinner(NEITHER_SIDE);
+    expect(h.last().matchUpStatus).toBe(DOUBLE_WALKOVER);
+
+    await h.selectOutcome(CANCELLED);
+
+    expect(h.last().matchUpStatus).toBe(CANCELLED);
+    expect(h.last().winningSide).toBeUndefined();
+    expect(h.last().isValid).toBe(true);
+  });
+
+  it('a retirement still keeps its partial score when the list is wider', async () => {
+    const h = mount();
+
+    await h.enterSet(0, '3', '2');
+    await h.selectOutcome(RETIRED);
+    await h.selectWinner('1');
+
+    expect(h.last().sets).toHaveLength(1);
+    expect(h.last().matchUpStatus).toBe(RETIRED);
   });
 });
 
