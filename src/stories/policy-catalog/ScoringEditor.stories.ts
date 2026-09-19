@@ -9,6 +9,7 @@ import '../../components/policy-catalog/editors/scoring/scoring-editor.css';
 
 import { ScoringEditorControl, createScoringEditor } from '../../components/policy-catalog';
 import type { ScoringPolicyData } from '../../components/policy-catalog';
+import { fixtures, policyConstants } from 'tods-competition-factory';
 
 export default {
   title: 'Policy Catalog/Scoring Editor',
@@ -43,6 +44,14 @@ const SCORING_POLICY_DEFAULT: ScoringPolicyData = {
 
 // A more opinionated policy — Grand Slam doubles + explicit no-ad
 // status-code refinements + a restricted format set + change propagation.
+/**
+ * A governing body's real vocabulary, so the story shows what an authored policy actually looks
+ * like — object entries carrying `matchUpStatusCodeDisplay` and `label`, which is what the scoring
+ * modal's reason picker renders.
+ */
+const REAL_STATUS_CODES = fixtures.policies.POLICY_SCORING_USTA[policyConstants.POLICY_TYPE_SCORING]
+  .matchUpStatusCodes as ScoringPolicyData['matchUpStatusCodes'];
+
 const SCORING_POLICY_TOURNAMENT: ScoringPolicyData = {
   policyName: 'Grand Slam doubles',
   defaultMatchUpFormat: 'SET3-S:6/TB7-F:TB10',
@@ -54,14 +63,14 @@ const SCORING_POLICY_TOURNAMENT: ScoringPolicyData = {
     drawDefinitions: false,
     structures: true,
   },
-  matchUpStatusCodes: {
-    ABANDONED: [],
-    CANCELLED: [],
-    DEFAULTED: ['INJURY', 'ILLNESS'],
-    INCOMPLETE: [],
-    RETIRED: ['INJURY'],
-    WALKOVER: ['NO_SHOW'],
-  },
+  // Taken FROM the shipped fixture, not hand-written.
+  //
+  // This block used to read `DEFAULTED: ['INJURY', 'ILLNESS']` — invented codes in a shape the
+  // factory has never used. The story claimed to mirror POLICY_SCORING_DEFAULT, whose every key is
+  // `[]`, so the mirror could pick any shape at all without contradicting its source, and it picked
+  // strings. That is how the editor and the factory drifted apart while both looked correct; the
+  // mirror was the defect generator, not the shape choice. Sourcing it removes the class.
+  matchUpStatusCodes: REAL_STATUS_CODES,
 };
 
 // Brand-new empty policy (used by "use as template" / "new policy"

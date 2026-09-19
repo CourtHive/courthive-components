@@ -9,6 +9,7 @@
  */
 
 import { emptyScoringPolicy, formatStringOf, asMatchUpFormatEntry } from './domain/scoringProjections';
+import { normalizeStatusCode } from '../../../scoring/logic/statusCodes';
 import type {
   ScoringPolicyData,
   ScoringEditorState,
@@ -222,6 +223,17 @@ export class ScoringEditorStore {
 
   // ───── Status code refinements ─────────────────────────
 
+  /**
+   * Add a code to a status group.
+   *
+   * The operator types a code; the entry stored is an OBJECT. Only `matchUpStatusCode` is set —
+   * `matchUpStatusCodeDisplay` and `label` are authored per code and this control has no field for
+   * them, so inventing values would be worse than leaving them absent (the reason picker falls back
+   * to the code, which is the policy saying "the code IS the label").
+   *
+   * Entries that arrive already carrying display text are never rewritten by this path, which is
+   * the whole point: the previous `string[]` model discarded them on every save.
+   */
   addStatusCode(status: MatchUpStatusKey, value: string): void {
     if (this.isReadonly()) return;
     const trimmed = value.trim();
@@ -229,8 +241,11 @@ export class ScoringEditorStore {
     const draft = deepClone(this.state.draft);
     draft.matchUpStatusCodes ??= {};
     draft.matchUpStatusCodes[status] ??= [];
-    if (draft.matchUpStatusCodes[status]!.includes(trimmed)) return;
-    draft.matchUpStatusCodes[status]!.push(trimmed);
+    // Dedupe on the CODE, not on object identity — an entry with display text and a bare entry for
+    // the same code are the same code, and the richer one must win by being left alone.
+    const existing = draft.matchUpStatusCodes[status]!.some((entry) => normalizeStatusCode(entry) === trimmed);
+    if (existing) return;
+    draft.matchUpStatusCodes[status]!.push({ matchUpStatusCode: trimmed });
     this.commitDraft(draft);
   }
 

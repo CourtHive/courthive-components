@@ -12,6 +12,7 @@
  * fidelity on save.
  */
 
+import { normalizeStatusCode, type StatusCodeEntry } from '../../../../scoring/logic/statusCodes';
 import { MATCH_UP_STATUS_KEYS, type ScoringEditorState, type MatchUpStatusKey } from '../types';
 import type { ScoringEditorStore } from '../scoringEditorStore';
 import { buildTagListEditor, type TagListEditorHandle } from './tagListEditor';
@@ -72,7 +73,7 @@ export function buildStatusCodesSection(store: ScoringEditorStore): {
       const expanded = state.expandedStatuses.has(group.key);
       group.chevron.textContent = expanded ? '▾' : '▸';
       group.body.style.display = expanded ? 'block' : 'none';
-      group.tagList.setValues(list);
+      group.tagList.setValues(list.map(chipLabel));
     }
     advancedChevron.textContent = state.advancedOpen ? '▾' : '▸';
     advancedBody.style.display = state.advancedOpen ? 'block' : 'none';
@@ -80,6 +81,19 @@ export function buildStatusCodesSection(store: ScoringEditorStore): {
   }
 
   return { element: root, update };
+}
+
+/**
+ * What a code reads as in the chip list.
+ *
+ * The chip shows the code, plus the policy's authored display text when there is any — those two
+ * fields are what distinguish `DQ` from `D6` to a human, and showing only the raw code would make
+ * the editor look exactly as lossy as it used to actually be.
+ */
+function chipLabel(entry: StatusCodeEntry): string {
+  const code = normalizeStatusCode(entry) ?? '';
+  const display = entry?.matchUpStatusCodeDisplay || entry?.label;
+  return display && display !== code ? `${code} — ${display}` : code;
 }
 
 function buildStatusGroup(store: ScoringEditorStore, key: MatchUpStatusKey): StatusGroupHandle {
@@ -90,7 +104,7 @@ function buildStatusGroup(store: ScoringEditorStore, key: MatchUpStatusKey): Sta
   const body = document.createElement('div');
   body.className = 'sc-status-body';
   const tagList = buildTagListEditor({
-    values: store.getData().matchUpStatusCodes?.[key] ?? [],
+    values: (store.getData().matchUpStatusCodes?.[key] ?? []).map(chipLabel),
     placeholder: 'e.g. INJURY',
     readonly: store.isReadonly(),
     onAdd: (value) => store.addStatusCode(key, value),
