@@ -12,6 +12,50 @@ import { matchUpStatusConstants } from 'tods-competition-factory';
 const { WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, RETIRED, SUSPENDED, CANCELLED, IN_PROGRESS, ABANDONED } =
   matchUpStatusConstants;
 
+/**
+ * The sides an EXIT actually belongs to, or `undefined` when the matchUp records none.
+ *
+ * `matchUpStatus` is a fact about the MATCH; a walkover is a fact about a SIDE. Rendering the
+ * match-level status against every participant puts a `WO` beside a player who did appear — and
+ * beside an empty slot that is merely reserved. Reported from TMX on a MAIN final that carried
+ * `matchUpStatusCodes: [{ previousMatchUpStatus: DOUBLE_WALKOVER, matchUpStatus: WALKOVER,
+ * sideNumber: 1 }, { sideNumber: 2 }]` — unambiguous that only side 1 exited — and rendered `WO` on
+ * both sides.
+ *
+ * READ ORDER. `sideExitProvenance` is the first-class record and is preferred. It is NOT declared on
+ * the published `MatchUp` type (absent from 6.38.0's `.d.ts`) and CI resolves the PUBLISHED package
+ * with the `link:` override stripped, so it is read through an untyped view rather than a field
+ * access — otherwise this compiles locally and fails CI. `matchUpStatusCodes` is declared there and
+ * is the fallback, which is also what a record written before the native field carries.
+ *
+ * A BARE `{ sideNumber }` ELEMENT IS A RESERVED SLOT, NOT AN EXIT. It is how the engine records a
+ * side whose origin is not yet known, and it is exactly the element that must not raise a badge.
+ *
+ * Returning `undefined` means "this matchUp says nothing about sides" — a directly-entered walkover
+ * or double walkover — and the caller then keeps the match-level behaviour.
+ */
+function sidesCarryingExit(matchUp?: MatchUp): Set<number> | undefined {
+  const provenance = (matchUp as unknown as { sideExitProvenance?: Record<string, unknown> })?.sideExitProvenance;
+  if (provenance) {
+    const named = [1, 2].filter((sideNumber) => provenance[sideNumber]);
+    if (named.length) return new Set(named);
+  }
+
+  const codes = matchUp?.matchUpStatusCodes;
+  if (Array.isArray(codes)) {
+    const named = new Set<number>();
+    codes.forEach((element: any, index: number) => {
+      if (!element || typeof element !== 'object') return;
+      if (!element.previousMatchUpStatus && !element.matchUpStatus) return;
+      const sideNumber = element.sideNumber ?? index + 1;
+      if (sideNumber === 1 || sideNumber === 2) named.add(sideNumber);
+    });
+    if (named.size) return named;
+  }
+
+  return undefined;
+}
+
 function buildEndMatter({
   configuration,
   matchUp,
@@ -104,18 +148,30 @@ export function renderParticipant({
   const winnerChevron = configuration?.winnerChevron && isWinningSide;
 
   const teamLogo = configuration?.teamLogo;
+  // SUSPENDED / CANCELLED / IN_PROGRESS / ABANDONED describe the MATCH and belong on both sides.
+  // The exits do not: they name a side, and `sidesCarryingExit` says which.
+  const exitSides = ([RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT] as string[]).includes(
+    matchUpStatus
+  )
+    ? sidesCarryingExit(matchUp)
+    : undefined;
+  const sideOwnsTheExit = !exitSides || (sideNumber !== 1 && sideNumber !== 2) || exitSides.has(sideNumber as number);
   const irregularEnding =
-    ([
-      RETIRED,
-      WALKOVER,
-      DEFAULTED,
-      DOUBLE_WALKOVER,
-      DOUBLE_DEFAULT,
-      SUSPENDED,
-      CANCELLED,
-      IN_PROGRESS,
-      ABANDONED
-    ] as string[]).includes(matchUpStatus) && !isWinningSide;
+    (
+      [
+        RETIRED,
+        WALKOVER,
+        DEFAULTED,
+        DOUBLE_WALKOVER,
+        DOUBLE_DEFAULT,
+        SUSPENDED,
+        CANCELLED,
+        IN_PROGRESS,
+        ABANDONED
+      ] as string[]
+    ).includes(matchUpStatus) &&
+    !isWinningSide &&
+    sideOwnsTheExit;
   const gameScoreOnly = configuration?.gameScoreOnly;
 
   const participantContainer = document.createElement('div');
