@@ -34,11 +34,21 @@ const EXIT_STATUSES: string[] = [RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, 
  * sideNumber: 1 }, { sideNumber: 2 }]` — unambiguous that only side 1 exited — and rendered `WO` on
  * both sides.
  *
- * READ ORDER. `sideExitProvenance` is the first-class record and is preferred. It is NOT declared on
- * the published `MatchUp` type (absent from 6.38.0's `.d.ts`) and CI resolves the PUBLISHED package
- * with the `link:` override stripped, so it is read through an untyped view rather than a field
- * access — otherwise this compiles locally and fails CI. `matchUpStatusCodes` is declared there and
- * is the fallback, which is also what a record written before the native field carries.
+ * READ ORDER. `sideExitProvenance` is the first-class record and is preferred. It is a declared
+ * field on `MatchUp` as of factory 7.0.0, mirrored onto this package's own `MatchUp` in
+ * `src/types.ts`, so it is read directly. It used to be read through an `as unknown as` view; the
+ * stated reason — that CI resolves the published package, where the field was absent — was a
+ * misdiagnosis. A cast is erased at runtime and never governed whether the read found anything, and
+ * this package's `MatchUp` carries `[key: string]: any` regardless. The declaration is what makes
+ * the read typed; nothing about the access changed.
+ *
+ * `matchUpStatusCodes` REMAINS the fallback and is deliberately retained (CA, 2026-09-22). Its
+ * provenance tenant is deprecated in factory 7.0.0 §24 and will be evicted behind `schemaWriteMode`,
+ * but `sideExitProvenance` is a PERSISTED field whose writes are gated on `writeNativeEnabled()` —
+ * false under LEGACY mode. So this path is the only one that renders an exit for a matchUp last
+ * mutated by factory 6.x, still inside this package's peer range, or by a LEGACY-mode consumer.
+ * It is consulted only when provenance is absent, so it costs nothing. Do not remove it without
+ * re-opening that decision.
  *
  * A BARE `{ sideNumber }` ELEMENT IS A RESERVED SLOT, NOT AN EXIT. It is how the engine records a
  * side whose origin is not yet known, and it is exactly the element that must not raise a badge.
@@ -47,7 +57,7 @@ const EXIT_STATUSES: string[] = [RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, 
  * or double walkover — and the caller then keeps the match-level behaviour.
  */
 function sidesCarryingExit(matchUp?: MatchUp): Set<number> | undefined {
-  const provenance = (matchUp as unknown as { sideExitProvenance?: Record<string, unknown> })?.sideExitProvenance;
+  const provenance = matchUp?.sideExitProvenance;
   if (provenance) {
     const named = [1, 2].filter((sideNumber) => provenance[sideNumber]);
     if (named.length) return new Set(named);
@@ -80,15 +90,13 @@ function sidesCarryingExit(matchUp?: MatchUp): Set<number> | undefined {
  * the mirror of the defect #577 fixed. A bare `{ sideNumber }` code is a reserved slot and names no
  * status, so it is excluded by the same test.
  *
- * Read order matches `sidesCarryingExit`: `sideExitProvenance` first, through an untyped view
- * because it is absent from the published `.d.ts` and CI resolves the published package.
+ * Read order matches `sidesCarryingExit`: `sideExitProvenance` first, now as a declared field, then
+ * the retained `matchUpStatusCodes` fallback. See that function for why the fallback stays.
  */
 function sideExitStatus(matchUp?: MatchUp, sideNumber?: number): string | undefined {
   if (sideNumber !== 1 && sideNumber !== 2) return undefined;
 
-  const provenance = (matchUp as unknown as { sideExitProvenance?: Record<string, { matchUpStatus?: string }> })
-    ?.sideExitProvenance;
-  const provenanceStatus = provenance?.[sideNumber]?.matchUpStatus;
+  const provenanceStatus = matchUp?.sideExitProvenance?.[sideNumber]?.matchUpStatus;
   if (provenanceStatus) return EXIT_STATUSES.includes(provenanceStatus) ? provenanceStatus : undefined;
 
   const codes = matchUp?.matchUpStatusCodes;

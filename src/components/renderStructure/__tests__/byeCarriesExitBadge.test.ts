@@ -57,7 +57,7 @@ describe('a BYE matchUp shows the exit its side carries', () => {
           1: { matchUpStatus: 'BYE', previousMatchUpStatus: 'BYE', sourceMatchUpId: 'm-1-1' },
           2: { matchUpStatus: 'WALKOVER', previousMatchUpStatus: 'DOUBLE_WALKOVER', sourceMatchUpId: 'm-1-2' }
         }
-      } as unknown as Partial<MatchUp>)
+      } as Partial<MatchUp>)
     });
 
     expect(pillSides(el)).toEqual([2]);
@@ -77,7 +77,7 @@ describe('a BYE matchUp shows the exit its side carries', () => {
         sideExitProvenance: {
           2: { matchUpStatus: 'WALKOVER', previousMatchUpStatus: 'DOUBLE_WALKOVER', sourceMatchUpId: 'm-1-2' }
         }
-      } as unknown as Partial<MatchUp>)
+      } as Partial<MatchUp>)
     });
 
     expect(pillSides(el)).toEqual([2]);
@@ -106,7 +106,7 @@ describe('a BYE matchUp shows the exit its side carries', () => {
           { sideNumber: 1, participant: { participantId: 'p1', participantName: 'Advancing Player' } },
           { sideNumber: 2, bye: true }
         ]
-      } as unknown as Partial<MatchUp>)
+      } as Partial<MatchUp>)
     });
 
     expect(pillCount(el)).toBe(0);
@@ -119,7 +119,7 @@ describe('a BYE matchUp shows the exit its side carries', () => {
         sideExitProvenance: {
           2: { matchUpStatus: 'RETIRED', previousMatchUpStatus: 'RETIRED', sourceMatchUpId: 'm-1-2' }
         }
-      } as unknown as Partial<MatchUp>)
+      } as Partial<MatchUp>)
     });
 
     expect(pillSides(el)).toEqual([2]);
@@ -135,7 +135,7 @@ describe('a BYE matchUp shows the exit its side carries', () => {
           1: { matchUpStatus: 'BYE', previousMatchUpStatus: 'BYE', sourceMatchUpId: 'm-1-1' },
           2: { matchUpStatus: 'BYE', previousMatchUpStatus: 'BYE', sourceMatchUpId: 'm-1-3' }
         }
-      } as unknown as Partial<MatchUp>)
+      } as Partial<MatchUp>)
     });
 
     expect(pillCount(el)).toBe(0);
