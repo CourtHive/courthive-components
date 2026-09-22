@@ -1,3 +1,24 @@
+/**
+ * Mirrors factory's `SideExitProvenance`, added to `MatchUp` in 7.0.0. Per-side provenance for an
+ * exit: what the side carries, what produced it, and which matchUp it came from.
+ *
+ * KEYED BY `sideNumber`, so it serialises as `{ "1": {...}, "2": {...} }`. It is not an array and
+ * the index is not the side — reading it positionally is the defect this field was added to end.
+ *
+ * MIRRORED RATHER THAN IMPORTED. `SideExitProvenance` does not exist in factory 6.x, which this
+ * package's peerDependency range still admits (`^6.0.0 || ^7.0.0`). Importing it into this file
+ * would put an unresolvable type into the emitted `.d.ts` for every consumer on the older major.
+ * Same reasoning as the `EventTypeUnion`/`ParticipantTypeUnion` mirrors below.
+ */
+export interface SideExitProvenanceEntry {
+  matchUpStatus?: string;
+  previousMatchUpStatus?: string;
+  sourceMatchUpId?: string;
+  byeClaims?: string[];
+}
+
+export type SideExitProvenance = Record<number, SideExitProvenanceEntry>;
+
 export interface MatchUp {
   matchUpId: string;
   // Mirrors factory's EventTypeUnion. TEAM/HYBRID matchUps reach this
@@ -28,6 +49,7 @@ export interface MatchUp {
   score?: Score;
   schedule?: Schedule;
   readyToScore?: boolean;
+  sideExitProvenance?: SideExitProvenance;
   [key: string]: any;
 }
 

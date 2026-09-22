@@ -71,9 +71,37 @@ describe('the exit pill belongs to the exiting side', () => {
       matchUp: base({
         matchUpStatus: 'WALKOVER',
         sideExitProvenance: { 2: { matchUpStatus: 'WALKOVER', previousMatchUpStatus: 'DOUBLE_WALKOVER' } }
-      } as unknown as Partial<MatchUp>)
+      } as Partial<MatchUp>)
     });
     expect(pillSides(el)).toEqual([2]);
+  });
+
+  /**
+   * THE FALLBACK IS LOAD-BEARING, NOT RESIDUE. CA, 2026-09-22, deciding against step 3 of
+   * `Mentat/planning/COMPONENTS_PROVENANCE_AFTER_7_0_0_PUBLISH.md`, which asked for the
+   * `matchUpStatusCodes` read to be deleted once factory 7.0.0 typed `sideExitProvenance`.
+   *
+   * `sideExitProvenance` is PERSISTED, and its writes are gated on the factory's
+   * `writeNativeEnabled()` — false under `schemaWriteMode: LEGACY`. So a matchUp last mutated by
+   * factory 6.x, which this package's peerDependency range still admits (`^6.0.0 || ^7.0.0`), or by
+   * a LEGACY-mode consumer, carries its provenance ONLY in `matchUpStatusCodes`. Deleting that read
+   * blanks the exit pill for those records with no error and no other failing test — the same
+   * silent-blank failure the badge work has been chasing since #577.
+   *
+   * The record below is deliberately provenance-free. If a later eviction sweep removes the
+   * fallback, this is the test that must fail first.
+   */
+  it('renders the exit for a record that has NO sideExitProvenance — the retained legacy fallback', () => {
+    const el = renderMatchUp({
+      matchUp: base({
+        matchUpStatus: 'WALKOVER',
+        matchUpStatusCodes: [
+          { previousMatchUpStatus: 'DOUBLE_WALKOVER', matchUpStatus: 'WALKOVER', sideNumber: 2 }
+        ]
+      } as Partial<MatchUp>)
+    });
+    expect(pillSides(el)).toEqual([2]);
+    expect(pillCount(el)).toBe(1);
   });
 
   it('CONTROL — a double walkover naming BOTH sides still badges both', () => {
