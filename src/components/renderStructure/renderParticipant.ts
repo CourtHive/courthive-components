@@ -9,8 +9,20 @@ import { renderTick } from './renderTick';
 import type { Composition, EventHandlers, MatchUp, Participant } from '../../types';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 
-const { WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, RETIRED, SUSPENDED, CANCELLED, IN_PROGRESS, ABANDONED } =
-  matchUpStatusConstants;
+const {
+  WALKOVER,
+  DEFAULTED,
+  DOUBLE_WALKOVER,
+  DOUBLE_DEFAULT,
+  RETIRED,
+  SUSPENDED,
+  CANCELLED,
+  IN_PROGRESS,
+  ABANDONED,
+  BYE
+} = matchUpStatusConstants;
+
+const EXIT_STATUSES: string[] = [RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT];
 
 /**
  * The sides an EXIT actually belongs to, or `undefined` when the matchUp records none.
@@ -56,6 +68,39 @@ function sidesCarryingExit(matchUp?: MatchUp): Set<number> | undefined {
   return undefined;
 }
 
+/**
+ * The exit ONE side carries, when its own record names one.
+ *
+ * A BYE matchUp can carry a propagated exit on the side that is not the BYE: the walkover arrived
+ * beside the BYE and travelled on. The match-level status is `BYE`, so the status lists below say
+ * nothing about it and nothing rendered — a TD saw a plain BYE with no sign of what passed through.
+ *
+ * Decided by the side's OWN `matchUpStatus`, never by the presence of a record. The BYE side carries
+ * provenance too (`BYE -> BYE`), and a naive "any side with a record" would put a `WO` on the BYE —
+ * the mirror of the defect #577 fixed. A bare `{ sideNumber }` code is a reserved slot and names no
+ * status, so it is excluded by the same test.
+ *
+ * Read order matches `sidesCarryingExit`: `sideExitProvenance` first, through an untyped view
+ * because it is absent from the published `.d.ts` and CI resolves the published package.
+ */
+function sideExitStatus(matchUp?: MatchUp, sideNumber?: number): string | undefined {
+  if (sideNumber !== 1 && sideNumber !== 2) return undefined;
+
+  const provenance = (matchUp as unknown as { sideExitProvenance?: Record<string, { matchUpStatus?: string }> })
+    ?.sideExitProvenance;
+  const provenanceStatus = provenance?.[sideNumber]?.matchUpStatus;
+  if (provenanceStatus) return EXIT_STATUSES.includes(provenanceStatus) ? provenanceStatus : undefined;
+
+  const codes = matchUp?.matchUpStatusCodes;
+  if (!Array.isArray(codes)) return undefined;
+  const code: any = codes.find(
+    (element: any, index: number) =>
+      element && typeof element === 'object' && (element.sideNumber ?? index + 1) === sideNumber
+  );
+  const codeStatus = code?.matchUpStatus;
+  return codeStatus && EXIT_STATUSES.includes(codeStatus) ? codeStatus : undefined;
+}
+
 function buildEndMatter({
   configuration,
   matchUp,
@@ -65,7 +110,8 @@ function buildEndMatter({
   matchUpStatus,
   isWinningSide,
   gameScoreOnly,
-  irregularEnding
+  irregularEnding,
+  carriedExitStatus
 }): HTMLElement {
   const endMatter = document.createElement('div');
   const inlineScoring = configuration?.inlineScoring;
@@ -89,7 +135,8 @@ function buildEndMatter({
       endMatter.appendChild(tick);
     }
   } else if (irregularEnding) {
-    const statusPill = renderStatusPill({ matchUpStatus });
+    // a side of a BYE matchUp shows the exit IT carries, not the matchUp's own BYE
+    const statusPill = renderStatusPill({ matchUpStatus: carriedExitStatus ?? matchUpStatus });
     if (inlineScoring) {
       statusPill.classList.add('chc-live-chip');
       statusPill.addEventListener('click', (e) => {
@@ -156,8 +203,11 @@ export function renderParticipant({
     ? sidesCarryingExit(matchUp)
     : undefined;
   const sideOwnsTheExit = !exitSides || (sideNumber !== 1 && sideNumber !== 2) || exitSides.has(sideNumber as number);
+  // BYE is in neither list below — it is a fact about the MATCH — but a side of it can still carry a
+  // propagated exit, which is the only thing that tells a TD a walkover arrived here and moved on.
+  const carriedExitStatus = matchUpStatus === BYE ? sideExitStatus(matchUp, sideNumber) : undefined;
   const irregularEnding =
-    (
+    ((
       [
         RETIRED,
         WALKOVER,
@@ -170,8 +220,9 @@ export function renderParticipant({
         ABANDONED
       ] as string[]
     ).includes(matchUpStatus) &&
-    !isWinningSide &&
-    sideOwnsTheExit;
+      !isWinningSide &&
+      sideOwnsTheExit) ||
+    Boolean(carriedExitStatus && !isWinningSide);
   const gameScoreOnly = configuration?.gameScoreOnly;
 
   const participantContainer = document.createElement('div');
@@ -247,7 +298,8 @@ export function renderParticipant({
         matchUpStatus,
         isWinningSide,
         gameScoreOnly,
-        irregularEnding
+        irregularEnding,
+        carriedExitStatus
       })
     );
   }
