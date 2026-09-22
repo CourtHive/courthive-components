@@ -5,10 +5,17 @@
  * KEYED BY `sideNumber`, so it serialises as `{ "1": {...}, "2": {...} }`. It is not an array and
  * the index is not the side — reading it positionally is the defect this field was added to end.
  *
- * MIRRORED RATHER THAN IMPORTED. `SideExitProvenance` does not exist in factory 6.x, which this
- * package's peerDependency range still admits (`^6.0.0 || ^7.0.0`). Importing it into this file
- * would put an unresolvable type into the emitted `.d.ts` for every consumer on the older major.
- * Same reasoning as the `EventTypeUnion`/`ParticipantTypeUnion` mirrors below.
+ * MIRRORED RATHER THAN IMPORTED, and the original reason has EXPIRED. It was mirrored because
+ * `SideExitProvenance` does not exist in factory 6.x, which the peerDependency range admitted at the
+ * time (`^6.0.0 || ^7.0.0`); importing it would have put an unresolvable type into the emitted
+ * `.d.ts` for a consumer on the older major. That range is now `^7.0.0` alone, so the type could be
+ * imported directly.
+ *
+ * It is left as a mirror deliberately, and only because collapsing it is a change to rendering types
+ * that does not belong in the commit that narrowed the range. Collapse it to an import when someone
+ * is next in this file — there is no longer a reason to carry the copy. The
+ * `EventTypeUnion`/`ParticipantTypeUnion` mirrors below are DIFFERENT: they are hand-narrowed
+ * subsets, not copies of a factory type, and they stay.
  */
 export interface SideExitProvenanceEntry {
   matchUpStatus?: string;
