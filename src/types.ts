@@ -1,30 +1,25 @@
 /**
- * Mirrors factory's `SideExitProvenance`, added to `MatchUp` in 7.0.0. Per-side provenance for an
- * exit: what the side carries, what produced it, and which matchUp it came from.
+ * Per-side provenance for an exit: what the side carries, what produced it, and which matchUp it
+ * came from. RE-EXPORTED FROM THE FACTORY, which owns this shape.
  *
  * KEYED BY `sideNumber`, so it serialises as `{ "1": {...}, "2": {...} }`. It is not an array and
  * the index is not the side — reading it positionally is the defect this field was added to end.
  *
- * MIRRORED RATHER THAN IMPORTED, and the original reason has EXPIRED. It was mirrored because
- * `SideExitProvenance` does not exist in factory 6.x, which the peerDependency range admitted at the
- * time (`^6.0.0 || ^7.0.0`); importing it would have put an unresolvable type into the emitted
- * `.d.ts` for a consumer on the older major. That range is now `^7.0.0` alone, so the type could be
- * imported directly.
+ * This was briefly a hand-written mirror, because `SideExitProvenance` does not exist in factory
+ * 6.x and the peerDependency range admitted it. The range is now `^7.0.0`, so the copy has no reason
+ * to exist and is gone — a mirror of a type someone else owns is a drift source, which is the whole
+ * lesson of the seeding policy shape that #561 deleted for the same reason.
  *
- * It is left as a mirror deliberately, and only because collapsing it is a change to rendering types
- * that does not belong in the commit that narrowed the range. Collapse it to an import when someone
- * is next in this file — there is no longer a reason to carry the copy. The
- * `EventTypeUnion`/`ParticipantTypeUnion` mirrors below are DIFFERENT: they are hand-narrowed
- * subsets, not copies of a factory type, and they stay.
+ * Note this is NARROWER than the copy it replaces: the factory types the two status fields as
+ * `MatchUpStatusUnion`, not `string`. That is correct, and it is a breaking narrowing, which is why
+ * it rides in the same major as the range change.
+ *
+ * The `EventTypeUnion`/`ParticipantTypeUnion` mirrors below are DIFFERENT and they stay: those are
+ * hand-narrowed subsets chosen for this package's rendering paths, not copies of a factory type.
  */
-export interface SideExitProvenanceEntry {
-  matchUpStatus?: string;
-  previousMatchUpStatus?: string;
-  sourceMatchUpId?: string;
-  byeClaims?: string[];
-}
+import type { SideExitProvenance } from 'tods-competition-factory';
 
-export type SideExitProvenance = Record<number, SideExitProvenanceEntry>;
+export type { SideExitProvenance, SideExitProvenanceEntry } from 'tods-competition-factory';
 
 export interface MatchUp {
   matchUpId: string;
