@@ -1,5 +1,30 @@
 # Changelog
 
+## [5.0.0](https://github.com/CourtHive/courthive-components/compare/v4.5.0...v5.0.0) (2026-09-22)
+
+
+### ⚠ BREAKING CHANGES
+
+* **types:** `SideExitProvenanceEntry.matchUpStatus` and `.previousMatchUpStatus` are now `MatchUpStatusUnion` rather than `string`. The factory types them that way and the copy had widened them.
+* **policy-catalog:** this package now requires tods-competition-factory ^7.0.0. The peerDependency range was `^6.0.0 || ^7.0.0` and is narrowed to `^7.0.0`.
+
+### Features
+
+* **policy-catalog:** adopt the factory's seeding policy types, requiring factory ^7.0.0 ([#561](https://github.com/CourtHive/courthive-components/issues/561)) ([80a532f](https://github.com/CourtHive/courthive-components/commit/80a532f80bbde1e992701a6f0f73d8eebb23e713))
+* **renderStructure:** support factory 7.0.0 — sideExitProvenance is a declared field ([#580](https://github.com/CourtHive/courthive-components/issues/580)) ([5a0f62a](https://github.com/CourtHive/courthive-components/commit/5a0f62a4758e7301c204d957440a6f06d8cfaa34))
+
+
+### Bug Fixes
+
+* **policy-catalog:** stop the scoring editor destroying authored status codes ([#575](https://github.com/CourtHive/courthive-components/issues/575)) ([56cfe9f](https://github.com/CourtHive/courthive-components/commit/56cfe9f5117d10e166155a533d101a971529344d))
+* **renderStructure:** a BYE shows the exit its side carries ([#578](https://github.com/CourtHive/courthive-components/issues/578)) ([2b10a60](https://github.com/CourtHive/courthive-components/commit/2b10a602c9de10f8513b107eefdfc4fd059559b9))
+* **renderStructure:** the exit pill belongs to the side that EXITED ([#577](https://github.com/CourtHive/courthive-components/issues/577)) ([9726e2c](https://github.com/CourtHive/courthive-components/commit/9726e2c924e05a3ea2a354accbd8e2bb689eb9e6))
+
+
+### Refactor
+
+* **types:** re-export SideExitProvenance from the factory instead of copying it ([#581](https://github.com/CourtHive/courthive-components/issues/581)) ([03bd354](https://github.com/CourtHive/courthive-components/commit/03bd3543870fe8b909bcc4a11ca15f5aad0da14f))
+
 ## [4.5.0](https://github.com/CourtHive/courthive-components/compare/v4.4.0...v4.5.0) (2026-09-19)
 
 
