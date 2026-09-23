@@ -262,7 +262,7 @@
 }
 .pc-editor-header-left .pc-name-input:focus {
   border-color: var(--sp-accent);
-  background: var(--sp-input-bg, var(--sp-card-bg));
+  background: var(--sp-input-bg);
 }
 
 .pc-editor-actions {

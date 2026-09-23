@@ -79,8 +79,8 @@
   border-color: var(--sp-accent);
 }
 .se-field-input.is-danger {
-  border-color: var(--sp-err-border, #e74c3c);
-  color: var(--sp-err-text, #e74c3c);
+  border-color: var(--sp-err-border);
+  color: var(--sp-err-text);
 }
 
 .se-field-unit {
