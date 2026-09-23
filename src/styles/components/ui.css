@@ -61,7 +61,7 @@
 }
 
 .dropdown-item.is-active {
-  background-color: #3e8ed0;
+  background-color: var(--chc-container-info);
   color: #fff;
 }
 
@@ -122,7 +122,7 @@
 
 .menu-list a.is-active,
 .menu-list button.is-active {
-  background-color: #3e8ed0;
+  background-color: var(--chc-container-info);
   color: #fff;
 }
 
@@ -177,8 +177,8 @@
 }
 
 .tabs li.is-active a {
-  border-bottom-color: #3e8ed0;
-  color: #3e8ed0;
+  border-bottom-color: var(--chc-container-info);
+  color: var(--chc-container-info);
 }
 
 /* Toggle tabs */
@@ -207,8 +207,8 @@
 }
 
 .tabs.is-toggle li.is-active a {
-  background-color: #3e8ed0;
-  border-color: #3e8ed0;
+  background-color: var(--chc-container-info);
+  border-color: var(--chc-container-info);
   color: #fff;
   z-index: 1;
 }

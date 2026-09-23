@@ -102,8 +102,8 @@
 }
 
 .sp-btn--fill-muted {
-  background: #666;
-  border-color: #666;
+  background: var(--chc-text-secondary);
+  border-color: var(--chc-text-secondary);
   color: #fff;
   font-weight: 600;
 }

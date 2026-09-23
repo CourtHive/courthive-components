@@ -1,6 +1,6 @@
 .tabulator {
   position: relative;
-  border: 1px solid #999;
+  border: 1px solid var(--chc-text-muted);
   font-size: 16px;
   text-align: left;
   overflow: hidden;
@@ -67,7 +67,7 @@
 
 .tabulator .tabulator-header .tabulator-col.tabulator-moving {
   position: absolute;
-  border: 1px solid #999;
+  border: 1px solid var(--chc-text-muted);
   background: rgba(0, 0, 0, 0);
   pointer-events: none;
 }
@@ -108,7 +108,7 @@
 .tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title .tabulator-title-editor {
   box-sizing: border-box;
   width: 100%;
-  border: 1px solid #999;
+  border: 1px solid var(--chc-text-muted);
   padding: 1px;
   background: #fff;
 }
@@ -459,7 +459,7 @@
   display: inline-block;
   margin: 0 5px;
   padding: 2px 5px;
-  border: 1px solid #dbdbdb;
+  border: 1px solid var(--chc-border-primary);
   border-radius: 3px;
 }
 
@@ -471,7 +471,7 @@
   display: inline-block;
   margin: 0 2px;
   padding: 2px 5px;
-  border: 1px solid #dbdbdb;
+  border: 1px solid var(--chc-border-primary);
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.2);
 }
@@ -693,7 +693,7 @@
   width: 100%;
   height: 3px;
   margin-top: 2px;
-  background: #666;
+  background: var(--chc-text-secondary);
 }
 
 .tabulator-row .tabulator-cell .tabulator-data-tree-branch {
@@ -1244,7 +1244,7 @@ body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) {
 }
 
 .tabulator .tabulator-header {
-  border: 1px solid #dbdbdb;
+  border: 1px solid var(--chc-border-primary);
   border-width: 0 0 2px;
 }
 
@@ -1265,11 +1265,11 @@ body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) {
 }
 
 .tabulator .tabulator-header .tabulator-col .tabulator-header-filter input {
-  border: 1px solid #dbdbdb;
+  border: 1px solid var(--chc-border-primary);
 }
 
 .tabulator .tabulator-header .tabulator-calcs-holder {
-  border: 1px solid #dbdbdb;
+  border: 1px solid var(--chc-border-primary);
   border-width: 2px 0 0;
 }
 
@@ -1278,12 +1278,12 @@ body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) {
 }
 
 .tabulator .tabulator-tableholder .tabulator-table .tabulator-row.tabulator-calcs.tabulator-calcs-top {
-  border: 1px solid #dbdbdb;
+  border: 1px solid var(--chc-border-primary);
   border-width: 0 0 2px;
 }
 
 .tabulator .tabulator-tableholder .tabulator-table .tabulator-row.tabulator-calcs.tabulator-calcs-bottom {
-  border: 1px solid #dbdbdb;
+  border: 1px solid var(--chc-border-primary);
   border-width: 2px 0 0;
 }
 
@@ -1293,13 +1293,13 @@ body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) {
 
 .tabulator .tabulator-footer {
   padding: 0.5em 0.75em;
-  border: 1px solid #dbdbdb;
+  border: 1px solid var(--chc-border-primary);
   border-width: 2px 0 0;
 }
 
 .tabulator .tabulator-footer .tabulator-calcs-holder {
   margin: -5px -10px 10px -10px;
-  border: 1px solid #dbdbdb;
+  border: 1px solid var(--chc-border-primary);
   border-width: 0 0 2px;
 }
 
@@ -1310,7 +1310,7 @@ body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) {
 .tabulator .tabulator-footer .tabulator-page {
   margin: 0 0.1875em;
   padding: calc(0.375em - 1px) 0.75em;
-  border: 1px solid #dbdbdb;
+  border: 1px solid var(--chc-border-primary);
   font-size: 16px;
 }
 
@@ -1332,7 +1332,7 @@ body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) {
 }
 
 .tabulator.is-bordered {
-  border: 1px solid #dbdbdb;
+  border: 1px solid var(--chc-border-primary);
 }
 
 .tabulator.is-bordered .tabulator-header .tabulator-col {
@@ -1371,7 +1371,7 @@ body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) {
 
 .tabulator-row .tabulator-cell {
   padding: 0.5em 0.75em;
-  border: 1px solid #dbdbdb;
+  border: 1px solid var(--chc-border-primary);
   border-width: 0 0 1px;
 }
 

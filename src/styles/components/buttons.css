@@ -65,11 +65,11 @@
 }
 .button.is-info.is-outlined {
   background-color: transparent;
-  border-color: #3e8ed0;
-  color: #3e8ed0;
+  border-color: var(--chc-container-info);
+  color: var(--chc-container-info);
 }
 .button.is-info.is-outlined:hover {
-  background-color: #3e8ed0;
+  background-color: var(--chc-container-info);
   color: #fff;
 }
 .button.is-info.is-light {
@@ -94,11 +94,11 @@
 }
 .button.is-success.is-outlined {
   background-color: transparent;
-  border-color: #48c78e;
-  color: #48c78e;
+  border-color: var(--chc-container-success);
+  color: var(--chc-container-success);
 }
 .button.is-success.is-outlined:hover {
-  background-color: #48c78e;
+  background-color: var(--chc-container-success);
   color: #fff;
 }
 .button.is-success.is-light {
@@ -123,11 +123,11 @@
 }
 .button.is-danger.is-outlined {
   background-color: transparent;
-  border-color: #f14668;
-  color: #f14668;
+  border-color: var(--chc-container-danger);
+  color: var(--chc-container-danger);
 }
 .button.is-danger.is-outlined:hover {
-  background-color: #f14668;
+  background-color: var(--chc-container-danger);
   color: #fff;
 }
 .button.is-danger.is-light {
@@ -152,11 +152,11 @@
 }
 .button.is-warning.is-outlined {
   background-color: transparent;
-  border-color: #ffe08a;
+  border-color: var(--chc-container-warning);
   color: #946c00;
 }
 .button.is-warning.is-outlined:hover {
-  background-color: #ffe08a;
+  background-color: var(--chc-container-warning);
   color: rgba(0, 0, 0, 0.7);
 }
 .button.is-warning.is-light {
@@ -181,11 +181,11 @@
 }
 .button.is-primary.is-outlined {
   background-color: transparent;
-  border-color: #00d1b2;
-  color: #00d1b2;
+  border-color: var(--chc-container-primary);
+  color: var(--chc-container-primary);
 }
 .button.is-primary.is-outlined:hover {
-  background-color: #00d1b2;
+  background-color: var(--chc-container-primary);
   color: #fff;
 }
 .button.is-primary.is-light {
@@ -210,11 +210,11 @@
 }
 .button.is-link.is-outlined {
   background-color: transparent;
-  border-color: #485fc7;
-  color: #485fc7;
+  border-color: var(--chc-container-link);
+  color: var(--chc-container-link);
 }
 .button.is-link.is-outlined:hover {
-  background-color: #485fc7;
+  background-color: var(--chc-container-link);
   color: #fff;
 }
 .button.is-link.is-light {

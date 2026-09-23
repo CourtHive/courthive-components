@@ -54,7 +54,7 @@
 }
 
 .chc-iss-header-vs {
-  color: var(--sp-text-muted, #666);
+  color: var(--sp-text-muted, var(--chc-text-secondary));
   font-weight: 400;
   font-size: 0.85rem;
 }
@@ -101,7 +101,7 @@
   margin-top: 0.5rem;
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--sp-text-muted, #666);
+  color: var(--sp-text-muted, var(--chc-text-secondary));
   font-variant-numeric: tabular-nums;
 }
 
@@ -194,7 +194,7 @@
   flex: 1 1 0;
   padding: 0.75rem 1rem;
   min-height: 48px;
-  border: 1px solid var(--sp-border, #e0e0e0);
+  border: 1px solid var(--sp-border, var(--chc-active-bg));
   border-radius: 0.5rem;
   background: var(--sp-bg, #ffffff);
   color: var(--sp-text, #1a1a1a);

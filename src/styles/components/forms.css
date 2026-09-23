@@ -71,11 +71,11 @@ textarea {
 }
 
 .input.is-success {
-  border-color: #48c78e;
+  border-color: var(--chc-container-success);
 }
 
 .input.is-danger {
-  border-color: #f14668;
+  border-color: var(--chc-container-danger);
 }
 
 /* Size modifier — mirrors `.button.is-small` (font-size 0.75rem, height 2em)
@@ -172,15 +172,15 @@ textarea {
 }
 
 .help.is-info {
-  color: #3e8ed0;
+  color: var(--chc-container-info);
 }
 
 .help.is-success {
-  color: #48c78e;
+  color: var(--chc-container-success);
 }
 
 .help.is-danger {
-  color: #f14668;
+  color: var(--chc-container-danger);
 }
 
 .help.is-warning {
