@@ -242,7 +242,7 @@
 
 .notification.is-info {
   background-color: var(--chc-container-info);
-  color: #fff;
+  color: var(--chc-on-info);
 }
 
 .notification.is-info.is-light {
@@ -252,7 +252,7 @@
 
 .notification.is-success {
   background-color: var(--chc-container-success);
-  color: #fff;
+  color: var(--chc-on-success);
 }
 
 .notification.is-success.is-light {
@@ -262,7 +262,7 @@
 
 .notification.is-danger {
   background-color: var(--chc-container-danger);
-  color: #fff;
+  color: var(--chc-on-danger);
 }
 
 .notification.is-danger.is-light {
@@ -272,7 +272,7 @@
 
 .notification.is-warning {
   background-color: var(--chc-container-warning);
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--chc-on-warning);
 }
 
 .notification.is-warning.is-light {
@@ -282,12 +282,12 @@
 
 .notification.is-primary {
   background-color: var(--chc-container-primary);
-  color: #fff;
+  color: var(--chc-on-primary);
 }
 
 .notification.is-link {
   background-color: var(--chc-container-link);
-  color: #fff;
+  color: var(--chc-on-link);
 }
 
 /* ── Dark mode notification overrides ───────────────────── */
