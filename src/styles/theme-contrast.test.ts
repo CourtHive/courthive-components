@@ -9,11 +9,13 @@ import { join } from 'node:path';
  * them honest: change a container fill without revisiting its foreground and the pair fails here
  * rather than in somebody's eyes.
  *
- * The four light-mode failures are asserted EXPLICITLY, not skipped. They are the appearance the
- * product ships today — `#fff` on `#00d1b2` is 1.95:1 — and fixing them flips those buttons to dark
- * text, which is a visible design change rather than a theming correction. Pinning the exact ratios
- * means the decision stays visible and a silent regression is impossible in either direction: improve
- * one and this test fails, telling you to move it out of the exception list.
+ * Both themes are held to AA with no exception list. Four light pairs were below it until
+ * 2026-09-23 — `#fff` on `#00d1b2` was 1.95:1 — because a solid fill was assumed to want white
+ * text, and only `.is-warning` had ever been corrected by hand. That correction was made once and
+ * never propagated, which is the failure mode a derived value plus this test removes.
+ *
+ * `on-warning` is an `rgba()`, so it is composited over its own container before measuring; a
+ * translucent foreground measured against nothing would report a luminance it never renders at.
  */
 const THEME = readFileSync(join(__dirname, 'theme.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
 
@@ -50,7 +52,10 @@ function channel(c: number): number {
 /** Relative luminance. An `rgba()` foreground is composited over its own container first. */
 function luminance(value: string, over?: string): number {
   const rgba = /rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,\s/]+([\d.]+))?\s*\)/.exec(value);
-  let r: number, g: number, b: number, a = 1;
+  let r: number,
+    g: number,
+    b: number,
+    a = 1;
   if (rgba) {
     [r, g, b] = [Number(rgba[1]), Number(rgba[2]), Number(rgba[3])];
     if (rgba[4] !== undefined) a = Number(rgba[4]);
@@ -89,14 +94,6 @@ function contrast(fg: string, bg: string): number {
 
 const INTENTS = ['primary', 'link', 'info', 'danger', 'success', 'warning'] as const;
 
-/** Light-mode pairs that ship BELOW AA today. Ratios pinned so neither direction can drift silently. */
-const LIGHT_KNOWN_FAILURES: Record<string, number> = {
-  primary: 1.95,
-  success: 2.14,
-  info: 3.51,
-  danger: 3.61,
-};
-
 describe('--chc-on-* foreground contrast', () => {
   it('defines a foreground for every container, in both themes', () => {
     for (const intent of INTENTS) {
@@ -112,20 +109,8 @@ describe('--chc-on-* foreground contrast', () => {
     expect(ratio, `dark on-${intent} = ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(4.5);
   });
 
-  it.each(INTENTS.filter((i) => !(i in LIGHT_KNOWN_FAILURES)))(
-    'light: on-%s meets WCAG AA against its container',
-    (intent) => {
-      const ratio = contrast(LIGHT[`--chc-on-${intent}`], LIGHT[`--chc-container-${intent}`]);
-      expect(ratio, `light on-${intent} = ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(4.5);
-    },
-  );
-
-  it.each(Object.entries(LIGHT_KNOWN_FAILURES))(
-    'light: on-%s still ships its KNOWN failing ratio (~%s:1)',
-    (intent, expected) => {
-      const ratio = contrast(LIGHT[`--chc-on-${intent}`], LIGHT[`--chc-container-${intent}`]);
-      // Fails if it gets worse OR if it is fixed — a fix should move it out of the exception list.
-      expect(ratio, `light on-${intent} = ${ratio.toFixed(2)}:1`).toBeCloseTo(Number(expected), 1);
-    },
-  );
+  it.each(INTENTS)('light: on-%s meets WCAG AA against its container', (intent) => {
+    const ratio = contrast(LIGHT[`--chc-on-${intent}`], LIGHT[`--chc-container-${intent}`]);
+    expect(ratio, `light on-${intent} = ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(4.5);
+  });
 });
