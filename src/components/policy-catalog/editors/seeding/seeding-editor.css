@@ -251,7 +251,7 @@
   font-weight: 600;
   color: var(--sp-text);
   flex: 1;
-  font-family: var(--sp-font-mono, ui-monospace, SFMono-Regular, monospace);
+  font-family: var(--sp-font-mono);
 }
 
 .sd-override-add-row {

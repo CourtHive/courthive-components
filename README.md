@@ -320,6 +320,39 @@ Import the bundled CSS:
 import 'courthive-components/dist/courthive-components.css';
 ```
 
+### Theme tokens — two families, on purpose
+
+Colour is driven entirely by CSS custom properties defined in `src/styles/theme.css`, in a `:root`
+block (light) and a `[data-theme='dark']` block. **Never hardcode a colour in component CSS**, and
+never use Bulma classes or `--bulma-*`: class names that merely follow Bulma's naming are ours and
+are fine, but the palette must resolve through a token or it cannot follow the theme.
+
+| family    | what it is                                                                                                                                                                     | use it for                                                                                                                                   |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--chc-*` | The general design system. Semantic roles — `--chc-text-primary`, `--chc-bg-elevated`, `--chc-border-primary`, `--chc-container-*` intents and their `--chc-on-*` foregrounds. | Anything shared: draws, cards, tables, buttons, notifications.                                                                               |
+| `--sp-*`  | A slate palette with translucent, layered surfaces (`--sp-panel-bg`, `--sp-card-bg`, `--sp-border`) plus finer border and status intensities.                                  | The schedule page, scheduling profile, policy catalog, topology builder and interactive scoring — surfaces designed as panels over a ground. |
+
+They are **not** duplicates. `--chc-*` began as a compatibility layer whose light values match
+previously hardcoded ones; `--sp-*` is a newer, denser palette with alpha-composited surfaces
+`--chc-*` has no equivalent for. Consumers bridge both: TMX aliases 29 `--chc-*` and 13 `--sp-*` to
+its own `--tmx-*` system.
+
+**Rules that keep them working:**
+
+- **Every token must be defined** in `theme.css`, in both blocks. A token used but never defined
+  renders its call-site fallback in _both_ themes — which is how `--sp-border-focus` shipped an
+  invisible focus border.
+- **Do not write a fallback.** `var(--sp-muted)`, never `var(--sp-muted, #888)`. Fallbacks drift from
+  the definition — `--sp-muted` once had five different ones — and the token stops being a single
+  source of truth.
+- **The library must not reference a consumer's tokens.** `--tmx-*` belongs to TMX; reaching for it
+  from here inverts the dependency.
+- **`--chc-on-*` is the readable foreground for a `--chc-container-*` fill.** Both themes are held to
+  WCAG AA by `src/styles/theme-contrast.test.ts`; change a container colour and that test tells you
+  whether its foreground still works.
+- Brand themes (`src/styles/themes.css`, `.chc-theme-*`) keep literal colours. A brand does not
+  follow the light/dark theme.
+
 ## TypeScript Support
 
 The package includes TypeScript definitions:

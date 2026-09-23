@@ -175,7 +175,7 @@
 
 .spl-catalog-filter-btn:hover {
   opacity: 1;
-  background: var(--sp-chip-bg, rgba(0, 0, 0, 0.06));
+  background: var(--sp-chip-bg);
 }
 
 .spl-catalog-filter-btn.active {
@@ -192,7 +192,7 @@
   right: 0;
   width: 7px;
   height: 7px;
-  background: var(--sp-accent, #3b82f6);
+  background: var(--sp-accent);
   border-radius: 50%;
 }
 
@@ -211,8 +211,8 @@
 .spl-filter-popover {
   padding: 10px;
   min-width: 200px;
-  background: var(--sp-panel-bg, #fff);
-  border: 1px solid var(--sp-border, #e5e7eb);
+  background: var(--sp-panel-bg);
+  border: 1px solid var(--sp-border);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
@@ -226,16 +226,16 @@
 
 .spl-filter-clear-btn {
   background: none;
-  border: 1px solid var(--sp-border, #e5e7eb);
+  border: 1px solid var(--sp-border);
   border-radius: 4px;
   padding: 2px 8px;
   font-size: 0.75rem;
   cursor: pointer;
-  color: var(--sp-text, #1f2937);
+  color: var(--sp-text);
 }
 
 .spl-filter-clear-btn:hover {
-  background: var(--sp-chip-bg, rgba(0, 0, 0, 0.06));
+  background: var(--sp-chip-bg);
 }
 
 .spl-filter-close-btn {
@@ -244,19 +244,19 @@
   cursor: pointer;
   font-size: 1rem;
   line-height: 1;
-  color: var(--sp-muted, #9ca3af);
+  color: var(--sp-muted);
   padding: 0 4px;
 }
 
 .spl-filter-close-btn:hover {
-  color: var(--sp-text, #1f2937);
+  color: var(--sp-text);
 }
 
 .spl-filter-label {
   display: block;
   font-weight: 600;
   font-size: 0.7rem;
-  color: var(--sp-muted, #888);
+  color: var(--sp-muted);
   margin-bottom: 2px;
 }
 
@@ -265,10 +265,10 @@
   margin-bottom: 8px;
   padding: 4px 6px;
   font-size: 0.75rem;
-  border: 1px solid var(--sp-border, #e5e7eb);
+  border: 1px solid var(--sp-border);
   border-radius: 4px;
-  background: var(--sp-card-bg, #fff);
-  color: var(--sp-text, #1f2937);
+  background: var(--sp-card-bg);
+  color: var(--sp-text);
   cursor: pointer;
 }
 
@@ -292,10 +292,10 @@
   align-items: center;
   gap: 6px;
   font-size: 0.75rem;
-  color: var(--sp-text, #1f2937);
+  color: var(--sp-text);
   cursor: pointer;
   padding-top: 4px;
-  border-top: 1px solid var(--sp-border, #e5e7eb);
+  border-top: 1px solid var(--sp-border);
   margin-top: 2px;
 }
 
@@ -328,14 +328,14 @@
 
 .spl-matchup-card.scheduled {
   opacity: 0.5;
-  background: var(--sp-dimmed-bg, color-mix(in srgb, var(--sp-card-bg) 60%, var(--sp-text) 40%));
+  background: var(--sp-dimmed-bg);
   cursor: default;
   position: relative;
 }
 
 .spl-matchup-card.scheduled .spl-card-title,
 .spl-matchup-card.scheduled .spl-card-meta {
-  color: var(--sp-dimmed-text, color-mix(in srgb, var(--sp-muted) 80%, transparent 20%));
+  color: var(--sp-dimmed-text);
 }
 
 .spl-matchup-card.scheduled:hover {
@@ -348,7 +348,7 @@
   opacity: 0.55;
   cursor: default;
   position: relative;
-  border-left: 3px solid var(--sp-ok, #10b981);
+  border-left: 3px solid var(--sp-ok);
 }
 
 .spl-matchup-card.completed .spl-card-sides {
@@ -358,7 +358,7 @@
 
 .spl-matchup-card.completed:hover {
   border-color: var(--sp-border);
-  border-left-color: var(--sp-ok, #10b981);
+  border-left-color: var(--sp-ok);
 }
 
 .spl-matchup-check {
@@ -367,7 +367,7 @@
   top: 50%;
   transform: translateY(-50%);
   font-size: 0.875rem;
-  color: var(--sp-ok-text, #4ade80);
+  color: var(--sp-ok-text);
   pointer-events: none;
 }
 
@@ -389,14 +389,14 @@
  * panel for "what should I schedule next inside event X" and the colour
  * tiers answer that visually without forcing a sort. */
 .spl-card-title--round-current {
-  color: var(--sp-accent-text, #3273dc);
+  color: var(--sp-accent-text);
 }
 .spl-card-title--round-next {
-  color: var(--sp-text, inherit);
+  color: var(--sp-text);
   opacity: 0.85;
 }
 .spl-card-title--round-later {
-  color: var(--sp-muted, inherit);
+  color: var(--sp-muted);
   opacity: 0.6;
 }
 
@@ -410,7 +410,7 @@
 .spl-card-time-header {
   font-size: 0.9375rem;
   font-weight: 800;
-  color: var(--sp-ok-text, #10b981);
+  color: var(--sp-ok-text);
   letter-spacing: 0.02em;
   white-space: nowrap;
   flex-shrink: 0;
@@ -422,10 +422,10 @@
  * panel reads the same glyph in the same place and the hue is the only thing
  * that has to be learned. `title` carries the reason. */
 .spl-card-time-header--warn {
-  color: var(--sp-warn-text, var(--sp-warn, #f59e0b));
+  color: var(--sp-warn-text);
 }
 .spl-card-time-header--alert {
-  color: var(--sp-err-text, #ef4444);
+  color: var(--sp-err-text);
 }
 
 /* Scheduled-tab card whose matchUp has a date but no scheduledTime —
@@ -489,8 +489,8 @@
 }
 
 .spl-card-chip.status {
-  border-color: var(--sp-ok-border, rgba(16, 185, 129, 0.4));
-  color: var(--sp-ok-text, #10b981);
+  border-color: var(--sp-ok-border);
+  color: var(--sp-ok-text);
   font-weight: 600;
   text-transform: uppercase;
   font-size: 0.5625rem;
@@ -502,7 +502,7 @@
  * virtue of being appended last in `buildMatchUpCard`. */
 .spl-card-chip.stage {
   border-color: var(--sp-accent-border);
-  background: var(--sp-accent-bg, transparent);
+  background: var(--sp-accent-bg);
   color: var(--sp-accent-text);
   font-weight: 700;
   text-transform: uppercase;
@@ -565,9 +565,9 @@
   align-items: stretch;
   gap: 1px;
   /* Tinted backdrop so the strip reads as a separate "now-playing" band. */
-  background: color-mix(in srgb, var(--sp-panel-bg) 88%, var(--sp-accent-border, var(--tmx-accent-blue, #3b82f6)) 12%);
+  background: color-mix(in srgb, var(--sp-panel-bg) 88%, var(--sp-accent-border) 12%);
   /* 2px accent rule between the strip and the grid below. */
-  border-bottom: 2px solid var(--sp-accent-border, var(--tmx-accent-blue, #3b82f6));
+  border-bottom: 2px solid var(--sp-accent-border);
   flex-shrink: 0;
   /* When consumer sets gridTemplateColumns, JS switches display to 'grid'. */
 }
@@ -650,7 +650,7 @@
   text-transform: uppercase;
   background: rgba(127, 127, 127, 0.18);
   color: var(--sp-text);
-  border-left: 3px solid var(--sp-text-muted, #888);
+  border-left: 3px solid var(--sp-text-muted);
   z-index: 1;
 }
 
@@ -712,8 +712,8 @@
   font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: var(--sp-text-muted, #888);
-  border-left: 3px solid var(--sp-text-muted, #888);
+  color: var(--sp-text-muted);
+  border-left: 3px solid var(--sp-text-muted);
 }
 
 .spl-active-strip-runway.block-practice {
@@ -750,7 +750,7 @@
    carries LIVE / SUSP / NEXT / DUE — a live match on a court about to close has
    both facts to tell, and neither may hide the other. */
 .spl-active-strip-cell.has-block-edge {
-  box-shadow: inset 0 3px 0 0 var(--sp-text-muted, #888);
+  box-shadow: inset 0 3px 0 0 var(--sp-text-muted);
 }
 
 .spl-active-strip-cell.has-block-edge.edge-practice {
@@ -802,7 +802,7 @@
 }
 
 .spl-active-strip-cell.state-in-progress {
-  border-left-color: var(--sp-accent-border, var(--tmx-accent-blue, #3b82f6));
+  border-left-color: var(--sp-accent-border);
 }
 
 .spl-active-strip-cell.state-suspended {
@@ -810,7 +810,7 @@
 }
 
 .spl-active-strip-cell.state-next {
-  border-left-color: var(--sp-muted, #9ca3af);
+  border-left-color: var(--sp-muted);
   opacity: 0.92;
 }
 
@@ -819,7 +819,7 @@
    happen; this one should already have. Red rather than the amber family so it
    does not read as a milder SUSPENDED. */
 .spl-active-strip-cell.state-due {
-  border-left-color: var(--sp-err-text, #dc2626);
+  border-left-color: var(--sp-err-text);
 }
 
 /* Status pill in the top-right grid zone of cells with a matchUp. */

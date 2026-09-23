@@ -64,6 +64,27 @@
   --chc-container-success: #48c78e;
   --chc-container-warning: #ffe08a;
 
+  /* ── Foreground ON a container fill ────────────────────────
+     The readable text colour for each container, so a call site asks for
+     "the foreground for this intent" instead of guessing white.
+
+     DERIVED by WCAG contrast against the container fills above, in both themes.
+     Four of these were `#fff` until 2026-09-23 and shipped below AA — primary
+     1.95:1, success 2.14:1, info 3.51:1, danger 3.61:1 — because a solid fill
+     was assumed to want white text. Only `on-warning` had ever been corrected
+     by hand, which is exactly why it alone read well: the correction was made
+     once and never propagated. Deriving it removes the guess.
+
+     `on-link` keeps white because `#485fc7` is dark enough to earn it (5.62:1).
+     `on-warning` keeps its composited rgba, which already passes at 7.57:1;
+     changing a value that works would be churn. */
+  --chc-on-primary: #0a0a0a;
+  --chc-on-link: #fff;
+  --chc-on-info: #0a0a0a;
+  --chc-on-danger: #0a0a0a;
+  --chc-on-success: #0a0a0a;
+  --chc-on-warning: rgba(0, 0, 0, 0.7);
+
   /* ── Point score (live game score boxes) ───────────────── */
   --chc-point-score-bg: var(--chc-text-primary);
   --chc-point-score-text: var(--chc-bg-primary);
@@ -183,6 +204,40 @@
 
   /* ── Scheduling Profile: Scrollbar + Popover ───────────── */
   --sp-scrollbar: rgba(148, 163, 184, 0.35);
+
+  /* ── Promoted from call-site fallbacks (2026-09-23) ────────
+     These were USED but never DEFINED, so the hardcoded fallback at each call
+     site was the only value that ever rendered — in both themes. 16 of them had
+     a single consistent fallback across every site, so the light value below is
+     exactly what shipped; the dark value follows the family's own convention
+     (Tailwind 500/600 in light, stepping to 400 in dark; surfaces invert). */
+  --sp-accent-bg: transparent;
+  --sp-accent-subtle: #dbeafe;
+  --sp-bg-subtle: #f5f5f7;
+  --sp-code-bg: rgba(0, 0, 0, 0.05);
+  --sp-danger: #b91c1c;
+  --sp-success: #15803d;
+  --sp-side1-bg: #e0f2fe;
+  --sp-side1-text: #0c4a6e;
+  --sp-side2-bg: #fee2e2;
+  --sp-side2-text: #7f1d1d;
+  --sp-subpanel-bg: rgba(0, 0, 0, 0.025);
+  --sp-dimmed-bg: color-mix(in srgb, var(--sp-card-bg) 60%, transparent);
+  --sp-dimmed-text: color-mix(in srgb, var(--sp-muted) 75%, transparent);
+  --sp-font-family: system-ui, -apple-system, sans-serif;
+  --sp-font-mono: ui-monospace, SFMono-Regular, monospace;
+  /* Used only by courthive-public today (`rankings.css`), which carries a hardcoded
+     fallback because the library never defined it. Defining it here makes that
+     fallback dead rather than load-bearing. */
+  --sp-link: #2563eb;
+
+  /* Aliases, so one concept has ONE source of truth rather than two that drift.
+     `--sp-text-muted` was used interchangeably with `--sp-muted`; `--sp-border-focus`
+     had no fallback at all, so every declaration using it was invalid and rendered
+     nothing — `--sp-accent-focus` is the value it was reaching for. */
+  --sp-text-muted: var(--sp-muted);
+  --sp-border-focus: var(--sp-accent-focus);
+  --sp-border-input: var(--sp-border-group);
   --sp-popover-hover-bg: #f0f0f0;
   --sp-popover-hover-text: #333;
   --sp-popover-delete: #e74c3c;
@@ -243,6 +298,20 @@
   --chc-container-danger: #b83a3a;
   --chc-container-success: #287a4a;
   --chc-container-warning: #a08620;
+
+  /* ── Foreground ON a container fill (dark) ─────────────────
+     DERIVED by WCAG contrast against the dark container fills above rather
+     than hand-picked — hand-picking is what left `.is-warning` as the only
+     legible modifier in light mode. Every pair passes AA:
+         on-primary 5.72:1 · on-link 5.81:1 · on-info 5.04:1
+         on-danger  5.67:1 · on-success 5.29:1 · on-warning 5.59:1
+     `on-warning` inverts because `#a08620` is light enough that white fails. */
+  --chc-on-primary: #ffffff;
+  --chc-on-link: #ffffff;
+  --chc-on-info: #ffffff;
+  --chc-on-danger: #ffffff;
+  --chc-on-success: #ffffff;
+  --chc-on-warning: #0a0a0a;
 
   /* ── Point score (dark overrides) ─────────────────────── */
   --chc-point-score-bg: var(--chc-text-primary);
@@ -324,6 +393,23 @@
 
   /* ── Scheduling Profile: Scrollbar + Popover ───────────── */
   --sp-scrollbar: rgba(148, 163, 184, 0.3);
+
+  /* ── Promoted from call-site fallbacks — dark (2026-09-23) ──
+     Derived by the family's own convention, not invented: accent/status colours
+     step from the Tailwind 500/600 used in light to the 400 used in dark, and
+     surfaces invert. Aliases inherit their target and need no dark override. */
+  --sp-accent-bg: transparent;
+  --sp-accent-subtle: rgba(96, 165, 250, 0.12);
+  --sp-bg-subtle: #111827;
+  --sp-code-bg: rgba(255, 255, 255, 0.06);
+  --sp-danger: #f87171;
+  --sp-success: #4ade80;
+  --sp-side1-bg: rgba(56, 189, 248, 0.12);
+  --sp-side1-text: #7dd3fc;
+  --sp-side2-bg: rgba(248, 113, 113, 0.12);
+  --sp-side2-text: #fca5a5;
+  --sp-subpanel-bg: rgba(255, 255, 255, 0.03);
+  --sp-link: #60a5fa;
   --sp-popover-hover-bg: #2a3441;
   --sp-popover-hover-text: #e5e7eb;
   --sp-popover-delete: #fb7185;

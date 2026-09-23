@@ -54,7 +54,7 @@
 
 /* ── Checked state ───────────────────────────────────────── */
 .switch[type='checkbox']:checked + label::before {
-  background: #00d1b2;
+  background: var(--chc-container-primary);
 }
 
 .switch[type='checkbox']:checked + label::after {
@@ -72,27 +72,27 @@
 
 /* ── Color variants ──────────────────────────────────────── */
 .switch[type='checkbox'].is-info:checked + label::before {
-  background: #3e8ed0;
+  background: var(--chc-container-info);
 }
 
 .switch[type='checkbox'].is-success:checked + label::before {
-  background: #48c78e;
+  background: var(--chc-container-success);
 }
 
 .switch[type='checkbox'].is-warning:checked + label::before {
-  background: #ffe08a;
+  background: var(--chc-container-warning);
 }
 
 .switch[type='checkbox'].is-danger:checked + label::before {
-  background: #f14668;
+  background: var(--chc-container-danger);
 }
 
 .switch[type='checkbox'].is-primary:checked + label::before {
-  background: #00d1b2;
+  background: var(--chc-container-primary);
 }
 
 .switch[type='checkbox'].is-link:checked + label::before {
-  background: #485fc7;
+  background: var(--chc-container-link);
 }
 
 /* ── Disabled state ──────────────────────────────────────── */

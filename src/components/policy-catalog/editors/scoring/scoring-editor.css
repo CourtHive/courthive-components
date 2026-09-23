@@ -16,7 +16,7 @@
   border-radius: 14px;
   overflow: hidden;
   margin-bottom: 10px;
-  background: var(--sp-panel-bg, transparent);
+  background: var(--sp-panel-bg);
 }
 
 .sc-section-header {
@@ -45,7 +45,7 @@
 }
 
 .sc-section-body {
-  border-top: 1px solid var(--sp-border-subtle, var(--sp-border-group));
+  border-top: 1px solid var(--sp-border-subtle);
 }
 
 .sc-section-body-inner {
@@ -66,7 +66,7 @@
 .sc-field-block-label {
   font-weight: 700;
   font-size: 12px;
-  color: var(--sp-text, inherit);
+  color: var(--sp-text);
 }
 
 .sc-field-help {
@@ -90,9 +90,9 @@
 .sc-field-input {
   min-width: 220px;
   padding: 6px 8px;
-  border: 1px solid var(--sp-border-input, var(--sp-border-group));
+  border: 1px solid var(--sp-border-input);
   border-radius: 8px;
-  background: var(--sp-input-bg, transparent);
+  background: var(--sp-input-bg);
   color: inherit;
   font: inherit;
 }
@@ -133,9 +133,9 @@
   flex-direction: column;
   gap: 10px;
   padding: 10px;
-  border: 1px solid var(--sp-border-subtle, var(--sp-border-group));
+  border: 1px solid var(--sp-border-subtle);
   border-radius: 10px;
-  background: var(--sp-subpanel-bg, transparent);
+  background: transparent;
 }
 
 .sc-format-row {
@@ -167,9 +167,9 @@
 .sc-format-input {
   flex: 1 1 auto;
   padding: 6px 8px;
-  border: 1px solid var(--sp-border-input, var(--sp-border-group));
+  border: 1px solid var(--sp-border-input);
   border-radius: 8px;
-  background: var(--sp-input-bg, transparent);
+  background: var(--sp-input-bg);
   color: inherit;
   font: inherit;
 }
@@ -192,7 +192,7 @@
   align-self: flex-start;
   background: transparent;
   border: none;
-  color: var(--sp-accent, var(--sp-link, inherit));
+  color: var(--sp-accent);
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
@@ -200,7 +200,7 @@
 }
 
 .sc-format-builder-body {
-  border-top: 1px dashed var(--sp-border-subtle, var(--sp-border-group));
+  border-top: 1px dashed var(--sp-border-subtle);
   padding-top: 10px;
   display: flex;
   flex-direction: column;
@@ -216,20 +216,20 @@
 
 .sc-format-chip {
   padding: 2px 6px;
-  border: 1px solid var(--sp-border-input, var(--sp-border-group));
+  border: 1px solid var(--sp-border-input);
   border-radius: 6px;
-  background: var(--sp-code-bg, rgba(0, 0, 0, 0.05));
-  font-family: var(--sp-mono, ui-monospace, SFMono-Regular, monospace);
+  background: var(--sp-code-bg);
+  font-family: var(--sp-font-mono);
   font-size: 12px;
 }
 
 .sc-format-validity[data-valid='true'] {
-  color: var(--sp-success, #15803d);
+  color: var(--sp-success);
   font-weight: 700;
 }
 
 .sc-format-validity[data-valid='false'] {
-  color: var(--sp-danger, #b91c1c);
+  color: var(--sp-danger);
   font-weight: 700;
 }
 
@@ -279,9 +279,9 @@
 .sc-format-list-input {
   width: 100%;
   padding: 5px 8px;
-  border: 1px solid var(--sp-border-input, var(--sp-border-group));
+  border: 1px solid var(--sp-border-input);
   border-radius: 8px;
-  background: var(--sp-input-bg, transparent);
+  background: var(--sp-input-bg);
   color: inherit;
   font: inherit;
   box-sizing: border-box;
@@ -294,7 +294,7 @@
 }
 
 .sc-format-list-format-input {
-  font-family: var(--sp-mono, ui-monospace, SFMono-Regular, monospace);
+  font-family: var(--sp-font-mono);
   font-size: 12px;
 }
 
@@ -307,11 +307,11 @@
 }
 
 .sc-format-list-validity[data-state='valid'] {
-  color: var(--sp-success, #15803d);
+  color: var(--sp-success);
 }
 
 .sc-format-list-validity[data-state='invalid'] {
-  color: var(--sp-danger, #b91c1c);
+  color: var(--sp-danger);
 }
 
 .sc-format-list-row-remove {
@@ -326,7 +326,7 @@
 }
 
 .sc-format-list-row-remove:hover:not(:disabled) {
-  color: var(--sp-danger, #b91c1c);
+  color: var(--sp-danger);
   background: var(--sp-hover-bg);
 }
 
@@ -354,15 +354,15 @@
   right: 0;
   width: 6px;
   height: 6px;
-  background: var(--sp-accent, var(--sp-link, #2563eb));
+  background: var(--sp-accent);
   border-radius: 50%;
 }
 
 .sc-format-list-row-advanced {
   padding: 8px 12px 10px 30px;
   margin-top: -2px;
-  background: var(--sp-subpanel-bg, rgba(0, 0, 0, 0.025));
-  border: 1px dashed var(--sp-border-subtle, var(--sp-border-group));
+  background: var(--sp-subpanel-bg);
+  border: 1px dashed var(--sp-border-subtle);
   border-radius: 8px;
   display: flex;
   flex-direction: column;
@@ -400,9 +400,9 @@
 .sc-format-list-preset-picker {
   flex: 1 1 auto;
   padding: 5px 8px;
-  border: 1px solid var(--sp-border-input, var(--sp-border-group));
+  border: 1px solid var(--sp-border-input);
   border-radius: 8px;
-  background: var(--sp-input-bg, transparent);
+  background: var(--sp-input-bg);
   color: inherit;
   font: inherit;
   font-size: 12px;
@@ -428,14 +428,14 @@
   align-items: center;
   gap: 4px;
   padding: 2px 4px 2px 6px;
-  border: 1px solid var(--sp-border-input, var(--sp-border-group));
+  border: 1px solid var(--sp-border-input);
   border-radius: 12px;
-  background: var(--sp-code-bg, rgba(0, 0, 0, 0.05));
+  background: var(--sp-code-bg);
   font-size: 11px;
 }
 
 .sc-taglist-chip code {
-  font-family: var(--sp-mono, ui-monospace, SFMono-Regular, monospace);
+  font-family: var(--sp-font-mono);
 }
 
 .sc-taglist-chip-remove {
@@ -449,7 +449,7 @@
 }
 
 .sc-taglist-chip-remove:hover {
-  color: var(--sp-danger, #b91c1c);
+  color: var(--sp-danger);
 }
 
 .sc-taglist-empty {
@@ -466,22 +466,22 @@
 .sc-taglist-input {
   flex: 1 1 auto;
   padding: 5px 8px;
-  border: 1px solid var(--sp-border-input, var(--sp-border-group));
+  border: 1px solid var(--sp-border-input);
   border-radius: 8px;
-  background: var(--sp-input-bg, transparent);
+  background: var(--sp-input-bg);
   color: inherit;
   font: inherit;
 }
 
 .sc-taglist-error {
   font-size: 11px;
-  color: var(--sp-danger, #b91c1c);
+  color: var(--sp-danger);
 }
 
 /* ── Status code groups ──────────────────────────────── */
 
 .sc-status-group {
-  border: 1px solid var(--sp-border-subtle, var(--sp-border-group));
+  border: 1px solid var(--sp-border-subtle);
   border-radius: 10px;
   overflow: hidden;
 }
@@ -520,13 +520,13 @@
 
 .sc-status-body {
   padding: 8px 10px 10px;
-  border-top: 1px solid var(--sp-border-subtle, var(--sp-border-group));
+  border-top: 1px solid var(--sp-border-subtle);
 }
 
 /* ── Advanced (process codes) ─────────────────────────── */
 
 .sc-advanced {
-  border: 1px dashed var(--sp-border-subtle, var(--sp-border-group));
+  border: 1px dashed var(--sp-border-subtle);
   border-radius: 10px;
   overflow: hidden;
   margin-top: 4px;
@@ -558,7 +558,7 @@
 
 .sc-advanced-body {
   padding: 8px 10px 10px;
-  border-top: 1px dashed var(--sp-border-subtle, var(--sp-border-group));
+  border-top: 1px dashed var(--sp-border-subtle);
   display: flex;
   flex-direction: column;
   gap: 8px;

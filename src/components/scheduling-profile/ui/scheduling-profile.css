@@ -531,7 +531,7 @@
   align-items: center;
   gap: 6px;
   font-size: 0.6875rem;
-  color: var(--sp-accent-text, var(--sp-text));
+  color: var(--sp-accent-text);
   padding: 2px 0;
 }
 

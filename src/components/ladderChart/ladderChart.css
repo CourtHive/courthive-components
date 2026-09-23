@@ -10,49 +10,49 @@
 .lc-title {
   font-size: 14px;
   font-weight: 700;
-  fill: var(--sp-text, #111);
+  fill: var(--sp-text);
 }
 
 .lc-source {
   font-size: 10px;
-  fill: var(--sp-muted, #6b7280);
+  fill: var(--sp-muted);
 }
 
 .lc-empty {
   font-size: 12px;
-  fill: var(--sp-muted, #6b7280);
+  fill: var(--sp-muted);
 }
 
 .lc-axis text {
   font-size: 10px;
-  fill: var(--sp-muted, #6b7280);
+  fill: var(--sp-muted);
 }
 
 .lc-axis path,
 .lc-axis line {
-  stroke: var(--sp-border, #e5e7eb);
+  stroke: var(--sp-border);
   shape-rendering: crispEdges;
 }
 
 .lc-axis-y .tick line {
   stroke-dasharray: 2 2;
-  stroke: var(--sp-border-subtle, #f3f4f6);
+  stroke: var(--sp-border-subtle);
 }
 
 .lc-axis-y .tick text {
   font-weight: 600;
-  fill: var(--sp-text, #111);
+  fill: var(--sp-text);
 }
 
 .lc-connector {
   fill: none;
-  stroke: var(--sp-muted, #94a3b8);
+  stroke: var(--sp-muted);
   stroke-width: 2;
   stroke-opacity: 0.55;
 }
 
 .lc-mark {
-  fill: var(--sp-accent, #3366cc);
+  fill: var(--sp-accent);
   fill-opacity: 0.85;
   stroke: white;
   stroke-width: 1.5;
