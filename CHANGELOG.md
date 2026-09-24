@@ -1,5 +1,14 @@
 # Changelog
 
+## [6.0.1](https://github.com/CourtHive/courthive-components/compare/v6.0.0...v6.0.1) (2026-09-24)
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.1.1 ([b849517](https://github.com/CourtHive/courthive-components/commit/b849517d7ce04e6688f5a92bf3e0e9bd58430815))
+* **scoring:** a recorded reason code survives re-opening the dialog ([#585](https://github.com/CourtHive/courthive-components/issues/585)) ([f7ab4c1](https://github.com/CourtHive/courthive-components/commit/f7ab4c15d1f31bb93e40ffb904375ca8d0b38f4e))
+* **stories:** restore the library button class, which is not Bulma ([#587](https://github.com/CourtHive/courthive-components/issues/587)) ([7d1db25](https://github.com/CourtHive/courthive-components/commit/7d1db25cc235751276a2a39fcce2eaeebf6fd466))
+
 ## [6.0.0](https://github.com/CourtHive/courthive-components/compare/v5.0.0...v6.0.0) (2026-09-24)
 
 
