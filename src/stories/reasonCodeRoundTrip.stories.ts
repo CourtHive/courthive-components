@@ -53,12 +53,11 @@ export const ReopensWithTheRecordedReason = {
     note.textContent = `This matchUp already records reason "${RECORDED_CODE}" (Ret [inj]). Opening the dialog must show it.`;
 
     const button = document.createElement('button');
-    // Theme vars rather than Bulma utility classes, per the ecosystem standard. Several older
-    // stories still carry `is-info`; this is not the place to sweep them, but new code complies.
-    button.style.cssText =
-      'padding:0.4em 0.9em; border-radius:4px; cursor:pointer;' +
-      'background: var(--chc-bg-secondary); color: var(--chc-text-primary);' +
-      'border: 1px solid var(--chc-border-primary);';
+    // `.button.is-info` is THIS library's own class (src/styles/components/buttons.css), themed via
+    // --chc-* custom properties. It is Bulma-SHAPED naming, but Bulma is not a dependency and there
+    // are no --bulma-* variables anywhere in it — so the ecosystem's no-Bulma rule does not apply.
+    // Hand-rolled inline styles here lost the hover, active and focus states the class carries.
+    button.className = 'button is-info';
     button.id = 'openScoringDialog';
     button.textContent = 'Open scoring dialog';
     button.onclick = () => {
