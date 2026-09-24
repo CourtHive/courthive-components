@@ -28,8 +28,10 @@ export type StatusCodePickerHandle = {
 export function buildStatusCodePicker(params: {
   groups?: StatusCodeGroups;
   labels?: ScoringModalLabels;
+  /** The code already recorded on the matchUp, so re-opening the dialog shows what was saved. */
+  initialCode?: string;
 }): StatusCodePickerHandle {
-  const { groups, labels = {} } = params;
+  const { groups, labels = {}, initialCode } = params;
 
   const element = document.createElement('div');
   element.style.display = 'none';
@@ -60,7 +62,13 @@ export function buildStatusCodePicker(params: {
   description.style.color = 'var(--chc-text-secondary)';
   element.appendChild(description);
 
-  let selectedCode: string | undefined;
+  // Seeded from the matchUp rather than starting empty. Without this the control opened on "none"
+  // for a matchUp that already had a reason recorded, so re-opening the dialog and saving again
+  // silently dropped it — the value was in the record the whole time, just never read back.
+  //
+  // `update()` clears it if the stored code is not offered for the current status, which is the
+  // right behaviour: a reason belonging to a status the matchUp no longer has should not persist.
+  let selectedCode: string | undefined = initialCode;
   let offered: StatusCodeEntry[] = [];
 
   const describeSelection = () => {
