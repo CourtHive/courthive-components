@@ -10,6 +10,7 @@ import { renderFreeScoreEntry } from './approaches/freeScoreApproach';
 import type { ScoringModalParams, ScoreOutcome } from './types';
 import { getScoringConfig, setScoringConfig } from './config';
 import { buildStatusCodePicker } from './statusCodePicker';
+import { normalizeStatusCode } from './logic/statusCodes';
 import { cModal } from '../modal/cmodal';
 
 type ScoringApproach = 'dynamicSets' | 'freeScore' | 'dialPad' | 'inlineScoring';
@@ -30,7 +31,14 @@ export function scoringModal(params: ScoringModalParams): void {
 
   // One reason-code control for every approach. It is driven by the outcome's matchUpStatus, which
   // every approach already reports, so it needs no per-approach plumbing.
-  const statusCodePicker = buildStatusCodePicker({ groups: matchUpStatusCodes, labels });
+  // `matchUpStatusCodes` on params is the POLICY vocabulary; `matchUp.matchUpStatusCodes` is what
+  // this matchUp actually recorded. Same name, different things — the factory's own type notes the
+  // conflation. Normalising because a stored element may be a string, a number, or a record.
+  const statusCodePicker = buildStatusCodePicker({
+    initialCode: normalizeStatusCode((matchUp as any)?.matchUpStatusCodes?.[0]),
+    groups: matchUpStatusCodes,
+    labels
+  });
 
   const config = getScoringConfig();
   let activeApproach: ScoringApproach = (config.scoringApproach as ScoringApproach) || 'dynamicSets';
@@ -91,8 +99,14 @@ export function scoringModal(params: ScoringModalParams): void {
     const approachContent = document.createElement('div');
     container.appendChild(approachContent);
     container.appendChild(statusCodePicker.element);
-    // Re-assert the picker against the outcome that survived the approach switch.
-    statusCodePicker.update(currentOutcome?.matchUpStatus);
+    // Re-assert the picker against the outcome that survived the approach switch — falling back to
+    // the status the matchUp ALREADY carries.
+    //
+    // `currentOutcome` is null until an approach reports one, so on open this was `update(undefined)`:
+    // no status meant no group, no group meant no codes offered, and the picker then discarded the
+    // recorded code as "not offered". A matchUp saved as RETIRED with a reason therefore re-opened
+    // showing neither the reason nor anything to choose from, and saving again dropped it.
+    statusCodePicker.update(currentOutcome?.matchUpStatus ?? matchUp.matchUpStatus);
 
     if (approach === 'freeScore') {
       renderFreeScoreEntry({ matchUp, container: approachContent, onScoreChange: handleScoreChange, labels });
