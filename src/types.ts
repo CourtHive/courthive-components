@@ -70,6 +70,16 @@ export interface Side {
   score?: SideScore;
   seedNumber?: number;
   seedValue?: string | number;
+  /**
+   * Why the seed was awarded, as distinct from `seedValue`, which says only where it sits.
+   *
+   * Arrives on the side for free: the factory's `getSideValue` does `Object.assign(side, seeding)`,
+   * spreading the whole `SeedAssignment`. Measured — a side carrying seed 9 on a protected ranking
+   * reads `{ seedValue: 9, seedNumber: 9, seedingBasis: 'PROTECTED_RANKING' }`.
+   *
+   * Absent means the ordinary basis (`RANKING`), not "unknown".
+   */
+  seedingBasis?: string;
 }
 
 export interface Participant {
@@ -203,6 +213,14 @@ export interface Configuration {
   matchUpFooter?: boolean;
   showAddress?: boolean;
   seedingElement?: 'sup' | 'span';
+  /**
+   * Mark a seed awarded on a non-ordinary basis, and title it with that basis. Default `true`.
+   *
+   * On by default because the on-screen draw is the ONLY surface that carries the fact — unlike the
+   * printed sheet, which has a seedings table to footnote and therefore leaves the bracket alone.
+   * Set `false` where a consumer renders its own explanation elsewhere.
+   */
+  seedingBasisMarker?: boolean;
   matchUpHover?: boolean | string;
   participantDetail?: string;
   inlineAssignment?: boolean;
