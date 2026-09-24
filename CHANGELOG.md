@@ -1,5 +1,21 @@
 # Changelog
 
+## [6.0.0](https://github.com/CourtHive/courthive-components/compare/v5.0.0...v6.0.0) (2026-09-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* **theme:** buttons, notifications and any consumer of the `.is-*` intent modifiers now render DARK text on primary, success, info and danger fills in light mode. This is a visible change and it is the point of the commit; it is separated from the token introduction (b4e0148) so the appearance change is one reviewable diff rather than folded into a refactor.
+
+### Features
+
+* **structure:** mark a seed awarded on a non-ordinary basis ([#584](https://github.com/CourtHive/courthive-components/issues/584)) ([a101d26](https://github.com/CourtHive/courthive-components/commit/a101d26128efa46b8b7855d70c278592aa2f8503))
+
+
+### Bug Fixes
+
+* **theme:** resolve colour through tokens, and fix four AA failures ([#582](https://github.com/CourtHive/courthive-components/issues/582)) ([bef9b95](https://github.com/CourtHive/courthive-components/commit/bef9b95c817316bbd29807611efdddca74fedfa9))
+
 ## [5.0.0](https://github.com/CourtHive/courthive-components/compare/v4.5.0...v5.0.0) (2026-09-22)
 
 
