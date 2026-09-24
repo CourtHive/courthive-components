@@ -98,7 +98,7 @@
     "semver": "7.8.5",
     "storybook": "^10.2.17",
     "tabulator-tables": "6.5.3",
-    "tods-competition-factory": "^7.1.0",
+    "tods-competition-factory": "7.1.1",
     "typescript": "^6.0.2",
     "vite": "8.3.0",
     "vite-plugin-dts": "^5.0.0",
