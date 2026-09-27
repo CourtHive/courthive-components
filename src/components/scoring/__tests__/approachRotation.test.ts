@@ -97,16 +97,18 @@ describe('rotating between approaches keeps the entry', () => {
     expect(body).toContain('6-4');
   });
 
-  it('offers the winner question after rotating onto a saved walkover', async () => {
-    // Scope boundary, asserted rather than assumed. Measured while writing this file: rotating a
-    // saved WALKOVER into Free Score leaves its score field EMPTY — freeScore hydrates through
-    // `formatExistingScore`, a third mechanism that does not render a status-only matchUp, and it is
-    // the one approach `hydrateIrregularEnding` deliberately did not rewire. That is a real gap and
-    // it is NOT this projection's to close: the status is handed over correctly, and the winner
-    // controls it drives are present. Asserting the text field here would be asserting freeScore's
-    // hydration under the name of rotation, and would go green the day someone fixed the wrong thing.
+  it('shows a saved walkover in the Free Score field after rotating onto it', async () => {
+    // This assertion used to read "the field is EMPTY", recorded as a scope boundary: freeScore
+    // seeded its input behind `if (internalScore)`, and a walkover has no score, so a status-only
+    // matchUp rendered nothing. That gate has since been widened, so the boundary moved and this
+    // moved with it rather than being left to rot or quietly deleted.
+    //
+    // The winner controls are still asserted, because they are what the carried status drives — the
+    // projection's half of this — while the field is freeScore's half.
     const h = open({ ...freshMatchUp(), matchUpStatus: WALKOVER, winningSide: 1 });
     await h.rotateTo('Free Score');
+
+    expect((document.querySelector('#scoreInputV2') as HTMLInputElement | null)?.value).toBe('wo');
 
     const winnerValues = [...document.querySelectorAll<HTMLInputElement>('input[type="radio"]')].map((r) => r.value);
     expect(winnerValues).toContain('1');
