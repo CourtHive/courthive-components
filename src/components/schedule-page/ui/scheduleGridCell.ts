@@ -9,6 +9,7 @@
  */
 
 import type { ScheduleCellConfig, ScheduleCellData, ScheduleCellSide, ParticipantDisplayConfig } from '../types';
+import { memberNamesLabel } from '../domain/utils';
 
 import './schedule-grid-cell.css';
 
@@ -394,6 +395,14 @@ function buildSideElement(
 
   nameSpan.textContent = text;
 
+  // A doubles side shows `Phoebus/Smith` — family names, because that is all the
+  // PAIR participant's own name contains. The full names go in a tooltip rather
+  // than in the cell: the grid is dense and adding given names (or initials) to
+  // every doubles cell costs a column of width on every row to answer a question
+  // the operator asks occasionally.
+  const memberNames = memberNamesLabel(side);
+  if (memberNames) nameSpan.title = memberNames;
+
   // Bold winner
   if (dc.boldWinner !== false && data.winningSide === sideNumber) {
     nameSpan.style.fontWeight = 'bold';
@@ -553,6 +562,7 @@ export function mapMatchUpToCellData(matchUp: any): ScheduleCellData {
     ranking: s.ranking,
     nationality: s.participant?.nationalityCode ?? s.participant?.person?.nationalityCode ?? s.nationalityCode,
     teamName: s.teamParticipant?.participantName ?? s.teamName,
+    individualParticipants: s.participant?.individualParticipants,
     bye: s.bye || undefined
   }));
 

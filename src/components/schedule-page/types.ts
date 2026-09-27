@@ -14,6 +14,16 @@ export interface MatchUpSide {
   participantId?: string;
   seedNumber?: number;
   ranking?: number;
+  /**
+   * Hydrated members of a pair or team, present on `inContext` matchUps.
+   *
+   * Load-bearing for search, not for layout. A PAIR participant's own
+   * `participantName` is composed by the factory from FAMILY NAMES ALONE
+   * (`Phoebus/Smith`), so a doubles side carries no given name anywhere — and a
+   * consumer searching for "Aiden Phoebus" could not match the one cell he is
+   * actually in. These are the names that make him findable.
+   */
+  individualParticipants?: { participantId?: string; participantName?: string }[];
 }
 
 // ============================================================================
@@ -325,6 +335,16 @@ export interface ScheduleCellSide {
   teamName?: string;
   /** True if this side is a BYE (no participant) */
   bye?: boolean;
+  /**
+   * Hydrated members of a pair or team, present on `inContext` matchUps.
+   *
+   * Load-bearing for search, not for layout. A PAIR participant's own
+   * `participantName` is composed by the factory from FAMILY NAMES ALONE
+   * (`Phoebus/Smith`), so a doubles side carries no given name anywhere — and a
+   * consumer searching for "Aiden Phoebus" could not match the one cell he is
+   * actually in. These are the names that make him findable.
+   */
+  individualParticipants?: { participantId?: string; participantName?: string }[];
 }
 
 /**

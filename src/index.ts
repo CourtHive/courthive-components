@@ -612,6 +612,7 @@ export {
   matchUpLabel,
   participantLabel,
   matchUpSearchKey,
+  memberNamesLabel,
   buildScheduleDateStrip,
   buildScheduleIssuesPanel,
   buildMatchUpCatalog,
