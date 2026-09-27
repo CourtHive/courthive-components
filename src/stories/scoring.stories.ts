@@ -182,8 +182,9 @@ export const DynamicSets = {
     smartDescription.style.color = CHC_TEXT_SECONDARY;
     smartDescription.style.lineHeight = '1.6';
     smartDescription.innerHTML =
-      'When entering scores in the <strong style="color: var(--chc-text-primary);">first (left) field</strong> of a new set, the system can automatically fill the second field with the complement score. ' +
-      'This feature speeds up score entry for standard tennis results.';
+      'Type the <strong style="color: var(--chc-text-primary);">LOSING</strong> score into the first (left) field of a set and the winning score fills itself. ' +
+      'There is no complement for a digit at or above the set target — <code>calculateComplement</code> returns null, ' +
+      'so typing 6 in a set to 6 fills nothing. Hold Shift to put the typed digit on the right instead.';
     smartComplementsSection.appendChild(smartDescription);
 
     const examplesTitle = document.createElement('div');
@@ -199,11 +200,16 @@ export const DynamicSets = {
     examplesList.style.lineHeight = '1.8';
     examplesList.style.color = CHC_TEXT_SECONDARY;
 
+    // Read off `calculateComplement` and its unit tests, not off the feature's name. This block used
+    // to read `6 → 6-4` / `7 → 7-5`, which is the rule INVERTED: the function returns null for any
+    // digit at or above setTo, so typing 6 in a set to 6 fills nothing at all. The examples below
+    // match `logic/__tests__/dynamicSetsLogic.test.ts`, where complement(4) is 6 and complement(6)
+    // is null.
     const examples = [
-      { key: '6', result: '6-4', desc: 'Type "6" → auto-fills "6-4"' },
-      { key: '7', result: '7-5', desc: 'Type "7" → auto-fills "7-5"' },
-      { key: 'Shift+6', result: '4-6', desc: 'Hold Shift, type "6" → auto-fills "4-6" (reversed)' },
-      { key: 'Shift+7', result: '5-7', desc: 'Hold Shift, type "7" → auto-fills "5-7" (reversed)' }
+      { key: '4', result: '4-6', desc: 'Type the loser\'s "4" → auto-fills "4-6"' },
+      { key: '5', result: '5-7', desc: 'Type "5" → auto-fills "5-7" (the set went to a tiebreak)' },
+      { key: 'Shift+4', result: '6-4', desc: 'Hold Shift, type "4" → auto-fills "6-4" (reversed)' },
+      { key: '6', result: 'no fill', desc: 'At or above the set target there is no predictable complement' }
     ];
 
     examples.forEach((example) => {
