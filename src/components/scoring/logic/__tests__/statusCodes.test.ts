@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { matchUpStatusConstants, entryStatusConstants, fixtures, policyConstants } from 'tods-competition-factory';
 import {
-  groupKeysForStatus,
   normalizeStatusCode,
   groupKeyForStatus,
   statusCodeSubtext,
@@ -62,85 +61,66 @@ describe('normalizeStatusCode — all three shapes a code legitimately takes', (
 });
 
 /**
- * A walkover reads the withdrawal reasons too.
+ * WITHDRAWN is a walkover REASON, and the two code groups stay separate.
  *
- * CA, 2026-09-27, verbatim:
+ * CA, 2026-09-27: "WITHDRAWN is a statusCode on a WALKOVER... WALKOVER (withdrawn injured or
+ * withdrawn ill)". A withdrawal is not its own matchUpStatus — it is expressed as a WALKOVER, and
+ * `W5` / "Wo/Withdrawn" is that expression, already inside the WALKOVER group.
  *
- *   "WITHDRAWN is a statusCode on a WALKOVER... WALKOVER (withdrawn injured or withdrawn ill)"
+ * This is recorded as a test because the obvious reading of that sentence — "so merge the WITHDRAWN
+ * group into the walkover picker" — was implemented, and is WRONG. The two groups are label-for-label
+ * parallel (Injury, Illness, Personal circumstance, Tournament Administrative Error each appear in
+ * both, under different codes), so merging offers the operator four pairs of identically-labelled
+ * chips they cannot tell apart.
  *
- * Each part of that is asserted separately below, because they fail independently: that WITHDRAWN is
- * not a matchUpStatus, that a walkover reaches the group anyway, and that the specific reasons CA
- * named are among what it reaches.
+ * CA, 2026-09-19, on why they are parallel rather than redundant: the WALKOVER group records "a match
+ * that did not happen because someone withdrew", which is a RESULT and belongs to scoring; the
+ * WITHDRAWN group records "the withdrawal itself", which is an ENTRY action and belongs to the
+ * entries UI. Same reasons, two different events, two different surfaces.
  */
-describe('a walkover offers the withdrawal reasons — CA, 2026-09-27', () => {
-  it('WITHDRAWN is not a matchUpStatus, so nothing can key a lookup on it', () => {
-    // The premise. If the factory ever promotes WITHDRAWN to a matchUpStatus this test fails, and it
-    // should — the whole mapping below would then be the wrong shape.
-    //
+describe('the WITHDRAWN group belongs to entries, not to scoring — CA, 2026-09-19 and 2026-09-27', () => {
+  it('WITHDRAWN is not a matchUpStatus, so no status-keyed lookup can produce it', () => {
     // Asserted on the key set rather than as `matchUpStatusConstants.WITHDRAWN`, because that does
-    // not COMPILE — TS2339, "Property 'WITHDRAWN' does not exist". The type system is the stronger
-    // evidence and it is the reason this assertion has to be written the long way round.
+    // not COMPILE — TS2339. The type system is the stronger evidence for the premise, and it is why
+    // this assertion is written the long way round.
     expect(Object.keys(matchUpStatusConstants)).not.toContain('WITHDRAWN');
     expect(entryStatusConstants.WITHDRAWN).toBe('WITHDRAWN');
   });
 
-  it('the policy files those codes under a key a status lookup would never produce', () => {
-    // Not asserting our code here — asserting the SHIPPED POLICY's shape, which is the reason the
-    // mapping has to exist. A hand-written mirror of this would have hidden it.
-    expect(Object.keys(REAL_GROUPS)).toContain('WITHDRAWN');
-    expect(REAL_GROUPS.WITHDRAWN.map((c) => c.matchUpStatusCode)).toEqual([
-      'WD.INJ',
-      'WD.ILL',
-      'WD.PC',
-      'WD.WD',
-      'WD.TAE',
-    ]);
+  it('a withdrawal is already expressible as a walkover — W5, "Wo/Withdrawn"', () => {
+    // The fact that makes the separation workable rather than a gap. Asserted against the SHIPPED
+    // policy, because it is the policy's claim, not ours.
+    const walkoverCodes = REAL_GROUPS[WALKOVER];
+    const withdrawn = walkoverCodes.find((c) => c.matchUpStatusCode === 'W5');
+
+    expect(withdrawn?.matchUpStatusCodeDisplay).toBe('Wo/Withdrawn');
+    expect(withdrawn?.label).toBe('Withdrawn');
   });
 
-  it('groupKeysForStatus sends a walkover to both groups, walkover first', () => {
-    // Order is part of the contract: WALKOVER's own codes lead, so an existing picker's first rows
-    // do not move under operators who have learned their positions.
-    expect(groupKeysForStatus(WALKOVER)).toEqual([WALKOVER, 'WITHDRAWN']);
+  it('the two groups are label-for-label parallel, which is why merging them is wrong', () => {
+    // The measurement that refuted the merge. Four labels occur in BOTH groups under different
+    // codes, so a merged picker shows each of them twice with nothing to distinguish the rows.
+    const labels = (key: string) => REAL_GROUPS[key].map((c) => c.label).filter(Boolean);
+    const shared = labels(WALKOVER).filter((l) => labels('WITHDRAWN').includes(l));
+
+    expect(shared).toEqual(['Injury', 'Illness', 'Personal circumstance', 'Tournament Administrative Error']);
   });
 
-  it('withdrawn injured and withdrawn ill are both offered on a walkover — the two CA named', () => {
+  it('a walkover offers its own six codes and none of the WD.* codes', () => {
+    // The behaviour. If someone widens this lookup again, this is the test that says why not.
     const codes = codesForStatus(REAL_GROUPS, WALKOVER).map((c) => c.matchUpStatusCode);
 
-    expect(codes).toContain('WD.INJ');
-    expect(codes).toContain('WD.ILL');
+    expect(codes).toEqual(['W1', 'W2', 'W3', 'WOWO', 'W4', 'W5']);
+    for (const code of codes) expect(code).not.toMatch(/^WD\./);
   });
 
-  it('offers all eleven the policy authors, not the six a status-keyed lookup found', () => {
-    // The defect, in one number. Five real USTA reason codes were unreachable from the picker.
-    const codes = codesForStatus(REAL_GROUPS, WALKOVER).map((c) => c.matchUpStatusCode);
-
-    expect(codes).toHaveLength(11);
-    expect(codes.slice(0, 6)).toEqual(['W1', 'W2', 'W3', 'WOWO', 'W4', 'W5']);
-  });
-
-  it('a double walkover reaches Wd/Wd — double withdrawal is what two withdrawals display', () => {
-    // Follows from the double-exit mapping composing with this one, and it is the case that proves
-    // the two mappings belong on the same axis rather than fighting each other.
-    const codes = codesForStatus(REAL_GROUPS, DOUBLE_WALKOVER).map((c) => c.matchUpStatusCode);
-
-    expect(codes).toContain('WD.WD');
-    expect(codes).toContain('WOWO');
-  });
-
-  it('leaves every other status reading exactly one group', () => {
-    // The regression this change could plausibly cause: withdrawal reasons leaking onto a retirement
-    // or a default, where they would be nonsense.
-    for (const status of [RETIRED, DEFAULTED, DOUBLE_DEFAULT, ABANDONED]) {
-      expect(groupKeysForStatus(status)).toHaveLength(1);
-      expect(codesForStatus(REAL_GROUPS, status).map((c) => c.matchUpStatusCode)).not.toContain('WD.INJ');
+  it('no status reaches the WITHDRAWN group at all', () => {
+    // Including the double exits, which map onto WALKOVER and DEFAULTED. WD.WD is double WITHDRAWAL,
+    // not double walkover — WOWO is that, and it is already in the walkover group.
+    for (const status of [WALKOVER, DOUBLE_WALKOVER, DEFAULTED, DOUBLE_DEFAULT, RETIRED, ABANDONED]) {
+      const codes = codesForStatus(REAL_GROUPS, status).map((c) => c.matchUpStatusCode);
+      expect(codes.filter((c) => c.startsWith('WD.')), `${status} reached a WD.* code`).toEqual([]);
     }
-  });
-
-  it('a policy with no WITHDRAWN group yields exactly what it did before', () => {
-    // Every non-USTA policy today. The mapping must be additive, not a requirement.
-    const groups = { [WALKOVER]: [{ matchUpStatusCode: 'W1' }] } as unknown as StatusCodeGroups;
-
-    expect(codesForStatus(groups, WALKOVER).map((c) => c.matchUpStatusCode)).toEqual(['W1']);
   });
 });
 
