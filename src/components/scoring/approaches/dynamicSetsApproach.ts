@@ -22,6 +22,7 @@ import {
 } from '../logic/dynamicSetsLogic';
 import {
   applyIrregularEndingToValidation,
+  hydrateIrregularEnding,
   SELECTABLE_ENDINGS,
   supportsNeitherSide,
   doubleExitWarning,
@@ -219,7 +220,11 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   }
 
   // Irregular ending selector
-  let selectedOutcome: typeof COMPLETED | typeof RETIRED | typeof WALKOVER | typeof DEFAULTED = COMPLETED;
+  // `string`, not a four-member union. This held all six of SELECTABLE_ENDINGS already — the radio
+  // handler assigns whichever ending was clicked — and the narrow annotation only type-checked
+  // because the value reaching it came off an `any` matchUp. Taking the inverse from shared logic
+  // gives it a real `string` and the lie surfaced. Widened to what it actually holds.
+  let selectedOutcome: string = COMPLETED;
   // Tri-state: undefined = the operator has not answered, 1|2 = that side won,
   // NEITHER_SIDE = explicitly neither (a double exit). See logic/irregularEnding.ts.
   let winnerSelection: WinnerSelection = undefined;
@@ -1510,23 +1515,14 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   // Initialize irregular ending and winner if present
   // Only set selectedOutcome if it's an actual irregular ending (not TO_BE_PLAYED)
   // Handle DOUBLE_* statuses by mapping them back to base status without winner
-  if (
-    matchUp.matchUpStatus &&
-    matchUp.matchUpStatus !== COMPLETED &&
-    [...SELECTABLE_ENDINGS, DOUBLE_WALKOVER, DOUBLE_DEFAULT].includes(matchUp.matchUpStatus)
-  ) {
-    // Map DOUBLE_* statuses back to their base status plus the explicit "neither" answer, so
-    // reopening a double exit shows the selection that produced it rather than an empty winner group.
-    if (matchUp.matchUpStatus === DOUBLE_WALKOVER) {
-      selectedOutcome = WALKOVER;
-      winnerSelection = NEITHER_SIDE;
-    } else if (matchUp.matchUpStatus === DOUBLE_DEFAULT) {
-      selectedOutcome = DEFAULTED;
-      winnerSelection = NEITHER_SIDE;
-    } else {
-      selectedOutcome = matchUp.matchUpStatus;
-      winnerSelection = matchUp.winningSide;
-    }
+  // The shared inverse of `resolveIrregularEnding`. This file's own copy was correct — it restored
+  // all six endings and both double exits — but it was still a copy, and the one in `dialPad` beside
+  // it restored only three. Two implementations of one rule is the shape that produced the fail-open
+  // DOUBLE_WALKOVER; being the correct copy is not a reason to stay a copy.
+  const hydrated = hydrateIrregularEnding(matchUp);
+  if (hydrated.selectedOutcome !== COMPLETED) {
+    selectedOutcome = hydrated.selectedOutcome;
+    winnerSelection = hydrated.winnerSelection;
 
     // Check the appropriate irregular ending radio button
     const outcomeRadios = irregularEndingContainer.querySelectorAll<HTMLInputElement>(OUTCOME_SELECTOR);
