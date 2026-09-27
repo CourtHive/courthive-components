@@ -27,7 +27,7 @@ export {
   isCompletedStatus
 } from './domain/matchUpCatalogProjections';
 export { buildScheduleIssueIndex } from './domain/scheduleIssues';
-export { matchUpLabel, participantLabel, matchUpSearchKey, deepClone } from './domain/utils';
+export { matchUpLabel, participantLabel, matchUpSearchKey, memberNamesLabel, deepClone } from './domain/utils';
 export {
   computeActiveStrip,
   computeActiveStripCell,
