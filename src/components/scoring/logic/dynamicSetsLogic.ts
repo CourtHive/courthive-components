@@ -4,6 +4,9 @@
  * No DOM dependencies, no side effects - pure business logic only
  */
 
+import { parseMatchUpFormat } from '../utils/setExpansionLogic';
+import { matchUpFormatCode } from 'tods-competition-factory';
+
 import type { SetScore } from '../types';
 
 /**
@@ -51,6 +54,30 @@ export type SmartComplementResult = {
  * Get the format for a specific set index
  * Uses finalSetFormat for deciding set if available
  */
+/**
+ * The `MatchUpConfig` for a TODS matchUpFormat string.
+ *
+ * Hoisted because it takes TWO sources to assemble and `dynamicSetsApproach` already had its own copy
+ * (`getMatchUpConfig`, line ~134): `bestOf` comes from `parseMatchUpFormat`, which resolves an
+ * `exactly:N` format down to a set count, while `exactly`, `setFormat` and `finalSetFormat` come
+ * straight off `matchUpFormatCode.parse`. A region building its own would be a second copy of a
+ * derivation whose two halves must agree, which is the shape every other divergence in this module
+ * family started as.
+ *
+ * Never parse a matchUpFormat with a regex — the factory owns that grammar, and an unparseable format
+ * falls back to SET3 rather than throwing, because a dialog that will not open is worse than one that
+ * opens on the wrong best-of.
+ */
+export function matchUpConfigFor(matchUpFormat?: string): MatchUpConfig {
+  const parsed = matchUpFormat ? matchUpFormatCode.parse(matchUpFormat) : undefined;
+  return {
+    bestOf: parseMatchUpFormat(matchUpFormat).bestOf,
+    exactly: parsed?.exactly,
+    setFormat: parsed?.setFormat,
+    finalSetFormat: parsed?.finalSetFormat,
+  };
+}
+
 export function getSetFormatForIndex(setIndex: number, config: MatchUpConfig): SetFormat | undefined {
   const isDecidingSet = config.bestOf === 1 || setIndex + 1 === config.bestOf;
 
@@ -284,8 +311,35 @@ export function getMatchWinner(sets: SetScore[], bestOf: number, exactly?: numbe
 export function calculateComplement(digit: number, setFormat?: SetFormat): number | null {
   const setTo = setFormat?.setTo || 6;
 
-  // No complement for digits >= setTo (score is tied or winning)
-  if (digit >= setTo) {
+  // ── The typed digit is the LOSER's games ──
+  //
+  // That is this table's convention throughout, and it is what makes it useful: 0-4 complement to 6
+  // because you lost 0-6 through 4-6, and 5 completes to 7 because you lost 5-7.
+  //
+  // `digit === setTo` used to return null, described as "tied or winning". CA, 2026-09-27, matching USTA
+  // Tournament Desk: "just a 6 in one auto completes the 7 in the other". A 6 IS a legitimate loser's
+  // score when the set can reach 6-6 and go to a tiebreak, so the null was the anomaly rather than the
+  // rule — read as a loser's score, 6 completes to 7 exactly as 5 does.
+  //
+  // Nothing is lost by inferring it. `shouldApplySmartComplement` fires once per set, so an operator who
+  // meant to WIN 6-4 types 6, receives 7, and corrects it — precisely how the 0-4 cases already behave
+  // when the guess is not what was meant.
+  //
+  // Above `setTo` there is still nothing to infer: a 7 in a set to 6 cannot be a loser's score.
+  if (digit > setTo) {
+    return null;
+  }
+
+  // At exactly `setTo`, a loser can only have got there if the set can be TIED at `setTo` and then
+  // decided by a tiebreak. Two formats cannot:
+  //
+  //   - the tiebreak comes earlier (S:6@5, S:5@4) — the set is decided before either side reaches
+  //     `setTo`, so the loser tops out a game lower;
+  //   - there is no tiebreak at all (S:5WB1) — first past the post, so the loser is always below.
+  //
+  // Both were caught by existing tests when this guard checked only the tiebreak position.
+  const tiedAtSetTo = !!setFormat?.tiebreakFormat && (setFormat.tiebreakAt ?? setTo) === setTo;
+  if (digit === setTo && !tiedAtSetTo) {
     return null;
   }
 

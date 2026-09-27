@@ -87,6 +87,11 @@
   padding: 10px 14px;
 }
 
+/* Each score-column heading centres in its own track, exactly as the input beneath it does. */
+.chc-sec-col-head {
+  justify-self: center;
+}
+
 .chc-sec-row-head {
   padding: 6px 14px;
   background: var(--chc-bg-secondary);
@@ -411,5 +416,234 @@
 
   .chc-sec-footer .chc-sec-btn {
     flex: 1 1 auto;
+  }
+}
+
+/* ── The Dynamic Sets region ───────────────────────────────────────── */
+
+/* Centred with `justify-self`, the same property `.chc-sec-col-head` uses, so a heading always sits
+   over the cell it describes. NOT `margin: 0 auto` — that centred correctly too, but by a different
+   mechanism from the heading, and two mechanisms that agree today can diverge under one edit. */
+.chc-sec-set-input {
+  justify-self: center;
+  width: 52px;
+  height: 44px;
+  border: 1px solid var(--chc-border-primary);
+  border-radius: 8px;
+  background: var(--chc-input-bg);
+  color: var(--chc-text-primary);
+  font: inherit;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.chc-sec-set-input:focus-visible {
+  outline: 2px solid var(--chc-border-focus);
+  outline-offset: 1px;
+}
+
+/* The smart-complements toggle. It lives in the score region rather than the card's chrome because it
+   is a Dynamic Sets behaviour only — in the shared chrome its presence would imply it applied to Free
+   Score and the Dial Pad too. */
+.chc-sec-smart {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  color: var(--chc-text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.chc-sec-smart input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--chc-card-accent);
+}
+
+@media (width <= 560px) {
+  /* Stacked rows on a phone: the input stops being a centred grid cell and fills its row. */
+  .chc-sec-set-input {
+    justify-self: stretch;
+    width: 100%;
+  }
+}
+
+/* ── The read-only readout, shared by Free Score and the Dial Pad ───── */
+
+/* Centred by `justify-self`, the same property `.chc-sec-col-head` and `.chc-sec-set-input` use, so
+   every score column in every region centres by one mechanism. */
+.chc-sec-readout {
+  justify-self: center;
+  color: var(--chc-text-primary);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+
+/* ── Free Score ────────────────────────────────────────────────────── */
+
+.chc-sec-freescore {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.chc-sec-field-label {
+  color: var(--chc-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+}
+
+.chc-sec-freescore-input {
+  box-sizing: border-box;
+  height: 52px;
+  padding: 0 14px;
+  border: 1px solid var(--chc-card-accent);
+  border-radius: 10px;
+  background: var(--chc-input-bg);
+  color: var(--chc-text-primary);
+  font: inherit;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.chc-sec-freescore-input:focus-visible {
+  outline: 2px solid var(--chc-border-focus);
+  outline-offset: 1px;
+}
+
+.chc-sec-field-note {
+  min-height: 1.2em;
+  font-size: 12px;
+}
+
+.chc-sec-field-note[data-tone='good'] {
+  color: var(--chc-card-band-good-fg);
+}
+
+.chc-sec-field-note[data-tone='error'] {
+  color: var(--chc-status-error);
+}
+
+.chc-sec-field-note[data-tone='idle'] {
+  color: var(--chc-text-secondary);
+}
+
+/* ── Dial Pad ──────────────────────────────────────────────────────── */
+
+.chc-sec-dialpad {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.chc-sec-dialpad-digits {
+  display: grid;
+  flex-grow: 1;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.chc-sec-dialpad-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 150px;
+}
+
+.chc-sec-key {
+  height: 52px;
+  padding: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.chc-sec-key-back {
+  height: 52px;
+  border-color: var(--chc-border-primary);
+  color: var(--chc-status-error);
+}
+
+.chc-sec-dialpad-side .chc-sec-btn {
+  height: 52px;
+}
+
+@media (width <= 560px) {
+  /* The side column stops being a column: a 150px pair beside a five-across keypad does not fit at
+     390px, and shrinking the keys is how the 44px target gets lost. */
+  .chc-sec-dialpad {
+    flex-direction: column;
+  }
+
+  .chc-sec-dialpad-side {
+    flex-direction: row;
+    width: 100%;
+  }
+
+  .chc-sec-dialpad-side .chc-sec-btn {
+    flex: 1 1 auto;
+  }
+}
+
+/* ── The games cell, and its tiebreak parenthetical ─────────────────── */
+
+/* A composite: the digits-only input, plus the `(3)` that appears once a tiebreak is known. The value
+   stays editable — an operator must be able to correct a finished set — while the CELL reads `6(3)`. */
+.chc-sec-games-cell {
+  display: flex;
+  justify-self: center;
+  align-items: center;
+  gap: 1px;
+}
+
+/* The raised tiebreak points — `6` with a small `3` above the baseline, as a draw sheet prints it.
+   `<sup>` rather than a Unicode superscript digit, because `¹⁰` would need composing and a match
+   tiebreak to 10 is ordinary. */
+.chc-sec-tb-mark {
+  margin-left: 1px;
+  color: var(--chc-text-secondary);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  /* `<sup>` already raises it; the explicit values keep the raise from nudging the row's line box and
+     shifting the 44px input off-centre. */
+  line-height: 0;
+  vertical-align: super;
+}
+
+.chc-sec-tb-mark:empty {
+  display: none;
+}
+
+/* Carries the words a raised digit cannot. Scoped to the card rather than claimed as a shared utility,
+   since the library has none and defining a global one is another session's call. */
+.chc-sec-sr-only {
+  position: absolute;
+  overflow: hidden;
+  clip-path: inset(50%);
+  width: 1px;
+  height: 1px
+}
+
+/* The transient tiebreak column. Narrower than a games column and visibly subordinate to it, because it
+   qualifies the set beside it rather than standing alone. */
+.chc-sec-tb-input {
+  width: 44px;
+  background: var(--chc-bg-secondary);
+  font-size: 16px;
+}
+
+@media (width <= 560px) {
+  .chc-sec-games-cell {
+    justify-self: stretch;
+  }
+
+  .chc-sec-tb-input {
+    width: 100%;
   }
 }

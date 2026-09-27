@@ -17,6 +17,7 @@ import {
   shouldShowTiebreak,
   shouldCreateNextSet,
   buildSetScore,
+  matchUpConfigFor,
   type MatchUpConfig
 } from '../dynamicSetsLogic';
 import type { SetScore } from '../../types';
@@ -36,6 +37,54 @@ function parseFormat(formatString: string): MatchUpConfig {
     finalSetFormat: parsed?.finalSetFormat
   };
 }
+
+/**
+ * `matchUpConfigFor` — the derivation `dynamicSetsApproach` already carried its own copy of.
+ *
+ * It takes TWO sources and they must agree: `bestOf` comes from `parseMatchUpFormat`, which resolves
+ * an `exactly:N` format down to a set count, while `exactly`, `setFormat` and `finalSetFormat` come
+ * straight off `matchUpFormatCode.parse`. Hoisted so a region does not become a second copy whose
+ * halves can drift apart.
+ */
+describe('matchUpConfigFor', () => {
+  it('reads a best-of-3 off a standard format', () => {
+    const config = matchUpConfigFor('SET3-S:6/TB7');
+
+    expect(config.bestOf).toBe(3);
+    expect(config.exactly).toBeUndefined();
+    expect(config.setFormat?.setTo).toBe(6);
+  });
+
+  it('reads a best-of-5', () => {
+    expect(matchUpConfigFor('SET5-S:6/TB7').bestOf).toBe(5);
+  });
+
+  it('carries a distinct final-set format when the format has one', () => {
+    // The half that comes from the factory parse rather than from parseMatchUpFormat. A config that
+    // dropped it would score a deciding match tiebreak as a full set.
+    const config = matchUpConfigFor('SET3-S:6/TB7-F:TB10');
+
+    expect(config.finalSetFormat).toBeDefined();
+    expect(config.setFormat?.setTo).toBe(6);
+  });
+
+  it('falls back to best-of-3 for an unparseable format instead of throwing', () => {
+    // A dialog that will not open is worse than one that opens on the wrong best-of, and an operator
+    // can see and correct a wrong column count. Never parse a matchUpFormat with a regex.
+    expect(matchUpConfigFor('NOT-A-FORMAT').bestOf).toBe(3);
+    expect(matchUpConfigFor(undefined).bestOf).toBe(3);
+    expect(matchUpConfigFor('').bestOf).toBe(3);
+  });
+
+  it('agrees with getSetFormatForIndex, which is the whole point of assembling it', () => {
+    // The config exists to be handed to the other pure functions. If the two halves disagreed, this is
+    // where it would show: the final set would resolve to the wrong format.
+    const config = matchUpConfigFor('SET3-S:6/TB7-F:TB10');
+
+    expect(getSetFormatForIndex(0, config)).toEqual(config.setFormat);
+    expect(getSetFormatForIndex(2, config)).toEqual(config.finalSetFormat);
+  });
+});
 
 describe('dynamicSetsLogic - Pure Functions', () => {
   // Use constants and parse them dynamically
@@ -430,8 +479,15 @@ describe('dynamicSetsLogic - Pure Functions', () => {
       expect(calculateComplement(5, s6Format)).toBe(7);
     });
 
-    it('returns null for digit 6 with S:6 (tied/winning)', () => {
-      expect(calculateComplement(6, s6Format)).toBeNull();
+    it('returns 7 for digit 6 with S:6 — a 6 is a loser score when the set can reach 6-6', () => {
+      // CHANGED 2026-09-27 on CA's instruction, matching USTA Tournament Desk: "just a 6 in one auto
+      // completes the 7 in the other". This asserted null, described as "tied or winning".
+      //
+      // The table's convention throughout is that the typed digit is the LOSER's games — 0-4 complete to
+      // 6, 5 completes to 7 — so 6 completing to 7 is the continuation and the null was the anomaly.
+      // Nothing is lost: the complement fires once per set, so an operator who meant to WIN 6-4 types 6,
+      // receives 7 and corrects it, exactly as the 0-4 cases already behave.
+      expect(calculateComplement(6, s6Format)).toBe(7);
     });
 
     it('returns null for digit 7 with S:6 (winning)', () => {
@@ -446,8 +502,16 @@ describe('dynamicSetsLogic - Pure Functions', () => {
       expect(calculateComplement(7, s8Format)).toBe(9);
     });
 
-    it('returns null for digit 8 with S:8', () => {
-      expect(calculateComplement(8, s8Format)).toBeNull();
+    it('returns 9 for digit 8 with S:8 — the same rule, at that format\'s setTo', () => {
+      // Follows from the change above rather than being a separate decision: an 8-8 goes to a tiebreak in
+      // this format, so 8 is a reachable loser score and the winner took 9.
+      expect(calculateComplement(8, s8Format)).toBe(9);
+    });
+
+    it('still returns null ABOVE setTo, where nothing can be inferred', () => {
+      // A 7 in a set to 6 cannot be a loser's score, so there is no winner's score to derive.
+      expect(calculateComplement(7, s6Format)).toBeNull();
+      expect(calculateComplement(9, s8Format)).toBeNull();
     });
 
     describe('S:5/TB9@4 format (tiebreakAt = setTo - 1)', () => {
@@ -473,7 +537,9 @@ describe('dynamicSetsLogic - Pure Functions', () => {
         expect(calculateComplement(4, s5at4Format)).toBe(5);
       });
 
-      it('returns null for digit 5 with S:5@4 (at setTo)', () => {
+      it('returns null for digit 5 with S:5@4 — the loser tops out a game lower', () => {
+        // The 6 -> 7 change does NOT reach here, and this is the test that says why: with the tiebreak at
+        // 4-4 the set is decided before either side reaches 5, so a 5 is never a loser's score.
         expect(calculateComplement(5, s5at4Format)).toBeNull();
       });
     });
@@ -493,7 +559,8 @@ describe('dynamicSetsLogic - Pure Functions', () => {
         expect(calculateComplement(5, s6at5Format)).toBe(6);
       });
 
-      it('returns null for digit 6 with S:6@5 (at setTo)', () => {
+      it('returns null for digit 6 with S:6@5 — the loser tops out a game lower', () => {
+        // Same reasoning: a tiebreak at 5-5 means the winner takes it 6-5, so a 6 cannot be the loser's.
         expect(calculateComplement(6, s6at5Format)).toBeNull();
       });
     });
@@ -577,8 +644,17 @@ describe('dynamicSetsLogic - Pure Functions', () => {
       expect(result.reason).toContain('Timed set');
     });
 
-    it('does not apply when digit >= setTo', () => {
+    it('applies AT setTo, where the set can be tied and decided by a tiebreak', () => {
+      // CHANGED 2026-09-27 with `calculateComplement`: this asserted that a 6 does not apply. A 6 read as
+      // the LOSER's games means 7-6, which is the table's own convention for 0-5 extended one step.
       const result = shouldApplySmartComplement(6, false, 0, emptySet, standardBestOf3, new Set(), true);
+      expect(result.shouldApply).toBe(true);
+      expect(result.field1Value).toBe(6);
+      expect(result.field2Value).toBe(7);
+    });
+
+    it('does not apply ABOVE setTo, where there is nothing to infer', () => {
+      const result = shouldApplySmartComplement(7, false, 0, emptySet, standardBestOf3, new Set(), true);
       expect(result.shouldApply).toBe(false);
       expect(result.reason).toContain('No predictable complement');
     });
