@@ -413,3 +413,52 @@
     flex: 1 1 auto;
   }
 }
+
+/* ── The Dynamic Sets region ───────────────────────────────────────── */
+
+.chc-sec-set-input {
+  width: 52px;
+  height: 44px;
+  margin: 0 auto;
+  border: 1px solid var(--chc-border-primary);
+  border-radius: 8px;
+  background: var(--chc-input-bg);
+  color: var(--chc-text-primary);
+  font: inherit;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.chc-sec-set-input:focus-visible {
+  outline: 2px solid var(--chc-border-focus);
+  outline-offset: 1px;
+}
+
+/* The smart-complements toggle. It lives in the score region rather than the card's chrome because it
+   is a Dynamic Sets behaviour only — in the shared chrome its presence would imply it applied to Free
+   Score and the Dial Pad too. */
+.chc-sec-smart {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  color: var(--chc-text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.chc-sec-smart input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--chc-card-accent);
+}
+
+@media (width <= 560px) {
+  /* Stacked rows on a phone: the input stops being a centred grid cell and fills its row. */
+  .chc-sec-set-input {
+    width: 100%;
+    margin: 0;
+  }
+}

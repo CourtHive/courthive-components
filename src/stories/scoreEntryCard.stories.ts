@@ -12,6 +12,7 @@
  * side rather than from memory.
  */
 import { matchUpStatusConstants, fixtures, policyConstants } from 'tods-competition-factory';
+import { createDynamicSetsRegion } from '../components/scoring/regions/dynamicSetsRegion';
 import { renderScoreEntryCard } from '../components/scoring/scoreEntryCard';
 import { expect } from 'storybook/test';
 
@@ -40,28 +41,42 @@ const SIDES: [{ participantName: string; seed?: string }, { participantName: str
   { participantName: 'Derrick Ellul', seed: '(1)' },
 ];
 
-/** A Dynamic-Sets-shaped region: one input per set, inside the participant rows. */
-function perSetRegion(values: Record<number, string[]>) {
-  return {
-    columnHeaders: () => ['SET 1', 'SET 2', 'SET 3'],
-    rowCells: (sideNumber: 1 | 2) =>
-      [0, 1, 2].map((index) => {
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.value = values[sideNumber]?.[index] ?? '';
-        input.dataset.set = String(index + 1);
-        input.setAttribute('aria-label', `Set ${index + 1}, ${SIDES[sideNumber - 1].participantName} games`);
-        input.style.cssText =
-          'width:52px;height:44px;margin:0 auto;text-align:center;border:1px solid var(--chc-border-primary);' +
-          'border-radius:8px;font:inherit;font-size:18px;font-weight:600;background:var(--chc-input-bg);' +
-          'color:var(--chc-text-primary)';
-        return input;
-      }),
-    scoreString: () => '6-4 6-3',
-    isComplete: () => true,
-    winningSide: () => 1 as const,
-  };
+/**
+ * The REAL Dynamic Sets region, not a stand-in.
+ *
+ * These stories used a hand-rolled region that returned a fixed `scoreString` of '6-4 6-3' whatever
+ * was typed. That made them pictures rather than the thing, and a picture cannot show the two
+ * properties that matter — that the band follows the score live, and that typing does not destroy the
+ * caret. The card is built and refreshed together so the region can call back into it.
+ */
+function cardWithSets(sets: any[] | undefined, over: Record<string, any> = {}) {
+  const matchUpFormat = over.matchUpFormat ?? FORMAT;
+  const region = createDynamicSetsRegion({
+    matchUpFormat,
+    sets,
+    onChange: () => card.refresh(),
+  });
+  const card = renderScoreEntryCard({
+    sides: SIDES,
+    matchUpFormat,
+    context: CONTEXT,
+    approachLabel: DYNAMIC_SETS,
+    statusCodeGroups: REAL_GROUPS,
+    region,
+    ...over,
+  });
+  return card;
 }
+
+const PLAYED_OUT_SETS = [
+  { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
+  { setNumber: 2, side1Score: 6, side2Score: 3, winningSide: 1 },
+];
+
+const PART_SCORE_SETS = [
+  { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
+  { setNumber: 2, side1Score: 2, side2Score: 1 },
+];
 
 function frame(element: HTMLElement, width = 720): HTMLElement {
   const outer = document.createElement('div');
@@ -75,17 +90,7 @@ function frame(element: HTMLElement, width = 720): HTMLElement {
 
 export const PlayedOut = {
   name: 'Played out — the 95% case',
-  render: () => {
-    const card = renderScoreEntryCard({
-      sides: SIDES,
-      matchUpFormat: FORMAT,
-      context: CONTEXT,
-      approachLabel: DYNAMIC_SETS,
-      statusCodeGroups: REAL_GROUPS,
-      region: perSetRegion({ 1: ['6', '6'], 2: ['4', '3'] }),
-    });
-    return frame(card.element);
-  },
+  render: () => frame(cardWithSets(PLAYED_OUT_SETS).element),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     // Submit must be LIVE with no ending chosen at all. This is the case a gate on the ending alone
     // would kill, and it is what the dialog is used for nearly every time it opens.
@@ -105,17 +110,7 @@ export const PlayedOut = {
 
 export const Walkover = {
   name: 'Walkover — chosen on the row it happened to',
-  render: () => {
-    const card = renderScoreEntryCard({
-      sides: SIDES,
-      matchUpFormat: FORMAT,
-      context: CONTEXT,
-      approachLabel: DYNAMIC_SETS,
-      statusCodeGroups: REAL_GROUPS,
-      region: perSetRegion({}),
-    });
-    return frame(card.element);
-  },
+  render: () => frame(cardWithSets(undefined).element),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     const click = (selector: string) => {
       const target = canvasElement.querySelector<HTMLElement>(selector);
@@ -155,22 +150,7 @@ export const Walkover = {
 
 export const ClearedPartScore = {
   name: 'Other… → Cancelled — and the score it clears',
-  render: () => {
-    const card = renderScoreEntryCard({
-      sides: SIDES,
-      matchUpFormat: FORMAT,
-      context: CONTEXT,
-      approachLabel: DYNAMIC_SETS,
-      statusCodeGroups: REAL_GROUPS,
-      region: {
-        ...perSetRegion({ 1: ['6', '2'], 2: ['4', '1'] }),
-        scoreString: () => '6-4 2-1',
-        isComplete: () => false,
-        winningSide: () => undefined,
-      },
-    });
-    return frame(card.element);
-  },
+  render: () => frame(cardWithSets(PART_SCORE_SETS).element),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     const click = (selector: string) => canvasElement.querySelector<HTMLElement>(selector)?.click();
 

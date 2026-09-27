@@ -425,6 +425,59 @@ describe('the shared geometry', () => {
     expect(h.q('.chc-sec-row-head')?.textContent).toContain('SET 1');
   });
 
+  it('refresh() keeps the region\'s input ELEMENTS, so typing does not lose the caret', () => {
+    // A score region calls refresh() on every keystroke to keep the band live. If refresh re-rendered
+    // the rows it would ask the region for fresh cells and replace the input being typed into — the
+    // value would survive (the region holds it) but the element would not, so focus and the caret go
+    // and the operator gets exactly one digit per click.
+    //
+    // Asserted on element IDENTITY (toBe, not toEqual) because that is the property focus depends on.
+    let served = 0;
+    const h = mount({
+      region: {
+        columnHeaders: () => ['SET 1'],
+        rowCells: (side) => {
+          served += 1;
+          const input = document.createElement('input');
+          input.dataset.cell = `s${side}`;
+          return [input];
+        },
+        isComplete: () => false,
+      },
+    });
+
+    const before = h.q<HTMLInputElement>('input[data-cell="s1"]');
+    const servedAfterMount = served;
+    expect(before).toBeTruthy();
+
+    h.card.refresh();
+    h.card.refresh();
+
+    expect(h.q<HTMLInputElement>('input[data-cell="s1"]')).toBe(before);
+    expect(served, 'rowCells was called again — refresh re-rendered the rows').toBe(servedAfterMount);
+  });
+
+  it('but an ending change DOES re-render the rows, since the winner marker moved', () => {
+    // The other half. refresh() must be cheap, and a structural change must still be full.
+    let served = 0;
+    const h = mount({
+      region: {
+        columnHeaders: () => ['SET 1'],
+        rowCells: () => {
+          served += 1;
+          return [document.createElement('input')];
+        },
+      },
+    });
+    const servedAfterMount = served;
+
+    h.endedEarly(1)?.click();
+    h.sideOption(1, WALKOVER)?.click();
+
+    expect(served).toBeGreaterThan(servedAfterMount);
+    expect(h.row(2)?.dataset.winner).toBe('true');
+  });
+
   it('places a region\'s block beneath the rows instead', () => {
     const h = mount({
       region: {

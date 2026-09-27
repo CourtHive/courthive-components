@@ -17,6 +17,7 @@ import {
   shouldShowTiebreak,
   shouldCreateNextSet,
   buildSetScore,
+  matchUpConfigFor,
   type MatchUpConfig
 } from '../dynamicSetsLogic';
 import type { SetScore } from '../../types';
@@ -36,6 +37,54 @@ function parseFormat(formatString: string): MatchUpConfig {
     finalSetFormat: parsed?.finalSetFormat
   };
 }
+
+/**
+ * `matchUpConfigFor` — the derivation `dynamicSetsApproach` already carried its own copy of.
+ *
+ * It takes TWO sources and they must agree: `bestOf` comes from `parseMatchUpFormat`, which resolves
+ * an `exactly:N` format down to a set count, while `exactly`, `setFormat` and `finalSetFormat` come
+ * straight off `matchUpFormatCode.parse`. Hoisted so a region does not become a second copy whose
+ * halves can drift apart.
+ */
+describe('matchUpConfigFor', () => {
+  it('reads a best-of-3 off a standard format', () => {
+    const config = matchUpConfigFor('SET3-S:6/TB7');
+
+    expect(config.bestOf).toBe(3);
+    expect(config.exactly).toBeUndefined();
+    expect(config.setFormat?.setTo).toBe(6);
+  });
+
+  it('reads a best-of-5', () => {
+    expect(matchUpConfigFor('SET5-S:6/TB7').bestOf).toBe(5);
+  });
+
+  it('carries a distinct final-set format when the format has one', () => {
+    // The half that comes from the factory parse rather than from parseMatchUpFormat. A config that
+    // dropped it would score a deciding match tiebreak as a full set.
+    const config = matchUpConfigFor('SET3-S:6/TB7-F:TB10');
+
+    expect(config.finalSetFormat).toBeDefined();
+    expect(config.setFormat?.setTo).toBe(6);
+  });
+
+  it('falls back to best-of-3 for an unparseable format instead of throwing', () => {
+    // A dialog that will not open is worse than one that opens on the wrong best-of, and an operator
+    // can see and correct a wrong column count. Never parse a matchUpFormat with a regex.
+    expect(matchUpConfigFor('NOT-A-FORMAT').bestOf).toBe(3);
+    expect(matchUpConfigFor(undefined).bestOf).toBe(3);
+    expect(matchUpConfigFor('').bestOf).toBe(3);
+  });
+
+  it('agrees with getSetFormatForIndex, which is the whole point of assembling it', () => {
+    // The config exists to be handed to the other pure functions. If the two halves disagreed, this is
+    // where it would show: the final set would resolve to the wrong format.
+    const config = matchUpConfigFor('SET3-S:6/TB7-F:TB10');
+
+    expect(getSetFormatForIndex(0, config)).toEqual(config.setFormat);
+    expect(getSetFormatForIndex(2, config)).toEqual(config.finalSetFormat);
+  });
+});
 
 describe('dynamicSetsLogic - Pure Functions', () => {
   // Use constants and parse them dynamically

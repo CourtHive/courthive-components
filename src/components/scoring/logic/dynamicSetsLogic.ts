@@ -4,6 +4,9 @@
  * No DOM dependencies, no side effects - pure business logic only
  */
 
+import { parseMatchUpFormat } from '../utils/setExpansionLogic';
+import { matchUpFormatCode } from 'tods-competition-factory';
+
 import type { SetScore } from '../types';
 
 /**
@@ -51,6 +54,30 @@ export type SmartComplementResult = {
  * Get the format for a specific set index
  * Uses finalSetFormat for deciding set if available
  */
+/**
+ * The `MatchUpConfig` for a TODS matchUpFormat string.
+ *
+ * Hoisted because it takes TWO sources to assemble and `dynamicSetsApproach` already had its own copy
+ * (`getMatchUpConfig`, line ~134): `bestOf` comes from `parseMatchUpFormat`, which resolves an
+ * `exactly:N` format down to a set count, while `exactly`, `setFormat` and `finalSetFormat` come
+ * straight off `matchUpFormatCode.parse`. A region building its own would be a second copy of a
+ * derivation whose two halves must agree, which is the shape every other divergence in this module
+ * family started as.
+ *
+ * Never parse a matchUpFormat with a regex — the factory owns that grammar, and an unparseable format
+ * falls back to SET3 rather than throwing, because a dialog that will not open is worse than one that
+ * opens on the wrong best-of.
+ */
+export function matchUpConfigFor(matchUpFormat?: string): MatchUpConfig {
+  const parsed = matchUpFormat ? matchUpFormatCode.parse(matchUpFormat) : undefined;
+  return {
+    bestOf: parseMatchUpFormat(matchUpFormat).bestOf,
+    exactly: parsed?.exactly,
+    setFormat: parsed?.setFormat,
+    finalSetFormat: parsed?.finalSetFormat,
+  };
+}
+
 export function getSetFormatForIndex(setIndex: number, config: MatchUpConfig): SetFormat | undefined {
   const isDecidingSet = config.bestOf === 1 || setIndex + 1 === config.bestOf;
 

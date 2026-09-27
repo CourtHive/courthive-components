@@ -150,7 +150,15 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
   return {
     element,
-    refresh: render,
+    // `refresh` updates ONLY the derived parts — the band and the submit gate. It deliberately does
+    // NOT re-render the rows.
+    //
+    // A score region calls this on every keystroke, and `renderRows` asks the region for fresh cells
+    // via `rowCells()`. Re-rendering there would replace the very input being typed into on each
+    // character: the value survives (the region holds it) but the ELEMENT does not, so focus and the
+    // caret are lost and the operator can enter exactly one digit per click. `refreshDerived` is the
+    // seam that keeps a live band from costing a usable keyboard.
+    refresh: refreshDerived,
     getState: () => state,
   };
 
@@ -219,12 +227,27 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
   // ── Render ───────────────────────────────────────────────────────────
 
+  /** A full render, including the score region's cells. Used on mount and on any ending change. */
   function render(): void {
     const resolution = resolveScoreEntry(state);
 
     renderRows(resolution.winningSide);
     renderBlock();
     renderMatchEndings();
+    renderDerived();
+  }
+
+  /**
+   * Everything that follows from the current state without rebuilding a control.
+   *
+   * Safe to call on every keystroke, which is the whole reason it is separate.
+   */
+  function refreshDerived(): void {
+    renderDerived();
+  }
+
+  function renderDerived(): void {
+    const resolution = resolveScoreEntry(state);
     renderBand(resolution);
 
     // ── The submit gate ──
