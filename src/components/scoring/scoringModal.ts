@@ -116,13 +116,33 @@ export function scoringModal(params: ScoringModalParams): void {
     statusCodePicker.update(currentOutcome?.matchUpStatus ?? matchUp.matchUpStatus);
 
     if (approach === 'freeScore') {
-      renderFreeScoreEntry({ matchUp: hydrateFrom, container: approachContent, onScoreChange: handleScoreChange, labels });
+      renderFreeScoreEntry({
+        matchUp: hydrateFrom,
+        container: approachContent,
+        onScoreChange: handleScoreChange,
+        labels
+      });
     } else if (approach === 'dynamicSets') {
-      renderDynamicSetsScoreEntry({ matchUp: hydrateFrom, container: approachContent, onScoreChange: handleScoreChange, labels });
+      renderDynamicSetsScoreEntry({
+        matchUp: hydrateFrom,
+        container: approachContent,
+        onScoreChange: handleScoreChange,
+        labels
+      });
     } else if (approach === 'dialPad') {
-      renderDialPadScoreEntry({ matchUp: hydrateFrom, container: approachContent, onScoreChange: handleScoreChange, labels });
+      renderDialPadScoreEntry({
+        matchUp: hydrateFrom,
+        container: approachContent,
+        onScoreChange: handleScoreChange,
+        labels
+      });
     } else if (approach === 'inlineScoring') {
-      renderInlineScoringEntry({ matchUp: hydrateFrom, container: approachContent, onScoreChange: handleScoreChange, labels });
+      renderInlineScoringEntry({
+        matchUp: hydrateFrom,
+        container: approachContent,
+        onScoreChange: handleScoreChange,
+        labels
+      });
     }
 
     return container;
@@ -186,7 +206,16 @@ export function scoringModal(params: ScoringModalParams): void {
 
   const buildModalConfig = () => ({
     info: approachHelp[activeApproach],
-    menu: { menuItems: buildMenuItems() }
+    menu: { menuItems: buildMenuItems() },
+    // A click outside this dialog must not throw away a typed score. `cmodal` routes both the
+    // backdrop and the container click through `close(true)`, and that conditional close is blocked
+    // only by an explicit `clickAway: false` — `undefined` lets it through, which is what this modal
+    // had. Dismissing is still one click, on a Cancel button that is always on screen; losing an
+    // entry to a mis-aimed one is not recoverable.
+    //
+    // `conditionalClose` is registered in `cmodal.open()` and `update()` never touches it, so this
+    // survives every approach switch without being re-asserted.
+    clickAway: false
   });
 
   const clearButton = () => {
