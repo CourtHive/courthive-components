@@ -28,11 +28,12 @@ import {
   doubleExitWarning,
   requiresWinner,
   carriesNoScore,
+  endingLabels,
   NEITHER_SIDE,
   type WinnerSelection
 } from '../logic/irregularEnding';
 
-const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, ABANDONED, CANCELLED, INCOMPLETE } =
+const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT } =
   matchUpStatusConstants;
 
 const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
@@ -254,16 +255,10 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   outcomeOptions.style.gap = '0.5em';
   outcomeOptions.style.flexWrap = 'wrap';
 
-  // The six endings the factory's scoring policy can refine with matchUpStatusCodes. The first
-  // three name a winner; the last three resolve nobody and take none.
-  const ENDING_LABELS: Record<string, string> = {
-    [RETIRED]: labels.retired || 'Retired',
-    [WALKOVER]: labels.walkover || 'Walkover',
-    [DEFAULTED]: labels.defaulted || 'Defaulted',
-    [ABANDONED]: labels.abandoned || 'Abandoned',
-    [CANCELLED]: labels.cancelled || 'Cancelled',
-    [INCOMPLETE]: labels.incomplete || 'Incomplete'
-  };
+  // Labels come from `endingLabels()` rather than a local map. This read `ENDING_LABELS[value]` with
+  // no fallback, so it rendered `undefined` for any ending it did not itself list — which is exactly
+  // what widening the vocabulary to ten would have done to four of these radios.
+  const ENDING_LABELS = endingLabels(labels);
   const outcomes = SELECTABLE_ENDINGS.map((value) => ({ value, label: ENDING_LABELS[value] }));
 
   outcomes.forEach((outcome) => {

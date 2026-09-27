@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { matchUpStatusConstants, fixtures, policyConstants } from 'tods-competition-factory';
+import { matchUpStatusConstants, entryStatusConstants, fixtures, policyConstants } from 'tods-competition-factory';
 import {
   normalizeStatusCode,
   groupKeyForStatus,
@@ -57,6 +57,70 @@ describe('normalizeStatusCode — all three shapes a code legitimately takes', (
 
   it.each([[''], [null], [undefined], [{}], [{ code: '' }], [42]])('returns undefined for %p', (input) => {
     expect(normalizeStatusCode(input)).toBeUndefined();
+  });
+});
+
+/**
+ * WITHDRAWN is a walkover REASON, and the two code groups stay separate.
+ *
+ * CA, 2026-09-27: "WITHDRAWN is a statusCode on a WALKOVER... WALKOVER (withdrawn injured or
+ * withdrawn ill)". A withdrawal is not its own matchUpStatus — it is expressed as a WALKOVER, and
+ * `W5` / "Wo/Withdrawn" is that expression, already inside the WALKOVER group.
+ *
+ * This is recorded as a test because the obvious reading of that sentence — "so merge the WITHDRAWN
+ * group into the walkover picker" — was implemented, and is WRONG. The two groups are label-for-label
+ * parallel (Injury, Illness, Personal circumstance, Tournament Administrative Error each appear in
+ * both, under different codes), so merging offers the operator four pairs of identically-labelled
+ * chips they cannot tell apart.
+ *
+ * CA, 2026-09-19, on why they are parallel rather than redundant: the WALKOVER group records "a match
+ * that did not happen because someone withdrew", which is a RESULT and belongs to scoring; the
+ * WITHDRAWN group records "the withdrawal itself", which is an ENTRY action and belongs to the
+ * entries UI. Same reasons, two different events, two different surfaces.
+ */
+describe('the WITHDRAWN group belongs to entries, not to scoring — CA, 2026-09-19 and 2026-09-27', () => {
+  it('WITHDRAWN is not a matchUpStatus, so no status-keyed lookup can produce it', () => {
+    // Asserted on the key set rather than as `matchUpStatusConstants.WITHDRAWN`, because that does
+    // not COMPILE — TS2339. The type system is the stronger evidence for the premise, and it is why
+    // this assertion is written the long way round.
+    expect(Object.keys(matchUpStatusConstants)).not.toContain('WITHDRAWN');
+    expect(entryStatusConstants.WITHDRAWN).toBe('WITHDRAWN');
+  });
+
+  it('a withdrawal is already expressible as a walkover — W5, "Wo/Withdrawn"', () => {
+    // The fact that makes the separation workable rather than a gap. Asserted against the SHIPPED
+    // policy, because it is the policy's claim, not ours.
+    const walkoverCodes = REAL_GROUPS[WALKOVER];
+    const withdrawn = walkoverCodes.find((c) => c.matchUpStatusCode === 'W5');
+
+    expect(withdrawn?.matchUpStatusCodeDisplay).toBe('Wo/Withdrawn');
+    expect(withdrawn?.label).toBe('Withdrawn');
+  });
+
+  it('the two groups are label-for-label parallel, which is why merging them is wrong', () => {
+    // The measurement that refuted the merge. Four labels occur in BOTH groups under different
+    // codes, so a merged picker shows each of them twice with nothing to distinguish the rows.
+    const labels = (key: string) => REAL_GROUPS[key].map((c) => c.label).filter(Boolean);
+    const shared = labels(WALKOVER).filter((l) => labels('WITHDRAWN').includes(l));
+
+    expect(shared).toEqual(['Injury', 'Illness', 'Personal circumstance', 'Tournament Administrative Error']);
+  });
+
+  it('a walkover offers its own six codes and none of the WD.* codes', () => {
+    // The behaviour. If someone widens this lookup again, this is the test that says why not.
+    const codes = codesForStatus(REAL_GROUPS, WALKOVER).map((c) => c.matchUpStatusCode);
+
+    expect(codes).toEqual(['W1', 'W2', 'W3', 'WOWO', 'W4', 'W5']);
+    for (const code of codes) expect(code).not.toMatch(/^WD\./);
+  });
+
+  it('no status reaches the WITHDRAWN group at all', () => {
+    // Including the double exits, which map onto WALKOVER and DEFAULTED. WD.WD is double WITHDRAWAL,
+    // not double walkover — WOWO is that, and it is already in the walkover group.
+    for (const status of [WALKOVER, DOUBLE_WALKOVER, DEFAULTED, DOUBLE_DEFAULT, RETIRED, ABANDONED]) {
+      const codes = codesForStatus(REAL_GROUPS, status).map((c) => c.matchUpStatusCode);
+      expect(codes.filter((c) => c.startsWith('WD.')), `${status} reached a WD.* code`).toEqual([]);
+    }
   });
 });
 

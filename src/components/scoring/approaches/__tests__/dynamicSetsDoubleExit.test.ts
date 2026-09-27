@@ -11,9 +11,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 import { renderDynamicSetsScoreEntry } from '../dynamicSetsApproach';
-import { SELECTABLE_ENDINGS, NEITHER_SIDE } from '../../logic/irregularEnding';
+import { SELECTABLE_ENDINGS, NEITHER_SIDE, NON_DIRECTING_ENDINGS } from '../../logic/irregularEnding';
 
-const { WALKOVER, DEFAULTED, RETIRED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, ABANDONED, CANCELLED, INCOMPLETE } =
+const { WALKOVER, DEFAULTED, RETIRED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, ABANDONED, CANCELLED } =
   matchUpStatusConstants;
 
 const OUTCOME_SELECTOR = 'input[name="matchOutcome"]';
@@ -274,10 +274,10 @@ describe('dynamicSets — a walkover carries no score, a retirement carries what
   });
 });
 
-// M2: the ending list is the six keys the scoring policy can refine with matchUpStatusCodes.
-// Before this, dynamicSets offered three, so half the code groups had no status to hang off.
-describe('dynamicSets — the six selectable endings', () => {
-  it('offers exactly the six policy-key endings', async () => {
+// The ending list is the vocabulary every set-entry approach shares. dynamicSets once offered three
+// of it, then six; it is ten now, and this asserts the DOM matches the constant rather than a literal.
+describe('dynamicSets — the selectable endings', () => {
+  it('offers exactly the shared vocabulary, no more and no fewer', async () => {
     const h = mount();
 
     const offered = h.radios(OUTCOME_SELECTOR).map((r) => r.value);
@@ -287,7 +287,24 @@ describe('dynamicSets — the six selectable endings', () => {
     );
   });
 
-  it.each([ABANDONED, CANCELLED, INCOMPLETE])('%s is submittable with no winner answer', async (status) => {
+  it('labels every radio — this approach had no fallback and would have rendered "undefined"', () => {
+    // The concrete failure mode that hoisting `endingLabels()` prevented. This read
+    // `ENDING_LABELS[value]` with no `?? status`, so any ending missing from its local map rendered
+    // as the string "undefined" — and widening the vocabulary to ten would have done that to four
+    // radios. Asserting on LABEL TEXT rather than on the map, because the map being right is not the
+    // property; what reaches the operator is.
+    const h = mount();
+    const texts = h.radios(OUTCOME_SELECTOR).map((r) => (r.closest('label')?.textContent ?? '').trim());
+
+    expect(texts).toHaveLength(SELECTABLE_ENDINGS.length);
+    for (const text of texts) {
+      expect(text).toBeTruthy();
+      expect(text).not.toMatch(/undefined/);
+      expect(text, 'fell through to a raw status constant').not.toMatch(/^[A-Z][A-Z_]+$/);
+    }
+  });
+
+  it.each([...NON_DIRECTING_ENDINGS])('%s is submittable with no winner answer', async (status) => {
     const h = mount();
 
     await h.selectOutcome(status);
@@ -297,7 +314,7 @@ describe('dynamicSets — the six selectable endings', () => {
     expect(h.last().winningSide).toBeUndefined();
   });
 
-  it.each([ABANDONED, CANCELLED, INCOMPLETE])('%s does not ask the winner question at all', async (status) => {
+  it.each([...NON_DIRECTING_ENDINGS])('%s does not ask the winner question at all', async (status) => {
     const h = mount();
 
     await h.selectOutcome(status);

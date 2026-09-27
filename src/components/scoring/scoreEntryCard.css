@@ -1,0 +1,415 @@
+/*
+ * The score-entry card's shared geometry.
+ *
+ * Structure only. Every colour is a `--chc-*` token: the card's surface, text and borders reuse the
+ * library's existing ones so it inherits theme fixes, and only the accent and the two result-band
+ * tints are card-specific (`theme.css`, held by `theme-contrast.test.ts` in both themes).
+ *
+ * What is fixed here is the whole point — the header, the participant rows, the match-level endings
+ * row, the result band and the footer are identical across Dynamic Sets, Free Score and Dial Pad, so
+ * the three cannot drift into three different dialogs again. Only `.chc-sec-score-region` varies.
+ *
+ * Touch targets are 44px minimum throughout (WCAG 2.5.8 with room to spare, rather than relying on
+ * the Spacing exception as the 13px radios did).
+ */
+
+.chc-sec {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+  background: var(--chc-bg-elevated);
+  border: 1px solid var(--chc-border-primary);
+  border-radius: 14px;
+  color: var(--chc-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Header ────────────────────────────────────────────────────────── */
+
+.chc-sec-header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--chc-border-secondary);
+}
+
+.chc-sec-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.chc-sec-context {
+  color: var(--chc-text-secondary);
+  font-size: 12px;
+}
+
+.chc-sec-spacer {
+  flex-grow: 1;
+}
+
+.chc-sec-format {
+  padding: 3px 7px;
+  border: 1px solid var(--chc-border-primary);
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+/* ── Body ──────────────────────────────────────────────────────────── */
+
+.chc-sec-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 16px;
+  /* min-height:0 is what lets the body scroll inside a flex column instead of pushing the footer —
+     and therefore Submit — off the bottom of a short viewport. */
+  min-height: 0;
+  padding: 18px 20px;
+  overflow-y: auto;
+}
+
+.chc-sec-rows {
+  border: 1px solid var(--chc-border-primary);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* The row grid. The score columns are supplied by the score region, so the template is set inline
+   from the region's column count rather than hard-coded here. */
+.chc-sec-row,
+.chc-sec-row-head {
+  display: grid;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+}
+
+.chc-sec-row-head {
+  padding: 6px 14px;
+  background: var(--chc-bg-secondary);
+  border-bottom: 1px solid var(--chc-border-secondary);
+  color: var(--chc-text-secondary);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+}
+
+.chc-sec-row + .chc-sec-row {
+  border-top: 1px solid var(--chc-border-secondary);
+}
+
+/* The row of the side an ending was recorded against. Struck through AND tinted: colour alone must
+   never be the only carrier (WCAG 1.4.1), and the strike-through is what survives a colour-blind
+   reader or a greyscale print. */
+.chc-sec-row[data-ended='true'] .chc-sec-name {
+  color: var(--chc-text-secondary);
+  text-decoration: line-through;
+}
+
+.chc-sec-row[data-winner='true'] {
+  background: var(--chc-card-band-good-bg);
+}
+
+.chc-sec-participant {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+
+.chc-sec-check {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: var(--chc-card-accent);
+}
+
+.chc-sec-name {
+  font-size: 15px;
+}
+
+.chc-sec-row[data-winner='true'] .chc-sec-name {
+  font-weight: 600;
+}
+
+.chc-sec-seed {
+  color: var(--chc-text-secondary);
+  font-size: 11px;
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────── */
+
+.chc-sec-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 9px 16px;
+  border: 1px solid var(--chc-border-primary);
+  border-radius: 8px;
+  background: var(--chc-bg-elevated);
+  color: var(--chc-text-primary);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.chc-sec-btn:hover {
+  background: var(--chc-hover-bg);
+}
+
+.chc-sec-btn:focus-visible {
+  outline: 2px solid var(--chc-border-focus);
+  outline-offset: 2px;
+}
+
+/* Solid on selection — the design's rule for the endings group, and `aria-pressed` carries the same
+   fact to a screen reader so the state is not colour-only. */
+.chc-sec-btn[aria-pressed='true'] {
+  border-color: var(--chc-card-accent);
+  background: var(--chc-card-accent);
+  color: var(--chc-card-on-accent);
+  font-weight: 600;
+}
+
+.chc-sec-btn-pill {
+  border-radius: 999px;
+}
+
+.chc-sec-btn-icon {
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+}
+
+.chc-sec-btn-primary {
+  border-color: var(--chc-card-accent);
+  background: var(--chc-card-accent);
+  color: var(--chc-card-on-accent);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 24px;
+}
+
+.chc-sec-btn-primary:hover {
+  background: var(--chc-card-accent);
+  filter: brightness(1.08);
+}
+
+.chc-sec-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ── The endings groups ────────────────────────────────────────────── */
+
+.chc-sec-endings {
+  display: flex;
+  position: relative;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chc-sec-other-menu {
+  position: absolute;
+  z-index: 2;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 250px;
+  background: var(--chc-dropdown-bg);
+  border: 1px solid var(--chc-border-primary);
+  border-radius: 10px;
+  box-shadow: 0 10px 26px rgb(0 0 0 / 18%);
+  overflow: hidden;
+}
+
+.chc-sec-other-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 11px 14px;
+  border: none;
+  border-bottom: 1px solid var(--chc-border-secondary);
+  border-radius: 0;
+  background: var(--chc-dropdown-bg);
+  color: var(--chc-text-primary);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.chc-sec-other-item:last-child {
+  border-bottom: none;
+}
+
+.chc-sec-other-item:hover {
+  background: var(--chc-hover-bg);
+}
+
+.chc-sec-other-item[aria-pressed='true'] {
+  background: var(--chc-card-accent);
+  color: var(--chc-card-on-accent);
+  font-weight: 600;
+}
+
+/* The per-side panel: "What happened to <name>?" */
+
+.chc-sec-side-panel {
+  margin: 0 14px 14px;
+  border: 1px solid var(--chc-border-primary);
+  border-radius: 10px;
+  box-shadow: 0 8px 22px rgb(0 0 0 / 12%);
+  overflow: hidden;
+}
+
+.chc-sec-side-panel-head {
+  padding: 10px 14px;
+  background: var(--chc-bg-secondary);
+  border-bottom: 1px solid var(--chc-border-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.chc-sec-side-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+}
+
+.chc-sec-side-option {
+  justify-content: flex-start;
+  width: 100%;
+  text-align: left;
+}
+
+.chc-sec-side-option-label {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  align-items: flex-start;
+}
+
+.chc-sec-side-option-hint {
+  color: var(--chc-text-secondary);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.chc-sec-btn[aria-pressed='true'] .chc-sec-side-option-hint {
+  color: var(--chc-card-on-accent);
+}
+
+.chc-sec-reason-head {
+  padding: 0 2px;
+  color: var(--chc-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+}
+
+.chc-sec-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 2px;
+}
+
+.chc-sec-both-out {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 4px 2px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.chc-sec-both-out input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--chc-card-accent);
+}
+
+/* ── Result band ───────────────────────────────────────────────────── */
+
+.chc-sec-band {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 20px;
+  border-top: 1px solid var(--chc-border-secondary);
+  font-size: 14px;
+}
+
+.chc-sec-band[data-tone='good'] {
+  background: var(--chc-card-band-good-bg);
+  color: var(--chc-card-band-good-fg);
+}
+
+.chc-sec-band[data-tone='warn'] {
+  background: var(--chc-card-band-warn-bg);
+  color: var(--chc-card-band-warn-fg);
+}
+
+.chc-sec-band[data-tone='neutral'] {
+  background: var(--chc-bg-secondary);
+  color: var(--chc-text-secondary);
+}
+
+.chc-sec-band-headline {
+  font-weight: 600;
+}
+
+.chc-sec-band-detail {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+/* ── Footer ────────────────────────────────────────────────────────── */
+
+.chc-sec-footer {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+}
+
+/* ── Phone: one question per screen ────────────────────────────────── */
+
+@media (width <= 560px) {
+  .chc-sec {
+    border: none;
+    border-radius: 0;
+    height: 100%;
+  }
+
+  /* The score columns stop being columns. A 62px set column beside a name does not fit at 390px, and
+     shrinking it is how the 44px target gets lost — so the row stacks instead. */
+  .chc-sec-row,
+  .chc-sec-row-head {
+    grid-template-columns: 1fr !important;
+  }
+
+  .chc-sec-row-head {
+    display: none;
+  }
+
+  .chc-sec-footer {
+    flex-wrap: wrap;
+  }
+
+  .chc-sec-footer .chc-sec-btn {
+    flex: 1 1 auto;
+  }
+}

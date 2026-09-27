@@ -19,11 +19,13 @@ import {
   doubleExitWarning,
   requiresWinner,
   carriesNoScore,
+  coexistsWithScore,
+  endingLabels,
   NEITHER_SIDE,
   type WinnerSelection
 } from '../logic/irregularEnding';
 
-const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, ABANDONED, CANCELLED, INCOMPLETE } = matchUpStatusConstants;
+const { COMPLETED, RETIRED, WALKOVER, DEFAULTED } = matchUpStatusConstants;
 
 const DEFAULT_FORMAT = 'SET3-S:6/TB7';
 const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
@@ -350,11 +352,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     nonDirectingRow.style.margin = '0.6em auto 0';
     nonDirectingRow.style.maxWidth = '320px';
 
-    const NON_DIRECTING_LABELS: Record<string, string> = {
-      [ABANDONED]: labels.abandoned || 'Abandoned',
-      [CANCELLED]: labels.cancelled || 'Cancelled',
-      [INCOMPLETE]: labels.incomplete || 'Incomplete'
-    };
+    const NON_DIRECTING_LABELS = endingLabels(labels);
 
     const nonDirectingButtons = new Map<string, HTMLButtonElement>();
     for (const status of NON_DIRECTING_ENDINGS) {
@@ -518,9 +516,15 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       // Clear irregular ending when user starts entering a score
       // This handles the case where user had RETIRED/WALKOVER/DEFAULTED and now enters new digits
       // Typing a score clears a winner-requiring ending (the pre-existing contract: the operator is
-      // starting over). It must NOT clear a non-directing one — "6-4 3-2, abandoned" is the whole
-      // point of those, and the score is what says when it was abandoned.
-      if (selectedOutcome !== COMPLETED && !NON_DIRECTING_ENDINGS.has(selectedOutcome) && typeof digit === 'number') {
+      // starting over). It must NOT clear an ending whose meaning INCLUDES a partial score — "6-4
+      // 3-2, abandoned" is the whole point of those, and the score is what says when it was
+      // abandoned.
+      //
+      // This asked `NON_DIRECTING_ENDINGS`, which is a different question — "does anyone advance"
+      // rather than "is there a score". The two coincided across the old six and diverge across the
+      // ten: CANCELLED and DEAD_RUBBER are non-directing yet carry no score, so the old gate would
+      // have preserved an ending that had just discarded the digits being typed.
+      if (selectedOutcome !== COMPLETED && !coexistsWithScore(selectedOutcome) && typeof digit === 'number') {
         selectedOutcome = COMPLETED;
         winnerSelection = undefined;
         // Uncheck irregular ending radios
