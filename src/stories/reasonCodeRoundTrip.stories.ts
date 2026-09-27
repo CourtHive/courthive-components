@@ -129,9 +129,8 @@ function buildHarness(note: string, onOpen: (append: (line: string) => void) => 
 
   const button = document.createElement('button');
   // `.button.is-info` is THIS library's own class (src/styles/components/buttons.css), themed via
-  // --chc-* custom properties. It is Bulma-SHAPED naming, but Bulma is not a dependency and there
-  // are no --bulma-* variables anywhere in it — so the ecosystem's no-Bulma rule does not apply.
-  // Hand-rolled inline styles here lost the hover, active and focus states the class carries.
+  // --chc-* custom properties. Used rather than inline styles because hand-rolling them here lost
+  // the hover, active and focus states the class carries.
   button.className = 'button is-info';
   button.id = OPEN_BUTTON.slice(1);
   button.textContent = 'Open scoring dialog';

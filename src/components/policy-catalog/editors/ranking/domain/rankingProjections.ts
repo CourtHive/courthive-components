@@ -247,7 +247,7 @@ export function profileSummaryText(profile: AwardProfileData): string {
 
 export interface ScopeBadge {
   label: string;
-  intent: string; // Bulma intent class
+  intent: string; // one of this editor's own `re-badge--*` classes (accent / success / warn / primary / info)
 }
 
 /**
