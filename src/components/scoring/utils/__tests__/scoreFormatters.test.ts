@@ -7,6 +7,11 @@
 
 import { describe, it, expect } from 'vitest';
 import { formatExistingScore, getStatusAbbreviation } from '../scoreFormatters';
+import { SELECTABLE_ENDINGS } from '../../logic/irregularEnding';
+import { parseScore } from '../../../../tools/freeScore/freeScore';
+import { matchUpStatusConstants } from 'tods-competition-factory';
+
+const { WALKOVER, ABANDONED } = matchUpStatusConstants;
 
 describe('scoreFormatters', () => {
   describe('getStatusAbbreviation', () => {
@@ -297,5 +302,47 @@ describe('scoreFormatters', () => {
         expect(formatExistingScore(scoreObject, 'SUSPENDED')).toBe('6-4 4-6 3-3 susp');
       });
     });
+  });
+});
+
+/**
+ * The formatter and the Free Score parser have to agree, because together they are a round trip: a
+ * saved result is FORMATTED into the field, and whatever is in the field is PARSED back on the next
+ * keystroke. A disagreement is silent and it changes the recorded result.
+ *
+ * They did disagree. `ABANDONED` was absent from the abbreviation map while the parser accepted
+ * `ab` / `aband` / `abandoned` for it — so an abandonment could be typed in and never read back, and
+ * a saved one opened Free Score with an empty field. The near-miss is worse than the gap: the parser
+ * anchors AWAITING_RESULT on a bare `a`, so abbreviating abandonment as `a` would have formatted a
+ * result that parses back as a DIFFERENT status.
+ *
+ * So this is a table over the vocabulary rather than a case per status — the point is that no status
+ * can be added to one side without the other.
+ */
+describe('every abbreviation parses back to the status it was formatted from', () => {
+  const FORMAT = 'SET3-S:6/TB7';
+
+  const abbreviated = SELECTABLE_ENDINGS.map((status) => ({
+    status,
+    abbrev: getStatusAbbreviation(status)
+  }));
+
+  it('every selectable ending HAS an abbreviation — the gap ABANDONED fell through', () => {
+    const missing = abbreviated.filter((entry) => !entry.abbrev).map((entry) => entry.status);
+    expect(missing, `no Free Score abbreviation for: ${missing.join(', ')}`).toEqual([]);
+  });
+
+  it.each(abbreviated)('$abbrev round-trips to $status', ({ status, abbrev }) => {
+    // The formatter's own output, fed to the parser. If these disagree the field silently rewrites
+    // the result the moment the operator touches it.
+    expect(abbrev).toBeTruthy();
+    const parsed: any = parseScore(abbrev, FORMAT);
+    expect(parsed.matchUpStatus).toBe(status);
+  });
+
+  it('a status-only format produces exactly the abbreviation, with no stray score', () => {
+    // What a walkover looks like in the field: the token alone. A leading "0-0" would parse as a set.
+    expect(formatExistingScore(undefined, WALKOVER)).toBe('wo');
+    expect(formatExistingScore(undefined, ABANDONED)).toBe('ab');
   });
 });

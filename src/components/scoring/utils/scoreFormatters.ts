@@ -16,6 +16,7 @@ const {
   DEAD_RUBBER,
   IN_PROGRESS,
   AWAITING_RESULT,
+  ABANDONED,
   COMPLETED,
   TO_BE_PLAYED
 } = matchUpStatusConstants;
@@ -71,6 +72,12 @@ export function getStatusAbbreviation(status: string): string {
     [INCOMPLETE]: 'inc',
     [DEAD_RUBBER]: 'dr',
     [IN_PROGRESS]: 'in',
+    // 'ab', not 'a': the Free Score parser anchors AWAITING_RESULT on a bare 'a', and 'ab' is the
+    // shortest abandonment it accepts (`tools/freeScore/freeScore.ts` — "'a' alone still means
+    // awaiting"). Writing 'a' here would format an abandonment that parses back as an awaited
+    // result. ABANDONED was absent from this map entirely, so the parser accepted a status the
+    // formatter could not render: typed in, never read back.
+    [ABANDONED]: 'ab',
     [AWAITING_RESULT]: 'await'
   };
   return abbrevMap[status] || '';

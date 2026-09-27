@@ -278,10 +278,19 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
   input.style.flex = '1';
   input.id = 'scoreInputV2';
 
-  // Initialize with existing score if available
-  if (internalScore) {
-    const existingScore = formatExistingScore(internalScore, internalMatchUpStatus);
-    input.value = existingScore;
+  // Seed the field from whatever the matchUp already carries — a score, a status, or both.
+  //
+  // This used to be gated on `internalScore` alone, and an ending that carries NO score therefore
+  // opened with an EMPTY field: a walkover has no score by definition (`NO_SCORE_STATUSES`, and the
+  // factory blanks it), so the guard failed for exactly the statuses whose whole content is the
+  // status. `formatExistingScore` was always able to render them — its status branch returns the
+  // abbreviation on its own when there is no score, and `getStatusAbbreviation` maps all ten. The
+  // helper handled it; the caller never let it.
+  //
+  // Safe to call unconditionally: `formatExistingScore` returns an empty string for COMPLETED and
+  // TO_BE_PLAYED with no score, which is what an untouched matchUp should show.
+  if (internalScore || internalMatchUpStatus) {
+    input.value = formatExistingScore(internalScore, internalMatchUpStatus);
   }
 
   // Validation indicator
@@ -425,10 +434,15 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
   function handleIrregularWinnerSelection(result: any, parseResult: any, scoreString: string): number | undefined {
     const currentStatus = result.matchUpStatus || parseResult.matchUpStatus;
     const requiresWinnerSelection = WINNER_REQUIRING_STATUSES.has(currentStatus);
-    const noWinnerNeeded =
-      [CANCELLED, DEAD_RUBBER, AWAITING_RESULT, INCOMPLETE, IN_PROGRESS, SUSPENDED, ABANDONED].includes(
-        currentStatus
-      );
+    const noWinnerNeeded = [
+      CANCELLED,
+      DEAD_RUBBER,
+      AWAITING_RESULT,
+      INCOMPLETE,
+      IN_PROGRESS,
+      SUSPENDED,
+      ABANDONED
+    ].includes(currentStatus);
 
     if (requiresWinnerSelection) {
       radioContainer.style.display = 'flex';
@@ -504,8 +518,16 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
     formattedDisplay.textContent = parseResult.formattedScore || '';
 
     const IRREGULAR_STATUSES = new Set<string>([
-      RETIRED, WALKOVER, DEFAULTED, SUSPENDED, CANCELLED,
-      INCOMPLETE, DEAD_RUBBER, IN_PROGRESS, AWAITING_RESULT, ABANDONED
+      RETIRED,
+      WALKOVER,
+      DEFAULTED,
+      SUSPENDED,
+      CANCELLED,
+      INCOMPLETE,
+      DEAD_RUBBER,
+      IN_PROGRESS,
+      AWAITING_RESULT,
+      ABANDONED
     ]);
     const isIrregularEnding = parseResult.matchUpStatus && IRREGULAR_STATUSES.has(parseResult.matchUpStatus);
 
