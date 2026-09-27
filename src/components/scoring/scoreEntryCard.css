@@ -496,24 +496,31 @@
   outline-offset: 1px;
 }
 
-/* The smart-complements toggle. It lives in the score region rather than the card's chrome because it
-   is a Dynamic Sets behaviour only — in the shared chrome its presence would imply it applied to Free
-   Score and the Dial Pad too. */
+/* The smart-complements toggle — one compact word on the result band's right edge rather than a checkbox
+   occupying a whole row (CA, 2026-09-27). Still supplied by the REGION: it is a Dynamic Sets behaviour and
+   nothing else reads it, so the card only decides where it sits. */
 .chc-sec-smart {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  min-height: 44px;
-  color: var(--chc-text-secondary);
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border: 1px solid currentcolor;
+  border-radius: 999px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   cursor: pointer;
-  font-size: 12px;
+  opacity: 0.55;
 }
 
-.chc-sec-smart input {
-  width: 18px;
-  height: 18px;
-  margin: 0;
-  accent-color: var(--chc-card-accent);
+.chc-sec-smart[aria-pressed='true'] {
+  opacity: 1;
+}
+
+.chc-sec-smart:focus-visible {
+  outline: 2px solid var(--chc-border-focus);
+  outline-offset: 2px;
 }
 
 @media (width <= 560px) {

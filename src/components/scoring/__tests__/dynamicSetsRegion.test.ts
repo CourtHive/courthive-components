@@ -26,6 +26,7 @@ const ROW_HEAD = '.chc-sec-row-head';
 const COL_HEAD = '.chc-sec-col-head';
 const ROW = '.chc-sec-row';
 const ARIA_LABEL = 'aria-label';
+const ARIA_PRESSED = 'aria-pressed';
 const GAMES_CELL = '.chc-sec-games-cell';
 
 const SIDES: [{ participantName: string }, { participantName: string }] = [
@@ -39,6 +40,7 @@ function mount(over: { matchUpFormat?: string; sets?: any[]; smartComplements?: 
 
   const region = createDynamicSetsRegion({
     matchUpFormat,
+    sideNames: [SIDES[0].participantName, SIDES[1].participantName],
     sets: over.sets,
     smartComplements: over.smartComplements,
     onChange: () => card.refresh(),
@@ -98,7 +100,7 @@ function mount(over: { matchUpFormat?: string; sets?: any[]; smartComplements?: 
     all: <T extends Element>(s: string) => [...card.element.querySelectorAll<T>(s)],
     band: () => q<HTMLElement>('.chc-sec-band'),
     submit: () => q<HTMLButtonElement>('button[data-action="submit"]'),
-    smart: () => q<HTMLInputElement>('input[data-action="smartComplements"]'),
+    smart: () => q<HTMLButtonElement>('button[data-action="smartComplements"]'),
     matchEnding: (status: string) => q<HTMLButtonElement>(`.chc-sec-endings > button[data-ending="${status}"]`),
     endedEarly: (side: number) => q<HTMLButtonElement>(`button[data-action="endedEarly"][data-side="${side}"]`),
     sideOption: (side: number, status: string) =>
@@ -322,10 +324,20 @@ describe('typing a score', () => {
   });
 
   it('strips a non-digit from anywhere in the field, not just the end', () => {
-    const h = mount();
+    const h = mount({ smartComplements: false });
 
     expect(h.type(1, 1, 'a6').value).toBe('6');
-    expect(h.type(2, 1, '1a2').value).toBe('12');
+    expect(h.type(2, 1, 'a4').value).toBe('4');
+  });
+
+  it('refuses a games value the format cannot produce — CA\'s 3-44', () => {
+    // `getMaxAllowedScore` is 7 for `S:6/TB7`, so the second `4` is declined and `4` stands. The keystroke
+    // is refused rather than substituted: the old Dial Pad replaced an out-of-range digit with `setTo`, so
+    // typing 8 silently became 6 — a number the operator never typed in a field they were looking at.
+    const h = mount({ smartComplements: false });
+
+    expect(h.type(1, 1, '44').value).toBe('4');
+    expect(h.type(2, 1, '8').value).toBe('');
   });
 
   it('treats a cleared field as not-entered, not as zero', () => {
@@ -408,32 +420,35 @@ describe('smart complements', () => {
     h.type(1, 1, '4');
     expect(h.cell(2, 1)?.value).toBe('6');
 
-    h.type(2, 1, '7');
+    // The correction is on the side that was TYPED, and to a 5 rather than a 7: a 4-7 is not a legal score,
+    // so the clamp refuses it, and an earlier version of this test asserted exactly that illegal value.
+    // `complement(5)` is 7, so without the guard side 2 would move from 6 to 7 — a real discriminator
+    // rather than a tautology.
+    h.type(1, 1, '5');
 
-    expect(h.cell(2, 1)?.value).toBe('7');
-    expect(h.cell(1, 1)?.value).toBe('4');
+    expect(h.cell(2, 1)?.value, 'the complement must not fire a second time').toBe('6');
+    expect(h.cell(1, 1)?.value).toBe('5');
   });
 
   it('can be switched off, and then fills nothing', () => {
     const h = mount();
-    expect(h.smart()?.checked).toBe(true);
+    expect(h.smart()?.getAttribute(ARIA_PRESSED)).toBe('true');
 
-    h.smart()!.checked = false;
-    h.smart()!.dispatchEvent(new Event('change', { bubbles: true }));
+    h.smart()?.click();
     h.type(1, 1, '4');
 
+    expect(h.smart()?.getAttribute(ARIA_PRESSED)).toBe('false');
     expect(h.cell(2, 1)?.value).toBe('');
   });
 
   it('starts off when asked, and can be switched on', () => {
     const h = mount({ smartComplements: false });
-    expect(h.smart()?.checked).toBe(false);
+    expect(h.smart()?.getAttribute(ARIA_PRESSED)).toBe('false');
 
     h.type(1, 1, '4');
     expect(h.cell(2, 1)?.value).toBe('');
 
-    h.smart()!.checked = true;
-    h.smart()!.dispatchEvent(new Event('change', { bubbles: true }));
+    h.smart()?.click();
     // Same set, cleared and re-typed: the 2nd set is not open until the 1st is finished.
     h.type(1, 1, '');
     h.type(1, 1, '4');
@@ -441,19 +456,39 @@ describe('smart complements', () => {
     expect(h.cell(2, 1)?.value).toBe('6');
   });
 
-  it('carries no explanatory sub-text — CA, 2026-09-27', () => {
-    // The draft read "type 6 → fills 6-4", which was clutter AND backwards: 6 has no complement, 4
-    // has. Pinned so it does not come back.
+  it('is one compact word, not a labelled checkbox in its own row — CA, 2026-09-27', () => {
+    // CA: "I don't think '[] Smart Complements' should take up a whole row of the modal ... Just (Smart)
+    // maybe, something compact that toggles." A `<button aria-pressed>` rather than a checkbox, because one
+    // word in a status bar carries its state through `aria-pressed` without needing a visible label beside
+    // it.
     const h = mount();
-    const label = h.smart()?.closest('label');
 
-    expect(label?.textContent?.trim()).toBe('Smart complements');
-    expect(label?.textContent).not.toMatch(/6-4|type 6|→/);
+    expect(h.smart()?.tagName).toBe('BUTTON');
+    expect(h.smart()?.textContent?.trim()).toBe('Smart');
+    // The draft sub-text read "type 6 → fills 6-4", which was clutter AND backwards. Pinned so it stays out.
+    expect(h.smart()?.textContent).not.toMatch(/6-4|type 6|→/);
   });
 
-  it('lives in the score region, not the card chrome', () => {
-    // Its presence in the shared chrome would imply it applied to Free Score and the Dial Pad too.
-    expect(mount().q('.chc-sec-score-region input[data-action="smartComplements"]')).toBeTruthy();
+  it('says what it does in its accessible name, since "Smart" alone does not', () => {
+    const h = mount();
+
+    expect(h.smart()?.getAttribute(ARIA_LABEL)).toMatch(/fill the opposing score/i);
+    expect(h.smart()?.title).toMatch(/fill the opposing score/i);
+  });
+
+  it('sits on the result band, not in a row of its own', () => {
+    const h = mount();
+
+    expect(h.smart()?.closest('.chc-sec-band')).toBeTruthy();
+    // And the region no longer contributes a block at all, so there is no spare row.
+    expect(h.q('.chc-sec-score-region')?.children).toHaveLength(0);
+  });
+
+  it('stays reachable while the score is faulty — switching it off is how you fix one', () => {
+    const h = mount({ sets: [{ setNumber: 1, side1Score: 3, side2Score: 7, winningSide: 2 }] });
+
+    expect(h.band()?.textContent).toMatch(/must be at least 5/);
+    expect(h.smart(), 'the toggle must survive the error band').toBeTruthy();
   });
 });
 
@@ -748,5 +783,165 @@ describe('the tiebreak column — CA, 2026-09-27', () => {
 
     expect(h.tb(1, 2), 'the second set should get its own tiebreak column').toBeTruthy();
     expect(h.tb(1, 1), 'and the first set stays folded').toBeNull();
+  });
+});
+
+/**
+ * Integrity — the four holes CA found on 2026-09-27.
+ *
+ * Verbatim: *"It's possible to enter invalid set scores which wasn't possible in our previous dynamic sets
+ * modal, e.g. the status line: 'Rosalind Lem def. Derrick Ellul 7-6(3) 3-7 6-3' should not be possible
+ * because 3-7 is not a valid score and I can edit to be: '... 3-44 ...' and the problem with all cells
+ * being editable is that the tiebreak score floats between entry cells. I was also able to edit a tiebreak
+ * score to be 7-6 with the winning side having 3 and the losing side having tiebreak 7 ... so, there is
+ * integrity checking missing somewhere that we have in the previous iterations."*
+ *
+ * Each of the four is asserted separately, because they were four different holes and they fail
+ * independently. The tell throughout was that `validateSetScores` ALREADY knew about two of them — the
+ * region simply never asked it.
+ */
+describe('integrity — CA, 2026-09-27', () => {
+  const error = (h: ReturnType<typeof mount>) => h.region.error?.();
+
+  // ── Two layers, and CA's 3-7 is stopped by the FIRST ──
+  //
+  // The clamp refuses a games value the format cannot produce, so 3-7 can no longer be typed at all: the
+  // maximum for side 2 at 3-0 is six. That is stronger than flagging it and is what the previous modal did.
+  // The validator still earns its place for scores that did NOT arrive through the keyboard — a saved
+  // matchUp, or a format changed after entry.
+
+  it('cannot type CA\'s 3-7 at all — the clamp refuses the 7', () => {
+    const h = mount({ smartComplements: false });
+    h.type(1, 1, '3');
+
+    expect(h.type(2, 1, '7').value, 'a 7 is unreachable when the opponent has 3').toBe('');
+    expect(error(h)).toBeUndefined();
+  });
+
+  it('catches a SEEDED 3-7, which never passed through the clamp', () => {
+    // "With tiebreak format, if side 2 has 7 games, side 1 must be at least 5, got 3". A 7 is only reachable
+    // through a tiebreak at 6-6, so the loser cannot have 3.
+    const h = mount({ sets: [{ setNumber: 1, side1Score: 3, side2Score: 7, winningSide: 2 }] });
+
+    expect(error(h)).toMatch(/1st set:/);
+    expect(error(h)).toMatch(/must be at least 5/);
+    expect(h.submit()?.disabled).toBe(true);
+  });
+
+  it('names the set by its ordinal, not the validator\'s "Set 1"', () => {
+    // The validator is handed ONE set at a time to separate a per-set breach from match-level
+    // incompleteness, so its "Set 1" is always set one whatever the real index. Re-labelled, or a fault in
+    // the second set would point at the first.
+    const h = mount({
+      sets: [
+        { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
+        { setNumber: 2, side1Score: 3, side2Score: 7, winningSide: 2 },
+      ],
+    });
+
+    expect(error(h)).toMatch(/2nd set:/);
+  });
+
+  it('refuses to submit an impossible score even when an ending qualifies it', () => {
+    // An impossible score stays impossible however it is labelled. A 3-7 is not made submittable by also
+    // being marked Suspended.
+    const h = mount({ sets: [{ setNumber: 1, side1Score: 3, side2Score: 7, winningSide: 2 }] });
+    h.matchEnding(SUSPENDED)?.click();
+
+    expect(h.submit()?.disabled).toBe(true);
+  });
+
+  it('shows the fault in the band, ahead of anything else it might say', () => {
+    // "not a finished result" would be true and useless. The operator needs to know which set and why.
+    const h = mount({ sets: [{ setNumber: 1, side1Score: 3, side2Score: 7, winningSide: 2 }] });
+
+    expect(h.band()?.dataset.tone).toBe('warn');
+    expect(h.band()?.textContent).toMatch(/must be at least 5/);
+  });
+
+  it('clears the fault when the score is corrected', () => {
+    // The obvious way to get this wrong: a latched error that survives the fix.
+    const h = mount({ sets: [{ setNumber: 1, side1Score: 3, side2Score: 7, winningSide: 2 }] });
+    expect(error(h)).toBeTruthy();
+
+    h.type(2, 1, '4');
+    h.type(1, 1, '6');
+
+    expect(error(h)).toBeUndefined();
+    expect(h.band()?.textContent).toContain('6-4');
+  });
+
+  it('does NOT flag an in-progress set, which is the commonest state there is', () => {
+    // `isSetComplete` gates the per-set check. Without it the validator rejected every partial set with
+    // "Set winner must reach 6 games" — so a 6-4 2-1 that an operator is about to mark Suspended read as
+    // broken, and a band that cries wolf on the ordinary case is a band nobody reads.
+    const h = mount({ smartComplements: false });
+    h.enterSet(1, '6', '4');
+    h.enterSet(2, '2', '1');
+
+    expect(error(h)).toBeUndefined();
+    expect(h.band()?.textContent).toContain('6-4 2-1');
+  });
+
+  it('drops a tiebreak whose games no longer call for one — the score stopped "floating"', () => {
+    // Editing a 7-6(3) down to 6-3 used to leave the points attached, and the band read `6-3(3)` — a
+    // tiebreak on a set that never had one.
+    const h = mount({ smartComplements: false });
+    h.enterSet(1, '7', '6');
+    h.typeTb(2, 1, '3');
+    expect(h.band()?.textContent).toContain('7-6(3)');
+
+    h.type(1, 1, '6');
+    h.type(2, 1, '3');
+
+    expect(h.band()?.textContent).toContain('6-3');
+    expect(h.band()?.textContent).not.toContain('(3)');
+    expect(h.region.getSets()[0].side1TiebreakScore).toBeUndefined();
+    expect(h.region.getSets()[0].side2TiebreakScore).toBeUndefined();
+  });
+
+  it('rejects a tiebreak that contradicts who won the set', () => {
+    // `validateSetScores` does NOT catch this — measured — and the silent behaviour was worse than letting
+    // it through: `buildSetScore` takes the LOWER value as the loser's points and derives the winner's, so
+    // the card displayed 3 against the winner while submitting 7. Showing one thing and recording another
+    // is the outcome worth failing loudly for.
+    const h = mount({ smartComplements: false });
+    h.enterSet(1, '7', '6');
+    h.typeTb(1, 1, '3');
+    h.typeTb(2, 1, '7');
+
+    expect(error(h)).toMatch(/Rosalind Lem won it, so they must win the tiebreak/);
+    expect(h.submit()?.disabled).toBe(true);
+  });
+
+  it('accepts the tiebreak when it agrees with the set', () => {
+    const h = mount({ smartComplements: false });
+    h.enterSet(1, '7', '6');
+    h.typeTb(1, 1, '7');
+    h.typeTb(2, 1, '3');
+
+    expect(error(h)).toBeUndefined();
+    expect(h.band()?.textContent).toContain('7-6(3)');
+  });
+
+  it('rejects a tied tiebreak, which decides nothing', () => {
+    const h = mount({ smartComplements: false });
+    h.enterSet(1, '7', '6');
+    h.typeTb(1, 1, '5');
+    h.typeTb(2, 1, '5');
+
+    expect(error(h)).toMatch(/cannot be tied/);
+  });
+
+  it('still allows a legitimate match tiebreak of 10-8, which the shared max would have blocked', () => {
+    // The upstream gap this surfaced: `getMaxAllowedScore` returns 7 for `SET1-S:TB10`, because it reads
+    // `setFormat.setTo` and a tiebreak-only format keeps its target on `tiebreakSet.tiebreakTo`. Clamping
+    // against it would make a match tiebreak unenterable, so tiebreak-only sets are exempt.
+    const h = mount({ matchUpFormat: 'SET1-S:TB10', smartComplements: false });
+    h.enterSet(1, '10', '8');
+
+    expect(h.cell(1, 1)?.value).toBe('10');
+    expect(h.region.getSets()[0].side1TiebreakScore).toBe(10);
+    expect(h.submit()?.disabled).toBe(false);
   });
 });

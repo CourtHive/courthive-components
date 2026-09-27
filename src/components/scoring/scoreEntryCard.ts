@@ -136,6 +136,26 @@ export type ScoreRegion = {
    * precedence and not the other.
    */
   matchUpStatus?: () => string | undefined;
+  /**
+   * A compact control the region wants in the result band's right edge rather than in a row of its own.
+   *
+   * CA, 2026-09-27, on the smart-complements checkbox: *"I don't think '[] Smart Complements' should take
+   * up a whole row of the modal. I think it can be a little icon to the far right side of the row where you
+   * have 'No result entered yet'. Just (Smart) maybe, something compact that toggles."*
+   *
+   * It stays a REGION concern — it is a Dynamic Sets behaviour and nothing else reads it — so the region
+   * supplies the element and the card only decides where it sits. Putting the knowledge of it in the card
+   * would imply it applied to Free Score and the Dial Pad too.
+   */
+  bandControl?: () => HTMLElement | undefined;
+  /**
+   * Something wrong with the score as entered, in words for the operator.
+   *
+   * The card refuses to submit while this is set and shows it in the result band. A score that cannot be
+   * right must not reach the factory, and it must say so while the operator is still looking at the field
+   * they typed it into.
+   */
+  error?: () => string | undefined;
 };
 
 export type ScoreEntryCardParams = {
@@ -321,8 +341,12 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     // OR is the point: the 95% case is a played-out match with no ending at all, and gating on the
     // ending alone would make Submit dead for it. Gating on the score alone would make a walkover
     // unsubmittable, which is the bug the four approaches each fixed differently.
+    //
+    // A region-reported ERROR closes it regardless. An impossible score stays impossible however it was
+    // qualified: a 3-7 is not made submittable by also being marked Suspended.
     const scoreIsResult = !!params.region.isComplete?.();
-    submitButton.disabled = !(resolution.isValid || (!resolution.hasEnding && scoreIsResult));
+    const scoreError = params.region.error?.();
+    submitButton.disabled = !!scoreError || !(resolution.isValid || (!resolution.hasEnding && scoreIsResult));
   }
 
   function renderRows(winningSide?: number): void {
@@ -371,12 +395,23 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    */
   function participantRow(sideNumber: SideNumber, template: string, winningSide?: number): HTMLElement {
     const side = params.sides[sideNumber - 1];
-    const ending = state.sideEnding?.sideNumber === sideNumber ? state.sideEnding : undefined;
+
+    // ── A double exit happened to BOTH sides, so both rows say so ──
+    //
+    // CA, 2026-09-27: "If 'no one advances' is selected shouldn't (Defaulted) or (Walkover) chip appear
+    // next to the other player as well?" Yes. The ending is RECORDED against one row because that is how
+    // it is entered, but "neither appeared" is a statement about both of them — showing it on one row
+    // implied the other had merely lost, which is the opposite of what a double exit means.
+    const selected = state.sideEnding;
+    const ending = selected && (selected.sideNumber === sideNumber || state.bothSidesOut) ? selected : undefined;
 
     const row = div('chc-sec-row');
     row.style.gridTemplateColumns = template;
     row.dataset.side = String(sideNumber);
-    row.dataset.ended = String(!!ending);
+    // `ended` still marks only the row the ending was entered against: it drives the strike-through, and
+    // striking BOTH names through would read as neither having played rather than neither advancing.
+    row.dataset.ended = String(selected?.sideNumber === sideNumber);
+    row.dataset.bothOut = String(!!state.bothSidesOut);
     row.dataset.winner = String(winningSide === sideNumber);
 
     const participant = div('chc-sec-participant');
@@ -561,6 +596,20 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   }
 
   function renderBand(resolution: ReturnType<typeof resolveScoreEntry>): void {
+    // An integrity failure outranks everything else the band might say. Reporting "not a finished result"
+    // for a 3-7 would be true and useless; the operator needs to know WHICH set is wrong and why.
+    const scoreError = params.region.error?.();
+    if (scoreError) {
+      band.replaceChildren();
+      band.dataset.tone = 'warn';
+      band.setAttribute('role', 'status');
+      band.append(text('chc-sec-band-headline', scoreError));
+      // The control stays reachable while the score is wrong: switching complements off is one of the ways
+      // an operator FIXES a score they did not mean to accept.
+      appendBandControl(true);
+      return;
+    }
+
     const reasonStatus = reasonCodeStatus(state);
     const entry = codesForStatus(params.statusCodeGroups, reasonStatus).find(
       (candidate) => candidate.matchUpStatusCode === state.reasonCode,
@@ -585,6 +634,20 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     if (summary.detail) {
       band.append(div(CLS_SPACER), text('chc-sec-band-detail', summary.detail));
     }
+    appendBandControl(!summary.detail);
+  }
+
+  /**
+   * The region's compact control, on the band's right edge.
+   *
+   * Rendered last so it sits after the detail text, and given its own spacer when there is no detail to
+   * push it over — otherwise it would sit against the headline rather than at the edge.
+   */
+  function appendBandControl(needsSpacer: boolean): void {
+    const control = params.region.bandControl?.();
+    if (!control) return;
+    if (needsSpacer) band.append(div(CLS_SPACER));
+    band.append(control);
   }
 }
 

@@ -31,6 +31,7 @@ const ELLUL = 'Derrick Ellul';
 const PARTICIPANT = '.chc-sec-participant';
 const CARD_ROW = '.chc-sec-row';
 const CARD_ROW_HEAD = '.chc-sec-row-head';
+const ROW_ENDING = '[data-row-ending]';
 
 function mount(over: Partial<Parameters<typeof renderScoreEntryCard>[0]> = {}) {
   document.body.innerHTML = '';
@@ -152,7 +153,7 @@ describe('the per-side ending control', () => {
     h.endedEarly(2)?.click();
     h.sideOption(2, WALKOVER)?.click();
 
-    const pill = h.q<HTMLElement>('[data-row-ending]');
+    const pill = h.q<HTMLElement>(ROW_ENDING);
     expect(pill?.dataset.rowEnding).toBe(WALKOVER);
     expect(pill?.textContent).toBe('Walkover');
     expect(pill?.closest<HTMLElement>(CARD_ROW)?.dataset.side).toBe('2');
@@ -229,6 +230,45 @@ describe('"did not appear either"', () => {
     expect(h.row(2)?.dataset.winner).toBe('false');
     expect(h.band()?.dataset.tone).toBe('warn');
     expect(h.band()?.textContent).toContain('neither side advances');
+  });
+
+  it('names the ending on BOTH rows — CA, 2026-09-27', () => {
+    // CA: "If 'no one advances' is selected shouldn't (Defaulted) or (Walkover) chip appear next to the
+    // other player as well?" Yes. The ending is RECORDED against one row because that is how it is entered,
+    // but "neither appeared" is a statement about both of them — one chip implied the other side had merely
+    // lost, which is the opposite of what a double exit means.
+    const h = mount();
+    h.endedEarly(1)?.click();
+    h.sideOption(1, WALKOVER)?.click();
+    expect(h.all(ROW_ENDING), 'one row before').toHaveLength(1);
+
+    h.bothOut()?.click();
+
+    const pills = h.all<HTMLElement>(ROW_ENDING);
+    expect(pills).toHaveLength(2);
+    for (const pill of pills) expect(pill.textContent).toBe('Walkover');
+  });
+
+  it('but strikes through only the row it was entered against', () => {
+    // Striking BOTH names through would read as neither having played, rather than neither advancing.
+    const h = mount();
+    h.endedEarly(1)?.click();
+    h.sideOption(1, WALKOVER)?.click();
+    h.bothOut()?.click();
+
+    expect(h.row(1)?.dataset.ended).toBe('true');
+    expect(h.row(2)?.dataset.ended).toBe('false');
+    expect(h.row(1)?.dataset.bothOut).toBe('true');
+  });
+
+  it('drops back to one chip when the double exit is undone', () => {
+    const h = mount();
+    h.endedEarly(1)?.click();
+    h.sideOption(1, WALKOVER)?.click();
+    h.bothOut()?.click();
+    h.bothOut()?.click();
+
+    expect(h.all(ROW_ENDING)).toHaveLength(1);
   });
 
   it('submits the double status, not the base ending', () => {
