@@ -256,3 +256,64 @@ export function applyIrregularEndingToValidation(
 
   return resolution;
 }
+
+/**
+ * What the controls should show for a matchUp that already carries a result.
+ *
+ * The documented INVERSE of `resolveIrregularEnding`. That function was hoisted here because three
+ * approaches each carried their own copy of the forward rule and disagreed; the inverse was left
+ * behind in each of them and diverged the same way. Measured before this existed:
+ *
+ *   - `dynamicSetsApproach` restored all six endings and both double exits;
+ *   - `dialPadApproach` restored only RETIRED / WALKOVER / DEFAULTED, so a saved ABANDONED,
+ *     CANCELLED or INCOMPLETE re-opened reading as COMPLETED — and re-submitting silently replaced
+ *     a non-directing status;
+ *   - `freeScoreApproach` used a third mechanism entirely;
+ *   - `inlineScoringApproach` discarded the saved result by construction.
+ *
+ * Round-tripping is the property that matters, and it is the one a test can hold: for every status
+ * in `SELECTABLE_ENDINGS`, `resolveIrregularEnding(hydrateIrregularEnding(m))` must return the
+ * status `m` was saved with.
+ *
+ * ── What each branch means ──
+ *
+ * A **double exit** is stored as its own status and carries no `winningSide`, so it inverts to the
+ * base ending plus an explicit `NEITHER_SIDE` — the tri-state's third value, recovered rather than
+ * guessed. A **non-directing** ending (ABANDONED, CANCELLED, INCOMPLETE) resolves nobody, so its
+ * winner is `undefined` and must stay that way; reading a stray `winningSide` back onto one would
+ * re-introduce the fail-open shape this module exists to prevent. Anything else — COMPLETED,
+ * TO_BE_PLAYED, IN_PROGRESS, a status this vocabulary does not offer, or no matchUp at all —
+ * inverts to COMPLETED with no winner, which is the inert state the controls open in.
+ *
+ * Deliberately NOT inferred: a `winningSide` present on a status that requires one is trusted, but a
+ * MISSING one is returned as `undefined` rather than defaulted. An unanswered winner is the
+ * fail-closed state (`WINNER_REQUIRED_ERROR`), and it must survive a save/reopen cycle as unanswered.
+ */
+export function hydrateIrregularEnding(matchUp?: {
+  matchUpStatus?: string;
+  winningSide?: number;
+}): { selectedOutcome: string; winnerSelection: WinnerSelection } {
+  const matchUpStatus = matchUp?.matchUpStatus;
+  if (!matchUpStatus) return { selectedOutcome: COMPLETED, winnerSelection: undefined };
+
+  if (DOUBLE_EXIT_STATUSES.has(matchUpStatus)) {
+    const ending = Object.keys(DOUBLE_EXIT_STATUS).find((key) => DOUBLE_EXIT_STATUS[key] === matchUpStatus);
+    // A double exit whose base ending is somehow unmapped is not guessable — fall back to the inert
+    // state rather than inventing an ending the operator never chose.
+    return ending
+      ? { selectedOutcome: ending, winnerSelection: NEITHER_SIDE }
+      : { selectedOutcome: COMPLETED, winnerSelection: undefined };
+  }
+
+  if (!SELECTABLE_ENDINGS.includes(matchUpStatus)) {
+    return { selectedOutcome: COMPLETED, winnerSelection: undefined };
+  }
+
+  if (!requiresWinner(matchUpStatus)) return { selectedOutcome: matchUpStatus, winnerSelection: undefined };
+
+  const winningSide = matchUp?.winningSide;
+  return {
+    selectedOutcome: matchUpStatus,
+    winnerSelection: winningSide === 1 || winningSide === 2 ? winningSide : undefined,
+  };
+}

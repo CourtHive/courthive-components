@@ -13,6 +13,7 @@ import { getScoringConfig } from '../config';
 
 import {
   applyIrregularEndingToValidation,
+  hydrateIrregularEnding,
   NON_DIRECTING_ENDINGS,
   supportsNeitherSide,
   doubleExitWarning,
@@ -22,8 +23,7 @@ import {
   type WinnerSelection
 } from '../logic/irregularEnding';
 
-const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, ABANDONED, CANCELLED, INCOMPLETE } =
-  matchUpStatusConstants;
+const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, ABANDONED, CANCELLED, INCOMPLETE } = matchUpStatusConstants;
 
 const DEFAULT_FORMAT = 'SET3-S:6/TB7';
 const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
@@ -865,28 +865,19 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
     (globalThis as any).cleanupDialPad = cleanup;
 
-    // Initialize irregular ending and winner if present (use internal state only)
-    // Only set selectedOutcome for ACTUAL irregular endings (RETIRED, WALKOVER, DEFAULTED)
-    // Also handle DOUBLE_* statuses by mapping them back to base status without winner
-    // Don't treat TO_BE_PLAYED as irregular
-    const isActualIrregularEnding =
-      internalMatchUpStatus === RETIRED ||
-      internalMatchUpStatus === WALKOVER ||
-      internalMatchUpStatus === DEFAULTED ||
-      internalMatchUpStatus === DOUBLE_WALKOVER ||
-      internalMatchUpStatus === DOUBLE_DEFAULT;
-    if (isActualIrregularEnding) {
-      // Map DOUBLE_* statuses to their base status
-      if (internalMatchUpStatus === DOUBLE_WALKOVER) {
-        selectedOutcome = WALKOVER;
-        winnerSelection = NEITHER_SIDE;
-      } else if (internalMatchUpStatus === DOUBLE_DEFAULT) {
-        selectedOutcome = DEFAULTED;
-        winnerSelection = NEITHER_SIDE;
-      } else {
-        selectedOutcome = internalMatchUpStatus as any;
-        winnerSelection = internalWinningSide;
-      }
+    // What the controls should show for a result this matchUp already carries. `hydrateIrregularEnding`
+    // is the shared inverse of `resolveIrregularEnding`; this file used to carry its own copy, which
+    // restored only RETIRED / WALKOVER / DEFAULTED and both double exits. A saved ABANDONED,
+    // CANCELLED or INCOMPLETE therefore re-opened reading as COMPLETED, and re-submitting silently
+    // replaced a non-directing status — the same divergence, in the same shape, that moved the
+    // FORWARD rule into that module in the first place.
+    const hydrated = hydrateIrregularEnding({
+      matchUpStatus: internalMatchUpStatus,
+      winningSide: internalWinningSide
+    });
+    if (hydrated.selectedOutcome !== COMPLETED) {
+      selectedOutcome = hydrated.selectedOutcome as any;
+      winnerSelection = hydrated.winnerSelection;
 
       // Check the appropriate irregular ending radio button
       const outcomeRadios = irregularEndingContainer.querySelectorAll(OUTCOME_SELECTOR) as NodeListOf<HTMLInputElement>;
@@ -916,7 +907,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
     // Initial display - ALWAYS call updateDisplay if state.digits exists OR if irregular ending is set
     // This ensures all UI elements (scoreDisplay, Clear button, etc.) are properly initialized
-    if (state.digits || isActualIrregularEnding) {
+    if (state.digits || hydrated.selectedOutcome !== COMPLETED) {
       // Call updateDisplay to initialize display, validate, and set button states
       updateDisplay();
 
