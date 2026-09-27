@@ -14,8 +14,19 @@
  *
  * ── What the region decides, and what it asks ──
  *
- * It decides WHERE a column goes and WHEN it is visible. Everything else it asks `dynamicSetsLogic.ts`:
- * `shouldShowTiebreak`, `isSetComplete`, `shouldCreateNextSet`, `shouldApplySmartComplement`.
+ * It decides WHERE a column goes and WHEN it is visible. Everything else it asks:
+ *
+ *   `dynamicSetsLogic.ts`  — `shouldShowTiebreak`, `isSetComplete`, `shouldCreateNextSet`,
+ *                            `shouldApplySmartComplement`, `getMaxAllowedScore`
+ *   the FACTORY            — `scoreGovernor.validateSetScore` for whether a set is legal, and
+ *                            `scoreGovernor.getTiebreakComplement` for what a typed tiebreak implies
+ *
+ * CA, 2026-09-27: *"If validateSetScores is only for text, isn't there a structural (object) score
+ * validator that can be used in the factory?"* There is, and it replaced a string round-trip here. Note
+ * what that leaves behind: `getMaxAllowedScore`, `calculateComplement` and `isSetComplete` in
+ * `dynamicSetsLogic.ts` are all hand-rolled, and the factory exports `getSetComplement`,
+ * `checkSetIsComplete` and `validateMatchUpScore` besides. Adopting those is real work with a blast radius
+ * — the shipping approach shares that module — so it is reported rather than smuggled in here.
  *
  * Measured, because two of these are counter-intuitive and the code leans on both:
  * `shouldShowTiebreak(0, 7-6)` is TRUE while `isSetComplete(0, 7-6)` is FALSE — a 7-6 is not a finished
@@ -31,7 +42,7 @@
  * in next, which is what makes this feel like one continuous entry rather than a form.
  */
 
-import { validateSetScores } from '../utils/scoreValidator';
+import { scoreGovernor } from 'tods-competition-factory';
 import { ordinalSetLabel } from './setColumns';
 import {
   shouldApplySmartComplement,
@@ -240,49 +251,52 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     return undefined;
   }
 
-  /**
-   * Whether this ONE set is a legal score in this format.
-   *
-   * Validated a set at a time, on purpose. `validateSetScores` always reports match-level completeness
-   * too — "Incomplete match - need 2 sets to win" for one set of three, whatever `allowIncomplete` says —
-   * so handing it the whole match would drown a real violation in a benign one. Given a single set, a
-   * per-set breach comes back prefixed `Set 1:` and a legal set comes back with only the completeness
-   * complaint, which is exactly the discrimination needed.
-   */
+  /** Whether this ONE set is a legal score in this format, per the factory. */
   function setError(index: number): string | undefined {
-    // A tiebreak-only set is skipped. `validateSetScores` wants its score in bracket form (`[10-8]`) and a
-    // one-set array of plain games cannot express that, so it rejects a perfectly good match tiebreak with
-    // "Format expects tiebreak-only set (e.g., [10-8]), but got regular set 10-8". Measured. Validating it
-    // would mean reconstructing the validator's own string format here, which is its job and not ours.
-    if (isSetTiebreakOnly(getSetFormatForIndex(index, config))) return undefined;
-
-    // ── Only a set that LOOKS finished is judged ──
+    // ── The FACTORY validates the set object ──
     //
-    // `isSetComplete` is the discriminator between a score that is impossible and one that is merely
-    // unfinished, and it is exact: `2-1` false, `3-7` true, `7-6` false, `44-3` true. Without this gate the
-    // validator rejected every in-progress set with "Set winner must reach 6 games" — a 6-4 2-1 suspended
-    // match is perfectly legitimate, and flagging it would make the band cry wolf on the commonest state
-    // there is. A 7-6 is also false here, so its tiebreak is judged by `tiebreakError` instead.
-    if (!isSetComplete(index, gamesOf(index), config)) return undefined;
+    // CA, 2026-09-27: "If validateSetScores is only for text, isn't there a structural (object) score
+    // validator that can be used in the factory?" There is:
+    // `scoreGovernor.validateSetScore(set, matchUpFormat, isDecidingSet, allowIncomplete)`.
+    //
+    // It replaces a string round-trip AND a gate. The previous version built a one-set array for this
+    // repo's `validateSetScores`, which formats a scoreString and hands it to
+    // `generateOutcomeFromScoreString` — so a structural question was asked in prose and the answer came
+    // back needing a `/^Set \d+:/` prefix match to tell a real breach from match-level incompleteness. It
+    // also needed an `isSetComplete` gate, because it flagged every in-progress set.
+    //
+    // `allowIncomplete: true` does that natively. Measured: `2-1` valid, `3-7` invalid, `44-3` invalid,
+    // `7-6(3)` valid. No prefix parsing and no string in the middle.
+    //
+    // ── One gate survives, and it is a different one ──
+    //
+    // `allowIncomplete` forgives unfinished GAMES but not a missing TIEBREAK: a 7-6 whose points are not in
+    // yet comes back "Tiebreak winner must reach 7". That is the transient state the card deliberately
+    // creates — the column is open and the operator is being asked — so validating it would fire an error
+    // at the exact moment the question was posed. `tiebreakOutstanding` is the honest predicate for it,
+    // covering both "none entered" and "one of two entered".
+    if (tiebreakOutstanding(index)) return undefined;
 
     const entry = entries[index];
-    const outcome = validateSetScores(
-      [
-        {
-          side1: Number.parseInt(entry.side1) || 0,
-          side2: Number.parseInt(entry.side2) || 0,
-          side1TiebreakScore: entry.tiebreak1 ? Number.parseInt(entry.tiebreak1) : undefined,
-          side2TiebreakScore: entry.tiebreak2 ? Number.parseInt(entry.tiebreak2) : undefined,
-        },
-      ],
+    const { isValid, error } = scoreGovernor.validateSetScore(
+      {
+        side1Score: Number.parseInt(entry.side1) || 0,
+        side2Score: Number.parseInt(entry.side2) || 0,
+        side1TiebreakScore: entry.tiebreak1 ? Number.parseInt(entry.tiebreak1) : undefined,
+        side2TiebreakScore: entry.tiebreak2 ? Number.parseInt(entry.tiebreak2) : undefined,
+      },
       params.matchUpFormat,
+      isDecidingSet(index),
       true,
     );
 
-    const error = outcome.error;
-    if (!error || !/^Set \d+:/.test(error)) return undefined;
-    // Re-labelled: the validator saw a one-set match, so its "Set 1" is this set whatever its real index.
-    return error.replace(/^Set \d+:/, setLabel(index));
+    if (isValid || !error) return undefined;
+    return `${setLabel(index)} ${error}`;
+  }
+
+  /** Whether this is the set a deciding-set format treats differently. */
+  function isDecidingSet(index: number): boolean {
+    return index === (config.exactly ?? config.bestOf) - 1;
   }
 
   /**
@@ -304,9 +318,10 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     const gamesWinner = games.side1 > games.side2 ? 1 : 2;
     const points1 = Number.parseInt(entry.tiebreak1);
     const points2 = Number.parseInt(entry.tiebreak2);
-    if (points1 === points2) {
-      return `${setLabel(index)} a tiebreak cannot be tied`;
-    }
+    // A TIE is left to the factory, which rejects it as "Tiebreak must be won by 2 points" — a better
+    // message than any this could write, and one check fewer here. This function exists only for the case
+    // the factory misses.
+    if (points1 === points2) return undefined;
 
     const pointsWinner = points1 > points2 ? 1 : 2;
     if (pointsWinner === gamesWinner) return undefined;
@@ -665,15 +680,51 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     if (!smartComplements) return;
 
     const target = tiebreakTarget(setIndex);
-    if (target === undefined || points >= target) return;
+    if (target === undefined) return;
 
-    const otherSide: SideNumber = sideNumber === 1 ? 2 : 1;
-    const value = String(target);
-    if (otherSide === 1) entries[setIndex].tiebreak1 = value;
-    else entries[setIndex].tiebreak2 = value;
+    // ── The factory computes it, because mine was wrong ──
+    //
+    // My version returned the target and refused anything at or above it, so a 6 in a TB7 completed to
+    // nothing — but a tiebreak to seven legitimately ends 8-6 or 9-7, and the factory knows that. Refusing
+    // was not conservative, it was wrong. Measured for TB7: 3 -> [3, 7], **6 -> [6, 8]**, 7 -> [7, 9].
+    //
+    // The pair comes back ORDERED BY SIDE, which `isSide1` controls: `{ lowValue: 3, isSide1: true }` gives
+    // `[3, 7]` and `isSide1: false` gives `[7, 3]`. Omitting it defaults to side 2 holding the low value, so
+    // a first attempt that dropped the flag and took element [1] wrote the typed 3 straight back over
+    // itself and produced a tied 3-3 tiebreak. Both sides are assigned from the pair rather than one being
+    // picked out, so the ordering cannot be misread again.
+    // ── Only the games LOSER's cell determines the pair ──
+    //
+    // A tiebreak's low value belongs to whoever lost the SET. Typing into the winner's cell states the
+    // winner's points, from which the loser's cannot be derived — a 7 could have beaten anything from 0 to
+    // 5. Completing from it anyway produced a contradiction the integrity check then had to reject: type 7
+    // for the side that won 7-6 and the factory answers `[7, 9]`, handing the set's winner fewer points than
+    // its loser.
+    //
+    // So the complement fires from the losing side only. Nothing is lost: the losing side's points are what
+    // a score line records, and it is the cell the card opens on.
+    const games = gamesOf(setIndex);
+    if (games.side1 === games.side2) return;
+    const gamesLoser: SideNumber = games.side1 > games.side2 ? 2 : 1;
+    if (sideNumber !== gamesLoser) return;
 
-    const sibling = cells.get(key('tiebreak', otherSide, setIndex));
-    if (sibling) sibling.value = value;
+    const pair = scoreGovernor.getTiebreakComplement({
+      lowValue: points,
+      tiebreakTo: target,
+      isSide1: sideNumber === 1,
+    });
+    if (!pair) return;
+
+    const [forSide1, forSide2] = pair;
+    if (forSide1 === undefined || forSide2 === undefined) return;
+
+    entries[setIndex].tiebreak1 = String(forSide1);
+    entries[setIndex].tiebreak2 = String(forSide2);
+
+    for (const side of [1, 2] as SideNumber[]) {
+      const cell = cells.get(key('tiebreak', side, setIndex));
+      if (cell) cell.value = side === 1 ? String(forSide1) : String(forSide2);
+    }
   }
 
   /** The points a tiebreak in this set is played to, from the format. */

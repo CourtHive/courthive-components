@@ -669,16 +669,30 @@ describe('the tiebreak column — CA, 2026-09-27', () => {
     expect(set.side2TiebreakScore).toBe(8);
   });
 
-  it('does NOT autocomplete from the winning score, which says nothing about the loser', () => {
-    // Same principle as 6 and 7 completing nothing in the games row: never infer from a value with more
-    // than one reading. A 7 in a TB7 could face any loser score.
+  it('completes from the games LOSER, and runs long when it has to', () => {
+    // A tiebreak to seven legitimately ends 8-6 or 9-7, which my own version refused — it returned the
+    // target and declined anything at or above it. The factory knows better: `lowValue: 6` gives `[6, 8]`.
+    // Side 2 lost the set 6-7, so their points are the low value.
+    const h = mount();
+    h.enterSet(1, '7', '6');
+    h.typeTb(2, 1, '6');
+
+    const set = h.region.getSets()[0];
+    expect(set.side2TiebreakScore).toBe(6);
+    expect(set.side1TiebreakScore).toBe(8);
+    expect(h.region.error?.()).toBeUndefined();
+  });
+
+  it('does NOT complete from the games WINNER, whose points determine nothing', () => {
+    // A 7 for the side that won 7-6 could have beaten anything from 0 to 5. Completing from it anyway asked
+    // the factory to treat it as the LOW value and got `[7, 9]` back — handing the set's winner fewer points
+    // than its loser, a contradiction the integrity check then had to reject.
     const h = mount();
     h.enterSet(1, '7', '6');
     h.typeTb(1, 1, '7');
 
-    expect(h.tb(2, 1)?.value, 'the other side must stay empty for the operator to fill').toBe('');
-    expect(h.tb(1, 1), 'and the column must stay open, since the points are still unknown').toBeTruthy();
-    expect(h.cell(1, 2), 'the second set must not open on an incomplete tiebreak').toBeNull();
+    expect(h.tb(2, 1)?.value, 'the loser\'s points stay for the operator to enter').toBe('');
+    expect(h.tb(1, 1), 'and the column stays open').toBeTruthy();
   });
 
   it('folds away once the tiebreak is known, and opens the second set', () => {
@@ -924,13 +938,19 @@ describe('integrity — CA, 2026-09-27', () => {
     expect(h.band()?.textContent).toContain('7-6(3)');
   });
 
-  it('rejects a tied tiebreak, which decides nothing', () => {
+  it('rejects a tied tiebreak — via the FACTORY, not a check of our own', () => {
+    // Reachable only with complements OFF: with them on the factory completes the first entry and no tie
+    // forms. I wrote a "cannot be tied" branch and then measured that the factory already rejects it, with a
+    // better message — "Tiebreak must be won by 2 points" — so the branch was removed rather than kept
+    // alongside. This asserts the rejection, not the author, so it survives a change of wording but not a
+    // change of behaviour.
     const h = mount({ smartComplements: false });
     h.enterSet(1, '7', '6');
-    h.typeTb(1, 1, '5');
-    h.typeTb(2, 1, '5');
+    h.typeTb(1, 1, '8');
+    h.typeTb(2, 1, '8');
 
-    expect(error(h)).toMatch(/cannot be tied/);
+    expect(error(h)).toBeTruthy();
+    expect(h.submit()?.disabled).toBe(true);
   });
 
   it('still allows a legitimate match tiebreak of 10-8, which the shared max would have blocked', () => {
