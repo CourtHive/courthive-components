@@ -30,6 +30,10 @@
  * called, and nothing else. If a rule appears here, it is in the wrong file.
  */
 
+import { statusCodeSubtext, statusCodeDisplay, codesForStatus } from './logic/statusCodes';
+import { matchUpStatusConstants } from 'tods-competition-factory';
+import { scoreEntrySummary } from './logic/scoreEntrySummary';
+import { endingLabels } from './logic/irregularEnding';
 import {
   emptyScoreEntryState,
   toggleBothSidesOut,
@@ -42,10 +46,6 @@ import {
   sideEndingOptions,
   reasonCodeStatus,
 } from './logic/scoreEntryState';
-import { statusCodeSubtext, statusCodeDisplay, codesForStatus } from './logic/statusCodes';
-import { scoreEntrySummary } from './logic/scoreEntrySummary';
-import { matchUpStatusConstants } from 'tods-competition-factory';
-import { endingLabels } from './logic/irregularEnding';
 
 import type { ScoreEntryState, SideNumber } from './logic/scoreEntryState';
 import type { StatusCodeGroups } from './logic/statusCodes';

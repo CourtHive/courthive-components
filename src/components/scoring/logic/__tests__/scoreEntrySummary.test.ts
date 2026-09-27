@@ -11,8 +11,8 @@
  * expectation without reading whether the claim was still true.
  */
 import { resolveScoreEntry, chooseSideEnding, chooseMatchEnding, toggleBothSidesOut, emptyScoreEntryState } from '../scoreEntryState';
-import { scoreEntrySummary } from '../scoreEntrySummary';
 import { matchUpStatusConstants } from 'tods-competition-factory';
+import { scoreEntrySummary } from '../scoreEntrySummary';
 import { describe, it, expect } from 'vitest';
 
 import type { SummaryParams } from '../scoreEntrySummary';

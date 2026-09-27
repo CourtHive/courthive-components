@@ -12,9 +12,9 @@
  * an operator's screen reader and a Playwright journey both read. A class is styling; `aria-pressed`
  * is the state.
  */
-import { renderScoreEntryCard } from '../scoreEntryCard';
 import { matchUpStatusConstants, fixtures, policyConstants } from 'tods-competition-factory';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { renderScoreEntryCard } from '../scoreEntryCard';
 
 import type { StatusCodeGroups } from '../logic/statusCodes';
 

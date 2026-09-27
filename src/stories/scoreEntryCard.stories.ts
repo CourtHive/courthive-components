@@ -11,8 +11,8 @@
  * cases — played out, walkover, Other… open — so the code and the design can be compared side by
  * side rather than from memory.
  */
-import { renderScoreEntryCard } from '../components/scoring/scoreEntryCard';
 import { matchUpStatusConstants, fixtures, policyConstants } from 'tods-competition-factory';
+import { renderScoreEntryCard } from '../components/scoring/scoreEntryCard';
 import { expect } from 'storybook/test';
 
 import type { StatusCodeGroups } from '../components/scoring/logic/statusCodes';
