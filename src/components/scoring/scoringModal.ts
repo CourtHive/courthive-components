@@ -9,6 +9,7 @@ import { renderDialPadScoreEntry } from './approaches/dialPadApproach';
 import { renderFreeScoreEntry } from './approaches/freeScoreApproach';
 import type { ScoringModalParams, ScoreOutcome } from './types';
 import { getScoringConfig, setScoringConfig } from './config';
+import { projectOutcomeOntoMatchUp } from './logic/outcomeProjection';
 import { buildStatusCodePicker } from './statusCodePicker';
 import { normalizeStatusCode } from './logic/statusCodes';
 import { cModal } from '../modal/cmodal';
@@ -93,6 +94,12 @@ export function scoringModal(params: ScoringModalParams): void {
   };
 
   const renderApproach = (approach: ScoringApproach): HTMLElement => {
+    // The matchUp the approach hydrates from — the saved one on first open, and on a switch the
+    // saved one with whatever has been typed projected onto it. Every approach already reads
+    // `matchUp.score` once on mount and never again, so carrying an entry across a rotation needs no
+    // change in any of them; it needs them handed a different matchUp.
+    const hydrateFrom = projectOutcomeOntoMatchUp(matchUp, currentOutcome);
+
     const container = document.createElement('div');
     container.style.padding = '1em';
 
@@ -109,13 +116,13 @@ export function scoringModal(params: ScoringModalParams): void {
     statusCodePicker.update(currentOutcome?.matchUpStatus ?? matchUp.matchUpStatus);
 
     if (approach === 'freeScore') {
-      renderFreeScoreEntry({ matchUp, container: approachContent, onScoreChange: handleScoreChange, labels });
+      renderFreeScoreEntry({ matchUp: hydrateFrom, container: approachContent, onScoreChange: handleScoreChange, labels });
     } else if (approach === 'dynamicSets') {
-      renderDynamicSetsScoreEntry({ matchUp, container: approachContent, onScoreChange: handleScoreChange, labels });
+      renderDynamicSetsScoreEntry({ matchUp: hydrateFrom, container: approachContent, onScoreChange: handleScoreChange, labels });
     } else if (approach === 'dialPad') {
-      renderDialPadScoreEntry({ matchUp, container: approachContent, onScoreChange: handleScoreChange, labels });
+      renderDialPadScoreEntry({ matchUp: hydrateFrom, container: approachContent, onScoreChange: handleScoreChange, labels });
     } else if (approach === 'inlineScoring') {
-      renderInlineScoringEntry({ matchUp, container: approachContent, onScoreChange: handleScoreChange, labels });
+      renderInlineScoringEntry({ matchUp: hydrateFrom, container: approachContent, onScoreChange: handleScoreChange, labels });
     }
 
     return container;
@@ -201,7 +208,10 @@ export function scoringModal(params: ScoringModalParams): void {
     if (newApproach === activeApproach) return;
 
     cleanupCurrentApproach();
-    currentOutcome = null;
+    // `currentOutcome` is deliberately KEPT. It used to be nulled here, which is what made rotation
+    // lossy: the next approach was then mounted from the saved matchUp and the entry was gone.
+    // `renderApproach` projects it onto the matchUp instead, and the new approach reports its own
+    // outcome on mount, which overwrites this one.
     wasCleared = false;
     activeApproach = newApproach;
 
