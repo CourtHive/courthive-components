@@ -40,6 +40,7 @@ import {
   offersBothSidesOut,
   matchEndingOptions,
   chooseMatchEnding,
+  resolveReportedEnding,
   resolveScoreEntry,
   chooseSideEnding,
   chooseReasonCode,
@@ -47,7 +48,7 @@ import {
   reasonCodeStatus,
 } from './logic/scoreEntryState';
 
-import type { ScoreEntryState, SideNumber } from './logic/scoreEntryState';
+import type { ScoreEntryState, ScoreEntryResolution, SideNumber } from './logic/scoreEntryState';
 import type { StatusCodeGroups } from './logic/statusCodes';
 
 import './scoreEntryCard.css';
@@ -65,6 +66,22 @@ const ARIA_EXPANDED = 'aria-expanded';
 const CHECK_PATH = 'M20 6 9 17l-5-5';
 
 /**
+ * The row grid's fixed columns, in px.
+ *
+ * Named because the header row and the participant rows must use the SAME track widths or the headings
+ * stop sitting over the cells they describe. `renderRows` builds one template string from these and
+ * assigns it to both, which is the single source that makes the correspondence structural rather than
+ * something to eyeball.
+ *
+ * Centring within a track is a separate guarantee, and it is why `.chc-sec-col-head` and
+ * `.chc-sec-set-input` both use `justify-self`/`justify-content: center` rather than one using
+ * `text-align` and the other `margin: 0 auto`. Two mechanisms that happen to agree today can diverge
+ * under one edit; the same property on both cannot.
+ */
+const SCORE_COLUMN_PX = 62;
+const ACTION_COLUMN_PX = 56;
+
+/**
  * The three endings the design privileges as buttons in the match-level row. The rest go behind
  * "Other…". Their presence is what tells an operator the row is about the match rather than a side,
  * which is why the caption that used to say so is gone.
@@ -78,10 +95,30 @@ const SIDE_ENDING_HINTS: Record<string, string> = {
   [DEFAULTED]: 'Removed by the referee',
 };
 
+/**
+ * One column the region contributes to the participant rows.
+ *
+ * `heading` and `width` travel TOGETHER deliberately. The header row and the participant rows are
+ * built from this one array, so a heading can never end up over a column it does not describe — the
+ * correspondence is structural rather than two lists that have to be kept the same length by hand.
+ * CA asked for that alignment explicitly (2026-09-27) and this is what makes it hold rather than a
+ * rule someone has to remember.
+ *
+ * A column with no `heading` renders no header cell, and a region whose columns are all unheaded gets
+ * no header row at all — which is what Free Score and the Dial Pad want, since their single readout
+ * column needs no label.
+ */
+export type ScoreColumn = {
+  /** The heading above this column, e.g. `1st`. Omit for an unlabelled column. */
+  heading?: string;
+  /** A CSS grid track size. Defaults to the standard score-column width. */
+  width?: string;
+};
+
 export type ScoreRegion = {
-  /** Column headers for the row grid, e.g. `['SET 1', 'SET 2', 'SET 3']`. */
-  columnHeaders?: () => string[];
-  /** The cells to place in one side's row. Must return one per column header. */
+  /** The columns this region contributes to each participant row. */
+  columns?: () => ScoreColumn[];
+  /** The cells to place in one side's row. Must return one per column. */
   rowCells?: (sideNumber: SideNumber) => HTMLElement[];
   /** A block beneath the rows — a text field, or a keypad. */
   block?: () => HTMLElement;
@@ -91,6 +128,13 @@ export type ScoreRegion = {
   isComplete?: () => boolean;
   /** The winner the score implies, when no ending overrides it. */
   winningSide?: () => SideNumber | undefined;
+  /**
+   * A matchUpStatus the region itself parsed out of what was typed — Free Score only.
+   *
+   * Used ONLY when the operator has selected no ending. See `resolveReportedEnding` for why that
+   * precedence and not the other.
+   */
+  matchUpStatus?: () => string | undefined;
 };
 
 export type ScoreEntryCardParams = {
@@ -213,7 +257,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
     submitButton.dataset.action = 'submit';
     submitButton.addEventListener('click', () => {
-      const resolution = resolveScoreEntry(state);
+      const resolution = currentResolution();
       params.onSubmit?.({
         matchUpStatus: resolution.matchUpStatus,
         winningSide: resolution.winningSide,
@@ -229,12 +273,25 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
   /** A full render, including the score region's cells. Used on mount and on any ending change. */
   function render(): void {
-    const resolution = resolveScoreEntry(state);
+    const resolution = currentResolution();
 
     renderRows(resolution.winningSide);
     renderBlock();
     renderMatchEndings();
     renderDerived();
+  }
+
+  /**
+   * The resolution in force: the operator's selection, or failing that whatever the region parsed.
+   *
+   * A selected ending always wins. Only when nothing is selected does a region-reported status apply,
+   * which is what keeps Free Score's "6-4 ret" working without letting parsed text override a click.
+   */
+  function currentResolution(): ScoreEntryResolution {
+    const selected = resolveScoreEntry(state);
+    if (selected.hasEnding) return selected;
+
+    return resolveReportedEnding(params.region.matchUpStatus?.(), params.region.winningSide?.());
   }
 
   /**
@@ -247,7 +304,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   }
 
   function renderDerived(): void {
-    const resolution = resolveScoreEntry(state);
+    const resolution = currentResolution();
     renderBand(resolution);
 
     // ── The submit gate ──
@@ -263,13 +320,16 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   function renderRows(winningSide?: number): void {
     rowsContainer.replaceChildren();
 
-    const headers = params.region.columnHeaders?.() ?? [];
-    const template = `1fr ${headers.map(() => '62px').join(' ')} 56px`;
+    const columns = params.region.columns?.() ?? [];
+    const scoreTracks = columns.map((column) => column.width ?? `${SCORE_COLUMN_PX}px`).join(' ');
+    const template = `1fr ${scoreTracks} ${ACTION_COLUMN_PX}px`;
 
-    if (headers.length) {
+    // A header row only when at least one column is labelled. Free Score and the Dial Pad have a
+    // single unlabelled readout column, and an empty header strip above it would be furniture.
+    if (columns.some((column) => column.heading)) {
       const head = div('chc-sec-row-head');
       head.style.gridTemplateColumns = template;
-      head.append(text('', 'PLAYER'), ...headers.map((h) => centered(h)), div(''));
+      head.append(text('', 'PLAYER'), ...columns.map((column) => columnHeading(column.heading ?? '')), div(''));
       rowsContainer.append(head);
     }
 
@@ -494,10 +554,15 @@ function text(className: string, content: string): HTMLDivElement {
   return element;
 }
 
-function centered(content: string): HTMLDivElement {
-  const element = text('', content);
-  element.style.textAlign = 'center';
-  return element;
+/**
+ * A score-column heading, centred by the same property the input under it uses.
+ *
+ * Previously `text-align: center` on a stretched grid item. That aligned with the input's
+ * `margin: 0 auto` only because both happened to centre in the same track — a coincidence of two
+ * unrelated mechanisms, and the kind that survives review and then breaks under an unrelated edit.
+ */
+function columnHeading(content: string): HTMLDivElement {
+  return text('chc-sec-col-head', content);
 }
 
 function button(label: string, className: string): HTMLButtonElement {

@@ -13,6 +13,7 @@
  * without the operator doing anything.
  */
 import { createDynamicSetsRegion } from '../regions/dynamicSetsRegion';
+import { ordinalSetLabel } from '../regions/setColumns';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 import { renderScoreEntryCard } from '../scoreEntryCard';
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -20,6 +21,11 @@ import { describe, it, expect, beforeEach } from 'vitest';
 const { WALKOVER, CANCELLED, SUSPENDED } = matchUpStatusConstants;
 
 const SET_CELLS = 'input[data-set]';
+const BEST_OF_3 = 'SET3-S:6/TB7';
+const BEST_OF_5 = 'SET5-S:6/TB7';
+const ROW_HEAD = '.chc-sec-row-head';
+const COL_HEAD = '.chc-sec-col-head';
+const ROW = '.chc-sec-row';
 
 const SIDES: [{ participantName: string }, { participantName: string }] = [
   { participantName: 'Rosalind Lem' },
@@ -28,7 +34,7 @@ const SIDES: [{ participantName: string }, { participantName: string }] = [
 
 function mount(over: { matchUpFormat?: string; sets?: any[]; smartComplements?: boolean } = {}) {
   document.body.innerHTML = '';
-  const matchUpFormat = over.matchUpFormat ?? 'SET3-S:6/TB7';
+  const matchUpFormat = over.matchUpFormat ?? BEST_OF_3;
 
   const region = createDynamicSetsRegion({
     matchUpFormat,
@@ -79,7 +85,7 @@ beforeEach(() => {
 
 describe('the grid follows the matchUpFormat', () => {
   it('gives a best-of-3 three set columns, on both rows', () => {
-    const h = mount({ matchUpFormat: 'SET3-S:6/TB7' });
+    const h = mount({ matchUpFormat: BEST_OF_3 });
 
     expect(h.all('.chc-sec-row-head > div')).toHaveLength(5); // player + 3 sets + the ended-early column
     for (const side of [1, 2]) {
@@ -88,8 +94,87 @@ describe('the grid follows the matchUpFormat', () => {
     expect(h.all(SET_CELLS)).toHaveLength(6);
   });
 
+  it('heads the columns 1st / 2nd / 3rd, not "SET 1" — CA, 2026-09-27', () => {
+    const h = mount({ matchUpFormat: BEST_OF_3 });
+
+    expect(h.all(COL_HEAD).map((cell) => cell.textContent)).toEqual(['1st', '2nd', '3rd']);
+    expect(h.q(ROW_HEAD)?.textContent).not.toMatch(/SET\s*\d/i);
+  });
+
+  it('carries on past 3rd for a best-of-5', () => {
+    const h = mount({ matchUpFormat: BEST_OF_5 });
+
+    expect(h.all(COL_HEAD).map((cell) => cell.textContent)).toEqual(['1st', '2nd', '3rd', '4th', '5th']);
+  });
+
+  it('keeps the full set number in the accessible name, since "1st" alone has no context', () => {
+    const h = mount();
+
+    expect(h.cell(1, 1)?.getAttribute('aria-label')).toBe('1st set, side 1 games');
+    expect(h.cell(2, 3)?.getAttribute('aria-label')).toBe('3rd set, side 2 games');
+  });
+
+  // ── Alignment: the heading must sit over the cell it describes ──
+  //
+  // happy-dom computes no layout, so pixel positions cannot be measured here. What CAN be asserted is
+  // the structure that GUARANTEES the correspondence, and it is the real mechanism rather than a proxy:
+  // one grid template, assigned to the header row and to every participant row, with matching child
+  // counts. Centring within a track is then CSS, and `.chc-sec-col-head` and `.chc-sec-set-input` use
+  // the same property for it (`justify-self`) precisely so the two cannot drift apart.
+  it.each([BEST_OF_3, BEST_OF_5, 'SET1-S:6/TB7'])(
+    'header and rows share one identical column template (%s)',
+    (matchUpFormat) => {
+      const h = mount({ matchUpFormat });
+      const head = h.q<HTMLElement>(ROW_HEAD);
+      const rows = h.all<HTMLElement>(ROW);
+
+      expect(head?.style.gridTemplateColumns).toBeTruthy();
+      for (const row of rows) {
+        expect(row.style.gridTemplateColumns, 'a row disagrees with the header about its columns').toBe(
+          head?.style.gridTemplateColumns,
+        );
+      }
+    },
+  );
+
+  it('has one heading per score column, in the same grid position on every row', () => {
+    // The off-by-one that would slide every heading one column left: a header row missing the
+    // ended-early spacer, or a body row missing the participant cell.
+    const h = mount({ matchUpFormat: BEST_OF_3 });
+    const head = h.q<HTMLElement>(ROW_HEAD);
+    const rows = h.all<HTMLElement>(ROW);
+
+    const headChildren = [...(head?.children ?? [])];
+    expect(headChildren).toHaveLength(5);
+
+    for (const row of rows) {
+      expect(row.children.length, 'row child count differs from the header').toBe(headChildren.length);
+      // Heading at index N describes the input at index N, on both rows.
+      for (const [index, set] of [1, 2, 3].entries()) {
+        const heading = headChildren[index + 1];
+        const cellAtSamePosition = row.children[index + 1].matches('input') ? row.children[index + 1] : row.children[index + 1].querySelector('input');
+        expect(heading.textContent).toBe(ordinalSetLabel(set));
+        expect((cellAtSamePosition as HTMLElement | null)?.dataset.set).toBe(String(set));
+      }
+    }
+  });
+
+  it('centres the heading and the input by the SAME property, not two that happen to agree', () => {
+    // `text-align: center` on the heading and `margin: 0 auto` on the input aligned only by
+    // coincidence of both centring in the same track. Asserted on the class contract because the
+    // stylesheet is not loaded in happy-dom: the heading carries `.chc-sec-col-head` and the input
+    // `.chc-sec-set-input`, and both are given `justify-self: center` in one place.
+    const h = mount();
+
+    expect(h.all(COL_HEAD)).toHaveLength(3);
+    for (const input of h.all<HTMLInputElement>(SET_CELLS)) {
+      expect(input.classList.contains('chc-sec-set-input')).toBe(true);
+      expect(input.style.margin, 'an inline margin would reintroduce the second mechanism').toBe('');
+    }
+  });
+
   it('gives a best-of-5 five, without anyone saying five', () => {
-    const h = mount({ matchUpFormat: 'SET5-S:6/TB7' });
+    const h = mount({ matchUpFormat: BEST_OF_5 });
 
     expect(h.all(SET_CELLS)).toHaveLength(10);
     expect(h.cell(1, 5)).toBeTruthy();

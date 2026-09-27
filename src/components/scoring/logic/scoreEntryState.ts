@@ -211,6 +211,39 @@ export function resolveScoreEntry(state: ScoreEntryState): ScoreEntryResolution 
   };
 }
 
+/**
+ * A resolution for an ending the SCORE REGION reported rather than the operator selected.
+ *
+ * Free Score parses endings out of typed text — "6-4 ret" is a retirement — and that must keep
+ * working, because typing the whole result is the entire reason that approach exists. But the card now
+ * owns endings through its own controls, so two sources can speak at once and the precedence has to be
+ * stated rather than emergent:
+ *
+ *   **An explicitly selected ending always wins.** A region-reported one is used only when the
+ *   operator has selected nothing.
+ *
+ * That direction and not the other, because a click is an unambiguous instruction and parsed text is
+ * an inference. An operator who types "ret", then clicks Suspended, means Suspended; clearing the
+ * click falls back to what they typed, which is still on screen in front of them.
+ *
+ * Resolution goes through `resolveIrregularEnding` like everything else, so a parsed ending and a
+ * clicked one cannot disagree about what they mean — only about which one applies.
+ */
+export function resolveReportedEnding(matchUpStatus?: string, winningSide?: number): ScoreEntryResolution {
+  if (!matchUpStatus) {
+    return { isValid: false, awaitingWinner: false, isDoubleExit: false, clearsScore: false, hasEnding: false };
+  }
+
+  const resolution = resolveIrregularEnding({
+    selectedOutcome: matchUpStatus,
+    // A parsed status carries whatever winner the parse implied. `undefined` stays undefined rather
+    // than becoming a side — the fail-closed direction `irregularEnding.ts` exists to hold.
+    winnerSelection: winningSide === 1 || winningSide === 2 ? winningSide : undefined,
+  });
+
+  return { ...resolution, clearsScore: carriesNoScore(resolution.matchUpStatus), hasEnding: true };
+}
+
 /** The side that wins when `sideNumber` is the one that ended early. */
 function otherSide(sideNumber: SideNumber): SideNumber {
   return sideNumber === 1 ? 2 : 1;

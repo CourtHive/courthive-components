@@ -43,6 +43,8 @@ import {
   getSetWinner,
 } from '../logic/dynamicSetsLogic';
 
+import { ordinalSetLabel } from './setColumns';
+
 import type { SideNumber } from '../logic/scoreEntryState';
 import type { ScoreRegion } from '../scoreEntryCard';
 import type { SetScore } from '../types';
@@ -107,7 +109,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
   const inputs = new Map<string, HTMLInputElement>();
 
   const region: DynamicSetsRegion = {
-    columnHeaders: () => Array.from({ length: setCount }, (_, index) => `SET ${index + 1}`),
+    columns: () => Array.from({ length: setCount }, (_, index) => ({ heading: ordinalSetLabel(index + 1) })),
     rowCells: (sideNumber) => Array.from({ length: setCount }, (_, index) => cellFor(sideNumber, index)),
     block: () => smartComplementsToggle(),
     scoreString: () => formatScore(),
@@ -170,7 +172,9 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     input.value = typed[cellKey] ?? '';
     input.dataset.side = String(sideNumber);
     input.dataset.set = String(setIndex + 1);
-    input.setAttribute('aria-label', `Set ${setIndex + 1}, side ${sideNumber} games`);
+    // The visible heading is a bare ordinal (`1st`), which a screen reader would read out of context.
+    // The accessible name says the whole thing.
+    input.setAttribute('aria-label', `${ordinalSetLabel(setIndex + 1)} set, side ${sideNumber} games`);
 
     input.addEventListener('input', () => onTyped(sideNumber, setIndex, input));
     inputs.set(cellKey, input);

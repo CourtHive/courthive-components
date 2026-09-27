@@ -411,7 +411,7 @@ describe('the shared geometry', () => {
   it('places a region\'s per-set cells inside the participant rows', () => {
     const h = mount({
       region: {
-        columnHeaders: () => ['SET 1', 'SET 2'],
+        columns: () => [{ heading: '1st' }, { heading: '2nd' }],
         rowCells: (side) => ['a', 'b'].map((key) => {
           const input = document.createElement('input');
           input.dataset.cell = `${key}${side}`;
@@ -422,7 +422,7 @@ describe('the shared geometry', () => {
 
     expect(h.q<HTMLElement>('input[data-cell="a1"]')?.closest<HTMLElement>('.chc-sec-row')?.dataset.side).toBe('1');
     expect(h.q<HTMLElement>('input[data-cell="b2"]')?.closest<HTMLElement>('.chc-sec-row')?.dataset.side).toBe('2');
-    expect(h.q('.chc-sec-row-head')?.textContent).toContain('SET 1');
+    expect(h.q('.chc-sec-row-head')?.textContent).toContain('1st');
   });
 
   it('refresh() keeps the region\'s input ELEMENTS, so typing does not lose the caret', () => {
@@ -435,7 +435,7 @@ describe('the shared geometry', () => {
     let served = 0;
     const h = mount({
       region: {
-        columnHeaders: () => ['SET 1'],
+        columns: () => [{ heading: '1st' }],
         rowCells: (side) => {
           served += 1;
           const input = document.createElement('input');
@@ -462,7 +462,7 @@ describe('the shared geometry', () => {
     let served = 0;
     const h = mount({
       region: {
-        columnHeaders: () => ['SET 1'],
+        columns: () => [{ heading: '1st' }],
         rowCells: () => {
           served += 1;
           return [document.createElement('input')];
