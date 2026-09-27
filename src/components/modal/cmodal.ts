@@ -477,6 +477,9 @@ export const cModal = (() => {
     if (title || hasHeaderRight) setTitle({ title, config });
 
     const modalBody = document.createElement('div');
+    // Classed so the stylesheet can make it the dialog's one scrolling region; it was previously
+    // styled only inline and therefore unreachable from CSS.
+    modalBody.className = 'chc-modal-body';
     dialog.appendChild(modalBody);
 
     const attachContent = ({ content, config }: { content?: ModalContent; config?: ModalConfig }) => {

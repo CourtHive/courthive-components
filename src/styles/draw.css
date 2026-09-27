@@ -246,7 +246,9 @@
   margin: 30px auto;
   padding-left: 15px;
   position: fixed;
-  height: 100vh;
+  /* `dvh`, not `vh`: on iOS Safari the browser chrome eats into `100vh`, so a dialog sized against
+     it sits partly underneath. `interactive-scoring.css` already uses `dvh` for the same reason. */
+  height: 100dvh;
   display: flex;
   width: 100%;
   z-index: 9999;
@@ -256,15 +258,44 @@
   top: 0;
 }
 
+/* A dialog taller than the viewport used to CLIP rather than scroll. This container is
+   `position: fixed` with no overflow and the body behind it is frozen, so a flex-centred dialog
+   taller than it overflowed off the top AND bottom — and the footer, which holds Submit, became
+   unreachable rather than merely below the fold. Measured before this rule: a 700px dialog in a
+   560px viewport sat at top -40, bottom 660.
+
+   The column layout is what lets the body take the remaining height and scroll on its own while the
+   header and footer stay put. Safe to introduce here: no modal part uses margins, so switching the
+   dialog from block flow to flex cannot change any existing dialog's spacing through margin
+   collapse. */
 .chc-modal-dialog {
   box-shadow:
     0 3px 6px rgba(0, 0, 0, 0.16),
     0 3px 6px rgba(0, 0, 0, 0.23);
   background-color: var(--chc-modal-bg);
+  max-height: calc(100dvh - 60px);
+  flex-direction: column;
+  background-clip: padding-box;
   position: relative;
   border-radius: 3px;
   min-height: auto;
+  display: flex;
   width: 100%;
+}
+
+/* The one part that scrolls. `min-height: 0` is load-bearing and not decoration: a flex child's
+   default `min-height: auto` refuses to shrink below its content, so without it this box simply
+   grows and the dialog clips exactly as before. */
+.chc-modal-body {
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+/* Header and footer keep their natural height while the body absorbs the difference. */
+.chc-modal-header,
+.chc-modal-footer {
+  flex-shrink: 0;
 }
 
 .chc-modal-header {
