@@ -10,9 +10,16 @@
  * No DOM, no side effects.
  */
 
-import { matchUpStatusConstants } from 'tods-competition-factory';
+import { matchUpStatusConstants, entryStatusConstants } from 'tods-competition-factory';
 
 const { WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT } = matchUpStatusConstants;
+
+/**
+ * `WITHDRAWN` is an ENTRY status, not a matchUpStatus — `matchUpStatusConstants.WITHDRAWN` does not
+ * exist. The USTA policy nonetheless keys a `matchUpStatusCodes` group with it, which is why it is
+ * imported from the entry-status constants here. See `withdrawalGroupKey` below.
+ */
+const { WITHDRAWN } = entryStatusConstants;
 
 /**
  * One entry of a policy's code group, as the factory's fixtures ship it.
@@ -41,6 +48,33 @@ export function groupKeyForStatus(matchUpStatus: string | undefined): string | u
   if (matchUpStatus === DOUBLE_WALKOVER) return WALKOVER;
   if (matchUpStatus === DOUBLE_DEFAULT) return DEFAULTED;
   return matchUpStatus;
+}
+
+/**
+ * EVERY group key a status reads its codes from, in offer order.
+ *
+ * A walkover reads two. CA, 2026-09-27:
+ *
+ *   "WITHDRAWN is a statusCode on a WALKOVER... WALKOVER (withdrawn injured or withdrawn ill)"
+ *
+ * A withdrawal is not its own matchUpStatus — it produces a WALKOVER, and "Wd [inj]" is the reason
+ * that walkover displays. The USTA policy files those five codes (`Wd [inj]`, `Wd [ill]`, `Wd [pc]`,
+ * `Wd/Wd`, `Wd [Tae]`) under a key taken from `entryStatusConstants.WITHDRAWN`, so a lookup keyed on
+ * the matchUpStatus alone finds WALKOVER's group and stops — and those five never reach the operator.
+ * Measured: a walkover offered 6 codes (W1, W2, W3, WOWO, W4, W5) where the policy authors 11.
+ *
+ * This is the same reasoning the double-exit mapping above already uses — "they are walkovers and
+ * defaults" — applied to the axis it had not been applied to. A double walkover therefore reaches
+ * `Wd/Wd`, "Double withdrawal", which is precisely what the USTA convention displays for two
+ * withdrawals.
+ *
+ * Order matters and is deliberate: WALKOVER's own codes first, withdrawal reasons after, so an
+ * existing picker's first rows do not move.
+ */
+export function groupKeysForStatus(matchUpStatus: string | undefined): string[] {
+  const key = groupKeyForStatus(matchUpStatus);
+  if (!key) return [];
+  return key === WALKOVER ? [WALKOVER, WITHDRAWN] : [key];
 }
 
 /**
@@ -73,13 +107,15 @@ export function codesForStatus(
   groups: StatusCodeGroups | undefined,
   matchUpStatus: string | undefined,
 ): StatusCodeEntry[] {
-  const key = groupKeyForStatus(matchUpStatus);
-  if (!groups || !key) return [];
+  const keys = groupKeysForStatus(matchUpStatus);
+  if (!groups || !keys.length) return [];
 
-  const group = groups[key];
-  if (!Array.isArray(group)) return [];
-
-  return group.filter((entry) => !!normalizeStatusCode(entry));
+  // Concatenated rather than merged by code: two groups authoring the same code would be a policy
+  // error, and silently de-duplicating it would hide that. A policy carrying only one of the keys
+  // (every non-USTA policy today) yields exactly what it did before.
+  return keys
+    .flatMap((key) => (Array.isArray(groups[key]) ? groups[key] : []))
+    .filter((entry) => !!normalizeStatusCode(entry));
 }
 
 /**

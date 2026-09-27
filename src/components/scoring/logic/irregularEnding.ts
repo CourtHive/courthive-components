@@ -71,9 +71,13 @@ const FACTORY_NON_DIRECTING = new Set<string>(nonDirectingMatchUpStatuses as unk
  * Two things checked while widening, recorded because neither is visible from here:
  *
  * - `WITHDRAWN` is NOT a factory matchUpStatus (`matchUpStatusConstants.WITHDRAWN` is undefined),
- *   yet the USTA scoring policy ships a WITHDRAWN code group (Wd [inj], Wd [ill], Wd [pc], Wd/Wd).
- *   That is a code group no status can reach — the inverse failure of the one described above, and
- *   a factory/policy question rather than a components one. Not fixed here.
+ *   yet the USTA scoring policy ships a WITHDRAWN code group (Wd [inj], Wd [ill], Wd [pc], Wd/Wd,
+ *   Wd [Tae]) keyed from `entryStatusConstants`. This comment previously called that "a code group no
+ *   status can reach" and a factory problem. Both halves were wrong. CA, 2026-09-27: "WITHDRAWN is a
+ *   statusCode on a WALKOVER... WALKOVER (withdrawn injured or withdrawn ill)" — a withdrawal
+ *   produces a walkover, and Wd [inj] is the reason that walkover carries. The group was reachable
+ *   all along; what could not reach it was OUR lookup, which keyed on the matchUpStatus alone.
+ *   Fixed in `statusCodes.ts` (`groupKeysForStatus`), not here.
  * - The ten partition PERFECTLY onto the factory's own classification: three directing, seven
  *   non-directing, with nothing in both and nothing in neither. The `endingPartition` test asserts
  *   this rather than trusting it.
