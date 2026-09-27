@@ -77,9 +77,10 @@ const CHECK_PATH = 'M20 6 9 17l-5-5';
  * `.chc-sec-set-input` both use `justify-self`/`justify-content: center` rather than one using
  * `text-align` and the other `margin: 0 auto`. Two mechanisms that happen to agree today can diverge
  * under one edit; the same property on both cannot.
+ *
+ * There is no trailing action track: the per-side ending control lives inside the `1fr` name cell.
  */
 const SCORE_COLUMN_PX = 62;
-const ACTION_COLUMN_PX = 56;
 
 /**
  * The three endings the design privileges as buttons in the match-level row. The rest go behind
@@ -329,14 +330,17 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
     const columns = params.region.columns?.() ?? [];
     const scoreTracks = columns.map((column) => column.width ?? `${SCORE_COLUMN_PX}px`).join(' ');
-    const template = `1fr ${scoreTracks} ${ACTION_COLUMN_PX}px`;
+    // No trailing action track: the ending control moved into the name cell (see `participantRow`), which
+    // returns its width to the participant and stops the row ending in something shaped like an overflow
+    // menu.
+    const template = `1fr ${scoreTracks}`;
 
     // A header row only when at least one column is labelled. Free Score and the Dial Pad have a
     // single unlabelled readout column, and an empty header strip above it would be furniture.
     if (columns.some((column) => column.heading)) {
       const head = div('chc-sec-row-head');
       head.style.gridTemplateColumns = template;
-      head.append(text('', 'PLAYER'), ...columns.map((column) => columnHeading(column.heading ?? '')), div(''));
+      head.append(text('', 'PLAYER'), ...columns.map((column) => columnHeading(column.heading ?? '')));
       rowsContainer.append(head);
     }
 
@@ -346,39 +350,76 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     }
   }
 
+  /**
+   * One participant's row.
+   *
+   * ── The ending control lives IN the name cell, not in a column of its own ──
+   *
+   * It used to occupy a dedicated 56px track at the row's end, holding a warning triangle. CA,
+   * 2026-09-27: *"is the /!\ strictly necessary on both participant lines? ... I'm just trying to be a
+   * bit more different than the [...] of the ClubSpark dialog and also limit the width of the dialog"*.
+   *
+   * The answer to the first part is that the ROW is the mechanism — an ending chosen here names the side
+   * it happened to, which is what deletes the separate winner question — so it cannot become a single
+   * control beside the match-level endings without that question coming back. But the COLUMN can go, and
+   * that addresses both of CA's concerns at once: 62px of width returns to the name, and a trailing
+   * icon button at the row's end is exactly the shape that read as an overflow menu.
+   *
+   * So the participant's name IS the control. Unselected it is a quiet button with a chevron; selected it
+   * carries a solid pill naming the ending, which is the language the walkover artboard already used —
+   * the triangle was only ever the unselected face of the same thing.
+   */
   function participantRow(sideNumber: SideNumber, template: string, winningSide?: number): HTMLElement {
     const side = params.sides[sideNumber - 1];
+    const ending = state.sideEnding?.sideNumber === sideNumber ? state.sideEnding : undefined;
+
     const row = div('chc-sec-row');
     row.style.gridTemplateColumns = template;
     row.dataset.side = String(sideNumber);
-    row.dataset.ended = String(state.sideEnding?.sideNumber === sideNumber);
+    row.dataset.ended = String(!!ending);
     row.dataset.winner = String(winningSide === sideNumber);
 
     const participant = div('chc-sec-participant');
     const check = div(CLS_CHECK);
     if (winningSide === sideNumber) check.append(icon(CHECK_PATH, 3));
-    participant.append(check, text('chc-sec-name', side.participantName));
-    if (side.seed) participant.append(text('chc-sec-seed', side.seed));
 
-    const endedEarly = button('', CLS_BTN_ICON);
-    endedEarly.dataset.action = 'endedEarly';
-    endedEarly.dataset.side = String(sideNumber);
-    endedEarly.title = 'Ended early';
-    // The icon-only control the design shortened from "[/!\ Ended Early]" to "[/!\]". An icon with no
-    // accessible name is invisible to a screen reader, and "Ended early" alone would read identically
-    // on both rows — so the name carries the participant.
-    endedEarly.setAttribute('aria-label', `${side.participantName} ended early`);
-    endedEarly.setAttribute(ARIA_EXPANDED, String(openPanelSide === sideNumber));
-    endedEarly.setAttribute(ARIA_PRESSED, String(state.sideEnding?.sideNumber === sideNumber));
-    endedEarly.append(icon('M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z'));
-    endedEarly.addEventListener('click', () => {
+    // `data-action="endedEarly"` is kept from the icon-button version, so tests and any journey that
+    // learned the hook keep working across the move.
+    const opener = button('', 'chc-sec-opener');
+    opener.dataset.action = 'endedEarly';
+    opener.dataset.side = String(sideNumber);
+    opener.title = 'How did this match end for them?';
+    // Both the name and the function, because the label REPLACES the visible text for a screen reader —
+    // "ended early" alone would read identically on both rows, and the name alone would not say what the
+    // button does.
+    const named = side.seed ? `${side.participantName} ${side.seed}` : side.participantName;
+    opener.setAttribute('aria-label', `${named} — ended early`);
+    opener.setAttribute(ARIA_EXPANDED, String(openPanelSide === sideNumber));
+    opener.setAttribute(ARIA_PRESSED, String(!!ending));
+
+    opener.append(text('chc-sec-name', side.participantName));
+    if (side.seed) opener.append(text('chc-sec-seed', side.seed));
+    opener.append(icon('m6 9 6 6 6-6', 2.5));
+    opener.addEventListener('click', () => {
       openPanelSide = openPanelSide === sideNumber ? undefined : sideNumber;
       otherMenuOpen = false;
       render();
     });
 
+    participant.append(check, opener);
+
+    // The selected ending, named on the row it belongs to. This is what the warning triangle was standing
+    // in for, and saying it outright means the row reports its own state instead of relying on a strike-
+    // through nobody reads as "walkover".
+    if (ending) {
+      const pill = div('chc-sec-row-ending');
+      pill.dataset.rowEnding = ending.status;
+      pill.textContent = labels[ending.status] ?? ending.status;
+      participant.append(pill);
+    }
+
     const cells = params.region.rowCells?.(sideNumber) ?? [];
-    row.append(participant, ...cells, wrapRight(endedEarly));
+    row.append(participant, ...cells);
     return row;
   }
 
@@ -578,14 +619,6 @@ function button(label: string, className: string): HTMLButtonElement {
   element.className = className;
   if (label) element.textContent = label;
   return element;
-}
-
-function wrapRight(child: HTMLElement): HTMLDivElement {
-  const wrapper = div('');
-  wrapper.style.display = 'flex';
-  wrapper.style.justifyContent = 'flex-end';
-  wrapper.append(child);
-  return wrapper;
 }
 
 /** An inline stroke SVG. Never emoji, and never a font icon. */

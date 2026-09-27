@@ -106,12 +106,65 @@
   border-top: 1px solid var(--chc-border-secondary);
 }
 
-/* The row of the side an ending was recorded against. Struck through AND tinted: colour alone must
-   never be the only carrier (WCAG 1.4.1), and the strike-through is what survives a colour-blind
-   reader or a greyscale print. */
+/* The row of the side an ending was recorded against. Struck through AND named by its pill: colour alone
+   must never be the only carrier (WCAG 1.4.1), the strike-through survives a greyscale print, and the
+   pill says which ending in words — which a strike-through never could. */
 .chc-sec-row[data-ended='true'] .chc-sec-name {
   color: var(--chc-text-secondary);
   text-decoration: line-through;
+}
+
+/* ── The per-side ending control ─────────────────────────────────────
+   The participant's name IS the control. It had a dedicated 56px column holding a warning triangle;
+   moving it in here returns that width to the name and stops the row ending in something shaped like an
+   overflow menu (CA, 2026-09-27). Quiet until hovered or focused, so the row still reads as a row. */
+.chc-sec-opener {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 4px 8px;
+  margin-left: -8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.chc-sec-opener:hover {
+  background: var(--chc-hover-bg);
+  border-color: var(--chc-border-secondary);
+}
+
+.chc-sec-opener:focus-visible {
+  outline: 2px solid var(--chc-border-focus);
+  outline-offset: 1px;
+}
+
+/* The chevron is the only standing hint that the name is actionable, so it stays visible — revealing it
+   on hover alone would leave the affordance undiscoverable on a touch screen. */
+.chc-sec-opener svg {
+  flex-shrink: 0;
+  color: var(--chc-text-secondary);
+}
+
+.chc-sec-opener[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+
+/* The chosen ending, named on the row it belongs to — the language the walkover artboard already used.
+   The warning triangle was only ever the unselected face of this. */
+.chc-sec-row-ending {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--chc-card-accent);
+  color: var(--chc-card-on-accent);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .chc-sec-row[data-winner='true'] {

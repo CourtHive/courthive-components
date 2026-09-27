@@ -280,3 +280,50 @@ export const DialPad = {
     await expect(canvasElement.querySelector<HTMLButtonElement>(SUBMIT)!.disabled).toBe(false);
   },
 };
+
+export const RowEndingClosed = {
+  name: 'The row target — closed',
+  render: () => frame(cardWithSets(undefined).element),
+  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+    // CA, 2026-09-27: the warning-triangle column is gone and the participant's NAME is the control.
+    // The row still owns the ending — that is what deletes the separate winner question — but the 56px
+    // track went back to the name, and the row no longer ends in something shaped like an overflow menu.
+    const opener = (side: number) =>
+      canvasElement.querySelector<HTMLButtonElement>(`button[data-action="endedEarly"][data-side="${side}"]`);
+
+    await expect(opener(1)!.textContent).toContain('Rosalind Lem');
+    await expect(opener(1)!.closest('.chc-sec-participant')).toBeTruthy();
+    await expect(opener(1)!.getAttribute('aria-label')).toBe('Rosalind Lem (4) — ended early');
+
+    // No trailing track: `1fr` for the participant plus the score columns, and nothing after.
+    const head = canvasElement.querySelector<HTMLElement>('.chc-sec-row-head');
+    await expect(head!.style.gridTemplateColumns.endsWith('56px')).toBe(false);
+  },
+};
+
+export const RowEndingChosen = {
+  name: 'The row target — open, and chosen',
+  render: () => frame(cardWithSets(undefined).element),
+  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+    const click = (selector: string) => canvasElement.querySelector<HTMLElement>(selector)?.click();
+
+    // Opening from the name, and choosing on the row that it happened to.
+    click('button[data-action="endedEarly"][data-side="2"]');
+    await expect(canvasElement.querySelector('[data-panel-side="2"]')?.textContent).toContain(
+      'What happened to Derrick Ellul?',
+    );
+
+    click(`[data-panel-side="2"] button[data-ending="${WALKOVER}"]`);
+
+    // The chosen ending is NAMED on the row. A strike-through says something ended; it never says which,
+    // and that is the fact an operator scanning the card actually needs.
+    const pill = canvasElement.querySelector<HTMLElement>('[data-row-ending]');
+    await expect(pill!.textContent).toBe('Walkover');
+    await expect(pill!.dataset.rowEnding).toBe(WALKOVER);
+    await expect(pill!.closest<HTMLElement>('.chc-sec-row')!.dataset.side).toBe('2');
+
+    // And the other side advances, which is the whole point of anchoring the ending to a row.
+    await expect(canvasElement.querySelector<HTMLElement>(BAND)!.textContent).toContain('Rosalind Lem advances');
+    await expect(canvasElement.querySelector<HTMLButtonElement>(SUBMIT)!.disabled).toBe(false);
+  },
+};
