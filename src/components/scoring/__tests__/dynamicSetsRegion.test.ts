@@ -368,11 +368,30 @@ describe('smart complements', () => {
     expect(h.cell(2, 1)?.value).toBe('4');
   });
 
-  it('leaves an ambiguous digit alone', () => {
-    // `calculateComplement(6)` is null — a 6 could end 6-0 through 6-4, so there is nothing to infer
-    // and guessing would put a score in front of the operator that they never typed.
+  it('completes a 6 to a 7 — CA, 2026-09-27', () => {
+    // The table treats the typed digit as the LOSER's games, so a 6 in a set that can reach 6-6 means the
+    // opponent took it 7-6. This used to be null; CA changed it to match USTA Tournament Desk.
     const h = mount();
     h.type(1, 1, '6');
+
+    expect(h.cell(2, 1)?.value).toBe('7');
+  });
+
+  it('and the operator can still win 6-4, because the complement fires once per set', () => {
+    // What makes inferring the 6 safe rather than presumptuous: the guess is correctable in one keystroke
+    // and will not be re-applied over the correction.
+    const h = mount();
+    h.type(1, 1, '6');
+    h.type(2, 1, '4');
+
+    expect(h.cell(1, 1)?.value).toBe('6');
+    expect(h.cell(2, 1)?.value).toBe('4');
+    expect(h.band()?.textContent).toContain('6-4');
+  });
+
+  it('leaves a digit ABOVE setTo alone — a 7 cannot be a loser score in a set to 6', () => {
+    const h = mount();
+    h.type(1, 1, '7');
 
     expect(h.cell(2, 1)?.value).toBe('');
   });
