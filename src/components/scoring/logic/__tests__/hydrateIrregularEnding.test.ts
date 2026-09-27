@@ -85,7 +85,12 @@ describe('hydrateIrregularEnding — a stored status becomes a control selection
     ['no matchUp at all', undefined],
     ['a completed match', { matchUpStatus: COMPLETED, winningSide: 1 }],
     ['a match not yet played', { matchUpStatus: 'TO_BE_PLAYED' }],
-    ['a status this vocabulary does not offer', { matchUpStatus: 'DEAD_RUBBER' }],
+    // DEAD_RUBBER used to sit here as the example of an unoffered status. It is offered now, so the
+    // example has to be a status that genuinely is not — one non-directing, one directing, so the
+    // test does not accidentally depend on which side of the partition the fallback is reached from.
+    ['a non-directing status the vocabulary does not offer', { matchUpStatus: 'CHALLENGED' }],
+    ['a directing status the vocabulary does not offer', { matchUpStatus: 'BYE', winningSide: 1 }],
+    ['a status the factory does not define at all', { matchUpStatus: 'WITHDRAWN' }],
     ['a status with no matchUpStatus key', {}]
   ])('inverts %s to the inert state', (_label, input) => {
     expect(hydrateIrregularEnding(input as any)).toEqual({ selectedOutcome: COMPLETED, winnerSelection: undefined });

@@ -8,10 +8,19 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 import { renderDialPadScoreEntry } from '../dialPadApproach';
-import { NEITHER_SIDE } from '../../logic/irregularEnding';
+import { NEITHER_SIDE, NON_DIRECTING_ENDINGS } from '../../logic/irregularEnding';
 
-const { WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, ABANDONED, CANCELLED, INCOMPLETE } =
-  matchUpStatusConstants;
+const {
+  WALKOVER,
+  DEFAULTED,
+  DOUBLE_WALKOVER,
+  DOUBLE_DEFAULT,
+  ABANDONED,
+  CANCELLED,
+  INCOMPLETE,
+  SUSPENDED,
+  DEAD_RUBBER,
+} = matchUpStatusConstants;
 
 const WINNER_SELECTOR = 'input[name="irregularWinner"]';
 
@@ -67,6 +76,11 @@ function mount(matchUp: any = makeMatchUp()) {
   const endingChips = () =>
     ([...container.querySelectorAll('button[data-ending]')] as HTMLButtonElement[]).map((c) => c.dataset.ending);
 
+  const endingChipLabels = () =>
+    ([...container.querySelectorAll('button[data-ending]')] as HTMLButtonElement[]).map((c) =>
+      (c.textContent ?? '').trim(),
+    );
+
   return {
     container,
     outcomes,
@@ -76,6 +90,7 @@ function mount(matchUp: any = makeMatchUp()) {
     winnerRadios,
     pressEnding,
     endingChips,
+    endingChipLabels,
   };
 }
 
@@ -210,17 +225,31 @@ describe('dialPad — a default keeps the partial score it was entered with', ()
   });
 });
 
-// M2: dialPad's 4x4 grid is full, so the three endings that resolve nobody live in their own row.
+// M2: dialPad's 4x4 grid is full, so the endings that resolve nobody live in their own row.
 describe('dialPad — the endings that resolve nobody', () => {
-  it('offers all three', async () => {
+  it('offers every non-directing ending, and no more', async () => {
+    // Asserted against the constant rather than a literal list, because the row is BUILT by
+    // iterating it — a literal here would only restate the source and would go stale the next time
+    // the vocabulary moves, as it did when this list went from three to seven.
     const h = mount();
 
     expect(h.endingChips()?.toSorted((a, b) => (a ?? '').localeCompare(b ?? '', 'en'))).toEqual(
-      [ABANDONED, CANCELLED, INCOMPLETE].toSorted((a, b) => a.localeCompare(b, 'en')),
+      [...NON_DIRECTING_ENDINGS].toSorted((a, b) => a.localeCompare(b, 'en')),
     );
   });
 
-  it.each([ABANDONED, CANCELLED, INCOMPLETE])('%s is submittable with no winner', async (status) => {
+  it('labels every chip — none falls through to a raw status constant', () => {
+    // `endingLabels()` falls back to the raw status so an unlabelled ending is visibly wrong rather
+    // than blank. That makes "no chip reads as a CONSTANT" the assertion worth making: it is what
+    // catches an ending added to the vocabulary and not to the label map.
+    const h = mount();
+    const text = h.endingChipLabels() ?? [];
+
+    expect(text.length).toBe(NON_DIRECTING_ENDINGS.size);
+    for (const label of text) expect(label).not.toMatch(/^[A-Z][A-Z_]+$/);
+  });
+
+  it.each([...NON_DIRECTING_ENDINGS])('%s is submittable with no winner', async (status) => {
     const h = mount();
 
     await h.pressEnding(status);
@@ -254,29 +283,77 @@ describe('dialPad — the endings that resolve nobody', () => {
     expect(h.last().sets?.length).toBeGreaterThan(0);
   });
 
-  it('records the score entered before it', async () => {
+  // ── Which endings keep a partial score, and which discard it ──
+  //
+  // These two tests are the pair, and they used to be one test that got the example wrong: it
+  // asserted "an abandonment does not clear the score" while PRESSING CANCELLED, which CA has since
+  // settled as one of the two endings that DOES clear (2026-09-27). It passed because
+  // `NO_SCORE_STATUSES` held neither CANCELLED nor DEAD_RUBBER at the time, so the mistaken example
+  // and the incomplete constant agreed with each other.
+
+  it.each([ABANDONED, INCOMPLETE, SUSPENDED])('%s keeps the score entered before it', async (status) => {
+    // The partial score is the entire content of these results — "6-4, suspended" is what says when
+    // it was suspended. Losing it would silently discard the only information the status carries.
     const h = mount();
 
     await h.pressButton('6');
     await h.pressButton('4');
-    await h.pressEnding(INCOMPLETE);
+    await h.pressEnding(status);
 
-    expect(h.last().matchUpStatus).toBe(INCOMPLETE);
+    expect(h.last().matchUpStatus).toBe(status);
     expect(h.last().sets?.length).toBeGreaterThan(0);
   });
 
-  it('a walkover still clears the score, an abandonment does not', async () => {
+  it.each([CANCELLED, DEAD_RUBBER])('%s discards the score entered before it', async (status) => {
+    // CA, 2026-09-27: selecting Cancelled or Dead Rubber clears any partial score present. Note this
+    // is a CLIENT policy — the factory blanks scores only for the walkovers — so nothing else
+    // enforces it and this is the test that holds it.
     const h = mount();
 
     await h.pressButton('6');
     await h.pressButton('4');
-    await h.pressEnding(CANCELLED);
-    expect(h.last().sets?.length).toBeGreaterThan(0);
+    await h.pressEnding(status);
 
+    expect(h.last().matchUpStatus).toBe(status);
+    expect(h.last().sets).toEqual([]);
+  });
+
+  it('a walkover clears the score too, by way of the grid', async () => {
+    const h = mount();
+
+    await h.pressButton('6');
+    await h.pressButton('4');
     await h.pressButton('WO');
     await h.selectWinner('1');
 
     expect(h.last().sets).toEqual([]);
+  });
+
+  it.each([SUSPENDED, ABANDONED])('typing a digit after %s keeps that ending selected', async (status) => {
+    // The corrected digit gate. It asked NON_DIRECTING_ENDINGS — "does anyone advance" — where it
+    // meant "is there a score". Across the old six those coincided; across the ten they do not.
+    const h = mount();
+
+    await h.pressEnding(status);
+    await h.pressButton('6');
+    await h.pressButton('4');
+
+    expect(h.last().matchUpStatus).toBe(status);
+    expect(h.last().sets?.length).toBeGreaterThan(0);
+  });
+
+  it.each([CANCELLED, DEAD_RUBBER])('typing a digit after %s clears that ending', async (status) => {
+    // The other half, and the case the old gate got wrong: it would have PRESERVED an ending that
+    // had just discarded the digits being typed, leaving a status whose own rule says it has no
+    // score sitting on top of a score.
+    const h = mount();
+
+    await h.pressEnding(status);
+    await h.pressButton('6');
+    await h.pressButton('4');
+
+    expect(h.last().matchUpStatus).not.toBe(status);
+    expect(h.last().sets?.length).toBeGreaterThan(0);
   });
 
   it('choosing a grid ending replaces a non-directing one', async () => {

@@ -17,10 +17,23 @@
  * a double exit requires explicitly choosing NEITHER_SIDE. No DOM dependencies, no side effects.
  */
 
-import { matchUpStatusConstants } from 'tods-competition-factory';
+import { matchUpStatusConstants, directingMatchUpStatuses, nonDirectingMatchUpStatuses } from 'tods-competition-factory';
 
-const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, ABANDONED, CANCELLED, INCOMPLETE } =
-  matchUpStatusConstants;
+const {
+  COMPLETED,
+  RETIRED,
+  WALKOVER,
+  DEFAULTED,
+  DOUBLE_WALKOVER,
+  DOUBLE_DEFAULT,
+  ABANDONED,
+  CANCELLED,
+  INCOMPLETE,
+  SUSPENDED,
+  DEAD_RUBBER,
+  IN_PROGRESS,
+  AWAITING_RESULT,
+} = matchUpStatusConstants;
 
 /**
  * The winner-selection value meaning "no side won this matchUp" — the explicit choice that produces
@@ -32,29 +45,83 @@ export const NEITHER_SIDE = 'NEITHER';
 /** Shown when an irregular ending has been chosen but the winner question is unanswered. */
 export const WINNER_REQUIRED_ERROR = 'Select a winner';
 
-/** The statuses whose selection opens the winner question at all. */
-export const WINNER_REQUIRING_STATUSES = new Set<string>([RETIRED, WALKOVER, DEFAULTED]);
-
 /**
- * Endings that resolve nobody: the match did not produce a result, so there is no winner to name
- * and no winner question to answer. The factory classifies these as non-directing
- * (`nonDirectingMatchUpStatuses`) — nothing advances out of them.
+ * The factory's own classification, widened to `Set<string>` for lookup.
  *
- * These are NOT a smaller version of the winner-requiring endings. Asking "who won an abandoned
- * match" is not a question with a missing answer; it is not a question. So unlike a walkover with
- * no winner selection, one of these is valid the moment it is chosen.
+ * Both arrays are typed as narrow status unions, and `nonDirectingMatchUpStatuses` includes `null`
+ * (an unset status directs nobody). Neither detail is useful here — the question asked of them is
+ * only ever "is this string in there" — so they are widened once, named, and not cast at each use.
  */
-export const NON_DIRECTING_ENDINGS = new Set<string>([ABANDONED, CANCELLED, INCOMPLETE]);
+const FACTORY_DIRECTING = new Set<string>(directingMatchUpStatuses as unknown as string[]);
+const FACTORY_NON_DIRECTING = new Set<string>(nonDirectingMatchUpStatuses as unknown as string[]);
 
 /**
  * Every irregular ending a set-entry approach offers, in display order.
  *
- * These six are exactly the keys the factory's scoring policy can refine with `matchUpStatusCodes`
- * (ABANDONED, CANCELLED, DEFAULTED, INCOMPLETE, RETIRED, WALKOVER), which is why the list is this
- * list: a status with no code group cannot carry a reason, and a code group with no status cannot
- * be reached. Ordered so the three an operator reaches for most sit first.
+ * ── Why ten, when this list held six ──
+ *
+ * It held six because those are exactly the keys the factory's scoring policy can refine with
+ * `matchUpStatusCodes`, the reasoning being that a status with no code group cannot carry a reason.
+ * That is true but it was the wrong list to derive a VOCABULARY from, and the cost was measurable:
+ * `freeScoreApproach` has always parsed ten, so four statuses were typeable in one approach and
+ * unreachable in the other three. Rotating between approaches could therefore show an ending that
+ * could not be re-selected. The four additions (SUSPENDED, IN_PROGRESS, AWAITING_RESULT,
+ * DEAD_RUBBER) simply carry no reason, which is the designed quiet state, not a defect.
+ *
+ * Two things checked while widening, recorded because neither is visible from here:
+ *
+ * - `WITHDRAWN` is NOT a factory matchUpStatus (`matchUpStatusConstants.WITHDRAWN` is undefined),
+ *   yet the USTA scoring policy ships a WITHDRAWN code group (Wd [inj], Wd [ill], Wd [pc], Wd/Wd).
+ *   That is a code group no status can reach — the inverse failure of the one described above, and
+ *   a factory/policy question rather than a components one. Not fixed here.
+ * - The ten partition PERFECTLY onto the factory's own classification: three directing, seven
+ *   non-directing, with nothing in both and nothing in neither. The `endingPartition` test asserts
+ *   this rather than trusting it.
+ *
+ * Ordered so the three that name a winner come first, then the three an operator reaches for most
+ * often mid-tournament, then the remainder.
  */
-export const SELECTABLE_ENDINGS: string[] = [RETIRED, WALKOVER, DEFAULTED, ABANDONED, CANCELLED, INCOMPLETE];
+export const SELECTABLE_ENDINGS: string[] = [
+  RETIRED,
+  WALKOVER,
+  DEFAULTED,
+  IN_PROGRESS,
+  AWAITING_RESULT,
+  SUSPENDED,
+  ABANDONED,
+  CANCELLED,
+  INCOMPLETE,
+  DEAD_RUBBER,
+];
+
+/**
+ * The statuses whose selection opens the winner question at all.
+ *
+ * DERIVED from the factory's `directingMatchUpStatuses` rather than hand-listed, because "does a
+ * winner advance out of this status" is the factory's question to answer and it already answers it.
+ * Hand-adding a status to two sets is precisely where a mistake hides, and the eleventh ending
+ * should classify itself rather than wait for someone to remember both places.
+ */
+export const WINNER_REQUIRING_STATUSES = new Set<string>(
+  SELECTABLE_ENDINGS.filter((status) => FACTORY_DIRECTING.has(status)),
+);
+
+/**
+ * Endings that resolve nobody: the match did not produce a result, so there is no winner to name
+ * and no winner question to answer. Nothing advances out of them.
+ *
+ * These are NOT a smaller version of the winner-requiring endings. Asking "who won an abandoned
+ * match" is not a question with a missing answer; it is not a question. So unlike a walkover with
+ * no winner selection, one of these is valid the moment it is chosen.
+ *
+ * Also derived, and the complement of `WINNER_REQUIRING_STATUSES` over `SELECTABLE_ENDINGS` — but
+ * computed independently from `nonDirectingMatchUpStatuses` rather than as `!winnerRequiring`, so
+ * that a status the factory somehow classifies as NEITHER shows up as a test failure instead of
+ * being silently swept in here.
+ */
+export const NON_DIRECTING_ENDINGS = new Set<string>(
+  SELECTABLE_ENDINGS.filter((status) => FACTORY_NON_DIRECTING.has(status)),
+);
 
 /** Whether choosing this ending obliges the operator to answer the winner question. */
 export function requiresWinner(selectedOutcome: string | undefined): boolean {
@@ -71,12 +138,58 @@ export function requiresWinner(selectedOutcome: string | undefined): boolean {
  * score is real. The same goes for `RETIRED` — a retirement keeps whatever was played, and needs no
  * completed set to be a valid result.
  *
- * `CANCELLED` and `DEAD_RUBBER` are deliberately NOT here even though this repo's `validateScore`
- * strips scores for them. They are unreachable from the set-entry approaches today (only freeScore
- * parses them) and the factory does not blank scores for them, so adding them here would be a
- * guess. Revisit when the status list widens — see Mentat SCORING_MODAL_STATUS_CODES.md M2.
+ * ── CANCELLED and DEAD_RUBBER are here now, and that is a CLIENT policy ──
+ *
+ * They were held out on the stated grounds that they were "unreachable from the set-entry approaches
+ * (only freeScore parses them)", with a note to revisit when the vocabulary widened. Two corrections
+ * to that, found on widening it:
+ *
+ * 1. CANCELLED was never unreachable — it has been in `SELECTABLE_ENDINGS` all along and renders as
+ *    a radio in both Dynamic Sets and Dial Pad. Only DEAD_RUBBER was genuinely out of reach.
+ * 2. The rule was not absent, it was TRIPLICATED, and the three copies disagreed:
+ *
+ *        NO_SCORE_STATUSES          WALKOVER  DOUBLE_WALKOVER
+ *        validateScore              WALKOVER  CANCELLED  DEAD_RUBBER
+ *        freeScore display          WALKOVER  CANCELLED  DEAD_RUBBER
+ *
+ *    No copy held all four, and the two that agreed with each other both omitted DOUBLE_WALKOVER.
+ *    This set is now the single one, and CA settled its contents (2026-09-27): selecting Cancelled
+ *    or Dead Rubber clears any partial score present.
+ *
+ * Note what that means and does not mean. The FACTORY blanks scores for `{WALKOVER,
+ * DOUBLE_WALKOVER}` only (`modifyMatchUpScore.ts:236`, verified) — `removeScore` is its separate
+ * lever for anything else. So nothing server-side enforces the clearing of CANCELLED or DEAD_RUBBER;
+ * the client simply never submits a score for them, which reaches the same place. Do not "correct"
+ * this set toward the factory's: it is deliberately wider, and the widening is the policy.
+ *
+ * Still NOT here, and each for a reason worth keeping: `DEFAULTED` / `DOUBLE_DEFAULT`, because a
+ * player can default part-way through a match that was genuinely played; `RETIRED`, which keeps
+ * whatever was played; and ABANDONED / INCOMPLETE / SUSPENDED, where the partial score is the entire
+ * content of the result — "6-4 3-2, suspended" says when it was suspended.
  */
-export const NO_SCORE_STATUSES = new Set<string>([WALKOVER, DOUBLE_WALKOVER]);
+export const NO_SCORE_STATUSES = new Set<string>([WALKOVER, DOUBLE_WALKOVER, CANCELLED, DEAD_RUBBER]);
+
+/**
+ * Endings a typed score legitimately survives alongside.
+ *
+ * The Dial Pad clears the selected ending when a digit is typed — the operator is starting over —
+ * and must not do that for an ending whose whole meaning includes a partial score. It decided this
+ * by asking `NON_DIRECTING_ENDINGS`, which is a DIFFERENT question: "does anyone advance" is not
+ * "is there a score". The two happened to coincide across the old six. They do not across the ten:
+ * DEAD_RUBBER and CANCELLED are non-directing yet carry no score, so the old gate would have
+ * preserved an ending that had just discarded the digits being typed.
+ *
+ * So it is stated as its own predicate over both axes, and the `endingPartition` test pins the case
+ * that made the difference.
+ */
+export const SCORE_PRESERVING_ENDINGS = new Set<string>(
+  SELECTABLE_ENDINGS.filter((status) => !WINNER_REQUIRING_STATUSES.has(status) && !NO_SCORE_STATUSES.has(status)),
+);
+
+/** Whether a typed score should be kept when this ending is selected. */
+export function coexistsWithScore(selectedOutcome: string | undefined): boolean {
+  return !!selectedOutcome && SCORE_PRESERVING_ENDINGS.has(selectedOutcome);
+}
 
 /**
  * Whether this ending means "no score exists", so score validation must be skipped rather than run
@@ -316,4 +429,59 @@ export function hydrateIrregularEnding(matchUp?: {
     selectedOutcome: matchUpStatus,
     winnerSelection: winningSide === 1 || winningSide === 2 ? winningSide : undefined,
   };
+}
+
+/**
+ * Display labels for every selectable ending, with locale overrides applied.
+ *
+ * Shared because it was not: Dynamic Sets and Dial Pad each kept their own map covering only the
+ * statuses they offered, and Dynamic Sets read it as `ENDING_LABELS[value]` with NO fallback — so
+ * widening `SELECTABLE_ENDINGS` without this would have rendered four radios labelled `undefined`.
+ * One map means an eleventh ending is either labelled or caught by `everySelectableEndingIsLabelled`.
+ *
+ * The fallback is the raw status rather than a blank, so an unlabelled ending is visibly wrong in the
+ * UI rather than invisibly missing.
+ */
+export type EndingLabelOverrides = {
+  retired?: string;
+  walkover?: string;
+  defaulted?: string;
+  inProgress?: string;
+  awaitingResult?: string;
+  suspended?: string;
+  abandoned?: string;
+  cancelled?: string;
+  incomplete?: string;
+  deadRubber?: string;
+};
+
+export function endingLabels(labels: EndingLabelOverrides = {}): Record<string, string> {
+  const defaults: Record<string, string> = {
+    [RETIRED]: 'Retired',
+    [WALKOVER]: 'Walkover',
+    [DEFAULTED]: 'Defaulted',
+    [IN_PROGRESS]: 'In Progress',
+    [AWAITING_RESULT]: 'Awaiting Result',
+    [SUSPENDED]: 'Suspended',
+    [ABANDONED]: 'Abandoned',
+    [CANCELLED]: 'Cancelled',
+    [INCOMPLETE]: 'Incomplete',
+    [DEAD_RUBBER]: 'Dead Rubber',
+  };
+  const overrides: Record<string, string | undefined> = {
+    [RETIRED]: labels.retired,
+    [WALKOVER]: labels.walkover,
+    [DEFAULTED]: labels.defaulted,
+    [IN_PROGRESS]: labels.inProgress,
+    [AWAITING_RESULT]: labels.awaitingResult,
+    [SUSPENDED]: labels.suspended,
+    [ABANDONED]: labels.abandoned,
+    [CANCELLED]: labels.cancelled,
+    [INCOMPLETE]: labels.incomplete,
+    [DEAD_RUBBER]: labels.deadRubber,
+  };
+
+  return Object.fromEntries(
+    SELECTABLE_ENDINGS.map((status) => [status, overrides[status] || defaults[status] || status]),
+  );
 }

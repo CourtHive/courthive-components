@@ -43,6 +43,12 @@ export type ScoringModalLabels = {
   incomplete?: string;
   walkover?: string;
   defaulted?: string;
+  // The four endings added when SELECTABLE_ENDINGS went from six to ten (2026-09-27). Optional like
+  // the rest; `endingLabels()` falls back to an English default and then to the raw status.
+  suspended?: string;
+  deadRubber?: string;
+  inProgress?: string;
+  awaitingResult?: string;
   validScore?: string;
   scoreIncomplete?: string;
   invalidScore?: string;
