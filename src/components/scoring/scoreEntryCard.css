@@ -602,14 +602,32 @@
   gap: 1px;
 }
 
-.chc-sec-tb-paren {
+/* The raised tiebreak points — `6` with a small `3` above the baseline, as a draw sheet prints it.
+   `<sup>` rather than a Unicode superscript digit, because `¹⁰` would need composing and a match
+   tiebreak to 10 is ordinary. */
+.chc-sec-tb-mark {
+  margin-left: 1px;
   color: var(--chc-text-secondary);
-  font-size: 12px;
+  font-size: 11px;
   font-variant-numeric: tabular-nums;
+  /* `<sup>` already raises it; the explicit values keep the raise from nudging the row's line box and
+     shifting the 44px input off-centre. */
+  line-height: 0;
+  vertical-align: super;
 }
 
-.chc-sec-tb-paren:empty {
+.chc-sec-tb-mark:empty {
   display: none;
+}
+
+/* Carries the words a raised digit cannot. Scoped to the card rather than claimed as a shared utility,
+   since the library has none and defining a global one is another session's call. */
+.chc-sec-sr-only {
+  position: absolute;
+  overflow: hidden;
+  clip-path: inset(50%);
+  width: 1px;
+  height: 1px
 }
 
 /* The transient tiebreak column. Narrower than a games column and visibly subordinate to it, because it

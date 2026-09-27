@@ -8,12 +8,12 @@
  * together because the property that matters most is one neither can demonstrate alone — that the card
  * around them is IDENTICAL, which is the entire claim the card rests on.
  */
-import { createFreeScoreRegion } from '../regions/freeScoreRegion';
 import { createDynamicSetsRegion } from '../regions/dynamicSetsRegion';
+import { createFreeScoreRegion } from '../regions/freeScoreRegion';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 import { createDialPadRegion } from '../regions/dialPadRegion';
-import { renderScoreEntryCard } from '../scoreEntryCard';
 import { describe, it, expect, beforeEach } from 'vitest';
+import { renderScoreEntryCard } from '../scoreEntryCard';
 
 const { WALKOVER, RETIRED, SUSPENDED, CANCELLED } = matchUpStatusConstants;
 

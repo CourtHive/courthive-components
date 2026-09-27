@@ -26,6 +26,7 @@ const ROW_HEAD = '.chc-sec-row-head';
 const COL_HEAD = '.chc-sec-col-head';
 const ROW = '.chc-sec-row';
 const ARIA_LABEL = 'aria-label';
+const GAMES_CELL = '.chc-sec-games-cell';
 
 const SIDES: [{ participantName: string }, { participantName: string }] = [
   { participantName: 'Rosalind Lem' },
@@ -88,8 +89,12 @@ function mount(over: { matchUpFormat?: string; sets?: any[]; smartComplements?: 
     typeTb,
     enterSet,
     focusCell: (side: number, set: number) => cell(side, set)?.dispatchEvent(new Event('focus', { bubbles: true })),
+    /** The raised tiebreak digit beside a games cell. */
     parenthetical: (side: number, set: number) =>
-      cell(side, set)?.closest('.chc-sec-games-cell')?.querySelector('.chc-sec-tb-paren')?.textContent ?? '',
+      cell(side, set)?.closest(GAMES_CELL)?.querySelector('.chc-sec-tb-mark')?.textContent ?? '',
+    /** Its visually-hidden twin, which is what a screen reader actually gets. */
+    spokenTiebreak: (side: number, set: number) =>
+      cell(side, set)?.closest(GAMES_CELL)?.querySelector('.chc-sec-sr-only')?.textContent ?? '',
     all: <T extends Element>(s: string) => [...card.element.querySelectorAll<T>(s)],
     band: () => q<HTMLElement>('.chc-sec-band'),
     submit: () => q<HTMLButtonElement>('button[data-action="submit"]'),
@@ -650,14 +655,40 @@ describe('the tiebreak column — CA, 2026-09-27', () => {
     expect(h.cell(1, 2), 'the second set should be open').toBeTruthy();
   });
 
-  it('shows the folded tiebreak as a parenthetical on the LOSING side', () => {
-    // `7-6(3)` means the loser took three points, which is what every score line in the ecosystem does.
+  it('shows the folded tiebreak as a RAISED digit on the LOSING side — CA, 2026-09-27', () => {
+    // `7-6³`, the form a printed draw sheet uses, rather than `6(3)`. On the loser's cell, because that
+    // is whose points they are.
     const h = mount();
     h.enterSet(1, '7', '6');
     h.typeTb(2, 1, '3');
 
-    expect(h.parenthetical(2, 1)).toBe('(3)');
+    expect(h.parenthetical(2, 1)).toBe('3');
     expect(h.parenthetical(1, 1), 'nothing on the winner').toBe('');
+    expect(h.cell(2, 1)?.closest(GAMES_CELL)?.querySelector('sup')).toBeTruthy();
+  });
+
+  it('says the tiebreak in words too, since a raised digit reads as a bare number', () => {
+    // Without this a screen reader announces "6" then "3" — two numbers with no stated relationship. The
+    // `<sup>` is aria-hidden and a visually-hidden sibling carries the meaning.
+    const h = mount();
+    h.enterSet(1, '7', '6');
+    h.typeTb(2, 1, '3');
+
+    expect(h.spokenTiebreak(2, 1)).toMatch(/tiebreak 3/);
+    expect(h.spokenTiebreak(1, 1)).toBe('');
+    expect(
+      h.cell(2, 1)?.closest(GAMES_CELL)?.querySelector('sup')?.getAttribute('aria-hidden'),
+    ).toBe('true');
+  });
+
+  it('handles a two-digit tiebreak, which a Unicode superscript could not', () => {
+    const h = mount({ matchUpFormat: 'SET3-S:6/TB10' });
+    h.enterSet(1, '6', '7');
+    h.typeTb(1, 1, '8');
+
+    expect(h.parenthetical(1, 1)).toBe('8');
+    h.focusCell(1, 1);
+    expect(h.tb(2, 1)?.value).toBe('10');
   });
 
   it('comes BACK when the set is entered again — set 1, TB and set 2 together', () => {

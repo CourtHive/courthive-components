@@ -22,6 +22,7 @@
  * complete — comes from `dynamicSetsLogic.ts`. This module decides where a tap lands, nothing else.
  */
 
+import { createScoreReadouts, READOUT_COLUMN_WIDTH } from './scoreReadout';
 import {
   getSetFormatForIndex,
   getMaxAllowedScore,
@@ -31,7 +32,6 @@ import {
   shouldShowTiebreak,
   buildSetScore,
 } from '../logic/dynamicSetsLogic';
-import { createScoreReadouts, READOUT_COLUMN_WIDTH } from './scoreReadout';
 
 import type { SideNumber } from '../logic/scoreEntryState';
 import type { ScoreRegion } from '../scoreEntryCard';

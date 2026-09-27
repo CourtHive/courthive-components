@@ -20,9 +20,9 @@
  * approach used, so a typed score cannot mean one thing here and another there.
  */
 
-import { validateScore } from '../utils/scoreValidator';
-import { parseScore } from '../../../tools/freeScore/freeScore';
 import { createScoreReadouts, READOUT_COLUMN_WIDTH } from './scoreReadout';
+import { parseScore } from '../../../tools/freeScore/freeScore';
+import { validateScore } from '../utils/scoreValidator';
 
 import type { SideNumber } from '../logic/scoreEntryState';
 import type { ScoreRegion } from '../scoreEntryCard';

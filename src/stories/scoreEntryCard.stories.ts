@@ -13,6 +13,8 @@
  */
 import { matchUpStatusConstants, fixtures, policyConstants } from 'tods-competition-factory';
 import { createDynamicSetsRegion } from '../components/scoring/regions/dynamicSetsRegion';
+import { createFreeScoreRegion } from '../components/scoring/regions/freeScoreRegion';
+import { createDialPadRegion } from '../components/scoring/regions/dialPadRegion';
 import { renderScoreEntryCard } from '../components/scoring/scoreEntryCard';
 import { expect } from 'storybook/test';
 
@@ -55,6 +57,9 @@ function cardWithSets(sets: any[] | undefined, over: Record<string, any> = {}) {
     matchUpFormat,
     sets,
     onChange: () => card.refresh(),
+    // Columns are dynamic — a tiebreak column appears, the next set is revealed — and only a full render
+    // can rebuild the row grid.
+    onStructureChange: () => card.rerender(),
   });
   const card = renderScoreEntryCard({
     sides: SIDES,
@@ -179,46 +184,99 @@ export const ClearedPartScore = {
   },
 };
 
-export const FreeScoreRegion = {
-  name: 'Same card — a single-field region',
+export const Tiebreak = {
+  name: 'A tiebreak — the column appears, then folds into 6³',
+  render: () => frame(cardWithSets([{ setNumber: 1, side1Score: 7, side2Score: 6 }]).element),
+  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+    // Opens mid-tiebreak, which is the state worth looking at: a 7-6 is NOT a finished set until its
+    // points are known, so the column is present and the second set is not.
+    const tb = (side: number) =>
+      canvasElement.querySelector<HTMLInputElement>(`input[data-tiebreak-side="${side}"][data-tiebreak-set="1"]`);
+
+    await expect(tb(1)).toBeTruthy();
+    await expect(tb(2)).toBeTruthy();
+    await expect(canvasElement.querySelector('input[data-side="1"][data-set="2"]')).toBeNull();
+    await expect(canvasElement.querySelector<HTMLButtonElement>(SUBMIT)!.disabled).toBe(true);
+
+    // Entering the loser's points completes it: the other side autocompletes to the format's target, the
+    // column folds, and the raised digit takes its place.
+    const field = tb(2)!;
+    field.value = '3';
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+
+    await expect(tb(1), 'the column should have folded away').toBeNull();
+    await expect(canvasElement.querySelector('sup.chc-sec-tb-mark')?.textContent).toBe('3');
+    await expect(canvasElement.querySelector<HTMLElement>(BAND)!.textContent).toContain('7-6(3)');
+    await expect(canvasElement.querySelector('input[data-side="1"][data-set="2"]')).toBeTruthy();
+  },
+};
+
+export const FreeScore = {
+  name: 'Same card — Free Score',
   render: () => {
+    const region = createFreeScoreRegion({
+      matchUpFormat: FORMAT,
+      initialText: '6-4 6-3',
+      onChange: () => card.refresh(),
+    });
     const card = renderScoreEntryCard({
       sides: SIDES,
       matchUpFormat: FORMAT,
       context: CONTEXT,
       approachLabel: 'Free Score',
       statusCodeGroups: REAL_GROUPS,
-      region: {
-        block: () => {
-          const field = document.createElement('input');
-          field.type = 'text';
-          field.value = '6-4 6-3';
-          field.dataset.freeScore = 'true';
-          field.setAttribute('aria-label', 'Score');
-          field.style.cssText =
-            'width:100%;min-height:44px;padding:10px 12px;border:1px solid var(--chc-border-primary);' +
-            'border-radius:8px;font:inherit;font-size:18px;background:var(--chc-input-bg);color:var(--chc-text-primary)';
-          return field;
-        },
-        scoreString: () => '6-4 6-3',
-        isComplete: () => true,
-        winningSide: () => 1 as const,
-      },
+      region,
     });
     return frame(card.element);
   },
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
-    // The same geometry, a different score region. This is the claim the whole card rests on, so it
-    // is checked rather than asserted in a comment: identical chrome, no per-set columns.
-    for (const selector of ['.chc-sec-header', '.chc-sec-rows', '.chc-sec-endings', '.chc-sec-band', '.chc-sec-footer']) {
-      await expect(canvasElement.querySelector(selector), `${selector} missing`).toBeTruthy();
-    }
-    await expect(canvasElement.querySelector('.chc-sec-score-region input[data-free-score]')).toBeTruthy();
+    // The REAL region, not a stand-in. An earlier version of this story returned a fixed '6-4 6-3'
+    // whatever was typed, which made it a picture rather than the thing.
+    const field = canvasElement.querySelector<HTMLInputElement>('input[data-free-score]');
+    await expect(field).toBeTruthy();
+    await expect(canvasElement.querySelector<HTMLElement>(BAND)!.textContent).toContain('Rosalind Lem def.');
+
+    // The rows READ here rather than accepting input, and the chrome is identical to Dynamic Sets.
+    await expect(canvasElement.querySelectorAll('.chc-sec-readout')).toHaveLength(2);
+    await expect(canvasElement.querySelector('input[data-set]')).toBeNull();
     await expect(canvasElement.querySelector('.chc-sec-row-head')).toBeNull();
 
-    // The endings row is the same seven wherever the score comes from.
-    const privileged = canvasElement.querySelectorAll('.chc-sec-endings > button[data-ending]');
-    await expect(privileged).toHaveLength(3);
-    await expect(canvasElement.querySelector('button[data-action="other"]')).toBeTruthy();
+    // A typed ending is recognised, and still asks which side — the text never says who retired.
+    field!.value = '6-4 2-1 ret';
+    field!.dispatchEvent(new Event('input', { bubbles: true }));
+
+    await expect(canvasElement.querySelector<HTMLElement>(BAND)!.textContent).toMatch(/retired/i);
+    await expect(canvasElement.querySelector<HTMLButtonElement>(SUBMIT)!.disabled).toBe(true);
+  },
+};
+
+export const DialPad = {
+  name: 'Same card — Dial Pad',
+  render: () => {
+    const region = createDialPadRegion({ matchUpFormat: FORMAT, onChange: () => card.refresh() });
+    const card = renderScoreEntryCard({
+      sides: SIDES,
+      matchUpFormat: FORMAT,
+      context: CONTEXT,
+      approachLabel: 'Dial Pad',
+      statusCodeGroups: REAL_GROUPS,
+      region,
+    });
+    return frame(card.element);
+  },
+  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+    const press = (digit: number) =>
+      canvasElement.querySelector<HTMLButtonElement>(`button[data-digit="${digit}"]`)?.click();
+
+    // Ten digits, a tiebreak and a backspace — and no endings of its own. The old Dial Pad crammed
+    // WO/RET/DEF into the same 4x4 grid because it had to be a whole dialog.
+    await expect(canvasElement.querySelectorAll('button[data-digit]')).toHaveLength(10);
+    await expect(canvasElement.querySelector('button[data-action="tiebreak"]')).toBeTruthy();
+    await expect(canvasElement.querySelectorAll('.chc-sec-dialpad button[data-ending]')).toHaveLength(0);
+
+    for (const digit of [6, 4, 6, 3]) press(digit);
+
+    await expect(canvasElement.querySelector<HTMLElement>(BAND)!.textContent).toContain('Rosalind Lem def.');
+    await expect(canvasElement.querySelector<HTMLButtonElement>(SUBMIT)!.disabled).toBe(false);
   },
 };

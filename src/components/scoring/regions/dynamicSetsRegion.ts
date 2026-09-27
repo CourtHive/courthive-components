@@ -31,6 +31,7 @@
  * in next, which is what makes this feel like one continuous entry rather than a form.
  */
 
+import { ordinalSetLabel } from './setColumns';
 import {
   shouldApplySmartComplement,
   getSetFormatForIndex,
@@ -43,7 +44,6 @@ import {
   isSetComplete,
   buildSetScore,
 } from '../logic/dynamicSetsLogic';
-import { ordinalSetLabel } from './setColumns';
 
 import type { ScoreColumn, ScoreRegion } from '../scoreEntryCard';
 import type { SideNumber } from '../logic/scoreEntryState';
@@ -99,8 +99,10 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
 
   /** Live cells, so a complement can write into a sibling without a re-render. */
   const cells = new Map<string, HTMLInputElement>();
-  /** The parenthetical beside a loser's games cell, e.g. `(3)`. */
+  /** The raised tiebreak mark beside a loser's games cell — the `3` in `6³`. */
   const parentheticals = new Map<string, HTMLElement>();
+  /** Its visually-hidden twin, carrying the words a screen reader needs. */
+  const spokenMarks = new Map<string, HTMLElement>();
 
   return {
     columns: () => layout().map(toColumn),
@@ -326,12 +328,21 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     input.addEventListener('focus', () => enterSet(setIndex));
     cells.set(cellKey, input);
 
-    const parenthetical = document.createElement('span');
-    parenthetical.className = 'chc-sec-tb-paren';
-    parentheticals.set(cellKey, parenthetical);
+    // A real `<sup>`, so `7-6` reads as `6` with a raised `3` — the tennis convention CA asked for. The
+    // mark is `aria-hidden` and a visually-hidden sibling carries the words, because a screen reader
+    // meeting "6" then "3" would announce an ambiguous pair of numbers.
+    const mark = document.createElement('sup');
+    mark.className = 'chc-sec-tb-mark';
+    mark.setAttribute('aria-hidden', 'true');
 
-    wrapper.append(input, parenthetical);
-    writeParenthetical(sideNumber, setIndex);
+    const spoken = document.createElement('span');
+    spoken.className = 'chc-sec-sr-only';
+
+    parentheticals.set(cellKey, mark);
+    spokenMarks.set(cellKey, spoken);
+
+    wrapper.append(input, mark, spoken);
+    writeTiebreakMark(sideNumber, setIndex);
     return wrapper;
   }
 
@@ -348,28 +359,38 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
   }
 
   /**
-   * The `(3)` beside a loser's games.
+   * The raised tiebreak points beside a loser's games — the `3` of `6³`.
    *
-   * Shown on the side that LOST the tiebreak, the convention every score line in the ecosystem uses —
-   * `7-6(3)` means the loser took three points. Nothing on the winner's cell.
+   * CA, 2026-09-27, asked for a superscript rather than `6(3)`, which is the form a printed draw sheet
+   * uses. Shown on the side that LOST the tiebreak: `7-6³` means the loser took three points. Nothing on
+   * the winner's cell.
+   *
+   * A `<sup>` rather than a Unicode superscript digit: `³` exists but `¹⁰` has to be composed from two
+   * glyphs, and a match tiebreak to 10 or a long set can easily produce two digits. The element handles
+   * any number and inherits the cell's font.
    */
-  function writeParenthetical(sideNumber: SideNumber, setIndex: number): void {
-    const element = parentheticals.get(key('games', sideNumber, setIndex));
-    if (!element) return;
+  function writeTiebreakMark(sideNumber: SideNumber, setIndex: number): void {
+    const cellKey = key('games', sideNumber, setIndex);
+    const mark = parentheticals.get(cellKey);
+    const spoken = spokenMarks.get(cellKey);
+    if (!mark) return;
 
     const entry = entries[setIndex];
     const mine = sideNumber === 1 ? entry.tiebreak1 : entry.tiebreak2;
     const theirs = sideNumber === 1 ? entry.tiebreak2 : entry.tiebreak1;
 
-    // Only the lower of the two shows. When only one was entered it IS the loser's, because that is
-    // what the operator was asked for.
+    // Only the lower of the two shows. When only one was entered it IS the loser's, because that is what
+    // the operator was asked for.
     const show = !!mine && (!theirs || Number(mine) < Number(theirs));
-    element.textContent = show ? `(${mine})` : '';
+    mark.textContent = show ? mine : '';
+    // The words, for anyone who cannot see the raised digit. Without this a screen reader announces "6"
+    // then "3" — two numbers with no stated relationship.
+    if (spoken) spoken.textContent = show ? ` tiebreak ${mine}` : '';
   }
 
   function refreshParentheticals(): void {
     for (let index = 0; index < setCount; index += 1) {
-      for (const sideNumber of [1, 2] as SideNumber[]) writeParenthetical(sideNumber, index);
+      for (const sideNumber of [1, 2] as SideNumber[]) writeTiebreakMark(sideNumber, index);
     }
   }
 
