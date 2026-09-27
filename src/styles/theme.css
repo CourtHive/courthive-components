@@ -243,6 +243,21 @@
   --sp-popover-delete: #e74c3c;
   --sp-popover-delete-bg: #fdecea;
   --sp-popover-divider: #e0e0e0;
+  /* ── Score-entry card ─────────────────────────────────
+     Only what the palette LACKS. The card's surface, text and borders reuse --chc-bg-elevated,
+     --chc-text-primary/secondary and --chc-border-primary/secondary, so it inherits every theme fix
+     instead of carrying a parallel copy of them.
+
+     These six are the accent the design is built around and the two tinted result bands, which have
+     no equivalent: --chc-container-success is a SOLID fill, and the band is a tint carrying text.
+     Values come from the approved artboards; the dark set was DERIVED by measurement, not picked, and
+     theme-contrast.test.ts holds every pair. */
+  --chc-card-accent: #14594a;
+  --chc-card-on-accent: #ffffff;
+  --chc-card-band-good-bg: #f1f6f4;
+  --chc-card-band-good-fg: #123f35;
+  --chc-card-band-warn-bg: #fdf1e1;
+  --chc-card-band-warn-fg: #6b3b00;
 }
 
 [data-theme='dark'] {
@@ -415,6 +430,17 @@
   --sp-popover-delete: #fb7185;
   --sp-popover-delete-bg: rgba(251, 113, 133, 0.12);
   --sp-popover-divider: #2a3441;
+  /* ── Score-entry card ─────────────────────────────────
+     Derived, not picked. The accent must clear TWO thresholds: 4.5:1 for its own label, and 3:1 for
+     the fill against the card surface it sits on (SC 1.4.11 — a filled control's boundary). The dark
+     theme's own --chc-container-primary (#0d7369) clears the first at 5.72:1 but only reaches 2.66:1
+     against --chc-bg-elevated, so it is NOT reused here. #13998a reaches 5.61:1 and 4.31:1. */
+  --chc-card-accent: #13998a;
+  --chc-card-on-accent: #0a0a0a;
+  --chc-card-band-good-bg: #153a33;
+  --chc-card-band-good-fg: #a7e3cf;
+  --chc-card-band-warn-bg: #3e2f14;
+  --chc-card-band-warn-fg: #ffd9a0;
 }
 
 /* ── vanillajs-datepicker dark overrides ──────────────────── */

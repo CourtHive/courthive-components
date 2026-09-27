@@ -114,3 +114,65 @@ describe('--chc-on-* foreground contrast', () => {
     expect(ratio, `light on-${intent} = ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(4.5);
   });
 });
+
+/**
+ * The score-entry card's own pairs.
+ *
+ * Added with the card rather than after it, because the card introduces the first tokens in this file
+ * that the `--chc-container-*` / `--chc-on-*` loop above does not reach — and an ungated colour is how
+ * the four light pairs above sat below AA for as long as they did.
+ *
+ * Two different thresholds, and the distinction is the point:
+ *
+ * - TEXT pairs are held to 4.5:1 (WCAG 1.4.3 for body-sized text).
+ * - The accent FILL is held to 3:1 against the surface it sits on (WCAG 1.4.11): it is a filled
+ *   control, so its boundary has to be perceivable, not merely its label legible. This is the
+ *   threshold that ruled out reusing the dark theme's own `--chc-container-primary` (#0d7369), which
+ *   passes 5.72:1 for white text but reaches only 2.66:1 against `--chc-bg-elevated`.
+ *
+ * Deliberately NOT asserted: the tinted bands against the adjacent surface, and the card's borders.
+ * Neither is a text pair and neither carries state on its own — the band's own AA text does, and a
+ * separator is decorative. Holding them to a contrast threshold would be inventing a requirement, and
+ * the next person would satisfy it by making the tints heavy enough to stop reading as tints.
+ */
+const CARD_TEXT_PAIRS = [
+  ['on-accent on accent', '--chc-card-on-accent', '--chc-card-accent'],
+  ['band-good', '--chc-card-band-good-fg', '--chc-card-band-good-bg'],
+  ['band-warn', '--chc-card-band-warn-fg', '--chc-card-band-warn-bg'],
+] as const;
+
+describe('score-entry card token contrast', () => {
+  it('defines every card token in both themes', () => {
+    const keys = [
+      '--chc-card-accent',
+      '--chc-card-on-accent',
+      '--chc-card-band-good-bg',
+      '--chc-card-band-good-fg',
+      '--chc-card-band-warn-bg',
+      '--chc-card-band-warn-fg',
+    ];
+    for (const key of keys) {
+      expect(LIGHT[key], `light ${key}`).toBeTruthy();
+      expect(DARK[key], `dark ${key}`).toBeTruthy();
+    }
+  });
+
+  it.each(CARD_TEXT_PAIRS)('light: %s meets WCAG AA', (_label, fg, bg) => {
+    const ratio = contrast(LIGHT[fg], LIGHT[bg]);
+    expect(ratio, `light ${fg} on ${bg} = ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it.each(CARD_TEXT_PAIRS)('dark: %s meets WCAG AA', (_label, fg, bg) => {
+    const ratio = contrast(DARK[fg], DARK[bg]);
+    expect(ratio, `dark ${fg} on ${bg} = ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it.each([
+    ['light', LIGHT],
+    ['dark', DARK],
+  ])('%s: the accent fill is perceivable against the card surface (SC 1.4.11)', (_theme, theme) => {
+    // The card's surface is `--chc-bg-elevated`, reused rather than redefined.
+    const ratio = contrast(theme['--chc-card-accent'], theme['--chc-bg-elevated']);
+    expect(ratio, `accent on bg-elevated = ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(3);
+  });
+});
