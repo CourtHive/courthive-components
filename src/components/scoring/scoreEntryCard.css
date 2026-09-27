@@ -590,3 +590,42 @@
     flex: 1 1 auto;
   }
 }
+
+/* ── The games cell, and its tiebreak parenthetical ─────────────────── */
+
+/* A composite: the digits-only input, plus the `(3)` that appears once a tiebreak is known. The value
+   stays editable — an operator must be able to correct a finished set — while the CELL reads `6(3)`. */
+.chc-sec-games-cell {
+  display: flex;
+  justify-self: center;
+  align-items: center;
+  gap: 1px;
+}
+
+.chc-sec-tb-paren {
+  color: var(--chc-text-secondary);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.chc-sec-tb-paren:empty {
+  display: none;
+}
+
+/* The transient tiebreak column. Narrower than a games column and visibly subordinate to it, because it
+   qualifies the set beside it rather than standing alone. */
+.chc-sec-tb-input {
+  width: 44px;
+  background: var(--chc-bg-secondary);
+  font-size: 16px;
+}
+
+@media (width <= 560px) {
+  .chc-sec-games-cell {
+    justify-self: stretch;
+  }
+
+  .chc-sec-tb-input {
+    width: 100%;
+  }
+}

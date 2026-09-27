@@ -163,6 +163,8 @@ export type ScoreEntryCard = {
   element: HTMLElement;
   /** Re-render the band and the submit gate. Call when the score region's value changes. */
   refresh: () => void;
+  /** Rebuild everything, including the region's cells. Call when the region's COLUMNS change. */
+  rerender: () => void;
   /** The current ending state, for a host that needs to inspect it. */
   getState: () => ScoreEntryState;
 };
@@ -203,6 +205,11 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     // caret are lost and the operator can enter exactly one digit per click. `refreshDerived` is the
     // seam that keeps a live band from costing a usable keyboard.
     refresh: refreshDerived,
+    // A FULL render, for when the region's own structure changes — a tiebreak column appearing, the
+    // next set being revealed. Distinct from `refresh` on purpose: this one rebuilds the rows and
+    // therefore replaces the region's cells, so a caller must restore focus itself. That is not a
+    // hardship where it is used, because a column appearing is exactly when focus should MOVE.
+    rerender: render,
     getState: () => state,
   };
 
