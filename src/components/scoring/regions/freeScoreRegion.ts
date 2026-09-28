@@ -43,6 +43,8 @@ export type FreeScoreRegion = ScoreRegion & {
   getText: () => string;
   /** The sets the parse produced, for submission. */
   getSets: () => SetScore[];
+  /** Required here, though optional on `ScoreRegion`: every entry approach can answer it. */
+  hasEntry: () => boolean;
 };
 
 export function createFreeScoreRegion(params: FreeScoreRegionParams): FreeScoreRegion {
@@ -63,6 +65,9 @@ export function createFreeScoreRegion(params: FreeScoreRegionParams): FreeScoreR
     matchUpStatus: () => parsed().result?.matchUpStatus,
     getText: () => text,
     getSets: () => parsed().sets,
+    // Text that does not parse to a single set is still entry — and is exactly the state worth NOT
+    // discarding, because the operator is mid-way through typing it.
+    hasEntry: () => !!text.trim(),
   };
 
   // ── Parsing ──────────────────────────────────────────────────────────

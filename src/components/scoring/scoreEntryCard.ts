@@ -159,6 +159,16 @@ export type ScoreRegion = {
    * they typed it into.
    */
   error?: () => string | undefined;
+
+  /**
+   * Whether ANYTHING has been entered, complete or not.
+   *
+   * Deliberately not derivable from `getSets()`: a region reports only sets whose BOTH sides are in,
+   * because one value is not a set score. So a lone `6` typed with complements switched off is real
+   * entry that `getSets()` cannot see — and a host asking "is there anything to lose here?" before
+   * dismissing the dialog would be told no, and discard it.
+   */
+  hasEntry?: () => boolean;
 };
 
 /** One entry in the approach switcher's menu. */

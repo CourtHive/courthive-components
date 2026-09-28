@@ -48,7 +48,7 @@ import type { SetScore } from './types';
  * possible. The base `ScoreRegion` does not require it — a region that only produces a string is
  * legitimate — so the dialog names the narrower thing rather than reaching for an optional call.
  */
-type BuiltRegion = ScoreRegion & { getSets: () => SetScore[] };
+type BuiltRegion = ScoreRegion & { getSets: () => SetScore[]; hasEntry: () => boolean };
 
 /** The three entry approaches. The key is what `onSelectApproach` reports and what a host persists. */
 export type ScoreEntryApproach = 'dynamicSets' | 'freeScore' | 'dialPad';
@@ -175,6 +175,8 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
     }
   });
 
+  document.addEventListener('keydown', onKeyDown);
+
   function approachOption(key: ScoreEntryApproach): ApproachOption {
     return { key, label: APPROACH_LABELS[key] };
   }
@@ -243,6 +245,51 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
     });
   }
 
+  /**
+   * Escape closes an EMPTY dialog, and does nothing to one holding a score.
+   *
+   * cModal has no keyboard handling of its own — measured: not one `keydown` listener in it — so
+   * without this a keyboard user's only way out is to reach the `[X]`. Escape is the standard
+   * affordance, and an empty dialog has nothing to lose.
+   *
+   * With something entered it deliberately does NOTHING, which is not a new rule: this repo already
+   * decided that a mis-aimed click must not discard a typed score (`clickAway: false`, held by
+   * `__tests__/dismissGuard.test.ts`). Silent non-dismissal is exactly what that click guard does, so
+   * Escape inherits it rather than inventing a confirm step. Cancel and Submit remain the deliberate
+   * ways out, and both are visible.
+   *
+   * Only when this is the TOP dialog: the format picker opens above, has no Escape handling either, and
+   * closing the card from under it would leave the picker standing over nothing.
+   */
+  function onKeyDown(event: KeyboardEvent): void {
+    if (event.key !== 'Escape' || closed) return;
+    if (!isTopMostDialog() || holdsEntry()) return;
+
+    event.preventDefault();
+    close();
+  }
+
+  function isTopMostDialog(): boolean {
+    const own = card.element.closest('section[id^="cmdl-"]');
+    if (!own) return false;
+    return [...document.querySelectorAll('section[id^="cmdl-"]')].at(-1) === own;
+  }
+
+  /**
+   * Whether anything would be lost: a score entered, or an ending recorded.
+   *
+   * `hasEntry` and not `getSets()`. A region reports only sets whose both sides are in, so a lone `6`
+   * typed with smart complements switched off is invisible to `getSets()` — measured, and it made the
+   * first version of this guard discard exactly the keystroke it was written to protect. Typing with
+   * complements ON hides the hole, because the complement fills the other side immediately.
+   */
+  function holdsEntry(): boolean {
+    const state = card.getState();
+    if (state.sideEnding || state.matchEnding || state.reasonCode) return true;
+
+    return currentRegion.hasEntry();
+  }
+
   function close(): void {
     // Two flags, not one. `closed` stops a second `cModal.close()`, which would pop a modal this dialog
     // does not own — a nested picker, or the host's own dialog underneath. `notified` stops a second
@@ -250,6 +297,7 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
     // reported `[X]` twice, because cModal's own onClose fires inside `cModal.close()`.
     if (!closed) {
       closed = true;
+      document.removeEventListener('keydown', onKeyDown);
       cModal.close();
     }
     notify();

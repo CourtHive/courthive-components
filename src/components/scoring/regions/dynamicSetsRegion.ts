@@ -86,6 +86,8 @@ export type DynamicSetsRegionParams = {
 
 export type DynamicSetsRegion = ScoreRegion & {
   getSets: () => SetScore[];
+  /** Required here, though optional on `ScoreRegion`: every entry approach can answer it. */
+  hasEntry: () => boolean;
   smartComplementsEnabled: () => boolean;
 };
 
@@ -134,6 +136,8 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     isComplete: () => isMatchComplete(currentSets(), config),
     winningSide: () => getMatchWinner(currentSets(), config),
     getSets: () => currentSets(),
+    // Read from the raw entry strings, not from `currentSets()`, which drops a half-entered set.
+    hasEntry: () => entries.some((entry) => entry.side1 || entry.side2 || entry.tiebreak1 || entry.tiebreak2),
     error: () => firstError(),
     smartComplementsEnabled: () => smartComplements,
   };

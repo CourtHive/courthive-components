@@ -46,6 +46,8 @@ export type DialPadRegionParams = {
 
 export type DialPadRegion = ScoreRegion & {
   getSets: () => SetScore[];
+  /** Required here, though optional on `ScoreRegion`: every entry approach can answer it. */
+  hasEntry: () => boolean;
 };
 
 /** One entry per set: the two sides' games as typed text, plus a tiebreak. */
@@ -70,6 +72,8 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     isComplete: () => isMatchComplete(currentSets(), config),
     winningSide: () => getMatchWinner(currentSets(), config),
     getSets: () => currentSets(),
+    // A single digit pressed is entry, and `currentSets()` does not report it.
+    hasEntry: () => entries.some((entry) => entry.side1 || entry.side2 || entry.tiebreak),
   };
 
   // ── State ────────────────────────────────────────────────────────────

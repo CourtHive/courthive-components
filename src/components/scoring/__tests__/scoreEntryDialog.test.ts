@@ -38,6 +38,9 @@ const EDIT_FORMAT = 'button[data-action="editFormat"]';
 const SET_1_SIDE_1 = 'input[data-side="1"][data-set="1"]';
 const SET_1_SIDE_2 = 'input[data-side="2"][data-set="1"]';
 const BAND = '.chc-sec-band';
+const SMART = 'button[data-action="smartComplements"]';
+const ENDED_EARLY_2 = 'button[data-action="endedEarly"][data-side="2"]';
+const ROW_ENDING = '[data-row-ending]';
 
 function open(over: Record<string, any> = {}) {
   return openScoreEntryDialog({
@@ -126,6 +129,91 @@ describe('the modal', () => {
   });
 });
 
+describe('Escape', () => {
+  const escape = () =>
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+
+  it('closes an EMPTY dialog — cModal has no keyboard handling of its own', () => {
+    const onClose = vi.fn();
+    open({ onClose });
+
+    escape();
+
+    expect(modal()).toBeNull();
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('does NOT discard a typed score', () => {
+    open();
+
+    type(SET_1_SIDE_1, '6');
+    escape();
+
+    // The same rule the click-away guard already holds: silent non-dismissal, not a confirm step.
+    expect(modal()).toBeTruthy();
+    expect(q<HTMLInputElement>(SET_1_SIDE_1)!.value).toBe('6');
+  });
+
+  it('does NOT discard a recorded ending', () => {
+    open();
+
+    click(ENDED_EARLY_2);
+    click(`[data-panel-side="2"] button[data-ending="${WALKOVER}"]`);
+    escape();
+
+    expect(modal()).toBeTruthy();
+    expect(q(ROW_ENDING)).toBeTruthy();
+  });
+
+  it('does NOT discard a LONE value typed with smart complements off', () => {
+    // The hole the first version of this guard had. `getSets()` reports only sets whose BOTH sides are
+    // in — one value is not a set score — so a lone `6` was invisible to it and Escape threw the
+    // keystroke away. With complements ON the complement fills the other side immediately, which is
+    // exactly why the hole did not show up: the region has to be asked `hasEntry`, not `getSets`.
+    open();
+
+    click(SMART);
+    type(SET_1_SIDE_1, '6');
+
+    expect(q<HTMLInputElement>(SET_1_SIDE_2)!.value, 'complements must be off for this to be the test').toBe('');
+
+    escape();
+
+    expect(modal()).toBeTruthy();
+    expect(q<HTMLInputElement>(SET_1_SIDE_1)!.value).toBe('6');
+  });
+
+  it('treats a LONE ZERO as entry, not as emptiness', () => {
+    // `0` is a real score — a set going to love — and the region's entry is a STRING, so a check written
+    // as `Number(...)` or `!!score` on the parsed value reads this dialog as untouched. Complements off
+    // again, so the zero is genuinely alone: with them on, the other side becomes a 6 and any check at
+    // all sees the 6.
+    open();
+
+    click(SMART);
+    type(SET_1_SIDE_1, '0');
+
+    escape();
+
+    expect(modal()).toBeTruthy();
+    expect(q<HTMLInputElement>(SET_1_SIDE_1)!.value).toBe('0');
+  });
+
+  it('releases the keydown listener on close', () => {
+    // Asserted on `removeEventListener` rather than through behaviour, deliberately. A leaked listener
+    // is inert — `onKeyDown` returns early once `closed` is set — so no Escape, no reopen and no second
+    // dialog can expose it. The only observable is the removal itself, and the cost of leaking is a
+    // listener per dialog opened for the life of the page.
+    const remove = vi.spyOn(document, 'removeEventListener');
+    const dialog = open();
+
+    dialog.close();
+
+    expect(remove.mock.calls.some(([type]) => type === 'keydown')).toBe(true);
+    remove.mockRestore();
+  });
+});
+
 describe('approach switching', () => {
   it('offers all three and marks the one showing', () => {
     open();
@@ -178,13 +266,13 @@ describe('approach switching', () => {
   it('keeps the recorded ending — it is a fact about the match, not about the keypad', () => {
     const dialog = open();
 
-    click('button[data-action="endedEarly"][data-side="2"]');
+    click(ENDED_EARLY_2);
     click(`[data-panel-side="2"] button[data-ending="${WALKOVER}"]`);
-    expect(q('[data-row-ending]')!.dataset.rowEnding).toBe(WALKOVER);
+    expect(q(ROW_ENDING)!.dataset.rowEnding).toBe(WALKOVER);
 
     dialog.setApproach('dialPad');
 
-    const pill = q<HTMLElement>('[data-row-ending]');
+    const pill = q<HTMLElement>(ROW_ENDING);
     expect(pill, 'the walkover survives an approach switch').toBeTruthy();
     expect(pill!.closest<HTMLElement>('.chc-sec-row')!.dataset.side).toBe('2');
     expect(q<HTMLElement>(BAND)!.textContent).toContain('Rosalind Lem advances');
