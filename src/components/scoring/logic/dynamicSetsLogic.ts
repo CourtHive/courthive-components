@@ -4,8 +4,84 @@
  * No DOM dependencies, no side effects - pure business logic only
  */
 
+import { matchUpFormatCode, scoreGovernor } from 'tods-competition-factory';
 import { parseMatchUpFormat } from '../utils/setExpansionLogic';
-import { matchUpFormatCode } from 'tods-competition-factory';
+
+/**
+ * ── These functions DELEGATE to the factory ──
+ *
+ * CA, 2026-09-27: *"why would we hand roll something? The factory should export all the logic we'd need
+ * for scoring interfaces, and if it doesn't we should properly scope such logic and get it fully tested
+ * and added to the factory ... my rule is we must do things properly!"*
+ *
+ * Every signature here is UNCHANGED — they are exported from the package barrel and used by the shipping
+ * approaches, `freeScore.ts` and the new regions — but the bodies now ask `scoreGovernor` instead of
+ * recomputing tennis. The existing tests are the proof that behaviour is preserved, and the two places
+ * they had to change are the two places the hand-rolled version was WRONG.
+ *
+ * `analyzeSet` does most of the work. Given a set object and a parsed format it returns `setFormat` with
+ * the deciding-set rule already applied, `expectTiebreakSet`, `expectTimedSet`, `hasTiebreakCondition`
+ * and `winningSide` — four of the functions below in one call.
+ */
+
+/** The set object and scoring format `analyzeSet` expects, from this module's own argument shapes. */
+function setAnalysis(
+  setIndex: number,
+  scores: { side1?: number; side2?: number; tiebreak?: number },
+  config: MatchUpConfig,
+): Record<string, any> {
+  const analyze = (extra: Record<string, number>) =>
+    scoreGovernor.analyzeSet({
+      setObject: { setNumber: setIndex + 1, side1Score: scores.side1, side2Score: scores.side2, ...extra },
+      matchUpScoringFormat: config,
+    });
+
+  // The set format comes from a first pass, because completing the tiebreak pair needs the target and the
+  // deciding-set rule decides which format applies. One extra call, and it keeps the deciding-set logic in
+  // the factory rather than duplicated here.
+  const setFormat = scores.tiebreak === undefined ? undefined : analyze({}).setFormat;
+  return analyze(tiebreakSides(scores, setFormat));
+}
+
+/**
+ * Both tiebreak scores, from the one this module carries.
+ *
+ * ── Why the pair has to be completed before asking the factory ──
+ *
+ * This module's convention is a single tiebreak value meaning the LOSER's points — that is what
+ * `buildSetScore` takes and what a score line prints. `analyzeSet` and `checkSetIsComplete` both read
+ * `side1TiebreakScore` AND `side2TiebreakScore`, and measured 2026-09-27 they return
+ * `winningSide: undefined` / `false` when only one is present: a 7-6(3) reads as an unfinished set.
+ *
+ * So the winner's points are DERIVED with `getTiebreakComplement` — the factory's own function for exactly
+ * this — rather than the delegation being abandoned. Passing half a tiebreak and accepting a wrong answer
+ * would have been the quiet kind of bug.
+ */
+function tiebreakSides(
+  scores: { side1?: number; side2?: number; tiebreak?: number },
+  setFormat?: SetFormat,
+): Record<string, number> {
+  if (scores.tiebreak === undefined) return {};
+
+  const loserIsSide1 = (scores.side1 ?? 0) < (scores.side2 ?? 0);
+  const tiebreakTo = setFormat?.tiebreakFormat?.tiebreakTo ?? setFormat?.tiebreakSet?.tiebreakTo;
+
+  if (tiebreakTo === undefined) {
+    // No target to complete against: hand over what is known rather than inventing the other side.
+    return loserIsSide1 ? { side1TiebreakScore: scores.tiebreak } : { side2TiebreakScore: scores.tiebreak };
+  }
+
+  const pair = scoreGovernor.getTiebreakComplement({
+    lowValue: scores.tiebreak,
+    tiebreakTo,
+    tiebreakNoAd: setFormat?.tiebreakFormat?.noAd ?? setFormat?.tiebreakSet?.noAd,
+    isSide1: loserIsSide1,
+  });
+  if (!pair) return {};
+
+  const [forSide1, forSide2] = pair;
+  return { side1TiebreakScore: forSide1, side2TiebreakScore: forSide2 };
+}
 
 import type { SetScore } from '../types';
 
@@ -68,25 +144,36 @@ export type SmartComplementResult = {
  * falls back to SET3 rather than throwing, because a dialog that will not open is worse than one that
  * opens on the wrong best-of.
  */
+/** The format an unparseable string falls back to. A real format, not a bare set count — see below. */
+const FALLBACK_MATCH_UP_FORMAT = 'SET3-S:6/TB7';
+
 export function matchUpConfigFor(matchUpFormat?: string): MatchUpConfig {
   const parsed = matchUpFormat ? matchUpFormatCode.parse(matchUpFormat) : undefined;
+
+  // ── The fallback carries a real SET format, not just a set count ──
+  //
+  // This used to return `{ bestOf: 3 }` with `setFormat: undefined` for an unparseable string. That was
+  // survivable while the helpers below hand-rolled their own `setTo || 6` defaults, and stopped being
+  // survivable when they started asking the factory: given no set format, `analyzeSet` correctly has no
+  // opinion about who won a 6-4, so the card opened one column and never revealed another.
+  //
+  // Falling back to a parsed `SET3-S:6/TB7` is also the more honest reading of "falls back to best-of-3" —
+  // a dialog that will not open is worse than one that opens on the wrong best-of, but only if it actually
+  // works once open.
+  const effective = parsed ?? matchUpFormatCode.parse(FALLBACK_MATCH_UP_FORMAT);
+
   return {
     bestOf: parseMatchUpFormat(matchUpFormat).bestOf,
-    exactly: parsed?.exactly,
-    setFormat: parsed?.setFormat,
-    finalSetFormat: parsed?.finalSetFormat,
+    exactly: effective?.exactly,
+    setFormat: effective?.setFormat,
+    finalSetFormat: effective?.finalSetFormat,
   };
 }
 
 export function getSetFormatForIndex(setIndex: number, config: MatchUpConfig): SetFormat | undefined {
-  const isDecidingSet = config.bestOf === 1 || setIndex + 1 === config.bestOf;
-
-  // Use finalSetFormat for deciding set if it exists
-  if (isDecidingSet && config.finalSetFormat) {
-    return config.finalSetFormat;
-  }
-
-  return config.setFormat;
+  // `analyzeSet` applies the deciding-set rule itself: set 3 of `SET3-S:6/TB7-F:TB10` comes back as
+  // `{ tiebreakSet: { tiebreakTo: 10 } }`. Measured.
+  return setAnalysis(setIndex, {}, config).setFormat;
 }
 
 /**
@@ -192,6 +279,20 @@ export function isSetComplete(
   },
   config: MatchUpConfig
 ): boolean {
+  // ── NOT delegated, and the two reasons are measured ──
+  //
+  // `scoreGovernor.checkSetIsComplete` is the natural home for this and it is deliberately not used yet:
+  //
+  // 1. It requires BOTH tiebreak scores. This function takes one — the loser's, by this module's
+  //    convention — and passing only that returns false for a 7-6(3) that is plainly complete. Fixable
+  //    here by deriving the winner's points first, so this alone would not have stopped the swap.
+  // 2. It does not honour `winBy: 1`. Measured 2026-09-27: a 5-4 in `SET1-S:5WB1`
+  //    (`{setTo: 5, noTiebreak: true, winBy: 1}`) comes back FALSE, though first-to-five wins that set.
+  //    That is a factory gap, not a shape problem, and it is why the body below stays.
+  //
+  // Reported rather than worked around: a local fallback for WB1 would be the hand-rolling this exercise
+  // exists to remove. The rest of this module now delegates.
+
   const setFormat = getSetFormatForIndex(setIndex, config);
 
   // For timed sets, a set is complete when both sides have values
@@ -253,13 +354,9 @@ export function getSetWinner(
   },
   config: MatchUpConfig
 ): 1 | 2 | undefined {
-  if (!isSetComplete(setIndex, scores, config)) {
-    return undefined;
-  }
-
-  if (scores.side1 > scores.side2) return 1;
-  if (scores.side2 > scores.side1) return 2;
-  return undefined;
+  // `analyzeSet` derives the winning side from the scores — it does not need one supplied.
+  const winningSide = setAnalysis(setIndex, scores, config).winningSide;
+  return winningSide === 1 || winningSide === 2 ? winningSide : undefined;
 }
 
 /**
@@ -309,69 +406,29 @@ export function getMatchWinner(sets: SetScore[], bestOf: number, exactly?: numbe
  * @returns Complement value or null if digit >= setTo (no predictable complement)
  */
 export function calculateComplement(digit: number, setFormat?: SetFormat): number | null {
-  const setTo = setFormat?.setTo || 6;
-
-  // ── The typed digit is the LOSER's games ──
+  // ── The factory's complement, which our table had DIVERGED from ──
   //
-  // That is this table's convention throughout, and it is what makes it useful: 0-4 complement to 6
-  // because you lost 0-6 through 4-6, and 5 completes to 7 because you lost 5-7.
+  // `getSetComplement` returns `[side1, side2]`. Measured: it already answered `[6, 7]` for a low value
+  // of 6, while this function returned `null` until CA had it corrected on 2026-09-27 — so that change
+  // was not a new decision but a restoration of agreement with the engine.
   //
-  // `digit === setTo` used to return null, described as "tied or winning". CA, 2026-09-27, matching USTA
-  // Tournament Desk: "just a 6 in one auto completes the 7 in the other". A 6 IS a legitimate loser's
-  // score when the set can reach 6-6 and go to a tiebreak, so the null was the anomaly rather than the
-  // rule — read as a loser's score, 6 completes to 7 exactly as 5 does.
-  //
-  // Nothing is lost by inferring it. `shouldApplySmartComplement` fires once per set, so an operator who
-  // meant to WIN 6-4 types 6, receives 7, and corrects it — precisely how the 0-4 cases already behave
-  // when the guess is not what was meant.
-  //
-  // Above `setTo` there is still nothing to infer: a 7 in a set to 6 cannot be a loser's score.
-  if (digit > setTo) {
-    return null;
-  }
+  // `isSide1: true` puts the typed value first, so the complement is element [1].
+  if (!setFormat?.setTo) return null;
 
-  // At exactly `setTo`, a loser can only have got there if the set can be TIED at `setTo` and then
-  // decided by a tiebreak. Two formats cannot:
-  //
-  //   - the tiebreak comes earlier (S:6@5, S:5@4) — the set is decided before either side reaches
-  //     `setTo`, so the loser tops out a game lower;
-  //   - there is no tiebreak at all (S:5WB1) — first past the post, so the loser is always below.
-  //
-  // Both were caught by existing tests when this guard checked only the tiebreak position.
-  const tiedAtSetTo = !!setFormat?.tiebreakFormat && (setFormat.tiebreakAt ?? setTo) === setTo;
-  if (digit === setTo && !tiedAtSetTo) {
-    return null;
-  }
+  const pair = scoreGovernor.getSetComplement({
+    lowValue: digit,
+    setTo: setFormat.setTo,
+    tiebreakAt: setFormat.tiebreakAt,
+    NoAD: setFormat.tiebreakFormat?.noAd ?? setFormat.tiebreakSet?.noAd,
+    winBy: setFormat.winBy,
+    isSide1: true,
+  });
+  if (!pair) return null;
 
-  // Smart complements work for all standard formats:
-  // - S:6/TB7@6 (tiebreakAt === setTo): entering 2 → complement is 6
-  // - S:6/TB7@5 (tiebreakAt === setTo-1): entering 2 → complement is 6
-  // - S:5/TB9@4 (tiebreakAt === setTo-1): entering 2 → complement is 5
-  // - S:5WB1 (no tiebreak, win-by 1): entering 4 → complement is 5 (e.g. TYPTI 4–5)
-  // NOTE: tiebreakAt can ONLY be setTo or setTo-1 (never less)
-
-  // No-tiebreak set with explicit WB1: complement is always setTo (first past the post)
-  const hasTiebreak = !!setFormat?.tiebreakFormat;
-  const winBy = setFormat?.winBy ?? 2;
-  if (!hasTiebreak && winBy === 1) {
-    return setTo;
-  }
-
-  const tiebreakAt = setFormat?.tiebreakAt || setTo;
-
-  // When digit < setTo - 1: complement is setTo (winning before tiebreak)
-  if (digit < setTo - 1) {
-    return setTo;
-  }
-
-  // When digit === setTo - 1: depends on format
-  // - If tiebreakAt === setTo: complement is setTo + 1 (e.g., 5 → 7 for S:6@6)
-  // - If tiebreakAt < setTo: complement is setTo (e.g., 4 → 5 for S:5@4)
-  if (tiebreakAt === setTo) {
-    return setTo + 1;
-  } else {
-    return setTo;
-  }
+  const complement = pair[1];
+  // A complement equal to the typed value says nothing was inferred — the factory returns the low value
+  // in both slots where there is no single answer. `null` is this function's contract for that.
+  return complement === undefined || complement === digit ? null : complement;
 }
 
 /**
@@ -483,33 +540,17 @@ export function shouldShowTiebreak(
   scores: { side1: number; side2: number },
   config: MatchUpConfig
 ): boolean {
-  const setFormat = getSetFormatForIndex(setIndex, config);
-
-  // Timed sets never have tiebreaks
-  if (isSetTimed(setFormat)) {
-    return false;
-  }
-
-  // Tiebreak-only sets don't have separate tiebreak input
-  if (isSetTiebreakOnly(setFormat)) {
-    return false;
-  }
-
-  const setTo = setFormat?.setTo || 6;
-  const tiebreakAt = setFormat?.tiebreakAt || setTo;
-  const maxScore = Math.max(scores.side1, scores.side2);
-  const minScore = Math.min(scores.side1, scores.side2);
-
-  // Show tiebreak based on format:
-  // - If tiebreakAt === setTo: show at (setTo+1) vs setTo (e.g., 7-6 for S:6@6)
-  // - If tiebreakAt < setTo: show at setTo vs tiebreakAt (e.g., 5-4 for S:5@4)
-  if (tiebreakAt === setTo) {
-    // Standard format: tiebreak at 7-6, 8-7, etc.
-    return maxScore === tiebreakAt + 1 && minScore === tiebreakAt;
-  } else {
-    // Format like S:5@4: tiebreak at 5-4 or 4-5
-    return maxScore === setTo && minScore === tiebreakAt;
-  }
+  // ── `hasTiebreakCondition` alone is NOT this question ──
+  //
+  // Measured: it is TRUE at 6-6, where this function must be false. The distinction is real rather than a
+  // quirk — at six-all a tiebreak is being PLAYED and there is no result to type yet, whereas at 7-6 the
+  // set ended through one and its points are owed. `leadingSide` is how the factory separates them: it is
+  // `undefined` at 6-6 and names the side at 7-6.
+  //
+  // So the UI question is "a tiebreak condition exists AND somebody came out of it ahead", which is
+  // derived from two factory outputs rather than recomputed.
+  const analysis = setAnalysis(setIndex, scores, config);
+  return !!analysis.hasTiebreakCondition && !!analysis.leadingSide;
 }
 
 /**

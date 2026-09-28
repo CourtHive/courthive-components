@@ -3,6 +3,7 @@
  * These tests verify business logic without any DOM dependencies
  */
 
+import { scoreGovernor } from 'tods-competition-factory';
 import { describe, it, expect } from 'vitest';
 import {
   getSetFormatForIndex,
@@ -38,6 +39,8 @@ function parseFormat(formatString: string): MatchUpConfig {
   };
 }
 
+const FINAL_TB10 = 'SET3-S:6/TB7-F:TB10';
+
 /**
  * `matchUpConfigFor` — the derivation `dynamicSetsApproach` already carried its own copy of.
  *
@@ -62,7 +65,7 @@ describe('matchUpConfigFor', () => {
   it('carries a distinct final-set format when the format has one', () => {
     // The half that comes from the factory parse rather than from parseMatchUpFormat. A config that
     // dropped it would score a deciding match tiebreak as a full set.
-    const config = matchUpConfigFor('SET3-S:6/TB7-F:TB10');
+    const config = matchUpConfigFor(FINAL_TB10);
 
     expect(config.finalSetFormat).toBeDefined();
     expect(config.setFormat?.setTo).toBe(6);
@@ -79,7 +82,7 @@ describe('matchUpConfigFor', () => {
   it('agrees with getSetFormatForIndex, which is the whole point of assembling it', () => {
     // The config exists to be handed to the other pure functions. If the two halves disagreed, this is
     // where it would show: the final set would resolve to the wrong format.
-    const config = matchUpConfigFor('SET3-S:6/TB7-F:TB10');
+    const config = matchUpConfigFor(FINAL_TB10);
 
     expect(getSetFormatForIndex(0, config)).toEqual(config.setFormat);
     expect(getSetFormatForIndex(2, config)).toEqual(config.finalSetFormat);
@@ -792,5 +795,81 @@ describe('dynamicSetsLogic - Pure Functions', () => {
       expect(set.setNumber).toBe(3);
       expect(set.winningSide).toBeUndefined();
     });
+  });
+});
+
+/**
+ * Delegation to the factory — CA, 2026-09-27.
+ *
+ * *"why would we hand roll something? The factory should export all the logic we'd need for scoring
+ * interfaces ... my rule is we must do things properly!"*
+ *
+ * `getSetFormatForIndex`, `shouldShowTiebreak`, `getSetWinner` and `calculateComplement` keep their
+ * signatures but now ask `scoreGovernor`. The suite above is the proof that behaviour is preserved; what
+ * follows pins the two things the delegation newly DEPENDS on, neither of which had a test.
+ */
+describe('delegation to the factory', () => {
+  const s6tb7 = parseFormat(MATCH_FORMATS.SET3_S6_TB7);
+
+  it('recognises a 7-6 from the LOSER\'s tiebreak points alone', () => {
+    // This module's convention is one tiebreak value, the loser's. `analyzeSet` and `checkSetIsComplete`
+    // both read BOTH sides and return "unfinished" when handed only one — measured — so the pair is
+    // completed with `getTiebreakComplement` before either is asked. Without that a 7-6(3) read as an
+    // unfinished set, the winner came back undefined, and the card never opened the second set.
+    const scores = { side1: 7, side2: 6, tiebreak: 3 };
+
+    expect(getSetWinner(0, scores, s6tb7)).toBe(1);
+    expect(isSetComplete(0, scores, s6tb7)).toBe(true);
+  });
+
+  it('recognises it the other way round too', () => {
+    // The loser is whichever side has fewer games, not whichever is listed first.
+    const scores = { side1: 6, side2: 7, tiebreak: 4 };
+
+    expect(getSetWinner(0, scores, s6tb7)).toBe(2);
+    expect(isSetComplete(0, scores, s6tb7)).toBe(true);
+  });
+
+  it('separates a tiebreak BEING PLAYED from one that has been won', () => {
+    // `hasTiebreakCondition` alone is true at 6-6, where this must be false: at six-all the tiebreak is in
+    // progress and there is no result to type. `leadingSide` is how the factory tells them apart.
+    expect(shouldShowTiebreak(0, { side1: 6, side2: 6 }, s6tb7)).toBe(false);
+    expect(shouldShowTiebreak(0, { side1: 7, side2: 6 }, s6tb7)).toBe(true);
+    expect(shouldShowTiebreak(0, { side1: 6, side2: 7 }, s6tb7)).toBe(true);
+    expect(shouldShowTiebreak(0, { side1: 6, side2: 4 }, s6tb7)).toBe(false);
+  });
+
+  it('keeps the deciding-set rule in the factory rather than re-deriving it', () => {
+    // `analyzeSet` applies it: set 3 of a format with a final-set tiebreak comes back as the tiebreak set.
+    const withFinal = matchUpConfigFor(FINAL_TB10);
+
+    expect(getSetFormatForIndex(0, withFinal)).toEqual(withFinal.setFormat);
+    expect(getSetFormatForIndex(2, withFinal)).toEqual(withFinal.finalSetFormat);
+    expect(isSetTiebreakOnly(getSetFormatForIndex(2, withFinal))).toBe(true);
+  });
+
+  it('gives an unparseable format a REAL fallback, not a bare set count', () => {
+    // The fallback used to be `{ bestOf: 3 }` with no set format. That survived only while these helpers
+    // hand-rolled their own `setTo || 6` defaults: once they ask the factory, a config with no set format
+    // means `analyzeSet` correctly has no opinion about who won a 6-4, and the card opened one column and
+    // never revealed another. A dialog that will not open is worse than one on the wrong best-of — but only
+    // if it works once open.
+    const config = matchUpConfigFor('NOT-A-FORMAT');
+
+    expect(config.bestOf).toBe(3);
+    expect(config.setFormat?.setTo).toBe(6);
+    expect(getSetWinner(0, { side1: 6, side2: 4 }, config)).toBe(1);
+    expect(isSetComplete(0, { side1: 6, side2: 4 }, config)).toBe(true);
+  });
+
+  it('agrees with the factory complement, which this table had diverged from', () => {
+    // `getSetComplement` already answered `[6, 7]` for a low value of 6 while `calculateComplement` returned
+    // null, so CA's correction on 2026-09-27 restored agreement rather than deciding something new. Now
+    // there is one implementation and they cannot drift again.
+    for (const digit of [0, 1, 2, 3, 4, 5, 6]) {
+      const pair = scoreGovernor.getSetComplement({ lowValue: digit, setTo: 6, tiebreakAt: 6, isSide1: true });
+      const expected = Array.isArray(pair) && pair[1] !== digit ? pair[1] : null;
+      expect(calculateComplement(digit, s6tb7.setFormat), `complement of ${digit}`).toBe(expected);
+    }
   });
 });
