@@ -57,6 +57,42 @@
   font-size: 11px;
 }
 
+/* The chip as a button when the format is editable. It keeps the inert chip's exact box so the header
+   does not reflow between a dialog that can change the format and one that cannot — only the cursor and
+   the hover state say it is pressable. `font: inherit` because a <button> otherwise takes the UA font and
+   the code would stop matching the surrounding header text. */
+.chc-sec-format-button {
+  background: var(--chc-bg-elevated);
+  color: var(--chc-text-primary);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.chc-sec-format-button:hover {
+  border-color: var(--chc-border-focus);
+  background: var(--chc-hover-bg);
+}
+
+.chc-sec-format-button:focus-visible {
+  outline: 2px solid var(--chc-border-focus);
+  outline-offset: 2px;
+}
+
+/* The approach switcher's menu anchors to this, not to the header: `.chc-sec-other-menu` positions
+   against its nearest positioned ancestor, and without a wrapper it would escape to the card. */
+.chc-sec-approach-anchor {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Right-aligned, because the switcher sits at the header's right edge and a left-anchored 250px menu
+   would hang off the dialog. */
+.chc-sec-approach-menu {
+  right: 0;
+  left: auto;
+}
+
 /* ── Body ──────────────────────────────────────────────────────────── */
 
 .chc-sec-body {
@@ -687,7 +723,7 @@
   overflow: hidden;
   clip-path: inset(50%);
   width: 1px;
-  height: 1px
+  height: 1px;
 }
 
 /* The transient tiebreak column. Narrower than a games column and visibly subordinate to it, because it
