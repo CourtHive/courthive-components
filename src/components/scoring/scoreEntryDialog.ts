@@ -31,6 +31,7 @@ import { hydrateScoreEntryState } from './logic/scoreEntryState';
 import { createDialPadRegion } from './regions/dialPadRegion';
 import { renderScoreEntryCard } from './scoreEntryCard';
 import { endingLabels } from './logic/irregularEnding';
+import { scoreLine } from './regions/scoreLine';
 import { cModal } from '../modal/cmodal';
 
 import type { SetScore } from './types';
@@ -160,7 +161,12 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
   let closed = false;
   let notified = false;
 
-  let currentRegion = buildRegion(approach, { sets, text: undefined });
+  // Seeded in BOTH currencies, because which one is needed depends on the approach that opens. Free
+  // Score took `text: undefined` here and so opened EMPTY on a matchUp that had a score — measured
+  // 2026-09-28: Dynamic Sets and the Dial Pad hydrated from `sets` while Free Score showed a blank field
+  // and a band with no score. `scoreLine` is the factory's own rendering, so the text it opens on is the
+  // same line the other two approaches display.
+  let currentRegion = buildRegion(approach, { sets, text: scoreLine(sets ?? [], matchUpFormat) });
 
   const card = renderScoreEntryCard({
     ...params,

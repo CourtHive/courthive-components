@@ -606,9 +606,8 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    *
    * It used to occupy a dedicated 56px track at the row's end, holding a warning triangle. CA,
    * 2026-09-27: *"is the /!\ strictly necessary on both participant lines? ... I'm just trying to be a
-   * bit more different than the [...] of the [incumbent booking platform's] dialog and also limit the
-   * width of the dialog"*. The platform is named in the original and not here: name the governing body,
-   * never the vendor.
+   * bit more different ... and also limit the width of the dialog"*. The elision is a comparison to
+   * another vendor's dialog, which has no place in this codebase.
    *
    * The answer to the first part is that the ROW is the mechanism — an ending chosen here names the side
    * it happened to, which is what deletes the separate winner question — so it cannot become a single

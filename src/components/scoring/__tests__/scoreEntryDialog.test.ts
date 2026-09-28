@@ -31,6 +31,7 @@ const SIDES: [{ participantName: string }, { participantName: string }] = [
 ];
 
 const MODAL = 'section[id^="cmdl-"]';
+const FREE_SCORE_FIELD = 'input[data-free-score]';
 const FORMAT = 'SET3-S:6/TB7';
 const SHORT_FORMAT = 'SET1-S:TB10';
 const SWITCH = 'button[data-action="switchApproach"]';
@@ -262,6 +263,47 @@ describe('Escape', () => {
   });
 });
 
+describe('opening on a recorded score', () => {
+  const RECORDED = {
+    matchUpFormat: FORMAT,
+    matchUpStatus: 'RETIRED',
+    winningSide: 1,
+    score: {
+      sets: [
+        { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
+        { setNumber: 2, side1Score: 2, side2Score: 1 }
+      ]
+    }
+  };
+
+  it('hydrates EVERY approach, not just the ones with cells', () => {
+    // Measured 2026-09-28: Dynamic Sets and the Dial Pad hydrated from `sets` while **Free Score opened
+    // with an empty field and a band showing no score at all** — the initial region was built with
+    // `text: undefined`, so the one approach whose entire input is text had nothing to show. Asserted
+    // across all three together, because the gap was invisible while each was checked on its own.
+    for (const approach of ['dynamicSets', 'freeScore', 'dialPad'] as const) {
+      const dialog = open({ matchUp: RECORDED, approach });
+
+      expect(q<HTMLElement>(BAND)!.textContent, approach).toContain('6-4 2-1');
+      dialog.close();
+    }
+  });
+
+  it('puts the recorded score in the Free Score FIELD, as the text the other approaches display', () => {
+    open({ matchUp: RECORDED, approach: 'freeScore' });
+
+    expect(q<HTMLInputElement>(FREE_SCORE_FIELD)!.value).toBe('6-4 2-1');
+  });
+
+  it('reads the format off the matchUp when none is passed', () => {
+    // `matchUpFormat: undefined` explicitly, because this file's `open` helper supplies one by default
+    // and an explicitly passed format is meant to win.
+    open({ matchUpFormat: undefined, matchUp: { matchUpFormat: SHORT_FORMAT, score: { sets: [] } } });
+
+    expect(q<HTMLElement>('.chc-sec-format')!.textContent).toBe(SHORT_FORMAT);
+  });
+});
+
 describe('approach switching', () => {
   it('offers all three and marks the one showing', () => {
     open();
@@ -287,7 +329,7 @@ describe('approach switching', () => {
     click(SWITCH);
     click('[data-approach="freeScore"]');
 
-    expect(q('input[data-free-score]')).toBeTruthy();
+    expect(q(FREE_SCORE_FIELD)).toBeTruthy();
     expect(q('input[data-set="1"]')).toBeNull();
     expect(q(SWITCH)!.textContent).toBe('Free Score');
     expect(dialog.approach()).toBe('freeScore');
@@ -301,7 +343,7 @@ describe('approach switching', () => {
     type(SET_1_SIDE_2, '4');
 
     dialog.setApproach('freeScore');
-    expect(q<HTMLInputElement>('input[data-free-score]')!.value).toContain('6-4');
+    expect(q<HTMLInputElement>(FREE_SCORE_FIELD)!.value).toContain('6-4');
 
     dialog.setApproach('dialPad');
     expect(all('.chc-sec-readout').map((cell) => cell.textContent)).toEqual(['6', '4']);
