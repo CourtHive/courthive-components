@@ -44,6 +44,8 @@ const MODAL = 'section[id^="cmdl-"]';
 const CARD = '[data-component="scoreEntryCard"]';
 const CLOSE = 'button[data-action="close"]';
 const SWITCH = 'button[data-action="switchApproach"]';
+const SET_CELL = 'input[data-set]';
+const BAND = '.chc-sec-band';
 
 const SIDES: [{ participantName: string; seed?: string }, { participantName: string; seed?: string }] = [
   { participantName: 'Rosalind Lem', seed: '(4)' },
@@ -152,11 +154,80 @@ export const InModal = {
 
     clickIn(`[data-panel-side="2"] button[data-ending="${WALKOVER}"]`);
     await expect(inModal('[data-row-ending]')!.textContent).toBe('Walkover');
-    await expect(inModal('.chc-sec-band')!.textContent).toContain('Rosalind Lem advances');
+    await expect(inModal(BAND)!.textContent).toContain('Rosalind Lem advances');
 
     // [X] closes it, which is the other half of "the modal actually works".
     clickIn(CLOSE);
     await expect(document.querySelector(MODAL)).toBeNull();
+  }
+};
+
+/**
+ * The modal opened DIRECTLY in one flavor, rather than switched into.
+ *
+ * CA, 2026-09-28: *"Can the new Score Entry modal be opened in all three flavors?"* It can —
+ * `openScoreEntryDialog({ approach })` — but nothing in Storybook showed it: every modal story opened on
+ * the default and only `ApproachSwitching` reached the other two, by clicking. These open cold, which is
+ * how a host will open them, and each carries a recorded score so the hydration is visible per flavor.
+ */
+const RECORDED = {
+  matchUpFormat: FORMAT,
+  score: {
+    sets: [
+      { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
+      { setNumber: 2, side1Score: 2, side2Score: 1 }
+    ]
+  }
+};
+
+export const InModalFreeScore = {
+  name: 'Opened cold in Free Score',
+  render: () =>
+    harness('Opened directly in Free Score, on a recorded 6-4 2-1 — not switched into.', (append) =>
+      openScoreEntryDialog(dialogParams(append, { approach: 'freeScore', matchUp: RECORDED }) as any)
+    ),
+  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+    closeAll();
+    canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
+
+    // The text field is the entry surface, and it carries the recorded score: this approach is the one
+    // that opened EMPTY before the seed was fixed, because its whole input is text.
+    await expect(inModal<HTMLInputElement>('input[data-free-score]')!.value).toBe('6-4 2-1');
+    await expect(inModal(SET_CELL)).toBeUndefined();
+    await expect(inModal('button[data-digit]')).toBeUndefined();
+
+    // Same chrome as every other flavor — the endings, the band, the footer are the card's, not the
+    // region's, which is the whole point of the card owning them.
+    await expect(inModal(SWITCH)!.textContent).toBe('Free Score');
+    await expect(inModal(BAND)!.textContent).toContain('6-4 2-1');
+    await expect(inModal(CLOSE)).toBeTruthy();
+
+    clickIn(CLOSE);
+  }
+};
+
+export const InModalDialPad = {
+  name: 'Opened cold in the Dial Pad',
+  render: () =>
+    harness('Opened directly in the Dial Pad, on a recorded 6-4 2-1 — not switched into.', (append) =>
+      openScoreEntryDialog(dialogParams(append, { approach: 'dialPad', matchUp: RECORDED }) as any)
+    ),
+  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+    closeAll();
+    canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
+
+    // Ten digit keys, and the rows READ rather than accept input.
+    await expect(topModal()!.querySelectorAll('button[data-digit]')).toHaveLength(10);
+    await expect(inModal(SET_CELL)).toBeUndefined();
+    await expect([...topModal()!.querySelectorAll('.chc-sec-readout')].map((cell) => cell.textContent)).toEqual([
+      '6  2',
+      '4  1'
+    ]);
+
+    await expect(inModal(SWITCH)!.textContent).toBe('Dial Pad');
+    await expect(inModal(BAND)!.textContent).toContain('6-4 2-1');
+
+    clickIn(CLOSE);
   }
 };
 

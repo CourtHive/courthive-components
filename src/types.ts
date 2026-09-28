@@ -29,6 +29,16 @@ export interface MatchUp {
   matchUpType?: 'SINGLES' | 'DOUBLES' | 'TEAM' | 'HYBRID';
   matchUpFormat?: string;
   matchUpStatus?: string;
+  /**
+   * The reason code recorded against each side, keyed by side number — `{ 2: 'W1' }`.
+   *
+   * Mirrored here rather than imported from the factory, for the reason the rest of this file records:
+   * the field does not exist in the older factory major this package's peer range still admits. Read it
+   * through `recordedStatusCode`, never positionally.
+   */
+  sideStatusCodes?: Record<number, string>;
+  /** The reason code recorded against the MATCH, for an ending that resolves nobody. */
+  matchUpStatusCode?: string;
   winningSide?: number;
   roundNumber?: number;
   roundPosition?: number;

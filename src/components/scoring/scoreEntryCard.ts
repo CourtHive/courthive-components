@@ -237,6 +237,8 @@ export type ScoreEntryCardParams = {
   /** Offered when the host can edit the scoring format. Omit and the format chip stays inert text. */
   onEditFormat?: () => void;
   onCancel?: () => void;
+  /** An ending already recorded, for reopening an outcome. Build it with `hydrateScoreEntryState`. */
+  initialState?: ScoreEntryState;
   onClear?: () => void;
   onSubmit?: (outcome: ScoreEntryOutcome) => void;
   onClose?: () => void;
@@ -281,7 +283,13 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   let matchUpFormat = params.matchUpFormat;
   /** The switcher's label: which approach is showing. Changed through `update` alongside the region. */
   let approachLabel = params.approachLabel;
-  let state: ScoreEntryState = emptyScoreEntryState;
+  /**
+   * The ending state. Seeded from `initialState` when a host is reopening a recorded outcome.
+   *
+   * The card takes STATE rather than a matchUp deliberately: it knows sides, a format and a region, and
+   * nothing about tournament records. `hydrateScoreEntryState` does that translation for the host.
+   */
+  let state: ScoreEntryState = params.initialState ?? emptyScoreEntryState;
   /** Which side's ending panel is open, if any. Presentation only — not part of the outcome. */
   let openPanelSide: SideNumber | undefined;
   let otherMenuOpen = false;
@@ -598,7 +606,8 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    *
    * It used to occupy a dedicated 56px track at the row's end, holding a warning triangle. CA,
    * 2026-09-27: *"is the /!\ strictly necessary on both participant lines? ... I'm just trying to be a
-   * bit more different than the [...] of the ClubSpark dialog and also limit the width of the dialog"*.
+   * bit more different ... and also limit the width of the dialog"*. The elision is a comparison to
+   * another vendor's dialog, which has no place in this codebase.
    *
    * The answer to the first part is that the ROW is the mechanism — an ending chosen here names the side
    * it happened to, which is what deletes the separate winner question — so it cannot become a single

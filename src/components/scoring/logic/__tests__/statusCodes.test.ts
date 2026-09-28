@@ -6,10 +6,12 @@ import {
   statusCodeSubtext,
   statusCodeDisplay,
   codesForStatus,
+  recordedStatusCode,
   type StatusCodeGroups,
 } from '../statusCodes';
 
-const { WALKOVER, DEFAULTED, RETIRED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, ABANDONED } = matchUpStatusConstants;
+const { WALKOVER, DEFAULTED, RETIRED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, ABANDONED, CANCELLED } =
+  matchUpStatusConstants;
 const { POLICY_TYPE_SCORING } = policyConstants;
 
 // The real shipped vocabulary, not a hand-written mirror of it. A hand-mirror is how the scoring
@@ -204,5 +206,88 @@ describe('display text is read from the policy, never synthesised', () => {
 
     expect(displays.every((d) => !!d)).toBe(true);
     expect(new Set(displays).size).toBe(displays.length);
+  });
+});
+
+/**
+ * `recordedStatusCode` — which reason the picker re-opens on.
+ *
+ * Reported by the factory reason-code session, 2026-09-28: `scoringModal` read
+ * `matchUpStatusCodes[0]`, which is SIDE 1. The array is positional by side, so a reason belonging to
+ * side 2 sits at index 1 and index 0 is an empty string that `normalizeStatusCode` turns into
+ * `undefined` — the picker opened empty and re-saving lost the reason.
+ *
+ * Measured against published **7.1.0** before fixing, because the exposure is narrower than the report
+ * said: a code submitted by this dialog is stored EXACTLY as submitted, so `['W1']` round-trips through
+ * index 0 and reads correctly today. The index-1 case arrives by PROPAGATION, where a carried reason is
+ * placed at the arriving side's index. So this is a forward-compatibility fix as much as a live one, and
+ * the fallback to index 0 is what keeps every record written to date readable.
+ */
+describe('recordedStatusCode', () => {
+  it('reads the side that did NOT win, which is the side that exited', () => {
+    // `winningSide: 1` means side 2 walked over, so side 2 owns the reason.
+    expect(
+      recordedStatusCode({ matchUpStatus: WALKOVER, winningSide: 1, sideStatusCodes: { 2: 'W1' } })
+    ).toBe('W1');
+
+    expect(
+      recordedStatusCode({ matchUpStatus: RETIRED, winningSide: 2, sideStatusCodes: { 1: 'RJ' } })
+    ).toBe('RJ');
+  });
+
+  it('does not read the WINNER\'s side', () => {
+    // A code sitting against the winning side is not this matchUp's reason, and showing it would put a
+    // retirement reason next to the player who won.
+    expect(
+      recordedStatusCode({ matchUpStatus: WALKOVER, winningSide: 1, sideStatusCodes: { 1: 'W1' } })
+    ).toBeUndefined();
+  });
+
+  it('reads the MATCH-level code for an ending that resolves nobody', () => {
+    // ABANDONED, CANCELLED and INCOMPLETE attribute to no side, so there is no side to ask.
+    expect(recordedStatusCode({ matchUpStatus: CANCELLED, matchUpStatusCode: 'OA' })).toBe('OA');
+    expect(recordedStatusCode({ matchUpStatus: ABANDONED, matchUpStatusCode: 'OC' })).toBe('OC');
+  });
+
+  it('reads either side of a DOUBLE exit, which carries the same code on both', () => {
+    expect(
+      recordedStatusCode({ matchUpStatus: DOUBLE_WALKOVER, sideStatusCodes: { 1: 'WOWO', 2: 'WOWO' } })
+    ).toBe('WOWO');
+  });
+
+  it('falls back to index 0 for records written before the field existed', () => {
+    // NOT optional: the peer range still admits a factory major with neither `sideStatusCodes` nor
+    // `matchUpStatusCode`, so without this every record stored to date reads as no reason at all.
+    expect(recordedStatusCode({ matchUpStatus: WALKOVER, winningSide: 1, matchUpStatusCodes: ['W1'] })).toBe('W1');
+  });
+
+  it('reads a SIDE-2 reason that only the positional array carries', () => {
+    // The shape a propagated reason takes: index 0 empty, the code at the arriving side's index. The old
+    // read returned `undefined` here, which is the defect.
+    expect(
+      recordedStatusCode({
+        matchUpStatus: WALKOVER,
+        winningSide: 1,
+        sideStatusCodes: { 2: 'DM' },
+        matchUpStatusCodes: ['', 'DM']
+      })
+    ).toBe('DM');
+  });
+
+  it('prefers the SIDE\'s code over a stale positional one', () => {
+    expect(
+      recordedStatusCode({
+        matchUpStatus: WALKOVER,
+        winningSide: 1,
+        sideStatusCodes: { 2: 'W2' },
+        matchUpStatusCodes: ['W1']
+      })
+    ).toBe('W2');
+  });
+
+  it('is undefined when nothing was recorded, and does not throw on an empty matchUp', () => {
+    expect(recordedStatusCode({ matchUpStatus: WALKOVER, winningSide: 1 })).toBeUndefined();
+    expect(recordedStatusCode()).toBeUndefined();
+    expect(recordedStatusCode({ matchUpStatus: WALKOVER, winningSide: 1, matchUpStatusCodes: [''] })).toBeUndefined();
   });
 });
