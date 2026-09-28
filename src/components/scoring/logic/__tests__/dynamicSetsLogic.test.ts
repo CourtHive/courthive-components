@@ -39,6 +39,18 @@ function parseFormat(formatString: string): MatchUpConfig {
   };
 }
 
+/**
+ * A config for a plain best-of-N of standard sets.
+ *
+ * `isMatchComplete` and `getMatchWinner` now take a `MatchUpConfig` rather than a bare `bestOf`, because
+ * they delegate to `analyzeMatchUp`, which reads a TODS format string — and a faithful string can be
+ * rebuilt from a config but not from a set count alone.
+ */
+function bestOfConfig(bestOf: number, exactly?: number): MatchUpConfig {
+  const base = parseFormat(bestOf === 5 ? MATCH_FORMATS.SET5_S6_TB7 : MATCH_FORMATS.SET3_S6_TB7);
+  return { ...base, bestOf, exactly };
+}
+
 const FINAL_TB10 = 'SET3-S:6/TB7-F:TB10';
 
 /**
@@ -382,7 +394,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
         { side1Score: 6, side2Score: 4, winningSide: 1 },
         { side1Score: 6, side2Score: 3, winningSide: 1 }
       ];
-      expect(isMatchComplete(sets, 3)).toBe(true);
+      expect(isMatchComplete(sets, bestOfConfig(3))).toBe(true);
     });
 
     it('returns true when side 2 wins 2-0 in best-of-3', () => {
@@ -390,7 +402,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
         { side1Score: 4, side2Score: 6, winningSide: 2 },
         { side1Score: 3, side2Score: 6, winningSide: 2 }
       ];
-      expect(isMatchComplete(sets, 3)).toBe(true);
+      expect(isMatchComplete(sets, bestOfConfig(3))).toBe(true);
     });
 
     it('returns true when side 1 wins 2-1 in best-of-3', () => {
@@ -399,7 +411,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
         { side1Score: 3, side2Score: 6, winningSide: 2 },
         { side1Score: 6, side2Score: 2, winningSide: 1 }
       ];
-      expect(isMatchComplete(sets, 3)).toBe(true);
+      expect(isMatchComplete(sets, bestOfConfig(3))).toBe(true);
     });
 
     it('returns false when match is 1-1 in best-of-3', () => {
@@ -407,12 +419,12 @@ describe('dynamicSetsLogic - Pure Functions', () => {
         { side1Score: 6, side2Score: 4, winningSide: 1 },
         { side1Score: 3, side2Score: 6, winningSide: 2 }
       ];
-      expect(isMatchComplete(sets, 3)).toBe(false);
+      expect(isMatchComplete(sets, bestOfConfig(3))).toBe(false);
     });
 
     it('returns false when match is 0-0', () => {
       const sets: SetScore[] = [];
-      expect(isMatchComplete(sets, 3)).toBe(false);
+      expect(isMatchComplete(sets, bestOfConfig(3))).toBe(false);
     });
 
     it('returns true when side 1 wins 3-0 in best-of-5', () => {
@@ -421,7 +433,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
         { side1Score: 6, side2Score: 3, winningSide: 1 },
         { side1Score: 6, side2Score: 2, winningSide: 1 }
       ];
-      expect(isMatchComplete(sets, 5)).toBe(true);
+      expect(isMatchComplete(sets, bestOfConfig(5))).toBe(true);
     });
 
     it('returns false when match is 2-2 in best-of-5', () => {
@@ -431,7 +443,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
         { side1Score: 6, side2Score: 2, winningSide: 1 },
         { side1Score: 2, side2Score: 6, winningSide: 2 }
       ];
-      expect(isMatchComplete(sets, 5)).toBe(false);
+      expect(isMatchComplete(sets, bestOfConfig(5))).toBe(false);
     });
   });
 
@@ -441,7 +453,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
         { side1Score: 6, side2Score: 4, winningSide: 1 },
         { side1Score: 6, side2Score: 3, winningSide: 1 }
       ];
-      expect(getMatchWinner(sets, 3)).toBe(1);
+      expect(getMatchWinner(sets, bestOfConfig(3))).toBe(1);
     });
 
     it('returns 2 when side 2 wins 2-1', () => {
@@ -450,7 +462,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
         { side1Score: 3, side2Score: 6, winningSide: 2 },
         { side1Score: 2, side2Score: 6, winningSide: 2 }
       ];
-      expect(getMatchWinner(sets, 3)).toBe(2);
+      expect(getMatchWinner(sets, bestOfConfig(3))).toBe(2);
     });
 
     it('returns undefined when match is 1-1', () => {
@@ -458,7 +470,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
         { side1Score: 6, side2Score: 4, winningSide: 1 },
         { side1Score: 3, side2Score: 6, winningSide: 2 }
       ];
-      expect(getMatchWinner(sets, 3)).toBeUndefined();
+      expect(getMatchWinner(sets, bestOfConfig(3))).toBeUndefined();
     });
   });
 
@@ -870,6 +882,64 @@ describe('delegation to the factory', () => {
       const pair = scoreGovernor.getSetComplement({ lowValue: digit, setTo: 6, tiebreakAt: 6, isSide1: true });
       const expected = Array.isArray(pair) && pair[1] !== digit ? pair[1] : null;
       expect(calculateComplement(digit, s6tb7.setFormat), `complement of ${digit}`).toBe(expected);
+    }
+  });
+});
+
+/**
+ * Match-level completeness now comes from the factory too.
+ *
+ * `isMatchComplete` and `getMatchWinner` delegate to `matchUpGovernor.analyzeMatchUp`, whose
+ * `calculatedWinningSide` is set only when one side has reached `setsToWin` under the format.
+ *
+ * My first audit claimed these mapped to `validateMatchUpScore` / `isComplete` / `getWinner`, and
+ * measurement refuted all three: `validateMatchUpScore` returns `isValid: true` for a single set of three
+ * because it checks validity rather than completeness, and `isComplete` / `getWinner` need a matchUp that
+ * already carries a winner. `analyzeMatchUp` lives on `matchUpGovernor` rather than `scoreGovernor`, which
+ * is why searching the scoring surface concluded, wrongly, that this was missing.
+ */
+describe('match completeness delegates to analyzeMatchUp', () => {
+  const won = (a: number, b: number, side: 1 | 2, n: number): SetScore => ({
+    setNumber: n,
+    side1Score: a,
+    side2Score: b,
+    winningSide: side,
+  });
+
+  it('is undecided on one set of three, and decided on two to the same side', () => {
+    const config = bestOfConfig(3);
+
+    expect(isMatchComplete([won(6, 4, 1, 1)], config)).toBe(false);
+    expect(getMatchWinner([won(6, 4, 1, 1)], config)).toBeUndefined();
+
+    expect(isMatchComplete([won(6, 4, 1, 1), won(6, 3, 1, 2)], config)).toBe(true);
+    expect(getMatchWinner([won(6, 4, 1, 1), won(6, 3, 1, 2)], config)).toBe(1);
+  });
+
+  it('stays undecided at one set each, then resolves on the third', () => {
+    const config = bestOfConfig(3);
+    const level = [won(6, 4, 1, 1), won(3, 6, 2, 2)];
+
+    expect(isMatchComplete(level, config)).toBe(false);
+    expect(getMatchWinner([...level, won(6, 2, 1, 3)], config)).toBe(1);
+    expect(getMatchWinner([...level, won(2, 6, 2, 3)], config)).toBe(2);
+  });
+
+  it('needs three sets in a best-of-five', () => {
+    const config = bestOfConfig(5);
+
+    expect(isMatchComplete([won(6, 4, 1, 1), won(6, 3, 1, 2)], config)).toBe(false);
+    expect(isMatchComplete([won(6, 4, 1, 1), won(6, 3, 1, 2), won(6, 2, 1, 3)], config)).toBe(true);
+  });
+
+  it('rebuilds a faithful format string from the config, which is what makes this possible', () => {
+    // `analyzeMatchUp` reads a TODS format STRING; a `MatchUpConfig` is the parsed form. The round-trip was
+    // measured across SET3-S:6/TB7, SET3-S:6/TB7-F:TB10, SET1-S:TB10, SET5-S:6/TB7 and SET1-S:5WB1.
+    //
+    // The alternative was synthesising a plausible format and reading only the field that does not depend
+    // on the invented parts — which works until someone reads another field.
+    for (const format of ['SET3-S:6/TB7', FINAL_TB10, 'SET1-S:TB10', 'SET5-S:6/TB7', 'SET1-S:5WB1']) {
+      expect(scoreGovernor.stringifyMatchUpFormat(matchUpConfigFor(format) as any), format).toBe(format);
     }
   });
 });

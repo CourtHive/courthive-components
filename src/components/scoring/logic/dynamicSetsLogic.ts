@@ -4,7 +4,7 @@
  * No DOM dependencies, no side effects - pure business logic only
  */
 
-import { matchUpFormatCode, scoreGovernor } from 'tods-competition-factory';
+import { matchUpFormatCode, matchUpGovernor, scoreGovernor } from 'tods-competition-factory';
 import { parseMatchUpFormat } from '../utils/setExpansionLogic';
 
 /**
@@ -359,42 +359,46 @@ export function getSetWinner(
   return winningSide === 1 || winningSide === 2 ? winningSide : undefined;
 }
 
+
+/**
+ * The factory's analysis of a whole matchUp, from a sets array and a config.
+ *
+ * ── Why the config has to become a format STRING ──
+ *
+ * `analyzeMatchUp` takes a matchUp, and reads its `matchUpFormat` as a TODS string. A `MatchUpConfig` is
+ * the parsed form, so it is stringified back — and that round-trips faithfully, measured across
+ * `SET3-S:6/TB7`, `SET3-S:6/TB7-F:TB10`, `SET1-S:TB10`, `SET5-S:6/TB7` and `SET1-S:5WB1`.
+ *
+ * The alternative was synthesising a plausible-looking format and reading only the one field that does not
+ * depend on the parts that were invented. That works today and breaks silently the first time another
+ * field is read, which is why it was not done.
+ *
+ * `analyzeMatchUp` lives on `matchUpGovernor`, not `scoreGovernor` — which is why a first pass through the
+ * factory's scoring surface concluded, wrongly, that match completeness was missing from it.
+ */
+function matchAnalysis(sets: SetScore[], config: MatchUpConfig): Record<string, any> {
+  return matchUpGovernor.analyzeMatchUp({
+    matchUp: { score: { sets }, matchUpFormat: scoreGovernor.stringifyMatchUpFormat(config as any) },
+  });
+}
+
 /**
  * Determine if match is complete based on sets won
  */
-export function isMatchComplete(sets: SetScore[], bestOf: number, exactly?: number): boolean {
-  const setsNeeded = Math.ceil(bestOf / 2);
-  const setsWon1 = sets.filter((s) => s.winningSide === 1).length;
-  const setsWon2 = sets.filter((s) => s.winningSide === 2).length;
-  const hasWinner = setsWon1 >= setsNeeded || setsWon2 >= setsNeeded;
-
-  if (!hasWinner) return false;
-
-  if (exactly) {
-    // For exactly formats, all sets must have scores entered
-    const completedSets = sets.filter((s) => s.side1Score !== undefined && s.side2Score !== undefined).length;
-    return completedSets >= exactly;
-  }
-
-  return true;
+export function isMatchComplete(sets: SetScore[], config: MatchUpConfig): boolean {
+  // `calculatedWinningSide` is set only when one side has reached `setsToWin` under this format —
+  // measured: 6-4 alone undefined, 6-4 3-6 undefined, 6-4 6-3 side 1, and an `exactly:1` format decided
+  // by its single set.
+  return !!matchAnalysis(sets, config).calculatedWinningSide;
 }
 
 /**
  * Get the match winner based on sets won
  * Returns undefined if match is not complete
  */
-export function getMatchWinner(sets: SetScore[], bestOf: number, exactly?: number): 1 | 2 | undefined {
-  if (!isMatchComplete(sets, bestOf, exactly)) {
-    return undefined;
-  }
-
-  const setsNeeded = Math.ceil(bestOf / 2);
-  const setsWon1 = sets.filter((s) => s.winningSide === 1).length;
-  const setsWon2 = sets.filter((s) => s.winningSide === 2).length;
-
-  if (setsWon1 >= setsNeeded) return 1;
-  if (setsWon2 >= setsNeeded) return 2;
-  return undefined;
+export function getMatchWinner(sets: SetScore[], config: MatchUpConfig): 1 | 2 | undefined {
+  const winningSide = matchAnalysis(sets, config).calculatedWinningSide;
+  return winningSide === 1 || winningSide === 2 ? winningSide : undefined;
 }
 
 /**
@@ -473,7 +477,7 @@ export function shouldApplySmartComplement(
   }
 
   // Check if match is already complete
-  if (isMatchComplete(sets, config.bestOf, config.exactly)) {
+  if (isMatchComplete(sets, config)) {
     return {
       field1Value: digit,
       field2Value: 0,
@@ -563,7 +567,7 @@ export function shouldCreateNextSet(currentSetIndex: number, sets: SetScore[], c
   }
 
   // Don't create if match is complete
-  if (isMatchComplete(sets, config.bestOf, config.exactly)) {
+  if (isMatchComplete(sets, config)) {
     return false;
   }
 

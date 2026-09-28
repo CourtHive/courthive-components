@@ -109,8 +109,8 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     rowCells: (sideNumber) => layout().map((slot) => cellFor(sideNumber, slot)),
     block: () => smartComplementsToggle(),
     scoreString: () => formatScore(),
-    isComplete: () => isMatchComplete(currentSets(), config.bestOf, config.exactly),
-    winningSide: () => getMatchWinner(currentSets(), config.bestOf, config.exactly),
+    isComplete: () => isMatchComplete(currentSets(), config),
+    winningSide: () => getMatchWinner(currentSets(), config),
     getSets: () => currentSets(),
     smartComplementsEnabled: () => smartComplements,
   };

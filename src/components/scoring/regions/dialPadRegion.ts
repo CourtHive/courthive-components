@@ -67,8 +67,8 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     rowCells: (sideNumber) => [readouts.cell(sideNumber, currentSets())],
     block: () => keypad(),
     scoreString: () => scoreText(),
-    isComplete: () => isMatchComplete(currentSets(), config.bestOf, config.exactly),
-    winningSide: () => getMatchWinner(currentSets(), config.bestOf, config.exactly),
+    isComplete: () => isMatchComplete(currentSets(), config),
+    winningSide: () => getMatchWinner(currentSets(), config),
     getSets: () => currentSets(),
   };
 
