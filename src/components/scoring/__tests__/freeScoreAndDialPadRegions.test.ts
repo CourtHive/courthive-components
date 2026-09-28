@@ -429,9 +429,10 @@ describe('Dial Pad — tiebreak mode', () => {
     expect(h.band()?.textContent).toContain('7-6(10)');
   });
 
-  it('does not render points on a set no tiebreak could have been played in', () => {
-    // A stray tiebreak on a 6-2 is not shown as though it were legitimate — `shouldShowTiebreak` owns
-    // that, and the region asks it rather than trusting what was typed.
+  it('SAYS a tiebreak on a 6-2 is wrong rather than hiding it', () => {
+    // This used to assert the opposite: the keypad suppressed the parenthetical, so the operator saw a
+    // clean `6-2` while a stray 3 sat in the state and would have been submitted. Hiding bad data is
+    // not integrity checking — the factory's own validator is, and it answers plainly.
     const h = dialPad();
 
     press(h, 6);
@@ -439,8 +440,14 @@ describe('Dial Pad — tiebreak mode', () => {
     toggleTiebreak(h);
     press(h, 3);
 
-    expect(h.band()?.textContent).toContain('6-2');
-    expect(h.band()?.textContent).not.toContain('(3)');
+    // The band carries the BREACH, because an integrity failure outranks anything else it might say,
+    // and it names the set.
+    expect(h.band()?.textContent).toMatch(/1st set: .*must have 7 games/i);
+    expect(h.submit()?.disabled).toBe(true);
+
+    // And the stray points are visible in the row rather than quietly dropped, so the operator can see
+    // what to backspace.
+    expect(h.readout(2)?.textContent).toContain('2(3)');
   });
 
   it('backspace eats the tiebreak BEFORE the games it belongs to', () => {
@@ -461,6 +468,42 @@ describe('Dial Pad — tiebreak mode', () => {
 
     back();
     expect(h.band()?.textContent).not.toContain('7-6');
+  });
+});
+
+/**
+ * The score LINE comes from the factory, and all three approaches quote it identically.
+ *
+ * CA, 2026-09-28: *"you should use generateScoreString and not invent something new for the modal."*
+ * Each region used to format its own and they disagreed — measured before the swap: the same 7-6 read
+ * `7-6(3)` in Dynamic Sets and `7-6(7)` on the keypad, and the same match tiebreak read `10-8` in one
+ * and `0-0` in the other.
+ */
+describe('the score line is the factory\'s, and the approaches agree', () => {
+  it('Free Score quotes the canonical line, not the shorthand typed', () => {
+    const h = freeScore({ initialText: '76(3) 64' });
+
+    expect(h.band()?.textContent).toContain('7-6(3) 6-4');
+  });
+
+  it('puts the tiebreak LAST when side 2 wins the set — `6-7(3)`, not `6(3)-7`', () => {
+    // The parameter that decides this changes nothing while side 1 wins, which is how the wrong value
+    // survived a first pass: every case in the suite was a side-1 win. In side order side 2 wins sets
+    // routinely, and `setTBlast: false` renders those as `6(3)-7`, with the parenthetical mid-line.
+    const h = freeScore({ initialText: '6-7(3)' });
+
+    expect(h.band()?.textContent).toContain('6-7(3)');
+    expect(h.band()?.textContent).not.toContain('6(3)-7');
+  });
+
+  it('all three approaches render the same score the same way', () => {
+    const sets = [{ setNumber: 1, side1Score: 7, side2Score: 6, side1TiebreakScore: 7, side2TiebreakScore: 3, winningSide: 1 }];
+    const lines = [
+      dialPad({ sets }).band()?.textContent,
+      freeScore({ initialText: '7-6(3)' }).band()?.textContent,
+    ];
+
+    for (const line of lines) expect(line).toContain(SEVEN_SIX_THREE);
   });
 });
 

@@ -44,6 +44,7 @@
 
 import { scoreGovernor } from 'tods-competition-factory';
 import { ordinalSetLabel } from './setColumns';
+import { scoreLine } from './scoreLine';
 import {
   shouldApplySmartComplement,
   getSetFormatForIndex,
@@ -817,27 +818,6 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
   // ── The score as text, for the result band ───────────────────────────
 
   function formatScore(): string | undefined {
-    const sets = currentSets();
-    if (!sets.length) return undefined;
-
-    return sets
-      .map((set, index) => {
-        // A tiebreak-only set (a match tiebreak) carries its points in the TIEBREAK fields —
-        // `buildSetScore` zeroes the games for one — so reading the games would report every match
-        // tiebreak as `0-0`. Measured after the band did exactly that for a 10-8.
-        if (isSetTiebreakOnly(getSetFormatForIndex(index, config))) {
-          return `${set.side1TiebreakScore ?? 0}-${set.side2TiebreakScore ?? 0}`;
-        }
-
-        const base = `${set.side1Score ?? 0}-${set.side2Score ?? 0}`;
-
-        const entry = entries[index];
-        const pair = [entry.tiebreak1, entry.tiebreak2].filter(Boolean).map(Number);
-        if (!pair.length) return base;
-
-        // The LOWER of the two points is what a score line shows — `7-6(3)`.
-        return `${base}(${Math.min(...pair)})`;
-      })
-      .join(' ');
+    return scoreLine(currentSets(), params.matchUpFormat);
   }
 }

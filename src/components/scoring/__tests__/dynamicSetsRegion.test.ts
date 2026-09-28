@@ -667,6 +667,12 @@ describe('the tiebreak column — CA, 2026-09-27', () => {
     const set = h.region.getSets()[0];
     expect(set.side1TiebreakScore).toBe(10);
     expect(set.side2TiebreakScore).toBe(8);
+
+    // And it READS as `[10-8]`, in brackets. That is the factory's own form for a tiebreak-only set —
+    // `scoreGovernor.generateScoreString` produces it — and what every other score line in the ecosystem
+    // shows. This region used to render `10-8` from a hand-rolled special case, and the keypad rendered
+    // `0-0` for the same set because it read the GAMES, which are zero by construction here.
+    expect(h.band()?.textContent).toContain('[10-8]');
   });
 
   it('completes from the games LOSER, and runs long when it has to', () => {

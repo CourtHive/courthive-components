@@ -21,6 +21,7 @@
  */
 
 import { createScoreReadouts, READOUT_COLUMN_WIDTH } from './scoreReadout';
+import { scoreLine } from './scoreLine';
 import { parseScore } from '../../../tools/freeScore/freeScore';
 import { validateScore } from '../utils/scoreValidator';
 
@@ -103,10 +104,13 @@ export function createFreeScoreRegion(params: FreeScoreRegionParams): FreeScoreR
   function scoreText(): string | undefined {
     const result = parsed().result;
     if (!result) return undefined;
-    // The FORMATTED score when the parse succeeded, so the band quotes a canonical `6-4 6-3` rather
-    // than whatever shorthand was typed; the raw text when it did not, because showing nothing while
-    // the operator is mid-word reads as the field being ignored.
-    return result.valid ? result.formattedScore : text || undefined;
+
+    // The FACTORY's line when the parse succeeded, so the band quotes a canonical `6-4 6-3` rather than
+    // whatever shorthand was typed — and quotes it identically to the other two approaches, which is
+    // what `scoreLine` exists for. The raw text when the parse did NOT succeed, because showing nothing
+    // while the operator is mid-word reads as the field being ignored.
+    if (!result.valid) return text || undefined;
+    return scoreLine(parsed().sets, matchUpFormat) ?? result.formattedScore;
   }
 
   // ── Rendering ────────────────────────────────────────────────────────

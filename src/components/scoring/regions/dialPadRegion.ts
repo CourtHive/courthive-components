@@ -23,13 +23,15 @@
  */
 
 import { createScoreReadouts, READOUT_COLUMN_WIDTH } from './scoreReadout';
+import { scoreGovernor } from 'tods-competition-factory';
+import { ordinalSetLabel } from './setColumns';
+import { scoreLine } from './scoreLine';
 import {
   getSetFormatForIndex,
   getMaxAllowedScore,
   matchUpConfigFor,
   getMatchWinner,
   isMatchComplete,
-  shouldShowTiebreak,
   buildSetScore,
 } from '../logic/dynamicSetsLogic';
 
@@ -72,6 +74,7 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     isComplete: () => isMatchComplete(currentSets(), config),
     winningSide: () => getMatchWinner(currentSets(), config),
     getSets: () => currentSets(),
+    error: () => firstError(),
     // A single digit pressed is entry, and `currentSets()` does not report it.
     hasEntry: () => entries.some((entry) => entry.side1 || entry.side2 || entry.tiebreak),
   };
@@ -85,7 +88,11 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
         // `=== undefined` and not `||`, so a set lost to love seeds as '0' rather than blank.
         side1: set.side1Score === undefined ? '' : String(set.side1Score),
         side2: set.side2Score === undefined ? '' : String(set.side2Score),
-        tiebreak: (set.side1TiebreakScore ?? set.side2TiebreakScore)?.toString(),
+        // The LOSER's points, which is the one value `buildSetScore` takes — it derives the winner's
+        // from it. This read `side1TiebreakScore ?? side2TiebreakScore`, side 1's whatever side 1 is,
+        // so a saved 7-6(3) with both values recorded reopened as **7-6(7)**: side 1 had won the set
+        // and therefore held the 7, which was then read back as the loser's points.
+        tiebreak: lowerTiebreak(set)?.toString(),
       };
     }
   }
@@ -110,6 +117,12 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
       if (!entry.side2) return { index, side: 2 };
     }
     return undefined;
+  }
+
+  /** The loser's tiebreak points — the lower of whatever is recorded. */
+  function lowerTiebreak(set: SetScore): number | undefined {
+    const pair = [set.side1TiebreakScore, set.side2TiebreakScore].filter((points) => points !== undefined);
+    return pair.length ? Math.min(...(pair as number[])) : undefined;
   }
 
   /** The set a tiebreak would attach to: the last one with any games in it. */
@@ -285,32 +298,33 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
   }
 
   function scoreText(): string | undefined {
+    return scoreLine(currentSets(), params.matchUpFormat);
+  }
+
+  /**
+   * The first set that is not a legal score in this format, per the factory.
+   *
+   * The keypad had NO integrity check. What it had instead was a display rule: a tiebreak on a 6-2 was
+   * silently not rendered, so the operator saw `6-2` while a stray 3 sat in the state and would have
+   * been submitted. Once the score line comes from the factory (`scoreLine`) that suppression is gone —
+   * `6-2(3)` is now shown — so the honest replacement is to SAY it is wrong rather than to hide it.
+   * `scoreGovernor.validateSetScore` answers exactly that: *"Tiebreak set winner must have 7 games,
+   * got 6"*.
+   *
+   * `allowIncomplete` because the keypad is read between taps and a 3-2 is an ordinary state, not a
+   * breach. Dynamic Sets asks the same question the same way.
+   */
+  function firstError(): string | undefined {
     const sets = currentSets();
-    if (!sets.length) return undefined;
-
-    return sets
-      .map((set, index) => {
-        const base = `${set.side1Score ?? 0}-${set.side2Score ?? 0}`;
-
-        // The LOWER of the two points is what a score line shows — `7-6(3)`, the loser's.
-        //
-        // This read `side1TiebreakScore ?? side2TiebreakScore`, which is side 1's whatever side 1 is.
-        // Measured 2026-09-28: a tiebreak of 3 typed on a 7-6 rendered **7-6(7)**, because
-        // `buildSetScore` completes the pair from the loser's points and side 1 had won the set, so
-        // side 1 held the 7. Dynamic Sets already took the minimum; the keypad did not, and the same
-        // keystrokes produced two different score lines depending on which approach was open.
-        const pair = [set.side1TiebreakScore, set.side2TiebreakScore].filter((points) => points !== undefined);
-        if (!pair.length) return base;
-        const tiebreak = Math.min(...(pair as number[]));
-        // `shouldShowTiebreak` owns whether this set's score is one a tiebreak can attach to, so a
-        // stray tiebreak on a 6-2 is not rendered as if it were legitimate.
-        const allowed = shouldShowTiebreak(
-          index,
-          { side1: set.side1Score ?? 0, side2: set.side2Score ?? 0 },
-          config,
-        );
-        return allowed ? `${base}(${tiebreak})` : base;
-      })
-      .join(' ');
+    for (const [index, set] of sets.entries()) {
+      const { isValid, error } = scoreGovernor.validateSetScore(
+        set,
+        params.matchUpFormat,
+        index === setCount - 1,
+        true,
+      );
+      if (!isValid && error) return `${ordinalSetLabel(index + 1)} set: ${error}`;
+    }
+    return undefined;
   }
 }
