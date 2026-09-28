@@ -1,5 +1,29 @@
 # Changelog
 
+## [6.1.0](https://github.com/CourtHive/courthive-components/compare/v6.0.1...v6.1.0) (2026-09-28)
+
+
+### Features
+
+* **scoring:** score-entry redesign — ten endings, the card, and the shared geometry ([#597](https://github.com/CourtHive/courthive-components/issues/597)) ([fd860e3](https://github.com/CourtHive/courthive-components/commit/fd860e36260736b228cf15ba0f361a3448df2122))
+* **scoring:** the three score regions, progressive tiebreak entry, and 6³ ([#600](https://github.com/CourtHive/courthive-components/issues/600)) ([7a9a28e](https://github.com/CourtHive/courthive-components/commit/7a9a28ed0fa052030f4aa251f8e14516d34781b4))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.2.0 ([#601](https://github.com/CourtHive/courthive-components/issues/601)) ([514bae9](https://github.com/CourtHive/courthive-components/commit/514bae93722038e92aa2c1d2761a6accdf7657a0))
+* **modal:** a dialog taller than the viewport scrolls instead of clipping ([#596](https://github.com/CourtHive/courthive-components/issues/596)) ([b0b3c31](https://github.com/CourtHive/courthive-components/commit/b0b3c314ea7fc806536bdf5ec88e27244abf7c49))
+* **schedule:** a doubles player is findable by their own name ([#599](https://github.com/CourtHive/courthive-components/issues/599)) ([99c4140](https://github.com/CourtHive/courthive-components/commit/99c4140057e09474c3e73f5da43a557b737c08e7))
+* **scoring:** a click outside the dialog no longer discards a typed score ([#595](https://github.com/CourtHive/courthive-components/issues/595)) ([a495c30](https://github.com/CourtHive/courthive-components/commit/a495c30936f833f1ed019ab658e4e1f0ba9de6cd))
+* **scoring:** a saved ending survives re-opening — hoist the inverse ([#590](https://github.com/CourtHive/courthive-components/issues/590)) ([08a2339](https://github.com/CourtHive/courthive-components/commit/08a23397258ed56af1919de2ec2ad382be6e7b25))
+* **scoring:** Free Score shows an ending that carries no score ([#594](https://github.com/CourtHive/courthive-components/issues/594)) ([57a14ba](https://github.com/CourtHive/courthive-components/commit/57a14bac53f6774d6bdce38734981cdc90a6076a))
+* **scoring:** rotating between approaches keeps what has been typed ([#593](https://github.com/CourtHive/courthive-components/issues/593)) ([02a83dd](https://github.com/CourtHive/courthive-components/commit/02a83dd4ef1430e0e7e908c2e2a80c4bbd668c86))
+
+
+### Documentation
+
+* **scoring:** the smart-complements examples had the rule inverted ([#592](https://github.com/CourtHive/courthive-components/issues/592)) ([373091d](https://github.com/CourtHive/courthive-components/commit/373091d62b1fa1e2d49638d0dfdfbceed24b306f))
+
 ## [6.0.1](https://github.com/CourtHive/courthive-components/compare/v6.0.0...v6.0.1) (2026-09-24)
 
 
