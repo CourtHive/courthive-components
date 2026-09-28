@@ -31,6 +31,7 @@
  */
 
 import { statusCodeSubtext, statusCodeDisplay, codesForStatus } from './logic/statusCodes';
+import { ENTRY_SIDE, hasCommandModifier, otherSide } from './keyboard';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 import { scoreEntrySummary } from './logic/scoreEntrySummary';
 import { endingLabels } from './logic/irregularEnding';
@@ -86,6 +87,25 @@ const CHECK_PATH = 'M20 6 9 17l-5-5';
 const SCORE_COLUMN_PX = 62;
 
 /**
+ * How many score columns can sit BESIDE the participant names before the names have to move.
+ *
+ * CA, 2026-09-28: *"If I have 9 timed Bolts the width will make the entry columns collide with the
+ * participant names; in such a case the upper participant name should float to a row above the cells
+ * and the lower participant name should float/wrap to a row beneath the cells."*
+ *
+ * Six, and the number is a consequence rather than a taste: conventional tennis never asks for more.
+ * Best-of-five is five games columns plus at most one transient tiebreak column, so every racquet
+ * format in the ecosystem stays inline and the stacked layout is reserved for the formats that
+ * genuinely cannot fit — a nine-bolt timed match needs 558px of columns, which leaves nothing usable
+ * for a name inside the dialog's 780.
+ *
+ * Counted rather than measured because a count is the same answer in happy-dom as in a browser. A
+ * `getBoundingClientRect` threshold would be untestable in the suite that is this package's only DOM
+ * evidence, and would silently choose the inline layout there — where every width is zero.
+ */
+const MAX_INLINE_SCORE_COLUMNS = 6;
+
+/**
  * The three endings the design privileges as buttons in the match-level row. The rest go behind
  * "Other…". Their presence is what tells an operator the row is about the match rather than a side,
  * which is why the caption that used to say so is gone.
@@ -97,6 +117,24 @@ const SIDE_ENDING_HINTS: Record<string, string> = {
   [WALKOVER]: 'Did not play at all — no score',
   [RETIRED]: 'Started, could not finish — score kept',
   [DEFAULTED]: 'Removed by the referee'
+};
+
+/**
+ * One letter per side ending, and the CASE names the row.
+ *
+ * CA, 2026-09-28: *"in all scoring modes 'w' should be a WALKOVER to the lower participant and 'W'
+ * should be a WALKOVER to the upper participant; same for 'r/R' and 'd/D' => pressing these keys
+ * toggles the appropriate irregular ending pane below the appropriate participant."*
+ *
+ * The same three endings the row panels offer, so the keyboard cannot reach an ending the pointer
+ * cannot — the letters are a shortcut to the existing control, never a second way to record an
+ * outcome. Case rather than a modifier because it needs no second key: lower case is the lower row,
+ * which is the same mnemonic as the digits.
+ */
+const SIDE_ENDING_KEYS: Record<string, string> = {
+  w: WALKOVER,
+  r: RETIRED,
+  d: DEFAULTED
 };
 
 /**
@@ -320,6 +358,9 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    * It does nothing while Submit is disabled — the same gate, not a second opinion about it.
    */
   element.addEventListener('keydown', (event) => {
+    if (hasCommandModifier(event)) return;
+    if (endingShortcut(event)) return;
+
     if (event.key !== 'Enter' || submitButton.disabled) return;
     // Not from inside an open menu, where Enter is choosing the item under the cursor.
     if ((event.target as HTMLElement)?.closest('.chc-sec-other-menu')) return;
@@ -574,27 +615,102 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     return !!(state.sideEnding || state.matchEnding || state.reasonCode || region.hasEntry?.());
   }
 
+  // ── The per-side ending shortcuts: w/W, r/R, d/D ──────────────────────
+
+  /**
+   * Record a side ending from a letter, and open that row's panel.
+   *
+   * Returns whether the key was consumed, so the caller leaves Enter alone.
+   *
+   * A TOGGLE, like every control in the card: `chooseSideEnding` clears an ending already selected on
+   * that side, so pressing `w` twice leaves the card exactly where it started and closes the panel
+   * with it. That is what CA asked for in the word "toggles", and it is the same reachable-empty-state
+   * rule the buttons already follow.
+   *
+   * The panel is OPENED rather than merely marked, because the reason codes live inside it and a
+   * walkover recorded with no way to say why is half the entry. Focus follows to the ending that was
+   * just selected — the render replaces every control in the card, so without this an operator who
+   * typed `w` from a score cell would be left on the document body.
+   */
+  function endingShortcut(event: KeyboardEvent): boolean {
+    if (event.key.length !== 1) return false;
+    if (consumesLetters(event.target)) return false;
+
+    const status = SIDE_ENDING_KEYS[event.key.toLowerCase()];
+    if (!status) return false;
+
+    // Upper case names the UPPER row. Read from the character rather than from `shiftKey`, so Caps
+    // Lock means the same thing as Shift — the operator is looking at a capital either way.
+    const sideNumber: SideNumber = event.key === event.key.toUpperCase() ? otherSide(ENTRY_SIDE) : ENTRY_SIDE;
+
+    event.preventDefault();
+    state = chooseSideEnding(state, sideNumber, status);
+    openPanelSide = state.sideEnding ? sideNumber : undefined;
+    otherMenuOpen = false;
+    render();
+    focusAfterShortcut(sideNumber, status);
+    return true;
+  }
+
+  /**
+   * Where focus goes once a shortcut has redrawn the card.
+   *
+   * On the ending just chosen, inside the panel, so the reason chips are one Tab away. On the row's
+   * opener when the press cleared the ending instead, which is where the operator was conceptually
+   * standing and keeps a second press of the same letter working.
+   */
+  function focusAfterShortcut(sideNumber: SideNumber, status: string): void {
+    const selector = state.sideEnding
+      ? `[data-panel-side="${sideNumber}"] button[data-ending="${status}"]`
+      : `button[data-action="endedEarly"][data-side="${sideNumber}"]`;
+    element.querySelector<HTMLElement>(selector)?.focus();
+  }
+
+  /**
+   * Whether the focused element is a field that letters legitimately belong in.
+   *
+   * The per-set cells are digits-only — `digitsOnly` strips anything else — so a `w` there means
+   * nothing and is free to be a shortcut, which is what makes the letters work while entering a score
+   * in Dynamic Sets. Free Score's field is the opposite case: `6-4 ret` is the entire reason that
+   * approach exists, so its letters must reach the field. An operator in Free Score reaches the
+   * shortcuts by tabbing out of the field, exactly as they reach any other control in the card.
+   */
+  function consumesLetters(target: EventTarget | null): boolean {
+    const focused = target as HTMLElement | null;
+    if (!focused) return false;
+    if (focused.isContentEditable) return true;
+    if (focused.tagName === 'TEXTAREA') return true;
+    if (focused.tagName !== 'INPUT') return false;
+
+    return !focused.classList.contains('chc-sec-set-input');
+  }
+
   function renderRows(winningSide?: number): void {
     rowsContainer.replaceChildren();
 
     const columns = region.columns?.() ?? [];
     const scoreTracks = columns.map((column) => column.width ?? `${SCORE_COLUMN_PX}px`).join(' ');
+    // Past the point where a name fits beside them, the columns take the whole row and the name floats
+    // onto a line of its own — above its cells for the upper participant, beneath them for the lower.
+    const stacked = columns.length > MAX_INLINE_SCORE_COLUMNS;
     // No trailing action track: the ending control moved into the name cell (see `participantRow`), which
     // returns its width to the participant and stops the row ending in something shaped like an overflow
     // menu.
-    const template = `1fr ${scoreTracks}`;
+    const template = stacked ? scoreTracks : `1fr ${scoreTracks}`;
 
     // A header row only when at least one column is labelled. Free Score and the Dial Pad have a
     // single unlabelled readout column, and an empty header strip above it would be furniture.
     if (columns.some((column) => column.heading)) {
       const head = div('chc-sec-row-head');
       head.style.gridTemplateColumns = template;
-      head.append(text('', 'PLAYER'), ...columns.map((column) => columnHeading(column.heading ?? '')));
+      // No PLAYER label once the names are not in a column — it would head a track that holds scores.
+      const headings = columns.map((column) => columnHeading(column.heading ?? ''));
+      head.append(...(stacked ? headings : [text('', 'PLAYER'), ...headings]));
       rowsContainer.append(head);
     }
 
     for (const sideNumber of [1, 2] as SideNumber[]) {
-      rowsContainer.append(participantRow(sideNumber, template, winningSide));
+      rowsContainer.append(participantRow(sideNumber, template, winningSide, stacked));
       if (openPanelSide === sideNumber) rowsContainer.append(sidePanel(sideNumber));
     }
   }
@@ -619,7 +735,12 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    * carries a solid pill naming the ending, which is the language the walkover artboard already used —
    * the triangle was only ever the unselected face of the same thing.
    */
-  function participantRow(sideNumber: SideNumber, template: string, winningSide?: number): HTMLElement {
+  function participantRow(
+    sideNumber: SideNumber,
+    template: string,
+    winningSide?: number,
+    stacked = false
+  ): HTMLElement {
     const side = params.sides[sideNumber - 1];
 
     // ── A double exit happened to BOTH sides, so both rows say so ──
@@ -634,6 +755,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     const row = div('chc-sec-row');
     row.style.gridTemplateColumns = template;
     row.dataset.side = String(sideNumber);
+    row.dataset.stacked = String(stacked);
     // `ended` still marks only the row the ending was entered against: it drives the strike-through, and
     // striking BOTH names through would read as neither having played rather than neither advancing.
     row.dataset.ended = String(selected?.sideNumber === sideNumber);
@@ -680,7 +802,16 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     }
 
     const cells = region.rowCells?.(sideNumber) ?? [];
-    row.append(participant, ...cells);
+
+    // ── Stacked: the name straddles the columns, on the side of them its row faces ──
+    //
+    // Order alone places it, because `.chc-sec-participant` spans every track when stacked: put it
+    // FIRST and the cells flow onto the grid line beneath it, put it LAST and they flow above. So the
+    // upper participant's name sits over its own scores and the lower participant's under theirs,
+    // which keeps each name adjacent to the row it names rather than both drifting to one edge.
+    if (stacked && sideNumber === ENTRY_SIDE) row.append(...cells, participant);
+    else row.append(participant, ...cells);
+
     return row;
   }
 

@@ -21,6 +21,7 @@
  */
 import { matchUpStatusConstants, fixtures, policyConstants } from 'tods-competition-factory';
 import { openScoreEntryDialog } from '../components/scoring/scoreEntryDialog';
+import { asRecord, gamesPerSet } from './helpers/scoreEntryStoryHost';
 import { cModal } from '../components/modal/cmodal';
 import { expect } from 'storybook/test';
 
@@ -111,29 +112,50 @@ function harness(note: string, openDialog: (append: (line: string) => void) => S
   return container;
 }
 
-/** `6-4` per set, so the log reads as a score rather than as a wall of set objects. */
-function gamesPerSet(sets?: any[]): string[] {
-  return (sets ?? []).map((set) => `${set.side1Score ?? ''}-${set.side2Score ?? ''}`);
-}
+/**
+ * Open the dialog, and REOPEN it on whatever it submits.
+ *
+ * CA, 2026-09-28: *"All of the stories should allow me to Submit and then re-open on the score I just
+ * submitted."* So every dialog story is a round trip, not only the ones in
+ * `scoreEntryRoundTrip.stories.ts`.
+ *
+ * On a timer, and it has to be: `openScoreEntryDialog` calls `onSubmit` and then CLOSES, so a dialog
+ * reopened synchronously inside the callback would be the one that close then tore down. Letting the
+ * stack unwind first is what makes the second dialog the surviving one.
+ *
+ * `asRecord` is the mapping a real host performs — the card reports an outcome, a record is what gets
+ * stored, and the two differ by the one inversion this whole design turns on.
+ */
+function openDialog(append: (line: string) => void, over: Record<string, any> = {}) {
+  const matchUpFormat = over.matchUpFormat ?? FORMAT;
 
-/** The shared dialog params. A story overrides only what it is about. */
-function dialogParams(append: (line: string) => void, over: Record<string, any> = {}) {
-  return {
-    sides: SIDES,
-    matchUpFormat: FORMAT,
-    context: 'R16 · Court 3',
-    statusCodeGroups: REAL_GROUPS,
-    onSubmit: (outcome: any) => append(`submit → ${JSON.stringify({ ...outcome, sets: gamesPerSet(outcome.sets) })}`),
-    onClose: () => append('closed'),
-    ...over
-  };
+  const open = (matchUp?: any) =>
+    openScoreEntryDialog({
+      sides: SIDES,
+      matchUpFormat,
+      context: 'R16 · Court 3',
+      statusCodeGroups: REAL_GROUPS,
+      ...over,
+      matchUp: matchUp ?? over.matchUp,
+      onSubmit: (outcome: any) => {
+        append(`submit → ${JSON.stringify({ ...outcome, sets: gamesPerSet(outcome.sets) })}`);
+        const next = asRecord(outcome, outcome.sets ?? [], matchUpFormat);
+        setTimeout(() => {
+          open(next);
+          append('reopened on the submitted outcome');
+        }, 0);
+      },
+      onClose: () => append('closed')
+    } as any);
+
+  return open();
 }
 
 export const InModal = {
   name: 'In a modal — and "What happened to…" in context',
   render: () =>
     harness('The card in a real cModal at 780px. Click a participant’s name to ask what happened to them.', (append) =>
-      openScoreEntryDialog(dialogParams(append) as any)
+      openDialog(append)
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
@@ -184,7 +206,7 @@ export const InModalFreeScore = {
   name: 'Opened cold in Free Score',
   render: () =>
     harness('Opened directly in Free Score, on a recorded 6-4 2-1 — not switched into.', (append) =>
-      openScoreEntryDialog(dialogParams(append, { approach: 'freeScore', matchUp: RECORDED }) as any)
+      openDialog(append, { approach: 'freeScore', matchUp: RECORDED })
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
@@ -210,7 +232,7 @@ export const InModalDialPad = {
   name: 'Opened cold in the Dial Pad',
   render: () =>
     harness('Opened directly in the Dial Pad, on a recorded 6-4 2-1 — not switched into.', (append) =>
-      openScoreEntryDialog(dialogParams(append, { approach: 'dialPad', matchUp: RECORDED }) as any)
+      openDialog(append, { approach: 'dialPad', matchUp: RECORDED })
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
@@ -237,11 +259,9 @@ export const ApproachSwitching = {
     harness(
       'Open, type a set, then switch approach from the header. The score and any ending come with you.',
       (append) =>
-        openScoreEntryDialog(
-          dialogParams(append, {
-            onApproachChange: (approach: ScoreEntryApproach) => append(`approach → ${approach}`)
-          }) as any
-        )
+        openDialog(append, {
+          onApproachChange: (approach: ScoreEntryApproach) => append(`approach → ${approach}`)
+        })
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
@@ -288,13 +308,11 @@ export const FormatPicker = {
     harness(
       'The format code in the header is a button. It opens this package’s matchUpFormat picker, on top.',
       (append) =>
-        openScoreEntryDialog(
-          dialogParams(append, {
-            // Present, so the chip becomes a button: without a host that can accept a change it stays inert
-            // text rather than opening a picker whose choice would go nowhere.
-            onFormatChange: (matchUpFormat: string) => append(`format → ${matchUpFormat}`)
-          }) as any
-        )
+        openDialog(append, {
+          // Present, so the chip becomes a button: without a host that can accept a change it stays inert
+          // text rather than opening a picker whose choice would go nowhere.
+          onFormatChange: (matchUpFormat: string) => append(`format → ${matchUpFormat}`)
+        })
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
