@@ -14,6 +14,7 @@
  * layout, real pointer events and focus rings are still unchecked, and those remain reasons to open
  * Storybook. What it does mean is that a broken story fails CI rather than waiting to be noticed.
  */
+import * as roundTripStories from '../scoreEntryRoundTrip.stories';
 import * as dialogStories from '../scoreEntryDialog.stories';
 import * as cardStories from '../scoreEntryCard.stories';
 import { describe, it, expect, afterEach } from 'vitest';
@@ -30,7 +31,7 @@ function playableIn(module: Record<string, any>): [string, Story][] {
   ) as [string, Story][];
 }
 
-const playable = [...playableIn(cardStories), ...playableIn(dialogStories)];
+const playable = [...playableIn(cardStories), ...playableIn(dialogStories), ...playableIn(roundTripStories)];
 
 afterEach(() => {
   while (document.querySelector(MODAL)) cModal.close();
@@ -54,7 +55,12 @@ describe('the dialog stories run', () => {
       'RowEndingChosen',
       'InModal',
       'ApproachSwitching',
-      'FormatPicker'
+      'FormatPicker',
+      'ReopenAWalkover',
+      'OutAndBackIn',
+      'ReopenARetirement',
+      'ReopenAMatchLevelEnding',
+      'ReopenADoubleExit'
     ]);
   });
 

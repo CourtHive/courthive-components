@@ -27,6 +27,7 @@
 import { getMatchUpFormatModal } from '../matchUpFormat/matchUpFormat';
 import { createDynamicSetsRegion } from './regions/dynamicSetsRegion';
 import { createFreeScoreRegion } from './regions/freeScoreRegion';
+import { hydrateScoreEntryState } from './logic/scoreEntryState';
 import { createDialPadRegion } from './regions/dialPadRegion';
 import { renderScoreEntryCard } from './scoreEntryCard';
 import { endingLabels } from './logic/irregularEnding';
@@ -92,8 +93,27 @@ export type ScoreEntryDialogParams = Omit<
   approach?: ScoreEntryApproach;
   /** Which approaches the switcher offers. Defaults to all three; a single entry hides the menu. */
   approaches?: ScoreEntryApproach[];
-  /** Sets already recorded, e.g. from a saved matchUp. */
+  /** Sets already recorded, e.g. from a saved matchUp. Ignored when `matchUp` carries a score. */
   sets?: SetScore[];
+  /**
+   * A matchUp whose outcome is being REOPENED.
+   *
+   * Everything a recorded outcome needs comes from here: the sets, the format, the ending, and the
+   * reason code — CA, 2026-09-28: *"we need to be able to open existing outcomes!"* Anything passed
+   * explicitly wins, so a host can override one part without unpacking the rest.
+   *
+   * `sides` stays separate rather than being read off `matchUp.sides`, because the card wants display
+   * names and a matchUp carries participants; that mapping belongs to the host, which already has it.
+   */
+  matchUp?: {
+    matchUpFormat?: string;
+    matchUpStatus?: string;
+    winningSide?: number;
+    score?: { sets?: SetScore[] };
+    sideStatusCodes?: Record<number, string>;
+    matchUpStatusCode?: string;
+    matchUpStatusCodes?: unknown[];
+  };
   /** Called with the chosen approach whenever it changes, so a host can remember the preference. */
   onApproachChange?: (approach: ScoreEntryApproach) => void;
   /** Called with a format chosen in the picker. Omit and the format chip stays inert text. */
@@ -135,8 +155,8 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
   const offered = params.approaches?.length ? params.approaches : ALL_APPROACHES;
   const labels = params.labels ?? endingLabels();
   let approach: ScoreEntryApproach = params.approach ?? offered[0];
-  let matchUpFormat = params.matchUpFormat;
-  let sets = params.sets;
+  let matchUpFormat = params.matchUpFormat ?? params.matchUp?.matchUpFormat;
+  let sets = params.sets ?? params.matchUp?.score?.sets;
   let closed = false;
   let notified = false;
 
@@ -146,6 +166,8 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
     ...params,
     labels,
     matchUpFormat,
+    // The recorded ending, so reopening a scored matchUp shows what it holds rather than a blank card.
+    initialState: params.initialState ?? hydrateScoreEntryState(params.matchUp),
     region: currentRegion,
     approachLabel: APPROACH_LABELS[approach],
     approaches: offered.length > 1 ? offered.map(approachOption) : undefined,
