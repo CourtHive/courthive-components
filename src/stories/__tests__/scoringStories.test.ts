@@ -54,6 +54,8 @@ describe('the dialog stories run', () => {
       'RowEndingClosed',
       'RowEndingChosen',
       'InModal',
+      'InModalFreeScore',
+      'InModalDialPad',
       'ApproachSwitching',
       'FormatPicker',
       'ReopenAWalkover',
