@@ -30,6 +30,8 @@ const TIEBREAK = 'button[data-action="tiebreak"]';
 const ARIA_PRESSED = 'aria-pressed';
 /** A set taken on a tiebreak, with the LOSER's points in parentheses — the score-line convention. */
 const SEVEN_SIX_THREE = '7-6(3)';
+/** A match tiebreak, in the factory's bracketed form. */
+const MATCH_TIEBREAK_FORMAT = 'SET1-S:TB10';
 const BACKSPACE = 'button[data-action="backspace"]';
 const FREE_SCORE = 'Free Score';
 const RET_TEXT = '6-4 2-1 ret';
@@ -479,6 +481,83 @@ describe('Dial Pad — tiebreak mode', () => {
  * `7-6(3)` in Dynamic Sets and `7-6(7)` on the keypad, and the same match tiebreak read `10-8` in one
  * and `0-0` in the other.
  */
+/**
+ * A MATCH TIEBREAK on the keypad.
+ *
+ * `SET1-S:TB10` was unenterable there. Measured 2026-09-28, before the fix: tapping 1, 0, 8 produced a
+ * tiebreak of **1-0** and dropped the 8 entirely, and a saved match tiebreak seeded as blank. Dynamic
+ * Sets handled the same format correctly, so which approach the operator had open decided whether a
+ * played match could be recorded at all.
+ *
+ * All three causes are the same omission: the keypad never asked whether the set is tiebreak-only. Its
+ * games are 0-0 by construction — `buildSetScore` puts the points in the tiebreak fields — so its own
+ * cells ARE the points, exactly as in Dynamic Sets.
+ */
+describe('Dial Pad — a match tiebreak', () => {
+  const press = (h: ReturnType<typeof dialPad>, digit: number) =>
+    h.q<HTMLButtonElement>(`button[data-digit="${digit}"]`)?.click();
+
+  it('builds a two-digit tiebreak score, so 10-8 can be entered', () => {
+    // `getMaxAllowedScore` returns 7 for this format — it reads `setFormat.setTo`, which a tiebreak-only
+    // format does not carry — so a 1 could never be extended to a 10.
+    const h = dialPad({ matchUpFormat: MATCH_TIEBREAK_FORMAT });
+
+    for (const digit of [1, 0, 8]) press(h, digit);
+
+    const set = h.region.getSets()[0];
+    expect(set?.side1TiebreakScore).toBe(10);
+    expect(set?.side2TiebreakScore).toBe(8);
+    expect(h.band()?.textContent).toContain('[10-8]');
+  });
+
+  it('runs long, because a match tiebreak legitimately does', () => {
+    // 15-13 is an ordinary match tiebreak. Nothing may cap it — there is no honest ceiling to apply.
+    const h = dialPad({ matchUpFormat: MATCH_TIEBREAK_FORMAT });
+
+    for (const digit of [1, 5, 1, 3]) press(h, digit);
+
+    expect(h.band()?.textContent).toContain('[15-13]');
+  });
+
+  it('seeds a saved match tiebreak, so reopening one is not a blank keypad', () => {
+    const h = dialPad({
+      matchUpFormat: MATCH_TIEBREAK_FORMAT,
+      sets: [{ setNumber: 1, side1TiebreakScore: 10, side2TiebreakScore: 8, winningSide: 1 }],
+    });
+
+    expect(h.band()?.textContent).toContain('[10-8]');
+    expect(h.readout(1)?.textContent).toContain('10');
+    expect(h.readout(2)?.textContent).toContain('8');
+  });
+
+  it('enters a DECIDING match tiebreak after two ordinary sets', () => {
+    // The format a great many events actually run: `SET3-S:6/TB7-F:TB10`. Only the third set is
+    // tiebreak-only, so the exemption has to be per-SET rather than per-format — the first two sets are
+    // still clamped to their own maximum.
+    const h = dialPad({ matchUpFormat: 'SET3-S:6/TB7-F:TB10' });
+
+    for (const digit of [6, 4, 4, 6, 1, 0, 8]) press(h, digit);
+
+    const sets = h.region.getSets();
+    expect(sets.map((set: any) => [set.side1Score, set.side2Score])).toEqual([[6, 4], [4, 6], [0, 0]]);
+    expect(sets[2]?.side1TiebreakScore).toBe(10);
+    expect(sets[2]?.side2TiebreakScore).toBe(8);
+    expect(h.band()?.textContent).toContain('6-4 4-6 [10-8]');
+    expect(h.submit()?.disabled).toBe(false);
+  });
+
+  it('offers no Tiebreak key, because the cells already ARE the tiebreak', () => {
+    // It would be a second place to enter the same number, and could only ever produce a contradiction.
+    // Dynamic Sets renders no separate tiebreak column for these sets for the same reason.
+    expect(dialPad({ matchUpFormat: MATCH_TIEBREAK_FORMAT }).q<HTMLButtonElement>(TIEBREAK)?.disabled).toBe(true);
+
+    // A MIXED format keeps it: sets 1 and 2 of this one genuinely need it.
+    expect(
+      dialPad({ matchUpFormat: 'SET3-S:6/TB7-F:TB10' }).q<HTMLButtonElement>(TIEBREAK)?.disabled,
+    ).toBe(false);
+  });
+});
+
 describe('the score line is the factory\'s, and the approaches agree', () => {
   it('Free Score quotes the canonical line, not the shorthand typed', () => {
     const h = freeScore({ initialText: '76(3) 64' });
