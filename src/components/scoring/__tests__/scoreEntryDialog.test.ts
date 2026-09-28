@@ -129,6 +129,54 @@ describe('the modal', () => {
   });
 });
 
+describe('the dialog announces and focuses itself', () => {
+  it('is named by the card heading, and says it is modal', () => {
+    const dialog = open({ title: 'Enter the score' });
+
+    // cModal gives the section `role="dialog"` and stops there: no `aria-modal`, and nothing naming it.
+    expect(modal()!.getAttribute('role')).toBe('dialog');
+    expect(modal()!.getAttribute('aria-modal')).toBe('true');
+
+    const labelledBy = modal()!.getAttribute('aria-labelledby');
+    expect(labelledBy).toBe(dialog.card.titleId);
+    expect(document.getElementById(labelledBy!)!.textContent).toBe('Enter the score');
+  });
+
+  it('keeps the heading id across an approach switch', () => {
+    // The header is rebuilt on every render, so an id assigned from OUTSIDE would survive exactly until
+    // the first switch and `aria-labelledby` would then point at nothing.
+    const dialog = open();
+    const labelledBy = modal()!.getAttribute('aria-labelledby')!;
+
+    dialog.setApproach('dialPad');
+
+    expect(document.getElementById(labelledBy)).toBeTruthy();
+  });
+
+  it('focuses the first score cell, so typing starts immediately', () => {
+    open();
+
+    expect(document.activeElement).toBe(q(SET_1_SIDE_1));
+  });
+
+  it('focuses the first DIGIT where the approach has no text field', () => {
+    open({ approach: 'dialPad' });
+
+    expect(q('input')).toBeNull();
+    expect((document.activeElement as HTMLElement)?.dataset.digit).toBeTruthy();
+  });
+
+  it('leaves focus alone when the host says not to steal it', () => {
+    const outside = document.createElement('input');
+    document.body.append(outside);
+    outside.focus();
+
+    open({ autoFocus: false });
+
+    expect(document.activeElement).toBe(outside);
+  });
+});
+
 describe('Escape', () => {
   const escape = () =>
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));

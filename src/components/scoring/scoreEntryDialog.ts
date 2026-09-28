@@ -100,6 +100,13 @@ export type ScoreEntryDialogParams = Omit<
   onFormatChange?: (matchUpFormat: string) => void;
   /** Called when the dialog closes, by `[X]`, by a footer button, or by `close()`. */
   onClose?: () => void;
+  /**
+   * Whether to focus the first entry field on open. Defaults to true.
+   *
+   * `false` for a host that opens the dialog as a side effect of something else, where stealing focus
+   * would interrupt what the operator was actually doing.
+   */
+  autoFocus?: boolean;
   /** Overrides cModal's config. `maxWidth`, `clickAway` and `padding` have deliberate defaults. */
   modalConfig?: Record<string, any>;
   /**
@@ -176,6 +183,8 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
   });
 
   document.addEventListener('keydown', onKeyDown);
+  describeDialog();
+  focusEntry();
 
   function approachOption(key: ScoreEntryApproach): ApproachOption {
     return { key, label: APPROACH_LABELS[key] };
@@ -246,6 +255,44 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
   }
 
   /**
+   * Name the dialog, and say it is modal.
+   *
+   * cModal gives its section `role="dialog"` and `tabIndex = -1` and stops there — no `aria-modal`, and
+   * nothing naming it — so a screen reader announces an unnamed dialog and does not say the rest of the
+   * page is inert. Done here rather than in cModal because cModal is shared by every dialog in the
+   * library and changing what all of them announce is not this workstream's call; recorded for it.
+   */
+  function describeDialog(): void {
+    const section = ownSection();
+    if (!section) return;
+
+    section.setAttribute('aria-modal', 'true');
+    section.setAttribute('aria-labelledby', card.titleId);
+  }
+
+  /**
+   * Put the caret where the operator is about to type.
+   *
+   * A score-entry dialog opens because someone means to enter a score, and the first set's first cell is
+   * where that starts — USTA Tournament Desk does the same. Without this, opening the dialog leaves focus
+   * on whatever was behind it, so a keyboard user has to tab INTO the dialog before they can begin.
+   *
+   * The Dial Pad has no text inputs at all, so its first digit key is the entry point. Failing both, the
+   * section itself takes focus: cModal already gives it `tabIndex = -1`, so the dialog is at least
+   * entered and Escape and the tab order start from inside it.
+   */
+  function focusEntry(): void {
+    if (params.autoFocus === false) return;
+
+    const field = card.element.querySelector<HTMLElement>('input:not([disabled]), button[data-digit]');
+    (field ?? ownSection())?.focus();
+  }
+
+  function ownSection(): HTMLElement | null {
+    return card.element.closest<HTMLElement>('section[id^="cmdl-"]');
+  }
+
+  /**
    * Escape closes an EMPTY dialog, and does nothing to one holding a score.
    *
    * cModal has no keyboard handling of its own — measured: not one `keydown` listener in it — so
@@ -270,7 +317,7 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
   }
 
   function isTopMostDialog(): boolean {
-    const own = card.element.closest('section[id^="cmdl-"]');
+    const own = ownSection();
     if (!own) return false;
     return [...document.querySelectorAll('section[id^="cmdl-"]')].at(-1) === own;
   }

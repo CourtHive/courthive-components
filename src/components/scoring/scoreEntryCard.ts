@@ -226,6 +226,9 @@ export type ScoreEntryCardParams = {
 };
 
 /** A card instance: its element, plus the handle the host needs to react to score-region changes. */
+/** Per-card, so two cards on one page do not both claim `#chc-sec-title-1`. */
+let cardSequence = 0;
+
 export type ScoreEntryCard = {
   element: HTMLElement;
   /** Re-render the band and the submit gate. Call when the score region's value changes. */
@@ -243,6 +246,8 @@ export type ScoreEntryCard = {
   update: (next: { region?: ScoreRegion; matchUpFormat?: string; approachLabel?: string }) => void;
   /** The current ending state, for a host that needs to inspect it. */
   getState: () => ScoreEntryState;
+  /** The DOM id of the card's heading, for a host's `aria-labelledby`. */
+  titleId: string;
 };
 
 export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCard {
@@ -264,6 +269,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   let openPanelSide: SideNumber | undefined;
   let otherMenuOpen = false;
   let approachMenuOpen = false;
+  const titleId = `chc-sec-title-${(cardSequence += 1)}`;
 
   const element = div('chc-sec');
   element.dataset.component = 'scoreEntryCard';
@@ -301,7 +307,8 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       if (next.approachLabel) approachLabel = next.approachLabel;
       render();
     },
-    getState: () => state
+    getState: () => state,
+    titleId
   };
 
   // ── Structure ────────────────────────────────────────────────────────
@@ -317,7 +324,12 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   function renderHeader(): void {
     const bar = headerContainer;
     bar.replaceChildren();
-    bar.append(text('chc-sec-title', params.title ?? 'Score Entry'));
+    const heading = text('chc-sec-title', params.title ?? 'Score Entry');
+    // A stable id, assigned HERE because the header is rebuilt on every render: an id set from outside
+    // would survive exactly until the first approach switch. A host uses it for `aria-labelledby`, so a
+    // screen reader announces the dialog by its heading rather than as an unnamed region.
+    heading.id = titleId;
+    bar.append(heading);
     if (params.context) bar.append(text('chc-sec-context', params.context));
     bar.append(div(CLS_SPACER));
     if (matchUpFormat) bar.append(formatChip(matchUpFormat));
