@@ -988,7 +988,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     }
 
     const allSetRows = setsContainer.querySelectorAll('.set-row');
-    const matchComplete = isMatchCompleteLogic(currentSets, getBestOf(), getExactly());
+    const matchComplete = isMatchCompleteLogic(currentSets, matchConfig);
     const rowsToKeep = computeRowsToKeep(currentSets, matchComplete, getBestOf());
 
     for (let i = allSetRows.length - 1; i >= rowsToKeep; i--) {
@@ -1166,7 +1166,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     const currentSetComplete = isSetComplete(setIndex);
     if (!currentSetComplete) return;
 
-    const matchComplete = isMatchCompleteLogic(currentSets, getBestOf(), getExactly());
+    const matchComplete = isMatchCompleteLogic(currentSets, matchConfig);
     if (matchComplete || !shouldExpandSets(currentSets, matchUp.matchUpFormat)) return;
 
     const nextSetIndex = currentSets.length;
@@ -1271,7 +1271,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
     setTimeout(() => {
       updateScoreFromInputs();
-      const matchComplete = isMatchCompleteLogic(currentSets, getBestOf(), getExactly());
+      const matchComplete = isMatchCompleteLogic(currentSets, matchConfig);
       if (matchComplete) return;
 
       const nextSetSide1 = setsContainer.querySelector(
@@ -1340,7 +1340,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       const currentSetComplete = isSetComplete(setIndex);
       if (!currentSetComplete) return;
 
-      const matchComplete = isMatchCompleteLogic(currentSets, getBestOf(), getExactly());
+      const matchComplete = isMatchCompleteLogic(currentSets, matchConfig);
       if (matchComplete) return;
 
       createNextSetAndFocus(setIndex + 1);
@@ -1358,7 +1358,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       if (!currentSetComplete) return;
 
       updateScoreFromInputs();
-      const matchComplete = isMatchCompleteLogic(currentSets, getBestOf(), getExactly());
+      const matchComplete = isMatchCompleteLogic(currentSets, matchConfig);
       if (matchComplete) return;
 
       createNextSetAndFocus(setIndex + 1);
