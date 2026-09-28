@@ -291,8 +291,17 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     return sets
       .map((set, index) => {
         const base = `${set.side1Score ?? 0}-${set.side2Score ?? 0}`;
-        const tiebreak = set.side1TiebreakScore ?? set.side2TiebreakScore;
-        if (tiebreak === undefined) return base;
+
+        // The LOWER of the two points is what a score line shows — `7-6(3)`, the loser's.
+        //
+        // This read `side1TiebreakScore ?? side2TiebreakScore`, which is side 1's whatever side 1 is.
+        // Measured 2026-09-28: a tiebreak of 3 typed on a 7-6 rendered **7-6(7)**, because
+        // `buildSetScore` completes the pair from the loser's points and side 1 had won the set, so
+        // side 1 held the 7. Dynamic Sets already took the minimum; the keypad did not, and the same
+        // keystrokes produced two different score lines depending on which approach was open.
+        const pair = [set.side1TiebreakScore, set.side2TiebreakScore].filter((points) => points !== undefined);
+        if (!pair.length) return base;
+        const tiebreak = Math.min(...(pair as number[]));
         // `shouldShowTiebreak` owns whether this set's score is one a tiebreak can attach to, so a
         // stray tiebreak on a 6-2 is not rendered as if it were legitimate.
         const allowed = shouldShowTiebreak(

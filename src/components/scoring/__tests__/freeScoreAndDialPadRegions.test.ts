@@ -27,6 +27,9 @@ const BAND = '.chc-sec-band';
 const SUBMIT = 'button[data-action="submit"]';
 const FS_FIELD = 'input[data-free-score]';
 const TIEBREAK = 'button[data-action="tiebreak"]';
+const ARIA_PRESSED = 'aria-pressed';
+/** A set taken on a tiebreak, with the LOSER's points in parentheses — the score-line convention. */
+const SEVEN_SIX_THREE = '7-6(3)';
 const BACKSPACE = 'button[data-action="backspace"]';
 const FREE_SCORE = 'Free Score';
 const RET_TEXT = '6-4 2-1 ret';
@@ -369,6 +372,95 @@ describe('Dial Pad', () => {
 
     expect(h.readout(1)?.textContent).toContain('6');
     expect(h.readout(2)?.textContent).toContain('0');
+  });
+
+  it('seeds a saved TIEBREAK, so reopening a 7-6(3) shows its points', () => {
+    const h = dialPad({
+      sets: [{ setNumber: 1, side1Score: 7, side2Score: 6, side2TiebreakScore: 3, winningSide: 1 }],
+    });
+
+    expect(h.band()?.textContent).toContain(SEVEN_SIX_THREE);
+  });
+});
+
+/**
+ * Tiebreak MODE — the keypad's one modal state.
+ *
+ * The digits mean games until the Tiebreak key is pressed and points afterwards, which is the only
+ * place on this keypad where the same tap means two different things. It was also the only part with
+ * no test: measured 2026-09-28 at 66% branch coverage, and every uncovered branch was in here or in
+ * the backspace ordering below.
+ */
+describe('Dial Pad — tiebreak mode', () => {
+  const press = (h: ReturnType<typeof dialPad>, digit: number) =>
+    h.q<HTMLButtonElement>(`button[data-digit="${digit}"]`)?.click();
+  const toggleTiebreak = (h: ReturnType<typeof dialPad>) => h.q<HTMLButtonElement>(TIEBREAK)?.click();
+
+  it('says which mode it is in, and the key is a toggle', () => {
+    const h = dialPad();
+
+    expect(h.q(TIEBREAK)?.getAttribute(ARIA_PRESSED)).toBe('false');
+    toggleTiebreak(h);
+    expect(h.q(TIEBREAK)?.getAttribute(ARIA_PRESSED)).toBe('true');
+    toggleTiebreak(h);
+    expect(h.q(TIEBREAK)?.getAttribute(ARIA_PRESSED)).toBe('false');
+  });
+
+  it('attaches the points to the set they were played in', () => {
+    const h = dialPad();
+
+    press(h, 7);
+    press(h, 6);
+    toggleTiebreak(h);
+    press(h, 3);
+
+    expect(h.band()?.textContent).toContain(SEVEN_SIX_THREE);
+  });
+
+  it('takes more than one digit, so a tiebreak to 12-10 can be entered', () => {
+    const h = dialPad();
+
+    press(h, 7);
+    press(h, 6);
+    toggleTiebreak(h);
+    press(h, 1);
+    press(h, 0);
+
+    expect(h.band()?.textContent).toContain('7-6(10)');
+  });
+
+  it('does not render points on a set no tiebreak could have been played in', () => {
+    // A stray tiebreak on a 6-2 is not shown as though it were legitimate — `shouldShowTiebreak` owns
+    // that, and the region asks it rather than trusting what was typed.
+    const h = dialPad();
+
+    press(h, 6);
+    press(h, 2);
+    toggleTiebreak(h);
+    press(h, 3);
+
+    expect(h.band()?.textContent).toContain('6-2');
+    expect(h.band()?.textContent).not.toContain('(3)');
+  });
+
+  it('backspace eats the tiebreak BEFORE the games it belongs to', () => {
+    // The ordering the implementation claims, asserted. A backspace that ate the set score first would
+    // leave the tiebreak orphaned on a score that no longer exists.
+    const h = dialPad();
+    const back = () => h.q<HTMLButtonElement>(BACKSPACE)?.click();
+
+    press(h, 7);
+    press(h, 6);
+    toggleTiebreak(h);
+    press(h, 3);
+    expect(h.band()?.textContent).toContain(SEVEN_SIX_THREE);
+
+    back();
+    expect(h.band()?.textContent).toContain('7-6');
+    expect(h.band()?.textContent).not.toContain('(3)');
+
+    back();
+    expect(h.band()?.textContent).not.toContain('7-6');
   });
 });
 
