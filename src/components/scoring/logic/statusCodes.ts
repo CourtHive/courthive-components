@@ -11,6 +11,7 @@
  */
 
 import { matchUpStatusConstants } from 'tods-competition-factory';
+import { isDoubleExitStatus, requiresWinner } from './irregularEnding';
 
 const { WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT } = matchUpStatusConstants;
 
@@ -54,6 +55,62 @@ export function groupKeyForStatus(matchUpStatus: string | undefined): string | u
  *
  * Returns `undefined` for a provenance element, which carries no code at all.
  */
+/**
+ * The reason code a matchUp actually recorded, for the control that has to re-display it.
+ *
+ * ── Why not `matchUpStatusCodes[0]` ──
+ *
+ * `matchUpStatusCodes` is POSITIONAL BY SIDE, so a reason belonging to side 2 sits at index 1 and
+ * index 0 is an empty string that `normalizeStatusCode` turns into `undefined`. The picker then opens
+ * empty, the operator's reason is missing from the control meant to show it, and re-saving loses it.
+ *
+ * Measured against published **7.1.0**, because the exposure is narrower than it first looks: a code
+ * submitted by this dialog is stored EXACTLY as submitted, so `['W1']` round-trips through index 0 and
+ * reads correctly today. The index-1 case arrives by PROPAGATION — a reason carried into a connected
+ * structure is placed at the arriving side's index — and factory #5016 both fixes that carry and gives
+ * the fact a home that states what it attributes to.
+ *
+ * ── The order, and why each step is needed ──
+ *
+ * 1. `sideStatusCodes[sideNumber]` — the side's own, once the factory writes it.
+ * 2. `matchUpStatusCode` — the MATCH's, for an ending that resolves nobody (ABANDONED, CANCELLED,
+ *    INCOMPLETE). There is no side to ask.
+ * 3. `matchUpStatusCodes[0]` — records written before either field existed. Not optional: the peer
+ *    range still admits a factory major that has neither, so dropping it would read nothing at all
+ *    from every record stored to date.
+ *
+ * The fields are mirrored onto this package's own `MatchUp` rather than imported from the factory, for
+ * the reason `types.ts` already records: they do not exist in the older major the peer range admits.
+ */
+export function recordedStatusCode(matchUp?: {
+  matchUpStatus?: string;
+  winningSide?: number;
+  sideStatusCodes?: Record<number, string>;
+  matchUpStatusCode?: string;
+  matchUpStatusCodes?: unknown[];
+}): string | undefined {
+  const side = reasonSide(matchUp);
+  const fromSide = side === undefined ? undefined : normalizeStatusCode(matchUp?.sideStatusCodes?.[side]);
+
+  return (
+    fromSide ?? normalizeStatusCode(matchUp?.matchUpStatusCode) ?? normalizeStatusCode(matchUp?.matchUpStatusCodes?.[0])
+  );
+}
+
+/**
+ * Which side's reason a dialog is showing, or `undefined` where no side owns one.
+ *
+ * A single exit attributes to the side that did NOT win, so `3 - winningSide`. A double exit puts the
+ * same code on both, so either side answers and side 1 is read. An ending that resolves nobody has no
+ * side at all — that is what the match-level field exists for.
+ */
+function reasonSide(matchUp?: { matchUpStatus?: string; winningSide?: number }): number | undefined {
+  if (!requiresWinner(matchUp?.matchUpStatus)) return isDoubleExitStatus(matchUp?.matchUpStatus) ? 1 : undefined;
+  if (matchUp?.winningSide !== 1 && matchUp?.winningSide !== 2) return undefined;
+
+  return 3 - matchUp.winningSide;
+}
+
 export function normalizeStatusCode(entry: unknown): string | undefined {
   if (typeof entry === 'string') return entry || undefined;
   if (!entry || typeof entry !== 'object') return undefined;
@@ -71,7 +128,7 @@ export function normalizeStatusCode(entry: unknown): string | undefined {
  */
 export function codesForStatus(
   groups: StatusCodeGroups | undefined,
-  matchUpStatus: string | undefined,
+  matchUpStatus: string | undefined
 ): StatusCodeEntry[] {
   const key = groupKeyForStatus(matchUpStatus);
   if (!groups || !key) return [];

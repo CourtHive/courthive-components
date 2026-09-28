@@ -112,7 +112,8 @@ describe('the per-side ending control', () => {
 
   it('is the participant NAME, not a trailing icon button — CA, 2026-09-27', () => {
     // The control had a dedicated 56px column at the row's end holding a warning triangle. CA asked
-    // whether it was needed on both lines, wanting to differ from the ClubSpark `[...]` and to limit the
+    // whether it was needed on both lines, wanting to differ from the incumbent booking platform's
+    // `[...]` and to limit the
     // dialog's width. The ROW is the mechanism — an ending here names the side it happened to, which is
     // what deletes the separate winner question — so it stays per-row, but the COLUMN is gone and the
     // name carries it.
