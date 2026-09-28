@@ -24,14 +24,15 @@
  * too, because it lives on the card rather than in the region — see `ScoreEntryCard.update`.
  */
 
-import { createDynamicSetsRegion } from './regions/dynamicSetsRegion';
 import { getMatchUpFormatModal } from '../matchUpFormat/matchUpFormat';
+import { createDynamicSetsRegion } from './regions/dynamicSetsRegion';
 import { createFreeScoreRegion } from './regions/freeScoreRegion';
 import { createDialPadRegion } from './regions/dialPadRegion';
 import { renderScoreEntryCard } from './scoreEntryCard';
 import { endingLabels } from './logic/irregularEnding';
 import { cModal } from '../modal/cmodal';
 
+import type { SetScore } from './types';
 import type {
   ScoreEntryCard,
   ScoreEntryCardParams,
@@ -39,7 +40,6 @@ import type {
   ApproachOption,
   ScoreRegion
 } from './scoreEntryCard';
-import type { SetScore } from './types';
 
 /**
  * A region this dialog built, which is narrower than `ScoreRegion`.
