@@ -64,6 +64,8 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
   /** Whether the next digit is entered as a tiebreak rather than as games. */
   let tiebreakMode = false;
   const readouts = createScoreReadouts();
+  /** The live digit keys, so `focusFirst` can reach one without a DOM query. */
+  const digitKeys = new Map<number, HTMLButtonElement>();
 
   seed(params.sets);
 
@@ -78,6 +80,13 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     error: () => firstError(),
     // A single digit pressed is entry, and `currentSets()` does not report it.
     hasEntry: () => entries.some((entry) => entry.side1 || entry.side2 || entry.tiebreak),
+    clear: () => {
+      for (let index = 0; index < setCount; index += 1) entries[index] = { side1: '', side2: '' };
+      tiebreakMode = false;
+      changed();
+    },
+    // The keypad has no text field to put a caret in, so the first digit key is where entry begins.
+    focusFirst: () => digitKeys.get(1)?.focus(),
   };
 
   // ── State ────────────────────────────────────────────────────────────
@@ -282,6 +291,7 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
       key.dataset.digit = String(digit);
       key.textContent = String(digit);
       key.addEventListener('click', () => pressDigit(digit));
+      digitKeys.set(digit, key);
       digits.append(key);
     }
 

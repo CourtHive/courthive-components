@@ -153,6 +153,13 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
     // Only when the host wants to hear about it: without `onFormatChange` the chip stays inert text
     // rather than a button that opens a picker whose choice goes nowhere.
     onEditFormat: params.onFormatChange ? editFormat : undefined,
+    // `[Cancel]` closes the dialog. The card only REPORTS the click — it has no idea it is in a modal —
+    // and nothing was passed, so the button did nothing at all. A host's own `onCancel` still runs, and
+    // runs first: it may want to know the operator backed out before the dialog goes.
+    onCancel: () => {
+      params.onCancel?.();
+      close();
+    },
     onSubmit: (outcome) => {
       // Harvested BEFORE the close, while the region is still the live one.
       params.onSubmit?.({ ...outcome, sets: currentRegion.getSets() });
@@ -283,6 +290,13 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
    */
   function focusEntry(): void {
     if (params.autoFocus === false) return;
+
+    // The region places it when it can: `focusFirst` also SELECTS what is there, so a score already in
+    // the cell is replaced by typing rather than appended to.
+    if (currentRegion.focusFirst) {
+      currentRegion.focusFirst();
+      return;
+    }
 
     const field = card.element.querySelector<HTMLElement>('input:not([disabled]), button[data-digit]');
     (field ?? ownSection())?.focus();

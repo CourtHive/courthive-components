@@ -69,6 +69,16 @@ export function createFreeScoreRegion(params: FreeScoreRegionParams): FreeScoreR
     // Text that does not parse to a single set is still entry — and is exactly the state worth NOT
     // discarding, because the operator is mid-way through typing it.
     hasEntry: () => !!text.trim(),
+    clear: () => {
+      text = '';
+      if (field) field.value = '';
+      readouts.update([]);
+      params.onChange?.();
+    },
+    focusFirst: () => {
+      field?.focus();
+      field?.select();
+    },
   };
 
   // ── Parsing ──────────────────────────────────────────────────────────
