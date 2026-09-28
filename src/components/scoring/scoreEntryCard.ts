@@ -45,7 +45,7 @@ import {
   chooseSideEnding,
   chooseReasonCode,
   sideEndingOptions,
-  reasonCodeStatus,
+  reasonCodeStatus
 } from './logic/scoreEntryState';
 
 import type { ScoreEntryState, ScoreEntryResolution, SideNumber } from './logic/scoreEntryState';
@@ -60,6 +60,9 @@ const CLS_BTN = 'chc-sec-btn';
 const CLS_BTN_PILL = 'chc-sec-btn chc-sec-btn-pill';
 const CLS_BTN_ICON = 'chc-sec-btn chc-sec-btn-icon';
 const CLS_CHECK = 'chc-sec-check';
+const CLS_MENU = 'chc-sec-other-menu';
+const CLS_MENU_ITEM = 'chc-sec-other-item';
+const ARIA_LABEL = 'aria-label';
 const CLS_SPACER = 'chc-sec-spacer';
 const ARIA_PRESSED = 'aria-pressed';
 const ARIA_EXPANDED = 'aria-expanded';
@@ -77,9 +80,10 @@ const CHECK_PATH = 'M20 6 9 17l-5-5';
  * `.chc-sec-set-input` both use `justify-self`/`justify-content: center` rather than one using
  * `text-align` and the other `margin: 0 auto`. Two mechanisms that happen to agree today can diverge
  * under one edit; the same property on both cannot.
+ *
+ * There is no trailing action track: the per-side ending control lives inside the `1fr` name cell.
  */
 const SCORE_COLUMN_PX = 62;
-const ACTION_COLUMN_PX = 56;
 
 /**
  * The three endings the design privileges as buttons in the match-level row. The rest go behind
@@ -92,7 +96,7 @@ const PRIVILEGED_MATCH_ENDINGS = ['IN_PROGRESS', 'AWAITING_RESULT', 'SUSPENDED']
 const SIDE_ENDING_HINTS: Record<string, string> = {
   [WALKOVER]: 'Did not play at all — no score',
   [RETIRED]: 'Started, could not finish — score kept',
-  [DEFAULTED]: 'Removed by the referee',
+  [DEFAULTED]: 'Removed by the referee'
 };
 
 /**
@@ -135,6 +139,59 @@ export type ScoreRegion = {
    * precedence and not the other.
    */
   matchUpStatus?: () => string | undefined;
+  /**
+   * A compact control the region wants in the result band's right edge rather than in a row of its own.
+   *
+   * CA, 2026-09-27, on the smart-complements checkbox: *"I don't think '[] Smart Complements' should take
+   * up a whole row of the modal. I think it can be a little icon to the far right side of the row where you
+   * have 'No result entered yet'. Just (Smart) maybe, something compact that toggles."*
+   *
+   * It stays a REGION concern — it is a Dynamic Sets behaviour and nothing else reads it — so the region
+   * supplies the element and the card only decides where it sits. Putting the knowledge of it in the card
+   * would imply it applied to Free Score and the Dial Pad too.
+   */
+  bandControl?: () => HTMLElement | undefined;
+  /**
+   * Something wrong with the score as entered, in words for the operator.
+   *
+   * The card refuses to submit while this is set and shows it in the result band. A score that cannot be
+   * right must not reach the factory, and it must say so while the operator is still looking at the field
+   * they typed it into.
+   */
+  error?: () => string | undefined;
+
+  /**
+   * Whether ANYTHING has been entered, complete or not.
+   *
+   * Deliberately not derivable from `getSets()`: a region reports only sets whose BOTH sides are in,
+   * because one value is not a set score. So a lone `6` typed with complements switched off is real
+   * entry that `getSets()` cannot see — and a host asking "is there anything to lose here?" before
+   * dismissing the dialog would be told no, and discard it.
+   */
+  hasEntry?: () => boolean;
+};
+
+/** One entry in the approach switcher's menu. */
+export type ApproachOption = {
+  /** Reported to `onSelectApproach`. The host's own name for the approach. */
+  key: string;
+  label: string;
+};
+
+/**
+ * What the card reports when Submit is pressed.
+ *
+ * `winningSide` is the ending's where one was recorded and the SCORE's otherwise. Both are real answers
+ * and a host needs whichever applies: measured 2026-09-27, this carried only the ending's, so an
+ * ordinary 6-4 6-3 submitted as `{ matchUpStatus: undefined, winningSide: undefined }` — the 95% case
+ * reporting nothing at all about who won.
+ */
+export type ScoreEntryOutcome = {
+  matchUpStatus?: string;
+  winningSide?: number;
+  reasonCode?: string;
+  /** The score as the region formats it, which is what a host stores alongside the outcome. */
+  score?: string;
 };
 
 export type ScoreEntryCardParams = {
@@ -151,46 +208,80 @@ export type ScoreEntryCardParams = {
   labels?: Record<string, string>;
   /** The approach switcher's current label, e.g. `'Dynamic Sets'`. Omit to hide the switcher. */
   approachLabel?: string;
+  /**
+   * Offered when the switcher should present a CHOICE. The label of the active approach stays
+   * `approachLabel`; these are what it can become.
+   */
+  approaches?: ApproachOption[];
+  /** Called with the chosen approach's key. Wire to a host that swaps the region through `update`. */
+  onSelectApproach?: (key: string) => void;
+  /** Offered instead of `approaches` when the host drives switching from its own control. */
   onSwitchApproach?: () => void;
+  /** Offered when the host can edit the scoring format. Omit and the format chip stays inert text. */
+  onEditFormat?: () => void;
   onCancel?: () => void;
   onClear?: () => void;
-  onSubmit?: (outcome: { matchUpStatus?: string; winningSide?: number; reasonCode?: string }) => void;
+  onSubmit?: (outcome: ScoreEntryOutcome) => void;
   onClose?: () => void;
 };
 
 /** A card instance: its element, plus the handle the host needs to react to score-region changes. */
+/** Per-card, so two cards on one page do not both claim `#chc-sec-title-1`. */
+let cardSequence = 0;
+
 export type ScoreEntryCard = {
   element: HTMLElement;
   /** Re-render the band and the submit gate. Call when the score region's value changes. */
   refresh: () => void;
   /** Rebuild everything, including the region's cells. Call when the region's COLUMNS change. */
   rerender: () => void;
+  /**
+   * Change the region (an approach switch) or the scoring format, keeping the ENDING state.
+   *
+   * Both inputs change while the dialog is open and both invalidate the region's cells, so they share one
+   * mutator. What they must NOT invalidate is the ending: a walkover recorded against a row is a fact
+   * about the match, not about the approach used to type it or the format the score is read under, and
+   * an operator who corrects `SET3-S:6/TB7` to `SET3-S:6/TB7@5` has not retracted it.
+   */
+  update: (next: { region?: ScoreRegion; matchUpFormat?: string; approachLabel?: string }) => void;
   /** The current ending state, for a host that needs to inspect it. */
   getState: () => ScoreEntryState;
+  /** The DOM id of the card's heading, for a host's `aria-labelledby`. */
+  titleId: string;
 };
 
 export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCard {
   const labels = params.labels ?? endingLabels();
+  /**
+   * The active score region, replaceable through `setRegion`.
+   *
+   * Held in a variable rather than read off `params` so the approach switcher can swap Dynamic Sets for
+   * Free Score or the Dial Pad WITHOUT rebuilding the card — the endings the operator has chosen, the
+   * reason code and the open panel all survive, which is the whole point of the switcher being live.
+   */
+  let region = params.region;
+  /** The scoring format, which the host can change through `update` — see `onEditFormat`. */
+  let matchUpFormat = params.matchUpFormat;
+  /** The switcher's label: which approach is showing. Changed through `update` alongside the region. */
+  let approachLabel = params.approachLabel;
   let state: ScoreEntryState = emptyScoreEntryState;
   /** Which side's ending panel is open, if any. Presentation only — not part of the outcome. */
   let openPanelSide: SideNumber | undefined;
   let otherMenuOpen = false;
+  let approachMenuOpen = false;
+  const titleId = `chc-sec-title-${(cardSequence += 1)}`;
 
   const element = div('chc-sec');
   element.dataset.component = 'scoreEntryCard';
 
+  const headerContainer = div('chc-sec-header');
   const rowsContainer = div('chc-sec-rows');
   const endingsContainer = div('chc-sec-endings');
   const band = div('chc-sec-band');
   const blockContainer = div('chc-sec-score-region');
   const submitButton = button('Submit', 'chc-sec-btn chc-sec-btn-primary');
 
-  element.append(
-    header(),
-    body(),
-    band,
-    footer(),
-  );
+  element.append(headerContainer, body(), band, footer());
 
   render();
 
@@ -210,33 +301,124 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     // therefore replaces the region's cells, so a caller must restore focus itself. That is not a
     // hardship where it is used, because a column appearing is exactly when focus should MOVE.
     rerender: render,
+    update: (next) => {
+      if (next.region) region = next.region;
+      if (next.matchUpFormat) matchUpFormat = next.matchUpFormat;
+      if (next.approachLabel) approachLabel = next.approachLabel;
+      render();
+    },
     getState: () => state,
+    titleId
   };
 
   // ── Structure ────────────────────────────────────────────────────────
 
-  function header(): HTMLElement {
-    const bar = div('chc-sec-header');
-    bar.append(text('chc-sec-title', params.title ?? 'Score Entry'));
+  /**
+   * The header, rebuilt on every render rather than built once.
+   *
+   * It was build-once, and three things in it are live: the switcher's label, the format chip and the
+   * approach menu. Measured 2026-09-27 — the menu never appeared, the label never changed and a format
+   * chosen in the picker showed the OLD code, all from the same cause. A control whose state changes
+   * cannot live outside the render.
+   */
+  function renderHeader(): void {
+    const bar = headerContainer;
+    bar.replaceChildren();
+    const heading = text('chc-sec-title', params.title ?? 'Score Entry');
+    // A stable id, assigned HERE because the header is rebuilt on every render: an id set from outside
+    // would survive exactly until the first approach switch. A host uses it for `aria-labelledby`, so a
+    // screen reader announces the dialog by its heading rather than as an unnamed region.
+    heading.id = titleId;
+    bar.append(heading);
     if (params.context) bar.append(text('chc-sec-context', params.context));
     bar.append(div(CLS_SPACER));
-    if (params.matchUpFormat) bar.append(text('chc-sec-format', params.matchUpFormat));
+    if (matchUpFormat) bar.append(formatChip(matchUpFormat));
 
-    if (params.approachLabel) {
-      const switcher = button(params.approachLabel, CLS_BTN);
-      switcher.dataset.action = 'switchApproach';
-      switcher.addEventListener('click', () => params.onSwitchApproach?.());
-      bar.append(switcher);
-    }
+    if (approachLabel) bar.append(approachSwitcher(approachLabel));
 
     const close = button('', CLS_BTN_ICON);
     close.dataset.action = 'close';
-    close.setAttribute('aria-label', 'Close');
+    close.setAttribute(ARIA_LABEL, 'Close');
     close.append(icon('M18 6 6 18M6 6l12 12'));
     close.addEventListener('click', () => params.onClose?.());
     bar.append(close);
+  }
 
-    return bar;
+  /**
+   * The approach switcher, and the menu it opens.
+   *
+   * The menu is built HERE rather than by the host for the same reason the endings menu is: it shares
+   * `.chc-sec-other-menu`'s markup, its check mark and its `aria-pressed`, and a host that rebuilt it
+   * would be reimplementing all three. A host that genuinely wants its own control omits `approaches`
+   * and gets `onSwitchApproach` instead — the switcher then reports a click and nothing more.
+   *
+   * The active approach is listed and marked rather than hidden: a menu whose current state is missing
+   * from it makes the operator infer what they are looking at from what is absent.
+   */
+  function approachSwitcher(label: string): HTMLElement {
+    const switcher = button(label, CLS_BTN);
+    switcher.dataset.action = 'switchApproach';
+
+    if (!params.approaches?.length) {
+      switcher.addEventListener('click', () => params.onSwitchApproach?.());
+      return switcher;
+    }
+
+    // A positioned wrapper, because `.chc-sec-other-menu` anchors to its nearest positioned ancestor and
+    // the header itself is not one.
+    const anchor = div('chc-sec-approach-anchor');
+    switcher.setAttribute('aria-expanded', String(approachMenuOpen));
+    switcher.setAttribute('aria-haspopup', 'menu');
+    switcher.addEventListener('click', () => {
+      approachMenuOpen = !approachMenuOpen;
+      otherMenuOpen = false;
+      render();
+    });
+    anchor.append(switcher);
+
+    if (approachMenuOpen) {
+      const menu = div(`${CLS_MENU} chc-sec-approach-menu`);
+      menu.setAttribute('role', 'menu');
+      for (const option of params.approaches) {
+        const selected = option.label === label;
+        const item = button('', CLS_MENU_ITEM);
+        item.dataset.approach = option.key;
+        item.setAttribute('role', 'menuitemradio');
+        item.setAttribute(ARIA_PRESSED, String(selected));
+        const mark = div(CLS_CHECK);
+        if (selected) mark.append(icon(CHECK_PATH, 3));
+        item.append(mark, text('', option.label));
+        item.addEventListener('click', () => {
+          approachMenuOpen = false;
+          // Rendered BEFORE the callback, so a host that swaps the region through `update` — itself a
+          // render — is not racing this one to close the menu.
+          render();
+          if (!selected) params.onSelectApproach?.(option.key);
+        });
+        menu.append(item);
+      }
+      anchor.append(menu);
+    }
+
+    return anchor;
+  }
+
+  /**
+   * The format code, as a button when the host offers an editor and as plain text otherwise.
+   *
+   * A button only when it does something: a chip that looks pressable and is not is worse than one that
+   * looks inert. The accessible name says what editing it means, since `SET3-S:6/TB7` read aloud is not a
+   * sentence.
+   */
+  function formatChip(matchUpFormat: string): HTMLElement {
+    if (!params.onEditFormat) return text('chc-sec-format', matchUpFormat);
+
+    const chip = button(matchUpFormat, 'chc-sec-format chc-sec-format-button');
+    chip.dataset.action = 'editFormat';
+    chip.setAttribute(ARIA_LABEL, `Scoring format ${matchUpFormat} — edit`);
+    chip.title = 'Edit the scoring format';
+    chip.addEventListener('click', () => params.onEditFormat?.());
+    return chip;
   }
 
   function body(): HTMLElement {
@@ -267,8 +449,13 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       const resolution = currentResolution();
       params.onSubmit?.({
         matchUpStatus: resolution.matchUpStatus,
-        winningSide: resolution.winningSide,
+        // The ending's winner where there is one; the score's otherwise. An ending always wins, because
+        // a walkover recorded against a side is an instruction and a completed score is an inference.
+        winningSide: resolution.hasEnding ? resolution.winningSide : region.winningSide?.(),
         reasonCode: state.reasonCode,
+        // Omitted rather than emptied where the ending clears the score, so a host cannot store a score
+        // the card has just said is being discarded.
+        score: resolution.clearsScore ? undefined : region.scoreString?.()
       });
     });
 
@@ -282,6 +469,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   function render(): void {
     const resolution = currentResolution();
 
+    renderHeader();
     renderRows(resolution.winningSide);
     renderBlock();
     renderMatchEndings();
@@ -298,7 +486,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     const selected = resolveScoreEntry(state);
     if (selected.hasEnding) return selected;
 
-    return resolveReportedEnding(params.region.matchUpStatus?.(), params.region.winningSide?.());
+    return resolveReportedEnding(region.matchUpStatus?.(), region.winningSide?.());
   }
 
   /**
@@ -320,23 +508,30 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     // OR is the point: the 95% case is a played-out match with no ending at all, and gating on the
     // ending alone would make Submit dead for it. Gating on the score alone would make a walkover
     // unsubmittable, which is the bug the four approaches each fixed differently.
-    const scoreIsResult = !!params.region.isComplete?.();
-    submitButton.disabled = !(resolution.isValid || (!resolution.hasEnding && scoreIsResult));
+    //
+    // A region-reported ERROR closes it regardless. An impossible score stays impossible however it was
+    // qualified: a 3-7 is not made submittable by also being marked Suspended.
+    const scoreIsResult = !!region.isComplete?.();
+    const scoreError = region.error?.();
+    submitButton.disabled = !!scoreError || !(resolution.isValid || (!resolution.hasEnding && scoreIsResult));
   }
 
   function renderRows(winningSide?: number): void {
     rowsContainer.replaceChildren();
 
-    const columns = params.region.columns?.() ?? [];
+    const columns = region.columns?.() ?? [];
     const scoreTracks = columns.map((column) => column.width ?? `${SCORE_COLUMN_PX}px`).join(' ');
-    const template = `1fr ${scoreTracks} ${ACTION_COLUMN_PX}px`;
+    // No trailing action track: the ending control moved into the name cell (see `participantRow`), which
+    // returns its width to the participant and stops the row ending in something shaped like an overflow
+    // menu.
+    const template = `1fr ${scoreTracks}`;
 
     // A header row only when at least one column is labelled. Free Score and the Dial Pad have a
     // single unlabelled readout column, and an empty header strip above it would be furniture.
     if (columns.some((column) => column.heading)) {
       const head = div('chc-sec-row-head');
       head.style.gridTemplateColumns = template;
-      head.append(text('', 'PLAYER'), ...columns.map((column) => columnHeading(column.heading ?? '')), div(''));
+      head.append(text('', 'PLAYER'), ...columns.map((column) => columnHeading(column.heading ?? '')));
       rowsContainer.append(head);
     }
 
@@ -346,39 +541,87 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     }
   }
 
+  /**
+   * One participant's row.
+   *
+   * ── The ending control lives IN the name cell, not in a column of its own ──
+   *
+   * It used to occupy a dedicated 56px track at the row's end, holding a warning triangle. CA,
+   * 2026-09-27: *"is the /!\ strictly necessary on both participant lines? ... I'm just trying to be a
+   * bit more different than the [...] of the ClubSpark dialog and also limit the width of the dialog"*.
+   *
+   * The answer to the first part is that the ROW is the mechanism — an ending chosen here names the side
+   * it happened to, which is what deletes the separate winner question — so it cannot become a single
+   * control beside the match-level endings without that question coming back. But the COLUMN can go, and
+   * that addresses both of CA's concerns at once: 62px of width returns to the name, and a trailing
+   * icon button at the row's end is exactly the shape that read as an overflow menu.
+   *
+   * So the participant's name IS the control. Unselected it is a quiet button with a chevron; selected it
+   * carries a solid pill naming the ending, which is the language the walkover artboard already used —
+   * the triangle was only ever the unselected face of the same thing.
+   */
   function participantRow(sideNumber: SideNumber, template: string, winningSide?: number): HTMLElement {
     const side = params.sides[sideNumber - 1];
+
+    // ── A double exit happened to BOTH sides, so both rows say so ──
+    //
+    // CA, 2026-09-27: "If 'no one advances' is selected shouldn't (Defaulted) or (Walkover) chip appear
+    // next to the other player as well?" Yes. The ending is RECORDED against one row because that is how
+    // it is entered, but "neither appeared" is a statement about both of them — showing it on one row
+    // implied the other had merely lost, which is the opposite of what a double exit means.
+    const selected = state.sideEnding;
+    const ending = selected && (selected.sideNumber === sideNumber || state.bothSidesOut) ? selected : undefined;
+
     const row = div('chc-sec-row');
     row.style.gridTemplateColumns = template;
     row.dataset.side = String(sideNumber);
-    row.dataset.ended = String(state.sideEnding?.sideNumber === sideNumber);
+    // `ended` still marks only the row the ending was entered against: it drives the strike-through, and
+    // striking BOTH names through would read as neither having played rather than neither advancing.
+    row.dataset.ended = String(selected?.sideNumber === sideNumber);
+    row.dataset.bothOut = String(!!state.bothSidesOut);
     row.dataset.winner = String(winningSide === sideNumber);
 
     const participant = div('chc-sec-participant');
     const check = div(CLS_CHECK);
     if (winningSide === sideNumber) check.append(icon(CHECK_PATH, 3));
-    participant.append(check, text('chc-sec-name', side.participantName));
-    if (side.seed) participant.append(text('chc-sec-seed', side.seed));
 
-    const endedEarly = button('', CLS_BTN_ICON);
-    endedEarly.dataset.action = 'endedEarly';
-    endedEarly.dataset.side = String(sideNumber);
-    endedEarly.title = 'Ended early';
-    // The icon-only control the design shortened from "[/!\ Ended Early]" to "[/!\]". An icon with no
-    // accessible name is invisible to a screen reader, and "Ended early" alone would read identically
-    // on both rows — so the name carries the participant.
-    endedEarly.setAttribute('aria-label', `${side.participantName} ended early`);
-    endedEarly.setAttribute(ARIA_EXPANDED, String(openPanelSide === sideNumber));
-    endedEarly.setAttribute(ARIA_PRESSED, String(state.sideEnding?.sideNumber === sideNumber));
-    endedEarly.append(icon('M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z'));
-    endedEarly.addEventListener('click', () => {
+    // `data-action="endedEarly"` is kept from the icon-button version, so tests and any journey that
+    // learned the hook keep working across the move.
+    const opener = button('', 'chc-sec-opener');
+    opener.dataset.action = 'endedEarly';
+    opener.dataset.side = String(sideNumber);
+    opener.title = 'How did this match end for them?';
+    // Both the name and the function, because the label REPLACES the visible text for a screen reader —
+    // "ended early" alone would read identically on both rows, and the name alone would not say what the
+    // button does.
+    const named = side.seed ? `${side.participantName} ${side.seed}` : side.participantName;
+    opener.setAttribute(ARIA_LABEL, `${named} — ended early`);
+    opener.setAttribute(ARIA_EXPANDED, String(openPanelSide === sideNumber));
+    opener.setAttribute(ARIA_PRESSED, String(!!ending));
+
+    opener.append(text('chc-sec-name', side.participantName));
+    if (side.seed) opener.append(text('chc-sec-seed', side.seed));
+    opener.append(icon('m6 9 6 6 6-6', 2.5));
+    opener.addEventListener('click', () => {
       openPanelSide = openPanelSide === sideNumber ? undefined : sideNumber;
       otherMenuOpen = false;
       render();
     });
 
-    const cells = params.region.rowCells?.(sideNumber) ?? [];
-    row.append(participant, ...cells, wrapRight(endedEarly));
+    participant.append(check, opener);
+
+    // The selected ending, named on the row it belongs to. This is what the warning triangle was standing
+    // in for, and saying it outright means the row reports its own state instead of relying on a strike-
+    // through nobody reads as "walkover".
+    if (ending) {
+      const pill = div('chc-sec-row-ending');
+      pill.dataset.rowEnding = ending.status;
+      pill.textContent = labels[ending.status] ?? ending.status;
+      participant.append(pill);
+    }
+
+    const cells = region.rowCells?.(sideNumber) ?? [];
+    row.append(participant, ...cells);
     return row;
   }
 
@@ -410,7 +653,8 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     }
 
     const reasonStatus = reasonCodeStatus(state);
-    const codes = state.sideEnding?.sideNumber === sideNumber ? codesForStatus(params.statusCodeGroups, reasonStatus) : [];
+    const codes =
+      state.sideEnding?.sideNumber === sideNumber ? codesForStatus(params.statusCodeGroups, reasonStatus) : [];
     if (codes.length) {
       // No " - USTA" or " - USTA Policy" beside the heading (CA, 2026-09-27): the codes on offer come
       // from whatever policy is attached, and naming a governing body here would be wrong the moment
@@ -455,7 +699,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
   function renderBlock(): void {
     blockContainer.replaceChildren();
-    const block = params.region.block?.();
+    const block = region.block?.();
     if (block) blockContainer.append(block);
   }
 
@@ -488,10 +732,10 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
     if (!otherMenuOpen) return;
 
-    const menu = div('chc-sec-other-menu');
+    const menu = div(CLS_MENU);
     for (const status of others) {
       const selected = state.matchEnding === status;
-      const item = button('', 'chc-sec-other-item');
+      const item = button('', CLS_MENU_ITEM);
       item.dataset.ending = status;
       item.setAttribute(ARIA_PRESSED, String(selected));
       const mark = div(CLS_CHECK);
@@ -520,19 +764,33 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   }
 
   function renderBand(resolution: ReturnType<typeof resolveScoreEntry>): void {
+    // An integrity failure outranks everything else the band might say. Reporting "not a finished result"
+    // for a 3-7 would be true and useless; the operator needs to know WHICH set is wrong and why.
+    const scoreError = region.error?.();
+    if (scoreError) {
+      band.replaceChildren();
+      band.dataset.tone = 'warn';
+      band.setAttribute('role', 'status');
+      band.append(text('chc-sec-band-headline', scoreError));
+      // The control stays reachable while the score is wrong: switching complements off is one of the ways
+      // an operator FIXES a score they did not mean to accept.
+      appendBandControl(true);
+      return;
+    }
+
     const reasonStatus = reasonCodeStatus(state);
     const entry = codesForStatus(params.statusCodeGroups, reasonStatus).find(
-      (candidate) => candidate.matchUpStatusCode === state.reasonCode,
+      (candidate) => candidate.matchUpStatusCode === state.reasonCode
     );
 
     const summary = scoreEntrySummary({
       resolution,
       sideNames: [params.sides[0].participantName, params.sides[1].participantName],
-      scoreString: params.region.scoreString?.(),
-      scoreComplete: params.region.isComplete?.(),
-      scoreWinningSide: params.region.winningSide?.(),
+      scoreString: region.scoreString?.(),
+      scoreComplete: region.isComplete?.(),
+      scoreWinningSide: region.winningSide?.(),
       reasonDisplay: entry ? statusCodeDisplay(entry) : undefined,
-      labels,
+      labels
     });
 
     band.replaceChildren();
@@ -544,6 +802,20 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     if (summary.detail) {
       band.append(div(CLS_SPACER), text('chc-sec-band-detail', summary.detail));
     }
+    appendBandControl(!summary.detail);
+  }
+
+  /**
+   * The region's compact control, on the band's right edge.
+   *
+   * Rendered last so it sits after the detail text, and given its own spacer when there is no detail to
+   * push it over — otherwise it would sit against the headline rather than at the edge.
+   */
+  function appendBandControl(needsSpacer: boolean): void {
+    const control = region.bandControl?.();
+    if (!control) return;
+    if (needsSpacer) band.append(div(CLS_SPACER));
+    band.append(control);
   }
 }
 
@@ -578,14 +850,6 @@ function button(label: string, className: string): HTMLButtonElement {
   element.className = className;
   if (label) element.textContent = label;
   return element;
-}
-
-function wrapRight(child: HTMLElement): HTMLDivElement {
-  const wrapper = div('');
-  wrapper.style.display = 'flex';
-  wrapper.style.justifyContent = 'flex-end';
-  wrapper.append(child);
-  return wrapper;
 }
 
 /** An inline stroke SVG. Never emoji, and never a font icon. */

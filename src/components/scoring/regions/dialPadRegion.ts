@@ -23,13 +23,16 @@
  */
 
 import { createScoreReadouts, READOUT_COLUMN_WIDTH } from './scoreReadout';
+import { scoreGovernor } from 'tods-competition-factory';
+import { ordinalSetLabel } from './setColumns';
+import { scoreLine } from './scoreLine';
 import {
   getSetFormatForIndex,
+  isSetTiebreakOnly,
   getMaxAllowedScore,
   matchUpConfigFor,
   getMatchWinner,
   isMatchComplete,
-  shouldShowTiebreak,
   buildSetScore,
 } from '../logic/dynamicSetsLogic';
 
@@ -46,6 +49,8 @@ export type DialPadRegionParams = {
 
 export type DialPadRegion = ScoreRegion & {
   getSets: () => SetScore[];
+  /** Required here, though optional on `ScoreRegion`: every entry approach can answer it. */
+  hasEntry: () => boolean;
 };
 
 /** One entry per set: the two sides' games as typed text, plus a tiebreak. */
@@ -70,6 +75,9 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     isComplete: () => isMatchComplete(currentSets(), config),
     winningSide: () => getMatchWinner(currentSets(), config),
     getSets: () => currentSets(),
+    error: () => firstError(),
+    // A single digit pressed is entry, and `currentSets()` does not report it.
+    hasEntry: () => entries.some((entry) => entry.side1 || entry.side2 || entry.tiebreak),
   };
 
   // ── State ────────────────────────────────────────────────────────────
@@ -77,11 +85,29 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
   function seed(sets?: SetScore[]): void {
     for (const [index, set] of (sets ?? []).entries()) {
       if (index >= setCount) break;
+
+      // ── A tiebreak-only set keeps its score in the TIEBREAK fields ──
+      //
+      // Its games are 0-0 by construction, so reading `side1Score`/`side2Score` seeded a saved match
+      // tiebreak as blank and the keypad opened empty on a match that had been played. The cells ARE
+      // the points here, exactly as they are in Dynamic Sets, so the points are what seeds them.
+      if (tiebreakOnly(index)) {
+        entries[index] = {
+          side1: set.side1TiebreakScore === undefined ? '' : String(set.side1TiebreakScore),
+          side2: set.side2TiebreakScore === undefined ? '' : String(set.side2TiebreakScore),
+        };
+        continue;
+      }
+
       entries[index] = {
         // `=== undefined` and not `||`, so a set lost to love seeds as '0' rather than blank.
         side1: set.side1Score === undefined ? '' : String(set.side1Score),
         side2: set.side2Score === undefined ? '' : String(set.side2Score),
-        tiebreak: (set.side1TiebreakScore ?? set.side2TiebreakScore)?.toString(),
+        // The LOSER's points, which is the one value `buildSetScore` takes — it derives the winner's
+        // from it. This read `side1TiebreakScore ?? side2TiebreakScore`, side 1's whatever side 1 is,
+        // so a saved 7-6(3) with both values recorded reopened as **7-6(7)**: side 1 had won the set
+        // and therefore held the 7, which was then read back as the loser's points.
+        tiebreak: lowerTiebreak(set)?.toString(),
       };
     }
   }
@@ -106,6 +132,12 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
       if (!entry.side2) return { index, side: 2 };
     }
     return undefined;
+  }
+
+  /** The loser's tiebreak points — the lower of whatever is recorded. */
+  function lowerTiebreak(set: SetScore): number | undefined {
+    const pair = [set.side1TiebreakScore, set.side2TiebreakScore].filter((points) => points !== undefined);
+    return pair.length ? Math.min(...(pair as number[])) : undefined;
   }
 
   /** The set a tiebreak would attach to: the last one with any games in it. */
@@ -173,6 +205,18 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     const entry = entries[last.index];
     const current = last.side === 1 ? entry.side1 : entry.side2;
     if (!current || current.length >= 2) return false;
+
+    // ── Not clamped for a tiebreak-only set, because the shared helper cannot size one ──
+    //
+    // `getMaxAllowedScore` returns **7** for `SET1-S:TB10`: it reads `setFormat.setTo`, which a
+    // tiebreak-only format does not carry — its target lives on `tiebreakSet.tiebreakTo`. So a `1`
+    // could never be extended to a `10` and a match tiebreak was unenterable on the keypad: measured
+    // 2026-09-28, tapping 1, 0, 8 produced a tiebreak of 1-0 and dropped the 8 entirely.
+    //
+    // No number is invented in its place. A match tiebreak legitimately runs long — 12-10, 15-13 — so
+    // there is no honest cap, and the two-digit limit above plus `validateSetScore` remain the checks.
+    // Dynamic Sets exempts these sets the same way and for the same measurement.
+    if (tiebreakOnly(last.index)) return true;
 
     const max = getMaxAllowedScore(last.index, last.side, {
       side1: Number.parseInt(entry.side1) || 0,
@@ -271,33 +315,59 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     return wrapper;
   }
 
-  /** Whether any set in this format can go to a tiebreak. */
+  /** Whether this set is played ENTIRELY as a tiebreak — a match tiebreak. */
+  function tiebreakOnly(index: number): boolean {
+    return isSetTiebreakOnly(getSetFormatForIndex(index, config));
+  }
+
+  /**
+   * Whether the Tiebreak key does anything in this format.
+   *
+   * A set that is ITSELF a tiebreak has nothing to attach one to: its own cells are the points, so the
+   * key would be a second place to enter the same number — which is the reason Dynamic Sets renders no
+   * separate tiebreak column for these sets either. So a format whose every set is tiebreak-only
+   * (`SET1-S:TB10`, `SET3-S:TB10`) disables the key rather than offering a control that can only
+   * produce a contradiction. A MIXED format keeps it, because sets 1 and 2 of `SET3-S:6/TB7-F:TB10`
+   * genuinely need it.
+   */
   function formatHasTiebreak(): boolean {
+    let anyAttachable = false;
     for (let index = 0; index < setCount; index += 1) {
+      if (tiebreakOnly(index)) continue;
       const setFormat = getSetFormatForIndex(index, config);
-      if (setFormat?.tiebreakFormat || setFormat?.tiebreakSet) return true;
+      if (setFormat?.tiebreakFormat || setFormat?.tiebreakSet) anyAttachable = true;
     }
-    return false;
+    return anyAttachable;
   }
 
   function scoreText(): string | undefined {
-    const sets = currentSets();
-    if (!sets.length) return undefined;
+    return scoreLine(currentSets(), params.matchUpFormat);
+  }
 
-    return sets
-      .map((set, index) => {
-        const base = `${set.side1Score ?? 0}-${set.side2Score ?? 0}`;
-        const tiebreak = set.side1TiebreakScore ?? set.side2TiebreakScore;
-        if (tiebreak === undefined) return base;
-        // `shouldShowTiebreak` owns whether this set's score is one a tiebreak can attach to, so a
-        // stray tiebreak on a 6-2 is not rendered as if it were legitimate.
-        const allowed = shouldShowTiebreak(
-          index,
-          { side1: set.side1Score ?? 0, side2: set.side2Score ?? 0 },
-          config,
-        );
-        return allowed ? `${base}(${tiebreak})` : base;
-      })
-      .join(' ');
+  /**
+   * The first set that is not a legal score in this format, per the factory.
+   *
+   * The keypad had NO integrity check. What it had instead was a display rule: a tiebreak on a 6-2 was
+   * silently not rendered, so the operator saw `6-2` while a stray 3 sat in the state and would have
+   * been submitted. Once the score line comes from the factory (`scoreLine`) that suppression is gone —
+   * `6-2(3)` is now shown — so the honest replacement is to SAY it is wrong rather than to hide it.
+   * `scoreGovernor.validateSetScore` answers exactly that: *"Tiebreak set winner must have 7 games,
+   * got 6"*.
+   *
+   * `allowIncomplete` because the keypad is read between taps and a 3-2 is an ordinary state, not a
+   * breach. Dynamic Sets asks the same question the same way.
+   */
+  function firstError(): string | undefined {
+    const sets = currentSets();
+    for (const [index, set] of sets.entries()) {
+      const { isValid, error } = scoreGovernor.validateSetScore(
+        set,
+        params.matchUpFormat,
+        index === setCount - 1,
+        true,
+      );
+      if (!isValid && error) return `${ordinalSetLabel(index + 1)} set: ${error}`;
+    }
+    return undefined;
   }
 }

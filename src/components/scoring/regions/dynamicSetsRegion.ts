@@ -14,8 +14,19 @@
  *
  * ── What the region decides, and what it asks ──
  *
- * It decides WHERE a column goes and WHEN it is visible. Everything else it asks `dynamicSetsLogic.ts`:
- * `shouldShowTiebreak`, `isSetComplete`, `shouldCreateNextSet`, `shouldApplySmartComplement`.
+ * It decides WHERE a column goes and WHEN it is visible. Everything else it asks:
+ *
+ *   `dynamicSetsLogic.ts`  — `shouldShowTiebreak`, `isSetComplete`, `shouldCreateNextSet`,
+ *                            `shouldApplySmartComplement`, `getMaxAllowedScore`
+ *   the FACTORY            — `scoreGovernor.validateSetScore` for whether a set is legal, and
+ *                            `scoreGovernor.getTiebreakComplement` for what a typed tiebreak implies
+ *
+ * CA, 2026-09-27: *"If validateSetScores is only for text, isn't there a structural (object) score
+ * validator that can be used in the factory?"* There is, and it replaced a string round-trip here. Note
+ * what that leaves behind: `getMaxAllowedScore`, `calculateComplement` and `isSetComplete` in
+ * `dynamicSetsLogic.ts` are all hand-rolled, and the factory exports `getSetComplement`,
+ * `checkSetIsComplete` and `validateMatchUpScore` besides. Adopting those is real work with a blast radius
+ * — the shipping approach shares that module — so it is reported rather than smuggled in here.
  *
  * Measured, because two of these are counter-intuitive and the code leans on both:
  * `shouldShowTiebreak(0, 7-6)` is TRUE while `isSetComplete(0, 7-6)` is FALSE — a 7-6 is not a finished
@@ -31,11 +42,14 @@
  * in next, which is what makes this feel like one continuous entry rather than a form.
  */
 
+import { scoreGovernor } from 'tods-competition-factory';
 import { ordinalSetLabel } from './setColumns';
+import { scoreLine } from './scoreLine';
 import {
   shouldApplySmartComplement,
   getSetFormatForIndex,
   shouldCreateNextSet,
+  getMaxAllowedScore,
   shouldShowTiebreak,
   isSetTiebreakOnly,
   matchUpConfigFor,
@@ -52,8 +66,14 @@ import type { SetScore } from '../types';
 /** The tiebreak column's track — narrower than a games column, since it holds at most two digits. */
 const TIEBREAK_COLUMN_WIDTH = '54px';
 
+/** Prefix for an integrity message, so every one reads the same way. */
+const setLabel = (index: number) => `${ordinalSetLabel(index + 1)} set:`;
+const ARIA_LABEL = 'aria-label';
+
 export type DynamicSetsRegionParams = {
   matchUpFormat?: string;
+  /** Participant names, so an integrity message can say who rather than "side 1". */
+  sideNames?: [string, string];
   /** Sets already recorded, e.g. from a saved matchUp. */
   sets?: SetScore[];
   /** Whether smart complements starts enabled. Defaults to on. */
@@ -67,8 +87,13 @@ export type DynamicSetsRegionParams = {
 
 export type DynamicSetsRegion = ScoreRegion & {
   getSets: () => SetScore[];
+  /** Required here, though optional on `ScoreRegion`: every entry approach can answer it. */
+  hasEntry: () => boolean;
   smartComplementsEnabled: () => boolean;
 };
+
+// `error` comes from `ScoreRegion`; the readouts import is not needed here since this region fills the
+// participant rows with its own cells rather than a shared readout.
 
 /** One set's entry state, as typed text. */
 type Entry = { side1: string; side2: string; tiebreak1: string; tiebreak2: string };
@@ -107,11 +132,14 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
   return {
     columns: () => layout().map(toColumn),
     rowCells: (sideNumber) => layout().map((slot) => cellFor(sideNumber, slot)),
-    block: () => smartComplementsToggle(),
+    bandControl: () => smartComplementsToggle(),
     scoreString: () => formatScore(),
     isComplete: () => isMatchComplete(currentSets(), config),
     winningSide: () => getMatchWinner(currentSets(), config),
     getSets: () => currentSets(),
+    // Read from the raw entry strings, not from `currentSets()`, which drops a half-entered set.
+    hasEntry: () => entries.some((entry) => entry.side1 || entry.side2 || entry.tiebreak1 || entry.tiebreak2),
+    error: () => firstError(),
     smartComplementsEnabled: () => smartComplements,
   };
 
@@ -200,6 +228,126 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
       built.push(buildSetScore(index, entry.side1, entry.side2, tiebreakOf(index) || undefined, config));
     }
     return built;
+  }
+
+  // ── Integrity ────────────────────────────────────────────────────────
+  //
+  // CA, 2026-09-27: "It's possible to enter invalid set scores which wasn't possible in our previous
+  // dynamic sets modal, e.g. ... 3-7 is not a valid score ... so, there is integrity checking missing
+  // somewhere that we have in the previous iterations."
+  //
+  // Correct, and the tell was that `validateSetScores` ALREADY knew: it reports "With tiebreak format, if
+  // side 2 has 7 games, side 1 must be at least 5, got 3". The region simply never asked it. Three checks
+  // now run, and each catches a case the others do not.
+
+  /**
+   * The first thing wrong with what has been entered, or `undefined`.
+   *
+   * Reported to the card, which refuses to submit while it is set and shows it in the result band. A
+   * score that cannot be right must not reach the factory, and it must say so while the operator is
+   * still looking at the field they typed it in.
+   */
+  function firstError(): string | undefined {
+    for (let index = 0; index < setCount; index += 1) {
+      if (!bothEntered(index)) continue;
+      const problem = setError(index) ?? tiebreakError(index);
+      if (problem) return problem;
+    }
+    return undefined;
+  }
+
+  /** Whether this ONE set is a legal score in this format, per the factory. */
+  function setError(index: number): string | undefined {
+    // ── The FACTORY validates the set object ──
+    //
+    // CA, 2026-09-27: "If validateSetScores is only for text, isn't there a structural (object) score
+    // validator that can be used in the factory?" There is:
+    // `scoreGovernor.validateSetScore(set, matchUpFormat, isDecidingSet, allowIncomplete)`.
+    //
+    // It replaces a string round-trip AND a gate. The previous version built a one-set array for this
+    // repo's `validateSetScores`, which formats a scoreString and hands it to
+    // `generateOutcomeFromScoreString` — so a structural question was asked in prose and the answer came
+    // back needing a `/^Set \d+:/` prefix match to tell a real breach from match-level incompleteness. It
+    // also needed an `isSetComplete` gate, because it flagged every in-progress set.
+    //
+    // `allowIncomplete: true` does that natively. Measured: `2-1` valid, `3-7` invalid, `44-3` invalid,
+    // `7-6(3)` valid. No prefix parsing and no string in the middle.
+    //
+    // ── One gate survives, and it is a different one ──
+    //
+    // `allowIncomplete` forgives unfinished GAMES but not a missing TIEBREAK: a 7-6 whose points are not in
+    // yet comes back "Tiebreak winner must reach 7". That is the transient state the card deliberately
+    // creates — the column is open and the operator is being asked — so validating it would fire an error
+    // at the exact moment the question was posed. `tiebreakOutstanding` is the honest predicate for it,
+    // covering both "none entered" and "one of two entered".
+    if (tiebreakOutstanding(index)) return undefined;
+
+    const entry = entries[index];
+    const { isValid, error } = scoreGovernor.validateSetScore(
+      {
+        side1Score: Number.parseInt(entry.side1) || 0,
+        side2Score: Number.parseInt(entry.side2) || 0,
+        side1TiebreakScore: entry.tiebreak1 ? Number.parseInt(entry.tiebreak1) : undefined,
+        side2TiebreakScore: entry.tiebreak2 ? Number.parseInt(entry.tiebreak2) : undefined,
+      },
+      params.matchUpFormat,
+      isDecidingSet(index),
+      true,
+    );
+
+    if (isValid || !error) return undefined;
+    return `${setLabel(index)} ${error}`;
+  }
+
+  /** Whether this is the set a deciding-set format treats differently. */
+  function isDecidingSet(index: number): boolean {
+    return index === (config.exactly ?? config.bestOf) - 1;
+  }
+
+  /**
+   * Whether the tiebreak agrees with who won the set.
+   *
+   * CA, 2026-09-27: "I was also able to edit a tiebreak score to be 7-6 with the winning side having 3 and
+   * the losing side having tiebreak 7". `validateSetScores` does NOT catch that — measured — and the old
+   * silent behaviour was worse than letting it through: `buildSetScore` takes the LOWER value as the
+   * loser's points and derives the winner's from it, so the card displayed 3 against the winner while
+   * submitting 7. Showing one thing and recording another is the one outcome worth failing loudly for.
+   */
+  function tiebreakError(index: number): string | undefined {
+    const entry = entries[index];
+    if (!entry.tiebreak1 || !entry.tiebreak2) return undefined;
+
+    const games = gamesOf(index);
+    if (games.side1 === games.side2) return undefined;
+
+    const gamesWinner = games.side1 > games.side2 ? 1 : 2;
+    const points1 = Number.parseInt(entry.tiebreak1);
+    const points2 = Number.parseInt(entry.tiebreak2);
+    // A TIE is left to the factory, which rejects it as "Tiebreak must be won by 2 points" — a better
+    // message than any this could write, and one check fewer here. This function exists only for the case
+    // the factory misses.
+    if (points1 === points2) return undefined;
+
+    const pointsWinner = points1 > points2 ? 1 : 2;
+    if (pointsWinner === gamesWinner) return undefined;
+
+    const name = params.sideNames?.[gamesWinner - 1] ?? `side ${gamesWinner}`;
+    return `${setLabel(index)} ${name} won it, so they must win the tiebreak`;
+  }
+
+  /**
+   * Forget a tiebreak whose games no longer call for one.
+   *
+   * CA, 2026-09-27, on all cells staying editable: "the tiebreak score floats between entry cells".
+   * Editing a 7-6(3) down to 6-3 left the points attached and the band read `6-3(3)` — a tiebreak on a set
+   * that never had one. Cleared where `shouldShowTiebreak` has stopped holding, so the data cannot outlive
+   * the score that justified it.
+   */
+  function dropStaleTiebreak(index: number): void {
+    if (!bothEntered(index)) return;
+    if (shouldShowTiebreak(index, gamesOf(index), config)) return;
+    entries[index].tiebreak1 = '';
+    entries[index].tiebreak2 = '';
   }
 
   // ── Layout: which columns exist right now ─────────────────────────────
@@ -321,7 +469,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     input.value = sideNumber === 1 ? entries[setIndex].side1 : entries[setIndex].side2;
     input.dataset.side = String(sideNumber);
     input.dataset.set = String(setIndex + 1);
-    input.setAttribute('aria-label', `${ordinalSetLabel(setIndex + 1)} set, side ${sideNumber} games`);
+    input.setAttribute(ARIA_LABEL, `${ordinalSetLabel(setIndex + 1)} set, side ${sideNumber} games`);
     input.addEventListener('input', () => onGamesTyped(sideNumber, setIndex, input));
     // Entering a set reopens its tiebreak column. Focus rather than click, so it works from the keyboard
     // too — an operator tabbing back to correct a score gets the same affordance as one who clicks.
@@ -352,7 +500,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     input.value = sideNumber === 1 ? entries[setIndex].tiebreak1 : entries[setIndex].tiebreak2;
     input.dataset.tiebreakSide = String(sideNumber);
     input.dataset.tiebreakSet = String(setIndex + 1);
-    input.setAttribute('aria-label', `${ordinalSetLabel(setIndex + 1)} set tiebreak, side ${sideNumber} points`);
+    input.setAttribute(ARIA_LABEL, `${ordinalSetLabel(setIndex + 1)} set tiebreak, side ${sideNumber} points`);
     input.addEventListener('input', () => onTiebreakTyped(sideNumber, setIndex, input));
     cells.set(key('tiebreak', sideNumber, setIndex), input);
     return input;
@@ -426,15 +574,52 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
   function onGamesTyped(sideNumber: SideNumber, setIndex: number, input: HTMLInputElement): void {
     const before = layoutSignature();
     editingSet = setIndex;
-    const cleaned = digitsOnly(input);
+    const cleaned = clampGames(digitsOnly(input), sideNumber, setIndex, input);
 
     if (sideNumber === 1) entries[setIndex].side1 = cleaned;
     else entries[setIndex].side2 = cleaned;
 
     if (cleaned.length) applyGamesComplement(sideNumber, setIndex, Number(cleaned));
+    dropStaleTiebreak(setIndex);
 
     // If these games now call for a tiebreak, that is where the operator goes.
     settle(before, tiebreakOutstanding(setIndex) ? { kind: 'tiebreak', setIndex } : undefined);
+  }
+
+  /**
+   * Refuse a games value the format cannot produce.
+   *
+   * CA's `3-44` case. `getMaxAllowedScore` is 7 for `S:6/TB7`, so a second `4` is not a score and the
+   * keystroke is declined rather than accepted and then complained about — which is how the previous
+   * modal behaved, and the reason CA noticed the difference.
+   *
+   * The keystroke is DECLINED rather than substituted. The old Dial Pad replaced an out-of-range digit
+   * with `setTo`, so typing 8 silently became 6 — a number the operator never typed, in a field they were
+   * looking at. Refusing it leaves what they did type and nothing else.
+   */
+  function clampGames(value: string, sideNumber: SideNumber, setIndex: number, input: HTMLInputElement): string {
+    if (!value) return value;
+
+    // ── Not clamped for a tiebreak-only set, because the shared helper cannot size one ──
+    //
+    // Measured 2026-09-27: `getMaxAllowedScore(0, 1, …, matchUpConfigFor('SET1-S:TB10'))` returns **7**. It
+    // reads `setFormat.setTo`, which a tiebreak-only format does not carry — its target lives on
+    // `tiebreakSet.tiebreakTo` — so it falls back to a set-to-6 and caps a match tiebreak to 10 at seven
+    // games. Clamping against it would make a legitimate 10-8 unenterable.
+    //
+    // No number is invented in its place: a match tiebreak can genuinely run long (12-10, 15-13), so there
+    // is no honest cap to apply here and `validateSetScores` remains the check. The upstream gap is
+    // reported rather than patched, since `getMaxAllowedScore` is shared with the shipping approach.
+    if (isSetTiebreakOnly(getSetFormatForIndex(setIndex, config))) return value;
+
+    const max = getMaxAllowedScore(setIndex, sideNumber, gamesOf(setIndex), config);
+    if (Number(value) <= max) return value;
+
+    // Keep the longest leading run that is still legal, which for a single over-range digit is nothing and
+    // for `44` is `4`.
+    const kept = value.slice(0, -1);
+    input.value = kept;
+    return kept;
   }
 
   /**
@@ -500,15 +685,51 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     if (!smartComplements) return;
 
     const target = tiebreakTarget(setIndex);
-    if (target === undefined || points >= target) return;
+    if (target === undefined) return;
 
-    const otherSide: SideNumber = sideNumber === 1 ? 2 : 1;
-    const value = String(target);
-    if (otherSide === 1) entries[setIndex].tiebreak1 = value;
-    else entries[setIndex].tiebreak2 = value;
+    // ── The factory computes it, because mine was wrong ──
+    //
+    // My version returned the target and refused anything at or above it, so a 6 in a TB7 completed to
+    // nothing — but a tiebreak to seven legitimately ends 8-6 or 9-7, and the factory knows that. Refusing
+    // was not conservative, it was wrong. Measured for TB7: 3 -> [3, 7], **6 -> [6, 8]**, 7 -> [7, 9].
+    //
+    // The pair comes back ORDERED BY SIDE, which `isSide1` controls: `{ lowValue: 3, isSide1: true }` gives
+    // `[3, 7]` and `isSide1: false` gives `[7, 3]`. Omitting it defaults to side 2 holding the low value, so
+    // a first attempt that dropped the flag and took element [1] wrote the typed 3 straight back over
+    // itself and produced a tied 3-3 tiebreak. Both sides are assigned from the pair rather than one being
+    // picked out, so the ordering cannot be misread again.
+    // ── Only the games LOSER's cell determines the pair ──
+    //
+    // A tiebreak's low value belongs to whoever lost the SET. Typing into the winner's cell states the
+    // winner's points, from which the loser's cannot be derived — a 7 could have beaten anything from 0 to
+    // 5. Completing from it anyway produced a contradiction the integrity check then had to reject: type 7
+    // for the side that won 7-6 and the factory answers `[7, 9]`, handing the set's winner fewer points than
+    // its loser.
+    //
+    // So the complement fires from the losing side only. Nothing is lost: the losing side's points are what
+    // a score line records, and it is the cell the card opens on.
+    const games = gamesOf(setIndex);
+    if (games.side1 === games.side2) return;
+    const gamesLoser: SideNumber = games.side1 > games.side2 ? 2 : 1;
+    if (sideNumber !== gamesLoser) return;
 
-    const sibling = cells.get(key('tiebreak', otherSide, setIndex));
-    if (sibling) sibling.value = value;
+    const pair = scoreGovernor.getTiebreakComplement({
+      lowValue: points,
+      tiebreakTo: target,
+      isSide1: sideNumber === 1,
+    });
+    if (!pair) return;
+
+    const [forSide1, forSide2] = pair;
+    if (forSide1 === undefined || forSide2 === undefined) return;
+
+    entries[setIndex].tiebreak1 = String(forSide1);
+    entries[setIndex].tiebreak2 = String(forSide2);
+
+    for (const side of [1, 2] as SideNumber[]) {
+      const cell = cells.get(key('tiebreak', side, setIndex));
+      if (cell) cell.value = side === 1 ? String(forSide1) : String(forSide2);
+    }
   }
 
   /** The points a tiebreak in this set is played to, from the format. */
@@ -561,48 +782,42 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
 
   // ── The smart-complements toggle ──────────────────────────────────────
 
+  /**
+   * The smart-complements toggle, compact, for the result band's right edge.
+   *
+   * CA, 2026-09-27: *"I don't think '[] Smart Complements' should take up a whole row of the modal ... Just
+   * (Smart) maybe, something compact that toggles."* So it is a single small toggle button reading `Smart`
+   * rather than a checkbox and a full label occupying its own row.
+   *
+   * A `<button aria-pressed>` rather than a checkbox: it is one word in a status bar, and `aria-pressed`
+   * carries on/off without needing a visible label beside it the way a checkbox does. The `title` and
+   * `aria-label` say the whole thing, since `Smart` alone would not tell anyone what it does.
+   */
   function smartComplementsToggle(): HTMLElement {
-    const label = document.createElement('label');
-    label.className = 'chc-sec-smart';
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'chc-sec-smart';
+    toggle.dataset.action = 'smartComplements';
+    toggle.textContent = params.smartComplementsLabel ?? 'Smart';
+    toggle.setAttribute('aria-pressed', String(smartComplements));
+    const explain = 'Smart complements — fill the opposing score from the one you type';
+    toggle.title = explain;
+    toggle.setAttribute(ARIA_LABEL, explain);
 
-    const box = document.createElement('input');
-    box.type = 'checkbox';
-    box.checked = smartComplements;
-    box.dataset.action = 'smartComplements';
-    box.addEventListener('change', () => {
-      smartComplements = box.checked;
+    toggle.addEventListener('click', () => {
+      smartComplements = !smartComplements;
       // Cleared rather than preserved: the next digit typed in a set is the one that gets a complement,
       // which is what an operator re-enabling it is asking for.
       complementsUsed.clear();
       params.onChange?.();
     });
 
-    const text = document.createElement('span');
-    // No sub-text explaining the mechanic (CA, 2026-09-27) — clutter, and the draft had it backwards.
-    text.textContent = params.smartComplementsLabel ?? 'Smart complements';
-
-    label.append(box, text);
-    return label;
+    return toggle;
   }
 
   // ── The score as text, for the result band ───────────────────────────
 
   function formatScore(): string | undefined {
-    const sets = currentSets();
-    if (!sets.length) return undefined;
-
-    return sets
-      .map((set, index) => {
-        const base = `${set.side1Score ?? 0}-${set.side2Score ?? 0}`;
-        if (isSetTiebreakOnly(getSetFormatForIndex(index, config))) return base;
-
-        const entry = entries[index];
-        const pair = [entry.tiebreak1, entry.tiebreak2].filter(Boolean).map(Number);
-        if (!pair.length) return base;
-
-        // The LOWER of the two points is what a score line shows — `7-6(3)`.
-        return `${base}(${Math.min(...pair)})`;
-      })
-      .join(' ');
+    return scoreLine(currentSets(), params.matchUpFormat);
   }
 }

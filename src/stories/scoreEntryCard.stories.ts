@@ -107,9 +107,14 @@ export const PlayedOut = {
     await expect(band!.dataset.tone).toBe('good');
     await expect(band!.textContent).toContain('Rosalind Lem def. Derrick Ellul');
 
-    // Nothing is pre-selected. A pre-selected ending would be a fail-open default on the most
+    // No ENDING is pre-selected. A pre-selected ending would be a fail-open default on the most
     // consequential field in the dialog.
-    await expect(canvasElement.querySelectorAll('[aria-pressed="true"]')).toHaveLength(0);
+    //
+    // Scoped to the endings group and the rows: a bare `[aria-pressed="true"]` sweep also catches the
+    // Smart Complements toggle, which is pressed by design and is not an ending. That is what this
+    // assertion caught the first time it was ever executed.
+    await expect(canvasElement.querySelectorAll('.chc-sec-endings [aria-pressed="true"]')).toHaveLength(0);
+    await expect(canvasElement.querySelector('[data-row-ending]')).toBeNull();
   },
 };
 
@@ -205,7 +210,18 @@ export const Tiebreak = {
     field.dispatchEvent(new Event('input', { bubbles: true }));
 
     await expect(tb(1), 'the column should have folded away').toBeNull();
-    await expect(canvasElement.querySelector('sup.chc-sec-tb-mark')?.textContent).toBe('3');
+
+    // The raised digit sits on the cell of the side that LOST the tiebreak, and nothing at all on the
+    // winner's — `7-6³` means the loser took three points. A bare `querySelector('sup')` takes the
+    // FIRST in document order, which is side 1's and is empty by design; that is what this asserted
+    // until it was first executed, so it was checking the rule backwards.
+    const markOn = (side: number) =>
+      canvasElement
+        .querySelector<HTMLInputElement>(`input[data-side="${side}"][data-set="1"]`)
+        ?.parentElement?.querySelector('sup.chc-sec-tb-mark');
+
+    await expect(markOn(2)?.textContent).toBe('3');
+    await expect(markOn(1)?.textContent).toBe('');
     await expect(canvasElement.querySelector<HTMLElement>(BAND)!.textContent).toContain('7-6(3)');
     await expect(canvasElement.querySelector('input[data-side="1"][data-set="2"]')).toBeTruthy();
   },
@@ -277,6 +293,88 @@ export const DialPad = {
     for (const digit of [6, 4, 6, 3]) press(digit);
 
     await expect(canvasElement.querySelector<HTMLElement>(BAND)!.textContent).toContain('Rosalind Lem def.');
+    await expect(canvasElement.querySelector<HTMLButtonElement>(SUBMIT)!.disabled).toBe(false);
+  },
+};
+
+export const MatchTiebreak = {
+  name: 'A match tiebreak — the keypad, on SET1-S:TB10',
+  render: () => {
+    const matchUpFormat = 'SET1-S:TB10';
+    const region = createDialPadRegion({ matchUpFormat, onChange: () => card.refresh() });
+    const card = renderScoreEntryCard({
+      sides: SIDES,
+      matchUpFormat,
+      context: 'Third-set tiebreak · Court 1',
+      approachLabel: 'Dial Pad',
+      statusCodeGroups: REAL_GROUPS,
+      region,
+    });
+    return frame(card.element);
+  },
+  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+    const press = (digit: number) =>
+      canvasElement.querySelector<HTMLButtonElement>(`button[data-digit="${digit}"]`)?.click();
+
+    // This format was UNENTERABLE on the keypad: `getMaxAllowedScore` returns 7 for it, because it reads
+    // `setFormat.setTo` and a tiebreak-only format keeps its target on `tiebreakSet.tiebreakTo`. So the
+    // 1 could never be extended to a 10 — tapping 1, 0, 8 gave a tiebreak of 1-0 and dropped the 8.
+    for (const digit of [1, 0, 8]) press(digit);
+
+    await expect(canvasElement.querySelector<HTMLElement>(BAND)!.textContent).toContain('[10-8]');
+    await expect(canvasElement.querySelector<HTMLButtonElement>(SUBMIT)!.disabled).toBe(false);
+
+    // No Tiebreak key here: the cells ARE the tiebreak, so it could only be a second place to type the
+    // same number.
+    await expect(canvasElement.querySelector<HTMLButtonElement>('button[data-action="tiebreak"]')!.disabled).toBe(
+      true,
+    );
+  },
+};
+
+export const RowEndingClosed = {
+  name: 'The row target — closed',
+  render: () => frame(cardWithSets(undefined).element),
+  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+    // CA, 2026-09-27: the warning-triangle column is gone and the participant's NAME is the control.
+    // The row still owns the ending — that is what deletes the separate winner question — but the 56px
+    // track went back to the name, and the row no longer ends in something shaped like an overflow menu.
+    const opener = (side: number) =>
+      canvasElement.querySelector<HTMLButtonElement>(`button[data-action="endedEarly"][data-side="${side}"]`);
+
+    await expect(opener(1)!.textContent).toContain('Rosalind Lem');
+    await expect(opener(1)!.closest('.chc-sec-participant')).toBeTruthy();
+    await expect(opener(1)!.getAttribute('aria-label')).toBe('Rosalind Lem (4) — ended early');
+
+    // No trailing track: `1fr` for the participant plus the score columns, and nothing after.
+    const head = canvasElement.querySelector<HTMLElement>('.chc-sec-row-head');
+    await expect(head!.style.gridTemplateColumns.endsWith('56px')).toBe(false);
+  },
+};
+
+export const RowEndingChosen = {
+  name: 'The row target — open, and chosen',
+  render: () => frame(cardWithSets(undefined).element),
+  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+    const click = (selector: string) => canvasElement.querySelector<HTMLElement>(selector)?.click();
+
+    // Opening from the name, and choosing on the row that it happened to.
+    click('button[data-action="endedEarly"][data-side="2"]');
+    await expect(canvasElement.querySelector('[data-panel-side="2"]')?.textContent).toContain(
+      'What happened to Derrick Ellul?',
+    );
+
+    click(`[data-panel-side="2"] button[data-ending="${WALKOVER}"]`);
+
+    // The chosen ending is NAMED on the row. A strike-through says something ended; it never says which,
+    // and that is the fact an operator scanning the card actually needs.
+    const pill = canvasElement.querySelector<HTMLElement>('[data-row-ending]');
+    await expect(pill!.textContent).toBe('Walkover');
+    await expect(pill!.dataset.rowEnding).toBe(WALKOVER);
+    await expect(pill!.closest<HTMLElement>('.chc-sec-row')!.dataset.side).toBe('2');
+
+    // And the other side advances, which is the whole point of anchoring the ending to a row.
+    await expect(canvasElement.querySelector<HTMLElement>(BAND)!.textContent).toContain('Rosalind Lem advances');
     await expect(canvasElement.querySelector<HTMLButtonElement>(SUBMIT)!.disabled).toBe(false);
   },
 };

@@ -57,6 +57,42 @@
   font-size: 11px;
 }
 
+/* The chip as a button when the format is editable. It keeps the inert chip's exact box so the header
+   does not reflow between a dialog that can change the format and one that cannot — only the cursor and
+   the hover state say it is pressable. `font: inherit` because a <button> otherwise takes the UA font and
+   the code would stop matching the surrounding header text. */
+.chc-sec-format-button {
+  background: var(--chc-bg-elevated);
+  color: var(--chc-text-primary);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.chc-sec-format-button:hover {
+  border-color: var(--chc-border-focus);
+  background: var(--chc-hover-bg);
+}
+
+.chc-sec-format-button:focus-visible {
+  outline: 2px solid var(--chc-border-focus);
+  outline-offset: 2px;
+}
+
+/* The approach switcher's menu anchors to this, not to the header: `.chc-sec-other-menu` positions
+   against its nearest positioned ancestor, and without a wrapper it would escape to the card. */
+.chc-sec-approach-anchor {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Right-aligned, because the switcher sits at the header's right edge and a left-anchored 250px menu
+   would hang off the dialog. */
+.chc-sec-approach-menu {
+  right: 0;
+  left: auto;
+}
+
 /* ── Body ──────────────────────────────────────────────────────────── */
 
 .chc-sec-body {
@@ -106,12 +142,65 @@
   border-top: 1px solid var(--chc-border-secondary);
 }
 
-/* The row of the side an ending was recorded against. Struck through AND tinted: colour alone must
-   never be the only carrier (WCAG 1.4.1), and the strike-through is what survives a colour-blind
-   reader or a greyscale print. */
+/* The row of the side an ending was recorded against. Struck through AND named by its pill: colour alone
+   must never be the only carrier (WCAG 1.4.1), the strike-through survives a greyscale print, and the
+   pill says which ending in words — which a strike-through never could. */
 .chc-sec-row[data-ended='true'] .chc-sec-name {
   color: var(--chc-text-secondary);
   text-decoration: line-through;
+}
+
+/* ── The per-side ending control ─────────────────────────────────────
+   The participant's name IS the control. It had a dedicated 56px column holding a warning triangle;
+   moving it in here returns that width to the name and stops the row ending in something shaped like an
+   overflow menu (CA, 2026-09-27). Quiet until hovered or focused, so the row still reads as a row. */
+.chc-sec-opener {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 4px 8px;
+  margin-left: -8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.chc-sec-opener:hover {
+  background: var(--chc-hover-bg);
+  border-color: var(--chc-border-secondary);
+}
+
+.chc-sec-opener:focus-visible {
+  outline: 2px solid var(--chc-border-focus);
+  outline-offset: 1px;
+}
+
+/* The chevron is the only standing hint that the name is actionable, so it stays visible — revealing it
+   on hover alone would leave the affordance undiscoverable on a touch screen. */
+.chc-sec-opener svg {
+  flex-shrink: 0;
+  color: var(--chc-text-secondary);
+}
+
+.chc-sec-opener[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+
+/* The chosen ending, named on the row it belongs to — the language the walkover artboard already used.
+   The warning triangle was only ever the unselected face of this. */
+.chc-sec-row-ending {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--chc-card-accent);
+  color: var(--chc-card-on-accent);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .chc-sec-row[data-winner='true'] {
@@ -443,24 +532,31 @@
   outline-offset: 1px;
 }
 
-/* The smart-complements toggle. It lives in the score region rather than the card's chrome because it
-   is a Dynamic Sets behaviour only — in the shared chrome its presence would imply it applied to Free
-   Score and the Dial Pad too. */
+/* The smart-complements toggle — one compact word on the result band's right edge rather than a checkbox
+   occupying a whole row (CA, 2026-09-27). Still supplied by the REGION: it is a Dynamic Sets behaviour and
+   nothing else reads it, so the card only decides where it sits. */
 .chc-sec-smart {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  min-height: 44px;
-  color: var(--chc-text-secondary);
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border: 1px solid currentcolor;
+  border-radius: 999px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   cursor: pointer;
-  font-size: 12px;
+  opacity: 0.55;
 }
 
-.chc-sec-smart input {
-  width: 18px;
-  height: 18px;
-  margin: 0;
-  accent-color: var(--chc-card-accent);
+.chc-sec-smart[aria-pressed='true'] {
+  opacity: 1;
+}
+
+.chc-sec-smart:focus-visible {
+  outline: 2px solid var(--chc-border-focus);
+  outline-offset: 2px;
 }
 
 @media (width <= 560px) {
@@ -627,7 +723,7 @@
   overflow: hidden;
   clip-path: inset(50%);
   width: 1px;
-  height: 1px
+  height: 1px;
 }
 
 /* The transient tiebreak column. Narrower than a games column and visibly subordinate to it, because it

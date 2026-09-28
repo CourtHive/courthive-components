@@ -26,13 +26,19 @@ const REAL_GROUPS = fixtures.policies.POLICY_SCORING_USTA[POLICY_TYPE_SCORING].m
 
 const ARIA_LABEL = 'aria-label';
 const ARIA_PRESSED = 'aria-pressed';
+const LEM = 'Rosalind Lem';
+const ELLUL = 'Derrick Ellul';
+const PARTICIPANT = '.chc-sec-participant';
+const CARD_ROW = '.chc-sec-row';
+const CARD_ROW_HEAD = '.chc-sec-row-head';
+const ROW_ENDING = '[data-row-ending]';
 
 function mount(over: Partial<Parameters<typeof renderScoreEntryCard>[0]> = {}) {
   document.body.innerHTML = '';
   const card = renderScoreEntryCard({
     sides: [
-      { participantName: 'Rosalind Lem', seed: '(4)' },
-      { participantName: 'Derrick Ellul', seed: '(1)' },
+      { participantName: LEM, seed: '(4)' },
+      { participantName: ELLUL, seed: '(1)' },
     ],
     matchUpFormat: 'SET3-S:6/TB7',
     context: 'R16 · Court 3',
@@ -73,8 +79,8 @@ describe('the card opens with nothing chosen', () => {
   it('renders both participants and no selected ending', () => {
     const h = mount();
 
-    expect(h.row(1)?.textContent).toContain('Rosalind Lem');
-    expect(h.row(2)?.textContent).toContain('Derrick Ellul');
+    expect(h.row(1)?.textContent).toContain(LEM);
+    expect(h.row(2)?.textContent).toContain(ELLUL);
     expect(h.all('[aria-pressed="true"]')).toEqual([]);
   });
 
@@ -104,12 +110,53 @@ describe('the per-side ending control', () => {
     expect(h.endedEarly(2)?.getAttribute('aria-expanded')).toBe('true');
   });
 
-  it('carries the participant in its accessible name — an icon button otherwise has none', () => {
-    // Both rows would read identically as "Ended early", which is the same as unlabelled.
+  it('is the participant NAME, not a trailing icon button — CA, 2026-09-27', () => {
+    // The control had a dedicated 56px column at the row's end holding a warning triangle. CA asked
+    // whether it was needed on both lines, wanting to differ from the ClubSpark `[...]` and to limit the
+    // dialog's width. The ROW is the mechanism — an ending here names the side it happened to, which is
+    // what deletes the separate winner question — so it stays per-row, but the COLUMN is gone and the
+    // name carries it.
     const h = mount();
 
-    expect(h.endedEarly(1)?.getAttribute(ARIA_LABEL)).toBe('Rosalind Lem ended early');
-    expect(h.endedEarly(2)?.getAttribute(ARIA_LABEL)).toBe('Derrick Ellul ended early');
+    expect(h.endedEarly(1)?.textContent).toContain(LEM);
+    expect(h.endedEarly(2)?.textContent).toContain(ELLUL);
+    // Inside the participant cell, so it costs no track.
+    expect(h.endedEarly(1)?.closest(PARTICIPANT)).toBeTruthy();
+  });
+
+  it('names both the participant and the function, since the label replaces the visible text', () => {
+    // An `aria-label` REPLACES what a screen reader reads, so it has to carry the seed as well as the
+    // function — "ended early" alone reads identically on both rows, and the name alone does not say what
+    // the button does.
+    const h = mount();
+
+    expect(h.endedEarly(1)?.getAttribute(ARIA_LABEL)).toBe('Rosalind Lem (4) — ended early');
+    expect(h.endedEarly(2)?.getAttribute(ARIA_LABEL)).toBe('Derrick Ellul (1) — ended early');
+  });
+
+  it('has no trailing action track — the width went back to the name', () => {
+    const h = mount({
+      region: { columns: () => [{ heading: '1st' }], rowCells: () => [document.createElement('input')] },
+    });
+    const head = h.q<HTMLElement>(CARD_ROW_HEAD);
+
+    // `1fr` for the participant plus one score column, and nothing after it.
+    expect(head?.style.gridTemplateColumns).toBe('1fr 62px');
+    expect(head?.children).toHaveLength(2);
+    expect(h.row(1)?.children).toHaveLength(2);
+  });
+
+  it('names the chosen ending ON the row, so the row reports its own state', () => {
+    // What the warning triangle was standing in for. A strike-through says something ended; it never says
+    // WHICH ending, and that is the fact an operator scanning the card needs.
+    const h = mount();
+    h.endedEarly(2)?.click();
+    h.sideOption(2, WALKOVER)?.click();
+
+    const pill = h.q<HTMLElement>(ROW_ENDING);
+    expect(pill?.dataset.rowEnding).toBe(WALKOVER);
+    expect(pill?.textContent).toBe('Walkover');
+    expect(pill?.closest<HTMLElement>(CARD_ROW)?.dataset.side).toBe('2');
   });
 
   it('offers exactly the three side endings, with a hint on each', () => {
@@ -183,6 +230,45 @@ describe('"did not appear either"', () => {
     expect(h.row(2)?.dataset.winner).toBe('false');
     expect(h.band()?.dataset.tone).toBe('warn');
     expect(h.band()?.textContent).toContain('neither side advances');
+  });
+
+  it('names the ending on BOTH rows — CA, 2026-09-27', () => {
+    // CA: "If 'no one advances' is selected shouldn't (Defaulted) or (Walkover) chip appear next to the
+    // other player as well?" Yes. The ending is RECORDED against one row because that is how it is entered,
+    // but "neither appeared" is a statement about both of them — one chip implied the other side had merely
+    // lost, which is the opposite of what a double exit means.
+    const h = mount();
+    h.endedEarly(1)?.click();
+    h.sideOption(1, WALKOVER)?.click();
+    expect(h.all(ROW_ENDING), 'one row before').toHaveLength(1);
+
+    h.bothOut()?.click();
+
+    const pills = h.all<HTMLElement>(ROW_ENDING);
+    expect(pills).toHaveLength(2);
+    for (const pill of pills) expect(pill.textContent).toBe('Walkover');
+  });
+
+  it('but strikes through only the row it was entered against', () => {
+    // Striking BOTH names through would read as neither having played, rather than neither advancing.
+    const h = mount();
+    h.endedEarly(1)?.click();
+    h.sideOption(1, WALKOVER)?.click();
+    h.bothOut()?.click();
+
+    expect(h.row(1)?.dataset.ended).toBe('true');
+    expect(h.row(2)?.dataset.ended).toBe('false');
+    expect(h.row(1)?.dataset.bothOut).toBe('true');
+  });
+
+  it('drops back to one chip when the double exit is undone', () => {
+    const h = mount();
+    h.endedEarly(1)?.click();
+    h.sideOption(1, WALKOVER)?.click();
+    h.bothOut()?.click();
+    h.bothOut()?.click();
+
+    expect(h.all(ROW_ENDING)).toHaveLength(1);
   });
 
   it('submits the double status, not the base ending', () => {
@@ -420,9 +506,9 @@ describe('the shared geometry', () => {
       },
     });
 
-    expect(h.q<HTMLElement>('input[data-cell="a1"]')?.closest<HTMLElement>('.chc-sec-row')?.dataset.side).toBe('1');
-    expect(h.q<HTMLElement>('input[data-cell="b2"]')?.closest<HTMLElement>('.chc-sec-row')?.dataset.side).toBe('2');
-    expect(h.q('.chc-sec-row-head')?.textContent).toContain('1st');
+    expect(h.q<HTMLElement>('input[data-cell="a1"]')?.closest<HTMLElement>(CARD_ROW)?.dataset.side).toBe('1');
+    expect(h.q<HTMLElement>('input[data-cell="b2"]')?.closest<HTMLElement>(CARD_ROW)?.dataset.side).toBe('2');
+    expect(h.q(CARD_ROW_HEAD)?.textContent).toContain('1st');
   });
 
   it('refresh() keeps the region\'s input ELEMENTS, so typing does not lose the caret', () => {
@@ -490,7 +576,7 @@ describe('the shared geometry', () => {
     });
 
     expect(h.q('.chc-sec-score-region input[data-free-score]')).toBeTruthy();
-    expect(h.q('.chc-sec-row-head')).toBeNull();
+    expect(h.q(CARD_ROW_HEAD)).toBeNull();
   });
 
   it('hides the approach switcher when no label is given, and wires it when one is', () => {
