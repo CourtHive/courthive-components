@@ -161,6 +161,23 @@ export type ScoreRegion = {
   error?: () => string | undefined;
 
   /**
+   * Discard everything the region holds.
+   *
+   * `[Clear]` cleared the card's ENDING state and nothing else, so the typed sets stayed exactly where
+   * they were and the button read as broken — CA, 2026-09-28: *"[Clear] button not working"*. The card
+   * cannot do this itself: only the region knows what it is holding and how to redraw its own cells.
+   */
+  clear?: () => void;
+
+  /**
+   * Put focus where entry begins, selecting what is there.
+   *
+   * Selecting matters as much as focusing: the old dialog's `focusAndSelect` is why typing into a cell
+   * that already holds a score REPLACES it. Used after `[Clear]`, and by a host opening the dialog.
+   */
+  focusFirst?: () => void;
+
+  /**
    * Whether ANYTHING has been entered, complete or not.
    *
    * Deliberately not derivable from `getSets()`: a region reports only sets whose BOTH sides are in,
@@ -280,8 +297,28 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   const band = div('chc-sec-band');
   const blockContainer = div('chc-sec-score-region');
   const submitButton = button('Submit', 'chc-sec-btn chc-sec-btn-primary');
+  const clearButton = button('Clear', CLS_BTN);
 
   element.append(headerContainer, body(), band, footer());
+
+  /**
+   * Enter submits, when Submit is live.
+   *
+   * The old dialog did this from its input handler; it belongs on the CARD, because it should hold for
+   * every approach and because the card is what owns the gate. Listening on the card rather than on the
+   * fields also means it works from the endings row and the reason chips, where an operator who has just
+   * clicked a walkover reasonably expects Enter to confirm.
+   *
+   * It does nothing while Submit is disabled — the same gate, not a second opinion about it.
+   */
+  element.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' || submitButton.disabled) return;
+    // Not from inside an open menu, where Enter is choosing the item under the cursor.
+    if ((event.target as HTMLElement)?.closest('.chc-sec-other-menu')) return;
+
+    event.preventDefault();
+    submitButton.click();
+  });
 
   render();
 
@@ -434,14 +471,18 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     cancel.dataset.action = 'cancel';
     cancel.addEventListener('click', () => params.onCancel?.());
 
-    const clear = button('Clear', CLS_BTN);
-    clear.dataset.action = 'clear';
-    clear.addEventListener('click', () => {
+    clearButton.dataset.action = 'clear';
+    clearButton.addEventListener('click', () => {
+      // The REGION first: the card owns the ending, the region owns the score, and clearing one without
+      // the other is what made this button look broken.
+      region.clear?.();
       state = emptyScoreEntryState;
       openPanelSide = undefined;
       otherMenuOpen = false;
       params.onClear?.();
       render();
+      // Straight back to where entry begins, as the old dialog does after its reset.
+      region.focusFirst?.();
     });
 
     submitButton.dataset.action = 'submit';
@@ -459,7 +500,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       });
     });
 
-    bar.append(cancel, div(CLS_SPACER), clear, submitButton);
+    bar.append(cancel, div(CLS_SPACER), clearButton, submitButton);
     return bar;
   }
 
@@ -514,6 +555,15 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     const scoreIsResult = !!region.isComplete?.();
     const scoreError = region.error?.();
     submitButton.disabled = !!scoreError || !(resolution.isValid || (!resolution.hasEnding && scoreIsResult));
+
+    // Nothing to clear is not the same as a clear that does nothing: the old dialog disables the button,
+    // which is the honest signal. An ENDING counts as something to clear even with no score typed.
+    clearButton.disabled = !holdsEntry();
+  }
+
+  /** Whether anything at all has been entered — a score, or an ending. */
+  function holdsEntry(): boolean {
+    return !!(state.sideEnding || state.matchEnding || state.reasonCode || region.hasEntry?.());
   }
 
   function renderRows(winningSide?: number): void {

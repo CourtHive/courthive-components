@@ -140,6 +140,8 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     // Read from the raw entry strings, not from `currentSets()`, which drops a half-entered set.
     hasEntry: () => entries.some((entry) => entry.side1 || entry.side2 || entry.tiebreak1 || entry.tiebreak2),
     error: () => firstError(),
+    clear: () => clearAll(),
+    focusFirst: () => focusSlotSide({ kind: 'games', setIndex: 0 }, 1),
     smartComplementsEnabled: () => smartComplements,
   };
 
@@ -471,9 +473,15 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     input.dataset.set = String(setIndex + 1);
     input.setAttribute(ARIA_LABEL, `${ordinalSetLabel(setIndex + 1)} set, side ${sideNumber} games`);
     input.addEventListener('input', () => onGamesTyped(sideNumber, setIndex, input));
+    input.addEventListener('keydown', (event) => onCellKeydown(event, { kind: 'games', setIndex }, sideNumber, input));
     // Entering a set reopens its tiebreak column. Focus rather than click, so it works from the keyboard
     // too — an operator tabbing back to correct a score gets the same affordance as one who clicks.
-    input.addEventListener('focus', () => enterSet(setIndex));
+    // Selecting what is there is the old dialog's `focusAndSelect`: typing REPLACES a score rather than
+    // appending to it, so a cell holding `0` does not become `06`.
+    input.addEventListener('focus', () => {
+      enterSet(setIndex);
+      input.select();
+    });
     cells.set(cellKey, input);
 
     // A real `<sup>`, so `7-6` reads as `6` with a raised `3` — the tennis convention CA asked for. The
@@ -502,6 +510,10 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     input.dataset.tiebreakSet = String(setIndex + 1);
     input.setAttribute(ARIA_LABEL, `${ordinalSetLabel(setIndex + 1)} set tiebreak, side ${sideNumber} points`);
     input.addEventListener('input', () => onTiebreakTyped(sideNumber, setIndex, input));
+    input.addEventListener('keydown', (event) =>
+      onCellKeydown(event, { kind: 'tiebreak', setIndex }, sideNumber, input),
+    );
+    input.addEventListener('focus', () => input.select());
     cells.set(key('tiebreak', sideNumber, setIndex), input);
     return input;
   }
@@ -564,8 +576,19 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
 
   // ── Input ────────────────────────────────────────────────────────────
 
+  /**
+   * Digits, and no leading zero in front of one.
+   *
+   * CA, 2026-09-28: *"if I click into an entry field that has '0' and enter a value, I should not get e.g.
+   * '06'... it should resolve to '6'."* Selecting on focus covers the keyboard path, but a mouse click
+   * places a caret rather than a selection, so the value itself is normalised too — the guarantee has to
+   * hold however the caret got there.
+   *
+   * A LONE zero survives, because a set lost to love is a real score. `10` survives for the same reason:
+   * only zeros with a digit after them go.
+   */
   function digitsOnly(input: HTMLInputElement): string {
-    const cleaned = input.value.replace(/\D/g, '');
+    const cleaned = input.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
     // Written back immediately: a rejected character left sitting in the field reads as accepted.
     if (cleaned !== input.value) input.value = cleaned;
     return cleaned;
@@ -653,6 +676,177 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     if (sibling) sibling.value = value;
 
     complementsUsed.add(setIndex);
+  }
+
+
+  // ── The keyboard ─────────────────────────────────────────────────────
+  //
+  // CA, 2026-09-28: *"Shift-3 should enter the '3' on the other side! Like the existing dynamic sets
+  // modal... there's lots here that is incomplete!"* Correct — this region listened for `input` and
+  // nothing else, so none of the keyboard model in `approaches/dynamicSetsApproach.ts` existed here.
+  //
+  // Shift in particular CANNOT be handled on `input`: in a text field Shift+3 produces `#`, not `3`, so
+  // by the time an input event arrives the digit is gone. The old dialog matches `event.code` on
+  // `keydown` and calls `preventDefault` for exactly that reason, and so does this.
+
+  /** The digit a key press means, from `event.code` so Shift+3 is still a 3 and not a `#`. */
+  function digitFromCode(code: string): number | undefined {
+    const match = /^(?:Digit|Numpad)(\d)$/.exec(code);
+    return match ? Number(match[1]) : undefined;
+  }
+
+  function onCellKeydown(event: KeyboardEvent, slot: Slot, sideNumber: SideNumber, input: HTMLInputElement): void {
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
+
+    const digit = digitFromCode(event.code);
+    if (digit !== undefined && slot.kind === 'games' && !input.value && typedDigit(slot, sideNumber, digit, event.shiftKey)) {
+      event.preventDefault();
+      return;
+    }
+
+    if (event.key === 'Tab') {
+      // Taken over from the browser because the DOM order is wrong for this grid: the cells of one SIDE
+      // are siblings, so a native Tab runs across the row from set 1 to set 2 rather than down to the
+      // opposing score. The old dialog manages Tab for the same reason.
+      const target = step(slot, sideNumber, event.shiftKey ? -1 : 1);
+      if (!target) return;
+      event.preventDefault();
+      focusSlotSide(target.slot, target.sideNumber);
+      return;
+    }
+
+    // Backspace in an EMPTY cell steps back, so a correction does not need the mouse. Where the cell has
+    // something in it, Backspace does what it always does.
+    if (event.key === 'Backspace' && !input.value) {
+      const target = step(slot, sideNumber, -1);
+      if (!target) return;
+      event.preventDefault();
+      focusSlotSide(target.slot, target.sideNumber);
+    }
+
+    // `Enter` is deliberately not handled here: the CARD owns it, because Submit's gate lives there and
+    // the same key should work from the endings row too.
+  }
+
+  /**
+   * A digit typed into an empty GAMES cell, which is where the complement decides both sides at once.
+   *
+   * Returns whether it was handled — `false` lets the keystroke through as an ordinary character.
+   *
+   * Shift reverses which side receives the typed number, which is the whole point of it:
+   * `shouldApplySmartComplement` already returns `{ field1Value: complement, field2Value: digit }` under
+   * shift, so this is a wiring gap rather than new logic. Where the format offers no complement for the
+   * digit, a SHIFTED press still writes to the other side — CA's rule read literally — rather than
+   * falling through, which in the old dialog let the browser insert a `#` that the input filter then
+   * silently ate.
+   */
+  function typedDigit(slot: Slot, sideNumber: SideNumber, digit: number, shifted: boolean): boolean {
+    const setIndex = slot.setIndex;
+    const before = layoutSignature();
+    editingSet = setIndex;
+
+    const result = smartComplements
+      ? shouldApplySmartComplement(digit, shifted, setIndex, currentSets(), config, complementsUsed, smartComplements)
+      : undefined;
+
+    const other: SideNumber = sideNumber === 1 ? 2 : 1;
+
+    // ── An out-of-range digit is refused, exactly as `clampGames` refuses one typed ──
+    //
+    // This path writes straight into the entries, so it does not pass through `clampGames` — and without
+    // this it wrote scores the format cannot produce. Measured on `S:6/TB7`: an `8` complemented to a 7
+    // and stood as **8-7**, with focus sent into the tiebreak, where the same keystroke on the input path
+    // was declined. `true` rather than `false`, so the caller still calls `preventDefault` and nothing is
+    // written: falling through would let the character land and then be stripped, which flickers.
+    // Shift sends the typed number to the other side, so that is the side whose ceiling applies.
+    const typedInto: SideNumber = shifted ? other : sideNumber;
+    const capped = !isSetTiebreakOnly(getSetFormatForIndex(setIndex, config));
+    if (capped && digit > getMaxAllowedScore(setIndex, typedInto, gamesOf(setIndex), config)) return true;
+
+    if (result?.shouldApply) {
+      // `field1Value` belongs to the side that was TYPED IN, whichever that is, and `field2Value` to the
+      // other. The helper names them for side 1 and side 2 because the old dialog only ever complemented
+      // from side 1; the values are the typed one and its complement, in that order.
+      write(setIndex, sideNumber, String(result.field1Value));
+      write(setIndex, other, String(result.field2Value));
+      complementsUsed.add(setIndex);
+    } else if (shifted) {
+      write(setIndex, other, String(digit));
+    } else {
+      return false;
+    }
+
+    dropStaleTiebreak(setIndex);
+
+    // Where the set now calls for a tiebreak, that is where the operator goes. Otherwise on to the next
+    // set — CA: *"when I enter '3' and the other side smart auto complete's to '6' the focus should then
+    // shift to the 2nd set score entry"*. Not past the last set, and not when the match is decided.
+    const next = tiebreakOutstanding(setIndex)
+      ? ({ kind: 'tiebreak', setIndex } as Slot)
+      : advanceTarget(setIndex);
+
+    settle(before, next ? { kind: next.kind, setIndex: next.setIndex } : undefined);
+    // Also focused HERE, and not only through `settle`, because `settle` moves focus only when the layout
+    // changed — and correcting a set whose successor is already on screen changes no layout at all.
+    if (next) focusSlotSide(next, 1);
+    return true;
+  }
+
+  /** The set to move on to once this one is complete, or nothing if the match is decided. */
+  function advanceTarget(setIndex: number): Slot | undefined {
+    if (setIndex + 1 >= setCount) return undefined;
+    if (isMatchComplete(currentSets(), config)) return undefined;
+    return { kind: 'games', setIndex: setIndex + 1 };
+  }
+
+  function write(setIndex: number, sideNumber: SideNumber, value: string): void {
+    if (sideNumber === 1) entries[setIndex].side1 = value;
+    else entries[setIndex].side2 = value;
+
+    const cell = cells.get(key('games', sideNumber, setIndex));
+    if (cell) cell.value = value;
+  }
+
+  /**
+   * One cell forward or back, in the order the operator reads them.
+   *
+   * Built from `layout()` rather than from the DOM, so it stays correct as a tiebreak column appears and
+   * folds away: the visible slots ARE the order, and each carries both sides.
+   */
+  function step(slot: Slot, sideNumber: SideNumber, direction: 1 | -1): { slot: Slot; sideNumber: SideNumber } | undefined {
+    const order = layout().flatMap((current) =>
+      ([1, 2] as SideNumber[]).map((side) => ({ slot: current, sideNumber: side })),
+    );
+    const at = order.findIndex(
+      (candidate) =>
+        candidate.slot.kind === slot.kind &&
+        candidate.slot.setIndex === slot.setIndex &&
+        candidate.sideNumber === sideNumber,
+    );
+    if (at < 0) return undefined;
+
+    return order[at + direction];
+  }
+
+  function focusSlotSide(slot: Slot, sideNumber: SideNumber): void {
+    const cell = cells.get(key(slot.kind, sideNumber, slot.setIndex));
+    cell?.focus();
+    cell?.select();
+  }
+
+  /**
+   * Discard every score, and the complements that were applied.
+   *
+   * `complementsUsed` has to go with it: it exists so a complement fires once per set, and a set the
+   * operator has just cleared has to be able to complement again — otherwise Clear leaves the keypad
+   * subtly different from a dialog that was never typed into.
+   */
+  function clearAll(): void {
+    const before = layoutSignature();
+    for (let index = 0; index < setCount; index += 1) entries[index] = blank();
+    complementsUsed.clear();
+    editingSet = undefined;
+    settle(before);
   }
 
   function onTiebreakTyped(sideNumber: SideNumber, setIndex: number, input: HTMLInputElement): void {
