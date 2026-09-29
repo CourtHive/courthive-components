@@ -334,12 +334,15 @@ export const ReopenADoubleExit = {
     // participant, which is the failure this whole file exists to catch.
     await expect(topModal()!.querySelectorAll(ROW_ENDING)).toHaveLength(2);
 
-    // And the reason survived the trip, through the both-sides field a double exit has to use. Read
-    // from the PANEL rather than from the band: measured 2026-09-28, `scoreEntrySummary`'s double-exit
-    // branch returns the propagation warning as its detail and drops `reasonDisplay` entirely, so a
-    // reason chosen for a double walkover is never shown in the band. Reported rather than changed —
-    // the band's wording is not this workstream's to redesign — and the chip is the stronger evidence
-    // in any case, since it proves the STATE carries the code and not merely the prose.
+    // And the reason survived the trip, through the both-sides field a double exit has to use.
+    //
+    // In the BAND first. It did not appear there until 2026-09-29: `scoreEntrySummary`'s double-exit
+    // branch returned the propagation warning alone and dropped `reasonDisplay`, so this comment used
+    // to explain why the assertion could only be made in the panel. It is fixed, and both are asserted
+    // — the band is what an operator sees without doing anything, the chip proves the STATE carries the
+    // code rather than merely the prose.
+    await expect(inModal<HTMLElement>(BAND)!.textContent).toContain(walkoverInjuryDisplay());
+
     inModal<HTMLButtonElement>('button[data-action="endedEarly"][data-side="1"]')!.click();
     const reason = inModal<HTMLElement>(`[data-panel-side="1"] button[data-reason="${WALKOVER_INJURY}"]`);
     await expect(reason, 'the reason chip is offered again').toBeTruthy();
