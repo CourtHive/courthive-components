@@ -57,6 +57,7 @@ describe('the dialog stories run', () => {
       'ApproachSwitching',
       'FormatPicker',
       'OutAndBackIn',
+      'EnterSubmitReopenClear',
       'ReopenARetirement',
       'ReopenAMatchLevelEnding',
       'ReopenADoubleExit'

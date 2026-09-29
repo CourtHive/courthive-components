@@ -158,6 +158,10 @@ function openRecorded(append: (line: string) => void, matchUp: any, matchUpForma
   const open = (record: any) =>
     openScoreEntryDialog({
       sides: SIDES,
+      // Passed explicitly so `matchUp: undefined` is a legitimate start: a story that opens BLANK gets
+      // its format from here, and a record's own format never disagrees because `asRecord` writes this
+      // one into it.
+      matchUpFormat,
       statusCodeGroups: REAL_GROUPS,
       matchUp: record,
       onSubmit: (outcome: any) => {
@@ -249,6 +253,85 @@ export const OutAndBackIn = {
   }
 };
 
+/**
+ * The ORDINARY case, which this file did not have.
+ *
+ * CA, 2026-09-29: *"On the 'Score Entry Round Trip' I was expecting to be able to enter a score
+ * [Submit] have the modal close and then re-open on the last saved score."* Every other story here
+ * opens on an irregular ending — a walkover, a retirement, a suspension, a double walkover — so the
+ * 95% case, a match somebody actually played, had no round trip at all. Measured 2026-09-29: the
+ * reopen itself was never broken; the case was simply absent.
+ *
+ * It carries the CLEAR leg too, because the two belong together. A score that can go in and come back
+ * out but can never be REMOVED is a one-way door, and an operator who records a result on the wrong
+ * matchUp needs the way back — CA, same day: *"the current scoring modals allow for an empty score to
+ * be submitted which clears a submitted score in the factory for the matchUp being modified... this
+ * scoring dialog needs to support that too!"*
+ */
+export const EnterSubmitReopenClear = {
+  name: 'Enter a score, submit, reopen on it — then clear it and submit that',
+  render: () =>
+    harness(
+      'Opens BLANK. Type a score and Submit: the modal closes and reopens on what you just saved. Then press Clear and Submit again — the empty result is submittable, and that is how a recorded score is removed.',
+      (append) => openRecorded(append, undefined)
+    ),
+  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+    closeAll();
+    canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
+
+    const cell = (side: number, set: number) =>
+      inModal<HTMLInputElement>(`input[data-side="${side}"][data-set="${set}"]`)!;
+    const submit = () => inModal<HTMLButtonElement>(SUBMIT)!;
+    const clear = () => inModal<HTMLButtonElement>('button[data-action="clear"]')!;
+    const type = (side: number, set: number, value: string) => {
+      const input = cell(side, set);
+      input.value = value;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+
+    // Opens blank, and nothing is submittable yet.
+    await expect(submit().disabled, 'a blank card submits nothing').toBe(true);
+
+    // Entry begins on the LOWER row, so the loser's games are typed first in each column.
+    type(2, 1, '4');
+    type(1, 1, '6');
+    type(2, 2, '3');
+    type(1, 2, '6');
+
+    await expect(inModal<HTMLElement>(BAND)!.textContent).toContain('6-4 6-3');
+    await expect(submit().disabled).toBe(false);
+    submit().click();
+
+    // The reopen is on a timer — `openScoreEntryDialog` closes after reporting, so a dialog reopened
+    // inside the callback would be the one that close then tore down.
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    // THE assertion CA went looking for: the score that was submitted is the score it reopened on,
+    // in the cells rather than only in the prose.
+    await expect(cell(1, 1).value, 'reopened on the submitted score').toBe('6');
+    await expect(cell(2, 1).value).toBe('4');
+    await expect(cell(2, 2).value).toBe('3');
+    await expect(inModal<HTMLElement>(BAND)!.textContent).toContain('6-4 6-3');
+
+    // ── The clear leg ──
+    clear().click();
+
+    // Submit stays live, and the band says what it will do rather than reading as an empty new entry.
+    await expect(submit().disabled, 'a cleared recorded score is still submittable').toBe(false);
+    await expect(inModal<HTMLElement>(BAND)!.textContent).toContain('removed');
+
+    submit().click();
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    // It reopened on nothing, which is the point: the recorded score is gone, and the dialog now has
+    // the same blank card it started with.
+    await expect(cell(1, 1).value, 'the cleared score did not come back').toBe('');
+    await expect(document.querySelector('#roundTripLog')!.textContent).toContain('cleared');
+
+    closeAll();
+  }
+};
+
 export const ReopenARetirement = {
   name: 'A retirement reopens with its part-score intact',
   render: () =>
@@ -317,9 +400,7 @@ export const ReopenADoubleExit = {
     inModal<HTMLButtonElement>('button[data-action="endedEarly"][data-side="1"]')!.click();
     inModal<HTMLButtonElement>(`[data-panel-side="1"] button[data-reason="${WALKOVER_INJURY}"]`)!.click();
     await expect(
-      inModal<HTMLElement>(`[data-panel-side="1"] button[data-reason="${WALKOVER_INJURY}"]`)!.getAttribute(
-        ARIA_PRESSED
-      )
+      inModal<HTMLElement>(`[data-panel-side="1"] button[data-reason="${WALKOVER_INJURY}"]`)!.getAttribute(ARIA_PRESSED)
     ).toBe(PRESSED);
 
     // And it resolves back to the DOUBLE status, not to the single ending that was clicked.
