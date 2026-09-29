@@ -13,15 +13,23 @@
  *
  * ── The entry model ──
  *
- * Digits fill the current set alternating sides — tap `6` then `4` and the first set is 6-4, then the
- * next tap starts the second set. That is the existing approach's model and it is kept deliberately:
- * the operators who use the Dial Pad use it at speed, from muscle memory, and a redesign that changed
- * what a keystroke means would cost more than the layout gains.
+ * Digits fill the current set alternating sides, **lower row first** — tap `4` then `6` and the first
+ * set is 6-4, then the next tap starts the second set. Typing works too, and identically: a plain digit
+ * is the lower row, `Shift`+digit the upper.
+ *
+ * The lower-first order is a change, made 2026-09-28 on CA's *"Dial pad should work the same way with
+ * key strokes"*. The keystroke convention it refers to — plain digit lower, shifted upper — cannot be
+ * true of the keyboard and false of the keys under the same operator's other hand without the two
+ * disagreeing about what a `6` means, so the tap order moved to match rather than the keyboard being
+ * bolted on beside it. The cost is real and worth stating: a tap sequence that used to read as `6-4`
+ * now reads as `4-6`.
  *
  * Every judgement about what those digits amount to — is the set complete, who won it, is the match
  * complete — comes from `dynamicSetsLogic.ts`. This module decides where a tap lands, nothing else.
  */
 
+import { ENTRY_SIDE, digitFromCode, hasCommandModifier, otherSide } from '../keyboard';
+import { completeTiebreakOnly, tiebreakOnlyTarget } from '../logic/tiebreakEntry';
 import { createScoreReadouts, READOUT_COLUMN_WIDTH } from './scoreReadout';
 import { scoreGovernor } from 'tods-competition-factory';
 import { ordinalSetLabel } from './setColumns';
@@ -63,6 +71,13 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
   const entries: Entry[] = Array.from({ length: setCount }, () => ({ side1: '', side2: '' }));
   /** Whether the next digit is entered as a tiebreak rather than as games. */
   let tiebreakMode = false;
+  /**
+   * For each tiebreak-only set: the row the operator typed the LOW score on, and the digits they typed.
+   *
+   * Held apart from `entries` because the cells hold a DERIVED pair — the typed number and its
+   * complement — and a second digit has to extend what was typed rather than what was computed from it.
+   */
+  const tiebreakLows = new Map<number, { side: SideNumber; digits: string }>();
   const readouts = createScoreReadouts();
   /** The live digit keys, so `focusFirst` can reach one without a DOM query. */
   const digitKeys = new Map<number, HTMLButtonElement>();
@@ -82,6 +97,7 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     hasEntry: () => entries.some((entry) => entry.side1 || entry.side2 || entry.tiebreak),
     clear: () => {
       for (let index = 0; index < setCount; index += 1) entries[index] = { side1: '', side2: '' };
+      tiebreakLows.clear();
       tiebreakMode = false;
       changed();
     },
@@ -105,6 +121,14 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
           side1: set.side1TiebreakScore === undefined ? '' : String(set.side1TiebreakScore),
           side2: set.side2TiebreakScore === undefined ? '' : String(set.side2TiebreakScore),
         };
+        // Which row holds the LOW score, so a digit typed after reopening extends that number rather
+        // than starting a new one. Without this a saved 10-8 would take the next digit as a fresh entry.
+        const side1Points = set.side1TiebreakScore;
+        const side2Points = set.side2TiebreakScore;
+        if (side1Points !== undefined && side2Points !== undefined) {
+          const lowSide: SideNumber = side1Points <= side2Points ? 1 : 2;
+          tiebreakLows.set(index, { side: lowSide, digits: String(Math.min(side1Points, side2Points)) });
+        }
         continue;
       }
 
@@ -128,17 +152,39 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
       .map(({ entry, index }) => buildSetScore(index, entry.side1, entry.side2, entry.tiebreak, config));
   }
 
+  /** Whether this side of a set has anything in it. */
+  function filled(entry: Entry, side: SideNumber): boolean {
+    return side === 1 ? !!entry.side1 : !!entry.side2;
+  }
+
   /**
-   * Where the next tap lands: the first set that is not yet full, and which side within it.
+   * Where the next entry lands: the first set that is not yet full, and which side within it.
+   *
+   * ── The LOWER row first, and Shift for the upper ──
+   *
+   * CA, 2026-09-28, asked that the Dial Pad take keystrokes *"the same way"* as Dynamic Sets, where a
+   * plain `3` is the lower row and `Shift+3` the upper. That convention cannot be true of the keyboard
+   * and false of the keys under the same operator's other hand, so the TAP order moved with it: entry
+   * starts on the lower row in both. A shifted keystroke simply prefers the opposite side.
+   *
+   * Preferring a side is not the same as insisting on it. Where the preferred cell is already filled
+   * the other one takes the digit, so a shifted press into a set whose upper row is done still lands
+   * somewhere sensible rather than silently doing nothing.
    *
    * Returns `undefined` when every set has both sides, which is when the keypad goes quiet rather than
    * silently overwriting the first set — an operator who has finished entering has no way to know a tap
    * went somewhere they cannot see.
    */
-  function nextSlot(): { index: number; side: SideNumber } | undefined {
+  function nextSlot(shifted = false): { index: number; side: SideNumber } | undefined {
+    const named: SideNumber = shifted ? otherSide(ENTRY_SIDE) : ENTRY_SIDE;
+
     for (const [index, entry] of entries.entries()) {
-      if (!entry.side1) return { index, side: 1 };
-      if (!entry.side2) return { index, side: 2 };
+      if (!filled(entry, named)) return { index, side: named };
+      // Only an UNSHIFTED press alternates into the other side of the same set. A shifted press NAMES
+      // the upper row, so when that row is taken it moves on to the next set rather than landing on the
+      // row it explicitly did not name — otherwise `Shift` would sometimes mean "upper" and sometimes
+      // mean "wherever there is space", which is not a convention anyone can rely on.
+      if (!shifted && !filled(entry, otherSide(named))) return { index, side: otherSide(named) };
     }
     return undefined;
   }
@@ -159,7 +205,7 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
 
   // ── Input ────────────────────────────────────────────────────────────
 
-  function pressDigit(digit: number): void {
+  function pressDigit(digit: number, shifted = false): void {
     if (tiebreakMode) {
       const index = lastActiveIndex();
       entries[index].tiebreak = `${entries[index].tiebreak ?? ''}${digit}`;
@@ -167,10 +213,23 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
       return;
     }
 
+    // A set that IS a tiebreak takes one number, not two — see `typeTiebreakOnly`.
+    const tiebreakSet = openTiebreakOnlySet();
+    if (tiebreakSet !== undefined) {
+      typeTiebreakOnly(tiebreakSet, digit, shifted);
+      return;
+    }
+
     // Extend the side just written to, if a second digit could still be a legal score there. Otherwise
     // start the next empty slot. See `canExtend` — this is the only ambiguity in the whole keypad and
     // it is resolved by asking the format, not by a rule of thumb.
-    const last = lastWritten();
+    //
+    // A SHIFTED press extends only the row it NAMES. Unshifted follows the entry order and extends
+    // whatever was written last, which is what makes `1` then `0` a ten. Shifted extending the last
+    // write regardless would let `Shift+0` land on the lower row simply because the lower row was typed
+    // more recently.
+    const written = lastWritten();
+    const last = shifted && written?.side !== otherSide(ENTRY_SIDE) ? undefined : written;
     if (last && canExtend(last, digit)) {
       const entry = entries[last.index];
       if (last.side === 1) entry.side1 = `${entry.side1}${digit}`;
@@ -179,7 +238,7 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
       return;
     }
 
-    const slot = nextSlot();
+    const slot = nextSlot(shifted);
     if (!slot) return;
 
     const entry = entries[slot.index];
@@ -189,12 +248,18 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     changed();
   }
 
-  /** The side most recently written to: the last set with content, side 2 if it has any, else side 1. */
+  /**
+   * The side most recently written to.
+   *
+   * Entry fills the lower row first (see `nextSlot`), so within the last set with content the UPPER
+   * row is the more recent one where both are present. This order is what makes a second digit extend
+   * the value just typed rather than a value entered before it.
+   */
   function lastWritten(): { index: number; side: SideNumber } | undefined {
     for (let index = entries.length - 1; index >= 0; index -= 1) {
       const entry = entries[index];
-      if (entry.side2) return { index, side: 2 };
-      if (entry.side1) return { index, side: 1 };
+      if (filled(entry, otherSide(ENTRY_SIDE))) return { index, side: otherSide(ENTRY_SIDE) };
+      if (filled(entry, ENTRY_SIDE)) return { index, side: ENTRY_SIDE };
     }
     return undefined;
   }
@@ -215,17 +280,11 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     const current = last.side === 1 ? entry.side1 : entry.side2;
     if (!current || current.length >= 2) return false;
 
-    // ── Not clamped for a tiebreak-only set, because the shared helper cannot size one ──
-    //
-    // `getMaxAllowedScore` returns **7** for `SET1-S:TB10`: it reads `setFormat.setTo`, which a
-    // tiebreak-only format does not carry — its target lives on `tiebreakSet.tiebreakTo`. So a `1`
-    // could never be extended to a `10` and a match tiebreak was unenterable on the keypad: measured
-    // 2026-09-28, tapping 1, 0, 8 produced a tiebreak of 1-0 and dropped the 8 entirely.
-    //
-    // No number is invented in its place. A match tiebreak legitimately runs long — 12-10, 15-13 — so
-    // there is no honest cap, and the two-digit limit above plus `validateSetScore` remain the checks.
-    // Dynamic Sets exempts these sets the same way and for the same measurement.
-    if (tiebreakOnly(last.index)) return true;
+    // A tiebreak-only set never reaches here — `pressDigit` routes it to `typeTiebreakOnly`, where the
+    // operator types one number and digits simply accumulate into it. Kept as a guard rather than an
+    // assumption, since `getMaxAllowedScore` would answer **7** for `SET1-S:TB10`: it reads
+    // `setFormat.setTo`, which a tiebreak-only format does not carry.
+    if (tiebreakOnly(last.index)) return current.length < 2;
 
     const max = getMaxAllowedScore(last.index, last.side, {
       side1: Number.parseInt(entry.side1) || 0,
@@ -257,9 +316,31 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
    */
   function backspace(): void {
     for (let index = entries.length - 1; index >= 0; index -= 1) {
+      // A tiebreak-only set is one typed number plus a derived one, so a backspace takes a digit off
+      // what was TYPED and recomputes the other cell. Deleting from the derived cell would leave a pair
+      // the operator never entered and could not correct.
+      const low = tiebreakLows.get(index);
+      if (low) {
+        const digits = low.digits.slice(0, -1);
+        if (digits) tiebreakLows.set(index, { ...low, digits });
+        else tiebreakLows.delete(index);
+        entries[index] = { side1: '', side2: '' };
+        writeTiebreakOnly(index);
+        changed();
+        return;
+      }
+
       const entry = entries[index];
       if (entry.tiebreak) {
         entry.tiebreak = entry.tiebreak.slice(0, -1) || undefined;
+        changed();
+        return;
+      }
+      // Upper row before lower, mirroring the fill order: entry starts on the LOWER row, so the upper
+      // one holds the more recent digit and is what a backspace must take first. Reversed from the
+      // original, and reversed for the same reason the fill order moved.
+      if (entry.side1) {
+        entry.side1 = entry.side1.slice(0, -1);
         changed();
         return;
       }
@@ -268,19 +349,46 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
         changed();
         return;
       }
-      if (entry.side1) {
-        entry.side1 = entry.side1.slice(0, -1);
-        changed();
-        return;
-      }
     }
   }
 
   // ── Rendering ────────────────────────────────────────────────────────
 
+  /**
+   * The keypad takes keystrokes as well as taps.
+   *
+   * CA, 2026-09-28: *"Dial pad should work the same way with key strokes."* It had none at all — every
+   * digit was a click handler and nothing else — so an operator who opened the Dial Pad and typed got
+   * nothing.
+   *
+   * Listened for on the keypad WRAPPER rather than on the document: `focusFirst` puts focus on a digit
+   * key, so the events bubble here, and scoping it this way means the digits cannot fire while the
+   * operator is somewhere else in the card entirely. `event.code` and not `event.key`, so `Shift+3`
+   * is still a 3 — see `keyboard.ts`.
+   */
+  function onKeypadKeydown(event: KeyboardEvent): void {
+    if (hasCommandModifier(event)) return;
+
+    const digit = digitFromCode(event.code);
+    if (digit !== undefined) {
+      // Declined rather than allowed through: a digit key press on a focused BUTTON does nothing by
+      // default, but Space and Enter would activate it, and preventing the digit keeps the two paths
+      // from both firing if that ever changes.
+      event.preventDefault();
+      pressDigit(digit, event.shiftKey);
+      return;
+    }
+
+    if (event.key === 'Backspace') {
+      event.preventDefault();
+      backspace();
+    }
+  }
+
   function keypad(): HTMLElement {
     const wrapper = document.createElement('div');
     wrapper.className = 'chc-sec-dialpad';
+    wrapper.addEventListener('keydown', onKeypadKeydown);
 
     const digits = document.createElement('div');
     digits.className = 'chc-sec-dialpad-digits';
@@ -331,6 +439,70 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
   }
 
   /**
+   * The tiebreak-only set a digit belongs to, if the keypad is in one.
+   *
+   * The first tiebreak-only set whose low score is still being typed — which means: not yet started, or
+   * started and still under two digits. Anything earlier that is NOT tiebreak-only must be complete
+   * first, so a mixed format (`SET3-S:6/TB7-F:TB10`) keeps its ordinary sets on the ordinary path and
+   * only the deciding set comes here.
+   */
+  function openTiebreakOnlySet(): number | undefined {
+    for (let index = 0; index < setCount; index += 1) {
+      if (!tiebreakOnly(index)) {
+        if (!entries[index].side1 || !entries[index].side2) return undefined;
+        continue;
+      }
+
+      const low = tiebreakLows.get(index);
+      if (!low || low.digits.length < 2) return index;
+    }
+    return undefined;
+  }
+
+  /**
+   * A digit typed into a set that IS a tiebreak.
+   *
+   * CA, 2026-09-28: *"For tiebreaks the lower score should always be entered first. that could be 1
+   * then 1 or shift+1 then shift+1."* So the operator types ONE number — the loser's points — and the
+   * winner's is derived by `completeTiebreakOnly`. Digits accumulate into it because nothing else could
+   * be meant by a second one, which is what finally makes `1` then `1` an unambiguous eleven.
+   *
+   * `Shift` chooses WHICH ROW the low score belongs to, not which row the next digit lands in. Shifting
+   * mid-number therefore starts the number again on the other row, rather than splitting it across two.
+   */
+  function typeTiebreakOnly(index: number, digit: number, shifted: boolean): void {
+    const side: SideNumber = shifted ? otherSide(ENTRY_SIDE) : ENTRY_SIDE;
+    const current = tiebreakLows.get(index);
+    const digits = current?.side === side ? `${current.digits}${digit}`.slice(0, 2) : String(digit);
+
+    tiebreakLows.set(index, { side, digits });
+    writeTiebreakOnly(index);
+    changed();
+  }
+
+  /**
+   * Put the typed low score and its complement into the set's two cells.
+   *
+   * Where the factory declines to complete the pair, the typed value stands alone rather than a number
+   * being invented beside it — `validateSetScore` then reports the set as unfinished, which is true.
+   */
+  function writeTiebreakOnly(index: number): void {
+    const low = tiebreakLows.get(index);
+    if (!low) return;
+
+    const entry = entries[index];
+    const completed = completeTiebreakOnly(Number.parseInt(low.digits), low.side, getSetFormatForIndex(index, config));
+    if (!completed) {
+      if (low.side === 1) entry.side1 = low.digits;
+      else entry.side2 = low.digits;
+      return;
+    }
+
+    entry.side1 = String(completed.side1);
+    entry.side2 = String(completed.side2);
+  }
+
+  /**
    * Whether the Tiebreak key does anything in this format.
    *
    * A set that is ITSELF a tiebreak has nothing to attach one to: its own cells are the points, so the
@@ -345,7 +517,7 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     for (let index = 0; index < setCount; index += 1) {
       if (tiebreakOnly(index)) continue;
       const setFormat = getSetFormatForIndex(index, config);
-      if (setFormat?.tiebreakFormat || setFormat?.tiebreakSet) anyAttachable = true;
+      if (setFormat?.tiebreakFormat || tiebreakOnlyTarget(setFormat)) anyAttachable = true;
     }
     return anyAttachable;
   }

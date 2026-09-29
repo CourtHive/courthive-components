@@ -42,6 +42,8 @@
  * in next, which is what makes this feel like one continuous entry rather than a form.
  */
 
+import { ENTRY_SIDE, digitFromCode, hasCommandModifier, otherSide } from '../keyboard';
+import { completeTiebreakOnly, tiebreakOnlyTarget } from '../logic/tiebreakEntry';
 import { scoreGovernor } from 'tods-competition-factory';
 import { ordinalSetLabel } from './setColumns';
 import { scoreLine } from './scoreLine';
@@ -57,6 +59,7 @@ import {
   getMatchWinner,
   isSetComplete,
   buildSetScore,
+  isSetTimed,
 } from '../logic/dynamicSetsLogic';
 
 import type { ScoreColumn, ScoreRegion } from '../scoreEntryCard';
@@ -108,8 +111,15 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
   const complementsUsed = new Set<number>();
   let smartComplements = params.smartComplements !== false;
 
-  /** Where focus goes after the next structural render. */
-  let pendingFocus: { kind: Slot['kind']; setIndex: number } | undefined;
+  /**
+   * Where focus goes after the next structural render.
+   *
+   * `sideNumber` is set only when RESTORING the operator to a cell they were already in — see
+   * `settle`. Left undefined, the slot's own entry side is used and the cell's contents are selected,
+   * which is right when focus is MOVING to a new cell and wrong when it is coming back to one being
+   * typed into.
+   */
+  let pendingFocus: { kind: Slot['kind']; setIndex: number; sideNumber?: SideNumber } | undefined;
   /**
    * The set the operator is currently in, if any.
    *
@@ -141,7 +151,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     hasEntry: () => entries.some((entry) => entry.side1 || entry.side2 || entry.tiebreak1 || entry.tiebreak2),
     error: () => firstError(),
     clear: () => clearAll(),
-    focusFirst: () => focusSlotSide({ kind: 'games', setIndex: 0 }, 1),
+    focusFirst: () => focusSlotSide({ kind: 'games', setIndex: 0 }, ENTRY_SIDE),
     smartComplementsEnabled: () => smartComplements,
   };
 
@@ -370,7 +380,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
         // still wants another. `shouldCreateNextSet` knows two sets to the same side ends a best-of-3.
         if (index > 0) {
           const previous = index - 1;
-          if (!settled(previous) || !shouldCreateNextSet(previous, currentSets(), config)) break;
+          if (!settled(previous) || !opensNextSet(previous)) break;
         }
         slots.push({ kind: 'games', setIndex: index });
         // Nothing opens beyond the set awaiting entry.
@@ -385,6 +395,34 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     }
 
     return slots;
+  }
+
+  /**
+   * Whether the set AFTER this one may be revealed.
+   *
+   * ── A timed format plays every bolt, so the only question is whether one is left ──
+   *
+   * CA, 2026-09-28: *"bolts can indeed be tied, so if there are still bolts left <enter> should advance
+   * to the next Bolt."* Two separate things in `shouldCreateNextSet` get in the way of that, and both
+   * are questions about a set won by GAMES rather than one ended by a CLOCK:
+   *
+   *   - it requires a `winningSide`, and a tied bolt has none. Measured against `SET9X-S:T10`: 22-21
+   *     resolves `winningSide: 1` and **21-21 resolves `undefined`**, so a draw revealed no successor
+   *     and entry stopped dead with eight bolts still to record;
+   *   - it refuses once the match reads as decided, which for nine bolts happens at **exactly five**
+   *     won — measured, and not at six, where `calculatedWinningSide` is `undefined` again. So bolts
+   *     would have stopped being revealed at 5 and started again at 6, which is nobody's rule.
+   *
+   * A nine-bolt format plays nine bolts. The loop that calls this already stops at `setCount`, so
+   * "there are still bolts left" is the whole condition and `true` is the honest answer.
+   *
+   * Handled here rather than in `shouldCreateNextSet`, which `approaches/dynamicSetsApproach.ts` also
+   * calls: the shipping dialog has the same gap and correcting it there is a change to a surface this
+   * workstream does not own. Recorded rather than smuggled in.
+   */
+  function opensNextSet(index: number): boolean {
+    if (isSetTimed(getSetFormatForIndex(index, config))) return true;
+    return shouldCreateNextSet(index, currentSets(), config);
   }
 
   /**
@@ -655,6 +693,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
    */
   function applyGamesComplement(sideNumber: SideNumber, setIndex: number, digit: number): void {
     if (!smartComplements) return;
+    if (applyTiebreakOnlyComplement(sideNumber, setIndex, digit)) return;
 
     const result = shouldApplySmartComplement(
       digit,
@@ -678,6 +717,39 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     complementsUsed.add(setIndex);
   }
 
+  /**
+   * A set that IS a tiebreak completes from the ONE number the operator types.
+   *
+   * CA, 2026-09-28: *"For tiebreaks the lower score should always be entered first ... if the lower
+   * score is equal to or greater than the tiebreakTo value, the complement is +2."* So the typed value
+   * is the loser's points and the winner's is derived — the same rule the Dial Pad follows, through the
+   * same `completeTiebreakOnly`, so the two cannot disagree about what a match tiebreak means.
+   *
+   * `shouldApplySmartComplement` refuses these sets outright (`reason: 'Tiebreak-only set'`), which was
+   * right while nothing knew how to complete one and is why this is a separate path rather than a change
+   * to the shared helper the shipping approach also calls.
+   *
+   * Returns whether it handled the set, so the games complement is not also consulted.
+   */
+  function applyTiebreakOnlyComplement(sideNumber: SideNumber, setIndex: number, digit: number): boolean {
+    const setFormat = getSetFormatForIndex(setIndex, config);
+    if (tiebreakOnlyTarget(setFormat) === undefined) return false;
+
+    const completed = completeTiebreakOnly(digit, sideNumber, setFormat);
+    // Handled either way: a set that is a tiebreak never wants the GAMES complement, which would read
+    // its points as though they were games and answer with a six.
+    if (!completed) return true;
+
+    const other: SideNumber = otherSide(sideNumber);
+    const value = String(sideNumber === 1 ? completed.side2 : completed.side1);
+    if (other === 1) entries[setIndex].side1 = value;
+    else entries[setIndex].side2 = value;
+
+    const sibling = cells.get(key('games', other, setIndex));
+    if (sibling) sibling.value = value;
+
+    return true;
+  }
 
   // ── The keyboard ─────────────────────────────────────────────────────
   //
@@ -689,14 +761,27 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
   // by the time an input event arrives the digit is gone. The old dialog matches `event.code` on
   // `keydown` and calls `preventDefault` for exactly that reason, and so does this.
 
-  /** The digit a key press means, from `event.code` so Shift+3 is still a 3 and not a `#`. */
-  function digitFromCode(code: string): number | undefined {
-    const match = /^(?:Digit|Numpad)(\d)$/.exec(code);
-    return match ? Number(match[1]) : undefined;
-  }
-
   function onCellKeydown(event: KeyboardEvent, slot: Slot, sideNumber: SideNumber, input: HTMLInputElement): void {
-    if (event.metaKey || event.ctrlKey || event.altKey) return;
+    if (hasCommandModifier(event)) return;
+
+    // ── Enter is the advance in a TIMED format, and nothing else is ──
+    //
+    // CA, 2026-09-28: *"when I'm in a timed format the enter key in an entry cell should advance to the
+    // next 'set/bolt', not a numeric key."* A timed score is multi-digit and has no complement to
+    // complete it, so there is no keystroke at which the bolt is finished — which is why `advanceTarget`
+    // declines to move on its own here and this takes over.
+    //
+    // `stopPropagation` because the CARD listens for Enter and would submit: the same key cannot both
+    // move to the next bolt and end the match. Where there is no next bolt it is left alone and Submit
+    // is what Enter does, which is the right end to the sequence.
+    if (event.key === 'Enter') {
+      const bolt = nextTimedTarget(slot.setIndex);
+      if (!bolt) return;
+      event.preventDefault();
+      event.stopPropagation();
+      focusSlotSide(bolt, entrySideFor(bolt));
+      return;
+    }
 
     const digit = digitFromCode(event.code);
     if (digit !== undefined && slot.kind === 'games' && !input.value && typedDigit(slot, sideNumber, digit, event.shiftKey)) {
@@ -788,15 +873,47 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     settle(before, next ? { kind: next.kind, setIndex: next.setIndex } : undefined);
     // Also focused HERE, and not only through `settle`, because `settle` moves focus only when the layout
     // changed — and correcting a set whose successor is already on screen changes no layout at all.
-    if (next) focusSlotSide(next, 1);
+    if (next) focusSlotSide(next, entrySideFor(next));
     return true;
   }
 
-  /** The set to move on to once this one is complete, or nothing if the match is decided. */
+  /**
+   * The set to move on to once this one is complete, or nothing if the match is decided.
+   *
+   * ── No timed-set guard here, and that is measured rather than an oversight ──
+   *
+   * One was written, on the reasoning that a timed bolt has no complement to finish it and so should
+   * never advance on a digit. Planting it back changed no test, and the reason is structural: for a
+   * timed set `shouldApplySmartComplement` always returns `shouldApply: false` (`reason: 'Timed set'`),
+   * so this is reached only through the SHIFTED branch — and `typedDigit` runs only on an EMPTY cell,
+   * where a shifted press writes to the other side and therefore cannot complete the bolt. Every target
+   * it could return names a column that is not on screen.
+   *
+   * What actually made `22/21` unenterable was the re-render destroying the focused cell, which `settle`
+   * now repairs, and Enter is what advances a bolt — `nextTimedTarget`. Both of those fail when reverted.
+   * A guard whose removal nothing notices is not a safeguard, it is an untested claim.
+   */
   function advanceTarget(setIndex: number): Slot | undefined {
     if (setIndex + 1 >= setCount) return undefined;
     if (isMatchComplete(currentSets(), config)) return undefined;
     return { kind: 'games', setIndex: setIndex + 1 };
+  }
+
+  /**
+   * The next bolt's games column in a TIMED format, when one is on screen.
+   *
+   * `undefined` for an untimed set (Enter keeps meaning Submit there), past the last bolt, and while
+   * the next column has not been revealed — which is the honest answer when the current bolt is still
+   * half entered, since there is nothing yet to advance to.
+   */
+  function nextTimedTarget(setIndex: number): Slot | undefined {
+    if (!isSetTimed(getSetFormatForIndex(setIndex, config))) return undefined;
+
+    const next = setIndex + 1;
+    if (next >= setCount) return undefined;
+    if (!layout().some((slot) => slot.kind === 'games' && slot.setIndex === next)) return undefined;
+
+    return { kind: 'games', setIndex: next };
   }
 
   function write(setIndex: number, sideNumber: SideNumber, value: string): void {
@@ -814,8 +931,12 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
    * folds away: the visible slots ARE the order, and each carries both sides.
    */
   function step(slot: Slot, sideNumber: SideNumber, direction: 1 | -1): { slot: Slot; sideNumber: SideNumber } | undefined {
+    // Bottom cell first within every column, so Tab out of the last cell of one column lands on the
+    // BOTTOM of the next — the order CA asked for, applied to the keyboard walk as well as to where
+    // focus is placed. Positional rather than `entrySideFor`, because a Tab order that reordered
+    // itself as the score changed would be the one thing worse than the wrong order.
     const order = layout().flatMap((current) =>
-      ([1, 2] as SideNumber[]).map((side) => ({ slot: current, sideNumber: side })),
+      ([ENTRY_SIDE, otherSide(ENTRY_SIDE)] as SideNumber[]).map((side) => ({ slot: current, sideNumber: side })),
     );
     const at = order.findIndex(
       (candidate) =>
@@ -832,6 +953,27 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     const cell = cells.get(key(slot.kind, sideNumber, slot.setIndex));
     cell?.focus();
     cell?.select();
+  }
+
+  /**
+   * Which cell of a column entry begins in.
+   *
+   * GAMES columns: the lower row, always — CA's rule, and what makes a plain `3` the lower score and
+   * `Shift+3` the upper one.
+   *
+   * TIEBREAK columns: the cell of the side that LOST the set, which is not always the lower row. That
+   * is not a departure from the rule for its own sake — it is the only cell a tiebreak can be entered
+   * from. `applyTiebreakComplement` fires from the games loser only, because typing the WINNER's
+   * points implies nothing about the loser's (a 7 in a TB7 could have beaten anything from 0 to 5), so
+   * opening on the winner's cell would put the caret in the one field that cannot complete the pair.
+   * On the common 7-6 it IS the lower row, so the two rules agree wherever they can.
+   */
+  function entrySideFor(slot: { kind: Slot['kind']; setIndex: number }): SideNumber {
+    if (slot.kind !== 'tiebreak') return ENTRY_SIDE;
+
+    const games = gamesOf(slot.setIndex);
+    if (games.side1 === games.side2) return ENTRY_SIDE;
+    return games.side1 > games.side2 ? 2 : 1;
   }
 
   /**
@@ -907,9 +1049,14 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     const gamesLoser: SideNumber = games.side1 > games.side2 ? 2 : 1;
     if (sideNumber !== gamesLoser) return;
 
+    const setFormat = getSetFormatForIndex(setIndex, config);
     const pair = scoreGovernor.getTiebreakComplement({
       lowValue: points,
       tiebreakTo: target,
+      // Never passed at all until 2026-09-28, so a no-advantage tiebreak completed as though it needed
+      // two points: a 6 in a `TB7NOAD` answered 8 where no-ad says 7. `NoAD` is the field the factory
+      // emits and `tiebreakNoAd` the parameter it reads — see `logic/tiebreakEntry.ts`.
+      tiebreakNoAd: setFormat?.tiebreakFormat?.NoAD ?? setFormat?.tiebreakSet?.NoAD,
       isSide1: sideNumber === 1,
     });
     if (!pair) return;
@@ -959,7 +1106,15 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
       return;
     }
 
-    pendingFocus = focus;
+    // ── With no target, the operator STAYS where they were ──
+    //
+    // The re-render replaces every cell, so the focused element is destroyed and focus falls to the
+    // body. CA, 2026-09-28, on a timed format: *"I can enter 33 in the top and then only 3 in the
+    // bottom because the entry in the bottom is the trigger, regardless of if it's a number."* That is
+    // this, exactly: completing the pair reveals the next bolt, the row grid changes, and the cell
+    // being typed into vanishes after one digit. Restoring the active cell makes a structural change
+    // invisible to whoever is mid-number, and it costs nothing where focus was moving anyway.
+    pendingFocus = focus ?? activeCell();
     params.onStructureChange?.();
     params.onChange?.();
     applyPendingFocus();
@@ -970,8 +1125,40 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     pendingFocus = undefined;
     if (!target || target.setIndex >= setCount) return;
 
-    // Side 1 by convention: entry runs down the card, and the operator can Tab to side 2.
-    cells.get(key(target.kind, 1, target.setIndex))?.focus();
+    const cell = cells.get(key(target.kind, target.sideNumber ?? entrySideFor(target), target.setIndex));
+    if (!cell) return;
+    cell.focus();
+
+    // ── Selecting is for MOVING, never for returning ──
+    //
+    // Focus arriving at a new cell selects what is there, so typing replaces rather than appends — the
+    // old dialog's `focusAndSelect`. Focus RESTORED to the cell the operator is mid-number in must do
+    // the opposite and leave the caret at the end, or the second digit of a timed `21` would wipe the
+    // first. `sideNumber` is set only on a restore, which is what distinguishes the two.
+    if (target.sideNumber === undefined) cell.select();
+    else cell.setSelectionRange(cell.value.length, cell.value.length);
+  }
+
+  /**
+   * The cell the operator is in right now, if it is one of ours.
+   *
+   * Read from the live `cells` registry rather than from a `data-` attribute, so it cannot disagree
+   * with the map the re-render repopulates.
+   */
+  function activeCell(): { kind: Slot['kind']; setIndex: number; sideNumber: SideNumber } | undefined {
+    const active = document.activeElement;
+    if (!active) return undefined;
+
+    for (const [cellKey, input] of cells) {
+      if (input !== active) continue;
+      const [kind, setIndex, sideNumber] = cellKey.split(':');
+      return {
+        kind: kind as Slot['kind'],
+        setIndex: Number(setIndex),
+        sideNumber: Number(sideNumber) as SideNumber,
+      };
+    }
+    return undefined;
   }
 
   // ── The smart-complements toggle ──────────────────────────────────────

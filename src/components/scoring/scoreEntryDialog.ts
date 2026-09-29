@@ -263,19 +263,35 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
     approach = next;
     currentRegion = buildRegion(next, seed);
     card.update({ region: currentRegion, approachLabel: APPROACH_LABELS[next] });
+    // The new region begins where entry begins in it, exactly as it would had the dialog opened on it.
+    // Without this a switch left focus on the menu item that had just been removed from the document,
+    // so Free Score in particular had to be clicked into before it would take a keystroke — CA,
+    // 2026-09-28: *"Free Score should give the one entry field focus automatically rather than a user
+    // having to click into it."*
+    focusEntry();
     params.onApproachChange?.(next);
   }
 
+  /**
+   * Change the scoring format, and CLEAR the score.
+   *
+   * CA, 2026-09-28: *"changing the matchUpFormat should take effect (at present any change of
+   * matchUpFormat should clear the score... but we'll do something interesting later)."*
+   *
+   * This carried the score across until that instruction, on the reasoning that games already played
+   * stay played and the region's integrity check would report any that the new format makes illegal.
+   * CA has ruled the other way for now, and the ruling is the better one to build on: carrying a score
+   * between formats quietly produces sets that belong to neither — a 7-6(3) read under `S:6/TB7@5`, a
+   * games score surviving into a tiebreak-only format — and "interesting" is a design question, not a
+   * default. An empty card under the new format is at least unambiguous about what it holds.
+   */
   function setMatchUpFormat(next: string): void {
     if (next === matchUpFormat) return;
     matchUpFormat = next;
-    // The score is carried across, not cleared. A format correction — `TB7` to `TB7@5` — is a statement
-    // about how the set ENDS, and the games already entered are still the games that were played. Where
-    // the new format makes them illegal the region's own integrity check says so, which is a better
-    // answer than silently emptying the cells.
-    const seed = harvest();
-    currentRegion = buildRegion(approach, seed);
+    sets = undefined;
+    currentRegion = buildRegion(approach, {});
     card.update({ matchUpFormat: next, region: currentRegion });
+    focusEntry();
     params.onFormatChange?.(next);
   }
 

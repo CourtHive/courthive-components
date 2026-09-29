@@ -157,7 +157,10 @@ describe('the dialog announces and focuses itself', () => {
   it('focuses the first score cell, so typing starts immediately', () => {
     open();
 
-    expect(document.activeElement).toBe(q(SET_1_SIDE_1));
+    // The LOWER participant's cell. CA, 2026-09-28: *"the dynamic sets when launched should always
+    // initially give focus to the lower row; that way e.g. 3 is lower row and shift+3 is upper row."*
+    // The rule is only half about focus — it is what decides which row an unshifted digit lands on.
+    expect(document.activeElement).toBe(q(SET_1_SIDE_2));
   });
 
   it('focuses the first DIGIT where the approach has no text field', () => {
@@ -165,6 +168,43 @@ describe('the dialog announces and focuses itself', () => {
 
     expect(q('input')).toBeNull();
     expect((document.activeElement as HTMLElement)?.dataset.digit).toBeTruthy();
+  });
+
+  it('focuses the Free Score FIELD, so it takes a keystroke without being clicked into', () => {
+    // CA, 2026-09-28: *"Free Score should give the one entry field focus automatically rather than a
+    // user having to click into it."*
+    open({ approach: 'freeScore' });
+
+    expect((document.activeElement as HTMLElement)?.dataset.freeScore).toBe('true');
+  });
+
+  it('follows the region across an APPROACH SWITCH, which is where focus was being dropped', () => {
+    // Opening focused the entry surface; switching did not. The menu item that had focus is removed by
+    // the very render that swaps the region, so focus fell to the body and the new approach — Free
+    // Score above all, whose whole surface is one field — had to be clicked into before it would type.
+    const dialog = open();
+
+    dialog.setApproach('freeScore');
+    expect((document.activeElement as HTMLElement)?.dataset.freeScore).toBe('true');
+
+    dialog.setApproach('dialPad');
+    expect((document.activeElement as HTMLElement)?.dataset.digit).toBeTruthy();
+
+    dialog.setApproach('dynamicSets');
+    expect(document.activeElement).toBe(q(SET_1_SIDE_2));
+  });
+
+  it('still leaves focus alone across a switch when the host said not to steal it', () => {
+    // The `autoFocus: false` contract has to survive the new placement, or a host that opened the
+    // dialog as a side effect of something else would have focus taken on every approach change.
+    const outside = document.createElement('input');
+    document.body.append(outside);
+    outside.focus();
+
+    const dialog = open({ autoFocus: false });
+    dialog.setApproach('freeScore');
+
+    expect(document.activeElement).toBe(outside);
   });
 
   it('leaves focus alone when the host says not to steal it', () => {
@@ -401,7 +441,11 @@ describe('the format picker', () => {
     expect(onFormatChange).toHaveBeenCalledWith(SHORT_FORMAT);
   });
 
-  it('rebuilds the region under the new format, keeping the games entered', () => {
+  it('rebuilds the region under the new format, and CLEARS the score', () => {
+    // This asserted that the games were KEPT until 2026-09-28. CA: *"changing the matchUpFormat should
+    // take effect (at present any change of matchUpFormat should clear the score... but we'll do
+    // something interesting later)."* Carrying a score between formats quietly produces sets belonging to
+    // neither — a 7-6(3) re-read under `S:6/TB7@5`, games surviving into a tiebreak-only format.
     const dialog = open({ onFormatChange: vi.fn(), openFormatPicker: vi.fn() });
 
     type(SET_1_SIDE_1, '6');
@@ -415,7 +459,8 @@ describe('the format picker', () => {
     // a second set the format does not have.
     dialog.setMatchUpFormat('SET1-S:6/TB7');
 
-    expect(q<HTMLInputElement>(SET_1_SIDE_1)!.value).toBe('6');
+    expect(q<HTMLInputElement>(SET_1_SIDE_1)!.value).toBe('');
+    expect(q<HTMLInputElement>(SET_1_SIDE_2)!.value).toBe('');
     expect(q('input[data-side="1"][data-set="2"]')).toBeNull();
   });
 

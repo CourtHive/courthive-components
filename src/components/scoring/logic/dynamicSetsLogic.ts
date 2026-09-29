@@ -74,7 +74,7 @@ function tiebreakSides(
   const pair = scoreGovernor.getTiebreakComplement({
     lowValue: scores.tiebreak,
     tiebreakTo,
-    tiebreakNoAd: setFormat?.tiebreakFormat?.noAd ?? setFormat?.tiebreakSet?.noAd,
+    tiebreakNoAd: setFormat?.tiebreakFormat?.NoAD ?? setFormat?.tiebreakSet?.NoAD,
     isSide1: loserIsSide1,
   });
   if (!pair) return {};
@@ -87,17 +87,37 @@ import type { SetScore } from '../types';
 
 /**
  * Set format information returned by matchUpFormatCode.parse()
+ *
+ * ── `NoAD`, and why the casing is load-bearing ──
+ *
+ * This type is a hand-written MIRROR of what `matchUpFormatCode.parse` emits, and it named the
+ * no-advantage flag `noAd` while the factory emits **`NoAD`**. Measured 2026-09-28:
+ * `parse('SET1-S:TB10NOAD').setFormat.tiebreakSet` is `{ tiebreakTo: 10, NoAD: true }`, so every read
+ * of `.noAd` in this module answered `undefined` for every format — and the TYPE is what made those
+ * reads look correct.
+ *
+ * Nothing threw and nothing logged; no-advantage scoring was simply ignored. Two measured
+ * consequences, both live in the shipping dialog: a low of 6 in a `TB7NOAD` completed to **8** instead
+ * of 7, and a low of 5 in `S:6NOAD` completed to **7** instead of 6 — a 7-5 in a format where first to
+ * six wins.
+ *
+ * Every OTHER reader of this flag in the package had it right — `freeScore.ts`, `matchUpFormat.ts`,
+ * `matchUpFormatLogic.ts` and the format picker all read `.NoAD`. This one type was the outlier, which
+ * is the shape the architectural standards call mock divergence: a hand-written mirror that renames a
+ * field and then certifies the rename.
  */
 export type SetFormat = {
   setTo?: number;
   tiebreakAt?: number;
+  /** No-advantage on the SET — with no tiebreak, the set ends at `setTo` without a two-game margin. */
+  NoAD?: boolean;
   tiebreakFormat?: {
     tiebreakTo?: number;
-    noAd?: boolean;
+    NoAD?: boolean;
   };
   tiebreakSet?: {
     tiebreakTo?: number;
-    noAd?: boolean;
+    NoAD?: boolean;
   };
   timed?: boolean;
   minutes?: number;
@@ -423,7 +443,10 @@ export function calculateComplement(digit: number, setFormat?: SetFormat): numbe
     lowValue: digit,
     setTo: setFormat.setTo,
     tiebreakAt: setFormat.tiebreakAt,
-    NoAD: setFormat.tiebreakFormat?.noAd ?? setFormat.tiebreakSet?.noAd,
+    // The SET's own no-advantage flag, and not the tiebreak's. `getSetComplement` consults `NoAD` only
+    // where there is no tiebreak at all, so the nested tiebreak flags are the wrong concept here as
+    // well as the wrong casing — this read was wrong twice.
+    NoAD: setFormat.NoAD,
     winBy: setFormat.winBy,
     isSide1: true,
   });
@@ -627,7 +650,7 @@ export function buildSetScore(
   // Add tiebreak scores if present
   if (tiebreakScore !== undefined) {
     const tiebreakTo = setFormat?.tiebreakFormat?.tiebreakTo || 7;
-    const isNoAd = setFormat?.tiebreakFormat?.noAd;
+    const isNoAd = setFormat?.tiebreakFormat?.NoAD;
 
     // Calculate winner score based on tiebreak rules
     let winnerScore: number;

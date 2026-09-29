@@ -28,6 +28,7 @@
  */
 import { matchUpStatusConstants, fixtures, policyConstants } from 'tods-competition-factory';
 import { openScoreEntryDialog } from '../components/scoring/scoreEntryDialog';
+import { asRecord } from './helpers/scoreEntryStoryHost';
 import { cModal } from '../components/modal/cmodal';
 import { expect } from 'storybook/test';
 
@@ -49,6 +50,9 @@ const FORMAT = 'SET3-S:6/TB7';
 const OPEN_BUTTON = '#openRecordedOutcome';
 const MODAL = 'section[id^="cmdl-"]';
 const ROW_ENDING = '[data-row-ending]';
+/** `aria-pressed`, and the value it reads as — both repeat enough to be named. */
+const ARIA_PRESSED = 'aria-pressed';
+const PRESSED = 'true';
 const BAND = '.chc-sec-band';
 const SUBMIT = 'button[data-action="submit"]';
 
@@ -140,52 +144,34 @@ function harness(note: string, open: (append: (line: string) => void) => void) {
   return container;
 }
 
-export const ReopenAWalkover = {
-  name: 'A recorded walkover reopens on the right side, with its reason',
-  render: () =>
-    harness(
-      'Stored as WALKOVER with winningSide 1 and the reason on side 2. The dialog must show the ending against DERRICK — the side that did not win — and the reason it was given.',
-      (append) =>
-        openScoreEntryDialog({
-          sides: SIDES,
-          statusCodeGroups: REAL_GROUPS,
-          matchUp: recordedWalkover(),
-          onSubmit: (outcome: any) => append(`submit → ${JSON.stringify(outcome)}`)
-        } as any)
-    ),
-  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
-    closeAll();
-    canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
+/**
+ * Open on a recorded outcome, and reopen on whatever comes back out.
+ *
+ * CA, 2026-09-28: *"All of the stories should allow me to Submit and then re-open on the score I just
+ * submitted."* `OutAndBackIn` below did this by hand for one case; the same wiring belongs on every
+ * story in the file, so it is here once and `asRecord` performs the host's own mapping.
+ *
+ * Deferred, because `openScoreEntryDialog` closes immediately after reporting — a dialog reopened
+ * inside the callback would be the one that close then tore down.
+ */
+function openRecorded(append: (line: string) => void, matchUp: any, matchUpFormat = FORMAT) {
+  const open = (record: any) =>
+    openScoreEntryDialog({
+      sides: SIDES,
+      statusCodeGroups: REAL_GROUPS,
+      matchUp: record,
+      onSubmit: (outcome: any) => {
+        append(`submit → ${JSON.stringify(outcome)}`);
+        const next = asRecord(outcome, outcome.sets ?? [], matchUpFormat);
+        setTimeout(() => {
+          open(next);
+          append('reopened on the submitted outcome');
+        }, 0);
+      }
+    } as any);
 
-    // The ending is on side 2, because side 1 won. Getting this inversion wrong advances the wrong
-    // participant, and the card would look perfectly correct while doing it.
-    const pill = inModal<HTMLElement>(ROW_ENDING);
-    await expect(pill).toBeTruthy();
-    await expect(pill!.dataset.rowEnding).toBe(WALKOVER);
-    await expect(pill!.closest<HTMLElement>('.chc-sec-row')!.dataset.side).toBe('2');
-
-    await expect(inModal<HTMLElement>(BAND)!.textContent).toContain('Rosalind Lem advances');
-
-    // And the reason came back with it — the defect that started this: the picker read side 1.
-    //
-    // In the BAND first, because that is where it is visible without the operator doing anything. The
-    // chips themselves live inside the row's panel, which is closed when the dialog opens.
-    await expect(inModal<HTMLElement>(BAND)!.textContent).toContain(walkoverInjuryDisplay());
-
-    // Then in the panel, which proves the STATE carries it and not merely the prose: the chip for the
-    // recorded code is the pressed one.
-    inModal<HTMLButtonElement>('button[data-action="endedEarly"][data-side="2"]')!.click();
-    const reason = inModal<HTMLElement>(`[data-panel-side="2"] button[data-reason="${WALKOVER_INJURY}"]`);
-    await expect(reason).toBeTruthy();
-    await expect(reason!.getAttribute('aria-pressed')).toBe('true');
-
-    // Submittable as it stands, without the operator touching anything: reopening a complete outcome
-    // must not require re-declaring it.
-    await expect(inModal<HTMLButtonElement>(SUBMIT)!.disabled).toBe(false);
-
-    closeAll();
-  }
-};
+  return open(matchUp);
+}
 
 export const OutAndBackIn = {
   name: 'The round trip — what it submits is what it reopens on',
@@ -225,8 +211,29 @@ export const OutAndBackIn = {
     closeAll();
     canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
 
+    // ── It opened on the right side, with its reason ──
+    //
+    // Stored as WALKOVER with `winningSide: 1` and the reason on side 2, so the ending belongs to
+    // DERRICK — the side that did not win. Getting this inversion wrong advances the wrong participant,
+    // and the card would look perfectly correct while doing it.
     const sideOf = () => inModal<HTMLElement>(ROW_ENDING)?.closest<HTMLElement>('.chc-sec-row')?.dataset.side;
+    await expect(inModal<HTMLElement>(ROW_ENDING)!.dataset.rowEnding).toBe(WALKOVER);
     await expect(sideOf()).toBe('2');
+    await expect(inModal<HTMLElement>(BAND)!.textContent).toContain('Rosalind Lem advances');
+
+    // The reason came back with it — the defect that started this: the picker read side 1. In the BAND
+    // first, because that is where it is visible without the operator doing anything.
+    await expect(inModal<HTMLElement>(BAND)!.textContent).toContain(walkoverInjuryDisplay());
+
+    // Then in the panel, which proves the STATE carries it and not merely the prose: the chip for the
+    // recorded code is the pressed one.
+    inModal<HTMLButtonElement>('button[data-action="endedEarly"][data-side="2"]')!.click();
+    const reason = inModal<HTMLElement>(`[data-panel-side="2"] button[data-reason="${WALKOVER_INJURY}"]`);
+    await expect(reason).toBeTruthy();
+    await expect(reason!.getAttribute(ARIA_PRESSED)).toBe(PRESSED);
+
+    // Submittable as it stands: reopening a complete outcome must not require re-declaring it.
+    await expect(inModal<HTMLButtonElement>(SUBMIT)!.disabled).toBe(false);
 
     inModal<HTMLButtonElement>(SUBMIT)!.click();
 
@@ -247,13 +254,7 @@ export const ReopenARetirement = {
   render: () =>
     harness(
       'Stored as RETIRED at 6-4 2-1. The sets come from the matchUp, so the dialog opens on the score that was played as well as the ending.',
-      (append) =>
-        openScoreEntryDialog({
-          sides: SIDES,
-          statusCodeGroups: REAL_GROUPS,
-          matchUp: recordedRetirement(),
-          onSubmit: (outcome: any) => append(`submit → ${JSON.stringify(outcome)}`)
-        } as any)
+      (append) => openRecorded(append, recordedRetirement())
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
@@ -277,13 +278,7 @@ export const ReopenAMatchLevelEnding = {
   render: () =>
     harness(
       'Stored as SUSPENDED with no winningSide. There is no side to attach it to, so it must come back in the match-level group and not on a row.',
-      (append) =>
-        openScoreEntryDialog({
-          sides: SIDES,
-          statusCodeGroups: REAL_GROUPS,
-          matchUp: { matchUpFormat: FORMAT, matchUpStatus: SUSPENDED, score: { sets: [] } },
-          onSubmit: (outcome: any) => append(`submit → ${JSON.stringify(outcome)}`)
-        } as any)
+      (append) => openRecorded(append, { matchUpFormat: FORMAT, matchUpStatus: SUSPENDED, score: { sets: [] } })
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
@@ -291,7 +286,7 @@ export const ReopenAMatchLevelEnding = {
 
     // On the match-level control, and NOT on a row: a suspension resolves nobody, so a row pill would
     // be claiming it happened to one participant.
-    await expect(inModal(`.chc-sec-endings button[data-ending="${SUSPENDED}"]`)!.getAttribute('aria-pressed')).toBe(
+    await expect(inModal(`.chc-sec-endings button[data-ending="${SUSPENDED}"]`)!.getAttribute(ARIA_PRESSED)).toBe(
       'true'
     );
     await expect(inModal(ROW_ENDING)).toBeUndefined();
@@ -305,13 +300,7 @@ export const ReopenADoubleExit = {
   render: () =>
     harness(
       'Stored as DOUBLE_WALKOVER with no winningSide. The ending an operator clicks is WALKOVER plus "no one advances", so it must come back that way — marked on both participants.',
-      (append) =>
-        openScoreEntryDialog({
-          sides: SIDES,
-          statusCodeGroups: REAL_GROUPS,
-          matchUp: { matchUpFormat: FORMAT, matchUpStatus: DOUBLE_WALKOVER, score: { sets: [] } },
-          onSubmit: (outcome: any) => append(`submit → ${JSON.stringify(outcome)}`)
-        } as any)
+      (append) => openRecorded(append, { matchUpFormat: FORMAT, matchUpStatus: DOUBLE_WALKOVER, score: { sets: [] } })
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
@@ -321,8 +310,41 @@ export const ReopenADoubleExit = {
     // or (Walkover) chip appear next to the other player as well?"*
     await expect(topModal()!.querySelectorAll(ROW_ENDING)).toHaveLength(2);
 
+    // A reason, before submitting. A double exit has no winning side, so its reason cannot be stored
+    // "against the side that lost" — it goes on BOTH, and side 1 is what `recordedStatusCode` reads.
+    // Without this the round trip below passes just as well against a record that stored no reason at
+    // all, which is the one thing about a double exit that is easy to get wrong.
+    inModal<HTMLButtonElement>('button[data-action="endedEarly"][data-side="1"]')!.click();
+    inModal<HTMLButtonElement>(`[data-panel-side="1"] button[data-reason="${WALKOVER_INJURY}"]`)!.click();
+    await expect(
+      inModal<HTMLElement>(`[data-panel-side="1"] button[data-reason="${WALKOVER_INJURY}"]`)!.getAttribute(
+        ARIA_PRESSED
+      )
+    ).toBe(PRESSED);
+
     // And it resolves back to the DOUBLE status, not to the single ending that was clicked.
     inModal<HTMLButtonElement>(SUBMIT)!.click();
     await expect(document.querySelector('#roundTripLog')!.textContent).toContain(DOUBLE_WALKOVER);
+
+    // Waited out rather than left pending: the reopen is on a timer, and a timer that fires after the
+    // story has finished opens a dialog into whatever is on screen next.
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    // Both rows again — a double exit that reopened as a single one would have lost the second
+    // participant, which is the failure this whole file exists to catch.
+    await expect(topModal()!.querySelectorAll(ROW_ENDING)).toHaveLength(2);
+
+    // And the reason survived the trip, through the both-sides field a double exit has to use. Read
+    // from the PANEL rather than from the band: measured 2026-09-28, `scoreEntrySummary`'s double-exit
+    // branch returns the propagation warning as its detail and drops `reasonDisplay` entirely, so a
+    // reason chosen for a double walkover is never shown in the band. Reported rather than changed —
+    // the band's wording is not this workstream's to redesign — and the chip is the stronger evidence
+    // in any case, since it proves the STATE carries the code and not merely the prose.
+    inModal<HTMLButtonElement>('button[data-action="endedEarly"][data-side="1"]')!.click();
+    const reason = inModal<HTMLElement>(`[data-panel-side="1"] button[data-reason="${WALKOVER_INJURY}"]`);
+    await expect(reason, 'the reason chip is offered again').toBeTruthy();
+    await expect(reason!.getAttribute(ARIA_PRESSED), 'and it is the pressed one').toBe('true');
+
+    closeAll();
   }
 };

@@ -23,9 +23,9 @@
  */
 import { matchUpStatusConstants, fixtures, policyConstants } from 'tods-competition-factory';
 import { createDynamicSetsRegion } from '../regions/dynamicSetsRegion';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { openScoreEntryDialog } from '../scoreEntryDialog';
 import { renderScoreEntryCard } from '../scoreEntryCard';
-import { describe, it, expect, vi, afterEach } from 'vitest';
 import { cModal } from '../../modal/cmodal';
 
 import type { StatusCodeGroups } from '../logic/statusCodes';
@@ -41,6 +41,7 @@ const CLEAR = 'button[data-action="clear"]';
 const CANCEL = 'button[data-action="cancel"]';
 const MODAL = 'section[id^="cmdl-"]';
 const FIRST_TIEBREAK = 'input[data-tiebreak-side="1"][data-tiebreak-set="1"]';
+const SECOND_TIEBREAK = 'input[data-tiebreak-side="2"][data-tiebreak-set="1"]';
 
 function mount(over: { matchUpFormat?: string; sets?: any[]; smartComplements?: boolean } = {}) {
   document.body.innerHTML = '';
@@ -74,6 +75,51 @@ afterEach(() => {
   document.body.innerHTML = '';
 });
 
+describe('entry begins on the LOWER row', () => {
+  // CA, 2026-09-28: *"the dynamic sets when launched should always initially give focus to the lower
+  // row; that way e.g. 3 is lower row and shift+3 is upper row, which feels natural ... each subsequent
+  // entry column should start on the bottom cell."* The parallel CA drew is the shipping dynamic-sets
+  // modal, where the two cells sit side by side and the plain digit is the LEFT one.
+  //
+  // The rule is only half about focus. Which cell holds the caret decides which row an unshifted digit
+  // lands on, so these assert the consequence as well as the placement — a test that only checked
+  // `document.activeElement` would pass against a card that then wrote the digit to the wrong row.
+
+  it('focuses the first set\'s lower cell', () => {
+    const h = mount();
+
+    h.region.focusFirst();
+
+    expect(document.activeElement).toBe(h.cell(2, 1));
+  });
+
+  it('puts a plain digit on the lower row, and its complement above', () => {
+    const h = mount();
+
+    h.press(h.cell(2, 1)!, 'Digit3');
+
+    expect(h.cell(2, 1)!.value).toBe('3');
+    expect(h.cell(1, 1)!.value).toBe('6');
+  });
+
+  it('puts a SHIFTED digit on the upper row, and its complement below', () => {
+    const h = mount();
+
+    h.press(h.cell(2, 1)!, 'Digit3', true);
+
+    expect(h.cell(1, 1)!.value).toBe('3');
+    expect(h.cell(2, 1)!.value).toBe('6');
+  });
+
+  it('starts each subsequent column on its bottom cell too', () => {
+    const h = mount();
+
+    h.press(h.cell(2, 1)!, 'Digit3');
+
+    expect(document.activeElement).toBe(h.cell(2, 2));
+  });
+});
+
 describe('a digit typed into an empty cell', () => {
   it('completes the set and moves on to the NEXT one', () => {
     // CA's case exactly: a 3 complements to 6, and focus lands in the second set.
@@ -83,7 +129,8 @@ describe('a digit typed into an empty cell', () => {
 
     expect(h.cell(1, 1)!.value).toBe('3');
     expect(h.cell(2, 1)!.value).toBe('6');
-    expect(document.activeElement).toBe(h.cell(1, 2));
+    // The LOWER cell of the next set: entry begins on the lower row in every column (CA, 2026-09-28).
+    expect(document.activeElement).toBe(h.cell(2, 2));
   });
 
   it('puts a SHIFTED digit on the other side', () => {
@@ -119,7 +166,7 @@ describe('a digit typed into an empty cell', () => {
 
     expect(first.value).toBe('3');
     expect(h.cell(2, 1)!.value).toBe('6');
-    expect(document.activeElement).toBe(h.cell(1, 2));
+    expect(document.activeElement).toBe(h.cell(2, 2));
   });
 
   it('stops at the tiebreak when the set calls for one, rather than skipping ahead', () => {
@@ -130,8 +177,12 @@ describe('a digit typed into an empty cell', () => {
     h.cell(2, 1)!.value = '6';
     h.cell(2, 1)!.dispatchEvent(new Event('input', { bubbles: true }));
 
+    // Both cells are there, and focus lands on the one belonging to the side that LOST the set — here
+    // side 2, at 7-6. That is the only cell the complement can fire from: `getTiebreakComplement` derives
+    // the winner's points from the loser's, and the winner's imply nothing about the loser's. On a 7-6 it
+    // is also the lower row, so the tiebreak column and the games columns agree wherever they can.
     expect(h.q(FIRST_TIEBREAK)).toBeTruthy();
-    expect(document.activeElement).toBe(h.q(FIRST_TIEBREAK));
+    expect(document.activeElement).toBe(h.q(SECOND_TIEBREAK));
   });
 
   it('does not move on once the match is decided', () => {
@@ -190,32 +241,36 @@ describe('moving between cells', () => {
     // The DOM order is wrong for this grid: one side's cells are siblings, so a native Tab runs along the
     // row. The old dialog takes Tab over for the same reason.
     const h = mount({ sets: [{ setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 }] });
-    const from = h.cell(1, 1)!;
+    // From the cell entry BEGINS in — the lower row — so the step under test is the one an operator
+    // actually takes. The walk is bottom-then-top within each column, so this is the opposing score.
+    const from = h.cell(2, 1)!;
 
     from.focus();
     from.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }));
 
-    expect(document.activeElement).toBe(h.cell(2, 1));
+    expect(document.activeElement).toBe(h.cell(1, 1));
   });
 
   it('Shift-Tab goes back', () => {
     const h = mount({ sets: [{ setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 }] });
-    const from = h.cell(1, 2)!;
+    const from = h.cell(2, 2)!;
 
     from.focus();
     from.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true }));
 
-    expect(document.activeElement).toBe(h.cell(2, 1));
+    // Back out of the second set's entry cell and into the first set's upper row — the cell before it in
+    // the same bottom-then-top walk.
+    expect(document.activeElement).toBe(h.cell(1, 1));
   });
 
   it('Backspace in an EMPTY cell steps back', () => {
     const h = mount({ sets: [{ setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 }] });
-    const from = h.cell(1, 2)!;
+    const from = h.cell(2, 2)!;
 
     from.focus();
     from.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true, cancelable: true }));
 
-    expect(document.activeElement).toBe(h.cell(2, 1));
+    expect(document.activeElement).toBe(h.cell(1, 1));
   });
 
   it('Backspace in a FILLED cell deletes, and does not jump', () => {
@@ -306,7 +361,8 @@ describe('[Clear]', () => {
 
     h.q<HTMLButtonElement>(CLEAR)!.click();
 
-    expect(document.activeElement).toBe(h.cell(1, 1));
+    // The first set's LOWER cell, which is where entry begins — the same place the dialog opens on.
+    expect(document.activeElement).toBe(h.cell(2, 1));
   });
 
   it('lets a cleared set complement again', () => {
