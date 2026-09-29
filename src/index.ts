@@ -54,6 +54,26 @@ export { setScoringConfig, getScoringConfig, resetScoringConfig } from './compon
 export type { ScoringModalParams, ScoringModalLabels, ScoreOutcome, SetScore } from './components/scoring/types';
 export type { StatusCodeGroups, StatusCodeEntry } from './components/scoring/logic/statusCodes';
 
+// Score Entry — the SECOND scoring dialog, exported alongside `scoringModal` rather than replacing it.
+//
+// `scoringModal` is what ships today and nothing here changes it. `openScoreEntryDialog` is the newer
+// card in a modal: three interchangeable entry approaches (Dynamic Sets, Free Score, Dial Pad) over one
+// set of geometry, a live format picker, irregular endings, and reopening a recorded outcome. Both are
+// exported on purpose — CA, 2026-09-29: *"we're not going to rewire TMX... at best we can make it a
+// setting to turn on the new score entry modal"* — so a host picks per operator, at runtime, and can
+// pick back. That is only possible if BOTH names are reachable from the package.
+//
+// `renderScoreEntryCard` is deliberately NOT exported yet. The card is the unlocked lower level (it
+// returns an element, so it can sit inline in a schedule row), but nothing has asked for it inline, and
+// an export is a promise about a shape that is still moving. Export it when a host needs it.
+export { openScoreEntryDialog } from './components/scoring/scoreEntryDialog';
+export type {
+  ScoreEntryDialogParams,
+  ScoreEntryApproach,
+  ScoreEntryDialog
+} from './components/scoring/scoreEntryDialog';
+export type { ScoreEntryOutcome, ScoreEntryCard } from './components/scoring/scoreEntryCard';
+
 // Dynamic Sets state management API (pure functions, testable)
 export {
   getSetFormatForIndex,
