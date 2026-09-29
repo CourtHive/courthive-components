@@ -20,10 +20,16 @@
  * keeps agreeing if the engine's rule ever changes. The literal is stated in the comment so a reader
  * can see what is meant without running anything.
  */
+import {
+  shouldApplySmartComplement,
+  getSetFormatForIndex,
+  calculateComplement,
+  matchUpConfigFor,
+  buildSetScore
+} from '../logic/dynamicSetsLogic';
 import { matchUpFormatCode, scoreGovernor } from 'tods-competition-factory';
-import { describe, it, expect, beforeEach } from 'vitest';
-import { getSetFormatForIndex, calculateComplement, matchUpConfigFor, buildSetScore } from '../logic/dynamicSetsLogic';
 import { createDynamicSetsRegion } from '../regions/dynamicSetsRegion';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { completeTiebreakOnly } from '../logic/tiebreakEntry';
 import { renderScoreEntryCard } from '../scoreEntryCard';
 
@@ -33,6 +39,7 @@ const SIDES: any = [{ participantName: 'Rosalind Lem' }, { participantName: 'Der
 const MATCH_TIEBREAK_NOAD = 'SET1-S:TB10NOAD';
 const SET_TIEBREAK_NOAD = 'SET3-S:6/TB7NOAD';
 const SET_TIEBREAK = 'SET3-S:6/TB7';
+const SET_NOAD = 'SET3-S:6NOAD';
 
 beforeEach(() => {
   document.body.innerHTML = '';
@@ -51,7 +58,7 @@ describe('the parsed format carries `NoAD`, and this module now reads it', () =>
   });
 
   it('puts it at the TOP level for a no-tiebreak set', () => {
-    const setFormat: any = getSetFormatForIndex(0, matchUpConfigFor('SET3-S:6NOAD'));
+    const setFormat: any = getSetFormatForIndex(0, matchUpConfigFor(SET_NOAD));
 
     expect(setFormat?.NoAD).toBe(true);
   });
@@ -59,7 +66,7 @@ describe('the parsed format carries `NoAD`, and this module now reads it', () =>
 
 describe('a no-advantage GAMES complement', () => {
   it("completes a 5 to the factory's answer, which for S:6NOAD is 6 and not 7", () => {
-    const setFormat = getSetFormatForIndex(0, matchUpConfigFor('SET3-S:6NOAD'));
+    const setFormat = getSetFormatForIndex(0, matchUpConfigFor(SET_NOAD));
     const expected = scoreGovernor.getSetComplement({ lowValue: 5, setTo: 6, NoAD: true, isSide1: true });
 
     // First to six, so a 5 faces a 6. Read with `noAd` — or from the tiebreak's flag, which this site
@@ -150,6 +157,31 @@ describe('a no-advantage TIEBREAK', () => {
       'input[data-tiebreak-side="1"][data-tiebreak-set="1"]'
     );
     expect(winnerCell?.value).toBe(expected);
+  });
+});
+
+describe('the SHIPPING dialog is fixed too, not only the new card', () => {
+  // `approaches/dynamicSetsApproach.ts` has no tiebreak complement and no flag reads of its own — it
+  // goes through these two shared helpers, which is why correcting `SetFormat` reaches it. Asserted on
+  // the entry points the shipping dialog actually calls, so a later change cannot fix the new card and
+  // quietly regress the old one.
+
+  it('the complement it calls honours no-advantage', () => {
+    const result = shouldApplySmartComplement(5, false, 0, [], matchUpConfigFor(SET_NOAD), new Set(), true);
+
+    expect(result.shouldApply).toBe(true);
+    expect(result.field2Value, 'first to six, so a 5 faces a 6').toBe(6);
+  });
+
+  it('and leaves an advantage set alone — the control', () => {
+    const result = shouldApplySmartComplement(5, false, 0, [], matchUpConfigFor('SET3-S:6'), new Set(), true);
+
+    expect(result.field2Value).toBe(7);
+  });
+
+  it('the set it builds derives a no-ad tiebreak winner correctly', () => {
+    expect(buildSetScore(0, '7', '6', '6', matchUpConfigFor(SET_TIEBREAK_NOAD)).side1TiebreakScore).toBe(7);
+    expect(buildSetScore(0, '7', '6', '6', matchUpConfigFor(SET_TIEBREAK)).side1TiebreakScore).toBe(8);
   });
 });
 
