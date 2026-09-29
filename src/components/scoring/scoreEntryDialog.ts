@@ -310,17 +310,25 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
    * opinion about what a format allows is how the entry approaches came to disagree about everything
    * else.
    *
-   * ── What this seam cannot yet deliver, said plainly ──
+   * ── A half-typed set is discarded, and that is a decision ──
    *
-   * CA's rule keeps a PART-ENTERED set whose own rule the change did not touch. **This dialog loses it
-   * anyway**, and the cause is the harvest rather than the utility: `getSets()` reports only sets whose
-   * BOTH sides are entered, so a half-typed set is invisible here and never reaches the factory.
-   * Measured — a lone `7` in set 2 is gone after a change that touches only the deciding set.
+   * `getSets()` reports only sets whose BOTH sides are entered — deliberately, because including a
+   * half-entered one made the band claim a `6-0` nobody typed. So a part-entered set never reaches the
+   * factory here and is lost on any format change. CA, 2026-09-29, asked directly: *"i think it is
+   * fine for half-typed sets to be discarded."* Recorded so it reads as settled rather than as an
+   * omission someone should come back and fix.
    *
-   * `previousMatchUpFormat` is therefore passed but currently inert: for a COMPLETE set, "its rule did
-   * not change" and "it is still legal" give the same answer, so removing the argument fails no test
-   * today. It is passed because it is correct, and it becomes load-bearing the moment partials can be
-   * harvested — closing that needs a wider `ScoreRegion` contract across all three regions.
+   * ── `previousMatchUpFormat` is load-bearing, and the case is not the obvious one ──
+   *
+   * For a set that is complete AND legal it changes nothing: "its rule did not change" and "it is
+   * still legal" agree. The case it exists for is a complete but **ILLEGAL** set — a 3-7, which the
+   * band reports and `getSets()` still carries. Measured 2026-09-29 under a change touching only the
+   * deciding set: with the previous format the 3-7 is KEPT, without it the validator discards it.
+   *
+   * Keeping it is right. The operator typed it, the card is already telling them it is wrong, and a
+   * format change that does not touch that set has no business silently deleting their work — which is
+   * exactly what *"trim only what the new format invalidates"* means for a score that was invalid
+   * before the change.
    *
    * The ENDING is untouched either way. A walkover recorded against a row is a fact about the match,
    * not about the format the score is read under — the same reason `card.update` keeps it across an

@@ -521,15 +521,28 @@ describe('the format picker', () => {
     expect(reported.matchUpFormat).toBe(BEST_OF_ONE);
   });
 
-  it('LOSES a part-entered set across any format change — a known limit of this seam', () => {
-    // CA's ruling was that a partial should survive where the new format did not invalidate it, and
-    // `retainScoreForFormat` implements exactly that. **The dialog cannot reach it**, and this pins the
-    // real behaviour rather than the intended one.
-    //
-    // The cause is the harvest, not the utility: the dialog collects through `currentRegion.getSets()`,
-    // and a region reports only sets whose BOTH sides are entered — so a half-typed set is invisible at
-    // the seam and never reaches the factory at all. Closing it means widening the `ScoreRegion`
-    // contract across all three regions, which is a bigger change than adopting a query.
+  it('keeps a complete but ILLEGAL set whose rule the change did not touch', () => {
+    // THE case `previousMatchUpFormat` exists for, and it is not the obvious one. A 3-7 is complete and
+    // illegal: the band says so and `getSets()` still carries it, so it reaches the factory. Under a
+    // change touching only the DECIDING set, its own rule did not move — so it stays, and the operator
+    // can fix it. Dropping the previous format instead validates it and deletes their typing.
+    const dialog = open({
+      onFormatChange: vi.fn(),
+      openFormatPicker: vi.fn(),
+      sets: [{ setNumber: 1, side1Score: 3, side2Score: 7, winningSide: 2 }]
+    });
+
+    dialog.setMatchUpFormat(DECIDER_TB10);
+
+    expect(q<HTMLInputElement>(SET_1_SIDE_1)!.value).toBe('3');
+    expect(q<HTMLInputElement>(SET_1_SIDE_2)!.value).toBe('7');
+  });
+
+  it('LOSES a part-entered set across any format change — CA ruled this acceptable', () => {
+    // The dialog harvests through `currentRegion.getSets()`, which reports only sets whose BOTH sides
+    // are entered — so a half-typed set never reaches the factory and is lost on any format change.
+    // CA, 2026-09-29: *"i think it is fine for half-typed sets to be discarded."* Pinned as the settled
+    // behaviour, not as an omission awaiting a wider `ScoreRegion` contract.
     //
     // A first version of this test typed a `3` and asserted the partial SURVIVED — and passed, because
     // smart complements filled the other side and made it a complete 3-6. A `7` has no complement in
