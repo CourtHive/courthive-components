@@ -58,10 +58,14 @@ export function completeTiebreakOnly(
   const pair = scoreGovernor.getTiebreakComplement({
     lowValue,
     tiebreakTo,
-    // `tiebreakNoAd`, and NOT `noAd`. Measured 2026-09-28: a low of 6 in a TB7 returns `[6, 8]` with
-    // `noAd: true` — identical to passing nothing — and `[6, 7]` with `tiebreakNoAd: true`. The wrong
-    // name is accepted silently and does nothing, which is the shape that ships a dead field.
-    tiebreakNoAd: setFormat?.tiebreakSet?.noAd,
+    // Two different spellings, and both are deliberate. The PARAMETER is `tiebreakNoAd`, which
+    // `getTiebreakComplement` names that way to distinguish the tiebreak's no-advantage rule from the
+    // SET's — they are different things, and `generateOutcome.ts` renames one to the other for exactly
+    // that reason. The FIELD is `NoAD`, which is what `matchUpFormatCode.parse` emits.
+    //
+    // Neither can be guessed from the other, and getting the field wrong is silent: `.noAd` reads
+    // `undefined` for every format, so no-advantage would simply never apply. See `SetFormat`.
+    tiebreakNoAd: setFormat?.tiebreakSet?.NoAD,
     // `isSide1` says which slot the LOW value occupies: `true` gives `[low, high]`.
     isSide1: lowSide === 1
   });

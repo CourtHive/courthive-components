@@ -1049,9 +1049,14 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     const gamesLoser: SideNumber = games.side1 > games.side2 ? 2 : 1;
     if (sideNumber !== gamesLoser) return;
 
+    const setFormat = getSetFormatForIndex(setIndex, config);
     const pair = scoreGovernor.getTiebreakComplement({
       lowValue: points,
       tiebreakTo: target,
+      // Never passed at all until 2026-09-28, so a no-advantage tiebreak completed as though it needed
+      // two points: a 6 in a `TB7NOAD` answered 8 where no-ad says 7. `NoAD` is the field the factory
+      // emits and `tiebreakNoAd` the parameter it reads — see `logic/tiebreakEntry.ts`.
+      tiebreakNoAd: setFormat?.tiebreakFormat?.NoAD ?? setFormat?.tiebreakSet?.NoAD,
       isSide1: sideNumber === 1,
     });
     if (!pair) return;
