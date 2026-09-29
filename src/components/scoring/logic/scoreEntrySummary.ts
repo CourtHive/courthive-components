@@ -86,7 +86,16 @@ export function scoreEntrySummary(params: SummaryParams): ResultBand {
     // on the BASE ending. Re-deriving the sentence here would give the card its own copy of a warning
     // the inline popover already shows, and the two would drift.
     const base = status === DOUBLE_WALKOVER ? WALKOVER : DEFAULTED;
-    return { tone: 'warn', headline: `${label(status)} — neither side advances`, detail: doubleExitWarning(base) };
+
+    // The REASON leads, as it does in every other branch. This returned only the propagation warning
+    // until 2026-09-29, so a reason chosen for a double walkover was recorded, round-tripped correctly,
+    // and never shown — the one ending whose reason the operator could not see they had entered. The
+    // warning stays, after it: what propagates is the more consequential half of the sentence.
+    return {
+      tone: 'warn',
+      headline: `${label(status)} — neither side advances`,
+      detail: joinDetail([reasonDisplay, doubleExitWarning(base)]),
+    };
   }
 
   // ── An ending that names a winner ──

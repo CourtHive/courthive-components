@@ -150,6 +150,26 @@ describe('a double exit', () => {
     expect(doubleWalkover.detail).toContain('Double walkover');
     expect(doubleDefault.detail).toContain('Double default');
   });
+
+  it('SHOWS the reason code, which it dropped until 2026-09-29', () => {
+    // Every other branch leads its detail with the reason; this one returned the propagation warning
+    // alone. So a double walkover was the single ending whose reason an operator could choose, have
+    // recorded and round-tripped correctly, and never see confirmed anywhere on the card.
+    const state = toggleBothSidesOut(chooseSideEnding(emptyScoreEntryState, 1, WALKOVER));
+    const result = band({ resolution: resolveScoreEntry(state), reasonDisplay: 'Wo [inj]' });
+
+    expect(result.detail).toContain('Wo [inj]');
+    expect(result.detail, 'and the warning is still there, after it').toContain('propagates');
+  });
+
+  it('says only the warning when no reason was chosen', () => {
+    // The control: the reason must not become a separator with nothing in front of it.
+    const state = toggleBothSidesOut(chooseSideEnding(emptyScoreEntryState, 1, WALKOVER));
+    const result = band({ resolution: resolveScoreEntry(state) });
+
+    expect(result.detail).toContain('propagates');
+    expect(result.detail?.startsWith(' ·'), 'no dangling separator').toBe(false);
+  });
 });
 
 describe('a match-level ending that discards the score — the sentence this band exists for', () => {
