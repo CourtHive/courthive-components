@@ -607,6 +607,69 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   }
 
   /**
+   * A walkover cannot have a score, so while one is selected the score cannot be TYPED.
+   *
+   * CA, 2026-09-29: *"when I open a modal that already has a WALKOVER I shouldn't also then be able to
+   * enter a score, because a WALKOVER by definition can have no score."* The card already knew — it
+   * dropped the score at submit (`resolution.clearsScore ? undefined : …`) and the band said "no score
+   * recorded" — but the cells stayed live, so an operator could type a set and watch it be silently
+   * discarded. Saying it afterwards is not the same as not accepting it.
+   *
+   * Read from the operator's SELECTION, never from `currentResolution()`. A region can REPORT a
+   * score-clearing ending out of text the operator is still typing — Free Score's whole purpose is
+   * that `6-4 ret` and a walkover are things you write — and locking that field on what it has parsed
+   * so far would lock somebody out of their own sentence mid-word.
+   *
+   * The ending controls stay live on purpose. Un-selecting the walkover is the way back, and a lock
+   * with no way out is a trap rather than a guard.
+   *
+   * Called from `renderDerived`, so it is recomputed on every keystroke rather than only on a full
+   * render. That is what makes the paragraph above TRUE rather than accidental: with the lock on
+   * `render()` alone it could not have fired on typed text either way, and the Free Score case would
+   * have been protected by an omission instead of by a decision.
+   */
+  function lockScoreEntry(): void {
+    const locked = resolveScoreEntry(state).clearsScore;
+    element.dataset.scoreLocked = locked ? 'true' : 'false';
+
+    // The per-set cells live in the ROWS, beside the ending controls, so they are named precisely
+    // rather than disabled wholesale — a blanket lock on the row would take the way out with it.
+    for (const input of rowsContainer.querySelectorAll<HTMLInputElement>('input.chc-sec-set-input')) {
+      applyLock(input, locked);
+    }
+
+    // The block is score and nothing else: Free Score's field, the Dial Pad's keypad.
+    for (const control of blockContainer.querySelectorAll<HTMLInputElement | HTMLButtonElement>(
+      'input, button, textarea, select'
+    )) {
+      applyLock(control, locked);
+    }
+  }
+
+  /**
+   * Disable a control for the lock, and re-enable ONLY what the lock disabled.
+   *
+   * `control.disabled = locked` was the first version and it was wrong in the unlock direction: it
+   * cleared disabled states the REGION had set for its own reasons. Measured — the Dial Pad disables
+   * its `[Tiebreak]` key on a tiebreak-only format, because the cells already are the tiebreak, and
+   * unlocking handed that key back. A story caught it, which is the argument for the story.
+   *
+   * So the lock records what it took and gives back only that.
+   */
+  function applyLock(control: HTMLInputElement | HTMLButtonElement, locked: boolean): void {
+    if (locked) {
+      if (control.disabled) return;
+      control.disabled = true;
+      control.dataset.lockedByEnding = 'true';
+      return;
+    }
+
+    if (!control.dataset.lockedByEnding) return;
+    control.disabled = false;
+    delete control.dataset.lockedByEnding;
+  }
+
+  /**
    * The resolution in force: the operator's selection, or failing that whatever the region parsed.
    *
    * A selected ending always wins. Only when nothing is selected does a region-reported status apply,
@@ -650,6 +713,8 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   }
 
   function renderDerived(): void {
+    lockScoreEntry();
+
     const resolution = currentResolution();
     renderBand(resolution);
 

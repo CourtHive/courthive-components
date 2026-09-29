@@ -55,6 +55,8 @@ const ARIA_PRESSED = 'aria-pressed';
 const PRESSED = 'true';
 const BAND = '.chc-sec-band';
 const SUBMIT = 'button[data-action="submit"]';
+/** Asserted in three stories now, which is the point — Submit closing is not one story's concern. */
+const SUBMIT_CLOSES = 'Submit closes the dialog';
 
 const SIDES: any = [{ participantName: 'Rosalind Lem' }, { participantName: 'Derrick Ellul' }];
 
@@ -145,17 +147,26 @@ function harness(note: string, open: (append: (line: string) => void) => void) {
 }
 
 /**
- * Open on a recorded outcome, and reopen on whatever comes back out.
+ * A round trip driven by the OPEN BUTTON, which is how an operator drives one.
  *
- * CA, 2026-09-28: *"All of the stories should allow me to Submit and then re-open on the score I just
- * submitted."* `OutAndBackIn` below did this by hand for one case; the same wiring belongs on every
- * story in the file, so it is here once and `asRecord` performs the host's own mapping.
+ * CA, 2026-09-29: *"NONE of the Score Entry Round Trip stories close the modal upon clicking
+ * [Submit]!"* — and he was right, though not for the reason the sentence suggests. Every story used
+ * to reopen itself on a `setTimeout(…, 0)`, so the modal DID close and was replaced in the same
+ * frame. Nothing on screen ever went away, which is indistinguishable from never closing, and it also
+ * made the dialog's own close untestable: an assertion "it closed" could never be written between
+ * two synchronous statements.
  *
- * Deferred, because `openScoreEntryDialog` closes immediately after reporting — a dialog reopened
- * inside the callback would be the one that close then tore down.
+ * Now Submit closes and STOPS. The submitted outcome is remembered here, and pressing the story's
+ * own button again opens on it — CA, 2026-09-28: *"All of the stories should allow me to Submit and
+ * then re-open on the score I just submitted."* "Allow me to re-open" is a button, not a timer.
+ *
+ * Returns the click handler rather than opening, so `current` survives between presses. Built once
+ * per render; each story keeps its own.
  */
-function openRecorded(append: (line: string) => void, matchUp: any, matchUpFormat = FORMAT) {
-  const open = (record: any) =>
+function roundTrip(initial: any, matchUpFormat = FORMAT) {
+  let current = initial;
+
+  return (append: (line: string) => void) =>
     openScoreEntryDialog({
       sides: SIDES,
       // Passed explicitly so `matchUp: undefined` is a legitimate start: a story that opens BLANK gets
@@ -163,57 +174,28 @@ function openRecorded(append: (line: string) => void, matchUp: any, matchUpForma
       // one into it.
       matchUpFormat,
       statusCodeGroups: REAL_GROUPS,
-      matchUp: record,
+      matchUp: current,
       onSubmit: (outcome: any) => {
         append(`submit → ${JSON.stringify(outcome)}`);
-        const next = asRecord(outcome, outcome.sets ?? [], matchUpFormat);
-        setTimeout(() => {
-          open(next);
-          append('reopened on the submitted outcome');
-        }, 0);
+        current = asRecord(outcome, outcome.sets ?? [], matchUpFormat);
+        append('the modal closed — press the button again to reopen on what was saved');
       }
     } as any);
-
-  return open(matchUp);
 }
 
 export const OutAndBackIn = {
   name: 'The round trip — what it submits is what it reopens on',
   render: () =>
     harness(
-      'Opens on a recorded walkover, submits it untouched, and reopens the dialog on the outcome that came back. The winner must survive both directions.',
-      (append) => {
-        const open = (matchUp: any, label: string) =>
-          openScoreEntryDialog({
-            sides: SIDES,
-            statusCodeGroups: REAL_GROUPS,
-            matchUp,
-            onSubmit: (outcome: any) => {
-              append(
-                `${label} → ${JSON.stringify({ matchUpStatus: outcome.matchUpStatus, winningSide: outcome.winningSide, reasonCode: outcome.reasonCode })}`
-              );
-              // The dialog's own output, fed straight back in as a record. `winningSide` is what a host
-              // would store, so this is the shape the next open really receives.
-              const next = {
-                matchUpFormat: FORMAT,
-                matchUpStatus: outcome.matchUpStatus,
-                winningSide: outcome.winningSide,
-                sideStatusCodes:
-                  outcome.reasonCode && outcome.winningSide
-                    ? { [3 - outcome.winningSide]: outcome.reasonCode }
-                    : undefined,
-                score: { sets: outcome.sets ?? [] }
-              };
-              setTimeout(() => open(next, 'reopened'), 0);
-            }
-          } as any);
-
-        open(recordedWalkover(), 'first');
-      }
+      'Opens on a recorded walkover and submits it untouched. The modal closes; press the button again and it opens on the outcome that came back. The winner must survive both directions.',
+      // Was a hand-written open with its own record mapping. `asRecord` inside `roundTrip` performs
+      // the same one, and the hand copy could disagree with it without either being obviously wrong.
+      roundTrip(recordedWalkover())
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
-    canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
+    const reopen = () => canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
+    reopen();
 
     // ── It opened on the right side, with its reason ──
     //
@@ -241,8 +223,9 @@ export const OutAndBackIn = {
 
     inModal<HTMLButtonElement>(SUBMIT)!.click();
 
-    // The dialog reopens on its own output, on a timer, so the stack has unwound before it does.
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    // It CLOSED, and reopening is a press of the story's own button.
+    await expect(topModal(), SUBMIT_CLOSES).toBeUndefined();
+    reopen();
 
     // THE assertion: the ending is still on side 2. A double inversion — or none — puts it on side 1,
     // and every value in between looks plausible.
@@ -273,11 +256,12 @@ export const EnterSubmitReopenClear = {
   render: () =>
     harness(
       'Opens BLANK. Type a score and Submit: the modal closes and reopens on what you just saved. Then press Clear and Submit again — the empty result is submittable, and that is how a recorded score is removed.',
-      (append) => openRecorded(append, undefined)
+      roundTrip(undefined)
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
-    canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
+    const reopen = () => canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
+    reopen();
 
     const cell = (side: number, set: number) =>
       inModal<HTMLInputElement>(`input[data-side="${side}"][data-set="${set}"]`)!;
@@ -302,9 +286,14 @@ export const EnterSubmitReopenClear = {
     await expect(submit().disabled).toBe(false);
     submit().click();
 
-    // The reopen is on a timer — `openScoreEntryDialog` closes after reporting, so a dialog reopened
-    // inside the callback would be the one that close then tore down.
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    // IT CLOSED. This assertion could not exist while the story reopened itself on a timer — the
+    // modal was replaced in the same frame, so there was no moment at which nothing was on screen.
+    // CA, 2026-09-29: *"NONE of the Score Entry Round Trip stories close the modal upon clicking
+    // [Submit]!"*
+    await expect(topModal(), SUBMIT_CLOSES).toBeUndefined();
+
+    // And reopening is a BUTTON, which is what "allow me to re-open" means.
+    reopen();
 
     // THE assertion CA went looking for: the score that was submitted is the score it reopened on,
     // in the cells rather than only in the prose.
@@ -321,7 +310,9 @@ export const EnterSubmitReopenClear = {
     await expect(inModal<HTMLElement>(BAND)!.textContent).toContain('removed');
 
     submit().click();
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await expect(topModal(), 'and the clear closes it too').toBeUndefined();
+
+    reopen();
 
     // It reopened on nothing, which is the point: the recorded score is gone, and the dialog now has
     // the same blank card it started with.
@@ -337,7 +328,7 @@ export const ReopenARetirement = {
   render: () =>
     harness(
       'Stored as RETIRED at 6-4 2-1. The sets come from the matchUp, so the dialog opens on the score that was played as well as the ending.',
-      (append) => openRecorded(append, recordedRetirement())
+      roundTrip(recordedRetirement())
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
@@ -361,7 +352,7 @@ export const ReopenAMatchLevelEnding = {
   render: () =>
     harness(
       'Stored as SUSPENDED with no winningSide. There is no side to attach it to, so it must come back in the match-level group and not on a row.',
-      (append) => openRecorded(append, { matchUpFormat: FORMAT, matchUpStatus: SUSPENDED, score: { sets: [] } })
+      roundTrip({ matchUpFormat: FORMAT, matchUpStatus: SUSPENDED, score: { sets: [] } })
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
@@ -383,11 +374,12 @@ export const ReopenADoubleExit = {
   render: () =>
     harness(
       'Stored as DOUBLE_WALKOVER with no winningSide. The ending an operator clicks is WALKOVER plus "no one advances", so it must come back that way — marked on both participants.',
-      (append) => openRecorded(append, { matchUpFormat: FORMAT, matchUpStatus: DOUBLE_WALKOVER, score: { sets: [] } })
+      roundTrip({ matchUpFormat: FORMAT, matchUpStatus: DOUBLE_WALKOVER, score: { sets: [] } })
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
-    canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
+    const reopen = () => canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
+    reopen();
 
     // Both rows carry the chip — CA, 2026-09-27: *"If 'no one advances' is selected shouldn't (Defaulted)
     // or (Walkover) chip appear next to the other player as well?"*
@@ -407,9 +399,11 @@ export const ReopenADoubleExit = {
     inModal<HTMLButtonElement>(SUBMIT)!.click();
     await expect(document.querySelector('#roundTripLog')!.textContent).toContain(DOUBLE_WALKOVER);
 
-    // Waited out rather than left pending: the reopen is on a timer, and a timer that fires after the
-    // story has finished opens a dialog into whatever is on screen next.
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    // It closed, then reopened on the press of the story's own button. This replaced a timer, which
+    // also removed a hazard in its own right: a timer that fires after the story has finished opens a
+    // dialog into whatever is on screen next.
+    await expect(topModal(), SUBMIT_CLOSES).toBeUndefined();
+    reopen();
 
     // Both rows again — a double exit that reopened as a single one would have lost the second
     // participant, which is the failure this whole file exists to catch.
