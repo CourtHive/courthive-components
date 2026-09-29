@@ -29,8 +29,8 @@ import {
 } from '../logic/dynamicSetsLogic';
 import { matchUpFormatCode, scoreGovernor } from 'tods-competition-factory';
 import { createDynamicSetsRegion } from '../regions/dynamicSetsRegion';
-import { describe, it, expect, beforeEach } from 'vitest';
 import { completeTiebreakOnly } from '../logic/tiebreakEntry';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { renderScoreEntryCard } from '../scoreEntryCard';
 
 const SIDES: any = [{ participantName: 'Rosalind Lem' }, { participantName: 'Derrick Ellul' }];

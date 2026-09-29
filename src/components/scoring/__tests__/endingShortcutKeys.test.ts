@@ -24,8 +24,8 @@ import { matchUpStatusConstants, fixtures, policyConstants } from 'tods-competit
 import { createDynamicSetsRegion } from '../regions/dynamicSetsRegion';
 import { createFreeScoreRegion } from '../regions/freeScoreRegion';
 import { createDialPadRegion } from '../regions/dialPadRegion';
-import { renderScoreEntryCard } from '../scoreEntryCard';
 import { describe, it, expect, beforeEach } from 'vitest';
+import { renderScoreEntryCard } from '../scoreEntryCard';
 
 import type { StatusCodeGroups } from '../logic/statusCodes';
 

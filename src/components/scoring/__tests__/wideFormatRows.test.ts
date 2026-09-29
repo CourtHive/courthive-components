@@ -21,8 +21,8 @@
  * `grid-column: 1 / -1` that makes it span is in the stylesheet and is not.
  */
 import { createDynamicSetsRegion } from '../regions/dynamicSetsRegion';
-import { renderScoreEntryCard } from '../scoreEntryCard';
 import { describe, it, expect, beforeEach } from 'vitest';
+import { renderScoreEntryCard } from '../scoreEntryCard';
 
 /** Nine ten-minute bolts — CA's case. `SET9-…` does not parse; the nine-set form is `SET9X`. */
 const NINE_BOLTS = 'SET9X-S:T10';

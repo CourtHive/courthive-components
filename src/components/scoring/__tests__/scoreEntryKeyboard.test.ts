@@ -23,9 +23,9 @@
  */
 import { matchUpStatusConstants, fixtures, policyConstants } from 'tods-competition-factory';
 import { createDynamicSetsRegion } from '../regions/dynamicSetsRegion';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { openScoreEntryDialog } from '../scoreEntryDialog';
 import { renderScoreEntryCard } from '../scoreEntryCard';
-import { describe, it, expect, vi, afterEach } from 'vitest';
 import { cModal } from '../../modal/cmodal';
 
 import type { StatusCodeGroups } from '../logic/statusCodes';
