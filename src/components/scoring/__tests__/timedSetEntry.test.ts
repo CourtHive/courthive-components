@@ -195,6 +195,47 @@ describe('what advances a timed bolt, and what must not', () => {
   });
 });
 
+describe('a nine-bolt format plays nine bolts', () => {
+  /** Bolts already won by side 1 — enough to "decide" the match by a games-set reading of it. */
+  const wonBolts = (count: number) =>
+    Array.from({ length: count }, (_unused, index) => ({
+      setNumber: index + 1,
+      side1Score: 22,
+      side2Score: 21,
+      winningSide: 1
+    }));
+
+  it('keeps revealing bolts after one side has taken five of them', () => {
+    // CA, 2026-09-28: *"if there are still bolts left <enter> should advance to the next Bolt."*
+    //
+    // `shouldCreateNextSet` refuses once the match reads as decided, and measured against `SET9X-S:T10`
+    // that happens at EXACTLY five bolts won — `calculatedWinningSide` is 1 at five and `undefined`
+    // again at six. So bolts stopped being revealed at 5 and resumed at 6, which is nobody's rule. A
+    // nine-bolt format plays nine bolts.
+    const h = mount(NINE_BOLTS, { sets: wonBolts(5) });
+
+    expect(h.cell(2, 6), 'bolt 6 is on screen').toBeTruthy();
+    expect(h.cell(1, 6)).toBeTruthy();
+  });
+
+  it('and Enter advances into the sixth', () => {
+    const h = mount(NINE_BOLTS, { sets: wonBolts(5) });
+
+    h.enter(1, 5);
+
+    expect(document.activeElement).toBe(h.cell(2, 6));
+  });
+
+  it('stops at the ninth, where there is genuinely nothing left', () => {
+    // The other end, and the control: if bolts were revealed unconditionally this would run past the
+    // format's own count.
+    const h = mount(NINE_BOLTS, { sets: wonBolts(9) });
+
+    expect(h.cell(2, 9)).toBeTruthy();
+    expect(h.cell(2, 10), 'there is no tenth bolt').toBeNull();
+  });
+});
+
 describe('a DRAWN bolt is an ordinary result', () => {
   it('reveals the next bolt, though nobody won it', () => {
     // A timed bolt ends on the clock. `shouldCreateNextSet` asks for a `winningSide`, and a tied 21-21

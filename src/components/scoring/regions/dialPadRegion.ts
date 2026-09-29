@@ -29,6 +29,7 @@
  */
 
 import { ENTRY_SIDE, digitFromCode, hasCommandModifier, otherSide } from '../keyboard';
+import { completeTiebreakOnly, tiebreakOnlyTarget } from '../logic/tiebreakEntry';
 import { createScoreReadouts, READOUT_COLUMN_WIDTH } from './scoreReadout';
 import { scoreGovernor } from 'tods-competition-factory';
 import { ordinalSetLabel } from './setColumns';
@@ -63,19 +64,6 @@ export type DialPadRegion = ScoreRegion & {
 /** One entry per set: the two sides' games as typed text, plus a tiebreak. */
 type Entry = { side1: string; side2: string; tiebreak?: string };
 
-/**
- * How far above the target a second keystroke may reach in a tiebreak-only set.
- *
- * One decade. A second digit is only ever typed to reach a score AT or above the tiebreak's target —
- * 10 through 19 for a tiebreak to ten — and a window of ten covers every one of them. It bounds the
- * KEYSTROKE, not the score: a longer tiebreak is still enterable, by correcting with Backspace.
- *
- * At module scope and not inside the factory, where a `const` declared below the `return` is in the
- * temporal dead zone for every hoisted function that reads it — which is a `ReferenceError` on the
- * first tap, not a lint error.
- */
-const TIEBREAK_ENTRY_WINDOW = 9;
-
 export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion {
   const config = matchUpConfigFor(params.matchUpFormat);
   const setCount = config.exactly ?? config.bestOf;
@@ -83,6 +71,13 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
   const entries: Entry[] = Array.from({ length: setCount }, () => ({ side1: '', side2: '' }));
   /** Whether the next digit is entered as a tiebreak rather than as games. */
   let tiebreakMode = false;
+  /**
+   * For each tiebreak-only set: the row the operator typed the LOW score on, and the digits they typed.
+   *
+   * Held apart from `entries` because the cells hold a DERIVED pair — the typed number and its
+   * complement — and a second digit has to extend what was typed rather than what was computed from it.
+   */
+  const tiebreakLows = new Map<number, { side: SideNumber; digits: string }>();
   const readouts = createScoreReadouts();
   /** The live digit keys, so `focusFirst` can reach one without a DOM query. */
   const digitKeys = new Map<number, HTMLButtonElement>();
@@ -102,6 +97,7 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     hasEntry: () => entries.some((entry) => entry.side1 || entry.side2 || entry.tiebreak),
     clear: () => {
       for (let index = 0; index < setCount; index += 1) entries[index] = { side1: '', side2: '' };
+      tiebreakLows.clear();
       tiebreakMode = false;
       changed();
     },
@@ -125,6 +121,14 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
           side1: set.side1TiebreakScore === undefined ? '' : String(set.side1TiebreakScore),
           side2: set.side2TiebreakScore === undefined ? '' : String(set.side2TiebreakScore),
         };
+        // Which row holds the LOW score, so a digit typed after reopening extends that number rather
+        // than starting a new one. Without this a saved 10-8 would take the next digit as a fresh entry.
+        const side1Points = set.side1TiebreakScore;
+        const side2Points = set.side2TiebreakScore;
+        if (side1Points !== undefined && side2Points !== undefined) {
+          const lowSide: SideNumber = side1Points <= side2Points ? 1 : 2;
+          tiebreakLows.set(index, { side: lowSide, digits: String(Math.min(side1Points, side2Points)) });
+        }
         continue;
       }
 
@@ -209,6 +213,13 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
       return;
     }
 
+    // A set that IS a tiebreak takes one number, not two — see `typeTiebreakOnly`.
+    const tiebreakSet = openTiebreakOnlySet();
+    if (tiebreakSet !== undefined) {
+      typeTiebreakOnly(tiebreakSet, digit, shifted);
+      return;
+    }
+
     // Extend the side just written to, if a second digit could still be a legal score there. Otherwise
     // start the next empty slot. See `canExtend` — this is the only ambiguity in the whole keypad and
     // it is resolved by asking the format, not by a rule of thumb.
@@ -269,25 +280,11 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     const current = last.side === 1 ? entry.side1 : entry.side2;
     if (!current || current.length >= 2) return false;
 
-    // ── A tiebreak-only set is sized by its TARGET, not by `setTo` ──
-    //
-    // `getMaxAllowedScore` returns **7** for `SET1-S:TB10`: it reads `setFormat.setTo`, which a
-    // tiebreak-only format does not carry — its target lives on `tiebreakSet.tiebreakTo`. So a `1`
-    // could never be extended to a `10` and a match tiebreak was unenterable on the keypad: measured
-    // 2026-09-28, tapping 1, 0, 8 produced a tiebreak of 1-0 and dropped the 8 entirely.
-    //
-    // That was first fixed by exempting these sets from clamping altogether, on the reasoning that a
-    // match tiebreak runs long and no honest cap exists. The exemption has one consequence that only
-    // shows once entry starts on the LOWER row: with every extension allowed, the FIRST value typed
-    // swallows the next digit, so `8` followed by `1` became `81` and 10-8 could not be entered at all.
-    // The old order hid it by putting the two-digit value first; it was equally broken the other way
-    // round (`8` then `10`) and nothing covered that case.
-    //
-    // `extendsTiebreakOnly` is the replacement, and it invents no ceiling on the SCORE: any value
-    // remains enterable, and `validateSetScore` remains the legality check. It is a rule about which
-    // KEYSTROKE belongs where — a second digit is taken only when the pair it forms could be a score at
-    // or just above the tiebreak's own target, which is the only reason to type two digits here.
-    if (tiebreakOnly(last.index)) return extendsTiebreakOnly(current, digit, last.index);
+    // A tiebreak-only set never reaches here — `pressDigit` routes it to `typeTiebreakOnly`, where the
+    // operator types one number and digits simply accumulate into it. Kept as a guard rather than an
+    // assumption, since `getMaxAllowedScore` would answer **7** for `SET1-S:TB10`: it reads
+    // `setFormat.setTo`, which a tiebreak-only format does not carry.
+    if (tiebreakOnly(last.index)) return current.length < 2;
 
     const max = getMaxAllowedScore(last.index, last.side, {
       side1: Number.parseInt(entry.side1) || 0,
@@ -319,6 +316,20 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
    */
   function backspace(): void {
     for (let index = entries.length - 1; index >= 0; index -= 1) {
+      // A tiebreak-only set is one typed number plus a derived one, so a backspace takes a digit off
+      // what was TYPED and recomputes the other cell. Deleting from the derived cell would leave a pair
+      // the operator never entered and could not correct.
+      const low = tiebreakLows.get(index);
+      if (low) {
+        const digits = low.digits.slice(0, -1);
+        if (digits) tiebreakLows.set(index, { ...low, digits });
+        else tiebreakLows.delete(index);
+        entries[index] = { side1: '', side2: '' };
+        writeTiebreakOnly(index);
+        changed();
+        return;
+      }
+
       const entry = entries[index];
       if (entry.tiebreak) {
         entry.tiebreak = entry.tiebreak.slice(0, -1) || undefined;
@@ -428,27 +439,67 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
   }
 
   /**
-   * Whether a second digit belongs to this tiebreak-only cell.
+   * The tiebreak-only set a digit belongs to, if the keypad is in one.
    *
-   * Yes when the pair it forms could be a score at or just above the target, which is the only reason
-   * to type two digits into a cell whose scores are otherwise single ones. So for a tiebreak to ten:
-   * `1` then `0` is 10 and is taken; `8` then `1` would be 81 and is refused, leaving the 1 to start
-   * the opposing side.
-   *
-   * ── What it still cannot tell apart, said plainly ──
-   *
-   * `1` followed by `1` is 11, which IS a legal tiebreak score, so a 10-1 typed lower-row-first reads
-   * as an 11 and needs a Backspace. That ambiguity is inherent — the same one the games complement
-   * table leaves alone at 7 — and guessing the other way would break the far commoner 10-8.
-   *
-   * With no target to reason from, the old two-digit allowance stands rather than a guess being made.
+   * The first tiebreak-only set whose low score is still being typed — which means: not yet started, or
+   * started and still under two digits. Anything earlier that is NOT tiebreak-only must be complete
+   * first, so a mixed format (`SET3-S:6/TB7-F:TB10`) keeps its ordinary sets on the ordinary path and
+   * only the deciding set comes here.
    */
-  function extendsTiebreakOnly(current: string, digit: number, index: number): boolean {
-    const target = getSetFormatForIndex(index, config)?.tiebreakSet?.tiebreakTo;
-    if (target === undefined) return true;
+  function openTiebreakOnlySet(): number | undefined {
+    for (let index = 0; index < setCount; index += 1) {
+      if (!tiebreakOnly(index)) {
+        if (!entries[index].side1 || !entries[index].side2) return undefined;
+        continue;
+      }
 
-    const candidate = Number(`${current}${digit}`);
-    return candidate >= target && candidate <= target + TIEBREAK_ENTRY_WINDOW;
+      const low = tiebreakLows.get(index);
+      if (!low || low.digits.length < 2) return index;
+    }
+    return undefined;
+  }
+
+  /**
+   * A digit typed into a set that IS a tiebreak.
+   *
+   * CA, 2026-09-28: *"For tiebreaks the lower score should always be entered first. that could be 1
+   * then 1 or shift+1 then shift+1."* So the operator types ONE number — the loser's points — and the
+   * winner's is derived by `completeTiebreakOnly`. Digits accumulate into it because nothing else could
+   * be meant by a second one, which is what finally makes `1` then `1` an unambiguous eleven.
+   *
+   * `Shift` chooses WHICH ROW the low score belongs to, not which row the next digit lands in. Shifting
+   * mid-number therefore starts the number again on the other row, rather than splitting it across two.
+   */
+  function typeTiebreakOnly(index: number, digit: number, shifted: boolean): void {
+    const side: SideNumber = shifted ? otherSide(ENTRY_SIDE) : ENTRY_SIDE;
+    const current = tiebreakLows.get(index);
+    const digits = current?.side === side ? `${current.digits}${digit}`.slice(0, 2) : String(digit);
+
+    tiebreakLows.set(index, { side, digits });
+    writeTiebreakOnly(index);
+    changed();
+  }
+
+  /**
+   * Put the typed low score and its complement into the set's two cells.
+   *
+   * Where the factory declines to complete the pair, the typed value stands alone rather than a number
+   * being invented beside it — `validateSetScore` then reports the set as unfinished, which is true.
+   */
+  function writeTiebreakOnly(index: number): void {
+    const low = tiebreakLows.get(index);
+    if (!low) return;
+
+    const entry = entries[index];
+    const completed = completeTiebreakOnly(Number.parseInt(low.digits), low.side, getSetFormatForIndex(index, config));
+    if (!completed) {
+      if (low.side === 1) entry.side1 = low.digits;
+      else entry.side2 = low.digits;
+      return;
+    }
+
+    entry.side1 = String(completed.side1);
+    entry.side2 = String(completed.side2);
   }
 
   /**
@@ -466,7 +517,7 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     for (let index = 0; index < setCount; index += 1) {
       if (tiebreakOnly(index)) continue;
       const setFormat = getSetFormatForIndex(index, config);
-      if (setFormat?.tiebreakFormat || setFormat?.tiebreakSet) anyAttachable = true;
+      if (setFormat?.tiebreakFormat || tiebreakOnlyTarget(setFormat)) anyAttachable = true;
     }
     return anyAttachable;
   }

@@ -43,6 +43,7 @@
  */
 
 import { ENTRY_SIDE, digitFromCode, hasCommandModifier, otherSide } from '../keyboard';
+import { completeTiebreakOnly, tiebreakOnlyTarget } from '../logic/tiebreakEntry';
 import { scoreGovernor } from 'tods-competition-factory';
 import { ordinalSetLabel } from './setColumns';
 import { scoreLine } from './scoreLine';
@@ -399,18 +400,28 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
   /**
    * Whether the set AFTER this one may be revealed.
    *
-   * `shouldCreateNextSet` asks whether the set has a `winningSide`, which is the right question for a
-   * set won by games and the wrong one for a bolt ended by a CLOCK. Measured 2026-09-28 against
-   * `SET9X-S:T10`: a timed 22-21 resolves `winningSide: 1`, and a tied **21-21 resolves `undefined`** —
-   * so a drawn bolt revealed no successor and entry stopped dead, with eight bolts still to record. A
-   * draw is an ordinary result of a timed set, not an unfinished one.
+   * ── A timed format plays every bolt, so the only question is whether one is left ──
+   *
+   * CA, 2026-09-28: *"bolts can indeed be tied, so if there are still bolts left <enter> should advance
+   * to the next Bolt."* Two separate things in `shouldCreateNextSet` get in the way of that, and both
+   * are questions about a set won by GAMES rather than one ended by a CLOCK:
+   *
+   *   - it requires a `winningSide`, and a tied bolt has none. Measured against `SET9X-S:T10`: 22-21
+   *     resolves `winningSide: 1` and **21-21 resolves `undefined`**, so a draw revealed no successor
+   *     and entry stopped dead with eight bolts still to record;
+   *   - it refuses once the match reads as decided, which for nine bolts happens at **exactly five**
+   *     won — measured, and not at six, where `calculatedWinningSide` is `undefined` again. So bolts
+   *     would have stopped being revealed at 5 and started again at 6, which is nobody's rule.
+   *
+   * A nine-bolt format plays nine bolts. The loop that calls this already stops at `setCount`, so
+   * "there are still bolts left" is the whole condition and `true` is the honest answer.
    *
    * Handled here rather than in `shouldCreateNextSet`, which `approaches/dynamicSetsApproach.ts` also
    * calls: the shipping dialog has the same gap and correcting it there is a change to a surface this
    * workstream does not own. Recorded rather than smuggled in.
    */
   function opensNextSet(index: number): boolean {
-    if (isSetTimed(getSetFormatForIndex(index, config))) return !isMatchComplete(currentSets(), config);
+    if (isSetTimed(getSetFormatForIndex(index, config))) return true;
     return shouldCreateNextSet(index, currentSets(), config);
   }
 
@@ -682,6 +693,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
    */
   function applyGamesComplement(sideNumber: SideNumber, setIndex: number, digit: number): void {
     if (!smartComplements) return;
+    if (applyTiebreakOnlyComplement(sideNumber, setIndex, digit)) return;
 
     const result = shouldApplySmartComplement(
       digit,
@@ -705,6 +717,39 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     complementsUsed.add(setIndex);
   }
 
+  /**
+   * A set that IS a tiebreak completes from the ONE number the operator types.
+   *
+   * CA, 2026-09-28: *"For tiebreaks the lower score should always be entered first ... if the lower
+   * score is equal to or greater than the tiebreakTo value, the complement is +2."* So the typed value
+   * is the loser's points and the winner's is derived — the same rule the Dial Pad follows, through the
+   * same `completeTiebreakOnly`, so the two cannot disagree about what a match tiebreak means.
+   *
+   * `shouldApplySmartComplement` refuses these sets outright (`reason: 'Tiebreak-only set'`), which was
+   * right while nothing knew how to complete one and is why this is a separate path rather than a change
+   * to the shared helper the shipping approach also calls.
+   *
+   * Returns whether it handled the set, so the games complement is not also consulted.
+   */
+  function applyTiebreakOnlyComplement(sideNumber: SideNumber, setIndex: number, digit: number): boolean {
+    const setFormat = getSetFormatForIndex(setIndex, config);
+    if (tiebreakOnlyTarget(setFormat) === undefined) return false;
+
+    const completed = completeTiebreakOnly(digit, sideNumber, setFormat);
+    // Handled either way: a set that is a tiebreak never wants the GAMES complement, which would read
+    // its points as though they were games and answer with a six.
+    if (!completed) return true;
+
+    const other: SideNumber = otherSide(sideNumber);
+    const value = String(sideNumber === 1 ? completed.side2 : completed.side1);
+    if (other === 1) entries[setIndex].side1 = value;
+    else entries[setIndex].side2 = value;
+
+    const sibling = cells.get(key('games', other, setIndex));
+    if (sibling) sibling.value = value;
+
+    return true;
+  }
 
   // ── The keyboard ─────────────────────────────────────────────────────
   //

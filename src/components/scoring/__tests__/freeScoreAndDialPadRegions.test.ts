@@ -33,6 +33,7 @@ const SEVEN_SIX_THREE = '7-6(3)';
 /** A match tiebreak, in the factory's bracketed form. */
 const MATCH_TIEBREAK_FORMAT = 'SET1-S:TB10';
 const BACKSPACE = 'button[data-action="backspace"]';
+const DIALPAD = '.chc-sec-dialpad';
 const FREE_SCORE = 'Free Score';
 const RET_TEXT = '6-4 2-1 ret';
 const LEM_ADVANCES = 'Rosalind Lem advances';
@@ -325,7 +326,7 @@ describe('Dial Pad', () => {
     // digit was a click handler — so an operator who opened the Dial Pad and typed got nothing.
     const h = dialPad();
     const type = (code: string, shiftKey = false) =>
-      h.q<HTMLElement>('.chc-sec-dialpad')?.dispatchEvent(
+      h.q<HTMLElement>(DIALPAD)?.dispatchEvent(
         new KeyboardEvent('keydown', { code, shiftKey, bubbles: true }),
       );
 
@@ -342,7 +343,7 @@ describe('Dial Pad', () => {
     // so anything reading `event.key` would see `#` and drop the entry. Planting `key: '#'` here is the
     // falsification — it passes only because nothing consults it.
     const h = dialPad();
-    h.q<HTMLElement>('.chc-sec-dialpad')?.dispatchEvent(
+    h.q<HTMLElement>(DIALPAD)?.dispatchEvent(
       new KeyboardEvent('keydown', { code: 'Digit3', key: '#', shiftKey: true, bubbles: true }),
     );
 
@@ -535,12 +536,13 @@ describe('Dial Pad — a match tiebreak', () => {
   const press = (h: ReturnType<typeof dialPad>, digit: number) =>
     h.q<HTMLButtonElement>(`button[data-digit="${digit}"]`)?.click();
 
-  it('builds a two-digit tiebreak score, so 10-8 can be entered', () => {
-    // `getMaxAllowedScore` returns 7 for this format — it reads `setFormat.setTo`, which a tiebreak-only
-    // format does not carry — so a 1 could never be extended to a 10.
+  it('takes ONE number — the low score — and derives the winner\'s', () => {
+    // CA, 2026-09-28: *"For tiebreaks the lower score should always be entered first."* So a 10-8 is a
+    // single tap of 8: the 10 is `max(tiebreakTo, low + 2)`, which is what `getTiebreakComplement`
+    // computes and this never restates.
     const h = dialPad({ matchUpFormat: MATCH_TIEBREAK_FORMAT });
 
-    for (const digit of [8, 1, 0]) press(h, digit);
+    press(h, 8);
 
     const set = h.region.getSets()[0];
     expect(set?.side1TiebreakScore).toBe(10);
@@ -548,13 +550,62 @@ describe('Dial Pad — a match tiebreak', () => {
     expect(h.band()?.textContent).toContain('[10-8]');
   });
 
+  it('accumulates digits into that one number — `1` then `1` is eleven', () => {
+    // CA's own example, and the ambiguity this rule exists to delete. Under the previous alternating
+    // model a second digit might have belonged to the other side, so 11 and "1 then 1" were the same
+    // keystrokes; with only one number to type, nothing else can be meant.
+    const h = dialPad({ matchUpFormat: MATCH_TIEBREAK_FORMAT });
+
+    press(h, 1);
+    press(h, 1);
+
+    const set = h.region.getSets()[0];
+    expect(set?.side2TiebreakScore, 'the low score, on the lower row').toBe(11);
+    expect(set?.side1TiebreakScore, 'and its complement, low + 2').toBe(13);
+    expect(h.band()?.textContent).toContain('[13-11]');
+  });
+
+  it('`shift+1` then `shift+1` puts the same eleven on the UPPER row', () => {
+    // The other half of CA's example. Shift chooses which ROW the low score belongs to — not which row
+    // the next digit lands in, which is why shifting does not split the number across two cells.
+    const h = dialPad({ matchUpFormat: MATCH_TIEBREAK_FORMAT });
+    const shiftPress = (digit: number) =>
+      h.q<HTMLElement>(DIALPAD)?.dispatchEvent(
+        new KeyboardEvent('keydown', { code: `Digit${digit}`, shiftKey: true, bubbles: true }),
+      );
+
+    shiftPress(1);
+    shiftPress(1);
+
+    const set = h.region.getSets()[0];
+    expect(set?.side1TiebreakScore, 'the low score, on the upper row').toBe(11);
+    expect(set?.side2TiebreakScore).toBe(13);
+    expect(h.band()?.textContent).toContain('[11-13]');
+  });
+
   it('runs long, because a match tiebreak legitimately does', () => {
     // 15-13 is an ordinary match tiebreak. Nothing may cap it — there is no honest ceiling to apply.
     const h = dialPad({ matchUpFormat: MATCH_TIEBREAK_FORMAT });
 
-    for (const digit of [1, 3, 1, 5]) press(h, digit);
+    press(h, 1);
+    press(h, 3);
 
     expect(h.band()?.textContent).toContain('[15-13]');
+  });
+
+  it('backspace takes a digit off the TYPED number and recomputes the other', () => {
+    // The cells hold one typed value and one derived one, so a backspace that ate the derived cell would
+    // leave a pair the operator never entered and could not correct.
+    const h = dialPad({ matchUpFormat: MATCH_TIEBREAK_FORMAT });
+
+    press(h, 1);
+    press(h, 3);
+    expect(h.band()?.textContent).toContain('[15-13]');
+
+    h.q<HTMLButtonElement>(BACKSPACE)?.click();
+
+    // Back to a low of 1, whose complement is the target itself.
+    expect(h.band()?.textContent).toContain('[10-1]');
   });
 
   it('seeds a saved match tiebreak, so reopening one is not a blank keypad', () => {
@@ -574,7 +625,7 @@ describe('Dial Pad — a match tiebreak', () => {
     // still clamped to their own maximum.
     const h = dialPad({ matchUpFormat: 'SET3-S:6/TB7-F:TB10' });
 
-    for (const digit of [4, 6, 6, 4, 8, 1, 0]) press(h, digit);
+    for (const digit of [4, 6, 6, 4, 8]) press(h, digit);
 
     const sets = h.region.getSets();
     expect(sets.map((set: any) => [set.side1Score, set.side2Score])).toEqual([[6, 4], [4, 6], [0, 0]]);

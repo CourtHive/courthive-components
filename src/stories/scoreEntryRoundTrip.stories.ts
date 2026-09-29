@@ -173,47 +173,6 @@ function openRecorded(append: (line: string) => void, matchUp: any, matchUpForma
   return open(matchUp);
 }
 
-export const ReopenAWalkover = {
-  name: 'A recorded walkover reopens on the right side, with its reason',
-  render: () =>
-    harness(
-      'Stored as WALKOVER with winningSide 1 and the reason on side 2. The dialog must show the ending against DERRICK — the side that did not win — and the reason it was given.',
-      (append) => openRecorded(append, recordedWalkover())
-    ),
-  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
-    closeAll();
-    canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
-
-    // The ending is on side 2, because side 1 won. Getting this inversion wrong advances the wrong
-    // participant, and the card would look perfectly correct while doing it.
-    const pill = inModal<HTMLElement>(ROW_ENDING);
-    await expect(pill).toBeTruthy();
-    await expect(pill!.dataset.rowEnding).toBe(WALKOVER);
-    await expect(pill!.closest<HTMLElement>('.chc-sec-row')!.dataset.side).toBe('2');
-
-    await expect(inModal<HTMLElement>(BAND)!.textContent).toContain('Rosalind Lem advances');
-
-    // And the reason came back with it — the defect that started this: the picker read side 1.
-    //
-    // In the BAND first, because that is where it is visible without the operator doing anything. The
-    // chips themselves live inside the row's panel, which is closed when the dialog opens.
-    await expect(inModal<HTMLElement>(BAND)!.textContent).toContain(walkoverInjuryDisplay());
-
-    // Then in the panel, which proves the STATE carries it and not merely the prose: the chip for the
-    // recorded code is the pressed one.
-    inModal<HTMLButtonElement>('button[data-action="endedEarly"][data-side="2"]')!.click();
-    const reason = inModal<HTMLElement>(`[data-panel-side="2"] button[data-reason="${WALKOVER_INJURY}"]`);
-    await expect(reason).toBeTruthy();
-    await expect(reason!.getAttribute(ARIA_PRESSED)).toBe(PRESSED);
-
-    // Submittable as it stands, without the operator touching anything: reopening a complete outcome
-    // must not require re-declaring it.
-    await expect(inModal<HTMLButtonElement>(SUBMIT)!.disabled).toBe(false);
-
-    closeAll();
-  }
-};
-
 export const OutAndBackIn = {
   name: 'The round trip — what it submits is what it reopens on',
   render: () =>
@@ -252,8 +211,29 @@ export const OutAndBackIn = {
     closeAll();
     canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
 
+    // ── It opened on the right side, with its reason ──
+    //
+    // Stored as WALKOVER with `winningSide: 1` and the reason on side 2, so the ending belongs to
+    // DERRICK — the side that did not win. Getting this inversion wrong advances the wrong participant,
+    // and the card would look perfectly correct while doing it.
     const sideOf = () => inModal<HTMLElement>(ROW_ENDING)?.closest<HTMLElement>('.chc-sec-row')?.dataset.side;
+    await expect(inModal<HTMLElement>(ROW_ENDING)!.dataset.rowEnding).toBe(WALKOVER);
     await expect(sideOf()).toBe('2');
+    await expect(inModal<HTMLElement>(BAND)!.textContent).toContain('Rosalind Lem advances');
+
+    // The reason came back with it — the defect that started this: the picker read side 1. In the BAND
+    // first, because that is where it is visible without the operator doing anything.
+    await expect(inModal<HTMLElement>(BAND)!.textContent).toContain(walkoverInjuryDisplay());
+
+    // Then in the panel, which proves the STATE carries it and not merely the prose: the chip for the
+    // recorded code is the pressed one.
+    inModal<HTMLButtonElement>('button[data-action="endedEarly"][data-side="2"]')!.click();
+    const reason = inModal<HTMLElement>(`[data-panel-side="2"] button[data-reason="${WALKOVER_INJURY}"]`);
+    await expect(reason).toBeTruthy();
+    await expect(reason!.getAttribute(ARIA_PRESSED)).toBe(PRESSED);
+
+    // Submittable as it stands: reopening a complete outcome must not require re-declaring it.
+    await expect(inModal<HTMLButtonElement>(SUBMIT)!.disabled).toBe(false);
 
     inModal<HTMLButtonElement>(SUBMIT)!.click();
 

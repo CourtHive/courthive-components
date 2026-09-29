@@ -129,6 +129,15 @@ export const PlayedOut = {
     // assertion caught the first time it was ever executed.
     await expect(canvasElement.querySelectorAll('.chc-sec-endings [aria-pressed="true"]')).toHaveLength(0);
     await expect(canvasElement.querySelector(ROW_ENDING)).toBeNull();
+
+    // The format chip is a BUTTON here, not inert text — CA, 2026-09-28: *"the 'format chip' should be
+    // active for all Score Entry Card stories."* It is live in all of them because the shared host
+    // always offers an editor, so asserting it once is asserting it everywhere. What a change then DOES
+    // — rebuild the region and clear the score — is pinned in `scoreEntryDialog.test.ts`, where the
+    // picker can be driven without opening a second modal.
+    const chip = canvasElement.querySelector<HTMLButtonElement>('button[data-action="editFormat"]');
+    await expect(chip).toBeTruthy();
+    await expect(chip!.textContent).toBe(FORMAT);
   },
 };
 
@@ -141,6 +150,22 @@ export const Walkover = {
       if (!target) throw new Error(`nothing matched ${selector}`);
       target.click();
     };
+
+    // ── Closed: the participant's NAME is the control ──
+    //
+    // CA, 2026-09-27: the warning-triangle column is gone. The row still owns the ending — that is what
+    // deletes the separate winner question — but the 56px track went back to the name, so the row no
+    // longer ends in something shaped like an overflow menu.
+    const opener = (side: number) =>
+      canvasElement.querySelector<HTMLButtonElement>(`button[data-action="endedEarly"][data-side="${side}"]`);
+
+    await expect(opener(1)!.textContent).toContain('Rosalind Lem');
+    await expect(opener(1)!.closest('.chc-sec-participant')).toBeTruthy();
+    await expect(opener(1)!.getAttribute('aria-label')).toBe('Rosalind Lem (4) — ended early');
+    // No trailing track: `1fr` for the participant plus the score columns, and nothing after.
+    await expect(
+      canvasElement.querySelector<HTMLElement>(ROW_HEAD)!.style.gridTemplateColumns.endsWith('56px')
+    ).toBe(false);
 
     // Drive the design's actual flow: open the row's panel, choose the ending there.
     click(ENDED_EARLY_2);
@@ -159,6 +184,13 @@ export const Walkover = {
 
     const band = canvasElement.querySelector<HTMLElement>(BAND);
     await expect(band!.textContent).toContain(LEM_ADVANCES);
+
+    // The chosen ending is NAMED on the row. A strike-through says something ended; it never says which,
+    // and that is the fact an operator scanning the card actually needs.
+    const pill = canvasElement.querySelector<HTMLElement>(ROW_ENDING);
+    await expect(pill!.textContent).toBe('Walkover');
+    await expect(pill!.dataset.rowEnding).toBe(WALKOVER);
+    await expect(pill!.closest<HTMLElement>('.chc-sec-row')!.dataset.side).toBe('2');
 
     // Submit is live with no score at all — no separate winner question was ever asked.
     await expect(canvasElement.querySelector<HTMLButtonElement>(SUBMIT)!.disabled).toBe(false);
@@ -241,52 +273,6 @@ export const Tiebreak = {
   },
 };
 
-export const FreeScore = {
-  name: 'Same card — Free Score',
-  render: () => frame(cardWithSets(PLAYED_OUT_SETS, { approach: 'freeScore' })),
-  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
-    // The REAL region, not a stand-in. An earlier version of this story returned a fixed '6-4 6-3'
-    // whatever was typed, which made it a picture rather than the thing.
-    const field = canvasElement.querySelector<HTMLInputElement>('input[data-free-score]');
-    await expect(field).toBeTruthy();
-    await expect(canvasElement.querySelector<HTMLElement>(BAND)!.textContent).toContain('Rosalind Lem def.');
-
-    // The rows READ here rather than accepting input, and the chrome is identical to Dynamic Sets.
-    await expect(canvasElement.querySelectorAll('.chc-sec-readout')).toHaveLength(2);
-    await expect(canvasElement.querySelector('input[data-set]')).toBeNull();
-    await expect(canvasElement.querySelector(ROW_HEAD)).toBeNull();
-
-    // A typed ending is recognised, and still asks which side — the text never says who retired.
-    field!.value = '6-4 2-1 ret';
-    field!.dispatchEvent(new Event('input', { bubbles: true }));
-
-    await expect(canvasElement.querySelector<HTMLElement>(BAND)!.textContent).toMatch(/retired/i);
-    await expect(canvasElement.querySelector<HTMLButtonElement>(SUBMIT)!.disabled).toBe(true);
-  },
-};
-
-export const DialPad = {
-  name: 'Same card — Dial Pad',
-  render: () => frame(cardWithSets(undefined, { approach: 'dialPad' })),
-  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
-    const press = (digit: number) =>
-      canvasElement.querySelector<HTMLButtonElement>(`button[data-digit="${digit}"]`)?.click();
-
-    // Ten digits, a tiebreak and a backspace — and no endings of its own. The old Dial Pad crammed
-    // WO/RET/DEF into the same 4x4 grid because it had to be a whole dialog.
-    await expect(canvasElement.querySelectorAll('button[data-digit]')).toHaveLength(10);
-    await expect(canvasElement.querySelector('button[data-action="tiebreak"]')).toBeTruthy();
-    await expect(canvasElement.querySelectorAll('.chc-sec-dialpad button[data-ending]')).toHaveLength(0);
-
-    // Lower row first (CA, 2026-09-28), so the loser's games are typed and the upper row follows:
-    // 4,6 is the 6-4 that 6,4 used to be.
-    for (const digit of [4, 6, 3, 6]) press(digit);
-
-    await expect(canvasElement.querySelector<HTMLElement>(BAND)!.textContent).toContain('Rosalind Lem def.');
-    await expect(canvasElement.querySelector<HTMLButtonElement>(SUBMIT)!.disabled).toBe(false);
-  },
-};
-
 export const MatchTiebreak = {
   name: 'A match tiebreak — the keypad, on SET1-S:TB10',
   render: () =>
@@ -304,7 +290,8 @@ export const MatchTiebreak = {
     // This format was UNENTERABLE on the keypad: `getMaxAllowedScore` returns 7 for it, because it reads
     // `setFormat.setTo` and a tiebreak-only format keeps its target on `tiebreakSet.tiebreakTo`. So the
     // 1 could never be extended to a 10 — tapping 1, 0, 8 gave a tiebreak of 1-0 and dropped the 8.
-    for (const digit of [8, 1, 0]) press(digit);
+    // ONE number — the low score. The 10 is derived (CA, 2026-09-28).
+    press(8);
 
     await expect(canvasElement.querySelector<HTMLElement>(BAND)!.textContent).toContain('[10-8]');
     await expect(canvasElement.querySelector<HTMLButtonElement>(SUBMIT)!.disabled).toBe(false);
@@ -314,53 +301,6 @@ export const MatchTiebreak = {
     await expect(canvasElement.querySelector<HTMLButtonElement>('button[data-action="tiebreak"]')!.disabled).toBe(
       true,
     );
-  },
-};
-
-export const RowEndingClosed = {
-  name: 'The row target — closed',
-  render: () => frame(cardWithSets(undefined)),
-  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
-    // CA, 2026-09-27: the warning-triangle column is gone and the participant's NAME is the control.
-    // The row still owns the ending — that is what deletes the separate winner question — but the 56px
-    // track went back to the name, and the row no longer ends in something shaped like an overflow menu.
-    const opener = (side: number) =>
-      canvasElement.querySelector<HTMLButtonElement>(`button[data-action="endedEarly"][data-side="${side}"]`);
-
-    await expect(opener(1)!.textContent).toContain('Rosalind Lem');
-    await expect(opener(1)!.closest('.chc-sec-participant')).toBeTruthy();
-    await expect(opener(1)!.getAttribute('aria-label')).toBe('Rosalind Lem (4) — ended early');
-
-    // No trailing track: `1fr` for the participant plus the score columns, and nothing after.
-    const head = canvasElement.querySelector<HTMLElement>(ROW_HEAD);
-    await expect(head!.style.gridTemplateColumns.endsWith('56px')).toBe(false);
-  },
-};
-
-export const RowEndingChosen = {
-  name: 'The row target — open, and chosen',
-  render: () => frame(cardWithSets(undefined)),
-  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
-    const click = (selector: string) => canvasElement.querySelector<HTMLElement>(selector)?.click();
-
-    // Opening from the name, and choosing on the row that it happened to.
-    click(ENDED_EARLY_2);
-    await expect(canvasElement.querySelector('[data-panel-side="2"]')?.textContent).toContain(
-      'What happened to Derrick Ellul?',
-    );
-
-    click(`[data-panel-side="2"] button[data-ending="${WALKOVER}"]`);
-
-    // The chosen ending is NAMED on the row. A strike-through says something ended; it never says which,
-    // and that is the fact an operator scanning the card actually needs.
-    const pill = canvasElement.querySelector<HTMLElement>(ROW_ENDING);
-    await expect(pill!.textContent).toBe('Walkover');
-    await expect(pill!.dataset.rowEnding).toBe(WALKOVER);
-    await expect(pill!.closest<HTMLElement>('.chc-sec-row')!.dataset.side).toBe('2');
-
-    // And the other side advances, which is the whole point of anchoring the ending to a row.
-    await expect(canvasElement.querySelector<HTMLElement>(BAND)!.textContent).toContain(LEM_ADVANCES);
-    await expect(canvasElement.querySelector<HTMLButtonElement>(SUBMIT)!.disabled).toBe(false);
   },
 };
 
@@ -414,53 +354,6 @@ export const SubmitAndReopen = {
 
     // Submittable again as it stands, without the operator re-declaring anything.
     await expect(q<HTMLButtonElement>(SUBMIT)!.disabled).toBe(false);
-  },
-};
-
-/**
- * The format chip, live — and a format change that clears the score.
- *
- * CA, 2026-09-28: *"the 'format chip' should be active for all Score Entry Card stories, and changing
- * the matchUpFormat should take effect (at present any change of matchUpFormat should clear the
- * score... but we'll do something interesting later)."*
- *
- * The chip is a button in every story now because the host always offers an editor. Clearing is the
- * deliberate part: a score entered under one format and re-read under another belongs to neither.
- */
-export const FormatChipClearsTheScore = {
-  name: 'The format chip — live, and a change clears the score',
-  render: () =>
-    frame(
-      cardWithSets(PLAYED_OUT_SETS, {
-        // A stub picker, so the CHANGE can be driven. Storybook shows the real one in every other story
-        // (and in `Scoring/Score Entry Dialog` → `The format chip`); what cannot be reached through the
-        // real picker's own DOM is what happens AFTER a format comes back, which is the behaviour CA
-        // specified and therefore the thing worth asserting.
-        openFormatPicker: ({ callback }: any) => callback(MATCH_TIEBREAK_FORMAT),
-      }),
-    ),
-  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
-    const chip = () => canvasElement.querySelector<HTMLButtonElement>('button[data-action="editFormat"]');
-    const cell = (side: number, set: number) =>
-      canvasElement.querySelector<HTMLInputElement>(`input[data-side="${side}"][data-set="${set}"]`);
-
-    // Active, in a CARD story and not only in the dialog — which is what CA asked for.
-    await expect(chip()).toBeTruthy();
-    await expect(chip()!.textContent).toBe(FORMAT);
-    await expect(cell(1, 1)!.value).toBe('6');
-    await expect(cell(1, 2), 'a second set, under a best-of-three').toBeTruthy();
-
-    chip()!.click();
-
-    // The change TOOK EFFECT: the chip reads the new code and the region was rebuilt under it — one set
-    // only, so the second set's cell is gone rather than merely relabelled.
-    await expect(chip()!.textContent).toBe(MATCH_TIEBREAK_FORMAT);
-    await expect(cell(1, 2)).toBeNull();
-
-    // And the score is CLEARED. CA, 2026-09-28: *"any change of matchUpFormat should clear the score...
-    // but we'll do something interesting later."*
-    await expect(cell(1, 1)!.value).toBe('');
-    await expect(canvasElement.querySelector<HTMLElement>(BAND)!.textContent).toMatch(/no result/i);
   },
 };
 
