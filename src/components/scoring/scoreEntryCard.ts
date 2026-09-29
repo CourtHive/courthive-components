@@ -67,6 +67,8 @@ const ARIA_LABEL = 'aria-label';
 const CLS_SPACER = 'chc-sec-spacer';
 const CLS_BAND_HEADLINE = 'chc-sec-band-headline';
 const CLS_BAND_DETAIL = 'chc-sec-band-detail';
+/** What the band says once `[Clear]` has emptied a recorded outcome. Overridable via `labels`. */
+const CLEARED_HEADLINE = 'The recorded result will be removed — Submit to clear it.';
 const ARIA_PRESSED = 'aria-pressed';
 const ARIA_EXPANDED = 'aria-expanded';
 const CHECK_PATH = 'M20 6 9 17l-5-5';
@@ -1031,16 +1033,17 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     // An emptied card that opened on an outcome is NOT "no result entered yet" — that headline is what
     // a blank new entry says, and it would leave the operator reading the same words for "nothing here"
     // and "about to delete what was here". The band is where this card says what Submit will do.
+    //
+    // ONE line, and CA's own words for it (2026-09-29): *"It's enough to state: 'The recorded result
+    // will be removed — Submit to clear it.'"* A first draft added a second clause, "Enter a score to
+    // keep it", which the card already demonstrates the moment anything is typed. Kept as a single
+    // headline with no detail, so it reads as one statement rather than an instruction with a caveat.
     if (submitsAClear()) {
       band.replaceChildren();
       band.dataset.tone = 'warn';
       band.setAttribute('role', 'status');
-      band.append(
-        text(CLS_BAND_HEADLINE, labels.clearedHeadline ?? 'The recorded result will be removed'),
-        div(CLS_SPACER),
-        text(CLS_BAND_DETAIL, labels.clearedDetail ?? 'Submit to clear it. Enter a score to keep it.')
-      );
-      appendBandControl(false);
+      band.append(text(CLS_BAND_HEADLINE, labels.clearedHeadline ?? CLEARED_HEADLINE));
+      appendBandControl(true);
       return;
     }
 

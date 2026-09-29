@@ -77,12 +77,18 @@ describe('clearing a recorded outcome', () => {
     closeAll();
   });
 
-  it('says so in the band, rather than reading as an empty new entry', () => {
+  it('says so in the band, in exactly one sentence', () => {
     openOnARecordedScore();
     clear().click();
 
-    expect(band().textContent).toContain('removed');
+    // CA's own wording, 2026-09-29: *"It's enough to state: 'The recorded result will be removed —
+    // Submit to clear it.'"* Asserted verbatim rather than loosely, because a first draft added a
+    // second clause and a `toContain('removed')` would have passed for both.
+    expect(band().textContent).toContain('The recorded result will be removed — Submit to clear it.');
     expect(band().dataset.tone).toBe('warn');
+
+    // And NOT the blank-entry headline, which is the confusion the branch exists to avoid: the same
+    // words for "nothing here" and "about to delete what was here".
     expect(band().textContent).not.toContain('No result entered yet');
 
     closeAll();
