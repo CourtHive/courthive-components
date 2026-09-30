@@ -65,6 +65,10 @@ const CLS_MENU = 'chc-sec-other-menu';
 const CLS_MENU_ITEM = 'chc-sec-other-item';
 const ARIA_LABEL = 'aria-label';
 const CLS_SPACER = 'chc-sec-spacer';
+const CLS_BAND_HEADLINE = 'chc-sec-band-headline';
+const CLS_BAND_DETAIL = 'chc-sec-band-detail';
+/** What the band says once `[Clear]` has emptied a recorded outcome. Overridable via `labels`. */
+const CLEARED_HEADLINE = 'The recorded result will be removed — Submit to clear it.';
 const ARIA_PRESSED = 'aria-pressed';
 const ARIA_EXPANDED = 'aria-expanded';
 const CHECK_PATH = 'M20 6 9 17l-5-5';
@@ -247,6 +251,14 @@ export type ScoreEntryOutcome = {
   reasonCode?: string;
   /** The score as the region formats it, which is what a host stores alongside the outcome. */
   score?: string;
+  /**
+   * The operator cleared a recorded outcome and submitted the empty result — REMOVE what is stored.
+   *
+   * Only ever `true`, never `false`, so a host that does not know about it is unaffected. It exists
+   * because an empty outcome is otherwise indistinguishable from a submission that says nothing, and
+   * the two must not be treated alike: one erases a stored score and the other must not.
+   */
+  cleared?: boolean;
 };
 
 export type ScoreEntryCardParams = {
@@ -328,6 +340,25 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    * nothing about tournament records. `hydrateScoreEntryState` does that translation for the host.
    */
   let state: ScoreEntryState = params.initialState ?? emptyScoreEntryState;
+  /**
+   * Whether the card OPENED on something — a score, an ending, or a reason code.
+   *
+   * Read once, before the operator can touch anything, because it is the question *"is there a
+   * recorded outcome to remove?"* and the answer must not change as they type and delete.
+   *
+   * `holdsEntry` is a function declaration and hoists, so this call is safe here; `state` and `region`
+   * are both already assigned above.
+   */
+  const openedOnRecordedOutcome = holdsEntry();
+  /**
+   * `[Clear]` was pressed at some point.
+   *
+   * Deliberately never reset. A reset on re-entry was written first and then DELETED, because
+   * falsification showed it changed nothing: `submitsAClear` already requires the card to be empty,
+   * so the flag is never read while a score exists. Carrying an untested line that looks load-bearing
+   * is worse than not having it.
+   */
+  let clearedRecordedOutcome = false;
   /** Which side's ending panel is open, if any. Presentation only — not part of the outcome. */
   let openPanelSide: SideNumber | undefined;
   let otherMenuOpen = false;
@@ -528,6 +559,8 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       state = emptyScoreEntryState;
       openPanelSide = undefined;
       otherMenuOpen = false;
+      // Only meaningful when there WAS something to remove; see `submitsAClear`.
+      clearedRecordedOutcome = true;
       params.onClear?.();
       render();
       // Straight back to where entry begins, as the old dialog does after its reset.
@@ -536,6 +569,13 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
     submitButton.dataset.action = 'submit';
     submitButton.addEventListener('click', () => {
+      // An emptied card submits the REMOVAL of what it opened on, and says so rather than leaving a
+      // host to infer it from four undefined fields.
+      if (submitsAClear()) {
+        params.onSubmit?.({ cleared: true });
+        return;
+      }
+
       const resolution = currentResolution();
       params.onSubmit?.({
         matchUpStatus: resolution.matchUpStatus,
@@ -567,6 +607,69 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   }
 
   /**
+   * A walkover cannot have a score, so while one is selected the score cannot be TYPED.
+   *
+   * CA, 2026-09-29: *"when I open a modal that already has a WALKOVER I shouldn't also then be able to
+   * enter a score, because a WALKOVER by definition can have no score."* The card already knew — it
+   * dropped the score at submit (`resolution.clearsScore ? undefined : …`) and the band said "no score
+   * recorded" — but the cells stayed live, so an operator could type a set and watch it be silently
+   * discarded. Saying it afterwards is not the same as not accepting it.
+   *
+   * Read from the operator's SELECTION, never from `currentResolution()`. A region can REPORT a
+   * score-clearing ending out of text the operator is still typing — Free Score's whole purpose is
+   * that `6-4 ret` and a walkover are things you write — and locking that field on what it has parsed
+   * so far would lock somebody out of their own sentence mid-word.
+   *
+   * The ending controls stay live on purpose. Un-selecting the walkover is the way back, and a lock
+   * with no way out is a trap rather than a guard.
+   *
+   * Called from `renderDerived`, so it is recomputed on every keystroke rather than only on a full
+   * render. That is what makes the paragraph above TRUE rather than accidental: with the lock on
+   * `render()` alone it could not have fired on typed text either way, and the Free Score case would
+   * have been protected by an omission instead of by a decision.
+   */
+  function lockScoreEntry(): void {
+    const locked = resolveScoreEntry(state).clearsScore;
+    element.dataset.scoreLocked = locked ? 'true' : 'false';
+
+    // The per-set cells live in the ROWS, beside the ending controls, so they are named precisely
+    // rather than disabled wholesale — a blanket lock on the row would take the way out with it.
+    for (const input of rowsContainer.querySelectorAll<HTMLInputElement>('input.chc-sec-set-input')) {
+      applyLock(input, locked);
+    }
+
+    // The block is score and nothing else: Free Score's field, the Dial Pad's keypad.
+    for (const control of blockContainer.querySelectorAll<HTMLInputElement | HTMLButtonElement>(
+      'input, button, textarea, select'
+    )) {
+      applyLock(control, locked);
+    }
+  }
+
+  /**
+   * Disable a control for the lock, and re-enable ONLY what the lock disabled.
+   *
+   * `control.disabled = locked` was the first version and it was wrong in the unlock direction: it
+   * cleared disabled states the REGION had set for its own reasons. Measured — the Dial Pad disables
+   * its `[Tiebreak]` key on a tiebreak-only format, because the cells already are the tiebreak, and
+   * unlocking handed that key back. A story caught it, which is the argument for the story.
+   *
+   * So the lock records what it took and gives back only that.
+   */
+  function applyLock(control: HTMLInputElement | HTMLButtonElement, locked: boolean): void {
+    if (locked) {
+      if (control.disabled) return;
+      control.disabled = true;
+      control.dataset.lockedByEnding = 'true';
+      return;
+    }
+
+    if (!control.dataset.lockedByEnding) return;
+    control.disabled = false;
+    delete control.dataset.lockedByEnding;
+  }
+
+  /**
    * The resolution in force: the operator's selection, or failing that whatever the region parsed.
    *
    * A selected ending always wins. Only when nothing is selected does a region-reported status apply,
@@ -588,7 +691,30 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     renderDerived();
   }
 
+  /**
+   * Whether pressing Submit now means *"remove the recorded outcome"*.
+   *
+   * Three conditions, and all three are load-bearing:
+   *
+   *   - `clearedRecordedOutcome` — the operator pressed `[Clear]`. Arriving at an empty card by
+   *     backspacing is not the same act, and the shipping modal does not treat it as one either.
+   *   - `openedOnRecordedOutcome` — there was something to remove. Submitting blank on a matchUp that
+   *     never had a score is a no-op, not a clear, and offering it would be offering nothing.
+   *   - `!holdsEntry()` — the card is still empty. This is what makes a clear-then-retype submit the
+   *     SCORE rather than a deletion, and it is why `clearedRecordedOutcome` needs no reset.
+   *
+   * Mirrors `scoringModal.ts`'s `wasCleared && hadExistingScore`, deliberately: this is the behaviour
+   * CA asked for by name — *"the current scoring modals allow for an empty score to be submitted which
+   * clears a submitted score in the factory for the matchUp being modified"* — so it is the shipping
+   * rule reproduced, not a second opinion about it.
+   */
+  function submitsAClear(): boolean {
+    return clearedRecordedOutcome && openedOnRecordedOutcome && !holdsEntry();
+  }
+
   function renderDerived(): void {
+    lockScoreEntry();
+
     const resolution = currentResolution();
     renderBand(resolution);
 
@@ -603,7 +729,8 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     // qualified: a 3-7 is not made submittable by also being marked Suspended.
     const scoreIsResult = !!region.isComplete?.();
     const scoreError = region.error?.();
-    submitButton.disabled = !!scoreError || !(resolution.isValid || (!resolution.hasEnding && scoreIsResult));
+    submitButton.disabled =
+      !!scoreError || !(submitsAClear() || resolution.isValid || (!resolution.hasEnding && scoreIsResult));
 
     // Nothing to clear is not the same as a clear that does nothing: the old dialog disables the button,
     // which is the honest signal. An ENDING counts as something to clear even with no score typed.
@@ -961,9 +1088,26 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       band.replaceChildren();
       band.dataset.tone = 'warn';
       band.setAttribute('role', 'status');
-      band.append(text('chc-sec-band-headline', scoreError));
+      band.append(text(CLS_BAND_HEADLINE, scoreError));
       // The control stays reachable while the score is wrong: switching complements off is one of the ways
       // an operator FIXES a score they did not mean to accept.
+      appendBandControl(true);
+      return;
+    }
+
+    // An emptied card that opened on an outcome is NOT "no result entered yet" — that headline is what
+    // a blank new entry says, and it would leave the operator reading the same words for "nothing here"
+    // and "about to delete what was here". The band is where this card says what Submit will do.
+    //
+    // ONE line, and CA's own words for it (2026-09-29): *"It's enough to state: 'The recorded result
+    // will be removed — Submit to clear it.'"* A first draft added a second clause, "Enter a score to
+    // keep it", which the card already demonstrates the moment anything is typed. Kept as a single
+    // headline with no detail, so it reads as one statement rather than an instruction with a caveat.
+    if (submitsAClear()) {
+      band.replaceChildren();
+      band.dataset.tone = 'warn';
+      band.setAttribute('role', 'status');
+      band.append(text(CLS_BAND_HEADLINE, labels.clearedHeadline ?? CLEARED_HEADLINE));
       appendBandControl(true);
       return;
     }
@@ -988,9 +1132,9 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     // `role="status"` so the band is announced when it changes — it is the confirmation that a
     // part-score is about to be discarded, and a sighted-only confirmation is not one.
     band.setAttribute('role', 'status');
-    band.append(text('chc-sec-band-headline', summary.headline));
+    band.append(text(CLS_BAND_HEADLINE, summary.headline));
     if (summary.detail) {
-      band.append(div(CLS_SPACER), text('chc-sec-band-detail', summary.detail));
+      band.append(div(CLS_SPACER), text(CLS_BAND_DETAIL, summary.detail));
     }
     appendBandControl(!summary.detail);
   }

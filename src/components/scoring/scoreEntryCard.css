@@ -759,3 +759,14 @@
     width: 100%;
   }
 }
+
+/* ── Score entry locked ──────────────────────────────────────────────────
+   A walkover carries no score, so while one is selected the score cannot be typed. Dimmed rather
+   than hidden: the operator needs to see that the cells are still there and why they are not
+   available, and a control that vanishes reads as a bug. The ending controls are deliberately NOT
+   dimmed — un-selecting the walkover is the way out. */
+.chc-sec[data-score-locked='true'] .chc-sec-set-input,
+.chc-sec[data-score-locked='true'] .chc-sec-score-region {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

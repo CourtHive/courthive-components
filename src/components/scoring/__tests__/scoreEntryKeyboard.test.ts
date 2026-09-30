@@ -85,7 +85,7 @@ describe('entry begins on the LOWER row', () => {
   // lands on, so these assert the consequence as well as the placement — a test that only checked
   // `document.activeElement` would pass against a card that then wrote the digit to the wrong row.
 
-  it('focuses the first set\'s lower cell', () => {
+  it("focuses the first set's lower cell", () => {
     const h = mount();
 
     h.region.focusFirst();
@@ -340,7 +340,16 @@ describe('[Clear]', () => {
     expect(h.cell(1, 1)!.value).toBe('');
     expect(h.cell(2, 1)!.value).toBe('');
     expect(h.region.getSets()).toEqual([]);
-    expect(h.q<HTMLElement>('.chc-sec-band')!.textContent).toMatch(/no result/i);
+
+    // ── One assertion here CHANGED, 2026-09-29 ──
+    //
+    // It read `/no result/i`. This card mounts WITH a set, so it opened on a recorded score, and
+    // clearing one now says what Submit will do to it instead of reading like a blank new entry —
+    // CA asked for a cleared score to be submittable, and a live Submit under the words "No result
+    // entered yet" is the confusing half of that. The subject of this test is the two lines above;
+    // the band was incidental to it and was asserting behaviour that has been replaced.
+    // `clearAndSubmit.test.ts` owns the new rule.
+    expect(h.q<HTMLElement>('.chc-sec-band')!.textContent).toMatch(/will be removed/i);
   });
 
   it('clears a recorded ending too, and the reason with it', () => {

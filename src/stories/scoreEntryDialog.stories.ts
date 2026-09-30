@@ -113,49 +113,61 @@ function harness(note: string, openDialog: (append: (line: string) => void) => S
 }
 
 /**
- * Open the dialog, and REOPEN it on whatever it submits.
+ * Open the dialog, remember what it submits, and reopen on that when the BUTTON is pressed again.
  *
  * CA, 2026-09-28: *"All of the stories should allow me to Submit and then re-open on the score I just
  * submitted."* So every dialog story is a round trip, not only the ones in
  * `scoreEntryRoundTrip.stories.ts`.
  *
- * On a timer, and it has to be: `openScoreEntryDialog` calls `onSubmit` and then CLOSES, so a dialog
- * reopened synchronously inside the callback would be the one that close then tore down. Letting the
- * stack unwind first is what makes the second dialog the surviving one.
+ * It used to reopen ITSELF on a `setTimeout(…, 0)`. CA, 2026-09-29, of the sibling file: *"NONE of
+ * the Score Entry Round Trip stories close the modal upon clicking [Submit]!"* — the same was true
+ * here. The dialog did close; a replacement opened in the same frame, so nothing on screen ever went
+ * away. "Allow me to re-open" is a button, not a timer, and the close is now visible in Storybook as
+ * well as assertable in a play function.
+ *
+ * Returns the click handler rather than opening, so `current` survives between presses.
  *
  * `asRecord` is the mapping a real host performs — the card reports an outcome, a record is what gets
  * stored, and the two differ by the one inversion this whole design turns on.
  */
-function openDialog(append: (line: string) => void, over: Record<string, any> = {}) {
-  const matchUpFormat = over.matchUpFormat ?? FORMAT;
+/** A story's extra dialog options, or a function of the log's `append` when one needs to write to it. */
+type StoryOverrides = Record<string, any> | ((append: (line: string) => void) => Record<string, any>);
 
-  const open = (matchUp?: any) =>
-    openScoreEntryDialog({
+function dialogTrip(over: StoryOverrides = {}) {
+  /** The last submitted record, and whether there is one. `undefined` is a legitimate record. */
+  let submitted: any;
+  let hasSubmitted = false;
+
+  return (append: (line: string) => void) => {
+    // Resolved per press, because two stories want a callback that WRITES to the log and the log's
+    // `append` does not exist until the harness builds one.
+    const options = typeof over === 'function' ? over(append) : over;
+    const matchUpFormat = options.matchUpFormat ?? FORMAT;
+
+    return openScoreEntryDialog({
       sides: SIDES,
       matchUpFormat,
       context: 'R16 · Court 3',
       statusCodeGroups: REAL_GROUPS,
-      ...over,
-      matchUp: matchUp ?? over.matchUp,
+      ...options,
+      matchUp: hasSubmitted ? submitted : options.matchUp,
       onSubmit: (outcome: any) => {
         append(`submit → ${JSON.stringify({ ...outcome, sets: gamesPerSet(outcome.sets) })}`);
-        const next = asRecord(outcome, outcome.sets ?? [], matchUpFormat);
-        setTimeout(() => {
-          open(next);
-          append('reopened on the submitted outcome');
-        }, 0);
+        submitted = asRecord(outcome, outcome.sets ?? [], matchUpFormat);
+        hasSubmitted = true;
+        append('the modal closed — press the button again to reopen on what was saved');
       },
       onClose: () => append('closed')
     } as any);
-
-  return open();
+  };
 }
 
 export const InModal = {
   name: 'In a modal — and "What happened to…" in context',
   render: () =>
-    harness('The card in a real cModal at 780px. Click a participant’s name to ask what happened to them.', (append) =>
-      openDialog(append)
+    harness(
+      'The card in a real cModal at 780px. Click a participant’s name to ask what happened to them.',
+      dialogTrip()
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
@@ -177,6 +189,17 @@ export const InModal = {
     clickIn(`[data-panel-side="2"] button[data-ending="${WALKOVER}"]`);
     await expect(inModal('[data-row-ending]')!.textContent).toBe('Walkover');
     await expect(inModal(BAND)!.textContent).toContain('Rosalind Lem advances');
+
+    // ── Submit CLOSES, and the button is what reopens ──
+    //
+    // This could not be asserted while the story reopened itself on a timer: the modal was replaced in
+    // the same frame, so there was no moment at which nothing was on screen. CA, 2026-09-29: *"NONE of
+    // the Score Entry Round Trip stories close the modal upon clicking [Submit]!"* — true here too.
+    clickIn('button[data-action="submit"]');
+    await expect(document.querySelector(MODAL), 'Submit closes the dialog').toBeNull();
+
+    canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
+    await expect(inModal('[data-row-ending]')!.textContent, 'and it reopens on what was saved').toBe('Walkover');
 
     // [X] closes it, which is the other half of "the modal actually works".
     clickIn(CLOSE);
@@ -205,8 +228,9 @@ const RECORDED = {
 export const InModalFreeScore = {
   name: 'Opened cold in Free Score',
   render: () =>
-    harness('Opened directly in Free Score, on a recorded 6-4 2-1 — not switched into.', (append) =>
-      openDialog(append, { approach: 'freeScore', matchUp: RECORDED })
+    harness(
+      'Opened directly in Free Score, on a recorded 6-4 2-1 — not switched into.',
+      dialogTrip({ approach: 'freeScore', matchUp: RECORDED })
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
@@ -231,8 +255,9 @@ export const InModalFreeScore = {
 export const InModalDialPad = {
   name: 'Opened cold in the Dial Pad',
   render: () =>
-    harness('Opened directly in the Dial Pad, on a recorded 6-4 2-1 — not switched into.', (append) =>
-      openDialog(append, { approach: 'dialPad', matchUp: RECORDED })
+    harness(
+      'Opened directly in the Dial Pad, on a recorded 6-4 2-1 — not switched into.',
+      dialogTrip({ approach: 'dialPad', matchUp: RECORDED })
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
@@ -258,10 +283,9 @@ export const ApproachSwitching = {
   render: () =>
     harness(
       'Open, type a set, then switch approach from the header. The score and any ending come with you.',
-      (append) =>
-        openDialog(append, {
-          onApproachChange: (approach: ScoreEntryApproach) => append(`approach → ${approach}`)
-        })
+      dialogTrip((append) => ({
+        onApproachChange: (approach: ScoreEntryApproach) => append(`approach → ${approach}`)
+      }))
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
@@ -307,12 +331,11 @@ export const FormatPicker = {
   render: () =>
     harness(
       'The format code in the header is a button. It opens this package’s matchUpFormat picker, on top.',
-      (append) =>
-        openDialog(append, {
-          // Present, so the chip becomes a button: without a host that can accept a change it stays inert
-          // text rather than opening a picker whose choice would go nowhere.
-          onFormatChange: (matchUpFormat: string) => append(`format → ${matchUpFormat}`)
-        })
+      dialogTrip((append) => ({
+        // Present, so the chip becomes a button: without a host that can accept a change it stays inert
+        // text rather than opening a picker whose choice would go nowhere.
+        onFormatChange: (matchUpFormat: string) => append(`format → ${matchUpFormat}`)
+      }))
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
