@@ -262,7 +262,11 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
   function firstError(): string | undefined {
     for (let index = 0; index < setCount; index += 1) {
       if (!bothEntered(index)) continue;
-      const problem = setError(index) ?? tiebreakError(index);
+      // The NAMED contradiction first. Since `#5049(factory)`, `validateSetScore` refuses a tiebreak whose
+      // points contradict the games too, with "Set winner must win the tiebreak: side 1 won the set";
+      // `tiebreakError` says the same thing with the participant's name, which is the message an operator
+      // can act on, so it is asked first rather than being pre-empted by the factory's.
+      const problem = tiebreakError(index) ?? setError(index);
       if (problem) return problem;
     }
     return undefined;
@@ -320,8 +324,9 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
    * Whether the tiebreak agrees with who won the set.
    *
    * CA, 2026-09-27: "I was also able to edit a tiebreak score to be 7-6 with the winning side having 3 and
-   * the losing side having tiebreak 7". `validateSetScores` does NOT catch that — measured — and the old
-   * silent behaviour was worse than letting it through: `buildSetScore` takes the LOWER value as the
+   * the losing side having tiebreak 7". `validateSetScores` did NOT catch that when this was written —
+   * measured; the factory learned it in `#5049(factory)` — and the old silent behaviour was worse than
+   * letting it through: `buildSetScore` takes the LOWER value as the
    * loser's points and derives the winner's from it, so the card displayed 3 against the winner while
    * submitting 7. Showing one thing and recording another is the one outcome worth failing loudly for.
    */
@@ -336,8 +341,8 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     const points1 = Number.parseInt(entry.tiebreak1);
     const points2 = Number.parseInt(entry.tiebreak2);
     // A TIE is left to the factory, which rejects it as "Tiebreak must be won by 2 points" — a better
-    // message than any this could write, and one check fewer here. This function exists only for the case
-    // the factory misses.
+    // message than any this could write, and one check fewer here. This function survives the factory
+    // learning the check because it names the PARTICIPANT, which the factory cannot.
     if (points1 === points2) return undefined;
 
     const pointsWinner = points1 > points2 ? 1 : 2;
