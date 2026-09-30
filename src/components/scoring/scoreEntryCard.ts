@@ -397,6 +397,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   element.addEventListener('keydown', (event) => {
     if (hasCommandModifier(event)) return;
     if (endingShortcut(event)) return;
+    if (tabFromScoreToSubmit(event)) return;
 
     if (event.key !== 'Enter' || submitButton.disabled) return;
     // Not from inside an open menu, where Enter is choosing the item under the cursor.
@@ -650,6 +651,57 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     )) {
       applyLock(control, locked);
     }
+  }
+
+  /**
+   * Tab out of the score and straight to `[Submit]`, then on to the status chips.
+   *
+   * CA, 2026-09-30: *"Can the tab order go from the free score entry field or the last dynamic sets
+   * entry field directly to [Submit] (when submit is active)? and then to the other status chips?"*
+   *
+   * Reading `event.defaultPrevented` is what makes this work for all three approaches without a new
+   * region contract. Dynamic Sets already owns Tab — it walks DOWN each column rather than across the
+   * row, because the DOM order of the grid is wrong for entry — and it calls `preventDefault` on every
+   * step it takes. The ONE Tab it does not take is the one off the end of the run, which is exactly the
+   * Tab meant here. Free Score never takes any, so its single field reaches this on the first press.
+   *
+   * Restricted to fields. The Dial Pad's keypad lives in the same block and tabbing between its keys
+   * must keep working, so a button is never treated as the end of a score.
+   *
+   * Forward only. Shift+Tab is left to the browser: reversing this would mean deciding which cell "the
+   * last one" was, and a wrong guess there is worse than the native order. The consequence — the path
+   * forward is not the path back — is a real cost and is stated rather than hidden.
+   */
+  function tabFromScoreToSubmit(event: KeyboardEvent): boolean {
+    if (event.key !== 'Tab' || event.shiftKey || event.defaultPrevented) return false;
+
+    const target = event.target as HTMLElement | null;
+    if (!target) return false;
+
+    if (isScoreField(target)) {
+      // Nothing to jump to while the gate is shut; the native order still reaches the endings.
+      if (submitButton.disabled) return false;
+      event.preventDefault();
+      submitButton.focus();
+      return true;
+    }
+
+    if (target === submitButton) {
+      const firstChip = endingsContainer.querySelector<HTMLElement>('button');
+      if (!firstChip) return false;
+      event.preventDefault();
+      firstChip.focus();
+      return true;
+    }
+
+    return false;
+  }
+
+  /** A field a score is TYPED into: a set cell, or Free Score's one field. Never a keypad key. */
+  function isScoreField(target: HTMLElement): boolean {
+    if (target.classList.contains('chc-sec-set-input')) return true;
+    const typable = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
+    return typable && blockContainer.contains(target);
   }
 
   /**

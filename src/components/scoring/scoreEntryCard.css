@@ -324,6 +324,28 @@
   gap: 8px;
 }
 
+/* ── The endings menu opens UPWARD, and it has to ────────────────────────
+   CA, 2026-09-30: "The (Other) chip is not working on any of the stories".
+
+   It works: clicking it opens the menu, choosing an item records the ending, and the menu closes —
+   all asserted in `otherChipRecordsAnEnding.test.ts`. What it could not do is be SEEN.
+
+   `.chc-sec-endings` sits inside `.chc-sec-body`, which is `overflow-y: auto` so the footer stays
+   put on a short viewport. A box with `overflow-y: auto` and `overflow-x: visible` computes its
+   overflow-x to `auto` as well, so the body clips on BOTH axes — and `.chc-sec` above it is
+   `overflow: hidden` outright. The endings row is the LAST block in the body, so a menu dropping
+   below it lands outside both boxes and is clipped away.
+
+   The approach switcher's identical menu works for exactly this reason: its anchor is in the HEADER,
+   a sibling of the scrolling body, so dropping down lands inside the card rather than past it.
+
+   Scoped by ancestor rather than by changing the shared rule, because flipping that would send the
+   header's menu up and off the top of the card. */
+.chc-sec-endings .chc-sec-other-menu {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+
 .chc-sec-other-menu {
   position: absolute;
   z-index: 2;
