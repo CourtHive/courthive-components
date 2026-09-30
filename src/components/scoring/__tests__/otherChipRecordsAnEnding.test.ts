@@ -113,19 +113,18 @@ describe('the Other… chip', () => {
     endings().querySelector<HTMLButtonElement>(`.chc-sec-other-menu button[data-ending="${CANCELLED}"]`)!.click();
 
     // CA, 2026-09-30: a chip that is merely highlighted while still reading "Other" makes the operator
-    // read the band to find out what they picked.
-    expect(otherChip().textContent).toContain('Cancelled');
-    expect(otherChip().textContent).not.toContain('Other');
+    // read the band to find out what they picked. His wording: "Other: Cancelled".
+    expect(otherChip().textContent).toBe('Other: Cancelled');
 
-    // The accessible name keeps saying what the control IS. A screen reader user hearing only
-    // "Cancelled" would not know this opens a menu.
-    expect(otherChip().getAttribute('aria-label')).toBe('Cancelled — Other endings');
+    // NO `aria-label`. The text says both what the control is and what is chosen, so the content is
+    // the accessible name. An override here would have to contain the visible label — WCAG 2.5.3 —
+    // and the first version's "Cancelled — Other endings" did not.
+    expect(otherChip().getAttribute('aria-label')).toBeNull();
 
     // And back, because every control in this card is a toggle.
     otherChip().click();
     endings().querySelector<HTMLButtonElement>(`.chc-sec-other-menu button[data-ending="${CANCELLED}"]`)!.click();
-    expect(otherChip().textContent).toContain('Other');
-    expect(otherChip().getAttribute('aria-label')).toBe('Other endings');
+    expect(otherChip().textContent).toBe('Other…');
 
     closeAll();
   });
