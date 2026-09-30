@@ -32,6 +32,8 @@ const otherChip = () =>
   [...endings().querySelectorAll('button')].find((b) => (b.textContent ?? '').startsWith('Other')) as HTMLButtonElement;
 const menu = () => endings().querySelector('.chc-sec-other-menu');
 const band = () => document.querySelector('.chc-sec-band')?.textContent ?? '';
+/** The format every case here opens on; named because three of them say it. */
+const FORMAT = 'SET3-S:6/TB7';
 
 function closeAll() {
   for (let attempt = 0; attempt < 6 && document.querySelector('section[id^="cmdl-"]'); attempt += 1) cModal.close();
@@ -42,7 +44,7 @@ function open() {
   closeAll();
   openScoreEntryDialog({
     sides: [{ participantName: 'Lower' }, { participantName: 'Upper' }],
-    matchUpFormat: 'SET3-S:6/TB7'
+    matchUpFormat: FORMAT
   } as any);
 }
 
@@ -77,6 +79,67 @@ describe('the Other… chip', () => {
     expect(otherChip().getAttribute('aria-pressed'), 'and the chip carries the selection').toBe('true');
 
     closeAll();
+  });
+
+  it('is placed in VIEWPORT coordinates, so no ancestor can clip it', () => {
+    open();
+    otherChip().click();
+
+    // The one thing about this that a test without layout CAN assert: the menu is taken out of every
+    // ancestor's clipping box. `.chc-sec-body` is `overflow-y: auto` and `.chc-sec` is
+    // `overflow: hidden`, and an absolutely positioned menu below the last block in the body lands
+    // outside both. A fixed element's containing block is the viewport, so neither reaches it.
+    const placed = menu() as HTMLElement;
+    expect(placed.style.position).toBe('fixed');
+    expect(placed.style.top, 'positioned against the chip, not left to the stylesheet').not.toBe('');
+    expect(placed.style.left).not.toBe('');
+
+    closeAll();
+  });
+
+  it('holds exactly one reposition listener, however often it re-renders', () => {
+    // Counted rather than inferred. The card has no destroy hook, so a listener that outlives its menu
+    // is a leak per dialog opened — and re-rendering while the menu is OPEN is reachable: changing the
+    // format rebuilds the card without closing it.
+    let live = 0;
+    const add = globalThis.addEventListener.bind(globalThis);
+    const remove = globalThis.removeEventListener.bind(globalThis);
+    const track = (type: string) => type === 'scroll' || type === 'resize';
+    globalThis.addEventListener = ((type: any, ...rest: any[]) => {
+      if (track(type)) live += 1;
+      return add(type, ...(rest as [any]));
+    }) as any;
+    globalThis.removeEventListener = ((type: any, ...rest: any[]) => {
+      if (track(type)) live -= 1;
+      return remove(type, ...(rest as [any]));
+    }) as any;
+
+    try {
+      closeAll();
+      const dialog: any = openScoreEntryDialog({
+        sides: [{ participantName: 'Lower' }, { participantName: 'Upper' }],
+        matchUpFormat: FORMAT
+      } as any);
+
+      otherChip().click();
+      const afterOpen = live;
+
+      // Three re-renders with the menu still open. Without the release-before-attach, each one adds a
+      // second pair and nothing ever takes them away.
+      for (const format of ['SET1-S:6/TB7', 'SET3-S:6NOAD/TB7', 'SET3-S:6/TB7']) {
+        dialog.setMatchUpFormat(format);
+      }
+
+      expect(live, 'still one pair after three re-renders').toBe(afterOpen);
+
+      otherChip().click();
+      expect(menu(), 'and closing takes them away').toBeNull();
+      expect(live).toBe(0);
+    } finally {
+      globalThis.addEventListener = add;
+      globalThis.removeEventListener = remove;
+      closeAll();
+    }
   });
 
   it('toggles shut when the chip is pressed again', () => {

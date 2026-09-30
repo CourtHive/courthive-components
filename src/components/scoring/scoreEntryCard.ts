@@ -368,6 +368,8 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   /** Which side's ending panel is open, if any. Presentation only — not part of the outcome. */
   let openPanelSide: SideNumber | undefined;
   let otherMenuOpen = false;
+  /** The reposition handler while the endings menu is open, so it can be removed when it closes. */
+  let trackedEndingsMenu: (() => void) | undefined;
   let approachMenuOpen = false;
   const titleId = `chc-sec-title-${(cardSequence += 1)}`;
 
@@ -1213,7 +1215,10 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     });
     endingsContainer.append(other);
 
-    if (!otherMenuOpen) return;
+    if (!otherMenuOpen) {
+      releaseEndingsMenu();
+      return;
+    }
 
     const menu = div(CLS_MENU);
     for (const status of others) {
@@ -1233,6 +1238,72 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       menu.append(item);
     }
     endingsContainer.append(menu);
+    trackEndingsMenu(menu, other);
+  }
+
+  /**
+   * Place the endings menu against its chip, in VIEWPORT coordinates.
+   *
+   * CA reported the `Other…` chip twice: *"The (Other) chip is not working on any of the stories"*, and
+   * then *"(Other) is not working anywhere that I can see"*. It always worked — the menu opens, records
+   * the chosen ending and closes, all asserted. It could not be SEEN.
+   *
+   * `.chc-sec-endings` sits inside `.chc-sec-body`, which is `overflow-y: auto` so the footer stays put
+   * on a short viewport. A box with `overflow-y: auto` and `overflow-x: visible` computes its
+   * `overflow-x` to `auto` as well, so the body clips on both axes — and `.chc-sec` above it is
+   * `overflow: hidden` outright. The endings row is the LAST block in the body, so an absolutely
+   * positioned menu dropping below it lands outside both boxes. The approach switcher's identical menu
+   * works for exactly this reason: its anchor is in the HEADER, a sibling of the scrolling body.
+   *
+   * The first attempt at this flipped the menu upward in CSS. That is not a fix, it is a bet that there
+   * is room above — and a bet is what put it under the fold to begin with. `position: fixed` takes the
+   * menu out of every ancestor's clipping box outright, because its containing block is the viewport.
+   *
+   * That only holds while no ancestor establishes a containing block for fixed descendants. Checked
+   * 2026-09-30: `cmodalStyles.ts` sets no `transform`, `filter`, `perspective`, `contain` or
+   * `will-change`, and the card's only `transform` is on a chevron `svg` inside a button. If a modal
+   * animation ever arrives, this is the line it will break.
+   */
+  function placeEndingsMenu(menu: HTMLElement, anchor: HTMLElement): void {
+    const GAP = 6;
+    const rect = anchor.getBoundingClientRect();
+    const height = menu.offsetHeight;
+    const roomBelow = globalThis.innerHeight - rect.bottom;
+
+    // Below by default, above when there is not room and there is room above — the ordinary behaviour
+    // of a dropdown near the bottom of a screen, rather than a fixed direction.
+    const openUp = roomBelow < height + GAP && rect.top > height + GAP;
+
+    menu.style.position = 'fixed';
+    menu.style.left = `${rect.left}px`;
+    menu.style.top = openUp ? `${rect.top - height - GAP}px` : `${rect.bottom + GAP}px`;
+  }
+
+  /**
+   * Keep the menu against its chip while it is open, and stop when it closes.
+   *
+   * A fixed element does not move with the scroll of the box it came from, so a body that scrolls
+   * beneath it would leave it hanging. Listeners are attached only while the menu exists and removed
+   * when it does not, because the card has no destroy hook and a listener that outlives its card is a
+   * leak per dialog opened.
+   *
+   * `scroll` in the CAPTURE phase: the scrolling element is `.chc-sec-body`, and a scroll event from an
+   * element does not bubble.
+   */
+  function trackEndingsMenu(menu: HTMLElement, anchor: HTMLElement): void {
+    placeEndingsMenu(menu, anchor);
+
+    releaseEndingsMenu();
+    trackedEndingsMenu = () => placeEndingsMenu(menu, anchor);
+    globalThis.addEventListener('scroll', trackedEndingsMenu, true);
+    globalThis.addEventListener('resize', trackedEndingsMenu);
+  }
+
+  function releaseEndingsMenu(): void {
+    if (!trackedEndingsMenu) return;
+    globalThis.removeEventListener('scroll', trackedEndingsMenu, true);
+    globalThis.removeEventListener('resize', trackedEndingsMenu);
+    trackedEndingsMenu = undefined;
   }
 
   function matchEndingButton(status: string, label: string): HTMLButtonElement {
