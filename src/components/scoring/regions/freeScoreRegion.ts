@@ -21,9 +21,9 @@
  */
 
 import { createScoreReadouts, READOUT_COLUMN_WIDTH } from './scoreReadout';
-import { scoreLine } from './scoreLine';
 import { parseScore } from '../../../tools/freeScore/freeScore';
 import { validateScore } from '../utils/scoreValidator';
+import { scoreLine } from './scoreLine';
 
 import type { SideNumber } from '../logic/scoreEntryState';
 import type { ScoreRegion } from '../scoreEntryCard';
@@ -76,9 +76,19 @@ export function createFreeScoreRegion(params: FreeScoreRegionParams): FreeScoreR
       params.onChange?.();
     },
     focusFirst: () => {
-      field?.focus();
-      field?.select();
-    },
+      if (!field) return;
+      field.focus();
+
+      // The CARET goes to the end; the text is not selected. CA, 2026-09-30: *"The text in the entry
+      // field is all selected, when the cursor should be at the end of the entry field. as it is
+      // hitting any key deletes the score!"*
+      //
+      // `select()` is right for a per-set CELL, where a set score is one or two characters and typing
+      // over it is the correction. It is wrong for a whole match: `6-4 2-1` is a sentence being
+      // extended, and selecting all of it turns the next keystroke into a delete.
+      const end = field.value.length;
+      field.setSelectionRange(end, end);
+    }
   };
 
   // ── Parsing ──────────────────────────────────────────────────────────
@@ -101,7 +111,7 @@ export function createFreeScoreRegion(params: FreeScoreRegionParams): FreeScoreR
       // assumed, and removed.
       sets: result.sets ?? [],
       matchComplete: result.matchComplete,
-      result,
+      result
     };
   }
 
@@ -191,8 +201,7 @@ export function createFreeScoreRegion(params: FreeScoreRegionParams): FreeScoreR
     const parsedNothing = !result?.sets?.length && !result?.matchUpStatus;
     if (!result?.valid || parsedNothing) {
       const first = result?.errors?.[0];
-      note.textContent =
-        typeof first === 'string' ? first : (first?.message ?? 'Not a score this format allows');
+      note.textContent = typeof first === 'string' ? first : (first?.message ?? 'Not a score this format allows');
       note.dataset.tone = 'error';
       return;
     }

@@ -65,6 +65,10 @@ const CLS_MENU = 'chc-sec-other-menu';
 const CLS_MENU_ITEM = 'chc-sec-other-item';
 const ARIA_LABEL = 'aria-label';
 const CLS_SPACER = 'chc-sec-spacer';
+/** What the endings chip reads while nothing has been chosen from its menu. */
+const OTHER_LABEL = 'Other…';
+/** The same word without the ellipsis, for `Other: Cancelled` — an ellipsis promises a dialog, not a value. */
+const OTHER_LABEL_BASE = 'Other';
 const CLS_BAND_HEADLINE = 'chc-sec-band-headline';
 const CLS_BAND_DETAIL = 'chc-sec-band-detail';
 /** What the band says once `[Clear]` has emptied a recorded outcome. Overridable via `labels`. */
@@ -368,6 +372,8 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   /** Which side's ending panel is open, if any. Presentation only — not part of the outcome. */
   let openPanelSide: SideNumber | undefined;
   let otherMenuOpen = false;
+  /** The reposition handler while the endings menu is open, so it can be removed when it closes. */
+  let trackedEndingsMenu: (() => void) | undefined;
   let approachMenuOpen = false;
   const titleId = `chc-sec-title-${(cardSequence += 1)}`;
 
@@ -397,6 +403,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   element.addEventListener('keydown', (event) => {
     if (hasCommandModifier(event)) return;
     if (endingShortcut(event)) return;
+    if (tabFromScoreToSubmit(event)) return;
 
     if (event.key !== 'Enter' || submitButton.disabled) return;
     // Not from inside an open menu, where Enter is choosing the item under the cursor.
@@ -650,6 +657,57 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     )) {
       applyLock(control, locked);
     }
+  }
+
+  /**
+   * Tab out of the score and straight to `[Submit]`, then on to the status chips.
+   *
+   * CA, 2026-09-30: *"Can the tab order go from the free score entry field or the last dynamic sets
+   * entry field directly to [Submit] (when submit is active)? and then to the other status chips?"*
+   *
+   * Reading `event.defaultPrevented` is what makes this work for all three approaches without a new
+   * region contract. Dynamic Sets already owns Tab — it walks DOWN each column rather than across the
+   * row, because the DOM order of the grid is wrong for entry — and it calls `preventDefault` on every
+   * step it takes. The ONE Tab it does not take is the one off the end of the run, which is exactly the
+   * Tab meant here. Free Score never takes any, so its single field reaches this on the first press.
+   *
+   * Restricted to fields. The Dial Pad's keypad lives in the same block and tabbing between its keys
+   * must keep working, so a button is never treated as the end of a score.
+   *
+   * Forward only. Shift+Tab is left to the browser: reversing this would mean deciding which cell "the
+   * last one" was, and a wrong guess there is worse than the native order. The consequence — the path
+   * forward is not the path back — is a real cost and is stated rather than hidden.
+   */
+  function tabFromScoreToSubmit(event: KeyboardEvent): boolean {
+    if (event.key !== 'Tab' || event.shiftKey || event.defaultPrevented) return false;
+
+    const target = event.target as HTMLElement | null;
+    if (!target) return false;
+
+    if (isScoreField(target)) {
+      // Nothing to jump to while the gate is shut; the native order still reaches the endings.
+      if (submitButton.disabled) return false;
+      event.preventDefault();
+      submitButton.focus();
+      return true;
+    }
+
+    if (target === submitButton) {
+      const firstChip = endingsContainer.querySelector<HTMLElement>('button');
+      if (!firstChip) return false;
+      event.preventDefault();
+      firstChip.focus();
+      return true;
+    }
+
+    return false;
+  }
+
+  /** A field a score is TYPED into: a set cell, or Free Score's one field. Never a keypad key. */
+  function isScoreField(target: HTMLElement): boolean {
+    if (target.classList.contains('chc-sec-set-input')) return true;
+    const typable = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
+    return typable && blockContainer.contains(target);
   }
 
   /**
@@ -1148,12 +1206,35 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     if (!others.length) return;
 
     const otherSelected = !!state.matchEnding && others.includes(state.matchEnding);
-    const other = button('Other…', CLS_BTN_PILL);
+    // ── The chip says what was CHOSEN, not that a choice exists ──
+    //
+    // CA, 2026-09-30: *"I think the Chip's label should change from Other when for example (Cancelled)
+    // is selected... it isn't helpful for it to just be highlighted saying (Other) ... even though the
+    // text below does state the state, it would be better UX for it to change label on the selector"*.
+    //
+    // Only when the selection came from INSIDE this menu. A privileged ending has its own button and
+    // shows itself there; if this chip echoed that too, the row would read as two selections.
+    const chosenInMenu =
+      otherSelected && state.matchEnding ? (labels[state.matchEnding] ?? state.matchEnding) : undefined;
+
+    // `Other: Cancelled`, on CA's wording (2026-09-30): *"how about 'Other: Cancelled' which is more
+    // compact"*. It keeps the control's own identity in the label instead of trading it for the
+    // selection, which is what the first version did.
+    const other = button(chosenInMenu ? `${OTHER_LABEL_BASE}: ${chosenInMenu}` : OTHER_LABEL, CLS_BTN_PILL);
     other.dataset.action = 'other';
     // Solid when the selection was made INSIDE it, so the row still shows one selection whether it
     // came from a privileged button or from the menu.
     other.setAttribute(ARIA_PRESSED, String(otherSelected));
     other.setAttribute(ARIA_EXPANDED, String(otherMenuOpen));
+
+    // No `aria-label`, deliberately, and it is CA's wording that removed the need for one.
+    //
+    // The first version showed "Cancelled" alone and carried `aria-label="Cancelled — Other endings"`
+    // so a screen reader user would still know the control opened a menu. An accessible name that does
+    // not CONTAIN the visible label breaks WCAG 2.5.3 Label in Name — "Other: Cancelled" is not a
+    // substring of "Cancelled — Other endings" — and voice control users would be left naming something
+    // they cannot see. `Other: Cancelled` says both things in the text itself, so the content is the
+    // accessible name and there is nothing to keep in sync.
     other.append(icon('m6 9 6 6 6-6', 2.5));
     other.addEventListener('click', () => {
       otherMenuOpen = !otherMenuOpen;
@@ -1161,7 +1242,10 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     });
     endingsContainer.append(other);
 
-    if (!otherMenuOpen) return;
+    if (!otherMenuOpen) {
+      releaseEndingsMenu();
+      return;
+    }
 
     const menu = div(CLS_MENU);
     for (const status of others) {
@@ -1181,6 +1265,80 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       menu.append(item);
     }
     endingsContainer.append(menu);
+    trackEndingsMenu(menu, other);
+  }
+
+  /**
+   * Place the endings menu against its chip, in VIEWPORT coordinates.
+   *
+   * CA reported the `Other…` chip twice: *"The (Other) chip is not working on any of the stories"*, and
+   * then *"(Other) is not working anywhere that I can see"*. It always worked — the menu opens, records
+   * the chosen ending and closes, all asserted. It could not be SEEN.
+   *
+   * `.chc-sec-endings` sits inside `.chc-sec-body`, which is `overflow-y: auto` so the footer stays put
+   * on a short viewport. A box with `overflow-y: auto` and `overflow-x: visible` computes its
+   * `overflow-x` to `auto` as well, so the body clips on both axes — and `.chc-sec` above it is
+   * `overflow: hidden` outright. The endings row is the LAST block in the body, so an absolutely
+   * positioned menu dropping below it lands outside both boxes. The approach switcher's identical menu
+   * works for exactly this reason: its anchor is in the HEADER, a sibling of the scrolling body.
+   *
+   * The first attempt at this flipped the menu upward in CSS. That is not a fix, it is a bet that there
+   * is room above — and a bet is what put it under the fold to begin with. `position: fixed` takes the
+   * menu out of every ancestor's clipping box outright, because its containing block is the viewport.
+   *
+   * That only holds while no ancestor establishes a containing block for fixed descendants. Checked
+   * 2026-09-30: `cmodalStyles.ts` sets no `transform`, `filter`, `perspective`, `contain` or
+   * `will-change`, and the card's only `transform` is on a chevron `svg` inside a button. If a modal
+   * animation ever arrives, this is the line it will break.
+   */
+  function placeEndingsMenu(menu: HTMLElement, anchor: HTMLElement): void {
+    const GAP = 6;
+    const rect = anchor.getBoundingClientRect();
+    const height = menu.offsetHeight;
+    const roomBelow = globalThis.innerHeight - rect.bottom;
+
+    // Below by default, above when there is not room and there is room above — the ordinary behaviour
+    // of a dropdown near the bottom of a screen, rather than a fixed direction.
+    const openUp = roomBelow < height + GAP && rect.top > height + GAP;
+
+    menu.style.position = 'fixed';
+    menu.style.left = `${rect.left}px`;
+    menu.style.top = openUp ? `${rect.top - height - GAP}px` : `${rect.bottom + GAP}px`;
+
+    // `bottom` and `right` are cleared, not merely left alone. The stylesheet positions this menu for
+    // its OTHER use — the approach switcher, which is still `absolute` — and a `bottom` surviving
+    // beside an inline `top` does not move a fixed box, it SIZES it: with both offsets set and height
+    // auto, the height becomes the distance between them. That is what CA saw as "about 2px of the top"
+    // of a menu he reasonably read as obscured. It was not obscured, it was collapsed.
+    menu.style.bottom = 'auto';
+    menu.style.right = 'auto';
+  }
+
+  /**
+   * Keep the menu against its chip while it is open, and stop when it closes.
+   *
+   * A fixed element does not move with the scroll of the box it came from, so a body that scrolls
+   * beneath it would leave it hanging. Listeners are attached only while the menu exists and removed
+   * when it does not, because the card has no destroy hook and a listener that outlives its card is a
+   * leak per dialog opened.
+   *
+   * `scroll` in the CAPTURE phase: the scrolling element is `.chc-sec-body`, and a scroll event from an
+   * element does not bubble.
+   */
+  function trackEndingsMenu(menu: HTMLElement, anchor: HTMLElement): void {
+    placeEndingsMenu(menu, anchor);
+
+    releaseEndingsMenu();
+    trackedEndingsMenu = () => placeEndingsMenu(menu, anchor);
+    globalThis.addEventListener('scroll', trackedEndingsMenu, true);
+    globalThis.addEventListener('resize', trackedEndingsMenu);
+  }
+
+  function releaseEndingsMenu(): void {
+    if (!trackedEndingsMenu) return;
+    globalThis.removeEventListener('scroll', trackedEndingsMenu, true);
+    globalThis.removeEventListener('resize', trackedEndingsMenu);
+    trackedEndingsMenu = undefined;
   }
 
   function matchEndingButton(status: string, label: string): HTMLButtonElement {

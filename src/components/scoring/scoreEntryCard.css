@@ -324,6 +324,10 @@
   gap: 8px;
 }
 
+/* The endings menu is positioned in JS, as `position: fixed`, and the reason is in
+   `scoreEntryCard.ts` § `placeEndingsMenu`. Nothing here sizes or places it: two explanations for one
+   position is how it ended up clipped in the first place. */
+
 .chc-sec-other-menu {
   position: absolute;
   z-index: 2;
