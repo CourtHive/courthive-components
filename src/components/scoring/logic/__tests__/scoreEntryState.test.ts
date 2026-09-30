@@ -15,6 +15,7 @@
 import { matchUpStatusConstants } from 'tods-competition-factory';
 import { describe, it, expect } from 'vitest';
 import {
+  hydrateScoreEntryState,
   emptyScoreEntryState,
   toggleBothSidesOut,
   offersBothSidesOut,
@@ -358,5 +359,88 @@ describe('no transition mutates the state it was given', () => {
     transition(before);
 
     expect(before).toEqual(snapshot);
+  });
+});
+
+/**
+ * Reopening a recorded outcome.
+ *
+ * CA, 2026-09-28: *"we need to be able to open existing outcomes!"* The dialog opened blank on a scored
+ * matchUp, and the shipping modal does not — so swapping the card in without this would have lost the
+ * display of every outcome already entered.
+ *
+ * The inversion is the thing to hold: a stored matchUp names the WINNER, and this card records the side
+ * the ending HAPPENED TO. Every case below is that mapping run backwards.
+ */
+describe('hydrateScoreEntryState', () => {
+  it('records a single exit against the side that did NOT win', () => {
+    // `winningSide: 1` means side 2 walked over.
+    expect(hydrateScoreEntryState({ matchUpStatus: WALKOVER, winningSide: 1 })).toEqual({
+      sideEnding: { sideNumber: 2, status: WALKOVER },
+      reasonCode: undefined,
+    });
+
+    expect(hydrateScoreEntryState({ matchUpStatus: RETIRED, winningSide: 2 })).toEqual({
+      sideEnding: { sideNumber: 1, status: RETIRED },
+      reasonCode: undefined,
+    });
+  });
+
+  it('round-trips through resolveScoreEntry to the SAME winner', () => {
+    // The property that matters, asserted rather than trusted: hydrate a stored winner, resolve the
+    // state, and the winner must come back unchanged. An inversion applied once too often or not at all
+    // advances the wrong participant, and every intermediate value still looks plausible.
+    for (const winningSide of [1, 2]) {
+      for (const status of [WALKOVER, RETIRED, DEFAULTED]) {
+        const state = hydrateScoreEntryState({ matchUpStatus: status, winningSide });
+        expect(resolveScoreEntry(state).winningSide, `${status} won by ${winningSide}`).toBe(winningSide);
+      }
+    }
+  });
+
+  it('marks a DOUBLE exit on both sides, and resolves to neither', () => {
+    // The stored status is `DOUBLE_WALKOVER`; the ending an operator clicks is `WALKOVER` plus the
+    // both-sides flag. `sideNumber` is arbitrary here and decides nothing — the card draws the pill on
+    // both rows, and the resolution is NEITHER_SIDE.
+    const state = hydrateScoreEntryState({ matchUpStatus: DOUBLE_WALKOVER });
+
+    expect(state.bothSidesOut).toBe(true);
+    expect(state.sideEnding?.status).toBe(WALKOVER);
+    expect(resolveScoreEntry(state).winningSide).toBeUndefined();
+    expect(resolveScoreEntry(state).matchUpStatus).toBe(DOUBLE_WALKOVER);
+  });
+
+  it('records an ending that resolves NOBODY at match level', () => {
+    // There is no side to attach it to, which is what the match-level slot is for.
+    expect(hydrateScoreEntryState({ matchUpStatus: SUSPENDED })).toEqual({
+      matchEnding: SUSPENDED,
+      reasonCode: undefined,
+    });
+  });
+
+  it('carries the reason code, read from the side that owns it', () => {
+    expect(
+      hydrateScoreEntryState({ matchUpStatus: WALKOVER, winningSide: 1, sideStatusCodes: { 2: 'W1' } })
+        .reasonCode,
+    ).toBe('W1');
+
+    // The positional fallback, for records written before `sideStatusCodes` existed.
+    expect(
+      hydrateScoreEntryState({ matchUpStatus: WALKOVER, winningSide: 1, matchUpStatusCodes: ['W1'] })
+        .reasonCode,
+    ).toBe('W1');
+  });
+
+  it('is EMPTY for a played-out match, which has no ending at all', () => {
+    expect(hydrateScoreEntryState({ matchUpStatus: 'COMPLETED', winningSide: 1 })).toEqual(emptyScoreEntryState);
+    expect(hydrateScoreEntryState({})).toEqual(emptyScoreEntryState);
+    expect(hydrateScoreEntryState()).toEqual(emptyScoreEntryState);
+  });
+
+  it('REFUSES a winner-requiring status with no winning side, rather than guessing a placement', () => {
+    // A corrupt record: a walkover always stores a winner. Placing it on a guessed side would silently
+    // advance a participant, so the card opens inert instead — the same choice `hydrateIrregularEnding`
+    // makes for an unmapped double exit.
+    expect(hydrateScoreEntryState({ matchUpStatus: WALKOVER })).toEqual(emptyScoreEntryState);
   });
 });

@@ -27,9 +27,11 @@
 import { getMatchUpFormatModal } from '../matchUpFormat/matchUpFormat';
 import { createDynamicSetsRegion } from './regions/dynamicSetsRegion';
 import { createFreeScoreRegion } from './regions/freeScoreRegion';
+import { hydrateScoreEntryState } from './logic/scoreEntryState';
 import { createDialPadRegion } from './regions/dialPadRegion';
 import { renderScoreEntryCard } from './scoreEntryCard';
 import { endingLabels } from './logic/irregularEnding';
+import { scoreLine } from './regions/scoreLine';
 import { cModal } from '../modal/cmodal';
 
 import type { SetScore } from './types';
@@ -92,8 +94,27 @@ export type ScoreEntryDialogParams = Omit<
   approach?: ScoreEntryApproach;
   /** Which approaches the switcher offers. Defaults to all three; a single entry hides the menu. */
   approaches?: ScoreEntryApproach[];
-  /** Sets already recorded, e.g. from a saved matchUp. */
+  /** Sets already recorded, e.g. from a saved matchUp. Ignored when `matchUp` carries a score. */
   sets?: SetScore[];
+  /**
+   * A matchUp whose outcome is being REOPENED.
+   *
+   * Everything a recorded outcome needs comes from here: the sets, the format, the ending, and the
+   * reason code — CA, 2026-09-28: *"we need to be able to open existing outcomes!"* Anything passed
+   * explicitly wins, so a host can override one part without unpacking the rest.
+   *
+   * `sides` stays separate rather than being read off `matchUp.sides`, because the card wants display
+   * names and a matchUp carries participants; that mapping belongs to the host, which already has it.
+   */
+  matchUp?: {
+    matchUpFormat?: string;
+    matchUpStatus?: string;
+    winningSide?: number;
+    score?: { sets?: SetScore[] };
+    sideStatusCodes?: Record<number, string>;
+    matchUpStatusCode?: string;
+    matchUpStatusCodes?: unknown[];
+  };
   /** Called with the chosen approach whenever it changes, so a host can remember the preference. */
   onApproachChange?: (approach: ScoreEntryApproach) => void;
   /** Called with a format chosen in the picker. Omit and the format chip stays inert text. */
@@ -135,17 +156,24 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
   const offered = params.approaches?.length ? params.approaches : ALL_APPROACHES;
   const labels = params.labels ?? endingLabels();
   let approach: ScoreEntryApproach = params.approach ?? offered[0];
-  let matchUpFormat = params.matchUpFormat;
-  let sets = params.sets;
+  let matchUpFormat = params.matchUpFormat ?? params.matchUp?.matchUpFormat;
+  let sets = params.sets ?? params.matchUp?.score?.sets;
   let closed = false;
   let notified = false;
 
-  let currentRegion = buildRegion(approach, { sets, text: undefined });
+  // Seeded in BOTH currencies, because which one is needed depends on the approach that opens. Free
+  // Score took `text: undefined` here and so opened EMPTY on a matchUp that had a score — measured
+  // 2026-09-28: Dynamic Sets and the Dial Pad hydrated from `sets` while Free Score showed a blank field
+  // and a band with no score. `scoreLine` is the factory's own rendering, so the text it opens on is the
+  // same line the other two approaches display.
+  let currentRegion = buildRegion(approach, { sets, text: scoreLine(sets ?? [], matchUpFormat) });
 
   const card = renderScoreEntryCard({
     ...params,
     labels,
     matchUpFormat,
+    // The recorded ending, so reopening a scored matchUp shows what it holds rather than a blank card.
+    initialState: params.initialState ?? hydrateScoreEntryState(params.matchUp),
     region: currentRegion,
     approachLabel: APPROACH_LABELS[approach],
     approaches: offered.length > 1 ? offered.map(approachOption) : undefined,
@@ -235,19 +263,35 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
     approach = next;
     currentRegion = buildRegion(next, seed);
     card.update({ region: currentRegion, approachLabel: APPROACH_LABELS[next] });
+    // The new region begins where entry begins in it, exactly as it would had the dialog opened on it.
+    // Without this a switch left focus on the menu item that had just been removed from the document,
+    // so Free Score in particular had to be clicked into before it would take a keystroke — CA,
+    // 2026-09-28: *"Free Score should give the one entry field focus automatically rather than a user
+    // having to click into it."*
+    focusEntry();
     params.onApproachChange?.(next);
   }
 
+  /**
+   * Change the scoring format, and CLEAR the score.
+   *
+   * CA, 2026-09-28: *"changing the matchUpFormat should take effect (at present any change of
+   * matchUpFormat should clear the score... but we'll do something interesting later)."*
+   *
+   * This carried the score across until that instruction, on the reasoning that games already played
+   * stay played and the region's integrity check would report any that the new format makes illegal.
+   * CA has ruled the other way for now, and the ruling is the better one to build on: carrying a score
+   * between formats quietly produces sets that belong to neither — a 7-6(3) read under `S:6/TB7@5`, a
+   * games score surviving into a tiebreak-only format — and "interesting" is a design question, not a
+   * default. An empty card under the new format is at least unambiguous about what it holds.
+   */
   function setMatchUpFormat(next: string): void {
     if (next === matchUpFormat) return;
     matchUpFormat = next;
-    // The score is carried across, not cleared. A format correction — `TB7` to `TB7@5` — is a statement
-    // about how the set ENDS, and the games already entered are still the games that were played. Where
-    // the new format makes them illegal the region's own integrity check says so, which is a better
-    // answer than silently emptying the cells.
-    const seed = harvest();
-    currentRegion = buildRegion(approach, seed);
+    sets = undefined;
+    currentRegion = buildRegion(approach, {});
     card.update({ matchUpFormat: next, region: currentRegion });
+    focusEntry();
     params.onFormatChange?.(next);
   }
 

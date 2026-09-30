@@ -31,14 +31,16 @@
  */
 
 import {
+  hydrateIrregularEnding,
   WINNER_REQUIRING_STATUSES,
   resolveIrregularEnding,
   NON_DIRECTING_ENDINGS,
   SELECTABLE_ENDINGS,
   supportsNeitherSide,
   carriesNoScore,
-  NEITHER_SIDE,
+  NEITHER_SIDE
 } from './irregularEnding';
+import { recordedStatusCode } from './statusCodes';
 
 import type { IrregularEndingResolution } from './irregularEnding';
 
@@ -104,17 +106,19 @@ export const emptyScoreEntryState: ScoreEntryState = {};
  * come from different policy groups. Carrying either across would submit a qualifier the operator
  * never chose for the ending it ends up attached to.
  */
-export function chooseSideEnding(
-  state: ScoreEntryState,
-  sideNumber: SideNumber,
-  status: string,
-): ScoreEntryState {
+export function chooseSideEnding(state: ScoreEntryState, sideNumber: SideNumber, status: string): ScoreEntryState {
   const current = state.sideEnding;
   if (current?.sideNumber === sideNumber && current.status === status) {
     return { ...state, sideEnding: undefined, bothSidesOut: undefined, reasonCode: undefined };
   }
 
-  return { ...state, sideEnding: { sideNumber, status }, matchEnding: undefined, bothSidesOut: undefined, reasonCode: undefined };
+  return {
+    ...state,
+    sideEnding: { sideNumber, status },
+    matchEnding: undefined,
+    bothSidesOut: undefined,
+    reasonCode: undefined
+  };
 }
 
 /**
@@ -157,6 +161,55 @@ export function chooseReasonCode(state: ScoreEntryState, code: string | undefine
  *
  * `undefined` when no ending is selected, because there is nothing to give a reason for.
  */
+/**
+ * The card's state for a matchUp that ALREADY has an outcome.
+ *
+ * Without this the dialog opened blank on a scored matchUp: no recorded ending, no reason code. The
+ * shipping modal hydrates, so swapping the card in without this would lose the display of every outcome
+ * already entered — CA, 2026-09-28: *"we need to be able to open existing outcomes!"*
+ *
+ * ── The one inversion, again ──
+ *
+ * A stored matchUp names the WINNER. This card records the side the ending HAPPENED TO, and derives the
+ * winner from it. So hydration runs that mapping backwards: the exiting side is the one that did not
+ * win. `hydrateIrregularEnding` is reused for the status itself rather than re-deriving it, so the
+ * reverse lookup from `DOUBLE_WALKOVER` to the `WALKOVER` an operator actually clicks lives in exactly
+ * one place.
+ *
+ * Three cases and a refusal:
+ *
+ *   - a DOUBLE exit — both sides out, so no side is distinguished. `sideNumber: 1` is arbitrary and only
+ *     decides nothing: `bothSidesOut` makes the resolution `NEITHER_SIDE`, and the card draws the pill on
+ *     both rows regardless.
+ *   - an ending that resolves NOBODY — recorded at match level, because there is no side to attach it to.
+ *   - a single exit — recorded against `3 - winningSide`.
+ *   - a winner-requiring status with NO winning side is a corrupt record, and is refused: it returns the
+ *     empty state rather than inventing a placement. `hydrateIrregularEnding` makes the same choice for
+ *     an unmapped double exit, and for the same reason — a guess here silently advances a participant.
+ */
+export function hydrateScoreEntryState(matchUp?: {
+  matchUpStatus?: string;
+  winningSide?: number;
+  sideStatusCodes?: Record<number, string>;
+  matchUpStatusCode?: string;
+  matchUpStatusCodes?: unknown[];
+}): ScoreEntryState {
+  const { selectedOutcome, winnerSelection } = hydrateIrregularEnding(matchUp);
+  if (!SELECTABLE_ENDINGS.includes(selectedOutcome)) return emptyScoreEntryState;
+
+  const reasonCode = recordedStatusCode(matchUp);
+
+  if (winnerSelection === NEITHER_SIDE) {
+    return { sideEnding: { sideNumber: 1, status: selectedOutcome }, bothSidesOut: true, reasonCode };
+  }
+
+  if (!WINNER_REQUIRING_STATUSES.has(selectedOutcome)) return { matchEnding: selectedOutcome, reasonCode };
+
+  if (winnerSelection !== 1 && winnerSelection !== 2) return emptyScoreEntryState;
+
+  return { sideEnding: { sideNumber: otherSide(winnerSelection), status: selectedOutcome }, reasonCode };
+}
+
 export function reasonCodeStatus(state: ScoreEntryState): string | undefined {
   return state.sideEnding?.status ?? state.matchEnding;
 }
@@ -186,7 +239,7 @@ export function resolveScoreEntry(state: ScoreEntryState): ScoreEntryResolution 
       awaitingWinner: false,
       isDoubleExit: false,
       clearsScore: false,
-      hasEnding: false,
+      hasEnding: false
     };
   }
 
@@ -207,7 +260,7 @@ export function resolveScoreEntry(state: ScoreEntryState): ScoreEntryResolution 
     // status in the present vocabulary. Planting that version fails no test. It stops being
     // equivalent the first time a double form and its base disagree about scores.
     clearsScore: carriesNoScore(resolution.matchUpStatus),
-    hasEnding: true,
+    hasEnding: true
   };
 }
 
@@ -238,7 +291,7 @@ export function resolveReportedEnding(matchUpStatus?: string, winningSide?: numb
     selectedOutcome: matchUpStatus,
     // A parsed status carries whatever winner the parse implied. `undefined` stays undefined rather
     // than becoming a side — the fail-closed direction `irregularEnding.ts` exists to hold.
-    winnerSelection: winningSide === 1 || winningSide === 2 ? winningSide : undefined,
+    winnerSelection: winningSide === 1 || winningSide === 2 ? winningSide : undefined
   });
 
   return { ...resolution, clearsScore: carriesNoScore(resolution.matchUpStatus), hasEnding: true };

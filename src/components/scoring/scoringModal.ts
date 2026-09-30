@@ -11,7 +11,7 @@ import type { ScoringModalParams, ScoreOutcome } from './types';
 import { getScoringConfig, setScoringConfig } from './config';
 import { projectOutcomeOntoMatchUp } from './logic/outcomeProjection';
 import { buildStatusCodePicker } from './statusCodePicker';
-import { normalizeStatusCode } from './logic/statusCodes';
+import { recordedStatusCode } from './logic/statusCodes';
 import { cModal } from '../modal/cmodal';
 
 type ScoringApproach = 'dynamicSets' | 'freeScore' | 'dialPad' | 'inlineScoring';
@@ -34,9 +34,13 @@ export function scoringModal(params: ScoringModalParams): void {
   // every approach already reports, so it needs no per-approach plumbing.
   // `matchUpStatusCodes` on params is the POLICY vocabulary; `matchUp.matchUpStatusCodes` is what
   // this matchUp actually recorded. Same name, different things — the factory's own type notes the
-  // conflation. Normalising because a stored element may be a string, a number, or a record.
+  // conflation.
+  //
+  // This read `matchUpStatusCodes?.[0]`, which is SIDE 1. That array is positional by side, so a reason
+  // belonging to side 2 sits at index 1 and index 0 is an empty string — the picker opened empty and
+  // re-saving lost the reason. `recordedStatusCode` asks the side that actually owns it.
   const statusCodePicker = buildStatusCodePicker({
-    initialCode: normalizeStatusCode((matchUp as any)?.matchUpStatusCodes?.[0]),
+    initialCode: recordedStatusCode(matchUp as any),
     groups: matchUpStatusCodes,
     labels
   });

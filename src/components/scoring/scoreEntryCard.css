@@ -142,6 +142,22 @@
   border-top: 1px solid var(--chc-border-secondary);
 }
 
+/* ── Too many columns for a name beside them ─────────────────────────
+   A nine-bolt timed format needs 558px of score columns, which leaves nothing usable for a
+   participant beside them (CA, 2026-09-28: "the width will make the entry columns collide with the
+   participant names"). Past `MAX_INLINE_SCORE_COLUMNS` the card drops the `1fr` name track and the
+   name spans the whole grid instead — above its own cells for the upper participant, beneath them for
+   the lower, which the card expresses purely by append order. `row-gap` because the row now has two
+   grid lines where it had one. */
+.chc-sec-row[data-stacked='true'] .chc-sec-participant {
+  grid-column: 1 / -1;
+  min-height: 0;
+}
+
+.chc-sec-row[data-stacked='true'] {
+  row-gap: 8px;
+}
+
 /* The row of the side an ending was recorded against. Struck through AND named by its pill: colour alone
    must never be the only carrier (WCAG 1.4.1), the strike-through survives a greyscale print, and the
    pill says which ending in words — which a strike-through never could. */
@@ -742,4 +758,15 @@
   .chc-sec-tb-input {
     width: 100%;
   }
+}
+
+/* ── Score entry locked ──────────────────────────────────────────────────
+   A walkover carries no score, so while one is selected the score cannot be typed. Dimmed rather
+   than hidden: the operator needs to see that the cells are still there and why they are not
+   available, and a control that vanishes reads as a bug. The ending controls are deliberately NOT
+   dimmed — un-selecting the walkover is the way out. */
+.chc-sec[data-score-locked='true'] .chc-sec-set-input,
+.chc-sec[data-score-locked='true'] .chc-sec-score-region {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
