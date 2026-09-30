@@ -138,17 +138,27 @@ function dialogTrip(over: StoryOverrides = {}) {
   let submitted: any;
   let hasSubmitted = false;
 
+  /** Remembered across presses for the same reason the submitted record is — the chip is live. */
+  let chosenFormat: string | undefined;
+
   return (append: (line: string) => void) => {
     // Resolved per press, because two stories want a callback that WRITES to the log and the log's
     // `append` does not exist until the harness builds one.
     const options = typeof over === 'function' ? over(append) : over;
-    const matchUpFormat = options.matchUpFormat ?? FORMAT;
+    const matchUpFormat = chosenFormat ?? options.matchUpFormat ?? FORMAT;
 
     return openScoreEntryDialog({
       sides: SIDES,
       matchUpFormat,
       context: 'R16 · Court 3',
       statusCodeGroups: REAL_GROUPS,
+      // CA, 2026-09-30: *"The format Chip should be active on all stories for the Score Entry
+      // modal."* Before `...options`, so `FormatPicker` — the story that is ABOUT the chip — still
+      // supplies its own and this default never shadows it.
+      onFormatChange: (chosen: string) => {
+        chosenFormat = chosen;
+        append(`format → ${chosen}`);
+      },
       ...options,
       matchUp: hasSubmitted ? submitted : options.matchUp,
       onSubmit: (outcome: any) => {

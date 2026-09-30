@@ -163,8 +163,16 @@ function harness(note: string, open: (append: (line: string) => void) => void) {
  * Returns the click handler rather than opening, so `current` survives between presses. Built once
  * per render; each story keeps its own.
  */
-function roundTrip(initial: any, matchUpFormat = FORMAT) {
+function roundTrip(initial: any, startingFormat = FORMAT) {
   let current = initial;
+  /**
+   * Mutable, because the format chip is live here.
+   *
+   * CA, 2026-09-30: *"The format Chip should be active on all stories for the Score Entry modal."* A
+   * host that accepted a format change and then reopened on the OLD one would be a worse lie than an
+   * inert chip, so the chosen format is remembered exactly as the submitted outcome is.
+   */
+  let matchUpFormat = startingFormat;
 
   return (append: (line: string) => void) =>
     openScoreEntryDialog({
@@ -175,6 +183,12 @@ function roundTrip(initial: any, matchUpFormat = FORMAT) {
       matchUpFormat,
       statusCodeGroups: REAL_GROUPS,
       matchUp: current,
+      // Present, so the chip becomes a button: without a host that can accept a change it stays inert
+      // text rather than opening a picker whose choice would go nowhere.
+      onFormatChange: (chosen: string) => {
+        matchUpFormat = chosen;
+        append(`format → ${chosen}`);
+      },
       onSubmit: (outcome: any) => {
         append(`submit → ${JSON.stringify(outcome)}`);
         current = asRecord(outcome, outcome.sets ?? [], matchUpFormat);
