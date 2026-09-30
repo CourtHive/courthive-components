@@ -29,6 +29,7 @@ import { createDynamicSetsRegion } from './regions/dynamicSetsRegion';
 import { createFreeScoreRegion } from './regions/freeScoreRegion';
 import { hydrateScoreEntryState } from './logic/scoreEntryState';
 import { createDialPadRegion } from './regions/dialPadRegion';
+import { scoreGovernor } from 'tods-competition-factory';
 import { renderScoreEntryCard } from './scoreEntryCard';
 import { endingLabels } from './logic/irregularEnding';
 import { scoreLine } from './regions/scoreLine';
@@ -119,6 +120,20 @@ export type ScoreEntryDialogParams = Omit<
   onApproachChange?: (approach: ScoreEntryApproach) => void;
   /** Called with a format chosen in the picker. Omit and the format chip stays inert text. */
   onFormatChange?: (matchUpFormat: string) => void;
+  /**
+   * Called when a format change DISCARDS part of the score, with what was lost and why.
+   *
+   * Only when something was actually discarded — a change that costs the operator nothing says
+   * nothing. `discarded` carries the sets themselves rather than a count, because a host that means to
+   * tell the operator has to quote them in their own numbers, and `reason` is the factory validator's
+   * own words about the first casualty.
+   */
+  onScoreDiscarded?: (discarded: {
+    sets: SetScore[];
+    discarded: SetScore[];
+    reason?: string;
+    matchUpFormat: string;
+  }) => void;
   /** Called when the dialog closes, by `[X]`, by a footer button, or by `close()`. */
   onClose?: () => void;
   /**
@@ -273,25 +288,69 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
   }
 
   /**
-   * Change the scoring format, and CLEAR the score.
+   * Change the scoring format, keeping every set the new format has not invalidated.
    *
-   * CA, 2026-09-28: *"changing the matchUpFormat should take effect (at present any change of
-   * matchUpFormat should clear the score... but we'll do something interesting later)."*
+   * ── The three behaviours this has had, and why it ended here ──
    *
-   * This carried the score across until that instruction, on the reasoning that games already played
-   * stay played and the region's integrity check would report any that the new format makes illegal.
-   * CA has ruled the other way for now, and the ruling is the better one to build on: carrying a score
-   * between formats quietly produces sets that belong to neither — a 7-6(3) read under `S:6/TB7@5`, a
-   * games score surviving into a tiebreak-only format — and "interesting" is a design question, not a
-   * default. An empty card under the new format is at least unambiguous about what it holds.
+   * It first carried the whole score across, on the reasoning that games already played stay played.
+   * CA replaced that with CLEAR EVERYTHING (2026-09-28) — *"any change of matchUpFormat should clear
+   * the score... but we'll do something interesting later"* — because carrying a score between formats
+   * quietly produces sets belonging to neither: a 7-6(3) re-read under `S:6/TB7@5`, a games score
+   * surviving into a tiebreak-only set.
+   *
+   * This is the "later". CA, 2026-09-28: *"There are situations where someone starts entering sets and
+   * then realizes that the third set is a tiebreak set and changes from SET3-S:6/TB7 to
+   * SET3-S:6NOAD/TB7-F:TB10 => obviously the first two sets don't need to change at all in this
+   * scenario! But if a partial 3rd set was entered it would need to be trimmed away."*
+   *
+   * ── The judgement is the FACTORY's, not this dialog's ──
+   *
+   * `scoreGovernor.retainScoreForFormat` decides what survives; this only applies the answer. That is
+   * the same reason `scoreLine`, the complements and the integrity checks all delegate — a second
+   * opinion about what a format allows is how the entry approaches came to disagree about everything
+   * else.
+   *
+   * ── A half-typed set is discarded, and that is a decision ──
+   *
+   * `getSets()` reports only sets whose BOTH sides are entered — deliberately, because including a
+   * half-entered one made the band claim a `6-0` nobody typed. So a part-entered set never reaches the
+   * factory here and is lost on any format change. CA, 2026-09-29, asked directly: *"i think it is
+   * fine for half-typed sets to be discarded."* Recorded so it reads as settled rather than as an
+   * omission someone should come back and fix.
+   *
+   * ── `previousMatchUpFormat` is load-bearing, and the case is not the obvious one ──
+   *
+   * For a set that is complete AND legal it changes nothing: "its rule did not change" and "it is
+   * still legal" agree. The case it exists for is a complete but **ILLEGAL** set — a 3-7, which the
+   * band reports and `getSets()` still carries. Measured 2026-09-29 under a change touching only the
+   * deciding set: with the previous format the 3-7 is KEPT, without it the validator discards it.
+   *
+   * Keeping it is right. The operator typed it, the card is already telling them it is wrong, and a
+   * format change that does not touch that set has no business silently deleting their work — which is
+   * exactly what *"trim only what the new format invalidates"* means for a score that was invalid
+   * before the change.
+   *
+   * The ENDING is untouched either way. A walkover recorded against a row is a fact about the match,
+   * not about the format the score is read under — the same reason `card.update` keeps it across an
+   * approach switch.
    */
   function setMatchUpFormat(next: string): void {
     if (next === matchUpFormat) return;
+
+    const previousMatchUpFormat = matchUpFormat;
+    const held = currentRegion.getSets();
+    const retained = scoreGovernor.retainScoreForFormat({ sets: held, matchUpFormat: next, previousMatchUpFormat });
+
     matchUpFormat = next;
-    sets = undefined;
-    currentRegion = buildRegion(approach, {});
+    sets = retained.sets.length ? retained.sets : undefined;
+    currentRegion = buildRegion(approach, { sets, text: scoreLine(sets ?? [], matchUpFormat) });
     card.update({ matchUpFormat: next, region: currentRegion });
     focusEntry();
+
+    // Said, not discovered. The band already refuses to discard a part-score silently, and a score
+    // thrown away by a format change is the same event with a different trigger.
+    if (retained.discarded.length) params.onScoreDiscarded?.({ ...retained, matchUpFormat: next });
+
     params.onFormatChange?.(next);
   }
 
