@@ -1277,6 +1277,14 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     menu.style.position = 'fixed';
     menu.style.left = `${rect.left}px`;
     menu.style.top = openUp ? `${rect.top - height - GAP}px` : `${rect.bottom + GAP}px`;
+
+    // `bottom` and `right` are cleared, not merely left alone. The stylesheet positions this menu for
+    // its OTHER use — the approach switcher, which is still `absolute` — and a `bottom` surviving
+    // beside an inline `top` does not move a fixed box, it SIZES it: with both offsets set and height
+    // auto, the height becomes the distance between them. That is what CA saw as "about 2px of the top"
+    // of a menu he reasonably read as obscured. It was not obscured, it was collapsed.
+    menu.style.bottom = 'auto';
+    menu.style.right = 'auto';
   }
 
   /**

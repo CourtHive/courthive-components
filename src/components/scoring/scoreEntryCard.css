@@ -329,11 +329,6 @@
    position is how it ended up clipped in the first place. */
 
 .chc-sec-other-menu {
-  top: auto;
-  bottom: calc(100% + 6px);
-}
-
-.chc-sec-other-menu {
   position: absolute;
   z-index: 2;
   top: calc(100% + 6px);

@@ -24,6 +24,8 @@ import { describe, expect, it } from 'vitest';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 import { openScoreEntryDialog } from '../scoreEntryDialog';
 import { cModal } from '../../modal/cmodal';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 const { CANCELLED } = matchUpStatusConstants;
 
@@ -47,6 +49,23 @@ function open() {
     matchUpFormat: FORMAT
   } as any);
 }
+
+describe('the stylesheet does not fight the placement', () => {
+  it('declares the menu exactly once, so no rule can re-introduce an opposing offset', () => {
+    // A stray duplicate rule is what caused the collapse: an edit left `.chc-sec-other-menu { top:
+    // auto; bottom: calc(100% + 6px) }` behind, unscoped, so it applied to BOTH menus. Counting the
+    // declarations is crude and it is the check that would have caught it.
+    // Resolved from the repo root rather than `import.meta.url`: under this vitest config the module
+    // URL is not a `file:` scheme, and `new URL(...)` throws.
+    const css = readFileSync(resolve(process.cwd(), 'src/components/scoring/scoreEntryCard.css'), 'utf8');
+    const declarations = css.match(/^\.chc-sec-other-menu \{/gm) ?? [];
+    expect(declarations).toHaveLength(1);
+
+    // And that one must not set `bottom`, which is the offset the JS has to clear.
+    const block = css.slice(css.indexOf('.chc-sec-other-menu {'));
+    expect(block.slice(0, block.indexOf('}'))).not.toContain('bottom:');
+  });
+});
 
 describe('the Other… chip', () => {
   it('opens a menu of the endings that do not get their own button', () => {
@@ -93,6 +112,14 @@ describe('the Other… chip', () => {
     expect(placed.style.position).toBe('fixed');
     expect(placed.style.top, 'positioned against the chip, not left to the stylesheet').not.toBe('');
     expect(placed.style.left).not.toBe('');
+
+    // The opposing offsets are CLEARED, and this is the assertion that matters most. The stylesheet
+    // positions this menu for its other use — the approach switcher, still `absolute` — and a `bottom`
+    // surviving beside an inline `top` does not move a fixed box, it SIZES it: both offsets set and
+    // height auto makes the height the distance between them. CA saw the result as "about 2px of the
+    // top" of a menu that read as obscured; it was collapsed. Measured, not theorised.
+    expect(placed.style.bottom, 'or the box is sized between two offsets').toBe('auto');
+    expect(placed.style.right).toBe('auto');
 
     closeAll();
   });
