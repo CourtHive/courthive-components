@@ -266,9 +266,23 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
   }
 
   /** What the current region holds, in both currencies, so either kind of region can be seeded from it. */
+  /**
+   * What the LIVE region holds. Never what this dialog used to think it held.
+   *
+   * This read `harvested.length ? harvested : sets`, falling back to the dialog's own copy whenever the
+   * region reported nothing — which made "the operator cleared it" indistinguishable from "this region
+   * cannot express it", and resolved both as the older value.
+   *
+   * CA found it, 2026-09-30: choose `Other: Dead Rubber` in Free Score, which correctly clears the
+   * score, then switch to Dynamic Sets and *"the score reappears"*. A DEAD_RUBBER with a score is a
+   * contradiction the factory would reject, and it round-tripped.
+   *
+   * The region is the only thing that knows. A partial that it cannot parse is lost on a switch, and
+   * that is the honest answer: the alternative is replacing what the operator is typing now with a
+   * score they have already moved past.
+   */
   function harvest(): { sets?: SetScore[]; text?: string } {
-    const harvested = currentRegion.getSets();
-    return { sets: harvested.length ? harvested : sets, text: currentRegion.scoreString?.() };
+    return { sets: currentRegion.getSets(), text: currentRegion.scoreString?.() };
   }
 
   function setApproach(next: ScoreEntryApproach): void {
