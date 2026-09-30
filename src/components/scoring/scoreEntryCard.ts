@@ -65,6 +65,10 @@ const CLS_MENU = 'chc-sec-other-menu';
 const CLS_MENU_ITEM = 'chc-sec-other-item';
 const ARIA_LABEL = 'aria-label';
 const CLS_SPACER = 'chc-sec-spacer';
+/** What the endings chip reads while nothing has been chosen from its menu. */
+const OTHER_LABEL = 'Other…';
+/** What the chip IS, for the accessible name, which must survive the label being replaced. */
+const OTHER_MENU_NAME = 'Other endings';
 const CLS_BAND_HEADLINE = 'chc-sec-band-headline';
 const CLS_BAND_DETAIL = 'chc-sec-band-detail';
 /** What the band says once `[Clear]` has emptied a recorded outcome. Overridable via `labels`. */
@@ -1202,12 +1206,29 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     if (!others.length) return;
 
     const otherSelected = !!state.matchEnding && others.includes(state.matchEnding);
-    const other = button('Other…', CLS_BTN_PILL);
+    // ── The chip says what was CHOSEN, not that a choice exists ──
+    //
+    // CA, 2026-09-30: *"I think the Chip's label should change from Other when for example (Cancelled)
+    // is selected... it isn't helpful for it to just be highlighted saying (Other) ... even though the
+    // text below does state the state, it would be better UX for it to change label on the selector"*.
+    //
+    // Only when the selection came from INSIDE this menu. A privileged ending has its own button and
+    // shows itself there; if this chip echoed that too, the row would read as two selections.
+    const chosenInMenu =
+      otherSelected && state.matchEnding ? (labels[state.matchEnding] ?? state.matchEnding) : undefined;
+
+    const other = button(chosenInMenu ?? OTHER_LABEL, CLS_BTN_PILL);
     other.dataset.action = 'other';
     // Solid when the selection was made INSIDE it, so the row still shows one selection whether it
     // came from a privileged button or from the menu.
     other.setAttribute(ARIA_PRESSED, String(otherSelected));
     other.setAttribute(ARIA_EXPANDED, String(otherMenuOpen));
+
+    // The visible text stops naming the control once it names the selection, so the accessible name
+    // keeps doing it. A screen reader user hearing only "Cancelled" would not know this opens a menu.
+    const accessibleName = chosenInMenu ? `${chosenInMenu} — ${OTHER_MENU_NAME}` : OTHER_MENU_NAME;
+    other.setAttribute('aria-label', accessibleName);
+    other.title = accessibleName;
     other.append(icon('m6 9 6 6 6-6', 2.5));
     other.addEventListener('click', () => {
       otherMenuOpen = !otherMenuOpen;

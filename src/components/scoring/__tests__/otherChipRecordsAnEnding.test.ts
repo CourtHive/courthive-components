@@ -30,8 +30,13 @@ import { resolve } from 'node:path';
 const { CANCELLED } = matchUpStatusConstants;
 
 const endings = () => document.querySelector('.chc-sec-endings') as HTMLElement;
-const otherChip = () =>
-  [...endings().querySelectorAll('button')].find((b) => (b.textContent ?? '').startsWith('Other')) as HTMLButtonElement;
+/**
+ * Found by its ACTION, not its text.
+ *
+ * The text is no longer stable: the chip renames itself to whatever was chosen from its menu, so a
+ * locator reading "Other" stops finding it the moment the thing under test has worked.
+ */
+const otherChip = () => endings().querySelector('button[data-action="other"]') as HTMLButtonElement;
 const menu = () => endings().querySelector('.chc-sec-other-menu');
 const band = () => document.querySelector('.chc-sec-band')?.textContent ?? '';
 /** The format every case here opens on; named because three of them say it. */
@@ -96,6 +101,44 @@ describe('the Other… chip', () => {
     expect(band()).toContain('Cancelled');
     expect(menu(), 'the menu closes behind the choice').toBeNull();
     expect(otherChip().getAttribute('aria-pressed'), 'and the chip carries the selection').toBe('true');
+
+    closeAll();
+  });
+
+  it('renames itself to what was chosen', () => {
+    open();
+    expect(otherChip().textContent, 'named for the menu while nothing is chosen').toContain('Other');
+
+    otherChip().click();
+    endings().querySelector<HTMLButtonElement>(`.chc-sec-other-menu button[data-ending="${CANCELLED}"]`)!.click();
+
+    // CA, 2026-09-30: a chip that is merely highlighted while still reading "Other" makes the operator
+    // read the band to find out what they picked.
+    expect(otherChip().textContent).toContain('Cancelled');
+    expect(otherChip().textContent).not.toContain('Other');
+
+    // The accessible name keeps saying what the control IS. A screen reader user hearing only
+    // "Cancelled" would not know this opens a menu.
+    expect(otherChip().getAttribute('aria-label')).toBe('Cancelled — Other endings');
+
+    // And back, because every control in this card is a toggle.
+    otherChip().click();
+    endings().querySelector<HTMLButtonElement>(`.chc-sec-other-menu button[data-ending="${CANCELLED}"]`)!.click();
+    expect(otherChip().textContent).toContain('Other');
+    expect(otherChip().getAttribute('aria-label')).toBe('Other endings');
+
+    closeAll();
+  });
+
+  it('does NOT echo an ending that has its own button', () => {
+    open();
+
+    // SUSPENDED is privileged: it shows itself on its own chip. If this one echoed it too, the row
+    // would read as two selections.
+    endings().querySelector<HTMLButtonElement>('button[data-ending="SUSPENDED"]')!.click();
+
+    expect(otherChip().textContent).toContain('Other');
+    expect(otherChip().getAttribute('aria-pressed')).toBe('false');
 
     closeAll();
   });
