@@ -31,10 +31,10 @@
  */
 
 import { statusCodeSubtext, statusCodeDisplay, codesForStatus } from './logic/statusCodes';
+import { NON_DIRECTING_ENDINGS, endingLabels } from './logic/irregularEnding';
 import { ENTRY_SIDE, hasCommandModifier, otherSide } from './keyboard';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 import { scoreEntrySummary } from './logic/scoreEntrySummary';
-import { endingLabels } from './logic/irregularEnding';
 import {
   emptyScoreEntryState,
   toggleBothSidesOut,
@@ -359,6 +359,12 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    * is worse than not having it.
    */
   let clearedRecordedOutcome = false;
+  /**
+   * The score an ending discarded, kept for the BAND alone.
+   *
+   * Never re-entered into the region and never submitted: it is a past tense, not a value.
+   */
+  let scoreDiscardedByEnding: string | undefined;
   /** Which side's ending panel is open, if any. Presentation only — not part of the outcome. */
   let openPanelSide: SideNumber | undefined;
   let otherMenuOpen = false;
@@ -412,7 +418,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     // character: the value survives (the region holds it) but the ELEMENT does not, so focus and the
     // caret are lost and the operator can enter exactly one digit per click. `refreshDerived` is the
     // seam that keeps a live band from costing a usable keyboard.
-    refresh: refreshDerived,
+    refresh: onScoreChanged,
     // A FULL render, for when the region's own structure changes — a tiebreak column appearing, the
     // next set being revealed. Distinct from `refresh` on purpose: this one rebuilds the rows and
     // therefore replaces the region's cells, so a caller must restore focus itself. That is not a
@@ -647,6 +653,100 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   }
 
   /**
+   * Discard the typed score when the chosen ending cannot have one.
+   *
+   * CA, 2026-09-30: *"when I enter set score(s) and then select (Walkover) the set score(s) should
+   * clear."* The card already refused to SUBMIT the score (`resolution.clearsScore ? undefined : …`)
+   * and said "no score recorded" in the band, and `lockScoreEntry` stops further typing — but the
+   * digits stayed in the cells, so the operator read a walkover with a 6-4 beside it.
+   *
+   * Irreversible, and deliberately so: there is no undo here, and toggling the walkover back off does
+   * not bring the score back. That matches `[Clear]`, which is also final, and the alternative — a
+   * remembered score that silently reappears — is worse.
+   *
+   * Driven by `carriesNoScore` through `resolveScoreEntry`, so the set of endings that clear is the
+   * one place it is already declared: WALKOVER, DOUBLE_WALKOVER, CANCELLED, DEAD_RUBBER. **DEFAULTED
+   * is NOT in it**, and CA's note asks for it — raised rather than changed, because a default DURING a
+   * match keeps the score it was defaulted at, which is why the set was settled without it on
+   * 2026-09-27. His ruling either way belongs in `irregularEnding.ts`, not here.
+   */
+  function clearScoreWhenEndingCarriesNone(): void {
+    if (!resolveScoreEntry(state).clearsScore) {
+      scoreDiscardedByEnding = undefined;
+      return;
+    }
+
+    // Remembered ONLY so the band can still name what it took. Four existing tests assert that
+    // Cancelled quotes the part-score it discards — "the part-score of 6-4 has been cleared" — and
+    // clearing the cells destroys the very string that message is made of. Dropping the message would
+    // have been the easy way to make them pass, and would have removed the confirmation that a
+    // part-score was lost at the one moment it matters.
+    const held = region.scoreString?.();
+    if (held) scoreDiscardedByEnding = held;
+    region.clear?.();
+  }
+
+  /**
+   * Whether a per-side ending can be chosen at all, given the score.
+   *
+   * CA, 2026-09-30: *"I should not be able to select (Retired) if the score is actually complete!"* A
+   * retirement means the match did not finish, and a finished score says it did. Only RETIRED is
+   * constrained: a walkover or a default on a complete score is not refused but CLEARS it, above,
+   * which resolves the same contradiction the other way.
+   */
+  function endingOffered(status: string): boolean {
+    if (status !== RETIRED) return true;
+    return !region.isComplete?.();
+  }
+
+  /**
+   * Retract an ending the score has just contradicted.
+   *
+   * CA, 2026-09-30: *"If I click (Suspended) and then complete the score the Suspended status should
+   * disappear. A completed score should cause matchUpStatus to change to COMPLETED."*
+   *
+   * Applies to every ending that resolves nobody — Suspended, Abandoned, Incomplete — and to a side
+   * RETIRED, which is the same contradiction reached from the other direction: `endingOffered` refuses
+   * it when the score is already complete, and this refuses it when the score becomes complete after.
+   * A rule enforced on only one of those orders is a rule an operator can walk around.
+   *
+   * Returns whether anything changed, because the ending chip lives in the participant rows and its
+   * removal needs a full render rather than a derived refresh.
+   */
+  function retractEndingContradictedByScore(): boolean {
+    if (!region.isComplete?.()) return false;
+
+    if (state.matchEnding && NON_DIRECTING_ENDINGS.has(state.matchEnding)) {
+      state = chooseMatchEnding(state, state.matchEnding);
+      otherMenuOpen = false;
+      return true;
+    }
+
+    if (state.sideEnding?.status === RETIRED) {
+      state = chooseSideEnding(state, state.sideEnding.sideNumber, RETIRED);
+      openPanelSide = undefined;
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * What the region calls when the typed score changes.
+   *
+   * It was `refreshDerived` directly. A score that has just become complete now also RETRACTS an
+   * ending that says the match did not finish, and that changes the ROWS, so it needs the full render
+   * the derived refresh deliberately avoids.
+   */
+  function onScoreChanged(): void {
+    if (retractEndingContradictedByScore()) {
+      render();
+      return;
+    }
+    refreshDerived();
+  }
+
+  /**
    * Disable a control for the lock, and re-enable ONLY what the lock disabled.
    *
    * `control.disabled = locked` was the first version and it was wrong in the unlock direction: it
@@ -770,8 +870,16 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     // Lock means the same thing as Shift — the operator is looking at a capital either way.
     const sideNumber: SideNumber = event.key === event.key.toUpperCase() ? otherSide(ENTRY_SIDE) : ENTRY_SIDE;
 
+    // Refused for the same reason the panel button is disabled — a key must not reach a state the
+    // control it stands for cannot.
+    if (!endingOffered(status)) {
+      event.preventDefault();
+      return true;
+    }
+
     event.preventDefault();
     state = chooseSideEnding(state, sideNumber, status);
+    clearScoreWhenEndingCarriesNone();
     openPanelSide = state.sideEnding ? sideNumber : undefined;
     otherMenuOpen = false;
     render();
@@ -962,8 +1070,14 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       if (hint) stack.append(text('chc-sec-side-option-hint', hint));
       option.append(stack);
 
+      // A retirement cannot follow a finished score; the control says so rather than accepting and
+      // then contradicting itself in the band.
+      option.disabled = !endingOffered(status);
+      if (option.disabled) option.title = 'The score is complete — a retirement cannot follow it';
+
       option.addEventListener('click', () => {
         state = chooseSideEnding(state, sideNumber, status);
+        clearScoreWhenEndingCarriesNone();
         render();
       });
       inner.append(option);
@@ -1060,6 +1174,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       item.append(mark, text('', labels[status] ?? status));
       item.addEventListener('click', () => {
         state = chooseMatchEnding(state, status);
+        clearScoreWhenEndingCarriesNone();
         otherMenuOpen = false;
         render();
       });
@@ -1074,6 +1189,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     control.setAttribute(ARIA_PRESSED, String(state.matchEnding === status));
     control.addEventListener('click', () => {
       state = chooseMatchEnding(state, status);
+      clearScoreWhenEndingCarriesNone();
       otherMenuOpen = false;
       render();
     });
@@ -1120,7 +1236,9 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     const summary = scoreEntrySummary({
       resolution,
       sideNames: [params.sides[0].participantName, params.sides[1].participantName],
-      scoreString: region.scoreString?.(),
+      // `scoreDiscardedByEnding` is what a score-clearing ending took, so the band can still name it
+      // once the cells are empty. Consulted only when the region has nothing, so a live score wins.
+      scoreString: region.scoreString?.() || scoreDiscardedByEnding,
       scoreComplete: region.isComplete?.(),
       scoreWinningSide: region.winningSide?.(),
       reasonDisplay: entry ? statusCodeDisplay(entry) : undefined,
