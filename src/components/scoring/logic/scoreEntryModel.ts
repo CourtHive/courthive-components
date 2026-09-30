@@ -223,7 +223,7 @@ export function typeDigit(model: ScoreEntryModel, intent: TypeDigitIntent): Scor
   let updated = writeCell(entry, cell, next);
   if (intent.complement) updated = withComplement(updated, cell, next, current, setFormat);
 
-  return withSet(model, cell.setIndex, updated, config);
+  return withSet(model, cell.setIndex, updated, config, cell.kind === 'games');
 }
 
 /**
@@ -255,7 +255,7 @@ function typeTiebreakOnlyDigit(
   // inventing it. `completeTiebreakOnly` declines in exactly that case.
   const updated = pair ? { side1: pair.side1, side2: pair.side2 } : writeCell(entry, cell, low);
 
-  return withSet(model, cell.setIndex, updated, matchUpConfigFor(model.matchUpFormat));
+  return withSet(model, cell.setIndex, updated, matchUpConfigFor(model.matchUpFormat), true);
 }
 
 /** The set with the other side derived, per the `complement` rules on `TypeDigitIntent`. */
@@ -306,7 +306,13 @@ export function setCell(model: ScoreEntryModel, cell: CellRef, value: number | u
   const entry = model.sets[cell.setIndex];
   if (readCell(entry, cell) === value) return model;
 
-  return withSet(model, cell.setIndex, writeCell(entry, cell, value), matchUpConfigFor(model.matchUpFormat));
+  return withSet(
+    model,
+    cell.setIndex,
+    writeCell(entry, cell, value),
+    matchUpConfigFor(model.matchUpFormat),
+    cell.kind === 'games'
+  );
 }
 
 export function clearCell(model: ScoreEntryModel, cell: CellRef): ScoreEntryModel {
@@ -387,24 +393,34 @@ export function switchApproach(model: ScoreEntryModel, approach: ScoreEntryAppro
 // ── The invariant, and the housekeeping every score transition shares ─
 
 /** Replace one set, then re-establish the invariants over the whole array. */
-function withSet(model: ScoreEntryModel, setIndex: number, entry: SetEntry, config: MatchUpConfig): ScoreEntryModel {
+function withSet(
+  model: ScoreEntryModel,
+  setIndex: number,
+  entry: SetEntry,
+  config: MatchUpConfig,
+  gamesEdited: boolean
+): ScoreEntryModel {
   const sets = model.sets.map((existing, index) => (index === setIndex ? compact(entry) : existing));
-  return { ...model, sets: normalize(sets, config) };
+  return { ...model, sets: normalize(sets, config, gamesEdited ? setIndex : undefined) };
 }
 
 /**
  * The array every transition ends with:
  *
- *   - a tiebreak whose games no longer call for one is forgotten. Editing a 7-6(3) down to 6-3 must not
- *     leave the points attached — the band read `6-3(3)` when it did. Only a set with both games in is
- *     judged, because a set mid-retype may be about to call for the tiebreak again;
+ *   - a tiebreak whose games no longer call for one is forgotten, WHEN THE GAMES ARE WHAT CHANGED. Editing
+ *     a 7-6(3) down to 6-3 must not leave the points attached — the band read `6-3(3)` when it did. Only
+ *     a set with both games in is judged, because a set mid-retype may be about to call for the tiebreak
+ *     again. A tiebreak typed ONTO a 6-2 is the opposite case: the operator said it, so it stays and
+ *     `error` reports it — the Dial Pad's "SAYS a tiebreak on a 6-2 is wrong rather than hiding it";
  *   - **no set exists beyond the one that decides the match.** The first prefix the factory calls decided
  *     is the match; everything after it is emptied. An `exactly` format plays every set, and the factory's
  *     own winner test for it (`>= setsToWin`) would otherwise read five bolts of nine as the end — so it is
  *     never trimmed.
  */
-function normalize(sets: readonly SetEntry[], config: MatchUpConfig): SetEntry[] {
-  const settled = sets.map((entry, index) => dropStaleTiebreak(entry, index, config));
+function normalize(sets: readonly SetEntry[], config: MatchUpConfig, gamesEditedAt?: number): SetEntry[] {
+  const settled = sets.map((entry, index) =>
+    index === gamesEditedAt ? dropStaleTiebreak(entry, index, config) : entry
+  );
   const decider = decidingIndex(settled, config);
   if (decider === undefined) return settled;
   return settled.map((entry, index) => (index > decider ? EMPTY_SET : entry));
