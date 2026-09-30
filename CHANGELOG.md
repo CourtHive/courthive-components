@@ -1,5 +1,28 @@
 # Changelog
 
+## [6.2.0](https://github.com/CourtHive/courthive-components/compare/v6.1.0...v6.2.0) (2026-09-30)
+
+
+### Features
+
+* **scoring:** a cleared score is submittable, which is how a recorded one is removed ([#613](https://github.com/CourtHive/courthive-components/issues/613)) ([cba70da](https://github.com/CourtHive/courthive-components/commit/cba70dad0ed8ee20aa7f8f28bd5abc47bdaac7db))
+* **scoring:** entry starts on the lower row, and a letter records a side ending ([#609](https://github.com/CourtHive/courthive-components/issues/609)) ([eaa4de4](https://github.com/CourtHive/courthive-components/commit/eaa4de47a250eb163ad726191d7f43c1232ccadc))
+* **scoring:** openScoreEntryDialog is reachable from the package ([#612](https://github.com/CourtHive/courthive-components/issues/612)) ([2c9da7e](https://github.com/CourtHive/courthive-components/commit/2c9da7e8da2f7473b2865c73c62286edafbabcfa))
+* **scoring:** reopen a recorded outcome — the whole ending, and the reason code ([#607](https://github.com/CourtHive/courthive-components/issues/607)) ([4a62929](https://github.com/CourtHive/courthive-components/commit/4a62929b512861f23d146e2090804adeee404d5e))
+* **scoring:** the row target, score integrity, and the card in a modal ([#605](https://github.com/CourtHive/courthive-components/issues/605)) ([b362960](https://github.com/CourtHive/courthive-components/commit/b362960f0130cfa4a4e091e236f3b1e44a36059a))
+
+
+### Bug Fixes
+
+* **scoring:** deciding-set format and tiebreak completion, by delegating to the factory ([#603](https://github.com/CourtHive/courthive-components/issues/603)) ([b0ab50e](https://github.com/CourtHive/courthive-components/commit/b0ab50edcfd1fe17be25bc571a4a0a4084655c53))
+* **scoring:** the result band shows a double exit's reason code ([#610](https://github.com/CourtHive/courthive-components/issues/610)) ([91ca39d](https://github.com/CourtHive/courthive-components/commit/91ca39d7c9a9414cb98cc32d0735ea87c18f7a2a))
+* **scoring:** the score dialog had no keyboard model, and two dead buttons ([#606](https://github.com/CourtHive/courthive-components/issues/606)) ([444ba3c](https://github.com/CourtHive/courthive-components/commit/444ba3c0f633e222ee79a04bd28c03e6d9dc6da3))
+
+
+### Documentation
+
+* cut branches from `dev`, not `main` ([258e4c1](https://github.com/CourtHive/courthive-components/commit/258e4c1891f1be240c6d46e90dd760e002dee910))
+
 ## [6.1.0](https://github.com/CourtHive/courthive-components/compare/v6.0.1...v6.1.0) (2026-09-28)
 
 
