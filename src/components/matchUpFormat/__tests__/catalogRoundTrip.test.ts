@@ -65,6 +65,11 @@ describe('the matchUpFormat catalog survives its own picker', () => {
 
     // Both directions. A gap that gets fixed must be removed from the list, and a format that starts
     // drifting must not be able to hide inside it.
-    expect(drifting.sort()).toEqual(Object.keys(KNOWN_GAPS).sort());
+    //
+    // An explicit comparator and an explicit locale: a bare `.sort()` coerces to string and takes the
+    // runtime's default collation, which can differ between machines and would make this comparison
+    // fail somewhere other than here.
+    const byName = (a: string, b: string) => a.localeCompare(b, 'en');
+    expect(drifting.sort(byName)).toEqual(Object.keys(KNOWN_GAPS).sort(byName));
   });
 });
