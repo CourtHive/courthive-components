@@ -521,6 +521,21 @@ function tiebreakOnlyWinner(entry: SetEntry, index: number, config: MatchUpConfi
   return winningSide === 1 || winningSide === 2 ? winningSide : undefined;
 }
 
+/**
+ * Replace every set from a factory-shaped array: the Free Score boundary, where TEXT becomes sets.
+ *
+ * Free Score keeps the text as the field's own value while it is being typed — a half-typed `6-4 re` is
+ * nothing the model can represent — and commits here at the points where the text parses to sets. The
+ * same seeding and the same invariants as opening a saved score: a set past the decider is trimmed.
+ * The same model comes back when nothing changed, so a keystroke inside a word is not a transition.
+ */
+export function replaceSets(model: ScoreEntryModel, sets: SetScore[]): ScoreEntryModel {
+  const config = matchUpConfigFor(model.matchUpFormat);
+  const next = normalize(seedEntries(sets, config), config);
+  if (JSON.stringify(next) === JSON.stringify(model.sets)) return model;
+  return { ...model, sets: next };
+}
+
 // ── Cell arithmetic ──────────────────────────────────────────────────
 
 /** `current` with `digit` appended, or `undefined` where that would pass the ceiling or the digit cap. */

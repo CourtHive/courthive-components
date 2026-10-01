@@ -13,6 +13,7 @@ import { deepFreeze, frozen, enter, typed, G, TB } from './scoreEntryModelTestHe
 import { matchUpStatusConstants } from 'tods-competition-factory';
 import { describe, it, expect } from 'vitest';
 import {
+  replaceSets,
   createScoreEntryModel,
   switchApproach,
   chooseEnding,
@@ -444,5 +445,34 @@ describe('switchApproach', () => {
   it('is a no-op for the same approach, by identity', () => {
     const model = frozen();
     expect(switchApproach(model, 'dynamicSets')).toBe(model);
+  });
+});
+
+describe('replaceSets — the Free Score boundary', () => {
+  it('replaces every set from a factory-shaped array, held to the same invariants as opening a saved score', () => {
+    const model = typed(STANDARD, [6, 4]);
+    const next = replaceSets(model, [
+      { setNumber: 1, side1Score: 6, side2Score: 2, winningSide: 1 },
+      { setNumber: 2, side1Score: 6, side2Score: 2, winningSide: 1 },
+      { setNumber: 3, side1Score: 6, side2Score: 3, winningSide: 1 }
+    ]);
+
+    // A set past the decider is trimmed, exactly as on open.
+    expect(next.sets).toEqual([{ side1: 6, side2: 2 }, { side1: 6, side2: 2 }, {}]);
+    expect(next.ending).toBe(model.ending);
+  });
+
+  it('is a no-op by identity when the sets are what the model already holds', () => {
+    const model = typed(STANDARD, [6, 4], [3, 2]);
+    expect(
+      replaceSets(model, [
+        { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
+        { setNumber: 2, side1Score: 3, side2Score: 2 }
+      ])
+    ).toBe(model);
+  });
+
+  it('empties the sets when given none', () => {
+    expect(replaceSets(typed(STANDARD, [6, 4]), []).sets).toEqual([{}, {}, {}]);
   });
 });
