@@ -245,3 +245,15 @@ Keep existing code as-is, use these functions only for new features and testing.
 4. Continue with remaining functions
 
 Each replacement makes the code cleaner and more testable while maintaining 100% backward compatibility.
+
+## Phase 2 — the score-entry model (S1 landed 2026-09-30; nothing consumes it yet)
+
+`scoreEntryModel.ts` holds one immutable value — `{ matchUpFormat, approach, sets: SetEntry[], ending }`
+— and pure transitions over it (`typeDigit`, `setCell`, `clearCell`, `clearAll`, `chooseEnding`,
+`changeFormat`, `switchApproach`). `ending` is the existing `ScoreEntryState`, folded in unchanged.
+`scoreEntrySelectors.ts` computes every answer the card asks for (`scoreString`, `isComplete`,
+`winningSide`, `matchUpStatus`, `error`, `columns`, `completedSets`) from a model and nothing else.
+
+Two invariants live there, tested by enumeration in `__tests__/scoreEntryInvariants.test.ts`: no set
+exists beyond the one that decides the match, and every set before the last must be complete. The
+regions do not render the model yet; that is S2–S4 of `Mentat/planning/SCORE_ENTRY_STATE_ENGINE.md`.
