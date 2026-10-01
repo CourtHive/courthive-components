@@ -47,7 +47,7 @@
  * in next. Within a set nothing is rebuilt: the `onChange` seam keeps the input being typed into.
  */
 
-import { tiebreakOutstanding, enteredSets, cellValue, columns, error } from '../logic/scoreEntrySelectors';
+import { tiebreakOutstanding, enteredSets, cellValue, isSettled, columns, error } from '../logic/scoreEntrySelectors';
 import { getSetFormatForIndex, matchUpConfigFor, isSetTimed } from '../logic/dynamicSetsLogic';
 import { ENTRY_SIDE, digitFromCode, hasCommandModifier, otherSide } from '../keyboard';
 import { gamesLoser, clearCell, typeDigit } from '../logic/scoreEntryModel';
@@ -129,6 +129,8 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
 
   /** Live cells, so a complement can be written into a sibling without a re-render. */
   const cells = new Map<string, HTMLInputElement>();
+  /** The completed representation of a folded set, per side — the way back into it. */
+  const folded = new Map<string, HTMLButtonElement>();
   /** The raised tiebreak mark beside a loser's games cell — the `3` in `6³`. */
   const parentheticals = new Map<string, HTMLElement>();
   /** Its visually-hidden twin, carrying the words a screen reader needs. */
@@ -254,7 +256,95 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
 
     wrapper.append(input, mark, spoken);
     writeTiebreakMark(sideNumber, setIndex);
+
+    // ── A finished set shows its RESULT, not its fields — note 11/12 ──
+    //
+    // CA, 2026-09-30: *"when a set is complete ... not show the entry fields and show the tiebreak score
+    // 7-6(3) on the low score side as 6^3 ... This is how the Tournament Desk score entry modal behaves"*,
+    // and on the way back in: *"the way back in is simply clicking the completed representation of the
+    // set."* So a settled set that is not the one under edit hides its input behind a button reading `6`
+    // with a raised `3`, and clicking it — or reaching it with Tab and pressing it — reopens the fields.
+    //
+    // Both are always in the DOM and a fold is a change of VISIBILITY, not a rebuild: the input's value is
+    // the model's and `syncCells` keeps it so, the representation is rewritten by `syncFolds`, and
+    // reopening touches no element identity — which is what keeps the caret and every reference a test
+    // holds. `[Clear]`, a correction and a tab into a folded set all pass through here.
+    wrapper.append(completedRepresentation(sideNumber, setIndex));
+    syncFold(setIndex);
     return wrapper;
+  }
+
+  /** Show each side of a set as its result or its fields, whichever the model and `editingSet` say. */
+  function syncFold(setIndex: number): void {
+    const fold = isFolded(setIndex);
+    for (const sideNumber of [1, 2] as SideNumber[]) {
+      const cellKey = key('games', sideNumber, setIndex);
+      const input = cells.get(cellKey);
+      if (input) input.hidden = fold;
+      const mark = parentheticals.get(cellKey);
+      if (mark) mark.hidden = fold;
+      const spoken = spokenMarks.get(cellKey);
+      if (spoken) spoken.hidden = fold;
+      const done = folded.get(cellKey);
+      if (done) {
+        done.hidden = !fold;
+        if (fold) writeCompleted(done, sideNumber, setIndex);
+      }
+    }
+  }
+
+  function syncFolds(): void {
+    for (let index = 0; index < setCount; index += 1) syncFold(index);
+  }
+
+  /** Whether a set shows its result rather than its fields: finished, and not the one under edit. */
+  function isFolded(setIndex: number): boolean {
+    return editingSet !== setIndex && isSettled(model(), setIndex);
+  }
+
+  /** The button a folded set shows in place of its field: the games, with the loser's points raised. */
+  function completedRepresentation(sideNumber: SideNumber, setIndex: number): HTMLButtonElement {
+    const done = document.createElement('button');
+    done.type = 'button';
+    done.className = 'chc-sec-set-done';
+    done.dataset.doneSide = String(sideNumber);
+    done.dataset.doneSet = String(setIndex + 1);
+    done.title = 'Click to edit this set';
+    done.addEventListener('click', () => reopen(setIndex, sideNumber));
+    folded.set(key('games', sideNumber, setIndex), done);
+    return done;
+  }
+
+  /** The result as the representation reads it: `6` with a raised `3` on the side that lost the tiebreak. */
+  function writeCompleted(done: HTMLButtonElement, sideNumber: SideNumber, setIndex: number): void {
+    const gamesText = textOf(games(setIndex, sideNumber));
+    const mine = valueOf(tiebreak(setIndex, sideNumber));
+    const theirs = valueOf(tiebreak(setIndex, otherSide(sideNumber)));
+    const raised = mine !== undefined && (theirs === undefined || mine < theirs);
+
+    done.replaceChildren(gamesText);
+    if (raised) {
+      const sup = document.createElement('sup');
+      sup.className = 'chc-sec-tb-mark';
+      sup.setAttribute('aria-hidden', 'true');
+      sup.textContent = String(mine);
+      done.append(sup);
+    }
+    const said = raised ? `${gamesText} games, tiebreak ${mine}` : `${gamesText} games`;
+    done.setAttribute(ARIA_LABEL, `${ordinalSetLabel(setIndex + 1)} set, side ${sideNumber}: ${said} — edit`);
+  }
+
+  /**
+   * Bring a folded set's fields back, with the caret in the cell that was clicked.
+   *
+   * Reopening alone is a visibility change. It becomes structural only when the set's tiebreak column
+   * comes back with it, which `enterSet` already handles — so this is `enterSet` and then focus.
+   */
+  function reopen(setIndex: number, sideNumber: SideNumber): void {
+    enterSet(setIndex);
+    const cell = cells.get(key('games', sideNumber, setIndex));
+    cell?.focus();
+    cell?.select();
   }
 
   function tiebreakCell(sideNumber: SideNumber, setIndex: number): HTMLElement {
@@ -339,6 +429,9 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
 
     const before = layoutSignature();
     editingSet = setIndex;
+    // Entering a set unfolds it, and leaving the previous one folds that: visibility, on the elements
+    // already there. Only a column coming or going needs the card's full render below.
+    syncFolds();
     if (layoutSignature() === before) return;
 
     pendingFocus = { kind: 'games', setIndex };
@@ -581,6 +674,11 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
   }
 
   function focusSlotSide(slot: Slot, sideNumber: SideNumber): void {
+    // Moving INTO a folded set means editing it: the fields come back first.
+    if (slot.kind === 'games' && isFolded(slot.setIndex)) {
+      reopen(slot.setIndex, sideNumber);
+      return;
+    }
     const cell = cells.get(key(slot.kind, sideNumber, slot.setIndex));
     cell?.focus();
     cell?.select();
@@ -637,6 +735,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
    */
   function settle(previousSignature: string, focus?: { kind: Slot['kind']; setIndex: number }): void {
     refreshParentheticals();
+    syncFolds();
 
     if (layoutSignature() === previousSignature) {
       params.onChange?.();

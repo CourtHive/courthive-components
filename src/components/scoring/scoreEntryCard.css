@@ -774,3 +774,34 @@
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+/* ── A finished set shows its result, not its fields (note 11/12) ──
+   The same box as the input it stands in for, so a set folding does not move the grid, and a button
+   because it IS the way back in: click it and the fields return. */
+.chc-sec-set-done {
+  justify-self: center;
+  width: 52px;
+  height: 44px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--chc-text-primary);
+  font: inherit;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+}
+.chc-sec-set-done:hover,
+.chc-sec-set-done:focus-visible {
+  border-color: var(--chc-border-primary);
+  background: var(--chc-input-bg);
+}
+.chc-sec-set-done .chc-sec-tb-mark {
+  display: inline;
+}
+.chc-sec-set-input[hidden],
+.chc-sec-tb-mark[hidden],
+.chc-sec-sr-only[hidden] {
+  display: none;
+}
