@@ -2,6 +2,88 @@
 
 Quick reference for integrating the Dynamic Sets scoring modal into TMX.
 
+## The score-entry dialog and the engine: what the outcome has to become
+
+Measured 2026-10-01 against published factory **7.4.0** and against factory `dev` at `cff5c3d7c0`,
+by calling `tournamentEngine.setMatchUpStatus` with each shape over a mocks-engine draw and reading the
+matchUp back. The story that shows it is `Scoring/Score Entry Over a Draw` and the mapping it uses is
+`src/stories/helpers/scoreEntryEngineHost.ts` (`toEngineOutcome`). Every case below is pinned in
+`src/stories/__tests__/scoringStories.test.ts`, so a factory release that changes an answer fails there.
+
+`openScoreEntryDialog`'s `onSubmit` reports:
+
+```typescript
+{ matchUpStatus?, winningSide?, reasonCode?, score?: string, cleared?: true, sets: SetScore[] }
+```
+
+`setMatchUpStatus` reads from `outcome`: **`score.sets`**, **`winningSide`**, **`matchUpStatus`**,
+**`matchUpStatusCodes`** and **`matchUpFormat`**. Nothing else. The two shapes differ in five places,
+and a host has to bridge each one:
+
+| the dialog reports | the engine wants | what happens if you forward it as-is |
+| --- | --- | --- |
+| `score` as a **string** (`'6-4 6-3'`) | `score: { sets }` — it derives `scoreStringSide1/2` itself, every time | **refused**, `ERR_INVALID_VALUES`, on every Submit |
+| `sets` at the top level | `score.sets` | ignored; with no `score` the engine writes no score |
+| `reasonCode: 'W1'` | `matchUpStatusCodes: ['', 'W1']` — positional, the exiting side's index | ignored; the reason is lost |
+| `cleared: true` | `{ score: { sets: [] }, matchUpStatusCodes: [] }` | **not a clear**: the winner is dropped and the stale score stays, as `IN_PROGRESS` |
+| a format chosen through the chip (`onFormatChange`) | `outcome.matchUpFormat`, persisted once the result is accepted | the format change is lost |
+
+Details that decide the mapping:
+
+- **The engine mutates the `outcome` it is handed** — it writes the derived strings into `outcome.score`.
+  Pass a copy if you intend to log or reuse what was sent.
+- **`matchUpStatusCodes` values are trusted, positions mostly are not.** For a single exit the engine
+  reads the side off `winningSide` (`['W1']` with `winningSide: 1` files side 2). For a double exit the
+  index IS the side: send `[code, code]`. For an ending that resolves nobody (`CANCELLED`, `ABANDONED`,
+  `INCOMPLETE`) send `[code]`; it is filed as `matchUpStatusCode`. It stores the split as
+  `sideStatusCodes` / `matchUpStatusCode`, which is what the dialog reads back on reopen.
+- **Send `matchUpStatusCodes` only when a reason was chosen** (TMX's existing rule in
+  `services/transitions/scoreMatchUp.ts`): an empty array blanks the codes. The one place to send the
+  empty array deliberately is the clear, because **a cleared result keeps its reason code otherwise** —
+  measured: a walkover cleared with `{ score: { sets: [] } }` alone resets to `TO_BE_PLAYED` with
+  `sideStatusCodes: { 2: 'W1' }` still on the record.
+- **A set needs BOTH tiebreak scores.** `{ side2TiebreakScore: 3 }` alone is refused
+  (`non-numeric values`). The model reports both (`7`/`3` for a `7-6(3)`), so this only bites a host
+  building sets by hand.
+- **`matchUpStatus` may be omitted** for a played result; `COMPLETED` is derived from `winningSide`.
+  The dialog always reports it, so forward it.
+
+### What the engine does NOT refuse — and CA expected it to
+
+Note 10 of `scoreEntryNotes.txt`: *"I'm sure if this went to the factory it would return an error"*.
+It does not. The engine **accepts** `4-2 2-6 2-6` as `COMPLETED`, `winningSide: 2`, and **accepts**
+`3-7 6-4 6-4` as won by side 1. `analyzeScore` counts only sets that carry a `winningSide` toward the
+match winner — a `4-2` carrying none is simply not counted — and `validateSet` checks that no side
+exceeds `setTo + 1`, so a `7` is within bounds whatever stands opposite it. The factory validates set
+**bounds**, not set **completeness** — the same sets claimed by side 1 are refused (`ERR_INVALID_SCORE`),
+and so is a `3-8`, so the validator is running; it simply never asks whether a set is finished. The card's refusal before Submit is the only guard those scores
+meet; a host that lets anything bypass the card (a keyboard shortcut, an import, a relay) sends them
+straight into the draw.
+
+### One observation for the host to decide on
+
+Reopening a **completed** match: the dialog focuses the first set's lower cell on open, and the
+Dynamic Sets region never folds the set under edit — so set 1 reopens with its cells showing while
+every later set is folded. With `autoFocus: false` all sets fold (`7` over `6³`). The round trip is
+identical either way; which to show is a host decision, and the default is recorded here rather than
+changed.
+
+### Reopening on what the engine holds
+
+Pass the in-context matchUp straight through:
+
+```typescript
+const { matchUp } = tournamentEngine.findMatchUp({ drawId, matchUpId, inContext: true });
+openScoreEntryDialog({ sides: sidesOf(matchUp), matchUpFormat: matchUp.matchUpFormat, matchUp, ... });
+```
+
+`matchUp.score.sets`, `matchUpStatus`, `winningSide`, `sideStatusCodes` and `matchUpStatusCode` are
+exactly what the dialog hydrates from. A `DOUBLE_WALKOVER` comes back on both rows with its reason
+chip pressed; a walkover comes back against the side that exited.
+
+---
+
+
 ## Installation
 
 ```bash
