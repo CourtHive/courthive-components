@@ -538,11 +538,13 @@ describe('the format picker', () => {
     expect(q<HTMLInputElement>(SET_1_SIDE_2)!.value).toBe('7');
   });
 
-  it('LOSES a part-entered set across any format change — CA ruled this acceptable', () => {
-    // The dialog harvests through `currentRegion.getSets()`, which reports only sets whose BOTH sides
-    // are entered — so a half-typed set never reaches the factory and is lost on any format change.
-    // CA, 2026-09-29: *"i think it is fine for half-typed sets to be discarded."* Pinned as the settled
-    // behaviour, not as an omission awaiting a wider `ScoreRegion` contract.
+  it('KEEPS a part-entered set across a format change that leaves its rule alone — CA ruled 2026-10-01', () => {
+    // This pinned the LOSS until S5. The dialog harvested through `getSets()`, which reports only sets
+    // whose both sides are entered, so a half-typed set never reached the factory; CA, 2026-09-29, had
+    // allowed that: *"i think it is fine for half-typed sets to be discarded."* With the model holding
+    // the partial, the format change goes through `changeFormat` and the factory's
+    // `retainScoreForFormat` rule 2 — a set whose rule did not change is kept, finished or not — and
+    // CA, asked again on 2026-10-01 with that available, chose to keep it: *"2) is what I want, yes"*.
     //
     // A first version of this test typed a `3` and asserted the partial SURVIVED — and passed, because
     // smart complements filled the other side and made it a complete 3-6. A `7` has no complement in
@@ -560,7 +562,7 @@ describe('the format picker', () => {
     // A change touching only the DECIDING set — nothing about set 2's rule moved.
     dialog.setMatchUpFormat(DECIDER_TB10);
 
-    expect(q<HTMLInputElement>(SET_2_SIDE_1)!.value).toBe('');
+    expect(q<HTMLInputElement>(SET_2_SIDE_1)!.value, 'the 7 the operator typed is still there').toBe('7');
   });
 
   it('stays SILENT when the change costs the operator nothing — the control', () => {

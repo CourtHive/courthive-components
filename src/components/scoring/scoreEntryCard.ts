@@ -30,7 +30,7 @@
  * called, and nothing else. If a rule appears here, it is in the wrong file.
  */
 
-import { chooseEnding, changeFormat, replaceSets, clearScore, clearAll } from './logic/scoreEntryModel';
+import { chooseEnding, changeFormat, clearScore, clearAll } from './logic/scoreEntryModel';
 import { statusCodeSubtext, statusCodeDisplay, codesForStatus } from './logic/statusCodes';
 import { NON_DIRECTING_ENDINGS, endingLabels } from './logic/irregularEnding';
 import { ENTRY_SIDE, hasCommandModifier, otherSide } from './keyboard';
@@ -40,7 +40,6 @@ import { scoreEntrySummary } from './logic/scoreEntrySummary';
 import {
   discardedScore,
   resolveEnding,
-  enteredSets,
   scoreString,
   winningSide,
   isComplete,
@@ -456,13 +455,12 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
         // judgement, through `changeFormat`. Pass the format BEFORE a region built for it, since a region
         // reads the set count off the model when it is made.
         //
-        // A HALF-TYPED set is dropped here, whatever the factory says of it. CA, 2026-09-29: *"i think it
-        // is fine for half-typed sets to be discarded"*, and `scoreEntryDialog.test.ts` pins the loss.
-        // The model alone would keep a part-entered set whose rule the new format leaves unchanged —
-        // `retainScoreForFormat`'s rule 2, written for exactly that case — so keeping it is one line
-        // away once CA rules on it; until then the pinned behaviour stands.
-        const changed = changeFormat(model(), next.matchUpFormat);
-        store.set(replaceSets(changed, enteredSets(changed)));
+        // A HALF-TYPED set survives where its rule is unchanged. CA had allowed its loss on 2026-09-29
+        // (*"i think it is fine for half-typed sets to be discarded"*) when the dialog harvested only
+        // whole sets; asked again on 2026-10-01, with the model able to keep it, he chose to keep it —
+        // which is `retainScoreForFormat`'s rule 2, written for exactly the operator who corrects the
+        // decider mid-set.
+        store.set(changeFormat(model(), next.matchUpFormat));
       }
       if (next.region) {
         region = next.region;
