@@ -15,6 +15,7 @@
 import { describe, expect, it } from 'vitest';
 
 import * as roundTripStories from '../scoreEntryRoundTrip.stories';
+import * as overADrawStories from '../scoreEntryOverADraw.stories';
 import * as dialogStories from '../scoreEntryDialog.stories';
 import { cModal } from '../../components/modal/cmodal';
 
@@ -28,7 +29,8 @@ function closeAll() {
 
 const modalStories = [
   ...Object.entries(dialogStories as Record<string, any>),
-  ...Object.entries(roundTripStories as Record<string, any>)
+  ...Object.entries(roundTripStories as Record<string, any>),
+  ...Object.entries(overADrawStories as Record<string, any>)
 ].filter(([name, story]) => name !== 'default' && typeof story?.render === 'function');
 
 describe('the format chip is live in every modal story', () => {
