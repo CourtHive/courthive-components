@@ -20,13 +20,13 @@ matchUp back. The story that shows it is `Scoring/Score Entry Over a Draw` and t
 **`matchUpStatusCodes`** and **`matchUpFormat`**. Nothing else. The two shapes differ in five places,
 and a host has to bridge each one:
 
-| the dialog reports | the engine wants | what happens if you forward it as-is |
-| --- | --- | --- |
-| `score` as a **string** (`'6-4 6-3'`) | `score: { sets }` — it derives `scoreStringSide1/2` itself, every time | **refused**, `ERR_INVALID_VALUES`, on every Submit |
-| `sets` at the top level | `score.sets` | ignored; with no `score` the engine writes no score |
-| `reasonCode: 'W1'` | `matchUpStatusCodes: ['', 'W1']` — positional, the exiting side's index | ignored; the reason is lost |
-| `cleared: true` | `{ score: { sets: [] }, matchUpStatusCodes: [] }` | **not a clear**: the winner is dropped and the stale score stays, as `IN_PROGRESS` |
-| a format chosen through the chip (`onFormatChange`) | `outcome.matchUpFormat`, persisted once the result is accepted | the format change is lost |
+| the dialog reports                                  | the engine wants                                                        | what happens if you forward it as-is                                               |
+| --------------------------------------------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `score` as a **string** (`'6-4 6-3'`)               | `score: { sets }` — it derives `scoreStringSide1/2` itself, every time  | **refused**, `ERR_INVALID_VALUES`, on every Submit                                 |
+| `sets` at the top level                             | `score.sets`                                                            | ignored; with no `score` the engine writes no score                                |
+| `reasonCode: 'W1'`                                  | `matchUpStatusCodes: ['', 'W1']` — positional, the exiting side's index | ignored; the reason is lost                                                        |
+| `cleared: true`                                     | `{ score: { sets: [] }, matchUpStatusCodes: [] }`                       | **not a clear**: the winner is dropped and the stale score stays, as `IN_PROGRESS` |
+| a format chosen through the chip (`onFormatChange`) | `outcome.matchUpFormat`, persisted once the result is accepted          | the format change is lost                                                          |
 
 Details that decide the mapping:
 
@@ -50,7 +50,7 @@ Details that decide the mapping:
 
 ### What the engine does NOT refuse — and CA expected it to
 
-Note 10 of `scoreEntryNotes.txt`: *"I'm sure if this went to the factory it would return an error"*.
+Note 10 of `scoreEntryNotes.txt`: _"I'm sure if this went to the factory it would return an error"_.
 It does not. The engine **accepts** `4-2 2-6 2-6` as `COMPLETED`, `winningSide: 2`, and **accepts**
 `3-7 6-4 6-4` as won by side 1. `analyzeScore` counts only sets that carry a `winningSide` toward the
 match winner — a `4-2` carrying none is simply not counted — and `validateSet` checks that no side
@@ -82,7 +82,6 @@ exactly what the dialog hydrates from. A `DOUBLE_WALKOVER` comes back on both ro
 chip pressed; a walkover comes back against the side that exited.
 
 ---
-
 
 ## Installation
 
