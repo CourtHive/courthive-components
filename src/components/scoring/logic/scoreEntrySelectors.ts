@@ -30,11 +30,19 @@
  * `chooseEnding` — and every answer here comes back the moment the ending is un-chosen.
  */
 
-import { decidingIndex, enteredFactorySets, isEmptyEntry, isEntered, readCell, setCountOf } from './scoreEntryModel';
 import { matchUpStatusConstants, scoreGovernor } from 'tods-competition-factory';
 import { ordinalSetLabel } from '../regions/setColumns';
 import { resolveScoreEntry } from './scoreEntryState';
 import { scoreLine } from '../regions/scoreLine';
+import {
+  decidingIndex,
+  enteredFactorySets,
+  gamesLoser,
+  isEmptyEntry,
+  isEntered,
+  readCell,
+  setCountOf
+} from './scoreEntryModel';
 import {
   getSetFormatForIndex,
   shouldShowTiebreak,
@@ -135,28 +143,57 @@ export function matchUpStatus(model: ScoreEntryModel): string | undefined {
 /**
  * The first thing wrong with the score, in words, or `undefined`.
  *
- * Two checks, in order:
+ * Three checks, in order:
  *
- *   1. the FACTORY's judgement of each entered set (`validateSetScore` with `allowIncomplete`), which
- *      forgives unfinished games but knows `3-7` cannot be, and that a set's winner must win its
- *      tiebreak — the card used to hand-check that last one, until the validator learned it. A set
- *      whose tiebreak points are still owed is skipped, because the card is asking for them and an
- *      error at that moment would answer its own question;
- *   2. invariant 10A: a set before the last entered one that is empty or unfinished.
+ *   1. a tiebreak that contradicts who won the set, with the participant NAMED — the factory refuses it
+ *      too, but "side 1" is not a message an operator can act on;
+ *   2. the FACTORY's judgement of each entered set (`validateSetScore` with `allowIncomplete`), which
+ *      forgives unfinished games but knows `3-7` cannot be. A set whose tiebreak points are still owed
+ *      is skipped, because the card is asking for them and an error at that moment would answer its
+ *      own question;
+ *   3. invariant 10A: a set before the last entered one that is empty or unfinished.
  *
  * Silent while a score-clearing ending is chosen: nothing typed will be submitted.
  */
-export function error(model: ScoreEntryModel): string | undefined {
+export type ErrorOptions = {
+  /** Names for the two sides, so a message can say who rather than "side 1". */
+  sideNames?: [string, string];
+};
+
+export function error(model: ScoreEntryModel, options: ErrorOptions = {}): string | undefined {
   if (resolveEnding(model).clearsScore) return undefined;
 
   const config = configOf(model);
   for (const [index, entry] of model.sets.entries()) {
     if (!isEntered(entry)) continue;
-    const problem = setError(model, index, entry, config);
+    const problem = tiebreakContradiction(index, entry, options) ?? setError(model, index, entry, config);
     if (problem) return problem;
   }
 
   return unfinishedBeforeLast(model);
+}
+
+/**
+ * A tiebreak whose points contradict the games, NAMED.
+ *
+ * The factory refuses this too since `#5049(factory)`, with "Set winner must win the tiebreak: side 1 won
+ * the set". This says the same thing with the participant's name, which is the message an operator can
+ * act on, so it is asked first rather than being pre-empted by the factory's. A tied pair is left to the
+ * factory, whose margin message says what is actually wrong.
+ */
+function tiebreakContradiction(index: number, entry: SetEntry, options: ErrorOptions): string | undefined {
+  if (entry.tiebreak1 === undefined || entry.tiebreak2 === undefined) return undefined;
+  if (entry.tiebreak1 === entry.tiebreak2) return undefined;
+
+  const loser = gamesLoser(entry);
+  if (loser === undefined) return undefined;
+
+  const gamesWinner: SideNumber = loser === 1 ? 2 : 1;
+  const pointsWinner: SideNumber = entry.tiebreak1 > entry.tiebreak2 ? 1 : 2;
+  if (pointsWinner === gamesWinner) return undefined;
+
+  const name = options.sideNames?.[gamesWinner - 1] ?? `side ${gamesWinner}`;
+  return `${setLabel(index)} ${name} won it, so they must win the tiebreak`;
 }
 
 function setError(model: ScoreEntryModel, index: number, entry: SetEntry, config: MatchUpConfig): string | undefined {
