@@ -43,49 +43,42 @@
  * model; they differ only in which selector they ask.
  */
 
-import { enteredSets, isComplete, winningSide, scoreString, hasEntry, error } from '../logic/scoreEntrySelectors';
 import { getSetFormatForIndex, isSetTiebreakOnly, matchUpConfigFor } from '../logic/dynamicSetsLogic';
+import { clearCell, gamesLoser, isEmptyEntry, readCell, typeDigit } from '../logic/scoreEntryModel';
 import { ENTRY_SIDE, digitFromCode, hasCommandModifier, otherSide } from '../keyboard';
 import { createScoreReadouts, READOUT_COLUMN_WIDTH } from './scoreReadout';
+import { createScoreEntryStore } from '../logic/scoreEntryStore';
 import { tiebreakOnlyTarget } from '../logic/tiebreakEntry';
-import {
-  createScoreEntryModel,
-  clearAll,
-  clearCell,
-  gamesLoser,
-  isEmptyEntry,
-  readCell,
-  typeDigit
-} from '../logic/scoreEntryModel';
+import { enteredSets } from '../logic/scoreEntrySelectors';
 
 import type { CellRef, ScoreEntryModel, SetEntry } from '../logic/scoreEntryModel';
+import type { ScoreEntryStore } from '../logic/scoreEntryStore';
 import type { SideNumber } from '../logic/scoreEntryState';
 import type { ScoreRegion } from '../scoreEntryCard';
 import type { SetScore } from '../types';
 
 export type DialPadRegionParams = {
+  /** The model the card holds. Omit it and the region makes its own from the params below. */
+  store?: ScoreEntryStore;
   matchUpFormat?: string;
-  /** Sets already recorded, e.g. from a saved matchUp. */
+  /** Sets already recorded, e.g. from a saved matchUp. Read only when no `store` is given. */
   sets?: SetScore[];
   onChange?: () => void;
 };
 
 export type DialPadRegion = ScoreRegion & {
+  store: ScoreEntryStore;
+  /** The entered sets, for a host or a test reading the region directly. The card reads the model. */
   getSets: () => SetScore[];
-  /** Required here, though optional on `ScoreRegion`: every entry approach can answer it. */
-  hasEntry: () => boolean;
 };
 
 export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion {
-  const config = matchUpConfigFor(params.matchUpFormat);
-
-  /** The one truth. Replaced, never mutated. */
-  let model: ScoreEntryModel = createScoreEntryModel({
-    matchUpFormat: params.matchUpFormat,
-    approach: 'dialPad',
-    sets: params.sets
-  });
-  const setCount = model.sets.length;
+  /** The one truth, shared with the card. Replaced through `store.set`, never mutated. */
+  const store =
+    params.store ??
+    createScoreEntryStore({ matchUpFormat: params.matchUpFormat, approach: 'dialPad', sets: params.sets });
+  const config = matchUpConfigFor(store.get().matchUpFormat);
+  const setCount = store.get().sets.length;
   /** Whether the next digit is entered as a tiebreak rather than as games. Presentation: see the header. */
   let tiebreakMode = false;
   const readouts = createScoreReadouts();
@@ -93,17 +86,13 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
   const digitKeys = new Map<number, HTMLButtonElement>();
 
   return {
+    store,
     columns: () => [{ width: READOUT_COLUMN_WIDTH }],
     rowCells: (sideNumber) => [readouts.cell(sideNumber, readoutSets())],
     block: () => keypad(),
-    scoreString: () => scoreString(model),
-    isComplete: () => isComplete(model),
-    winningSide: () => winningSide(model),
-    getSets: () => enteredSets(model),
-    error: () => error(model),
-    hasEntry: () => hasEntry(model),
+    getSets: () => enteredSets(model()),
+    // The card has already emptied the model; this resets what is the keypad's own.
     clear: () => {
-      model = clearAll(model);
       tiebreakMode = false;
       changed();
     },
@@ -113,6 +102,10 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
 
   // ── Reading the model ─────────────────────────────────────────────────
 
+  function model(): ScoreEntryModel {
+    return store.get();
+  }
+
   /**
    * What the rows SHOW: every set holding anything, a missing side read as 0.
    *
@@ -121,7 +114,7 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
    * asserted: it tells the operator which row their tap landed on.
    */
   function readoutSets(): SetScore[] {
-    return model.sets.flatMap((entry, index) => {
+    return model().sets.flatMap((entry, index) => {
       if (isEmptyEntry(entry)) return [];
       if (tiebreakOnly(index)) {
         return [
@@ -181,7 +174,7 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
   function nextSlot(shifted = false): CellRef | undefined {
     const named: SideNumber = shifted ? otherSide(ENTRY_SIDE) : ENTRY_SIDE;
 
-    for (const [index, entry] of model.sets.entries()) {
+    for (const [index, entry] of model().sets.entries()) {
       if (!filled(entry, named)) return games(index, named);
       // Only an UNSHIFTED press alternates into the other side of the same set. A shifted press NAMES
       // the upper row, so when that row is taken it moves on to the next set rather than landing on the
@@ -200,8 +193,8 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
    * the value just typed rather than a value entered before it.
    */
   function lastWritten(): CellRef | undefined {
-    for (let index = model.sets.length - 1; index >= 0; index -= 1) {
-      const entry = model.sets[index];
+    for (let index = model().sets.length - 1; index >= 0; index -= 1) {
+      const entry = model().sets[index];
       if (filled(entry, otherSide(ENTRY_SIDE))) return games(index, otherSide(ENTRY_SIDE));
       if (filled(entry, ENTRY_SIDE)) return games(index, ENTRY_SIDE);
     }
@@ -210,8 +203,8 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
 
   /** The set a tiebreak would attach to: the last one with any games in it. */
   function lastActiveIndex(): number {
-    for (let index = model.sets.length - 1; index >= 0; index -= 1) {
-      if (!isEmptyEntry(model.sets[index])) return index;
+    for (let index = model().sets.length - 1; index >= 0; index -= 1) {
+      if (!isEmptyEntry(model().sets[index])) return index;
     }
     return 0;
   }
@@ -227,7 +220,7 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
    */
   function openTiebreakOnlySet(): number | undefined {
     for (let index = 0; index < setCount; index += 1) {
-      const entry = model.sets[index];
+      const entry = model().sets[index];
       if (!tiebreakOnly(index)) {
         if (!filled(entry, 1) || !filled(entry, 2)) return undefined;
         continue;
@@ -255,8 +248,8 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
 
   /** Replace the model, and refuse nothing silently: an unchanged model means the tap went nowhere. */
   function apply(next: ScoreEntryModel): boolean {
-    if (next === model) return false;
-    model = next;
+    if (next === model()) return false;
+    store.set(next);
     changed();
     return true;
   }
@@ -272,7 +265,7 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     const tiebreakSet = openTiebreakOnlySet();
     if (tiebreakSet !== undefined) {
       apply(
-        typeDigit(model, {
+        typeDigit(model(), {
           cell: games(tiebreakSet, shifted ? otherSide(ENTRY_SIDE) : ENTRY_SIDE),
           digit,
           complement: true
@@ -291,11 +284,11 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     // more recently.
     const written = lastWritten();
     const last = shifted && written?.side !== otherSide(ENTRY_SIDE) ? undefined : written;
-    if (last && apply(typeDigit(model, { cell: last, digit }))) return;
+    if (last && apply(typeDigit(model(), { cell: last, digit }))) return;
 
     const slot = nextSlot(shifted);
     if (!slot) return;
-    apply(typeDigit(model, { cell: slot, digit }));
+    apply(typeDigit(model(), { cell: slot, digit }));
   }
 
   /**
@@ -307,8 +300,8 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
    */
   function pressTiebreakDigit(digit: number): void {
     const index = lastActiveIndex();
-    const loser = gamesLoser(model.sets[index]);
-    apply(typeDigit(model, { cell: tiebreak(index, loser ?? ENTRY_SIDE), digit, complement: loser !== undefined }));
+    const loser = gamesLoser(model().sets[index]);
+    apply(typeDigit(model(), { cell: tiebreak(index, loser ?? ENTRY_SIDE), digit, complement: loser !== undefined }));
   }
 
   /**
@@ -324,8 +317,8 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
    * it re-derives whatever the model derives (a tiebreak-only complement, a tiebreak pair) on the way.
    */
   function backspace(): void {
-    for (let index = model.sets.length - 1; index >= 0; index -= 1) {
-      const entry = model.sets[index];
+    for (let index = model().sets.length - 1; index >= 0; index -= 1) {
+      const entry = model().sets[index];
       if (isEmptyEntry(entry)) continue;
 
       if (tiebreakOnly(index)) {
@@ -361,7 +354,7 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
 
   /** Clear the given cells, then type `digits` back into `cell` one keystroke at a time. */
   function retype(cell: CellRef, digits: string, toClear: CellRef[], complement = false): void {
-    let next = model;
+    let next = model();
     for (const target of toClear) next = clearCell(next, target);
     for (const digit of digits) next = typeDigit(next, { cell, digit: Number(digit), complement });
     apply(next);

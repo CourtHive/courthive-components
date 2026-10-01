@@ -31,7 +31,7 @@
  *   the smart complement               `typeDigit({ complement })`, from the model's own rule
  *   a tiebreak's other side            the same, from the games loser's cell only
  *   a tiebreak the games stop needing  forgotten by the model when the GAMES change
- *   which columns exist                `columns(model, { editingSet })`
+ *   which columns exist                `columns(model(), { editingSet })`
  *   what is wrong with the score       `error(model, { sideNames })`
  *
  * Nothing here decides anything about tennis. An `input` event is replayed into the model one digit at
@@ -47,30 +47,16 @@
  * in next. Within a set nothing is rebuilt: the `onChange` seam keeps the input being typed into.
  */
 
+import { tiebreakOutstanding, enteredSets, cellValue, columns, error } from '../logic/scoreEntrySelectors';
 import { getSetFormatForIndex, matchUpConfigFor, isSetTimed } from '../logic/dynamicSetsLogic';
 import { ENTRY_SIDE, digitFromCode, hasCommandModifier, otherSide } from '../keyboard';
+import { gamesLoser, clearCell, typeDigit } from '../logic/scoreEntryModel';
+import { createScoreEntryStore } from '../logic/scoreEntryStore';
 import { ordinalSetLabel } from './setColumns';
-import {
-  tiebreakOutstanding,
-  enteredSets,
-  scoreString,
-  winningSide,
-  isComplete,
-  cellValue,
-  hasEntry,
-  columns,
-  error
-} from '../logic/scoreEntrySelectors';
-import {
-  createScoreEntryModel,
-  gamesLoser,
-  clearCell,
-  typeDigit,
-  clearAll as clearModel
-} from '../logic/scoreEntryModel';
 
 import type { CellRef, ScoreEntryModel } from '../logic/scoreEntryModel';
 import type { ScoreColumn, ScoreRegion } from '../scoreEntryCard';
+import type { ScoreEntryStore } from '../logic/scoreEntryStore';
 import type { ScoreSlot } from '../logic/scoreEntrySelectors';
 import type { SideNumber } from '../logic/scoreEntryState';
 import type { SetScore } from '../types';
@@ -80,6 +66,8 @@ const TIEBREAK_COLUMN_WIDTH = '54px';
 const ARIA_LABEL = 'aria-label';
 
 export type DynamicSetsRegionParams = {
+  /** The model the card holds. Omit it and the region makes its own from the params below. */
+  store?: ScoreEntryStore;
   matchUpFormat?: string;
   /** Participant names, so an integrity message can say who rather than "side 1". */
   sideNames?: [string, string];
@@ -95,24 +83,23 @@ export type DynamicSetsRegionParams = {
 };
 
 export type DynamicSetsRegion = ScoreRegion & {
+  store: ScoreEntryStore;
+  /** The entered sets, for a host or a test reading the region directly. The card reads the model. */
   getSets: () => SetScore[];
-  /** Required here, though optional on `ScoreRegion`: every entry approach can answer it. */
-  hasEntry: () => boolean;
+  /** The model's integrity message, named with this region's `sideNames`. The card computes its own. */
+  error: () => string | undefined;
   smartComplementsEnabled: () => boolean;
 };
 
 type Slot = ScoreSlot;
 
 export function createDynamicSetsRegion(params: DynamicSetsRegionParams): DynamicSetsRegion {
-  const config = matchUpConfigFor(params.matchUpFormat);
-
-  /** The one truth. Replaced, never mutated. */
-  let model: ScoreEntryModel = createScoreEntryModel({
-    matchUpFormat: params.matchUpFormat,
-    approach: 'dynamicSets',
-    sets: params.sets
-  });
-  const setCount = model.sets.length;
+  /** The one truth, shared with the card. Replaced through `store.set`, never mutated. */
+  const store =
+    params.store ??
+    createScoreEntryStore({ matchUpFormat: params.matchUpFormat, approach: 'dynamicSets', sets: params.sets });
+  const config = matchUpConfigFor(store.get().matchUpFormat);
+  const setCount = store.get().sets.length;
   let smartComplements = params.smartComplements !== false;
   /**
    * The sets whose games complement has fired. Policy, not score: the model infers the pair from the
@@ -148,21 +135,22 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
   const spokenMarks = new Map<string, HTMLElement>();
 
   return {
+    store,
     columns: () => layout().map(toColumn),
     rowCells: (sideNumber) => layout().map((slot) => cellFor(sideNumber, slot)),
-    scoreString: () => scoreString(model),
-    isComplete: () => isComplete(model),
-    winningSide: () => winningSide(model),
-    getSets: () => enteredSets(model),
+    getSets: () => enteredSets(model()),
     bandControl: () => smartComplementsToggle(),
-    hasEntry: () => hasEntry(model),
-    error: () => error(model, { sideNames: params.sideNames }),
+    error: () => error(model(), { sideNames: params.sideNames }),
     clear: () => clearAll(),
     focusFirst: () => focusSlotSide({ kind: 'games', setIndex: 0 }, ENTRY_SIDE),
     smartComplementsEnabled: () => smartComplements
   };
 
   // ── Reading the model ─────────────────────────────────────────────────
+
+  function model(): ScoreEntryModel {
+    return store.get();
+  }
 
   function games(setIndex: number, side: SideNumber): CellRef {
     return { setIndex, side, kind: 'games' };
@@ -173,7 +161,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
   }
 
   function valueOf(cell: CellRef): number | undefined {
-    return cellValue(model, cell.setIndex, cell.side, cell.kind);
+    return cellValue(model(), cell.setIndex, cell.side, cell.kind);
   }
 
   /** A cell's value as the field shows it: digits, or nothing. */
@@ -194,7 +182,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
    * is what keeps a cleared set 1 from hiding a typed set 2.
    */
   function layout(): Slot[] {
-    return columns(model, { editingSet });
+    return columns(model(), { editingSet });
   }
 
   function toColumn(slot: Slot): ScoreColumn {
@@ -391,7 +379,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
    * empty set, where the model's own rule says it applies.
    */
   function replayed(cell: CellRef, digits: string): ScoreEntryModel {
-    let next = clearCell(model, cell);
+    let next = clearCell(model(), cell);
     for (const character of digits) {
       const after = typeDigit(next, { cell, digit: Number(character), complement: offersComplement(cell) });
       if (after === next) break;
@@ -418,7 +406,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
 
   /** Replace the model and bring every field into line with it. */
   function apply(next: ScoreEntryModel): void {
-    model = next;
+    store.set(next);
     syncCells();
   }
 
@@ -429,7 +417,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     apply(replayed(games(setIndex, sideNumber), digitsOnly(input)));
 
     // If these games now call for a tiebreak, that is where the operator goes.
-    settle(before, tiebreakOutstanding(model, setIndex) ? { kind: 'tiebreak', setIndex } : undefined);
+    settle(before, tiebreakOutstanding(model(), setIndex) ? { kind: 'tiebreak', setIndex } : undefined);
   }
 
   function onTiebreakTyped(sideNumber: SideNumber, setIndex: number, input: HTMLInputElement): void {
@@ -520,8 +508,8 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     editingSet = setIndex;
 
     const target = games(setIndex, shifted ? otherSide(sideNumber) : sideNumber);
-    const next = typeDigit(model, { cell: target, digit, complement: offersComplement(target) });
-    if (next === model) return true;
+    const next = typeDigit(model(), { cell: target, digit, complement: offersComplement(target) });
+    if (next === model()) return true;
 
     const complemented = noteComplement(target, next);
     if (!shifted && !complemented) return false;
@@ -532,7 +520,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     // set — CA: *"when I enter '3' and the other side smart auto complete's to '6' the focus should then
     // shift to the 2nd set score entry"*. Not past the last set, and not when the match is decided —
     // which is the same question as whether the model shows the next column at all.
-    const following = tiebreakOutstanding(model, setIndex)
+    const following = tiebreakOutstanding(model(), setIndex)
       ? ({ kind: 'tiebreak', setIndex } as Slot)
       : advanceTarget(setIndex);
 
@@ -611,15 +599,22 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
    */
   function entrySideFor(slot: { kind: Slot['kind']; setIndex: number }): SideNumber {
     if (slot.kind !== 'tiebreak') return ENTRY_SIDE;
-    return gamesLoser(model.sets[slot.setIndex]) ?? ENTRY_SIDE;
+    return gamesLoser(model().sets[slot.setIndex]) ?? ENTRY_SIDE;
   }
 
-  /** Discard every score. The model's own `clearAll`, then the fields follow it. */
+  /**
+   * Reset what is this region's own after the card has emptied the model.
+   *
+   * The SCORE is already gone — the card clears the model first, score and ending together — so this
+   * touches nothing in the store. A first version called the model's `clearAll` here as well, which
+   * also dropped the ENDING the card had just chosen: a walkover emptied the cells and then unrecorded
+   * itself. A region's reset is presentation, and only presentation.
+   */
   function clearAll(): void {
     const before = layoutSignature();
-    apply(clearModel(model));
     complementsUsed.clear();
     editingSet = undefined;
+    syncCells();
     settle(before);
   }
 
