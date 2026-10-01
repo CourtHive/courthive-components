@@ -28,19 +28,22 @@
  * `resolveReportedEnding` in `scoreEntryState.ts`, which is where that precedence is written down.
  */
 
-import { enteredSets, scoreString, winningSide, isComplete, error } from '../logic/scoreEntrySelectors';
-import { createScoreEntryModel, replaceSets, clearAll } from '../logic/scoreEntryModel';
+import { enteredSets, scoreString, isComplete } from '../logic/scoreEntrySelectors';
 import { createScoreReadouts, READOUT_COLUMN_WIDTH } from './scoreReadout';
+import { createScoreEntryStore } from '../logic/scoreEntryStore';
 import { parseScore } from '../../../tools/freeScore/freeScore';
-import { scoreLine } from './scoreLine';
+import { replaceSets } from '../logic/scoreEntryModel';
 
+import type { ScoreEntryStore } from '../logic/scoreEntryStore';
 import type { ScoreEntryModel } from '../logic/scoreEntryModel';
 import type { ScoreRegion } from '../scoreEntryCard';
 import type { SetScore } from '../types';
 
 export type FreeScoreRegionParams = {
+  /** The model the card holds. Omit it and the region makes its own from the params below. */
+  store?: ScoreEntryStore;
   matchUpFormat?: string;
-  /** The score to open with, already formatted (e.g. `'6-4 6-3'`). */
+  /** The score to open with, already formatted (e.g. `'6-4 6-3'`). With a `store`, the model's own line is used. */
   initialText?: string;
   /** Label above the field. */
   label?: string;
@@ -49,48 +52,47 @@ export type FreeScoreRegionParams = {
 };
 
 export type FreeScoreRegion = ScoreRegion & {
+  store: ScoreEntryStore;
   /** What is currently in the field. */
   getText: () => string;
-  /** The sets the model holds, for submission. */
+  /** The entered sets, for a host or a test reading the region directly. The card reads the model. */
   getSets: () => SetScore[];
-  /** Required here, though optional on `ScoreRegion`: every entry approach can answer it. */
+  /** Text in the field counts as entry the model cannot see; required here. */
   hasEntry: () => boolean;
 };
 
 export function createFreeScoreRegion(params: FreeScoreRegionParams): FreeScoreRegion {
-  const matchUpFormat = params.matchUpFormat ?? 'SET3-S:6/TB7';
   /** The field's own value. Text, because that is what the operator is typing. */
   let text = params.initialText ?? '';
-  /** The one truth about the SCORE. Replaced at every point the text parses to sets. */
-  let model: ScoreEntryModel = createScoreEntryModel({
-    matchUpFormat,
-    approach: 'freeScore',
-    sets: parsed().sets
-  });
+  /**
+   * The one truth about the SCORE, shared with the card. Replaced at every point the text parses to sets.
+   * Given a store, the field opens on the factory's line for the model's sets — the same line the other
+   * two approaches display — so an approach switch into Free Score is a render of the model, not a
+   * translation through text.
+   */
+  const store = params.store ?? createScoreEntryStore({ matchUpFormat: params.matchUpFormat, approach: 'freeScore' });
+  const matchUpFormat = store.get().matchUpFormat;
+  if (params.store) text = params.initialText ?? scoreString(store.get()) ?? '';
+  else commit();
   let field: HTMLInputElement | undefined;
   let note: HTMLElement | undefined;
   const readouts = createScoreReadouts();
 
   return {
+    store,
     // One unlabelled column: the rows READ here, they do not accept input.
     columns: () => [{ width: READOUT_COLUMN_WIDTH }],
-    rowCells: (sideNumber) => [readouts.cell(sideNumber, enteredSets(model))],
+    rowCells: (sideNumber) => [readouts.cell(sideNumber, enteredSets(model()))],
     block: () => entryBlock(),
-    scoreString: () => scoreText(),
-    // The parser's own rule, kept: a parsed ending means the text is NOT claiming a finished score,
-    // whatever the sets say. `6-4 6-3 ret` is a retirement with a score, not a completed match.
-    isComplete: () => !reportedEnding() && isComplete(model),
-    winningSide: () => winningSide(model),
     matchUpStatus: () => reportedEnding(),
-    error: () => error(model),
     getText: () => text,
-    getSets: () => enteredSets(model),
+    getSets: () => enteredSets(model()),
     // Text that does not parse to a single set is still entry — and is exactly the state worth NOT
     // discarding, because the operator is mid-way through typing it.
     hasEntry: () => !!text.trim(),
+    // The card has already emptied the model; this resets what is the field's own.
     clear: () => {
       text = '';
-      model = clearAll(model);
       if (field) field.value = '';
       readouts.update([]);
       params.onChange?.();
@@ -112,6 +114,10 @@ export function createFreeScoreRegion(params: FreeScoreRegionParams): FreeScoreR
   };
 
   // ── Parsing: the boundary ────────────────────────────────────────────
+
+  function model(): ScoreEntryModel {
+    return store.get();
+  }
 
   /**
    * The parse of what is currently typed.
@@ -135,19 +141,7 @@ export function createFreeScoreRegion(params: FreeScoreRegionParams): FreeScoreR
 
   /** Commit what the text now parses to. The model decides whether anything changed. */
   function commit(): void {
-    model = replaceSets(model, parsed().sets);
-  }
-
-  function scoreText(): string | undefined {
-    const result = parsed().result;
-    if (!result) return undefined;
-
-    // The FACTORY's line over the MODEL's sets when the parse succeeded, so the band quotes a canonical
-    // `6-4 6-3` rather than whatever shorthand was typed — and quotes it identically to the other two
-    // approaches. The raw text when the parse did NOT succeed, because showing nothing while the
-    // operator is mid-word reads as the field being ignored.
-    if (!result.valid) return text || undefined;
-    return scoreString(model) ?? scoreLine(enteredSets(model), matchUpFormat) ?? result.formattedScore;
+    store.set(replaceSets(model(), parsed().sets));
   }
 
   // ── Rendering ────────────────────────────────────────────────────────
@@ -180,7 +174,7 @@ export function createFreeScoreRegion(params: FreeScoreRegionParams): FreeScoreR
       commit();
       // The readout is in the participant ROWS, which the card's `refresh` deliberately does not
       // re-render — so the region updates it itself.
-      readouts.update(enteredSets(model));
+      readouts.update(enteredSets(model()));
       renderNote();
       params.onChange?.();
     });
@@ -227,7 +221,7 @@ export function createFreeScoreRegion(params: FreeScoreRegionParams): FreeScoreR
 
     // "Finished" is the MODEL's judgement now, not the parser's: the parser calls `4-2 2-6 2-6`
     // complete, and it is not.
-    const finished = !result.matchUpStatus && isComplete(model);
+    const finished = !result.matchUpStatus && isComplete(model());
     note.dataset.tone = finished ? 'good' : 'idle';
     note.textContent = finished
       ? `A complete match under ${matchUpFormat}`

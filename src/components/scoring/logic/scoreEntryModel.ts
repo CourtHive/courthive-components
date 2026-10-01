@@ -326,6 +326,19 @@ export function clearCell(model: ScoreEntryModel, cell: CellRef): ScoreEntryMode
   return setCell(model, cell, undefined);
 }
 
+/**
+ * Empty every set and keep the ending: what a score-clearing ending does to the cells.
+ *
+ * CA, 2026-09-30: *"when I enter set score(s) and then select (Walkover) the set score(s) should
+ * clear."* The card calls this when the chosen ending carries no score, having first read `scoreString`
+ * for the band. Final, like `[Clear]`: un-choosing the walkover does not bring the score back, because a
+ * remembered score that silently reappears on an approach switch was the worse bug.
+ */
+export function clearScore(model: ScoreEntryModel): ScoreEntryModel {
+  if (model.sets.every((entry) => isEmptyEntry(entry))) return model;
+  return { ...model, sets: model.sets.map(() => EMPTY_SET) };
+}
+
 /** Empty every set and un-choose the ending: the card's `[Clear]`. Format and approach stay. */
 export function clearAll(model: ScoreEntryModel): ScoreEntryModel {
   const empty = model.sets.every((entry) => isEmptyEntry(entry));

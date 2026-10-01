@@ -12,6 +12,7 @@
  *   3. note 9's ghost set is gone by construction: a cleared set 1 beside a typed set 2 shows both.
  */
 import { createDynamicSetsRegion } from '../regions/dynamicSetsRegion';
+import { isComplete } from '../logic/scoreEntrySelectors';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { renderScoreEntryCard } from '../scoreEntryCard';
 
@@ -135,7 +136,7 @@ describe('note 9 — a cleared set no longer hides the one typed after it', () =
     expect(h.cell(2, 2)!.value).toBe('2');
     // And nothing claims a finished result: the first set has no score, and the band says so.
     expect(h.region.error?.()).toBe('1st set: has no score');
-    expect(h.region.isComplete?.()).toBe(false);
+    expect(isComplete(h.region.store.get())).toBe(false);
     expect(h.band()?.textContent).not.toContain('def.');
   });
 });

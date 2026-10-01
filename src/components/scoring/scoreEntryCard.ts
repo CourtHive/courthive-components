@@ -30,26 +30,34 @@
  * called, and nothing else. If a rule appears here, it is in the wrong file.
  */
 
+import { chooseEnding, changeFormat, replaceSets, clearScore, clearAll } from './logic/scoreEntryModel';
 import { statusCodeSubtext, statusCodeDisplay, codesForStatus } from './logic/statusCodes';
 import { NON_DIRECTING_ENDINGS, endingLabels } from './logic/irregularEnding';
 import { ENTRY_SIDE, hasCommandModifier, otherSide } from './keyboard';
 import { matchUpStatusConstants } from 'tods-competition-factory';
+import { createScoreEntryStore } from './logic/scoreEntryStore';
 import { scoreEntrySummary } from './logic/scoreEntrySummary';
 import {
-  emptyScoreEntryState,
-  toggleBothSidesOut,
+  discardedScore,
+  resolveEnding,
+  enteredSets,
+  scoreString,
+  winningSide,
+  isComplete,
+  hasEntry,
+  error
+} from './logic/scoreEntrySelectors';
+import {
   offersBothSidesOut,
   matchEndingOptions,
-  chooseMatchEnding,
   resolveReportedEnding,
-  resolveScoreEntry,
-  chooseSideEnding,
-  chooseReasonCode,
   sideEndingOptions,
   reasonCodeStatus
 } from './logic/scoreEntryState';
 
 import type { ScoreEntryState, ScoreEntryResolution, SideNumber } from './logic/scoreEntryState';
+import type { ScoreEntryModel, EndingIntent } from './logic/scoreEntryModel';
+import type { ScoreEntryStore } from './logic/scoreEntryStore';
 import type { StatusCodeGroups } from './logic/statusCodes';
 
 import './scoreEntryCard.css';
@@ -165,26 +173,34 @@ export type ScoreColumn = {
   width?: string;
 };
 
+/**
+ * What a score region IS, now that the card holds the model: render, and intent.
+ *
+ * S5 of the state-engine extraction. This contract used to carry fourteen members, six of which were
+ * ANSWERS — `scoreString`, `isComplete`, `winningSide`, `error`, `hasEntry`, `getSets` — computed by each
+ * region on the spot from its private copy of the score. Those are selectors over the model now, asked
+ * by the card, and a region that still answered them would be a second opinion the card ignores.
+ *
+ * What is left is what a region genuinely knows and the model cannot: how to DRAW the score (cells,
+ * a block, a control for the band), where entry begins, what is its own to reset after the model was
+ * emptied, and — for Free Score only — what the TEXT says that the model cannot represent: an ending
+ * parsed out of it, and a half-typed field.
+ */
 export type ScoreRegion = {
+  /**
+   * The store the region renders, when it made its own.
+   *
+   * A region built standalone — the behavioural tests, or a host placing a card inline — creates a store
+   * from its params, and the card adopts it so the two share one model. A host that opens the dialog
+   * gives the same store to the card and every region, and this is never consulted.
+   */
+  store?: ScoreEntryStore;
   /** The columns this region contributes to each participant row. */
   columns?: () => ScoreColumn[];
   /** The cells to place in one side's row. Must return one per column. */
   rowCells?: (sideNumber: SideNumber) => HTMLElement[];
   /** A block beneath the rows — a text field, or a keypad. */
   block?: () => HTMLElement;
-  /** The score as it currently stands, for the result band. */
-  scoreString?: () => string | undefined;
-  /** Whether that score is a finished result. The region's judgement, never the card's. */
-  isComplete?: () => boolean;
-  /** The winner the score implies, when no ending overrides it. */
-  winningSide?: () => SideNumber | undefined;
-  /**
-   * A matchUpStatus the region itself parsed out of what was typed — Free Score only.
-   *
-   * Used ONLY when the operator has selected no ending. See `resolveReportedEnding` for why that
-   * precedence and not the other.
-   */
-  matchUpStatus?: () => string | undefined;
   /**
    * A compact control the region wants in the result band's right edge rather than in a row of its own.
    *
@@ -193,28 +209,22 @@ export type ScoreRegion = {
    * have 'No result entered yet'. Just (Smart) maybe, something compact that toggles."*
    *
    * It stays a REGION concern — it is a Dynamic Sets behaviour and nothing else reads it — so the region
-   * supplies the element and the card only decides where it sits. Putting the knowledge of it in the card
-   * would imply it applied to Free Score and the Dial Pad too.
+   * supplies the element and the card only decides where it sits.
    */
   bandControl?: () => HTMLElement | undefined;
   /**
-   * Something wrong with the score as entered, in words for the operator.
+   * A matchUpStatus the region itself parsed out of what was typed — Free Score only.
    *
-   * The card refuses to submit while this is set and shows it in the result band. A score that cannot be
-   * right must not reach the factory, and it must say so while the operator is still looking at the field
-   * they typed it into.
+   * REPORTED, not selected: an inference about the text, which never enters the model's `ending`. Used
+   * ONLY when the operator has selected no ending. See `resolveReportedEnding` for why that precedence
+   * and not the other.
    */
-  error?: () => string | undefined;
-
+  matchUpStatus?: () => string | undefined;
   /**
-   * Discard everything the region holds.
-   *
-   * `[Clear]` cleared the card's ENDING state and nothing else, so the typed sets stayed exactly where
-   * they were and the button read as broken — CA, 2026-09-28: *"[Clear] button not working"*. The card
-   * cannot do this itself: only the region knows what it is holding and how to redraw its own cells.
+   * Reset what is the region's own after the card has emptied the model: a text field, a keypad mode,
+   * the set under edit. The score itself is already gone by the time this is called.
    */
   clear?: () => void;
-
   /**
    * Put focus where entry begins, selecting what is there.
    *
@@ -222,14 +232,9 @@ export type ScoreRegion = {
    * that already holds a score REPLACES it. Used after `[Clear]`, and by a host opening the dialog.
    */
   focusFirst?: () => void;
-
   /**
-   * Whether ANYTHING has been entered, complete or not.
-   *
-   * Deliberately not derivable from `getSets()`: a region reports only sets whose BOTH sides are in,
-   * because one value is not a set score. So a lone `6` typed with complements switched off is real
-   * entry that `getSets()` cannot see — and a host asking "is there anything to lose here?" before
-   * dismissing the dialog would be told no, and discard it.
+   * Entry the MODEL cannot see — Free Score's half-typed text. The card asks the model first and this
+   * second, so a `6-4 re` mid-word still counts as something to lose.
    */
   hasEntry?: () => boolean;
 };
@@ -273,6 +278,11 @@ export type ScoreEntryCardParams = {
   title?: string;
   /** The score region for the active approach. */
   region: ScoreRegion;
+  /**
+   * The model, when the host holds it — the dialog does, and shares it with every region it builds.
+   * Omitted, the card adopts the region's own store, or makes one.
+   */
+  store?: ScoreEntryStore;
   /** The policy's reason-code groups, if the tournament has a scoring policy attached. */
   statusCodeGroups?: StatusCodeGroups;
   /** Ending labels, so a locale can supply them. */
@@ -317,8 +327,14 @@ export type ScoreEntryCard = {
    * an operator who corrects `SET3-S:6/TB7` to `SET3-S:6/TB7@5` has not retracted it.
    */
   update: (next: { region?: ScoreRegion; matchUpFormat?: string; approachLabel?: string }) => void;
-  /** The current ending state, for a host that needs to inspect it. */
+  /** The store the card renders, for a host that builds regions on it. */
+  store: ScoreEntryStore;
+  /** The model as it stands. */
+  getModel: () => ScoreEntryModel;
+  /** The current ending state — `getModel().ending` — for a host that needs to inspect it. */
   getState: () => ScoreEntryState;
+  /** Whether anything at all has been entered: a score, an ending, or text the model cannot see. */
+  holdsEntry: () => boolean;
   /** The DOM id of the card's heading, for a host's `aria-labelledby`. */
   titleId: string;
 };
@@ -338,12 +354,14 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   /** The switcher's label: which approach is showing. Changed through `update` alongside the region. */
   let approachLabel = params.approachLabel;
   /**
-   * The ending state. Seeded from `initialState` when a host is reopening a recorded outcome.
-   *
-   * The card takes STATE rather than a matchUp deliberately: it knows sides, a format and a region, and
-   * nothing about tournament records. `hydrateScoreEntryState` does that translation for the host.
+   * The one model, in the store the host gave, or the region made, or — a card with neither — one of
+   * its own. `initialState` seeds the ENDING when a host is reopening a recorded outcome; the card takes
+   * state rather than a matchUp deliberately, because it knows sides, a format and a region, and nothing
+   * about tournament records. `hydrateScoreEntryState` does that translation for the host.
    */
-  let state: ScoreEntryState = params.initialState ?? emptyScoreEntryState;
+  let store: ScoreEntryStore =
+    params.store ?? params.region.store ?? createScoreEntryStore({ matchUpFormat: params.matchUpFormat });
+  if (params.initialState) store.set({ ...store.get(), ending: params.initialState });
   /**
    * Whether the card OPENED on something — a score, an ending, or a reason code.
    *
@@ -432,12 +450,37 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     // hardship where it is used, because a column appearing is exactly when focus should MOVE.
     rerender: render,
     update: (next) => {
-      if (next.region) region = next.region;
-      if (next.matchUpFormat) matchUpFormat = next.matchUpFormat;
+      if (next.matchUpFormat) {
+        matchUpFormat = next.matchUpFormat;
+        // The MODEL changes format, keeping what the new format has not invalidated — the factory's
+        // judgement, through `changeFormat`. Pass the format BEFORE a region built for it, since a region
+        // reads the set count off the model when it is made.
+        //
+        // A HALF-TYPED set is dropped here, whatever the factory says of it. CA, 2026-09-29: *"i think it
+        // is fine for half-typed sets to be discarded"*, and `scoreEntryDialog.test.ts` pins the loss.
+        // The model alone would keep a part-entered set whose rule the new format leaves unchanged —
+        // `retainScoreForFormat`'s rule 2, written for exactly that case — so keeping it is one line
+        // away once CA rules on it; until then the pinned behaviour stands.
+        const changed = changeFormat(model(), next.matchUpFormat);
+        store.set(replaceSets(changed, enteredSets(changed)));
+      }
+      if (next.region) {
+        region = next.region;
+        // A host that built the new region on a store of its own carries the score itself; the ENDING
+        // is the card's and goes with it, because a walkover recorded against a row is a fact about the
+        // match, not about the approach used to type it.
+        if (next.region.store && next.region.store !== store) {
+          next.region.store.set({ ...next.region.store.get(), ending: chosen() });
+          store = next.region.store;
+        }
+      }
       if (next.approachLabel) approachLabel = next.approachLabel;
       render();
     },
-    getState: () => state,
+    store,
+    getModel: model,
+    getState: chosen,
+    holdsEntry,
     titleId
   };
 
@@ -566,10 +609,10 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
     clearButton.dataset.action = 'clear';
     clearButton.addEventListener('click', () => {
-      // The REGION first: the card owns the ending, the region owns the score, and clearing one without
-      // the other is what made this button look broken.
+      // The MODEL first — score and ending together, which is what made this button look broken when
+      // they lived apart — then the region resets what is its own.
+      store.set(clearAll(model()));
       region.clear?.();
-      state = emptyScoreEntryState;
       openPanelSide = undefined;
       otherMenuOpen = false;
       // Only meaningful when there WAS something to remove; see `submitsAClear`.
@@ -594,16 +637,48 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
         matchUpStatus: resolution.matchUpStatus,
         // The ending's winner where there is one; the score's otherwise. An ending always wins, because
         // a walkover recorded against a side is an instruction and a completed score is an inference.
-        winningSide: resolution.hasEnding ? resolution.winningSide : region.winningSide?.(),
-        reasonCode: state.reasonCode,
+        winningSide: resolution.hasEnding ? resolution.winningSide : winningSide(model()),
+        reasonCode: chosen().reasonCode,
         // Omitted rather than emptied where the ending clears the score, so a host cannot store a score
         // the card has just said is being discarded.
-        score: resolution.clearsScore ? undefined : region.scoreString?.()
+        score: resolution.clearsScore ? undefined : scoreString(model())
       });
     });
 
     bar.append(cancel, div(CLS_SPACER), clearButton, submitButton);
     return bar;
+  }
+
+  // ── The model ────────────────────────────────────────────────────────
+
+  function model(): ScoreEntryModel {
+    return store.get();
+  }
+
+  /** The operator's ending selection — `model.ending`, the existing engine folded in. */
+  function chosen(): ScoreEntryState {
+    return model().ending;
+  }
+
+  /** Every ending control goes through here: one transition, one new model. */
+  function choose(intent: EndingIntent): void {
+    store.set(chooseEnding(model(), intent));
+  }
+
+  /**
+   * Whether the SCORE is a finished result.
+   *
+   * The model's `isComplete`, with the parser's rule kept for Free Score: a region-reported ending means
+   * the text is not claiming a finished match — `6-4 6-3 ret` is a retirement with a score — so the
+   * score stops being a result the moment the text says how the match ended instead.
+   */
+  function scoreIsFinished(): boolean {
+    return isComplete(model()) && !region.matchUpStatus?.();
+  }
+
+  /** The model's integrity message, naming the participants rather than "side 1". */
+  function scoreError(): string | undefined {
+    return error(model(), { sideNames: [params.sides[0].participantName, params.sides[1].participantName] });
   }
 
   // ── Render ───────────────────────────────────────────────────────────
@@ -642,7 +717,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    * have been protected by an omission instead of by a decision.
    */
   function lockScoreEntry(): void {
-    const locked = resolveScoreEntry(state).clearsScore;
+    const locked = resolveEnding(model()).clearsScore;
     element.dataset.scoreLocked = locked ? 'true' : 'false';
 
     // The per-set cells live in the ROWS, beside the ending controls, so they are named precisely
@@ -729,7 +804,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    * 2026-09-27. His ruling either way belongs in `irregularEnding.ts`, not here.
    */
   function clearScoreWhenEndingCarriesNone(): void {
-    if (!resolveScoreEntry(state).clearsScore) {
+    if (!resolveEnding(model()).clearsScore) {
       scoreDiscardedByEnding = undefined;
       return;
     }
@@ -739,8 +814,14 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     // clearing the cells destroys the very string that message is made of. Dropping the message would
     // have been the easy way to make them pass, and would have removed the confirmation that a
     // part-score was lost at the one moment it matters.
-    const held = region.scoreString?.();
+    //
+    // Decided in S5, deliberately: this stays a PRESENTATION past tense in the card, and the model's sets
+    // are emptied for real through `clearScore`. The alternative — keep the sets and let the selectors
+    // suppress them — would bring the score back on an approach switch, which CA reported as a bug on
+    // 2026-09-30 and `clearedScoreStaysCleared.test.ts` forbids.
+    const held = discardedScore(model());
     if (held) scoreDiscardedByEnding = held;
+    store.set(clearScore(model()));
     region.clear?.();
   }
 
@@ -754,7 +835,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    */
   function endingOffered(status: string): boolean {
     if (status !== RETIRED) return true;
-    return !region.isComplete?.();
+    return !scoreIsFinished();
   }
 
   /**
@@ -772,16 +853,17 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    * removal needs a full render rather than a derived refresh.
    */
   function retractEndingContradictedByScore(): boolean {
-    if (!region.isComplete?.()) return false;
+    if (!scoreIsFinished()) return false;
 
-    if (state.matchEnding && NON_DIRECTING_ENDINGS.has(state.matchEnding)) {
-      state = chooseMatchEnding(state, state.matchEnding);
+    const current = chosen();
+    if (current.matchEnding && NON_DIRECTING_ENDINGS.has(current.matchEnding)) {
+      choose({ kind: 'match', status: current.matchEnding });
       otherMenuOpen = false;
       return true;
     }
 
-    if (state.sideEnding?.status === RETIRED) {
-      state = chooseSideEnding(state, state.sideEnding.sideNumber, RETIRED);
+    if (current.sideEnding?.status === RETIRED) {
+      choose({ kind: 'side', sideNumber: current.sideEnding.sideNumber, status: RETIRED });
       openPanelSide = undefined;
       return true;
     }
@@ -834,10 +916,10 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    * which is what keeps Free Score's "6-4 ret" working without letting parsed text override a click.
    */
   function currentResolution(): ScoreEntryResolution {
-    const selected = resolveScoreEntry(state);
+    const selected = resolveEnding(model());
     if (selected.hasEnding) return selected;
 
-    return resolveReportedEnding(region.matchUpStatus?.(), region.winningSide?.());
+    return resolveReportedEnding(region.matchUpStatus?.(), winningSide(model()));
   }
 
   /**
@@ -885,19 +967,24 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     //
     // A region-reported ERROR closes it regardless. An impossible score stays impossible however it was
     // qualified: a 3-7 is not made submittable by also being marked Suspended.
-    const scoreIsResult = !!region.isComplete?.();
-    const scoreError = region.error?.();
     submitButton.disabled =
-      !!scoreError || !(submitsAClear() || resolution.isValid || (!resolution.hasEnding && scoreIsResult));
+      !!scoreError() || !(submitsAClear() || resolution.isValid || (!resolution.hasEnding && scoreIsFinished()));
 
     // Nothing to clear is not the same as a clear that does nothing: the old dialog disables the button,
     // which is the honest signal. An ENDING counts as something to clear even with no score typed.
     clearButton.disabled = !holdsEntry();
   }
 
-  /** Whether anything at all has been entered — a score, or an ending. */
+  /** Whether anything at all has been entered — a score, an ending, or text the model cannot see. */
   function holdsEntry(): boolean {
-    return !!(state.sideEnding || state.matchEnding || state.reasonCode || region.hasEntry?.());
+    const current = chosen();
+    return !!(
+      current.sideEnding ||
+      current.matchEnding ||
+      current.reasonCode ||
+      hasEntry(model()) ||
+      region.hasEntry?.()
+    );
   }
 
   // ── The per-side ending shortcuts: w/W, r/R, d/D ──────────────────────
@@ -936,9 +1023,9 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     }
 
     event.preventDefault();
-    state = chooseSideEnding(state, sideNumber, status);
+    choose({ kind: 'side', sideNumber, status });
     clearScoreWhenEndingCarriesNone();
-    openPanelSide = state.sideEnding ? sideNumber : undefined;
+    openPanelSide = chosen().sideEnding ? sideNumber : undefined;
     otherMenuOpen = false;
     render();
     focusAfterShortcut(sideNumber, status);
@@ -953,7 +1040,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    * standing and keeps a second press of the same letter working.
    */
   function focusAfterShortcut(sideNumber: SideNumber, status: string): void {
-    const selector = state.sideEnding
+    const selector = chosen().sideEnding
       ? `[data-panel-side="${sideNumber}"] button[data-ending="${status}"]`
       : `button[data-action="endedEarly"][data-side="${sideNumber}"]`;
     element.querySelector<HTMLElement>(selector)?.focus();
@@ -1042,8 +1129,8 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     // next to the other player as well?" Yes. The ending is RECORDED against one row because that is how
     // it is entered, but "neither appeared" is a statement about both of them — showing it on one row
     // implied the other had merely lost, which is the opposite of what a double exit means.
-    const selected = state.sideEnding;
-    const ending = selected && (selected.sideNumber === sideNumber || state.bothSidesOut) ? selected : undefined;
+    const selected = chosen().sideEnding;
+    const ending = selected && (selected.sideNumber === sideNumber || chosen().bothSidesOut) ? selected : undefined;
 
     const row = div('chc-sec-row');
     row.style.gridTemplateColumns = template;
@@ -1052,7 +1139,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     // `ended` still marks only the row the ending was entered against: it drives the strike-through, and
     // striking BOTH names through would read as neither having played rather than neither advancing.
     row.dataset.ended = String(selected?.sideNumber === sideNumber);
-    row.dataset.bothOut = String(!!state.bothSidesOut);
+    row.dataset.bothOut = String(!!chosen().bothSidesOut);
     row.dataset.winner = String(winningSide === sideNumber);
 
     const participant = div('chc-sec-participant');
@@ -1117,7 +1204,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     const inner = div('chc-sec-side-panel-body');
 
     for (const status of sideEndingOptions()) {
-      const selected = state.sideEnding?.sideNumber === sideNumber && state.sideEnding.status === status;
+      const selected = chosen().sideEnding?.sideNumber === sideNumber && chosen().sideEnding?.status === status;
       const option = button('', 'chc-sec-btn chc-sec-side-option');
       option.dataset.ending = status;
       option.setAttribute(ARIA_PRESSED, String(selected));
@@ -1134,16 +1221,16 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       if (option.disabled) option.title = 'The score is complete — a retirement cannot follow it';
 
       option.addEventListener('click', () => {
-        state = chooseSideEnding(state, sideNumber, status);
+        choose({ kind: 'side', sideNumber, status });
         clearScoreWhenEndingCarriesNone();
         render();
       });
       inner.append(option);
     }
 
-    const reasonStatus = reasonCodeStatus(state);
+    const reasonStatus = reasonCodeStatus(chosen());
     const codes =
-      state.sideEnding?.sideNumber === sideNumber ? codesForStatus(params.statusCodeGroups, reasonStatus) : [];
+      chosen().sideEnding?.sideNumber === sideNumber ? codesForStatus(params.statusCodeGroups, reasonStatus) : [];
     if (codes.length) {
       // No " - USTA" or " - USTA Policy" beside the heading (CA, 2026-09-27): the codes on offer come
       // from whatever policy is attached, and naming a governing body here would be wrong the moment
@@ -1154,11 +1241,11 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
         const code = entry.matchUpStatusCode;
         const chip = button(statusCodeDisplay(entry), CLS_BTN_PILL);
         chip.dataset.reason = code;
-        chip.setAttribute(ARIA_PRESSED, String(state.reasonCode === code));
+        chip.setAttribute(ARIA_PRESSED, String(chosen().reasonCode === code));
         const subtext = statusCodeSubtext(entry);
         if (subtext) chip.title = subtext;
         chip.addEventListener('click', () => {
-          state = chooseReasonCode(state, code);
+          choose({ kind: 'reasonCode', code });
           render();
         });
         chips.append(chip);
@@ -1166,16 +1253,16 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       inner.append(chips);
     }
 
-    if (state.sideEnding?.sideNumber === sideNumber && offersBothSidesOut(state)) {
+    if (chosen().sideEnding?.sideNumber === sideNumber && offersBothSidesOut(chosen())) {
       const other = params.sides[sideNumber === 1 ? 1 : 0];
       const label = document.createElement('label');
       label.className = 'chc-sec-both-out';
       const box = document.createElement('input');
       box.type = 'checkbox';
-      box.checked = !!state.bothSidesOut;
+      box.checked = !!chosen().bothSidesOut;
       box.dataset.action = 'bothSidesOut';
       box.addEventListener('change', () => {
-        state = toggleBothSidesOut(state);
+        choose({ kind: 'bothSidesOut' });
         render();
       });
       label.append(box, text('', `${other.participantName} did not appear either — no one advances`));
@@ -1205,7 +1292,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
     if (!others.length) return;
 
-    const otherSelected = !!state.matchEnding && others.includes(state.matchEnding);
+    const otherSelected = !!chosen().matchEnding && others.includes(chosen().matchEnding);
     // ── The chip says what was CHOSEN, not that a choice exists ──
     //
     // CA, 2026-09-30: *"I think the Chip's label should change from Other when for example (Cancelled)
@@ -1215,7 +1302,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     // Only when the selection came from INSIDE this menu. A privileged ending has its own button and
     // shows itself there; if this chip echoed that too, the row would read as two selections.
     const chosenInMenu =
-      otherSelected && state.matchEnding ? (labels[state.matchEnding] ?? state.matchEnding) : undefined;
+      otherSelected && chosen().matchEnding ? (labels[chosen().matchEnding] ?? chosen().matchEnding) : undefined;
 
     // `Other: Cancelled`, on CA's wording (2026-09-30): *"how about 'Other: Cancelled' which is more
     // compact"*. It keeps the control's own identity in the label instead of trading it for the
@@ -1249,7 +1336,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
     const menu = div(CLS_MENU);
     for (const status of others) {
-      const selected = state.matchEnding === status;
+      const selected = chosen().matchEnding === status;
       const item = button('', CLS_MENU_ITEM);
       item.dataset.ending = status;
       item.setAttribute(ARIA_PRESSED, String(selected));
@@ -1257,7 +1344,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       if (selected) mark.append(icon(CHECK_PATH, 3));
       item.append(mark, text('', labels[status] ?? status));
       item.addEventListener('click', () => {
-        state = chooseMatchEnding(state, status);
+        choose({ kind: 'match', status });
         clearScoreWhenEndingCarriesNone();
         otherMenuOpen = false;
         render();
@@ -1344,9 +1431,9 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   function matchEndingButton(status: string, label: string): HTMLButtonElement {
     const control = button(label, CLS_BTN_PILL);
     control.dataset.ending = status;
-    control.setAttribute(ARIA_PRESSED, String(state.matchEnding === status));
+    control.setAttribute(ARIA_PRESSED, String(chosen().matchEnding === status));
     control.addEventListener('click', () => {
-      state = chooseMatchEnding(state, status);
+      choose({ kind: 'match', status });
       clearScoreWhenEndingCarriesNone();
       otherMenuOpen = false;
       render();
@@ -1354,15 +1441,15 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     return control;
   }
 
-  function renderBand(resolution: ReturnType<typeof resolveScoreEntry>): void {
+  function renderBand(resolution: ScoreEntryResolution): void {
     // An integrity failure outranks everything else the band might say. Reporting "not a finished result"
     // for a 3-7 would be true and useless; the operator needs to know WHICH set is wrong and why.
-    const scoreError = region.error?.();
-    if (scoreError) {
+    const problem = scoreError();
+    if (problem) {
       band.replaceChildren();
       band.dataset.tone = 'warn';
       band.setAttribute('role', 'status');
-      band.append(text(CLS_BAND_HEADLINE, scoreError));
+      band.append(text(CLS_BAND_HEADLINE, problem));
       // The control stays reachable while the score is wrong: switching complements off is one of the ways
       // an operator FIXES a score they did not mean to accept.
       appendBandControl(true);
@@ -1386,9 +1473,9 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       return;
     }
 
-    const reasonStatus = reasonCodeStatus(state);
+    const reasonStatus = reasonCodeStatus(chosen());
     const entry = codesForStatus(params.statusCodeGroups, reasonStatus).find(
-      (candidate) => candidate.matchUpStatusCode === state.reasonCode
+      (candidate) => candidate.matchUpStatusCode === chosen().reasonCode
     );
 
     const summary = scoreEntrySummary({
@@ -1396,9 +1483,9 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       sideNames: [params.sides[0].participantName, params.sides[1].participantName],
       // `scoreDiscardedByEnding` is what a score-clearing ending took, so the band can still name it
       // once the cells are empty. Consulted only when the region has nothing, so a live score wins.
-      scoreString: region.scoreString?.() || scoreDiscardedByEnding,
-      scoreComplete: region.isComplete?.(),
-      scoreWinningSide: region.winningSide?.(),
+      scoreString: scoreString(model()) || scoreDiscardedByEnding,
+      scoreComplete: scoreIsFinished(),
+      scoreWinningSide: winningSide(model()),
       reasonDisplay: entry ? statusCodeDisplay(entry) : undefined,
       labels
     });

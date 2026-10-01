@@ -8,6 +8,7 @@
  * parsed ending into a selection that locks the field it was typed into.
  */
 import { createFreeScoreRegion } from '../regions/freeScoreRegion';
+import { isComplete, error } from '../logic/scoreEntrySelectors';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { renderScoreEntryCard } from '../scoreEntryCard';
 
@@ -86,8 +87,8 @@ describe("the model's rules reach typed text", () => {
     h.type('4-2 2-6 2-6');
 
     expect(h.submit()?.disabled).toBe(true);
-    expect(h.region.error?.()).toBe('1st set: is not finished');
-    expect(h.region.isComplete?.()).toBe(false);
+    expect(error(h.region.store.get())).toBe('1st set: is not finished');
+    expect(isComplete(h.region.store.get())).toBe(false);
   });
 
   it('note 10B: a set beyond the decider is not kept', () => {
@@ -105,7 +106,7 @@ describe("the model's rules reach typed text", () => {
     const h = mount();
     h.type('3-7');
 
-    expect(h.region.error?.()).toMatch(/1st set: .*must be at least 5/);
+    expect(error(h.region.store.get())).toMatch(/1st set: .*must be at least 5/);
     expect(h.submit()?.disabled).toBe(true);
   });
 });
@@ -128,7 +129,8 @@ describe('a parsed ending is reported, not selected', () => {
 
     expect(h.region.getSets()).toHaveLength(2);
     expect(h.region.matchUpStatus?.()).toBe('RETIRED');
-    // The parser's rule, kept: a parsed ending means the text is not claiming a finished match.
-    expect(h.region.isComplete?.()).toBe(false);
+    // The sets are a finished score; the CARD, not the model, applies the parser's rule that a reported
+    // ending means the text is not claiming one. The model answers for the score alone.
+    expect(isComplete(h.region.store.get())).toBe(true);
   });
 });

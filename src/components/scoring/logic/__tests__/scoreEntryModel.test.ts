@@ -14,6 +14,7 @@ import { matchUpStatusConstants } from 'tods-competition-factory';
 import { describe, it, expect } from 'vitest';
 import {
   replaceSets,
+  clearScore,
   createScoreEntryModel,
   switchApproach,
   chooseEnding,
@@ -474,5 +475,22 @@ describe('replaceSets — the Free Score boundary', () => {
 
   it('empties the sets when given none', () => {
     expect(replaceSets(typed(STANDARD, [6, 4]), []).sets).toEqual([{}, {}, {}]);
+  });
+});
+
+describe('clearScore — what a score-clearing ending does', () => {
+  it('empties every set and keeps the ending', () => {
+    const walkover = deepFreeze(
+      chooseEnding(typed(STANDARD, [6, 4]), { kind: 'side', sideNumber: 1, status: WALKOVER })
+    );
+    const cleared = clearScore(walkover);
+
+    expect(cleared.sets).toEqual([{}, {}, {}]);
+    expect(cleared.ending).toBe(walkover.ending);
+  });
+
+  it('is a no-op by identity when there is nothing to clear', () => {
+    const model = frozen();
+    expect(clearScore(model)).toBe(model);
   });
 });
