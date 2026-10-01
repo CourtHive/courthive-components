@@ -483,11 +483,11 @@ export function enteredFactorySets(sets: readonly SetEntry[], config: MatchUpCon
  * contract this module keeps: the lower of two tiebreak cells is the loser's. A cell that is empty stays
  * empty in the output — it is not read as 0, which is what let a half-entered set claim `6-0`.
  *
- * A tiebreak-only set is built here rather than by `buildSetScore`, whose winner rule for it is a
- * hand-rolled "both sides above zero and unequal": measured 2026-09-30 that calls a `3-1` won and a
- * `10-0` not, and the shipping dialog shares that function. The set's winner is asked of the factory's
- * analysis instead — `analyzeSet`, given the points AS points. `getSetWinner` would hand them over as games,
- * which a tiebreak-only format has no rule for.
+ * A tiebreak-only set is built here rather than by `buildSetScore`. When this was written that function's
+ * winner rule was a hand-rolled "both sides above zero and unequal" (a `3-1` won, a `10-0` not); it asks
+ * the factory now too, and this path simply never left. The set's winner is `analyzeSet`'s, given the
+ * points AS points — `getSetWinner` would hand them over as games, which a tiebreak-only format has no
+ * rule for.
  */
 export function toFactorySet(entry: SetEntry, index: number, config: MatchUpConfig): SetScore {
   const tiebreakOnly = isSetTiebreakOnly(getSetFormatForIndex(index, config));
