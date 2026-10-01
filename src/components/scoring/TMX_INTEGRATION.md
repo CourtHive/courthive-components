@@ -60,13 +60,13 @@ and so is a `3-8`, so the validator is running; it simply never asks whether a s
 meet; a host that lets anything bypass the card (a keyboard shortcut, an import, a relay) sends them
 straight into the draw.
 
-### One observation for the host to decide on
+### A reopened result focuses no entry cell
 
-Reopening a **completed** match: the dialog focuses the first set's lower cell on open, and the
-Dynamic Sets region never folds the set under edit — so set 1 reopens with its cells showing while
-every later set is folded. With `autoFocus: false` all sets fold (`7` over `6³`). The round trip is
-identical either way; which to show is a host decision, and the default is recorded here rather than
-changed.
+CA, 2026-10-01: _"a reopened completed matchUp should not focus any entry cell at all."_ When the
+`matchUp` handed in carries a winner, a double exit, or a score that decides the match, the dialog
+focuses its own section rather than a cell, so every finished set opens folded (`7` over `6³`) and
+the way back in is clicking the folded set. A part-score with no winner — a suspension, a match still
+being entered — keeps the caret in set 1's lower cell. `autoFocus: false` still leaves focus alone.
 
 ### Reopening on what the engine holds
 

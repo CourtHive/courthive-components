@@ -223,6 +223,69 @@ describe('the dialog announces and focuses itself', () => {
 
     expect(document.activeElement).toBe(outside);
   });
+
+  // ── A reopened RESULT focuses no entry cell ──
+  //
+  // CA, 2026-10-01: *"a reopened completed matchUp should not focus any entry cell at all."* Measured
+  // before this: the caret landed in set 1's lower cell and the region never folds the set under edit,
+  // so a completed 7-6(3) 6-4 reopened with set 1 showing its fields and set 2 folded.
+  const RECORDED_RESULT = {
+    matchUpFormat: FORMAT,
+    matchUpStatus: 'COMPLETED',
+    winningSide: 1,
+    score: {
+      sets: [
+        { setNumber: 1, side1Score: 7, side2Score: 6, side1TiebreakScore: 7, side2TiebreakScore: 3, winningSide: 1 },
+        { setNumber: 2, side1Score: 6, side2Score: 4, winningSide: 1 }
+      ]
+    }
+  };
+  const FOLDED_1_2 = 'button[data-done-side="2"][data-done-set="1"]';
+
+  it('focuses no entry cell when reopened on a completed result, so every set opens folded', () => {
+    open({ matchUp: RECORDED_RESULT });
+
+    // The dialog itself holds focus: inside the modal, so Escape and the tab order start there, and on
+    // no cell, so nothing is pulled open.
+    expect(document.activeElement).toBe(modal());
+    expect(q(`${FOLDED_1_2}`)?.hidden, 'set 1 is folded').toBe(false);
+    expect(q<HTMLElement>(FOLDED_1_2)?.textContent).toBe('63');
+    expect(q<HTMLInputElement>(SET_1_SIDE_2)?.hidden).toBe(true);
+  });
+
+  it('keeps no cell focused across an approach switch on a reopened result', () => {
+    const dialog = open({ matchUp: RECORDED_RESULT });
+
+    dialog.setApproach('freeScore');
+    expect((document.activeElement as HTMLElement)?.dataset?.freeScore).toBeUndefined();
+
+    dialog.setApproach('dynamicSets');
+    expect(document.activeElement).toBe(modal());
+    expect(q<HTMLInputElement>(SET_1_SIDE_2)?.hidden, 'and set 1 is still folded').toBe(true);
+  });
+
+  it('treats a double exit as a result too — nothing to type', () => {
+    open({ matchUp: { matchUpFormat: FORMAT, matchUpStatus: 'DOUBLE_WALKOVER', score: { sets: [] } } });
+
+    expect(document.activeElement).toBe(modal());
+  });
+
+  it('still focuses the first cell on a reopened PART-score with no winner, which is there to be finished', () => {
+    open({
+      matchUp: {
+        matchUpFormat: FORMAT,
+        matchUpStatus: 'SUSPENDED',
+        score: {
+          sets: [
+            { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
+            { setNumber: 2, side1Score: 2, side2Score: 1 }
+          ]
+        }
+      }
+    });
+
+    expect(document.activeElement).toBe(q(SET_1_SIDE_2));
+  });
 });
 
 describe('Escape', () => {
