@@ -517,7 +517,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
       expect(calculateComplement(7, s8Format)).toBe(9);
     });
 
-    it('returns 9 for digit 8 with S:8 — the same rule, at that format\'s setTo', () => {
+    it("returns 9 for digit 8 with S:8 — the same rule, at that format's setTo", () => {
       // Follows from the change above rather than being a separate decision: an 8-8 goes to a tiebreak in
       // this format, so 8 is a reachable loser score and the winner took 9.
       expect(calculateComplement(8, s8Format)).toBe(9);
@@ -823,7 +823,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
 describe('delegation to the factory', () => {
   const s6tb7 = parseFormat(MATCH_FORMATS.SET3_S6_TB7);
 
-  it('recognises a 7-6 from the LOSER\'s tiebreak points alone', () => {
+  it("recognises a 7-6 from the LOSER's tiebreak points alone", () => {
     // This module's convention is one tiebreak value, the loser's. `analyzeSet` and `checkSetIsComplete`
     // both read BOTH sides and return "unfinished" when handed only one — measured — so the pair is
     // completed with `getTiebreakComplement` before either is asked. Without that a 7-6(3) read as an
@@ -903,7 +903,7 @@ describe('match completeness delegates to analyzeMatchUp', () => {
     setNumber: n,
     side1Score: a,
     side2Score: b,
-    winningSide: side,
+    winningSide: side
   });
 
   it('is undecided on one set of three, and decided on two to the same side', () => {
@@ -941,5 +941,39 @@ describe('match completeness delegates to analyzeMatchUp', () => {
     for (const format of ['SET3-S:6/TB7', FINAL_TB10, 'SET1-S:TB10', 'SET5-S:6/TB7', 'SET1-S:5WB1']) {
       expect(scoreGovernor.stringifyMatchUpFormat(matchUpConfigFor(format) as any), format).toBe(format);
     }
+  });
+});
+
+/**
+ * A tiebreak-only set is complete when the FACTORY says so — 2026-10-01.
+ *
+ * `isSetComplete` and `buildSetScore` hand-rolled "both sides above zero and unequal" for a match
+ * tiebreak, so a `3-1` in a tiebreak to ten read as won and a `10-0` as unfinished. Both ask
+ * `analyzeSet` now, which since `#5049(factory)` (7.4.0) names a winner only at the target by the
+ * margin. The shipping dialog still calls both; CA, 2026-10-01: *"We are not yet ready to retire the
+ * old modal."*
+ */
+describe('a tiebreak-only set asks the factory', () => {
+  const matchTiebreak = matchUpConfigFor('SET1-S:TB10');
+
+  it('isSetComplete: a 10-0 is won, a 3-1 and a 10-9 are not', () => {
+    expect(isSetComplete(0, { side1: 10, side2: 0 }, matchTiebreak)).toBe(true);
+    expect(isSetComplete(0, { side1: 0, side2: 10 }, matchTiebreak)).toBe(true);
+    expect(isSetComplete(0, { side1: 12, side2: 10 }, matchTiebreak)).toBe(true);
+    expect(isSetComplete(0, { side1: 3, side2: 1 }, matchTiebreak)).toBe(false);
+    expect(isSetComplete(0, { side1: 10, side2: 9 }, matchTiebreak)).toBe(false);
+  });
+
+  it('buildSetScore: the winner follows the same rule', () => {
+    expect(buildSetScore(0, '10', '0', undefined, matchTiebreak).winningSide).toBe(1);
+    expect(buildSetScore(0, '0', '10', undefined, matchTiebreak).winningSide).toBe(2);
+    expect(buildSetScore(0, '3', '1', undefined, matchTiebreak).winningSide).toBeUndefined();
+    expect(buildSetScore(0, '10', '9', undefined, matchTiebreak).winningSide).toBeUndefined();
+  });
+
+  it('the deciding match tiebreak of a mixed format too', () => {
+    const decider = matchUpConfigFor('SET3-S:6/TB7-F:TB10');
+    expect(isSetComplete(2, { side1: 10, side2: 0 }, decider)).toBe(true);
+    expect(isSetComplete(2, { side1: 3, side2: 1 }, decider)).toBe(false);
   });
 });

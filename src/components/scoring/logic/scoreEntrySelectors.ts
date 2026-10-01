@@ -270,12 +270,10 @@ function opensSet(model: ScoreEntryModel, index: number, config: MatchUpConfig):
  *
  * ── Strict `validateSetScore`, and not `analyzeSet`'s winning side ──
  *
- * Measured 2026-09-30: `analyzeSet` names a winner for a `3-1` in a match tiebreak to ten, and for a
- * `10-9` — any lead reads as a win, because `checkSetIsComplete` with `isTiebreakSet` checks only that
- * the leader holds more points. `dynamicSetsLogic.isSetComplete` has the mirror-image gap: it refuses
- * a `10-0`, requiring both sides above zero. Strict validation gets all three right (`10-0` valid,
- * `3-1` and `10-9` not) and is the same answer `error` reports, so "settled" and "no error" cannot
- * come apart. Reported to the factory rather than patched here.
+ * Measured 2026-09-30, before `#5049(factory)`: `analyzeSet` named a winner for a `3-1` in a match
+ * tiebreak to ten, and for a `10-9` — any lead read as a win. Both answers are fixed in 7.4.0, and
+ * `dynamicSetsLogic` now asks the factory too. Strict validation stays the rule here all the same: it is
+ * the same answer `error` reports, so "settled" and "no error" cannot come apart.
  *
  * A timed set is the exception: any pair of scores ends it, a tie included, so both cells in is the
  * whole test — strict validation refuses a `0-0` bolt, which is unusual but not impossible.
