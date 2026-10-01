@@ -26,16 +26,16 @@
  * answer: the alternative is replacing what the operator is typing now with a score they moved past.
  */
 
+import { endingLabels, isDoubleExitStatus } from './logic/irregularEnding';
 import { getMatchUpFormatModal } from '../matchUpFormat/matchUpFormat';
 import { createDynamicSetsRegion } from './regions/dynamicSetsRegion';
+import { enteredSets, isComplete } from './logic/scoreEntrySelectors';
 import { createFreeScoreRegion } from './regions/freeScoreRegion';
 import { createScoreEntryStore } from './logic/scoreEntryStore';
 import { createDialPadRegion } from './regions/dialPadRegion';
-import { enteredSets } from './logic/scoreEntrySelectors';
 import { switchApproach } from './logic/scoreEntryModel';
 import { scoreGovernor } from 'tods-competition-factory';
 import { renderScoreEntryCard } from './scoreEntryCard';
-import { endingLabels } from './logic/irregularEnding';
 import { cModal } from '../modal/cmodal';
 
 import type { SetScore } from './types';
@@ -179,6 +179,9 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
     sets: params.sets ?? params.matchUp?.score?.sets,
     matchUp: params.matchUp
   });
+  // Decided ONCE, at open, from what was handed in: a reopened result is read before it is edited, and
+  // the way back into a finished set is clicking it, not a caret the dialog placed.
+  const openedOnResult = reopensResult();
   let currentRegion = buildRegion(approach);
 
   const card = renderScoreEntryCard({
@@ -390,6 +393,17 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
   function focusEntry(): void {
     if (params.autoFocus === false) return;
 
+    // A reopened RESULT focuses no entry cell. CA, 2026-10-01: *"a reopened completed matchUp should
+    // not focus any entry cell at all."* Measured before this: the caret landed in set 1's lower cell,
+    // and the region never folds the set under edit, so a completed match reopened with set 1 pulled
+    // open while every later set was folded — the fold CA asked for (*"the way back in is simply
+    // clicking the completed representation of the set"*) undone by the dialog's own focus. The
+    // section takes focus instead, so Escape and the tab order still begin inside the dialog.
+    if (openedOnResult) {
+      ownSection()?.focus();
+      return;
+    }
+
     // The region places it when it can: `focusFirst` also SELECTS what is there, so a score already in
     // the cell is replaced by typing rather than appended to.
     if (currentRegion.focusFirst) {
@@ -399,6 +413,17 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
 
     const field = card.element.querySelector<HTMLElement>('input:not([disabled]), button[data-digit]');
     (field ?? ownSection())?.focus();
+  }
+
+  /**
+   * Whether the dialog opened on a RECORDED result: a winner, a double exit, or a score that decides
+   * the match by itself. A part-score with no winner — a suspension, a match still being entered — is
+   * not one, and keeps the caret, because the operator is there to finish it.
+   */
+  function reopensResult(): boolean {
+    const recorded = params.matchUp;
+    if (!recorded) return false;
+    return !!recorded.winningSide || isDoubleExitStatus(recorded.matchUpStatus) || isComplete(store.get());
   }
 
   function ownSection(): HTMLElement | null {

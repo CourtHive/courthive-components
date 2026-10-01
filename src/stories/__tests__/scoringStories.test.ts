@@ -278,20 +278,18 @@ describe('the draw behind the modal', () => {
     expect(held.score.scoreStringSide1).toBe(TIEBREAK_LINE);
     expect(held.score.sets[0]).toMatchObject({ side1TiebreakScore: 7, side2TiebreakScore: 3, winningSide: 1 });
 
-    // Reopened on the engine's matchUp. The dialog puts the caret in set 1's lower cell on open, and the
-    // region never folds the set under edit — so set 1 comes back OPEN, with the tiebreak as a raised 3
-    // beside the low side's cell and both tiebreak fields filled, while set 2 is folded. Measured: with
-    // `autoFocus: false` set 1 folds too, reading 7 over 6³. The round trip is the same either way; the
-    // fold is a focus consequence, recorded in TMX_INTEGRATION.md for the host to decide on.
+    // Reopened on the engine's matchUp, every set folded: 7 over 6³, nothing raised beside the winner.
+    // A reopened result focuses no entry cell (CA, 2026-10-01), so no set is pulled open by a caret —
+    // which is what used to leave set 1 showing its fields while set 2 was folded.
     host.open();
-    expect(cell(1, 1).value).toBe('7');
-    expect(cell(2, 1).value).toBe('6');
-    expect(tiebreak(1, 1).value).toBe('7');
-    expect(tiebreak(2, 1).value).toBe('3');
-    expect(cell(2, 1).parentElement?.querySelector('sup')?.textContent, 'raised on the LOW side').toBe('3');
-    expect(cell(1, 1).parentElement?.querySelector('sup')?.textContent ?? '', 'nothing beside the winner').toBe('');
-    expect(done(1, 2)?.textContent, 'the set not under edit is folded').toBe('6');
+    expect(done(1, 1)?.textContent).toBe('7');
+    expect(done(2, 1)?.textContent).toBe('63');
+    expect(done(2, 1)?.querySelector('sup')?.textContent, 'raised on the LOW side').toBe('3');
+    expect(done(1, 1)?.querySelector('sup'), 'nothing beside the winner').toBeNull();
+    expect(cell(1, 1).hidden, 'the fields are hidden behind the fold').toBe(true);
+    expect(done(1, 2)?.textContent).toBe('6');
     expect(done(2, 2)?.textContent).toBe('4');
+    expect(inModal('input:focus, button[data-digit]:focus'), 'no entry cell holds focus').toBeUndefined();
     expect(inModal(BAND)!.textContent).toContain(TIEBREAK_LINE);
   });
 
