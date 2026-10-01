@@ -286,6 +286,14 @@ describe('setCell', () => {
     expect(clearCell(withPoints, G(0, 2)).sets[0]).toEqual({ side1: 7, tiebreak1: 7, tiebreak2: 3 });
   });
 
+  it('keeps a tiebreak typed ONTO games that do not call for one, so error can say so', () => {
+    // The Dial Pad's rule: a stray 3 on a 6-2 is shown and refused, never quietly dropped. Only a change
+    // to the GAMES forgets a tiebreak; a change to the tiebreak itself is the operator speaking.
+    const strayPoints = typeDigit(typed(STANDARD, [6, 2]), { cell: TB(0, 2), digit: 3, complement: true });
+    expect(strayPoints.sets[0]).toEqual({ side1: 6, side2: 2, tiebreak1: 7, tiebreak2: 3 });
+    expect(setCell(strayPoints, TB(0, 2), 4).sets[0]).toMatchObject({ tiebreak2: 4 });
+  });
+
   describe('no set exists beyond the one that decides the match', () => {
     it("CA's sequence: 6-2, 2-6, a third set, then set 2 edited to 6-2 — the third set goes", () => {
       const three = typed(STANDARD, [6, 2], [2, 6], [6, 3]);
