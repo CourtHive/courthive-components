@@ -183,9 +183,18 @@ describe('error', () => {
     expect(error(typed(STANDARD, [6, 4], [44, 3]))).toContain('2nd set: Set score 44-3 exceeds');
   });
 
-  it('refuses a tiebreak whose points contradict the games', () => {
+  it('refuses a tiebreak whose points contradict the games, naming the side that won it', () => {
+    // The factory refuses this too since #5049(factory), as "Set winner must win the tiebreak: side 1 won
+    // the set". The NAMED message comes first because "side 1" is not something an operator can act on.
     const reversed = setCell(setCell(typed(STANDARD, [7, 6]), TB(0, 1), 3), TB(0, 2), 7);
-    expect(error(reversed)).toContain('1st set: Set winner must win the tiebreak');
+    expect(error(reversed)).toBe('1st set: side 1 won it, so they must win the tiebreak');
+    expect(error(reversed, { sideNames: ['Rosalind Lem', 'Derrick Ellul'] })).toBe(
+      '1st set: Rosalind Lem won it, so they must win the tiebreak'
+    );
+
+    // A TIED pair is the factory's to refuse, with its margin message.
+    const tied = setCell(setCell(typed(STANDARD, [7, 6]), TB(0, 1), 5), TB(0, 2), 5);
+    expect(error(tied)).toContain('must reach 7 points');
   });
 
   it('is silent while a set is in progress, and while its tiebreak points are being asked for', () => {

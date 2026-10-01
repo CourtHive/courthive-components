@@ -184,11 +184,12 @@ export type TypeDigitIntent = {
   /**
    * Derive the OTHER side from what was typed, where the format makes that a single answer.
    *
-   * For a games cell this is the smart complement — a `4` typed into an empty set writes `6` opposite —
-   * and it fires only when BOTH cells of the set were empty. For an ordinary tiebreak it derives the
+   * For a games cell this is the smart complement — a `4` typed into an EMPTY cell writes `6` opposite,
+   * over whatever the other cell held: the inference is about the pair. Whether to offer it again for
+   * the same set is the caller's policy. For an ordinary tiebreak it derives the
    * winner's points from the loser's, and fires only from the games LOSER's cell, because a winner's 7
-   * could have beaten anything. A tiebreak-only set always derives, flag or no flag: CA's rule is that
-   * the operator types ONE number, the lower, and the other is never typed.
+   * could have beaten anything. For a tiebreak-only set it derives the other side from the one typed —
+   * CA's rule for the Dial Pad, which always asks; Dynamic Sets asks while its Smart toggle is on.
    */
   complement?: boolean;
 };
@@ -213,7 +214,7 @@ export function typeDigit(model: ScoreEntryModel, intent: TypeDigitIntent): Scor
   const setFormat = getSetFormatForIndex(cell.setIndex, config);
   const entry = model.sets[cell.setIndex];
 
-  if (isSetTiebreakOnly(setFormat)) return typeTiebreakOnlyDigit(model, cell, digit, setFormat);
+  if (isSetTiebreakOnly(setFormat)) return typeTiebreakOnlyDigit(model, cell, digit, setFormat, !!intent.complement);
 
   const current = readCell(entry, cell);
   const ceiling = cell.kind === 'games' ? ceilingFor(setFormat, readCell(entry, otherCell(cell))) : undefined;
@@ -238,7 +239,8 @@ function typeTiebreakOnlyDigit(
   model: ScoreEntryModel,
   cell: CellRef,
   digit: number,
-  setFormat: SetFormat | undefined
+  setFormat: SetFormat | undefined,
+  complement: boolean
 ): ScoreEntryModel {
   if (cell.kind !== 'games') return model;
 
@@ -250,9 +252,11 @@ function typeTiebreakOnlyDigit(
   const low = appendDigit(extendsTyped ? mine : undefined, digit, undefined);
   if (low === undefined) return model;
 
-  const pair = completeTiebreakOnly(low, cell.side, setFormat);
+  // Derived only when asked, like every other complement: the Dial Pad always asks, because CA's rule
+  // there is that the operator types ONE number; Dynamic Sets asks only while its Smart toggle is on.
   // No target to complete against: keep what was typed and leave the other side alone rather than
   // inventing it. `completeTiebreakOnly` declines in exactly that case.
+  const pair = complement ? completeTiebreakOnly(low, cell.side, setFormat) : undefined;
   const updated = pair ? { side1: pair.side1, side2: pair.side2 } : writeCell(entry, cell, low);
 
   return withSet(model, cell.setIndex, updated, matchUpConfigFor(model.matchUpFormat), true);
@@ -269,7 +273,10 @@ function withComplement(
   const other = otherCell(cell);
 
   if (cell.kind === 'games') {
-    if (previous !== undefined || readCell(entry, other) !== undefined) return entry;
+    // Only the FIRST digit into an empty cell infers the pair, and it infers the whole pair: a 4 says the
+    // set was 6-4 whatever the other cell held, which is the shipping dialog's rule and what the keyboard
+    // tests pin. Firing once per set is the caller's policy, held beside its Smart toggle.
+    if (previous !== undefined) return entry;
     const complement = calculateComplement(value, setFormat);
     return complement === null ? entry : writeCell(entry, other, complement);
   }

@@ -271,7 +271,13 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     // derives the winner's points — the derivation is a transition, not something this region does.
     const tiebreakSet = openTiebreakOnlySet();
     if (tiebreakSet !== undefined) {
-      apply(typeDigit(model, { cell: games(tiebreakSet, shifted ? otherSide(ENTRY_SIDE) : ENTRY_SIDE), digit }));
+      apply(
+        typeDigit(model, {
+          cell: games(tiebreakSet, shifted ? otherSide(ENTRY_SIDE) : ENTRY_SIDE),
+          digit,
+          complement: true
+        })
+      );
       return;
     }
 
@@ -327,7 +333,7 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
         // recompute the other. Deleting from the derived cell would leave a pair the operator never
         // entered and could not correct.
         const side = lowTiebreakOnlySide(entry) ?? ENTRY_SIDE;
-        retype(games(index, side), shorten(lowTiebreakOnly(entry)), [games(index, 1), games(index, 2)]);
+        retype(games(index, side), shorten(lowTiebreakOnly(entry)), [games(index, 1), games(index, 2)], true);
         return;
       }
 

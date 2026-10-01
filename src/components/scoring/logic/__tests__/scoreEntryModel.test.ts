@@ -174,12 +174,19 @@ describe('typeDigit', () => {
       expect(typeDigit(frozen(), { cell: G(0, 2), digit: 7, complement: true }).sets[0]).toEqual({ side2: 7 });
     });
 
-    it('does not overwrite a side the operator already filled', () => {
-      const withUpper = enter(frozen(), 0, 6);
-      expect(typeDigit(withUpper, { cell: G(0, 2), digit: 4, complement: true }).sets[0]).toEqual({
+    it('infers the whole PAIR from a first digit, over whatever the other cell held', () => {
+      // The shipping dialog's rule, pinned by the keyboard tests: a 4 typed into an empty cell says the set
+      // was 6-4. Firing only once per set is the caller's policy, held beside its Smart toggle.
+      const withSeven = enter(frozen(), 0, 7);
+      expect(typeDigit(withSeven, { cell: G(0, 2), digit: 4, complement: true }).sets[0]).toEqual({
         side1: 6,
         side2: 4
       });
+    });
+
+    it('never fires from a cell that already holds a digit — a second digit is a correction', () => {
+      const one = typeDigit(frozen({ matchUpFormat: 'SET3-S:10/TB7' }), { cell: G(0, 2), digit: 1 });
+      expect(typeDigit(one, { cell: G(0, 2), digit: 0, complement: true }).sets[0]).toEqual({ side2: 10 });
     });
 
     it('is off unless asked for', () => {
@@ -230,29 +237,38 @@ describe('typeDigit', () => {
     it('completes the pair from the lower score on whichever row it was typed', () => {
       const model = frozen({ matchUpFormat: MATCH_TIEBREAK });
       // `getTiebreakComplement`: max(tiebreakTo, low + 2) — 8 → 10.
-      expect(typeDigit(model, { cell: G(0, 2), digit: 8 }).sets[0]).toEqual({ side1: 10, side2: 8 });
-      expect(typeDigit(model, { cell: G(0, 1), digit: 8 }).sets[0]).toEqual({ side1: 8, side2: 10 });
+      expect(typeDigit(model, { cell: G(0, 2), digit: 8, complement: true }).sets[0]).toEqual({ side1: 10, side2: 8 });
+      expect(typeDigit(model, { cell: G(0, 1), digit: 8, complement: true }).sets[0]).toEqual({ side1: 8, side2: 10 });
+      // Without the flag the typed number stands alone — Dynamic Sets with its Smart toggle off.
+      expect(typeDigit(model, { cell: G(0, 2), digit: 8 }).sets[0]).toEqual({ side2: 8 });
     });
 
     it('extends the typed number with the next digit and re-derives: `1` then `0` is a ten', () => {
-      const one = typeDigit(frozen({ matchUpFormat: MATCH_TIEBREAK }), { cell: G(0, 2), digit: 1 });
+      const one = typeDigit(frozen({ matchUpFormat: MATCH_TIEBREAK }), { cell: G(0, 2), digit: 1, complement: true });
       expect(one.sets[0]).toEqual({ side1: 10, side2: 1 });
 
-      const ten = typeDigit(one, { cell: G(0, 2), digit: 0 });
+      const ten = typeDigit(one, { cell: G(0, 2), digit: 0, complement: true });
       expect(ten.sets[0]).toEqual({ side1: 12, side2: 10 });
     });
 
     it('starts a new lower score on the OTHER row when typed there — the row names the loser', () => {
-      const twelveTen = typeDigit(typeDigit(frozen({ matchUpFormat: MATCH_TIEBREAK }), { cell: G(0, 2), digit: 1 }), {
-        cell: G(0, 2),
-        digit: 0
+      const twelveTen = typeDigit(
+        typeDigit(frozen({ matchUpFormat: MATCH_TIEBREAK }), { cell: G(0, 2), digit: 1, complement: true }),
+        {
+          cell: G(0, 2),
+          digit: 0,
+          complement: true
+        }
+      );
+      expect(typeDigit(twelveTen, { cell: G(0, 1), digit: 5, complement: true }).sets[0]).toEqual({
+        side1: 5,
+        side2: 10
       });
-      expect(typeDigit(twelveTen, { cell: G(0, 1), digit: 5 }).sets[0]).toEqual({ side1: 5, side2: 10 });
     });
 
     it('applies to the deciding set of a format whose decider is a match tiebreak', () => {
       const model = typed(MATCH_TIEBREAK_DECIDER, [6, 4], [4, 6]);
-      expect(typeDigit(model, { cell: G(2, 1), digit: 8 }).sets[2]).toEqual({ side1: 8, side2: 10 });
+      expect(typeDigit(model, { cell: G(2, 1), digit: 8, complement: true }).sets[2]).toEqual({ side1: 8, side2: 10 });
     });
   });
 });
