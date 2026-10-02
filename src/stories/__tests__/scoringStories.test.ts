@@ -141,49 +141,40 @@ describe('the draw behind the modal', () => {
     return { host, logText };
   }
 
-  it('ACCEPTS 4-2 2-6 2-6 from a host that bypasses the card — the card is the only guard (measured 7.4.0)', () => {
-    // CA, note 10: *"I'm sure if this went to the factory it would return an error"*. It does not.
-    // `analyzeScore` counts only sets carrying a `winningSide`; the 4-2 carries none and is not counted,
-    // so side 2 has two sets of three and the winner is consistent.
-    const { host, logText } = mount();
+  it('REFUSES 4-2 2-6 2-6 from a host that bypasses the card — a first set at 4-2 never finished', () => {
+    // CA, note 10: *"I'm sure if this went to the factory it would return an error"*. Through 7.4.0 it
+    // did not: the engine checked set bounds, not completeness, and recorded this as COMPLETED. Factory
+    // #5096 refuses it — every set before the last must be finished — so the card is no longer the only
+    // guard.
+    const { host } = mount();
     const sets = [set(1, 4, 2), set(2, 2, 6, 2), set(3, 2, 6, 2)];
-
-    // The control: the validator IS running. The same sets claimed by side 1 are refused, so the accept
-    // below is a verdict and not a validator that never ran.
-    const control = host.submitToEngine({ sets, winningSide: 1, matchUpStatus: COMPLETED });
-    expect(control.result.error?.code).toBe('ERR_INVALID_SCORE');
-    expect(host.held().matchUpStatus, 'a refusal writes nothing').toBe(TO_BE_PLAYED);
 
     const answer = host.submitToEngine({ sets, winningSide: 2, matchUpStatus: COMPLETED });
 
-    expect(answer.result.error, 'no refusal').toBeUndefined();
-    expect(answer.result.success).toBe(true);
-    expect(host.held().matchUpStatus).toBe(COMPLETED);
-    expect(host.held().winningSide).toBe(2);
-    expect(host.held().score.scoreStringSide1).toBe('4-2 2-6 2-6');
-    expect(logText()).toContain('engine accepted');
+    expect(answer.result.error?.code).toBe('ERR_INVALID_SCORE');
+    expect(host.held().matchUpStatus, 'a refusal writes nothing').toBe(TO_BE_PLAYED);
+    expect(host.held().winningSide).toBeUndefined();
   });
 
-  it('ACCEPTS a 3-7 as well — the engine validates set BOUNDS (setTo + 1), not completeness (measured 7.4.0)', () => {
+  it('REFUSES a 3-7 as well — it is inside the bounds, but no set under a tiebreak at six ends 7-3', () => {
     const { host } = mount();
-
-    // The control for the bound: a 3-8 is past `setTo + 1` and is refused.
-    const control = host.submitToEngine({
-      sets: [set(1, 3, 8, 2), set(2, 6, 4, 1), set(3, 6, 4, 1)],
-      winningSide: 1,
-      matchUpStatus: COMPLETED
-    });
-    expect(control.result.error?.code).toBe('ERR_INVALID_SCORE');
 
     const answer = host.submitToEngine({
       sets: [set(1, 3, 7, 2), set(2, 6, 4, 1), set(3, 6, 4, 1)],
       winningSide: 1,
       matchUpStatus: COMPLETED
     });
+    expect(answer.result.error?.code).toBe('ERR_INVALID_SCORE');
+    expect(host.held().matchUpStatus).toBe(TO_BE_PLAYED);
 
-    expect(answer.result.error).toBeUndefined();
-    expect(host.held().score.scoreStringSide1).toBe('3-7 6-4 6-4');
-    expect(host.held().winningSide).toBe(1);
+    // The control: the same match with a finished first set is recorded, so the refusal is about 3-7.
+    const control = host.submitToEngine({
+      sets: [set(1, 3, 6, 2), set(2, 6, 4, 1), set(3, 6, 4, 1)],
+      winningSide: 1,
+      matchUpStatus: COMPLETED
+    });
+    expect(control.result.error).toBeUndefined();
+    expect(host.held().score.scoreStringSide1).toBe('3-6 6-4 6-4');
   });
 
   it("REFUSES the dialog's score STRING, so a host that spreads the outcome is refused on every Submit", () => {
