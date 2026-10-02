@@ -75,7 +75,14 @@ function checkMatchComplete(
   const isExactlyFormat = !!parsed?.exactly;
 
   if (isAggregateScoring) {
-    const completeSets = validatedSets.filter((s) => s.side1Score !== undefined && s.side2Score !== undefined).length;
+    // A set is played when EITHER pair holds both sides. A tiebreak-only decider — the TB1 point that
+    // settles a tied aggregate — carries its points in the tiebreak fields since factory #5094, where
+    // they used to sit in the game fields. Counting the game fields alone read every finished tied
+    // aggregate as incomplete. Either pair keeps it right under both factory versions.
+    const bothSides = (a: unknown, b: unknown) => a !== undefined && a !== null && b !== undefined && b !== null;
+    const completeSets = validatedSets.filter(
+      (s) => bothSides(s.side1Score, s.side2Score) || bothSides(s.side1TiebreakScore, s.side2TiebreakScore)
+    ).length;
     return completeSets >= bestOfSets;
   } else {
     const setsToWin = Math.ceil(bestOfSets / 2);
