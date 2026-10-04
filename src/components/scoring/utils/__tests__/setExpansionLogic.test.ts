@@ -42,9 +42,14 @@ describe('setExpansionLogic', () => {
       expect(result).toMatchObject({ bestOf: 3, setsToWin: 2 });
     });
 
-    it('should default to SET3 for unsupported formats (SET7)', () => {
-      // Factory parser doesn't support SET7, should default to SET3
+    it('should parse SET7 as best of seven (factory #5136: any best-of count)', () => {
+      // Factory 7.4.0 refused a best-of above 5 and this fell back to SET3; from #5136 it parses.
       const result = parseMatchUpFormat('SET7-S:6/TB7');
+      expect(result).toMatchObject({ bestOf: 7, setsToWin: 4 });
+    });
+
+    it('should default to SET3 when the factory cannot parse the format', () => {
+      const result = parseMatchUpFormat('NOTAFORMAT');
       expect(result).toMatchObject({ bestOf: 3, setsToWin: 2 });
     });
   });
