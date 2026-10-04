@@ -100,9 +100,10 @@ describe('validateScore - Aggregate with TB1 final', () => {
   });
 
   it('should handle complete aggregate tie with TB', () => {
-    // Aggregate: 30-25 + 25-30 = 55-55 (tied)
+    // The decider is set N + 1, after all three bolts (factory #5166; CA, 2026-10-04)
+    // Aggregate: 30-25 + 25-30 + 20-20 = 75-75 (tied)
     // TB: 1-0 (side 1 wins)
-    const scoreString = '30-25 25-30 [1-0]';
+    const scoreString = '30-25 25-30 20-20 [1-0]';
     const result = validateScore(scoreString, format);
 
     expect(result.isValid).toBe(true);

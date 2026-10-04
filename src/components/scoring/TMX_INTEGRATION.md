@@ -48,17 +48,21 @@ Details that decide the mapping:
 - **`matchUpStatus` may be omitted** for a played result; `COMPLETED` is derived from `winningSide`.
   The dialog always reports it, so forward it.
 
-### What the engine does NOT refuse — and CA expected it to
+### The engine refuses an unfinished set — from the factory release carrying #5096
 
 Note 10 of `scoreEntryNotes.txt`: _"I'm sure if this went to the factory it would return an error"_.
-It does not. The engine **accepts** `4-2 2-6 2-6` as `COMPLETED`, `winningSide: 2`, and **accepts**
-`3-7 6-4 6-4` as won by side 1. `analyzeScore` counts only sets that carry a `winningSide` toward the
-match winner — a `4-2` carrying none is simply not counted — and `validateSet` checks that no side
-exceeds `setTo + 1`, so a `7` is within bounds whatever stands opposite it. The factory validates set
-**bounds**, not set **completeness** — the same sets claimed by side 1 are refused (`ERR_INVALID_SCORE`),
-and so is a `3-8`, so the validator is running; it simply never asks whether a set is finished. The card's refusal before Submit is the only guard those scores
-meet; a host that lets anything bypass the card (a keyboard shortcut, an import, a relay) sends them
-straight into the draw.
+Through factory 7.4.0 it did not: the engine checked set **bounds**, not **completeness**, and
+recorded `4-2 2-6 2-6` and `3-7 6-4 6-4` as `COMPLETED`. Factory #5096 refuses both with
+`ERR_INVALID_SCORE` and an `info` naming the set (`Set 1: …`), and leaves the matchUp unchanged:
+
+- every set before the last must be finished;
+- the last must be finished too when the outcome claims completion (`COMPLETED`, or a `winningSide`
+  with no status). For any other status — RETIRED, IN_PROGRESS, SUSPENDED — it may be open;
+- `disableScoreValidation: true` on `setMatchUpStatus` opts out, for imports and history corrections.
+
+The card's refusal before Submit is no longer the only guard, but it remains the first: the host
+should show the engine's `info` if a refusal ever comes back, since the operator then needs to know
+which set is wrong.
 
 ### A reopened result focuses no entry cell
 

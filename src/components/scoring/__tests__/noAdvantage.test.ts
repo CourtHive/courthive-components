@@ -65,14 +65,15 @@ describe('the parsed format carries `NoAD`, and this module now reads it', () =>
 });
 
 describe('a no-advantage GAMES complement', () => {
-  it("completes a 5 to the factory's answer, which for S:6NOAD is 6 and not 7", () => {
+  it("completes a 5 to the factory's answer, which for S:6NOAD is 7 — NOAD is about games, not the set margin", () => {
     const setFormat = getSetFormatForIndex(0, matchUpConfigFor(SET_NOAD));
     const expected = scoreGovernor.getSetComplement({ lowValue: 5, setTo: 6, NoAD: true, isSide1: true });
 
-    // First to six, so a 5 faces a 6. Read with `noAd` — or from the tiebreak's flag, which this site
-    // also did — the complement came back 7, offering a 7-5 the format cannot produce.
+    // `NOAD` on a set is no-advantage GAMES; the set is still won by two, so a 5 faces a 7 exactly as in
+    // an advantage set. Factory #5076 (CA, 2026-10-01) settled it — the one-game set margin is `WB1`.
+    // This pinned 6 while the factory read set-level NOAD as a one-game margin.
     expect(calculateComplement(5, setFormat)).toBe((expected as number[])[1]);
-    expect(calculateComplement(5, setFormat)).toBe(6);
+    expect(calculateComplement(5, setFormat)).toBe(7);
   });
 
   it('leaves an ADVANTAGE set alone, so the fix is not applied to everything', () => {
@@ -170,7 +171,7 @@ describe('the SHIPPING dialog is fixed too, not only the new card', () => {
     const result = shouldApplySmartComplement(5, false, 0, [], matchUpConfigFor(SET_NOAD), new Set(), true);
 
     expect(result.shouldApply).toBe(true);
-    expect(result.field2Value, 'first to six, so a 5 faces a 6').toBe(6);
+    expect(result.field2Value, 'NOAD is about games: the set is won by two, so a 5 faces a 7').toBe(7);
   });
 
   it('and leaves an advantage set alone — the control', () => {

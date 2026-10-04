@@ -4,6 +4,7 @@
  */
 
 import { matchUpFormatCode } from 'tods-competition-factory';
+import { aggregateDeciderSetNumber, finalSetGoverns } from '../utils/aggregateDecider';
 
 export type FormatOptions = {
   matchUpFormat: string;
@@ -22,9 +23,14 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
   const bestOf = parsedFormat?.setFormat?.bestOf || 3;
 
   const getSetFormat = (setNumber: number) => {
-    const isDecidingSet = setNumber === bestOf;
+    // An aggregate format's decider is set N + 1, never one of the N (factory #5166)
+    const isDecidingSet = finalSetGoverns(parsedFormat, setNumber, setNumber === bestOf);
     return isDecidingSet && parsedFormat?.finalSetFormat ? parsedFormat.finalSetFormat : parsedFormat?.setFormat;
   };
+
+  // An aggregate format with a final tiebreak may run to its decider, set N + 1
+  const hasFinalTiebreak = parsedFormat?.finalSetFormat?.tiebreakSet?.tiebreakTo !== undefined;
+  const maxSets = (hasFinalTiebreak && aggregateDeciderSetNumber(parsedFormat)) || bestOf;
 
   let result = '';
   let setCount = 0;
@@ -34,7 +40,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
   for (const segment of segments) {
     const parseState = { pos: 0 };
 
-    while (parseState.pos < segment.length && setCount < bestOf) {
+    while (parseState.pos < segment.length && setCount < maxSets) {
       const setResult = parseOneSet(segment, parseState, setCount, bestOf, getSetFormat);
 
       if (result) result += ' ';

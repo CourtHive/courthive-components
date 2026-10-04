@@ -8,6 +8,7 @@ import { parseScore } from '../freeScore';
 
 const FORMAT_SET3XA_TB1 = 'SET3XA-S:T10-F:TB1';
 const SCORE_30_25_20_30 = '30-25 20-30';
+const SCORE_30_25_20_30_20_20 = '30-25 20-30 20-20';
 
 describe('freeScore - Aggregate Scoring with Conditional TB', () => {
   describe('SET3XA-S:T10 (3 sets, aggregate, no conditional TB)', () => {
@@ -69,63 +70,83 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
     });
   });
 
-  describe('SET3XA-S:T10-F:TB1 (3 sets, aggregate, conditional TB1)', () => {
+  // All N timed sets are always played; the TB1 decider is set N + 1, only on a level total. It is
+  // never one of the N (factory #5166; CA, 2026-10-04: "In the INTENNSE competition format that is
+  // not to be considered one of the N sets").
+  describe('SET3XA-S:T10-F:TB1 (3 sets, aggregate, conditional TB1 as set 4)', () => {
     const format = FORMAT_SET3XA_TB1;
 
-    it('should accept 2 sets when aggregate not tied (side 2 wins)', () => {
+    it('should accept 3 sets when aggregate not tied (side 2 wins)', () => {
+      const result = parseScore(SCORE_30_25_20_30_20_20, format);
+
+      // Aggregate: 70-75, side 2 wins, no TB needed
+      expect(result.valid).toBe(true);
+      expect(result.sets.length).toBe(3);
+      expect(result.matchComplete).toBe(true);
+      expect(result.formattedScore).toBe(SCORE_30_25_20_30_20_20);
+    });
+
+    it('should accept 3 sets when aggregate not tied (side 1 wins)', () => {
+      const result = parseScore('30-25 45-55 30-20', format);
+
+      // Aggregate: 105-100, side 1 wins
+      expect(result.valid).toBe(true);
+      expect(result.sets.length).toBe(3);
+      expect(result.matchComplete).toBe(true);
+    });
+
+    it('should NOT complete after 2 sets even when aggregate not tied (bolt 3 is always played)', () => {
       const result = parseScore(SCORE_30_25_20_30, format);
 
-      // Aggregate: 50-55, side 2 wins, no TB needed
-      expect(result.valid).toBe(true);
-      expect(result.sets.length).toBe(2);
-      expect(result.matchComplete).toBe(true);
-      expect(result.formattedScore).toBe(SCORE_30_25_20_30);
+      expect(result.valid).toBe(false);
+      expect(result.incomplete).toBe(true);
+      expect(result.matchComplete).toBe(false);
     });
 
-    it('should accept 2 sets when aggregate not tied (side 1 wins)', () => {
-      const result = parseScore('30-25 45-55', format);
+    it('should accept the set 4 TB when the 3 bolts are level', () => {
+      const result = parseScore('30-25 25-30 20-20 1-0', format);
 
-      // Aggregate: 75-80, side 2 wins
+      // Aggregate: 75-75, TB decides
       expect(result.valid).toBe(true);
-      expect(result.sets.length).toBe(2);
+      expect(result.sets.length).toBe(4);
       expect(result.matchComplete).toBe(true);
+      expect(result.sets[3].side1TiebreakScore).toBe(1);
+      expect(result.sets[3].side2TiebreakScore).toBe(0);
     });
 
-    it('should accept 3 sets with TB when aggregate tied', () => {
+    it('should accept the set 4 TB score 0-1', () => {
+      const result = parseScore('30-25 25-30 20-20 0-1', format);
+
+      expect(result.valid).toBe(true);
+      expect(result.sets.length).toBe(4);
+      expect(result.sets[3].side1TiebreakScore).toBe(0);
+      expect(result.sets[3].side2TiebreakScore).toBe(1);
+    });
+
+    it('should read a 1-0 in bolt 3 as a timed bolt, never as the decider', () => {
       const result = parseScore('30-25 25-30 1-0', format);
 
-      // Aggregate: 55-55, TB decides
+      // Aggregate: 56-55, bolt 3 decides it on points
       expect(result.valid).toBe(true);
       expect(result.sets.length).toBe(3);
-      expect(result.matchComplete).toBe(true);
-      expect(result.sets[2].side1TiebreakScore).toBe(1);
-      expect(result.sets[2].side2TiebreakScore).toBe(0);
+      expect(result.sets[2].side1Score).toBe(1);
+      expect(result.sets[2].side1TiebreakScore).toBeUndefined();
     });
 
-    it('should accept 3 sets with TB score 0-1', () => {
-      const result = parseScore('30-25 25-30 0-1', format);
+    it('should reject 3 level bolts (missing TB)', () => {
+      const result = parseScore('30-25 25-30 20-20', format);
 
-      // Aggregate: 55-55, TB decides
-      expect(result.valid).toBe(true);
-      expect(result.sets.length).toBe(3);
-      expect(result.sets[2].side1TiebreakScore).toBe(0);
-      expect(result.sets[2].side2TiebreakScore).toBe(1);
-    });
-
-    it('should reject 2 sets when aggregate tied (missing TB)', () => {
-      const result = parseScore('30-25 25-30', format);
-
-      // Aggregate: 55-55, TB required
+      // Aggregate: 75-75, TB required
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
       expect(result.errors[0].message).toContain('Aggregate tied');
       expect(result.errors[0].message).toContain('TB required');
     });
 
-    it('should reject 3 sets when aggregate not tied (TB not allowed)', () => {
-      const result = parseScore('30-25 20-30 1-0', format);
+    it('should reject a set 4 TB when aggregate not tied (TB not allowed)', () => {
+      const result = parseScore('30-25 20-30 20-20 1-0', format);
 
-      // Aggregate: 50-55, side 2 wins, TB not allowed
+      // Aggregate: 70-75, side 2 wins, TB not allowed
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
       expect(result.errors[0].message).toContain('not tied');
@@ -133,7 +154,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
     });
 
     it('should reject invalid TB scores (2-0)', () => {
-      const result = parseScore('30-25 25-30 2-0', format);
+      const result = parseScore('30-25 25-30 20-20 2-0', format);
 
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
@@ -141,15 +162,15 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
     });
 
     it('should reject invalid TB scores (7-5)', () => {
-      const result = parseScore('30-25 25-30 7-5', format);
+      const result = parseScore('30-25 25-30 20-20 7-5', format);
 
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
       expect(result.errors[0].message).toContain('TB1 only accepts');
     });
 
-    it('should reject 4 sets (too many)', () => {
-      const result = parseScore('30-25 20-30 25-25 1-0', format);
+    it('should reject 5 sets (too many)', () => {
+      const result = parseScore('30-25 25-30 20-20 1-0 1-0', format);
 
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
@@ -166,51 +187,52 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
     });
   });
 
-  describe('SET4XA-S:T10-F:TB1 (4 sets, aggregate, conditional TB1)', () => {
+  describe('SET4XA-S:T10-F:TB1 (4 sets, aggregate, conditional TB1 as set 5)', () => {
     const format = 'SET4XA-S:T10-F:TB1';
 
-    it('should accept 3 sets when aggregate not tied', () => {
-      const result = parseScore('30-25 20-30 45-50', format);
+    it('should accept 4 sets when aggregate not tied', () => {
+      const result = parseScore('30-25 20-30 45-50 10-10', format);
 
-      // Aggregate: 95-105, side 2 wins
+      // Aggregate: 105-115, side 2 wins
       expect(result.valid).toBe(true);
-      expect(result.sets.length).toBe(3);
+      expect(result.sets.length).toBe(4);
       expect(result.matchComplete).toBe(true);
     });
 
-    it('should accept 4 sets with TB when aggregate tied', () => {
+    it('should accept the set 5 TB when the 4 bolts are level', () => {
       const result = parseScore('30-25 20-30 30-30 1-0', format);
-      expect(result.errors.length).toBe(1);
-      expect(result.valid).toBe(false);
+      // A 1-0 in bolt 4 is a timed bolt: aggregate 81-85, side 2 wins
+      expect(result.valid).toBe(true);
+      expect(result.sets.length).toBe(4);
+      expect(result.sets[3].side1TiebreakScore).toBeUndefined();
 
-      // Aggregate: 80-85... wait, let me recalculate: 30+20+30=80 vs 25+30+30=85
-      // Need a proper tie: 30-30, 20-20, 25-25 → 75-75
-      const result2 = parseScore('30-30 20-20 25-25 1-0', format);
+      // 30-30, 20-20, 25-25, 10-10 → 85-85, so the decider is set 5
+      const result2 = parseScore('30-30 20-20 25-25 10-10 1-0', format);
 
       expect(result2.valid).toBe(true);
-      expect(result2.sets.length).toBe(4);
+      expect(result2.sets.length).toBe(5);
       expect(result2.matchComplete).toBe(true);
-      expect(result2.sets[3].side1TiebreakScore).toBe(1);
+      expect(result2.sets[4].side1TiebreakScore).toBe(1);
     });
 
-    it('should reject 3 sets when aggregate tied (missing TB)', () => {
-      const result = parseScore('30-30 20-20 25-25', format);
+    it('should reject 4 level bolts (missing TB)', () => {
+      const result = parseScore('30-30 20-20 25-25 10-10', format);
 
-      // Aggregate: 75-75, TB required
+      // Aggregate: 85-85, TB required
       expect(result.valid).toBe(false);
       expect(result.errors[0].message).toContain('Aggregate tied');
     });
 
-    it('should reject 4 sets when aggregate not tied (TB not allowed)', () => {
-      const result = parseScore('30-25 20-30 30-20 1-0', format);
+    it('should reject a set 5 TB when aggregate not tied (TB not allowed)', () => {
+      const result = parseScore('30-25 20-30 30-20 10-10 1-0', format);
 
-      // Aggregate: 80-75, TB not allowed
+      // Aggregate: 90-85, TB not allowed
       expect(result.valid).toBe(false);
       expect(result.errors[0].message).toContain('not tied');
     });
 
-    it('should mark as incomplete with only 2 sets', () => {
-      const result = parseScore(SCORE_30_25_20_30, format);
+    it('should mark as incomplete with only 3 sets', () => {
+      const result = parseScore('30-25 20-30 45-50', format);
 
       expect(result.valid).toBe(false);
       expect(result.incomplete).toBe(true);
@@ -222,14 +244,14 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
     const format = 'SET3XA-S:T10-F:TB1NOAD';
 
     it('should accept TB with NoAD format (same validation as TB1)', () => {
-      const result = parseScore('30-25 25-30 1-0', format);
+      const result = parseScore('30-25 25-30 20-20 1-0', format);
 
       expect(result.valid).toBe(true);
-      expect(result.sets[2].side1TiebreakScore).toBe(1);
+      expect(result.sets[3].side1TiebreakScore).toBe(1);
     });
 
     it('should reject invalid TB scores for NoAD', () => {
-      const result = parseScore('30-25 25-30 2-1', format);
+      const result = parseScore('30-25 25-30 20-20 2-1', format);
 
       expect(result.valid).toBe(false);
       expect(result.errors[0].message).toContain('TB1 only accepts');
@@ -239,28 +261,28 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
   describe('Edge Cases', () => {
     const format = FORMAT_SET3XA_TB1;
 
-    it('should handle aggregate tied at 0-0', () => {
-      const result = parseScore('0-0 0-1', format);
+    it('should handle zero-scored bolts', () => {
+      const result = parseScore('0-0 0-1 0-0', format);
 
       // Aggregate: 0-1, side 2 wins
-      expect(result.valid).toBe(true);
-      expect(result.sets.length).toBe(2);
-    });
-
-    it('should handle high aggregate scores', () => {
-      const result = parseScore('100-50 50-100 1-0', format);
-
-      // Aggregate: 150-150, TB decides
       expect(result.valid).toBe(true);
       expect(result.sets.length).toBe(3);
     });
 
-    it('should handle one-sided match (50-0 0-40)', () => {
-      const result = parseScore('50-0 0-40', format);
+    it('should handle high aggregate scores', () => {
+      const result = parseScore('100-50 50-100 20-20 1-0', format);
+
+      // Aggregate: 170-170, TB decides
+      expect(result.valid).toBe(true);
+      expect(result.sets.length).toBe(4);
+    });
+
+    it('should handle one-sided match (50-0 0-40 0-0)', () => {
+      const result = parseScore('50-0 0-40 0-0', format);
 
       // Aggregate: 50-40, side 1 wins
       expect(result.valid).toBe(true);
-      expect(result.sets.length).toBe(2);
+      expect(result.sets.length).toBe(3);
       expect(result.matchComplete).toBe(true);
     });
   });
@@ -286,24 +308,24 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
   });
 
   describe('Realistic score examples', () => {
-    it('should accept 10-11 11-10 1-0 for SET3XA-S:T10-F:TB1', () => {
-      const result = parseScore('10-11 11-10 1-0', FORMAT_SET3XA_TB1);
+    it('should accept 10-11 11-10 10-10 1-0 for SET3XA-S:T10-F:TB1', () => {
+      const result = parseScore('10-11 11-10 10-10 1-0', FORMAT_SET3XA_TB1);
 
-      // Aggregate: 21-21, tied → TB decides
-      expect(result.valid).toBe(true);
-      expect(result.sets.length).toBe(3);
-      expect(result.matchComplete).toBe(true);
-    });
-
-    it('should accept 10-11 11-11 11-10 1-0 for SET4XA-S:T10-F:TB1', () => {
-      const result = parseScore('10-11 11-11 11-10 1-0', 'SET4XA-S:T10-F:TB1');
-
-      // Aggregate: 32-32, tied → TB decides
+      // Aggregate: 31-31, tied → TB decides
       expect(result.valid).toBe(true);
       expect(result.sets.length).toBe(4);
       expect(result.matchComplete).toBe(true);
-      expect(result.sets[3].side1TiebreakScore).toBe(1);
-      expect(result.sets[3].side2TiebreakScore).toBe(0);
+    });
+
+    it('should accept 10-11 11-11 11-10 9-9 1-0 for SET4XA-S:T10-F:TB1', () => {
+      const result = parseScore('10-11 11-11 11-10 9-9 1-0', 'SET4XA-S:T10-F:TB1');
+
+      // Aggregate: 41-41, tied → TB decides
+      expect(result.valid).toBe(true);
+      expect(result.sets.length).toBe(5);
+      expect(result.matchComplete).toBe(true);
+      expect(result.sets[4].side1TiebreakScore).toBe(1);
+      expect(result.sets[4].side2TiebreakScore).toBe(0);
     });
   });
 });

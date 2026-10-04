@@ -38,8 +38,11 @@ describe('Factory generateOutcomeFromScoreString with preserveSideOrder', () => 
       // Side order preserved
       expect(outcome.score.sets[0].side1Score).toBe(30);
       expect(outcome.score.sets[0].side2Score).toBe(25);
-      expect(outcome.score.sets[2].side1Score).toBe(1);
-      expect(outcome.score.sets[2].side2Score).toBe(0);
+      // A tiebreak-only decider's point is a TIEBREAK point (factory #5094): it lives in the tiebreak
+      // fields, and the game fields carry nothing.
+      expect(outcome.score.sets[2].side1TiebreakScore).toBe(1);
+      expect(outcome.score.sets[2].side2TiebreakScore).toBe(0);
+      expect(outcome.score.sets[2].side1Score).toBeUndefined();
 
       // winningSide from tiebreak (aggregate 55-55, TB 1-0)
       expect(outcome.winningSide).toBe(1);

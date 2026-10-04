@@ -2,6 +2,7 @@
  * Logic for determining when to expand set inputs dynamically
  */
 import { matchUpFormatCode } from 'tods-competition-factory';
+import { aggregateDeciderSetNumber } from './aggregateDecider';
 import type { SetScore } from '../types';
 
 type MatchUpFormatInfo = {
@@ -67,20 +68,22 @@ export function shouldExpandSets(sets: SetScore[], matchUpFormat?: string): bool
   // For timed sets, scores don't determine winners, so all sets must be played
   // EXCEPT for aggregate scoring with conditional final tiebreak
   if (isExactlyFormat) {
-    // Don't expand beyond the exact number of sets
-    if (sets.length >= totalSets) {
-      return false;
-    }
-
     // Special case: Aggregate scoring with conditional final tiebreak (e.g., SET3XA-S:T10-F:TB1)
     const parsed = matchUpFormatCode.parse(matchUpFormat);
     const isAggregateScoring = !!parsed?.aggregate;
     const hasFinalTiebreak = parsed?.finalSetFormat?.tiebreakSet?.tiebreakTo !== undefined;
+    const conditionalFinalTB = isAggregateScoring && hasFinalTiebreak && formatInfo.isTimed;
+    // An aggregate exactly format plays all N timed sets; its TB is set N + 1, shown only when the
+    // aggregate is tied after them. It is never one of the N (factory #5166; CA, 2026-10-04).
+    const deciderSetNumber = conditionalFinalTB ? aggregateDeciderSetNumber(parsed) : undefined;
 
-    if (isAggregateScoring && hasFinalTiebreak && formatInfo.isTimed) {
-      // For SET3XA-S:T10-F:TB1: Show sets 1-2, then check aggregate
-      // For SET4XA-S:T10-F:TB1: Show sets 1-3, then check aggregate
-      const timedSetsCount = totalSets - 1; // Final set is TB, so timed sets = totalSets - 1
+    // Don't expand beyond the exact number of sets (plus an aggregate format's decider)
+    if (sets.length >= (deciderSetNumber ?? totalSets)) {
+      return false;
+    }
+
+    if (conditionalFinalTB) {
+      const timedSetsCount = deciderSetNumber ? deciderSetNumber - 1 : totalSets - 1;
 
       if (sets.length < timedSetsCount) {
         // Still need to show timed sets

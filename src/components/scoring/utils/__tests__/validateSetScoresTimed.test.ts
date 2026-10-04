@@ -6,6 +6,7 @@ import { describe, it, expect } from 'vitest';
 import { validateSetScores } from '../scoreValidator';
 
 const FORMAT_SET3X_T10 = 'SET3X-S:T10';
+const FORMAT_SET3XA_TB1 = 'SET3XA-S:T10-F:TB1';
 const STATUS_COMPLETED = 'COMPLETED';
 
 describe('validateSetScores - Timed formats', () => {
@@ -80,17 +81,31 @@ describe('validateSetScores - Timed formats', () => {
     });
 
     it('should handle aggregate tie resolved by TB1', () => {
+      // The decider is set N + 1, never one of the N (factory #5166; CA, 2026-10-04)
       const sets = [
         { side1: 30, side2: 25 }, // +5 for side 1
         { side1: 25, side2: 30 }, // +5 for side 2
-        { side1TiebreakScore: 1, side2TiebreakScore: 0 } // TB: side 1 wins
+        { side1: 20, side2: 20 }, // level third bolt
+        { side1TiebreakScore: 1, side2TiebreakScore: 0 } // set 4 TB: side 1 wins
       ];
 
-      const result = validateSetScores(sets, 'SET3XA-S:T10-F:TB1', false);
+      const result = validateSetScores(sets, FORMAT_SET3XA_TB1, false);
 
       expect(result.isValid).toBe(true);
-      expect(result.winningSide).toBe(1); // Aggregate 55-55, TB resolves to side 1
+      expect(result.winningSide).toBe(1); // Aggregate 75-75, TB resolves to side 1
       expect(result.matchUpStatus).toBe(STATUS_COMPLETED);
+    });
+
+    it('should refuse a TB1 decider played in place of the third bolt', () => {
+      const sets = [
+        { side1: 30, side2: 25 },
+        { side1: 25, side2: 30 },
+        { side1TiebreakScore: 1, side2TiebreakScore: 0 }
+      ];
+
+      const result = validateSetScores(sets, FORMAT_SET3XA_TB1, false);
+
+      expect(result.isValid).toBe(false);
     });
   });
 
@@ -111,12 +126,13 @@ describe('validateSetScores - Timed formats', () => {
       const sets = [
         { side1: 30, side2: 25 },
         { side1: 25, side2: 30 },
+        { side1: 20, side2: 20 },
         { side1TiebreakScore: 1, side2TiebreakScore: 0 }
       ];
 
-      const result = validateSetScores(sets, 'SET3XA-S:T10-F:TB1', false);
+      const result = validateSetScores(sets, FORMAT_SET3XA_TB1, false);
 
-      expect(result.score).toBe('30-25 25-30 [1-0]');
+      expect(result.score).toBe('30-25 25-30 20-20 [1-0]');
     });
   });
 });
