@@ -168,10 +168,11 @@ const testCases: TestCase[] = [
     expectedScoreString: '3-6 6-3 [8-10]'
   },
   {
-    name: 'should handle SET3 F:TB10 complete match 6-1 7-5 [11-9]',
+    // 6-1 7-5 is a 2-0 win: a third set after it is refused by the factory (setPlayedAfterDecision)
+    name: 'should handle SET3 F:TB10 complete match 1-6 7-5 [11-9]',
     matchUpFormat: MATCH_FORMATS.SET3_S6_TB7_F_TB10,
-    keySequence: [6, 1, 7, 5, 1, 1, '-', 9],
-    expectedScoreString: '6-1 7-5 [11-9]'
+    keySequence: [1, 6, 7, 5, 1, 1, '-', 9],
+    expectedScoreString: '1-6 7-5 [11-9]'
   },
   {
     name: 'should handle SET3 F:TB10 incomplete third set 1-6 7-5 9',
