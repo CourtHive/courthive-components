@@ -130,10 +130,10 @@ function buildEndMatter({
   if (inlineScoring && isReadyToScore && !isCompleted && isLiveStatus) {
     const livePill = renderStatusPill({ matchUpStatus: IN_PROGRESS });
     livePill.classList.add('chc-live-chip');
-    livePill.addEventListener('click', (e) => {
+    livePill.onclick = (e) => {
       e.stopPropagation();
       eventHandlers?.pillClick?.({ pointerEvent: e, matchUp: matchUp!, sideNumber: sideNumber! });
-    });
+    };
     endMatter.appendChild(livePill);
   } else if (isWinningSide && !gameScoreOnly) {
     const tick = renderTick();
@@ -147,10 +147,10 @@ function buildEndMatter({
     const statusPill = renderStatusPill({ matchUpStatus: carriedExitStatus ?? matchUpStatus });
     if (inlineScoring) {
       statusPill.classList.add('chc-live-chip');
-      statusPill.addEventListener('click', (e) => {
+      statusPill.onclick = (e) => {
         e.stopPropagation();
         eventHandlers?.pillClick?.({ pointerEvent: e, matchUp: matchUp!, sideNumber: sideNumber! });
-      });
+      };
     }
     endMatter.appendChild(statusPill);
   }
