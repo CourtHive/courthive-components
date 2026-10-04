@@ -132,6 +132,9 @@ export type SetFormat = {
 export type MatchUpConfig = {
   bestOf: number;
   exactly?: number;
+  // Aggregate scoring: the factory places an aggregate format's -F: decider at set N + 1 only when it
+  // can see this flag (factory #5166), so a config without it reads the decider as set N
+  aggregate?: boolean;
   setFormat?: SetFormat;
   finalSetFormat?: SetFormat;
 };
@@ -185,6 +188,7 @@ export function matchUpConfigFor(matchUpFormat?: string): MatchUpConfig {
   return {
     bestOf: parseMatchUpFormat(matchUpFormat).bestOf,
     exactly: effective?.exactly,
+    aggregate: effective?.aggregate,
     setFormat: effective?.setFormat,
     finalSetFormat: effective?.finalSetFormat
   };

@@ -36,6 +36,7 @@ import { resolveScoreEntry } from './scoreEntryState';
 import { scoreLine } from '../regions/scoreLine';
 import {
   decidingIndex,
+  deciderSetNumberOf,
   enteredFactorySets,
   gamesLoser,
   isEmptyEntry,
@@ -257,8 +258,17 @@ export function columns(model: ScoreEntryModel, options: ColumnOptions = {}): Sc
 function opensSet(model: ScoreEntryModel, index: number, config: MatchUpConfig): boolean {
   if (index === 0) return true;
   for (let before = 0; before < index; before += 1) if (!isSettled(model, before)) return false;
+  // An aggregate format's decider (set N + 1) is played only when the N sets leave the total level
+  if (index + 1 === deciderSetNumberOf(config)) return aggregateIsLevel(model, index);
   if (isSetTimed(getSetFormatForIndex(index - 1, config))) return true;
   return decidingIndex(model.sets, config) === undefined && getMatchWinner(enteredSets(model), config) === undefined;
+}
+
+/** Whether the first `count` sets leave the aggregate total level. */
+function aggregateIsLevel(model: ScoreEntryModel, count: number): boolean {
+  const counted = model.sets.slice(0, count);
+  const total = (side: 'side1' | 'side2') => counted.reduce((sum, entry) => sum + (entry[side] ?? 0), 0);
+  return total('side1') === total('side2');
 }
 
 // ── Per-set questions, shared by the answers above ───────────────────

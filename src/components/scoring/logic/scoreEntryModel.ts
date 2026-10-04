@@ -74,6 +74,7 @@ import {
 
 // constants and types
 import type { ScoreEntryState, SideNumber } from './scoreEntryState';
+import { aggregateDeciderSetNumber } from '../utils/aggregateDecider';
 import type { MatchUpConfig, SetFormat } from './dynamicSetsLogic';
 import type { SetScore } from '../types';
 
@@ -628,9 +629,19 @@ export function isEmptyEntry(entry: SetEntry): boolean {
   );
 }
 
-/** How many sets the format plays: every set of an `exactly` format, otherwise the best-of. */
+/**
+ * How many sets the format can hold: every set of an `exactly` format, otherwise the best-of. An
+ * aggregate format with a final tiebreak holds one more, its sudden-death decider, which is set N + 1
+ * and never one of the N (factory #5166; CA, 2026-10-04). It opens only on a level total.
+ */
 export function setCountOf(config: MatchUpConfig): number {
-  return config.exactly ?? config.bestOf;
+  return deciderSetNumberOf(config) ?? config.exactly ?? config.bestOf;
+}
+
+/** The set number of an aggregate format's final-tiebreak decider, or `undefined` when it has none. */
+export function deciderSetNumberOf(config: MatchUpConfig): number | undefined {
+  if (config.finalSetFormat?.tiebreakSet?.tiebreakTo === undefined) return undefined;
+  return aggregateDeciderSetNumber(config);
 }
 
 /** An object with its `undefined` members removed, so two empty cells compare equal however they became empty. */

@@ -6,6 +6,7 @@ import { renderMatchUp } from '../../renderStructure/renderMatchUp';
 import { compositions } from '../../../compositions/compositions';
 import { validateSetScores } from '../utils/scoreValidator';
 import { parseMatchUpFormat, shouldExpandSets } from '../utils/setExpansionLogic';
+import { aggregateDeciderSetNumber } from '../utils/aggregateDecider';
 import type { RenderScoreEntryParams, SetScore } from '../types';
 import { loadSettings, getScoringConfig } from '../config';
 import { matchUpFormatCode, matchUpStatusConstants, scoreGovernor } from 'tods-competition-factory';
@@ -33,8 +34,7 @@ import {
   type WinnerSelection
 } from '../logic/irregularEnding';
 
-const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT } =
-  matchUpStatusConstants;
+const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT } = matchUpStatusConstants;
 
 const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
 const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
@@ -96,11 +96,7 @@ function updateContainerVisibility(
   }
 }
 
-function computeRowsToKeep(
-  currentSets: SetScore[],
-  matchComplete: boolean,
-  bestOf: number
-): number {
+function computeRowsToKeep(currentSets: SetScore[], matchComplete: boolean, bestOf: number): number {
   if (matchComplete) {
     const completeSetsCount = currentSets.filter((s) => s.winningSide !== undefined).length;
     return Math.max(1, completeSetsCount);
@@ -137,6 +133,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     return {
       bestOf: formatInfo.bestOf,
       exactly: parsedFormat?.exactly,
+      aggregate: parsedFormat?.aggregate,
       setFormat: parsedFormat?.setFormat,
       finalSetFormat: parsedFormat?.finalSetFormat
     };
@@ -146,6 +143,14 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   // This ensures format changes are immediately reflected
   let matchConfig = getMatchUpConfig();
   const getBestOf = () => matchConfig.bestOf;
+  // The most set rows the dialog can hold: an aggregate format with a final tiebreak adds its
+  // sudden-death decider as set N + 1, never one of the N (factory #5166; CA, 2026-10-04)
+  const getMaxSets = () => {
+    const parsedFormat = matchUpFormatCode.parse(currentMatchUpFormat);
+    const hasFinalTiebreak = parsedFormat?.finalSetFormat?.tiebreakSet?.tiebreakTo !== undefined;
+    const deciderSetNumber = hasFinalTiebreak ? aggregateDeciderSetNumber(parsedFormat) : undefined;
+    return deciderSetNumber ?? getBestOf();
+  };
   const getExactly = () => matchConfig.exactly;
 
   // Helper function to get format for a specific set index
@@ -943,7 +948,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     const newSets: SetScore[] = [];
 
     // Parse all set inputs
-    for (let i = 0; i < getBestOf(); i++) {
+    for (let i = 0; i < getMaxSets(); i++) {
       const side1Input = setsContainer.querySelector(`input[data-set-index="${i}"][data-side="1"]`) as HTMLInputElement;
       const side2Input = setsContainer.querySelector(`input[data-set-index="${i}"][data-side="2"]`) as HTMLInputElement;
       const tiebreakInput = setsContainer.querySelector(
@@ -989,7 +994,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
     const allSetRows = setsContainer.querySelectorAll('.set-row');
     const matchComplete = isMatchCompleteLogic(currentSets, matchConfig);
-    const rowsToKeep = computeRowsToKeep(currentSets, matchComplete, getBestOf());
+    const rowsToKeep = computeRowsToKeep(currentSets, matchComplete, getMaxSets());
 
     for (let i = allSetRows.length - 1; i >= rowsToKeep; i--) {
       allSetRows[i].remove();
@@ -1019,12 +1024,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
       const matchComplete = validation.isValid && validation.winningSide !== undefined;
 
-      updateContainerVisibility(
-        selectedOutcome,
-        matchComplete,
-        irregularEndingContainer,
-        winnerSelectionContainer
-      );
+      updateContainerVisibility(selectedOutcome, matchComplete, irregularEndingContainer, winnerSelectionContainer);
 
       const resolution = applyIrregularEndingToValidation(validation, selectedOutcome, winnerSelection);
       updateWinnerSelectionUI(resolution.isDoubleExit);
@@ -1171,7 +1171,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
     const nextSetIndex = currentSets.length;
     const nextSetExists = setsContainer.querySelector(`input[data-set-index="${nextSetIndex}"]`);
-    if (nextSetIndex < getBestOf() && !nextSetExists) {
+    if (nextSetIndex < getMaxSets() && !nextSetExists) {
       const newSetRow = createSetRow(nextSetIndex);
       setsContainer.appendChild(newSetRow);
 
@@ -1280,7 +1280,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
       if (nextSetSide1) {
         focusAndSelect(nextSetSide1);
-      } else if (setIndex + 1 < getBestOf()) {
+      } else if (setIndex + 1 < getMaxSets()) {
         createNextSetAndFocus(setIndex + 1);
       }
     }, 10);
@@ -1336,7 +1336,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     ) as HTMLInputElement;
     if (nextInput) {
       focusAndSelect(nextInput);
-    } else if (setIndex + 1 < getBestOf()) {
+    } else if (setIndex + 1 < getMaxSets()) {
       const currentSetComplete = isSetComplete(setIndex);
       if (!currentSetComplete) return;
 
@@ -1353,7 +1353,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     ) as HTMLInputElement;
     if (nextInput) {
       focusAndSelect(nextInput);
-    } else if (setIndex + 1 < getBestOf()) {
+    } else if (setIndex + 1 < getMaxSets()) {
       const currentSetComplete = isSetComplete(setIndex);
       if (!currentSetComplete) return;
 

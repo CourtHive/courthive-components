@@ -94,15 +94,22 @@ describe('scoreValidator - Aggregate Scoring', () => {
     const format = 'SET3XA-S:T10-F:TB1';
 
     it('should handle aggregate tie resolved by final tiebreak', () => {
-      // Use bracket notation for tiebreak-only final set
-      const scoreString = '30-25 25-30 [1-0]';
+      // The -F:TB1 sudden-death decider is set N + 1, never one of the N (factory #5166).
+      // CA, 2026-10-04: in INTENNSE the tiebreak "is not to be considered one of the N sets".
+      const scoreString = '30-25 25-30 20-20 [1-0]';
       const result = validateScore(scoreString, format);
 
-      // Aggregate: side1=55, side2=55 (tied)
-      // Final TB: 1-0 for side 1
-      // Winner: side 1 (by tiebreak)
+      // Aggregate after all three bolts: side1=75, side2=75 (tied)
+      // Final TB (set 4): 1-0 for side 1
       expect(result.isValid).toBe(true);
       expect(result.winningSide).toBe(1);
+    });
+
+    it('should refuse a decider played in place of the third bolt', () => {
+      // Two bolts plus a tiebreak is only two of the N = 3 timed sets (factory #5166)
+      const result = validateScore('30-25 25-30 [1-0]', format);
+
+      expect(result.isValid).toBe(false);
     });
 
     it('should require all 3 sets for exactly format even with conditional TB', () => {

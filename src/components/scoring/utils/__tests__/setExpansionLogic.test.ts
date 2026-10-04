@@ -429,34 +429,57 @@ describe('setExpansionLogic', () => {
   });
 
   describe('Aggregate Scoring with Conditional TB', () => {
+    // All N bolts are played; the TB1 decider is set N + 1, shown only on a level total. It is never
+    // one of the N (factory #5166; CA, 2026-10-04).
     describe('SET3XA-S:T10-F:TB1', () => {
       const format = MATCH_FORMATS.SET3X_T10A_TB1;
 
-      it('should NOT expand after 2 sets when aggregate not tied (match complete)', () => {
+      it('should expand after 2 sets even when aggregate not tied (all 3 bolts are played)', () => {
         const sets: SetScore[] = [
           { side1Score: 30, side2Score: 25 }, // Set 1
           { side1Score: 20, side2Score: 30 } // Set 2
         ];
-        // Aggregate: 50-55, side 2 wins
-        const result = shouldExpandSets(sets, format);
-        expect(result).toBe(false);
-      });
-
-      it('should expand after 2 sets when aggregate tied (TB required)', () => {
-        const sets: SetScore[] = [
-          { side1Score: 30, side2Score: 25 }, // Set 1
-          { side1Score: 25, side2Score: 30 } // Set 2
-        ];
-        // Aggregate: 55-55, tied → need TB
         const result = shouldExpandSets(sets, format);
         expect(result).toBe(true);
       });
 
-      it('should NOT expand after 3 sets with TB (match complete)', () => {
+      it('should expand after 2 sets when aggregate tied (bolt 3 still to play)', () => {
+        const sets: SetScore[] = [
+          { side1Score: 30, side2Score: 25 }, // Set 1
+          { side1Score: 25, side2Score: 30 } // Set 2
+        ];
+        const result = shouldExpandSets(sets, format);
+        expect(result).toBe(true);
+      });
+
+      it('should NOT expand after 3 bolts when aggregate not tied (match complete)', () => {
+        const sets: SetScore[] = [
+          { side1Score: 30, side2Score: 25 },
+          { side1Score: 20, side2Score: 30 },
+          { side1Score: 20, side2Score: 10 }
+        ];
+        // Aggregate: 70-65, side 1 wins
+        const result = shouldExpandSets(sets, format);
+        expect(result).toBe(false);
+      });
+
+      it('should expand to the set 4 decider after 3 level bolts', () => {
+        const sets: SetScore[] = [
+          { side1Score: 30, side2Score: 25 },
+          { side1Score: 25, side2Score: 30 },
+          { side1Score: 20, side2Score: 20 }
+        ];
+        // Aggregate: 75-75, tied → decider is set 4
+        const result = shouldExpandSets(sets, format);
+        expect(result).toBe(true);
+      });
+
+      it('should NOT expand after 3 bolts and the set 4 TB (match complete)', () => {
         const sets: SetScore[] = [
           { side1Score: 30, side2Score: 25 }, // Set 1
           { side1Score: 25, side2Score: 30 }, // Set 2
-          { side1TiebreakScore: 1, side2TiebreakScore: 0 } // Set 3 TB
+          { side1Score: 20, side2Score: 20 }, // Set 3
+          { side1TiebreakScore: 1, side2TiebreakScore: 0 } // Set 4 TB
         ];
         const result = shouldExpandSets(sets, format);
         expect(result).toBe(false);
@@ -476,9 +499,10 @@ describe('setExpansionLogic', () => {
         const sets: SetScore[] = [
           { side1Score: 30, side2Score: 25 },
           { side1Score: 25, side2Score: 30 },
+          { side1Score: 20, side2Score: 20 },
           { side1TiebreakScore: 1, side2TiebreakScore: 0 }
         ];
-        // Aggregate: 55-55, TB decides → side 1 wins
+        // Aggregate: 75-75, TB decides → side 1 wins
         const result = determineWinningSide(sets, format);
         expect(result).toBe(1);
       });
@@ -497,33 +521,46 @@ describe('setExpansionLogic', () => {
     describe('SET4XA-S:T10-F:TB1', () => {
       const format = MATCH_FORMATS.SET4X_T10A_TB1;
 
-      it('should NOT expand after 3 sets when aggregate not tied', () => {
+      it('should expand after 3 sets when aggregate not tied (all 4 bolts are played)', () => {
         const sets: SetScore[] = [
           { side1Score: 30, side2Score: 25 },
           { side1Score: 20, side2Score: 30 },
           { side1Score: 45, side2Score: 50 }
         ];
-        // Aggregate: 95-105, side 2 wins
-        const result = shouldExpandSets(sets, format);
-        expect(result).toBe(false);
-      });
-
-      it('should expand after 3 sets when aggregate tied', () => {
-        const sets: SetScore[] = [
-          { side1Score: 30, side2Score: 30 },
-          { side1Score: 20, side2Score: 20 },
-          { side1Score: 25, side2Score: 25 }
-        ];
-        // Aggregate: 75-75, tied → need TB
         const result = shouldExpandSets(sets, format);
         expect(result).toBe(true);
       });
 
-      it('should NOT expand after 4 sets with TB', () => {
+      it('should NOT expand after 4 bolts when aggregate not tied', () => {
+        const sets: SetScore[] = [
+          { side1Score: 30, side2Score: 25 },
+          { side1Score: 20, side2Score: 30 },
+          { side1Score: 45, side2Score: 50 },
+          { side1Score: 10, side2Score: 10 }
+        ];
+        // Aggregate: 105-115, side 2 wins
+        const result = shouldExpandSets(sets, format);
+        expect(result).toBe(false);
+      });
+
+      it('should expand to the set 5 decider after 4 level bolts', () => {
         const sets: SetScore[] = [
           { side1Score: 30, side2Score: 30 },
           { side1Score: 20, side2Score: 20 },
           { side1Score: 25, side2Score: 25 },
+          { side1Score: 10, side2Score: 10 }
+        ];
+        // Aggregate: 85-85, tied → decider is set 5
+        const result = shouldExpandSets(sets, format);
+        expect(result).toBe(true);
+      });
+
+      it('should NOT expand after 4 bolts and the set 5 TB', () => {
+        const sets: SetScore[] = [
+          { side1Score: 30, side2Score: 30 },
+          { side1Score: 20, side2Score: 20 },
+          { side1Score: 25, side2Score: 25 },
+          { side1Score: 10, side2Score: 10 },
           { side1TiebreakScore: 0, side2TiebreakScore: 1 }
         ];
         const result = shouldExpandSets(sets, format);

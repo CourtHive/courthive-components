@@ -10,6 +10,7 @@ const SCORE_10_0_01_01 = '10-0 0-1 0-1';
 const SCORE_30_25_25_30_35_20 = '30-25 25-30 35-20';
 const SCORE_30_1_01_01 = '30-1 0-1 0-1';
 const SCORE_30_25_25_30_1_0 = '30-25 25-30 1-0';
+const SCORE_LEVEL_BOLTS_THEN_1_0 = '30-25 25-30 20-20 1-0';
 
 describe('dialPadLogic - Timed sets (T10)', () => {
   describe('SET3X-S:T10 (3 timed sets, no aggregate)', () => {
@@ -92,18 +93,24 @@ describe('dialPadLogic - Timed sets (T10)', () => {
   describe('SET3XA-S:T10-F:TB1 (aggregate with conditional tiebreak)', () => {
     const format = 'SET3XA-S:T10-F:TB1';
 
+    // The TB1 decider is set N + 1, never one of the N (factory #5166; CA, 2026-10-04)
     it('should format aggregate with TB1 using minus notation', () => {
-      const digits = SCORE_30_25_25_30_1_0;
+      const digits = SCORE_LEVEL_BOLTS_THEN_1_0;
       const result = formatScoreString(digits, { matchUpFormat: format });
-      // Final set is TB1, should format as bracket notation
-      expect(result).toBe('30-25 25-30 [1-0]');
+      // The decider after three level bolts is TB1, formatted in bracket notation
+      expect(result).toBe('30-25 25-30 20-20 [1-0]');
+    });
+
+    it('should read a 1-0 in bolt 3 as a timed bolt, never as the decider', () => {
+      const result = formatScoreString(SCORE_30_25_25_30_1_0, { matchUpFormat: format });
+      expect(result).toBe('30-25 25-30 1-0');
     });
 
     it('should handle TB1NOAD variant', () => {
       const format = 'SET3XA-S:T10-F:TB1NOAD';
-      const digits = SCORE_30_25_25_30_1_0;
+      const digits = SCORE_LEVEL_BOLTS_THEN_1_0;
       const result = formatScoreString(digits, { matchUpFormat: format });
-      expect(result).toBe('30-25 25-30 [1-0]');
+      expect(result).toBe('30-25 25-30 20-20 [1-0]');
     });
   });
 
@@ -228,10 +235,11 @@ describe('dialPadApproach - scoreToDigits for timed sets', () => {
       sets: [
         { side1Score: 30, side2Score: 25, winningSide: 1 },
         { side1Score: 25, side2Score: 30, winningSide: 2 },
+        { side1Score: 20, side2Score: 20 },
         { side1Score: 1, side2Score: 0, side1TiebreakScore: undefined, side2TiebreakScore: undefined, winningSide: 1 }
       ]
     };
-    // TB1 set shows as regular scores (1-0) without tiebreak notation
-    expect(scoreToDigits(score)).toBe(SCORE_30_25_25_30_1_0);
+    // TB1 set (the decider, set N + 1) shows as regular scores (1-0) without tiebreak notation
+    expect(scoreToDigits(score)).toBe(SCORE_LEVEL_BOLTS_THEN_1_0);
   });
 });

@@ -14,6 +14,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { matchUpFormatCode } from 'tods-competition-factory';
+import { getSetFormatForIndex, matchUpConfigFor } from '../../logic/dynamicSetsLogic';
 import { MATCH_FORMATS } from '../../../../constants/matchUpFormats';
 
 /**
@@ -499,41 +500,34 @@ describe('dynamicSets getSetFormat Logic', () => {
     });
   });
 
+  // The aggregate cases read the PRODUCTION path (getSetFormatForIndex, which asks the factory), not the
+  // replica above: the TB1 decider is set N + 1, never one of the N (factory #5166; CA, 2026-10-04).
   describe('Aggregate Scoring with Conditional TB (SET3XA-S:T10-F:TB1)', () => {
-    const format = MATCH_FORMATS.SET3X_T10A_TB1;
-    const bestOf = 3;
+    const config = matchUpConfigFor(MATCH_FORMATS.SET3X_T10A_TB1);
 
-    it('should use timed setFormat for set 1', () => {
-      const setFormat = getSetFormat(0, format, bestOf);
-      const info = getFormatInfo(setFormat);
+    it('should use timed setFormat for sets 1-3', () => {
+      for (const setIndex of [0, 1, 2]) {
+        const setFormat = getSetFormatForIndex(setIndex, config);
+        const info = getFormatInfo(setFormat);
 
-      expect(setFormat?.timed).toBe(true);
-      expect(setFormat?.minutes).toBe(10);
-      expect(info.isTiebreakOnly).toBe(false);
+        expect(setFormat?.timed).toBe(true);
+        expect(setFormat?.minutes).toBe(10);
+        expect(info.isTiebreakOnly).toBe(false);
+      }
     });
 
-    it('should use timed setFormat for set 2', () => {
-      const setFormat = getSetFormat(1, format, bestOf);
-      const info = getFormatInfo(setFormat);
+    it('should use finalSetFormat (TB1) for the set 4 decider', () => {
+      const info = getFormatInfo(getSetFormatForIndex(3, config));
 
-      expect(setFormat?.timed).toBe(true);
-      expect(setFormat?.minutes).toBe(10);
-      expect(info.isTiebreakOnly).toBe(false);
-    });
-
-    it('should use finalSetFormat (TB1) for set 3', () => {
-      const setFormat = getSetFormat(2, format, bestOf);
-      const info = getFormatInfo(setFormat);
-
-      // Set 3 is the final/deciding set, should use finalSetFormat
       expect(info.isTiebreakOnly).toBe(true);
       expect(info.tiebreakTo).toBe(1);
-      // Final set is TB only, no timed configuration
     });
 
     it('should handle SET3XA-S:T10-F:TB1NOAD', () => {
-      const formatNOAD = MATCH_FORMATS.SET3X_T10A_TB1_NOAD;
-      const finalSetFormat = getSetFormat(2, formatNOAD, bestOf);
+      const configNOAD = matchUpConfigFor(MATCH_FORMATS.SET3X_T10A_TB1_NOAD);
+      expect(getSetFormatForIndex(2, configNOAD)?.timed).toBe(true);
+
+      const finalSetFormat = getSetFormatForIndex(3, configNOAD);
       const info = getFormatInfo(finalSetFormat);
 
       expect(info.isTiebreakOnly).toBe(true);
@@ -543,29 +537,18 @@ describe('dynamicSets getSetFormat Logic', () => {
   });
 
   describe('Aggregate Scoring SET4X (SET4XA-S:T10-F:TB1)', () => {
-    const format = MATCH_FORMATS.SET4X_T10A_TB1;
-    const bestOf = 4;
+    const config = matchUpConfigFor(MATCH_FORMATS.SET4X_T10A_TB1);
 
-    it('should use timed setFormat for sets 1-3', () => {
-      // Test set 1
-      const setFormat0 = getSetFormat(0, format, bestOf);
-      expect(setFormat0?.timed).toBe(true);
-      expect(setFormat0?.minutes).toBe(10);
-
-      // Test set 2
-      const setFormat1 = getSetFormat(1, format, bestOf);
-      expect(setFormat1?.timed).toBe(true);
-      expect(setFormat1?.minutes).toBe(10);
-
-      // Test set 3
-      const setFormat2 = getSetFormat(2, format, bestOf);
-      expect(setFormat2?.timed).toBe(true);
-      expect(setFormat2?.minutes).toBe(10);
+    it('should use timed setFormat for sets 1-4', () => {
+      for (const setIndex of [0, 1, 2, 3]) {
+        const setFormat = getSetFormatForIndex(setIndex, config);
+        expect(setFormat?.timed).toBe(true);
+        expect(setFormat?.minutes).toBe(10);
+      }
     });
 
-    it('should use finalSetFormat (TB1) for set 4', () => {
-      const setFormat = getSetFormat(3, format, bestOf);
-      const info = getFormatInfo(setFormat);
+    it('should use finalSetFormat (TB1) for the set 5 decider', () => {
+      const info = getFormatInfo(getSetFormatForIndex(4, config));
 
       expect(info.isTiebreakOnly).toBe(true);
       expect(info.tiebreakTo).toBe(1);
