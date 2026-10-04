@@ -13,13 +13,25 @@
  * is the state.
  */
 import { matchUpStatusConstants, fixtures, policyConstants } from 'tods-competition-factory';
+import { createScoreEntryStore } from '../logic/scoreEntryStore';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderScoreEntryCard } from '../scoreEntryCard';
 
 import type { StatusCodeGroups } from '../logic/statusCodes';
 
-const { RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, SUSPENDED, CANCELLED, IN_PROGRESS, AWAITING_RESULT, DEAD_RUBBER, ABANDONED, INCOMPLETE } =
-  matchUpStatusConstants;
+const {
+  RETIRED,
+  WALKOVER,
+  DEFAULTED,
+  DOUBLE_WALKOVER,
+  SUSPENDED,
+  CANCELLED,
+  IN_PROGRESS,
+  AWAITING_RESULT,
+  DEAD_RUBBER,
+  ABANDONED,
+  INCOMPLETE
+} = matchUpStatusConstants;
 const { POLICY_TYPE_SCORING } = policyConstants;
 
 const REAL_GROUPS = fixtures.policies.POLICY_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
@@ -32,18 +44,31 @@ const PARTICIPANT = '.chc-sec-participant';
 const CARD_ROW = '.chc-sec-row';
 const CARD_ROW_HEAD = '.chc-sec-row-head';
 const ROW_ENDING = '[data-row-ending]';
+const FORMAT = 'SET3-S:6/TB7';
+
+/**
+ * A region holding a score, as the card's contract has it since S5: a store the card adopts, not
+ * answers the region computes. `[6, 4]` is a set 6-4; a second pair a second set.
+ */
+function holding(...sets: Array<[number, number]>) {
+  const store = createScoreEntryStore({
+    matchUpFormat: FORMAT,
+    sets: sets.map(([side1Score, side2Score], index) => ({ setNumber: index + 1, side1Score, side2Score }))
+  });
+  return { store };
+}
 
 function mount(over: Partial<Parameters<typeof renderScoreEntryCard>[0]> = {}) {
   document.body.innerHTML = '';
   const card = renderScoreEntryCard({
     sides: [
       { participantName: LEM, seed: '(4)' },
-      { participantName: ELLUL, seed: '(1)' },
+      { participantName: ELLUL, seed: '(1)' }
     ],
-    matchUpFormat: 'SET3-S:6/TB7',
+    matchUpFormat: FORMAT,
     context: 'R16 · Court 3',
     region: {},
-    ...over,
+    ...over
   });
   document.body.append(card.element);
 
@@ -58,8 +83,7 @@ function mount(over: Partial<Parameters<typeof renderScoreEntryCard>[0]> = {}) {
     panel: (side: number) => q<HTMLElement>(`[data-panel-side="${side}"]`),
     sideOption: (side: number, status: string) =>
       q<HTMLButtonElement>(`[data-panel-side="${side}"] button[data-ending="${status}"]`),
-    matchEnding: (status: string) =>
-      q<HTMLButtonElement>(`.chc-sec-endings > button[data-ending="${status}"]`),
+    matchEnding: (status: string) => q<HTMLButtonElement>(`.chc-sec-endings > button[data-ending="${status}"]`),
     otherButton: () => q<HTMLButtonElement>('button[data-action="other"]'),
     otherItem: (status: string) => q<HTMLButtonElement>(`.chc-sec-other-menu button[data-ending="${status}"]`),
     bothOut: () => q<HTMLInputElement>('input[data-action="bothSidesOut"]'),
@@ -67,7 +91,7 @@ function mount(over: Partial<Parameters<typeof renderScoreEntryCard>[0]> = {}) {
     reasons: () => all<HTMLButtonElement>('button[data-reason]'),
     band: () => q<HTMLElement>('.chc-sec-band'),
     submit: () => q<HTMLButtonElement>('button[data-action="submit"]'),
-    row: (side: number) => q<HTMLElement>(`.chc-sec-row[data-side="${side}"]`),
+    row: (side: number) => q<HTMLElement>(`.chc-sec-row[data-side="${side}"]`)
   };
 }
 
@@ -135,7 +159,7 @@ describe('the per-side ending control', () => {
 
   it('has no trailing action track — the width went back to the name', () => {
     const h = mount({
-      region: { columns: () => [{ heading: '1st' }], rowCells: () => [document.createElement('input')] },
+      region: { columns: () => [{ heading: '1st' }], rowCells: () => [document.createElement('input')] }
     });
     const head = h.q<HTMLElement>(CARD_ROW_HEAD);
 
@@ -353,10 +377,11 @@ describe('the match-level endings row', () => {
 });
 
 describe('the band announces a score about to be discarded', () => {
-  const region = { scoreString: () => '6-4 2-1' };
+  // A fresh store per test: a region holding a score is stateful now, and the first test clears it.
+  const region = () => holding([6, 4], [2, 1]);
 
   it.each([CANCELLED, DEAD_RUBBER])('%s quotes the part-score it clears', (status) => {
-    const h = mount({ region });
+    const h = mount({ region: region() });
     h.otherButton()?.click();
     h.otherItem(status)?.click();
 
@@ -366,7 +391,7 @@ describe('the band announces a score about to be discarded', () => {
   });
 
   it.each([SUSPENDED, ABANDONED])('%s says the part-score was recorded, not cleared', (status) => {
-    const h = mount({ region });
+    const h = mount({ region: region() });
     if (status === SUSPENDED) h.matchEnding(SUSPENDED)?.click();
     else {
       h.otherButton()?.click();
@@ -391,7 +416,7 @@ describe('the reason chips', () => {
     expect(withPolicy.reasons().length).toBeGreaterThan(1);
   });
 
-  it('offer the selected ending\'s group, and never another ending\'s', () => {
+  it("offer the selected ending's group, and never another ending's", () => {
     const h = mount({ statusCodeGroups: REAL_GROUPS });
     h.endedEarly(1)?.click();
     h.sideOption(1, RETIRED)?.click();
@@ -450,14 +475,14 @@ describe('the submit gate', () => {
   it('opens for a finished score with no ending at all — the 95% case', () => {
     // Gating on the ending alone would make Submit dead for an ordinary played-out match, which is
     // what the card is used for nearly every time.
-    const h = mount({ region: { isComplete: () => true, winningSide: () => 1, scoreString: () => '6-4 6-3' } });
+    const h = mount({ region: holding([6, 4], [6, 3]) });
 
     expect(h.submit()?.disabled).toBe(false);
     expect(h.band()?.textContent).toContain('Rosalind Lem def. Derrick Ellul');
   });
 
   it('opens for a walkover with no score — gating on the score alone would close it', () => {
-    const h = mount({ region: { isComplete: () => false } });
+    const h = mount({ region: {} });
     h.endedEarly(1)?.click();
     h.sideOption(1, WALKOVER)?.click();
 
@@ -465,7 +490,7 @@ describe('the submit gate', () => {
   });
 
   it('stays closed for an unfinished score and no ending', () => {
-    const h = mount({ region: { isComplete: () => false, scoreString: () => '6-4 2-1' } });
+    const h = mount({ region: holding([6, 4], [2, 1]) });
 
     expect(h.submit()?.disabled).toBe(true);
   });
@@ -489,20 +514,21 @@ describe('the shared geometry', () => {
   it('shows the format code and the context', () => {
     const h = mount();
 
-    expect(h.q('.chc-sec-format')?.textContent).toBe('SET3-S:6/TB7');
+    expect(h.q('.chc-sec-format')?.textContent).toBe(FORMAT);
     expect(h.q('.chc-sec-context')?.textContent).toBe('R16 · Court 3');
   });
 
-  it('places a region\'s per-set cells inside the participant rows', () => {
+  it("places a region's per-set cells inside the participant rows", () => {
     const h = mount({
       region: {
         columns: () => [{ heading: '1st' }, { heading: '2nd' }],
-        rowCells: (side) => ['a', 'b'].map((key) => {
-          const input = document.createElement('input');
-          input.dataset.cell = `${key}${side}`;
-          return input;
-        }),
-      },
+        rowCells: (side) =>
+          ['a', 'b'].map((key) => {
+            const input = document.createElement('input');
+            input.dataset.cell = `${key}${side}`;
+            return input;
+          })
+      }
     });
 
     expect(h.q<HTMLElement>('input[data-cell="a1"]')?.closest<HTMLElement>(CARD_ROW)?.dataset.side).toBe('1');
@@ -510,7 +536,7 @@ describe('the shared geometry', () => {
     expect(h.q(CARD_ROW_HEAD)?.textContent).toContain('1st');
   });
 
-  it('refresh() keeps the region\'s input ELEMENTS, so typing does not lose the caret', () => {
+  it("refresh() keeps the region's input ELEMENTS, so typing does not lose the caret", () => {
     // A score region calls refresh() on every keystroke to keep the band live. If refresh re-rendered
     // the rows it would ask the region for fresh cells and replace the input being typed into — the
     // value would survive (the region holds it) but the element would not, so focus and the caret go
@@ -526,9 +552,8 @@ describe('the shared geometry', () => {
           const input = document.createElement('input');
           input.dataset.cell = `s${side}`;
           return [input];
-        },
-        isComplete: () => false,
-      },
+        }
+      }
     });
 
     const before = h.q<HTMLInputElement>('input[data-cell="s1"]');
@@ -551,8 +576,8 @@ describe('the shared geometry', () => {
         rowCells: () => {
           served += 1;
           return [document.createElement('input')];
-        },
-      },
+        }
+      }
     });
     const servedAfterMount = served;
 
@@ -563,15 +588,15 @@ describe('the shared geometry', () => {
     expect(h.row(2)?.dataset.winner).toBe('true');
   });
 
-  it('places a region\'s block beneath the rows instead', () => {
+  it("places a region's block beneath the rows instead", () => {
     const h = mount({
       region: {
         block: () => {
           const field = document.createElement('input');
           field.dataset.freeScore = 'true';
           return field;
-        },
-      },
+        }
+      }
     });
 
     expect(h.q('.chc-sec-score-region input[data-free-score]')).toBeTruthy();

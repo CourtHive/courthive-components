@@ -38,6 +38,13 @@ const SWITCH = 'button[data-action="switchApproach"]';
 const EDIT_FORMAT = 'button[data-action="editFormat"]';
 const SET_1_SIDE_1 = 'input[data-side="1"][data-set="1"]';
 const SET_1_SIDE_2 = 'input[data-side="2"][data-set="1"]';
+const SET_2_SIDE_1 = 'input[data-side="1"][data-set="2"]';
+const SET_2_SIDE_2 = 'input[data-side="2"][data-set="2"]';
+const SET_3_SIDE_1 = 'input[data-side="1"][data-set="3"]';
+/** A best-of-ONE: it has no position for a second set, so anything beyond the first is dropped. */
+const BEST_OF_ONE = 'SET1-S:6/TB7';
+/** A best-of-three whose DECIDING set is a match tiebreak — only set 3's rule moves. */
+const DECIDER_TB10 = 'SET3-S:6/TB7-F:TB10';
 const BAND = '.chc-sec-band';
 const SMART = 'button[data-action="smartComplements"]';
 const ENDED_EARLY_2 = 'button[data-action="endedEarly"][data-side="2"]';
@@ -215,6 +222,69 @@ describe('the dialog announces and focuses itself', () => {
     open({ autoFocus: false });
 
     expect(document.activeElement).toBe(outside);
+  });
+
+  // ── A reopened RESULT focuses no entry cell ──
+  //
+  // CA, 2026-10-01: *"a reopened completed matchUp should not focus any entry cell at all."* Measured
+  // before this: the caret landed in set 1's lower cell and the region never folds the set under edit,
+  // so a completed 7-6(3) 6-4 reopened with set 1 showing its fields and set 2 folded.
+  const RECORDED_RESULT = {
+    matchUpFormat: FORMAT,
+    matchUpStatus: 'COMPLETED',
+    winningSide: 1,
+    score: {
+      sets: [
+        { setNumber: 1, side1Score: 7, side2Score: 6, side1TiebreakScore: 7, side2TiebreakScore: 3, winningSide: 1 },
+        { setNumber: 2, side1Score: 6, side2Score: 4, winningSide: 1 }
+      ]
+    }
+  };
+  const FOLDED_1_2 = 'button[data-done-side="2"][data-done-set="1"]';
+
+  it('focuses no entry cell when reopened on a completed result, so every set opens folded', () => {
+    open({ matchUp: RECORDED_RESULT });
+
+    // The dialog itself holds focus: inside the modal, so Escape and the tab order start there, and on
+    // no cell, so nothing is pulled open.
+    expect(document.activeElement).toBe(modal());
+    expect(q(`${FOLDED_1_2}`)?.hidden, 'set 1 is folded').toBe(false);
+    expect(q<HTMLElement>(FOLDED_1_2)?.textContent).toBe('63');
+    expect(q<HTMLInputElement>(SET_1_SIDE_2)?.hidden).toBe(true);
+  });
+
+  it('keeps no cell focused across an approach switch on a reopened result', () => {
+    const dialog = open({ matchUp: RECORDED_RESULT });
+
+    dialog.setApproach('freeScore');
+    expect((document.activeElement as HTMLElement)?.dataset?.freeScore).toBeUndefined();
+
+    dialog.setApproach('dynamicSets');
+    expect(document.activeElement).toBe(modal());
+    expect(q<HTMLInputElement>(SET_1_SIDE_2)?.hidden, 'and set 1 is still folded').toBe(true);
+  });
+
+  it('treats a double exit as a result too — nothing to type', () => {
+    open({ matchUp: { matchUpFormat: FORMAT, matchUpStatus: 'DOUBLE_WALKOVER', score: { sets: [] } } });
+
+    expect(document.activeElement).toBe(modal());
+  });
+
+  it('still focuses the first cell on a reopened PART-score with no winner, which is there to be finished', () => {
+    open({
+      matchUp: {
+        matchUpFormat: FORMAT,
+        matchUpStatus: 'SUSPENDED',
+        score: {
+          sets: [
+            { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
+            { setNumber: 2, side1Score: 2, side2Score: 1 }
+          ]
+        }
+      }
+    });
+
+    expect(document.activeElement).toBe(q(SET_1_SIDE_2));
   });
 });
 
@@ -441,27 +511,138 @@ describe('the format picker', () => {
     expect(onFormatChange).toHaveBeenCalledWith(SHORT_FORMAT);
   });
 
-  it('rebuilds the region under the new format, and CLEARS the score', () => {
-    // This asserted that the games were KEPT until 2026-09-28. CA: *"changing the matchUpFormat should
-    // take effect (at present any change of matchUpFormat should clear the score... but we'll do
-    // something interesting later)."* Carrying a score between formats quietly produces sets belonging to
-    // neither — a 7-6(3) re-read under `S:6/TB7@5`, games surviving into a tiebreak-only format.
+  it('rebuilds the region under the new format, KEEPING what the format has not invalidated', () => {
+    // The third behaviour this has had. It carried the whole score, then CLEARED it (CA, 2026-09-28:
+    // *"any change of matchUpFormat should clear the score... but we'll do something interesting
+    // later"*), and this is the later: the factory's `retainScoreForFormat` decides, set by set.
+    //
+    // A completed 6-4 is a legal first set under `SET1-S:6/TB7`, so it stays. What goes is the SECOND
+    // set — the new format has no position for it.
     const dialog = open({ onFormatChange: vi.fn(), openFormatPicker: vi.fn() });
 
     type(SET_1_SIDE_1, '6');
     type(SET_1_SIDE_2, '4');
 
     // A completed first set reveals the second, under a best-of-three.
-    expect(q('input[data-side="1"][data-set="2"]')).toBeTruthy();
+    expect(q(SET_2_SIDE_1)).toBeTruthy();
 
     // Best of ONE: there is no second set to reveal. This is the assertion that the region was genuinely
     // rebuilt under the new format rather than merely relabelled — a stale region would still be offering
     // a second set the format does not have.
-    dialog.setMatchUpFormat('SET1-S:6/TB7');
+    dialog.setMatchUpFormat(BEST_OF_ONE);
 
-    expect(q<HTMLInputElement>(SET_1_SIDE_1)!.value).toBe('');
-    expect(q<HTMLInputElement>(SET_1_SIDE_2)!.value).toBe('');
-    expect(q('input[data-side="1"][data-set="2"]')).toBeNull();
+    expect(q<HTMLInputElement>(SET_1_SIDE_1)!.value).toBe('6');
+    expect(q<HTMLInputElement>(SET_1_SIDE_2)!.value).toBe('4');
+    expect(q(SET_2_SIDE_1)).toBeNull();
+  });
+
+  it("CLEARS a set the new format cannot express — CA's own scenario", () => {
+    // Two finished sets and a part-entered third, then the third becomes a match tiebreak. CA:
+    // *"obviously the first two sets don't need to change at all ... But if a partial 3rd set was
+    // entered it would need to be trimmed away."*
+    const dialog = open({
+      onFormatChange: vi.fn(),
+      openFormatPicker: vi.fn(),
+      // ONE SET EACH, deliberately: 2-0 decides a best-of-three, and a decided match reveals no third
+      // column at all — the first version of this test asked for a cell that could not exist.
+      sets: [
+        { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
+        { setNumber: 2, side1Score: 3, side2Score: 6, winningSide: 2 }
+      ]
+    });
+
+    // A third set is in progress.
+    type(SET_3_SIDE_1, '2');
+    type('input[data-side="2"][data-set="3"]', '1');
+
+    dialog.setMatchUpFormat('SET3-S:6NOAD/TB7-F:TB10');
+
+    // The first two are untouched; the third is gone.
+    expect(q<HTMLInputElement>(SET_1_SIDE_1)!.value).toBe('6');
+    expect(q<HTMLInputElement>(SET_2_SIDE_1)!.value).toBe('3');
+    expect(q<HTMLInputElement>(SET_3_SIDE_1)?.value || '').toBe('');
+  });
+
+  it('reports WHAT it discarded, so a host can say so rather than let it be discovered', () => {
+    const onScoreDiscarded = vi.fn();
+    const dialog = open({
+      onFormatChange: vi.fn(),
+      openFormatPicker: vi.fn(),
+      onScoreDiscarded,
+      sets: [
+        { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
+        { setNumber: 2, side1Score: 6, side2Score: 3, winningSide: 1 }
+      ]
+    });
+
+    dialog.setMatchUpFormat(BEST_OF_ONE);
+
+    expect(onScoreDiscarded).toHaveBeenCalledTimes(1);
+    const reported = onScoreDiscarded.mock.calls[0][0];
+    expect(reported.discarded.map((set: any) => set.setNumber)).toEqual([2]);
+    expect(reported.sets.map((set: any) => set.setNumber)).toEqual([1]);
+    expect(reported.matchUpFormat).toBe(BEST_OF_ONE);
+  });
+
+  it('keeps a complete but ILLEGAL set whose rule the change did not touch', () => {
+    // THE case `previousMatchUpFormat` exists for, and it is not the obvious one. A 3-7 is complete and
+    // illegal: the band says so and `getSets()` still carries it, so it reaches the factory. Under a
+    // change touching only the DECIDING set, its own rule did not move — so it stays, and the operator
+    // can fix it. Dropping the previous format instead validates it and deletes their typing.
+    const dialog = open({
+      onFormatChange: vi.fn(),
+      openFormatPicker: vi.fn(),
+      sets: [{ setNumber: 1, side1Score: 3, side2Score: 7, winningSide: 2 }]
+    });
+
+    dialog.setMatchUpFormat(DECIDER_TB10);
+
+    expect(q<HTMLInputElement>(SET_1_SIDE_1)!.value).toBe('3');
+    expect(q<HTMLInputElement>(SET_1_SIDE_2)!.value).toBe('7');
+  });
+
+  it('KEEPS a part-entered set across a format change that leaves its rule alone — CA ruled 2026-10-01', () => {
+    // This pinned the LOSS until S5. The dialog harvested through `getSets()`, which reports only sets
+    // whose both sides are entered, so a half-typed set never reached the factory; CA, 2026-09-29, had
+    // allowed that: *"i think it is fine for half-typed sets to be discarded."* With the model holding
+    // the partial, the format change goes through `changeFormat` and the factory's
+    // `retainScoreForFormat` rule 2 — a set whose rule did not change is kept, finished or not — and
+    // CA, asked again on 2026-10-01 with that available, chose to keep it: *"2) is what I want, yes"*.
+    //
+    // A first version of this test typed a `3` and asserted the partial SURVIVED — and passed, because
+    // smart complements filled the other side and made it a complete 3-6. A `7` has no complement in
+    // `S:6/TB7`, which is what makes it a genuine partial and this assertion honest.
+    const dialog = open({
+      onFormatChange: vi.fn(),
+      openFormatPicker: vi.fn(),
+      sets: [{ setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 }]
+    });
+
+    type(SET_2_SIDE_1, '7');
+    expect(q<HTMLInputElement>(SET_2_SIDE_1)!.value, 'a genuine partial').toBe('7');
+    expect(q<HTMLInputElement>(SET_2_SIDE_2)!.value, 'no complement for a 7').toBe('');
+
+    // A change touching only the DECIDING set — nothing about set 2's rule moved.
+    dialog.setMatchUpFormat(DECIDER_TB10);
+
+    expect(q<HTMLInputElement>(SET_2_SIDE_1)!.value, 'the 7 the operator typed is still there').toBe('7');
+  });
+
+  it('stays SILENT when the change costs the operator nothing — the control', () => {
+    // Without this, a host would be told about every format change and would learn to ignore it.
+    const onScoreDiscarded = vi.fn();
+    const dialog = open({
+      onFormatChange: vi.fn(),
+      openFormatPicker: vi.fn(),
+      sets: [{ setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 }],
+      onScoreDiscarded
+    });
+
+    // Only the DECIDING set's rule moves; the first set is untouched.
+    dialog.setMatchUpFormat(DECIDER_TB10);
+
+    expect(onScoreDiscarded).not.toHaveBeenCalled();
+    expect(q<HTMLInputElement>(SET_1_SIDE_1)!.value).toBe('6');
   });
 
   it('ignores a picker that reports nothing', () => {

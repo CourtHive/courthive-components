@@ -16,22 +16,26 @@
  * entry approaches came to disagree in the first place. The stories now drive this module, so what is
  * reviewed in Storybook is what ships.
  *
- * ── Carrying the score across an approach switch ──
+ * ── An approach switch is a no-op on the score ──
  *
- * Every region exposes `getSets()` and `scoreString()`, so a switch is a translation rather than a
- * reset: sets seed Dynamic Sets and the Dial Pad, the formatted string seeds Free Score. An operator who
- * has typed two sets and then decides the keypad is faster does not retype them. The ENDING survives
- * too, because it lives on the card rather than in the region — see `ScoreEntryCard.update`.
+ * S5 of the state-engine extraction. ONE `ScoreEntryStore` is made here and handed to the card and to
+ * every region this dialog builds, so switching from Dynamic Sets to Free Score builds a new renderer
+ * over the same model and translates nothing: no `getSets()` harvest, no formatted string re-parsed.
+ * The ending survives for the same reason — it is `model.ending`, not a region's. What a switch CAN
+ * lose is text the model cannot represent, a half-typed `6-4 re` in Free Score, and that is the honest
+ * answer: the alternative is replacing what the operator is typing now with a score they moved past.
  */
 
+import { endingLabels, isDoubleExitStatus } from './logic/irregularEnding';
 import { getMatchUpFormatModal } from '../matchUpFormat/matchUpFormat';
 import { createDynamicSetsRegion } from './regions/dynamicSetsRegion';
+import { enteredSets, isComplete } from './logic/scoreEntrySelectors';
 import { createFreeScoreRegion } from './regions/freeScoreRegion';
-import { hydrateScoreEntryState } from './logic/scoreEntryState';
+import { createScoreEntryStore } from './logic/scoreEntryStore';
 import { createDialPadRegion } from './regions/dialPadRegion';
+import { switchApproach } from './logic/scoreEntryModel';
+import { scoreGovernor } from 'tods-competition-factory';
 import { renderScoreEntryCard } from './scoreEntryCard';
-import { endingLabels } from './logic/irregularEnding';
-import { scoreLine } from './regions/scoreLine';
 import { cModal } from '../modal/cmodal';
 
 import type { SetScore } from './types';
@@ -42,15 +46,6 @@ import type {
   ApproachOption,
   ScoreRegion
 } from './scoreEntryCard';
-
-/**
- * A region this dialog built, which is narrower than `ScoreRegion`.
- *
- * All three approaches expose `getSets`, and that is what makes carrying the score across a switch
- * possible. The base `ScoreRegion` does not require it — a region that only produces a string is
- * legitimate — so the dialog names the narrower thing rather than reaching for an optional call.
- */
-type BuiltRegion = ScoreRegion & { getSets: () => SetScore[]; hasEntry: () => boolean };
 
 /** The three entry approaches. The key is what `onSelectApproach` reports and what a host persists. */
 export type ScoreEntryApproach = 'dynamicSets' | 'freeScore' | 'dialPad';
@@ -119,6 +114,20 @@ export type ScoreEntryDialogParams = Omit<
   onApproachChange?: (approach: ScoreEntryApproach) => void;
   /** Called with a format chosen in the picker. Omit and the format chip stays inert text. */
   onFormatChange?: (matchUpFormat: string) => void;
+  /**
+   * Called when a format change DISCARDS part of the score, with what was lost and why.
+   *
+   * Only when something was actually discarded — a change that costs the operator nothing says
+   * nothing. `discarded` carries the sets themselves rather than a count, because a host that means to
+   * tell the operator has to quote them in their own numbers, and `reason` is the factory validator's
+   * own words about the first casualty.
+   */
+  onScoreDiscarded?: (discarded: {
+    sets: SetScore[];
+    discarded: SetScore[];
+    reason?: string;
+    matchUpFormat: string;
+  }) => void;
   /** Called when the dialog closes, by `[X]`, by a footer button, or by `close()`. */
   onClose?: () => void;
   /**
@@ -157,23 +166,29 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
   const labels = params.labels ?? endingLabels();
   let approach: ScoreEntryApproach = params.approach ?? offered[0];
   let matchUpFormat = params.matchUpFormat ?? params.matchUp?.matchUpFormat;
-  let sets = params.sets ?? params.matchUp?.score?.sets;
   let closed = false;
   let notified = false;
 
-  // Seeded in BOTH currencies, because which one is needed depends on the approach that opens. Free
-  // Score took `text: undefined` here and so opened EMPTY on a matchUp that had a score — measured
-  // 2026-09-28: Dynamic Sets and the Dial Pad hydrated from `sets` while Free Score showed a blank field
-  // and a band with no score. `scoreLine` is the factory's own rendering, so the text it opens on is the
-  // same line the other two approaches display.
-  let currentRegion = buildRegion(approach, { sets, text: scoreLine(sets ?? [], matchUpFormat) });
+  // The ONE model. Seeded from the sets and the recorded ending of a matchUp being reopened — CA,
+  // 2026-09-28: *"we need to be able to open existing outcomes!"* — and every region opens on it, so all
+  // three approaches show the same score whichever one opens first. (Free Score used to be seeded with
+  // text and opened EMPTY on a scored matchUp, measured 2026-09-28; it now reads the model.)
+  const store = createScoreEntryStore({
+    matchUpFormat,
+    approach,
+    sets: params.sets ?? params.matchUp?.score?.sets,
+    matchUp: params.matchUp
+  });
+  // Decided ONCE, at open, from what was handed in: a reopened result is read before it is edited, and
+  // the way back into a finished set is clicking it, not a caret the dialog placed.
+  const openedOnResult = reopensResult();
+  let currentRegion = buildRegion(approach);
 
   const card = renderScoreEntryCard({
     ...params,
     labels,
     matchUpFormat,
-    // The recorded ending, so reopening a scored matchUp shows what it holds rather than a blank card.
-    initialState: params.initialState ?? hydrateScoreEntryState(params.matchUp),
+    store,
     region: currentRegion,
     approachLabel: APPROACH_LABELS[approach],
     approaches: offered.length > 1 ? offered.map(approachOption) : undefined,
@@ -189,8 +204,7 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
       close();
     },
     onSubmit: (outcome) => {
-      // Harvested BEFORE the close, while the region is still the live one.
-      params.onSubmit?.({ ...outcome, sets: currentRegion.getSets() });
+      params.onSubmit?.({ ...outcome, sets: enteredSets(store.get()) });
       close();
     },
     onClose: close
@@ -226,42 +240,38 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
   }
 
   /**
-   * The region for an approach, seeded from whatever has been entered so far.
+   * The region for an approach, rendering the one store.
    *
-   * Dynamic Sets and the Dial Pad take sets; Free Score takes text. `onChange` refreshes the band and
-   * the gate WITHOUT rebuilding the rows, which is what protects the caret of the input being typed
-   * into; `onStructureChange` is the full render, for when the columns themselves change.
+   * `onChange` refreshes the band and the gate WITHOUT rebuilding the rows, which is what protects the
+   * caret of the input being typed into; `onStructureChange` is the full render, for when the columns
+   * themselves change.
    */
-  function buildRegion(next: ScoreEntryApproach, seed: { sets?: SetScore[]; text?: string }): BuiltRegion {
+  function buildRegion(next: ScoreEntryApproach): ScoreRegion {
     const onChange = () => card.refresh();
 
-    if (next === 'freeScore') {
-      return createFreeScoreRegion({ matchUpFormat, initialText: seed.text, onChange });
-    }
-    if (next === 'dialPad') {
-      return createDialPadRegion({ matchUpFormat, sets: seed.sets, onChange });
-    }
+    if (next === 'freeScore') return createFreeScoreRegion({ store, onChange });
+    if (next === 'dialPad') return createDialPadRegion({ store, onChange });
     return createDynamicSetsRegion({
-      matchUpFormat,
-      sets: seed.sets,
+      store,
       sideNames: [params.sides[0].participantName, params.sides[1].participantName],
       onChange,
       onStructureChange: () => card.rerender()
     });
   }
 
-  /** What the current region holds, in both currencies, so either kind of region can be seeded from it. */
-  function harvest(): { sets?: SetScore[]; text?: string } {
-    const harvested = currentRegion.getSets();
-    return { sets: harvested.length ? harvested : sets, text: currentRegion.scoreString?.() };
-  }
-
+  /**
+   * Switch approach: one transition on the model, and a new renderer over it.
+   *
+   * No harvest. The dialog used to translate the score through `getSets()` and `scoreString()`, and a
+   * fallback in that translation once brought a cleared score BACK — CA, 2026-09-30: choose `Other: Dead
+   * Rubber` in Free Score, switch to Dynamic Sets, *"the score reappears"*. With one model there is
+   * nothing to translate and nothing to fall back to.
+   */
   function setApproach(next: ScoreEntryApproach): void {
     if (next === approach) return;
-    const seed = harvest();
-    sets = seed.sets;
+    store.set(switchApproach(store.get(), next));
     approach = next;
-    currentRegion = buildRegion(next, seed);
+    currentRegion = buildRegion(next);
     card.update({ region: currentRegion, approachLabel: APPROACH_LABELS[next] });
     // The new region begins where entry begins in it, exactly as it would had the dialog opened on it.
     // Without this a switch left focus on the menu item that had just been removed from the document,
@@ -273,25 +283,73 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
   }
 
   /**
-   * Change the scoring format, and CLEAR the score.
+   * Change the scoring format, keeping every set the new format has not invalidated.
    *
-   * CA, 2026-09-28: *"changing the matchUpFormat should take effect (at present any change of
-   * matchUpFormat should clear the score... but we'll do something interesting later)."*
+   * ── The three behaviours this has had, and why it ended here ──
    *
-   * This carried the score across until that instruction, on the reasoning that games already played
-   * stay played and the region's integrity check would report any that the new format makes illegal.
-   * CA has ruled the other way for now, and the ruling is the better one to build on: carrying a score
-   * between formats quietly produces sets that belong to neither — a 7-6(3) read under `S:6/TB7@5`, a
-   * games score surviving into a tiebreak-only format — and "interesting" is a design question, not a
-   * default. An empty card under the new format is at least unambiguous about what it holds.
+   * It first carried the whole score across, on the reasoning that games already played stay played.
+   * CA replaced that with CLEAR EVERYTHING (2026-09-28) — *"any change of matchUpFormat should clear
+   * the score... but we'll do something interesting later"* — because carrying a score between formats
+   * quietly produces sets belonging to neither: a 7-6(3) re-read under `S:6/TB7@5`, a games score
+   * surviving into a tiebreak-only set.
+   *
+   * This is the "later". CA, 2026-09-28: *"There are situations where someone starts entering sets and
+   * then realizes that the third set is a tiebreak set and changes from SET3-S:6/TB7 to
+   * SET3-S:6NOAD/TB7-F:TB10 => obviously the first two sets don't need to change at all in this
+   * scenario! But if a partial 3rd set was entered it would need to be trimmed away."*
+   *
+   * ── The judgement is the FACTORY's, not this dialog's ──
+   *
+   * `scoreGovernor.retainScoreForFormat` decides what survives; this only applies the answer. That is
+   * the same reason `scoreLine`, the complements and the integrity checks all delegate — a second
+   * opinion about what a format allows is how the entry approaches came to disagree about everything
+   * else.
+   *
+   * ── A half-typed set is discarded, and that is a decision ──
+   *
+   * `getSets()` reports only sets whose BOTH sides are entered — deliberately, because including a
+   * half-entered one made the band claim a `6-0` nobody typed. So a part-entered set never reaches the
+   * factory here and is lost on any format change. CA, 2026-09-29, asked directly: *"i think it is
+   * fine for half-typed sets to be discarded."* Recorded so it reads as settled rather than as an
+   * omission someone should come back and fix.
+   *
+   * ── `previousMatchUpFormat` is load-bearing, and the case is not the obvious one ──
+   *
+   * For a set that is complete AND legal it changes nothing: "its rule did not change" and "it is
+   * still legal" agree. The case it exists for is a complete but **ILLEGAL** set — a 3-7, which the
+   * band reports and `getSets()` still carries. Measured 2026-09-29 under a change touching only the
+   * deciding set: with the previous format the 3-7 is KEPT, without it the validator discards it.
+   *
+   * Keeping it is right. The operator typed it, the card is already telling them it is wrong, and a
+   * format change that does not touch that set has no business silently deleting their work — which is
+   * exactly what *"trim only what the new format invalidates"* means for a score that was invalid
+   * before the change.
+   *
+   * The ENDING is untouched either way. A walkover recorded against a row is a fact about the match,
+   * not about the format the score is read under — the same reason `card.update` keeps it across an
+   * approach switch.
    */
   function setMatchUpFormat(next: string): void {
     if (next === matchUpFormat) return;
+
+    const previousMatchUpFormat = matchUpFormat;
+    // The REPORT of what the change costs, in the factory's words. The change itself is the model's
+    // (`changeFormat`, through `card.update`), which asks the same factory function; this call exists
+    // so the host can be told WHICH sets went and why.
+    const held = enteredSets(store.get());
+    const retained = scoreGovernor.retainScoreForFormat({ sets: held, matchUpFormat: next, previousMatchUpFormat });
+
     matchUpFormat = next;
-    sets = undefined;
-    currentRegion = buildRegion(approach, {});
-    card.update({ matchUpFormat: next, region: currentRegion });
+    // The format FIRST, because a region reads the set count off the model when it is built.
+    card.update({ matchUpFormat: next });
+    currentRegion = buildRegion(approach);
+    card.update({ region: currentRegion });
     focusEntry();
+
+    // Said, not discovered. The band already refuses to discard a part-score silently, and a score
+    // thrown away by a format change is the same event with a different trigger.
+    if (retained.discarded.length) params.onScoreDiscarded?.({ ...retained, matchUpFormat: next });
+
     params.onFormatChange?.(next);
   }
 
@@ -335,6 +393,17 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
   function focusEntry(): void {
     if (params.autoFocus === false) return;
 
+    // A reopened RESULT focuses no entry cell. CA, 2026-10-01: *"a reopened completed matchUp should
+    // not focus any entry cell at all."* Measured before this: the caret landed in set 1's lower cell,
+    // and the region never folds the set under edit, so a completed match reopened with set 1 pulled
+    // open while every later set was folded — the fold CA asked for (*"the way back in is simply
+    // clicking the completed representation of the set"*) undone by the dialog's own focus. The
+    // section takes focus instead, so Escape and the tab order still begin inside the dialog.
+    if (openedOnResult) {
+      ownSection()?.focus();
+      return;
+    }
+
     // The region places it when it can: `focusFirst` also SELECTS what is there, so a score already in
     // the cell is replaced by typing rather than appended to.
     if (currentRegion.focusFirst) {
@@ -344,6 +413,17 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
 
     const field = card.element.querySelector<HTMLElement>('input:not([disabled]), button[data-digit]');
     (field ?? ownSection())?.focus();
+  }
+
+  /**
+   * Whether the dialog opened on a RECORDED result: a winner, a double exit, or a score that decides
+   * the match by itself. A part-score with no winner — a suspension, a match still being entered — is
+   * not one, and keeps the caret, because the operator is there to finish it.
+   */
+  function reopensResult(): boolean {
+    const recorded = params.matchUp;
+    if (!recorded) return false;
+    return !!recorded.winningSide || isDoubleExitStatus(recorded.matchUpStatus) || isComplete(store.get());
   }
 
   function ownSection(): HTMLElement | null {
@@ -389,10 +469,7 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
    * complements ON hides the hole, because the complement fills the other side immediately.
    */
   function holdsEntry(): boolean {
-    const state = card.getState();
-    if (state.sideEnding || state.matchEnding || state.reasonCode) return true;
-
-    return currentRegion.hasEntry();
+    return card.holdsEntry();
   }
 
   function close(): void {

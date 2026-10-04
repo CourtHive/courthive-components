@@ -20,7 +20,7 @@ const { WALKOVER, RETIRED, SUSPENDED, CANCELLED } = matchUpStatusConstants;
 const FORMAT = 'SET3-S:6/TB7';
 const SIDES: [{ participantName: string }, { participantName: string }] = [
   { participantName: 'Rosalind Lem' },
-  { participantName: 'Derrick Ellul' },
+  { participantName: 'Derrick Ellul' }
 ];
 const READOUT = '.chc-sec-readout';
 const BAND = '.chc-sec-band';
@@ -58,7 +58,7 @@ function harness(build: (onChange: () => void) => any, matchUpFormat = FORMAT) {
       q<HTMLButtonElement>(`[data-panel-side="${side}"] button[data-ending="${status}"]`),
     matchEnding: (status: string) => q<HTMLButtonElement>(`.chc-sec-endings > button[data-ending="${status}"]`),
     otherButton: () => q<HTMLButtonElement>('button[data-action="other"]'),
-    otherItem: (status: string) => q<HTMLButtonElement>(`.chc-sec-other-menu button[data-ending="${status}"]`),
+    otherItem: (status: string) => q<HTMLButtonElement>(`.chc-sec-other-menu button[data-ending="${status}"]`)
   };
 }
 
@@ -68,7 +68,7 @@ const freeScore = (over: { initialText?: string } = {}) =>
 const dialPad = (over: { sets?: any[]; matchUpFormat?: string } = {}) =>
   harness(
     (onChange) => createDialPadRegion({ matchUpFormat: over.matchUpFormat ?? FORMAT, sets: over.sets, onChange }),
-    over.matchUpFormat ?? FORMAT,
+    over.matchUpFormat ?? FORMAT
   );
 
 function typeFreeScore(h: ReturnType<typeof freeScore>, value: string) {
@@ -86,7 +86,7 @@ beforeEach(() => {
 describe('both regions put a readout in the rows and their entry surface beneath', () => {
   it.each([
     [FREE_SCORE, () => freeScore()],
-    ['Dial Pad', () => dialPad()],
+    ['Dial Pad', () => dialPad()]
   ])('%s renders a readout per side and no set inputs in the rows', (_label, build) => {
     const h = build();
 
@@ -98,7 +98,7 @@ describe('both regions put a readout in the rows and their entry surface beneath
 
   it.each([
     [FREE_SCORE, () => freeScore()],
-    ['Dial Pad', () => dialPad()],
+    ['Dial Pad', () => dialPad()]
   ])('%s renders no header row — its one column needs no label', (_label, build) => {
     // An empty header strip above an unlabelled column is furniture. The card decides this from the
     // columns the region declares, so neither region asks for it.
@@ -116,7 +116,11 @@ describe('both regions put a readout in the rows and their entry surface beneath
   it('the card around them is identical — the whole claim of the card', () => {
     const chrome = ['.chc-sec-header', '.chc-sec-rows', '.chc-sec-endings', BAND, '.chc-sec-footer', SUBMIT];
 
-    for (const build of [() => freeScore(), () => dialPad(), () => harness((onChange) => createDynamicSetsRegion({ matchUpFormat: FORMAT, onChange }))]) {
+    for (const build of [
+      () => freeScore(),
+      () => dialPad(),
+      () => harness((onChange) => createDynamicSetsRegion({ matchUpFormat: FORMAT, onChange }))
+    ]) {
       const h = build();
       for (const selector of chrome) expect(h.q(selector), `${selector} missing`).toBeTruthy();
       // The same seven match-level endings, wherever the score comes from.
@@ -326,9 +330,7 @@ describe('Dial Pad', () => {
     // digit was a click handler — so an operator who opened the Dial Pad and typed got nothing.
     const h = dialPad();
     const type = (code: string, shiftKey = false) =>
-      h.q<HTMLElement>(DIALPAD)?.dispatchEvent(
-        new KeyboardEvent('keydown', { code, shiftKey, bubbles: true }),
-      );
+      h.q<HTMLElement>(DIALPAD)?.dispatchEvent(new KeyboardEvent('keydown', { code, shiftKey, bubbles: true }));
 
     type('Digit4');
     expect(h.readout(2)?.textContent).toContain('4');
@@ -344,7 +346,7 @@ describe('Dial Pad', () => {
     // falsification — it passes only because nothing consults it.
     const h = dialPad();
     h.q<HTMLElement>(DIALPAD)?.dispatchEvent(
-      new KeyboardEvent('keydown', { code: 'Digit3', key: '#', shiftKey: true, bubbles: true }),
+      new KeyboardEvent('keydown', { code: 'Digit3', key: '#', shiftKey: true, bubbles: true })
     );
 
     expect(h.readout(1)?.textContent).toContain('3');
@@ -403,9 +405,7 @@ describe('Dial Pad', () => {
     // A disabled control an operator cannot explain is worse than one that is not there, so this is
     // asserted rather than assumed.
     expect(dialPad().q<HTMLButtonElement>(TIEBREAK)?.disabled).toBe(false);
-    expect(dialPad({ matchUpFormat: 'SET3-S:6NOAD' }).q<HTMLButtonElement>(TIEBREAK)?.disabled).toBe(
-      true,
-    );
+    expect(dialPad({ matchUpFormat: 'SET3-S:6NOAD' }).q<HTMLButtonElement>(TIEBREAK)?.disabled).toBe(true);
   });
 
   it('seeds from a saved score, including a genuine 0', () => {
@@ -417,7 +417,7 @@ describe('Dial Pad', () => {
 
   it('seeds a saved TIEBREAK, so reopening a 7-6(3) shows its points', () => {
     const h = dialPad({
-      sets: [{ setNumber: 1, side1Score: 7, side2Score: 6, side2TiebreakScore: 3, winningSide: 1 }],
+      sets: [{ setNumber: 1, side1Score: 7, side2Score: 6, side2TiebreakScore: 3, winningSide: 1 }]
     });
 
     expect(h.band()?.textContent).toContain(SEVEN_SIX_THREE);
@@ -487,8 +487,10 @@ describe('Dial Pad — tiebreak mode', () => {
     expect(h.submit()?.disabled).toBe(true);
 
     // And the stray points are visible in the row rather than quietly dropped, so the operator can see
-    // what to backspace.
-    expect(h.readout(2)?.textContent).toContain('2(3)');
+    // what to backspace. As a RAISED digit beside the 2 — note 11/12, CA's go-ahead 2026-10-01 — where
+    // this read `2(3)` before.
+    expect(h.readout(2)?.textContent).toContain('2');
+    expect(h.readout(2)?.querySelector('sup')?.textContent).toBe('3');
   });
 
   it('backspace eats the tiebreak BEFORE the games it belongs to', () => {
@@ -536,7 +538,7 @@ describe('Dial Pad — a match tiebreak', () => {
   const press = (h: ReturnType<typeof dialPad>, digit: number) =>
     h.q<HTMLButtonElement>(`button[data-digit="${digit}"]`)?.click();
 
-  it('takes ONE number — the low score — and derives the winner\'s', () => {
+  it("takes ONE number — the low score — and derives the winner's", () => {
     // CA, 2026-09-28: *"For tiebreaks the lower score should always be entered first."* So a 10-8 is a
     // single tap of 8: the 10 is `max(tiebreakTo, low + 2)`, which is what `getTiebreakComplement`
     // computes and this never restates.
@@ -570,9 +572,9 @@ describe('Dial Pad — a match tiebreak', () => {
     // the next digit lands in, which is why shifting does not split the number across two cells.
     const h = dialPad({ matchUpFormat: MATCH_TIEBREAK_FORMAT });
     const shiftPress = (digit: number) =>
-      h.q<HTMLElement>(DIALPAD)?.dispatchEvent(
-        new KeyboardEvent('keydown', { code: `Digit${digit}`, shiftKey: true, bubbles: true }),
-      );
+      h
+        .q<HTMLElement>(DIALPAD)
+        ?.dispatchEvent(new KeyboardEvent('keydown', { code: `Digit${digit}`, shiftKey: true, bubbles: true }));
 
     shiftPress(1);
     shiftPress(1);
@@ -611,7 +613,7 @@ describe('Dial Pad — a match tiebreak', () => {
   it('seeds a saved match tiebreak, so reopening one is not a blank keypad', () => {
     const h = dialPad({
       matchUpFormat: MATCH_TIEBREAK_FORMAT,
-      sets: [{ setNumber: 1, side1TiebreakScore: 10, side2TiebreakScore: 8, winningSide: 1 }],
+      sets: [{ setNumber: 1, side1TiebreakScore: 10, side2TiebreakScore: 8, winningSide: 1 }]
     });
 
     expect(h.band()?.textContent).toContain('[10-8]');
@@ -628,7 +630,11 @@ describe('Dial Pad — a match tiebreak', () => {
     for (const digit of [4, 6, 6, 4, 8]) press(h, digit);
 
     const sets = h.region.getSets();
-    expect(sets.map((set: any) => [set.side1Score, set.side2Score])).toEqual([[6, 4], [4, 6], [0, 0]]);
+    expect(sets.map((set: any) => [set.side1Score, set.side2Score])).toEqual([
+      [6, 4],
+      [4, 6],
+      [0, 0]
+    ]);
     expect(sets[2]?.side1TiebreakScore).toBe(10);
     expect(sets[2]?.side2TiebreakScore).toBe(8);
     expect(h.band()?.textContent).toContain('6-4 4-6 [10-8]');
@@ -641,13 +647,11 @@ describe('Dial Pad — a match tiebreak', () => {
     expect(dialPad({ matchUpFormat: MATCH_TIEBREAK_FORMAT }).q<HTMLButtonElement>(TIEBREAK)?.disabled).toBe(true);
 
     // A MIXED format keeps it: sets 1 and 2 of this one genuinely need it.
-    expect(
-      dialPad({ matchUpFormat: 'SET3-S:6/TB7-F:TB10' }).q<HTMLButtonElement>(TIEBREAK)?.disabled,
-    ).toBe(false);
+    expect(dialPad({ matchUpFormat: 'SET3-S:6/TB7-F:TB10' }).q<HTMLButtonElement>(TIEBREAK)?.disabled).toBe(false);
   });
 });
 
-describe('the score line is the factory\'s, and the approaches agree', () => {
+describe("the score line is the factory's, and the approaches agree", () => {
   it('Free Score quotes the canonical line, not the shorthand typed', () => {
     const h = freeScore({ initialText: '76(3) 64' });
 
@@ -665,11 +669,10 @@ describe('the score line is the factory\'s, and the approaches agree', () => {
   });
 
   it('all three approaches render the same score the same way', () => {
-    const sets = [{ setNumber: 1, side1Score: 7, side2Score: 6, side1TiebreakScore: 7, side2TiebreakScore: 3, winningSide: 1 }];
-    const lines = [
-      dialPad({ sets }).band()?.textContent,
-      freeScore({ initialText: '7-6(3)' }).band()?.textContent,
+    const sets = [
+      { setNumber: 1, side1Score: 7, side2Score: 6, side1TiebreakScore: 7, side2TiebreakScore: 3, winningSide: 1 }
     ];
+    const lines = [dialPad({ sets }).band()?.textContent, freeScore({ initialText: '7-6(3)' }).band()?.textContent];
 
     for (const line of lines) expect(line).toContain(SEVEN_SIX_THREE);
   });
@@ -678,7 +681,16 @@ describe('the score line is the factory\'s, and the approaches agree', () => {
 describe('both regions agree with the endings groups', () => {
   it.each([
     [FREE_SCORE, () => freeScore({ initialText: '6-4 2-1' })],
-    ['Dial Pad', () => dialPad({ sets: [{ setNumber: 1, side1Score: 6, side2Score: 4 }, { setNumber: 2, side1Score: 2, side2Score: 1 }] })],
+    [
+      'Dial Pad',
+      () =>
+        dialPad({
+          sets: [
+            { setNumber: 1, side1Score: 6, side2Score: 4 },
+            { setNumber: 2, side1Score: 2, side2Score: 1 }
+          ]
+        })
+    ]
   ])('%s: Cancelled quotes the part-score it clears', (_label, build) => {
     const h = build();
     h.otherButton()?.click();
@@ -691,7 +703,7 @@ describe('both regions agree with the endings groups', () => {
 
   it.each([
     [FREE_SCORE, () => freeScore()],
-    ['Dial Pad', () => dialPad()],
+    ['Dial Pad', () => dialPad()]
   ])('%s: a walkover submits with no score at all', (_label, build) => {
     const h = build();
     h.endedEarly(2)?.click();
@@ -703,7 +715,7 @@ describe('both regions agree with the endings groups', () => {
 
   it.each([
     [FREE_SCORE, () => freeScore({ initialText: '6-4' })],
-    ['Dial Pad', () => dialPad({ sets: [{ setNumber: 1, side1Score: 6, side2Score: 4 }] })],
+    ['Dial Pad', () => dialPad({ sets: [{ setNumber: 1, side1Score: 6, side2Score: 4 }] })]
   ])('%s: a retirement keeps the part-score', (_label, build) => {
     const h = build();
     h.endedEarly(2)?.click();

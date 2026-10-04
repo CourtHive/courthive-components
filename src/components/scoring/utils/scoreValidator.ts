@@ -2,6 +2,7 @@
  * Score validation utilities using tournamentEngine
  */
 import { tournamentEngine, matchUpFormatCode, matchUpStatusConstants, governors } from 'tods-competition-factory';
+import { aggregateDeciderSetNumber, finalSetGoverns } from './aggregateDecider';
 import type { ScoreOutcome } from '../types';
 
 const { COMPLETED } = matchUpStatusConstants;
@@ -25,7 +26,8 @@ function validateSetNotation(
   for (let i = 0; i < setStrings.length; i++) {
     const setString = setStrings[i];
     const setNumber = i + 1;
-    const isDecidingSet = setNumber === bestOfSets;
+    // An aggregate format's decider is set N + 1, never one of the N (factory #5166)
+    const isDecidingSet = finalSetGoverns(parsed, setNumber, setNumber === bestOfSets);
     const hasBrackets = setString.startsWith('[') && setString.endsWith(']');
 
     const isTB1Score =
@@ -57,6 +59,27 @@ function validateSetNotation(
 }
 
 /**
+ * Helper: an aggregate exactly format is complete when all N sets are played and, only when their
+ * total is level, the decider (set N + 1) is played as well
+ */
+function aggregateDeciderComplete(
+  validatedSets: any[],
+  deciderSetNumber: number,
+  isPlayed: (set: any) => boolean
+): boolean {
+  const setCount = deciderSetNumber - 1;
+  const counted = validatedSets.slice(0, setCount);
+  if (counted.length < setCount || !counted.every(isPlayed)) return false;
+  if (validatedSets.length > deciderSetNumber) return false;
+
+  const decider = validatedSets[deciderSetNumber - 1];
+  if (!decider) return true;
+
+  const total = (side: 'side1Score' | 'side2Score') => counted.reduce((sum, set) => sum + (set[side] ?? 0), 0);
+  return total('side1Score') === total('side2Score') && isPlayed(decider);
+}
+
+/**
  * Helper: Check if match is complete
  */
 function checkMatchComplete(
@@ -75,7 +98,20 @@ function checkMatchComplete(
   const isExactlyFormat = !!parsed?.exactly;
 
   if (isAggregateScoring) {
-    const completeSets = validatedSets.filter((s) => s.side1Score !== undefined && s.side2Score !== undefined).length;
+    // A set is played when EITHER pair holds both sides. A tiebreak-only decider — the TB1 point that
+    // settles a tied aggregate — carries its points in the tiebreak fields since factory #5094, where
+    // they used to sit in the game fields. Counting the game fields alone read every finished tied
+    // aggregate as incomplete. Either pair keeps it right under both factory versions.
+    const bothSides = (a: unknown, b: unknown) => a !== undefined && a !== null && b !== undefined && b !== null;
+    const isPlayed = (s: any) =>
+      bothSides(s.side1Score, s.side2Score) || bothSides(s.side1TiebreakScore, s.side2TiebreakScore);
+
+    // An aggregate exactly format plays all N sets; its sudden-death decider is set N + 1, never one
+    // of the N, and is played only on a level total (factory #5166; CA, 2026-10-04).
+    const deciderSetNumber = aggregateDeciderSetNumber(parsed);
+    if (deciderSetNumber) return aggregateDeciderComplete(validatedSets, deciderSetNumber, isPlayed);
+
+    const completeSets = validatedSets.filter(isPlayed).length;
     return completeSets >= bestOfSets;
   } else {
     const setsToWin = Math.ceil(bestOfSets / 2);
@@ -149,7 +185,7 @@ export function validateScore(scoreString: string, matchUpFormat?: string, match
 
     let anySetInvalidated = false;
     const validatedSets = sets.map((set: any, index: number) => {
-      const isDecidingSet = index + 1 === bestOfSets;
+      const isDecidingSet = finalSetGoverns(parsed, index + 1, index + 1 === bestOfSets);
       const validation = validateSetScore(set, matchUpFormat, isDecidingSet, false);
 
       if (!validation.isValid) {

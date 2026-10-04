@@ -28,12 +28,12 @@ import { parseMatchUpFormat } from '../utils/setExpansionLogic';
 function setAnalysis(
   setIndex: number,
   scores: { side1?: number; side2?: number; tiebreak?: number },
-  config: MatchUpConfig,
+  config: MatchUpConfig
 ): Record<string, any> {
   const analyze = (extra: Record<string, number>) =>
     scoreGovernor.analyzeSet({
       setObject: { setNumber: setIndex + 1, side1Score: scores.side1, side2Score: scores.side2, ...extra },
-      matchUpScoringFormat: config,
+      matchUpScoringFormat: config
     });
 
   // The set format comes from a first pass, because completing the tiebreak pair needs the target and the
@@ -59,7 +59,7 @@ function setAnalysis(
  */
 function tiebreakSides(
   scores: { side1?: number; side2?: number; tiebreak?: number },
-  setFormat?: SetFormat,
+  setFormat?: SetFormat
 ): Record<string, number> {
   if (scores.tiebreak === undefined) return {};
 
@@ -75,7 +75,7 @@ function tiebreakSides(
     lowValue: scores.tiebreak,
     tiebreakTo,
     tiebreakNoAd: setFormat?.tiebreakFormat?.NoAD ?? setFormat?.tiebreakSet?.NoAD,
-    isSide1: loserIsSide1,
+    isSide1: loserIsSide1
   });
   if (!pair) return {};
 
@@ -132,6 +132,9 @@ export type SetFormat = {
 export type MatchUpConfig = {
   bestOf: number;
   exactly?: number;
+  // Aggregate scoring: the factory places an aggregate format's -F: decider at set N + 1 only when it
+  // can see this flag (factory #5166), so a config without it reads the decider as set N
+  aggregate?: boolean;
   setFormat?: SetFormat;
   finalSetFormat?: SetFormat;
 };
@@ -185,9 +188,30 @@ export function matchUpConfigFor(matchUpFormat?: string): MatchUpConfig {
   return {
     bestOf: parseMatchUpFormat(matchUpFormat).bestOf,
     exactly: effective?.exactly,
+    aggregate: effective?.aggregate,
     setFormat: effective?.setFormat,
-    finalSetFormat: effective?.finalSetFormat,
+    finalSetFormat: effective?.finalSetFormat
   };
+}
+
+/**
+ * The factory's winner of a tiebreak-only set, given its POINTS as points.
+ *
+ * `setAnalysis` hands this module's `side1` / `side2` over as GAMES, which a tiebreak-only format has no
+ * rule for — `getSetWinner` on a `10-8` match tiebreak answers nothing. The points go in the tiebreak
+ * fields here, which is what `analyzeSet` reads for a set whose format is a tiebreak.
+ */
+function tiebreakOnlyWinner(
+  setIndex: number,
+  scores: { side1?: number; side2?: number },
+  config: MatchUpConfig
+): 1 | 2 | undefined {
+  if (scores.side1 === undefined || scores.side2 === undefined) return undefined;
+  const { winningSide } = scoreGovernor.analyzeSet({
+    setObject: { setNumber: setIndex + 1, side1TiebreakScore: scores.side1, side2TiebreakScore: scores.side2 },
+    matchUpScoringFormat: config
+  });
+  return winningSide === 1 || winningSide === 2 ? winningSide : undefined;
 }
 
 export function getSetFormatForIndex(setIndex: number, config: MatchUpConfig): SetFormat | undefined {
@@ -321,11 +345,15 @@ export function isSetComplete(
     return scores.side1 !== undefined && scores.side1 !== null && scores.side2 !== undefined && scores.side2 !== null;
   }
 
-  // Check if this is a tiebreak-only set
+  // ── A tiebreak-only set asks the FACTORY, as of 2026-10-01 ──
+  //
+  // This read `side1 > 0 && side2 > 0 && side1 !== side2`: a hand-rolled rule under which a `3-1` in a
+  // match tiebreak to ten was complete and a `10-0` was not. The factory's `analyzeSet` names a winner
+  // only once the target is reached by the margin — since `#5049(factory)`, in 7.4.0 — so this delegates
+  // like the rest of the module. The shipping dialog still calls here; CA, 2026-10-01: *"We are not yet
+  // ready to retire the old modal."*
   if (isSetTiebreakOnly(setFormat)) {
-    // For tiebreak-only sets, we need a winner (validation determines if score is valid)
-    // Both sides must have scores and one must be higher
-    return scores.side1 > 0 && scores.side2 > 0 && scores.side1 !== scores.side2;
+    return tiebreakOnlyWinner(setIndex, scores, config) !== undefined;
   }
 
   // Regular set: check tennis scoring rules
@@ -379,7 +407,6 @@ export function getSetWinner(
   return winningSide === 1 || winningSide === 2 ? winningSide : undefined;
 }
 
-
 /**
  * The factory's analysis of a whole matchUp, from a sets array and a config.
  *
@@ -398,7 +425,7 @@ export function getSetWinner(
  */
 function matchAnalysis(sets: SetScore[], config: MatchUpConfig): Record<string, any> {
   return matchUpGovernor.analyzeMatchUp({
-    matchUp: { score: { sets }, matchUpFormat: scoreGovernor.stringifyMatchUpFormat(config as any) },
+    matchUp: { score: { sets }, matchUpFormat: scoreGovernor.stringifyMatchUpFormat(config as any) }
   });
 }
 
@@ -448,7 +475,7 @@ export function calculateComplement(digit: number, setFormat?: SetFormat): numbe
     // well as the wrong casing — this read was wrong twice.
     NoAD: setFormat.NoAD,
     winBy: setFormat.winBy,
-    isSide1: true,
+    isSide1: true
   });
   if (!pair) return null;
 
@@ -622,9 +649,9 @@ export function buildSetScore(
 
   // Check if tiebreak-only set
   if (isSetTiebreakOnly(setFormat)) {
-    // Main inputs are tiebreak scores
-    const winningSide =
-      side1Score > 0 && side2Score > 0 && side1Score !== side2Score ? (side1Score > side2Score ? 1 : 2) : undefined;
+    // Main inputs are tiebreak scores. The winner is the factory's answer, not "whoever is ahead" — see
+    // `isSetComplete`, which asks the same question of the same function.
+    const winningSide = tiebreakOnlyWinner(setIndex, { side1: side1Score, side2: side2Score }, config);
 
     return {
       setNumber: setIndex + 1,

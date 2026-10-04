@@ -13,6 +13,7 @@
  */
 
 import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
+import { aggregateDeciderSetNumber, finalSetGoverns } from '../../components/scoring/utils/aggregateDecider';
 
 // ParsedFormat is declared but not exported from tods-competition-factory
 // Define locally to avoid import error
@@ -197,7 +198,8 @@ function detectIrregularEnding(input: string, startPos: number): { ending?: stri
  */
 function getSetFormat(parsedFormat: ParsedFormat, setIndex: number): any {
   const bestOf = parsedFormat.bestOf || 3;
-  const isDecidingSet = setIndex === bestOf - 1; // Last possible set
+  // Last possible set; an aggregate format's decider is set N + 1 instead (factory #5166)
+  const isDecidingSet = finalSetGoverns(parsedFormat, setIndex + 1, setIndex === bestOf - 1);
 
   if (isDecidingSet && parsedFormat.finalSetFormat) {
     return parsedFormat.finalSetFormat;
@@ -497,7 +499,7 @@ function validateAggregateScoring(sets: ParsedSet[], timedSetsCount: number, err
 function parseTimedSetStrings(
   setStrings: string[],
   conditionalFinalTB: boolean,
-  expectedSetCount: number,
+  finalSetNumber: number,
   errors: ParseError[]
 ): ParsedSet[] {
   const sets: ParsedSet[] = [];
@@ -505,7 +507,7 @@ function parseTimedSetStrings(
   for (let i = 0; i < setStrings.length; i++) {
     const setString = setStrings[i];
     const setNumber = i + 1;
-    const isFinalSetPosition = setNumber === expectedSetCount;
+    const isFinalSetPosition = setNumber === finalSetNumber;
     const matchesTBPattern = setString === '1-0' || setString === '0-1';
     const isTBSet = conditionalFinalTB && isFinalSetPosition && matchesTBPattern;
 
@@ -526,7 +528,11 @@ function parseTimedSetStrings(
 /**
  * Create empty input result for timed exactly format
  */
-function createEmptyTimedExactlyResult(conditionalFinalTB: boolean, expectedSetCount: number): ParseResult {
+function createEmptyTimedExactlyResult(
+  conditionalFinalTB: boolean,
+  timedSetsCount: number,
+  expectedSetCount: number
+): ParseResult {
   return {
     valid: false,
     formattedScore: '',
@@ -536,7 +542,7 @@ function createEmptyTimedExactlyResult(conditionalFinalTB: boolean, expectedSetC
     warnings: [],
     ambiguities: [],
     suggestions: conditionalFinalTB
-      ? [`Enter ${expectedSetCount - 1} timed sets (final TB only if tied)`]
+      ? [`Enter ${timedSetsCount} timed sets (final TB only if tied)`]
       : [`Enter ${expectedSetCount} sets in format: #-# #-# ...`],
     incomplete: true,
     matchComplete: false
@@ -599,9 +605,10 @@ function formatTimedSets(sets: ParsedSet[]): string {
 /**
  * Simple parser for timed sets with exactly format
  * For formats like SET3X-S:T10, expects exactly N sets in "#-#" format
- * For aggregate with conditional TB (SET3XA-S:T10-F:TB1):
- *   - Accepts N-1 sets if aggregate not tied (match ends early)
- *   - Requires N sets with final TB if aggregate tied
+ * For aggregate exactly with conditional TB (SET3XA-S:T10-F:TB1):
+ *   - All N timed sets are always played
+ *   - The TB is set N + 1, played only when the aggregate is tied after N sets: it is never one of
+ *     the N (factory #5166; CA, 2026-10-04)
  * No smart logic - just parse literal "#-# #-# #-#" patterns
  */
 function parseTimedExactlyScore(input: string, parsedFormat: ParsedFormat): ParseResult {
@@ -612,28 +619,32 @@ function parseTimedExactlyScore(input: string, parsedFormat: ParsedFormat): Pars
   const hasFinalTiebreak = parsedFormat.finalSetFormat?.tiebreakSet?.tiebreakTo !== undefined;
   const conditionalFinalTB = isAggregateScoring && hasFinalTiebreak;
 
+  // Where the TB sits: set N + 1 for an aggregate exactly format, otherwise the last of the N
+  const deciderSetNumber = conditionalFinalTB ? aggregateDeciderSetNumber(parsedFormat) : undefined;
+  const finalSetNumber = deciderSetNumber ?? expectedSetCount;
+  const timedSetsCount = conditionalFinalTB && !deciderSetNumber ? expectedSetCount - 1 : expectedSetCount;
+
   if (!trimmedInput) {
-    return createEmptyTimedExactlyResult(conditionalFinalTB, expectedSetCount);
+    return createEmptyTimedExactlyResult(conditionalFinalTB, timedSetsCount, expectedSetCount);
   }
 
   const setStrings = trimmedInput.split(/\s+/);
   const errors: ParseError[] = [];
-  const timedSetsCount = conditionalFinalTB ? expectedSetCount - 1 : expectedSetCount;
 
-  const sets = parseTimedSetStrings(setStrings, conditionalFinalTB, expectedSetCount, errors);
+  const sets = parseTimedSetStrings(setStrings, conditionalFinalTB, finalSetNumber, errors);
 
   if (conditionalFinalTB && errors.length === 0) {
     validateAggregateScoring(sets, timedSetsCount, errors);
   }
 
   const minSets = conditionalFinalTB ? timedSetsCount : expectedSetCount;
-  const maxSets = expectedSetCount;
+  const maxSets = finalSetNumber;
 
   validateTimedSetCount(sets.length, minSets, maxSets, conditionalFinalTB, errors);
 
   const incomplete = sets.length < minSets && errors.length === 0;
   const matchComplete =
-    (sets.length === expectedSetCount || (conditionalFinalTB && sets.length === timedSetsCount)) && errors.length === 0;
+    (sets.length === maxSets || (conditionalFinalTB && sets.length === timedSetsCount)) && errors.length === 0;
 
   const formattedScore = formatTimedSets(sets);
 

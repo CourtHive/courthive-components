@@ -56,8 +56,7 @@ export interface FormatConfig {
   matchRoot?: string; // 'SET'|'HAL'|'QTR'|'PER'|'INN'|'RND'|'FRM'|'MAP'
   aggregate?: boolean;
   gameFormat?:
-    | { type: 'CONSECUTIVE'; count: number; deuceAfter?: number }
-    | { type: 'TRADITIONAL'; deuceAfter?: number };
+    { type: 'CONSECUTIVE'; count: number; deuceAfter?: number } | { type: 'TRADITIONAL'; deuceAfter?: number };
   setFormat: SetFormatConfig;
   finalSetFormat: SetFormatConfig;
 }
@@ -66,8 +65,7 @@ export interface ParsedMatchUpFormat {
   matchRoot?: string;
   aggregate?: boolean;
   gameFormat?:
-    | { type: 'CONSECUTIVE'; count: number; deuceAfter?: number }
-    | { type: 'TRADITIONAL'; deuceAfter?: number };
+    { type: 'CONSECUTIVE'; count: number; deuceAfter?: number } | { type: 'TRADITIONAL'; deuceAfter?: number };
   bestOf?: number;
   exactly?: number;
   setFormat: any;
@@ -294,6 +292,27 @@ function extractModifier(parsedSetFormat: any): string | undefined {
   );
 }
 
+/**
+ * Copy a parsed set format onto the flat controls the picker edits and `buildSetFormat` reads.
+ *
+ * Only the fields whose parsed spelling differs from the control's. `setTo` and `tiebreakAt` share a
+ * name with their control and arrive through the spread already, which is why Fast 4's `@3` survived
+ * while its `TB5` did not.
+ */
+function seedControlsFromParsedSet(config: SetFormatConfig, parsedSetFormat: any): void {
+  if (!parsedSetFormat) return;
+
+  // A set's own no-advantage GAME scoring. `advantage` is the control; `NoAD` is the parsed spelling.
+  config.advantage = parsedSetFormat.NoAD ? NOAD : AD;
+
+  // A tiebreak's target and its own no-advantage rule, both nested under the parsed format and both
+  // flat on the control. `tiebreakSet` is the tiebreak-ONLY shape and is already handled below, where
+  // `what` becomes TIEBREAKS.
+  const tiebreak = parsedSetFormat.tiebreakFormat;
+  if (tiebreak?.tiebreakTo !== undefined) config.tiebreakTo = tiebreak.tiebreakTo;
+  if (tiebreak) config.winBy = tiebreak.NoAD ? 1 : 2;
+}
+
 export function initializeFormatFromString(
   matchUpFormat: string,
   parseFunction: (format: string) => any
@@ -315,6 +334,21 @@ export function initializeFormatFromString(
     setFormat: { ...setDefaults, ...parsedMatchUpFormat.setFormat },
     finalSetFormat: { ...finalSetDefaults, ...parsedMatchUpFormat.finalSetFormat }
   };
+
+  // ── The spread above cannot reach the fields the picker actually reads ──
+  //
+  // `buildSetFormat` builds from the config's FLAT controls — `advantage`, `tiebreakTo`, `winBy` —
+  // while a parsed format states the same facts under different keys: `NoAD` and a nested
+  // `tiebreakFormat.tiebreakTo`. A spread copies neither onto the other, so the defaults survived and
+  // the picker rebuilt a format the operator never chose.
+  //
+  // Measured over the shipped catalog, 2026-09-30: 6 of its 38 formats did not survive a round trip.
+  // CA reported one of them — *"when I select 'Standard Doubles' I get SET3-S:6NOAD/TB7-F:TB10 but
+  // then when I go to re-open the scoring dialog it shows 'Custom' and SET3-S:6/TB7-F:TB10 somehow
+  // having dropped the NOAD"*. The 'Custom' label is the same defect seen from the other end: the
+  // rebuilt code no longer matches the catalog entry it came from.
+  seedControlsFromParsedSet(format.setFormat, parsedMatchUpFormat.setFormat);
+  seedControlsFromParsedSet(format.finalSetFormat, parsedMatchUpFormat.finalSetFormat);
 
   // Copy 'based' property directly from parsed format (no conversion needed)
   if (parsedMatchUpFormat.setFormat?.based) {

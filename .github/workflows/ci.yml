@@ -10,10 +10,17 @@ name: CI
 # dependencies (a new install script, a dropped optional dep) surfaces on a
 # schedule instead of on release day.
 
+# Pull requests run only when they target `dev` (the integration branch) or `main` (releases), and a
+# DRAFT runs nothing until it is marked ready. A draft can then hold work that is red by design —
+# pins written for a factory release not yet published, which this job resolves from npm — without a
+# failing run on it. `ready_for_review` is listed so marking it ready starts the run. Pushes run on
+# the two long-lived branches, so every merge into either is verified as merged (CA, 2026-10-02).
 on:
   pull_request:
+    branches: [dev, main]
+    types: [opened, synchronize, reopened, ready_for_review]
   push:
-    branches: [main]
+    branches: [dev, main]
   schedule:
     - cron: '0 6 * * 1' # Mondays, 06:00 UTC
   workflow_dispatch:
@@ -24,7 +31,7 @@ concurrency:
 
 jobs:
   verify:
-    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    if: (github.event_name == 'pull_request' && !github.event.pull_request.draft) || github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
