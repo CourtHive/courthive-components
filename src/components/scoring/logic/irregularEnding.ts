@@ -48,9 +48,8 @@ export const WINNER_REQUIRED_ERROR = 'Select a winner';
 /**
  * The factory's own classification, widened to `Set<string>` for lookup.
  *
- * Both arrays are typed as narrow status unions, and `nonDirectingMatchUpStatuses` includes `null`
- * (an unset status directs nobody). Neither detail is useful here — the question asked of them is
- * only ever "is this string in there" — so they are widened once, named, and not cast at each use.
+ * Both arrays are typed as narrow status unions. That is not useful here — the question asked of them
+ * is only ever "is this string in there" — so they are widened once, named, and not cast at each use.
  */
 const FACTORY_DIRECTING = new Set<string>(directingMatchUpStatuses as unknown as string[]);
 const FACTORY_NON_DIRECTING = new Set<string>(nonDirectingMatchUpStatuses as unknown as string[]);
