@@ -1,8 +1,10 @@
 import { gameScoreStyle, tieBreakStyle, gameWrapperStyle, pointScoreStyle } from '../../styles/scoreStyles';
-import { resultsItemStyle } from '../../styles/resultStyles';
 import { scoreWrapperStyle } from '../../styles/scoreWrapperStyle';
+import { resultsItemStyle } from '../../styles/resultStyles';
 import { renderGameScore } from './renderGameScore';
 import { isFunction } from '../modal/cmodal';
+
+// constants and types
 import type { Composition, EventHandlers, MatchUp, SetScore } from '../../types';
 
 export function setScore({
@@ -56,7 +58,14 @@ export function setScore({
   return p;
 }
 
-function buildPointScoreEl(sets, sideNumber, gameScoreConfig, composition, eventHandlers, matchUp): HTMLElement | undefined {
+function buildPointScoreEl(
+  sets,
+  sideNumber,
+  gameScoreConfig,
+  composition,
+  eventHandlers,
+  matchUp
+): HTMLElement | undefined {
   if (sets.length === 0) return undefined;
 
   const lastSet = sets.at(-1);
@@ -75,11 +84,11 @@ function buildPointScoreEl(sets, sideNumber, gameScoreConfig, composition, event
   if (inlineConfig && !lastSet.winningSide) {
     pointScoreEl.classList.add('chc-inline-scoring-clickable');
     pointScoreEl.style.cursor = 'pointer';
-    pointScoreEl.addEventListener('click', (e) => {
+    pointScoreEl.onclick = (e) => {
       e.stopPropagation();
       e.preventDefault();
       eventHandlers?.scoreIncrement?.({ matchUpId: matchUp.matchUpId, sideNumber, scoreType: 'point' });
-    });
+    };
   }
 
   return pointScoreEl;
@@ -88,12 +97,12 @@ function buildPointScoreEl(sets, sideNumber, gameScoreConfig, composition, event
 function makeInlineScoringClickable(el, inlineScoringConfig, eventHandlers, matchUp, sideNumber): void {
   el.classList.add('chc-inline-scoring-clickable');
   el.style.cursor = 'pointer';
-  el.addEventListener('click', (e) => {
+  el.onclick = (e) => {
     e.stopPropagation();
     e.preventDefault();
     const scoreType = inlineScoringConfig.mode === 'games' ? 'game' : 'point';
     eventHandlers?.scoreIncrement?.({ matchUpId: matchUp.matchUpId, sideNumber, scoreType });
-  });
+  };
 }
 
 export function renderSideScore({
