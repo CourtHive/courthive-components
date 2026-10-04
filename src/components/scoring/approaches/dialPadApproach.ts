@@ -6,7 +6,7 @@ import { renderMatchUp } from '../../renderStructure/renderMatchUp';
 import { compositions } from '../../../compositions/compositions';
 import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
 import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
-import { formatScoreString } from './dialPadLogic';
+import { formatScoreString, setCountOf } from './dialPadLogic';
 import { validateScore } from '../utils/scoreValidator';
 import { finalSetGoverns } from '../utils/aggregateDecider';
 import type { RenderScoreEntryParams, ScoreOutcome } from '../types';
@@ -559,7 +559,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       const currentValidation = currentScoreString ? validateScore(currentScoreString, matchUp.matchUpFormat) : null;
       const completedSets = currentValidation?.sets?.length || 0;
       const parsedFormat = matchUpFormatCode.parse(matchUp.matchUpFormat);
-      const bestOf = parsedFormat?.setFormat?.bestOf || 3;
+      const bestOf = setCountOf(parsedFormat);
 
       // Helper to check if a specific set is tiebreak-only
       const isSetTiebreakOnly = (setNumber: number) => {

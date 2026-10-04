@@ -20,7 +20,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
   if (!digits) return '';
 
   const parsedFormat = matchUpFormatCode.parse(matchUpFormat);
-  const bestOf = parsedFormat?.setFormat?.bestOf || 3;
+  const bestOf = setCountOf(parsedFormat);
 
   const getSetFormat = (setNumber: number) => {
     // An aggregate format's decider is set N + 1, never one of the N (factory #5166)
@@ -32,6 +32,11 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
   const hasFinalTiebreak = parsedFormat?.finalSetFormat?.tiebreakSet?.tiebreakTo !== undefined;
   const maxSets = (hasFinalTiebreak && aggregateDeciderSetNumber(parsedFormat)) || bestOf;
 
+  // A best-of match ends when a side wins a majority of sets; an `exactly` or aggregate format plays every set
+  const setsToWin = parsedFormat?.exactly || parsedFormat?.aggregate ? undefined : Math.ceil(bestOf / 2);
+  const setsWon = [0, 0];
+  const decided = () => !!setsToWin && (setsWon[0] >= setsToWin || setsWon[1] >= setsToWin);
+
   let result = '';
   let setCount = 0;
 
@@ -40,7 +45,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
   for (const segment of segments) {
     const parseState = { pos: 0 };
 
-    while (parseState.pos < segment.length && setCount < maxSets) {
+    while (parseState.pos < segment.length && setCount < maxSets && !decided()) {
       const setResult = parseOneSet(segment, parseState, setCount, bestOf, getSetFormat);
 
       if (result) result += ' ';
@@ -48,6 +53,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
 
       if (setResult.complete) {
         setCount++;
+        if (setResult.winningSide) setsWon[setResult.winningSide - 1] += 1;
       } else {
         break;
       }
@@ -57,10 +63,25 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
   return result;
 }
 
+/**
+ * The number of sets a format names. `matchUpFormatCode.parse` puts `bestOf` and `exactly` at the top level
+ * of the parsed format, never inside `setFormat`.
+ */
+export function setCountOf(parsedFormat: any): number {
+  return parsedFormat?.bestOf ?? parsedFormat?.exactly ?? 3;
+}
+
 interface SetParseResult {
   formatted: string;
   complete: boolean;
+  winningSide?: number;
 }
+
+const sideAhead = (s1: number, s2: number): number | undefined => {
+  if (s1 > s2) return 1;
+  if (s2 > s1) return 2;
+  return undefined;
+};
 
 function getSetConfig(setCount: number, _bestOf: number, getSetFormat: (n: number) => any) {
   const currentSetFormat = getSetFormat(setCount + 1);
@@ -216,14 +237,22 @@ function parseOneSet(
   if (needsTiebreak) {
     const tb1 = parseTiebreakDigits(segment, parseState);
     if (tb1) {
-      return { formatted: `${side1}-${side2}(${tb1})`, complete: true };
+      return { formatted: `${side1}-${side2}(${tb1})`, complete: true, winningSide: sideAhead(s1, s2) };
     }
     return { formatted: `${side1}-${side2}(`, complete: false };
   }
 
   if (config.isTiebreakOnly) {
-    return { formatted: `[${side1}-${side2}]`, complete: hasWinner };
+    return {
+      formatted: `[${side1}-${side2}]`,
+      complete: hasWinner,
+      winningSide: hasWinner ? sideAhead(s1, s2) : undefined
+    };
   }
 
-  return { formatted: `${side1}-${side2}`, complete: hasWinner };
+  return {
+    formatted: `${side1}-${side2}`,
+    complete: hasWinner,
+    winningSide: hasWinner ? sideAhead(s1, s2) : undefined
+  };
 }
