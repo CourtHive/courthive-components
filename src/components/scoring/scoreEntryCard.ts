@@ -30,9 +30,9 @@
  * called, and nothing else. If a rule appears here, it is in the wrong file.
  */
 
+import { NON_DIRECTING_ENDINGS, NO_SCORE_STATUSES, endingLabels } from './logic/irregularEnding';
 import { chooseEnding, changeFormat, clearScore, clearAll } from './logic/scoreEntryModel';
 import { statusCodeSubtext, statusCodeDisplay, codesForStatus } from './logic/statusCodes';
-import { NON_DIRECTING_ENDINGS, endingLabels } from './logic/irregularEnding';
 import { ENTRY_SIDE, hasCommandModifier, otherSide } from './keyboard';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 import { createScoreEntryStore } from './logic/scoreEntryStore';
@@ -766,7 +766,9 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     }
 
     if (target === submitButton) {
-      const firstChip = endingsContainer.querySelector<HTMLElement>('button');
+      // The first chip that can take focus: on a finished score the leading endings are refused and
+      // disabled (`refreshEndingAvailability`), and a disabled button cannot be focused.
+      const firstChip = endingsContainer.querySelector<HTMLElement>('button:not([disabled])');
       if (!firstChip) return false;
       event.preventDefault();
       firstChip.focus();
@@ -797,9 +799,10 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    *
    * Driven by `carriesNoScore` through `resolveScoreEntry`, so the set of endings that clear is the
    * one place it is already declared: WALKOVER, DOUBLE_WALKOVER, CANCELLED, DEAD_RUBBER. **DEFAULTED
-   * is NOT in it**, and CA's note asks for it — raised rather than changed, because a default DURING a
-   * match keeps the score it was defaulted at, which is why the set was settled without it on
-   * 2026-09-27. His ruling either way belongs in `irregularEnding.ts`, not here.
+   * is NOT in it**, and that is now CA's ruling rather than an open question (2026-10-04): *"keep the
+   * score (and then refuse Defaulted on a complete score)"*. A default DURING a match keeps the score
+   * it was defaulted at; the refusal half lives in `endingOffered` and
+   * `retractEndingContradictedByScore`, below.
    */
   function clearScoreWhenEndingCarriesNone(): void {
     if (!resolveEnding(model()).clearsScore) {
@@ -824,16 +827,66 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   }
 
   /**
-   * Whether a per-side ending can be chosen at all, given the score.
+   * Whether an ending can be chosen at all, given the score.
    *
    * CA, 2026-09-30: *"I should not be able to select (Retired) if the score is actually complete!"* A
-   * retirement means the match did not finish, and a finished score says it did. Only RETIRED is
-   * constrained: a walkover or a default on a complete score is not refused but CLEARS it, above,
-   * which resolves the same contradiction the other way.
+   * retirement means the match did not finish, and a finished score says it did.
+   *
+   * CA, 2026-10-04, on DEFAULTED: *"keep the score (and then refuse Defaulted on a complete score)"*.
+   * A default keeps the part-score it was given at, so it is the same contradiction as a retirement
+   * and is refused the same way. DOUBLE_DEFAULT is not offered on its own — it is DEFAULTED with "no
+   * one advances" ticked — so refusing DEFAULTED refuses it too.
+   *
+   * The match-level endings that resolve nobody (Suspended, Abandoned, Incomplete, In Progress,
+   * Awaiting Result) say the same thing about the match — it did not finish — and keep the score
+   * beside them, so a finished score refuses them too. Before this, finishing the score and THEN
+   * clicking Suspended submitted SUSPENDED with a complete score: the retraction below only ran when
+   * the score changed, so the other order walked straight past it.
+   *
+   * NOT refused: the endings that carry no score at all — a walkover, Cancelled, Dead Rubber. Choosing
+   * one on a complete score CLEARS it (`clearScoreWhenEndingCarriesNone`), which resolves the
+   * contradiction the other way instead of leaving it standing.
    */
   function endingOffered(status: string): boolean {
-    if (status !== RETIRED) return true;
+    if (!contradictsFinishedScore(status)) return true;
     return !scoreIsFinished();
+  }
+
+  /** The endings that say the match did not finish AND keep the score that says it did. */
+  function contradictsFinishedScore(status: string): boolean {
+    if (status === RETIRED || status === DEFAULTED) return true;
+    return NON_DIRECTING_ENDINGS.has(status) && !NO_SCORE_STATUSES.has(status);
+  }
+
+  /**
+   * Disable every ending control the score currently refuses, and re-enable it when it no longer does.
+   *
+   * Called from `renderDerived`, so it follows the score on every keystroke rather than only on a full
+   * render: the match-ending buttons, the Other… menu and the side panel are all built by `render()`,
+   * and a score that finishes as it is typed only reaches `refreshDerived`. Without this a control
+   * rendered while the score was partial stayed live after it finished.
+   *
+   * A SELECTED control is never disabled: clicking it again is how it is un-chosen, and a lock with no
+   * way out is a trap. In practice a selected refused ending does not survive to here —
+   * `retractEndingContradictedByScore` drops it the moment the score finishes — so this is the guard
+   * for that, not a state the operator should ever see.
+   */
+  function refreshEndingAvailability(): void {
+    const controls = element.querySelectorAll<HTMLButtonElement>(
+      '.chc-sec-endings button[data-ending], .chc-sec-side-option[data-ending]'
+    );
+    for (const control of controls) {
+      const status = control.dataset.ending ?? '';
+      const refused = !endingOffered(status) && control.getAttribute(ARIA_PRESSED) !== 'true';
+      control.disabled = refused;
+      if (refused) control.title = refusalReason(status);
+      else control.removeAttribute('title');
+    }
+  }
+
+  function refusalReason(status: string): string {
+    const label = labels[status] ?? status;
+    return `The score is complete — ${label} cannot follow it`;
   }
 
   /**
@@ -843,9 +896,10 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    * disappear. A completed score should cause matchUpStatus to change to COMPLETED."*
    *
    * Applies to every ending that resolves nobody — Suspended, Abandoned, Incomplete — and to a side
-   * RETIRED, which is the same contradiction reached from the other direction: `endingOffered` refuses
-   * it when the score is already complete, and this refuses it when the score becomes complete after.
-   * A rule enforced on only one of those orders is a rule an operator can walk around.
+   * RETIRED or DEFAULTED, which is the same contradiction reached from the other direction:
+   * `endingOffered` refuses it when the score is already complete, and this refuses it when the score
+   * becomes complete after. A rule enforced on only one of those orders is a rule an operator can walk
+   * around.
    *
    * Returns whether anything changed, because the ending chip lives in the participant rows and its
    * removal needs a full render rather than a derived refresh.
@@ -860,8 +914,9 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       return true;
     }
 
-    if (current.sideEnding?.status === RETIRED) {
-      choose({ kind: 'side', sideNumber: current.sideEnding.sideNumber, status: RETIRED });
+    const sideStatus = current.sideEnding?.status;
+    if (current.sideEnding && (sideStatus === RETIRED || sideStatus === DEFAULTED)) {
+      choose({ kind: 'side', sideNumber: current.sideEnding.sideNumber, status: current.sideEnding.status });
       openPanelSide = undefined;
       return true;
     }
@@ -952,6 +1007,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
   function renderDerived(): void {
     lockScoreEntry();
+    refreshEndingAvailability();
 
     const resolution = currentResolution();
     renderBand(resolution);
@@ -1213,10 +1269,11 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       if (hint) stack.append(text('chc-sec-side-option-hint', hint));
       option.append(stack);
 
-      // A retirement cannot follow a finished score; the control says so rather than accepting and
-      // then contradicting itself in the band.
-      option.disabled = !endingOffered(status);
-      if (option.disabled) option.title = 'The score is complete — a retirement cannot follow it';
+      // A retirement or a default cannot follow a finished score; the control says so rather than
+      // accepting and then contradicting itself in the band. Set here for the first paint and kept
+      // current by `refreshEndingAvailability` as the score changes.
+      option.disabled = !endingOffered(status) && !selected;
+      if (option.disabled) option.title = refusalReason(status);
 
       option.addEventListener('click', () => {
         choose({ kind: 'side', sideNumber, status });
