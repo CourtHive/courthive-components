@@ -48,12 +48,14 @@ Details that decide the mapping:
 - **`matchUpStatus` may be omitted** for a played result; `COMPLETED` is derived from `winningSide`.
   The dialog always reports it, so forward it.
 
-### The engine refuses an unfinished set — from the factory release carrying #5096
+### The engine refuses an unfinished set — from factory 7.5.0 (#5096)
 
 Note 10 of `scoreEntryNotes.txt`: _"I'm sure if this went to the factory it would return an error"_.
 Through factory 7.4.0 it did not: the engine checked set **bounds**, not **completeness**, and
 recorded `4-2 2-6 2-6` and `3-7 6-4 6-4` as `COMPLETED`. Factory #5096 refuses both with
-`ERR_INVALID_SCORE` and an `info` naming the set (`Set 1: …`), and leaves the matchUp unchanged:
+`ERR_INVALID_SCORE` and an `info` naming the set (`Set 1: …`), and leaves the matchUp unchanged.
+Re-measured 2026-10-05 against published 7.5.0: `validateScore` and `setMatchUpStatus` both refuse
+`4-2 2-6 2-6` under `SET3-S:6/TB7`, and both accept `6-4 2-6 2-6`:
 
 - every set before the last must be finished;
 - the last must be finished too when the outcome claims completion (`COMPLETED`, or a `winningSide`
