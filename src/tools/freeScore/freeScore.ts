@@ -13,7 +13,6 @@
  */
 
 import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
-import { aggregateDeciderSetNumber, finalSetGoverns } from '../../components/scoring/utils/aggregateDecider';
 
 // ParsedFormat is declared but not exported from tods-competition-factory
 // Define locally to avoid import error
@@ -199,7 +198,7 @@ function detectIrregularEnding(input: string, startPos: number): { ending?: stri
 function getSetFormat(parsedFormat: ParsedFormat, setIndex: number): any {
   const bestOf = parsedFormat.bestOf || 3;
   // Last possible set; an aggregate format's decider is set N + 1 instead (factory #5166)
-  const isDecidingSet = finalSetGoverns(parsedFormat, setIndex + 1, setIndex === bestOf - 1);
+  const isDecidingSet = matchUpFormatCode.finalSetGoverns(parsedFormat, setIndex + 1, setIndex === bestOf - 1);
 
   if (isDecidingSet && parsedFormat.finalSetFormat) {
     return parsedFormat.finalSetFormat;
@@ -620,7 +619,7 @@ function parseTimedExactlyScore(input: string, parsedFormat: ParsedFormat): Pars
   const conditionalFinalTB = isAggregateScoring && hasFinalTiebreak;
 
   // Where the TB sits: set N + 1 for an aggregate exactly format, otherwise the last of the N
-  const deciderSetNumber = conditionalFinalTB ? aggregateDeciderSetNumber(parsedFormat) : undefined;
+  const deciderSetNumber = conditionalFinalTB ? matchUpFormatCode.aggregateDeciderSetNumber(parsedFormat) : undefined;
   const finalSetNumber = deciderSetNumber ?? expectedSetCount;
   const timedSetsCount = conditionalFinalTB && !deciderSetNumber ? expectedSetCount - 1 : expectedSetCount;
 

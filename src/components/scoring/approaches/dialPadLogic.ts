@@ -4,7 +4,6 @@
  */
 
 import { matchUpFormatCode } from 'tods-competition-factory';
-import { aggregateDeciderSetNumber, finalSetGoverns } from '../utils/aggregateDecider';
 
 export type FormatOptions = {
   matchUpFormat: string;
@@ -24,13 +23,13 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
 
   const getSetFormat = (setNumber: number) => {
     // An aggregate format's decider is set N + 1, never one of the N (factory #5166)
-    const isDecidingSet = finalSetGoverns(parsedFormat, setNumber, setNumber === bestOf);
+    const isDecidingSet = matchUpFormatCode.finalSetGoverns(parsedFormat, setNumber, setNumber === bestOf);
     return isDecidingSet && parsedFormat?.finalSetFormat ? parsedFormat.finalSetFormat : parsedFormat?.setFormat;
   };
 
   // An aggregate format with a final tiebreak may run to its decider, set N + 1
   const hasFinalTiebreak = parsedFormat?.finalSetFormat?.tiebreakSet?.tiebreakTo !== undefined;
-  const maxSets = (hasFinalTiebreak && aggregateDeciderSetNumber(parsedFormat)) || bestOf;
+  const maxSets = (hasFinalTiebreak && matchUpFormatCode.aggregateDeciderSetNumber(parsedFormat)) || bestOf;
 
   // A best-of match ends when a side wins a majority of sets; an `exactly` or aggregate format plays every set
   const setsToWin = parsedFormat?.exactly || parsedFormat?.aggregate ? undefined : Math.ceil(bestOf / 2);

@@ -8,7 +8,6 @@ import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-fact
 import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
 import { formatScoreString, setCountOf } from './dialPadLogic';
 import { validateScore } from '../utils/scoreValidator';
-import { finalSetGoverns } from '../utils/aggregateDecider';
 import type { RenderScoreEntryParams, ScoreOutcome } from '../types';
 import { getScoringConfig } from '../config';
 
@@ -564,7 +563,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       // Helper to check if a specific set is tiebreak-only
       const isSetTiebreakOnly = (setNumber: number) => {
         // An aggregate format's decider is set N + 1, never one of the N (factory #5166)
-        const isDecidingSet = finalSetGoverns(parsedFormat, setNumber, setNumber === bestOf);
+        const isDecidingSet = matchUpFormatCode.finalSetGoverns(parsedFormat, setNumber, setNumber === bestOf);
         const setFormat =
           isDecidingSet && parsedFormat?.finalSetFormat ? parsedFormat.finalSetFormat : parsedFormat?.setFormat;
         const tiebreakSetTo = setFormat?.tiebreakSet?.tiebreakTo;

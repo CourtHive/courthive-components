@@ -51,7 +51,7 @@
  * regions start rendering it in S2–S4 of `Mentat/planning/SCORE_ENTRY_STATE_ENGINE.md`.
  */
 
-import { scoreGovernor } from 'tods-competition-factory';
+import { matchUpFormatCode, scoreGovernor } from 'tods-competition-factory';
 import { completeTiebreakOnly } from './tiebreakEntry';
 import {
   hydrateScoreEntryState,
@@ -74,7 +74,6 @@ import {
 
 // constants and types
 import type { ScoreEntryState, SideNumber } from './scoreEntryState';
-import { aggregateDeciderSetNumber } from '../utils/aggregateDecider';
 import type { MatchUpConfig, SetFormat } from './dynamicSetsLogic';
 import type { SetScore } from '../types';
 
@@ -641,7 +640,7 @@ export function setCountOf(config: MatchUpConfig): number {
 /** The set number of an aggregate format's final-tiebreak decider, or `undefined` when it has none. */
 export function deciderSetNumberOf(config: MatchUpConfig): number | undefined {
   if (config.finalSetFormat?.tiebreakSet?.tiebreakTo === undefined) return undefined;
-  return aggregateDeciderSetNumber(config);
+  return matchUpFormatCode.aggregateDeciderSetNumber(config);
 }
 
 /** An object with its `undefined` members removed, so two empty cells compare equal however they became empty. */
