@@ -1,5 +1,51 @@
 # Changelog
 
+## [6.2.0](https://github.com/CourtHive/courthive-components/compare/v6.1.0...v6.2.0) (2026-10-05)
+
+
+### Features
+
+* **matchUpFormat:** the editor offers best of 7 and 9, and Exactly stays timed-only ([#645](https://github.com/CourtHive/courthive-components/issues/645)) ([f96884d](https://github.com/CourtHive/courthive-components/commit/f96884d4a1cd790efb88535d6ccc50f5bb3575e1))
+* **scoring:** a cleared score is submittable, which is how a recorded one is removed ([#613](https://github.com/CourtHive/courthive-components/issues/613)) ([cba70da](https://github.com/CourtHive/courthive-components/commit/cba70dad0ed8ee20aa7f8f28bd5abc47bdaac7db))
+* **scoring:** a format change keeps what the new format has not invalidated ([#611](https://github.com/CourtHive/courthive-components/issues/611)) ([5004cb2](https://github.com/CourtHive/courthive-components/commit/5004cb28759dbdf4feba3c79de266db2db018fd4))
+* **scoring:** Dynamic Sets renders the model ([#623](https://github.com/CourtHive/courthive-components/issues/623)) ([d411d60](https://github.com/CourtHive/courthive-components/commit/d411d604e31c428da7f9326416142e511b13705c))
+* **scoring:** entry starts on the lower row, and a letter records a side ending ([#609](https://github.com/CourtHive/courthive-components/issues/609)) ([eaa4de4](https://github.com/CourtHive/courthive-components/commit/eaa4de47a250eb163ad726191d7f43c1232ccadc))
+* **scoring:** Free Score renders the model ([#624](https://github.com/CourtHive/courthive-components/issues/624)) ([edf95ef](https://github.com/CourtHive/courthive-components/commit/edf95ef3807f2b2ae7e9a7175858db4bb49d4de0))
+* **scoring:** openScoreEntryDialog is reachable from the package ([#612](https://github.com/CourtHive/courthive-components/issues/612)) ([2c9da7e](https://github.com/CourtHive/courthive-components/commit/2c9da7e8da2f7473b2865c73c62286edafbabcfa))
+* **scoring:** reopen a recorded outcome — the whole ending, and the reason code ([#607](https://github.com/CourtHive/courthive-components/issues/607)) ([4a62929](https://github.com/CourtHive/courthive-components/commit/4a62929b512861f23d146e2090804adeee404d5e))
+* **scoring:** S6 — the deferred notes as model rules, and the tiebreak as a raised digit ([#626](https://github.com/CourtHive/courthive-components/issues/626)) ([8bb0e25](https://github.com/CourtHive/courthive-components/commit/8bb0e255b88dadb815e9e79113150f2ff00cef4b))
+* **scoring:** the card holds the model, and ScoreRegion shrinks to render and intent ([#625](https://github.com/CourtHive/courthive-components/issues/625)) ([cc6f605](https://github.com/CourtHive/courthive-components/commit/cc6f6052aa5dcae2269e2f28b44a7ad18c6c23b7))
+* **scoring:** the Dial Pad renders the model ([#622](https://github.com/CourtHive/courthive-components/issues/622)) ([4ac2273](https://github.com/CourtHive/courthive-components/commit/4ac2273b9dd321adfb4032948db17dc94e4e4477))
+* **scoring:** the row target, score integrity, and the card in a modal ([#605](https://github.com/CourtHive/courthive-components/issues/605)) ([b362960](https://github.com/CourtHive/courthive-components/commit/b362960f0130cfa4a4e091e236f3b1e44a36059a))
+* **scoring:** the score-entry model, with no consumer ([#620](https://github.com/CourtHive/courthive-components/issues/620)) ([cc554a8](https://github.com/CourtHive/courthive-components/commit/cc554a8d6346ed8f9cb0d9ee3937441245e7b7b9))
+* **stories:** a draw behind the score-entry modal, and what the engine says to it ([#628](https://github.com/CourtHive/courthive-components/issues/628)) ([d3f858a](https://github.com/CourtHive/courthive-components/commit/d3f858ac26377829e638dd3fe00c1db3404612d5))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.3.1 ([#616](https://github.com/CourtHive/courthive-components/issues/616)) ([1b985ed](https://github.com/CourtHive/courthive-components/commit/1b985ede99695b650915ed1d688d8a7236c4325f))
+* **draws:** pill and score clicks are bound as properties, so a refresh replaces them ([#635](https://github.com/CourtHive/courthive-components/issues/635)) ([122e64b](https://github.com/CourtHive/courthive-components/commit/122e64b513e647b1d30dffa48e161098eae7e33b))
+* **scoring:** a reopened result focuses no entry cell ([#629](https://github.com/CourtHive/courthive-components/issues/629)) ([1dccc4d](https://github.com/CourtHive/courthive-components/commit/1dccc4d7218986f65cc6ca1650c249a7a6dc46d9))
+* **scoring:** a tiebreak-only set is complete when the factory says so ([#627](https://github.com/CourtHive/courthive-components/issues/627)) ([46e3e35](https://github.com/CourtHive/courthive-components/commit/46e3e354127198f321f5eb05b42c1320504fb1fe))
+* **scoring:** an aggregate format's sudden-death decider is set N + 1, never one of the N ([af0670f](https://github.com/CourtHive/courthive-components/commit/af0670feb1c26ba21570679989c1bde348a0aeba))
+* **scoring:** an aggregate format's sudden-death decider is set N + 1, never one of the N ([#636](https://github.com/CourtHive/courthive-components/issues/636)) ([c5cc085](https://github.com/CourtHive/courthive-components/commit/c5cc0852e6b903cbd711e480bf7141d3be04ab4b))
+* **scoring:** an aggregate's tiebreak-only decider counts as a played set ([#630](https://github.com/CourtHive/courthive-components/issues/630)) ([18a8836](https://github.com/CourtHive/courthive-components/commit/18a883603f7db5c3fdb8d02fffb552a9bf1a77a8))
+* **scoring:** an ending and a score must not contradict each other ([#617](https://github.com/CourtHive/courthive-components/issues/617)) ([a8e16b2](https://github.com/CourtHive/courthive-components/commit/a8e16b25c9772303cf7e95921fcc50663bd05925))
+* **scoring:** deciding-set format and tiebreak completion, by delegating to the factory ([#603](https://github.com/CourtHive/courthive-components/issues/603)) ([b0ab50e](https://github.com/CourtHive/courthive-components/commit/b0ab50edcfd1fe17be25bc571a4a0a4084655c53))
+* **scoring:** the card refuses an ending a finished score contradicts, in both orders ([#640](https://github.com/CourtHive/courthive-components/issues/640)) ([13c9d6b](https://github.com/CourtHive/courthive-components/commit/13c9d6b0886cddc1433f7f92ede857521c203d39))
+* **scoring:** the dial pad reads bestOf from the format, not from its set format ([#638](https://github.com/CourtHive/courthive-components/issues/638)) ([781716f](https://github.com/CourtHive/courthive-components/commit/781716ff3cba3b0af02f4909a3f74a061fcd9845))
+* **scoring:** the format picker rebuilt formats nobody chose, and the chip was inert ([#618](https://github.com/CourtHive/courthive-components/issues/618)) ([8fabcd4](https://github.com/CourtHive/courthive-components/commit/8fabcd4ce4e7cbdff84aa0361cf6cf8105c0b58a))
+* **scoring:** the named tiebreak message is asked first, now that the factory checks it too ([#621](https://github.com/CourtHive/courthive-components/issues/621)) ([ed3b13d](https://github.com/CourtHive/courthive-components/commit/ed3b13d83b932f63f6b1cfa6970d0ae65771aa30))
+* **scoring:** the Other menu was clipped away, and Tab now reaches Submit ([#619](https://github.com/CourtHive/courthive-components/issues/619)) ([e569f99](https://github.com/CourtHive/courthive-components/commit/e569f99f2f83586bc3d335fe86bc7832eb7c95a0))
+* **scoring:** the result band shows a double exit's reason code ([#610](https://github.com/CourtHive/courthive-components/issues/610)) ([91ca39d](https://github.com/CourtHive/courthive-components/commit/91ca39d7c9a9414cb98cc32d0735ea87c18f7a2a))
+* **scoring:** the score dialog had no keyboard model, and two dead buttons ([#606](https://github.com/CourtHive/courthive-components/issues/606)) ([444ba3c](https://github.com/CourtHive/courthive-components/commit/444ba3c0f633e222ee79a04bd28c03e6d9dc6da3))
+
+
+### Documentation
+
+* cut branches from `dev`, not `main` ([258e4c1](https://github.com/CourtHive/courthive-components/commit/258e4c1891f1be240c6d46e90dd760e002dee910))
+* **scoring:** nonDirectingMatchUpStatuses no longer lists an unset status ([#634](https://github.com/CourtHive/courthive-components/issues/634)) ([dedcc22](https://github.com/CourtHive/courthive-components/commit/dedcc228401252f948daf02cd6b85c462bd4c581))
+
 ## [6.1.0](https://github.com/CourtHive/courthive-components/compare/v6.0.1...v6.1.0) (2026-09-28)
 
 
