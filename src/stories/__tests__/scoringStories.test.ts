@@ -220,6 +220,38 @@ describe('the draw behind the modal', () => {
     expect(host.held().score?.scoreStringSide1 ?? '').toBe('');
   });
 
+  it('top-level `sets` sent as-is are ignored: the winner is recorded with NO score (measured 7.5.0)', () => {
+    const { host } = mount();
+    const dialogOutcome = { sets: [set(1, 6, 4, 1), set(2, 6, 3, 1)], winningSide: 1, matchUpStatus: COMPLETED };
+
+    // The engine reads the score from `score.sets` only. Sent at the top level the sets are never seen,
+    // and with no score to validate, 7.5.0's completeness rule has nothing to refuse.
+    const raw: any = tournamentEngine.setMatchUpStatus({ ...host.ref, outcome: { ...dialogOutcome } });
+    expect(raw.success).toBe(true);
+    expect(host.held().matchUpStatus).toBe(COMPLETED);
+    expect(host.held().winningSide).toBe(1);
+    expect(host.held().score?.scoreStringSide1 ?? '', 'a COMPLETED result with no score').toBe('');
+
+    // The mapping moves them under `score`.
+    host.submitToEngine(dialogOutcome);
+    expect(host.held().score.scoreStringSide1).toBe('6-4 6-3');
+  });
+
+  it('a `reasonCode` sent as-is is ignored: the walkover is recorded and its reason lost (measured 7.5.0)', () => {
+    const { host } = mount();
+    const dialogOutcome = { matchUpStatus: WALKOVER, winningSide: 1, reasonCode: WALKOVER_INJURY };
+
+    const raw: any = tournamentEngine.setMatchUpStatus({ ...host.ref, outcome: { ...dialogOutcome } });
+    expect(raw.success).toBe(true);
+    expect(host.held().matchUpStatus).toBe(WALKOVER);
+    expect(host.held().sideStatusCodes, 'the reason never reached the record').toBeUndefined();
+
+    // The mapping sends it positionally, and the engine files it against the exiting side.
+    const mapped = host.submitToEngine(dialogOutcome);
+    expect(mapped.sent.matchUpStatusCodes).toEqual(['', WALKOVER_INJURY]);
+    expect(host.held().sideStatusCodes).toEqual({ 2: WALKOVER_INJURY });
+  });
+
   it('a walkover with no score: accepted, the reason filed against the exiting side, and it reopens that way', () => {
     const { host, logText } = mount();
     host.open();
