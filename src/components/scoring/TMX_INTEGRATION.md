@@ -10,6 +10,12 @@ matchUp back. The story that shows it is `Scoring/Score Entry Over a Draw` and t
 `src/stories/helpers/scoreEntryEngineHost.ts` (`toEngineOutcome`). Every case below is pinned in
 `src/stories/__tests__/scoringStories.test.ts`, so a factory release that changes an answer fails there.
 
+**Re-measured 2026-10-05 against published factory 7.5.0: all five rows still hold.** Two of them
+(top-level `sets`, `reasonCode`) were described here but not pinned in their forwarded-as-is form; they
+are now. 7.5.0's completeness rule does not close the `sets` row: it validates the score it is given, and
+a score sent at the top level is never given to it, so the result is a COMPLETED matchUp with a winner
+and no score at all.
+
 `openScoreEntryDialog`'s `onSubmit` reports:
 
 ```typescript
@@ -23,7 +29,7 @@ and a host has to bridge each one:
 | the dialog reports                                  | the engine wants                                                        | what happens if you forward it as-is                                               |
 | --------------------------------------------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | `score` as a **string** (`'6-4 6-3'`)               | `score: { sets }` — it derives `scoreStringSide1/2` itself, every time  | **refused**, `ERR_INVALID_VALUES`, on every Submit                                 |
-| `sets` at the top level                             | `score.sets`                                                            | ignored; with no `score` the engine writes no score                                |
+| `sets` at the top level                             | `score.sets`                                                            | ignored: recorded COMPLETED with the winner and **no score**                       |
 | `reasonCode: 'W1'`                                  | `matchUpStatusCodes: ['', 'W1']` — positional, the exiting side's index | ignored; the reason is lost                                                        |
 | `cleared: true`                                     | `{ score: { sets: [] }, matchUpStatusCodes: [] }`                       | **not a clear**: the winner is dropped and the stale score stays, as `IN_PROGRESS` |
 | a format chosen through the chip (`onFormatChange`) | `outcome.matchUpFormat`, persisted once the result is accepted          | the format change is lost                                                          |
