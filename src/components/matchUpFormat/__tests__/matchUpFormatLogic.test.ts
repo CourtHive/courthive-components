@@ -475,9 +475,9 @@ describe('matchUpFormatLogic', () => {
       }
     });
 
-    it('getBestOfOptionsForRoot returns [1,3,5] for SET', () => {
-      expect(getBestOfOptionsForRoot('SET')).toEqual([1, 3, 5]);
-      expect(getBestOfOptionsForRoot(undefined)).toEqual([1, 3, 5]);
+    it('getBestOfOptionsForRoot returns [1,3,5,7,9] for SET', () => {
+      expect(getBestOfOptionsForRoot('SET')).toEqual([1, 3, 5, 7, 9]);
+      expect(getBestOfOptionsForRoot(undefined)).toEqual([1, 3, 5, 7, 9]);
     });
 
     it('getBestOfOptionsForRoot returns [1..12] for non-SET', () => {
