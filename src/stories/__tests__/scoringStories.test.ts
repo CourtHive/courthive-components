@@ -23,9 +23,10 @@ import * as cardStories from '../scoreEntryCard.stories';
 import { describe, it, expect, afterEach } from 'vitest';
 import { cModal } from '../../components/modal/cmodal';
 
-import { tournamentEngine, matchUpStatusConstants } from 'tods-competition-factory';
+import { tournamentEngine, matchUpStatusConstants, errorConditionConstants } from 'tods-competition-factory';
 
 const { COMPLETED, WALKOVER, DOUBLE_WALKOVER, TO_BE_PLAYED, IN_PROGRESS } = matchUpStatusConstants;
+const { INVALID_SCORE, INVALID_VALUES } = errorConditionConstants;
 
 const MODAL = 'section[id^="cmdl-"]';
 
@@ -151,7 +152,7 @@ describe('the draw behind the modal', () => {
 
     const answer = host.submitToEngine({ sets, winningSide: 2, matchUpStatus: COMPLETED });
 
-    expect(answer.result.error?.code).toBe('ERR_INVALID_SCORE');
+    expect(answer.result.error?.code).toBe(INVALID_SCORE.code);
     expect(host.held().matchUpStatus, 'a refusal writes nothing').toBe(TO_BE_PLAYED);
     expect(host.held().winningSide).toBeUndefined();
   });
@@ -164,7 +165,7 @@ describe('the draw behind the modal', () => {
       winningSide: 1,
       matchUpStatus: COMPLETED
     });
-    expect(answer.result.error?.code).toBe('ERR_INVALID_SCORE');
+    expect(answer.result.error?.code).toBe(INVALID_SCORE.code);
     expect(host.held().matchUpStatus).toBe(TO_BE_PLAYED);
 
     // The control: the same match with a finished first set is recorded, so the refusal is about 3-7.
@@ -188,7 +189,7 @@ describe('the draw behind the modal', () => {
 
     // The raw spread — what a host does when it has not read the engine's shape.
     const raw: any = tournamentEngine.setMatchUpStatus({ ...host.ref, outcome: { ...dialogOutcome } });
-    expect(raw.error?.code).toBe('ERR_INVALID_VALUES');
+    expect(raw.error?.code).toBe(INVALID_VALUES.code);
     expect(host.held().matchUpStatus, 'and nothing was written').toBe(TO_BE_PLAYED);
 
     // The mapping: no string, the sets as `score.sets`. Falsified by forwarding `score` in `toEngineOutcome`.

@@ -260,3 +260,41 @@ describe('a DRAWN bolt is an ordinary result', () => {
     expect(document.activeElement).toBe(h.cell(2, 2));
   });
 });
+
+describe('nine bolts entered one by one make a finished score', () => {
+  /** The card's own gate, read off the element rather than inferred from the model. */
+  const submit = (h: ReturnType<typeof mount>) =>
+    h.element.querySelector<HTMLButtonElement>('button[data-action="submit"]')!;
+
+  /**
+   * Type one bolt the way an operator does — lower row first — and Enter on to the next.
+   *
+   * The bolts ALTERNATE: side 1 takes the odd ones, side 2 the even ones. So after eight the match
+   * stands 4-4 and only the ninth can settle it — the score is genuinely unfinished until the last
+   * bolt is in, which is what makes the "not before" half of the test below mean something. Had side
+   * 1 won every bolt, the gate opens at the fifth (measured), and the ninth would prove nothing.
+   */
+  function enterBolt(h: ReturnType<typeof mount>, bolt: number) {
+    const side1Wins = bolt % 2 === 1;
+    h.typeInto(2, bolt, side1Wins ? '21' : '22');
+    h.typeInto(1, bolt, side1Wins ? '22' : '21');
+    if (bolt < 9) h.enter(1, bolt);
+  }
+
+  it('enables Submit once the ninth bolt is in, and not one bolt before', () => {
+    // The 'Nine timed bolts' story SEEDS all nine; this TYPES them, which is the path an operator
+    // takes. Bolts are revealed one at a time, so the ninth cell exists only if the region's own
+    // reveal-and-advance carried entry through the first eight.
+    const h = mount(NINE_BOLTS);
+
+    for (let bolt = 1; bolt <= 8; bolt += 1) enterBolt(h, bolt);
+    expect(h.cell(1, 9), 'the ninth bolt has been revealed').toBeTruthy();
+    expect(submit(h).disabled, 'level at four bolts each: not a finished result').toBe(true);
+
+    enterBolt(h, 9);
+
+    expect(h.cell(1, 9)!.value).toBe('22');
+    expect(h.cell(2, 9)!.value).toBe('21');
+    expect(submit(h).disabled, 'all nine bolts in: the score is complete').toBe(false);
+  });
+});
