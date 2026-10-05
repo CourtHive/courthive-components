@@ -2,7 +2,6 @@
  * Logic for determining when to expand set inputs dynamically
  */
 import { matchUpFormatCode } from 'tods-competition-factory';
-import { aggregateDeciderSetNumber } from './aggregateDecider';
 import type { SetScore } from '../types';
 
 type MatchUpFormatInfo = {
@@ -75,7 +74,7 @@ export function shouldExpandSets(sets: SetScore[], matchUpFormat?: string): bool
     const conditionalFinalTB = isAggregateScoring && hasFinalTiebreak && formatInfo.isTimed;
     // An aggregate exactly format plays all N timed sets; its TB is set N + 1, shown only when the
     // aggregate is tied after them. It is never one of the N (factory #5166; CA, 2026-10-04).
-    const deciderSetNumber = conditionalFinalTB ? aggregateDeciderSetNumber(parsed) : undefined;
+    const deciderSetNumber = conditionalFinalTB ? matchUpFormatCode.aggregateDeciderSetNumber(parsed) : undefined;
 
     // Don't expand beyond the exact number of sets (plus an aggregate format's decider)
     if (sets.length >= (deciderSetNumber ?? totalSets)) {

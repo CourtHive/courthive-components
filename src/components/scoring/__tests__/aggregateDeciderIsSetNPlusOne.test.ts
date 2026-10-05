@@ -10,13 +10,11 @@
  * decider as set 4, and refuses the decider played in bolt 3's place.
  */
 import { columns, isComplete, winningSide as cardWinningSide } from '../logic/scoreEntrySelectors';
-import { aggregateDeciderSetNumber, finalSetGoverns } from '../utils/aggregateDecider';
 import { validateScore, validateSetScores } from '../utils/scoreValidator';
 import { shouldExpandSets } from '../utils/setExpansionLogic';
 import { formatScoreString } from '../approaches/dialPadLogic';
 import { typed } from '../logic/__tests__/scoreEntryModelTestHelpers';
 import { parseScore } from '../../../tools/freeScore/freeScore';
-import { matchUpFormatCode } from 'tods-competition-factory';
 import { describe, expect, it } from 'vitest';
 
 const FORMAT = 'SET3XA-S:T10-F:TB1';
@@ -34,25 +32,6 @@ const LEVEL_BOLTS = [
   { side1: 20, side2: 20 }
 ];
 const DECIDER = { side1TiebreakScore: 1, side2TiebreakScore: 0 };
-
-describe('the interim aggregateDecider helper', () => {
-  it('names set N + 1 for an aggregate exactly format, and nothing otherwise', () => {
-    expect(aggregateDeciderSetNumber(matchUpFormatCode.parse(FORMAT))).toBe(4);
-    expect(aggregateDeciderSetNumber(matchUpFormatCode.parse('SET4XA-S:T10-F:TB1'))).toBe(5);
-    expect(aggregateDeciderSetNumber(matchUpFormatCode.parse('SET3X-S:T10'))).toBeUndefined();
-    expect(aggregateDeciderSetNumber(matchUpFormatCode.parse('SET3-S:6/TB7-F:TB10'))).toBeUndefined();
-  });
-
-  it('leaves every other format on its own reading of the final set', () => {
-    const bestOf = matchUpFormatCode.parse('SET3-S:6/TB7-F:TB10');
-    expect(finalSetGoverns(bestOf, 3, true)).toBe(true);
-    expect(finalSetGoverns(bestOf, 2, false)).toBe(false);
-
-    const aggregate = matchUpFormatCode.parse(FORMAT);
-    expect(finalSetGoverns(aggregate, 3, true)).toBe(false);
-    expect(finalSetGoverns(aggregate, 4, false)).toBe(true);
-  });
-});
 
 describe('validateScore', () => {
   it(ACCEPTS, () => {

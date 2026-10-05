@@ -6,7 +6,6 @@ import { renderMatchUp } from '../../renderStructure/renderMatchUp';
 import { compositions } from '../../../compositions/compositions';
 import { validateSetScores } from '../utils/scoreValidator';
 import { parseMatchUpFormat, shouldExpandSets } from '../utils/setExpansionLogic';
-import { aggregateDeciderSetNumber } from '../utils/aggregateDecider';
 import type { RenderScoreEntryParams, SetScore } from '../types';
 import { loadSettings, getScoringConfig } from '../config';
 import { matchUpFormatCode, matchUpStatusConstants, scoreGovernor } from 'tods-competition-factory';
@@ -148,7 +147,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   const getMaxSets = () => {
     const parsedFormat = matchUpFormatCode.parse(currentMatchUpFormat);
     const hasFinalTiebreak = parsedFormat?.finalSetFormat?.tiebreakSet?.tiebreakTo !== undefined;
-    const deciderSetNumber = hasFinalTiebreak ? aggregateDeciderSetNumber(parsedFormat) : undefined;
+    const deciderSetNumber = hasFinalTiebreak ? matchUpFormatCode.aggregateDeciderSetNumber(parsedFormat) : undefined;
     return deciderSetNumber ?? getBestOf();
   };
   const getExactly = () => matchConfig.exactly;
