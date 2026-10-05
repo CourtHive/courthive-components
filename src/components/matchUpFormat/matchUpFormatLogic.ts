@@ -26,12 +26,12 @@ export const MATCH_ROOT_LABELS: Record<string, string> = {
 
 /**
  * Returns valid bestOf options for a given match root.
- * SET root: [1,3,5] (standard tennis)
+ * SET root: [1,3,5,7,9] — odd counts; the factory parses any best-of count (#5136)
  * Other roots: [1..12] (wide range for cross-sport)
  */
 export function getBestOfOptionsForRoot(matchRoot?: string): number[] {
   if (!matchRoot || matchRoot === 'SET') {
-    return [1, 3, 5];
+    return [1, 3, 5, 7, 9];
   }
   return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 }

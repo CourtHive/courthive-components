@@ -126,7 +126,7 @@ const defaultConfig: MatchUpFormatConfig = {
     }
   },
   options: {
-    bestOf: [1, 3, 5],
+    bestOf: [1, 3, 5, 7, 9],
     exactly: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
     setTo: [1, 2, 3, 4, 5, 6, 7, 8, 9],
     tiebreakTo: [1, 3, 5, 7, 9, 10, 11, 12, 13, 15, 21, 25],
