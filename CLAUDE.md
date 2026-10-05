@@ -39,6 +39,21 @@ gh pr list --repo CourtHive/courthive-components --state merged --head <branch>
 The checkpoint merge itself must be a **merge commit**, not a squash: squashing collapses every
 conventional commit into one and guts the release-please changelog.
 
+### After a release: the back-merge (CA, 2026-10-05)
+
+release-please's `chore(main): release X.Y.Z` commit (version, CHANGELOG, manifest) lands on `main` only,
+so every release is followed by merging `main` back into `dev`. **`back-merge.yml` opens that PR** on
+`release: published` (`chore: merge main back into dev after vX.Y.Z`), with the `courthive-release-bot`
+App token so CI runs on it (a PR opened by `GITHUB_TOKEN` gets no workflow runs). **Merge it with a merge
+commit, never a squash.** It is not auto-merged. If a release's run was missed:
+`gh workflow run back-merge.yml -R CourtHive/courthive-components`.
+
+**The release path takes the light path in CI**, as the factory's release PRs do (#5169(factory)).
+`.github/scripts/release-scope.sh` marks a PR light when it is the release-please PR into `main` or the
+back-merge PR (`main` -> `dev`) AND its diff is only the version files: `package.json`'s `"version"`
+line, `CHANGELOG.md`, `.release-please-manifest.json`. `verify` then skips everything after the lockfile
+guard but still reports, so `main`'s required check passes. Any other change gets the full run.
+
 ## Project Overview
 
 Vanilla JavaScript UI component library for the CourtHive tournament management platform. No framework -- all components use direct DOM manipulation (`createElement`, `innerHTML`). Published as `courthive-components` on npm. Used by TMX (client PWA) and other CourtHive apps.

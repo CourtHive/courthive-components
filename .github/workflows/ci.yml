@@ -35,6 +35,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # release-scope.sh diffs the PR's merge commit against its first parent, the base tip.
+          fetch-depth: 2
+
+      # The release path's light path: a release-please PR into `main`, or the back-merge PR
+      # (`main` -> `dev`, opened by back-merge.yml), whose diff is the version files alone skips
+      # every step below the lockfile guard. Its tree was verified when it landed, and `verify`
+      # still reports, so `main`'s required check passes. Anything else gets the full run.
+      - name: Release-path scope
+        id: scope
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          REPO: ${{ github.repository }}
+        run: bash .github/scripts/release-scope.sh
 
       # A pnpm that does not match this repo's `packageManager` pin writes an `@pnpm/exe` block
       # into the lockfile; a pnpm that DOES match strips it out again. Committed, it makes every
@@ -63,26 +80,34 @@ jobs:
           exit $bad
 
       - uses: pnpm/action-setup@v6
+        if: steps.scope.outputs.light != 'true'
         # pnpm version comes from package.json's `packageManager` field;
         # naming it here too raises ERR_PNPM_BAD_PM_VERSION.
 
       - uses: actions/setup-node@v7
+        if: steps.scope.outputs.light != 'true'
         with:
           node-version: 24
           cache: pnpm
 
       - name: Prepare checkout for CI
+        if: steps.scope.outputs.light != 'true'
         run: node scripts/ci-prepare.mjs
 
       # --no-frozen-lockfile, not --frozen-lockfile: ci-prepare.mjs removed the
       # link: override the lockfile was resolved with, so pnpm has to re-resolve
       # that one entry. Everything else stays pinned to the committed lockfile.
       - run: pnpm install --no-frozen-lockfile
+        if: steps.scope.outputs.light != 'true'
 
       - run: pnpm lint
+        if: steps.scope.outputs.light != 'true'
       - run: pnpm check-types
+        if: steps.scope.outputs.light != 'true'
       - run: pnpm build
+        if: steps.scope.outputs.light != 'true'
       - run: pnpm test
+        if: steps.scope.outputs.light != 'true'
 
   fresh-resolve:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
