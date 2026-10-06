@@ -277,7 +277,9 @@ export const Lucky = {
       const { matchUps: currentMatchUps } = tournamentEngine.allTournamentMatchUps();
       const roundMatchUps = currentMatchUps
         .filter((m: any) => m.drawId === drawId && m.roundNumber === roundNumber)
-        .filter((m: any) => m.drawPositions?.every(Boolean)); // Only score matchUps with assigned positions
+        // only score matchUps where both participants have arrived: read from `sides`, since a stored
+        // `drawPositions` holding one position is `[5]` (no hole), which `every(Boolean)` passes
+        .filter((m: any) => m.sides?.filter((side: any) => side?.participantId).length === 2);
 
       if (!roundMatchUps.length) break;
 
