@@ -307,6 +307,27 @@ function addQualifyingFields(
       onChange: ({ e }: any) => callbacks.onUpdateNode(node.id, { qualifyingPositions: parseInt(e.target.value) })
     });
   }
+
+  // seeds placed in the qualifying structure: none, or a power of two up to half the draw
+  const seedOptions = [0, ...Array.from({ length: 6 }, (_, i) => 2 ** (i + 1)).filter((n) => n <= node.drawSize / 2)];
+  const currentSeeds = node.seedsCount ?? 0;
+  items.push({
+    label: 'Seeds',
+    field: 'seedsCount',
+    value: String(currentSeeds),
+    disabled: isReadOnly,
+    options: seedOptions.map((n: number) => ({
+      label: n ? String(n) : 'None',
+      value: String(n),
+      selected: n === currentSeeds
+    }))
+  });
+  if (!isReadOnly) {
+    relationships.push({
+      control: 'seedsCount',
+      onChange: ({ e }: any) => callbacks.onUpdateNode(node.id, { seedsCount: parseInt(e.target.value) })
+    });
+  }
 }
 
 function appendFeedWarnings(node: TopologyNode, state: TopologyState, body: HTMLElement): void {

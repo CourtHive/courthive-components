@@ -60,6 +60,63 @@ export const standardTemplates: TopologyTemplate[] = [
     }
   },
   {
+    name: 'Single Elimination + Qualifying with consolation',
+    description:
+      'SE main fed by a 64 qualifying (16 qualifiers, 16 seeds); the losers of qualifying round 1 play a consolation',
+    state: {
+      drawName: 'SE + Qualifying + Q consolation',
+      nodes: [
+        {
+          id: 'tpl-main',
+          structureName: 'Main Draw',
+          stage: MAIN as Stage,
+          structureType: SINGLE_ELIMINATION,
+          drawSize: 64,
+          position: { x: 320, y: 40 }
+        },
+        {
+          id: 'tpl-qual',
+          structureName: 'Qualifying',
+          stage: QUALIFYING as Stage,
+          structureType: SINGLE_ELIMINATION,
+          drawSize: 64,
+          qualifyingPositions: 16,
+          seedsCount: 16,
+          position: { x: 40, y: 40 }
+        },
+        {
+          id: 'tpl-qual-cons',
+          structureName: 'Qualifying Consolation',
+          stage: CONSOLATION as Stage,
+          structureType: SINGLE_ELIMINATION,
+          drawSize: 32,
+          position: { x: 40, y: 220 }
+        }
+      ],
+      edges: [
+        {
+          id: TPL_EDGE_1,
+          sourceNodeId: 'tpl-qual',
+          targetNodeId: 'tpl-main',
+          linkType: WINNER,
+          targetRoundNumber: 1,
+          qualifyingPositions: 16,
+          label: 'winners → R1 (16Q)'
+        },
+        {
+          id: TPL_EDGE_2,
+          sourceNodeId: 'tpl-qual',
+          targetNodeId: 'tpl-qual-cons',
+          linkType: LOSER,
+          sourceRoundNumber: 1,
+          targetRoundNumber: 1,
+          feedProfile: 'TOP_DOWN',
+          label: LABEL_R1_LOSERS_R1
+        }
+      ]
+    }
+  },
+  {
     name: 'FMLC (First Match Loser Consolation)',
     description: 'Main draw with first match loser consolation',
     state: {

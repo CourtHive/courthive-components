@@ -126,6 +126,16 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
   return { drawOptions, postGenerationMethods };
 }
 
+/**
+ * One attach method per consolation node, from the LOSER edges that feed it.
+ *
+ * A consolation hung off the MAIN node is the factory's own business when the inferred drawType is
+ * composite (FMLC, FIC, COMPASS generate it); those edges are dropped. Every other LOSER edge into a
+ * consolation — from a QUALIFYING node (a consolation for the losers of qualifying round 1), or from
+ * MAIN under a plain drawType — becomes a method. The method names its SOURCE node by stage and
+ * structureName so the consumer can resolve the generated structure's id after generation; the
+ * consumers used to pin every link to the main structure, which silently lost a qualifying source.
+ */
 function buildConsolationMethods(
   state: TopologyState,
   mainNode: TopologyNode,
@@ -133,23 +143,28 @@ function buildConsolationMethods(
   postGenerationMethods: any[]
 ): void {
   const consolationNodes = state.nodes.filter((n) => n.stage === CONSOLATION);
+  const compositeTypes: string[] = [FIRST_MATCH_LOSER_CONSOLATION, FEED_IN_CHAMPIONSHIP, COMPASS];
+  const mainCoveredByDrawType = compositeTypes.includes(drawType);
   const consolationLoserEdges = state.edges.filter(
     (e) =>
-      e.linkType === LOSER && e.sourceNodeId === mainNode.id && consolationNodes.some((n) => n.id === e.targetNodeId)
+      e.linkType === LOSER &&
+      consolationNodes.some((n) => n.id === e.targetNodeId) &&
+      !(mainCoveredByDrawType && e.sourceNodeId === mainNode.id)
   );
+  if (consolationLoserEdges.length === 0) return;
 
-  const compositeTypes: string[] = [FIRST_MATCH_LOSER_CONSOLATION, FEED_IN_CHAMPIONSHIP, COMPASS];
-  if (consolationLoserEdges.length === 0 || compositeTypes.includes(drawType)) return;
-
+  // one method per (source node, consolation node): a consolation fed by two sources is two attaches
   const byTarget = new Map<string, TopologyEdge[]>();
   for (const edge of consolationLoserEdges) {
-    if (!byTarget.has(edge.targetNodeId)) byTarget.set(edge.targetNodeId, []);
-    byTarget.get(edge.targetNodeId)!.push(edge);
+    const key = `${edge.sourceNodeId}→${edge.targetNodeId}`;
+    if (!byTarget.has(key)) byTarget.set(key, []);
+    byTarget.get(key)!.push(edge);
   }
 
-  for (const [targetId, edges] of byTarget) {
-    const consNode = consolationNodes.find((n) => n.id === targetId);
-    if (!consNode) continue;
+  for (const edges of byTarget.values()) {
+    const consNode = consolationNodes.find((n) => n.id === edges[0].targetNodeId);
+    const sourceNode = state.nodes.find((n) => n.id === edges[0].sourceNodeId);
+    if (!consNode || !sourceNode) continue;
 
     const links = edges.map((edge) => ({
       sourceRoundNumber: edge.sourceRoundNumber || 1,
@@ -164,6 +179,8 @@ function buildConsolationMethods(
         drawSize: consNode.drawSize,
         matchUpFormat: consNode.matchUpFormat || undefined,
         structureOptions: consNode.structureOptions || undefined,
+        sourceStructureName: sourceNode.structureName,
+        sourceStage: sourceNode.stage,
         links
       }
     });
@@ -197,7 +214,9 @@ function buildPlayoffOptions(
       const playoffNode = playoffNodes.find((n) => n.id === targetId);
       if (!playoffNode) continue;
 
-      const finishingPositions = Array.from(new Set(edges.flatMap((e) => e.finishingPositions || []))).sort((a, b) => a - b);
+      const finishingPositions = Array.from(new Set(edges.flatMap((e) => e.finishingPositions || []))).sort(
+        (a, b) => a - b
+      );
       const playoffDrawType = playoffNode.structureOptions?.playoffDrawType || SINGLE_ELIMINATION;
 
       const group: any = {
@@ -251,7 +270,7 @@ function applyQualifyingProfiles(drawOptions: any, qualifyingNodes: TopologyNode
         drawType: node.structureType,
         drawSize: node.drawSize,
         qualifyingPositions,
-        seedsCount: 0
+        seedsCount: node.seedsCount ?? 0
       };
     });
     return {
