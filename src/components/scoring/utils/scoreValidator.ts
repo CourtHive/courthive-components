@@ -2,7 +2,6 @@
  * Score validation utilities using tournamentEngine
  */
 import { tournamentEngine, matchUpFormatCode, matchUpStatusConstants, governors } from 'tods-competition-factory';
-import { aggregateDeciderSetNumber, finalSetGoverns } from './aggregateDecider';
 import type { ScoreOutcome } from '../types';
 
 const { COMPLETED } = matchUpStatusConstants;
@@ -27,7 +26,7 @@ function validateSetNotation(
     const setString = setStrings[i];
     const setNumber = i + 1;
     // An aggregate format's decider is set N + 1, never one of the N (factory #5166)
-    const isDecidingSet = finalSetGoverns(parsed, setNumber, setNumber === bestOfSets);
+    const isDecidingSet = matchUpFormatCode.finalSetGoverns(parsed, setNumber, setNumber === bestOfSets);
     const hasBrackets = setString.startsWith('[') && setString.endsWith(']');
 
     const isTB1Score =
@@ -108,7 +107,7 @@ function checkMatchComplete(
 
     // An aggregate exactly format plays all N sets; its sudden-death decider is set N + 1, never one
     // of the N, and is played only on a level total (factory #5166; CA, 2026-10-04).
-    const deciderSetNumber = aggregateDeciderSetNumber(parsed);
+    const deciderSetNumber = matchUpFormatCode.aggregateDeciderSetNumber(parsed);
     if (deciderSetNumber) return aggregateDeciderComplete(validatedSets, deciderSetNumber, isPlayed);
 
     const completeSets = validatedSets.filter(isPlayed).length;
@@ -185,7 +184,7 @@ export function validateScore(scoreString: string, matchUpFormat?: string, match
 
     let anySetInvalidated = false;
     const validatedSets = sets.map((set: any, index: number) => {
-      const isDecidingSet = finalSetGoverns(parsed, index + 1, index + 1 === bestOfSets);
+      const isDecidingSet = matchUpFormatCode.finalSetGoverns(parsed, index + 1, index + 1 === bestOfSets);
       const validation = validateSetScore(set, matchUpFormat, isDecidingSet, false);
 
       if (!validation.isValid) {
