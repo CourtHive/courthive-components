@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.2.1](https://github.com/CourtHive/courthive-components/compare/v6.2.0...v6.2.1) (2026-10-07)
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.7.0 ([#653](https://github.com/CourtHive/courthive-components/issues/653)) ([161e4e7](https://github.com/CourtHive/courthive-components/commit/161e4e72be48b7d39f94a7c2f9efd8f9691ceea5))
+* **stories:** the structure story scores only matchUps both participants have reached ([#651](https://github.com/CourtHive/courthive-components/issues/651)) ([d7bb8b1](https://github.com/CourtHive/courthive-components/commit/d7bb8b1a54b7cd0aa3184480120d45abde7891e5))
+
 ## [6.2.0](https://github.com/CourtHive/courthive-components/compare/v6.1.0...v6.2.0) (2026-10-05)
 
 
