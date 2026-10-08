@@ -88,7 +88,10 @@
 
 /* Right-aligned, because the switcher sits at the header's right edge and a left-anchored 250px menu
    would hang off the dialog. */
-.chc-sec-approach-menu {
+/* Opens down and to the LEFT, from the switcher's right edge, so it does not run off the dialog's edge.
+   Two classes, because `.chc-sec-other-menu` (which this element also carries) is declared later with
+   `left: 0`, and at equal specificity that won — CA, 2026-10-08, screenshot: the menu bumped the edge. */
+.chc-sec-other-menu.chc-sec-approach-menu {
   right: 0;
   left: auto;
 }
@@ -288,12 +291,6 @@
 
 .chc-sec-btn-pill {
   border-radius: 999px;
-}
-
-.chc-sec-btn-icon {
-  width: 44px;
-  min-height: 44px;
-  padding: 0;
 }
 
 .chc-sec-btn-primary {
@@ -508,15 +505,20 @@
     height: 100%;
   }
 
-  /* The score columns stop being columns. A 62px set column beside a name does not fit at 390px, and
-     shrinking it is how the 44px target gets lost — so the row stacks instead. */
-  .chc-sec-row,
-  .chc-sec-row-head {
-    grid-template-columns: 1fr !important;
+  /* A set column beside a name does not fit at 390px, and shrinking it is how the 44px target gets lost.
+     The card switches to the STACKED rows here (`isPhoneViewport` in scoreEntryCard.ts): the name takes
+     its own line and the cells keep their columns under their headings. This block used to flatten every
+     row to one column instead, which stretched each set cell across the screen and hid which set it was. */
+
+  /* The header wraps rather than squeezing the title and the format chip onto two lines each. */
+  .chc-sec-header {
+    flex-wrap: wrap;
+    row-gap: 8px;
   }
 
-  .chc-sec-row-head {
-    display: none;
+  .chc-sec-title,
+  .chc-sec-format {
+    white-space: nowrap;
   }
 
   .chc-sec-footer {
@@ -577,14 +579,6 @@
 .chc-sec-smart:focus-visible {
   outline: 2px solid var(--chc-border-focus);
   outline-offset: 2px;
-}
-
-@media (width <= 560px) {
-  /* Stacked rows on a phone: the input stops being a centred grid cell and fills its row. */
-  .chc-sec-set-input {
-    justify-self: stretch;
-    width: 100%;
-  }
 }
 
 /* ── The read-only readout, shared by Free Score and the Dial Pad ───── */
@@ -692,9 +686,11 @@
 
 @media (width <= 560px) {
   /* The side column stops being a column: a 150px pair beside a five-across keypad does not fit at
-     390px, and shrinking the keys is how the 44px target gets lost. */
+     390px, and shrinking the keys is how the 44px target gets lost. `stretch`, because the desktop
+     `flex-start` in a COLUMN shrinks the digit grid to its content: measured 15px-wide keys at 390px. */
   .chc-sec-dialpad {
     flex-direction: column;
+    align-items: stretch;
   }
 
   .chc-sec-dialpad-side {
@@ -752,16 +748,6 @@
   width: 44px;
   background: var(--chc-bg-secondary);
   font-size: 16px;
-}
-
-@media (width <= 560px) {
-  .chc-sec-games-cell {
-    justify-self: stretch;
-  }
-
-  .chc-sec-tb-input {
-    width: 100%;
-  }
 }
 
 /* ── Score entry locked ──────────────────────────────────────────────────

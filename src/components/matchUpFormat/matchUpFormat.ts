@@ -15,6 +15,7 @@ import {
 } from './matchUpFormatLogic';
 
 import matchUpFormats from './matchUpFormats.json';
+import './matchUpFormat.css';
 
 const NONE = 'none';
 const clickable = '▾'; // clickable character
@@ -230,8 +231,7 @@ interface FormatConfig {
   matchRoot?: string;
   aggregate?: boolean;
   gameFormat?:
-    | { type: 'CONSECUTIVE'; count: number; deuceAfter?: number }
-    | { type: 'TRADITIONAL'; deuceAfter?: number };
+    { type: 'CONSECUTIVE'; count: number; deuceAfter?: number } | { type: 'TRADITIONAL'; deuceAfter?: number };
   setFormat: SetFormatConfig;
   finalSetFormat: SetFormatConfig;
 }
@@ -621,9 +621,7 @@ function refreshFinalSetTiebreakTo(): void {
   if (!tiebreakComponent) return;
 
   const { prefix = '', suffix = '' } = tiebreakComponent;
-  const newOptions = isFunction(tiebreakComponent.options)
-    ? tiebreakComponent.options(1)
-    : tiebreakComponent.options;
+  const newOptions = isFunction(tiebreakComponent.options) ? tiebreakComponent.options(1) : tiebreakComponent.options;
   const validValue = newOptions.includes(currentTiebreakTo) ? currentTiebreakTo : 7;
   if (validValue !== currentTiebreakTo) {
     format.finalSetFormat.tiebreakTo = validValue;
@@ -864,11 +862,14 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
 export function getMatchUpFormatModal({
   existingMatchUpFormat = 'SET3-S:6/TB7',
   callback,
+  onClose,
   config,
   modalConfig
 }: {
   existingMatchUpFormat?: string;
   callback?: (format: string) => void;
+  /** Called however the modal closes — Select, Cancel, or anything else that closes it. */
+  onClose?: () => void;
   config?: MatchUpFormatConfig;
   modalConfig?: any;
 } = {}) {
@@ -930,7 +931,7 @@ export function getMatchUpFormatModal({
       footer: {
         className: 'button',
         style:
-          'background-color: var(--chc-bg-primary); color: var(--chc-text-primary); border: 1px solid var(--chc-border-primary);'
+          'background-color: var(--chc-bg-elevated); color: var(--chc-text-primary); border: 1px solid var(--chc-border-primary);'
       },
       close: true
     },
@@ -945,7 +946,7 @@ export function getMatchUpFormatModal({
     }
   ];
 
-  const tiebreakSwitch = 'switch is-rounded is-danger';
+  const tiebreakSwitch = 'switch is-rounded is-info';
   const content = document.createElement('div');
 
   // Close any open dropdown when clicking inside the modal content
@@ -962,7 +963,8 @@ export function getMatchUpFormatModal({
   matchUpFormatString.id = 'matchUpFormatString';
   matchUpFormatString.innerHTML = selectedMatchUpFormat;
   matchUpFormatString.style.fontSize = '1.5em';
-  matchUpFormatString.style.color = 'var(--chc-format-code-color)';
+  // The card's accent, like every other emphasis in the picker (it was `--chc-format-code-color`, pure blue).
+  matchUpFormatString.style.color = 'var(--chc-card-accent)';
   matchUpFormatString.style.marginBottom = '1em';
   modalInputs['matchUpFormatString'] = matchUpFormatString;
   content.appendChild(matchUpFormatString);
@@ -1435,14 +1437,19 @@ export function getMatchUpFormatModal({
   content.appendChild(finalSetConfig);
 
   // Merge modalConfig with defaults
+  // The score-entry dialog's surface, radius and shadow, so the picker reads as part of it when it opens
+  // above it — CA, 2026-10-08: "the matchUpFormat selector should be styled to match the new score entry".
+  // `chc-mfc-modal` scopes the accent rules in matchUpFormat.css (toggles and the Select button).
   const defaultModalConfig = {
+    className: 'chc-mfc-modal',
     content: { padding: '1.5' },
     maxWidth: 480,
     fontSize: '14px', // cModal expects fontSize at top level, not in style
     style: {
-      backgroundColor: 'var(--chc-bg-secondary)',
-      borderRadius: '8px',
-      boxShadow: '0 8px 16px rgba(0, 102, 204, 0.2)'
+      backgroundColor: 'var(--chc-bg-elevated)',
+      border: '1px solid var(--chc-border-primary)',
+      borderRadius: '14px',
+      boxShadow: '0 10px 26px rgb(0 0 0 / 18%)'
     }
   };
 
@@ -1464,7 +1471,8 @@ export function getMatchUpFormatModal({
     title: editorConfig.labels?.title || 'Score format',
     content: content,
     buttons,
-    config: finalModalConfig
+    config: finalModalConfig,
+    onClose: () => onClose?.()
   });
 
   // Update final set UI after modal DOM is ready

@@ -12,7 +12,7 @@
  * - Support incomplete scores (user typing in real-time)
  */
 
-import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
+import { matchUpFormatCode, matchUpStatusConstants, scoreGovernor } from 'tods-competition-factory';
 
 // ParsedFormat is declared but not exported from tods-competition-factory
 // Define locally to avoid import error
@@ -295,29 +295,16 @@ function shouldEnterTiebreak(side1: number, side2: number, setFormat: any): bool
 }
 
 /**
- * Check if set is complete
+ * Check if set is complete (games only; the tiebreak is checked separately).
+ * Delegated to the factory, which reads the margin, a declared winBy and the tiebreak games from the format.
  */
 function isSetComplete(side1: number, side2: number, setFormat: any): boolean {
-  const setTo = setFormat?.setTo || 6;
-  const maxScore = Math.max(side1, side2);
-  const minScore = Math.min(side1, side2);
-
-  // Must reach setTo
-  if (maxScore < setTo) {
-    return false;
-  }
-
-  // Win by 2
-  if (maxScore - minScore >= 2) {
-    return true;
-  }
-
-  // Can't exceed setTo + 1
-  if (maxScore > setTo + 1) {
-    return false;
-  }
-
-  return false;
+  const complete = scoreGovernor.checkSetIsComplete({
+    set: { side1Score: side1, side2Score: side2 },
+    matchUpScoringFormat: { setFormat },
+    ignoreTiebreak: true
+  });
+  return complete === true;
 }
 
 /**

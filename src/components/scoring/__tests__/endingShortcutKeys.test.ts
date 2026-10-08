@@ -83,7 +83,9 @@ describe('the letter names the ending, and the CASE names the row', () => {
     ['d', DEFAULTED, LOWER],
     ['D', DEFAULTED, UPPER]
   ])('%s records %s against side %i', (key, status, side) => {
-    const h = mount();
+    // a retirement needs a score to keep (CA, 2026-10-08): one tap on the Dial Pad gives every row one
+    const h = mount('dialPad');
+    h.q<HTMLButtonElement>('button[data-digit="4"]')?.click();
 
     h.type(key);
 
@@ -157,9 +159,12 @@ describe('the letter names the ending, and the CASE names the row', () => {
   });
 
   it('replaces one ending with another on the same row', () => {
-    const h = mount();
+    // a default coexists with a score and a retirement needs one (CA, 2026-10-08), so the replacement
+    // is d → r over a tapped game; a walkover would have cleared and locked the score first
+    const h = mount('dialPad');
+    h.q<HTMLButtonElement>('button[data-digit="4"]')?.click();
 
-    h.type('w');
+    h.type('d');
     h.type('r');
 
     expect(h.q<HTMLElement>(ROW_ENDING)!.dataset.rowEnding).toBe(RETIRED);

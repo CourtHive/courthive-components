@@ -35,9 +35,11 @@ import { createScoreEntryStore } from './logic/scoreEntryStore';
 import { createDialPadRegion } from './regions/dialPadRegion';
 import { switchApproach } from './logic/scoreEntryModel';
 import { scoreGovernor } from 'tods-competition-factory';
+import { toEngineOutcome } from './logic/engineOutcome';
 import { renderScoreEntryCard } from './scoreEntryCard';
 import { cModal } from '../modal/cmodal';
 
+import type { EngineOutcome } from './logic/engineOutcome';
 import type { SetScore } from './types';
 import type {
   ScoreEntryCard,
@@ -69,22 +71,21 @@ const DIALOG_MAX_WIDTH = 780;
 
 export type ScoreEntryDialogParams = Omit<
   ScoreEntryCardParams,
-  | 'region'
-  | 'approachLabel'
-  | 'approaches'
-  | 'onSelectApproach'
-  | 'onSwitchApproach'
-  | 'onEditFormat'
-  | 'onClose'
-  | 'onSubmit'
+  'region' | 'approachLabel' | 'approaches' | 'onSelectApproach' | 'onSwitchApproach' | 'onEditFormat' | 'onSubmit'
 > & {
   /**
    * Called with the outcome, then the dialog closes.
    *
    * `sets` is added to what the card reports, because the dialog knows its regions carry them and a
    * host saving to the factory needs the structured sets rather than only the formatted string.
+   *
+   * `outcome` is the same result in the shape the factory reads — hand it to
+   * `tournamentEngine.setMatchUpStatus({ drawId, matchUpId, outcome })` as is (pass a copy if you keep
+   * what you sent: the engine writes its derived score strings into it). The score as `score.sets`, a
+   * chosen reason as positional `matchUpStatusCodes`, a clear as the empty-sets outcome that actually
+   * clears, and a format changed through the chip as `matchUpFormat`. See `logic/engineOutcome.ts`.
    */
-  onSubmit?: (outcome: ScoreEntryOutcome & { sets: SetScore[] }) => void;
+  onSubmit?: (outcome: ScoreEntryOutcome & { sets: SetScore[]; outcome: EngineOutcome }) => void;
   /** Which approach opens. Defaults to Dynamic Sets. */
   approach?: ScoreEntryApproach;
   /** Which approaches the switcher offers. Defaults to all three; a single entry hides the menu. */
@@ -145,7 +146,12 @@ export type ScoreEntryDialogParams = Omit<
    * Injectable because a unit test has no business opening the real picker's modal — it is a second
    * dialog with its own state — and because a host may have its own.
    */
-  openFormatPicker?: (params: { existingMatchUpFormat: string; callback: (matchUpFormat: string) => void }) => void;
+  openFormatPicker?: (params: {
+    existingMatchUpFormat: string;
+    callback: (matchUpFormat: string) => void;
+    /** Called however the picker closes; the dialog is inert until then. */
+    onClose?: () => void;
+  }) => void;
 };
 
 export type ScoreEntryDialog = {
@@ -161,11 +167,26 @@ export type ScoreEntryDialog = {
   close: () => void;
 };
 
+/** A field where Delete and Backspace edit text, so they must not also clear the card. */
+function isEditable(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  if (target.isContentEditable) return true;
+  return (
+    target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement
+  );
+}
+
+/** Cmd/Ctrl/Alt chords belong to the browser and the OS (Cmd+Backspace deletes a line). */
+function hasCommandModifier(event: KeyboardEvent): boolean {
+  return event.metaKey || event.ctrlKey || event.altKey;
+}
+
 export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntryDialog {
   const offered = params.approaches?.length ? params.approaches : ALL_APPROACHES;
   const labels = params.labels ?? endingLabels();
   let approach: ScoreEntryApproach = params.approach ?? offered[0];
   let matchUpFormat = params.matchUpFormat ?? params.matchUp?.matchUpFormat;
+  const openedFormat = matchUpFormat;
   let closed = false;
   let notified = false;
 
@@ -204,18 +225,20 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
       close();
     },
     onSubmit: (outcome) => {
-      params.onSubmit?.({ ...outcome, sets: enteredSets(store.get()) });
+      const sets = enteredSets(store.get());
+      // the format rides along only when the operator changed it here; an unchanged one is the engine's own
+      const changedFormat = matchUpFormat !== openedFormat ? matchUpFormat : undefined;
+      params.onSubmit?.({ ...outcome, sets, outcome: toEngineOutcome({ ...outcome, sets }, changedFormat) });
       close();
-    },
-    onClose: close
+    }
   });
 
   cModal.open({
     content: card.element,
     config: {
       maxWidth: DIALOG_MAX_WIDTH,
-      // A stray backdrop click must not discard a half-entered score. The `[X]` and the footer are the
-      // ways out, and both are visible.
+      // A stray backdrop click must not discard a half-entered score. Cancel (or Escape) and Submit are
+      // the ways out.
       clickAway: false,
       // The card draws its own padding, and cModal's default 1em on top of it detaches the header's
       // bottom border from the dialog's edge. '0' and not 0: cModal reads the value truthily, so a
@@ -353,12 +376,26 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
     params.onFormatChange?.(next);
   }
 
+  /**
+   * The format picker opens ABOVE the card, and the card is inert until it closes — CA, 2026-10-08:
+   * *"actions in the ScoreEntry dialog can still be taken while the matchUpFormat dialog is open"*. cModal
+   * draws no backdrop that catches clicks: the picker's container is only as wide as the picker, so the
+   * card's cells, endings and Submit stayed live on either side of it. `inert` takes the whole card out of
+   * pointer, keyboard and focus reach at once, and the picker's `onClose` (Select, Cancel or any other way
+   * it is closed) gives it back.
+   */
   function editFormat(): void {
     const open = params.openFormatPicker ?? getMatchUpFormatModal;
+    const section = ownSection();
+    if (section) section.inert = true;
     open({
       existingMatchUpFormat: matchUpFormat ?? 'SET3-S:6/TB7',
       callback: (chosen: string) => {
         if (chosen) setMatchUpFormat(chosen);
+      },
+      onClose: () => {
+        if (section) section.inert = false;
+        focusEntry();
       }
     });
   }
@@ -383,7 +420,7 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
    * Put the caret where the operator is about to type.
    *
    * A score-entry dialog opens because someone means to enter a score, and the first set's first cell is
-   * where that starts — USTA Tournament Desk does the same. Without this, opening the dialog leaves focus
+   * where that starts. Without this, opening the dialog leaves focus
    * on whatever was behind it, so a keyboard user has to tab INTO the dialog before they can begin.
    *
    * The Dial Pad has no text inputs at all, so its first digit key is the entry point. Failing both, the
@@ -431,45 +468,54 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
   }
 
   /**
-   * Escape closes an EMPTY dialog, and does nothing to one holding a score.
+   * Escape is `[Cancel]`; Delete and Backspace are `[Clear]` — CA, 2026-10-08: *"I'd like ESC to be the
+   * equivalent of the [Cancel] button and DEL/BKSP key to be the equivalent of [Clear] button."*
    *
-   * cModal has no keyboard handling of its own — measured: not one `keydown` listener in it — so
-   * without this a keyboard user's only way out is to reach the `[X]`. Escape is the standard
-   * affordance, and an empty dialog has nothing to lose.
+   * Each key PRESSES its button rather than repeating what the button does, so the key can never do more
+   * or less than the click: Escape runs the host's `onCancel` and closes, holding a score or not; Clear
+   * stays a no-op while its button is disabled (nothing to remove).
    *
-   * With something entered it deliberately does NOTHING, which is not a new rule: this repo already
-   * decided that a mis-aimed click must not discard a typed score (`clickAway: false`, held by
-   * `__tests__/dismissGuard.test.ts`). Silent non-dismissal is exactly what that click guard does, so
-   * Escape inherits it rather than inventing a confirm step. Cancel and Submit remain the deliberate
-   * ways out, and both are visible.
+   * This replaces the earlier Escape rule, which closed only an EMPTY dialog so that a stray key could not
+   * discard a typed score. CA chose Escape-as-Cancel over that guard. A mis-aimed CLICK on the backdrop is
+   * still ignored (`clickAway: false`, held by `__tests__/dismissGuard.test.ts`); a key press is deliberate.
    *
-   * Only when this is the TOP dialog: the format picker opens above, has no Escape handling either, and
-   * closing the card from under it would leave the picker standing over nothing.
+   * Delete and Backspace clear only when nothing else took the key. In a score cell or the Free Score field
+   * they edit text, and the Dial Pad's keypad keeps Backspace for removing its last digit (it calls
+   * `preventDefault`), so the key reaches this handler only from the dialog itself, a button, or an
+   * endings chip. And only from inside THIS dialog: a Backspace typed in the host page must not clear it.
+   *
+   * Only when this is the TOP dialog: the format picker opens above, has no keyboard handling of its own,
+   * and acting on the card from under it would leave the picker standing over nothing.
    */
   function onKeyDown(event: KeyboardEvent): void {
-    if (event.key !== 'Escape' || closed) return;
-    if (!isTopMostDialog() || holdsEntry()) return;
+    if (closed || !isTopMostDialog()) return;
 
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      // One Escape, one step back: an open menu closes first, and only the next Escape cancels.
+      if (card.closeMenus()) return;
+      footerButton('cancel')?.click();
+      return;
+    }
+
+    if (event.key !== 'Delete' && event.key !== 'Backspace') return;
+    if (event.defaultPrevented || hasCommandModifier(event) || isEditable(event.target)) return;
+    if (!ownSection()?.contains(event.target as Node)) return;
+
+    const clear = footerButton('clear');
+    if (!clear || clear.disabled) return;
     event.preventDefault();
-    close();
+    clear.click();
+  }
+
+  function footerButton(action: 'cancel' | 'clear'): HTMLButtonElement | null {
+    return card.element.querySelector<HTMLButtonElement>(`button[data-action="${action}"]`);
   }
 
   function isTopMostDialog(): boolean {
     const own = ownSection();
     if (!own) return false;
     return [...document.querySelectorAll('section[id^="cmdl-"]')].at(-1) === own;
-  }
-
-  /**
-   * Whether anything would be lost: a score entered, or an ending recorded.
-   *
-   * `hasEntry` and not `getSets()`. A region reports only sets whose both sides are in, so a lone `6`
-   * typed with smart complements switched off is invisible to `getSets()` — measured, and it made the
-   * first version of this guard discard exactly the keystroke it was written to protect. Typing with
-   * complements ON hides the hole, because the complement fills the other side immediately.
-   */
-  function holdsEntry(): boolean {
-    return card.holdsEntry();
   }
 
   function close(): void {

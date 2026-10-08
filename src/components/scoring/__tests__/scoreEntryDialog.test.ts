@@ -17,6 +17,8 @@ import { matchUpStatusConstants, fixtures, policyConstants } from 'tods-competit
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { openScoreEntryDialog } from '../scoreEntryDialog';
 import { cModal } from '../../modal/cmodal';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import type { StatusCodeGroups } from '../logic/statusCodes';
 
@@ -46,7 +48,6 @@ const BEST_OF_ONE = 'SET1-S:6/TB7';
 /** A best-of-three whose DECIDING set is a match tiebreak — only set 3's rule moves. */
 const DECIDER_TB10 = 'SET3-S:6/TB7-F:TB10';
 const BAND = '.chc-sec-band';
-const SMART = 'button[data-action="smartComplements"]';
 const ENDED_EARLY_2 = 'button[data-action="endedEarly"][data-side="2"]';
 const ROW_ENDING = '[data-row-ending]';
 
@@ -104,11 +105,20 @@ describe('the modal', () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  it('closes on [X], and reports it once', () => {
+  it('has no [X]: Cancel and Escape are the ways out — CA, 2026-10-08', () => {
+    // *"do we need the [X] at all given we have both ESC for computer and [Cancel] in both views?"* It did
+    // exactly what Cancel does, and on a phone it wrapped into the middle of the header.
+    open();
+
+    expect(q('button[data-action="close"]')).toBeNull();
+    expect(q('button[data-action="cancel"]')).toBeTruthy();
+  });
+
+  it('closes on Cancel, and reports it once', () => {
     const onClose = vi.fn();
     const dialog = open({ onClose });
 
-    click('button[data-action="close"]');
+    click('button[data-action="cancel"]');
 
     expect(modal()).toBeNull();
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -288,79 +298,54 @@ describe('the dialog announces and focuses itself', () => {
   });
 });
 
-describe('Escape', () => {
+/**
+ * CA, 2026-10-08: *"I'd like ESC to be the equivalent of the [Cancel] button and DEL/BKSP key to be the
+ * equivalent of [Clear] button."* Each key presses its button, so the assertions are the button's own
+ * effects; the cases that must NOT clear are where the key already means something else.
+ */
+describe('Escape is Cancel', () => {
   const escape = () =>
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
 
-  it('closes an EMPTY dialog — cModal has no keyboard handling of its own', () => {
+  it('closes an EMPTY dialog and reports Cancel', () => {
+    const onCancel = vi.fn();
     const onClose = vi.fn();
-    open({ onClose });
+    open({ onCancel, onClose });
 
     escape();
 
     expect(modal()).toBeNull();
+    expect(onCancel).toHaveBeenCalledTimes(1);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('does NOT discard a typed score', () => {
-    open();
-
-    type(SET_1_SIDE_1, '6');
-    escape();
-
-    // The same rule the click-away guard already holds: silent non-dismissal, not a confirm step.
-    expect(modal()).toBeTruthy();
-    expect(q<HTMLInputElement>(SET_1_SIDE_1)!.value).toBe('6');
-  });
-
-  it('does NOT discard a recorded ending', () => {
-    open();
-
-    click(ENDED_EARLY_2);
-    click(`[data-panel-side="2"] button[data-ending="${WALKOVER}"]`);
-    escape();
-
-    expect(modal()).toBeTruthy();
-    expect(q(ROW_ENDING)).toBeTruthy();
-  });
-
-  it('does NOT discard a LONE value typed with smart complements off', () => {
-    // The hole the first version of this guard had. `getSets()` reports only sets whose BOTH sides are
-    // in — one value is not a set score — so a lone `6` was invisible to it and Escape threw the
-    // keystroke away. With complements ON the complement fills the other side immediately, which is
-    // exactly why the hole did not show up: the region has to be asked `hasEntry`, not `getSets`.
-    open();
-
-    click(SMART);
+  it('closes a dialog HOLDING a score, exactly as Cancel does — it replaced the keep-the-score guard', () => {
+    const onCancel = vi.fn();
+    const onSubmit = vi.fn();
+    open({ onCancel, onSubmit });
     type(SET_1_SIDE_1, '6');
 
-    expect(q<HTMLInputElement>(SET_1_SIDE_2)!.value, 'complements must be off for this to be the test').toBe('');
-
     escape();
 
-    expect(modal()).toBeTruthy();
-    expect(q<HTMLInputElement>(SET_1_SIDE_1)!.value).toBe('6');
+    expect(modal()).toBeNull();
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(onSubmit, 'Cancel discards; it never submits').not.toHaveBeenCalled();
   });
 
-  it('treats a LONE ZERO as entry, not as emptiness', () => {
-    // `0` is a real score — a set going to love — and the region's entry is a STRING, so a check written
-    // as `Number(...)` or `!!score` on the parsed value reads this dialog as untouched. Complements off
-    // again, so the zero is genuinely alone: with them on, the other side becomes a 6 and any check at
-    // all sees the 6.
-    open();
-
-    click(SMART);
-    type(SET_1_SIDE_1, '0');
+  it('does nothing while another dialog stands above it', () => {
+    const onCancel = vi.fn();
+    open({ onCancel });
+    cModal.open({ content: 'a picker above the card', config: {} });
 
     escape();
 
-    expect(modal()).toBeTruthy();
-    expect(q<HTMLInputElement>(SET_1_SIDE_1)!.value).toBe('0');
+    expect(onCancel).not.toHaveBeenCalled();
+    expect(document.querySelectorAll(MODAL)).toHaveLength(2);
   });
 
   it('releases the keydown listener on close', () => {
     // Asserted on `removeEventListener` rather than through behaviour, deliberately. A leaked listener
-    // is inert — `onKeyDown` returns early once `closed` is set — so no Escape, no reopen and no second
+    // is inert — `onKeyDown` returns early once `closed` is set — so no key, no reopen and no second
     // dialog can expose it. The only observable is the removal itself, and the cost of leaking is a
     // listener per dialog opened for the life of the page.
     const remove = vi.spyOn(document, 'removeEventListener');
@@ -370,6 +355,99 @@ describe('Escape', () => {
 
     expect(remove.mock.calls.some(([type]) => type === 'keydown')).toBe(true);
     remove.mockRestore();
+  });
+});
+
+describe('Delete and Backspace are Clear', () => {
+  const CLEAR = 'button[data-action="clear"]';
+  const press = (target: EventTarget, key: string, init: { metaKey?: boolean } = {}) =>
+    target.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...init }));
+  const clearEnabled = () => !q<HTMLButtonElement>(CLEAR)!.disabled;
+
+  it.each(['Delete', 'Backspace'])('%s from the dialog clears the score and the ending', (key) => {
+    const onClear = vi.fn();
+    open({ onClear });
+    type(SET_1_SIDE_1, '6');
+    click(ENDED_EARLY_2);
+    click(`[data-panel-side="2"] button[data-ending="${WALKOVER}"]`);
+    expect(clearEnabled(), 'control: there is something to clear').toBe(true);
+
+    press(modal()!, key);
+
+    expect(onClear).toHaveBeenCalledTimes(1);
+    expect(q<HTMLInputElement>(SET_1_SIDE_1)!.value).toBe('');
+    expect(q(ROW_ENDING)).toBeNull();
+    expect(modal(), 'Clear empties the card; it does not close it').toBeTruthy();
+  });
+
+  it.each(['Delete', 'Backspace'])('%s inside a score cell edits the cell and does not clear', (key) => {
+    const onClear = vi.fn();
+    open({ onClear });
+    type(SET_1_SIDE_1, '6');
+
+    press(q(SET_1_SIDE_1)!, key);
+
+    expect(onClear).not.toHaveBeenCalled();
+    expect(q<HTMLInputElement>(SET_1_SIDE_1)!.value).toBe('6');
+  });
+
+  it('Backspace inside the Free Score field edits the text and does not clear', () => {
+    const onClear = vi.fn();
+    open({ approach: 'freeScore', onClear });
+    type(FREE_SCORE_FIELD, '6-4');
+
+    press(q(FREE_SCORE_FIELD)!, 'Backspace');
+
+    expect(onClear).not.toHaveBeenCalled();
+    expect(q<HTMLInputElement>(FREE_SCORE_FIELD)!.value).toBe('6-4');
+  });
+
+  it("leaves Backspace to the Dial Pad's keypad, and Delete there clears", () => {
+    const onClear = vi.fn();
+    open({ approach: 'dialPad', onClear });
+    click('[data-digit="6"]');
+    click('[data-digit="4"]');
+    const digit = q('[data-digit="6"]')!;
+
+    press(digit, 'Backspace');
+    expect(onClear, "Backspace is the keypad's own key").not.toHaveBeenCalled();
+    expect(clearEnabled(), 'the 6 is still entered').toBe(true);
+
+    press(digit, 'Delete');
+    expect(onClear).toHaveBeenCalledTimes(1);
+    expect(clearEnabled()).toBe(false);
+  });
+
+  it('does nothing to an empty card', () => {
+    const onClear = vi.fn();
+    open({ onClear });
+
+    press(modal()!, 'Delete');
+
+    expect(onClear, 'Clear is disabled with nothing to remove').not.toHaveBeenCalled();
+  });
+
+  it('ignores a modified chord, which belongs to the browser', () => {
+    const onClear = vi.fn();
+    open({ onClear });
+    type(SET_1_SIDE_1, '6');
+
+    press(modal()!, 'Backspace', { metaKey: true });
+
+    expect(onClear).not.toHaveBeenCalled();
+  });
+
+  it('ignores a key pressed OUTSIDE the dialog', () => {
+    const onClear = vi.fn();
+    open({ onClear });
+    type(SET_1_SIDE_1, '6');
+    const outside = document.createElement('button');
+    document.body.append(outside);
+
+    press(outside, 'Backspace');
+
+    expect(onClear).not.toHaveBeenCalled();
+    outside.remove();
   });
 });
 
@@ -655,5 +733,103 @@ describe('the format picker', () => {
 
     expect(onFormatChange).not.toHaveBeenCalled();
     expect(q(EDIT_FORMAT)!.textContent).toBe(FORMAT);
+  });
+});
+
+/**
+ * CA, 2026-10-08, two screenshots: the mode selector opened to the RIGHT and bumped the dialog's edge,
+ * both menus could stand open together, the card stayed live under an open menu, and the card stayed live
+ * under the format picker.
+ */
+describe('menus and the format picker hold the card', () => {
+  const MENU = '.chc-sec-other-menu';
+  const APPROACH_MENU = '.chc-sec-approach-menu';
+  const OTHER = 'button[data-action="other"]';
+  const SUBMIT = 'button[data-action="submit"]';
+  const escape = () =>
+    document.activeElement!.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })
+    );
+
+  it('opens one menu at a time: Other closes the approach menu', () => {
+    open();
+    click(SWITCH);
+    expect(q(APPROACH_MENU), 'control: the approach menu opened').toBeTruthy();
+
+    click(OTHER);
+
+    expect(q(APPROACH_MENU)).toBeNull();
+    expect(all(MENU)).toHaveLength(1);
+  });
+
+  it('a click elsewhere in the card closes the open menu and does nothing else', () => {
+    const onSubmit = vi.fn();
+    open({
+      onSubmit,
+      sets: [
+        { side1Score: 6, side2Score: 4 },
+        { side1Score: 6, side2Score: 3 }
+      ]
+    });
+    expect(q<HTMLButtonElement>(SUBMIT)!.disabled, 'control: Submit is live').toBe(false);
+    click(SWITCH);
+
+    click(SUBMIT);
+
+    expect(onSubmit, 'the click under the menu must not submit').not.toHaveBeenCalled();
+    expect(q(APPROACH_MENU)).toBeNull();
+    expect(modal()).toBeTruthy();
+
+    click(SUBMIT);
+    expect(onSubmit, 'with the menu closed, Submit works again').toHaveBeenCalledTimes(1);
+  });
+
+  it("still takes a menu's own item", () => {
+    open();
+    click(SWITCH);
+
+    click(`${APPROACH_MENU} [data-approach="freeScore"]`);
+
+    expect(q(FREE_SCORE_FIELD)).toBeTruthy();
+  });
+
+  it.each([
+    ['Other', OTHER, MENU],
+    ['approach', SWITCH, APPROACH_MENU]
+  ])('Escape with the %s menu open closes the menu; the next Escape cancels', (_name, trigger, menu) => {
+    const onCancel = vi.fn();
+    open({ onCancel });
+    click(trigger);
+    expect(q(menu), 'control: the menu opened').toBeTruthy();
+
+    escape();
+
+    expect(q(menu)).toBeNull();
+    expect(modal()).toBeTruthy();
+    expect(onCancel).not.toHaveBeenCalled();
+
+    escape();
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(modal()).toBeNull();
+  });
+
+  it('positions the approach menu from its right edge, above the rule that pinned it left', () => {
+    const css = readFileSync(resolve(process.cwd(), 'src/components/scoring/scoreEntryCard.css'), 'utf8');
+    const rule = css.match(/\.chc-sec-other-menu\.chc-sec-approach-menu\s*\{([^}]*)\}/);
+
+    expect(rule, 'a two-class rule, so it outranks `.chc-sec-other-menu { left: 0 }`').toBeTruthy();
+    expect(rule![1]).toMatch(/right:\s*0/);
+    expect(rule![1]).toMatch(/left:\s*auto/);
+  });
+
+  it('is inert while the format picker is open, and live again however the picker closes', () => {
+    let picker: any;
+    open({ onFormatChange: vi.fn(), openFormatPicker: (params: any) => (picker = params) });
+
+    click(EDIT_FORMAT);
+    expect(modal()!.inert).toBe(true);
+
+    picker.onClose();
+    expect(modal()!.inert).toBe(false);
   });
 });

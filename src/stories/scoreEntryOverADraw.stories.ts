@@ -49,7 +49,11 @@ const { COMPLETED, TO_BE_PLAYED } = matchUpStatusConstants;
 const REAL_GROUPS = fixtures.policies.POLICY_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
 
 export default {
-  title: 'Scoring/Score Entry Over a Draw'
+  title: 'Scoring/Score Entry Over a Draw',
+  // Storybook renders EVERY named export of a stories file as a story. `renderDrawBehind` is exported for
+  // `__tests__/scoringStories.test.ts`, and returns `{ element, host }`, not a node — so without this it
+  // appeared as a broken story, "Render Draw Behind", next to the real one.
+  excludeStories: ['renderDrawBehind']
 };
 
 const OPEN_BUTTON = '#openOverDraw';

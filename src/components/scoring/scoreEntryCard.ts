@@ -66,7 +66,6 @@ const { RETIRED, WALKOVER, DEFAULTED } = matchUpStatusConstants;
 /** Class names and attribute names used often enough that a typo in one would be silent. */
 const CLS_BTN = 'chc-sec-btn';
 const CLS_BTN_PILL = 'chc-sec-btn chc-sec-btn-pill';
-const CLS_BTN_ICON = 'chc-sec-btn chc-sec-btn-icon';
 const CLS_CHECK = 'chc-sec-check';
 const CLS_MENU = 'chc-sec-other-menu';
 const CLS_MENU_ITEM = 'chc-sec-other-item';
@@ -119,6 +118,26 @@ const SCORE_COLUMN_PX = 62;
  * evidence, and would silently choose the inline layout there — where every width is zero.
  */
 const MAX_INLINE_SCORE_COLUMNS = 6;
+
+/**
+ * The phone breakpoint, the same query the stylesheet uses for every other phone rule.
+ *
+ * Below it the rows take the STACKED layout whatever the column count — CA, 2026-10-08, a screenshot of
+ * Dynamic Sets on a phone: each row had collapsed to a name over one input stretched across the whole
+ * width, with the set headings hidden. That was the stylesheet flattening the grid to a single column.
+ * The stacked layout already solves the same problem for formats too wide to sit beside a name: the name
+ * takes its own line and the cells keep their 52px columns under their headings, which fit a 390px
+ * screen up to best-of-five.
+ *
+ * A media query rather than a measurement, for the reason the column count is counted: it gives the same
+ * answer in happy-dom (stubbed) as in a browser. Read at every render, so a rotation is picked up by the
+ * next keystroke rather than needing a listener the card would have to remove.
+ */
+const PHONE_QUERY = '(width <= 560px)';
+
+function isPhoneViewport(): boolean {
+  return globalThis.matchMedia?.(PHONE_QUERY).matches ?? false;
+}
 
 /**
  * The three endings the design privileges as buttons in the match-level row. The rest go behind
@@ -304,7 +323,6 @@ export type ScoreEntryCardParams = {
   initialState?: ScoreEntryState;
   onClear?: () => void;
   onSubmit?: (outcome: ScoreEntryOutcome) => void;
-  onClose?: () => void;
 };
 
 /** A card instance: its element, plus the handle the host needs to react to score-region changes. */
@@ -313,6 +331,11 @@ let cardSequence = 0;
 
 export type ScoreEntryCard = {
   element: HTMLElement;
+  /**
+   * Close an open menu (the approach switcher's or Other's) and report whether one was open. The dialog's
+   * Escape calls it first, wherever focus is, so one Escape closes the menu and a second one cancels.
+   */
+  closeMenus: () => boolean;
   /** Re-render the band and the submit gate. Call when the score region's value changes. */
   refresh: () => void;
   /** Rebuild everything, including the region's cells. Call when the region's COLUMNS change. */
@@ -408,6 +431,34 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   element.append(headerContainer, body(), band, footer());
 
   /**
+   * While a menu is open, a click anywhere else in the card CLOSES the menu and does nothing else — CA,
+   * 2026-10-08: *"other actions can still be taken while the mode selector is open!"* Capture phase, so the
+   * click is stopped before it reaches the control under it; a menu's own items and the two buttons that
+   * open the menus are let through (a trigger switches menus or closes its own). Pointer-down is stopped
+   * too, so the click cannot first move focus into a score cell.
+   */
+  const MENU_PARTS = `.${CLS_MENU}, [data-action="other"], [data-action="switchApproach"]`;
+  const shieldMenus = (event: Event) => {
+    if (!approachMenuOpen && !otherMenuOpen) return;
+    if ((event.target as HTMLElement | null)?.closest(MENU_PARTS)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.type === 'click') closeMenus();
+  };
+  element.addEventListener('pointerdown', shieldMenus, true);
+  element.addEventListener('mousedown', shieldMenus, true);
+  element.addEventListener('click', shieldMenus, true);
+
+  /** Close whichever menu is open; whether one was. The dialog calls this on Escape, before Cancel. */
+  function closeMenus(): boolean {
+    if (!approachMenuOpen && !otherMenuOpen) return false;
+    approachMenuOpen = false;
+    otherMenuOpen = false;
+    render();
+    return true;
+  }
+
+  /**
    * Enter submits, when Submit is live.
    *
    * The old dialog did this from its input handler; it belongs on the CARD, because it should hold for
@@ -434,6 +485,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
   return {
     element,
+    closeMenus,
     // `refresh` updates ONLY the derived parts — the band and the submit gate. It deliberately does
     // NOT re-render the rows.
     //
@@ -506,13 +558,8 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     if (matchUpFormat) bar.append(formatChip(matchUpFormat));
 
     if (approachLabel) bar.append(approachSwitcher(approachLabel));
-
-    const close = button('', CLS_BTN_ICON);
-    close.dataset.action = 'close';
-    close.setAttribute(ARIA_LABEL, 'Close');
-    close.append(icon('M18 6 6 18M6 6l12 12'));
-    close.addEventListener('click', () => params.onClose?.());
-    bar.append(close);
+    // No [X]. CA, 2026-10-08: "do we need the [X] at all given we have both ESC for computer and [Cancel]
+    // in both views?" It did exactly what Cancel does, and on a phone it wrapped to the middle of the header.
   }
 
   /**
@@ -848,8 +895,18 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    * contradiction the other way instead of leaving it standing.
    */
   function endingOffered(status: string): boolean {
+    // A retirement keeps the score that was played; with nothing played there is nothing to keep, and
+    // the result would be a walkover wearing the wrong name (CA, 2026-10-08: "Retired is only supposed
+    // to be enabled once there is a score present"). A default is different: a player can be defaulted
+    // before the first ball, so it stays offered.
+    if (status === RETIRED && !scoreEntered()) return false;
     if (!contradictsFinishedScore(status)) return true;
     return !scoreIsFinished();
+  }
+
+  /** Whether any score has been entered — in the model, or as text the region holds that the model cannot see yet. */
+  function scoreEntered(): boolean {
+    return hasEntry(model()) || !!region.hasEntry?.();
   }
 
   /** The endings that say the match did not finish AND keep the score that says it did. */
@@ -886,6 +943,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
   function refusalReason(status: string): string {
     const label = labels[status] ?? status;
+    if (status === RETIRED && !scoreEntered()) return `No score yet — ${label} keeps the score that was played`;
     return `The score is complete — ${label} cannot follow it`;
   }
 
@@ -1126,11 +1184,13 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     const scoreTracks = columns.map((column) => column.width ?? `${SCORE_COLUMN_PX}px`).join(' ');
     // Past the point where a name fits beside them, the columns take the whole row and the name floats
     // onto a line of its own — above its cells for the upper participant, beneath them for the lower.
-    const stacked = columns.length > MAX_INLINE_SCORE_COLUMNS;
+    const stacked = columns.length > MAX_INLINE_SCORE_COLUMNS || isPhoneViewport();
     // No trailing action track: the ending control moved into the name cell (see `participantRow`), which
     // returns its width to the participant and stops the row ending in something shaped like an overflow
     // menu.
-    const template = stacked ? scoreTracks : `1fr ${scoreTracks}`;
+    // Stacked, a trailing `1fr` filler gives the name — which spans every track — the row's full width; with
+    // score tracks alone, one set on a phone left the name 62px to wrap in. The cells stay left, under it.
+    const template = stacked ? `${scoreTracks} 1fr` : `1fr ${scoreTracks}`;
 
     // A header row only when at least one column is labelled. Free Score and the Dial Pad have a
     // single unlabelled readout column, and an empty header strip above it would be furniture.
@@ -1380,6 +1440,8 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     other.append(icon('m6 9 6 6 6-6', 2.5));
     other.addEventListener('click', () => {
       otherMenuOpen = !otherMenuOpen;
+      // One menu at a time: the approach menu stayed open beside this one (CA's screenshot, 2026-10-08).
+      approachMenuOpen = false;
       render();
     });
     endingsContainer.append(other);

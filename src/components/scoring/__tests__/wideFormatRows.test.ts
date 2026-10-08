@@ -20,13 +20,14 @@
  * first puts the cells below it and appending it last puts them above. That is checkable here; the
  * `grid-column: 1 / -1` that makes it span is in the stylesheet and is not.
  */
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createDynamicSetsRegion } from '../regions/dynamicSetsRegion';
-import { describe, it, expect, beforeEach } from 'vitest';
 import { renderScoreEntryCard } from '../scoreEntryCard';
 
 /** Nine ten-minute bolts — CA's case. `SET9-…` does not parse; the nine-set form is `SET9X`. */
 const NINE_BOLTS = 'SET9X-S:T10';
 const BEST_OF_FIVE = 'SET5-S:6/TB7';
+const BEST_OF_THREE = 'SET3-S:6/TB7';
 const SIDES: any = [{ participantName: 'Rosalind Lem' }, { participantName: 'Derrick Ellul' }];
 
 /** Nine finished bolts, so all nine columns are on screen at once. */
@@ -119,7 +120,7 @@ describe('nine bolts — the names move out of the way', () => {
 
 describe('the formats that fit are left alone', () => {
   it.each([
-    ['an empty best-of-three', 'SET3-S:6/TB7', undefined],
+    ['an empty best-of-three', BEST_OF_THREE, undefined],
     ['a completed best-of-FIVE with a tiebreak column', BEST_OF_FIVE, FIVE_RECORDED]
   ])('%s stays inline, with the name in its own track', (_label, format, sets) => {
     // Six columns is the most conventional tennis can ask for — five sets plus one transient tiebreak —
@@ -137,5 +138,49 @@ describe('the formats that fit are left alone', () => {
     const h = mount(BEST_OF_FIVE, FIVE_RECORDED);
 
     expect(h.head()!.textContent).toContain('PLAYER');
+  });
+});
+
+/**
+ * CA, 2026-10-08, a screenshot of Dynamic Sets on a phone: each row had collapsed to a name over ONE input
+ * stretched across the screen, with the set headings hidden. On a phone-width viewport the card now takes
+ * the stacked layout whatever the column count, so the cells keep their columns under their headings.
+ */
+describe('on a phone-width viewport', () => {
+  const phone = (matches: boolean) =>
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: matches && query === '(width <= 560px)',
+      media: query
+    }));
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('stacks a best-of-three: the name on its own line, the cells in their columns', () => {
+    phone(true);
+    const h = mount(BEST_OF_THREE);
+
+    expect(h.row(1).dataset.stacked).toBe('true');
+    expect(h.row(2).dataset.stacked).toBe('true');
+    expect(h.row(1).style.gridTemplateColumns.startsWith('1fr'), 'no name track to stretch a cell into').toBe(false);
+    expect(h.namePosition(1)).toBe(0);
+    expect(h.namePosition(2)).toBe(h.row(2).children.length - 1);
+  });
+
+  it('keeps the set headings, which the old phone rule hid', () => {
+    phone(true);
+    const h = mount(BEST_OF_THREE);
+
+    expect(h.head(), 'a heading row is rendered').toBeTruthy();
+    expect(h.head()!.textContent).not.toContain('PLAYER');
+    expect(h.head()!.children.length).toBe(h.columnCount());
+  });
+
+  it('leaves a wide viewport inline — the control for the stub', () => {
+    phone(false);
+    const h = mount(BEST_OF_THREE);
+
+    expect(h.row(1).dataset.stacked).toBe('false');
   });
 });
