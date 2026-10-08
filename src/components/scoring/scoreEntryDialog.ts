@@ -35,9 +35,11 @@ import { createScoreEntryStore } from './logic/scoreEntryStore';
 import { createDialPadRegion } from './regions/dialPadRegion';
 import { switchApproach } from './logic/scoreEntryModel';
 import { scoreGovernor } from 'tods-competition-factory';
+import { toEngineOutcome } from './logic/engineOutcome';
 import { renderScoreEntryCard } from './scoreEntryCard';
 import { cModal } from '../modal/cmodal';
 
+import type { EngineOutcome } from './logic/engineOutcome';
 import type { SetScore } from './types';
 import type {
   ScoreEntryCard,
@@ -83,8 +85,14 @@ export type ScoreEntryDialogParams = Omit<
    *
    * `sets` is added to what the card reports, because the dialog knows its regions carry them and a
    * host saving to the factory needs the structured sets rather than only the formatted string.
+   *
+   * `outcome` is the same result in the shape the factory reads — hand it to
+   * `tournamentEngine.setMatchUpStatus({ drawId, matchUpId, outcome })` as is (pass a copy if you keep
+   * what you sent: the engine writes its derived score strings into it). The score as `score.sets`, a
+   * chosen reason as positional `matchUpStatusCodes`, a clear as the empty-sets outcome that actually
+   * clears, and a format changed through the chip as `matchUpFormat`. See `logic/engineOutcome.ts`.
    */
-  onSubmit?: (outcome: ScoreEntryOutcome & { sets: SetScore[] }) => void;
+  onSubmit?: (outcome: ScoreEntryOutcome & { sets: SetScore[]; outcome: EngineOutcome }) => void;
   /** Which approach opens. Defaults to Dynamic Sets. */
   approach?: ScoreEntryApproach;
   /** Which approaches the switcher offers. Defaults to all three; a single entry hides the menu. */
@@ -166,6 +174,7 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
   const labels = params.labels ?? endingLabels();
   let approach: ScoreEntryApproach = params.approach ?? offered[0];
   let matchUpFormat = params.matchUpFormat ?? params.matchUp?.matchUpFormat;
+  const openedFormat = matchUpFormat;
   let closed = false;
   let notified = false;
 
@@ -204,7 +213,10 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
       close();
     },
     onSubmit: (outcome) => {
-      params.onSubmit?.({ ...outcome, sets: enteredSets(store.get()) });
+      const sets = enteredSets(store.get());
+      // the format rides along only when the operator changed it here; an unchanged one is the engine's own
+      const changedFormat = matchUpFormat !== openedFormat ? matchUpFormat : undefined;
+      params.onSubmit?.({ ...outcome, sets, outcome: toEngineOutcome({ ...outcome, sets }, changedFormat) });
       close();
     },
     onClose: close

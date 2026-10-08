@@ -33,9 +33,9 @@
  * `src/components/scoring/TMX_INTEGRATION.md`, which is the gate this story serves.
  */
 import { tournamentEngine, mocksEngine, matchUpStatusConstants } from 'tods-competition-factory';
-import { isDoubleExitStatus } from '../../components/scoring/logic/irregularEnding';
+import { toEngineOutcome } from '../../components/scoring/logic/engineOutcome';
 
-import type { SetScore } from '../../components/scoring/types';
+import type { EngineOutcome, ReportedOutcome } from '../../components/scoring/logic/engineOutcome';
 
 const { TO_BE_PLAYED } = matchUpStatusConstants;
 
@@ -45,23 +45,9 @@ export const DRAW_BEHIND_FORMAT = 'SET3-S:6/TB7';
 export type EngineMatchUpRef = { drawId: string; matchUpId: string };
 
 /** What the dialog reports on Submit. Mirrors `openScoreEntryDialog`'s `onSubmit` argument. */
-export type DialogOutcome = {
-  matchUpStatus?: string;
-  winningSide?: number;
-  reasonCode?: string;
-  score?: string;
-  cleared?: boolean;
-  sets?: SetScore[];
-};
-
+export type DialogOutcome = ReportedOutcome;
 /** The outcome in the shape the engine reads — see the header for which fields those are. */
-export type EngineOutcome = {
-  matchUpStatus?: string;
-  winningSide?: number;
-  matchUpFormat?: string;
-  matchUpStatusCodes?: string[];
-  score: { sets: SetScore[] };
-};
+export type { EngineOutcome };
 
 /**
  * A small single-elimination draw with nobody scored, loaded into the engine.
@@ -107,42 +93,10 @@ export function sidesOf(matchUp: any): [{ participantName: string }, { participa
 /**
  * From what the dialog reports to what the engine reads.
  *
- * Every line here is a measured difference between the two shapes; none of it is a preference. The
- * `score` string is dropped (refused by the engine), `reasonCode` becomes a positional array, `cleared`
- * becomes the empty-sets outcome that actually clears, and the format rides along so a change made
- * through the chip is persisted with the result rather than lost.
+ * The mapping lives in the component now (`logic/engineOutcome.ts`) and the dialog applies it itself on
+ * Submit; it is re-exported here so the story and its test keep one name for it.
  */
-export function toEngineOutcome(outcome: DialogOutcome, matchUpFormat?: string): EngineOutcome {
-  if (outcome.cleared) {
-    // Measured: `{}` leaves the stale score as IN_PROGRESS, and codes survive a clear unless blanked.
-    return { score: { sets: [] }, matchUpStatusCodes: [] };
-  }
-
-  const codes = positionalCodes(outcome);
-  return {
-    matchUpStatus: outcome.matchUpStatus,
-    winningSide: outcome.winningSide,
-    score: { sets: outcome.sets ?? [] },
-    ...(matchUpFormat ? { matchUpFormat } : {}),
-    // Only when a reason was chosen: the engine reads an empty array as "blank the codes", and a
-    // played result with no reason must not erase one a previous edit recorded (TMX's rule).
-    ...(codes ? { matchUpStatusCodes: codes } : {})
-  };
-}
-
-/**
- * The positional array the engine reads a reason from.
- *
- * A single exit: the side that did NOT win, at its index. A double exit: both. An ending that resolves
- * nobody: index 0, since there is no side — the engine files that one as `matchUpStatusCode`.
- */
-function positionalCodes({ reasonCode, matchUpStatus, winningSide }: DialogOutcome): string[] | undefined {
-  if (!reasonCode) return undefined;
-  if (isDoubleExitStatus(matchUpStatus)) return [reasonCode, reasonCode];
-  if (winningSide === 1) return ['', reasonCode];
-  if (winningSide === 2) return [reasonCode];
-  return [reasonCode];
-}
+export { toEngineOutcome };
 
 export type EngineAnswer = {
   /** Exactly what went to `setMatchUpStatus`, before the engine wrote its strings into it. */
