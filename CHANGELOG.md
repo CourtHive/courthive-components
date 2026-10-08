@@ -1,5 +1,25 @@
 # Changelog
 
+## [6.3.0](https://github.com/CourtHive/courthive-components/compare/v6.2.1...v6.3.0) (2026-10-08)
+
+
+### Features
+
+* **scoring:** Escape presses Cancel, Delete and Backspace press Clear ([#663](https://github.com/CourtHive/courthive-components/issues/663)) ([6d3326b](https://github.com/CourtHive/courthive-components/commit/6d3326b8b0b5f471c8c82cdbe05b6c55bd106b59))
+* **scoring:** the dialog reports an outcome the engine reads as is ([#661](https://github.com/CourtHive/courthive-components/issues/661)) ([d8c7f80](https://github.com/CourtHive/courthive-components/commit/d8c7f8073c6c676137228e67cce7f6f4a1b79cb2))
+* **topology:** a consolation fed by a qualifying node attaches, and names its source ([#657](https://github.com/CourtHive/courthive-components/issues/657)) ([2cefe38](https://github.com/CourtHive/courthive-components/commit/2cefe38f528178b8c2d98b227ab5034f3db2d208))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.8.0 ([#666](https://github.com/CourtHive/courthive-components/issues/666)) ([9391078](https://github.com/CourtHive/courthive-components/commit/9391078b854a984815301e462332efd141fcfbf6))
+* **scoring:** menus and the format picker hold the card; the picker matches it; no [X] ([#665](https://github.com/CourtHive/courthive-components/issues/665)) ([f53bd02](https://github.com/CourtHive/courthive-components/commit/f53bd02c3471afbfad5fdcea08643a7b6cf07746))
+* **scoring:** Retired is offered only once a score is present ([#660](https://github.com/CourtHive/courthive-components/issues/660)) ([4d26883](https://github.com/CourtHive/courthive-components/commit/4d26883b0a9f75949ee682cde9efe04ea294375f))
+* **scoring:** the Dial Pad holds on an unfinished set and offers Tiebreak only where it fits ([#659](https://github.com/CourtHive/courthive-components/issues/659)) ([3fa1ba9](https://github.com/CourtHive/courthive-components/commit/3fa1ba9105f64ec8c214f6da5da5b685184ff7fc))
+* **scoring:** the score entry dialog fits a phone screen ([#664](https://github.com/CourtHive/courthive-components/issues/664)) ([874d35e](https://github.com/CourtHive/courthive-components/commit/874d35ecbf022eaa09d1862b93a9790d09843841))
+* **scoring:** the set helpers ask the factory; a match tiebreak is capped in points ([#658](https://github.com/CourtHive/courthive-components/issues/658)) ([c92672b](https://github.com/CourtHive/courthive-components/commit/c92672bd4d104580d58567f92f87b317e3df77ca))
+* **stories:** the draw-behind helper is no longer rendered as a broken story ([#662](https://github.com/CourtHive/courthive-components/issues/662)) ([8c9023f](https://github.com/CourtHive/courthive-components/commit/8c9023f1155cc35ab007485fcc1b8db5684bd6a9))
+
 ## [6.2.1](https://github.com/CourtHive/courthive-components/compare/v6.2.0...v6.2.1) (2026-10-07)
 
 
