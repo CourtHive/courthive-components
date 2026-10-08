@@ -235,10 +235,25 @@ export function isSetTimed(format?: SetFormat): boolean {
 }
 
 /**
- * Calculate the maximum allowed score for a regular set game score
- * based on the opponent's score and set rules
+ * The highest game (or tiebreak-point) score one side may enter, given the opponent's.
  *
- * For timed sets, returns Infinity (no maximum) since scores don't need relationships
+ * ── Delegated to the factory ──
+ *
+ * `scoreGovernor.getMaxSetScore` answers for a games set from the format alone: the tiebreak games,
+ * `tiebreakAt` above or below `setTo`, a declared `winBy`. It answers `undefined` where the format has no
+ * ceiling — a timed set, an advantage set past the tiebreak-less `setTo`, or a tiebreak-only set, whose
+ * points are not games — and each of those is handled here by the factory's own tiebreak complement or
+ * by the set's margin, not by recomputing tennis.
+ *
+ * The hand-rolled body this replaced read a tiebreak-only set as a six-game set: `SET1-S:TB10` with no
+ * opponent score was capped at **7** — a match tiebreak to ten that could not be entered (measured
+ * 2026-10-08, live in the shipping dialog). It now caps at the complement of the opponent's points: 10,
+ * then 12 against 10, and `NoAD` ends it at the target.
+ *
+ * Two conventions of the calling dialog are kept, each pinned by an existing test: an opponent score of
+ * 0 means "not entered yet" and allows the format's ceiling; and an opponent already holding the set (a
+ * state the dialog reaches mid-edit) keeps the old reads — the two-game margin past the ceiling, or the
+ * tiebreak games where the tiebreak sits below setTo — rather than freezing the field.
  */
 export function getMaxAllowedScore(
   setIndex: number,
@@ -248,67 +263,46 @@ export function getMaxAllowedScore(
 ): number {
   const setFormat = getSetFormatForIndex(setIndex, config);
 
-  // IMPORTANT: For timed sets, there is no maximum score
-  // Scores don't need any relationship to each other
-  if (isSetTimed(setFormat)) {
-    return Infinity;
-  }
-
-  const setTo = setFormat?.setTo || 6;
-  const tiebreakAt = setFormat?.tiebreakAt || setTo;
+  // For timed sets, there is no maximum score: scores need no relationship to each other
+  if (isSetTimed(setFormat)) return Infinity;
 
   const oppScore = side === 1 ? currentScores.side2 : currentScores.side1;
+  const opponentEntered = oppScore > 0;
 
-  // No-tiebreak WB1: first to setTo wins outright; max input is setTo regardless of opponent.
-  const hasTiebreakFormat = !!setFormat?.tiebreakFormat;
-  const winBy = setFormat?.winBy ?? 2;
-  if (!hasTiebreakFormat && winBy === 1) {
-    return setTo;
+  // A tiebreak-only set is scored in points: the winner's points are the complement of the loser's
+  if (isSetTiebreakOnly(setFormat)) {
+    const tiebreakTo = setFormat?.tiebreakSet?.tiebreakTo as number;
+    const tiebreakNoAd = setFormat?.tiebreakSet?.NoAD;
+    const pair = scoreGovernor.getTiebreakComplement({
+      lowValue: opponentEntered ? oppScore : 0,
+      tiebreakTo,
+      tiebreakNoAd
+    });
+    return pair ? Math.max(...pair) : tiebreakTo;
   }
 
-  // Determine absolute max based on tiebreakAt position
-  // - If tiebreakAt === setTo (or not specified): max is setTo + 1 (e.g., S:6 allows 7-6)
-  // - If tiebreakAt < setTo: max is setTo (e.g., S:6@5 allows 6-5 max, S:5@4 allows 5-4 max)
-  const absoluteMax = tiebreakAt === setTo ? setTo + 1 : setTo;
-
-  // If opponent hasn't entered score yet, allow up to absoluteMax
-  if (oppScore === 0) {
-    return absoluteMax;
+  const setTo = setFormat?.setTo ?? 6;
+  const max = scoreGovernor.getMaxSetScore({
+    opponentScore: opponentEntered ? oppScore : undefined,
+    tiebreakAt: setFormat?.tiebreakAt,
+    winBy: setFormat?.winBy,
+    NoAD: setFormat?.NoAD,
+    setTo
+  });
+  if (max !== undefined) {
+    // The opponent already holds the set (a state the dialog reaches mid-edit): the old reads are kept
+    // so the field is not frozen — the two-game margin past the ceiling, or the tiebreak games where the
+    // tiebreak sits below setTo. A win-by-one set has no such state; its ceiling is setTo.
+    const opponentHoldsSet =
+      opponentEntered && oppScore >= max && !(setFormat?.winBy === 1 && !setFormat?.tiebreakFormat);
+    if (!opponentHoldsSet) return max;
+    const tiebreakAt = setFormat?.tiebreakAt;
+    return tiebreakAt !== undefined && tiebreakAt < setTo ? tiebreakAt : oppScore + 2;
   }
 
-  // Standard tennis scoring rules
-  if (oppScore < tiebreakAt - 1) {
-    // Opponent well below tiebreak threshold: max is setTo (win before tiebreak)
-    return setTo;
-  } else if (oppScore === tiebreakAt - 1) {
-    // Opponent at tiebreakAt - 1: special case
-    // - If tiebreakAt === setTo (standard format like S:6@6): can go to setTo + 1 to win by 2 (e.g., 7-5)
-    // - If tiebreakAt < setTo (format like S:5@4): max is setTo (e.g., 5-3 wins, no need for 6)
-    return tiebreakAt === setTo ? setTo + 1 : setTo;
-  } else if (oppScore === tiebreakAt) {
-    // Opponent at tiebreakAt: could go to tiebreak or win at setTo
-    // Max is absoluteMax (setTo+1 if tiebreakAt===setTo, otherwise setTo)
-    return absoluteMax;
-  } else if (oppScore > tiebreakAt && oppScore < setTo) {
-    // Opponent between tiebreakAt and setTo: max is setTo
-    return setTo;
-  } else if (oppScore === setTo) {
-    // Opponent at setTo: depends on format
-    if (tiebreakAt === setTo) {
-      // Standard format (S:6@6): deuce territory, max is setTo + 2
-      return setTo + 2;
-    } else {
-      // Format like S:5@4: opponent won after tiebreak, my max is tiebreakAt
-      return tiebreakAt;
-    }
-  } else if (oppScore > setTo) {
-    // Opponent above setTo: match is in extended play (only when tiebreakAt === setTo)
-    // Max is oppScore + 2 (win by 2 margin)
-    return oppScore + 2;
-  } else {
-    // Fallback
-    return absoluteMax;
-  }
+  // No ceiling from the format (an advantage set): the set's margin decides
+  if (!opponentEntered) return setTo + 1;
+  return oppScore >= setTo - 1 ? oppScore + 2 : setTo;
 }
 
 /**
@@ -323,20 +317,13 @@ export function isSetComplete(
   },
   config: MatchUpConfig
 ): boolean {
-  // ── NOT delegated, and the two reasons are measured ──
+  // ── Delegated to the factory (2026-10-08) ──
   //
-  // `scoreGovernor.checkSetIsComplete` is the natural home for this and it is deliberately not used yet:
-  //
-  // 1. It requires BOTH tiebreak scores. This function takes one — the loser's, by this module's
-  //    convention — and passing only that returns false for a 7-6(3) that is plainly complete. Fixable
-  //    here by deriving the winner's points first, so this alone would not have stopped the swap.
-  // 2. It does not honour `winBy: 1`. Measured 2026-09-27: a 5-4 in `SET1-S:5WB1`
-  //    (`{setTo: 5, noTiebreak: true, winBy: 1}`) comes back FALSE, though first-to-five wins that set.
-  //    That is a factory gap, not a shape problem, and it is why the body below stays.
-  //
-  // Reported rather than worked around: a local fallback for WB1 would be the hand-rolling this exercise
-  // exists to remove. The rest of this module now delegates.
-
+  // Two measured reasons kept this hand-rolled until now, both gone: `checkSetIsComplete` needs both
+  // tiebreak scores, and `tiebreakSides` derives the winner's from the loser's exactly as `setAnalysis`
+  // does; and it did not honour `winBy: 1` — a 5-4 in `SET1-S:5WB1` read FALSE in 7.4 and reads TRUE in
+  // 7.5+ (factory handles WB1). The timed and tiebreak-only branches below keep their own reads because
+  // the factory's rule for them is the one this module already delegates to.
   const setFormat = getSetFormatForIndex(setIndex, config);
 
   // For timed sets, a set is complete when both sides have values
@@ -356,37 +343,18 @@ export function isSetComplete(
     return tiebreakOnlyWinner(setIndex, scores, config) !== undefined;
   }
 
-  // Regular set: check tennis scoring rules
-  const setTo = setFormat?.setTo || 6;
-  const tiebreakAt = setFormat?.tiebreakAt || setTo;
-  const hasTiebreakFormat = !!setFormat?.tiebreakFormat;
-  const winBy = setFormat?.winBy ?? 2;
-  const maxScore = Math.max(scores.side1, scores.side2);
-  const minScore = Math.min(scores.side1, scores.side2);
-  const scoreDiff = Math.abs(scores.side1 - scores.side2);
-
-  // Complete if:
-  // 1. Winner reached setTo with the required game margin (winBy, default 2; WB1 = first to setTo)
-  // For no-tiebreak sets honor setFormat.winBy; tiebreak sets keep the standard win-by-2 margin
-  // (tiebreak completion is handled separately below).
-  const requiredMargin = hasTiebreakFormat ? 2 : winBy;
-  if (maxScore >= setTo && scoreDiff >= requiredMargin) {
-    return true;
-  }
-
-  // 2. Score indicates tiebreak was played, with tiebreak score entered
-  // - If tiebreakAt === setTo: tiebreak at (setTo+1) vs setTo (e.g., 7-6 for S:6@6)
-  // - If tiebreakAt < setTo: tiebreak at setTo vs tiebreakAt (e.g., 5-4 for S:5@4)
-  const tiebreakScorePattern =
-    tiebreakAt === setTo
-      ? maxScore === tiebreakAt + 1 && minScore === tiebreakAt
-      : maxScore === setTo && minScore === tiebreakAt;
-
-  if (tiebreakScorePattern && scores.tiebreak !== undefined) {
-    return true;
-  }
-
-  return false;
+  // Regular set: the factory's rule — the margin, a declared winBy, the tiebreak at the games the format
+  // says — with the winner's tiebreak points derived from the loser's, as this module carries them
+  const complete = scoreGovernor.checkSetIsComplete({
+    set: {
+      setNumber: setIndex + 1,
+      side1Score: scores.side1,
+      side2Score: scores.side2,
+      ...tiebreakSides(scores, setFormat)
+    },
+    matchUpScoringFormat: { setFormat }
+  });
+  return complete === true;
 }
 
 /**
