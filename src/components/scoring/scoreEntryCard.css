@@ -88,7 +88,10 @@
 
 /* Right-aligned, because the switcher sits at the header's right edge and a left-anchored 250px menu
    would hang off the dialog. */
-.chc-sec-approach-menu {
+/* Opens down and to the LEFT, from the switcher's right edge, so it does not run off the dialog's edge.
+   Two classes, because `.chc-sec-other-menu` (which this element also carries) is declared later with
+   `left: 0`, and at equal specificity that won — CA, 2026-10-08, screenshot: the menu bumped the edge. */
+.chc-sec-other-menu.chc-sec-approach-menu {
   right: 0;
   left: auto;
 }
@@ -288,12 +291,6 @@
 
 .chc-sec-btn-pill {
   border-radius: 999px;
-}
-
-.chc-sec-btn-icon {
-  width: 44px;
-  min-height: 44px;
-  padding: 0;
 }
 
 .chc-sec-btn-primary {
@@ -522,17 +519,6 @@
   .chc-sec-title,
   .chc-sec-format {
     white-space: nowrap;
-  }
-
-  /* The close button stays on the first line with the title; the format chip and the approach switcher
-     are what wrap to the second. */
-  .chc-sec-header > .chc-sec-format,
-  .chc-sec-header > .chc-sec-approach-anchor {
-    order: 1;
-  }
-
-  .chc-sec-header > [data-action='close'] {
-    order: 0;
   }
 
   .chc-sec-footer {

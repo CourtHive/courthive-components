@@ -66,7 +66,6 @@ const { RETIRED, WALKOVER, DEFAULTED } = matchUpStatusConstants;
 /** Class names and attribute names used often enough that a typo in one would be silent. */
 const CLS_BTN = 'chc-sec-btn';
 const CLS_BTN_PILL = 'chc-sec-btn chc-sec-btn-pill';
-const CLS_BTN_ICON = 'chc-sec-btn chc-sec-btn-icon';
 const CLS_CHECK = 'chc-sec-check';
 const CLS_MENU = 'chc-sec-other-menu';
 const CLS_MENU_ITEM = 'chc-sec-other-item';
@@ -324,7 +323,6 @@ export type ScoreEntryCardParams = {
   initialState?: ScoreEntryState;
   onClear?: () => void;
   onSubmit?: (outcome: ScoreEntryOutcome) => void;
-  onClose?: () => void;
 };
 
 /** A card instance: its element, plus the handle the host needs to react to score-region changes. */
@@ -333,6 +331,11 @@ let cardSequence = 0;
 
 export type ScoreEntryCard = {
   element: HTMLElement;
+  /**
+   * Close an open menu (the approach switcher's or Other's) and report whether one was open. The dialog's
+   * Escape calls it first, wherever focus is, so one Escape closes the menu and a second one cancels.
+   */
+  closeMenus: () => boolean;
   /** Re-render the band and the submit gate. Call when the score region's value changes. */
   refresh: () => void;
   /** Rebuild everything, including the region's cells. Call when the region's COLUMNS change. */
@@ -428,6 +431,34 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   element.append(headerContainer, body(), band, footer());
 
   /**
+   * While a menu is open, a click anywhere else in the card CLOSES the menu and does nothing else — CA,
+   * 2026-10-08: *"other actions can still be taken while the mode selector is open!"* Capture phase, so the
+   * click is stopped before it reaches the control under it; a menu's own items and the two buttons that
+   * open the menus are let through (a trigger switches menus or closes its own). Pointer-down is stopped
+   * too, so the click cannot first move focus into a score cell.
+   */
+  const MENU_PARTS = `.${CLS_MENU}, [data-action="other"], [data-action="switchApproach"]`;
+  const shieldMenus = (event: Event) => {
+    if (!approachMenuOpen && !otherMenuOpen) return;
+    if ((event.target as HTMLElement | null)?.closest(MENU_PARTS)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.type === 'click') closeMenus();
+  };
+  element.addEventListener('pointerdown', shieldMenus, true);
+  element.addEventListener('mousedown', shieldMenus, true);
+  element.addEventListener('click', shieldMenus, true);
+
+  /** Close whichever menu is open; whether one was. The dialog calls this on Escape, before Cancel. */
+  function closeMenus(): boolean {
+    if (!approachMenuOpen && !otherMenuOpen) return false;
+    approachMenuOpen = false;
+    otherMenuOpen = false;
+    render();
+    return true;
+  }
+
+  /**
    * Enter submits, when Submit is live.
    *
    * The old dialog did this from its input handler; it belongs on the CARD, because it should hold for
@@ -454,6 +485,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
   return {
     element,
+    closeMenus,
     // `refresh` updates ONLY the derived parts — the band and the submit gate. It deliberately does
     // NOT re-render the rows.
     //
@@ -526,13 +558,8 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     if (matchUpFormat) bar.append(formatChip(matchUpFormat));
 
     if (approachLabel) bar.append(approachSwitcher(approachLabel));
-
-    const close = button('', CLS_BTN_ICON);
-    close.dataset.action = 'close';
-    close.setAttribute(ARIA_LABEL, 'Close');
-    close.append(icon('M18 6 6 18M6 6l12 12'));
-    close.addEventListener('click', () => params.onClose?.());
-    bar.append(close);
+    // No [X]. CA, 2026-10-08: "do we need the [X] at all given we have both ESC for computer and [Cancel]
+    // in both views?" It did exactly what Cancel does, and on a phone it wrapped to the middle of the header.
   }
 
   /**
@@ -1413,6 +1440,8 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     other.append(icon('m6 9 6 6 6-6', 2.5));
     other.addEventListener('click', () => {
       otherMenuOpen = !otherMenuOpen;
+      // One menu at a time: the approach menu stayed open beside this one (CA's screenshot, 2026-10-08).
+      approachMenuOpen = false;
       render();
     });
     endingsContainer.append(other);

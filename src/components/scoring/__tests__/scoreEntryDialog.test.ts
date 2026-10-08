@@ -17,6 +17,8 @@ import { matchUpStatusConstants, fixtures, policyConstants } from 'tods-competit
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { openScoreEntryDialog } from '../scoreEntryDialog';
 import { cModal } from '../../modal/cmodal';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import type { StatusCodeGroups } from '../logic/statusCodes';
 
@@ -103,11 +105,20 @@ describe('the modal', () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  it('closes on [X], and reports it once', () => {
+  it('has no [X]: Cancel and Escape are the ways out — CA, 2026-10-08', () => {
+    // *"do we need the [X] at all given we have both ESC for computer and [Cancel] in both views?"* It did
+    // exactly what Cancel does, and on a phone it wrapped into the middle of the header.
+    open();
+
+    expect(q('button[data-action="close"]')).toBeNull();
+    expect(q('button[data-action="cancel"]')).toBeTruthy();
+  });
+
+  it('closes on Cancel, and reports it once', () => {
     const onClose = vi.fn();
     const dialog = open({ onClose });
 
-    click('button[data-action="close"]');
+    click('button[data-action="cancel"]');
 
     expect(modal()).toBeNull();
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -722,5 +733,103 @@ describe('the format picker', () => {
 
     expect(onFormatChange).not.toHaveBeenCalled();
     expect(q(EDIT_FORMAT)!.textContent).toBe(FORMAT);
+  });
+});
+
+/**
+ * CA, 2026-10-08, two screenshots: the mode selector opened to the RIGHT and bumped the dialog's edge,
+ * both menus could stand open together, the card stayed live under an open menu, and the card stayed live
+ * under the format picker.
+ */
+describe('menus and the format picker hold the card', () => {
+  const MENU = '.chc-sec-other-menu';
+  const APPROACH_MENU = '.chc-sec-approach-menu';
+  const OTHER = 'button[data-action="other"]';
+  const SUBMIT = 'button[data-action="submit"]';
+  const escape = () =>
+    document.activeElement!.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })
+    );
+
+  it('opens one menu at a time: Other closes the approach menu', () => {
+    open();
+    click(SWITCH);
+    expect(q(APPROACH_MENU), 'control: the approach menu opened').toBeTruthy();
+
+    click(OTHER);
+
+    expect(q(APPROACH_MENU)).toBeNull();
+    expect(all(MENU)).toHaveLength(1);
+  });
+
+  it('a click elsewhere in the card closes the open menu and does nothing else', () => {
+    const onSubmit = vi.fn();
+    open({
+      onSubmit,
+      sets: [
+        { side1Score: 6, side2Score: 4 },
+        { side1Score: 6, side2Score: 3 }
+      ]
+    });
+    expect(q<HTMLButtonElement>(SUBMIT)!.disabled, 'control: Submit is live').toBe(false);
+    click(SWITCH);
+
+    click(SUBMIT);
+
+    expect(onSubmit, 'the click under the menu must not submit').not.toHaveBeenCalled();
+    expect(q(APPROACH_MENU)).toBeNull();
+    expect(modal()).toBeTruthy();
+
+    click(SUBMIT);
+    expect(onSubmit, 'with the menu closed, Submit works again').toHaveBeenCalledTimes(1);
+  });
+
+  it("still takes a menu's own item", () => {
+    open();
+    click(SWITCH);
+
+    click(`${APPROACH_MENU} [data-approach="freeScore"]`);
+
+    expect(q(FREE_SCORE_FIELD)).toBeTruthy();
+  });
+
+  it.each([
+    ['Other', OTHER, MENU],
+    ['approach', SWITCH, APPROACH_MENU]
+  ])('Escape with the %s menu open closes the menu; the next Escape cancels', (_name, trigger, menu) => {
+    const onCancel = vi.fn();
+    open({ onCancel });
+    click(trigger);
+    expect(q(menu), 'control: the menu opened').toBeTruthy();
+
+    escape();
+
+    expect(q(menu)).toBeNull();
+    expect(modal()).toBeTruthy();
+    expect(onCancel).not.toHaveBeenCalled();
+
+    escape();
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(modal()).toBeNull();
+  });
+
+  it('positions the approach menu from its right edge, above the rule that pinned it left', () => {
+    const css = readFileSync(resolve(process.cwd(), 'src/components/scoring/scoreEntryCard.css'), 'utf8');
+    const rule = css.match(/\.chc-sec-other-menu\.chc-sec-approach-menu\s*\{([^}]*)\}/);
+
+    expect(rule, 'a two-class rule, so it outranks `.chc-sec-other-menu { left: 0 }`').toBeTruthy();
+    expect(rule![1]).toMatch(/right:\s*0/);
+    expect(rule![1]).toMatch(/left:\s*auto/);
+  });
+
+  it('is inert while the format picker is open, and live again however the picker closes', () => {
+    let picker: any;
+    open({ onFormatChange: vi.fn(), openFormatPicker: (params: any) => (picker = params) });
+
+    click(EDIT_FORMAT);
+    expect(modal()!.inert).toBe(true);
+
+    picker.onClose();
+    expect(modal()!.inert).toBe(false);
   });
 });

@@ -71,14 +71,7 @@ const DIALOG_MAX_WIDTH = 780;
 
 export type ScoreEntryDialogParams = Omit<
   ScoreEntryCardParams,
-  | 'region'
-  | 'approachLabel'
-  | 'approaches'
-  | 'onSelectApproach'
-  | 'onSwitchApproach'
-  | 'onEditFormat'
-  | 'onClose'
-  | 'onSubmit'
+  'region' | 'approachLabel' | 'approaches' | 'onSelectApproach' | 'onSwitchApproach' | 'onEditFormat' | 'onSubmit'
 > & {
   /**
    * Called with the outcome, then the dialog closes.
@@ -153,7 +146,12 @@ export type ScoreEntryDialogParams = Omit<
    * Injectable because a unit test has no business opening the real picker's modal — it is a second
    * dialog with its own state — and because a host may have its own.
    */
-  openFormatPicker?: (params: { existingMatchUpFormat: string; callback: (matchUpFormat: string) => void }) => void;
+  openFormatPicker?: (params: {
+    existingMatchUpFormat: string;
+    callback: (matchUpFormat: string) => void;
+    /** Called however the picker closes; the dialog is inert until then. */
+    onClose?: () => void;
+  }) => void;
 };
 
 export type ScoreEntryDialog = {
@@ -232,16 +230,15 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
       const changedFormat = matchUpFormat !== openedFormat ? matchUpFormat : undefined;
       params.onSubmit?.({ ...outcome, sets, outcome: toEngineOutcome({ ...outcome, sets }, changedFormat) });
       close();
-    },
-    onClose: close
+    }
   });
 
   cModal.open({
     content: card.element,
     config: {
       maxWidth: DIALOG_MAX_WIDTH,
-      // A stray backdrop click must not discard a half-entered score. The `[X]` and the footer are the
-      // ways out, and both are visible.
+      // A stray backdrop click must not discard a half-entered score. Cancel (or Escape) and Submit are
+      // the ways out.
       clickAway: false,
       // The card draws its own padding, and cModal's default 1em on top of it detaches the header's
       // bottom border from the dialog's edge. '0' and not 0: cModal reads the value truthily, so a
@@ -379,12 +376,26 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
     params.onFormatChange?.(next);
   }
 
+  /**
+   * The format picker opens ABOVE the card, and the card is inert until it closes — CA, 2026-10-08:
+   * *"actions in the ScoreEntry dialog can still be taken while the matchUpFormat dialog is open"*. cModal
+   * draws no backdrop that catches clicks: the picker's container is only as wide as the picker, so the
+   * card's cells, endings and Submit stayed live on either side of it. `inert` takes the whole card out of
+   * pointer, keyboard and focus reach at once, and the picker's `onClose` (Select, Cancel or any other way
+   * it is closed) gives it back.
+   */
   function editFormat(): void {
     const open = params.openFormatPicker ?? getMatchUpFormatModal;
+    const section = ownSection();
+    if (section) section.inert = true;
     open({
       existingMatchUpFormat: matchUpFormat ?? 'SET3-S:6/TB7',
       callback: (chosen: string) => {
         if (chosen) setMatchUpFormat(chosen);
+      },
+      onClose: () => {
+        if (section) section.inert = false;
+        focusEntry();
       }
     });
   }
@@ -409,7 +420,7 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
    * Put the caret where the operator is about to type.
    *
    * A score-entry dialog opens because someone means to enter a score, and the first set's first cell is
-   * where that starts — USTA Tournament Desk does the same. Without this, opening the dialog leaves focus
+   * where that starts. Without this, opening the dialog leaves focus
    * on whatever was behind it, so a keyboard user has to tab INTO the dialog before they can begin.
    *
    * The Dial Pad has no text inputs at all, so its first digit key is the entry point. Failing both, the
@@ -481,6 +492,8 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
 
     if (event.key === 'Escape') {
       event.preventDefault();
+      // One Escape, one step back: an open menu closes first, and only the next Escape cancels.
+      if (card.closeMenus()) return;
       footerButton('cancel')?.click();
       return;
     }

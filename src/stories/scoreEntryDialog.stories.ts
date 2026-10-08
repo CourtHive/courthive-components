@@ -43,7 +43,8 @@ const OPEN_BUTTON = '#openScoreEntry';
 /** Every `cModal` dialog is a `section` with an id of `cmdl-<n>`. */
 const MODAL = 'section[id^="cmdl-"]';
 const CARD = '[data-component="scoreEntryCard"]';
-const CLOSE = 'button[data-action="close"]';
+/** The way out. The header's [X] was removed (CA, 2026-10-08) — it did exactly what Cancel does. */
+const CANCEL = 'button[data-action="cancel"]';
 const SWITCH = 'button[data-action="switchApproach"]';
 const SET_CELL = 'input[data-set]';
 const BAND = '.chc-sec-band';
@@ -212,7 +213,7 @@ export const InModal = {
     await expect(inModal('[data-row-ending]')!.textContent, 'and it reopens on what was saved').toBe('Walkover');
 
     // [X] closes it, which is the other half of "the modal actually works".
-    clickIn(CLOSE);
+    clickIn(CANCEL);
     await expect(document.querySelector(MODAL)).toBeNull();
   }
 };
@@ -256,9 +257,9 @@ export const InModalFreeScore = {
     // region's, which is the whole point of the card owning them.
     await expect(inModal(SWITCH)!.textContent).toBe('Free Score');
     await expect(inModal(BAND)!.textContent).toContain('6-4 2-1');
-    await expect(inModal(CLOSE)).toBeTruthy();
+    await expect(inModal(CANCEL)).toBeTruthy();
 
-    clickIn(CLOSE);
+    clickIn(CANCEL);
   }
 };
 
@@ -284,7 +285,7 @@ export const InModalDialPad = {
     await expect(inModal(SWITCH)!.textContent).toBe('Dial Pad');
     await expect(inModal(BAND)!.textContent).toContain('6-4 2-1');
 
-    clickIn(CLOSE);
+    clickIn(CANCEL);
   }
 };
 
@@ -332,7 +333,7 @@ export const ApproachSwitching = {
       '4'
     ]);
 
-    clickIn(CLOSE);
+    clickIn(CANCEL);
   }
 };
 
@@ -368,7 +369,7 @@ export const FormatPicker = {
     await expect(document.querySelectorAll(MODAL)).toHaveLength(1);
     await expect(inModal(CARD)).toBeTruthy();
 
-    clickIn(CLOSE);
+    clickIn(CANCEL);
     await expect(document.querySelector(MODAL)).toBeNull();
   }
 };
