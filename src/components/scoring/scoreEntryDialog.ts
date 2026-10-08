@@ -169,6 +169,20 @@ export type ScoreEntryDialog = {
   close: () => void;
 };
 
+/** A field where Delete and Backspace edit text, so they must not also clear the card. */
+function isEditable(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  if (target.isContentEditable) return true;
+  return (
+    target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement
+  );
+}
+
+/** Cmd/Ctrl/Alt chords belong to the browser and the OS (Cmd+Backspace deletes a line). */
+function hasCommandModifier(event: KeyboardEvent): boolean {
+  return event.metaKey || event.ctrlKey || event.altKey;
+}
+
 export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntryDialog {
   const offered = params.approaches?.length ? params.approaches : ALL_APPROACHES;
   const labels = params.labels ?? endingLabels();
@@ -443,45 +457,52 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
   }
 
   /**
-   * Escape closes an EMPTY dialog, and does nothing to one holding a score.
+   * Escape is `[Cancel]`; Delete and Backspace are `[Clear]` — CA, 2026-10-08: *"I'd like ESC to be the
+   * equivalent of the [Cancel] button and DEL/BKSP key to be the equivalent of [Clear] button."*
    *
-   * cModal has no keyboard handling of its own — measured: not one `keydown` listener in it — so
-   * without this a keyboard user's only way out is to reach the `[X]`. Escape is the standard
-   * affordance, and an empty dialog has nothing to lose.
+   * Each key PRESSES its button rather than repeating what the button does, so the key can never do more
+   * or less than the click: Escape runs the host's `onCancel` and closes, holding a score or not; Clear
+   * stays a no-op while its button is disabled (nothing to remove).
    *
-   * With something entered it deliberately does NOTHING, which is not a new rule: this repo already
-   * decided that a mis-aimed click must not discard a typed score (`clickAway: false`, held by
-   * `__tests__/dismissGuard.test.ts`). Silent non-dismissal is exactly what that click guard does, so
-   * Escape inherits it rather than inventing a confirm step. Cancel and Submit remain the deliberate
-   * ways out, and both are visible.
+   * This replaces the earlier Escape rule, which closed only an EMPTY dialog so that a stray key could not
+   * discard a typed score. CA chose Escape-as-Cancel over that guard. A mis-aimed CLICK on the backdrop is
+   * still ignored (`clickAway: false`, held by `__tests__/dismissGuard.test.ts`); a key press is deliberate.
    *
-   * Only when this is the TOP dialog: the format picker opens above, has no Escape handling either, and
-   * closing the card from under it would leave the picker standing over nothing.
+   * Delete and Backspace clear only when nothing else took the key. In a score cell or the Free Score field
+   * they edit text, and the Dial Pad's keypad keeps Backspace for removing its last digit (it calls
+   * `preventDefault`), so the key reaches this handler only from the dialog itself, a button, or an
+   * endings chip. And only from inside THIS dialog: a Backspace typed in the host page must not clear it.
+   *
+   * Only when this is the TOP dialog: the format picker opens above, has no keyboard handling of its own,
+   * and acting on the card from under it would leave the picker standing over nothing.
    */
   function onKeyDown(event: KeyboardEvent): void {
-    if (event.key !== 'Escape' || closed) return;
-    if (!isTopMostDialog() || holdsEntry()) return;
+    if (closed || !isTopMostDialog()) return;
 
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      footerButton('cancel')?.click();
+      return;
+    }
+
+    if (event.key !== 'Delete' && event.key !== 'Backspace') return;
+    if (event.defaultPrevented || hasCommandModifier(event) || isEditable(event.target)) return;
+    if (!ownSection()?.contains(event.target as Node)) return;
+
+    const clear = footerButton('clear');
+    if (!clear || clear.disabled) return;
     event.preventDefault();
-    close();
+    clear.click();
+  }
+
+  function footerButton(action: 'cancel' | 'clear'): HTMLButtonElement | null {
+    return card.element.querySelector<HTMLButtonElement>(`button[data-action="${action}"]`);
   }
 
   function isTopMostDialog(): boolean {
     const own = ownSection();
     if (!own) return false;
     return [...document.querySelectorAll('section[id^="cmdl-"]')].at(-1) === own;
-  }
-
-  /**
-   * Whether anything would be lost: a score entered, or an ending recorded.
-   *
-   * `hasEntry` and not `getSets()`. A region reports only sets whose both sides are in, so a lone `6`
-   * typed with smart complements switched off is invisible to `getSets()` — measured, and it made the
-   * first version of this guard discard exactly the keystroke it was written to protect. Typing with
-   * complements ON hides the hole, because the complement fills the other side immediately.
-   */
-  function holdsEntry(): boolean {
-    return card.holdsEntry();
   }
 
   function close(): void {
