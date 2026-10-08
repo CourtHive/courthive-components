@@ -10,6 +10,8 @@ export interface TopologyNode {
   structureType: string;
   drawSize: number;
   qualifyingPositions?: number;
+  /** QUALIFYING nodes: seeds to place in the structure (0 = unseeded). */
+  seedsCount?: number;
   matchUpFormat?: string;
   structureOptions?: any;
   position: { x: number; y: number };
