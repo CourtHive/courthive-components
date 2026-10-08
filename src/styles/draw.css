@@ -246,11 +246,14 @@
   margin: 30px auto;
   padding-left: 15px;
   position: fixed;
+  /* The padding is OUTSIDE the width (content-box), so `width: 100%` made every dialog 30px wider than a
+     phone screen — measured 420px at a 390px viewport, the right edge clipped. Subtracting the padding
+     fits it; `max-width` still caps the same content box, so no desktop width changes. */
+  width: calc(100% - 30px);
   /* `dvh`, not `vh`: on iOS Safari the browser chrome eats into `100vh`, so a dialog sized against
      it sits partly underneath. `interactive-scoring.css` already uses `dvh` for the same reason. */
   height: 100dvh;
   display: flex;
-  width: 100%;
   z-index: 9999;
   bottom: 0;
   right: 0;
@@ -903,4 +906,3 @@
   display: flex;
   width: 20px;
 }
-
