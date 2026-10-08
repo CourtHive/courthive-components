@@ -848,8 +848,18 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    * contradiction the other way instead of leaving it standing.
    */
   function endingOffered(status: string): boolean {
+    // A retirement keeps the score that was played; with nothing played there is nothing to keep, and
+    // the result would be a walkover wearing the wrong name (CA, 2026-10-08: "Retired is only supposed
+    // to be enabled once there is a score present"). A default is different: a player can be defaulted
+    // before the first ball, so it stays offered.
+    if (status === RETIRED && !scoreEntered()) return false;
     if (!contradictsFinishedScore(status)) return true;
     return !scoreIsFinished();
+  }
+
+  /** Whether any score has been entered — in the model, or as text the region holds that the model cannot see yet. */
+  function scoreEntered(): boolean {
+    return hasEntry(model()) || !!region.hasEntry?.();
   }
 
   /** The endings that say the match did not finish AND keep the score that says it did. */
@@ -886,6 +896,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
   function refusalReason(status: string): string {
     const label = labels[status] ?? status;
+    if (status === RETIRED && !scoreEntered()) return `No score yet — ${label} keeps the score that was played`;
     return `The score is complete — ${label} cannot follow it`;
   }
 
