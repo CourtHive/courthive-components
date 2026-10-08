@@ -405,19 +405,20 @@ describe('the band announces a score about to be discarded', () => {
 
 describe('the reason chips', () => {
   it('appear only when a policy is attached', () => {
-    const without = mount();
+    // a retirement needs a score to keep (CA, 2026-10-08), so the card holds one set
+    const without = mount({ region: holding([6, 4]) });
     without.endedEarly(1)?.click();
     without.sideOption(1, RETIRED)?.click();
     expect(without.reasons()).toEqual([]);
 
-    const withPolicy = mount({ statusCodeGroups: REAL_GROUPS });
+    const withPolicy = mount({ statusCodeGroups: REAL_GROUPS, region: holding([6, 4]) });
     withPolicy.endedEarly(1)?.click();
     withPolicy.sideOption(1, RETIRED)?.click();
     expect(withPolicy.reasons().length).toBeGreaterThan(1);
   });
 
   it("offer the selected ending's group, and never another ending's", () => {
-    const h = mount({ statusCodeGroups: REAL_GROUPS });
+    const h = mount({ statusCodeGroups: REAL_GROUPS, region: holding([6, 4]) });
     h.endedEarly(1)?.click();
     h.sideOption(1, RETIRED)?.click();
 
@@ -449,7 +450,7 @@ describe('the reason chips', () => {
   });
 
   it('are dropped when the ending changes, rather than following it', () => {
-    const h = mount({ statusCodeGroups: REAL_GROUPS });
+    const h = mount({ statusCodeGroups: REAL_GROUPS, region: holding([6, 4]) });
     h.endedEarly(1)?.click();
     h.sideOption(1, RETIRED)?.click();
     h.reason('RJ')?.click();
