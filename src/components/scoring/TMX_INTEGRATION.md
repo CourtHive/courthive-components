@@ -2,6 +2,29 @@
 
 Quick reference for integrating the Dynamic Sets scoring modal into TMX.
 
+## The dialog reports an engine-ready `outcome` — hand it to `setMatchUpStatus` (2026-10-08)
+
+CA: *"Shouldn't the new score entry modal be built in such a way that it cleanly understands and
+integrates with the factory setMatchUpStatus method?"* It does now. `openScoreEntryDialog`'s `onSubmit`
+argument carries **`outcome`**, already in the engine's shape, so a host does none of the bridging the
+table below describes:
+
+```typescript
+openScoreEntryDialog({
+  matchUp, sides, statusCodeGroups,
+  onSubmit: ({ outcome }) =>
+    mutationRequest({ methods: [{ method: 'setMatchUpStatus', params: { drawId, matchUpId, outcome } }] }),
+});
+```
+
+`outcome.score.sets` carries the sets; a chosen reason is a positional `matchUpStatusCodes`; a clear is
+`{ score: { sets: [] }, matchUpStatusCodes: [] }`; a format changed through the chip rides as
+`matchUpFormat` (an unchanged one is left to the engine's own). The mapping is `logic/engineOutcome.ts`,
+exported as `toEngineOutcome` for a host that builds an outcome by hand. The raw fields (`score` string,
+`sets`, `reasonCode`, `cleared`) are still reported beside it, unchanged.
+
+The table that follows is what the raw fields would need, kept as the measured record behind the mapping.
+
 ## The score-entry dialog and the engine: what the outcome has to become
 
 Measured 2026-10-01 against published factory **7.4.0** and against factory `dev` at `cff5c3d7c0`,

@@ -73,6 +73,10 @@ export type {
   ScoreEntryDialog
 } from './components/scoring/scoreEntryDialog';
 export type { ScoreEntryOutcome, ScoreEntryCard } from './components/scoring/scoreEntryCard';
+// The engine-ready shape the dialog's `onSubmit` reports as `outcome`, and the mapping behind it, for a host
+// that builds an outcome by hand (an import, a correction) and wants the same rules.
+export { toEngineOutcome } from './components/scoring/logic/engineOutcome';
+export type { EngineOutcome as ScoreEntryEngineOutcome } from './components/scoring/logic/engineOutcome';
 
 // Dynamic Sets state management API (pure functions, testable)
 export {
@@ -149,12 +153,7 @@ export {
   extractCourtSvgSport,
   buildCardSkeleton
 } from './helpers/cards';
-export type {
-  CardAddress,
-  CardOnlineResource,
-  CardVenueLike,
-  CardSkeletonConfig
-} from './helpers/cards';
+export type { CardAddress, CardOnlineResource, CardVenueLike, CardSkeletonConfig } from './helpers/cards';
 
 // Tournament Card — card-grid renderer for tournament listings
 import './components/tournament-card/tournament-card.css';
@@ -218,8 +217,16 @@ export type {
 
 // Court Layout — a venue's courts as an ordered, grouped grid (schematic, not a map)
 import './components/court-layout/court-layout.css';
-export { buildCourtLayout, cellCardConfig, groupCourts, settingOf, summarizeCourts, surfaceOf,
-  DEFAULT_COURT_LAYOUT_CONFIG, mergeCourtLayoutConfig } from './components/court-layout';
+export {
+  buildCourtLayout,
+  cellCardConfig,
+  groupCourts,
+  settingOf,
+  summarizeCourts,
+  surfaceOf,
+  DEFAULT_COURT_LAYOUT_CONFIG,
+  mergeCourtLayoutConfig
+} from './components/court-layout';
 export type {
   CourtGroup,
   CourtLayoutCallbacks,
@@ -422,12 +429,9 @@ export type {
   LadderChartConfig,
   LadderChartDatum,
   LadderChartInstance,
-  LadderChartMargins,
+  LadderChartMargins
 } from './components/ladderChart';
-export type {
-  RatingDistributionChartOptions,
-  RatingDistributionChartMode
-} from './components/ratingDistributionChart';
+export type { RatingDistributionChartOptions, RatingDistributionChartMode } from './components/ratingDistributionChart';
 
 // Pressure Chart — projected vs actual path difficulty across the rounds.
 // `getProjectedPressure` is pure and dependency-light on purpose: it is a
