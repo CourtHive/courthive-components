@@ -250,10 +250,10 @@ export function isSetTimed(format?: SetFormat): boolean {
  * 2026-10-08, live in the shipping dialog). It now caps at the complement of the opponent's points: 10,
  * then 12 against 10, and `NoAD` ends it at the target.
  *
- * Two conventions of the calling dialog are kept, each pinned by an existing test: an opponent score of
- * 0 means "not entered yet" and allows the format's ceiling; and an opponent already holding the set (a
- * state the dialog reaches mid-edit) keeps the old reads — the two-game margin past the ceiling, or the
- * tiebreak games where the tiebreak sits below setTo — rather than freezing the field.
+ * One convention of the calling dialog is kept: an opponent score of 0 means "not entered yet" and allows
+ * the format's ceiling. Where the opponent's games already hold the set, the answer is the factory's
+ * ceiling (CA, 2026-10-08: "follow the factory") — 7 under `S:6/TB7`, 5 under `S:5/TB9@4` — and the old
+ * "extended play" read of 9, a tiebreak set running on like an advantage set, is gone.
  */
 export function getMaxAllowedScore(
   setIndex: number,
@@ -289,16 +289,7 @@ export function getMaxAllowedScore(
     NoAD: setFormat?.NoAD,
     setTo
   });
-  if (max !== undefined) {
-    // The opponent already holds the set (a state the dialog reaches mid-edit): the old reads are kept
-    // so the field is not frozen — the two-game margin past the ceiling, or the tiebreak games where the
-    // tiebreak sits below setTo. A win-by-one set has no such state; its ceiling is setTo.
-    const opponentHoldsSet =
-      opponentEntered && oppScore >= max && !(setFormat?.winBy === 1 && !setFormat?.tiebreakFormat);
-    if (!opponentHoldsSet) return max;
-    const tiebreakAt = setFormat?.tiebreakAt;
-    return tiebreakAt !== undefined && tiebreakAt < setTo ? tiebreakAt : oppScore + 2;
-  }
+  if (max !== undefined) return max;
 
   // No ceiling from the format (an advantage set): the set's margin decides
   if (!opponentEntered) return setTo + 1;
