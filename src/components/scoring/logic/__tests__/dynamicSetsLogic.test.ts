@@ -185,9 +185,10 @@ describe('dynamicSetsLogic - Pure Functions', () => {
         expect(max).toBe(7); // At tiebreakAt, max is absoluteMax (7)
       });
 
-      it('allows opponent+2 when past setTo (extended play)', () => {
+      it('caps at the ceiling when the opponent already holds the set (CA 2026-10-08: follow the factory)', () => {
+        // a tiebreak set ends 7-5 or 7-6; it never runs on by two like an advantage set
         const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 7 }, standardBestOf3);
-        expect(max).toBe(9);
+        expect(max).toBe(7);
       });
     });
 
@@ -214,9 +215,9 @@ describe('dynamicSetsLogic - Pure Functions', () => {
         expect(max).toBe(5); // Can win 5-4 after tiebreak
       });
 
-      it('allows up to tiebreakAt when opponent at setTo (opponent won)', () => {
+      it('caps at the ceiling when the opponent already holds the set at 5 (follow the factory)', () => {
         const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 5 }, s5at4Config);
-        expect(max).toBe(4); // Opponent won, my max is tiebreakAt (4)
+        expect(max).toBe(5); // 5-4 is the set's ceiling, tiebreak included
       });
 
       it('enforces max of 5 when opponent is 0', () => {
