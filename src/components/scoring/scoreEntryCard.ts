@@ -121,6 +121,26 @@ const SCORE_COLUMN_PX = 62;
 const MAX_INLINE_SCORE_COLUMNS = 6;
 
 /**
+ * The phone breakpoint, the same query the stylesheet uses for every other phone rule.
+ *
+ * Below it the rows take the STACKED layout whatever the column count — CA, 2026-10-08, a screenshot of
+ * Dynamic Sets on a phone: each row had collapsed to a name over one input stretched across the whole
+ * width, with the set headings hidden. That was the stylesheet flattening the grid to a single column.
+ * The stacked layout already solves the same problem for formats too wide to sit beside a name: the name
+ * takes its own line and the cells keep their 52px columns under their headings, which fit a 390px
+ * screen up to best-of-five.
+ *
+ * A media query rather than a measurement, for the reason the column count is counted: it gives the same
+ * answer in happy-dom (stubbed) as in a browser. Read at every render, so a rotation is picked up by the
+ * next keystroke rather than needing a listener the card would have to remove.
+ */
+const PHONE_QUERY = '(width <= 560px)';
+
+function isPhoneViewport(): boolean {
+  return globalThis.matchMedia?.(PHONE_QUERY).matches ?? false;
+}
+
+/**
  * The three endings the design privileges as buttons in the match-level row. The rest go behind
  * "Other…". Their presence is what tells an operator the row is about the match rather than a side,
  * which is why the caption that used to say so is gone.
@@ -1137,11 +1157,13 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     const scoreTracks = columns.map((column) => column.width ?? `${SCORE_COLUMN_PX}px`).join(' ');
     // Past the point where a name fits beside them, the columns take the whole row and the name floats
     // onto a line of its own — above its cells for the upper participant, beneath them for the lower.
-    const stacked = columns.length > MAX_INLINE_SCORE_COLUMNS;
+    const stacked = columns.length > MAX_INLINE_SCORE_COLUMNS || isPhoneViewport();
     // No trailing action track: the ending control moved into the name cell (see `participantRow`), which
     // returns its width to the participant and stops the row ending in something shaped like an overflow
     // menu.
-    const template = stacked ? scoreTracks : `1fr ${scoreTracks}`;
+    // Stacked, a trailing `1fr` filler gives the name — which spans every track — the row's full width; with
+    // score tracks alone, one set on a phone left the name 62px to wrap in. The cells stay left, under it.
+    const template = stacked ? `${scoreTracks} 1fr` : `1fr ${scoreTracks}`;
 
     // A header row only when at least one column is labelled. Free Score and the Dial Pad have a
     // single unlabelled readout column, and an empty header strip above it would be furniture.
