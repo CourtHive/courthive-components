@@ -43,17 +43,25 @@
  * model; they differ only in which selector they ask.
  */
 
-import { getSetFormatForIndex, isSetTiebreakOnly, matchUpConfigFor } from '../logic/dynamicSetsLogic';
 import { clearCell, gamesLoser, isEmptyEntry, readCell, typeDigit } from '../logic/scoreEntryModel';
 import { ENTRY_SIDE, digitFromCode, hasCommandModifier, otherSide } from '../keyboard';
 import { createScoreReadouts, READOUT_COLUMN_WIDTH } from './scoreReadout';
 import { createScoreEntryStore } from '../logic/scoreEntryStore';
 import { tiebreakOnlyTarget } from '../logic/tiebreakEntry';
 import { enteredSets } from '../logic/scoreEntrySelectors';
+import {
+  getSetFormatForIndex,
+  isSetComplete,
+  isSetTiebreakOnly,
+  matchUpConfigFor,
+  shouldShowTiebreak
+} from '../logic/dynamicSetsLogic';
 
 import type { CellRef, ScoreEntryModel, SetEntry } from '../logic/scoreEntryModel';
 import type { ScoreEntryStore } from '../logic/scoreEntryStore';
 import type { SideNumber } from '../logic/scoreEntryState';
+
+const ARIA_PRESSED = 'aria-pressed';
 import type { ScoreRegion } from '../scoreEntryCard';
 import type { SetScore } from '../types';
 
@@ -81,6 +89,8 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
   const setCount = store.get().sets.length;
   /** Whether the next digit is entered as a tiebreak rather than as games. Presentation: see the header. */
   let tiebreakMode = false;
+  /** The Tiebreak key, so `changed` can offer or withdraw it as the games change. */
+  let tiebreakKey: HTMLButtonElement | undefined;
   const readouts = createScoreReadouts();
   /** The live digit keys, so `focusFirst` can reach one without a DOM query. */
   const digitKeys = new Map<number, HTMLButtonElement>();
@@ -181,8 +191,46 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
       // row it explicitly did not name — otherwise `Shift` would sometimes mean "upper" and sometimes
       // mean "wherever there is space", which is not a convention anyone can rely on.
       if (!shifted && !filled(entry, otherSide(named))) return games(index, otherSide(named));
+      // ── A finished set is the condition for starting the next one (CA, 2026-10-08) ──
+      //
+      // `5-1 1-4 3-3` under `SET3-S:6/TB7` was accepted tap by tap and refused only at Submit, so every
+      // tap after the `5-1` was work the operator could not see was wasted. A set whose two cells hold
+      // games that do not finish it — 5-1, or 6-7 owed its tiebreak — stops the keypad here: Backspace
+      // corrects it, or the Tiebreak key completes it, and only then does the next set open.
+      if (!holds(index)) return undefined;
     }
     return undefined;
+  }
+
+  /** Whether a set with both cells filled is finished, by the factory's rule, tiebreak points included. */
+  function holds(index: number): boolean {
+    const entry = model().sets[index];
+    if (!filled(entry, 1) || !filled(entry, 2)) return false;
+    return isSetComplete(
+      index,
+      { side1: entry.side1 as number, side2: entry.side2 as number, tiebreak: lowTiebreak(entry) },
+      config
+    );
+  }
+
+  /** The LOSER's tiebreak points on a set, which is the single value this module's helpers carry. */
+  function lowTiebreak(entry: SetEntry): number | undefined {
+    const points = [entry.tiebreak1, entry.tiebreak2].filter((p): p is number => p !== undefined);
+    return points.length ? Math.min(...points) : undefined;
+  }
+
+  /**
+   * Whether the Tiebreak key does anything RIGHT NOW: the format has one, and the set being entered has
+   * games that carry one — 7-6, or 5-4 under `S:5/TB9@4`. At 6-6 the tiebreak is still being played and
+   * there is nothing to type yet; after 6-4 there was none. `shouldShowTiebreak` is the Dynamic Sets
+   * rule for the same question, so the two approaches offer the control in the same states.
+   */
+  function tiebreakOffered(): boolean {
+    if (!formatHasTiebreak()) return false;
+    const index = lastActiveIndex();
+    const entry = model().sets[index];
+    if (tiebreakOnly(index) || !filled(entry, 1) || !filled(entry, 2)) return false;
+    return shouldShowTiebreak(index, { side1: entry.side1 as number, side2: entry.side2 as number }, config);
   }
 
   /**
@@ -370,7 +418,19 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
    */
   function changed(): void {
     readouts.update(readoutSets());
+    syncTiebreakKey();
     params.onChange?.();
+  }
+
+  /** Offer or withdraw the Tiebreak key for the games now entered; leaving tiebreak mode when withdrawn. */
+  function syncTiebreakKey(): void {
+    if (!tiebreakKey) return;
+    const offered = tiebreakOffered();
+    tiebreakKey.disabled = !offered;
+    if (!offered && tiebreakMode) {
+      tiebreakMode = false;
+      tiebreakKey.setAttribute(ARIA_PRESSED, 'false');
+    }
   }
 
   // ── Rendering ────────────────────────────────────────────────────────
@@ -423,20 +483,22 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     const side = document.createElement('div');
     side.className = 'chc-sec-dialpad-side';
 
-    const tiebreakKey = document.createElement('button');
-    tiebreakKey.type = 'button';
-    tiebreakKey.className = 'chc-sec-btn';
-    tiebreakKey.dataset.action = 'tiebreak';
-    tiebreakKey.textContent = 'Tiebreak';
-    tiebreakKey.setAttribute('aria-pressed', String(tiebreakMode));
-    // Offered only when the format has a tiebreak at all. A disabled control the operator cannot
-    // explain is worse than one that is not there.
-    tiebreakKey.disabled = !formatHasTiebreak();
-    tiebreakKey.addEventListener('click', () => {
+    const key = document.createElement('button');
+    key.type = 'button';
+    key.className = 'chc-sec-btn';
+    key.dataset.action = 'tiebreak';
+    key.textContent = 'Tiebreak';
+    key.setAttribute(ARIA_PRESSED, String(tiebreakMode));
+    // Offered only while the games just entered can carry a tiebreak (see `tiebreakOffered`), and never
+    // in a format without one. A disabled control the operator cannot explain is worse than one that is
+    // not there — and a key that opens tiebreak mode over a 5-1 produced a score nothing could accept.
+    key.disabled = !tiebreakOffered();
+    key.addEventListener('click', () => {
       tiebreakMode = !tiebreakMode;
-      tiebreakKey.setAttribute('aria-pressed', String(tiebreakMode));
+      key.setAttribute(ARIA_PRESSED, String(tiebreakMode));
       changed();
     });
+    tiebreakKey = key;
 
     const back = document.createElement('button');
     back.type = 'button';
@@ -445,7 +507,7 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     back.textContent = 'Backspace';
     back.addEventListener('click', () => backspace());
 
-    side.append(tiebreakKey, back);
+    side.append(key, back);
     wrapper.append(digits, side);
     return wrapper;
   }
