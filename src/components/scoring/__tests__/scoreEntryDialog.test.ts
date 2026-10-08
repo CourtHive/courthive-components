@@ -46,7 +46,6 @@ const BEST_OF_ONE = 'SET1-S:6/TB7';
 /** A best-of-three whose DECIDING set is a match tiebreak — only set 3's rule moves. */
 const DECIDER_TB10 = 'SET3-S:6/TB7-F:TB10';
 const BAND = '.chc-sec-band';
-const SMART = 'button[data-action="smartComplements"]';
 const ENDED_EARLY_2 = 'button[data-action="endedEarly"][data-side="2"]';
 const ROW_ENDING = '[data-row-ending]';
 
@@ -288,79 +287,54 @@ describe('the dialog announces and focuses itself', () => {
   });
 });
 
-describe('Escape', () => {
+/**
+ * CA, 2026-10-08: *"I'd like ESC to be the equivalent of the [Cancel] button and DEL/BKSP key to be the
+ * equivalent of [Clear] button."* Each key presses its button, so the assertions are the button's own
+ * effects; the cases that must NOT clear are where the key already means something else.
+ */
+describe('Escape is Cancel', () => {
   const escape = () =>
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
 
-  it('closes an EMPTY dialog — cModal has no keyboard handling of its own', () => {
+  it('closes an EMPTY dialog and reports Cancel', () => {
+    const onCancel = vi.fn();
     const onClose = vi.fn();
-    open({ onClose });
+    open({ onCancel, onClose });
 
     escape();
 
     expect(modal()).toBeNull();
+    expect(onCancel).toHaveBeenCalledTimes(1);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('does NOT discard a typed score', () => {
-    open();
-
-    type(SET_1_SIDE_1, '6');
-    escape();
-
-    // The same rule the click-away guard already holds: silent non-dismissal, not a confirm step.
-    expect(modal()).toBeTruthy();
-    expect(q<HTMLInputElement>(SET_1_SIDE_1)!.value).toBe('6');
-  });
-
-  it('does NOT discard a recorded ending', () => {
-    open();
-
-    click(ENDED_EARLY_2);
-    click(`[data-panel-side="2"] button[data-ending="${WALKOVER}"]`);
-    escape();
-
-    expect(modal()).toBeTruthy();
-    expect(q(ROW_ENDING)).toBeTruthy();
-  });
-
-  it('does NOT discard a LONE value typed with smart complements off', () => {
-    // The hole the first version of this guard had. `getSets()` reports only sets whose BOTH sides are
-    // in — one value is not a set score — so a lone `6` was invisible to it and Escape threw the
-    // keystroke away. With complements ON the complement fills the other side immediately, which is
-    // exactly why the hole did not show up: the region has to be asked `hasEntry`, not `getSets`.
-    open();
-
-    click(SMART);
+  it('closes a dialog HOLDING a score, exactly as Cancel does — it replaced the keep-the-score guard', () => {
+    const onCancel = vi.fn();
+    const onSubmit = vi.fn();
+    open({ onCancel, onSubmit });
     type(SET_1_SIDE_1, '6');
 
-    expect(q<HTMLInputElement>(SET_1_SIDE_2)!.value, 'complements must be off for this to be the test').toBe('');
-
     escape();
 
-    expect(modal()).toBeTruthy();
-    expect(q<HTMLInputElement>(SET_1_SIDE_1)!.value).toBe('6');
+    expect(modal()).toBeNull();
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(onSubmit, 'Cancel discards; it never submits').not.toHaveBeenCalled();
   });
 
-  it('treats a LONE ZERO as entry, not as emptiness', () => {
-    // `0` is a real score — a set going to love — and the region's entry is a STRING, so a check written
-    // as `Number(...)` or `!!score` on the parsed value reads this dialog as untouched. Complements off
-    // again, so the zero is genuinely alone: with them on, the other side becomes a 6 and any check at
-    // all sees the 6.
-    open();
-
-    click(SMART);
-    type(SET_1_SIDE_1, '0');
+  it('does nothing while another dialog stands above it', () => {
+    const onCancel = vi.fn();
+    open({ onCancel });
+    cModal.open({ content: 'a picker above the card', config: {} });
 
     escape();
 
-    expect(modal()).toBeTruthy();
-    expect(q<HTMLInputElement>(SET_1_SIDE_1)!.value).toBe('0');
+    expect(onCancel).not.toHaveBeenCalled();
+    expect(document.querySelectorAll(MODAL)).toHaveLength(2);
   });
 
   it('releases the keydown listener on close', () => {
     // Asserted on `removeEventListener` rather than through behaviour, deliberately. A leaked listener
-    // is inert — `onKeyDown` returns early once `closed` is set — so no Escape, no reopen and no second
+    // is inert — `onKeyDown` returns early once `closed` is set — so no key, no reopen and no second
     // dialog can expose it. The only observable is the removal itself, and the cost of leaking is a
     // listener per dialog opened for the life of the page.
     const remove = vi.spyOn(document, 'removeEventListener');
@@ -370,6 +344,99 @@ describe('Escape', () => {
 
     expect(remove.mock.calls.some(([type]) => type === 'keydown')).toBe(true);
     remove.mockRestore();
+  });
+});
+
+describe('Delete and Backspace are Clear', () => {
+  const CLEAR = 'button[data-action="clear"]';
+  const press = (target: EventTarget, key: string, init: { metaKey?: boolean } = {}) =>
+    target.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...init }));
+  const clearEnabled = () => !q<HTMLButtonElement>(CLEAR)!.disabled;
+
+  it.each(['Delete', 'Backspace'])('%s from the dialog clears the score and the ending', (key) => {
+    const onClear = vi.fn();
+    open({ onClear });
+    type(SET_1_SIDE_1, '6');
+    click(ENDED_EARLY_2);
+    click(`[data-panel-side="2"] button[data-ending="${WALKOVER}"]`);
+    expect(clearEnabled(), 'control: there is something to clear').toBe(true);
+
+    press(modal()!, key);
+
+    expect(onClear).toHaveBeenCalledTimes(1);
+    expect(q<HTMLInputElement>(SET_1_SIDE_1)!.value).toBe('');
+    expect(q(ROW_ENDING)).toBeNull();
+    expect(modal(), 'Clear empties the card; it does not close it').toBeTruthy();
+  });
+
+  it.each(['Delete', 'Backspace'])('%s inside a score cell edits the cell and does not clear', (key) => {
+    const onClear = vi.fn();
+    open({ onClear });
+    type(SET_1_SIDE_1, '6');
+
+    press(q(SET_1_SIDE_1)!, key);
+
+    expect(onClear).not.toHaveBeenCalled();
+    expect(q<HTMLInputElement>(SET_1_SIDE_1)!.value).toBe('6');
+  });
+
+  it('Backspace inside the Free Score field edits the text and does not clear', () => {
+    const onClear = vi.fn();
+    open({ approach: 'freeScore', onClear });
+    type(FREE_SCORE_FIELD, '6-4');
+
+    press(q(FREE_SCORE_FIELD)!, 'Backspace');
+
+    expect(onClear).not.toHaveBeenCalled();
+    expect(q<HTMLInputElement>(FREE_SCORE_FIELD)!.value).toBe('6-4');
+  });
+
+  it("leaves Backspace to the Dial Pad's keypad, and Delete there clears", () => {
+    const onClear = vi.fn();
+    open({ approach: 'dialPad', onClear });
+    click('[data-digit="6"]');
+    click('[data-digit="4"]');
+    const digit = q('[data-digit="6"]')!;
+
+    press(digit, 'Backspace');
+    expect(onClear, "Backspace is the keypad's own key").not.toHaveBeenCalled();
+    expect(clearEnabled(), 'the 6 is still entered').toBe(true);
+
+    press(digit, 'Delete');
+    expect(onClear).toHaveBeenCalledTimes(1);
+    expect(clearEnabled()).toBe(false);
+  });
+
+  it('does nothing to an empty card', () => {
+    const onClear = vi.fn();
+    open({ onClear });
+
+    press(modal()!, 'Delete');
+
+    expect(onClear, 'Clear is disabled with nothing to remove').not.toHaveBeenCalled();
+  });
+
+  it('ignores a modified chord, which belongs to the browser', () => {
+    const onClear = vi.fn();
+    open({ onClear });
+    type(SET_1_SIDE_1, '6');
+
+    press(modal()!, 'Backspace', { metaKey: true });
+
+    expect(onClear).not.toHaveBeenCalled();
+  });
+
+  it('ignores a key pressed OUTSIDE the dialog', () => {
+    const onClear = vi.fn();
+    open({ onClear });
+    type(SET_1_SIDE_1, '6');
+    const outside = document.createElement('button');
+    document.body.append(outside);
+
+    press(outside, 'Backspace');
+
+    expect(onClear).not.toHaveBeenCalled();
+    outside.remove();
   });
 });
 
