@@ -1,0 +1,39 @@
+/* ── The format picker, styled to match the score-entry dialog ─────────
+   CA, 2026-10-08: "the matchUpFormat selector should be styled to match the new score entry rather than
+   the other way around (the red of the tiebreak toggle is jarring)". The picker opens ABOVE the score
+   entry dialog, so it takes that card's language: its accent for every "on" state and for the one
+   primary action, its button shapes, its title size. Scoped to `.chc-mfc-modal` (set by
+   `getMatchUpFormatModal`) so no other switch or button in the library changes. */
+
+.chc-mfc-modal .chc-modal-title {
+  font-size: 16px;
+}
+
+/* Every toggle that is ON reads in the card's accent — the tiebreak toggle was `is-danger` red, the final
+   set toggle `is-info` blue. `[class]` lifts this above `.switch[type='checkbox'].is-*:checked`, which it
+   would otherwise tie with and lose to by source order. */
+.chc-mfc-modal .switch[type='checkbox'][class]:checked + label::before {
+  background: var(--chc-card-accent);
+}
+
+/* The footer buttons in the shape of the card's: 44px tall, 8px radius. */
+.chc-mfc-modal .chc-modal-footer .button {
+  min-height: 44px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Select is the primary action, so it is the card's primary button — Submit's teal, not Bulma's info blue. */
+.chc-mfc-modal .chc-modal-footer .button.is-info {
+  padding: 12px 24px;
+  border-color: var(--chc-card-accent);
+  background: var(--chc-card-accent);
+  color: var(--chc-card-on-accent);
+}
+
+.chc-mfc-modal .chc-modal-footer .button.is-info:hover {
+  background: var(--chc-card-accent);
+  filter: brightness(1.08);
+}
