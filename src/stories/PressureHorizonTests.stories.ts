@@ -14,8 +14,7 @@
  * Nothing except a rendered-DOM assertion can catch that.
  *
  * Run interactively: `pnpm storybook`
- * Run as tests:      `pnpm storybook` (one terminal) +
- *                    `pnpm test-storybook -- --testPathPatterns PressureHorizonTests` (other)
+ * Run as tests:      `pnpm test:stories src/stories/PressureHorizonTests.stories.ts`
  */
 
 import type { Meta, StoryObj } from '@storybook/html-vite';

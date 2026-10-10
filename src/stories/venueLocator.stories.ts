@@ -7,7 +7,7 @@
  * nor wait for the network.
  *
  * Run interactively: pnpm storybook
- * Run as tests:     pnpm storybook (one terminal) + pnpm test-storybook (other)
+ * Run as tests:     pnpm test:stories
  */
 
 // A host that renders this component supplies leaflet AND its stylesheet; the story does the same.

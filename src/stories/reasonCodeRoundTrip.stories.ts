@@ -29,24 +29,18 @@
  * ── Why Storybook and not another unit test ──
  *
  * This is the library's DOM layer, and the visible round-trip log is the point as much as the
- * assertions are: a director can open these and watch a reason go out and come back. Note that
- * `test-storybook` runs in NO CI workflow here (see the NOTE in `.github/workflows/npm-publish.yml`
- * — the runner's injected harness fails on Linux), so play functions are local evidence. Run them
- * with `pnpm test-storybook` against a running `pnpm storybook`.
+ * assertions are: a director can open these and watch a reason go out and come back. The play
+ * functions run in CI's `verify` job (`pnpm test:stories`, Storybook's Vitest integration in headless
+ * Chromium), so they are gated evidence, not local-only.
  *
- * ── Running these: wait for the BUILD, not for the index ──
+ * ── Running these ──
  *
- * Two false failures were measured here before a real one, and both were the harness rather than the
- * code. `pnpm storybook` answers `/index.json` **before** it has finished compiling story bundles, so
- * a `test-storybook` run started as soon as that endpoint responds can execute against a half-built
- * graph — it reported "expected 0 to be greater than 1" for a picker that has 7 options. And after
- * editing a story, a still-running dev server serves the OLD play function, which reported a value
- * from a different story entirely. Both were "fixed" by diagnoses that turned out to be wrong.
- *
- * So: restart Storybook after editing, give it time past `/index.json`, and treat an unexplained
- * play-function failure as a question about the server before it is a question about the story. The
- * suite is 608 tests / 88 suites green, and was green with and without the modal guards below —
- * which is how their necessity was checked rather than assumed.
+ * `pnpm test:stories` builds the stories itself. Under the old `test-storybook`, which ran against a
+ * live `pnpm storybook`, two false failures were measured here: a run started when `/index.json`
+ * answered executed against a half-built graph, and a still-running dev server served a stale play
+ * function after an edit. Neither applies to the Vitest runner. The suite was 608 tests / 88 suites
+ * green under that runner, with and without the modal guards below, which is how their necessity was
+ * checked rather than assumed.
  *
  * ── Modal hygiene, kept on its own merits ──
  *

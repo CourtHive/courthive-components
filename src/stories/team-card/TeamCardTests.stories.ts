@@ -10,8 +10,7 @@
  * functions are the sanctioned forward path.
  *
  * Run interactively: `pnpm storybook`
- * Run as tests:      `pnpm storybook` (one terminal) +
- *                    `pnpm test-storybook -- --testPathPatterns TeamCardTests`
+ * Run as tests:      `pnpm test:stories src/stories/team-card/TeamCardTests.stories.ts`
  */
 
 import type { Meta, StoryObj } from '@storybook/html-vite';

@@ -5,7 +5,7 @@
  * at once, and on what". No map, no coordinates — each cell is an existing CourtCard.
  *
  * Run interactively: pnpm storybook
- * Run as tests:     pnpm storybook (one terminal) + pnpm test-storybook (other)
+ * Run as tests:     pnpm test:stories
  */
 
 import { within, userEvent, expect } from 'storybook/test';

@@ -18,7 +18,7 @@
  * make timing-dependent.
  *
  * Run interactively: `pnpm storybook`
- * Run as tests:      `pnpm storybook` + `pnpm test-storybook`
+ * Run as tests:      `pnpm test:stories src/stories/ControlBarSelectionTests.stories.ts`
  */
 
 import type { Meta, StoryObj } from '@storybook/html-vite';

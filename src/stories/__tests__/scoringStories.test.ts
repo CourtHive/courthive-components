@@ -3,11 +3,11 @@
  *
  * The scoring STORIES, executed.
  *
- * `test-storybook` cannot run in this package — measured 2026-09-27, 612/612 fail on a runner-internal
- * error (test-runner 0.24 against Storybook 10.2.17) — and it appears in no workflow. The consequence is
- * that a play function here is unexecuted code: it can reference a selector that no longer exists, or
- * assert something that has quietly become false, and nothing says so until a person opens Storybook and
- * reads a red panel.
+ * Written when `test-storybook` could not run in this package (measured 2026-09-27, 612/612 failed on a
+ * runner-internal error) and appeared in no workflow, so a play function here was unexecuted code: it
+ * could reference a selector that no longer existed, or assert something that had quietly become false,
+ * and nothing said so until a person opened Storybook. Since 2026-10-10 every play function also runs
+ * in Chromium in CI (`pnpm test:stories`); this file remains the fast, browser-free check.
  *
  * So the play functions are driven here instead, in happy-dom, exactly as the runner would: render into
  * a canvas attached to the document, then `play({ canvasElement })`. That does NOT make this a browser —

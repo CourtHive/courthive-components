@@ -113,6 +113,15 @@ jobs:
       - run: pnpm test
         if: steps.scope.outputs.light != 'true'
 
+      # Every story's play function, in headless Chromium, through Storybook's own Vitest integration
+      # (@storybook/addon-vitest). It replaced @storybook/test-runner, which failed every story under
+      # Storybook 10 and so ran in no workflow; story assertions now gate PRs.
+      - name: Install Chromium for the story tests
+        if: steps.scope.outputs.light != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:stories
+        if: steps.scope.outputs.light != 'true'
+
   fresh-resolve:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
@@ -135,6 +144,8 @@ jobs:
       - run: pnpm check-types
       - run: pnpm build
       - run: pnpm test
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:stories
 
       - name: Explain a failure
         if: failure()

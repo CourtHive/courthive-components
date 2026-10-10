@@ -21,8 +21,7 @@
  * classes / nodes onto the DOM tree?
  *
  * Run interactively: `pnpm storybook`
- * Run as tests:      `pnpm storybook` (one terminal) +
- *                    `pnpm test-storybook` (other)
+ * Run as tests:      `pnpm test:stories` (Storybook's Vitest integration, headless Chromium)
  */
 
 import type { Meta, StoryObj } from '@storybook/html-vite';

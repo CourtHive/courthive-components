@@ -18,8 +18,7 @@
  * rendering-side counterpart.
  *
  * Run interactively: `pnpm storybook`
- * Run as tests:      `pnpm storybook` (one terminal) +
- *                    `pnpm test-storybook` (other)
+ * Run as tests:      `pnpm test:stories` (Storybook's Vitest integration, headless Chromium)
  */
 
 import { buildScheduleInspectorPanel } from '../../components/schedule-page/ui/inspectorPanel';

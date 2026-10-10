@@ -9,7 +9,7 @@
  * passes that engine state through correctly.
  *
  * Run interactively: pnpm storybook
- * Run as tests:     pnpm storybook (one terminal) + pnpm test-storybook (other)
+ * Run as tests:     pnpm test:stories
  */
 
 import type { Meta, StoryObj } from '@storybook/html-vite';
