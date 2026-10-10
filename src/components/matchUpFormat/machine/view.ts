@@ -1,6 +1,6 @@
 import { getBestOfOptionsForRoot, getTiebreakAtOptions, MATCH_ROOT_LABELS } from '../matchUpFormatLogic';
+import { resolveCapabilities, SET_TYPE_CAPABILITY } from './capabilities';
 import { DEFAULT_TIEBREAK_TO_OPTIONS } from './edits';
-import { resolveCapabilities } from './capabilities';
 import { selectedCode } from './codec';
 
 // constants and types
@@ -38,6 +38,7 @@ export interface SegmentView {
   minutes: ControlView;
   based: ControlView;
   modifier: ControlView;
+  outs: ControlView;
   tiebreakToggle: ToggleView;
 }
 
@@ -52,6 +53,8 @@ export interface EditorView {
   matchRoot: ControlView;
   aggregate: ToggleView;
   gameFormat: ControlView & { gameFormat?: GameFormat };
+  /** The match-level time limit (`-M:T60`). Its option value 0 means none. */
+  maxTime: ControlView;
   finalSetToggle: ToggleView;
   set: SegmentView;
   finalSet: SegmentView & { visible: boolean };
@@ -69,7 +72,14 @@ export interface ViewConfig {
 export const CUSTOM = 'Custom';
 const CLICKABLE = '▾';
 // The set-type and advantage names have always been shown in English; see the plan's i18n follow-up.
-const SET_TYPE_LABELS: Record<SetType, string> = { SET: 'Set', TIEBREAK: 'Tiebreak', TIMED: 'Timed set' };
+const SET_TYPE_LABELS: Record<SetType, [string, string]> = {
+  SET: ['Set', 'Sets'],
+  TIEBREAK: ['Tiebreak', 'Tiebreaks'],
+  TIMED: ['Timed set', 'Timed sets'],
+  OUTS: ['Outs', 'Outs']
+};
+const SET_TYPES: SetType[] = ['SET', 'TIEBREAK', 'TIMED', 'OUTS'];
+const DEFAULT_MAX_MINUTES = [20, 30, 40, 45, 50, 60, 75, 90, 100, 120, 150, 180];
 const ADVANTAGE_LABELS = { AD: 'Ad', NOAD: 'No-Ad' };
 
 const button = (text: string) => `${text}${CLICKABLE}`;
@@ -99,16 +109,19 @@ function hidden(): ControlView {
   return { visible: false, label: '', options: [] };
 }
 
-function segmentView(segment: SegmentDraft, plural: string, isFinal: boolean, config: ViewConfig, exactly: boolean) {
+const setTypeLabel = (setType: SetType, plural: boolean) => SET_TYPE_LABELS[setType][plural ? 1 : 0];
+
+function segmentView(segment: SegmentDraft, plural: boolean, isFinal: boolean, config: ViewConfig, exactly: boolean) {
   const capabilities = resolveCapabilities(config.capabilities);
   const options = config.options ?? {};
   const labels = config.labels ?? {};
   const { type } = segment;
   const isSet = type === 'SET';
+  const isTimed = type === 'TIMED';
+  /** A tiebreak whose win-by can be set: a standard set's, or a tiebreak-only set. */
   const hasTiebreak = (isSet && segment.tiebreak) || type === 'TIEBREAK';
-  const allowedTypes = (['SET', 'TIEBREAK', 'TIMED'] as SetType[]).filter(
-    (setType) => capabilities.setTypes[{ SET: 'set', TIEBREAK: 'tiebreak', TIMED: 'timed' }[setType]]
-  );
+  const timedTiebreak = isTimed && segment.timedTiebreak;
+  const allowedTypes = SET_TYPES.filter((setType) => capabilities.setTypes[SET_TYPE_CAPABILITY[setType]]);
 
   const standardTiebreakTo = options.tiebreakTo ?? DEFAULT_TIEBREAK_TO_OPTIONS;
   const tiebreakToValues =
@@ -132,14 +145,14 @@ function segmentView(segment: SegmentDraft, plural: string, isFinal: boolean, co
   }
 
   const basedLabels: Record<string, string> = { G: labels.games || 'Games', P: labels.points || 'Points' };
-  const modifierVisible = capabilities.modifiers && (type !== 'SET' || segment.tiebreak);
+  const modifierVisible = capabilities.modifiers && (type === 'TIEBREAK' || isTimed || (isSet && segment.tiebreak));
 
   return {
     what: {
       visible: true,
       setType: type,
-      label: button(`${SET_TYPE_LABELS[type]}${plural}`),
-      options: asOptions(allowedTypes, (setType) => `${SET_TYPE_LABELS[setType]}${plural}`)
+      label: button(setTypeLabel(type, plural)),
+      options: asOptions(allowedTypes, (setType) => setTypeLabel(setType, plural))
     },
     setTo: isSet
       ? {
@@ -148,9 +161,10 @@ function segmentView(segment: SegmentDraft, plural: string, isFinal: boolean, co
           options: asOptions(options.setTo ?? [1, 2, 3, 4, 5, 6, 7, 8, 9])
         }
       : hidden(),
-    tiebreakTo: hasTiebreak
-      ? { visible: true, label: button(`TB to ${segment.tiebreakTo}`), options: asOptions(tiebreakToValues) }
-      : hidden(),
+    tiebreakTo:
+      hasTiebreak || timedTiebreak
+        ? { visible: true, label: button(`TB to ${segment.tiebreakTo}`), options: asOptions(tiebreakToValues) }
+        : hidden(),
     tiebreakAt:
       isSet && segment.tiebreak
         ? {
@@ -193,7 +207,28 @@ function segmentView(segment: SegmentDraft, plural: string, isFinal: boolean, co
           options: asOptions(options.modifiers ?? ['None', 'RALLY'])
         }
       : hidden(),
-    tiebreakToggle: { visible: isSet && capabilities.setTiebreak, checked: isSet && segment.tiebreak }
+    outs:
+      type === 'OUTS'
+        ? { visible: true, label: button(`${segment.outs} outs`), options: asOptions(options.outs ?? [1, 2, 3, 4, 5]) }
+        : hidden(),
+    tiebreakToggle: {
+      visible: (isSet || isTimed) && capabilities.setTiebreak,
+      checked: (isSet && segment.tiebreak) || timedTiebreak
+    }
+  };
+}
+
+const minutesText = (minutes: number) => `${minutes} min`;
+
+function maxTimeView(maxMinutes: number | undefined, visible: boolean, labels: any, options: any): ControlView {
+  const minutes: number[] = options.maxMinutes ?? DEFAULT_MAX_MINUTES;
+  // A code's own limit is always offered, even when it is not in the list.
+  const values = maxMinutes && !minutes.includes(maxMinutes) ? [...minutes, maxMinutes].sort((a, b) => a - b) : minutes;
+  const none = labels.none || 'None';
+  return {
+    visible,
+    label: button(`${labels.maxTime || 'Max time'}: ${maxMinutes ? minutesText(maxMinutes) : none}`),
+    options: [{ value: 0, text: none }, ...asOptions(values, minutesText)]
   };
 }
 
@@ -204,7 +239,7 @@ export function deriveView(state: EditorState, config: ViewConfig): EditorView {
   const options = config.options ?? {};
   const code = selectedCode(state, config.codec);
   const exactly = format.countMode === 'EXACTLY';
-  const plural = format.count > 1 ? 's' : '';
+  const plural = format.count > 1;
 
   const bestOfText = labels.descriptors?.bestOf || 'Best of';
   const exactlyText = labels.descriptors?.exactly || 'Exactly';
@@ -216,7 +251,7 @@ export function deriveView(state: EditorState, config: ViewConfig): EditorView {
     : getBestOfOptionsForRoot(format.matchRoot);
   const roots = options.matchRoots ?? Object.keys(MATCH_ROOT_LABELS);
 
-  const finalSetView = segmentView(format.finalSet, '', true, config, exactly);
+  const finalSetView = segmentView(format.finalSet, false, true, config, exactly);
 
   return {
     code,
@@ -241,6 +276,7 @@ export function deriveView(state: EditorState, config: ViewConfig): EditorView {
       options: [],
       gameFormat: format.gameFormat
     },
+    maxTime: maxTimeView(format.maxMinutes, capabilities.maxMatchTime, labels, options),
     finalSetToggle: { visible: capabilities.finalSet && format.count > 1, checked: format.finalSetEnabled },
     set: segmentView(format.set, plural, false, config, exactly),
     finalSet: { ...finalSetView, visible: format.finalSetEnabled }

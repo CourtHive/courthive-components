@@ -17,6 +17,8 @@ export function defaultSegment(): SegmentDraft {
     tiebreakWinBy: 2,
     minutes: 10,
     based: undefined,
+    timedTiebreak: false,
+    outs: 3,
     modifier: undefined
   };
 }
@@ -25,11 +27,19 @@ function segmentFromParsed(parsedSet: any): SegmentDraft {
   const segment = defaultSegment();
   if (!parsedSet) return segment;
 
+  if (parsedSet.outs) {
+    segment.type = 'OUTS';
+    segment.outs = parsedSet.outs;
+    return segment;
+  }
+
   if (parsedSet.timed) {
     segment.type = 'TIMED';
     segment.minutes = parsedSet.minutes ?? segment.minutes;
     segment.based = parsedSet.based && parsedSet.based !== 'G' ? parsedSet.based : undefined;
     segment.modifier = parsedSet.modifier;
+    segment.timedTiebreak = !!parsedSet.tiebreakFormat;
+    if (parsedSet.tiebreakFormat) segment.tiebreakTo = parsedSet.tiebreakFormat.tiebreakTo ?? segment.tiebreakTo;
     return segment;
   }
 
@@ -57,11 +67,16 @@ function segmentFromParsed(parsedSet: any): SegmentDraft {
 
 /** The parsed shape the factory's stringify reads, built from a segment of the state. */
 export function segmentToParsed(segment: SegmentDraft): any {
+  if (segment.type === 'OUTS') return { outs: segment.outs };
+
   if (segment.type === 'TIMED') {
+    // A timed set's tiebreak has no advantage rule (the grammar refuses `T20/TB7NOAD`), and its modifier
+    // belongs to the timed set, not the tiebreak.
     return {
       timed: true,
       minutes: segment.minutes,
       ...(segment.based ? { based: segment.based } : {}),
+      ...(segment.timedTiebreak ? { tiebreakFormat: { tiebreakTo: segment.tiebreakTo } } : {}),
       ...(segment.modifier ? { modifier: segment.modifier } : {})
     };
   }
@@ -101,8 +116,27 @@ export function formatFromParsed(parsed: any): FormatState {
     gameFormat: parsed.gameFormat ?? undefined,
     set,
     finalSetEnabled: !!parsed.finalSetFormat,
-    finalSet: parsed.finalSetFormat ? segmentFromParsed(parsed.finalSetFormat) : { ...set }
+    finalSet: parsed.finalSetFormat ? segmentFromParsed(parsed.finalSetFormat) : { ...set },
+    maxMinutes: parsed.matchUpConstraint?.timed ? parsed.matchUpConstraint.minutes : undefined,
+    matchMods: parsed.matchMods ? [...parsed.matchMods] : [],
+    shortForm: !!parsed.simplified
   };
+}
+
+/** `T10` can stand for `SET1-S:T10` only while the format is one timed set and nothing else. */
+function canUseShortForm(format: FormatState): boolean {
+  return (
+    format.shortForm &&
+    format.countMode === 'BEST_OF' &&
+    format.count === 1 &&
+    format.set.type === 'TIMED' &&
+    format.matchRoot === 'SET' &&
+    !format.finalSetEnabled &&
+    !format.aggregate &&
+    !format.gameFormat &&
+    !format.maxMinutes &&
+    !format.matchMods.length
+  );
 }
 
 export function formatToParsed(format: FormatState): any {
@@ -113,6 +147,9 @@ export function formatToParsed(format: FormatState): any {
   if (format.countMode === 'EXACTLY') parsed.exactly = format.count;
   else parsed.bestOf = format.count;
   if (format.finalSetEnabled) parsed.finalSetFormat = segmentToParsed(format.finalSet);
+  if (format.maxMinutes) parsed.matchUpConstraint = { timed: true, minutes: format.maxMinutes };
+  if (format.matchMods.length) parsed.matchMods = [...format.matchMods];
+  if (canUseShortForm(format)) parsed.simplified = true;
   return parsed;
 }
 

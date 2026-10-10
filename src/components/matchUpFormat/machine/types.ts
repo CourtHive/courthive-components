@@ -7,7 +7,7 @@
  * renders the view and dispatches edits.
  */
 
-export type SetType = 'SET' | 'TIEBREAK' | 'TIMED';
+export type SetType = 'SET' | 'TIEBREAK' | 'TIMED' | 'OUTS';
 export type CountMode = 'BEST_OF' | 'EXACTLY';
 export type SegmentKey = 'set' | 'finalSet';
 
@@ -38,6 +38,13 @@ export interface SegmentDraft {
   minutes: number;
   /** Timed set: scoring basis. Undefined is games, the grammar's default. */
   based?: string;
+  /**
+   * Timed set: whether it ends in a tiebreak (`T10P/TB1`). Separate from a standard set's `tiebreak`, so
+   * switching a set with a tiebreak to timed does not give the timed set one.
+   */
+  timedTiebreak: boolean;
+  /** Outs set (baseball and similar): outs per side. */
+  outs: number;
   /** A tiebreak's or a timed set's modifier, e.g. RALLY. */
   modifier?: string;
 }
@@ -53,11 +60,23 @@ export interface FormatState {
   finalSetEnabled: boolean;
   /** Kept even while disabled, so turning the final set back on restores it. */
   finalSet: SegmentDraft;
+  /** A match-level time limit in minutes (`-M:T60`), or undefined for none. */
+  maxMinutes?: number;
+  /**
+   * Match modifiers the grammar keeps for forward compatibility (`SET3Z`). The picker has no control for
+   * them; they are carried through unchanged.
+   */
+  matchMods: string[];
+  /**
+   * The code used the standalone timed short form (`T10` for `SET1-S:T10`). Kept while the format can
+   * still be written that way, so an edit that keeps it a single timed set keeps its spelling.
+   */
+  shortForm: boolean;
 }
 
 /** Each capability can be switched off; a code that needs a switched-off one opens read-only. */
 export interface Capabilities {
-  setTypes?: { set?: boolean; tiebreak?: boolean; timed?: boolean };
+  setTypes?: { set?: boolean; tiebreak?: boolean; timed?: boolean; outs?: boolean };
   /** Choosing a match root other than SET. */
   matchRoots?: boolean;
   /** "Exactly N" set counts. */
@@ -65,8 +84,10 @@ export interface Capabilities {
   aggregate?: boolean;
   gameFormat?: boolean;
   finalSet?: boolean;
-  /** A standard set's tiebreak toggle. */
+  /** A standard or timed set's tiebreak toggle. */
   setTiebreak?: boolean;
+  /** A match-level time limit (`-M:T60`). */
+  maxMatchTime?: boolean;
   /** A timed set's scoring basis (games or points). */
   scoringBasis?: boolean;
   /** Tiebreak and timed-set modifiers, e.g. RALLY. */
@@ -76,13 +97,14 @@ export interface Capabilities {
 }
 
 export type ResolvedCapabilities = {
-  setTypes: { set: boolean; tiebreak: boolean; timed: boolean };
+  setTypes: { set: boolean; tiebreak: boolean; timed: boolean; outs: boolean };
   matchRoots: boolean;
   exactly: boolean;
   aggregate: boolean;
   gameFormat: boolean;
   finalSet: boolean;
   setTiebreak: boolean;
+  maxMatchTime: boolean;
   scoringBasis: boolean;
   modifiers: boolean;
   catalog: boolean;
@@ -104,7 +126,16 @@ export interface EditorState {
 }
 
 export type SegmentField =
-  'setTo' | 'noAd' | 'tiebreakAt' | 'setWinBy' | 'tiebreakTo' | 'tiebreakWinBy' | 'minutes' | 'based' | 'modifier';
+  | 'setTo'
+  | 'noAd'
+  | 'tiebreakAt'
+  | 'setWinBy'
+  | 'tiebreakTo'
+  | 'tiebreakWinBy'
+  | 'minutes'
+  | 'based'
+  | 'modifier'
+  | 'outs';
 
 export type Edit =
   | { type: 'loadCode'; code: string }
@@ -113,6 +144,7 @@ export type Edit =
   | { type: 'setMatchRoot'; matchRoot: string }
   | { type: 'setAggregate'; on: boolean }
   | { type: 'setGameFormat'; gameFormat?: GameFormat }
+  | { type: 'setMaxMinutes'; minutes?: number }
   | { type: 'setFinalSet'; on: boolean }
   | { type: 'setSetType'; segment: SegmentKey; setType: SetType }
   | { type: 'setTiebreak'; segment: SegmentKey; on: boolean }

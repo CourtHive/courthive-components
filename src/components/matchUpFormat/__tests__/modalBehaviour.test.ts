@@ -166,10 +166,13 @@ describe('each control', () => {
   it('a timed set shows minutes and its scoring basis; points hides the game format', () => {
     const selected = open(STANDARD);
     choose('what', TIMED_SETS_LABEL);
+    // The main set's tiebreak does not carry over to the timed set.
     expect(code()).toBe('SET3-S:T10');
     expect(shown('minutes')).toBe(true);
     expect(shown('based')).toBe(true);
-    expect(shown('setTiebreakToggle')).toBe(false);
+    // Changed in Phase 6: a timed set can end in a tiebreak (`SET3-S:T10P/TB1`), so its toggle is offered.
+    expect(shown('setTiebreakToggle')).toBe(true);
+    expect(el<HTMLInputElement>('setTiebreak').checked).toBe(false);
     choose('based', 'Points');
     expect(code()).toBe(TIMED_POINTS);
     expect(shown('gameFormat')).toBe(false);
@@ -252,7 +255,8 @@ describe('an untouched Select returns the code it opened with', () => {
     expect(codes.length).toBeGreaterThan(250);
   });
 
-  it('drifts on none of them', () => {
+  // 257 pickers opened and closed: well past the 5s default under a loaded machine.
+  it('drifts on none of them', { timeout: 60_000 }, () => {
     const drift: Record<string, string | undefined> = {};
     for (const matchUpFormat of codes) {
       const selected = open(matchUpFormat);

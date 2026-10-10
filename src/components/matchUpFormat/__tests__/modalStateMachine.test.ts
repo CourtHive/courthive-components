@@ -61,9 +61,11 @@ function toggle(id: string): void {
 
 afterEach(closeAll);
 
-describe('a format the controls cannot hold opens read-only', () => {
+describe('a format that needs a switched-off capability opens read-only', () => {
+  const noOuts: MatchUpFormatConfig = { capabilities: { setTypes: { outs: false } } };
+
   it('shows the code and a notice, disables the controls, and Select returns it unchanged', () => {
-    const selected = open(BLW);
+    const selected = open(BLW, noOuts);
     expect(code()).toBe(BLW);
     expect(shown('matchUpFormatReadOnly')).toBe(true);
     expect(el<HTMLButtonElement>('bestOf').disabled).toBe(true);
@@ -73,7 +75,7 @@ describe('a format the controls cannot hold opens read-only', () => {
   });
 
   it('becomes editable when another format replaces it', () => {
-    const selected = open(BLW);
+    const selected = open(BLW, noOuts);
     const selector = el<HTMLSelectElement>('matchUpFormatSelector');
     selector.value = STANDARD;
     selector.dispatchEvent(new Event('change'));
@@ -97,7 +99,7 @@ describe('capabilities', () => {
 
   it('a switched-off capability is not offered', () => {
     open(STANDARD, restricted);
-    expect(offered('what')).toEqual(['Sets', 'Tiebreaks']);
+    expect(offered('what')).toEqual(['Sets', 'Tiebreaks', 'Outs']);
     expect(offered('descriptor')).toEqual(['Best of']);
     expect(shown('aggregateOption')).toBe(false);
     expect(shown('finalSetOption')).toBe(false);
@@ -162,5 +164,41 @@ describe('rendering', () => {
     choose('descriptor', 'Exactement');
     expect(code()).toBe('SET3X-S:T10');
     expect(el('descriptor').textContent).toContain('Exactement');
+  });
+});
+
+describe('Phases 6 and 5 in the picker', () => {
+  it("a timed set's tiebreak shows its toggle and target, and no win-by", () => {
+    const selected = open('SET3-S:T10P/TB1');
+    expect(el<HTMLInputElement>('setTiebreak').checked).toBe(true);
+    expect(el('tiebreakTo').textContent).toContain('TB to 1');
+    expect(shown('winBy')).toBe(false);
+    selectButton().click();
+    expect(selected()).toBe('SET3-S:T10P/TB1');
+  });
+
+  it('the BLW format is editable: outs per side and the time limit', () => {
+    const selected = open(BLW);
+    expect(shown('matchUpFormatReadOnly')).toBe(false);
+    expect(el('outs').textContent).toContain('3 outs');
+    expect(el('maxTime').textContent).toContain('50 min');
+    choose('outs', '2');
+    expect(code()).toBe('INN4XA-S:O2-M:T50');
+    choose('maxTime', 'None');
+    expect(code()).toBe('INN4XA-S:O2');
+    selectButton().click();
+    expect(selected()).toBe('INN4XA-S:O2');
+  });
+
+  it('a short-form timed code keeps its spelling when edited', () => {
+    open('T10');
+    choose('minutes', '20');
+    expect(code()).toBe('T20');
+  });
+
+  it('a code with an unknown match modifier keeps it when edited', () => {
+    open('SET3Z-S:6/TB7');
+    choose('setTo', '4');
+    expect(code()).toBe('SET3Z-S:4/TB7');
   });
 });

@@ -4,8 +4,8 @@ import { fromCode } from './codec';
 // constants and types
 import type { Capabilities, Codec, Edit, EditorState, FormatState, SegmentDraft } from './types';
 
-/** The only set type that may be counted "Exactly N"; every other type is "Best of". */
-const EXACTLY_SET_TYPES = new Set(['TIMED']);
+/** The set types that may be counted "Exactly N" (`SET3X-S:T10`, `INN4X-S:O3`); the others are "Best of". */
+const EXACTLY_SET_TYPES = new Set(['TIMED', 'OUTS']);
 /** A final set's tiebreak targets outside "Exactly" mode; "Exactly" also offers 1 and 3. */
 export const DEFAULT_TIEBREAK_TO_OPTIONS = [1, 3, 5, 7, 9, 10, 11, 12, 13, 15, 21, 25];
 
@@ -80,6 +80,9 @@ function applyToFormat(format: FormatState, edit: Exclude<Edit, { type: 'loadCod
     case 'setGameFormat':
       format.gameFormat = edit.gameFormat;
       break;
+    case 'setMaxMinutes':
+      format.maxMinutes = edit.minutes || undefined;
+      break;
     case 'setFinalSet':
       if (edit.on && format.count <= 1) break;
       // Turning the final set on starts it as a copy of the main set, tiebreak included.
@@ -92,9 +95,13 @@ function applyToFormat(format: FormatState, edit: Exclude<Edit, { type: 'loadCod
       if (leavesExactly && !EXACTLY_SET_TYPES.has(edit.setType)) toBestOf(format, tiebreakToOptions);
       break;
     }
-    case 'setTiebreak':
-      format[edit.segment].tiebreak = edit.on;
+    case 'setTiebreak': {
+      // One toggle, two flags: a timed set's tiebreak is kept apart from a standard set's.
+      const segment = format[edit.segment];
+      if (segment.type === 'TIMED') segment.timedTiebreak = edit.on;
+      else segment.tiebreak = edit.on;
       break;
+    }
     case 'setSegmentValue':
       applySegmentValue(format, format[edit.segment], edit.field, edit.value);
       break;
@@ -108,7 +115,8 @@ function copyFormat(format: FormatState): FormatState {
     ...format,
     gameFormat: format.gameFormat ? { ...format.gameFormat } : undefined,
     set: { ...format.set },
-    finalSet: { ...format.finalSet }
+    finalSet: { ...format.finalSet },
+    matchMods: [...format.matchMods]
   };
 }
 

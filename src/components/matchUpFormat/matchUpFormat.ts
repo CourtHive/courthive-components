@@ -52,6 +52,8 @@ export interface MatchUpFormatConfig {
     points?: string;
     /** Shown when a format cannot be edited here and will be returned unchanged. */
     readOnly?: string;
+    /** The match-level time limit control. */
+    maxTime?: string;
     descriptors?: {
       bestOf?: string;
       exactly?: string;
@@ -78,6 +80,10 @@ export interface MatchUpFormatConfig {
     matchRoots?: string[];
     gameFormats?: string[];
     modifiers?: string[];
+    /** Outs per side offered for an outs set. */
+    outs?: number[];
+    /** Minutes offered for the match-level time limit. */
+    maxMinutes?: number[];
   };
   /** Switch parts of the picker off. Everything is on unless set to false. */
   capabilities?: Capabilities;
@@ -112,6 +118,7 @@ const defaultConfig: MatchUpFormatConfig = {
     games: 'Games',
     points: 'Points',
     readOnly: 'This format cannot be edited here. Select keeps it unchanged; choose another format to replace it.',
+    maxTime: 'Max time',
     descriptors: {
       bestOf: 'Best of',
       exactly: 'Exactly'
@@ -155,7 +162,8 @@ const SET_CONTROLS = [
   'winBy',
   'minutes',
   'based',
-  'modifier'
+  'modifier',
+  'outs'
 ] as const;
 type SetControl = (typeof SET_CONTROLS)[number];
 const MATCH_ONLY = new Set<SetControl>(['descriptor', 'bestOf']);
@@ -166,6 +174,7 @@ const SEGMENT_FIELDS: Partial<Record<SetControl, SegmentField>> = {
   minutes: 'minutes',
   based: 'based',
   modifier: 'modifier',
+  outs: 'outs',
   advantage: 'noAd'
 };
 
@@ -385,7 +394,15 @@ export function getMatchUpFormatModal({
       dispatch({ type: 'setGameFormat', gameFormat })
     );
   elements.gameFormat = gameFormatButton;
-  matchRow.append(matchRootButton, aggregate.checkbox, aggregate.label, gameFormatButton);
+  const maxTimeButton = newButton('maxTime');
+  maxTimeButton.onclick = (e) =>
+    openChoices(
+      e,
+      () => view.maxTime,
+      (minutes) => ({ type: 'setMaxMinutes', minutes })
+    );
+  elements.maxTime = maxTimeButton;
+  matchRow.append(matchRootButton, aggregate.checkbox, aggregate.label, gameFormatButton, maxTimeButton);
   content.appendChild(matchRow);
 
   // The main set
@@ -480,6 +497,7 @@ export function getMatchUpFormatModal({
 
     showControl(matchRootButton, view.matchRoot, view.readOnly);
     showControl(gameFormatButton, view.gameFormat, view.readOnly);
+    showControl(maxTimeButton, view.maxTime, view.readOnly);
     renderToggle(aggregate.checkbox, aggregate.label, view.aggregate.visible, view.aggregate.checked);
 
     renderSegment();

@@ -8,7 +8,8 @@ export function resolveCapabilities(capabilities?: Capabilities): ResolvedCapabi
     setTypes: {
       set: on(capabilities?.setTypes?.set),
       tiebreak: on(capabilities?.setTypes?.tiebreak),
-      timed: on(capabilities?.setTypes?.timed)
+      timed: on(capabilities?.setTypes?.timed),
+      outs: on(capabilities?.setTypes?.outs)
     },
     matchRoots: on(capabilities?.matchRoots),
     exactly: on(capabilities?.exactly),
@@ -16,21 +17,26 @@ export function resolveCapabilities(capabilities?: Capabilities): ResolvedCapabi
     gameFormat: on(capabilities?.gameFormat),
     finalSet: on(capabilities?.finalSet),
     setTiebreak: on(capabilities?.setTiebreak),
+    maxMatchTime: on(capabilities?.maxMatchTime),
     scoringBasis: on(capabilities?.scoringBasis),
     modifiers: on(capabilities?.modifiers),
     catalog: on(capabilities?.catalog)
   };
 }
 
-const SET_TYPE_CAPABILITY = { SET: 'set', TIEBREAK: 'tiebreak', TIMED: 'timed' } as const;
+export const SET_TYPE_CAPABILITY = { SET: 'set', TIEBREAK: 'tiebreak', TIMED: 'timed', OUTS: 'outs' } as const;
 
 function segmentReasons(segment: SegmentDraft, capabilities: ResolvedCapabilities): string[] {
   const reasons: string[] = [];
   if (!capabilities.setTypes[SET_TYPE_CAPABILITY[segment.type]])
     reasons.push(`setTypes.${SET_TYPE_CAPABILITY[segment.type]}`);
-  if (segment.type === 'SET' && segment.tiebreak && !capabilities.setTiebreak) reasons.push('setTiebreak');
+  const hasTiebreak =
+    (segment.type === 'SET' && segment.tiebreak) || (segment.type === 'TIMED' && segment.timedTiebreak);
+  if (hasTiebreak && !capabilities.setTiebreak) reasons.push('setTiebreak');
   if (segment.type === 'TIMED' && segment.based && !capabilities.scoringBasis) reasons.push('scoringBasis');
-  const hasModifier = !!segment.modifier && (segment.type !== 'SET' || segment.tiebreak);
+  const hasModifier =
+    !!segment.modifier &&
+    (segment.type === 'TIEBREAK' || segment.type === 'TIMED' || (segment.type === 'SET' && segment.tiebreak));
   if (hasModifier && !capabilities.modifiers) reasons.push('modifiers');
   return reasons;
 }
@@ -46,5 +52,6 @@ export function capabilityReasons(format: FormatState, capabilities: ResolvedCap
   if (format.countMode === 'EXACTLY' && !capabilities.exactly) reasons.push('exactly');
   if (format.aggregate && !capabilities.aggregate) reasons.push('aggregate');
   if (format.gameFormat && !capabilities.gameFormat) reasons.push('gameFormat');
+  if (format.maxMinutes && !capabilities.maxMatchTime) reasons.push('maxMatchTime');
   return [...new Set(reasons)];
 }
