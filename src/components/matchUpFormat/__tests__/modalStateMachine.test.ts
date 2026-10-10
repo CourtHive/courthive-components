@@ -12,6 +12,8 @@ const MODAL = 'section[id^="cmdl-"]';
 const STANDARD = 'SET3-S:6/TB7';
 const BLW = 'INN4XA-S:O3-M:T50';
 const CUSTOM = 'Custom';
+const POINTS_TOTAL = 'Points total';
+const DECIDING_POINT = 'SET1-S:P32DP';
 
 function closeAll(): void {
   for (let attempt = 0; attempt < 4 && document.querySelector(MODAL); attempt += 1) cModal.close();
@@ -99,7 +101,7 @@ describe('capabilities', () => {
 
   it('a switched-off capability is not offered', () => {
     open(STANDARD, restricted);
-    expect(offered('what')).toEqual(['Sets', 'Tiebreaks', 'Outs']);
+    expect(offered('what')).toEqual(['Sets', 'Tiebreaks', 'Outs', POINTS_TOTAL]);
     expect(offered('descriptor')).toEqual(['Best of']);
     expect(shown('aggregateOption')).toBe(false);
     expect(shown('finalSetOption')).toBe(false);
@@ -200,5 +202,57 @@ describe('Phases 6 and 5 in the picker', () => {
     open('SET3Z-S:6/TB7');
     choose('setTo', '4');
     expect(code()).toBe('SET3Z-S:4/TB7');
+  });
+});
+
+describe('points total (SET1-S:P32)', () => {
+  it('opens SET1-S:P32DP as win by 1, and an untouched Select returns it', () => {
+    const selected = open(DECIDING_POINT);
+    expect(code()).toBe(DECIDING_POINT);
+    expect(shown('matchUpFormatReadOnly')).toBe(false);
+    expect(el('what').textContent).toContain(POINTS_TOTAL);
+    expect(el('pointsTotal').textContent).toContain('32 points');
+    expect(el('tieRule').textContent).toContain('Win by 1');
+    selectButton().click();
+    expect(selected()).toBe(DECIDING_POINT);
+  });
+
+  it('the tie rule and total change the code; an odd total hides the tie rule', () => {
+    const selected = open(DECIDING_POINT);
+    choose('tieRule', 'Win by 2');
+    expect(code()).toBe('SET1-S:P32WB2');
+    choose('pointsTotal', '31 points');
+    expect(code()).toBe('SET1-S:P31');
+    expect(shown('tieRule')).toBe(false);
+    choose('pointsTotal', '24 points');
+    expect(code()).toBe('SET1-S:P24WB2');
+    selectButton().click();
+    expect(selected()).toBe('SET1-S:P24WB2');
+  });
+
+  it('choosing it locks Best of 1 and hides what the grammar does not allow; another type restores them', () => {
+    const start = 'SET3-S:4/TB7-F:TB10';
+    open(start);
+    expect(el<HTMLButtonElement>('bestOf').disabled, 'control: Best of is editable before').toBe(false);
+    choose('what', POINTS_TOTAL);
+    expect(code()).toBe('SET1-S:P32');
+    expect(el<HTMLButtonElement>('bestOf').disabled).toBe(true);
+    expect(el('bestOf').textContent).toBe('1');
+    expect(el<HTMLButtonElement>('descriptor').disabled).toBe(true);
+    expect(shown('finalSetFormat')).toBe(false);
+    expect(shown('finalSetOption')).toBe(false);
+    expect(shown('aggregateOption')).toBe(false);
+    expect(shown('gameFormat')).toBe(false);
+    expect(shown('maxTime')).toBe(false);
+    expect(el('pointsTotal-1'), 'the final set has no points-total control').toBeNull();
+    choose('what', 'Set');
+    expect(code()).toBe(start);
+    expect(el<HTMLButtonElement>('bestOf').disabled).toBe(false);
+  });
+
+  it('a single permitted tie rule reads as fixed text', () => {
+    open(DECIDING_POINT, { combinedPoints: { permittedVariants: [{ tieResolution: 'DECIDING_POINT' }] } });
+    expect(el('tieRule').textContent).toBe('Win by 1');
+    expect(el<HTMLButtonElement>('tieRule').disabled).toBe(true);
   });
 });

@@ -7,7 +7,7 @@
  * renders the view and dispatches edits.
  */
 
-export type SetType = 'SET' | 'TIEBREAK' | 'TIMED' | 'OUTS';
+export type SetType = 'SET' | 'TIEBREAK' | 'TIMED' | 'OUTS' | 'POINTS_TOTAL';
 export type CountMode = 'BEST_OF' | 'EXACTLY';
 export type SegmentKey = 'set' | 'finalSet';
 
@@ -47,6 +47,14 @@ export interface SegmentDraft {
   outs: number;
   /** A tiebreak's or a timed set's modifier, e.g. RALLY. */
   modifier?: string;
+  /** Points total (Americano, `P32`): the rallies played; the score is how they split between the sides. */
+  combinedPointTotal: number;
+  /**
+   * Points total: what follows a tie. 0 keeps the tie as a result (`P32`), 1 plays one deciding point
+   * (`P32DP`), and 2 or more plays on until one side leads by that margin (`P32WB2`). Written only for an
+   * even total, since an odd total cannot tie.
+   */
+  tieMargin: number;
 }
 
 export interface FormatState {
@@ -76,7 +84,7 @@ export interface FormatState {
 
 /** Each capability can be switched off; a code that needs a switched-off one opens read-only. */
 export interface Capabilities {
-  setTypes?: { set?: boolean; tiebreak?: boolean; timed?: boolean; outs?: boolean };
+  setTypes?: { set?: boolean; tiebreak?: boolean; timed?: boolean; outs?: boolean; pointsTotal?: boolean };
   /** Choosing a match root other than SET. */
   matchRoots?: boolean;
   /** "Exactly N" set counts. */
@@ -97,7 +105,7 @@ export interface Capabilities {
 }
 
 export type ResolvedCapabilities = {
-  setTypes: { set: boolean; tiebreak: boolean; timed: boolean; outs: boolean };
+  setTypes: { set: boolean; tiebreak: boolean; timed: boolean; outs: boolean; pointsTotal: boolean };
   matchRoots: boolean;
   exactly: boolean;
   aggregate: boolean;
@@ -135,7 +143,9 @@ export type SegmentField =
   | 'minutes'
   | 'based'
   | 'modifier'
-  | 'outs';
+  | 'outs'
+  | 'combinedPointTotal'
+  | 'tieMargin';
 
 export type Edit =
   | { type: 'loadCode'; code: string }
@@ -149,6 +159,15 @@ export type Edit =
   | { type: 'setSetType'; segment: SegmentKey; setType: SetType }
   | { type: 'setTiebreak'; segment: SegmentKey; on: boolean }
   | { type: 'setSegmentValue'; segment: SegmentKey; field: SegmentField; value: any };
+
+/**
+ * What a points total may be, as a consumer's policy permits it (Phase 3). It narrows what the picker
+ * offers; it enforces nothing, since the engine validates every write.
+ */
+export interface CombinedPointsConfig {
+  permittedPointTotals?: number[];
+  permittedVariants?: { tieResolution: 'ALLOW' | 'DECIDING_POINT' | 'WIN_BY_MARGIN'; winningMargin?: number }[];
+}
 
 /** The factory's parse and stringify, injected so the machine stays pure and testable. */
 export interface Codec {

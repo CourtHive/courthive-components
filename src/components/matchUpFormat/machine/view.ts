@@ -1,10 +1,20 @@
 import { getBestOfOptionsForRoot, getTiebreakAtOptions, MATCH_ROOT_LABELS } from '../matchUpFormatLogic';
+import { effectiveFormat, offeredTieMargins, offeredTotals, tieRuleApplies } from './pointsTotal';
 import { resolveCapabilities, SET_TYPE_CAPABILITY } from './capabilities';
 import { DEFAULT_TIEBREAK_TO_OPTIONS } from './edits';
 import { selectedCode } from './codec';
 
 // constants and types
-import type { Capabilities, Codec, EditorState, GameFormat, SegmentDraft, SegmentField, SetType } from './types';
+import type {
+  Capabilities,
+  Codec,
+  CombinedPointsConfig,
+  EditorState,
+  GameFormat,
+  SegmentDraft,
+  SegmentField,
+  SetType
+} from './types';
 
 /**
  * Everything the picker shows, derived from the state. The modal renders this and decides nothing
@@ -20,6 +30,8 @@ export interface ControlView {
   visible: boolean;
   label: string;
   options: Option[];
+  /** Shown but not changeable: a value a points total fixes, or the only one a policy permits. */
+  locked?: boolean;
 }
 
 export interface ToggleView {
@@ -39,6 +51,10 @@ export interface SegmentView {
   based: ControlView;
   modifier: ControlView;
   outs: ControlView;
+  /** Points total: the rallies played. */
+  pointsTotal: ControlView;
+  /** Points total: tie allowed, or win by 1 (the deciding point), 2 or 3. Hidden for an odd total. */
+  tieRule: ControlView;
   tiebreakToggle: ToggleView;
 }
 
@@ -67,6 +83,8 @@ export interface ViewConfig {
   options?: any;
   /** The codes the catalog dropdown offers. */
   catalogCodes: string[];
+  /** A policy's permitted points totals and tie rules: they narrow what is offered (Phase 3). */
+  combinedPoints?: CombinedPointsConfig;
 }
 
 export const CUSTOM = 'Custom';
@@ -76,9 +94,10 @@ const SET_TYPE_LABELS: Record<SetType, [string, string]> = {
   SET: ['Set', 'Sets'],
   TIEBREAK: ['Tiebreak', 'Tiebreaks'],
   TIMED: ['Timed set', 'Timed sets'],
-  OUTS: ['Outs', 'Outs']
+  OUTS: ['Outs', 'Outs'],
+  POINTS_TOTAL: ['Points total', 'Points total']
 };
-const SET_TYPES: SetType[] = ['SET', 'TIEBREAK', 'TIMED', 'OUTS'];
+const SET_TYPES: SetType[] = ['SET', 'TIEBREAK', 'TIMED', 'OUTS', 'POINTS_TOTAL'];
 const DEFAULT_MAX_MINUTES = [20, 30, 40, 45, 50, 60, 75, 90, 100, 120, 150, 180];
 const ADVANTAGE_LABELS = { AD: 'Ad', NOAD: 'No-Ad' };
 
@@ -109,6 +128,41 @@ function hidden(): ControlView {
   return { visible: false, label: '', options: [] };
 }
 
+/**
+ * A choice among values. A value outside the list is still offered when the list is the picker's own,
+ * so an opened code can be chosen again; a policy's list is offered as it is. When only the current value
+ * is offered there is nothing to choose, so it reads as fixed text.
+ */
+function choiceView(current: number, values: number[], fromPolicy: boolean, text: (value: number) => string) {
+  const offered = fromPolicy || values.includes(current) ? values : [...values, current].sort((a, b) => a - b);
+  const fixed = offered.length === 1 && offered[0] === current;
+  return {
+    visible: true,
+    label: fixed ? text(current) : button(text(current)),
+    options: asOptions(offered, text),
+    ...(fixed ? { locked: true } : {})
+  };
+}
+
+const tieRuleText = (margin: number) => (margin ? `Win by ${margin}` : 'Tie allowed');
+
+function pointsTotalViews(
+  segment: SegmentDraft,
+  config: ViewConfig
+): { pointsTotal: ControlView; tieRule: ControlView } {
+  if (segment.type !== 'POINTS_TOTAL') return { pointsTotal: hidden(), tieRule: hidden() };
+  const { combinedPoints } = config;
+  const totalsFromPolicy = !!combinedPoints?.permittedPointTotals?.length;
+  const marginsFromPolicy = !!combinedPoints?.permittedVariants?.length;
+  const totals = offeredTotals(combinedPoints, config.options?.combinedPointTotals);
+  return {
+    pointsTotal: choiceView(segment.combinedPointTotal, totals, totalsFromPolicy, (total) => `${total} points`),
+    tieRule: tieRuleApplies(segment)
+      ? choiceView(segment.tieMargin, offeredTieMargins(combinedPoints), marginsFromPolicy, tieRuleText)
+      : hidden()
+  };
+}
+
 const setTypeLabel = (setType: SetType, plural: boolean) => SET_TYPE_LABELS[setType][plural ? 1 : 0];
 
 function segmentView(segment: SegmentDraft, plural: boolean, isFinal: boolean, config: ViewConfig, exactly: boolean) {
@@ -121,7 +175,10 @@ function segmentView(segment: SegmentDraft, plural: boolean, isFinal: boolean, c
   /** A tiebreak whose win-by can be set: a standard set's, or a tiebreak-only set. */
   const hasTiebreak = (isSet && segment.tiebreak) || type === 'TIEBREAK';
   const timedTiebreak = isTimed && segment.timedTiebreak;
-  const allowedTypes = SET_TYPES.filter((setType) => capabilities.setTypes[SET_TYPE_CAPABILITY[setType]]);
+  // A points total is the whole match, so a final set is never offered one.
+  const allowedTypes = SET_TYPES.filter(
+    (setType) => capabilities.setTypes[SET_TYPE_CAPABILITY[setType]] && !(isFinal && setType === 'POINTS_TOTAL')
+  );
 
   const standardTiebreakTo = options.tiebreakTo ?? DEFAULT_TIEBREAK_TO_OPTIONS;
   const tiebreakToValues =
@@ -211,6 +268,7 @@ function segmentView(segment: SegmentDraft, plural: boolean, isFinal: boolean, c
       type === 'OUTS'
         ? { visible: true, label: button(`${segment.outs} outs`), options: asOptions(options.outs ?? [1, 2, 3, 4, 5]) }
         : hidden(),
+    ...pointsTotalViews(segment, config),
     tiebreakToggle: {
       visible: (isSet || isTimed) && capabilities.setTiebreak,
       checked: (isSet && segment.tiebreak) || timedTiebreak
@@ -219,6 +277,11 @@ function segmentView(segment: SegmentDraft, plural: boolean, isFinal: boolean, c
 }
 
 const minutesText = (minutes: number) => `${minutes} min`;
+
+/** A dropdown button, or its value as fixed text while a points total locks it. */
+function lockable(control: ControlView, locked: boolean): ControlView {
+  return locked ? { ...control, locked } : { ...control, label: button(control.label) };
+}
 
 function maxTimeView(maxMinutes: number | undefined, visible: boolean, labels: any, options: any): ControlView {
   const minutes: number[] = options.maxMinutes ?? DEFAULT_MAX_MINUTES;
@@ -234,7 +297,9 @@ function maxTimeView(maxMinutes: number | undefined, visible: boolean, labels: a
 
 export function deriveView(state: EditorState, config: ViewConfig): EditorView {
   const capabilities = resolveCapabilities(config.capabilities);
-  const { format } = state;
+  // A points total shows the match-level values it locks (Best of 1, SET), not the ones it keeps aside.
+  const format = effectiveFormat(state.format);
+  const locked = format !== state.format;
   const labels = config.labels ?? {};
   const options = config.options ?? {};
   const code = selectedCode(state, config.codec);
@@ -258,25 +323,27 @@ export function deriveView(state: EditorState, config: ViewConfig): EditorView {
     catalogValue: config.catalogCodes.includes(code) ? code : CUSTOM,
     catalogVisible: capabilities.catalog,
     readOnly: state.readOnlyReasons.length > 0,
-    descriptor: {
-      visible: true,
-      label: button(exactly ? exactlyText : bestOfText),
-      options: descriptorOptions
-    },
-    count: { visible: true, label: button(String(format.count)), options: asOptions(countValues) },
-    matchRoot: {
-      visible: capabilities.matchRoots,
-      label: button(MATCH_ROOT_LABELS[format.matchRoot] || format.matchRoot),
-      options: asOptions(roots, (root) => MATCH_ROOT_LABELS[root] || root)
-    },
-    aggregate: { visible: capabilities.aggregate, checked: format.aggregate },
+    descriptor: lockable(
+      { visible: true, label: exactly ? exactlyText : bestOfText, options: descriptorOptions },
+      locked
+    ),
+    count: lockable({ visible: true, label: String(format.count), options: asOptions(countValues) }, locked),
+    matchRoot: lockable(
+      {
+        visible: capabilities.matchRoots,
+        label: MATCH_ROOT_LABELS[format.matchRoot] || format.matchRoot,
+        options: asOptions(roots, (root) => MATCH_ROOT_LABELS[root] || root)
+      },
+      locked
+    ),
+    aggregate: { visible: capabilities.aggregate && !locked, checked: format.aggregate },
     gameFormat: {
-      visible: capabilities.gameFormat && format.set.based !== 'P',
+      visible: capabilities.gameFormat && !locked && format.set.based !== 'P',
       label: button(`${labels.game || 'Game'}: ${gameFormatText(format.gameFormat, labels)}`),
       options: [],
       gameFormat: format.gameFormat
     },
-    maxTime: maxTimeView(format.maxMinutes, capabilities.maxMatchTime, labels, options),
+    maxTime: maxTimeView(format.maxMinutes, capabilities.maxMatchTime && !locked, labels, options),
     finalSetToggle: { visible: capabilities.finalSet && format.count > 1, checked: format.finalSetEnabled },
     set: segmentView(format.set, plural, false, config, exactly),
     finalSet: { ...finalSetView, visible: format.finalSetEnabled }

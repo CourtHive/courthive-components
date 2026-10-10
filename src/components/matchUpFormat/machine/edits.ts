@@ -1,8 +1,9 @@
 import { autoAdjustTiebreakAt, getBestOfOptionsForRoot } from '../matchUpFormatLogic';
+import { isPointsTotal, snapToPermitted } from './pointsTotal';
 import { fromCode } from './codec';
 
 // constants and types
-import type { Capabilities, Codec, Edit, EditorState, FormatState, SegmentDraft } from './types';
+import type { Capabilities, CombinedPointsConfig, Codec, Edit, EditorState, FormatState, SegmentDraft } from './types';
 
 /** The set types that may be counted "Exactly N" (`SET3X-S:T10`, `INN4X-S:O3`); the others are "Best of". */
 const EXACTLY_SET_TYPES = new Set(['TIMED', 'OUTS']);
@@ -14,7 +15,20 @@ export interface EditContext {
   capabilities?: Capabilities;
   /** The tiebreak targets offered outside "Exactly" mode (the picker's configured options). */
   tiebreakToOptions?: number[];
+  /** A policy's permitted points totals and tie rules (Phase 3). */
+  combinedPoints?: CombinedPointsConfig;
 }
+
+/** The match-level edits a points total locks: its grammar is one set of a SET match and nothing else. */
+const LOCKED_BY_POINTS_TOTAL = new Set<Edit['type']>([
+  'setCountMode',
+  'setCount',
+  'setMatchRoot',
+  'setAggregate',
+  'setGameFormat',
+  'setMaxMinutes',
+  'setFinalSet'
+]);
 
 /** "Best of" counts are odd; an even count rounds up, as it always has. */
 const toOdd = (count: number) => (count % 2 === 0 ? count + 1 : count);
@@ -52,7 +66,23 @@ function applySegmentValue(format: FormatState, segment: SegmentDraft, field: st
   }
 }
 
-function applyToFormat(format: FormatState, edit: Exclude<Edit, { type: 'loadCode' }>, tiebreakToOptions: number[]) {
+function applySetType(format: FormatState, edit: Extract<Edit, { type: 'setSetType' }>, context: EditContext): void {
+  // A points total is the whole match, so a final set cannot be one.
+  if (edit.setType === 'POINTS_TOTAL' && edit.segment === 'finalSet') return;
+  format[edit.segment].type = edit.setType;
+  if (edit.setType === 'POINTS_TOTAL') {
+    // Exactly and the count stay as they were, locked rather than lost, for when another type is chosen.
+    snapToPermitted(format.set, context.combinedPoints);
+    return;
+  }
+  const leavesExactly = edit.segment === 'set' && format.countMode === 'EXACTLY';
+  if (leavesExactly && !EXACTLY_SET_TYPES.has(edit.setType)) {
+    toBestOf(format, context.tiebreakToOptions ?? DEFAULT_TIEBREAK_TO_OPTIONS);
+  }
+}
+
+function applyToFormat(format: FormatState, edit: Exclude<Edit, { type: 'loadCode' }>, context: EditContext) {
+  const tiebreakToOptions = context.tiebreakToOptions ?? DEFAULT_TIEBREAK_TO_OPTIONS;
   switch (edit.type) {
     case 'setCountMode':
       if (edit.mode === 'EXACTLY') {
@@ -89,12 +119,9 @@ function applyToFormat(format: FormatState, edit: Exclude<Edit, { type: 'loadCod
       if (edit.on) format.finalSet = { ...format.set };
       format.finalSetEnabled = edit.on;
       break;
-    case 'setSetType': {
-      format[edit.segment].type = edit.setType;
-      const leavesExactly = edit.segment === 'set' && format.countMode === 'EXACTLY';
-      if (leavesExactly && !EXACTLY_SET_TYPES.has(edit.setType)) toBestOf(format, tiebreakToOptions);
+    case 'setSetType':
+      applySetType(format, edit, context);
       break;
-    }
     case 'setTiebreak': {
       // One toggle, two flags: a timed set's tiebreak is kept apart from a standard set's.
       const segment = format[edit.segment];
@@ -127,8 +154,9 @@ function copyFormat(format: FormatState): FormatState {
 export function applyEdit(state: EditorState, edit: Edit, context: EditContext): EditorState {
   if (edit.type === 'loadCode') return fromCode(edit.code, context.codec, context.capabilities);
   if (state.readOnlyReasons.length) return state;
+  if (isPointsTotal(state.format) && LOCKED_BY_POINTS_TOTAL.has(edit.type)) return state;
 
   const format = copyFormat(state.format);
-  applyToFormat(format, edit, context.tiebreakToOptions ?? DEFAULT_TIEBREAK_TO_OPTIONS);
+  applyToFormat(format, edit, context);
   return { ...state, format, dirty: true };
 }
