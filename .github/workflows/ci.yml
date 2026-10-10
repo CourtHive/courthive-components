@@ -13,14 +13,18 @@ name: CI
 # Pull requests run only when they target `dev` (the integration branch) or `main` (releases), and a
 # DRAFT runs nothing until it is marked ready. A draft can then hold work that is red by design —
 # pins written for a factory release not yet published, which this job resolves from npm — without a
-# failing run on it. `ready_for_review` is listed so marking it ready starts the run. Pushes run on
-# the two long-lived branches, so every merge into either is verified as merged (CA, 2026-10-02).
+# failing run on it. `ready_for_review` is listed so marking it ready starts the run.
+#
+# Pushes run on `main` only, as factory's verify.yml does (CA, 2026-10-10). A push to `dev` is the
+# merge of a PR that this workflow has just verified, so running again there repeated every PR's run
+# (42 push runs in the week to 2026-10-10). This replaces the 2026-10-02 rule that verified each merge
+# into `dev` as merged; the dev→main checkpoint PR and the push to `main` still verify the merged tree.
 on:
   pull_request:
     branches: [dev, main]
     types: [opened, synchronize, reopened, ready_for_review]
   push:
-    branches: [dev, main]
+    branches: [main]
   schedule:
     - cron: '0 6 * * 1' # Mondays, 06:00 UTC
   workflow_dispatch:
