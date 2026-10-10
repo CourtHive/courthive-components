@@ -11,9 +11,9 @@
  * Run interactively: `pnpm storybook`
  * Run as tests:      `pnpm test:stories src/stories/RenderFormFormMode.stories.ts`
  */
+import { renderForm } from '../components/forms/renderForm';
 import type { Meta, StoryObj } from '@storybook/html-vite';
 import { expect, fn, userEvent } from 'storybook/test';
-import { renderForm } from '../components/forms/renderForm';
 
 const meta: Meta = {
   title: 'Renderers/Form/Tests/formMode'

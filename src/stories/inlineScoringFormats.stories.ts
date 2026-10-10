@@ -12,9 +12,9 @@
  * Run as tests:     pnpm test:stories
  */
 
-import type { Meta, StoryObj } from '@storybook/html-vite';
-import { within, waitFor, userEvent, expect } from 'storybook/test';
 import { buildInteractiveScoringShell } from '../components/interactive-scoring/buildInteractiveScoringShell';
+import { within, waitFor, userEvent, expect } from 'storybook/test';
+import type { Meta, StoryObj } from '@storybook/html-vite';
 
 const SIDE1_NAME = 'Alice';
 const SIDE2_NAME = 'Bob';

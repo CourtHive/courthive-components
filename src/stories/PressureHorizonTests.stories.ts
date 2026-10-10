@@ -20,9 +20,9 @@
 import type { Meta, StoryObj } from '@storybook/html-vite';
 import { userEvent, expect } from 'storybook/test';
 
+import { buildPressureHorizon, HORIZON_VARIANT } from '../components/pressureHorizon/pressureHorizon';
 import { buildPressureSeries } from '../components/pressureChart/buildPressureSeries';
 import { buildDrawOrderGame } from '../components/pressureHorizon/drawOrderGame';
-import { buildPressureHorizon, HORIZON_VARIANT } from '../components/pressureHorizon/pressureHorizon';
 import { seededDraw } from './pressureChartFixture';
 
 const meta: Meta = {

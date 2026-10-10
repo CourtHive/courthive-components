@@ -8,9 +8,9 @@
  * Run as tests:     pnpm test:stories
  */
 
-import { within, userEvent, expect } from 'storybook/test';
 import { buildCourtLayout } from '../components/court-layout/buildCourtLayout';
 import { CourtLayoutCourt } from '../components/court-layout/types';
+import { within, userEvent, expect } from 'storybook/test';
 
 export default {
   title: 'Components/CourtLayout',

@@ -24,10 +24,10 @@
  * Run as tests:      `pnpm test:stories` (Storybook's Vitest integration, headless Chromium)
  */
 
+import { buildMatchUpCard } from '../../components/schedule-page/ui/matchUpCard';
+import type { CatalogMatchUpItem } from '../../components/schedule-page';
 import type { Meta, StoryObj } from '@storybook/html-vite';
 import { expect } from 'storybook/test';
-import type { CatalogMatchUpItem } from '../../components/schedule-page';
-import { buildMatchUpCard } from '../../components/schedule-page/ui/matchUpCard';
 
 const meta: Meta = {
   title: 'Schedule Page/Tests/MatchUpCard'
