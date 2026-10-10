@@ -18,9 +18,9 @@
 import { describe, expect, it } from 'vitest';
 
 import { openScoreEntryDialog } from '../scoreEntryDialog';
-import { cModal } from '../../modal/cmodal';
 import { scoringModal } from '../scoringModal';
 import { setScoringConfig } from '../config';
+import { cModal } from '../../modal/cmodal';
 
 const SIDES: any = [{ participantName: 'Lower' }, { participantName: 'Upper' }];
 const FORMAT = 'SET3-S:6/TB7';
