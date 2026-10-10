@@ -1,36 +1,32 @@
 /**
  * Match format configuration modal.
- * Allows users to configure set formats, tiebreaks, and final set options.
+ *
+ * A renderer over the picker's state machine (`./machine`). The state lives in one per-instance
+ * `EditorState`; every control dispatches an `Edit` through `applyEdit`, and `render` redraws every
+ * control from `deriveView`. Nothing here decides visibility or enforces a rule: those live in the
+ * machine, once. Element ids are unchanged, so stories, tests and hosts that read them still work.
  */
-import { governors, matchUpFormatCode } from 'tods-competition-factory';
+import { createDropdown, createGameFormatDropdown, closeCurrentDropdown } from './dropdowns';
+import { matchUpFormatCode } from 'tods-competition-factory';
+import { fromCode, selectedCode } from './machine/codec';
+import { deriveView, CUSTOM } from './machine/view';
+import { applyEdit } from './machine/edits';
 import { cModal } from '../modal/cmodal';
-import {
-  initializeFormatFromString,
-  buildSetFormat,
-  autoAdjustTiebreakAt,
-  getTiebreakAtOptions,
-  MATCH_ROOTS,
-  MATCH_ROOT_LABELS,
-  getBestOfOptionsForRoot
-} from './matchUpFormatLogic';
 
 import matchUpFormats from './matchUpFormats.json';
 import './matchUpFormat.css';
 
+// constants and types
+import type { Capabilities, Edit, EditorState, SegmentKey, SegmentField } from './machine/types';
+import type { ControlView, EditorView, SegmentView } from './machine/view';
+import { MATCH_ROOTS } from './matchUpFormatLogic';
+
 const NONE = 'none';
-const clickable = '▾'; // clickable character
 const TRANSITION_STYLE = 'all .2s ease-in-out';
 const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
-const CHC_DROPDOWN_BG = 'var(--chc-dropdown-bg)';
-const CHC_HOVER_BG = 'var(--chc-hover-bg)';
-
-// Helper functions
-function isFunction(fx: any): fx is (...args: any[]) => any {
-  return typeof fx === 'function';
-}
 
 // Configuration interface for customizing the matchUpFormat editor
-interface MatchUpFormatConfig {
+export interface MatchUpFormatConfig {
   labels?: {
     title?: string;
     setFormatLabel?: string;
@@ -54,6 +50,8 @@ interface MatchUpFormatConfig {
     starPoint?: string;
     games?: string;
     points?: string;
+    /** Shown when a format cannot be edited here and will be returned unchanged. */
+    readOnly?: string;
     descriptors?: {
       bestOf?: string;
       exactly?: string;
@@ -81,13 +79,14 @@ interface MatchUpFormatConfig {
     gameFormats?: string[];
     modifiers?: string[];
   };
+  /** Switch parts of the picker off. Everything is on unless set to false. */
+  capabilities?: Capabilities;
   preDefinedFormats?: Array<{
     code: string;
     text: string;
   }>;
 }
 
-// Default configuration
 const defaultConfig: MatchUpFormatConfig = {
   labels: {
     title: 'Match format',
@@ -112,6 +111,7 @@ const defaultConfig: MatchUpFormatConfig = {
     starPoint: 'Star point',
     games: 'Games',
     points: 'Points',
+    readOnly: 'This format cannot be edited here. Select keeps it unchanged; choose another format to replace it.',
     descriptors: {
       bestOf: 'Best of',
       exactly: 'Exactly'
@@ -131,7 +131,7 @@ const defaultConfig: MatchUpFormatConfig = {
     exactly: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
     setTo: [1, 2, 3, 4, 5, 6, 7, 8, 9],
     tiebreakTo: [1, 3, 5, 7, 9, 10, 11, 12, 13, 15, 21, 25],
-    tiebreakToExactly: [1, 3], // Additional for Exactly
+    tiebreakToExactly: [1, 3],
     tiebreakAt: [3, 4, 5, 6, 7, 8],
     minutes: [3, 5, 8, 10, 12, 15, 20, 25, 30, 45, 60, 90, 120],
     winBy: [1, 2],
@@ -141,723 +141,84 @@ const defaultConfig: MatchUpFormatConfig = {
   }
 };
 
-let editorConfig: MatchUpFormatConfig = defaultConfig;
+const codec = { parse: matchUpFormatCode.parse, stringify: matchUpFormatCode.stringify };
 
-let selectedMatchUpFormat: string;
-let parsedMatchUpFormat: any;
+/** The set-row controls in display order. Descriptor and count belong to the match, not the final set. */
+const SET_CONTROLS = [
+  'descriptor',
+  'bestOf',
+  'advantage',
+  'what',
+  'setTo',
+  'tiebreakTo',
+  'tiebreakAt',
+  'winBy',
+  'minutes',
+  'based',
+  'modifier'
+] as const;
+type SetControl = (typeof SET_CONTROLS)[number];
+const MATCH_ONLY = new Set<SetControl>(['descriptor', 'bestOf']);
+const SEGMENT_FIELDS: Partial<Record<SetControl, SegmentField>> = {
+  setTo: 'setTo',
+  tiebreakTo: 'tiebreakTo',
+  tiebreakAt: 'tiebreakAt',
+  minutes: 'minutes',
+  based: 'based',
+  modifier: 'modifier',
+  advantage: 'noAd'
+};
 
-// Direct element references - avoids document.getElementById lookups
-// Populated when the modal renders, used by handlers to update controls
-let modalInputs: Record<string, HTMLElement> = {};
-
-/**
- * Get an element by key from modalInputs, falling back to document.getElementById.
- * This ensures handlers work even if modalInputs references become stale.
- */
-function getEl(key: string): HTMLElement | null {
-  return modalInputs[key] || document.getElementById(key) || null;
+function styleButton(button: HTMLButtonElement): void {
+  // Inline, because courthive-components has no .mfcButton stylesheet
+  button.className = 'mfcButton';
+  button.style.transition = TRANSITION_STYLE;
+  button.style.backgroundColor = 'inherit';
+  button.style.border = 'none';
+  button.style.color = 'inherit';
+  button.style.padding = '.3em';
+  button.style.textAlign = 'center';
+  button.style.textDecoration = 'none';
+  button.style.fontSize = '1em';
+  button.style.cursor = 'pointer';
 }
 
-const TIMED_SETS = 'Timed set';
-const TIEBREAKS = 'Tiebreak';
-const NOAD = 'No-Ad';
-const SETS = 'Set';
-const AD = 'Ad';
-
-// Display labels for the 'based' scoring method (timed sets)
-const BASED_CODES: Record<string, string> = { Games: 'G', Points: 'P' };
-
-function getBasedLabels(): Record<string, string> {
-  return { G: editorConfig.labels?.games || 'Games', P: editorConfig.labels?.points || 'Points' };
+function newButton(id: string): HTMLButtonElement {
+  const button = document.createElement('button');
+  button.id = id;
+  styleButton(button);
+  return button;
 }
 
-// Display labels for game format codes
-function getGameFormatLabels(): Record<string, string> {
+function newToggle(id: string, className: string, label: string, labelId: string) {
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.className = className;
+  checkbox.id = id;
+  checkbox.name = id;
+  const labelElement = document.createElement('label');
+  labelElement.setAttribute('for', id);
+  labelElement.id = labelId;
+  labelElement.innerHTML = label;
+  labelElement.style.marginRight = '1em';
+  return { checkbox, label: labelElement };
+}
+
+function showControl(element: HTMLElement, control: ControlView, readOnly: boolean): void {
+  element.style.display = control.visible ? '' : NONE;
+  if (control.visible) element.innerHTML = control.label;
+  (element as HTMLButtonElement).disabled = readOnly;
+}
+
+function mergeConfig(config?: MatchUpFormatConfig): MatchUpFormatConfig {
+  if (!config) return defaultConfig;
   return {
-    None: editorConfig.labels?.none || 'None',
-    TN: editorConfig.labels?.traditional || 'Traditional',
-    '2C': editorConfig.labels?.consecutive2 || '2 consecutive',
-    '3C': editorConfig.labels?.consecutive3 || '3 consecutive',
-    '4C': editorConfig.labels?.consecutive4 || '4 consecutive'
+    labels: { ...defaultConfig.labels, ...config.labels },
+    options: { ...defaultConfig.options, ...config.options },
+    capabilities: config.capabilities,
+    preDefinedFormats: config.preDefinedFormats || defaultConfig.preDefinedFormats
   };
 }
-
-function getDeuceRuleLabels(): Record<string, string> {
-  return {
-    None: editorConfig.labels?.none || 'None',
-    '1D': editorConfig.labels?.goldenPoint || 'Golden point',
-    '3D': editorConfig.labels?.starPoint || 'Star point'
-  };
-}
-
-/** Convert a gameFormat object to its display label */
-function gameFormatLabel(gf: any): string {
-  const gfLabels = getGameFormatLabels();
-  const drLabels = getDeuceRuleLabels();
-  if (!gf) return editorConfig.labels?.none || 'None';
-  let label: string;
-  if (gf.type === 'TRADITIONAL') label = gfLabels['TN'] || 'Traditional';
-  else if (gf.type === 'CONSECUTIVE') {
-    const countKey = `${gf.count}C`;
-    label = gfLabels[countKey] || `${gf.count} consecutive`;
-  } else return editorConfig.labels?.none || 'None';
-  if (gf.deuceAfter) {
-    const deuceKey = `${gf.deuceAfter}D`;
-    label += ` + ${drLabels[deuceKey] || deuceKey}`;
-  }
-  return label;
-}
-
-interface SetFormatConfig {
-  descriptor: string;
-  bestOf?: number;
-  exactly?: number;
-  advantage: string;
-  what: string;
-  setTo: number;
-  tiebreakAt: number;
-  tiebreakTo: number;
-  winBy: number;
-  minutes: number;
-  tiebreakFormat?: any;
-  NoAD?: boolean;
-  tiebreakSet?: any;
-  timed?: boolean;
-  based?: string;
-  modifier?: string;
-}
-
-interface FormatConfig {
-  matchRoot?: string;
-  aggregate?: boolean;
-  gameFormat?:
-    { type: 'CONSECUTIVE'; count: number; deuceAfter?: number } | { type: 'TRADITIONAL'; deuceAfter?: number };
-  setFormat: SetFormatConfig;
-  finalSetFormat: SetFormatConfig;
-}
-
-const format: FormatConfig = {
-  matchRoot: undefined,
-  aggregate: undefined,
-  gameFormat: undefined,
-  setFormat: {
-    descriptor: 'Best of',
-    bestOf: 3,
-    advantage: AD,
-    what: SETS,
-    setTo: 6,
-    tiebreakAt: 6,
-    tiebreakTo: 7,
-    winBy: 2,
-    minutes: 10
-    // based is undefined by default
-  },
-  finalSetFormat: {
-    descriptor: 'Final set',
-    advantage: AD,
-    what: SETS,
-    setTo: 6,
-    tiebreakAt: 6,
-    tiebreakTo: 7,
-    winBy: 2,
-    minutes: 10
-    // based is undefined by default
-  }
-};
-
-// REFACTORED: Thin wrapper around pure buildSetFormat function
-// Now just reads DOM state and delegates to pure logic
-function getSetFormat(index?: number): any {
-  const which = index ? 'finalSetFormat' : 'setFormat';
-  const config = format[which];
-
-  // Check if tiebreak checkbox is checked
-  const tiebreakKey = index ? 'finalSetTiebreak' : 'setTiebreak';
-  const hasTiebreak = (getEl(tiebreakKey) as HTMLInputElement)?.checked || false;
-
-  // Delegate to pure logic function
-  return buildSetFormat(config, hasTiebreak);
-}
-
-function generateMatchUpFormat(): string {
-  const setFormat = getSetFormat();
-
-  parsedMatchUpFormat = {
-    setFormat
-  };
-
-  // Include match-level properties
-  if (format.matchRoot && format.matchRoot !== 'SET') {
-    parsedMatchUpFormat.matchRoot = format.matchRoot;
-  }
-  if (format.aggregate) {
-    parsedMatchUpFormat.aggregate = true;
-  }
-  if (format.gameFormat) {
-    parsedMatchUpFormat.gameFormat = format.gameFormat;
-  }
-
-  // Use exactly or bestOf based on descriptor
-  const descriptor = format.setFormat.descriptor;
-  const numValue = format.setFormat.exactly ?? format.setFormat.bestOf ?? 3;
-
-  if (descriptor === 'Exactly') {
-    parsedMatchUpFormat.exactly = numValue;
-    // Make sure we don't include bestOf when we have exactly
-    delete parsedMatchUpFormat.bestOf;
-  } else {
-    parsedMatchUpFormat.bestOf = numValue;
-    // Make sure we don't include exactly when we have bestOf
-    delete parsedMatchUpFormat.exactly;
-  }
-
-  const hasFinalSet = (getEl('finalSetOption') as HTMLInputElement)?.checked;
-  if (hasFinalSet) parsedMatchUpFormat.finalSetFormat = getSetFormat(1);
-
-  const matchUpFormat = governors.scoreGovernor.stringifyMatchUpFormat(parsedMatchUpFormat);
-
-  const predefinedFormats = editorConfig.preDefinedFormats
-    ? editorConfig.preDefinedFormats.map((f) => ({ value: f.code, label: f.text, format: f.code }))
-    : matchUpFormats;
-  const predefined = predefinedFormats.some((format) => format.format === matchUpFormat);
-  const elem = getEl('matchUpFormatSelector') as HTMLSelectElement;
-
-  // Update select dropdown WITHOUT triggering onchange event
-  if (elem) {
-    const currentValue = elem.value;
-    const newValue = predefined ? matchUpFormat : 'Custom';
-
-    // Only update if the value actually changed
-    if (currentValue !== newValue) {
-      // Temporarily remove onchange to prevent recursion
-      const originalOnChange = elem.onchange;
-      elem.onchange = null;
-
-      elem.value = newValue;
-
-      // Restore onchange handler
-      elem.onchange = originalOnChange;
-    }
-  }
-
-  return matchUpFormat;
-}
-
-function setMatchUpFormatString(value?: string): void {
-  const matchUpFormat = value || generateMatchUpFormat();
-  // Update selectedMatchUpFormat so onSelect uses the current format
-  selectedMatchUpFormat = matchUpFormat;
-  const formatStringElem = getEl('matchUpFormatString');
-  if (formatStringElem) {
-    formatStringElem.innerHTML = matchUpFormat;
-  }
-}
-
-const whichSetFormat = (pmf: any, isFinal?: boolean) => {
-  if (isFinal) return pmf.finalSetFormat || pmf.setFormat;
-  return pmf.setFormat;
-};
-
-interface SetComponent {
-  getValue?: (pmf: any, isFinal?: boolean) => any;
-  options: any[] | ((index?: number) => any[]);
-  id: string;
-  value?: any;
-  finalSet?: boolean;
-  defaultValue?: any;
-  whats?: string[];
-  onChange?: string;
-  onChangeCallback?: string;
-  pluralize?: boolean;
-  prefix?: string;
-  suffix?: string;
-  finalSetLabel?: string;
-  tb?: boolean;
-  tbSet?: boolean;
-  timed?: boolean;
-}
-
-const setComponents: SetComponent[] = [
-  {
-    getValue: (pmf) =>
-      pmf.exactly
-        ? editorConfig.labels?.descriptors?.exactly || 'Exactly'
-        : editorConfig.labels?.descriptors?.bestOf || 'Best of',
-    options: () => [
-      editorConfig.labels?.descriptors?.bestOf || 'Best of',
-      editorConfig.labels?.descriptors?.exactly || 'Exactly'
-    ],
-    id: 'descriptor',
-    value: editorConfig.labels?.descriptors?.bestOf || 'Best of',
-    finalSet: false,
-    onChange: 'changeDescriptor'
-  },
-  {
-    getValue: (pmf) => pmf.bestOf || pmf.exactly,
-    finalSet: false,
-    id: 'bestOf',
-    options: () => {
-      // Return configured options for 'Exactly' or 'Best of'
-      const descriptor = format.setFormat.descriptor;
-      const exactlyLabel = editorConfig.labels?.descriptors?.exactly || 'Exactly';
-      if (descriptor === exactlyLabel) {
-        return editorConfig.options?.exactly || defaultConfig.options!.exactly!;
-      }
-      // For Best of, use root-aware options
-      return getBestOfOptionsForRoot(format.matchRoot);
-    },
-    onChange: 'pluralize',
-    onChangeCallback: 'updateFinalSetVisibility',
-    value: 3
-  },
-  {
-    getValue: (pmf, isFinal) => {
-      const setFormat = whichSetFormat(pmf, isFinal);
-      const adType = setFormat?.NoAD ? NOAD : AD;
-      return setFormat?.timed || setFormat?.tiebreakSet ? undefined : adType;
-    },
-    options: [AD, NOAD],
-    onChange: 'changeAdvantage',
-    defaultValue: AD,
-    id: 'advantage',
-    whats: [SETS]
-  },
-  {
-    getValue: (pmf, isFinal) => {
-      const setFormat = whichSetFormat(pmf, isFinal);
-      if (!setFormat) console.log({ pmf });
-      if (setFormat?.timed) return TIMED_SETS;
-      if (setFormat?.tiebreakSet) return TIEBREAKS;
-      return SETS;
-    },
-    options: [SETS, TIEBREAKS, TIMED_SETS],
-    finalSetLabel: `${SETS}${clickable}`,
-    onChange: 'changeWhat',
-    onChangeCallback: 'updateWhatValue',
-    pluralize: true,
-    id: 'what'
-  },
-  {
-    getValue: (pmf, isFinal) => {
-      const setFormat = whichSetFormat(pmf, isFinal);
-      return setFormat.setTo;
-    },
-    options: () => editorConfig.options?.setTo || defaultConfig.options!.setTo!,
-    onChange: 'changeCount',
-    defaultValue: 6,
-    whats: [SETS],
-    prefix: 'to ',
-    id: 'setTo'
-  },
-  {
-    getValue: (pmf, isFinal) => {
-      const setFormat = whichSetFormat(pmf, isFinal);
-      return setFormat.tiebreakFormat?.tiebreakTo || setFormat.tiebreakSet?.tiebreakTo;
-    },
-    options: (index?: number) => {
-      // For Final Set tiebreak when Exactly is selected, include [1,3]
-      const descriptor = format.setFormat.descriptor;
-      const standardOptions = editorConfig.options?.tiebreakTo || defaultConfig.options!.tiebreakTo!;
-      const exactlyOptions = editorConfig.options?.tiebreakToExactly || defaultConfig.options!.tiebreakToExactly!;
-
-      if (index && descriptor === 'Exactly') {
-        // Final set + Exactly: prepend [1, 3] options
-        return [...exactlyOptions, ...standardOptions];
-      }
-      return standardOptions;
-    },
-    onChange: 'changeTiebreakTo',
-    whats: [SETS, TIEBREAKS],
-    id: 'tiebreakTo',
-    defaultValue: 7,
-    prefix: 'TB to ',
-    tbSet: true,
-    value: 7,
-    tb: true
-  },
-  {
-    getValue: (pmf, isFinal) => {
-      const setFormat = whichSetFormat(pmf, isFinal);
-      return setFormat.tiebreakAt;
-    },
-    // REFACTORED: Use pure logic function for tiebreakAt options
-    options: (index?: number) => {
-      const setTo = format[index ? 'finalSetFormat' : 'setFormat'].setTo;
-      return getTiebreakAtOptions(setTo);
-    },
-    onChange: 'changeTiebreakAt',
-    id: 'tiebreakAt',
-    defaultValue: 6,
-    whats: [SETS],
-    prefix: '@',
-    value: 6,
-    tb: true
-  },
-  {
-    getValue: (pmf, isFinal) => {
-      const setFormat = whichSetFormat(pmf, isFinal);
-      // Tiebreak controls win-by via the tiebreak's NoAD flag (standard set with tiebreak,
-      // or tiebreak-only set). Returns 1 for NoAD, 2 for advantage.
-      if (setFormat.tiebreakFormat) return setFormat.tiebreakFormat.NoAD ? 1 : 2;
-      if (setFormat.tiebreakSet) return setFormat.tiebreakSet.NoAD ? 1 : 2;
-      // Standard set with no tiebreak: surface set-level winBy override (e.g. TYPTI WB1).
-      // Default is win-by 2 (advantage); winBy is omitted from the parsed shape in that case.
-      if (setFormat.setTo && !setFormat.timed) return setFormat.winBy ?? 2;
-      return undefined;
-    },
-    whats: [SETS, TIEBREAKS],
-    onChange: 'changeWinBy',
-    prefix: 'Win by ',
-    options: [1, 2],
-    defaultValue: 2,
-    id: 'winBy'
-  },
-  {
-    getValue: (pmf, isFinal) => {
-      const setFormat = whichSetFormat(pmf, isFinal);
-      return (setFormat.timed && setFormat.minutes) || undefined;
-    },
-    options: () => editorConfig.options?.minutes || defaultConfig.options!.minutes!,
-    onChange: 'changeMinutes',
-    whats: [TIMED_SETS],
-    suffix: ' Minutes',
-    defaultValue: 10,
-    id: 'minutes',
-    timed: true
-  },
-  {
-    getValue: (pmf, isFinal) => {
-      const setFormat = whichSetFormat(pmf, isFinal);
-      if (!setFormat?.timed) return undefined;
-      // Map code to display label
-      const code = setFormat.based || 'G';
-      return getBasedLabels()[code] || code;
-    },
-    options: () => ['Games', 'Points'],
-    onChange: 'changeBased',
-    whats: [TIMED_SETS],
-    defaultValue: 'Games',
-    id: 'based',
-    timed: true
-  },
-  {
-    getValue: (pmf, isFinal) => {
-      const setFormat = whichSetFormat(pmf, isFinal);
-      // Extract modifier from tiebreakSet, tiebreakFormat, or timed set
-      const modifier = setFormat?.tiebreakSet?.modifier || setFormat?.tiebreakFormat?.modifier || setFormat?.modifier;
-      return modifier || undefined;
-    },
-    options: () => editorConfig.options?.modifiers || defaultConfig.options!.modifiers!,
-    onChange: 'changeModifier',
-    whats: [TIEBREAKS, TIMED_SETS],
-    prefix: '@',
-    defaultValue: 'None',
-    id: 'modifier',
-    tb: true
-  }
-];
-
-function switchToExactlyMode(currentValue: number): void {
-  if (format.setFormat.what !== TIMED_SETS) {
-    delete format.setFormat.setTo;
-    delete format.setFormat.tiebreakAt;
-    delete format.setFormat.tiebreakTo;
-    delete format.setFormat.winBy;
-    delete format.setFormat.tiebreakFormat;
-    delete format.setFormat.NoAD;
-
-    format.setFormat.what = TIMED_SETS;
-    if (!format.setFormat.minutes) {
-      format.setFormat.minutes = 10;
-    }
-
-    onClicks.changeWhat(new Event('click'), undefined, TIMED_SETS);
-
-    const whatElem = getEl('what');
-    if (whatElem) {
-      const plural = currentValue > 1 ? 's' : '';
-      whatElem.innerHTML = `${TIMED_SETS}${plural}${clickable}`;
-    }
-
-    const minutesElem = getEl('minutes');
-    if (minutesElem) {
-      minutesElem.innerHTML = `${format.setFormat.minutes} Minutes${clickable}`;
-      minutesElem.style.display = '';
-    }
-
-    const basedElem = getEl('based');
-    if (basedElem) {
-      const basedCode = format.setFormat.based || 'G';
-      basedElem.innerHTML = `${getBasedLabels()[basedCode] || basedCode}${clickable}`;
-      basedElem.style.display = '';
-    }
-  }
-
-  format.setFormat.exactly = currentValue;
-  delete format.setFormat.bestOf;
-}
-
-function switchToBestOfMode(currentValue: number): void {
-  const validBestOf = currentValue % 2 === 0 ? currentValue + 1 : currentValue;
-  format.setFormat.bestOf = validBestOf;
-  delete format.setFormat.exactly;
-
-  const bestOfElem = getEl('bestOf');
-  if (bestOfElem) {
-    bestOfElem.innerHTML = `${validBestOf}${clickable}`;
-  }
-
-  if (validBestOf !== currentValue) {
-    onClicks.pluralize(new Event('click'), undefined, validBestOf);
-  }
-}
-
-function refreshFinalSetTiebreakTo(): void {
-  const finalSetTiebreakToElem = getEl('tiebreakTo-1');
-  if (!finalSetTiebreakToElem || finalSetTiebreakToElem.style.display === NONE) return;
-
-  const currentTiebreakTo = format.finalSetFormat.tiebreakTo || 7;
-  const tiebreakComponent = setComponents.find((c) => c.id === 'tiebreakTo');
-  if (!tiebreakComponent) return;
-
-  const { prefix = '', suffix = '' } = tiebreakComponent;
-  const newOptions = isFunction(tiebreakComponent.options) ? tiebreakComponent.options(1) : tiebreakComponent.options;
-  const validValue = newOptions.includes(currentTiebreakTo) ? currentTiebreakTo : 7;
-  if (validValue !== currentTiebreakTo) {
-    format.finalSetFormat.tiebreakTo = validValue;
-  }
-  finalSetTiebreakToElem.innerHTML = `${prefix}${validValue}${suffix}${clickable}`;
-}
-
-const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) => void> = {
-  changeDescriptor: (_e, _index, opt) => {
-    format.setFormat.descriptor = opt;
-    const currentValue = format.setFormat.bestOf || format.setFormat.exactly || 3;
-
-    if (opt === 'Exactly') {
-      switchToExactlyMode(currentValue);
-    } else {
-      switchToBestOfMode(currentValue);
-    }
-
-    refreshFinalSetTiebreakTo();
-    setMatchUpFormatString();
-  },
-  changeWhat: (_e, index, opt) => {
-    const tiebreakOptionVisible = opt === SETS;
-    const elementId = index ? 'finalSetTiebreakToggle' : 'setTiebreakToggle';
-    const tiebreakToggle = getEl(elementId);
-    if (tiebreakToggle) tiebreakToggle.style.display = tiebreakOptionVisible ? '' : NONE;
-
-    // IMPORTANT: 'Exactly' is only valid with timed sets
-    // If changing away from timed sets while in 'Exactly' mode, switch to 'Best of'
-    if (!index && opt !== TIMED_SETS && format.setFormat.descriptor === 'Exactly') {
-      format.setFormat.descriptor = 'Best of';
-      const currentValue = format.setFormat.exactly || 3;
-      // If current value is even, change to nearest odd
-      const validBestOf = currentValue % 2 === 0 ? currentValue + 1 : currentValue;
-      format.setFormat.bestOf = validBestOf;
-      delete format.setFormat.exactly;
-
-      // Update the descriptor button display
-      const descriptorElem = getEl('descriptor');
-      if (descriptorElem) {
-        descriptorElem.innerHTML = `Best of${clickable}`;
-      }
-
-      // Update the number button display
-      const bestOfElem = getEl('bestOf');
-      if (bestOfElem) {
-        bestOfElem.innerHTML = `${validBestOf}${clickable}`;
-      }
-    }
-
-    setComponents.forEach((component) => {
-      if (component.whats) {
-        const { prefix = '', suffix = '', pluralize } = component;
-        const visible = component.whats.includes(opt);
-        const id = index ? `${component.id}-${index}` : component.id;
-        const elem = getEl(id);
-        if (!elem) return;
-
-        if (elem.style.display === NONE && visible) {
-          const setCount = parsedMatchUpFormat.bestOf || parsedMatchUpFormat.exactly;
-          const plural = !index && pluralize && setCount > 1 ? 's' : '';
-          const value = component.defaultValue;
-          elem.innerHTML = `${prefix}${value}${plural}${suffix}${clickable}`;
-          // Store the default value, but apply the same transformations
-          // that the onChange handlers would (e.g., 'None' → undefined, 'Games' → undefined)
-          let storedValue = value;
-          if (component.id === 'modifier' && value === 'None') storedValue = undefined;
-          if (component.id === 'based') {
-            const code = BASED_CODES[value] || value;
-            storedValue = code === 'G' ? undefined : code;
-          }
-          format[index ? 'finalSetFormat' : 'setFormat'][component.id] = storedValue;
-        }
-
-        elem.style.display = visible ? '' : NONE;
-      }
-    });
-
-    // Update format string and dropdown after changing what type
-    setMatchUpFormatString();
-  },
-  changeCount: (_e, index, opt) => {
-    // REFACTORED: Use pure logic for tiebreakAt auto-adjustment
-    const which = index ? 'finalSetFormat' : 'setFormat';
-    format[which].setTo = opt;
-
-    // Auto-adjust tiebreakAt using pure logic function
-    const currentTiebreakAt = format[which].tiebreakAt;
-    const newTiebreakAt = autoAdjustTiebreakAt(opt, currentTiebreakAt);
-
-    if (newTiebreakAt !== currentTiebreakAt) {
-      format[which].tiebreakAt = newTiebreakAt;
-      // Update the tiebreakAt button display
-      const tiebreakAtElem = getEl(index ? `tiebreakAt-${index}` : 'tiebreakAt');
-      if (tiebreakAtElem) {
-        tiebreakAtElem.innerHTML = `@${newTiebreakAt}${clickable}`;
-      }
-    }
-
-    // Update format string and dropdown
-    setMatchUpFormatString();
-  },
-  changeTiebreakAt: (_e, index, opt) => {
-    format[index ? 'finalSetFormat' : 'setFormat'].tiebreakAt = opt;
-    // Update format string and dropdown
-    setMatchUpFormatString();
-  },
-  updateWhatValue: (_e, index, opt) => {
-    // Update the format.what value when user clicks Sets/Tiebreaks/Timed Sets
-    format[index ? 'finalSetFormat' : 'setFormat'].what = opt;
-  },
-  changeAdvantage: (_e, index, opt) => {
-    format[index ? 'finalSetFormat' : 'setFormat'].advantage = opt;
-    setMatchUpFormatString();
-  },
-  changeTiebreakTo: (_e, index, opt) => {
-    format[index ? 'finalSetFormat' : 'setFormat'].tiebreakTo = opt;
-    setMatchUpFormatString();
-  },
-  changeWinBy: (_e, index, opt) => {
-    format[index ? 'finalSetFormat' : 'setFormat'].winBy = opt;
-    setMatchUpFormatString();
-  },
-  changeMinutes: (_e, index, opt) => {
-    format[index ? 'finalSetFormat' : 'setFormat'].minutes = opt;
-    setMatchUpFormatString();
-  },
-  changeBased: (_e, index, opt) => {
-    const which = index ? 'finalSetFormat' : 'setFormat';
-    // Map display label to code (Games→G, Points→P, Aggregate→A)
-    const code = BASED_CODES[opt] || opt;
-    // If 'G' (Games), omit it since it's the default
-    format[which].based = code === 'G' ? undefined : code;
-
-    // Hide game format button when Points is selected (not applicable)
-    if (!index) {
-      const gfElem = getEl('gameFormat');
-      if (gfElem) {
-        if (code === 'P') {
-          // Clear game format when switching to Points
-          format.gameFormat = undefined;
-          gfElem.style.display = NONE;
-        } else {
-          gfElem.style.display = '';
-        }
-      }
-    }
-
-    setMatchUpFormatString();
-  },
-  changeModifier: (_e, index, opt) => {
-    const which = index ? 'finalSetFormat' : 'setFormat';
-    format[which].modifier = opt === 'None' ? undefined : opt;
-    setMatchUpFormatString();
-  },
-  changeMatchRoot: (_e, _index, opt) => {
-    const prevRoot = format.matchRoot || 'SET';
-    format.matchRoot = opt === 'SET' ? undefined : opt;
-
-    // When switching roots, validate bestOf is in allowed range
-    if (prevRoot !== opt) {
-      const bestOfOptions = getBestOfOptionsForRoot(format.matchRoot);
-      const currentBestOf = format.setFormat.bestOf;
-      if (currentBestOf && !bestOfOptions.includes(currentBestOf)) {
-        // Reset to nearest valid value
-        const validBestOf =
-          bestOfOptions[bestOfOptions.length - 1] >= currentBestOf
-            ? bestOfOptions.reduce((prev, curr) => (curr <= currentBestOf ? curr : prev), bestOfOptions[0])
-            : bestOfOptions[bestOfOptions.length - 1];
-        format.setFormat.bestOf = validBestOf;
-        const bestOfElem = getEl('bestOf');
-        if (bestOfElem) {
-          bestOfElem.innerHTML = `${validBestOf}${clickable}`;
-        }
-      }
-    }
-
-    setMatchUpFormatString();
-  },
-  changeAggregate: () => {
-    const checkbox = getEl('aggregateOption') as HTMLInputElement;
-    format.aggregate = checkbox?.checked || undefined;
-    setMatchUpFormatString();
-  },
-  changeGameFormat: (_e, _index, opt) => {
-    // opt is already a gameFormat object or undefined (from createGameFormatDropdown callback)
-    format.gameFormat = opt;
-    setMatchUpFormatString();
-  },
-  pluralize: (_e, index, opt) => {
-    const which = index ? 'finalSetFormat' : 'setFormat';
-    const what = format[which].what;
-    const elementId = index ? `what-${index}` : 'what';
-    const elem = getEl(elementId);
-    const plural = opt > 1 ? 's' : '';
-    if (elem) elem.innerHTML = `${what}${plural}${clickable}`;
-
-    // Update bestOf or exactly based on descriptor
-    if (!index) {
-      if (format.setFormat.descriptor === 'Exactly') {
-        format.setFormat.exactly = opt;
-        delete format.setFormat.bestOf;
-      } else {
-        format.setFormat.bestOf = opt;
-        delete format.setFormat.exactly;
-      }
-    }
-
-    // Update format string and dropdown
-    setMatchUpFormatString();
-  },
-  updateFinalSetVisibility: (_e, _index, opt) => {
-    // When bestOf/exactly changes, show/hide final set toggle
-    const showFinalSet = opt > 1;
-    const finalSetOption = getEl('finalSetOption') as HTMLInputElement;
-    const finalSetLabel = getEl('finalSetOptionLabel') as HTMLElement;
-
-    if (finalSetOption && finalSetLabel) {
-      if (showFinalSet) {
-        // Show the toggle and label
-        finalSetOption.style.display = '';
-        finalSetLabel.style.display = '';
-      } else {
-        // If value becomes 1, uncheck the toggle (this will hide config panels via onchange)
-        if (finalSetOption.checked) {
-          finalSetOption.checked = false;
-          // Trigger the onchange event to hide the panels
-          finalSetOption.dispatchEvent(new Event('change'));
-        }
-        // Hide the toggle and label
-        finalSetOption.style.display = 'none';
-        finalSetLabel.style.display = 'none';
-      }
-    }
-  }
-};
 
 export function getMatchUpFormatModal({
   existingMatchUpFormat = 'SET3-S:6/TB7',
@@ -873,60 +234,288 @@ export function getMatchUpFormatModal({
   config?: MatchUpFormatConfig;
   modalConfig?: any;
 } = {}) {
-  // Merge user config with defaults
-  if (config) {
-    editorConfig = {
-      labels: { ...defaultConfig.labels, ...config.labels },
-      options: { ...defaultConfig.options, ...config.options },
-      preDefinedFormats: config.preDefinedFormats || defaultConfig.preDefinedFormats
-    };
-  } else {
-    editorConfig = defaultConfig;
-  }
+  const editorConfig = mergeConfig(config);
+  const labels = editorConfig.labels;
+  const capabilities = editorConfig.capabilities;
 
-  // REFACTORED: Use pure function for format initialization
-  // This prevents state pollution and ensures proper handling of all format types
-  selectedMatchUpFormat = existingMatchUpFormat;
-
-  // Reset direct element references for this modal instance
-  modalInputs = {};
-
-  parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
-
-  // Handle invalid format strings that parse to undefined
-  if (!parsedMatchUpFormat) {
-    console.warn('Invalid matchUpFormat:', selectedMatchUpFormat);
-    // Fall back to default format
-    selectedMatchUpFormat = 'SET3-S:6/TB7';
-    parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
-  }
-
-  // Initialize format object using pure logic function
-  const initializedFormat = initializeFormatFromString(selectedMatchUpFormat, matchUpFormatCode.parse);
-
-  // Update module-level format object
-  // Use spread to ensure we get a copy, not a reference
-  format.matchRoot = initializedFormat.matchRoot;
-  format.aggregate = initializedFormat.aggregate;
-  format.gameFormat = initializedFormat.gameFormat;
-  format.setFormat = { ...initializedFormat.setFormat };
-  format.finalSetFormat = { ...initializedFormat.finalSetFormat };
-  const onSelect = () => {
-    // Use selectedMatchUpFormat if it's a predefined format (from dropdown selection)
-    // Otherwise generate from current button states
-    const dropdown = getEl('matchUpFormatSelector') as HTMLSelectElement;
-    const isPredefined = dropdown?.value && dropdown.value !== 'Custom';
-    const specifiedFormat = isPredefined ? selectedMatchUpFormat : generateMatchUpFormat();
-    if (isFunction(callback)) callback(specifiedFormat);
+  const catalog = editorConfig.preDefinedFormats
+    ? editorConfig.preDefinedFormats.map((entry) => ({ code: entry.code, label: entry.text }))
+    : (matchUpFormats as { format?: string; name: string }[])
+        .filter((entry) => entry.format)
+        .map((entry) => ({ code: entry.format, label: entry.name }));
+  const viewConfig = {
+    codec,
+    capabilities,
+    labels,
+    options: editorConfig.options,
+    catalogCodes: catalog.map((entry) => entry.code)
   };
+  const editContext = { codec, capabilities, tiebreakToOptions: editorConfig.options.tiebreakTo };
+
+  if (existingMatchUpFormat && !codec.parse(existingMatchUpFormat)) {
+    console.warn('Invalid matchUpFormat:', existingMatchUpFormat);
+  }
+  let state: EditorState = fromCode(existingMatchUpFormat, codec, capabilities);
+  let view: EditorView;
+  const elements: Record<string, HTMLElement> = {};
+
+  const dispatch = (edit: Edit) => {
+    state = applyEdit(state, edit, editContext);
+    render();
+  };
+
+  /** A control's dropdown, built from the view at the moment it opens. */
+  const openChoices = (e: Event, control: () => ControlView, toEdit: (value: any) => Edit) => {
+    createDropdown(
+      e,
+      control().options.map((option) => ({ text: option.text, onClick: () => dispatch(toEdit(option.value)) }))
+    );
+  };
+
+  const segmentOf = (index?: number): SegmentKey => (index ? 'finalSet' : 'set');
+  const segmentView = (segment: SegmentKey): SegmentView => (segment === 'set' ? view.set : view.finalSet);
+
+  function editForControl(id: SetControl, segment: SegmentKey, value: any): Edit {
+    if (id === 'descriptor') return { type: 'setCountMode', mode: value };
+    if (id === 'bestOf') return { type: 'setCount', count: value };
+    if (id === 'what') return { type: 'setSetType', segment, setType: value };
+    if (id === 'winBy') return { type: 'setSegmentValue', segment, field: segmentView(segment).winBy.field, value };
+    return { type: 'setSegmentValue', segment, field: SEGMENT_FIELDS[id], value };
+  }
+
+  function controlView(id: SetControl, segment: SegmentKey): ControlView {
+    if (id === 'descriptor') return view.descriptor;
+    if (id === 'bestOf') return view.count;
+    return segmentView(segment)[id];
+  }
+
+  function setControlButton(id: SetControl, index?: number): HTMLButtonElement {
+    const segment = segmentOf(index);
+    const button = newButton(index ? `${id}-${index}` : id);
+    button.onclick = (e) =>
+      openChoices(
+        e,
+        () => controlView(id, segment),
+        (value) => editForControl(id, segment, value)
+      );
+    elements[button.id] = button;
+    return button;
+  }
+
+  const content = document.createElement('div');
+  // Close an open dropdown on a click elsewhere in the modal
+  content.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    if (!target.closest('.dropdown') && !target.classList.contains('mfcButton')) closeCurrentDropdown();
+  });
+
+  const codeDisplay = document.createElement('div');
+  codeDisplay.id = 'matchUpFormatString';
+  codeDisplay.style.fontSize = '1.5em';
+  // The card's accent, like every other emphasis in the picker
+  codeDisplay.style.color = 'var(--chc-card-accent)';
+  codeDisplay.style.marginBottom = '1em';
+  elements.matchUpFormatString = codeDisplay;
+  content.appendChild(codeDisplay);
+
+  const selectorRow = document.createElement('div');
+  selectorRow.style.marginBlockEnd = '1em';
+  const selector = document.createElement('select');
+  selector.id = 'matchUpFormatSelector';
+  selector.className = 'input';
+  selector.style.width = '100%';
+  selector.style.backgroundColor = 'var(--chc-input-bg)';
+  selector.style.color = CHC_TEXT_PRIMARY;
+  selector.style.border = '1px solid var(--chc-input-border)';
+  for (const option of [{ code: CUSTOM, label: labels.custom || CUSTOM }, ...catalog]) {
+    const element = document.createElement('option');
+    element.value = option.code || '';
+    element.text = option.label || '';
+    element.style.backgroundColor = 'var(--chc-input-bg)';
+    element.style.color = CHC_TEXT_PRIMARY;
+    selector.appendChild(element);
+  }
+  selector.onchange = () => {
+    // Choosing "Custom" keeps the current format; choosing a catalog entry replaces it whole.
+    if (selector.value !== CUSTOM) dispatch({ type: 'loadCode', code: selector.value });
+    else render();
+  };
+  elements.matchUpFormatSelector = selector;
+  selectorRow.appendChild(selector);
+  content.appendChild(selectorRow);
+
+  const readOnlyNotice = document.createElement('div');
+  readOnlyNotice.id = 'matchUpFormatReadOnly';
+  readOnlyNotice.textContent = labels.readOnly;
+  readOnlyNotice.style.marginBottom = '1em';
+  readOnlyNotice.style.color = 'var(--chc-text-muted)';
+  elements.matchUpFormatReadOnly = readOnlyNotice;
+  content.appendChild(readOnlyNotice);
+
+  // Match-level controls: root, aggregate, game format
+  const matchRow = document.createElement('div');
+  matchRow.style.display = 'flex';
+  matchRow.style.flexWrap = 'wrap';
+  matchRow.style.gap = '0.5em';
+  matchRow.style.marginBottom = '0.5em';
+  matchRow.style.alignItems = 'center';
+
+  const matchRootButton = newButton('matchRoot');
+  matchRootButton.onclick = (e) =>
+    openChoices(
+      e,
+      () => view.matchRoot,
+      (matchRoot) => ({ type: 'setMatchRoot', matchRoot })
+    );
+  elements.matchRoot = matchRootButton;
+
+  const aggregate = newToggle(
+    'aggregateOption',
+    'switch is-rounded is-warning',
+    labels.aggregate || 'Aggregate',
+    'aggregateOptionLabel'
+  );
+  aggregate.checkbox.onchange = () => dispatch({ type: 'setAggregate', on: aggregate.checkbox.checked });
+  elements.aggregateOption = aggregate.checkbox;
+  elements.aggregateOptionLabel = aggregate.label;
+
+  const gameFormatButton = newButton('gameFormat');
+  gameFormatButton.onclick = (e) =>
+    createGameFormatDropdown(e, view.gameFormat.gameFormat, labels, (gameFormat) =>
+      dispatch({ type: 'setGameFormat', gameFormat })
+    );
+  elements.gameFormat = gameFormatButton;
+  matchRow.append(matchRootButton, aggregate.checkbox, aggregate.label, gameFormatButton);
+  content.appendChild(matchRow);
+
+  // The main set
+  const setRow = document.createElement('div');
+  setRow.id = 'setFormat';
+  setRow.style.display = 'flex';
+  setRow.style.flexWrap = 'wrap';
+  setRow.style.gap = '0.5em';
+  setRow.style.marginBottom = '1em';
+  for (const id of SET_CONTROLS) setRow.appendChild(setControlButton(id));
+  content.appendChild(setRow);
+
+  const setConfig = document.createElement('div');
+  setConfig.className = 'field';
+  setConfig.style.fontSize = '1em';
+  const tiebreakSwitch = 'switch is-rounded is-info';
+  const setTiebreak = newToggle('setTiebreak', tiebreakSwitch, labels.tiebreakLabel || 'Tiebreak', 'setTiebreakToggle');
+  setTiebreak.checkbox.onchange = () =>
+    dispatch({ type: 'setTiebreak', segment: 'set', on: setTiebreak.checkbox.checked });
+  const finalSetOption = newToggle(
+    'finalSetOption',
+    'switch is-rounded is-info',
+    labels.finalSetLabel || 'Final set',
+    'finalSetOptionLabel'
+  );
+  finalSetOption.checkbox.onchange = () => dispatch({ type: 'setFinalSet', on: finalSetOption.checkbox.checked });
+  Object.assign(elements, {
+    setTiebreak: setTiebreak.checkbox,
+    setTiebreakToggle: setTiebreak.label,
+    finalSetOption: finalSetOption.checkbox,
+    finalSetOptionLabel: finalSetOption.label
+  });
+  setConfig.append(setTiebreak.checkbox, setTiebreak.label, finalSetOption.checkbox, finalSetOption.label);
+  content.appendChild(setConfig);
+
+  // The final set
+  const finalSetRow = document.createElement('div');
+  finalSetRow.id = 'finalSetFormat';
+  finalSetRow.style.flexWrap = 'wrap';
+  finalSetRow.style.gap = '0.5em';
+  finalSetRow.style.marginBottom = '1em';
+  const finalSetHeading = document.createElement('div');
+  finalSetHeading.style.fontWeight = 'bold';
+  finalSetHeading.style.padding = '.3em';
+  finalSetHeading.innerHTML = labels.finalSetLabel || 'Final set';
+  finalSetRow.appendChild(finalSetHeading);
+  for (const id of SET_CONTROLS) if (!MATCH_ONLY.has(id)) finalSetRow.appendChild(setControlButton(id, 1));
+  elements.finalSetFormat = finalSetRow;
+  content.appendChild(finalSetRow);
+
+  const finalSetConfig = document.createElement('div');
+  finalSetConfig.id = 'finalSetConfig';
+  finalSetConfig.className = 'field';
+  finalSetConfig.style.fontSize = '1em';
+  const finalSetTiebreak = newToggle(
+    'finalSetTiebreak',
+    tiebreakSwitch,
+    labels.tiebreakLabel || 'Tiebreak',
+    'finalSetTiebreakToggle'
+  );
+  finalSetTiebreak.checkbox.onchange = () =>
+    dispatch({ type: 'setTiebreak', segment: 'finalSet', on: finalSetTiebreak.checkbox.checked });
+  Object.assign(elements, {
+    finalSetConfig,
+    finalSetTiebreak: finalSetTiebreak.checkbox,
+    finalSetTiebreakToggle: finalSetTiebreak.label
+  });
+  finalSetConfig.append(finalSetTiebreak.checkbox, finalSetTiebreak.label);
+  content.appendChild(finalSetConfig);
+
+  function renderToggle(checkbox: HTMLInputElement, label: HTMLElement, visible: boolean, checked: boolean) {
+    checkbox.style.display = visible ? '' : NONE;
+    label.style.display = visible ? '' : NONE;
+    checkbox.checked = checked;
+    checkbox.disabled = view.readOnly;
+  }
+
+  function renderSegment(index?: number) {
+    for (const id of SET_CONTROLS) {
+      if (index && MATCH_ONLY.has(id)) continue;
+      const element = elements[index ? `${id}-${index}` : id];
+      showControl(element, controlView(id, segmentOf(index)), view.readOnly);
+    }
+  }
+
+  function render(): void {
+    view = deriveView(state, viewConfig);
+    codeDisplay.innerHTML = view.code;
+    selector.style.display = view.catalogVisible ? '' : NONE;
+    selector.value = view.catalogValue;
+    readOnlyNotice.style.display = view.readOnly ? '' : NONE;
+
+    showControl(matchRootButton, view.matchRoot, view.readOnly);
+    showControl(gameFormatButton, view.gameFormat, view.readOnly);
+    renderToggle(aggregate.checkbox, aggregate.label, view.aggregate.visible, view.aggregate.checked);
+
+    renderSegment();
+    renderToggle(
+      setTiebreak.checkbox,
+      setTiebreak.label,
+      view.set.tiebreakToggle.visible,
+      view.set.tiebreakToggle.checked
+    );
+    renderToggle(
+      finalSetOption.checkbox,
+      finalSetOption.label,
+      view.finalSetToggle.visible,
+      view.finalSetToggle.checked
+    );
+
+    finalSetRow.style.display = view.finalSet.visible ? 'flex' : NONE;
+    finalSetConfig.style.display = view.finalSet.visible ? '' : NONE;
+    renderSegment(1);
+    renderToggle(
+      finalSetTiebreak.checkbox,
+      finalSetTiebreak.label,
+      view.finalSet.tiebreakToggle.visible,
+      view.finalSet.tiebreakToggle.checked
+    );
+  }
+
+  render();
 
   const buttons = [
     {
       onClick: () => {
-        closeCurrentDropdown(); // Clean up any open dropdowns
+        closeCurrentDropdown();
         callback?.('');
       },
-      label: editorConfig.labels?.cancel || 'Cancel',
+      label: labels.cancel || 'Cancel',
       intent: 'none',
       footer: {
         className: 'button',
@@ -936,507 +525,16 @@ export function getMatchUpFormatModal({
       close: true
     },
     {
-      label: editorConfig.labels?.select || 'Select',
+      label: labels.select || 'Select',
       intent: 'is-info',
       close: true,
       onClick: () => {
-        closeCurrentDropdown(); // Clean up any open dropdowns
-        onSelect();
+        closeCurrentDropdown();
+        callback?.(selectedCode(state, codec));
       }
     }
   ];
 
-  const tiebreakSwitch = 'switch is-rounded is-info';
-  const content = document.createElement('div');
-
-  // Close any open dropdown when clicking inside the modal content
-  // (except on dropdown elements or buttons that open dropdowns)
-  content.addEventListener('click', (e) => {
-    const target = e.target as HTMLElement;
-    // Don't close if clicking on a dropdown or a button that will open one
-    if (!target.closest('.dropdown') && !target.classList.contains('mfcButton')) {
-      closeCurrentDropdown();
-    }
-  });
-
-  const matchUpFormatString = document.createElement('div');
-  matchUpFormatString.id = 'matchUpFormatString';
-  matchUpFormatString.innerHTML = selectedMatchUpFormat;
-  matchUpFormatString.style.fontSize = '1.5em';
-  // The card's accent, like every other emphasis in the picker (it was `--chc-format-code-color`, pure blue).
-  matchUpFormatString.style.color = 'var(--chc-card-accent)';
-  matchUpFormatString.style.marginBottom = '1em';
-  modalInputs['matchUpFormatString'] = matchUpFormatString;
-  content.appendChild(matchUpFormatString);
-
-  const standardFormatSelector = document.createElement('div');
-  standardFormatSelector.style.marginBlockEnd = '1em';
-
-  // Use configured predefined formats if available, otherwise use default from JSON
-  const predefinedFormats = editorConfig.preDefinedFormats
-    ? editorConfig.preDefinedFormats.map((f) => ({ value: f.code, label: f.text, format: f.code }))
-    : matchUpFormats;
-
-  const formatSelector = {
-    id: 'matchUpFormatSelector',
-    options: [
-      { value: 'Custom', label: editorConfig.labels?.custom || 'Custom', selected: false },
-      ...predefinedFormats
-        .filter((format) => format.format) // Skip the "Custom" entry from JSON
-        .map((format) => ({
-          selected: format.format === selectedMatchUpFormat,
-          value: format.format,
-          label: ('label' in format ? format.label : format.name) || ''
-        }))
-    ]
-  };
-
-  // Create simple select field
-  const select = document.createElement('select');
-  select.id = 'matchUpFormatSelector';
-  select.className = 'input';
-  select.style.width = '100%';
-  select.style.backgroundColor = 'var(--chc-input-bg)';
-  select.style.color = CHC_TEXT_PRIMARY;
-  select.style.border = '1px solid var(--chc-input-border)';
-  for (const option of formatSelector.options) {
-    const opt = document.createElement('option');
-    opt.value = option.value || '';
-    opt.text = option.label || '';
-    opt.style.backgroundColor = 'var(--chc-input-bg)';
-    opt.style.color = CHC_TEXT_PRIMARY;
-    if (option.selected) opt.selected = true;
-    select.appendChild(opt);
-  }
-
-  modalInputs['matchUpFormatSelector'] = select;
-
-  function updateComponentButton(component: any, elemId: string, isFinal: boolean): void {
-    if (!component.getValue) return;
-    const value = component.getValue(parsedMatchUpFormat, isFinal);
-    const elem = getEl(elemId);
-    if (elem && value !== undefined && value !== null) {
-      const { prefix = '', suffix = '', pluralize } = component;
-      const setCount = parsedMatchUpFormat.bestOf || parsedMatchUpFormat.exactly;
-      const plural = pluralize && setCount > 1 ? 's' : '';
-      elem.innerHTML = `${prefix}${value}${plural}${suffix}${clickable}`;
-      elem.style.display = '';
-    } else if (elem) {
-      elem.style.display = NONE;
-    }
-  }
-
-  function updateMatchLevelControls(
-    finalSetFormatEl: HTMLElement,
-    finalSetConfigEl: HTMLElement,
-    finalSetOptionEl: HTMLInputElement,
-    setTiebreakEl: HTMLInputElement,
-    finalSetTiebreakEl: HTMLInputElement
-  ): void {
-    const matchRootElem = getEl('matchRoot');
-    if (matchRootElem) {
-      const rootLabel = format.matchRoot || 'SET';
-      matchRootElem.innerHTML = `${MATCH_ROOT_LABELS[rootLabel] || rootLabel}${clickable}`;
-    }
-
-    const aggElem = getEl('aggregateOption') as HTMLInputElement;
-    if (aggElem) aggElem.checked = !!format.aggregate;
-
-    const gfElem = getEl('gameFormat');
-    if (gfElem) {
-      gfElem.innerHTML = `${editorConfig.labels?.game || 'Game'}: ${gameFormatLabel(format.gameFormat)}${clickable}`;
-      gfElem.style.display = format.setFormat.based === 'P' ? NONE : '';
-    }
-
-    const setCount = parsedMatchUpFormat.bestOf || parsedMatchUpFormat.exactly;
-    onClicks.updateFinalSetVisibility(null, 0, setCount);
-
-    const finalSet = parsedMatchUpFormat.finalSetFormat;
-    finalSetFormatEl.style.display = finalSet ? '' : NONE;
-    finalSetConfigEl.style.display = finalSet ? '' : NONE;
-    finalSetOptionEl.checked = !!finalSet;
-
-    const finalSetIsTiebreakOnly = finalSet?.tiebreakSet?.tiebreakTo && !finalSet?.setTo;
-    finalSetTiebreakEl.checked = !!finalSet?.tiebreakFormat;
-    finalSetTiebreakEl.style.display = finalSetIsTiebreakOnly ? NONE : '';
-    const finalSetTiebreakLabelElem = getEl('finalSetTiebreakToggle');
-    if (finalSetTiebreakLabelElem) finalSetTiebreakLabelElem.style.display = finalSetIsTiebreakOnly ? NONE : '';
-
-    const mainWhat = format.setFormat.what;
-    const mainSetHasTiebreak = !!parsedMatchUpFormat.setFormat.tiebreakFormat;
-
-    setTiebreakEl.checked = mainSetHasTiebreak;
-    const tiebreakToggleVisible = mainWhat === SETS;
-    setTiebreakEl.style.display = tiebreakToggleVisible ? '' : NONE;
-    const setTiebreakToggleElem = getEl('setTiebreakToggle');
-    if (setTiebreakToggleElem) setTiebreakToggleElem.style.display = tiebreakToggleVisible ? '' : NONE;
-
-    setComponents.forEach((component) => {
-      updateComponentButton(component, component.id, false);
-
-      if (component.tb && mainWhat === SETS) {
-        const tbElem = getEl(component.id);
-        if (tbElem) {
-          tbElem.style.display = mainSetHasTiebreak ? tbElem.style.display : NONE;
-        }
-      }
-
-      if (finalSet) {
-        updateComponentButton(component, `${component.id}-1`, true);
-      }
-    });
-  }
-
-  select.onchange = (e) => {
-    selectedMatchUpFormat = (e.target as HTMLSelectElement).value;
-    setMatchUpFormatString(selectedMatchUpFormat);
-    parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
-
-    // Handle invalid format strings
-    if (!parsedMatchUpFormat) {
-      console.warn('Invalid matchUpFormat selected:', selectedMatchUpFormat);
-      return;
-    }
-
-    // Use initializeFormatFromString for full extraction
-    const initialized = initializeFormatFromString(selectedMatchUpFormat, matchUpFormatCode.parse);
-
-    // Apply match-level properties
-    format.matchRoot = initialized.matchRoot;
-    format.aggregate = initialized.aggregate;
-    format.gameFormat = initialized.gameFormat;
-
-    // Start with the setFormat from initialized result (includes modifier, based, etc.)
-    format.setFormat = { ...initialized.setFormat };
-    format.finalSetFormat = { ...initialized.finalSetFormat };
-
-    updateMatchLevelControls(finalSetFormat, finalSetConfig, finalSetOption, setTiebreak, finalSetTiebreak);
-  };
-  standardFormatSelector.appendChild(select);
-  content.appendChild(standardFormatSelector);
-
-  // Match root button (SET, HAL, QTR, PER, etc.)
-  const matchRootRow = document.createElement('div');
-  matchRootRow.style.display = 'flex';
-  matchRootRow.style.flexWrap = 'wrap';
-  matchRootRow.style.gap = '0.5em';
-  matchRootRow.style.marginBottom = '0.5em';
-  matchRootRow.style.alignItems = 'center';
-
-  const matchRootLabel = format.matchRoot || 'SET';
-  const matchRootButton = document.createElement('button');
-  matchRootButton.className = 'mfcButton';
-  matchRootButton.id = 'matchRoot';
-  matchRootButton.innerHTML = `${MATCH_ROOT_LABELS[matchRootLabel] || matchRootLabel}${clickable}`;
-  matchRootButton.style.transition = TRANSITION_STYLE;
-  matchRootButton.style.backgroundColor = 'inherit';
-  matchRootButton.style.border = 'none';
-  matchRootButton.style.color = 'inherit';
-  matchRootButton.style.padding = '.3em';
-  matchRootButton.style.textAlign = 'center';
-  matchRootButton.style.textDecoration = 'none';
-  matchRootButton.style.fontSize = '1em';
-  matchRootButton.style.cursor = 'pointer';
-  matchRootButton.onclick = (e) => {
-    const roots = editorConfig.options?.matchRoots || defaultConfig.options!.matchRoots!;
-    const items = roots.map((root: string) => ({
-      text: `${MATCH_ROOT_LABELS[root] || root}`,
-      onClick: () => {
-        matchRootButton.innerHTML = `${MATCH_ROOT_LABELS[root] || root}${clickable}`;
-        onClicks.changeMatchRoot(e, undefined, root);
-      }
-    }));
-    createDropdown(e, items);
-  };
-  matchRootRow.appendChild(matchRootButton);
-
-  // Aggregate checkbox
-  const aggregateCheckbox = document.createElement('input');
-  aggregateCheckbox.type = 'checkbox';
-  aggregateCheckbox.className = 'switch is-rounded is-warning';
-  aggregateCheckbox.id = 'aggregateOption';
-  aggregateCheckbox.name = 'aggregateOption';
-  aggregateCheckbox.checked = !!format.aggregate;
-  aggregateCheckbox.onchange = () => {
-    onClicks.changeAggregate(new Event('change'), undefined, undefined);
-  };
-  matchRootRow.appendChild(aggregateCheckbox);
-
-  const aggregateLabel = document.createElement('label');
-  aggregateLabel.setAttribute('for', 'aggregateOption');
-  aggregateLabel.innerHTML = editorConfig.labels?.aggregate || 'Aggregate';
-  aggregateLabel.style.marginRight = '1em';
-  matchRootRow.appendChild(aggregateLabel);
-
-  // Game format button — hidden when scoring is Points-based
-  const currentGameFormatDisplay = gameFormatLabel(format.gameFormat);
-  const gameFormatButton = document.createElement('button');
-  gameFormatButton.className = 'mfcButton';
-  gameFormatButton.id = 'gameFormat';
-  gameFormatButton.innerHTML = `${editorConfig.labels?.game || 'Game'}: ${currentGameFormatDisplay}${clickable}`;
-  gameFormatButton.style.transition = TRANSITION_STYLE;
-  gameFormatButton.style.backgroundColor = 'inherit';
-  gameFormatButton.style.border = 'none';
-  gameFormatButton.style.color = 'inherit';
-  gameFormatButton.style.padding = '.3em';
-  gameFormatButton.style.textAlign = 'center';
-  gameFormatButton.style.textDecoration = 'none';
-  gameFormatButton.style.fontSize = '1em';
-  gameFormatButton.style.cursor = 'pointer';
-  // Hide if scoring method is Points (game format not applicable)
-  if (format.setFormat.based === 'P') gameFormatButton.style.display = NONE;
-  gameFormatButton.onclick = (e) => {
-    createGameFormatDropdown(e, format.gameFormat, (newGameFormat) => {
-      format.gameFormat = newGameFormat;
-      gameFormatButton.innerHTML = `${editorConfig.labels?.game || 'Game'}: ${gameFormatLabel(format.gameFormat)}${clickable}`;
-      setMatchUpFormatString();
-    });
-  };
-  matchRootRow.appendChild(gameFormatButton);
-
-  // Store match-level control references
-  modalInputs['matchRoot'] = matchRootButton;
-  modalInputs['aggregateOption'] = aggregateCheckbox;
-  modalInputs['gameFormat'] = gameFormatButton;
-
-  content.appendChild(matchRootRow);
-
-  const setFormat = document.createElement('div');
-  setFormat.style.display = 'flex';
-  setFormat.style.flexWrap = 'wrap';
-  setFormat.style.gap = '0.5em';
-  setFormat.style.marginBottom = '1em';
-
-  setComponents
-    .map((component) => {
-      const value = component.getValue ? component.getValue(parsedMatchUpFormat) : undefined;
-      const button = createButton({ ...component, value });
-      modalInputs[component.id] = button; // Store direct reference
-      return button;
-    })
-    .forEach((button) => setFormat.appendChild(button));
-  setFormat.id = 'setFormat';
-  content.appendChild(setFormat);
-  const setConfig = document.createElement('div');
-  setConfig.className = 'field';
-  setConfig.style.fontSize = '1em';
-
-  const setTiebreak = document.createElement('input');
-  setTiebreak.className = tiebreakSwitch;
-  setTiebreak.name = 'setTiebreak';
-  setTiebreak.id = 'setTiebreak';
-  setTiebreak.type = 'checkbox';
-  setTiebreak.checked = !!parsedMatchUpFormat.setFormat.tiebreakFormat;
-  modalInputs['setTiebreak'] = setTiebreak;
-  setTiebreak.onchange = (e) => {
-    const active = (e.target as HTMLInputElement).checked;
-    setComponents
-      .filter(({ tb }) => tb)
-      .forEach((component) => {
-        const elem = getEl(component.id);
-        if (!elem) return;
-
-        if (elem.style.display === NONE && active) {
-          const { prefix = '', suffix = '', pluralize, defaultValue: value } = component;
-          const setCount = parsedMatchUpFormat.bestOf || parsedMatchUpFormat.exactly;
-          const plural = pluralize && setCount > 1 ? 's' : '';
-          elem.innerHTML = `${prefix}${value}${plural}${suffix}${clickable}`;
-        }
-
-        elem.style.display = active ? '' : NONE;
-      });
-    setMatchUpFormatString();
-  };
-  setConfig.appendChild(setTiebreak);
-
-  const tiebreakLabel = document.createElement('label');
-  tiebreakLabel.setAttribute('for', 'setTiebreak');
-  tiebreakLabel.id = 'setTiebreakToggle';
-  tiebreakLabel.innerHTML = editorConfig.labels?.tiebreakLabel || 'Tiebreak';
-  tiebreakLabel.style.marginRight = '1em';
-  modalInputs['setTiebreakToggle'] = tiebreakLabel;
-  setConfig.appendChild(tiebreakLabel);
-
-  // Only show final set option if setCount > 1 (can't have a final set with only 1 set)
-  const showFinalSetOption = (parsedMatchUpFormat.bestOf || parsedMatchUpFormat.exactly) > 1;
-
-  const finalSetOption = document.createElement('input');
-  finalSetOption.className = 'switch is-rounded is-info';
-  finalSetOption.type = 'checkbox';
-  finalSetOption.name = 'finalSetOption';
-  finalSetOption.checked = !!parsedMatchUpFormat.finalSetFormat;
-  finalSetOption.id = 'finalSetOption';
-  modalInputs['finalSetOption'] = finalSetOption;
-  finalSetOption.style.display = showFinalSetOption ? '' : 'none';
-  finalSetOption.onchange = (e) => {
-    const active = (e.target as HTMLInputElement).checked;
-
-    if (active) {
-      // When enabling final set, copy ALL properties from main set format
-      format.finalSetFormat = {
-        ...format.setFormat,
-        descriptor: 'Final set'
-      };
-
-      const what = format.setFormat.what;
-      const setCount = format.setFormat.bestOf || format.setFormat.exactly || 3;
-
-      // Update the "what" button for final set
-      const whatElem = getEl('what-1');
-      if (whatElem) {
-        const plural = setCount > 1 ? 's' : '';
-        whatElem.innerHTML = `${what}${plural}${clickable}`;
-      }
-
-      // Update ALL final set component buttons from format data
-      setComponents.forEach((component) => {
-        // Try to find the final set version of this component (id-1)
-        const elem = getEl(`${component.id}-1`);
-
-        // Skip if this component doesn't have a final set version
-        if (!elem) return;
-
-        // Check if this component should be visible for the current 'what'
-        // Components without 'whats' are always visible (like 'what' selector itself)
-        const visible = component.whats ? component.whats.includes(what) : true;
-
-        if (visible) {
-          // Build innerHTML from format data, not from stale buttons
-          const value = format.finalSetFormat[component.id];
-          if (value !== undefined) {
-            const { prefix = '', suffix = '' } = component;
-            elem.innerHTML = `${prefix}${value}${suffix}${clickable}`;
-          }
-          elem.style.display = '';
-        } else {
-          // Hide component not applicable to this 'what' type
-          elem.style.display = NONE;
-        }
-      });
-
-      // Handle tiebreak toggle visibility (only for regular sets)
-      const fsTiebreakToggle = getEl('finalSetTiebreakToggle');
-      if (fsTiebreakToggle) {
-        fsTiebreakToggle.style.display = what === SETS ? '' : NONE;
-      }
-
-      // Copy tiebreak checkbox state for regular sets
-      if (what === SETS) {
-        const mainTiebreak = getEl('setTiebreak') as HTMLInputElement;
-        const finalTiebreak = getEl('finalSetTiebreak') as HTMLInputElement;
-        if (mainTiebreak && finalTiebreak) {
-          finalTiebreak.checked = mainTiebreak.checked;
-        }
-      }
-    }
-
-    finalSetFormat.style.display = active ? '' : NONE;
-    finalSetConfig.style.display = active ? '' : NONE;
-    setMatchUpFormatString();
-  };
-
-  setConfig.appendChild(finalSetOption);
-
-  const finalSetLabel = document.createElement('label');
-  finalSetLabel.setAttribute('for', 'finalSetOption');
-  finalSetLabel.innerHTML = editorConfig.labels?.finalSetLabel || 'Final set';
-  finalSetLabel.style.display = showFinalSetOption ? '' : 'none';
-  modalInputs['finalSetOptionLabel'] = finalSetLabel;
-  setConfig.appendChild(finalSetLabel);
-
-  content.appendChild(setConfig);
-
-  const finalSetFormat = document.createElement('div');
-  finalSetFormat.style.display = parsedMatchUpFormat.finalSetFormat ? 'flex' : NONE;
-  finalSetFormat.style.flexWrap = 'wrap';
-  finalSetFormat.style.gap = '0.5em';
-  finalSetFormat.style.marginBottom = '1em';
-  finalSetFormat.id = 'finalSetFormat';
-  modalInputs['finalSetFormatDiv'] = finalSetFormat;
-  (
-    [
-      {
-        label: `<div style='font-weight: bold'>${editorConfig.labels?.finalSetLabel || 'Final set'}</div>`,
-        options: [] as any[],
-        finalSet: true
-      }
-    ] as any[]
-  )
-    .concat(
-      setComponents.map((component) => {
-        const value = component.getValue ? component.getValue(parsedMatchUpFormat, true) : undefined;
-        return { ...component, value };
-      })
-    )
-    .filter((def: any) => def.finalSet !== false)
-    .map((def: any) => {
-      const button = createButton({ ...def, index: 1 });
-      if (def.id) modalInputs[`${def.id}-1`] = button;
-      return button;
-    })
-    .forEach((button) => finalSetFormat.appendChild(button));
-  content.appendChild(finalSetFormat);
-
-  const finalSetConfig = document.createElement('div');
-  finalSetConfig.id = 'finalSetConfig';
-  modalInputs['finalSetConfigDiv'] = finalSetConfig;
-  finalSetConfig.style.display = parsedMatchUpFormat.finalSetFormat ? '' : NONE;
-  finalSetConfig.className = 'field';
-  finalSetConfig.style.fontSize = '1em';
-
-  // Check if final set is tiebreak-only format (e.g., F:TB10)
-  // Tiebreak-only formats have tiebreakSet.tiebreakTo but no setTo
-  const finalSetIsTiebreakOnly =
-    parsedMatchUpFormat.finalSetFormat?.tiebreakSet?.tiebreakTo && !parsedMatchUpFormat.finalSetFormat?.setTo;
-
-  const finalSetTiebreak = document.createElement('input');
-  finalSetTiebreak.className = tiebreakSwitch;
-  finalSetTiebreak.name = 'finalSetTiebreak';
-  finalSetTiebreak.id = 'finalSetTiebreak';
-  modalInputs['finalSetTiebreak'] = finalSetTiebreak;
-  finalSetTiebreak.type = 'checkbox';
-  // Initialize final set tiebreak:
-  // - If final set doesn't exist, default to match main set's tiebreak
-  // - If final set exists, preserve its explicit tiebreakFormat setting (which could be false)
-  finalSetTiebreak.checked = parsedMatchUpFormat.finalSetFormat
-    ? !!parsedMatchUpFormat.finalSetFormat.tiebreakFormat
-    : !!parsedMatchUpFormat.setFormat.tiebreakFormat;
-  // Hide tiebreak checkbox if final set is already tiebreak-only
-  finalSetTiebreak.style.display = finalSetIsTiebreakOnly ? NONE : '';
-  finalSetConfig.onchange = (e) => {
-    const active = (e.target as HTMLInputElement).checked;
-    setComponents
-      .filter(({ tb }) => tb)
-      .forEach((component) => {
-        const elem = getEl(`${component.id}-1`);
-        if (!elem) return;
-
-        if (elem.style.display === NONE && active) {
-          const { prefix = '', suffix = '', pluralize, defaultValue: value } = component;
-          const setCount = parsedMatchUpFormat.bestOf || parsedMatchUpFormat.exactly;
-          const plural = pluralize && setCount > 1 ? 's' : '';
-          elem.innerHTML = `${prefix}${value}${plural}${suffix}${clickable}`;
-        }
-
-        elem.style.display = active ? '' : NONE;
-      });
-    setMatchUpFormatString();
-  };
-  finalSetConfig.appendChild(finalSetTiebreak);
-
-  const finalSetTiebreakLabel = document.createElement('label');
-  finalSetTiebreakLabel.setAttribute('for', 'finalSetTiebreak');
-  finalSetTiebreakLabel.id = 'finalSetTiebreakToggle';
-  finalSetTiebreakLabel.innerHTML = editorConfig.labels?.tiebreakLabel || 'Tiebreak';
-  finalSetTiebreakLabel.style.marginRight = '1em';
-  // Hide tiebreak label if final set is already tiebreak-only
-  finalSetTiebreakLabel.style.display = finalSetIsTiebreakOnly ? NONE : '';
-  modalInputs['finalSetTiebreakToggle'] = finalSetTiebreakLabel;
-  finalSetConfig.appendChild(finalSetTiebreakLabel);
-
-  content.appendChild(finalSetConfig);
-
-  // Merge modalConfig with defaults
   // The score-entry dialog's surface, radius and shadow, so the picker reads as part of it when it opens
   // above it — CA, 2026-10-08: "the matchUpFormat selector should be styled to match the new score entry".
   // `chc-mfc-modal` scopes the accent rules in matchUpFormat.css (toggles and the Select button).
@@ -1452,367 +550,27 @@ export function getMatchUpFormatModal({
       boxShadow: '0 10px 26px rgb(0 0 0 / 18%)'
     }
   };
-
-  // Extract fontSize from style if provided there, and move to top level
+  // Extract fontSize from style if provided there, and move it to the top level
   const fontSize = modalConfig?.fontSize || modalConfig?.style?.fontSize || defaultModalConfig.fontSize;
-
   const finalModalConfig = {
     ...defaultModalConfig,
     ...modalConfig,
-    fontSize, // Ensure fontSize is at top level for cModal
+    fontSize,
     style: {
       ...defaultModalConfig.style,
-      ...((config as any)?.style || {}), // Include old config.style for backward compatibility
+      ...((config as any)?.style || {}), // the old config.style, for backward compatibility
       ...(modalConfig?.style || {}) // modalConfig.style takes precedence
     }
   };
 
-  const modalResult = cModal.open({
-    title: editorConfig.labels?.title || 'Score format',
-    content: content,
+  return cModal.open({
+    title: labels.title || 'Score format',
+    content,
     buttons,
     config: finalModalConfig,
-    onClose: () => onClose?.()
+    onClose: () => {
+      closeCurrentDropdown();
+      onClose?.();
+    }
   });
-
-  // Update final set UI after modal DOM is ready
-  // This handles tiebreak-only final sets like F:TB7
-  setTimeout(() => {
-    if (parsedMatchUpFormat.finalSetFormat?.tiebreakSet?.tiebreakTo && !parsedMatchUpFormat.finalSetFormat?.setTo) {
-      // Trigger the changeWhat callback for final set to update UI
-      const whatElem = getEl('what-1');
-      if (whatElem) {
-        whatElem.innerHTML = `${TIEBREAKS}${clickable}`;
-      }
-
-      // Update component visibility for tiebreak-only final set
-      onClicks.changeWhat(new Event('click'), 1, TIEBREAKS);
-    }
-
-    // Watch for modal removal and clean up dropdowns
-    const modalElement = document.querySelector('.modal.is-active');
-    if (modalElement) {
-      const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-          mutation.removedNodes.forEach((node) => {
-            if (node === modalElement) {
-              closeCurrentDropdown();
-              observer.disconnect();
-            }
-          });
-        });
-      });
-      observer.observe(document.body, { childList: true });
-    }
-  }, 0);
-
-  return modalResult;
-}
-
-function generateLabel({ index, finalSetLabel, label, prefix = '', suffix = '', value, pluralize }: any): string {
-  const setCount = format.setFormat.bestOf || format.setFormat.exactly || 1;
-  const plural = !index && pluralize && setCount > 1 ? 's' : '';
-  return label || (index && finalSetLabel) || `${prefix}${value}${plural}${suffix}${clickable}`;
-}
-
-function createButton(params: any): HTMLButtonElement {
-  const { id, initiallyHidden, index, value } = params;
-  const button = document.createElement('button');
-  button.className = 'mfcButton';
-  button.id = index ? `${id}-${index}` : id;
-  button.innerHTML = generateLabel(params);
-  button.onclick = (e) => getButtonClick({ e, button, ...params });
-  button.style.display = value || params.label ? '' : NONE;
-  if (initiallyHidden) button.style.display = NONE;
-
-  // Apply TMX button styles inline since courthive-components doesn't have .mfcButton CSS
-  button.style.transition = TRANSITION_STYLE;
-  button.style.backgroundColor = 'inherit';
-  button.style.border = 'none';
-  button.style.color = 'inherit';
-  button.style.padding = '.3em';
-  button.style.textAlign = 'center';
-  button.style.textDecoration = 'none';
-  button.style.fontSize = '1em';
-  button.style.cursor = 'pointer';
-
-  return button;
-}
-
-function getButtonClick(params: any): void {
-  const { e, id, button, pluralize, options, onChange, onChangeCallback, index, prefix = '', suffix = '' } = params;
-  const setCount = format.setFormat.bestOf || format.setFormat.exactly || 1;
-  const plural = !index && pluralize && setCount > 1 ? 's' : '';
-
-  const itemConfig = isFunction(options) ? options(index) : options;
-  const items = itemConfig.map((opt: any) => ({
-    text: `${opt}${plural}`,
-    onClick: () => {
-      button.innerHTML = `${prefix}${opt}${plural}${suffix}${clickable}`;
-      // Store raw value first; onChange handlers may override with transformed values
-      // (e.g., changeModifier converts 'None' → undefined, changeBased converts 'G' → undefined)
-      format[index ? 'finalSetFormat' : 'setFormat'][id] = opt;
-      if (onChange && isFunction(onClicks[onChange])) {
-        onClicks[onChange](e, index, opt);
-      }
-      // Call additional callback if specified
-      if (onChangeCallback && isFunction(onClicks[onChangeCallback])) {
-        onClicks[onChangeCallback](e, index, opt);
-      }
-      // Ensure format string is up-to-date (onChange handlers also call this,
-      // but we call it as a safety net for any handler that might not)
-      setMatchUpFormatString();
-    }
-  }));
-
-  createDropdown(e, items);
-}
-
-// Track currently open dropdown to close it when opening a new one
-let currentDropdown: HTMLElement | null = null;
-let currentCleanupListener: ((event: MouseEvent) => void) | null = null;
-
-function closeCurrentDropdown() {
-  if (currentDropdown && document.body.contains(currentDropdown)) {
-    currentDropdown.remove();
-  }
-  if (currentCleanupListener) {
-    document.removeEventListener('click', currentCleanupListener);
-    currentCleanupListener = null;
-  }
-  currentDropdown = null;
-}
-
-function createGameFormatDropdown(e: Event, currentGameFormat: any, onUpdate: (gf: any) => void) {
-  closeCurrentDropdown();
-
-  const dropdown = document.createElement('div');
-  dropdown.className = 'dropdown is-active';
-  dropdown.style.position = 'absolute';
-  dropdown.style.zIndex = '10000';
-
-  const dropdownMenu = document.createElement('div');
-  dropdownMenu.className = 'dropdown-menu';
-  dropdownMenu.style.backgroundColor = CHC_DROPDOWN_BG;
-  dropdownMenu.style.border = '1px solid var(--chc-border-secondary)';
-  dropdownMenu.style.borderRadius = '4px';
-  dropdownMenu.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-  dropdownMenu.style.padding = '0.25em 0';
-  dropdownMenu.style.minWidth = '180px';
-
-  // Determine current selections from currentGameFormat
-  let currentType = 'none';
-  let currentDeuce = 'none';
-  if (currentGameFormat?.type === 'TRADITIONAL') currentType = 'TN';
-  else if (currentGameFormat?.type === 'CONSECUTIVE') currentType = `${currentGameFormat.count}C`;
-  if (currentGameFormat?.deuceAfter) currentDeuce = `${currentGameFormat.deuceAfter}D`;
-
-  // Helper to build gameFormat from selections
-  function buildGameFormat(type: string, deuce: string): any {
-    if (type === 'none' && deuce === 'none') return undefined;
-    const gf: any = {};
-    if (type === 'TN') gf.type = 'TRADITIONAL';
-    else if (/^\d+C$/.test(type)) {
-      gf.type = 'CONSECUTIVE';
-      gf.count = Number(type.slice(0, -1));
-    } else {
-      gf.type = 'TRADITIONAL';
-    } // deuce without explicit type defaults to TRADITIONAL
-    if (deuce !== 'none') gf.deuceAfter = Number(deuce.slice(0, -1));
-    return gf;
-  }
-
-  function onRadioChange() {
-    const typeRadio = dropdown.querySelector('input[name="gameType"]:checked') as HTMLInputElement;
-    const deuceRadio = dropdown.querySelector('input[name="deuceRule"]:checked') as HTMLInputElement;
-    const type = typeRadio?.value || 'none';
-    const deuce = deuceRadio?.value || 'none';
-    onUpdate(buildGameFormat(type, deuce));
-  }
-
-  // Shared styles
-  const itemStyle =
-    'padding: 0.4em 1em; cursor: pointer; background-color: var(--chc-dropdown-bg); color: var(--chc-text-primary); font-size: 1rem;';
-  const headerStyle =
-    'padding: 0.3em 1em; font-weight: bold; font-size: 0.85rem; color: var(--chc-text-muted); text-transform: uppercase; letter-spacing: 0.5px;';
-  const separatorStyle = 'border-top: 1px solid #eee; margin: 0.25em 0;';
-
-  // "None" button at top — clears everything and closes dropdown
-  const noneItem = document.createElement('div');
-  noneItem.textContent = editorConfig.labels?.none || 'None';
-  noneItem.style.cssText = itemStyle;
-  noneItem.onmouseenter = () => {
-    noneItem.style.backgroundColor = CHC_HOVER_BG;
-  };
-  noneItem.onmouseleave = () => {
-    noneItem.style.backgroundColor = CHC_DROPDOWN_BG;
-  };
-  noneItem.onclick = (clickEvent) => {
-    clickEvent.preventDefault();
-    clickEvent.stopPropagation();
-    onUpdate(undefined);
-    closeCurrentDropdown();
-  };
-  dropdownMenu.appendChild(noneItem);
-
-  // Helper to create a radio option row
-  function createRadioRow(name: string, value: string, label: string, checked: boolean): HTMLElement {
-    const row = document.createElement('label');
-    row.style.cssText =
-      'display: flex; align-items: center; padding: 0.3em 1em; cursor: pointer; gap: 0.4em; font-size: 1rem; color: var(--chc-text-primary);';
-    row.onmouseenter = () => {
-      row.style.backgroundColor = CHC_HOVER_BG;
-    };
-    row.onmouseleave = () => {
-      row.style.backgroundColor = CHC_DROPDOWN_BG;
-    };
-
-    const radio = document.createElement('input');
-    radio.type = 'radio';
-    radio.name = name;
-    radio.value = value;
-    radio.checked = checked;
-    radio.style.margin = '0';
-    radio.onchange = () => onRadioChange();
-
-    const span = document.createElement('span');
-    span.textContent = label;
-
-    row.appendChild(radio);
-    row.appendChild(span);
-    return row;
-  }
-
-  // Separator + "Game type" header
-  const sep1 = document.createElement('div');
-  sep1.style.cssText = separatorStyle;
-  dropdownMenu.appendChild(sep1);
-
-  const gameTypeHeader = document.createElement('div');
-  gameTypeHeader.style.cssText = headerStyle;
-  gameTypeHeader.textContent = editorConfig.labels?.gameType || 'Game type';
-  dropdownMenu.appendChild(gameTypeHeader);
-
-  // Game type radio group
-  const gfLabels = getGameFormatLabels();
-  const gameTypeOptions = [
-    { value: 'none', label: editorConfig.labels?.none || 'None' },
-    { value: 'TN', label: gfLabels['TN'] },
-    { value: '2C', label: gfLabels['2C'] },
-    { value: '3C', label: gfLabels['3C'] },
-    { value: '4C', label: gfLabels['4C'] }
-  ];
-  for (const opt of gameTypeOptions) {
-    dropdownMenu.appendChild(createRadioRow('gameType', opt.value, opt.label, currentType === opt.value));
-  }
-
-  // Separator + "Deuce rule" header
-  const sep2 = document.createElement('div');
-  sep2.style.cssText = separatorStyle;
-  dropdownMenu.appendChild(sep2);
-
-  const deuceHeader = document.createElement('div');
-  deuceHeader.style.cssText = headerStyle;
-  deuceHeader.textContent = editorConfig.labels?.deuceRule || 'Deuce rule';
-  dropdownMenu.appendChild(deuceHeader);
-
-  // Deuce rule radio group
-  const drLabels = getDeuceRuleLabels();
-  const deuceOptions = [
-    { value: 'none', label: editorConfig.labels?.none || 'None' },
-    { value: '1D', label: drLabels['1D'] },
-    { value: '3D', label: drLabels['3D'] }
-  ];
-  for (const opt of deuceOptions) {
-    dropdownMenu.appendChild(createRadioRow('deuceRule', opt.value, opt.label, currentDeuce === opt.value));
-  }
-
-  dropdown.appendChild(dropdownMenu);
-
-  // Position near the clicked button
-  const rect = (e.target as HTMLElement).getBoundingClientRect();
-  dropdown.style.left = `${rect.left}px`;
-  dropdown.style.top = `${rect.bottom}px`;
-
-  document.body.appendChild(dropdown);
-  currentDropdown = dropdown;
-
-  // Close on click outside
-  setTimeout(() => {
-    currentCleanupListener = (event: MouseEvent) => {
-      if (!dropdown.contains(event.target as Node)) {
-        closeCurrentDropdown();
-      }
-    };
-    document.addEventListener('click', currentCleanupListener);
-  }, 100);
-}
-
-function createDropdown(e: any, items: any[]) {
-  // Close any existing dropdown before opening a new one
-  closeCurrentDropdown();
-
-  const dropdown = document.createElement('div');
-  dropdown.className = 'dropdown is-active';
-  dropdown.style.position = 'absolute';
-  dropdown.style.zIndex = '10000'; // Higher than modal (9999)
-
-  const dropdownMenu = document.createElement('div');
-  dropdownMenu.className = 'dropdown-menu';
-  dropdownMenu.style.backgroundColor = CHC_DROPDOWN_BG;
-  dropdownMenu.style.border = '1px solid var(--chc-border-secondary)';
-  dropdownMenu.style.borderRadius = '4px';
-  dropdownMenu.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-
-  const removeDropdown = () => {
-    closeCurrentDropdown();
-  };
-
-  items.forEach((item: any) => {
-    const itemDiv = document.createElement('div');
-    // Don't use dropdown-item class - it may have styling conflicts
-    itemDiv.style.padding = '0.5em 1em';
-    itemDiv.style.cursor = 'pointer';
-    itemDiv.style.backgroundColor = CHC_DROPDOWN_BG;
-    itemDiv.style.color = CHC_TEXT_PRIMARY;
-    itemDiv.style.fontSize = '1rem';
-    itemDiv.style.lineHeight = '1.5';
-    itemDiv.textContent = item.text;
-    itemDiv.onclick = (clickEvent) => {
-      clickEvent.preventDefault();
-      clickEvent.stopPropagation();
-      // Remove dropdown immediately, then call onClick synchronously
-      removeDropdown();
-      item.onClick();
-    };
-    itemDiv.onmouseenter = () => {
-      itemDiv.style.backgroundColor = CHC_HOVER_BG;
-      itemDiv.style.color = CHC_TEXT_PRIMARY;
-    };
-    itemDiv.onmouseleave = () => {
-      itemDiv.style.backgroundColor = CHC_DROPDOWN_BG;
-      itemDiv.style.color = CHC_TEXT_PRIMARY;
-    };
-    dropdownMenu.appendChild(itemDiv);
-  });
-
-  dropdown.appendChild(dropdownMenu);
-
-  // Position near the clicked button
-  const rect = (e.target as HTMLElement).getBoundingClientRect();
-  dropdown.style.left = `${rect.left}px`;
-  dropdown.style.top = `${rect.bottom}px`;
-
-  document.body.appendChild(dropdown);
-  currentDropdown = dropdown;
-
-  // Close on click outside (after a short delay to avoid immediate closure)
-  setTimeout(() => {
-    currentCleanupListener = (event: MouseEvent) => {
-      if (!dropdown.contains(event.target as Node)) {
-        removeDropdown();
-      }
-    };
-    document.addEventListener('click', currentCleanupListener);
-  }, 100);
 }

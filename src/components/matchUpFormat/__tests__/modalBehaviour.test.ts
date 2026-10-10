@@ -234,39 +234,14 @@ describe('each control', () => {
  * Opening a code and pressing Select without touching anything must return that code.
  *
  * The corpus is every format-code literal in factory `src/` that is valid and canonical
- * (`stringify(parse(c)) === c`), 255 codes measured 2026-10-10, plus the picker's own catalog. Catalog
- * codes survive because the dropdown preselects them and Select then returns the string untouched;
- * anything else is rebuilt from the controls, and these 26 come back different. The list may only
- * shrink: it is asserted in both directions, so fixing one fails this test until it is removed.
+ * (`stringify(parse(c)) === c`), 255 codes measured 2026-10-10, plus the picker's own catalog. Before
+ * the state machine, 26 of them came back different: the old picker rebuilt anything outside its
+ * catalog from controls that could not hold an outs set, a match time limit, a timed set's tiebreak,
+ * the standalone timed short form or an unknown modifier. Now a code is returned unchanged until the
+ * operator edits it, and one the controls cannot represent opens read-only. The list stays, asserted
+ * in both directions, so any drift that comes back fails this test by name.
  */
-const KNOWN_DRIFT: Record<string, string> = {
-  'INN4XA-S:O3': 'INN4XA-S:6',
-  'INN6XA-S:O3': 'INN6XA-S:6',
-  'SET1-S:O3': 'SET1-S:6',
-  'SET3-S:6/TB7-M:T120': STANDARD,
-  'SET3-S:6/TB7-M:T60': STANDARD,
-  'SET3-S:T10/TB1': 'SET3-S:T10',
-  'SET3-S:T10P/TB1': TIMED_POINTS,
-  'SET3-S:T10P/TB10': TIMED_POINTS,
-  'SET3-S:T10P/TB7': TIMED_POINTS,
-  'SET3-S:T20/TB7': 'SET3-S:T20',
-  'SET3X-S:T10P/TB1': 'SET3X-S:T10P',
-  'SET3Z-S:6/TB7': STANDARD,
-  'SET5-S:T10P/TB1': 'SET5-S:T10P',
-  T1: 'SET1-S:T1',
-  T10: 'SET1-S:T10',
-  T10P: 'SET1-S:T10P',
-  T120: 'SET1-S:T120',
-  T120P: 'SET1-S:T120P',
-  T15P: 'SET1-S:T15P',
-  T2: 'SET1-S:T2',
-  T20: 'SET1-S:T20',
-  T30: 'SET1-S:T30',
-  T30P: 'SET1-S:T30P',
-  T60: 'SET1-S:T60',
-  T90: 'SET1-S:T90',
-  'T90@RALLY': 'SET1-S:T90@RALLY'
-};
+const KNOWN_DRIFT: Record<string, string> = {};
 
 describe('an untouched Select returns the code it opened with', () => {
   const codes = [
@@ -277,7 +252,7 @@ describe('an untouched Select returns the code it opened with', () => {
     expect(codes.length).toBeGreaterThan(250);
   });
 
-  it('drifts on exactly the known codes, and to exactly the known results', () => {
+  it('drifts on none of them', () => {
     const drift: Record<string, string | undefined> = {};
     for (const matchUpFormat of codes) {
       const selected = open(matchUpFormat);
