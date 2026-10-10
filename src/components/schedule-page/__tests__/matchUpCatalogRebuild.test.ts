@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
-import { buildMatchUpCatalog } from '../ui/matchUpCatalog';
 import { SchedulePageStore } from '../engine/schedulePageStore';
+import { buildMatchUpCatalog } from '../ui/matchUpCatalog';
 import { describe, it, expect } from 'vitest';
 import type { CatalogMatchUpItem } from '../types';
 
