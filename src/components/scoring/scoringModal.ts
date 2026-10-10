@@ -3,16 +3,18 @@
  * Supports multiple scoring approaches with validation
  * Menu caret allows seamless switching between approaches
  */
-import { renderInlineScoringEntry } from './approaches/inlineScoringApproach';
 import { renderDynamicSetsScoreEntry } from './approaches/dynamicSetsApproach';
+import { renderInlineScoringEntry } from './approaches/inlineScoringApproach';
 import { renderDialPadScoreEntry } from './approaches/dialPadApproach';
-import { renderFreeScoreEntry } from './approaches/freeScoreApproach';
-import type { ScoringModalParams, ScoreOutcome } from './types';
-import { getScoringConfig, setScoringConfig } from './config';
 import { projectOutcomeOntoMatchUp } from './logic/outcomeProjection';
+import { renderFreeScoreEntry } from './approaches/freeScoreApproach';
+import { getScoringConfig, setScoringConfig } from './config';
 import { buildStatusCodePicker } from './statusCodePicker';
 import { recordedStatusCode } from './logic/statusCodes';
 import { cModal } from '../modal/cmodal';
+
+// constants and types
+import type { ScoringModalParams, ScoreOutcome } from './types';
 
 type ScoringApproach = 'dynamicSets' | 'freeScore' | 'dialPad' | 'inlineScoring';
 
@@ -62,8 +64,16 @@ export function scoringModal(params: ScoringModalParams): void {
   const clearWithheld = clearable === false && recordedOutcome;
   let currentOutcome: ScoreOutcome | null = null;
   let wasCleared = false;
+  /**
+   * Set when this dialog closes. An approach can still deliver an outcome after that (free score
+   * schedules a `setTimeout(…, 100)` when it opens), and this dialog finds its buttons by page-wide
+   * id, so a late update would land on the NEXT dialog's Submit and Clear (#675(courthive-components);
+   * `__tests__/closedDialogLateUpdate.test.ts`). A closed dialog ignores late updates.
+   */
+  let closed = false;
 
   const handleScoreChange = (outcome: ScoreOutcome) => {
+    if (closed) return;
     currentOutcome = outcome;
     statusCodePicker.update(outcome?.matchUpStatus);
 
@@ -235,6 +245,7 @@ export function scoringModal(params: ScoringModalParams): void {
   const clearButton = () => {
     // Re-apply clear button styling after content swap
     setTimeout(() => {
+      if (closed) return;
       const clearBtn = document.getElementById('clearScoreV2') as HTMLButtonElement;
       if (clearBtn) {
         clearBtn.style.backgroundColor = 'var(--chc-clear-btn-bg)';
@@ -338,7 +349,10 @@ export function scoringModal(params: ScoringModalParams): void {
     content: renderApproach(activeApproach),
     config: buildModalConfig(),
     buttons: offeredButtons(),
-    onClose: onClose ? () => onClose() : undefined
+    onClose: () => {
+      closed = true;
+      onClose?.();
+    }
   });
 
   clearButton();
