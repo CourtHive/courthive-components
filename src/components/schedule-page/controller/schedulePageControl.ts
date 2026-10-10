@@ -114,6 +114,11 @@ export class SchedulePageControl {
     this.store.setIssues(issues);
   }
 
+  /** Push several of the above and render once: `control.batch(() => { … })`. */
+  batch(writes: () => void): void {
+    this.store.batch(writes);
+  }
+
   // ---------- Active Strip Visibility ----------
 
   setActiveStripVisible(visible: boolean): void {
