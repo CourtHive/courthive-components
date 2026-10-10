@@ -138,7 +138,7 @@ export function createGameFormatDropdown(
     'padding: 0.4em 1em; cursor: pointer; background-color: var(--chc-dropdown-bg); color: var(--chc-text-primary); font-size: 1rem;';
   const headerStyle =
     'padding: 0.3em 1em; font-weight: bold; font-size: 0.85rem; color: var(--chc-text-muted); text-transform: uppercase; letter-spacing: 0.5px;';
-  const separatorStyle = 'border-top: 1px solid #eee; margin: 0.25em 0;';
+  const separatorStyle = 'border-top: 1px solid var(--chc-border-secondary); margin: 0.25em 0;';
 
   // "None" at the top clears everything and closes the dropdown
   const noneItem = document.createElement('div');
