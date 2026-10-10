@@ -99,7 +99,7 @@ export const SeedingBasis = {
     return outer;
   },
 
-  // Local-only evidence: `test-storybook` is in no workflow. Asserts the whole point of the story —
+  // Runs in CI (`pnpm test:stories`). Asserts the whole point of the story —
   // a marker and a hover only where the basis is non-ordinary, and silence in both controls.
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     const blocks = canvasElement.querySelectorAll('.chc-container');

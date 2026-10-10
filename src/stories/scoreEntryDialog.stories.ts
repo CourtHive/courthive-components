@@ -9,9 +9,8 @@
  * All four are behaviours of `openScoreEntryDialog`, not of these stories. That is deliberate: the
  * wiring used to live in a story, which meant the thing being reviewed in Storybook was not the thing a
  * host would get. These stories now open the shipped dialog and drive it, and the same behaviours are
- * asserted in `__tests__/scoreEntryDialog.test.ts` — which matters here, because `test-storybook` cannot
- * run in this package at all (measured 2026-09-27: 612/612 fail on a runner-internal error, test-runner
- * 0.24 against Storybook 10.2.17). Treat these as the surface to LOOK at; the vitest suite is the gate.
+ * asserted in `__tests__/scoreEntryDialog.test.ts`. The play functions here also run in CI
+ * (`pnpm test:stories`, since 2026-10-10); the unit suite stays the place each behaviour is pinned.
  *
  * ── Modal hygiene ──
  *

@@ -4,10 +4,6 @@ packages:
 allowBuilds:
   '@dep-tree/cli': true
   '@nestjs/core': true
-  # jest-haste-map@30 (via @storybook/test-runner) hard-depends on @parcel/watcher, whose
-  # install script only compiles when npm_config_build_from_source=true; the native binding
-  # ships in the per-platform optional packages, so denying the build costs nothing.
-  '@parcel/watcher': false
   '@scarf/scarf': true
   '@swc/core': true
   classic-level: true
@@ -19,10 +15,6 @@ allowBuilds:
 overrides:
   typescript: 6.0.3 # block native TS7 (no classic JS API — crashes tsc/nest/sonarjs); pairs with renovate TS-major block
   tods-competition-factory: link:../factory
-  # Security override — brace-expansion ReDoS (GHSA-3jxr-9vmj-r5cp); dev-only,
-  # via @storybook/test-runner>jest tooling. Patched 1.1.16 / 2.1.2; patch each major separately.
-  brace-expansion@1: '>=1.1.16'
-  brace-expansion@2: '>=2.1.2'
   # Security override — fast-uri host confusion (GHSA-v2hh-gcrm-f6hx, high);
   # dev-only, transitive via ajv (^3.0.1). Patched 3.1.4.
   # A security FLOOR, not a range. It was '^4.0.0' for an earlier advisory and stopped being

@@ -17,7 +17,7 @@
  * these cover the wired input, which needs a real DOM.
  *
  * Run interactively: `pnpm storybook`
- * Run as tests:      `pnpm storybook` + `pnpm test-storybook -- --testPathPatterns TypeAheadCurrentCode`
+ * Run as tests:      `pnpm test:stories src/stories/TypeAheadCurrentCodeTests.stories.ts`
  */
 
 import { createTypeAhead } from '../helpers/createTypeAhead';
