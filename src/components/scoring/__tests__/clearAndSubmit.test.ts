@@ -18,6 +18,8 @@
 import { describe, expect, it } from 'vitest';
 
 import { openScoreEntryDialog } from '../scoreEntryDialog';
+import { scoringModal } from '../scoringModal';
+import { setScoringConfig } from '../config';
 import { cModal } from '../../modal/cmodal';
 
 const SIDES: any = [{ participantName: 'Lower' }, { participantName: 'Upper' }];
@@ -184,6 +186,111 @@ describe('clearing a recorded outcome', () => {
     submit().click();
     expect(outcome.cleared).toBe(true);
 
+    closeAll();
+  });
+});
+
+/**
+ * `clearable: false` — the host has asked the engine and a later match depends on the result, so a clear
+ * would be refused (the factory's `CLEAR_SCORE` matchUp action is absent). The dialogs must not offer one.
+ */
+describe('a recorded outcome the host says cannot be removed', () => {
+  it('score entry dialog: [Clear] is disabled and says why; the result itself can still be edited', () => {
+    let outcome: any;
+    closeAll();
+    openScoreEntryDialog({
+      sides: SIDES,
+      matchUp: { matchUpFormat: FORMAT, winningSide: 1, score: { sets: RECORDED_SETS } },
+      clearable: false,
+      onSubmit: (result: any) => (outcome = result)
+    } as any);
+
+    expect(clear().disabled).toBe(true);
+    expect(clear().title).toBe("This result can't be cleared: a later match depends on it.");
+
+    // a click that somehow lands does not turn the next submit into a removal
+    clear().disabled = false;
+    clear().click();
+    expect(submit().disabled, 'an empty card is not submittable as a clear').toBe(true);
+
+    // correcting the score is still allowed — only the removal is withheld
+    type(2, 1, '3');
+    type(1, 1, '6');
+    type(2, 2, '2');
+    type(1, 2, '6');
+    submit().click();
+    expect(outcome.cleared).toBeUndefined();
+    expect(outcome.score).toBe('6-3 6-2');
+
+    closeAll();
+  });
+
+  it('score entry dialog: the host may name the reason', () => {
+    closeAll();
+    openScoreEntryDialog({
+      sides: SIDES,
+      matchUp: { matchUpFormat: FORMAT, winningSide: 1, score: { sets: RECORDED_SETS } },
+      clearable: false,
+      labels: { clearRefused: 'Clear the later match first.' }
+    } as any);
+    expect(clear().title).toBe('Clear the later match first.');
+    closeAll();
+  });
+
+  it('score entry dialog: clearable true, or omitted, changes nothing', () => {
+    for (const clearable of [true, undefined]) {
+      closeAll();
+      openScoreEntryDialog({
+        sides: SIDES,
+        matchUp: { matchUpFormat: FORMAT, winningSide: 1, score: { sets: RECORDED_SETS } },
+        clearable
+      } as any);
+      expect(clear().disabled).toBe(false);
+      expect(clear().title).toBe('');
+      clear().click();
+      expect(submit().disabled).toBe(false);
+    }
+    closeAll();
+  });
+
+  it('score entry dialog: a matchUp with nothing recorded is unaffected', () => {
+    closeAll();
+    openScoreEntryDialog({ sides: SIDES, matchUpFormat: FORMAT, clearable: false } as any);
+    type(1, 1, '6');
+    // [Clear] still empties a half-typed entry; there was nothing recorded to protect
+    expect(clear().disabled).toBe(false);
+    expect(clear().title).toBe('');
+    closeAll();
+  });
+
+  it('score modal: [Clear] is not offered on a recorded result, and is where nothing is recorded', () => {
+    setScoringConfig({ scoringApproach: 'dynamicSets' });
+    const recorded = {
+      matchUpId: 'm1',
+      drawId: 'd1',
+      matchUpFormat: FORMAT,
+      matchUpStatus: 'COMPLETED',
+      winningSide: 1,
+      score: { sets: RECORDED_SETS },
+      sides: [
+        { sideNumber: 1, participant: { participantName: 'Lower' } },
+        { sideNumber: 2, participant: { participantName: 'Upper' } }
+      ]
+    };
+
+    closeAll();
+    scoringModal({ matchUp: recorded, callback: () => undefined, clearable: false });
+    expect(document.getElementById('clearScoreV2')).toBeNull();
+    expect(document.getElementById('submitScoreV2')).not.toBeNull();
+
+    closeAll();
+    scoringModal({ matchUp: recorded, callback: () => undefined });
+    expect(document.getElementById('clearScoreV2')).not.toBeNull();
+
+    closeAll();
+    const unplayed = { ...recorded, matchUpStatus: 'TO_BE_PLAYED', winningSide: undefined, score: undefined };
+    scoringModal({ matchUp: unplayed, callback: () => undefined, clearable: false });
+    expect(document.getElementById('clearScoreV2')).not.toBeNull();
     closeAll();
   });
 });

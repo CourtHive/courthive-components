@@ -79,6 +79,7 @@ const CLS_BAND_HEADLINE = 'chc-sec-band-headline';
 const CLS_BAND_DETAIL = 'chc-sec-band-detail';
 /** What the band says once `[Clear]` has emptied a recorded outcome. Overridable via `labels`. */
 const CLEARED_HEADLINE = 'The recorded result will be removed — Submit to clear it.';
+const CLEAR_REFUSED = "This result can't be cleared: a later match depends on it.";
 const ARIA_PRESSED = 'aria-pressed';
 const ARIA_EXPANDED = 'aria-expanded';
 const CHECK_PATH = 'M20 6 9 17l-5-5';
@@ -323,6 +324,14 @@ export type ScoreEntryCardParams = {
   initialState?: ScoreEntryState;
   onClear?: () => void;
   onSubmit?: (outcome: ScoreEntryOutcome) => void;
+  /**
+   * Whether a recorded outcome may be REMOVED. Only the draw knows whether a later match depends on the
+   * result, so the host reads it from the engine (the factory's `CLEAR_SCORE` matchUp action) rather than
+   * the dialog guessing. `false` disables `[Clear]` on a reopened result and says why in its
+   * tooltip (`labels.clearRefused`), so the dialog never offers a
+   * submission the engine will refuse. Omitted, `[Clear]` behaves as it always has.
+   */
+  clearable?: boolean;
 };
 
 /** A card instance: its element, plus the handle the host needs to react to score-region changes. */
@@ -394,6 +403,8 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    * are both already assigned above.
    */
   const openedOnRecordedOutcome = holdsEntry();
+  // Decided at open, as `openedOnRecordedOutcome` is: the host's answer is about what was recorded.
+  const clearWithheld = params.clearable === false && openedOnRecordedOutcome;
   /**
    * `[Clear]` was pressed at some point.
    *
@@ -653,6 +664,8 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     cancel.addEventListener('click', () => params.onCancel?.());
 
     clearButton.dataset.action = 'clear';
+    // A disabled button that does not say why reads as broken; this one names the reason.
+    if (clearWithheld) clearButton.title = labels.clearRefused ?? CLEAR_REFUSED;
     clearButton.addEventListener('click', () => {
       // The MODEL first — score and ending together, which is what made this button look broken when
       // they lived apart — then the region resets what is its own.
@@ -1060,7 +1073,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    * rule reproduced, not a second opinion about it.
    */
   function submitsAClear(): boolean {
-    return clearedRecordedOutcome && openedOnRecordedOutcome && !holdsEntry();
+    return clearedRecordedOutcome && openedOnRecordedOutcome && !holdsEntry() && !clearWithheld;
   }
 
   function renderDerived(): void {
@@ -1084,7 +1097,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
     // Nothing to clear is not the same as a clear that does nothing: the old dialog disables the button,
     // which is the honest signal. An ENDING counts as something to clear even with no score typed.
-    clearButton.disabled = !holdsEntry();
+    clearButton.disabled = !holdsEntry() || clearWithheld;
   }
 
   /** Whether anything at all has been entered — a score, an ending, or text the model cannot see. */
