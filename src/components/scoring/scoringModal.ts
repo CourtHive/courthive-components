@@ -28,7 +28,7 @@ const APPROACH_LABELS: Record<ScoringApproach, string> = {
 const APPROACHES: ScoringApproach[] = ['dynamicSets', 'freeScore', 'dialPad', 'inlineScoring'];
 
 export function scoringModal(params: ScoringModalParams): void {
-  const { matchUp, callback, onClose, labels = {}, matchUpStatusCodes } = params;
+  const { matchUp, callback, onClose, labels = {}, matchUpStatusCodes, clearable } = params;
 
   // One reason-code control for every approach. It is driven by the outcome's matchUpStatus, which
   // every approach already reports, so it needs no per-approach plumbing.
@@ -50,6 +50,16 @@ export function scoringModal(params: ScoringModalParams): void {
 
   // Track if matchUp had an existing score/status
   const hadExistingScore = !!(matchUp.score?.sets?.length || matchUp.matchUpStatus);
+  // The host says the recorded result cannot be removed: `[Clear]` is not offered at all. Every
+  // approach looks the button up by id and tolerates its absence, so withholding it is the one change
+  // that no approach can re-enable. Its own test of "recorded", not `hadExistingScore`, which also
+  // counts a TO_BE_PLAYED status and would withhold `[Clear]` from a match nobody has played.
+  const recordedOutcome = !!(
+    matchUp.winningSide ||
+    matchUp.score?.sets?.length ||
+    (matchUp.matchUpStatus && matchUp.matchUpStatus !== 'TO_BE_PLAYED')
+  );
+  const clearWithheld = clearable === false && recordedOutcome;
   let currentOutcome: ScoreOutcome | null = null;
   let wasCleared = false;
 
@@ -321,11 +331,13 @@ export function scoringModal(params: ScoringModalParams): void {
     }
   ];
 
+  const offeredButtons = () => makeButtons().filter((button) => !(clearWithheld && button.id === 'clearScoreV2'));
+
   modalHandle = cModal.open({
     title: labels.title || 'Score Entry',
     content: renderApproach(activeApproach),
     config: buildModalConfig(),
-    buttons: makeButtons(),
+    buttons: offeredButtons(),
     onClose: onClose ? () => onClose() : undefined
   });
 

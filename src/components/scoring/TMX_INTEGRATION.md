@@ -23,6 +23,13 @@ openScoreEntryDialog({
 exported as `toEngineOutcome` for a host that builds an outcome by hand. The raw fields (`score` string,
 `sets`, `reasonCode`, `cleared`) are still reported beside it, unchanged.
 
+**Whether a clear will be accepted is the engine's to say, so pass it in as `clearable`.** A clear is
+refused when a later match depends on the result, and only the draw knows that: the factory publishes it
+as the `CLEAR_SCORE` matchUp action, present only when a clear would succeed. Pass
+`clearable: validActions.some(({ type }) => type === 'CLEAR_SCORE')` (to either dialog) for a matchUp
+that holds a result. `false` disables `[Clear]` in this dialog, with `labels.clearRefused` (or a default)
+as its tooltip, and drops it from `scoringModal`. Omitted, `[Clear]` behaves as it always has.
+
 The table that follows is what the raw fields would need, kept as the measured record behind the mapping.
 
 ## The score-entry dialog and the engine: what the outcome has to become
