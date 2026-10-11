@@ -1,9 +1,11 @@
 import { winnerFromExitingSide, carriesNoScore } from '../scoring/logic/irregularEnding';
+import { renderStatusPill } from '../renderStructure/renderStatusPill';
 import { renderMatchUp } from '../renderStructure/renderMatchUp';
 import { isScorable } from './isScorable';
-import { renderStatusPill } from '../renderStructure/renderStatusPill';
-import type { InlineScoringManager } from './inlineScoringManager';
+
+// constants and types
 import type { Composition, EventHandlers, MatchUp } from '../../types';
+import type { InlineScoringManager } from './inlineScoringManager';
 
 /**
  * Picker-only text for the double exits, following the display convention the federation scoring
@@ -57,7 +59,7 @@ export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElem
   if (!isScorable(params.matchUp, format)) {
     console.error(
       `[renderInlineMatchUp] refusing to offer scoring for ${matchUpId ?? '(no matchUpId)'} — ` +
-        `it needs the factory's matchUpFormat and two named participants.`,
+        `it needs the factory's matchUpFormat and two named participants.`
     );
     return null;
   }
@@ -235,6 +237,12 @@ export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElem
  * sideNumber indicates which side the pill was clicked on — for WO/RET/DEF the
  * clicked side is the losing side.
  */
+/**
+ * Closes the open end-match popover and its outside-click listener, including one whose listener is
+ * still waiting to be attached, so no closed popover attaches a listener afterwards.
+ */
+let closeEndMatchPopover: (() => void) | undefined;
+
 function showEndMatchPopover(
   event: MouseEvent,
   sideNumber: number,
@@ -242,6 +250,7 @@ function showEndMatchPopover(
   onSelect: (status: string) => void
 ) {
   // Remove any existing popover
+  closeEndMatchPopover?.();
   document.querySelectorAll('.chc-live-chip-popover').forEach((el) => el.remove());
 
   const target = event.currentTarget as HTMLElement;
@@ -249,6 +258,18 @@ function showEndMatchPopover(
 
   const popover = document.createElement('div');
   popover.className = 'chc-live-chip-popover';
+
+  // Close on outside click
+  const closeHandler = (e: MouseEvent) => {
+    if (!popover.contains(e.target as Node)) closePopover();
+  };
+  const closePopover = () => {
+    clearTimeout(listening);
+    document.removeEventListener('click', closeHandler);
+    popover.remove();
+    if (closeEndMatchPopover === closePopover) closeEndMatchPopover = undefined;
+  };
+  closeEndMatchPopover = closePopover;
 
   // Detect dark mode — popover is on document.body, outside theme scope
   const isDark = !!document.querySelector('[data-theme="dark"]');
@@ -306,8 +327,7 @@ function showEndMatchPopover(
     pill.classList.add('chc-live-chip-popover-item');
     pill.onclick = (e) => {
       e.stopPropagation();
-      popover.remove();
-      document.removeEventListener('click', closeHandler);
+      closePopover();
       onSelect(status);
     };
     popover.appendChild(pill);
@@ -315,13 +335,6 @@ function showEndMatchPopover(
 
   document.body.appendChild(popover);
 
-  // Close on outside click
-  const closeHandler = (e: MouseEvent) => {
-    if (!popover.contains(e.target as Node)) {
-      popover.remove();
-      document.removeEventListener('click', closeHandler);
-    }
-  };
   // Defer to avoid immediate close from the same click
-  setTimeout(() => document.addEventListener('click', closeHandler), 0);
+  const listening = setTimeout(() => document.addEventListener('click', closeHandler), 0);
 }

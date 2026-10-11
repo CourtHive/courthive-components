@@ -15,6 +15,25 @@ import type { ModalButton, ModalConfig, ModalParams } from '../../types';
 
 const EMPTY = 'Nothing to see here';
 
+/**
+ * The header popovers (info, menu) close on a click outside them. That listener is attached 100 ms after
+ * opening, so the opening click does not close the popover at once. Every pending or attached listener
+ * is held here with a way to cancel it, so closing a popover, or the modal, never leaves a timer that
+ * attaches a listener afterwards (the 6.4.1 publish run failed on exactly that timer).
+ */
+const popoverListeners = new Set<() => void>();
+
+function listenForOutsideClick(listener: (event: MouseEvent) => void): () => void {
+  const timer = setTimeout(() => document.addEventListener('click', listener, true), 100);
+  const cancel = () => {
+    clearTimeout(timer);
+    document.removeEventListener('click', listener, true);
+    popoverListeners.delete(cancel);
+  };
+  popoverListeners.add(cancel);
+  return cancel;
+}
+
 type ModalContent = string | HTMLElement | ((container: HTMLElement) => any);
 
 export function isFunction(fx: any): fx is (...args: any[]) => any {
@@ -78,7 +97,8 @@ export const cModal = (() => {
     const content = bodyContent.pop();
     if (isFunction(onClose)) onClose({ content });
 
-    // Clean up any open popovers
+    // Clean up any open popovers, and the listeners that would close them
+    for (const cancel of [...popoverListeners]) cancel();
     const popovers = document.querySelectorAll('[data-modal-popover]');
     popovers.forEach((popover) => popover.remove());
 
@@ -265,6 +285,7 @@ export const cModal = (() => {
     // Add info icon if config.info is present
     let infoIcon: HTMLElement | undefined;
     let infoPopover: HTMLElement | undefined;
+    let cancelInfoListener: (() => void) | undefined;
     if (config?.info) {
       infoIcon = document.createElement('span');
       infoIcon.innerHTML = '?';
@@ -286,6 +307,8 @@ export const cModal = (() => {
       `;
 
       const closeInfoPopover = () => {
+        cancelInfoListener?.();
+        cancelInfoListener = undefined;
         if (infoPopover && document.body.contains(infoPopover)) {
           infoPopover.remove();
           infoPopover = undefined;
@@ -373,10 +396,9 @@ export const cModal = (() => {
         const closePopover = (event: MouseEvent) => {
           if (infoPopover && !infoPopover.contains(event.target as Node) && event.target !== infoIcon) {
             closeInfoPopover();
-            document.removeEventListener('click', closePopover, true);
           }
         };
-        setTimeout(() => document.addEventListener('click', closePopover, true), 100);
+        cancelInfoListener = listenForOutsideClick(closePopover);
       };
 
       headerRight.appendChild(infoIcon);
@@ -384,6 +406,13 @@ export const cModal = (() => {
 
     // Add menu caret if config.menu is present
     let menuDropdown: HTMLElement | undefined;
+    let cancelMenuListener: (() => void) | undefined;
+    const closeMenuDropdown = () => {
+      cancelMenuListener?.();
+      cancelMenuListener = undefined;
+      menuDropdown?.remove();
+      menuDropdown = undefined;
+    };
     if (config?.menu?.menuItems?.length) {
       const menuCaret = document.createElement('span');
       menuCaret.className = 'chc-modal-menu-caret';
@@ -415,8 +444,7 @@ export const cModal = (() => {
 
         // Toggle dropdown
         if (menuDropdown && document.body.contains(menuDropdown)) {
-          menuDropdown.remove();
-          menuDropdown = undefined;
+          closeMenuDropdown();
           return;
         }
 
@@ -430,8 +458,7 @@ export const cModal = (() => {
           menuItem.textContent = item.label;
           menuItem.onclick = (ev) => {
             ev.stopPropagation();
-            menuDropdown?.remove();
-            menuDropdown = undefined;
+            closeMenuDropdown();
             item.onClick();
           };
           menuDropdown.appendChild(menuItem);
@@ -447,12 +474,10 @@ export const cModal = (() => {
         // Close on click elsewhere — use capture phase so dialog's stopPropagation doesn't block it
         const closeMenu = (event: MouseEvent) => {
           if (menuDropdown && !menuDropdown.contains(event.target as Node) && event.target !== menuCaret) {
-            menuDropdown.remove();
-            menuDropdown = undefined;
-            document.removeEventListener('click', closeMenu, true);
+            closeMenuDropdown();
           }
         };
-        setTimeout(() => document.addEventListener('click', closeMenu, true), 100);
+        cancelMenuListener = listenForOutsideClick(closeMenu);
       };
 
       headerRight.appendChild(menuCaret);
