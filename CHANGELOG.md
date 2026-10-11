@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.4.2](https://github.com/CourtHive/courthive-components/compare/v6.4.1...v6.4.2) (2026-10-11)
+
+
+### Bug Fixes
+
+* **modal:** closing a header popover cancels its pending outside-click listener ([#686](https://github.com/CourtHive/courthive-components/issues/686)) ([37c24d0](https://github.com/CourtHive/courthive-components/commit/37c24d0b97d46cb1c6d39d3d4f3ec3517df7b3df))
+
 ## [6.4.1](https://github.com/CourtHive/courthive-components/compare/v6.4.0...v6.4.1) (2026-10-11)
 
 
