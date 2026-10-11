@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.4.1](https://github.com/CourtHive/courthive-components/compare/v6.4.0...v6.4.1) (2026-10-11)
+
+
+### Bug Fixes
+
+* **matchUpFormat:** closing a picker dropdown cancels its pending outside-click listener ([#682](https://github.com/CourtHive/courthive-components/issues/682)) ([2a3212a](https://github.com/CourtHive/courthive-components/commit/2a3212ac6850535ddd1af72c6ebdf6579b7d37c5))
+
 ## [6.4.0](https://github.com/CourtHive/courthive-components/compare/v6.3.0...v6.4.0) (2026-10-11)
 
 
