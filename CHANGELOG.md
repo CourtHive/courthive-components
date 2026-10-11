@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.5.0](https://github.com/CourtHive/courthive-components/compare/v6.4.2...v6.5.0) (2026-10-11)
+
+
+### Features
+
+* **matchUpFormat:** the format picker's own words are translatable ([#690](https://github.com/CourtHive/courthive-components/issues/690)) ([dcdca9d](https://github.com/CourtHive/courthive-components/commit/dcdca9d1ae7b7f07bc3d9bed721121ab38da1efe))
+
 ## [6.4.2](https://github.com/CourtHive/courthive-components/compare/v6.4.1...v6.4.2) (2026-10-11)
 
 
