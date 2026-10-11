@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.6.0](https://github.com/CourtHive/courthive-components/compare/v6.5.1...v6.6.0) (2026-10-11)
+
+
+### Features
+
+* **matchUpFormat:** points-total presets in the format picker (Americano / Mexicano) ([#695](https://github.com/CourtHive/courthive-components/issues/695)) ([b98d87d](https://github.com/CourtHive/courthive-components/commit/b98d87dd62bd2a90a9aec2c67f1730c50ddfcf70))
+
 ## [6.5.1](https://github.com/CourtHive/courthive-components/compare/v6.5.0...v6.5.1) (2026-10-11)
 
 
