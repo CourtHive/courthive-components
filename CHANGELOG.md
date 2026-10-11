@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.5.1](https://github.com/CourtHive/courthive-components/compare/v6.5.0...v6.5.1) (2026-10-11)
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.11.0 ([#697](https://github.com/CourtHive/courthive-components/issues/697)) ([3d0902c](https://github.com/CourtHive/courthive-components/commit/3d0902c2b9e7cce1744f5b693754f89e9c1e2314))
+* **scoring:** a completed combined-point tie can be submitted ([#696](https://github.com/CourtHive/courthive-components/issues/696)) ([34518bc](https://github.com/CourtHive/courthive-components/commit/34518bcd444e93d31828bc133444f4179c154115))
+
 ## [6.5.0](https://github.com/CourtHive/courthive-components/compare/v6.4.2...v6.5.0) (2026-10-11)
 
 
