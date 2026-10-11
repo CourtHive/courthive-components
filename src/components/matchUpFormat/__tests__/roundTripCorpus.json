@@ -253,5 +253,11 @@
   "T30P",
   "T60",
   "T90",
-  "T90@RALLY"
+  "T90@RALLY",
+  "SET1-S:P16",
+  "SET1-S:P31",
+  "SET1-S:P32",
+  "SET1-S:P32DP",
+  "SET1-S:P32WB2",
+  "SET1-S:P32WB3"
 ]

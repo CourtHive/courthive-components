@@ -9,7 +9,8 @@ export function resolveCapabilities(capabilities?: Capabilities): ResolvedCapabi
       set: on(capabilities?.setTypes?.set),
       tiebreak: on(capabilities?.setTypes?.tiebreak),
       timed: on(capabilities?.setTypes?.timed),
-      outs: on(capabilities?.setTypes?.outs)
+      outs: on(capabilities?.setTypes?.outs),
+      pointsTotal: on(capabilities?.setTypes?.pointsTotal)
     },
     matchRoots: on(capabilities?.matchRoots),
     exactly: on(capabilities?.exactly),
@@ -24,7 +25,13 @@ export function resolveCapabilities(capabilities?: Capabilities): ResolvedCapabi
   };
 }
 
-export const SET_TYPE_CAPABILITY = { SET: 'set', TIEBREAK: 'tiebreak', TIMED: 'timed', OUTS: 'outs' } as const;
+export const SET_TYPE_CAPABILITY = {
+  SET: 'set',
+  TIEBREAK: 'tiebreak',
+  TIMED: 'timed',
+  OUTS: 'outs',
+  POINTS_TOTAL: 'pointsTotal'
+} as const;
 
 function segmentReasons(segment: SegmentDraft, capabilities: ResolvedCapabilities): string[] {
   const reasons: string[] = [];

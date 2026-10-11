@@ -17,7 +17,7 @@ import matchUpFormats from './matchUpFormats.json';
 import './matchUpFormat.css';
 
 // constants and types
-import type { Capabilities, Edit, EditorState, SegmentKey, SegmentField } from './machine/types';
+import type { Capabilities, CombinedPointsConfig, Edit, EditorState, SegmentKey, SegmentField } from './machine/types';
 import type { ControlView, EditorView, SegmentView } from './machine/view';
 import { MATCH_ROOTS } from './matchUpFormatLogic';
 
@@ -84,7 +84,11 @@ export interface MatchUpFormatConfig {
     outs?: number[];
     /** Minutes offered for the match-level time limit. */
     maxMinutes?: number[];
+    /** Totals offered for a points total (`SET1-S:P32`). */
+    combinedPointTotals?: number[];
   };
+  /** A policy's permitted points totals and tie rules. Narrows what is offered; the engine still validates. */
+  combinedPoints?: CombinedPointsConfig;
   /** Switch parts of the picker off. Everything is on unless set to false. */
   capabilities?: Capabilities;
   preDefinedFormats?: Array<{
@@ -163,10 +167,14 @@ const SET_CONTROLS = [
   'minutes',
   'based',
   'modifier',
-  'outs'
+  'outs',
+  'pointsTotal',
+  'tieRule'
 ] as const;
 type SetControl = (typeof SET_CONTROLS)[number];
 const MATCH_ONLY = new Set<SetControl>(['descriptor', 'bestOf']);
+/** A points total is the whole match, so its controls have no place in the final set. */
+const NOT_IN_FINAL_SET = new Set<SetControl>([...MATCH_ONLY, 'pointsTotal', 'tieRule']);
 const SEGMENT_FIELDS: Partial<Record<SetControl, SegmentField>> = {
   setTo: 'setTo',
   tiebreakTo: 'tiebreakTo',
@@ -175,7 +183,9 @@ const SEGMENT_FIELDS: Partial<Record<SetControl, SegmentField>> = {
   based: 'based',
   modifier: 'modifier',
   outs: 'outs',
-  advantage: 'noAd'
+  advantage: 'noAd',
+  pointsTotal: 'combinedPointTotal',
+  tieRule: 'tieMargin'
 };
 
 function styleButton(button: HTMLButtonElement): void {
@@ -216,7 +226,7 @@ function newToggle(id: string, className: string, label: string, labelId: string
 function showControl(element: HTMLElement, control: ControlView, readOnly: boolean): void {
   element.style.display = control.visible ? '' : NONE;
   if (control.visible) element.innerHTML = control.label;
-  (element as HTMLButtonElement).disabled = readOnly;
+  (element as HTMLButtonElement).disabled = readOnly || !!control.locked;
 }
 
 function mergeConfig(config?: MatchUpFormatConfig): MatchUpFormatConfig {
@@ -225,6 +235,7 @@ function mergeConfig(config?: MatchUpFormatConfig): MatchUpFormatConfig {
     labels: { ...defaultConfig.labels, ...config.labels },
     options: { ...defaultConfig.options, ...config.options },
     capabilities: config.capabilities,
+    combinedPoints: config.combinedPoints,
     preDefinedFormats: config.preDefinedFormats || defaultConfig.preDefinedFormats
   };
 }
@@ -257,9 +268,15 @@ export function getMatchUpFormatModal({
     capabilities,
     labels,
     options: editorConfig.options,
-    catalogCodes: catalog.map((entry) => entry.code)
+    catalogCodes: catalog.map((entry) => entry.code),
+    combinedPoints: editorConfig.combinedPoints
   };
-  const editContext = { codec, capabilities, tiebreakToOptions: editorConfig.options.tiebreakTo };
+  const editContext = {
+    codec,
+    capabilities,
+    tiebreakToOptions: editorConfig.options.tiebreakTo,
+    combinedPoints: editorConfig.combinedPoints
+  };
 
   if (existingMatchUpFormat && !codec.parse(existingMatchUpFormat)) {
     console.warn('Invalid matchUpFormat:', existingMatchUpFormat);
@@ -449,7 +466,7 @@ export function getMatchUpFormatModal({
   finalSetHeading.style.padding = '.3em';
   finalSetHeading.innerHTML = labels.finalSetLabel || 'Final set';
   finalSetRow.appendChild(finalSetHeading);
-  for (const id of SET_CONTROLS) if (!MATCH_ONLY.has(id)) finalSetRow.appendChild(setControlButton(id, 1));
+  for (const id of SET_CONTROLS) if (!NOT_IN_FINAL_SET.has(id)) finalSetRow.appendChild(setControlButton(id, 1));
   elements.finalSetFormat = finalSetRow;
   content.appendChild(finalSetRow);
 
@@ -482,7 +499,7 @@ export function getMatchUpFormatModal({
 
   function renderSegment(index?: number) {
     for (const id of SET_CONTROLS) {
-      if (index && MATCH_ONLY.has(id)) continue;
+      if (index && NOT_IN_FINAL_SET.has(id)) continue;
       const element = elements[index ? `${id}-${index}` : id];
       showControl(element, controlView(id, segmentOf(index)), view.readOnly);
     }

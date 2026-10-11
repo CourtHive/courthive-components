@@ -1,3 +1,4 @@
+import { effectiveFormat, pointsTotalToParsed, tieMarginFromParsed } from './pointsTotal';
 import { resolveCapabilities, capabilityReasons } from './capabilities';
 
 // constants and types
@@ -19,13 +20,22 @@ export function defaultSegment(): SegmentDraft {
     based: undefined,
     timedTiebreak: false,
     outs: 3,
-    modifier: undefined
+    modifier: undefined,
+    combinedPointTotal: 32,
+    tieMargin: 0
   };
 }
 
 function segmentFromParsed(parsedSet: any): SegmentDraft {
   const segment = defaultSegment();
   if (!parsedSet) return segment;
+
+  if (parsedSet.combinedPointTotal) {
+    segment.type = 'POINTS_TOTAL';
+    segment.combinedPointTotal = parsedSet.combinedPointTotal;
+    segment.tieMargin = tieMarginFromParsed(parsedSet);
+    return segment;
+  }
 
   if (parsedSet.outs) {
     segment.type = 'OUTS';
@@ -68,6 +78,7 @@ function segmentFromParsed(parsedSet: any): SegmentDraft {
 /** The parsed shape the factory's stringify reads, built from a segment of the state. */
 export function segmentToParsed(segment: SegmentDraft): any {
   if (segment.type === 'OUTS') return { outs: segment.outs };
+  if (segment.type === 'POINTS_TOTAL') return pointsTotalToParsed(segment);
 
   if (segment.type === 'TIMED') {
     // A timed set's tiebreak has no advantage rule (the grammar refuses `T20/TB7NOAD`), and its modifier
@@ -139,7 +150,8 @@ function canUseShortForm(format: FormatState): boolean {
   );
 }
 
-export function formatToParsed(format: FormatState): any {
+export function formatToParsed(written: FormatState): any {
+  const format = effectiveFormat(written);
   const parsed: any = { setFormat: segmentToParsed(format.set) };
   if (format.matchRoot && format.matchRoot !== 'SET') parsed.matchRoot = format.matchRoot;
   if (format.aggregate) parsed.aggregate = true;

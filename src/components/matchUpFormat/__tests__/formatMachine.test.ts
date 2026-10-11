@@ -15,6 +15,7 @@ import type { Capabilities, Edit, EditorState } from '../machine/types';
 const codec = { parse: matchUpFormatCode.parse, stringify: matchUpFormatCode.stringify };
 const STANDARD = 'SET3-S:6/TB7';
 const TIMED_POINTS = 'SET3-S:T10P';
+const TIME_LIMITED = 'SET3-S:6/TB7-M:T60';
 
 function edit(state: EditorState, ...edits: Edit[]): EditorState {
   return edits.reduce((current, next) => applyEdit(current, next, { codec }), state);
@@ -152,7 +153,7 @@ describe('capabilities', () => {
 
   it('a switched-off capability is not offered', () => {
     const shown = view(STANDARD, { setTypes: { timed: false }, exactly: false, aggregate: false, finalSet: false });
-    expect(shown.set.what.options.map((option) => option.value)).toEqual(['SET', 'TIEBREAK', 'OUTS']);
+    expect(shown.set.what.options.map((option) => option.value)).toEqual(['SET', 'TIEBREAK', 'OUTS', 'POINTS_TOTAL']);
     expect(shown.descriptor.options.map((option) => option.value)).toEqual(['BEST_OF']);
     expect(shown.aggregate.visible).toBe(false);
     expect(shown.finalSetToggle.visible).toBe(false);
@@ -219,11 +220,176 @@ describe('Phase 5: outs sets and the match time limit', () => {
   });
 
   it('a match time limit can be set on any format and removed', () => {
-    expect(codeAfter(STANDARD, { type: 'setMaxMinutes', minutes: 60 })).toBe('SET3-S:6/TB7-M:T60');
+    expect(codeAfter(STANDARD, { type: 'setMaxMinutes', minutes: 60 })).toBe(TIME_LIMITED);
     expect(codeAfter('INN4XA-S:O3-M:T50', { type: 'setMaxMinutes', minutes: 0 })).toBe('INN4XA-S:O3');
   });
 
   it('a switched-off time limit makes a code that has one read-only', () => {
-    expect(fromCode('SET3-S:6/TB7-M:T60', codec, { maxMatchTime: false }).readOnlyReasons).toEqual(['maxMatchTime']);
+    expect(fromCode(TIME_LIMITED, codec, { maxMatchTime: false }).readOnlyReasons).toEqual(['maxMatchTime']);
+  });
+});
+
+describe('Phases 1–3: points total (SET1-S:P32)', () => {
+  const WITH_FINAL_SET = 'SET3-S:4/TB7-F:TB10';
+  const EXACTLY_TIMED = 'SET3X-S:T10';
+  const AGGREGATE_HALVES = 'HAL2A-S:T15';
+  const WITH_GAME_FORMAT = 'SET3-S:T10-G:3C';
+  const DECIDING_POINT = 'SET1-S:P32DP';
+  const POINTS = 'SET1-S:P32';
+  const choosePoints: Edit = { type: 'setSetType', segment: 'set', setType: 'POINTS_TOTAL' };
+  const total = (value: number): Edit => ({
+    type: 'setSegmentValue',
+    segment: 'set',
+    field: 'combinedPointTotal',
+    value
+  });
+  const tieMargin = (value: number): Edit => ({ type: 'setSegmentValue', segment: 'set', field: 'tieMargin', value });
+  const view = (state: EditorState, extra: Partial<Parameters<typeof deriveView>[1]> = {}) =>
+    deriveView(state, { codec, catalogCodes: [], ...extra });
+  // Each one carries a match-level value a points total locks: final set, Exactly, a root, aggregate,
+  // a game format, a time limit.
+  const LOCKED_STARTS = [WITH_FINAL_SET, EXACTLY_TIMED, AGGREGATE_HALVES, WITH_GAME_FORMAT, TIME_LIMITED];
+
+  it('control: every start is a code the picker rebuilds exactly', () => {
+    for (const start of LOCKED_STARTS) expect(codeAfter(start), start).toBe(start);
+  });
+
+  it('choosing it writes one set of a SET match, whatever the match had', () => {
+    for (const start of LOCKED_STARTS) expect(codeAfter(start, choosePoints), start).toBe(POINTS);
+  });
+
+  it('choosing another set type brings back what the match had', () => {
+    expect(codeAfter(WITH_FINAL_SET, choosePoints, { type: 'setSetType', segment: 'set', setType: 'SET' })).toBe(
+      WITH_FINAL_SET
+    );
+    for (const start of [EXACTLY_TIMED, AGGREGATE_HALVES, WITH_GAME_FORMAT]) {
+      expect(codeAfter(start, choosePoints, { type: 'setSetType', segment: 'set', setType: 'TIMED' }), start).toBe(
+        start
+      );
+    }
+    expect(codeAfter(TIME_LIMITED, choosePoints, { type: 'setSetType', segment: 'set', setType: 'SET' })).toBe(
+      TIME_LIMITED
+    );
+  });
+
+  it('while it is chosen, each match-level edit is refused and changes nothing', () => {
+    const locked: Edit[] = [
+      { type: 'setCountMode', mode: 'EXACTLY' },
+      { type: 'setCount', count: 3 },
+      { type: 'setMatchRoot', matchRoot: 'INN' },
+      { type: 'setAggregate', on: true },
+      { type: 'setGameFormat', gameFormat: { type: 'CONSECUTIVE', count: 3 } },
+      { type: 'setMaxMinutes', minutes: 60 },
+      { type: 'setFinalSet', on: true }
+    ];
+    const opened = fromCode(POINTS, codec);
+    for (const next of locked) expect(applyEdit(opened, next, { codec }), next.type).toBe(opened);
+    // control: the same edits do change a format that is not a points total
+    const standard = fromCode(STANDARD, codec);
+    for (const next of locked) expect(applyEdit(standard, next, { codec }), next.type).not.toBe(standard);
+  });
+
+  it('a final set is never a points total', () => {
+    const start = WITH_FINAL_SET;
+    expect(codeAfter(start, { type: 'setSetType', segment: 'finalSet', setType: 'POINTS_TOTAL' })).toBe(start);
+    const shown = view(fromCode(start, codec));
+    expect(shown.finalSet.what.options.map((option) => option.value)).not.toContain('POINTS_TOTAL');
+    expect(shown.set.what.options.map((option) => option.value)).toContain('POINTS_TOTAL');
+  });
+
+  it('the tie rule writes nothing, a deciding point for win by 1, and WB for 2 or 3', () => {
+    expect(codeAfter(POINTS, tieMargin(1))).toBe(DECIDING_POINT);
+    expect(codeAfter(POINTS, tieMargin(2))).toBe('SET1-S:P32WB2');
+    expect(codeAfter(POINTS, tieMargin(3))).toBe('SET1-S:P32WB3');
+    expect(codeAfter('SET1-S:P32WB2', tieMargin(0))).toBe(POINTS);
+    expect(fromCode(DECIDING_POINT, codec).format.set.tieMargin).toBe(1);
+  });
+
+  it('an odd total cannot tie: the tie rule is hidden and not written, and comes back on an even total', () => {
+    const odd = edit(fromCode(DECIDING_POINT, codec), total(31));
+    expect(toCode(odd.format, codec)).toBe('SET1-S:P31');
+    expect(view(odd).set.tieRule.visible).toBe(false);
+    expect(view(fromCode(DECIDING_POINT, codec)).set.tieRule.visible).toBe(true);
+    expect(codeAfter(DECIDING_POINT, total(31), total(24))).toBe('SET1-S:P24DP');
+  });
+
+  it('an odd total that names a tie rule opens read-only rather than losing it', () => {
+    const state = fromCode('SET1-S:P31DP', codec);
+    expect(state.readOnlyReasons).toEqual(['unrepresentable']);
+    expect(selectedCode(state, codec)).toBe('SET1-S:P31DP');
+  });
+
+  it('shows the match-level values it locks, fixed, and hides the ones it turns off', () => {
+    const shown = view(fromCode(WITH_FINAL_SET, codec), {});
+    const points = view(edit(fromCode(WITH_FINAL_SET, codec), choosePoints));
+    expect([shown.descriptor.locked, shown.count.locked, shown.matchRoot.locked]).toEqual([
+      undefined,
+      undefined,
+      undefined
+    ]);
+    expect([points.descriptor.locked, points.count.locked, points.matchRoot.locked]).toEqual([true, true, true]);
+    expect([points.descriptor.label, points.count.label, points.matchRoot.label]).toEqual(['Best of', '1', 'Set']);
+    expect(points.aggregate.visible).toBe(false);
+    expect(points.gameFormat.visible).toBe(false);
+    expect(points.maxTime.visible).toBe(false);
+    expect(points.finalSetToggle.visible).toBe(false);
+    expect(points.finalSet.visible).toBe(false);
+    expect(points.set.pointsTotal.label).toBe('32 points▾');
+    expect(points.set.tieRule.label).toBe('Tie allowed▾');
+  });
+
+  it('a switched-off points total is not offered, and a code that has one opens read-only', () => {
+    const capabilities: Capabilities = { setTypes: { pointsTotal: false } };
+    const shown = deriveView(fromCode(STANDARD, codec, capabilities), { codec, capabilities, catalogCodes: [] });
+    expect(shown.set.what.options.map((option) => option.value)).not.toContain('POINTS_TOTAL');
+    expect(fromCode(POINTS, codec, capabilities).readOnlyReasons).toEqual(['setTypes.pointsTotal']);
+  });
+
+  it('offers the configured totals, plus an opened total that is not among them', () => {
+    const shown = view(fromCode('SET1-S:P40', codec), { options: { combinedPointTotals: [16, 32] } });
+    expect(shown.set.pointsTotal.options.map((option) => option.value)).toEqual([16, 32, 40]);
+  });
+
+  describe('Phase 3: a policy narrows what is offered', () => {
+    const combinedPoints = {
+      permittedPointTotals: [24, 32],
+      permittedVariants: [{ tieResolution: 'DECIDING_POINT' as const }]
+    };
+
+    it('offers only the permitted totals, and a single permitted tie rule as fixed text', () => {
+      const shown = view(fromCode(DECIDING_POINT, codec), { combinedPoints });
+      expect(shown.set.pointsTotal.options.map((option) => option.value)).toEqual([24, 32]);
+      expect(shown.set.tieRule).toMatchObject({ label: 'Win by 1', locked: true });
+      // control: without a policy the same rule is a dropdown of all four
+      const free = view(fromCode(DECIDING_POINT, codec));
+      expect(free.set.tieRule.locked).toBeUndefined();
+      expect(free.set.tieRule.options.map((option) => option.text)).toEqual([
+        'Tie allowed',
+        'Win by 1',
+        'Win by 2',
+        'Win by 3'
+      ]);
+    });
+
+    it('choosing points total starts on a permitted total and tie rule', () => {
+      const start = fromCode(STANDARD, codec);
+      const next = applyEdit(start, choosePoints, {
+        codec,
+        combinedPoints: { ...combinedPoints, permittedPointTotals: [24] }
+      });
+      expect(toCode(next.format, codec)).toBe('SET1-S:P24DP');
+      // control: with no policy it starts on the defaults
+      expect(codeAfter(STANDARD, choosePoints)).toBe(POINTS);
+    });
+
+    it('a code opened with values the policy does not permit keeps them', () => {
+      const state = fromCode('SET1-S:P40WB2', codec);
+      expect(state.readOnlyReasons).toEqual([]);
+      expect(selectedCode(state, codec)).toBe('SET1-S:P40WB2');
+      const narrowed = view(state, { combinedPoints }).set.pointsTotal;
+      expect(narrowed.label).toBe('40 points▾');
+      // shown, but not offered: the policy's list is not widened to admit it
+      expect(narrowed.options.map((option) => option.value)).toEqual([24, 32]);
+    });
   });
 });
