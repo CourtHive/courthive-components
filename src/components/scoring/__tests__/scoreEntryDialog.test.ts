@@ -3,11 +3,11 @@
  *
  * The dialog — the card IN a modal, which is what a host opens.
  *
- * Everything here was story-local glue until now, and a story is not a gate: `test-storybook` cannot
- * run in this package at all (measured 2026-09-27, 612/612 fail on a runner-internal error), so a
- * Storybook play function is a thing a person watches rather than something CI checks. These are the
- * assertions that actually hold the four behaviours CA asked for — the modal, a working `[X]`, approach
- * switching and the format picker.
+ * Everything here was story-local glue until now, and a story was not a gate: until 2026-10-10
+ * `test-storybook` could not run in this package (612/612 failed on a runner-internal error), so a
+ * Storybook play function was a thing a person watched rather than something CI checked. Play functions
+ * now run in CI (`pnpm test:stories`); these remain the assertions that hold the four behaviours CA
+ * asked for — the modal, a working `[X]`, approach switching and the format picker.
  *
  * The one claim worth stating plainly, because it is the reason `update` exists rather than a rebuild:
  * an approach switch must carry the typed score AND keep the recorded ending. A dialog that forgets

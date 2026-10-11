@@ -3,16 +3,18 @@
  * Supports multiple scoring approaches with validation
  * Menu caret allows seamless switching between approaches
  */
-import { renderInlineScoringEntry } from './approaches/inlineScoringApproach';
 import { renderDynamicSetsScoreEntry } from './approaches/dynamicSetsApproach';
+import { renderInlineScoringEntry } from './approaches/inlineScoringApproach';
 import { renderDialPadScoreEntry } from './approaches/dialPadApproach';
-import { renderFreeScoreEntry } from './approaches/freeScoreApproach';
-import type { ScoringModalParams, ScoreOutcome } from './types';
-import { getScoringConfig, setScoringConfig } from './config';
 import { projectOutcomeOntoMatchUp } from './logic/outcomeProjection';
+import { renderFreeScoreEntry } from './approaches/freeScoreApproach';
+import { getScoringConfig, setScoringConfig } from './config';
 import { buildStatusCodePicker } from './statusCodePicker';
 import { recordedStatusCode } from './logic/statusCodes';
 import { cModal } from '../modal/cmodal';
+
+// constants and types
+import type { ScoringModalParams, ScoreOutcome } from './types';
 
 type ScoringApproach = 'dynamicSets' | 'freeScore' | 'dialPad' | 'inlineScoring';
 
@@ -28,7 +30,7 @@ const APPROACH_LABELS: Record<ScoringApproach, string> = {
 const APPROACHES: ScoringApproach[] = ['dynamicSets', 'freeScore', 'dialPad', 'inlineScoring'];
 
 export function scoringModal(params: ScoringModalParams): void {
-  const { matchUp, callback, onClose, labels = {}, matchUpStatusCodes } = params;
+  const { matchUp, callback, onClose, labels = {}, matchUpStatusCodes, clearable } = params;
 
   // One reason-code control for every approach. It is driven by the outcome's matchUpStatus, which
   // every approach already reports, so it needs no per-approach plumbing.
@@ -50,10 +52,28 @@ export function scoringModal(params: ScoringModalParams): void {
 
   // Track if matchUp had an existing score/status
   const hadExistingScore = !!(matchUp.score?.sets?.length || matchUp.matchUpStatus);
+  // The host says the recorded result cannot be removed: `[Clear]` is not offered at all. Every
+  // approach looks the button up by id and tolerates its absence, so withholding it is the one change
+  // that no approach can re-enable. Its own test of "recorded", not `hadExistingScore`, which also
+  // counts a TO_BE_PLAYED status and would withhold `[Clear]` from a match nobody has played.
+  const recordedOutcome = !!(
+    matchUp.winningSide ||
+    matchUp.score?.sets?.length ||
+    (matchUp.matchUpStatus && matchUp.matchUpStatus !== 'TO_BE_PLAYED')
+  );
+  const clearWithheld = clearable === false && recordedOutcome;
   let currentOutcome: ScoreOutcome | null = null;
   let wasCleared = false;
+  /**
+   * Set when this dialog closes. An approach can still deliver an outcome after that (free score
+   * schedules a `setTimeout(…, 100)` when it opens), and this dialog finds its buttons by page-wide
+   * id, so a late update would land on the NEXT dialog's Submit and Clear (#675(courthive-components);
+   * `__tests__/closedDialogLateUpdate.test.ts`). A closed dialog ignores late updates.
+   */
+  let closed = false;
 
   const handleScoreChange = (outcome: ScoreOutcome) => {
+    if (closed) return;
     currentOutcome = outcome;
     statusCodePicker.update(outcome?.matchUpStatus);
 
@@ -225,6 +245,7 @@ export function scoringModal(params: ScoringModalParams): void {
   const clearButton = () => {
     // Re-apply clear button styling after content swap
     setTimeout(() => {
+      if (closed) return;
       const clearBtn = document.getElementById('clearScoreV2') as HTMLButtonElement;
       if (clearBtn) {
         clearBtn.style.backgroundColor = 'var(--chc-clear-btn-bg)';
@@ -321,12 +342,17 @@ export function scoringModal(params: ScoringModalParams): void {
     }
   ];
 
+  const offeredButtons = () => makeButtons().filter((button) => !(clearWithheld && button.id === 'clearScoreV2'));
+
   modalHandle = cModal.open({
     title: labels.title || 'Score Entry',
     content: renderApproach(activeApproach),
     config: buildModalConfig(),
-    buttons: makeButtons(),
-    onClose: onClose ? () => onClose() : undefined
+    buttons: offeredButtons(),
+    onClose: () => {
+      closed = true;
+      onClose?.();
+    }
   });
 
   clearButton();

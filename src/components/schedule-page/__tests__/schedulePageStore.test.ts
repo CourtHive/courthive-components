@@ -458,4 +458,56 @@ describe('SchedulePageStore', () => {
       expect(listener).not.toHaveBeenCalled();
     });
   });
+
+  describe('batch', () => {
+    it('notifies once for several writes, after the last', () => {
+      const store = new SchedulePageStore(makeConfig());
+      const listener = vi.fn();
+      store.subscribe(listener);
+
+      store.batch(() => {
+        store.setMatchUpCatalog([...matchUpCatalog]);
+        store.setScheduleDates([...scheduleDates]);
+        store.setIssues([]);
+        expect(listener).not.toHaveBeenCalled();
+      });
+
+      expect(listener).toHaveBeenCalledTimes(1);
+      expect(listener.mock.calls[0][0].issues).toEqual([]);
+    });
+
+    it('notifies when the outermost batch ends, and not at all for no writes', () => {
+      const store = new SchedulePageStore(makeConfig());
+      const listener = vi.fn();
+      store.subscribe(listener);
+
+      store.batch(() => {
+        store.batch(() => store.setIssues([]));
+        expect(listener).not.toHaveBeenCalled();
+        store.setCatalogSearch('Alice');
+      });
+      expect(listener).toHaveBeenCalledTimes(1);
+
+      store.batch(() => undefined);
+      expect(listener).toHaveBeenCalledTimes(1);
+
+      // unbatched writes are unaffected
+      store.setIssues([]);
+      expect(listener).toHaveBeenCalledTimes(2);
+    });
+
+    it('still notifies when a write throws', () => {
+      const store = new SchedulePageStore(makeConfig());
+      const listener = vi.fn();
+      store.subscribe(listener);
+
+      expect(() =>
+        store.batch(() => {
+          store.setIssues([]);
+          throw new Error('consumer failure');
+        })
+      ).toThrow('consumer failure');
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+  });
 });

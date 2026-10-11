@@ -130,7 +130,7 @@ export const ByeCarryingExit = {
     return outer;
   },
 
-  // Local-only evidence: `test-storybook` is in no workflow. Asserts the whole point of the story —
+  // Runs in CI (`pnpm test:stories`). Asserts the whole point of the story —
   // a badge beside the side that carries an exit, and silence everywhere else.
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     const blocks = canvasElement.querySelectorAll('.chc-container');

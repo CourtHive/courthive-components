@@ -78,6 +78,8 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
   const FILTERING_CLASS = 'is-filtering';
   const collapsedGroups = new Set<string>();
   let lastState: SchedulePageState | null = null;
+  // What the cards were last built from (see `cardInputs`); null forces the next build.
+  let builtFrom: unknown[] | null = null;
   let filterTip: Instance | undefined;
   let currentFilters: CatalogFilters = {};
 
@@ -339,10 +341,41 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
   body.className = spCatalogStyle();
   root.appendChild(body);
 
+  /**
+   * Every state field the card list depends on. The store emits on every write — a selection, the
+   * Inspector toggle, a date-strip push — and rebuilding every card for each one re-ran the
+   * consumer's `renderCardExtra` per card (engine work per card in TMX) to move one highlight.
+   * Compared by reference: the consumer pushes a new catalog array when its data changes.
+   */
+  function cardInputs(state: SchedulePageState): unknown[] {
+    return [
+      state.matchUpCatalog,
+      state.catalogSearchQuery,
+      state.catalogGroupBy,
+      state.catalogFilters,
+      state.showCompleted,
+      state.showScheduled,
+      state.scheduledBehavior
+    ];
+  }
+
+  function markSelection(selectedId: string | undefined): void {
+    for (const card of body.querySelectorAll<HTMLElement>('[data-match-up-id]')) {
+      card.classList.toggle('selected', card.dataset.matchUpId === selectedId);
+    }
+  }
+
   function update(state: SchedulePageState): void {
     lastState = state;
     currentFilters = state.catalogFilters ?? {};
     updateFilterBadge();
+
+    const inputs = cardInputs(state);
+    if (builtFrom?.every((value, i) => value === inputs[i])) {
+      markSelection(state.selectedMatchUp?.matchUpId);
+      return;
+    }
+    builtFrom = inputs;
 
     // Compute baseRoundByEvent off the FULL catalog (not the filtered set) so
     // the round-emphasis on each card answers "which round of this event
@@ -405,6 +438,7 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
         } else {
           collapsedGroups.add(gk);
         }
+        builtFrom = null;
         if (lastState) update(lastState);
       });
 
@@ -412,7 +446,8 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
       gb.className = spGroupBodyStyle();
       if (isCollapsed) gb.style.display = 'none';
 
-      for (const item of items) {
+      // A collapsed group's cards are not built; expanding it rebuilds.
+      for (const item of isCollapsed ? [] : items) {
         // Round-offset only attached when this event has an eligible base
         // round (i.e. at least one unscheduled, non-completed item exists).
         // Skip for scheduled / completed items — their card class already
@@ -429,6 +464,7 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
           { roundOffset, renderExtra: callbacks.renderCardExtra, relatedMatchUpIds: callbacks.relatedMatchUpIds }
         );
 
+        card.dataset.matchUpId = item.matchUpId;
         if (state.selectedMatchUp?.matchUpId === item.matchUpId) {
           card.classList.add('selected');
         }

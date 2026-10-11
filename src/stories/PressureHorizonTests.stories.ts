@@ -14,16 +14,15 @@
  * Nothing except a rendered-DOM assertion can catch that.
  *
  * Run interactively: `pnpm storybook`
- * Run as tests:      `pnpm storybook` (one terminal) +
- *                    `pnpm test-storybook -- --testPathPatterns PressureHorizonTests` (other)
+ * Run as tests:      `pnpm test:stories src/stories/PressureHorizonTests.stories.ts`
  */
 
 import type { Meta, StoryObj } from '@storybook/html-vite';
 import { userEvent, expect } from 'storybook/test';
 
+import { buildPressureHorizon, HORIZON_VARIANT } from '../components/pressureHorizon/pressureHorizon';
 import { buildPressureSeries } from '../components/pressureChart/buildPressureSeries';
 import { buildDrawOrderGame } from '../components/pressureHorizon/drawOrderGame';
-import { buildPressureHorizon, HORIZON_VARIANT } from '../components/pressureHorizon/pressureHorizon';
 import { seededDraw } from './pressureChartFixture';
 
 const meta: Meta = {

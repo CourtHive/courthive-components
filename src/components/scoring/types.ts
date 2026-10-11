@@ -76,6 +76,13 @@ export type ScoringModalParams = {
    * with no governing-body policy attached.
    */
   matchUpStatusCodes?: StatusCodeGroups;
+  /**
+   * Whether a recorded outcome may be REMOVED. Only the draw knows whether a later match depends on the
+   * result, so the host reads it from the engine (the factory's `CLEAR_SCORE` matchUp action) rather than
+   * the dialog guessing. `false` withholds `[Clear]` on a reopened result, so the dialog never offers a
+   * submission the engine will refuse. Omitted, `[Clear]` behaves as it always has.
+   */
+  clearable?: boolean;
 };
 
 export type ScoreChangeHandler = (outcome: ScoreOutcome) => void;

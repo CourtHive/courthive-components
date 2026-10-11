@@ -42,6 +42,9 @@ export class SchedulePageStore {
   private state: SchedulePageState;
   private readonly listeners: Set<SchedulePageChangeListener> = new Set();
   private readonly config: SchedulePageConfig;
+  /** `batch` nesting, and whether a write inside it is waiting to be announced. */
+  private batchDepth = 0;
+  private emitDeferred = false;
 
   constructor(config: SchedulePageConfig) {
     this.config = config;
@@ -264,7 +267,29 @@ export class SchedulePageStore {
     this.emit();
   }
 
+  /**
+   * Run several writes and notify listeners once, after the last. A consumer's refresh pushes the
+   * catalog, the dates and the issues together; written one by one, each push rebuilt every panel.
+   * Nested batches notify when the outermost one ends.
+   */
+  batch(writes: () => void): void {
+    this.batchDepth += 1;
+    try {
+      writes();
+    } finally {
+      this.batchDepth -= 1;
+      if (!this.batchDepth && this.emitDeferred) {
+        this.emitDeferred = false;
+        this.emit();
+      }
+    }
+  }
+
   private emit(): void {
+    if (this.batchDepth) {
+      this.emitDeferred = true;
+      return;
+    }
     for (const listener of this.listeners) {
       listener(this.state);
     }

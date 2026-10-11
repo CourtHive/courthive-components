@@ -45,8 +45,8 @@ export function participantLabel(side?: MatchUpSide): string {
  * set no tooltip at all rather than an empty one.
  *
  * Pure and here rather than inline in the renderer so it can be tested without a DOM:
- * the ecosystem's DOM layer is Playwright/Storybook, and `test-storybook` cannot
- * currently run in this repo (612/612 suites fail in the runner, measured 2026-09-27).
+ * the ecosystem's DOM layer is Storybook play functions in a browser (`pnpm test:stories`), and a
+ * pure function needs no browser to be checked.
  */
 export function memberNamesLabel(side?: MatchUpSide | ScheduleCellSide): string {
   return (side?.individualParticipants ?? [])

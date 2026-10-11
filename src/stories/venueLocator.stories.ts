@@ -7,15 +7,15 @@
  * nor wait for the network.
  *
  * Run interactively: pnpm storybook
- * Run as tests:     pnpm storybook (one terminal) + pnpm test-storybook (other)
+ * Run as tests:     pnpm test:stories
  */
 
 // A host that renders this component supplies leaflet AND its stylesheet; the story does the same.
 // Without the stylesheet Leaflet's panes are unpositioned and the map paints as a broken band.
 import 'leaflet/dist/leaflet.css';
-import { within, userEvent, expect } from 'storybook/test';
 import { buildVenueLocator } from '../components/venue-locator/buildVenueLocator';
 import { VenueLocatorData } from '../components/venue-locator/types';
+import { within, userEvent, expect } from 'storybook/test';
 
 export default {
   title: 'Components/VenueLocator',
