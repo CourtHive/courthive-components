@@ -1,9 +1,11 @@
 import { scoreGovernor } from 'tods-competition-factory';
+import { engineToMatchUp } from './engineToMatchUp';
+
+// constants and types
+import type { InlineScoringCallbacks, InlineScoringEngineState } from './inlineScoringTypes';
+import type { MatchUp } from '../../types';
 
 const { ScoringEngine } = scoreGovernor;
-import { engineToMatchUp } from './engineToMatchUp';
-import type { MatchUp } from '../../types';
-import type { InlineScoringCallbacks, InlineScoringEngineState } from './inlineScoringTypes';
 
 /**
  * Manages ScoringEngine instances for inline scoring in draw brackets.
@@ -197,11 +199,10 @@ export class InlineScoringManager {
     this.callbacks.onScoreChange?.({ matchUpId, matchUp: updatedMatchUp, engine: state.engine });
 
     if (state.engine.isComplete()) {
+      // getWinner() returns 1-based side number (1 or 2), or nothing for a combined-point total that ended
+      // level (16-16 of SET1-S:P32): a tie is a finished result too (CA, 2026-10-11).
       const winner = state.engine.getWinner();
-      if (winner != null) {
-        // getWinner() returns 1-based side number (1 or 2)
-        this.callbacks.onMatchComplete?.({ matchUpId, winningSide: winner, engine: state.engine });
-      }
+      this.callbacks.onMatchComplete?.({ matchUpId, winningSide: winner ?? undefined, engine: state.engine });
     }
 
     return updatedMatchUp;
