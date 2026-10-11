@@ -256,3 +256,35 @@ describe('points total (SET1-S:P32)', () => {
     expect(el<HTMLButtonElement>('tieRule').disabled).toBe(true);
   });
 });
+
+describe('the picker in another language', () => {
+  const french: MatchUpFormatConfig = {
+    labels: {
+      what: { sets: 'Manche', tiebreaks: 'Jeu décisif', timedSets: 'Manche chronométrée' },
+      whatPlural: { sets: 'Manches', tiebreaks: 'Jeux décisifs', timedSets: 'Manches chronométrées' },
+      advantage: { ad: 'Avantage', noAd: 'Point décisif' },
+      setTo: 'en {n} jeux',
+      tiebreakTo: 'JD en {n}'
+    }
+  };
+
+  it('shows the translated names and templates, and choosing a translated set type still edits the code', () => {
+    const selected = open(STANDARD, french);
+    expect(el('what').textContent).toContain('Manches');
+    expect(el('setTo').textContent).toContain('en 6 jeux');
+    expect(el('tiebreakTo').textContent).toContain('JD en 7');
+    expect(el('advantage').textContent).toContain('Avantage');
+    choose('advantage', 'Point décisif');
+    choose('what', 'Manches chronométrées');
+    expect(code()).toBe('SET3-S:T10');
+    selectButton().click();
+    expect(selected()).toBe('SET3-S:T10');
+  });
+
+  it('reads the singular once the match is a single set', () => {
+    open(STANDARD, french);
+    choose('bestOf', '1');
+    expect(el('what').textContent).toContain('Manche');
+    expect(el('what').textContent).not.toContain('Manches');
+  });
+});
