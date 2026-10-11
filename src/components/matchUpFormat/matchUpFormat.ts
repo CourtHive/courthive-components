@@ -19,7 +19,7 @@ import './matchUpFormat.css';
 // constants and types
 import type { Capabilities, CombinedPointsConfig, Edit, EditorState, SegmentKey, SegmentField } from './machine/types';
 import type { ControlView, EditorView, SegmentView } from './machine/view';
-import { MATCH_ROOTS } from './matchUpFormatLogic';
+import { MATCH_ROOTS } from './machine/options';
 
 const NONE = 'none';
 const TRANSITION_STYLE = 'all .2s ease-in-out';

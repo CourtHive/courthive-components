@@ -1,5 +1,5 @@
-import { getBestOfOptionsForRoot, getTiebreakAtOptions, MATCH_ROOT_LABELS } from '../matchUpFormatLogic';
 import { effectiveFormat, offeredTieMargins, offeredTotals, tieRuleApplies } from './pointsTotal';
+import { getBestOfOptionsForRoot, getTiebreakAtOptions, MATCH_ROOT_LABELS } from './options';
 import { resolveCapabilities, SET_TYPE_CAPABILITY } from './capabilities';
 import { DEFAULT_TIEBREAK_TO_OPTIONS } from './edits';
 import { selectedCode } from './codec';

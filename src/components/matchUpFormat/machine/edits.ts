@@ -1,4 +1,4 @@
-import { autoAdjustTiebreakAt, getBestOfOptionsForRoot } from '../matchUpFormatLogic';
+import { autoAdjustTiebreakAt, getBestOfOptionsForRoot } from './options';
 import { isPointsTotal, snapToPermitted } from './pointsTotal';
 import { fromCode } from './codec';
 
