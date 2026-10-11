@@ -31,6 +31,7 @@
  */
 
 import { matchUpStatusConstants, scoreGovernor } from 'tods-competition-factory';
+import { isCompletedCombinedPointTie } from './combinedPointTie';
 import { ordinalSetLabel } from '../regions/setColumns';
 import { resolveScoreEntry } from './scoreEntryState';
 import { scoreLine } from '../regions/scoreLine';
@@ -120,7 +121,11 @@ export function isComplete(model: ScoreEntryModel): boolean {
   const last = lastHoldingIndex(model);
   if (last === undefined || !isSettled(model, last)) return false;
 
-  return getMatchWinner(enteredSets(model), config) !== undefined && error(model) === undefined;
+  // A level combined-point total whose format lets the tie stand is finished with no winner.
+  const decided =
+    getMatchWinner(enteredSets(model), config) !== undefined ||
+    isCompletedCombinedPointTie(enteredSets(model), model.matchUpFormat);
+  return decided && error(model) === undefined;
 }
 
 /** The winner: the ending's when it names one, otherwise the finished score's. */

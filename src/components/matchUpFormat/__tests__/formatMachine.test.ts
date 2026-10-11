@@ -16,6 +16,7 @@ const codec = { parse: matchUpFormatCode.parse, stringify: matchUpFormatCode.str
 const STANDARD = 'SET3-S:6/TB7';
 const TIMED_POINTS = 'SET3-S:T10P';
 const TIME_LIMITED = 'SET3-S:6/TB7-M:T60';
+const EXACTLY_TIMED = 'SET3X-S:T10';
 
 function edit(state: EditorState, ...edits: Edit[]): EditorState {
   return edits.reduce((current, next) => applyEdit(current, next, { codec }), state);
@@ -57,7 +58,7 @@ describe('codes in, codes out', () => {
 
 describe('each transition', () => {
   it('Exactly makes the main set timed; leaving timed returns to an odd Best of', () => {
-    expect(codeAfter(STANDARD, { type: 'setCountMode', mode: 'EXACTLY' })).toBe('SET3X-S:T10');
+    expect(codeAfter(STANDARD, { type: 'setCountMode', mode: 'EXACTLY' })).toBe(EXACTLY_TIMED);
     const exactlyFour = edit(fromCode('SET4X-S:T10', codec), { type: 'setSetType', segment: 'set', setType: 'SET' });
     expect(exactlyFour.format.countMode).toBe('BEST_OF');
     expect(exactlyFour.format.count).toBe(5);
@@ -231,7 +232,6 @@ describe('Phase 5: outs sets and the match time limit', () => {
 
 describe('Phases 1–3: points total (SET1-S:P32)', () => {
   const WITH_FINAL_SET = 'SET3-S:4/TB7-F:TB10';
-  const EXACTLY_TIMED = 'SET3X-S:T10';
   const AGGREGATE_HALVES = 'HAL2A-S:T15';
   const WITH_GAME_FORMAT = 'SET3-S:T10-G:3C';
   const DECIDING_POINT = 'SET1-S:P32DP';
@@ -391,5 +391,38 @@ describe('Phases 1–3: points total (SET1-S:P32)', () => {
       // shown, but not offered: the policy's list is not widened to admit it
       expect(narrowed.options.map((option) => option.value)).toEqual([24, 32]);
     });
+  });
+});
+
+describe('codes the retired matchUpFormatLogic tests pinned, outside the corpus', () => {
+  // From matchUpFormatLogic.test.ts and timedSetsScoringMethods.test.ts, retired with the file (M5,
+  // CA 2026-10-11). Each is canonical and must rebuild exactly; the corpus and catalog hold the rest.
+  const CANONICAL = [
+    'SET4X-S:T20',
+    'SET3X-S:T10-F:TB1NOAD',
+    'SET3X-S:T10-F:TB1',
+    'SET5-S:5-G:3C3D',
+    'SET3-S:6/TB7-F:T10P',
+    'SET1-S:T5'
+  ];
+
+  it('each opens editable and rebuilds exactly', () => {
+    for (const code of CANONICAL) {
+      const state = fromCode(code, codec);
+      expect(state.readOnlyReasons, code).toEqual([]);
+      expect(toCode(state.format, codec), code).toBe(code);
+    }
+  });
+
+  it('an explicit games basis (T10G) opens editable, returns its own spelling, and rebuilds as T10', () => {
+    const state = fromCode('SET3X-S:T10G', codec);
+    expect(state.readOnlyReasons).toEqual([]);
+    expect(selectedCode(state, codec)).toBe('SET3X-S:T10G');
+    expect(toCode(state.format, codec)).toBe(EXACTLY_TIMED);
+  });
+
+  it('the removed "A" basis (T10A) does not parse, so the picker falls back to the default', () => {
+    expect(codec.parse('SET3X-S:T10A')).toBeFalsy();
+    expect(selectedCode(fromCode('SET3X-S:T10A', codec), codec)).toBe(STANDARD);
   });
 });

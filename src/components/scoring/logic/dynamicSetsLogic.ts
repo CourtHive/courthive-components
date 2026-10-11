@@ -101,8 +101,8 @@ import type { SetScore } from '../types';
  * of 7, and a low of 5 in `S:6NOAD` completed to **7** instead of 6 — a 7-5 in a format where first to
  * six wins.
  *
- * Every OTHER reader of this flag in the package had it right — `freeScore.ts`, `matchUpFormat.ts`,
- * `matchUpFormatLogic.ts` and the format picker all read `.NoAD`. This one type was the outlier, which
+ * Every OTHER reader of this flag in the package had it right — `freeScore.ts` and the format picker
+ * (`matchUpFormat/machine/codec.ts`) both read `.NoAD`. This one type was the outlier, which
  * is the shape the architectural standards call mock divergence: a hand-written mirror that renames a
  * field and then certifies the rename.
  */

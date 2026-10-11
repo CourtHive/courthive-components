@@ -10,8 +10,8 @@
  * **`NoAD`**. Every read of `.noAd` in that module therefore answered `undefined` for every format,
  * and the TYPE is what made those reads look correct. Nothing threw; no-advantage was simply ignored.
  *
- * Every other reader in the package had it right — `freeScore.ts`, `matchUpFormat.ts`,
- * `matchUpFormatLogic.ts`, the format picker. This one type was the outlier.
+ * Every other reader in the package had it right — `freeScore.ts` and the format picker
+ * (`matchUpFormat/machine/codec.ts`). This one type was the outlier.
  *
  * ── Why these assert against the FACTORY's answer rather than a number ──
  *
