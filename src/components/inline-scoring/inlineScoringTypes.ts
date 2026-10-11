@@ -15,7 +15,8 @@ export interface InlineScoringConfig {
 
 export interface InlineScoringCallbacks {
   onScoreChange?: (params: { matchUpId: string; matchUp: MatchUp; engine: any }) => void;
-  onMatchComplete?: (params: { matchUpId: string; winningSide: number; engine: any }) => void;
+  /** `winningSide` is absent when a combined-point total ends level (a tie is a finished result). */
+  onMatchComplete?: (params: { matchUpId: string; winningSide?: number; engine: any }) => void;
   onEndMatch?: (params: {
     matchUpId: string;
     matchUpStatus: string;
