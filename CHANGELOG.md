@@ -1,5 +1,31 @@
 # Changelog
 
+## [6.4.0](https://github.com/CourtHive/courthive-components/compare/v6.3.0...v6.4.0) (2026-10-11)
+
+
+### Features
+
+* **matchUpFormat:** the format picker as a state machine, with capability toggles ([#674](https://github.com/CourtHive/courthive-components/issues/674)) ([887b1d7](https://github.com/CourtHive/courthive-components/commit/887b1d7ee59f9aadb9e41d28828f210afe48431c))
+* **matchUpFormat:** the format picker authors points totals (SET1-S:P32) ([#677](https://github.com/CourtHive/courthive-components/issues/677)) ([2057f5e](https://github.com/CourtHive/courthive-components/commit/2057f5e94ac6493d10262be12bf4aeb74ed27581))
+* **scoring:** a clearable option withholds [Clear] where the engine would refuse it ([#673](https://github.com/CourtHive/courthive-components/issues/673)) ([43640a7](https://github.com/CourtHive/courthive-components/commit/43640a79e29a266d607f6649b65b6383464e5a44))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.10.0 ([#678](https://github.com/CourtHive/courthive-components/issues/678)) ([e4446d6](https://github.com/CourtHive/courthive-components/commit/e4446d6f0351aac2412303a30a0160db1c66265d))
+* **deps:** update tods-competition-factory to 7.9.0 ([#670](https://github.com/CourtHive/courthive-components/issues/670)) ([0223e90](https://github.com/CourtHive/courthive-components/commit/0223e90014a80ad60fc02ed47de3fb07188ea3ce))
+* **scoring:** a closed score dialog no longer disables the next dialog's Submit ([#676](https://github.com/CourtHive/courthive-components/issues/676)) ([d753dc1](https://github.com/CourtHive/courthive-components/commit/d753dc1dd929ce01274e4a141c9fd42ce9073bb6))
+
+
+### Performance
+
+* **schedule-page:** rebuild catalog cards only when their inputs change; batch store writes ([#671](https://github.com/CourtHive/courthive-components/issues/671)) ([7776bc2](https://github.com/CourtHive/courthive-components/commit/7776bc2c08a7ef8544d92d02b767c38e1ef51b73))
+
+
+### Documentation
+
+* add AGENTS.md as a pointer to CLAUDE.md for agents that read it ([b48abfc](https://github.com/CourtHive/courthive-components/commit/b48abfcef4427c5a46fa1eb3b86beebd928e37a0))
+
 ## [6.3.0](https://github.com/CourtHive/courthive-components/compare/v6.2.1...v6.3.0) (2026-10-08)
 
 
