@@ -89,17 +89,65 @@ export interface ViewConfig {
 
 export const CUSTOM = 'Custom';
 const CLICKABLE = '▾';
-// The set-type and advantage names have always been shown in English; see the plan's i18n follow-up.
-const SET_TYPE_LABELS: Record<SetType, [string, string]> = {
-  SET: ['Set', 'Sets'],
-  TIEBREAK: ['Tiebreak', 'Tiebreaks'],
-  TIMED: ['Timed set', 'Timed sets'],
-  OUTS: ['Outs', 'Outs'],
-  POINTS_TOTAL: ['Points total', 'Points total']
+/**
+ * The picker's own words, in English. A consumer translates them through `config.labels` (CA, 2026-10-11):
+ * `what` holds the singular set-type names and `whatPlural` the plural ones, and a label that carries a
+ * number is a template with `{n}`, so a language can put the number where its word order needs it. Each
+ * key falls back to English on its own, so a consumer that translates some keys keeps the rest.
+ */
+export const DEFAULT_LABELS = {
+  what: { sets: 'Set', tiebreaks: 'Tiebreak', timedSets: 'Timed set', outs: 'Outs', pointsTotal: 'Points total' },
+  whatPlural: {
+    sets: 'Sets',
+    tiebreaks: 'Tiebreaks',
+    timedSets: 'Timed sets',
+    outs: 'Outs',
+    pointsTotal: 'Points total'
+  },
+  advantage: { ad: 'Ad', noAd: 'No-Ad' },
+  matchRoots: MATCH_ROOT_LABELS,
+  setTo: 'to {n}',
+  tiebreakTo: 'TB to {n}',
+  winBy: 'Win by {n}',
+  minutes: '{n} Minutes',
+  outs: '{n} outs',
+  maxMinutes: '{n} min',
+  pointsTotal: '{n} points',
+  tieAllowed: 'Tie allowed',
+  consecutive: '{n} consecutive'
+};
+
+/** The `labels.what` / `labels.whatPlural` key for each set type. */
+const SET_TYPE_KEYS: Record<SetType, keyof typeof DEFAULT_LABELS.what> = {
+  SET: 'sets',
+  TIEBREAK: 'tiebreaks',
+  TIMED: 'timedSets',
+  OUTS: 'outs',
+  POINTS_TOTAL: 'pointsTotal'
 };
 const SET_TYPES: SetType[] = ['SET', 'TIEBREAK', 'TIMED', 'OUTS', 'POINTS_TOTAL'];
 const DEFAULT_MAX_MINUTES = [20, 30, 40, 45, 50, 60, 75, 90, 100, 120, 150, 180];
-const ADVANTAGE_LABELS = { AD: 'Ad', NOAD: 'No-Ad' };
+const NONE_MODIFIER = 'None';
+
+type Template = Exclude<keyof typeof DEFAULT_LABELS, 'what' | 'whatPlural' | 'advantage' | 'matchRoots'>;
+
+/** A label's template with every `{n}` replaced by the value. */
+function fill(labels: any, key: Template, value: number | string): string {
+  const template: string = labels?.[key] || DEFAULT_LABELS[key];
+  return template.split('{n}').join(String(value));
+}
+
+function setTypeLabel(labels: any, setType: SetType, plural: boolean): string {
+  const key = SET_TYPE_KEYS[setType];
+  const group = plural ? 'whatPlural' : 'what';
+  return labels?.[group]?.[key] || DEFAULT_LABELS[group][key];
+}
+
+const advantageLabel = (labels: any, noAd: boolean) =>
+  noAd ? labels?.advantage?.noAd || DEFAULT_LABELS.advantage.noAd : labels?.advantage?.ad || DEFAULT_LABELS.advantage.ad;
+
+const matchRootLabel = (labels: any, root: string) =>
+  labels?.matchRoots?.[root] || MATCH_ROOT_LABELS[root] || root;
 
 const button = (text: string) => `${text}${CLICKABLE}`;
 const asOptions = (values: any[], text: (value: any) => string = String): Option[] =>
@@ -111,7 +159,7 @@ export function gameFormatText(gameFormat: GameFormat | undefined, labels: any =
   let text: string;
   if (gameFormat.type === 'TRADITIONAL') text = labels.traditional || 'Traditional';
   else if (gameFormat.type === 'CONSECUTIVE') {
-    text = labels[`consecutive${gameFormat.count}`] || `${gameFormat.count} consecutive`;
+    text = labels[`consecutive${gameFormat.count}`] || fill(labels, 'consecutive', gameFormat.count);
   } else return none;
   if (gameFormat.deuceAfter) {
     const deuceLabels: Record<number, string> = {
@@ -144,8 +192,6 @@ function choiceView(current: number, values: number[], fromPolicy: boolean, text
   };
 }
 
-const tieRuleText = (margin: number) => (margin ? `Win by ${margin}` : 'Tie allowed');
-
 function pointsTotalViews(
   segment: SegmentDraft,
   config: ViewConfig
@@ -155,15 +201,18 @@ function pointsTotalViews(
   const totalsFromPolicy = !!combinedPoints?.permittedPointTotals?.length;
   const marginsFromPolicy = !!combinedPoints?.permittedVariants?.length;
   const totals = offeredTotals(combinedPoints, config.options?.combinedPointTotals);
+  const labels = config.labels;
+  const tieRuleText = (margin: number) =>
+    margin ? fill(labels, 'winBy', margin) : labels?.tieAllowed || DEFAULT_LABELS.tieAllowed;
   return {
-    pointsTotal: choiceView(segment.combinedPointTotal, totals, totalsFromPolicy, (total) => `${total} points`),
+    pointsTotal: choiceView(segment.combinedPointTotal, totals, totalsFromPolicy, (total) =>
+      fill(labels, 'pointsTotal', total)
+    ),
     tieRule: tieRuleApplies(segment)
       ? choiceView(segment.tieMargin, offeredTieMargins(combinedPoints), marginsFromPolicy, tieRuleText)
       : hidden()
   };
 }
-
-const setTypeLabel = (setType: SetType, plural: boolean) => SET_TYPE_LABELS[setType][plural ? 1 : 0];
 
 function segmentView(segment: SegmentDraft, plural: boolean, isFinal: boolean, config: ViewConfig, exactly: boolean) {
   const capabilities = resolveCapabilities(config.capabilities);
@@ -188,39 +237,44 @@ function segmentView(segment: SegmentDraft, plural: boolean, isFinal: boolean, c
   if (hasTiebreak) {
     winBy = {
       visible: true,
-      label: button(`Win by ${segment.tiebreakWinBy}`),
+      label: button(fill(labels, 'winBy', segment.tiebreakWinBy)),
       options: asOptions(options.winBy ?? [1, 2]),
       field: 'tiebreakWinBy'
     };
   } else if (isSet) {
     winBy = {
       visible: true,
-      label: button(`Win by ${segment.setWinBy}`),
+      label: button(fill(labels, 'winBy', segment.setWinBy)),
       options: asOptions(options.winBy ?? [1, 2]),
       field: 'setWinBy'
     };
   }
 
   const basedLabels: Record<string, string> = { G: labels.games || 'Games', P: labels.points || 'Points' };
+  const noneText = labels.none || 'None';
   const modifierVisible = capabilities.modifiers && (type === 'TIEBREAK' || isTimed || (isSet && segment.tiebreak));
 
   return {
     what: {
       visible: true,
       setType: type,
-      label: button(setTypeLabel(type, plural)),
-      options: asOptions(allowedTypes, (setType) => setTypeLabel(setType, plural))
+      label: button(setTypeLabel(labels, type, plural)),
+      options: asOptions(allowedTypes, (setType) => setTypeLabel(labels, setType, plural))
     },
     setTo: isSet
       ? {
           visible: true,
-          label: button(`to ${segment.setTo}`),
+          label: button(fill(labels, 'setTo', segment.setTo)),
           options: asOptions(options.setTo ?? [1, 2, 3, 4, 5, 6, 7, 8, 9])
         }
       : hidden(),
     tiebreakTo:
       hasTiebreak || timedTiebreak
-        ? { visible: true, label: button(`TB to ${segment.tiebreakTo}`), options: asOptions(tiebreakToValues) }
+        ? {
+            visible: true,
+            label: button(fill(labels, 'tiebreakTo', segment.tiebreakTo)),
+            options: asOptions(tiebreakToValues)
+          }
         : hidden(),
     tiebreakAt:
       isSet && segment.tiebreak
@@ -234,10 +288,10 @@ function segmentView(segment: SegmentDraft, plural: boolean, isFinal: boolean, c
     advantage: isSet
       ? {
           visible: true,
-          label: button(segment.noAd ? ADVANTAGE_LABELS.NOAD : ADVANTAGE_LABELS.AD),
+          label: button(advantageLabel(labels, segment.noAd)),
           options: [
-            { value: false, text: ADVANTAGE_LABELS.AD },
-            { value: true, text: ADVANTAGE_LABELS.NOAD }
+            { value: false, text: advantageLabel(labels, false) },
+            { value: true, text: advantageLabel(labels, true) }
           ]
         }
       : hidden(),
@@ -245,7 +299,7 @@ function segmentView(segment: SegmentDraft, plural: boolean, isFinal: boolean, c
       type === 'TIMED'
         ? {
             visible: true,
-            label: button(`${segment.minutes} Minutes`),
+            label: button(fill(labels, 'minutes', segment.minutes)),
             options: asOptions(options.minutes ?? [3, 5, 8, 10, 12, 15, 20, 25, 30, 45, 60, 90, 120])
           }
         : hidden(),
@@ -260,13 +314,20 @@ function segmentView(segment: SegmentDraft, plural: boolean, isFinal: boolean, c
     modifier: modifierVisible
       ? {
           visible: true,
-          label: button(`@${segment.modifier ?? 'None'}`),
-          options: asOptions(options.modifiers ?? ['None', 'RALLY'])
+          label: button(`@${segment.modifier ?? noneText}`),
+          // 'None' is the value that clears the modifier; only its text is translated
+          options: asOptions(options.modifiers ?? [NONE_MODIFIER, 'RALLY'], (modifier) =>
+            modifier === NONE_MODIFIER ? noneText : modifier
+          )
         }
       : hidden(),
     outs:
       type === 'OUTS'
-        ? { visible: true, label: button(`${segment.outs} outs`), options: asOptions(options.outs ?? [1, 2, 3, 4, 5]) }
+        ? {
+            visible: true,
+            label: button(fill(labels, 'outs', segment.outs)),
+            options: asOptions(options.outs ?? [1, 2, 3, 4, 5])
+          }
         : hidden(),
     ...pointsTotalViews(segment, config),
     tiebreakToggle: {
@@ -276,7 +337,6 @@ function segmentView(segment: SegmentDraft, plural: boolean, isFinal: boolean, c
   };
 }
 
-const minutesText = (minutes: number) => `${minutes} min`;
 
 /** A dropdown button, or its value as fixed text while a points total locks it. */
 function lockable(control: ControlView, locked: boolean): ControlView {
@@ -288,6 +348,7 @@ function maxTimeView(maxMinutes: number | undefined, visible: boolean, labels: a
   // A code's own limit is always offered, even when it is not in the list.
   const values = maxMinutes && !minutes.includes(maxMinutes) ? [...minutes, maxMinutes].sort((a, b) => a - b) : minutes;
   const none = labels.none || 'None';
+  const minutesText = (value: number) => fill(labels, 'maxMinutes', value);
   return {
     visible,
     label: button(`${labels.maxTime || 'Max time'}: ${maxMinutes ? minutesText(maxMinutes) : none}`),
@@ -331,8 +392,8 @@ export function deriveView(state: EditorState, config: ViewConfig): EditorView {
     matchRoot: lockable(
       {
         visible: capabilities.matchRoots,
-        label: MATCH_ROOT_LABELS[format.matchRoot] || format.matchRoot,
-        options: asOptions(roots, (root) => MATCH_ROOT_LABELS[root] || root)
+        label: matchRootLabel(labels, format.matchRoot),
+        options: asOptions(roots, (root) => matchRootLabel(labels, root))
       },
       locked
     ),

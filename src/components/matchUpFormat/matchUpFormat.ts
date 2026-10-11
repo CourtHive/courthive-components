@@ -7,9 +7,9 @@
  * machine, once. Element ids are unchanged, so stories, tests and hosts that read them still work.
  */
 import { createDropdown, createGameFormatDropdown, closeCurrentDropdown } from './dropdowns';
+import { deriveView, CUSTOM, DEFAULT_LABELS } from './machine/view';
 import { matchUpFormatCode } from 'tods-competition-factory';
 import { fromCode, selectedCode } from './machine/codec';
-import { deriveView, CUSTOM } from './machine/view';
 import { applyEdit } from './machine/edits';
 import { cModal } from '../modal/cmodal';
 
@@ -58,15 +58,47 @@ export interface MatchUpFormatConfig {
       bestOf?: string;
       exactly?: string;
     };
+    /** The set-type names, singular ("Best of 1 Set"). */
     what?: {
       sets?: string;
       tiebreaks?: string;
       timedSets?: string;
+      outs?: string;
+      pointsTotal?: string;
+    };
+    /** The set-type names, plural ("Best of 3 Sets"). */
+    whatPlural?: {
+      sets?: string;
+      tiebreaks?: string;
+      timedSets?: string;
+      outs?: string;
+      pointsTotal?: string;
     };
     advantage?: {
       ad?: string;
       noAd?: string;
     };
+    /** Match-root names by code (SET, HAL, QTR, PER, INN, RND, FRM, MAP). */
+    matchRoots?: Record<string, string>;
+    // Templates: `{n}` is replaced by the number, wherever the language puts it.
+    /** 'to {n}': games to win a set. */
+    setTo?: string;
+    /** 'TB to {n}': points to win a tiebreak. */
+    tiebreakTo?: string;
+    /** 'Win by {n}': a margin to win (a tiebreak, a set, or a points total after a tie). */
+    winBy?: string;
+    /** '{n} Minutes': a timed set's length. */
+    minutes?: string;
+    /** '{n} outs': outs per side. */
+    outs?: string;
+    /** '{n} min': the match time limit. */
+    maxMinutes?: string;
+    /** '{n} points': a points total. */
+    pointsTotal?: string;
+    /** '{n} consecutive': a game format without its own consecutive2-4 label. */
+    consecutive?: string;
+    /** A points total whose tie stands as the result. */
+    tieAllowed?: string;
   };
   options?: {
     bestOf?: number[];
@@ -127,15 +159,7 @@ const defaultConfig: MatchUpFormatConfig = {
       bestOf: 'Best of',
       exactly: 'Exactly'
     },
-    what: {
-      sets: 'Set',
-      tiebreaks: 'Tiebreak',
-      timedSets: 'Timed set'
-    },
-    advantage: {
-      ad: 'Ad',
-      noAd: 'No-Ad'
-    }
+    ...DEFAULT_LABELS
   },
   options: {
     bestOf: [1, 3, 5, 7, 9],
