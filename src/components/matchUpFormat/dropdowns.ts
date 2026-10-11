@@ -15,8 +15,12 @@ export interface DropdownItem {
 // Track the currently open dropdown so opening another one closes it
 let currentDropdown: HTMLElement | null = null;
 let currentCleanupListener: ((event: MouseEvent) => void) | null = null;
+// The outside-click listener waits 100 ms after opening; closing must cancel the wait
+let pendingListener: ReturnType<typeof setTimeout> | undefined;
 
 export function closeCurrentDropdown(): void {
+  clearTimeout(pendingListener);
+  pendingListener = undefined;
   if (currentDropdown && document.body.contains(currentDropdown)) {
     currentDropdown.remove();
   }
@@ -35,7 +39,8 @@ function showBelow(e: Event, dropdown: HTMLElement): void {
   currentDropdown = dropdown;
 
   // Close on a click outside, after a short delay so the opening click does not close it at once
-  setTimeout(() => {
+  pendingListener = setTimeout(() => {
+    pendingListener = undefined;
     currentCleanupListener = (event: MouseEvent) => {
       if (!dropdown.contains(event.target as Node)) closeCurrentDropdown();
     };
