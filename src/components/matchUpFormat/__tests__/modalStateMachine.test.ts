@@ -14,6 +14,7 @@ const BLW = 'INN4XA-S:O3-M:T50';
 const CUSTOM = 'Custom';
 const POINTS_TOTAL = 'Points total';
 const DECIDING_POINT = 'SET1-S:P32DP';
+const POINTS_32 = 'SET1-S:P32';
 
 function closeAll(): void {
   for (let attempt = 0; attempt < 4 && document.querySelector(MODAL); attempt += 1) cModal.close();
@@ -235,7 +236,7 @@ describe('points total (SET1-S:P32)', () => {
     open(start);
     expect(el<HTMLButtonElement>('bestOf').disabled, 'control: Best of is editable before').toBe(false);
     choose('what', POINTS_TOTAL);
-    expect(code()).toBe('SET1-S:P32');
+    expect(code()).toBe(POINTS_32);
     expect(el<HTMLButtonElement>('bestOf').disabled).toBe(true);
     expect(el('bestOf').textContent).toBe('1');
     expect(el<HTMLButtonElement>('descriptor').disabled).toBe(true);
@@ -286,5 +287,21 @@ describe('the picker in another language', () => {
     choose('bestOf', '1');
     expect(el('what').textContent).toContain('Manche');
     expect(el('what').textContent).not.toContain('Manches');
+  });
+});
+
+describe('the points-total presets', () => {
+  it('choosing "Americano / Mexicano: 32 points" loads a points total whose tie stands', () => {
+    const selected = open(STANDARD);
+    const selector = el<HTMLSelectElement>('matchUpFormatSelector');
+    const preset = [...selector.options].find((option) => option.text === 'Americano / Mexicano: 32 points');
+    expect(preset, 'control: the preset is offered').toBeTruthy();
+    selector.value = preset!.value;
+    selector.dispatchEvent(new Event('change'));
+    expect(code()).toBe(POINTS_32);
+    expect(el('pointsTotal').textContent).toContain('32 points');
+    expect(el('tieRule').textContent).toContain('Tie allowed');
+    selectButton().click();
+    expect(selected()).toBe(POINTS_32);
   });
 });

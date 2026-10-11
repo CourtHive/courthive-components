@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 import { fromCode, selectedCode, toCode } from '../machine/codec';
 import { deriveView } from '../machine/view';
 import { applyEdit } from '../machine/edits';
+import catalog from '../matchUpFormats.json';
 import corpus from './roundTripCorpus.json';
 
 // constants and types
@@ -424,5 +425,24 @@ describe('codes the retired matchUpFormatLogic tests pinned, outside the corpus'
   it('the removed "A" basis (T10A) does not parse, so the picker falls back to the default', () => {
     expect(codec.parse('SET3X-S:T10A')).toBeFalsy();
     expect(selectedCode(fromCode('SET3X-S:T10A', codec), codec)).toBe(STANDARD);
+  });
+});
+
+describe('the catalog', () => {
+  // The picker's named presets, including the points totals (M4, CA lifted the gate 2026-10-11).
+  const presets = (catalog as { format?: string; name: string }[]).filter((entry) => entry.format);
+
+  it('every preset opens editable and rebuilds exactly', () => {
+    expect(presets.length, 'control: the catalog is not empty').toBeGreaterThan(40);
+    for (const { format, name } of presets) {
+      const state = fromCode(format!, codec);
+      expect(state.readOnlyReasons, name).toEqual([]);
+      expect(toCode(state.format, codec), name).toBe(format);
+    }
+  });
+
+  it('offers the points-total presets: 32 with a tie as a result, 32 with a deciding point, and 24', () => {
+    const formats = presets.map((entry) => entry.format);
+    expect(formats).toEqual(expect.arrayContaining(['SET1-S:P32', 'SET1-S:P32DP', 'SET1-S:P24']));
   });
 });

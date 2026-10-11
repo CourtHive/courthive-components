@@ -225,5 +225,23 @@
     "name": "INTENNSE",
     "format": "SET7XA-S:T10P",
     "desc": "Exactly 7 timed sets, aggregate, points-based"
+  },
+  {
+    "key": "americano32",
+    "name": "Americano / Mexicano: 32 points",
+    "format": "SET1-S:P32",
+    "desc": "32 points played, the score is how they split; a 16-16 tie is a result"
+  },
+  {
+    "key": "americano32dp",
+    "name": "32 points, deciding point on a tie",
+    "format": "SET1-S:P32DP",
+    "desc": "32 points played; at 16-16 one deciding point is played"
+  },
+  {
+    "key": "americano24",
+    "name": "24 points",
+    "format": "SET1-S:P24",
+    "desc": "24 points played, the score is how they split; a 12-12 tie is a result"
   }
 ]
