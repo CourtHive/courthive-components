@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 
 const NOW = new Date('2026-05-17T12:00:00Z');
 const MAY_17 = '2026-05-17';
+const NEW_YORK = 'America/New_York';
 
 describe('mapTournamentToCardData', () => {
   it('returns empty defaults for null input', () => {
@@ -33,9 +34,7 @@ describe('mapTournamentToCardData', () => {
   it('extracts URL image from onlineResources', () => {
     const out = mapTournamentToCardData({
       tournamentId: 't1',
-      onlineResources: [
-        { name: 'tournamentImage', resourceType: 'URL', url: 'https://example.com/img.png' }
-      ]
+      onlineResources: [{ name: 'tournamentImage', resourceType: 'URL', url: 'https://example.com/img.png' }]
     });
     expect(out.tournamentImageURL).toBe('https://example.com/img.png');
   });
@@ -43,9 +42,7 @@ describe('mapTournamentToCardData', () => {
   it('extracts court SVG sport identifier', () => {
     const out = mapTournamentToCardData({
       tournamentId: 't1',
-      onlineResources: [
-        { name: 'tournamentImage', resourceSubType: 'COURT_SVG', identifier: 'tennis' }
-      ]
+      onlineResources: [{ name: 'tournamentImage', resourceSubType: 'COURT_SVG', identifier: 'tennis' }]
     });
     expect(out.courtSvgSport).toBe('tennis');
   });
@@ -218,7 +215,7 @@ describe('mapTournamentToCardData', () => {
         tournamentId: 't1',
         startDate: MAY_17,
         endDate: MAY_17,
-        localTimeZone: 'America/New_York'
+        localTimeZone: NEW_YORK
       },
       { now: new Date('2026-05-18T03:59:59Z') }
     );
@@ -231,7 +228,7 @@ describe('mapTournamentToCardData', () => {
         tournamentId: 't1',
         startDate: MAY_17,
         endDate: MAY_17,
-        timeZone: 'America/New_York'
+        timeZone: NEW_YORK
       },
       { now: new Date('2026-05-18T03:59:59Z') }
     );
@@ -281,5 +278,52 @@ describe('mapTournamentToCardData', () => {
       });
       expect(out.tournamentTier).toEqual({ system: 'ATP', value: '1000' });
     });
+  });
+});
+
+// Slice 0-a (Mentat/planning/COMPETITION_CLOCK_INSTRUMENTATION.md): the card's zone is the factory's
+// `getTournamentTimeZone`, not one field. Tokyo is chosen so the answer differs from any host this runs on
+// (UTC in CI, the Americas locally): the Tokyo day of MAY_17 ends at 15:00 UTC.
+describe("mapTournamentToCardData — the status zone is the factory resolver's", () => {
+  const TOKYO = 'Asia/Tokyo';
+  const AFTER_TOKYO_DAY = new Date('2026-05-17T15:30:00Z'); // Tokyo: the 18th. UTC and the Americas: still the 17th
+  const DURING_ALL_DAYS = new Date('2026-05-17T12:00:00Z'); // the 17th everywhere that matters here
+  const venue = (timeZone: string) => ({ venueId: timeZone, addresses: [{ timeZone }] });
+  const oneDay = { tournamentId: 't1', startDate: MAY_17, endDate: MAY_17 };
+
+  it('infers the zone from venue addresses when the tournament sets none', () => {
+    const out = mapTournamentToCardData({ ...oneDay, venues: [venue(TOKYO)] }, { now: AFTER_TOKYO_DAY });
+    expect(out.status?.kind).toBe('completed');
+  });
+
+  it("lets the tournament's own zone win over its venues", () => {
+    const out = mapTournamentToCardData(
+      { ...oneDay, localTimeZone: TOKYO, venues: [venue(NEW_YORK)] },
+      { now: AFTER_TOKYO_DAY }
+    );
+    expect(out.status?.kind).toBe('completed');
+  });
+
+  it('drops the date-window rules when venues disagree, rather than reading the host clock', () => {
+    const disagreeing = { ...oneDay, venues: [venue(TOKYO), venue(NEW_YORK)] };
+    // the control: the same dates with one venue are Live at this instant in either zone
+    expect(mapTournamentToCardData({ ...oneDay, venues: [venue(TOKYO)] }, { now: DURING_ALL_DAYS }).status?.kind).toBe(
+      'live'
+    );
+    expect(mapTournamentToCardData(disagreeing, { now: DURING_ALL_DAYS }).status).toBeNull();
+  });
+
+  it('drops them for a zone that is not a zone, too', () => {
+    const out = mapTournamentToCardData({ ...oneDay, localTimeZone: 'Mars/Olympus_Mons' }, { now: DURING_ALL_DAYS });
+    expect(out.status).toBeNull();
+  });
+
+  it('still honours an explicit status and the registration gates under a refused zone', () => {
+    const refused = { ...oneDay, venues: [venue(TOKYO), venue(NEW_YORK)] };
+    expect(
+      mapTournamentToCardData({ ...refused, tournamentStatus: 'CANCELLED' }, { now: DURING_ALL_DAYS }).status?.kind
+    ).toBe('cancelled');
+    const closing = { ...refused, registrationProfile: { entriesClose: '2026-05-19T00:00:00Z' } };
+    expect(mapTournamentToCardData(closing, { now: DURING_ALL_DAYS }).status?.kind).toBe('closing-soon');
   });
 });
