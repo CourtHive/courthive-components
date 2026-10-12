@@ -2,6 +2,7 @@
  * Age Category Code editor modal.
  * Allows users to configure age category codes following ITF TODS standards.
  */
+import { consideredDateOrToday } from '../../../helpers/consideredDate';
 import { eventGovernor } from 'tods-competition-factory';
 import { renderForm } from '../../forms/renderForm';
 import { cModal } from '../../modal/cmodal';
@@ -58,8 +59,9 @@ const defaultConfig: AgeCategoryConfig = {
   options: {
     ages: getAgeOptions(),
     categoryTypes: getCategoryTypeOptions()
-  },
-  defaultConsideredDate: new Date().toISOString().split('T')[0]
+  }
+  // no defaultConsideredDate here: a module-level default is computed once, at import, and a
+  // long-running page then offers the day it loaded forever. "Today" is computed when an editor opens.
 };
 
 let editorConfig: AgeCategoryConfig = defaultConfig;
@@ -368,14 +370,14 @@ export function getAgeCategoryModal({
       labels: { ...defaultConfig.labels, ...configToUse.labels },
       options: { ...defaultConfig.options, ...configToUse.options },
       preDefinedCodes: configToUse.preDefinedCodes || getDefaultPredefinedCodes(),
-      defaultConsideredDate: configToUse.defaultConsideredDate || defaultConfig.defaultConsideredDate
+      defaultConsideredDate: configToUse.defaultConsideredDate
     };
   } else {
     editorConfig = { ...defaultConfig, preDefinedCodes: getDefaultPredefinedCodes() };
   }
 
   // Set considered date (YYYY-MM-DD format)
-  consideredDate = providedDate || editorConfig.defaultConsideredDate || new Date().toISOString().split('T')[0];
+  consideredDate = consideredDateOrToday(providedDate || editorConfig.defaultConsideredDate);
 
   // Parse existing code (support both direct parameter and existingCategory object)
   const existingCode = existingAgeCategoryCode || existingCategory.ageCategoryCode || 'OPEN';
