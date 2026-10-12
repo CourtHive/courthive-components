@@ -8,7 +8,8 @@
 
 import { TournamentCardData, TournamentEntryFee, TournamentStatusPill } from './types';
 import { extractCourtSvgSport, extractImageURL, formatDateRange, formatVenueLocation } from '../../helpers/cards';
-import { resolveTournamentStatus } from './statusResolver';
+import { resolveTournamentStatus, type StatusResolverInput } from './statusResolver';
+import { tournamentGovernor } from 'tods-competition-factory';
 import { CourtSport } from '../courts/courtSvgUtil';
 import { formatFeeRange } from './feeFormatter';
 
@@ -49,7 +50,7 @@ function resolveParticipantCount(tournament: any, participants: any[]): number |
   const competitors = participants.filter(
     (p: any) =>
       (!p?.participantType || p.participantType === 'INDIVIDUAL') &&
-      (!p?.participantRole || p.participantRole === 'COMPETITOR'),
+      (!p?.participantRole || p.participantRole === 'COMPETITOR')
   );
   return competitors.length || undefined;
 }
@@ -67,6 +68,38 @@ export interface MapTournamentOptions {
   statusOverride?: TournamentStatusPill | null;
 }
 
+/**
+ * The status resolver's input, with the tournament's zone decided by the factory
+ * (`getTournamentTimeZone`) rather than read off one field: the record's own
+ * zone wins, venue addresses that agree supply one when it is unset, and the
+ * resolver's host-local fallback applies only when nothing names a zone.
+ *
+ * Some external payload shapes carry the zone as `timeZone` instead of the
+ * canonical `localTimeZone`; it is read as the record's zone either way.
+ *
+ * When the factory REFUSES the zone (venues that disagree, or a zone that is not
+ * a zone), the card cannot tell which day it is at the venue, so the date-window
+ * rules (Live, Completed by date) are left out rather than read on the host's
+ * clock. An explicit `tournamentStatus` and the registration gates, which are
+ * absolute instants, still apply.
+ */
+function statusInput(tournament: any): StatusResolverInput {
+  const { timeZone, error } = tournamentGovernor.getTournamentTimeZone({
+    tournamentRecord: {
+      localTimeZone: tournament?.localTimeZone || tournament?.timeZone,
+      venues: Array.isArray(tournament?.venues) ? tournament.venues : undefined
+    } as any
+  });
+  return {
+    tournamentStatus: tournament?.tournamentStatus,
+    startDate: error ? undefined : tournament?.startDate,
+    endDate: error ? undefined : tournament?.endDate,
+    entriesOpen: tournament?.registrationProfile?.entriesOpen,
+    entriesClose: tournament?.registrationProfile?.entriesClose,
+    timeZone
+  };
+}
+
 export function mapTournamentToCardData(tournament: any, options?: MapTournamentOptions): TournamentCardData {
   const resources = Array.isArray(tournament?.onlineResources) ? tournament.onlineResources : undefined;
   const venues = Array.isArray(tournament?.venues) ? tournament.venues : [];
@@ -76,23 +109,7 @@ export function mapTournamentToCardData(tournament: any, options?: MapTournament
   const status =
     options?.statusOverride !== undefined
       ? options.statusOverride
-      : resolveTournamentStatus(
-          {
-            tournamentStatus: tournament?.tournamentStatus,
-            startDate: tournament?.startDate,
-            endDate: tournament?.endDate,
-            entriesOpen: tournament?.registrationProfile?.entriesOpen,
-            entriesClose: tournament?.registrationProfile?.entriesClose,
-            // IANA zone (e.g. "America/New_York"). Canonical TODS field is
-            // `localTimeZone`; some external payload shapes use `timeZone`
-            // as a shorthand — accept both so the chip behaves correctly
-            // regardless of which dialect the consumer hands us. When
-            // neither is present the resolver falls back to the host
-            // machine's local timezone (the TD's own laptop in TMX).
-            timeZone: tournament?.localTimeZone || tournament?.timeZone
-          },
-          options?.now
-        );
+      : resolveTournamentStatus(statusInput(tournament), options?.now);
 
   // Calendar-list responses pre-bake `tournamentImageURL` / `courtSvgSport`
   // as flat strings on the inner tournament. Full records (from IDB) carry
@@ -100,9 +117,7 @@ export function mapTournamentToCardData(tournament: any, options?: MapTournament
   // resource extraction so both shapes work.
   const tournamentImageURL =
     tournament?.tournamentImageURL ?? extractImageURL(resources, TOURNAMENT_IMAGE_RESOURCE_NAME);
-  const courtSvgSport = (tournament?.courtSvgSport ?? extractCourtSvgSport(resources)) as
-    | CourtSport
-    | undefined;
+  const courtSvgSport = (tournament?.courtSvgSport ?? extractCourtSvgSport(resources)) as CourtSport | undefined;
 
   return {
     tournamentId: tournament?.tournamentId ?? '',
