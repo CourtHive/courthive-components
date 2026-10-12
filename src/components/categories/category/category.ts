@@ -2,6 +2,7 @@
  * Category editor modal.
  * Allows users to configure complete category definitions including age, rating, and ball type.
  */
+import { consideredDateOrToday } from '../../../helpers/consideredDate';
 import { getAgeCategoryModal } from '../ageCategory/ageCategory';
 import { eventGovernor } from 'tods-competition-factory';
 import { renderForm } from '../../forms/renderForm';
@@ -55,8 +56,9 @@ const defaultConfig: CategoryConfig = {
       'TYPE1FAST',
       'TYPE3SLOW'
     ]
-  },
-  defaultConsideredDate: new Date().toISOString().split('T')[0]
+  }
+  // no defaultConsideredDate here: computed at import, it went stale in a long-running page; the
+  // editor computes "today" each time it opens
 };
 
 // Helper functions
@@ -98,7 +100,7 @@ export function getCategoryModal(params: {
   const config: CategoryConfig = {
     labels: { ...defaultConfig.labels, ...userConfig?.labels },
     options: { ...defaultConfig.options, ...userConfig?.options },
-    defaultConsideredDate: userConfig?.defaultConsideredDate || defaultConfig.defaultConsideredDate,
+    defaultConsideredDate: consideredDateOrToday(userConfig?.defaultConsideredDate),
     modalConfig: userConfig?.modalConfig || {}
   };
 
