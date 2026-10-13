@@ -2,7 +2,19 @@ import { pillStyle } from '../../styles/pillStyle';
 
 import { matchUpStatusConstants } from 'tods-competition-factory';
 
-const { WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, ABANDONED, IN_PROGRESS } = matchUpStatusConstants;
+const { WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, ABANDONED, IN_PROGRESS, DEAD_RUBBER } =
+  matchUpStatusConstants;
+
+/** Abbreviations that are not simply the first three letters of the status. */
+const STATUS_LABELS: Record<string, string> = {
+  [WALKOVER]: 'WO',
+  [DOUBLE_WALKOVER]: 'WO',
+  [DEFAULTED]: 'DEF',
+  [DOUBLE_DEFAULT]: 'DEF',
+  [ABANDONED]: 'ABD',
+  [DEAD_RUBBER]: 'DR',
+  [IN_PROGRESS]: 'LIVE'
+};
 
 export function renderStatusPill({ matchUpStatus }: { matchUpStatus?: string }): HTMLElement {
   const variantValue = matchUpStatus?.toLowerCase();
@@ -25,15 +37,7 @@ export function renderStatusPill({ matchUpStatus }: { matchUpStatus?: string }):
     ? (variantValue as (typeof validVariants)[number])
     : undefined;
 
-  const statusText = ([WALKOVER, DOUBLE_WALKOVER] as string[]).includes(matchUpStatus || '')
-    ? 'WO'
-    : ([DEFAULTED, DOUBLE_DEFAULT] as string[]).includes(matchUpStatus || '')
-      ? 'DEF'
-      : matchUpStatus === ABANDONED
-        ? 'ABD'
-        : matchUpStatus === IN_PROGRESS
-          ? 'LIVE'
-          : matchUpStatus?.split('_').join('').slice(0, 3) || '';
+  const statusText = STATUS_LABELS[matchUpStatus ?? ''] ?? (matchUpStatus?.split('_').join('').slice(0, 3) || '');
 
   const div = document.createElement('div');
   div.className = pillStyle(variant ? { variant } : {});

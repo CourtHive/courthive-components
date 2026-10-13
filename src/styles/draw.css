@@ -642,7 +642,6 @@
 }
 
 .chc-pill--defaulted,
-.chc-pill--dead_rubber,
 .chc-pill--cancelled,
 .chc-pill--retired,
 .chc-pill--double_default {
@@ -654,6 +653,7 @@
   background-color: var(--chc-pill-bg-warning);
 }
 
+.chc-pill--dead_rubber,
 .chc-pill--walkover,
 .chc-pill--double_walkover,
 .chc-pill--abandoned {
