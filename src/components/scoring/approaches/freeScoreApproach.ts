@@ -2,14 +2,15 @@
  * FreeScore approach - interactive parsing with known format
  * Single input field with real-time validation using freeScore parser
  */
+import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
+import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
 import { renderMatchUp } from '../../renderStructure/renderMatchUp';
 import { compositions } from '../../../compositions/compositions';
 import { parseScore } from '../../../tools/freeScore/freeScore';
-import { validateScore } from '../utils/scoreValidator';
 import { formatExistingScore } from '../utils/scoreFormatters';
+import { statusScopeError } from '../logic/statusScope';
+import { validateScore } from '../utils/scoreValidator';
 import type { RenderScoreEntryParams } from '../types';
-import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
-import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
 import { getScoringConfig } from '../config';
 import {
   WINNER_REQUIRING_STATUSES,
@@ -38,6 +39,8 @@ const {
 } = matchUpStatusConstants;
 
 const CHC_STATUS_SUCCESS = 'var(--chc-status-success)';
+
+const CHC_STATUS_ERROR = 'var(--chc-status-error)';
 
 export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
   const { matchUp, container, onScoreChange, labels = {} } = params;
@@ -514,6 +517,17 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
     }
 
     const parseResult = parseScore(scoreString, matchUp.matchUpFormat);
+    const scopeError = statusScopeError(parseResult.matchUpStatus, params.disabledMatchUpStatuses);
+    if (scopeError) {
+      indicator.textContent = '\u2717';
+      indicator.style.color = CHC_STATUS_ERROR;
+      validationMessage.textContent = scopeError;
+      validationMessage.style.color = CHC_STATUS_ERROR;
+      formattedDisplay.textContent = '';
+      resetRadioState();
+      onScoreChange({ isValid: false, sets: [], matchUpStatus: parseResult.matchUpStatus, error: scopeError });
+      return undefined;
+    }
 
     formattedDisplay.textContent = parseResult.formattedScore || '';
 
@@ -596,9 +610,9 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
       onScoreChange(result);
     } else {
       indicator.textContent = '\u2717';
-      indicator.style.color = 'var(--chc-status-error)';
+      indicator.style.color = CHC_STATUS_ERROR;
       validationMessage.textContent = result.error || 'Invalid score';
-      validationMessage.style.color = 'var(--chc-status-error)';
+      validationMessage.style.color = CHC_STATUS_ERROR;
       resetRadioState();
       updateMatchUpDisplay({
         scoreObject: undefined,
@@ -623,6 +637,10 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
     if (!matchComplete && scoreString) {
       // Not yet locked - check if we should lock it
       const parseResult = parseScore(scoreString, matchUp.matchUpFormat);
+      if (statusScopeError(parseResult.matchUpStatus, params.disabledMatchUpStatuses)) {
+        matchComplete = false;
+        return undefined;
+      }
       const validation = parseResult.formattedScore
         ? validateScore(parseResult.formattedScore, matchUp.matchUpFormat, parseResult.matchUpStatus)
         : { isValid: false, winningSide: undefined };

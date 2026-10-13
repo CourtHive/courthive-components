@@ -2,6 +2,19 @@
 
 Quick reference for integrating the Dynamic Sets scoring modal into TMX.
 
+## Scoped status choices
+
+The factory SCORE action can publish `disabledMatchUpStatuses: string[]`, computed with the same scope checker as `setMatchUpStatus`. Pass it unchanged to `scoringModal` or `openScoreEntryDialog`, beside `clearable`:
+
+```typescript
+const scoreAction = validActions.find(({ type }) => type === 'SCORE');
+scoringModal({ matchUp, callback, clearable, disabledMatchUpStatuses: scoreAction?.disabledMatchUpStatuses });
+```
+
+The dialogs remove these choices from status pickers, refuse parsed aliases in Free Score and explain that the status is unavailable for this match. A saved restricted status remains visible but cannot be resubmitted; it can be cleared or corrected. Missing metadata preserves the existing vocabulary for older factory versions and other hosts. Components do not infer scope from draw names or types. The engine remains authoritative at submission; TMX rechecks the metadata before dispatching.
+
+Factory rule: DEAD_RUBBER is permitted on a tie rubber or DOUBLE_ELIMINATION Decider; CHALLENGED is LADDER only. These are factory rules, not conditions implemented by the dialogs.
+
 ## The dialog reports an engine-ready `outcome` — hand it to `setMatchUpStatus` (2026-10-08)
 
 CA: *"Shouldn't the new score entry modal be built in such a way that it cleanly understands and

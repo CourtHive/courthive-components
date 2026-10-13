@@ -5,6 +5,7 @@
  */
 import { renderDynamicSetsScoreEntry } from './approaches/dynamicSetsApproach';
 import { renderInlineScoringEntry } from './approaches/inlineScoringApproach';
+import { statusScopeError, statusScopeNotice } from './logic/statusScope';
 import { renderDialPadScoreEntry } from './approaches/dialPadApproach';
 import { projectOutcomeOntoMatchUp } from './logic/outcomeProjection';
 import { renderFreeScoreEntry } from './approaches/freeScoreApproach';
@@ -30,7 +31,7 @@ const APPROACH_LABELS: Record<ScoringApproach, string> = {
 const APPROACHES: ScoringApproach[] = ['dynamicSets', 'freeScore', 'dialPad', 'inlineScoring'];
 
 export function scoringModal(params: ScoringModalParams): void {
-  const { matchUp, callback, onClose, labels = {}, matchUpStatusCodes, clearable } = params;
+  const { matchUp, callback, onClose, labels = {}, matchUpStatusCodes, clearable, disabledMatchUpStatuses } = params;
 
   // One reason-code control for every approach. It is driven by the outcome's matchUpStatus, which
   // every approach already reports, so it needs no per-approach plumbing.
@@ -74,7 +75,8 @@ export function scoringModal(params: ScoringModalParams): void {
 
   const handleScoreChange = (outcome: ScoreOutcome) => {
     if (closed) return;
-    currentOutcome = outcome;
+    const scopeError = statusScopeError(outcome.matchUpStatus, disabledMatchUpStatuses);
+    currentOutcome = scopeError ? { ...outcome, isValid: false, error: scopeError } : outcome;
     statusCodePicker.update(outcome?.matchUpStatus);
 
     if (wasCleared && (outcome.sets?.length > 0 || outcome.score)) {
@@ -83,7 +85,8 @@ export function scoringModal(params: ScoringModalParams): void {
 
     const submitBtn = document.getElementById('submitScoreV2') as HTMLButtonElement;
     if (submitBtn) {
-      const canSubmit = activeApproach === 'inlineScoring' || outcome.isValid || (wasCleared && hadExistingScore);
+      const canSubmit =
+        !scopeError && (activeApproach === 'inlineScoring' || outcome.isValid || (wasCleared && hadExistingScore));
       submitBtn.disabled = !canSubmit;
     }
 
@@ -130,6 +133,7 @@ export function scoringModal(params: ScoringModalParams): void {
     const approachContent = document.createElement('div');
     container.appendChild(approachContent);
     container.appendChild(statusCodePicker.element);
+    container.appendChild(statusScopeNotice(disabledMatchUpStatuses));
     // Re-assert the picker against the outcome that survived the approach switch — falling back to
     // the status the matchUp ALREADY carries.
     //
@@ -144,6 +148,7 @@ export function scoringModal(params: ScoringModalParams): void {
         matchUp: hydrateFrom,
         container: approachContent,
         onScoreChange: handleScoreChange,
+        disabledMatchUpStatuses,
         labels
       });
     } else if (approach === 'dynamicSets') {
@@ -151,6 +156,7 @@ export function scoringModal(params: ScoringModalParams): void {
         matchUp: hydrateFrom,
         container: approachContent,
         onScoreChange: handleScoreChange,
+        disabledMatchUpStatuses,
         labels
       });
     } else if (approach === 'dialPad') {
@@ -158,6 +164,7 @@ export function scoringModal(params: ScoringModalParams): void {
         matchUp: hydrateFrom,
         container: approachContent,
         onScoreChange: handleScoreChange,
+        disabledMatchUpStatuses,
         labels
       });
     } else if (approach === 'inlineScoring') {
@@ -165,6 +172,7 @@ export function scoringModal(params: ScoringModalParams): void {
         matchUp: hydrateFrom,
         container: approachContent,
         onScoreChange: handleScoreChange,
+        disabledMatchUpStatuses,
         labels
       });
     }
@@ -328,6 +336,7 @@ export function scoringModal(params: ScoringModalParams): void {
       onClick: () => {
         const canSubmit =
           currentOutcome &&
+          !statusScopeError(currentOutcome.matchUpStatus, disabledMatchUpStatuses) &&
           (activeApproach === 'inlineScoring' || currentOutcome.isValid || (wasCleared && hadExistingScore));
         if (canSubmit) {
           cleanupCurrentApproach();

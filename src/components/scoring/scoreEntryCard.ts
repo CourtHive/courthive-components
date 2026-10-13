@@ -33,10 +33,18 @@
 import { NON_DIRECTING_ENDINGS, NO_SCORE_STATUSES, endingLabels } from './logic/irregularEnding';
 import { chooseEnding, changeFormat, clearScore, clearAll } from './logic/scoreEntryModel';
 import { statusCodeSubtext, statusCodeDisplay, codesForStatus } from './logic/statusCodes';
+import { statusScopeError, statusScopeNotice } from './logic/statusScope';
 import { ENTRY_SIDE, hasCommandModifier, otherSide } from './keyboard';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 import { createScoreEntryStore } from './logic/scoreEntryStore';
 import { scoreEntrySummary } from './logic/scoreEntrySummary';
+import {
+  offersBothSidesOut,
+  matchEndingOptions,
+  resolveReportedEnding,
+  sideEndingOptions,
+  reasonCodeStatus
+} from './logic/scoreEntryState';
 import {
   discardedScore,
   resolveEnding,
@@ -46,13 +54,6 @@ import {
   hasEntry,
   error
 } from './logic/scoreEntrySelectors';
-import {
-  offersBothSidesOut,
-  matchEndingOptions,
-  resolveReportedEnding,
-  sideEndingOptions,
-  reasonCodeStatus
-} from './logic/scoreEntryState';
 
 import type { ScoreEntryState, ScoreEntryResolution, SideNumber } from './logic/scoreEntryState';
 import type { ScoreEntryModel, EndingIntent } from './logic/scoreEntryModel';
@@ -332,6 +333,8 @@ export type ScoreEntryCardParams = {
    * submission the engine will refuse. Omitted, `[Clear]` behaves as it always has.
    */
   clearable?: boolean;
+  /** Scoped statuses refused by the factory SCORE action. */
+  disabledMatchUpStatuses?: string[];
 };
 
 /** A card instance: its element, plus the handle the host needs to react to score-region changes. */
@@ -404,6 +407,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    */
   const openedOnRecordedOutcome = holdsEntry();
   // Decided at open, as `openedOnRecordedOutcome` is: the host's answer is about what was recorded.
+  const disabledStatuses = new Set(params.disabledMatchUpStatuses);
   const clearWithheld = params.clearable === false && openedOnRecordedOutcome;
   /**
    * `[Clear]` was pressed at some point.
@@ -683,6 +687,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
     submitButton.dataset.action = 'submit';
     submitButton.addEventListener('click', () => {
+      if (scoreError()) return undefined;
       // An emptied card submits the REMOVAL of what it opened on, and says so rather than leaving a
       // host to infer it from four undefined fields.
       if (submitsAClear()) {
@@ -736,7 +741,10 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
   /** The model's integrity message, naming the participants rather than "side 1". */
   function scoreError(): string | undefined {
-    return error(model(), { sideNames: [params.sides[0].participantName, params.sides[1].participantName] });
+    return (
+      statusScopeError(currentResolution().matchUpStatus, params.disabledMatchUpStatuses) ??
+      error(model(), { sideNames: [params.sides[0].participantName, params.sides[1].participantName] })
+    );
   }
 
   // ── Render ───────────────────────────────────────────────────────────
@@ -908,6 +916,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    * contradiction the other way instead of leaving it standing.
    */
   function endingOffered(status: string): boolean {
+    if (disabledStatuses.has(status)) return false;
     // A retirement keeps the score that was played; with nothing played there is nothing to keep, and
     // the result would be a walkover wearing the wrong name (CA, 2026-10-08: "Retired is only supposed
     // to be enabled once there is a score present"). A default is different: a player can be defaulted
@@ -956,6 +965,8 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
   function refusalReason(status: string): string {
     const label = labels[status] ?? status;
+    const scopeError = statusScopeError(status, params.disabledMatchUpStatuses);
+    if (scopeError) return scopeError;
     if (status === RETIRED && !scoreEntered()) return `No score yet — ${label} keeps the score that was played`;
     return `The score is complete — ${label} cannot follow it`;
   }
@@ -1330,7 +1341,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
     const inner = div('chc-sec-side-panel-body');
 
-    for (const status of sideEndingOptions()) {
+    for (const status of sideEndingOptions().filter((status) => !disabledStatuses.has(status))) {
       const selected = chosen().sideEnding?.sideNumber === sideNumber && chosen().sideEnding?.status === status;
       const option = button('', 'chc-sec-btn chc-sec-side-option');
       option.dataset.ending = status;
@@ -1410,7 +1421,8 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   function renderMatchEndings(): void {
     endingsContainer.replaceChildren();
 
-    const all = matchEndingOptions();
+    endingsContainer.append(statusScopeNotice(params.disabledMatchUpStatuses));
+    const all = matchEndingOptions().filter((status) => !disabledStatuses.has(status));
     const privileged = all.filter((status) => PRIVILEGED_MATCH_ENDINGS.includes(status));
     const others = all.filter((status) => !PRIVILEGED_MATCH_ENDINGS.includes(status));
 

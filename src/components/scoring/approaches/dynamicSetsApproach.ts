@@ -2,14 +2,14 @@
  * Dynamic Sets score entry approach
  * Individual set inputs with hotkey navigation and real-time validation
  */
+import { matchUpFormatCode, matchUpStatusConstants, scoreGovernor } from 'tods-competition-factory';
+import { parseMatchUpFormat, shouldExpandSets } from '../utils/setExpansionLogic';
+import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
 import { renderMatchUp } from '../../renderStructure/renderMatchUp';
 import { compositions } from '../../../compositions/compositions';
-import { validateSetScores } from '../utils/scoreValidator';
-import { parseMatchUpFormat, shouldExpandSets } from '../utils/setExpansionLogic';
 import type { RenderScoreEntryParams, SetScore } from '../types';
+import { validateSetScores } from '../utils/scoreValidator';
 import { loadSettings, getScoringConfig } from '../config';
-import { matchUpFormatCode, matchUpStatusConstants, scoreGovernor } from 'tods-competition-factory';
-import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
 import {
   isMatchComplete as isMatchCompleteLogic,
   isSetComplete as isSetCompleteLogic,
@@ -263,7 +263,11 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   // no fallback, so it rendered `undefined` for any ending it did not itself list — which is exactly
   // what widening the vocabulary to ten would have done to four of these radios.
   const ENDING_LABELS = endingLabels(labels);
-  const outcomes = SELECTABLE_ENDINGS.map((value) => ({ value, label: ENDING_LABELS[value] }));
+  const disabledStatuses = new Set(params.disabledMatchUpStatuses);
+  const outcomes = SELECTABLE_ENDINGS.filter((status) => !disabledStatuses.has(status)).map((value) => ({
+    value,
+    label: ENDING_LABELS[value]
+  }));
 
   outcomes.forEach((outcome) => {
     const radioLabel = document.createElement('label');
