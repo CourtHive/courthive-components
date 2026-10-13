@@ -1,5 +1,14 @@
 # Changelog
 
+## [6.6.2](https://github.com/CourtHive/courthive-components/compare/v6.6.1...v6.6.2) (2026-10-13)
+
+
+### Bug Fixes
+
+* **categories:** work out "today" when an editor opens, not when the module loads ([#711](https://github.com/CourtHive/courthive-components/issues/711)) ([ff2e789](https://github.com/CourtHive/courthive-components/commit/ff2e789ee9604d84e007817888fcdd961643f520))
+* **deps:** update tods-competition-factory to 7.13.0 ([#712](https://github.com/CourtHive/courthive-components/issues/712)) ([42a21f4](https://github.com/CourtHive/courthive-components/commit/42a21f472713afe9d388acddf7a5d4cf7a760862))
+* **tournament-card:** the status pill's zone is the factory's resolver ([#710](https://github.com/CourtHive/courthive-components/issues/710)) ([bd94858](https://github.com/CourtHive/courthive-components/commit/bd94858b538b8fec519bbf6a19e6ba597d78fbf6))
+
 ## [6.6.1](https://github.com/CourtHive/courthive-components/compare/v6.6.0...v6.6.1) (2026-10-12)
 
 
