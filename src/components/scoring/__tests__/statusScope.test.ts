@@ -7,10 +7,12 @@ import { setScoringConfig } from '../config';
 import { cModal } from '../../modal/cmodal';
 
 const SUBMIT = 'button[data-action="submit"]';
+const LEGACY_INPUT = '#scoreInputV2';
 const LEGACY_SUBMIT = '#submitScoreV2';
 const DEAD_OPTION = '[data-ending="DEAD_RUBBER"]';
 const OTHER = 'button[data-action="other"]';
-const UNAVAILABLE = 'Dead rubber is unavailable for this match';
+const UNAVAILABLE = 'Dead Rubber is unavailable for this match';
+const FREE_INPUT = '.chc-sec-score-region input';
 const FORMAT = 'SET3-S:6/TB7';
 const SIDES: [{ participantName: string }, { participantName: string }] = [
   { participantName: 'Alice' },
@@ -55,7 +57,7 @@ describe('host-provided status scope', () => {
       disabledMatchUpStatuses: DISABLED,
       onSubmit
     });
-    type('.chc-sec-score-region input', alias);
+    type(FREE_INPUT, alias);
     const submit = find<HTMLButtonElement>(SUBMIT);
     expect(submit.disabled).toBe(true);
     expect(find<HTMLElement>('.chc-sec-field-note').textContent).toContain('unavailable');
@@ -64,12 +66,12 @@ describe('host-provided status scope', () => {
     cModal.close();
     setScoringConfig({ scoringApproach: 'freeScore' });
     scoringModal({ matchUp: MATCHUP, callback: onSubmit, disabledMatchUpStatuses: DISABLED });
-    type('#scoreInputV2', alias);
+    type(LEGACY_INPUT, alias);
     expect(find<HTMLButtonElement>(LEGACY_SUBMIT).disabled).toBe(true);
     expect(lastModal().textContent).toContain(UNAVAILABLE);
     find<HTMLButtonElement>(LEGACY_SUBMIT).click();
     expect(onSubmit).not.toHaveBeenCalled();
-    type('#scoreInputV2', '6-4 6-3');
+    type(LEGACY_INPUT, '6-4 6-3');
     expect(find<HTMLButtonElement>(LEGACY_SUBMIT).disabled).toBe(false);
   });
   it.each(['dynamicSets', 'dialPad'] as const)('withholds legacy %s choices', (approach) => {
@@ -134,5 +136,40 @@ describe('host-provided status scope', () => {
     expect(dead.disabled).toBe(false);
     dead.click();
     expect(find<HTMLButtonElement>(SUBMIT).disabled).toBe(false);
+  });
+  it('uses the host template and status names in both dialogs', () => {
+    const labels = {
+      DEAD_RUBBER: 'Match sans enjeu',
+      CHALLENGED: 'Défi',
+      statusUnavailable: '{{status}} indisponible pour ce match'
+    };
+    expect(statusScopeError('CHALLENGED', DISABLED, labels)).toBe('Défi indisponible pour ce match');
+    openScoreEntryDialog({
+      sides: SIDES,
+      matchUpFormat: FORMAT,
+      approach: 'freeScore',
+      disabledMatchUpStatuses: DISABLED,
+      labels
+    });
+    type(FREE_INPUT, 'dr');
+    expect(find<HTMLElement>('.chc-sec-field-note').textContent).toBe('Match sans enjeu indisponible pour ce match');
+    expect(find<HTMLElement>('.chc-scoring-status-scope').textContent).toContain('Défi indisponible');
+    expect(find<HTMLButtonElement>(SUBMIT).disabled).toBe(true);
+    cModal.close();
+    setScoringConfig({ scoringApproach: 'freeScore' });
+    scoringModal({
+      matchUp: MATCHUP,
+      callback: vi.fn(),
+      disabledMatchUpStatuses: DISABLED,
+      labels: {
+        deadRubber: labels.DEAD_RUBBER,
+        challenged: labels.CHALLENGED,
+        statusUnavailable: labels.statusUnavailable
+      }
+    });
+    type(LEGACY_INPUT, 'dr');
+    expect(lastModal().textContent).toContain('Match sans enjeu indisponible pour ce match');
+    expect(lastModal().textContent).not.toContain('is unavailable for this match');
+    expect(find<HTMLButtonElement>(LEGACY_SUBMIT).disabled).toBe(true);
   });
 });

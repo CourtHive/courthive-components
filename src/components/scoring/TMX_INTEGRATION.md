@@ -13,6 +13,13 @@ scoringModal({ matchUp, callback, clearable, disabledMatchUpStatuses: scoreActio
 
 The dialogs remove these choices from status pickers, refuse parsed aliases in Free Score and explain that the status is unavailable for this match. A saved restricted status remains visible but cannot be resubmitted; it can be cleared or corrected. Missing metadata preserves the existing vocabulary for older factory versions and other hosts. Components do not infer scope from draw names or types. The engine remains authoritative at submission; TMX rechecks the metadata before dispatching.
 
+Hosts can translate scope notices and typed-input refusals. For the card/dialog,
+pass status-keyed `labels` (for example `DEAD_RUBBER: 'Match sans enjeu'`) plus
+`statusUnavailable: '{{status}} indisponible pour ce match'`. The legacy modal
+uses `labels.deadRubber`, `labels.challenged` and the same `statusUnavailable`
+template. Scope messages use those names; they do not derive translated names
+from enum constants. English remains the default for hosts that omit labels.
+
 Factory rule: DEAD_RUBBER is permitted on a tie rubber or DOUBLE_ELIMINATION Decider; CHALLENGED is LADDER only. These are factory rules, not conditions implemented by the dialogs.
 
 ## The dialog reports an engine-ready `outcome` — hand it to `setMatchUpStatus` (2026-10-08)

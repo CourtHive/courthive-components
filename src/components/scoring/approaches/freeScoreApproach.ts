@@ -3,12 +3,12 @@
  * Single input field with real-time validation using freeScore parser
  */
 import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
+import { scoringStatusScopeLabels, statusScopeError } from '../logic/statusScope';
 import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
 import { renderMatchUp } from '../../renderStructure/renderMatchUp';
 import { compositions } from '../../../compositions/compositions';
 import { parseScore } from '../../../tools/freeScore/freeScore';
 import { formatExistingScore } from '../utils/scoreFormatters';
-import { statusScopeError } from '../logic/statusScope';
 import { validateScore } from '../utils/scoreValidator';
 import type { RenderScoreEntryParams } from '../types';
 import { getScoringConfig } from '../config';
@@ -44,6 +44,7 @@ const CHC_STATUS_ERROR = 'var(--chc-status-error)';
 
 export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
   const { matchUp, container, onScoreChange, labels = {} } = params;
+  const scopeLabels = scoringStatusScopeLabels(labels);
 
   // Clear container
   container.innerHTML = '';
@@ -517,7 +518,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
     }
 
     const parseResult = parseScore(scoreString, matchUp.matchUpFormat);
-    const scopeError = statusScopeError(parseResult.matchUpStatus, params.disabledMatchUpStatuses);
+    const scopeError = statusScopeError(parseResult.matchUpStatus, params.disabledMatchUpStatuses, scopeLabels);
     if (scopeError) {
       indicator.textContent = '\u2717';
       indicator.style.color = CHC_STATUS_ERROR;
@@ -637,7 +638,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
     if (!matchComplete && scoreString) {
       // Not yet locked - check if we should lock it
       const parseResult = parseScore(scoreString, matchUp.matchUpFormat);
-      if (statusScopeError(parseResult.matchUpStatus, params.disabledMatchUpStatuses)) {
+      if (statusScopeError(parseResult.matchUpStatus, params.disabledMatchUpStatuses, scopeLabels)) {
         matchComplete = false;
         return undefined;
       }

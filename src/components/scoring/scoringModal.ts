@@ -3,9 +3,9 @@
  * Supports multiple scoring approaches with validation
  * Menu caret allows seamless switching between approaches
  */
+import { scoringStatusScopeLabels, statusScopeError, statusScopeNotice } from './logic/statusScope';
 import { renderDynamicSetsScoreEntry } from './approaches/dynamicSetsApproach';
 import { renderInlineScoringEntry } from './approaches/inlineScoringApproach';
-import { statusScopeError, statusScopeNotice } from './logic/statusScope';
 import { renderDialPadScoreEntry } from './approaches/dialPadApproach';
 import { projectOutcomeOntoMatchUp } from './logic/outcomeProjection';
 import { renderFreeScoreEntry } from './approaches/freeScoreApproach';
@@ -48,6 +48,7 @@ export function scoringModal(params: ScoringModalParams): void {
     labels
   });
 
+  const scopeLabels = scoringStatusScopeLabels(labels);
   const config = getScoringConfig();
   let activeApproach: ScoringApproach = (config.scoringApproach as ScoringApproach) || 'dynamicSets';
 
@@ -75,7 +76,7 @@ export function scoringModal(params: ScoringModalParams): void {
 
   const handleScoreChange = (outcome: ScoreOutcome) => {
     if (closed) return;
-    const scopeError = statusScopeError(outcome.matchUpStatus, disabledMatchUpStatuses);
+    const scopeError = statusScopeError(outcome.matchUpStatus, disabledMatchUpStatuses, scopeLabels);
     currentOutcome = scopeError ? { ...outcome, isValid: false, error: scopeError } : outcome;
     statusCodePicker.update(outcome?.matchUpStatus);
 
@@ -133,7 +134,7 @@ export function scoringModal(params: ScoringModalParams): void {
     const approachContent = document.createElement('div');
     container.appendChild(approachContent);
     container.appendChild(statusCodePicker.element);
-    container.appendChild(statusScopeNotice(disabledMatchUpStatuses));
+    container.appendChild(statusScopeNotice(disabledMatchUpStatuses, scopeLabels));
     // Re-assert the picker against the outcome that survived the approach switch — falling back to
     // the status the matchUp ALREADY carries.
     //
@@ -336,7 +337,7 @@ export function scoringModal(params: ScoringModalParams): void {
       onClick: () => {
         const canSubmit =
           currentOutcome &&
-          !statusScopeError(currentOutcome.matchUpStatus, disabledMatchUpStatuses) &&
+          !statusScopeError(currentOutcome.matchUpStatus, disabledMatchUpStatuses, scopeLabels) &&
           (activeApproach === 'inlineScoring' || currentOutcome.isValid || (wasCleared && hadExistingScore));
         if (canSubmit) {
           cleanupCurrentApproach();

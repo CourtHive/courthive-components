@@ -39,13 +39,6 @@ import { matchUpStatusConstants } from 'tods-competition-factory';
 import { createScoreEntryStore } from './logic/scoreEntryStore';
 import { scoreEntrySummary } from './logic/scoreEntrySummary';
 import {
-  offersBothSidesOut,
-  matchEndingOptions,
-  resolveReportedEnding,
-  sideEndingOptions,
-  reasonCodeStatus
-} from './logic/scoreEntryState';
-import {
   discardedScore,
   resolveEnding,
   scoreString,
@@ -54,6 +47,13 @@ import {
   hasEntry,
   error
 } from './logic/scoreEntrySelectors';
+import {
+  offersBothSidesOut,
+  matchEndingOptions,
+  resolveReportedEnding,
+  sideEndingOptions,
+  reasonCodeStatus
+} from './logic/scoreEntryState';
 
 import type { ScoreEntryState, ScoreEntryResolution, SideNumber } from './logic/scoreEntryState';
 import type { ScoreEntryModel, EndingIntent } from './logic/scoreEntryModel';
@@ -687,7 +687,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
     submitButton.dataset.action = 'submit';
     submitButton.addEventListener('click', () => {
-      if (scoreError()) return undefined;
+      if (statusScopeError(currentResolution().matchUpStatus, params.disabledMatchUpStatuses, labels)) return undefined;
       // An emptied card submits the REMOVAL of what it opened on, and says so rather than leaving a
       // host to infer it from four undefined fields.
       if (submitsAClear()) {
@@ -742,7 +742,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   /** The model's integrity message, naming the participants rather than "side 1". */
   function scoreError(): string | undefined {
     return (
-      statusScopeError(currentResolution().matchUpStatus, params.disabledMatchUpStatuses) ??
+      statusScopeError(currentResolution().matchUpStatus, params.disabledMatchUpStatuses, labels) ??
       error(model(), { sideNames: [params.sides[0].participantName, params.sides[1].participantName] })
     );
   }
@@ -965,7 +965,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
   function refusalReason(status: string): string {
     const label = labels[status] ?? status;
-    const scopeError = statusScopeError(status, params.disabledMatchUpStatuses);
+    const scopeError = statusScopeError(status, params.disabledMatchUpStatuses, labels);
     if (scopeError) return scopeError;
     if (status === RETIRED && !scoreEntered()) return `No score yet — ${label} keeps the score that was played`;
     return `The score is complete — ${label} cannot follow it`;
@@ -1421,7 +1421,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   function renderMatchEndings(): void {
     endingsContainer.replaceChildren();
 
-    endingsContainer.append(statusScopeNotice(params.disabledMatchUpStatuses));
+    endingsContainer.append(statusScopeNotice(params.disabledMatchUpStatuses, labels));
     const all = matchEndingOptions().filter((status) => !disabledStatuses.has(status));
     const privileged = all.filter((status) => PRIVILEGED_MATCH_ENDINGS.includes(status));
     const others = all.filter((status) => !PRIVILEGED_MATCH_ENDINGS.includes(status));

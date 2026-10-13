@@ -47,6 +47,9 @@ export type ScoringModalLabels = {
   // the rest; `endingLabels()` falls back to an English default and then to the raw status.
   suspended?: string;
   deadRubber?: string;
+  challenged?: string;
+  /** Localized refusal template; {{status}} is replaced with the host's status label. */
+  statusUnavailable?: string;
   inProgress?: string;
   awaitingResult?: string;
   validScore?: string;

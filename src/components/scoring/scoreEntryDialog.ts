@@ -273,7 +273,12 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
     const onChange = () => card.refresh();
 
     if (next === 'freeScore')
-      return createFreeScoreRegion({ store, onChange, disabledMatchUpStatuses: params.disabledMatchUpStatuses });
+      return createFreeScoreRegion({
+        store,
+        onChange,
+        disabledMatchUpStatuses: params.disabledMatchUpStatuses,
+        statusScopeLabels: labels
+      });
     if (next === 'dialPad') return createDialPadRegion({ store, onChange });
     return createDynamicSetsRegion({
       store,

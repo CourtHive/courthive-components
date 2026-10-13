@@ -47,6 +47,7 @@ export type FreeScoreRegionParams = {
   /** The score to open with, already formatted (e.g. `'6-4 6-3'`). With a `store`, the model's own line is used. */
   initialText?: string;
   disabledMatchUpStatuses?: string[];
+  statusScopeLabels?: Record<string, string>;
   /** Label above the field. */
   label?: string;
   /** Called after any change. Wire to the card's `refresh`. */
@@ -201,7 +202,11 @@ export function createFreeScoreRegion(params: FreeScoreRegionParams): FreeScoreR
     if (!note) return;
 
     const { result } = parsed();
-    const scopeError = statusScopeError(result?.matchUpStatus, params.disabledMatchUpStatuses);
+    const scopeError = statusScopeError(
+      result?.matchUpStatus,
+      params.disabledMatchUpStatuses,
+      params.statusScopeLabels
+    );
     if (scopeError) {
       note.textContent = scopeError;
       note.dataset.tone = 'error';
