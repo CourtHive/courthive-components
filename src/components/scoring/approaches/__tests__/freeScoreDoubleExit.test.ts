@@ -8,7 +8,7 @@
  * winner-selection helper. It carried the third copy of the implicit rule — typing "wo" produced a
  * valid DOUBLE_WALKOVER on the keystroke.
  */
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterAll } from 'vitest';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 import { renderFreeScoreEntry } from '../freeScoreApproach';
 import { NEITHER_SIDE } from '../../logic/irregularEnding';
@@ -67,6 +67,13 @@ function mount(matchUp: any = makeMatchUp()) {
 beforeEach(() => {
   document.body.innerHTML = '';
 });
+
+// renderFreeScoreEntry arms a 100ms initialisation timer that re-runs handleInput. A test that
+// ends sooner leaves it pending, and if it fires after this file's happy-dom environment is torn
+// down it throws `window is not defined` from getLinkStyle as an unhandled error, which fails the
+// run even though every test passed (it failed the 6.7.0 publish). Let it fire while the
+// environment still exists.
+afterAll(() => new Promise((resolve) => setTimeout(resolve, 150)));
 
 describe('freeScore — a typed ending is not by itself a result', () => {
   it('"wo" alone does not produce a submittable double walkover', async () => {
