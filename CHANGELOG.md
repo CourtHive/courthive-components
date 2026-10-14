@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.7.0](https://github.com/CourtHive/courthive-components/compare/v6.6.2...v6.7.0) (2026-10-14)
+
+
+### Features
+
+* **scoring:** withhold score-entry statuses the engine refuses by scope ([#716](https://github.com/CourtHive/courthive-components/issues/716)) ([07c59cf](https://github.com/CourtHive/courthive-components/commit/07c59cf6cfcc1bc8df643e7b4e148074be43932b))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.14.0 ([#718](https://github.com/CourtHive/courthive-components/issues/718)) ([f7c74a4](https://github.com/CourtHive/courthive-components/commit/f7c74a432105ba355dfc50bc0a70df1b26c44fc6))
+* **renderStructure:** status pills for AWAITING_RESULT, DEAD_RUBBER and INCOMPLETE ([#717](https://github.com/CourtHive/courthive-components/issues/717)) ([cf167bd](https://github.com/CourtHive/courthive-components/commit/cf167bdecc02eb1903911a8d8415a3dc667396c8))
+
 ## [6.6.2](https://github.com/CourtHive/courthive-components/compare/v6.6.1...v6.6.2) (2026-10-13)
 
 
