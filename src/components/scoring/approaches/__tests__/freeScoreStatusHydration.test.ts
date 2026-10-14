@@ -16,7 +16,7 @@
  * approach's entire input surface — if the text is not there, the operator has nothing to edit and
  * re-submitting writes a result they never saw.
  */
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterAll } from 'vitest';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 import { renderFreeScoreEntry } from '../freeScoreApproach';
 
@@ -34,6 +34,13 @@ const {
 } = matchUpStatusConstants;
 
 const INPUT = '#scoreInputV2';
+
+// renderFreeScoreEntry arms a 100ms initialisation timer that re-runs handleInput. A test that
+// ends sooner leaves it pending, and if it fires after this file's happy-dom environment is torn
+// down it throws `window is not defined` from getLinkStyle as an unhandled error, which fails the
+// run even though every test passed (it failed the 6.7.0 publish). Let it fire while the
+// environment still exists.
+afterAll(() => new Promise((resolve) => setTimeout(resolve, 150)));
 
 function mount(matchUp: any) {
   document.body.innerHTML = '';
