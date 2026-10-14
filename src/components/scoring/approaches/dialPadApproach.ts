@@ -2,13 +2,13 @@
  * Dial Pad score entry approach
  * Builds score string incrementally using matchUpFormat rules
  */
-import { renderMatchUp } from '../../renderStructure/renderMatchUp';
-import { compositions } from '../../../compositions/compositions';
 import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
 import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
+import type { RenderScoreEntryParams, ScoreOutcome } from '../types';
+import { renderMatchUp } from '../../renderStructure/renderMatchUp';
+import { compositions } from '../../../compositions/compositions';
 import { formatScoreString, setCountOf } from './dialPadLogic';
 import { validateScore } from '../utils/scoreValidator';
-import type { RenderScoreEntryParams, ScoreOutcome } from '../types';
 import { getScoringConfig } from '../config';
 
 import {
@@ -175,7 +175,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
                 state.digits = '';
 
                 container.innerHTML = '';
-                renderDialPadScoreEntry({ matchUp, container, onScoreChange, labels });
+                renderDialPadScoreEntry({ ...params, matchUp, container, onScoreChange, labels });
               }
             },
             modalConfig: {
@@ -355,7 +355,9 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     const NON_DIRECTING_LABELS = endingLabels(labels);
 
     const nonDirectingButtons = new Map<string, HTMLButtonElement>();
+    const disabledStatuses = new Set(params.disabledMatchUpStatuses);
     for (const status of NON_DIRECTING_ENDINGS) {
+      if (disabledStatuses.has(status)) continue;
       const chip = document.createElement('button');
       chip.type = 'button';
       chip.className = 'button';
@@ -748,7 +750,9 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       { label: '', value: 'empty', isSpecial: true, disabled: true }
     ];
 
+    const buttonStatuses = { retired: RETIRED, walkover: WALKOVER, defaulted: DEFAULTED };
     buttons.forEach((btn) => {
+      if (disabledStatuses.has(buttonStatuses[btn.value])) return undefined;
       const button = document.createElement('button');
       button.className = 'button is-white';
       button.textContent = btn.label;

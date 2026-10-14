@@ -19,6 +19,9 @@ const {
   CANCELLED,
   IN_PROGRESS,
   ABANDONED,
+  AWAITING_RESULT,
+  DEAD_RUBBER,
+  INCOMPLETE,
   BYE
 } = matchUpStatusConstants;
 
@@ -203,7 +206,7 @@ export function renderParticipant({
   const winnerChevron = configuration?.winnerChevron && isWinningSide;
 
   const teamLogo = configuration?.teamLogo;
-  // SUSPENDED / CANCELLED / IN_PROGRESS / ABANDONED describe the MATCH and belong on both sides.
+  // Match-level statuses describe the MATCH and belong on both sides.
   // The exits do not: they name a side, and `sidesCarryingExit` says which.
   const exitSides = ([RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT] as string[]).includes(
     matchUpStatus
@@ -225,7 +228,10 @@ export function renderParticipant({
         SUSPENDED,
         CANCELLED,
         IN_PROGRESS,
-        ABANDONED
+        ABANDONED,
+        AWAITING_RESULT,
+        DEAD_RUBBER,
+        INCOMPLETE
       ] as string[]
     ).includes(matchUpStatus) &&
       !isWinningSide &&

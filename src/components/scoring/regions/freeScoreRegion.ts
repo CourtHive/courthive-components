@@ -32,6 +32,7 @@ import { enteredSets, scoreString, isComplete } from '../logic/scoreEntrySelecto
 import { createScoreReadouts, READOUT_COLUMN_WIDTH } from './scoreReadout';
 import { createScoreEntryStore } from '../logic/scoreEntryStore';
 import { parseScore } from '../../../tools/freeScore/freeScore';
+import { statusScopeError } from '../logic/statusScope';
 import { replaceSets } from '../logic/scoreEntryModel';
 
 import type { ScoreEntryStore } from '../logic/scoreEntryStore';
@@ -45,6 +46,8 @@ export type FreeScoreRegionParams = {
   matchUpFormat?: string;
   /** The score to open with, already formatted (e.g. `'6-4 6-3'`). With a `store`, the model's own line is used. */
   initialText?: string;
+  disabledMatchUpStatuses?: string[];
+  statusScopeLabels?: Record<string, string>;
   /** Label above the field. */
   label?: string;
   /** Called after any change. Wire to the card's `refresh`. */
@@ -199,6 +202,16 @@ export function createFreeScoreRegion(params: FreeScoreRegionParams): FreeScoreR
     if (!note) return;
 
     const { result } = parsed();
+    const scopeError = statusScopeError(
+      result?.matchUpStatus,
+      params.disabledMatchUpStatuses,
+      params.statusScopeLabels
+    );
+    if (scopeError) {
+      note.textContent = scopeError;
+      note.dataset.tone = 'error';
+      return undefined;
+    }
     if (!text.trim()) {
       note.textContent = '';
       note.dataset.tone = 'idle';

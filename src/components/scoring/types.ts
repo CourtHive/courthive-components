@@ -47,6 +47,9 @@ export type ScoringModalLabels = {
   // the rest; `endingLabels()` falls back to an English default and then to the raw status.
   suspended?: string;
   deadRubber?: string;
+  challenged?: string;
+  /** Localized refusal template; {{status}} is replaced with the host's status label. */
+  statusUnavailable?: string;
   inProgress?: string;
   awaitingResult?: string;
   validScore?: string;
@@ -83,6 +86,8 @@ export type ScoringModalParams = {
    * submission the engine will refuse. Omitted, `[Clear]` behaves as it always has.
    */
   clearable?: boolean;
+  /** Scoped statuses refused by the factory SCORE action. Omitted preserves the unrestricted vocabulary. */
+  disabledMatchUpStatuses?: string[];
 };
 
 export type ScoreChangeHandler = (outcome: ScoreOutcome) => void;
@@ -91,5 +96,6 @@ export type RenderScoreEntryParams = {
   matchUp: any;
   container: HTMLElement;
   onScoreChange: ScoreChangeHandler;
+  disabledMatchUpStatuses?: string[];
   labels?: ScoringModalLabels;
 };
