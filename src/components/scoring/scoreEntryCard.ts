@@ -62,7 +62,7 @@ import type { StatusCodeGroups } from './logic/statusCodes';
 
 import './scoreEntryCard.css';
 
-const { RETIRED, WALKOVER, DEFAULTED } = matchUpStatusConstants;
+const { RETIRED, WALKOVER, DEFAULTED, IN_PROGRESS, CANCELLED, AWAITING_RESULT, SUSPENDED } = matchUpStatusConstants;
 
 /** Class names and attribute names used often enough that a typo in one would be silent. */
 const CLS_BTN = 'chc-sec-btn';
@@ -171,6 +171,23 @@ const SIDE_ENDING_KEYS: Record<string, string> = {
   w: WALKOVER,
   r: RETIRED,
   d: DEFAULTED
+};
+
+/**
+ * One letter per match-level ending that names no side, and here the case means nothing.
+ *
+ * CA, 2026-10-15: *"we can extend that behavior to statuses which don't have a side such that 'i', 'I'
+ * behave as if (In Progress) was clicked, 'c', 'C' as if (Cancelled), 'a', 'A' as if (Awaiting Result),
+ * 's', 'S' (Suspended). We will leave 'Abandoned' and 'Incomplete' without shortcut keys"*.
+ *
+ * As with the side letters, each one is a shortcut to an existing control — the privileged buttons, or
+ * Cancelled inside "Other…" — so it is refused wherever that control is absent or disabled.
+ */
+const MATCH_ENDING_KEYS: Record<string, string> = {
+  i: IN_PROGRESS,
+  c: CANCELLED,
+  a: AWAITING_RESULT,
+  s: SUSPENDED
 };
 
 /**
@@ -1123,7 +1140,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     );
   }
 
-  // ── The per-side ending shortcuts: w/W, r/R, d/D ──────────────────────
+  // ── The ending shortcuts: w/W, r/R, d/D per side; i, c, a, s for the match ──
 
   /**
    * Record a side ending from a letter, and open that row's panel.
@@ -1143,6 +1160,9 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   function endingShortcut(event: KeyboardEvent): boolean {
     if (event.key.length !== 1) return false;
     if (consumesLetters(event.target)) return false;
+
+    const matchStatus = MATCH_ENDING_KEYS[event.key.toLowerCase()];
+    if (matchStatus) return matchEndingShortcut(event, matchStatus);
 
     const status = SIDE_ENDING_KEYS[event.key.toLowerCase()];
     if (!status) return false;
@@ -1165,6 +1185,32 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     otherMenuOpen = false;
     render();
     focusAfterShortcut(sideNumber, status);
+    return true;
+  }
+
+  /**
+   * Record a match-level ending from a letter, exactly as clicking its control would.
+   *
+   * The same transition as `matchEndingButton` and the Other… menu items — choose, clear a score the
+   * ending carries none of, close the menu — so the two routes cannot drift. A toggle for the same
+   * reason the side letters are: pressing `s` twice leaves the card where it started.
+   */
+  function matchEndingShortcut(event: KeyboardEvent, status: string): boolean {
+    event.preventDefault();
+    // Refused unless the card offers the control: a status out of scope for this matchUp, or one the
+    // score contradicts, is disabled for the pointer and so for the key.
+    if (!matchEndingOptions().includes(status) || !endingOffered(status)) return true;
+
+    choose({ kind: 'match', status });
+    clearScoreWhenEndingCarriesNone();
+    otherMenuOpen = false;
+    render();
+    // On the ending's own button when it has one; Cancelled lives in the closed Other… menu, so its
+    // chip — which now names it — is where the operator is.
+    const control =
+      element.querySelector<HTMLElement>(`.chc-sec-endings button[data-ending="${status}"]`) ??
+      element.querySelector<HTMLElement>('.chc-sec-endings button[data-action="other"]');
+    control?.focus();
     return true;
   }
 
