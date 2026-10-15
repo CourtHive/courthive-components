@@ -29,7 +29,8 @@ import { renderScoreEntryCard } from '../scoreEntryCard';
 
 import type { StatusCodeGroups } from '../logic/statusCodes';
 
-const { WALKOVER, RETIRED, DEFAULTED } = matchUpStatusConstants;
+const { WALKOVER, RETIRED, DEFAULTED, IN_PROGRESS, CANCELLED, AWAITING_RESULT, SUSPENDED, ABANDONED, INCOMPLETE } =
+  matchUpStatusConstants;
 const { POLICY_TYPE_SCORING } = policyConstants;
 
 const REAL_GROUPS = fixtures.policies.POLICY_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
@@ -175,9 +176,10 @@ describe('the letter names the ending, and the CASE names the row', () => {
     // A shortcut table that swallowed unrelated keys would make the card unusable for anything else.
     const h = mount();
 
-    for (const key of ['a', 'q', 'z', 'W1', 'Escape']) h.type(key);
+    for (const key of ['q', 'z', 'x', 'W1', 'Escape']) h.type(key);
 
     expect(h.q(ROW_ENDING)).toBeNull();
+    expect(h.card.getState().matchEnding).toBeUndefined();
   });
 
   it('ignores a letter carrying a command modifier', () => {
@@ -238,5 +240,147 @@ describe('the Free Score field keeps its letters', () => {
     h.type('w');
 
     expect(h.q<HTMLElement>(ROW_ENDING)!.dataset.rowEnding).toBe(WALKOVER);
+  });
+});
+
+describe('match-level endings: i, c, a, s — no side, so either case', () => {
+  /**
+   * CA, 2026-10-15: *"'i', 'I' behave as if (In Progress) was clicked, 'c', 'C' as if (Cancelled), 'a',
+   * 'A' as if (Awaiting Result), 's', 'S' (Suspended). We will leave 'Abandoned' and 'Incomplete'
+   * without shortcut keys"*.
+   */
+  it.each([
+    ['i', IN_PROGRESS],
+    ['I', IN_PROGRESS],
+    ['c', CANCELLED],
+    ['C', CANCELLED],
+    ['a', AWAITING_RESULT],
+    ['A', AWAITING_RESULT],
+    ['s', SUSPENDED],
+    ['S', SUSPENDED]
+  ])('%s records %s for the match, against no side', (key, status) => {
+    const h = mount();
+
+    h.type(key);
+
+    expect(h.card.getState().matchEnding).toBe(status);
+    expect(h.card.getState().sideEnding).toBeUndefined();
+    expect(h.q(ROW_ENDING), 'a match ending marks no row').toBeNull();
+  });
+
+  it('is the same as clicking the button — the button reads as pressed', () => {
+    const h = mount();
+
+    h.type('s');
+
+    const pressed = h.q<HTMLElement>(`.chc-sec-endings button[data-ending="${SUSPENDED}"]`)!;
+    expect(pressed.getAttribute('aria-pressed')).toBe('true');
+    expect(document.activeElement).toBe(pressed);
+  });
+
+  it('Cancelled lives in Other…: the chip names it and takes focus', () => {
+    const h = mount();
+
+    h.type('c');
+
+    const other = h.q<HTMLElement>('.chc-sec-endings button[data-action="other"]')!;
+    expect(other.textContent).toContain('Cancelled');
+    expect(other.getAttribute('aria-pressed')).toBe('true');
+    expect(document.activeElement).toBe(other);
+  });
+
+  it('TOGGLES, and either case undoes the other', () => {
+    const h = mount();
+
+    h.type('a');
+    h.type('A');
+
+    expect(h.card.getState().matchEnding).toBeUndefined();
+  });
+
+  it('replaces a side ending, as clicking the button does', () => {
+    const h = mount();
+
+    h.type('w');
+    h.type('i');
+
+    expect(h.card.getState().matchEnding).toBe(IN_PROGRESS);
+    expect(h.card.getState().sideEnding).toBeUndefined();
+  });
+
+  it('Cancelled clears a part-score, exactly as clicking it does', () => {
+    const partScore = (h: ReturnType<typeof mount>) => {
+      for (const [side, value] of [
+        [1, '6'],
+        [2, '4']
+      ] as const) {
+        const cell = h.q<HTMLInputElement>(`input[data-side="${side}"][data-set="1"]`)!;
+        cell.value = value;
+        cell.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    };
+
+    const clicked = mount('dynamicSets');
+    partScore(clicked);
+    clicked.q<HTMLButtonElement>('.chc-sec-endings button[data-action="other"]')!.click();
+    clicked.q<HTMLButtonElement>(`.chc-sec-endings button[data-ending="${CANCELLED}"]`)!.click();
+    const byClick = clicked.q<HTMLElement>(BAND)!.textContent;
+
+    const typed = mount('dynamicSets');
+    partScore(typed);
+    typed.type('c');
+
+    expect(typed.q<HTMLElement>(BAND)!.textContent).toBe(byClick);
+    expect(typed.q<HTMLElement>(BAND)!.textContent).toContain('cleared');
+    expect(typed.q<HTMLInputElement>('input[data-side="1"][data-set="1"]')!.value).toBe('');
+  });
+
+  it('is refused when the score is complete, as the disabled button is', () => {
+    const h = mount('dynamicSets');
+    const cells: [number, number, string][] = [
+      [1, 1, '6'],
+      [2, 1, '3'],
+      [1, 2, '6'],
+      [2, 2, '2']
+    ];
+    for (const [side, set, value] of cells) {
+      const cell = h.q<HTMLInputElement>(`input[data-side="${side}"][data-set="${set}"]`)!;
+      cell.value = value;
+      cell.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    expect(h.q<HTMLButtonElement>(`.chc-sec-endings button[data-ending="${SUSPENDED}"]`)!.disabled).toBe(true);
+
+    h.type('s');
+
+    expect(h.card.getState().matchEnding).toBeUndefined();
+  });
+
+  it('leaves Abandoned and Incomplete without a key', () => {
+    const h = mount();
+
+    for (const key of ['b', 'B', 'n', 'N']) h.type(key);
+
+    expect([ABANDONED, INCOMPLETE]).not.toContain(h.card.getState().matchEnding);
+    expect(h.card.getState().matchEnding).toBeUndefined();
+  });
+
+  it('does NOT fire inside the Free Score field, where the letters are text', () => {
+    const h = mount('freeScore');
+    const field = h.q<HTMLInputElement>('input[data-free-score]')!;
+    field.focus();
+
+    for (const key of ['i', 'c', 'a', 's']) h.type(key, field);
+
+    expect(h.card.getState().matchEnding).toBeUndefined();
+  });
+
+  it('fires from inside a Dynamic Sets cell, which takes digits only', () => {
+    const h = mount('dynamicSets');
+    const cell = h.q<HTMLInputElement>('input[data-side="2"][data-set="1"]')!;
+    cell.focus();
+
+    h.type('s', cell);
+
+    expect(h.card.getState().matchEnding).toBe(SUSPENDED);
   });
 });
