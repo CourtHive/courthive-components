@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.8.0](https://github.com/CourtHive/courthive-components/compare/v6.7.0...v6.8.0) (2026-10-15)
+
+
+### Features
+
+* **scoring:** i, c, a, s shortcut keys for the match-level endings ([#724](https://github.com/CourtHive/courthive-components/issues/724)) ([80757c3](https://github.com/CourtHive/courthive-components/commit/80757c3461201b4cb90f5e87681de7063df3c3ea))
+
 ## [6.7.0](https://github.com/CourtHive/courthive-components/compare/v6.6.2...v6.7.0) (2026-10-14)
 
 
