@@ -1,6 +1,6 @@
 import { renderForm } from '../components/forms/renderForm';
-import { waitFor, expect } from 'storybook/test';
 import { cModal } from '../components/modal/cmodal';
+import { waitFor, expect } from 'storybook/test';
 import '../components/forms/styles';
 
 /**
