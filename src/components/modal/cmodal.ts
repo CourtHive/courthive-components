@@ -1,3 +1,4 @@
+import { anchorModalPopups } from './anchorModalPopups';
 import { getAttr } from '../../helpers/getAttr';
 import {
   backdropStyle,
@@ -506,6 +507,8 @@ export const cModal = (() => {
     // styled only inline and therefore unreachable from CSS.
     modalBody.className = 'chc-modal-body';
     dialog.appendChild(modalBody);
+    // Popups inside the body would be clipped by its scrolling; see anchorModalPopups.
+    anchorModalPopups(modalBody);
 
     const attachContent = ({ content, config }: { content?: ModalContent; config?: ModalConfig }) => {
       modalBody.style.fontSize = getUnitValue({ config, attr: 'fontSize', value: '15px' });
