@@ -295,6 +295,19 @@
   flex: 1 1 auto;
 }
 
+/* A scrolling body clips anything absolutely positioned inside it, so the datepicker's calendar and a
+   type-ahead's suggestions were cut off at the body's edge and drawn under the footer. Fixed, they
+   escape the clipping; `anchorModalPopups` gives them viewport coordinates. `min-width: 0` undoes
+   Awesomplete's `min-width: 100%`, which for a fixed list means the whole viewport. */
+.chc-modal-body .datepicker-dropdown,
+.chc-modal-body .awesomplete > ul {
+  position: fixed;
+}
+
+.chc-modal-body .awesomplete > ul {
+  min-width: 0;
+}
+
 /* Header and footer keep their natural height while the body absorbs the difference. */
 .chc-modal-header,
 .chc-modal-footer {
