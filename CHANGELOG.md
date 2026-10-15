@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.8.2](https://github.com/CourtHive/courthive-components/compare/v6.8.1...v6.8.2) (2026-10-15)
+
+
+### Bug Fixes
+
+* **modal:** the calendar and type-ahead suggestions draw over the footer again ([#732](https://github.com/CourtHive/courthive-components/issues/732)) ([59c2c5b](https://github.com/CourtHive/courthive-components/commit/59c2c5b630fdf0df8e9df2741aab2f5004b55ab6))
+
 ## [6.8.1](https://github.com/CourtHive/courthive-components/compare/v6.8.0...v6.8.1) (2026-10-15)
 
 
