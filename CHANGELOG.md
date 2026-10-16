@@ -1,5 +1,17 @@
 # Changelog
 
+## [6.9.0](https://github.com/CourtHive/courthive-components/compare/v6.8.2...v6.9.0) (2026-10-16)
+
+
+### Features
+
+* isolated draw assignment adapters and component feature entry points ([#741](https://github.com/CourtHive/courthive-components/issues/741)) ([a8b7ae6](https://github.com/CourtHive/courthive-components/commit/a8b7ae650eb55b80376f44ecf441b55ca7b53e57))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.15.0 ([#738](https://github.com/CourtHive/courthive-components/issues/738)) ([979a16d](https://github.com/CourtHive/courthive-components/commit/979a16d3b52a890aa607ea74de32ef892013b650))
+
 ## [6.8.2](https://github.com/CourtHive/courthive-components/compare/v6.8.1...v6.8.2) (2026-10-15)
 
 
