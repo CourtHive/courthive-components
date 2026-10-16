@@ -365,6 +365,8 @@ export type ScoreEntryCard = {
    * Escape calls it first, wherever focus is, so one Escape closes the menu and a second one cancels.
    */
   closeMenus: () => boolean;
+  /** Release resources before removing an inline card or its modal. Safe to repeat. */
+  destroy: () => void;
   /** Re-render the band and the submit gate. Call when the score region's value changes. */
   refresh: () => void;
   /** Rebuild everything, including the region's cells. Call when the region's COLUMNS change. */
@@ -518,6 +520,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   return {
     element,
     closeMenus,
+    destroy: releaseEndingsMenu,
     // `refresh` updates ONLY the derived parts — the band and the submit gate. It deliberately does
     // NOT re-render the rows.
     //

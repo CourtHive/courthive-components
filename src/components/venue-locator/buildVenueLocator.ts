@@ -52,6 +52,10 @@ const NO_GEO_MESSAGE = 'No coordinates for this venue';
 const MAP_UNAVAILABLE_MESSAGE = 'Map unavailable';
 
 /** Teardown per rendered root — Leaflet leaks listeners and tile requests without an explicit remove(). */
+interface LocatorLifetime {
+  disposed: boolean;
+  cleanup: () => void;
+}
 const teardowns = new WeakMap<HTMLElement, () => void>();
 
 export function hasVenueGeo(data: VenueLocatorData): boolean {
@@ -84,6 +88,11 @@ export function buildVenueLocator(
   const root = document.createElement('div');
   root.className = vlRootStyle();
   root.dataset.venueId = data.venueId;
+  const lifetime: LocatorLifetime = { disposed: false, cleanup: () => {} };
+  teardowns.set(root, () => {
+    lifetime.disposed = true;
+    lifetime.cleanup();
+  });
 
   if (cfg.showHeader) root.appendChild(buildHeader(data));
 
@@ -101,7 +110,7 @@ export function buildVenueLocator(
 
   if (mapEl && hasVenueGeo(data)) {
     // fire-and-forget: the element is already returned and usable
-    void mountMap({ root, mapEl, data, cfg, callbacks });
+    void mountMap({ root, mapEl, data, cfg, callbacks, lifetime });
   }
 
   return root;
@@ -271,6 +280,7 @@ function buildCourtList(
 // ============================================================================
 
 interface MountArgs {
+  lifetime: LocatorLifetime;
   root: HTMLElement;
   mapEl: HTMLElement;
   data: VenueLocatorData;
@@ -287,11 +297,12 @@ function popupHtml(data: VenueLocatorData): string {
   return `<div class="${vlPopupTitleStyle()}">${escape(data.venueName)}</div>${address}`;
 }
 
-async function mountMap({ root, mapEl, data, cfg, callbacks }: MountArgs): Promise<void> {
+async function mountMap({ root, mapEl, data, cfg, callbacks, lifetime }: MountArgs): Promise<void> {
   let leaflet: any;
   try {
     leaflet = await import('leaflet');
   } catch (cause) {
+    if (lifetime.disposed) return;
     mapEl.replaceChildren(buildFallback(MAP_UNAVAILABLE_MESSAGE));
     callbacks?.onMapUnavailable?.(
       new Error('leaflet is an optional peerDependency of courthive-components and is not installed', { cause })
@@ -299,10 +310,21 @@ async function mountMap({ root, mapEl, data, cfg, callbacks }: MountArgs): Promi
     return;
   }
 
+  if (lifetime.disposed) return;
   const L = leaflet.default ?? leaflet;
   try {
     mapEl.replaceChildren();
     const map = L.map(mapEl, { scrollWheelZoom: cfg.scrollWheelZoom, attributionControl: true });
+    let observer: ResizeObserver | undefined;
+    let themeObserver: MutationObserver | undefined;
+    let removed = false;
+    lifetime.cleanup = () => {
+      if (removed) return;
+      removed = true;
+      observer?.disconnect();
+      themeObserver?.disconnect();
+      map.remove();
+    };
     map.setView([data.latitude, data.longitude], cfg.zoom);
 
     let currentView = cfg.view;
@@ -330,12 +352,11 @@ async function mountMap({ root, mapEl, data, cfg, callbacks }: MountArgs): Promi
     warnIfLeafletCssMissing(mapEl);
 
     // Leaflet renders blank when its container was hidden or resized after init (drawer, tab, modal).
-    const observer = new ResizeObserver(() => map.invalidateSize());
+    observer = new ResizeObserver(() => map.invalidateSize());
     observer.observe(mapEl);
 
     // A dark basemap is a different tile URL, so unlike the colour tokens it cannot follow the theme
     // through CSS alone — re-resolve the street layer when [data-theme] changes.
-    let themeObserver: MutationObserver | undefined;
     const root_ = globalThis.document?.documentElement;
     if (root_ && cfg.darkTiles !== 'never' && cfg.darkTileLayer) {
       let wasDark = isDarkTheme();
@@ -347,13 +368,9 @@ async function mountMap({ root, mapEl, data, cfg, callbacks }: MountArgs): Promi
       });
       themeObserver.observe(root_, { attributes: true, attributeFilter: ['data-theme'] });
     }
-
-    teardowns.set(root, () => {
-      observer.disconnect();
-      themeObserver?.disconnect();
-      map.remove();
-    });
   } catch (cause) {
+    lifetime.cleanup();
+    if (lifetime.disposed) return;
     mapEl.replaceChildren(buildFallback(MAP_UNAVAILABLE_MESSAGE));
     callbacks?.onMapUnavailable?.(new Error('Leaflet map failed to initialize', { cause }));
   }

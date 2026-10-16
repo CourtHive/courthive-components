@@ -20,7 +20,11 @@ const { BLOCK_TYPES } = availability;
 type BlockType = availability.BlockType;
 type CourtRef = availability.CourtRef;
 type DayId = availability.DayId;
+import type { TimelineGroupData, TimelineItemData, MultiRowSpan } from '../timeline/types';
+import { createBlockPopoverManager, type BlockPopoverManager } from '../ui/blockPopover';
 import { AvailabilityViewState } from '../engine/viewState';
+import { CourtTimeline } from '../timeline/CourtTimeline';
+import { VIEW_PRESETS } from '../ui/viewToolbar';
 import {
   buildBlockEvents,
   buildEventsFromTimelines,
@@ -33,10 +37,6 @@ import {
   type ProjectionConfig,
   type ResourceGroupingMode
 } from './viewProjections';
-import { createBlockPopoverManager, type BlockPopoverManager } from '../ui/blockPopover';
-import { VIEW_PRESETS } from '../ui/viewToolbar';
-import { CourtTimeline } from '../timeline/CourtTimeline';
-import type { TimelineGroupData, TimelineItemData, MultiRowSpan } from '../timeline/types';
 
 // ============================================================================
 // Controller Configuration
@@ -111,6 +111,9 @@ export interface AvailabilityGridControlConfig {
 export class AvailabilityGridControl {
   private readonly engine: AvailabilityEngine;
   private timeline: CourtTimeline | null = null;
+  private disposed = false;
+  private mountTimer: ReturnType<typeof setTimeout> | undefined;
+  private popoverTimer: ReturnType<typeof setTimeout> | undefined;
   private readonly config: AvailabilityGridControlConfig;
   private unsubscribe: (() => void) | null = null;
 
@@ -174,10 +177,11 @@ export class AvailabilityGridControl {
    * container has layout dimensions (matches the working story pattern).
    */
   private ensureTimeline(): void {
-    if (this.timeline) return;
+    if (this.disposed || this.timeline || this.mountTimer !== undefined) return;
 
-    setTimeout(() => {
-      if (!this.timeline) {
+    this.mountTimer = setTimeout(() => {
+      this.mountTimer = undefined;
+      if (!this.disposed && !this.timeline) {
         this.createTimelineWithData();
       }
     }, 0);
@@ -224,13 +228,10 @@ export class AvailabilityGridControl {
     // Build groups from first day (groups are the same for all days)
     const timelines = this.engine.getDayTimeline(viewDays[0]);
     let groups = buildResourcesFromTimelines(timelines, courtMeta, projectionConfig);
-    if (this.visibleCourts !== null && this.visibleCourts.size > 0) {
+    if (this.visibleCourts !== null) {
       groups = groups.filter((g) => this.visibleCourts!.has(String(g.id)));
     }
-    const visibleGroupIds =
-      this.visibleCourts !== null && this.visibleCourts.size > 0 && groups.length > 0
-        ? new Set(groups.map((g) => String(g.id)))
-        : null;
+    const visibleGroupIds = this.visibleCourts !== null ? new Set(groups.map((g) => String(g.id))) : null;
 
     // In single-day view, build items for ALL active days so horizontal
     // panning reveals correctly-shaded adjacent days (daily bounds collapse
@@ -455,11 +456,7 @@ export class AvailabilityGridControl {
 
   /** Set which courts are visible in the timeline */
   setVisibleCourts(courts: Set<string> | null): void {
-    if (courts && courts.size === 0) {
-      this.visibleCourts = null;
-    } else {
-      this.visibleCourts = courts;
-    }
+    this.visibleCourts = courts === null ? null : new Set(courts);
     this.render();
   }
 
@@ -477,6 +474,12 @@ export class AvailabilityGridControl {
 
   /** Destroy the controller and cleanup */
   destroy(): void {
+    if (this.disposed) return;
+    this.disposed = true;
+    clearTimeout(this.mountTimer);
+    clearTimeout(this.popoverTimer);
+    this.mountTimer = undefined;
+    this.popoverTimer = undefined;
     this.popoverManager.destroy();
 
     if (this.unsubscribe) {
@@ -733,7 +736,10 @@ export class AvailabilityGridControl {
       const newBlockId = result.applied[0].block.id;
       const newItemId = `block-${newBlockId}`;
       const day = startStr.slice(0, 10);
-      setTimeout(() => {
+      clearTimeout(this.popoverTimer);
+      this.popoverTimer = setTimeout(() => {
+        this.popoverTimer = undefined;
+        if (this.disposed) return;
         const el = this.config.container.querySelector(`[data-item-id="${newItemId}"]`);
         if (el) {
           this.popoverManager.showForEngineBlock(el as HTMLElement, {

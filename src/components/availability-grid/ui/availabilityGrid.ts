@@ -16,9 +16,9 @@ const { calculateCapacityStats } = availability;
 type CourtRef = availability.CourtRef;
 type DayId = availability.DayId;
 import { AvailabilityGridControl, type AvailabilityGridControlConfig } from '../controller/availabilityGridControl';
-import { buildStatsBar, type StatsBarUpdate } from './statsBar';
 import { buildViewToolbar, type ViewToolbarResult } from './viewToolbar';
 import { showCourtAvailabilityModal } from './courtAvailabilityModal';
+import { buildStatsBar, type StatsBarUpdate } from './statsBar';
 import Datepicker from 'vanillajs-datepicker/Datepicker';
 
 // ============================================================================
@@ -131,6 +131,7 @@ export class AvailabilityGrid {
   private datepicker: Datepicker | null = null;
 
   // State
+  private courtVisibilityInitialized = false;
   private visibleCourts: Set<string> = new Set(); // "tournamentId|venueId|courtId" to match resource IDs
 
   // Dirty-state tracking
@@ -547,7 +548,8 @@ export class AvailabilityGrid {
     const tournamentId = this.engine.getConfig().tournamentId;
 
     // Initialize all courts as visible if not already set
-    if (this.visibleCourts.size === 0) {
+    if (!this.courtVisibilityInitialized) {
+      this.courtVisibilityInitialized = true;
       courtMeta.forEach((meta) => {
         // Match resource ID format: tournamentId|venueId|courtId
         const key = `${meta.ref.tournamentId}|${meta.ref.venueId}|${meta.ref.courtId}`;

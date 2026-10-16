@@ -82,27 +82,12 @@ export class SchedulePageStore {
   // ---------- Consumer Data Push ----------
 
   setMatchUpCatalog(catalog: CatalogMatchUpItem[]): void {
-    this.setState({ matchUpCatalog: catalog });
-
-    if (!this.state.selectedMatchUp) return;
-    const fresh = catalog.find((m) => m.matchUpId === this.state.selectedMatchUp?.matchUpId);
-
-    // Gone from the catalog entirely — nothing left to inspect.
-    if (!fresh) {
-      this.setState({ selectedMatchUp: null });
-      return;
-    }
-
-    // Re-point at the NEW item rather than keeping the one captured at
-    // selection time. `selectedMatchUp` is a snapshot, and the catalog is
-    // rebuilt whenever anything about the schedule moves — including by another
-    // client. Holding the old object meant the Inspector kept reporting
-    // "Scheduled: No" about a matchUp somebody had just dragged onto a court,
-    // and reported no Court at all for one that plainly had one, while the
-    // consumer's own sections (which re-query by matchUpId) showed the truth
-    // beside it. Two panels disagreeing about the same matchUp is worse than
-    // either being wrong alone.
-    if (fresh !== this.state.selectedMatchUp) this.setState({ selectedMatchUp: fresh });
+    // Catalog and selection are one logical update. Subscribers must never observe a new
+    // catalog beside an inspector snapshot from the old one, nor repaint twice for one push.
+    const selectedMatchUp = this.state.selectedMatchUp
+      ? (catalog.find((item) => item.matchUpId === this.state.selectedMatchUp?.matchUpId) ?? null)
+      : null;
+    this.setState({ matchUpCatalog: catalog, selectedMatchUp });
   }
 
   /**
@@ -120,7 +105,7 @@ export class SchedulePageStore {
     const followsConsumer = !!nextActive && nextActive !== previousActive;
     this.setState({
       scheduleDates: dates,
-      selectedDate: followsConsumer ? nextActive : this.state.selectedDate,
+      selectedDate: followsConsumer ? nextActive : this.state.selectedDate
     });
   }
 
