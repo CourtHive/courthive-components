@@ -101,7 +101,7 @@ export const cModal = (() => {
     if (modals.length === 0) {
       document.body.classList.remove(scrollStop);
       document.body.style.top = null;
-      window.scrollTo({ top: scrollPosition, behavior: 'instant' });
+      globalThis.scrollTo({ top: scrollPosition, behavior: 'instant' });
       closeBackdrop();
     }
     let callbackError: unknown;
@@ -131,7 +131,7 @@ export const cModal = (() => {
     // otherwise re-capture scrollY while the body is already position-fixed (≈0),
     // corrupting the scroll restore when the last modal finally closes.
     if (modals.length === 0) {
-      scrollPosition = window.scrollY;
+      scrollPosition = globalThis.scrollY;
       document.body.classList.add(scrollStop);
       document.body.style.top = `-${scrollPosition}px`;
     }
@@ -385,7 +385,7 @@ export const cModal = (() => {
 
         // Position the popover to the left of the info icon
         const rect = infoIcon.getBoundingClientRect();
-        infoPopover.style.right = `${window.innerWidth - rect.left + 5}px`;
+        infoPopover.style.right = `${globalThis.innerWidth - rect.left + 5}px`;
         infoPopover.style.top = `${rect.bottom + 5}px`;
         infoPopover.style.left = 'auto';
 
@@ -467,7 +467,7 @@ export const cModal = (() => {
         // Position below the caret
         const rect = menuCaret.getBoundingClientRect();
         menuDropdown.style.top = `${rect.bottom + 4}px`;
-        menuDropdown.style.right = `${window.innerWidth - rect.right}px`;
+        menuDropdown.style.right = `${globalThis.innerWidth - rect.right}px`;
 
         // Close on click elsewhere — use capture phase so dialog's stopPropagation doesn't block it
         const closeMenu = (event: MouseEvent) => {

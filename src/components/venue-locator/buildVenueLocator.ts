@@ -109,8 +109,8 @@ export function buildVenueLocator(
   root.appendChild(body);
 
   if (mapEl && hasVenueGeo(data)) {
-    // fire-and-forget: the element is already returned and usable
-    void mountMap({ root, mapEl, data, cfg, callbacks, lifetime });
+    // fire-and-forget: the element is already returned and usable, and mountMap reports its own failures
+    mountMap({ root, mapEl, data, cfg, callbacks, lifetime }).catch(() => undefined);
   }
 
   return root;
