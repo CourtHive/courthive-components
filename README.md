@@ -1,6 +1,6 @@
 # courthive-components
 
-Vanilla JavaScript UI components for tennis tournament management and competition displays.
+Framework-independent TypeScript UI components for tournament management and competition displays.
 
 [![Storybook](https://img.shields.io/badge/Storybook-Documentation-ff4785?logo=storybook)](https://courthive.github.io/courthive-components/)
 [![npm version](https://img.shields.io/npm/v/courthive-components.svg)](https://www.npmjs.com/package/courthive-components)
@@ -24,6 +24,16 @@ pnpm add courthive-components
 (External consumers may also use `npm install courthive-components` or
 `yarn add courthive-components`. Inside the CourtHive monorepo,
 pnpm is the only supported manager.)
+
+## Feature imports
+
+SVG-only consumers such as a marketing hero can import from `courthive-components/courts`.
+The segmented bar is also available from `courthive-components/segmented-bar`.
+These additive ESM entries avoid loading the root editor, scoring and engine dependencies.
+Import `courthive-components/features.css` for their styles; it contains the small court/bar stylesheets.
+The existing root export and `dist/courthive-components.css` remain supported with their existing cascade.
+Run `pnpm build && pnpm verify:consumer-bundle` to check consumer JS and feature CSS budgets.
+Update a budget deliberately with `pnpm verify:consumer-bundle --update-baseline` after reviewing the measurements.
 
 ## Quick Start
 
@@ -69,11 +79,11 @@ const element = renderMatchUp({
 Display a complete draw structure (bracket, round robin, etc.).
 
 ```javascript
-import { renderStructure } from 'courthive-components';
+import { renderStructure, compositions } from 'courthive-components';
 
 const element = renderStructure({
-  structure: drawStructure,
-  config: { showSeeds: true }
+  matchUps: drawMatchUps,
+  composition: compositions.Basic
 });
 ```
 
@@ -85,7 +95,7 @@ Display a single round of matches within a structure.
 import { renderRound } from 'courthive-components';
 
 const element = renderRound({
-  round: roundData,
+  matchUps: roundMatchUps,
   roundNumber: 1
 });
 ```
@@ -98,8 +108,7 @@ Display participant information (name, rating, country, etc.).
 import { renderParticipant } from 'courthive-components';
 
 const element = renderParticipant({
-  participant: participantData,
-  showRating: true
+  participant: participantData
 });
 ```
 
@@ -130,8 +139,10 @@ Autocomplete input for participant selection.
 import { renderParticipantInput } from 'courthive-components';
 
 const input = renderParticipantInput({
-  participants: participantsList,
-  onSelect: (participant) => console.log('Selected:', participant)
+  matchUp: matchUpData,
+  side: matchUpData.sides[0],
+  composition: { configuration: { participantProvider: () => participantsList } },
+  eventHandlers: { assignParticipant: ({ participant }) => console.log('Selected:', participant) }
 });
 ```
 
@@ -155,6 +166,11 @@ cModal.open({
 ```
 
 #### **scoringModal**
+
+Two scoring APIs remain supported. New integrations should use `openScoreEntryDialog`
+(the shared model/store-based card dialog); see `src/components/scoring/TMX_INTEGRATION.md`
+for its engine-outcome handoff. TMX chooses between it and `scoringModal` through a feature flag.
+`scoringModal` below is the existing configurable modal API. Their callback contracts differ.
 
 Interactive score entry with multiple input approaches.
 
@@ -272,7 +288,7 @@ import { compositions } from 'courthive-components';
 compositions.Australian; // Australian Open colors
 compositions.French; // Roland Garros colors
 compositions.Wimbledon; // Wimbledon colors
-compositions.US; // US Open colors
+compositions['US Open']; // US Open colors
 ```
 
 ### Constants
@@ -284,7 +300,7 @@ Pre-defined match format codes.
 ```javascript
 import { MATCH_FORMATS } from 'courthive-components';
 
-console.log(MATCH_FORMATS.BEST_OF_3_TB7);
+console.log(MATCH_FORMATS.SET3_S6_TB7);
 // 'SET3-S:6/TB7'
 ```
 

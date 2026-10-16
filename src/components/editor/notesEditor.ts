@@ -19,13 +19,13 @@
 // pattern) so the editorElement has time to land in the DOM before Tiptap
 // initializes — important for plugins like Youtube that measure layout.
 
-import { Color } from '@tiptap/extension-color';
-import { Editor } from '@tiptap/core';
 import { TextStyle } from '@tiptap/extension-text-style';
-import Highlight from '@tiptap/extension-highlight';
-import StarterKit from '@tiptap/starter-kit';
 import TextAlign from '@tiptap/extension-text-align';
+import Highlight from '@tiptap/extension-highlight';
+import { Color } from '@tiptap/extension-color';
 import Youtube from '@tiptap/extension-youtube';
+import StarterKit from '@tiptap/starter-kit';
+import { Editor } from '@tiptap/core';
 
 import { notesToolbar, updateHeadingSelect, updateToolbarState } from '../notes-toolbar/notesToolbar';
 
@@ -51,6 +51,8 @@ export interface NotesEditorHandle {
 }
 
 export function createNotesEditor(options: NotesEditorOptions = {}): NotesEditorHandle {
+  let disposed = false;
+  let mountFrame: number | undefined;
   const editorElement = document.createElement('div');
   editorElement.className = 'notes-editor-content';
 
@@ -61,9 +63,12 @@ export function createNotesEditor(options: NotesEditorOptions = {}): NotesEditor
     getHtml: () => (handle.editor && !handle.editor.isEmpty ? handle.editor.getHTML() : ''),
     isEmpty: () => !handle.editor || handle.editor.isEmpty,
     destroy: () => {
+      if (disposed) return;
+      disposed = true;
+      if (mountFrame !== undefined) cancelAnimationFrame(mountFrame);
       handle.editor?.destroy();
       handle.editor = undefined;
-    },
+    }
   };
 
   handle.toolbar = notesToolbar({
@@ -92,7 +97,7 @@ export function createNotesEditor(options: NotesEditorOptions = {}): NotesEditor
     onCodeBlock: () => handle.editor?.chain().focus().toggleCodeBlock().run(),
     onLink: (url) => handle.editor?.chain().focus().setLink({ href: url }).run(),
     onVideo: (url) => handle.editor?.commands.setYoutubeVideo({ src: url }),
-    onClearFormatting: () => handle.editor?.chain().focus().clearNodes().unsetAllMarks().run(),
+    onClearFormatting: () => handle.editor?.chain().focus().clearNodes().unsetAllMarks().run()
   });
 
   const syncToolbarState = () => {
@@ -109,7 +114,7 @@ export function createNotesEditor(options: NotesEditorOptions = {}): NotesEditor
       alignLeft: handle.editor.isActive({ textAlign: 'left' }),
       alignCenter: handle.editor.isActive({ textAlign: 'center' }),
       alignRight: handle.editor.isActive({ textAlign: 'right' }),
-      alignJustify: handle.editor.isActive({ textAlign: 'justify' }),
+      alignJustify: handle.editor.isActive({ textAlign: 'justify' })
     });
     for (let i = 1; i <= 6; i++) {
       if (handle.editor.isActive('heading', { level: i })) {
@@ -120,7 +125,9 @@ export function createNotesEditor(options: NotesEditorOptions = {}): NotesEditor
     updateHeadingSelect(handle.toolbar, false);
   };
 
-  requestAnimationFrame(() => {
+  mountFrame = requestAnimationFrame(() => {
+    mountFrame = undefined;
+    if (disposed) return;
     handle.editor = new Editor({
       element: editorElement,
       extensions: [
@@ -129,11 +136,11 @@ export function createNotesEditor(options: NotesEditorOptions = {}): NotesEditor
         Color,
         Highlight.configure({ multicolor: true }),
         TextAlign.configure({ types: ['heading', 'paragraph'] }),
-        Youtube.configure({ inline: false }),
+        Youtube.configure({ inline: false })
       ],
       content: options.initialHtml || '',
       onSelectionUpdate: syncToolbarState,
-      onTransaction: syncToolbarState,
+      onTransaction: syncToolbarState
     });
   });
 

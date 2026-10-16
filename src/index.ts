@@ -386,6 +386,12 @@ export * as validators from './validators';
 
 // State management
 export { DrawStateManager } from './helpers/drawStateManager';
+export type {
+  DrawStateAdapter,
+  DrawAssignmentMethod,
+  DrawAssignmentParams,
+  DrawAssignmentResult
+} from './helpers/drawStateManager';
 export type { RenderCallback } from './helpers/drawStateManager';
 
 // Search input helper — adds a consistent (x) clear button to bare <input>

@@ -1,8 +1,11 @@
 # Scoring Modal - Test Coverage
 
-## Overview
+## Historical snapshot
 
-Comprehensive test suite for the TMX scoring modal system with **234 tests** across **7 test files**, providing production-ready coverage for all critical scoring functionality.
+This document records an earlier scoring-test snapshot; it is not the current suite or a coverage report.
+Reclassified 2026-10-16. Run `pnpm test` for current unit results and `pnpm test:stories` for browser interactions.
+
+Comprehensive test suite for the TMX scoring modal system with **234 tests** across **7 test files**, describing the seven test files listed below. Lifecycle and integration behavior require additional tests.
 
 ## Test Suite Summary
 
@@ -15,7 +18,7 @@ Comprehensive test suite for the TMX scoring modal system with **234 tests** acr
 | **setExpansionLogic**       | 49      | Set expansion & winner detection   | ✅     |
 | **dynamicSetsLogic**        | 34      | Per-set format detection           | ✅     |
 | **scoreValidatorEdgeCases** | 58      | Edge cases & validation            | ✅     |
-| **TOTAL**                   | **234** | **Complete coverage**              | ✅     |
+| **TOTAL**                   | **234** | **Listed snapshot**                | ✅     |
 
 ## Execution Results
 

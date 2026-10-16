@@ -233,7 +233,7 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
     }
   });
 
-  cModal.open({
+  const modal = cModal.open({
     content: card.element,
     config: {
       maxWidth: DIALOG_MAX_WIDTH,
@@ -249,7 +249,7 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
     // Reached when cModal closes for its own reasons — a footer button, a nested-modal teardown — so the
     // host hears about it however it happened.
     onClose: () => {
-      closed = true;
+      dispose();
       notify();
     }
   });
@@ -297,7 +297,7 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
    * nothing to translate and nothing to fall back to.
    */
   function setApproach(next: ScoreEntryApproach): void {
-    if (next === approach) return;
+    if (closed || next === approach) return;
     store.set(switchApproach(store.get(), next));
     approach = next;
     currentRegion = buildRegion(next);
@@ -434,6 +434,7 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
    * entered and Escape and the tab order start from inside it.
    */
   function focusEntry(): void {
+    if (closed) return;
     if (params.autoFocus === false) return;
 
     // A reopened RESULT focuses no entry cell. CA, 2026-10-01: *"a reopened completed matchUp should
@@ -524,16 +525,17 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
     return [...document.querySelectorAll('section[id^="cmdl-"]')].at(-1) === own;
   }
 
+  function dispose(): void {
+    if (closed) return;
+    closed = true;
+    document.removeEventListener('keydown', onKeyDown);
+    card.destroy();
+  }
+
   function close(): void {
-    // Two flags, not one. `closed` stops a second `cModal.close()`, which would pop a modal this dialog
-    // does not own — a nested picker, or the host's own dialog underneath. `notified` stops a second
-    // `onClose`, which for a host that reopens on close is a loop. Measured 2026-09-27: one flag
-    // reported `[X]` twice, because cModal's own onClose fires inside `cModal.close()`.
-    if (!closed) {
-      closed = true;
-      document.removeEventListener('keydown', onKeyDown);
-      cModal.close();
-    }
+    // The owned handle disposes this frame and its nested dialogs, never an unrelated stack entry.
+    if (!closed) modal.close();
+    dispose();
     notify();
   }
 
