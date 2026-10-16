@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cModal } from '../cmodal';
+const MENU_DROPDOWN = '.chc-modal-menu-dropdown';
 const sections = () => document.querySelectorAll('section[id^="cmdl-"]');
 afterEach(() => {
   while (sections().length) cModal.close();
@@ -44,5 +45,45 @@ describe('modal ownership', () => {
     ).click();
     expect(sections()).toHaveLength(1);
     expect(document.body.textContent).toContain('parent');
+  });
+  it('only dismisses the top frame on click-away, respecting that frame policy', () => {
+    const parentClose = vi.fn();
+    const childClose = vi.fn();
+    cModal.open({ content: 'parent', onClose: parentClose });
+    const parent = sections()[0] as HTMLElement;
+    const child = cModal.open({ content: 'child', config: { clickAway: false }, onClose: childClose });
+    (parent.firstElementChild as HTMLElement).click();
+    expect(parentClose).not.toHaveBeenCalled();
+    const top = sections()[1] as HTMLElement;
+    (top.firstElementChild as HTMLElement).click();
+    expect(childClose).not.toHaveBeenCalled();
+    child.update({ config: { clickAway: true } });
+    (top.firstElementChild as HTMLElement).click();
+    expect(childClose).toHaveBeenCalledTimes(1);
+    expect(parentClose).not.toHaveBeenCalled();
+    expect(sections()).toHaveLength(1);
+  });
+  it('preserves the upper frame popover and listener when a lower footer closes its own frame', () => {
+    vi.useFakeTimers();
+    try {
+      cModal.open({ content: 'parent', buttons: [{ label: 'Close lower' }] });
+      const lower = Array.from(document.querySelectorAll<HTMLButtonElement>('button')).find(
+        (button) => button.textContent === 'Close lower'
+      )!;
+      cModal.open({
+        content: 'upper',
+        config: { menu: { menuItems: [{ label: 'Upper action', onClick: () => {} }] } }
+      });
+      document.querySelector<HTMLElement>('.chc-modal-menu-caret')!.click();
+      expect(document.querySelector(MENU_DROPDOWN)).not.toBeNull();
+      lower.click();
+      expect(sections()).toHaveLength(1);
+      expect(document.querySelector(MENU_DROPDOWN)).not.toBeNull();
+      vi.runOnlyPendingTimers();
+      document.body.click();
+      expect(document.querySelector(MENU_DROPDOWN)).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

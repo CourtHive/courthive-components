@@ -1,6 +1,6 @@
 import { mocksEngine, tournamentEngine, globalState } from 'tods-competition-factory';
 import { DrawStateManager } from './drawStateManager';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 function fixture() {
   const { tournamentRecord, drawIds } = mocksEngine.generateTournamentRecord({
@@ -35,5 +35,47 @@ describe('DrawStateManager owned record', () => {
     globalState.cycleMutationStatus();
     expect(manager.assignParticipant({ drawPosition: 1, participantId }).success).toBe(true);
     expect(globalState.cycleMutationStatus()).toBe(false);
+  });
+  it('reports pending and only renders and advances focus after one successful acknowledgement', () => {
+    const params = fixture();
+    let acknowledge: any;
+    const manager = new DrawStateManager({
+      ...params,
+      adapter: {
+        getTournamentRecord: () => params.tournamentRecord,
+        mutate: (_method, _params, callback) => {
+          acknowledge = callback;
+        }
+      }
+    });
+    const render = vi.fn();
+    manager.setRenderCallback(render);
+    expect(manager.assignParticipant({ drawPosition: 1, participantId: 'p1' })).toEqual({ pending: true });
+    expect(render).not.toHaveBeenCalled();
+    expect(manager.getAndClearFocusDrawPosition()).toBeUndefined();
+    acknowledge({ success: true });
+    expect(render).toHaveBeenCalledTimes(1);
+    expect(manager.getAndClearFocusDrawPosition()).toBe(2);
+    acknowledge({ success: true });
+    expect(render).toHaveBeenCalledTimes(1);
+    expect(manager.getAndClearFocusDrawPosition()).toBeUndefined();
+  });
+  it('does not render or advance on refusal, and returns copied state', () => {
+    const params = fixture();
+    const manager = new DrawStateManager({
+      ...params,
+      adapter: {
+        getTournamentRecord: () => params.tournamentRecord,
+        mutate: (_method, _params, callback) => callback({ error: 'refused' })
+      }
+    });
+    const render = vi.fn();
+    manager.setRenderCallback(render);
+    expect(manager.assignParticipant({ drawPosition: 1, participantId: 'p1' })).toEqual({ error: 'refused' });
+    expect(render).not.toHaveBeenCalled();
+    expect(manager.getAndClearFocusDrawPosition()).toBeUndefined();
+    const state = manager.getState()!;
+    state.tournamentName = 'changed copy';
+    expect(params.tournamentRecord.tournamentName).not.toBe('changed copy');
   });
 });

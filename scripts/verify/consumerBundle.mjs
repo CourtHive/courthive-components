@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /** Consumer bundle budgets: built package entries, minified ESM, gzip level 9, +10% growth gate.
  * Mirrors factory verify:consumer-bundle's consumer fixtures and explicit baseline-update workflow.
- * Uses this package's declared Vite dependency. CSS is measured separately; it is not silently free.
+ * Uses this package's declared Vite dependency. Factory is external, so its release size cannot invalidate this package budget. CSS is measured separately.
  */
 import { mkdtemp, readFile, writeFile, rm, mkdir } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
@@ -72,7 +72,14 @@ try {
       root,
       logLevel: 'silent',
       resolve: { alias: [{ find: specifier, replacement: fileURLToPath(import.meta.resolve(specifier)) }] },
-      build: { write: false, minify: true, lib: { entry, formats: ['es'] } }
+      build: {
+        write: false,
+        minify: true,
+        lib: { entry, formats: ['es'] },
+        rollupOptions: {
+          external: (id) => id === 'tods-competition-factory' || id.startsWith('tods-competition-factory/')
+        }
+      }
     });
     let bytes = 0;
     let gzip = 0;

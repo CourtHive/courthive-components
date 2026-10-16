@@ -1,35 +1,36 @@
-import js from '@eslint/js';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsparser from '@typescript-eslint/parser';
-import sonarjs from 'eslint-plugin-sonarjs';
 import storybook from 'eslint-plugin-storybook';
+import sonarjs from 'eslint-plugin-sonarjs';
 import globals from 'globals';
+import js from '@eslint/js';
 
 export default [
   {
-    ignores: ['dist/**', 'node_modules/**', 'storybook-static/**'],
+    ignores: ['dist/**', 'node_modules/**', 'storybook-static/**']
   },
   js.configs.recommended,
+  { files: ['scripts/**/*.mjs'], languageOptions: { globals: { ...globals.node, ...globals.es2021 } } },
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
     languageOptions: {
       parser: tsparser,
       parserOptions: {
         ecmaVersion: 'latest',
-        sourceType: 'module',
+        sourceType: 'module'
       },
       globals: {
         ...globals.browser,
         ...globals.node,
         ...globals.es2021,
         ...globals.jest,
-        NodeListOf: 'readonly',
-      },
+        NodeListOf: 'readonly'
+      }
     },
     plugins: {
       '@typescript-eslint': tseslint,
       sonarjs: sonarjs,
-      storybook: storybook,
+      storybook: storybook
     },
     rules: {
       ...tseslint.configs.recommended.rules,
@@ -50,7 +51,7 @@ export default [
         {
           // DOM data attributes are read via `.dataset`, never `.getAttribute`.
           selector: "CallExpression[callee.property.name='getAttribute'][arguments.0.value=/^data-/]",
-          message: 'Use .dataset.propName instead of .getAttribute("data-*") — Mentat coding standards.',
+          message: 'Use .dataset.propName instead of .getAttribute("data-*") — Mentat coding standards.'
         },
         {
           // `JSON.parse(JSON.stringify(x))` as a deep copy silently drops `undefined`, functions,
@@ -58,8 +59,8 @@ export default [
           selector:
             "CallExpression[callee.object.name='JSON'][callee.property.name='parse'] > CallExpression[callee.object.name='JSON'][callee.property.name='stringify']",
           message:
-            'Use structuredClone() to deep-copy — JSON.parse(JSON.stringify(x)) drops undefined/functions/Date/Map/Set and throws on cycles. For tournamentRecords use tools.makeDeepCopy, which carries factory extension semantics.',
-        },
+            'Use structuredClone() to deep-copy — JSON.parse(JSON.stringify(x)) drops undefined/functions/Date/Map/Set and throws on cycles. For tournamentRecords use tools.makeDeepCopy, which carries factory extension semantics.'
+        }
       ],
       'no-unused-expressions': 'off',
       'no-useless-assignment': 'warn',
@@ -90,16 +91,16 @@ export default [
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-use-before-define': 'off',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
-      'no-prototype-builtins': 'off',
-    },
+      'no-prototype-builtins': 'off'
+    }
   },
   {
     files: ['**/*.stories.ts', '**/*.stories.tsx', '**/*.stories.js', '**/*.stories.jsx'],
     plugins: {
-      storybook: storybook,
+      storybook: storybook
     },
     rules: {
-      ...storybook.configs.recommended.rules,
-    },
-  },
+      ...storybook.configs.recommended.rules
+    }
+  }
 ];

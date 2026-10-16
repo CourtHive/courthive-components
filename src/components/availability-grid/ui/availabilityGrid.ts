@@ -131,7 +131,7 @@ export class AvailabilityGrid {
   private datepicker: Datepicker | null = null;
 
   // State
-  private courtVisibilityInitialized = false;
+  private courtVisibilityCustomized = false;
   private visibleCourts: Set<string> = new Set(); // "tournamentId|venueId|courtId" to match resource IDs
 
   // Dirty-state tracking
@@ -548,8 +548,8 @@ export class AvailabilityGrid {
     const tournamentId = this.engine.getConfig().tournamentId;
 
     // Initialize all courts as visible if not already set
-    if (!this.courtVisibilityInitialized) {
-      this.courtVisibilityInitialized = true;
+    if (!this.courtVisibilityCustomized) {
+      this.visibleCourts.clear();
       courtMeta.forEach((meta) => {
         // Match resource ID format: tournamentId|venueId|courtId
         const key = `${meta.ref.tournamentId}|${meta.ref.venueId}|${meta.ref.courtId}`;
@@ -731,6 +731,7 @@ export class AvailabilityGrid {
   };
 
   private handleCourtCheckboxChange = (event: Event): void => {
+    this.courtVisibilityCustomized = true;
     const checkbox = event.target as HTMLInputElement;
     const courtId = checkbox.dataset.courtId;
     const venueId = checkbox.dataset.venueId;
@@ -757,6 +758,7 @@ export class AvailabilityGrid {
   };
 
   private handleVenueCheckboxChange = (event: Event): void => {
+    this.courtVisibilityCustomized = true;
     const checkbox = event.target as HTMLInputElement;
     const venueId = checkbox.dataset.venue;
     const tournamentId = checkbox.dataset.tournamentId;

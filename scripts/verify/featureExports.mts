@@ -7,4 +7,4 @@ const other: SVGSVGElement = basketballCourt('court--basketball');
 const sport: CourtSport | undefined = resolveCourtSport({});
 const bar: BuildSegmentedBarResult = buildSegmentedBar({ segments: [{ key: 'a', label: 'A', color: 'red' }] });
 bar.update({ a: 1 });
-void [svg, other, sport, scoringModal];
+export const consumerFixtures = [svg, other, sport, scoringModal];

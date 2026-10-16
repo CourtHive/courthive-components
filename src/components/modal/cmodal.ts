@@ -22,16 +22,16 @@ const EMPTY = 'Nothing to see here';
  * is held here with a way to cancel it, so closing a popover, or the modal, never leaves a timer that
  * attaches a listener afterwards (the 6.4.1 publish run failed on exactly that timer).
  */
-const popoverListeners = new Set<() => void>();
+const popoverListeners = new Map<() => void, number>();
 
-function listenForOutsideClick(listener: (event: MouseEvent) => void): () => void {
+function listenForOutsideClick(listener: (event: MouseEvent) => void, owner: number): () => void {
   const timer = setTimeout(() => document.addEventListener('click', listener, true), 100);
   const cancel = () => {
     clearTimeout(timer);
     document.removeEventListener('click', listener, true);
     popoverListeners.delete(cancel);
   };
-  popoverListeners.add(cancel);
+  popoverListeners.set(cancel, owner);
   return cancel;
 }
 
@@ -93,8 +93,11 @@ export const cModal = (() => {
       element.remove();
       if (current?.onClose) callbacks.push(() => current.onClose!({ content: current.content }));
     }
-    for (const cancel of [...popoverListeners]) cancel();
-    document.querySelectorAll('[data-modal-popover]').forEach((popover) => popover.remove());
+    const closingIds = new Set(closing.map((element) => element.id.slice(5)));
+    for (const [cancel, owner] of [...popoverListeners]) if (closingIds.has(String(owner))) cancel();
+    document.querySelectorAll<HTMLElement>('[data-modal-popover]').forEach((popover) => {
+      if (closingIds.has(popover.dataset.modalOwner!)) popover.remove();
+    });
     if (modals.length === 0) {
       document.body.classList.remove(scrollStop);
       document.body.style.top = null;
@@ -323,6 +326,7 @@ export const cModal = (() => {
         // Create popover
         infoPopover = document.createElement('div');
         infoPopover.dataset.modalPopover = 'true';
+        infoPopover.dataset.modalOwner = String(modalNumber);
         infoPopover.style.cssText = `
           position: absolute;
           z-index: 10000;
@@ -391,7 +395,7 @@ export const cModal = (() => {
             closeInfoPopover();
           }
         };
-        cancelInfoListener = listenForOutsideClick(closePopover);
+        cancelInfoListener = listenForOutsideClick(closePopover, modalNumber);
       };
 
       headerRight.appendChild(infoIcon);
@@ -443,6 +447,7 @@ export const cModal = (() => {
 
         menuDropdown = document.createElement('div');
         menuDropdown.dataset.modalPopover = 'true';
+        menuDropdown.dataset.modalOwner = String(modalNumber);
         menuDropdown.className = 'chc-modal-menu-dropdown';
 
         for (const item of config.menu.menuItems) {
@@ -470,7 +475,7 @@ export const cModal = (() => {
             closeMenuDropdown();
           }
         };
-        cancelMenuListener = listenForOutsideClick(closeMenu);
+        cancelMenuListener = listenForOutsideClick(closeMenu, modalNumber);
       };
 
       headerRight.appendChild(menuCaret);

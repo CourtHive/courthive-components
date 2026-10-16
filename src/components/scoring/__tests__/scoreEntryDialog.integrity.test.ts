@@ -33,4 +33,17 @@ describe('score dialog owned disposal', () => {
     dialog.close();
     expect(remove).toHaveBeenCalledWith('keydown', listener);
   });
+  it('releases scroll and resize listeners when disposed with an open endings menu', () => {
+    const add = vi.spyOn(globalThis, 'addEventListener');
+    const remove = vi.spyOn(globalThis, 'removeEventListener');
+    const dialog = openScoreEntryDialog(params);
+    document.querySelector<HTMLButtonElement>('.chc-sec-endings [data-action="other"]')!.click();
+    const scroll = add.mock.calls.find(([type]) => type === 'scroll');
+    const resize = add.mock.calls.find(([type]) => type === 'resize');
+    expect(scroll).toBeTruthy();
+    expect(resize).toBeTruthy();
+    dialog.close();
+    expect(remove).toHaveBeenCalledWith('scroll', scroll![1], true);
+    expect(remove).toHaveBeenCalledWith('resize', resize![1]);
+  });
 });

@@ -1,19 +1,19 @@
 {
   "rootCourts": {
-    "bytes": 3329211,
-    "gzip": 808673
+    "bytes": 756743,
+    "gzip": 204691
   },
   "courts": {
     "bytes": 5235,
-    "gzip": 1229
+    "gzip": 1227
   },
   "rootHelper": {
-    "bytes": 3325126,
-    "gzip": 807932
+    "bytes": 752713,
+    "gzip": 204074
   },
   "helper": {
     "bytes": 1272,
-    "gzip": 692
+    "gzip": 690
   },
   "featuresCss": {
     "bytes": 2030,
