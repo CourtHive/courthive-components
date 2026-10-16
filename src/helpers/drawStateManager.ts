@@ -1,292 +1,215 @@
-/**
- * Draw State Manager
- * Manages tournament draw state and participant assignments using tournamentEngine API
- */
-import { tournamentEngine } from 'tods-competition-factory';
+/** Draw assignment UI state. Hosts own the record and mutation authority through an adapter. */
+import { drawsGovernor, queryGovernor, globalState, tools } from 'tods-competition-factory';
+import type { Tournament } from 'tods-competition-factory';
 import type { Participant } from '../types';
 
 export type RenderCallback = () => void;
+export type DrawAssignmentMethod = 'assignDrawPosition' | 'assignDrawPositionBye' | 'removeDrawPositionAssignment';
+export interface DrawAssignmentParams {
+  drawId: string;
+  structureId: string;
+  drawPosition: number;
+  participantId?: string;
+  qualifier?: boolean;
+}
+export interface DrawAssignmentResult {
+  success?: boolean;
+  error?: unknown;
+  /** The host accepted an asynchronous request; no assignment has been acknowledged yet. */
+  pending?: boolean;
+}
+export interface DrawStateAdapter {
+  /** Query current state on every use; never reinstall an opening snapshot. */
+  getTournamentRecord: () => Tournament | undefined;
+  /** Apply once, then acknowledge. Only a successful acknowledgement changes focus/renders. */
+  mutate: (
+    method: DrawAssignmentMethod,
+    params: DrawAssignmentParams,
+    callback: (result: DrawAssignmentResult) => void
+  ) => void;
+}
+
+/** Standalone examples own a private record and call stateless governors, never the singleton engine. */
+function localAdapter(record: Tournament): DrawStateAdapter {
+  const tournamentRecord = tools.makeDeepCopy(record);
+  return {
+    getTournamentRecord: () => tournamentRecord,
+    mutate: (method, params, callback) => {
+      const event = tournamentRecord.events?.find((item) =>
+        item.drawDefinitions?.some((draw) => draw.drawId === params.drawId)
+      );
+      const drawDefinition = event?.drawDefinitions?.find((draw) => draw.drawId === params.drawId);
+      const args = { ...params, tournamentRecord, drawDefinition, event };
+      // Governors also buffer notices and mutation flags through the state provider. Scope those
+      // synchronous side effects to the private record, and restore the host before acknowledging.
+      const host = globalState.getProvider();
+      const unsupported = () => {
+        throw new Error('Standalone assignment cannot replace tournament state');
+      };
+      const ignore = () => {};
+      const records = { [tournamentRecord.tournamentId]: tournamentRecord };
+      globalState.setStateProvider({
+        ...host,
+        addNotice: ignore,
+        callListener: ignore,
+        deleteNotice: ignore,
+        deleteNotices: ignore,
+        disableNotifications: ignore,
+        enableNotifications: ignore,
+        setSubscriptions: unsupported,
+        cycleMutationStatus: () => false,
+        getTopics: () => ({ topics: [] }),
+        getNotices: () => [],
+        getPayloads: () => [],
+        getNoticeBuffer: () => [],
+        setNoticeBuffer: ignore,
+        getTournamentId: () => tournamentRecord.tournamentId,
+        getTournamentRecord: (id: string) => records[id],
+        getTournamentRecords: () => records,
+        setTournamentId: unsupported,
+        setTournamentRecord: unsupported,
+        setTournamentRecords: unsupported,
+        removeTournamentRecord: unsupported
+      });
+      let result: DrawAssignmentResult;
+      try {
+        result =
+          method === 'removeDrawPositionAssignment'
+            ? drawsGovernor.removeDrawPositionAssignment(args)
+            : drawsGovernor.assignDrawPosition({ ...args, bye: method === 'assignDrawPositionBye' });
+      } finally {
+        globalState.setStateProvider(host);
+      }
+      callback(result);
+    }
+  };
+}
 
 export class DrawStateManager {
-  private tournamentRecord: any;
+  private readonly adapter: DrawStateAdapter;
   private readonly drawId: string;
   private readonly structureId: string;
-  private readonly eventId: string;
+  private readonly eventId?: string;
   private renderCallback?: RenderCallback;
-  private focusDrawPosition?: number; // Track which position to focus after re-render
+  private focusDrawPosition?: number;
 
   constructor({
     tournamentRecord,
+    adapter,
     drawId,
     structureId,
     eventId
   }: {
-    tournamentRecord: any;
+    tournamentRecord?: Tournament;
+    adapter?: DrawStateAdapter;
     drawId: string;
     structureId: string;
     eventId?: string;
   }) {
-    this.tournamentRecord = tournamentRecord;
+    if (!adapter && !tournamentRecord) throw new Error('DrawStateManager requires a record or adapter');
+    this.adapter = adapter ?? localAdapter(tournamentRecord!);
     this.drawId = drawId;
     this.structureId = structureId;
-
-    // Get eventId from tournament if not provided
-    this.eventId = eventId || tournamentRecord.events?.[0]?.eventId;
-
-    // Set initial state
-    tournamentEngine.setState(tournamentRecord);
+    this.eventId = eventId;
   }
 
-  /**
-   * Set callback to trigger re-render when state changes
-   */
   setRenderCallback(callback: RenderCallback): void {
     this.renderCallback = callback;
   }
 
-  /**
-   * Get participant IDs from draw entries (via flight profile or drawDefinition.entries)
-   */
-  private getDrawEntryParticipantIds(): string[] {
-    const { event, drawDefinition } = tournamentEngine.getEvent({ drawId: this.drawId }) || {};
-    if (!event) return [];
-
-    // Check flight profile first (multi-draw events allocate entries per flight)
-    const { flightProfile } = tournamentEngine.getFlightProfile({ eventId: this.eventId }) || {};
-    const flight = flightProfile?.flights?.find((f: any) => f.drawId === this.drawId);
-    const drawEntries = flight?.drawEntries || drawDefinition?.entries || [];
-
-    return drawEntries.map((entry: any) => entry.participantId).filter(Boolean);
+  private context() {
+    const tournamentRecord = this.adapter.getTournamentRecord();
+    const event = tournamentRecord?.events?.find((item) =>
+      this.eventId ? item.eventId === this.eventId : item.drawDefinitions?.some((draw) => draw.drawId === this.drawId)
+    );
+    const drawDefinition = event?.drawDefinitions?.find((draw) => draw.drawId === this.drawId);
+    return { tournamentRecord, drawDefinition, event };
   }
 
-  /**
-   * Get participants entered in the draw (including qualifiers)
-   */
   getAllParticipants(): Participant[] {
-    tournamentEngine.setState(this.tournamentRecord);
-
-    const drawEntryIds = this.getDrawEntryParticipantIds();
-    if (!drawEntryIds.length) return [];
-
-    const { participants = [] } =
-      tournamentEngine.getParticipants({
-        participantFilters: { participantIds: drawEntryIds }
-      }) || {};
-
-    return participants.map((p: any) => ({
-      participantId: p.participantId,
-      participantName: p.participantName,
-      participantType: p.participantType,
-      person: p.person,
-      individualParticipants: p.individualParticipants
-    }));
+    const { tournamentRecord, drawDefinition, event } = this.context();
+    if (!tournamentRecord || !event || !drawDefinition) return [];
+    const { flightProfile } = queryGovernor.getFlightProfile({ event });
+    const flight = flightProfile?.flights?.find((item) => item.drawId === this.drawId);
+    const entries = flight?.drawEntries ?? drawDefinition.entries ?? [];
+    const participantIds = entries.map((entry) => entry.participantId).filter((id): id is string => !!id);
+    if (!participantIds.length) return [];
+    const { participants = [] } = queryGovernor.getParticipants({
+      tournamentRecord,
+      participantFilters: { participantIds }
+    });
+    return participants as Participant[];
   }
 
-  /**
-   * Get participants that haven't been assigned to draw positions yet
-   */
   getAvailableParticipants(): Participant[] {
-    tournamentEngine.setState(this.tournamentRecord);
-
-    // Get all participants
-    const allParticipants = this.getAllParticipants();
-
-    // Get already assigned participant IDs
-    const { assignedParticipantIds = [] } =
-      tournamentEngine.getAssignedParticipantIds({
-        drawId: this.drawId
-      }) || {};
-
-    // Filter out assigned participants
-    return allParticipants.filter((participant) => !assignedParticipantIds.includes(participant.participantId));
+    const { drawDefinition } = this.context();
+    if (!drawDefinition) return [];
+    const { assignedParticipantIds = [] } = queryGovernor.getAssignedParticipantIds({ drawDefinition });
+    const assigned = new Set(assignedParticipantIds);
+    return this.getAllParticipants().filter((participant) => !assigned.has(participant.participantId!));
   }
 
-  /**
-   * Remove participant assignment from a draw position
-   */
-  removeAssignment({ drawPosition }: { drawPosition: number }): { success: boolean; error?: any } {
-    tournamentEngine.setState(this.tournamentRecord);
-
-    // Check if the position being removed has a BYE
-    // We need to know this BEFORE removing it
-    const matchUps = this.getMatchUps();
-    const matchUp = matchUps.find((m: any) => m.sides?.some((s: any) => s.drawPosition === drawPosition));
-    const side = matchUp?.sides?.find((s: any) => s.drawPosition === drawPosition);
-    const hadBye = side?.bye === true;
-
-    const result = tournamentEngine.removeDrawPositionAssignment({
-      drawId: this.drawId,
-      structureId: this.structureId,
-      drawPosition
+  /** A request is pending until the host acknowledges it. Refusals do not advance focus or render. */
+  private request(
+    method: DrawAssignmentMethod,
+    params: { drawPosition: number; participantId?: string; qualifier?: boolean },
+    render = true
+  ): DrawAssignmentResult {
+    let completed: DrawAssignmentResult | undefined;
+    let acknowledged = false;
+    this.adapter.mutate(method, { ...params, drawId: this.drawId, structureId: this.structureId }, (result) => {
+      if (acknowledged) return;
+      acknowledged = true;
+      completed = result;
+      if (!result.success || result.error) return;
+      if (method !== 'removeDrawPositionAssignment') this.focusDrawPosition = params.drawPosition + 1;
+      if (render) this.renderCallback?.();
     });
-
-    if (result.error) {
-      return { success: false, error: result.error };
-    }
-
-    // Update stored tournament record
-    const { tournamentRecord } = tournamentEngine.getState() || {};
-    this.tournamentRecord = tournamentRecord;
-
-    // Only trigger re-render if a BYE was removed
-    // This is important because removing a BYE can cause participants to advance
-    // and checkmarks need to appear, but removing a regular participant doesn't
-    // require re-rendering the entire structure
-    if (hadBye && this.renderCallback) {
-      this.renderCallback();
-    }
-
-    return { success: true };
+    return completed ?? { pending: true };
   }
 
-  /**
-   * Assign a participant to a specific draw position
-   * Note: Direct assignment replaces existing assignment (even with scores)
-   */
-  assignParticipant({ drawPosition, participantId }: { drawPosition: number; participantId: string }): {
-    success: boolean;
-    error?: any;
-  } {
-    tournamentEngine.setState(this.tournamentRecord);
-
-    // Direct assignment - factory handles replacement automatically
-    const result = tournamentEngine.assignDrawPosition({
-      drawId: this.drawId,
-      structureId: this.structureId,
-      drawPosition,
-      participantId
-    });
-
-    if (result.error) {
-      return { success: false, error: result.error };
-    }
-
-    // Update stored tournament record
-    const { tournamentRecord } = tournamentEngine.getState() || {};
-    this.tournamentRecord = tournamentRecord;
-
-    // Set focus to next drawPosition (current + 1)
-    this.focusDrawPosition = drawPosition + 1;
-
-    // Trigger re-render if callback is set
-    if (this.renderCallback) {
-      this.renderCallback();
-    }
-
-    return { success: true };
+  /** Factory validation controls replacement, including assignments with recorded scores. */
+  assignParticipant(params: { drawPosition: number; participantId: string }): DrawAssignmentResult {
+    return this.request('assignDrawPosition', params);
   }
 
-  /**
-   * Get and clear the drawPosition that should receive focus
-   */
+  assignBye(params: { drawPosition: number }): DrawAssignmentResult {
+    return this.request('assignDrawPositionBye', params);
+  }
+
+  assignQualifier(params: { drawPosition: number }): DrawAssignmentResult {
+    return this.request('assignDrawPosition', { ...params, qualifier: true });
+  }
+
+  removeAssignment(params: { drawPosition: number }): DrawAssignmentResult {
+    const hadBye = this.getMatchUps().some((matchUp) =>
+      matchUp.sides?.some((side: any) => side.drawPosition === params.drawPosition && side.bye)
+    );
+    return this.request('removeDrawPositionAssignment', params, hadBye);
+  }
+
   getAndClearFocusDrawPosition(): number | undefined {
     const position = this.focusDrawPosition;
     this.focusDrawPosition = undefined;
     return position;
   }
 
-  /**
-   * Assign a BYE to a specific draw position
-   * Note: Direct assignment replaces existing assignment (even with scores)
-   */
-  assignBye({ drawPosition }: { drawPosition: number }): { success: boolean; error?: any } {
-    tournamentEngine.setState(this.tournamentRecord);
-
-    // Direct assignment - factory handles replacement automatically
-    const result = tournamentEngine.assignDrawPositionBye({
-      drawId: this.drawId,
-      structureId: this.structureId,
-      drawPosition
-    });
-
-    if (result.error) {
-      return { success: false, error: result.error };
-    }
-
-    // Update stored tournament record
-    const { tournamentRecord } = tournamentEngine.getState() || {};
-    this.tournamentRecord = tournamentRecord;
-
-    // Set focus to next drawPosition (current + 1)
-    this.focusDrawPosition = drawPosition + 1;
-
-    // Trigger re-render if callback is set
-    if (this.renderCallback) {
-      this.renderCallback();
-    }
-
-    return { success: true };
-  }
-
-  /**
-   * Assign a QUALIFIER placeholder to a specific draw position
-   * Note: Used when structure has qualifying stage feeding into it
-   */
-  assignQualifier({ drawPosition }: { drawPosition: number }): { success: boolean; error?: any } {
-    tournamentEngine.setState(this.tournamentRecord);
-
-    // Assign qualifier placeholder using factory method
-    const result = tournamentEngine.assignDrawPosition({
-      drawId: this.drawId,
-      structureId: this.structureId,
-      drawPosition,
-      qualifier: true
-    });
-
-    if (result.error) {
-      return { success: false, error: result.error };
-    }
-
-    // Update stored tournament record
-    const { tournamentRecord } = tournamentEngine.getState() || {};
-    this.tournamentRecord = tournamentRecord;
-
-    // Set focus to next drawPosition (current + 1)
-    this.focusDrawPosition = drawPosition + 1;
-
-    // Trigger re-render if callback is set
-    if (this.renderCallback) {
-      this.renderCallback();
-    }
-
-    return { success: true };
-  }
-
-  /**
-   * Get all matchUps for the draw with properly populated drawPosition data
-   */
   getMatchUps(): any[] {
-    tournamentEngine.setState(this.tournamentRecord);
-
-    // Use getEventData to get matchUps with drawPosition information
-    const { eventData } =
-      tournamentEngine.getEventData({
-        eventId: this.eventId
-      }) || {};
-
-    // Extract matchUps from the draw structure
-    const drawData = eventData?.drawsData?.find((dd: any) => dd.drawId === this.drawId);
-    const structure = drawData?.structures?.find((s: any) => s.structureId === this.structureId);
-    const roundMatchUps = structure?.roundMatchUps;
-    const matchUps = roundMatchUps ? Object.values(roundMatchUps).flat() : [];
-
-    return matchUps as any[];
+    const { tournamentRecord, event } = this.context();
+    if (!tournamentRecord || !event) return [];
+    const { eventData } = queryGovernor.getEventData({ tournamentRecord, event });
+    const draw = eventData?.drawsData?.find((item: any) => item.drawId === this.drawId);
+    const structure = draw?.structures?.find((item: any) => item.structureId === this.structureId);
+    return structure?.roundMatchUps ? Object.values(structure.roundMatchUps).flat() : [];
   }
 
-  /**
-   * Get current tournament state
-   */
-  getState(): any {
-    return this.tournamentRecord;
+  /** A copy of the current record. Asynchronous hosts are queried at call time. */
+  getState(): Tournament | undefined {
+    const record = this.adapter.getTournamentRecord();
+    return record && tools.makeDeepCopy(record);
   }
 
-  /**
-   * Get draw context information
-   */
   getContext(): { drawId: string; structureId: string } {
-    return {
-      drawId: this.drawId,
-      structureId: this.structureId
-    };
+    return { drawId: this.drawId, structureId: this.structureId };
   }
 }

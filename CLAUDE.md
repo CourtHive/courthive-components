@@ -10,18 +10,18 @@ Before doing anything else, read `../Mentat/CLAUDE.md`, `../Mentat/TASKS.md`, `.
 
 `dev` is this repo's integration branch. **Branch from `origin/dev` and open PRs against `dev`.**
 `main` advances only at checkpoints, by merging `dev` into it. This is the pattern `factory` has used
-since 2026-09-12; CA: *"Let's start using a dev branch after this ... so we can start working the way
-we're working in the factory repo."*
+since 2026-09-12; CA: _"Let's start using a dev branch after this ... so we can start working the way
+we're working in the factory repo."_
 
 `dev` was created from `main` at `444ba3c` on 2026-09-28, byte-identical to it.
 
 **A checkpoint merge does NOT publish.** Verified by reading the workflows rather than assumed:
 
-| workflow | trigger | consequence |
-|---|---|---|
-| `ci.yml` | bare `pull_request:` + `push: [main]` | a PR into `dev` gets the full `verify` gate. A direct push to `dev` gets **no** push-triggered run, so land work by PR |
-| `release-please.yml` | `push: [main]` ONLY | the checkpoint merge **refreshes** the perpetual `chore(main): release X.Y.Z` PR. Nothing is tagged and nothing is published |
-| `npm-publish.yml` | `release: published` | unaffected. Publishing still takes the deliberate second act of merging the release PR |
+| workflow             | trigger                               | consequence                                                                                                                  |
+| -------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `ci.yml`             | bare `pull_request:` + `push: [main]` | a PR into `dev` gets the full `verify` gate. A direct push to `dev` gets **no** push-triggered run, so land work by PR       |
+| `release-please.yml` | `push: [main]` ONLY                   | the checkpoint merge **refreshes** the perpetual `chore(main): release X.Y.Z` PR. Nothing is tagged and nothing is published |
+| `npm-publish.yml`    | `release: published`                  | unaffected. Publishing still takes the deliberate second act of merging the release PR                                       |
 
 **One repo setting had to change, and it is part of the strategy.** `delete_branch_on_merge` was
 **true** and is now **false**. A checkpoint PR has `dev` as its HEAD branch, so auto-delete deletes the
@@ -56,7 +56,7 @@ guard but still reports, so `main`'s required check passes. Any other change get
 
 ## Project Overview
 
-Vanilla JavaScript UI component library for the CourtHive tournament management platform. No framework -- all components use direct DOM manipulation (`createElement`, `innerHTML`). Published as `courthive-components` on npm. Used by TMX (client PWA) and other CourtHive apps.
+Framework-independent TypeScript UI component library for the CourtHive tournament management platform. No framework -- all components use direct DOM manipulation (`createElement`, `innerHTML`). Published as `courthive-components` on npm. Used by TMX (client PWA) and other CourtHive apps.
 
 ## Commands
 
@@ -80,7 +80,7 @@ pnpm build-storybook      # Build static Storybook
 ```text
 src/
   components/    -- individual UI components (drawBracket, scoring, dialogs, etc.)
-  compositions/  -- higher-level composed views (tournament pages, event views)
+  compositions/  -- visual theme and configuration presets
   constants/     -- shared string constants
   data/          -- static data (countries, flags)
   helpers/       -- DOM helpers, formatting utilities
@@ -95,7 +95,7 @@ src/
 
 ### Component Pattern
 
-Components are factory functions that return DOM elements. They accept configuration objects and create elements via `document.createElement`. No virtual DOM, no reactivity system.
+Static components are factory functions that return DOM elements. Stateful features also expose stores, controllers and disposable handles; resource-owning hosts must call destroy/close. They accept configuration objects and create elements via `document.createElement`. No virtual DOM, no reactivity system.
 
 ### Storybook
 

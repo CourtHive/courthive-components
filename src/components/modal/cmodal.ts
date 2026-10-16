@@ -22,16 +22,16 @@ const EMPTY = 'Nothing to see here';
  * is held here with a way to cancel it, so closing a popover, or the modal, never leaves a timer that
  * attaches a listener afterwards (the 6.4.1 publish run failed on exactly that timer).
  */
-const popoverListeners = new Set<() => void>();
+const popoverListeners = new Map<() => void, number>();
 
-function listenForOutsideClick(listener: (event: MouseEvent) => void): () => void {
+function listenForOutsideClick(listener: (event: MouseEvent) => void, owner: number): () => void {
   const timer = setTimeout(() => document.addEventListener('click', listener, true), 100);
   const cancel = () => {
     clearTimeout(timer);
     document.removeEventListener('click', listener, true);
     popoverListeners.delete(cancel);
   };
-  popoverListeners.add(cancel);
+  popoverListeners.set(cancel, owner);
   return cancel;
 }
 
@@ -59,27 +59,15 @@ export function removeAllChildNodes(parent: HTMLElement | null): void {
 
 export const cModal = (() => {
   const scrollStop = bodyFreeze();
-  const conditionalClose: Record<number, boolean | undefined> = {};
   const defaultPadding = '1';
-  const bodyContent: any[] = [];
   let scrollPosition: number;
-  const closeFx: Array<((params: { content?: any }) => void) | undefined> = [];
+  let sequence = 0;
+  const frames = new Map<
+    number,
+    { element: HTMLElement; content?: any; clickAway?: boolean; onClose?: (params: { content?: any }) => void }
+  >();
   let modals: HTMLElement[] = [];
   let backdrop: HTMLElement;
-
-  const destroy = (id?: string): void => {
-    if (id) {
-      let modal: HTMLElement | undefined;
-      modals = modals.filter((m) => {
-        if (m.id === id) modal = m;
-        return m.id !== id;
-      });
-      if (modal) modal.remove();
-    } else {
-      const modal = modals.pop();
-      if (modal) modal.remove();
-    }
-  };
 
   const closeBackdrop = (): void => {
     if (backdrop) {
@@ -88,36 +76,43 @@ export const cModal = (() => {
     }
   };
 
-  const close = (conditional?: boolean): void => {
-    const modalNumber = modals.length;
-    if (conditional && conditionalClose[modalNumber] === false) {
-      return;
+  const close = (conditional?: boolean, ownedId?: number, cascade = true): void => {
+    const modalNumber = ownedId ?? Number(modals.at(-1)?.id.slice(5));
+    const frame = frames.get(modalNumber);
+    if (!frame || (conditional && frame.clickAway === false)) return;
+    const index = modals.indexOf(frame.element);
+    if (index < 0) return;
+    const closing = cascade ? modals.slice(index).reverse() : [frame.element];
+    const callbacks: Array<() => void> = [];
+    // Detach the captured frames BEFORE invoking external callbacks. Reopened dialogs are new frames.
+    for (const element of closing) {
+      const id = Number(element.id.slice(5));
+      const current = frames.get(id);
+      frames.delete(id);
+      modals = modals.filter((modal) => modal !== element);
+      element.remove();
+      if (current?.onClose) callbacks.push(() => current.onClose!({ content: current.content }));
     }
-
-    const onClose = closeFx.pop();
-    const content = bodyContent.pop();
-    if (isFunction(onClose)) onClose({ content });
-
-    // Clean up any open popovers, and the listeners that would close them
-    for (const cancel of [...popoverListeners]) cancel();
-    const popovers = document.querySelectorAll('[data-modal-popover]');
-    popovers.forEach((popover) => popover.remove());
-
-    // Remove the top modal first, then tear down the SHARED chrome (scroll
-    // freeze + backdrop) only once the stack is empty. Doing it unconditionally
-    // stripped the backdrop and unfroze scroll out from under a still-open modal
-    // beneath — the nested-modal teardown bug (e.g. a date picker opened from a
-    // reschedule dialog closing the whole stack).
-    destroy();
+    const closingIds = new Set(closing.map((element) => element.id.slice(5)));
+    for (const [cancel, owner] of [...popoverListeners]) if (closingIds.has(String(owner))) cancel();
+    document.querySelectorAll<HTMLElement>('[data-modal-popover]').forEach((popover) => {
+      if (closingIds.has(popover.dataset.modalOwner!)) popover.remove();
+    });
     if (modals.length === 0) {
       document.body.classList.remove(scrollStop);
       document.body.style.top = null;
-      window.scrollTo({
-        top: scrollPosition,
-        behavior: 'instant'
-      });
+      globalThis.scrollTo({ top: scrollPosition, behavior: 'instant' });
       closeBackdrop();
     }
+    let callbackError: unknown;
+    for (const callback of callbacks) {
+      try {
+        callback();
+      } catch (error) {
+        callbackError ??= error;
+      }
+    }
+    if (callbackError) throw callbackError;
   };
 
   const createBackdrop = (): void => {
@@ -136,7 +131,7 @@ export const cModal = (() => {
     // otherwise re-capture scrollY while the body is already position-fixed (≈0),
     // corrupting the scroll restore when the last modal finally closes.
     if (modals.length === 0) {
-      scrollPosition = window.scrollY;
+      scrollPosition = globalThis.scrollY;
       document.body.classList.add(scrollStop);
       document.body.style.top = `-${scrollPosition}px`;
     }
@@ -201,7 +196,6 @@ export const cModal = (() => {
 
     const defaultFooterButton: Partial<ModalButton> = {
       label: config?.dictionary?.close || 'Close',
-      onClick: () => cModal.close(),
       intent: 'is-info'
     };
 
@@ -229,11 +223,11 @@ export const cModal = (() => {
       elem.onclick = (e) => {
         e.stopPropagation();
         if (isFunction(buttonConfig.onClick)) {
-          buttonConfig.onClick({ e, content: bodyContent[modalNumber] });
+          buttonConfig.onClick({ e, content: frames.get(modalNumber)?.content });
         }
         if (buttonConfig.close !== false) {
           if (isFunction(buttonConfig.close)) buttonConfig.close();
-          cModal.close();
+          close(false, modalNumber, false);
         }
       };
       modalFooter.appendChild(elem);
@@ -243,21 +237,22 @@ export const cModal = (() => {
 
   const open = ({ title = '', content, buttons, footer, config, onClose }: ModalParams = {}) => {
     freezeBackground({ config });
-    closeFx.push(onClose);
-
-    const modalNumber = modals.length + 1; // because the modal hasn't been added yet
-    conditionalClose[modalNumber] = config?.clickAway;
+    const modalNumber = ++sequence;
     const section = document.createElement('section');
     const id = `cmdl-${modalNumber}`;
     section.className = modalStyle();
     section.role = 'dialog';
     section.tabIndex = -1;
     section.id = id;
+    const frame = { element: section, content: undefined as any, onClose, clickAway: config?.clickAway };
+    frames.set(modalNumber, frame);
 
     const container = document.createElement('div');
     container.className = modalContainerStyle();
     container.style.maxWidth = `${config?.maxWidth || 450}px`;
-    container.onclick = () => close(true);
+    container.onclick = () => {
+      if (modals.at(-1) === section) close(true, modalNumber);
+    };
 
     const dialog = document.createElement('div');
     dialog.className = modalDialogStyle();
@@ -331,6 +326,7 @@ export const cModal = (() => {
         // Create popover
         infoPopover = document.createElement('div');
         infoPopover.dataset.modalPopover = 'true';
+        infoPopover.dataset.modalOwner = String(modalNumber);
         infoPopover.style.cssText = `
           position: absolute;
           z-index: 10000;
@@ -389,7 +385,7 @@ export const cModal = (() => {
 
         // Position the popover to the left of the info icon
         const rect = infoIcon.getBoundingClientRect();
-        infoPopover.style.right = `${window.innerWidth - rect.left + 5}px`;
+        infoPopover.style.right = `${globalThis.innerWidth - rect.left + 5}px`;
         infoPopover.style.top = `${rect.bottom + 5}px`;
         infoPopover.style.left = 'auto';
 
@@ -399,7 +395,7 @@ export const cModal = (() => {
             closeInfoPopover();
           }
         };
-        cancelInfoListener = listenForOutsideClick(closePopover);
+        cancelInfoListener = listenForOutsideClick(closePopover, modalNumber);
       };
 
       headerRight.appendChild(infoIcon);
@@ -451,6 +447,7 @@ export const cModal = (() => {
 
         menuDropdown = document.createElement('div');
         menuDropdown.dataset.modalPopover = 'true';
+        menuDropdown.dataset.modalOwner = String(modalNumber);
         menuDropdown.className = 'chc-modal-menu-dropdown';
 
         for (const item of config.menu.menuItems) {
@@ -470,7 +467,7 @@ export const cModal = (() => {
         // Position below the caret
         const rect = menuCaret.getBoundingClientRect();
         menuDropdown.style.top = `${rect.bottom + 4}px`;
-        menuDropdown.style.right = `${window.innerWidth - rect.right}px`;
+        menuDropdown.style.right = `${globalThis.innerWidth - rect.right}px`;
 
         // Close on click elsewhere — use capture phase so dialog's stopPropagation doesn't block it
         const closeMenu = (event: MouseEvent) => {
@@ -478,7 +475,7 @@ export const cModal = (() => {
             closeMenuDropdown();
           }
         };
-        cancelMenuListener = listenForOutsideClick(closeMenu);
+        cancelMenuListener = listenForOutsideClick(closeMenu, modalNumber);
       };
 
       headerRight.appendChild(menuCaret);
@@ -516,7 +513,7 @@ export const cModal = (() => {
       modalBody.style.padding = getUnitValue({ config, attrs: ['content.padding', 'padding'], value: defaultPadding });
 
       if (isFunction(content)) {
-        bodyContent[modalNumber] = content(modalBody);
+        frame.content = content(modalBody);
       } else if (content instanceof HTMLElement) {
         modalBody.appendChild(content);
       } else if (isString(content)) {
@@ -560,7 +557,7 @@ export const cModal = (() => {
     modals.push(section);
 
     const setContent = ({ content: newContent, config }: { content?: ModalContent; config?: ModalConfig }) => {
-      bodyContent[modalNumber] = undefined;
+      frame.content = undefined;
       removeAllChildNodes(modalBody);
       attachContent({ content: newContent, config });
     };
@@ -581,8 +578,7 @@ export const cModal = (() => {
     };
 
     const setOnClose = ({ onClose }: { onClose?: (params: { content?: any }) => void }) => {
-      closeFx.length = 0; // clear array
-      closeFx.push(onClose);
+      frame.onClose = onClose;
     };
 
     const update = ({
@@ -599,6 +595,7 @@ export const cModal = (() => {
       onClose?: (params: { content?: any }) => void;
     }) => {
       config = newConfig || config;
+      frame.clickAway = config?.clickAway;
 
       // Close any open info popover when config changes (content may be stale)
       if (infoPopover && document.body.contains(infoPopover)) {
@@ -617,7 +614,7 @@ export const cModal = (() => {
       if (title) setTitle({ title, config });
     };
 
-    return { setContent, setButtons, update, setButtonState };
+    return { setContent, setButtons, update, setButtonState, close: () => close(false, modalNumber) };
   };
 
   return { close, open };
