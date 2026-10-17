@@ -60,7 +60,7 @@ export function renderSchedule({
   const locationDisplay = document.createElement('div');
   locationDisplay.style.paddingRight = '.2rem';
   locationDisplay.onclick = handleVenueClick;
-  locationDisplay.innerHTML = location;
+  locationDisplay.textContent = location;
   optionsRight.append(locationDisplay);
   div.append(optionsRight);
 

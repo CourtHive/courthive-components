@@ -41,7 +41,7 @@ export function renderScale({
   const scaleColor = configuration?.scaleAttributes?.scaleColor;
   const validColor = scaleColor === 'green' || scaleColor === 'red' ? scaleColor : undefined;
   if (value) span.className = cx(className, scaleStyle(validColor ? { color: validColor } : {}));
-  span.innerHTML = value || '';
+  span.textContent = value ? String(value) : '';
 
   return span;
 }

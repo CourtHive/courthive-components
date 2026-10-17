@@ -15,7 +15,7 @@ export function renderAddress({
   const div = document.createElement('div');
 
   div.className = cx(participantDetailStyle(), className);
-  div.innerHTML = renderedAddress;
+  div.textContent = renderedAddress;
 
   return div;
 }

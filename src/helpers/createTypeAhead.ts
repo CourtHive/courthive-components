@@ -48,6 +48,36 @@ export function resolveCurrentLabel(list: any[], code?: string): string | undefi
   return list.find((item: any) => item?.value === code)?.label;
 }
 
+/**
+ * Awesomplete's default item renderer builds each suggestion with innerHTML (to wrap matches in
+ * <mark>), so a suggestion label holding markup — a participant name, say — would run as script.
+ * This renders the same structure from text nodes. Awesomplete calls it with itself as `this`.
+ */
+export function typeAheadItem(this: { count?: number } | undefined, text: unknown, input: string, itemId: number) {
+  const li = document.createElement('li');
+  li.setAttribute('role', 'option');
+  li.setAttribute('aria-selected', 'false');
+  li.tabIndex = -1;
+  li.id = `awesomplete_list_${this?.count ?? 0}_item_${itemId}`;
+  const label = String(text);
+  const needle = input.trim().toLowerCase();
+  if (!needle) {
+    li.textContent = label;
+    return li;
+  }
+  const haystack = label.toLowerCase();
+  let from = 0;
+  for (let at = haystack.indexOf(needle); at >= 0; at = haystack.indexOf(needle, from)) {
+    li.append(label.slice(from, at));
+    const mark = document.createElement('mark');
+    mark.textContent = label.slice(at, at + needle.length);
+    li.append(mark);
+    from = at + needle.length;
+  }
+  li.append(label.slice(from));
+  return li;
+}
+
 export function createTypeAhead({
   list,
   element,
@@ -60,7 +90,7 @@ export function createTypeAhead({
   onSelectComplete,
   listProvider
 }: CreateTypeAheadParams): { typeAhead: any } {
-  const typeAhead = new AWSP(element, { list });
+  const typeAhead = new AWSP(element, { list, item: typeAheadItem });
   if (element.parentElement) element.parentElement.style.width = '100%';
 
   // Refresh list on focus if listProvider is available

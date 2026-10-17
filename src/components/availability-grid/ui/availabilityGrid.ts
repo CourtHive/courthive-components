@@ -19,6 +19,7 @@ import { AvailabilityGridControl, type AvailabilityGridControlConfig } from '../
 import { buildViewToolbar, type ViewToolbarResult } from './viewToolbar';
 import { showCourtAvailabilityModal } from './courtAvailabilityModal';
 import { buildStatsBar, type StatsBarUpdate } from './statsBar';
+import { escapeHtml } from '../../../helpers/escapeHtml';
 import Datepicker from 'vanillajs-datepicker/Datepicker';
 
 // ============================================================================
@@ -591,10 +592,10 @@ export class AvailabilityGrid {
                    data-venue="${venueId}"
                    data-tournament-id="${tournamentId}"
                    ${allVisible ? 'checked' : ''} />
-            <span class="venue-name">${venueName}</span>
+            <span class="venue-name">${escapeHtml(venueName)}</span>
             <button class="sp-btn-icon sp-btn-icon--ghost venue-edit-icon"
                     data-venue="${venueId}" data-tournament-id="${tournamentId}"
-                    data-venue-name="${venueName}"
+                    data-venue-name="${escapeHtml(venueName)}"
                     title="Edit venue defaults">&#9998;</button>
           </div>
           <div class="courts-list">
@@ -609,12 +610,12 @@ export class AvailabilityGrid {
                          data-venue-id="${court.ref.venueId}"
                          data-tournament-id="${court.ref.tournamentId}"
                          ${checked ? 'checked' : ''} />
-                  <span class="court-name">${court.name}</span>
-                  <span class="court-meta">${court.surface}${court.indoor ? ' (Indoor)' : ''}</span>
+                  <span class="court-name">${escapeHtml(court.name)}</span>
+                  <span class="court-meta">${escapeHtml(court.surface)}${court.indoor ? ' (Indoor)' : ''}</span>
                   <button class="sp-btn-icon sp-btn-icon--ghost court-edit-icon"
                           data-court-id="${court.ref.courtId}" data-venue-id="${court.ref.venueId}"
                           data-tournament-id="${court.ref.tournamentId}"
-                          data-court-name="${court.name}"
+                          data-court-name="${escapeHtml(court.name)}"
                           title="Edit court availability">&#9998;</button>
                 </div>
               `;

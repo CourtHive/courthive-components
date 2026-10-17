@@ -137,7 +137,7 @@ export function renderRound({
             drawId
           });
       }
-      if (roundNumber === initialRoundNumber) groupName.innerHTML = rrGroupName;
+      if (roundNumber === initialRoundNumber) groupName.textContent = rrGroupName;
       currentGroupWrapper.appendChild(groupName);
     }
 
