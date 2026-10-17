@@ -5,8 +5,8 @@
  *
  * Only the set in progress is open for entry, plus every set already finished. Enter the first set's
  * games and, when they call for one, a TIEBREAK COLUMN appears beside that set with a field per side.
- * Confirm with Enter or move to another set and the column DISAPPEARS: the finished set now reads `7` over `6(3)`, and the second set's
- * fields take its place. Each set can carry a tiebreak, so this repeats per set.
+ * Confirm with Enter or move to another set and the column DISAPPEARS: the finished set now reads `7`
+ * over `6(3)`, and the second set's fields take its place. Each set can carry a tiebreak, so this repeats per set.
  *
  * ── It RENDERS the model (S3 of the state-engine extraction) ──
  *
