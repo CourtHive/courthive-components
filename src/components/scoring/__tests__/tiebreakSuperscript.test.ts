@@ -61,7 +61,7 @@ beforeEach(() => {
 });
 
 describe('a finished set shows its result, not its fields', () => {
-  it('folds the moment its tiebreak is known: 7 above 6 with a raised 3, inputs hidden', () => {
+  it('folds when tiebreak entry is confirmed: 7 above 6 with a raised 3, inputs hidden', () => {
     const h = mountSets();
     h.type(1, 1, '7');
     h.type(2, 1, '6');
@@ -71,6 +71,9 @@ describe('a finished set shows its result, not its fields', () => {
     expect(h.cell(1, 1).hidden).toBe(false);
 
     h.typeTb(2, 1, '3');
+    h.card.element
+      .querySelector('input[data-tiebreak-side="2"]')
+      ?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
 
     expect(h.done(1, 1)?.textContent).toBe('7');
     expect(h.done(2, 1)?.textContent, 'the games with the raised points').toBe('63');

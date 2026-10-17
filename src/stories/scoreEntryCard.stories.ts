@@ -249,11 +249,16 @@ export const Tiebreak = {
     await expect(canvasElement.querySelector('input[data-side="1"][data-set="2"]')).toBeNull();
     await expect(canvasElement.querySelector<HTMLButtonElement>(SUBMIT)!.disabled).toBe(true);
 
-    // Entering the loser's points completes it: the other side autocompletes to the format's target, the
-    // column folds, and the raised digit takes its place.
+    // Entering the loser's points completes it and the other side autocompletes to the format's target,
+    // but the column stays open: a `3` (or a `1`) can still be the first digit of a longer tiebreak.
     const field = tb(2)!;
     field.value = '3';
     field.dispatchEvent(new Event('input', { bubbles: true }));
+
+    await expect(tb(1), 'the column stays open while the points may still be typed').toBeTruthy();
+
+    // Enter confirms: the column folds, and the raised digit takes its place.
+    field.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
 
     await expect(tb(1), 'the column should have folded away').toBeNull();
 

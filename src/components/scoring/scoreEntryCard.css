@@ -594,6 +594,20 @@
   text-align: center;
 }
 
+/* Equal set tracks keep both rows aligned; raised points do not consume track width. */
+.chc-sec-readout-set {
+  display: inline-block;
+  position: relative;
+  width: 3ch;
+  font-variant-numeric: tabular-nums;
+}
+
+.chc-sec-readout-set > .chc-sec-tb-mark {
+  position: absolute;
+  top: 0.25em;
+  margin-left: 1px;
+}
+
 /* ── Free Score ────────────────────────────────────────────────────── */
 
 .chc-sec-freescore {
