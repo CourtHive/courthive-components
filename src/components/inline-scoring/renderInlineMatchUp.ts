@@ -66,6 +66,17 @@ export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElem
 
   manager.getOrCreate(matchUpId, format as string, params.matchUp);
 
+  // Inline scoring is by the point or by the game. A format whose set in play takes neither — a segment
+  // of outs takes set totals — is not offered: its points would otherwise be refused on every click.
+  if (!manager.accepts(matchUpId, mode === 'games' ? 'game' : 'point')) {
+    console.error(
+      `[renderInlineMatchUp] refusing to offer ${mode} scoring for ${matchUpId}: ` +
+        `its format (${format}) does not take ${mode === 'games' ? 'game' : 'point'} input.`
+    );
+    manager.remove(matchUpId);
+    return null;
+  }
+
   // Track whether the score has changed since initial load
   let isDirty = false;
 

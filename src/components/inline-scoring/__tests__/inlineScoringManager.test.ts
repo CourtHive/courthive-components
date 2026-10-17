@@ -1,5 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
 import { InlineScoringManager } from '../inlineScoringManager';
+import { scoreGovernor } from 'tods-competition-factory';
+import { describe, it, expect, vi } from 'vitest';
 import type { MatchUp } from '../../../types';
 
 const STANDARD_FORMAT = 'SET3-S:6/TB7';
@@ -207,6 +208,27 @@ describe('InlineScoringManager', () => {
 
     expect(result1.score?.sets?.[0]?.side1Score).toBe(1);
     expect(result2.score?.sets?.[0]?.side2Score).toBe(1);
+  });
+});
+
+// The refusals need a factory with ScoringEngine.getInputLevels (it ships with the outs refusal)
+const HAS_INPUT_LEVELS = typeof (scoreGovernor.ScoringEngine.prototype as any).getInputLevels === 'function';
+
+describe.skipIf(!HAS_INPUT_LEVELS)('InlineScoringManager — input levels', () => {
+  it('a final set of outs stops taking points once it is in play, instead of throwing', () => {
+    const manager = new InlineScoringManager();
+    const matchUp = makeMatchUp({ matchUpFormat: 'SET3-S:6/TB7-F:O3' } as Partial<MatchUp>);
+    manager.getOrCreate('mu-1', 'SET3-S:6/TB7-F:O3', matchUp);
+    expect(manager.accepts('mu-1', 'point')).toBe(true);
+    for (let i = 0; i < 6; i++) manager.addGame('mu-1', 0, matchUp);
+    for (let i = 0; i < 6; i++) manager.addGame('mu-1', 1, matchUp);
+    expect(manager.accepts('mu-1', 'point')).toBe(false);
+    expect(manager.addPoint('mu-1', 0, matchUp)).toBeUndefined();
+    expect(manager.addGame('mu-1', 0, matchUp)).toBeUndefined();
+  });
+
+  it('reports nothing accepted for a matchUp it does not hold', () => {
+    expect(new InlineScoringManager().accepts('missing', 'point')).toBe(false);
   });
 });
 

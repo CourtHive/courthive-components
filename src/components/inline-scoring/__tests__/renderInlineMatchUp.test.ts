@@ -5,6 +5,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { renderInlineMatchUp } from '../renderInlineMatchUp';
 import { InlineScoringManager } from '../inlineScoringManager';
 import { compositions } from '../../../compositions/compositions';
+import { scoreGovernor } from 'tods-competition-factory';
 import type { Composition, MatchUp } from '../../../types';
 
 const STANDARD_FORMAT = 'SET3-S:6/TB7';
@@ -229,5 +230,49 @@ describe('renderInlineMatchUp refuses rather than fabricating', () => {
     expect(error).toHaveBeenCalledTimes(1);
     expect(error.mock.calls[0][0]).toContain('mu-1');
     error.mockRestore();
+  });
+});
+
+// The factory reports what each segment can be scored with (`getInputLevels`). A segment of outs takes
+// set totals only; inline scoring is by the point or the game, so such a format is not offered.
+// The refusals need a factory with ScoringEngine.getInputLevels (it ships with the outs refusal)
+const HAS_INPUT_LEVELS = typeof (scoreGovernor.ScoringEngine.prototype as any).getInputLevels === 'function';
+
+describe.skipIf(!HAS_INPUT_LEVELS)('renderInlineMatchUp — input levels', () => {
+  it('does not offer point scoring for a format of outs', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const manager = new InlineScoringManager();
+    const el = renderInlineMatchUp({
+      matchUp: makeMatchUp({ matchUpFormat: 'INN4XA-S:O3' }),
+      composition: makeComposition('points'),
+      manager,
+      isLucky: true
+    });
+    expect(el).toBeNull();
+    expect(manager.has('mu-1')).toBe(false);
+    expect(error.mock.calls[0][0]).toContain('INN4XA-S:O3');
+    error.mockRestore();
+  });
+
+  it('does not offer game scoring for a combined point total', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const el = renderInlineMatchUp({
+      matchUp: makeMatchUp({ matchUpFormat: 'SET1-S:P32' }),
+      composition: makeComposition('games'),
+      manager: new InlineScoringManager(),
+      isLucky: true
+    });
+    expect(el).toBeNull();
+    error.mockRestore();
+  });
+
+  it('still offers point scoring for a combined point total', () => {
+    const el = renderInlineMatchUp({
+      matchUp: makeMatchUp({ matchUpFormat: 'SET1-S:P32' }),
+      composition: makeComposition('points'),
+      manager: new InlineScoringManager(),
+      isLucky: true
+    });
+    expect(el).toBeInstanceOf(HTMLElement);
   });
 });
