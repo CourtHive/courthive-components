@@ -5,6 +5,7 @@
 import { factoryConstants } from 'tods-competition-factory';
 import { renderForm } from '../forms/renderForm';
 import { cModal } from '../modal/cmodal';
+import { escapeHtml } from '../../helpers/escapeHtml';
 import { getFlightProfileFormItems } from './getFlightProfileFormItems';
 import { getFlightProfileFormRelationships } from './getFlightProfileFormRelationships';
 
@@ -122,7 +123,7 @@ export function getFlightProfileModal(params: {
               type="text" 
               class="input" 
               id="flightName_${index}"
-              value="${flight.drawName}"
+              value="${escapeHtml(flight.drawName)}"
               placeholder="Flight ${index + 1}"
             />
           </div>

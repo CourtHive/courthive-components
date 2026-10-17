@@ -386,6 +386,7 @@ export * as validators from './validators';
 
 // State management
 export { DrawStateManager } from './helpers/drawStateManager';
+export { escapeHtml } from './helpers/escapeHtml';
 export type {
   DrawStateAdapter,
   DrawAssignmentMethod,

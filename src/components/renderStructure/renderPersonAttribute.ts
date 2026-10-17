@@ -19,7 +19,7 @@ export function renderPersonAttribute({
   const div = document.createElement('div');
 
   div.className = cx(participantDetailStyle(), className);
-  div.innerHTML = value;
+  div.textContent = String(value);
 
   return div;
 }

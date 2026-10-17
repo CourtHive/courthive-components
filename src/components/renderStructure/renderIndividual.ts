@@ -47,7 +47,7 @@ function buildParticipantNameDisplay(name, participantName, isWinningSide, confi
       '';
     span.style.color = typeof configuration.genderColor === 'string' ? configuration.genderColor : color;
   }
-  span.innerHTML = participantName;
+  span.textContent = participantName;
   name.appendChild(span);
 
   if (side?.participant?.luckyAdvancement) {
