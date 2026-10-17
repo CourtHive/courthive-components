@@ -253,3 +253,19 @@ describe('InlineScoringManager — who served', () => {
     ]);
   });
 });
+
+describe('InlineScoringManager — what a point records', () => {
+  it('records only who won the point: no stroke the scorer never entered', () => {
+    const manager = new InlineScoringManager();
+    const matchUp = makeMatchUp();
+    manager.getOrCreate('mu-1', STANDARD_FORMAT, matchUp);
+    manager.addPoint('mu-1', 0, matchUp);
+    manager.addPoint('mu-1', 1, matchUp);
+
+    const engine = manager.get('mu-1')!.engine;
+    expect(engine.getState().history.points.map((point: any) => point.result)).toEqual([undefined, undefined]);
+    const { players } = engine.getStatistics().counters;
+    expect(players[0].winners).toBeUndefined();
+    expect(players[1].winners).toBeUndefined();
+  });
+});

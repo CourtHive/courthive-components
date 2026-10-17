@@ -101,7 +101,8 @@ export class InlineScoringManager {
 
     // The engine derives who served: in tennis the server changes game by game, not point by point.
     // Supplying `pointCount % 2` alternated it every point and recorded that as the observed server.
-    state.engine.addPoint({ winner, result: 'Winner' });
+    // Only the point's winner is known here: a stroke result would count in statistics as a winner hit.
+    state.engine.addPoint({ winner });
     state.pointCount++;
 
     return this.notifyAndReturn(matchUpId, baseMatchUp);
