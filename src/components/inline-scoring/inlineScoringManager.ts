@@ -193,8 +193,11 @@ export class InlineScoringManager {
    * (`getInputLevels`): a segment of outs takes set totals only, a combined-point total has no games.
    */
   accepts(matchUpId: string, level: 'point' | 'game'): boolean {
-    const levels = this.engines.get(matchUpId)?.engine.getInputLevels();
-    return !!levels?.[level];
+    const engine = this.engines.get(matchUpId)?.engine;
+    if (!engine) return false;
+    // a factory before getInputLevels accepts every input, as it always did
+    if (typeof engine.getInputLevels !== 'function') return true;
+    return !!engine.getInputLevels()[level];
   }
 
   remove(matchUpId: string): void {

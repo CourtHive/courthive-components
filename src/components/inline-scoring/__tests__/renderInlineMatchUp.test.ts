@@ -5,6 +5,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { renderInlineMatchUp } from '../renderInlineMatchUp';
 import { InlineScoringManager } from '../inlineScoringManager';
 import { compositions } from '../../../compositions/compositions';
+import { scoreGovernor } from 'tods-competition-factory';
 import type { Composition, MatchUp } from '../../../types';
 
 const STANDARD_FORMAT = 'SET3-S:6/TB7';
@@ -234,7 +235,10 @@ describe('renderInlineMatchUp refuses rather than fabricating', () => {
 
 // The factory reports what each segment can be scored with (`getInputLevels`). A segment of outs takes
 // set totals only; inline scoring is by the point or the game, so such a format is not offered.
-describe('renderInlineMatchUp — input levels', () => {
+// The refusals need a factory with ScoringEngine.getInputLevels (it ships with the outs refusal)
+const HAS_INPUT_LEVELS = typeof (scoreGovernor.ScoringEngine.prototype as any).getInputLevels === 'function';
+
+describe.skipIf(!HAS_INPUT_LEVELS)('renderInlineMatchUp — input levels', () => {
   it('does not offer point scoring for a format of outs', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {});
     const manager = new InlineScoringManager();

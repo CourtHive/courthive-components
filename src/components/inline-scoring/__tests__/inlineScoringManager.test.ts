@@ -1,5 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
 import { InlineScoringManager } from '../inlineScoringManager';
+import { scoreGovernor } from 'tods-competition-factory';
+import { describe, it, expect, vi } from 'vitest';
 import type { MatchUp } from '../../../types';
 
 const STANDARD_FORMAT = 'SET3-S:6/TB7';
@@ -210,7 +211,10 @@ describe('InlineScoringManager', () => {
   });
 });
 
-describe('InlineScoringManager — input levels', () => {
+// The refusals need a factory with ScoringEngine.getInputLevels (it ships with the outs refusal)
+const HAS_INPUT_LEVELS = typeof (scoreGovernor.ScoringEngine.prototype as any).getInputLevels === 'function';
+
+describe.skipIf(!HAS_INPUT_LEVELS)('InlineScoringManager — input levels', () => {
   it('a final set of outs stops taking points once it is in play, instead of throwing', () => {
     const manager = new InlineScoringManager();
     const matchUp = makeMatchUp({ matchUpFormat: 'SET3-S:6/TB7-F:O3' } as Partial<MatchUp>);
