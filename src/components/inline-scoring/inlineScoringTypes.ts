@@ -31,5 +31,6 @@ export interface InlineScoringCallbacks {
 export interface InlineScoringEngineState {
   engine: any;
   matchUpFormat: string;
+  /** Points added in this session. Not a server: the engine derives who served. */
   pointCount: number;
 }
