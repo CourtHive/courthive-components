@@ -225,6 +225,8 @@ describe('InlineScoringManager — input levels', () => {
 
   it('reports nothing accepted for a matchUp it does not hold', () => {
     expect(new InlineScoringManager().accepts('missing', 'point')).toBe(false);
+  });
+});
 
 describe('InlineScoringManager — who served', () => {
   it('leaves the server to the engine: one server per game, not one per point', () => {
