@@ -19,7 +19,7 @@ export function renderFlag({
   const span = document.createElement('span');
   const variant = matchUp?.matchUpType?.toLowerCase() as 'doubles' | 'singles' | undefined;
   if (!spacer) span.className = flagStyle({ variant });
-  span.innerHTML = spacer ? '' : iocFlag;
+  span.textContent = spacer ? '' : iocFlag;
 
   return span;
 }

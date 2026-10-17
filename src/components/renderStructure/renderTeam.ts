@@ -17,7 +17,7 @@ export function renderTeam({
 
   div.classList.add('tmx-tm');
   div.setAttribute('id', team?.participantId || '');
-  div.innerHTML = teamName;
+  div.textContent = teamName;
 
   return div;
 }
