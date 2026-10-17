@@ -146,7 +146,11 @@ describe('a no-advantage TIEBREAK', () => {
     field.value = '6';
     field.dispatchEvent(new Event('input', { bubbles: true }));
 
-    // Folded, as the design intends.
+    card.element
+      .querySelector('input[data-tiebreak-side="2"]')
+      ?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+
+    // Confirmed entry folds the tiebreak column.
     expect(card.element.querySelector('input[data-tiebreak-set="1"]')).toBeNull();
 
     // Click back into the set: entering it reopens its tiebreak column.

@@ -5,7 +5,7 @@
  *
  * Only the set in progress is open for entry, plus every set already finished. Enter the first set's
  * games and, when they call for one, a TIEBREAK COLUMN appears beside that set with a field per side.
- * Fill it and the column DISAPPEARS: the finished set now reads `7` over `6(3)`, and the second set's
+ * Confirm with Enter or move to another set and the column DISAPPEARS: the finished set now reads `7` over `6(3)`, and the second set's
  * fields take its place. Each set can carry a tiebreak, so this repeats per set.
  *
  * ── It RENDERS the model (S3 of the state-engine extraction) ──
@@ -518,10 +518,10 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
 
     apply(replayed(tiebreak(setIndex, sideNumber), digitsOnly(input)));
 
-    // Once the tiebreak is known the set is finished, so it stops being the one under edit — which is
-    // what folds the column away — and the next set's games field is where the operator goes.
-    if (tiebreakComplete(setIndex)) editingSet = undefined;
-    settle(before, { kind: 'games', setIndex: setIndex + 1 });
+    // A valid first digit can still be the prefix of 10 or 11. Keep this set open while typing;
+    // entering another set folds it, and Enter explicitly finishes tiebreak entry.
+    editingSet = setIndex;
+    settle(before);
   }
 
   // ── The keyboard ─────────────────────────────────────────────────────
@@ -544,6 +544,14 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     // move to the next bolt and end the match. Where there is no next bolt it is left alone and Submit
     // is what Enter does, which is the right end to the sequence.
     if (event.key === 'Enter') {
+      if (slot.kind === 'tiebreak' && tiebreakComplete(slot.setIndex)) {
+        event.preventDefault();
+        event.stopPropagation();
+        const before = layoutSignature();
+        editingSet = undefined;
+        settle(before, { kind: 'games', setIndex: slot.setIndex + 1 });
+        return;
+      }
       const bolt = nextTimedTarget(slot.setIndex);
       if (!bolt) return;
       event.preventDefault();

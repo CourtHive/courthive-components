@@ -736,3 +736,18 @@ describe('both regions agree with the endings groups', () => {
     expect(h.band()?.textContent).toContain('6-4');
   });
 });
+
+describe('readout set columns', () => {
+  it('keeps a two-digit losing tiebreak inside its own set column', () => {
+    const h = freeScore();
+    typeFreeScore(h, '6-7(10) 7-5 1-6');
+    const top = h.readout(1)!;
+    const bottom = h.readout(2)!;
+    const cells = (row: HTMLElement) => [...row.querySelectorAll('.chc-sec-readout-set')];
+    expect(cells(top).map((cell) => cell.firstChild?.textContent)).toEqual(['6', '7', '1']);
+    expect(cells(bottom).map((cell) => cell.firstChild?.textContent)).toEqual(['7', '5', '6']);
+    expect(cells(top)[0].querySelector('sup')?.textContent).toBe('10');
+    expect(top.getAttribute('aria-label')).toBe('Side 1: 6 tiebreak 10, 7, 1');
+    expect(bottom.querySelector('sup')).toBeNull();
+  });
+});
