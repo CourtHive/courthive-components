@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.9.1](https://github.com/CourtHive/courthive-components/compare/v6.9.0...v6.9.1) (2026-10-17)
+
+
+### Bug Fixes
+
+* **render:** write record data as text, never as HTML ([#744](https://github.com/CourtHive/courthive-components/issues/744)) ([8d492e9](https://github.com/CourtHive/courthive-components/commit/8d492e99a6e311c954903c69616338aff307825c))
+
 ## [6.9.0](https://github.com/CourtHive/courthive-components/compare/v6.8.2...v6.9.0) (2026-10-16)
 
 
