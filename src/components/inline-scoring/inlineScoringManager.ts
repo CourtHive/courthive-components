@@ -97,8 +97,9 @@ export class InlineScoringManager {
     const state = this.engines.get(matchUpId);
     if (!state || state.engine.isComplete()) return undefined;
 
-    const server = (state.pointCount % 2) as 0 | 1;
-    state.engine.addPoint({ winner, server, result: 'Winner' });
+    // The engine derives who served: in tennis the server changes game by game, not point by point.
+    // Supplying `pointCount % 2` alternated it every point and recorded that as the observed server.
+    state.engine.addPoint({ winner, result: 'Winner' });
     state.pointCount++;
 
     return this.notifyAndReturn(matchUpId, baseMatchUp);
