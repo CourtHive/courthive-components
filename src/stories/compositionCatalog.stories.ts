@@ -23,8 +23,7 @@ export default {
 function generatePreviewMatchUps(): MatchUp[] {
   const tournamentRecord = mocksEngine.generateTournamentRecord({
     drawProfiles: [{ drawSize: 4, generate: true, eventName: 'Singles', completeAllMatchUps: true }],
-    completeAllMatchUps: true,
-    participantsProfile: { withScaleValues: true }
+    completeAllMatchUps: true
   }).tournamentRecord;
 
   return (
