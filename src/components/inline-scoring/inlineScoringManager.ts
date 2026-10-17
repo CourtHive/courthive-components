@@ -96,6 +96,8 @@ export class InlineScoringManager {
   addPoint(matchUpId: string, winner: 0 | 1, baseMatchUp: MatchUp): MatchUp | undefined {
     const state = this.engines.get(matchUpId);
     if (!state || state.engine.isComplete()) return undefined;
+    // a segment of outs takes set totals: the engine refuses a point there rather than scoring it as tennis
+    if (!this.accepts(matchUpId, 'point')) return undefined;
 
     const server = (state.pointCount % 2) as 0 | 1;
     state.engine.addPoint({ winner, server, result: 'Winner' });
@@ -111,6 +113,7 @@ export class InlineScoringManager {
   addGame(matchUpId: string, winner: 0 | 1, baseMatchUp: MatchUp): MatchUp | undefined {
     const state = this.engines.get(matchUpId);
     if (!state || state.engine.isComplete()) return undefined;
+    if (!this.accepts(matchUpId, 'game')) return undefined;
 
     state.engine.addGame({ winner });
     return this.notifyAndReturn(matchUpId, baseMatchUp);
@@ -182,6 +185,15 @@ export class InlineScoringManager {
 
   isComplete(matchUpId: string): boolean {
     return this.engines.get(matchUpId)?.engine.isComplete() ?? false;
+  }
+
+  /**
+   * Whether the set in play takes this input. The factory reports what each segment can be scored with
+   * (`getInputLevels`): a segment of outs takes set totals only, a combined-point total has no games.
+   */
+  accepts(matchUpId: string, level: 'point' | 'game'): boolean {
+    const levels = this.engines.get(matchUpId)?.engine.getInputLevels();
+    return !!levels?.[level];
   }
 
   remove(matchUpId: string): void {

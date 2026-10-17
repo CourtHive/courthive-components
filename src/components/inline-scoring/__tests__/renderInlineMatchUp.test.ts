@@ -231,3 +231,44 @@ describe('renderInlineMatchUp refuses rather than fabricating', () => {
     error.mockRestore();
   });
 });
+
+// The factory reports what each segment can be scored with (`getInputLevels`). A segment of outs takes
+// set totals only; inline scoring is by the point or the game, so such a format is not offered.
+describe('renderInlineMatchUp — input levels', () => {
+  it('does not offer point scoring for a format of outs', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const manager = new InlineScoringManager();
+    const el = renderInlineMatchUp({
+      matchUp: makeMatchUp({ matchUpFormat: 'INN4XA-S:O3' }),
+      composition: makeComposition('points'),
+      manager,
+      isLucky: true
+    });
+    expect(el).toBeNull();
+    expect(manager.has('mu-1')).toBe(false);
+    expect(error.mock.calls[0][0]).toContain('INN4XA-S:O3');
+    error.mockRestore();
+  });
+
+  it('does not offer game scoring for a combined point total', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const el = renderInlineMatchUp({
+      matchUp: makeMatchUp({ matchUpFormat: 'SET1-S:P32' }),
+      composition: makeComposition('games'),
+      manager: new InlineScoringManager(),
+      isLucky: true
+    });
+    expect(el).toBeNull();
+    error.mockRestore();
+  });
+
+  it('still offers point scoring for a combined point total', () => {
+    const el = renderInlineMatchUp({
+      matchUp: makeMatchUp({ matchUpFormat: 'SET1-S:P32' }),
+      composition: makeComposition('points'),
+      manager: new InlineScoringManager(),
+      isLucky: true
+    });
+    expect(el).toBeInstanceOf(HTMLElement);
+  });
+});
