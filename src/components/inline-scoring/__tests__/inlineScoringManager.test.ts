@@ -225,5 +225,25 @@ describe('InlineScoringManager — input levels', () => {
 
   it('reports nothing accepted for a matchUp it does not hold', () => {
     expect(new InlineScoringManager().accepts('missing', 'point')).toBe(false);
+
+describe('InlineScoringManager — who served', () => {
+  it('leaves the server to the engine: one server per game, not one per point', () => {
+    const manager = new InlineScoringManager();
+    const matchUp = makeMatchUp();
+    manager.getOrCreate('mu-1', 'SET3-S:6/TB7', matchUp);
+    for (let i = 0; i < 4; i++) manager.addPoint('mu-1', 0, matchUp); // game 1
+    for (let i = 0; i < 2; i++) manager.addPoint('mu-1', 1, matchUp); // game 2 under way
+
+    const history = manager.get('mu-1')!.engine.getState().history;
+    expect(history.points.map((point: any) => point.server)).toEqual([0, 0, 0, 0, 1, 1]);
+    // calculated, so not recorded as an input the engine would replay as observed
+    expect(history.entries.map((entry: any) => entry.data.server)).toEqual([
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined
+    ]);
   });
 });
