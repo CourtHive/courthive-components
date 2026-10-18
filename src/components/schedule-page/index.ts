@@ -86,6 +86,9 @@ export type { ScheduleCellTypeAheadOptions } from './ui/scheduleCellTypeAhead';
 // ============================================================================
 
 export type {
+  CatalogPlacement,
+  InspectorPlacement,
+  InspectorGeometry,
   CatalogMatchUpItem,
   CatalogFilters,
   MatchUpSide,

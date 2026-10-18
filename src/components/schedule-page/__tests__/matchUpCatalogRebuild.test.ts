@@ -118,7 +118,7 @@ describe('matchUpCatalog rebuilds', () => {
     const { panel, builds, cards } = mount();
     builds();
     const header = (name: string) =>
-      Array.from(panel.element.querySelectorAll<HTMLElement>('div')).find((el) =>
+      Array.from(panel.element.querySelectorAll<HTMLElement>('button.sp-group-header')).find((el) =>
         el.lastElementChild?.textContent?.startsWith(`${name} (`)
       )!;
 
