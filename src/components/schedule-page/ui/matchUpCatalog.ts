@@ -8,6 +8,9 @@
  * to the catalog (unschedules it).
  */
 
+import { wrapSearchWithClear, syncClearVisibility } from '../../../helpers/searchClearButton';
+import { clearRelatedHighlight } from './matchUpHighlight';
+import { buildMatchUpCard } from './matchUpCard';
 import type {
   SchedulePageState,
   UIPanel,
@@ -22,9 +25,6 @@ import {
   isCompletedStatus,
   computeBaseRoundByEvent
 } from '../domain/matchUpCatalogProjections';
-import { wrapSearchWithClear, syncClearVisibility } from '../../../helpers/searchClearButton';
-import { clearRelatedHighlight } from './matchUpHighlight';
-import { buildMatchUpCard } from './matchUpCard';
 import {
   spPanelStyle,
   spPanelHeaderStyle,

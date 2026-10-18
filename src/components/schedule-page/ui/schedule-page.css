@@ -1026,7 +1026,7 @@
   border: 1px solid var(--sp-line);
   border-radius: 12px;
   background: var(--sp-panel-bg);
-  box-shadow: 0 4px 24px #0003;
+  box-shadow: var(--sp-panel-shadow);
 }
 .spl-floating-inspector[hidden] {
   display: none;
@@ -1050,7 +1050,7 @@
   border: 1px solid var(--sp-line);
   border-radius: 4px;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 .spl-floating-content {
   flex: 1;

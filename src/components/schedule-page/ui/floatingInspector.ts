@@ -1,6 +1,12 @@
 import type { InspectorGeometry } from '../types';
 
 const ARIA_LABEL = 'aria-label';
+const ARROW_DIRECTIONS: Record<string, [number, number]> = {
+  ArrowRight: [1, 0],
+  ArrowLeft: [-1, 0],
+  ArrowDown: [0, 1],
+  ArrowUp: [0, -1]
+};
 
 export function clampInspectorGeometry(
   value: Partial<InspectorGeometry>,
@@ -49,7 +55,7 @@ export function buildFloatingInspector(panel: HTMLElement, options: FloatingInsp
     return button;
   }
   button('Reset position', () => {
-    geometry = clampInspectorGeometry({}, window.innerWidth, window.innerHeight);
+    geometry = clampInspectorGeometry({}, globalThis.innerWidth, globalThis.innerHeight);
     paint(true);
   });
   button('Dock', () => {
@@ -68,7 +74,7 @@ export function buildFloatingInspector(panel: HTMLElement, options: FloatingInsp
   resize.textContent = '↘';
   resize.setAttribute(ARIA_LABEL, 'Resize inspector with arrow keys');
   element.append(header, content, resize);
-  let geometry = clampInspectorGeometry(options.geometry ?? {}, window.innerWidth, window.innerHeight);
+  let geometry = clampInspectorGeometry(options.geometry ?? {}, globalThis.innerWidth, globalThis.innerHeight);
   let drag: {
     id: number;
     x: number;
@@ -78,7 +84,7 @@ export function buildFloatingInspector(panel: HTMLElement, options: FloatingInsp
     target: HTMLElement;
   } | null = null;
   function paint(persist = false): void {
-    geometry = clampInspectorGeometry(geometry, window.innerWidth, window.innerHeight);
+    geometry = clampInspectorGeometry(geometry, globalThis.innerWidth, globalThis.innerHeight);
     Object.assign(element.style, {
       left: `${geometry.left}px`,
       top: `${geometry.top}px`,
@@ -113,9 +119,10 @@ export function buildFloatingInspector(panel: HTMLElement, options: FloatingInsp
   function key(event: KeyboardEvent, resizing: boolean): void {
     if (event.target !== event.currentTarget) return;
     const delta = event.shiftKey ? 40 : 10;
-    const dx = event.key === 'ArrowRight' ? delta : event.key === 'ArrowLeft' ? -delta : 0;
-    const dy = event.key === 'ArrowDown' ? delta : event.key === 'ArrowUp' ? -delta : 0;
-    if (!dx && !dy) return;
+    const direction = ARROW_DIRECTIONS[event.key];
+    if (!direction) return;
+    const dx = direction[0] * delta;
+    const dy = direction[1] * delta;
     event.preventDefault();
     geometry = resizing
       ? { ...geometry, width: geometry.width + dx, height: geometry.height + dy }
@@ -134,9 +141,9 @@ export function buildFloatingInspector(panel: HTMLElement, options: FloatingInsp
   function setVisible(visible: boolean): void {
     element.hidden = !visible;
     if (visible && !listening) {
-      window.addEventListener('resize', onResize);
+      globalThis.addEventListener('resize', onResize);
       paint();
-    } else if (!visible && listening) window.removeEventListener('resize', onResize);
+    } else if (!visible && listening) globalThis.removeEventListener('resize', onResize);
     listening = visible;
   }
   paint();
@@ -149,7 +156,7 @@ export function buildFloatingInspector(panel: HTMLElement, options: FloatingInsp
     },
     destroy: () => {
       stop();
-      window.removeEventListener('resize', onResize);
+      globalThis.removeEventListener('resize', onResize);
       element.remove();
       panel.remove();
     }

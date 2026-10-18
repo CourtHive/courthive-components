@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { SchedulePageStore } from '../engine/schedulePageStore';
 import { buildMatchUpCatalog } from '../ui/matchUpCatalog';
-import { describe, it, expect } from 'vitest';
 import type { CatalogMatchUpItem } from '../types';
+import { describe, it, expect } from 'vitest';
 
 /**
  * The catalog builds its cards from a handful of state fields, and the store emits on every write.
