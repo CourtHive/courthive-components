@@ -15,6 +15,7 @@ const CUSTOM = 'Custom';
 const POINTS_TOTAL = 'Points total';
 const DECIDING_POINT = 'SET1-S:P32DP';
 const POINTS_32 = 'SET1-S:P32';
+const TIEBREAK_SETS = 'SET3-S:TB11';
 
 function closeAll(): void {
   for (let attempt = 0; attempt < 4 && document.querySelector(MODAL); attempt += 1) cModal.close();
@@ -106,6 +107,11 @@ describe('capabilities', () => {
     expect(offered('descriptor')).toEqual(['Best of']);
     expect(shown('aggregateOption')).toBe(false);
     expect(shown('finalSetOption')).toBe(false);
+    // a tiebreak-only set is one an aggregate is offered for, so this is the capability hiding it
+    open(TIEBREAK_SETS, restricted);
+    expect(shown('aggregateOption')).toBe(false);
+    open(TIEBREAK_SETS);
+    expect(shown('aggregateOption'), 'control: offered with the capability on').toBe(true);
   });
 
   it('a format that needs one opens read-only and is returned unchanged', () => {
@@ -146,12 +152,12 @@ describe('the catalog dropdown follows the code', () => {
 
 describe('each picker has its own state', () => {
   it('a change in one picker does not carry into the next', () => {
-    open(STANDARD);
+    open(TIEBREAK_SETS);
     toggle('aggregateOption');
-    expect(code()).toBe('SET3A-S:6/TB7');
-    open(STANDARD);
+    expect(code()).toBe('SET3A-S:TB11');
+    open(TIEBREAK_SETS);
     expect(el<HTMLInputElement>('aggregateOption').checked).toBe(false);
-    expect(code()).toBe(STANDARD);
+    expect(code()).toBe(TIEBREAK_SETS);
   });
 });
 
