@@ -1,7 +1,7 @@
 import { effectiveFormat, offeredTieMargins, offeredTotals, tieRuleApplies } from './pointsTotal';
 import { getBestOfOptionsForRoot, getTiebreakAtOptions, MATCH_ROOT_LABELS } from './options';
 import { resolveCapabilities, SET_TYPE_CAPABILITY } from './capabilities';
-import { DEFAULT_TIEBREAK_TO_OPTIONS } from './edits';
+import { aggregateAllowed, DEFAULT_TIEBREAK_TO_OPTIONS } from './edits';
 import { selectedCode } from './codec';
 
 // constants and types
@@ -144,10 +144,11 @@ function setTypeLabel(labels: any, setType: SetType, plural: boolean): string {
 }
 
 const advantageLabel = (labels: any, noAd: boolean) =>
-  noAd ? labels?.advantage?.noAd || DEFAULT_LABELS.advantage.noAd : labels?.advantage?.ad || DEFAULT_LABELS.advantage.ad;
+  noAd
+    ? labels?.advantage?.noAd || DEFAULT_LABELS.advantage.noAd
+    : labels?.advantage?.ad || DEFAULT_LABELS.advantage.ad;
 
-const matchRootLabel = (labels: any, root: string) =>
-  labels?.matchRoots?.[root] || MATCH_ROOT_LABELS[root] || root;
+const matchRootLabel = (labels: any, root: string) => labels?.matchRoots?.[root] || MATCH_ROOT_LABELS[root] || root;
 
 const button = (text: string) => `${text}${CLICKABLE}`;
 const asOptions = (values: any[], text: (value: any) => string = String): Option[] =>
@@ -337,7 +338,6 @@ function segmentView(segment: SegmentDraft, plural: boolean, isFinal: boolean, c
   };
 }
 
-
 /** A dropdown button, or its value as fixed text while a points total locks it. */
 function lockable(control: ControlView, locked: boolean): ControlView {
   return locked ? { ...control, locked } : { ...control, label: button(control.label) };
@@ -397,7 +397,11 @@ export function deriveView(state: EditorState, config: ViewConfig): EditorView {
       },
       locked
     ),
-    aggregate: { visible: capabilities.aggregate && !locked, checked: format.aggregate },
+    // offered only where an aggregate is defined; a loaded aggregate stays visible so it can be turned off
+    aggregate: {
+      visible: capabilities.aggregate && !locked && (format.aggregate || aggregateAllowed(format)),
+      checked: format.aggregate
+    },
     gameFormat: {
       visible: capabilities.gameFormat && !locked && format.set.based !== 'P',
       label: button(`${labels.game || 'Game'}: ${gameFormatText(format.gameFormat, labels)}`),

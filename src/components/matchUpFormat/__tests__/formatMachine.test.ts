@@ -18,6 +18,8 @@ const STANDARD = 'SET3-S:6/TB7';
 const TIMED_POINTS = 'SET3-S:T10P';
 const TIME_LIMITED = 'SET3-S:6/TB7-M:T60';
 const EXACTLY_TIMED = 'SET3X-S:T10';
+const TIEBREAK_SETS = 'SET3-S:TB11';
+const TIMED = 'SET3-S:T10';
 
 function edit(state: EditorState, ...edits: Edit[]): EditorState {
   return edits.reduce((current, next) => applyEdit(current, next, { codec }), state);
@@ -159,6 +161,9 @@ describe('capabilities', () => {
     expect(shown.descriptor.options.map((option) => option.value)).toEqual(['BEST_OF']);
     expect(shown.aggregate.visible).toBe(false);
     expect(shown.finalSetToggle.visible).toBe(false);
+    // a tiebreak-only set is one an aggregate is offered for, so this is the capability hiding it
+    expect(view(TIEBREAK_SETS, { aggregate: false }).aggregate.visible).toBe(false);
+    expect(view(TIEBREAK_SETS, {}).aggregate.visible, 'control: offered with the capability on').toBe(true);
   });
 
   it('a code that needs a switched-off capability opens read-only and is returned unchanged', () => {
@@ -182,12 +187,12 @@ describe('Phase 6: what used to open read-only can be edited', () => {
   });
 
   it("a standard set's tiebreak does not follow it into a timed set", () => {
-    expect(codeAfter(STANDARD, { type: 'setSetType', segment: 'set', setType: 'TIMED' })).toBe('SET3-S:T10');
+    expect(codeAfter(STANDARD, { type: 'setSetType', segment: 'set', setType: 'TIMED' })).toBe(TIMED);
   });
 
   it('the standalone short form is kept while the format is still a single timed set', () => {
     expect(codeAfter('T10', { type: 'setSegmentValue', segment: 'set', field: 'minutes', value: 20 })).toBe('T20');
-    expect(codeAfter('T10', { type: 'setCount', count: 3 })).toBe('SET3-S:T10');
+    expect(codeAfter('T10', { type: 'setCount', count: 3 })).toBe(TIMED);
     expect(codeAfter('T10', { type: 'setCount', count: 3 }, { type: 'setCount', count: 1 })).toBe('T10');
     expect(codeAfter('T10', { type: 'setMaxMinutes', minutes: 20 })).toBe('SET1-S:T10-M:T20');
     expect(codeAfter('SET1-S:T10', { type: 'setSegmentValue', segment: 'set', field: 'minutes', value: 20 })).toBe(
@@ -218,7 +223,8 @@ describe('Phase 5: outs sets and the match time limit', () => {
 
   it('an outs set may be counted Exactly, and stays an outs set', () => {
     expect(codeAfter('INN9-S:O3', { type: 'setCountMode', mode: 'EXACTLY' })).toBe('INN9X-S:O3');
-    expect(codeAfter('INN4XA-S:O3', { type: 'setSetType', segment: 'set', setType: 'SET' })).toBe('INN5A-S:6');
+    // a standard set cannot be part of an aggregate (CA 2026-10-18), so the aggregate ends with the outs
+    expect(codeAfter('INN4XA-S:O3', { type: 'setSetType', segment: 'set', setType: 'SET' })).toBe('INN5-S:6');
   });
 
   it('a match time limit can be set on any format and removed', () => {
@@ -444,5 +450,54 @@ describe('the catalog', () => {
   it('offers the points-total presets: 32 with a tie as a result, 32 with a deciding point, and 24', () => {
     const formats = presets.map((entry) => entry.format);
     expect(formats).toEqual(expect.arrayContaining(['SET1-S:P32', 'SET1-S:P32DP', 'SET1-S:P24']));
+  });
+});
+
+/**
+ * An aggregate of standard sets (`SET3A-S:6/TB7`) is refused by the factory for a new format (CA
+ * 2026-10-18, scoring engine spec § 9.3 rule 5): an aggregate sums segments scored in units. The picker
+ * offers Aggregate only where the factory accepts it, so it cannot build a code the factory refuses.
+ */
+describe('Aggregate is offered only where an aggregate is defined', () => {
+  const shownFor = (code: string) => deriveView(fromCode(code, codec), { codec, catalogCodes: [] }).aggregate;
+
+  it('is not offered for a standard set, and switching it on there changes nothing', () => {
+    expect(shownFor(STANDARD).visible).toBe(false);
+    expect(codeAfter(STANDARD, { type: 'setAggregate', on: true })).toBe(STANDARD);
+    expect(codeAfter('INN5-S:6', { type: 'setAggregate', on: true })).toBe('INN5-S:6');
+  });
+
+  it('is offered for timed, tiebreak-only and outs sets', () => {
+    for (const code of [TIMED, TIEBREAK_SETS, 'INN9-S:O3', EXACTLY_TIMED]) {
+      expect(shownFor(code).visible, code).toBe(true);
+    }
+    expect(codeAfter(TIEBREAK_SETS, { type: 'setAggregate', on: true })).toBe('SET3A-S:TB11');
+    expect(codeAfter('HAL2-S:T45', { type: 'setAggregate', on: true })).toBe('HAL2A-S:T45');
+  });
+
+  it('a set made standard ends the aggregate', () => {
+    expect(codeAfter('HAL2A-S:T45', { type: 'setSetType', segment: 'set', setType: 'SET' })).toBe('HAL2-S:6');
+  });
+
+  it('a best-of aggregate sums its final set, so a standard final set ends it; an Exactly decider does not', () => {
+    const bestOf = edit(
+      fromCode('SET3A-S:TB11', codec),
+      { type: 'setFinalSet', on: true },
+      { type: 'setSetType', segment: 'finalSet', setType: 'SET' }
+    );
+    expect(bestOf.format.aggregate).toBe(false);
+    const exactly = edit(
+      fromCode('SET2XA-S:T10P', codec),
+      { type: 'setFinalSet', on: true },
+      { type: 'setSetType', segment: 'finalSet', setType: 'SET' }
+    );
+    expect(exactly.format.aggregate).toBe(true);
+  });
+
+  it('a stored aggregate of standard sets opens with the toggle on and offered, so it can be turned off', () => {
+    const stored = 'SET3A-S:6/TB7';
+    expect(selectedCode(fromCode(stored, codec), codec)).toBe(stored);
+    expect(shownFor(stored)).toEqual({ visible: true, checked: true });
+    expect(codeAfter(stored, { type: 'setAggregate', on: false })).toBe(STANDARD);
   });
 });

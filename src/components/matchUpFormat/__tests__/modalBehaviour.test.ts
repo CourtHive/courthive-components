@@ -209,9 +209,9 @@ describe('each control', () => {
   });
 
   it('aggregate and match root change the code', () => {
-    open(STANDARD);
+    open('HAL2-S:T45');
     toggle('aggregateOption');
-    expect(code()).toBe('SET3A-S:6/TB7');
+    expect(code()).toBe('HAL2A-S:T45');
     open('SET5-S:6/TB7');
     choose('matchRoot', 'Half');
     expect(code()).toBe('HAL5-S:6/TB7');
