@@ -2,7 +2,7 @@
  * Score validation utilities using tournamentEngine
  */
 import { tournamentEngine, matchUpFormatCode, matchUpStatusConstants, governors } from 'tods-competition-factory';
-import { isCompletedCombinedPointTie } from '../logic/combinedPointTie';
+import { isCompletedLevelClose } from '../logic/combinedPointTie';
 import type { ScoreOutcome } from '../types';
 
 const { COMPLETED } = matchUpStatusConstants;
@@ -215,9 +215,10 @@ export function validateScore(scoreString: string, matchUpFormat?: string, match
     const setsToWin = Math.ceil(bestOfSets / 2);
     const winningSide: number | undefined = anySetInvalidated ? undefined : outcome.winningSide;
 
-    // A level combined-point total whose format lets the tie stand is complete with no winner.
+    // A match the factory completes level (a combined-point tie, an exactly or aggregate count closed
+    // level) is complete with no winner.
     const isComplete =
-      (!anySetInvalidated && isCompletedCombinedPointTie(validatedSets, matchUpFormat)) ||
+      (!anySetInvalidated && isCompletedLevelClose(validatedSets, matchUpFormat)) ||
       checkMatchComplete(anySetInvalidated, winningSide, validatedSets, bestOfSets, parsed);
 
     if (!isComplete) {

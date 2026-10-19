@@ -72,7 +72,9 @@ export class InlineScoringManager {
           winningSide: existingMatchUp.winningSide
         } as any);
       } catch {
-        // If initial score load fails, start fresh
+        // A baseline the factory refuses starts fresh: one whose matchUpStatus or winningSide disagrees with
+        // the sets (IN_PROGRESS beside sets that decide the match, COMPLETED beside sets that do not). The
+        // engine is untouched, so engineToMatchUp shows the persisted score until the first input.
       }
     }
 
@@ -123,12 +125,22 @@ export class InlineScoringManager {
 
   /**
    * Add a set score. Used in 'entry' mode.
+   *
+   * The factory judges the total by its segment's rule and refuses a total that is not a fact (a negative
+   * or non-integer score): that refusal records nothing and returns undefined, as input on a completed
+   * match does. An input the engine ignores (`recorded: false`) returns undefined too.
    */
   addSet(matchUpId: string, side1Score: number, side2Score: number, baseMatchUp: MatchUp): MatchUp | undefined {
     const state = this.engines.get(matchUpId);
     if (!state || state.engine.isComplete()) return undefined;
 
-    state.engine.addSet({ side1Score, side2Score });
+    try {
+      const result = state.engine.addSet({ side1Score, side2Score });
+      if (result?.recorded === false) return undefined;
+    } catch {
+      // a refused total records nothing: the score is as it was
+      return undefined;
+    }
     return this.notifyAndReturn(matchUpId, baseMatchUp);
   }
 
@@ -216,8 +228,10 @@ export class InlineScoringManager {
     this.callbacks.onScoreChange?.({ matchUpId, matchUp: updatedMatchUp, engine: state.engine });
 
     if (state.engine.isComplete()) {
-      // getWinner() returns 1-based side number (1 or 2), or nothing for a combined-point total that ended
-      // level (16-16 of SET1-S:P32): a tie is a finished result too (CA, 2026-10-11).
+      // getWinner() returns 1-based side number (1 or 2), or nothing for a match that ended level: a
+      // combined-point total (16-16 of SET1-S:P32, CA 2026-10-11), and since factory 7.16 an exactly or
+      // aggregate count closed level with no declared decider (HAL2X-S:TB11 at one half each). A tie is a
+      // finished result too: listeners must not assume a winningSide.
       const winner = state.engine.getWinner();
       this.callbacks.onMatchComplete?.({ matchUpId, winningSide: winner ?? undefined, engine: state.engine });
     }
