@@ -1,5 +1,21 @@
 # Changelog
 
+## [6.10.0](https://github.com/CourtHive/courthive-components/compare/v6.9.1...v6.10.0) (2026-10-19)
+
+
+### Features
+
+* bottom matchUp catalog and floating schedule inspector ([#755](https://github.com/CourtHive/courthive-components/issues/755)) ([63c697a](https://github.com/CourtHive/courthive-components/commit/63c697ae6d79c3acb776a3ff35f127b28203d9a1))
+
+
+### Bug Fixes
+
+* **inline-scoring:** a format is offered only at the input level its set in play takes ([#749](https://github.com/CourtHive/courthive-components/issues/749)) ([f732b86](https://github.com/CourtHive/courthive-components/commit/f732b86f0d3eafbbc2ac201731dfd08ce6e526ac))
+* **inline-scoring:** a point records who won it, not a winner hit the scorer never entered ([#752](https://github.com/CourtHive/courthive-components/issues/752)) ([a7bb6af](https://github.com/CourtHive/courthive-components/commit/a7bb6afbfc681ed313023bdbad33b1fa68a8350d))
+* **inline-scoring:** the engine derives who served, game by game ([#750](https://github.com/CourtHive/courthive-components/issues/750)) ([0422c6d](https://github.com/CourtHive/courthive-components/commit/0422c6dae356dbd80d388468fec0b4699fb8b514))
+* **matchUpFormat:** offer Aggregate only for sets an aggregate is defined over ([#754](https://github.com/CourtHive/courthive-components/issues/754)) ([f7f5bad](https://github.com/CourtHive/courthive-components/commit/f7f5bad83b6be4149453b84a9c71edf516151a6c))
+* **scoring:** multi-digit tiebreak entry and aligned score readouts ([#748](https://github.com/CourtHive/courthive-components/issues/748)) ([3276a4e](https://github.com/CourtHive/courthive-components/commit/3276a4eff0e27a7cdc75952fc18192110c8b100b))
+
 ## [6.9.1](https://github.com/CourtHive/courthive-components/compare/v6.9.0...v6.9.1) (2026-10-17)
 
 
