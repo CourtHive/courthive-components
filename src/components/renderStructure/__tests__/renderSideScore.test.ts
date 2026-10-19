@@ -1,9 +1,12 @@
 /**
  * @vitest-environment happy-dom
  */
-import { describe, it, expect, vi } from 'vitest';
-import { setScore, renderSideScore } from '../renderSideScore';
 import type { Composition, MatchUp, SetScore } from '../../../types';
+import { setScore, renderSideScore } from '../renderSideScore';
+import { describe, it, expect, vi } from 'vitest';
+
+const WINNER = 'chc-game-score--winner';
+const LOSER = 'chc-game-score--loser';
 
 function makeSet(overrides: Partial<SetScore> = {}): SetScore {
   return { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1, ...overrides };
@@ -59,20 +62,25 @@ describe('setScore', () => {
     expect(span).toBeNull();
   });
 
-  it('applies winner variant styling', () => {
-    const el = setScore({ set: makeSet({ winningSide: 1 }), sideNumber: 1 });
-    // The className should contain something related to winner
-    expect(el.className.length).toBeGreaterThan(0);
+  // The variant was `(isWinningSide && 'winner') || set?.winningSide ? 'loser' : undefined`, which by operator
+  // precedence marked BOTH sides of a decided set `loser` (2023-08 until 2026-10-19).
+  it.each([1, 2])('marks the winning side %s of a decided set as the winner, and only that side', (winningSide) => {
+    const loserSide = 3 - winningSide;
+    const winner = setScore({ set: makeSet({ winningSide }), sideNumber: winningSide });
+    const loser = setScore({ set: makeSet({ winningSide }), sideNumber: loserSide });
+
+    expect(winner.classList.contains(WINNER)).toBe(true);
+    expect(winner.classList.contains(LOSER)).toBe(false);
+    expect(loser.classList.contains(LOSER)).toBe(true);
+    expect(loser.classList.contains(WINNER)).toBe(false);
   });
 
-  it('applies loser variant styling for non-winning side', () => {
-    const el = setScore({ set: makeSet({ winningSide: 1 }), sideNumber: 2 });
-    expect(el.className.length).toBeGreaterThan(0);
-  });
-
-  it('handles set with no winningSide', () => {
-    const el = setScore({ set: makeSet({ winningSide: undefined }), sideNumber: 1 });
-    expect(el).toBeInstanceOf(HTMLElement);
+  it('marks neither side of an undecided set', () => {
+    for (const sideNumber of [1, 2]) {
+      const el = setScore({ set: makeSet({ winningSide: undefined }), sideNumber });
+      expect(el.classList.contains(WINNER)).toBe(false);
+      expect(el.classList.contains(LOSER)).toBe(false);
+    }
   });
 
   it('renders empty string for undefined score', () => {
