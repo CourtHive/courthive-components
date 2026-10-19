@@ -172,6 +172,15 @@ export interface SchedulePageCatalogState {
   showScheduled?: boolean;
 }
 
+export type CatalogPlacement = 'left' | 'right' | 'bottom';
+export type InspectorPlacement = 'docked' | 'floating';
+export interface InspectorGeometry {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
 export interface SchedulePageConfig {
   matchUpCatalog: CatalogMatchUpItem[];
   scheduleDates: ScheduleDate[];
@@ -186,6 +195,12 @@ export interface SchedulePageConfig {
   hideLeft?: boolean;
   /** Which side to place the matchUp catalog. Defaults to 'right'. */
   catalogSide?: 'left' | 'right';
+  /** Overrides catalogSide; changing presentation does not change scheduling state. */
+  catalogPlacement?: CatalogPlacement;
+  inspectorPlacement?: InspectorPlacement;
+  onInspectorPlacementChange?: (placement: InspectorPlacement) => void;
+  inspectorGeometry?: InspectorGeometry;
+  onInspectorGeometryChange?: (geometry: InspectorGeometry) => void;
   scheduledBehavior?: ScheduledBehavior;
   schedulingMode?: SchedulingMode;
   /** Initial visibility of the active strip (one-row court summary above the grid). Defaults to true. */
@@ -293,13 +308,7 @@ export interface UIPanel<T = unknown> {
 
 /** Field identifiers for the 3-zone cell layout */
 export type ScheduleCellField =
-  | 'time'
-  | 'eventRound'
-  | 'participants'
-  | 'score'
-  | 'matchUpStatus'
-  | 'matchUpFormat'
-  | 'umpire';
+  'time' | 'eventRound' | 'participants' | 'score' | 'matchUpStatus' | 'matchUpFormat' | 'umpire';
 
 /** Controls how participant names are rendered inside a cell */
 export interface ParticipantDisplayConfig {

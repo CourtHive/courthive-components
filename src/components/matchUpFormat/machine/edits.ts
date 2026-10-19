@@ -7,6 +7,18 @@ import type { Capabilities, CombinedPointsConfig, Codec, Edit, EditorState, Form
 
 /** The set types that may be counted "Exactly N" (`SET3X-S:T10`, `INN4X-S:O3`); the others are "Best of". */
 const EXACTLY_SET_TYPES = new Set(['TIMED', 'OUTS']);
+/**
+ * Whether the format may be scored as an aggregate. The factory refuses an aggregate of standard sets for
+ * a new format (CA 2026-10-18, scoring engine spec § 9.3 rule 5): an aggregate sums segments whose scores
+ * are units — timed, tiebreak-only and outs segments — and a standard set's games are not. Every segment
+ * is summed except an "Exactly" aggregate's final set, which is the decider played after the N.
+ */
+export function aggregateAllowed(format: FormatState): boolean {
+  if (format.set.type === 'SET') return false;
+  const finalSetSummed = format.finalSetEnabled && format.countMode !== 'EXACTLY';
+  return !(finalSetSummed && format.finalSet.type === 'SET');
+}
+
 /** A final set's tiebreak targets outside "Exactly" mode; "Exactly" also offers 1 and 3. */
 export const DEFAULT_TIEBREAK_TO_OPTIONS = [1, 3, 5, 7, 9, 10, 11, 12, 13, 15, 21, 25];
 
@@ -105,7 +117,7 @@ function applyToFormat(format: FormatState, edit: Exclude<Edit, { type: 'loadCod
       }
       break;
     case 'setAggregate':
-      format.aggregate = edit.on;
+      format.aggregate = edit.on && aggregateAllowed(format);
       break;
     case 'setGameFormat':
       format.gameFormat = edit.gameFormat;
@@ -158,5 +170,7 @@ export function applyEdit(state: EditorState, edit: Edit, context: EditContext):
 
   const format = copyFormat(state.format);
   applyToFormat(format, edit, context);
+  // an edit that makes a set standard ends the aggregate, which a standard set cannot be part of
+  if (format.aggregate && !aggregateAllowed(format)) format.aggregate = false;
   return { ...state, format, dirty: true };
 }

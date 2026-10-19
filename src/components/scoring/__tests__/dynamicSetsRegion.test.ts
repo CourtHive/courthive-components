@@ -31,7 +31,7 @@ const GAMES_CELL = '.chc-sec-games-cell';
 
 const SIDES: [{ participantName: string }, { participantName: string }] = [
   { participantName: 'Rosalind Lem' },
-  { participantName: 'Derrick Ellul' },
+  { participantName: 'Derrick Ellul' }
 ];
 
 function mount(over: { matchUpFormat?: string; sets?: any[]; smartComplements?: boolean } = {}) {
@@ -44,7 +44,7 @@ function mount(over: { matchUpFormat?: string; sets?: any[]; smartComplements?: 
     sets: over.sets,
     smartComplements: over.smartComplements,
     onChange: () => card.refresh(),
-    onStructureChange: () => card.rerender(),
+    onStructureChange: () => card.rerender()
   });
 
   const card = renderScoreEntryCard({ sides: SIDES, matchUpFormat, region });
@@ -52,8 +52,7 @@ function mount(over: { matchUpFormat?: string; sets?: any[]; smartComplements?: 
 
   const q = <T extends Element>(selector: string) => card.element.querySelector<T>(selector);
 
-  const cell = (side: number, set: number) =>
-    q<HTMLInputElement>(`input[data-side="${side}"][data-set="${set}"]`);
+  const cell = (side: number, set: number) => q<HTMLInputElement>(`input[data-side="${side}"][data-set="${set}"]`);
 
   /** Type into a cell the way a browser does — set the value, then dispatch `input`. */
   const type = (side: number, set: number, value: string) => {
@@ -106,7 +105,7 @@ function mount(over: { matchUpFormat?: string; sets?: any[]; smartComplements?: 
     sideOption: (side: number, status: string) =>
       q<HTMLButtonElement>(`[data-panel-side="${side}"] button[data-ending="${status}"]`),
     otherButton: () => q<HTMLButtonElement>('button[data-action="other"]'),
-    otherItem: (status: string) => q<HTMLButtonElement>(`.chc-sec-other-menu button[data-ending="${status}"]`),
+    otherItem: (status: string) => q<HTMLButtonElement>(`.chc-sec-other-menu button[data-ending="${status}"]`)
   };
 }
 
@@ -201,8 +200,20 @@ describe('the grid reveals one set at a time — CA, 2026-09-27', () => {
   // and every score cell uses the same property for it.
   it.each([
     ['one set open', (h: any) => h],
-    ['two sets open', (h: any) => { h.enterSet(1, '6', '4'); return h; }],
-    ['a tiebreak column open', (h: any) => { h.enterSet(1, '7', '6'); return h; }],
+    [
+      'two sets open',
+      (h: any) => {
+        h.enterSet(1, '6', '4');
+        return h;
+      }
+    ],
+    [
+      'a tiebreak column open',
+      (h: any) => {
+        h.enterSet(1, '7', '6');
+        return h;
+      }
+    ]
   ])('header and rows share one identical column template (%s)', (_label, drive) => {
     const h = drive(mount());
     // Cast rather than a generic call: the `it.each` drive functions are typed `any`, so a type argument
@@ -213,7 +224,7 @@ describe('the grid reveals one set at a time — CA, 2026-09-27', () => {
     expect(head?.style.gridTemplateColumns).toBeTruthy();
     for (const row of rows) {
       expect(row.style.gridTemplateColumns, 'a row disagrees with the header about its columns').toBe(
-        head?.style.gridTemplateColumns,
+        head?.style.gridTemplateColumns
       );
     }
     // And one heading per score column, on every row.
@@ -256,7 +267,12 @@ describe('typing a score', () => {
 
   it('names the other winner when the other side wins', () => {
     const h = mount();
-    for (const [side, set, value] of [[2, 1, '6'], [1, 1, '4'], [2, 2, '6'], [1, 2, '3']] as const) {
+    for (const [side, set, value] of [
+      [2, 1, '6'],
+      [1, 1, '4'],
+      [2, 2, '6'],
+      [1, 2, '3']
+    ] as const) {
       h.type(side, set, value);
     }
 
@@ -330,7 +346,7 @@ describe('typing a score', () => {
     expect(h.type(2, 1, 'a4').value).toBe('4');
   });
 
-  it('refuses a games value the format cannot produce — CA\'s 3-44', () => {
+  it("refuses a games value the format cannot produce — CA's 3-44", () => {
     // `getMaxAllowedScore` is 7 for `S:6/TB7`, so the second `4` is declined and `4` stands. The keystroke
     // is refused rather than substituted: the old Dial Pad replaced an out-of-range digit with `setTo`, so
     // typing 8 silently became 6 — a number the operator never typed in a field they were looking at.
@@ -497,8 +513,8 @@ describe('a saved score re-opens in the grid', () => {
     const h = mount({
       sets: [
         { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
-        { setNumber: 2, side1Score: 6, side2Score: 3, winningSide: 1 },
-      ],
+        { setNumber: 2, side1Score: 6, side2Score: 3, winningSide: 1 }
+      ]
     });
 
     expect(h.cell(1, 1)?.value).toBe('6');
@@ -513,8 +529,8 @@ describe('a saved score re-opens in the grid', () => {
     const h = mount({
       sets: [
         { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
-        { setNumber: 2, side1Score: 6, side2Score: 3, winningSide: 1 },
-      ],
+        { setNumber: 2, side1Score: 6, side2Score: 3, winningSide: 1 }
+      ]
     });
 
     expect(h.submit()?.disabled).toBe(false);
@@ -697,15 +713,16 @@ describe('the tiebreak column — CA, 2026-09-27', () => {
     h.enterSet(1, '7', '6');
     h.typeTb(1, 1, '7');
 
-    expect(h.tb(2, 1)?.value, 'the loser\'s points stay for the operator to enter').toBe('');
+    expect(h.tb(2, 1)?.value, "the loser's points stay for the operator to enter").toBe('');
     expect(h.tb(1, 1), 'and the column stays open').toBeTruthy();
   });
 
-  it('folds away once the tiebreak is known, and opens the second set', () => {
+  it('folds away when leaving the tiebreak for the second set', () => {
     const h = mount();
     h.enterSet(1, '7', '6');
     h.typeTb(2, 1, '3');
 
+    h.focusCell(2, 2);
     expect(h.tb(1, 1), 'the tiebreak column should be gone').toBeNull();
     expect(h.cell(1, 2), 'the second set should be open').toBeTruthy();
   });
@@ -731,9 +748,7 @@ describe('the tiebreak column — CA, 2026-09-27', () => {
 
     expect(h.spokenTiebreak(2, 1)).toMatch(/tiebreak 3/);
     expect(h.spokenTiebreak(1, 1)).toBe('');
-    expect(
-      h.cell(2, 1)?.closest(GAMES_CELL)?.querySelector('sup')?.getAttribute('aria-hidden'),
-    ).toBe('true');
+    expect(h.cell(2, 1)?.closest(GAMES_CELL)?.querySelector('sup')?.getAttribute('aria-hidden')).toBe('true');
   });
 
   it('handles a two-digit tiebreak, which a Unicode superscript could not', () => {
@@ -752,6 +767,7 @@ describe('the tiebreak column — CA, 2026-09-27', () => {
     const h = mount();
     h.enterSet(1, '7', '6');
     h.typeTb(2, 1, '3');
+    h.focusCell(2, 2);
     expect(h.tb(1, 1)).toBeNull();
 
     h.focusCell(1, 1);
@@ -830,7 +846,7 @@ describe('integrity — CA, 2026-09-27', () => {
   // The validator still earns its place for scores that did NOT arrive through the keyboard — a saved
   // matchUp, or a format changed after entry.
 
-  it('cannot type CA\'s 3-7 at all — the clamp refuses the 7', () => {
+  it("cannot type CA's 3-7 at all — the clamp refuses the 7", () => {
     const h = mount({ smartComplements: false });
     h.type(1, 1, '3');
 
@@ -855,8 +871,8 @@ describe('integrity — CA, 2026-09-27', () => {
     const h = mount({
       sets: [
         { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
-        { setNumber: 2, side1Score: 3, side2Score: 7, winningSide: 2 },
-      ],
+        { setNumber: 2, side1Score: 3, side2Score: 7, winningSide: 2 }
+      ]
     });
 
     expect(error(h)).toMatch(/2nd set:/);
@@ -969,5 +985,23 @@ describe('integrity — CA, 2026-09-27', () => {
     expect(h.cell(1, 1)?.value).toBe('10');
     expect(h.region.getSets()[0].side1TiebreakScore).toBe(10);
     expect(h.submit()?.disabled).toBe(false);
+  });
+});
+
+describe('multi-digit tiebreak entry', () => {
+  it.each([1, 2])('keeps side %s in the tiebreak while typing 10 one digit at a time', (side) => {
+    const h = mount();
+    h.enterSet(1, side === 1 ? '6' : '7', side === 1 ? '7' : '6');
+    h.tb(side, 1)?.focus();
+    h.typeTb(side, 1, '1');
+    expect(document.activeElement).toBe(h.tb(side, 1));
+    h.typeTb(side, 1, '10');
+    expect(h.tb(side, 1)?.value).toBe('10');
+    const set = h.region.getSets()[0];
+    expect(side === 1 ? set.side1TiebreakScore : set.side2TiebreakScore).toBe(10);
+    expect(side === 1 ? set.side2TiebreakScore : set.side1TiebreakScore).toBe(12);
+    h.tb(side, 1)?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(h.tb(side, 1)).toBeNull();
+    expect(h.cell(2, 2)).toBe(document.activeElement);
   });
 });

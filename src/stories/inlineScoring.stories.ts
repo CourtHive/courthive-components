@@ -46,8 +46,7 @@ export default {
 
 function generateSampleMatchUps(count = 3): MatchUp[] {
   const tournamentRecord = mocksEngine.generateTournamentRecord({
-    drawProfiles: [{ drawSize: 8, generate: true, eventName: 'Singles' }],
-    participantsProfile: { withScaleValues: true }
+    drawProfiles: [{ drawSize: 8, generate: true, eventName: 'Singles' }]
   }).tournamentRecord;
 
   const allMatchUps = queryGovernor.allTournamentMatchUps({ tournamentRecord }).matchUps ?? [];

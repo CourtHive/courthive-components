@@ -665,6 +665,9 @@ export {
 } from './components/schedule-page';
 
 export type {
+  CatalogPlacement,
+  InspectorPlacement,
+  InspectorGeometry,
   CatalogMatchUpItem,
   CatalogFilters,
   MatchUpSide,

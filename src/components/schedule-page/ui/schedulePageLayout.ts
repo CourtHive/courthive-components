@@ -6,8 +6,9 @@
  * Right:  matchUpCatalog + inspectorPanel
  */
 
-import type { SchedulePageState, UIPanel } from '../types';
+import type { SchedulePageConfig, CatalogPlacement, InspectorPlacement, SchedulePageState, UIPanel } from '../types';
 import { splLayoutStyle, splLeftStyle, splToggleStyle, splRightStyle } from './styles';
+import { buildFloatingInspector } from './floatingInspector';
 
 export interface SchedulePageLayoutPanels {
   dateStrip: UIPanel<SchedulePageState>;
@@ -19,18 +20,35 @@ export interface SchedulePageLayoutPanels {
 
 export interface SchedulePageLayoutCallbacks {
   onToggleLeft: () => void;
+  onInspectorClose?: () => void;
 }
 
 export function buildSchedulePageLayout(
   panels: SchedulePageLayoutPanels,
   callbacks: SchedulePageLayoutCallbacks,
-  options?: { hideLeft?: boolean; catalogSide?: 'left' | 'right' }
+  options?: Pick<
+    SchedulePageConfig,
+    | 'hideLeft'
+    | 'catalogSide'
+    | 'catalogPlacement'
+    | 'inspectorPlacement'
+    | 'inspectorGeometry'
+    | 'onInspectorGeometryChange'
+    | 'onInspectorPlacementChange'
+  >
 ): {
   element: HTMLElement;
   update: (state: SchedulePageState) => void;
+  setCatalogPlacement: (placement: CatalogPlacement) => void;
+  setCatalogVisible: (visible: boolean) => void;
+  setInspectorPlacement: (placement: InspectorPlacement) => void;
+  catalogRegion: HTMLElement;
+  destroy: () => void;
 } {
   const hideLeft = !!options?.hideLeft;
-  const catalogLeft = options?.catalogSide === 'left';
+  const catalogLeft = (options?.catalogPlacement ?? options?.catalogSide) === 'left';
+  let placement: CatalogPlacement = options?.catalogPlacement ?? options?.catalogSide ?? 'right';
+  let inspectorPlacement: InspectorPlacement = options?.inspectorPlacement ?? 'docked';
   const root = document.createElement('div');
   root.className = splLayoutStyle();
 
@@ -73,10 +91,14 @@ export function buildSchedulePageLayout(
   // Catalog + inspector sidebar
   const sidebar = document.createElement('div');
   sidebar.className = splRightStyle();
+  sidebar.dataset.panel = 'catalog-region';
+  const catalogRegion = document.createElement('div');
+  catalogRegion.className = 'spl-catalog-region';
+  sidebar.appendChild(catalogRegion);
   panels.matchUpCatalog.element.style.flex = '3';
   panels.matchUpCatalog.element.style.minHeight = '0';
   panels.matchUpCatalog.element.style.overflow = 'auto';
-  sidebar.appendChild(panels.matchUpCatalog.element);
+  catalogRegion.appendChild(panels.matchUpCatalog.element);
   panels.inspectorPanel.element.style.flex = '1';
   panels.inspectorPanel.element.style.minHeight = '120px';
   panels.inspectorPanel.element.style.overflow = 'auto';
@@ -90,6 +112,46 @@ export function buildSchedulePageLayout(
     root.appendChild(center);
     root.appendChild(sidebar);
   }
+
+  const floating = buildFloatingInspector(panels.inspectorPanel.element, {
+    geometry: options?.inspectorGeometry,
+    onGeometryChange: options?.onInspectorGeometryChange,
+    onClose: () => callbacks.onInspectorClose?.(),
+    onDock: () => setInspectorPlacement('docked')
+  });
+  root.appendChild(floating.element);
+
+  function applyPlacement(): void {
+    root.dataset.catalogPlacement = placement;
+    root.dataset.inspectorPlacement = inspectorPlacement;
+    root.classList.toggle('spl-catalog-left', placement === 'left' && hideLeft);
+    root.classList.toggle('spl-no-left', placement === 'right' && hideLeft);
+    // Explicit grid areas avoid DOM ordering as a layout contract.
+    const inspectorHost = inspectorPlacement === 'floating' ? floating.content : sidebar;
+    if (panels.inspectorPanel.element.parentElement !== inspectorHost)
+      inspectorHost.appendChild(panels.inspectorPanel.element);
+    floating.setVisible(inspectorPlacement === 'floating' && panels.inspectorPanel.element.style.display !== 'none');
+  }
+
+  function setCatalogPlacement(next: CatalogPlacement): void {
+    placement = next;
+    applyPlacement();
+  }
+
+  function setCatalogVisible(visible: boolean): void {
+    root.dataset.catalogVisible = String(visible);
+    // Old consumer classes must not keep hiding a now differently placed panel.
+    root.classList.remove('spl-sidebar-collapsed');
+  }
+
+  function setInspectorPlacement(next: InspectorPlacement): void {
+    floating.rememberFocus();
+    inspectorPlacement = next;
+    applyPlacement();
+    options?.onInspectorPlacementChange?.(next);
+  }
+
+  applyPlacement();
 
   function update(state: SchedulePageState): void {
     if (!hideLeft) {
@@ -115,7 +177,19 @@ export function buildSchedulePageLayout(
     // than whatever was selected when it was last visible.
     panels.inspectorPanel.element.style.display = state.inspectorVisible === false ? 'none' : '';
     panels.inspectorPanel.update(state);
+    floating.setVisible(inspectorPlacement === 'floating' && state.inspectorVisible !== false);
   }
 
-  return { element: root, update };
+  return {
+    element: root,
+    update,
+    setCatalogPlacement,
+    setCatalogVisible,
+    setInspectorPlacement,
+    catalogRegion,
+    destroy: () => {
+      floating.destroy();
+      Object.values(panels).forEach((panel) => panel.destroy?.());
+    }
+  };
 }

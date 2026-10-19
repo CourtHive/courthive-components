@@ -87,13 +87,16 @@ function write(element: HTMLElement, sideNumber: SideNumber, sets: SetScore[]): 
     const raised = !matchTiebreak && mine !== undefined && (theirs === undefined || mine < theirs);
 
     if (index > 0) element.append('  ');
-    element.append(base);
+    const cell = document.createElement('span');
+    cell.className = 'chc-sec-readout-set';
+    cell.textContent = base;
+    element.append(cell);
     if (raised) {
       const mark = document.createElement('sup');
       mark.className = 'chc-sec-tb-mark';
       mark.setAttribute('aria-hidden', 'true');
       mark.textContent = String(mine);
-      element.append(mark);
+      cell.append(mark);
     }
     spoken.push(raised ? `${base} tiebreak ${mine}` : base);
   }

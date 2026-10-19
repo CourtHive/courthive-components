@@ -86,6 +86,9 @@ export type { ScheduleCellTypeAheadOptions } from './ui/scheduleCellTypeAhead';
 // ============================================================================
 
 export type {
+  CatalogPlacement,
+  InspectorPlacement,
+  InspectorGeometry,
   CatalogMatchUpItem,
   CatalogFilters,
   MatchUpSide,
@@ -117,8 +120,8 @@ export type {
 // Convenience Factory
 // ============================================================================
 
-import type { SchedulePageConfig } from './types';
 import { SchedulePageControl } from './controller/schedulePageControl';
+import type { SchedulePageConfig } from './types';
 
 export function createSchedulePage(config: SchedulePageConfig, container: HTMLElement): SchedulePageControl {
   const control = new SchedulePageControl(config);

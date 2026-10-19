@@ -96,9 +96,13 @@ export class InlineScoringManager {
   addPoint(matchUpId: string, winner: 0 | 1, baseMatchUp: MatchUp): MatchUp | undefined {
     const state = this.engines.get(matchUpId);
     if (!state || state.engine.isComplete()) return undefined;
+    // a segment of outs takes set totals: the engine refuses a point there rather than scoring it as tennis
+    if (!this.accepts(matchUpId, 'point')) return undefined;
 
-    const server = (state.pointCount % 2) as 0 | 1;
-    state.engine.addPoint({ winner, server, result: 'Winner' });
+    // The engine derives who served: in tennis the server changes game by game, not point by point.
+    // Supplying `pointCount % 2` alternated it every point and recorded that as the observed server.
+    // Only the point's winner is known here: a stroke result would count in statistics as a winner hit.
+    state.engine.addPoint({ winner });
     state.pointCount++;
 
     return this.notifyAndReturn(matchUpId, baseMatchUp);
@@ -111,6 +115,7 @@ export class InlineScoringManager {
   addGame(matchUpId: string, winner: 0 | 1, baseMatchUp: MatchUp): MatchUp | undefined {
     const state = this.engines.get(matchUpId);
     if (!state || state.engine.isComplete()) return undefined;
+    if (!this.accepts(matchUpId, 'game')) return undefined;
 
     state.engine.addGame({ winner });
     return this.notifyAndReturn(matchUpId, baseMatchUp);
@@ -182,6 +187,18 @@ export class InlineScoringManager {
 
   isComplete(matchUpId: string): boolean {
     return this.engines.get(matchUpId)?.engine.isComplete() ?? false;
+  }
+
+  /**
+   * Whether the set in play takes this input. The factory reports what each segment can be scored with
+   * (`getInputLevels`): a segment of outs takes set totals only, a combined-point total has no games.
+   */
+  accepts(matchUpId: string, level: 'point' | 'game'): boolean {
+    const engine = this.engines.get(matchUpId)?.engine;
+    if (!engine) return false;
+    // a factory before getInputLevels accepts every input, as it always did
+    if (typeof engine.getInputLevels !== 'function') return true;
+    return !!engine.getInputLevels()[level];
   }
 
   remove(matchUpId: string): void {

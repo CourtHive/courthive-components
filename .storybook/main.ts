@@ -1,4 +1,6 @@
 import type { StorybookConfig } from '@storybook/html-vite';
+import { realpathSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 const config: StorybookConfig = {
   stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
@@ -13,7 +15,8 @@ const config: StorybookConfig = {
 
     if (!config.server) config.server = {};
     if (!config.server.fs) config.server.fs = {};
-    config.server.fs.allow = ['..'];
+    // Worktrees link node_modules to the canonical checkout outside their parent.
+    config.server.fs.allow = ['..', realpathSync(resolve(import.meta.dirname, '../node_modules'))];
 
     // Set base path for GitHub Pages deployment
     if (process.env.NODE_ENV === 'production') {

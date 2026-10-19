@@ -8,6 +8,9 @@
  * to the catalog (unschedules it).
  */
 
+import { wrapSearchWithClear, syncClearVisibility } from '../../../helpers/searchClearButton';
+import { clearRelatedHighlight } from './matchUpHighlight';
+import { buildMatchUpCard } from './matchUpCard';
 import type {
   SchedulePageState,
   UIPanel,
@@ -22,9 +25,6 @@ import {
   isCompletedStatus,
   computeBaseRoundByEvent
 } from '../domain/matchUpCatalogProjections';
-import { wrapSearchWithClear, syncClearVisibility } from '../../../helpers/searchClearButton';
-import { clearRelatedHighlight } from './matchUpHighlight';
-import { buildMatchUpCard } from './matchUpCard';
 import {
   spPanelStyle,
   spPanelHeaderStyle,
@@ -41,6 +41,8 @@ import {
 } from './styles';
 
 import tippy, { Instance } from 'tippy.js';
+
+const ARIA_LABEL = 'aria-label';
 
 export interface MatchUpCatalogCallbacks {
   onSearchChange: (query: string) => void;
@@ -169,6 +171,22 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
 
   toolbar.appendChild(searchWrap);
   toolbar.appendChild(groupSelect);
+  searchInput.setAttribute(ARIA_LABEL, 'Search matchUps');
+  groupSelect.setAttribute(ARIA_LABEL, 'Group matchUps');
+  for (const [label, direction] of [
+    ['Previous cards', -1],
+    ['Next cards', 1]
+  ] as const) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'spl-catalog-scroll';
+    button.textContent = direction < 0 ? '◀' : '▶';
+    button.setAttribute(ARIA_LABEL, label);
+    button.addEventListener('click', () =>
+      body.scrollBy({ left: direction * Math.max(280, body.clientWidth * 0.8), behavior: 'smooth' })
+    );
+    toolbar.appendChild(button);
+  }
   root.appendChild(toolbar);
 
   // ── Filter Popover ──
@@ -326,10 +344,10 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
 
     filterTip = tippy(filterBtn, {
       content: buildFilterPopoverContent(),
-      placement: 'bottom-start',
+      placement: root.closest('[data-catalog-placement="bottom"]') ? 'top-start' : 'bottom-start',
       interactive: true,
       trigger: 'manual',
-      appendTo: () => root,
+      appendTo: () => document.body,
       onClickOutside: () => destroyFilterTip(),
       theme: ''
     });
@@ -419,7 +437,9 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
       const isCollapsed = collapsedGroups.has(gk);
 
       // Group header with chevron
-      const gh = document.createElement('div');
+      const gh = document.createElement('button');
+      gh.type = 'button';
+      gh.setAttribute('aria-expanded', String(!isCollapsed));
       gh.className = spGroupHeaderStyle();
 
       const chevron = document.createElement('span');
@@ -478,5 +498,5 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
     }
   }
 
-  return { element: root, update };
+  return { element: root, update, destroy: destroyFilterTip };
 }
