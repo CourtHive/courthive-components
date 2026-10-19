@@ -6,7 +6,10 @@ import type { MatchUp } from '../../types';
  */
 export function engineToMatchUp(engine: any, baseMatchUp: MatchUp): MatchUp {
   const isComplete = engine.isComplete();
-  const inputMode = engine.getInputMode(); // 'points' | 'games' | 'sets' | 'mixed' | 'none'
+  // 'points' | 'games' | 'sets' | 'mixed' | 'none'. Only point, game and set entries count (factory 7.16):
+  // a baseline or a server correction alone is 'none', and games or sets beside a correction stay
+  // 'games' or 'sets', so no point display is injected for them.
+  const inputMode = engine.getInputMode();
   const hasEngineHistory = inputMode !== 'none';
 
   // When the engine has no scoring actions yet (just loaded initial state),
@@ -16,7 +19,7 @@ export function engineToMatchUp(engine: any, baseMatchUp: MatchUp): MatchUp {
     return {
       ...baseMatchUp,
       matchUpStatus: isComplete ? 'COMPLETED' : baseMatchUp.matchUpStatus || 'IN_PROGRESS',
-      winningSide: engine.getWinner() ?? baseMatchUp.winningSide ?? undefined
+      winningSide: winningSideOf(engine, isComplete, baseMatchUp)
     };
   }
 
@@ -70,15 +73,24 @@ export function engineToMatchUp(engine: any, baseMatchUp: MatchUp): MatchUp {
     }
   }
 
-  const winner = engine.getWinner();
-
   return {
     ...baseMatchUp,
     matchUpStatus: isComplete ? 'COMPLETED' : baseMatchUp.matchUpStatus || 'IN_PROGRESS',
-    winningSide: winner ?? baseMatchUp.winningSide ?? undefined,
+    winningSide: winningSideOf(engine, isComplete, baseMatchUp),
     score: {
       sets,
       scoreStringSide1: engine.getScoreboard() || undefined
     }
   };
+}
+
+/**
+ * A match the engine completed has the engine's winner, and none when it ended level: a tie is a finished
+ * result, so the base matchUp's winningSide must not stand in for it. Until then the base's is kept (an
+ * irregular ending the engine never saw, or a baseline it refused).
+ */
+function winningSideOf(engine: any, isComplete: boolean, baseMatchUp: MatchUp): number | undefined {
+  const winner = engine.getWinner() ?? undefined;
+  if (isComplete) return winner;
+  return winner ?? baseMatchUp.winningSide ?? undefined;
 }

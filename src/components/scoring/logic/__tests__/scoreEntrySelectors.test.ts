@@ -123,8 +123,14 @@ describe('isComplete', () => {
 
   it('a timed match is decided by the factory over every bolt', () => {
     expect(isComplete(typed(TIMED, [22, 21], [21, 22], [22, 21]))).toBe(true);
-    // Level after three: no winner, so not a finished result.
-    expect(isComplete(typed(TIMED, [22, 21], [21, 22], [21, 21]))).toBe(false);
+    // A set each and one closed level, after all three: the factory (7.16, spec § 9.1 and decision 18)
+    // completes the match with no winner. It was not a finished result under v1.
+    const level = typed(TIMED, [22, 21], [21, 22], [21, 21]);
+    expect(isComplete(level)).toBe(true);
+    expect(winningSide(level)).toBeUndefined();
+    expect(matchUpStatus(level)).toBe(COMPLETED);
+    // control: after two sets, a set each, the third is still to play
+    expect(isComplete(typed(TIMED, [22, 21], [21, 22]))).toBe(false);
   });
 
   it('is false under a score-clearing ending, because there is no result to be finished', () => {
