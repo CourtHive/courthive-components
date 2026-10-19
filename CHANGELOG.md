@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.10.1](https://github.com/CourtHive/courthive-components/compare/v6.10.0...v6.10.1) (2026-10-19)
+
+
+### Bug Fixes
+
+* **scoring:** adapt to the factory 7.16.0 scoring fixes and pin the factory to 7.16.0 ([#760](https://github.com/CourtHive/courthive-components/issues/760)) ([2f1fe48](https://github.com/CourtHive/courthive-components/commit/2f1fe48f7e14d343fb4067411e50bc88900aaacd))
+* **scoring:** the inline approach opens a decided matchUp completed, taking no input ([#762](https://github.com/CourtHive/courthive-components/issues/762)) ([23de1e4](https://github.com/CourtHive/courthive-components/commit/23de1e46ed54dec6530a8dda49254476fb918d80))
+
 ## [6.10.0](https://github.com/CourtHive/courthive-components/compare/v6.9.1...v6.10.0) (2026-10-19)
 
 
