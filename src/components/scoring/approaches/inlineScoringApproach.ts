@@ -3,12 +3,15 @@
  * Renders a matchUp with interactive point/game-by-game scoring
  * using InlineScoringManager and renderInlineMatchUp.
  */
-import { renderInlineMatchUp } from '../../inline-scoring/renderInlineMatchUp';
 import { InlineScoringManager } from '../../inline-scoring/inlineScoringManager';
+import { renderInlineMatchUp } from '../../inline-scoring/renderInlineMatchUp';
+import type { RenderScoreEntryParams, ScoreOutcome } from '../types';
 import { compositions } from '../../../compositions/compositions';
+import { factoryConstants } from 'tods-competition-factory';
 import { carriesNoScore } from '../logic/irregularEnding';
 import { getScoringConfig } from '../config';
-import type { RenderScoreEntryParams, ScoreOutcome } from '../types';
+
+const completedMatchUpStatuses: string[] = factoryConstants.completedMatchUpStatuses;
 
 export function renderInlineScoringEntry(params: RenderScoreEntryParams): void {
   const { matchUp, container, onScoreChange } = params;
@@ -34,13 +37,19 @@ export function renderInlineScoringEntry(params: RenderScoreEntryParams): void {
 
   const format = matchUp.matchUpFormat || 'SET3-S:6/TB7';
 
-  // Prepare the matchUp for inline scoring
-  const inlineMatchUp = {
-    ...matchUp,
-    matchUpStatus: 'IN_PROGRESS',
-    readyToScore: true,
-    winningSide: undefined
-  };
+  // Prepare the matchUp for inline scoring. A decided matchUp opens as it stands, completed and taking
+  // no input (CA, 2026-10-19): claiming IN_PROGRESS beside its deciding sets is a state the factory
+  // refuses (7.16.0), and before that refusal the taps went into a set beyond the match. To score it
+  // again, Clear resets to a fresh matchUp below.
+  const isDecided = !!matchUp.winningSide || completedMatchUpStatuses.includes(matchUp.matchUpStatus);
+  const inlineMatchUp = isDecided
+    ? { ...matchUp, readyToScore: true }
+    : {
+        ...matchUp,
+        matchUpStatus: 'IN_PROGRESS',
+        readyToScore: true,
+        winningSide: undefined
+      };
 
   const emitOutcome = (scoredMatchUp: any, isComplete: boolean) => {
     const matchUpStatus = scoredMatchUp?.matchUpStatus;
