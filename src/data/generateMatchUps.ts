@@ -47,7 +47,7 @@ export function generateMatchUps({
       endTime: '20:00',
       venueId,
 
-      courtNames: [1, 2, 3, 4, 5, 6, 7, 8],
+      courtNames: ['1', '2', '3', '4', '5', '6', '7', '8'],
       courtIds: ['c1', 'c2', 'c3', 'c4'],
       courtsCount: 8
     }
