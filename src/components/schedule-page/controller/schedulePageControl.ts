@@ -9,12 +9,14 @@
 
 import { buildSchedulePageLayout } from '../ui/schedulePageLayout';
 import { buildScheduleInspectorPanel } from '../ui/inspectorPanel';
-import { buildMatchUpCatalog } from '../ui/matchUpCatalog';
+import { SchedulePageStore } from '../engine/schedulePageStore';
 import { buildScheduleIssuesPanel } from '../ui/issuesPanel';
+import { buildMatchUpCatalog } from '../ui/matchUpCatalog';
 import { buildScheduleDateStrip } from '../ui/dateStrip';
 import { buildCourtGridSlot } from '../ui/courtGridSlot';
-import { SchedulePageStore } from '../engine/schedulePageStore';
 import type {
+  CatalogPlacement,
+  InspectorPlacement,
   SchedulePageConfig,
   CatalogMatchUpItem,
   CatalogFilters,
@@ -26,7 +28,7 @@ import type {
 
 export class SchedulePageControl {
   private readonly store: SchedulePageStore;
-  private readonly layout: { element: HTMLElement; update: (state: any) => void };
+  private readonly layout: ReturnType<typeof buildSchedulePageLayout>;
   private readonly unsubscribe: () => void;
   private container: HTMLElement | null = null;
 
@@ -74,8 +76,11 @@ export class SchedulePageControl {
     // Assemble layout
     this.layout = buildSchedulePageLayout(
       { dateStrip, issuesPanel, courtGridSlot, matchUpCatalog, inspectorPanel },
-      { onToggleLeft: () => this.store.toggleLeftPanel() },
-      { hideLeft: config.hideLeft, catalogSide: config.catalogSide }
+      {
+        onToggleLeft: () => this.store.toggleLeftPanel(),
+        onInspectorClose: () => this.store.setInspectorVisible(false)
+      },
+      config
     );
 
     // Subscribe and do initial render
@@ -94,10 +99,28 @@ export class SchedulePageControl {
 
   destroy(): void {
     this.unsubscribe();
+    this.layout.destroy();
     if (this.container && this.layout.element.parentNode === this.container) {
       this.layout.element.remove();
     }
     this.container = null;
+  }
+
+  /** Presentation-only changes retain the store and all pending scheduling work. */
+  setCatalogPlacement(placement: CatalogPlacement): void {
+    this.layout.setCatalogPlacement(placement);
+  }
+
+  setCatalogVisible(visible: boolean): void {
+    this.layout.setCatalogVisible(visible);
+  }
+
+  setInspectorPlacement(placement: InspectorPlacement): void {
+    this.layout.setInspectorPlacement(placement);
+  }
+
+  getCatalogRegion(): HTMLElement {
+    return this.layout.catalogRegion;
   }
 
   // ---------- Consumer Data Push API ----------
