@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.10.2](https://github.com/CourtHive/courthive-components/compare/v6.10.1...v6.10.2) (2026-10-20)
+
+
+### Bug Fixes
+
+* **scoring:** allow form reset when result removal is forbidden ([#766](https://github.com/CourtHive/courthive-components/issues/766)) ([caa4176](https://github.com/CourtHive/courthive-components/commit/caa417610d0413e77dc8adc4dfa47cbdadf67682))
+* **structures:** a decided set marks its winning side the winner, not both sides the loser ([#765](https://github.com/CourtHive/courthive-components/issues/765)) ([2109ac1](https://github.com/CourtHive/courthive-components/commit/2109ac1345248aa08368cfd2242db33739807dad))
+
 ## [6.10.1](https://github.com/CourtHive/courthive-components/compare/v6.10.0...v6.10.1) (2026-10-19)
 
 
