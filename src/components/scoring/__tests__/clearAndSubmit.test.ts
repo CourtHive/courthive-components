@@ -192,10 +192,10 @@ describe('clearing a recorded outcome', () => {
 
 /**
  * `clearable: false` — the host has asked the engine and a later match depends on the result, so a clear
- * would be refused (the factory's `CLEAR_SCORE` matchUp action is absent). The dialogs must not offer one.
+ * would be refused (the factory's `CLEAR_SCORE` matchUp action is absent). Resetting the form is still allowed.
  */
 describe('a recorded outcome the host says cannot be removed', () => {
-  it('score entry dialog: [Clear] is disabled and says why; the result itself can still be edited', () => {
+  it('score entry dialog: Clear resets the form; only submitting its empty replacement is refused', () => {
     let outcome: any;
     closeAll();
     openScoreEntryDialog({
@@ -205,13 +205,11 @@ describe('a recorded outcome the host says cannot be removed', () => {
       onSubmit: (result: any) => (outcome = result)
     } as any);
 
-    expect(clear().disabled).toBe(true);
-    expect(clear().title).toBe("This result can't be cleared: a later match depends on it.");
-
-    // a click that somehow lands does not turn the next submit into a removal
-    clear().disabled = false;
+    expect(clear().disabled).toBe(false);
+    expect(clear().title).toBe('');
     clear().click();
     expect(submit().disabled, 'an empty card is not submittable as a clear').toBe(true);
+    expect(submit().title).toBe('Enter a replacement score: a later match depends on this result.');
 
     // correcting the score is still allowed — only the removal is withheld
     type(2, 1, '3');
@@ -233,7 +231,10 @@ describe('a recorded outcome the host says cannot be removed', () => {
       clearable: false,
       labels: { clearRefused: 'Clear the later match first.' }
     } as any);
-    expect(clear().title).toBe('Clear the later match first.');
+    expect(clear().disabled).toBe(false);
+    clear().click();
+    expect(submit().title).toBe('Clear the later match first.');
+    expect(submit().disabled).toBe(true);
     closeAll();
   });
 
@@ -263,7 +264,7 @@ describe('a recorded outcome the host says cannot be removed', () => {
     closeAll();
   });
 
-  it('score modal: [Clear] is not offered on a recorded result, and is where nothing is recorded', () => {
+  it('score modal: Clear stays offered whether or not the recorded result can be removed', () => {
     setScoringConfig({ scoringApproach: 'dynamicSets' });
     const recorded = {
       matchUpId: 'm1',
@@ -280,7 +281,7 @@ describe('a recorded outcome the host says cannot be removed', () => {
 
     closeAll();
     scoringModal({ matchUp: recorded, callback: () => undefined, clearable: false });
-    expect(document.getElementById('clearScoreV2')).toBeNull();
+    expect(document.getElementById('clearScoreV2')).not.toBeNull();
     expect(document.getElementById('submitScoreV2')).not.toBeNull();
 
     closeAll();

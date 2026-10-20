@@ -54,16 +54,14 @@ export function scoringModal(params: ScoringModalParams): void {
 
   // Track if matchUp had an existing score/status
   const hadExistingScore = !!(matchUp.score?.sets?.length || matchUp.matchUpStatus);
-  // The host says the recorded result cannot be removed: `[Clear]` is not offered at all. Every
-  // approach looks the button up by id and tolerates its absence, so withholding it is the one change
-  // that no approach can re-enable. Its own test of "recorded", not `hadExistingScore`, which also
-  // counts a TO_BE_PLAYED status and would withhold `[Clear]` from a match nobody has played.
+  // Resetting the form is always allowed. The host's CLEAR_SCORE permission only gates submitting
+  // an empty replacement for a recorded result; it never prevents typing a replacement score.
   const recordedOutcome = !!(
     matchUp.winningSide ||
     matchUp.score?.sets?.length ||
     (matchUp.matchUpStatus && matchUp.matchUpStatus !== 'TO_BE_PLAYED')
   );
-  const clearWithheld = clearable === false && recordedOutcome;
+  const removalRefused = clearable === false && recordedOutcome;
   let currentOutcome: ScoreOutcome | null = null;
   let wasCleared = false;
   /**
@@ -73,6 +71,19 @@ export function scoringModal(params: ScoringModalParams): void {
    * `__tests__/closedDialogLateUpdate.test.ts`). A closed dialog ignores late updates.
    */
   let closed = false;
+
+  const canSubmitOutcome = (outcome: ScoreOutcome): boolean => {
+    const emptyOutcome =
+      !outcome.winningSide &&
+      !outcome.sets?.length &&
+      !outcome.score?.trim() &&
+      (!outcome.matchUpStatus || outcome.matchUpStatus === 'TO_BE_PLAYED');
+    if (removalRefused && emptyOutcome) return false;
+    return (
+      !statusScopeError(outcome.matchUpStatus, disabledMatchUpStatuses, scopeLabels) &&
+      (activeApproach === 'inlineScoring' || outcome.isValid || (wasCleared && hadExistingScore))
+    );
+  };
 
   const handleScoreChange = (outcome: ScoreOutcome) => {
     if (closed) return;
@@ -86,21 +97,19 @@ export function scoringModal(params: ScoringModalParams): void {
 
     const submitBtn = document.getElementById('submitScoreV2') as HTMLButtonElement;
     if (submitBtn) {
-      const canSubmit =
-        !scopeError && (activeApproach === 'inlineScoring' || outcome.isValid || (wasCleared && hadExistingScore));
-      submitBtn.disabled = !canSubmit;
+      submitBtn.disabled = !canSubmitOutcome(outcome);
     }
 
     const clearBtn = document.getElementById('clearScoreV2') as HTMLButtonElement;
     if (clearBtn) {
       const scoreInput = document.getElementById('scoreInputV2') as HTMLInputElement;
       if (scoreInput) {
-        clearBtn.disabled = !scoreInput.value.trim();
+        clearBtn.disabled = !scoreInput.value.trim() && !(recordedOutcome && !wasCleared);
       } else {
         const hasSets = outcome.sets && outcome.sets.length > 0;
         const hasIrregularStatus =
           outcome.matchUpStatus && outcome.matchUpStatus !== 'COMPLETED' && outcome.matchUpStatus !== 'TO_BE_PLAYED';
-        clearBtn.disabled = !(hasSets || hasIrregularStatus);
+        clearBtn.disabled = !(hasSets || hasIrregularStatus || (recordedOutcome && !wasCleared));
       }
     }
   };
@@ -335,10 +344,7 @@ export function scoringModal(params: ScoringModalParams): void {
       intent: 'is-primary',
       disabled: activeApproach !== 'inlineScoring',
       onClick: () => {
-        const canSubmit =
-          currentOutcome &&
-          !statusScopeError(currentOutcome.matchUpStatus, disabledMatchUpStatuses, scopeLabels) &&
-          (activeApproach === 'inlineScoring' || currentOutcome.isValid || (wasCleared && hadExistingScore));
+        const canSubmit = currentOutcome && canSubmitOutcome(currentOutcome);
         if (canSubmit) {
           cleanupCurrentApproach();
           const reasonCode = statusCodePicker.getSelectedCode();
@@ -352,13 +358,11 @@ export function scoringModal(params: ScoringModalParams): void {
     }
   ];
 
-  const offeredButtons = () => makeButtons().filter((button) => !(clearWithheld && button.id === 'clearScoreV2'));
-
   modalHandle = cModal.open({
     title: labels.title || 'Score Entry',
     content: renderApproach(activeApproach),
     config: buildModalConfig(),
-    buttons: offeredButtons(),
+    buttons: makeButtons(),
     onClose: () => {
       closed = true;
       onClose?.();
