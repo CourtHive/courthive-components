@@ -82,8 +82,8 @@ export type ScoringModalParams = {
   /**
    * Whether a recorded outcome may be REMOVED. Only the draw knows whether a later match depends on the
    * result, so the host reads it from the engine (the factory's `CLEAR_SCORE` matchUp action) rather than
-   * the dialog guessing. `false` withholds `[Clear]` on a reopened result, so the dialog never offers a
-   * submission the engine will refuse. Omitted, `[Clear]` behaves as it always has.
+   * the dialog guessing. `false` disables submitting an empty replacement for a recorded result.
+   * `[Clear]` still resets the entry form so the operator can type a replacement score.
    */
   clearable?: boolean;
   /** Scoped statuses refused by the factory SCORE action. Omitted preserves the unrestricted vocabulary. */

@@ -19,7 +19,7 @@ export function setScore({
   sideNumber: number;
 }): HTMLElement {
   const isWinningSide = sideNumber === set?.winningSide;
-  const variant = (isWinningSide && 'winner') || set?.winningSide ? 'loser' : undefined;
+  const variant = (isWinningSide && 'winner') || (set?.winningSide ? 'loser' : undefined);
   const gameScore = sideNumber === 2 ? set.side2Score : set.side1Score;
   const hasTiebreakScore = set.side2TiebreakScore !== undefined || set.side1TiebreakScore !== undefined;
   const tieBreakScore = sideNumber === 2 ? set.side2TiebreakScore : set.side1TiebreakScore;
