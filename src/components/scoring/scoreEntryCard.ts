@@ -80,7 +80,7 @@ const CLS_BAND_HEADLINE = 'chc-sec-band-headline';
 const CLS_BAND_DETAIL = 'chc-sec-band-detail';
 /** What the band says once `[Clear]` has emptied a recorded outcome. Overridable via `labels`. */
 const CLEARED_HEADLINE = 'The recorded result will be removed — Submit to clear it.';
-const CLEAR_REFUSED = "This result can't be cleared: a later match depends on it.";
+const CLEAR_REFUSED = 'Enter a replacement score: a later match depends on this result.';
 const ARIA_PRESSED = 'aria-pressed';
 const ARIA_EXPANDED = 'aria-expanded';
 const CHECK_PATH = 'M20 6 9 17l-5-5';
@@ -345,9 +345,8 @@ export type ScoreEntryCardParams = {
   /**
    * Whether a recorded outcome may be REMOVED. Only the draw knows whether a later match depends on the
    * result, so the host reads it from the engine (the factory's `CLEAR_SCORE` matchUp action) rather than
-   * the dialog guessing. `false` disables `[Clear]` on a reopened result and says why in its
-   * tooltip (`labels.clearRefused`), so the dialog never offers a
-   * submission the engine will refuse. Omitted, `[Clear]` behaves as it always has.
+   * the dialog guessing. `false` disables submitting an empty replacement for a recorded result.
+   * `[Clear]` still resets the entry form so the operator can type a replacement score.
    */
   clearable?: boolean;
   /** Scoped statuses refused by the factory SCORE action. */
@@ -427,7 +426,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   const openedOnRecordedOutcome = holdsEntry();
   // Decided at open, as `openedOnRecordedOutcome` is: the host's answer is about what was recorded.
   const disabledStatuses = new Set(params.disabledMatchUpStatuses);
-  const clearWithheld = params.clearable === false && openedOnRecordedOutcome;
+  const removalRefused = params.clearable === false && openedOnRecordedOutcome;
   /**
    * `[Clear]` was pressed at some point.
    *
@@ -688,8 +687,6 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     cancel.addEventListener('click', () => params.onCancel?.());
 
     clearButton.dataset.action = 'clear';
-    // A disabled button that does not say why reads as broken; this one names the reason.
-    if (clearWithheld) clearButton.title = labels.clearRefused ?? CLEAR_REFUSED;
     clearButton.addEventListener('click', () => {
       // The MODEL first — score and ending together, which is what made this button look broken when
       // they lived apart — then the region resets what is its own.
@@ -707,6 +704,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
     submitButton.dataset.action = 'submit';
     submitButton.addEventListener('click', () => {
+      if (removalRefused && !holdsEntry()) return undefined;
       if (statusScopeError(currentResolution().matchUpStatus, params.disabledMatchUpStatuses, labels)) return undefined;
       // An emptied card submits the REMOVAL of what it opened on, and says so rather than leaving a
       // host to infer it from four undefined fields.
@@ -1104,7 +1102,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    * rule reproduced, not a second opinion about it.
    */
   function submitsAClear(): boolean {
-    return clearedRecordedOutcome && openedOnRecordedOutcome && !holdsEntry() && !clearWithheld;
+    return clearedRecordedOutcome && openedOnRecordedOutcome && !holdsEntry() && !removalRefused;
   }
 
   function renderDerived(): void {
@@ -1124,11 +1122,14 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     // A region-reported ERROR closes it regardless. An impossible score stays impossible however it was
     // qualified: a 3-7 is not made submittable by also being marked Suspended.
     submitButton.disabled =
-      !!scoreError() || !(submitsAClear() || resolution.isValid || (!resolution.hasEnding && scoreIsFinished()));
+      (removalRefused && !holdsEntry()) ||
+      !!scoreError() ||
+      !(submitsAClear() || resolution.isValid || (!resolution.hasEnding && scoreIsFinished()));
 
     // Nothing to clear is not the same as a clear that does nothing: the old dialog disables the button,
     // which is the honest signal. An ENDING counts as something to clear even with no score typed.
-    clearButton.disabled = !holdsEntry() || clearWithheld;
+    clearButton.disabled = !holdsEntry();
+    submitButton.title = removalRefused && !holdsEntry() ? (labels.clearRefused ?? CLEAR_REFUSED) : '';
   }
 
   /** Whether anything at all has been entered — a score, an ending, or text the model cannot see. */
@@ -1655,6 +1656,15 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     // will be removed — Submit to clear it.'"* A first draft added a second clause, "Enter a score to
     // keep it", which the card already demonstrates the moment anything is typed. Kept as a single
     // headline with no detail, so it reads as one statement rather than an instruction with a caveat.
+    if (removalRefused && !holdsEntry()) {
+      band.replaceChildren();
+      band.dataset.tone = 'warn';
+      band.setAttribute('role', 'status');
+      band.append(text(CLS_BAND_HEADLINE, labels.clearRefused ?? CLEAR_REFUSED));
+      appendBandControl(true);
+      return undefined;
+    }
+
     if (submitsAClear()) {
       band.replaceChildren();
       band.dataset.tone = 'warn';
