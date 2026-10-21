@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.10.3](https://github.com/CourtHive/courthive-components/compare/v6.10.2...v6.10.3) (2026-10-21)
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.18.0 ([#771](https://github.com/CourtHive/courthive-components/issues/771)) ([e47ad27](https://github.com/CourtHive/courthive-components/commit/e47ad27190dfd2423da59041de5a53154fb8cdaa))
+
 ## [6.10.2](https://github.com/CourtHive/courthive-components/compare/v6.10.1...v6.10.2) (2026-10-20)
 
 
