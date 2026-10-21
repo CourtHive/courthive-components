@@ -23,14 +23,16 @@ we're working in the factory repo."_
 | `release-please.yml` | `push: [main]` ONLY                   | the checkpoint merge **refreshes** the perpetual `chore(main): release X.Y.Z` PR. Nothing is tagged and nothing is published |
 | `npm-publish.yml`    | `release: published`                  | unaffected. Publishing still takes the deliberate second act of merging the release PR                                       |
 
-**One repo setting had to change, and it is part of the strategy.** `delete_branch_on_merge` was
-**true** and is now **false**. A checkpoint PR has `dev` as its HEAD branch, so auto-delete deletes the
-integration branch on every checkpoint — and GitHub then silently **retargets open PRs to `main`**,
-which is how work bypasses the integration branch with nobody choosing that. The factory hit exactly
-this on 2026-09-13; see `../Mentat/standards/coding-standards.md` § "Branch off `dev`, not `master`".
+**`dev` is protected and `delete_branch_on_merge` is on (CA, 2026-10-21).** A checkpoint PR has `dev`
+as its HEAD branch, so with auto-delete on and `dev` unprotected, every checkpoint deleted the integration
+branch — and GitHub then silently **retargets open PRs to `main`**, which is how work bypasses the
+integration branch with nobody choosing that (the factory hit this on 2026-09-13). Auto-delete was turned
+off for that reason when this repo adopted `dev`. Protecting `dev` (no deletion, no force-push; no required checks) fixes
+both: GitHub's auto-delete skips protected branches, so merged feature branches delete themselves and `dev`
+stays. See `../Mentat/standards/coding-standards.md` § "Branch off `dev`, not `master`".
 
-The cost is that merged branches no longer self-delete. Prune on PR STATE, not ancestry — a
-squash-merged branch never looks merged by `git merge-base --is-ancestor`:
+Local branches still need pruning. Prune on PR STATE, not ancestry — a squash-merged branch never looks
+merged by `git merge-base --is-ancestor`:
 
 ```bash
 gh pr list --repo CourtHive/courthive-components --state merged --head <branch>
