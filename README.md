@@ -17,6 +17,8 @@ This library provides a comprehensive set of UI components for building tourname
 
 ## Installation
 
+Requires **Node.js 24** or later (`engines.node` is `>=24`; 22 is maintenance-only, end of life April 2027).
+
 ```bash
 pnpm add courthive-components
 ```
