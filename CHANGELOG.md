@@ -1,5 +1,22 @@
 # Changelog
 
+## [6.11.0](https://github.com/CourtHive/courthive-components/compare/v6.10.3...v6.11.0) (2026-10-22)
+
+
+### Features
+
+* **node:** require Node 24 as the minimum supported runtime ([#780](https://github.com/CourtHive/courthive-components/issues/780)) ([6f86653](https://github.com/CourtHive/courthive-components/commit/6f866539dbe850125e06e19fc1853dacf36f9102))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.19.0 ([#776](https://github.com/CourtHive/courthive-components/issues/776)) ([2798aba](https://github.com/CourtHive/courthive-components/commit/2798abaf515da5e2510bbbf8e7e1d08b6b07118a))
+
+
+### Documentation
+
+* dev is protected and merged branches auto-delete ([#775](https://github.com/CourtHive/courthive-components/issues/775)) ([ffe9267](https://github.com/CourtHive/courthive-components/commit/ffe926795eef9b44aac553a1c757cf602ced2133))
+
 ## [6.10.3](https://github.com/CourtHive/courthive-components/compare/v6.10.2...v6.10.3) (2026-10-21)
 
 
