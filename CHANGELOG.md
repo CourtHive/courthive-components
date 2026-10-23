@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.12.0](https://github.com/CourtHive/courthive-components/compare/v6.11.0...v6.12.0) (2026-10-23)
+
+
+### Features
+
+* **policy-catalog:** the privacy editor toggles shape attributes like teams ([#783](https://github.com/CourtHive/courthive-components/issues/783)) ([4bb6efd](https://github.com/CourtHive/courthive-components/commit/4bb6efd4b95feaf40668a0e1bd77b811547c0e3b))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.20.0 ([#788](https://github.com/CourtHive/courthive-components/issues/788)) ([be4d885](https://github.com/CourtHive/courthive-components/commit/be4d885f3b200c8d9cd6aca39aed427196275bf3))
+* **topology-builder:** a round robin edge labelled WINNER is a finishing-position edge ([#787](https://github.com/CourtHive/courthive-components/issues/787)) ([b1aa037](https://github.com/CourtHive/courthive-components/commit/b1aa0376298309fa6c07da750891d7004fe6de07))
+
 ## [6.11.0](https://github.com/CourtHive/courthive-components/compare/v6.10.3...v6.11.0) (2026-10-22)
 
 
