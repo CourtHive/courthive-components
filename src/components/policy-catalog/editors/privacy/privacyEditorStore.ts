@@ -1,7 +1,7 @@
 /**
  * Participant Privacy Editor — Observable store. Mirrors SeedingEditorStore.
  */
-import { emptyPrivacyPolicy, writeField, writePolicyName } from './domain/privacyProjections';
+import { emptyPrivacyPolicy, normalisePrivacyPolicy, writeField, writePolicyName } from './domain/privacyProjections';
 import type { PrivacyEditorChangeListener, PrivacyEditorConfig, PrivacyEditorState, PrivacyPolicyData } from './types';
 
 function deepClone<T>(value: T): T {
@@ -15,7 +15,10 @@ export class PrivacyEditorStore {
 
   constructor(config: PrivacyEditorConfig) {
     this.config = config;
-    this.state = { draft: deepClone(config.initialPolicy ?? emptyPrivacyPolicy()), dirty: false };
+    this.state = {
+      draft: normalisePrivacyPolicy(deepClone(config.initialPolicy ?? emptyPrivacyPolicy())),
+      dirty: false
+    };
   }
 
   getState(): PrivacyEditorState {
@@ -27,7 +30,7 @@ export class PrivacyEditorStore {
   }
 
   setData(data: PrivacyPolicyData): void {
-    this.state = { ...this.state, draft: deepClone(data), dirty: false };
+    this.state = { ...this.state, draft: normalisePrivacyPolicy(deepClone(data)), dirty: false };
     this.emit();
   }
 

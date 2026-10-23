@@ -6,12 +6,13 @@ export { PrivacyEditorControl, createPrivacyEditor } from './privacyEditorContro
 export { PrivacyEditorStore } from './privacyEditorStore';
 export { buildPrivacyEditorPanel } from './privacyEditorPanel';
 export {
+  normalisePrivacyPolicy,
   emptyPrivacyPolicy,
   privacyFields,
   readField,
   writeField,
   readPolicyName,
-  writePolicyName,
+  writePolicyName
 } from './domain/privacyProjections';
 
 export type { PrivacyPolicyData, PrivacyEditorState, PrivacyEditorChangeListener, PrivacyEditorConfig } from './types';
