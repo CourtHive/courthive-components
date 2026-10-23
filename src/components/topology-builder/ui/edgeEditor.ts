@@ -2,17 +2,18 @@
  * Edge Editor — Side panel form for editing selected edge properties.
  * Uses renderForm (items + relationships) pattern.
  */
-import { drawDefinitionConstants } from 'tods-competition-factory';
-import { renderForm } from '../../forms/renderForm';
+import { getEdgeEditMode, siblingFinishingPositionEdges } from './edgeEditMode';
 import { getPlayoffProfiles } from '../domain/playoffProfilesCache';
 import { getNodeTotalRounds } from '../domain/feedRounds';
-import type { TopologyEdge, TopologyState, UIPanel } from '../types';
+import { renderForm } from '../../forms/renderForm';
 
-const { WINNER, LOSER, TOP_DOWN, BOTTOM_UP, QUALIFYING, ROUND_ROBIN } = drawDefinitionConstants;
+// constants and types
+import type { TopologyEdge, TopologyState, UIPanel } from '../types';
+import { drawDefinitionConstants } from 'tods-competition-factory';
+
+const { WINNER, LOSER, TOP_DOWN, BOTTOM_UP } = drawDefinitionConstants;
 const POSITION = 'POSITION';
 const ALTERNATING = 'ALTERNATING';
-
-const isRoundRobin = (structureType: string) => structureType === ROUND_ROBIN;
 
 const LINK_TYPES = [
   { label: 'Winner', value: WINNER },
@@ -120,9 +121,7 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
     const groupSize = source.structureOptions?.groupSize || 4;
     const currentPositions = new Set(edge.finishingPositions || []);
 
-    const otherPositionEdges = state.edges.filter(
-      (e) => e.id !== edge.id && e.sourceNodeId === edge.sourceNodeId && e.linkType === POSITION
-    );
+    const otherPositionEdges = siblingFinishingPositionEdges(edge, state);
     const claimedPositions = new Set<number>();
     for (const other of otherPositionEdges) {
       for (const pos of other.finishingPositions || []) {
@@ -202,14 +201,14 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
     info.textContent = `${source?.structureName || 'Source'} → ${target?.structureName || 'Target'}`;
     body.appendChild(info);
 
-    const isQualifyingWinner = edge.linkType === WINNER && source?.stage === QUALIFYING;
+    const { isQualifyingWinner, isRRPosition, showRoundFields, showFinishingPositionsInput, showFeedProfile } =
+      getEdgeEditMode(edge, state);
     const sourceMaxRound = source
       ? getNodeTotalRounds(source.structureType, source.drawSize, source.structureOptions)
       : 8;
     const targetMaxRound = target
       ? getNodeTotalRounds(target.structureType, target.drawSize, target.structureOptions)
       : 8;
-    const isRRPosition = edge.linkType === POSITION && source && isRoundRobin(source.structureType);
 
     const items: any[] = [
       {
@@ -230,7 +229,7 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
           }
         ];
 
-    if (!isRRPosition) {
+    if (showRoundFields) {
       const roundFields = buildRoundItems(edge, source, target, sourceMaxRound, targetMaxRound, isQualifyingWinner);
       items.push(...roundFields.items);
       relationships.push(...roundFields.relationships);
@@ -259,7 +258,7 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
       }
     }
 
-    if (edge.linkType === LOSER) {
+    if (showFeedProfile) {
       items.push({
         label: 'Feed Profile',
         field: 'feedProfile',
@@ -278,7 +277,7 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
       }
     }
 
-    if (edge.linkType === POSITION && !isRRPosition) {
+    if (showFinishingPositionsInput) {
       items.push({
         label: 'Finishing Positions',
         field: 'finishingPositions',
