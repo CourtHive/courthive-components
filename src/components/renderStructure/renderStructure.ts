@@ -36,7 +36,7 @@ export function renderStructure({
   // base fields (`roundNumber`, `matchUpType`, `roundPosition`, etc.) so the
   // cast is honest.
   const { roundNumbers, roundProfile, roundsNotPowerOf2, hasNoRoundPositions } = tournamentEngine.getRoundMatchUps({
-    matchUps: matchUps as any,
+    matchUps: matchUps as any
   });
 
   structureId = structureId || context?.structureId || matchUps?.[0]?.structureId;

@@ -15,7 +15,7 @@ const LABEL_MAP: Record<CompetitivenessBucket, string> = {
   COMPETITIVE: 'Competitive',
   ROUTINE: 'Routine',
   DECISIVE: 'Decisive',
-  WALKOVER: 'Walkover / Defaulted',
+  WALKOVER: 'Walkover / Defaulted'
 };
 
 export interface BuildCompetitivenessBarOptions {

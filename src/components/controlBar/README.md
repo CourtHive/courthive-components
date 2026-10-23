@@ -266,9 +266,7 @@ Items are positioned in distinct areas:
 The control bar automatically integrates with Tabulator tables:
 
 ```typescript
-const table = new Tabulator(element, {
-  /* config */
-});
+const table = new Tabulator(element, {/* config */});
 
 controlBar({
   table,

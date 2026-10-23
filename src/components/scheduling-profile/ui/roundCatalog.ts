@@ -4,7 +4,16 @@
  * Stateless factory pattern: { element, update }.
  */
 
-import type { ProfileStoreState, UIPanel, CatalogGroupBy, CatalogRoundItem, DragPayload, RoundLocator, RoundSegment, VenueInfo } from '../types';
+import type {
+  ProfileStoreState,
+  UIPanel,
+  CatalogGroupBy,
+  CatalogRoundItem,
+  DragPayload,
+  RoundLocator,
+  RoundSegment,
+  VenueInfo
+} from '../types';
 import {
   filterCatalog,
   groupCatalog,
@@ -173,8 +182,7 @@ export function buildRoundCatalog(callbacks: RoundCatalogCallbacks): UIPanel<Pro
 
     const t = document.createElement('div');
     t.className = spCardTitleStyle();
-    const roundLbl =
-      item.roundName && !item.roundName.startsWith('rn=') ? item.roundName : 'Round ' + item.roundNumber;
+    const roundLbl = item.roundName && !item.roundName.startsWith('rn=') ? item.roundName : 'Round ' + item.roundNumber;
     const segLbl = roundSegment ? ` \u00b7 Seg ${roundSegment.segmentNumber}/${roundSegment.segmentsCount}` : '';
     t.textContent = `${item.eventName} \u2014 ${roundLbl}${segLbl}`;
 

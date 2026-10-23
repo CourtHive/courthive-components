@@ -23,7 +23,7 @@ export const MATCH_UP_STATUS_KEYS: MatchUpStatusKey[] = [
   'DEFAULTED',
   'INCOMPLETE',
   'RETIRED',
-  'WALKOVER',
+  'WALKOVER'
 ];
 
 // requireAllPositionsAssigned is tri-state in the factory:
@@ -112,4 +112,3 @@ export interface ScoringEditorConfig {
   readonly?: boolean;
   onChange?: (policy: ScoringPolicyData) => void;
 }
-

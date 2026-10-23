@@ -19,13 +19,34 @@ export default {
 
 // Shaped like a real club: a numbered outdoor bank, a couple of indoor courts, one clay show court.
 const COURTS: CourtLayoutCourt[] = [
-  { courtId: 'c1', courtName: 'Court 1', indoorOutdoor: 'OUTDOOR', surfaceCategory: 'HARD', courtOrder: 1, floodlit: true },
-  { courtId: 'c2', courtName: 'Court 2', indoorOutdoor: 'OUTDOOR', surfaceCategory: 'HARD', courtOrder: 2, floodlit: true },
+  {
+    courtId: 'c1',
+    courtName: 'Court 1',
+    indoorOutdoor: 'OUTDOOR',
+    surfaceCategory: 'HARD',
+    courtOrder: 1,
+    floodlit: true
+  },
+  {
+    courtId: 'c2',
+    courtName: 'Court 2',
+    indoorOutdoor: 'OUTDOOR',
+    surfaceCategory: 'HARD',
+    courtOrder: 2,
+    floodlit: true
+  },
   { courtId: 'c3', courtName: 'Court 3', indoorOutdoor: 'OUTDOOR', surfaceCategory: 'HARD', courtOrder: 3 },
   { courtId: 'c4', courtName: 'Court 4', indoorOutdoor: 'OUTDOOR', surfaceCategory: 'HARD', courtOrder: 4 },
   { courtId: 'c10', courtName: 'Court 10', indoorOutdoor: 'INDOOR', surfaceCategory: 'HARD', courtOrder: 10 },
   { courtId: 'c11', courtName: 'Court 11', indoorOutdoor: 'INDOOR', surfaceCategory: 'HARD', courtOrder: 11 },
-  { courtId: 'cs', courtName: 'Stadium', indoorOutdoor: 'OUTDOOR', surfaceCategory: 'CLAY', courtOrder: 12, floodlit: true }
+  {
+    courtId: 'cs',
+    courtName: 'Stadium',
+    indoorOutdoor: 'OUTDOOR',
+    surfaceCategory: 'CLAY',
+    courtOrder: 12,
+    floodlit: true
+  }
 ];
 
 const VENUE = { venueId: 'v1', venueName: 'Life Time Peachtree Corners', courts: COURTS };
@@ -124,7 +145,9 @@ export const ClickableCourts = {
     const readout = document.createElement('div');
     readout.style.cssText = 'margin-top: 16px; font: 13px/1.4 system-ui; color: var(--chc-text-secondary, #4b5563);';
     readout.textContent = 'No court selected';
-    const wrap = frame(buildCourtLayout(VENUE, undefined, { onCourtClick: (c) => (readout.textContent = `Selected ${c.courtName}`) }));
+    const wrap = frame(
+      buildCourtLayout(VENUE, undefined, { onCourtClick: (c) => (readout.textContent = `Selected ${c.courtName}`) })
+    );
     wrap.appendChild(readout);
     return wrap;
   },

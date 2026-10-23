@@ -10,7 +10,15 @@
   display: grid;
   grid-template-columns: 1fr 320px;
   gap: 16px;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
   font-size: 14px;
   color: var(--chc-text-primary, #222);
   background: var(--chc-bg-elevated, #fff);

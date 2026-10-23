@@ -49,7 +49,7 @@ export function wrapSearchWithClear(input: HTMLInputElement, onClear: () => void
     'justify-content: center',
     'line-height: 0',
     'opacity: 0.55',
-    'color: currentColor',
+    'color: currentColor'
   ].join('; ');
   clearBtn.innerHTML = CLEAR_SVG;
   clearBtn.addEventListener('mouseenter', () => (clearBtn.style.opacity = '0.9'));

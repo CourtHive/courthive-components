@@ -17,7 +17,11 @@
  * a double exit requires explicitly choosing NEITHER_SIDE. No DOM dependencies, no side effects.
  */
 
-import { matchUpStatusConstants, directingMatchUpStatuses, nonDirectingMatchUpStatuses } from 'tods-competition-factory';
+import {
+  matchUpStatusConstants,
+  directingMatchUpStatuses,
+  nonDirectingMatchUpStatuses
+} from 'tods-competition-factory';
 
 const {
   COMPLETED,
@@ -32,7 +36,7 @@ const {
   SUSPENDED,
   DEAD_RUBBER,
   IN_PROGRESS,
-  AWAITING_RESULT,
+  AWAITING_RESULT
 } = matchUpStatusConstants;
 
 /**
@@ -99,7 +103,7 @@ export const SELECTABLE_ENDINGS: string[] = [
   ABANDONED,
   CANCELLED,
   INCOMPLETE,
-  DEAD_RUBBER,
+  DEAD_RUBBER
 ];
 
 /**
@@ -111,7 +115,7 @@ export const SELECTABLE_ENDINGS: string[] = [
  * should classify itself rather than wait for someone to remember both places.
  */
 export const WINNER_REQUIRING_STATUSES = new Set<string>(
-  SELECTABLE_ENDINGS.filter((status) => FACTORY_DIRECTING.has(status)),
+  SELECTABLE_ENDINGS.filter((status) => FACTORY_DIRECTING.has(status))
 );
 
 /**
@@ -128,7 +132,7 @@ export const WINNER_REQUIRING_STATUSES = new Set<string>(
  * being silently swept in here.
  */
 export const NON_DIRECTING_ENDINGS = new Set<string>(
-  SELECTABLE_ENDINGS.filter((status) => FACTORY_NON_DIRECTING.has(status)),
+  SELECTABLE_ENDINGS.filter((status) => FACTORY_NON_DIRECTING.has(status))
 );
 
 /** Whether choosing this ending obliges the operator to answer the winner question. */
@@ -191,7 +195,7 @@ export const NO_SCORE_STATUSES = new Set<string>([WALKOVER, DOUBLE_WALKOVER, CAN
  * that made the difference.
  */
 export const SCORE_PRESERVING_ENDINGS = new Set<string>(
-  SELECTABLE_ENDINGS.filter((status) => !WINNER_REQUIRING_STATUSES.has(status) && !NO_SCORE_STATUSES.has(status)),
+  SELECTABLE_ENDINGS.filter((status) => !WINNER_REQUIRING_STATUSES.has(status) && !NO_SCORE_STATUSES.has(status))
 );
 
 /** Whether a typed score should be kept when this ending is selected. */
@@ -221,7 +225,7 @@ export type WinnerSelection = 1 | 2 | typeof NEITHER_SIDE | undefined;
  */
 const DOUBLE_EXIT_STATUS: Record<string, string> = {
   [WALKOVER]: DOUBLE_WALKOVER,
-  [DEFAULTED]: DOUBLE_DEFAULT,
+  [DEFAULTED]: DOUBLE_DEFAULT
 };
 
 /** The double-exit statuses themselves, as opposed to the endings that produce them. */
@@ -246,7 +250,10 @@ export function isDoubleExitStatus(matchUpStatus: string | undefined): boolean {
  * double exits among the statuses that "produce a winner", so had one ever been selectable it would
  * have stamped a winningSide on an outcome that must carry none.
  */
-export function winnerFromExitingSide(matchUpStatus: string | undefined, exitingSideNumber?: number): number | undefined {
+export function winnerFromExitingSide(
+  matchUpStatus: string | undefined,
+  exitingSideNumber?: number
+): number | undefined {
   if (!matchUpStatus || !exitingSideNumber) return undefined;
   if (!WINNER_REQUIRING_STATUSES.has(matchUpStatus)) return undefined;
   return exitingSideNumber === 1 ? 2 : 1;
@@ -311,7 +318,7 @@ export function resolveIrregularEnding(params: {
       winningSide: winnerSelection,
       isValid: true,
       awaitingWinner: false,
-      isDoubleExit: false,
+      isDoubleExit: false
     };
   }
 
@@ -328,7 +335,7 @@ export function resolveIrregularEnding(params: {
       matchUpStatus: doubleExitStatus,
       isValid: true,
       awaitingWinner: false,
-      isDoubleExit: true,
+      isDoubleExit: true
     };
   }
 
@@ -354,7 +361,7 @@ export function resolveIrregularEnding(params: {
 export function applyIrregularEndingToValidation(
   validation: any,
   selectedOutcome: string | undefined,
-  winnerSelection: WinnerSelection,
+  winnerSelection: WinnerSelection
 ): IrregularEndingResolution {
   const resolution = resolveIrregularEnding({ selectedOutcome, winnerSelection });
 
@@ -410,10 +417,10 @@ export function applyIrregularEndingToValidation(
  * MISSING one is returned as `undefined` rather than defaulted. An unanswered winner is the
  * fail-closed state (`WINNER_REQUIRED_ERROR`), and it must survive a save/reopen cycle as unanswered.
  */
-export function hydrateIrregularEnding(matchUp?: {
-  matchUpStatus?: string;
-  winningSide?: number;
-}): { selectedOutcome: string; winnerSelection: WinnerSelection } {
+export function hydrateIrregularEnding(matchUp?: { matchUpStatus?: string; winningSide?: number }): {
+  selectedOutcome: string;
+  winnerSelection: WinnerSelection;
+} {
   const matchUpStatus = matchUp?.matchUpStatus;
   if (!matchUpStatus) return { selectedOutcome: COMPLETED, winnerSelection: undefined };
 
@@ -435,7 +442,7 @@ export function hydrateIrregularEnding(matchUp?: {
   const winningSide = matchUp?.winningSide;
   return {
     selectedOutcome: matchUpStatus,
-    winnerSelection: winningSide === 1 || winningSide === 2 ? winningSide : undefined,
+    winnerSelection: winningSide === 1 || winningSide === 2 ? winningSide : undefined
   };
 }
 
@@ -474,7 +481,7 @@ export function endingLabels(labels: EndingLabelOverrides = {}): Record<string, 
     [ABANDONED]: 'Abandoned',
     [CANCELLED]: 'Cancelled',
     [INCOMPLETE]: 'Incomplete',
-    [DEAD_RUBBER]: 'Dead Rubber',
+    [DEAD_RUBBER]: 'Dead Rubber'
   };
   const overrides: Record<string, string | undefined> = {
     [RETIRED]: labels.retired,
@@ -486,10 +493,10 @@ export function endingLabels(labels: EndingLabelOverrides = {}): Record<string, 
     [ABANDONED]: labels.abandoned,
     [CANCELLED]: labels.cancelled,
     [INCOMPLETE]: labels.incomplete,
-    [DEAD_RUBBER]: labels.deadRubber,
+    [DEAD_RUBBER]: labels.deadRubber
   };
 
   return Object.fromEntries(
-    SELECTABLE_ENDINGS.map((status) => [status, overrides[status] || defaults[status] || status]),
+    SELECTABLE_ENDINGS.map((status) => [status, overrides[status] || defaults[status] || status])
   );
 }

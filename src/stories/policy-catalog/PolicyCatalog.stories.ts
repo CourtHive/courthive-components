@@ -231,7 +231,7 @@ export const CreateRenameAndReconcile = {
     info.innerHTML = [
       '<strong>Bug regression demo:</strong> Click "+" → pick "Scheduling".',
       'The store creates a placeholder id (<code>user-scheduling-…</code>) and fires <code>onPolicyCreated</code>.',
-      'This story\'s callback resolves with a fake server id (<code>srv-…</code>) after 400ms, simulating a POST.',
+      "This story's callback resolves with a fake server id (<code>srv-…</code>) after 400ms, simulating a POST.",
       'After reconciliation, edit the name + body and click <em>Save</em>.',
       '<code>onPolicySaved</code> must fire against the server id — prior bug PUT to the placeholder and got "not found".'
     ].join(' ');

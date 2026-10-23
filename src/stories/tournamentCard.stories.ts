@@ -76,10 +76,7 @@ export const OfflineBadge = {
 // ── Status pill variants ──
 
 export const StatusLive = {
-  render: () =>
-    makeFrame(
-      buildTournamentCard({ ...BASE, status: { kind: 'live', label: 'Live' } })
-    )
+  render: () => makeFrame(buildTournamentCard({ ...BASE, status: { kind: 'live', label: 'Live' } }))
 };
 
 export const StatusCompleted = {
@@ -119,15 +116,11 @@ export const StatusNone = {
 // ── Fee variants ──
 
 export const FeeRange = {
-  render: () =>
-    makeFrame(
-      buildTournamentCard({ ...BASE, feeFormatted: 'USD $40.00 – $85.00' })
-    )
+  render: () => makeFrame(buildTournamentCard({ ...BASE, feeFormatted: 'USD $40.00 – $85.00' }))
 };
 
 export const FeeFromMixed = {
-  render: () =>
-    makeFrame(buildTournamentCard({ ...BASE, feeFormatted: 'From EUR €40.00' }))
+  render: () => makeFrame(buildTournamentCard({ ...BASE, feeFormatted: 'From EUR €40.00' }))
 };
 
 export const NoFee = {
@@ -143,9 +136,7 @@ export const FromTournamentRecord = {
       tournamentName: 'Mock Tournament From Factory Record',
       startDate: '2026-05-22',
       endDate: '2026-05-24',
-      onlineResources: [
-        { name: 'tournamentImage', resourceSubType: 'COURT_SVG', identifier: 'tennis' }
-      ],
+      onlineResources: [{ name: 'tournamentImage', resourceSubType: 'COURT_SVG', identifier: 'tennis' }],
       venues: [
         {
           venueName: 'Tennis Hub',
@@ -162,21 +153,59 @@ export const FromTournamentRecord = {
       }
     };
     const data = mapTournamentToCardData(tournament);
-    return makeFrame(buildTournamentCard(data, undefined, {
-      onClick: (d) => console.log('open', d.tournamentId)
-    }));
+    return makeFrame(
+      buildTournamentCard(data, undefined, {
+        onClick: (d) => console.log('open', d.tournamentId)
+      })
+    );
   }
 };
 
 // ── Grid layout (default usage in TMX) ──
 
 const GRID_VARIANTS: TournamentCardData[] = [
-  { ...BASE, tournamentId: 'a', tournamentName: 'Spring Classic', status: { kind: 'closing-soon', label: 'Closing Soon' } },
-  { ...BASE, tournamentId: 'b', tournamentName: 'Memorial Day Open', status: { kind: 'live', label: 'Live' }, courtSvgSport: 'tennis' },
-  { ...BASE, tournamentId: 'c', tournamentName: 'Bent Tree Showdown', status: { kind: 'registration-opens', label: 'Opens Jun 1' }, courtSvgSport: 'pickleball' },
-  { ...BASE, tournamentId: 'd', tournamentName: 'Summer Slam (Last Year)', status: { kind: 'completed', label: 'Completed' } },
-  { ...BASE, tournamentId: 'e', tournamentName: 'Weather-Cancelled Event', status: { kind: 'cancelled', label: 'Cancelled' }, feeFormatted: null, participantCount: 0 },
-  { ...BASE, tournamentId: 'f', tournamentName: 'Single Day Tourney', status: null, dateRangeFormatted: 'May 30, 2026', courtSvgSport: 'badminton' }
+  {
+    ...BASE,
+    tournamentId: 'a',
+    tournamentName: 'Spring Classic',
+    status: { kind: 'closing-soon', label: 'Closing Soon' }
+  },
+  {
+    ...BASE,
+    tournamentId: 'b',
+    tournamentName: 'Memorial Day Open',
+    status: { kind: 'live', label: 'Live' },
+    courtSvgSport: 'tennis'
+  },
+  {
+    ...BASE,
+    tournamentId: 'c',
+    tournamentName: 'Bent Tree Showdown',
+    status: { kind: 'registration-opens', label: 'Opens Jun 1' },
+    courtSvgSport: 'pickleball'
+  },
+  {
+    ...BASE,
+    tournamentId: 'd',
+    tournamentName: 'Summer Slam (Last Year)',
+    status: { kind: 'completed', label: 'Completed' }
+  },
+  {
+    ...BASE,
+    tournamentId: 'e',
+    tournamentName: 'Weather-Cancelled Event',
+    status: { kind: 'cancelled', label: 'Cancelled' },
+    feeFormatted: null,
+    participantCount: 0
+  },
+  {
+    ...BASE,
+    tournamentId: 'f',
+    tournamentName: 'Single Day Tourney',
+    status: null,
+    dateRangeFormatted: 'May 30, 2026',
+    courtSvgSport: 'badminton'
+  }
 ];
 
 export const ResponsiveGrid = {

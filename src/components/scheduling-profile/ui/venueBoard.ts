@@ -41,7 +41,10 @@ export interface VenueBoardOptions {
   titleLeadingActions?: HTMLElement | HTMLElement[];
 }
 
-export function buildVenueBoard(callbacks: VenueBoardCallbacks, options?: VenueBoardOptions): UIPanel<ProfileStoreState> {
+export function buildVenueBoard(
+  callbacks: VenueBoardCallbacks,
+  options?: VenueBoardOptions
+): UIPanel<ProfileStoreState> {
   const root = document.createElement('div');
   root.className = spPanelStyle();
 

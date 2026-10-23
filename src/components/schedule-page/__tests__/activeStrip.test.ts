@@ -180,10 +180,7 @@ describe('computeActiveStripDropTarget', () => {
 
   it('appends past the last cell when the target column is fully occupied', () => {
     const g = grid(
-      column('C1', [
-        cell({ matchUpId: 'A', participantIds: ['p1'] }),
-        cell({ matchUpId: 'B', participantIds: ['p2'] })
-      ])
+      column('C1', [cell({ matchUpId: 'A', participantIds: ['p1'] }), cell({ matchUpId: 'B', participantIds: ['p2'] })])
     );
     const result = computeActiveStripDropTarget(g, 'C1', dragged({ matchUpId: 'X', participantIds: ['p9'] }));
     expect(result).toEqual({ courtId: 'C1', rowIndex: 2 });
@@ -191,7 +188,11 @@ describe('computeActiveStripDropTarget', () => {
 
   it('lands at the first null gap in the target column when no floors apply', () => {
     const g = grid(
-      column('C1', [cell({ matchUpId: 'A', participantIds: ['p1'] }), null, cell({ matchUpId: 'B', participantIds: ['p2'] })])
+      column('C1', [
+        cell({ matchUpId: 'A', participantIds: ['p1'] }),
+        null,
+        cell({ matchUpId: 'B', participantIds: ['p2'] })
+      ])
     );
     const result = computeActiveStripDropTarget(g, 'C1', dragged({ matchUpId: 'X', participantIds: ['p9'] }));
     expect(result).toEqual({ courtId: 'C1', rowIndex: 1 });
@@ -201,12 +202,7 @@ describe('computeActiveStripDropTarget', () => {
     // Alice played on C1 row 3. Drop her R16 onto C2 (which is empty).
     // Expected: row 4 on C2 — below where she already appears.
     const g = grid(
-      column('C1', [
-        null,
-        null,
-        null,
-        cell({ matchUpId: 'A', participantIds: ['alice', 'bob'] })
-      ]),
+      column('C1', [null, null, null, cell({ matchUpId: 'A', participantIds: ['alice', 'bob'] })]),
       column('C2', [])
     );
     const result = computeActiveStripDropTarget(
@@ -256,57 +252,27 @@ describe('computeActiveStripDropTarget', () => {
     // Participant floor at row 5 (alice on C1 row 5).
     // Target court C2 already has a matchUp at row 5; drop should land on row 6.
     const g = grid(
-      column('C1', [
-        null,
-        null,
-        null,
-        null,
-        null,
-        cell({ matchUpId: 'A', participantIds: ['alice'] })
-      ]),
-      column('C2', [
-        null,
-        null,
-        null,
-        null,
-        null,
-        cell({ matchUpId: 'B', participantIds: ['bob'] })
-      ])
+      column('C1', [null, null, null, null, null, cell({ matchUpId: 'A', participantIds: ['alice'] })]),
+      column('C2', [null, null, null, null, null, cell({ matchUpId: 'B', participantIds: ['bob'] })])
     );
-    const result = computeActiveStripDropTarget(
-      g,
-      'C2',
-      dragged({ matchUpId: 'X', participantIds: ['alice'] })
-    );
+    const result = computeActiveStripDropTarget(g, 'C2', dragged({ matchUpId: 'X', participantIds: ['alice'] }));
     expect(result).toEqual({ courtId: 'C2', rowIndex: 6 });
   });
 
-  it('ignores the dragged matchUp\'s own current cell when computing floors (relocation)', () => {
+  it("ignores the dragged matchUp's own current cell when computing floors (relocation)", () => {
     // X is currently on C1 row 4 with alice. Dragging it onto C2 should not
     // count its own row as a floor for alice — otherwise we'd land at row 5.
     const g = grid(
-      column('C1', [
-        null,
-        null,
-        null,
-        null,
-        cell({ matchUpId: 'X', participantIds: ['alice'] })
-      ]),
+      column('C1', [null, null, null, null, cell({ matchUpId: 'X', participantIds: ['alice'] })]),
       column('C2', [])
     );
-    const result = computeActiveStripDropTarget(
-      g,
-      'C2',
-      dragged({ matchUpId: 'X', participantIds: ['alice'] })
-    );
+    const result = computeActiveStripDropTarget(g, 'C2', dragged({ matchUpId: 'X', participantIds: ['alice'] }));
     expect(result).toEqual({ courtId: 'C2', rowIndex: 0 });
   });
 
   it('skips the earlier-round floor when the dragged matchUp has no roundNumber', () => {
     const g = grid(
-      column('C1', [
-        cell({ matchUpId: 'R32-1', drawId: 'D1', roundNumber: 1, participantIds: ['p1'] })
-      ]),
+      column('C1', [cell({ matchUpId: 'R32-1', drawId: 'D1', roundNumber: 1, participantIds: ['p1'] })]),
       column('C2', [])
     );
     const result = computeActiveStripDropTarget(
@@ -319,9 +285,7 @@ describe('computeActiveStripDropTarget', () => {
 
   it('skips the earlier-round floor when the dragged matchUp has no drawId', () => {
     const g = grid(
-      column('C1', [
-        cell({ matchUpId: 'R32-1', drawId: 'D1', roundNumber: 1, participantIds: ['p1'] })
-      ]),
+      column('C1', [cell({ matchUpId: 'R32-1', drawId: 'D1', roundNumber: 1, participantIds: ['p1'] })]),
       column('C2', [])
     );
     const result = computeActiveStripDropTarget(
@@ -349,7 +313,10 @@ describe('computeActiveStripDropTarget', () => {
   it('lands at or below the court called next match when nothing is in progress', () => {
     // Empty row 0, a called "next" match at row 1. Drop settles below it (row 2).
     const g = grid(
-      column('C1', [null, cell({ matchUpId: 'NEXT', matchUpStatus: TBP, calledAt: CALLED, participantIds: ['p1', 'p2'] })])
+      column('C1', [
+        null,
+        cell({ matchUpId: 'NEXT', matchUpStatus: TBP, calledAt: CALLED, participantIds: ['p1', 'p2'] })
+      ])
     );
     const result = computeActiveStripDropTarget(g, 'C1', dragged({ matchUpId: 'X', participantIds: ['p9'] }));
     expect(result).toEqual({ courtId: 'C1', rowIndex: 2 });
@@ -379,9 +346,7 @@ describe('computeActiveStripDropTarget', () => {
 
   it('throws when the target courtId is not in the grid', () => {
     const g = grid(column('C1', []));
-    expect(() =>
-      computeActiveStripDropTarget(g, 'NOPE', dragged({ matchUpId: 'X' }))
-    ).toThrow(/not present in grid/);
+    expect(() => computeActiveStripDropTarget(g, 'NOPE', dragged({ matchUpId: 'X' }))).toThrow(/not present in grid/);
   });
 });
 
@@ -436,7 +401,9 @@ describe('computeReschedulePlacements', () => {
   });
 
   it('seats above a later round of the same draw when a free row exists there', () => {
-    const g = grid(column('C1', [null, cell({ matchUpId: 'FINAL', drawId: 'D', roundNumber: 3, participantIds: ['p9'] })]));
+    const g = grid(
+      column('C1', [null, cell({ matchUpId: 'FINAL', drawId: 'D', roundNumber: 3, participantIds: ['p9'] })])
+    );
     const result = computeReschedulePlacements(g, [
       { matchUpId: 'SEMI', courtId: 'C1', drawId: 'D', roundNumber: 1, participantIds: ['p1'] }
     ]);

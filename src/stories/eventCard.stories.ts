@@ -49,13 +49,11 @@ export const DoublesFemale = {
     makeFrame(buildEventCard({ ...BASE, eventName: "Women's Doubles", eventType: 'DOUBLES', gender: 'FEMALE' }))
 };
 export const TeamMixed = {
-  render: () =>
-    makeFrame(buildEventCard({ ...BASE, eventName: 'Mixed Teams', eventType: 'TEAM', gender: 'MIXED' }))
+  render: () => makeFrame(buildEventCard({ ...BASE, eventName: 'Mixed Teams', eventType: 'TEAM', gender: 'MIXED' }))
 };
 
 export const StatusDrawing = {
-  render: () =>
-    makeFrame(buildEventCard({ ...BASE, status: { kind: 'drawing', label: 'Drawing' } }))
+  render: () => makeFrame(buildEventCard({ ...BASE, status: { kind: 'drawing', label: 'Drawing' } }))
 };
 export const StatusEntriesOpen = {
   render: () =>

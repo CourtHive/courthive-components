@@ -12,7 +12,7 @@ import {
   carriesNoScore,
   endingLabels,
   requiresWinner,
-  NEITHER_SIDE,
+  NEITHER_SIDE
 } from '../irregularEnding';
 
 const {
@@ -28,7 +28,7 @@ const {
   SUSPENDED,
   DEAD_RUBBER,
   IN_PROGRESS,
-  AWAITING_RESULT,
+  AWAITING_RESULT
 } = matchUpStatusConstants;
 
 describe('resolveIrregularEnding', () => {
@@ -39,7 +39,7 @@ describe('resolveIrregularEnding', () => {
       [WALKOVER, 1],
       [WALKOVER, 2],
       [DEFAULTED, 1],
-      [DEFAULTED, 2],
+      [DEFAULTED, 2]
     ])('%s with side %i', (selectedOutcome, winnerSelection) => {
       const result = resolveIrregularEnding({ selectedOutcome, winnerSelection: winnerSelection as 1 | 2 });
 
@@ -48,7 +48,7 @@ describe('resolveIrregularEnding', () => {
         winningSide: winnerSelection,
         isValid: true,
         awaitingWinner: false,
-        isDoubleExit: false,
+        isDoubleExit: false
       });
     });
   });
@@ -113,7 +113,7 @@ describe('resolveIrregularEnding', () => {
   describe('non-endings resolve inertly', () => {
     it.each([
       ['COMPLETED', COMPLETED],
-      ['undefined', undefined],
+      ['undefined', undefined]
     ])('%s', (_label, selectedOutcome) => {
       const result = resolveIrregularEnding({ selectedOutcome, winnerSelection: NEITHER_SIDE });
 
@@ -127,7 +127,7 @@ describe('supportsNeitherSide', () => {
     [WALKOVER, true],
     [DEFAULTED, true],
     [RETIRED, false],
-    [COMPLETED, false],
+    [COMPLETED, false]
   ])('%s → %s', (selectedOutcome, expected) => {
     expect(supportsNeitherSide(selectedOutcome)).toBe(expected);
   });
@@ -140,7 +140,7 @@ describe('supportsNeitherSide', () => {
 describe('WINNER_REQUIRING_STATUSES', () => {
   it('is exactly the three irregular endings that name a side', () => {
     expect([...WINNER_REQUIRING_STATUSES].toSorted((a, b) => a.localeCompare(b, 'en'))).toEqual(
-      [RETIRED, WALKOVER, DEFAULTED].toSorted((a, b) => a.localeCompare(b, 'en')),
+      [RETIRED, WALKOVER, DEFAULTED].toSorted((a, b) => a.localeCompare(b, 'en'))
     );
   });
 });
@@ -213,8 +213,8 @@ describe('the ten selectable endings', () => {
         IN_PROGRESS,
         RETIRED,
         SUSPENDED,
-        WALKOVER,
-      ].toSorted((a, b) => a.localeCompare(b, 'en')),
+        WALKOVER
+      ].toSorted((a, b) => a.localeCompare(b, 'en'))
     );
   });
 
@@ -358,7 +358,7 @@ describe('requiresWinner', () => {
     [ABANDONED, false],
     [CANCELLED, false],
     [INCOMPLETE, false],
-    [COMPLETED, false],
+    [COMPLETED, false]
   ])('%s → %s', (status, expected) => {
     expect(requiresWinner(status)).toBe(expected);
   });
@@ -367,4 +367,3 @@ describe('requiresWinner', () => {
     expect(requiresWinner(undefined)).toBe(false);
   });
 });
-

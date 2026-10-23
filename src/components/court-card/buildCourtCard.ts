@@ -21,13 +21,7 @@ import {
   ccSurfaceStyle,
   ccTitleStyle
 } from './styles';
-import {
-  CourtCardCallbacks,
-  CourtCardConfig,
-  CourtCardCornerField,
-  CourtCardData,
-  CourtCardField
-} from './types';
+import { CourtCardCallbacks, CourtCardConfig, CourtCardCornerField, CourtCardData, CourtCardField } from './types';
 
 // ============================================================================
 // Public Builder

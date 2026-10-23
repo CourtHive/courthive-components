@@ -32,7 +32,10 @@
   border-radius: var(--chc-cc-radius);
   box-shadow: var(--chc-cc-shadow);
   overflow: hidden;
-  transition: box-shadow 0.15s ease, background 0.15s ease, transform 0.15s ease;
+  transition:
+    box-shadow 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
 }
 
 [data-theme='dark'] .chc-cc-card {
@@ -47,7 +50,9 @@
   --chc-cc-skeleton-shimmer: #2a3550;
 }
 
-.chc-cc-card--clickable { cursor: pointer; }
+.chc-cc-card--clickable {
+  cursor: pointer;
+}
 .chc-cc-card--clickable:hover {
   box-shadow: var(--chc-cc-hover-shadow);
   background: var(--chc-cc-hover-bg);
@@ -111,26 +116,32 @@
   --chc-cc-placeholder-stripe: #92633f;
 }
 
-.chc-cc-image-svg { width: 75%; height: 75%; opacity: 0.85; }
+.chc-cc-image-svg {
+  width: 75%;
+  height: 75%;
+  opacity: 0.85;
+}
 
 .chc-cc-image-placeholder {
-  width: 100%; height: 100%;
-  background:
-    repeating-linear-gradient(
-      135deg,
-      var(--chc-cc-image-bg),
-      var(--chc-cc-image-bg) 8px,
-      var(--chc-cc-placeholder-stripe) 8px,
-      var(--chc-cc-placeholder-stripe) 16px
-    );
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    135deg,
+    var(--chc-cc-image-bg),
+    var(--chc-cc-image-bg) 8px,
+    var(--chc-cc-placeholder-stripe) 8px,
+    var(--chc-cc-placeholder-stripe) 16px
+  );
 }
 
 /* ── Corner badges ── */
 
 .chc-cc-corner-badges {
   position: absolute;
-  top: 0.4rem; left: 0.4rem;
-  display: flex; flex-direction: row;
+  top: 0.4rem;
+  left: 0.4rem;
+  display: flex;
+  flex-direction: row;
   gap: 0.25rem;
   z-index: 2;
   pointer-events: none;
@@ -138,7 +149,8 @@
 
 .chc-cc-indoor-badge,
 .chc-cc-floodlit-badge {
-  font-size: 0.65rem; font-weight: 700;
+  font-size: 0.65rem;
+  font-weight: 700;
   padding: 0.15rem 0.35rem;
   border-radius: 0.25rem;
   color: var(--chc-cc-badge-color);
@@ -147,23 +159,33 @@
   text-transform: uppercase;
 }
 
-.chc-cc-indoor-badge[data-kind='INDOOR']  { background: var(--chc-cc-indoor-bg); }
-.chc-cc-indoor-badge[data-kind='OUTDOOR'] { background: var(--chc-cc-outdoor-bg); }
-.chc-cc-floodlit-badge                    { background: var(--chc-cc-floodlit-bg); }
+.chc-cc-indoor-badge[data-kind='INDOOR'] {
+  background: var(--chc-cc-indoor-bg);
+}
+.chc-cc-indoor-badge[data-kind='OUTDOOR'] {
+  background: var(--chc-cc-outdoor-bg);
+}
+.chc-cc-floodlit-badge {
+  background: var(--chc-cc-floodlit-bg);
+}
 
 /* ── Body ── */
 
 .chc-cc-body {
-  display: flex; flex-direction: column;
+  display: flex;
+  flex-direction: column;
   gap: 0.2rem;
   padding: 0.55rem 0.75rem 0.4rem;
   flex: 1 1 auto;
 }
 
 .chc-cc-title {
-  font-size: 0.875rem; font-weight: 600;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--chc-cc-title-color);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   line-height: 1.2;
 }
 
@@ -186,20 +208,24 @@
 /* ── Footer ── */
 
 .chc-cc-footer {
-  display: flex; align-items: center;
+  display: flex;
+  align-items: center;
   gap: 0.5rem;
   padding: 0.35rem 0.75rem 0.55rem;
 }
 
 .chc-cc-amenity-row {
-  display: flex; gap: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
   font-size: 0.7rem;
   color: var(--chc-cc-muted-color);
 }
 
 /* ── Skeleton ── */
 
-.chc-cc-skeleton { pointer-events: none; }
+.chc-cc-skeleton {
+  pointer-events: none;
+}
 .chc-cc-skeleton-block,
 .chc-cc-skeleton-line {
   background: linear-gradient(
@@ -211,11 +237,23 @@
   background-size: 200% 100%;
   animation: chc-cc-shimmer 1.4s ease-in-out infinite;
 }
-.chc-cc-skeleton-block { width: 100%; height: 100%; }
-.chc-cc-skeleton-line { height: 0.6rem; border-radius: 0.25rem; }
-.chc-cc-skeleton-line + .chc-cc-skeleton-line { margin-top: 0.4rem; }
+.chc-cc-skeleton-block {
+  width: 100%;
+  height: 100%;
+}
+.chc-cc-skeleton-line {
+  height: 0.6rem;
+  border-radius: 0.25rem;
+}
+.chc-cc-skeleton-line + .chc-cc-skeleton-line {
+  margin-top: 0.4rem;
+}
 
 @keyframes chc-cc-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }

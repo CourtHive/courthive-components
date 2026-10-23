@@ -140,7 +140,9 @@
   font-size: 2rem;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 0.05s ease, opacity 0.1s ease;
+  transition:
+    transform 0.05s ease,
+    opacity 0.1s ease;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);

@@ -62,7 +62,7 @@ function resolveBinColor(
   bin: DistributionBin,
   index: number,
   total: number,
-  override: RatingDistributionChartOptions['binColor'],
+  override: RatingDistributionChartOptions['binColor']
 ): string {
   if (override) return override(bin, index);
   return defaultBinColor(bin, index, total);
@@ -101,10 +101,7 @@ function renderHistogram(args: HistogramArgs): SVGSVGElement {
 
   if (stats.histogram.length === 0 || innerWidth === 0 || innerHeight === 0) return svg;
 
-  const x = scaleBand<string>()
-    .domain(stats.histogram.map(formatBinLabel))
-    .range([0, innerWidth])
-    .padding(0.12);
+  const x = scaleBand<string>().domain(stats.histogram.map(formatBinLabel)).range([0, innerWidth]).padding(0.12);
 
   const y = scaleLinear()
     .domain([0, d3Max(stats.histogram, (b) => b.count) ?? 0])
@@ -216,7 +213,7 @@ function arcPath(cx: number, cy: number, outer: number, inner: number, start: nu
     `A ${outer} ${outer} 0 ${largeArc} 1 ${outerEndX} ${outerEndY}`,
     `L ${innerStartX} ${innerStartY}`,
     `A ${inner} ${inner} 0 ${largeArc} 0 ${innerEndX} ${innerEndY}`,
-    'Z',
+    'Z'
   ].join(' ');
 }
 
@@ -299,7 +296,7 @@ function renderDonut(args: DonutArgs): SVGSVGElement {
 // the consuming TMX layer (Phase 1.C).
 export function buildRatingDistributionChart(
   stats: RatingDistributionStats,
-  options: RatingDistributionChartOptions = {},
+  options: RatingDistributionChartOptions = {}
 ): SVGSVGElement {
   const mode = options.mode ?? 'HISTOGRAM';
   const ariaLabel = options.ariaLabel ?? 'Participant rating distribution';
@@ -312,7 +309,7 @@ export function buildRatingDistributionChart(
       margin: options.margin ?? DEFAULT_DONUT_MARGIN,
       showCounts: options.showCounts ?? true,
       binColor: options.binColor,
-      ariaLabel,
+      ariaLabel
     });
   }
 
@@ -325,6 +322,6 @@ export function buildRatingDistributionChart(
     showCounts: options.showCounts ?? true,
     showMean: options.showMean ?? true,
     binColor: options.binColor,
-    ariaLabel,
+    ariaLabel
   });
 }

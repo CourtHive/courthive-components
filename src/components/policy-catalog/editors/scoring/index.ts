@@ -4,11 +4,11 @@ export type {
   ScoringEditorConfig,
   MatchUpStatusKey,
   MatchUpFormatEntry,
-  AllowedFormatEntry,
+  AllowedFormatEntry
 } from './types';
 export {
   MATCH_UP_FORMAT_REGISTRY_SORTED,
   lookupRegistryFormat,
   emptyScoringPolicy,
-  FORMAT_STANDARD,
+  FORMAT_STANDARD
 } from './domain/scoringProjections';

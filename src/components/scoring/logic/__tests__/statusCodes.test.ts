@@ -7,11 +7,10 @@ import {
   statusCodeDisplay,
   codesForStatus,
   recordedStatusCode,
-  type StatusCodeGroups,
+  type StatusCodeGroups
 } from '../statusCodes';
 
-const { WALKOVER, DEFAULTED, RETIRED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, ABANDONED, CANCELLED } =
-  matchUpStatusConstants;
+const { WALKOVER, DEFAULTED, RETIRED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, ABANDONED, CANCELLED } = matchUpStatusConstants;
 const { POLICY_TYPE_SCORING } = policyConstants;
 
 // The real shipped vocabulary, not a hand-written mirror of it. A hand-mirror is how the scoring
@@ -22,7 +21,7 @@ describe('groupKeyForStatus', () => {
   // A double exit has no group of its own; the policy files Wo/Wo under WALKOVER.
   it.each([
     [DOUBLE_WALKOVER, WALKOVER],
-    [DOUBLE_DEFAULT, DEFAULTED],
+    [DOUBLE_DEFAULT, DEFAULTED]
   ])('%s reads its codes from %s', (status, expected) => {
     expect(groupKeyForStatus(status)).toBe(expected);
   });
@@ -53,7 +52,7 @@ describe('normalizeStatusCode — all three shapes a code legitimately takes', (
   // Provenance shares the array and carries no code. It must read as absent, not as a code.
   it('returns undefined for a propagation provenance element', () => {
     expect(
-      normalizeStatusCode({ previousMatchUpStatus: 'DOUBLE_WALKOVER', matchUpStatus: 'WALKOVER', sideNumber: 1 }),
+      normalizeStatusCode({ previousMatchUpStatus: 'DOUBLE_WALKOVER', matchUpStatus: 'WALKOVER', sideNumber: 1 })
     ).toBeUndefined();
   });
 
@@ -121,7 +120,10 @@ describe('the WITHDRAWN group belongs to entries, not to scoring — CA, 2026-09
     // not double walkover — WOWO is that, and it is already in the walkover group.
     for (const status of [WALKOVER, DOUBLE_WALKOVER, DEFAULTED, DOUBLE_DEFAULT, RETIRED, ABANDONED]) {
       const codes = codesForStatus(REAL_GROUPS, status).map((c) => c.matchUpStatusCode);
-      expect(codes.filter((c) => c.startsWith('WD.')), `${status} reached a WD.* code`).toEqual([]);
+      expect(
+        codes.filter((c) => c.startsWith('WD.')),
+        `${status} reached a WD.* code`
+      ).toEqual([]);
     }
   });
 });
@@ -167,7 +169,7 @@ describe('codesForStatus when the policy carries none', () => {
   it.each([
     ['no groups at all', undefined],
     ['the factory default, every key empty', { ABANDONED: [], CANCELLED: [], DEFAULTED: [], RETIRED: [] }],
-    ['a group that is not an array', { RETIRED: 'RJ' as any }],
+    ['a group that is not an array', { RETIRED: 'RJ' as any }]
   ])('%s → empty', (_label, groups) => {
     expect(codesForStatus(groups as StatusCodeGroups | undefined, RETIRED)).toEqual([]);
   });
@@ -180,7 +182,7 @@ describe('codesForStatus when the policy carries none', () => {
 describe('display text is read from the policy, never synthesised', () => {
   it('prefers the authored display form', () => {
     expect(statusCodeDisplay({ matchUpStatusCode: 'RJ', matchUpStatusCodeDisplay: 'Ret [inj]', label: 'Injury' })).toBe(
-      'Ret [inj]',
+      'Ret [inj]'
     );
   });
 
@@ -190,14 +192,15 @@ describe('display text is read from the policy, never synthesised', () => {
   });
 
   it('offers the label as subtext when it says something the display does not', () => {
-    expect(
-      statusCodeSubtext({ matchUpStatusCode: 'RJ', matchUpStatusCodeDisplay: 'Ret [inj]', label: 'Injury' }),
-    ).toBe('Injury');
+    expect(statusCodeSubtext({ matchUpStatusCode: 'RJ', matchUpStatusCodeDisplay: 'Ret [inj]', label: 'Injury' })).toBe(
+      'Injury'
+    );
   });
 
   it('does not repeat the display form as its own subtext', () => {
-    expect(statusCodeSubtext({ matchUpStatusCode: 'RJ', matchUpStatusCodeDisplay: 'Ret [inj]', label: 'Ret [inj]' }))
-      .toBeUndefined();
+    expect(
+      statusCodeSubtext({ matchUpStatusCode: 'RJ', matchUpStatusCodeDisplay: 'Ret [inj]', label: 'Ret [inj]' })
+    ).toBeUndefined();
     expect(statusCodeSubtext({ matchUpStatusCode: 'RJ' })).toBeUndefined();
   });
 
@@ -226,16 +229,12 @@ describe('display text is read from the policy, never synthesised', () => {
 describe('recordedStatusCode', () => {
   it('reads the side that did NOT win, which is the side that exited', () => {
     // `winningSide: 1` means side 2 walked over, so side 2 owns the reason.
-    expect(
-      recordedStatusCode({ matchUpStatus: WALKOVER, winningSide: 1, sideStatusCodes: { 2: 'W1' } })
-    ).toBe('W1');
+    expect(recordedStatusCode({ matchUpStatus: WALKOVER, winningSide: 1, sideStatusCodes: { 2: 'W1' } })).toBe('W1');
 
-    expect(
-      recordedStatusCode({ matchUpStatus: RETIRED, winningSide: 2, sideStatusCodes: { 1: 'RJ' } })
-    ).toBe('RJ');
+    expect(recordedStatusCode({ matchUpStatus: RETIRED, winningSide: 2, sideStatusCodes: { 1: 'RJ' } })).toBe('RJ');
   });
 
-  it('does not read the WINNER\'s side', () => {
+  it("does not read the WINNER's side", () => {
     // A code sitting against the winning side is not this matchUp's reason, and showing it would put a
     // retirement reason next to the player who won.
     expect(
@@ -250,9 +249,9 @@ describe('recordedStatusCode', () => {
   });
 
   it('reads either side of a DOUBLE exit, which carries the same code on both', () => {
-    expect(
-      recordedStatusCode({ matchUpStatus: DOUBLE_WALKOVER, sideStatusCodes: { 1: 'WOWO', 2: 'WOWO' } })
-    ).toBe('WOWO');
+    expect(recordedStatusCode({ matchUpStatus: DOUBLE_WALKOVER, sideStatusCodes: { 1: 'WOWO', 2: 'WOWO' } })).toBe(
+      'WOWO'
+    );
   });
 
   it('falls back to index 0 for records written before the field existed', () => {
@@ -274,7 +273,7 @@ describe('recordedStatusCode', () => {
     ).toBe('DM');
   });
 
-  it('prefers the SIDE\'s code over a stale positional one', () => {
+  it("prefers the SIDE's code over a stale positional one", () => {
     expect(
       recordedStatusCode({
         matchUpStatus: WALKOVER,

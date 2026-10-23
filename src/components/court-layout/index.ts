@@ -5,7 +5,14 @@
  * dependency — see venue-locator for the map.
  */
 
-export { buildCourtLayout, cellCardConfig, groupCourts, settingOf, summarizeCourts, surfaceOf } from './buildCourtLayout';
+export {
+  buildCourtLayout,
+  cellCardConfig,
+  groupCourts,
+  settingOf,
+  summarizeCourts,
+  surfaceOf
+} from './buildCourtLayout';
 export { DEFAULT_COURT_LAYOUT_CONFIG, mergeCourtLayoutConfig } from './defaultConfig';
 
 export type { CourtGroup } from './buildCourtLayout';

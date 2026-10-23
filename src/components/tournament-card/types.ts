@@ -12,12 +12,7 @@ import { CourtSport } from '../courts/courtSvgUtil';
 // ============================================================================
 
 export type TournamentStatusKind =
-  | 'cancelled'
-  | 'completed'
-  | 'live'
-  | 'closing-soon'
-  | 'registration-opens'
-  | 'registration-open';
+  'cancelled' | 'completed' | 'live' | 'closing-soon' | 'registration-opens' | 'registration-open';
 
 export interface TournamentStatusPill {
   kind: TournamentStatusKind;

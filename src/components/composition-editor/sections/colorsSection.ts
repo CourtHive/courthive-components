@@ -102,8 +102,7 @@ export function buildColorsSection(store: CompositionEditorStore): EditorPanel {
   const readOnly = store.getState().readOnly;
 
   const hint = document.createElement('div');
-  hint.style.cssText =
-    'font-size:0.7rem; color:var(--chc-text-secondary, #999); padding:0 0 0.4rem; line-height:1.3;';
+  hint.style.cssText = 'font-size:0.7rem; color:var(--chc-text-secondary, #999); padding:0 0 0.4rem; line-height:1.3;';
   hint.textContent = 'Per-composition overrides. Leave blank to inherit from the selected theme.';
   root.appendChild(hint);
 

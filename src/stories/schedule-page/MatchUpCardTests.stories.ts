@@ -62,7 +62,10 @@ function baseItem(overrides: Partial<CatalogMatchUpItem> = {}): CatalogMatchUpIt
   };
 }
 
-function renderCard(overrides: Partial<CatalogMatchUpItem>, options: Parameters<typeof buildMatchUpCard>[2] = {}): HTMLElement {
+function renderCard(
+  overrides: Partial<CatalogMatchUpItem>,
+  options: Parameters<typeof buildMatchUpCard>[2] = {}
+): HTMLElement {
   const wrap = document.createElement('div');
   wrap.style.cssText = 'padding: 16px; background: var(--sp-bg, #1a1a1a); max-width: 320px;';
   const card = buildMatchUpCard(baseItem(overrides), {}, options);
@@ -169,11 +172,7 @@ export const StageUndefinedOmitsChip: StoryObj = {
 
 export const ProminentTimeRendersTimeHeader: StoryObj = {
   name: 'prominentTime + scheduledTime → with-time class + time-header span',
-  render: () =>
-    renderCard(
-      { scheduledTime: '10:30', isScheduled: true },
-      { prominentTime: true }
-    ),
+  render: () => renderCard({ scheduledTime: '10:30', isScheduled: true }, { prominentTime: true }),
   play: async ({ canvasElement }) => {
     const title = canvasElement.querySelector(TITLE_SELECTOR);
     expect(title?.classList.contains('with-time')).toBe(true);
@@ -185,11 +184,7 @@ export const ProminentTimeRendersTimeHeader: StoryObj = {
 
 export const ProminentTimeSuppressesTimeChip: StoryObj = {
   name: 'prominentTime → standard time chip is NOT rendered',
-  render: () =>
-    renderCard(
-      { scheduledTime: '10:30', isScheduled: true },
-      { prominentTime: true }
-    ),
+  render: () => renderCard({ scheduledTime: '10:30', isScheduled: true }, { prominentTime: true }),
   play: async ({ canvasElement }) => {
     // The non-prominent path puts the time in a `.spl-card-chip.time` chip.
     // With prominentTime: true the chip path is skipped — only the header
@@ -229,8 +224,7 @@ export const TimeStatusAlertPaintsModifier: StoryObj = {
 
 export const TimeStatusWarnPaintsModifier: StoryObj = {
   name: 'timeStatus warn → warn modifier, not alert',
-  render: () =>
-    renderCard({ scheduledTime: '14:30', isScheduled: true }, { prominentTime: true, timeStatus: 'warn' }),
+  render: () => renderCard({ scheduledTime: '14:30', isScheduled: true }, { prominentTime: true, timeStatus: 'warn' }),
   play: async ({ canvasElement }) => {
     const timeHeader = canvasElement.querySelector<HTMLElement>(TIME_HEADER_SELECTOR);
     expect(timeHeader?.classList.contains('spl-card-time-header--warn')).toBe(true);
@@ -240,8 +234,7 @@ export const TimeStatusWarnPaintsModifier: StoryObj = {
 
 export const TimeStatusOkCarriesNoModifier: StoryObj = {
   name: 'timeStatus ok → data attribute only, default (green) paint retained',
-  render: () =>
-    renderCard({ scheduledTime: '14:30', isScheduled: true }, { prominentTime: true, timeStatus: 'ok' }),
+  render: () => renderCard({ scheduledTime: '14:30', isScheduled: true }, { prominentTime: true, timeStatus: 'ok' }),
   play: async ({ canvasElement }) => {
     const timeHeader = canvasElement.querySelector<HTMLElement>(TIME_HEADER_SELECTOR);
     expect(timeHeader?.dataset.timeStatus).toBe('ok');
@@ -390,8 +383,7 @@ export const RenderExtraThrowingLeavesTheCardIntact: StoryObj = {
 
 export const RenderExtraSitsAfterChipsBeforeCheck: StoryObj = {
   name: 'extra is placed after the chips row and before the scheduled checkmark',
-  render: () =>
-    renderCard({ isScheduled: true, scheduledTime: '09:00' }, { renderExtra: () => badge('rested') }),
+  render: () => renderCard({ isScheduled: true, scheduledTime: '09:00' }, { renderExtra: () => badge('rested') }),
   play: async ({ canvasElement }) => {
     const card = canvasElement.querySelector('.spl-matchup-card') as HTMLElement;
     const classes = [...card.children].map((c) => c.className);

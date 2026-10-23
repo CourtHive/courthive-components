@@ -398,7 +398,9 @@ function applyCompetitivenessColors(
   if (!node) return;
   const isWinnerRing = !!node.children?.length;
   node.competitivenessColor =
-    isWinnerRing && node.competitiveness ? competitivenessColor(node.competitiveness, overrides) : NEUTRAL_SEGMENT_COLOR;
+    isWinnerRing && node.competitiveness
+      ? competitivenessColor(node.competitiveness, overrides)
+      : NEUTRAL_SEGMENT_COLOR;
   node.children?.forEach((child) => applyCompetitivenessColors(child, overrides));
 }
 

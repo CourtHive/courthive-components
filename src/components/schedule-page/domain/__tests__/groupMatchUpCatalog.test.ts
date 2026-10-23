@@ -25,7 +25,7 @@ function item(overrides: Partial<CatalogMatchUpItem>): CatalogMatchUpItem {
     sides: overrides.sides,
     isScheduled: overrides.isScheduled ?? false,
     scheduledTime: overrides.scheduledTime,
-    scheduledCourtName: overrides.scheduledCourtName,
+    scheduledCourtName: overrides.scheduledCourtName
   };
 }
 
@@ -41,7 +41,7 @@ describe('groupMatchUpCatalog — smart sort', () => {
       item({ matchUpId: 'b', eventName: 'Mens', scheduledTime: '08:30' }),
       item({ matchUpId: 'c', eventName: 'Mixed', scheduledTime: '10:00' }),
       // Earlier same-group item should pull the group earlier than its peers
-      item({ matchUpId: 'd', eventName: 'Womens', scheduledTime: '07:00' }),
+      item({ matchUpId: 'd', eventName: 'Womens', scheduledTime: '07:00' })
     ];
 
     const groups = [...groupMatchUpCatalog(items, 'event').keys()];
@@ -53,7 +53,7 @@ describe('groupMatchUpCatalog — smart sort', () => {
     const items = [
       item({ matchUpId: 'a', eventName: 'Z later', scheduledTime: '09:00' }),
       item({ matchUpId: 'b', eventName: 'A unscheduled' }),
-      item({ matchUpId: 'c', eventName: 'B earlier', scheduledTime: '08:00' }),
+      item({ matchUpId: 'c', eventName: 'B earlier', scheduledTime: '08:00' })
     ];
 
     const groups = [...groupMatchUpCatalog(items, 'event').keys()];
@@ -65,7 +65,7 @@ describe('groupMatchUpCatalog — smart sort', () => {
     const items = [
       item({ matchUpId: 'r10', roundName: 'Round 10', scheduledTime: '08:00' }),
       item({ matchUpId: 'r2', roundName: 'Round 2', scheduledTime: '08:00' }),
-      item({ matchUpId: 'r1', roundName: 'Round 1', scheduledTime: '08:00' }),
+      item({ matchUpId: 'r1', roundName: 'Round 1', scheduledTime: '08:00' })
     ];
 
     const groups = [...groupMatchUpCatalog(items, 'round').keys()];
@@ -79,7 +79,7 @@ describe("groupMatchUpCatalog — 'time' grouping", () => {
     const items = [
       item({ matchUpId: 'a', scheduledTime: '08:30' }),
       item({ matchUpId: 'b', scheduledTime: '08:30' }),
-      item({ matchUpId: 'c', scheduledTime: '10:00' }),
+      item({ matchUpId: 'c', scheduledTime: '10:00' })
     ];
 
     const groups = groupMatchUpCatalog(items, 'time');
@@ -93,7 +93,7 @@ describe("groupMatchUpCatalog — 'time' grouping", () => {
     const items = [
       item({ matchUpId: 'a', scheduledTime: '08:30' }),
       item({ matchUpId: 'b' }),
-      item({ matchUpId: 'c' }),
+      item({ matchUpId: 'c' })
     ];
 
     const groups = groupMatchUpCatalog(items, 'time');
@@ -110,8 +110,8 @@ describe("groupMatchUpCatalog — 'structure' label", () => {
         matchUpId: 'a',
         eventName: MENS_DOUBLES,
         structureName: 'Consolation Bracket',
-        structureId: 'guid-1234',
-      }),
+        structureId: 'guid-1234'
+      })
     ];
 
     const groups = [...groupMatchUpCatalog(items, 'structure').keys()];
@@ -120,19 +120,15 @@ describe("groupMatchUpCatalog — 'structure' label", () => {
   });
 
   it('falls back to a labeled stage when structureName is absent', () => {
-    const items = [
-      item({ matchUpId: 'a', eventName: MENS_DOUBLES, stage: 'CONSOLATION', structureId: 'guid' }),
-    ];
+    const items = [item({ matchUpId: 'a', eventName: MENS_DOUBLES, stage: 'CONSOLATION', structureId: 'guid' })];
 
     const groups = [...groupMatchUpCatalog(items, 'structure').keys()];
 
     expect(groups).toEqual(['Mens Doubles — Consolation']);
   });
 
-  it("shows just the eventName when the structure is MAIN (no suffix, never a GUID)", () => {
-    const items = [
-      item({ matchUpId: 'a', eventName: MENS_DOUBLES, stage: 'MAIN', structureId: 'guid' }),
-    ];
+  it('shows just the eventName when the structure is MAIN (no suffix, never a GUID)', () => {
+    const items = [item({ matchUpId: 'a', eventName: MENS_DOUBLES, stage: 'MAIN', structureId: 'guid' })];
 
     const groups = [...groupMatchUpCatalog(items, 'structure').keys()];
 
@@ -153,8 +149,8 @@ describe("groupMatchUpCatalog — 'structure' label", () => {
         matchUpId: 'a',
         eventName: "Men's Doubles",
         structureId: '2d34ce78-a142-456d-8354-ef2899696a77',
-        stage: 'MAIN',
-      }),
+        stage: 'MAIN'
+      })
     ];
 
     const groups = [...groupMatchUpCatalog(items, 'structure').keys()];
@@ -168,7 +164,7 @@ describe('groupMatchUpCatalog — readiness sort', () => {
   it('floats groups with real participants above all-TBD groups, even if TBD sorts earlier by key', () => {
     const items = [
       item({ matchUpId: 'a', roundName: 'Round 1', sides: NONE }),
-      item({ matchUpId: 'b', roundName: 'Round 2', sides: BOTH }),
+      item({ matchUpId: 'b', roundName: 'Round 2', sides: BOTH })
     ];
 
     const groups = [...groupMatchUpCatalog(items, 'round').keys()];
@@ -180,7 +176,7 @@ describe('groupMatchUpCatalog — readiness sort', () => {
     const items = [
       item({ matchUpId: 'a', roundName: 'All TBD', sides: NONE }),
       item({ matchUpId: 'b', roundName: 'One side', sides: ONE }),
-      item({ matchUpId: 'c', roundName: 'Both sides', sides: BOTH }),
+      item({ matchUpId: 'c', roundName: 'Both sides', sides: BOTH })
     ];
 
     const groups = [...groupMatchUpCatalog(items, 'round').keys()];
@@ -191,7 +187,7 @@ describe('groupMatchUpCatalog — readiness sort', () => {
   it('a scheduled TBD group still sinks below an unscheduled ready group', () => {
     const items = [
       item({ matchUpId: 'a', roundName: 'Scheduled TBD', sides: NONE, scheduledTime: '08:00' }),
-      item({ matchUpId: 'b', roundName: 'Unscheduled ready', sides: BOTH }),
+      item({ matchUpId: 'b', roundName: 'Unscheduled ready', sides: BOTH })
     ];
 
     const groups = [...groupMatchUpCatalog(items, 'round').keys()];
@@ -204,10 +200,12 @@ describe('groupMatchUpCatalog — readiness sort', () => {
       item({ matchUpId: 'tbd1', roundName: 'R1', sides: NONE }),
       item({ matchUpId: 'ready', roundName: 'R1', sides: BOTH }),
       item({ matchUpId: 'tbd2', roundName: 'R1', sides: NONE }),
-      item({ matchUpId: 'partial', roundName: 'R1', sides: ONE }),
+      item({ matchUpId: 'partial', roundName: 'R1', sides: ONE })
     ];
 
-    const order = groupMatchUpCatalog(items, 'round').get('R1')!.map((i) => i.matchUpId);
+    const order = groupMatchUpCatalog(items, 'round')
+      .get('R1')!
+      .map((i) => i.matchUpId);
 
     expect(order).toEqual(['ready', 'partial', 'tbd1', 'tbd2']);
   });

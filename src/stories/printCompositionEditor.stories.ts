@@ -14,10 +14,10 @@ export default {
   argTypes: {
     printType: {
       control: { type: 'select' },
-      options: ['draw', 'schedule', 'playerList', 'courtCard', 'signInSheet', 'matchCard'] as PrintType[],
+      options: ['draw', 'schedule', 'playerList', 'courtCard', 'signInSheet', 'matchCard'] as PrintType[]
     },
-    readOnly: { control: 'boolean' },
-  },
+    readOnly: { control: 'boolean' }
+  }
 };
 
 function renderEditor(args: { printType: PrintType; readOnly: boolean }): HTMLElement {
@@ -38,17 +38,15 @@ function renderEditor(args: { printType: PrintType; readOnly: boolean }): HTMLEl
     readOnly: args.readOnly,
     config: {
       header: { layout: 'itf', tournamentName: 'Sample Tournament' },
-      footer: { layout: 'standard', showTimestamp: true, showPageNumbers: true },
+      footer: { layout: 'standard', showTimestamp: true, showPageNumbers: true }
     },
     onChange: (cfg) => {
-       
       console.log('[PrintCompositionEditor] onChange:', cfg);
     },
     onSave: (cfg) => {
-       
       console.log('[PrintCompositionEditor] onSave:', cfg);
       window.alert('Saved — see console for the resolved CompositionConfig.');
-    },
+    }
   });
 
   return container;
@@ -56,20 +54,20 @@ function renderEditor(args: { printType: PrintType; readOnly: boolean }): HTMLEl
 
 export const Draw = {
   render: renderEditor,
-  args: { printType: 'draw' as PrintType, readOnly: false },
+  args: { printType: 'draw' as PrintType, readOnly: false }
 };
 
 export const Schedule = {
   render: renderEditor,
-  args: { printType: 'schedule' as PrintType, readOnly: false },
+  args: { printType: 'schedule' as PrintType, readOnly: false }
 };
 
 export const ReadOnly = {
   render: renderEditor,
-  args: { printType: 'draw' as PrintType, readOnly: true },
+  args: { printType: 'draw' as PrintType, readOnly: true }
 };
 
 export const PlaceholderType = {
   render: renderEditor,
-  args: { printType: 'courtCard' as PrintType, readOnly: false },
+  args: { printType: 'courtCard' as PrintType, readOnly: false }
 };

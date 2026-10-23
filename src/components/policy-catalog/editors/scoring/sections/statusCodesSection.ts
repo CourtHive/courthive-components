@@ -52,14 +52,15 @@ export function buildStatusCodesSection(store: ScoringEditorStore): {
   advancedBody.style.display = 'none';
   const advancedHelp = document.createElement('div');
   advancedHelp.className = 'sc-field-help';
-  advancedHelp.textContent = 'Tokens passed to downstream governors when assignments are incomplete on default. The factory default ships ["RANKING.IGNORE"].';
+  advancedHelp.textContent =
+    'Tokens passed to downstream governors when assignments are incomplete on default. The factory default ships ["RANKING.IGNORE"].';
   advancedBody.appendChild(advancedHelp);
   const advancedTagList = buildTagListEditor({
     values: store.getData().processCodes?.incompleteAssignmentsOnDefault ?? [],
     placeholder: 'e.g. RANKING.IGNORE',
     readonly: store.isReadonly(),
     onAdd: (value) => store.addProcessCode(value),
-    onRemove: (index) => store.removeProcessCode(index),
+    onRemove: (index) => store.removeProcessCode(index)
   });
   advancedBody.appendChild(advancedTagList.element);
   advancedShell.appendChild(advancedHeader);
@@ -108,7 +109,7 @@ function buildStatusGroup(store: ScoringEditorStore, key: MatchUpStatusKey): Sta
     placeholder: 'e.g. INJURY',
     readonly: store.isReadonly(),
     onAdd: (value) => store.addStatusCode(key, value),
-    onRemove: (index) => store.removeStatusCode(key, index),
+    onRemove: (index) => store.removeStatusCode(key, index)
   });
   body.appendChild(tagList.element);
   return { key, chevron, countEl, body, tagList };

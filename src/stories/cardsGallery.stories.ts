@@ -23,8 +23,7 @@ function makeSection(title: string, cards: HTMLElement[]): HTMLElement {
   wrap.appendChild(heading);
 
   const grid = document.createElement('div');
-  grid.style.cssText =
-    'display: grid; grid-template-columns: repeat(auto-fill, minmax(224px, 1fr)); gap: 1rem;';
+  grid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fill, minmax(224px, 1fr)); gap: 1rem;';
   for (const card of cards) grid.appendChild(card);
   wrap.appendChild(grid);
   return wrap;

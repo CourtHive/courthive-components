@@ -22,7 +22,7 @@ describe('normaliseSeedingProfile', () => {
   it('widens a bare-string drawType override', () => {
     const profile = normaliseSeedingProfile({
       positioning: 'SEPARATE',
-      drawTypes: { ROUND_ROBIN: 'WATERFALL' },
+      drawTypes: { ROUND_ROBIN: 'WATERFALL' }
     });
     expect(profile).toEqual({ positioning: 'SEPARATE', drawTypes: { ROUND_ROBIN: { positioning: 'WATERFALL' } } });
   });
@@ -76,7 +76,7 @@ describe('canonicalPositioning', () => {
 
   it('is display-only — the stored value survives a round trip through the store', () => {
     const store = new SeedingEditorStore({
-      initialPolicy: { seedingProfile: { positioning: 'ADJACENT' } } as SeedingPolicyData,
+      initialPolicy: { seedingProfile: { positioning: 'ADJACENT' } } as SeedingPolicyData
     });
     // ADJACENT is a synonym, not a typo: rewriting it would be an unrequested edit.
     expect(store.getData().seedingProfile?.positioning).toBe('ADJACENT');
@@ -91,7 +91,7 @@ describe('toDraft', () => {
       duplicateSeedNumbers: true,
       drawSizeProgression: true,
       validSeedPositions: { ignore: true },
-      seedsCountThresholds: [{ drawSize: 32, minimumParticipantCount: 24, seedsCount: 8 }],
+      seedsCountThresholds: [{ drawSize: 32, minimumParticipantCount: 24, seedsCount: 8 }]
     } as SeedingPolicyData;
     const draft = toDraft(policy);
     expect(draft).toEqual({ ...policy, seedingProfile: { positioning: 'SEPARATE' } });

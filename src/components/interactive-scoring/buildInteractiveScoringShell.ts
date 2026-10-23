@@ -306,7 +306,7 @@ function renderControlBar(
   manager: InlineScoringManager,
   config: InteractiveScoringShellConfig,
   onUndo: () => void,
-  onReset: () => void | Promise<void>,
+  onReset: () => void | Promise<void>
 ): HTMLElement {
   const container = document.createElement('div');
   container.className = 'chc-iss-control-bar';

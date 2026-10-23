@@ -188,7 +188,7 @@ export const WithIssues = {
     const info = document.createElement('div');
     info.style.cssText = INFO_STYLE;
     info.innerHTML = [
-      '<strong>Alternate layout — built-in date/issues sidebar:</strong> overrides the default TMX layout by setting <code>hideLeft: false, catalogSide: \'right\'</code>. TMX does not use this layout (it renders its own header instead) — kept here for consumers that prefer the in-component sidebar.',
+      "<strong>Alternate layout — built-in date/issues sidebar:</strong> overrides the default TMX layout by setting <code>hideLeft: false, catalogSide: 'right'</code>. TMX does not use this layout (it renders its own header instead) — kept here for consumers that prefer the in-component sidebar.",
       '5 scheduling conflicts: 2 ERRORs (back-to-back, double-booked), 2 WARNs (overloaded court, capacity), 1 INFO (no court assigned). Sorted by severity in the Issues panel.'
     ].join('<br>');
     root.appendChild(info);
@@ -483,10 +483,7 @@ export const WithHeaderActions = {
     printBtn.style.cssText = BTN_STYLE;
     printBtn.addEventListener('click', () => console.log('Print clicked'));
 
-    const control = createSchedulePage(
-      makeConfig({ headerActions: [catalogBtn, stripBtn, printBtn] }),
-      container
-    );
+    const control = createSchedulePage(makeConfig({ headerActions: [catalogBtn, stripBtn, printBtn] }), container);
 
     layoutEl = container.firstElementChild as HTMLElement;
 
@@ -976,13 +973,7 @@ export const FactoryBacked = {
     configBar.appendChild(configLabel);
 
     type ScheduleCellField =
-      | 'time'
-      | 'eventRound'
-      | 'participants'
-      | 'score'
-      | 'matchUpStatus'
-      | 'matchUpFormat'
-      | 'umpire';
+      'time' | 'eventRound' | 'participants' | 'score' | 'matchUpStatus' | 'matchUpFormat' | 'umpire';
 
     function toggleField(zone: 'header' | 'body' | 'footer', field: ScheduleCellField): void {
       const arr = cellConfig[zone];

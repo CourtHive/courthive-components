@@ -9,7 +9,7 @@ import type { PrivacyEditorConfig, PrivacyEditorState } from './types';
 
 export function buildPrivacyEditorPanel(
   store: PrivacyEditorStore,
-  _config: PrivacyEditorConfig,
+  _config: PrivacyEditorConfig
 ): { element: HTMLElement; update: (state: PrivacyEditorState) => void } {
   const element = document.createElement('div');
   element.className = 'privacy-editor';

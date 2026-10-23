@@ -190,10 +190,7 @@ function processItem(
   return undefined;
 }
 
-function buildInputItem(
-  item: any,
-  itemConfig: any
-): { elem: HTMLElement; input: HTMLInputElement } {
+function buildInputItem(item: any, itemConfig: any): { elem: HTMLElement; input: HTMLInputElement } {
   const elem = document.createElement('p');
   // Spacing handled by container gap — no individual margin needed.
   elem.className = `control ${itemConfig.search ? 'has-icons-left has-icons-right' : ''}`;
@@ -335,11 +332,7 @@ function renderSelectionItem(
   }
 }
 
-function renderTabsItem(
-  itemConfig: any,
-  location: HTMLElement,
-  elements: Record<string, HTMLElement>
-): void {
+function renderTabsItem(itemConfig: any, location: HTMLElement, elements: Record<string, HTMLElement>): void {
   const elem = document.createElement('div');
   elem.className = 'tabs is-toggle is-toggle-rounded';
   const ul = document.createElement('ul');

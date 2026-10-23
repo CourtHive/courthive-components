@@ -16,7 +16,7 @@ const LABEL_MAP: Record<CompetitivenessBucket, string> = {
   COMPETITIVE: 'Competitive',
   ROUTINE: 'Routine',
   DECISIVE: 'Decisive',
-  WALKOVER: 'Walkover / Defaulted',
+  WALKOVER: 'Walkover / Defaulted'
 };
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -46,7 +46,7 @@ function arcPath(startAngle: number, endAngle: number): string {
     `A ${RADIUS_OUTER} ${RADIUS_OUTER} 0 ${largeArc} 1 ${endOuter.x} ${endOuter.y}`,
     `L ${startInner.x} ${startInner.y}`,
     `A ${RADIUS_INNER} ${RADIUS_INNER} 0 ${largeArc} 0 ${endInner.x} ${endInner.y}`,
-    'Z',
+    'Z'
   ].join(' ');
 }
 
@@ -64,7 +64,7 @@ function fullRingPath(): string {
     `L ${topInner.x} ${topInner.y}`,
     `A ${RADIUS_INNER} ${RADIUS_INNER} 0 1 0 ${bottomInner.x} ${bottomInner.y}`,
     `A ${RADIUS_INNER} ${RADIUS_INNER} 0 1 0 ${topInner.x} ${topInner.y}`,
-    'Z',
+    'Z'
   ].join(' ');
 }
 

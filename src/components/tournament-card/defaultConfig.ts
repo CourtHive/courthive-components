@@ -18,9 +18,7 @@ export const DEFAULT_TOURNAMENT_CARD_CONFIG: TournamentCardConfig = {
  * Merge a partial provider config over the default.
  * Arrays are replaced wholesale when present (no element-level merge).
  */
-export function mergeTournamentCardConfig(
-  override?: Partial<TournamentCardConfig>
-): TournamentCardConfig {
+export function mergeTournamentCardConfig(override?: Partial<TournamentCardConfig>): TournamentCardConfig {
   if (!override) return DEFAULT_TOURNAMENT_CARD_CONFIG;
   return {
     showImage: override.showImage ?? DEFAULT_TOURNAMENT_CARD_CONFIG.showImage,

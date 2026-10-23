@@ -26,13 +26,7 @@ import {
   vcPrimaryBadgeStyle,
   vcTitleStyle
 } from './styles';
-import {
-  VenueCardCallbacks,
-  VenueCardConfig,
-  VenueCardCornerField,
-  VenueCardData,
-  VenueCardField
-} from './types';
+import { VenueCardCallbacks, VenueCardConfig, VenueCardCornerField, VenueCardData, VenueCardField } from './types';
 
 // ============================================================================
 // Public Builder
