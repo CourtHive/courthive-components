@@ -63,7 +63,7 @@ export class ScoringEditorControl {
     const editorConfig: ScoringEditorConfig = {
       initialPolicy: config.initialData as unknown as ScoringPolicyData,
       readonly: config.readonly,
-      onChange: (policy) => config.onChange(policy as unknown as Record<string, unknown>),
+      onChange: (policy) => config.onChange(policy as unknown as Record<string, unknown>)
     };
 
     const control = new ScoringEditorControl(editorConfig);
@@ -78,15 +78,12 @@ export class ScoringEditorControl {
       },
       destroy() {
         control.destroy();
-      },
+      }
     };
   }
 }
 
-export function createScoringEditor(
-  config: ScoringEditorConfig,
-  container: HTMLElement,
-): ScoringEditorControl {
+export function createScoringEditor(config: ScoringEditorConfig, container: HTMLElement): ScoringEditorControl {
   const control = new ScoringEditorControl(config);
   control.render(container);
   return control;

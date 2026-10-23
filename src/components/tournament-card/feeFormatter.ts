@@ -36,7 +36,18 @@ interface Denominated {
 }
 
 /** Minor-unit exponents that are not 2. Everything else in practice is 2. */
-const MINOR_EXPONENT: Record<string, number> = { JPY: 0, KRW: 0, VND: 0, CLP: 0, ISK: 0, KWD: 3, BHD: 3, OMR: 3, JOD: 3, TND: 3 };
+const MINOR_EXPONENT: Record<string, number> = {
+  JPY: 0,
+  KRW: 0,
+  VND: 0,
+  CLP: 0,
+  ISK: 0,
+  KWD: 3,
+  BHD: 3,
+  OMR: 3,
+  JOD: 3,
+  TND: 3
+};
 
 /** Convert to whole currency units for display. The exponent is currency-specific, not always 2. */
 function toMajor({ amount, currencyCode, unit }: Denominated): number {

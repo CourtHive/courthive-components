@@ -24,16 +24,18 @@ Factory rule: DEAD_RUBBER is permitted on a tie rubber or DOUBLE_ELIMINATION Dec
 
 ## The dialog reports an engine-ready `outcome` — hand it to `setMatchUpStatus` (2026-10-08)
 
-CA: *"Shouldn't the new score entry modal be built in such a way that it cleanly understands and
-integrates with the factory setMatchUpStatus method?"* It does now. `openScoreEntryDialog`'s `onSubmit`
+CA: _"Shouldn't the new score entry modal be built in such a way that it cleanly understands and
+integrates with the factory setMatchUpStatus method?"_ It does now. `openScoreEntryDialog`'s `onSubmit`
 argument carries **`outcome`**, already in the engine's shape, so a host does none of the bridging the
 table below describes:
 
 ```typescript
 openScoreEntryDialog({
-  matchUp, sides, statusCodeGroups,
+  matchUp,
+  sides,
+  statusCodeGroups,
   onSubmit: ({ outcome }) =>
-    mutationRequest({ methods: [{ method: 'setMatchUpStatus', params: { drawId, matchUpId, outcome } }] }),
+    mutationRequest({ methods: [{ method: 'setMatchUpStatus', params: { drawId, matchUpId, outcome } }] })
 });
 ```
 

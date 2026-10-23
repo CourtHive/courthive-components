@@ -11,13 +11,7 @@
 import './hive-id-login.css';
 
 export { buildHiveIDLogin, completeMagicLink } from './buildHiveIDLogin';
-export {
-  consumeMagicLink,
-  isExistingUserConflict,
-  requestMagicLink,
-  signup,
-  verifyExisting
-} from './hiveIDClient';
+export { consumeMagicLink, isExistingUserConflict, requestMagicLink, signup, verifyExisting } from './hiveIDClient';
 
 export type {
   CachedPersonFields,

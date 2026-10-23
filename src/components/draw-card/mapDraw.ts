@@ -101,8 +101,7 @@ export interface MapDrawOptions {
 export function mapDrawDefinitionToCardData(drawDefinition: any, options?: MapDrawOptions): DrawCardData {
   const generated = Array.isArray(drawDefinition?.structures) && drawDefinition.structures.length > 0;
   const matchUpCounts =
-    options?.matchUpStats ??
-    (options?.lightMode || !generated ? undefined : countDrawMatchUps(drawDefinition));
+    options?.matchUpStats ?? (options?.lightMode || !generated ? undefined : countDrawMatchUps(drawDefinition));
 
   const cancelled = drawDefinition?.drawStatus === 'CANCELLED';
   const status =

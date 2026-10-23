@@ -1,12 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import {
-  consumeMagicLink,
-  isExistingUserConflict,
-  requestMagicLink,
-  signup,
-  verifyExisting
-} from '../hiveIDClient';
+import { consumeMagicLink, isExistingUserConflict, requestMagicLink, signup, verifyExisting } from '../hiveIDClient';
 
 const BASE = 'https://courthive.test';
 
@@ -36,11 +30,7 @@ describe('hiveIDClient', () => {
           }
         })
       );
-      const resp = await signup(
-        BASE,
-        { email: 'jane@test.com', firstName: 'Jane', lastName: 'Doe' },
-        fetchImpl as any
-      );
+      const resp = await signup(BASE, { email: 'jane@test.com', firstName: 'Jane', lastName: 'Doe' }, fetchImpl as any);
       expect(resp).toMatchObject({ status: 'created', personId: 'p-1' });
       expect(fetchImpl).toHaveBeenCalledTimes(1);
       const [url, init] = fetchImpl.mock.calls[0];
@@ -56,18 +46,14 @@ describe('hiveIDClient', () => {
 
     it('trims trailing slashes on baseUrl', async () => {
       const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ status: 'candidate', candidates: [] }));
-      await signup(
-        `${BASE}//`,
-        { email: 'a@b.c', firstName: 'A', lastName: 'B' },
-        fetchImpl as any
-      );
+      await signup(`${BASE}//`, { email: 'a@b.c', firstName: 'A', lastName: 'B' }, fetchImpl as any);
       expect(fetchImpl.mock.calls[0][0]).toBe('https://courthive.test/auth/hiveid/signup');
     });
 
     it('throws an HTTP error on non-2xx with parsed body', async () => {
-      const fetchImpl = vi.fn().mockResolvedValue(
-        jsonResponse({ code: 'EXISTING_USER', message: 'already exists' }, 409)
-      );
+      const fetchImpl = vi
+        .fn()
+        .mockResolvedValue(jsonResponse({ code: 'EXISTING_USER', message: 'already exists' }, 409));
       await expect(
         signup(BASE, { email: 'a@b.c', firstName: 'A', lastName: 'B' }, fetchImpl as any)
       ).rejects.toMatchObject({
@@ -97,11 +83,7 @@ describe('hiveIDClient', () => {
           cached: null
         })
       );
-      const resp = await verifyExisting(
-        BASE,
-        { email: 'admin@test.com', password: 'pw' },
-        fetchImpl as any
-      );
+      const resp = await verifyExisting(BASE, { email: 'admin@test.com', password: 'pw' }, fetchImpl as any);
       expect(resp.status).toBe('verified');
       expect(fetchImpl.mock.calls[0][0]).toBe('https://courthive.test/auth/hiveid/verify-existing');
     });
@@ -150,21 +132,15 @@ describe('hiveIDClient', () => {
 
   describe('isExistingUserConflict', () => {
     it('returns true on 409 + EXISTING_USER body', () => {
-      expect(
-        isExistingUserConflict({ kind: 'http', status: 409, body: { code: 'EXISTING_USER' } })
-      ).toBe(true);
+      expect(isExistingUserConflict({ kind: 'http', status: 409, body: { code: 'EXISTING_USER' } })).toBe(true);
     });
 
     it('returns false on other 409 bodies', () => {
-      expect(
-        isExistingUserConflict({ kind: 'http', status: 409, body: { code: 'OTHER' } })
-      ).toBe(false);
+      expect(isExistingUserConflict({ kind: 'http', status: 409, body: { code: 'OTHER' } })).toBe(false);
     });
 
     it('returns false on non-409 HTTP errors', () => {
-      expect(
-        isExistingUserConflict({ kind: 'http', status: 422, body: { code: 'EXISTING_USER' } })
-      ).toBe(false);
+      expect(isExistingUserConflict({ kind: 'http', status: 422, body: { code: 'EXISTING_USER' } })).toBe(false);
     });
 
     it('returns false for non-error shapes', () => {

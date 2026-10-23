@@ -4,12 +4,7 @@
  * Flat data + JSON-serializable config consumed by buildDrawCard.
  */
 
-export type DrawStatusKind =
-  | 'ungenerated'
-  | 'ready'
-  | 'in-progress'
-  | 'completed'
-  | 'cancelled';
+export type DrawStatusKind = 'ungenerated' | 'ready' | 'in-progress' | 'completed' | 'cancelled';
 
 export interface DrawStatusPill {
   kind: DrawStatusKind;
@@ -55,14 +50,7 @@ export interface DrawCardData {
 }
 
 export type DrawCardField =
-  | 'title'
-  | 'drawTypeLabel'
-  | 'drawSize'
-  | 'matchUpFormat'
-  | 'entries'
-  | 'matchUpProgress'
-  | 'ratings'
-  | 'flightNumber';
+  'title' | 'drawTypeLabel' | 'drawSize' | 'matchUpFormat' | 'entries' | 'matchUpProgress' | 'ratings' | 'flightNumber';
 
 export type DrawCardCornerField = 'status' | 'publishedBadge' | 'embargoBadge';
 

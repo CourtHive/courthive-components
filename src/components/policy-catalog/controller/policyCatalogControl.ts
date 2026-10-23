@@ -21,7 +21,7 @@ import {
   POLICY_TYPE_RANKING_POINTS,
   POLICY_TYPE_PARTICIPANT,
   POLICY_TYPE_SCORING,
-  POLICY_TYPE_SEEDING,
+  POLICY_TYPE_SEEDING
 } from '../domain/policyDefaults';
 import type { PolicyCatalogConfig, PolicyEditorInstance, CatalogGroupBy } from '../types';
 

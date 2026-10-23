@@ -10,13 +10,7 @@ import { CourtSport } from '../courts/courtSvgUtil';
 // Status Pill
 // ============================================================================
 
-export type EventStatusKind =
-  | 'cancelled'
-  | 'completed'
-  | 'live'
-  | 'drawing'
-  | 'entries-open'
-  | 'upcoming';
+export type EventStatusKind = 'cancelled' | 'completed' | 'live' | 'drawing' | 'entries-open' | 'upcoming';
 
 export interface EventStatusPill {
   kind: EventStatusKind;
@@ -71,13 +65,7 @@ export interface EventCardData {
 // ============================================================================
 
 export type EventCardField =
-  | 'title'
-  | 'categoryLabel'
-  | 'drawSummary'
-  | 'dateRange'
-  | 'playerCount'
-  | 'matchUpProgress'
-  | 'updatedAt';
+  'title' | 'categoryLabel' | 'drawSummary' | 'dateRange' | 'playerCount' | 'matchUpProgress' | 'updatedAt';
 
 export type EventCardCornerField = 'status' | 'eventTypeBadge' | 'genderBadge';
 

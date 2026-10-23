@@ -17,7 +17,12 @@ interface IsLuckyDrawParams {
   roundProfile?: RoundProfile;
 }
 
-export function isLuckyDraw({ roundsNotPowerOf2, hasNoRoundPositions, roundNumbers, roundProfile }: IsLuckyDrawParams): boolean {
+export function isLuckyDraw({
+  roundsNotPowerOf2,
+  hasNoRoundPositions,
+  roundNumbers,
+  roundProfile
+}: IsLuckyDrawParams): boolean {
   if (hasNoRoundPositions) return true;
   if (!roundsNotPowerOf2) return false;
 

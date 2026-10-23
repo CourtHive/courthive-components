@@ -29,7 +29,7 @@ describe('createPrintCompositionEditor', () => {
   it('seeds form values from initial config', () => {
     const { container } = setup({
       printType: 'draw',
-      config: { header: { layout: 'minimal', tournamentName: 'My Event' } },
+      config: { header: { layout: 'minimal', tournamentName: 'My Event' } }
     });
     const tournamentInput = container.querySelector('input[type="text"]') as HTMLInputElement;
     expect(tournamentInput).toBeTruthy();
@@ -51,7 +51,7 @@ describe('createPrintCompositionEditor', () => {
     const onSave = vi.fn();
     const { container } = setup({ printType: 'draw', onSave });
     const saveBtn = Array.from(container.querySelectorAll('button')).find(
-      (b) => (b as HTMLButtonElement).textContent === 'Save',
+      (b) => (b as HTMLButtonElement).textContent === 'Save'
     ) as HTMLButtonElement;
     expect(saveBtn).toBeTruthy();
     saveBtn.click();
@@ -61,7 +61,7 @@ describe('createPrintCompositionEditor', () => {
   it('hides Save button in readOnly mode', () => {
     const { container } = setup({ printType: 'draw', readOnly: true, onSave: () => undefined });
     const saveBtn = Array.from(container.querySelectorAll('button')).find(
-      (b) => (b as HTMLButtonElement).textContent === 'Save',
+      (b) => (b as HTMLButtonElement).textContent === 'Save'
     );
     expect(saveBtn).toBeUndefined();
   });

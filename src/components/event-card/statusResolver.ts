@@ -40,10 +40,7 @@ function isLiveWindow(now: Date, start: Date | null, end: Date | null): boolean 
   return start.getTime() <= now.getTime() && now.getTime() <= end.getTime();
 }
 
-export function resolveEventStatus(
-  input: EventStatusResolverInput,
-  now: Date = new Date()
-): EventStatusPill | null {
+export function resolveEventStatus(input: EventStatusResolverInput, now: Date = new Date()): EventStatusPill | null {
   if (input.allDrawsCancelled) return { kind: 'cancelled', label: 'Cancelled' };
 
   const counts = input.matchUpCounts;

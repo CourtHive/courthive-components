@@ -19,7 +19,7 @@ const {
   CANCELLED,
   INCOMPLETE,
   SUSPENDED,
-  DEAD_RUBBER,
+  DEAD_RUBBER
 } = matchUpStatusConstants;
 
 const WINNER_SELECTOR = 'input[name="irregularWinner"]';
@@ -31,9 +31,9 @@ function makeMatchUp(overrides: any = {}): any {
     matchUpStatus: 'TO_BE_PLAYED',
     sides: [
       { sideNumber: 1, participant: { participantName: 'Alice' } },
-      { sideNumber: 2, participant: { participantName: 'Bob' } },
+      { sideNumber: 2, participant: { participantName: 'Bob' } }
     ],
-    ...overrides,
+    ...overrides
   };
 }
 
@@ -46,7 +46,7 @@ function mount(matchUp: any = makeMatchUp()) {
     matchUp,
     container,
     onScoreChange: (outcome) => outcomes.push(outcome),
-    labels: {},
+    labels: {}
   });
 
   const winnerRadios = () => [...container.querySelectorAll(WINNER_SELECTOR)] as HTMLInputElement[];
@@ -78,7 +78,7 @@ function mount(matchUp: any = makeMatchUp()) {
 
   const endingChipLabels = () =>
     ([...container.querySelectorAll('button[data-ending]')] as HTMLButtonElement[]).map((c) =>
-      (c.textContent ?? '').trim(),
+      (c.textContent ?? '').trim()
     );
 
   return {
@@ -90,7 +90,7 @@ function mount(matchUp: any = makeMatchUp()) {
     winnerRadios,
     pressEnding,
     endingChips,
-    endingChipLabels,
+    endingChipLabels
   };
 }
 
@@ -157,7 +157,7 @@ describe('dialPad — the explicit double exit', () => {
 describe('dialPad — naming a side keeps the single-sided status', () => {
   it.each([
     ['1', 1],
-    ['2', 2],
+    ['2', 2]
   ])('WO with side %s', async (sideValue, expectedWinningSide) => {
     const h = mount();
 
@@ -173,7 +173,7 @@ describe('dialPad — naming a side keeps the single-sided status', () => {
 describe('dialPad — reopening an existing double exit', () => {
   it.each([
     [DOUBLE_WALKOVER, WALKOVER],
-    [DOUBLE_DEFAULT, DEFAULTED],
+    [DOUBLE_DEFAULT, DEFAULTED]
   ])('%s restores the Neither answer', async (existingStatus, _baseStatus) => {
     const h = mount(makeMatchUp({ matchUpStatus: existingStatus }));
     await new Promise((resolve) => setTimeout(resolve, 30));
@@ -186,7 +186,7 @@ describe('dialPad — reopening an existing double exit', () => {
 describe('dialPad — a walkover carries no score', () => {
   it.each([
     ['1', 'a named winner'],
-    [NEITHER_SIDE, 'neither side'],
+    [NEITHER_SIDE, 'neither side']
   ])('WO with %s emits no sets and no error', async (winner, _label) => {
     const h = mount();
 
@@ -234,7 +234,7 @@ describe('dialPad — the endings that resolve nobody', () => {
     const h = mount();
 
     expect(h.endingChips()?.toSorted((a, b) => (a ?? '').localeCompare(b ?? '', 'en'))).toEqual(
-      [...NON_DIRECTING_ENDINGS].toSorted((a, b) => a.localeCompare(b, 'en')),
+      [...NON_DIRECTING_ENDINGS].toSorted((a, b) => a.localeCompare(b, 'en'))
     );
   });
 
@@ -366,4 +366,3 @@ describe('dialPad — the endings that resolve nobody', () => {
     expect(h.last().matchUpStatus).toBe(WALKOVER);
   });
 });
-

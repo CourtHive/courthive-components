@@ -192,6 +192,4 @@ export interface HiveIDLoginShell {
 }
 
 export type HiveIDClientError =
-  | { kind: 'http'; status: number; body: any }
-  | { kind: 'network'; cause: Error }
-  | { kind: 'parse'; cause: Error };
+  { kind: 'http'; status: number; body: any } | { kind: 'network'; cause: Error } | { kind: 'parse'; cause: Error };

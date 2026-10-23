@@ -30,8 +30,22 @@ const BASE: VenueLocatorData = {
   latitude: 33.9695,
   longitude: -84.2216,
   courts: [
-    { courtId: 'c1', courtName: 'Court 1', indoorOutdoor: 'OUTDOOR', surfaceCategory: 'HARD', courtOrder: 1, floodlit: true },
-    { courtId: 'c2', courtName: 'Court 2', indoorOutdoor: 'OUTDOOR', surfaceCategory: 'HARD', courtOrder: 2, floodlit: true },
+    {
+      courtId: 'c1',
+      courtName: 'Court 1',
+      indoorOutdoor: 'OUTDOOR',
+      surfaceCategory: 'HARD',
+      courtOrder: 1,
+      floodlit: true
+    },
+    {
+      courtId: 'c2',
+      courtName: 'Court 2',
+      indoorOutdoor: 'OUTDOOR',
+      surfaceCategory: 'HARD',
+      courtOrder: 2,
+      floodlit: true
+    },
     { courtId: 'c3', courtName: 'Court 3', indoorOutdoor: 'OUTDOOR', surfaceCategory: 'HARD', courtOrder: 3 },
     { courtId: 'c10', courtName: 'Court 10', indoorOutdoor: 'INDOOR', surfaceCategory: 'HARD', courtOrder: 10 },
     { courtId: 'c11', courtName: 'Stadium', indoorOutdoor: 'OUTDOOR', surfaceCategory: 'CLAY', courtOrder: 11 }

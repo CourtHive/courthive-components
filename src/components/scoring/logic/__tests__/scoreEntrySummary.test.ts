@@ -10,7 +10,13 @@
  * exact prose would make every copy edit a test failure and would tempt the next person to update the
  * expectation without reading whether the claim was still true.
  */
-import { resolveScoreEntry, chooseSideEnding, chooseMatchEnding, toggleBothSidesOut, emptyScoreEntryState } from '../scoreEntryState';
+import {
+  resolveScoreEntry,
+  chooseSideEnding,
+  chooseMatchEnding,
+  toggleBothSidesOut,
+  emptyScoreEntryState
+} from '../scoreEntryState';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 import { scoreEntrySummary } from '../scoreEntrySummary';
 import { describe, it, expect } from 'vitest';
@@ -39,7 +45,7 @@ describe('nothing chosen yet', () => {
       scoreString: '6-4 6-3',
       scoreComplete: true,
       scoreWinningSide: 1,
-      advancesTo: 'the quarter-final',
+      advancesTo: 'the quarter-final'
     });
 
     expect(result.tone).toBe('good');
@@ -53,7 +59,7 @@ describe('nothing chosen yet', () => {
       resolution: resolveScoreEntry(emptyScoreEntryState),
       scoreString: '4-6 3-6',
       scoreComplete: true,
-      scoreWinningSide: 2,
+      scoreWinningSide: 2
     });
 
     expect(result.headline).toBe('Derrick Ellul def. Rosalind Lem 4-6 3-6');
@@ -73,7 +79,7 @@ describe('nothing chosen yet', () => {
       resolution: resolveScoreEntry(emptyScoreEntryState),
       scoreString: '6-4 6-3',
       scoreComplete: true,
-      scoreWinningSide: 1,
+      scoreWinningSide: 1
     });
 
     expect(result.detail).toBeUndefined();
@@ -84,7 +90,7 @@ describe('an ending that names a winner', () => {
   it('a walkover says who advances, and that no score was recorded', () => {
     const result = band({
       resolution: resolveScoreEntry(chooseSideEnding(emptyScoreEntryState, 2, WALKOVER)),
-      reasonDisplay: 'Wo [inj]',
+      reasonDisplay: 'Wo [inj]'
     });
 
     expect(result.tone).toBe('good');
@@ -106,7 +112,7 @@ describe('an ending that names a winner', () => {
     const result = band({
       resolution: resolveScoreEntry(chooseSideEnding(emptyScoreEntryState, 2, RETIRED)),
       scoreString: '6-4 2-1',
-      reasonDisplay: 'Ret [inj]',
+      reasonDisplay: 'Ret [inj]'
     });
 
     expect(result.tone).toBe('good');
@@ -119,7 +125,7 @@ describe('an ending that names a winner', () => {
     // being submitted.
     const result = band({
       resolution: resolveScoreEntry(chooseSideEnding(emptyScoreEntryState, 2, WALKOVER)),
-      scoreString: '6-4 2-1',
+      scoreString: '6-4 2-1'
     });
 
     expect(result.detail).toBe('no score recorded');
@@ -141,10 +147,10 @@ describe('a double exit', () => {
     // `doubleExitWarning` already says this for the inline popover. Two copies of a warning about the
     // most consequential outcome in the draw is how they come to disagree.
     const doubleWalkover = band({
-      resolution: resolveScoreEntry(toggleBothSidesOut(chooseSideEnding(emptyScoreEntryState, 1, WALKOVER))),
+      resolution: resolveScoreEntry(toggleBothSidesOut(chooseSideEnding(emptyScoreEntryState, 1, WALKOVER)))
     });
     const doubleDefault = band({
-      resolution: resolveScoreEntry(toggleBothSidesOut(chooseSideEnding(emptyScoreEntryState, 1, DEFAULTED))),
+      resolution: resolveScoreEntry(toggleBothSidesOut(chooseSideEnding(emptyScoreEntryState, 1, DEFAULTED)))
     });
 
     expect(doubleWalkover.detail).toContain('Double walkover');
@@ -178,7 +184,7 @@ describe('a match-level ending that discards the score — the sentence this ban
     // knows what they are losing; a generic notice is dismissed without being read.
     const result = band({
       resolution: resolveScoreEntry(chooseMatchEnding(emptyScoreEntryState, status)),
-      scoreString: '6-4 2-1',
+      scoreString: '6-4 2-1'
     });
 
     expect(result.tone).toBe('warn');
@@ -199,7 +205,7 @@ describe('a match-level ending that discards the score — the sentence this ban
   it.each([ABANDONED, SUSPENDED])('%s keeps its part-score and says it was recorded', (status) => {
     const result = band({
       resolution: resolveScoreEntry(chooseMatchEnding(emptyScoreEntryState, status)),
-      scoreString: '6-4 2-1',
+      scoreString: '6-4 2-1'
     });
 
     expect(result.headline).toContain('6-4 2-1');
@@ -218,7 +224,7 @@ describe('the band is never blank', () => {
       chooseSideEnding(emptyScoreEntryState, 2, WALKOVER),
       toggleBothSidesOut(chooseSideEnding(emptyScoreEntryState, 1, WALKOVER)),
       chooseMatchEnding(emptyScoreEntryState, SUSPENDED),
-      chooseMatchEnding(emptyScoreEntryState, CANCELLED),
+      chooseMatchEnding(emptyScoreEntryState, CANCELLED)
     ];
 
     for (const state of states) {
@@ -235,7 +241,14 @@ describe('the band is never blank', () => {
     // chosen ON a side. Asserted anyway, because the band is what an operator trusts and a defensive
     // branch that is never exercised is a branch nobody knows is broken.
     const result = band({
-      resolution: { matchUpStatus: WALKOVER, isValid: false, awaitingWinner: true, isDoubleExit: false, clearsScore: true, hasEnding: true },
+      resolution: {
+        matchUpStatus: WALKOVER,
+        isValid: false,
+        awaitingWinner: true,
+        isDoubleExit: false,
+        clearsScore: true,
+        hasEnding: true
+      }
     });
 
     expect(result.tone).toBe('warn');
@@ -248,7 +261,7 @@ describe('labels come from the caller, so a locale can supply them', () => {
   it('uses a supplied label instead of the English default', () => {
     const result = band({
       resolution: resolveScoreEntry(chooseSideEnding(emptyScoreEntryState, 2, WALKOVER)),
-      labels: { [WALKOVER]: 'Forfait' },
+      labels: { [WALKOVER]: 'Forfait' }
     });
 
     expect(result.headline).toContain('Forfait');

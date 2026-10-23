@@ -26,12 +26,7 @@ export interface CourtCardData {
   notes?: string;
 }
 
-export type CourtCardField =
-  | 'title'
-  | 'surface'
-  | 'amenityRow'
-  | 'availability'
-  | 'abbreviation';
+export type CourtCardField = 'title' | 'surface' | 'amenityRow' | 'availability' | 'abbreviation';
 
 export type CourtCardCornerField = 'indoorOutdoor' | 'floodlit';
 

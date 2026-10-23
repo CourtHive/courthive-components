@@ -100,17 +100,7 @@ const table = new Tabulator(tableElement, {
 });
 
 // 4. Set up control bar
-const items = [
-  {
-    /* search */
-  },
-  {
-    /* filters */
-  },
-  {
-    /* actions */
-  }
-];
+const items = [{/* search */}, {/* filters */}, {/* actions */}];
 
 controlBar({ table, target: controlContainer, items });
 

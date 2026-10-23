@@ -20,7 +20,7 @@ import {
   scalePoint,
   scaleTime,
   select,
-  timeFormat,
+  timeFormat
 } from 'd3';
 
 import './ladderChart.css';
@@ -50,7 +50,7 @@ export function buildLadderChart(container: HTMLElement, initialConfig: LadderCh
     container,
     svg,
     config: { ...initialConfig },
-    destroyed: false,
+    destroyed: false
   };
 
   render(state);
@@ -66,7 +66,7 @@ export function buildLadderChart(container: HTMLElement, initialConfig: LadderCh
       if (state.destroyed) return;
       state.destroyed = true;
       if (svg.parentNode === container) container.removeChild(svg);
-    },
+    }
   };
 }
 
@@ -94,7 +94,7 @@ function render(state: InternalState): void {
     .map((d) => ({
       ...d,
       _dateValue: d.date instanceof Date ? d.date : new Date(d.date),
-      _rung: Math.max(0, Math.min(config.rungs.length - 1, d.rung)),
+      _rung: Math.max(0, Math.min(config.rungs.length - 1, d.rung))
     }))
     .filter((d) => !Number.isNaN(d._dateValue.getTime()))
     .sort((a, b) => a._dateValue.getTime() - b._dateValue.getTime());
@@ -125,16 +125,11 @@ function render(state: InternalState): void {
   // Pad the date domain a small fraction so the leftmost/rightmost marks
   // aren't clipped by the axis line.
   const dateExtent = d3Extent(normalized, (d) => d._dateValue) as [Date, Date];
-  const padDays = Math.max(
-    3,
-    (dateExtent[1].getTime() - dateExtent[0].getTime()) / (1000 * 60 * 60 * 24) * 0.04
-  );
+  const padDays = Math.max(3, ((dateExtent[1].getTime() - dateExtent[0].getTime()) / (1000 * 60 * 60 * 24)) * 0.04);
   const paddedStart = new Date(dateExtent[0].getTime() - padDays * 86400_000);
   const paddedEnd = new Date(dateExtent[1].getTime() + padDays * 86400_000);
 
-  const xScale = scaleTime()
-    .domain([paddedStart, paddedEnd])
-    .range([0, plotWidth]);
+  const xScale = scaleTime().domain([paddedStart, paddedEnd]).range([0, plotWidth]);
 
   // scalePoint distributes ordinal labels evenly along the Y range; bottom
   // rung (index 0) maps to the bottom of the plot, top rung to the top.
@@ -151,11 +146,7 @@ function render(state: InternalState): void {
   const yAxisGroup = document.createElementNS(SVG_NS, 'g');
   yAxisGroup.setAttribute('class', 'lc-axis lc-axis-y');
   plotGroup.appendChild(yAxisGroup);
-  select(yAxisGroup).call(
-    axisLeft<string>(yScale)
-      .tickSize(-plotWidth)
-      .tickPadding(8)
-  );
+  select(yAxisGroup).call(axisLeft<string>(yScale).tickSize(-plotWidth).tickPadding(8));
 
   // ── X axis (dates) ─────────────────────────────────────────────────
   const xAxisGroup = document.createElementNS(SVG_NS, 'g');
@@ -163,7 +154,7 @@ function render(state: InternalState): void {
   xAxisGroup.setAttribute('transform', `translate(0,${plotHeight})`);
   plotGroup.appendChild(xAxisGroup);
 
-  const yearSpan = (dateExtent[1].getFullYear() - dateExtent[0].getFullYear());
+  const yearSpan = dateExtent[1].getFullYear() - dateExtent[0].getFullYear();
   const autoFormat = yearSpan >= 1 ? '%Y' : '%b';
   const formatStr = config.xTickFormat ?? autoFormat;
   select(xAxisGroup).call(
@@ -174,7 +165,7 @@ function render(state: InternalState): void {
 
   // ── Connector line (chronological) ─────────────────────────────────
   if (config.showConnector !== false && normalized.length > 1) {
-    const lineGen = d3Line<typeof normalized[0]>()
+    const lineGen = d3Line<(typeof normalized)[0]>()
       .x((d) => xScale(d._dateValue))
       .y((d) => yScale(config.rungs[d._rung]) ?? 0)
       .curve(curveStepAfter);
@@ -232,4 +223,3 @@ function render(state: InternalState): void {
     svg.appendChild(src);
   }
 }
-

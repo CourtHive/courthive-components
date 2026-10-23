@@ -11,7 +11,7 @@ const tightPool: RatingDistributionStats = {
     { binStart: 4.5, binEnd: 5, count: 7 },
     { binStart: 5, binEnd: 5.5, count: 9 },
     { binStart: 5.5, binEnd: 6, count: 6 },
-    { binStart: 6, binEnd: 6.5, count: 2 },
+    { binStart: 6, binEnd: 6.5, count: 2 }
   ],
   gaps: [],
   count: 28,
@@ -20,7 +20,7 @@ const tightPool: RatingDistributionStats = {
   stddev: 0.5,
   iqr: 0.7,
   min: 4,
-  max: 6.5,
+  max: 6.5
 };
 
 const widePool: RatingDistributionStats = {
@@ -32,7 +32,7 @@ const widePool: RatingDistributionStats = {
     { binStart: 5, binEnd: 5.5, count: 5 },
     { binStart: 5.5, binEnd: 6, count: 7 },
     { binStart: 6, binEnd: 6.5, count: 4 },
-    { binStart: 6.5, binEnd: 7, count: 2 },
+    { binStart: 6.5, binEnd: 7, count: 2 }
   ],
   gaps: [],
   count: 34,
@@ -41,7 +41,7 @@ const widePool: RatingDistributionStats = {
   stddev: 1.05,
   iqr: 1.5,
   min: 3,
-  max: 7,
+  max: 7
 };
 
 const bimodalPool: RatingDistributionStats = {
@@ -53,7 +53,7 @@ const bimodalPool: RatingDistributionStats = {
     { binStart: 5, binEnd: 5.5, count: 0 },
     { binStart: 5.5, binEnd: 6, count: 4 },
     { binStart: 6, binEnd: 6.5, count: 7 },
-    { binStart: 6.5, binEnd: 7, count: 3 },
+    { binStart: 6.5, binEnd: 7, count: 3 }
   ],
   gaps: [{ start: 4.4, end: 5.7, size: 1.3 }],
   count: 26,
@@ -62,7 +62,7 @@ const bimodalPool: RatingDistributionStats = {
   stddev: 1.4,
   iqr: 2.5,
   min: 3,
-  max: 7,
+  max: 7
 };
 
 function withCaption(svg: SVGSVGElement, caption: string): HTMLElement {
@@ -77,43 +77,43 @@ function withCaption(svg: SVGSVGElement, caption: string): HTMLElement {
 }
 
 export const HistogramTightPool = {
-  render: () => withCaption(buildRatingDistributionChart(tightPool), '28 participants, narrow rating spread'),
+  render: () => withCaption(buildRatingDistributionChart(tightPool), '28 participants, narrow rating spread')
 };
 
 export const HistogramWidePool = {
-  render: () => withCaption(buildRatingDistributionChart(widePool), '34 participants, wide rating spread'),
+  render: () => withCaption(buildRatingDistributionChart(widePool), '34 participants, wide rating spread')
 };
 
 export const HistogramBimodal = {
   render: () =>
     withCaption(
       buildRatingDistributionChart(bimodalPool),
-      '26 participants, bimodal — gap visible between juniors and adults',
-    ),
+      '26 participants, bimodal — gap visible between juniors and adults'
+    )
 };
 
 export const HistogramCompact = {
   render: () =>
     withCaption(
       buildRatingDistributionChart(tightPool, { width: 320, height: 140, showAxis: false }),
-      'Compact / no-axis variant for sidebar embedding',
-    ),
+      'Compact / no-axis variant for sidebar embedding'
+    )
 };
 
 export const DonutTightPool = {
-  render: () => withCaption(buildRatingDistributionChart(tightPool, { mode: 'DONUT' }), '28 participants — donut mode'),
+  render: () => withCaption(buildRatingDistributionChart(tightPool, { mode: 'DONUT' }), '28 participants — donut mode')
 };
 
 export const DonutWidePool = {
-  render: () => withCaption(buildRatingDistributionChart(widePool, { mode: 'DONUT' }), '34 participants — donut mode'),
+  render: () => withCaption(buildRatingDistributionChart(widePool, { mode: 'DONUT' }), '34 participants — donut mode')
 };
 
 export const DonutCompact = {
   render: () =>
     withCaption(
       buildRatingDistributionChart(tightPool, { mode: 'DONUT', width: 200, showCounts: false }),
-      'Compact donut — labels suppressed',
-    ),
+      'Compact donut — labels suppressed'
+    )
 };
 
 export const Empty = {
@@ -128,8 +128,8 @@ export const Empty = {
         stddev: 0,
         iqr: 0,
         min: 0,
-        max: 0,
+        max: 0
       }),
-      'Empty pool — graceful no-data render',
-    ),
+      'Empty pool — graceful no-data render'
+    )
 };

@@ -17,10 +17,7 @@
  */
 
 import type { SchedulePageDragPayload, SchedulePageState, UIPanel } from '../types';
-import {
-  computeActiveStrip,
-  computeActiveStripDropTarget
-} from '../domain/activeStrip';
+import { computeActiveStrip, computeActiveStripDropTarget } from '../domain/activeStrip';
 import type {
   ActiveStripCell,
   ActiveStripDropCandidate,
@@ -124,11 +121,7 @@ export interface ActiveStripPanelCallbacks {
    * The target carries the courtId and the inferred rowIndex.
    * Consumer is responsible for committing the schedule mutation.
    */
-  onMatchUpDrop?: (
-    payload: SchedulePageDragPayload,
-    target: ActiveStripDropTarget,
-    event: DragEvent
-  ) => void;
+  onMatchUpDrop?: (payload: SchedulePageDragPayload, target: ActiveStripDropTarget, event: DragEvent) => void;
 }
 
 export type ActiveStripCellRenderer = (matchUp: ActiveStripGridMatchUp) => HTMLElement | null;
@@ -181,9 +174,7 @@ function attachDropTarget(
       matchUpId: payload.matchUp.matchUpId,
       drawId: payload.matchUp.drawId,
       roundNumber: payload.matchUp.roundNumber,
-      participantIds: (payload.matchUp.sides ?? [])
-        .map((s) => s.participantId)
-        .filter((id): id is string => !!id)
+      participantIds: (payload.matchUp.sides ?? []).map((s) => s.participantId).filter((id): id is string => !!id)
     };
 
     const target = computeActiveStripDropTarget(getGrid(), cell.courtId, candidate, statusOptions);
@@ -335,7 +326,7 @@ export function buildActiveStripPanel(
       const block = data.courtBlocks?.[cell.courtId];
       const edges = {
         upcoming: data.courtUpcomingBlocks?.[cell.courtId],
-        edge: data.courtBlockEdges?.[cell.courtId],
+        edge: data.courtBlockEdges?.[cell.courtId]
       };
       root.appendChild(buildCellElement(cell, callbacks, getGrid, options, block, edges));
     }

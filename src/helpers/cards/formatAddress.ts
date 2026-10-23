@@ -27,5 +27,5 @@ export function formatVenueLocation(venues?: CardVenueLike[] | null): string | u
   const venue = venues?.find(Boolean);
   if (!venue) return undefined;
   const address = venue.addresses?.find(Boolean);
-  return address ? formatAddress(address) ?? venue.venueName : venue.venueName;
+  return address ? (formatAddress(address) ?? venue.venueName) : venue.venueName;
 }

@@ -20,7 +20,7 @@ const makeButton = (label: string): HTMLButtonElement => {
 
 const makeState = (): SchedulePageState =>
   ({
-    selectedDate: '2026-05-11',
+    selectedDate: '2026-05-11'
   }) as SchedulePageState;
 
 describe('buildCourtGridSlot', () => {
@@ -57,11 +57,11 @@ describe('buildCourtGridSlot', () => {
     const slot = panel.element.querySelector(GRID_SLOT) as HTMLElement;
     const payload: SchedulePageDragPayload = {
       type: 'CATALOG_MATCHUP',
-      matchUp: { matchUpId: 'm1' } as any,
+      matchUp: { matchUpId: 'm1' } as any
     };
     const dt = {
       getData: vi.fn().mockReturnValue(JSON.stringify(payload)),
-      dropEffect: '',
+      dropEffect: ''
     } as unknown as DataTransfer;
     const event = new Event('drop', { bubbles: true, cancelable: true }) as DragEvent;
     Object.defineProperty(event, 'dataTransfer', { value: dt });
@@ -78,11 +78,11 @@ describe('buildCourtGridSlot', () => {
       type: 'GRID_MATCHUP',
       matchUp: { matchUpId: 'm2' } as any,
       sourceCourt: 'c1',
-      sourceTime: '09:00',
+      sourceTime: '09:00'
     };
     const dt = {
       getData: vi.fn().mockReturnValue(JSON.stringify(payload)),
-      dropEffect: '',
+      dropEffect: ''
     } as unknown as DataTransfer;
     const event = new Event('drop', { bubbles: true, cancelable: true }) as DragEvent;
     Object.defineProperty(event, 'dataTransfer', { value: dt });
@@ -96,7 +96,7 @@ describe('buildCourtGridSlot', () => {
     const slot = panel.element.querySelector(GRID_SLOT) as HTMLElement;
     const dt = {
       getData: vi.fn().mockReturnValue('not-json'),
-      dropEffect: '',
+      dropEffect: ''
     } as unknown as DataTransfer;
     const event = new Event('drop', { bubbles: true, cancelable: true }) as DragEvent;
     Object.defineProperty(event, 'dataTransfer', { value: dt });
@@ -138,11 +138,7 @@ describe('buildCourtGridSlot', () => {
   it('supports titleLeadingActions and headerActions together', () => {
     const toggle = makeButton('Catalog');
     const print = makeButton('Print');
-    const panel = buildCourtGridSlot(
-      undefined,
-      {},
-      { titleLeadingActions: toggle, headerActions: print }
-    );
+    const panel = buildCourtGridSlot(undefined, {}, { titleLeadingActions: toggle, headerActions: print });
     expect(panel.element.querySelector(LEADING)?.firstElementChild).toBe(toggle);
     expect(panel.element.querySelector(ACTIONS)?.firstElementChild).toBe(print);
   });

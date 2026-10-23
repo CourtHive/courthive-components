@@ -122,11 +122,7 @@ const KIND_SUSPENDED = 'suspended';
 const KIND_PENDING = 'pending';
 const KIND_COMPLETED = 'completed';
 
-type Classification =
-  | typeof KIND_IN_PROGRESS
-  | typeof KIND_SUSPENDED
-  | typeof KIND_PENDING
-  | typeof KIND_COMPLETED;
+type Classification = typeof KIND_IN_PROGRESS | typeof KIND_SUSPENDED | typeof KIND_PENDING | typeof KIND_COMPLETED;
 
 function classify(
   cell: ActiveStripGridMatchUp,
@@ -208,10 +204,7 @@ export function computeActiveStripCell(
   return { courtId: column.courtId, state: 'free' };
 }
 
-export function computeActiveStrip(
-  grid: ActiveStripGrid,
-  options?: ActiveStripStatusOptions
-): ActiveStripCell[] {
+export function computeActiveStrip(grid: ActiveStripGrid, options?: ActiveStripStatusOptions): ActiveStripCell[] {
   return grid.columns.map((column) => computeActiveStripCell(column, options));
 }
 
@@ -258,11 +251,7 @@ function computeFloors(
   return { participantFloor, earlierRoundFloor };
 }
 
-function findFirstFreeRow(
-  column: ActiveStripCourtColumn,
-  fromRow: number,
-  draggedMatchUpId: string
-): number {
+function findFirstFreeRow(column: ActiveStripCourtColumn, fromRow: number, draggedMatchUpId: string): number {
   let rowIndex = fromRow;
   while (rowIndex < column.cells.length) {
     const cell = column.cells[rowIndex];

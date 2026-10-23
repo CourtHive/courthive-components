@@ -30,16 +30,16 @@ function mockFetch(scenario: 'success' | 'existing-user' | 'incomplete' | 'wrong
 
     if (url.endsWith('/auth/hiveid/signup')) {
       if (scenario === 'existing-user') {
-        return new Response(
-          JSON.stringify({ code: 'EXISTING_USER', message: 'An account exists.' }),
-          { status: 409, headers: { 'content-type': 'application/json' } }
-        );
+        return new Response(JSON.stringify({ code: 'EXISTING_USER', message: 'An account exists.' }), {
+          status: 409,
+          headers: { 'content-type': 'application/json' }
+        });
       }
       if (scenario === 'incomplete') {
-        return new Response(
-          JSON.stringify({ status: 'incomplete', missingFields: ['birthDate'] }),
-          { status: 422, headers: { 'content-type': 'application/json' } }
-        );
+        return new Response(JSON.stringify({ status: 'incomplete', missingFields: ['birthDate'] }), {
+          status: 422,
+          headers: { 'content-type': 'application/json' }
+        });
       }
       return new Response(
         JSON.stringify({
@@ -110,7 +110,8 @@ function buildStory(
   container.appendChild(shell.root);
 
   const log = document.createElement('pre');
-  log.style.cssText = 'margin-top: 1rem; padding: 0.75rem; background: var(--chc-bg-primary, #fff); border: 1px solid var(--chc-border-primary, #dbdbdb); font-size: 0.75rem; max-width: 24rem;';
+  log.style.cssText =
+    'margin-top: 1rem; padding: 0.75rem; background: var(--chc-bg-primary, #fff); border: 1px solid var(--chc-border-primary, #dbdbdb); font-size: 0.75rem; max-width: 24rem;';
   log.textContent = 'hiveid:authenticated events appear here.';
   container.appendChild(log);
 

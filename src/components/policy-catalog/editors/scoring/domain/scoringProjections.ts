@@ -45,7 +45,7 @@ export function lookupRegistryFormat(format: string | undefined): RegistryEntry 
 // dropdown in allowedFormatsSection so the operator picks from the
 // same set the runtime dialog reads.
 export const MATCH_UP_FORMAT_REGISTRY_SORTED: RegistryEntry[] = MATCH_UP_FORMAT_REGISTRY.filter(
-  (e) => e.format && e.name,
+  (e) => e.format && e.name
 ).sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
 
 // matchUpFormats entries can be either a bare string or the richer
@@ -62,13 +62,13 @@ export function formatStringOf(entry: AllowedFormatEntry): string {
 // sees in the row matches the dialog's dropdown label without forcing
 // the editor to mutate the entry on load.
 export function formatNameOf(entry: AllowedFormatEntry): string {
-  const explicit = typeof entry === 'string' ? '' : entry.name ?? '';
+  const explicit = typeof entry === 'string' ? '' : (entry.name ?? '');
   if (explicit) return explicit;
   return lookupRegistryFormat(formatStringOf(entry))?.name ?? '';
 }
 
 export function formatDescriptionOf(entry: AllowedFormatEntry): string {
-  const explicit = typeof entry === 'string' ? '' : entry.description ?? '';
+  const explicit = typeof entry === 'string' ? '' : (entry.description ?? '');
   if (explicit) return explicit;
   return lookupRegistryFormat(formatStringOf(entry))?.desc ?? '';
 }
@@ -100,7 +100,7 @@ export function emptyScoringPolicy(): ScoringPolicyData {
     allowChangePropagation: false,
     allowDeletionWithScoresPresent: {
       drawDefinitions: false,
-      structures: false,
+      structures: false
     },
     matchUpStatusCodes: {
       ABANDONED: [],
@@ -108,8 +108,7 @@ export function emptyScoringPolicy(): ScoringPolicyData {
       DEFAULTED: [],
       INCOMPLETE: [],
       RETIRED: [],
-      WALKOVER: [],
-    },
+      WALKOVER: []
+    }
   };
 }
-

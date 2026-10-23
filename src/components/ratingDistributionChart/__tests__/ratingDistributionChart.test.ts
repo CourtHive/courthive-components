@@ -15,7 +15,7 @@ function buildStats(overrides: Partial<RatingDistributionStats> = {}): RatingDis
     histogram: [
       { binStart: 4, binEnd: 4.5, count: 3 },
       { binStart: 4.5, binEnd: 5, count: 5 },
-      { binStart: 5, binEnd: 5.5, count: 2 },
+      { binStart: 5, binEnd: 5.5, count: 2 }
     ],
     gaps: [],
     count: 10,
@@ -25,7 +25,7 @@ function buildStats(overrides: Partial<RatingDistributionStats> = {}): RatingDis
     iqr: 0.5,
     min: 4,
     max: 5.5,
-    ...overrides,
+    ...overrides
   };
 }
 
@@ -70,9 +70,9 @@ describe('buildRatingDistributionChart — HISTOGRAM mode', () => {
     const stats = buildStats({
       histogram: [
         { binStart: 4, binEnd: 4.5, count: 0 },
-        { binStart: 4.5, binEnd: 5, count: 5 },
+        { binStart: 4.5, binEnd: 5, count: 5 }
       ],
-      count: 5,
+      count: 5
     });
     const svg = buildRatingDistributionChart(stats);
     const labels = Array.from(svg.querySelectorAll(COUNT_LABEL_SELECTOR)).map((n) => n.textContent ?? '');
@@ -119,9 +119,9 @@ describe('buildRatingDistributionChart — DONUT mode', () => {
     const stats = buildStats({
       histogram: [
         { binStart: 4, binEnd: 4.5, count: 0 },
-        { binStart: 4.5, binEnd: 5, count: 5 },
+        { binStart: 4.5, binEnd: 5, count: 5 }
       ],
-      count: 5,
+      count: 5
     });
     const svg = buildRatingDistributionChart(stats, { mode: 'DONUT' });
     expect(svg.querySelectorAll(SLICE_SELECTOR).length).toEqual(1);

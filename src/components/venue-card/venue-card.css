@@ -30,7 +30,10 @@
   border-radius: var(--chc-vc-radius);
   box-shadow: var(--chc-vc-shadow);
   overflow: hidden;
-  transition: box-shadow 0.15s ease, background 0.15s ease, transform 0.15s ease;
+  transition:
+    box-shadow 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
 }
 
 [data-theme='dark'] .chc-vc-card {
@@ -43,7 +46,9 @@
   --chc-vc-skeleton-shimmer: #2a3550;
 }
 
-.chc-vc-card--clickable { cursor: pointer; }
+.chc-vc-card--clickable {
+  cursor: pointer;
+}
 .chc-vc-card--clickable:hover {
   box-shadow: var(--chc-vc-hover-shadow);
   background: var(--chc-vc-hover-bg);
@@ -65,12 +70,16 @@
 }
 
 .chc-vc-image-img {
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.chc-vc-image-svg { width: 80%; height: 80%; }
+.chc-vc-image-svg {
+  width: 80%;
+  height: 80%;
+}
 
 .chc-vc-image-map {
   width: 100%;
@@ -80,30 +89,33 @@
 }
 
 .chc-vc-image-placeholder {
-  width: 100%; height: 100%;
-  background:
-    repeating-linear-gradient(
-      135deg,
-      var(--chc-vc-image-bg),
-      var(--chc-vc-image-bg) 8px,
-      var(--chc-vc-placeholder-stripe) 8px,
-      var(--chc-vc-placeholder-stripe) 16px
-    );
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    135deg,
+    var(--chc-vc-image-bg),
+    var(--chc-vc-image-bg) 8px,
+    var(--chc-vc-placeholder-stripe) 8px,
+    var(--chc-vc-placeholder-stripe) 16px
+  );
 }
 
 /* ── Corner badges ── */
 
 .chc-vc-corner-badges {
   position: absolute;
-  top: 0.5rem; left: 0.5rem;
-  display: flex; flex-direction: column;
+  top: 0.5rem;
+  left: 0.5rem;
+  display: flex;
+  flex-direction: column;
   gap: 0.25rem;
   z-index: 2;
   pointer-events: none;
 }
 
 .chc-vc-primary-badge {
-  font-size: 0.7rem; font-weight: 600;
+  font-size: 0.7rem;
+  font-weight: 600;
   padding: 0.2rem 0.4rem;
   border-radius: 0.25rem;
   background: var(--chc-vc-primary-bg);
@@ -113,19 +125,22 @@
 /* ── Body ── */
 
 .chc-vc-body {
-  display: flex; flex-direction: column;
+  display: flex;
+  flex-direction: column;
   gap: 0.25rem;
   padding: 0.75rem 1rem 0.5rem;
   flex: 1 1 auto;
 }
 
 .chc-vc-title {
-  font-size: 0.875rem; font-weight: 500;
+  font-size: 0.875rem;
+  font-weight: 500;
   color: var(--chc-vc-title-color);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  overflow: hidden; text-overflow: ellipsis;
+  overflow: hidden;
+  text-overflow: ellipsis;
   line-height: 1.25;
   text-wrap: balance;
 }
@@ -133,7 +148,8 @@
 .chc-vc-address {
   font-size: 0.875rem;
   color: var(--chc-vc-address-color);
-  overflow: hidden; text-overflow: ellipsis;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -145,22 +161,30 @@
 /* ── Footer ── */
 
 .chc-vc-footer {
-  display: flex; align-items: center;
+  display: flex;
+  align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem 0.75rem;
 }
 
 .chc-vc-amenity-row {
-  display: flex; gap: 0.75rem;
+  display: flex;
+  gap: 0.75rem;
   font-size: 0.75rem;
   color: var(--chc-vc-muted-color);
 }
 
-.chc-vc-amenity { display: inline-flex; gap: 0.25rem; align-items: center; }
+.chc-vc-amenity {
+  display: inline-flex;
+  gap: 0.25rem;
+  align-items: center;
+}
 
 /* ── Skeleton ── */
 
-.chc-vc-skeleton { pointer-events: none; }
+.chc-vc-skeleton {
+  pointer-events: none;
+}
 .chc-vc-skeleton-block,
 .chc-vc-skeleton-line {
   background: linear-gradient(
@@ -172,11 +196,23 @@
   background-size: 200% 100%;
   animation: chc-vc-shimmer 1.4s ease-in-out infinite;
 }
-.chc-vc-skeleton-block { width: 100%; height: 100%; }
-.chc-vc-skeleton-line { height: 0.75rem; border-radius: 0.25rem; }
-.chc-vc-skeleton-line + .chc-vc-skeleton-line { margin-top: 0.5rem; }
+.chc-vc-skeleton-block {
+  width: 100%;
+  height: 100%;
+}
+.chc-vc-skeleton-line {
+  height: 0.75rem;
+  border-radius: 0.25rem;
+}
+.chc-vc-skeleton-line + .chc-vc-skeleton-line {
+  margin-top: 0.5rem;
+}
 
 @keyframes chc-vc-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }

@@ -66,12 +66,6 @@ export interface InteractiveScoringShell {
   /** Remove all listeners and release engine resources. */
   destroy(): void;
   /** Subscribe to state change events. */
-  addEventListener(
-    type: 'stateChanged',
-    listener: (event: CustomEvent<StateChangedDetail>) => void,
-  ): void;
-  removeEventListener(
-    type: 'stateChanged',
-    listener: (event: CustomEvent<StateChangedDetail>) => void,
-  ): void;
+  addEventListener(type: 'stateChanged', listener: (event: CustomEvent<StateChangedDetail>) => void): void;
+  removeEventListener(type: 'stateChanged', listener: (event: CustomEvent<StateChangedDetail>) => void): void;
 }

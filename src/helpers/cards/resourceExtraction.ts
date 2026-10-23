@@ -19,9 +19,7 @@ const URL_RESOURCE_TYPE = 'URL';
 
 export function extractImageURL(resources: CardOnlineResource[] | undefined, name: string): string | undefined {
   if (!Array.isArray(resources)) return undefined;
-  const found = resources.find(
-    (r) => r?.name === name && r?.resourceType === URL_RESOURCE_TYPE
-  );
+  const found = resources.find((r) => r?.name === name && r?.resourceType === URL_RESOURCE_TYPE);
   return found?.url ?? found?.identifier;
 }
 
@@ -31,8 +29,7 @@ export function extractCourtSvgSport(
 ): CourtSport | undefined {
   if (!Array.isArray(resources)) return undefined;
   const found = resources.find(
-    (r) =>
-      r?.resourceSubType === COURT_SVG_RESOURCE_SUB_TYPE && (name ? r?.name === name : true)
+    (r) => r?.resourceSubType === COURT_SVG_RESOURCE_SUB_TYPE && (name ? r?.name === name : true)
   );
   return found?.identifier as CourtSport | undefined;
 }

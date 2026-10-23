@@ -51,7 +51,7 @@ export class PrivacyEditorControl {
   }): CatalogEditorInstance {
     const editorConfig: PrivacyEditorConfig = {
       initialPolicy: config.initialData as PrivacyPolicyData,
-      onChange: (policy) => config.onChange(policy as Record<string, unknown>),
+      onChange: (policy) => config.onChange(policy as Record<string, unknown>)
     };
     const control = new PrivacyEditorControl(editorConfig);
     return {
@@ -64,7 +64,7 @@ export class PrivacyEditorControl {
       },
       destroy() {
         control.destroy();
-      },
+      }
     };
   }
 }

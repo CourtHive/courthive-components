@@ -1,14 +1,14 @@
 /**
  * Topology Validator — Validates topology state for correctness.
  */
-import { drawDefinitionConstants } from 'tods-competition-factory';
+import { carriesQualifiers, isRoundWinnerEdge, traversesByFinishingPosition } from './edgeTraversal';
 import { getFeedRoundCapacities, getNodeTotalRounds, getNodeLosersForRound } from './feedRounds';
+
+// constants and types
+import { drawDefinitionConstants } from 'tods-competition-factory';
 import type { TopologyState } from '../types';
 
-const { MAIN, QUALIFYING, CONSOLATION, WINNER, LOSER, SINGLE_ELIMINATION, ROUND_ROBIN, AD_HOC } =
-  drawDefinitionConstants;
-
-const POSITION = 'POSITION';
+const { MAIN, QUALIFYING, CONSOLATION, LOSER, SINGLE_ELIMINATION, ROUND_ROBIN, AD_HOC } = drawDefinitionConstants;
 
 export interface ValidationError {
   severity: 'error' | 'warning';
@@ -53,9 +53,8 @@ function validateMainNodes(state: TopologyState, errors: ValidationError[]): Top
 function computeNodesWithFeedLinks(state: TopologyState): Set<string> {
   const nodesWithFeedLinks = new Set<string>();
   for (const edge of state.edges) {
-    if (edge.linkType === WINNER && (edge.targetRoundNumber || 1) > 1) {
-      const source = state.nodes.find((n) => n.id === edge.sourceNodeId);
-      if (source?.stage === QUALIFYING) nodesWithFeedLinks.add(edge.targetNodeId);
+    if (carriesQualifiers(edge, state.nodes) && (edge.targetRoundNumber || 1) > 1) {
+      nodesWithFeedLinks.add(edge.targetNodeId);
     }
   }
   const loserLinkCountByTarget = new Map<string, number>();
@@ -110,7 +109,8 @@ function validateEdgeRoundNumbers(state: TopologyState, errors: ValidationError[
       errors.push({ severity: 'error', message: 'Edge references missing target node', edgeId: edge.id });
     }
 
-    if (source && edge.sourceRoundNumber) {
+    // a finishing-position edge leaves by tally: its sourceRoundNumber decides nothing, so it is not checked
+    if (source && edge.sourceRoundNumber && !traversesByFinishingPosition(edge, state.nodes)) {
       const maxRound = getNodeTotalRounds(source.structureType, source.drawSize, source.structureOptions);
       if (edge.sourceRoundNumber > maxRound || edge.sourceRoundNumber < 1) {
         errors.push({
@@ -137,7 +137,7 @@ function validateEdgeRoundNumbers(state: TopologyState, errors: ValidationError[
 function validateWinnerLinks(state: TopologyState, errors: ValidationError[]): void {
   const winnerEdgesBySource = new Map<string, string[]>();
   for (const edge of state.edges) {
-    if (edge.linkType !== WINNER) continue;
+    if (!isRoundWinnerEdge(edge, state.nodes)) continue;
     if (!winnerEdgesBySource.has(edge.sourceNodeId)) winnerEdgesBySource.set(edge.sourceNodeId, []);
     winnerEdgesBySource.get(edge.sourceNodeId)!.push(edge.id);
   }
@@ -158,7 +158,7 @@ function validateWinnerLinks(state: TopologyState, errors: ValidationError[]): v
 function validateDuplicateSourceRounds(state: TopologyState, errors: ValidationError[]): void {
   const edgesBySource = new Map<string, { round: number; edgeId: string }[]>();
   for (const edge of state.edges) {
-    if (!edge.sourceRoundNumber) continue;
+    if (!edge.sourceRoundNumber || traversesByFinishingPosition(edge, state.nodes)) continue;
     if (!edgesBySource.has(edge.sourceNodeId)) edgesBySource.set(edge.sourceNodeId, []);
     edgesBySource.get(edge.sourceNodeId)!.push({ round: edge.sourceRoundNumber, edgeId: edge.id });
   }
@@ -188,7 +188,10 @@ function validateQualifyingStructures(
 
   for (const qNode of qualifyingNodes) {
     const winnerEdge = state.edges.find(
-      (e) => e.sourceNodeId === qNode.id && e.linkType === WINNER && mainNodes.some((m) => m.id === e.targetNodeId)
+      (e) =>
+        e.sourceNodeId === qNode.id &&
+        carriesQualifiers(e, state.nodes) &&
+        mainNodes.some((m) => m.id === e.targetNodeId)
     );
 
     if (!winnerEdge) {
@@ -218,7 +221,7 @@ function validateQualifyingFeedCapacity(state: TopologyState, errors: Validation
     { edgeId: string; targetRound: number; qp: number; sourceName: string }[]
   >();
   for (const edge of state.edges) {
-    if (edge.linkType !== WINNER) continue;
+    if (!carriesQualifiers(edge, state.nodes)) continue;
     const targetRound = edge.targetRoundNumber || 1;
     if (targetRound <= 1) continue;
     const source = state.nodes.find((n) => n.id === edge.sourceNodeId);
@@ -344,7 +347,7 @@ function validateConsolationDrawSizes(state: TopologyState, errors: ValidationEr
 function validatePositionLinks(state: TopologyState, errors: ValidationError[]): void {
   const positionEdgesBySource = new Map<string, { edgeId: string; positions: number[] }[]>();
   for (const edge of state.edges) {
-    if (edge.linkType !== POSITION) continue;
+    if (!traversesByFinishingPosition(edge, state.nodes)) continue;
     if (!positionEdgesBySource.has(edge.sourceNodeId)) positionEdgesBySource.set(edge.sourceNodeId, []);
     positionEdgesBySource.get(edge.sourceNodeId)!.push({ edgeId: edge.id, positions: edge.finishingPositions || [] });
 
@@ -372,7 +375,7 @@ function validatePositionLinks(state: TopologyState, errors: ValidationError[]):
         if (seen.has(pos)) {
           errors.push({
             severity: 'warning',
-            message: `Position ${pos} from "${sourceName}" is used by multiple POSITION links`,
+            message: `Position ${pos} from "${sourceName}" is used by multiple finishing-position links`,
             edgeId
           });
         } else {

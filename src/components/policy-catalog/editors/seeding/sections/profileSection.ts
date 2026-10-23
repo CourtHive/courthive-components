@@ -5,7 +5,13 @@
 import type { SeedingEditorState, SeedingPositioning } from '../types';
 import type { SeedingEditorStore } from '../seedingEditorStore';
 import { canonicalPositioning, POSITIONING_OPTIONS } from '../domain/seedingProjections';
-import { sdFieldInputStyle, sdFieldLabelStyle, sdFieldRowStyle, sdRadioGroupStyle, sdRadioOptionStyle } from '../styles';
+import {
+  sdFieldInputStyle,
+  sdFieldLabelStyle,
+  sdFieldRowStyle,
+  sdRadioGroupStyle,
+  sdRadioOptionStyle
+} from '../styles';
 
 export function buildProfileSection(store: SeedingEditorStore): {
   element: HTMLElement;

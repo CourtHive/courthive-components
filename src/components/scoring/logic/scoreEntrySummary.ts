@@ -65,7 +65,7 @@ export function scoreEntrySummary(params: SummaryParams): ResultBand {
       return {
         tone: 'good',
         headline: `${name(scoreWinningSide)} def. ${name(other(scoreWinningSide))} ${scoreString ?? ''}`.trim(),
-        detail: advancesTo ? `advances to ${advancesTo}` : undefined,
+        detail: advancesTo ? `advances to ${advancesTo}` : undefined
       };
     }
     // An incomplete score is not an error — it is a match in progress, which is a legitimate thing to
@@ -73,7 +73,7 @@ export function scoreEntrySummary(params: SummaryParams): ResultBand {
     // common state the dialog is ever in.
     return {
       tone: 'neutral',
-      headline: scoreString ? `${scoreString} — not a finished result` : 'No result entered yet',
+      headline: scoreString ? `${scoreString} — not a finished result` : 'No result entered yet'
     };
   }
 
@@ -94,7 +94,7 @@ export function scoreEntrySummary(params: SummaryParams): ResultBand {
     return {
       tone: 'warn',
       headline: `${label(status)} — neither side advances`,
-      detail: joinDetail([reasonDisplay, doubleExitWarning(base)]),
+      detail: joinDetail([reasonDisplay, doubleExitWarning(base)])
     };
   }
 
@@ -107,7 +107,7 @@ export function scoreEntrySummary(params: SummaryParams): ResultBand {
     return {
       tone: 'good',
       headline: `${label(status)} — ${name(winner)} advances`,
-      detail: joinDetail([reasonDisplay, resolution.clearsScore ? 'no score recorded' : scoreString]),
+      detail: joinDetail([reasonDisplay, resolution.clearsScore ? 'no score recorded' : scoreString])
     };
   }
 
@@ -116,7 +116,7 @@ export function scoreEntrySummary(params: SummaryParams): ResultBand {
     return {
       tone: 'warn',
       headline: `${label(status)} — the part-score of ${scoreString} has been cleared`,
-      detail: 'nobody advances',
+      detail: 'nobody advances'
     };
   }
 
@@ -124,7 +124,7 @@ export function scoreEntrySummary(params: SummaryParams): ResultBand {
     return {
       tone: scoreString ? 'good' : 'neutral',
       headline: scoreString ? `${label(status)} — ${scoreString} recorded` : label(status),
-      detail: joinDetail([reasonDisplay, 'nobody advances']),
+      detail: joinDetail([reasonDisplay, 'nobody advances'])
     };
   }
 

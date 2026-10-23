@@ -59,11 +59,7 @@ export interface SchedulingPolicyData {
 // ============================================================================
 
 export type SchedulingEditorSection =
-  | 'modificationFlags'
-  | 'dailyLimits'
-  | 'defaultTimes'
-  | 'averageTimes'
-  | 'recoveryTimes';
+  'modificationFlags' | 'dailyLimits' | 'defaultTimes' | 'averageTimes' | 'recoveryTimes';
 
 export interface SchedulingEditorState {
   draft: SchedulingPolicyData;

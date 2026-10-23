@@ -39,7 +39,9 @@ export const Gallery = {
     root.appendChild(withLabel('Mostly competitive', bar({ COMPETITIVE: 22, ROUTINE: 4, DECISIVE: 1, WALKOVER: 0 })));
     root.appendChild(withLabel('Decisive-heavy', bar({ COMPETITIVE: 2, ROUTINE: 3, DECISIVE: 12, WALKOVER: 2 })));
     root.appendChild(withLabel('Single bucket', bar({ COMPETITIVE: 8, ROUTINE: 0, DECISIVE: 0, WALKOVER: 0 })));
-    root.appendChild(withLabel('Empty (renders nothing)', bar({ COMPETITIVE: 0, ROUTINE: 0, DECISIVE: 0, WALKOVER: 0 })));
+    root.appendChild(
+      withLabel('Empty (renders nothing)', bar({ COMPETITIVE: 0, ROUTINE: 0, DECISIVE: 0, WALKOVER: 0 }))
+    );
     return root;
   }
 };

@@ -33,13 +33,7 @@ import {
   hilTabsStyle,
   hilTitleStyle
 } from './styles';
-import {
-  consumeMagicLink,
-  isExistingUserConflict,
-  requestMagicLink,
-  signup,
-  verifyExisting
-} from './hiveIDClient';
+import { consumeMagicLink, isExistingUserConflict, requestMagicLink, signup, verifyExisting } from './hiveIDClient';
 import type {
   CachedPersonFields,
   DobSexCaptureConfig,
@@ -558,7 +552,8 @@ function extractErrorText(err: any): string | null {
   if (err.kind === 'http') {
     const body = err.body;
     if (body?.message && typeof body.message === 'string') return body.message;
-    if (typeof body?.status === 'string' && body.status === 'incomplete') return 'We need a bit more information to identify you.';
+    if (typeof body?.status === 'string' && body.status === 'incomplete')
+      return 'We need a bit more information to identify you.';
   }
   if (err.kind === 'network') return 'Could not reach CourtHive. Check your connection.';
   return null;

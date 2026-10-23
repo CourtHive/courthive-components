@@ -37,7 +37,7 @@ export function buildDefaultsSection(store: ScoringEditorStore): {
   const picker = buildMatchUpFormatPicker({
     initialValue: store.getData().defaultMatchUpFormat,
     readonly: store.isReadonly(),
-    onChange: (value) => store.setDefaultMatchUpFormat(value),
+    onChange: (value) => store.setDefaultMatchUpFormat(value)
   });
   formatRow.appendChild(picker.element);
   root.appendChild(formatRow);
@@ -48,7 +48,7 @@ export function buildDefaultsSection(store: ScoringEditorStore): {
     help: 'Block score entry until both sides have a participant assigned.',
     initial: !!store.getData().requireParticipantsForScoring,
     readonly: store.isReadonly(),
-    onChange: (v) => store.setRequireParticipants(v),
+    onChange: (v) => store.setRequireParticipants(v)
   });
   root.appendChild(reqParticipants.element);
 
@@ -63,7 +63,7 @@ export function buildDefaultsSection(store: ScoringEditorStore): {
   for (const opt of [
     { value: 'default', label: 'Default (required in MAIN stage)' },
     { value: 'true', label: 'Always required' },
-    { value: 'false', label: 'Never required' },
+    { value: 'false', label: 'Never required' }
   ] as { value: RequireAllPositionsTriState; label: string }[]) {
     const o = document.createElement('option');
     o.value = opt.value;
@@ -81,10 +81,10 @@ export function buildDefaultsSection(store: ScoringEditorStore): {
   // ── Allow change propagation ────────────────────────
   const allowProp = checkboxRow({
     label: 'Allow change propagation',
-    help: 'Editing a completed matchUp\'s winningSide updates all downstream matchUps in the structure.',
+    help: "Editing a completed matchUp's winningSide updates all downstream matchUps in the structure.",
     initial: !!store.getData().allowChangePropagation,
     readonly: store.isReadonly(),
-    onChange: (v) => store.setAllowChangePropagation(v),
+    onChange: (v) => store.setAllowChangePropagation(v)
   });
   root.appendChild(allowProp.element);
 
@@ -104,14 +104,14 @@ export function buildDefaultsSection(store: ScoringEditorStore): {
     help: '',
     initial: !!store.getData().allowDeletionWithScoresPresent?.drawDefinitions,
     readonly: store.isReadonly(),
-    onChange: (v) => store.setAllowDeletionDraws(v),
+    onChange: (v) => store.setAllowDeletionDraws(v)
   });
   const delStructs = checkboxRow({
     label: 'Structures',
     help: '',
     initial: !!store.getData().allowDeletionWithScoresPresent?.structures,
     readonly: store.isReadonly(),
-    onChange: (v) => store.setAllowDeletionStructures(v),
+    onChange: (v) => store.setAllowDeletionStructures(v)
   });
   delGroup.appendChild(delDraws.element);
   delGroup.appendChild(delStructs.element);
@@ -175,6 +175,6 @@ function checkboxRow(config: CheckboxRowConfig): CheckboxRowHandle {
     element: row,
     setChecked(value: boolean) {
       input.checked = value;
-    },
+    }
   };
 }

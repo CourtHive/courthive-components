@@ -15,7 +15,7 @@ describe('buildScheduleGridCell — reserved cell', () => {
     const el = buildScheduleGridCell({
       matchUpId: '',
       isReserved: true,
-      reservation: { tournamentName: 'City Open', scheduledTime: '14:00' },
+      reservation: { tournamentName: 'City Open', scheduledTime: '14:00' }
     });
 
     expect(el.classList.contains('spl-cell--reserved')).toBe(true);
@@ -29,7 +29,7 @@ describe('buildScheduleGridCell — reserved cell', () => {
     const el = buildScheduleGridCell({
       matchUpId: 'M1',
       isReserved: true,
-      sides: [{ participantName: 'Should Not Render' }] as any,
+      sides: [{ participantName: 'Should Not Render' }] as any
     });
 
     expect(el.classList.contains('spl-cell--reserved')).toBe(true);
@@ -40,7 +40,7 @@ describe('buildScheduleGridCell — reserved cell', () => {
     const el = buildScheduleGridCell({
       matchUpId: '',
       isReserved: true,
-      schedule: { scheduledTime: '09:30' },
+      schedule: { scheduledTime: '09:30' }
     });
 
     expect(el.textContent).toContain('Reserved');

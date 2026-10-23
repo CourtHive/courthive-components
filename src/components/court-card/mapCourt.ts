@@ -29,7 +29,10 @@ function resolveSurfaceCategory(court: any): string | undefined {
   return explicit; // preserve any odd value so callers that show it still get a label
 }
 
-function formatSurfaceLabel(indoorOutdoor: string | undefined, surfaceCategory: string | undefined): string | undefined {
+function formatSurfaceLabel(
+  indoorOutdoor: string | undefined,
+  surfaceCategory: string | undefined
+): string | undefined {
   const parts: string[] = [];
   if (indoorOutdoor) parts.push(indoorOutdoor.charAt(0) + indoorOutdoor.slice(1).toLowerCase());
   if (surfaceCategory) parts.push(surfaceCategory.charAt(0) + surfaceCategory.slice(1).toLowerCase());
