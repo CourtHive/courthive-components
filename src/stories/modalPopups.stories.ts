@@ -164,3 +164,58 @@ export const PopupsFollowAScrolledBody = {
     closeAll();
   }
 };
+
+function openMultiSelectModal() {
+  cModal.open({
+    title: 'Multi-select in a modal',
+    content: (body: HTMLElement) =>
+      renderForm(body, [
+        {
+          label: 'Ratings',
+          field: 'ratings',
+          id: 'popupRatings',
+          multiple: true,
+          options: PLAYERS.map((player) => ({ label: player, value: player }))
+        }
+      ]),
+    buttons: [{ label: 'Close', close: true }]
+  });
+}
+
+export const MultiSelectOverTheFooter = {
+  render: () => launcher('Open a short modal with a multi-select', () => openMultiSelectModal()),
+  play: async () => {
+    closeAll();
+    openMultiSelectModal();
+    const modal = topModal()!;
+    const footer = modal.querySelector<HTMLElement>('.chc-modal-footer')!;
+    const panel = modal.querySelector<HTMLElement>('.chc-multi-select-dropdown')!;
+    const trigger = panel.previousElementSibling as HTMLElement;
+
+    // Before the fix the body clipped the panel and only its first row showed above the footer.
+    trigger.click();
+    await expect(panel.getBoundingClientRect().bottom, 'the panel reaches past the body').toBeGreaterThan(
+      footer.getBoundingClientRect().top
+    );
+    const coveredRows = () =>
+      [...panel.querySelectorAll<HTMLElement>('label')]
+        .filter((row) => {
+          const { left, right, top, bottom } = row.getBoundingClientRect();
+          const middle = (top + bottom) / 2;
+          // Rows past the panel's own max-height are scrolled inside it, not clipped by the body.
+          if (middle >= panel.getBoundingClientRect().bottom) return false;
+          return !drawnAt(row, (left + right) / 2, middle);
+        })
+        .map((row) => row.textContent);
+    await expect(coveredRows(), 'every visible row is drawn on top').toEqual([]);
+
+    // The panel hangs from the trigger, exactly as wide, and inside the window.
+    const triggerRect = trigger.getBoundingClientRect();
+    const panelRect = panel.getBoundingClientRect();
+    await expect(panelRect.bottom, 'the panel stays inside the window').toBeLessThanOrEqual(window.innerHeight);
+    await expect(Math.round(panelRect.top)).toBe(Math.round(triggerRect.bottom));
+    await expect(Math.round(panelRect.width)).toBe(Math.round(triggerRect.width));
+
+    closeAll();
+  }
+};
