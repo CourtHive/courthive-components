@@ -554,19 +554,19 @@ export const ReservedCells = {
     const cells = [
       labeledCell(
         { matchUpId: '', isReserved: true, reservation: { tournamentName: 'City Open', scheduledTime: '14:00' } },
-        'Name + time',
+        'Name + time'
       ),
       labeledCell(
         { matchUpId: '', isReserved: true, reservation: { tournamentName: 'Regional U16 Championships' } },
-        'Long name (ellipsis)',
+        'Long name (ellipsis)'
       ),
-      labeledCell({ matchUpId: '', isReserved: true }, 'Bare'),
+      labeledCell({ matchUpId: '', isReserved: true }, 'Bare')
     ];
     return gridLayout(
       cells,
-      'Reserved — court taken by another facility-sharing tournament (opaque, read-only; consumer wires no drag)',
+      'Reserved — court taken by another facility-sharing tournament (opaque, read-only; consumer wires no drag)'
     );
-  },
+  }
 };
 
 // ============================================================================

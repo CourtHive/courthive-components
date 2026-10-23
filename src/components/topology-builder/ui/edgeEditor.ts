@@ -116,11 +116,7 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
     return { items, relationships };
   }
 
-  function buildRRPositionCheckboxes(
-    edge: TopologyEdge,
-    source: any,
-    state: TopologyState
-  ): HTMLElement {
+  function buildRRPositionCheckboxes(edge: TopologyEdge, source: any, state: TopologyState): HTMLElement {
     const groupSize = source.structureOptions?.groupSize || 4;
     const currentPositions = new Set(edge.finishingPositions || []);
 

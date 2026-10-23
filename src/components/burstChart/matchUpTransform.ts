@@ -174,10 +174,7 @@ function buildPlayerInfoMap(
   return playerInfoMap;
 }
 
-function buildWinnerSets(
-  activeRounds: { key: string; data: any[] }[],
-  tournamentDraw: any
-): Map<string, Set<string>> {
+function buildWinnerSets(activeRounds: { key: string; data: any[] }[], tournamentDraw: any): Map<string, Set<string>> {
   const winnerSets: Map<string, Set<string>> = new Map();
   for (let i = 0; i < activeRounds.length; i++) {
     const nextRoundData = i + 1 < activeRounds.length ? activeRounds[i + 1].data : tournamentDraw['W'] || [];

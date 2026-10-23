@@ -82,7 +82,7 @@ const STAGE_LABEL: Record<string, string> = {
   PLAY_OFF: 'Playoff',
   Q_PLAYOFF: 'Qualifying Playoff',
   COMPASS: 'Compass',
-  VOLUNTARY_CONSOLATION: 'Voluntary Consolation',
+  VOLUNTARY_CONSOLATION: 'Voluntary Consolation'
 };
 
 const TIME_UNSCHEDULED = 'Unscheduled';
@@ -181,6 +181,6 @@ export function groupMatchUpCatalog(
         if (at !== undefined && bt === undefined) return -1;
         if (at === undefined && bt !== undefined) return 1;
         return a[0].localeCompare(b[0], undefined, { numeric: true });
-      }),
+      })
   );
 }

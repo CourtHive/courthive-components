@@ -83,7 +83,9 @@ export function renderIndividual(params: {
     TBD: configuration?.placeHolders?.tbd || TBD
   };
 
-  const participantName = (individualParticipant?.useOtherName && individualParticipant?.participantOtherName) || individualParticipant?.participantName;
+  const participantName =
+    (individualParticipant?.useOtherName && individualParticipant?.participantOtherName) ||
+    individualParticipant?.participantName;
 
   const handleOnClick = (pointerEvent) => {
     if (isFunction(eventHandlers?.participantClick)) {
@@ -159,7 +161,9 @@ export function renderIndividual(params: {
       persistMode); // Or persistInputFields mode is enabled
 
   if (shouldShowInput) {
-    name.appendChild(buildParticipantInputField(side, individualParticipant, matchUp, sideNumber, eventHandlers, composition));
+    name.appendChild(
+      buildParticipantInputField(side, individualParticipant, matchUp, sideNumber, eventHandlers, composition)
+    );
   } else if (participantName) {
     buildParticipantNameDisplay(name, participantName, isWinningSide, configuration, individualParticipant, side);
   } else {

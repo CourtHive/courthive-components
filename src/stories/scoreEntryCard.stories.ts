@@ -23,11 +23,10 @@ const { WALKOVER, CANCELLED, SUSPENDED } = matchUpStatusConstants;
 const { POLICY_TYPE_SCORING } = policyConstants;
 
 /** The real shipped vocabulary, never a hand-mirror of it. */
-const REAL_GROUPS = fixtures.policies.POLICY_SCORING_USTA[POLICY_TYPE_SCORING]
-  .matchUpStatusCodes as StatusCodeGroups;
+const REAL_GROUPS = fixtures.policies.POLICY_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
 
 export default {
-  title: 'Scoring/Score Entry Card',
+  title: 'Scoring/Score Entry Card'
 };
 
 const FORMAT = 'SET3-S:6/TB7';
@@ -51,7 +50,7 @@ const walkoverInjuryDisplay = () => {
 
 const SIDES: [{ participantName: string; seed?: string }, { participantName: string; seed?: string }] = [
   { participantName: 'Rosalind Lem', seed: '(4)' },
-  { participantName: 'Derrick Ellul', seed: '(1)' },
+  { participantName: 'Derrick Ellul', seed: '(1)' }
 ];
 
 /**
@@ -78,7 +77,7 @@ function cardWithSets(sets: any[] | undefined, over: Record<string, any> = {}): 
     sets,
     log: log.append,
     cardOver: over.cardOver,
-    openFormatPicker: over.openFormatPicker,
+    openFormatPicker: over.openFormatPicker
   });
 
   const stack = document.createElement('div');
@@ -89,12 +88,12 @@ function cardWithSets(sets: any[] | undefined, over: Record<string, any> = {}): 
 
 const PLAYED_OUT_SETS = [
   { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
-  { setNumber: 2, side1Score: 6, side2Score: 3, winningSide: 1 },
+  { setNumber: 2, side1Score: 6, side2Score: 3, winningSide: 1 }
 ];
 
 const PART_SCORE_SETS = [
   { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
-  { setNumber: 2, side1Score: 2, side2Score: 1 },
+  { setNumber: 2, side1Score: 2, side2Score: 1 }
 ];
 
 function frame(element: HTMLElement, width = 720): HTMLElement {
@@ -138,7 +137,7 @@ export const PlayedOut = {
     const chip = canvasElement.querySelector<HTMLButtonElement>('button[data-action="editFormat"]');
     await expect(chip).toBeTruthy();
     await expect(chip!.textContent).toBe(FORMAT);
-  },
+  }
 };
 
 export const Walkover = {
@@ -163,14 +162,14 @@ export const Walkover = {
     await expect(opener(1)!.closest('.chc-sec-participant')).toBeTruthy();
     await expect(opener(1)!.getAttribute('aria-label')).toBe('Rosalind Lem (4) — ended early');
     // No trailing track: `1fr` for the participant plus the score columns, and nothing after.
-    await expect(
-      canvasElement.querySelector<HTMLElement>(ROW_HEAD)!.style.gridTemplateColumns.endsWith('56px')
-    ).toBe(false);
+    await expect(canvasElement.querySelector<HTMLElement>(ROW_HEAD)!.style.gridTemplateColumns.endsWith('56px')).toBe(
+      false
+    );
 
     // Drive the design's actual flow: open the row's panel, choose the ending there.
     click(ENDED_EARLY_2);
     await expect(canvasElement.querySelector('[data-panel-side="2"]')?.textContent).toContain(
-      'What happened to Derrick Ellul?',
+      'What happened to Derrick Ellul?'
     );
 
     click(`[data-panel-side="2"] button[data-ending="${WALKOVER}"]`);
@@ -198,10 +197,12 @@ export const Walkover = {
     // The reason chips are the WALKOVER group's own. None of the parallel WITHDRAWN codes appear:
     // both groups carry Injury, Illness, Personal circumstance and Admin Error, so merging them would
     // show four pairs of identically-labelled chips.
-    const codes = [...canvasElement.querySelectorAll<HTMLElement>('button[data-reason]')].map((c) => c.dataset.reason ?? '');
+    const codes = [...canvasElement.querySelectorAll<HTMLElement>('button[data-reason]')].map(
+      (c) => c.dataset.reason ?? ''
+    );
     await expect(codes.length).toBeGreaterThan(0);
     await expect(codes.filter((code) => code.startsWith('WD.'))).toHaveLength(0);
-  },
+  }
 };
 
 export const ClearedPartScore = {
@@ -228,11 +229,9 @@ export const ClearedPartScore = {
     await expect(band!.textContent).toMatch(/cleared/i);
 
     // Other… carries the selection made inside it, so the row still shows exactly one.
-    await expect(
-      canvasElement.querySelector<HTMLElement>(OTHER)!.getAttribute('aria-pressed'),
-    ).toBe('true');
+    await expect(canvasElement.querySelector<HTMLElement>(OTHER)!.getAttribute('aria-pressed')).toBe('true');
     await expect(canvasElement.querySelectorAll('.chc-sec-endings > button[aria-pressed="true"]')).toHaveLength(1);
-  },
+  }
 };
 
 export const Tiebreak = {
@@ -275,7 +274,7 @@ export const Tiebreak = {
     await expect(markOn(1)?.textContent).toBe('');
     await expect(canvasElement.querySelector<HTMLElement>(BAND)!.textContent).toContain('7-6(3)');
     await expect(canvasElement.querySelector('input[data-side="1"][data-set="2"]')).toBeTruthy();
-  },
+  }
 };
 
 export const MatchTiebreak = {
@@ -285,8 +284,8 @@ export const MatchTiebreak = {
       cardWithSets(undefined, {
         approach: 'dialPad',
         matchUpFormat: MATCH_TIEBREAK_FORMAT,
-        context: 'Third-set tiebreak · Court 1',
-      }),
+        context: 'Third-set tiebreak · Court 1'
+      })
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     const press = (digit: number) =>
@@ -303,10 +302,8 @@ export const MatchTiebreak = {
 
     // No Tiebreak key here: the cells ARE the tiebreak, so it could only be a second place to type the
     // same number.
-    await expect(canvasElement.querySelector<HTMLButtonElement>('button[data-action="tiebreak"]')!.disabled).toBe(
-      true,
-    );
-  },
+    await expect(canvasElement.querySelector<HTMLButtonElement>('button[data-action="tiebreak"]')!.disabled).toBe(true);
+  }
 };
 
 /**
@@ -359,7 +356,7 @@ export const SubmitAndReopen = {
 
     // Submittable again as it stands, without the operator re-declaring anything.
     await expect(q<HTMLButtonElement>(SUBMIT)!.disabled).toBe(false);
-  },
+  }
 };
 
 /**
@@ -381,11 +378,11 @@ export const NineTimedBolts = {
           setNumber: index + 1,
           side1Score: 22,
           side2Score: 21,
-          winningSide: 1,
+          winningSide: 1
         })),
-        { matchUpFormat: 'SET9X-S:T10', context: 'Bolt format · Court 1' },
+        { matchUpFormat: 'SET9X-S:T10', context: 'Bolt format · Court 1' }
       ),
-      980,
+      980
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     const row = (side: number) => canvasElement.querySelector<HTMLElement>(`.chc-sec-row[data-side="${side}"]`)!;
@@ -403,5 +400,5 @@ export const NineTimedBolts = {
     // The name track is gone — the columns have the whole width.
     await expect(row(1).style.gridTemplateColumns.startsWith('1fr')).toBe(false);
     await expect(canvasElement.querySelector(ROW_HEAD)!.textContent).not.toContain('PLAYER');
-  },
+  }
 };

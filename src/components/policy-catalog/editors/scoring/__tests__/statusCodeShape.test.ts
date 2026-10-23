@@ -25,7 +25,7 @@ function makeStore(initialPolicy: ScoringPolicyData) {
     initialPolicy,
     onChange: (next: ScoringPolicyData) => {
       latest = next;
-    },
+    }
   });
   return { store, saved: () => latest };
 }

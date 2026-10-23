@@ -91,9 +91,7 @@ describe('SchedulePageStore', () => {
     });
 
     it('falls back to defaults for fields omitted in initialCatalogState', () => {
-      const store = new SchedulePageStore(
-        makeConfig({ initialCatalogState: { catalogSearchQuery: 'bob' } })
-      );
+      const store = new SchedulePageStore(makeConfig({ initialCatalogState: { catalogSearchQuery: 'bob' } }));
       const state = store.getState();
       expect(state.catalogSearchQuery).toBe('bob');
       expect(state.catalogGroupBy).toBe('event');
@@ -141,7 +139,7 @@ describe('SchedulePageStore', () => {
       const dates: ScheduleDate[] = [
         { date: DATE_DAY1, isActive: false },
         { date: DATE_DAY2, isActive: false },
-        { date: DAY3, isActive: true },
+        { date: DAY3, isActive: true }
       ];
       const store = new SchedulePageStore(makeConfig({ scheduleDates: dates }));
       expect(store.getState().selectedDate).toBe(DAY3);
@@ -150,7 +148,7 @@ describe('SchedulePageStore', () => {
     it('falls back to the first date only when the consumer flags none', () => {
       const dates: ScheduleDate[] = [
         { date: DATE_DAY1, isActive: false },
-        { date: DATE_DAY2, isActive: false },
+        { date: DATE_DAY2, isActive: false }
       ];
       const store = new SchedulePageStore(makeConfig({ scheduleDates: dates }));
       expect(store.getState().selectedDate).toBe(DATE_DAY1);
@@ -158,11 +156,16 @@ describe('SchedulePageStore', () => {
 
     it('follows the active flag onto a new day when the consumer pushes dates', () => {
       const store = new SchedulePageStore(
-        makeConfig({ scheduleDates: [{ date: DATE_DAY1, isActive: true }, { date: DAY3, isActive: false }] }),
+        makeConfig({
+          scheduleDates: [
+            { date: DATE_DAY1, isActive: true },
+            { date: DAY3, isActive: false }
+          ]
+        })
       );
       store.setScheduleDates([
         { date: DATE_DAY1, isActive: false },
-        { date: DAY3, isActive: true },
+        { date: DAY3, isActive: true }
       ]);
       expect(store.getState().selectedDate).toBe(DAY3);
     });
@@ -170,14 +173,14 @@ describe('SchedulePageStore', () => {
     it('does NOT yank back a user selection when the consumer re-pushes the same active day', () => {
       const dates: ScheduleDate[] = [
         { date: DATE_DAY1, isActive: true },
-        { date: DAY3, isActive: false },
+        { date: DAY3, isActive: false }
       ];
       const store = new SchedulePageStore(makeConfig({ scheduleDates: dates }));
       store.selectDate(DAY3);
       // A refresh: same day still active, only the counts changed.
       store.setScheduleDates([
         { date: DATE_DAY1, isActive: true, matchUpCount: 4 },
-        { date: DAY3, isActive: false, matchUpCount: 9 },
+        { date: DAY3, isActive: false, matchUpCount: 9 }
       ]);
       expect(store.getState().selectedDate).toBe(DAY3);
     });

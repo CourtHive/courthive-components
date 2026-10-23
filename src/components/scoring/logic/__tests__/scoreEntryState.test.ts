@@ -25,13 +25,9 @@ import {
   chooseSideEnding,
   chooseReasonCode,
   sideEndingOptions,
-  reasonCodeStatus,
+  reasonCodeStatus
 } from '../scoreEntryState';
-import {
-  WINNER_REQUIRING_STATUSES,
-  NON_DIRECTING_ENDINGS,
-  SELECTABLE_ENDINGS,
-} from '../irregularEnding';
+import { WINNER_REQUIRING_STATUSES, NON_DIRECTING_ENDINGS, SELECTABLE_ENDINGS } from '../irregularEnding';
 
 import type { ScoreEntryState } from '../scoreEntryState';
 
@@ -47,7 +43,7 @@ const {
   SUSPENDED,
   DEAD_RUBBER,
   IN_PROGRESS,
-  AWAITING_RESULT,
+  AWAITING_RESULT
 } = matchUpStatusConstants;
 
 describe('the empty card', () => {
@@ -113,7 +109,7 @@ describe('a side ending names the side it happened to, and the winner is the oth
 describe('"did not appear either" turns a side ending into a double exit', () => {
   it.each([
     [WALKOVER, DOUBLE_WALKOVER],
-    [DEFAULTED, DOUBLE_DEFAULT],
+    [DEFAULTED, DOUBLE_DEFAULT]
   ])('%s becomes %s and advances nobody', (ending, expected) => {
     const state = toggleBothSidesOut(chooseSideEnding(emptyScoreEntryState, 1, ending));
     const resolution = resolveScoreEntry(state);
@@ -172,7 +168,7 @@ describe('a match-level ending resolves nobody and needs no second answer', () =
       ABANDONED,
       CANCELLED,
       INCOMPLETE,
-      DEAD_RUBBER,
+      DEAD_RUBBER
     ]);
   });
 
@@ -183,7 +179,7 @@ describe('a match-level ending resolves nobody and needs no second answer', () =
 
     expect(side.filter((s) => match.includes(s))).toEqual([]);
     expect([...side, ...match].toSorted((a, b) => a.localeCompare(b, 'en'))).toEqual(
-      [...SELECTABLE_ENDINGS].toSorted((a, b) => a.localeCompare(b, 'en')),
+      [...SELECTABLE_ENDINGS].toSorted((a, b) => a.localeCompare(b, 'en'))
     );
     expect(side.every((s) => WINNER_REQUIRING_STATUSES.has(s))).toBe(true);
     expect(match.every((s) => NON_DIRECTING_ENDINGS.has(s))).toBe(true);
@@ -214,7 +210,7 @@ describe('the two ending groups are mutually exclusive', () => {
       chooseSideEnding(emptyScoreEntryState, 1, WALKOVER),
       chooseMatchEnding(emptyScoreEntryState, CANCELLED),
       chooseMatchEnding(chooseSideEnding(emptyScoreEntryState, 1, WALKOVER), CANCELLED),
-      chooseSideEnding(chooseMatchEnding(emptyScoreEntryState, CANCELLED), 1, WALKOVER),
+      chooseSideEnding(chooseMatchEnding(emptyScoreEntryState, CANCELLED), 1, WALKOVER)
     ];
 
     for (const state of states) {
@@ -310,7 +306,7 @@ describe('which endings discard a typed score', () => {
     '%s keeps it — the partial score is the content of the result',
     (status) => {
       expect(resolveScoreEntry(chooseMatchEnding(emptyScoreEntryState, status)).clearsScore).toBe(false);
-    },
+    }
   );
 
   it('a double walkover clears the score, like the walkover it came from', () => {
@@ -348,9 +344,13 @@ describe('no transition mutates the state it was given', () => {
     ['chooseSideEnding', (s: ScoreEntryState) => chooseSideEnding(s, 2, RETIRED)],
     ['chooseMatchEnding', (s: ScoreEntryState) => chooseMatchEnding(s, CANCELLED)],
     ['toggleBothSidesOut', (s: ScoreEntryState) => toggleBothSidesOut(s)],
-    ['chooseReasonCode', (s: ScoreEntryState) => chooseReasonCode(s, 'W1')],
+    ['chooseReasonCode', (s: ScoreEntryState) => chooseReasonCode(s, 'W1')]
   ])('%s leaves the input untouched', (_label, transition) => {
-    const before: ScoreEntryState = { sideEnding: { sideNumber: 1, status: WALKOVER }, bothSidesOut: true, reasonCode: 'W1' };
+    const before: ScoreEntryState = {
+      sideEnding: { sideNumber: 1, status: WALKOVER },
+      bothSidesOut: true,
+      reasonCode: 'W1'
+    };
     // `structuredClone`, not a JSON round-trip: this state carries `undefined` values deliberately
     // (unanswered is not the same as absent), and JSON would drop them — weakening the very
     // comparison this test exists to make. The repo's lint rule says so and is right.
@@ -377,12 +377,12 @@ describe('hydrateScoreEntryState', () => {
     // `winningSide: 1` means side 2 walked over.
     expect(hydrateScoreEntryState({ matchUpStatus: WALKOVER, winningSide: 1 })).toEqual({
       sideEnding: { sideNumber: 2, status: WALKOVER },
-      reasonCode: undefined,
+      reasonCode: undefined
     });
 
     expect(hydrateScoreEntryState({ matchUpStatus: RETIRED, winningSide: 2 })).toEqual({
       sideEnding: { sideNumber: 1, status: RETIRED },
-      reasonCode: undefined,
+      reasonCode: undefined
     });
   });
 
@@ -414,20 +414,18 @@ describe('hydrateScoreEntryState', () => {
     // There is no side to attach it to, which is what the match-level slot is for.
     expect(hydrateScoreEntryState({ matchUpStatus: SUSPENDED })).toEqual({
       matchEnding: SUSPENDED,
-      reasonCode: undefined,
+      reasonCode: undefined
     });
   });
 
   it('carries the reason code, read from the side that owns it', () => {
     expect(
-      hydrateScoreEntryState({ matchUpStatus: WALKOVER, winningSide: 1, sideStatusCodes: { 2: 'W1' } })
-        .reasonCode,
+      hydrateScoreEntryState({ matchUpStatus: WALKOVER, winningSide: 1, sideStatusCodes: { 2: 'W1' } }).reasonCode
     ).toBe('W1');
 
     // The positional fallback, for records written before `sideStatusCodes` existed.
     expect(
-      hydrateScoreEntryState({ matchUpStatus: WALKOVER, winningSide: 1, matchUpStatusCodes: ['W1'] })
-        .reasonCode,
+      hydrateScoreEntryState({ matchUpStatus: WALKOVER, winningSide: 1, matchUpStatusCodes: ['W1'] }).reasonCode
     ).toBe('W1');
   });
 

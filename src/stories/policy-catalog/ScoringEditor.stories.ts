@@ -14,8 +14,8 @@ import { fixtures, policyConstants } from 'tods-competition-factory';
 export default {
   title: 'Policy Catalog/Scoring Editor',
   parameters: {
-    layout: 'padded',
-  },
+    layout: 'padded'
+  }
 };
 
 // ── Fixtures ───────────────────────────────────────────────────────────────
@@ -29,7 +29,7 @@ const SCORING_POLICY_DEFAULT: ScoringPolicyData = {
   allowChangePropagation: false,
   allowDeletionWithScoresPresent: {
     drawDefinitions: false,
-    structures: false,
+    structures: false
   },
   matchUpStatusCodes: {
     ABANDONED: [],
@@ -37,9 +37,9 @@ const SCORING_POLICY_DEFAULT: ScoringPolicyData = {
     DEFAULTED: [],
     INCOMPLETE: [],
     RETIRED: [],
-    WALKOVER: [],
+    WALKOVER: []
   },
-  processCodes: { incompleteAssignmentsOnDefault: ['RANKING.IGNORE'] },
+  processCodes: { incompleteAssignmentsOnDefault: ['RANKING.IGNORE'] }
 };
 
 // A more opinionated policy — Grand Slam doubles + explicit no-ad
@@ -61,7 +61,7 @@ const SCORING_POLICY_TOURNAMENT: ScoringPolicyData = {
   allowChangePropagation: true,
   allowDeletionWithScoresPresent: {
     drawDefinitions: false,
-    structures: true,
+    structures: true
   },
   // Taken FROM the shipped fixture, not hand-written.
   //
@@ -70,14 +70,14 @@ const SCORING_POLICY_TOURNAMENT: ScoringPolicyData = {
   // `[]`, so the mirror could pick any shape at all without contradicting its source, and it picked
   // strings. That is how the editor and the factory drifted apart while both looked correct; the
   // mirror was the defect generator, not the shape choice. Sourcing it removes the class.
-  matchUpStatusCodes: REAL_STATUS_CODES,
+  matchUpStatusCodes: REAL_STATUS_CODES
 };
 
 // Brand-new empty policy (used by "use as template" / "new policy"
 // flows). Default format only, no restrictions, no refinements.
 const SCORING_POLICY_EMPTY: ScoringPolicyData = {
   policyName: '',
-  defaultMatchUpFormat: 'SET3-S:6/TB7',
+  defaultMatchUpFormat: 'SET3-S:6/TB7'
 };
 
 // ── Helpers (style-cloned from SeedingEditor.stories) ──────────────────────
@@ -165,7 +165,7 @@ export const DefaultPolicy = {
     grid.appendChild(content);
     grid.appendChild(panelEl);
     return grid;
-  },
+  }
 };
 
 export const TournamentPolicy = {
@@ -189,7 +189,7 @@ export const TournamentPolicy = {
     grid.appendChild(content);
     grid.appendChild(panelEl);
     return grid;
-  },
+  }
 };
 
 export const ReadOnlyDefault = {
@@ -207,16 +207,13 @@ export const ReadOnlyDefault = {
     const editorContainer = document.createElement('div');
     content.appendChild(editorContainer);
 
-    const control = createScoringEditor(
-      { initialPolicy: SCORING_POLICY_DEFAULT, readonly: true },
-      editorContainer,
-    );
+    const control = createScoringEditor({ initialPolicy: SCORING_POLICY_DEFAULT, readonly: true }, editorContainer);
     const { element: panelEl } = createExportPanel(control);
 
     grid.appendChild(content);
     grid.appendChild(panelEl);
     return grid;
-  },
+  }
 };
 
 export const EmptyPolicy = {
@@ -240,7 +237,7 @@ export const EmptyPolicy = {
     grid.appendChild(content);
     grid.appendChild(panelEl);
     return grid;
-  },
+  }
 };
 
 // Regression coverage for two failure modes that escaped the original
@@ -290,9 +287,9 @@ export const ReMountStress = {
         control = createScoringEditor(
           {
             initialPolicy: SCORING_POLICY_TOURNAMENT,
-            onChange: () => logMsg?.('onChange fired'),
+            onChange: () => logMsg?.('onChange fired')
           },
-          editorContainer,
+          editorContainer
         );
         errorBanner.style.display = 'none';
       } catch (err) {
@@ -334,9 +331,7 @@ export const ReMountStress = {
       return btn;
     }
 
-    panelEl.appendChild(
-      safeAction('setData(SAME — TOURNAMENT)', () => control?.setData(SCORING_POLICY_TOURNAMENT)),
-    );
+    panelEl.appendChild(safeAction('setData(SAME — TOURNAMENT)', () => control?.setData(SCORING_POLICY_TOURNAMENT)));
     panelEl.appendChild(safeAction('setData(DEFAULT)', () => control?.setData(SCORING_POLICY_DEFAULT)));
     panelEl.appendChild(safeAction('setData(EMPTY)', () => control?.setData(SCORING_POLICY_EMPTY)));
     panelEl.appendChild(
@@ -344,14 +339,14 @@ export const ReMountStress = {
         control?.destroy();
         editorContainer.innerHTML = '';
         mount();
-      }),
+      })
     );
     panelEl.appendChild(logEl);
 
     grid.appendChild(content);
     grid.appendChild(panelEl);
     return grid;
-  },
+  }
 };
 
 export const WithOnChange = {
@@ -362,7 +357,8 @@ export const WithOnChange = {
     const content = document.createElement('div');
     const info = document.createElement('div');
     info.style.cssText = INFO_STYLE;
-    info.textContent = 'onChange fires on every edit. Watch the right-side log as you change the format, toggle the checkboxes, or add status codes.';
+    info.textContent =
+      'onChange fires on every edit. Watch the right-side log as you change the format, toggle the checkboxes, or add status codes.';
     content.appendChild(info);
 
     const editorContainer = document.createElement('div');
@@ -379,12 +375,12 @@ export const WithOnChange = {
           const summary = [
             `fmt: ${policy.defaultMatchUpFormat ?? '—'}`,
             `allowed: ${policy.matchUpFormats?.length ?? 0}`,
-            `reqAll: ${policy.requireAllPositionsAssigned ?? 'default'}`,
+            `reqAll: ${policy.requireAllPositionsAssigned ?? 'default'}`
           ].join(', ');
           logMsg?.(`#${changeCount} onChange: ${summary}`);
-        },
+        }
       },
-      editorContainer,
+      editorContainer
     );
 
     const { element: panelEl, log } = createExportPanel(control);
@@ -393,5 +389,5 @@ export const WithOnChange = {
     grid.appendChild(content);
     grid.appendChild(panelEl);
     return grid;
-  },
+  }
 };

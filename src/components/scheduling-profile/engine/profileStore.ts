@@ -262,7 +262,7 @@ export class ProfileStore {
     const results = validateProfile({
       profile: this.state.profileDraft,
       availability: this.config.availabilityAdapter,
-        demand: this.config.demandAdapter,
+      demand: this.config.demandAdapter,
       dependencies: this.config.dependencyAdapter,
       venueOrder: this.config.venueOrder
     });

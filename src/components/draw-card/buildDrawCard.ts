@@ -21,13 +21,7 @@ import {
   dcTitleStyle,
   dcVizZoneStyle
 } from './styles';
-import {
-  DrawCardCallbacks,
-  DrawCardConfig,
-  DrawCardCornerField,
-  DrawCardData,
-  DrawCardField
-} from './types';
+import { DrawCardCallbacks, DrawCardConfig, DrawCardCornerField, DrawCardData, DrawCardField } from './types';
 
 export function buildDrawCard(
   data: DrawCardData,

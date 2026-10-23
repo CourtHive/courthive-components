@@ -26,7 +26,7 @@ describe('burstChart — no round data', () => {
 
   it('burstChart().render() no-ops for a draw with no rounds instead of throwing', () => {
     expect(() =>
-      burstChart({ width: 240, height: 240 }).render(container, { drawSize: 0, roundMatchUps: {} } as any, ''),
+      burstChart({ width: 240, height: 240 }).render(container, { drawSize: 0, roundMatchUps: {} } as any, '')
     ).not.toThrow();
   });
 });

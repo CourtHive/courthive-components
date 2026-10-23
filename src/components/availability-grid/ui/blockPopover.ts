@@ -278,7 +278,7 @@ export function createBlockPopoverManager(): BlockPopoverManager {
           venueId: block.court.venueId,
           date: day,
           startTime: extractHM(block.start),
-          endTime: extractHM(block.end),
+          endTime: extractHM(block.end)
         });
       });
       wrap.appendChild(manageBtn);

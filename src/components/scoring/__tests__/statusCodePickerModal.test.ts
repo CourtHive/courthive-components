@@ -34,8 +34,8 @@ function makeMatchUp(): any {
     matchUpStatus: 'TO_BE_PLAYED',
     sides: [
       { sideNumber: 1, participant: { participantName: 'Alice' } },
-      { sideNumber: 2, participant: { participantName: 'Bob' } },
-    ],
+      { sideNumber: 2, participant: { participantName: 'Bob' } }
+    ]
   };
 }
 
@@ -76,7 +76,7 @@ function open(groups?: StatusCodeGroups) {
     chooseCode,
     submit,
     optionValues: () => [...(select()?.options ?? [])].map((o) => o.value),
-    optionLabels: () => [...(select()?.options ?? [])].map((o) => o.textContent),
+    optionLabels: () => [...(select()?.options ?? [])].map((o) => o.textContent)
   };
 }
 

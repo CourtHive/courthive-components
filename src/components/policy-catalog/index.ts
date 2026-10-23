@@ -88,14 +88,14 @@ export {
   MATCH_UP_FORMAT_REGISTRY_SORTED,
   lookupRegistryFormat,
   emptyScoringPolicy,
-  FORMAT_STANDARD,
+  FORMAT_STANDARD
 } from './editors/scoring';
 export type {
   ScoringPolicyData,
   ScoringEditorConfig,
   MatchUpStatusKey,
   MatchUpFormatEntry,
-  AllowedFormatEntry,
+  AllowedFormatEntry
 } from './editors/scoring';
 
 // ============================================================================
@@ -108,7 +108,7 @@ export {
   PrivacyEditorStore,
   buildPrivacyEditorPanel,
   emptyPrivacyPolicy,
-  privacyFields,
+  privacyFields
 } from './editors/privacy';
 export type { PrivacyPolicyData, PrivacyEditorConfig, PrivacyFieldMeta } from './editors/privacy';
 

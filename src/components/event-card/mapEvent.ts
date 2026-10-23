@@ -126,9 +126,7 @@ function hasDraftState(draw: any): boolean {
 }
 
 function hasSeedsOnlyDraw(drawDefinitions: any[]): boolean {
-  return drawDefinitions.some(
-    (d) => d?.automated?.seedsOnly === true || hasDraftState(d)
-  );
+  return drawDefinitions.some((d) => d?.automated?.seedsOnly === true || hasDraftState(d));
 }
 
 function allDrawsCancelled(drawDefinitions: any[]): boolean {
@@ -185,8 +183,7 @@ export function mapEventToCardData(event: any, options?: MapEventOptions): Event
   const entries: any[] = Array.isArray(event?.entries) ? event.entries : [];
   const resources = Array.isArray(event?.onlineResources) ? event.onlineResources : undefined;
 
-  const matchUpCounts =
-    options?.matchUpStats ?? (options?.lightMode ? undefined : countEventMatchUps(event));
+  const matchUpCounts = options?.matchUpStats ?? (options?.lightMode ? undefined : countEventMatchUps(event));
 
   const status =
     options?.statusOverride !== undefined
@@ -222,8 +219,7 @@ export function mapEventToCardData(event: any, options?: MapEventOptions): Event
     status,
     eventImageURL: event?.eventImageURL ?? extractImageURL(resources, EVENT_IMAGE_RESOURCE_NAME),
     courtSvgSport: (event?.courtSvgSport ?? extractCourtSvgSport(resources) ?? options?.sport) as
-      | CourtSport
-      | undefined,
+      CourtSport | undefined,
     updatedAt: event?.updatedAt
   };
 }

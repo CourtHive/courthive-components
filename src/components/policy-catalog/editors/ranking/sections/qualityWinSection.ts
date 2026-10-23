@@ -70,23 +70,29 @@ export function buildQualityWinSection(store: RankingPointsEditorStore): {
     } else {
       const fromCell = document.createElement('td');
       fromCell.style.cssText = CELL_ALIGN_STYLE;
-      fromCell.appendChild(makeNumInput(range.rankRange[0], (val) => {
-        store.setQualityWinRange(qi, ri, 'rankRange', [val, range.rankRange[1]]);
-      }));
+      fromCell.appendChild(
+        makeNumInput(range.rankRange[0], (val) => {
+          store.setQualityWinRange(qi, ri, 'rankRange', [val, range.rankRange[1]]);
+        })
+      );
       row.appendChild(fromCell);
 
       const toCell = document.createElement('td');
       toCell.style.cssText = CELL_ALIGN_STYLE;
-      toCell.appendChild(makeNumInput(range.rankRange[1], (val) => {
-        store.setQualityWinRange(qi, ri, 'rankRange', [range.rankRange[0], val]);
-      }));
+      toCell.appendChild(
+        makeNumInput(range.rankRange[1], (val) => {
+          store.setQualityWinRange(qi, ri, 'rankRange', [range.rankRange[0], val]);
+        })
+      );
       row.appendChild(toCell);
 
       const valCell = document.createElement('td');
       valCell.style.cssText = CELL_ALIGN_STYLE;
-      valCell.appendChild(makeNumInput(range.value, (val) => {
-        store.setQualityWinRange(qi, ri, 'value', val);
-      }));
+      valCell.appendChild(
+        makeNumInput(range.value, (val) => {
+          store.setQualityWinRange(qi, ri, 'value', val);
+        })
+      );
       row.appendChild(valCell);
 
       const actCell = document.createElement('td');

@@ -17,7 +17,7 @@ describe('mergeFederationIds', () => {
   it('merges consumer config with the entered id', () => {
     expect(mergeFederationIds(BOBOCA, [{ provider: 'USTA', externalId: 'Y' }])).toEqual([
       { provider: 'USTA', externalId: 'Y' },
-      BOBOCA,
+      BOBOCA
     ]);
   });
 

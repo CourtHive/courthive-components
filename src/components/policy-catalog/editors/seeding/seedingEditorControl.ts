@@ -77,10 +77,7 @@ export class SeedingEditorControl {
   }
 }
 
-export function createSeedingEditor(
-  config: SeedingEditorConfig,
-  container: HTMLElement
-): SeedingEditorControl {
+export function createSeedingEditor(config: SeedingEditorConfig, container: HTMLElement): SeedingEditorControl {
   const control = new SeedingEditorControl(config);
   control.render(container);
   return control;

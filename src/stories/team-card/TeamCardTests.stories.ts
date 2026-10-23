@@ -34,10 +34,7 @@ const TEAM_NAME_ALTITUDE = 'Altitude';
 
 // ── Helpers ──
 
-function renderCard(
-  data: TeamCardData,
-  callbacks?: Parameters<typeof buildTeamCard>[1]
-): HTMLElement {
+function renderCard(data: TeamCardData, callbacks?: Parameters<typeof buildTeamCard>[1]): HTMLElement {
   const wrap = document.createElement('div');
   wrap.style.cssText = 'padding: 24px; background: var(--chc-bg, #1a1a1a); max-width: 360px;';
   wrap.appendChild(buildTeamCard(data, callbacks));

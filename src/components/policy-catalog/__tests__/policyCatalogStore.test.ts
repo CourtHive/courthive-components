@@ -262,9 +262,7 @@ describe('PolicyCatalogStore', () => {
       store.updateEditorDraft({ averageTimes: 75 });
       store.savePolicy();
 
-      expect(onSaved).toHaveBeenCalledWith(
-        expect.objectContaining({ id: 'srv-final-id', name: 'USTA L7 Scheduling' })
-      );
+      expect(onSaved).toHaveBeenCalledWith(expect.objectContaining({ id: 'srv-final-id', name: 'USTA L7 Scheduling' }));
     });
   });
 

@@ -33,9 +33,7 @@ describe('mapEventToCardData', () => {
       eventId: 'e1',
       drawDefinitions: [
         {
-          structures: [
-            { matchUps: [{ winningSide: 1 }, { winningSide: 0, schedule: { scheduledTime: '12:00' } }] }
-          ]
+          structures: [{ matchUps: [{ winningSide: 1 }, { winningSide: 0, schedule: { scheduledTime: '12:00' } }] }]
         }
       ]
     };
@@ -213,9 +211,7 @@ describe('mapEventToCardData', () => {
       eventId: 'e1',
       startDate: '2026-05-15',
       endDate: '2026-05-20',
-      drawDefinitions: [
-        { structures: [{ matchUps: [{ matchUpStatus: 'IN_PROGRESS' }] }] }
-      ]
+      drawDefinitions: [{ structures: [{ matchUps: [{ matchUpStatus: 'IN_PROGRESS' }] }] }]
     };
     const out = mapEventToCardData(event, { now: NOW });
     expect(out.status?.kind).toBe('live');
@@ -226,9 +222,7 @@ describe('mapEventToCardData', () => {
       eventId: 'e1',
       startDate: '2026-06-01',
       endDate: '2026-06-03',
-      drawDefinitions: [
-        { extensions: [{ name: 'DRAFT_STATE', value: { status: 'COLLECTING_PREFERENCES' } }] }
-      ]
+      drawDefinitions: [{ extensions: [{ name: 'DRAFT_STATE', value: { status: 'COLLECTING_PREFERENCES' } }] }]
     };
     const out = mapEventToCardData(event, { now: NOW });
     expect(out.status?.kind).toBe('drawing');
@@ -256,9 +250,7 @@ describe('mapEventToCardData', () => {
   it('resolves Completed when all matchUps won', () => {
     const event = {
       eventId: 'e1',
-      drawDefinitions: [
-        { structures: [{ matchUps: [{ winningSide: 1 }, { winningSide: 2 }] }] }
-      ]
+      drawDefinitions: [{ structures: [{ matchUps: [{ winningSide: 1 }, { winningSide: 2 }] }] }]
     };
     const out = mapEventToCardData(event, { now: NOW });
     expect(out.status?.kind).toBe('completed');

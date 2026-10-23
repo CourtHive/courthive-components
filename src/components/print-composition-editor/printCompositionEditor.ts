@@ -23,7 +23,7 @@ import type {
   HeaderLayout,
   FooterLayout,
   PageSize,
-  PageOrientation,
+  PageOrientation
 } from './printCompositionEditorTypes';
 
 const HEADER_LAYOUTS: HeaderLayout[] = ['grand-slam', 'itf', 'minimal', 'none'];
@@ -35,16 +35,16 @@ const DEFAULT_CONFIG: PrintCompositionConfig = {
   page: {
     pageSize: 'a4',
     orientation: 'auto',
-    margins: { top: 15, right: 10, bottom: 15, left: 10 },
+    margins: { top: 15, right: 10, bottom: 15, left: 10 }
   },
   header: { layout: 'itf', tournamentName: '' },
   footer: { layout: 'standard', showTimestamp: true, showPageNumbers: true },
-  content: {},
+  content: {}
 };
 
 export function createPrintCompositionEditor(
   container: HTMLElement,
-  config: PrintCompositionEditorConfig,
+  config: PrintCompositionEditorConfig
 ): PrintCompositionEditorHandle {
   const state: PrintCompositionConfig = mergeConfig(DEFAULT_CONFIG, config.config ?? {});
   const readOnly = !!config.readOnly;
@@ -103,29 +103,25 @@ export function createPrintCompositionEditor(
     setConfig: (next: PrintCompositionConfig) => {
       Object.assign(state, mergeConfig(DEFAULT_CONFIG, next));
       rerender();
-    },
+    }
   };
 }
 
 // ── Sections ──────────────────────────────────────────────────────────────────
 
-function buildPageSection(
-  state: PrintCompositionConfig,
-  readOnly: boolean,
-  onChange: () => void,
-): HTMLElement {
+function buildPageSection(state: PrintCompositionConfig, readOnly: boolean, onChange: () => void): HTMLElement {
   const { section, body } = makeSection('Page');
   body.appendChild(
     selectField('Size', PAGE_SIZES, state.page?.pageSize ?? 'a4', readOnly, (v) => {
       ensureBlock(state, 'page').pageSize = v as PageSize;
       onChange();
-    }),
+    })
   );
   body.appendChild(
     selectField('Orientation', PAGE_ORIENTATIONS, state.page?.orientation ?? 'auto', readOnly, (v) => {
       ensureBlock(state, 'page').orientation = v as PageOrientation;
       onChange();
-    }),
+    })
   );
   // Margins compressed into one row of 4 inputs
   const marginsField = el('div', 'pce-field pce-field-full');
@@ -140,7 +136,7 @@ function buildPageSection(
         const margins = ensureBlock(ensureBlock(state, 'page'), 'margins') as Record<string, number>;
         margins[side] = n;
         onChange();
-      }),
+      })
     );
   });
   marginsField.appendChild(row);
@@ -148,56 +144,48 @@ function buildPageSection(
   return section;
 }
 
-function buildHeaderSection(
-  state: PrintCompositionConfig,
-  readOnly: boolean,
-  onChange: () => void,
-): HTMLElement {
+function buildHeaderSection(state: PrintCompositionConfig, readOnly: boolean, onChange: () => void): HTMLElement {
   const { section, body } = makeSection('Header');
   body.appendChild(
     selectField('Layout', HEADER_LAYOUTS, state.header?.layout ?? 'itf', readOnly, (v) => {
       ensureBlock(state, 'header').layout = v as HeaderLayout;
       onChange();
-    }),
+    })
   );
   body.appendChild(
     textField('Tournament name', state.header?.tournamentName ?? '', readOnly, (v) => {
       ensureBlock(state, 'header').tournamentName = v;
       onChange();
-    }),
+    })
   );
   body.appendChild(
     textField('Subtitle', state.header?.subtitle ?? '', readOnly, (v) => {
       ensureBlock(state, 'header').subtitle = v || undefined;
       onChange();
-    }),
+    })
   );
   return section;
 }
 
-function buildFooterSection(
-  state: PrintCompositionConfig,
-  readOnly: boolean,
-  onChange: () => void,
-): HTMLElement {
+function buildFooterSection(state: PrintCompositionConfig, readOnly: boolean, onChange: () => void): HTMLElement {
   const { section, body } = makeSection('Footer');
   body.appendChild(
     selectField('Layout', FOOTER_LAYOUTS, state.footer?.layout ?? 'standard', readOnly, (v) => {
       ensureBlock(state, 'footer').layout = v as FooterLayout;
       onChange();
-    }),
+    })
   );
   body.appendChild(
     checkboxField('Show timestamp', state.footer?.showTimestamp ?? true, readOnly, (v) => {
       ensureBlock(state, 'footer').showTimestamp = v;
       onChange();
-    }),
+    })
   );
   body.appendChild(
     checkboxField('Show page numbers', state.footer?.showPageNumbers ?? true, readOnly, (v) => {
       ensureBlock(state, 'footer').showPageNumbers = v;
       onChange();
-    }),
+    })
   );
   return section;
 }
@@ -206,7 +194,7 @@ function buildContentSection(
   state: PrintCompositionConfig,
   readOnly: boolean,
   printType: PrintType,
-  onChange: () => void,
+  onChange: () => void
 ): HTMLElement {
   const { section, body } = makeSection(`Content — ${printType}`);
   if (printType === 'draw') {
@@ -215,25 +203,25 @@ function buildContentSection(
       checkboxField('Include seedings', !!draw.includeSeedings, readOnly, (v) => {
         draw.includeSeedings = v;
         onChange();
-      }),
+      })
     );
     body.appendChild(
       checkboxField('Include scores', !!draw.includeScores, readOnly, (v) => {
         draw.includeScores = v;
         onChange();
-      }),
+      })
     );
     body.appendChild(
       checkboxField('Show byes', !!draw.showByes, readOnly, (v) => {
         draw.showByes = v;
         onChange();
-      }),
+      })
     );
     body.appendChild(
       checkboxField('Show draw positions', !!draw.showDrawPositions, readOnly, (v) => {
         draw.showDrawPositions = v;
         onChange();
-      }),
+      })
     );
   } else if (printType === 'schedule') {
     const sched = ensureBlock(ensureBlock(state, 'content'), 'schedule') as Record<string, any>;
@@ -241,19 +229,19 @@ function buildContentSection(
       selectField('Cell style', ['detailed', 'compact'], sched.cellStyle ?? 'detailed', readOnly, (v) => {
         sched.cellStyle = v;
         onChange();
-      }),
+      })
     );
     body.appendChild(
       checkboxField('Show match numbers', !!sched.showMatchNumbers, readOnly, (v) => {
         sched.showMatchNumbers = v;
         onChange();
-      }),
+      })
     );
     body.appendChild(
       textField('Alert banner', sched.alertBanner ?? '', readOnly, (v) => {
         sched.alertBanner = v || undefined;
         onChange();
-      }),
+      })
     );
   } else {
     const placeholder = el('div', 'pce-field pce-field-full');
@@ -282,7 +270,7 @@ function selectField(
   options: readonly string[],
   value: string,
   disabled: boolean,
-  onChange: (v: string) => void,
+  onChange: (v: string) => void
 ): HTMLElement {
   const wrap = el('div', 'pce-field');
   wrap.appendChild(labelEl(label));
@@ -327,12 +315,7 @@ function numberField(label: string, value: number, disabled: boolean, onChange: 
   return wrap;
 }
 
-function checkboxField(
-  label: string,
-  value: boolean,
-  disabled: boolean,
-  onChange: (v: boolean) => void,
-): HTMLElement {
+function checkboxField(label: string, value: boolean, disabled: boolean, onChange: (v: boolean) => void): HTMLElement {
   const wrap = el('div', 'pce-field pce-checkbox-row pce-field-full');
   const input = el('input') as HTMLInputElement;
   input.type = 'checkbox';
@@ -384,7 +367,7 @@ function mergeConfig(base: PrintCompositionConfig, overlay: PrintCompositionConf
     page: { ...base.page, ...overlay.page, margins: { ...base.page?.margins, ...overlay.page?.margins } },
     header: { ...base.header, ...overlay.header },
     footer: { ...base.footer, ...overlay.footer },
-    content: { ...base.content, ...overlay.content },
+    content: { ...base.content, ...overlay.content }
   };
 }
 

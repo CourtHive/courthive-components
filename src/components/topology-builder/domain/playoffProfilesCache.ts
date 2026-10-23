@@ -41,7 +41,7 @@ export function getPlayoffProfiles(structureType: string, drawSize: number, grou
     }
 
     const { tournamentRecord } = mocksEngine.generateTournamentRecord({
-      drawProfiles: [drawProfile],
+      drawProfiles: [drawProfile]
     });
 
     const drawDefinition = tournamentRecord?.events?.[0]?.drawDefinitions?.[0];
@@ -61,14 +61,14 @@ export function getPlayoffProfiles(structureType: string, drawSize: number, grou
       if (profile) {
         result = {
           playoffFinishingPositionRanges: profile.playoffFinishingPositionRanges,
-          finishingPositionsAvailable: profile.finishingPositionsAvailable,
+          finishingPositionsAvailable: profile.finishingPositionsAvailable
         };
       }
     } else {
       const structureId = mainStructure.structureId;
       const { playoffRounds, playoffRoundsRanges } = drawsGovernor.getAvailablePlayoffProfiles({
         drawDefinition,
-        structureId,
+        structureId
       });
       result = { playoffRounds, playoffRoundsRanges };
     }

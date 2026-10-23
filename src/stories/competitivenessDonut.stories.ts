@@ -39,7 +39,9 @@ export const Gallery = {
     root.appendChild(tile('Mostly competitive', donut({ COMPETITIVE: 22, ROUTINE: 4, DECISIVE: 1, WALKOVER: 0 })));
     root.appendChild(tile('Decisive-heavy', donut({ COMPETITIVE: 2, ROUTINE: 3, DECISIVE: 12, WALKOVER: 2 })));
     root.appendChild(tile('Routine + walkover', donut({ COMPETITIVE: 0, ROUTINE: 8, DECISIVE: 0, WALKOVER: 3 })));
-    root.appendChild(tile('Single bucket (full ring)', donut({ COMPETITIVE: 8, ROUTINE: 0, DECISIVE: 0, WALKOVER: 0 })));
+    root.appendChild(
+      tile('Single bucket (full ring)', donut({ COMPETITIVE: 8, ROUTINE: 0, DECISIVE: 0, WALKOVER: 0 }))
+    );
     root.appendChild(tile('Small N', donut({ COMPETITIVE: 1, ROUTINE: 1, DECISIVE: 1, WALKOVER: 0 })));
     root.appendChild(tile('Empty (renders nothing)', donut({ COMPETITIVE: 0, ROUTINE: 0, DECISIVE: 0, WALKOVER: 0 })));
     return root;

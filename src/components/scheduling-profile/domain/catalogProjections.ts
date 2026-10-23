@@ -144,9 +144,13 @@ export function getPlannedRoundKeys(profile: { venues: { rounds: { roundSegment?
  * specific segment(s) already placed (instead of dimming the whole round).
  * A whole-round placement claims every segment regardless of split count.
  */
-export function getPlannedSegmentKeys(profile: {
-  venues: { rounds: ({ roundSegment?: { segmentNumber: number; segmentsCount: number } } & Partial<CatalogRoundItem>)[] }[];
-}[]): Set<string> {
+export function getPlannedSegmentKeys(
+  profile: {
+    venues: {
+      rounds: ({ roundSegment?: { segmentNumber: number; segmentsCount: number } } & Partial<CatalogRoundItem>)[];
+    }[];
+  }[]
+): Set<string> {
   const keys = new Set<string>();
   for (const day of profile) {
     for (const v of day.venues) {

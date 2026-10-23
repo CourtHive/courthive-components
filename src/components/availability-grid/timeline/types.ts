@@ -83,13 +83,7 @@ export interface TimelineOptions {
 // ============================================================================
 
 export type InteractionMode =
-  | 'IDLE'
-  | 'DRAGGING'
-  | 'RESIZING_LEFT'
-  | 'RESIZING_RIGHT'
-  | 'GHOST_EDITING'
-  | 'RESIZING_TOP'
-  | 'RESIZING_BOTTOM';
+  'IDLE' | 'DRAGGING' | 'RESIZING_LEFT' | 'RESIZING_RIGHT' | 'GHOST_EDITING' | 'RESIZING_TOP' | 'RESIZING_BOTTOM';
 
 /** State tracked during an active drag/resize gesture */
 export interface GestureState {

@@ -81,7 +81,9 @@ export class TopologyBuilderControl {
           this.store.loadState(state);
         },
         onGenerate: () => this.handleGenerate(),
-        onSaveTemplate: this.config.onSaveTemplate ? () => this.config.onSaveTemplate(this.store.getState()) : undefined,
+        onSaveTemplate: this.config.onSaveTemplate
+          ? () => this.config.onSaveTemplate(this.store.getState())
+          : undefined,
         onClear: this.config.onClear
       },
       allTemplates,
@@ -101,9 +103,11 @@ export class TopologyBuilderControl {
           }
         : undefined,
       onMoveNode: (nodeId, x, y) => this.store.updateNode(nodeId, { position: { x, y } }),
-      onCreateEdge: isReadOnly ? () => {} : (sourceNodeId, targetNodeId, linkType) => {
-        this.handleCreateEdge(sourceNodeId, targetNodeId, linkType);
-      },
+      onCreateEdge: isReadOnly
+        ? () => {}
+        : (sourceNodeId, targetNodeId, linkType) => {
+            this.handleCreateEdge(sourceNodeId, targetNodeId, linkType);
+          },
       onPortMouseDown: () => {}
     });
   }
@@ -135,9 +139,7 @@ export class TopologyBuilderControl {
         .getState()
         .edges.filter((e) => e.sourceNodeId === sourceNodeId && e.linkType === LOSER);
       const claimedRounds = new Set(existingLoserEdges.map((e) => e.sourceRoundNumber));
-      const maxRound = source
-        ? getNodeTotalRounds(source.structureType, source.drawSize, source.structureOptions)
-        : 1;
+      const maxRound = source ? getNodeTotalRounds(source.structureType, source.drawSize, source.structureOptions) : 1;
       let defaultRound = 1;
       for (let r = 1; r <= maxRound; r++) {
         if (!claimedRounds.has(r)) {

@@ -18,9 +18,7 @@ interface SectionDef {
   factory: () => { element: HTMLElement; update(state: ScoringEditorState): void };
 }
 
-export function buildScoringEditorPanel(
-  store: ScoringEditorStore,
-): {
+export function buildScoringEditorPanel(store: ScoringEditorStore): {
   element: HTMLElement;
   update(state: ScoringEditorState): void;
 } {
@@ -30,7 +28,7 @@ export function buildScoringEditorPanel(
   const sectionDefs: SectionDef[] = [
     { id: 'defaults', label: 'Defaults', factory: () => buildDefaultsSection(store) },
     { id: 'allowedFormats', label: 'Allowed match-up formats', factory: () => buildAllowedFormatsSection(store) },
-    { id: 'statusCodes', label: 'Status code refinements', factory: () => buildStatusCodesSection(store) },
+    { id: 'statusCodes', label: 'Status code refinements', factory: () => buildStatusCodesSection(store) }
   ];
 
   const sections: {

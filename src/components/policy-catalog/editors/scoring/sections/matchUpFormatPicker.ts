@@ -24,11 +24,7 @@
  */
 
 import { matchUpFormatCode } from 'tods-competition-factory';
-import {
-  MATCH_UP_FORMAT_REGISTRY_SORTED,
-  lookupRegistryFormat,
-  FORMAT_STANDARD,
-} from '../domain/scoringProjections';
+import { MATCH_UP_FORMAT_REGISTRY_SORTED, lookupRegistryFormat, FORMAT_STANDARD } from '../domain/scoringProjections';
 
 export interface MatchUpFormatPickerConfig {
   initialValue?: string;
@@ -101,7 +97,7 @@ function defaultBuilderState(): BuilderState {
     finalKind: 'matchTiebreak',
     finalSetTo: 6,
     finalTbTo: 7,
-    finalMatchTbTo: 10,
+    finalMatchTbTo: 10
   };
 }
 
@@ -168,8 +164,8 @@ function builderStateToParsed(state: BuilderState): Parsed {
       tiebreakSet: {
         tiebreakTo: state.tbOnlyTo,
         ...(state.tbOnlyModifier ? { modifier: state.tbOnlyModifier } : {}),
-        ...(state.tbOnlyNoAd ? { NoAD: true } : {}),
-      },
+        ...(state.tbOnlyNoAd ? { NoAD: true } : {})
+      }
     };
   } else {
     const setFormat: Parsed = { setTo: state.setTo };
@@ -190,7 +186,7 @@ function builderStateToParsed(state: BuilderState): Parsed {
       parsed.finalSetFormat = {
         setTo: state.finalSetTo,
         tiebreakAt: state.finalSetTo,
-        tiebreakFormat: { tiebreakTo: state.finalTbTo },
+        tiebreakFormat: { tiebreakTo: state.finalTbTo }
       };
     }
   }
@@ -233,7 +229,7 @@ export function buildMatchUpFormatPicker(config: MatchUpFormatPickerConfig): Mat
   for (const preset of MATCH_UP_FORMAT_REGISTRY_SORTED) {
     const opt = document.createElement('option');
     opt.value = preset.format ?? '';
-    opt.textContent = preset.desc ? `${preset.name} — ${preset.desc}` : preset.name ?? '';
+    opt.textContent = preset.desc ? `${preset.name} — ${preset.desc}` : (preset.name ?? '');
     presetSelect.appendChild(opt);
   }
   const customOption = document.createElement('option');
@@ -342,99 +338,151 @@ export function buildMatchUpFormatPicker(config: MatchUpFormatPickerConfig): Mat
   function renderBuilder(): void {
     builderBody.innerHTML = '';
 
-    builderBody.appendChild(rowSelect('Best of', [1, 3, 5], builderState.bestOf, (v) => {
-      builderState.bestOf = v;
-      applyBuilder();
-    }));
+    builderBody.appendChild(
+      rowSelect('Best of', [1, 3, 5], builderState.bestOf, (v) => {
+        builderState.bestOf = v;
+        applyBuilder();
+      })
+    );
 
-    builderBody.appendChild(rowRadios('Set type', [
-      { value: SET_TYPE_STANDARD, label: 'Standard' },
-      { value: SET_TYPE_TIEBREAK, label: 'Tiebreak set' },
-      { value: SET_TYPE_TIMED, label: 'Timed' },
-    ], builderState.setType, (v) => {
-      builderState.setType = v as SetType;
-      applyBuilder();
-    }));
+    builderBody.appendChild(
+      rowRadios(
+        'Set type',
+        [
+          { value: SET_TYPE_STANDARD, label: 'Standard' },
+          { value: SET_TYPE_TIEBREAK, label: 'Tiebreak set' },
+          { value: SET_TYPE_TIMED, label: 'Timed' }
+        ],
+        builderState.setType,
+        (v) => {
+          builderState.setType = v as SetType;
+          applyBuilder();
+        }
+      )
+    );
 
     if (builderState.setType === SET_TYPE_STANDARD) {
-      builderBody.appendChild(rowSelect('Games to', [4, 6, 8, 10], builderState.setTo, (v) => {
-        builderState.setTo = v;
-        if (builderState.tiebreakAt === 'same' || builderState.tiebreakAt === builderState.setTo) {
-          builderState.tiebreakAt = 'same';
-        }
-        applyBuilder();
-      }));
-      builderBody.appendChild(rowCheckbox('Tiebreak at set end', builderState.hasTiebreak, (v) => {
-        builderState.hasTiebreak = v;
-        applyBuilder();
-      }));
-      if (builderState.hasTiebreak) {
-        builderBody.appendChild(rowSelect('Tiebreak first to', [5, 7, 10, 12, 15, 21], builderState.tiebreakTo, (v) => {
-          builderState.tiebreakTo = v;
+      builderBody.appendChild(
+        rowSelect('Games to', [4, 6, 8, 10], builderState.setTo, (v) => {
+          builderState.setTo = v;
+          if (builderState.tiebreakAt === 'same' || builderState.tiebreakAt === builderState.setTo) {
+            builderState.tiebreakAt = 'same';
+          }
           applyBuilder();
-        }));
+        })
+      );
+      builderBody.appendChild(
+        rowCheckbox('Tiebreak at set end', builderState.hasTiebreak, (v) => {
+          builderState.hasTiebreak = v;
+          applyBuilder();
+        })
+      );
+      if (builderState.hasTiebreak) {
+        builderBody.appendChild(
+          rowSelect('Tiebreak first to', [5, 7, 10, 12, 15, 21], builderState.tiebreakTo, (v) => {
+            builderState.tiebreakTo = v;
+            applyBuilder();
+          })
+        );
       }
-      builderBody.appendChild(rowCheckbox('No-advantage games', builderState.noAd, (v) => {
-        builderState.noAd = v;
-        applyBuilder();
-      }));
+      builderBody.appendChild(
+        rowCheckbox('No-advantage games', builderState.noAd, (v) => {
+          builderState.noAd = v;
+          applyBuilder();
+        })
+      );
     } else if (builderState.setType === SET_TYPE_TIEBREAK) {
-      builderBody.appendChild(rowSelect('First to', [7, 10, 11, 15, 21], builderState.tbOnlyTo, (v) => {
-        builderState.tbOnlyTo = v;
-        applyBuilder();
-      }));
-      builderBody.appendChild(rowRadios('Scoring', [
-        { value: '', label: 'Sideout' },
-        { value: 'RALLY', label: 'Rally' },
-      ], builderState.tbOnlyModifier, (v) => {
-        builderState.tbOnlyModifier = (v as '' | 'RALLY');
-        applyBuilder();
-      }));
-      builderBody.appendChild(rowCheckbox('No-advantage', builderState.tbOnlyNoAd, (v) => {
-        builderState.tbOnlyNoAd = v;
-        applyBuilder();
-      }));
+      builderBody.appendChild(
+        rowSelect('First to', [7, 10, 11, 15, 21], builderState.tbOnlyTo, (v) => {
+          builderState.tbOnlyTo = v;
+          applyBuilder();
+        })
+      );
+      builderBody.appendChild(
+        rowRadios(
+          'Scoring',
+          [
+            { value: '', label: 'Sideout' },
+            { value: 'RALLY', label: 'Rally' }
+          ],
+          builderState.tbOnlyModifier,
+          (v) => {
+            builderState.tbOnlyModifier = v as '' | 'RALLY';
+            applyBuilder();
+          }
+        )
+      );
+      builderBody.appendChild(
+        rowCheckbox('No-advantage', builderState.tbOnlyNoAd, (v) => {
+          builderState.tbOnlyNoAd = v;
+          applyBuilder();
+        })
+      );
     } else {
-      builderBody.appendChild(rowSelect('Minutes', [10, 15, 20, 25, 30, 45], builderState.minutes, (v) => {
-        builderState.minutes = v;
-        applyBuilder();
-      }));
-      builderBody.appendChild(rowRadios('Basis', [
-        { value: 'G', label: 'Games' },
-        { value: 'P', label: 'Points' },
-      ], builderState.timedBasis, (v) => {
-        builderState.timedBasis = v as 'G' | 'P';
-        applyBuilder();
-      }));
+      builderBody.appendChild(
+        rowSelect('Minutes', [10, 15, 20, 25, 30, 45], builderState.minutes, (v) => {
+          builderState.minutes = v;
+          applyBuilder();
+        })
+      );
+      builderBody.appendChild(
+        rowRadios(
+          'Basis',
+          [
+            { value: 'G', label: 'Games' },
+            { value: 'P', label: 'Points' }
+          ],
+          builderState.timedBasis,
+          (v) => {
+            builderState.timedBasis = v as 'G' | 'P';
+            applyBuilder();
+          }
+        )
+      );
     }
 
-    builderBody.appendChild(rowCheckbox('Different final-set rules', builderState.differentFinal, (v) => {
-      builderState.differentFinal = v;
-      applyBuilder();
-    }));
+    builderBody.appendChild(
+      rowCheckbox('Different final-set rules', builderState.differentFinal, (v) => {
+        builderState.differentFinal = v;
+        applyBuilder();
+      })
+    );
 
     if (builderState.differentFinal) {
-      builderBody.appendChild(rowRadios('Final set', [
-        { value: 'standard', label: 'Standard set' },
-        { value: 'matchTiebreak', label: 'Match tiebreak' },
-      ], builderState.finalKind, (v) => {
-        builderState.finalKind = v as 'standard' | 'matchTiebreak';
-        applyBuilder();
-      }));
+      builderBody.appendChild(
+        rowRadios(
+          'Final set',
+          [
+            { value: 'standard', label: 'Standard set' },
+            { value: 'matchTiebreak', label: 'Match tiebreak' }
+          ],
+          builderState.finalKind,
+          (v) => {
+            builderState.finalKind = v as 'standard' | 'matchTiebreak';
+            applyBuilder();
+          }
+        )
+      );
       if (builderState.finalKind === 'standard') {
-        builderBody.appendChild(rowSelect('Final games to', [4, 6, 8], builderState.finalSetTo, (v) => {
-          builderState.finalSetTo = v;
-          applyBuilder();
-        }));
-        builderBody.appendChild(rowSelect('Final tiebreak to', [7, 10, 12, 15], builderState.finalTbTo, (v) => {
-          builderState.finalTbTo = v;
-          applyBuilder();
-        }));
+        builderBody.appendChild(
+          rowSelect('Final games to', [4, 6, 8], builderState.finalSetTo, (v) => {
+            builderState.finalSetTo = v;
+            applyBuilder();
+          })
+        );
+        builderBody.appendChild(
+          rowSelect('Final tiebreak to', [7, 10, 12, 15], builderState.finalTbTo, (v) => {
+            builderState.finalTbTo = v;
+            applyBuilder();
+          })
+        );
       } else {
-        builderBody.appendChild(rowSelect('Match tiebreak to', [7, 10, 15, 21], builderState.finalMatchTbTo, (v) => {
-          builderState.finalMatchTbTo = v;
-          applyBuilder();
-        }));
+        builderBody.appendChild(
+          rowSelect('Match tiebreak to', [7, 10, 15, 21], builderState.finalMatchTbTo, (v) => {
+            builderState.finalMatchTbTo = v;
+            applyBuilder();
+          })
+        );
       }
     }
   }
@@ -473,7 +521,7 @@ export function buildMatchUpFormatPicker(config: MatchUpFormatPickerConfig): Mat
     },
     destroy() {
       root.remove();
-    },
+    }
   };
 }
 
@@ -500,7 +548,12 @@ function rowSelect(label: string, options: number[], value: number, onChange: (v
   return row;
 }
 
-function rowRadios(label: string, options: { value: string; label: string }[], value: string, onChange: (value: string) => void): HTMLElement {
+function rowRadios(
+  label: string,
+  options: { value: string; label: string }[],
+  value: string,
+  onChange: (value: string) => void
+): HTMLElement {
   const row = document.createElement('div');
   row.className = CLASS_FORMAT_ROW;
   const lbl = document.createElement('span');

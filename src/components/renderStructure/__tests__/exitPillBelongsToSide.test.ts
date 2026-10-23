@@ -95,9 +95,7 @@ describe('the exit pill belongs to the exiting side', () => {
     const el = renderMatchUp({
       matchUp: base({
         matchUpStatus: 'WALKOVER',
-        matchUpStatusCodes: [
-          { previousMatchUpStatus: 'DOUBLE_WALKOVER', matchUpStatus: 'WALKOVER', sideNumber: 2 }
-        ]
+        matchUpStatusCodes: [{ previousMatchUpStatus: 'DOUBLE_WALKOVER', matchUpStatus: 'WALKOVER', sideNumber: 2 }]
       } as Partial<MatchUp>)
     });
     expect(pillSides(el)).toEqual([2]);

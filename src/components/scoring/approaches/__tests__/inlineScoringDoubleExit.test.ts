@@ -26,8 +26,8 @@ function makeMatchUp(): any {
     matchUpStatus: 'TO_BE_PLAYED',
     sides: [
       { sideNumber: 1, participant: { participantName: 'Alice' } },
-      { sideNumber: 2, participant: { participantName: 'Bob' } },
-    ],
+      { sideNumber: 2, participant: { participantName: 'Bob' } }
+    ]
   };
 }
 
@@ -40,7 +40,7 @@ function mount() {
     matchUp: makeMatchUp(),
     container,
     onScoreChange: (outcome) => outcomes.push(outcome),
-    labels: {},
+    labels: {}
   });
 
   /** Open the end-match popover from a side's status pill. */
@@ -92,7 +92,7 @@ describe('inlineScoring — the double exits are offered and distinguishable', (
 
   it.each([
     [DOUBLE_WALKOVER, 'WO/WO'],
-    [DOUBLE_DEFAULT, 'DEF/DEF'],
+    [DOUBLE_DEFAULT, 'DEF/DEF']
   ])('%s reads as %s', async (status, expected) => {
     const h = mount();
 

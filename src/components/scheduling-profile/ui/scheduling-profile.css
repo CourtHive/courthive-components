@@ -491,7 +491,6 @@
   color: var(--sp-err-text);
 }
 
-
 .sp-catalog-item:hover {
   border-color: var(--sp-border-hover);
 }

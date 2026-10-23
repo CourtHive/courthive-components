@@ -42,12 +42,7 @@ export interface VenueCardData {
 // Card Config
 // ============================================================================
 
-export type VenueCardField =
-  | 'title'
-  | 'address'
-  | 'courtBreakdown'
-  | 'amenityRow'
-  | 'venueAbbreviation';
+export type VenueCardField = 'title' | 'address' | 'courtBreakdown' | 'amenityRow' | 'venueAbbreviation';
 
 export type VenueCardCornerField = 'primaryBadge';
 

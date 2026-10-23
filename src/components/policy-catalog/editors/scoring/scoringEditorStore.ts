@@ -18,7 +18,7 @@ import type {
   ScoringEditorConfig,
   MatchUpStatusKey,
   AllowedFormatField,
-  MatchUpFormatEntry,
+  MatchUpFormatEntry
 } from './types';
 
 function deepClone<T>(obj: T): T {
@@ -37,7 +37,7 @@ export class ScoringEditorStore {
       expandedSections: new Set<ScoringEditorSection>(['defaults', 'allowedFormats']),
       expandedStatuses: new Set<MatchUpStatusKey>(),
       advancedOpen: false,
-      dirty: false,
+      dirty: false
     };
   }
 
@@ -185,11 +185,7 @@ export class ScoringEditorStore {
   // The entry is lifted to object form if it's still a bare string.
   // De-dupes within the list (trimmed, case-sensitive — TODS category
   // identifiers are case-sensitive in the rest of the engine).
-  addAllowedFormatCategory(
-    index: number,
-    kind: 'categoryNames' | 'categoryTypes',
-    value: string,
-  ): void {
+  addAllowedFormatCategory(index: number, kind: 'categoryNames' | 'categoryTypes', value: string): void {
     if (this.isReadonly()) return;
     const trimmed = value.trim();
     if (!trimmed) return;
@@ -203,11 +199,7 @@ export class ScoringEditorStore {
     this.commitDraft(draft);
   }
 
-  removeAllowedFormatCategory(
-    index: number,
-    kind: 'categoryNames' | 'categoryTypes',
-    valueIndex: number,
-  ): void {
+  removeAllowedFormatCategory(index: number, kind: 'categoryNames' | 'categoryTypes', valueIndex: number): void {
     if (this.isReadonly()) return;
     const draft = deepClone(this.state.draft);
     const entryRaw = draft.matchUpFormats?.[index];

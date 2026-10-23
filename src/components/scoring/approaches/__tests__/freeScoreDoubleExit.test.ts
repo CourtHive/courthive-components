@@ -26,9 +26,9 @@ function makeMatchUp(overrides: any = {}): any {
     matchUpStatus: 'TO_BE_PLAYED',
     sides: [
       { sideNumber: 1, participant: { participantName: 'Alice' } },
-      { sideNumber: 2, participant: { participantName: 'Bob' } },
+      { sideNumber: 2, participant: { participantName: 'Bob' } }
     ],
-    ...overrides,
+    ...overrides
   };
 }
 
@@ -41,7 +41,7 @@ function mount(matchUp: any = makeMatchUp()) {
     matchUp,
     container,
     onScoreChange: (outcome) => outcomes.push(outcome),
-    labels: {},
+    labels: {}
   });
 
   const input = container.querySelector('#scoreInputV2') as HTMLInputElement;
@@ -152,7 +152,7 @@ describe('freeScore — the explicit double exit', () => {
 describe('freeScore — naming a side keeps the single-sided status', () => {
   it.each([
     ['1', 1],
-    ['2', 2],
+    ['2', 2]
   ])('"wo" with side %s', async (sideValue, expectedWinningSide) => {
     const h = mount();
 
@@ -205,7 +205,7 @@ describe('freeScore — "Neither side" is offered only where it means something'
 describe('freeScore — a walkover carries no score', () => {
   it.each([
     ['1', 'a named winner'],
-    [NEITHER_SIDE, 'neither side'],
+    [NEITHER_SIDE, 'neither side']
   ])('"wo" with %s emits no score, no sets and no error', async (winner, _label) => {
     const h = mount();
 
@@ -294,4 +294,3 @@ describe('freeScore — abandonment is spellable, and no longer becomes AWAITING
     expect(h.last().isValid).toBe(true);
   });
 });
-

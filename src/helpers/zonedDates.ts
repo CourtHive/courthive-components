@@ -67,21 +67,20 @@ export function startOfDayInZone(date: CalendarDate, timeZone?: string): Date {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    hourCycle: 'h23',
+    hourCycle: 'h23'
   });
 
   let guess = new Date(targetUtc);
   for (let pass = 0; pass < 2; pass++) {
     const parts = formatter.formatToParts(guess);
-    const part = (type: Intl.DateTimeFormatPartTypes): number =>
-      Number(parts.find((p) => p.type === type)?.value ?? 0);
+    const part = (type: Intl.DateTimeFormatPartTypes): number => Number(parts.find((p) => p.type === type)?.value ?? 0);
     const wallUtc = Date.UTC(
       part('year'),
       part('month') - 1,
       part('day'),
       part('hour'),
       part('minute'),
-      part('second'),
+      part('second')
     );
     const offset = wallUtc - guess.getTime();
     guess = new Date(targetUtc - offset);
@@ -110,10 +109,9 @@ export function startOfNextDayInZone(date: CalendarDate, timeZone?: string): Dat
     timeZone,
     year: 'numeric',
     month: '2-digit',
-    day: '2-digit',
+    day: '2-digit'
   });
   const parts = formatter.formatToParts(naiveNextDay);
-  const part = (type: Intl.DateTimeFormatPartTypes): number =>
-    Number(parts.find((p) => p.type === type)?.value ?? 0);
+  const part = (type: Intl.DateTimeFormatPartTypes): number => Number(parts.find((p) => p.type === type)?.value ?? 0);
   return startOfDayInZone({ year: part('year'), month: part('month'), day: part('day') }, timeZone);
 }

@@ -153,7 +153,8 @@ export const ClusterPositioning = {
     const content = document.createElement('div');
     const info = document.createElement('div');
     info.style.cssText = INFO_STYLE;
-    info.textContent = 'NATIONAL seeding policy using CLUSTER positioning. No drawType overrides; only top-level flags set.';
+    info.textContent =
+      'NATIONAL seeding policy using CLUSTER positioning. No drawType overrides; only top-level flags set.';
     content.appendChild(info);
 
     const editorContainer = document.createElement('div');

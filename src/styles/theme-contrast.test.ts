@@ -138,7 +138,7 @@ describe('--chc-on-* foreground contrast', () => {
 const CARD_TEXT_PAIRS = [
   ['on-accent on accent', '--chc-card-on-accent', '--chc-card-accent'],
   ['band-good', '--chc-card-band-good-fg', '--chc-card-band-good-bg'],
-  ['band-warn', '--chc-card-band-warn-fg', '--chc-card-band-warn-bg'],
+  ['band-warn', '--chc-card-band-warn-fg', '--chc-card-band-warn-bg']
 ] as const;
 
 describe('score-entry card token contrast', () => {
@@ -149,7 +149,7 @@ describe('score-entry card token contrast', () => {
       '--chc-card-band-good-bg',
       '--chc-card-band-good-fg',
       '--chc-card-band-warn-bg',
-      '--chc-card-band-warn-fg',
+      '--chc-card-band-warn-fg'
     ];
     for (const key of keys) {
       expect(LIGHT[key], `light ${key}`).toBeTruthy();
@@ -169,7 +169,7 @@ describe('score-entry card token contrast', () => {
 
   it.each([
     ['light', LIGHT],
-    ['dark', DARK],
+    ['dark', DARK]
   ])('%s: the accent fill is perceivable against the card surface (SC 1.4.11)', (_theme, theme) => {
     // The card's surface is `--chc-bg-elevated`, reused rather than redefined.
     const ratio = contrast(theme['--chc-card-accent'], theme['--chc-bg-elevated']);

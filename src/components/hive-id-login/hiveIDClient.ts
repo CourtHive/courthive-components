@@ -59,11 +59,7 @@ async function postJson<TReq, TResp>(
   return parsed as TResp;
 }
 
-export function signup(
-  baseUrl: string,
-  body: SignupRequest,
-  fetchImpl?: FetchLike
-): Promise<SignupResponse> {
+export function signup(baseUrl: string, body: SignupRequest, fetchImpl?: FetchLike): Promise<SignupResponse> {
   return postJson(baseUrl, '/auth/hiveid/signup', body, fetchImpl);
 }
 

@@ -20,7 +20,7 @@ import {
   asMatchUpFormatEntry,
   formatStringOf,
   formatNameOf,
-  formatDescriptionOf,
+  formatDescriptionOf
 } from '../domain/scoringProjections';
 import { buildTagListEditor, type TagListEditorHandle } from './tagListEditor';
 
@@ -84,7 +84,7 @@ export function buildAllowedFormatsSection(store: ScoringEditorStore): {
   for (const preset of MATCH_UP_FORMAT_REGISTRY_SORTED) {
     const opt = document.createElement('option');
     opt.value = preset.format ?? '';
-    opt.textContent = preset.desc ? `${preset.name} — ${preset.desc}` : preset.name ?? '';
+    opt.textContent = preset.desc ? `${preset.name} — ${preset.desc}` : (preset.name ?? '');
     presetSelect.appendChild(opt);
   }
   presetSelect.addEventListener('change', () => {
@@ -95,7 +95,7 @@ export function buildAllowedFormatsSection(store: ScoringEditorStore): {
       store.addAllowedFormat({
         matchUpFormat: preset.format,
         name: preset.name,
-        description: preset.desc,
+        description: preset.desc
       });
     }
     presetSelect.value = '';
@@ -224,7 +224,7 @@ function buildRow(store: ScoringEditorStore, initialIndex: number): RowHandle {
     initial: [],
     readonly,
     onAdd: (value) => store.addAllowedFormatCategory(index, 'categoryNames', value),
-    onRemove: (valueIndex) => store.removeAllowedFormatCategory(index, 'categoryNames', valueIndex),
+    onRemove: (valueIndex) => store.removeAllowedFormatCategory(index, 'categoryNames', valueIndex)
   });
   advancedBody.appendChild(categoryNamesField.element);
 
@@ -234,7 +234,7 @@ function buildRow(store: ScoringEditorStore, initialIndex: number): RowHandle {
     initial: [],
     readonly,
     onAdd: (value) => store.addAllowedFormatCategory(index, 'categoryTypes', value),
-    onRemove: (valueIndex) => store.removeAllowedFormatCategory(index, 'categoryTypes', valueIndex),
+    onRemove: (valueIndex) => store.removeAllowedFormatCategory(index, 'categoryTypes', valueIndex)
   });
   advancedBody.appendChild(categoryTypesField.element);
 
@@ -257,9 +257,7 @@ function buildRow(store: ScoringEditorStore, initialIndex: number): RowHandle {
     store.setAllowedFormatField(index, 'matchUpFormat', formatInput.value);
     refreshValidity();
   });
-  descInput.addEventListener('input', () =>
-    store.setAllowedFormatField(index, 'description', descInput.value),
-  );
+  descInput.addEventListener('input', () => store.setAllowedFormatField(index, 'description', descInput.value));
 
   function refreshValidity(): void {
     const value = formatInput.value.trim();
@@ -305,7 +303,7 @@ function buildRow(store: ScoringEditorStore, initialIndex: number): RowHandle {
     },
     destroy() {
       wrapper.remove();
-    },
+    }
   };
 }
 
@@ -335,7 +333,7 @@ function buildCategoryField(config: CategoryFieldConfig): {
     placeholder: config.placeholder,
     readonly: config.readonly,
     onAdd: config.onAdd,
-    onRemove: config.onRemove,
+    onRemove: config.onRemove
   });
   wrap.appendChild(tagList.element);
   return { element: wrap, tagList };

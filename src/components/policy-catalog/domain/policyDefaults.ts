@@ -125,7 +125,7 @@ export const POLICY_TYPE_METADATA: PolicyTypeMeta[] = [
     'Participant Privacy',
     'Which participant details are published publicly',
     GROUP_PARTICIPANTS,
-    true,
+    true
   ),
 
   // Display & Audit

@@ -9,7 +9,11 @@
 // Engine (re-exported from factory)
 // ============================================================================
 
-export { AvailabilityEngine, AvailabilityEngine as AvailabilityGridEngine, availability } from 'tods-competition-factory';
+export {
+  AvailabilityEngine,
+  AvailabilityEngine as AvailabilityGridEngine,
+  availability
+} from 'tods-competition-factory';
 
 // ============================================================================
 // View State (UI-specific, stays in courthive-components)

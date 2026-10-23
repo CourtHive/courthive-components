@@ -3,12 +3,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import {
-  COURT_SVG_RESOURCE_SUB_TYPE,
-  createCourtSvg,
-  resolveCourtSport,
-  sportFromMatchUpFormat
-} from './courtSvgUtil';
+import { COURT_SVG_RESOURCE_SUB_TYPE, createCourtSvg, resolveCourtSport, sportFromMatchUpFormat } from './courtSvgUtil';
 
 const TENNIS = 'tennis';
 const BEST_OF_3 = 'SET3-S:6/TB7';

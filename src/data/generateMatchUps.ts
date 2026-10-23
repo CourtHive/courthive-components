@@ -83,7 +83,7 @@ export function generateMatchUps({
   const ratingsToApply = withAllRatings || (withRatings ? [{ ...withRatings, accessor: withRatings.scaleName }] : []);
   if (ratingsToApply.length > 0) {
     const { participants } = tournamentEngine.getParticipants({
-      participantFilters: { participantTypes: [INDIVIDUAL as any] },
+      participantFilters: { participantTypes: [INDIVIDUAL as any] }
     });
     for (const rating of ratingsToApply) {
       participants.forEach((participant: any) => {
@@ -94,7 +94,7 @@ export function generateMatchUps({
             scaleValue: { [rating.accessor]: value },
             scaleName: rating.scaleName,
             scaleType: rating.scaleType || 'RATING',
-            eventType: (rating.eventType || SINGLES) as any,
+            eventType: (rating.eventType || SINGLES) as any
           }
         });
       });
@@ -116,7 +116,7 @@ export function generateMatchUps({
   tournamentEngine.bulkScheduleMatchUps({ matchUpIds, schedule });
 
   const { matchUps } = tournamentEngine.allTournamentMatchUps({
-    participantsProfile: { withISO2: true, withIOC: true, withScaleValues: !!(withRatings || withAllRatings) },
+    participantsProfile: { withISO2: true, withIOC: true, withScaleValues: !!(withRatings || withAllRatings) }
   });
 
   // Factory `HydratedMatchUp` -> local `MatchUp` cast at the cross-package

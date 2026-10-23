@@ -43,7 +43,9 @@
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: color 120ms ease, border-color 120ms ease;
+  transition:
+    color 120ms ease,
+    border-color 120ms ease;
 }
 
 .chc-hil-tab:hover {
@@ -91,7 +93,9 @@
   border: 1px solid var(--chc-input-border, #7a7a7a);
   border-radius: 0.25rem;
   outline: none;
-  transition: border-color 120ms ease, box-shadow 120ms ease;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
 }
 
 .chc-hil-input:focus {

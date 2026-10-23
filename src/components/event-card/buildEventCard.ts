@@ -28,13 +28,7 @@ import {
   ecTitleStyle,
   ecUpdatedAtStyle
 } from './styles';
-import {
-  EventCardCallbacks,
-  EventCardConfig,
-  EventCardCornerField,
-  EventCardData,
-  EventCardField
-} from './types';
+import { EventCardCallbacks, EventCardConfig, EventCardCornerField, EventCardData, EventCardField } from './types';
 
 // ============================================================================
 // Public Builder

@@ -13,8 +13,7 @@ import { matchUpStatusConstants } from 'tods-competition-factory';
 import { renderDynamicSetsScoreEntry } from '../dynamicSetsApproach';
 import { SELECTABLE_ENDINGS, NEITHER_SIDE, NON_DIRECTING_ENDINGS } from '../../logic/irregularEnding';
 
-const { WALKOVER, DEFAULTED, RETIRED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, ABANDONED, CANCELLED } =
-  matchUpStatusConstants;
+const { WALKOVER, DEFAULTED, RETIRED, DOUBLE_WALKOVER, DOUBLE_DEFAULT, ABANDONED, CANCELLED } = matchUpStatusConstants;
 
 const OUTCOME_SELECTOR = 'input[name="matchOutcome"]';
 const WINNER_SELECTOR = 'input[name="irregularWinner"]';
@@ -26,9 +25,9 @@ function makeMatchUp(overrides: any = {}): any {
     matchUpStatus: 'TO_BE_PLAYED',
     sides: [
       { sideNumber: 1, participant: { participantName: 'Alice' } },
-      { sideNumber: 2, participant: { participantName: 'Bob' } },
+      { sideNumber: 2, participant: { participantName: 'Bob' } }
     ],
-    ...overrides,
+    ...overrides
   };
 }
 
@@ -41,7 +40,7 @@ function mount(matchUp: any = makeMatchUp()) {
     matchUp,
     container,
     onScoreChange: (outcome) => outcomes.push(outcome),
-    labels: {},
+    labels: {}
   });
 
   const radios = (selector: string) => [...container.querySelectorAll(selector)] as HTMLInputElement[];
@@ -55,9 +54,12 @@ function mount(matchUp: any = makeMatchUp()) {
   };
 
   const enterSet = async (setIndex: number, side1: string, side2: string) => {
-    for (const [side, value] of [['1', side1], ['2', side2]] as const) {
+    for (const [side, value] of [
+      ['1', side1],
+      ['2', side2]
+    ] as const) {
       const input = container.querySelector(
-        `input[data-set-index="${setIndex}"][data-side="${side}"]`,
+        `input[data-set-index="${setIndex}"][data-side="${side}"]`
       ) as HTMLInputElement;
       if (!input) throw new Error(`no input for set ${setIndex} side ${side}`);
       input.value = value;
@@ -73,7 +75,7 @@ function mount(matchUp: any = makeMatchUp()) {
     selectOutcome: (value: string) => pick(OUTCOME_SELECTOR, value),
     selectWinner: (value: string) => pick(WINNER_SELECTOR, value),
     enterSet,
-    radios,
+    radios
   };
 }
 
@@ -156,7 +158,7 @@ describe('dynamicSets — naming a side keeps the single-sided status', () => {
     [WALKOVER, '1', 1],
     [WALKOVER, '2', 2],
     [DEFAULTED, '1', 1],
-    [RETIRED, '2', 2],
+    [RETIRED, '2', 2]
   ])('%s with side %s', async (status, sideValue, expectedWinningSide) => {
     const h = mount();
 
@@ -207,7 +209,7 @@ describe('dynamicSets — "Neither side" is offered only where it means somethin
 describe('dynamicSets — reopening an existing double exit', () => {
   it.each([
     [DOUBLE_WALKOVER, WALKOVER],
-    [DOUBLE_DEFAULT, DEFAULTED],
+    [DOUBLE_DEFAULT, DEFAULTED]
   ])('%s restores %s plus the Neither answer', async (existingStatus, baseStatus) => {
     const h = mount(makeMatchUp({ matchUpStatus: existingStatus }));
     await new Promise((resolve) => setTimeout(resolve, 30));
@@ -226,7 +228,7 @@ describe('dynamicSets — reopening an existing double exit', () => {
 describe('dynamicSets — a walkover carries no score, a retirement carries whatever was played', () => {
   it.each([
     ['1', 'WALKOVER'],
-    [NEITHER_SIDE, 'DOUBLE_WALKOVER'],
+    [NEITHER_SIDE, 'DOUBLE_WALKOVER']
   ])('a walkover resolved as %s emits no sets, no scoreObject and no error', async (winner, _status) => {
     const h = mount();
 
@@ -283,7 +285,7 @@ describe('dynamicSets — the selectable endings', () => {
     const offered = h.radios(OUTCOME_SELECTOR).map((r) => r.value);
 
     expect(offered.toSorted((a, b) => a.localeCompare(b, 'en'))).toEqual(
-      [...SELECTABLE_ENDINGS].toSorted((a, b) => a.localeCompare(b, 'en')),
+      [...SELECTABLE_ENDINGS].toSorted((a, b) => a.localeCompare(b, 'en'))
     );
   });
 
@@ -359,4 +361,3 @@ describe('dynamicSets — the selectable endings', () => {
     expect(h.last().matchUpStatus).toBe(RETIRED);
   });
 });
-

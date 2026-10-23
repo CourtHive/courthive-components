@@ -48,7 +48,15 @@
   opacity: 0.35;
 }
 
-.chc-cb__seg[data-bucket='COMPETITIVE'] { --chc-cb-bucket-bg: var(--chc-cb-competitive); }
-.chc-cb__seg[data-bucket='ROUTINE']     { --chc-cb-bucket-bg: var(--chc-cb-routine); }
-.chc-cb__seg[data-bucket='DECISIVE']    { --chc-cb-bucket-bg: var(--chc-cb-decisive); }
-.chc-cb__seg[data-bucket='WALKOVER']    { --chc-cb-bucket-bg: var(--chc-cb-walkover); }
+.chc-cb__seg[data-bucket='COMPETITIVE'] {
+  --chc-cb-bucket-bg: var(--chc-cb-competitive);
+}
+.chc-cb__seg[data-bucket='ROUTINE'] {
+  --chc-cb-bucket-bg: var(--chc-cb-routine);
+}
+.chc-cb__seg[data-bucket='DECISIVE'] {
+  --chc-cb-bucket-bg: var(--chc-cb-decisive);
+}
+.chc-cb__seg[data-bucket='WALKOVER'] {
+  --chc-cb-bucket-bg: var(--chc-cb-walkover);
+}

@@ -217,13 +217,13 @@ describe('renderInlineMatchUp refuses rather than fabricating', () => {
     const manager = {
       getOrCreate: () => {
         throw new Error('an engine must not be created for a matchUp that cannot be scored');
-      },
+      }
     } as any;
 
     const el = renderInlineMatchUp({
       matchUp: { matchUpId: 'mu-1', sides: [namedSide(1, 'Alfa'), namedSide(2, 'Bravo')] } as any,
       composition: { configuration: {} } as any,
-      manager,
+      manager
     });
 
     expect(el).toBeNull();

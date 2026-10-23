@@ -59,7 +59,7 @@ const SAMPLE_LADDER: LadderChartDatum[] = [
   { date: '2026-04-06', rung: 4, label: 'Delray Open', detail: 'F' },
   { date: '2026-04-27', rung: 5, label: 'Jupiter Pro', detail: 'W' },
   { date: '2026-05-18', rung: 4, label: 'Wellington Open', detail: 'F' },
-  { date: '2026-06-08', rung: 3, label: 'Boynton Beach Cup', detail: 'SF' },
+  { date: '2026-06-08', rung: 3, label: 'Boynton Beach Cup', detail: 'SF' }
 ];
 
 interface PersonSpec {
@@ -70,38 +70,38 @@ interface PersonSpec {
 }
 
 const COHORT: PersonSpec[] = [
-  { personId: 'utr-001', firstName: 'Karson',     lastName: 'Walden',    sex: 'MALE' },
-  { personId: 'utr-002', firstName: 'Zicong',     lastName: 'Wang',      sex: 'MALE' },
-  { personId: 'utr-003', firstName: 'Adrian',     lastName: 'Baerga',    sex: 'MALE' },
-  { personId: 'utr-004', firstName: 'Geoff',      lastName: 'Kosseifi',  sex: 'MALE' },
-  { personId: 'utr-005', firstName: 'Zakaria',    lastName: 'Achour',    sex: 'MALE' },
-  { personId: 'utr-006', firstName: 'Noah',       lastName: 'Folkesson', sex: 'MALE' },
-  { personId: 'utr-007', firstName: 'Aiden',      lastName: 'Phoebus',   sex: 'MALE' },
-  { personId: 'utr-008', firstName: 'Daniel',     lastName: 'Ruban',     sex: 'MALE' },
-  { personId: 'utr-009', firstName: 'Mikeal',     lastName: 'Carpenter', sex: 'MALE' },
-  { personId: 'utr-010', firstName: 'Sofiia',     lastName: 'Bielinska', sex: 'FEMALE' },
-  { personId: 'utr-011', firstName: 'Alisa',      lastName: 'Shifrin',   sex: 'FEMALE' },
-  { personId: 'utr-012', firstName: 'Stanislava', lastName: 'Bobrov',    sex: 'FEMALE' },
-  { personId: 'utr-013', firstName: 'Emma',       lastName: 'Grant',     sex: 'FEMALE' },
-  { personId: 'utr-014', firstName: 'Asia',       lastName: 'Sundas',    sex: 'FEMALE' },
-  { personId: 'utr-015', firstName: 'Mattia',     lastName: 'Akcan',     sex: 'MALE' },
-  { personId: 'utr-016', firstName: 'Pierce',     lastName: 'Garbett',   sex: 'MALE' },
-  { personId: 'utr-017', firstName: 'Alexander',  lastName: 'Stater',    sex: 'MALE' },
-  { personId: 'utr-018', firstName: 'Jorge',      lastName: 'Marin',     sex: 'MALE' },
-  { personId: 'utr-019', firstName: 'Liam',       lastName: 'Ostrovsky', sex: 'MALE' },
-  { personId: 'utr-020', firstName: 'Cole',       lastName: 'Ortega',    sex: 'MALE' },
-  { personId: 'utr-021', firstName: 'Hadi',       lastName: 'Khalfani',  sex: 'MALE' },
-  { personId: 'utr-022', firstName: 'Sergio',     lastName: 'Vargas',    sex: 'MALE' },
-  { personId: 'utr-023', firstName: 'Lily',       lastName: 'Iliev',     sex: 'FEMALE' },
-  { personId: 'utr-024', firstName: 'Hannah',     lastName: 'Strom',     sex: 'FEMALE' },
-  { personId: 'utr-025', firstName: 'Sara',       lastName: 'Mor',       sex: 'FEMALE' },
-  { personId: 'utr-026', firstName: 'Ines',       lastName: 'Roca',      sex: 'FEMALE' },
-  { personId: 'utr-027', firstName: 'Wendy',      lastName: 'Lopez',     sex: 'FEMALE' },
-  { personId: 'utr-028', firstName: 'Carla',      lastName: 'Nieto',     sex: 'FEMALE' },
-  { personId: 'utr-029', firstName: 'Mila',       lastName: 'Otero',     sex: 'FEMALE' },
-  { personId: 'utr-030', firstName: 'Faye',       lastName: 'Tang',      sex: 'FEMALE' },
-  { personId: 'utr-031', firstName: 'Naomi',      lastName: 'Burch',     sex: 'FEMALE' },
-  { personId: 'utr-032', firstName: 'Jada',       lastName: 'Pang',      sex: 'FEMALE' },
+  { personId: 'utr-001', firstName: 'Karson', lastName: 'Walden', sex: 'MALE' },
+  { personId: 'utr-002', firstName: 'Zicong', lastName: 'Wang', sex: 'MALE' },
+  { personId: 'utr-003', firstName: 'Adrian', lastName: 'Baerga', sex: 'MALE' },
+  { personId: 'utr-004', firstName: 'Geoff', lastName: 'Kosseifi', sex: 'MALE' },
+  { personId: 'utr-005', firstName: 'Zakaria', lastName: 'Achour', sex: 'MALE' },
+  { personId: 'utr-006', firstName: 'Noah', lastName: 'Folkesson', sex: 'MALE' },
+  { personId: 'utr-007', firstName: 'Aiden', lastName: 'Phoebus', sex: 'MALE' },
+  { personId: 'utr-008', firstName: 'Daniel', lastName: 'Ruban', sex: 'MALE' },
+  { personId: 'utr-009', firstName: 'Mikeal', lastName: 'Carpenter', sex: 'MALE' },
+  { personId: 'utr-010', firstName: 'Sofiia', lastName: 'Bielinska', sex: 'FEMALE' },
+  { personId: 'utr-011', firstName: 'Alisa', lastName: 'Shifrin', sex: 'FEMALE' },
+  { personId: 'utr-012', firstName: 'Stanislava', lastName: 'Bobrov', sex: 'FEMALE' },
+  { personId: 'utr-013', firstName: 'Emma', lastName: 'Grant', sex: 'FEMALE' },
+  { personId: 'utr-014', firstName: 'Asia', lastName: 'Sundas', sex: 'FEMALE' },
+  { personId: 'utr-015', firstName: 'Mattia', lastName: 'Akcan', sex: 'MALE' },
+  { personId: 'utr-016', firstName: 'Pierce', lastName: 'Garbett', sex: 'MALE' },
+  { personId: 'utr-017', firstName: 'Alexander', lastName: 'Stater', sex: 'MALE' },
+  { personId: 'utr-018', firstName: 'Jorge', lastName: 'Marin', sex: 'MALE' },
+  { personId: 'utr-019', firstName: 'Liam', lastName: 'Ostrovsky', sex: 'MALE' },
+  { personId: 'utr-020', firstName: 'Cole', lastName: 'Ortega', sex: 'MALE' },
+  { personId: 'utr-021', firstName: 'Hadi', lastName: 'Khalfani', sex: 'MALE' },
+  { personId: 'utr-022', firstName: 'Sergio', lastName: 'Vargas', sex: 'MALE' },
+  { personId: 'utr-023', firstName: 'Lily', lastName: 'Iliev', sex: 'FEMALE' },
+  { personId: 'utr-024', firstName: 'Hannah', lastName: 'Strom', sex: 'FEMALE' },
+  { personId: 'utr-025', firstName: 'Sara', lastName: 'Mor', sex: 'FEMALE' },
+  { personId: 'utr-026', firstName: 'Ines', lastName: 'Roca', sex: 'FEMALE' },
+  { personId: 'utr-027', firstName: 'Wendy', lastName: 'Lopez', sex: 'FEMALE' },
+  { personId: 'utr-028', firstName: 'Carla', lastName: 'Nieto', sex: 'FEMALE' },
+  { personId: 'utr-029', firstName: 'Mila', lastName: 'Otero', sex: 'FEMALE' },
+  { personId: 'utr-030', firstName: 'Faye', lastName: 'Tang', sex: 'FEMALE' },
+  { personId: 'utr-031', firstName: 'Naomi', lastName: 'Burch', sex: 'FEMALE' },
+  { personId: 'utr-032', firstName: 'Jada', lastName: 'Pang', sex: 'FEMALE' }
 ];
 
 const TOURNAMENTS: { name: string; endDate: string; seed: number }[] = [
@@ -110,7 +110,7 @@ const TOURNAMENTS: { name: string; endDate: string; seed: number }[] = [
   { name: 'Cohort Series — Mar 15', endDate: '2026-03-15', seed: 33 },
   { name: 'Cohort Series — Apr 12', endDate: '2026-04-12', seed: 44 },
   { name: 'Cohort Series — May 10', endDate: '2026-05-10', seed: 55 },
-  { name: 'Cohort Series — Jun 07', endDate: '2026-06-07', seed: 66 },
+  { name: 'Cohort Series — Jun 07', endDate: '2026-06-07', seed: 66 }
 ];
 
 function generateCohortSeries(): Map<string, LadderChartDatum[]> {
@@ -121,7 +121,7 @@ function generateCohortSeries(): Map<string, LadderChartDatum[]> {
     personId: p.personId,
     firstName: p.firstName,
     lastName: p.lastName,
-    sex: p.sex,
+    sex: p.sex
   }));
 
   for (const tournament of TOURNAMENTS) {
@@ -134,24 +134,24 @@ function generateCohortSeries(): Map<string, LadderChartDatum[]> {
     const { tournamentRecord } = mocksEngine.generateTournamentRecord({
       tournamentAttributes: {
         tournamentName: tournament.name,
-        endDate: tournament.endDate,
+        endDate: tournament.endDate
       },
       participantsProfile: {
         participantsCount: COHORT.length,
         participantType: 'INDIVIDUAL',
-        personData,
+        personData
       },
       drawProfiles: [
         {
           drawSize: 32,
           drawType: SINGLE_ELIMINATION,
           eventType: 'SINGLES',
-          eventName: 'Open Singles',
-        },
+          eventName: 'Open Singles'
+        }
       ],
       completeAllMatchUps: true,
       randomWinningSide: true,
-      nonRandom: tournament.seed,
+      nonRandom: tournament.seed
     });
 
     // sides[].participantId on the raw `structures.matchUps[]` is undefined
@@ -175,7 +175,7 @@ function generateCohortSeries(): Map<string, LadderChartDatum[]> {
         date: tournament.endDate,
         rung,
         label: tournament.name,
-        detail: `${RUNGS_32[rung]} · finished #${position}`,
+        detail: `${RUNGS_32[rung]} · finished #${position}`
       });
     }
   }
@@ -224,7 +224,7 @@ function computeFinishingPositions(matchUps: any[]): Map<string, number> {
 
 const meta: Meta = {
   title: 'LadderChart',
-  parameters: { layout: 'centered' },
+  parameters: { layout: 'centered' }
 };
 export default meta;
 
@@ -245,10 +245,10 @@ export const SinglePlayerSample: StoryObj = {
       title: 'A. Walker Allen — 2026 season',
       rungs: RUNGS_32,
       data: SAMPLE_LADDER,
-      height: 260,
+      height: 260
     });
     return host;
-  },
+  }
 };
 
 export const CohortSeries: StoryObj = {
@@ -258,8 +258,7 @@ export const CohortSeries: StoryObj = {
     wrap.style.gridTemplateColumns = '240px 1fr';
     wrap.style.gap = '12px';
     wrap.style.maxWidth = '960px';
-    wrap.style.fontFamily =
-      'ui-sans-serif, system-ui, -apple-system, sans-serif';
+    wrap.style.fontFamily = 'ui-sans-serif, system-ui, -apple-system, sans-serif';
     wrap.style.color = 'var(--chc-text-primary, #111)';
 
     const ladders = generateCohortSeries();
@@ -295,11 +294,9 @@ export const CohortSeries: StoryObj = {
     function show(personId: string) {
       const person = COHORT.find((p) => p.personId === personId);
       if (!person) return;
-      const data = (ladders.get(personId) ?? []).slice().sort(
-        (a, b) =>
-          new Date(a.date as string).getTime() -
-          new Date(b.date as string).getTime()
-      );
+      const data = (ladders.get(personId) ?? [])
+        .slice()
+        .sort((a, b) => new Date(a.date as string).getTime() - new Date(b.date as string).getTime());
       while (chartCard.firstChild) chartCard.removeChild(chartCard.firstChild);
       activeInstance?.destroy();
       activeInstance = buildLadderChart(chartCard, {
@@ -307,7 +304,7 @@ export const CohortSeries: StoryObj = {
         source: `cohort of ${COHORT.length} · deterministic seeds`,
         rungs: RUNGS_32,
         data,
-        height: 260,
+        height: 260
       });
     }
 
@@ -350,5 +347,5 @@ export const CohortSeries: StoryObj = {
     wrap.appendChild(listCard);
     wrap.appendChild(chartCard);
     return wrap;
-  },
+  }
 };

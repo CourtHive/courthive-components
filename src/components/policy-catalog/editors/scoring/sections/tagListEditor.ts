@@ -117,6 +117,6 @@ export function buildTagListEditor(config: TagListEditorConfig): TagListEditorHa
     },
     destroy() {
       root.remove();
-    },
+    }
   };
 }

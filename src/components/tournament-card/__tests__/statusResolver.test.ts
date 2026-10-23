@@ -32,18 +32,12 @@ describe('resolveTournamentStatus', () => {
   });
 
   it('returns "Completed" when endDate is in the past', () => {
-    const out = resolveTournamentStatus(
-      { startDate: '2026-05-10', endDate: '2026-05-12' },
-      NOW
-    );
+    const out = resolveTournamentStatus({ startDate: '2026-05-10', endDate: '2026-05-12' }, NOW);
     expect(out?.kind).toBe('completed');
   });
 
   it('returns "Live" when now is between startDate and endDate', () => {
-    const out = resolveTournamentStatus(
-      { startDate: START, endDate: MAY_20 },
-      NOW
-    );
+    const out = resolveTournamentStatus({ startDate: START, endDate: MAY_20 }, NOW);
     expect(out).toEqual({ kind: 'live', label: 'Live' });
   });
 
@@ -88,24 +82,16 @@ describe('resolveTournamentStatus', () => {
     const input = { startDate: START, endDate: END, timeZone: NY };
 
     // 23:00 UTC on the 17th == 19:00 NY on the 17th — still Live
-    expect(
-      resolveTournamentStatus(input, new Date('2026-05-17T23:00:00Z'))?.kind
-    ).toBe('live');
+    expect(resolveTournamentStatus(input, new Date('2026-05-17T23:00:00Z'))?.kind).toBe('live');
 
     // 02:00 UTC on the 18th == 22:00 NY on the 17th — still Live
-    expect(
-      resolveTournamentStatus(input, new Date('2026-05-18T02:00:00Z'))?.kind
-    ).toBe('live');
+    expect(resolveTournamentStatus(input, new Date('2026-05-18T02:00:00Z'))?.kind).toBe('live');
 
     // 03:59:59 UTC on the 18th == 23:59:59 NY on the 17th — still Live
-    expect(
-      resolveTournamentStatus(input, new Date('2026-05-18T03:59:59Z'))?.kind
-    ).toBe('live');
+    expect(resolveTournamentStatus(input, new Date('2026-05-18T03:59:59Z'))?.kind).toBe('live');
 
     // 04:00:00 UTC on the 18th == 00:00 NY on the 18th — now Completed
-    expect(
-      resolveTournamentStatus(input, new Date('2026-05-18T04:00:00Z'))?.kind
-    ).toBe('completed');
+    expect(resolveTournamentStatus(input, new Date('2026-05-18T04:00:00Z'))?.kind).toBe('completed');
   });
 
   // Zone-aware: a tournament that starts "2026-05-15" in NY must not show
@@ -115,14 +101,10 @@ describe('resolveTournamentStatus', () => {
     const input = { startDate: START, endDate: MAY_20, timeZone: NY };
 
     // 03:59:59 UTC on the 15th == 23:59:59 NY on the 14th — not yet Live
-    expect(
-      resolveTournamentStatus(input, new Date('2026-05-15T03:59:59Z'))?.kind
-    ).not.toBe('live');
+    expect(resolveTournamentStatus(input, new Date('2026-05-15T03:59:59Z'))?.kind).not.toBe('live');
 
     // 04:00:00 UTC on the 15th == 00:00 NY on the 15th — Live
-    expect(
-      resolveTournamentStatus(input, new Date('2026-05-15T04:00:00Z'))?.kind
-    ).toBe('live');
+    expect(resolveTournamentStatus(input, new Date('2026-05-15T04:00:00Z'))?.kind).toBe('live');
   });
 
   // Host-local fallback: when no timeZone is supplied the resolver uses the
@@ -134,14 +116,10 @@ describe('resolveTournamentStatus', () => {
     const localEndExclusive = new Date(2026, 4, 18, 0, 0, 0);
     // One millisecond before that boundary — still Live.
     const justBefore = new Date(localEndExclusive.getTime() - 1);
-    expect(
-      resolveTournamentStatus({ startDate: START, endDate: END }, justBefore)?.kind
-    ).toBe('live');
+    expect(resolveTournamentStatus({ startDate: START, endDate: END }, justBefore)?.kind).toBe('live');
 
     // At the boundary — Completed.
-    expect(
-      resolveTournamentStatus({ startDate: START, endDate: END }, localEndExclusive)?.kind
-    ).toBe('completed');
+    expect(resolveTournamentStatus({ startDate: START, endDate: END }, localEndExclusive)?.kind).toBe('completed');
   });
 
   it('returns "Closing Soon" when entriesClose is within 7 days', () => {

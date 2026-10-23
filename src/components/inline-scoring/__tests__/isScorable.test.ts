@@ -42,7 +42,7 @@ describe('isScorable', () => {
   it('accepts a PAIR named only through its individuals', () => {
     const pair = {
       sideNumber: 1,
-      participant: { individualParticipants: [{ participantName: 'Alfa' }, { participantName: 'Charlie' }] },
+      participant: { individualParticipants: [{ participantName: 'Alfa' }, { participantName: 'Charlie' }] }
     };
     expect(isScorable({ ...scorable(), sides: [pair, named(2, 'Bravo')] })).toBe(true);
   });
@@ -53,7 +53,7 @@ describe('isScorable', () => {
     const positional = {
       matchUpId: 'mu-1',
       matchUpFormat: FORMAT,
-      sides: [{ participant: { participantName: 'Alfa' } }, { participant: { participantName: 'Bravo' } }],
+      sides: [{ participant: { participantName: 'Alfa' } }, { participant: { participantName: 'Bravo' } }]
     } as any;
     expect(isScorable(positional)).toBe(true);
   });
@@ -66,7 +66,7 @@ describe('isScorable', () => {
 
     const mixed = {
       sideNumber: 1,
-      participant: { individualParticipants: [{ participantName: 42 }, { participantName: 'Charlie' }] },
+      participant: { individualParticipants: [{ participantName: 42 }, { participantName: 'Charlie' }] }
     };
     expect(isScorable({ ...scorable(), sides: [mixed, named(2, 'Bravo')] })).toBe(true);
   });
