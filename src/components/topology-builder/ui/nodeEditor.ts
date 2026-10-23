@@ -2,6 +2,7 @@
  * Node Editor — Side panel form for editing selected node properties.
  * Uses renderForm (items + relationships) pattern.
  */
+import { carriesQualifiers, traversesByFinishingPosition } from '../domain/edgeTraversal';
 import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
 import { nameValidator } from '../../../validators/nameValidator';
 import { numericRange } from '../../../validators/numericRange';
@@ -9,8 +10,8 @@ import { getFeedRoundCapacities } from '../domain/feedRounds';
 import { renderForm } from '../../forms/renderForm';
 
 // constants and types
-import { drawDefinitionConstants } from 'tods-competition-factory';
 import type { TopologyEdge, TopologyNode, TopologyState, UIPanel } from '../types';
+import { drawDefinitionConstants } from 'tods-competition-factory';
 
 const {
   SINGLE_ELIMINATION,
@@ -25,11 +26,8 @@ const {
   MAIN,
   QUALIFYING,
   CONSOLATION,
-  PLAY_OFF,
-  WINNER
+  PLAY_OFF
 } = drawDefinitionConstants;
-
-const POSITION = 'POSITION';
 
 const PLAYOFF_DRAW_TYPES = [
   { label: 'Single Elimination', value: SINGLE_ELIMINATION },
@@ -140,7 +138,9 @@ function addRoundRobinFields(
     });
   }
 
-  const positionEdges = state.edges.filter((e) => e.sourceNodeId === node.id && e.linkType === POSITION);
+  const positionEdges = state.edges.filter(
+    (e) => e.sourceNodeId === node.id && traversesByFinishingPosition(e, state.nodes)
+  );
   const allPositions = new Set(positionEdges.flatMap((e) => e.finishingPositions || []));
   const advanceCount = allPositions.size || 0;
   const advanceOptions = Array.from({ length: currentGroupSize }, (_, i) => i + 1);
@@ -233,7 +233,9 @@ function addPlayoffFields(
   items: any[],
   relationships: any[]
 ): void {
-  const inboundPositionEdge = state.edges.find((e) => e.targetNodeId === node.id && e.linkType === POSITION);
+  const inboundPositionEdge = state.edges.find(
+    (e) => e.targetNodeId === node.id && traversesByFinishingPosition(e, state.nodes)
+  );
   if (!inboundPositionEdge) return;
   const sourceNode = state.nodes.find((n) => n.id === inboundPositionEdge.sourceNodeId);
   if (sourceNode?.structureType !== ROUND_ROBIN) return;
@@ -335,7 +337,7 @@ function appendFeedWarnings(node: TopologyNode, state: TopologyState, body: HTML
   const demandByRound = new Map<number, number>();
   const feedEntries: { targetRound: number; qp: number; sourceName: string }[] = [];
   for (const edge of state.edges) {
-    if (edge.linkType !== WINNER || edge.targetNodeId !== node.id) continue;
+    if (edge.targetNodeId !== node.id || !carriesQualifiers(edge, state.nodes)) continue;
     const targetRound = edge.targetRoundNumber || 1;
     if (targetRound <= 1) continue;
     const source = state.nodes.find((n) => n.id === edge.sourceNodeId);

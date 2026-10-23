@@ -6,6 +6,7 @@
  * from individual node structureTypes, which only describe the
  * structure shape (SE, FEED_IN, ROUND_ROBIN, AD_HOC).
  */
+import { carriesQualifiers, traversesByFinishingPosition } from './edgeTraversal';
 import type { TopologyState, TopologyNode, TopologyEdge } from '../types';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 
@@ -19,14 +20,11 @@ const {
   FIRST_MATCH_LOSER_CONSOLATION,
   FEED_IN_CHAMPIONSHIP,
   COMPASS,
-  WINNER,
   LOSER,
   ROUND_ROBIN,
   AD_HOC,
   LUCKY_DRAW
 } = drawDefinitionConstants;
-
-const POSITION = 'POSITION';
 
 export interface DrawOptionsResult {
   drawOptions: any;
@@ -41,12 +39,12 @@ function inferFactoryDrawType(state: TopologyState, mainNode: TopologyNode): str
   const qualifyingNodes = state.nodes.filter((n) => n.stage === QUALIFYING);
   const playoffNodes = state.nodes.filter((n) => n.stage === PLAY_OFF);
 
-  // RR with POSITION links to playoff nodes → ROUND_ROBIN_WITH_PLAYOFF
+  // RR with finishing-position links (POSITION, or WINNER naming finishingPositions) to playoff nodes → ROUND_ROBIN_WITH_PLAYOFF
   if (mainNode.structureType === ROUND_ROBIN) {
     const hasPlayoffs = state.edges.some(
       (e) =>
         e.sourceNodeId === mainNode.id &&
-        e.linkType === POSITION &&
+        traversesByFinishingPosition(e, state.nodes) &&
         state.nodes.some((n) => n.id === e.targetNodeId && n.stage === PLAY_OFF)
     );
     return hasPlayoffs ? 'ROUND_ROBIN_WITH_PLAYOFF' : ROUND_ROBIN;
@@ -115,7 +113,7 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
   };
 
   if (qualifyingNodes.length > 0) {
-    applyQualifyingProfiles(drawOptions, qualifyingNodes, state.edges);
+    applyQualifyingProfiles(drawOptions, qualifyingNodes, state);
   }
 
   const postGenerationMethods: any[] = [];
@@ -198,7 +196,9 @@ function buildPlayoffOptions(
   const rrPositionEdges = isMainRR
     ? state.edges.filter(
         (e) =>
-          e.sourceNodeId === mainNode.id && e.linkType === POSITION && playoffNodes.some((p) => p.id === e.targetNodeId)
+          e.sourceNodeId === mainNode.id &&
+          traversesByFinishingPosition(e, state.nodes) &&
+          playoffNodes.some((p) => p.id === e.targetNodeId)
       )
     : [];
 
@@ -246,10 +246,9 @@ function buildPlayoffOptions(
   }
 }
 
-function applyQualifyingProfiles(drawOptions: any, qualifyingNodes: TopologyNode[], edges: TopologyEdge[]): void {
-  const qualifyingEdges = edges.filter(
-    (e) => e.linkType === WINNER && qualifyingNodes.some((n) => n.id === e.sourceNodeId)
-  );
+function applyQualifyingProfiles(drawOptions: any, qualifyingNodes: TopologyNode[], state: TopologyState): void {
+  // a qualifying structure's qualifiers leave by a round winner edge, or (a round robin) by a finishing-position edge
+  const qualifyingEdges = state.edges.filter((e) => carriesQualifiers(e, state.nodes));
 
   const byTargetRound: Record<number, { node: TopologyNode; edge: TopologyEdge }[]> = {};
   for (const qNode of qualifyingNodes) {

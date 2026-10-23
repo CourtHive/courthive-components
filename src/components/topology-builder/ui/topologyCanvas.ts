@@ -2,22 +2,30 @@
  * Topology Canvas — Main canvas with SVG edges layer and HTML nodes layer.
  * Handles link creation interaction via port dragging.
  */
-import { drawDefinitionConstants } from 'tods-competition-factory';
 import { buildStructureCard, getPortPosition, getCardWidth, getNumRounds } from './structureCard';
 import { getFeedRoundCapacities } from '../domain/feedRounds';
+import {
+  carriesQualifiers,
+  edgeDisplayType,
+  isRoundWinnerEdge,
+  traversesByFinishingPosition
+} from '../domain/edgeTraversal';
+
+// constants and types
+import type { TopologyState, TopologyEdge, TopologyNode, UIPanel } from '../types';
 import type { RoundAnnotation, PositionChip } from './structureCard';
-import type { TopologyState, TopologyEdge, UIPanel } from '../types';
+import { drawDefinitionConstants } from 'tods-competition-factory';
 
 const { WINNER, LOSER, QUALIFYING, CONSOLATION, ROUND_ROBIN } = drawDefinitionConstants;
 const POSITION = 'POSITION';
 
 const isRoundRobin = (structureType: string) => structureType === ROUND_ROBIN;
 
-import type { TopologyNode } from '../types';
-
 function computeAdvanceInfo(node: TopologyNode, state: TopologyState): string | undefined {
   if (!isRoundRobin(node.structureType)) return undefined;
-  const positionEdges = state.edges.filter((e) => e.sourceNodeId === node.id && e.linkType === POSITION);
+  const positionEdges = state.edges.filter(
+    (e) => e.sourceNodeId === node.id && traversesByFinishingPosition(e, state.nodes)
+  );
   if (!positionEdges.length) return undefined;
   const allPositions = new Set(positionEdges.flatMap((e) => e.finishingPositions || []));
   const groupSize = node.structureOptions?.groupSize || 4;
@@ -153,7 +161,7 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
   function computeNodesWithWinnerLink(state: TopologyState): Set<string> {
     return new Set(
       state.edges
-        .filter((e) => e.linkType === WINNER)
+        .filter((e) => isRoundWinnerEdge(e, state.nodes))
         .map((e) => e.sourceNodeId)
         .filter((id) => {
           const node = state.nodes.find((n) => n.id === id);
@@ -165,11 +173,14 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
   function computeAnnotationsByNode(state: TopologyState): Map<string, RoundAnnotation[]> {
     const annotationsByNode = new Map<string, RoundAnnotation[]>();
     for (const edge of state.edges) {
-      let srcRound = edge.sourceRoundNumber;
+      // a finishing-position edge leaves its source by tally, not from a round: its sourceRoundNumber decides nothing
+      const byFinishingPosition = traversesByFinishingPosition(edge, state.nodes);
+      let srcRound = byFinishingPosition ? undefined : edge.sourceRoundNumber;
       const tgtRound = edge.targetRoundNumber;
       const sel = edge.id === state.selectedEdgeId;
+      const linkType = edgeDisplayType(edge, state.nodes);
 
-      if (!srcRound && edge.linkType === WINNER) {
+      if (!srcRound && isRoundWinnerEdge(edge, state.nodes)) {
         const sourceNode = state.nodes.find((n) => n.id === edge.sourceNodeId);
         if (sourceNode) {
           srcRound = getNumRounds(sourceNode);
@@ -180,7 +191,7 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
         if (!annotationsByNode.has(edge.sourceNodeId)) annotationsByNode.set(edge.sourceNodeId, []);
         annotationsByNode.get(edge.sourceNodeId)!.push({
           roundNumber: srcRound,
-          linkType: edge.linkType,
+          linkType,
           direction: 'source',
           edgeId: edge.id,
           isSelected: sel
@@ -190,7 +201,7 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
         if (!annotationsByNode.has(edge.targetNodeId)) annotationsByNode.set(edge.targetNodeId, []);
         annotationsByNode.get(edge.targetNodeId)!.push({
           roundNumber: tgtRound,
-          linkType: edge.linkType,
+          linkType,
           direction: 'target',
           edgeId: edge.id,
           isSelected: sel
@@ -203,7 +214,7 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
   function computeNodeWarnings(state: TopologyState): Map<string, string[]> {
     const feedEdgesByTarget = new Map<string, { targetRound: number; qp: number; warning: string }[]>();
     for (const edge of state.edges) {
-      if (edge.linkType !== WINNER) continue;
+      if (!carriesQualifiers(edge, state.nodes)) continue;
       const targetRound = edge.targetRoundNumber || 1;
       if (targetRound <= 1) continue;
       const source = state.nodes.find((n) => n.id === edge.sourceNodeId);
@@ -240,7 +251,9 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
     const positionChipsByNode = new Map<string, PositionChip[]>();
     for (const node of state.nodes) {
       if (!isRoundRobin(node.structureType)) continue;
-      const posEdges = state.edges.filter((e) => e.sourceNodeId === node.id && e.linkType === POSITION);
+      const posEdges = state.edges.filter(
+        (e) => e.sourceNodeId === node.id && traversesByFinishingPosition(e, state.nodes)
+      );
       if (!posEdges.length) continue;
       const chips: PositionChip[] = [];
       for (const edge of posEdges) {
@@ -408,9 +421,10 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
     // Visible path
     const path = document.createElementNS(SVG_NS, 'path');
     path.setAttribute('d', d);
-    path.classList.add(EDGE_COLORS[edge.linkType] || 'tb-edge--winner');
+    const displayType = edgeDisplayType(edge, state.nodes);
+    path.classList.add(EDGE_COLORS[displayType] || 'tb-edge--winner');
     if (state.selectedEdgeId === edge.id) path.classList.add('tb-edge--selected');
-    path.setAttribute('marker-end', `url(#arrowhead-${edge.linkType})`);
+    path.setAttribute('marker-end', `url(#arrowhead-${displayType})`);
 
     path.addEventListener('click', (e) => {
       e.stopPropagation();
