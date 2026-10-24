@@ -637,6 +637,8 @@ export {
   createSchedulePage,
   filterMatchUpCatalog,
   groupMatchUpCatalog,
+  visibleCatalogGroups,
+  allCatalogGroupsCollapsed,
   computeBaseRoundByEvent,
   isCompletedStatus,
   buildScheduleIssueIndex,

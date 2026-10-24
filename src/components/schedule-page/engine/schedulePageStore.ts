@@ -9,6 +9,8 @@
  * - 'bulk': actions queue in pendingActions; consumer calls save() to flush
  */
 
+import { visibleCatalogGroups } from '../domain/matchUpCatalogProjections';
+
 import type {
   SchedulePageState,
   SchedulePageChangeListener,
@@ -62,6 +64,7 @@ export class SchedulePageStore {
       catalogFilters: seed.catalogFilters ?? {},
       showCompleted: seed.showCompleted ?? false,
       showScheduled: seed.showScheduled ?? false,
+      catalogCollapsedGroups: seed.catalogCollapsedGroups ?? [],
       scheduledBehavior: config.scheduledBehavior ?? 'dim',
       schedulingMode: config.schedulingMode ?? 'immediate',
       pendingActions: [],
@@ -199,7 +202,22 @@ export class SchedulePageStore {
   }
 
   setCatalogGroupBy(mode: MatchUpCatalogGroupBy): void {
-    this.setState({ catalogGroupBy: mode });
+    // A group key means something different under each mode (an event name, a round name, a time), so
+    // the collapsed set does not carry over: the new grouping starts fully expanded.
+    if (mode === this.state.catalogGroupBy) return;
+    this.setState({ catalogGroupBy: mode, catalogCollapsedGroups: [] });
+  }
+
+  toggleCatalogGroupCollapsed(groupKey: string): void {
+    const collapsed = new Set(this.state.catalogCollapsedGroups ?? []);
+    if (collapsed.has(groupKey)) collapsed.delete(groupKey);
+    else collapsed.add(groupKey);
+    this.setState({ catalogCollapsedGroups: [...collapsed] });
+  }
+
+  /** Collapse every group the catalog currently shows, or expand them all. */
+  setAllCatalogGroupsCollapsed(collapsed: boolean): void {
+    this.setState({ catalogCollapsedGroups: collapsed ? [...visibleCatalogGroups(this.state).keys()] : [] });
   }
 
   setCatalogFilters(filters: CatalogFilters): void {

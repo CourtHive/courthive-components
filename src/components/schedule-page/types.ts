@@ -170,6 +170,8 @@ export interface SchedulePageCatalogState {
   catalogFilters?: CatalogFilters;
   showCompleted?: boolean;
   showScheduled?: boolean;
+  /** Keys of the catalog groups that are collapsed, under `catalogGroupBy`. */
+  catalogCollapsedGroups?: string[];
 }
 
 export type CatalogPlacement = 'left' | 'right' | 'bottom';
@@ -261,6 +263,12 @@ export interface SchedulePageState {
   catalogFilters: CatalogFilters;
   showCompleted: boolean;
   showScheduled: boolean;
+  /**
+   * Keys of the collapsed catalog groups. Store state rather than the panel's own, so a host that
+   * snapshots `SchedulePageCatalogState` keeps the operator's collapsed groups across a remount.
+   * Optional so a state built by hand (a story, a test) need not name it; absent means none.
+   */
+  catalogCollapsedGroups?: string[];
   scheduledBehavior: ScheduledBehavior;
   schedulingMode: SchedulingMode;
   pendingActions: PendingScheduleAction[];

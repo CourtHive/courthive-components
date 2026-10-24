@@ -5,7 +5,13 @@
  * Search matches on participant names (primary), event/draw/round names.
  */
 
-import type { CatalogMatchUpItem, CatalogFilters, MatchUpCatalogGroupBy, ScheduledBehavior } from '../types';
+import type {
+  CatalogMatchUpItem,
+  CatalogFilters,
+  MatchUpCatalogGroupBy,
+  ScheduledBehavior,
+  SchedulePageState
+} from '../types';
 import { matchUpSearchKey } from './utils';
 
 /** MatchUp statuses that indicate the matchUp is finished. */
@@ -183,4 +189,41 @@ export function groupMatchUpCatalog(
         return a[0].localeCompare(b[0], undefined, { numeric: true });
       })
   );
+}
+
+/** The state a catalog view is derived from — every field `visibleCatalogGroups` reads. */
+type CatalogViewState = Pick<
+  SchedulePageState,
+  | 'matchUpCatalog'
+  | 'catalogSearchQuery'
+  | 'catalogFilters'
+  | 'showCompleted'
+  | 'showScheduled'
+  | 'scheduledBehavior'
+  | 'catalogGroupBy'
+>;
+
+/**
+ * The groups the catalog shows for a state, in display order. One derivation for the panel that draws
+ * them and the store that collapses them, so "collapse all" collapses exactly what is on screen.
+ */
+export function visibleCatalogGroups(state: CatalogViewState): Map<string, CatalogMatchUpItem[]> {
+  const behavior = state.showScheduled ? state.scheduledBehavior : 'hide';
+  const filtered = filterMatchUpCatalog(
+    state.matchUpCatalog,
+    state.catalogSearchQuery,
+    behavior,
+    state.catalogFilters,
+    state.showCompleted
+  );
+  return groupMatchUpCatalog(filtered, state.catalogGroupBy);
+}
+
+/** True when the catalog shows at least one group and every group it shows is collapsed. */
+export function allCatalogGroupsCollapsed(
+  state: CatalogViewState & Pick<SchedulePageState, 'catalogCollapsedGroups'>
+): boolean {
+  const keys = [...visibleCatalogGroups(state).keys()];
+  const collapsed = new Set(state.catalogCollapsedGroups ?? []);
+  return keys.length > 0 && keys.every((key) => collapsed.has(key));
 }
