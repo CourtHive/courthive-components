@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.12.1](https://github.com/CourtHive/courthive-components/compare/v6.12.0...v6.12.1) (2026-10-24)
+
+
+### Bug Fixes
+
+* **modal:** the multi-select panel draws over the footer and stays inside the window ([#792](https://github.com/CourtHive/courthive-components/issues/792)) ([19c76db](https://github.com/CourtHive/courthive-components/commit/19c76dbd0ea6ce49b8246b6235d937542ed3fe09))
+
 ## [6.12.0](https://github.com/CourtHive/courthive-components/compare/v6.11.0...v6.12.0) (2026-10-23)
 
 
