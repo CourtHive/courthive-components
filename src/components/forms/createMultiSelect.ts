@@ -57,6 +57,8 @@ export function createMultiSelect(item: MultiSelectItem): { container: HTMLDivEl
 
   // --- dropdown panel ---
   const dropdown = document.createElement('div');
+  // Inside a modal body the panel would be clipped by the body's scrolling; see anchorModalPopups.
+  dropdown.className = 'chc-multi-select-dropdown';
   dropdown.style.cssText = [
     'display: none',
     'position: absolute',
@@ -70,7 +72,8 @@ export function createMultiSelect(item: MultiSelectItem): { container: HTMLDivEl
     'border-top: none',
     'border-radius: 0 0 4px 4px',
     'background: var(--chc-dropdown-bg, #fff)',
-    'box-shadow: 0 4px 8px rgba(0,0,0,0.1)'
+    'box-shadow: 0 4px 8px rgba(0,0,0,0.1)',
+    'box-sizing: border-box'
   ].join('; ');
 
   // build rows
@@ -118,6 +121,12 @@ export function createMultiSelect(item: MultiSelectItem): { container: HTMLDivEl
   function toggle() {
     open = !open;
     dropdown.style.display = open ? 'block' : 'none';
+    if (open) requestPlacement();
+  }
+
+  // Ask a host (cModal's anchorModalPopups) to position the open panel; the trigger grows as tags wrap.
+  function requestPlacement() {
+    container.dispatchEvent(new Event('chc-multi-select-place', { bubbles: true }));
   }
 
   function close() {
@@ -194,6 +203,7 @@ export function createMultiSelect(item: MultiSelectItem): { container: HTMLDivEl
         state.delete(value);
       }
       renderTags();
+      if (open) requestPlacement();
       fireChange();
     });
   }
