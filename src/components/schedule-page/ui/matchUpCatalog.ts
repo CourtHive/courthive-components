@@ -19,12 +19,7 @@ import type {
   CatalogFilters,
   SchedulePageDragPayload
 } from '../types';
-import {
-  filterMatchUpCatalog,
-  groupMatchUpCatalog,
-  isCompletedStatus,
-  computeBaseRoundByEvent
-} from '../domain/matchUpCatalogProjections';
+import { visibleCatalogGroups, isCompletedStatus, computeBaseRoundByEvent } from '../domain/matchUpCatalogProjections';
 import {
   spPanelStyle,
   spPanelHeaderStyle,
@@ -56,6 +51,8 @@ export interface MatchUpCatalogCallbacks {
   renderCardExtra?: (matchUp: CatalogMatchUpItem) => HTMLElement | null;
   /** Forwarded to every card as `MatchUpCardOptions.relatedMatchUpIds`. See that contract. */
   relatedMatchUpIds?: (matchUp: CatalogMatchUpItem) => string[];
+  /** A group header was clicked. The collapsed set is store state (`catalogCollapsedGroups`). */
+  onToggleGroupCollapsed?: (groupKey: string) => void;
 }
 
 /** Extract unique sorted values for a field from the catalog. */
@@ -78,7 +75,6 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
 
   const CATALOG_DROP_OVER = 'spl-catalog-drop-over';
   const FILTERING_CLASS = 'is-filtering';
-  const collapsedGroups = new Set<string>();
   let lastState: SchedulePageState | null = null;
   // What the cards were last built from (see `cardInputs`); null forces the next build.
   let builtFrom: unknown[] | null = null;
@@ -373,7 +369,8 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
       state.catalogFilters,
       state.showCompleted,
       state.showScheduled,
-      state.scheduledBehavior
+      state.scheduledBehavior,
+      state.catalogCollapsedGroups
     ];
   }
 
@@ -403,17 +400,11 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
     // scheduling priority hasn't changed.
     const baseRoundByEvent = computeBaseRoundByEvent(state.matchUpCatalog);
 
-    const behavior = state.showScheduled ? state.scheduledBehavior : 'hide';
-    const filtered = filterMatchUpCatalog(
-      state.matchUpCatalog,
-      state.catalogSearchQuery,
-      behavior,
-      state.catalogFilters,
-      state.showCompleted
-    );
-    const groups = groupMatchUpCatalog(filtered, state.catalogGroupBy);
+    // The same derivation the store collapses from, so "collapse all" collapses exactly these groups.
+    const groups = visibleCatalogGroups(state);
+    const collapsedGroups = new Set(state.catalogCollapsedGroups ?? []);
 
-    const unscheduledCount = filtered.filter((m) => !m.isScheduled).length;
+    const unscheduledCount = [...groups.values()].flat().filter((m) => !m.isScheduled).length;
     meta.textContent = `${unscheduledCount} unscheduled`;
 
     // Sync controls
@@ -452,15 +443,7 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
       gh.appendChild(chevron);
       gh.appendChild(ghLabel);
 
-      gh.addEventListener('click', () => {
-        if (collapsedGroups.has(gk)) {
-          collapsedGroups.delete(gk);
-        } else {
-          collapsedGroups.add(gk);
-        }
-        builtFrom = null;
-        if (lastState) update(lastState);
-      });
+      gh.addEventListener('click', () => callbacks.onToggleGroupCollapsed?.(gk));
 
       const gb = document.createElement('div');
       gb.className = spGroupBodyStyle();

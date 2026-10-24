@@ -68,7 +68,8 @@ export class SchedulePageControl {
         this.store.handleMatchUpRemove(matchUpId);
       },
       renderCardExtra: config.renderCardExtra,
-      relatedMatchUpIds: config.relatedMatchUpIds
+      relatedMatchUpIds: config.relatedMatchUpIds,
+      onToggleGroupCollapsed: (groupKey: string) => this.store.toggleCatalogGroupCollapsed(groupKey)
     });
 
     const inspectorPanel = buildScheduleInspectorPanel({ renderExtra: config.renderInspectorExtra });

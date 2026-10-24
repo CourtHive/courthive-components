@@ -23,6 +23,8 @@ export { SchedulePageStore } from './engine/schedulePageStore';
 export {
   filterMatchUpCatalog,
   groupMatchUpCatalog,
+  visibleCatalogGroups,
+  allCatalogGroupsCollapsed,
   computeBaseRoundByEvent,
   isCompletedStatus
 } from './domain/matchUpCatalogProjections';

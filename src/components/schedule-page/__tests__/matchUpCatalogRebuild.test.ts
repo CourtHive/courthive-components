@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { allCatalogGroupsCollapsed } from '../domain/matchUpCatalogProjections';
 import { SchedulePageStore } from '../engine/schedulePageStore';
 import { buildMatchUpCatalog } from '../ui/matchUpCatalog';
 import type { CatalogMatchUpItem } from '../types';
@@ -29,6 +30,12 @@ const catalog = [
   item('B2', 'Bravo')
 ];
 
+/** The group header whose label starts with `name`, e.g. `Alpha (2)`. */
+const groupHeader = (panel: { element: HTMLElement }, name: string) =>
+  Array.from(panel.element.querySelectorAll<HTMLElement>('button.sp-group-header')).find((el) =>
+    el.lastElementChild?.textContent?.startsWith(`${name} (`)
+  )!;
+
 function mount() {
   const store = new SchedulePageStore({ matchUpCatalog: catalog, scheduleDates: [] });
   let extras = 0;
@@ -37,6 +44,7 @@ function mount() {
     onGroupByChange: (mode) => store.setCatalogGroupBy(mode),
     onFilterChange: (filters) => store.setCatalogFilters(filters),
     onShowCompletedChange: (show) => store.setShowCompleted(show),
+    onToggleGroupCollapsed: (groupKey) => store.toggleCatalogGroupCollapsed(groupKey),
     renderCardExtra: () => {
       extras += 1;
       return null;
@@ -117,10 +125,7 @@ describe('matchUpCatalog rebuilds', () => {
   it('builds no cards for a collapsed group, and builds them on expanding it', () => {
     const { panel, builds, cards } = mount();
     builds();
-    const header = (name: string) =>
-      Array.from(panel.element.querySelectorAll<HTMLElement>('button.sp-group-header')).find((el) =>
-        el.lastElementChild?.textContent?.startsWith(`${name} (`)
-      )!;
+    const header = (name: string) => groupHeader(panel, name);
 
     header('Alpha').click();
     expect(builds()).toEqual(2);
@@ -129,5 +134,66 @@ describe('matchUpCatalog rebuilds', () => {
     header('Alpha').click();
     expect(builds()).toEqual(catalog.length);
     expect(cards()).toHaveLength(catalog.length);
+  });
+});
+
+describe('collapsed groups are store state', () => {
+  const header = groupHeader;
+
+  it('collapses every visible group, then expands them all', () => {
+    const { store, cards } = mount();
+    store.setAllCatalogGroupsCollapsed(true);
+    expect(store.getState().catalogCollapsedGroups?.sort()).toEqual(['Alpha', 'Bravo']);
+    expect(allCatalogGroupsCollapsed(store.getState())).toBe(true);
+    expect(cards()).toHaveLength(0);
+
+    store.setAllCatalogGroupsCollapsed(false);
+    expect(store.getState().catalogCollapsedGroups).toEqual([]);
+    expect(cards()).toHaveLength(catalog.length);
+  });
+
+  it('collapses only what is on screen, and reads "all collapsed" against what is on screen', () => {
+    const { store } = mount();
+    store.setCatalogFilters({ eventName: 'Bravo' });
+    store.setAllCatalogGroupsCollapsed(true);
+    expect(store.getState().catalogCollapsedGroups).toEqual(['Bravo']);
+    expect(allCatalogGroupsCollapsed(store.getState())).toBe(true);
+    // Clearing the filter brings Alpha back expanded, so the catalog is no longer all collapsed.
+    store.setCatalogFilters({});
+    expect(allCatalogGroupsCollapsed(store.getState())).toBe(false);
+  });
+
+  it('is never "all collapsed" when nothing is shown', () => {
+    const { store } = mount();
+    store.setCatalogSearch('no such player');
+    expect(allCatalogGroupsCollapsed(store.getState())).toBe(false);
+  });
+
+  it('starts a new grouping fully expanded', () => {
+    const { store } = mount();
+    store.setAllCatalogGroupsCollapsed(true);
+    store.setCatalogGroupBy('round');
+    expect(store.getState().catalogCollapsedGroups).toEqual([]);
+    // Re-selecting the current mode is not a change and keeps the set.
+    store.setAllCatalogGroupsCollapsed(true);
+    store.setCatalogGroupBy('round');
+    expect(store.getState().catalogCollapsedGroups?.length).toBeGreaterThan(0);
+  });
+
+  it('restores collapsed groups from initialCatalogState, as a host remount does', () => {
+    const store = new SchedulePageStore({
+      matchUpCatalog: catalog,
+      scheduleDates: [],
+      initialCatalogState: { catalogCollapsedGroups: ['Alpha'] }
+    });
+    const panel = buildMatchUpCatalog({
+      onSearchChange: () => undefined,
+      onGroupByChange: () => undefined,
+      onFilterChange: () => undefined,
+      onShowCompletedChange: () => undefined
+    });
+    panel.update(store.getState());
+    expect(header(panel, 'Alpha').getAttribute('aria-expanded')).toBe('false');
+    expect(header(panel, 'Bravo').getAttribute('aria-expanded')).toBe('true');
   });
 });
