@@ -1,5 +1,17 @@
 # Changelog
 
+## [6.13.0](https://github.com/CourtHive/courthive-components/compare/v6.12.1...v6.13.0) (2026-10-24)
+
+
+### Features
+
+* **schedule-page:** collapsed catalog groups are store state, with collapse-all ([#797](https://github.com/CourtHive/courthive-components/issues/797)) ([069f699](https://github.com/CourtHive/courthive-components/commit/069f69922b9b637470f8198f87297c4d75a7c814))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.21.0 ([#796](https://github.com/CourtHive/courthive-components/issues/796)) ([0502f3f](https://github.com/CourtHive/courthive-components/commit/0502f3f2b89b89b413e0d356e6ec0bb2a9e53f7d))
+
 ## [6.12.1](https://github.com/CourtHive/courthive-components/compare/v6.12.0...v6.12.1) (2026-10-24)
 
 
