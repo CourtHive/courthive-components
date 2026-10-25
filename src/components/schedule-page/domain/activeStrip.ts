@@ -63,6 +63,11 @@ export interface ActiveStripCell {
   state: ActiveStripCellState;
   matchUp?: ActiveStripGridMatchUp;
   rowIndex?: number;
+  /**
+   * Set only on a `free` cell whose column still holds an un-called pending matchUp: the court is
+   * idle now, but work is queued on it and will move onto the strip when it is called.
+   */
+  hasPending?: boolean;
 }
 
 export interface ActiveStripDropCandidate {
@@ -153,6 +158,7 @@ export function computeActiveStripCell(
 
   let firstPendingIndex = -1;
   let firstDueIndex = -1;
+  let hasUncalledPending = false;
 
   for (let i = 0; i < cells.length; i++) {
     const cell = cells[i];
@@ -172,8 +178,9 @@ export function computeActiveStripCell(
     if (kind === KIND_PENDING && cell.calledAt && firstPendingIndex === -1) {
       firstPendingIndex = i;
     }
-    if (kind === KIND_PENDING && !cell.calledAt && firstDueIndex === -1 && due?.has(cell.matchUpId)) {
-      firstDueIndex = i;
+    if (kind === KIND_PENDING && !cell.calledAt) {
+      hasUncalledPending = true;
+      if (firstDueIndex === -1 && due?.has(cell.matchUpId)) firstDueIndex = i;
     }
   }
 
@@ -201,7 +208,10 @@ export function computeActiveStripCell(
   // No in-progress, no called matchUp, nothing overdue — the court reads as free
   // even when it has un-called pending or only completed matchUps. The grid below
   // shows the history/plan; the strip is only for what's live, called, or late.
-  return { courtId: column.courtId, state: 'free' };
+  // `hasPending` lets the strip mark an idle court that still has work queued on it.
+  return hasUncalledPending
+    ? { courtId: column.courtId, state: 'free', hasPending: true }
+    : { courtId: column.courtId, state: 'free' };
 }
 
 export function computeActiveStrip(grid: ActiveStripGrid, options?: ActiveStripStatusOptions): ActiveStripCell[] {
