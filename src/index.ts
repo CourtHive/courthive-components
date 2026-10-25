@@ -103,6 +103,7 @@ export type { DrawerOptions } from './components/drawer/drawer';
 // Theme variables (CSS bundled in courthive-components.css)
 import './styles/theme.css';
 import './styles/themes.css';
+import './styles/palettes.css';
 import './styles/draw.css';
 import './styles/schematic.css';
 import './components/topology-builder/ui/topology-builder.css';
@@ -822,3 +823,15 @@ export type {
   MatchUpAverageTime,
   MatchUpRecoveryTime
 } from './components/policy-catalog';
+
+// Color palettes: one light and one dark palette per user, selected with `data-palette` on <html>
+export {
+  THEME_PALETTES,
+  DEFAULT_DARK_PALETTE,
+  DEFAULT_LIGHT_PALETTE,
+  applyThemePalette,
+  getThemePalettes,
+  defaultThemePalette,
+  resolveThemePalette
+} from './theme/palettes';
+export type { ThemeMode, ThemePalette } from './theme/palettes';
