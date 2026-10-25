@@ -38,7 +38,8 @@ function buildParticipantInputField(side, individualParticipant, matchUp, sideNu
 function buildParticipantNameDisplay(name, participantName, isWinningSide, configuration, individualParticipant, side) {
   const span = document.createElement('span');
   if (isWinningSide && configuration?.winnerColor) {
-    span.style.color = typeof configuration.winnerColor === 'string' ? configuration.winnerColor : 'green';
+    span.style.color =
+      typeof configuration.winnerColor === 'string' ? configuration.winnerColor : 'var(--chc-status-success)';
   } else if (configuration?.genderColor) {
     const gender = individualParticipant?.person?.sex;
     const color =
