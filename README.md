@@ -40,7 +40,7 @@ Update a budget deliberately with `pnpm verify:consumer-bundle --update-baseline
 ## Quick Start
 
 ```javascript
-import { renderMatchUp, scoringModal, compositions } from 'courthive-components';
+import { renderMatchUp, openScoreEntryDialog, compositions } from 'courthive-components';
 
 // Render a match display
 const matchUpElement = renderMatchUp({
@@ -49,11 +49,12 @@ const matchUpElement = renderMatchUp({
 });
 document.getElementById('container').appendChild(matchUpElement);
 
-// Open scoring modal
-scoringModal({
+// Open the score entry dialog
+openScoreEntryDialog({
   matchUp: myMatchUpData,
-  callback: (outcome) => {
-    console.log('Score submitted:', outcome);
+  sides: [{ participantName: 'Ann' }, { participantName: 'Bea' }],
+  onSubmit: ({ outcome }) => {
+    console.log('Engine-ready outcome:', outcome);
   }
 });
 ```
@@ -167,30 +168,24 @@ cModal.open({
 });
 ```
 
-#### **scoringModal**
+#### **openScoreEntryDialog**
 
-Two scoring APIs remain supported. New integrations should use `openScoreEntryDialog`
-(the shared model/store-based card dialog); see `src/components/scoring/TMX_INTEGRATION.md`
-for its engine-outcome handoff. TMX chooses between it and `scoringModal` through a feature flag.
-`scoringModal` below is the existing configurable modal API. Their callback contracts differ.
-
-Interactive score entry with multiple input approaches.
+Score entry in a modal: three interchangeable approaches over one card, a live format picker,
+irregular endings with their policy reason codes, and reopening a recorded outcome.
 
 ```javascript
-import { scoringModal, setScoringConfig } from 'courthive-components';
+import { openScoreEntryDialog } from 'courthive-components';
 
-// Configure scoring behavior
-setScoringConfig({
-  scoringApproach: 'dynamicSets', // 'dynamicSets' | 'freeScore' | 'dialPad'
-  smartComplements: true,
-  composition: 'Australian'
-});
-
-// Open scoring modal
-scoringModal({
-  matchUp: matchUpData,
-  callback: (outcome) => {
-    // outcome: { isValid, sets, winningSide, matchUpStatus }
+openScoreEntryDialog({
+  matchUp, // prefills a recorded outcome: matchUp.score.sets, matchUpStatus, winningSide
+  sides: [{ participantName: 'Ann', seed: '1' }, { participantName: 'Bea' }],
+  approach: 'dynamicSets', // 'dynamicSets' | 'freeScore' | 'dialPad'; the operator can switch in the dialog
+  statusCodeGroups, // the scoring policy's matchUpStatusCodes; omit and no reason chips are drawn
+  clearable: true, // false when a later match depends on the result, so an empty submit is refused
+  disabledMatchUpStatuses: [], // statuses the engine's SCORE action refuses for this matchUp
+  onApproachChange: (approach) => savePreference(approach),
+  onSubmit: ({ outcome, sets }) => {
+    // outcome is engine-ready: hand it to setMatchUpStatus as is
   }
 });
 ```
@@ -394,7 +389,7 @@ Components are designed to work with TODS (Tennis Open Data Standards) data stru
 
 ```javascript
 import { tournamentEngine } from 'tods-competition-factory';
-import { renderMatchUp, scoringModal } from 'courthive-components';
+import { renderMatchUp, openScoreEntryDialog } from 'courthive-components';
 
 // Get match data from factory
 const { matchUp } = tournamentEngine.findMatchUp({ matchUpId });
@@ -402,19 +397,12 @@ const { matchUp } = tournamentEngine.findMatchUp({ matchUpId });
 // Render with components
 const display = renderMatchUp({ matchUp });
 
-// Score with modal
-scoringModal({
+// Score with the dialog; its outcome is already the shape setMatchUpStatus reads
+openScoreEntryDialog({
   matchUp,
-  callback: (outcome) => {
-    // Update tournament using factory
-    tournamentEngine.setMatchUpStatus({
-      matchUpId,
-      outcome: {
-        score: { sets: outcome.sets },
-        winningSide: outcome.winningSide,
-        matchUpStatus: outcome.matchUpStatus
-      }
-    });
+  sides: matchUp.sides.map((side) => ({ participantName: side.participant?.participantName ?? '' })),
+  onSubmit: ({ outcome }) => {
+    tournamentEngine.setMatchUpStatus({ matchUpId, drawId: matchUp.drawId, outcome });
   }
 });
 ```

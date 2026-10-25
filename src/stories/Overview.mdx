@@ -93,15 +93,10 @@ export const GROUPS = [
     items: [
       [
         'Score Entry',
-        'The score-entry card, in a modal, over a real draw (so Submit reaches the engine), and round-tripping an outcome out of the dialog and back in.'
-      ],
-      [
-        'Approaches',
-        "The scoring modal's input approaches: free score, dynamic sets, dial pad, game-score capture, approach switching."
+        'The score-entry card and dialog: its three approaches (dynamic sets, free score, dial pad), over a real draw (so Submit reaches the engine), and round-tripping an outcome and its reason code out of the dialog and back in.'
       ],
       ['Inline Scoring', 'Scoring matchUps directly in a draw bracket, and coverage across matchUp formats.'],
       ['MatchUp Format', 'MatchUp format code editor for defining scoring rules (sets, games, tiebreaks, points).'],
-      ['Reason Codes', 'A scoring reason code survives the trip out of the dialog and back in.'],
       ['Status Scope', 'Which matchUp statuses the dialog offers: restricted and unrestricted.'],
       ['Team Scorecard', 'Team-match scorecard, in progress and completed, across composition themes.']
     ]
@@ -231,7 +226,7 @@ export const GROUPS = [
     topology-builder/        Controller / Domain / Engine / UI layers
     scheduling-profile/      Controller / Domain / Engine / UI layers
     availability-grid/           Controller / Engine / UI layers
-    scoring/                 Approaches / Logic / Utils
+    scoring/                 Score entry card + dialog / Regions / Logic
     renderStructure/         Draw bracket rendering
     renderSchematicStructure/  Compact schematic previews
     forms/                   Declarative form system
@@ -301,7 +296,7 @@ pnpm build`}
 >
   {`import {
   renderStructure,
-  scoringModal,
+  openScoreEntryDialog,
   TopologyBuilderControl,
 } from 'courthive-components';
 import 'courthive-components/dist/courthive-components.css';`}

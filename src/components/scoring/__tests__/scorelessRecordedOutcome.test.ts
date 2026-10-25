@@ -1,8 +1,6 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { openScoreEntryDialog } from '../scoreEntryDialog';
-import { scoringModal } from '../scoringModal';
-import { setScoringConfig } from '../config';
 import { cModal } from '../../modal/cmodal';
 
 const CLEAR_SELECTOR = '[data-action="clear"]';
@@ -34,45 +32,11 @@ beforeEach(() => {
 afterEach(() => {
   closeAll();
   vi.useRealTimers();
-  setScoringConfig({ scoringApproach: 'dynamicSets' });
 });
 
 describe('clearing an imported retirement with no score', () => {
-  for (const approach of ['dynamicSets', 'dialPad', 'freeScore', 'inlineScoring'] as const) {
-    it(`${approach}: permits explicit Clear and Submit without retaining the retirement or winner`, () => {
-      setScoringConfig({ scoringApproach: approach });
-      const callback = vi.fn();
-      scoringModal({ matchUp: retired(), callback, clearable: true });
-      vi.advanceTimersByTime(200);
-      const clear = document.getElementById('clearScoreV2') as HTMLButtonElement;
-      expect(clear).toBeTruthy();
-      expect(clear.disabled).toBe(false);
-      clear.click();
-      vi.advanceTimersByTime(200);
-      const submit = document.getElementById('submitScoreV2') as HTMLButtonElement;
-      expect(submit.disabled).toBe(false);
-      submit.click();
-      expect(callback).toHaveBeenCalledOnce();
-      const outcome = callback.mock.calls[0][0];
-      expect(outcome.sets).toEqual([]);
-      expect(outcome.winningSide).toBeFalsy();
-      expect(outcome.matchUpStatus ?? 'TO_BE_PLAYED').toBe('TO_BE_PLAYED');
-    });
-
-    it(`${approach}: allows a form reset but refuses submitting an empty removal`, () => {
-      setScoringConfig({ scoringApproach: approach });
-      scoringModal({ matchUp: retired(), callback: vi.fn(), clearable: false });
-      vi.advanceTimersByTime(200);
-      const clear = document.getElementById('clearScoreV2') as HTMLButtonElement;
-      expect(clear.disabled).toBe(false);
-      clear.click();
-      vi.advanceTimersByTime(200);
-      expect((document.getElementById('submitScoreV2') as HTMLButtonElement).disabled).toBe(true);
-    });
-  }
-
   for (const approach of ['dynamicSets', 'dialPad', 'freeScore'] as const) {
-    it(`new dialog ${approach}: can clear the imported status`, () => {
+    it(`${approach}: can clear the imported status`, () => {
       const onSubmit = vi.fn();
       openScoreEntryDialog({
         matchUp: retired(),
@@ -98,7 +62,7 @@ describe('clearing an imported retirement with no score', () => {
   }
 
   for (const approach of ['dynamicSets', 'dialPad', 'freeScore'] as const) {
-    it(`new dialog ${approach}: Clear resets the form without permitting empty submission`, () => {
+    it(`${approach}: Clear resets the form without permitting empty submission`, () => {
       const onSubmit = vi.fn();
       openScoreEntryDialog({
         matchUp: retired(),
@@ -117,7 +81,7 @@ describe('clearing an imported retirement with no score', () => {
     });
   }
 
-  it('new dialog: Clear permits retyping a score while an empty removal is refused', () => {
+  it('Clear permits retyping a score while an empty removal is refused', () => {
     const onSubmit = vi.fn();
     openScoreEntryDialog({
       matchUp: retired(),

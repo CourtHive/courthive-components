@@ -8,7 +8,6 @@ import { isComplete, matchUpStatus, winningSide, error } from '../logic/scoreEnt
 import { createScoreEntryModel, setCell } from '../logic/scoreEntryModel';
 import { isCompletedLevelClose } from '../logic/combinedPointTie';
 import { G } from '../logic/__tests__/scoreEntryModelTestHelpers';
-import { validateScore } from '../utils/scoreValidator';
 import { describe, expect, it } from 'vitest';
 
 const AGGREGATE_TIMED = 'SET2XA-S:T10';
@@ -54,29 +53,6 @@ describe('isCompletedLevelClose', () => {
   it('a total the factory refuses is not a completed tie, and does not throw', () => {
     expect(() => isCompletedLevelClose(sets([3.5, 3.5], [4, 4]), AGGREGATE_TIMED)).not.toThrow();
     expect(isCompletedLevelClose(sets([3.5, 3.5], [4, 4]), AGGREGATE_TIMED)).toBe(false);
-  });
-});
-
-describe('the text-entry dialogs (validateScore)', () => {
-  it('accept an aggregate level on games as a completed result with no winner', () => {
-    const outcome = validateScore('3-3 4-4', AGGREGATE_TIMED);
-    expect(outcome.isValid).toBe(true);
-    expect(outcome.winningSide).toBeUndefined();
-    expect(outcome.matchUpStatus).toBe('COMPLETED');
-  });
-
-  it('accept one tiebreak-only half each as a completed result with no winner', () => {
-    const outcome = validateScore('[11-5] [5-11]', EXACTLY_TWO_HALVES);
-    expect(outcome.isValid).toBe(true);
-    expect(outcome.winningSide).toBeUndefined();
-    expect(outcome.matchUpStatus).toBe('COMPLETED');
-  });
-
-  it('control: a won result keeps its winner, a level decider still owed is not complete', () => {
-    expect(validateScore('[11-5] [11-7]', EXACTLY_TWO_HALVES)).toMatchObject({ isValid: true, winningSide: 1 });
-    expect(validateScore('5-3 2-3', AGGREGATE_TIMED)).toMatchObject({ isValid: true, winningSide: 1 });
-    expect(validateScore('3-3', AGGREGATE_TIMED).isValid).toBe(false);
-    expect(validateScore('3-3 4-4', 'SET2XA-S:T10-F:TB1').isValid).toBe(false);
   });
 });
 

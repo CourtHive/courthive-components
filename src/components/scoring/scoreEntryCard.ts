@@ -1096,7 +1096,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    *   - `!holdsEntry()` — the card is still empty. This is what makes a clear-then-retype submit the
    *     SCORE rather than a deletion, and it is why `clearedRecordedOutcome` needs no reset.
    *
-   * Mirrors `scoringModal.ts`'s `wasCleared && hadExistingScore`, deliberately: this is the behaviour
+   * Mirrors the removed `scoringModal`'s `wasCleared && hadExistingScore`, deliberately: this is the behaviour
    * CA asked for by name — *"the current scoring modals allow for an empty score to be submitted which
    * clears a submitted score in the factory for the matchUp being modified"* — so it is the shipping
    * rule reproduced, not a second opinion about it.

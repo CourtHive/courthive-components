@@ -10,7 +10,7 @@
  * `[Clear]` left `submit.disabled === true`, so a score entered through this dialog could never be
  * taken back out through it.
  *
- * The rule is `scoringModal.ts`'s, not a new one: `wasCleared && hadExistingScore`. Each part is
+ * The rule is the one the old scoring modal used: `wasCleared && hadExistingScore`. Each part is
  * asserted separately below, because a gate that is right for the wrong reason passes the happy case
  * and fails the two that matter — a blank card offering to clear nothing, and a retyped score
  * submitting as a deletion.
@@ -18,8 +18,6 @@
 import { describe, expect, it } from 'vitest';
 
 import { openScoreEntryDialog } from '../scoreEntryDialog';
-import { scoringModal } from '../scoringModal';
-import { setScoringConfig } from '../config';
 import { cModal } from '../../modal/cmodal';
 
 const SIDES: any = [{ participantName: 'Lower' }, { participantName: 'Upper' }];
@@ -195,7 +193,7 @@ describe('clearing a recorded outcome', () => {
  * would be refused (the factory's `CLEAR_SCORE` matchUp action is absent). Resetting the form is still allowed.
  */
 describe('a recorded outcome the host says cannot be removed', () => {
-  it('score entry dialog: Clear resets the form; only submitting its empty replacement is refused', () => {
+  it('Clear resets the form; only submitting its empty replacement is refused', () => {
     let outcome: any;
     closeAll();
     openScoreEntryDialog({
@@ -223,7 +221,7 @@ describe('a recorded outcome the host says cannot be removed', () => {
     closeAll();
   });
 
-  it('score entry dialog: the host may name the reason', () => {
+  it('the host may name the reason', () => {
     closeAll();
     openScoreEntryDialog({
       sides: SIDES,
@@ -238,7 +236,7 @@ describe('a recorded outcome the host says cannot be removed', () => {
     closeAll();
   });
 
-  it('score entry dialog: clearable true, or omitted, changes nothing', () => {
+  it('clearable true, or omitted, changes nothing', () => {
     for (const clearable of [true, undefined]) {
       closeAll();
       openScoreEntryDialog({
@@ -254,44 +252,13 @@ describe('a recorded outcome the host says cannot be removed', () => {
     closeAll();
   });
 
-  it('score entry dialog: a matchUp with nothing recorded is unaffected', () => {
+  it('a matchUp with nothing recorded is unaffected', () => {
     closeAll();
     openScoreEntryDialog({ sides: SIDES, matchUpFormat: FORMAT, clearable: false } as any);
     type(1, 1, '6');
     // [Clear] still empties a half-typed entry; there was nothing recorded to protect
     expect(clear().disabled).toBe(false);
     expect(clear().title).toBe('');
-    closeAll();
-  });
-
-  it('score modal: Clear stays offered whether or not the recorded result can be removed', () => {
-    setScoringConfig({ scoringApproach: 'dynamicSets' });
-    const recorded = {
-      matchUpId: 'm1',
-      drawId: 'd1',
-      matchUpFormat: FORMAT,
-      matchUpStatus: 'COMPLETED',
-      winningSide: 1,
-      score: { sets: RECORDED_SETS },
-      sides: [
-        { sideNumber: 1, participant: { participantName: 'Lower' } },
-        { sideNumber: 2, participant: { participantName: 'Upper' } }
-      ]
-    };
-
-    closeAll();
-    scoringModal({ matchUp: recorded, callback: () => undefined, clearable: false });
-    expect(document.getElementById('clearScoreV2')).not.toBeNull();
-    expect(document.getElementById('submitScoreV2')).not.toBeNull();
-
-    closeAll();
-    scoringModal({ matchUp: recorded, callback: () => undefined });
-    expect(document.getElementById('clearScoreV2')).not.toBeNull();
-
-    closeAll();
-    const unplayed = { ...recorded, matchUpStatus: 'TO_BE_PLAYED', winningSide: undefined, score: undefined };
-    scoringModal({ matchUp: unplayed, callback: () => undefined, clearable: false });
-    expect(document.getElementById('clearScoreV2')).not.toBeNull();
     closeAll();
   });
 });

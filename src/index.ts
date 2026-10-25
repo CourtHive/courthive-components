@@ -48,24 +48,16 @@ export type { CategoryConfig, Category } from './components/categories/category/
 export { getFlightProfileModal } from './components/flightProfile/flightProfileNew';
 export type { FlightProfileConfig } from './components/flightProfile/flightProfileNew';
 
-// Scoring modals
-export { scoringModal } from './components/scoring/scoringModal';
-export { setScoringConfig, getScoringConfig, resetScoringConfig } from './components/scoring/config';
-export type { ScoringModalParams, ScoringModalLabels, ScoreOutcome, SetScore } from './components/scoring/types';
-export type { StatusCodeGroups, StatusCodeEntry } from './components/scoring/logic/statusCodes';
-
-// Score Entry — the SECOND scoring dialog, exported alongside `scoringModal` rather than replacing it.
-//
-// `scoringModal` is what ships today and nothing here changes it. `openScoreEntryDialog` is the newer
-// card in a modal: three interchangeable entry approaches (Dynamic Sets, Free Score, Dial Pad) over one
-// set of geometry, a live format picker, irregular endings, and reopening a recorded outcome. Both are
-// exported on purpose — CA, 2026-09-29: *"we're not going to rewire TMX... at best we can make it a
-// setting to turn on the new score entry modal"* — so a host picks per operator, at runtime, and can
-// pick back. That is only possible if BOTH names are reachable from the package.
+// Score Entry — the scoring dialog: a card in a modal, with three interchangeable entry approaches
+// (Dynamic Sets, Free Score, Dial Pad) over one set of geometry, a live format picker, irregular endings
+// and their policy reason codes, and reopening a recorded outcome. It replaced `scoringModal`, which was
+// removed once TMX had moved over (CA, 2026-10-25: "the new score entry is BEAUTIFUL and working great!").
 //
 // `renderScoreEntryCard` is deliberately NOT exported yet. The card is the unlocked lower level (it
 // returns an element, so it can sit inline in a schedule row), but nothing has asked for it inline, and
 // an export is a promise about a shape that is still moving. Export it when a host needs it.
+export type { StatusCodeGroups, StatusCodeEntry } from './components/scoring/logic/statusCodes';
+export type { SetScore } from './components/scoring/types';
 export { openScoreEntryDialog } from './components/scoring/scoreEntryDialog';
 export type {
   ScoreEntryDialogParams,
