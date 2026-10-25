@@ -71,7 +71,13 @@ export function renderMatchUp(params: {
   };
 
   const container = document.createElement('div');
-  container.className = cx(composition?.theme, params?.className, 'matchup', matchUpContainerStyle());
+  container.className = cx(
+    composition?.theme,
+    params?.className,
+    'matchup',
+    matchUpContainerStyle(),
+    configuration.rounded && 'chc-rounded'
+  );
 
   // event metadata
   container.classList.add('tmx-m');

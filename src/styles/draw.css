@@ -473,6 +473,7 @@
 }
 
 .chc-point-score--inverted {
+  border-radius: var(--chc-radius-score);
   background-color: var(--chc-point-score-bg);
   color: var(--chc-point-score-text);
 }
@@ -643,7 +644,7 @@
   margin-inline: 0.25rem 0.25rem;
   padding-inline: 0.25rem 0.25rem;
   font-weight: 700;
-  border-radius: 4px;
+  border-radius: var(--chc-radius-pill);
   color: var(--chc-pill-text);
   text-align: center;
   white-space: nowrap;
@@ -745,6 +746,7 @@
 /* ── Selected matchUp overlay ────────────────────────────── */
 
 .chc-selected-matchup {
+  border-radius: var(--chc-radius-matchup);
   background-color: var(--chc-status-info);
   position: absolute;
   opacity: 0.2;
@@ -794,6 +796,42 @@
   border-width: var(--chc-border-width-matchup);
   border-inline-start-width: var(--chc-border-width-inline-start);
   border-inline-start-color: var(--chc-color-border-inline-start, var(--chc-color-border));
+  border-radius: var(--chc-radius-matchup);
+}
+
+/* Round every element with a background at the card's corners, so it does not bleed past the
+   radius. Deliberately not `overflow: hidden` on .chc-matchup: that would clip the connectors and
+   the draw-position badges, which sit outside the card. A no-op while the radius is 0.
+
+   Each element rounds only the corner it occupies. Rounding both top corners of the participant
+   AND of the score beside it (as BasicCard did) cut a notch where the two meet mid-row, and rounding
+   a row under the schedule header cut one at that seam; both showed wherever the row's colour differs
+   from the page's. Logical corners, so it holds right-to-left. */
+.chc-matchup > :first-child > .chc-scheduling:first-child {
+  border-radius: var(--chc-radius-matchup) var(--chc-radius-matchup) 0 0;
+}
+.chc-matchup > :first-child > :first-child > .chc-participant-container:first-child {
+  border-start-start-radius: var(--chc-radius-matchup);
+}
+.chc-matchup > :first-child > :first-child > :is(.chc-participant-container, .chc-score-wrapper):last-child {
+  border-start-end-radius: var(--chc-radius-matchup);
+}
+.chc-matchup > .chc-matchup-footer:last-child {
+  border-radius: 0 0 var(--chc-radius-matchup) var(--chc-radius-matchup);
+}
+.chc-matchup > :last-child > :last-child > .chc-participant-container:first-child {
+  border-end-start-radius: var(--chc-radius-matchup);
+}
+.chc-matchup > :last-child > :last-child > :is(.chc-participant-container, .chc-score-wrapper):last-child {
+  border-end-end-radius: var(--chc-radius-matchup);
+}
+
+/* configuration.rounded */
+.chc-rounded {
+  --chc-radius-matchup: 8px;
+  --chc-radius-connector: 8px;
+  --chc-radius-pill: 999px;
+  --chc-radius-score: 4px;
 }
 
 .chc-matchup:hover {
@@ -840,6 +878,8 @@
   border-top-style: solid;
   height: var(--chc-link-m1-h, 0);
   top: -1px;
+  /* the elbow: where the line out of the matchUp turns down */
+  border-start-end-radius: var(--chc-radius-connector);
 }
 
 /* m2: connector going UP from bottom of matchup */
@@ -848,6 +888,8 @@
   border-inline-end: var(--chc-border-width-matchup) solid var(--chc-color-connector);
   border-bottom-style: solid;
   height: var(--chc-link-m2-h, 0);
+  /* the elbow: where the line out of the matchUp turns up */
+  border-end-end-radius: var(--chc-radius-connector);
 }
 
 /* m0: simple horizontal connector (qualifying/pre-feed) */

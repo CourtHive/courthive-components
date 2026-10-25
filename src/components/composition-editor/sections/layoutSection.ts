@@ -44,12 +44,20 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
     readOnly
   );
 
+  const rounded = buildToggleField(
+    'Rounded corners',
+    !!cfg.rounded,
+    (v) => store.setConfigField('rounded', v),
+    readOnly
+  );
+
   root.appendChild(scheduleInfo.element);
   root.appendChild(roundHeader.element);
   root.appendChild(matchUpFooter.element);
   root.appendChild(centerInfo.element);
   root.appendChild(resultsInfo.element);
   root.appendChild(winnerChevron.element);
+  root.appendChild(rounded.element);
 
   function update(state: CompositionEditorState): void {
     const c = state.configuration;
@@ -59,6 +67,7 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
     centerInfo.setChecked(!!c.centerInfo);
     resultsInfo.setChecked(!!c.resultsInfo);
     winnerChevron.setChecked(!!c.winnerChevron);
+    rounded.setChecked(!!c.rounded);
   }
 
   return { element: root, update };

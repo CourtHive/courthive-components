@@ -97,6 +97,14 @@
   --chc-border-width-matchup-inline: 1px 1px;
   --chc-border-width-inline-start: 1px;
   --chc-space-matchup: 10px;
+
+  /* Corner radii of the draw. These defaults are the square look; `configuration.rounded` puts
+     `.chc-rounded` on each matchUp, which swaps in the rounded values (draw.css). Mode-independent,
+     so they hold in light and dark alike. */
+  --chc-radius-matchup: 0;
+  --chc-radius-connector: 2px;
+  --chc-radius-pill: 4px;
+  --chc-radius-score: 0;
   --chc-space-participant-inline: 0.375rem;
   --chc-space-game-margin: 0.25rem;
   --chc-font-size-1: 0.875rem;
