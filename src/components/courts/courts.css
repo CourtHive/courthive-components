@@ -1,88 +1,32 @@
-/* Court line base style — non-scaling-stroke keeps width in screen pixels */
+/* Court line base style — non-scaling-stroke keeps width in screen pixels.
+ * Per-sport hues are the palette's categorical accents, so they retune with the palette and the
+ * mode (each hue is held to 3:1 against the page in palette-contrast.test.ts). */
 .court-line {
-  stroke: rgba(80, 90, 180, 0.7);
+  stroke: color-mix(in srgb, var(--chc-accent-indigo) 70%, transparent);
   stroke-width: 1.5;
   fill: none;
   vector-effect: non-scaling-stroke;
 }
 
-/* Per-sport color variations (light / default) */
+/* Per-sport color variations */
 .court--tennis .court-line {
-  stroke: rgba(60, 80, 200, 0.8);
+  stroke: color-mix(in srgb, var(--chc-accent-indigo) 80%, transparent);
 }
 .court--basketball .court-line {
-  stroke: rgba(180, 80, 200, 0.7);
+  stroke: color-mix(in srgb, var(--chc-accent-purple) 70%, transparent);
 }
 .court--baseball .court-line {
-  stroke: rgba(200, 50, 70, 0.7);
+  stroke: color-mix(in srgb, var(--chc-accent-red) 70%, transparent);
 }
 .court--hockey .court-line {
-  stroke: rgba(30, 120, 210, 0.75);
+  stroke: color-mix(in srgb, var(--chc-accent-blue) 75%, transparent);
 }
 .court--pickleball .court-line {
-  stroke: rgba(20, 160, 70, 0.7);
+  stroke: color-mix(in srgb, var(--chc-accent-green) 70%, transparent);
 }
 .court--badminton .court-line {
-  stroke: rgba(0, 180, 160, 0.7);
+  stroke: color-mix(in srgb, var(--chc-accent-teal) 70%, transparent);
 }
 .court--padel .court-line {
-  stroke: rgba(200, 130, 20, 0.75);
-}
-
-/*
- * OS dark preference — only when no explicit data-theme is set.
- * Apps like TMX and Storybook set data-theme on <html>, so this
- * fallback only fires for consumers that don't manage themes explicitly.
- */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) .court-line {
-    stroke: rgba(120, 130, 255, 0.5);
-  }
-  :root:not([data-theme]) .court--tennis .court-line {
-    stroke: rgba(102, 126, 234, 0.6);
-  }
-  :root:not([data-theme]) .court--basketball .court-line {
-    stroke: rgba(240, 147, 251, 0.5);
-  }
-  :root:not([data-theme]) .court--baseball .court-line {
-    stroke: rgba(245, 87, 108, 0.5);
-  }
-  :root:not([data-theme]) .court--hockey .court-line {
-    stroke: rgba(79, 172, 254, 0.55);
-  }
-  :root:not([data-theme]) .court--pickleball .court-line {
-    stroke: rgba(67, 233, 123, 0.5);
-  }
-  :root:not([data-theme]) .court--badminton .court-line {
-    stroke: rgba(56, 249, 215, 0.5);
-  }
-  :root:not([data-theme]) .court--padel .court-line {
-    stroke: rgba(255, 183, 77, 0.55);
-  }
-}
-
-/* Explicit dark theme attribute (TMX, Storybook, etc.) */
-[data-theme='dark'] .court-line {
-  stroke: rgba(120, 130, 255, 0.5);
-}
-[data-theme='dark'] .court--tennis .court-line {
-  stroke: rgba(102, 126, 234, 0.6);
-}
-[data-theme='dark'] .court--basketball .court-line {
-  stroke: rgba(240, 147, 251, 0.5);
-}
-[data-theme='dark'] .court--baseball .court-line {
-  stroke: rgba(245, 87, 108, 0.5);
-}
-[data-theme='dark'] .court--hockey .court-line {
-  stroke: rgba(79, 172, 254, 0.55);
-}
-[data-theme='dark'] .court--pickleball .court-line {
-  stroke: rgba(67, 233, 123, 0.5);
-}
-[data-theme='dark'] .court--badminton .court-line {
-  stroke: rgba(56, 249, 215, 0.5);
-}
-[data-theme='dark'] .court--padel .court-line {
-  stroke: rgba(255, 183, 77, 0.55);
+  stroke: color-mix(in srgb, var(--chc-accent-orange) 75%, transparent);
 }

@@ -33,7 +33,10 @@ const ATTR_DOMINANT_BASELINE = 'dominant-baseline';
 // Color tokens from the courthive-components theme. Each bin pulls
 // from the gradient based on its position so the visual flows from
 // "low rating" to "high rating" without a hard boundary.
-const DEFAULT_BIN_COLORS = ['var(--chc-rating-low, #5b8ff9)', 'var(--chc-rating-high, #00b894)'];
+const DEFAULT_BIN_COLORS = [
+  'var(--chc-rating-low, var(--chc-accent-blue))',
+  'var(--chc-rating-high, var(--chc-accent-teal))'
+];
 
 // ============================================================================
 // Helpers
@@ -137,7 +140,7 @@ function renderHistogram(args: HistogramArgs): SVGSVGElement {
       .attr('y', (b) => y(b.count) - 4)
       .attr(ATTR_TEXT_ANCHOR, TEXT_ANCHOR_MIDDLE)
       .attr('font-size', '11')
-      .attr('fill', 'var(--chc-rdc-count-color, var(--chc-text-primary, #111827))')
+      .attr('fill', 'var(--chc-rdc-count-color, var(--chc-text-primary))')
       .text((b) => (b.count > 0 ? String(b.count) : ''));
   }
 
@@ -176,7 +179,7 @@ function renderHistogram(args: HistogramArgs): SVGSVGElement {
         .attr('x2', meanX)
         .attr('y1', 0)
         .attr('y2', innerHeight)
-        .attr('stroke', 'var(--chc-rating-mean, #d63031)')
+        .attr('stroke', 'var(--chc-rating-mean, var(--chc-accent-red))')
         .attr('stroke-dasharray', '4 3')
         .attr('stroke-width', 1.5);
     }
@@ -257,7 +260,7 @@ function renderDonut(args: DonutArgs): SVGSVGElement {
       text.setAttribute(ATTR_TEXT_ANCHOR, TEXT_ANCHOR_MIDDLE);
       text.setAttribute(ATTR_DOMINANT_BASELINE, TEXT_ANCHOR_MIDDLE);
       text.setAttribute('font-size', '11');
-      text.setAttribute('fill', 'var(--chc-rating-label, #2d3436)');
+      text.setAttribute('fill', 'var(--chc-rating-label, var(--chc-text-primary))');
       text.textContent = String(bin.count);
       svg.appendChild(text);
     }

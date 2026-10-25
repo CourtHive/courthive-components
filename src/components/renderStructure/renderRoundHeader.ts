@@ -48,7 +48,7 @@ export function renderRoundHeader({
     const isEmbargoed = visState?.embargoed === true;
 
     const iconClass = isHidden ? 'fa-eye-slash' : isEmbargoed ? 'fa-clock' : 'fa-eye';
-    const iconColor = isHidden ? '#e74c3c' : isEmbargoed ? '#f39c12' : 'inherit';
+    const iconColor = isHidden ? 'var(--chc-status-error)' : isEmbargoed ? 'var(--chc-status-warning)' : 'inherit';
     const baseOpacity = isHidden || isEmbargoed ? '0.85' : '0.7';
 
     const eyeIcon = document.createElement('i');

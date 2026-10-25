@@ -516,7 +516,7 @@ function createCenterText(
     .attr(ATTR_DOMINANT_BASELINE, 'middle')
     .attr('font-size', `${titleFontSize}px`)
     .attr('font-weight', 'bold')
-    .style('fill', 'var(--chc-text-primary, #333)')
+    .style('fill', 'var(--chc-text-primary)')
     .attr('pointer-events', 'none');
 
   const secondaryOffset = titleFontSize + secondaryFontSize * 0.5;
@@ -527,7 +527,7 @@ function createCenterText(
     .attr(ATTR_TEXT_ANCHOR, 'middle')
     .attr(ATTR_DOMINANT_BASELINE, 'middle')
     .attr('font-size', `${secondaryFontSize}px`)
-    .style('fill', 'var(--chc-text-secondary, #666)')
+    .style('fill', 'var(--chc-text-secondary)')
     .attr('pointer-events', 'none');
 
   return { centerText, centerText2 };
@@ -869,7 +869,7 @@ export function renderburstChart(
     .attr('d', (d) => arc(d))
     .attr('fill', (d) => fillForNode(d.data))
     .attr(ATTR_FILL_OPACITY, 0.8)
-    .attr('stroke', '#fff')
+    .attr('stroke', 'var(--chc-bg-primary)')
     .attr('stroke-width', 1)
     .on('mouseover', handleArcMouseover)
     .on('mouseout', handleArcMouseout);

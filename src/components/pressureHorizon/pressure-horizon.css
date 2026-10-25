@@ -20,16 +20,18 @@
  * SECOND time by anchoring (hard rises from the baseline, easy hangs from the
  * top) so no meaning is ever colour-alone.
  *
- * Dark is a SELECTED set of steps, not an inversion. Consumers may override any
+ * The arms' dark steps are a SELECTED set, not an inversion; the chrome (surface, text,
+ * borders) is palette tokens and follows the mode on its own. Consumers may override any
  * --chc-ph-* var. */
 
 .chc-ph,
 .chc-dog {
-  --chc-ph-surface: var(--chc-surface, #ffffff);
-  --chc-ph-text: var(--chc-text-primary, #111827);
-  --chc-ph-text-muted: var(--chc-text-muted, #6b7280);
-  --chc-ph-border: var(--chc-border, #e5e7eb);
-  --chc-ph-neutral: var(--chc-border, #e5e7eb);
+  /* Chrome is palette tokens; the arms below are the validated ordinal data ramps. */
+  --chc-ph-surface: var(--chc-bg-primary);
+  --chc-ph-text: var(--chc-text-primary);
+  --chc-ph-text-muted: var(--chc-text-muted);
+  --chc-ph-border: var(--chc-border-secondary);
+  --chc-ph-neutral: var(--chc-border-secondary);
   --chc-ph-accent: #2a78d6;
   --chc-ph-correct: #0ca30c;
 
@@ -51,11 +53,6 @@
 
 [data-theme='dark'] .chc-ph,
 [data-theme='dark'] .chc-dog {
-  --chc-ph-surface: var(--chc-surface, #111827);
-  --chc-ph-text: var(--chc-text-primary, #f3f4f6);
-  --chc-ph-text-muted: var(--chc-text-muted, #9ca3af);
-  --chc-ph-border: var(--chc-border, #374151);
-  --chc-ph-neutral: #374151;
   --chc-ph-accent: #3987e5;
   --chc-ph-correct: #0ca30c;
 
@@ -74,11 +71,6 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) .chc-ph,
   :root:not([data-theme]) .chc-dog {
-    --chc-ph-surface: var(--chc-surface, #111827);
-    --chc-ph-text: var(--chc-text-primary, #f3f4f6);
-    --chc-ph-text-muted: var(--chc-text-muted, #9ca3af);
-    --chc-ph-border: var(--chc-border, #374151);
-    --chc-ph-neutral: #374151;
     --chc-ph-accent: #3987e5;
     --chc-ph-correct: #0ca30c;
 

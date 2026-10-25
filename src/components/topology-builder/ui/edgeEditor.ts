@@ -165,7 +165,7 @@ export function buildEdgeEditor(callbacks: EdgeEditorCallbacks): UIPanel<Topolog
       labelText.textContent = `Position ${i}`;
 
       if (isClaimed) {
-        labelText.style.color = 'var(--chc-text-muted, #999)';
+        labelText.style.color = 'var(--chc-text-muted)';
         labelText.title = 'Used by another link';
         row.style.opacity = '0.5';
         row.style.cursor = 'not-allowed';

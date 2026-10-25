@@ -28,7 +28,7 @@
 }
 
 .chc-inline-scoring-side:hover {
-  background-color: var(--chc-inline-scoring-side-hover, rgba(59, 130, 246, 0.04));
+  background-color: var(--chc-inline-scoring-side-hover, color-mix(in srgb, var(--chc-border-focus) 4%, transparent));
 }
 
 /* ── Footer bar ──────────────────────────────────────────── */
@@ -40,8 +40,8 @@
   padding: 0.25rem 0.5rem;
   font-size: 0.7rem;
   font-family: sans-serif;
-  background: var(--chc-inline-scoring-footer-bg, var(--chc-bg-secondary, #f8f9fa));
-  border-top: 1px solid var(--chc-inline-scoring-footer-border, var(--chc-border-primary, #dee2e6));
+  background: var(--chc-inline-scoring-footer-bg, var(--chc-bg-secondary));
+  border-top: 1px solid var(--chc-inline-scoring-footer-border, var(--chc-border-primary));
   border-radius: 0 0 4px 4px;
 }
 
@@ -54,10 +54,10 @@
 
 .chc-inline-scoring-btn {
   padding: 0.15rem 0.35rem;
-  border: 1px solid var(--chc-border-primary, #dee2e6);
+  border: 1px solid var(--chc-border-primary);
   border-radius: 3px;
-  background: var(--chc-bg-secondary, #f8f9fa);
-  color: var(--chc-text-secondary, #6c757d);
+  background: var(--chc-bg-secondary);
+  color: var(--chc-text-secondary);
   cursor: pointer;
   font-size: 0.55rem;
   font-family: inherit;
@@ -73,8 +73,8 @@
 }
 
 .chc-inline-scoring-btn:hover:not(:disabled) {
-  background: var(--chc-inline-scoring-btn-hover, #e2e6ea);
-  color: var(--chc-text-primary, #212529);
+  background: var(--chc-inline-scoring-btn-hover, var(--chc-hover-bg));
+  color: var(--chc-text-primary);
 }
 
 .chc-inline-scoring-btn:disabled {
@@ -85,7 +85,7 @@
 /* ── Situation flags ──────────────────────────────────────── */
 
 .chc-inline-scoring-situation {
-  color: var(--chc-inline-scoring-situation-color, var(--chc-color-primary, #3b82f6));
+  color: var(--chc-inline-scoring-situation-color, var(--chc-accent-text));
   font-weight: 600;
   font-size: 0.6rem;
   white-space: nowrap;
@@ -107,8 +107,8 @@
   flex-direction: row;
   gap: 0.3rem;
   padding: 0.35rem;
-  background: var(--chc-bg-primary, #fff);
-  border: 1px solid var(--chc-border-primary, #dee2e6);
+  background: var(--chc-bg-primary);
+  border: 1px solid var(--chc-border-primary);
   border-radius: 6px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   font-family: sans-serif;
@@ -140,7 +140,7 @@
 
 .chc-matchup-footer-round {
   font-size: 0.6rem;
-  color: var(--chc-color-matchup-footer-text, var(--chc-text-secondary, #6c757d));
+  color: var(--chc-color-matchup-footer-text, var(--chc-text-secondary));
   white-space: nowrap;
   text-transform: uppercase;
   font-weight: 600;
@@ -161,9 +161,9 @@
 
 /* Submit — primary call-to-action */
 .chc-is-submit {
-  background: var(--chc-color-primary, #3b82f6);
-  color: #fff;
-  border-color: var(--chc-color-primary, #3b82f6);
+  background: var(--chc-container-link);
+  color: var(--chc-on-link);
+  border-color: var(--chc-container-link);
 }
 
 .chc-is-submit:hover:not(:disabled) {
@@ -172,13 +172,15 @@
 
 /* Clear — destructive: warn before acting */
 .chc-is-clear {
-  border-color: var(--chc-status-warning, #f59e0b);
-  color: var(--chc-status-warning, #f59e0b);
+  border-color: var(--chc-status-warning);
+  color: var(--chc-status-warning);
 }
 
+/* Hover fills the button, so it takes the warning container and its own ink. */
 .chc-is-clear:hover:not(:disabled) {
-  background: var(--chc-status-warning, #f59e0b);
-  color: #fff;
+  background: var(--chc-container-warning);
+  border-color: var(--chc-container-warning);
+  color: var(--chc-on-warning);
 }
 
 /* Undo / Redo — paired neutral controls; slightly heavier weight than
