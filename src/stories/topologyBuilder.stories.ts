@@ -27,7 +27,7 @@ import type {
 const CANVAS_HEIGHT = '800px';
 
 const meta: Meta = {
-  title: 'Components/TopologyBuilder',
+  title: 'Draws/Topology Builder',
   tags: ['autodocs'],
   parameters: {
     layout: 'fullscreen'

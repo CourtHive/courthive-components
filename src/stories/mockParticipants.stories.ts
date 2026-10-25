@@ -17,7 +17,7 @@ const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
 const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
 
 export default {
-  title: 'Components/MockParticipants',
+  title: 'Policies & Setup/Mock Participants',
   tags: ['autodocs']
 };
 

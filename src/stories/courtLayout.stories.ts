@@ -13,7 +13,7 @@ import { CourtLayoutCourt } from '../components/court-layout/types';
 import { within, userEvent, expect } from 'storybook/test';
 
 export default {
-  title: 'Components/CourtLayout',
+  title: 'Scheduling/Court Layout',
   tags: ['autodocs']
 };
 

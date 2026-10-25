@@ -26,7 +26,9 @@ import type { Meta, StoryObj } from '@storybook/html-vite';
 import { expect } from 'storybook/test';
 
 const meta: Meta = {
-  title: 'ControlBar/Tests/SelectionInit'
+  title: 'Policies & Setup/Control Bar/Tests/Selection Init',
+  // A play-function test: hidden from the sidebar, still run by `pnpm test:stories`.
+  tags: ['!dev']
 };
 export default meta;
 

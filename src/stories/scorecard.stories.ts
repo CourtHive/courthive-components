@@ -27,7 +27,7 @@ const eventHandlers = {
 };
 
 export default {
-  title: 'Team/Scorecard',
+  title: 'Scoring/Team Scorecard',
   tags: ['autodocs'],
   render: ({ compositionName = 'National', completeAllMatchUps = false, swapSides = false }) => {
     const composition = compositions[compositionName] || compositions['National'];

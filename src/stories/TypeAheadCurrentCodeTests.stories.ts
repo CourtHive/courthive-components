@@ -25,7 +25,9 @@ import { Meta, StoryObj } from '@storybook/html-vite';
 import { expect } from 'storybook/test';
 
 const meta: Meta = {
-  title: 'Forms/Tests/TypeAheadCurrentCode'
+  title: 'Foundations/Forms/Tests/Type-ahead Current Code',
+  // A play-function test: hidden from the sidebar, still run by `pnpm test:stories`.
+  tags: ['!dev']
 };
 export default meta;
 

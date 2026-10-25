@@ -64,6 +64,23 @@ const preview: Preview = {
     }
   ],
   parameters: {
+    // The sidebar's group order (CA 2026-10-25): by domain, not alphabetical. Unlisted groups sort after these.
+    options: {
+      storySort: {
+        method: 'alphabetical',
+        order: [
+          'Overview',
+          ['Introduction', 'Theme & Palettes'],
+          'Foundations',
+          'Draws',
+          'Scoring',
+          'Scheduling',
+          'Cards',
+          'Policies & Setup',
+          'Charts'
+        ]
+      }
+    },
     controls: {
       matchers: {
         color: /(background|color)$/i,

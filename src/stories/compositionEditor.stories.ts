@@ -9,7 +9,7 @@ import '../components/forms/styles';
 const DESC_COLOR = 'var(--chc-text-secondary, #666)';
 
 export default {
-  title: 'Components/Composition Editor',
+  title: 'Policies & Setup/Composition/Editor',
   tags: ['autodocs']
 };
 

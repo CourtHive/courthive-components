@@ -12,7 +12,7 @@ import type { ScoringPolicyData } from '../../components/policy-catalog';
 import { fixtures, policyConstants } from 'tods-competition-factory';
 
 export default {
-  title: 'Policy Catalog/Scoring Editor',
+  title: 'Policies & Setup/Policy Catalog/Scoring Editor',
   parameters: {
     layout: 'padded'
   }

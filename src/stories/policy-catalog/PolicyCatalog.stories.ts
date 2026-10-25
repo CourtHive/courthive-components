@@ -22,7 +22,7 @@ import { PolicyCatalogControl, createPolicyCatalog } from '../../components/poli
 import { makeCatalogConfig } from './data';
 
 export default {
-  title: 'Policy Catalog/Full',
+  title: 'Policies & Setup/Policy Catalog/Full',
   parameters: {
     layout: 'fullscreen',
     backgrounds: { default: 'dark' }

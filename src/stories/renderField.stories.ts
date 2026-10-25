@@ -2,7 +2,7 @@ import '../components/forms/styles';
 import { renderField } from '../components/forms/renderField';
 
 export default {
-  title: 'Renderers/Field',
+  title: 'Foundations/Forms/Field',
   tags: ['autodocs'],
   render: ({ ...args }) => {
     const { field } = renderField(args);

@@ -26,7 +26,7 @@ import { expect } from 'storybook/test';
 import type { MatchUp } from '../types';
 
 export default {
-  title: 'Structure/Seeding basis'
+  title: 'Draws/Structure/Seeding basis'
 };
 
 const base = compositions.National ?? Object.values(compositions)[0];

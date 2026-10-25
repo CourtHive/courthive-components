@@ -5,7 +5,7 @@ const { MALE, FEMALE } = genderConstants;
 const { LUCKY_LOSER } = entryStatusConstants;
 
 export default {
-  title: 'Participants/Individual',
+  title: 'Draws/Participants/Individual',
   tags: ['autodocs'],
   render: ({ ...args }) => {
     return renderIndividual({ ...args }).element;

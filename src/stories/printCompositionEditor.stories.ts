@@ -9,7 +9,7 @@ import { createPrintCompositionEditor } from '../components/print-composition-ed
 import type { PrintType } from '../components/print-composition-editor/printCompositionEditorTypes';
 
 export default {
-  title: 'Components/Print Composition Editor',
+  title: 'Policies & Setup/Composition/Print Editor',
   tags: ['autodocs'],
   argTypes: {
     printType: {

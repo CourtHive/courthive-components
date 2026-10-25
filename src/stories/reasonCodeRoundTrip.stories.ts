@@ -212,7 +212,7 @@ async function visibleReasonSelect() {
 }
 
 export default {
-  title: 'Components/Scoring/Reason Code Round Trip',
+  title: 'Scoring/Reason Codes',
   tags: ['autodocs']
 };
 

@@ -29,7 +29,7 @@ const U16_SINGLES = 'U16 Singles';
 const U18_SINGLES = 'U18 Singles';
 
 const meta: Meta = {
-  title: 'Components/ControlBar',
+  title: 'Policies & Setup/Control Bar',
   tags: ['autodocs']
 };
 

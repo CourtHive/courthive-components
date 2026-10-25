@@ -13,7 +13,7 @@ const eventHandlers = {
 };
 
 export default {
-  title: 'Draws/BasicCard',
+  title: 'Draws/Basic Card',
   tags: ['autodocs'],
   render: ({ roundNumber = 2, roundFactor = 1, ...args }) => {
     const composition = {

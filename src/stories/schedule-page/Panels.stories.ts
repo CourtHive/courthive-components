@@ -25,7 +25,7 @@ import {
 } from './data';
 
 export default {
-  title: 'Schedule Page/Panels'
+  title: 'Scheduling/Schedule Page/Panels'
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────

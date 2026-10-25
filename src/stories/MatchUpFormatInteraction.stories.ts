@@ -14,7 +14,7 @@ const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
 const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
 
 const meta: Meta = {
-  title: 'Components/MatchUpFormat/Interactions',
+  title: 'Scoring/MatchUp Format/Interactions',
   tags: ['autodocs']
 };
 

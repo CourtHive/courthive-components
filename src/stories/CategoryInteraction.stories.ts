@@ -5,7 +5,7 @@ const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
 const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
 
 export default {
-  title: 'Components/Categories/Category',
+  title: 'Policies & Setup/Categories/Category',
   tags: ['autodocs']
 };
 

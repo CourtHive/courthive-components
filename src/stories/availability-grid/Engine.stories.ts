@@ -45,7 +45,7 @@ const mockTournament = {
 // ============================================================================
 
 const meta: Meta = {
-  title: 'Availability Grid/Engine',
+  title: 'Scheduling/Availability Grid/Engine',
   tags: ['autodocs'],
   parameters: {
     docs: {

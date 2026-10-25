@@ -18,7 +18,7 @@ import { RankingPointsEditorControl, createRankingPointsEditor } from '../../com
 import { RANKING_POLICY_BASIC, RANKING_POLICY_MULTILEVEL, RANKING_POLICY_EMPTY, makeRankingEditorConfig } from './data';
 
 export default {
-  title: 'Policy Catalog/Ranking Editor',
+  title: 'Policies & Setup/Policy Catalog/Ranking Editor',
   parameters: {
     layout: 'padded'
   }

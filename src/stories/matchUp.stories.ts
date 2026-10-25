@@ -29,7 +29,7 @@ const argTypes = {
 };
 
 export default {
-  title: 'MatchUps/MatchUp',
+  title: 'Draws/MatchUps/MatchUp',
   tags: ['autodocs'],
   render: ({ eventType, outcomes, randomWinningSide, ...args }) => {
     const composition = compositions[args.composition || 'Basic'];

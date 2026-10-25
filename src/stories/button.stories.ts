@@ -2,7 +2,7 @@ import { renderButton } from '../components/button/cvaButton';
 import { cModal } from '../components/modal/cmodal';
 
 export default {
-  title: 'Components/Modal',
+  title: 'Foundations/Modal',
   tags: ['autodocs'],
   render: ({ ...args }) => {
     return renderButton({ ...args });

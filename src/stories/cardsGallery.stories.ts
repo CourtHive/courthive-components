@@ -9,7 +9,7 @@ import { buildTournamentCard } from '../components/tournament-card/buildTourname
 import { buildVenueCard } from '../components/venue-card/buildVenueCard';
 
 export default {
-  title: 'Components/CardsGallery',
+  title: 'Cards/Gallery',
   tags: ['autodocs']
 };
 

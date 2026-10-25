@@ -5,7 +5,7 @@ import '../styles/tipster.css';
 const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
 
 export default {
-  title: 'Components/Tipster',
+  title: 'Foundations/Tipster',
   tags: ['autodocs']
 };
 

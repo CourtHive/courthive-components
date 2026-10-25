@@ -6,7 +6,7 @@ import { TournamentCardData } from '../components/tournament-card/types';
 import courtHiveLogo from '../../.storybook/CourtHive.svg';
 
 export default {
-  title: 'Components/TournamentCard',
+  title: 'Cards/Tournament',
   tags: ['autodocs']
 };
 

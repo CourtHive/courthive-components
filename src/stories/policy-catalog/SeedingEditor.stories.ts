@@ -11,7 +11,7 @@ import { SeedingEditorControl, createSeedingEditor } from '../../components/poli
 import type { SeedingPolicyData } from '../../components/policy-catalog';
 
 export default {
-  title: 'Policy Catalog/Seeding Editor',
+  title: 'Policies & Setup/Policy Catalog/Seeding Editor',
   parameters: {
     layout: 'padded'
   }

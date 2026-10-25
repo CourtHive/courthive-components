@@ -4,7 +4,7 @@ import { buildEventSkeletonCard } from '../components/event-card/buildSkeletonCa
 import { EventCardData } from '../components/event-card/types';
 
 export default {
-  title: 'Components/EventCard',
+  title: 'Cards/Event',
   tags: ['autodocs']
 };
 

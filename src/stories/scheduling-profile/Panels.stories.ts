@@ -18,7 +18,7 @@ import { buildRoundCard } from '../../components/scheduling-profile/ui/roundCard
 import { VENUES, ROUND_CATALOG, DATES, VALID_PROFILE, ERROR_PROFILE, makeBaseConfig } from './data';
 
 export default {
-  title: 'Scheduling Profile/Panels'
+  title: 'Scheduling/Scheduling Profile/Panels'
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────

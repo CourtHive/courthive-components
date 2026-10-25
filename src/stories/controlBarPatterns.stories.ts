@@ -6,7 +6,7 @@
 import type { Meta, StoryObj } from '@storybook/html-vite';
 
 const meta: Meta = {
-  title: 'Components/ControlBar/Patterns & Best Practices',
+  title: 'Policies & Setup/Control Bar/Patterns & Best Practices',
   tags: ['autodocs']
 };
 
