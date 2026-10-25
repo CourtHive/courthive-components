@@ -67,9 +67,9 @@
   background: transparent;
 }
 .sp-btn--danger:hover {
-  background: var(--sp-err);
-  color: #fff;
-  border-color: var(--sp-err);
+  background: var(--chc-container-danger);
+  color: var(--chc-on-danger);
+  border-color: var(--chc-container-danger);
 }
 
 .sp-btn--warn {
@@ -92,9 +92,9 @@
 }
 
 .sp-btn--fill {
-  background: var(--sp-accent);
-  border-color: var(--sp-accent);
-  color: #fff;
+  background: var(--chc-container-link);
+  border-color: var(--chc-container-link);
+  color: var(--chc-on-link);
   font-weight: 600;
 }
 .sp-btn--fill:hover {
@@ -102,9 +102,9 @@
 }
 
 .sp-btn--fill-muted {
-  background: var(--chc-text-secondary);
-  border-color: var(--chc-text-secondary);
-  color: #fff;
+  background: var(--chc-pill-bg-dark);
+  border-color: var(--chc-pill-bg-dark);
+  color: var(--chc-pill-text);
   font-weight: 600;
 }
 .sp-btn--fill-muted:hover {
@@ -118,9 +118,9 @@
 
 /* ── State ── */
 .sp-btn--active {
-  background: var(--sp-accent);
-  border-color: var(--sp-accent);
-  color: #fff;
+  background: var(--chc-container-link);
+  border-color: var(--chc-container-link);
+  color: var(--chc-on-link);
 }
 
 .sp-btn[disabled] {
