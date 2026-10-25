@@ -49,6 +49,7 @@ import { createScoreReadouts, READOUT_COLUMN_WIDTH } from './scoreReadout';
 import { createScoreEntryStore } from '../logic/scoreEntryStore';
 import { tiebreakOnlyTarget } from '../logic/tiebreakEntry';
 import { enteredSets } from '../logic/scoreEntrySelectors';
+import { scoreEntryText } from '../logic/scoreEntryText';
 import {
   getSetFormatForIndex,
   isSetComplete,
@@ -71,6 +72,8 @@ export type DialPadRegionParams = {
   matchUpFormat?: string;
   /** Sets already recorded, e.g. from a saved matchUp. Read only when no `store` is given. */
   sets?: SetScore[];
+  /** The host's translations (see `SCORE_ENTRY_TEXT`); anything left out reads English. */
+  labels?: Record<string, string | undefined>;
   onChange?: () => void;
 };
 
@@ -91,7 +94,7 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
   let tiebreakMode = false;
   /** The Tiebreak key, so `changed` can offer or withdraw it as the games change. */
   let tiebreakKey: HTMLButtonElement | undefined;
-  const readouts = createScoreReadouts();
+  const readouts = createScoreReadouts(params.labels);
   /** The live digit keys, so `focusFirst` can reach one without a DOM query. */
   const digitKeys = new Map<number, HTMLButtonElement>();
 
@@ -487,7 +490,7 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     key.type = 'button';
     key.className = 'chc-sec-btn';
     key.dataset.action = 'tiebreak';
-    key.textContent = 'Tiebreak';
+    key.textContent = scoreEntryText(params.labels, 'tiebreak');
     key.setAttribute(ARIA_PRESSED, String(tiebreakMode));
     // Offered only while the games just entered can carry a tiebreak (see `tiebreakOffered`), and never
     // in a format without one. A disabled control the operator cannot explain is worse than one that is
@@ -504,7 +507,7 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     back.type = 'button';
     back.className = 'chc-sec-btn chc-sec-key-back';
     back.dataset.action = 'backspace';
-    back.textContent = 'Backspace';
+    back.textContent = scoreEntryText(params.labels, 'backspace');
     back.addEventListener('click', () => backspace());
 
     side.append(key, back);

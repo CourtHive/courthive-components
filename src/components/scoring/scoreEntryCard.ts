@@ -38,6 +38,7 @@ import { ENTRY_SIDE, hasCommandModifier, otherSide } from './keyboard';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 import { createScoreEntryStore } from './logic/scoreEntryStore';
 import { scoreEntrySummary } from './logic/scoreEntrySummary';
+import { scoreEntryText } from './logic/scoreEntryText';
 import {
   discardedScore,
   resolveEnding,
@@ -57,6 +58,7 @@ import {
 
 import type { ScoreEntryState, ScoreEntryResolution, SideNumber } from './logic/scoreEntryState';
 import type { ScoreEntryModel, EndingIntent } from './logic/scoreEntryModel';
+import type { ScoreEntryTextKey } from './logic/scoreEntryText';
 import type { ScoreEntryStore } from './logic/scoreEntryStore';
 import type { StatusCodeGroups } from './logic/statusCodes';
 
@@ -72,15 +74,8 @@ const CLS_MENU = 'chc-sec-other-menu';
 const CLS_MENU_ITEM = 'chc-sec-other-item';
 const ARIA_LABEL = 'aria-label';
 const CLS_SPACER = 'chc-sec-spacer';
-/** What the endings chip reads while nothing has been chosen from its menu. */
-const OTHER_LABEL = 'Other…';
-/** The same word without the ellipsis, for `Other: Cancelled` — an ellipsis promises a dialog, not a value. */
-const OTHER_LABEL_BASE = 'Other';
 const CLS_BAND_HEADLINE = 'chc-sec-band-headline';
 const CLS_BAND_DETAIL = 'chc-sec-band-detail';
-/** What the band says once `[Clear]` has emptied a recorded outcome. Overridable via `labels`. */
-const CLEARED_HEADLINE = 'The recorded result will be removed — Submit to clear it.';
-const CLEAR_REFUSED = 'Enter a replacement score: a later match depends on this result.';
 const ARIA_PRESSED = 'aria-pressed';
 const ARIA_EXPANDED = 'aria-expanded';
 const CHECK_PATH = 'M20 6 9 17l-5-5';
@@ -149,10 +144,10 @@ function isPhoneViewport(): boolean {
 const PRIVILEGED_MATCH_ENDINGS = ['IN_PROGRESS', 'AWAITING_RESULT', 'SUSPENDED'];
 
 /** One-line hints for the per-side endings, which are the choice an operator gets wrong most often. */
-const SIDE_ENDING_HINTS: Record<string, string> = {
-  [WALKOVER]: 'Did not play at all — no score',
-  [RETIRED]: 'Started, could not finish — score kept',
-  [DEFAULTED]: 'Removed by the referee'
+const SIDE_ENDING_HINTS: Record<string, ScoreEntryTextKey> = {
+  [WALKOVER]: 'hintWalkover',
+  [RETIRED]: 'hintRetired',
+  [DEFAULTED]: 'hintDefaulted'
 };
 
 /**
@@ -322,7 +317,10 @@ export type ScoreEntryCardParams = {
   store?: ScoreEntryStore;
   /** The policy's reason-code groups, if the tournament has a scoring policy attached. */
   statusCodeGroups?: StatusCodeGroups;
-  /** Ending labels, so a locale can supply them. */
+  /**
+   * Translations: the status names (`RETIRED`, …) and every key of `SCORE_ENTRY_TEXT`. Anything left out
+   * reads the English default.
+   */
   labels?: Record<string, string>;
   /** The approach switcher's current label, e.g. `'Dynamic Sets'`. Omit to hide the switcher. */
   approachLabel?: string;
@@ -392,7 +390,11 @@ export type ScoreEntryCard = {
 };
 
 export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCard {
-  const labels = params.labels ?? endingLabels();
+  // The defaults UNDER the host's map, so a host that translates some statuses still shows English for
+  // the rest rather than a raw status code.
+  const labels: Record<string, string> = { ...endingLabels(), ...params.labels };
+  const say = (key: ScoreEntryTextKey, values?: Record<string, string | number | undefined>) =>
+    scoreEntryText(labels, key, values);
   /**
    * The active score region, replaceable through `setRegion`.
    *
@@ -458,8 +460,8 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   const endingsContainer = div('chc-sec-endings');
   const band = div('chc-sec-band');
   const blockContainer = div('chc-sec-score-region');
-  const submitButton = button('Submit', 'chc-sec-btn chc-sec-btn-primary');
-  const clearButton = button('Clear', CLS_BTN);
+  const submitButton = button(say('submit'), 'chc-sec-btn chc-sec-btn-primary');
+  const clearButton = button(say('clear'), CLS_BTN);
 
   element.append(headerContainer, body(), band, footer());
 
@@ -581,7 +583,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   function renderHeader(): void {
     const bar = headerContainer;
     bar.replaceChildren();
-    const heading = text('chc-sec-title', params.title ?? 'Score Entry');
+    const heading = text('chc-sec-title', params.title ?? say('title'));
     // A stable id, assigned HERE because the header is rebuilt on every render: an id set from outside
     // would survive exactly until the first approach switch. A host uses it for `aria-labelledby`, so a
     // screen reader announces the dialog by its heading rather than as an unnamed region.
@@ -667,8 +669,8 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
     const chip = button(matchUpFormat, 'chc-sec-format chc-sec-format-button');
     chip.dataset.action = 'editFormat';
-    chip.setAttribute(ARIA_LABEL, `Scoring format ${matchUpFormat} — edit`);
-    chip.title = 'Edit the scoring format';
+    chip.setAttribute(ARIA_LABEL, say('formatEditAria', { format: matchUpFormat }));
+    chip.title = say('formatEditTitle');
     chip.addEventListener('click', () => params.onEditFormat?.());
     return chip;
   }
@@ -682,7 +684,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   function footer(): HTMLElement {
     const bar = div('chc-sec-footer');
 
-    const cancel = button('Cancel', CLS_BTN);
+    const cancel = button(say('cancel'), CLS_BTN);
     cancel.dataset.action = 'cancel';
     cancel.addEventListener('click', () => params.onCancel?.());
 
@@ -761,7 +763,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   function scoreError(): string | undefined {
     return (
       statusScopeError(currentResolution().matchUpStatus, params.disabledMatchUpStatuses, labels) ??
-      error(model(), { sideNames: [params.sides[0].participantName, params.sides[1].participantName] })
+      error(model(), { sideNames: [params.sides[0].participantName, params.sides[1].participantName], labels })
     );
   }
 
@@ -985,8 +987,8 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     const label = labels[status] ?? status;
     const scopeError = statusScopeError(status, params.disabledMatchUpStatuses, labels);
     if (scopeError) return scopeError;
-    if (status === RETIRED && !scoreEntered()) return `No score yet — ${label} keeps the score that was played`;
-    return `The score is complete — ${label} cannot follow it`;
+    if (status === RETIRED && !scoreEntered()) return say('endingNeedsScore', { status: label });
+    return say('endingAfterCompleteScore', { status: label });
   }
 
   /**
@@ -1129,7 +1131,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     // Nothing to clear is not the same as a clear that does nothing: the old dialog disables the button,
     // which is the honest signal. An ENDING counts as something to clear even with no score typed.
     clearButton.disabled = !holdsEntry();
-    submitButton.title = removalRefused && !holdsEntry() ? (labels.clearRefused ?? CLEAR_REFUSED) : '';
+    submitButton.title = removalRefused && !holdsEntry() ? say('clearRefused') : '';
   }
 
   /** Whether anything at all has been entered — a score, an ending, or text the model cannot see. */
@@ -1273,7 +1275,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       head.style.gridTemplateColumns = template;
       // No PLAYER label once the names are not in a column — it would head a track that holds scores.
       const headings = columns.map((column) => columnHeading(column.heading ?? ''));
-      head.append(...(stacked ? headings : [text('', 'PLAYER'), ...headings]));
+      head.append(...(stacked ? headings : [text('', say('player')), ...headings]));
       rowsContainer.append(head);
     }
 
@@ -1339,12 +1341,12 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     const opener = button('', 'chc-sec-opener');
     opener.dataset.action = 'endedEarly';
     opener.dataset.side = String(sideNumber);
-    opener.title = 'How did this match end for them?';
+    opener.title = say('endedEarlyTitle');
     // Both the name and the function, because the label REPLACES the visible text for a screen reader —
     // "ended early" alone would read identically on both rows, and the name alone would not say what the
     // button does.
     const named = side.seed ? `${side.participantName} ${side.seed}` : side.participantName;
-    opener.setAttribute(ARIA_LABEL, `${named} — ended early`);
+    opener.setAttribute(ARIA_LABEL, say('endedEarlyAria', { name: named }));
     opener.setAttribute(ARIA_EXPANDED, String(openPanelSide === sideNumber));
     opener.setAttribute(ARIA_PRESSED, String(!!ending));
 
@@ -1387,7 +1389,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     const side = params.sides[sideNumber - 1];
     const panel = div('chc-sec-side-panel');
     panel.dataset.panelSide = String(sideNumber);
-    panel.append(text('chc-sec-side-panel-head', `What happened to ${side.participantName}?`));
+    panel.append(text('chc-sec-side-panel-head', say('sidePanelHead', { name: side.participantName })));
 
     const inner = div('chc-sec-side-panel-body');
 
@@ -1400,7 +1402,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       const stack = div('chc-sec-side-option-label');
       stack.append(text('', labels[status] ?? status));
       const hint = SIDE_ENDING_HINTS[status];
-      if (hint) stack.append(text('chc-sec-side-option-hint', hint));
+      if (hint) stack.append(text('chc-sec-side-option-hint', say(hint)));
       option.append(stack);
 
       // A retirement or a default cannot follow a finished score; the control says so rather than
@@ -1424,7 +1426,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       // No " - USTA" or " - USTA Policy" beside the heading (CA, 2026-09-27): the codes on offer come
       // from whatever policy is attached, and naming a governing body here would be wrong the moment
       // it is a different one.
-      inner.append(text('chc-sec-reason-head', 'REASON'));
+      inner.append(text('chc-sec-reason-head', say('reason')));
       const chips = div('chc-sec-reasons');
       for (const entry of codes) {
         const code = entry.matchUpStatusCode;
@@ -1454,7 +1456,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
         choose({ kind: 'bothSidesOut' });
         render();
       });
-      label.append(box, text('', `${other.participantName} did not appear either — no one advances`));
+      label.append(box, text('', say('bothSidesOut', { name: other.participantName })));
       inner.append(label);
     }
 
@@ -1497,7 +1499,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     // `Other: Cancelled`, on CA's wording (2026-09-30): *"how about 'Other: Cancelled' which is more
     // compact"*. It keeps the control's own identity in the label instead of trading it for the
     // selection, which is what the first version did.
-    const other = button(chosenInMenu ? `${OTHER_LABEL_BASE}: ${chosenInMenu}` : OTHER_LABEL, CLS_BTN_PILL);
+    const other = button(chosenInMenu ? `${say('otherBase')}: ${chosenInMenu}` : say('other'), CLS_BTN_PILL);
     other.dataset.action = 'other';
     // Solid when the selection was made INSIDE it, so the row still shows one selection whether it
     // came from a privileged button or from the menu.
@@ -1660,7 +1662,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       band.replaceChildren();
       band.dataset.tone = 'warn';
       band.setAttribute('role', 'status');
-      band.append(text(CLS_BAND_HEADLINE, labels.clearRefused ?? CLEAR_REFUSED));
+      band.append(text(CLS_BAND_HEADLINE, say('clearRefused')));
       appendBandControl(true);
       return undefined;
     }
@@ -1669,7 +1671,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       band.replaceChildren();
       band.dataset.tone = 'warn';
       band.setAttribute('role', 'status');
-      band.append(text(CLS_BAND_HEADLINE, labels.clearedHeadline ?? CLEARED_HEADLINE));
+      band.append(text(CLS_BAND_HEADLINE, say('clearedHeadline')));
       appendBandControl(true);
       return;
     }

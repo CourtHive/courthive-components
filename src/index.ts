@@ -68,6 +68,11 @@ export type { ScoreEntryOutcome, ScoreEntryCard } from './components/scoring/sco
 // The engine-ready shape the dialog's `onSubmit` reports as `outcome`, and the mapping behind it, for a host
 // that builds an outcome by hand (an import, a correction) and wants the same rules.
 export { toEngineOutcome } from './components/scoring/logic/engineOutcome';
+// Every word the dialog shows, in English, keyed for a host's translations: pass them through the dialog's
+// `labels`, beside the status names. `scoreEntryText` is how the dialog reads one, for a host that wants
+// the same fallback.
+export { SCORE_ENTRY_TEXT, scoreEntryText } from './components/scoring/logic/scoreEntryText';
+export type { ScoreEntryTextKey, ScoreEntryLabels } from './components/scoring/logic/scoreEntryText';
 export type { EngineOutcome as ScoreEntryEngineOutcome } from './components/scoring/logic/engineOutcome';
 
 // Dynamic Sets state management API (pure functions, testable)

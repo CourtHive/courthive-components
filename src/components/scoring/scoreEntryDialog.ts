@@ -36,9 +36,11 @@ import { createDialPadRegion } from './regions/dialPadRegion';
 import { switchApproach } from './logic/scoreEntryModel';
 import { scoreGovernor } from 'tods-competition-factory';
 import { toEngineOutcome } from './logic/engineOutcome';
+import { scoreEntryText } from './logic/scoreEntryText';
 import { renderScoreEntryCard } from './scoreEntryCard';
 import { cModal } from '../modal/cmodal';
 
+import type { ScoreEntryTextKey } from './logic/scoreEntryText';
 import type { EngineOutcome } from './logic/engineOutcome';
 import type { SetScore } from './types';
 import type {
@@ -52,10 +54,10 @@ import type {
 /** The three entry approaches. The key is what `onSelectApproach` reports and what a host persists. */
 export type ScoreEntryApproach = 'dynamicSets' | 'freeScore' | 'dialPad';
 
-const APPROACH_LABELS: Record<ScoreEntryApproach, string> = {
-  dynamicSets: 'Dynamic Sets',
-  freeScore: 'Free Score',
-  dialPad: 'Dial Pad'
+const APPROACH_TEXT: Record<ScoreEntryApproach, ScoreEntryTextKey> = {
+  dynamicSets: 'approachDynamicSets',
+  freeScore: 'approachFreeScore',
+  dialPad: 'approachDialPad'
 };
 
 const ALL_APPROACHES: ScoreEntryApproach[] = ['dynamicSets', 'freeScore', 'dialPad'];
@@ -183,7 +185,8 @@ function hasCommandModifier(event: KeyboardEvent): boolean {
 
 export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntryDialog {
   const offered = params.approaches?.length ? params.approaches : ALL_APPROACHES;
-  const labels = params.labels ?? endingLabels();
+  const labels: Record<string, string> = { ...endingLabels(), ...params.labels };
+  const approachName = (key: ScoreEntryApproach) => scoreEntryText(labels, APPROACH_TEXT[key]);
   let approach: ScoreEntryApproach = params.approach ?? offered[0];
   let matchUpFormat = params.matchUpFormat ?? params.matchUp?.matchUpFormat;
   const openedFormat = matchUpFormat;
@@ -211,7 +214,7 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
     matchUpFormat,
     store,
     region: currentRegion,
-    approachLabel: APPROACH_LABELS[approach],
+    approachLabel: approachName(approach),
     approaches: offered.length > 1 ? offered.map(approachOption) : undefined,
     onSelectApproach: (key) => setApproach(key as ScoreEntryApproach),
     // Only when the host wants to hear about it: without `onFormatChange` the chip stays inert text
@@ -259,7 +262,7 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
   focusEntry();
 
   function approachOption(key: ScoreEntryApproach): ApproachOption {
-    return { key, label: APPROACH_LABELS[key] };
+    return { key, label: approachName(key) };
   }
 
   /**
@@ -277,12 +280,14 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
         store,
         onChange,
         disabledMatchUpStatuses: params.disabledMatchUpStatuses,
-        statusScopeLabels: labels
+        statusScopeLabels: labels,
+        labels
       });
-    if (next === 'dialPad') return createDialPadRegion({ store, onChange });
+    if (next === 'dialPad') return createDialPadRegion({ store, onChange, labels });
     return createDynamicSetsRegion({
       store,
       sideNames: [params.sides[0].participantName, params.sides[1].participantName],
+      labels,
       onChange,
       onStructureChange: () => card.rerender()
     });
@@ -301,7 +306,7 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
     store.set(switchApproach(store.get(), next));
     approach = next;
     currentRegion = buildRegion(next);
-    card.update({ region: currentRegion, approachLabel: APPROACH_LABELS[next] });
+    card.update({ region: currentRegion, approachLabel: approachName(next) });
     // The new region begins where entry begins in it, exactly as it would had the dialog opened on it.
     // Without this a switch left focus on the menu item that had just been removed from the document,
     // so Free Score in particular had to be clicked into before it would take a keystroke — CA,
