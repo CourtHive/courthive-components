@@ -1,5 +1,5 @@
 /**
- * Test suite for dynamicSetsApproach - integration tests
+ * Dynamic Sets set formats
  *
  * Tests the critical getSetFormat() logic that determines which format
  * to use for each set (regular vs final set format).
@@ -14,7 +14,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { matchUpFormatCode } from 'tods-competition-factory';
-import { getSetFormatForIndex, matchUpConfigFor } from '../../logic/dynamicSetsLogic';
+import { getSetFormatForIndex, matchUpConfigFor } from '../dynamicSetsLogic';
 import { MATCH_FORMATS } from '../../../../constants/matchUpFormats';
 
 /**

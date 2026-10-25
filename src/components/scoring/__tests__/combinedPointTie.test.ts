@@ -9,7 +9,6 @@ import { isComplete, matchUpStatus, winningSide, error } from '../logic/scoreEnt
 import { createScoreEntryModel, setCell } from '../logic/scoreEntryModel';
 import { isCompletedCombinedPointTie } from '../logic/combinedPointTie';
 import { G } from '../logic/__tests__/scoreEntryModelTestHelpers';
-import { validateScore } from '../utils/scoreValidator';
 import { describe, expect, it } from 'vitest';
 
 const POINTS_32 = 'SET1-S:P32';
@@ -30,21 +29,6 @@ describe('isCompletedCombinedPointTie', () => {
     expect(isCompletedCombinedPointTie(set(16, 16), 'SET1-S:P32WB2')).toBe(false);
     expect(isCompletedCombinedPointTie(set(6, 6), 'SET3-S:6/TB7')).toBe(false);
     expect(isCompletedCombinedPointTie([], POINTS_32)).toBe(false);
-  });
-});
-
-describe('the text-entry dialogs (validateScore)', () => {
-  it('accept 16-16 as a completed result with no winner', () => {
-    const outcome = validateScore('16-16', POINTS_32);
-    expect(outcome.isValid).toBe(true);
-    expect(outcome.winningSide).toBeUndefined();
-    expect(outcome.matchUpStatus).toBe('COMPLETED');
-  });
-
-  it('control: a won total is still valid with its winner, and an unfinished or unresolved tie is not', () => {
-    expect(validateScore('17-15', POINTS_32)).toMatchObject({ isValid: true, winningSide: 1 });
-    expect(validateScore('10-10', POINTS_32).isValid).toBe(false);
-    expect(validateScore('16-16', DECIDING_POINT).isValid).toBe(false);
   });
 });
 

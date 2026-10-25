@@ -8,11 +8,6 @@
  * writes `import { openScoreEntryDialog } from 'courthive-components'` — that line is what this file
  * stands in for.
  *
- * Both scoring entry points are asserted together, because the point of exporting the new one is that
- * a host can run BOTH and choose between them at runtime. CA, 2026-09-29: *"we're not going to rewire
- * TMX... at best we can make it a setting to turn on the new score entry modal"*. A setting needs two
- * reachable names; dropping either one breaks the setting, not just the newer dialog.
- *
  * The TYPES are part of the promise and the runtime assertion cannot see them — a dropped
  * `export type` leaves `openScoreEntryDialog` reachable and its parameter object unnameable, so a host
  * writing a wrapper has nothing to annotate. The declarations below name each exported type exactly
@@ -51,11 +46,13 @@ describe('package barrel', () => {
   // d3, tiptap, tippy, every card and every panel — and it does so while 126 other files are running
   // on the same workers. Alone it takes ~3s; in the full suite it timed out at 5s the first time it
   // ran. A reachability test that only passes when run alone tells a consumer nothing.
-  it('reaches BOTH scoring dialogs, so a host can switch between them', async () => {
-    const pkg = await import('../index');
+  it('reaches the score entry dialog, and no longer the scoring modal it replaced', async () => {
+    const pkg: Record<string, unknown> = await import('../index');
 
-    expect(typeof pkg.scoringModal).toBe('function');
     expect(typeof pkg.openScoreEntryDialog).toBe('function');
+    // CONTROL for the removal: a host still importing these gets undefined, not a stale function.
+    expect(pkg.scoringModal).toBeUndefined();
+    expect(pkg.setScoringConfig).toBeUndefined();
   }, 60_000);
 
   it('names every type a host has to annotate with', () => {
