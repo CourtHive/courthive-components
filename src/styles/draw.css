@@ -779,9 +779,12 @@
 
 .chc-matchup {
   background-color: var(--chc-color-matchup-bg);
-  -webkit-transition: all 0.3s linear;
   box-shadow: var(--chc-matchup-box-shadow);
-  transition: all 0.3s linear;
+  /* Named properties, not `all`: TMX morphdom-patches the tree on every update, and `all` started a
+     transition on every patched property of every matchUp. Only the hover border and shadow animate. */
+  transition:
+    border-color 0.3s linear,
+    box-shadow 0.3s linear;
   border: solid var(--chc-color-border);
   margin-bottom: var(--chc-space-matchup);
   margin-top: var(--chc-space-matchup);

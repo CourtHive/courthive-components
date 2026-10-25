@@ -11,18 +11,31 @@ import type { Composition } from '../types';
  *   element.className = linkResult.className;
  *   linkResult.applyStyles(element); // sets CSS custom properties for dynamic dimensions
  */
+/**
+ * The body font size in px, which the connector maths scales the schedule, center-info and address
+ * rows by. `getComputedStyle` forces a style recalculation, so a structure reads it ONCE
+ * (`renderStructure`) and hands it down, rather than once per matchUp.
+ */
+export function readBodyFontSize(): number {
+  return Number.parseInt(globalThis.getComputedStyle(document.body).getPropertyValue('font-size'));
+}
+
 export function getLinkStyle({
   composition,
   isDoubles,
-  roundFactor = 1
+  roundFactor = 1,
+  fontSize: suppliedFontSize
 }: {
   composition?: Composition;
   isDoubles?: boolean;
   roundFactor?: number;
+  /** The body font size, read once by the caller. Read here only when absent AND a row needs it. */
+  fontSize?: number;
 }) {
-  const fontSize = parseInt(window.getComputedStyle(document.body).getPropertyValue('font-size'));
-
   const configuration = composition?.configuration || {};
+  const needsFontSize = configuration.centerInfo || configuration.scheduleInfo || configuration.showAddress;
+  const fontSize = needsFontSize ? (suppliedFontSize ?? readBodyFontSize()) : 0;
+
   const connectorWidth = (configuration as any)?.connectorWidth || 16;
   const centerHeight = configuration.centerInfo ? lineHeights.centerInfo * fontSize : 0;
   const scheduleHeight = configuration.scheduleInfo ? lineHeights.scheduleInfo * fontSize : 0;

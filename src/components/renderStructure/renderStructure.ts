@@ -2,6 +2,7 @@ import { applyCompositionColors } from '../../styles/applyCompositionColors';
 import { roundContainerStyle } from '../../styles/roundContainerStyle';
 import { tournamentEngine } from 'tods-competition-factory';
 import { structureStyle } from '../../styles/structureStyle';
+import { readBodyFontSize } from '../../styles/getLinkStyle';
 import { roundStyle } from '../../styles/roundStyle';
 import { isLuckyDraw } from './isLuckyDraw';
 import { renderRound } from './renderRound';
@@ -51,6 +52,11 @@ export function renderStructure({
 
   applyCompositionColors(div, composition?.colors);
 
+  // Read once here, and only when a row the connector maths sizes by it is shown: getComputedStyle
+  // forces a style recalculation, and it used to run for every matchUp (255 times in a 256 draw).
+  const { centerInfo, scheduleInfo, showAddress } = composition?.configuration || {};
+  const fontSize = centerInfo || scheduleInfo || showAddress ? readBodyFontSize() : undefined;
+
   const finalRoundNumber = roundNumbers.length ? Math.max.apply(null, roundNumbers) : 0;
 
   for (const roundNumber of roundNumbers) {
@@ -68,6 +74,7 @@ export function renderStructure({
       roundProfile,
       matchUps,
       minWidth,
+      fontSize,
       context,
       isLucky
     });

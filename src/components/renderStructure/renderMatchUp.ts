@@ -29,6 +29,8 @@ export function renderMatchUp(params: {
    * leave it out and the matchUp's own factor is used.
    */
   roundFactor?: number;
+  /** The body font size, read once per structure by `renderStructure`. Read here when absent. */
+  fontSize?: number;
 }): HTMLElement {
   const { composition, initialRoundNumber = 1, matchUp, moiety, selectedMatchUpId, searchActive } = params;
   const { roundNumber, finishingRound, matchUpType, preFeedRound, stage } = matchUp;
@@ -52,7 +54,7 @@ export function renderMatchUp(params: {
     (moiety && 'm1') ||
     'm2';
 
-  const linkResult = getLinkStyle({ composition, isDoubles, roundFactor })({
+  const linkResult = getLinkStyle({ composition, isDoubles, roundFactor, fontSize: params.fontSize })({
     isFirstRound,
     link
   });
