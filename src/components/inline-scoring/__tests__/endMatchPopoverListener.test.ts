@@ -7,7 +7,9 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { renderInlineScoringEntry } from '../../scoring/approaches/inlineScoringApproach';
+import { compositions } from '../../../compositions/compositions';
+import { InlineScoringManager } from '../inlineScoringManager';
+import { renderInlineMatchUp } from '../renderInlineMatchUp';
 
 const POPOVER = '.chc-live-chip-popover';
 const POPOVER_ITEM = '.chc-live-chip-popover-item';
@@ -15,23 +17,31 @@ const POPOVER_ITEM = '.chc-live-chip-popover-item';
 let attached: Set<unknown>;
 const outsideClickListeners = () => attached.size;
 
+/** An in-progress matchUp, rendered for inline scoring the way a host mounts it. */
 function mount(): void {
-  const container = document.createElement('div');
-  document.body.appendChild(container);
-  renderInlineScoringEntry({
-    matchUp: {
-      matchUpId: 'm1',
-      matchUpFormat: 'SET3-S:6/TB7',
-      matchUpStatus: 'TO_BE_PLAYED',
-      sides: [
-        { sideNumber: 1, participant: { participantName: 'Alice' } },
-        { sideNumber: 2, participant: { participantName: 'Bob' } }
-      ]
-    },
-    container,
-    onScoreChange: () => undefined,
-    labels: {}
-  } as any);
+  const base = compositions.Australian;
+  const composition = {
+    ...base,
+    configuration: {
+      ...base.configuration,
+      matchUpFooter: true,
+      inlineScoring: { mode: 'games' as const, showFooter: true, showSituation: true }
+    }
+  };
+  const matchUp = {
+    matchUpId: 'm1',
+    matchUpFormat: 'SET3-S:6/TB7',
+    matchUpStatus: 'IN_PROGRESS',
+    readyToScore: true,
+    sides: [
+      { sideNumber: 1, participant: { participantName: 'Alice' } },
+      { sideNumber: 2, participant: { participantName: 'Bob' } }
+    ]
+  };
+  const manager = new InlineScoringManager({ onScoreChange: () => undefined } as any);
+  document.body.appendChild(
+    renderInlineMatchUp({ matchUp, composition, manager, matchUpFormat: matchUp.matchUpFormat, isLucky: true } as any)
+  );
 }
 
 /** Open the end-match popover from a side's status pill. */

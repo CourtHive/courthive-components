@@ -148,12 +148,12 @@
 }
 
 .spl-grid-cell__status-badge--live {
-  background: rgba(59, 130, 246, 0.15);
+  background: color-mix(in srgb, var(--sp-accent) 15%, transparent);
   color: var(--sp-accent-text);
 }
 
 .spl-grid-cell__status-badge--done {
-  background: rgba(16, 185, 129, 0.15);
+  background: color-mix(in srgb, var(--sp-ok) 15%, transparent);
   color: var(--sp-ok-text);
 }
 
@@ -162,29 +162,29 @@
    Completed: event/round line colored for MALE/FEMALE only. */
 
 .spl-grid-cell[data-gender='MALE']:not(.spl-cell--complete) .spl-grid-cell__name {
-  color: var(--chc-gender-male, #2e86c1);
+  color: var(--chc-gender-male);
 }
 
 .spl-grid-cell[data-gender='FEMALE']:not(.spl-cell--complete) .spl-grid-cell__name {
-  color: var(--chc-gender-female, #e07baf);
+  color: var(--chc-gender-female);
 }
 
 .spl-grid-cell[data-gender='MIXED']:not(.spl-cell--complete) .spl-grid-cell__name {
-  color: var(--chc-gender-mixed, #8e44ad);
+  color: var(--chc-gender-mixed);
 }
 
 .spl-grid-cell[data-gender='MALE'].spl-cell--complete .spl-grid-cell__event-round {
-  color: var(--chc-gender-male, #2e86c1);
+  color: var(--chc-gender-male);
 }
 
 .spl-grid-cell[data-gender='FEMALE'].spl-cell--complete .spl-grid-cell__event-round {
-  color: var(--chc-gender-female, #e07baf);
+  color: var(--chc-gender-female);
 }
 
 /* ── Status Modifiers ───────────────────────────────────── */
 
 .spl-cell--complete {
-  background: rgba(16, 185, 129, 0.06);
+  background: color-mix(in srgb, var(--sp-ok) 6%, transparent);
 }
 
 .spl-cell--complete .spl-grid-cell__score {
@@ -192,7 +192,7 @@
 }
 
 .spl-cell--inprogress {
-  background: rgba(16, 185, 129, 0.12);
+  background: color-mix(in srgb, var(--sp-ok) 12%, transparent);
 }
 
 .spl-cell--inprogress .spl-grid-cell__score {
@@ -204,7 +204,7 @@
 /* Background alphas match the complete/inprogress pattern.  */
 
 .spl-cell--error {
-  background: rgba(244, 63, 94, 0.08);
+  background: color-mix(in srgb, var(--sp-err) 8%, transparent);
   border-left: 3px solid var(--sp-err);
 }
 
@@ -213,12 +213,12 @@
 }
 
 .spl-cell--conflict {
-  background: rgba(244, 63, 94, 0.05);
+  background: color-mix(in srgb, var(--sp-err) 5%, transparent);
   border-left: 3px solid var(--sp-err-border);
 }
 
 .spl-cell--warning {
-  background: rgba(245, 158, 11, 0.06);
+  background: color-mix(in srgb, var(--chc-container-warning) 6%, transparent);
   border-left: 3px solid var(--sp-warn);
 }
 
@@ -227,12 +227,12 @@
 }
 
 .spl-cell--issue {
-  background: rgba(59, 130, 246, 0.06);
+  background: color-mix(in srgb, var(--sp-accent) 6%, transparent);
   border-left: 3px solid var(--sp-accent);
 }
 
 .spl-cell--double-booking {
-  background: rgba(244, 63, 94, 0.06);
+  background: color-mix(in srgb, var(--sp-err) 6%, transparent);
   border-left: 4px solid var(--sp-err);
 }
 
@@ -280,7 +280,7 @@
 /* ── Conflict Highlight (hover) ─────────────────────────── */
 
 .spl-cell--conflict-highlight {
-  box-shadow: 0 0 6px 2px rgba(245, 158, 11, 0.35);
+  box-shadow: 0 0 6px 2px color-mix(in srgb, var(--chc-container-warning) 55%, transparent);
   outline: 2px solid var(--sp-warn);
   outline-offset: -2px;
   z-index: 1;
@@ -294,7 +294,7 @@
    Applies to any element carrying data-matchup-id — grid cells, catalog cards,
    strip cells — so one rule covers every surface the page draws. */
 .spl-related-highlight {
-  box-shadow: 0 0 6px 2px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 0 6px 2px color-mix(in srgb, var(--sp-accent) 30%, transparent);
   outline: 2px solid var(--sp-accent);
   outline-offset: -2px;
   z-index: 1;
@@ -304,8 +304,8 @@
 /* ── Search Match Highlight ─────────────────────────────── */
 
 .spl-cell--search-match {
-  background: rgba(180, 100, 200, 0.18);
-  outline: 2px solid rgba(160, 80, 180, 0.6);
+  background: var(--chc-bg-highlight);
+  outline: 2px solid var(--chc-border-focus);
   outline-offset: -2px;
   z-index: 1;
   position: relative;
@@ -347,8 +347,8 @@
     45deg,
     var(--sp-card-bg),
     var(--sp-card-bg) 4px,
-    rgba(59, 130, 246, 0.15) 4px,
-    rgba(59, 130, 246, 0.15) 8px
+    color-mix(in srgb, var(--sp-accent) 15%, transparent) 4px,
+    color-mix(in srgb, var(--sp-accent) 15%, transparent) 8px
   );
 }
 
@@ -362,8 +362,8 @@
     45deg,
     var(--sp-card-bg),
     var(--sp-card-bg) 4px,
-    rgba(244, 63, 94, 0.15) 4px,
-    rgba(244, 63, 94, 0.15) 8px
+    color-mix(in srgb, var(--sp-err) 15%, transparent) 4px,
+    color-mix(in srgb, var(--sp-err) 15%, transparent) 8px
   );
 }
 
@@ -380,8 +380,8 @@
     45deg,
     var(--sp-card-bg),
     var(--sp-card-bg) 4px,
-    rgba(20, 184, 166, 0.15) 4px,
-    rgba(20, 184, 166, 0.15) 8px
+    color-mix(in srgb, var(--sp-info-text) 15%, transparent) 4px,
+    color-mix(in srgb, var(--sp-info-text) 15%, transparent) 8px
   );
 }
 
@@ -395,8 +395,8 @@
     45deg,
     var(--sp-card-bg),
     var(--sp-card-bg) 4px,
-    rgba(245, 158, 11, 0.15) 4px,
-    rgba(245, 158, 11, 0.15) 8px
+    color-mix(in srgb, var(--chc-container-warning) 15%, transparent) 4px,
+    color-mix(in srgb, var(--chc-container-warning) 15%, transparent) 8px
   );
 }
 
@@ -552,16 +552,16 @@
 @keyframes spl-issue-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+    box-shadow: 0 0 0 0 transparent;
   }
   25% {
-    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.5);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--chc-container-warning) 55%, transparent);
   }
   50% {
-    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+    box-shadow: 0 0 0 0 transparent;
   }
   75% {
-    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.5);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--chc-container-warning) 55%, transparent);
   }
 }
 

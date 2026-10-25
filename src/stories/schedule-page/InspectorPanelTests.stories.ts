@@ -30,7 +30,9 @@ import { expect } from 'storybook/test';
 import type { CatalogMatchUpItem, SchedulePageState, UIPanel } from '../../components/schedule-page';
 
 const meta: Meta = {
-  title: 'Schedule Page/Tests/InspectorPanel'
+  title: 'Scheduling/Schedule Page/Tests/Inspector Panel',
+  // A play-function test: hidden from the sidebar, still run by `pnpm test:stories`.
+  tags: ['!dev']
 };
 export default meta;
 

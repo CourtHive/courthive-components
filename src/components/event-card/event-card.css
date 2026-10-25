@@ -4,33 +4,41 @@
 
 .chc-ec-card {
   --chc-ec-radius: 0.75rem;
-  --chc-ec-bg: var(--chc-bg-elevated, #ffffff);
-  --chc-ec-hover-bg: var(--chc-hover-bg, #f9fafb);
-  --chc-ec-border-color: var(--chc-border-primary, #e5e7eb);
+  --chc-ec-bg: var(--chc-bg-elevated);
+  --chc-ec-hover-bg: var(--chc-hover-bg);
+  --chc-ec-border-color: var(--chc-border-primary);
   --chc-ec-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   --chc-ec-hover-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
 
-  --chc-ec-title-color: var(--chc-text-primary, #111827);
-  --chc-ec-category-color: var(--chc-text-secondary, #4b5563);
-  --chc-ec-muted-color: var(--chc-text-muted, #6b7280);
+  --chc-ec-title-color: var(--chc-text-primary);
+  --chc-ec-category-color: var(--chc-text-secondary);
+  --chc-ec-muted-color: var(--chc-text-muted);
 
-  --chc-ec-image-bg: var(--chc-bg-secondary, #f3f4f6);
-  --chc-ec-placeholder-stripe: var(--chc-border-primary, #e5e7eb);
+  --chc-ec-image-bg: var(--chc-bg-secondary);
+  --chc-ec-placeholder-stripe: var(--chc-border-primary);
 
-  --chc-ec-status-bg: #15803d;
-  --chc-ec-status-color: #ffffff;
-  --chc-ec-status-live-bg: #b91c1c;
-  --chc-ec-status-completed-bg: #6b7280;
-  --chc-ec-status-cancelled-bg: #9ca3af;
-  --chc-ec-status-drawing-bg: #d97706;
-  --chc-ec-status-entries-open-bg: #2563eb;
-  --chc-ec-status-upcoming-bg: #0891b2;
+  /* Status pills are solid intent fills carrying a label: each pairs a container fill with its
+     on-* ink (the same mapping as the tournament card and TMX's tournament list). */
+  --chc-ec-status-bg: var(--chc-container-success);
+  --chc-ec-status-color: var(--chc-on-success);
+  --chc-ec-status-live-bg: var(--chc-container-danger);
+  --chc-ec-status-live-color: var(--chc-on-danger);
+  --chc-ec-status-completed-bg: var(--chc-pill-bg-dark);
+  --chc-ec-status-completed-color: var(--chc-pill-text);
+  --chc-ec-status-cancelled-bg: var(--chc-bg-tertiary);
+  --chc-ec-status-cancelled-color: var(--chc-text-secondary);
+  --chc-ec-status-drawing-bg: var(--chc-container-warning);
+  --chc-ec-status-drawing-color: var(--chc-on-warning);
+  --chc-ec-status-entries-open-bg: var(--chc-container-link);
+  --chc-ec-status-entries-open-color: var(--chc-on-link);
+  --chc-ec-status-upcoming-bg: var(--chc-container-info);
+  --chc-ec-status-upcoming-color: var(--chc-on-info);
 
-  --chc-ec-skeleton-bg: var(--chc-bg-secondary, #e5e7eb);
-  --chc-ec-skeleton-shimmer: var(--chc-hover-bg, #f3f4f6);
+  --chc-ec-skeleton-bg: var(--chc-bg-secondary);
+  --chc-ec-skeleton-shimmer: var(--chc-hover-bg);
 
-  --chc-ec-progress-track: var(--chc-bg-secondary, #e5e7eb);
-  --chc-ec-progress-fill: var(--chc-status-success, #16a34a);
+  --chc-ec-progress-track: var(--chc-bg-secondary);
+  --chc-ec-progress-fill: var(--chc-status-success);
 
   position: relative;
   display: flex;
@@ -50,19 +58,6 @@
 [data-theme='dark'] .chc-ec-card {
   --chc-ec-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
   --chc-ec-hover-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
-  --chc-ec-image-bg: #0f1726;
-  --chc-ec-placeholder-stripe: #1f2a3d;
-
-  --chc-ec-status-bg: #16a34a;
-  --chc-ec-status-live-bg: #ef4444;
-  --chc-ec-status-completed-bg: #4b5563;
-  --chc-ec-status-cancelled-bg: #6b7280;
-  --chc-ec-status-drawing-bg: #f59e0b;
-  --chc-ec-status-entries-open-bg: #3b82f6;
-  --chc-ec-status-upcoming-bg: #0ea5e9;
-
-  --chc-ec-skeleton-bg: #1f2a3d;
-  --chc-ec-skeleton-shimmer: #2a3550;
 }
 
 .chc-ec-card--clickable {
@@ -138,21 +133,27 @@
 }
 .chc-ec-status-pill[data-kind='live'] {
   background: var(--chc-ec-status-live-bg);
+  color: var(--chc-ec-status-live-color);
 }
 .chc-ec-status-pill[data-kind='completed'] {
   background: var(--chc-ec-status-completed-bg);
+  color: var(--chc-ec-status-completed-color);
 }
 .chc-ec-status-pill[data-kind='cancelled'] {
   background: var(--chc-ec-status-cancelled-bg);
+  color: var(--chc-ec-status-cancelled-color);
 }
 .chc-ec-status-pill[data-kind='drawing'] {
   background: var(--chc-ec-status-drawing-bg);
+  color: var(--chc-ec-status-drawing-color);
 }
 .chc-ec-status-pill[data-kind='entries-open'] {
   background: var(--chc-ec-status-entries-open-bg);
+  color: var(--chc-ec-status-entries-open-color);
 }
 .chc-ec-status-pill[data-kind='upcoming'] {
   background: var(--chc-ec-status-upcoming-bg);
+  color: var(--chc-ec-status-upcoming-color);
 }
 
 .chc-ec-eventtype-badge,
@@ -161,33 +162,35 @@
   font-weight: 700;
   padding: 0.15rem 0.4rem;
   border-radius: 0.25rem;
-  color: #ffffff;
+  /* Page-surface ink: white on the light palettes' deep category hues, near-black on the dark
+     palettes' bright ones. palette-contrast.test.ts holds every pair at 4.5:1. */
+  color: var(--chc-bg-primary);
   line-height: 1.2;
   white-space: nowrap;
   letter-spacing: 0.03em;
 }
 
 .chc-ec-eventtype-badge[data-kind='SINGLES'] {
-  background: var(--chc-eventtype-singles, #6366f1);
+  background: var(--chc-eventtype-singles);
 }
 .chc-ec-eventtype-badge[data-kind='DOUBLES'] {
-  background: var(--chc-eventtype-doubles, #14b8a6);
+  background: var(--chc-eventtype-doubles);
 }
 .chc-ec-eventtype-badge[data-kind='TEAM'] {
-  background: var(--chc-eventtype-team, #f59e0b);
+  background: var(--chc-eventtype-team);
 }
 .chc-ec-eventtype-badge[data-kind='HYBRID'] {
-  background: var(--chc-eventtype-hybrid, #db2777);
+  background: var(--chc-eventtype-hybrid);
 }
 
 .chc-ec-gender-badge[data-kind='MALE'] {
-  background: var(--chc-gender-male, #2e86c1);
+  background: var(--chc-gender-male);
 }
 .chc-ec-gender-badge[data-kind='FEMALE'] {
-  background: var(--chc-gender-female, #e07baf);
+  background: var(--chc-gender-female);
 }
 .chc-ec-gender-badge[data-kind='MIXED'] {
-  background: var(--chc-gender-mixed, #8e44ad);
+  background: var(--chc-gender-mixed);
 }
 
 /* ── Body ── */

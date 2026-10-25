@@ -7,7 +7,7 @@
 .privacy-editor__intro {
   margin: 0;
   font-size: 0.85rem;
-  color: var(--chc-text-secondary, #555);
+  color: var(--chc-text-secondary);
 }
 
 .privacy-editor__name {
@@ -15,23 +15,23 @@
   flex-direction: column;
   gap: 3px;
   font-size: 0.8rem;
-  color: var(--chc-text-secondary, #555);
+  color: var(--chc-text-secondary);
 }
 
 .privacy-editor__name input {
   padding: 4px 8px;
-  border: 1px solid var(--chc-border-primary, #ccc);
+  border: 1px solid var(--chc-border-primary);
   border-radius: 4px;
   font-size: 0.9rem;
-  background: var(--chc-bg-elevated, #fff);
-  color: var(--chc-text-primary, #363636);
+  background: var(--chc-bg-elevated);
+  color: var(--chc-text-primary);
 }
 
 .privacy-editor__group h4 {
   margin: 6px 0;
   font-size: 0.82rem;
   font-weight: 600;
-  color: var(--chc-text-primary, #363636);
+  color: var(--chc-text-primary);
 }
 
 .privacy-editor__grid {

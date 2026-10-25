@@ -18,7 +18,7 @@ import { VenueLocatorData } from '../components/venue-locator/types';
 import { within, userEvent, expect } from 'storybook/test';
 
 export default {
-  title: 'Components/VenueLocator',
+  title: 'Cards/Venue Locator',
   tags: ['autodocs']
 };
 

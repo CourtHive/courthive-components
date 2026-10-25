@@ -230,14 +230,14 @@
   background-color: color-mix(in srgb, var(--chc-container-link) 16%, var(--chc-bg-primary));
 }
 
-/* White */
+/* White: the page surface, so it reads as a borderless button in every palette */
 .button.is-white {
-  background-color: #fff;
+  background-color: var(--chc-bg-primary);
   border-color: transparent;
-  color: #0a0a0a;
+  color: var(--chc-text-primary);
 }
 .button.is-white:hover {
-  background-color: #f9f9f9;
+  background-color: var(--chc-hover-bg);
 }
 
 /* ── Size modifiers ──────────────────────────────────────── */
@@ -271,10 +271,12 @@
   background-color: var(--chc-hover-bg);
 }
 
-/* ── Delete button (X dismiss) ───────────────────────────── */
+/* ── Delete button (X dismiss) ───────────────────────────────
+   A translucent muted disc with a page-surface cross: it sits on any surface or fill, and the cross
+   inverts with the mode instead of staying white on a disc that dark mode had made near-invisible. */
 .delete {
   appearance: none;
-  background-color: rgba(10, 10, 10, 0.2);
+  background-color: color-mix(in srgb, var(--chc-text-muted) 55%, transparent);
   border: none;
   border-radius: 9999px;
   cursor: pointer;
@@ -296,7 +298,7 @@
 
 .delete::before,
 .delete::after {
-  background-color: #fff;
+  background-color: var(--chc-bg-primary);
   content: '';
   display: block;
   left: 50%;
@@ -317,5 +319,5 @@
 }
 
 .delete:hover {
-  background-color: rgba(10, 10, 10, 0.3);
+  background-color: color-mix(in srgb, var(--chc-text-muted) 75%, transparent);
 }

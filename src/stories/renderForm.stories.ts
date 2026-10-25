@@ -9,7 +9,7 @@ const PLACEHOLDER_EMAIL = 'john@example.com';
 const ICON_EMAIL = 'fas fa-envelope';
 
 export default {
-  title: 'Renderers/Form',
+  title: 'Foundations/Forms/Form',
   tags: ['autodocs'],
   render: ({ title, items, relationships, options }) => {
     const wrapper = document.createElement('div');

@@ -293,8 +293,8 @@ export const cModal = (() => {
         width: 20px;
         height: 20px;
         border-radius: 50%;
-        background-color: #3273dc;
-        color: white;
+        background-color: var(--chc-container-link);
+        color: var(--chc-on-link);
         font-size: 14px;
         font-weight: bold;
         line-height: 1;
@@ -331,7 +331,7 @@ export const cModal = (() => {
           position: absolute;
           z-index: 10000;
           background-color: var(--chc-bg-elevated);
-          border: 1px solid var(--chc-border-focus, #5b9bd5);
+          border: 1px solid var(--chc-border-focus);
           border-radius: 4px;
           box-shadow: 0 2px 8px rgba(0,0,0,0.25);
           padding: 1em;
@@ -352,7 +352,7 @@ export const cModal = (() => {
           cursor: pointer;
           font-size: 18px;
           line-height: 1;
-          color: var(--chc-text-secondary, #666);
+          color: var(--chc-text-secondary);
         `;
         closeBtn.onclick = (ev) => {
           ev.stopPropagation();
@@ -425,12 +425,12 @@ export const cModal = (() => {
         font-size: 14px;
         flex-shrink: 0;
         user-select: none;
-        color: var(--chc-text-secondary, #666);
+        color: var(--chc-text-secondary);
         transition: background-color 0.15s;
       `;
 
       menuCaret.onmouseenter = () => {
-        menuCaret.style.backgroundColor = 'var(--chc-hover-bg, #f0f0f0)';
+        menuCaret.style.backgroundColor = 'var(--chc-hover-bg)';
       };
       menuCaret.onmouseleave = () => {
         menuCaret.style.backgroundColor = '';

@@ -58,7 +58,7 @@
 .lc-mark {
   fill: var(--sp-accent);
   fill-opacity: 0.85;
-  stroke: white;
+  stroke: var(--chc-bg-primary);
   stroke-width: 1.5;
   transition: fill-opacity 120ms ease;
 }

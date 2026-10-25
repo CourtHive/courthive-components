@@ -180,8 +180,8 @@
 
 .spl-catalog-filter-btn.active {
   opacity: 1;
-  color: #e67e22;
-  background: rgba(230, 126, 34, 0.1);
+  color: var(--sp-warn-text);
+  background: color-mix(in srgb, var(--chc-container-warning) 12%, transparent);
   animation: spl-catalog-filter-pulse 1.5s ease-in-out infinite;
 }
 
@@ -273,17 +273,17 @@
 }
 
 /* Active-filter state for popover selects + their labels. Matches the
- * orange palette used on the catalog filter button itself so the path
+ * warning palette used on the catalog filter button itself so the path
  * from "button is pulsing" → "which dropdown(s) are responsible" is
  * obvious at a glance. */
 .spl-filter-label.is-filtering {
-  color: #e67e22;
+  color: var(--sp-warn-text);
 }
 
 .spl-filter-select.is-filtering {
-  border-color: #e67e22;
-  background: rgba(230, 126, 34, 0.08);
-  color: #e67e22;
+  border-color: var(--sp-warn);
+  background: color-mix(in srgb, var(--chc-container-warning) 10%, var(--sp-card-bg));
+  color: var(--sp-warn-text);
   font-weight: 600;
 }
 
@@ -660,7 +660,7 @@
   font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  background: rgba(127, 127, 127, 0.18);
+  background: color-mix(in srgb, var(--sp-muted) 18%, transparent);
   color: var(--sp-text);
   border-left: 3px solid var(--sp-text-muted);
   z-index: 1;
@@ -686,27 +686,27 @@
 /* Type-specific accents — color the left border (and a tinted background)
    so PRACTICE reads differently from MAINTENANCE at a glance. */
 .spl-active-strip-block-banner.block-practice {
-  background: rgba(56, 161, 105, 0.18);
-  border-left-color: #38a169;
+  background: color-mix(in srgb, var(--sp-ok) 18%, transparent);
+  border-left-color: var(--sp-ok);
 }
 
 .spl-active-strip-block-banner.block-maintenance {
-  background: rgba(214, 158, 46, 0.2);
-  border-left-color: #d69e2e;
+  background: color-mix(in srgb, var(--chc-container-warning) 20%, transparent);
+  border-left-color: var(--sp-warn);
 }
 
 .spl-active-strip-block-banner.block-blocked,
 .spl-active-strip-block-banner.block-hard_block,
 .spl-active-strip-block-banner.block-closed,
 .spl-active-strip-block-banner.block-locked {
-  background: rgba(229, 62, 62, 0.18);
-  border-left-color: #e53e3e;
+  background: color-mix(in srgb, var(--sp-err) 18%, transparent);
+  border-left-color: var(--sp-err);
 }
 
 .spl-active-strip-block-banner.block-reserved,
 .spl-active-strip-block-banner.block-soft_block {
-  background: rgba(99, 102, 241, 0.18);
-  border-left-color: #6366f1;
+  background: color-mix(in srgb, var(--sp-accent) 18%, transparent);
+  border-left-color: var(--sp-accent);
 }
 
 /* ── Runway: an idle court counting down to its next block ──────────────
@@ -729,32 +729,32 @@
 }
 
 .spl-active-strip-runway.block-practice {
-  color: #38a169;
-  border-left-color: #38a169;
+  color: var(--sp-ok-text);
+  border-left-color: var(--sp-ok);
 }
 
 .spl-active-strip-runway.block-maintenance {
-  color: #b7791f;
-  border-left-color: #d69e2e;
+  color: var(--sp-warn-text);
+  border-left-color: var(--sp-warn);
 }
 
 .spl-active-strip-runway.block-blocked,
 .spl-active-strip-runway.block-hard_block,
 .spl-active-strip-runway.block-closed,
 .spl-active-strip-runway.block-locked {
-  color: #c53030;
-  border-left-color: #e53e3e;
+  color: var(--sp-err-text);
+  border-left-color: var(--sp-err);
 }
 
 .spl-active-strip-runway.block-drying {
-  color: #0d9488;
-  border-left-color: #14b8a6;
+  color: var(--sp-info-text);
+  border-left-color: var(--sp-info-text);
 }
 
 .spl-active-strip-runway.block-reserved,
 .spl-active-strip-runway.block-soft_block {
-  color: #4f46e5;
-  border-left-color: #6366f1;
+  color: var(--sp-accent-text);
+  border-left-color: var(--sp-accent);
 }
 
 /* ── Block edge: a block arriving while THIS match is still expected to run ──
@@ -766,27 +766,27 @@
 }
 
 .spl-active-strip-cell.has-block-edge.edge-practice {
-  box-shadow: inset 0 3px 0 0 #38a169;
+  box-shadow: inset 0 3px 0 0 var(--sp-ok);
 }
 
 .spl-active-strip-cell.has-block-edge.edge-maintenance {
-  box-shadow: inset 0 3px 0 0 #d69e2e;
+  box-shadow: inset 0 3px 0 0 var(--sp-warn);
 }
 
 .spl-active-strip-cell.has-block-edge.edge-blocked,
 .spl-active-strip-cell.has-block-edge.edge-hard_block,
 .spl-active-strip-cell.has-block-edge.edge-closed,
 .spl-active-strip-cell.has-block-edge.edge-locked {
-  box-shadow: inset 0 3px 0 0 #e53e3e;
+  box-shadow: inset 0 3px 0 0 var(--sp-err);
 }
 
 .spl-active-strip-cell.has-block-edge.edge-drying {
-  box-shadow: inset 0 3px 0 0 #14b8a6;
+  box-shadow: inset 0 3px 0 0 var(--sp-info-text);
 }
 
 .spl-active-strip-cell.has-block-edge.edge-reserved,
 .spl-active-strip-cell.has-block-edge.edge-soft_block {
-  box-shadow: inset 0 3px 0 0 #6366f1;
+  box-shadow: inset 0 3px 0 0 var(--sp-accent);
 }
 
 /* When a court has an active block AND a scheduled matchUp at the same
@@ -800,11 +800,11 @@
 @keyframes spl-strip-conflict-pulse {
   0%,
   100% {
-    outline: 2px solid rgba(229, 62, 62, 0.3);
+    outline: 2px solid color-mix(in srgb, var(--sp-err) 30%, transparent);
     outline-offset: -2px;
   }
   50% {
-    outline: 2px solid rgba(229, 62, 62, 0.85);
+    outline: 2px solid color-mix(in srgb, var(--sp-err) 85%, transparent);
     outline-offset: -2px;
   }
 }
@@ -829,7 +829,7 @@
 }
 
 .spl-active-strip-cell.state-suspended {
-  border-left-color: #b45309;
+  border-left-color: var(--sp-warn);
 }
 
 .spl-active-strip-cell.state-next {
@@ -859,65 +859,42 @@
   border-radius: 8px;
   pointer-events: none;
   text-transform: uppercase;
-  background: rgba(127, 127, 127, 0.18);
+  background: color-mix(in srgb, var(--sp-muted) 18%, transparent);
   color: var(--sp-muted);
 }
 
 /* LIVE pill: --sp-accent-border is a 30%-alpha tint designed for borders,
    not for filled backgrounds — over a light cell it composites to a pale
-   blue that fails WCAG contrast with white text. Use a solid darker blue
-   (#1d4ed8 — tailwind blue-700, ~5.8:1 contrast with white) so the pill
-   reads cleanly in both light and dark themes. */
+   blue that fails WCAG contrast with white text. A solid link fill with its
+   own on-* ink (palette-contrast.test.ts holds the pair in every palette)
+   reads cleanly in both modes. */
 .spl-active-strip-cell.state-in-progress .spl-active-strip-state-pill {
-  background: #1d4ed8;
-  color: #fff;
+  background: var(--chc-container-link);
+  color: var(--chc-on-link);
 }
 
 /* SUSPENDED pill: a suspended matchUp still occupies the court but is NOT
    live, so it supersedes the blue LIVE pill with its own burnt-amber fill.
-   Distinct hue from NEXT's pale yellow (filled + dark) so the three active
-   states read apart at a glance. #b45309 (amber-700) is ~5.9:1 on white. */
+   Distinct from NEXT's pale amber tint (filled + dark ink) so the three active
+   states read apart at a glance. */
 .spl-active-strip-cell.state-suspended .spl-active-strip-state-pill {
-  background: #b45309;
-  color: #fff;
+  background: var(--chc-pill-bg-warning);
+  color: var(--chc-pill-text);
 }
 
-/* SUSPENDED pill — dark mode: softly tinted orange fill with orange-300 text,
-   mirroring the NEXT dark-mode treatment but in the amber/orange family. */
-[data-theme='dark'] .spl-active-strip-cell.state-suspended .spl-active-strip-state-pill {
-  background: rgba(234, 88, 12, 0.2);
-  color: #fdba74;
-}
-
-/* NEXT pill — light mode: the default rgba gray-on-gray fails contrast.
-   Solid muted amber-200 with dark amber-800 text (~5.6:1) mirrors the
-   yellow language already established for dark mode below, so "NEXT"
-   reads as the same status regardless of theme. */
+/* NEXT pill: the default muted gray-on-gray fails contrast. A soft amber tint
+   with the warning ink differentiates it from the green time without shouting
+   like a warning would. */
 .spl-active-strip-cell.state-next .spl-active-strip-state-pill {
-  background: #fde68a;
-  color: #92400e;
+  background: color-mix(in srgb, var(--chc-container-warning) 16%, var(--sp-panel-bg));
+  color: var(--sp-warn-text);
 }
 
-/* NEXT pill — dark mode: the default muted gray-on-gray is illegible
-   against the dark cell. A softly tinted yellow differentiates from
-   the green time without shouting like a warning would. */
-[data-theme='dark'] .spl-active-strip-cell.state-next .spl-active-strip-state-pill {
-  background: rgba(251, 191, 36, 0.15);
-  color: var(--sp-warn);
-}
-
-/* DUE pill — light mode: red-700 on white is ~6.1:1. This is the one strip
-   state that means somebody should act, so it is the only one that shouts. */
+/* DUE pill: this is the one strip state that means somebody should act, so it
+   is the only one that shouts. */
 .spl-active-strip-cell.state-due .spl-active-strip-state-pill {
-  background: #b91c1c;
-  color: #fff;
-}
-
-/* DUE pill — dark mode: tinted fill with red-300 text, mirroring how SUSPENDED
-   and NEXT soften against a dark cell rather than keeping a solid fill. */
-[data-theme='dark'] .spl-active-strip-cell.state-due .spl-active-strip-state-pill {
-  background: rgba(220, 38, 38, 0.2);
-  color: #fca5a5;
+  background: var(--chc-pill-bg-danger);
+  color: var(--chc-pill-text);
 }
 
 .spl-active-strip-body {

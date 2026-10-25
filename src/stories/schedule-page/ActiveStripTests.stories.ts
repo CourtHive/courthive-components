@@ -23,7 +23,9 @@ import { expect } from 'storybook/test';
 import type { ActiveStripPanelData } from '../../components/schedule-page/ui/activeStrip';
 
 const meta: Meta = {
-  title: 'Schedule Page/Tests/ActiveStrip'
+  title: 'Scheduling/Schedule Page/Tests/Active Strip',
+  // A play-function test: hidden from the sidebar, still run by `pnpm test:stories`.
+  tags: ['!dev']
 };
 export default meta;
 

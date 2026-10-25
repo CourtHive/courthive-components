@@ -36,7 +36,7 @@ import 'tippy.js/dist/tippy.css';
 const { BLOCK_TYPES, calculateCapacityStats } = availability;
 
 export default {
-  title: 'Availability Grid/CourtTimeline'
+  title: 'Scheduling/Court Timeline'
 };
 
 // ── Shared constants ─────────────────────────────────────────────────────────

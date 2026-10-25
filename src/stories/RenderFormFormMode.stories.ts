@@ -16,7 +16,9 @@ import type { Meta, StoryObj } from '@storybook/html-vite';
 import { expect, fn, userEvent } from 'storybook/test';
 
 const meta: Meta = {
-  title: 'Renderers/Form/Tests/formMode'
+  title: 'Foundations/Forms/Tests/Form Mode',
+  // A play-function test: hidden from the sidebar, still run by `pnpm test:stories`.
+  tags: ['!dev']
 };
 export default meta;
 

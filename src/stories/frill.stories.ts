@@ -1,7 +1,7 @@
 import { renderFrill } from '../components/renderStructure/renderFrill';
 
 export default {
-  title: 'Participants/Frill',
+  title: 'Draws/Participants/Frill',
   tags: ['autodocs'],
   render: ({ ...args }) => {
     return renderFrill({ ...args });

@@ -64,9 +64,9 @@
 
 /* Scoped overrides for shared .sp-btn inside the toolbar */
 .tg-view-toolbar .sp-btn--active {
-  background: var(--tg-accent);
-  border-color: var(--tg-accent);
-  color: #fff;
+  background: var(--chc-container-primary);
+  border-color: var(--chc-container-primary);
+  color: var(--chc-on-primary);
 }
 
 .tg-view-toolbar .sp-btn--fill {
@@ -304,7 +304,7 @@
   overflow: hidden;
   min-width: 0;
   user-select: none;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+  border-bottom: 1px solid var(--chc-border-secondary);
 }
 
 /* ---- Hour Axis (bottom row) ---- */
@@ -349,7 +349,7 @@
   align-items: center;
   font-size: 0.7rem;
   color: var(--chc-text-secondary);
-  border-left: 1px solid rgba(128, 128, 128, 0.2);
+  border-left: 1px solid var(--chc-border-secondary);
   padding-left: 4px;
   white-space: nowrap;
   pointer-events: none;
@@ -423,13 +423,13 @@
   position: absolute;
   top: 0;
   width: 1px;
-  background: rgba(128, 128, 128, 0.15);
+  background: var(--chc-border-secondary);
   pointer-events: none;
   z-index: 0;
 }
 
 .tg-gridline-major {
-  background: rgba(128, 128, 128, 0.3);
+  background: var(--chc-border-primary);
 }
 
 /* ---- Items (segments + blocks) ---- */
@@ -525,8 +525,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: var(--tg-accent);
-  color: white;
+  background: var(--chc-container-primary);
+  color: var(--chc-on-primary);
   font-size: 0.75rem;
   font-weight: 600;
   padding: 2px 8px;
@@ -636,17 +636,17 @@
 }
 
 .conflict-error {
-  border: 2px dashed #e74c3c !important;
+  border: 2px dashed var(--chc-status-error) !important;
   animation: pulse-error 2s infinite;
 }
 
 .conflict-warn {
-  border: 2px dashed #f39c12 !important;
+  border: 2px dashed var(--chc-status-warning) !important;
   animation: pulse-warn 2s infinite;
 }
 
 .conflict-info {
-  border: 2px dashed #3498db !important;
+  border: 2px dashed var(--chc-status-info) !important;
 }
 
 @keyframes pulse-error {
@@ -758,8 +758,8 @@
 
 .availability-tooltip {
   position: absolute;
-  background: rgba(0, 0, 0, 0.9);
-  color: white;
+  background: var(--chc-text-primary);
+  color: var(--chc-bg-primary);
   padding: 0.5rem;
   border-radius: 4px;
   font-size: 0.875rem;
@@ -776,7 +776,7 @@
   margin-left: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: rgba(0, 0, 0, 0.9) transparent transparent transparent;
+  border-color: var(--chc-text-primary) transparent transparent transparent;
 }
 
 /* ============================================================================
@@ -794,16 +794,8 @@
 }
 
 .datepicker-cell.tg-datepicker-active-day.selected {
-  background: var(--tg-accent);
-  color: white;
-}
-
-[data-theme='dark'] .datepicker-cell.tg-datepicker-active-day {
-  background: var(--tg-accent-bg-light);
-}
-
-[data-theme='dark'] .datepicker-cell.tg-datepicker-active-day:hover {
-  background: var(--tg-accent-bg-medium);
+  background: var(--chc-container-primary);
+  color: var(--chc-on-primary);
 }
 
 /* ============================================================================
@@ -834,103 +826,4 @@
   to {
     transform: translateX(0);
   }
-}
-
-/* ============================================================================
-   CourtTimeline Dark Mode Overrides
-   ============================================================================ */
-
-[data-theme='dark'] .tg-timeline {
-  /* inherits page background */
-}
-
-[data-theme='dark'] .tg-axis-header {
-  border-color: var(--chc-border-primary);
-}
-
-[data-theme='dark'] .tg-axis-spacer {
-  background: var(--chc-bg-secondary);
-  border-color: var(--chc-border-primary);
-}
-
-[data-theme='dark'] .tg-day-axis {
-  background: var(--chc-bg-secondary);
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-[data-theme='dark'] .tg-hour-axis {
-  background: var(--chc-bg-secondary);
-}
-
-[data-theme='dark'] .tg-tick-day {
-  color: var(--chc-text-primary);
-  border-color: var(--chc-border-primary);
-}
-
-[data-theme='dark'] .tg-tick-hour {
-  color: var(--chc-text-secondary);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme='dark'] .tg-label-panel {
-  border-color: var(--chc-border-primary);
-}
-
-[data-theme='dark'] .tg-label {
-  color: var(--chc-text-primary);
-  border-color: var(--chc-border-primary);
-}
-
-[data-theme='dark'] .tg-row {
-  border-color: var(--chc-border-primary);
-}
-
-[data-theme='dark'] .tg-row-highlight {
-  background-color: var(--tg-accent-bg-light);
-}
-
-[data-theme='dark'] .tg-gridline {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-[data-theme='dark'] .tg-gridline-major {
-  background: rgba(255, 255, 255, 0.15);
-}
-
-[data-theme='dark'] .tg-ghost {
-  background: var(--tg-accent-bg-light);
-  border-color: var(--tg-accent);
-}
-
-[data-theme='dark'] .tg-ghost-count {
-  background: var(--tg-accent);
-}
-
-[data-theme='dark'] .tg-scroll-wrapper {
-  /* inherits page background */
-}
-
-[data-theme='dark'] .availability-grid-venue-tree {
-  border-color: var(--chc-border-primary);
-}
-
-[data-theme='dark'] .tree-header {
-  background: var(--chc-bg-elevated);
-  border-color: var(--chc-border-primary);
-}
-
-[data-theme='dark'] .venue-header {
-  background: var(--chc-bg-elevated);
-}
-
-[data-theme='dark'] .venue-name {
-  color: var(--chc-text-primary);
-}
-
-[data-theme='dark'] .court-name {
-  color: var(--chc-text-secondary);
-}
-
-[data-theme='dark'] .court-meta {
-  color: var(--chc-text-muted);
 }

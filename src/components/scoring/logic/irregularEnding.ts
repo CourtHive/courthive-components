@@ -17,6 +17,7 @@
  * a double exit requires explicitly choosing NEITHER_SIDE. No DOM dependencies, no side effects.
  */
 
+import { scoreEntryText } from './scoreEntryText';
 import {
   matchUpStatusConstants,
   directingMatchUpStatuses,
@@ -271,9 +272,12 @@ export function supportsNeitherSide(selectedOutcome: string | undefined): boolea
  * nobody and propagates a walkover into the next round — so the modal says what it will do before it
  * is submitted rather than after.
  */
-export function doubleExitWarning(selectedOutcome: string | undefined): string {
-  const ending = selectedOutcome === WALKOVER ? 'Double walkover' : 'Double default';
-  return `${ending} — neither side advances, and a walkover propagates to the next round.`;
+export function doubleExitWarning(
+  selectedOutcome: string | undefined,
+  labels?: Record<string, string | undefined>
+): string {
+  const ending = scoreEntryText(labels, selectedOutcome === WALKOVER ? 'doubleWalkover' : 'doubleDefault');
+  return scoreEntryText(labels, 'doubleExitWarning', { ending });
 }
 
 export type IrregularEndingResolution = {

@@ -60,7 +60,7 @@ import {
 import { within, expect } from 'storybook/test';
 
 export default {
-  title: 'Schedule Page/Grid Cell',
+  title: 'Scheduling/Schedule Page/Grid Cell',
   parameters: {
     layout: 'centered',
     backgrounds: { default: 'dark' }

@@ -58,7 +58,7 @@ async function expectNotComplete(): Promise<void> {
 }
 
 const meta: Meta = {
-  title: 'Components/Inline Scoring/Format Coverage (Phase 2.5)',
+  title: 'Scoring/Inline Scoring/Format Coverage',
   tags: ['autodocs']
 };
 

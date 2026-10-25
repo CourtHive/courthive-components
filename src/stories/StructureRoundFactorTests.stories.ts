@@ -28,7 +28,9 @@ import type { Meta, StoryObj } from '@storybook/html-vite';
 import { expect } from 'storybook/test';
 
 const meta: Meta = {
-  title: 'Structure/Tests/RoundFactor'
+  title: 'Draws/Structure/Tests/Round Factor',
+  // A play-function test: hidden from the sidebar, still run by `pnpm test:stories`.
+  tags: ['!dev']
 };
 export default meta;
 

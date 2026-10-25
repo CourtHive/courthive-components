@@ -2,10 +2,10 @@
 
 .chc-cl {
   --chc-cl-gap: 0.875rem;
-  --chc-cl-heading-color: var(--chc-text-muted, #6b7280);
-  --chc-cl-summary-color: var(--chc-text-secondary, #4b5563);
-  --chc-cl-strong-color: var(--chc-text-primary, #111827);
-  --chc-cl-rule-color: var(--chc-border-primary, #e5e7eb);
+  --chc-cl-heading-color: var(--chc-text-muted);
+  --chc-cl-summary-color: var(--chc-text-secondary);
+  --chc-cl-strong-color: var(--chc-text-primary);
+  --chc-cl-rule-color: var(--chc-border-primary);
 
   display: flex;
   flex-direction: column;
@@ -71,8 +71,8 @@
 }
 
 [data-theme='dark'] .chc-cl {
-  --chc-cl-heading-color: var(--chc-text-muted, #9ca3af);
-  --chc-cl-summary-color: var(--chc-text-secondary, #d1d5db);
-  --chc-cl-strong-color: var(--chc-text-primary, #f9fafb);
-  --chc-cl-rule-color: var(--chc-border-primary, #374151);
+  --chc-cl-heading-color: var(--chc-text-muted);
+  --chc-cl-summary-color: var(--chc-text-secondary);
+  --chc-cl-strong-color: var(--chc-text-primary);
+  --chc-cl-rule-color: var(--chc-border-primary);
 }

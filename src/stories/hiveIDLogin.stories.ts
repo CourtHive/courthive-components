@@ -13,7 +13,7 @@ interface StoryExtras {
 }
 
 export default {
-  title: 'Components/HiveIDLogin',
+  title: 'Foundations/HiveID Login',
   tags: ['autodocs']
 };
 

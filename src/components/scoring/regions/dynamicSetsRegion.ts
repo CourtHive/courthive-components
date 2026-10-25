@@ -52,10 +52,12 @@ import { getSetFormatForIndex, matchUpConfigFor, isSetTimed } from '../logic/dyn
 import { ENTRY_SIDE, digitFromCode, hasCommandModifier, otherSide } from '../keyboard';
 import { gamesLoser, clearCell, typeDigit } from '../logic/scoreEntryModel';
 import { createScoreEntryStore } from '../logic/scoreEntryStore';
+import { scoreEntryText } from '../logic/scoreEntryText';
 import { ordinalSetLabel } from './setColumns';
 
 import type { CellRef, ScoreEntryModel } from '../logic/scoreEntryModel';
 import type { ScoreColumn, ScoreRegion } from '../scoreEntryCard';
+import type { ScoreEntryTextKey } from '../logic/scoreEntryText';
 import type { ScoreEntryStore } from '../logic/scoreEntryStore';
 import type { ScoreSlot } from '../logic/scoreEntrySelectors';
 import type { SideNumber } from '../logic/scoreEntryState';
@@ -75,7 +77,10 @@ export type DynamicSetsRegionParams = {
   sets?: SetScore[];
   /** Whether smart complements starts enabled. Defaults to on. */
   smartComplements?: boolean;
+  /** The toggle's word. Wins over `labels.smartComplements`. */
   smartComplementsLabel?: string;
+  /** The host's translations (see `SCORE_ENTRY_TEXT`); anything left out reads English. */
+  labels?: Record<string, string | undefined>;
   /** Called after a change affecting only the score. Wire to the card's `refresh`. */
   onChange?: () => void;
   /** Called when the COLUMNS change. Wire to the card's `rerender`. */
@@ -94,6 +99,11 @@ export type DynamicSetsRegion = ScoreRegion & {
 type Slot = ScoreSlot;
 
 export function createDynamicSetsRegion(params: DynamicSetsRegionParams): DynamicSetsRegion {
+  const say = (key: ScoreEntryTextKey, values?: Record<string, string | number | undefined>) =>
+    scoreEntryText(params.labels, key, values);
+  /** A set's placeholders: `ordinal` for English, `number` for a language that has no `1st`. */
+  const setValues = (setIndex: number) => ({ ordinal: ordinalSetLabel(setIndex + 1), number: setIndex + 1 });
+
   /** The one truth, shared with the card. Replaced through `store.set`, never mutated. */
   const store =
     params.store ??
@@ -142,7 +152,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     rowCells: (sideNumber) => layout().map((slot) => cellFor(sideNumber, slot)),
     getSets: () => enteredSets(model()),
     bandControl: () => smartComplementsToggle(),
-    error: () => error(model(), { sideNames: params.sideNames }),
+    error: () => error(model(), { sideNames: params.sideNames, labels: params.labels }),
     clear: () => clearAll(),
     focusFirst: () => focusSlotSide({ kind: 'games', setIndex: 0 }, ENTRY_SIDE),
     smartComplementsEnabled: () => smartComplements
@@ -188,8 +198,8 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
   }
 
   function toColumn(slot: Slot): ScoreColumn {
-    if (slot.kind === 'tiebreak') return { heading: 'TB', width: TIEBREAK_COLUMN_WIDTH };
-    return { heading: ordinalSetLabel(slot.setIndex + 1) };
+    if (slot.kind === 'tiebreak') return { heading: say('tiebreakHeading'), width: TIEBREAK_COLUMN_WIDTH };
+    return { heading: say('setHeading', setValues(slot.setIndex)) };
   }
 
   // ── Cells ────────────────────────────────────────────────────────────
@@ -228,7 +238,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     input.value = textOf(games(setIndex, sideNumber));
     input.dataset.side = String(sideNumber);
     input.dataset.set = String(setIndex + 1);
-    input.setAttribute(ARIA_LABEL, `${ordinalSetLabel(setIndex + 1)} set, side ${sideNumber} games`);
+    input.setAttribute(ARIA_LABEL, say('gamesAria', { ...setValues(setIndex), side: sideNumber }));
     input.addEventListener('input', () => onGamesTyped(sideNumber, setIndex, input));
     input.addEventListener('keydown', (event) => onCellKeydown(event, { kind: 'games', setIndex }, sideNumber));
     // Entering a set reopens its tiebreak column. Focus rather than click, so it works from the keyboard
@@ -309,7 +319,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     done.className = 'chc-sec-set-done';
     done.dataset.doneSide = String(sideNumber);
     done.dataset.doneSet = String(setIndex + 1);
-    done.title = 'Click to edit this set';
+    done.title = say('editSet');
     done.addEventListener('click', () => reopen(setIndex, sideNumber));
     folded.set(key('games', sideNumber, setIndex), done);
     return done;
@@ -330,8 +340,10 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
       sup.textContent = String(mine);
       done.append(sup);
     }
-    const said = raised ? `${gamesText} games, tiebreak ${mine}` : `${gamesText} games`;
-    done.setAttribute(ARIA_LABEL, `${ordinalSetLabel(setIndex + 1)} set, side ${sideNumber}: ${said} — edit`);
+    const entered = raised
+      ? say('gamesAndTiebreakEntered', { games: gamesText, points: mine })
+      : say('gamesEntered', { games: gamesText });
+    done.setAttribute(ARIA_LABEL, say('enteredSetAria', { ...setValues(setIndex), side: sideNumber, entered }));
   }
 
   /**
@@ -353,7 +365,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     input.value = textOf(tiebreak(setIndex, sideNumber));
     input.dataset.tiebreakSide = String(sideNumber);
     input.dataset.tiebreakSet = String(setIndex + 1);
-    input.setAttribute(ARIA_LABEL, `${ordinalSetLabel(setIndex + 1)} set tiebreak, side ${sideNumber} points`);
+    input.setAttribute(ARIA_LABEL, say('tiebreakAria', { ...setValues(setIndex), side: sideNumber }));
     input.addEventListener('input', () => onTiebreakTyped(sideNumber, setIndex, input));
     input.addEventListener('keydown', (event) => onCellKeydown(event, { kind: 'tiebreak', setIndex }, sideNumber));
     input.addEventListener('focus', () => input.select());
@@ -407,7 +419,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     mark.textContent = show ? String(mine) : '';
     // The words, for anyone who cannot see the raised digit. Without this a screen reader announces "6"
     // then "3" — two numbers with no stated relationship.
-    if (spoken) spoken.textContent = show ? ` tiebreak ${mine}` : '';
+    if (spoken) spoken.textContent = show ? ` ${say('tiebreakSpoken', { points: mine })}` : '';
   }
 
   function refreshParentheticals(): void {
@@ -825,9 +837,9 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     toggle.type = 'button';
     toggle.className = 'chc-sec-smart';
     toggle.dataset.action = 'smartComplements';
-    toggle.textContent = params.smartComplementsLabel ?? 'Smart';
+    toggle.textContent = params.smartComplementsLabel ?? say('smartComplements');
     toggle.setAttribute('aria-pressed', String(smartComplements));
-    const explain = 'Smart complements — fill the opposing score from the one you type';
+    const explain = say('smartComplementsExplain');
     toggle.title = explain;
     toggle.setAttribute(ARIA_LABEL, explain);
 

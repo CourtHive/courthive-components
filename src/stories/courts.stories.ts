@@ -9,7 +9,7 @@ import {
 } from '../components/courts';
 
 export default {
-  title: 'Assets/Courts'
+  title: 'Foundations/Assets/Courts'
 };
 
 interface CourtDef {

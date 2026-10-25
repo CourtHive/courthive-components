@@ -66,7 +66,7 @@ function launcher(label: string, open: () => void): HTMLElement {
 }
 
 export default {
-  title: 'Components/Modal/Popups',
+  title: 'Foundations/Modal/Popups',
   tags: ['autodocs']
 };
 

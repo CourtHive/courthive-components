@@ -34,7 +34,7 @@
 .tb-toolbar-template {
   font-size: 20px;
   font-weight: 600;
-  color: var(--chc-text-primary, #363636);
+  color: var(--chc-text-primary);
   white-space: nowrap;
   flex-shrink: 0;
   padding: 4px 8px;
@@ -151,7 +151,7 @@
 
 .tb-card.tb-card--selected {
   border-color: var(--chc-border-focus);
-  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--chc-border-focus) 20%, transparent);
 }
 
 .tb-card-header {
@@ -170,21 +170,25 @@
   text-transform: uppercase;
   padding: 1px 5px;
   border-radius: 3px;
-  color: #fff;
   flex-shrink: 0;
 }
 
+/* Solid intent fills carrying a label: container fill + its on-* ink, never a text-safe status color. */
 .tb-card-badge--main {
-  background: var(--chc-border-focus, #0066cc);
+  background: var(--chc-container-link);
+  color: var(--chc-on-link);
 }
 .tb-card-badge--qualifying {
-  background: var(--chc-status-warning, orange);
+  background: var(--chc-container-warning);
+  color: var(--chc-on-warning);
 }
 .tb-card-badge--consolation {
-  background: var(--chc-status-error, red);
+  background: var(--chc-container-danger);
+  color: var(--chc-on-danger);
 }
 .tb-card-badge--playoff {
-  background: var(--chc-status-success, green);
+  background: var(--chc-container-success);
+  color: var(--chc-on-success);
 }
 
 .tb-card-name {
@@ -204,7 +208,7 @@
 
 .tb-card-advance {
   font-size: 9px;
-  color: var(--chc-status-success, #48c774);
+  color: var(--chc-status-success);
   flex-shrink: 0;
   margin-left: auto;
   padding-left: 4px;
@@ -214,8 +218,8 @@
   padding: 6px 8px;
   overflow: hidden;
   min-height: 60px;
-  --chc-border-primary: #888;
-  --chc-color-connector: #777;
+  --chc-border-primary: var(--chc-border-strong);
+  --chc-color-connector: var(--chc-border-strong);
   --chc-color-matchup-bg: transparent;
 }
 
@@ -223,7 +227,7 @@
 
 /* Yellow outline for selected/active linked rounds */
 .tb-round-linked--active {
-  outline: 2px solid var(--chc-status-warning, #ffdd57);
+  outline: 2px solid var(--chc-status-warning);
   outline-offset: 1px;
   border-radius: 3px;
   z-index: 1;
@@ -231,7 +235,7 @@
 
 /* Loser source rounds: red matchup boxes */
 .tb-round-linked--loser.tb-round-linked--source .chc-schematic-slot {
-  background-color: var(--chc-status-error, red);
+  background-color: var(--chc-status-error);
   opacity: 0.5;
 }
 .tb-round-linked--loser.tb-round-linked--source.tb-round-linked--active .chc-schematic-slot {
@@ -240,7 +244,7 @@
 
 /* Winner source rounds: green matchup boxes */
 .tb-round-linked--winner.tb-round-linked--source .chc-schematic-slot {
-  background-color: var(--chc-status-success, green);
+  background-color: var(--chc-status-success);
   opacity: 0.5;
 }
 .tb-round-linked--winner.tb-round-linked--source.tb-round-linked--active .chc-schematic-slot {
@@ -249,7 +253,7 @@
 
 /* Position source rounds: blue matchup boxes */
 .tb-round-linked--position.tb-round-linked--source .chc-schematic-slot {
-  background-color: var(--chc-status-info, #0066cc);
+  background-color: var(--chc-status-info);
   opacity: 0.5;
 }
 .tb-round-linked--position.tb-round-linked--source.tb-round-linked--active .chc-schematic-slot {
@@ -258,7 +262,7 @@
 
 /* Target entry rounds: blue matchup boxes by default */
 .tb-round-linked--target .chc-schematic-slot {
-  background-color: var(--chc-status-info, #0066cc);
+  background-color: var(--chc-status-info);
   opacity: 0.5;
 }
 .tb-round-linked--target.tb-round-linked--active .chc-schematic-slot {
@@ -267,7 +271,7 @@
 
 /* Loser target rounds: red-tinted matchup boxes */
 .tb-round-linked--loser.tb-round-linked--target .chc-schematic-slot {
-  background-color: var(--chc-status-error, red);
+  background-color: var(--chc-status-error);
   opacity: 0.3;
 }
 .tb-round-linked--loser.tb-round-linked--target.tb-round-linked--active .chc-schematic-slot {
@@ -280,7 +284,7 @@
   gap: 4px;
   padding: 4px 8px;
   flex-wrap: wrap;
-  border-top: 1px solid var(--chc-border-secondary, #eee);
+  border-top: 1px solid var(--chc-border-secondary);
 }
 
 .tb-card-chip {
@@ -292,8 +296,8 @@
   font-size: 10px;
   font-weight: 600;
   border-radius: 10px;
-  background: var(--chc-status-info, #0066cc);
-  color: #fff;
+  background: var(--chc-container-info);
+  color: var(--chc-on-info);
   cursor: pointer;
   transition:
     transform 0.1s,
@@ -308,28 +312,28 @@
 .tb-card-rounds {
   padding: 3px 8px 5px;
   font-size: 11px;
-  color: var(--chc-text-muted, #999);
+  color: var(--chc-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  border-top: 1px solid var(--chc-border-secondary, #eee);
+  border-top: 1px solid var(--chc-border-secondary);
 }
 
 /* ── Warning state (fed drawPositions needed, etc.) ───── */
 .tb-card--warning {
-  background: #fff0f0;
-  border-color: var(--chc-status-error, red);
+  background: color-mix(in srgb, var(--chc-container-danger) 10%, var(--chc-bg-primary));
+  border-color: var(--chc-status-error);
 }
 
 .tb-card--warning .tb-card-header {
-  background: #ffe8e8;
+  background: color-mix(in srgb, var(--chc-container-danger) 16%, var(--chc-bg-primary));
 }
 
 .tb-card-warning {
   padding: 4px 8px;
   font-size: 10px;
-  color: var(--chc-status-error, red);
-  border-top: 1px solid var(--chc-border-secondary, #eee);
+  color: var(--chc-status-error);
+  border-top: 1px solid var(--chc-border-secondary);
   cursor: pointer;
 }
 
@@ -337,7 +341,7 @@
   display: none;
   padding-top: 3px;
   font-size: 10px;
-  color: var(--chc-text-secondary, #666);
+  color: var(--chc-text-secondary);
 }
 
 .tb-card-warning.tb-card-warning--open .tb-card-warning-detail {
@@ -457,11 +461,11 @@
 .tb-editor-warning {
   margin-top: 10px;
   padding: 8px 10px;
-  background: #fff0f0;
-  border: 1px solid var(--chc-status-error, red);
+  background: color-mix(in srgb, var(--chc-container-danger) 10%, var(--chc-bg-primary));
+  border: 1px solid var(--chc-status-error);
   border-radius: 4px;
   font-size: 13px;
-  color: var(--chc-status-error, red);
+  color: var(--chc-status-error);
   line-height: 1.5;
 }
 
@@ -496,14 +500,15 @@
   justify-content: center;
   font-size: 10px;
   font-weight: 700;
-  color: #fff;
   flex-shrink: 0;
 }
 
 .tb-validation-icon--error {
-  background: var(--chc-status-error);
+  background: var(--chc-container-danger);
+  color: var(--chc-on-danger);
 }
 
 .tb-validation-icon--warning {
-  background: var(--chc-status-warning);
+  background: var(--chc-container-warning);
+  color: var(--chc-on-warning);
 }

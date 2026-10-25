@@ -25,7 +25,7 @@ import {
 } from './data';
 
 export default {
-  title: 'Policy Catalog/Scheduling Editor',
+  title: 'Policies & Setup/Policy Catalog/Scheduling Editor',
   parameters: {
     layout: 'padded'
   }

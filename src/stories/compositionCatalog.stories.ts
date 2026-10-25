@@ -17,7 +17,7 @@ import type { SavedComposition } from '../components/composition-editor/composit
 import { mocksEngine, queryGovernor } from 'tods-competition-factory';
 
 export default {
-  title: 'Components/Composition Catalog'
+  title: 'Policies & Setup/Composition/Catalog'
 };
 
 function generatePreviewMatchUps(): MatchUp[] {

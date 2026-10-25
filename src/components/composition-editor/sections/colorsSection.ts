@@ -102,7 +102,7 @@ export function buildColorsSection(store: CompositionEditorStore): EditorPanel {
   const readOnly = store.getState().readOnly;
 
   const hint = document.createElement('div');
-  hint.style.cssText = 'font-size:0.7rem; color:var(--chc-text-secondary, #999); padding:0 0 0.4rem; line-height:1.3;';
+  hint.style.cssText = 'font-size:0.7rem; color:var(--chc-text-secondary); padding:0 0 0.4rem; line-height:1.3;';
   hint.textContent = 'Per-composition overrides. Leave blank to inherit from the selected theme.';
   root.appendChild(hint);
 
@@ -147,7 +147,7 @@ export function buildColorsSection(store: CompositionEditorStore): EditorPanel {
   clearBtn.disabled = readOnly;
   clearBtn.style.cssText =
     'margin-top:0.6rem; padding:0.25rem 0.5rem; font-size:0.75rem; cursor:pointer; ' +
-    'background:transparent; border:1px solid var(--chc-border-secondary, #ccc); border-radius:4px;';
+    'background:transparent; border:1px solid var(--chc-border-secondary); border-radius:4px;';
   clearBtn.addEventListener('click', () => store.clearColors());
   root.appendChild(clearBtn);
 

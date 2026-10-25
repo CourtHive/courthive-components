@@ -47,7 +47,7 @@ function createCompositionStory(): HTMLElement {
 }
 
 const meta: Meta = {
-  title: 'Modals/PDF Composition',
+  title: 'Policies & Setup/Composition/PDF Composition',
   render: createCompositionStory
 };
 

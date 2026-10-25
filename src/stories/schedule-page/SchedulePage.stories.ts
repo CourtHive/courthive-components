@@ -50,7 +50,7 @@ import { tipster } from '../../components/popover/tipster';
 import { matchUpLabel } from '../../components/schedule-page/domain/utils';
 
 export default {
-  title: 'Schedule Page/Full',
+  title: 'Scheduling/Schedule Page/Full',
   parameters: {
     layout: 'fullscreen',
     backgrounds: { default: 'dark' }

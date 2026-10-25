@@ -20,11 +20,11 @@
     Arial,
     sans-serif;
   font-size: 14px;
-  color: var(--chc-text-primary, #222);
-  background: var(--chc-bg-elevated, #fff);
+  color: var(--chc-text-primary);
+  background: var(--chc-bg-elevated);
   padding: 16px;
   border-radius: 8px;
-  border: 1px solid var(--chc-border-primary, #ddd);
+  border: 1px solid var(--chc-border-primary);
 }
 
 .pce-form {
@@ -38,14 +38,14 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  border-left: 1px solid var(--chc-border-primary, #eee);
+  border-left: 1px solid var(--chc-border-primary);
   padding-left: 16px;
 }
 
 .pce-section {
-  border: 1px solid var(--chc-border-primary, #ddd);
+  border: 1px solid var(--chc-border-primary);
   border-radius: 6px;
-  background: var(--chc-bg-secondary, #fafafa);
+  background: var(--chc-bg-secondary);
 }
 
 .pce-section-header {
@@ -53,10 +53,10 @@
   font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--chc-text-secondary, #555);
+  color: var(--chc-text-secondary);
   padding: 10px 12px;
-  border-bottom: 1px solid var(--chc-border-primary, #eee);
-  background: var(--chc-bg-elevated, #fff);
+  border-bottom: 1px solid var(--chc-border-primary);
+  background: var(--chc-bg-elevated);
   border-top-left-radius: 6px;
   border-top-right-radius: 6px;
 }
@@ -81,17 +81,17 @@
 
 .pce-field-label {
   font-size: 12px;
-  color: var(--chc-text-secondary, #666);
+  color: var(--chc-text-secondary);
   font-weight: 500;
 }
 
 .pce-input,
 .pce-select {
   padding: 6px 8px;
-  border: 1px solid var(--chc-input-border, #7a7a7a);
+  border: 1px solid var(--chc-input-border);
   border-radius: 4px;
-  background: var(--chc-input-bg, #fff);
-  color: var(--chc-text-primary, #222);
+  background: var(--chc-input-bg);
+  color: var(--chc-text-primary);
   font: inherit;
   width: 100%;
   box-sizing: border-box;
@@ -99,7 +99,7 @@
 
 .pce-input:focus,
 .pce-select:focus {
-  outline: 2px solid var(--chc-border-focus, #2d7ff9);
+  outline: 2px solid var(--chc-border-focus);
   outline-offset: 0;
 }
 
@@ -126,7 +126,7 @@
   gap: 8px;
   justify-content: flex-end;
   padding-top: 8px;
-  border-top: 1px solid var(--chc-border-primary, #eee);
+  border-top: 1px solid var(--chc-border-primary);
 }
 
 .pce-button {
@@ -134,15 +134,15 @@
   border-radius: 4px;
   font: inherit;
   cursor: pointer;
-  border: 1px solid var(--chc-border-primary, #ccc);
-  background: var(--chc-bg-elevated, #fff);
-  color: var(--chc-text-primary, #222);
+  border: 1px solid var(--chc-border-primary);
+  background: var(--chc-bg-elevated);
+  color: var(--chc-text-primary);
 }
 
 .pce-button-primary {
-  background: var(--chc-border-focus, #2d7ff9);
-  color: var(--chc-text-inverse, #fff);
-  border-color: var(--chc-border-focus, #2d7ff9);
+  background: var(--chc-border-focus);
+  color: var(--chc-text-inverse);
+  border-color: var(--chc-border-focus);
 }
 
 .pce-button:disabled {
@@ -155,7 +155,7 @@
   text-transform: uppercase;
   font-weight: 600;
   letter-spacing: 0.04em;
-  color: var(--chc-text-secondary, #555);
+  color: var(--chc-text-secondary);
 }
 
 .pce-print-type-pill {
@@ -165,8 +165,8 @@
   /* Soft tinted background using the focus color with alpha so the pill
      reads at low contrast against the surface in both light and dark
      themes. color-mix is supported in all evergreen browsers. */
-  background: color-mix(in srgb, var(--chc-border-focus, #2d7ff9) 15%, transparent);
-  color: var(--chc-border-focus, #2d7ff9);
+  background: color-mix(in srgb, var(--chc-border-focus) 15%, transparent);
+  color: var(--chc-border-focus);
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
@@ -174,13 +174,13 @@
 }
 
 .pce-preview-stub {
-  background: var(--chc-bg-secondary, #fafafa);
-  border: 1px dashed var(--chc-border-primary, #ccc);
+  background: var(--chc-bg-secondary);
+  border: 1px dashed var(--chc-border-primary);
   border-radius: 4px;
   padding: 12px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 11px;
-  color: var(--chc-text-secondary, #666);
+  color: var(--chc-text-secondary);
   white-space: pre-wrap;
   word-break: break-all;
   max-height: 280px;
@@ -189,6 +189,6 @@
 
 .pce-preview-note {
   font-size: 11px;
-  color: var(--chc-text-muted, #888);
+  color: var(--chc-text-muted);
   font-style: italic;
 }

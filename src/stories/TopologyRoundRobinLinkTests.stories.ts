@@ -22,7 +22,9 @@ import type { Meta, StoryObj } from '@storybook/html-vite';
 import { expect } from 'storybook/test';
 
 const meta: Meta = {
-  title: 'Components/TopologyBuilder/Tests/RoundRobinLinks'
+  title: 'Draws/Topology Builder/Tests/Round Robin Links',
+  // A play-function test: hidden from the sidebar, still run by `pnpm test:stories`.
+  tags: ['!dev']
 };
 export default meta;
 

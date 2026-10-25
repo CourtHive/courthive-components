@@ -41,7 +41,7 @@ function makeCallbacks() {
 }
 
 export default {
-  title: 'Components/Inline Scoring'
+  title: 'Scoring/Inline Scoring'
 };
 
 function generateSampleMatchUps(count = 3): MatchUp[] {

@@ -4,7 +4,7 @@ import { buildVenueSkeletonCard } from '../components/venue-card/buildSkeletonCa
 import { VenueCardData } from '../components/venue-card/types';
 
 export default {
-  title: 'Components/VenueCard',
+  title: 'Cards/Venue',
   tags: ['autodocs']
 };
 

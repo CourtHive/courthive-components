@@ -223,7 +223,7 @@ function computeFinishingPositions(matchUps: any[]): Map<string, number> {
 }
 
 const meta: Meta = {
-  title: 'LadderChart',
+  title: 'Charts/Ladder',
   parameters: { layout: 'centered' }
 };
 export default meta;

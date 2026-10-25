@@ -19,7 +19,9 @@ import type { Meta, StoryObj } from '@storybook/html-vite';
 import { expect, fn, userEvent } from 'storybook/test';
 
 const meta: Meta = {
-  title: 'Team Card/Tests/buildTeamCard'
+  title: 'Cards/Team/Tests/Build Team Card',
+  // A play-function test: hidden from the sidebar, still run by `pnpm test:stories`.
+  tags: ['!dev']
 };
 export default meta;
 

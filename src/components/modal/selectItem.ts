@@ -141,7 +141,7 @@ function renderSimpleList({
     item.className = 'panel-block font-medium';
     item.style.cssText = 'cursor: pointer; padding: 0.5em 1em; display: block; text-decoration: none; color: inherit;';
     item.innerHTML = option.label;
-    item.onmouseenter = () => (item.style.backgroundColor = '#f5f5f5');
+    item.onmouseenter = () => (item.style.backgroundColor = 'var(--chc-hover-bg)');
     item.onmouseleave = () => (item.style.backgroundColor = '');
     item.onclick = (e) => {
       e.stopPropagation();

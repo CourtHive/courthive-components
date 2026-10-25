@@ -5,7 +5,7 @@ const CHC_BG_SECONDARY = 'var(--chc-bg-secondary)';
 const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
 
 export default {
-  title: 'Components/matchUpFormat',
+  title: 'Scoring/MatchUp Format',
   tags: ['autodocs']
 };
 

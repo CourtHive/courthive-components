@@ -5,7 +5,7 @@ const IS_SUCCESS = 'is-success';
 const IS_WARNING = 'is-warning';
 
 export default {
-  title: 'Renderers/Buttons',
+  title: 'Foundations/Buttons',
   tags: ['autodocs'],
   render: ({ buttons, hasClose }) => {
     const container = document.createElement('div');

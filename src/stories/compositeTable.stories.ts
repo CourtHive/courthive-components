@@ -17,7 +17,7 @@ const { MALE, FEMALE } = genderConstants;
 const { INDIVIDUAL } = participantConstants;
 
 const meta: Meta = {
-  title: 'Components/ControlBar/Composite Pattern',
+  title: 'Policies & Setup/Control Bar/Composite Pattern',
   tags: ['autodocs']
 };
 

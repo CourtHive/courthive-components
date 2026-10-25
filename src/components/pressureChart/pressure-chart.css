@@ -4,60 +4,27 @@
  * carried on the actual-series markers (the shared competitiveness palette),
  * never on a second scale.
  *
- * Every colour is a token with a light default; dark is a SELECTED set of steps
- * rather than an automatic inversion. Consumers may override any --chc-pc-* var. */
+ * Every colour is a palette token, so it follows the mode and the palette.
+ * Consumers may override any --chc-pc-* var. */
 
 .chc-pc,
 .chc-pdb,
 .chc-psm {
-  --chc-pc-surface: var(--chc-surface, #ffffff);
-  --chc-pc-grid: var(--chc-border, #e5e7eb);
-  --chc-pc-axis: var(--chc-text-muted, #6b7280);
-  --chc-pc-text: var(--chc-text-primary, #111827);
-  --chc-pc-text-muted: var(--chc-text-muted, #6b7280);
-  --chc-pc-band: rgba(107, 114, 128, 0.18);
-  --chc-pc-band-stroke: rgba(107, 114, 128, 0.45);
-  --chc-pc-projected: #6b7280;
-  --chc-pc-actual: var(--chc-text-primary, #111827);
-  --chc-pc-zero: var(--chc-text-muted, #6b7280);
+  --chc-pc-surface: var(--chc-bg-primary);
+  --chc-pc-grid: var(--chc-border-secondary);
+  --chc-pc-axis: var(--chc-text-muted);
+  --chc-pc-text: var(--chc-text-primary);
+  --chc-pc-text-muted: var(--chc-text-muted);
+  --chc-pc-band: color-mix(in srgb, var(--chc-text-muted) 18%, transparent);
+  --chc-pc-band-stroke: color-mix(in srgb, var(--chc-text-muted) 45%, transparent);
+  --chc-pc-projected: var(--chc-text-muted);
+  --chc-pc-actual: var(--chc-text-primary);
+  --chc-pc-zero: var(--chc-text-muted);
 
   display: block;
   position: relative;
   color: var(--chc-pc-text);
   font-size: 0.8125rem;
-}
-
-[data-theme='dark'] .chc-pc,
-[data-theme='dark'] .chc-pdb,
-[data-theme='dark'] .chc-psm {
-  --chc-pc-surface: var(--chc-surface, #111827);
-  --chc-pc-grid: var(--chc-border, #374151);
-  --chc-pc-axis: var(--chc-text-muted, #9ca3af);
-  --chc-pc-text: var(--chc-text-primary, #f3f4f6);
-  --chc-pc-text-muted: var(--chc-text-muted, #9ca3af);
-  --chc-pc-band: rgba(156, 163, 175, 0.22);
-  --chc-pc-band-stroke: rgba(156, 163, 175, 0.5);
-  --chc-pc-projected: #9ca3af;
-  --chc-pc-actual: var(--chc-text-primary, #f3f4f6);
-  --chc-pc-zero: var(--chc-text-muted, #9ca3af);
-}
-
-/* OS dark preference — only when no explicit data-theme is set. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) .chc-pc,
-  :root:not([data-theme]) .chc-pdb,
-  :root:not([data-theme]) .chc-psm {
-    --chc-pc-surface: var(--chc-surface, #111827);
-    --chc-pc-grid: var(--chc-border, #374151);
-    --chc-pc-axis: var(--chc-text-muted, #9ca3af);
-    --chc-pc-text: var(--chc-text-primary, #f3f4f6);
-    --chc-pc-text-muted: var(--chc-text-muted, #9ca3af);
-    --chc-pc-band: rgba(156, 163, 175, 0.22);
-    --chc-pc-band-stroke: rgba(156, 163, 175, 0.5);
-    --chc-pc-projected: #9ca3af;
-    --chc-pc-actual: var(--chc-text-primary, #f3f4f6);
-    --chc-pc-zero: var(--chc-text-muted, #9ca3af);
-  }
 }
 
 .chc-pc__svg {
@@ -250,24 +217,12 @@
 
 /* Ranked path difficulty — diverging bars around a zero baseline. */
 .chc-pdb {
-  --chc-pdb-up: #b45309;
-  --chc-pdb-down: #0369a1;
+  --chc-pdb-up: var(--chc-accent-orange);
+  --chc-pdb-down: var(--chc-accent-blue);
 
   display: block;
-  color: var(--chc-pc-text, #111827);
+  color: var(--chc-pc-text);
   font-size: 0.75rem;
-}
-
-[data-theme='dark'] .chc-pdb {
-  --chc-pdb-up: #fbbf24;
-  --chc-pdb-down: #38bdf8;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) .chc-pdb {
-    --chc-pdb-up: #fbbf24;
-    --chc-pdb-down: #38bdf8;
-  }
 }
 
 .chc-pdb__row {
@@ -282,7 +237,7 @@
 
 .chc-pdb__row.is-clickable:hover,
 .chc-pdb__row.is-clickable:focus-visible {
-  background: var(--chc-pc-band, rgba(107, 114, 128, 0.18));
+  background: var(--chc-pc-band);
   outline: none;
 }
 
@@ -291,7 +246,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--chc-pc-text, #111827);
+  color: var(--chc-pc-text);
 }
 
 .chc-pdb__track {
@@ -305,7 +260,7 @@
   top: -2px;
   bottom: -2px;
   width: 1px;
-  background: var(--chc-pc-zero, #6b7280);
+  background: var(--chc-pc-zero);
 }
 
 .chc-pdb__bar {
@@ -327,22 +282,22 @@
   top: -3px;
   bottom: -3px;
   width: 2px;
-  background: var(--chc-pc-actual, #111827);
-  box-shadow: 0 0 0 1px var(--chc-pc-surface, #ffffff);
+  background: var(--chc-pc-actual);
+  box-shadow: 0 0 0 1px var(--chc-pc-surface);
 }
 
 .chc-pdb__value {
   flex: 0 0 auto;
   min-width: 2.75rem;
   text-align: right;
-  color: var(--chc-pc-text-muted, #6b7280);
+  color: var(--chc-pc-text-muted);
   font-variant-numeric: tabular-nums;
 }
 
 .chc-pdb__caption,
 .chc-psm__caption {
   margin-top: 0.35rem;
-  color: var(--chc-pc-text-muted, #6b7280);
+  color: var(--chc-pc-text-muted);
   font-size: 0.6875rem;
 }
 
@@ -356,7 +311,7 @@
 .chc-psm__cell {
   min-width: 0;
   padding: 0.25rem;
-  border: 1px solid var(--chc-pc-grid, #e5e7eb);
+  border: 1px solid var(--chc-pc-grid);
   border-radius: 4px;
 }
 
@@ -366,7 +321,7 @@
 
 .chc-psm__cell.is-clickable:hover,
 .chc-psm__cell.is-clickable:focus-visible {
-  border-color: var(--chc-pc-projected, #6b7280);
+  border-color: var(--chc-pc-projected);
   outline: none;
 }
 
@@ -374,7 +329,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--chc-pc-text, #111827);
+  color: var(--chc-pc-text);
   font-size: 0.6875rem;
   font-weight: 600;
 }

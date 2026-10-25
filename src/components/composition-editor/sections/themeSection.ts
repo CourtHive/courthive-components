@@ -47,8 +47,7 @@ export function buildThemeSection(store: CompositionEditorStore): EditorPanel {
   root.appendChild(presetField.element);
 
   const presetHint = document.createElement('div');
-  presetHint.style.cssText =
-    'font-size:0.7rem; color:var(--chc-text-secondary, #999); padding:0 0 0.3rem; line-height:1.3;';
+  presetHint.style.cssText = 'font-size:0.7rem; color:var(--chc-text-secondary); padding:0 0 0.3rem; line-height:1.3;';
   presetHint.textContent = 'Replaces all settings with a built-in composition.';
   root.appendChild(presetHint);
 
@@ -63,8 +62,7 @@ export function buildThemeSection(store: CompositionEditorStore): EditorPanel {
   root.appendChild(themeField.element);
 
   const themeHint = document.createElement('div');
-  themeHint.style.cssText =
-    'font-size:0.7rem; color:var(--chc-text-secondary, #999); padding:0 0 0.3rem; line-height:1.3;';
+  themeHint.style.cssText = 'font-size:0.7rem; color:var(--chc-text-secondary); padding:0 0 0.3rem; line-height:1.3;';
   themeHint.textContent = 'Changes only the color scheme, not the display settings.';
   root.appendChild(themeHint);
 

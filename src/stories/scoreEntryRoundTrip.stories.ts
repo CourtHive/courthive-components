@@ -2,9 +2,8 @@
  * An outcome has to survive the trip out of the new dialog and back in.
  *
  * CA, 2026-09-28: *"we need a story for round-tripping like we have with the existing scoring dialogs...
- * we need to be able to open existing outcomes!"* The companion is
- * `reasonCodeRoundTrip.stories.ts`, which does this for the shipping modal; this is the same discipline
- * applied to `openScoreEntryDialog`.
+ * we need to be able to open existing outcomes!"* The old scoring modal had a round-trip story; this
+ * is the same discipline applied to `openScoreEntryDialog`, which replaced it.
  *
  * ── Why a ROUND TRIP, and not two tests of two halves ──
  *
@@ -43,7 +42,7 @@ const { POLICY_TYPE_SCORING } = policyConstants;
 const REAL_GROUPS = fixtures.policies.POLICY_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
 
 export default {
-  title: 'Scoring/Score Entry Round Trip'
+  title: 'Scoring/Score Entry/Round Trip'
 };
 
 const FORMAT = 'SET3-S:6/TB7';

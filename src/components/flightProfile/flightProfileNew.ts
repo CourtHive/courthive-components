@@ -72,7 +72,7 @@ export function getFlightProfileModal(params: {
       header.className = 'notification is-info is-light';
       header.innerHTML =
         editorConfig.labels?.existingNote ||
-        '<strong style="color: #000;">Note:</strong> Flight split has already been performed. You can only rename the flights.';
+        '<strong style="color: var(--chc-text-primary);">Note:</strong> Flight split has already been performed. You can only rename the flights.';
       elem.appendChild(header);
     }
 
@@ -99,8 +99,8 @@ export function getFlightProfileModal(params: {
     errorBox.className = 'chc-flight-profile-errors';
     errorBox.style.cssText =
       'display: none; margin-top: 0.75em; padding: 0.6em 0.9em; border-radius: 4px; ' +
-      'background: var(--chc-bg-elevated, #fff); color: var(--chc-status-error, #b91c1c); ' +
-      'border: 1px solid var(--chc-status-error, #b91c1c); ' +
+      'background: var(--chc-bg-elevated); color: var(--chc-status-error); ' +
+      'border: 1px solid var(--chc-status-error); ' +
       'font-size: 0.9em; white-space: pre-line;';
     errorBox.setAttribute('role', 'alert');
     errorBox.setAttribute('aria-live', 'polite');
@@ -215,18 +215,18 @@ export function getFlightProfileModal(params: {
 
   if (!isExisting) {
     modalConfig.info = `
-      <div style="color: #000;">
+      <div style="color: var(--chc-text-primary);">
         <div style="margin-bottom: 1em;">
-          <strong style="color: #000;">Waterfall:</strong><br>
-          <span style="color: #666;">Distributes evenly like dealing cards: 1→2→3→1→2→3</span>
+          <strong style="color: var(--chc-text-primary);">Waterfall:</strong><br>
+          <span style="color: var(--chc-text-secondary);">Distributes evenly like dealing cards: 1→2→3→1→2→3</span>
         </div>
         <div style="margin-bottom: 1em;">
-          <strong style="color: #000;">Level Based:</strong><br>
-          <span style="color: #666;">Groups by skill tiers: [1-5], [6-10], [11-15]</span>
+          <strong style="color: var(--chc-text-primary);">Level Based:</strong><br>
+          <span style="color: var(--chc-text-secondary);">Groups by skill tiers: [1-5], [6-10], [11-15]</span>
         </div>
         <div>
-          <strong style="color: #000;">Shuttle:</strong><br>
-          <span style="color: #666;">Alternating direction like a loom shuttle: 1→2→3→3→2→1→1→2→3</span>
+          <strong style="color: var(--chc-text-primary);">Shuttle:</strong><br>
+          <span style="color: var(--chc-text-secondary);">Alternating direction like a loom shuttle: 1→2→3→3→2→1→1→2→3</span>
         </div>
       </div>
     `;

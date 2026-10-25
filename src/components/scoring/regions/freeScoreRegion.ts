@@ -32,6 +32,7 @@ import { enteredSets, scoreString, isComplete } from '../logic/scoreEntrySelecto
 import { createScoreReadouts, READOUT_COLUMN_WIDTH } from './scoreReadout';
 import { createScoreEntryStore } from '../logic/scoreEntryStore';
 import { parseScore } from '../../../tools/freeScore/freeScore';
+import { scoreEntryText } from '../logic/scoreEntryText';
 import { statusScopeError } from '../logic/statusScope';
 import { replaceSets } from '../logic/scoreEntryModel';
 
@@ -48,8 +49,10 @@ export type FreeScoreRegionParams = {
   initialText?: string;
   disabledMatchUpStatuses?: string[];
   statusScopeLabels?: Record<string, string>;
-  /** Label above the field. */
+  /** Label above the field. Wins over `labels.typeTheScore`. */
   label?: string;
+  /** The host's translations (see `SCORE_ENTRY_TEXT`); anything left out reads English. */
+  labels?: Record<string, string | undefined>;
   /** Called after any change. Wire to the card's `refresh`. */
   onChange?: () => void;
 };
@@ -79,7 +82,8 @@ export function createFreeScoreRegion(params: FreeScoreRegionParams): FreeScoreR
   else commit();
   let field: HTMLInputElement | undefined;
   let note: HTMLElement | undefined;
-  const readouts = createScoreReadouts();
+  const labels = params.labels ?? params.statusScopeLabels;
+  const readouts = createScoreReadouts(labels);
 
   return {
     store,
@@ -157,7 +161,7 @@ export function createFreeScoreRegion(params: FreeScoreRegionParams): FreeScoreR
     const label = document.createElement('label');
     label.className = 'chc-sec-field-label';
     label.htmlFor = id;
-    label.textContent = params.label ?? 'TYPE THE SCORE';
+    label.textContent = params.label ?? scoreEntryText(labels, 'typeTheScore');
 
     field = document.createElement('input');
     field.type = 'text';
@@ -227,7 +231,7 @@ export function createFreeScoreRegion(params: FreeScoreRegionParams): FreeScoreR
     const parsedNothing = !result?.sets?.length && !result?.matchUpStatus;
     if (!result?.valid || parsedNothing) {
       const first = result?.errors?.[0];
-      note.textContent = typeof first === 'string' ? first : (first?.message ?? 'Not a score this format allows');
+      note.textContent = typeof first === 'string' ? first : (first?.message ?? scoreEntryText(labels, 'notAScore'));
       note.dataset.tone = 'error';
       return;
     }
@@ -237,7 +241,7 @@ export function createFreeScoreRegion(params: FreeScoreRegionParams): FreeScoreR
     const finished = !result.matchUpStatus && isComplete(model());
     note.dataset.tone = finished ? 'good' : 'idle';
     note.textContent = finished
-      ? `A complete match under ${matchUpFormat}`
-      : `${result.formattedScore} — not a finished result`;
+      ? scoreEntryText(labels, 'completeMatch', { format: matchUpFormat })
+      : scoreEntryText(labels, 'notFinished', { score: result.formattedScore });
   }
 }

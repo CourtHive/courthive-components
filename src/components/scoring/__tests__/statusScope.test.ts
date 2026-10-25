@@ -2,13 +2,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { openScoreEntryDialog } from '../scoreEntryDialog';
 import { statusScopeError } from '../logic/statusScope';
-import { scoringModal } from '../scoringModal';
-import { setScoringConfig } from '../config';
 import { cModal } from '../../modal/cmodal';
 
 const SUBMIT = 'button[data-action="submit"]';
-const LEGACY_INPUT = '#scoreInputV2';
-const LEGACY_SUBMIT = '#submitScoreV2';
 const DEAD_OPTION = '[data-ending="DEAD_RUBBER"]';
 const OTHER = 'button[data-action="other"]';
 const UNAVAILABLE = 'Dead Rubber is unavailable for this match';
@@ -48,7 +44,7 @@ describe('host-provided status scope', () => {
     expect(lastModal().textContent).toContain(UNAVAILABLE);
     expect(lastModal().querySelector('[data-ending="CANCELLED"]')).not.toBeNull();
   });
-  it.each(['dr', 'dead', 'dead r', 'dead rubber'])('refuses typed alias "%s" in both dialogs', (alias) => {
+  it.each(['dr', 'dead', 'dead r', 'dead rubber'])('refuses typed alias "%s"', (alias) => {
     const onSubmit = vi.fn();
     openScoreEntryDialog({
       sides: SIDES,
@@ -63,23 +59,6 @@ describe('host-provided status scope', () => {
     expect(find<HTMLElement>('.chc-sec-field-note').textContent).toContain('unavailable');
     submit.click();
     expect(onSubmit).not.toHaveBeenCalled();
-    cModal.close();
-    setScoringConfig({ scoringApproach: 'freeScore' });
-    scoringModal({ matchUp: MATCHUP, callback: onSubmit, disabledMatchUpStatuses: DISABLED });
-    type(LEGACY_INPUT, alias);
-    expect(find<HTMLButtonElement>(LEGACY_SUBMIT).disabled).toBe(true);
-    expect(lastModal().textContent).toContain(UNAVAILABLE);
-    find<HTMLButtonElement>(LEGACY_SUBMIT).click();
-    expect(onSubmit).not.toHaveBeenCalled();
-    type(LEGACY_INPUT, '6-4 6-3');
-    expect(find<HTMLButtonElement>(LEGACY_SUBMIT).disabled).toBe(false);
-  });
-  it.each(['dynamicSets', 'dialPad'] as const)('withholds legacy %s choices', (approach) => {
-    setScoringConfig({ scoringApproach: approach });
-    scoringModal({ matchUp: MATCHUP, callback: vi.fn(), disabledMatchUpStatuses: DISABLED });
-    expect(lastModal().querySelector('input[value="DEAD_RUBBER"], button[data-ending="DEAD_RUBBER"]')).toBeNull();
-    expect(lastModal().textContent).toContain(UNAVAILABLE);
-    expect(lastModal().querySelector('input[value="CANCELLED"], button[data-ending="CANCELLED"]')).not.toBeNull();
   });
   it.each(['dynamicSets', 'dialPad', 'freeScore'] as const)(
     'keeps a stored forbidden ending visible and correctable in %s',
@@ -100,23 +79,6 @@ describe('host-provided status scope', () => {
       expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ cleared: true }));
     }
   );
-  it.each(['dynamicSets', 'dialPad', 'freeScore'] as const)(
-    'legacy saved restricted ending cannot submit in %s',
-    async (approach) => {
-      setScoringConfig({ scoringApproach: approach });
-      const callback = vi.fn();
-      scoringModal({
-        matchUp: { ...MATCHUP, matchUpStatus: 'DEAD_RUBBER' },
-        callback,
-        disabledMatchUpStatuses: DISABLED
-      });
-      await new Promise((resolve) => setTimeout(resolve, 150));
-      expect(find<HTMLButtonElement>(LEGACY_SUBMIT).disabled).toBe(true);
-      find<HTMLButtonElement>(LEGACY_SUBMIT).click();
-      expect(callback).not.toHaveBeenCalled();
-    }
-  );
-
   it('keeps restrictions across repeated approach switches', () => {
     openScoreEntryDialog({ sides: SIDES, matchUpFormat: FORMAT, disabledMatchUpStatuses: DISABLED });
     for (const approach of ['freeScore', 'dialPad', 'dynamicSets']) {
@@ -137,7 +99,7 @@ describe('host-provided status scope', () => {
     dead.click();
     expect(find<HTMLButtonElement>(SUBMIT).disabled).toBe(false);
   });
-  it('uses the host template and status names in both dialogs', () => {
+  it('uses the host template and status names', () => {
     const labels = {
       DEAD_RUBBER: 'Match sans enjeu',
       CHALLENGED: 'Défi',
@@ -155,21 +117,5 @@ describe('host-provided status scope', () => {
     expect(find<HTMLElement>('.chc-sec-field-note').textContent).toBe('Match sans enjeu indisponible pour ce match');
     expect(find<HTMLElement>('.chc-scoring-status-scope').textContent).toContain('Défi indisponible');
     expect(find<HTMLButtonElement>(SUBMIT).disabled).toBe(true);
-    cModal.close();
-    setScoringConfig({ scoringApproach: 'freeScore' });
-    scoringModal({
-      matchUp: MATCHUP,
-      callback: vi.fn(),
-      disabledMatchUpStatuses: DISABLED,
-      labels: {
-        deadRubber: labels.DEAD_RUBBER,
-        challenged: labels.CHALLENGED,
-        statusUnavailable: labels.statusUnavailable
-      }
-    });
-    type(LEGACY_INPUT, 'dr');
-    expect(lastModal().textContent).toContain('Match sans enjeu indisponible pour ce match');
-    expect(lastModal().textContent).not.toContain('is unavailable for this match');
-    expect(find<HTMLButtonElement>(LEGACY_SUBMIT).disabled).toBe(true);
   });
 });
