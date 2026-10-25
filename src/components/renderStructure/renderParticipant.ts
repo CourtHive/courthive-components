@@ -123,7 +123,7 @@ function buildEndMatter({
   gameScoreOnly,
   irregularEnding,
   carriedExitStatus
-}): HTMLElement {
+}): HTMLElement | undefined {
   const endMatter = document.createElement('div');
   const inlineScoring = configuration?.inlineScoring;
   const isReadyToScore = matchUp?.readyToScore;
@@ -156,6 +156,9 @@ function buildEndMatter({
       };
     }
     endMatter.appendChild(statusPill);
+  } else {
+    // nothing to mark on this side: no element, rather than an empty div on every side
+    return undefined;
   }
 
   return endMatter;
@@ -301,22 +304,21 @@ export function renderParticipant({
   participantType.appendChild(annotationDiv);
   participantContainer.appendChild(participantType);
 
-  if (sideContainer) {
-    participantContainer.appendChild(
-      buildEndMatter({
-        configuration,
-        matchUp,
-        eventHandlers,
-        sideNumber,
-        winningSide,
-        matchUpStatus,
-        isWinningSide,
-        gameScoreOnly,
-        irregularEnding,
-        carriedExitStatus
-      })
-    );
-  }
+  const endMatter =
+    sideContainer &&
+    buildEndMatter({
+      configuration,
+      matchUp,
+      eventHandlers,
+      sideNumber,
+      winningSide,
+      matchUpStatus,
+      isWinningSide,
+      gameScoreOnly,
+      irregularEnding,
+      carriedExitStatus
+    });
+  if (endMatter) participantContainer.appendChild(endMatter);
 
   return participantContainer;
 }

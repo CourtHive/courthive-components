@@ -22,6 +22,7 @@ export function renderRound({
   minWidth,
   matchUps,
   context,
+  fontSize,
   isLucky
 }: {
   initialRoundNumber?: number;
@@ -37,6 +38,8 @@ export function renderRound({
   minWidth?: string;
   matchUps: MatchUp[];
   context?: any;
+  /** The body font size, read once per structure by `renderStructure`. */
+  fontSize?: number;
   isLucky?: boolean;
 }): HTMLElement {
   const roundMatchUps = matchUps
@@ -151,6 +154,7 @@ export function renderRound({
       searchActive,
       composition,
       isAdHoc,
+      fontSize,
       isLucky,
       matchUp,
       moiety
