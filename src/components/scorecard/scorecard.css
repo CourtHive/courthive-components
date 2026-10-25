@@ -9,8 +9,8 @@
 
 /* Team vs header */
 .chc-scorecard-header {
-  background: var(--chc-bg-primary, #fff);
-  border: 1px solid var(--chc-border-primary, #e0e0e0);
+  background: var(--chc-bg-primary);
+  border: 1px solid var(--chc-border-primary);
   border-radius: 14px;
   padding: 1.25rem 1rem;
   margin: 12px 16px;
@@ -49,7 +49,7 @@
   padding: 0.5rem;
 }
 .chc-scorecard-side-score--winner {
-  color: var(--chc-text-success, #48c78e);
+  color: var(--chc-status-success);
 }
 .chc-scorecard-score-box {
   padding: 0;
@@ -87,19 +87,19 @@
 
 /* Collection panels */
 .chc-scorecard-panel {
-  border: 1px solid var(--chc-border-primary, #e0e0e0);
+  border: 1px solid var(--chc-border-primary);
   border-radius: 14px;
   margin: 12px 16px;
   overflow: hidden;
-  background: var(--chc-bg-primary, #fff);
+  background: var(--chc-bg-primary);
 }
 .chc-scorecard-panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  border-bottom: 1px solid var(--chc-border-secondary, #e0e0e0);
-  background: color-mix(in srgb, var(--chc-bg-primary, #fff) 70%, var(--chc-text-primary, #333) 30%);
+  border-bottom: 1px solid var(--chc-border-secondary);
+  background: color-mix(in srgb, var(--chc-bg-primary) 70%, var(--chc-text-primary) 30%);
 }
 .chc-scorecard-panel-name {
   font-size: 15px;
@@ -120,21 +120,22 @@
   border-radius: 50%;
   font-size: 11px;
   font-weight: 700;
-  color: #fff;
+  /* Event-type hue with page-surface ink (palette-contrast.test.ts holds the pair at 4.5:1). */
+  color: var(--chc-bg-primary);
 }
 .chc-scorecard-type-badge--singles {
-  background: #3273dc;
+  background: var(--chc-eventtype-singles);
 }
 .chc-scorecard-type-badge--doubles {
-  background: #f59e0b;
+  background: var(--chc-eventtype-doubles);
 }
 .chc-scorecard-count-badge {
   font-size: 12px;
   font-weight: 700;
   padding: 2px 8px;
   border-radius: 999px;
-  border: 1px solid var(--chc-border-primary, #ccc);
-  color: var(--chc-text-secondary, #999);
+  border: 1px solid var(--chc-border-primary);
+  color: var(--chc-text-secondary);
 }
 
 /* MatchUp grid */

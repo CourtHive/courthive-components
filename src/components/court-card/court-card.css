@@ -2,26 +2,29 @@
 
 .chc-cc-card {
   --chc-cc-radius: 0.625rem;
-  --chc-cc-bg: var(--chc-bg-elevated, #ffffff);
-  --chc-cc-hover-bg: var(--chc-hover-bg, #f9fafb);
-  --chc-cc-border-color: var(--chc-border-primary, #e5e7eb);
+  --chc-cc-bg: var(--chc-bg-elevated);
+  --chc-cc-hover-bg: var(--chc-hover-bg);
+  --chc-cc-border-color: var(--chc-border-primary);
   --chc-cc-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   --chc-cc-hover-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
 
-  --chc-cc-title-color: var(--chc-text-primary, #111827);
-  --chc-cc-surface-color: var(--chc-text-secondary, #4b5563);
-  --chc-cc-muted-color: var(--chc-text-muted, #6b7280);
+  --chc-cc-title-color: var(--chc-text-primary);
+  --chc-cc-surface-color: var(--chc-text-secondary);
+  --chc-cc-muted-color: var(--chc-text-muted);
 
-  --chc-cc-image-bg: var(--chc-bg-secondary, #f3f4f6);
-  --chc-cc-placeholder-stripe: var(--chc-border-primary, #e5e7eb);
+  --chc-cc-image-bg: var(--chc-bg-secondary);
+  --chc-cc-placeholder-stripe: var(--chc-border-primary);
 
-  --chc-cc-indoor-bg: #475569;
-  --chc-cc-outdoor-bg: #16a34a;
-  --chc-cc-floodlit-bg: #f59e0b;
-  --chc-cc-badge-color: #ffffff;
+  /* Badges are solid fills carrying a label: each fill pairs with its own ink. */
+  --chc-cc-indoor-bg: var(--chc-pill-bg-dark);
+  --chc-cc-indoor-color: var(--chc-pill-text);
+  --chc-cc-outdoor-bg: var(--chc-container-success);
+  --chc-cc-outdoor-color: var(--chc-on-success);
+  --chc-cc-floodlit-bg: var(--chc-container-warning);
+  --chc-cc-floodlit-color: var(--chc-on-warning);
 
-  --chc-cc-skeleton-bg: var(--chc-bg-secondary, #e5e7eb);
-  --chc-cc-skeleton-shimmer: var(--chc-hover-bg, #f3f4f6);
+  --chc-cc-skeleton-bg: var(--chc-bg-secondary);
+  --chc-cc-skeleton-shimmer: var(--chc-hover-bg);
 
   position: relative;
   display: flex;
@@ -41,13 +44,6 @@
 [data-theme='dark'] .chc-cc-card {
   --chc-cc-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
   --chc-cc-hover-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
-  --chc-cc-image-bg: #0f1726;
-  --chc-cc-placeholder-stripe: #1f2a3d;
-  --chc-cc-indoor-bg: #64748b;
-  --chc-cc-outdoor-bg: #22c55e;
-  --chc-cc-floodlit-bg: #fbbf24;
-  --chc-cc-skeleton-bg: #1f2a3d;
-  --chc-cc-skeleton-shimmer: #2a3550;
 }
 
 .chc-cc-card--clickable {
@@ -153,7 +149,6 @@
   font-weight: 700;
   padding: 0.15rem 0.35rem;
   border-radius: 0.25rem;
-  color: var(--chc-cc-badge-color);
   line-height: 1.2;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -161,12 +156,15 @@
 
 .chc-cc-indoor-badge[data-kind='INDOOR'] {
   background: var(--chc-cc-indoor-bg);
+  color: var(--chc-cc-indoor-color);
 }
 .chc-cc-indoor-badge[data-kind='OUTDOOR'] {
   background: var(--chc-cc-outdoor-bg);
+  color: var(--chc-cc-outdoor-color);
 }
 .chc-cc-floodlit-badge {
   background: var(--chc-cc-floodlit-bg);
+  color: var(--chc-cc-floodlit-color);
 }
 
 /* ── Body ── */

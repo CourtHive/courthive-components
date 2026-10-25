@@ -3,32 +3,38 @@
 
 .chc-dc-card {
   --chc-dc-radius: 0.75rem;
-  --chc-dc-bg: var(--chc-bg-elevated, #ffffff);
-  --chc-dc-hover-bg: var(--chc-hover-bg, #f9fafb);
-  --chc-dc-border-color: var(--chc-border-primary, #e5e7eb);
+  --chc-dc-bg: var(--chc-bg-elevated);
+  --chc-dc-hover-bg: var(--chc-hover-bg);
+  --chc-dc-border-color: var(--chc-border-primary);
   --chc-dc-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   --chc-dc-hover-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
 
-  --chc-dc-title-color: var(--chc-text-primary, #111827);
-  --chc-dc-secondary-color: var(--chc-text-secondary, #4b5563);
-  --chc-dc-muted-color: var(--chc-text-muted, #6b7280);
+  --chc-dc-title-color: var(--chc-text-primary);
+  --chc-dc-secondary-color: var(--chc-text-secondary);
+  --chc-dc-muted-color: var(--chc-text-muted);
 
-  --chc-dc-status-bg: #15803d;
-  --chc-dc-status-color: #ffffff;
-  --chc-dc-status-ready-bg: #2563eb;
-  --chc-dc-status-in-progress-bg: #d97706;
-  --chc-dc-status-completed-bg: #6b7280;
-  --chc-dc-status-cancelled-bg: #9ca3af;
-  --chc-dc-status-ungenerated-bg: #9ca3af;
+  /* Status pills are solid intent fills carrying a label: container fill + its on-* ink. */
+  --chc-dc-status-bg: var(--chc-container-success);
+  --chc-dc-status-color: var(--chc-on-success);
+  --chc-dc-status-ready-bg: var(--chc-container-link);
+  --chc-dc-status-ready-color: var(--chc-on-link);
+  --chc-dc-status-in-progress-bg: var(--chc-container-warning);
+  --chc-dc-status-in-progress-color: var(--chc-on-warning);
+  --chc-dc-status-completed-bg: var(--chc-pill-bg-dark);
+  --chc-dc-status-completed-color: var(--chc-pill-text);
+  --chc-dc-status-cancelled-bg: var(--chc-bg-tertiary);
+  --chc-dc-status-cancelled-color: var(--chc-text-secondary);
+  --chc-dc-status-ungenerated-bg: var(--chc-bg-tertiary);
+  --chc-dc-status-ungenerated-color: var(--chc-text-secondary);
 
-  --chc-dc-chip-bg: var(--chc-bg-secondary, #f3f4f6);
-  --chc-dc-chip-color: var(--chc-text-secondary, #4b5563);
+  --chc-dc-chip-bg: var(--chc-bg-secondary);
+  --chc-dc-chip-color: var(--chc-text-secondary);
 
-  --chc-dc-progress-track: var(--chc-bg-secondary, #e5e7eb);
-  --chc-dc-progress-fill: var(--chc-status-success, #16a34a);
+  --chc-dc-progress-track: var(--chc-bg-secondary);
+  --chc-dc-progress-fill: var(--chc-status-success);
 
-  --chc-dc-skeleton-bg: var(--chc-bg-secondary, #e5e7eb);
-  --chc-dc-skeleton-shimmer: var(--chc-hover-bg, #f3f4f6);
+  --chc-dc-skeleton-bg: var(--chc-bg-secondary);
+  --chc-dc-skeleton-shimmer: var(--chc-hover-bg);
 
   position: relative;
   display: flex;
@@ -48,12 +54,6 @@
 [data-theme='dark'] .chc-dc-card {
   --chc-dc-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
   --chc-dc-hover-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
-  --chc-dc-status-bg: #16a34a;
-  --chc-dc-status-ready-bg: #3b82f6;
-  --chc-dc-status-in-progress-bg: #f59e0b;
-  --chc-dc-status-completed-bg: #4b5563;
-  --chc-dc-status-cancelled-bg: #6b7280;
-  --chc-dc-status-ungenerated-bg: #4b5563;
 }
 
 .chc-dc-card--clickable {
@@ -122,18 +122,23 @@
 }
 .chc-dc-status-pill[data-kind='ready'] {
   background: var(--chc-dc-status-ready-bg);
+  color: var(--chc-dc-status-ready-color);
 }
 .chc-dc-status-pill[data-kind='in-progress'] {
   background: var(--chc-dc-status-in-progress-bg);
+  color: var(--chc-dc-status-in-progress-color);
 }
 .chc-dc-status-pill[data-kind='completed'] {
   background: var(--chc-dc-status-completed-bg);
+  color: var(--chc-dc-status-completed-color);
 }
 .chc-dc-status-pill[data-kind='cancelled'] {
   background: var(--chc-dc-status-cancelled-bg);
+  color: var(--chc-dc-status-cancelled-color);
 }
 .chc-dc-status-pill[data-kind='ungenerated'] {
   background: var(--chc-dc-status-ungenerated-bg);
+  color: var(--chc-dc-status-ungenerated-color);
 }
 
 .chc-dc-secondary-badge {
@@ -141,20 +146,20 @@
   font-weight: 700;
   padding: 0.15rem 0.4rem;
   border-radius: 0.25rem;
-  background: var(--chc-bg-secondary, #f3f4f6);
-  color: var(--chc-text-secondary, #4b5563);
+  background: var(--chc-bg-secondary);
+  color: var(--chc-text-secondary);
   line-height: 1.2;
   letter-spacing: 0.03em;
   text-transform: uppercase;
   white-space: nowrap;
 }
 .chc-dc-secondary-badge[data-kind='published'] {
-  background: var(--chc-status-success, #16a34a);
-  color: #ffffff;
+  background: var(--chc-container-success);
+  color: var(--chc-on-success);
 }
 .chc-dc-secondary-badge[data-kind='embargo'] {
-  background: var(--chc-status-warning, #f59e0b);
-  color: #ffffff;
+  background: var(--chc-container-warning);
+  color: var(--chc-on-warning);
 }
 
 /* ── Body ── */

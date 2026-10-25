@@ -8,15 +8,15 @@
 .chc-vl {
   --chc-vl-radius: 0.75rem;
   --chc-vl-gap: 1rem;
-  --chc-vl-bg: var(--chc-bg-elevated, #ffffff);
-  --chc-vl-border-color: var(--chc-border-primary, #e5e7eb);
-  --chc-vl-title-color: var(--chc-text-primary, #111827);
-  --chc-vl-address-color: var(--chc-text-secondary, #4b5563);
-  --chc-vl-muted-color: var(--chc-text-muted, #6b7280);
-  --chc-vl-surface-2: var(--chc-bg-secondary, #f3f4f6);
-  --chc-vl-hover-bg: var(--chc-hover-bg, #f9fafb);
-  --chc-vl-accent: var(--chc-accent, #2563eb);
-  --chc-vl-accent-contrast: #ffffff;
+  --chc-vl-bg: var(--chc-bg-elevated);
+  --chc-vl-border-color: var(--chc-border-primary);
+  --chc-vl-title-color: var(--chc-text-primary);
+  --chc-vl-address-color: var(--chc-text-secondary);
+  --chc-vl-muted-color: var(--chc-text-muted);
+  --chc-vl-surface-2: var(--chc-bg-secondary);
+  --chc-vl-hover-bg: var(--chc-hover-bg);
+  --chc-vl-accent: var(--chc-container-link);
+  --chc-vl-accent-contrast: var(--chc-on-link);
 
   display: flex;
   flex-direction: column;
@@ -116,7 +116,7 @@
   width: 0.875rem;
   height: 0.875rem;
   border-radius: 50%;
-  background: var(--chc-vl-accent, #2563eb);
+  background: var(--chc-vl-accent);
   border: 2px solid #ffffff;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
 }
@@ -218,18 +218,9 @@
   opacity: 0.65;
 }
 
-/* ---------- dark ---------- */
-[data-theme='dark'] .chc-vl {
-  --chc-vl-bg: var(--chc-bg-elevated, #1f2937);
-  --chc-vl-border-color: var(--chc-border-primary, #374151);
-  --chc-vl-title-color: var(--chc-text-primary, #f9fafb);
-  --chc-vl-address-color: var(--chc-text-secondary, #d1d5db);
-  --chc-vl-muted-color: var(--chc-text-muted, #9ca3af);
-  --chc-vl-surface-2: var(--chc-bg-secondary, #111827);
-  --chc-vl-hover-bg: var(--chc-hover-bg, #374151);
-  --chc-vl-accent: var(--chc-accent, #60a5fa);
-  --chc-vl-accent-contrast: #0b1220;
-}
+/* ---------- dark ----------
+   The --chc-vl-* tokens are palette tokens and already follow the mode. These rules restyle Leaflet's
+   own chrome, which is white by default and glares against a dark basemap. */
 [data-theme='dark'] .chc-vl .leaflet-popup-content-wrapper,
 [data-theme='dark'] .chc-vl .leaflet-popup-tip {
   background: var(--chc-vl-bg);
@@ -251,7 +242,7 @@
   color: var(--chc-vl-muted-color);
 }
 [data-theme='dark'] .chc-vl .leaflet-control-attribution {
-  background: rgba(17, 24, 39, 0.8);
+  background: color-mix(in srgb, var(--chc-vl-bg) 80%, transparent);
   color: var(--chc-vl-muted-color);
 }
 [data-theme='dark'] .chc-vl .leaflet-control-attribution a {

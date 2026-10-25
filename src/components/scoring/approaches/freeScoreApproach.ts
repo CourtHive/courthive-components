@@ -41,6 +41,7 @@ const {
 const CHC_STATUS_SUCCESS = 'var(--chc-status-success)';
 
 const CHC_STATUS_ERROR = 'var(--chc-status-error)';
+const CHC_STATUS_WARNING = 'var(--chc-status-warning)';
 
 export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
   const { matchUp, container, onScoreChange, labels = {} } = params;
@@ -135,7 +136,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
   const doubleExitNotice = document.createElement('div');
   doubleExitNotice.style.display = 'none';
   doubleExitNotice.style.fontSize = '0.7rem';
-  doubleExitNotice.style.color = 'var(--chc-text-warning, var(--chc-text-primary))';
+  doubleExitNotice.style.color = CHC_STATUS_WARNING;
 
   radioContainer.appendChild(side1RadioLabel);
   radioContainer.appendChild(side2RadioLabel);
@@ -254,7 +255,7 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
           modalConfig: {
             style: {
               fontSize: '12px', // Smaller base font size for TMX
-              border: '3px solid #0066cc'
+              border: '3px solid var(--chc-border-focus)'
             }
           }
         } as any);
@@ -604,9 +605,9 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
       }
     } else if (!result.isValid && hasSets) {
       indicator.textContent = '\u22EF';
-      indicator.style.color = 'var(--chc-status-warning)';
+      indicator.style.color = CHC_STATUS_WARNING;
       validationMessage.textContent = result.error || 'Score incomplete - continue typing';
-      validationMessage.style.color = 'var(--chc-status-warning)';
+      validationMessage.style.color = CHC_STATUS_WARNING;
       resetRadioState();
       onScoreChange(result);
     } else {

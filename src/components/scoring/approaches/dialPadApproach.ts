@@ -181,7 +181,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
             modalConfig: {
               style: {
                 fontSize: '12px', // Smaller base font size for TMX
-                border: '3px solid #0066cc'
+                border: '3px solid var(--chc-border-focus)'
               }
             }
           } as any);
@@ -193,10 +193,10 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       container.appendChild(formatDisplay);
     }
 
-    // Score display (light blue)
+    // Score display (accent ink)
     const scoreDisplay = document.createElement('div');
     scoreDisplay.style.fontSize = '1.2rem';
-    scoreDisplay.style.color = '#64B5F6';
+    scoreDisplay.style.color = 'var(--chc-accent-text)';
     scoreDisplay.style.textAlign = 'center';
     scoreDisplay.style.padding = '0.25em 0.5em';
     scoreDisplay.style.fontWeight = 'bold';
@@ -311,7 +311,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     doubleExitNotice.style.display = 'none';
     doubleExitNotice.style.fontSize = '0.7rem';
     doubleExitNotice.style.marginTop = '0.3em';
-    doubleExitNotice.style.color = 'var(--chc-text-warning, var(--chc-text-primary))';
+    doubleExitNotice.style.color = 'var(--chc-status-warning)';
     winnerSelectionContainer.appendChild(doubleExitNotice);
 
     /** Hide "Neither side" where it has no meaning; name the consequence when it is chosen. */
@@ -381,7 +381,8 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     const updateNonDirectingChips = () => {
       for (const [status, chip] of nonDirectingButtons) {
         const active = selectedOutcome === status;
-        chip.style.backgroundColor = active ? 'var(--chc-status-warning)' : '';
+        chip.style.backgroundColor = active ? 'var(--chc-container-warning)' : '';
+        chip.style.color = active ? 'var(--chc-on-warning)' : '';
         chip.style.fontWeight = active ? '600' : '';
         chip.setAttribute('aria-pressed', String(active));
       }

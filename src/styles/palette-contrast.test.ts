@@ -116,7 +116,17 @@ const PAIRS: Pair[] = [
   ]),
   ...on(PAGE, MARK, [
     ...['male', 'female', 'mixed'].map((g) => `--chc-gender-${g}`),
-    ...['singles', 'doubles', 'team', 'hybrid'].map((e) => `--chc-eventtype-${e}`)
+    ...['singles', 'doubles', 'team', 'hybrid'].map((e) => `--chc-eventtype-${e}`),
+    ...['blue', 'green', 'red', 'orange', 'purple', 'teal', 'pink', 'indigo', 'yellow'].map(
+      (hue) => `--chc-accent-${hue}`
+    )
+  ]),
+  // Category badges (event card) and the competitiveness bar's DECISIVE segment print their label in the
+  // page color on the category hue.
+  ...on(PAGE, TEXT, [
+    ...['male', 'female', 'mixed'].map((g) => `--chc-gender-${g}`),
+    ...['singles', 'doubles', 'team', 'hybrid'].map((e) => `--chc-eventtype-${e}`),
+    '--chc-accent-purple'
   ]),
   ...on('--sp-bg', TEXT, ['--sp-text', '--sp-muted']),
   ...on('--sp-panel', TEXT, [

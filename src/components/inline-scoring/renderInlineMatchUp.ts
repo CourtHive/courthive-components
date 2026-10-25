@@ -282,11 +282,14 @@ function showEndMatchPopover(
   };
   closeEndMatchPopover = closePopover;
 
-  // Detect dark mode — popover is on document.body, outside theme scope
+  // The popover lives on document.body, which still inherits the palette tokens from <html>. Only the
+  // shadow differs by mode: a dark canvas needs a deeper shadow and a focus-tinted ring to show an edge.
   const isDark = !!document.querySelector('[data-theme="dark"]');
-  const bg = isDark ? '#222244' : '#fff';
-  const border = isDark ? '#444' : '#dee2e6';
-  const shadow = isDark ? '0 2px 12px rgba(0,0,0,0.4), 0 0 0 1px rgba(91,155,213,0.3)' : '0 2px 8px rgba(0,0,0,0.12)';
+  const bg = 'var(--chc-bg-elevated)';
+  const border = 'var(--chc-border-primary)';
+  const shadow = isDark
+    ? '0 2px 12px rgba(0,0,0,0.4), 0 0 0 1px color-mix(in srgb, var(--chc-border-focus) 30%, transparent)'
+    : '0 2px 8px rgba(0,0,0,0.12)';
 
   // Side 1 (top): popover below the pill. Side 2 (bottom): popover above the pill.
   const verticalPos =

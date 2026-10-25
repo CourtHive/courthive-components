@@ -62,7 +62,7 @@ textarea {
 
 .input:focus {
   border-color: var(--chc-border-focus);
-  box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25);
+  box-shadow: 0 0 0 0.125em color-mix(in srgb, var(--chc-border-focus) 25%, transparent);
   outline: none;
 }
 
@@ -134,7 +134,7 @@ textarea {
 
 .select select:focus {
   border-color: var(--chc-border-focus);
-  box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25);
+  box-shadow: 0 0 0 0.125em color-mix(in srgb, var(--chc-border-focus) 25%, transparent);
 }
 
 /* ── Radio ───────────────────────────────────────────────── */
@@ -180,11 +180,11 @@ textarea {
 }
 
 .help.is-danger {
-  color: var(--chc-container-danger);
+  color: var(--chc-status-error);
 }
 
 .help.is-warning {
-  color: #946c00;
+  color: var(--chc-status-warning);
 }
 
 /* ── Icon positioning ────────────────────────────────────── */

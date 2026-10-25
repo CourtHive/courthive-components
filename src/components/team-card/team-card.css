@@ -9,9 +9,9 @@
 
 .chc-team-card {
   padding: 1em 1.25em;
-  border: 1px solid var(--chc-border-secondary, #555);
+  border: 1px solid var(--chc-border-secondary);
   border-radius: 6px;
-  background-color: var(--chc-bg-secondary, #2c2c2c);
+  background-color: var(--chc-bg-secondary);
   display: flex;
   flex-direction: column;
   gap: 0.5em;
@@ -25,13 +25,13 @@
 }
 
 .chc-team-card--clickable:hover {
-  border-color: var(--chc-border-focus, #0066cc);
-  background-color: var(--chc-hover-bg, rgba(255, 255, 255, 0.04));
+  border-color: var(--chc-border-focus);
+  background-color: var(--chc-hover-bg);
 }
 
 .chc-team-card--clickable:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--chc-border-focus, #0066cc);
+  box-shadow: 0 0 0 2px var(--chc-border-focus);
 }
 
 .chc-team-card__title-row {
@@ -44,13 +44,13 @@
 .chc-team-card__name {
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--chc-text-primary, #eee);
+  color: var(--chc-text-primary);
 }
 
 .chc-team-card__nickname {
   font-size: 0.95rem;
   font-style: italic;
-  color: var(--chc-text-secondary, #999);
+  color: var(--chc-text-secondary);
 }
 
 .chc-team-card__counts {
@@ -58,5 +58,5 @@
   gap: 1em;
   flex-wrap: wrap;
   font-size: 0.9rem;
-  color: var(--chc-text-secondary, #aaa);
+  color: var(--chc-text-secondary);
 }

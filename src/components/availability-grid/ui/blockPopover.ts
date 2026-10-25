@@ -155,10 +155,10 @@ export function createBlockPopoverManager(): BlockPopoverManager {
     if (options.onDelete) {
       const delBtn = document.createElement('div');
       delBtn.style.cssText =
-        'padding:6px 12px; cursor:pointer; display:flex; align-items:center; gap:8px; color:#e74c3c;';
+        'padding:6px 12px; cursor:pointer; display:flex; align-items:center; gap:8px; color:var(--sp-popover-delete);';
       delBtn.innerHTML = `<span style="font-size:14px;">&#128465;</span> Delete`;
       delBtn.addEventListener('mouseenter', () => {
-        delBtn.style.background = '#fdecea';
+        delBtn.style.background = 'var(--sp-popover-delete-bg)';
       });
       delBtn.addEventListener('mouseleave', () => {
         delBtn.style.background = 'transparent';
@@ -287,10 +287,10 @@ export function createBlockPopoverManager(): BlockPopoverManager {
     // Delete
     const delBtn = document.createElement('div');
     delBtn.style.cssText =
-      'padding:6px 12px; cursor:pointer; display:flex; align-items:center; gap:8px; color:#e74c3c;';
+      'padding:6px 12px; cursor:pointer; display:flex; align-items:center; gap:8px; color:var(--sp-popover-delete);';
     delBtn.innerHTML = `<span style="font-size:14px;">&#128465;</span> Delete`;
     delBtn.addEventListener('mouseenter', () => {
-      delBtn.style.background = '#fdecea';
+      delBtn.style.background = 'var(--sp-popover-delete-bg)';
     });
     delBtn.addEventListener('mouseleave', () => {
       delBtn.style.background = 'transparent';

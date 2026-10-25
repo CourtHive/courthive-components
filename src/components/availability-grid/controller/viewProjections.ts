@@ -564,15 +564,15 @@ export function generateBlockPatternCSS(): string {
     }
 
     .conflict-error {
-      border: 2px dashed #e74c3c;
+      border: 2px dashed var(--chc-status-error);
     }
 
     .conflict-warn {
-      border: 2px dashed #f39c12;
+      border: 2px dashed var(--chc-status-warning);
     }
 
     .conflict-info {
-      border: 2px dashed #3498db;
+      border: 2px dashed var(--chc-status-info);
     }
   `;
 }

@@ -36,7 +36,7 @@
 
 .chc-minimap {
   border-inline-end: 1px solid var(--chc-border-primary, currentColor);
-  background-color: var(--chc-bg-secondary, transparent);
+  background-color: var(--chc-bg-secondary);
   flex: 0 0 auto;
   align-self: flex-start;
   user-select: none;
@@ -64,11 +64,11 @@
 }
 
 .chc-minimap-quarter--alt {
-  fill: var(--chc-bg-tertiary, rgba(127, 127, 127, 0.05));
+  fill: var(--chc-bg-tertiary);
 }
 
 .chc-minimap-quarter:hover {
-  fill: var(--chc-hover-bg, rgba(50, 115, 220, 0.12));
+  fill: var(--chc-hover-bg);
 }
 
 .chc-minimap-line {
@@ -79,8 +79,8 @@
 }
 
 .chc-minimap-viewport {
-  stroke: var(--chc-status-info, #3273dc);
-  fill: var(--chc-status-info, #3273dc);
+  stroke: var(--chc-status-info);
+  fill: var(--chc-status-info);
   stroke-opacity: 0.45;
   fill-opacity: 0.12;
   stroke-width: 1;
@@ -339,8 +339,8 @@
 .chc-modal-menu-dropdown {
   position: fixed;
   z-index: 10000;
-  background-color: var(--chc-bg-elevated, #fff);
-  border: 1px solid var(--chc-border-primary, rgba(0, 8, 16, 0.15));
+  background-color: var(--chc-bg-elevated);
+  border: 1px solid var(--chc-border-primary);
   border-radius: 6px;
   box-shadow: 0 4px 14px -2px rgba(0, 8, 16, 0.12);
   padding: 4px 0;
@@ -352,18 +352,18 @@
   padding: 8px 14px;
   font-size: 14px;
   cursor: pointer;
-  color: var(--chc-text-primary, #333);
+  color: var(--chc-text-primary);
   white-space: nowrap;
   transition: background-color 0.1s;
 }
 
 .chc-modal-menu-item:hover {
-  background-color: var(--chc-hover-bg, #f0f0f0);
+  background-color: var(--chc-hover-bg);
 }
 
 .chc-modal-menu-item--active {
   font-weight: 600;
-  color: var(--chc-status-info, #3273dc);
+  color: var(--chc-status-info);
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -502,8 +502,8 @@
   font-size: var(--chc-font-size-1);
   font-weight: 700;
   cursor: pointer;
-  border: 1px solid var(--chc-border-secondary, #ccc);
-  background: var(--chc-bg-primary, #fff);
+  border: 1px solid var(--chc-border-secondary);
+  background: var(--chc-bg-primary);
   color: var(--chc-text-primary);
   display: flex;
   align-items: center;
@@ -513,7 +513,7 @@
 }
 
 .chc-game-btn:hover {
-  background: var(--chc-bg-secondary, #e0e0e0);
+  background: var(--chc-bg-secondary);
 }
 
 .chc-game-btn:disabled {
@@ -869,19 +869,19 @@
 
 /* ── Lucky loser badges ─────────────────────────────────── */
 
-/* Qualifying lucky loser — solid orange text */
+/* Qualifying lucky loser — warning-ink text */
 .chc-lucky-loser-badge {
-  color: var(--chc-lucky-loser-color, #ee7f2d);
+  color: var(--chc-lucky-loser-color, var(--chc-status-warning));
   margin-inline-start: 0.4rem;
   font-size: 0.7rem;
   font-weight: 700;
   line-height: 1rem;
 }
 
-/* Lucky draw advancement — orange bordered box, no fill */
+/* Lucky draw advancement — warning-ink bordered box, no fill */
 .chc-lucky-advancement-badge {
-  color: var(--chc-lucky-loser-color, #ee7f2d);
-  border: 1.5px solid var(--chc-lucky-loser-color, #ee7f2d);
+  color: var(--chc-lucky-loser-color, var(--chc-status-warning));
+  border: 1.5px solid var(--chc-lucky-loser-color, var(--chc-status-warning));
   background: transparent;
   margin-inline-start: 0.4rem;
   padding: 0 0.25rem;
@@ -915,7 +915,7 @@
   align-content: center;
   inset-inline-start: -10px;
   position: absolute;
-  color: var(--chc-draw-position-color, #b8860b);
+  color: var(--chc-draw-position-color);
   display: flex;
   width: 20px;
 }

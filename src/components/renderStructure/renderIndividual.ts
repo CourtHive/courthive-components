@@ -43,9 +43,7 @@ function buildParticipantNameDisplay(name, participantName, isWinningSide, confi
   } else if (configuration?.genderColor) {
     const gender = individualParticipant?.person?.sex;
     const color =
-      (gender === MALE && 'var(--chc-gender-male, #2E86C1)') ||
-      (gender === FEMALE && 'var(--chc-gender-female, #E07BAF)') ||
-      '';
+      (gender === MALE && 'var(--chc-gender-male)') || (gender === FEMALE && 'var(--chc-gender-female)') || '';
     span.style.color = typeof configuration.genderColor === 'string' ? configuration.genderColor : color;
   }
   span.textContent = participantName;

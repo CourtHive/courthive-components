@@ -749,7 +749,7 @@ export function getAgeCategoryModal({
     style: {
       backgroundColor: 'var(--chc-bg-secondary)',
       borderRadius: '8px',
-      boxShadow: '0 8px 16px rgba(0, 102, 204, 0.2)'
+      boxShadow: '0 8px 16px color-mix(in srgb, var(--chc-border-focus) 20%, transparent)'
     }
   };
 

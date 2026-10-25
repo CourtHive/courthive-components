@@ -211,7 +211,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
           modalConfig: {
             style: {
               fontSize: '12px', // Smaller base font size for TMX
-              border: '3px solid #0066cc'
+              border: '3px solid var(--chc-border-focus)'
             }
           }
         } as any);
@@ -459,7 +459,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   doubleExitNotice.style.display = 'none';
   doubleExitNotice.style.fontSize = '0.7rem';
   doubleExitNotice.style.marginTop = '0.3em';
-  doubleExitNotice.style.color = 'var(--chc-text-warning, var(--chc-text-primary))';
+  doubleExitNotice.style.color = 'var(--chc-status-warning)';
   winnerSelectionContainer.appendChild(doubleExitNotice);
 
   /**

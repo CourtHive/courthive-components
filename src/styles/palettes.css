@@ -108,6 +108,15 @@
   --sp-success: #2e7048;
   --sp-accent-subtle: #e1e6ee;
   --sp-info-text: #1f6d66;
+  --chc-accent-blue: #2f5fb3;
+  --chc-accent-green: #2e7048;
+  --chc-accent-red: #b3261e;
+  --chc-accent-orange: #a55a12;
+  --chc-accent-purple: #7048a8;
+  --chc-accent-teal: #1f6d66;
+  --chc-accent-pink: #a2386c;
+  --chc-accent-indigo: #4a55a2;
+  --chc-accent-yellow: #b08a1a;
 }
 
 /* ── Slate (light) — Cool blue-grey neutrals, crisp white surfaces, confident blue. Modern and quiet. */
@@ -208,6 +217,15 @@
   --sp-success: #15703a;
   --sp-accent-subtle: #e7eefd;
   --sp-info-text: #0d6b64;
+  --chc-accent-blue: #2563eb;
+  --chc-accent-green: #15803d;
+  --chc-accent-red: #c0262d;
+  --chc-accent-orange: #b45309;
+  --chc-accent-purple: #7c3aed;
+  --chc-accent-teal: #0d6b64;
+  --chc-accent-pink: #be185d;
+  --chc-accent-indigo: #4f46e5;
+  --chc-accent-yellow: #a16207;
 }
 
 /* ── Graphite (dark) — Neutral charcoal with no blue cast; soft-white text, clear blue accent. */
@@ -308,4 +326,13 @@
   --sp-success: #62c58a;
   --sp-accent-subtle: #323d50;
   --sp-info-text: #4fc7ba;
+  --chc-accent-blue: #7fb2ff;
+  --chc-accent-green: #62c58a;
+  --chc-accent-red: #f2808a;
+  --chc-accent-orange: #f2a960;
+  --chc-accent-purple: #c49bff;
+  --chc-accent-teal: #4fc7ba;
+  --chc-accent-pink: #e98bb8;
+  --chc-accent-indigo: #9aa3ef;
+  --chc-accent-yellow: #e8c35a;
 }

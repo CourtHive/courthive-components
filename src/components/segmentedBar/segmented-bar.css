@@ -14,7 +14,7 @@
 }
 
 .chc-sb__seg {
-  background: var(--seg-bg, var(--chc-text-muted, #6b7280));
+  background: var(--seg-bg, var(--chc-text-muted));
   color: #ffffff;
   font-size: 0.85em;
   font-weight: 600;

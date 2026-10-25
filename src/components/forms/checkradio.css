@@ -65,7 +65,7 @@
 
 .is-checkradio[type='checkbox']:focus + label::before,
 .is-checkradio[type='radio']:focus + label::before {
-  outline: 1px dotted #b5b5b5;
+  outline: 1px dotted var(--chc-border-focus);
 }
 
 /* ========================================
@@ -323,7 +323,7 @@
    Color variants — Checkbox
    ======================================== */
 
-/* --- Primary (#00d1b2) --- */
+/* --- Primary --- */
 .is-checkradio[type='checkbox'].is-primary:hover:not([disabled]) + label::before {
   border-color: var(--chc-container-primary) !important;
 }
@@ -331,7 +331,7 @@
   border-color: var(--chc-container-primary) !important;
 }
 
-/* --- Success (#48c78e) --- */
+/* --- Success --- */
 .is-checkradio[type='checkbox'].is-success:hover:not([disabled]) + label::before {
   border-color: var(--chc-container-success) !important;
 }
@@ -339,7 +339,7 @@
   border-color: var(--chc-container-success) !important;
 }
 
-/* --- Info (#3e8ed0) --- */
+/* --- Info --- */
 .is-checkradio[type='checkbox'].is-info:hover:not([disabled]) + label::before {
   border-color: var(--chc-container-info) !important;
 }
@@ -347,7 +347,7 @@
   border-color: var(--chc-container-info) !important;
 }
 
-/* --- Warning (#ffe08a) --- */
+/* --- Warning --- */
 .is-checkradio[type='checkbox'].is-warning:hover:not([disabled]) + label::before {
   border-color: var(--chc-container-warning) !important;
 }
@@ -355,7 +355,7 @@
   border-color: var(--chc-container-warning) !important;
 }
 
-/* --- Danger (#f14668) --- */
+/* --- Danger --- */
 .is-checkradio[type='checkbox'].is-danger:hover:not([disabled]) + label::before {
   border-color: var(--chc-container-danger) !important;
 }
@@ -363,7 +363,7 @@
   border-color: var(--chc-container-danger) !important;
 }
 
-/* --- Link (#485fc7) --- */
+/* --- Link --- */
 .is-checkradio[type='checkbox'].is-link:hover:not([disabled]) + label::before {
   border-color: var(--chc-container-link) !important;
 }
@@ -371,36 +371,36 @@
   border-color: var(--chc-container-link) !important;
 }
 
-/* --- White (#fff) --- */
+/* --- White (page surface) --- */
 .is-checkradio[type='checkbox'].is-white:hover:not([disabled]) + label::before {
-  border-color: #fff !important;
+  border-color: var(--chc-bg-primary) !important;
 }
 .is-checkradio[type='checkbox'].is-white:checked + label::after {
-  border-color: #fff !important;
+  border-color: var(--chc-bg-primary) !important;
 }
 
-/* --- Black (#0a0a0a) --- */
+/* --- Black (primary ink) --- */
 .is-checkradio[type='checkbox'].is-black:hover:not([disabled]) + label::before {
-  border-color: #0a0a0a !important;
+  border-color: var(--chc-text-primary) !important;
 }
 .is-checkradio[type='checkbox'].is-black:checked + label::after {
-  border-color: #0a0a0a !important;
+  border-color: var(--chc-text-primary) !important;
 }
 
-/* --- Light (#f5f5f5) --- */
+/* --- Light (secondary surface) --- */
 .is-checkradio[type='checkbox'].is-light:hover:not([disabled]) + label::before {
-  border-color: #f5f5f5 !important;
+  border-color: var(--chc-bg-secondary) !important;
 }
 .is-checkradio[type='checkbox'].is-light:checked + label::after {
-  border-color: #f5f5f5 !important;
+  border-color: var(--chc-bg-secondary) !important;
 }
 
-/* --- Dark (#363636) --- */
+/* --- Dark (secondary ink) --- */
 .is-checkradio[type='checkbox'].is-dark:hover:not([disabled]) + label::before {
-  border-color: #363636 !important;
+  border-color: var(--chc-text-secondary) !important;
 }
 .is-checkradio[type='checkbox'].is-dark:checked + label::after {
-  border-color: #363636 !important;
+  border-color: var(--chc-text-secondary) !important;
 }
 
 /* ========================================
@@ -426,23 +426,23 @@
   border-color: var(--chc-container-link);
 }
 .is-checkradio[type='checkbox']:indeterminate.is-white + label::after {
-  border-color: #fff;
+  border-color: var(--chc-bg-primary);
 }
 .is-checkradio[type='checkbox']:indeterminate.is-black + label::after {
-  border-color: #0a0a0a;
+  border-color: var(--chc-text-primary);
 }
 .is-checkradio[type='checkbox']:indeterminate.is-light + label::after {
-  border-color: #f5f5f5;
+  border-color: var(--chc-bg-secondary);
 }
 .is-checkradio[type='checkbox']:indeterminate.is-dark + label::after {
-  border-color: #363636;
+  border-color: var(--chc-text-secondary);
 }
 
 /* ========================================
    Color variants — Radio
    ======================================== */
 
-/* --- Primary (#00d1b2) --- */
+/* --- Primary --- */
 .is-checkradio[type='radio'].is-primary:hover:not([disabled]) + label::before {
   border-color: var(--chc-container-primary) !important;
 }
@@ -451,7 +451,7 @@
   background-color: var(--chc-container-primary) !important;
 }
 
-/* --- Success (#48c78e) --- */
+/* --- Success --- */
 .is-checkradio[type='radio'].is-success:hover:not([disabled]) + label::before {
   border-color: var(--chc-container-success) !important;
 }
@@ -460,7 +460,7 @@
   background-color: var(--chc-container-success) !important;
 }
 
-/* --- Info (#3e8ed0) --- */
+/* --- Info --- */
 .is-checkradio[type='radio'].is-info:hover:not([disabled]) + label::before {
   border-color: var(--chc-container-info) !important;
 }
@@ -469,7 +469,7 @@
   background-color: var(--chc-container-info) !important;
 }
 
-/* --- Warning (#ffe08a) --- */
+/* --- Warning --- */
 .is-checkradio[type='radio'].is-warning:hover:not([disabled]) + label::before {
   border-color: var(--chc-container-warning) !important;
 }
@@ -478,7 +478,7 @@
   background-color: var(--chc-container-warning) !important;
 }
 
-/* --- Danger (#f14668) --- */
+/* --- Danger --- */
 .is-checkradio[type='radio'].is-danger:hover:not([disabled]) + label::before {
   border-color: var(--chc-container-danger) !important;
 }
@@ -487,7 +487,7 @@
   background-color: var(--chc-container-danger) !important;
 }
 
-/* --- Link (#485fc7) --- */
+/* --- Link --- */
 .is-checkradio[type='radio'].is-link:hover:not([disabled]) + label::before {
   border-color: var(--chc-container-link) !important;
 }
@@ -496,38 +496,38 @@
   background-color: var(--chc-container-link) !important;
 }
 
-/* --- White (#fff) --- */
+/* --- White (page surface) --- */
 .is-checkradio[type='radio'].is-white:hover:not([disabled]) + label::before {
-  border-color: #fff !important;
+  border-color: var(--chc-bg-primary) !important;
 }
 .is-checkradio[type='radio'].is-white:checked + label::after {
-  border-color: #fff !important;
-  background-color: #fff !important;
+  border-color: var(--chc-bg-primary) !important;
+  background-color: var(--chc-bg-primary) !important;
 }
 
-/* --- Black (#0a0a0a) --- */
+/* --- Black (primary ink) --- */
 .is-checkradio[type='radio'].is-black:hover:not([disabled]) + label::before {
-  border-color: #0a0a0a !important;
+  border-color: var(--chc-text-primary) !important;
 }
 .is-checkradio[type='radio'].is-black:checked + label::after {
-  border-color: #0a0a0a !important;
-  background-color: #0a0a0a !important;
+  border-color: var(--chc-text-primary) !important;
+  background-color: var(--chc-text-primary) !important;
 }
 
-/* --- Light (#f5f5f5) --- */
+/* --- Light (secondary surface) --- */
 .is-checkradio[type='radio'].is-light:hover:not([disabled]) + label::before {
-  border-color: #f5f5f5 !important;
+  border-color: var(--chc-bg-secondary) !important;
 }
 .is-checkradio[type='radio'].is-light:checked + label::after {
-  border-color: #f5f5f5 !important;
-  background-color: #f5f5f5 !important;
+  border-color: var(--chc-bg-secondary) !important;
+  background-color: var(--chc-bg-secondary) !important;
 }
 
-/* --- Dark (#363636) --- */
+/* --- Dark (secondary ink) --- */
 .is-checkradio[type='radio'].is-dark:hover:not([disabled]) + label::before {
-  border-color: #363636 !important;
+  border-color: var(--chc-text-secondary) !important;
 }
 .is-checkradio[type='radio'].is-dark:checked + label::after {
-  border-color: #363636 !important;
-  background-color: #363636 !important;
+  border-color: var(--chc-text-secondary) !important;
+  background-color: var(--chc-text-secondary) !important;
 }
