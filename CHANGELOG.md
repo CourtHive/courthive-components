@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.14.0](https://github.com/CourtHive/courthive-components/compare/v6.13.0...v6.14.0) (2026-10-25)
+
+
+### Features
+
+* **schedule-page:** live count under Now and a pending marker on idle strip cells ([#801](https://github.com/CourtHive/courthive-components/issues/801)) ([9d2e94e](https://github.com/CourtHive/courthive-components/commit/9d2e94ea0eae5dd49c450e88770deadd840850a5))
+* **theme:** courtside and midnight defaults with selectable linen, slate and graphite palettes ([#802](https://github.com/CourtHive/courthive-components/issues/802)) ([f127a31](https://github.com/CourtHive/courthive-components/commit/f127a3175865ce0465382fc0be951b7c9ac4eda6))
+
 ## [6.13.0](https://github.com/CourtHive/courthive-components/compare/v6.12.1...v6.13.0) (2026-10-24)
 
 
