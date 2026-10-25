@@ -56,7 +56,7 @@ const mockTournament = {
 // ============================================================================
 
 const meta: Meta = {
-  title: 'Availability Grid/Conflict Evaluators',
+  title: 'Scheduling/Availability Grid/Conflict Evaluators',
   tags: ['autodocs'],
   parameters: {
     docs: {

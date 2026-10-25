@@ -32,7 +32,7 @@ import {
 } from './data';
 
 export default {
-  title: 'Scheduling Profile/Full',
+  title: 'Scheduling/Scheduling Profile/Full',
   parameters: {
     layout: 'fullscreen',
     backgrounds: { default: 'dark' }

@@ -87,7 +87,7 @@ function buildFrame({ drawSize, quarterCount }: { drawSize: number; quarterCount
 }
 
 export default {
-  title: 'Draws/StructureMinimap',
+  title: 'Draws/Minimap',
   tags: ['autodocs'],
   render: ({ drawSize = 128, quarterCount = 4 }: any) => buildFrame({ drawSize, quarterCount }),
   argTypes

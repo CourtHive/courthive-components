@@ -11,7 +11,7 @@ import { buildCompetitivenessBar } from '../components/competitivenessBar/buildC
 import type { DrawCardData } from '../components/draw-card/types';
 
 export default {
-  title: 'Cards/Draw Card'
+  title: 'Cards/Draw'
 };
 
 function gridWrap(): HTMLElement {

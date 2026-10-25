@@ -2,7 +2,7 @@ import '../components/forms/styles';
 import { renderMenu } from '../components/forms/renderMenu';
 
 export default {
-  title: 'Renderers/Menu',
+  title: 'Foundations/Menu',
   tags: ['autodocs'],
   render: ({ menu, hasClose }) => {
     const container = document.createElement('div');

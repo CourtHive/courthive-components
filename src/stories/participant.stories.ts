@@ -7,7 +7,7 @@ const { WALKOVER, DEFAULTED, DOUBLE_WALKOVER, RETIRED } = matchUpStatusConstants
 const { MAIN } = drawDefinitionConstants;
 
 export default {
-  title: 'Participants/Participant',
+  title: 'Draws/Participants/Participant',
   tags: ['autodocs'],
   render: ({ eventType, outcomes, randomWinningSide, participant, ...args }) => {
     const { matchUps } = generateMatchUps({

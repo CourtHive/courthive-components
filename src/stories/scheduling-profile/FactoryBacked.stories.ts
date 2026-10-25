@@ -25,7 +25,7 @@ import { createFactorySetup, profileToFactoryFormat, buildHeavyProfile, buildSpr
 const { calculateCapacityStats } = availability;
 
 export default {
-  title: 'Scheduling Profile/Factory',
+  title: 'Scheduling/Scheduling Profile/Factory',
   parameters: {
     layout: 'fullscreen',
     backgrounds: { default: 'dark' }

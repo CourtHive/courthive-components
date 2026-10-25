@@ -6,7 +6,7 @@ const INSPECTOR_NAME = 'MatchUp inspector';
 
 let dispose: (() => void) | undefined;
 export default {
-  title: 'Schedule Page/Catalog placement',
+  title: 'Scheduling/Schedule Page/Catalog Placement',
   parameters: { layout: 'fullscreen' },
   beforeEach: () => () => {
     dispose?.();

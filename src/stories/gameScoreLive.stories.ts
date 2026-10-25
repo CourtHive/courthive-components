@@ -289,7 +289,7 @@ const argTypes = {
 };
 
 export default {
-  title: 'MatchUps/GameScore Live',
+  title: 'Draws/MatchUps/Game Score Live',
   tags: ['autodocs'],
   argTypes
 };

@@ -32,7 +32,7 @@ import {
 } from './data';
 
 export default {
-  title: 'Policy Catalog/Panels'
+  title: 'Policies & Setup/Policy Catalog/Panels'
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────

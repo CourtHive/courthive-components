@@ -19,7 +19,7 @@ const {
 } = matchUpStatusConstants;
 
 export default {
-  title: 'MatchUps/Status',
+  title: 'Draws/MatchUps/Status',
   tags: ['autodocs'],
   render: ({ ...args }) => {
     return renderStatusPill({ ...args });

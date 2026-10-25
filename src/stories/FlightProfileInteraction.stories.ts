@@ -6,7 +6,7 @@ import { createJsonViewer } from './helpers/JsonViewer';
 const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
 
 export default {
-  title: 'Components/FlightProfile',
+  title: 'Policies & Setup/Flight Profile',
   tags: ['autodocs'],
   parameters: {
     docs: {

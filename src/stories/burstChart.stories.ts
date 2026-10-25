@@ -198,7 +198,7 @@ interface BurstChartArgs {
  * Modern D3v7 Burst Chart with emoji flags and clean architecture
  */
 const meta: Meta<BurstChartArgs> = {
-  title: 'Visualizations/burstChart',
+  title: 'Charts/Burst',
   tags: ['autodocs'],
   argTypes: {
     width: {

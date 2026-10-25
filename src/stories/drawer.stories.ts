@@ -10,7 +10,7 @@ const BUTTON_IS_INFO = 'button is-info';
 const BUTTON_IS_SUCCESS = 'button is-success';
 
 export default {
-  title: 'Components/Drawer',
+  title: 'Foundations/Drawer',
   tags: ['autodocs']
 };
 

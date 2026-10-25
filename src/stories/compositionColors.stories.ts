@@ -28,7 +28,7 @@ function renderDraw(composition: Composition): HTMLElement {
 }
 
 export default {
-  title: 'Draws/Composition Colors',
+  title: 'Policies & Setup/Composition/Colors',
   tags: ['autodocs'],
   argTypes: {
     basePreset: { options: Object.keys(compositions), control: { type: 'select' } },

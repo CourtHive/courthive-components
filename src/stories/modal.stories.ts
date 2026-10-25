@@ -7,7 +7,7 @@ const BTN_PRIMARY = 'button is-primary';
 const BTN_SUCCESS = 'button is-success';
 
 export default {
-  title: 'Components/Modal',
+  title: 'Foundations/Modal',
   tags: ['autodocs']
 };
 

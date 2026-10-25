@@ -26,7 +26,7 @@ const { POLICY_TYPE_SCORING } = policyConstants;
 const REAL_GROUPS = fixtures.policies.POLICY_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
 
 export default {
-  title: 'Scoring/Score Entry Card'
+  title: 'Scoring/Score Entry/Card'
 };
 
 const FORMAT = 'SET3-S:6/TB7';

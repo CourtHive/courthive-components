@@ -26,7 +26,9 @@ import { buildDrawOrderGame } from '../components/pressureHorizon/drawOrderGame'
 import { seededDraw } from './pressureChartFixture';
 
 const meta: Meta = {
-  title: 'Charts/Pressure Horizon/Tests/DrawOrderGame'
+  title: 'Charts/Pressure Horizon/Tests/Draw Order Game',
+  // A play-function test: hidden from the sidebar, still run by `pnpm test:stories`.
+  tags: ['!dev']
 };
 export default meta;
 

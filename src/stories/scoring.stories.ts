@@ -25,7 +25,7 @@ const argTypes = {
 };
 
 export default {
-  title: 'Components/Scoring',
+  title: 'Scoring/Approaches',
   tags: ['autodocs'],
   argTypes
 };

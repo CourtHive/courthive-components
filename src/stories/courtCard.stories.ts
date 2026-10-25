@@ -4,7 +4,7 @@ import { buildCourtSkeletonCard } from '../components/court-card/buildSkeletonCa
 import { CourtCardData } from '../components/court-card/types';
 
 export default {
-  title: 'Components/CourtCard',
+  title: 'Cards/Court',
   tags: ['autodocs']
 };
 
