@@ -1,3 +1,4 @@
+import { THEME_PALETTES, applyThemePalette, type ThemeMode } from '../src/theme/palettes';
 import type { Preview } from '@storybook/html-vite';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'vanillajs-datepicker/css/datepicker.css';
@@ -31,15 +32,32 @@ const preview: Preview = {
         ],
         dynamicTitle: true
       }
+    },
+    // Every palette, light and dark. Choosing one also sets its mode, so the Theme menu can't contradict it;
+    // "Default" leaves the mode to the Theme menu and shows that mode's default palette.
+    palette: {
+      description: 'Color palette',
+      toolbar: {
+        title: 'Palette',
+        icon: 'paintbrush',
+        items: [
+          { value: '', title: 'Default (Courtside / Midnight)' },
+          ...THEME_PALETTES.map(({ id, name, mode }) => ({ value: id, title: `${name} (${mode})` }))
+        ],
+        dynamicTitle: true
+      }
     }
   },
   initialGlobals: {
-    theme: 'light'
+    theme: 'light',
+    palette: ''
   },
   decorators: [
     (storyFn, context) => {
-      const theme = context.globals.theme || 'light';
+      const palette = THEME_PALETTES.find(({ id }) => id === context.globals.palette);
+      const theme: ThemeMode = palette?.mode ?? (context.globals.theme === 'dark' ? 'dark' : 'light');
       document.documentElement.dataset.theme = theme;
+      applyThemePalette(theme, palette?.id);
       document.body.style.backgroundColor = 'var(--chc-bg-primary)';
       document.body.style.color = 'var(--chc-text-primary)';
       return storyFn();
