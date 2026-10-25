@@ -40,7 +40,7 @@ export function createMultiSelect(item: MultiSelectItem): { container: HTMLDivEl
   // --- trigger bar ---
   const trigger = document.createElement('div');
   trigger.style.cssText =
-    'display: flex; align-items: center; flex-wrap: wrap; gap: 4px; min-height: 2.5em; padding: 4px 8px; border: 1px solid var(--chc-input-border, #7a7a7a); border-radius: 4px; background: var(--chc-input-bg, #fff); cursor: pointer; box-sizing: border-box';
+    'display: flex; align-items: center; flex-wrap: wrap; gap: 4px; min-height: 2.5em; padding: 4px 8px; border: 1px solid var(--chc-input-border); border-radius: 4px; background: var(--chc-input-bg); cursor: pointer; box-sizing: border-box';
 
   // tags area
   const tagsArea = document.createElement('div');
@@ -49,8 +49,7 @@ export function createMultiSelect(item: MultiSelectItem): { container: HTMLDivEl
   // chevron
   const chevron = document.createElement('span');
   chevron.textContent = '▾';
-  chevron.style.cssText =
-    'margin-left: auto; padding-left: 8px; user-select: none; color: var(--chc-text-secondary, #666);';
+  chevron.style.cssText = 'margin-left: auto; padding-left: 8px; user-select: none; color: var(--chc-text-secondary);';
 
   trigger.appendChild(tagsArea);
   trigger.appendChild(chevron);
@@ -68,10 +67,10 @@ export function createMultiSelect(item: MultiSelectItem): { container: HTMLDivEl
     'z-index: 50',
     'max-height: 220px',
     'overflow-y: auto',
-    'border: 1px solid var(--chc-border-primary, #dbdbdb)',
+    'border: 1px solid var(--chc-border-primary)',
     'border-top: none',
     'border-radius: 0 0 4px 4px',
-    'background: var(--chc-dropdown-bg, #fff)',
+    'background: var(--chc-dropdown-bg)',
     'box-shadow: 0 4px 8px rgba(0,0,0,0.1)',
     'box-sizing: border-box'
   ].join('; ');
@@ -87,10 +86,10 @@ export function createMultiSelect(item: MultiSelectItem): { container: HTMLDivEl
       'gap: 8px',
       'padding: 6px 10px',
       'cursor: pointer',
-      'color: var(--chc-text-primary, #363636)'
+      'color: var(--chc-text-primary)'
     ].join('; ');
     row.addEventListener('mouseenter', () => {
-      row.style.background = 'var(--chc-hover-bg, #f5f5f5)';
+      row.style.background = 'var(--chc-hover-bg)';
     });
     row.addEventListener('mouseleave', () => {
       row.style.background = '';
@@ -139,7 +138,7 @@ export function createMultiSelect(item: MultiSelectItem): { container: HTMLDivEl
     if (state.size === 0) {
       const placeholder = document.createElement('span');
       placeholder.textContent = 'Select…';
-      placeholder.style.cssText = 'color: var(--chc-text-muted, #999); user-select: none;';
+      placeholder.style.cssText = 'color: var(--chc-text-muted); user-select: none;';
       tagsArea.appendChild(placeholder);
       return;
     }
@@ -153,8 +152,8 @@ export function createMultiSelect(item: MultiSelectItem): { container: HTMLDivEl
         'gap: 4px',
         'padding: 2px 6px',
         'border-radius: 3px',
-        'background: var(--chc-status-info, blue)',
-        'color: var(--chc-text-inverse, #fff)',
+        'background: var(--chc-container-info)',
+        'color: var(--chc-on-info)',
         'font-size: 0.85em',
         'white-space: nowrap'
       ].join('; ');

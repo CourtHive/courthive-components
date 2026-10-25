@@ -325,7 +325,7 @@ function checkboxField(label: string, value: boolean, disabled: boolean, onChang
   wrap.appendChild(input);
   const lbl = labelEl(label);
   lbl.style.fontSize = '13px';
-  lbl.style.color = 'var(--chc-text-primary, #222)';
+  lbl.style.color = 'var(--chc-text-primary)';
   wrap.appendChild(lbl);
   return wrap;
 }

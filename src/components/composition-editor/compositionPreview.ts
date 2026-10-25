@@ -234,7 +234,7 @@ export function buildCompositionPreview(): EditorPanel {
     const bracketLabel = document.createElement('div');
     bracketLabel.style.cssText =
       'margin-top:1.5rem; padding:0 0.25rem; font-size:0.7rem; ' +
-      'color:var(--chc-text-secondary, #999); text-transform:uppercase; letter-spacing:0.05em;';
+      'color:var(--chc-text-secondary); text-transform:uppercase; letter-spacing:0.05em;';
     bracketLabel.textContent = 'Connector preview';
     body.appendChild(bracketLabel);
 

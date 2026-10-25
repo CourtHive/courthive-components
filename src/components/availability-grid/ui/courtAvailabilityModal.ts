@@ -128,7 +128,8 @@ export async function showCourtAvailabilityModal(config: CourtAvailabilityModalC
     warningEl.className = 'tp-court-avail-warning';
     warningEl.style.cssText = `
       display: none; padding: 8px 12px; margin-bottom: 12px; border-radius: 6px;
-      background: #fef3c7; border: 1px solid #f59e0b; color: #92400e;
+      background: color-mix(in srgb, var(--chc-container-warning) 16%, var(--chc-bg-primary));
+      border: 1px solid var(--chc-status-warning); color: var(--chc-status-warning);
       font-size: 12px; line-height: 1.4;
     `;
     extraContent.appendChild(warningEl);
