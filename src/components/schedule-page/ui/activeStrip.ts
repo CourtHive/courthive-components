@@ -142,6 +142,10 @@ export interface ActiveStripPanel extends UIPanel<SchedulePageState> {
 
 const DROP_OVER_CLASS = 'drop-over';
 
+// A wall clock: the court is idle, and its queued matchUps are waiting for their time (or a call).
+const PENDING_ICON =
+  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>';
+
 function attachDropTarget(
   root: HTMLElement,
   cell: ActiveStripCell,
@@ -244,6 +248,16 @@ function buildCellElement(
   // Runway on an idle court: how long before it is taken away. Suppressed while
   // a block is already in force — a banner about now beats a countdown to later.
   const occupied = cell.state !== 'free' && !!cell.matchUp;
+
+  // An idle court with matchUps still queued in its column: a quiet marker, not a state — the court
+  // IS free right now, but the slot will fill on its own when the next one is called.
+  if (!occupied && !courtBlock && cell.hasPending) {
+    const pending = document.createElement('span');
+    pending.className = 'spl-active-strip-pending';
+    pending.title = 'Pending matches on this court';
+    pending.innerHTML = PENDING_ICON;
+    root.appendChild(pending);
+  }
   if (!occupied && !courtBlock && edges?.upcoming) {
     const runway = document.createElement('div');
     runway.className = `spl-active-strip-runway block-${edges.upcoming.type.toLowerCase()}`;
@@ -275,7 +289,7 @@ function buildCellElement(
   return root;
 }
 
-function buildSpacer(options: ActiveStripPanelOptions): HTMLElement {
+function buildSpacer(options: ActiveStripPanelOptions, liveCount: number): HTMLElement {
   const spacer = document.createElement('div');
   spacer.className = 'spl-active-strip-spacer';
   if (options.cellHeight) spacer.style.minHeight = options.cellHeight;
@@ -284,6 +298,12 @@ function buildSpacer(options: ActiveStripPanelOptions): HTMLElement {
     label.className = 'spl-active-strip-spacer-label';
     label.textContent = options.spacerLabel;
     spacer.appendChild(label);
+    // How many matchUps are on court right now — the LIVE cells, not suspended or called.
+    const count = document.createElement('span');
+    count.className = 'spl-active-strip-spacer-count';
+    count.textContent = `(${liveCount})`;
+    count.title = liveCount === 1 ? '1 match in progress' : `${liveCount} matches in progress`;
+    spacer.appendChild(count);
   }
   return spacer;
 }
@@ -312,9 +332,6 @@ export function buildActiveStripPanel(
     }
     root.style.minWidth = data.minWidth ?? '';
 
-    // Leading spacer aligns court cells with the grid below the row-number column.
-    root.appendChild(buildSpacer(options));
-
     // `dueMatchUpIds` rides on the DATA rather than the panel options: which
     // matchUps are overdue changes with the clock and with every mutation, while
     // `options` is fixed when the panel is built.
@@ -322,6 +339,10 @@ export function buildActiveStripPanel(
       ? { ...options.statusOptions, dueMatchUpIds: new Set(data.dueMatchUpIds) }
       : options.statusOptions;
     const cells = computeActiveStrip(data.grid, statusOptions);
+
+    // Leading spacer aligns court cells with the grid below the row-number column.
+    const liveCount = cells.filter((cell) => cell.state === 'in-progress').length;
+    root.appendChild(buildSpacer(options, liveCount));
     for (const cell of cells) {
       const block = data.courtBlocks?.[cell.courtId];
       const edges = {
