@@ -6,84 +6,83 @@
  * Example (TMX):
  *   :root { --chc-bg-primary: var(--tmx-bg-primary); }
  *
- * Light defaults match the previously hardcoded values so existing
- * consumers see zero visual change.
+ * Defaults: the `:root` values are the Courtside palette (light) and the
+ * `[data-theme='dark']` values are Midnight (dark). They replaced the
+ * Bulma-derived light theme and the original navy dark theme on 2026-10-25.
+ * The other palettes (Linen, Slate, Graphite) are in palettes.css and are
+ * selected with `data-palette` on <html> (src/theme/palettes.ts). Rationale
+ * and measurements: Mentat/planning/themes/THEME_AUDIT_AND_PROPOSALS.md.
  */
 
 :root {
   /* ── Backgrounds ─────────────────────────────────────── */
-  --chc-bg-primary: #fff;
-  --chc-bg-secondary: #f5f5f5;
-  --chc-bg-elevated: #fff;
+  --chc-bg-primary: #ffffff;
+  --chc-bg-secondary: #eef1f5;
+  --chc-bg-elevated: #ffffff;
   --chc-bg-overlay: rgba(0, 0, 0, 0.2);
 
   /* ── Text ────────────────────────────────────────────── */
-  --chc-text-primary: #363636;
-  --chc-text-secondary: #666;
-  --chc-text-muted: #999;
-  --chc-text-inverse: #fff;
+  --chc-text-primary: #111827;
+  --chc-text-secondary: #374151;
+  --chc-text-muted: #4b5563;
+  --chc-text-inverse: #ffffff;
 
   /* ── Borders ─────────────────────────────────────────── */
-  --chc-border-primary: #dbdbdb;
-  --chc-border-secondary: #ddd;
-  --chc-border-focus: #0066cc;
+  --chc-border-primary: #9aa5b4;
+  --chc-border-secondary: #c4ccd6;
+  --chc-border-focus: #1747c2;
 
   /* ── Interactive ─────────────────────────────────────── */
-  --chc-hover-bg: #f5f5f5;
-  --chc-active-bg: #e0e0e0;
+  --chc-hover-bg: #e6ebf2;
+  --chc-active-bg: #cfdcf0;
 
   /* ── Status ──────────────────────────────────────────── */
-  --chc-status-success: green;
-  --chc-status-warning: orange;
-  --chc-status-error: red;
-  --chc-status-info: blue;
-  --chc-draw-position-color: #b8860b;
+  --chc-status-success: #0f6a33;
+  --chc-status-warning: #874600;
+  --chc-status-error: #b01c1c;
+  --chc-status-info: #075985;
+  --chc-draw-position-color: #874600;
 
   /* ── Components ──────────────────────────────────────── */
-  --chc-modal-bg: #fff;
-  --chc-dropdown-bg: white;
+  --chc-modal-bg: #ffffff;
+  --chc-dropdown-bg: #ffffff;
   --chc-input-bg: #ffffff;
-  --chc-input-border: #7a7a7a;
-  --chc-panel-header-bg: rgb(192 193 211);
-  --chc-format-code-color: blue;
-  --chc-clear-btn-bg: #ffeb3b;
-  --chc-clear-btn-text: #333;
+  --chc-input-border: #4b5563;
+  --chc-panel-header-bg: #d9e1ec;
+  --chc-format-code-color: #1747c2;
+  --chc-clear-btn-bg: #f5b82e;
+  --chc-clear-btn-text: #1f1600;
 
   /* ── Pills ─────────────────────────────────────────────── */
-  --chc-pill-text: #fff;
-  --chc-pill-bg-danger: #df164c;
-  --chc-pill-bg-success: #199f01;
-  --chc-pill-bg-warning: #f7ae04;
-  --chc-pill-bg-dark: #363636;
+  --chc-pill-text: #ffffff;
+  --chc-pill-bg-danger: #b01c1c;
+  --chc-pill-bg-success: #0f6a33;
+  --chc-pill-bg-warning: #874600;
+  --chc-pill-bg-dark: #374151;
 
   /* ── Container fills — solid intent backgrounds */
-  --chc-container-primary: #00d1b2;
-  --chc-container-link: #485fc7;
-  --chc-container-info: #3e8ed0;
-  --chc-container-danger: #f14668;
-  --chc-container-success: #48c78e;
-  --chc-container-warning: #ffe08a;
+  --chc-container-primary: #115e59;
+  --chc-container-link: #1747c2;
+  --chc-container-info: #075985;
+  --chc-container-danger: #b01c1c;
+  --chc-container-success: #0f6a33;
+  --chc-container-warning: #f5b82e;
 
   /* ── Foreground ON a container fill ────────────────────────
      The readable text colour for each container, so a call site asks for
      "the foreground for this intent" instead of guessing white.
 
-     DERIVED by WCAG contrast against the container fills above, in both themes.
-     Four of these were `#fff` until 2026-09-23 and shipped below AA — primary
-     1.95:1, success 2.14:1, info 3.51:1, danger 3.61:1 — because a solid fill
-     was assumed to want white text. Only `on-warning` had ever been corrected
-     by hand, which is exactly why it alone read well: the correction was made
-     once and never propagated. Deriving it removes the guess.
-
-     `on-link` keeps white because `#485fc7` is dark enough to earn it (5.62:1).
-     `on-warning` keeps its composited rgba, which already passes at 7.57:1;
-     changing a value that works would be churn. */
-  --chc-on-primary: #0a0a0a;
-  --chc-on-link: #fff;
-  --chc-on-info: #0a0a0a;
-  --chc-on-danger: #0a0a0a;
-  --chc-on-success: #0a0a0a;
-  --chc-on-warning: rgba(0, 0, 0, 0.7);
+     DERIVED by WCAG contrast against the container fills above, in every palette
+     (theme-contrast.test.ts, palette-contrast.test.ts). Courtside's fills are deep
+     enough to carry white ink; the amber warning fill is the one that cannot, so
+     `on-warning` is a near-black ink. History: the Bulma-era light fills
+     (#00d1b2 and friends) shipped white text at 1.95–3.61:1 until 2026-09-23. */
+  --chc-on-primary: #ffffff;
+  --chc-on-link: #ffffff;
+  --chc-on-info: #ffffff;
+  --chc-on-danger: #ffffff;
+  --chc-on-success: #ffffff;
+  --chc-on-warning: #1f1600;
 
   /* ── Point score (live game score boxes) ───────────────── */
   --chc-point-score-bg: var(--chc-text-primary);
@@ -104,15 +103,15 @@
   --chc-score-set-width: 1.3rem;
 
   /* ── Gender Colors ──────────────────────────────────────── */
-  --chc-gender-male: #2e86c1;
-  --chc-gender-female: #e07baf;
-  --chc-gender-mixed: #8e44ad;
+  --chc-gender-male: #1747c2;
+  --chc-gender-female: #a3134f;
+  --chc-gender-mixed: #6427c8;
 
   /* ── EventType Colors (used by event-card badges) ───────── */
-  --chc-eventtype-singles: #6366f1;
-  --chc-eventtype-doubles: #14b8a6;
-  --chc-eventtype-team: #f59e0b;
-  --chc-eventtype-hybrid: #db2777;
+  --chc-eventtype-singles: #3730a3;
+  --chc-eventtype-doubles: #0f5f59;
+  --chc-eventtype-team: #9a4a07;
+  --chc-eventtype-hybrid: #a3134f;
 
   /* ── Participant ───────────────────────────────────────── */
   --chc-participant-text-transform: capitalize;
@@ -120,7 +119,7 @@
   --chc-participant-seed-color: var(--chc-text-muted);
 
   /* ── Participant hover highlight ───────────────────────── */
-  --chc-participant-hover-bg: rgba(255, 170, 0, 0.3);
+  --chc-participant-hover-bg: #fff1b8;
 
   /* ── Draw colors (theme-overridable) ───────────────────── */
   --chc-color-internal-dividers: var(--chc-border-secondary);
@@ -137,23 +136,23 @@
   --chc-matchup-box-shadow: none;
 
   /* ── Scheduling Profile: Core ──────────────────────────── */
-  --sp-bg: #f8fafc;
+  --sp-bg: #eef1f5;
   --sp-panel: #ffffff;
-  --sp-muted: #64748b;
-  --sp-text: #1e293b;
-  --sp-line: #e2e8f0;
-  --sp-accent: #3b82f6;
-  --sp-ok: #10b981;
-  --sp-warn: #f59e0b;
-  --sp-err: #f43f5e;
+  --sp-muted: #4b5563;
+  --sp-text: #111827;
+  --sp-line: #c4ccd6;
+  --sp-accent: #1747c2;
+  --sp-ok: #0f6a33;
+  --sp-warn: #874600;
+  --sp-err: #b01c1c;
 
   /* ── Scheduling Profile: Surfaces ──────────────────────── */
-  --sp-panel-bg: rgba(255, 255, 255, 0.85);
+  --sp-panel-bg: #ffffff;
   --sp-panel-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  --sp-card-bg: rgba(241, 245, 249, 0.8);
+  --sp-card-bg: #eef1f5;
   --sp-input-bg: #ffffff;
   --sp-chip-bg: rgba(241, 245, 249, 0.6);
-  --sp-action-btn-bg: rgba(241, 245, 249, 0.8);
+  --sp-action-btn-bg: #eef1f5;
   --sp-selected-bg: rgba(59, 130, 246, 0.08);
   --sp-hover-bg: rgba(148, 163, 184, 0.1);
 
@@ -166,17 +165,17 @@
 
   /* ── Scheduling Profile: Status borders/text ───────────── */
   --sp-ok-border: rgba(16, 185, 129, 0.3);
-  --sp-ok-text: rgba(16, 185, 129, 0.9);
+  --sp-ok-text: #0f6a33;
   --sp-warn-border: rgba(245, 158, 11, 0.35);
-  --sp-warn-text: rgba(245, 158, 11, 0.9);
+  --sp-warn-text: #874600;
   --sp-err-border: rgba(244, 63, 94, 0.3);
-  --sp-err-text: rgba(244, 63, 94, 0.9);
+  --sp-err-text: #b01c1c;
   --sp-accent-border: rgba(59, 130, 246, 0.3);
-  --sp-accent-text: rgba(59, 130, 246, 0.9);
+  --sp-accent-text: #1747c2;
   /* teal — used for DRYING court blocks; deliberately distinct from both the
      amber warn (planned maintenance) and the blue accent (practice) */
   --sp-info-border: rgba(13, 148, 136, 0.3);
-  --sp-info-text: rgba(13, 148, 136, 0.9);
+  --sp-info-text: #0f5f59;
   --sp-accent-focus: rgba(59, 130, 246, 0.45);
   --sp-selected-border: rgba(59, 130, 246, 0.5);
 
@@ -212,11 +211,11 @@
      exactly what shipped; the dark value follows the family's own convention
      (Tailwind 500/600 in light, stepping to 400 in dark; surfaces invert). */
   --sp-accent-bg: transparent;
-  --sp-accent-subtle: #dbeafe;
-  --sp-bg-subtle: #f5f5f7;
+  --sp-accent-subtle: #dbe3f6;
+  --sp-bg-subtle: #eef1f5;
   --sp-code-bg: rgba(0, 0, 0, 0.05);
-  --sp-danger: #b91c1c;
-  --sp-success: #15803d;
+  --sp-danger: #b01c1c;
+  --sp-success: #0f6a33;
   --sp-side1-bg: #e0f2fe;
   --sp-side1-text: #0c4a6e;
   --sp-side2-bg: #fee2e2;
@@ -229,7 +228,7 @@
   /* Used only by courthive-public today (`rankings.css`), which carries a hardcoded
      fallback because the library never defined it. Defining it here makes that
      fallback dead rather than load-bearing. */
-  --sp-link: #2563eb;
+  --sp-link: #1747c2;
 
   /* Aliases, so one concept has ONE source of truth rather than two that drift.
      `--sp-text-muted` was used interchangeably with `--sp-muted`; `--sp-border-focus`
@@ -238,11 +237,11 @@
   --sp-text-muted: var(--sp-muted);
   --sp-border-focus: var(--sp-accent-focus);
   --sp-border-input: var(--sp-border-group);
-  --sp-popover-hover-bg: #f0f0f0;
-  --sp-popover-hover-text: #333;
-  --sp-popover-delete: #e74c3c;
+  --sp-popover-hover-bg: #e6ebf2;
+  --sp-popover-hover-text: #111827;
+  --sp-popover-delete: #b01c1c;
   --sp-popover-delete-bg: #fdecea;
-  --sp-popover-divider: #e0e0e0;
+  --sp-popover-divider: #c4ccd6;
   /* ── Score-entry card ─────────────────────────────────
      Only what the palette LACKS. The card's surface, text and borders reuse --chc-bg-elevated,
      --chc-text-primary/secondary and --chc-border-primary/secondary, so it inherits every theme fix
@@ -258,6 +257,29 @@
   --chc-card-band-good-fg: #123f35;
   --chc-card-band-warn-bg: #fdf1e1;
   --chc-card-band-warn-fg: #6b3b00;
+
+  /* ── Palette roles (2026-10-25) ───────────────────────────
+     App chrome, canvas and the structural surfaces a palette needs to be more than a tint
+     (Mentat/planning/themes/THEME_AUDIT_AND_PROPOSALS.md §3, §6). */
+  --chc-text-link: #1747c2;
+  --chc-text-link-hover: #1747c2;
+  --chc-canvas: #eef1f5;
+  --chc-chrome-bg: #23324a;
+  --chc-chrome-text: #ffffff;
+  --chc-chrome-icon: #c9d3e1;
+  --chc-chrome-active: #ffd34d;
+  --chc-chrome-border: #9aa5b4;
+  --chc-bg-tertiary: #dde3ea;
+  --chc-bg-highlight: #fff1b8;
+  --chc-text-on-header: #111827;
+  --chc-border-strong: #4b5563;
+  --chc-fill-accent: #1747c2;
+  --chc-accent-text: #1747c2;
+  --chc-row-alt-bg: #f4f6f9;
+  --chc-selected-bg: #cfdcf0;
+  --chc-primary-text: #0f5f59;
+  --chc-chrome-danger: #ff9b9b;
+  --chc-chrome-success: #7ee2a8;
 }
 
 [data-theme='dark'] {
@@ -269,82 +291,80 @@
 
   /* ── Text ────────────────────────────────────────────── */
   --chc-text-primary: #e0e0e0;
-  --chc-text-secondary: #b0b0b0;
-  --chc-text-muted: #808080;
+  --chc-text-secondary: #b8b8c4;
+  --chc-text-muted: #9a9aae;
   --chc-text-inverse: #1a1a2e;
 
   /* ── Borders ─────────────────────────────────────────── */
-  --chc-border-primary: #444;
-  --chc-border-secondary: #333;
-  --chc-border-focus: #5b9bd5;
+  --chc-border-primary: #5a5a7a;
+  --chc-border-secondary: #34344e;
+  --chc-border-focus: #6aa6e0;
 
   /* ── Interactive ─────────────────────────────────────── */
-  --chc-hover-bg: #2a2a4e;
-  --chc-active-bg: #3a3a5e;
+  --chc-hover-bg: #26264a;
+  --chc-active-bg: #0f3460;
 
   /* ── Status ──────────────────────────────────────────── */
-  --chc-status-success: #5cb878;
-  --chc-status-warning: #ffb366;
-  --chc-status-error: #ff8a8a;
-  --chc-status-info: #5b9bd5;
-  --chc-draw-position-color: #d4a017;
+  --chc-status-success: #6cc488;
+  --chc-status-warning: #e6c84e;
+  --chc-status-error: #f07890;
+  --chc-status-info: #6fb0e0;
+  --chc-draw-position-color: #e6c84e;
 
   /* ── Components ──────────────────────────────────────── */
   --chc-modal-bg: #222244;
   --chc-dropdown-bg: #222244;
   --chc-input-bg: #16213e;
-  --chc-input-border: #555;
+  --chc-input-border: #7a7a9a;
   --chc-panel-header-bg: #2a2a4e;
-  --chc-format-code-color: #5b9bd5;
-  --chc-clear-btn-bg: #b8a000;
-  --chc-clear-btn-text: #fff;
+  --chc-format-code-color: #7fb0e6;
+  --chc-clear-btn-bg: #e6c84e;
+  --chc-clear-btn-text: #1a1a2e;
 
   /* ── Pills ─────────────────────────────────────────────── */
-  --chc-pill-text: #1a1a2e;
-  --chc-pill-bg-danger: #ff8a8a;
-  --chc-pill-bg-success: #7dd87d;
-  --chc-pill-bg-warning: #ffd54f;
-  --chc-pill-bg-dark: #b0b0b0;
+  --chc-pill-text: #ffffff;
+  --chc-pill-bg-danger: #b83a3a;
+  --chc-pill-bg-success: #287a4a;
+  --chc-pill-bg-warning: #8a5a00;
+  --chc-pill-bg-dark: #0f3460;
 
   /* ── Container fills — darker for solid backgrounds with white text */
   --chc-container-primary: #0d7369;
-  --chc-container-link: #3566a8;
+  --chc-container-link: #2563eb;
   --chc-container-info: #3571b3;
   --chc-container-danger: #b83a3a;
   --chc-container-success: #287a4a;
-  --chc-container-warning: #a08620;
+  --chc-container-warning: #e6c84e;
 
   /* ── Foreground ON a container fill (dark) ─────────────────
      DERIVED by WCAG contrast against the dark container fills above rather
      than hand-picked — hand-picking is what left `.is-warning` as the only
-     legible modifier in light mode. Every pair passes AA:
-         on-primary 5.72:1 · on-link 5.81:1 · on-info 5.04:1
-         on-danger  5.67:1 · on-success 5.29:1 · on-warning 5.59:1
-     `on-warning` inverts because `#a08620` is light enough that white fails. */
+     legible modifier in light mode. Every pair passes AA (theme-contrast.test.ts).
+     `on-warning` is ink because the amber warning fill is light enough that white fails. */
   --chc-on-primary: #ffffff;
   --chc-on-link: #ffffff;
   --chc-on-info: #ffffff;
   --chc-on-danger: #ffffff;
   --chc-on-success: #ffffff;
-  --chc-on-warning: #0a0a0a;
+  --chc-on-warning: #1a1a2e;
 
   /* ── Point score (dark overrides) ─────────────────────── */
   --chc-point-score-bg: var(--chc-text-primary);
   --chc-point-score-text: var(--chc-bg-primary);
 
   /* ── Gender Colors (dark) ──────────────────────────────── */
-  --chc-gender-male: #5dade2;
-  --chc-gender-female: #f1948a;
-  --chc-gender-mixed: #bb8fce;
+  --chc-gender-male: #6aa6e0;
+  --chc-gender-female: #e078a8;
+  --chc-gender-mixed: #c88aff;
 
   /* ── EventType Colors (dark) ──────────────────────────── */
-  --chc-eventtype-singles: #818cf8;
-  --chc-eventtype-doubles: #2dd4bf;
-  --chc-eventtype-team: #fbbf24;
-  --chc-eventtype-hybrid: #f472b6;
+  --chc-eventtype-singles: #8c96d8;
+  --chc-eventtype-doubles: #33c9bb;
+  --chc-eventtype-team: #ffb366;
+  --chc-eventtype-hybrid: #e078a8;
 
   /* ── Participant hover highlight (dark) ───────────────── */
-  --chc-participant-hover-bg: rgba(255, 230, 0, 0.22);
+  --chc-participant-hover-bg: #3a3a1a;
 
   /* ── Draw / MatchUp tokens (dark overrides) ────────────── */
   /* Line heights, border widths, spacing, font sizes, set width,
@@ -358,23 +378,23 @@
   --tg-accent-bg-medium: rgba(46, 196, 196, 0.3);
 
   /* ── Scheduling Profile: Core ──────────────────────────── */
-  --sp-bg: #0b0f14;
-  --sp-panel: #111827;
-  --sp-muted: #94a3b8;
-  --sp-text: #e5e7eb;
-  --sp-line: #1f2937;
-  --sp-accent: #60a5fa;
-  --sp-ok: #34d399;
-  --sp-warn: #fbbf24;
-  --sp-err: #fb7185;
+  --sp-bg: #16213e;
+  --sp-panel: #1a1a2e;
+  --sp-muted: #9a9aae;
+  --sp-text: #e0e0e0;
+  --sp-line: #34344e;
+  --sp-accent: #7fb0e6;
+  --sp-ok: #6cc488;
+  --sp-warn: #e6c84e;
+  --sp-err: #f07890;
 
   /* ── Scheduling Profile: Surfaces ──────────────────────── */
-  --sp-panel-bg: rgba(17, 24, 39, 0.75);
+  --sp-panel-bg: #1a1a2e;
   --sp-panel-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-  --sp-card-bg: rgba(15, 23, 42, 0.55);
-  --sp-input-bg: rgba(2, 6, 23, 0.45);
+  --sp-card-bg: #16213e;
+  --sp-input-bg: #16213e;
   --sp-chip-bg: rgba(15, 23, 42, 0.6);
-  --sp-action-btn-bg: rgba(17, 24, 39, 0.6);
+  --sp-action-btn-bg: #16213e;
   --sp-selected-bg: rgba(96, 165, 250, 0.12);
   --sp-hover-bg: rgba(148, 163, 184, 0.08);
 
@@ -387,15 +407,15 @@
 
   /* ── Scheduling Profile: Status borders/text ───────────── */
   --sp-ok-border: rgba(52, 211, 153, 0.35);
-  --sp-ok-text: rgba(52, 211, 153, 0.95);
+  --sp-ok-text: #6cc488;
   --sp-warn-border: rgba(251, 191, 36, 0.4);
-  --sp-warn-text: rgba(251, 191, 36, 0.95);
+  --sp-warn-text: #e6c84e;
   --sp-err-border: rgba(251, 113, 133, 0.45);
-  --sp-err-text: rgba(251, 113, 133, 0.95);
+  --sp-err-text: #f07890;
   --sp-accent-border: rgba(96, 165, 250, 0.35);
-  --sp-accent-text: rgba(96, 165, 250, 0.95);
+  --sp-accent-text: #7fb0e6;
   --sp-info-border: rgba(45, 212, 191, 0.35);
-  --sp-info-text: rgba(45, 212, 191, 0.95);
+  --sp-info-text: #33c9bb;
   --sp-accent-focus: rgba(96, 165, 250, 0.55);
   --sp-selected-border: rgba(96, 165, 250, 0.6);
 
@@ -414,22 +434,22 @@
      step from the Tailwind 500/600 used in light to the 400 used in dark, and
      surfaces invert. Aliases inherit their target and need no dark override. */
   --sp-accent-bg: transparent;
-  --sp-accent-subtle: rgba(96, 165, 250, 0.12);
-  --sp-bg-subtle: #111827;
+  --sp-accent-subtle: #2c3956;
+  --sp-bg-subtle: #16213e;
   --sp-code-bg: rgba(255, 255, 255, 0.06);
-  --sp-danger: #f87171;
-  --sp-success: #4ade80;
+  --sp-danger: #f07890;
+  --sp-success: #6cc488;
   --sp-side1-bg: rgba(56, 189, 248, 0.12);
   --sp-side1-text: #7dd3fc;
   --sp-side2-bg: rgba(248, 113, 113, 0.12);
   --sp-side2-text: #fca5a5;
   --sp-subpanel-bg: rgba(255, 255, 255, 0.03);
-  --sp-link: #60a5fa;
-  --sp-popover-hover-bg: #2a3441;
-  --sp-popover-hover-text: #e5e7eb;
-  --sp-popover-delete: #fb7185;
+  --sp-link: #8c92ff;
+  --sp-popover-hover-bg: #26264a;
+  --sp-popover-hover-text: #e0e0e0;
+  --sp-popover-delete: #f07890;
   --sp-popover-delete-bg: rgba(251, 113, 133, 0.12);
-  --sp-popover-divider: #2a3441;
+  --sp-popover-divider: #34344e;
   /* ── Score-entry card ─────────────────────────────────
      Derived, not picked. The accent must clear TWO thresholds: 4.5:1 for its own label, and 3:1 for
      the fill against the card surface it sits on (SC 1.4.11 — a filled control's boundary). The dark
@@ -441,6 +461,29 @@
   --chc-card-band-good-fg: #a7e3cf;
   --chc-card-band-warn-bg: #3e2f14;
   --chc-card-band-warn-fg: #ffd9a0;
+
+  /* ── Palette roles (2026-10-25) ───────────────────────────
+     App chrome, canvas and the structural surfaces a palette needs to be more than a tint
+     (Mentat/planning/themes/THEME_AUDIT_AND_PROPOSALS.md §3, §6). */
+  --chc-text-link: #8c92ff;
+  --chc-text-link-hover: #7fb0e6;
+  --chc-canvas: #1a1a2e;
+  --chc-chrome-bg: #16213e;
+  --chc-chrome-text: #e0e0e0;
+  --chc-chrome-icon: #b8b8c4;
+  --chc-chrome-active: #7fb0e6;
+  --chc-chrome-border: #34344e;
+  --chc-bg-tertiary: #0f3460;
+  --chc-bg-highlight: #3a3a1a;
+  --chc-text-on-header: #e0e0e0;
+  --chc-border-strong: #7a7a9a;
+  --chc-fill-accent: #2563eb;
+  --chc-accent-text: #7fb0e6;
+  --chc-row-alt-bg: #1e1e3a;
+  --chc-selected-bg: #0f3460;
+  --chc-primary-text: #33c9bb;
+  --chc-chrome-danger: #ff8a8a;
+  --chc-chrome-success: #6cc488;
 }
 
 /* ── vanillajs-datepicker dark overrides ──────────────────── */
