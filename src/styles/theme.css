@@ -280,6 +280,21 @@
   --chc-primary-text: #0f5f59;
   --chc-chrome-danger: #ff9b9b;
   --chc-chrome-success: #7ee2a8;
+
+  /* ── Categorical hues (2026-10-25) ────────────────────────
+     Decorative hues for things that are told apart by colour but carry no intent: a sport's court
+     lines, a booking type with no status meaning. Values are each palette's `deco` set in
+     Mentat/planning/themes/tools/palettes.mjs (TMX's --tmx-accent-* are the same hues). Each is held
+     to 3:1 against the page as a non-text mark. Not for text: use a --chc-status-* ink for that. */
+  --chc-accent-blue: #1747c2;
+  --chc-accent-green: #0f6a33;
+  --chc-accent-red: #b01c1c;
+  --chc-accent-orange: #9a4a07;
+  --chc-accent-purple: #6427c8;
+  --chc-accent-teal: #0f5f59;
+  --chc-accent-pink: #a3134f;
+  --chc-accent-indigo: #3730a3;
+  --chc-accent-yellow: #8a5a00;
 }
 
 [data-theme='dark'] {
@@ -484,6 +499,17 @@
   --chc-primary-text: #33c9bb;
   --chc-chrome-danger: #ff8a8a;
   --chc-chrome-success: #6cc488;
+
+  /* ── Categorical hues (dark) ── */
+  --chc-accent-blue: #6aa6e0;
+  --chc-accent-green: #6cc488;
+  --chc-accent-red: #ff8a8a;
+  --chc-accent-orange: #ffb366;
+  --chc-accent-purple: #c88aff;
+  --chc-accent-teal: #33c9bb;
+  --chc-accent-pink: #e078a8;
+  --chc-accent-indigo: #8c96d8;
+  --chc-accent-yellow: #e6c84e;
 }
 
 /* ── vanillajs-datepicker dark overrides ──────────────────── */
@@ -523,7 +549,8 @@
 }
 [data-theme='dark'] .datepicker-cell.selected,
 [data-theme='dark'] .datepicker-cell.selected:hover {
-  background-color: var(--chc-border-focus);
+  background-color: var(--chc-container-link);
+  color: var(--chc-on-link);
 }
 [data-theme='dark'] .datepicker-cell.disabled {
   color: var(--chc-text-muted);
@@ -533,7 +560,8 @@
   color: var(--chc-text-muted);
 }
 [data-theme='dark'] .datepicker-cell.today:not(.selected) {
-  background-color: var(--chc-status-success);
+  background-color: var(--chc-container-success);
+  color: var(--chc-on-success);
 }
 [data-theme='dark'] .datepicker-cell.highlighted:not(.selected):not(.range):not(.today) {
   background-color: var(--chc-bg-secondary);
@@ -555,23 +583,14 @@
 [data-theme='dark'] .awesomplete > ul::before {
   background: var(--chc-dropdown-bg);
 }
-[data-theme='dark'] .awesomplete > ul > li:hover {
-  background: var(--chc-border-focus);
-  color: #fff;
-}
+[data-theme='dark'] .awesomplete > ul > li:hover,
 [data-theme='dark'] .awesomplete > ul > li[aria-selected='true'] {
-  background: var(--chc-border-focus);
-  color: #fff;
+  background: var(--chc-selected-bg);
+  color: var(--chc-text-primary);
 }
-[data-theme='dark'] .awesomplete mark {
-  background: hsl(65, 70%, 35%);
-  color: #fff;
-}
-[data-theme='dark'] .awesomplete li:hover mark {
-  background: hsl(68, 80%, 30%);
-  color: #fff;
-}
+[data-theme='dark'] .awesomplete mark,
+[data-theme='dark'] .awesomplete li:hover mark,
 [data-theme='dark'] .awesomplete li[aria-selected='true'] mark {
-  background: hsl(86, 70%, 28%);
-  color: inherit;
+  background: var(--chc-bg-highlight);
+  color: var(--chc-text-primary);
 }
