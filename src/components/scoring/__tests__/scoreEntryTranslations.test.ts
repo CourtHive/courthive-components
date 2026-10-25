@@ -12,9 +12,9 @@
  */
 import { matchUpStatusConstants, fixtures, policyConstants } from 'tods-competition-factory';
 import { SCORE_ENTRY_TEXT, scoreEntryText } from '../logic/scoreEntryText';
+import { openScoreEntryDialog } from '../scoreEntryDialog';
 import { describe, it, expect, afterEach } from 'vitest';
 import { endingLabels } from '../logic/irregularEnding';
-import { openScoreEntryDialog } from '../scoreEntryDialog';
 import { cModal } from '../../modal/cmodal';
 
 import type { StatusCodeGroups } from '../logic/statusCodes';
