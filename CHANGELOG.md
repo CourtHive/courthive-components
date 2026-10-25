@@ -1,5 +1,26 @@
 # Changelog
 
+## [7.0.0](https://github.com/CourtHive/courthive-components/compare/v6.14.0...v7.0.0) (2026-10-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* **scoring:** scoringModal, setScoringConfig, getScoringConfig, resetScoringConfig and the ScoringModalParams, ScoringModalLabels and ScoreOutcome types are no longer exported. Use openScoreEntryDialog, whose onSubmit outcome is engine-ready.
+
+### Features
+
+* **scoring:** every word in the score entry dialog can be translated ([#809](https://github.com/CourtHive/courthive-components/issues/809)) ([85271b1](https://github.com/CourtHive/courthive-components/commit/85271b1fb591a2b38ef7b0351e72481f4d26a99c))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.22.0 ([#811](https://github.com/CourtHive/courthive-components/issues/811)) ([f288991](https://github.com/CourtHive/courthive-components/commit/f2889919959a4e529c8a7dbf88295b29ffcd0c28))
+
+
+### Refactor
+
+* **scoring:** remove scoringModal; openScoreEntryDialog is the only scoring dialog ([#808](https://github.com/CourtHive/courthive-components/issues/808)) ([1ef7e56](https://github.com/CourtHive/courthive-components/commit/1ef7e56ec6d2956249f38163bddf7abcfe2a3d26))
+
 ## [6.14.0](https://github.com/CourtHive/courthive-components/compare/v6.13.0...v6.14.0) (2026-10-25)
 
 
