@@ -1,12 +1,14 @@
 /* Competitiveness Donut — SVG ring visualization companion to the bar. */
 
 .chc-cd {
-  --chc-cd-competitive: var(--chc-cb-competitive, var(--chc-status-success, #16a34a));
-  --chc-cd-routine: var(--chc-cb-routine, var(--chc-status-info, #3b82f6));
-  --chc-cd-decisive: var(--chc-cb-decisive, #8e44ad);
-  --chc-cd-walkover: var(--chc-cb-walkover, var(--chc-text-muted, #6b7280));
-  --chc-cd-track: var(--chc-bg-secondary, #f3f4f6);
-  --chc-cd-text: var(--chc-text-primary, #111827);
+  /* Arcs are marks, so the text-safe status hues serve (they clear 3:1). --chc-cb-* stay as consumer
+     overrides shared with the bar. */
+  --chc-cd-competitive: var(--chc-cb-competitive, var(--chc-status-success));
+  --chc-cd-routine: var(--chc-cb-routine, var(--chc-status-info));
+  --chc-cd-decisive: var(--chc-cb-decisive, var(--chc-accent-purple));
+  --chc-cd-walkover: var(--chc-cb-walkover, var(--chc-text-muted));
+  --chc-cd-track: var(--chc-bg-secondary);
+  --chc-cd-text: var(--chc-text-primary);
 
   display: none; /* shown by buildCompetitivenessDonut when total > 0 */
   position: relative;

@@ -3,11 +3,16 @@
  * Color tokens can be overridden per consumer via --chc-cb-* vars. */
 
 .chc-cb {
-  --chc-cb-competitive: var(--chc-status-success, #16a34a);
-  --chc-cb-routine: var(--chc-status-info, #3b82f6);
-  --chc-cb-decisive: #8e44ad;
-  --chc-cb-walkover: var(--chc-text-muted, #6b7280);
-  --chc-cb-text: #ffffff;
+  /* Segments are solid fills carrying a count, so each bucket pairs a fill with its own ink
+     (palette-contrast.test.ts holds every pair). */
+  --chc-cb-competitive: var(--chc-container-success);
+  --chc-cb-competitive-text: var(--chc-on-success);
+  --chc-cb-routine: var(--chc-container-info);
+  --chc-cb-routine-text: var(--chc-on-info);
+  --chc-cb-decisive: var(--chc-accent-purple);
+  --chc-cb-decisive-text: var(--chc-bg-primary);
+  --chc-cb-walkover: var(--chc-pill-bg-dark);
+  --chc-cb-walkover-text: var(--chc-pill-text);
 
   display: none; /* shown by buildCompetitivenessBar when total > 0 */
   flex-direction: row;
@@ -20,7 +25,7 @@
 
 .chc-cb__seg {
   background: var(--chc-cb-bucket-bg);
-  color: var(--chc-cb-text);
+  color: var(--chc-cb-bucket-text);
   font-size: 0.85em;
   font-weight: 600;
   line-height: 1;
@@ -50,13 +55,17 @@
 
 .chc-cb__seg[data-bucket='COMPETITIVE'] {
   --chc-cb-bucket-bg: var(--chc-cb-competitive);
+  --chc-cb-bucket-text: var(--chc-cb-competitive-text);
 }
 .chc-cb__seg[data-bucket='ROUTINE'] {
   --chc-cb-bucket-bg: var(--chc-cb-routine);
+  --chc-cb-bucket-text: var(--chc-cb-routine-text);
 }
 .chc-cb__seg[data-bucket='DECISIVE'] {
   --chc-cb-bucket-bg: var(--chc-cb-decisive);
+  --chc-cb-bucket-text: var(--chc-cb-decisive-text);
 }
 .chc-cb__seg[data-bucket='WALKOVER'] {
   --chc-cb-bucket-bg: var(--chc-cb-walkover);
+  --chc-cb-bucket-text: var(--chc-cb-walkover-text);
 }
