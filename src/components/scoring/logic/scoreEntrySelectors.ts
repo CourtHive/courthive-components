@@ -34,6 +34,7 @@ import { matchUpStatusConstants, scoreGovernor } from 'tods-competition-factory'
 import { isCompletedLevelClose } from './combinedPointTie';
 import { ordinalSetLabel } from '../regions/setColumns';
 import { resolveScoreEntry } from './scoreEntryState';
+import { scoreEntryText } from './scoreEntryText';
 import { scoreLine } from '../regions/scoreLine';
 import {
   decidingIndex,
@@ -165,6 +166,8 @@ export function matchUpStatus(model: ScoreEntryModel): string | undefined {
 export type ErrorOptions = {
   /** Names for the two sides, so a message can say who rather than "side 1". */
   sideNames?: [string, string];
+  /** The host's translations (see `SCORE_ENTRY_TEXT`). */
+  labels?: Record<string, string | undefined>;
 };
 
 export function error(model: ScoreEntryModel, options: ErrorOptions = {}): string | undefined {
@@ -173,11 +176,11 @@ export function error(model: ScoreEntryModel, options: ErrorOptions = {}): strin
   const config = configOf(model);
   for (const [index, entry] of model.sets.entries()) {
     if (!isEntered(entry)) continue;
-    const problem = tiebreakContradiction(index, entry, options) ?? setError(model, index, entry, config);
+    const problem = tiebreakContradiction(index, entry, options) ?? setError(model, index, entry, config, options);
     if (problem) return problem;
   }
 
-  return unfinishedBeforeLast(model);
+  return unfinishedBeforeLast(model, options);
 }
 
 /**
@@ -199,11 +202,18 @@ function tiebreakContradiction(index: number, entry: SetEntry, options: ErrorOpt
   const pointsWinner: SideNumber = entry.tiebreak1 > entry.tiebreak2 ? 1 : 2;
   if (pointsWinner === gamesWinner) return undefined;
 
-  const name = options.sideNames?.[gamesWinner - 1] ?? `side ${gamesWinner}`;
-  return `${setLabel(index)} ${name} won it, so they must win the tiebreak`;
+  const name =
+    options.sideNames?.[gamesWinner - 1] ?? scoreEntryText(options.labels, 'sideFallback', { side: gamesWinner });
+  return scoreEntryText(options.labels, 'tiebreakContradiction', { set: setLabel(index, options), name });
 }
 
-function setError(model: ScoreEntryModel, index: number, entry: SetEntry, config: MatchUpConfig): string | undefined {
+function setError(
+  model: ScoreEntryModel,
+  index: number,
+  entry: SetEntry,
+  config: MatchUpConfig,
+  options: ErrorOptions
+): string | undefined {
   if (tiebreakOutstanding(model, index)) return undefined;
 
   const { isValid, error: message } = scoreGovernor.validateSetScore(
@@ -214,18 +224,19 @@ function setError(model: ScoreEntryModel, index: number, entry: SetEntry, config
   );
 
   if (isValid || !message) return undefined;
-  return `${setLabel(index)} ${message}`;
+  return `${setLabel(index, options)} ${message}`;
 }
 
 /** Invariant 10A, as a message: the first set before the last entered one that is not settled. */
-function unfinishedBeforeLast(model: ScoreEntryModel): string | undefined {
+function unfinishedBeforeLast(model: ScoreEntryModel, options: ErrorOptions): string | undefined {
   const last = lastHoldingIndex(model);
   if (last === undefined) return undefined;
 
   for (let index = 0; index < last; index += 1) {
     if (isSettled(model, index)) continue;
     const entry = model.sets[index];
-    return isEmptyEntry(entry) ? `${setLabel(index)} has no score` : `${setLabel(index)} is not finished`;
+    const set = setLabel(index, options);
+    return scoreEntryText(options.labels, isEmptyEntry(entry) ? 'setHasNoScore' : 'setNotFinished', { set });
   }
   return undefined;
 }
@@ -348,9 +359,9 @@ function lastHoldingIndex(model: ScoreEntryModel): number | undefined {
   return undefined;
 }
 
-/** `1st set`, `2nd set`: the prefix every message here carries, so the operator knows which column. */
-function setLabel(index: number): string {
-  return `${ordinalSetLabel(index + 1)} set:`;
+/** `1st set:`, `2nd set:`: the prefix every message here carries, so the operator knows which column. */
+function setLabel(index: number, options: ErrorOptions): string {
+  return scoreEntryText(options.labels, 'setPrefix', { ordinal: ordinalSetLabel(index + 1), number: index + 1 });
 }
 
 function configOf(model: ScoreEntryModel): MatchUpConfig {

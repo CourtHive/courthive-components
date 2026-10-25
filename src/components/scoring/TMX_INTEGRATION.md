@@ -3,6 +3,25 @@
 Quick reference for integrating `openScoreEntryDialog` into TMX or another host. It replaced
 `scoringModal`, which has been removed.
 
+## Translating the dialog
+
+Every word the dialog shows has a key in `SCORE_ENTRY_TEXT` (exported), with its English as the value. Pass
+translations through `labels`, the same map that carries the status names (`RETIRED`, …) and
+`statusUnavailable`. A key left out reads English. Placeholders use the i18next form, `{{name}}`, and the
+dialog fills them, so an i18next host hands its strings over unformatted:
+
+```typescript
+const labels = Object.fromEntries(
+  Object.keys(SCORE_ENTRY_TEXT).map((key) => [key, t(`modals.scoreEntry.${key}`, { skipInterpolation: true })])
+);
+openScoreEntryDialog({ matchUp, sides, labels: { ...statusLabels, ...labels }, onSubmit });
+```
+
+Set messages carry `{{ordinal}}` (`1st`, English only) and `{{number}}` (`1`); a language without ordinals
+uses `{{number}}`. Score strings, format codes, participant names, and messages the factory itself returns
+are not translated by the dialog. `scoreEntryTranslations.test.ts` fails if any default English survives
+with every key translated.
+
 ## Scoped status choices
 
 The factory SCORE action can publish `disabledMatchUpStatuses: string[]`, computed with the same scope checker as `setMatchUpStatus`. Pass it unchanged to `openScoreEntryDialog`, beside `clearable`:

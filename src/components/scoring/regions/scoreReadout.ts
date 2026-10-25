@@ -19,6 +19,8 @@
  * to disagree about everything else.
  */
 
+import { scoreEntryText } from '../logic/scoreEntryText';
+
 import type { SideNumber } from '../logic/scoreEntryState';
 import type { SetScore } from '../types';
 
@@ -32,7 +34,7 @@ export type ScoreReadouts = {
   update: (sets: SetScore[]) => void;
 };
 
-export function createScoreReadouts(): ScoreReadouts {
+export function createScoreReadouts(labels?: Record<string, string | undefined>): ScoreReadouts {
   const cells = new Map<SideNumber, HTMLElement>();
 
   return {
@@ -40,14 +42,14 @@ export function createScoreReadouts(): ScoreReadouts {
       const element = document.createElement('div');
       element.className = 'chc-sec-readout';
       element.dataset.readoutSide = String(sideNumber);
-      write(element, sideNumber, sets);
+      write(element, sideNumber, sets, labels);
       // Replaces any earlier element for this side: the card rebuilds the rows on a full render, and
       // the newest element is the one actually in the document.
       cells.set(sideNumber, element);
       return element;
     },
     update(sets) {
-      for (const [sideNumber, element] of cells) write(element, sideNumber, sets);
+      for (const [sideNumber, element] of cells) write(element, sideNumber, sets, labels);
     }
   };
 }
@@ -70,7 +72,12 @@ export function createScoreReadouts(): ScoreReadouts {
  * a tiebreak can easily run to two digits. Nothing at all rather than a row of zeroes when no score has
  * been entered — an empty column says "nothing yet" more honestly than `0 0 0` does.
  */
-function write(element: HTMLElement, sideNumber: SideNumber, sets: SetScore[]): void {
+function write(
+  element: HTMLElement,
+  sideNumber: SideNumber,
+  sets: SetScore[],
+  labels?: Record<string, string | undefined>
+): void {
   element.replaceChildren();
   const spoken: string[] = [];
 
@@ -98,13 +105,15 @@ function write(element: HTMLElement, sideNumber: SideNumber, sets: SetScore[]): 
       mark.textContent = String(mine);
       cell.append(mark);
     }
-    spoken.push(raised ? `${base} tiebreak ${mine}` : base);
+    spoken.push(raised ? `${base} ${scoreEntryText(labels, 'tiebreakSpoken', { points: mine })}` : base);
   }
 
   // The accessible name carries the whole sentence, because `6  6` read aloud is not a score, and a
   // raised `3` read after a `6` is two numbers with no stated relationship.
   element.setAttribute(
     'aria-label',
-    spoken.length ? `Side ${sideNumber}: ${spoken.join(', ')}` : `Side ${sideNumber}: no score`
+    spoken.length
+      ? scoreEntryText(labels, 'readoutAria', { side: sideNumber, score: spoken.join(', ') })
+      : scoreEntryText(labels, 'readoutNoScore', { side: sideNumber })
   );
 }

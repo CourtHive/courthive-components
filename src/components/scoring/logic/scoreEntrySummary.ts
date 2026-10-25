@@ -19,8 +19,10 @@
 
 import { NON_DIRECTING_ENDINGS, doubleExitWarning, endingLabels } from './irregularEnding';
 import { matchUpStatusConstants } from 'tods-competition-factory';
+import { scoreEntryText } from './scoreEntryText';
 
 import type { ScoreEntryResolution } from './scoreEntryState';
+import type { ScoreEntryTextKey } from './scoreEntryText';
 
 const { DOUBLE_WALKOVER, WALKOVER, DEFAULTED } = matchUpStatusConstants;
 
@@ -58,14 +60,20 @@ export function scoreEntrySummary(params: SummaryParams): ResultBand {
   const labels = params.labels ?? endingLabels();
   const name = (side: 1 | 2) => sideNames[side - 1];
   const label = (status: string) => labels[status] ?? status;
+  const say = (key: ScoreEntryTextKey, values?: Record<string, string | undefined>) =>
+    scoreEntryText(labels, key, values);
 
   // ── Nothing chosen: fall back to what the score alone says ──
   if (!resolution.hasEnding) {
     if (scoreComplete && scoreWinningSide) {
       return {
         tone: 'good',
-        headline: `${name(scoreWinningSide)} def. ${name(other(scoreWinningSide))} ${scoreString ?? ''}`.trim(),
-        detail: advancesTo ? `advances to ${advancesTo}` : undefined
+        headline: say('defeated', {
+          winner: name(scoreWinningSide),
+          loser: name(other(scoreWinningSide)),
+          score: scoreString ?? ''
+        }).trim(),
+        detail: advancesTo ? say('advancesTo', { round: advancesTo }) : undefined
       };
     }
     // An incomplete score is not an error — it is a match in progress, which is a legitimate thing to
@@ -73,12 +81,12 @@ export function scoreEntrySummary(params: SummaryParams): ResultBand {
     // common state the dialog is ever in.
     return {
       tone: 'neutral',
-      headline: scoreString ? `${scoreString} — not a finished result` : 'No result entered yet'
+      headline: scoreString ? say('notFinished', { score: scoreString }) : say('noResultYet')
     };
   }
 
   const status = resolution.matchUpStatus;
-  if (!status) return { tone: 'neutral', headline: 'No result entered yet' };
+  if (!status) return { tone: 'neutral', headline: say('noResultYet') };
 
   // ── A double exit: nobody advances, and it propagates ──
   if (resolution.isDoubleExit) {
@@ -93,8 +101,8 @@ export function scoreEntrySummary(params: SummaryParams): ResultBand {
     // warning stays, after it: what propagates is the more consequential half of the sentence.
     return {
       tone: 'warn',
-      headline: `${label(status)} — neither side advances`,
-      detail: joinDetail([reasonDisplay, doubleExitWarning(base)])
+      headline: say('neitherAdvances', { status: label(status) }),
+      detail: joinDetail([reasonDisplay, doubleExitWarning(base, labels)])
     };
   }
 
@@ -106,8 +114,8 @@ export function scoreEntrySummary(params: SummaryParams): ResultBand {
   if (winner) {
     return {
       tone: 'good',
-      headline: `${label(status)} — ${name(winner)} advances`,
-      detail: joinDetail([reasonDisplay, resolution.clearsScore ? 'no score recorded' : scoreString])
+      headline: say('sideAdvances', { status: label(status), name: name(winner) }),
+      detail: joinDetail([reasonDisplay, resolution.clearsScore ? say('noScoreRecorded') : scoreString])
     };
   }
 
@@ -115,23 +123,23 @@ export function scoreEntrySummary(params: SummaryParams): ResultBand {
   if (resolution.clearsScore && scoreString) {
     return {
       tone: 'warn',
-      headline: `${label(status)} — the part-score of ${scoreString} has been cleared`,
-      detail: 'nobody advances'
+      headline: say('partScoreCleared', { status: label(status), score: scoreString }),
+      detail: say('nobodyAdvances')
     };
   }
 
   if (NON_DIRECTING_ENDINGS.has(status)) {
     return {
       tone: scoreString ? 'good' : 'neutral',
-      headline: scoreString ? `${label(status)} — ${scoreString} recorded` : label(status),
-      detail: joinDetail([reasonDisplay, 'nobody advances'])
+      headline: scoreString ? say('scoreRecorded', { status: label(status), score: scoreString }) : label(status),
+      detail: joinDetail([reasonDisplay, say('nobodyAdvances')])
     };
   }
 
   // A winner-requiring ending with no winner. `resolveScoreEntry` cannot produce this — an ending is
   // chosen ON a side — but the band must not go blank if it ever does, because a blank band reads as
   // "nothing will happen" beside a live Submit button.
-  return { tone: 'warn', headline: `${label(status)} — no winner yet`, detail: 'not ready to submit' };
+  return { tone: 'warn', headline: say('noWinnerYet', { status: label(status) }), detail: say('notReadyToSubmit') };
 }
 
 function other(side: 1 | 2): 1 | 2 {
