@@ -35,12 +35,16 @@ const codeAfter = (start: string, ...edits: Edit[]) => toCode(edit(fromCode(star
 const UNREPRESENTABLE: string[] = [];
 
 describe('codes in, codes out', () => {
-  it('rebuilds every code in the corpus exactly', () => {
+  // The editor writes what the factory writes. Usually that is the code itself; for an equivalent spelling it is
+  // the factory's canonical form, e.g. `SET3-S:6/TB7-G:TN` is `SET3-S:6/TB7` from factory 7.22.0 (the grammar
+  // ruling, CA 2026-10-25, #5784(competition-factory)). Asked of the factory rather than written here, so the
+  // test holds against the factory either side of a canonical-form change.
+  it('rebuilds every code in the corpus as the factory writes it', () => {
     const readOnly: string[] = [];
     for (const code of corpus as string[]) {
       const state = fromCode(code, codec);
       if (state.readOnlyReasons.length) readOnly.push(code);
-      else expect(toCode(state.format, codec), code).toBe(code);
+      else expect(toCode(state.format, codec), code).toBe(codec.stringify(codec.parse(code)));
     }
     expect((corpus as string[]).length, 'control: the corpus is not empty').toBeGreaterThan(250);
     expect(readOnly).toEqual(UNREPRESENTABLE);
