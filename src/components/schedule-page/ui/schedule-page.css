@@ -581,6 +581,7 @@
 
 .spl-active-strip-spacer {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   /* Sticky-pin to the left edge of the scroll container, mirroring the grid's
@@ -601,6 +602,15 @@
   color: var(--sp-muted);
   /* Subtle so it doesn't shout from the corner. */
   opacity: 0.7;
+}
+
+/* Matches in progress, beneath the label — same quiet register. */
+.spl-active-strip-spacer-count {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--sp-muted);
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
 }
 
 .spl-active-strip-cell {
@@ -802,6 +812,16 @@
 .spl-active-strip-cell.state-free {
   /* No content when free — column reads as empty above the grid. */
   background: var(--sp-panel-bg);
+}
+
+/* Idle court with matchUps still queued below: a faint centred clock across both grid zones. */
+.spl-active-strip-pending {
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+  place-self: center;
+  display: inline-flex;
+  color: var(--sp-muted);
+  opacity: 0.45;
 }
 
 .spl-active-strip-cell.state-in-progress {

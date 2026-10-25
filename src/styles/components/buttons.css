@@ -50,6 +50,11 @@
 }
 
 /* ── Intent variants ─────────────────────────────────────── */
+/* Every shade derives from the intent's container fill, so each palette (theme.css, palettes.css) styles
+   buttons with no selector rules of its own:
+     hover / active  the fill mixed toward black (88% / 78%), which only adds contrast for the on-* ink
+     outlined, light the intent's text-safe ink on a 10% (16% on hover) tint of the fill
+   palette-contrast.test.ts computes these mixes for every palette and holds them to 4.5:1. */
 
 /* Info */
 .button.is-info {
@@ -58,26 +63,26 @@
   color: var(--chc-on-info);
 }
 .button.is-info:hover {
-  background-color: #3082c5;
+  background-color: color-mix(in srgb, var(--chc-container-info) 88%, black);
 }
 .button.is-info:active {
-  background-color: #2b74b1;
+  background-color: color-mix(in srgb, var(--chc-container-info) 78%, black);
 }
 .button.is-info.is-outlined {
   background-color: transparent;
   border-color: var(--chc-container-info);
-  color: var(--chc-container-info);
+  color: var(--chc-status-info);
 }
 .button.is-info.is-outlined:hover {
   background-color: var(--chc-container-info);
   color: var(--chc-on-info);
 }
 .button.is-info.is-light {
-  background-color: #eff5fb;
-  color: #296fa8;
+  background-color: color-mix(in srgb, var(--chc-container-info) 10%, var(--chc-bg-primary));
+  color: var(--chc-status-info);
 }
 .button.is-info.is-light:hover {
-  background-color: #e4eff9;
+  background-color: color-mix(in srgb, var(--chc-container-info) 16%, var(--chc-bg-primary));
 }
 
 /* Success */
@@ -87,26 +92,26 @@
   color: var(--chc-on-success);
 }
 .button.is-success:hover {
-  background-color: #3ec487;
+  background-color: color-mix(in srgb, var(--chc-container-success) 88%, black);
 }
 .button.is-success:active {
-  background-color: #34b37b;
+  background-color: color-mix(in srgb, var(--chc-container-success) 78%, black);
 }
 .button.is-success.is-outlined {
   background-color: transparent;
   border-color: var(--chc-container-success);
-  color: var(--chc-container-success);
+  color: var(--chc-status-success);
 }
 .button.is-success.is-outlined:hover {
   background-color: var(--chc-container-success);
   color: var(--chc-on-success);
 }
 .button.is-success.is-light {
-  background-color: #effaf5;
-  color: #257953;
+  background-color: color-mix(in srgb, var(--chc-container-success) 10%, var(--chc-bg-primary));
+  color: var(--chc-status-success);
 }
 .button.is-success.is-light:hover {
-  background-color: #e6f7ef;
+  background-color: color-mix(in srgb, var(--chc-container-success) 16%, var(--chc-bg-primary));
 }
 
 /* Danger */
@@ -116,26 +121,26 @@
   color: var(--chc-on-danger);
 }
 .button.is-danger:hover {
-  background-color: #ef2e55;
+  background-color: color-mix(in srgb, var(--chc-container-danger) 88%, black);
 }
 .button.is-danger:active {
-  background-color: #eb1c47;
+  background-color: color-mix(in srgb, var(--chc-container-danger) 78%, black);
 }
 .button.is-danger.is-outlined {
   background-color: transparent;
   border-color: var(--chc-container-danger);
-  color: var(--chc-container-danger);
+  color: var(--chc-status-error);
 }
 .button.is-danger.is-outlined:hover {
   background-color: var(--chc-container-danger);
   color: var(--chc-on-danger);
 }
 .button.is-danger.is-light {
-  background-color: #feecf0;
-  color: #cc0f35;
+  background-color: color-mix(in srgb, var(--chc-container-danger) 10%, var(--chc-bg-primary));
+  color: var(--chc-status-error);
 }
 .button.is-danger.is-light:hover {
-  background-color: #fde0e6;
+  background-color: color-mix(in srgb, var(--chc-container-danger) 16%, var(--chc-bg-primary));
 }
 
 /* Warning */
@@ -145,26 +150,26 @@
   color: var(--chc-on-warning);
 }
 .button.is-warning:hover {
-  background-color: #ffdc7d;
+  background-color: color-mix(in srgb, var(--chc-container-warning) 88%, black);
 }
 .button.is-warning:active {
-  background-color: #ffd970;
+  background-color: color-mix(in srgb, var(--chc-container-warning) 78%, black);
 }
 .button.is-warning.is-outlined {
   background-color: transparent;
   border-color: var(--chc-container-warning);
-  color: #946c00;
+  color: var(--chc-status-warning);
 }
 .button.is-warning.is-outlined:hover {
   background-color: var(--chc-container-warning);
   color: var(--chc-on-warning);
 }
 .button.is-warning.is-light {
-  background-color: #fffaeb;
-  color: #946c00;
+  background-color: color-mix(in srgb, var(--chc-container-warning) 10%, var(--chc-bg-primary));
+  color: var(--chc-status-warning);
 }
 .button.is-warning.is-light:hover {
-  background-color: #fff6db;
+  background-color: color-mix(in srgb, var(--chc-container-warning) 16%, var(--chc-bg-primary));
 }
 
 /* Primary */
@@ -174,26 +179,26 @@
   color: var(--chc-on-primary);
 }
 .button.is-primary:hover {
-  background-color: #00c4a7;
+  background-color: color-mix(in srgb, var(--chc-container-primary) 88%, black);
 }
 .button.is-primary:active {
-  background-color: #00b89c;
+  background-color: color-mix(in srgb, var(--chc-container-primary) 78%, black);
 }
 .button.is-primary.is-outlined {
   background-color: transparent;
   border-color: var(--chc-container-primary);
-  color: var(--chc-container-primary);
+  color: var(--chc-primary-text);
 }
 .button.is-primary.is-outlined:hover {
   background-color: var(--chc-container-primary);
   color: var(--chc-on-primary);
 }
 .button.is-primary.is-light {
-  background-color: #ebfffc;
-  color: #00947e;
+  background-color: color-mix(in srgb, var(--chc-container-primary) 10%, var(--chc-bg-primary));
+  color: var(--chc-primary-text);
 }
 .button.is-primary.is-light:hover {
-  background-color: #defffa;
+  background-color: color-mix(in srgb, var(--chc-container-primary) 16%, var(--chc-bg-primary));
 }
 
 /* Link */
@@ -203,26 +208,26 @@
   color: var(--chc-on-link);
 }
 .button.is-link:hover {
-  background-color: #3e56c4;
+  background-color: color-mix(in srgb, var(--chc-container-link) 88%, black);
 }
 .button.is-link:active {
-  background-color: #3a51bb;
+  background-color: color-mix(in srgb, var(--chc-container-link) 78%, black);
 }
 .button.is-link.is-outlined {
   background-color: transparent;
   border-color: var(--chc-container-link);
-  color: var(--chc-container-link);
+  color: var(--chc-accent-text);
 }
 .button.is-link.is-outlined:hover {
   background-color: var(--chc-container-link);
   color: var(--chc-on-link);
 }
 .button.is-link.is-light {
-  background-color: #eff1fa;
-  color: #3850b7;
+  background-color: color-mix(in srgb, var(--chc-container-link) 10%, var(--chc-bg-primary));
+  color: var(--chc-accent-text);
 }
 .button.is-link.is-light:hover {
-  background-color: #e6e9f7;
+  background-color: color-mix(in srgb, var(--chc-container-link) 16%, var(--chc-bg-primary));
 }
 
 /* White */
@@ -313,45 +318,4 @@
 
 .delete:hover {
   background-color: rgba(10, 10, 10, 0.3);
-}
-
-/* ── Dark mode intent overrides ─────────────────────────── */
-[data-theme='dark'] .button.is-info:hover {
-  background-color: #3d82c4;
-}
-[data-theme='dark'] .button.is-info:active {
-  background-color: #2e6ea6;
-}
-[data-theme='dark'] .button.is-success:hover {
-  background-color: #2e8b55;
-}
-[data-theme='dark'] .button.is-success:active {
-  background-color: #236b42;
-}
-[data-theme='dark'] .button.is-danger:hover {
-  background-color: #c74444;
-}
-[data-theme='dark'] .button.is-danger:active {
-  background-color: #a03232;
-}
-[data-theme='dark'] .button.is-warning {
-  color: #fff;
-}
-[data-theme='dark'] .button.is-warning:hover {
-  background-color: #b8962e;
-}
-[data-theme='dark'] .button.is-warning:active {
-  background-color: #8a7118;
-}
-[data-theme='dark'] .button.is-primary:hover {
-  background-color: #108575;
-}
-[data-theme='dark'] .button.is-primary:active {
-  background-color: #0a5e53;
-}
-[data-theme='dark'] .button.is-link:hover {
-  background-color: #3e74b8;
-}
-[data-theme='dark'] .button.is-link:active {
-  background-color: #2c5892;
 }

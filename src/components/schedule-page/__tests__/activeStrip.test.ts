@@ -51,10 +51,25 @@ describe('computeActiveStripCell', () => {
     expect(result).toEqual({ courtId: 'C1', state: 'next', matchUp: m, rowIndex: 0 });
   });
 
-  it('leaves the court free when its only pending matchUp has not been called', () => {
+  it('leaves the court free when its only pending matchUp has not been called — and marks it pending', () => {
     const m = cell({ matchUpId: 'M1', matchUpStatus: TBP });
     const result = computeActiveStripCell(column('C1', [m]));
-    expect(result).toEqual({ courtId: 'C1', state: 'free' });
+    expect(result).toEqual({ courtId: 'C1', state: 'free', hasPending: true });
+  });
+
+  it('marks a free court pending when an un-called matchUp sits behind completed ones', () => {
+    const done = cell({ matchUpId: 'M0', matchUpStatus: 'COMPLETED', winningSide: 1 });
+    const queued = cell({ matchUpId: 'M1', matchUpStatus: TBP });
+    const result = computeActiveStripCell(column('C1', [done, null, queued]));
+    expect(result).toEqual({ courtId: 'C1', state: 'free', hasPending: true });
+  });
+
+  it('never carries hasPending on an occupied court', () => {
+    const live = cell({ matchUpId: 'M1', matchUpStatus: 'IN_PROGRESS' });
+    const queued = cell({ matchUpId: 'M2', matchUpStatus: TBP });
+    expect(computeActiveStripCell(column('C1', [live, queued])).hasPending).toBeUndefined();
+    const called = cell({ matchUpId: 'M3', matchUpStatus: TBP, calledAt: CALLED });
+    expect(computeActiveStripCell(column('C2', [called, queued])).hasPending).toBeUndefined();
   });
 
   it('returns IN_PROGRESS as in-progress even when other rows exist', () => {
