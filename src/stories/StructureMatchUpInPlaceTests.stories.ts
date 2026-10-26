@@ -56,8 +56,9 @@ export const SwapEqualsAFullRender: StoryObj = {
     host.appendChild(structure);
 
     const before = nodeOf(structure, target.matchUpId);
-    const neighbour = before.previousElementSibling ?? before.nextElementSibling;
-    expect(before.dataset.roundFactor).toBeDefined(); // control: the params were recorded
+    // another matchUp's node (each card is alone in its connector cell, so not a sibling)
+    const neighbour = [...structure.querySelectorAll('.tmx-m')].find((node) => node !== before);
+    expect(before.dataset.initialRound).toBe('2'); // control: the params were recorded
 
     // a live update: the matchUp in progress with a score
     const updated = {
