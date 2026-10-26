@@ -1,5 +1,13 @@
 # Changelog
 
+## [7.1.2](https://github.com/CourtHive/courthive-components/compare/v7.1.1...v7.1.2) (2026-10-26)
+
+
+### Bug Fixes
+
+* **structure:** a card holds its scores when the structure is squeezed ([#849](https://github.com/CourtHive/courthive-components/issues/849)) ([56d8e4d](https://github.com/CourtHive/courthive-components/commit/56d8e4df81e903197beb44d3262062c5fa90ee23))
+* **structure:** a hovered player is highlighted on a tinted side too ([#851](https://github.com/CourtHive/courthive-components/issues/851)) ([d4bf122](https://github.com/CourtHive/courthive-components/commit/d4bf12255bed537abfbb52af5e428e511079ccb4))
+
 ## [7.1.1](https://github.com/CourtHive/courthive-components/compare/v7.1.0...v7.1.1) (2026-10-26)
 
 
