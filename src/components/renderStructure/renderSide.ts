@@ -1,6 +1,7 @@
 import { sideContainerStyle, sideRowStyle } from '../../styles/sideStyles';
 import { scoreWrapperStyle } from '../../styles/scoreWrapperStyle';
 import { renderOnlineResources } from './renderOnlineResources';
+import { servingSideOf, sideColorOf } from './scoreboardState';
 import { renderParticipant } from './renderParticipant';
 import { tournamentEngine } from 'tods-competition-factory';
 import { renderSideScore } from './renderSideScore';
@@ -49,6 +50,9 @@ export function renderSide({
   div.classList.add('tmx-sd');
   div.setAttribute('sideNumber', String(sideNumber));
 
+  const servingSide = configuration.serverIndicator ? servingSideOf(matchUp) : undefined;
+  markSide(div, { color: sideColorOf(configuration, matchUp, sideNumber), matchUp, sideNumber, servingSide });
+
   // renderers.matchUpHeader: the top of the card
   const header = sideNumber === 1 && renderSlot(configuration.renderers, 'matchUpHeader', { matchUp }, 'div');
   if (header) div.appendChild(header);
@@ -71,6 +75,8 @@ export function renderSide({
   });
 
   sideRow.appendChild(participant);
+
+  if (servingSide) sideRow.appendChild(renderServer(servingSide === sideNumber));
 
   if (scoreBox) {
     const box = document.createElement('div');
@@ -149,4 +155,35 @@ export function renderSide({
   }
 
   return div;
+}
+
+/** configuration.sideColors and the side's state, as the stylesheet reads them: `--chc-side-color` and data flags. */
+function markSide(
+  div: HTMLElement,
+  {
+    color,
+    matchUp,
+    sideNumber,
+    servingSide
+  }: { color?: string; matchUp: MatchUp; sideNumber: number; servingSide?: number }
+): void {
+  if (color) {
+    div.style.setProperty('--chc-side-color', color);
+    div.dataset.sideColor = 'true';
+  }
+  if (matchUp?.winningSide === sideNumber) div.dataset.winner = 'true';
+  if (servingSide === sideNumber) div.dataset.serving = 'true';
+}
+
+/** configuration.serverIndicator: a column on both sides, so the scores stay aligned; filled on the server's. */
+function renderServer(serving: boolean): HTMLElement {
+  const server = document.createElement('span');
+  server.className = serving ? 'chc-server chc-server--active' : 'chc-server';
+  if (serving) {
+    server.title = 'Serving';
+    server.setAttribute('aria-label', 'Serving');
+  } else {
+    server.setAttribute('aria-hidden', 'true');
+  }
+  return server;
 }

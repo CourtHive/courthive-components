@@ -1,3 +1,4 @@
+import { elapsedOf, eventRoundLabel, formatElapsed, scheduleInfoOptions } from './scoreboardState';
 import { renderOnlineResources } from './renderOnlineResources';
 import { schedulingStyle } from '../../styles/schedulingStyle';
 import { tools } from 'tods-competition-factory';
@@ -38,10 +39,20 @@ export function renderSchedule({
     div.onclick = (pointerEvent: MouseEvent) => eventHandlers.scheduleClick({ matchUp, pointerEvent });
   }
 
+  // configuration.scheduleInfo as an object: playing time in place of the date, the event and round on the right
+  const options = scheduleInfoOptions(configuration);
+  const elapsed = options.elapsed ? elapsedOf(matchUp) : undefined;
+  const eventRound = options.eventRound ? eventRoundLabel(matchUp) : '';
+
   const dateDisplay = document.createElement('div');
   dateDisplay.className = 'chc-scheduling__date';
-  dateDisplay.innerHTML = displayDate;
-  div.append(dateDisplay);
+  if (elapsed === undefined) {
+    dateDisplay.innerHTML = displayDate;
+  } else {
+    dateDisplay.classList.add('chc-scheduling__elapsed');
+    dateDisplay.textContent = formatElapsed(elapsed);
+    dateDisplay.title = 'Playing time';
+  }
 
   const handleVenueClick = (pointerEvent: MouseEvent) => {
     if (isFunction(eventHandlers?.venueClick)) {
@@ -56,19 +67,43 @@ export function renderSchedule({
   const optionsRight = document.createElement('div');
   optionsRight.style = 'display: flex; flex-direction: row; min-width: 0';
 
-  // renderers.matchUpBadges, then configuration.onlineResources: the start of the right-hand group
   const badges = matchUp && renderSlot(configuration?.renderers, 'matchUpBadges', { matchUp });
-  if (badges) optionsRight.append(badges);
   const onlineResources = renderOnlineResources({ configuration, eventHandlers, matchUp, placement: 'schedule' });
-  if (onlineResources) optionsRight.append(onlineResources);
 
   const locationDisplay = document.createElement('div');
   locationDisplay.className = 'chc-scheduling__location';
   locationDisplay.style.paddingRight = '.2rem';
   locationDisplay.onclick = handleVenueClick;
   locationDisplay.textContent = location;
-  optionsRight.append(locationDisplay);
-  div.append(optionsRight);
+
+  if (eventRound) {
+    // a scoreboard header: icons, time | location on the left; badges, then `Men's Singles - R32` on the right
+    const optionsLeft = document.createElement('div');
+    optionsLeft.className = 'chc-scheduling__left';
+    if (onlineResources) optionsLeft.append(onlineResources);
+    optionsLeft.append(dateDisplay);
+    if (location) {
+      const separator = document.createElement('span');
+      separator.className = 'chc-scheduling__separator';
+      separator.textContent = '|';
+      optionsLeft.append(separator, locationDisplay);
+    }
+    div.append(optionsLeft);
+
+    if (badges) optionsRight.append(badges);
+    const eventRoundDisplay = document.createElement('div');
+    eventRoundDisplay.className = 'chc-scheduling__event-round';
+    eventRoundDisplay.textContent = eventRound;
+    optionsRight.append(eventRoundDisplay);
+    div.append(optionsRight);
+  } else {
+    div.append(dateDisplay);
+    // renderers.matchUpBadges, then configuration.onlineResources: the start of the right-hand group
+    if (badges) optionsRight.append(badges);
+    if (onlineResources) optionsRight.append(onlineResources);
+    optionsRight.append(locationDisplay);
+    div.append(optionsRight);
+  }
 
   if (div.onclick) {
     const actionDots = document.createElement('div');
