@@ -23,7 +23,7 @@ const meta: Meta = {
 export default meta;
 
 const FIELDS = [
-  { label: 'Email', field: 'email', type: 'email', autocomplete: 'email', placeholder: 'you@example.com' },
+  { label: 'Email', field: 'email', type: 'email', autocomplete: 'email', placeholder: 'you@courthive.com' },
   { label: 'Password', field: 'password', type: 'password', autocomplete: 'current-password' }
 ];
 
@@ -68,13 +68,13 @@ export const FormModeSubmitFiresOnSubmit: StoryObj = {
     const email = canvasElement.querySelector('input[type="email"]') as HTMLInputElement;
     const password = canvasElement.querySelector('input[type="password"]') as HTMLInputElement;
 
-    await userEvent.type(email, 'player@example.com');
+    await userEvent.type(email, 'player@courthive.com');
     // Enter in a field of a form that has a submit button submits the form.
     await userEvent.type(password, 'secret{Enter}');
 
     expect(args.onSubmit).toHaveBeenCalledTimes(1);
     const submitted = args.onSubmit.mock.calls[0][0];
-    expect(submitted.inputs.email.value).toBe('player@example.com');
+    expect(submitted.inputs.email.value).toBe('player@courthive.com');
     expect(submitted.inputs.password.value).toBe('secret');
   }
 };

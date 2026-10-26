@@ -71,6 +71,11 @@ export interface MatchUp {
   sideExitProvenance?: SideExitProvenance;
   /** A recording, stream or stats page of this matchUp; see `OnlineResourceSubType`. */
   onlineResources?: OnlineResource[];
+  /** The side serving the next point, the factory's own name for it (ScoringEngine `getNextServer() + 1`). */
+  serverSideNumber?: 1 | 2;
+  /** On a hydrated (inContext) matchUp; `configuration.scheduleInfo.eventRound` shows it. */
+  eventName?: string;
+  roundName?: string;
   [key: string]: any;
 }
 
@@ -202,6 +207,12 @@ export interface SideScore {
 export interface Schedule {
   scheduledDate?: string;
   scheduledTime?: string;
+  /**
+   * Playing time so far, from the factory's `getMatchUpScheduleDetails` (`matchUpDuration`): suspensions are
+   * excluded, and a live matchUp is counted to the moment it was hydrated. `configuration.scheduleInfo.elapsed`
+   * reads it before `startTime` / `endTime`.
+   */
+  milliseconds?: number;
   startTime?: string;
   endTime?: string;
   courtId?: string;
@@ -209,6 +220,30 @@ export interface Schedule {
   venueId?: string;
   venueAbbreviation?: string;
 }
+
+export interface ScheduleInfoOptions {
+  /** Playing time (`h:mm`) in place of the date, once the matchUp has started. */
+  elapsed?: boolean;
+  /** The event and round: `Men's Singles - R32` (split layout) or two more `·` parts (inline layout). */
+  eventRound?: boolean;
+  /**
+   * `split` (default): time on the left, location on the right — or, with `eventRound`, icons, time and location
+   * left and the event and round right. `inline`: one line of `·`-separated parts led by `Live` while in progress:
+   * `Live · 0:16 · RMTA Court 8 · Men's Singles · R32`.
+   */
+  layout?: 'split' | 'inline';
+}
+
+/** Actions under the card, each rendered only when it can do something. */
+export interface MatchUpActions {
+  /** A `Watch` button when the matchUp has a STREAM or VIDEO resource; it opens it as the header icons do. */
+  watch?: boolean;
+  /** A share button, when the host supplies `eventHandlers.matchUpShare`. */
+  share?: boolean;
+}
+
+export type SideColors =
+  { 1?: string; 2?: string } | ((params: { matchUp: MatchUp; sideNumber: 1 | 2 }) => string | undefined);
 
 export interface Configuration {
   flags?: boolean;
@@ -239,7 +274,27 @@ export interface Configuration {
   allDrawPositions?: boolean;
   drawPositionColor?: string;
   bracketedSeeds?: boolean | 'square';
-  scheduleInfo?: boolean;
+  /** The header above the card: date and time, then location. The object form adds to it (all off by default). */
+  scheduleInfo?: boolean | ScheduleInfoOptions;
+  /**
+   * A colour per side: `{ 1: '#0047d4', 2: '#dd5d13' }`, or a function the host answers per matchUp (a team's
+   * colour, say). Sets `--chc-side-color` on each side, which colours the winner's or server's name, the sets a
+   * side won, the point score, the tick, and tints the winner's row. Off by default.
+   */
+  sideColors?: SideColors;
+  /**
+   * A serve indicator from `matchUp.serverSideNumber`, while the matchUp is unfinished. Off by default.
+   * `true` / `'column'`: a column on both sides, so the scores stay aligned, filled on the server's.
+   * `'name'`: a dot just after the serving side's name.
+   */
+  serverIndicator?: boolean | 'column' | 'name';
+  /** Watch and share actions under the card. Off by default. */
+  matchUpActions?: MatchUpActions;
+  /**
+   * The `LIVE` pill on each side of an in-progress matchUp. On unless set `false`: a scoreboard whose header and
+   * point score already say the matchUp is live turns it off. Inline scoring's own live chip is not affected.
+   */
+  liveStatusPill?: boolean;
   matchUpFooter?: boolean;
   showAddress?: boolean;
   seedingElement?: 'sup' | 'span';
@@ -548,6 +603,8 @@ export interface EventHandlers {
   inlineRedo?: (params: { matchUpId: string }) => void;
   inlineClear?: (params: { matchUpId: string }) => void;
   inlineSubmit?: (params: { matchUpId: string }) => void;
+  /** `configuration.matchUpActions.share`: the host shares the matchUp (a link, a native share sheet, …). */
+  matchUpShare?: (params: { pointerEvent: MouseEvent; matchUp: MatchUp }) => void;
   onlineResourceClick?: (params: {
     pointerEvent: MouseEvent;
     matchUp: MatchUp;

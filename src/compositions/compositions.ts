@@ -65,6 +65,42 @@ export const compositions: Record<string, Composition> = {
     },
     theme: basicCardTheme
   },
+  /**
+   * A scoreboard card: team colours, playing time and the event and round in the header, the server marked, the
+   * point score boxed. For one matchUp shown on its own; `sideColors` are placeholders a host replaces (a team's
+   * colours, by function).
+   */
+  Scoreboard: {
+    configuration: {
+      flags: true,
+      rounded: true,
+      matchUpFooter: false,
+      onlineResources: true,
+      liveStatusPill: false,
+      serverIndicator: 'column',
+      gameScore: { position: 'trailing' },
+      scheduleInfo: { elapsed: true, eventRound: true },
+      sideColors: { 1: '#0047d4', 2: '#dd5d13' }
+    },
+    theme: basicCardTheme
+  },
+  /**
+   * A compact card for a list of matchUps to watch: one line of `·`-separated details led by `Live`, the server
+   * marked after the name, the point score plain, and Watch / Share under the card.
+   */
+  Watch: {
+    configuration: {
+      flags: true,
+      rounded: true,
+      matchUpFooter: false,
+      liveStatusPill: false,
+      serverIndicator: 'name',
+      matchUpActions: { watch: true, share: true },
+      gameScore: { position: 'trailing', inverted: false },
+      scheduleInfo: { elapsed: true, eventRound: true, layout: 'inline' }
+    },
+    theme: basicCardTheme
+  },
   InlineScoring: {
     configuration: {
       matchUpFooter: true,
