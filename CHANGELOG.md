@@ -1,5 +1,43 @@
 # Changelog
 
+## [7.1.0](https://github.com/CourtHive/courthive-components/compare/v7.0.0...v7.1.0) (2026-10-26)
+
+
+### Features
+
+* **composition-editor:** Scoreboard and Watch presets, every scoreboard option in the editor ([#838](https://github.com/CourtHive/courthive-components/issues/838)) ([17498be](https://github.com/CourtHive/courthive-components/commit/17498bed7809cba2db9b4df79343cb0cad98e43d))
+* **renderStructure:** scoreboard card options — side colours, elapsed and event-round header, serve indicator ([#837](https://github.com/CourtHive/courthive-components/issues/837)) ([4448c0b](https://github.com/CourtHive/courthive-components/commit/4448c0bbfe2350b919308bd13f284a753cb5ab5a))
+* **renderStructure:** upset verdict from the factory's getMatchUpUpset ([#833](https://github.com/CourtHive/courthive-components/issues/833)) ([030290e](https://github.com/CourtHive/courthive-components/commit/030290ee759d6d09b526c5e1756383af59dca3b5))
+* **schedule-page:** floating inspector header actions as icons ([#832](https://github.com/CourtHive/courthive-components/issues/832)) ([7fc9ddf](https://github.com/CourtHive/courthive-components/commit/7fc9ddf6b8a1daaeb9cd9881c56f8be8f2495224))
+* **schematic:** configurable schematic structure and minimap ([#823](https://github.com/CourtHive/courthive-components/issues/823)) ([e4e4698](https://github.com/CourtHive/courthive-components/commit/e4e4698c5da3c77118bcc6503391e4b92049ca47))
+* **structure:** configuration.rounded toggle with radius tokens ([#817](https://github.com/CourtHive/courthive-components/issues/817)) ([bb56c0b](https://github.com/CourtHive/courthive-components/commit/bb56c0b142ce84f6d1105feb9fda40527b6fad4f))
+* **structure:** connectors without JS heights ([#825](https://github.com/CourtHive/courthive-components/issues/825)) ([d81608c](https://github.com/CourtHive/courthive-components/commit/d81608c76d1f81bf0e04966c8eecddc31967a5a4))
+* **structure:** geometry tokens and configuration.density ([#826](https://github.com/CourtHive/courthive-components/issues/826)) ([4930afb](https://github.com/CourtHive/courthive-components/commit/4930afb7489890e0492a862199a8a5fcda53acc0))
+* **structure:** path highlight on hover, and host favourites ([#821](https://github.com/CourtHive/courthive-components/issues/821)) ([0f81932](https://github.com/CourtHive/courthive-components/commit/0f81932c41e23515d34c6e6e180fd3bd44a17b3b))
+* **structure:** renderMatchUpInPlace, one matchUp re-rendered and swapped in ([#824](https://github.com/CourtHive/courthive-components/issues/824)) ([8e67d74](https://github.com/CourtHive/courthive-components/commit/8e67d749107362d839c97ffcc3a7827f18264487))
+* **structure:** round carousel and pager for narrow screens ([#827](https://github.com/CourtHive/courthive-components/issues/827)) ([db11fe1](https://github.com/CourtHive/courthive-components/commit/db11fe147afb51d8ead758281550f523120a0e10))
+* **structure:** slot renderers and state data attributes ([#822](https://github.com/CourtHive/courthive-components/issues/822)) ([eb7679b](https://github.com/CourtHive/courthive-components/commit/eb7679b02ee5e63aa444e90b0a64e2a2940b8db2))
+* **structure:** upset marker and entry status beside the seed ([#820](https://github.com/CourtHive/courthive-components/issues/820)) ([ce441d9](https://github.com/CourtHive/courthive-components/commit/ce441d9a935a56347f4709ce18cd5320737104ae))
+* **structure:** video, stream and stats indicator from matchUp.onlineResources ([#819](https://github.com/CourtHive/courthive-components/issues/819)) ([52e0bdb](https://github.com/CourtHive/courthive-components/commit/52e0bdbbd49f8e2c4c188a61a2bc0d68069bdca3))
+
+
+### Bug Fixes
+
+* **composition-editor:** the preview renders the footer only when the toggle is on ([#839](https://github.com/CourtHive/courthive-components/issues/839)) ([1f88f77](https://github.com/CourtHive/courthive-components/commit/1f88f7717421d74924912288e3349f9a7ead4558))
+* **courts:** fallbacks for the accent tokens, so features.css stands alone ([#835](https://github.com/CourtHive/courthive-components/issues/835)) ([57516f6](https://github.com/CourtHive/courthive-components/commit/57516f6434709fb1b99589788d8521e091235168))
+* **deps:** update tods-competition-factory to 7.23.0 ([#840](https://github.com/CourtHive/courthive-components/issues/840)) ([a64e1fe](https://github.com/CourtHive/courthive-components/commit/a64e1fe909f74a4ac0fe5276af92eb18b0152c96))
+* **schedule-page:** a retired, defaulted or abandoned result shows its ending beside the score ([#830](https://github.com/CourtHive/courthive-components/issues/830)) ([fdd6de9](https://github.com/CourtHive/courthive-components/commit/fdd6de94af9d23286ca2e661301c652b58ea5927))
+* **schedule-page:** the Now count is every strip court with a matchUp, live or not ([#841](https://github.com/CourtHive/courthive-components/issues/841)) ([c5363e3](https://github.com/CourtHive/courthive-components/commit/c5363e3de47cae38a4f205b9b0c8595de7970173))
+* **stories:** '1 match' in the slot renderers story's round-header note ([#836](https://github.com/CourtHive/courthive-components/issues/836)) ([f6296fb](https://github.com/CourtHive/courthive-components/commit/f6296fb1208fff501ebf0b6f4efe97f9b7b193d3))
+* **stories:** online resource links point at courthive.com, not example.com ([#828](https://github.com/CourtHive/courthive-components/issues/828)) ([f34b335](https://github.com/CourtHive/courthive-components/commit/f34b3355fe180ea1614d7bf1d3392fe0b523c674))
+* **structure:** a compact, one-line schedule header ([#831](https://github.com/CourtHive/courthive-components/issues/831)) ([31280a5](https://github.com/CourtHive/courthive-components/commit/31280a573175861370203551681f559aeb0929b5))
+* **structure:** an upset needs a fully scored result ([#829](https://github.com/CourtHive/courthive-components/issues/829)) ([1c8aee5](https://github.com/CourtHive/courthive-components/commit/1c8aee52e5052d72c4a2ff5be00555c7ef7ab986))
+
+
+### Performance
+
+* **structure:** read the font size once, name the transition, drop empty divs ([#815](https://github.com/CourtHive/courthive-components/issues/815)) ([b96ef2d](https://github.com/CourtHive/courthive-components/commit/b96ef2d9e2fabe9894e0bdff15c581b364866cf0))
+
 ## [7.0.0](https://github.com/CourtHive/courthive-components/compare/v6.14.0...v7.0.0) (2026-10-25)
 
 
