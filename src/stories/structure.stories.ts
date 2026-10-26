@@ -8,13 +8,14 @@ import {
 const { FEED_IN, ROUND_ROBIN, AD_HOC, LUCKY_DRAW } = drawDefinitionConstants;
 const { COMPLETED } = matchUpStatusConstants;
 import { renderParticipant } from '../components/renderStructure/renderParticipant';
-import { renderContainer } from '../components/renderStructure/renderContainer';
 import { renderRoundPager } from '../components/renderStructure/renderRoundPager';
+import { renderContainer } from '../components/renderStructure/renderContainer';
 import { renderStructure } from '../components/renderStructure/renderStructure';
 import { generateEventData } from '../data/generateEventData';
 import { renderField } from '../components/forms/renderField';
 import { compositions } from '../compositions/compositions';
 import { cModal } from '../components/modal/cmodal';
+import { expect } from 'storybook/test';
 import '../components/forms/styles';
 
 const argTypes = {
@@ -275,7 +276,10 @@ export const SlotRenderers = {
             )
           : undefined,
       matchUpFooter: ({ matchUp }) => span(matchUp.winningSide ? 'Final' : 'Est. start 14:30', muted),
-      roundHeader: ({ roundMatchUps }) => span(`${roundMatchUps?.length ?? 0} matches`, muted)
+      roundHeader: ({ roundMatchUps }) => {
+        const count = roundMatchUps?.length ?? 0;
+        return span(`${count} ${count === 1 ? 'match' : 'matches'}`, muted);
+      }
     };
     const composition: any = {
       ...base,
@@ -283,6 +287,11 @@ export const SlotRenderers = {
     };
     const content = renderStructure({ eventHandlers, composition, matchUps: matchUps as any, context });
     return renderContainer({ theme: composition.theme, content });
+  },
+  play: async ({ canvasElement }) => {
+    // the round-header note counts the round's matchUps, singular for the final
+    const notes = [...canvasElement.querySelectorAll<HTMLElement>('.chc-slot--round-header')].map((n) => n.textContent);
+    expect(notes).toEqual(['4 matches', '2 matches', '1 match']);
   }
 };
 /**
