@@ -290,7 +290,8 @@ export const SlotRenderers = {
   },
   play: async ({ canvasElement }) => {
     // the round-header note counts the round's matchUps, singular for the final
-    const notes = [...canvasElement.querySelectorAll<HTMLElement>('.chc-slot--round-header')].map((n) => n.textContent);
+    const headers: NodeListOf<Element> = canvasElement.querySelectorAll('.chc-slot--round-header');
+    const notes = [...headers].map((n) => n.textContent);
     expect(notes).toEqual(['4 matches', '2 matches', '1 match']);
   }
 };
