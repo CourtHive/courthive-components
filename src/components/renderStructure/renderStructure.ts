@@ -60,11 +60,14 @@ export function renderStructure({
 
   // the card is offset in its cell so its divider, not its middle, sits on the connector line: by half the
   // schedule header and half the footer, whose heights the stylesheet knows (draw.css, Connector lines)
-  const { scheduleInfo, matchUpFooter, rounded } = composition?.configuration || {};
+  const { scheduleInfo, matchUpFooter, rounded, density, connectorWidth } = composition?.configuration || {};
   if (scheduleInfo) div.classList.add('chc-structure--schedule-info');
   if (matchUpFooter) div.classList.add('chc-structure--matchup-footer');
   // the radius tokens must reach the connector cells, which sit outside each card's own `.chc-rounded`
   if (rounded) div.classList.add('chc-rounded');
+  if (density === 'compact') div.classList.add('chc-density--compact');
+  // the round gap follows a configured connector width, so the line still spans it
+  if (connectorWidth) div.style.setProperty('--chc-round-gap', `${connectorWidth}px`);
 
   const finalRoundNumber = roundNumbers.length ? Math.max.apply(null, roundNumbers) : 0;
 

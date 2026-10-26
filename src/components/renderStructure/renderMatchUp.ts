@@ -50,7 +50,8 @@ export function renderMatchUp(params: {
     params?.className,
     'matchup',
     matchUpContainerStyle(),
-    configuration.rounded && 'chc-rounded'
+    configuration.rounded && 'chc-rounded',
+    configuration.density === 'compact' && 'chc-density--compact'
   );
 
   // event metadata
