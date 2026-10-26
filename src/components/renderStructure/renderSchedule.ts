@@ -19,15 +19,9 @@ export function renderSchedule({
   const {
     dateTime: { extractDate, extractTime }
   } = tools;
-  const time = extractTime(scheduledTime);
-  const date = extractDate(scheduledDate);
-  let constructedDateString = date;
-  let dateFormat = 'ddd D MMMM';
-  if (time) {
-    dateFormat += ', hh:mm A';
-    constructedDateString += `T${time}`;
-  }
-  const displayDate = scheduledDate ? dayjs(constructedDateString).format(dateFormat) : 'Not scheduled';
+  const displayDate = scheduledDate
+    ? formatScheduleDate(extractDate(scheduledDate), extractTime(scheduledTime))
+    : 'Not scheduled';
   const location =
     (venueAbbreviation && courtName?.toString().startsWith(venueAbbreviation) && courtName) || // ensure no duplication of venuAbbreviation
     (venueAbbreviation && courtName && `${venueAbbreviation} ${courtName}`) ||
@@ -45,6 +39,7 @@ export function renderSchedule({
   }
 
   const dateDisplay = document.createElement('div');
+  dateDisplay.className = 'chc-scheduling__date';
   dateDisplay.innerHTML = displayDate;
   div.append(dateDisplay);
 
@@ -59,7 +54,7 @@ export function renderSchedule({
   };
 
   const optionsRight = document.createElement('div');
-  optionsRight.style = 'display: flex; flex-direction: row';
+  optionsRight.style = 'display: flex; flex-direction: row; min-width: 0';
 
   // renderers.matchUpBadges, then configuration.onlineResources: the start of the right-hand group
   const badges = matchUp && renderSlot(configuration?.renderers, 'matchUpBadges', { matchUp });
@@ -68,6 +63,7 @@ export function renderSchedule({
   if (onlineResources) optionsRight.append(onlineResources);
 
   const locationDisplay = document.createElement('div');
+  locationDisplay.className = 'chc-scheduling__location';
   locationDisplay.style.paddingRight = '.2rem';
   locationDisplay.onclick = handleVenueClick;
   locationDisplay.textContent = location;
@@ -81,4 +77,17 @@ export function renderSchedule({
   }
 
   return div;
+}
+
+/**
+ * The schedule header's date and time, compact enough not to wrap beside a court name: `Mon 26 Oct., 8:00AM`.
+ * The month is abbreviated with a period when it is shortened (`May` stays as it is), and the hour drops the
+ * leading zero and the space before AM/PM (CA, 2026-10-26: `07:30 AM` wrapped the header).
+ */
+export function formatScheduleDate(date: string, time?: string): string {
+  const parsed = dayjs(time ? `${date}T${time}` : date);
+  const shortMonth = parsed.format('MMM');
+  const month = parsed.format('MMMM').length > shortMonth.length ? `${shortMonth}.` : shortMonth;
+  const day = `${parsed.format('ddd D')} ${month}`;
+  return time ? `${day}, ${parsed.format('h:mmA')}` : day;
 }
