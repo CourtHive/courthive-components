@@ -34,9 +34,24 @@ export default meta;
 const HOST_TESTID = 'online-resources-host';
 const ICON_SELECTOR = '.chc-online-resource';
 
-const VIDEO = { resourceType: 'URL', resourceSubType: 'VIDEO', name: 'matchVideo', identifier: 'https://x.test/v' };
-const STREAM = { resourceType: 'URL', resourceSubType: 'STREAM', name: 'liveStream', identifier: 'https://x.test/s' };
-const STATS = { resourceType: 'URL', resourceSubType: 'STATS', name: 'matchStats', identifier: 'https://x.test/t' };
+const VIDEO = {
+  resourceType: 'URL',
+  resourceSubType: 'VIDEO',
+  name: 'matchVideo',
+  identifier: 'https://courthive.com/#v'
+};
+const STREAM = {
+  resourceType: 'URL',
+  resourceSubType: 'STREAM',
+  name: 'liveStream',
+  identifier: 'https://courthive.com/#s'
+};
+const STATS = {
+  resourceType: 'URL',
+  resourceSubType: 'STATS',
+  name: 'matchStats',
+  identifier: 'https://courthive.com/#t'
+};
 
 let draw: any[] | undefined;
 const firstMatchUp = (onlineResources: any[]): MatchUp => {
@@ -90,7 +105,7 @@ export const PlacementOrderAndNarrowing: StoryObj = {
   play: async ({ canvasElement }) => {
     const host = getHost(canvasElement);
     // two VIDEO entries: one icon per subtype
-    const matchUp = firstMatchUp([STATS, VIDEO, { ...VIDEO, identifier: 'https://x.test/v2' }, STREAM]);
+    const matchUp = firstMatchUp([STATS, VIDEO, { ...VIDEO, identifier: 'https://courthive.com/#v2' }, STREAM]);
 
     const inHeader = renderMatchUp({
       matchUp,
@@ -190,7 +205,7 @@ export const ClickSurvivesAnInPlaceRefresh: StoryObj = {
     const onlineResourceClick = fn();
     const config = composition({ scheduleInfo: true, onlineResources: true });
     const before = firstMatchUp([VIDEO]);
-    const after = firstMatchUp([{ ...VIDEO, identifier: 'https://x.test/v-new' }]);
+    const after = firstMatchUp([{ ...VIDEO, identifier: 'https://courthive.com/#v-new' }]);
     const reused = renderMatchUp({ matchUp: before, composition: config, eventHandlers: { onlineResourceClick } });
     const fresh = renderMatchUp({ matchUp: after, composition: config, eventHandlers: { onlineResourceClick } });
     host.appendChild(reused);
