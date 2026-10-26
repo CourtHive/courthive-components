@@ -289,7 +289,7 @@ function buildCellElement(
   return root;
 }
 
-function buildSpacer(options: ActiveStripPanelOptions, liveCount: number): HTMLElement {
+function buildSpacer(options: ActiveStripPanelOptions, onStrip: number): HTMLElement {
   const spacer = document.createElement('div');
   spacer.className = 'spl-active-strip-spacer';
   if (options.cellHeight) spacer.style.minHeight = options.cellHeight;
@@ -298,11 +298,12 @@ function buildSpacer(options: ActiveStripPanelOptions, liveCount: number): HTMLE
     label.className = 'spl-active-strip-spacer-label';
     label.textContent = options.spacerLabel;
     spacer.appendChild(label);
-    // How many matchUps are on court right now — the LIVE cells, not suspended or called.
+    // How many strip cells hold a matchUp, live or not: in progress, suspended, due and next all count
+    // (CA, 2026-10-27). A free court counts nothing.
     const count = document.createElement('span');
     count.className = 'spl-active-strip-spacer-count';
-    count.textContent = `(${liveCount})`;
-    count.title = liveCount === 1 ? '1 match in progress' : `${liveCount} matches in progress`;
+    count.textContent = `(${onStrip})`;
+    count.title = onStrip === 1 ? '1 court with a matchUp' : `${onStrip} courts with a matchUp`;
     spacer.appendChild(count);
   }
   return spacer;
@@ -341,8 +342,8 @@ export function buildActiveStripPanel(
     const cells = computeActiveStrip(data.grid, statusOptions);
 
     // Leading spacer aligns court cells with the grid below the row-number column.
-    const liveCount = cells.filter((cell) => cell.state === 'in-progress').length;
-    root.appendChild(buildSpacer(options, liveCount));
+    const onStrip = cells.filter((cell) => cell.matchUp).length;
+    root.appendChild(buildSpacer(options, onStrip));
     for (const cell of cells) {
       const block = data.courtBlocks?.[cell.courtId];
       const edges = {
