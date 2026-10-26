@@ -36,7 +36,7 @@ export function getLinkStyle({
   const needsFontSize = configuration.centerInfo || configuration.scheduleInfo || configuration.showAddress;
   const fontSize = needsFontSize ? (suppliedFontSize ?? readBodyFontSize()) : 0;
 
-  const connectorWidth = (configuration as any)?.connectorWidth || 16;
+  const connectorWidth = configuration.connectorWidth || 16;
   const centerHeight = configuration.centerInfo ? lineHeights.centerInfo * fontSize : 0;
   const scheduleHeight = configuration.scheduleInfo ? lineHeights.scheduleInfo * fontSize : 0;
   const addressHeight = configuration.showAddress ? fontSize : 0;

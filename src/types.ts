@@ -203,7 +203,18 @@ export interface Schedule {
 
 export interface Configuration {
   flags?: boolean;
-  flag?: boolean; // Single flag display (from index.d.ts)
+  /**
+   * @deprecated Declared but never read. Use `flags`.
+   *
+   * Kept, inert, until a later major decides its removal (structure rendering vNext, CA 2026-10-25).
+   */
+  flag?: boolean;
+  /**
+   * @deprecated Renders a demo logo hashed from the participantId, not the participant's own data.
+   * A participant slot renderer is the planned replacement (structure rendering vNext, item 6).
+   *
+   * Still works as before; kept until a later major decides its removal.
+   */
   teamLogo?: boolean;
   roundHeader?: boolean;
   winnerChevron?: boolean;
@@ -231,6 +242,12 @@ export interface Configuration {
    * Set `false` where a consumer renders its own explanation elsewhere.
    */
   seedingBasisMarker?: boolean;
+  /**
+   * @deprecated Adds the class `chc-matchup--custom-hover`, which no CSS rule styles, so it changes
+   * nothing on screen. Use `colors.borderHover` on the composition.
+   *
+   * Still adds the class; kept until a later major decides its removal.
+   */
   matchUpHover?: boolean | string;
   participantDetail?: string;
   inlineAssignment?: boolean;
@@ -248,7 +265,13 @@ export interface Configuration {
     isDirty?: boolean;
     situationText?: string;
   };
-  useParticipantName?: boolean; // When true, always render participantName even when participantOtherName is present
+  /**
+   * @deprecated Declared but never read. Which name renders is decided by the participant's own
+   * `useOtherName`.
+   *
+   * Kept, inert, until a later major decides its removal.
+   */
+  useParticipantName?: boolean;
   genderColor?: boolean | string; // Color coding by gender (from index.d.ts)
   winnerColor?: boolean | string; // Color coding for winners (from index.d.ts)
   placeHolders?: {
@@ -256,6 +279,11 @@ export interface Configuration {
     bye?: string;
     qualifier?: string;
   };
+  /**
+   * Length in px of the connector line between rounds. Default 16. Sets `--chc-connector-w`, which the
+   * connector pseudo-elements and the round gap read.
+   */
+  connectorWidth?: number;
   scaleAttributes?: {
     scaleColor?: string;
     scaleType?: string;
@@ -266,6 +294,78 @@ export interface Configuration {
     scalePosition?: 'left' | 'right';
     rawValue?: any;
   };
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  clickAway?: ModalConfiguration['clickAway'];
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  backdrop?: ModalConfiguration['backdrop'];
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  maxWidth?: ModalConfiguration['maxWidth'];
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  fontSize?: ModalConfiguration['fontSize'];
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  padding?: ModalConfiguration['padding'];
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  className?: ModalConfiguration['className'];
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  style?: ModalConfiguration['style'];
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  info?: ModalConfiguration['info'];
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  menu?: ModalConfiguration['menu'];
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  title?: ModalConfiguration['title'];
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  content?: ModalConfiguration['content'];
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  footer?: ModalConfiguration['footer'];
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  dictionary?: ModalConfiguration['dictionary'];
+}
+
+/**
+ * The modal's own options (`cModal.open({ config })`). They used to be declared on the structure's
+ * `Configuration`, which they have nothing to do with; their copies there are deprecated.
+ */
+export interface ModalConfiguration {
   clickAway?: boolean;
   backdrop?: boolean;
   maxWidth?: number;
@@ -361,7 +461,27 @@ export interface EventHandlers {
   inlineRedo?: (params: { matchUpId: string }) => void;
   inlineClear?: (params: { matchUpId: string }) => void;
   inlineSubmit?: (params: { matchUpId: string }) => void;
+  centerInfoClick?: (params: { pointerEvent: MouseEvent; matchUp: MatchUp; sideNumber: number }) => void;
+  scheduleClick?: (params: { pointerEvent: MouseEvent; matchUp?: MatchUp }) => void;
+  venueClick?: (params: { pointerEvent: MouseEvent; matchUp?: MatchUp }) => void;
+  roundHeaderClick?: (params: RoundHeaderEventParams) => void;
+  roundVisibilityClick?: (params: RoundHeaderEventParams) => void;
+  groupHeaderClick?: (params: {
+    pointerEvent: MouseEvent;
+    structureId: string;
+    containerStructureId?: string;
+    drawId?: string;
+  }) => void;
+  /** Every key the renderers read is declared above; this admits a host's own keys. */
   [key: string]: any;
+}
+
+export interface RoundHeaderEventParams {
+  pointerEvent: MouseEvent;
+  roundNumber: number;
+  roundProfile?: any;
+  roundMatchUps?: MatchUp[];
+  context?: any;
 }
 
 export interface ModalButton {
@@ -378,7 +498,12 @@ export interface ModalButton {
   };
 }
 
-export interface ModalConfig extends Configuration {
+/**
+ * Accepts exactly the keys it always has: the modal's own, plus the structure keys it used to inherit,
+ * which the modal ignores. The modal keys come from `ModalConfiguration`, so they are not deprecated
+ * here.
+ */
+export interface ModalConfig extends ModalConfiguration, Omit<Configuration, keyof ModalConfiguration> {
   onClose?: (params: { content?: any }) => void;
 }
 
