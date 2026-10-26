@@ -1,5 +1,6 @@
 import { sideContainerStyle, sideRowStyle } from '../../styles/sideStyles';
 import { scoreWrapperStyle } from '../../styles/scoreWrapperStyle';
+import { renderOnlineResources } from './renderOnlineResources';
 import { renderParticipant } from './renderParticipant';
 import { tournamentEngine } from 'tods-competition-factory';
 import { renderSideScore } from './renderSideScore';
@@ -48,7 +49,7 @@ export function renderSide({
   div.setAttribute('sideNumber', String(sideNumber));
 
   if (scheduleInfo && sideNumber === 1) {
-    const schedule = renderSchedule({ matchUp, eventHandlers });
+    const schedule = renderSchedule({ configuration, eventHandlers, matchUp });
     div.appendChild(schedule);
   }
 
@@ -128,6 +129,13 @@ export function renderSide({
   }
 
   div.appendChild(sideRow);
+
+  // configuration.onlineResources with no schedule header to sit in: a badge on the card's top corner.
+  // Last child of side 1, so the card's own first/last-child corner rules are undisturbed.
+  if (!scheduleInfo && sideNumber === 1) {
+    const onlineResources = renderOnlineResources({ configuration, eventHandlers, matchUp, placement: 'corner' });
+    if (onlineResources) div.appendChild(onlineResources);
+  }
 
   return div;
 }

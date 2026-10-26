@@ -17,9 +17,16 @@
  * The `EventTypeUnion`/`ParticipantTypeUnion` mirrors below are DIFFERENT and they stay: those are
  * hand-narrowed subsets chosen for this package's rendering paths, not copies of a factory type.
  */
-import type { SideExitProvenance } from 'tods-competition-factory';
+import type { OnlineResource, SideExitProvenance } from 'tods-competition-factory';
 
-export type { SideExitProvenance, SideExitProvenanceEntry } from 'tods-competition-factory';
+export type { OnlineResource, SideExitProvenance, SideExitProvenanceEntry } from 'tods-competition-factory';
+
+/**
+ * The `resourceSubType`s the structure renders an icon for, on a matchUp's `onlineResources` entry
+ * with `resourceType: 'URL'`. A CODES convention (CA, 2026-10-25), documented in the factory docs
+ * (CODES › Online resources): a recording, a live stream, a statistics page of THAT matchUp.
+ */
+export type OnlineResourceSubType = 'VIDEO' | 'STREAM' | 'STATS';
 
 export interface MatchUp {
   matchUpId: string;
@@ -62,6 +69,8 @@ export interface MatchUp {
   schedule?: Schedule;
   readyToScore?: boolean;
   sideExitProvenance?: SideExitProvenance;
+  /** A recording, stream or stats page of this matchUp; see `OnlineResourceSubType`. */
+  onlineResources?: OnlineResource[];
   [key: string]: any;
 }
 
@@ -290,6 +299,15 @@ export interface Configuration {
    * and `--chc-radius-score`; set them on `.chc-rounded` to change the radii.
    */
   rounded?: boolean;
+  /**
+   * An icon for each of the matchUp's online resources: play for a VIDEO, a live dot for a STREAM, a
+   * chart for STATS. Off by default. `true` shows all three; `{ subTypes }` narrows it. In the schedule
+   * header's right-hand group when `scheduleInfo` is on, otherwise a badge on the card's top corner.
+   *
+   * A click calls `eventHandlers.onlineResourceClick` when given, otherwise opens the resource's
+   * `identifier` in a new tab (http and https only).
+   */
+  onlineResources?: boolean | { subTypes?: OnlineResourceSubType[] };
   scaleAttributes?: {
     scaleColor?: string;
     scaleType?: string;
@@ -467,6 +485,11 @@ export interface EventHandlers {
   inlineRedo?: (params: { matchUpId: string }) => void;
   inlineClear?: (params: { matchUpId: string }) => void;
   inlineSubmit?: (params: { matchUpId: string }) => void;
+  onlineResourceClick?: (params: {
+    pointerEvent: MouseEvent;
+    matchUp: MatchUp;
+    onlineResource: OnlineResource;
+  }) => void;
   centerInfoClick?: (params: { pointerEvent: MouseEvent; matchUp: MatchUp; sideNumber: number }) => void;
   scheduleClick?: (params: { pointerEvent: MouseEvent; matchUp?: MatchUp }) => void;
   venueClick?: (params: { pointerEvent: MouseEvent; matchUp?: MatchUp }) => void;

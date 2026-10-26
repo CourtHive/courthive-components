@@ -53,12 +53,20 @@ export function buildDisplaySection(store: CompositionEditorStore): EditorPanel 
     readOnly
   );
 
+  const onlineResources = buildToggleField(
+    'Video / stream / stats icons',
+    !!cfg.onlineResources,
+    (v) => store.setConfigField('onlineResources', v),
+    readOnly
+  );
+
   root.appendChild(flags.element);
   root.appendChild(bracketedSeeds.element);
   root.appendChild(seedingElement.element);
   root.appendChild(drawPositions.element);
   root.appendChild(allDrawPositions.element);
   root.appendChild(teamLogo.element);
+  root.appendChild(onlineResources.element);
 
   function update(state: CompositionEditorState): void {
     const c = state.configuration;
@@ -68,6 +76,7 @@ export function buildDisplaySection(store: CompositionEditorStore): EditorPanel 
     drawPositions.setChecked(!!c.drawPositions);
     allDrawPositions.setChecked(!!c.allDrawPositions);
     teamLogo.setChecked(c.teamLogo !== false);
+    onlineResources.setChecked(!!c.onlineResources);
   }
 
   return { element: root, update };
