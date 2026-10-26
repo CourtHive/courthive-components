@@ -1212,6 +1212,16 @@ export const UpsetAndEntryStatus = {
     const matchUp: any = structuredClone(matchUps[0]);
     matchUp.winningSide = 2;
     matchUp.matchUpStatus = 'COMPLETED';
+    // a fully scored win for side 2: only such a result can be an upset
+    matchUp.matchUpFormat = 'SET3-S:6/TB7';
+    matchUp.score = {
+      scoreStringSide1: '4-6 3-6',
+      scoreStringSide2: '6-4 6-3',
+      sets: [
+        { setNumber: 1, side1Score: 4, side2Score: 6, winningSide: 2 },
+        { setNumber: 2, side1Score: 3, side2Score: 6, winningSide: 2 }
+      ]
+    };
     matchUp.sides[0].seedValue = 1;
     matchUp.sides[0].participant.entryStatus = 'DIRECT_ACCEPTANCE';
     matchUp.sides[1].participant.entryStatus = 'WILDCARD';
