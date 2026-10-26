@@ -282,7 +282,7 @@ export const MixedContent = {
         text: 'User Menu',
         items: [
           { heading: 'John Doe', fontSize: '1.1em' },
-          { text: 'john@example.com', disabled: true },
+          { text: 'john@courthive.com', disabled: true },
           { divider: true },
           { text: 'My Profile', onClick: () => alert('Profile') },
           { text: 'Settings', onClick: () => alert('Settings') },

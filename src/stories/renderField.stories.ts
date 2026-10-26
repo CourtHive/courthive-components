@@ -45,7 +45,7 @@ export const EmailField = {
     label: 'Email Address',
     field: 'email',
     type: 'email',
-    placeholder: 'user@example.com',
+    placeholder: 'user@courthive.com',
     iconLeft: 'fas fa-envelope'
   }
 };
@@ -197,7 +197,7 @@ export const EmailValidation = {
     label: 'Email Address',
     field: 'email',
     type: 'email',
-    placeholder: 'user@example.com',
+    placeholder: 'user@courthive.com',
     iconLeft: 'fas fa-envelope',
     validator: (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
     error: 'Please enter a valid email address'

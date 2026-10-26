@@ -5,7 +5,7 @@ import { genderConstants } from 'tods-competition-factory';
 const { MALE, FEMALE } = genderConstants;
 
 const PLACEHOLDER_DATE = 'YYYY-MM-DD';
-const PLACEHOLDER_EMAIL = 'john@example.com';
+const PLACEHOLDER_EMAIL = 'john@courthive.com';
 const ICON_EMAIL = 'fas fa-envelope';
 
 export default {
