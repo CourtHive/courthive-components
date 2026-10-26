@@ -106,7 +106,7 @@ const isValidName = validators.nameValidator(3, 50)('John Doe'); // true
 const isValidAge = validators.numericRange(18, 120)(25); // true
 
 // Validate emails
-const isValidEmail = validators.emailValidator('user@example.com'); // matches
+const isValidEmail = validators.emailValidator('user@courthive.com'); // matches
 
 // Validate passwords
 const isValidPwd = validators.passwordValidator('MyP@ss123'); // true

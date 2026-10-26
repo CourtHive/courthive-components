@@ -34,9 +34,9 @@ describe('mapTournamentToCardData', () => {
   it('extracts URL image from onlineResources', () => {
     const out = mapTournamentToCardData({
       tournamentId: 't1',
-      onlineResources: [{ name: 'tournamentImage', resourceType: 'URL', url: 'https://example.com/img.png' }]
+      onlineResources: [{ name: 'tournamentImage', resourceType: 'URL', url: 'https://courthive.com/img.png' }]
     });
-    expect(out.tournamentImageURL).toBe('https://example.com/img.png');
+    expect(out.tournamentImageURL).toBe('https://courthive.com/img.png');
   });
 
   it('extracts court SVG sport identifier', () => {
