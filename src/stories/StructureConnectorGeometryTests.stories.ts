@@ -135,6 +135,8 @@ const VARIANTS: Variant[] = [
   { name: 'scoped from round 2', initialRoundNumber: 2 },
   { name: 'rounded', configuration: { rounded: true, scheduleInfo: true } },
   { name: 'BasicCard', composition: compositions.BasicCard },
+  { name: 'compact density', configuration: { density: 'compact', scheduleInfo: true } },
+  { name: 'connector width 24', configuration: { connectorWidth: 24 } },
   { name: 'feed-in consolation', args: { drawSize: 16, drawType: 'FEED_IN_CHAMPIONSHIP' }, structureIndex: 1 },
   { name: 'qualifying', args: { drawSize: 16, addQualifying: true }, structureIndex: 0 }
 ];

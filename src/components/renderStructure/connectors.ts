@@ -42,7 +42,7 @@ export function connectorVariant({
  * no JS heights, and nothing depends on how tall a card is.
  */
 export function renderConnectorCell({
-  connectorWidth = 16,
+  connectorWidth,
   isFirstRound,
   variant
 }: {
@@ -60,6 +60,7 @@ export function renderConnectorCell({
     variant === 'm0' && 'chc-link--m0',
     variant === 'noProgression' && 'chc-link--no-progression'
   );
-  cell.style.setProperty('--chc-connector-w', `${connectorWidth}px`);
+  // otherwise the stylesheet's default, the round gap, so the line spans the gap whatever the density
+  if (connectorWidth) cell.style.setProperty('--chc-connector-w', `${connectorWidth}px`);
   return cell;
 }

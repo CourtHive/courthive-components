@@ -1,6 +1,6 @@
 import type { CompositionEditorStore } from '../compositionEditorStore';
 import type { CompositionEditorState, EditorPanel } from '../compositionEditorTypes';
-import { buildToggleField } from './fieldBuilders';
+import { buildToggleField, buildSelectField } from './fieldBuilders';
 
 export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
   const root = document.createElement('div');
@@ -58,6 +58,17 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
     readOnly
   );
 
+  const density = buildSelectField(
+    'Density',
+    [
+      { value: '', label: 'Comfortable' },
+      { value: 'compact', label: 'Compact' }
+    ],
+    cfg.density === 'compact' ? 'compact' : '',
+    (v) => store.setConfigField('density', v === 'compact' ? 'compact' : undefined),
+    readOnly
+  );
+
   root.appendChild(scheduleInfo.element);
   root.appendChild(roundHeader.element);
   root.appendChild(matchUpFooter.element);
@@ -66,6 +77,7 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
   root.appendChild(winnerChevron.element);
   root.appendChild(rounded.element);
   root.appendChild(pathHighlight.element);
+  root.appendChild(density.element);
 
   function update(state: CompositionEditorState): void {
     const c = state.configuration;
@@ -77,6 +89,7 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
     winnerChevron.setChecked(!!c.winnerChevron);
     rounded.setChecked(!!c.rounded);
     pathHighlight.setChecked(!!c.pathHighlight);
+    density.setValue(c.density === 'compact' ? 'compact' : '');
   }
 
   return { element: root, update };

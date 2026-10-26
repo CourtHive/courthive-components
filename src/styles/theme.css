@@ -99,6 +99,12 @@
   --chc-border-width-matchup-inline: 1px 1px;
   --chc-border-width-inline-start: 1px;
   --chc-space-matchup: 10px;
+  /* geometry (structure rendering vNext item 5): the space either side of a round column, which the
+     connector spans; a participant's minimum width; the name size. `configuration.density: 'compact'` sets
+     a tighter set (draw.css) */
+  --chc-round-gap: 16px;
+  --chc-participant-min-width: 15rem;
+  --chc-participant-name-size: 0.875rem;
 
   /* Corner radii of the draw. These defaults are the square look; `configuration.rounded` puts
      `.chc-rounded` on each matchUp, which swaps in the rounded values (draw.css). Mode-independent,

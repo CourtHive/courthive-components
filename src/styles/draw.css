@@ -99,8 +99,8 @@
 
 .chc-round {
   justify-content: space-around;
-  margin-inline-start: 16px;
-  margin-inline-end: 16px;
+  margin-inline-start: var(--chc-round-gap);
+  margin-inline-end: var(--chc-round-gap);
   flex-direction: column;
   height: 100%;
   display: flex;
@@ -119,8 +119,8 @@
     var(--chc-color-round-header-underline, var(--chc-color-round-header, var(--chc-text-primary)));
   color: var(--chc-color-round-header, inherit);
   background-color: var(--chc-color-round-header-bg, transparent);
-  margin-inline-start: 16px;
-  margin-inline-end: 16px;
+  margin-inline-start: var(--chc-round-gap);
+  margin-inline-end: var(--chc-round-gap);
   padding-inline: 6px;
   font-weight: bold;
   min-height: 1.5em;
@@ -645,7 +645,7 @@
 
 .chc-participant-name {
   text-transform: var(--chc-participant-text-transform);
-  font-size: 0.875rem;
+  font-size: var(--chc-participant-name-size);
   font-weight: 500;
 }
 
@@ -693,7 +693,7 @@
   position: relative;
   align-items: center;
   padding-top: 0.2rem;
-  min-width: 15rem;
+  min-width: var(--chc-participant-min-width);
   cursor: pointer;
   display: flex;
   flex-grow: 1;
@@ -912,6 +912,18 @@
   border-end-end-radius: var(--chc-radius-matchup);
 }
 
+/* configuration.density: 'compact' (comfortable is the default token set) */
+.chc-density--compact {
+  --chc-space-matchup: 4px;
+  --chc-round-gap: 10px;
+  --chc-participant-min-height: 1.5rem;
+  --chc-participant-min-width: 12rem;
+  --chc-participant-name-size: 0.8rem;
+  --chc-font-size-1: 0.8rem;
+  /* the score cell sets a side's height, so compact has to shorten it too */
+  --chc-line-height-game-score: 1.5rem;
+}
+
 /* configuration.rounded */
 .chc-rounded {
   --chc-radius-matchup: 8px;
@@ -963,7 +975,7 @@
 .chc-link::before,
 .chc-link::after {
   border: 0 solid var(--chc-color-connector);
-  width: var(--chc-connector-w, 16px);
+  width: var(--chc-connector-w, var(--chc-round-gap));
   position: absolute;
   border-radius: 2px;
   display: block;
@@ -974,7 +986,7 @@
    divider does */
 .chc-link::before {
   border-top-width: var(--chc-border-width-matchup);
-  left: calc(-1 * var(--chc-connector-w, 16px));
+  left: calc(-1 * var(--chc-connector-w, var(--chc-round-gap)));
   top: calc(50% - var(--chc-border-width-matchup));
 }
 

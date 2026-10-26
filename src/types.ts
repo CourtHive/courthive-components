@@ -318,6 +318,14 @@ export interface Configuration {
    */
   connectorWidth?: number;
   /**
+   * `'compact'` tightens the structure: less space between matchUps and rounds, shorter and narrower sides,
+   * smaller names and scores. `'comfortable'` (the default) is the existing token set. Both are `--chc-*`
+   * tokens (`--chc-space-matchup`, `--chc-round-gap`, `--chc-participant-min-height`,
+   * `--chc-participant-min-width`, `--chc-participant-name-size`, `--chc-font-size-1`), so a host can set
+   * any one of them instead.
+   */
+  density?: 'compact' | 'comfortable';
+  /**
    * Rounded corners: the matchUp card, the connector elbows, the status pills and boxed scores. Off by
    * default. Backed by the tokens `--chc-radius-matchup`, `--chc-radius-connector`, `--chc-radius-pill`
    * and `--chc-radius-score`; set them on `.chc-rounded` to change the radii.
