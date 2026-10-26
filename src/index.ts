@@ -4,6 +4,7 @@ export { renderRoundHeader } from './components/renderStructure/renderRoundHeade
 export { renderStructure, applyFavourites } from './components/renderStructure/renderStructure';
 export { renderContainer } from './components/renderStructure/renderContainer';
 export { renderMatchUpInPlace } from './components/renderStructure/renderMatchUpInPlace';
+export { renderRoundPager } from './components/renderStructure/renderRoundPager';
 export { renderMatchUp } from './components/renderStructure/renderMatchUp';
 export { compositions } from './compositions/compositions';
 export { resolvePublishedComposition } from './compositions/resolvePublishedComposition';
