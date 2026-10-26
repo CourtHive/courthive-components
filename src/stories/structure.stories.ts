@@ -229,6 +229,23 @@ export const InitialRound = {
     drawSize: 32
   }
 };
+/**
+ * `configuration.rounded`: the card, its corners, the connector elbows, status pills and boxed scores
+ * round. Any composition can turn it on; switch the toolbar theme to see it in dark mode.
+ */
+export const Rounded = {
+  args: { drawSize: 16, participantsCount: 14, completionGoal: 60, composition: 'Australian', rounded: true },
+  argTypes: { ...argTypes, rounded: { control: { type: 'boolean' } } },
+  render: ({ ...args }) => {
+    const { composition: base, matchUps, context } = buildStructureView(args);
+    const composition = {
+      ...base,
+      configuration: { ...base.configuration, scheduleInfo: true, rounded: args.rounded }
+    };
+    const content = renderStructure({ eventHandlers, composition, matchUps: matchUps as any, context });
+    return renderContainer({ theme: composition.theme, content });
+  }
+};
 export const Qualifying = {
   args: { drawSize: 16, participantsCount: 14, addQualifying: true }
 };

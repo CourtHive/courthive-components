@@ -284,6 +284,12 @@ export interface Configuration {
    * connector pseudo-elements and the round gap read.
    */
   connectorWidth?: number;
+  /**
+   * Rounded corners: the matchUp card, the connector elbows, the status pills and boxed scores. Off by
+   * default. Backed by the tokens `--chc-radius-matchup`, `--chc-radius-connector`, `--chc-radius-pill`
+   * and `--chc-radius-score`; set them on `.chc-rounded` to change the radii.
+   */
+  rounded?: boolean;
   scaleAttributes?: {
     scaleColor?: string;
     scaleType?: string;

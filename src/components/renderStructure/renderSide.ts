@@ -69,6 +69,7 @@ export function renderSide({
   if (scoreBox) {
     const box = document.createElement('div');
     box.style.border = `1px solid var(--chc-border-secondary)`;
+    box.style.borderRadius = 'var(--chc-radius-score)';
     sideRow.appendChild(box);
   }
 
