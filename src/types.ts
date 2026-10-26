@@ -270,6 +270,12 @@ export interface Configuration {
    */
   pathHighlight?: boolean;
   /**
+   * Host renderers for named slots in the structure. Each returns an element, or nothing to leave the slot
+   * empty; the element is wrapped in `.chc-slot.chc-slot--<name>` and never modified. Runtime functions,
+   * so they are set by the host, not stored in a published composition. See `StructureRenderers`.
+   */
+  renderers?: StructureRenderers;
+  /**
    * @deprecated Adds the class `chc-matchup--custom-hover`, which no CSS rule styles, so it changes
    * nothing on screen. Use `colors.borderHover` on the composition.
    *
@@ -432,6 +438,36 @@ export interface ModalConfiguration {
   dictionary?: {
     close?: string;
   };
+}
+
+/**
+ * The structure's slots. `matchUpHeader` and `matchUpFooter` add height to the card: until the connector
+ * rework (structure rendering vNext item 10), give every matchUp the same header/footer height or the
+ * connectors drift by the difference.
+ */
+export interface StructureRenderers {
+  /** Top of the card, above the schedule header. */
+  matchUpHeader?: (ctx: { matchUp: MatchUp }) => HTMLElement | undefined | null;
+  /**
+   * Small status badges: first in the schedule header's right-hand group when `scheduleInfo` is on, else a
+   * badge on the card's top end corner.
+   */
+  matchUpBadges?: (ctx: { matchUp: MatchUp }) => HTMLElement | undefined | null;
+  /** After the participant's name and seed: a rating, a club, an avatar. */
+  participantSuffix?: (ctx: {
+    individualParticipant?: IndividualParticipant;
+    sideNumber?: number;
+    matchUp?: MatchUp;
+    side?: Side;
+  }) => HTMLElement | undefined | null;
+  /** The card's footer. Replaces the round label when `configuration.matchUpFooter` is on; shows on its own otherwise. */
+  matchUpFooter?: (ctx: { matchUp: MatchUp }) => HTMLElement | undefined | null;
+  /** Inside the round header, after the round's name. Needs `configuration.roundHeader`. */
+  roundHeader?: (ctx: {
+    roundNumber: number;
+    roundProfile?: any;
+    roundMatchUps?: MatchUp[];
+  }) => HTMLElement | undefined | null;
 }
 
 export interface CompositionColors {

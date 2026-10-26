@@ -2,6 +2,7 @@ import { renderOnlineResources } from './renderOnlineResources';
 import { schedulingStyle } from '../../styles/schedulingStyle';
 import { tools } from 'tods-competition-factory';
 import { isFunction } from '../modal/cmodal';
+import { renderSlot } from './renderSlot';
 import dayjs from 'dayjs';
 import type { Configuration, EventHandlers, MatchUp } from '../../types';
 
@@ -60,7 +61,9 @@ export function renderSchedule({
   const optionsRight = document.createElement('div');
   optionsRight.style = 'display: flex; flex-direction: row';
 
-  // configuration.onlineResources: at the start of the right-hand group, before the location
+  // renderers.matchUpBadges, then configuration.onlineResources: the start of the right-hand group
+  const badges = matchUp && renderSlot(configuration?.renderers, 'matchUpBadges', { matchUp });
+  if (badges) optionsRight.append(badges);
   const onlineResources = renderOnlineResources({ configuration, eventHandlers, matchUp, placement: 'schedule' });
   if (onlineResources) optionsRight.append(onlineResources);
 

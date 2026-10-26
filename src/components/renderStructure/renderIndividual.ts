@@ -6,6 +6,7 @@ import { seedStyle } from '../../styles/seedStyle';
 import { renderSeeding } from './renderSeeding';
 import { renderFrill } from './renderFrill';
 import { isFunction } from '../modal/cmodal';
+import { renderSlot } from './renderSlot';
 import type { Composition, EventHandlers, IndividualParticipant, MatchUp, Side } from '../../types';
 
 const { FEED_IN } = drawDefinitionConstants;
@@ -191,6 +192,14 @@ export function renderIndividual(params: {
   // appended for every unseeded individual.
   const seeding = renderSeeding({ className: seedStyle(), composition, side });
   if (typeof seeding !== 'string') name.appendChild(seeding);
+
+  const suffix = renderSlot(configuration?.renderers, 'participantSuffix', {
+    individualParticipant,
+    sideNumber,
+    matchUp,
+    side
+  });
+  if (suffix) name.appendChild(suffix);
 
   individual.appendChild(name);
   div.appendChild(individual);

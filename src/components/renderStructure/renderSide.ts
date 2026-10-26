@@ -6,6 +6,7 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { renderSideScore } from './renderSideScore';
 import { renderSchedule } from './renderSchedule';
 import { isFunction } from '../modal/cmodal';
+import { renderSlot } from './renderSlot';
 import cx from 'classnames';
 import type { Composition, EventHandlers, MatchUp } from '../../types';
 
@@ -47,6 +48,10 @@ export function renderSide({
 
   div.classList.add('tmx-sd');
   div.setAttribute('sideNumber', String(sideNumber));
+
+  // renderers.matchUpHeader: the top of the card
+  const header = sideNumber === 1 && renderSlot(configuration.renderers, 'matchUpHeader', { matchUp }, 'div');
+  if (header) div.appendChild(header);
 
   if (scheduleInfo && sideNumber === 1) {
     const schedule = renderSchedule({ configuration, eventHandlers, matchUp });
@@ -135,6 +140,12 @@ export function renderSide({
   if (!scheduleInfo && sideNumber === 1) {
     const onlineResources = renderOnlineResources({ configuration, eventHandlers, matchUp, placement: 'corner' });
     if (onlineResources) div.appendChild(onlineResources);
+    // renderers.matchUpBadges: the end corner, where TMX floats its own badge today
+    const badges = renderSlot(configuration.renderers, 'matchUpBadges', { matchUp });
+    if (badges) {
+      badges.classList.add('chc-slot--corner');
+      div.appendChild(badges);
+    }
   }
 
   return div;
