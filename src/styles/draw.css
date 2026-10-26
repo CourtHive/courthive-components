@@ -1030,6 +1030,27 @@
   border-top: 1px solid var(--chc-color-matchup-footer-divider, transparent);
 }
 
+/* ── Path highlight (configuration.pathHighlight) and favourites ── */
+
+.tmx-m.chc-path .chc-matchup,
+.tmx-m.chc-path--projected .chc-matchup {
+  border-color: var(--chc-path-color, var(--chc-border-focus));
+}
+
+.tmx-m.chc-path--projected .chc-matchup {
+  border-style: dashed;
+}
+
+/* the line into a matchUp on the path, and out of one the participant won */
+.tmx-m.chc-path .chc-link::before,
+.tmx-m.chc-path--won .chc-link::after {
+  border-color: var(--chc-path-color, var(--chc-border-focus));
+}
+
+.chc-participant-container.chc-participant--favourite {
+  box-shadow: inset 3px 0 0 var(--chc-favourite-color, var(--chc-status-warning));
+}
+
 /* ── Participant hover highlight (all appearances) ─────── */
 
 .chc-participant-container.chc-participant-hover {
