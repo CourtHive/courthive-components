@@ -1153,9 +1153,9 @@ export const GameScoreZeroZero = {
 // Online resources (configuration.onlineResources)
 
 const ONLINE_RESOURCES: OnlineResource[] = [
-  { resourceType: 'URL', resourceSubType: 'VIDEO', name: 'matchVideo', identifier: 'https://example.com/video' },
-  { resourceType: 'URL', resourceSubType: 'STREAM', name: 'liveStream', identifier: 'https://example.com/live' },
-  { resourceType: 'URL', resourceSubType: 'STATS', name: 'matchStats', identifier: 'https://example.com/stats' }
+  { resourceType: 'URL', resourceSubType: 'VIDEO', name: 'matchVideo', identifier: 'https://courthive.com/#video' },
+  { resourceType: 'URL', resourceSubType: 'STREAM', name: 'liveStream', identifier: 'https://courthive.com/#live' },
+  { resourceType: 'URL', resourceSubType: 'STATS', name: 'matchStats', identifier: 'https://courthive.com/#stats' }
 ];
 
 /**
