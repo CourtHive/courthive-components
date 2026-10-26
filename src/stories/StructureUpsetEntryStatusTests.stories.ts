@@ -59,7 +59,16 @@ function matchUp({
     matchUpStatus,
     winningSide,
     sides: [side(1), side(2)],
-    score: { scoreStringSide1: '4-6 4-6', scoreStringSide2: '6-4 6-4', sets: [] }
+    matchUpFormat: 'SET3-S:6/TB7',
+    // a fully scored straight-sets win for `winningSide`
+    score: {
+      sets: [1, 2].map((setNumber) => ({
+        side1Score: winningSide === 1 ? 6 : 4,
+        side2Score: winningSide === 2 ? 6 : 4,
+        winningSide,
+        setNumber
+      }))
+    }
   } as unknown as MatchUp;
 }
 
@@ -116,8 +125,14 @@ export const UpsetMarker: StoryObj = {
       expect(el.dataset.upset).toBeUndefined();
     }
 
-    // a retirement is decided on court
-    expect(render(matchUp({ seeds: [1, undefined], matchUpStatus: 'RETIRED' })).dataset.upset).toBe('true');
+    // only a fully scored result (CA, 2026-10-26): a retirement is not an upset, nor is an unfinished score
+    expect(render(matchUp({ seeds: [1, undefined], matchUpStatus: 'RETIRED' })).dataset.upset).toBeUndefined();
+    const unfinished: any = matchUp({ seeds: [1, undefined] });
+    unfinished.score.sets[1].side2Score = 4;
+    unfinished.score.sets[1].side1Score = 2;
+    expect(render(unfinished).dataset.upset).toBeUndefined();
+    // control: the same matchUp fully scored is an upset
+    expect(render(matchUp({ seeds: [1, undefined] })).dataset.upset).toBe('true');
   }
 };
 

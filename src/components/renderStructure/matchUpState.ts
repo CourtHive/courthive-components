@@ -1,7 +1,7 @@
-import { entryStatusConstants, matchUpStatusConstants } from 'tods-competition-factory';
+import { entryStatusConstants, matchUpStatusConstants, tournamentEngine } from 'tods-competition-factory';
 import type { MatchUp, Side } from '../../types';
 
-const { COMPLETED, RETIRED } = matchUpStatusConstants;
+const { COMPLETED } = matchUpStatusConstants;
 const {
   DIRECT_ACCEPTANCE,
   WILDCARD,
@@ -29,14 +29,33 @@ export const ENTRY_STATUS_LABELS: Record<string, { abbr: string; name: string }>
   [FEED_IN]: { abbr: 'FI', name: 'Feed in' }
 };
 
-// a result decided on court; a walkover or a default beats nobody
-const PLAYED_TO_A_RESULT = new Set<string>([COMPLETED, RETIRED]);
+const MISSING_MATCHUP_FORMAT = 'ERR_MISSING_MATCHUP_FORMAT';
+
+/**
+ * Played to the end and fully scored (CA, 2026-10-26): COMPLETED, with a winner and a score the factory's own
+ * `validateScore` accepts (every set finished and legal under the format). A retirement, walkover or default is not.
+ * A score with no format to judge it by is not refused here, as the factory's `getMatchUpUpset` does not refuse it.
+ *
+ * Interim: once a factory release carries `getMatchUpUpset`, `upsetOf` calls it and this goes.
+ */
+function isFullyScored(matchUp?: MatchUp): boolean {
+  if (matchUp?.matchUpStatus !== COMPLETED || !matchUp.winningSide || !matchUp.score?.sets?.length) return false;
+  const result: any = tournamentEngine.validateScore({
+    matchUpFormat: matchUp.matchUpFormat,
+    matchUpStatus: COMPLETED,
+    winningSide: matchUp.winningSide,
+    score: matchUp.score
+  });
+  return !!result?.valid || result?.error?.code === MISSING_MATCHUP_FORMAT;
+}
 
 /** The side's seed as a number, or undefined when it is unseeded (`~` is an unseeded placeholder). */
 export function seedOf(side?: Side): number | undefined {
   const value = side?.seedValue === '~' ? undefined : (side?.seedValue ?? side?.seedNumber);
-  const seed = Number(value);
-  return value !== undefined && value !== '' && Number.isFinite(seed) ? seed : undefined;
+  if (value === undefined || value === null || value === '') return undefined;
+  // a seed block (`5-8`) counts as its first seed, as the factory reads it
+  const seed = Number.parseFloat(String(value));
+  return Number.isFinite(seed) ? seed : undefined;
 }
 
 /**
@@ -54,15 +73,15 @@ export function entryStatusLabel(
 }
 
 /**
- * A seed beaten on court by an unseeded side or a lower seed: `{ winner, loser }` with their seeds,
- * else undefined. Seeds only. Ratings are left out, because whether higher is better depends on the
+ * A seed beaten in a fully scored result by an unseeded side or a lower seed: `{ winner, loser }` with
+ * their seeds, else undefined. Seeds only. Ratings are left out, because whether higher is better depends on the
  * scale, and a guess would mark upsets that are not.
  */
 export function upsetOf(
   matchUp?: MatchUp
 ): { winnerSeed?: number; loserSeed: number; winningSide: number } | undefined {
   const winningSide = matchUp?.winningSide;
-  if (!winningSide || !PLAYED_TO_A_RESULT.has(matchUp?.matchUpStatus ?? '')) return undefined;
+  if (!winningSide || !isFullyScored(matchUp)) return undefined;
   const winner = matchUp?.sides?.find((side) => side.sideNumber === winningSide);
   const loser = matchUp?.sides?.find((side) => side.sideNumber && side.sideNumber !== winningSide);
   const loserSeed = seedOf(loser);

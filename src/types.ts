@@ -258,7 +258,8 @@ export interface Configuration {
    */
   entryStatus?: boolean | 'all';
   /**
-   * A ▲ before the winner's tick when a seed was beaten on court (completed or retired) by an unseeded
+   * A ▲ before the winner's tick when a seed was beaten in a fully scored result (COMPLETED, every set finished;
+   * not a retirement, walkover or default) by an unseeded
    * side or a lower seed. Off by default. `.tmx-m` carries `data-upset` either way.
    */
   upsetMarker?: boolean;
