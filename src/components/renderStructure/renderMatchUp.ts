@@ -58,6 +58,7 @@ export function renderMatchUp(params: {
   // event metadata
   container.classList.add('tmx-m');
   container.setAttribute('id', matchUp?.matchUpId);
+  if (configuration.matchUpInset) container.style.setProperty('--chc-matchup-inset', `${configuration.matchUpInset}px`);
   // a fact about the matchUp, set whether or not configuration.onlineResources shows the icon
   if (hasVideo(matchUp)) container.dataset.hasVideo = 'true';
   if (upsetOf(matchUp)) container.dataset.upset = 'true';
