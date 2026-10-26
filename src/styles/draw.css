@@ -400,6 +400,9 @@
 /* ── Scheduling info bar ─────────────────────────────────── */
 
 .chc-scheduling {
+  /* one line: the date never wraps, and a long location gives way with an ellipsis */
+  white-space: nowrap;
+  gap: 0.5rem;
   height: var(--chc-line-height-schedule-info);
   border-bottom: 1px solid var(--chc-border-primary);
   justify-content: space-between;
@@ -481,6 +484,16 @@
   50% {
     opacity: 0.35;
   }
+}
+
+.chc-scheduling__date {
+  flex-shrink: 0;
+}
+
+.chc-scheduling__location {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  min-width: 0;
 }
 
 /* ── Scale badge ─────────────────────────────────────────── */
