@@ -180,3 +180,30 @@ export const FavouritesPinSides: StoryObj = {
     ).toBe(0);
   }
 };
+
+/**
+ * A hovered player is highlighted in every round they appear in, on every composition. The side-colour tint of
+ * Scoreboard made a winning side's participant cell transparent, so only the round a player had not won showed
+ * the highlight (CA, 2026-10-26).
+ */
+export const HoverShowsInEveryRound: StoryObj = {
+  render: renderHost,
+  play: async ({ canvasElement }) => {
+    const host = getHost(canvasElement);
+    const matchUps = structureMatchUps({ completeAllMatchUps: true });
+    const final = matchUps.reduce((last, m) => (m.roundNumber > last.roundNumber ? m : last));
+    const champion = winnerId(final);
+
+    for (const name of ['Australian', 'Scoreboard', 'Watch']) {
+      host.innerHTML = '';
+      const structure = renderStructure({ composition: (compositions as any)[name], matchUps });
+      host.appendChild(structure);
+      hover(structure, champion);
+      const highlighted = [...structure.querySelectorAll<HTMLElement>('.chc-participant-hover')];
+      // control: the champion appears once per round, so the check below looked at every round
+      expect(highlighted.length).toBe(final.roundNumber);
+      const painted = highlighted.filter((el) => getComputedStyle(el).backgroundColor !== 'rgba(0, 0, 0, 0)');
+      expect({ name, painted: painted.length }).toEqual({ name, painted: final.roundNumber });
+    }
+  }
+};
