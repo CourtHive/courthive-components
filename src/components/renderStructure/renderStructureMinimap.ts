@@ -25,6 +25,10 @@ export interface StructureMinimapOptions {
   matchUps: MatchUp[];
   width?: number;
   quarterCount?: number;
+  /** connector line colour, any CSS colour. Default the structure's connector colour */
+  connectorColor?: string;
+  /** connector stroke width in px. Default 1 */
+  strokeWidth?: number;
 }
 
 function groupByRound(matchUps: MatchUp[]): Map<number, MatchUp[]> {
@@ -95,7 +99,9 @@ function paintConnectors(svg: SVGSVGElement, roundCount: number, N: number) {
 export function buildStructureMinimap({
   matchUps,
   width = 56,
-  quarterCount = 4
+  quarterCount = 4,
+  connectorColor,
+  strokeWidth
 }: StructureMinimapOptions): HTMLDivElement | null {
   if (!Array.isArray(matchUps) || !matchUps.length) return null;
 
@@ -112,6 +118,8 @@ export function buildStructureMinimap({
   const wrapper = document.createElement('div');
   wrapper.className = 'chc-minimap';
   wrapper.style.width = `${width}px`;
+  if (connectorColor) wrapper.style.setProperty('--chc-minimap-line-color', connectorColor);
+  if (typeof strokeWidth === 'number') wrapper.style.setProperty('--chc-minimap-stroke-w', String(strokeWidth));
   wrapper.dataset.quarters = String(quarterCount);
   wrapper.dataset.round1Count = String(N);
 

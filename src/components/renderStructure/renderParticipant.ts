@@ -3,6 +3,7 @@ import { getChevronStyle } from '../../styles/getChevronStyle';
 import { renderIndividual } from './renderIndividual';
 import { renderStatusPill } from './renderStatusPill';
 import { isElement } from '../../utilities/isElement';
+import { upsetOf, upsetTitle } from './matchUpState';
 import { renderTeamLogo } from './renderTeamLogo';
 import { renderTick } from './renderTick';
 
@@ -123,7 +124,7 @@ function buildEndMatter({
   gameScoreOnly,
   irregularEnding,
   carriedExitStatus
-}): HTMLElement {
+}): HTMLElement | undefined {
   const endMatter = document.createElement('div');
   const inlineScoring = configuration?.inlineScoring;
   const isReadyToScore = matchUp?.readyToScore;
@@ -139,9 +140,19 @@ function buildEndMatter({
     };
     endMatter.appendChild(livePill);
   } else if (isWinningSide && !gameScoreOnly) {
+    // configuration.upsetMarker: before the winner's tick
+    const upset = configuration?.upsetMarker ? upsetOf(matchUp) : undefined;
+    if (upset?.winningSide === sideNumber) {
+      const marker = document.createElement('span');
+      marker.className = 'chc-upset-marker';
+      marker.textContent = '▲';
+      marker.title = upsetTitle(upset);
+      marker.setAttribute('aria-label', marker.title);
+      endMatter.appendChild(marker);
+    }
     const tick = renderTick();
     if (typeof tick === 'string') {
-      endMatter.innerHTML = tick;
+      endMatter.insertAdjacentHTML('beforeend', tick);
     } else {
       endMatter.appendChild(tick);
     }
@@ -156,6 +167,9 @@ function buildEndMatter({
       };
     }
     endMatter.appendChild(statusPill);
+  } else {
+    // nothing to mark on this side: no element, rather than an empty div on every side
+    return undefined;
   }
 
   return endMatter;
@@ -235,7 +249,9 @@ export function renderParticipant({
       ] as string[]
     ).includes(matchUpStatus) &&
       !isWinningSide &&
-      sideOwnsTheExit) ||
+      sideOwnsTheExit &&
+      // configuration.liveStatusPill: false drops the LIVE pill
+      !(matchUpStatus === IN_PROGRESS && configuration?.liveStatusPill === false)) ||
     Boolean(carriedExitStatus && !isWinningSide);
   const gameScoreOnly = configuration?.gameScoreOnly;
 
@@ -301,22 +317,21 @@ export function renderParticipant({
   participantType.appendChild(annotationDiv);
   participantContainer.appendChild(participantType);
 
-  if (sideContainer) {
-    participantContainer.appendChild(
-      buildEndMatter({
-        configuration,
-        matchUp,
-        eventHandlers,
-        sideNumber,
-        winningSide,
-        matchUpStatus,
-        isWinningSide,
-        gameScoreOnly,
-        irregularEnding,
-        carriedExitStatus
-      })
-    );
-  }
+  const endMatter =
+    sideContainer &&
+    buildEndMatter({
+      configuration,
+      matchUp,
+      eventHandlers,
+      sideNumber,
+      winningSide,
+      matchUpStatus,
+      isWinningSide,
+      gameScoreOnly,
+      irregularEnding,
+      carriedExitStatus
+    });
+  if (endMatter) participantContainer.appendChild(endMatter);
 
   return participantContainer;
 }

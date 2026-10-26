@@ -464,6 +464,24 @@ function formatName(name: string | undefined, format?: string): string {
 
 // ── Score ──
 
+/**
+ * The badge an irregular ending puts beside its score. A retirement, default or abandonment usually carries the
+ * score at the moment it ended, and showing that score alone reads as a completed result.
+ *
+ * The badge sits on the side that left (CA, 2026-10-26): the score is written from side 1's perspective, so
+ * `RET 0-2` when side 1 retired and `2-0 RET` when side 2 did. For a retirement or default that is the side that
+ * did not win; an abandonment has no winner, and its badge goes first.
+ */
+const ENDING_BADGES: Record<string, string> = {
+  RETIRED: 'RET',
+  DEFAULTED: 'DEF',
+  ABANDONED: 'ABN',
+  DOUBLE_DEFAULT: 'DEF'
+};
+
+// some score strings already end in the marker (`4-6 2-1 RET.`), others do not (`0-2`): badge both the same way
+const TRAILING_ENDING = /\s*\b(?:RET|DEF|ABN|ABD)\.?\s*$/i;
+
 function renderScore(data: ScheduleCellData): HTMLElement | null {
   const score = data.score?.scoreStringSide1;
   const status = data.matchUpStatus?.toUpperCase();
@@ -486,7 +504,19 @@ function renderScore(data: ScheduleCellData): HTMLElement | null {
 
   const el = document.createElement('div');
   el.className = 'spl-grid-cell__score';
-  el.textContent = score || statusText || '';
+  const badge = score && status ? ENDING_BADGES[status] : undefined;
+  if (badge) {
+    const tag = document.createElement('span');
+    tag.className = 'spl-grid-cell__score-ending';
+    tag.textContent = badge;
+    tag.title = data.matchUpStatus?.replaceAll('_', ' ').toLowerCase() ?? '';
+    const text = score.replace(TRAILING_ENDING, '');
+    const exitSide = data.winningSide === 1 || data.winningSide === 2 ? 3 - data.winningSide : undefined;
+    if (exitSide === 2) el.append(`${text} `, tag);
+    else el.append(tag, ` ${text}`);
+  } else {
+    el.textContent = score || statusText || '';
+  }
   return el;
 }
 

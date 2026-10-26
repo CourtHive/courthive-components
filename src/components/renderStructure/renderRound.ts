@@ -1,5 +1,6 @@
 import { groupSeparatorStyle } from '../../styles/groupSeparatorStyle';
 import { roundContainerStyle } from '../../styles/roundContainerStyle';
+import { connectorVariant, renderConnectorCell } from './connectors';
 import { groupNameStyle } from '../../styles/groupNameStyle';
 import { renderRoundHeader } from './renderRoundHeader';
 import { roundStyle } from '../../styles/roundStyle';
@@ -16,7 +17,6 @@ export function renderRound({
   isRoundRobin,
   searchActive,
   composition,
-  roundFactor,
   roundNumber,
   roundProfile,
   minWidth,
@@ -31,6 +31,10 @@ export function renderRound({
   isRoundRobin?: boolean;
   searchActive?: boolean;
   composition?: Composition;
+  /**
+   * @deprecated Connector heights are no longer computed (see `connectors.ts`), so there is no scale to
+   * override. Ignored.
+   */
   roundFactor?: number;
   roundNumber: number;
   roundProfile?: any;
@@ -54,7 +58,14 @@ export function renderRound({
   roundContainer.setAttribute('roundNumber', String(roundNumber));
 
   if (configuration.roundHeader) {
-    const header = renderRoundHeader({ roundProfile, roundMatchUps, roundNumber, eventHandlers, context });
+    const header = renderRoundHeader({
+      renderers: configuration.renderers,
+      roundMatchUps,
+      eventHandlers,
+      roundProfile,
+      roundNumber,
+      context
+    });
     roundContainer.appendChild(header);
   }
 
@@ -92,19 +103,6 @@ export function renderRound({
   const roundIndex = roundNumbers.indexOf(roundNumber);
   const roundOrder = (roundIndex === 0 && 'first') || (roundIndex === roundNumbers.length - 1 && 'last');
 
-  // Connector heights scale by roundFactor, so a view that starts at a later round
-  // has to rescale: the round the view starts at must draw at 1 whatever its factor
-  // is in the full bracket. This is derived per render and handed to renderMatchUp
-  // — it is deliberately NOT written back onto the matchUp. Writing it back made the
-  // division compound across renders, so clicking through the round chips left the
-  // lines progressively shorter and going back to round one never restored them.
-  const baseRoundFactor = roundProfile?.[initialRoundNumber]?.roundFactor || 1;
-  const displayRoundFactor = (matchUp: MatchUp): number => {
-    if (roundFactor) return roundFactor;
-    if (!matchUp.roundFactor) return Math.pow(2, roundNumber - initialRoundNumber);
-    return initialRoundNumber > 1 ? matchUp.roundFactor / baseRoundFactor : matchUp.roundFactor;
-  };
-
   let currentGroupWrapper: HTMLElement | null = null;
 
   roundMatchUps.forEach((matchUp, i) => {
@@ -141,9 +139,7 @@ export function renderRound({
       currentGroupWrapper.appendChild(groupName);
     }
 
-    const moiety = i % 2 === 0;
     const m = renderMatchUp({
-      roundFactor: displayRoundFactor(matchUp),
       initialRoundNumber,
       selectedMatchUpId,
       eventHandlers,
@@ -152,11 +148,25 @@ export function renderRound({
       composition,
       isAdHoc,
       isLucky,
-      matchUp,
-      moiety
+      matchUp
     });
     const target = currentGroupWrapper || div;
-    target.appendChild(m);
+
+    // An elimination matchUp goes in a cell that draws its connector; one with none (round robin, ad hoc,
+    // lucky, a search result) stays as it was.
+    const variant = connectorVariant({ moiety: i % 2 === 0, searchActive, isFinalRound, isAdHoc, isLucky, matchUp });
+    if (variant === 'mr') {
+      target.appendChild(m);
+    } else {
+      const cell = renderConnectorCell({
+        connectorWidth: configuration.connectorWidth,
+        isFirstRound: roundNumber === initialRoundNumber,
+        variant
+      });
+      cell.appendChild(m);
+      target.appendChild(cell);
+      div.classList.add('chc-round--cells');
+    }
   });
 
   roundContainer.appendChild(div);

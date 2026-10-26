@@ -1,5 +1,7 @@
 import { renderSchematicMatchUp } from './renderSchematicMatchUp';
-import type { SchematicMatchUp } from './renderSchematicMatchUp';
+
+// constants and types
+import type { SchematicMatchUp, SchematicOptions } from './renderSchematicMatchUp';
 
 /**
  * Renders a round column with optional simplified header (round number only)
@@ -13,6 +15,7 @@ export function renderSchematicRound({
   roundNumber,
   matchUps,
   showHeader,
+  options,
   isLucky
 }: {
   initialRoundFactor?: number;
@@ -22,6 +25,7 @@ export function renderSchematicRound({
   roundNumber: number;
   matchUps: SchematicMatchUp[];
   showHeader?: boolean;
+  options?: SchematicOptions;
   isLucky?: boolean;
 }): HTMLElement {
   const roundMatchUps = matchUps
@@ -56,6 +60,8 @@ export function renderSchematicRound({
 
     const m = renderSchematicMatchUp({
       roundFactor: displayRoundFactor(matchUp),
+      connectorWidth: options?.connectorWidth,
+      slotHeight: options?.slotHeight,
       initialRoundNumber,
       isRoundRobin,
       isFinalRound,

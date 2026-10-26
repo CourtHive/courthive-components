@@ -17,9 +17,16 @@
  * The `EventTypeUnion`/`ParticipantTypeUnion` mirrors below are DIFFERENT and they stay: those are
  * hand-narrowed subsets chosen for this package's rendering paths, not copies of a factory type.
  */
-import type { SideExitProvenance } from 'tods-competition-factory';
+import type { OnlineResource, SideExitProvenance } from 'tods-competition-factory';
 
-export type { SideExitProvenance, SideExitProvenanceEntry } from 'tods-competition-factory';
+export type { OnlineResource, SideExitProvenance, SideExitProvenanceEntry } from 'tods-competition-factory';
+
+/**
+ * The `resourceSubType`s the structure renders an icon for, on a matchUp's `onlineResources` entry
+ * with `resourceType: 'URL'`. A CODES convention (CA, 2026-10-25), documented in the factory docs
+ * (CODES › Online resources): a recording, a live stream, a statistics page of THAT matchUp.
+ */
+export type OnlineResourceSubType = 'VIDEO' | 'STREAM' | 'STATS';
 
 export interface MatchUp {
   matchUpId: string;
@@ -62,6 +69,13 @@ export interface MatchUp {
   schedule?: Schedule;
   readyToScore?: boolean;
   sideExitProvenance?: SideExitProvenance;
+  /** A recording, stream or stats page of this matchUp; see `OnlineResourceSubType`. */
+  onlineResources?: OnlineResource[];
+  /** The side serving the next point, the factory's own name for it (ScoringEngine `getNextServer() + 1`). */
+  serverSideNumber?: 1 | 2;
+  /** On a hydrated (inContext) matchUp; `configuration.scheduleInfo.eventRound` shows it. */
+  eventName?: string;
+  roundName?: string;
   [key: string]: any;
 }
 
@@ -193,6 +207,12 @@ export interface SideScore {
 export interface Schedule {
   scheduledDate?: string;
   scheduledTime?: string;
+  /**
+   * Playing time so far, from the factory's `getMatchUpScheduleDetails` (`matchUpDuration`): suspensions are
+   * excluded, and a live matchUp is counted to the moment it was hydrated. `configuration.scheduleInfo.elapsed`
+   * reads it before `startTime` / `endTime`.
+   */
+  milliseconds?: number;
   startTime?: string;
   endTime?: string;
   courtId?: string;
@@ -201,9 +221,44 @@ export interface Schedule {
   venueAbbreviation?: string;
 }
 
+export interface ScheduleInfoOptions {
+  /** Playing time (`h:mm`) in place of the date, once the matchUp has started. */
+  elapsed?: boolean;
+  /** The event and round: `Men's Singles - R32` (split layout) or two more `·` parts (inline layout). */
+  eventRound?: boolean;
+  /**
+   * `split` (default): time on the left, location on the right — or, with `eventRound`, icons, time and location
+   * left and the event and round right. `inline`: one line of `·`-separated parts led by `Live` while in progress:
+   * `Live · 0:16 · RMTA Court 8 · Men's Singles · R32`.
+   */
+  layout?: 'split' | 'inline';
+}
+
+/** Actions under the card, each rendered only when it can do something. */
+export interface MatchUpActions {
+  /** A `Watch` button when the matchUp has a STREAM or VIDEO resource; it opens it as the header icons do. */
+  watch?: boolean;
+  /** A share button, when the host supplies `eventHandlers.matchUpShare`. */
+  share?: boolean;
+}
+
+export type SideColors =
+  { 1?: string; 2?: string } | ((params: { matchUp: MatchUp; sideNumber: 1 | 2 }) => string | undefined);
+
 export interface Configuration {
   flags?: boolean;
-  flag?: boolean; // Single flag display (from index.d.ts)
+  /**
+   * @deprecated Declared but never read. Use `flags`.
+   *
+   * Kept, inert, until a later major decides its removal (structure rendering vNext, CA 2026-10-25).
+   */
+  flag?: boolean;
+  /**
+   * @deprecated Renders a demo logo hashed from the participantId, not the participant's own data.
+   * A participant slot renderer is the planned replacement (structure rendering vNext, item 6).
+   *
+   * Still works as before; kept until a later major decides its removal.
+   */
   teamLogo?: boolean;
   roundHeader?: boolean;
   winnerChevron?: boolean;
@@ -219,7 +274,27 @@ export interface Configuration {
   allDrawPositions?: boolean;
   drawPositionColor?: string;
   bracketedSeeds?: boolean | 'square';
-  scheduleInfo?: boolean;
+  /** The header above the card: date and time, then location. The object form adds to it (all off by default). */
+  scheduleInfo?: boolean | ScheduleInfoOptions;
+  /**
+   * A colour per side: `{ 1: '#0047d4', 2: '#dd5d13' }`, or a function the host answers per matchUp (a team's
+   * colour, say). Sets `--chc-side-color` on each side, which colours the winner's or server's name, the sets a
+   * side won, the point score, the tick, and tints the winner's row. Off by default.
+   */
+  sideColors?: SideColors;
+  /**
+   * A serve indicator from `matchUp.serverSideNumber`, while the matchUp is unfinished. Off by default.
+   * `true` / `'column'`: a column on both sides, so the scores stay aligned, filled on the server's.
+   * `'name'`: a dot just after the serving side's name.
+   */
+  serverIndicator?: boolean | 'column' | 'name';
+  /** Watch and share actions under the card. Off by default. */
+  matchUpActions?: MatchUpActions;
+  /**
+   * The `LIVE` pill on each side of an in-progress matchUp. On unless set `false`: a scoreboard whose header and
+   * point score already say the matchUp is live turns it off. Inline scoring's own live chip is not affected.
+   */
+  liveStatusPill?: boolean;
   matchUpFooter?: boolean;
   showAddress?: boolean;
   seedingElement?: 'sup' | 'span';
@@ -231,6 +306,37 @@ export interface Configuration {
    * Set `false` where a consumer renders its own explanation elsewhere.
    */
   seedingBasisMarker?: boolean;
+  /**
+   * The side's entry status beside its seed: `[1, WC]` inside the seed's brackets when `bracketedSeeds` is
+   * set, otherwise a small tag. `true` shows every status but direct acceptance; `'all'` shows that too.
+   * Off by default. Lucky losers keep their own `LL` badge.
+   */
+  entryStatus?: boolean | 'all';
+  /**
+   * A ▲ before the winner's tick when a seed was beaten in a fully scored result (COMPLETED, every set finished;
+   * not a retirement, walkover or default) by an unseeded
+   * side or a lower seed. Off by default. `.tmx-m` carries `data-upset` either way.
+   */
+  upsetMarker?: boolean;
+  /**
+   * Hovering a participant also marks their path through the structure: every matchUp they appear in
+   * (`.chc-path`), the connectors out of the matchUps they won, and, while they are still alive, the
+   * matchUps ahead of them by draw position (`.chc-path--projected`, dashed). Nothing is projected in
+   * round robin, ad hoc or lucky draws. Off by default; the hovered sides highlight either way.
+   */
+  pathHighlight?: boolean;
+  /**
+   * Host renderers for named slots in the structure. Each returns an element, or nothing to leave the slot
+   * empty; the element is wrapped in `.chc-slot.chc-slot--<name>` and never modified. Runtime functions,
+   * so they are set by the host, not stored in a published composition. See `StructureRenderers`.
+   */
+  renderers?: StructureRenderers;
+  /**
+   * @deprecated Adds the class `chc-matchup--custom-hover`, which no CSS rule styles, so it changes
+   * nothing on screen. Use `colors.borderHover` on the composition.
+   *
+   * Still adds the class; kept until a later major decides its removal.
+   */
   matchUpHover?: boolean | string;
   participantDetail?: string;
   inlineAssignment?: boolean;
@@ -248,7 +354,13 @@ export interface Configuration {
     isDirty?: boolean;
     situationText?: string;
   };
-  useParticipantName?: boolean; // When true, always render participantName even when participantOtherName is present
+  /**
+   * @deprecated Declared but never read. Which name renders is decided by the participant's own
+   * `useOtherName`.
+   *
+   * Kept, inert, until a later major decides its removal.
+   */
+  useParticipantName?: boolean;
   genderColor?: boolean | string; // Color coding by gender (from index.d.ts)
   winnerColor?: boolean | string; // Color coding for winners (from index.d.ts)
   placeHolders?: {
@@ -256,6 +368,34 @@ export interface Configuration {
     bye?: string;
     qualifier?: string;
   };
+  /**
+   * Length in px of the connector line between rounds. Default 16. Sets `--chc-connector-w`, which the
+   * connector pseudo-elements and the round gap read.
+   */
+  connectorWidth?: number;
+  /**
+   * `'compact'` tightens the structure: less space between matchUps and rounds, shorter and narrower sides,
+   * smaller names and scores. `'comfortable'` (the default) is the existing token set. Both are `--chc-*`
+   * tokens (`--chc-space-matchup`, `--chc-round-gap`, `--chc-participant-min-height`,
+   * `--chc-participant-min-width`, `--chc-participant-name-size`, `--chc-font-size-1`), so a host can set
+   * any one of them instead.
+   */
+  density?: 'compact' | 'comfortable';
+  /**
+   * Rounded corners: the matchUp card, the connector elbows, the status pills and boxed scores. Off by
+   * default. Backed by the tokens `--chc-radius-matchup`, `--chc-radius-connector`, `--chc-radius-pill`
+   * and `--chc-radius-score`; set them on `.chc-rounded` to change the radii.
+   */
+  rounded?: boolean;
+  /**
+   * An icon for each of the matchUp's online resources: play for a VIDEO, a live dot for a STREAM, a
+   * chart for STATS. Off by default. `true` shows all three; `{ subTypes }` narrows it. In the schedule
+   * header's right-hand group when `scheduleInfo` is on, otherwise a badge on the card's top corner.
+   *
+   * A click calls `eventHandlers.onlineResourceClick` when given, otherwise opens the resource's
+   * `identifier` in a new tab (http and https only).
+   */
+  onlineResources?: boolean | { subTypes?: OnlineResourceSubType[] };
   scaleAttributes?: {
     scaleColor?: string;
     scaleType?: string;
@@ -266,6 +406,78 @@ export interface Configuration {
     scalePosition?: 'left' | 'right';
     rawValue?: any;
   };
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  clickAway?: ModalConfiguration['clickAway'];
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  backdrop?: ModalConfiguration['backdrop'];
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  maxWidth?: ModalConfiguration['maxWidth'];
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  fontSize?: ModalConfiguration['fontSize'];
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  padding?: ModalConfiguration['padding'];
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  className?: ModalConfiguration['className'];
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  style?: ModalConfiguration['style'];
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  info?: ModalConfiguration['info'];
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  menu?: ModalConfiguration['menu'];
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  title?: ModalConfiguration['title'];
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  content?: ModalConfiguration['content'];
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  footer?: ModalConfiguration['footer'];
+  /**
+   * @deprecated A modal key, read only by `cModal`; it has no effect on a structure. Use
+   * `ModalConfiguration`.
+   */
+  dictionary?: ModalConfiguration['dictionary'];
+}
+
+/**
+ * The modal's own options (`cModal.open({ config })`). They used to be declared on the structure's
+ * `Configuration`, which they have nothing to do with; their copies there are deprecated.
+ */
+export interface ModalConfiguration {
   clickAway?: boolean;
   backdrop?: boolean;
   maxWidth?: number;
@@ -290,6 +502,36 @@ export interface Configuration {
   dictionary?: {
     close?: string;
   };
+}
+
+/**
+ * The structure's slots. `matchUpHeader` and `matchUpFooter` add height to the card: until the connector
+ * rework (structure rendering vNext item 10), give every matchUp the same header/footer height or the
+ * connectors drift by the difference.
+ */
+export interface StructureRenderers {
+  /** Top of the card, above the schedule header. */
+  matchUpHeader?: (ctx: { matchUp: MatchUp }) => HTMLElement | undefined | null;
+  /**
+   * Small status badges: first in the schedule header's right-hand group when `scheduleInfo` is on, else a
+   * badge on the card's top end corner.
+   */
+  matchUpBadges?: (ctx: { matchUp: MatchUp }) => HTMLElement | undefined | null;
+  /** After the participant's name and seed: a rating, a club, an avatar. */
+  participantSuffix?: (ctx: {
+    individualParticipant?: IndividualParticipant;
+    sideNumber?: number;
+    matchUp?: MatchUp;
+    side?: Side;
+  }) => HTMLElement | undefined | null;
+  /** The card's footer. Replaces the round label when `configuration.matchUpFooter` is on; shows on its own otherwise. */
+  matchUpFooter?: (ctx: { matchUp: MatchUp }) => HTMLElement | undefined | null;
+  /** Inside the round header, after the round's name. Needs `configuration.roundHeader`. */
+  roundHeader?: (ctx: {
+    roundNumber: number;
+    roundProfile?: any;
+    roundMatchUps?: MatchUp[];
+  }) => HTMLElement | undefined | null;
 }
 
 export interface CompositionColors {
@@ -361,7 +603,34 @@ export interface EventHandlers {
   inlineRedo?: (params: { matchUpId: string }) => void;
   inlineClear?: (params: { matchUpId: string }) => void;
   inlineSubmit?: (params: { matchUpId: string }) => void;
+  /** `configuration.matchUpActions.share`: the host shares the matchUp (a link, a native share sheet, …). */
+  matchUpShare?: (params: { pointerEvent: MouseEvent; matchUp: MatchUp }) => void;
+  onlineResourceClick?: (params: {
+    pointerEvent: MouseEvent;
+    matchUp: MatchUp;
+    onlineResource: OnlineResource;
+  }) => void;
+  centerInfoClick?: (params: { pointerEvent: MouseEvent; matchUp: MatchUp; sideNumber: number }) => void;
+  scheduleClick?: (params: { pointerEvent: MouseEvent; matchUp?: MatchUp }) => void;
+  venueClick?: (params: { pointerEvent: MouseEvent; matchUp?: MatchUp }) => void;
+  roundHeaderClick?: (params: RoundHeaderEventParams) => void;
+  roundVisibilityClick?: (params: RoundHeaderEventParams) => void;
+  groupHeaderClick?: (params: {
+    pointerEvent: MouseEvent;
+    structureId: string;
+    containerStructureId?: string;
+    drawId?: string;
+  }) => void;
+  /** Every key the renderers read is declared above; this admits a host's own keys. */
   [key: string]: any;
+}
+
+export interface RoundHeaderEventParams {
+  pointerEvent: MouseEvent;
+  roundNumber: number;
+  roundProfile?: any;
+  roundMatchUps?: MatchUp[];
+  context?: any;
 }
 
 export interface ModalButton {
@@ -378,7 +647,12 @@ export interface ModalButton {
   };
 }
 
-export interface ModalConfig extends Configuration {
+/**
+ * Accepts exactly the keys it always has: the modal's own, plus the structure keys it used to inherit,
+ * which the modal ignores. The modal keys come from `ModalConfiguration`, so they are not deprecated
+ * here.
+ */
+export interface ModalConfig extends ModalConfiguration, Omit<Configuration, keyof ModalConfiguration> {
   onClose?: (params: { content?: any }) => void;
 }
 

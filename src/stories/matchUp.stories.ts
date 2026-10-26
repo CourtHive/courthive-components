@@ -3,6 +3,7 @@ import { renderMatchUp } from '../components/renderStructure/renderMatchUp';
 import { compositions } from '../compositions/compositions';
 import { generateMatchUps } from '../data/generateMatchUps';
 import { matchUpStatusConstants, entryStatusConstants } from 'tods-competition-factory';
+import type { OnlineResource } from '../types';
 
 const { LUCKY_LOSER } = entryStatusConstants;
 
@@ -1145,6 +1146,88 @@ export const GameScoreZeroZero = {
       composition,
       'IN_PROGRESS — Start of game (0-0), game score boxes shown because data is present'
     );
+    return renderContainer({ theme: composition.theme, content });
+  }
+};
+
+// Online resources (configuration.onlineResources)
+
+const ONLINE_RESOURCES: OnlineResource[] = [
+  { resourceType: 'URL', resourceSubType: 'VIDEO', name: 'matchVideo', identifier: 'https://courthive.com/#video' },
+  { resourceType: 'URL', resourceSubType: 'STREAM', name: 'liveStream', identifier: 'https://courthive.com/#live' },
+  { resourceType: 'URL', resourceSubType: 'STATS', name: 'matchStats', identifier: 'https://courthive.com/#stats' }
+];
+
+/**
+ * `configuration.onlineResources`: play for a recording, a live dot for a stream, a chart for stats. In the
+ * schedule header when `scheduleInfo` is on, otherwise a badge on the card's top corner. Without an
+ * `onlineResourceClick` handler each icon is a link that opens in a new tab.
+ */
+export const OnlineResources = {
+  args: { composition: 'Australian', scheduleInfo: true, withHandler: false },
+  argTypes: {
+    ...argTypes,
+    scheduleInfo: { control: { type: 'boolean' } },
+    withHandler: { control: { type: 'boolean' } }
+  },
+  render: (args: any) => {
+    const base = compositions[args.composition || 'Australian'];
+    const composition = {
+      ...base,
+      configuration: { ...base.configuration, scheduleInfo: args.scheduleInfo, onlineResources: true }
+    };
+    const eventHandlers = args.withHandler
+      ? { onlineResourceClick: ({ onlineResource }) => console.log('online resource click', onlineResource) }
+      : {};
+
+    const content = document.createElement('div');
+    content.style.cssText = 'max-width: 500px; display: flex; flex-direction: column; gap: 1.5em; padding-top: 1em';
+    const { matchUps } = generateMatchUps({ drawSize: 2, randomWinningSide: true });
+    const variants = [ONLINE_RESOURCES, [ONLINE_RESOURCES[0]], [ONLINE_RESOURCES[1]]];
+    for (const onlineResources of variants) {
+      const matchUp = { ...matchUps[0], onlineResources };
+      content.appendChild(renderMatchUp({ matchUp, composition, eventHandlers }));
+    }
+    return renderContainer({ theme: composition.theme, content });
+  }
+};
+
+/**
+ * `configuration.upsetMarker` (▲ before the winner's tick when a seed is beaten on court) and
+ * `configuration.entryStatus` (`[1, WC]` beside the seed).
+ */
+export const UpsetAndEntryStatus = {
+  args: { composition: 'Australian', bracketedSeeds: 'square', entryStatus: true, upsetMarker: true },
+  argTypes: {
+    ...argTypes,
+    bracketedSeeds: { options: ['square', true, false], control: { type: 'select' } },
+    entryStatus: { options: [false, true, 'all'], control: { type: 'select' } },
+    upsetMarker: { control: { type: 'boolean' } }
+  },
+  render: (args: any) => {
+    const base = compositions[args.composition || 'Australian'];
+    const { bracketedSeeds, entryStatus, upsetMarker } = args;
+    const composition = { ...base, configuration: { ...base.configuration, bracketedSeeds, entryStatus, upsetMarker } };
+    const { matchUps } = generateMatchUps({ drawSize: 2, randomWinningSide: false });
+    const matchUp: any = structuredClone(matchUps[0]);
+    matchUp.winningSide = 2;
+    matchUp.matchUpStatus = 'COMPLETED';
+    // a fully scored win for side 2: only such a result can be an upset
+    matchUp.matchUpFormat = 'SET3-S:6/TB7';
+    matchUp.score = {
+      scoreStringSide1: '4-6 3-6',
+      scoreStringSide2: '6-4 6-3',
+      sets: [
+        { setNumber: 1, side1Score: 4, side2Score: 6, winningSide: 2 },
+        { setNumber: 2, side1Score: 3, side2Score: 6, winningSide: 2 }
+      ]
+    };
+    matchUp.sides[0].seedValue = 1;
+    matchUp.sides[0].participant.entryStatus = 'DIRECT_ACCEPTANCE';
+    matchUp.sides[1].participant.entryStatus = 'WILDCARD';
+    const content = document.createElement('div');
+    content.style.maxWidth = '500px';
+    content.appendChild(renderMatchUp({ matchUp, composition }));
     return renderContainer({ theme: composition.theme, content });
   }
 };

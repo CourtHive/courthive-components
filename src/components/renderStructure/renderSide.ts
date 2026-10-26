@@ -1,10 +1,13 @@
 import { sideContainerStyle, sideRowStyle } from '../../styles/sideStyles';
 import { scoreWrapperStyle } from '../../styles/scoreWrapperStyle';
+import { renderOnlineResources } from './renderOnlineResources';
+import { servingSideOf, sideColorOf } from './scoreboardState';
 import { renderParticipant } from './renderParticipant';
 import { tournamentEngine } from 'tods-competition-factory';
 import { renderSideScore } from './renderSideScore';
 import { renderSchedule } from './renderSchedule';
 import { isFunction } from '../modal/cmodal';
+import { renderSlot } from './renderSlot';
 import cx from 'classnames';
 import type { Composition, EventHandlers, MatchUp } from '../../types';
 
@@ -47,8 +50,15 @@ export function renderSide({
   div.classList.add('tmx-sd');
   div.setAttribute('sideNumber', String(sideNumber));
 
+  const servingSide = configuration.serverIndicator ? servingSideOf(matchUp) : undefined;
+  markSide(div, { color: sideColorOf(configuration, matchUp, sideNumber), matchUp, sideNumber, servingSide });
+
+  // renderers.matchUpHeader: the top of the card
+  const header = sideNumber === 1 && renderSlot(configuration.renderers, 'matchUpHeader', { matchUp }, 'div');
+  if (header) div.appendChild(header);
+
   if (scheduleInfo && sideNumber === 1) {
-    const schedule = renderSchedule({ matchUp, eventHandlers });
+    const schedule = renderSchedule({ configuration, eventHandlers, matchUp });
     div.appendChild(schedule);
   }
 
@@ -66,9 +76,18 @@ export function renderSide({
 
   sideRow.appendChild(participant);
 
+  if (servingSide && configuration.serverIndicator === 'name') {
+    // after the serving side's name; nothing on the other side
+    const name = servingSide === sideNumber && participant.querySelector('.chc-participant-name');
+    if (name) name.appendChild(renderServer(true, 'name'));
+  } else if (servingSide) {
+    sideRow.appendChild(renderServer(servingSide === sideNumber));
+  }
+
   if (scoreBox) {
     const box = document.createElement('div');
     box.style.border = `1px solid var(--chc-border-secondary)`;
+    box.style.borderRadius = 'var(--chc-radius-score)';
     sideRow.appendChild(box);
   }
 
@@ -128,5 +147,49 @@ export function renderSide({
 
   div.appendChild(sideRow);
 
+  // configuration.onlineResources with no schedule header to sit in: a badge on the card's top corner.
+  // Last child of side 1, so the card's own first/last-child corner rules are undisturbed.
+  if (!scheduleInfo && sideNumber === 1) {
+    const onlineResources = renderOnlineResources({ configuration, eventHandlers, matchUp, placement: 'corner' });
+    if (onlineResources) div.appendChild(onlineResources);
+    // renderers.matchUpBadges: the end corner, where TMX floats its own badge today
+    const badges = renderSlot(configuration.renderers, 'matchUpBadges', { matchUp });
+    if (badges) {
+      badges.classList.add('chc-slot--corner');
+      div.appendChild(badges);
+    }
+  }
+
   return div;
+}
+
+/** configuration.sideColors and the side's state, as the stylesheet reads them: `--chc-side-color` and data flags. */
+function markSide(
+  div: HTMLElement,
+  {
+    color,
+    matchUp,
+    sideNumber,
+    servingSide
+  }: { color?: string; matchUp: MatchUp; sideNumber: number; servingSide?: number }
+): void {
+  if (color) {
+    div.style.setProperty('--chc-side-color', color);
+    div.dataset.sideColor = 'true';
+  }
+  if (matchUp?.winningSide === sideNumber) div.dataset.winner = 'true';
+  if (servingSide === sideNumber) div.dataset.serving = 'true';
+}
+
+/** configuration.serverIndicator: a column on both sides (scores stay aligned), filled on the server's; or a dot after the server's name. */
+function renderServer(serving: boolean, position: 'column' | 'name' = 'column'): HTMLElement {
+  const server = document.createElement('span');
+  server.className = cx('chc-server', serving && 'chc-server--active', position === 'name' && 'chc-server--name');
+  if (serving) {
+    server.title = 'Serving';
+    server.setAttribute('aria-label', 'Serving');
+  } else {
+    server.setAttribute('aria-hidden', 'true');
+  }
+  return server;
 }

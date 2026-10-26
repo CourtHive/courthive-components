@@ -1,18 +1,21 @@
 import { roundHeaderStyle } from '../../styles/roundHeaderStyle';
 import { isFunction } from '../modal/cmodal';
-import type { EventHandlers, MatchUp } from '../../types';
+import { renderSlot } from './renderSlot';
+import type { EventHandlers, MatchUp, StructureRenderers } from '../../types';
 
 export function renderRoundHeader({
   eventHandlers,
   roundMatchUps,
   roundProfile,
   roundNumber,
+  renderers,
   context
 }: {
   eventHandlers?: EventHandlers;
   roundMatchUps?: MatchUp[];
   roundProfile?: any;
   roundNumber: number;
+  renderers?: StructureRenderers;
   context?: any;
 }): HTMLElement {
   const div = document.createElement('div');
@@ -29,8 +32,12 @@ export function renderRoundHeader({
       eventHandlers.roundHeaderClick({ roundNumber, roundProfile, roundMatchUps, context, pointerEvent });
   }
 
+  const slot = renderSlot(renderers, 'roundHeader', { roundNumber, roundProfile, roundMatchUps });
   const roundName = roundProfile?.[roundNumber]?.roundName;
-  if (!roundName) return div;
+  if (!roundName) {
+    if (slot) div.appendChild(slot);
+    return div;
+  }
 
   const headerRow = document.createElement('div');
   headerRow.style.cssText = 'display:flex; flex-direction:row; justify-content:space-between;';
@@ -38,6 +45,7 @@ export function renderRoundHeader({
   const nameEl = document.createElement('div');
   nameEl.textContent = roundName;
   headerRow.appendChild(nameEl);
+  if (slot) headerRow.appendChild(slot);
 
   const iconsEl = document.createElement('div');
   iconsEl.style.cssText = 'display:flex; align-items:center; gap:4px;';

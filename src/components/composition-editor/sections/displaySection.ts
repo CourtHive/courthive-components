@@ -2,6 +2,8 @@ import type { CompositionEditorStore } from '../compositionEditorStore';
 import type { CompositionEditorState, EditorPanel } from '../compositionEditorTypes';
 import { buildToggleField, buildSelectField } from './fieldBuilders';
 
+const entryStatusValue = (value?: boolean | 'all'): string => (value === 'all' ? 'all' : value ? 'true' : '');
+
 export function buildDisplaySection(store: CompositionEditorStore): EditorPanel {
   const root = document.createElement('div');
   const readOnly = store.getState().readOnly;
@@ -48,8 +50,33 @@ export function buildDisplaySection(store: CompositionEditorStore): EditorPanel 
   );
   const teamLogo = buildToggleField(
     'Team logo',
-    cfg.teamLogo !== false,
+    !!cfg.teamLogo, // the renderer draws a logo only when teamLogo is set
     (v) => store.setConfigField('teamLogo', v),
+    readOnly
+  );
+
+  const onlineResources = buildToggleField(
+    'Video / stream / stats icons',
+    !!cfg.onlineResources,
+    (v) => store.setConfigField('onlineResources', v),
+    readOnly
+  );
+
+  const entryStatus = buildSelectField(
+    'Entry status beside seed',
+    [
+      { value: '', label: 'None' },
+      { value: 'true', label: 'All but direct acceptance' },
+      { value: 'all', label: 'All' }
+    ],
+    entryStatusValue(cfg.entryStatus),
+    (v) => store.setConfigField('entryStatus', v === 'all' ? 'all' : v === 'true' || undefined),
+    readOnly
+  );
+  const upsetMarker = buildToggleField(
+    'Upset marker',
+    !!cfg.upsetMarker,
+    (v) => store.setConfigField('upsetMarker', v),
     readOnly
   );
 
@@ -59,6 +86,9 @@ export function buildDisplaySection(store: CompositionEditorStore): EditorPanel 
   root.appendChild(drawPositions.element);
   root.appendChild(allDrawPositions.element);
   root.appendChild(teamLogo.element);
+  root.appendChild(onlineResources.element);
+  root.appendChild(entryStatus.element);
+  root.appendChild(upsetMarker.element);
 
   function update(state: CompositionEditorState): void {
     const c = state.configuration;
@@ -67,7 +97,10 @@ export function buildDisplaySection(store: CompositionEditorStore): EditorPanel 
     seedingElement.setValue(c.seedingElement || '');
     drawPositions.setChecked(!!c.drawPositions);
     allDrawPositions.setChecked(!!c.allDrawPositions);
-    teamLogo.setChecked(c.teamLogo !== false);
+    teamLogo.setChecked(!!c.teamLogo);
+    onlineResources.setChecked(!!c.onlineResources);
+    entryStatus.setValue(entryStatusValue(c.entryStatus));
+    upsetMarker.setChecked(!!c.upsetMarker);
   }
 
   return { element: root, update };

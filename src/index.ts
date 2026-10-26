@@ -1,8 +1,10 @@
 export { renderParticipant } from './components/renderStructure/renderParticipant';
 export { renderParticipantInput } from './components/renderStructure/renderParticipantInput';
 export { renderRoundHeader } from './components/renderStructure/renderRoundHeader';
-export { renderStructure } from './components/renderStructure/renderStructure';
+export { renderStructure, applyFavourites } from './components/renderStructure/renderStructure';
 export { renderContainer } from './components/renderStructure/renderContainer';
+export { renderMatchUpInPlace } from './components/renderStructure/renderMatchUpInPlace';
+export { renderRoundPager } from './components/renderStructure/renderRoundPager';
 export { renderMatchUp } from './components/renderStructure/renderMatchUp';
 export { compositions } from './compositions/compositions';
 export { resolvePublishedComposition } from './compositions/resolvePublishedComposition';
@@ -17,7 +19,7 @@ export {
   renderSchematicRound,
   renderSchematicMatchUp
 } from './components/renderSchematicStructure';
-export type { SchematicMatchUp } from './components/renderSchematicStructure';
+export type { SchematicMatchUp, SchematicOptions } from './components/renderSchematicStructure';
 
 export { cModal } from './components/modal/cmodal';
 

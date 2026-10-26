@@ -16,8 +16,23 @@ export function buildScoreSection(store: CompositionEditorStore): EditorPanel {
     readOnly
   );
 
+  // configuration.serverIndicator
+  const serverIndicatorValue = (v: unknown) => (v === 'name' ? 'name' : v ? 'column' : '');
+  const serverIndicator = buildSelectField(
+    'Server indicator',
+    [
+      { value: '', label: 'Off' },
+      { value: 'column', label: 'Column' },
+      { value: 'name', label: 'After name' }
+    ],
+    serverIndicatorValue(cfg.serverIndicator),
+    (v) => store.setConfigField('serverIndicator', (v || undefined) as 'column' | 'name' | undefined),
+    readOnly
+  );
+
   root.appendChild(scoreBox.element);
   root.appendChild(gameScoreOnly.element);
+  root.appendChild(serverIndicator.element);
 
   // gameScore sub-group
   const subgroup = document.createElement('div');
@@ -41,7 +56,7 @@ export function buildScoreSection(store: CompositionEditorStore): EditorPanel {
   );
   const gameScoreInverted = buildToggleField(
     'Inverted',
-    !!cfg.gameScore?.inverted,
+    cfg.gameScore?.inverted !== false, // the renderer inverts unless told not to
     (v) => store.setConfigNestedField('gameScore', 'inverted', v),
     readOnly
   );
@@ -54,8 +69,9 @@ export function buildScoreSection(store: CompositionEditorStore): EditorPanel {
     const c = state.configuration;
     scoreBox.setChecked(!!c.scoreBox);
     gameScoreOnly.setChecked(!!c.gameScoreOnly);
+    serverIndicator.setValue(serverIndicatorValue(c.serverIndicator));
     gameScorePosition.setValue(c.gameScore?.position || '');
-    gameScoreInverted.setChecked(!!c.gameScore?.inverted);
+    gameScoreInverted.setChecked(c.gameScore?.inverted !== false);
   }
 
   return { element: root, update };

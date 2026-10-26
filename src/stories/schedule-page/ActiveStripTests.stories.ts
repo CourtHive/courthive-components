@@ -3,8 +3,9 @@
  *
  * Two quiet signals on the "Now" strip:
  *
- *   1. The leading spacer shows `(n)` beneath its label: how many matchUps are in
- *      progress right now. Suspended and called-but-not-started cells do not count.
+ *   1. The leading spacer shows `(n)` beneath its label: how many strip cells hold a
+ *      matchUp, live or not — in progress, suspended, due and next all count (CA,
+ *      2026-10-27). A free court does not.
  *   2. A free court whose column still holds an un-called pending matchUp shows a
  *      faint centred clock — the slot will fill when the next one is called.
  *
@@ -67,13 +68,15 @@ const cellFor = (root: HTMLElement, courtId: string) =>
   root.querySelector<HTMLElement>(`${CELL}[data-court-id="${courtId}"]`);
 
 export const LiveCountBeneathNow: StoryObj = {
-  name: 'Now spacer counts the matchUps in progress',
+  name: 'Now spacer counts the courts with a matchUp, live or not',
   render: () => renderStrip(DATA, 'Now'),
   play: async ({ canvasElement }) => {
     const count = canvasElement.querySelector(SPACER_COUNT);
-    // C1 (IN_PROGRESS) and C2 (scored, undecided) — not C3 (suspended) or C4 (called).
-    expect(count?.textContent).toBe('(2)');
-    expect(count?.getAttribute('title')).toBe('2 matches in progress');
+    // C1 and C2 (live), C3 (suspended), C4 (called, NEXT) — not C5 or C6, which are free.
+    expect(count?.textContent).toBe('(4)');
+    expect(count?.getAttribute('title')).toBe('4 courts with a matchUp');
+    // the cells it counts are exactly the ones that are not free
+    expect(canvasElement.querySelectorAll(`${CELL}:not(.state-free)`).length).toBe(4);
   }
 };
 

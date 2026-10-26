@@ -116,6 +116,18 @@
   color: var(--sp-text);
 }
 
+.spl-grid-cell__score-ending {
+  background: color-mix(in srgb, var(--sp-warn) 15%, transparent);
+  color: var(--sp-warn-text);
+  text-transform: uppercase;
+  vertical-align: middle;
+  letter-spacing: 0.3px;
+  border-radius: 4px;
+  font-style: normal;
+  font-size: 0.6rem;
+  padding: 1px 4px;
+}
+
 .spl-grid-cell__format {
   font-size: 0.5rem;
   padding: 1px 4px;

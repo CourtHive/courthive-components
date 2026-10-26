@@ -39,6 +39,7 @@ export function buildSection(def: SectionDef, store: CompositionEditorStore): Ed
   root.appendChild(header);
   root.appendChild(body);
 
+  let wasExpanded: boolean | undefined;
   function update(state: CompositionEditorState): void {
     const expanded = state.expandedSections.has(def.id);
     chevron.textContent = expanded ? '\u25BC' : '\u25B6';
@@ -46,6 +47,10 @@ export function buildSection(def: SectionDef, store: CompositionEditorStore): Ed
     if (expanded) {
       inner.update(state);
     }
+    // a section the user just opened comes into view: in a panel shorter than the editor, its new fields would
+    // otherwise open below the fold with nothing to say they appeared
+    if (expanded && wasExpanded === false) root.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+    wasExpanded = expanded;
   }
 
   return { element: root, update };

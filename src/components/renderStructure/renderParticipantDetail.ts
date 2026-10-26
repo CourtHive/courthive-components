@@ -8,7 +8,7 @@ export function renderParticipantDetail(params: {
   individualParticipant?: IndividualParticipant;
   className?: string;
   [key: string]: any;
-}): HTMLElement {
+}): HTMLElement | undefined {
   const participantDetail = params?.composition?.configuration?.participantDetail;
 
   const showTeam = participantDetail === 'TEAM';
@@ -24,5 +24,6 @@ export function renderParticipantDetail(params: {
     }
   }
 
-  return document.createElement('div');
+  // Nothing to show: no element, rather than an empty div on every individual of every side.
+  return undefined;
 }

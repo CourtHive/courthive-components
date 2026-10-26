@@ -8,12 +8,14 @@ import {
 const { FEED_IN, ROUND_ROBIN, AD_HOC, LUCKY_DRAW } = drawDefinitionConstants;
 const { COMPLETED } = matchUpStatusConstants;
 import { renderParticipant } from '../components/renderStructure/renderParticipant';
+import { renderRoundPager } from '../components/renderStructure/renderRoundPager';
 import { renderContainer } from '../components/renderStructure/renderContainer';
 import { renderStructure } from '../components/renderStructure/renderStructure';
 import { generateEventData } from '../data/generateEventData';
 import { renderField } from '../components/forms/renderField';
 import { compositions } from '../compositions/compositions';
 import { cModal } from '../components/modal/cmodal';
+import { expect } from 'storybook/test';
 import '../components/forms/styles';
 
 const argTypes = {
@@ -227,6 +229,95 @@ export const InitialRound = {
     drawType: FEED_IN,
     composition: 'National',
     drawSize: 32
+  }
+};
+/**
+ * `configuration.rounded`: the card, its corners, the connector elbows, status pills and boxed scores
+ * round. Any composition can turn it on; switch the toolbar theme to see it in dark mode.
+ */
+export const Rounded = {
+  args: { drawSize: 16, participantsCount: 14, completionGoal: 60, composition: 'Australian', rounded: true },
+  argTypes: { ...argTypes, rounded: { control: { type: 'boolean' } } },
+  render: ({ ...args }) => {
+    const { composition: base, matchUps, context } = buildStructureView(args);
+    const composition = {
+      ...base,
+      configuration: { ...base.configuration, scheduleInfo: true, rounded: args.rounded }
+    };
+    const content = renderStructure({ eventHandlers, composition, matchUps: matchUps as any, context });
+    return renderContainer({ theme: composition.theme, content });
+  }
+};
+/**
+ * `configuration.renderers`: a host fills named slots instead of mutating the rendered tree. Here a badge
+ * (schedule header), a participant suffix, a footer and a round-header note.
+ */
+export const SlotRenderers = {
+  args: { drawSize: 8, completionGoal: 60, composition: 'Australian' },
+  render: ({ ...args }) => {
+    const { composition: base, matchUps, context } = buildStructureView(args);
+    const span = (text: string, style = '') => {
+      const el = document.createElement('span');
+      el.textContent = text;
+      el.style.cssText = style;
+      return el;
+    };
+    const muted = 'font-size: 0.7rem; color: var(--chc-text-muted);';
+    const renderers = {
+      matchUpBadges: ({ matchUp }) =>
+        matchUp.matchUpStatus === 'IN_PROGRESS'
+          ? span('LIVE', 'color: var(--chc-status-error); font-weight: 700; font-size: 0.7rem;')
+          : undefined,
+      participantSuffix: ({ individualParticipant }) =>
+        individualParticipant
+          ? span(
+              `${(individualParticipant.participantName?.length ?? 0) % 9}.${individualParticipant.participantId.length % 10}`,
+              muted
+            )
+          : undefined,
+      matchUpFooter: ({ matchUp }) => span(matchUp.winningSide ? 'Final' : 'Est. start 14:30', muted),
+      roundHeader: ({ roundMatchUps }) => {
+        const count = roundMatchUps?.length ?? 0;
+        return span(`${count} ${count === 1 ? 'match' : 'matches'}`, muted);
+      }
+    };
+    const composition: any = {
+      ...base,
+      configuration: { ...base.configuration, scheduleInfo: true, roundHeader: true, renderers }
+    };
+    const content = renderStructure({ eventHandlers, composition, matchUps: matchUps as any, context });
+    return renderContainer({ theme: composition.theme, content });
+  },
+  play: async ({ canvasElement }) => {
+    // the round-header note counts the round's matchUps, singular for the final
+    const headers: NodeListOf<Element> = canvasElement.querySelectorAll('.chc-slot--round-header');
+    const notes = [...headers].map((n) => n.textContent);
+    expect(notes).toEqual(['4 matches', '2 matches', '1 match']);
+  }
+};
+/**
+ * `renderStructure({ carousel })` with `renderRoundPager`: the narrow-screen layout. One round per scroll-snap
+ * stop with a peek of the next, so the connectors lead somewhere; the pager scrolls to a round and tracks
+ * the one in view. Shown at phone width.
+ */
+export const Carousel = {
+  args: { drawSize: 16, completionGoal: 70, composition: 'Australian', peek: 0.2 },
+  argTypes: { ...argTypes, peek: { control: { type: 'number', min: 0, max: 1, step: 0.05 } } },
+  render: ({ ...args }) => {
+    const { composition: base, matchUps, context } = buildStructureView(args);
+    const composition: any = { ...base, configuration: { ...base.configuration, roundHeader: true } };
+    const content = renderStructure({
+      carousel: { peek: args.peek },
+      matchUps: matchUps as any,
+      eventHandlers,
+      composition,
+      context
+    });
+    const pager = renderRoundPager({ structure: content });
+    const phone = document.createElement('div');
+    phone.style.cssText = 'width: 375px; display: flex; flex-direction: column; gap: 0.5rem;';
+    phone.append(pager.element, renderContainer({ theme: composition.theme, content }));
+    return phone;
   }
 };
 export const Qualifying = {

@@ -76,7 +76,7 @@ const { field, inputElement } = renderField({
   label: 'Email Address',
   field: 'email',
   type: 'email',
-  placeholder: 'user@example.com',
+  placeholder: 'user@courthive.com',
   iconLeft: 'fas fa-envelope',
   validator: (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
   error: 'Please enter a valid email'

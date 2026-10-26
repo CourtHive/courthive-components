@@ -314,10 +314,10 @@ describe('link/video popovers', () => {
     const input = panel?.querySelector(URL_INPUT) as HTMLInputElement;
     const confirmBtn = panel?.querySelector(URL_CONFIRM) as HTMLElement;
 
-    input.value = 'https://example.com';
+    input.value = 'https://courthive.com';
     confirmBtn.click();
 
-    expect(onLink).toHaveBeenCalledWith('https://example.com');
+    expect(onLink).toHaveBeenCalledWith('https://courthive.com');
 
     document.body.removeChild(el);
   });
