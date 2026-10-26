@@ -1,8 +1,12 @@
 /* Court line base style — non-scaling-stroke keeps width in screen pixels.
  * Per-sport hues are the palette's categorical accents, so they retune with the palette and the
- * mode (each hue is held to 3:1 against the page in palette-contrast.test.ts). */
+ * mode (each hue is held to 3:1 against the page in palette-contrast.test.ts).
+ *
+ * Every token has a fallback: `./features.css` is a standalone export, and the --chc-accent-* tokens live in
+ * courthive-components.css. A page that imports features.css alone (CourtHive.com's hero) would otherwise get an
+ * invalid color-mix and `stroke: none`. The fallbacks are the hues the courts had in 6.x with no data-theme. */
 .court-line {
-  stroke: color-mix(in srgb, var(--chc-accent-indigo) 70%, transparent);
+  stroke: color-mix(in srgb, var(--chc-accent-indigo, #667eea) 70%, transparent);
   stroke-width: 1.5;
   fill: none;
   vector-effect: non-scaling-stroke;
@@ -10,23 +14,23 @@
 
 /* Per-sport color variations */
 .court--tennis .court-line {
-  stroke: color-mix(in srgb, var(--chc-accent-indigo) 80%, transparent);
+  stroke: color-mix(in srgb, var(--chc-accent-indigo, #667eea) 80%, transparent);
 }
 .court--basketball .court-line {
-  stroke: color-mix(in srgb, var(--chc-accent-purple) 70%, transparent);
+  stroke: color-mix(in srgb, var(--chc-accent-purple, #f093fb) 70%, transparent);
 }
 .court--baseball .court-line {
-  stroke: color-mix(in srgb, var(--chc-accent-red) 70%, transparent);
+  stroke: color-mix(in srgb, var(--chc-accent-red, #f5576c) 70%, transparent);
 }
 .court--hockey .court-line {
-  stroke: color-mix(in srgb, var(--chc-accent-blue) 75%, transparent);
+  stroke: color-mix(in srgb, var(--chc-accent-blue, #4facfe) 75%, transparent);
 }
 .court--pickleball .court-line {
-  stroke: color-mix(in srgb, var(--chc-accent-green) 70%, transparent);
+  stroke: color-mix(in srgb, var(--chc-accent-green, #43e97b) 70%, transparent);
 }
 .court--badminton .court-line {
-  stroke: color-mix(in srgb, var(--chc-accent-teal) 70%, transparent);
+  stroke: color-mix(in srgb, var(--chc-accent-teal, #38f9d7) 70%, transparent);
 }
 .court--padel .court-line {
-  stroke: color-mix(in srgb, var(--chc-accent-orange) 75%, transparent);
+  stroke: color-mix(in srgb, var(--chc-accent-orange, #ffb74d) 75%, transparent);
 }
