@@ -1054,6 +1054,14 @@
 .chc-round--cells {
   grid-auto-rows: 1fr;
   display: grid;
+  /* Room for the card offset below (.chc-cell > .tmx-m): a round's first cell starts flush under the round header,
+     so a card raised by a taller schedule header than footer would ride into it, and one lowered by a taller footer
+     out of the bottom. Every round gets the same padding, so the rows still line up across rounds. */
+  padding-block-start: max(
+    0px,
+    calc((var(--chc-connector-header, 0px) - var(--chc-connector-footer, 0px)) / 2 + 0.5px)
+  );
+  padding-block-end: max(0px, calc((var(--chc-connector-footer, 0px) - var(--chc-connector-header, 0px)) / 2 - 0.5px));
 }
 
 .chc-cell {
