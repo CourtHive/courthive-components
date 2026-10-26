@@ -84,6 +84,20 @@ function checkStructure(structure: HTMLElement): string[] {
         );
     });
   });
+  // every card holds its own content: a score, the server dot or an action never spills past its right edge
+  rounds.forEach((round, roundIndex) => {
+    round.querySelectorAll<HTMLElement>('.chc-cell > .tmx-m').forEach((card, index) => {
+      const right = card.getBoundingClientRect().right;
+      const parts = card.querySelectorAll<HTMLElement>('.chc-score-wrapper, .chc-server, .chc-matchup-actions');
+      for (const part of parts) {
+        const over = part.getBoundingClientRect().right - right;
+        if (over > 0.5) {
+          problems.push(`r${roundIndex + 1}c${index + 1}: ${part.classList[0]} ${over.toFixed(1)}px past its card`);
+          break;
+        }
+      }
+    });
+  });
   cellsByRound.forEach((cells, roundIndex) => {
     cells.forEach((cell, index) => {
       const id = `r${roundIndex + 1}c${index + 1}`;
@@ -136,6 +150,8 @@ type Variant = {
   initialRoundNumber?: number;
   structureIndex?: number;
   composition?: Composition;
+  /** a host narrower than the structure, so the rounds are squeezed rather than given their natural width */
+  hostWidth?: number;
 };
 
 const VARIANTS: Variant[] = [
@@ -160,6 +176,12 @@ const VARIANTS: Variant[] = [
   { name: 'scoped from round 2', initialRoundNumber: 2 },
   { name: 'rounded', configuration: { rounded: true, scheduleInfo: true } },
   { name: 'BasicCard', composition: compositions.BasicCard },
+  { name: 'Scoreboard', composition: compositions.Scoreboard },
+  { name: 'Watch', composition: compositions.Watch },
+  // a squeezed structure keeps every card wide enough for its scores (7.1.0 let them spill out, CA 2026-10-26)
+  { name: 'narrow host', hostWidth: 600 },
+  { name: 'narrow host, Scoreboard', composition: compositions.Scoreboard, hostWidth: 600 },
+  { name: 'narrow host, Watch', composition: compositions.Watch, hostWidth: 600 },
   { name: 'compact density', configuration: { density: 'compact', scheduleInfo: true } },
   { name: 'connector width 24', configuration: { connectorWidth: 24 } },
   { name: 'feed-in consolation', args: { drawSize: 16, drawType: 'FEED_IN_CHAMPIONSHIP' }, structureIndex: 1 },
@@ -188,6 +210,7 @@ export const ConnectorsMeetEverywhere: StoryObj = {
       const composition = { ...base, configuration: { ...base.configuration, ...variant.configuration } };
       const matchUps = structureMatchUps(variant);
       host.innerHTML = '';
+      host.style.width = variant.hostWidth ? `${variant.hostWidth}px` : '';
       const structure = renderStructure({ composition, matchUps, initialRoundNumber: variant.initialRoundNumber });
       host.appendChild(structure);
 
