@@ -2,7 +2,6 @@ import { applyCompositionColors } from '../../styles/applyCompositionColors';
 import { roundContainerStyle } from '../../styles/roundContainerStyle';
 import { tournamentEngine } from 'tods-competition-factory';
 import { structureStyle } from '../../styles/structureStyle';
-import { readBodyFontSize } from '../../styles/getLinkStyle';
 import { roundStyle } from '../../styles/roundStyle';
 import { buildPathIndex } from './structurePaths';
 import { isLuckyDraw } from './isLuckyDraw';
@@ -59,10 +58,13 @@ export function renderStructure({
 
   applyCompositionColors(div, composition?.colors);
 
-  // Read once here, and only when a row the connector maths sizes by it is shown: getComputedStyle
-  // forces a style recalculation, and it used to run for every matchUp (255 times in a 256 draw).
-  const { centerInfo, scheduleInfo, showAddress } = composition?.configuration || {};
-  const fontSize = centerInfo || scheduleInfo || showAddress ? readBodyFontSize() : undefined;
+  // the card is offset in its cell so its divider, not its middle, sits on the connector line: by half the
+  // schedule header and half the footer, whose heights the stylesheet knows (draw.css, Connector lines)
+  const { scheduleInfo, matchUpFooter, rounded } = composition?.configuration || {};
+  if (scheduleInfo) div.classList.add('chc-structure--schedule-info');
+  if (matchUpFooter) div.classList.add('chc-structure--matchup-footer');
+  // the radius tokens must reach the connector cells, which sit outside each card's own `.chc-rounded`
+  if (rounded) div.classList.add('chc-rounded');
 
   const finalRoundNumber = roundNumbers.length ? Math.max.apply(null, roundNumbers) : 0;
 
@@ -81,7 +83,6 @@ export function renderStructure({
       roundProfile,
       matchUps,
       minWidth,
-      fontSize,
       context,
       isLucky
     });

@@ -76,7 +76,8 @@ export const FontSizeReadOncePerStructure: StoryObj = {
     });
     host.appendChild(structure as HTMLElement);
     expect(host.querySelectorAll('.tmx-m').length).toBe(DRAW_SIZE - 1);
-    expect(scheduledReads).toBe(1);
+    // none at all since structure rendering vNext item 10: connectors are no longer sized from the font
+    expect(scheduledReads).toBe(0);
 
     // with no such row, nothing needs the font size at all
     const plain = { ...compositions.Australian, configuration: {} };

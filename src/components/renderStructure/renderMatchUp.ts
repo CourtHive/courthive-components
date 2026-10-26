@@ -1,23 +1,23 @@
 import { getSelectedMatchUpStyle } from '../../styles/getSelectedMatchUpStyle';
 import { matchUpContainerStyle } from '../../styles/matchUpContainerStyle';
 import { getMatchUpStyle } from '../../styles/getMatchUpStyle';
-import { drawDefinitionConstants } from 'tods-competition-factory';
 import { renderCenterInfo } from './renderCenterInfo';
 import { hasVideo } from './renderOnlineResources';
 import { renderSlot } from './renderSlot';
 import { upsetOf } from './matchUpState';
-import { getLinkStyle } from '../../styles/getLinkStyle';
 import { isFunction } from '../modal/cmodal';
 import { renderSide } from './renderSide';
 import cx from 'classnames';
 import type { Composition, Configuration, EventHandlers, MatchUp } from '../../types';
 
-const { QUALIFYING } = drawDefinitionConstants;
-
 export function renderMatchUp(params: {
   composition?: Composition;
   initialRoundNumber?: number;
   matchUp: MatchUp;
+  /**
+   * @deprecated The connector is drawn by the cell `renderRound` puts the matchUp in, so a matchUp no longer
+   * needs to know whether it is the upper or lower of a pair. Ignored.
+   */
   moiety?: boolean;
   selectedMatchUpId?: string;
   searchActive?: boolean;
@@ -27,41 +27,12 @@ export function renderMatchUp(params: {
   eventHandlers?: EventHandlers;
   className?: string;
   /**
-   * Connector-height scale for THIS render. `renderRound` computes it for the
-   * round the view currently starts at and passes it down; direct callers can
-   * leave it out and the matchUp's own factor is used.
+   * @deprecated Connector heights are no longer computed: a round is a grid of equal rows and the connector is
+   * drawn as percentages of its cell. Ignored.
    */
   roundFactor?: number;
-  /** The body font size, read once per structure by `renderStructure`. Read here when absent. */
-  fontSize?: number;
 }): HTMLElement {
-  const { composition, initialRoundNumber = 1, matchUp, moiety, selectedMatchUpId, searchActive } = params;
-  const { roundNumber, finishingRound, matchUpType, preFeedRound, stage } = matchUp;
-  // Never read back from `matchUp` when the caller supplied a factor, and never
-  // write to it: the scaled value belongs to one render, not to the record.
-  const roundFactor = params.roundFactor ?? matchUp.roundFactor;
-  const isFinalRound = params.isFinalRound || (finishingRound ? Number.parseInt(String(finishingRound)) === 1 : false);
-  const isQualifying = stage === QUALIFYING && isFinalRound;
-
-  // NOTE: is it desireable to have trailing - for final round of qualifying?
-  // const qualifyingStage = stage === 'QUALIFYING';
-  // const noProgression = !qualifyingStage && isFinalRound;
-
-  const noProgression = isFinalRound;
-  const isFirstRound = roundNumber ? Number.parseInt(String(roundNumber)) === initialRoundNumber : false;
-  const isDoubles = matchUpType === 'DOUBLES';
-  const link =
-    ((searchActive || matchUp.isRoundRobin || matchUp.collectionId || params.isLucky || params.isAdHoc) && 'mr') ||
-    (noProgression && 'noProgression') ||
-    ((isQualifying || preFeedRound) && 'm0') ||
-    (moiety && 'm1') ||
-    'm2';
-
-  const linkResult = getLinkStyle({ composition, isDoubles, roundFactor, fontSize: params.fontSize })({
-    isFirstRound,
-    link
-  });
-  const linkClass = linkResult.className;
+  const { composition, initialRoundNumber = 1, matchUp, selectedMatchUpId } = params;
 
   const configuration = composition?.configuration || {};
   const { centerInfo } = configuration || {};
@@ -103,13 +74,10 @@ export function renderMatchUp(params: {
       ?.find((s) => s.sideNumber === sideNumber)
       ?.participant?.entryStatus?.replace('_', ' ');
 
-    const className = sideNumber === 2 ? linkClass : undefined;
-
     return renderCenterInfo({
       eventHandlers,
       entryStatus,
       sideNumber,
-      className,
       matchUp
     });
   };
@@ -122,7 +90,6 @@ export function renderMatchUp(params: {
     matchUp
   });
   const side2 = renderSide({
-    className: !centerInfo && linkClass,
     initialRoundNumber,
     eventHandlers,
     sideNumber: 2,
@@ -135,13 +102,9 @@ export function renderMatchUp(params: {
     const s1 = entryStatusDisplay({ sideNumber: 1 });
     const s2 = entryStatusDisplay({ sideNumber: 2 });
     component.appendChild(s1.element);
-    // Apply link connector CSS custom properties to the element that has the link class
-    if (s2.element) linkResult.applyStyles(s2.element);
     component.appendChild(s2.element);
   }
   component.appendChild(side2);
-  // Apply link connector CSS custom properties to side2 (or side container with link class)
-  if (!centerInfo) linkResult.applyStyles(side2);
 
   const footer = renderFooter({ configuration, eventHandlers, matchUp });
   if (footer) component.appendChild(footer);
@@ -241,13 +204,12 @@ function renderFooter({
 
 /**
  * This render's place in its structure, recorded on `.tmx-m` so `renderMatchUpInPlace` can re-render the
- * matchUp alone exactly as the structure did: the connector variant depends on moiety and round factor, and
- * neither can be recovered from the matchUp. Flags are written only when set.
+ * matchUp alone exactly as the structure did: the view's first round decides which draw positions show, and
+ * the flags shape the card. The connector belongs to the cell around the card, which an in-place swap keeps.
+ * Flags are written only when set.
  */
 function recordRenderParams(container: HTMLElement, params: Parameters<typeof renderMatchUp>[0]): void {
   const { dataset } = container;
-  if (params.moiety !== undefined) dataset.moiety = String(params.moiety);
-  if (params.roundFactor !== undefined) dataset.roundFactor = String(params.roundFactor);
   if (params.initialRoundNumber !== undefined) dataset.initialRound = String(params.initialRoundNumber);
   if (params.isFinalRound) dataset.finalRound = 'true';
   if (params.isLucky) dataset.lucky = 'true';

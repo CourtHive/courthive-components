@@ -377,7 +377,9 @@
   margin-inline-start: 0.5rem;
   text-transform: uppercase;
   font-size: 0.75rem;
-  line-height: 1rem;
+  /* 1, not 1rem: a 1rem box at this smaller size pokes out of the name's line and makes a seeded side 1px
+     taller per player, which moves a card's divider off its connector */
+  line-height: 1;
 }
 
 /* configuration.entryStatus, when the seed has no brackets to sit in */
@@ -923,77 +925,92 @@
 }
 
 /* ── Connector lines (links between rounds) ──────────────── */
-/* Dynamic dimensions are set via CSS custom properties on the element:
-   --chc-connector-w, --chc-link-m1-h, --chc-link-m2-h */
+/* An elimination round is a grid of equal rows (`.chc-round--cells`). Each matchUp sits in a cell
+   (`.chc-cell`), so a cell in the next round spans exactly the two cells it is fed by, and the connector is
+   drawn from the cell as percentages of its height: no JS heights, and nothing depends on how tall a card is
+   (a theme, a density, a wrapped name, a slot). Structure rendering vNext item 10.
 
-.chc-link::before {
-  border-block-start: var(--chc-border-width-matchup) solid var(--chc-border-primary);
-  left: calc(-1 * var(--chc-connector-w, 16px));
-  width: var(--chc-connector-w, 16px);
-  position: absolute;
-  border-radius: 2px;
-  top: -1px;
+   The line sits on the cell's centre. The card is offset in its cell so that its DIVIDER (the line between
+   the two sides) sits there, not its middle: by half the schedule header and half the footer, whose heights
+   are tokens. Only `--chc-connector-w` and the variant classes are set from JS. */
+
+.chc-round--cells {
+  grid-auto-rows: 1fr;
+  display: grid;
 }
 
+.chc-cell {
+  justify-content: center;
+  flex-direction: column;
+  position: relative;
+  display: flex;
+}
+
+.chc-structure--schedule-info {
+  --chc-connector-header: var(--chc-line-height-schedule-info);
+}
+
+.chc-structure--matchup-footer {
+  --chc-connector-footer: var(--chc-matchup-footer-h);
+}
+
+.chc-cell > .tmx-m {
+  /* and half a pixel more: the upper side carries the 1px internal divider, so it is that much taller */
+  top: calc((var(--chc-connector-footer, 0px) - var(--chc-connector-header, 0px)) / 2 - 0.5px);
+  position: relative;
+}
+
+.chc-link::before,
 .chc-link::after {
+  border: 0 solid var(--chc-color-connector);
   width: var(--chc-connector-w, 16px);
   position: absolute;
   border-radius: 2px;
-  left: 100%;
-}
-
-.chc-link::after,
-.chc-link::before {
-  border-width: var(--chc-border-width-matchup);
-  border-color: var(--chc-color-connector);
   display: block;
   content: '';
 }
 
-.chc-link--first-round::before {
-  height: 0;
-  width: 0;
-  border-width: 0;
+/* the line in, from the previous round's junction; the line sits just above the centre, as the card's own
+   divider does */
+.chc-link::before {
+  border-top-width: var(--chc-border-width-matchup);
+  left: calc(-1 * var(--chc-connector-w, 16px));
+  top: calc(50% - var(--chc-border-width-matchup));
 }
 
-/* m1: connector going DOWN from top of matchup */
+.chc-link::after {
+  left: 100%;
+}
+
+/* m1, the upper matchUp of a pair: out, then down to the junction at the cell's bottom edge */
 .chc-link--m1::after {
-  border-inline-end: var(--chc-border-width-matchup) solid var(--chc-color-connector);
-  border-top-style: solid;
-  height: var(--chc-link-m1-h, 0);
-  top: -1px;
-  /* the elbow: where the line out of the matchUp turns down */
   border-start-end-radius: var(--chc-radius-connector);
+  border-inline-end-width: var(--chc-border-width-matchup);
+  border-top-width: var(--chc-border-width-matchup);
+  top: calc(50% - var(--chc-border-width-matchup));
+  height: calc(50% + var(--chc-border-width-matchup));
 }
 
-/* m2: connector going UP from bottom of matchup */
+/* m2, the lower matchUp: up from the junction at the cell's top edge, then in to the card */
 .chc-link--m2::after {
-  bottom: calc(100%);
-  border-inline-end: var(--chc-border-width-matchup) solid var(--chc-color-connector);
-  border-bottom-style: solid;
-  height: var(--chc-link-m2-h, 0);
-  /* the elbow: where the line out of the matchUp turns up */
   border-end-end-radius: var(--chc-radius-connector);
+  border-inline-end-width: var(--chc-border-width-matchup);
+  border-bottom-width: var(--chc-border-width-matchup);
+  height: 50%;
+  top: 0;
 }
 
-/* m0: simple horizontal connector (qualifying/pre-feed) */
+/* m0: straight across (a feed round, a qualifying final) */
 .chc-link--m0::after {
-  border-top-style: solid;
-  border-color: var(--chc-color-connector);
-  top: -1px;
+  border-top-width: var(--chc-border-width-matchup);
+  top: calc(50% - var(--chc-border-width-matchup));
 }
 
-.chc-link--no-progression::after {
-  height: 0;
-  width: 0;
-  border-width: 0;
-}
-
+.chc-link--first-round::before,
+.chc-link--no-progression::after,
 .chc-link--no-link::before,
 .chc-link--no-link::after {
-  height: 0;
-  width: 0;
-  border-width: 0;
+  display: none;
 }
 
 /* ── Lucky loser badges ─────────────────────────────────── */
@@ -1023,6 +1040,11 @@
 /* ── MatchUp footer (round/match label below sides) ────── */
 
 .chc-matchup-footer {
+  /* a known height, which the connector offset relies on: a fixed line-height rather than the font's
+     `normal`; taller content (the inline-scoring buttons, a footer slot) grows it */
+  min-height: var(--chc-matchup-footer-h);
+  box-sizing: border-box;
+  line-height: 1rem;
   padding: 0.35rem 0.75rem;
   font-size: 0.75rem;
   color: var(--chc-color-matchup-footer-text, var(--chc-text-muted));
@@ -1078,8 +1100,8 @@
 }
 
 /* the line into a matchUp on the path, and out of one the participant won */
-.tmx-m.chc-path .chc-link::before,
-.tmx-m.chc-path--won .chc-link::after {
+.chc-cell:has(> .tmx-m.chc-path)::before,
+.chc-cell:has(> .tmx-m.chc-path--won)::after {
   border-color: var(--chc-path-color, var(--chc-border-focus));
 }
 

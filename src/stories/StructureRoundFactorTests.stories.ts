@@ -1,7 +1,11 @@
 /**
  * Structure — round-factor purity play-function tests.
  *
- * Connector heights scale by `roundFactor`, and a view scoped to a later round
+ * Since structure rendering vNext item 10, connector heights are not computed at all: a round is a grid of
+ * equal rows and the connector is drawn from each matchUp's cell. The invariant below still holds and is now
+ * measured as drawn. The history, kept because it is why these tests exist:
+ *
+ * Connector heights scaled by `roundFactor`, and a view scoped to a later round
  * (the R1|R2|QF|SF|F chips consumers render) has to rescale so the first visible
  * round draws at 1. `renderRound` used to do that by dividing
  * `matchUp.roundFactor` IN PLACE, which made the division compound: render the
@@ -34,9 +38,8 @@ const meta: Meta = {
 };
 export default meta;
 
-const LINK_HEIGHT_PROPERTY = '--chc-link-m1-h';
 const ROUND_CONTAINER_SELECTOR = '.tmx-rd';
-const LINK_SELECTOR = '.chc-link';
+const LINK_SELECTOR = '.chc-link--m1';
 const DRAW_SIZE = 16;
 
 function buildMatchUps(): any[] {
@@ -53,7 +56,9 @@ function buildMatchUps(): any[] {
 function firstRoundLinkHeight(structure: HTMLElement): string {
   const round = structure.querySelector(ROUND_CONTAINER_SELECTOR);
   const link = round?.querySelector(LINK_SELECTOR) as HTMLElement | null;
-  return link?.style.getPropertyValue(LINK_HEIGHT_PROPERTY) ?? '';
+  // the connector as DRAWN, in px (structure rendering vNext item 10 removed the --chc-link-m1-h property
+  // this used to read; the invariant is unchanged)
+  return link ? getComputedStyle(link, '::after').height : '';
 }
 
 export const ScopingDoesNotShrinkConnectors: StoryObj = {

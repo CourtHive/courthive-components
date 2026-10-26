@@ -93,6 +93,8 @@
   --chc-line-height-game-score: 2rem;
   --chc-line-height-center-info: 1.5rem;
   --chc-line-height-schedule-info: 1.8rem;
+  /* the footer's height, so the connector offset can account for it (draw.css, Connector lines) */
+  --chc-matchup-footer-h: calc(1.7rem + 1px); /* padding 0.35rem x 2 + a 1rem line + the 1px top border */
   --chc-border-width-matchup: 1px;
   --chc-border-width-matchup-inline: 1px 1px;
   --chc-border-width-inline-start: 1px;
