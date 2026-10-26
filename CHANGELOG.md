@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.1.1](https://github.com/CourtHive/courthive-components/compare/v7.1.0...v7.1.1) (2026-10-26)
+
+
+### Bug Fixes
+
+* **structure:** a round's first card no longer rides up into the round header ([#845](https://github.com/CourtHive/courthive-components/issues/845)) ([460a416](https://github.com/CourtHive/courthive-components/commit/460a4160c574cde2df2e69720192bb3f85a10107))
+
 ## [7.1.0](https://github.com/CourtHive/courthive-components/compare/v7.0.0...v7.1.0) (2026-10-26)
 
 
