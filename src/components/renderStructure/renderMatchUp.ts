@@ -91,6 +91,7 @@ export function renderMatchUp(params: {
   // state a host can style without post-render DOM passes
   if (matchUp.matchUpStatus) container.dataset.matchupStatus = matchUp.matchUpStatus;
   if (matchUp.matchUpStatus === 'IN_PROGRESS') container.dataset.live = 'true';
+  recordRenderParams(container, params);
 
   container.onclick = handleOnClick;
 
@@ -236,4 +237,20 @@ function renderFooter({
     else footer.textContent = label;
   }
   return footer;
+}
+
+/**
+ * This render's place in its structure, recorded on `.tmx-m` so `renderMatchUpInPlace` can re-render the
+ * matchUp alone exactly as the structure did: the connector variant depends on moiety and round factor, and
+ * neither can be recovered from the matchUp. Flags are written only when set.
+ */
+function recordRenderParams(container: HTMLElement, params: Parameters<typeof renderMatchUp>[0]): void {
+  const { dataset } = container;
+  if (params.moiety !== undefined) dataset.moiety = String(params.moiety);
+  if (params.roundFactor !== undefined) dataset.roundFactor = String(params.roundFactor);
+  if (params.initialRoundNumber !== undefined) dataset.initialRound = String(params.initialRoundNumber);
+  if (params.isFinalRound) dataset.finalRound = 'true';
+  if (params.isLucky) dataset.lucky = 'true';
+  if (params.isAdHoc) dataset.adHoc = 'true';
+  if (params.searchActive) dataset.searchActive = 'true';
 }
