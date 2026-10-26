@@ -15,7 +15,9 @@ const EXPECTED_NAMES = [
   'TYPTI',
   'BasicCard',
   'InlineScoring',
-  'National'
+  'National',
+  'Scoreboard',
+  'Watch'
 ];
 
 describe('compositions', () => {
@@ -73,6 +75,13 @@ describe('compositions', () => {
           'placeHolders',
           'scaleAttributes',
           'inlineScoring',
+          // scoreboard and watch options
+          'rounded',
+          'onlineResources',
+          'liveStatusPill',
+          'serverIndicator',
+          'sideColors',
+          'matchUpActions',
           // Modal-specific config keys (shared Configuration type)
           'clickAway',
           'backdrop',

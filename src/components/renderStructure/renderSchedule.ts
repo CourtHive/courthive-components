@@ -5,6 +5,8 @@ import { tools } from 'tods-competition-factory';
 import { isFunction } from '../modal/cmodal';
 import { renderSlot } from './renderSlot';
 import dayjs from 'dayjs';
+
+// constants and types
 import type { Configuration, EventHandlers, MatchUp } from '../../types';
 
 export function renderSchedule({
@@ -52,6 +54,17 @@ export function renderSchedule({
     dateDisplay.classList.add('chc-scheduling__elapsed');
     dateDisplay.textContent = formatElapsed(elapsed);
     dateDisplay.title = 'Playing time';
+  }
+
+  if (options.layout === 'inline') {
+    return renderInlineHeader(div, {
+      configuration,
+      eventHandlers,
+      matchUp,
+      dateDisplay,
+      location,
+      eventRound: options.eventRound
+    });
   }
 
   const handleVenueClick = (pointerEvent: MouseEvent) => {
@@ -112,6 +125,82 @@ export function renderSchedule({
   }
 
   return div;
+}
+
+/** `configuration.scheduleInfo.layout: 'inline'`: the parts on one line, then badges and online-resource icons. */
+function renderInlineHeader(
+  div: HTMLElement,
+  {
+    configuration,
+    eventHandlers,
+    matchUp,
+    dateDisplay,
+    location,
+    eventRound
+  }: {
+    configuration?: Configuration;
+    eventHandlers?: EventHandlers;
+    matchUp?: MatchUp;
+    dateDisplay: HTMLElement;
+    location: string;
+    eventRound?: boolean;
+  }
+): HTMLElement {
+  const parts = inlineParts({ matchUp, dateDisplay, location, eventRound });
+  const meta = document.createElement('div');
+  meta.className = 'chc-scheduling__meta';
+  parts.forEach((part, index) => {
+    if (index) {
+      const dot = document.createElement('span');
+      dot.className = 'chc-scheduling__dot';
+      dot.setAttribute('aria-hidden', 'true');
+      dot.textContent = '·';
+      meta.append(dot);
+    }
+    meta.append(part);
+  });
+  div.classList.add('chc-scheduling--inline');
+  div.append(meta);
+  const badges = matchUp && renderSlot(configuration?.renderers, 'matchUpBadges', { matchUp });
+  const onlineResources = renderOnlineResources({ configuration, eventHandlers, matchUp, placement: 'schedule' });
+  if (badges || onlineResources) {
+    const end = document.createElement('div');
+    end.className = 'chc-scheduling__end';
+    if (badges) end.append(badges);
+    if (onlineResources) end.append(onlineResources);
+    div.append(end);
+  }
+  return div;
+}
+
+/**
+ * `configuration.scheduleInfo.layout: 'inline'`: `Live · 0:16 · RMTA Court 8 · Men's Singles · R32`. `Live` only
+ * while in progress; the event and round only with `eventRound`; an empty part is left out.
+ */
+function inlineParts({
+  matchUp,
+  dateDisplay,
+  location,
+  eventRound
+}: {
+  matchUp?: MatchUp;
+  dateDisplay: HTMLElement;
+  location: string;
+  eventRound?: boolean;
+}): HTMLElement[] {
+  const span = (className: string, text?: string) => {
+    if (!text) return undefined;
+    const el = document.createElement('span');
+    el.className = className;
+    el.textContent = text;
+    return el;
+  };
+  const live = matchUp?.matchUpStatus === 'IN_PROGRESS' ? span('chc-scheduling__live', 'Live') : undefined;
+  const parts = [live, dateDisplay, span('chc-scheduling__location', location)];
+  if (eventRound) {
+    parts.push(span('chc-scheduling__event', matchUp?.eventName), span('chc-scheduling__round', matchUp?.roundName));
+  }
+  return parts.filter((part): part is HTMLElement => !!part);
 }
 
 /**

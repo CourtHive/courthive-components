@@ -42,7 +42,7 @@ export function getMatchUpOnlineResources(
 }
 
 /** Only http(s): an identifier is data from the record, and `javascript:` must never become a link. */
-function isWebUrl(identifier?: string): boolean {
+export function isWebUrl(identifier?: string): boolean {
   if (!identifier || !URL.canParse(identifier)) return false;
   const { protocol } = new URL(identifier);
   return protocol === 'https:' || protocol === 'http:';

@@ -224,8 +224,22 @@ export interface Schedule {
 export interface ScheduleInfoOptions {
   /** Playing time (`h:mm`) in place of the date, once the matchUp has started. */
   elapsed?: boolean;
-  /** `Men's Singles - R32` on the right of the header; the online-resource icons and location move left. */
+  /** The event and round: `Men's Singles - R32` (split layout) or two more `·` parts (inline layout). */
   eventRound?: boolean;
+  /**
+   * `split` (default): time on the left, location on the right — or, with `eventRound`, icons, time and location
+   * left and the event and round right. `inline`: one line of `·`-separated parts led by `Live` while in progress:
+   * `Live · 0:16 · RMTA Court 8 · Men's Singles · R32`.
+   */
+  layout?: 'split' | 'inline';
+}
+
+/** Actions under the card, each rendered only when it can do something. */
+export interface MatchUpActions {
+  /** A `Watch` button when the matchUp has a STREAM or VIDEO resource; it opens it as the header icons do. */
+  watch?: boolean;
+  /** A share button, when the host supplies `eventHandlers.matchUpShare`. */
+  share?: boolean;
 }
 
 export type SideColors =
@@ -269,10 +283,13 @@ export interface Configuration {
    */
   sideColors?: SideColors;
   /**
-   * A serve indicator from `matchUp.serverSideNumber`, while the matchUp is unfinished. Both sides get the column
-   * so the scores stay aligned; the serving side's dot is filled. Off by default.
+   * A serve indicator from `matchUp.serverSideNumber`, while the matchUp is unfinished. Off by default.
+   * `true` / `'column'`: a column on both sides, so the scores stay aligned, filled on the server's.
+   * `'name'`: a dot just after the serving side's name.
    */
-  serverIndicator?: boolean;
+  serverIndicator?: boolean | 'column' | 'name';
+  /** Watch and share actions under the card. Off by default. */
+  matchUpActions?: MatchUpActions;
   /**
    * The `LIVE` pill on each side of an in-progress matchUp. On unless set `false`: a scoreboard whose header and
    * point score already say the matchUp is live turns it off. Inline scoring's own live chip is not affected.
@@ -586,6 +603,8 @@ export interface EventHandlers {
   inlineRedo?: (params: { matchUpId: string }) => void;
   inlineClear?: (params: { matchUpId: string }) => void;
   inlineSubmit?: (params: { matchUpId: string }) => void;
+  /** `configuration.matchUpActions.share`: the host shares the matchUp (a link, a native share sheet, …). */
+  matchUpShare?: (params: { pointerEvent: MouseEvent; matchUp: MatchUp }) => void;
   onlineResourceClick?: (params: {
     pointerEvent: MouseEvent;
     matchUp: MatchUp;

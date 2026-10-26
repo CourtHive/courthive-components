@@ -12,6 +12,8 @@ import type { CompositionEditorState, EditorPanel } from './compositionEditorTyp
 import type { Composition } from '../../types';
 import { KNOWN_SCALES } from './scaleConstants';
 
+const PREVIEW_HANDLERS = { matchUpShare: () => undefined };
+
 // Generate mock matchUps once — reuse across renders
 let cachedMatchUps: any[] | null = null;
 
@@ -139,6 +141,35 @@ function getMockMatchUps() {
       ]
     };
 
+    // what the scoreboard options read: place and playing time, event and round, server, stream and video
+    const resource = (resourceSubType: string, name: string) => ({
+      resourceType: 'URL',
+      resourceSubType,
+      name,
+      identifier: `https://courthive.com/#${name}`
+    });
+    const live = inProgressMatchUp as any;
+    Object.assign(live, {
+      eventName: "Men's Singles",
+      roundName: 'R32',
+      serverSideNumber: 2,
+      onlineResources: [resource('STREAM', 'liveStream'), resource('VIDEO', 'matchVideo')],
+      schedule: { courtName: 'Court 2', venueAbbreviation: 'RMTA', milliseconds: 16 * 60_000 }
+    });
+    if (completed[0]) {
+      Object.assign(completed[0], {
+        eventName: "Men's Singles",
+        roundName: 'R32',
+        onlineResources: [resource('VIDEO', 'matchVideo')],
+        schedule: {
+          ...completed[0].schedule,
+          courtName: 'Court 11',
+          venueAbbreviation: 'RMTA',
+          milliseconds: 67 * 60_000
+        }
+      });
+    }
+
     cachedMatchUps = [...completed, inProgressMatchUp, byeMatchUp, tbdMatchUp, qualifierMatchUp];
   }
   return cachedMatchUps;
@@ -201,7 +232,8 @@ export function buildCompositionPreview(): EditorPanel {
     // matchUpFooter flag — only the preview render is overridden.
     const composition: Composition = {
       theme: state.theme,
-      configuration: { ...state.configuration, matchUpFooter: true },
+      // an explicit `matchUpFooter: false` (Scoreboard, Watch) is honoured: those cards have no footer
+      configuration: { ...state.configuration, matchUpFooter: state.configuration.matchUpFooter !== false },
       colors: state.colors ? { ...state.colors } : undefined
     };
 
@@ -223,6 +255,8 @@ export function buildCompositionPreview(): EditorPanel {
       const rendered = renderMatchUp({
         matchUp,
         composition,
+        // a share handler, so matchUpActions.share has a button to show
+        eventHandlers: PREVIEW_HANDLERS,
         isLucky: true
       });
       wrapper.appendChild(rendered);
