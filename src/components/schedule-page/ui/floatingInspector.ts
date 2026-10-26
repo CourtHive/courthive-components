@@ -1,6 +1,12 @@
 import type { InspectorGeometry } from '../types';
 
 const ARIA_LABEL = 'aria-label';
+// Header actions are icons; the label is the accessible name and the hover text
+const svg = (path: string) =>
+  `<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+const RESET_ICON = svg('<circle cx="8" cy="8" r="5"/><path d="M8 1v3M8 12v3M1 8h3M12 8h3"/>');
+const DOCK_ICON = svg('<rect x="2" y="2.5" width="12" height="11" rx="1.5"/><path d="M2 10h12"/>');
+const CLOSE_ICON = svg('<path d="M4 4l8 8M12 4l-8 8"/>');
 const ARROW_DIRECTIONS: Record<string, [number, number]> = {
   ArrowRight: [1, 0],
   ArrowLeft: [-1, 0],
@@ -46,23 +52,26 @@ export function buildFloatingInspector(panel: HTMLElement, options: FloatingInsp
   title.textContent = 'Inspector';
   header.appendChild(title);
   let returnFocus: HTMLElement | null = null;
-  function button(label: string, action: () => void): HTMLButtonElement {
+  function button(label: string, icon: string, action: () => void): HTMLButtonElement {
     const button = document.createElement('button');
     button.type = 'button';
-    button.textContent = label;
+    button.className = 'spl-floating-icon';
+    button.title = label;
+    button.setAttribute(ARIA_LABEL, label);
+    button.innerHTML = icon;
     button.addEventListener('click', action);
     header.appendChild(button);
     return button;
   }
-  button('Reset position', () => {
+  button('Reset position', RESET_ICON, () => {
     geometry = clampInspectorGeometry({}, globalThis.innerWidth, globalThis.innerHeight);
     paint(true);
   });
-  button('Dock', () => {
+  button('Dock', DOCK_ICON, () => {
     options.onDock();
     returnFocus?.focus();
   });
-  button('Close', () => {
+  button('Close', CLOSE_ICON, () => {
     options.onClose();
     returnFocus?.focus();
   });

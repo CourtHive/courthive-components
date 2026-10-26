@@ -60,7 +60,15 @@ describe('schedule presentation', () => {
     control.setCatalogVisible(false);
     const floating = host.querySelector<HTMLElement>('.spl-floating-inspector')!;
     expect(floating.hidden).toBe(false);
-    const close = [...floating.querySelectorAll('button')].find((button) => button.textContent === 'Close')!;
+    // header actions are icons: no text, the label is the accessible name and the hover text
+    const actions = [...floating.querySelectorAll<HTMLButtonElement>('.spl-floating-header button')];
+    expect(actions.map((button) => [button.getAttribute('aria-label'), button.title, button.textContent])).toEqual([
+      ['Reset position', 'Reset position', ''],
+      ['Dock', 'Dock', ''],
+      ['Close', 'Close', '']
+    ]);
+    expect(actions.every((button) => button.querySelector('svg'))).toBe(true);
+    const close = actions.find((button) => button.getAttribute('aria-label') === 'Close')!;
     close.click();
     expect(control.inspectorVisible).toBe(false);
     expect(floating.hidden).toBe(true);
