@@ -397,6 +397,75 @@
   width: 100%;
 }
 
+/* ── Online resources (configuration.onlineResources) ──── */
+
+.chc-online-resources {
+  margin-inline-end: 0.35rem;
+  align-items: center;
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+/* no schedule header: a badge straddling the card's top border, at the start corner (TMX floats its
+   own crowd badge at the end corner) */
+.chc-online-resources--corner {
+  border: 1px solid var(--chc-border-secondary);
+  background-color: var(--chc-bg-elevated);
+  border-radius: var(--chc-radius-pill);
+  inset-inline-start: 0.6rem;
+  position: absolute;
+  padding: 0 0.2rem;
+  top: -0.8rem;
+  z-index: 1;
+  margin: 0;
+}
+
+.chc-online-resource {
+  color: var(--chc-online-resource-color, var(--chc-text-link));
+  background: transparent;
+  justify-content: center;
+  text-decoration: none;
+  align-items: center;
+  display: inline-flex;
+  cursor: pointer;
+  height: 1.1rem;
+  width: 1.1rem;
+  line-height: 1;
+  padding: 0;
+  border: 0;
+}
+
+.chc-online-resource svg {
+  fill: currentColor;
+  height: 0.95rem;
+  width: 0.95rem;
+}
+
+.chc-online-resource:focus-visible {
+  outline: 2px solid var(--chc-border-focus);
+  outline-offset: 1px;
+  border-radius: 2px;
+}
+
+.chc-online-resource__live-dot {
+  background-color: var(--chc-online-resource-live, var(--chc-status-error));
+  border-radius: 50%;
+  height: 0.55rem;
+  width: 0.55rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .chc-online-resource__live-dot {
+    animation: chc-live-dot 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes chc-live-dot {
+  50% {
+    opacity: 0.35;
+  }
+}
+
 /* ── Scale badge ─────────────────────────────────────────── */
 
 .chc-scale {

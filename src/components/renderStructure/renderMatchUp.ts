@@ -3,6 +3,7 @@ import { matchUpContainerStyle } from '../../styles/matchUpContainerStyle';
 import { getMatchUpStyle } from '../../styles/getMatchUpStyle';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { renderCenterInfo } from './renderCenterInfo';
+import { hasVideo } from './renderOnlineResources';
 import { getLinkStyle } from '../../styles/getLinkStyle';
 import { isFunction } from '../modal/cmodal';
 import { renderSide } from './renderSide';
@@ -82,6 +83,8 @@ export function renderMatchUp(params: {
   // event metadata
   container.classList.add('tmx-m');
   container.setAttribute('id', matchUp?.matchUpId);
+  // a fact about the matchUp, set whether or not configuration.onlineResources shows the icon
+  if (hasVideo(matchUp)) container.dataset.hasVideo = 'true';
 
   container.onclick = handleOnClick;
 

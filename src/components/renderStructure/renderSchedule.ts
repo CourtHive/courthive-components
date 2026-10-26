@@ -1,15 +1,18 @@
+import { renderOnlineResources } from './renderOnlineResources';
 import { schedulingStyle } from '../../styles/schedulingStyle';
 import { tools } from 'tods-competition-factory';
 import { isFunction } from '../modal/cmodal';
 import dayjs from 'dayjs';
-import type { EventHandlers, MatchUp } from '../../types';
+import type { Configuration, EventHandlers, MatchUp } from '../../types';
 
 export function renderSchedule({
-  matchUp,
-  eventHandlers
+  configuration,
+  eventHandlers,
+  matchUp
 }: {
-  matchUp?: MatchUp;
+  configuration?: Configuration;
   eventHandlers?: EventHandlers;
+  matchUp?: MatchUp;
 }): HTMLElement {
   const { scheduledTime, scheduledDate, venueAbbreviation, courtName } = matchUp?.schedule || {};
   const {
@@ -56,6 +59,10 @@ export function renderSchedule({
 
   const optionsRight = document.createElement('div');
   optionsRight.style = 'display: flex; flex-direction: row';
+
+  // configuration.onlineResources: at the start of the right-hand group, before the location
+  const onlineResources = renderOnlineResources({ configuration, eventHandlers, matchUp, placement: 'schedule' });
+  if (onlineResources) optionsRight.append(onlineResources);
 
   const locationDisplay = document.createElement('div');
   locationDisplay.style.paddingRight = '.2rem';
