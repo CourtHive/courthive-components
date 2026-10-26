@@ -380,6 +380,21 @@
   line-height: 1rem;
 }
 
+/* configuration.entryStatus, when the seed has no brackets to sit in */
+.chc-entry-status {
+  color: var(--chc-text-muted);
+  margin-inline-start: 0.3rem;
+  font-weight: 600;
+}
+
+/* configuration.upsetMarker */
+.chc-upset-marker {
+  color: var(--chc-upset-color, var(--chc-status-warning));
+  margin-inline-end: 0.2rem;
+  font-size: 0.6rem;
+  line-height: 1rem;
+}
+
 /* ── Scheduling info bar ─────────────────────────────────── */
 
 .chc-scheduling {

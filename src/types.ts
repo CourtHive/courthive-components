@@ -252,6 +252,17 @@ export interface Configuration {
    */
   seedingBasisMarker?: boolean;
   /**
+   * The side's entry status beside its seed: `[1, WC]` inside the seed's brackets when `bracketedSeeds` is
+   * set, otherwise a small tag. `true` shows every status but direct acceptance; `'all'` shows that too.
+   * Off by default. Lucky losers keep their own `LL` badge.
+   */
+  entryStatus?: boolean | 'all';
+  /**
+   * A ▲ before the winner's tick when a seed was beaten on court (completed or retired) by an unseeded
+   * side or a lower seed. Off by default. `.tmx-m` carries `data-upset` either way.
+   */
+  upsetMarker?: boolean;
+  /**
    * @deprecated Adds the class `chc-matchup--custom-hover`, which no CSS rule styles, so it changes
    * nothing on screen. Use `colors.borderHover` on the composition.
    *

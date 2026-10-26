@@ -4,6 +4,7 @@ import { getMatchUpStyle } from '../../styles/getMatchUpStyle';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { renderCenterInfo } from './renderCenterInfo';
 import { hasVideo } from './renderOnlineResources';
+import { upsetOf } from './matchUpState';
 import { getLinkStyle } from '../../styles/getLinkStyle';
 import { isFunction } from '../modal/cmodal';
 import { renderSide } from './renderSide';
@@ -85,6 +86,7 @@ export function renderMatchUp(params: {
   container.setAttribute('id', matchUp?.matchUpId);
   // a fact about the matchUp, set whether or not configuration.onlineResources shows the icon
   if (hasVideo(matchUp)) container.dataset.hasVideo = 'true';
+  if (upsetOf(matchUp)) container.dataset.upset = 'true';
 
   container.onclick = handleOnClick;
 

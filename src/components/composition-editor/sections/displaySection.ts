@@ -2,6 +2,8 @@ import type { CompositionEditorStore } from '../compositionEditorStore';
 import type { CompositionEditorState, EditorPanel } from '../compositionEditorTypes';
 import { buildToggleField, buildSelectField } from './fieldBuilders';
 
+const entryStatusValue = (value?: boolean | 'all'): string => (value === 'all' ? 'all' : value ? 'true' : '');
+
 export function buildDisplaySection(store: CompositionEditorStore): EditorPanel {
   const root = document.createElement('div');
   const readOnly = store.getState().readOnly;
@@ -60,6 +62,24 @@ export function buildDisplaySection(store: CompositionEditorStore): EditorPanel 
     readOnly
   );
 
+  const entryStatus = buildSelectField(
+    'Entry status beside seed',
+    [
+      { value: '', label: 'None' },
+      { value: 'true', label: 'All but direct acceptance' },
+      { value: 'all', label: 'All' }
+    ],
+    entryStatusValue(cfg.entryStatus),
+    (v) => store.setConfigField('entryStatus', v === 'all' ? 'all' : v === 'true' || undefined),
+    readOnly
+  );
+  const upsetMarker = buildToggleField(
+    'Upset marker',
+    !!cfg.upsetMarker,
+    (v) => store.setConfigField('upsetMarker', v),
+    readOnly
+  );
+
   root.appendChild(flags.element);
   root.appendChild(bracketedSeeds.element);
   root.appendChild(seedingElement.element);
@@ -67,6 +87,8 @@ export function buildDisplaySection(store: CompositionEditorStore): EditorPanel 
   root.appendChild(allDrawPositions.element);
   root.appendChild(teamLogo.element);
   root.appendChild(onlineResources.element);
+  root.appendChild(entryStatus.element);
+  root.appendChild(upsetMarker.element);
 
   function update(state: CompositionEditorState): void {
     const c = state.configuration;
@@ -77,6 +99,8 @@ export function buildDisplaySection(store: CompositionEditorStore): EditorPanel 
     allDrawPositions.setChecked(!!c.allDrawPositions);
     teamLogo.setChecked(c.teamLogo !== false);
     onlineResources.setChecked(!!c.onlineResources);
+    entryStatus.setValue(entryStatusValue(c.entryStatus));
+    upsetMarker.setChecked(!!c.upsetMarker);
   }
 
   return { element: root, update };

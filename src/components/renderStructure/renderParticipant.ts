@@ -3,6 +3,7 @@ import { getChevronStyle } from '../../styles/getChevronStyle';
 import { renderIndividual } from './renderIndividual';
 import { renderStatusPill } from './renderStatusPill';
 import { isElement } from '../../utilities/isElement';
+import { upsetOf, upsetTitle } from './matchUpState';
 import { renderTeamLogo } from './renderTeamLogo';
 import { renderTick } from './renderTick';
 
@@ -139,9 +140,19 @@ function buildEndMatter({
     };
     endMatter.appendChild(livePill);
   } else if (isWinningSide && !gameScoreOnly) {
+    // configuration.upsetMarker: before the winner's tick
+    const upset = configuration?.upsetMarker ? upsetOf(matchUp) : undefined;
+    if (upset?.winningSide === sideNumber) {
+      const marker = document.createElement('span');
+      marker.className = 'chc-upset-marker';
+      marker.textContent = '▲';
+      marker.title = upsetTitle(upset);
+      marker.setAttribute('aria-label', marker.title);
+      endMatter.appendChild(marker);
+    }
     const tick = renderTick();
     if (typeof tick === 'string') {
-      endMatter.innerHTML = tick;
+      endMatter.insertAdjacentHTML('beforeend', tick);
     } else {
       endMatter.appendChild(tick);
     }

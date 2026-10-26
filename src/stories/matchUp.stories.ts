@@ -1191,3 +1191,33 @@ export const OnlineResources = {
     return renderContainer({ theme: composition.theme, content });
   }
 };
+
+/**
+ * `configuration.upsetMarker` (▲ before the winner's tick when a seed is beaten on court) and
+ * `configuration.entryStatus` (`[1, WC]` beside the seed).
+ */
+export const UpsetAndEntryStatus = {
+  args: { composition: 'Australian', bracketedSeeds: 'square', entryStatus: true, upsetMarker: true },
+  argTypes: {
+    ...argTypes,
+    bracketedSeeds: { options: ['square', true, false], control: { type: 'select' } },
+    entryStatus: { options: [false, true, 'all'], control: { type: 'select' } },
+    upsetMarker: { control: { type: 'boolean' } }
+  },
+  render: (args: any) => {
+    const base = compositions[args.composition || 'Australian'];
+    const { bracketedSeeds, entryStatus, upsetMarker } = args;
+    const composition = { ...base, configuration: { ...base.configuration, bracketedSeeds, entryStatus, upsetMarker } };
+    const { matchUps } = generateMatchUps({ drawSize: 2, randomWinningSide: false });
+    const matchUp: any = structuredClone(matchUps[0]);
+    matchUp.winningSide = 2;
+    matchUp.matchUpStatus = 'COMPLETED';
+    matchUp.sides[0].seedValue = 1;
+    matchUp.sides[0].participant.entryStatus = 'DIRECT_ACCEPTANCE';
+    matchUp.sides[1].participant.entryStatus = 'WILDCARD';
+    const content = document.createElement('div');
+    content.style.maxWidth = '500px';
+    content.appendChild(renderMatchUp({ matchUp, composition }));
+    return renderContainer({ theme: composition.theme, content });
+  }
+};
