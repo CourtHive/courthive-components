@@ -1,7 +1,7 @@
 export { renderParticipant } from './components/renderStructure/renderParticipant';
 export { renderParticipantInput } from './components/renderStructure/renderParticipantInput';
 export { renderRoundHeader } from './components/renderStructure/renderRoundHeader';
-export { renderStructure } from './components/renderStructure/renderStructure';
+export { renderStructure, applyFavourites } from './components/renderStructure/renderStructure';
 export { renderContainer } from './components/renderStructure/renderContainer';
 export { renderMatchUp } from './components/renderStructure/renderMatchUp';
 export { compositions } from './compositions/compositions';

@@ -51,6 +51,13 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
     readOnly
   );
 
+  const pathHighlight = buildToggleField(
+    'Path highlight on hover',
+    !!cfg.pathHighlight,
+    (v) => store.setConfigField('pathHighlight', v),
+    readOnly
+  );
+
   root.appendChild(scheduleInfo.element);
   root.appendChild(roundHeader.element);
   root.appendChild(matchUpFooter.element);
@@ -58,6 +65,7 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
   root.appendChild(resultsInfo.element);
   root.appendChild(winnerChevron.element);
   root.appendChild(rounded.element);
+  root.appendChild(pathHighlight.element);
 
   function update(state: CompositionEditorState): void {
     const c = state.configuration;
@@ -68,6 +76,7 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
     resultsInfo.setChecked(!!c.resultsInfo);
     winnerChevron.setChecked(!!c.winnerChevron);
     rounded.setChecked(!!c.rounded);
+    pathHighlight.setChecked(!!c.pathHighlight);
   }
 
   return { element: root, update };

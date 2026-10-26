@@ -263,6 +263,13 @@ export interface Configuration {
    */
   upsetMarker?: boolean;
   /**
+   * Hovering a participant also marks their path through the structure: every matchUp they appear in
+   * (`.chc-path`), the connectors out of the matchUps they won, and, while they are still alive, the
+   * matchUps ahead of them by draw position (`.chc-path--projected`, dashed). Nothing is projected in
+   * round robin, ad hoc or lucky draws. Off by default; the hovered sides highlight either way.
+   */
+  pathHighlight?: boolean;
+  /**
    * @deprecated Adds the class `chc-matchup--custom-hover`, which no CSS rule styles, so it changes
    * nothing on screen. Use `colors.borderHover` on the composition.
    *

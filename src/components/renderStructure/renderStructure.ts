@@ -4,6 +4,7 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { structureStyle } from '../../styles/structureStyle';
 import { readBodyFontSize } from '../../styles/getLinkStyle';
 import { roundStyle } from '../../styles/roundStyle';
+import { buildPathIndex } from './structurePaths';
 import { isLuckyDraw } from './isLuckyDraw';
 import { renderRound } from './renderRound';
 import type { Composition, EventHandlers, MatchUp } from '../../types';
@@ -16,6 +17,7 @@ export function renderStructure({
   composition,
   structureId,
   finalColumn,
+  favourites,
   matchUps,
   minWidth,
   context
@@ -27,6 +29,11 @@ export function renderStructure({
   composition?: Composition;
   structureId?: string;
   finalColumn?: boolean | HTMLElement;
+  /**
+   * participantIds the host pins (a pair's or an individual's): their sides take the favourite style and
+   * their matchUps carry `data-favourite`. Host state, so a parameter rather than a composition option.
+   */
+  favourites?: string[] | Set<string>;
   matchUps: MatchUp[];
   minWidth?: string;
   context?: any;
@@ -81,6 +88,24 @@ export function renderStructure({
     div.appendChild(round);
   }
 
+  applyFavourites(div, favourites);
+
+  // configuration.pathHighlight: the hovered participant's matchUps, the connectors they travelled and,
+  // while they are alive, the matchUps ahead. Indexed lazily, per participant, on first hover.
+  const pathOf =
+    composition?.configuration?.pathHighlight &&
+    buildPathIndex({ matchUps, roundProfile, projectable: !isRoundRobin && !isLucky && !hasNoRoundPositions });
+  const togglePath = (pid: string, add: boolean) => {
+    const path = pathOf ? pathOf(pid) : undefined;
+    if (!path) return;
+    const mark = (ids: string[], className: string) => {
+      for (const id of ids) div.querySelector(`.tmx-m[id="${CSS.escape(id)}"]`)?.classList.toggle(className, add);
+    };
+    mark(path.played, 'chc-path');
+    mark(path.won, 'chc-path--won');
+    mark(path.projected, 'chc-path--projected');
+  };
+
   // Highlight all appearances of a participant on hover using event delegation.
   // Detect hover on .tmx-i (individual), then highlight the .tmx-p (participant container)
   // ancestor of every .tmx-i sharing the same participantId.
@@ -90,6 +115,7 @@ export function renderStructure({
       const container = el.closest('.tmx-p');
       container?.classList.toggle('chc-participant-hover', add);
     });
+    togglePath(pid, add);
   };
   div.addEventListener('mouseover', (e) => {
     const target = (e.target as HTMLElement).closest('.tmx-i') as HTMLElement | null;
@@ -123,4 +149,21 @@ export function renderStructure({
   }
 
   return div;
+}
+
+/**
+ * Mark the sides of pinned participants. A side matches on its own participantId (a pair, a team) or on any
+ * of its individuals', so pinning one player of a pair pins the pair's side. Exported for hosts that render
+ * matchUps one at a time.
+ */
+export function applyFavourites(root: HTMLElement, favourites?: string[] | Set<string>): void {
+  const pinned = favourites instanceof Set ? favourites : new Set(favourites ?? []);
+  if (!pinned.size) return;
+  for (const side of root.querySelectorAll<HTMLElement>('.tmx-p')) {
+    const ids = [side.id, ...[...side.querySelectorAll<HTMLElement>('.tmx-i')].map((el) => el.id)];
+    if (!ids.some((id) => id && pinned.has(id))) continue;
+    side.classList.add('chc-participant--favourite');
+    const matchUp = side.closest<HTMLElement>('.tmx-m');
+    if (matchUp) matchUp.dataset.favourite = 'true';
+  }
 }
