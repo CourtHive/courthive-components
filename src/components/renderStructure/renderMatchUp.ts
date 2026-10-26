@@ -1,6 +1,7 @@
 import { getSelectedMatchUpStyle } from '../../styles/getSelectedMatchUpStyle';
 import { matchUpContainerStyle } from '../../styles/matchUpContainerStyle';
 import { getMatchUpStyle } from '../../styles/getMatchUpStyle';
+import { renderMatchUpActions } from './renderMatchUpActions';
 import { renderCenterInfo } from './renderCenterInfo';
 import { hasVideo } from './renderOnlineResources';
 import { renderSlot } from './renderSlot';
@@ -109,6 +110,10 @@ export function renderMatchUp(params: {
 
   const footer = renderFooter({ configuration, eventHandlers, matchUp });
   if (footer) component.appendChild(footer);
+
+  // configuration.matchUpActions: Watch and Share under the card
+  const actions = renderMatchUpActions({ configuration, eventHandlers, matchUp });
+  if (actions) component.appendChild(actions);
 
   container.appendChild(component);
 

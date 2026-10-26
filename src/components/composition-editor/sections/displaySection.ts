@@ -50,7 +50,7 @@ export function buildDisplaySection(store: CompositionEditorStore): EditorPanel 
   );
   const teamLogo = buildToggleField(
     'Team logo',
-    cfg.teamLogo !== false,
+    !!cfg.teamLogo, // the renderer draws a logo only when teamLogo is set
     (v) => store.setConfigField('teamLogo', v),
     readOnly
   );
@@ -97,7 +97,7 @@ export function buildDisplaySection(store: CompositionEditorStore): EditorPanel 
     seedingElement.setValue(c.seedingElement || '');
     drawPositions.setChecked(!!c.drawPositions);
     allDrawPositions.setChecked(!!c.allDrawPositions);
-    teamLogo.setChecked(c.teamLogo !== false);
+    teamLogo.setChecked(!!c.teamLogo);
     onlineResources.setChecked(!!c.onlineResources);
     entryStatus.setValue(entryStatusValue(c.entryStatus));
     upsetMarker.setChecked(!!c.upsetMarker);

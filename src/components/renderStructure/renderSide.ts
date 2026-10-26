@@ -76,7 +76,13 @@ export function renderSide({
 
   sideRow.appendChild(participant);
 
-  if (servingSide) sideRow.appendChild(renderServer(servingSide === sideNumber));
+  if (servingSide && configuration.serverIndicator === 'name') {
+    // after the serving side's name; nothing on the other side
+    const name = servingSide === sideNumber && participant.querySelector('.chc-participant-name');
+    if (name) name.appendChild(renderServer(true, 'name'));
+  } else if (servingSide) {
+    sideRow.appendChild(renderServer(servingSide === sideNumber));
+  }
 
   if (scoreBox) {
     const box = document.createElement('div');
@@ -175,10 +181,10 @@ function markSide(
   if (servingSide === sideNumber) div.dataset.serving = 'true';
 }
 
-/** configuration.serverIndicator: a column on both sides, so the scores stay aligned; filled on the server's. */
-function renderServer(serving: boolean): HTMLElement {
+/** configuration.serverIndicator: a column on both sides (scores stay aligned), filled on the server's; or a dot after the server's name. */
+function renderServer(serving: boolean, position: 'column' | 'name' = 'column'): HTMLElement {
   const server = document.createElement('span');
-  server.className = serving ? 'chc-server chc-server--active' : 'chc-server';
+  server.className = cx('chc-server', serving && 'chc-server--active', position === 'name' && 'chc-server--name');
   if (serving) {
     server.title = 'Serving';
     server.setAttribute('aria-label', 'Serving');

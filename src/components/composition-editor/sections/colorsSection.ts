@@ -1,7 +1,15 @@
-import type { CompositionEditorStore } from '../compositionEditorStore';
 import type { CompositionEditorState, EditorPanel } from '../compositionEditorTypes';
+import type { CompositionEditorStore } from '../compositionEditorStore';
 import type { CompositionColors } from '../../../types';
-import { ceField, ceFieldLabel, ceFieldControl, ceColorInput, ceTextInput } from '../styles';
+import {
+  ceField,
+  ceFieldLabel,
+  ceFieldControl,
+  ceColorInput,
+  ceTextInput,
+  ceSubgroup,
+  ceSubgroupTitle
+} from '../styles';
 
 interface ColorRowDef {
   key: keyof CompositionColors;
@@ -140,6 +148,39 @@ export function buildColorsSection(store: CompositionEditorStore): EditorPanel {
   widthRow.appendChild(widthControl);
   root.appendChild(widthRow);
 
+  // configuration.sideColors: a colour per side (a scoreboard's team colours); both blank turns it off
+  const sideGroup = document.createElement('div');
+  sideGroup.className = ceSubgroup();
+  const sideTitle = document.createElement('div');
+  sideTitle.className = ceSubgroupTitle();
+  sideTitle.textContent = 'Side colours';
+  sideGroup.appendChild(sideTitle);
+  const sideHint = document.createElement('div');
+  sideHint.style.cssText = hint.style.cssText;
+  sideHint.textContent = 'Colours each side: the winner, the server, the point score. Blank both to turn off.';
+  sideGroup.appendChild(sideHint);
+  const sideColorsOf = (state: CompositionEditorState) => {
+    const sideColors = state.configuration.sideColors;
+    return sideColors && typeof sideColors === 'object' ? sideColors : {};
+  };
+  const setSideColor = (sideNumber: 1 | 2, value: string | undefined) => {
+    const next = { ...sideColorsOf(store.getState()), [sideNumber]: value };
+    if (!next[1]) delete next[1];
+    if (!next[2]) delete next[2];
+    store.setConfigField('sideColors', next[1] || next[2] ? next : undefined);
+  };
+  const sideControls = ([1, 2] as const).map((sideNumber) => {
+    const ctrl = buildColorRow(
+      { key: `side${sideNumber}` as keyof CompositionColors, label: `Side ${sideNumber}` },
+      sideColorsOf(store.getState())[sideNumber],
+      (value) => setSideColor(sideNumber, value),
+      readOnly
+    );
+    sideGroup.appendChild(ctrl.element);
+    return { sideNumber, ctrl };
+  });
+  root.appendChild(sideGroup);
+
   // Clear button
   const clearBtn = document.createElement('button');
   clearBtn.type = 'button';
@@ -156,6 +197,7 @@ export function buildColorsSection(store: CompositionEditorStore): EditorPanel {
       ctrl.setValue(state.colors?.[def.key] as string | undefined);
     }
     widthInput.value = state.colors?.borderInlineStartWidth || '';
+    for (const { sideNumber, ctrl } of sideControls) ctrl.setValue(sideColorsOf(state)[sideNumber]);
   }
 
   return { element: root, update };
