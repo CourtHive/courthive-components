@@ -1,6 +1,8 @@
 import { tournamentEngine } from 'tods-competition-factory';
 import { renderSchematicRound } from './renderSchematicRound';
-import type { SchematicMatchUp } from './renderSchematicMatchUp';
+
+// constants and types
+import type { SchematicMatchUp, SchematicOptions } from './renderSchematicMatchUp';
 
 /**
  * Compact bracket renderer showing structure shape without participant details.
@@ -11,12 +13,15 @@ export function renderSchematicStructure({
   initialRoundNumber = 1,
   showHeaders = true,
   structureId,
-  matchUps
+  matchUps,
+  options
 }: {
   initialRoundNumber?: number;
   showHeaders?: boolean;
   structureId?: string;
   matchUps: SchematicMatchUp[];
+  /** geometry and colours; defaults reproduce the original rendering */
+  options?: SchematicOptions;
 }): HTMLElement {
   const { roundNumbers, roundProfile, roundsNotPowerOf2, hasNoRoundPositions } = tournamentEngine.getRoundMatchUps({
     matchUps
@@ -29,6 +34,7 @@ export function renderSchematicStructure({
   const div = document.createElement('div');
   div.className = 'chc-schematic-structure';
   if (structureId) div.setAttribute('id', `schematic-${structureId}`);
+  applySchematicOptions(div, options);
 
   const finalRoundNumber = roundNumbers.length ? Math.max(...roundNumbers) : 0;
 
@@ -38,6 +44,7 @@ export function renderSchematicStructure({
 
     const round = renderSchematicRound({
       showHeader: showHeaders,
+      options,
       initialRoundFactor,
       initialRoundNumber,
       isRoundRobin,
@@ -50,4 +57,19 @@ export function renderSchematicStructure({
   }
 
   return div;
+}
+
+const px = (value?: number) => (typeof value === 'number' && Number.isFinite(value) ? `${value}px` : undefined);
+
+function applySchematicOptions(root: HTMLElement, options?: SchematicOptions): void {
+  const properties: Record<string, string | undefined> = {
+    '--chc-schematic-slot-h': px(options?.slotHeight),
+    '--chc-schematic-matchup-w': px(options?.matchUpWidth),
+    '--chc-schematic-radius': options?.radius,
+    '--chc-schematic-connector-color': options?.connectorColor,
+    '--chc-schematic-slot-color': options?.slotColor
+  };
+  for (const [property, value] of Object.entries(properties)) {
+    if (value) root.style.setProperty(property, value);
+  }
 }
