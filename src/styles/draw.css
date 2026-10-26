@@ -1030,6 +1030,42 @@
   border-top: 1px solid var(--chc-color-matchup-footer-divider, transparent);
 }
 
+/* ── Slots (configuration.renderers) ─────────────────────── */
+
+.chc-slot--participant-suffix,
+.chc-slot--matchup-badges {
+  align-items: center;
+  display: inline-flex;
+}
+
+.chc-slot--participant-suffix {
+  margin-inline-start: 0.4rem;
+}
+
+.chc-slot--matchup-badges {
+  margin-inline-end: 0.35rem;
+}
+
+/* no schedule header: the end corner, straddling the top border */
+.chc-slot--matchup-badges.chc-slot--corner {
+  inset-inline-end: 0.6rem;
+  position: absolute;
+  top: -0.8rem;
+  z-index: 1;
+  margin: 0;
+}
+
+.chc-slot--round-header {
+  margin-inline-start: auto;
+  align-items: center;
+  display: flex;
+}
+
+/* the header slot sits at the card's top corners */
+.chc-matchup > :first-child > .chc-slot--matchup-header:first-child {
+  border-radius: var(--chc-radius-matchup) var(--chc-radius-matchup) 0 0;
+}
+
 /* ── Path highlight (configuration.pathHighlight) and favourites ── */
 
 .tmx-m.chc-path .chc-matchup,

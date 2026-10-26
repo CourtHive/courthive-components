@@ -57,7 +57,14 @@ export function renderRound({
   roundContainer.setAttribute('roundNumber', String(roundNumber));
 
   if (configuration.roundHeader) {
-    const header = renderRoundHeader({ roundProfile, roundMatchUps, roundNumber, eventHandlers, context });
+    const header = renderRoundHeader({
+      renderers: configuration.renderers,
+      roundMatchUps,
+      eventHandlers,
+      roundProfile,
+      roundNumber,
+      context
+    });
     roundContainer.appendChild(header);
   }
 

@@ -246,6 +246,44 @@ export const Rounded = {
     return renderContainer({ theme: composition.theme, content });
   }
 };
+/**
+ * `configuration.renderers`: a host fills named slots instead of mutating the rendered tree. Here a badge
+ * (schedule header), a participant suffix, a footer and a round-header note.
+ */
+export const SlotRenderers = {
+  args: { drawSize: 8, completionGoal: 60, composition: 'Australian' },
+  render: ({ ...args }) => {
+    const { composition: base, matchUps, context } = buildStructureView(args);
+    const span = (text: string, style = '') => {
+      const el = document.createElement('span');
+      el.textContent = text;
+      el.style.cssText = style;
+      return el;
+    };
+    const muted = 'font-size: 0.7rem; color: var(--chc-text-muted);';
+    const renderers = {
+      matchUpBadges: ({ matchUp }) =>
+        matchUp.matchUpStatus === 'IN_PROGRESS'
+          ? span('LIVE', 'color: var(--chc-status-error); font-weight: 700; font-size: 0.7rem;')
+          : undefined,
+      participantSuffix: ({ individualParticipant }) =>
+        individualParticipant
+          ? span(
+              `${(individualParticipant.participantName?.length ?? 0) % 9}.${individualParticipant.participantId.length % 10}`,
+              muted
+            )
+          : undefined,
+      matchUpFooter: ({ matchUp }) => span(matchUp.winningSide ? 'Final' : 'Est. start 14:30', muted),
+      roundHeader: ({ roundMatchUps }) => span(`${roundMatchUps?.length ?? 0} matches`, muted)
+    };
+    const composition: any = {
+      ...base,
+      configuration: { ...base.configuration, scheduleInfo: true, roundHeader: true, renderers }
+    };
+    const content = renderStructure({ eventHandlers, composition, matchUps: matchUps as any, context });
+    return renderContainer({ theme: composition.theme, content });
+  }
+};
 export const Qualifying = {
   args: { drawSize: 16, participantsCount: 14, addQualifying: true }
 };

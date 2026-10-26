@@ -4,12 +4,13 @@ import { getMatchUpStyle } from '../../styles/getMatchUpStyle';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { renderCenterInfo } from './renderCenterInfo';
 import { hasVideo } from './renderOnlineResources';
+import { renderSlot } from './renderSlot';
 import { upsetOf } from './matchUpState';
 import { getLinkStyle } from '../../styles/getLinkStyle';
 import { isFunction } from '../modal/cmodal';
 import { renderSide } from './renderSide';
 import cx from 'classnames';
-import type { Composition, EventHandlers, MatchUp } from '../../types';
+import type { Composition, Configuration, EventHandlers, MatchUp } from '../../types';
 
 const { QUALIFYING } = drawDefinitionConstants;
 
@@ -87,6 +88,9 @@ export function renderMatchUp(params: {
   // a fact about the matchUp, set whether or not configuration.onlineResources shows the icon
   if (hasVideo(matchUp)) container.dataset.hasVideo = 'true';
   if (upsetOf(matchUp)) container.dataset.upset = 'true';
+  // state a host can style without post-render DOM passes
+  if (matchUp.matchUpStatus) container.dataset.matchupStatus = matchUp.matchUpStatus;
+  if (matchUp.matchUpStatus === 'IN_PROGRESS') container.dataset.live = 'true';
 
   container.onclick = handleOnClick;
 
@@ -138,71 +142,8 @@ export function renderMatchUp(params: {
   // Apply link connector CSS custom properties to side2 (or side container with link class)
   if (!centerInfo) linkResult.applyStyles(side2);
 
-  if (configuration?.matchUpFooter) {
-    const footer = document.createElement('div');
-    const inlineScoring = configuration?.inlineScoring;
-
-    // Show scoring buttons when inline scoring is active.
-    // The runtime state (canUndo/canRedo/isComplete) is only set by renderInlineMatchUp,
-    // so completed draw matchUps rendered normally won't get the footer.
-    const hasBothSides = matchUp.sides?.length === 2 && matchUp.sides[0]?.participant && matchUp.sides[1]?.participant;
-    const hasActiveSession =
-      inlineScoring?.canUndo || inlineScoring?.canRedo || inlineScoring?.isComplete || inlineScoring?.isDirty;
-    const isActiveScoringMatchUp =
-      inlineScoring && inlineScoring.showFooter !== false && hasBothSides && (!matchUp.winningSide || hasActiveSession);
-
-    if (isActiveScoringMatchUp) {
-      footer.className = 'chc-matchup-footer chc-inline-scoring-footer-slot';
-      // Round label on the left
-      const roundLabel = document.createElement('span');
-      roundLabel.className = 'chc-matchup-footer-round';
-      const roundName = matchUp.roundName || '';
-      const roundPosition = matchUp.roundPosition;
-      roundLabel.textContent = roundPosition ? `${roundName} \u2022 M${roundPosition}` : roundName;
-      footer.appendChild(roundLabel);
-
-      // Buttons on the right — driven by eventHandlers
-      const buttonsContainer = document.createElement('div');
-      buttonsContainer.className = 'chc-inline-scoring-footer-buttons';
-
-      const mkBtn = (label: string, cls: string, handler?: (params: { matchUpId: string }) => void) => {
-        const btn = document.createElement('button');
-        btn.textContent = label;
-        btn.className = `chc-inline-scoring-btn ${cls}`;
-        if (handler) {
-          btn.onclick = (e) => {
-            e.stopPropagation();
-            handler({ matchUpId: matchUp.matchUpId });
-          };
-        }
-        return btn;
-      };
-
-      const undoBtn = mkBtn('Undo', 'chc-is-undo', eventHandlers.inlineUndo);
-      const redoBtn = mkBtn('Redo', 'chc-is-redo', eventHandlers.inlineRedo);
-      const clearBtn = mkBtn('Clear', 'chc-is-clear', eventHandlers.inlineClear);
-      const submitBtn = mkBtn('Submit', 'chc-is-submit', eventHandlers.inlineSubmit);
-
-      undoBtn.disabled = !inlineScoring.canUndo;
-      redoBtn.disabled = !inlineScoring.canRedo;
-      clearBtn.disabled = !inlineScoring.canUndo && !inlineScoring.canRedo;
-      submitBtn.disabled = !inlineScoring.isDirty;
-
-      const buttonBar = document.createElement('div');
-      buttonBar.className = 'chc-inline-scoring-buttons';
-      buttonBar.append(undoBtn, redoBtn, clearBtn, submitBtn);
-      buttonsContainer.appendChild(buttonBar);
-
-      footer.appendChild(buttonsContainer);
-    } else {
-      footer.className = 'chc-matchup-footer';
-      const roundName = matchUp.roundName || '';
-      const roundPosition = matchUp.roundPosition;
-      const label = roundPosition ? `${roundName} \u2022 Match ${roundPosition}` : roundName;
-      footer.textContent = label;
-    }
-    component.appendChild(footer);
-  }
+  const footer = renderFooter({ configuration, eventHandlers, matchUp });
+  if (footer) component.appendChild(footer);
 
   container.appendChild(component);
 
@@ -213,4 +154,86 @@ export function renderMatchUp(params: {
   }
 
   return container;
+}
+
+/**
+ * The card's footer: the inline-scoring buttons while a matchUp is being scored inline, otherwise the round
+ * label, or what `renderers.matchUpFooter` renders in its place. Undefined when there is no footer.
+ */
+function renderFooter({
+  configuration,
+  eventHandlers,
+  matchUp
+}: {
+  configuration: Configuration;
+  eventHandlers: EventHandlers;
+  matchUp: MatchUp;
+}): HTMLElement | undefined {
+  const footerSlot = renderSlot(configuration.renderers, 'matchUpFooter', { matchUp }, 'div');
+  if (!configuration?.matchUpFooter && !footerSlot) return undefined;
+  const footer = document.createElement('div');
+  const inlineScoring = configuration?.inlineScoring;
+
+  // Show scoring buttons when inline scoring is active.
+  // The runtime state (canUndo/canRedo/isComplete) is only set by renderInlineMatchUp,
+  // so completed draw matchUps rendered normally won't get the footer.
+  const hasBothSides = matchUp.sides?.length === 2 && matchUp.sides[0]?.participant && matchUp.sides[1]?.participant;
+  const hasActiveSession =
+    inlineScoring?.canUndo || inlineScoring?.canRedo || inlineScoring?.isComplete || inlineScoring?.isDirty;
+  const isActiveScoringMatchUp =
+    inlineScoring && inlineScoring.showFooter !== false && hasBothSides && (!matchUp.winningSide || hasActiveSession);
+
+  if (configuration?.matchUpFooter && isActiveScoringMatchUp) {
+    footer.className = 'chc-matchup-footer chc-inline-scoring-footer-slot';
+    // Round label on the left
+    const roundLabel = document.createElement('span');
+    roundLabel.className = 'chc-matchup-footer-round';
+    const roundName = matchUp.roundName || '';
+    const roundPosition = matchUp.roundPosition;
+    roundLabel.textContent = roundPosition ? `${roundName} \u2022 M${roundPosition}` : roundName;
+    footer.appendChild(roundLabel);
+
+    // Buttons on the right — driven by eventHandlers
+    const buttonsContainer = document.createElement('div');
+    buttonsContainer.className = 'chc-inline-scoring-footer-buttons';
+
+    const mkBtn = (label: string, cls: string, handler?: (params: { matchUpId: string }) => void) => {
+      const btn = document.createElement('button');
+      btn.textContent = label;
+      btn.className = `chc-inline-scoring-btn ${cls}`;
+      if (handler) {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          handler({ matchUpId: matchUp.matchUpId });
+        };
+      }
+      return btn;
+    };
+
+    const undoBtn = mkBtn('Undo', 'chc-is-undo', eventHandlers.inlineUndo);
+    const redoBtn = mkBtn('Redo', 'chc-is-redo', eventHandlers.inlineRedo);
+    const clearBtn = mkBtn('Clear', 'chc-is-clear', eventHandlers.inlineClear);
+    const submitBtn = mkBtn('Submit', 'chc-is-submit', eventHandlers.inlineSubmit);
+
+    undoBtn.disabled = !inlineScoring.canUndo;
+    redoBtn.disabled = !inlineScoring.canRedo;
+    clearBtn.disabled = !inlineScoring.canUndo && !inlineScoring.canRedo;
+    submitBtn.disabled = !inlineScoring.isDirty;
+
+    const buttonBar = document.createElement('div');
+    buttonBar.className = 'chc-inline-scoring-buttons';
+    buttonBar.append(undoBtn, redoBtn, clearBtn, submitBtn);
+    buttonsContainer.appendChild(buttonBar);
+
+    footer.appendChild(buttonsContainer);
+  } else {
+    footer.className = 'chc-matchup-footer';
+    const roundName = matchUp.roundName || '';
+    const roundPosition = matchUp.roundPosition;
+    const label = roundPosition ? `${roundName} \u2022 Match ${roundPosition}` : roundName;
+    // renderers.matchUpFooter replaces the round label
+    if (footerSlot) footer.appendChild(footerSlot);
+    else footer.textContent = label;
+  }
+  return footer;
 }
