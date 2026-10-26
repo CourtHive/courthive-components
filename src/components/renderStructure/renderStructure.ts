@@ -17,6 +17,7 @@ export function renderStructure({
   structureId,
   finalColumn,
   favourites,
+  carousel,
   matchUps,
   minWidth,
   context
@@ -33,6 +34,12 @@ export function renderStructure({
    * their matchUps carry `data-favourite`. Host state, so a parameter rather than a composition option.
    */
   favourites?: string[] | Set<string>;
+  /**
+   * Lay the rounds out as a horizontal carousel for narrow screens: one round per scroll-snap stop, with
+   * `peek` (default 0.2) of the next round showing, so connectors lead somewhere. Round headers move with
+   * their column. Pair it with `renderRoundPager` for a pager. The host decides when, e.g. by viewport.
+   */
+  carousel?: boolean | { peek?: number };
   matchUps: MatchUp[];
   minWidth?: string;
   context?: any;
@@ -52,6 +59,13 @@ export function renderStructure({
 
   const div = document.createElement('div');
   div.className = structureStyle();
+  if (carousel) {
+    div.classList.add('chc-structure--carousel');
+    const peek = typeof carousel === 'object' ? carousel.peek : undefined;
+    if (typeof peek === 'number' && Number.isFinite(peek) && peek >= 0) {
+      div.style.setProperty('--chc-carousel-peek', String(peek));
+    }
+  }
 
   div.classList.add('tmx-str');
   div.setAttribute('id', structureId || '');

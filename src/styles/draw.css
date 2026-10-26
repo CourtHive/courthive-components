@@ -924,6 +924,71 @@
   --chc-line-height-game-score: 1.5rem;
 }
 
+/* renderStructure({ carousel }): one round per snap stop, with a peek of the next */
+.chc-structure--carousel {
+  --chc-participant-min-width: 0;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  overflow-x: auto;
+}
+
+.chc-structure--carousel > .chc-round-container {
+  flex: 0 0 calc(100% / (1 + var(--chc-carousel-peek, 0.2)));
+  scroll-snap-align: start;
+  min-width: 0;
+}
+
+/* a card fits its column: the column does not grow to a card's content (three sets, a long name) and the
+   name gives way with an ellipsis instead */
+.chc-structure--carousel .chc-round--cells {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.chc-structure--carousel .chc-matchup {
+  grid-template-columns: minmax(0, 1fr);
+  box-sizing: border-box;
+}
+
+.chc-structure--carousel .chc-cell,
+.chc-structure--carousel .chc-side-container,
+.chc-structure--carousel .chc-participant-container,
+.chc-structure--carousel .chc-participant,
+.chc-structure--carousel .chc-participant-name {
+  min-width: 0;
+}
+
+.chc-structure--carousel .chc-participant-name {
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.chc-round-pager {
+  flex-wrap: wrap;
+  display: flex;
+  gap: 0.25rem;
+}
+
+.chc-round-pager__button {
+  border: 1px solid var(--chc-border-secondary);
+  background-color: var(--chc-bg-secondary);
+  color: var(--chc-text-primary);
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.chc-round-pager__button[aria-current='true'] {
+  border-color: var(--chc-border-focus);
+  color: var(--chc-border-focus);
+  font-weight: 600;
+}
+
+.chc-round-pager__button:focus-visible {
+  outline: 2px solid var(--chc-border-focus);
+  outline-offset: 1px;
+}
+
 /* configuration.rounded */
 .chc-rounded {
   --chc-radius-matchup: 8px;

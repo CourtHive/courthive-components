@@ -9,6 +9,7 @@ const { FEED_IN, ROUND_ROBIN, AD_HOC, LUCKY_DRAW } = drawDefinitionConstants;
 const { COMPLETED } = matchUpStatusConstants;
 import { renderParticipant } from '../components/renderStructure/renderParticipant';
 import { renderContainer } from '../components/renderStructure/renderContainer';
+import { renderRoundPager } from '../components/renderStructure/renderRoundPager';
 import { renderStructure } from '../components/renderStructure/renderStructure';
 import { generateEventData } from '../data/generateEventData';
 import { renderField } from '../components/forms/renderField';
@@ -282,6 +283,31 @@ export const SlotRenderers = {
     };
     const content = renderStructure({ eventHandlers, composition, matchUps: matchUps as any, context });
     return renderContainer({ theme: composition.theme, content });
+  }
+};
+/**
+ * `renderStructure({ carousel })` with `renderRoundPager`: the narrow-screen layout. One round per scroll-snap
+ * stop with a peek of the next, so the connectors lead somewhere; the pager scrolls to a round and tracks
+ * the one in view. Shown at phone width.
+ */
+export const Carousel = {
+  args: { drawSize: 16, completionGoal: 70, composition: 'Australian', peek: 0.2 },
+  argTypes: { ...argTypes, peek: { control: { type: 'number', min: 0, max: 1, step: 0.05 } } },
+  render: ({ ...args }) => {
+    const { composition: base, matchUps, context } = buildStructureView(args);
+    const composition: any = { ...base, configuration: { ...base.configuration, roundHeader: true } };
+    const content = renderStructure({
+      carousel: { peek: args.peek },
+      matchUps: matchUps as any,
+      eventHandlers,
+      composition,
+      context
+    });
+    const pager = renderRoundPager({ structure: content });
+    const phone = document.createElement('div');
+    phone.style.cssText = 'width: 375px; display: flex; flex-direction: column; gap: 0.5rem;';
+    phone.append(pager.element, renderContainer({ theme: composition.theme, content }));
+    return phone;
   }
 };
 export const Qualifying = {
