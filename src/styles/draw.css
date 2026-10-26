@@ -72,8 +72,8 @@
 }
 
 .chc-minimap-line {
-  stroke: var(--chc-color-connector, var(--chc-border-primary, currentColor));
-  stroke-width: 1;
+  stroke: var(--chc-minimap-line-color, var(--chc-color-connector, var(--chc-border-primary, currentColor)));
+  stroke-width: var(--chc-minimap-stroke-w, 1);
   fill: none;
   pointer-events: none;
 }

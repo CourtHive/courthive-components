@@ -17,7 +17,7 @@ export {
   renderSchematicRound,
   renderSchematicMatchUp
 } from './components/renderSchematicStructure';
-export type { SchematicMatchUp } from './components/renderSchematicStructure';
+export type { SchematicMatchUp, SchematicOptions } from './components/renderSchematicStructure';
 
 export { cModal } from './components/modal/cmodal';
 
