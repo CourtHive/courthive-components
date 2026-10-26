@@ -70,6 +70,20 @@ function checkStructure(structure: HTMLElement): string[] {
   const rounds = [...structure.querySelectorAll<HTMLElement>('.tmx-rd')];
   const cellsByRound = rounds.map((round) => [...round.querySelectorAll<HTMLElement>(CELL)]);
 
+  // every card stays inside its round's cells: never up into the round header, never out of the bottom
+  rounds.forEach((round, roundIndex) => {
+    const area = round.querySelector<HTMLElement>('.chc-round--cells')?.getBoundingClientRect();
+    if (!area) return;
+    round.querySelectorAll<HTMLElement>('.chc-cell > .tmx-m').forEach((card, index) => {
+      const box = card.getBoundingClientRect();
+      if (box.top < area.top - 0.5)
+        problems.push(`r${roundIndex + 1}c${index + 1}: card ${(area.top - box.top).toFixed(1)}px above its round`);
+      if (box.bottom > area.bottom + 0.5)
+        problems.push(
+          `r${roundIndex + 1}c${index + 1}: card ${(box.bottom - area.bottom).toFixed(1)}px below its round`
+        );
+    });
+  });
   cellsByRound.forEach((cells, roundIndex) => {
     cells.forEach((cell, index) => {
       const id = `r${roundIndex + 1}c${index + 1}`;
@@ -131,6 +145,17 @@ const VARIANTS: Variant[] = [
   { name: 'centre info', configuration: { centerInfo: true } },
   { name: 'footer', configuration: { matchUpFooter: true } },
   { name: 'schedule header + footer', configuration: { scheduleInfo: true, matchUpFooter: true } },
+  // the round header sits right above the first cell: a raised first card would ride into it (CA, 2026-10-27)
+  { name: 'schedule header + round header', configuration: { scheduleInfo: true, roundHeader: true } },
+  {
+    name: 'slot-rendered footer',
+    configuration: {
+      scheduleInfo: true,
+      roundHeader: true,
+      renderers: { matchUpFooter: () => document.createElement('span') }
+    }
+  },
+  { name: 'footer + round header', configuration: { matchUpFooter: true, roundHeader: true } },
   { name: 'address', configuration: { showAddress: true } },
   { name: 'scoped from round 2', initialRoundNumber: 2 },
   { name: 'rounded', configuration: { rounded: true, scheduleInfo: true } },

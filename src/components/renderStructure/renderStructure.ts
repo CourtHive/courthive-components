@@ -76,7 +76,9 @@ export function renderStructure({
   // schedule header and half the footer, whose heights the stylesheet knows (draw.css, Connector lines)
   const { scheduleInfo, matchUpFooter, rounded, density, connectorWidth } = composition?.configuration || {};
   if (scheduleInfo) div.classList.add('chc-structure--schedule-info');
-  if (matchUpFooter) div.classList.add('chc-structure--matchup-footer');
+  // a footer renders for the option or for a footer slot renderer, and the card offset must count it either way
+  const footerRenderer = composition?.configuration?.renderers?.matchUpFooter;
+  if (matchUpFooter || footerRenderer) div.classList.add('chc-structure--matchup-footer');
   // the radius tokens must reach the connector cells, which sit outside each card's own `.chc-rounded`
   if (rounded) div.classList.add('chc-rounded');
   if (density === 'compact') div.classList.add('chc-density--compact');
