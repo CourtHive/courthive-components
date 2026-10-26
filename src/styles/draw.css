@@ -1267,6 +1267,11 @@
   background-color: transparent;
 }
 
+/* ...except a hovered participant: its highlight shows in every round, tinted or not */
+.tmx-sd[data-side-color][data-winner] > .chc-side-row > .chc-participant-hover {
+  background-color: var(--chc-participant-hover-bg);
+}
+
 .tmx-sd[data-side-color][data-winner] .chc-participant-name--winner,
 .tmx-sd[data-side-color][data-serving] .chc-participant-name {
   color: var(--chc-side-color);
