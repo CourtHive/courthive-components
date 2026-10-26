@@ -87,6 +87,31 @@ export const Default = {
     const SERVER = '.chc-server';
     const POINT_SCORE = '.chc-point-score';
 
+    // the preview shows a footer exactly when the MatchUp footer toggle is on (CA, 2026-10-26: Australian showed one
+    // with the toggle off)
+    const openSection = (label: string) =>
+      [...canvasElement.querySelectorAll<HTMLElement>('.ce-section-header')]
+        .find((el) => el.textContent?.includes(label))
+        ?.click();
+    openSection('Layout'); // a section refreshes its fields while it is open
+    const footerToggle = [...canvasElement.querySelectorAll('.ce-field')]
+      .find((el) => el.querySelector('span')?.textContent === 'MatchUp footer')
+      ?.querySelector('input[type="checkbox"]') as HTMLInputElement;
+    const footers = () => preview().querySelectorAll('.ce-preview-matchup .chc-matchup-footer').length;
+    expect(footerToggle.checked).toBe(false);
+    expect(footers()).toBe(0);
+    footerToggle.click();
+    expect(footerToggle.checked).toBe(true);
+    expect(footers()).toBeGreaterThan(0);
+    footerToggle.click();
+    expect(footers()).toBe(0);
+    loadPreset('BasicCard'); // a preset with the footer on: the toggle and the preview agree
+    expect(footerToggle.checked).toBe(true);
+    expect(footers()).toBeGreaterThan(0);
+    loadPreset('Australian');
+    expect(footerToggle.checked).toBe(false);
+    expect(footers()).toBe(0);
+
     // Australian: none of the scoreboard options
     expect(live().querySelector(SERVER)).toBeNull();
     expect(live().querySelector('[data-side-color]')).toBeNull();
@@ -143,10 +168,7 @@ export const Default = {
       input.dispatchEvent(new Event('input'));
     };
     // open Colors, as a user would: a section refreshes its fields while it is open
-    const colorsHeader = [...canvasElement.querySelectorAll<HTMLElement>('.ce-section-header')].find((el) =>
-      el.textContent?.includes('Colors')
-    ) as HTMLElement;
-    colorsHeader.click();
+    openSection('Colors');
     expect(sideField('Side 1').value).toBe(sideColors[1]);
     typeInto(sideField('Side 1'), '');
     typeInto(sideField('Side 2'), '');

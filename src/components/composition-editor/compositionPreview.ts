@@ -225,15 +225,11 @@ export function buildCompositionPreview(): EditorPanel {
     clearCompositionColors(body);
     applyCompositionColors(body, state.colors);
 
-    // Force-on matchUpFooter in the preview so the footer color controls
-    // have something to paint regardless of whether the composition itself
-    // enables the footer. Symmetric with the sample round header rendered
-    // unconditionally below. The user's saved composition keeps its own
-    // matchUpFooter flag — only the preview render is overridden.
+    // The preview renders the configuration as it is: forcing the footer on (so its colour controls had something to
+    // paint) showed a footer whose toggle read off (CA, 2026-10-26). The footer colour rows say where to turn it on.
     const composition: Composition = {
       theme: state.theme,
-      // an explicit `matchUpFooter: false` (Scoreboard, Watch) is honoured: those cards have no footer
-      configuration: { ...state.configuration, matchUpFooter: state.configuration.matchUpFooter !== false },
+      configuration: { ...state.configuration },
       colors: state.colors ? { ...state.colors } : undefined
     };
 
