@@ -132,8 +132,6 @@
   flex-direction: column;
   position: relative;
   display: flex;
-  /* a grid item: without this its min-content (the no-wrap header) widens the card past what holds it */
-  min-width: 0;
 }
 
 .chc-side-row {
@@ -404,6 +402,8 @@
 .chc-scheduling {
   /* one line: the date never wraps, and a long location gives way with an ellipsis */
   white-space: nowrap;
+  /* the no-wrap line takes the card's width rather than setting it; the sides (names and scores) set it */
+  contain: inline-size;
   gap: 0.5rem;
   height: var(--chc-line-height-schedule-info);
   border-bottom: 1px solid var(--chc-border-primary);
