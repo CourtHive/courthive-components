@@ -71,6 +71,11 @@ export interface MatchUp {
   sideExitProvenance?: SideExitProvenance;
   /** A recording, stream or stats page of this matchUp; see `OnlineResourceSubType`. */
   onlineResources?: OnlineResource[];
+  /** The side serving the next point, the factory's own name for it (ScoringEngine `getNextServer() + 1`). */
+  serverSideNumber?: 1 | 2;
+  /** On a hydrated (inContext) matchUp; `configuration.scheduleInfo.eventRound` shows it. */
+  eventName?: string;
+  roundName?: string;
   [key: string]: any;
 }
 
@@ -202,6 +207,12 @@ export interface SideScore {
 export interface Schedule {
   scheduledDate?: string;
   scheduledTime?: string;
+  /**
+   * Playing time so far, from the factory's `getMatchUpScheduleDetails` (`matchUpDuration`): suspensions are
+   * excluded, and a live matchUp is counted to the moment it was hydrated. `configuration.scheduleInfo.elapsed`
+   * reads it before `startTime` / `endTime`.
+   */
+  milliseconds?: number;
   startTime?: string;
   endTime?: string;
   courtId?: string;
@@ -209,6 +220,16 @@ export interface Schedule {
   venueId?: string;
   venueAbbreviation?: string;
 }
+
+export interface ScheduleInfoOptions {
+  /** Playing time (`h:mm`) in place of the date, once the matchUp has started. */
+  elapsed?: boolean;
+  /** `Men's Singles - R32` on the right of the header; the online-resource icons and location move left. */
+  eventRound?: boolean;
+}
+
+export type SideColors =
+  { 1?: string; 2?: string } | ((params: { matchUp: MatchUp; sideNumber: 1 | 2 }) => string | undefined);
 
 export interface Configuration {
   flags?: boolean;
@@ -239,7 +260,24 @@ export interface Configuration {
   allDrawPositions?: boolean;
   drawPositionColor?: string;
   bracketedSeeds?: boolean | 'square';
-  scheduleInfo?: boolean;
+  /** The header above the card: date and time, then location. The object form adds to it (all off by default). */
+  scheduleInfo?: boolean | ScheduleInfoOptions;
+  /**
+   * A colour per side: `{ 1: '#0047d4', 2: '#dd5d13' }`, or a function the host answers per matchUp (a team's
+   * colour, say). Sets `--chc-side-color` on each side, which colours the winner's or server's name, the sets a
+   * side won, the point score, the tick, and tints the winner's row. Off by default.
+   */
+  sideColors?: SideColors;
+  /**
+   * A serve indicator from `matchUp.serverSideNumber`, while the matchUp is unfinished. Both sides get the column
+   * so the scores stay aligned; the serving side's dot is filled. Off by default.
+   */
+  serverIndicator?: boolean;
+  /**
+   * The `LIVE` pill on each side of an in-progress matchUp. On unless set `false`: a scoreboard whose header and
+   * point score already say the matchUp is live turns it off. Inline scoring's own live chip is not affected.
+   */
+  liveStatusPill?: boolean;
   matchUpFooter?: boolean;
   showAddress?: boolean;
   seedingElement?: 'sup' | 'span';

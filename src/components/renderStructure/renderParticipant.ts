@@ -249,7 +249,9 @@ export function renderParticipant({
       ] as string[]
     ).includes(matchUpStatus) &&
       !isWinningSide &&
-      sideOwnsTheExit) ||
+      sideOwnsTheExit &&
+      // configuration.liveStatusPill: false drops the LIVE pill
+      !(matchUpStatus === IN_PROGRESS && configuration?.liveStatusPill === false)) ||
     Boolean(carriedExitStatus && !isWinningSide);
   const gameScoreOnly = configuration?.gameScoreOnly;
 
