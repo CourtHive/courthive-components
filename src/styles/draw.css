@@ -923,6 +923,8 @@
   border-inline-start-width: var(--chc-border-width-inline-start);
   border-inline-start-color: var(--chc-color-border-inline-start, var(--chc-color-border));
   border-radius: var(--chc-radius-matchup);
+  /* configuration.matchUpInset: what the card holds stops short of its border */
+  padding: var(--chc-matchup-inset, 0px);
 }
 
 /* Round every element with a background at the card's corners, so it does not bleed past the

@@ -74,13 +74,14 @@ export const compositions: Record<string, Composition> = {
     configuration: {
       flags: true,
       rounded: true,
+      matchUpInset: 2,
       matchUpFooter: false,
       onlineResources: true,
       liveStatusPill: false,
       serverIndicator: 'column',
       gameScore: { position: 'trailing' },
       scheduleInfo: { elapsed: true, eventRound: true },
-      sideColors: { 1: '#0047d4', 2: '#dd5d13' }
+      sideColors: { 1: '#0b7a75', 2: '#b3365b' }
     },
     theme: basicCardTheme
   },
@@ -92,6 +93,7 @@ export const compositions: Record<string, Composition> = {
     configuration: {
       flags: true,
       rounded: true,
+      matchUpInset: 2,
       matchUpFooter: false,
       liveStatusPill: false,
       serverIndicator: 'name',

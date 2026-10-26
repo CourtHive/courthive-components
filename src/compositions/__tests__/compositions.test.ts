@@ -77,6 +77,7 @@ describe('compositions', () => {
           'inlineScoring',
           // scoreboard and watch options
           'rounded',
+          'matchUpInset',
           'onlineResources',
           'liveStatusPill',
           'serverIndicator',

@@ -124,6 +124,14 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
     readOnly
   );
 
+  const inset = buildSelectField(
+    'Inner padding',
+    [{ value: '', label: 'None' }, ...[1, 2, 3, 4].map((px) => ({ value: String(px), label: `${px}px` }))],
+    cfg.matchUpInset ? String(cfg.matchUpInset) : '',
+    (v) => store.setConfigField('matchUpInset', v ? Number(v) : undefined),
+    readOnly
+  );
+
   const density = buildSelectField(
     'Density',
     [
@@ -143,6 +151,7 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
   root.appendChild(resultsInfo.element);
   root.appendChild(winnerChevron.element);
   root.appendChild(rounded.element);
+  root.appendChild(inset.element);
   root.appendChild(pathHighlight.element);
   root.appendChild(density.element);
   root.appendChild(liveStatusPill.element);
@@ -164,6 +173,7 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
     resultsInfo.setChecked(!!c.resultsInfo);
     winnerChevron.setChecked(!!c.winnerChevron);
     rounded.setChecked(!!c.rounded);
+    inset.setValue(c.matchUpInset ? String(c.matchUpInset) : '');
     pathHighlight.setChecked(!!c.pathHighlight);
     density.setValue(c.density === 'compact' ? 'compact' : '');
   }
