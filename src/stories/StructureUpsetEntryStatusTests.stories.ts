@@ -4,8 +4,9 @@
  * Structure rendering vNext item 7 ("live state on the card"). The LIVE / suspended / retired / walkover
  * pills already existed; what it adds is:
  *
- * - an upset marker: a ▲ before the winner's tick when a seed was beaten ON COURT (completed or retired)
- *   by an unseeded side or a lower seed. `data-upset` on `.tmx-m` either way;
+ * - an upset marker: a ▲ before the winner's tick when a seed was beaten in a fully scored result (not a
+ *   retirement, walkover or default) by an unseeded side or a lower seed — the factory's `getMatchUpUpset`.
+ *   `data-upset` on `.tmx-m` either way;
  * - the entry status beside the seed: `[1, WC]` inside the seed's brackets, or a tag when there are none.
  *
  * Both are off by default, and off renders exactly what it did.
