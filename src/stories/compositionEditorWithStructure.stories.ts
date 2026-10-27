@@ -10,6 +10,7 @@ import { renderStructure } from '../components/renderStructure/renderStructure';
 import { generateEventData } from '../data/generateEventData';
 import { compositions } from '../compositions/compositions';
 import type { Meta, StoryObj } from '@storybook/html-vite';
+import { expect } from 'storybook/test';
 
 type Args = {
   preset: string;
@@ -31,7 +32,7 @@ const meta: Meta<Args> = {
 };
 export default meta;
 
-function createEditorStructureView(args: { preset: string; drawSize: number }): HTMLElement {
+function createEditorStructureView(args: Args): HTMLElement {
   const { preset, drawSize } = args;
 
   const container = document.createElement('div');
@@ -88,6 +89,7 @@ function createEditorStructureView(args: { preset: string; drawSize: number }): 
   structurePanel.appendChild(structureTitle);
 
   const structureContainer = document.createElement('div');
+  structureContainer.dataset.storyStructure = 'true';
   structureContainer.style.flex = '1';
   structureContainer.style.overflowX = 'auto';
   structureContainer.style.overflowY = 'auto';
@@ -139,11 +141,33 @@ function createEditorStructureView(args: { preset: string; drawSize: number }): 
  */
 export const Default: StoryObj<Args> = {
   render: createEditorStructureView,
-  args: { preset: 'Australian', drawSize: 16 }
+  args: { preset: 'Australian', drawSize: 16 },
+  play: async ({ canvasElement }) => {
+    // the editor's own preview is a .chc-structure too; this is the full structure beside it
+    const structure = () => canvasElement.querySelector('[data-story-structure] .chc-structure') as HTMLElement;
+    const before = structure();
+    expect(before).not.toBeNull();
+    expect(before.querySelectorAll('.tmx-m').length).toBe(15);
+
+    // an editor change re-renders the structure: Path highlight on, then hovering a player marks their path
+    [...canvasElement.querySelectorAll<HTMLElement>('.ce-section-header')]
+      .find((el) => el.textContent?.includes('Layout'))
+      ?.click();
+    const toggle = [...canvasElement.querySelectorAll('.ce-field')]
+      .find((el) => el.querySelector('span')?.textContent === 'Path highlight on hover')
+      ?.querySelector('input[type="checkbox"]') as HTMLInputElement;
+    expect(toggle.checked).toBe(false);
+    toggle.click();
+    expect(structure()).not.toBe(before);
+
+    const player = structure().querySelector('.tmx-i[id]:not([id="undefined"])') as HTMLElement;
+    player.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+    expect(structure().querySelectorAll('.tmx-m.chc-path').length).toBeGreaterThan(0);
+  }
 };
 
 /**
- * Scoreboard — a live match display with team scoring
+ * Scoreboard — the Scoreboard preset
  */
 export const Scoreboard: StoryObj<Args> = {
   render: createEditorStructureView,
@@ -151,7 +175,7 @@ export const Scoreboard: StoryObj<Args> = {
 };
 
 /**
- * Watch — a video / streaming-focused composition
+ * Watch — the Watch preset
  */
 export const Watch: StoryObj<Args> = {
   render: createEditorStructureView,
@@ -159,7 +183,7 @@ export const Watch: StoryObj<Args> = {
 };
 
 /**
- * National — complex composition with scale attributes
+ * National — the National preset
  */
 export const National: StoryObj<Args> = {
   render: createEditorStructureView,
@@ -175,9 +199,17 @@ export const SmallDraw: StoryObj<Args> = {
 };
 
 /**
- * Large draw (32) — test narrow/overflow layouts and pagination
+ * Large draw (32) — a structure wider than the panel, which scrolls sideways
  */
 export const LargeDraw: StoryObj<Args> = {
   render: createEditorStructureView,
   args: { preset: 'Australian', drawSize: 32 }
+};
+
+/**
+ * ITF — the ITF preset
+ */
+export const ITF: StoryObj<Args> = {
+  render: createEditorStructureView,
+  args: { preset: 'ITF', drawSize: 16 }
 };
