@@ -79,6 +79,7 @@ export const compositions: Record<string, Composition> = {
       onlineResources: true,
       liveStatusPill: false,
       serverIndicator: 'column',
+      connectors: true,
       gameScore: { position: 'trailing' },
       scheduleInfo: { elapsed: true, eventRound: true },
       sideColors: { 1: '#0b7a75', 2: '#b3365b' }
@@ -97,6 +98,7 @@ export const compositions: Record<string, Composition> = {
       matchUpFooter: false,
       liveStatusPill: false,
       serverIndicator: 'name',
+      connectors: true,
       matchUpActions: { watch: true, share: true },
       gameScore: { position: 'trailing', inverted: false },
       scheduleInfo: { elapsed: true, eventRound: true, layout: 'inline' }

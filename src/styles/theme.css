@@ -149,7 +149,13 @@
   --chc-color-winner: inherit;
   --chc-color-loser: inherit;
   --chc-color-winner-name: inherit;
-  --chc-matchup-box-shadow: none;
+  /* no shadow, as one that can stand in a list (the path ring adds to it): `none` cannot */
+  --chc-matchup-box-shadow: 0 0 0 transparent;
+  /* a card's lift where a theme gives it one (BasicCard); darker under [data-theme='dark'] to read at all */
+  --chc-card-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  /* configuration.pathHighlight: the path's lines, cards and ring, and how far everything off it recedes */
+  --chc-path-color: var(--chc-border-focus);
+  --chc-path-dim-opacity: 0.35;
 
   /* ── Scheduling Profile: Core ──────────────────────────── */
   --sp-bg: #eef1f5;
@@ -330,6 +336,7 @@
   --chc-border-primary: #5a5a7a;
   --chc-border-secondary: #34344e;
   --chc-border-focus: #6aa6e0;
+  --chc-card-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
 
   /* ── Interactive ─────────────────────────────────────── */
   --chc-hover-bg: #26264a;

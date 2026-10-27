@@ -326,6 +326,11 @@ export interface Configuration {
    */
   pathHighlight?: boolean;
   /**
+   * The lines between rounds. `true` draws them and `false` hides them, whatever the theme; unset keeps the
+   * theme's own choice (BasicCard and Wimbledon hide them). A path highlight draws its own lines either way.
+   */
+  connectors?: boolean;
+  /**
    * Host renderers for named slots in the structure. Each returns an element, or nothing to leave the slot
    * empty; the element is wrapped in `.chc-slot.chc-slot--<name>` and never modified. Runtime functions,
    * so they are set by the host, not stored in a published composition. See `StructureRenderers`.

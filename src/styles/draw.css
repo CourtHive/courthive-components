@@ -1089,6 +1089,8 @@
 
 .chc-link::before,
 .chc-link::after {
+  /* a theme hides its lines with --chc-connector-opacity, not a transparent colour, so they can be shown */
+  opacity: var(--chc-connector-opacity, 1);
   border: 0 solid var(--chc-color-connector);
   width: var(--chc-connector-w, var(--chc-round-gap));
   position: absolute;
@@ -1215,21 +1217,58 @@
   border-radius: var(--chc-radius-matchup) var(--chc-radius-matchup) 0 0;
 }
 
+/* ── configuration.connectors: a configured choice over the theme's ── */
+
+.chc-structure--connectors {
+  --chc-connector-opacity: 1;
+}
+
+.chc-structure--no-connectors {
+  --chc-connector-opacity: 0;
+}
+
 /* ── Path highlight (configuration.pathHighlight) and favourites ── */
 
+/* a ring as well as the border: a box-shadow adds no width, so nothing moves */
 .tmx-m.chc-path .chc-matchup,
 .tmx-m.chc-path--projected .chc-matchup {
-  border-color: var(--chc-path-color, var(--chc-border-focus));
+  border-color: var(--chc-path-color);
+  box-shadow:
+    0 0 0 2px var(--chc-path-color),
+    var(--chc-matchup-box-shadow);
 }
 
 .tmx-m.chc-path--projected .chc-matchup {
   border-style: dashed;
+  box-shadow: var(--chc-matchup-box-shadow);
 }
 
-/* the line into a matchUp on the path, and out of one the participant won */
+/* the projected route, dashed as its cards are: into each projected matchUp, and out of each one that leads on.
+   Before the solid rule below, so a line out of a matchUp already won stays solid */
+.chc-cell:has(> .tmx-m.chc-path--projected)::before,
+.chc-cell:has(> .tmx-m.chc-path--leads)::after {
+  border-color: var(--chc-path-color);
+  border-style: dashed;
+  opacity: 1;
+}
+
+/* the line into a matchUp on the path, and out of one the participant won: drawn even where the structure's
+   lines are hidden */
 .chc-cell:has(> .tmx-m.chc-path)::before,
 .chc-cell:has(> .tmx-m.chc-path--won)::after {
-  border-color: var(--chc-path-color, var(--chc-border-focus));
+  border-color: var(--chc-path-color);
+  border-style: solid;
+  opacity: 1;
+}
+
+/* while a path is shown, everything off it recedes: the cards, and the lines as far as they are shown at all */
+.chc-structure--path-active .tmx-m:not(.chc-path, .chc-path--projected) {
+  opacity: var(--chc-path-dim-opacity);
+}
+
+.chc-structure--path-active .chc-link::before,
+.chc-structure--path-active .chc-link::after {
+  opacity: calc(var(--chc-connector-opacity, 1) * var(--chc-path-dim-opacity));
 }
 
 .chc-participant-container.chc-participant--favourite {

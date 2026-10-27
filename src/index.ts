@@ -8,6 +8,7 @@ export { renderRoundPager } from './components/renderStructure/renderRoundPager'
 export { renderMatchUp } from './components/renderStructure/renderMatchUp';
 export { compositions } from './compositions/compositions';
 export { resolvePublishedComposition } from './compositions/resolvePublishedComposition';
+export { showsConnectors } from './compositions/showsConnectors';
 export type { DisplayExtensionValue } from './compositions/resolvePublishedComposition';
 export { renderRound } from './components/renderStructure/renderRound';
 export { buildStructureMinimap } from './components/renderStructure/renderStructureMinimap';

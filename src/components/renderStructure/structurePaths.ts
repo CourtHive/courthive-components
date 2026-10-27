@@ -7,6 +7,8 @@ export type ParticipantPath = {
   won: string[];
   /** the matchUps ahead while the participant is still alive, by draw position */
   projected: string[];
+  /** the matchUps whose outgoing connector leads along the projection: the latest, then each projected but the last */
+  leads: string[];
 };
 
 /** The side's own participantId and, for a pair or team, its individuals': a hover reports either. */
@@ -100,9 +102,11 @@ export function buildPathIndex({
       .map(({ matchUpId }) => matchUpId);
     const latest = appearances.reduce((a, b) => ((b.roundNumber ?? 0) > (a.roundNumber ?? 0) ? b : a), appearances[0]);
     const canProject = projectable && !!latest.roundNumber && !!latest.roundPosition;
+    const projected = canProject ? project(latest, roundCounts, byPosition, participantId) : [];
     const path: ParticipantPath = {
       played: appearances.map(({ matchUpId }) => matchUpId),
-      projected: canProject ? project(latest, roundCounts, byPosition, participantId) : [],
+      leads: projected.length ? [latest.matchUpId, ...projected.slice(0, -1)] : [],
+      projected,
       won
     };
     cache.set(participantId, path);
