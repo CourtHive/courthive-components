@@ -52,11 +52,13 @@
 .chc-theme-basiccard {
   --chc-color-border: var(--chc-border-secondary);
   --chc-color-border-hover: var(--chc-border-focus);
-  --chc-color-connector: transparent;
+  /* the lines have a colour but are hidden by default; configuration.connectors shows them */
+  --chc-color-connector: var(--chc-border-primary);
+  --chc-connector-opacity: 0;
   --chc-color-internal-dividers: transparent;
-  --chc-matchup-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  --chc-matchup-box-shadow: var(--chc-card-shadow);
   --chc-border-width-matchup: 1px;
-  --chc-color-winner: #333;
+  --chc-color-winner: var(--chc-text-primary);
   /* the card's corners; draw.css re-rounds the children at them (generalised from this theme) */
   --chc-radius-matchup: 8px;
 }
@@ -71,7 +73,9 @@
 
 /* ── Wimbledon ──────────────────────────────────────────── */
 .chc-theme-wimbledon {
-  --chc-color-connector: transparent;
+  /* hidden by default, in the theme's own colour when configuration.connectors shows them */
+  --chc-color-connector: var(--chc-color-border);
+  --chc-connector-opacity: 0;
   --chc-color-border: #00703c;
   --chc-color-matchup: var(--chc-bg-elevated);
   --chc-participant-text-transform: uppercase;

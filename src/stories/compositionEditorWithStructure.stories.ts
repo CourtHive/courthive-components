@@ -136,6 +136,31 @@ function createEditorStructureView(args: Args): HTMLElement {
   return container;
 }
 
+// the editor's own preview is a .chc-structure too; this is the full structure beside it
+const fullStructure = (canvas: HTMLElement) =>
+  canvas.querySelector('[data-story-structure] .chc-structure') as HTMLElement;
+
+const layoutToggle = (canvas: HTMLElement, label: string) => {
+  const header = [...canvas.querySelectorAll<HTMLElement>('.ce-section-header')].find((el) =>
+    el.textContent?.includes('Layout')
+  );
+  const findToggle = () =>
+    [...canvas.querySelectorAll('.ce-field')]
+      .find((el) => el.querySelector('span')?.textContent === label)
+      ?.querySelector('input[type="checkbox"]') as HTMLInputElement | undefined;
+  if (!findToggle()) header?.click();
+  return findToggle() as HTMLInputElement;
+};
+
+const hoverFirstPlayer = (structure: HTMLElement) => {
+  const player = structure.querySelector('.tmx-i[id]:not([id="undefined"])') as HTMLElement;
+  player.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+  return player;
+};
+
+// a line is a pseudo-element of its cell; what is drawn is its computed opacity
+const lineOpacity = (cell: Element) => Number(getComputedStyle(cell, '::after').opacity);
+
 /**
  * Default — Australian composition with 16-draw
  */
@@ -143,26 +168,36 @@ export const Default: StoryObj<Args> = {
   render: createEditorStructureView,
   args: { preset: 'Australian', drawSize: 16 },
   play: async ({ canvasElement }) => {
-    // the editor's own preview is a .chc-structure too; this is the full structure beside it
-    const structure = () => canvasElement.querySelector('[data-story-structure] .chc-structure') as HTMLElement;
-    const before = structure();
+    const before = fullStructure(canvasElement);
     expect(before).not.toBeNull();
     expect(before.querySelectorAll('.tmx-m').length).toBe(15);
 
     // an editor change re-renders the structure: Path highlight on, then hovering a player marks their path
-    [...canvasElement.querySelectorAll<HTMLElement>('.ce-section-header')]
-      .find((el) => el.textContent?.includes('Layout'))
-      ?.click();
-    const toggle = [...canvasElement.querySelectorAll('.ce-field')]
-      .find((el) => el.querySelector('span')?.textContent === 'Path highlight on hover')
-      ?.querySelector('input[type="checkbox"]') as HTMLInputElement;
+    const toggle = layoutToggle(canvasElement, 'Path highlight on hover');
     expect(toggle.checked).toBe(false);
     toggle.click();
-    expect(structure()).not.toBe(before);
+    const structure = fullStructure(canvasElement);
+    expect(structure).not.toBe(before);
 
-    const player = structure().querySelector('.tmx-i[id]:not([id="undefined"])') as HTMLElement;
-    player.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
-    expect(structure().querySelectorAll('.tmx-m.chc-path').length).toBeGreaterThan(0);
+    hoverFirstPlayer(structure);
+    const onPath = structure.querySelector('.tmx-m.chc-path') as HTMLElement;
+    expect(onPath).not.toBeNull();
+
+    // the path stands out: everything off it recedes, and its cards are ringed
+    expect(structure.classList.contains('chc-structure--path-active')).toBe(true);
+    const offPath = structure.querySelector('.tmx-m:not(.chc-path):not(.chc-path--projected)') as HTMLElement;
+    expect(Number(getComputedStyle(offPath).opacity)).toBeLessThan(0.5);
+    expect(Number(getComputedStyle(onPath).opacity)).toBe(1);
+
+    // an unplayed draw: the route ahead is drawn dashed, line and card
+    const leads = structure.querySelector('.chc-cell:has(> .tmx-m.chc-path--leads)') as HTMLElement;
+    expect(lineOpacity(leads)).toBe(1);
+    expect(getComputedStyle(leads, '::after').borderTopStyle).toBe('dashed');
+    // the card's shadow animates (draw.css: 0.3s): read the ring once it has arrived
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    expect(getComputedStyle(onPath.querySelector('.chc-matchup') as HTMLElement).boxShadow).toContain(
+      '0px 0px 0px 2px'
+    );
   }
 };
 
@@ -171,7 +206,24 @@ export const Default: StoryObj<Args> = {
  */
 export const Scoreboard: StoryObj<Args> = {
   render: createEditorStructureView,
-  args: { preset: 'Scoreboard', drawSize: 16 }
+  args: { preset: 'Scoreboard', drawSize: 16 },
+  play: async ({ canvasElement }) => {
+    // BasicCard's theme hides the lines; Scoreboard shows them
+    const cell = () => fullStructure(canvasElement).querySelector('.chc-link--m1') as HTMLElement;
+    expect(lineOpacity(cell())).toBe(1);
+
+    const connectors = layoutToggle(canvasElement, 'Connectors');
+    expect(connectors.checked).toBe(true);
+    connectors.click();
+    expect(lineOpacity(cell())).toBe(0);
+
+    // with the lines hidden, a path highlight still draws the path's own
+    layoutToggle(canvasElement, 'Path highlight on hover').click();
+    const structure = fullStructure(canvasElement);
+    hoverFirstPlayer(structure);
+    const pathCell = structure.querySelector('.chc-cell:has(> .tmx-m.chc-path)') as HTMLElement;
+    expect(Number(getComputedStyle(pathCell, '::before').opacity)).toBe(1);
+  }
 };
 
 /**

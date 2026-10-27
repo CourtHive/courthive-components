@@ -46,6 +46,7 @@ describe('compositions', () => {
       it('configuration contains only valid keys', () => {
         const validKeys = new Set([
           'flags',
+          'connectors',
           'flag',
           'teamLogo',
           'roundHeader',
