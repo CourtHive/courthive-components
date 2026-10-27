@@ -489,6 +489,8 @@ export interface Configuration {
  */
 export interface ModalConfiguration {
   clickAway?: boolean;
+  /** Focus the first control in the body that can be modified or selected when the modal opens. Default true. */
+  autoFocus?: boolean;
   backdrop?: boolean;
   maxWidth?: number;
   fontSize?: string;
