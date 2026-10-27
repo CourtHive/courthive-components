@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.3.0](https://github.com/CourtHive/courthive-components/compare/v7.2.0...v7.3.0) (2026-10-27)
+
+
+### Features
+
+* **modal:** focus on open, and type-ahead suggestions that don't fly in ([#860](https://github.com/CourtHive/courthive-components/issues/860)) ([120cb39](https://github.com/CourtHive/courthive-components/commit/120cb39e4e7655e067d0c45d2f9fc6569d88cbdf))
+
 ## [7.2.0](https://github.com/CourtHive/courthive-components/compare/v7.1.2...v7.2.0) (2026-10-27)
 
 
