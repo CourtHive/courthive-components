@@ -302,6 +302,11 @@
 .chc-modal-body .datepicker-dropdown,
 .chc-modal-body .awesomplete > ul {
   position: fixed;
+  /* Awesomplete animates every property (`transition: .3s`). Fixed, the hidden list waits at its stock
+     `left: 0` — the viewport's edge — and anchorModalPopups places it only as it opens, so its left, top
+     and width animated too: the suggestions flew in from the left of the screen. Only the pop-in (and its
+     fade out) animates. */
+  transition-property: opacity, transform, visibility;
 }
 
 .chc-modal-body .awesomplete > ul {

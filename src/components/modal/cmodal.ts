@@ -1,4 +1,5 @@
 import { anchorModalPopups } from './anchorModalPopups';
+import { focusFirstControl } from './focusFirstControl';
 import { getAttr } from '../../helpers/getAttr';
 import {
   backdropStyle,
@@ -553,6 +554,8 @@ export const cModal = (() => {
     container.appendChild(dialog);
     section.appendChild(container);
     document.body.appendChild(section);
+    // a frame on, once the modal is in the page; a form's own `focus: true` lands later still and stands
+    if (config?.autoFocus !== false) requestAnimationFrame(() => focusFirstControl(modalBody));
 
     modals.push(section);
 

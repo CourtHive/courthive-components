@@ -219,3 +219,89 @@ export const MultiSelectOverTheFooter = {
     closeAll();
   }
 };
+
+const nextFrame = () => new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
+
+/**
+ * The suggestions open where they hang. Fixed inside a modal body, the hidden list waited at Awesomplete's
+ * `left: 0` (the viewport's edge) and its every-property transition animated it from there to the input: the
+ * choices flew in from the left of the screen. Judged on the first frame, before any animation could finish.
+ */
+export const SuggestionsOpenWhereTheyHang = {
+  render: () => launcher('Open a modal and type in the type-ahead', () => openFormModal()),
+  play: async () => {
+    closeAll();
+    openFormModal();
+    const modal = topModal()!;
+    const playerInput = modal.querySelector<HTMLInputElement>('#popupPlayer')!;
+    playerInput.focus();
+    playerInput.value = 'Pl';
+    playerInput.dispatchEvent(new Event('input', { bubbles: true }));
+    const list = await waitFor(() => {
+      const shown = modal.querySelector<HTMLElement>('.awesomplete > ul:not([hidden])');
+      if (!shown) throw new Error('the suggestions did not open');
+      return shown;
+    });
+    await nextFrame();
+    const inputRect = playerInput.getBoundingClientRect();
+    const { left, top } = getComputedStyle(list);
+    await expect(Math.round(Number.parseFloat(left)), 'the list is already beside the input').toBe(
+      Math.round(inputRect.left)
+    );
+    await expect(Math.round(Number.parseFloat(top)), 'the list is already under the input').toBe(
+      Math.round(inputRect.bottom)
+    );
+    closeAll();
+  }
+};
+
+function openFocusModal({ content, autoFocus }: { content: (body: HTMLElement) => void; autoFocus?: boolean }) {
+  cModal.open({
+    title: 'Focus on open',
+    content,
+    config: autoFocus === undefined ? undefined : { autoFocus },
+    buttons: [{ label: 'Close', close: true }]
+  });
+}
+
+/**
+ * A modal opens with focus on the first control in its body that can be modified or selected: the
+ * type-ahead here, past the date field (focus would open its calendar over the dialog). A form that names
+ * its own field (`focus: true`) keeps it, and `autoFocus: false` leaves focus where it was.
+ */
+export const FocusOnOpen = {
+  render: () => launcher('Open a modal with a date and a type-ahead', () => openFormModal()),
+  play: async () => {
+    closeAll();
+    const launcherButton = document.createElement('button');
+    document.body.appendChild(launcherButton);
+
+    openFormModal();
+    await waitFor(() => expect(document.activeElement?.id, 'the type-ahead, past the date').toBe('popupPlayer'));
+    closeAll();
+
+    // renderForm's own `focus: true` focuses its field after 200ms, so it lands after this and stands
+    openFocusModal({
+      content: (body) =>
+        renderForm(body, [
+          { label: 'First', field: 'first', id: 'focusFirst' },
+          { label: 'Second', field: 'second', id: 'focusSecond', focus: true }
+        ])
+    });
+    await waitFor(() => expect(document.activeElement?.id, "the content's own choice stands").toBe('focusSecond'), {
+      timeout: 1000
+    });
+    closeAll();
+
+    launcherButton.focus();
+    openFocusModal({
+      autoFocus: false,
+      content: (body) => renderForm(body, [{ label: 'Only', field: 'only', id: 'focusOnly' }])
+    });
+    await nextFrame();
+    await nextFrame();
+    await expect(document.activeElement, 'autoFocus: false takes no focus').toBe(launcherButton);
+    closeAll();
+    launcherButton.remove();
+  }
+};
