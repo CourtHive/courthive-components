@@ -1,5 +1,13 @@
 # Changelog
 
+## [7.2.0](https://github.com/CourtHive/courthive-components/compare/v7.1.2...v7.2.0) (2026-10-27)
+
+
+### Features
+
+* **structure:** configuration.connectors, and a path highlight that stands out ([#856](https://github.com/CourtHive/courthive-components/issues/856)) ([c78010d](https://github.com/CourtHive/courthive-components/commit/c78010de0847bf33a89894fe5739322d5e9a56bb))
+* **structure:** configuration.matchUpInset, and Scoreboard in its own colours ([#854](https://github.com/CourtHive/courthive-components/issues/854)) ([c5da7e4](https://github.com/CourtHive/courthive-components/commit/c5da7e473709ed6593aeb8ac679d50d1997599a6))
+
 ## [7.1.2](https://github.com/CourtHive/courthive-components/compare/v7.1.1...v7.1.2) (2026-10-26)
 
 
