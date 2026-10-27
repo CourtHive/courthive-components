@@ -1,5 +1,6 @@
 import type { CompositionEditorState, EditorPanel } from '../compositionEditorTypes';
 import type { CompositionEditorStore } from '../compositionEditorStore';
+import { showsConnectors } from '../../../compositions/showsConnectors';
 import { buildToggleField, buildSelectField } from './fieldBuilders';
 import type { ScheduleInfoOptions } from '../../../types';
 import { ceSubgroup, ceSubgroupTitle } from '../styles';
@@ -117,10 +118,26 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
     readOnly
   );
 
+  // the theme's own choice until set; the toggle shows what is drawn
+  const connectors = buildToggleField(
+    'Connectors',
+    showsConnectors(store.getState()),
+    (v) => store.setConfigField('connectors', v),
+    readOnly
+  );
+
   const pathHighlight = buildToggleField(
     'Path highlight on hover',
     !!cfg.pathHighlight,
     (v) => store.setConfigField('pathHighlight', v),
+    readOnly
+  );
+
+  const inset = buildSelectField(
+    'Inner padding',
+    [{ value: '', label: 'None' }, ...[1, 2, 3, 4].map((px) => ({ value: String(px), label: `${px}px` }))],
+    cfg.matchUpInset ? String(cfg.matchUpInset) : '',
+    (v) => store.setConfigField('matchUpInset', v ? Number(v) : undefined),
     readOnly
   );
 
@@ -143,6 +160,8 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
   root.appendChild(resultsInfo.element);
   root.appendChild(winnerChevron.element);
   root.appendChild(rounded.element);
+  root.appendChild(inset.element);
+  root.appendChild(connectors.element);
   root.appendChild(pathHighlight.element);
   root.appendChild(density.element);
   root.appendChild(liveStatusPill.element);
@@ -164,6 +183,8 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
     resultsInfo.setChecked(!!c.resultsInfo);
     winnerChevron.setChecked(!!c.winnerChevron);
     rounded.setChecked(!!c.rounded);
+    inset.setValue(c.matchUpInset ? String(c.matchUpInset) : '');
+    connectors.setChecked(showsConnectors(state));
     pathHighlight.setChecked(!!c.pathHighlight);
     density.setValue(c.density === 'compact' ? 'compact' : '');
   }

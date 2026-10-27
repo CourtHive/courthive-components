@@ -277,7 +277,7 @@ export interface Configuration {
   /** The header above the card: date and time, then location. The object form adds to it (all off by default). */
   scheduleInfo?: boolean | ScheduleInfoOptions;
   /**
-   * A colour per side: `{ 1: '#0047d4', 2: '#dd5d13' }`, or a function the host answers per matchUp (a team's
+   * A colour per side: `{ 1: '#0b7a75', 2: '#b3365b' }`, or a function the host answers per matchUp (a team's
    * colour, say). Sets `--chc-side-color` on each side, which colours the winner's or server's name, the sets a
    * side won, the point score, the tick, and tints the winner's row. Off by default.
    */
@@ -325,6 +325,11 @@ export interface Configuration {
    * round robin, ad hoc or lucky draws. Off by default; the hovered sides highlight either way.
    */
   pathHighlight?: boolean;
+  /**
+   * The lines between rounds. `true` draws them and `false` hides them, whatever the theme; unset keeps the
+   * theme's own choice (BasicCard and Wimbledon hide them). A path highlight draws its own lines either way.
+   */
+  connectors?: boolean;
   /**
    * Host renderers for named slots in the structure. Each returns an element, or nothing to leave the slot
    * empty; the element is wrapped in `.chc-slot.chc-slot--<name>` and never modified. Runtime functions,
@@ -387,6 +392,11 @@ export interface Configuration {
    * and `--chc-radius-score`; set them on `.chc-rounded` to change the radii.
    */
   rounded?: boolean;
+  /**
+   * Space, in pixels, between the card's border and what it holds, so a tinted row or a header's background
+   * stops short of the border. 0 (none) by default. Backed by `--chc-matchup-inset`.
+   */
+  matchUpInset?: number;
   /**
    * An icon for each of the matchUp's online resources: play for a VIDEO, a live dot for a STREAM, a
    * chart for STATS. Off by default. `true` shows all three; `{ subTypes }` narrows it. In the schedule

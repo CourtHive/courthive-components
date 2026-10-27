@@ -74,7 +74,8 @@ export function renderStructure({
 
   // the card is offset in its cell so its divider, not its middle, sits on the connector line: by half the
   // schedule header and half the footer, whose heights the stylesheet knows (draw.css, Connector lines)
-  const { scheduleInfo, matchUpFooter, rounded, density, connectorWidth } = composition?.configuration || {};
+  const { scheduleInfo, matchUpFooter, rounded, density, connectorWidth, connectors } =
+    composition?.configuration || {};
   if (scheduleInfo) div.classList.add('chc-structure--schedule-info');
   // a footer renders for the option or for a footer slot renderer, and the card offset must count it either way
   const footerRenderer = composition?.configuration?.renderers?.matchUpFooter;
@@ -82,6 +83,9 @@ export function renderStructure({
   // the radius tokens must reach the connector cells, which sit outside each card's own `.chc-rounded`
   if (rounded) div.classList.add('chc-rounded');
   if (density === 'compact') div.classList.add('chc-density--compact');
+  // set either way, a configured choice overrides the theme's (draw.css, --chc-connector-opacity)
+  if (connectors === true) div.classList.add('chc-structure--connectors');
+  if (connectors === false) div.classList.add('chc-structure--no-connectors');
   // the round gap follows a configured connector width, so the line still spans it
   if (connectorWidth) div.style.setProperty('--chc-round-gap', `${connectorWidth}px`);
 
@@ -124,6 +128,9 @@ export function renderStructure({
     mark(path.played, 'chc-path');
     mark(path.won, 'chc-path--won');
     mark(path.projected, 'chc-path--projected');
+    mark(path.leads, 'chc-path--leads');
+    // everything off the path recedes while one is shown
+    div.classList.toggle('chc-structure--path-active', add);
   };
 
   // Highlight all appearances of a participant on hover using event delegation.

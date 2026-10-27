@@ -46,6 +46,7 @@ describe('compositions', () => {
       it('configuration contains only valid keys', () => {
         const validKeys = new Set([
           'flags',
+          'connectors',
           'flag',
           'teamLogo',
           'roundHeader',
@@ -77,6 +78,7 @@ describe('compositions', () => {
           'inlineScoring',
           // scoreboard and watch options
           'rounded',
+          'matchUpInset',
           'onlineResources',
           'liveStatusPill',
           'serverIndicator',

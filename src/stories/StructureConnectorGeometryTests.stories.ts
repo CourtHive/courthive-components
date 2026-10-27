@@ -177,6 +177,10 @@ const VARIANTS: Variant[] = [
   { name: 'rounded', configuration: { rounded: true, scheduleInfo: true } },
   { name: 'BasicCard', composition: compositions.BasicCard },
   { name: 'Scoreboard', composition: compositions.Scoreboard },
+  {
+    name: 'inset 4 + schedule header + footer',
+    configuration: { matchUpInset: 4, scheduleInfo: true, matchUpFooter: true }
+  },
   { name: 'Watch', composition: compositions.Watch },
   // a squeezed structure keeps every card wide enough for its scores (7.1.0 let them spill out, CA 2026-10-26)
   { name: 'narrow host', hostWidth: 600 },

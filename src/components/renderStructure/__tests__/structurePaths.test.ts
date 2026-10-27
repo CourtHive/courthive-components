@@ -33,6 +33,8 @@ describe('buildPathIndex projection', () => {
     const path = buildPathIndex({ matchUps, roundProfile, projectable: true })(P);
     expect(path?.played).toEqual(['r1p3']);
     expect(path?.projected).toEqual(['r2p2', 'r3p2', 'r4p1']);
+    // the line out of the latest matchUp and out of each projected one but the last runs along the projection
+    expect(path?.leads).toEqual(['r1p3', 'r2p2', 'r3p2']);
   });
 
   it('projects nothing for a structure that is not projectable, whatever its shape', () => {
@@ -56,6 +58,6 @@ describe('buildPathIndex projection', () => {
     ];
     first.winningSide = 2;
     const path = buildPathIndex({ matchUps, roundProfile, projectable: true })(P);
-    expect(path).toEqual({ played: ['r1p1'], won: [], projected: [] });
+    expect(path).toEqual({ played: ['r1p1'], won: [], projected: [], leads: [] });
   });
 });
