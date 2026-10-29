@@ -8,7 +8,7 @@
  * with `lightMode: true` or override with a pre-computed `matchUpStats`.
  */
 
-import { tournamentEngine } from 'tods-competition-factory';
+import { matchUpGovernor } from 'tods-competition-factory';
 
 import { extractCourtSvgSport, extractImageURL, formatDateRange } from '../../helpers/cards';
 import { EventCardData, EventGenderKind, EventMatchUpCounts, EventStatusPill, EventTypeKind } from './types';
@@ -92,7 +92,8 @@ function countEventMatchUps(event: any): EventMatchUpCounts {
   // skips the per-side participant/draw/event enrichment we don't read in
   // this loop — only winningSide, matchUpStatus, and schedule.scheduledTime
   // matter, and the enrichment was the bulk of the per-call cost.
-  const { matchUps = [] } = tournamentEngine.allEventMatchUps({ event, inContext: false }) ?? {};
+  // the event need not be in the engine's state (an engine call works only on the records it holds): read it directly
+  const { matchUps = [] } = matchUpGovernor.allEventMatchUps({ event, inContext: false }) ?? {};
   let total = 0;
   let completed = 0;
   let scheduled = 0;
