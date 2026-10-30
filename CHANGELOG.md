@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.3.2](https://github.com/CourtHive/courthive-components/compare/v7.3.1...v7.3.2) (2026-10-30)
+
+
+### Bug Fixes
+
+* **cards:** count draw and event matchUps through the matchUp governor ([#869](https://github.com/CourtHive/courthive-components/issues/869)) ([fc15f8d](https://github.com/CourtHive/courthive-components/commit/fc15f8d07778ad9cb4dac65de97bec0fede04ace))
+
 ## [7.3.1](https://github.com/CourtHive/courthive-components/compare/v7.3.0...v7.3.1) (2026-10-29)
 
 
