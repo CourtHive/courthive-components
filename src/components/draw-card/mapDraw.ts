@@ -8,7 +8,7 @@
  * `lightMode: true` or override with a pre-computed `matchUpStats`.
  */
 
-import { tournamentEngine } from 'tods-competition-factory';
+import { matchUpGovernor } from 'tods-competition-factory';
 
 import { DrawCardData, DrawMatchUpCounts, DrawStatusPill } from './types';
 
@@ -41,7 +41,8 @@ function labelForDrawType(code: string | undefined): string | undefined {
 }
 
 function countDrawMatchUps(drawDefinition: any): DrawMatchUpCounts {
-  const { matchUps = [] } = tournamentEngine.getAllDrawMatchUps({ drawDefinition });
+  // the draw need not be in the engine's state (an engine call works only on the records it holds): read it directly
+  const { matchUps = [] } = matchUpGovernor.getAllDrawMatchUps({ drawDefinition });
   let total = 0;
   let completed = 0;
   let scheduled = 0;
