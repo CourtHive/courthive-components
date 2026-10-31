@@ -149,6 +149,26 @@
   flex: 1 1 280px;
   max-width: 340px;
   min-width: 0;
+  position: relative;
+}
+/* Order of finish: the order a completed line finished among its dual's lines of the same type */
+.chc-scorecard-finish-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  border-radius: 999px;
+  border: 1px solid var(--chc-border-primary);
+  background: var(--chc-bg-secondary);
+  color: var(--chc-text-primary);
+  font-size: 11px;
+  font-weight: 700;
+  pointer-events: none;
 }
 /* Remove connector lines inside scorecard matchUp cards */
 .chc-scorecard-card .chc-link::before,
