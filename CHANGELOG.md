@@ -1,5 +1,18 @@
 # Changelog
 
+## [7.5.0](https://github.com/CourtHive/courthive-components/compare/v7.4.0...v7.5.0) (2026-10-31)
+
+
+### Features
+
+* **schedule-page:** structure groups follow each draw's play order ([#881](https://github.com/CourtHive/courthive-components/issues/881)) ([873b0dd](https://github.com/CourtHive/courthive-components/commit/873b0dd374ed9d81f492743dc37e3899dcc49db6))
+* **scorecard:** show each completed line's order of finish ([#886](https://github.com/CourtHive/courthive-components/issues/886)) ([b3deb44](https://github.com/CourtHive/courthive-components/commit/b3deb44aa0a71368f5ea16cb0a8f147f75018c47))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.26.0 ([#879](https://github.com/CourtHive/courthive-components/issues/879)) ([b613b2d](https://github.com/CourtHive/courthive-components/commit/b613b2de8de42f5193d48819223a1b17e01d502c))
+
 ## [7.4.0](https://github.com/CourtHive/courthive-components/compare/v7.3.2...v7.4.0) (2026-10-31)
 
 
