@@ -6,13 +6,20 @@
  * This is a pure rendering component — no mutations or business logic.
  * Consumers wire interactivity via the eventHandlers callback map.
  */
+import { completedMatchUpStatuses } from 'tods-competition-factory';
 import { renderMatchUp } from '../renderStructure/renderMatchUp';
+
+export interface ScorecardLabels {
+  /** names the order-of-finish badge for assistive technology and its tooltip, e.g. "Order of finish" */
+  orderOfFinish?: string;
+}
 
 export interface ScorecardOptions {
   matchUp: any;
   composition?: any;
   eventHandlers?: any;
   swapSides?: boolean;
+  labels?: ScorecardLabels;
 }
 
 export interface TeamVsOptions {
@@ -29,7 +36,13 @@ const winningClass = 'chc-scorecard-side-score--winner';
 /**
  * Render a full team scorecard: header + collection panels + matchUp grids.
  */
-export function renderScorecard({ matchUp, composition, eventHandlers, swapSides }: ScorecardOptions): HTMLDivElement {
+export function renderScorecard({
+  matchUp,
+  composition,
+  eventHandlers,
+  swapSides,
+  labels
+}: ScorecardOptions): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'chc-scorecard';
 
@@ -66,7 +79,8 @@ export function renderScorecard({ matchUp, composition, eventHandlers, swapSides
       collectionMatchUps,
       composition,
       eventHandlers,
-      swapSides
+      swapSides,
+      labels
     });
     container.appendChild(panel);
   }
@@ -180,13 +194,15 @@ function renderCollectionPanel({
   collectionMatchUps,
   composition,
   eventHandlers,
-  swapSides
+  swapSides,
+  labels
 }: {
   collectionDefinition: any;
   collectionMatchUps: any[];
   composition?: any;
   eventHandlers?: any;
   swapSides?: boolean;
+  labels?: ScorecardLabels;
 }): HTMLDivElement {
   const panel = document.createElement('div');
   panel.className = 'chc-scorecard-panel';
@@ -232,11 +248,32 @@ function renderCollectionPanel({
       composition
     });
     card.classList.add('chc-scorecard-card');
+    const finishBadge = renderOrderOfFinishBadge(tieMatchUp, labels);
+    if (finishBadge) card.appendChild(finishBadge);
     grid.appendChild(card);
   }
 
   panel.appendChild(grid);
   return panel;
+}
+
+/**
+ * The order in which a completed line finished among its dual's lines of the same matchUpType
+ * (`matchUp.orderOfFinish`, set by the factory's `setOrderOfFinish`). A line that is no longer complete shows none,
+ * since a cleared line can still carry its earlier number.
+ */
+function renderOrderOfFinishBadge(tieMatchUp: any, labels?: ScorecardLabels): HTMLSpanElement | undefined {
+  const { orderOfFinish, matchUpStatus } = tieMatchUp ?? {};
+  if (!orderOfFinish || !completedMatchUpStatuses.includes(matchUpStatus)) return undefined;
+
+  const label = `${labels?.orderOfFinish ?? 'Order of finish'} ${orderOfFinish}`;
+  const badge = document.createElement('span');
+  badge.className = 'chc-scorecard-finish-badge';
+  badge.dataset.orderOfFinish = String(orderOfFinish);
+  badge.textContent = String(orderOfFinish);
+  badge.title = label;
+  badge.setAttribute('aria-label', label);
+  return badge;
 }
 
 function swapWinningSide(winningSide?: number): number | undefined {
