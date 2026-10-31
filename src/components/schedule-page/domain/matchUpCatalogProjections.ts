@@ -136,11 +136,6 @@ function compareReadiness(a: CatalogMatchUpItem, b: CatalogMatchUpItem): number 
   return sideReadiness(b) - sideReadiness(a) || ascending(rankOf(a), rankOf(b));
 }
 
-// A group is as ready as its readiest matchUp.
-function readiestItem(items: CatalogMatchUpItem[]): CatalogMatchUpItem {
-  return items.reduce((best, item) => (compareReadiness(item, best) < 0 ? item : best), items[0]);
-}
-
 // Stable readiness sort within a group: ready matches first, TBD last, then the
 // consumer's rank, otherwise preserve the incoming (factory-traversal) order.
 function sortItemsByReadiness(items: CatalogMatchUpItem[]): CatalogMatchUpItem[] {
@@ -202,8 +197,8 @@ type GroupComparator = (a: Group, b: Group) => number;
  */
 function structuralComparator(mode: MatchUpCatalogGroupBy): GroupComparator {
   if (mode === 'time') {
+    // Group keys are unique, so two groups never share a key — Unscheduled included.
     return ([ak], [bk]) => {
-      if (ak === bk) return 0;
       if (ak === TIME_UNSCHEDULED) return 1;
       if (bk === TIME_UNSCHEDULED) return -1;
       return ak.localeCompare(bk, undefined, { numeric: true });
@@ -266,7 +261,8 @@ export function groupMatchUpCatalog(
     groups.sort((a, b) => {
       const s = structural(a, b);
       if (s !== 0) return s;
-      const r = compareReadiness(readiestItem(a[1]), readiestItem(b[1]));
+      // A group is as ready as its readiest matchUp, which the readiness sort above has put first.
+      const r = compareReadiness(a[1][0], b[1][0]);
       if (r !== 0) return r;
       const at = minTimeInGroup(a[1]);
       const bt = minTimeInGroup(b[1]);

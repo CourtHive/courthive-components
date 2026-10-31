@@ -333,4 +333,23 @@ describe('groupMatchUpCatalog — structureSequence (play order within a draw)',
     const items = [s('A', 'Consolation', 'CONSOLATION', undefined, 0), s('B', 'Main', 'MAIN', undefined, 900)];
     expect(keys(items)).toEqual(['B — Main', 'A — Consolation']);
   });
+
+  it('places a group spanning two draws by the earlier of its structures', () => {
+    // Two draws of one event share the label "Consolation", so their structures merge into one group.
+    const items = [
+      s('Event', 'Consolation', 'CONSOLATION', 3, 0),
+      s('Event', 'West', 'PLAY_OFF', 2, 0),
+      { ...s('Event', 'Consolation', 'CONSOLATION', 1, 0), matchUpId: 'second-draw' }
+    ];
+    expect(keys(items)).toEqual(['Event — Consolation', 'Event — West']);
+  });
+
+  it('places a group by its readiest matchUp, wherever it arrived in the input', () => {
+    const items = [
+      item({ matchUpId: 'a-slow', eventName: 'Alpha', sides: BOTH, readinessRank: 90 }),
+      item({ matchUpId: 'b', eventName: 'Bravo', sides: BOTH, readinessRank: 40 }),
+      item({ matchUpId: 'a-fast', eventName: 'Alpha', sides: BOTH, readinessRank: 5 })
+    ];
+    expect([...groupMatchUpCatalog(items, 'event').keys()]).toEqual(['Alpha', 'Bravo']);
+  });
 });
