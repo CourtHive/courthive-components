@@ -14,7 +14,8 @@ import {
   generateFlightNames,
   buildScaleAttributes,
   getSplitMethodConstant,
-  validateFlightProfile
+  validateFlightProfile,
+  buildScaleRange
 } from './flightProfileLogic';
 
 // Helper functions
@@ -35,6 +36,8 @@ export interface FlightProfileConfig {
     eventTypeLabel?: string;
     splitMethodLabel?: string;
     flightNamesLabel?: string;
+    ratingMinLabel?: string;
+    ratingMaxLabel?: string;
     cancel?: string;
     ok?: string;
     existingNote?: string;
@@ -42,6 +45,10 @@ export interface FlightProfileConfig {
   options?: {
     eventTypes?: string[];
     ratingTypes?: string[];
+    // fewest flights allowed (default 2); 1 lets a caller make a single flight, e.g. a rating band's top flight
+    minFlights?: number;
+    // offer the optional rating band (from / to); its value is returned as `scaleRange`
+    ratingBand?: boolean;
   };
   eventType?: string; // Pre-set event type from parent context
 }
@@ -82,7 +89,10 @@ export function getFlightProfileModal(params: {
       editorConfig
     });
 
-    const relationships = getFlightProfileFormRelationships();
+    const relationships = getFlightProfileFormRelationships({
+      minFlights: editorConfig.options?.minFlights,
+      ratingBand: editorConfig.options?.ratingBand
+    });
 
     // Render the form with both items and relationships
     const formContainer = document.createElement('div');
@@ -161,10 +171,12 @@ export function getFlightProfileModal(params: {
         scaleType: inputs.scaleType?.value || RATING,
         scaleName: inputs.scaleName?.value,
         splitMethod: inputs.splitMethod?.value || 'LEVEL_BASED',
+        ratingMin: inputs.ratingMin?.value,
+        ratingMax: inputs.ratingMax?.value,
         isExisting: false
       };
 
-      const errors = validateFlightProfile(state);
+      const errors = validateFlightProfile(state, { minFlights: editorConfig.options?.minFlights });
       if (errors.length > 0) {
         if (errorBox) {
           errorBox.textContent = errors.join('\n');
@@ -180,13 +192,15 @@ export function getFlightProfileModal(params: {
       const drawNames = generateFlightNames(state);
       const scaleAttributes = buildScaleAttributes(state);
       const splitMethod = getSplitMethodConstant(state.splitMethod);
+      const scaleRange = buildScaleRange(state);
 
       if (isFunction(callback)) {
         callback({
           flightsCount: state.flightsCount,
           drawNames,
           scaleAttributes,
-          splitMethod
+          splitMethod,
+          ...(scaleRange && { scaleRange })
           // eventType NOT included - will be added by caller from event context
         });
       }
