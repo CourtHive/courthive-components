@@ -1,5 +1,17 @@
 # Changelog
 
+## [7.4.0](https://github.com/CourtHive/courthive-components/compare/v7.3.2...v7.4.0) (2026-10-31)
+
+
+### Features
+
+* **schedule-page:** order catalog groups by structure first, then readiness ([#876](https://github.com/CourtHive/courthive-components/issues/876)) ([92725c7](https://github.com/CourtHive/courthive-components/commit/92725c72533157a7ecabd3bce21c4d4123009ee3))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.25.0 ([#875](https://github.com/CourtHive/courthive-components/issues/875)) ([dea33a4](https://github.com/CourtHive/courthive-components/commit/dea33a44ad297ffd12f03e1acdd61dd75509b8a3))
+
 ## [7.3.2](https://github.com/CourtHive/courthive-components/compare/v7.3.1...v7.3.2) (2026-10-30)
 
 
