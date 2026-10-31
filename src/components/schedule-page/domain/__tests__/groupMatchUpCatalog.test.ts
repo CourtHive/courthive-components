@@ -25,7 +25,8 @@ function item(overrides: Partial<CatalogMatchUpItem>): CatalogMatchUpItem {
     sides: overrides.sides,
     isScheduled: overrides.isScheduled ?? false,
     scheduledTime: overrides.scheduledTime,
-    scheduledCourtName: overrides.scheduledCourtName
+    scheduledCourtName: overrides.scheduledCourtName,
+    readinessRank: overrides.readinessRank
   };
 }
 
@@ -208,5 +209,84 @@ describe('groupMatchUpCatalog — readiness sort', () => {
       .map((i) => i.matchUpId);
 
     expect(order).toEqual(['ready', 'partial', 'tbd1', 'tbd2']);
+  });
+});
+
+describe('groupMatchUpCatalog — structure before readiness', () => {
+  const keys = (items: CatalogMatchUpItem[], mode: Parameters<typeof groupMatchUpCatalog>[1]) => [
+    ...groupMatchUpCatalog(items, mode).keys()
+  ];
+
+  it('keeps rounds in draw order even when a later round is the readier', () => {
+    const items = [
+      item({ matchUpId: 'sf', roundName: 'SF', roundNumber: 4, sides: BOTH, readinessRank: 0 }),
+      item({ matchUpId: 'r16', roundName: 'R16', roundNumber: 2, sides: NONE }),
+      item({ matchUpId: 'qf', roundName: 'QF', roundNumber: 3, sides: ONE }),
+      item({ matchUpId: 'r32', roundName: 'R32', roundNumber: 1, sides: BOTH, readinessRank: 5000 })
+    ];
+    // By label this would be QF, R16, R32, SF; by readiness SF first. Neither is the structure.
+    expect(keys(items, 'round')).toEqual(['R32', 'R16', 'QF', 'SF']);
+  });
+
+  it('puts qualifying rounds before main-draw rounds', () => {
+    const items = [
+      item({ matchUpId: 'main', roundName: 'R32', roundNumber: 1, stage: 'MAIN', sides: BOTH }),
+      item({ matchUpId: 'q', roundName: 'Q1', roundNumber: 1, stage: 'QUALIFYING', sides: NONE })
+    ];
+    expect(keys(items, 'round')).toEqual(['Q1', 'R32']);
+  });
+
+  it('orders time groups by the clock, not by readiness, with Unscheduled last', () => {
+    const items = [
+      item({ matchUpId: 'u', sides: BOTH, readinessRank: 0 }),
+      item({ matchUpId: 'late', scheduledTime: '10:00', sides: BOTH, readinessRank: 0 }),
+      item({ matchUpId: 'early', scheduledTime: '08:00', sides: NONE })
+    ];
+    expect(keys(items, 'time')).toEqual(['08:00', '10:00', 'Unscheduled']);
+  });
+
+  it('orders structures by the stage they are played in, across events, not event by event', () => {
+    const items = [
+      item({ matchUpId: 'ac', eventId: 'A', eventName: 'A', stage: 'CONSOLATION', sides: BOTH, readinessRank: 0 }),
+      item({ matchUpId: 'bm', eventId: 'B', eventName: 'B', stage: 'MAIN', sides: NONE }),
+      item({ matchUpId: 'am', eventId: 'A', eventName: 'A', stage: 'MAIN', sides: BOTH, readinessRank: 10 }),
+      item({ matchUpId: 'bq', eventId: 'B', eventName: 'B', stage: 'QUALIFYING', sides: NONE })
+    ];
+    // Every main draw goes on the grid before any consolation, whichever event it belongs to.
+    // Within a stage readiness decides: A's main (ready) above B's (TBD v TBD).
+    expect(keys(items, 'structure')).toEqual(['B — Qualifying', 'A', 'B', 'A — Consolation']);
+  });
+});
+
+describe('groupMatchUpCatalog — readinessRank', () => {
+  it('orders groups with no structural order by their readiest matchUp', () => {
+    const items = [
+      item({ matchUpId: 'a', eventName: 'Alpha', sides: BOTH, readinessRank: 40 }),
+      item({ matchUpId: 'b', eventName: 'Bravo', sides: BOTH, readinessRank: 3 }),
+      item({ matchUpId: 'c', eventName: 'Charlie', sides: BOTH })
+    ];
+    expect([...groupMatchUpCatalog(items, 'event').keys()]).toEqual(['Bravo', 'Alpha', 'Charlie']);
+  });
+
+  it('never lets a rank outrank side readiness', () => {
+    const items = [
+      item({ matchUpId: 'tbd', eventName: 'Alpha', sides: ONE, readinessRank: 0 }),
+      item({ matchUpId: 'real', eventName: 'Bravo', sides: BOTH, readinessRank: 9000 })
+    ];
+    expect([...groupMatchUpCatalog(items, 'event').keys()]).toEqual(['Bravo', 'Alpha']);
+  });
+
+  it('orders matchUps within a group by rank after side readiness, stable otherwise', () => {
+    const items = [
+      item({ matchUpId: 'slow', sides: BOTH, readinessRank: 30 }),
+      item({ matchUpId: 'tbd', sides: NONE, readinessRank: 0 }),
+      item({ matchUpId: 'unranked', sides: BOTH }),
+      item({ matchUpId: 'fast', sides: BOTH, readinessRank: 0 }),
+      item({ matchUpId: 'unranked2', sides: BOTH })
+    ];
+    const order = groupMatchUpCatalog(items, 'event')
+      .get('Event')!
+      .map((i) => i.matchUpId);
+    expect(order).toEqual(['fast', 'slow', 'unranked', 'unranked2', 'tbd']);
   });
 });
