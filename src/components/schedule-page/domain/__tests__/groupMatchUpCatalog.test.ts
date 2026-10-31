@@ -245,15 +245,16 @@ describe('groupMatchUpCatalog — structure before readiness', () => {
     expect(keys(items, 'time')).toEqual(['08:00', '10:00', 'Unscheduled']);
   });
 
-  it('keeps an event’s structures together, qualifying → main → consolation', () => {
+  it('orders structures by the stage they are played in, across events, not event by event', () => {
     const items = [
       item({ matchUpId: 'ac', eventId: 'A', eventName: 'A', stage: 'CONSOLATION', sides: BOTH, readinessRank: 0 }),
-      item({ matchUpId: 'bm', eventId: 'B', eventName: 'B', stage: 'MAIN', sides: BOTH, readinessRank: 10 }),
-      item({ matchUpId: 'am', eventId: 'A', eventName: 'A', stage: 'MAIN', sides: NONE }),
-      item({ matchUpId: 'aq', eventId: 'A', eventName: 'A', stage: 'QUALIFYING', sides: NONE })
+      item({ matchUpId: 'bm', eventId: 'B', eventName: 'B', stage: 'MAIN', sides: NONE }),
+      item({ matchUpId: 'am', eventId: 'A', eventName: 'A', stage: 'MAIN', sides: BOTH, readinessRank: 10 }),
+      item({ matchUpId: 'bq', eventId: 'B', eventName: 'B', stage: 'QUALIFYING', sides: NONE })
     ];
-    // Event A is placed first by its readiest structure (consolation, rank 0); within A, structure decides.
-    expect(keys(items, 'structure')).toEqual(['A — Qualifying', 'A', 'A — Consolation', 'B']);
+    // Every main draw goes on the grid before any consolation, whichever event it belongs to.
+    // Within a stage readiness decides: A's main (ready) above B's (TBD v TBD).
+    expect(keys(items, 'structure')).toEqual(['B — Qualifying', 'A', 'B', 'A — Consolation']);
   });
 });
 

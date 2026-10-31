@@ -180,12 +180,12 @@ type GroupComparator = (a: Group, b: Group) => number;
  *   - time:      the clock; "Unscheduled" last.
  *   - round:     stage, then round number. Round labels do not sort ("F" < "QF" < "R16"), so the
  *                label is never the structure.
- *   - structure: each event's structures stay together and run qualifying → main → the rest.
- *                Events themselves have no structural order, so they are placed by their readiest
- *                structure — readiness choosing between things structure leaves unordered.
+ *   - structure: the stage each structure is played in — qualifying, then main, then the rest —
+ *                across every event, because that is the order they go onto the grid. Structures
+ *                at the same stage are left to readiness.
  *   - event, draw: no structural order between groups.
  */
-function structuralComparator(mode: MatchUpCatalogGroupBy, groups: Group[]): GroupComparator {
+function structuralComparator(mode: MatchUpCatalogGroupBy): GroupComparator {
   if (mode === 'time') {
     return ([ak], [bk]) => {
       if (ak === bk) return 0;
@@ -202,26 +202,9 @@ function structuralComparator(mode: MatchUpCatalogGroupBy, groups: Group[]): Gro
     };
   }
   if (mode === 'structure') {
-    const eventOrder = rankEventsByReadiness(groups);
-    return ([, a], [, b]) =>
-      ascending(eventOrder.get(a[0].eventId) ?? 0, eventOrder.get(b[0].eventId) ?? 0) ||
-      ascending(structuralPosition(a)[0], structuralPosition(b)[0]);
+    return ([, a], [, b]) => ascending(structuralPosition(a)[0], structuralPosition(b)[0]);
   }
   return () => 0;
-}
-
-// Events in readiness order (readiest structure first), then by name: a position per eventId.
-function rankEventsByReadiness(groups: Group[]): Map<string, number> {
-  const readiest = new Map<string, CatalogMatchUpItem>();
-  for (const [, items] of groups) {
-    const best = readiestItem(items);
-    const current = readiest.get(best.eventId);
-    if (!current || compareReadiness(best, current) < 0) readiest.set(best.eventId, best);
-  }
-  const ordered = [...readiest.values()].sort(
-    (a, b) => compareReadiness(a, b) || a.eventName.localeCompare(b.eventName, undefined, { numeric: true })
-  );
-  return new Map(ordered.map((item, position) => [item.eventId, position]));
 }
 
 export function groupMatchUpCatalog(
@@ -259,7 +242,7 @@ export function groupMatchUpCatalog(
   //   4. Natural-numeric alpha on the key so "Round 2" precedes "Round 10".
   // Items within each group are readiness-sorted too (ready above TBD).
   const groups = [...m.entries()].map(([key, arr]): Group => [key, sortItemsByReadiness(arr)]);
-  const structural = structuralComparator(mode, groups);
+  const structural = structuralComparator(mode);
   return new Map(
     groups.sort((a, b) => {
       const s = structural(a, b);
