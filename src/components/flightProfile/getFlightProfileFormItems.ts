@@ -16,6 +16,8 @@ export const SUFFIX_TYPE = 'suffixType';
 export const SCALE_TYPE = 'scaleType';
 export const SCALE_NAME = 'scaleName';
 export const SPLIT_METHOD = 'splitMethod';
+export const RATING_MIN = 'ratingMin';
+export const RATING_MAX = 'ratingMax';
 
 interface FlightProfileFormItemsParams {
   existingProfile?: any;
@@ -76,13 +78,16 @@ export function getFlightProfileFormItems({
     }
   }
 
+  const minFlights = editorConfig.options?.minFlights ?? 2;
+  const ratingBand = !!editorConfig.options?.ratingBand;
+
   const items = [
     {
-      error: 'Must be in range 2-10',
-      placeholder: '2',
-      validator: numericRange(2, 10),
-      value: initialState.flightsCount,
-      label: editorConfig.labels?.flightsCountLabel || 'Number of Flights (2-10)',
+      error: `Must be in range ${minFlights}-10`,
+      placeholder: String(minFlights),
+      validator: numericRange(minFlights, 10),
+      value: Math.max(minFlights, initialState.flightsCount ?? minFlights),
+      label: editorConfig.labels?.flightsCountLabel || `Number of Flights (${minFlights}-10)`,
       field: FLIGHTS_COUNT,
       selectOnFocus: true,
       hide: isExisting,
@@ -139,6 +144,23 @@ export function getFlightProfileFormItems({
       value: initialState.scaleName,
       visible: initialState.scaleType === RATING,
       hide: isExisting
+    },
+    // optional rating band: only participants rated within it are split (offered when the caller asks for it)
+    {
+      label: editorConfig.labels?.ratingMinLabel || 'Rating from (optional)',
+      visible: initialState.scaleType === RATING,
+      hide: isExisting || !ratingBand,
+      field: RATING_MIN,
+      type: 'number',
+      value: ''
+    },
+    {
+      label: editorConfig.labels?.ratingMaxLabel || 'Rating to (optional)',
+      visible: initialState.scaleType === RATING,
+      hide: isExisting || !ratingBand,
+      field: RATING_MAX,
+      type: 'number',
+      value: ''
     },
     {
       label: editorConfig.labels?.splitMethodLabel || 'Split Method',

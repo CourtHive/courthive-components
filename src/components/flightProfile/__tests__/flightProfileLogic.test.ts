@@ -11,6 +11,7 @@ import {
   getSplitMethodConstant,
   parseExistingFlightProfile,
   validateFlightProfile,
+  buildScaleRange,
   type FlightProfileState
 } from '../flightProfileLogic';
 
@@ -272,6 +273,44 @@ describe('Flight Profile Logic', () => {
 
       const errors = validateFlightProfile(state);
       expect(errors.length).toBe(0);
+    });
+  });
+  describe('rating band', () => {
+    const base: FlightProfileState = {
+      flightsCount: 2,
+      namingType: 'colors',
+      customName: 'Flight',
+      suffixType: 'numbers',
+      scaleType: 'RATING',
+      scaleName: 'WTN',
+      splitMethod: 'LEVEL_BASED',
+      isExisting: false
+    };
+
+    it('builds scaleRange from either or both ends, and nothing when empty', () => {
+      expect(buildScaleRange(base)).toBeUndefined();
+      expect(buildScaleRange({ ...base, ratingMin: ' ', ratingMax: '' })).toBeUndefined();
+      expect(buildScaleRange({ ...base, ratingMin: '10' })).toEqual({ min: 10 });
+      expect(buildScaleRange({ ...base, ratingMax: '4.5' })).toEqual({ max: 4.5 });
+      expect(buildScaleRange({ ...base, ratingMin: '0', ratingMax: '12' })).toEqual({ min: 0, max: 12 });
+    });
+
+    it('applies only to a rating split', () => {
+      expect(buildScaleRange({ ...base, scaleType: 'RANKING', ratingMin: '1', ratingMax: '5' })).toBeUndefined();
+    });
+
+    it('refuses a band that is not numeric or is reversed', () => {
+      expect(validateFlightProfile({ ...base, ratingMin: '5', ratingMax: '10' })).toEqual([]);
+      expect(validateFlightProfile({ ...base, ratingMin: 'abc' })).toEqual(['Rating band values must be numbers']);
+      expect(validateFlightProfile({ ...base, ratingMin: '10', ratingMax: '5' })).toEqual([
+        'Rating band: "from" must not be greater than "to"'
+      ]);
+    });
+
+    it('allows a single flight only when the caller lowers the minimum', () => {
+      const single = { ...base, flightsCount: 1 };
+      expect(validateFlightProfile(single)).toEqual(['Must have at least 2 flights']);
+      expect(validateFlightProfile(single, { minFlights: 1 })).toEqual([]);
     });
   });
 });
