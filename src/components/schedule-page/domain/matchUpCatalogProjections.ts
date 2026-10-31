@@ -171,6 +171,21 @@ function structuralPosition(items: CatalogMatchUpItem[]): [number, number] {
   return [stage, round];
 }
 
+// Where a structure sits in its draw's play order: qualifying before everything else, then the
+// consumer's `structureSequence` (absent → main before the rest).
+function playOrder(item: CatalogMatchUpItem): [number, number] {
+  const qualifying = item.stage === 'QUALIFYING';
+  const fallback = qualifying || stageRank(item.stage) === 1 ? 0 : 1;
+  return [qualifying ? 0 : 1, item.structureSequence ?? fallback];
+}
+
+// A group's earliest play-order position across its items.
+function earliestPlayOrder(items: CatalogMatchUpItem[]): [number, number] {
+  return items
+    .map(playOrder)
+    .reduce((best, next) => (next[0] < best[0] || (next[0] === best[0] && next[1] < best[1]) ? next : best));
+}
+
 type Group = [string, CatalogMatchUpItem[]];
 type GroupComparator = (a: Group, b: Group) => number;
 
@@ -180,9 +195,9 @@ type GroupComparator = (a: Group, b: Group) => number;
  *   - time:      the clock; "Unscheduled" last.
  *   - round:     stage, then round number. Round labels do not sort ("F" < "QF" < "R16"), so the
  *                label is never the structure.
- *   - structure: the stage each structure is played in — qualifying, then main, then the rest —
- *                across every event, because that is the order they go onto the grid. Structures
- *                at the same stage are left to readiness.
+ *   - structure: where each structure is played in its draw — qualifying first, then each draw's
+ *                first structure, then each draw's second, and so on (`structureSequence`) — across
+ *                every event, because that is the order they go onto the grid.
  *   - event, draw: no structural order between groups.
  */
 function structuralComparator(mode: MatchUpCatalogGroupBy): GroupComparator {
@@ -202,7 +217,11 @@ function structuralComparator(mode: MatchUpCatalogGroupBy): GroupComparator {
     };
   }
   if (mode === 'structure') {
-    return ([, a], [, b]) => ascending(structuralPosition(a)[0], structuralPosition(b)[0]);
+    return ([, a], [, b]) => {
+      const [aq, as] = earliestPlayOrder(a);
+      const [bq, bs] = earliestPlayOrder(b);
+      return ascending(aq, bq) || ascending(as, bs);
+    };
   }
   return () => 0;
 }

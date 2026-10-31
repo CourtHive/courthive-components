@@ -62,6 +62,12 @@ export interface CatalogMatchUpItem {
    *  rest). Opaque to the catalog: it orders by it and never interprets it. Below structure and side
    *  readiness in every ordering — it separates matchUps that those leave equal. Absent ranks last. */
   readinessRank?: number;
+  /** 0-based position of this matchUp's structure in its draw's play order (TMX: the factory's
+   *  `structureSort`), counted separately for qualifying structures and for everything after them.
+   *  Grouped by structure, every draw's first structure sorts together, then every draw's second, and
+   *  so on, so compass West sits beside a feed-in consolation rather than tying with every other
+   *  non-main structure. Absent falls back to the stage: main first, then the rest. */
+  structureSequence?: number;
 }
 
 // ============================================================================
