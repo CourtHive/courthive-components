@@ -5,6 +5,9 @@
  * Search matches on participant names (primary), event/draw/round names.
  */
 
+import { matchUpSearchKey } from './utils';
+
+// constants and types
 import type {
   CatalogMatchUpItem,
   CatalogFilters,
@@ -12,7 +15,6 @@ import type {
   ScheduledBehavior,
   SchedulePageState
 } from '../types';
-import { matchUpSearchKey } from './utils';
 
 /** MatchUp statuses that indicate the matchUp is finished. */
 const COMPLETED_STATUSES = new Set([
@@ -114,31 +116,112 @@ function minTimeInGroup(items: CatalogMatchUpItem[]): string | undefined {
 
 // Readiness tier for a matchUp: how many of its two sides have a participant
 // present (2 = fully ready to play, 1 = awaiting a feeder, 0 = TBD v TBD).
-// Drives catalog ordering so real matches float above placeholder ones.
 function sideReadiness(item: CatalogMatchUpItem): number {
   const present = (item.sides ?? []).filter((s) => !!s.participantId).length;
   return present > 2 ? 2 : present;
 }
 
-// A group's readiness is its best matchUp — a group with any fully-ready match
-// outranks one that only has partial/TBD matches.
-function groupReadiness(items: CatalogMatchUpItem[]): number {
-  let best = 0;
-  for (const item of items) {
-    const r = sideReadiness(item);
-    if (r > best) best = r;
-    if (best === 2) break;
-  }
-  return best;
+/** The consumer's readiness rank; an item without one ranks after any item with one. */
+function rankOf(item: CatalogMatchUpItem): number {
+  return item.readinessRank ?? Number.POSITIVE_INFINITY;
 }
 
-// Stable readiness sort within a group: ready matches first, TBD last, otherwise
-// preserve the incoming (factory-traversal) order.
+/** Equal infinities compare equal rather than as NaN. */
+function ascending(a: number, b: number): number {
+  return a === b ? 0 : a - b;
+}
+
+// More sides present first, then the consumer's rank.
+function compareReadiness(a: CatalogMatchUpItem, b: CatalogMatchUpItem): number {
+  return sideReadiness(b) - sideReadiness(a) || ascending(rankOf(a), rankOf(b));
+}
+
+// A group is as ready as its readiest matchUp.
+function readiestItem(items: CatalogMatchUpItem[]): CatalogMatchUpItem {
+  return items.reduce((best, item) => (compareReadiness(item, best) < 0 ? item : best), items[0]);
+}
+
+// Stable readiness sort within a group: ready matches first, TBD last, then the
+// consumer's rank, otherwise preserve the incoming (factory-traversal) order.
 function sortItemsByReadiness(items: CatalogMatchUpItem[]): CatalogMatchUpItem[] {
   return items
-    .map((item, index) => ({ item, index, readiness: sideReadiness(item) }))
-    .sort((a, b) => b.readiness - a.readiness || a.index - b.index)
+    .map((item, index) => ({ item, index }))
+    .sort((a, b) => compareReadiness(a.item, b.item) || a.index - b.index)
     .map((entry) => entry.item);
+}
+
+// Qualifying feeds the main draw, which feeds everything else.
+function stageRank(stage?: string): number {
+  if (stage === 'QUALIFYING') return 0;
+  if (!stage || stage === 'MAIN') return 1;
+  return 2;
+}
+
+// Where a group sits in its draw: its earliest stage, then its earliest round.
+function structuralPosition(items: CatalogMatchUpItem[]): [number, number] {
+  let stage = Number.POSITIVE_INFINITY;
+  let round = Number.POSITIVE_INFINITY;
+  for (const item of items) {
+    const s = stageRank(item.stage);
+    if (s < stage || (s === stage && item.roundNumber < round)) {
+      stage = s;
+      round = item.roundNumber;
+    }
+  }
+  return [stage, round];
+}
+
+type Group = [string, CatalogMatchUpItem[]];
+type GroupComparator = (a: Group, b: Group) => number;
+
+/**
+ * The order a mode's groups have by construction, or none.
+ *
+ *   - time:      the clock; "Unscheduled" last.
+ *   - round:     stage, then round number. Round labels do not sort ("F" < "QF" < "R16"), so the
+ *                label is never the structure.
+ *   - structure: each event's structures stay together and run qualifying → main → the rest.
+ *                Events themselves have no structural order, so they are placed by their readiest
+ *                structure — readiness choosing between things structure leaves unordered.
+ *   - event, draw: no structural order between groups.
+ */
+function structuralComparator(mode: MatchUpCatalogGroupBy, groups: Group[]): GroupComparator {
+  if (mode === 'time') {
+    return ([ak], [bk]) => {
+      if (ak === bk) return 0;
+      if (ak === TIME_UNSCHEDULED) return 1;
+      if (bk === TIME_UNSCHEDULED) return -1;
+      return ak.localeCompare(bk, undefined, { numeric: true });
+    };
+  }
+  if (mode === 'round') {
+    return ([, a], [, b]) => {
+      const [as, ar] = structuralPosition(a);
+      const [bs, br] = structuralPosition(b);
+      return ascending(as, bs) || ascending(ar, br);
+    };
+  }
+  if (mode === 'structure') {
+    const eventOrder = rankEventsByReadiness(groups);
+    return ([, a], [, b]) =>
+      ascending(eventOrder.get(a[0].eventId) ?? 0, eventOrder.get(b[0].eventId) ?? 0) ||
+      ascending(structuralPosition(a)[0], structuralPosition(b)[0]);
+  }
+  return () => 0;
+}
+
+// Events in readiness order (readiest structure first), then by name: a position per eventId.
+function rankEventsByReadiness(groups: Group[]): Map<string, number> {
+  const readiest = new Map<string, CatalogMatchUpItem>();
+  for (const [, items] of groups) {
+    const best = readiestItem(items);
+    const current = readiest.get(best.eventId);
+    if (!current || compareReadiness(best, current) < 0) readiest.set(best.eventId, best);
+  }
+  const ordered = [...readiest.values()].sort(
+    (a, b) => compareReadiness(a, b) || a.eventName.localeCompare(b.eventName, undefined, { numeric: true })
+  );
+  return new Map(ordered.map((item, position) => [item.eventId, position]));
 }
 
 export function groupMatchUpCatalog(
@@ -148,11 +231,11 @@ export function groupMatchUpCatalog(
   const m = new Map<string, CatalogMatchUpItem[]>();
 
   const keyFn = (it: CatalogMatchUpItem): string => {
-    if (mode === 'draw') return `${it.eventName} \u2014 ${it.drawName ?? it.drawId}`;
+    if (mode === 'draw') return `${it.eventName} — ${it.drawName ?? it.drawId}`;
     if (mode === 'round') return it.roundName ?? `Round ${it.roundNumber}`;
     if (mode === 'structure') {
       const suffix = structureLabel(it);
-      return suffix ? `${it.eventName} \u2014 ${suffix}` : it.eventName;
+      return suffix ? `${it.eventName} — ${suffix}` : it.eventName;
     }
     if (mode === 'time') return it.scheduledTime ?? TIME_UNSCHEDULED;
     return it.eventName;
@@ -166,28 +249,30 @@ export function groupMatchUpCatalog(
   }
 
   // Smart sort, in priority order:
-  //   1. Readiness tier — a group with a fully-ready match (both participants
-  //      present) floats above one that only has partial/TBD matches, which
-  //      float above all-TBD groups. A "Round 5: TBD v TBD" group no longer
-  //      sits above "Round 1: real players".
-  //   2. Earliest scheduledTime — within a readiness tier, the group whose next
-  //      matchUp starts soonest sits higher; unscheduled groups sink.
-  //   3. Natural-numeric alpha on the key so "Round 2" precedes "Round 10".
+  //   1. Structure — the order the mode's groups have by construction (see
+  //      `structuralComparator`). Readiness never outranks it: Round 1 stays
+  //      above Round 2 even when Round 2 is the readier.
+  //   2. Readiness — side readiness (a group with a fully-ready match above one
+  //      with only partial/TBD matches), then the consumer's `readinessRank`.
+  //   3. Earliest scheduledTime — the group whose next matchUp starts soonest
+  //      sits higher; unscheduled groups sink.
+  //   4. Natural-numeric alpha on the key so "Round 2" precedes "Round 10".
   // Items within each group are readiness-sorted too (ready above TBD).
+  const groups = [...m.entries()].map(([key, arr]): Group => [key, sortItemsByReadiness(arr)]);
+  const structural = structuralComparator(mode, groups);
   return new Map(
-    [...m.entries()]
-      .map(([key, arr]): [string, CatalogMatchUpItem[]] => [key, sortItemsByReadiness(arr)])
-      .sort((a, b) => {
-        const ra = groupReadiness(a[1]);
-        const rb = groupReadiness(b[1]);
-        if (ra !== rb) return rb - ra;
-        const at = minTimeInGroup(a[1]);
-        const bt = minTimeInGroup(b[1]);
-        if (at !== undefined && bt !== undefined && at !== bt) return at.localeCompare(bt);
-        if (at !== undefined && bt === undefined) return -1;
-        if (at === undefined && bt !== undefined) return 1;
-        return a[0].localeCompare(b[0], undefined, { numeric: true });
-      })
+    groups.sort((a, b) => {
+      const s = structural(a, b);
+      if (s !== 0) return s;
+      const r = compareReadiness(readiestItem(a[1]), readiestItem(b[1]));
+      if (r !== 0) return r;
+      const at = minTimeInGroup(a[1]);
+      const bt = minTimeInGroup(b[1]);
+      if (at !== undefined && bt !== undefined && at !== bt) return at.localeCompare(bt);
+      if (at !== undefined && bt === undefined) return -1;
+      if (at === undefined && bt !== undefined) return 1;
+      return a[0].localeCompare(b[0], undefined, { numeric: true });
+    })
   );
 }
 

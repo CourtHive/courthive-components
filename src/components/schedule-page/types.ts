@@ -58,6 +58,10 @@ export interface CatalogMatchUpItem {
   isScheduled: boolean;
   scheduledTime?: string;
   scheduledCourtName?: string;
+  /** How ready this matchUp is to be called, lower first, as the consumer measures it (TMX: participant
+   *  rest). Opaque to the catalog: it orders by it and never interprets it. Below structure and side
+   *  readiness in every ordering — it separates matchUps that those leave equal. Absent ranks last. */
+  readinessRank?: number;
 }
 
 // ============================================================================
