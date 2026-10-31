@@ -26,7 +26,8 @@ function item(overrides: Partial<CatalogMatchUpItem>): CatalogMatchUpItem {
     isScheduled: overrides.isScheduled ?? false,
     scheduledTime: overrides.scheduledTime,
     scheduledCourtName: overrides.scheduledCourtName,
-    readinessRank: overrides.readinessRank
+    readinessRank: overrides.readinessRank,
+    structureSequence: overrides.structureSequence
   };
 }
 
@@ -288,5 +289,48 @@ describe('groupMatchUpCatalog — readinessRank', () => {
       .get('Event')!
       .map((i) => i.matchUpId);
     expect(order).toEqual(['fast', 'slow', 'unranked', 'unranked2', 'tbd']);
+  });
+});
+
+describe('groupMatchUpCatalog — structureSequence (play order within a draw)', () => {
+  const keys = (items: CatalogMatchUpItem[]) => [...groupMatchUpCatalog(items, 'structure').keys()];
+  const s = (eventName: string, structureName: string, stage: string, structureSequence?: number, rank?: number) =>
+    item({
+      matchUpId: `${eventName}-${structureName}`,
+      eventId: eventName,
+      eventName,
+      structureName,
+      stage,
+      structureSequence,
+      sides: BOTH,
+      readinessRank: rank
+    });
+
+  it('lists every draw’s first structure, then every draw’s second, regardless of stage label', () => {
+    const items = [
+      s('Compass', 'North', 'PLAY_OFF', 2, 0),
+      s('Feed', 'Consolation', 'CONSOLATION', 1, 50),
+      s('Compass', 'West', 'PLAY_OFF', 1, 90),
+      s('Feed', 'Main', 'MAIN', 0, 99),
+      s('Compass', 'East', 'MAIN', 0, 10)
+    ];
+    // Readiness (rank) would put North first; the play order puts it third in its draw.
+    expect(keys(items)).toEqual([
+      'Compass — East',
+      'Feed — Main',
+      'Feed — Consolation',
+      'Compass — West',
+      'Compass — North'
+    ]);
+  });
+
+  it('keeps qualifying ahead of any main-draw position', () => {
+    const items = [s('A', 'Main', 'MAIN', 0, 0), s('B', 'Qualifying', 'QUALIFYING', 0, 500)];
+    expect(keys(items)).toEqual(['B — Qualifying', 'A — Main']);
+  });
+
+  it('falls back to main before the rest when no sequence is supplied', () => {
+    const items = [s('A', 'Consolation', 'CONSOLATION', undefined, 0), s('B', 'Main', 'MAIN', undefined, 900)];
+    expect(keys(items)).toEqual(['B — Main', 'A — Consolation']);
   });
 });
