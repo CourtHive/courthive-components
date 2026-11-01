@@ -749,7 +749,11 @@ export {
   updateTieScore,
   renderCollectionCard,
   createFinishingOrderState,
-  playedToResult
+  playedToResult,
+  createTeamScoreOverride,
+  dualIssues,
+  issueMessage,
+  lineIssues
 } from './components/scorecard';
 export type {
   ScorecardOptions,
@@ -759,7 +763,12 @@ export type {
   FinishingOrderEntryOptions,
   FinishingOrderEntry,
   FinishingOrderLine,
-  FinishingOrderState
+  FinishingOrderState,
+  IssueAction,
+  ScorecardIssue,
+  TeamScore,
+  TeamScoreOptions,
+  TeamScoreOverride
 } from './components/scorecard';
 
 // Inline Scoring

@@ -196,3 +196,86 @@
 .chc-scorecard-card .chc-link::after {
   display: none;
 }
+/* Dual issues: a marked line, the collection's count, the dual's banner */
+.chc-scorecard-card--issue {
+  outline: 2px solid var(--chc-status-warning);
+  outline-offset: -2px;
+}
+.chc-scorecard-issue-marker {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--chc-status-warning);
+  color: var(--chc-bg-primary);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: help;
+}
+.chc-scorecard-issue-count {
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--chc-status-warning);
+  color: var(--chc-bg-primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+.chc-scorecard-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+  margin-bottom: 0.75em;
+  padding: 0.5em 0.75em;
+  border: 1px solid var(--chc-status-warning);
+  border-left-width: 4px;
+  border-radius: 6px;
+  background: var(--chc-bg-secondary);
+  color: var(--chc-text-primary);
+}
+.chc-scorecard-banner-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5em;
+}
+/* The team score set by hand, inline in the header */
+.chc-scorecard-score-controls,
+.chc-scorecard-score-editor,
+.chc-scorecard-winner-choice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  margin-top: 0.4em;
+}
+.chc-scorecard-winner-choice[hidden] {
+  display: none;
+}
+.chc-scorecard-winner-choice [aria-pressed='true'] {
+  outline: 2px solid var(--chc-status-success);
+}
+.chc-scorecard-score-input {
+  width: 3em;
+  padding: 2px 4px;
+  border-radius: 4px;
+  border: 1px solid var(--chc-border-primary);
+  background: var(--chc-bg-secondary);
+  color: var(--chc-text-primary);
+  font-size: 1.5em;
+  font-weight: 700;
+  text-align: center;
+}
+.chc-scorecard-manual-tag {
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--chc-status-warning);
+  color: var(--chc-text-primary);
+  font-size: 12px;
+  font-weight: 600;
+}
