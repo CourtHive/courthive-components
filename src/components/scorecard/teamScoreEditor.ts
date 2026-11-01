@@ -81,9 +81,26 @@ export function attachTeamScoreEditor({
   });
   const override = button(labels?.override ?? 'Override', 'override-team-score');
   controls.appendChild(override);
-  override.addEventListener('click', () =>
-    openEditor({ scoreBox, spans, names, controls, override, state, labels, onSave: teamScore.onOverride })
-  );
+
+  let isEditing = false;
+  override.addEventListener('click', () => {
+    if (!isEditing) {
+      isEditing = true;
+      openEditor({
+        scoreBox,
+        spans,
+        names,
+        controls,
+        override,
+        state,
+        labels,
+        onSave: teamScore.onOverride,
+        onClose: () => {
+          isEditing = false;
+        }
+      });
+    }
+  });
 }
 
 function openEditor({
@@ -94,7 +111,8 @@ function openEditor({
   override,
   state,
   labels,
-  onSave
+  onSave,
+  onClose
 }: {
   scoreBox: HTMLElement;
   spans: HTMLElement[];
@@ -104,6 +122,7 @@ function openEditor({
   state: TeamScoreOverride;
   labels?: ScorecardLabels;
   onSave?: (teamScore: TeamScore) => void;
+  onClose?: () => void;
 }): void {
   override.hidden = true;
   const inputs = POSITIONS.map((position, index) => {
@@ -159,6 +178,7 @@ function openEditor({
     spans.forEach((span) => (span.hidden = false));
     editor.remove();
     override.hidden = false;
+    onClose?.();
   };
   cancel.addEventListener('click', () => {
     state.reset();
