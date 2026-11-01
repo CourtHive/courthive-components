@@ -6,13 +6,10 @@
  * This is a pure rendering component — no mutations or business logic.
  * Consumers wire interactivity via the eventHandlers callback map.
  */
-import { completedMatchUpStatuses } from 'tods-competition-factory';
-import { renderMatchUp } from '../renderStructure/renderMatchUp';
+import { renderCollectionCard, type FinishingOrderEntryOptions, type ScorecardLabels } from './renderCollectionCard';
+import { swapSetScores, swapWinningSide } from './scorecardSides';
 
-export interface ScorecardLabels {
-  /** names the order-of-finish badge for assistive technology and its tooltip, e.g. "Order of finish" */
-  orderOfFinish?: string;
-}
+export type { ScorecardLabels } from './renderCollectionCard';
 
 export interface ScorecardOptions {
   matchUp: any;
@@ -20,6 +17,8 @@ export interface ScorecardOptions {
   eventHandlers?: any;
   swapSides?: boolean;
   labels?: ScorecardLabels;
+  /** one collection in its order-of-finish entry mode (see `renderCollectionCard`) */
+  finishingOrder?: FinishingOrderEntryOptions & { editingCollectionId?: string };
 }
 
 export interface TeamVsOptions {
@@ -41,7 +40,8 @@ export function renderScorecard({
   composition,
   eventHandlers,
   swapSides,
-  labels
+  labels,
+  finishingOrder
 }: ScorecardOptions): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'chc-scorecard';
@@ -74,7 +74,10 @@ export function renderScorecard({
       .filter((m: any) => m.collectionId === collectionDefinition.collectionId)
       .sort((a: any, b: any) => (a.collectionPosition || 0) - (b.collectionPosition || 0));
 
-    const panel = renderCollectionPanel({
+    const editing =
+      !!finishingOrder?.editingCollectionId && finishingOrder.editingCollectionId === collectionDefinition.collectionId;
+    const panel = renderCollectionCard({
+      finishingOrder: editing ? { ...finishingOrder, editing } : undefined,
       collectionDefinition,
       collectionMatchUps,
       composition,
@@ -187,123 +190,6 @@ function renderSideScore(
   if (sideNumber === winningSide) el.classList.add(winningClass);
   el.textContent = String(score);
   return el;
-}
-
-function renderCollectionPanel({
-  collectionDefinition,
-  collectionMatchUps,
-  composition,
-  eventHandlers,
-  swapSides,
-  labels
-}: {
-  collectionDefinition: any;
-  collectionMatchUps: any[];
-  composition?: any;
-  eventHandlers?: any;
-  swapSides?: boolean;
-  labels?: ScorecardLabels;
-}): HTMLDivElement {
-  const panel = document.createElement('div');
-  panel.className = 'chc-scorecard-panel';
-
-  // Header
-  const header = document.createElement('div');
-  header.className = 'chc-scorecard-panel-header';
-
-  const nameEl = document.createElement('div');
-  nameEl.className = 'chc-scorecard-panel-name';
-  nameEl.textContent = collectionDefinition.collectionName || 'Collection';
-
-  const meta = document.createElement('div');
-  meta.className = 'chc-scorecard-panel-meta';
-
-  const mType = (collectionDefinition.matchUpType || '').toUpperCase();
-  const typeBadge = document.createElement('span');
-  typeBadge.className = `chc-scorecard-type-badge chc-scorecard-type-badge--${
-    mType === 'DOUBLES' ? 'doubles' : 'singles'
-  }`;
-  typeBadge.textContent = mType === 'DOUBLES' ? 'D' : 'S';
-
-  const countBadge = document.createElement('span');
-  countBadge.className = 'chc-scorecard-count-badge';
-  countBadge.textContent = String(collectionMatchUps.length);
-
-  meta.appendChild(typeBadge);
-  meta.appendChild(countBadge);
-  header.appendChild(nameEl);
-  header.appendChild(meta);
-  panel.appendChild(header);
-
-  // MatchUp cards grid
-  const grid = document.createElement('div');
-  grid.className = 'chc-scorecard-grid';
-
-  for (const tieMatchUp of collectionMatchUps) {
-    const rendered = swapSides ? swapMatchUpSides(tieMatchUp) : tieMatchUp;
-    const card = renderMatchUp({
-      matchUp: rendered,
-      isLucky: true,
-      eventHandlers,
-      composition
-    });
-    card.classList.add('chc-scorecard-card');
-    const finishBadge = renderOrderOfFinishBadge(tieMatchUp, labels);
-    if (finishBadge) card.appendChild(finishBadge);
-    grid.appendChild(card);
-  }
-
-  panel.appendChild(grid);
-  return panel;
-}
-
-/**
- * The order in which a completed line finished among its dual's lines of the same matchUpType
- * (`matchUp.orderOfFinish`, set by the factory's `setOrderOfFinish`). A line that is no longer complete shows none,
- * since a cleared line can still carry its earlier number.
- */
-function renderOrderOfFinishBadge(tieMatchUp: any, labels?: ScorecardLabels): HTMLSpanElement | undefined {
-  const { orderOfFinish, matchUpStatus } = tieMatchUp ?? {};
-  if (!orderOfFinish || !completedMatchUpStatuses.includes(matchUpStatus)) return undefined;
-
-  const label = `${labels?.orderOfFinish ?? 'Order of finish'} ${orderOfFinish}`;
-  const badge = document.createElement('span');
-  badge.className = 'chc-scorecard-finish-badge';
-  badge.dataset.orderOfFinish = String(orderOfFinish);
-  badge.textContent = String(orderOfFinish);
-  badge.title = label;
-  badge.setAttribute('aria-label', label);
-  return badge;
-}
-
-function swapWinningSide(winningSide?: number): number | undefined {
-  if (winningSide === 1) return 2;
-  if (winningSide === 2) return 1;
-  return undefined;
-}
-
-function swapSetScores(sets?: any[]): any[] | undefined {
-  if (!sets) return undefined;
-  return sets.map((set: any) => ({
-    ...set,
-    side1Score: set.side2Score,
-    side2Score: set.side1Score,
-    side1TiebreakScore: set.side2TiebreakScore,
-    side2TiebreakScore: set.side1TiebreakScore
-  }));
-}
-
-function swapMatchUpSides(matchUp: any): any {
-  const swappedSides = matchUp.sides?.map((side: any) => ({
-    ...side,
-    sideNumber: side.sideNumber === 1 ? 2 : 1
-  }));
-  return {
-    ...matchUp,
-    sides: swappedSides,
-    score: matchUp.score ? { ...matchUp.score, sets: swapSetScores(matchUp.score.sets) } : matchUp.score,
-    winningSide: swapWinningSide(matchUp.winningSide)
-  };
 }
 
 function getParticipantName(matchUp: any, sideNumber: number): string | undefined {

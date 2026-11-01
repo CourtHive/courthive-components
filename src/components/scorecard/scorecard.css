@@ -170,6 +170,27 @@
   font-weight: 700;
   pointer-events: none;
 }
+/* Order-of-finish entry mode: a number field on each line played to a result, and Save / Cancel */
+.chc-scorecard-finish-input {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 3.2em;
+  padding: 1px 4px;
+  border-radius: 4px;
+  border: 1px solid var(--chc-border-primary);
+  background: var(--chc-bg-secondary);
+  color: var(--chc-text-primary);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+.chc-scorecard-finish-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5em;
+  padding-top: 0.5em;
+}
 /* Remove connector lines inside scorecard matchUp cards */
 .chc-scorecard-card .chc-link::before,
 .chc-scorecard-card .chc-link::after {
