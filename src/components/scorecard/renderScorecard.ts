@@ -215,7 +215,7 @@ function renderIssueBanner(
     const action = issueActions?.[issue.code];
     if (action) {
       const button = document.createElement('button');
-      button.className = 'button is-small';
+      button.className = 'button font-medium is-info is-light';
       button.textContent = action.label;
       button.dataset.action = 'issue-action';
       button.dataset.issueCode = issue.code;

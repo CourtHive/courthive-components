@@ -296,12 +296,12 @@ function renderEntryFooter({
     labels?.finishingOrderHint ?? 'Number the lines in the order they finished; the others move to make room.';
 
   const save = document.createElement('button');
-  save.className = 'button is-small is-primary';
+  save.className = 'button font-medium is-info';
   save.textContent = labels?.save ?? 'Save';
   save.dataset.action = 'save-finishing-order';
 
   const cancel = document.createElement('button');
-  cancel.className = 'button is-small';
+  cancel.className = 'button font-medium';
   cancel.textContent = labels?.cancel ?? 'Cancel';
   cancel.dataset.action = 'cancel-finishing-order';
 
