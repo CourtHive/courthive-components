@@ -10,11 +10,13 @@
  * - RoundTrip: Authoring → scheduleProfileRounds() cycle
  * - CapacityAware: Oversubscription detection with real court-hours
  * - PreScheduled: Pre-populated profile from programmatic distribution
+ * - EventPlayingDates: an event narrowed to weekends is hidden from the catalog on weekdays
  */
 
 import 'tippy.js/dist/tippy.css';
 
 import { tournamentEngine, availability } from 'tods-competition-factory';
+import { within, waitFor, expect } from 'storybook/test';
 
 import { SchedulingProfileControl, createSchedulingProfile } from '../../components/scheduling-profile';
 
@@ -453,3 +455,67 @@ function venueCountStory(venueCount: number) {
 export const Venues3 = venueCountStory(3);
 export const Venues6 = venueCountStory(6);
 export const Venues10 = venueCountStory(10);
+
+// ============================================================================
+// Story G: EventPlayingDates — rounds of an event offered only on its playing days
+// ============================================================================
+
+const WEEKEND_EVENT = 'Girls U16 Singles';
+
+export const EventPlayingDates = {
+  render: () => {
+    const root = document.createElement('div');
+    root.style.cssText = ROOT_STYLE;
+
+    const setup = createFactorySetup({ eventWeekdays: { [WEEKEND_EVENT]: ['SAT', 'SUN'] } });
+    const weekendRound = setup.roundCatalog.find((r) => r.eventName === WEEKEND_EVENT);
+    const monday = setup.schedulableDates[0];
+
+    const info = document.createElement('div');
+    info.style.cssText = INFO_STYLE;
+    info.innerHTML = [
+      `<strong>Event playing dates</strong> &mdash; ${WEEKEND_EVENT} plays only`,
+      `${weekendRound?.playingDates?.join(' and ') ?? 'weekends'}.`,
+      'Its rounds are hidden from the catalog on other days; the catalog header counts them.',
+      `One of its rounds is pre-planned on ${monday}, so the Issues panel shows an EVENT_DATE_INACTIVE warning`,
+      'and that round stays listed (dimmed) so its placement can be removed.'
+    ].join(' ');
+    root.appendChild(info);
+
+    const container = document.createElement('div');
+    root.appendChild(container);
+
+    const initialProfile: SchedulingProfile = weekendRound
+      ? [
+          {
+            scheduleDate: monday,
+            venues: [
+              {
+                venueId: setup.venues[0].venueId,
+                rounds: [
+                  {
+                    tournamentId: weekendRound.tournamentId,
+                    eventId: weekendRound.eventId,
+                    eventName: weekendRound.eventName,
+                    drawId: weekendRound.drawId,
+                    structureId: weekendRound.structureId,
+                    roundNumber: weekendRound.roundNumber,
+                    roundName: weekendRound.roundName
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      : [];
+
+    const control = createSchedulingProfile({ ...setup.config, initialProfile, selectedDate: monday }, container);
+    addConsoleLog(root, control);
+    return root;
+  },
+  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+    const canvas = within(canvasElement);
+    await waitFor(() => expect(canvas.getByText(/not playing 2026-06-15/)).toBeTruthy());
+    await waitFor(() => expect(canvas.getAllByText(/a day its event does not play/).length).toBeGreaterThan(0));
+  }
+};

@@ -132,7 +132,8 @@ export class ProfileStore {
         availability: this.config.availabilityAdapter,
         demand: this.config.demandAdapter,
         dependencies: this.config.dependencyAdapter,
-        venueOrder: this.config.venueOrder
+        venueOrder: this.config.venueOrder,
+        roundCatalog: this.state.roundCatalog
       });
       const newErrors = proposedResults
         .filter((r) => r.severity === 'ERROR')
@@ -264,7 +265,8 @@ export class ProfileStore {
       availability: this.config.availabilityAdapter,
       demand: this.config.demandAdapter,
       dependencies: this.config.dependencyAdapter,
-      venueOrder: this.config.venueOrder
+      venueOrder: this.config.venueOrder,
+      roundCatalog: this.state.roundCatalog
     });
     const index = buildIssueIndex(results);
     this.state = { ...this.state, ruleResults: results, issueIndex: index };
