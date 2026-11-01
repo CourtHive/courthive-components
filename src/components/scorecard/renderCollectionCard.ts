@@ -37,8 +37,12 @@ export interface ScorecardLabels {
 
 export interface FinishingOrderEntryOptions {
   editing?: boolean;
-  /** the whole order, every line played to a result numbered 1..n, as `setOrderOfFinish` takes it */
-  onSave?: (finishingOrder: FinishingOrderEntry[]) => void;
+  /**
+   * the whole order, every line played to a result numbered 1..n, as `setOrderOfFinish` takes it. The card then takes
+   * the order as saved and disables Save until the next edit, unless this returns (or resolves to) `false` or throws:
+   * then the edits stay and Save is offered again.
+   */
+  onSave?: (finishingOrder: FinishingOrderEntry[]) => void | boolean | Promise<void | boolean>;
   onCancel?: () => void;
 }
 
@@ -318,7 +322,17 @@ function renderEntryFooter({
     state.setValue(input.dataset.matchUpId as string, Number(input.value));
     update();
   });
-  save.addEventListener('click', () => finishingOrder?.onSave?.(state.toFinishingOrder()));
+  save.addEventListener('click', async () => {
+    // no second save while the first is in flight
+    save.disabled = true;
+    try {
+      const saved = await finishingOrder?.onSave?.(state.toFinishingOrder());
+      if (saved !== false) state.commit();
+    } catch {
+      // the caller's save failed: the edits stay, to be saved again or cancelled
+    }
+    update();
+  });
   cancel.addEventListener('click', () => {
     state.reset();
     update();
