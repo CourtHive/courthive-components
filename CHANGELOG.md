@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.7.0](https://github.com/CourtHive/courthive-components/compare/v7.6.0...v7.7.0) (2026-11-01)
+
+
+### Features
+
+* **scheduling-profile:** offer a round only on its event's playing dates ([#898](https://github.com/CourtHive/courthive-components/issues/898)) ([2ec1031](https://github.com/CourtHive/courthive-components/commit/2ec10311f45eeab2ed723130c83f01dde459ac8d))
+
 ## [7.6.0](https://github.com/CourtHive/courthive-components/compare/v7.5.0...v7.6.0) (2026-11-01)
 
 
