@@ -1,5 +1,20 @@
 # Changelog
 
+## [7.6.0](https://github.com/CourtHive/courthive-components/compare/v7.5.0...v7.6.0) (2026-11-01)
+
+
+### Features
+
+* **flight-profile:** optional rating band and single-flight minimum ([#890](https://github.com/CourtHive/courthive-components/issues/890)) ([fd10cd9](https://github.com/CourtHive/courthive-components/commit/fd10cd906161f648a5679856a2d45327017edf2d))
+* **scorecard:** collection card with an order-of-finish entry mode and state engine ([#891](https://github.com/CourtHive/courthive-components/issues/891)) ([5154958](https://github.com/CourtHive/courthive-components/commit/5154958b9dd9df0bcf0754dbb86eed165b705722))
+* **scorecard:** dual issue markers and the team score set by hand in the header ([#892](https://github.com/CourtHive/courthive-components/issues/892)) ([e85f7c5](https://github.com/CourtHive/courthive-components/commit/e85f7c5e5e5472567ab12d465cbbbfbed185bd88))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.27.0 ([#894](https://github.com/CourtHive/courthive-components/issues/894)) ([a6b25a2](https://github.com/CourtHive/courthive-components/commit/a6b25a24fc4a408f8e6d7ef7e9990b9f6c3cf516))
+* **scorecard:** collection card line bar, order-of-finish stepper, header score editor ([#893](https://github.com/CourtHive/courthive-components/issues/893)) ([41c557e](https://github.com/CourtHive/courthive-components/commit/41c557ee3245d9f10ea996e227c9c2a661cf5a5c))
+
 ## [7.5.0](https://github.com/CourtHive/courthive-components/compare/v7.4.0...v7.5.0) (2026-10-31)
 
 
