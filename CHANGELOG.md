@@ -1,5 +1,17 @@
 # Changelog
 
+## [7.8.0](https://github.com/CourtHive/courthive-components/compare/v7.7.0...v7.8.0) (2026-11-01)
+
+
+### Features
+
+* **scorecard:** a saved order of finish becomes the card's baseline ([#903](https://github.com/CourtHive/courthive-components/issues/903)) ([59b656f](https://github.com/CourtHive/courthive-components/commit/59b656f25ecc9d0f12dadc4f6089783f009fe9ef))
+
+
+### Bug Fixes
+
+* **scorecard:** buttons take the library's own style ([#902](https://github.com/CourtHive/courthive-components/issues/902)) ([5dbdcf5](https://github.com/CourtHive/courthive-components/commit/5dbdcf56fa41354565ce209719381ba7797cd5f6))
+
 ## [7.7.0](https://github.com/CourtHive/courthive-components/compare/v7.6.0...v7.7.0) (2026-11-01)
 
 
