@@ -1,2 +1,11 @@
 export { renderScorecard, renderTeamVsHeader, updateTieScore } from './renderScorecard';
-export type { ScorecardOptions, TeamVsOptions } from './renderScorecard';
+export type { ScorecardOptions, TeamVsOptions, ScorecardLabels, IssueAction } from './renderScorecard';
+export { renderCollectionCard } from './renderCollectionCard';
+export type { CollectionCardOptions, FinishingOrderEntryOptions } from './renderCollectionCard';
+export { createFinishingOrderState, playedToResult } from './finishingOrderState';
+export type { FinishingOrderEntry, FinishingOrderLine, FinishingOrderState } from './finishingOrderState';
+export { createTeamScoreOverride } from './teamScoreOverrideState';
+export type { TeamScore, TeamScoreOverride } from './teamScoreOverrideState';
+export type { TeamScoreOptions } from './teamScoreEditor';
+export { dualIssues, issueMessage, lineIssues } from './dualIssues';
+export type { ScorecardIssue } from './dualIssues';

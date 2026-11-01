@@ -10,7 +10,9 @@ import {
   CUSTOM_NAME,
   SUFFIX_TYPE,
   SCALE_TYPE,
-  SCALE_NAME
+  SCALE_NAME,
+  RATING_MIN,
+  RATING_MAX
 } from './getFlightProfileFormItems';
 
 const { RATING } = factoryConstants.scaleConstants;
@@ -23,7 +25,7 @@ interface FormInteractionParams {
   e?: Event;
 }
 
-export function getFlightProfileFormRelationships(): any[] {
+export function getFlightProfileFormRelationships({ minFlights = 2, ratingBand = false } = {}): any[] {
   /**
    * Update OK button state based on validation
    */
@@ -32,7 +34,7 @@ export function getFlightProfileFormRelationships(): any[] {
     if (!okButton) return;
 
     const flightsCountValue = inputs[FLIGHTS_COUNT]?.value;
-    const valid = numericRange(2, 10)(flightsCountValue);
+    const valid = numericRange(minFlights, 10)(flightsCountValue);
 
     okButton.disabled = !valid;
     okButton.style.opacity = valid ? '1' : '0.5';
@@ -70,6 +72,11 @@ export function getFlightProfileFormRelationships(): any[] {
     if (fields) {
       const isRating = scaleType === RATING;
       fields[SCALE_NAME].style.display = isRating ? '' : NONE;
+      if (ratingBand) {
+        [RATING_MIN, RATING_MAX].forEach((field) => {
+          if (fields[field]) fields[field].style.display = isRating ? '' : NONE;
+        });
+      }
     }
   };
 

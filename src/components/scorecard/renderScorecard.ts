@@ -5,14 +5,18 @@
  *
  * This is a pure rendering component — no mutations or business logic.
  * Consumers wire interactivity via the eventHandlers callback map.
+ *
+ * With `issues` (the factory's `getDualIssues`), lines with an issue are marked in their collection, and the dual's own
+ * issues show in a banner under the header, each with an action when the caller gives one. With `teamScore`, the
+ * header's scores can be set by hand inline (see `attachTeamScoreEditor`).
  */
-import { completedMatchUpStatuses } from 'tods-competition-factory';
-import { renderMatchUp } from '../renderStructure/renderMatchUp';
+import { renderCollectionCard, type FinishingOrderEntryOptions, type ScorecardLabels } from './renderCollectionCard';
+import { dualIssues, issueMessage, MANUAL_SCORE, type ScorecardIssue } from './dualIssues';
+import { attachTeamScoreEditor, type TeamScoreOptions } from './teamScoreEditor';
+import { swapSetScores, swapWinningSide } from './scorecardSides';
+import { icon, WARNING_ICON } from './scorecardIcons';
 
-export interface ScorecardLabels {
-  /** names the order-of-finish badge for assistive technology and its tooltip, e.g. "Order of finish" */
-  orderOfFinish?: string;
-}
+export type { ScorecardLabels } from './renderCollectionCard';
 
 export interface ScorecardOptions {
   matchUp: any;
@@ -20,6 +24,19 @@ export interface ScorecardOptions {
   eventHandlers?: any;
   swapSides?: boolean;
   labels?: ScorecardLabels;
+  /** one collection in its order-of-finish entry mode (see `renderCollectionCard`) */
+  finishingOrder?: FinishingOrderEntryOptions & { editingCollectionId?: string };
+  /** the dual's issues: line issues mark their lines, the dual's own fill the banner */
+  issues?: ScorecardIssue[];
+  /** a banner action per dual issue code, e.g. recording a decided dual's unplayed lines */
+  issueActions?: Record<string, IssueAction>;
+  /** the header's team score set by hand; `manual` defaults to whether the issues say it is */
+  teamScore?: TeamScoreOptions;
+}
+
+export interface IssueAction {
+  label: string;
+  onClick: (issue: ScorecardIssue) => void;
 }
 
 export interface TeamVsOptions {
@@ -41,7 +58,11 @@ export function renderScorecard({
   composition,
   eventHandlers,
   swapSides,
-  labels
+  labels,
+  finishingOrder,
+  issues,
+  issueActions,
+  teamScore
 }: ScorecardOptions): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'chc-scorecard';
@@ -61,7 +82,15 @@ export function renderScorecard({
     side1Id: 'chc-sc-side1',
     side2Id: 'chc-sc-side2'
   });
+  if (teamScore) {
+    const manual = teamScore.manual ?? !!issues?.some(({ code }) => code === MANUAL_SCORE);
+    attachTeamScoreEditor({ header, matchUp, swapSides, labels, teamScore: { ...teamScore, manual } });
+  }
   container.appendChild(header);
+  // the header says the score is set by hand once it carries the editor, so the banner does not repeat it
+  const bannerIssues = dualIssues(issues).filter(({ code }) => !(teamScore && code === MANUAL_SCORE));
+  const banner = renderIssueBanner(bannerIssues, issueActions, labels);
+  if (banner) container.appendChild(banner);
 
   // Collection panels
   const collectionDefinitions =
@@ -74,13 +103,17 @@ export function renderScorecard({
       .filter((m: any) => m.collectionId === collectionDefinition.collectionId)
       .sort((a: any, b: any) => (a.collectionPosition || 0) - (b.collectionPosition || 0));
 
-    const panel = renderCollectionPanel({
+    const editing =
+      !!finishingOrder?.editingCollectionId && finishingOrder.editingCollectionId === collectionDefinition.collectionId;
+    const panel = renderCollectionCard({
+      finishingOrder: editing ? { ...finishingOrder, editing } : undefined,
       collectionDefinition,
       collectionMatchUps,
       composition,
       eventHandlers,
       swapSides,
-      labels
+      labels,
+      issues
     });
     container.appendChild(panel);
   }
@@ -162,6 +195,38 @@ export function updateTieScore(
 
 // ── Internal helpers ──
 
+function renderIssueBanner(
+  issues: ScorecardIssue[],
+  issueActions?: Record<string, IssueAction>,
+  labels?: ScorecardLabels
+): HTMLDivElement | undefined {
+  if (!issues.length) return undefined;
+  const banner = document.createElement('div');
+  banner.className = 'chc-scorecard-banner';
+  banner.setAttribute('role', 'status');
+  for (const issue of issues) {
+    const item = document.createElement('div');
+    item.className = 'chc-scorecard-banner-item';
+    item.dataset.issueCode = issue.code;
+    const message = document.createElement('span');
+    message.className = 'chc-scorecard-banner-message';
+    message.textContent = issueMessage(issue, labels?.issues);
+    item.append(icon(WARNING_ICON), message);
+    const action = issueActions?.[issue.code];
+    if (action) {
+      const button = document.createElement('button');
+      button.className = 'button is-small';
+      button.textContent = action.label;
+      button.dataset.action = 'issue-action';
+      button.dataset.issueCode = issue.code;
+      button.addEventListener('click', () => action.onClick(issue));
+      item.appendChild(button);
+    }
+    banner.appendChild(item);
+  }
+  return banner;
+}
+
 function renderSideElement(name: string, justify: 'start' | 'end'): HTMLDivElement {
   const side = document.createElement('div');
   side.className = `chc-scorecard-side chc-scorecard-side--${justify}`;
@@ -187,123 +252,6 @@ function renderSideScore(
   if (sideNumber === winningSide) el.classList.add(winningClass);
   el.textContent = String(score);
   return el;
-}
-
-function renderCollectionPanel({
-  collectionDefinition,
-  collectionMatchUps,
-  composition,
-  eventHandlers,
-  swapSides,
-  labels
-}: {
-  collectionDefinition: any;
-  collectionMatchUps: any[];
-  composition?: any;
-  eventHandlers?: any;
-  swapSides?: boolean;
-  labels?: ScorecardLabels;
-}): HTMLDivElement {
-  const panel = document.createElement('div');
-  panel.className = 'chc-scorecard-panel';
-
-  // Header
-  const header = document.createElement('div');
-  header.className = 'chc-scorecard-panel-header';
-
-  const nameEl = document.createElement('div');
-  nameEl.className = 'chc-scorecard-panel-name';
-  nameEl.textContent = collectionDefinition.collectionName || 'Collection';
-
-  const meta = document.createElement('div');
-  meta.className = 'chc-scorecard-panel-meta';
-
-  const mType = (collectionDefinition.matchUpType || '').toUpperCase();
-  const typeBadge = document.createElement('span');
-  typeBadge.className = `chc-scorecard-type-badge chc-scorecard-type-badge--${
-    mType === 'DOUBLES' ? 'doubles' : 'singles'
-  }`;
-  typeBadge.textContent = mType === 'DOUBLES' ? 'D' : 'S';
-
-  const countBadge = document.createElement('span');
-  countBadge.className = 'chc-scorecard-count-badge';
-  countBadge.textContent = String(collectionMatchUps.length);
-
-  meta.appendChild(typeBadge);
-  meta.appendChild(countBadge);
-  header.appendChild(nameEl);
-  header.appendChild(meta);
-  panel.appendChild(header);
-
-  // MatchUp cards grid
-  const grid = document.createElement('div');
-  grid.className = 'chc-scorecard-grid';
-
-  for (const tieMatchUp of collectionMatchUps) {
-    const rendered = swapSides ? swapMatchUpSides(tieMatchUp) : tieMatchUp;
-    const card = renderMatchUp({
-      matchUp: rendered,
-      isLucky: true,
-      eventHandlers,
-      composition
-    });
-    card.classList.add('chc-scorecard-card');
-    const finishBadge = renderOrderOfFinishBadge(tieMatchUp, labels);
-    if (finishBadge) card.appendChild(finishBadge);
-    grid.appendChild(card);
-  }
-
-  panel.appendChild(grid);
-  return panel;
-}
-
-/**
- * The order in which a completed line finished among its dual's lines of the same matchUpType
- * (`matchUp.orderOfFinish`, set by the factory's `setOrderOfFinish`). A line that is no longer complete shows none,
- * since a cleared line can still carry its earlier number.
- */
-function renderOrderOfFinishBadge(tieMatchUp: any, labels?: ScorecardLabels): HTMLSpanElement | undefined {
-  const { orderOfFinish, matchUpStatus } = tieMatchUp ?? {};
-  if (!orderOfFinish || !completedMatchUpStatuses.includes(matchUpStatus)) return undefined;
-
-  const label = `${labels?.orderOfFinish ?? 'Order of finish'} ${orderOfFinish}`;
-  const badge = document.createElement('span');
-  badge.className = 'chc-scorecard-finish-badge';
-  badge.dataset.orderOfFinish = String(orderOfFinish);
-  badge.textContent = String(orderOfFinish);
-  badge.title = label;
-  badge.setAttribute('aria-label', label);
-  return badge;
-}
-
-function swapWinningSide(winningSide?: number): number | undefined {
-  if (winningSide === 1) return 2;
-  if (winningSide === 2) return 1;
-  return undefined;
-}
-
-function swapSetScores(sets?: any[]): any[] | undefined {
-  if (!sets) return undefined;
-  return sets.map((set: any) => ({
-    ...set,
-    side1Score: set.side2Score,
-    side2Score: set.side1Score,
-    side1TiebreakScore: set.side2TiebreakScore,
-    side2TiebreakScore: set.side1TiebreakScore
-  }));
-}
-
-function swapMatchUpSides(matchUp: any): any {
-  const swappedSides = matchUp.sides?.map((side: any) => ({
-    ...side,
-    sideNumber: side.sideNumber === 1 ? 2 : 1
-  }));
-  return {
-    ...matchUp,
-    sides: swappedSides,
-    score: matchUp.score ? { ...matchUp.score, sets: swapSetScores(matchUp.score.sets) } : matchUp.score,
-    winningSide: swapWinningSide(matchUp.winningSide)
-  };
 }
 
 function getParticipantName(matchUp: any, sideNumber: number): string | undefined {

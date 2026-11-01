@@ -46,6 +46,7 @@
 .chc-scorecard-side-score {
   font-size: 2.4rem;
   font-weight: bold;
+  line-height: 1.5;
   padding: 0.5rem;
 }
 .chc-scorecard-side-score--winner {
@@ -138,6 +139,11 @@
   color: var(--chc-text-secondary);
 }
 
+/* The scorecard's own [hidden] wins over a display rule (a .button is inline-flex, which would keep it on screen) */
+.chc-scorecard [hidden] {
+  display: none !important;
+}
+
 /* MatchUp grid */
 .chc-scorecard-grid {
   display: flex;
@@ -149,29 +155,296 @@
   flex: 1 1 280px;
   max-width: 340px;
   min-width: 0;
-  position: relative;
+  display: flex;
+  flex-direction: column;
 }
-/* Order of finish: the order a completed line finished among its dual's lines of the same type */
-.chc-scorecard-finish-badge {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 4px;
-  border-radius: 999px;
-  border: 1px solid var(--chc-border-primary);
-  background: var(--chc-bg-secondary);
-  color: var(--chc-text-primary);
-  font-size: 11px;
-  font-weight: 700;
-  pointer-events: none;
+/* the line bar sits directly on its matchUp */
+.chc-scorecard-card > .chc-matchup {
+  margin-top: 0;
 }
 /* Remove connector lines inside scorecard matchUp cards */
 .chc-scorecard-card .chc-link::before,
 .chc-scorecard-card .chc-link::after {
   display: none;
+}
+
+/* The strip above each line: its name, then its issues and order of finish, in flow so nothing covers the matchUp */
+.chc-scorecard-line-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 2px 4px;
+  font-size: 12px;
+  line-height: 1.2;
+}
+.chc-scorecard-line-name {
+  margin-right: auto;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--chc-text-secondary);
+}
+.chc-scorecard-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+}
+.chc-scorecard-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Order of finish: the order a completed line finished among its collection's lines */
+.chc-scorecard-finish-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid var(--chc-border-primary);
+  background: var(--chc-bg-secondary);
+  color: var(--chc-text-primary);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.chc-scorecard-finish-badge .chc-scorecard-icon {
+  color: var(--chc-text-secondary);
+}
+
+/* Order-of-finish entry mode: a stepper on each line played to a result, an instruction and Save / Cancel */
+.chc-scorecard-panel--editing {
+  border-color: var(--chc-status-info);
+  box-shadow: 0 0 0 1px var(--chc-status-info);
+}
+.chc-scorecard-finish-stepper {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid var(--chc-status-info);
+  background: var(--chc-bg-primary);
+  color: var(--chc-text-primary);
+  overflow: hidden;
+}
+.chc-scorecard-finish-stepper > .chc-scorecard-icon {
+  margin: 0 2px 0 8px;
+  color: var(--chc-text-secondary);
+}
+.chc-scorecard-finish-step {
+  width: 24px;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--chc-text-primary);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+.chc-scorecard-finish-step:hover:not(:disabled) {
+  background: var(--chc-bg-secondary);
+}
+.chc-scorecard-finish-step:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.chc-scorecard-finish-input {
+  width: 2.2em;
+  height: 100%;
+  padding: 0;
+  border: none;
+  border-inline: 1px solid var(--chc-border-secondary);
+  background: var(--chc-bg-secondary);
+  color: var(--chc-text-primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.chc-scorecard-finish-input::-webkit-inner-spin-button,
+.chc-scorecard-finish-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.chc-scorecard-finish-input:focus {
+  outline: 2px solid var(--chc-status-info);
+  outline-offset: -2px;
+}
+.chc-scorecard-finish-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--chc-border-secondary);
+  background: var(--chc-bg-secondary);
+}
+.chc-scorecard-finish-hint {
+  flex: 1 1 240px;
+  font-size: 13px;
+  color: var(--chc-text-secondary);
+}
+.chc-scorecard-finish-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* Dual issues: a line's issues in its bar, the collection's count, the dual's banner */
+.chc-scorecard-card--issue > .chc-matchup {
+  border-color: var(--chc-status-warning);
+}
+.chc-scorecard-issue-marker {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  max-width: 70%;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--chc-status-warning) 14%, var(--chc-bg-primary));
+  border: 1px solid color-mix(in srgb, var(--chc-status-warning) 55%, transparent);
+  color: var(--chc-text-primary);
+  font-weight: 600;
+  cursor: help;
+}
+.chc-scorecard-issue-marker .chc-scorecard-icon,
+.chc-scorecard-issue-count .chc-scorecard-icon {
+  color: var(--chc-status-warning);
+}
+.chc-scorecard-issue-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chc-scorecard-issue-more {
+  flex-shrink: 0;
+  color: var(--chc-text-secondary);
+}
+.chc-scorecard-issue-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--chc-status-warning) 14%, var(--chc-bg-primary));
+  border: 1px solid color-mix(in srgb, var(--chc-status-warning) 55%, transparent);
+  color: var(--chc-text-primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+.chc-scorecard-banner {
+  display: flex;
+  flex-direction: column;
+  margin: 0 16px 12px;
+  border: 1px solid color-mix(in srgb, var(--chc-status-warning) 55%, transparent);
+  border-left: 4px solid var(--chc-status-warning);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--chc-status-warning) 10%, var(--chc-bg-primary));
+  color: var(--chc-text-primary);
+  overflow: hidden;
+}
+.chc-scorecard-banner-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 8px 12px;
+  font-size: 14px;
+}
+.chc-scorecard-banner-item + .chc-scorecard-banner-item {
+  border-top: 1px solid color-mix(in srgb, var(--chc-status-warning) 30%, transparent);
+}
+.chc-scorecard-banner-item > .chc-scorecard-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--chc-status-warning);
+}
+.chc-scorecard-banner-message {
+  flex: 1 1 auto;
+}
+
+/* The team score set by hand: a row of its own under the names and scores */
+.chc-scorecard-score-controls,
+.chc-scorecard-score-editor {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 12px;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--chc-border-secondary);
+}
+.chc-scorecard-winner-choice,
+.chc-scorecard-score-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.chc-scorecard-winner-prompt {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--chc-text-secondary);
+}
+.chc-scorecard-winner-choice [aria-pressed='true'] {
+  border-color: var(--chc-status-success);
+  box-shadow: inset 0 0 0 1px var(--chc-status-success);
+  color: var(--chc-status-success);
+  font-weight: 700;
+}
+.chc-scorecard-score-input {
+  /* the same box as the score it stands in for, so opening the editor moves nothing around it */
+  width: 2.4em;
+  margin: 0 0.25rem;
+  padding: calc(0.5rem - 1px) 0;
+  border-radius: 8px;
+  border: 1px solid var(--chc-border-primary);
+  background: var(--chc-bg-secondary);
+  color: var(--chc-text-primary);
+  font: inherit;
+  font-size: 2.4rem;
+  font-weight: bold;
+  line-height: 1.5;
+  text-align: center;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.chc-scorecard-score-input::-webkit-inner-spin-button,
+.chc-scorecard-score-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.chc-scorecard-score-input:focus {
+  outline: 2px solid var(--chc-status-info);
+  outline-offset: 1px;
+}
+@container scorecard (max-width: 520px) {
+  .chc-scorecard-score-input {
+    font-size: 1.8rem;
+  }
+}
+.chc-scorecard-header--manual {
+  border-color: color-mix(in srgb, var(--chc-status-warning) 60%, var(--chc-border-primary));
+}
+.chc-scorecard-manual-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--chc-status-warning) 14%, var(--chc-bg-primary));
+  border: 1px solid color-mix(in srgb, var(--chc-status-warning) 55%, transparent);
+  color: var(--chc-text-primary);
+  font-size: 12px;
+  font-weight: 600;
 }

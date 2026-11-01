@@ -17,6 +17,9 @@ export interface FlightProfileState {
   scaleName?: string;
   eventType?: string;
   splitMethod: 'WATERFALL' | 'LEVEL_BASED' | 'SHUTTLE';
+  // optional rating band (as entered): only participants rated within it are split
+  ratingMin?: string;
+  ratingMax?: string;
   flights?: Array<{
     flightNumber: number;
     drawId: string;
@@ -162,22 +165,48 @@ export function parseExistingFlightProfile(flightProfile: any): Partial<FlightPr
   };
 }
 
+const parseRating = (value?: string): number | undefined => {
+  const trimmed = value?.trim();
+  return trimmed ? Number(trimmed) : undefined;
+};
+
 /**
- * Validate flight profile state
+ * The rating band, if one was entered: `{ min?, max? }` for the factory's `scaleRange`. Only for a rating split.
  */
-export function validateFlightProfile(state: FlightProfileState): string[] {
+export function buildScaleRange(state: FlightProfileState): { min?: number; max?: number } | undefined {
+  if (state.scaleType !== RATING) return undefined;
+  const min = parseRating(state.ratingMin);
+  const max = parseRating(state.ratingMax);
+  if (min === undefined && max === undefined) return undefined;
+  return { ...(min !== undefined && { min }), ...(max !== undefined && { max }) };
+}
+
+/**
+ * Validate flight profile state. `minFlights` is 2 unless the caller allows a single flight (a band's top flight).
+ */
+export function validateFlightProfile(state: FlightProfileState, { minFlights = 2 } = {}): string[] {
   const errors: string[] = [];
 
   if (!state.flightsCount || Number.isNaN(state.flightsCount) || state.flightsCount <= 0) {
     errors.push('Number of flights must be a valid number greater than 0');
-  } else if (state.flightsCount < 2) {
-    errors.push('Must have at least 2 flights');
+  } else if (state.flightsCount < minFlights) {
+    errors.push(`Must have at least ${minFlights} flights`);
   } else if (state.flightsCount > 10) {
     errors.push('Maximum 10 flights allowed');
   }
 
   if (state.scaleType === RATING && !state.scaleName) {
     errors.push('Rating system must be selected');
+  }
+
+  const scaleRange = buildScaleRange(state);
+  if (scaleRange) {
+    const { min, max } = scaleRange;
+    if ([min, max].some((value) => value !== undefined && Number.isNaN(value))) {
+      errors.push('Rating band values must be numbers');
+    } else if (min !== undefined && max !== undefined && min > max) {
+      errors.push('Rating band: "from" must not be greater than "to"');
+    }
   }
 
   // Note: eventType is NOT validated here because it's added by the caller
