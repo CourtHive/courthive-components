@@ -5,8 +5,12 @@
  * With `finishingOrder.editing`, the card is in its order-of-finish entry mode: each line played to a result gets a
  * number field driven by the finishing-order state engine, so a value entered moves the line and the others reshuffle
  * at once, and the order is always saveable. Save hands back the whole order (for `setOrderOfFinish`); Cancel restores it.
+ *
+ * With `issues` (the factory's `getDualIssues`), a line with an issue is marked, its messages in the marker's tooltip
+ * and aria label, and the header counts the collection's lines with one.
  */
 import { createFinishingOrderState, type FinishingOrderEntry } from './finishingOrderState';
+import { issueMessage, lineIssues, type ScorecardIssue } from './dualIssues';
 import { completedMatchUpStatuses } from 'tods-competition-factory';
 import { renderMatchUp } from '../renderStructure/renderMatchUp';
 import { swapMatchUpSides } from './scorecardSides';
@@ -17,6 +21,15 @@ export interface ScorecardLabels {
   /** the entry mode's buttons */
   save?: string;
   cancel?: string;
+  /** a message per issue code, in place of the English defaults */
+  issues?: Record<string, string>;
+  /** names the header's count of lines with an issue, e.g. "Lines with issues" */
+  issueCount?: string;
+  /** the header's team-score override: its buttons, the tag shown while the score is set by hand, the winner choice */
+  override?: string;
+  restore?: string;
+  manual?: string;
+  winner?: string;
 }
 
 export interface FinishingOrderEntryOptions {
@@ -34,9 +47,12 @@ export interface CollectionCardOptions {
   swapSides?: boolean;
   labels?: ScorecardLabels;
   finishingOrder?: FinishingOrderEntryOptions;
+  /** the dual's issues; those naming this collection's lines are marked */
+  issues?: ScorecardIssue[];
 }
 
 const INPUT_CLASS = 'chc-scorecard-finish-input';
+const ARIA_LABEL = 'aria-label';
 
 export function renderCollectionCard({
   collectionDefinition,
@@ -45,11 +61,18 @@ export function renderCollectionCard({
   eventHandlers,
   swapSides,
   labels,
-  finishingOrder
+  finishingOrder,
+  issues
 }: CollectionCardOptions): HTMLDivElement {
   const panel = document.createElement('div');
   panel.className = 'chc-scorecard-panel';
-  panel.appendChild(renderHeader(collectionDefinition, collectionMatchUps.length));
+  const byLine = lineIssues(
+    issues,
+    collectionMatchUps.map(({ matchUpId }) => matchUpId)
+  );
+  const header = renderHeader(collectionDefinition, collectionMatchUps.length);
+  if (byLine.size) header.querySelector('.chc-scorecard-panel-meta')?.prepend(renderIssueCount(byLine.size, labels));
+  panel.appendChild(header);
 
   const editing = !!finishingOrder?.editing;
   const state = editing ? createFinishingOrderState(collectionMatchUps) : undefined;
@@ -62,6 +85,8 @@ export function renderCollectionCard({
     card.classList.add('chc-scorecard-card');
     const marker = state ? renderFinishInput(tieMatchUp, state, labels) : renderOrderOfFinishBadge(tieMatchUp, labels);
     if (marker) card.appendChild(marker);
+    const cardIssues = byLine.get(tieMatchUp.matchUpId);
+    if (cardIssues) markIssues(card, cardIssues, labels);
     grid.appendChild(card);
   }
   panel.appendChild(grid);
@@ -113,8 +138,32 @@ function renderOrderOfFinishBadge(tieMatchUp: any, labels?: ScorecardLabels): HT
   badge.dataset.orderOfFinish = String(orderOfFinish);
   badge.textContent = String(orderOfFinish);
   badge.title = label;
-  badge.setAttribute('aria-label', label);
+  badge.setAttribute(ARIA_LABEL, label);
   return badge;
+}
+
+function renderIssueCount(count: number, labels?: ScorecardLabels): HTMLSpanElement {
+  const label = `${labels?.issueCount ?? 'Lines with issues'}: ${count}`;
+  const badge = document.createElement('span');
+  badge.className = 'chc-scorecard-issue-count';
+  badge.textContent = `! ${count}`;
+  badge.title = label;
+  badge.setAttribute(ARIA_LABEL, label);
+  return badge;
+}
+
+function markIssues(card: HTMLElement, issues: ScorecardIssue[], labels?: ScorecardLabels): void {
+  const messages = [...new Set(issues.map((issue) => issueMessage(issue, labels?.issues)))];
+  card.classList.add('chc-scorecard-card--issue');
+  card.dataset.issueCodes = [...new Set(issues.map(({ code }) => code))].join(' ');
+
+  const marker = document.createElement('span');
+  marker.className = 'chc-scorecard-issue-marker';
+  marker.textContent = '!';
+  marker.title = messages.join('\n');
+  marker.setAttribute('role', 'img');
+  marker.setAttribute(ARIA_LABEL, messages.join('; '));
+  card.appendChild(marker);
 }
 
 type FinishingOrderState = ReturnType<typeof createFinishingOrderState>;
@@ -131,7 +180,7 @@ function renderFinishInput(tieMatchUp: any, state: FinishingOrderState, labels?:
   input.step = '1';
   input.dataset.matchUpId = matchUpId;
   input.value = String(state.valueOf(matchUpId));
-  input.setAttribute('aria-label', labels?.orderOfFinish ?? 'Order of finish');
+  input.setAttribute(ARIA_LABEL, labels?.orderOfFinish ?? 'Order of finish');
   // a click in the field is not a click on the line
   input.addEventListener('click', (event) => event.stopPropagation());
   return input;

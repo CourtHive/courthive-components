@@ -5,8 +5,14 @@
  *
  * This is a pure rendering component — no mutations or business logic.
  * Consumers wire interactivity via the eventHandlers callback map.
+ *
+ * With `issues` (the factory's `getDualIssues`), lines with an issue are marked in their collection, and the dual's own
+ * issues show in a banner under the header, each with an action when the caller gives one. With `teamScore`, the
+ * header's scores can be set by hand inline (see `attachTeamScoreEditor`).
  */
 import { renderCollectionCard, type FinishingOrderEntryOptions, type ScorecardLabels } from './renderCollectionCard';
+import { dualIssues, issueMessage, MANUAL_SCORE, type ScorecardIssue } from './dualIssues';
+import { attachTeamScoreEditor, type TeamScoreOptions } from './teamScoreEditor';
 import { swapSetScores, swapWinningSide } from './scorecardSides';
 
 export type { ScorecardLabels } from './renderCollectionCard';
@@ -19,6 +25,17 @@ export interface ScorecardOptions {
   labels?: ScorecardLabels;
   /** one collection in its order-of-finish entry mode (see `renderCollectionCard`) */
   finishingOrder?: FinishingOrderEntryOptions & { editingCollectionId?: string };
+  /** the dual's issues: line issues mark their lines, the dual's own fill the banner */
+  issues?: ScorecardIssue[];
+  /** a banner action per dual issue code, e.g. recording a decided dual's unplayed lines */
+  issueActions?: Record<string, IssueAction>;
+  /** the header's team score set by hand; `manual` defaults to whether the issues say it is */
+  teamScore?: TeamScoreOptions;
+}
+
+export interface IssueAction {
+  label: string;
+  onClick: (issue: ScorecardIssue) => void;
 }
 
 export interface TeamVsOptions {
@@ -41,7 +58,10 @@ export function renderScorecard({
   eventHandlers,
   swapSides,
   labels,
-  finishingOrder
+  finishingOrder,
+  issues,
+  issueActions,
+  teamScore
 }: ScorecardOptions): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'chc-scorecard';
@@ -61,7 +81,13 @@ export function renderScorecard({
     side1Id: 'chc-sc-side1',
     side2Id: 'chc-sc-side2'
   });
+  if (teamScore) {
+    const manual = teamScore.manual ?? !!issues?.some(({ code }) => code === MANUAL_SCORE);
+    attachTeamScoreEditor({ header, matchUp, swapSides, labels, teamScore: { ...teamScore, manual } });
+  }
   container.appendChild(header);
+  const banner = renderIssueBanner(dualIssues(issues), issueActions, labels);
+  if (banner) container.appendChild(banner);
 
   // Collection panels
   const collectionDefinitions =
@@ -83,7 +109,8 @@ export function renderScorecard({
       composition,
       eventHandlers,
       swapSides,
-      labels
+      labels,
+      issues
     });
     container.appendChild(panel);
   }
@@ -164,6 +191,37 @@ export function updateTieScore(
 }
 
 // ── Internal helpers ──
+
+function renderIssueBanner(
+  issues: ScorecardIssue[],
+  issueActions?: Record<string, IssueAction>,
+  labels?: ScorecardLabels
+): HTMLDivElement | undefined {
+  if (!issues.length) return undefined;
+  const banner = document.createElement('div');
+  banner.className = 'chc-scorecard-banner';
+  banner.setAttribute('role', 'status');
+  for (const issue of issues) {
+    const item = document.createElement('div');
+    item.className = 'chc-scorecard-banner-item';
+    item.dataset.issueCode = issue.code;
+    const message = document.createElement('span');
+    message.textContent = issueMessage(issue, labels?.issues);
+    item.appendChild(message);
+    const action = issueActions?.[issue.code];
+    if (action) {
+      const button = document.createElement('button');
+      button.className = 'button is-small';
+      button.textContent = action.label;
+      button.dataset.action = 'issue-action';
+      button.dataset.issueCode = issue.code;
+      button.addEventListener('click', () => action.onClick(issue));
+      item.appendChild(button);
+    }
+    banner.appendChild(item);
+  }
+  return banner;
+}
 
 function renderSideElement(name: string, justify: 'start' | 'end'): HTMLDivElement {
   const side = document.createElement('div');
