@@ -52,6 +52,8 @@ export interface FactorySetup {
 export interface FactorySetupOptions {
   includeBookings?: boolean;
   venueCount?: number;
+  /** Narrow events to these weekdays (by event name), e.g. `{ 'Girls U16 Singles': ['SAT', 'SUN'] }`. */
+  eventWeekdays?: Record<string, string[]>;
 }
 
 // ============================================================================
@@ -249,6 +251,12 @@ export function createFactorySetup(options?: FactorySetupOptions): FactorySetup 
     }
   }
 
+  // 2b. Optionally narrow events to their own playing weekdays
+  for (const [eventName, weekdays] of Object.entries(options?.eventWeekdays ?? {})) {
+    const event = tournamentRecord.events?.find((e: any) => e.eventName === eventName);
+    if (event) tournamentEngine.setEventDates({ eventId: event.eventId, weekdays: weekdays as any });
+  }
+
   // Retrieve updated record
   const stateResult = tournamentEngine.getState();
   const record = stateResult?.tournamentRecord ?? tournamentRecord;
@@ -277,7 +285,9 @@ export function createFactorySetup(options?: FactorySetupOptions): FactorySetup 
     structureId: r.structureId,
     roundNumber: r.roundNumber,
     roundName: r.roundName,
-    matchCountEstimate: r.matchUpsCount
+    matchCountEstimate: r.matchUpsCount,
+    // present only when the event's own dates narrow the tournament's
+    playingDates: r.playingDates
   }));
 
   // 5. Compute schedulable dates

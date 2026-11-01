@@ -82,17 +82,54 @@ export function getPlacedSegmentsCount(profile: SchedulingProfile): Map<string, 
   return out;
 }
 
+/**
+ * Whether a catalog round's event plays on `date`. A round without `playingDates` (an event whose
+ * dates do not narrow the tournament's) plays every date, and so does any round when no date is
+ * selected.
+ */
+export function roundPlaysOnDate(round: { playingDates?: string[] }, date?: string | null): boolean {
+  if (!date || !Array.isArray(round.playingDates)) return true;
+  return round.playingDates.includes(date);
+}
+
+/**
+ * Every round placed anywhere in the profile, whole or as a segment, by `roundKeyString`.
+ */
+export function getPlacedRoundKeys(profile: SchedulingProfile): Set<string> {
+  const keys = new Set<string>();
+  for (const day of profile) {
+    for (const v of day.venues) {
+      for (const r of v.rounds) keys.add(roundKeyString(r));
+    }
+  }
+  return keys;
+}
+
+export interface FilterCatalogOptions {
+  /** Hide rounds whose event does not play on this date (see `roundPlaysOnDate`). */
+  selectedDate?: string | null;
+  /**
+   * Rounds that stay listed on a non-playing date because they are already placed somewhere, so
+   * their placements remain visible and removable. `plannedRoundBehavior: 'hide'` still applies.
+   */
+  placedKeys?: Set<string>;
+}
+
 export function filterCatalog(
   catalog: CatalogRoundItem[],
   query: string,
   plannedKeys: Set<string>,
-  behavior: PlannedRoundBehavior = 'dim'
+  behavior: PlannedRoundBehavior = 'dim',
+  options: FilterCatalogOptions = {}
 ): Array<CatalogRoundItem & { isPlanned: boolean }> {
   const q = query.toLowerCase().trim();
+  const { selectedDate, placedKeys = plannedKeys } = options;
 
   return catalog
     .filter((r) => {
-      if (behavior === 'hide' && plannedKeys.has(roundKeyString(r))) return false;
+      const rk = roundKeyString(r);
+      if (behavior === 'hide' && plannedKeys.has(rk)) return false;
+      if (!roundPlaysOnDate(r, selectedDate) && !placedKeys.has(rk)) return false;
       if (!q) return true;
       const hay = `${r.eventName} ${r.drawName ?? ''} ${r.roundName ?? ''} ${r.drawId}`.toLowerCase();
       return hay.includes(q);
@@ -101,6 +138,18 @@ export function filterCatalog(
       ...r,
       isPlanned: plannedKeys.has(roundKeyString(r))
     }));
+}
+
+/**
+ * How many catalog rounds `filterCatalog` hides on `date` because their event does not play then.
+ */
+export function countNotPlayingRounds(
+  catalog: CatalogRoundItem[],
+  date: string | null | undefined,
+  placedKeys: Set<string>
+): number {
+  if (!date) return 0;
+  return catalog.filter((r) => !roundPlaysOnDate(r, date) && !placedKeys.has(roundKeyString(r))).length;
 }
 
 export function groupCatalog(

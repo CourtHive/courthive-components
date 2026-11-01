@@ -3,10 +3,11 @@
  *
  * Validates a scheduling profile draft against availability constraints.
  * Rules: DATE_UNAVAILABLE, INVALID_SEGMENT_CONFIG, DUPLICATE_ROUND,
- * DUPLICATE_SEGMENT, ROUND_ORDER_VIOLATION.
+ * DUPLICATE_SEGMENT, ROUND_ORDER_VIOLATION, EVENT_DATE_INACTIVE.
  */
 
 import type {
+  CatalogRoundItem,
   SchedulingProfile,
   ValidationResult,
   AvailabilityAdapter,
@@ -33,6 +34,8 @@ export interface ValidateProfileParams {
   demand?: DemandAdapter;
   dependencies?: DependencyAdapter;
   venueOrder?: string[];
+  /** The round catalog; its `playingDates` drive the EVENT_DATE_INACTIVE warning. */
+  roundCatalog?: CatalogRoundItem[];
 }
 
 export function validateProfile({
@@ -40,7 +43,8 @@ export function validateProfile({
   availability,
   demand,
   dependencies,
-  venueOrder
+  venueOrder,
+  roundCatalog
 }: ValidateProfileParams): ValidationResult[] {
   const results: ValidationResult[] = [];
 
@@ -64,6 +68,9 @@ export function validateProfile({
   results.push(...checkDayOverload(profile, availability, demand));
 
   const planned = flatten(profile);
+
+  // Planned on a day its event does not play: WARN, never a refusal.
+  if (roundCatalog?.length) results.push(...checkEventPlayingDates(planned, roundCatalog));
 
   // Segment config validity: ERROR
   for (const item of planned) {
@@ -171,6 +178,39 @@ function checkDayOverload(
         fixActions: [{ kind: 'OPEN_AVAILABILITY_GRID', date: day.scheduleDate, label: 'Tune availability' }]
       });
     }
+  }
+  return out;
+}
+
+// ============================================================================
+// Event playing dates
+// ============================================================================
+
+function checkEventPlayingDates(planned: FlattenedRound[], roundCatalog: CatalogRoundItem[]): ValidationResult[] {
+  const playingDatesByKey = new Map<string, string[]>();
+  for (const item of roundCatalog) {
+    if (Array.isArray(item.playingDates)) playingDatesByKey.set(roundKeyString(item), item.playingDates);
+  }
+  if (!playingDatesByKey.size) return [];
+
+  const out: ValidationResult[] = [];
+  for (const item of planned) {
+    const playingDates = playingDatesByKey.get(roundKeyString(item.round));
+    if (!playingDates || playingDates.includes(item.locator.date)) continue;
+    const plays = playingDates.length ? `plays ${playingDates.join(', ')}` : 'has no playing dates';
+    out.push({
+      code: 'EVENT_DATE_INACTIVE',
+      severity: 'WARN',
+      message: `${roundLabel(item.round)} is planned on ${item.locator.date}, a day its event does not play (${plays}).`,
+      context: {
+        date: item.locator.date,
+        venueId: item.locator.venueId,
+        drawId: item.round.drawId,
+        structureId: item.round.structureId,
+        locator: item.locator
+      },
+      fixActions: [{ kind: 'JUMP_TO_ITEM', locator: item.locator, label: 'Jump to round' }]
+    });
   }
   return out;
 }
