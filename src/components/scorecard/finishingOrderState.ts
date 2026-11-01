@@ -37,13 +37,15 @@ export function createFinishingOrderState(
   lines: FinishingOrderLine[],
   { counts = playedToResult }: { counts?: (line: FinishingOrderLine) => boolean } = {}
 ) {
-  const byId = new Map(lines.map((line) => [line.matchUpId, line]));
+  // the number each line holds as recorded; a commit records the current order
+  const recorded = new Map(lines.map(({ matchUpId, orderOfFinish }) => [matchUpId, orderOfFinish]));
   const rank = (line: FinishingOrderLine) => line.orderOfFinish ?? Number.MAX_SAFE_INTEGER;
   const initial = lines
     .filter(counts)
     .sort((a, b) => rank(a) - rank(b) || (a.collectionPosition ?? 0) - (b.collectionPosition ?? 0))
     .map(({ matchUpId }) => matchUpId);
   let order = [...initial];
+  let saved = [...initial];
 
   return {
     /** the lines in finishing order */
@@ -61,8 +63,14 @@ export function createFinishingOrderState(
       order = order.filter((id) => id !== matchUpId);
       order.splice(target, 0, matchUpId);
     },
+    /** back to the order last saved (or recorded, before any save) */
     reset(): void {
-      order = [...initial];
+      order = [...saved];
+    },
+    /** the current order is saved: it becomes what the lines hold, so nothing is dirty until the next edit */
+    commit(): void {
+      saved = [...order];
+      order.forEach((matchUpId, index) => recorded.set(matchUpId, index + 1));
     },
     /** the whole order, as `setOrderOfFinish` takes it */
     toFinishingOrder: (): FinishingOrderEntry[] =>
@@ -71,8 +79,8 @@ export function createFinishingOrderState(
     changes: (): FinishingOrderEntry[] =>
       order
         .map((matchUpId, index) => ({ matchUpId, orderOfFinish: index + 1 }))
-        .filter(({ matchUpId, orderOfFinish }) => byId.get(matchUpId)?.orderOfFinish !== orderOfFinish),
-    isDirty: (): boolean => order.some((matchUpId, index) => matchUpId !== initial[index])
+        .filter(({ matchUpId, orderOfFinish }) => recorded.get(matchUpId) !== orderOfFinish),
+    isDirty: (): boolean => order.some((matchUpId, index) => matchUpId !== saved[index])
   };
 }
 

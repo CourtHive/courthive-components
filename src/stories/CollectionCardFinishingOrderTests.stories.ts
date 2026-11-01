@@ -6,6 +6,7 @@
  * - only played lines get a field, numbered 1..n from what they hold;
  * - entering 1 on the second line makes the first 2: values never duplicate or leave a gap;
  * - Save is enabled only after a change and hands back the whole order; Cancel restores it;
+ * - a save that succeeds is the new baseline: Save disables until the next edit; a refused save keeps the edits;
  * - the scorecard opens only the chosen collection in entry mode.
  *
  * Run interactively: `pnpm storybook`
@@ -244,5 +245,51 @@ export const MarkersNeverCoverTheMatchUpOrEachOther: StoryObj = {
         expect(overlaps(finishRect, markerRect)).toBe(false);
       }
     }
+  }
+};
+
+export const ASavedOrderIsTheNewBaseline: StoryObj = {
+  render: renderHost,
+  play: async ({ canvasElement }) => {
+    const host = getHost(canvasElement);
+    const { singlesDefinition, singles } = dualAndSingles();
+    let accept = true;
+    const onSave = fn(async () => accept);
+    host.appendChild(
+      renderCollectionCard({
+        collectionDefinition: singlesDefinition,
+        collectionMatchUps: singles,
+        composition: compositions.National,
+        finishingOrder: { editing: true, onSave }
+      })
+    );
+    const [first, second] = singles.map(({ matchUpId }) => matchUpId);
+    const save = host.querySelector(SAVE_SELECTOR) as HTMLButtonElement;
+    const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+    enter(host, second, 1);
+    expect(save.disabled).toBe(false);
+    save.click();
+    // in flight: no second save
+    expect(save.disabled).toBe(true);
+    await settle();
+    expect(onSave).toHaveBeenCalledTimes(1);
+    // saved: the numbers stay, Save waits for the next edit, and Cancel now returns to the saved order
+    expect(save.disabled).toBe(true);
+    expect(values(host)[second]).toBe(1);
+    enter(host, first, 1);
+    expect(save.disabled).toBe(false);
+    (host.querySelector('[data-action="cancel-finishing-order"]') as HTMLButtonElement).click();
+    expect(values(host)[second]).toBe(1);
+    expect(save.disabled).toBe(true);
+
+    // refused: the edits stay and Save is offered again
+    accept = false;
+    enter(host, first, 1);
+    save.click();
+    await settle();
+    expect(onSave).toHaveBeenCalledTimes(2);
+    expect(values(host)[first]).toBe(1);
+    expect(save.disabled).toBe(false);
   }
 };
