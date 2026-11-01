@@ -1,7 +1,8 @@
 /**
  * Setting a dual's team score by hand, inline in the scorecard header. Override turns the two header scores into
  * fields; the higher score wins, and level scores show a winner choice. Save hands back the score by side number (for
- * the caller to record with automatic team scoring off); Cancel puts the header back. While the score is set by hand
+ * the caller to record with automatic team scoring off); Cancel puts the header back. The controls sit in their own
+ * row under the names and scores, and the open editor replaces them there. While the score is set by hand
  * the header says so, and Restore hands the dual back to automatic scoring.
  *
  * The editing rules live in the team-score override state; this only renders them.
@@ -47,16 +48,16 @@ export function attachTeamScoreEditor({
   teamScore: TeamScoreOptions;
   labels?: ScorecardLabels;
 }): void {
-  const scoreBox = header.querySelector('.chc-scorecard-score-box') as HTMLElement;
   const spans = [...header.querySelectorAll<HTMLElement>('.chc-scorecard-side-score')];
-  if (!scoreBox || spans.length !== 2) return;
+  if (spans.length !== 2) return;
   const names = [...header.querySelectorAll<HTMLElement>('.chc-scorecard-side-name')].map(
     (name, index) => name.textContent || String(index + 1)
   );
 
+  // a row of its own under the names and scores, so opening the editor never moves them
   const controls = document.createElement('div');
   controls.className = 'chc-scorecard-score-controls';
-  scoreBox.appendChild(controls);
+  header.appendChild(controls);
 
   if (teamScore.manual) {
     header.classList.add('chc-scorecard-header--manual');
@@ -70,7 +71,10 @@ export function attachTeamScoreEditor({
       controls.appendChild(restore);
     }
   }
-  if (!teamScore.onOverride) return;
+  if (!teamScore.onOverride) {
+    if (!controls.childElementCount) controls.remove();
+    return;
+  }
 
   const set = matchUp?.score?.sets?.[0];
   const state = createTeamScoreOverride({
@@ -82,39 +86,41 @@ export function attachTeamScoreEditor({
   const override = button(labels?.override ?? 'Override', 'override-team-score');
   controls.appendChild(override);
   override.addEventListener('click', () =>
-    openEditor({ scoreBox, spans, names, controls, override, state, labels, onSave: teamScore.onOverride })
+    openEditor({ header, spans, names, controls, state, labels, onSave: teamScore.onOverride })
   );
 }
 
 function openEditor({
-  scoreBox,
+  header,
   spans,
   names,
   controls,
-  override,
   state,
   labels,
   onSave
 }: {
-  scoreBox: HTMLElement;
+  header: HTMLElement;
   spans: HTMLElement[];
   names: string[];
   controls: HTMLElement;
-  override: HTMLElement;
   state: TeamScoreOverride;
   labels?: ScorecardLabels;
   onSave?: (teamScore: TeamScore) => void;
 }): void {
-  override.hidden = true;
+  header.classList.add('chc-scorecard-header--editing');
+  // while the editor is open it is the only control: the override, restore and tag come back when it closes
+  controls.hidden = true;
   const inputs = POSITIONS.map((position, index) => {
     const input = document.createElement('input');
     input.className = INPUT_CLASS;
     input.type = 'number';
+    input.inputMode = 'numeric';
     input.min = '0';
     input.step = '1';
     input.dataset.position = position;
     input.value = String(state.scoreAt(position));
     input.setAttribute('aria-label', names[index]);
+    input.addEventListener('focus', () => input.select());
     // a value that is not a score is put back
     input.addEventListener('change', () => {
       if (!state.setScore(position, Number(input.value))) input.value = String(state.scoreAt(position));
@@ -130,7 +136,12 @@ function openEditor({
   const winnerChoice = document.createElement('div');
   winnerChoice.className = 'chc-scorecard-winner-choice';
   winnerChoice.setAttribute('role', 'group');
-  winnerChoice.setAttribute('aria-label', labels?.winner ?? 'Winner');
+  const winnerLabel = labels?.winner ?? 'Winner';
+  winnerChoice.setAttribute('aria-label', winnerLabel);
+  const prompt = document.createElement('span');
+  prompt.className = 'chc-scorecard-winner-prompt';
+  prompt.textContent = winnerLabel;
+  winnerChoice.appendChild(prompt);
   const choices = POSITIONS.map((position, index) => {
     const choice = button(names[index], 'choose-winner');
     choice.dataset.position = position;
@@ -143,8 +154,12 @@ function openEditor({
   });
   const cancel = button(labels?.cancel ?? 'Cancel', 'cancel-team-score');
   const save = button(labels?.save ?? 'Save', 'save-team-score', true);
-  editor.append(winnerChoice, cancel, save);
-  scoreBox.insertBefore(editor, controls);
+  const actions = document.createElement('div');
+  actions.className = 'chc-scorecard-score-actions';
+  actions.append(cancel, save);
+  editor.append(winnerChoice, actions);
+  controls.after(editor);
+  inputs[0].focus();
 
   function update() {
     winnerChoice.hidden = !state.needsWinner();
@@ -158,7 +173,8 @@ function openEditor({
     inputs.forEach((input) => input.remove());
     spans.forEach((span) => (span.hidden = false));
     editor.remove();
-    override.hidden = false;
+    controls.hidden = false;
+    header.classList.remove('chc-scorecard-header--editing');
   };
   cancel.addEventListener('click', () => {
     state.reset();

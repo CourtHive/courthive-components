@@ -30,6 +30,9 @@ export default meta;
 
 const HOST_TESTID = 'collection-card-host';
 const INPUT_SELECTOR = '.chc-scorecard-finish-input';
+const SAVE_SELECTOR = '[data-action="save-finishing-order"]';
+const EARLIER = 'finish-earlier';
+const LATER = 'finish-later';
 
 const getHost = (canvasElement: HTMLElement) =>
   canvasElement.querySelector(`[data-testid="${HOST_TESTID}"]`) as HTMLElement;
@@ -94,7 +97,7 @@ export const EntryReshufflesAndSaves: StoryObj = {
     const [first, second] = singles.map(({ matchUpId }) => matchUpId);
     expect(values(host)).toEqual(Object.fromEntries(singles.map(({ matchUpId }, index) => [matchUpId, index + 1])));
 
-    const save = host.querySelector('[data-action="save-finishing-order"]') as HTMLButtonElement;
+    const save = host.querySelector(SAVE_SELECTOR) as HTMLButtonElement;
     expect(save.disabled).toBe(true);
 
     enter(host, second, 1);
@@ -141,7 +144,7 @@ export const CancelRestoresAndUnplayedLinesHaveNoField: StoryObj = {
     (host.querySelector('[data-action="cancel-finishing-order"]') as HTMLButtonElement).click();
     expect(values(host)).toEqual(before);
     expect(onCancel).toHaveBeenCalledTimes(1);
-    expect((host.querySelector('[data-action="save-finishing-order"]') as HTMLButtonElement).disabled).toBe(true);
+    expect((host.querySelector(SAVE_SELECTOR) as HTMLButtonElement).disabled).toBe(true);
   }
 };
 
@@ -167,5 +170,79 @@ export const ScorecardOpensOneCollection: StoryObj = {
     expect(editedIds.length).toBeGreaterThan(0);
     expect(editedIds.every((id) => singlesIds.includes(id))).toBe(true);
     expect(host.querySelectorAll('.chc-scorecard-finish-footer').length).toBe(1);
+  }
+};
+
+export const StepperMovesALineAndStopsAtTheEnds: StoryObj = {
+  render: renderHost,
+  play: async ({ canvasElement }) => {
+    const host = getHost(canvasElement);
+    const { singlesDefinition, singles } = dualAndSingles();
+    host.appendChild(
+      renderCollectionCard({
+        collectionDefinition: singlesDefinition,
+        collectionMatchUps: singles,
+        composition: compositions.National,
+        finishingOrder: { editing: true }
+      })
+    );
+    const [first, second] = singles.map(({ matchUpId }) => matchUpId);
+    const last = singles[singles.length - 1].matchUpId;
+    const step = (matchUpId: string, action: string) =>
+      host
+        .querySelector(`${INPUT_SELECTOR}[data-match-up-id="${matchUpId}"]`)
+        ?.parentElement?.querySelector(`[data-action="${action}"]`) as HTMLButtonElement;
+
+    // the first line cannot finish earlier, the last cannot finish later
+    expect(step(first, EARLIER).disabled).toBe(true);
+    expect(step(last, LATER).disabled).toBe(true);
+    expect(step(first, LATER).disabled).toBe(false);
+
+    // a step later swaps the first two, and the bounds follow the new numbers
+    step(first, LATER).click();
+    expect(values(host)[first]).toBe(2);
+    expect(values(host)[second]).toBe(1);
+    expect(step(first, EARLIER).disabled).toBe(false);
+    expect(step(second, EARLIER).disabled).toBe(true);
+    expect((host.querySelector(SAVE_SELECTOR) as HTMLButtonElement).disabled).toBe(false);
+  }
+};
+
+const overlaps = (a: DOMRect, b: DOMRect) =>
+  a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+
+export const MarkersNeverCoverTheMatchUpOrEachOther: StoryObj = {
+  render: renderHost,
+  play: async ({ canvasElement }) => {
+    const host = getHost(canvasElement);
+    const { singlesDefinition, singles } = dualAndSingles();
+    const collectionId = singlesDefinition.collectionId;
+    const issues = singles.map(({ matchUpId }) => ({ code: 'DUPLICATE_IN_COLLECTION', matchUpId, collectionId }));
+    for (const editing of [false, true]) {
+      host.replaceChildren(
+        renderCollectionCard({
+          collectionDefinition: singlesDefinition,
+          collectionMatchUps: singles,
+          composition: compositions.National,
+          finishingOrder: { editing },
+          issues
+        })
+      );
+      const cards = [...host.querySelectorAll<HTMLElement>('.chc-scorecard-card')];
+      // control: every line carries both an issue and an order of finish
+      expect(cards).toHaveLength(singles.length);
+      for (const card of cards) {
+        const box = (card.querySelector('.chc-matchup') as HTMLElement).getBoundingClientRect();
+        const finish = card.querySelector(editing ? '.chc-scorecard-finish-stepper' : '.chc-scorecard-finish-badge');
+        const marker = card.querySelector('.chc-scorecard-issue-marker');
+        expect(finish).not.toBeNull();
+        expect(marker).not.toBeNull();
+        const finishRect = (finish as HTMLElement).getBoundingClientRect();
+        const markerRect = (marker as HTMLElement).getBoundingClientRect();
+        expect(overlaps(finishRect, box)).toBe(false);
+        expect(overlaps(markerRect, box)).toBe(false);
+        expect(overlaps(finishRect, markerRect)).toBe(false);
+      }
+    }
   }
 };

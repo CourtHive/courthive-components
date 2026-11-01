@@ -33,6 +33,8 @@ const HOST_TESTID = 'dual-issues-host';
 const SCORE_INPUT = '.chc-scorecard-score-input';
 const ARIA_LABEL = 'aria-label';
 const OVERRIDE = 'override-team-score';
+const RESTORE = 'restore-team-score';
+const MANUAL_TAG = '.chc-scorecard-manual-tag';
 
 const getHost = (canvasElement: HTMLElement) =>
   canvasElement.querySelector(`[data-testid="${HOST_TESTID}"]`) as HTMLElement;
@@ -206,14 +208,49 @@ export const SetByHandOffersRestore: StoryObj = {
       })
     );
     expect(host.querySelector('.chc-scorecard-header--manual')).not.toBeNull();
-    expect(host.querySelector('.chc-scorecard-manual-tag')?.textContent).toBe('Set by hand');
-    button(host, 'restore-team-score').click();
+    expect(host.querySelector(MANUAL_TAG)?.textContent).toBe('Set by hand');
+    // the header says so; the banner does not repeat it
+    expect(host.querySelector('[data-issue-code="MANUAL_SCORE"]')).toBeNull();
+    button(host, RESTORE).click();
     expect(onRestore).toHaveBeenCalledTimes(1);
 
     host.replaceChildren(
       renderScorecard({ matchUp: dual, composition: compositions.National, teamScore: { onRestore } })
     );
-    expect(host.querySelector('.chc-scorecard-manual-tag')).toBeNull();
-    expect(button(host, 'restore-team-score')).toBeNull();
+    expect(host.querySelector(MANUAL_TAG)).toBeNull();
+    expect(button(host, RESTORE)).toBeNull();
+  }
+};
+
+export const TheEditorReplacesTheControlsAndLeavesTheNamesInPlace: StoryObj = {
+  render: renderHost,
+  play: async ({ canvasElement }) => {
+    const host = getHost(canvasElement);
+    const { dual } = generateDual();
+    host.appendChild(
+      renderScorecard({
+        matchUp: dual,
+        composition: compositions.National,
+        teamScore: { manual: true, onOverride: fn(), onRestore: fn() }
+      })
+    );
+    const names = () =>
+      [...host.querySelectorAll<HTMLElement>('.chc-scorecard-side-name')].map(
+        (name) => name.getBoundingClientRect().top
+      );
+    const shown = (element: HTMLElement | null) => !!element && element.getClientRects().length > 0;
+    const before = names();
+
+    button(host, OVERRIDE).click();
+    // the override, restore and tag are off screen while the editor is open, not merely flagged hidden
+    expect(shown(button(host, OVERRIDE))).toBe(false);
+    expect(shown(button(host, RESTORE))).toBe(false);
+    expect(shown(host.querySelector(MANUAL_TAG))).toBe(false);
+    expect(shown(button(host, 'save-team-score'))).toBe(true);
+    expect(names()).toEqual(before);
+
+    button(host, 'cancel-team-score').click();
+    expect(shown(button(host, OVERRIDE))).toBe(true);
+    expect(host.querySelectorAll('.chc-scorecard-score-editor')).toHaveLength(0);
   }
 };
