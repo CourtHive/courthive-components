@@ -100,4 +100,29 @@ describe('finishing order state', () => {
     expect(state.order()).toEqual(['s1', 's2']);
     expect(state.isDirty()).toBe(false);
   });
+
+  it('a commit makes the current order the saved one: nothing is dirty, and reset returns to it', () => {
+    const state = createFinishingOrderState([
+      line('s1', 'COMPLETED', 1),
+      line('s2', 'COMPLETED', 2),
+      line('s3', 'COMPLETED', 3)
+    ]);
+    state.setValue('s3', 1);
+    expect(state.isDirty()).toBe(true);
+    expect(state.changes()).toHaveLength(3);
+
+    state.commit();
+    expect(state.isDirty()).toBe(false);
+    expect(state.changes()).toEqual([]);
+    expect(state.order()).toEqual(['s3', 's1', 's2']);
+
+    state.setValue('s2', 1);
+    expect(state.changes()).toEqual([
+      { matchUpId: 's2', orderOfFinish: 1 },
+      { matchUpId: 's3', orderOfFinish: 2 },
+      { matchUpId: 's1', orderOfFinish: 3 }
+    ]);
+    state.reset();
+    expect(state.order()).toEqual(['s3', 's1', 's2']);
+  });
 });

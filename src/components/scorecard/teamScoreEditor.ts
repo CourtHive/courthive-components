@@ -27,9 +27,11 @@ export interface TeamScoreOptions {
 const INPUT_CLASS = 'chc-scorecard-score-input';
 const POSITIONS: Position[] = ['left', 'right'];
 
-const button = (text: string, action: string, primary?: boolean) => {
+// the library's own buttons (renderButtons, cModal): `button font-medium`, an intent where the action has one
+const button = (text: string, action: string, intent?: string) => {
   const element = document.createElement('button');
-  element.className = primary ? 'button is-small is-primary' : 'button is-small';
+  element.className = 'button font-medium';
+  if (intent) element.classList.add(...intent.split(' '));
   element.textContent = text;
   element.dataset.action = action;
   return element;
@@ -66,7 +68,7 @@ export function attachTeamScoreEditor({
     tag.textContent = labels?.manual ?? 'Set by hand';
     controls.appendChild(tag);
     if (teamScore.onRestore) {
-      const restore = button(labels?.restore ?? 'Restore automatic scoring', 'restore-team-score');
+      const restore = button(labels?.restore ?? 'Restore automatic scoring', 'restore-team-score', 'is-info is-light');
       restore.addEventListener('click', () => teamScore.onRestore?.());
       controls.appendChild(restore);
     }
@@ -83,7 +85,7 @@ export function attachTeamScoreEditor({
     winningSide: matchUp?.winningSide,
     swapSides
   });
-  const override = button(labels?.override ?? 'Override', 'override-team-score');
+  const override = button(labels?.override ?? 'Override', 'override-team-score', 'is-warning is-light');
   controls.appendChild(override);
   override.addEventListener('click', () =>
     openEditor({ header, spans, names, controls, state, labels, onSave: teamScore.onOverride })
@@ -153,7 +155,7 @@ function openEditor({
     return choice;
   });
   const cancel = button(labels?.cancel ?? 'Cancel', 'cancel-team-score');
-  const save = button(labels?.save ?? 'Save', 'save-team-score', true);
+  const save = button(labels?.save ?? 'Save', 'save-team-score', 'is-info');
   const actions = document.createElement('div');
   actions.className = 'chc-scorecard-score-actions';
   actions.append(cancel, save);
