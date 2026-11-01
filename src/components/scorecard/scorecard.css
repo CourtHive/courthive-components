@@ -439,12 +439,12 @@
 .chc-scorecard-manual-tag {
   display: inline-flex;
   align-items: center;
-  height: 24px;
+  height: 28px;
   padding: 0 10px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--chc-status-warning) 14%, var(--chc-bg-primary));
   border: 1px solid color-mix(in srgb, var(--chc-status-warning) 55%, transparent);
   color: var(--chc-text-primary);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
 }
