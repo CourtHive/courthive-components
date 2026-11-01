@@ -23,7 +23,15 @@ export { ProfileStore } from './engine/profileStore';
 export { validateProfile, type ValidateProfileParams } from './domain/validateProfile';
 export { buildIssueIndex } from './domain/issueIndex';
 export { applyDropCommit } from './domain/dndApply';
-export { filterCatalog, groupCatalog, getPlannedRoundKeys } from './domain/catalogProjections';
+export {
+  filterCatalog,
+  groupCatalog,
+  getPlannedRoundKeys,
+  getPlacedRoundKeys,
+  roundPlaysOnDate,
+  countNotPlayingRounds,
+  type FilterCatalogOptions
+} from './domain/catalogProjections';
 export {
   getVenueRounds,
   getRoundAt,

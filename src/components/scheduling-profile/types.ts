@@ -66,6 +66,13 @@ export interface CatalogRoundItem {
   roundNumber: number;
   roundName?: string;
   matchCountEstimate?: number;
+  /**
+   * The dates this round's event plays, as `getRounds` returns them when the event's own dates
+   * narrow the tournament's. Absent means the event plays every tournament date. Present (even
+   * empty) means the event plays only these dates: the catalog hides the round on any other date,
+   * and validation warns when it is planned on one.
+   */
+  playingDates?: string[];
 }
 
 export type CatalogGroupBy = 'event' | 'draw' | 'round';
@@ -134,6 +141,7 @@ export type ValidationCode =
   | 'ROUND_ORDER_VIOLATION'
   | 'DEPENDENCY_VIOLATION'
   | 'DAY_OVERLOAD'
+  | 'EVENT_DATE_INACTIVE'
   | 'DROP_REJECTED';
 
 export type FixActionKind = 'JUMP_TO_ITEM' | 'OPEN_AVAILABILITY_GRID' | 'MOVE_ITEM_AFTER' | 'MOVE_ITEM_BEFORE';

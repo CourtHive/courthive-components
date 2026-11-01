@@ -22,6 +22,8 @@ import {
   segmentKeyString,
   buildPlacementIndex,
   getPlacedSegmentsCount,
+  getPlacedRoundKeys,
+  countNotPlayingRounds,
   type RoundPlacement
 } from '../domain/catalogProjections';
 import { wrapSearchWithClear, syncClearVisibility } from '../../../helpers/searchClearButton';
@@ -263,11 +265,22 @@ export function buildRoundCatalog(callbacks: RoundCatalogCallbacks): UIPanel<Pro
     const placementIndex = buildPlacementIndex(state.profileDraft);
     const placedSegmentsCount = getPlacedSegmentsCount(state.profileDraft);
     const venueNameMap = new Map<string, string>(state.venues.map((v: VenueInfo) => [v.venueId, v.name]));
-    const filtered = filterCatalog(state.roundCatalog, state.catalogSearchQuery, plannedKeys, behavior);
+    // Rounds whose event does not play on the selected date are hidden, unless already placed
+    // somewhere (their placements must stay visible and removable).
+    const placedKeys = getPlacedRoundKeys(state.profileDraft);
+    const filterOptions = { selectedDate: state.selectedDate, placedKeys };
+    const filtered = filterCatalog(state.roundCatalog, state.catalogSearchQuery, plannedKeys, behavior, filterOptions);
+    const notPlaying = countNotPlayingRounds(state.roundCatalog, state.selectedDate, placedKeys);
     const groups = groupCatalog(filtered, state.catalogGroupBy);
     const rerender = () => lastState && update(lastState);
 
     meta.textContent = `${filtered.length} rounds`;
+    if (notPlaying) {
+      meta.textContent += ` \u00b7 ${notPlaying} not playing ${state.selectedDate}`;
+      meta.title = `${notPlaying} rounds are hidden: their events do not play on ${state.selectedDate}`;
+    } else {
+      meta.removeAttribute('title');
+    }
 
     // Sync controls
     if (searchInput.value !== state.catalogSearchQuery) {

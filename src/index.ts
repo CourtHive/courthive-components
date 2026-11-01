@@ -558,6 +558,9 @@ export {
   filterCatalog,
   groupCatalog,
   getPlannedRoundKeys,
+  getPlacedRoundKeys,
+  roundPlaysOnDate,
+  countNotPlayingRounds,
   getVenueRounds,
   getRoundAt,
   findIssuesForLocator,
@@ -627,6 +630,7 @@ export type {
   AvailabilityAdapter,
   DemandAdapter,
   DependencyAdapter,
+  FilterCatalogOptions,
   UIPanel
 } from './components/scheduling-profile';
 
