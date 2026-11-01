@@ -14,6 +14,7 @@ import { renderCollectionCard, type FinishingOrderEntryOptions, type ScorecardLa
 import { dualIssues, issueMessage, MANUAL_SCORE, type ScorecardIssue } from './dualIssues';
 import { attachTeamScoreEditor, type TeamScoreOptions } from './teamScoreEditor';
 import { swapSetScores, swapWinningSide } from './scorecardSides';
+import { icon, WARNING_ICON } from './scorecardIcons';
 
 export type { ScorecardLabels } from './renderCollectionCard';
 
@@ -86,7 +87,9 @@ export function renderScorecard({
     attachTeamScoreEditor({ header, matchUp, swapSides, labels, teamScore: { ...teamScore, manual } });
   }
   container.appendChild(header);
-  const banner = renderIssueBanner(dualIssues(issues), issueActions, labels);
+  // the header says the score is set by hand once it carries the editor, so the banner does not repeat it
+  const bannerIssues = dualIssues(issues).filter(({ code }) => !(teamScore && code === MANUAL_SCORE));
+  const banner = renderIssueBanner(bannerIssues, issueActions, labels);
   if (banner) container.appendChild(banner);
 
   // Collection panels
@@ -206,8 +209,9 @@ function renderIssueBanner(
     item.className = 'chc-scorecard-banner-item';
     item.dataset.issueCode = issue.code;
     const message = document.createElement('span');
+    message.className = 'chc-scorecard-banner-message';
     message.textContent = issueMessage(issue, labels?.issues);
-    item.appendChild(message);
+    item.append(icon(WARNING_ICON), message);
     const action = issueActions?.[issue.code];
     if (action) {
       const button = document.createElement('button');

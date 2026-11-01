@@ -81,14 +81,14 @@ export const NumbersOnCompletedLines: StoryObj = {
     // control: the cards rendered, and every line is complete
     expect(host.querySelectorAll('.chc-scorecard-card').length).toBe(dual.tieMatchUps.length);
 
-    const expected = Object.fromEntries(
-      finishingOrder.map(({ matchUpId, orderOfFinish }) => [matchUpId, orderOfFinish])
+    // the singles hold what was set; any other line shows what the record holds (a factory that numbers lines as
+    // they finish numbers the doubles too, an older one leaves them bare)
+    const badges = badgesByMatchUpId(host);
+    for (const { matchUpId, orderOfFinish } of finishingOrder) expect(badges[matchUpId]).toBe(orderOfFinish);
+    const recorded = Object.fromEntries(
+      dual.tieMatchUps.filter((m: any) => m.orderOfFinish).map((m: any) => [m.matchUpId, m.orderOfFinish])
     );
-    expect(badgesByMatchUpId(host)).toEqual(expected);
-    // doubles lines carry no number, so show no badge
-    const doublesIds = dual.tieMatchUps.filter((m: any) => m.matchUpType === 'DOUBLES').map((m: any) => m.matchUpId);
-    expect(doublesIds.length).toBeGreaterThan(0);
-    for (const matchUpId of doublesIds) expect(badgesByMatchUpId(host)[matchUpId]).toBeUndefined();
+    expect(badges).toEqual(recorded);
 
     const badge = host.querySelector(BADGE_SELECTOR) as HTMLElement;
     expect(badge.getAttribute('aria-label')).toBe(`Order of finish ${badge.dataset.orderOfFinish}`);
@@ -113,7 +113,8 @@ export const NoBadgeOnALineNoLongerComplete: StoryObj = {
 
     const badges = badgesByMatchUpId(host);
     expect(badges[cleared.matchUpId]).toBeUndefined();
-    expect(Object.keys(badges).length).toBe(finishingOrder.length - 1);
+    const numbered = dual.tieMatchUps.filter((m: any) => m.orderOfFinish).length;
+    expect(Object.keys(badges).length).toBe(numbered - 1);
 
     const badge = host.querySelector(BADGE_SELECTOR) as HTMLElement;
     expect(badge.getAttribute('aria-label')).toBe(`Fin ${badge.dataset.orderOfFinish}`);
