@@ -743,8 +743,24 @@ export type {
 
 // Team Scorecard
 import './components/scorecard/scorecard.css';
-export { renderScorecard, renderTeamVsHeader, updateTieScore } from './components/scorecard';
-export type { ScorecardOptions, TeamVsOptions } from './components/scorecard';
+export {
+  renderScorecard,
+  renderTeamVsHeader,
+  updateTieScore,
+  renderCollectionCard,
+  createFinishingOrderState,
+  playedToResult
+} from './components/scorecard';
+export type {
+  ScorecardOptions,
+  TeamVsOptions,
+  ScorecardLabels,
+  CollectionCardOptions,
+  FinishingOrderEntryOptions,
+  FinishingOrderEntry,
+  FinishingOrderLine,
+  FinishingOrderState
+} from './components/scorecard';
 
 // Inline Scoring
 import './components/inline-scoring/inline-scoring.css';
