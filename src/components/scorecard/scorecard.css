@@ -448,3 +448,29 @@
   font-size: 13px;
   font-weight: 600;
 }
+
+/* Home team: tagged beside its name where it falls; an inferred home is dashed and carries its basis as a tooltip */
+.chc-scorecard-home {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chc-scorecard-home-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--chc-status-info) 14%, var(--chc-bg-primary));
+  border: 1px solid color-mix(in srgb, var(--chc-status-info) 55%, transparent);
+  color: var(--chc-text-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.chc-scorecard-home-tag--inferred {
+  background: transparent;
+  border-style: dashed;
+  color: var(--chc-text-secondary);
+  cursor: help;
+}
