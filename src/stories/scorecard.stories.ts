@@ -172,3 +172,46 @@ export const TeamVsHeaderOnly = {
     });
   }
 };
+
+/**
+ * The dual's home team, tagged where it falls. `basis` picks how it was decided: EXPLICIT (set), VENUE or
+ * HOST_ORGANISATION (inferred: the tag is dashed and its tooltip names the basis), NONE (no home team). "Set as home"
+ * records it through the factory and re-renders.
+ */
+export const HomeTeam = {
+  args: { basis: 'VENUE', swapSides: false },
+  argTypes: {
+    basis: { control: 'select', options: ['EXPLICIT', 'VENUE', 'HOST_ORGANISATION', 'NONE'] },
+    swapSides: { control: 'boolean' }
+  },
+  render: ({ basis = 'VENUE', swapSides = false }) => {
+    const matchUp = generateTeamMatchUp({ completeAllMatchUps: true });
+    if (!matchUp) {
+      const el = document.createElement('div');
+      el.textContent = 'No team matchUp generated';
+      return el;
+    }
+    const wrapper = document.createElement('div');
+    const draw = (current: any, homeParticipantId?: string, currentBasis = basis) => {
+      const onSetHome = (participantId: string) => {
+        tournamentEngine.setMatchUpHomeParticipantId({
+          homeParticipantId: participantId,
+          matchUpId: current.matchUpId,
+          drawId: current.drawId
+        });
+        const updated = tournamentEngine.findMatchUp({ matchUpId: current.matchUpId, inContext: true }).matchUp;
+        draw(updated, participantId, 'EXPLICIT');
+      };
+      wrapper.replaceChildren(
+        renderScorecard({
+          matchUp: current,
+          composition: compositions.National,
+          swapSides,
+          home: { homeParticipantId, basis: currentBasis, onSetHome }
+        })
+      );
+    };
+    draw(matchUp, matchUp.sides?.find((side: any) => side.sideNumber === 2)?.participantId);
+    return wrapper;
+  }
+};

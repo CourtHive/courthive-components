@@ -33,6 +33,11 @@ export interface ScorecardLabels {
   restore?: string;
   manual?: string;
   winner?: string;
+  /** the home team: its tag, the tag's tooltip when the home team was inferred, and the set action */
+  home?: string;
+  homeVenue?: string;
+  homeHostOrganisation?: string;
+  setHome?: string;
 }
 
 export interface FinishingOrderEntryOptions {
