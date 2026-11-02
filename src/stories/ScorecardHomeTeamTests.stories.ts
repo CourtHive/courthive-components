@@ -7,6 +7,7 @@
  * - an inferred home (VENUE / HOST_ORGANISATION) is marked inferred, its basis in the tooltip and aria label;
  * - with `onSetHome`, each team not already set as home offers "Set as home", which hands back its participantId;
  *   setting it with the factory's `setMatchUpHomeParticipantId` and re-rendering moves the tag;
+ * - with `onClearHome`, a set home offers "Clear"; the factory clears it with `homeParticipantId: ''`;
  * - no `home`, or basis NONE, renders no tag and no action.
  *
  * Run interactively: `pnpm storybook`
@@ -31,6 +32,7 @@ export default meta;
 const HOST_TESTID = 'home-team-host';
 const HOME_TAG = '.chc-scorecard-home-tag';
 const SET_HOME = '[data-action="set-home"]';
+const CLEAR_HOME = '[data-action="clear-home"]';
 const SIDE = '.chc-scorecard-side';
 
 const getHost = (canvasElement: HTMLElement) =>
@@ -97,7 +99,7 @@ export const InferredHomeShowsItsBasis: StoryObj = {
       renderScorecard({
         matchUp: dual,
         composition: compositions.National,
-        home: { homeParticipantId: side1.participantId, basis: 'VENUE' }
+        home: { homeParticipantId: side1.participantId, basis: 'VENUE', onClearHome: fn() }
       })
     );
     const venueTag = sideOf(host, 0).querySelector<HTMLElement>(HOME_TAG) as HTMLElement;
@@ -105,6 +107,8 @@ export const InferredHomeShowsItsBasis: StoryObj = {
     expect(venueTag.dataset.basis).toBe('VENUE');
     expect(venueTag.title).toBe('Home (venue)');
     expect(venueTag.getAttribute('aria-label')).toBe('Home (venue)');
+    // nothing is stored for an inferred home, so there is nothing to clear
+    expect(host.querySelector(CLEAR_HOME)).toBeNull();
 
     host.replaceChildren(
       renderScorecard({
@@ -134,6 +138,15 @@ export const SetAsHomeThroughTheFactory: StoryObj = {
       expect(result.success).toBe(true);
       draw();
     });
+    const onClearHome = fn(() => {
+      const result = tournamentEngine.setMatchUpHomeParticipantId({
+        homeParticipantId: '',
+        matchUpId: dual.matchUpId,
+        drawId
+      });
+      expect(result.success).toBe(true);
+      draw();
+    });
     const draw = () => {
       const matchUp = getDual();
       const homeParticipantId = matchUp.schedule?.homeParticipantId;
@@ -141,7 +154,7 @@ export const SetAsHomeThroughTheFactory: StoryObj = {
         renderScorecard({
           matchUp,
           composition: compositions.National,
-          home: { homeParticipantId, basis: homeParticipantId ? 'EXPLICIT' : 'NONE', onSetHome }
+          home: { homeParticipantId, basis: homeParticipantId ? 'EXPLICIT' : 'NONE', onSetHome, onClearHome }
         })
       );
     };
@@ -163,6 +176,15 @@ export const SetAsHomeThroughTheFactory: StoryObj = {
     expect(onSetHome).toHaveBeenLastCalledWith(side1.participantId);
     expect(sideOf(host, 0).querySelector(HOME_TAG)).not.toBeNull();
     expect(sideOf(host, 1).querySelector(HOME_TAG)).toBeNull();
+
+    // Clear sits on the home team only, and leaves no home team
+    expect(host.querySelectorAll(CLEAR_HOME)).toHaveLength(1);
+    (sideOf(host, 0).querySelector(CLEAR_HOME) as HTMLButtonElement).click();
+    expect(onClearHome).toHaveBeenCalledTimes(1);
+    expect(getDual().schedule?.homeParticipantId).toBeUndefined();
+    expect(host.querySelector(HOME_TAG)).toBeNull();
+    expect(host.querySelector(CLEAR_HOME)).toBeNull();
+    expect(host.querySelectorAll(SET_HOME)).toHaveLength(2);
   }
 };
 

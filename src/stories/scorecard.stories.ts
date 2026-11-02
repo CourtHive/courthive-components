@@ -176,7 +176,7 @@ export const TeamVsHeaderOnly = {
 /**
  * The dual's home team, tagged where it falls. `basis` picks how it was decided: EXPLICIT (set), VENUE or
  * HOST_ORGANISATION (inferred: the tag is dashed and its tooltip names the basis), NONE (no home team). "Set as home"
- * records it through the factory and re-renders.
+ * and "Clear" record it through the factory and re-render.
  */
 export const HomeTeam = {
   args: { basis: 'VENUE', swapSides: false },
@@ -202,12 +202,21 @@ export const HomeTeam = {
         const updated = tournamentEngine.findMatchUp({ matchUpId: current.matchUpId, inContext: true }).matchUp;
         draw(updated, participantId, 'EXPLICIT');
       };
+      const onClearHome = () => {
+        tournamentEngine.setMatchUpHomeParticipantId({
+          homeParticipantId: '',
+          matchUpId: current.matchUpId,
+          drawId: current.drawId
+        });
+        const updated = tournamentEngine.findMatchUp({ matchUpId: current.matchUpId, inContext: true }).matchUp;
+        draw(updated, undefined, 'NONE');
+      };
       wrapper.replaceChildren(
         renderScorecard({
           matchUp: current,
           composition: compositions.National,
           swapSides,
-          home: { homeParticipantId, basis: currentBasis, onSetHome }
+          home: { homeParticipantId, basis: currentBasis, onSetHome, onClearHome }
         })
       );
     };

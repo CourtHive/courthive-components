@@ -13,6 +13,11 @@ export interface ScorecardHomeOptions {
   basis?: string;
   /** offered when given: each team that is not already set as home gets "Set as home" */
   onSetHome?: (participantId: string) => void;
+  /**
+   * offered when given, on a home team that was SET (basis EXPLICIT or absent): "Clear" removes it. The factory clears
+   * with `setMatchUpHomeParticipantId({ homeParticipantId: '' })`. An inferred home has nothing stored to clear.
+   */
+  onClearHome?: () => void;
 }
 
 export interface HomeSideState {
@@ -23,6 +28,8 @@ export interface HomeSideState {
   inferred?: 'VENUE' | 'HOST_ORGANISATION';
   /** "Set as home" is offered for this position */
   canSetHome: boolean;
+  /** "Clear" is offered for this position */
+  canClearHome: boolean;
 }
 
 const INFERRED = new Set(['VENUE', 'HOST_ORGANISATION']);
@@ -49,7 +56,8 @@ export function homeSideStates({
     const isHome = named && participantId === home?.homeParticipantId;
     // an inferred home can be confirmed by setting it; a set home is not offered again
     const canSetHome = !!home?.onSetHome && !!participantId && !(isHome && !inferred);
-    return { participantId, isHome, inferred: isHome ? inferred : undefined, canSetHome };
+    const canClearHome = !!home?.onClearHome && isHome && !inferred;
+    return { participantId, isHome, inferred: isHome ? inferred : undefined, canSetHome, canClearHome };
   });
   return [left, right];
 }

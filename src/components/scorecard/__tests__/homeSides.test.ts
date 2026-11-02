@@ -50,6 +50,22 @@ describe('homeSideStates', () => {
     expect(right.canSetHome).toEqual(true);
   });
 
+  it('offers Clear only on a home team that was set', () => {
+    const { dual, side1 } = generateDual();
+    const onClearHome = () => undefined;
+    const [left, right] = homeSideStates({
+      matchUp: dual,
+      home: { homeParticipantId: side1, basis: 'EXPLICIT', onClearHome }
+    });
+    expect([left.canClearHome, right.canClearHome]).toEqual([true, false]);
+
+    const inferred = homeSideStates({ matchUp: dual, home: { homeParticipantId: side1, basis: 'VENUE', onClearHome } });
+    expect(inferred.map(({ canClearHome }) => canClearHome)).toEqual([false, false]);
+
+    const without = homeSideStates({ matchUp: dual, home: { homeParticipantId: side1 } });
+    expect(without.map(({ canClearHome }) => canClearHome)).toEqual([false, false]);
+  });
+
   it('assumes no side when there is no home team', () => {
     const { dual, side1 } = generateDual();
     const cases = [{ basis: 'NONE' }, { homeParticipantId: 'not-a-side' }, { homeParticipantId: side1, basis: 'NONE' }];
