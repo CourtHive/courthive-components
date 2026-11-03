@@ -133,6 +133,11 @@ jobs:
       - run: pnpm test:stories
         if: steps.scope.outputs.light != 'true'
 
+      # Static production configuration differs from the browser test server.
+      # Exercise the actual documentation build before it becomes a release gate.
+      - run: pnpm build-storybook
+        if: steps.scope.outputs.light != 'true'
+
   fresh-resolve:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest

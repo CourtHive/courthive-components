@@ -1,4 +1,4 @@
-name: Publish to npm
+name: Publish package and Storybook
 
 # Fires when a GitHub release is published. release-please creates
 # the release via a GitHub-App-issued token (see release-please.yml),
@@ -18,28 +18,64 @@ on:
         description: 'Tag to publish (e.g. v1.0.4). Must already exist.'
         required: true
         type: string
+      storybook_only:
+        description: 'Rebuild Storybook for the latest stable release without publishing npm again'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      release-tag: ${{ steps.ref.outputs.tag }}
+      stable: ${{ steps.ref.outputs.stable }}
     permissions:
       contents: read
       id-token: write
     steps:
       - name: Resolve tag
         id: ref
+        env:
+          REQUESTED_TAG: ${{ github.event.release.tag_name || inputs.tag }}
+          PRERELEASE: ${{ github.event.release.prerelease || false }}
+          STORYBOOK_ONLY: ${{ inputs.storybook_only || false }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TAG="${{ inputs.tag }}"
-          else
-            TAG="${{ github.event.release.tag_name }}"
+          set -euo pipefail
+          TAG="$REQUESTED_TAG"
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Expected an existing version tag such as v7.8.0"
+            exit 1
           fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          STABLE=true
+          if [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+- || "$PRERELEASE" == true ]]; then
+            STABLE=false
+          fi
+          if [[ "$STORYBOOK_ONLY" == true && "$STABLE" != true ]]; then
+            echo "::error::Storybook-only recovery requires a stable release tag"
+            exit 1
+          fi
+          echo "stable=$STABLE" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v7
         with:
           ref: ${{ steps.ref.outputs.tag }}
+          persist-credentials: false
+
+      - name: Check release version
+        env:
+          RELEASE_TAG: ${{ steps.ref.outputs.tag }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const { version } = JSON.parse(readFileSync('package.json', 'utf8'));
+          if (process.env.RELEASE_TAG !== `v${version}`) {
+            throw new Error(`Tag ${process.env.RELEASE_TAG} does not match package version ${version}`);
+          }
+          NODE
 
       - uses: pnpm/action-setup@v6
         # pnpm version is resolved from package.json's `packageManager` field.
@@ -84,6 +120,37 @@ jobs:
       # Chromium). That replaced @storybook/test-runner, whose injected harness failed every story
       # under Storybook 10 (StorybookTestRunnerError TDZ) and had been dropped from this gate for it.
 
+      # Build documentation from the same immutable tag before npm publication. A broken
+      # Storybook build must fail the release preflight, rather than leave the docs stale.
+      - name: Build versioned Storybook
+        if: steps.ref.outputs.stable == 'true'
+        env:
+          RELEASE_TAG: ${{ steps.ref.outputs.tag }}
+        run: |
+          pnpm build-storybook
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          import { execFileSync } from 'node:child_process';
+          const { version } = JSON.parse(readFileSync('package.json', 'utf8'));
+          const release = {
+            version,
+            tag: process.env.RELEASE_TAG,
+            commit: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()
+          };
+          writeFileSync('storybook-static/release.json', `${JSON.stringify(release, null, 2)}\n`);
+          writeFileSync('storybook-static/.nojekyll', '');
+          NODE
+
+      - name: Preserve Storybook artifact
+        if: steps.ref.outputs.stable == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: storybook-${{ steps.ref.outputs.tag }}
+          path: storybook-static/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Determine npm dist-tag
         id: distTag
         run: |
@@ -97,5 +164,66 @@ jobs:
           fi
 
       - run: npm publish --provenance --access public --tag ${{ steps.distTag.outputs.tag }}
+        if: inputs.storybook_only != true
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  storybook:
+    name: Publish Storybook to GitHub Pages
+    needs: publish
+    if: needs.publish.outputs.stable == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    concurrency:
+      group: storybook-pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.publish.outputs.release-tag }}
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: pnpm
+
+      - run: node scripts/ci-prepare.mjs
+      - run: pnpm install --no-frozen-lockfile
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: storybook-${{ needs.publish.outputs.release-tag }}
+          path: storybook-static/
+
+      # GITHUB_TOKEN pushes do not trigger a branch-based Pages build. Reuse the
+      # Release Bot App, scoped to this repository, so publishing gh-pages starts it.
+      - name: Mint documentation publisher token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.RELEASE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          permission-contents: write
+
+      - name: Publish latest stable documentation
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          RELEASE_TAG: ${{ needs.publish.outputs.release-tag }}
+        run: |
+          set -euo pipefail
+          LATEST_TAG=$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq '.tag_name')
+          if [[ "$RELEASE_TAG" != "$LATEST_TAG" ]]; then
+            echo "::notice::Skipping $RELEASE_TAG: latest stable release is $LATEST_TAG"
+            exit 0
+          fi
+          gh auth setup-git --hostname github.com
+          pnpm exec gh-pages --dist storybook-static --nojekyll \
+            --repo "https://github.com/$GITHUB_REPOSITORY.git" \
+            --user "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>" \
+            --message "docs: publish Storybook $RELEASE_TAG"
+          echo "Storybook $RELEASE_TAG: https://courthive.github.io/courthive-components/" >> "$GITHUB_STEP_SUMMARY"
