@@ -1,0 +1,44 @@
+import { MatchUp } from '../../types';
+export type InlineScoringMode = 'points' | 'games';
+export interface InlineScoringConfig {
+    mode: InlineScoringMode;
+    showFooter?: boolean;
+    showSituation?: boolean;
+    /** Runtime state for footer buttons — set by renderInlineMatchUp before calling renderMatchUp */
+    canUndo?: boolean;
+    canRedo?: boolean;
+    isComplete?: boolean;
+    situationText?: string;
+}
+export interface InlineScoringCallbacks {
+    onScoreChange?: (params: {
+        matchUpId: string;
+        matchUp: MatchUp;
+        engine: any;
+    }) => void;
+    /** `winningSide` is absent when a combined-point total ends level (a tie is a finished result). */
+    onMatchComplete?: (params: {
+        matchUpId: string;
+        winningSide?: number;
+        engine: any;
+    }) => void;
+    onEndMatch?: (params: {
+        matchUpId: string;
+        matchUpStatus: string;
+        /** Resolved from the exiting side; absent for a double exit and the non-directing statuses. */
+        winningSide?: number;
+        sideNumber?: number;
+        engine: any;
+    }) => void;
+    onSubmit?: (params: {
+        matchUpId: string;
+        matchUp: MatchUp;
+        engine: any;
+    }) => void;
+}
+export interface InlineScoringEngineState {
+    engine: any;
+    matchUpFormat: string;
+    /** Points added in this session. Not a server: the engine derives who served. */
+    pointCount: number;
+}

@@ -1,0 +1,16 @@
+export declare const hilContainerStyle: () => string;
+export declare const hilFormStyle: () => string;
+export declare const hilHeaderStyle: () => string;
+export declare const hilTitleStyle: () => string;
+export declare const hilTabsStyle: () => string;
+export declare const hilTabStyle: () => string;
+export declare const hilTabActiveStyle: () => string;
+export declare const hilFieldStyle: () => string;
+export declare const hilLabelStyle: () => string;
+export declare const hilInputStyle: () => string;
+export declare const hilRowStyle: () => string;
+export declare const hilSubmitStyle: () => string;
+export declare const hilMessageStyle: () => string;
+export declare const hilMessageErrorStyle: () => string;
+export declare const hilMessageSuccessStyle: () => string;
+export declare const hilSwitchModeStyle: () => string;

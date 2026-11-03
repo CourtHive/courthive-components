@@ -1,0 +1,32 @@
+import { SchedulingPolicyData, SchedulingEditorState, SchedulingEditorSection, SchedulingEditorChangeListener, SchedulingEditorConfig } from './types';
+export declare class SchedulingEditorStore {
+    private state;
+    private readonly listeners;
+    private readonly config;
+    constructor(config: SchedulingEditorConfig);
+    getState(): SchedulingEditorState;
+    getData(): SchedulingPolicyData;
+    setData(data: SchedulingPolicyData): void;
+    toggleSection(sectionId: SchedulingEditorSection): void;
+    setModificationFlag(key: 'courts' | 'venues', value: boolean): void;
+    setDailyLimit(key: 'SINGLES' | 'DOUBLES' | 'total', value: number): void;
+    setDefaultAverageTime(index: number, field: 'default' | 'DOUBLES', value: number | undefined): void;
+    setDefaultRecoveryTime(index: number, field: 'default' | 'DOUBLES', value: number | undefined): void;
+    addAverageFormatGroup(): void;
+    removeAverageFormatGroup(index: number): void;
+    setAverageFormatCodes(groupIndex: number, codes: string[]): void;
+    setAverageTime(groupIndex: number, overrideIndex: number, field: 'default' | 'DOUBLES', value: number | undefined): void;
+    addAverageCategoryOverride(groupIndex: number): void;
+    removeAverageCategoryOverride(groupIndex: number, overrideIndex: number): void;
+    setAverageOverrideCategories(groupIndex: number, overrideIndex: number, key: 'categoryNames' | 'categoryTypes', values: string[]): void;
+    addRecoveryFormatGroup(): void;
+    removeRecoveryFormatGroup(index: number): void;
+    setRecoveryFormatCodes(groupIndex: number, codes: string[]): void;
+    setRecoveryTime(groupIndex: number, overrideIndex: number, field: 'default' | 'DOUBLES', value: number | undefined): void;
+    addRecoveryCategoryOverride(groupIndex: number): void;
+    removeRecoveryCategoryOverride(groupIndex: number, overrideIndex: number): void;
+    setRecoveryOverrideCategories(groupIndex: number, overrideIndex: number, key: 'categoryNames' | 'categoryTypes', values: string[]): void;
+    subscribe(listener: SchedulingEditorChangeListener): () => void;
+    private commitDraft;
+    private emit;
+}

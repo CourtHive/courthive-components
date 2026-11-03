@@ -1,0 +1,212 @@
+/**
+ * Scheduling Profile — Type Definitions
+ *
+ * All interfaces for the scheduling profile builder component.
+ * The SchedulingProfile shape matches the factory's `scheduleProfileRounds()` input.
+ */
+export interface RoundSegment {
+    segmentNumber: number;
+    segmentsCount: number;
+}
+export interface RoundProfile {
+    tournamentId: string;
+    eventId: string;
+    eventName?: string;
+    drawId: string;
+    drawName?: string;
+    structureId: string;
+    structureType?: string;
+    roundNumber: number;
+    roundName?: string;
+    roundSegment?: RoundSegment;
+    notBeforeTime?: string;
+    sortOrder?: number;
+    matchCountEstimate?: number;
+}
+export interface VenueSchedule {
+    venueId: string;
+    rounds: RoundProfile[];
+}
+export interface ScheduleDay {
+    scheduleDate: string;
+    venues: VenueSchedule[];
+}
+export type SchedulingProfile = ScheduleDay[];
+export interface VenueInfo {
+    venueId: string;
+    name: string;
+}
+export interface CatalogRoundItem {
+    tournamentId: string;
+    eventId: string;
+    eventName: string;
+    drawId: string;
+    drawName?: string;
+    structureId: string;
+    structureType?: string;
+    roundNumber: number;
+    roundName?: string;
+    matchCountEstimate?: number;
+    /**
+     * The dates this round's event plays, as `getRounds` returns them when the event's own dates
+     * narrow the tournament's. Absent means the event plays every tournament date. Present (even
+     * empty) means the event plays only these dates: the catalog hides the round on any other date,
+     * and validation warns when it is planned on one.
+     */
+    playingDates?: string[];
+}
+export type CatalogGroupBy = 'event' | 'draw' | 'round';
+export type PlannedRoundBehavior = 'dim' | 'hide' | 'navigate';
+export interface RoundKey {
+    tournamentId: string;
+    eventId: string;
+    drawId: string;
+    structureId: string;
+    roundNumber: number;
+}
+export interface RoundLocator {
+    date: string;
+    venueId: string;
+    index: number;
+    roundKey: RoundKey;
+    roundSegment?: RoundSegment;
+}
+export interface CatalogDragPayload {
+    type: 'CATALOG_ROUND';
+    roundRef: CatalogRoundItem;
+    roundSegment?: RoundSegment;
+}
+export interface PlannedDragPayload {
+    type: 'PLANNED_ROUND';
+    locator: RoundLocator;
+}
+export type DragPayload = CatalogDragPayload | PlannedDragPayload;
+export interface DropTarget {
+    date: string;
+    venueId: string;
+    index: number;
+}
+export interface DropResult {
+    ok: boolean;
+    profile: SchedulingProfile;
+}
+export type Severity = 'ERROR' | 'WARN' | 'INFO';
+export type ValidationCode = 'DATE_UNAVAILABLE' | 'DUPLICATE_ROUND' | 'DUPLICATE_SEGMENT' | 'INVALID_SEGMENT_CONFIG' | 'ROUND_ORDER_VIOLATION' | 'DEPENDENCY_VIOLATION' | 'DAY_OVERLOAD' | 'EVENT_DATE_INACTIVE' | 'DROP_REJECTED';
+export type FixActionKind = 'JUMP_TO_ITEM' | 'OPEN_AVAILABILITY_GRID' | 'MOVE_ITEM_AFTER' | 'MOVE_ITEM_BEFORE';
+export interface FixAction {
+    kind: FixActionKind;
+    label: string;
+    locator?: RoundLocator;
+    after?: RoundLocator;
+    before?: RoundLocator;
+    date?: string;
+}
+export interface ValidationResult {
+    code: ValidationCode;
+    severity: Severity;
+    message: string;
+    context: {
+        date?: string;
+        venueId?: string;
+        scope?: string;
+        drawId?: string;
+        structureId?: string;
+        locator?: RoundLocator;
+        prerequisite?: RoundLocator;
+        demandMinutes?: number;
+        capacityMinutes?: number;
+        ratio?: number;
+        reason?: string;
+    };
+    fixActions?: FixAction[];
+}
+export interface SeverityCounts {
+    total: number;
+    ERROR: number;
+    WARN: number;
+    INFO: number;
+}
+export interface IssueIndex {
+    all: ValidationResult[];
+    bySeverity: Record<Severity, ValidationResult[]>;
+    byDate: Record<string, ValidationResult[]>;
+    byVenue: Record<string, ValidationResult[]>;
+    byDraw: Record<string, ValidationResult[]>;
+    counts: {
+        total: number;
+        ERROR: number;
+        WARN: number;
+        INFO: number;
+        byDate: Record<string, SeverityCounts>;
+        byVenue: Record<string, SeverityCounts>;
+        byDraw: Record<string, SeverityCounts>;
+    };
+}
+export interface ProfileStoreState {
+    profileDraft: SchedulingProfile;
+    venues: VenueInfo[];
+    roundCatalog: CatalogRoundItem[];
+    schedulableDates: string[];
+    activeDates?: string[];
+    selectedDate: string | null;
+    selectedLocator: RoundLocator | null;
+    ruleResults: ValidationResult[];
+    issueIndex: IssueIndex;
+    catalogSearchQuery: string;
+    catalogGroupBy: CatalogGroupBy;
+    plannedRoundBehavior: PlannedRoundBehavior;
+}
+export type ProfileChangeListener = (state: ProfileStoreState) => void;
+export interface AvailabilityAdapter {
+    isDateAvailable: (date: string) => {
+        ok: boolean;
+        reason?: string;
+    };
+    getDayCapacityMinutes?: (date: string) => number;
+}
+export interface DemandAdapter {
+    estimateDayDemandMinutes: (date: string, profile: SchedulingProfile) => number;
+}
+export interface DependencyAdapter {
+    /**
+     * Returns roundKeyStrings for all rounds that must complete
+     * before the given round can proceed.
+     * Key format: "tournamentId|eventId|drawId|structureId|roundNumber"
+     */
+    getRoundDependencies: (roundKeyString: string) => string[];
+}
+export interface SchedulingProfileConfig {
+    venues: VenueInfo[];
+    roundCatalog: CatalogRoundItem[];
+    schedulableDates: string[];
+    activeDates?: string[];
+    /** When true, the left column (date strip + issues panel) is not rendered. */
+    hideLeft?: boolean;
+    /** Which side to place the round catalog. Defaults to 'right'. */
+    catalogSide?: 'left' | 'right';
+    initialProfile?: SchedulingProfile;
+    selectedDate?: string;
+    availabilityAdapter?: AvailabilityAdapter;
+    demandAdapter?: DemandAdapter;
+    dependencyAdapter?: DependencyAdapter;
+    venueOrder?: string[];
+    plannedRoundBehavior?: PlannedRoundBehavior;
+    /** Consumer-owned buttons rendered right-aligned in the Day Plan header.
+     *  Consumer keeps live refs and mutates state (visibility, disabled, label) directly. */
+    headerActions?: HTMLElement | HTMLElement[];
+    /** Consumer-owned buttons rendered immediately before the "Day Plan" title.
+     *  Use this slot for controls that act on content to the LEFT of the panel
+     *  (e.g. a catalog show/hide toggle when the catalog sits on the left). */
+    titleLeadingActions?: HTMLElement | HTMLElement[];
+    onProfileChanged?: (profile: SchedulingProfile) => void;
+    onFixAction?: (action: FixAction) => void;
+}
+export interface UIPanel<T = unknown> {
+    element: HTMLElement;
+    update: (state: T) => void;
+    destroy?: () => void;
+}
+export interface FlattenedRound {
+    round: RoundProfile;
+    locator: RoundLocator;
+}

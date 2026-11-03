@@ -1,0 +1,17 @@
+/**
+ * Pure ISO-date range formatter shared by card primitives.
+ *
+ *   "May 22, 2026"                  (single date)
+ *   "May 22 – May 24, 2026"         (same-year range)
+ *   "Dec 30, 2025 – Jan 2, 2026"    (cross-year range)
+ *
+ * Returns undefined when neither bound is present or both parse as NaN.
+ *
+ * startDate/endDate are CALENDAR DAYS (YYYY-MM-DD), so they must be parsed as
+ * such — `new Date("2026-06-30")` parses as UTC midnight and renders one day
+ * early west of UTC (in America/New_York it formats as "Jun 29"), which made a
+ * June-30 tournament's card read "… – Jun 29" while its Live pill (which uses
+ * parseCalendarDate) stayed correct. Build a LOCAL-midnight Date from the
+ * calendar parts so the day survives toLocaleDateString in any host timezone.
+ */
+export declare function formatDateRange(startISO?: string, endISO?: string): string | undefined;

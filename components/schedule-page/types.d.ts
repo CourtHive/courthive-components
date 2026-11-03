@@ -1,0 +1,368 @@
+/**
+ * Schedule Page — Type Definitions
+ *
+ * All interfaces for the schedule page component.
+ * The component provides layout + matchUp catalog; the consumer injects the court grid.
+ */
+export interface MatchUpSide {
+    participantName?: string;
+    participantId?: string;
+    seedNumber?: number;
+    ranking?: number;
+    /**
+     * Hydrated members of a pair or team, present on `inContext` matchUps.
+     *
+     * Load-bearing for search, not for layout. A PAIR participant's own
+     * `participantName` is composed by the factory from FAMILY NAMES ALONE
+     * (`Phoebus/Smith`), so a doubles side carries no given name anywhere — and a
+     * consumer searching for "Aiden Phoebus" could not match the one cell he is
+     * actually in. These are the names that make him findable.
+     */
+    individualParticipants?: {
+        participantId?: string;
+        participantName?: string;
+    }[];
+}
+export interface CatalogMatchUpItem {
+    matchUpId: string;
+    eventId: string;
+    eventName: string;
+    drawId: string;
+    drawName?: string;
+    structureId: string;
+    /** Human-readable structure label set by the factory (e.g. "Main",
+     *  "Consolation", "Compass NE"). Optional because some structures
+     *  ship without one — the catalog falls back to a labeled stage and
+     *  finally the eventName alone so the "by structure" group header
+     *  never shows a raw structureId GUID. */
+    structureName?: string;
+    /** Draw stage — MAIN / CONSOLATION / PLAYOFF / QUALIFYING / ROUND_ROBIN /
+     *  etc. Rendered as a chip when present and not MAIN so a Quarterfinal in
+     *  the consolation bracket reads distinctly from a Quarterfinal in the
+     *  main draw of the same event. */
+    stage?: string;
+    roundNumber: number;
+    roundName?: string;
+    matchUpFormat?: string;
+    matchUpType?: 'SINGLES' | 'DOUBLES';
+    matchUpStatus?: string;
+    gender?: string;
+    sides?: MatchUpSide[];
+    isScheduled: boolean;
+    scheduledTime?: string;
+    scheduledCourtName?: string;
+    /** How ready this matchUp is to be called, lower first, as the consumer measures it (TMX: participant
+     *  rest). Opaque to the catalog: it orders by it and never interprets it. Below structure and side
+     *  readiness in every ordering — it separates matchUps that those leave equal. Absent ranks last. */
+    readinessRank?: number;
+    /** 0-based position of this matchUp's structure in its draw's play order (TMX: the factory's
+     *  `structureSort`), counted separately for qualifying structures and for everything after them.
+     *  Grouped by structure, every draw's first structure sorts together, then every draw's second, and
+     *  so on, so compass West sits beside a feed-in consolation rather than tying with every other
+     *  non-main structure. Absent falls back to the stage: main first, then the rest. */
+    structureSequence?: number;
+}
+export interface ScheduleDate {
+    date: string;
+    isActive: boolean;
+    /** Order of play for this date is published (drives the selector publish cue). */
+    isPublished?: boolean;
+    matchUpCount?: number;
+    issueCount?: number;
+}
+export type ScheduleIssueSeverity = 'ERROR' | 'WARN' | 'INFO';
+export interface ScheduleIssue {
+    severity: ScheduleIssueSeverity;
+    message: string;
+    matchUpId?: string;
+    date?: string;
+    /** Structured conflict data for rich rendering */
+    issueType?: string;
+    prefix?: string;
+    participants?: string;
+    conflictParticipants?: string[];
+    /** All matchUpIds involved in this conflict (for click-to-scroll fallback) */
+    conflictMatchUpIds?: string[];
+}
+export type MatchUpCatalogGroupBy = 'event' | 'draw' | 'round' | 'structure' | 'time';
+export interface CatalogFilters {
+    eventType?: string;
+    eventName?: string;
+    drawName?: string;
+    gender?: string;
+    roundName?: string;
+}
+export type ScheduledBehavior = 'dim' | 'hide';
+/**
+ * Controls how drop/remove actions are committed:
+ * - 'immediate': each drop fires the consumer callback right away (e.g. executionQueue per action)
+ * - 'bulk': actions accumulate in a pending queue; consumer calls save() to flush
+ */
+export type SchedulingMode = 'immediate' | 'bulk';
+export interface PendingScheduleAction {
+    kind: 'schedule' | 'unschedule';
+    matchUpId: string;
+    /** Present for 'schedule' actions — the full item that was dropped */
+    matchUp?: CatalogMatchUpItem;
+    /** The DragEvent from the drop, if available */
+    event?: DragEvent;
+}
+export interface CatalogMatchUpDragPayload {
+    type: 'CATALOG_MATCHUP';
+    matchUp: CatalogMatchUpItem;
+}
+export interface GridMatchUpDragPayload {
+    type: 'GRID_MATCHUP';
+    matchUp: CatalogMatchUpItem;
+    sourceTime?: string;
+    sourceCourt?: string;
+}
+export type SchedulePageDragPayload = CatalogMatchUpDragPayload | GridMatchUpDragPayload;
+/**
+ * Persisted catalog filter state. The consumer can seed the store from a
+ * previously captured snapshot (e.g. when re-entering the schedule page
+ * within the same session) and subscribe to the store to write it back.
+ */
+export interface SchedulePageCatalogState {
+    catalogSearchQuery?: string;
+    catalogGroupBy?: MatchUpCatalogGroupBy;
+    catalogFilters?: CatalogFilters;
+    showCompleted?: boolean;
+    showScheduled?: boolean;
+    /** Keys of the catalog groups that are collapsed, under `catalogGroupBy`. */
+    catalogCollapsedGroups?: string[];
+}
+export type CatalogPlacement = 'left' | 'right' | 'bottom';
+export type InspectorPlacement = 'docked' | 'floating';
+export interface InspectorGeometry {
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+}
+export interface SchedulePageConfig {
+    matchUpCatalog: CatalogMatchUpItem[];
+    scheduleDates: ScheduleDate[];
+    issues?: ScheduleIssue[];
+    courtGridElement?: HTMLElement;
+    /** Seed the store's catalog filter fields. Any field omitted falls back
+     *  to the built-in default. */
+    initialCatalogState?: SchedulePageCatalogState;
+    /** Max height for the court grid viewport (e.g. '500px', '60vh'). Defaults to none (fills available space). */
+    gridMaxHeight?: string;
+    /** When true, the left column (date strip + issues panel) is not rendered at all. */
+    hideLeft?: boolean;
+    /** Which side to place the matchUp catalog. Defaults to 'right'. */
+    catalogSide?: 'left' | 'right';
+    /** Overrides catalogSide; changing presentation does not change scheduling state. */
+    catalogPlacement?: CatalogPlacement;
+    inspectorPlacement?: InspectorPlacement;
+    onInspectorPlacementChange?: (placement: InspectorPlacement) => void;
+    inspectorGeometry?: InspectorGeometry;
+    onInspectorGeometryChange?: (geometry: InspectorGeometry) => void;
+    scheduledBehavior?: ScheduledBehavior;
+    schedulingMode?: SchedulingMode;
+    /** Initial visibility of the active strip (one-row court summary above the grid). Defaults to true. */
+    activeStripVisible?: boolean;
+    /** Initial visibility of the inspector panel beneath the matchUp catalog. Defaults to true.
+     *  Seed this from persisted consumer state so the first toggle dispatches a real change
+     *  rather than a no-op against the default. */
+    inspectorVisible?: boolean;
+    /** Consumer-supplied detail appended below the inspector's built-in fields for the
+     *  selected matchUp. Called on every inspector render — the panel rebuilds its body
+     *  from scratch on each state change — so return a freshly created element rather than
+     *  a cached one. Return null to render nothing. Not called when no matchUp is selected. */
+    renderInspectorExtra?: (matchUp: CatalogMatchUpItem, state: SchedulePageState) => HTMLElement | null;
+    /** Consumer-supplied detail appended below each catalog card's built-in content.
+     *  Same contract as `renderInspectorExtra`: called on every card render, so return
+     *  a freshly created element rather than a cached one. Return null to render
+     *  nothing. Consumers that build cards themselves (e.g. a Scheduled panel calling
+     *  `buildMatchUpCard` directly) pass the same function as `MatchUpCardOptions.renderExtra`. */
+    renderCardExtra?: (matchUp: CatalogMatchUpItem) => HTMLElement | null;
+    /** MatchUps a card is entangled with, resolved when the pointer enters it and
+     *  highlighted wherever the page draws them — grid cells, other cards, strip
+     *  cells. The consumer owns the relation; this component sees one matchUp at a
+     *  time and could not compute "waiting on" if it wanted to. Omit to leave
+     *  cards without hover highlighting. */
+    relatedMatchUpIds?: (matchUp: CatalogMatchUpItem) => string[];
+    /** Consumer-owned buttons rendered right-aligned in the court grid header.
+     *  Consumer keeps live refs and mutates state (visibility, disabled, label) directly. */
+    headerActions?: HTMLElement | HTMLElement[];
+    /** Consumer-owned buttons rendered immediately before the "Court Grid" title.
+     *  Use this slot for controls that act on content to the LEFT of the panel
+     *  (e.g. a catalog show/hide toggle when the catalog sits on the left). */
+    titleLeadingActions?: HTMLElement | HTMLElement[];
+    /** Optional element rendered in place of the default "Court Grid" title.
+     *  When set, replaces both the default text and the `.spl-center-title`
+     *  wrapper — consumer owns layout (e.g. inject a search input here so
+     *  the header reads as a single clean field). */
+    titleSlot?: HTMLElement;
+    onDateSelected?: (date: string) => void;
+    onMatchUpDrop?: (payload: SchedulePageDragPayload, event: DragEvent) => void;
+    onMatchUpRemove?: (matchUpId: string) => void;
+    onMatchUpSelected?: (matchUp: CatalogMatchUpItem | null) => void;
+    /** Called in 'bulk' mode when the user triggers save — receives all pending actions */
+    onBulkSave?: (actions: PendingScheduleAction[]) => void;
+}
+export interface SchedulePageState {
+    matchUpCatalog: CatalogMatchUpItem[];
+    scheduleDates: ScheduleDate[];
+    issues: ScheduleIssue[];
+    selectedDate: string | null;
+    selectedMatchUp: CatalogMatchUpItem | null;
+    catalogSearchQuery: string;
+    catalogGroupBy: MatchUpCatalogGroupBy;
+    catalogFilters: CatalogFilters;
+    showCompleted: boolean;
+    showScheduled: boolean;
+    /**
+     * Keys of the collapsed catalog groups. Store state rather than the panel's own, so a host that
+     * snapshots `SchedulePageCatalogState` keeps the operator's collapsed groups across a remount.
+     * Optional so a state built by hand (a story, a test) need not name it; absent means none.
+     */
+    catalogCollapsedGroups?: string[];
+    scheduledBehavior: ScheduledBehavior;
+    schedulingMode: SchedulingMode;
+    pendingActions: PendingScheduleAction[];
+    hasUnsavedChanges: boolean;
+    leftCollapsed: boolean;
+    hideLeft: boolean;
+    activeStripVisible: boolean;
+    inspectorVisible: boolean;
+}
+export type SchedulePageChangeListener = (state: SchedulePageState) => void;
+export interface ScheduleIssueCounts {
+    total: number;
+    ERROR: number;
+    WARN: number;
+    INFO: number;
+}
+export interface ScheduleIssueIndex {
+    all: ScheduleIssue[];
+    bySeverity: Record<ScheduleIssueSeverity, ScheduleIssue[]>;
+    byDate: Record<string, ScheduleIssue[]>;
+    counts: ScheduleIssueCounts;
+    countsByDate: Record<string, ScheduleIssueCounts>;
+}
+export interface UIPanel<T = unknown> {
+    element: HTMLElement;
+    update: (state: T) => void;
+    destroy?: () => void;
+}
+/** Field identifiers for the 3-zone cell layout */
+export type ScheduleCellField = 'time' | 'eventRound' | 'participants' | 'score' | 'matchUpStatus' | 'matchUpFormat' | 'umpire';
+/** Controls how participant names are rendered inside a cell */
+export interface ParticipantDisplayConfig {
+    nameFormat?: 'full' | 'last' | 'lastFirst' | 'firstLast';
+    showSeed?: boolean;
+    showRanking?: boolean;
+    showNationality?: boolean;
+    boldWinner?: boolean;
+    showPotentials?: boolean;
+}
+/**
+ * JSON-serializable cell configuration.
+ * 3 fixed zones (header, body, footer), each containing an ordered array of field identifiers.
+ * Safe for factory extensions and publishing data.
+ */
+export interface ScheduleCellConfig {
+    header: ScheduleCellField[];
+    body: ScheduleCellField[];
+    footer: ScheduleCellField[];
+    participantDisplay?: ParticipantDisplayConfig;
+}
+/** Participant info for a single side of a matchUp cell */
+export interface ScheduleCellSide {
+    sideNumber?: number;
+    participantName?: string;
+    participantId?: string;
+    seedNumber?: number;
+    ranking?: number;
+    nationality?: string;
+    /** Team name when participant is a member of a team (tie/team event) */
+    teamName?: string;
+    /** True if this side is a BYE (no participant) */
+    bye?: boolean;
+    /**
+     * Hydrated members of a pair or team, present on `inContext` matchUps.
+     *
+     * Load-bearing for search, not for layout. A PAIR participant's own
+     * `participantName` is composed by the factory from FAMILY NAMES ALONE
+     * (`Phoebus/Smith`), so a doubles side carries no given name anywhere — and a
+     * consumer searching for "Aiden Phoebus" could not match the one cell he is
+     * actually in. These are the names that make him findable.
+     */
+    individualParticipants?: {
+        participantId?: string;
+        participantName?: string;
+    }[];
+}
+/**
+ * Flat data shape the cell renderer consumes — mapped from factory matchUp objects.
+ * Decouples the renderer from the factory's nested matchUp shape.
+ */
+export interface ScheduleCellData {
+    matchUpId: string;
+    drawId?: string;
+    eventName?: string;
+    roundName?: string;
+    matchUpFormat?: string;
+    matchUpType?: string;
+    matchUpStatus?: string;
+    winningSide?: number;
+    gender?: string;
+    sides?: ScheduleCellSide[];
+    potentialParticipants?: any[][];
+    schedule?: {
+        scheduledTime?: string;
+        startTime?: string;
+        timeModifiers?: string[];
+        courtAnnotation?: string;
+        courtId?: string;
+        courtOrder?: number;
+        venueId?: string;
+    };
+    score?: {
+        scoreStringSide1?: string;
+        scoreStringSide2?: string;
+    };
+    umpire?: string;
+    /** Conflict state injected by proConflicts */
+    scheduleState?: string;
+    issueType?: string;
+    issueIds?: string[];
+    /** Blocked cell (alternative to matchUp) */
+    isBlocked?: boolean;
+    booking?: {
+        bookingType?: string;
+        rowCount?: number;
+        notes?: string;
+        /**
+         * Participant labels to render below the booking type. Pre-formatted
+         * by the consumer so the cell stays display-only — e.g.
+         * `["Smith / Jones (14:00–14:30)", "Ortiz (14:30–15:00)"]`.
+         *
+         * NOTE: as of 2026-06-01 there is no expected consumer. The Now/Live
+         * strip uses a separate banner path (`ActiveStripCourtBlock.detail`),
+         * and PRACTICE bookings are time-windowed — they don't currently
+         * surface as grid cells, which have fixed row positions, not fixed
+         * times. The field is kept available for future use (e.g. if a
+         * tournament chooses to materialize PRACTICE bookings as cells) but
+         * no production callsite populates it today.
+         */
+        registrations?: string[];
+    };
+    /**
+     * Reserved cell (alternative to matchUp) — a court slot occupied by ANOTHER, facility-sharing
+     * tournament that the viewer does not author. Read-only and opaque: it carries no matchUp/participant
+     * detail, only the slim information the consumer chooses to surface from a schedule projection. The
+     * consumer renders it non-interactive (no drag/move) — the widget only handles its appearance.
+     */
+    isReserved?: boolean;
+    reservation?: {
+        /** Display label for the occupying tournament (e.g. its name), pre-formatted by the consumer. */
+        tournamentName?: string;
+        /** Optional scheduled time to show on the cell. */
+        scheduledTime?: string;
+    };
+}

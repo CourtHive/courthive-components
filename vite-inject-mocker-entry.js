@@ -1,1 +1,1 @@
-import{n as e}from"./assets/iframe-K2CGscwM.js";e();
+import{n as e}from"./assets/everything.js-CslOhF51.js";e();
