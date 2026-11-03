@@ -1,0 +1,73 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Scoring/Team Scorecard/Manual Results" />
+
+# Manual team results
+
+Use **Override** in the team scorecard header to record a team result independently of its individual lines.
+Later line results can still be entered, corrected or cleared while the manual team score and winner remain in place.
+Choose **Restore** to return to automatic calculation from the lines.
+
+The editor accepts nonnegative integer scores. A level score requires an explicit winner before Save is enabled.
+For example, a competition may award a 2–2 meeting to one team under its own tie-breaking rules. This is a
+manually decided result with a winner; it does not represent a completed draw without a winner.
+
+## Persisting the callbacks
+
+The component edits the header and invokes callbacks. The host application persists the result through its normal
+mutation queue and refreshes the scorecard from the resulting factory state. TMX already implements this flow.
+The `teamScore.onOverride` callback supplies scores and winner by side number, including when the display is swapped.
+
+```ts
+const teamScore = {
+  onOverride: ({ side1Score, side2Score, winningSide }) => {
+    const methods = [
+      {
+        method: 'setMatchUpStatus',
+        params: {
+          drawId,
+          matchUpId, // parent TEAM matchUp
+          disableAutoCalc: true,
+          outcome: {
+            winningSide,
+            score: {
+              sets: [{ setNumber: 1, side1Score, side2Score, winningSide }],
+              scoreStringSide1: `${side1Score}-${side2Score}`,
+              scoreStringSide2: `${side2Score}-${side1Score}`
+            }
+          }
+        }
+      }
+    ];
+    persistMethods(methods); // host's mutation queue and refresh
+  },
+  onRestore: () =>
+    persistMethods([
+      {
+        method: 'enableTieAutoCalc',
+        params: { drawId, matchUpId }
+      }
+    ])
+};
+```
+
+Pass this configuration as `teamScore` to `renderScorecard`. `persistMethods` above is the host application's
+queue integration, not a component export. Handle mutation errors before replacing the displayed state.
+
+## Manual mode and diagnostics
+
+`disableAutoCalc` is a parameter beside `outcome`, applied to the parent TEAM matchUp. Setting only a winner
+without disabling automatic calculation does not establish this protected manual mode.
+The factory supports a winner-only override as well as an explicit score; the header editor collects a score.
+
+The scorecard identifies manual results through factory dual issues. `MANUAL_SCORE` means the team result was
+entered by hand. `MANUAL_SCORE_DIVERGES` means the current lines produce a different score. These explain the
+state; they do not require reasserting the winner after every line edit.
+
+Clearing a line result is an edit, so manual mode remains enabled. Clearing the parent score is also distinct
+from choosing Restore. Use `enableTieAutoCalc` explicitly to resume automatic scoring; merely passing
+`disableAutoCalc: false` is not the restore operation. Restore recomputes from the lines and can change or remove
+the team winner, subject to the factory's progression checks.
+
+The **Score Set By Hand** Collection Card story demonstrates the editor callbacks. Its console callbacks are
+examples; persisted behavior requires the host mutation flow shown above.
