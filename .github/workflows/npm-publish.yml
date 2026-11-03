@@ -222,8 +222,11 @@ jobs:
             exit 0
           fi
           gh auth setup-git --hostname github.com
+          # gh-pages' --user address parser rejects the brackets in GitHub bot identities.
+          # Let gh-pages read Git's separate name/email settings instead.
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           pnpm exec gh-pages --dist storybook-static --nojekyll \
             --repo "https://github.com/$GITHUB_REPOSITORY.git" \
-            --user "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>" \
             --message "docs: publish Storybook $RELEASE_TAG"
           echo "Storybook $RELEASE_TAG: https://courthive.github.io/courthive-components/" >> "$GITHUB_STEP_SUMMARY"
