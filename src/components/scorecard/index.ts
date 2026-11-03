@@ -9,3 +9,5 @@ export type { TeamScore, TeamScoreOverride } from './teamScoreOverrideState';
 export type { TeamScoreOptions } from './teamScoreEditor';
 export { dualIssues, issueMessage, lineIssues } from './dualIssues';
 export type { ScorecardIssue } from './dualIssues';
+export { homeSideStates } from './homeSides';
+export type { HomeSideState, ScorecardHomeOptions } from './homeSides';

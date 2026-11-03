@@ -757,7 +757,8 @@ export {
   createTeamScoreOverride,
   dualIssues,
   issueMessage,
-  lineIssues
+  lineIssues,
+  homeSideStates
 } from './components/scorecard';
 export type {
   ScorecardOptions,
@@ -772,7 +773,9 @@ export type {
   ScorecardIssue,
   TeamScore,
   TeamScoreOptions,
-  TeamScoreOverride
+  TeamScoreOverride,
+  HomeSideState,
+  ScorecardHomeOptions
 } from './components/scorecard';
 
 // Inline Scoring

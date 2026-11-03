@@ -45,7 +45,7 @@
   "bugs": {
     "url": "https://github.com/CourtHive/courthive-components/issues"
   },
-  "homepage": "https://courthive.github.io/courthive-component",
+  "homepage": "https://courthive.github.io/courthive-components/",
   "scripts": {
     "commits": "git log $(git describe --tags --abbrev=0)..HEAD --oneline --no-merges --pretty=format:'%s: %h' | sed '/courthive-components/d'",
     "release": "npm run release:patch",

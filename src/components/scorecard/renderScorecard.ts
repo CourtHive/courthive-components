@@ -8,9 +8,11 @@
  *
  * With `issues` (the factory's `getDualIssues`), lines with an issue are marked in their collection, and the dual's own
  * issues show in a banner under the header, each with an action when the caller gives one. With `teamScore`, the
- * header's scores can be set by hand inline (see `attachTeamScoreEditor`).
+ * header's scores can be set by hand inline (see `attachTeamScoreEditor`). With `home`, the home team's name carries a
+ * Home tag where it falls (sides never move), and with `onSetHome` each team offers "Set as home"; with `onClearHome` a set home offers "Clear".
  */
 import { renderCollectionCard, type FinishingOrderEntryOptions, type ScorecardLabels } from './renderCollectionCard';
+import { homeSideStates, type HomeSideState, type ScorecardHomeOptions } from './homeSides';
 import { dualIssues, issueMessage, MANUAL_SCORE, type ScorecardIssue } from './dualIssues';
 import { attachTeamScoreEditor, type TeamScoreOptions } from './teamScoreEditor';
 import { swapSetScores, swapWinningSide } from './scorecardSides';
@@ -32,6 +34,8 @@ export interface ScorecardOptions {
   issueActions?: Record<string, IssueAction>;
   /** the header's team score set by hand; `manual` defaults to whether the issues say it is */
   teamScore?: TeamScoreOptions;
+  /** the dual's home team (see `homeSideStates`): tagged where it falls, settable with `onSetHome` */
+  home?: ScorecardHomeOptions;
 }
 
 export interface IssueAction {
@@ -62,7 +66,8 @@ export function renderScorecard({
   finishingOrder,
   issues,
   issueActions,
-  teamScore
+  teamScore,
+  home
 }: ScorecardOptions): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'chc-scorecard';
@@ -82,6 +87,7 @@ export function renderScorecard({
     side1Id: 'chc-sc-side1',
     side2Id: 'chc-sc-side2'
   });
+  if (home) attachHomeTags({ header, states: homeSideStates({ matchUp, swapSides, home }), home, labels });
   if (teamScore) {
     const manual = teamScore.manual ?? !!issues?.some(({ code }) => code === MANUAL_SCORE);
     attachTeamScoreEditor({ header, matchUp, swapSides, labels, teamScore: { ...teamScore, manual } });
@@ -225,6 +231,63 @@ function renderIssueBanner(
     banner.appendChild(item);
   }
   return banner;
+}
+
+const HOME_TITLES: Record<NonNullable<HomeSideState['inferred']>, (labels?: ScorecardLabels) => string> = {
+  VENUE: (labels) => labels?.homeVenue ?? 'Home (venue)',
+  HOST_ORGANISATION: (labels) => labels?.homeHostOrganisation ?? 'Home (host organisation)'
+};
+
+const homeButton = (text: string, action: string, onClick: () => void) => {
+  const element = document.createElement('button');
+  element.className = 'button font-medium is-small is-info is-light';
+  element.textContent = text;
+  element.dataset.action = action;
+  element.addEventListener('click', onClick);
+  return element;
+};
+
+// the Home tag and "Set as home" sit beside each team's name, in the header's left then right position
+function attachHomeTags({
+  header,
+  states,
+  home,
+  labels
+}: {
+  header: HTMLElement;
+  states: HomeSideState[];
+  home: ScorecardHomeOptions;
+  labels?: ScorecardLabels;
+}): void {
+  const sides = [...header.querySelectorAll<HTMLElement>('.chc-scorecard-side')];
+  states.forEach((state, index) => {
+    const side = sides[index];
+    if (!side || (!state.isHome && !state.canSetHome)) return;
+    const wrap = document.createElement('span');
+    wrap.className = 'chc-scorecard-home';
+    if (state.isHome) {
+      const tag = document.createElement('span');
+      tag.className = 'chc-scorecard-home-tag';
+      tag.textContent = labels?.home ?? 'Home';
+      if (state.inferred) {
+        const title = HOME_TITLES[state.inferred](labels);
+        tag.classList.add('chc-scorecard-home-tag--inferred');
+        tag.dataset.basis = state.inferred;
+        tag.title = title;
+        tag.setAttribute('aria-label', title);
+      }
+      wrap.appendChild(tag);
+    }
+    const participantId = state.participantId;
+    if (state.canSetHome && participantId) {
+      const setHome = homeButton(labels?.setHome ?? 'Set as home', 'set-home', () => home.onSetHome?.(participantId));
+      setHome.dataset.participantId = participantId;
+      wrap.appendChild(setHome);
+    }
+    if (state.canClearHome)
+      wrap.appendChild(homeButton(labels?.clearHome ?? 'Clear', 'clear-home', () => home.onClearHome?.()));
+    side.appendChild(wrap);
+  });
 }
 
 function renderSideElement(name: string, justify: 'start' | 'end'): HTMLDivElement {

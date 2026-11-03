@@ -1,5 +1,9 @@
 # courthive-components
 
+## [Documentation & Storybook](https://courthive.github.io/courthive-components/)
+
+Browse interactive examples, component APIs and integration guides.
+
 Framework-independent TypeScript UI components for tournament management and competition displays.
 
 [![Storybook](https://img.shields.io/badge/Storybook-Documentation-ff4785?logo=storybook)](https://courthive.github.io/courthive-components/)
@@ -425,6 +429,28 @@ pnpm test
 # Build Storybook for deployment
 pnpm build-storybook
 ```
+
+### Publishing documentation
+
+Every stable GitHub release builds Storybook from its release tag before publishing the npm package.
+After npm publication succeeds, the release workflow publishes that same Storybook artifact to
+[GitHub Pages](https://courthive.github.io/courthive-components/). Prereleases leave the stable documentation in place.
+The site's `release.json` records its package version, tag and source commit.
+
+The workflow uses the existing Release Bot App to push `gh-pages`, so GitHub starts the Pages build.
+Publishing is serialized, and older release runs cannot replace the latest release's documentation.
+PR CI also builds the production Storybook to catch documentation build failures before release.
+
+To refresh the latest stable release's documentation without publishing npm again, run **Publish package
+and Storybook** from the Actions tab with its existing release tag and **storybook_only** checked:
+
+```bash
+gh workflow run npm-publish.yml --ref main -f tag=v7.8.0 -F storybook_only=true
+```
+
+Replace `v7.8.0` with the latest stable release tag. If only the documentation publishing job failed,
+rerun that failed job. A dev-to-main checkpoint updates the release PR; merging the release PR publishes
+the release and starts the package/documentation workflow.
 
 ## Contributing
 
