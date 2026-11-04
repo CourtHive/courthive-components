@@ -13,6 +13,7 @@
  */
 
 import { matchUpFormatCode, matchUpStatusConstants, scoreGovernor } from 'tods-competition-factory';
+import { overtimeDeciderSetNumber, overtimeProgress } from '../overtimeEntry/overtimeEntry';
 
 // ParsedFormat is declared but not exported from tods-competition-factory
 // Define locally to avoid import error
@@ -648,6 +649,49 @@ function parseTimedExactlyScore(input: string, parsedFormat: ParsedFormat): Pars
   };
 }
 
+/**
+ * Parse an overtime format's score (`-O:`): regulation, extra periods and a decider, each "#-#". How many
+ * periods are played, and whether the match is decided, is the scoring engine's answer (`overtimeEntry.ts`):
+ * an exact block is played to its end, an ordinary period only while the total is level, and a period after
+ * the match was decided is an error with the engine's reason. A one-point decider is `1-0` / `0-1`; a
+ * shootout decider is its tally.
+ */
+function parseOvertimeScore(input: string, parsedFormat: ParsedFormat): ParseResult {
+  const matchUpFormat = matchUpFormatCode.stringify(parsedFormat);
+  const trimmedInput = input.trim();
+  const regulation = parsedFormat.exactly || parsedFormat.bestOf || 1;
+  if (!trimmedInput) return createEmptyTimedExactlyResult(false, regulation, regulation);
+
+  const errors: ParseError[] = [];
+  const deciderSetNumber = overtimeDeciderSetNumber(parsedFormat);
+  const oneTiebreakPoint = parsedFormat.finalSetFormat?.tiebreakSet?.tiebreakTo !== undefined;
+  const sets = parseTimedSetStrings(
+    trimmedInput.split(/\s+/),
+    oneTiebreakPoint,
+    deciderSetNumber ?? Number.POSITIVE_INFINITY,
+    errors
+  );
+
+  const progress = errors.length ? undefined : overtimeProgress(matchUpFormat, sets);
+  if (progress?.refused)
+    errors.push({ position: 0, message: `Set ${(progress.refusedAt ?? 0) + 1}: ${progress.refused}` });
+  const matchComplete = !!progress?.complete && errors.length === 0;
+  const incomplete = !matchComplete && errors.length === 0;
+
+  return {
+    valid: errors.length === 0 && matchComplete,
+    formattedScore: formatTimedSets(sets),
+    sets,
+    confidence: errors.length === 0 ? 1 : 0,
+    errors,
+    warnings: [],
+    ambiguities: [],
+    suggestions: incomplete ? ['Enter the next period: the match is not yet decided'] : [],
+    incomplete,
+    matchComplete
+  };
+}
+
 // ============================================================================
 // Main Parser Function
 // ============================================================================
@@ -678,6 +722,9 @@ export function parseScore(input: string, matchUpFormat: string | ParsedFormat):
       matchComplete: false
     };
   }
+
+  // An overtime format: periods as "#-#", as many as the scoring engine plays
+  if (parsedFormat.overtimeFormat) return parseOvertimeScore(input, parsedFormat);
 
   // IMPORTANT: For timed sets with exactly format, use simple parsing
   // No smart logic, just expect exact number of "#-#" entries
