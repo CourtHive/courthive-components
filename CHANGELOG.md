@@ -1,5 +1,25 @@
 # Changelog
 
+## [7.9.0](https://github.com/CourtHive/courthive-components/compare/v7.8.0...v7.9.0) (2026-11-04)
+
+
+### Features
+
+* **scorecard:** home option tags the dual's home team where it falls ([#907](https://github.com/CourtHive/courthive-components/issues/907)) ([06d4c8a](https://github.com/CourtHive/courthive-components/commit/06d4c8a9e08203e4cfcb99aa0bb07895176927cd))
+
+
+### Bug Fixes
+
+* configure Storybook publisher identity through Git ([#915](https://github.com/CourtHive/courthive-components/issues/915)) ([36c0512](https://github.com/CourtHive/courthive-components/commit/36c0512fbad126f9c8661e345bce5b84881914d2))
+* **deps:** update tods-competition-factory to 7.28.0 ([#918](https://github.com/CourtHive/courthive-components/issues/918)) ([5705a4c](https://github.com/CourtHive/courthive-components/commit/5705a4c9432a7e4e64384383c73d3b6b2f870afa))
+* publish versioned Storybook with stable releases ([#912](https://github.com/CourtHive/courthive-components/issues/912)) ([f6c353d](https://github.com/CourtHive/courthive-components/commit/f6c353d98da33852baf243d83e019f34289d5632))
+
+
+### Documentation
+
+* make Storybook documentation prominent in README ([#911](https://github.com/CourtHive/courthive-components/issues/911)) ([e0ddaf8](https://github.com/CourtHive/courthive-components/commit/e0ddaf80df81d7ff5ec8ad26f964699f9935781d))
+* **scorecard:** explain manual team result persistence and restore ([#917](https://github.com/CourtHive/courthive-components/issues/917)) ([9bf1af6](https://github.com/CourtHive/courthive-components/commit/9bf1af68475f214500328f4f2c95e4a3af70e7b5))
+
 ## [7.8.0](https://github.com/CourtHive/courthive-components/compare/v7.7.0...v7.8.0) (2026-11-01)
 
 
