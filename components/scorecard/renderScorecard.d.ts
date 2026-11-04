@@ -1,4 +1,5 @@
 import { FinishingOrderEntryOptions, ScorecardLabels } from './renderCollectionCard';
+import { ScorecardHomeOptions } from './homeSides';
 import { ScorecardIssue } from './dualIssues';
 import { TeamScoreOptions } from './teamScoreEditor';
 export type { ScorecardLabels } from './renderCollectionCard';
@@ -18,6 +19,8 @@ export interface ScorecardOptions {
     issueActions?: Record<string, IssueAction>;
     /** the header's team score set by hand; `manual` defaults to whether the issues say it is */
     teamScore?: TeamScoreOptions;
+    /** the dual's home team (see `homeSideStates`): tagged where it falls, settable with `onSetHome` */
+    home?: ScorecardHomeOptions;
 }
 export interface IssueAction {
     label: string;
@@ -34,7 +37,7 @@ export interface TeamVsOptions {
 /**
  * Render a full team scorecard: header + collection panels + matchUp grids.
  */
-export declare function renderScorecard({ matchUp, composition, eventHandlers, swapSides, labels, finishingOrder, issues, issueActions, teamScore }: ScorecardOptions): HTMLDivElement;
+export declare function renderScorecard({ matchUp, composition, eventHandlers, swapSides, labels, finishingOrder, issues, issueActions, teamScore, home }: ScorecardOptions): HTMLDivElement;
 /**
  * Render the team vs team header with names and aggregate score.
  */
