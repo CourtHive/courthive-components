@@ -54,6 +54,11 @@
 import { matchUpFormatCode, scoreGovernor } from 'tods-competition-factory';
 import { completeTiebreakOnly } from './tiebreakEntry';
 import {
+  isOvertimeFormat,
+  overtimeDeciderSetNumber,
+  overtimeSetCeiling
+} from '../../../tools/overtimeEntry/overtimeEntry';
+import {
   hydrateScoreEntryState,
   toggleBothSidesOut,
   chooseMatchEnding,
@@ -159,7 +164,7 @@ export function createScoreEntryModel(params: CreateScoreEntryModelParams = {}):
  * and not `||`, so a set lost to love seeds as 0 rather than empty.
  */
 function seedEntries(sets: SetScore[], config: MatchUpConfig): SetEntry[] {
-  const count = setCountOf(config);
+  const count = Math.max(setCountOf(config), unlimitedOvertime(config) ? sets.length : 0);
   return Array.from({ length: count }, (_, index) => {
     const set = sets[index];
     if (!set) return EMPTY_SET;
@@ -400,7 +405,10 @@ export function changeFormat(model: ScoreEntryModel, matchUpFormat: string): Sco
 
   const config = matchUpConfigFor(matchUpFormat);
   const kept = model.sets.slice(0, sets.length);
-  const resized = Array.from({ length: setCountOf(config) }, (_, index) => kept[index] ?? EMPTY_SET);
+  const resized = Array.from(
+    { length: Math.max(setCountOf(config), kept.length) },
+    (_, index) => kept[index] ?? EMPTY_SET
+  );
 
   return { ...model, matchUpFormat, sets: normalize(resized, config) };
 }
@@ -441,9 +449,28 @@ function normalize(sets: readonly SetEntry[], config: MatchUpConfig, gamesEdited
   const settled = sets.map((entry, index) =>
     index === gamesEditedAt ? dropStaleTiebreak(entry, index, config) : entry
   );
-  const decider = decidingIndex(settled, config);
-  if (decider === undefined) return settled;
-  return settled.map((entry, index) => (index > decider ? EMPTY_SET : entry));
+  const sized = withOvertimeRoom(settled, config);
+  const decider = decidingIndex(sized, config);
+  if (decider === undefined) return sized;
+  return sized.map((entry, index) => (index > decider ? EMPTY_SET : entry));
+}
+
+/**
+ * Unlimited overtime has no ceiling, so its sets are not a fixed array: there is always one empty set after the
+ * last that holds anything (whether it may be entered is `opensSet`'s question), and no more than that.
+ */
+function withOvertimeRoom(sets: SetEntry[], config: MatchUpConfig): SetEntry[] {
+  if (!unlimitedOvertime(config)) return sets;
+  let last = -1;
+  sets.forEach((entry, index) => {
+    if (!isEmptyEntry(entry)) last = index;
+  });
+  const length = Math.max(setCountOf(config), last + 2);
+  return Array.from({ length }, (_, index) => sets[index] ?? EMPTY_SET);
+}
+
+function unlimitedOvertime(config: MatchUpConfig): boolean {
+  return config.overtimeFormat?.count === 'unlimited';
 }
 
 function dropStaleTiebreak(entry: SetEntry, index: number, config: MatchUpConfig): SetEntry {
@@ -462,7 +489,8 @@ function dropStaleTiebreak(entry: SetEntry, index: number, config: MatchUpConfig
  * three winning sides answers NO winner, because three is not `setsToWin`.
  */
 export function decidingIndex(sets: readonly SetEntry[], config: MatchUpConfig): number | undefined {
-  if (config.exactly !== undefined) return undefined;
+  // an overtime format is decided where the scoring engine decides it (`isMatchComplete`), so it is trimmed
+  if (config.exactly !== undefined && !isOvertimeFormat(config)) return undefined;
 
   for (let index = 0; index < sets.length; index += 1) {
     const prefix = enteredFactorySets(sets.slice(0, index + 1), config);
@@ -632,9 +660,19 @@ export function isEmptyEntry(entry: SetEntry): boolean {
  * How many sets the format can hold: every set of an `exactly` format, otherwise the best-of. An
  * aggregate format with a final tiebreak holds one more, its sudden-death decider, which is set N + 1
  * and never one of the N (factory #5166; CA, 2026-10-04). It opens only on a level total.
+ *
+ * An overtime format holds regulation, its overtime ceiling and its decider; under unlimited overtime
+ * this is regulation's count, and the array grows one set at a time (`withOvertimeRoom`).
  */
 export function setCountOf(config: MatchUpConfig): number {
+  if (isOvertimeFormat(config)) return overtimeSetCeiling(config) ?? config.exactly ?? config.bestOf;
   return deciderSetNumberOf(config) ?? config.exactly ?? config.bestOf;
+}
+
+/** Whether the set at `index` is the one the final-set format (`-F:`) governs, as `validateSetScore` asks. */
+export function isFinalSetIndex(index: number, config: MatchUpConfig): boolean {
+  if (isOvertimeFormat(config)) return index + 1 === overtimeDeciderSetNumber(config);
+  return index === setCountOf(config) - 1;
 }
 
 /** The set number of an aggregate format's final-tiebreak decider, or `undefined` when it has none. */

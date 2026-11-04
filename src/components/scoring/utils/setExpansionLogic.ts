@@ -1,6 +1,7 @@
 /**
  * Logic for determining when to expand set inputs dynamically
  */
+import { isOvertimeFormat, overtimeProgress } from '../../../tools/overtimeEntry/overtimeEntry';
 import { matchUpFormatCode } from 'tods-competition-factory';
 import type { SetScore } from '../types';
 
@@ -57,6 +58,8 @@ export function parseMatchUpFormat(matchUpFormat?: string): MatchUpFormatInfo {
  */
 export function shouldExpandSets(sets: SetScore[], matchUpFormat?: string): boolean {
   if (!sets || sets.length === 0) return true;
+  // an overtime format plays another set while the scoring engine calls the match undecided
+  if (matchUpFormat && isOvertimeFormat(matchUpFormat)) return !overtimeProgress(matchUpFormat, sets).complete;
 
   const formatInfo = parseMatchUpFormat(matchUpFormat);
   const { bestOf, isExactlyFormat, setsToWin } = formatInfo;
@@ -185,6 +188,7 @@ function determineAggregateWinner(sets: SetScore[]): number | undefined {
  */
 export function determineWinningSide(sets: SetScore[], matchUpFormat?: string): number | undefined {
   if (!sets || sets.length === 0) return undefined;
+  if (matchUpFormat && isOvertimeFormat(matchUpFormat)) return overtimeProgress(matchUpFormat, sets).winningSide;
 
   // Check if this is aggregate scoring
   const parsed = matchUpFormat ? matchUpFormatCode.parse(matchUpFormat) : null;

@@ -213,6 +213,17 @@ describe('the dialog with every key translated', () => {
     expectTranslated('a suspension that keeps the part-score');
   });
 
+  it('an overtime format: its extra periods and its shootout are headed by what they are', () => {
+    const sets = [
+      [1, 0],
+      [0, 1],
+      [0, 0],
+      [0, 0]
+    ].map(([side1Score, side2Score], index) => ({ setNumber: index + 1, side1Score, side2Score }));
+    openScoreEntryDialog({ sides: SIDES, matchUpFormat: 'HAL2XA-S:T45P-O:2X/T15P-F:SO5', sets, labels: LABELS });
+    expectTranslated('extra time ended level, the shootout open');
+  });
+
   it('a set that is not finished before the next one', () => {
     openScoreEntryDialog({ sides: SIDES, matchUpFormat: FORMAT, labels: LABELS, approach: 'freeScore' });
     type(FREE_SCORE_INPUT, '3-2 6-4');

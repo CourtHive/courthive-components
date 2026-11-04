@@ -5,6 +5,7 @@
  */
 
 import { matchUpFormatCode, matchUpGovernor, scoreGovernor } from 'tods-competition-factory';
+import { isOvertimeFormat, overtimeProgress, overtimeSetFormat } from '../../../tools/overtimeEntry/overtimeEntry';
 import { parseMatchUpFormat } from '../utils/setExpansionLogic';
 
 /**
@@ -137,6 +138,8 @@ export type MatchUpConfig = {
   aggregate?: boolean;
   setFormat?: SetFormat;
   finalSetFormat?: SetFormat;
+  // Overtime (`-O:`): periods past regulation while the aggregate is level; see `overtimeEntry.ts`
+  overtimeFormat?: Record<string, any>;
 };
 
 /**
@@ -190,7 +193,8 @@ export function matchUpConfigFor(matchUpFormat?: string): MatchUpConfig {
     exactly: effective?.exactly,
     aggregate: effective?.aggregate,
     setFormat: effective?.setFormat,
-    finalSetFormat: effective?.finalSetFormat
+    finalSetFormat: effective?.finalSetFormat,
+    ...(effective?.overtimeFormat && { overtimeFormat: effective.overtimeFormat })
   };
 }
 
@@ -215,6 +219,8 @@ function tiebreakOnlyWinner(
 }
 
 export function getSetFormatForIndex(setIndex: number, config: MatchUpConfig): SetFormat | undefined {
+  // an overtime period is played to the overtime segment (factory 7.29.0's `analyzeSet` gives it regulation's)
+  if (isOvertimeFormat(config)) return overtimeSetFormat(config, setIndex + 1);
   // `analyzeSet` applies the deciding-set rule itself: set 3 of `SET3-S:6/TB7-F:TB10` comes back as
   // `{ tiebreakSet: { tiebreakTo: 10 } }`. Measured.
   return setAnalysis(setIndex, {}, config).setFormat;
@@ -383,15 +389,21 @@ export function getSetWinner(
  * factory's scoring surface concluded, wrongly, that match completeness was missing from it.
  */
 function matchAnalysis(sets: SetScore[], config: MatchUpConfig): Record<string, any> {
-  return matchUpGovernor.analyzeMatchUp({
-    matchUp: { score: { sets }, matchUpFormat: scoreGovernor.stringifyMatchUpFormat(config as any) }
-  });
+  return matchUpGovernor.analyzeMatchUp({ matchUp: { score: { sets }, matchUpFormat: formatOf(config) } });
+}
+
+/** The matchUpFormat code a config was parsed from. */
+function formatOf(config: MatchUpConfig): string {
+  return scoreGovernor.stringifyMatchUpFormat(config as any);
 }
 
 /**
  * Determine if match is complete based on sets won
  */
 export function isMatchComplete(sets: SetScore[], config: MatchUpConfig): boolean {
+  // an overtime format is decided where the scoring engine decides it; a level finish under a finite ceiling
+  // with no decider is complete with no winner
+  if (isOvertimeFormat(config)) return overtimeProgress(formatOf(config), sets).complete;
   // `calculatedWinningSide` is set only when one side has reached `setsToWin` under this format —
   // measured: 6-4 alone undefined, 6-4 3-6 undefined, 6-4 6-3 side 1, and an `exactly:1` format decided
   // by its single set.
@@ -403,6 +415,7 @@ export function isMatchComplete(sets: SetScore[], config: MatchUpConfig): boolea
  * Returns undefined if match is not complete
  */
 export function getMatchWinner(sets: SetScore[], config: MatchUpConfig): 1 | 2 | undefined {
+  if (isOvertimeFormat(config)) return overtimeProgress(formatOf(config), sets).winningSide;
   const winningSide = matchAnalysis(sets, config).calculatedWinningSide;
   return winningSide === 1 || winningSide === 2 ? winningSide : undefined;
 }

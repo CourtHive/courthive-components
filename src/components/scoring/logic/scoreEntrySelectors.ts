@@ -31,6 +31,7 @@
  */
 
 import { matchUpStatusConstants, scoreGovernor } from 'tods-competition-factory';
+import { isOvertimeFormat, overtimeProgress } from '../../../tools/overtimeEntry/overtimeEntry';
 import { isCompletedLevelClose } from './combinedPointTie';
 import { ordinalSetLabel } from '../regions/setColumns';
 import { resolveScoreEntry } from './scoreEntryState';
@@ -42,15 +43,16 @@ import {
   enteredFactorySets,
   gamesLoser,
   isEmptyEntry,
+  isFinalSetIndex,
   isEntered,
-  readCell,
-  setCountOf
+  readCell
 } from './scoreEntryModel';
 import {
   getSetFormatForIndex,
   shouldShowTiebreak,
   isSetTiebreakOnly,
   matchUpConfigFor,
+  isMatchComplete,
   getMatchWinner,
   isSetTimed
 } from './dynamicSetsLogic';
@@ -124,9 +126,11 @@ export function isComplete(model: ScoreEntryModel): boolean {
 
   // A match the factory completes level (a combined-point tie, an exactly or aggregate count closed
   // level) is finished with no winner.
+  // An overtime format the engine completes level (a finite ceiling with no decider) is finished with no winner.
   const decided =
     getMatchWinner(enteredSets(model), config) !== undefined ||
-    isCompletedLevelClose(enteredSets(model), model.matchUpFormat);
+    isCompletedLevelClose(enteredSets(model), model.matchUpFormat) ||
+    (isOvertimeFormat(config) && isMatchComplete(enteredSets(model), config));
   return decided && error(model) === undefined;
 }
 
@@ -180,7 +184,18 @@ export function error(model: ScoreEntryModel, options: ErrorOptions = {}): strin
     if (problem) return problem;
   }
 
-  return unfinishedBeforeLast(model, options);
+  return unfinishedBeforeLast(model, options) ?? overtimeRefusal(model, options);
+}
+
+/**
+ * An overtime set the scoring engine would not take — a period after the match was decided, two scorers in a
+ * sudden-death period, a shootout tally no shootout ends on — with the engine's own reason.
+ */
+function overtimeRefusal(model: ScoreEntryModel, options: ErrorOptions): string | undefined {
+  if (!isOvertimeFormat(model.matchUpFormat)) return undefined;
+  const { refused, refusedAt } = overtimeProgress(model.matchUpFormat, enteredSets(model));
+  if (!refused || refusedAt === undefined) return undefined;
+  return `${setLabel(refusedAt, options)} ${refused}`;
 }
 
 /**
@@ -219,7 +234,7 @@ function setError(
   const { isValid, error: message } = scoreGovernor.validateSetScore(
     strictSetShape(entry, isSetTiebreakOnly(getSetFormatForIndex(index, config))),
     model.matchUpFormat,
-    index === setCountOf(config) - 1,
+    isFinalSetIndex(index, config),
     true
   );
 
@@ -266,7 +281,7 @@ export function columns(model: ScoreEntryModel, options: ColumnOptions = {}): Sc
   }
 
   const next = last === undefined ? 0 : last + 1;
-  if (next < setCountOf(config) && opensSet(model, next, config)) slots.push({ kind: 'games', setIndex: next });
+  if (next < model.sets.length && opensSet(model, next, config)) slots.push({ kind: 'games', setIndex: next });
 
   return slots;
 }
@@ -275,6 +290,8 @@ export function columns(model: ScoreEntryModel, options: ColumnOptions = {}): Sc
 function opensSet(model: ScoreEntryModel, index: number, config: MatchUpConfig): boolean {
   if (index === 0) return true;
   for (let before = 0; before < index; before += 1) if (!isSettled(model, before)) return false;
+  // an overtime format plays another set only while the scoring engine calls the match undecided
+  if (isOvertimeFormat(config)) return !isMatchComplete(enteredFactorySets(model.sets.slice(0, index), config), config);
   // An aggregate format's decider (set N + 1) is played only when the N sets leave the total level
   if (index + 1 === deciderSetNumberOf(config)) return aggregateIsLevel(model, index);
   if (isSetTimed(getSetFormatForIndex(index - 1, config))) return true;
@@ -316,7 +333,7 @@ export function isSettled(model: ScoreEntryModel, index: number): boolean {
   return scoreGovernor.validateSetScore(
     strictSetShape(entry, isSetTiebreakOnly(setFormat)),
     model.matchUpFormat,
-    index === setCountOf(config) - 1,
+    isFinalSetIndex(index, config),
     false
   ).isValid;
 }
