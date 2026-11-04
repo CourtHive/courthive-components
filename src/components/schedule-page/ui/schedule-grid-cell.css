@@ -51,11 +51,30 @@
 /* ── Field Elements ─────────────────────────────────────── */
 
 .spl-grid-cell__time {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 3px;
   font-weight: 700;
   white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   /* Override the muted color inherited from .spl-grid-cell__header — the
      start time is primary information, not metadata. */
   color: var(--sp-text);
+}
+
+.spl-grid-cell__time-modifiers,
+.spl-grid-cell__court-annotation {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spl-grid-cell__time bdi {
+  /* A long localized annotation must never ellipsize the actual clock. */
+  flex-shrink: 0;
 }
 
 [data-theme='dark'] .spl-grid-cell__time {
