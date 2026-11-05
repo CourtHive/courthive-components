@@ -449,12 +449,54 @@
   font-weight: 600;
 }
 
-/* Home team: tagged beside its name where it falls; an inferred home is dashed and carries its basis as a tooltip */
+/* Home status and secondary actions sit beneath each name, outside the name/score reading line. */
+.chc-scorecard-header--home .chc-scorecard-side {
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.375rem;
+}
+.chc-scorecard-header--home .chc-scorecard-side--start {
+  align-items: flex-start;
+  text-align: start;
+}
+.chc-scorecard-header--home .chc-scorecard-side--end {
+  align-items: flex-end;
+  text-align: end;
+}
+.chc-scorecard-header--home .chc-scorecard-side-name {
+  max-width: 100%;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.chc-scorecard-header--home .chc-scorecard-score-box {
+  flex-shrink: 0;
+}
 .chc-scorecard-home {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   flex-wrap: wrap;
+  max-width: 100%;
   gap: 6px;
+}
+.chc-scorecard-side--end .chc-scorecard-home {
+  justify-content: flex-end;
+}
+.chc-scorecard-home-action {
+  min-height: 32px;
+  max-width: 100%;
+  font-size: 0.75rem;
+  white-space: normal;
+  line-height: 1.25;
+  background: transparent;
+  color: var(--chc-text-secondary);
+}
+.chc-scorecard-home-action:hover {
+  background: var(--chc-bg-secondary);
+  color: var(--chc-text-primary);
+}
+.chc-scorecard-home-action:focus-visible {
+  outline: 2px solid var(--chc-status-info);
+  outline-offset: 2px;
 }
 .chc-scorecard-home-tag {
   display: inline-flex;
@@ -473,4 +515,21 @@
   border-style: dashed;
   color: var(--chc-text-secondary);
   cursor: help;
+}
+
+@container scorecard (max-width: 520px) {
+  .chc-scorecard-header--home .chc-scorecard-side {
+    align-items: center;
+    width: 100%;
+    text-align: center;
+  }
+  .chc-scorecard-header--home .chc-scorecard-home {
+    justify-content: center;
+  }
+}
+
+@media (pointer: coarse) {
+  .chc-scorecard-home-action {
+    min-height: 44px;
+  }
 }
