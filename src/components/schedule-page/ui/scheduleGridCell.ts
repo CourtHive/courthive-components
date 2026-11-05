@@ -263,7 +263,7 @@ function renderFields(
 function renderField(field: string, data: ScheduleCellData, cfg: ScheduleCellConfig): HTMLElement | null {
   switch (field) {
     case 'time':
-      return renderTime(data);
+      return renderTime(data, cfg);
     case 'eventRound':
       return renderEventRound(data);
     case 'participants':
@@ -283,7 +283,17 @@ function renderField(field: string, data: ScheduleCellData, cfg: ScheduleCellCon
 
 // ── Time ──
 
-function renderTime(data: ScheduleCellData): HTMLElement | null {
+// English defaults for consumers that do not supply a locale. Never display stored enum identifiers.
+const DEFAULT_TIME_MODIFIER_LABELS: NonNullable<ScheduleCellConfig['timeModifierLabels']> = {
+  NOT_BEFORE: { label: 'Not Before', short: 'NB' },
+  FOLLOWED_BY: { label: 'Followed by' },
+  NEXT_AVAILABLE: { label: 'Next available' },
+  AFTER_REST: { label: 'After rest' },
+  TO_BE_ANNOUNCED: { label: 'To be announced', short: 'TBA' },
+  RAIN_DELAY: { label: 'Rain delay' }
+};
+
+function renderTime(data: ScheduleCellData, cfg: ScheduleCellConfig): HTMLElement | null {
   const time = data.schedule?.scheduledTime || data.schedule?.startTime;
   const modifiers = data.schedule?.timeModifiers;
   const courtAnnotation = data.schedule?.courtAnnotation;
@@ -293,17 +303,46 @@ function renderTime(data: ScheduleCellData): HTMLElement | null {
   const el = document.createElement('div');
   el.className = 'spl-grid-cell__time';
 
-  const parts: string[] = [];
-  if (modifiers?.length) parts.push(modifiers.join(' '));
-  if (time) parts.push(time);
-  el.textContent = parts.join(' ') || '';
+  const labels = (modifiers ?? []).map((modifier) => {
+    const fallback = modifier.replaceAll('_', ' ').toLowerCase();
+    return (
+      cfg.timeModifierLabels?.[modifier] ??
+      DEFAULT_TIME_MODIFIER_LABELS[modifier] ?? {
+        label: fallback.charAt(0).toUpperCase() + fallback.slice(1)
+      }
+    );
+  });
+  const compact = labels.map(({ label, short }) => short || label);
+  const full = labels.map(({ label }) => label);
+  if (compact.length) {
+    const modifierText = document.createElement('span');
+    modifierText.className = 'spl-grid-cell__time-modifiers';
+    modifierText.textContent = compact.join(' · ');
+    el.append(modifierText);
+  }
+  if (time) {
+    // Keep the clock readable in both LTR and RTL layouts.
+    const clock = document.createElement('bdi');
+    clock.dir = 'ltr';
+    clock.textContent = time;
+    if (compact.length) el.append(document.createTextNode(' '));
+    el.append(clock);
+    full.push(time);
+  }
 
   if (courtAnnotation) {
+    // Court annotations are user-authored notes, not time-modifier enums.
     const anno = document.createElement('span');
     anno.className = 'spl-grid-cell__court-annotation';
     anno.textContent = ` ${courtAnnotation}`;
     el.appendChild(anno);
+    full.push(courtAnnotation);
   }
+
+  // A single description also exposes anything visually ellipsized in a narrow court column.
+  el.title = full.join(' · ');
+  el.setAttribute('role', 'note');
+  el.setAttribute('aria-label', el.title);
 
   return el;
 }

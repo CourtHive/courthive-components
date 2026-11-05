@@ -348,6 +348,8 @@ export interface ScheduleCellConfig {
   body: ScheduleCellField[];
   footer: ScheduleCellField[];
   participantDisplay?: ParticipantDisplayConfig;
+  /** Localized time modifiers; short labels fit the grid, full labels explain them on hover and to assistive tech. */
+  timeModifierLabels?: Record<string, { label: string; short?: string }>;
 }
 
 /** Participant info for a single side of a matchUp cell */
