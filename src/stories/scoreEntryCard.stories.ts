@@ -402,3 +402,62 @@ export const NineTimedBolts = {
     await expect(canvasElement.querySelector(ROW_HEAD)!.textContent).not.toContain('PLAYER');
   }
 };
+
+/** Extra time and a shootout (`-O:2X/T15P-F:SO5`): 1-1 after ninety minutes, 0-0 after extra time, 4-3 on penalties. */
+const SHOOTOUT_FORMAT = 'HAL2XA-S:T45P-O:2X/T15P-F:SO5';
+const SHOOTOUT_SETS = [
+  { setNumber: 1, side1Score: 1, side2Score: 0 },
+  { setNumber: 2, side1Score: 0, side2Score: 1 },
+  { setNumber: 3, side1Score: 0, side2Score: 0 },
+  { setNumber: 4, side1Score: 0, side2Score: 0 },
+  { setNumber: 5, side1Score: 4, side2Score: 3 }
+];
+
+const headings = (canvasElement: HTMLElement) =>
+  [...canvasElement.querySelectorAll<HTMLElement>(`${ROW_HEAD} > *`)]
+    .map((cell) => cell.textContent?.trim())
+    .filter(Boolean);
+
+const extraTimeAndShootout = {
+  render: () => frame(cardWithSets(SHOOTOUT_SETS, { matchUpFormat: SHOOTOUT_FORMAT, context: 'Final · Pitch 1' }), 900),
+  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+    // The extra-time periods and the shootout are headed by what they are, not as a 3rd, 4th and 5th set
+    const heads = headings(canvasElement);
+    await expect(heads).toEqual(expect.arrayContaining(['1st', '2nd', 'OT1', 'OT2', 'SO']));
+    await expect(heads).not.toContain('3rd');
+
+    // The scoring engine decides the match on the shootout tally, so the result can be submitted
+    const submit = canvasElement.querySelector<HTMLButtonElement>(SUBMIT);
+    await expect(submit!.disabled).toBe(false);
+    await expect(canvasElement.querySelector<HTMLElement>(BAND)!.textContent).toContain(
+      'Rosalind Lem def. Derrick Ellul'
+    );
+  }
+};
+
+export const ExtraTimeAndShootout = { name: 'Overtime — extra time, then a shootout', ...extraTimeAndShootout };
+
+export const ExtraTimeAndShootoutDark = {
+  name: 'Overtime — extra time, then a shootout (dark)',
+  globals: { theme: 'dark' },
+  ...extraTimeAndShootout
+};
+
+export const DecidedRegulationOpensNoOvertime = {
+  name: 'Overtime — a decided regulation opens no extra period',
+  render: () =>
+    frame(
+      cardWithSets(
+        [
+          { setNumber: 1, side1Score: 2, side2Score: 0 },
+          { setNumber: 2, side1Score: 0, side2Score: 1 }
+        ],
+        { matchUpFormat: 'HAL2XA-S:T40P-O:1/T10P', context: 'Pool A · Pitch 2' }
+      )
+    ),
+  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+    // 2-1 after regulation is the result: no overtime column opens, and Submit is live
+    await expect(headings(canvasElement)).not.toContain('OT1');
+    await expect(canvasElement.querySelector<HTMLButtonElement>(SUBMIT)!.disabled).toBe(false);
+  }
+};

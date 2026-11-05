@@ -89,7 +89,8 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     params.store ??
     createScoreEntryStore({ matchUpFormat: params.matchUpFormat, approach: 'dialPad', sets: params.sets });
   const config = matchUpConfigFor(store.get().matchUpFormat);
-  const setCount = store.get().sets.length;
+  // read live: under unlimited overtime the sets grow one period at a time (`withOvertimeRoom`)
+  const setCount = () => store.get().sets.length;
   /** Whether the next digit is entered as a tiebreak rather than as games. Presentation: see the header. */
   let tiebreakMode = false;
   /** The Tiebreak key, so `changed` can offer or withdraw it as the games change. */
@@ -270,7 +271,7 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
    * one ahead of it.
    */
   function openTiebreakOnlySet(): number | undefined {
-    for (let index = 0; index < setCount; index += 1) {
+    for (let index = 0; index < setCount(); index += 1) {
       const entry = model().sets[index];
       if (!tiebreakOnly(index)) {
         if (!filled(entry, 1) || !filled(entry, 2)) return undefined;
@@ -527,7 +528,7 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
    */
   function formatHasTiebreak(): boolean {
     let anyAttachable = false;
-    for (let index = 0; index < setCount; index += 1) {
+    for (let index = 0; index < setCount(); index += 1) {
       if (tiebreakOnly(index)) continue;
       const setFormat = getSetFormatForIndex(index, config);
       if (setFormat?.tiebreakFormat || tiebreakOnlyTarget(setFormat)) anyAttachable = true;

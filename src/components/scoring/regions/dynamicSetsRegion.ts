@@ -48,8 +48,9 @@
  */
 
 import { tiebreakOutstanding, enteredSets, cellValue, isSettled, columns, error } from '../logic/scoreEntrySelectors';
-import { getSetFormatForIndex, matchUpConfigFor, isSetTimed } from '../logic/dynamicSetsLogic';
+import { getSetFormatForIndex, matchUpConfigFor, isSetTiebreakOnly, isSetTimed } from '../logic/dynamicSetsLogic';
 import { ENTRY_SIDE, digitFromCode, hasCommandModifier, otherSide } from '../keyboard';
+import { overtimePhaseOf } from '../../../tools/overtimeEntry/overtimeEntry';
 import { gamesLoser, clearCell, typeDigit } from '../logic/scoreEntryModel';
 import { createScoreEntryStore } from '../logic/scoreEntryStore';
 import { scoreEntryText } from '../logic/scoreEntryText';
@@ -104,17 +105,27 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
   /** A set's placeholders: `ordinal` for English, `number` for a language that has no `1st`. */
   const setValues = (setIndex: number) => ({ ordinal: ordinalSetLabel(setIndex + 1), number: setIndex + 1 });
 
+  /** A set's column heading: its ordinal, or an overtime format's `OT1` / `SO` (`overtimePhaseOf`). */
+  const setHeading = (setIndex: number) => {
+    const placed = overtimePhaseOf(store.get().matchUpFormat, setIndex + 1);
+    if (placed?.phase === 'OVERTIME') return say('overtimeHeading', { period: placed.period });
+    if (placed?.phase === 'DECIDER' && placed.shootout) return say('shootoutHeading');
+    return say('setHeading', setValues(setIndex));
+  };
+
   /** The one truth, shared with the card. Replaced through `store.set`, never mutated. */
   const store =
     params.store ??
     createScoreEntryStore({ matchUpFormat: params.matchUpFormat, approach: 'dynamicSets', sets: params.sets });
   const config = matchUpConfigFor(store.get().matchUpFormat);
-  const setCount = store.get().sets.length;
+  // read live: under unlimited overtime the sets grow one period at a time (`withOvertimeRoom`)
+  const setCount = () => store.get().sets.length;
   let smartComplements = params.smartComplements !== false;
   /**
    * The sets whose games complement has fired. Policy, not score: the model infers the pair from the
    * first digit into an empty cell, and this is what makes it do so ONCE per set, so a correction by hand
-   * stands. Cleared by `[Clear]` and by toggling Smart, exactly as before.
+   * stands. Tiebreak-only sets derive the opponent after every digit of the lower score instead.
+   * Cleared by `[Clear]` and by toggling Smart, exactly as before.
    */
   const complementsUsed = new Set<number>();
 
@@ -199,7 +210,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
 
   function toColumn(slot: Slot): ScoreColumn {
     if (slot.kind === 'tiebreak') return { heading: say('tiebreakHeading'), width: TIEBREAK_COLUMN_WIDTH };
-    return { heading: say('setHeading', setValues(slot.setIndex)) };
+    return { heading: setHeading(slot.setIndex) };
   }
 
   // ── Cells ────────────────────────────────────────────────────────────
@@ -304,7 +315,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
   }
 
   function syncFolds(): void {
-    for (let index = 0; index < setCount; index += 1) syncFold(index);
+    for (let index = 0; index < setCount(); index += 1) syncFold(index);
   }
 
   /** Whether a set shows its result rather than its fields: finished, and not the one under edit. */
@@ -423,7 +434,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
   }
 
   function refreshParentheticals(): void {
-    for (let index = 0; index < setCount; index += 1) {
+    for (let index = 0; index < setCount(); index += 1) {
       for (const sideNumber of [1, 2] as SideNumber[]) writeTiebreakMark(sideNumber, index);
     }
   }
@@ -497,7 +508,11 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
   /** Whether the model may infer the other side from this cell right now. */
   function offersComplement(cell: CellRef): boolean {
     if (!smartComplements) return false;
-    return cell.kind === 'tiebreak' || !complementsUsed.has(cell.setIndex);
+    return (
+      cell.kind === 'tiebreak' ||
+      isSetTiebreakOnly(getSetFormatForIndex(cell.setIndex, config)) ||
+      !complementsUsed.has(cell.setIndex)
+    );
   }
 
   /** Record that a games complement fired for this set, judged by the other cell having moved. */
@@ -577,7 +592,13 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     const empty = valueOf(cell) === undefined;
 
     const digit = digitFromCode(event.code);
-    if (digit !== undefined && slot.kind === 'games' && empty && typedDigit(slot, sideNumber, digit, event.shiftKey)) {
+    const tiebreakOnly = isSetTiebreakOnly(getSetFormatForIndex(slot.setIndex, config));
+    if (
+      digit !== undefined &&
+      slot.kind === 'games' &&
+      (empty || (tiebreakOnly && event.shiftKey)) &&
+      typedDigit(slot, sideNumber, digit, event.shiftKey)
+    ) {
       event.preventDefault();
       return;
     }
@@ -604,7 +625,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
   }
 
   /**
-   * A digit typed into an empty GAMES cell, which is where the complement decides both sides at once.
+   * A digit typed into an empty GAMES cell, or a shifted digit continuing a tiebreak-only lower score.
    *
    * Returns whether it was handled — `false` lets the keystroke through as an ordinary character, which
    * the `input` event then replays into the model exactly as a tap would.
@@ -647,7 +668,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
   /** The set to move on to once this one is complete, or nothing if the model offers no next column. */
   function advanceTarget(setIndex: number): Slot | undefined {
     const next = setIndex + 1;
-    if (next >= setCount) return undefined;
+    if (next >= setCount()) return undefined;
     if (!layout().some((slot) => slot.kind === 'games' && slot.setIndex === next)) return undefined;
     return { kind: 'games', setIndex: next };
   }
@@ -779,7 +800,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
   function applyPendingFocus(): void {
     const target = pendingFocus;
     pendingFocus = undefined;
-    if (!target || target.setIndex >= setCount) return;
+    if (!target || target.setIndex >= setCount()) return;
 
     const cell = cells.get(key(target.kind, target.sideNumber ?? entrySideFor(target), target.setIndex));
     if (!cell) return;

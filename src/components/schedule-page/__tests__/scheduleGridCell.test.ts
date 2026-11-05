@@ -77,3 +77,73 @@ describe('buildScheduleGridCell — blocked cell booking type', () => {
     expect(el.dataset.bookingType).toBe('BLOCKED');
   });
 });
+
+describe('schedule annotation labels', () => {
+  const time = (schedule: any, timeModifierLabels?: Record<string, { label: string; short?: string }>) => {
+    const cell = buildScheduleGridCell(
+      { matchUpId: 'M1', schedule },
+      { header: ['time'], body: [], footer: [], timeModifierLabels }
+    );
+    return cell.querySelector<HTMLElement>('.spl-grid-cell__time');
+  };
+
+  it.each([
+    ['NOT_BEFORE', 'NB', 'Not Before'],
+    ['FOLLOWED_BY', 'Followed by', 'Followed by'],
+    ['NEXT_AVAILABLE', 'Next available', 'Next available'],
+    ['AFTER_REST', 'After rest', 'After rest'],
+    ['TO_BE_ANNOUNCED', 'TBA', 'To be announced'],
+    ['RAIN_DELAY', 'Rain delay', 'Rain delay']
+  ])('never renders the stored %s enum, including without a locale config', (modifier, compact, full) => {
+    const el = time({ timeModifiers: [modifier] })!;
+    expect(el.textContent).toBe(compact);
+    expect(el.title).toBe(full);
+    expect(el.getAttribute('aria-label')).toBe(full);
+  });
+
+  it('keeps a combination, clock and free-text court note, with full hover text', () => {
+    const schedule = {
+      timeModifiers: ['NOT_BEFORE', 'AFTER_REST'],
+      scheduledTime: '11:00',
+      courtAnnotation: 'Court <B>'
+    };
+    const before = JSON.stringify(schedule);
+    const el = time(schedule)!;
+    expect(el.textContent).toBe('NB · After rest 11:00 Court <B>');
+    expect(el.title).toBe('Not Before · After rest · 11:00 · Court <B>');
+    expect(el.querySelector('b')).toBeNull();
+    expect(JSON.stringify(schedule)).toBe(before);
+  });
+
+  it('uses each supplied label and falls back per modifier when the map is partial', () => {
+    const el = time(
+      { timeModifiers: ['NOT_BEFORE', 'TO_BE_ANNOUNCED', 'AFTER_REST'] },
+      { NOT_BEFORE: { label: 'Pas avant' }, TO_BE_ANNOUNCED: { label: 'À annoncer', short: 'À ann.' } }
+    )!;
+    expect(el.textContent).toBe('Pas avant · À ann. · After rest');
+    expect(el.title).toBe('Pas avant · À annoncer · After rest');
+  });
+
+  it('uses new labels on rerender, without a module-level locale snapshot', () => {
+    const schedule = { timeModifiers: ['NOT_BEFORE'], scheduledTime: '11:00' };
+    expect(time(schedule)?.textContent).toBe('NB 11:00');
+    expect(time(schedule, { NOT_BEFORE: { label: 'Nicht vor' } })?.textContent).toBe('Nicht vor 11:00');
+  });
+
+  it('isolates the clock from RTL labels and uses startTime when scheduledTime is absent', () => {
+    const el = time({ timeModifiers: ['NOT_BEFORE'], startTime: '11:00' }, { NOT_BEFORE: { label: 'ليس قبل' } })!;
+    expect(el.textContent).toBe('ليس قبل 11:00');
+    expect(el.querySelector('bdi')?.dir).toBe('ltr');
+  });
+
+  it('humanizes future modifiers, preserving free-text annotations without interpreting them', () => {
+    const el = time({ timeModifiers: ['WEATHER_HOLD'], courtAnnotation: 'NOT_BEFORE court inspection' })!;
+    expect(el.textContent).toBe('Weather hold NOT_BEFORE court inspection');
+    expect(el.querySelector('.spl-grid-cell__court-annotation')?.textContent).toBe(' NOT_BEFORE court inspection');
+  });
+
+  it('renders a court note alone and omits an empty time field', () => {
+    expect(time({ courtAnnotation: 'Court 3 if free' })?.textContent?.trim()).toBe('Court 3 if free');
+    expect(time({})).toBeNull();
+  });
+});

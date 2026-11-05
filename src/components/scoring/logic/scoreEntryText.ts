@@ -75,6 +75,9 @@ export const SCORE_ENTRY_TEXT = {
   // ── Dynamic Sets ──
   setHeading: '{{ordinal}}',
   tiebreakHeading: 'TB',
+  // an overtime format's extra periods and shootout decider (`-O:`, `-F:SO{n}`)
+  overtimeHeading: 'OT{{period}}',
+  shootoutHeading: 'SO',
   editSet: 'Click to edit this set',
   gamesAria: '{{ordinal}} set, side {{side}} games',
   tiebreakAria: '{{ordinal}} set tiebreak, side {{side}} points',

@@ -240,14 +240,15 @@ const HOME_TITLES: Record<NonNullable<HomeSideState['inferred']>, (labels?: Scor
 
 const homeButton = (text: string, action: string, onClick: () => void) => {
   const element = document.createElement('button');
-  element.className = 'button font-medium is-small is-info is-light';
+  element.className = 'button sp-btn sp-btn--sm chc-scorecard-home-action';
+  element.type = 'button';
   element.textContent = text;
   element.dataset.action = action;
   element.addEventListener('click', onClick);
   return element;
 };
 
-// the Home tag and "Set as home" sit beside each team's name, in the header's left then right position
+// Keep home status and actions beneath their team's name, in the header's left then right position.
 function attachHomeTags({
   header,
   states,
@@ -286,6 +287,7 @@ function attachHomeTags({
     }
     if (state.canClearHome)
       wrap.appendChild(homeButton(labels?.clearHome ?? 'Clear', 'clear-home', () => home.onClearHome?.()));
+    header.classList.add('chc-scorecard-header--home');
     side.appendChild(wrap);
   });
 }
