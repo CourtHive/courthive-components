@@ -1,5 +1,21 @@
 # Changelog
 
+## [7.10.0](https://github.com/CourtHive/courthive-components/compare/v7.9.0...v7.10.0) (2026-11-05)
+
+
+### Features
+
+* **scoring:** score entry plays overtime as the scoring engine decides it ([df80227](https://github.com/CourtHive/courthive-components/commit/df80227a767848e2c2e3bbd7af5140df2ce6d174))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.29.0 ([286a23a](https://github.com/CourtHive/courthive-components/commit/286a23ad8ad60ee47aff7afe8dafafcd0cc335f7))
+* **deps:** update tods-competition-factory to 7.30.0 ([#926](https://github.com/CourtHive/courthive-components/issues/926)) ([7c8d054](https://github.com/CourtHive/courthive-components/commit/7c8d054e3457c1234a13672fd915a6316313c3ff))
+* **schedule:** render compact localized time annotations ([#923](https://github.com/CourtHive/courthive-components/issues/923)) ([8371748](https://github.com/CourtHive/courthive-components/commit/837174850ac5f61a0ea70e3951c362d33d114208))
+* **scorecard:** give home controls a separate row beneath team names ([#925](https://github.com/CourtHive/courthive-components/issues/925)) ([9db7cf4](https://github.com/CourtHive/courthive-components/commit/9db7cf485d0256e01f2980a0ba33399120b37c08))
+* **scoring:** keep match tiebreak complements current while typing ([#924](https://github.com/CourtHive/courthive-components/issues/924)) ([7b14fd1](https://github.com/CourtHive/courthive-components/commit/7b14fd10e01c5e6fcd3c00550a68cadd75ebf274))
+
 ## [7.9.0](https://github.com/CourtHive/courthive-components/compare/v7.8.0...v7.9.0) (2026-11-04)
 
 
