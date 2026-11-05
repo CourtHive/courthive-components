@@ -169,7 +169,12 @@ export declare function isEmptyEntry(entry: SetEntry): boolean;
  * How many sets the format can hold: every set of an `exactly` format, otherwise the best-of. An
  * aggregate format with a final tiebreak holds one more, its sudden-death decider, which is set N + 1
  * and never one of the N (factory #5166; CA, 2026-10-04). It opens only on a level total.
+ *
+ * An overtime format holds regulation, its overtime ceiling and its decider; under unlimited overtime
+ * this is regulation's count, and the array grows one set at a time (`withOvertimeRoom`).
  */
 export declare function setCountOf(config: MatchUpConfig): number;
+/** Whether the set at `index` is the one the final-set format (`-F:`) governs, as `validateSetScore` asks. */
+export declare function isFinalSetIndex(index: number, config: MatchUpConfig): boolean;
 /** The set number of an aggregate format's final-tiebreak decider, or `undefined` when it has none. */
 export declare function deciderSetNumberOf(config: MatchUpConfig): number | undefined;

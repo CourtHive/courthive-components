@@ -48,6 +48,7 @@ export type MatchUpConfig = {
     aggregate?: boolean;
     setFormat?: SetFormat;
     finalSetFormat?: SetFormat;
+    overtimeFormat?: Record<string, any>;
 };
 /**
  * Result of smart complement calculation

@@ -64,6 +64,8 @@ export declare const SCORE_ENTRY_TEXT: {
     readonly setNotFinished: "{{set}} is not finished";
     readonly setHeading: "{{ordinal}}";
     readonly tiebreakHeading: "TB";
+    readonly overtimeHeading: "OT{{period}}";
+    readonly shootoutHeading: "SO";
     readonly editSet: "Click to edit this set";
     readonly gamesAria: "{{ordinal}} set, side {{side}} games";
     readonly tiebreakAria: "{{ordinal}} set tiebreak, side {{side}} points";
