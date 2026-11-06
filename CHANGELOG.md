@@ -1,5 +1,13 @@
 # Changelog
 
+## [7.11.0](https://github.com/CourtHive/courthive-components/compare/v7.10.0...v7.11.0) (2026-11-06)
+
+
+### Features
+
+* **scorecard:** edit the home team from a corner gear, with a HOME label above the name ([#931](https://github.com/CourtHive/courthive-components/issues/931)) ([c24aea5](https://github.com/CourtHive/courthive-components/commit/c24aea5db9830e657fde59f15f5990ffef7067c6))
+* **scoring:** signpost walkover, retired and defaulted from the Other… menu ([#930](https://github.com/CourtHive/courthive-components/issues/930)) ([b4eeda5](https://github.com/CourtHive/courthive-components/commit/b4eeda53c857b3ecd2978a318ead5d3c72340d3b))
+
 ## [7.10.0](https://github.com/CourtHive/courthive-components/compare/v7.9.0...v7.10.0) (2026-11-05)
 
 
