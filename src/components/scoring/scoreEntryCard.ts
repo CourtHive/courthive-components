@@ -15,7 +15,8 @@
  *     header          title · context · format chip · approach switcher · close
  *     participant rows  name, seed, the score region's cells, the per-side "ended early" control
  *     score region      ← the only variable part: per-set inputs, a text field, or a keypad
- *     endings row     the seven match-level endings, three privileged and the rest behind Other…
+ *     endings row     the match-level endings, three privileged and the rest behind Other…, which
+ *                     also signposts the per-side endings to the rows
  *     result band     what will be submitted, said before it is
  *     footer          Cancel left, Clear + Submit right
  *
@@ -447,6 +448,17 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   /** Which side's ending panel is open, if any. Presentation only — not part of the outcome. */
   let openPanelSide: SideNumber | undefined;
   let otherMenuOpen = false;
+  /**
+   * A side ending chosen from Other… that still needs its player. Presentation only — nothing is recorded
+   * until a name is clicked, because Walkover, Retired and Defaulted are always ABOUT one side.
+   *
+   * CA, 2026-11-05: *"users don't know how to find the walkover, retired, defaulted options... the (Other)
+   * button can have those three options but when they're selected they HIGHLIGHT the down carets that are
+   * next to the player names"*. The menu item is a signpost to the per-side control, never a second way to
+   * record: clicking the highlighted name opens that side's panel with the ending already selected, which
+   * is what the caret would have done by hand.
+   */
+  let pendingSideEnding: string | undefined;
   /** The reposition handler while the endings menu is open, so it can be removed when it closes. */
   let trackedEndingsMenu: (() => void) | undefined;
   let approachMenuOpen = false;
@@ -484,11 +496,39 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   element.addEventListener('mousedown', shieldMenus, true);
   element.addEventListener('click', shieldMenus, true);
 
-  /** Close whichever menu is open; whether one was. The dialog calls this on Escape, before Cancel. */
+  /**
+   * A click anywhere but a highlighted name (or the menu item that armed it) abandons the player pick.
+   *
+   * Capture phase, and NOT a full render: the click still reaches what was under it, and re-rendering here
+   * would replace a score cell before the click could focus it. Only the highlight and the band change.
+   */
+  element.addEventListener(
+    'click',
+    (event) => {
+      if (!pendingSideEnding) return;
+      if ((event.target as HTMLElement | null)?.closest('[data-picking="true"], [data-side-ending]')) return;
+      abandonPlayerPick();
+    },
+    true
+  );
+
+  function abandonPlayerPick(): void {
+    pendingSideEnding = undefined;
+    for (const opener of rowsContainer.querySelectorAll<HTMLElement>('[data-picking="true"]')) {
+      opener.dataset.picking = 'false';
+    }
+    renderDerived();
+  }
+
+  /**
+   * Close whichever menu is open, or abandon a pending player pick; whether there was one. The dialog calls
+   * this on Escape, before Cancel.
+   */
   function closeMenus(): boolean {
-    if (!approachMenuOpen && !otherMenuOpen) return false;
+    if (!approachMenuOpen && !otherMenuOpen && !pendingSideEnding) return false;
     approachMenuOpen = false;
     otherMenuOpen = false;
+    pendingSideEnding = undefined;
     render();
     return true;
   }
@@ -745,6 +785,8 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
   /** Every ending control goes through here: one transition, one new model. */
   function choose(intent: EndingIntent): void {
+    // Any recorded ending answers the question a pending pick was asking, whichever control recorded it.
+    pendingSideEnding = undefined;
     store.set(chooseEnding(model(), intent));
   }
 
@@ -1353,7 +1395,13 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     opener.append(text('chc-sec-name', side.participantName));
     if (side.seed) opener.append(text('chc-sec-seed', side.seed));
     opener.append(icon('m6 9 6 6 6-6', 2.5));
+    // Highlighted while a side ending from Other… waits for its player.
+    opener.dataset.picking = String(!!pendingSideEnding);
     opener.addEventListener('click', () => {
+      if (pendingSideEnding) {
+        pickPlayerForEnding(sideNumber, pendingSideEnding);
+        return;
+      }
       openPanelSide = openPanelSide === sideNumber ? undefined : sideNumber;
       otherMenuOpen = false;
       render();
@@ -1383,6 +1431,26 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     else row.append(participant, ...cells);
 
     return row;
+  }
+
+  /**
+   * Finish a pick armed from Other…: record the ending against this side and open its panel.
+   *
+   * The same transition as the panel's own option — so the reason codes and "neither advances" are one
+   * Tab away, exactly as if the operator had found the caret themselves. Not a toggle: `choose` un-chooses
+   * an ending picked twice, and a player clicked for a Walkover that row already holds should keep it.
+   */
+  function pickPlayerForEnding(sideNumber: SideNumber, status: string): void {
+    pendingSideEnding = undefined;
+    const current = chosen().sideEnding;
+    if (endingOffered(status) && !(current?.sideNumber === sideNumber && current.status === status)) {
+      choose({ kind: 'side', sideNumber, status });
+      clearScoreWhenEndingCarriesNone();
+    }
+    openPanelSide = sideNumber;
+    otherMenuOpen = false;
+    render();
+    focusAfterShortcut(sideNumber, status);
   }
 
   function sidePanel(sideNumber: SideNumber): HTMLElement {
@@ -1482,7 +1550,9 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       endingsContainer.append(matchEndingButton(status, labels[status] ?? status));
     }
 
-    if (!others.length) return;
+    // The per-side endings, listed again here as signposts to the rows (see `pendingSideEnding`).
+    const sideEndings = sideEndingOptions().filter((status) => !disabledStatuses.has(status));
+    if (!others.length && !sideEndings.length) return;
 
     const otherSelected = !!chosen().matchEnding && others.includes(chosen().matchEnding);
     // ── The chip says what was CHOSEN, not that a choice exists ──
@@ -1529,6 +1599,8 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     }
 
     const menu = div(CLS_MENU);
+    for (const status of sideEndings) menu.append(sideEndingSignpost(status));
+    if (sideEndings.length && others.length) menu.append(div('chc-sec-other-divider'));
     for (const status of others) {
       const selected = chosen().matchEnding === status;
       const item = button('', CLS_MENU_ITEM);
@@ -1547,6 +1619,34 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     }
     endingsContainer.append(menu);
     trackEndingsMenu(menu, other);
+  }
+
+  /**
+   * A per-side ending in the Other… menu. It records nothing: it arms the player pick, closes the menu and
+   * highlights both names, and the band asks which player. Refused on the same terms as the panel option,
+   * so it cannot lead the operator to a control that will turn them away.
+   */
+  function sideEndingSignpost(status: string): HTMLButtonElement {
+    const item = button('', `${CLS_MENU_ITEM} chc-sec-other-item-side`);
+    item.dataset.sideEnding = status;
+
+    const stack = div('chc-sec-side-option-label');
+    stack.append(text('', labels[status] ?? status));
+    const hint = SIDE_ENDING_HINTS[status];
+    if (hint) stack.append(text('chc-sec-side-option-hint', say(hint)));
+    item.append(div(CLS_CHECK), stack, text('chc-sec-other-item-pick', say('pickPlayer')));
+
+    item.disabled = !endingOffered(status);
+    if (item.disabled) item.title = refusalReason(status);
+
+    item.addEventListener('click', () => {
+      otherMenuOpen = false;
+      openPanelSide = undefined;
+      pendingSideEnding = status;
+      render();
+      element.querySelector<HTMLElement>('button[data-picking="true"]')?.focus();
+    });
+    return item;
   }
 
   /**
@@ -1636,6 +1736,17 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   }
 
   function renderBand(resolution: ScoreEntryResolution): void {
+    // A pending player pick is the one question the card is asking, so it outranks the summary.
+    if (pendingSideEnding) {
+      band.replaceChildren();
+      band.dataset.tone = 'pick';
+      band.setAttribute('role', 'status');
+      band.append(
+        text(CLS_BAND_HEADLINE, say('pickPlayerPrompt', { status: labels[pendingSideEnding] ?? pendingSideEnding }))
+      );
+      return;
+    }
+
     // An integrity failure outranks everything else the band might say. Reporting "not a finished result"
     // for a 3-7 would be true and useless; the operator needs to know WHICH set is wrong and why.
     const problem = scoreError();

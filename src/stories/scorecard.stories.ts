@@ -174,9 +174,10 @@ export const TeamVsHeaderOnly = {
 };
 
 /**
- * The dual's home team, tagged where it falls. `basis` picks how it was decided: EXPLICIT (set), VENUE or
- * HOST_ORGANISATION (inferred: the tag is dashed and its tooltip names the basis), NONE (no home team). "Set as home"
- * and "Clear" record it through the factory and re-render.
+ * The dual's home team, labelled where it falls. `basis` picks how it was decided: EXPLICIT (set), VENUE or
+ * HOST_ORGANISATION (inferred: the label is muted and its tooltip names the basis), NONE (no home team). The corner
+ * gear edits it: select a team, select it again for none, then the check records it through the factory and
+ * re-renders. Escape or Cancel leaves it as it was.
  */
 export const HomeTeam = {
   args: { basis: 'VENUE', swapSides: false },

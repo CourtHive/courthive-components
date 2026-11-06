@@ -33,11 +33,26 @@ export interface ScorecardLabels {
   restore?: string;
   manual?: string;
   winner?: string;
-  /** the home team: its tag, the tag's tooltip when the home team was inferred, the set and clear actions */
+  /** the home team: its label, and the label's tooltip when the home team was inferred */
   home?: string;
   homeVenue?: string;
   homeHostOrganisation?: string;
+  /** editing the home team: the corner gear and check, and the group of the two teams */
+  editHome?: string;
+  saveHome?: string;
+  homeTeam?: string;
+  /** the edit bar's instruction; `NoClear` when the set home cannot be removed, and the two inferred-home variants */
+  homeEditHint?: string;
+  homeEditHintNoClear?: string;
+  homeInferredVenueHint?: string;
+  homeInferredHostHint?: string;
+  /** the edit bar's draft, `{{name}}` the team's name; and its message when the save was refused */
+  homeDraft?: string;
+  homeDraftNone?: string;
+  homeSaveFailed?: string;
+  /** @deprecated the per-name "Set as home" and "Clear" buttons are gone (home is edited from the gear); ignored */
   setHome?: string;
+  /** @deprecated see `setHome`; ignored */
   clearHome?: string;
 }
 
