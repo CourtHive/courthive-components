@@ -41,6 +41,8 @@ export const SCORE_ENTRY_TEXT = {
   hintWalkover: 'Did not play at all — no score',
   hintRetired: 'Started, could not finish — score kept',
   hintDefaulted: 'Removed by the referee',
+  pickPlayer: 'Choose player',
+  pickPlayerPrompt: '{{status}} — click the player it applies to',
   reason: 'REASON',
   bothSidesOut: '{{name}} did not appear either — no one advances',
   endingNeedsScore: 'No score yet — {{status}} keeps the score that was played',

@@ -210,6 +210,30 @@
   transform: rotate(180deg);
 }
 
+/* Waiting for its player: a side ending chosen from Other… highlights both names until one is clicked
+   (CA, 2026-11-05 — the caret was the control nobody found). The ring is the signal, so it holds still
+   for anyone who asked for less motion. */
+.chc-sec-opener[data-picking='true'] {
+  border-color: var(--chc-card-accent);
+  box-shadow: 0 0 0 2px var(--chc-card-accent);
+}
+
+.chc-sec-opener[data-picking='true'] svg {
+  color: var(--chc-card-accent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .chc-sec-opener[data-picking='true'] {
+    animation: chc-sec-pick-pulse 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes chc-sec-pick-pulse {
+  50% {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--chc-card-accent) 30%, transparent);
+  }
+}
+
 /* The chosen ending, named on the row it belongs to — the language the walkover artboard already used.
    The warning triangle was only ever the unselected face of this. */
 .chc-sec-row-ending {
@@ -370,6 +394,25 @@
   font-weight: 600;
 }
 
+/* The per-side endings at the top of Other…: signposts to the rows, set apart from the match endings. */
+.chc-sec-other-item:disabled {
+  color: var(--chc-text-secondary);
+  cursor: not-allowed;
+}
+
+.chc-sec-other-item-pick {
+  margin-left: auto;
+  color: var(--chc-text-secondary);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.chc-sec-other-divider {
+  height: 4px;
+  background: var(--chc-bg-secondary);
+  border-bottom: 1px solid var(--chc-border-secondary);
+}
+
 /* The per-side panel: "What happened to <name>?" */
 
 .chc-sec-side-panel {
@@ -475,6 +518,11 @@
 .chc-sec-band[data-tone='neutral'] {
   background: var(--chc-bg-secondary);
   color: var(--chc-text-secondary);
+}
+
+.chc-sec-band[data-tone='pick'] {
+  background: var(--chc-card-accent);
+  color: var(--chc-card-on-accent);
 }
 
 .chc-sec-band-headline {
