@@ -5,10 +5,12 @@
  *
  * - the home team's name carries a Home tag where it falls, also through a swap: no side moves;
  * - an inferred home (VENUE / HOST_ORGANISATION) is marked inferred, its basis in the tooltip and aria label;
- * - with `onSetHome`, each team not already set as home offers "Set as home", which hands back its participantId;
- *   setting it with the factory's `setMatchUpHomeParticipantId` and re-rendering moves the tag;
- * - with `onClearHome`, a set home offers "Clear"; the factory clears it with `homeParticipantId: ''`;
- * - no `home`, or basis NONE, renders no tag and no action.
+ * - with `onSetHome`, a corner gear opens an edit: the teams become toggles, a bar says what to do, the gear becomes
+ *   the check that saves. Save sends one change, recorded here with the factory's `setMatchUpHomeParticipantId`;
+ * - with `onClearHome`, selecting the set home again leaves no home team; the factory clears with `homeParticipantId: ''`;
+ * - Cancel and Escape send nothing, a Save with no change sends nothing, a refused save keeps the edit open;
+ * - the home edit and the team-score editor never show together;
+ * - no `home`, or basis NONE, renders no tag; no `onSetHome`, no gear.
  *
  * Run interactively: `pnpm storybook`
  * Run as tests:      `pnpm test:stories` (Storybook's Vitest integration, headless Chromium)
@@ -31,8 +33,13 @@ export default meta;
 
 const HOST_TESTID = 'home-team-host';
 const HOME_TAG = '.chc-scorecard-home-tag';
-const SET_HOME = '[data-action="set-home"]';
-const CLEAR_HOME = '[data-action="clear-home"]';
+const GEAR = '[data-action="edit-home"]';
+const SAVE = '[data-action="save-home"]';
+const CANCEL = '[data-action="cancel-home"]';
+const TARGET = '[data-action="choose-home"]';
+const BAR = '.chc-scorecard-home-bar';
+const ARIA_LABEL = 'aria-label';
+const ARIA_PRESSED = 'aria-pressed';
 const SIDE = '.chc-scorecard-side';
 
 const getHost = (canvasElement: HTMLElement) =>
@@ -78,7 +85,8 @@ export const TaggedWhereItFalls: StoryObj = {
     );
     expect(sideOf(host, 0).querySelector(HOME_TAG)).toBeNull();
     expect(host.querySelector(`${HOME_TAG}--inferred`)).toBeNull();
-    expect(host.querySelector(SET_HOME)).toBeNull();
+    // nothing to record it with, so no gear
+    expect(host.querySelector(GEAR)).toBeNull();
 
     host.replaceChildren(renderScorecard({ matchUp: dual, composition: compositions.National, swapSides: true, home }));
     expect(sideOf(host, 0).querySelector(HOME_TAG)).not.toBeNull();
@@ -106,9 +114,9 @@ export const InferredHomeShowsItsBasis: StoryObj = {
     expect(venueTag.classList.contains('chc-scorecard-home-tag--inferred')).toBe(true);
     expect(venueTag.dataset.basis).toBe('VENUE');
     expect(venueTag.title).toBe('Home (venue)');
-    expect(venueTag.getAttribute('aria-label')).toBe('Home (venue)');
-    // nothing is stored for an inferred home, so there is nothing to clear
-    expect(host.querySelector(CLEAR_HOME)).toBeNull();
+    expect(venueTag.getAttribute(ARIA_LABEL)).toBe('Home (venue)');
+    // clearing alone is no way to choose a home team: no gear without `onSetHome`
+    expect(host.querySelector(GEAR)).toBeNull();
 
     host.replaceChildren(
       renderScorecard({
@@ -124,67 +132,188 @@ export const InferredHomeShowsItsBasis: StoryObj = {
   }
 };
 
-export const SetAsHomeThroughTheFactory: StoryObj = {
+const click = (host: HTMLElement, selector: string) => (host.querySelector(selector) as HTMLButtonElement).click();
+const target = (host: HTMLElement, index: number) => host.querySelectorAll<HTMLButtonElement>(TARGET)[index];
+const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+/** a card wired to the factory, re-rendered after each save as a host would */
+function factoryCard(host: HTMLElement, extra: Record<string, any> = {}) {
+  const { drawId, dual, getDual, side1, side2 } = generateDual();
+  const record = (homeParticipantId: string) => {
+    const result = tournamentEngine.setMatchUpHomeParticipantId({
+      matchUpId: dual.matchUpId,
+      homeParticipantId,
+      drawId
+    });
+    expect(result.success).toBe(true);
+    draw();
+  };
+  const onSetHome = fn((participantId: string) => record(participantId));
+  const onClearHome = fn(() => record(''));
+  const draw = () => {
+    const matchUp = getDual();
+    const homeParticipantId = matchUp.schedule?.homeParticipantId;
+    host.replaceChildren(
+      renderScorecard({
+        matchUp,
+        composition: compositions.National,
+        home: { homeParticipantId, basis: homeParticipantId ? 'EXPLICIT' : 'NONE', onSetHome, onClearHome },
+        ...extra
+      })
+    );
+  };
+  draw();
+  return { getDual, side1, side2, onSetHome, onClearHome };
+}
+
+export const EditThroughTheFactory: StoryObj = {
   render: renderHost,
   play: async ({ canvasElement }) => {
     const host = getHost(canvasElement);
-    const { drawId, dual, getDual, side1, side2 } = generateDual();
-    const onSetHome = fn((participantId: string) => {
-      const result = tournamentEngine.setMatchUpHomeParticipantId({
-        homeParticipantId: participantId,
-        matchUpId: dual.matchUpId,
-        drawId
-      });
-      expect(result.success).toBe(true);
-      draw();
-    });
-    const onClearHome = fn(() => {
-      const result = tournamentEngine.setMatchUpHomeParticipantId({
-        homeParticipantId: '',
-        matchUpId: dual.matchUpId,
-        drawId
-      });
-      expect(result.success).toBe(true);
-      draw();
-    });
-    const draw = () => {
-      const matchUp = getDual();
-      const homeParticipantId = matchUp.schedule?.homeParticipantId;
-      host.replaceChildren(
-        renderScorecard({
-          matchUp,
-          composition: compositions.National,
-          home: { homeParticipantId, basis: homeParticipantId ? 'EXPLICIT' : 'NONE', onSetHome, onClearHome }
-        })
-      );
-    };
+    const { getDual, side1, side2, onSetHome, onClearHome } = factoryCard(host);
 
-    draw();
-    // no home team yet: no tag, and both teams offer "Set as home"
+    // no home team yet: no tag, a gear, and nothing to edit until it is opened
     expect(host.querySelector(HOME_TAG)).toBeNull();
-    const offers = [...host.querySelectorAll<HTMLButtonElement>(SET_HOME)];
-    expect(offers.map((offer) => offer.dataset.participantId)).toEqual([side1.participantId, side2.participantId]);
-    expect(offers[0].classList.contains('button')).toBe(true);
-    expect(offers[0].textContent).toBe('Set as home');
+    expect(host.querySelector(TARGET)).toBeNull();
+    expect(host.querySelector(GEAR)?.getAttribute(ARIA_LABEL)).toBe('Edit home team');
 
-    offers[1].click();
-    expect(onSetHome).toHaveBeenCalledWith(side2.participantId);
+    click(host, GEAR);
+    expect(host.querySelectorAll(TARGET)).toHaveLength(2);
+    expect(host.querySelector(GEAR)).toBeNull();
+    expect(host.querySelector(SAVE)?.getAttribute(ARIA_LABEL)).toBe('Save home team');
+    expect(host.querySelector(BAR)?.getAttribute('role')).toBe('status');
+    expect(host.querySelector(BAR)?.textContent).toContain('select it again for no home team');
+    expect(document.activeElement).toBe(target(host, 0));
+
+    // choosing moves the label in the draft and records nothing yet
+    target(host, 1).click();
     expect(sideOf(host, 1).querySelector(HOME_TAG)).not.toBeNull();
-    // a set home is not offered again; the other team still is
-    expect(sideOf(host, 1).querySelector(SET_HOME)).toBeNull();
-    (sideOf(host, 0).querySelector(SET_HOME) as HTMLButtonElement).click();
-    expect(onSetHome).toHaveBeenLastCalledWith(side1.participantId);
-    expect(sideOf(host, 0).querySelector(HOME_TAG)).not.toBeNull();
-    expect(sideOf(host, 1).querySelector(HOME_TAG)).toBeNull();
+    expect(target(host, 1).getAttribute(ARIA_PRESSED)).toBe('true');
+    expect(host.querySelector(BAR)?.textContent).toContain(`Home: ${side2.participant.participantName} (unsaved)`);
+    expect(onSetHome).not.toHaveBeenCalled();
 
-    // Clear sits on the home team only, and leaves no home team
-    expect(host.querySelectorAll(CLEAR_HOME)).toHaveLength(1);
-    (sideOf(host, 0).querySelector(CLEAR_HOME) as HTMLButtonElement).click();
+    click(host, SAVE);
+    await settle();
+    expect(onSetHome).toHaveBeenCalledTimes(1);
+    expect(onSetHome).toHaveBeenCalledWith(side2.participantId);
+    expect(getDual().schedule?.homeParticipantId).toBe(side2.participantId);
+    expect(sideOf(host, 1).querySelector(HOME_TAG)).not.toBeNull();
+    expect(host.querySelector(GEAR)).not.toBeNull();
+
+    // selecting the home team again leaves none: Save clears it
+    click(host, GEAR);
+    expect(document.activeElement).toBe(target(host, 1));
+    target(host, 1).click();
+    expect(host.querySelector(HOME_TAG)).toBeNull();
+    expect(host.querySelector(BAR)?.textContent).toContain('No home team set (unsaved)');
+    click(host, SAVE);
+    await settle();
     expect(onClearHome).toHaveBeenCalledTimes(1);
     expect(getDual().schedule?.homeParticipantId).toBeUndefined();
     expect(host.querySelector(HOME_TAG)).toBeNull();
-    expect(host.querySelector(CLEAR_HOME)).toBeNull();
-    expect(host.querySelectorAll(SET_HOME)).toHaveLength(2);
+    expect(side1.participantId).toBeTruthy();
+  }
+};
+
+export const CancelEscapeAndNoChangeSendNothing: StoryObj = {
+  render: renderHost,
+  play: async ({ canvasElement }) => {
+    const host = getHost(canvasElement);
+    const { onSetHome, onClearHome } = factoryCard(host);
+
+    click(host, GEAR);
+    target(host, 0).click();
+    click(host, CANCEL);
+    expect(host.querySelector(HOME_TAG), 'the draft is discarded').toBeNull();
+    expect(host.querySelector(BAR)).toBeNull();
+    expect(document.activeElement).toBe(host.querySelector(GEAR));
+
+    click(host, GEAR);
+    target(host, 1).click();
+    target(host, 1).dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    expect(host.querySelector(HOME_TAG)).toBeNull();
+    expect(host.querySelector(TARGET)).toBeNull();
+
+    // chosen and unchosen again: Save just closes
+    click(host, GEAR);
+    target(host, 0).click();
+    target(host, 0).click();
+    click(host, SAVE);
+    await settle();
+    expect(host.querySelector(TARGET)).toBeNull();
+    expect(onSetHome).not.toHaveBeenCalled();
+    expect(onClearHome).not.toHaveBeenCalled();
+  }
+};
+
+export const InferredHomeIsConfirmedNotCleared: StoryObj = {
+  render: renderHost,
+  play: async ({ canvasElement }) => {
+    const host = getHost(canvasElement);
+    const { dual, side1 } = generateDual();
+    const onSetHome = fn();
+    host.appendChild(
+      renderScorecard({
+        matchUp: dual,
+        composition: compositions.National,
+        home: { homeParticipantId: side1.participantId, basis: 'VENUE', onSetHome, onClearHome: fn() }
+      })
+    );
+
+    click(host, GEAR);
+    expect(host.querySelector(BAR)?.textContent).toContain('Home comes from the venue');
+    expect(target(host, 0).getAttribute(ARIA_PRESSED), 'inferred is not chosen').toBe('false');
+
+    // selecting it confirms it; selecting it again goes back to the inferred home, not to none
+    target(host, 0).click();
+    expect(sideOf(host, 0).querySelector(`${HOME_TAG}--inferred`)).toBeNull();
+    target(host, 0).click();
+    expect(sideOf(host, 0).querySelector(`${HOME_TAG}--inferred`)).not.toBeNull();
+
+    target(host, 0).click();
+    click(host, SAVE);
+    await settle();
+    expect(onSetHome).toHaveBeenCalledWith(side1.participantId);
+    // the caller did not re-render: the card shows what was saved
+    expect(sideOf(host, 0).querySelector(HOME_TAG)).not.toBeNull();
+    expect(sideOf(host, 0).querySelector(`${HOME_TAG}--inferred`)).toBeNull();
+  }
+};
+
+export const RefusedSaveKeepsTheEdit: StoryObj = {
+  render: renderHost,
+  play: async ({ canvasElement }) => {
+    const host = getHost(canvasElement);
+    const { dual } = generateDual();
+    const onSetHome = fn(async () => false);
+    host.appendChild(renderScorecard({ matchUp: dual, composition: compositions.National, home: { onSetHome } }));
+
+    click(host, GEAR);
+    target(host, 1).click();
+    click(host, SAVE);
+    await settle();
+    expect(onSetHome).toHaveBeenCalledTimes(1);
+    expect(host.querySelector(TARGET), 'still editing').not.toBeNull();
+    expect(target(host, 1).getAttribute(ARIA_PRESSED), 'the choice is kept').toBe('true');
+    expect(host.querySelector(BAR)?.textContent).toContain('Not saved');
+    expect((host.querySelector(SAVE) as HTMLButtonElement).disabled).toBe(false);
+  }
+};
+
+export const HomeEditAndTeamScoreTakeTurns: StoryObj = {
+  render: renderHost,
+  play: async ({ canvasElement }) => {
+    const host = getHost(canvasElement);
+    factoryCard(host, { teamScore: { onOverride: fn() } });
+    const controls = () => host.querySelector<HTMLElement>('.chc-scorecard-score-controls')!;
+
+    click(host, GEAR);
+    expect(getComputedStyle(controls()).display).toBe('none');
+    click(host, CANCEL);
+    expect(getComputedStyle(controls()).display).not.toBe('none');
+
+    click(host, '[data-action="override-team-score"]');
+    expect(getComputedStyle(host.querySelector(GEAR) as HTMLElement).display).toBe('none');
   }
 };
 
@@ -196,6 +325,7 @@ export const NoHomeNoTag: StoryObj = {
 
     host.appendChild(renderScorecard({ matchUp: dual, composition: compositions.National }));
     expect(host.querySelector('.chc-scorecard-home')).toBeNull();
+    expect(host.querySelector(GEAR)).toBeNull();
 
     host.replaceChildren(
       renderScorecard({
@@ -205,6 +335,6 @@ export const NoHomeNoTag: StoryObj = {
       })
     );
     expect(host.querySelector(HOME_TAG)).toBeNull();
-    expect(host.querySelector(SET_HOME)).toBeNull();
+    expect(host.querySelector(GEAR)).toBeNull();
   }
 };
