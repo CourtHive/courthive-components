@@ -33,6 +33,7 @@ const SET_1_SIDE_1 = 'input[data-side="1"][data-set="1"]';
 const SET_1_SIDE_2 = 'input[data-side="2"][data-set="1"]';
 const FREE_SCORE_INPUT = '.chc-sec-score-region input';
 const CLEAR = 'button[data-action="clear"]';
+const OTHER = 'button[data-action="other"]';
 const BOTH_OUT = 'input[data-action="bothSidesOut"]';
 
 /**
@@ -131,7 +132,7 @@ describe('the dialog with every key translated', () => {
     expect(modal().querySelectorAll('.chc-sec-reasons button[data-reason]').length).toBeGreaterThan(0);
     expectTranslated('a retirement with its reasons');
 
-    click('button[data-action="other"]');
+    click(OTHER);
     expectTranslated('the Other menu');
   });
 
@@ -197,11 +198,18 @@ describe('the dialog with every key translated', () => {
     }
   });
 
+  it('a side ending chosen from Other…, waiting for its player', () => {
+    openScoreEntryDialog({ sides: SIDES, matchUpFormat: FORMAT, labels: LABELS });
+    click(OTHER);
+    click('.chc-sec-other-menu button[data-side-ending="WALKOVER"]');
+    expectTranslated('a walkover signposted to the player names');
+  });
+
   it('a match-level ending: one that clears the part-score, and one that keeps it', () => {
     openScoreEntryDialog({ sides: SIDES, matchUpFormat: FORMAT, labels: LABELS });
     type(SET_1_SIDE_1, '3');
     type(SET_1_SIDE_2, '2');
-    click('button[data-action="other"]');
+    click(OTHER);
     click('.chc-sec-other-menu button[data-ending="CANCELLED"]');
     expectTranslated('a cancellation that clears the part-score, named on its Other chip');
     cModal.close();
