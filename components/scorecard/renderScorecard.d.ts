@@ -19,7 +19,7 @@ export interface ScorecardOptions {
     issueActions?: Record<string, IssueAction>;
     /** the header's team score set by hand; `manual` defaults to whether the issues say it is */
     teamScore?: TeamScoreOptions;
-    /** the dual's home team (see `homeSideStates`): tagged where it falls, settable with `onSetHome` */
+    /** the dual's home team (see `createHomeDraft`): labelled where it falls, edited from the corner gear with `onSetHome` */
     home?: ScorecardHomeOptions;
 }
 export interface IssueAction {

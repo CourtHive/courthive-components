@@ -36,6 +36,8 @@ export declare const SCORE_ENTRY_TEXT: {
     readonly hintWalkover: "Did not play at all — no score";
     readonly hintRetired: "Started, could not finish — score kept";
     readonly hintDefaulted: "Removed by the referee";
+    readonly pickPlayer: "Choose player";
+    readonly pickPlayerPrompt: "{{status}} — click the player it applies to";
     readonly reason: "REASON";
     readonly bothSidesOut: "{{name}} did not appear either — no one advances";
     readonly endingNeedsScore: "No score yet — {{status}} keeps the score that was played";
