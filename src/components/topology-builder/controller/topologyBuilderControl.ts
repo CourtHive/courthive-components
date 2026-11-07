@@ -11,6 +11,7 @@ import { buildEdgeEditor } from '../ui/edgeEditor';
 import { buildToolbar } from '../ui/toolbar';
 import { buildTopologyBuilderLayout } from '../ui/topologyBuilderLayout';
 import { fitByNode, fitKey, ledgerText, steppedDrawSize, steppedQualifiers, takesEntries } from '../domain/drawFit';
+import { journeyEdgeIds, journeySummary, stepsByNode } from '../domain/journey';
 import { buildFooter } from '../ui/footer';
 import { standardTemplates } from '../domain/templates';
 import { validateTopology } from '../domain/topologyValidator';
@@ -24,12 +25,13 @@ import type {
   TopologyMode,
   PlayoffOffer,
   StructureFit,
+  JourneyStep,
   DrawFit,
   UIPanel
 } from '../types';
 import type { FooterPanel } from '../ui/footer';
 import type { ModeToggle } from '../ui/toolbar';
-import type { FitLever, NodeFit } from '../ui/structureCard';
+import type { FitLever, NodeFit, NodeJourney } from '../ui/structureCard';
 
 const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, SINGLE_ELIMINATION, LUCKY_DRAW, WINNER, LOSER } =
   drawDefinitionConstants;
@@ -92,7 +94,15 @@ export class TopologyBuilderControl {
   private buildFooterPanel(): FooterPanel {
     const countPlayoffOffers = this.offersPlayoffs() ? (state: TopologyState) => this.countOffers(state) : undefined;
     const fitLedger = this.config.drawFit ? (state: TopologyState) => ledgerText(this.currentFit(state)) : undefined;
-    return buildFooter({ countPlayoffOffers, fitLedger });
+    const journey = this.config.journey
+      ? {
+          search: (query: string) => this.config.journey!.search(query),
+          choose: (participantId: string) => this.showJourney(participantId),
+          summary: (state: TopologyState) =>
+            state.journeyParticipantId ? journeySummary(state, this.journeyEntry(state).steps) : ''
+        }
+      : undefined;
+    return buildFooter({ countPlayoffOffers, fitLedger, journey });
   }
 
   /** The modes the host has given the topology what it needs for. */
@@ -108,6 +118,15 @@ export class TopologyBuilderControl {
         onTitle: 'Done adding playoffs'
       });
     }
+    if (this.config.journey) {
+      toggles.push({
+        mode: 'journey',
+        label: 'Player journey',
+        unavailable: (state) => (state.nodes.length > 1 ? undefined : 'A single structure has no journey to follow'),
+        offTitle: 'Follow one participant through every connected structure',
+        onTitle: 'Done following'
+      });
+    }
     if (this.config.drawFit) {
       toggles.push({
         mode: 'fit',
@@ -119,6 +138,32 @@ export class TopologyBuilderControl {
       });
     }
     return toggles;
+  }
+
+  // ── Journey mode ──────────────────────────────────────────────────────
+
+  /** Show one participant's journey: the mode, and whose. TMX's "See player journey" opens the topology this way. */
+  showJourney(participantId: string): void {
+    this.store.setJourneyParticipant(participantId);
+    this.setMode('journey');
+  }
+
+  private journeyCache?: { key: string; steps: JourneyStep[]; edges: Set<string>; byNode: Map<string, JourneyStep[]> };
+
+  /** The chosen participant's steps, asked of the host once per participant and topology, not on every render. */
+  private journeyEntry(state: TopologyState) {
+    const participantId = state.journeyParticipantId;
+    const key = `${participantId ?? ''}|${state.nodes.map((n) => n.id).join(',')}|${state.edges.length}`;
+    if (this.journeyCache?.key === key) return this.journeyCache;
+    const steps = participantId && this.config.journey ? this.config.journey.stepsFor(participantId) : [];
+    this.journeyCache = { key, steps, edges: journeyEdgeIds(state, steps), byNode: stepsByNode(steps) };
+    return this.journeyCache;
+  }
+
+  private journeyFor(nodeId: string): NodeJourney | undefined {
+    const state = this.store.getState();
+    if (!state.journeyParticipantId) return undefined;
+    return { steps: this.journeyEntry(state).byNode.get(nodeId) ?? [], onStep: this.config.journey?.onStep };
   }
 
   // ── Fit mode ──────────────────────────────────────────────────────────
@@ -226,6 +271,10 @@ export class TopologyBuilderControl {
             this.handleCreateEdge(sourceNodeId, targetNodeId, linkType);
           },
       onPortMouseDown: () => {},
+      ...(this.config.journey && {
+        journeyFor: (nodeId: string) => this.journeyFor(nodeId),
+        journeyEdges: () => this.journeyEntry(this.store.getState()).edges
+      }),
       ...(this.config.drawFit && {
         fitFor: (nodeId: string) => this.fitFor(nodeId),
         onFitLever: isReadOnly

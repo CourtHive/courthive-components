@@ -608,6 +608,7 @@ export {
   playoffOffersFromProfile,
   playoffOffersByStructure,
   playoffGenerationParams,
+  journeyStepsFromMatchUps,
   offerStructureName,
   canAddVoluntaryConsolation,
   buildTopologyCanvas,
@@ -633,6 +634,10 @@ export type {
   StructureFit,
   FitStatus,
   FitLedgerStage,
+  JourneyStep,
+  JourneyParticipant,
+  JourneyHost,
+  JourneyMatchUp,
   TopologyTemplate,
   DrawOptionsResult,
   ValidationError

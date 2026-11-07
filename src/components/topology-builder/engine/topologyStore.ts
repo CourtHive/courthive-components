@@ -323,7 +323,17 @@ export class TopologyStore {
   loadState(newState: TopologyState): void {
     // The mode is the operator's, not the record's: a host that loads the topology again after a change made in a mode
     // (a playoff added) keeps the operator in it unless the new state names one.
-    this.state = { ...newState, mode: newState.mode ?? this.state.mode };
+    this.state = {
+      ...newState,
+      mode: newState.mode ?? this.state.mode,
+      journeyParticipantId: newState.journeyParticipantId ?? this.state.journeyParticipantId
+    };
+    this.notify();
+  }
+
+  setJourneyParticipant(participantId: string | undefined): void {
+    if (this.state.journeyParticipantId === participantId) return;
+    this.state = { ...this.state, journeyParticipantId: participantId };
     this.notify();
   }
 
