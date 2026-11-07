@@ -648,14 +648,16 @@
 
 /* Active availability-block banner: shown when a court has a non-matchUp
    reservation (PRACTICE / MAINTENANCE / etc.) active at the current clock
-   time. Sits at the top of the cell, full-width, color-coded by block type. */
+   time. Fills the cell's content row, color-coded by block type. Three
+   stacked lines — type, time window, detail — each on its own row so a
+   narrow column never hides the end time behind an ellipsis. */
 .spl-active-strip-block-banner {
   grid-column: 1 / -1;
   grid-row: 2;
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  padding: 3px 6px;
+  gap: 2px;
+  padding: 4px 6px;
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -664,12 +666,32 @@
   color: var(--sp-text);
   border-left: 3px solid var(--sp-text-muted);
   z-index: 1;
+  min-width: 0;
 }
 
+/* A free court is nothing but the banner: centre the stack so an 80px cell
+   doesn't read as two lines of text over a blank field. Over a matchUp (a
+   conflict) it stays top-anchored, reading as a banner laid across the card. */
+.spl-active-strip-cell.state-free > .spl-active-strip-block-banner {
+  justify-content: center;
+}
+
+/* The headline wraps rather than truncates — a label that still carries the
+   time window ("PRACTICE 14:00–16:00") breaks at the space instead of losing
+   its end time. Prefer `timeRange`, which gets the dedicated line below. */
 .spl-active-strip-block-banner .spl-active-strip-block-label {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+}
+
+/* The time window: the line a director actually reads, so it is the largest,
+   and tabular so the digits line up across courts. One line at TMX's 110px
+   column floor; in a narrower column it breaks at the dash (start above, end
+   below) rather than running past the cell edge — both ends stay visible. */
+.spl-active-strip-block-banner .spl-active-strip-block-time {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
 }
 
 .spl-active-strip-block-banner .spl-active-strip-block-detail {
@@ -678,9 +700,7 @@
   text-transform: none;
   letter-spacing: 0;
   opacity: 0.78;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 
 /* Type-specific accents — color the left border (and a tinted background)
