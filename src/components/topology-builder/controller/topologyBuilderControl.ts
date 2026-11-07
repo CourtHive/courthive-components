@@ -9,6 +9,7 @@ import { buildNodeEditor } from '../ui/nodeEditor';
 import { buildEdgeEditor } from '../ui/edgeEditor';
 import { buildToolbar } from '../ui/toolbar';
 import { buildTopologyBuilderLayout } from '../ui/topologyBuilderLayout';
+import { buildFooter } from '../ui/footer';
 import { standardTemplates } from '../domain/templates';
 import { validateTopology } from '../domain/topologyValidator';
 import { getNodeTotalRounds } from '../domain/feedRounds';
@@ -22,6 +23,7 @@ import type {
   PlayoffOffer,
   UIPanel
 } from '../types';
+import type { FooterPanel } from '../ui/footer';
 
 const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, SINGLE_ELIMINATION, LUCKY_DRAW, WINNER, LOSER } =
   drawDefinitionConstants;
@@ -32,6 +34,7 @@ export class TopologyBuilderControl {
   private readonly layout: UIPanel<TopologyState>;
   private readonly unsubscribe: () => void;
   private readonly config: TopologyBuilderConfig;
+  private readonly footer?: FooterPanel;
 
   constructor(config: TopologyBuilderConfig = {}) {
     this.config = config;
@@ -46,25 +49,15 @@ export class TopologyBuilderControl {
     const toolbar = this.buildToolbarPanel(allTemplates, isReadOnly);
     const canvas = this.buildCanvasPanel(isReadOnly);
 
-    const nodeEditor = buildNodeEditor({
-      onUpdateNode: isReadOnly ? () => {} : (nodeId, updates) => this.store.updateNode(nodeId, updates),
-      onUpdateEdge: isReadOnly ? () => {} : (edgeId, updates) => this.store.updateEdge(edgeId, updates),
-      onDeleteNode: isReadOnly ? () => {} : (nodeId) => this.store.removeNode(nodeId),
-      readOnly: isReadOnly,
-      hideDelete: config.hideDelete
-    });
-
-    const edgeEditor = buildEdgeEditor({
-      onUpdateEdge: isReadOnly ? () => {} : (edgeId, updates) => this.store.updateEdge(edgeId, updates),
-      onDeleteEdge: isReadOnly ? () => {} : (edgeId) => this.store.removeEdge(edgeId),
-      readOnly: isReadOnly
-    });
+    const { nodeEditor, edgeEditor } = this.buildEditorPanels(isReadOnly);
+    this.footer = config.footer ? this.buildFooterPanel() : undefined;
 
     this.layout = buildTopologyBuilderLayout({
       toolbar,
       canvas,
       nodeEditor,
-      edgeEditor
+      edgeEditor,
+      footer: this.footer
     });
 
     this.unsubscribe = this.store.subscribe((state) => {
@@ -72,6 +65,27 @@ export class TopologyBuilderControl {
     });
 
     this.layout.update(this.store.getState());
+  }
+
+  private buildEditorPanels(isReadOnly: boolean) {
+    const nodeEditor = buildNodeEditor({
+      onUpdateNode: isReadOnly ? () => {} : (nodeId, updates) => this.store.updateNode(nodeId, updates),
+      onUpdateEdge: isReadOnly ? () => {} : (edgeId, updates) => this.store.updateEdge(edgeId, updates),
+      onDeleteNode: isReadOnly ? () => {} : (nodeId) => this.store.removeNode(nodeId),
+      readOnly: isReadOnly,
+      hideDelete: this.config.hideDelete
+    });
+    const edgeEditor = buildEdgeEditor({
+      onUpdateEdge: isReadOnly ? () => {} : (edgeId, updates) => this.store.updateEdge(edgeId, updates),
+      onDeleteEdge: isReadOnly ? () => {} : (edgeId) => this.store.removeEdge(edgeId),
+      readOnly: isReadOnly
+    });
+    return { nodeEditor, edgeEditor };
+  }
+
+  private buildFooterPanel(): FooterPanel {
+    const countPlayoffOffers = this.offersPlayoffs() ? (state: TopologyState) => this.countOffers(state) : undefined;
+    return buildFooter({ countPlayoffOffers });
   }
 
   private buildToolbarPanel(allTemplates: any[], isReadOnly: boolean) {
@@ -98,8 +112,7 @@ export class TopologyBuilderControl {
         onClear: this.config.onClear,
         ...(this.offersPlayoffs() && {
           onSetMode: (mode: TopologyMode) => this.setMode(mode),
-          countPlayoffOffers: (state: TopologyState) =>
-            state.nodes.reduce((count, node) => count + (this.offersFor(node)?.length ?? 0), 0)
+          countPlayoffOffers: (state: TopologyState) => this.countOffers(state)
         })
       },
       allTemplates,
@@ -145,6 +158,15 @@ export class TopologyBuilderControl {
 
   private offersFor(node: TopologyNode): PlayoffOffer[] | undefined {
     return this.config.playoffOffers?.(node);
+  }
+
+  private countOffers(state: TopologyState): number {
+    return state.nodes.reduce((count, node) => count + (this.offersFor(node)?.length ?? 0), 0);
+  }
+
+  /** The footer's slot for the host's own controls, when the control was built with `footer`. */
+  getFooterSlot(): HTMLElement | undefined {
+    return this.footer?.slot;
   }
 
   /** Change what the canvas is for. Leaving a mode with nothing to do in it is always possible. */

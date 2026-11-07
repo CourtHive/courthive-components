@@ -30,6 +30,7 @@ export { buildNodeEditor } from './ui/nodeEditor';
 export { buildEdgeEditor } from './ui/edgeEditor';
 export { buildToolbar } from './ui/toolbar';
 export { buildTopologyBuilderLayout } from './ui/topologyBuilderLayout';
+export { buildFooter } from './ui/footer';
 
 // Types
 export type {

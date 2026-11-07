@@ -30,8 +30,8 @@ const ROUND_OFFER = 'tb-round-offer';
 const TOGGLE = 'button.tb-mode-toggle[data-mode="addPlayoffs"]';
 
 let host: LiveTopologyHost;
-const mount = (mode?: 'view' | 'addPlayoffs') => {
-  host = liveTopologyHost({ mode });
+const mount = (mode?: 'view' | 'addPlayoffs', height = '720px') => {
+  host = liveTopologyHost({ mode, height });
   return host.element;
 };
 
@@ -127,5 +127,43 @@ export const NothingLeftToAdd: Story = {
     toggle().click();
     await expect(toggle().disabled).toBe(true);
     await expect(toggle().title).toBe('Every finishing position is already played off');
+  }
+};
+
+export const FillsTheHostWithAFooter: Story = {
+  render: () => mount('addPlayoffs', '640px'),
+  play: async ({ canvasElement }) => {
+    // the canvas and the footer fill the host top to bottom, whatever the content (CA, 2026-11-08)
+    const layout = canvasElement.querySelector<HTMLElement>('.tb-layout')!;
+    const footer = canvasElement.querySelector<HTMLElement>('.tb-footer')!;
+    await expect(layout.getBoundingClientRect().height).toBe(640);
+    await expect(Math.round(footer.getBoundingClientRect().bottom)).toBe(
+      Math.round(host.element.getBoundingClientRect().bottom)
+    );
+    // the grid scrolls with the content rather than staying painted on the box
+    // (the grid is two gradient layers, so the computed value lists one attachment per layer)
+    const attachments = getComputedStyle(canvasElement.querySelector('.tb-canvas')!).backgroundAttachment.split(', ');
+    await expect(attachments).toEqual(['local', 'local']);
+    // the footer says what the mode asks
+    await expect(canvasElement.querySelector('.tb-footer-hint')!.textContent).toBe(
+      '5 ranges can still be played off — choose one to add it as a playoff'
+    );
+    canvasElement.querySelector<HTMLButtonElement>(TOGGLE)!.click();
+    await expect(canvasElement.querySelector('.tb-footer-hint')!.textContent).toBe('');
+    await expect(host.control.getFooterSlot()).toBe(canvasElement.querySelector('.tb-footer-slot'));
+  }
+};
+
+export const LinksSpanContentTallerThanTheCanvas: Story = {
+  render: () => mount('addPlayoffs', '360px'),
+  play: async ({ canvasElement }) => {
+    // three playoffs from the 1-16 stack its column well below a 360px canvas
+    for (const range of ['9-16', '5-8', '3-4']) chip(canvasElement, PLAYOFF_1_16, range)!.click();
+    const canvas = canvasElement.querySelector<HTMLElement>('.tb-canvas')!;
+    const nodes = canvasElement.querySelector<HTMLElement>('.tb-canvas-nodes')!;
+    const svg = canvasElement.querySelector<SVGElement>('.tb-canvas-svg')!;
+    await expect(nodes.offsetHeight).toBeGreaterThan(canvas.clientHeight);
+    // the links layer covers the content, so a link below the first screenful is drawn
+    await expect(svg.getBoundingClientRect().height).toBeGreaterThanOrEqual(nodes.offsetHeight);
   }
 };
