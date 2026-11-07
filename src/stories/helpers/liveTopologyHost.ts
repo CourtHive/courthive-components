@@ -32,7 +32,10 @@ export type LiveTopologyHost = {
 };
 
 /** A 32-entry round robin in groups of four, with a 1-16 playoff: the draw CA was working with on 2026-11-07. */
-export function liveTopologyHost({ mode }: { mode?: 'view' | 'addPlayoffs' } = {}): LiveTopologyHost {
+export function liveTopologyHost({
+  mode,
+  height = '100vh'
+}: { mode?: 'view' | 'addPlayoffs'; height?: string } = {}): LiveTopologyHost {
   const generated: any = mocksEngine.generateTournamentRecord({
     drawProfiles: [
       {
@@ -60,12 +63,14 @@ export function liveTopologyHost({ mode }: { mode?: 'view' | 'addPlayoffs' } = {
 
   const added: string[] = [];
   const element = document.createElement('div');
-  element.style.height = '720px';
+  // The host sizes the layout and the canvas fills it, as TMX's inline topology fills the window (CA, 2026-11-08)
+  element.style.height = height;
 
   const control = new TopologyBuilderControl({
     initialState: hydrate(drawDefinition()),
     hideTemplates: true,
     readOnly: true,
+    footer: true,
     mode,
     playoffOffers: (node) => offers.get(node.id),
     onAddPlayoff: (node, offer) => {

@@ -86,6 +86,11 @@ export interface TopologyBuilderConfig {
   hideGenerate?: boolean;
   hideDelete?: boolean;
   readOnly?: boolean;
+  /**
+   * A strip beneath the canvas, as the schedule page has beneath its grid: a hint for the current mode on the left and
+   * a slot for the host's controls on the right (`getFooterSlot`).
+   */
+  footer?: boolean;
   /** The mode the canvas opens in. Defaults to `view`. */
   mode?: TopologyMode;
   /**

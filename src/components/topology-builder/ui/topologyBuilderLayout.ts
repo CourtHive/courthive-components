@@ -2,18 +2,22 @@
  * Topology Builder Layout — Root layout component.
  * Toolbar on top, canvas (flex:1) + editor panel (250px) in body.
  */
+import type { FooterPanel } from './footer';
 import type { TopologyState, UIPanel } from '../types';
 
 export function buildTopologyBuilderLayout({
   toolbar,
   canvas,
   nodeEditor,
-  edgeEditor
+  edgeEditor,
+  footer
 }: {
   toolbar: UIPanel<TopologyState>;
   canvas: UIPanel<TopologyState>;
   nodeEditor: UIPanel<TopologyState>;
   edgeEditor: UIPanel<TopologyState>;
+  /** The strip beneath the canvas, when the host asks for one. */
+  footer?: FooterPanel;
 }): UIPanel<TopologyState> {
   const root = document.createElement('div');
   root.className = 'tb-layout';
@@ -35,10 +39,12 @@ export function buildTopologyBuilderLayout({
   body.appendChild(editorPanel);
 
   root.appendChild(body);
+  if (footer) root.appendChild(footer.element);
 
   function update(state: TopologyState): void {
     toolbar.update(state);
     canvas.update(state);
+    footer?.update(state);
 
     // Show appropriate editor based on selection
     nodeEditor.element.style.display = state.selectedNodeId ? '' : 'none';

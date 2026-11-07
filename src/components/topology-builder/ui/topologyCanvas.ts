@@ -400,6 +400,10 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
     svg.setAttribute('height', String(maxY));
     nodesLayer.style.width = `${maxX}px`;
     nodesLayer.style.height = `${maxY}px`;
+    // The links layer spans the content too: the canvas scrolls inside a fixed height now, and a layer sized to the
+    // canvas box would clip every link below the first screenful.
+    svg.style.width = `max(100%, ${maxX}px)`;
+    svg.style.height = `max(100%, ${maxY}px)`;
     spacer.style.width = `${maxX}px`;
     spacer.style.height = `${maxY}px`;
   }
