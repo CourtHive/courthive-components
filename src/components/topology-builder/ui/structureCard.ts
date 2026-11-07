@@ -7,7 +7,7 @@ import { renderSchematicStructure } from '../../renderSchematicStructure';
 import { generatePreviewMatchUps } from '../domain/previewGenerator';
 import { getPlayoffProfiles } from '../domain/playoffProfilesCache';
 import { getLuckyDrawTotalRounds } from '../domain/feedRounds';
-import type { TopologyNode } from '../types';
+import type { PlayoffOffer, TopologyNode } from '../types';
 
 const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, ROUND_ROBIN, AD_HOC, LUCKY_DRAW, WINNER, LOSER } =
   drawDefinitionConstants;
@@ -83,6 +83,25 @@ export interface PositionChip {
   targetName: string;
 }
 
+/** What the `addPlayoffs` mode adds to a card. */
+export interface CardPlayoffOffers {
+  offers: PlayoffOffer[];
+  onAddPlayoff: (offer: PlayoffOffer) => void;
+}
+
+/** Card extras beyond the positional parameters. */
+export interface StructureCardExtras {
+  /** The `addPlayoffs` mode: this card's chips, or none (the card is dimmed: nothing to add from it). */
+  playoffOffers?: CardPlayoffOffers;
+  /** A live draw: the mock-draw rounds line describes a draw that is not this one, so it is left out. */
+  hideRoundsInfo?: boolean;
+}
+
+/** The chip's text: `+ 17–24`, an en dash as a range reads. */
+export function offerLabel(offer: PlayoffOffer): string {
+  return `+ ${offer.finishingPositionRange.replace('-', '\u2013')}`;
+}
+
 export interface StructureCardCallbacks {
   onSelect: (nodeId: string) => void;
   onSelectEdge: (edgeId: string) => void;
@@ -100,7 +119,8 @@ export function buildStructureCard(
   roundAnnotations?: RoundAnnotation[],
   warnings?: string[],
   advanceInfo?: string,
-  positionChips?: PositionChip[]
+  positionChips?: PositionChip[],
+  extras: StructureCardExtras = {}
 ): HTMLElement {
   const hasWarnings = warnings && warnings.length > 0;
   const card = document.createElement('div');
@@ -206,23 +226,7 @@ export function buildStructureCard(
     }
   }
 
-  // Rounds info
-  const profiles = getPlayoffProfiles(node.structureType, node.drawSize, node.structureOptions?.groupSize);
-  let roundsDiv: HTMLElement | null = null;
-
-  if (profiles.playoffRoundsRanges?.length) {
-    roundsDiv = document.createElement('div');
-    roundsDiv.className = 'tb-card-rounds';
-    roundsDiv.textContent = profiles.playoffRoundsRanges
-      .map((r) => `R${r.roundNumber}:${r.finishingPositionRange}`)
-      .join(' ');
-  } else if (profiles.playoffFinishingPositionRanges?.length) {
-    roundsDiv = document.createElement('div');
-    roundsDiv.className = 'tb-card-rounds';
-    roundsDiv.textContent = profiles.playoffFinishingPositionRanges
-      .map((p) => `P${p.finishingPosition}:${p.finishingPositionRange}`)
-      .join(' ');
-  }
+  const roundsDiv = extras.hideRoundsInfo ? null : buildRoundsInfo(node);
 
   // Ports
   const ports = document.createElement('div');
@@ -284,6 +288,8 @@ export function buildStructureCard(
 
   if (roundsDiv) card.appendChild(roundsDiv);
 
+  if (extras.playoffOffers) appendOfferChips(card, extras.playoffOffers, preview);
+
   // Warning banner
   if (hasWarnings) {
     const warningDiv = document.createElement('div');
@@ -329,6 +335,78 @@ export function buildStructureCard(
   });
 
   return card;
+}
+
+/**
+ * What a structure of this type and size could feed, from a mock draw: a design-time answer, for the template builder.
+ * A live draw leaves it out (`hideRoundsInfo`) — the draw's own answer comes as `addPlayoffs` chips.
+ */
+function buildRoundsInfo(node: TopologyNode): HTMLElement | null {
+  const profiles = getPlayoffProfiles(node.structureType, node.drawSize, node.structureOptions?.groupSize);
+  const text = profiles.playoffRoundsRanges?.length
+    ? profiles.playoffRoundsRanges.map((r) => `R${r.roundNumber}:${r.finishingPositionRange}`).join(' ')
+    : profiles.playoffFinishingPositionRanges
+        ?.map((p) => `P${p.finishingPosition}:${p.finishingPositionRange}`)
+        .join(' ');
+  if (!text) return null;
+  const roundsDiv = document.createElement('div');
+  roundsDiv.className = 'tb-card-rounds';
+  roundsDiv.textContent = text;
+  return roundsDiv;
+}
+
+/**
+ * The `addPlayoffs` chips: one button per playoff this structure could still feed.
+ *
+ * Pointing at a chip (hover or keyboard focus) boxes the round whose losers would play it off, so the operator sees
+ * where the playoff comes from before choosing it. A round robin's playoffs come from a group finishing position,
+ * which the schematic has no column for, so its chips box nothing. Clicking a chip is the whole choice: the host
+ * attaches that one playoff — no list of every range to pick from (CA, 2026-11-08).
+ */
+function appendOfferChips(card: HTMLElement, { offers, onAddPlayoff }: CardPlayoffOffers, preview: HTMLElement): void {
+  // a structure with nothing to add: no row, and the card steps back
+  if (!offers.length) {
+    card.classList.add('tb-card--no-offers');
+    return;
+  }
+  const row = document.createElement('div');
+  row.className = 'tb-card-offers';
+
+  for (const offer of offers) {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'tb-card-offer';
+    chip.dataset.offerKey = offer.key;
+    chip.dataset.finishingPositionRange = offer.finishingPositionRange;
+    chip.textContent = offerLabel(offer);
+    const source =
+      offer.sourceRoundNumber !== undefined
+        ? `losers of round ${offer.sourceRoundNumber}`
+        : `group position ${offer.groupFinishingPosition}`;
+    chip.setAttribute('aria-label', `Add a playoff for positions ${offer.finishingPositionRange}, from ${source}`);
+    chip.title = `Play off ${offer.finishingPositionRange} — ${source}`;
+
+    const round =
+      offer.sourceRoundNumber === undefined
+        ? null
+        : preview.querySelector<HTMLElement>(
+            `.chc-schematic-round-container[data-round-number="${offer.sourceRoundNumber}"]`
+          );
+    const point = (on: boolean) => round?.classList.toggle('tb-round-offer', on);
+    chip.addEventListener('mouseenter', () => point(true));
+    chip.addEventListener('mouseleave', () => point(false));
+    chip.addEventListener('focus', () => point(true));
+    chip.addEventListener('blur', () => point(false));
+
+    // The card drags on mousedown and selects on click; a chip is neither.
+    chip.addEventListener('mousedown', (e) => e.stopPropagation());
+    chip.addEventListener('click', (e) => {
+      e.stopPropagation();
+      onAddPlayoff(offer);
+    });
+    row.appendChild(chip);
+  }
+  card.appendChild(row);
 }
 
 /**

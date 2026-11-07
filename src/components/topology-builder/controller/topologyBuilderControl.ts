@@ -13,7 +13,15 @@ import { standardTemplates } from '../domain/templates';
 import { validateTopology } from '../domain/topologyValidator';
 import { getNodeTotalRounds } from '../domain/feedRounds';
 import { getCardWidth } from '../ui/structureCard';
-import type { TopologyState, TopologyNode, TopologyEdge, TopologyBuilderConfig, UIPanel } from '../types';
+import type {
+  TopologyBuilderConfig,
+  TopologyState,
+  TopologyNode,
+  TopologyEdge,
+  TopologyMode,
+  PlayoffOffer,
+  UIPanel
+} from '../types';
 
 const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, SINGLE_ELIMINATION, LUCKY_DRAW, WINNER, LOSER } =
   drawDefinitionConstants;
@@ -27,7 +35,10 @@ export class TopologyBuilderControl {
 
   constructor(config: TopologyBuilderConfig = {}) {
     this.config = config;
-    this.store = new TopologyStore(config.initialState);
+    this.store = new TopologyStore({
+      ...config.initialState,
+      ...(config.mode && { mode: config.mode })
+    });
 
     const allTemplates = [...standardTemplates, ...(config.templates || [])];
     const isReadOnly = !!config.readOnly;
@@ -76,7 +87,7 @@ export class TopologyBuilderControl {
           });
         },
         onAutoLayout: () => {
-          this.store.autoLayout();
+          this.store.autoLayout(this.renderedHeights());
           const state = this.store.getState();
           this.store.loadState(state);
         },
@@ -84,7 +95,12 @@ export class TopologyBuilderControl {
         onSaveTemplate: this.config.onSaveTemplate
           ? () => this.config.onSaveTemplate(this.store.getState())
           : undefined,
-        onClear: this.config.onClear
+        onClear: this.config.onClear,
+        ...(this.offersPlayoffs() && {
+          onSetMode: (mode: TopologyMode) => this.setMode(mode),
+          countPlayoffOffers: (state: TopologyState) =>
+            state.nodes.reduce((count, node) => count + (this.offersFor(node)?.length ?? 0), 0)
+        })
       },
       allTemplates,
       { hideTemplates: this.config.hideTemplates, hideGenerate: this.config.hideGenerate, readOnly: isReadOnly }
@@ -108,8 +124,38 @@ export class TopologyBuilderControl {
         : (sourceNodeId, targetNodeId, linkType) => {
             this.handleCreateEdge(sourceNodeId, targetNodeId, linkType);
           },
-      onPortMouseDown: () => {}
+      onPortMouseDown: () => {},
+      ...(this.offersPlayoffs() && {
+        playoffOffers: (nodeId: string) => {
+          const node = this.store.getState().nodes.find((n) => n.id === nodeId);
+          return node ? this.offersFor(node) : undefined;
+        },
+        onAddPlayoff: (nodeId: string, offer: PlayoffOffer) => {
+          const node = this.store.getState().nodes.find((n) => n.id === nodeId);
+          if (node) this.config.onAddPlayoff!(node, offer);
+        }
+      })
     });
+  }
+
+  /** The Add playoffs mode needs both halves from the host: the live offers, and what to do with a chosen one. */
+  private offersPlayoffs(): boolean {
+    return !!this.config.playoffOffers && !!this.config.onAddPlayoff;
+  }
+
+  private offersFor(node: TopologyNode): PlayoffOffer[] | undefined {
+    return this.config.playoffOffers?.(node);
+  }
+
+  /** Change what the canvas is for. Leaving a mode with nothing to do in it is always possible. */
+  setMode(mode: TopologyMode): void {
+    if ((this.store.getState().mode ?? 'view') === mode) return;
+    this.store.setMode(mode);
+    this.config.onModeChange?.(mode);
+  }
+
+  getMode(): TopologyMode {
+    return this.store.getState().mode ?? 'view';
   }
 
   private handleCreateEdge(sourceNodeId: string, targetNodeId: string, linkType: TopologyEdge['linkType']): void {
@@ -175,13 +221,22 @@ export class TopologyBuilderControl {
   }
 
   autoLayout(): void {
-    this.store.autoLayout();
+    this.store.autoLayout(this.renderedHeights());
     const state = this.store.getState();
     this.store.loadState(state);
   }
 
   getState(): TopologyState {
     return this.store.getState();
+  }
+
+  /** Each card's height as rendered, for `autoLayout`; nothing for a card with no layout to measure. */
+  private renderedHeights(): (nodeId: string) => number | undefined {
+    const heights = new Map<string, number>();
+    for (const card of this.layout.element.querySelectorAll<HTMLElement>('.tb-card[data-node-id]')) {
+      if (card.offsetHeight) heights.set(card.dataset.nodeId as string, card.offsetHeight);
+    }
+    return (nodeId) => heights.get(nodeId);
   }
 
   loadState(state: TopologyState): void {
