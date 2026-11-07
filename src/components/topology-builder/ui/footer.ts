@@ -9,6 +9,8 @@ import type { TopologyState, UIPanel } from '../types';
 export interface FooterOptions {
   /** How many playoffs the topology could still add, for the Add playoffs mode's hint. */
   countPlayoffOffers?: (state: TopologyState) => number;
+  /** The Fit mode's ledger line: the event's entries by stage, and what was not placed. */
+  fitLedger?: (state: TopologyState) => string;
 }
 
 export interface FooterPanel extends UIPanel<TopologyState> {
@@ -29,7 +31,13 @@ export function buildFooter(options: FooterOptions = {}): FooterPanel {
   element.append(hint, slot);
 
   function update(state: TopologyState): void {
-    hint.textContent = state.mode === 'addPlayoffs' ? addPlayoffsHint(options.countPlayoffOffers?.(state) ?? 0) : '';
+    hint.textContent =
+      state.mode === 'addPlayoffs'
+        ? addPlayoffsHint(options.countPlayoffOffers?.(state) ?? 0)
+        : state.mode === 'fit'
+          ? (options.fitLedger?.(state) ?? '')
+          : '';
+    hint.dataset.mode = state.mode ?? 'view';
   }
 
   return { element, slot, update };

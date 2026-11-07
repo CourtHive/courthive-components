@@ -51,12 +51,13 @@ export interface TopologyState {
  *
  *   - `view`         the structures and their links, as they stand
  *   - `addPlayoffs`  every structure that can still feed a playoff offers a chip per range it could play off
+ *   - `fit`          how the event's entries fill each structure that takes entries, with levers to change it
  *
  * A mode is a lens over the same topology, never a second editor: in a live draw every change it leads to is a
  * factory mutation made by the host, and the host loads the topology again from the draw afterwards. Further modes
  * belong here — fitting an event's entries to a structure is the next one planned (CA, 2026-11-08).
  */
-export type TopologyMode = 'view' | 'addPlayoffs';
+export type TopologyMode = 'view' | 'addPlayoffs' | 'fit';
 
 /**
  * One playoff a structure could still feed, as a chip in the `addPlayoffs` mode.
@@ -117,6 +118,12 @@ export interface TopologyBuilderConfig {
   onAddPlayoff?: (node: TopologyNode, offer: PlayoffOffer) => void;
   /** Called when the mode changes, by the toolbar or by `setMode`. */
   onModeChange?: (mode: TopologyMode) => void;
+  /**
+   * How the event's entries would fill this topology — the factory's `getDrawFit` for the draw the topology describes.
+   * Given, the toolbar offers a Fit mode. Asked when the fit-relevant shape of the topology changes (sizes, types,
+   * qualifiers, links), not on every render: dragging a card does not regenerate the draw.
+   */
+  drawFit?: (state: TopologyState) => DrawFit | undefined;
 }
 
 export interface TopologyTemplate {
@@ -129,4 +136,42 @@ export interface UIPanel<T = unknown> {
   element: HTMLElement;
   update: (state: T) => void;
   destroy?: () => void;
+}
+
+/** How a structure's positions are taken: the factory's `getDrawFit` status. */
+export type FitStatus = 'FITS' | 'OVER' | 'SHORT' | 'EMPTY';
+
+/** One generated structure's fit, as `getDrawFit` reports it. */
+export interface StructureFit {
+  structureId?: string;
+  structureName?: string;
+  stage?: string;
+  stageSequence?: number;
+  positions: number;
+  placed: number;
+  byes: number;
+  seedByes: number;
+  byesBeyondSeeds: number;
+  seedsCount: number;
+  qualifierSlots: number;
+  open: number;
+  notPlaced: number;
+  status: FitStatus;
+}
+
+/** One stage's entries, grouped as the factory groups them for a draw. */
+export interface FitLedgerStage {
+  selected: Record<string, number>;
+  selectedCount: number;
+  alternates: number;
+  withdrawn: number;
+  other: Record<string, number>;
+}
+
+/** The factory's `getDrawFit` result, as far as the topology reads it. */
+export interface DrawFit {
+  ledger?: Record<string, FitLedgerStage>;
+  structures?: StructureFit[];
+  notPlaced?: { participantId: string; entryStatus?: string; entryStage?: string; reason?: string }[];
+  error?: unknown;
 }

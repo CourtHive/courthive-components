@@ -13,7 +13,7 @@ import {
 
 // constants and types
 import type { PlayoffOffer, TopologyState, TopologyEdge, TopologyNode, UIPanel } from '../types';
-import type { RoundAnnotation, PositionChip } from './structureCard';
+import type { RoundAnnotation, PositionChip, FitLever, NodeFit } from './structureCard';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 
 const { WINNER, LOSER, QUALIFYING, CONSOLATION, ROUND_ROBIN } = drawDefinitionConstants;
@@ -50,6 +50,9 @@ export interface CanvasCallbacks {
   /** The live draw's offers for a node; given, the cards leave out the mock-draw rounds line. */
   playoffOffers?: (nodeId: string) => PlayoffOffer[] | undefined;
   onAddPlayoff?: (nodeId: string, offer: PlayoffOffer) => void;
+  /** Fit mode: a node's fit, and the levers it may move. */
+  fitFor?: (nodeId: string) => NodeFit;
+  onFitLever?: (nodeId: string, lever: FitLever, direction: 1 | -1) => void;
 }
 
 export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<TopologyState> {
@@ -346,6 +349,8 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
     const cardCallbacks = buildCardCallbacks(state);
     const addingPlayoffs = state.mode === 'addPlayoffs' && !!callbacks.playoffOffers && !!callbacks.onAddPlayoff;
     root.classList.toggle('tb-canvas--add-playoffs', addingPlayoffs);
+    const fitting = state.mode === 'fit' && !!callbacks.fitFor;
+    root.classList.toggle('tb-canvas--fit', fitting);
 
     for (const node of state.nodes) {
       const playoffOffers = addingPlayoffs
@@ -363,7 +368,16 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
         nodeWarnings.get(node.id),
         computeAdvanceInfo(node, state),
         positionChipsByNode.get(node.id),
-        { playoffOffers, hideRoundsInfo: !!callbacks.playoffOffers }
+        {
+          playoffOffers,
+          hideRoundsInfo: !!callbacks.playoffOffers || fitting,
+          ...(fitting && {
+            fit: callbacks.fitFor!(node.id),
+            onFitLever: callbacks.onFitLever
+              ? (lever: FitLever, direction: 1 | -1) => callbacks.onFitLever!(node.id, lever, direction)
+              : undefined
+          })
+        }
       );
       nodesLayer.appendChild(card);
     }

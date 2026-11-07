@@ -27,6 +27,7 @@ export {
   canAddVoluntaryConsolation
 } from './domain/playoffOffers';
 export type { AvailablePlayoffProfile, PlayoffGenerationParams, OfferDrawDefinition } from './domain/playoffOffers';
+export { fitByNode, ledgerText, fitSentence } from './domain/drawFit';
 
 // UI Components (for custom layouts)
 export { buildTopologyCanvas } from './ui/topologyCanvas';
@@ -48,5 +49,9 @@ export type {
   TopologyTemplate,
   TopologyMode,
   PlayoffOffer,
+  DrawFit,
+  StructureFit,
+  FitStatus,
+  FitLedgerStage,
   UIPanel
 } from './types';
