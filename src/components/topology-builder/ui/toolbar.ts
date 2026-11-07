@@ -4,7 +4,7 @@
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { controlBar } from '../../controlBar/controlBar';
 import { validateTopology } from '../domain/topologyValidator';
-import type { TopologyState, TopologyTemplate, UIPanel } from '../types';
+import type { TopologyMode, TopologyState, TopologyTemplate, UIPanel } from '../types';
 
 const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, LUCKY_DRAW } = drawDefinitionConstants;
 
@@ -15,6 +15,10 @@ export interface ToolbarCallbacks {
   onGenerate: () => void;
   onSaveTemplate?: () => void;
   onClear?: () => void;
+  /** Given, the toolbar offers the Add playoffs mode as a toggle. */
+  onSetMode?: (mode: TopologyMode) => void;
+  /** How many playoffs the topology could still add, so the toggle can say when there are none. */
+  countPlayoffOffers?: (state: TopologyState) => number;
 }
 
 export interface ToolbarOptions {
@@ -41,6 +45,27 @@ export function buildToolbar(
 
   topRow.appendChild(target);
   wrapper.appendChild(topRow);
+
+  // ── The Add playoffs mode toggle ──
+  //
+  // Its own button rather than a controlBar item: it has a pressed state that follows the store, and the controlBar
+  // is built once. Offered in a read-only topology too, which is where a live draw shows it — the mode changes the
+  // draw only through the host's `onAddPlayoff`, never by editing the graph.
+  const ARIA_PRESSED = 'aria-pressed';
+  let addPlayoffsToggle: HTMLButtonElement | undefined;
+  if (callbacks.onSetMode) {
+    addPlayoffsToggle = document.createElement('button');
+    addPlayoffsToggle.type = 'button';
+    addPlayoffsToggle.className = 'button is-small tb-mode-toggle';
+    addPlayoffsToggle.dataset.mode = 'addPlayoffs';
+    addPlayoffsToggle.textContent = 'Add playoffs';
+    addPlayoffsToggle.setAttribute(ARIA_PRESSED, 'false');
+    addPlayoffsToggle.addEventListener('click', () => {
+      const active = addPlayoffsToggle!.getAttribute(ARIA_PRESSED) === 'true';
+      callbacks.onSetMode!(active ? 'view' : 'addPlayoffs');
+    });
+    topRow.appendChild(addPlayoffsToggle);
+  }
 
   // Validation display
   const validationPanel = document.createElement('div');
@@ -145,6 +170,20 @@ export function buildToolbar(
 
   function update(state: TopologyState): void {
     lastState = state;
+    if (addPlayoffsToggle) {
+      const active = state.mode === 'addPlayoffs';
+      const offers = callbacks.countPlayoffOffers?.(state) ?? 0;
+      addPlayoffsToggle.setAttribute(ARIA_PRESSED, String(active));
+      addPlayoffsToggle.classList.toggle('is-info', active);
+      // Leaving the mode is always possible; entering one with nothing to offer is not, and the title says why.
+      addPlayoffsToggle.disabled = !active && offers === 0;
+      addPlayoffsToggle.title =
+        !active && offers === 0
+          ? 'Every finishing position is already played off'
+          : active
+            ? 'Done adding playoffs'
+            : 'Show the playoffs each structure can still feed';
+    }
   }
 
   return { element: wrapper, update };
