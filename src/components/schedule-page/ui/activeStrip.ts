@@ -16,8 +16,8 @@
  * a richer DOM (e.g. the same buildScheduleGridCell DOM used in the grid).
  */
 
-import type { SchedulePageDragPayload, SchedulePageState, UIPanel } from '../types';
 import { computeActiveStrip, computeActiveStripDropTarget } from '../domain/activeStrip';
+import type { SchedulePageDragPayload, SchedulePageState, UIPanel } from '../types';
 import type {
   ActiveStripCell,
   ActiveStripDropCandidate,
@@ -45,9 +45,22 @@ export interface ActiveStripCourtMeta {
 export interface ActiveStripCourtBlock {
   /** Block type label, used as the banner intent class (e.g. "PRACTICE", "MAINTENANCE"). */
   type: string;
-  /** Banner text. Caller controls formatting — e.g. "PRACTICE 14:00–16:00". */
+  /**
+   * Banner headline — normally the block type ("PRACTICE"). Wraps rather than truncates.
+   * Put the time window in `timeRange` so it gets its own line; a label that carries both
+   * ("PRACTICE 14:00–16:00") still renders, but has to share one line and breaks at the space.
+   */
   label: string;
-  /** Optional short note (block.reason, registrant name from a future practice-registration system, etc.). */
+  /**
+   * The block's time window, pre-formatted by the consumer — e.g. "14:00–16:00". Rendered on its
+   * own non-wrapping line beneath the label, so the end time is always readable in a narrow column.
+   */
+  timeRange?: string;
+  /**
+   * Optional short note (block.reason, registrant name from a future practice-registration system,
+   * etc.). Dropped when it only repeats `label` (case-insensitive): a reason of "BLOCKED" under a
+   * "BLOCKED" headline says nothing twice.
+   */
   detail?: string;
 }
 
@@ -186,6 +199,39 @@ function attachDropTarget(
   });
 }
 
+/**
+ * The banner for a block in force: type, then time window, then detail — one line each, so the
+ * stack reads top-down in a column too narrow to hold the type and the window side by side.
+ */
+function buildBlockBanner(courtBlock: ActiveStripCourtBlock): HTMLElement {
+  const banner = document.createElement('div');
+  banner.className = `spl-active-strip-block-banner block-${courtBlock.type.toLowerCase()}`;
+  const line = (className: string, text: string) => {
+    const span = document.createElement('span');
+    span.className = className;
+    span.textContent = text;
+    banner.appendChild(span);
+  };
+  line('spl-active-strip-block-label', courtBlock.label);
+  if (courtBlock.timeRange) line('spl-active-strip-block-time', courtBlock.timeRange);
+  const detailText = blockDetailToShow(courtBlock);
+  if (detailText) line('spl-active-strip-block-detail', detailText);
+  return banner;
+}
+
+/**
+ * The detail line, or nothing. A detail that only restates the headline (or the raw block type) adds
+ * a line and no information — a court block whose `reason` was left as "BLOCKED" is the common case.
+ */
+function blockDetailToShow(block: ActiveStripCourtBlock): string | undefined {
+  const detail = block.detail?.trim();
+  if (!detail) return undefined;
+  const key = detail.toLocaleUpperCase();
+  const repeatsHeadline =
+    key === block.label.trim().toLocaleUpperCase() || key === block.type.trim().toLocaleUpperCase();
+  return repeatsHeadline ? undefined : detail;
+}
+
 function statePillLabel(state: ActiveStripCell['state']): string | null {
   if (state === 'in-progress') return 'LIVE';
   if (state === 'suspended') return 'SUSP';
@@ -217,21 +263,7 @@ function buildCellElement(
   if (cell.rowIndex !== undefined) root.dataset.rowIndex = String(cell.rowIndex);
   if (options.cellHeight) root.style.minHeight = options.cellHeight;
 
-  if (courtBlock) {
-    const banner = document.createElement('div');
-    banner.className = `spl-active-strip-block-banner block-${courtBlock.type.toLowerCase()}`;
-    const label = document.createElement('span');
-    label.className = 'spl-active-strip-block-label';
-    label.textContent = courtBlock.label;
-    banner.appendChild(label);
-    if (courtBlock.detail) {
-      const detail = document.createElement('span');
-      detail.className = 'spl-active-strip-block-detail';
-      detail.textContent = courtBlock.detail;
-      banner.appendChild(detail);
-    }
-    root.appendChild(banner);
-  }
+  if (courtBlock) root.appendChild(buildBlockBanner(courtBlock));
 
   if (cell.state !== 'free' && cell.matchUp) {
     const content = options.renderCell?.(cell.matchUp);
