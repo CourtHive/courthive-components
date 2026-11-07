@@ -41,6 +41,7 @@ import { createScoreEntryStore } from './logic/scoreEntryStore';
 import { scoreEntrySummary } from './logic/scoreEntrySummary';
 import { scoreEntryText } from './logic/scoreEntryText';
 import {
+  unrecordedTiebreakNote,
   discardedScore,
   resolveEnding,
   scoreString,
@@ -1804,16 +1805,29 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       labels
     });
 
+    // A set decided by its tiebreak with no points is a finished set the engine records with a warning. The
+    // band carries that warning BEFORE Submit, where the operator can still type the points, rather than
+    // leaving the leniency silent (CA, 2026-11-07). The summary's own detail — what the winner advances to —
+    // comes first when both apply.
+    const detail =
+      summary.detail ??
+      (scoreIsFinished()
+        ? unrecordedTiebreakNote(model(), {
+            sideNames: [params.sides[0].participantName, params.sides[1].participantName],
+            labels
+          })
+        : undefined);
+
     band.replaceChildren();
     band.dataset.tone = summary.tone;
     // `role="status"` so the band is announced when it changes — it is the confirmation that a
     // part-score is about to be discarded, and a sighted-only confirmation is not one.
     band.setAttribute('role', 'status');
     band.append(text(CLS_BAND_HEADLINE, summary.headline));
-    if (summary.detail) {
-      band.append(div(CLS_SPACER), text(CLS_BAND_DETAIL, summary.detail));
+    if (detail) {
+      band.append(div(CLS_SPACER), text(CLS_BAND_DETAIL, detail));
     }
-    appendBandControl(!summary.detail);
+    appendBandControl(!detail);
   }
 
   /**

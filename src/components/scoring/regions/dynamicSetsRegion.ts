@@ -197,6 +197,11 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     return valueOf(tiebreak(setIndex, 1)) !== undefined && valueOf(tiebreak(setIndex, 2)) !== undefined;
   }
 
+  /** Neither side's points typed: the column the games opened, declined. */
+  function tiebreakEmpty(setIndex: number): boolean {
+    return valueOf(tiebreak(setIndex, 1)) === undefined && valueOf(tiebreak(setIndex, 2)) === undefined;
+  }
+
   // ── Layout: which columns exist right now ─────────────────────────────
 
   /**
@@ -536,7 +541,8 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
 
     apply(replayed(games(setIndex, sideNumber), digitsOnly(input)));
 
-    // If these games now call for a tiebreak, that is where the operator goes.
+    // If these games now call for a tiebreak, that is where the operator goes — to type the points, or to move
+    // on without them: the set is settled either way, so the next set's column is already open beside it.
     settle(before, tiebreakOutstanding(model(), setIndex) ? { kind: 'tiebreak', setIndex } : undefined);
   }
 
@@ -571,12 +577,18 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     // move to the next bolt and end the match. Where there is no next bolt it is left alone and Submit
     // is what Enter does, which is the right end to the sequence.
     if (event.key === 'Enter') {
-      if (slot.kind === 'tiebreak' && tiebreakComplete(slot.setIndex)) {
+      // Enter in the tiebreak column finishes tiebreak entry — with the points in, or with none: the points are
+      // offered, not owed (CA, 2026-11-07), and a bare 7-6 is a finished set. A half-typed pair is left where it is.
+      if (slot.kind === 'tiebreak' && (tiebreakComplete(slot.setIndex) || tiebreakEmpty(slot.setIndex))) {
         event.preventDefault();
         event.stopPropagation();
         const before = layoutSignature();
         editingSet = undefined;
-        settle(before, { kind: 'games', setIndex: slot.setIndex + 1 });
+        const next: Slot = { kind: 'games', setIndex: slot.setIndex + 1 };
+        settle(before, next);
+        // Focused HERE too, as `typedDigit` does: `settle` moves focus only when the layout changed, and with
+        // the points declined the next set's column was already open, so nothing changed.
+        if (advanceTarget(slot.setIndex)) focusSlotSide(next, entrySideFor(next));
         return;
       }
       const bolt = nextTimedTarget(slot.setIndex);

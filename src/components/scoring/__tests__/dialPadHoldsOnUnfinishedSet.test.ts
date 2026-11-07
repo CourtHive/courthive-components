@@ -51,15 +51,30 @@ describe('the Dial Pad holds on an unfinished set', () => {
     expect(h.readout(1)).not.toContain('1');
   });
 
-  it('6-7 waits for its tiebreak before the next set can start', () => {
+  it('6-7 is a finished set: the next set starts, with or without the tiebreak points', () => {
+    // Until 2026-11-07 the keypad stopped here until the Tiebreak key supplied the points. A bare 7-6 is the
+    // set the engine records (ruling V11), so the next set opens; the points are offered, not owed (CA).
     const h = dialPad();
     h.press(7); // lower row
-    h.press(6); // upper row: 6-7, a tiebreak set with no points yet
+    h.press(6); // upper row: 6-7, a tiebreak set with no points
     expect(h.band()).toContain('6-7');
 
-    h.press(3);
-    expect(h.band()).not.toContain('3');
+    h.press(4);
+    h.press(6);
+    expect(h.band()).toContain('6-7 6-4');
 
+    // once the score is a result, the band says what was left out
+    h.press(4);
+    h.press(6);
+    expect(h.band()).toContain('6-7 6-4 6-4');
+    expect(h.band()).toContain('1st set: tiebreak points not recorded');
+    expect(h.submit()?.disabled).toBe(false);
+  });
+
+  it('the Tiebreak key still records the points on a 6-7, before the next set starts', () => {
+    const h = dialPad();
+    h.press(7);
+    h.press(6);
     h.tiebreak()?.click();
     h.press(4); // the loser's points: 6-7(4)
     expect(h.band()).toContain('6-7(4)');
@@ -68,6 +83,7 @@ describe('the Dial Pad holds on an unfinished set', () => {
     h.press(4);
     h.press(6);
     expect(h.band()).toContain('6-7(4) 6-4');
+    expect(h.band()).not.toContain('not recorded');
   });
 
   it('a finished set still lets the next one start', () => {
