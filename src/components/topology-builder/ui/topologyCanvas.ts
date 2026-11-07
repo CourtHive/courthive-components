@@ -13,7 +13,7 @@ import {
 
 // constants and types
 import type { PlayoffOffer, TopologyState, TopologyEdge, TopologyNode, UIPanel } from '../types';
-import type { RoundAnnotation, PositionChip, FitLever, NodeFit } from './structureCard';
+import type { RoundAnnotation, PositionChip, FitLever, NodeFit, NodeJourney } from './structureCard';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 
 const { WINNER, LOSER, QUALIFYING, CONSOLATION, ROUND_ROBIN } = drawDefinitionConstants;
@@ -53,6 +53,9 @@ export interface CanvasCallbacks {
   /** Fit mode: a node's fit, and the levers it may move. */
   fitFor?: (nodeId: string) => NodeFit;
   onFitLever?: (nodeId: string, lever: FitLever, direction: 1 | -1) => void;
+  /** Journey mode: a node's steps for the chosen participant, and the links they travelled. */
+  journeyFor?: (nodeId: string) => NodeJourney | undefined;
+  journeyEdges?: () => Set<string>;
 }
 
 export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<TopologyState> {
@@ -114,6 +117,8 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
   let justDragged = false;
 
   let currentState: TopologyState | null = null;
+  /** Journey mode: the edges the chosen participant travelled, for this render. */
+  let travelled = new Set<string>();
 
   // Canvas click = deselect (suppressed after drag)
   root.addEventListener('click', () => {
@@ -351,6 +356,9 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
     root.classList.toggle('tb-canvas--add-playoffs', addingPlayoffs);
     const fitting = state.mode === 'fit' && !!callbacks.fitFor;
     root.classList.toggle('tb-canvas--fit', fitting);
+    const following = state.mode === 'journey' && !!callbacks.journeyFor && !!state.journeyParticipantId;
+    root.classList.toggle('tb-canvas--journey', following);
+    travelled = following ? (callbacks.journeyEdges?.() ?? new Set()) : new Set();
 
     for (const node of state.nodes) {
       const playoffOffers = addingPlayoffs
@@ -371,6 +379,7 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
         {
           playoffOffers,
           hideRoundsInfo: !!callbacks.playoffOffers || fitting,
+          ...(following && { journey: callbacks.journeyFor!(node.id) }),
           ...(fitting && {
             fit: callbacks.fitFor!(node.id),
             onFitLever: callbacks.onFitLever
@@ -454,6 +463,7 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
     const displayType = edgeDisplayType(edge, state.nodes);
     path.classList.add(EDGE_COLORS[displayType] || 'tb-edge--winner');
     if (state.selectedEdgeId === edge.id) path.classList.add('tb-edge--selected');
+    if (travelled.has(edge.id)) path.classList.add('tb-edge--journey');
     path.setAttribute('marker-end', `url(#arrowhead-${displayType})`);
 
     path.addEventListener('click', (e) => {

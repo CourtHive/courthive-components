@@ -9,7 +9,7 @@ import { getPlayoffProfiles } from '../domain/playoffProfilesCache';
 import { FIT_STATUS_TEXT, fitSentence } from '../domain/drawFit';
 import { getNodeTotalRounds } from '../domain/feedRounds';
 
-import type { PlayoffOffer, StructureFit, TopologyNode } from '../types';
+import type { JourneyStep, PlayoffOffer, StructureFit, TopologyNode } from '../types';
 
 const {
   VOLUNTARY_CONSOLATION,
@@ -119,8 +119,16 @@ export interface NodeFit {
   canQualify?: { down: boolean; up: boolean };
 }
 
+/** A node's part in the chosen participant's journey. */
+export interface NodeJourney {
+  steps: JourneyStep[];
+  onStep?: (step: JourneyStep) => void;
+}
+
 /** Card extras beyond the positional parameters. */
 export interface StructureCardExtras {
+  /** Journey mode: the chosen participant's steps in this structure (none — the card steps back). */
+  journey?: NodeJourney;
   /** Fit mode: this node's fit, and the levers it may move (none in a read-only topology). */
   fit?: NodeFit;
   onFitLever?: (lever: FitLever, direction: 1 | -1) => void;
@@ -475,6 +483,36 @@ function appendModeExtras(
 ): void {
   if (extras.playoffOffers) appendOfferChips(card, extras.playoffOffers, preview);
   if (extras.fit) appendFit(card, node, extras.fit, extras.onFitLever);
+  if (extras.journey) markJourney(card, preview, extras.journey);
+}
+
+/**
+ * Journey mode on a card: the rounds the participant played here are lit by result, and a lit round goes to that
+ * matchUp in the draw. A structure the participant never entered steps back. No name is drawn.
+ */
+function markJourney(card: HTMLElement, preview: HTMLElement, { steps, onStep }: NodeJourney): void {
+  if (!steps.length) {
+    card.classList.add('tb-card--off-journey');
+    return;
+  }
+  card.classList.add('tb-card--on-journey');
+  for (const step of steps) {
+    const round = preview.querySelector<HTMLElement>(
+      `.chc-schematic-round-container[data-round-number="${step.roundNumber}"]`
+    );
+    if (!round) continue;
+    const result = (step.result ?? 'PENDING').toLowerCase();
+    round.classList.add('tb-round-journey', `tb-round-journey--${result}`);
+    round.dataset.journeyResult = step.result ?? 'PENDING';
+    round.title = `Round ${step.roundNumber}: ${result}`;
+    if (onStep) {
+      round.style.cursor = 'pointer';
+      round.addEventListener('click', (e) => {
+        e.stopPropagation();
+        onStep(step);
+      });
+    }
+  }
 }
 
 /**

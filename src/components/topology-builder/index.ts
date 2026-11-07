@@ -28,6 +28,8 @@ export {
 } from './domain/playoffOffers';
 export type { AvailablePlayoffProfile, PlayoffGenerationParams, OfferDrawDefinition } from './domain/playoffOffers';
 export { fitByNode, ledgerText, fitSentence } from './domain/drawFit';
+export { journeySummary, journeyEdgeIds, journeyStepsFromMatchUps } from './domain/journey';
+export type { JourneyMatchUp } from './domain/journey';
 
 // UI Components (for custom layouts)
 export { buildTopologyCanvas } from './ui/topologyCanvas';
@@ -53,5 +55,8 @@ export type {
   StructureFit,
   FitStatus,
   FitLedgerStage,
+  JourneyStep,
+  JourneyParticipant,
+  JourneyHost,
   UIPanel
 } from './types';

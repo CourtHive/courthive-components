@@ -114,7 +114,7 @@ export function liveTopologyHost({
   };
 }
 
-function hydrate(drawDefinition: any): Partial<TopologyState> {
+export function hydrate(drawDefinition: any): Partial<TopologyState> {
   const positions = (structure: any): number =>
     structure.structureType === CONTAINER
       ? structure.structures.reduce((total: number, group: any) => total + positions(group), 0)

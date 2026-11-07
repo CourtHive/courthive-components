@@ -44,6 +44,8 @@ export interface TopologyState {
   templateName?: string;
   /** What the canvas is for right now. Presentation, like the selection: absent reads as `view`. */
   mode?: TopologyMode;
+  /** The participant whose journey the `journey` mode shows. Presentation, like the mode. */
+  journeyParticipantId?: string;
 }
 
 /**
@@ -52,12 +54,13 @@ export interface TopologyState {
  *   - `view`         the structures and their links, as they stand
  *   - `addPlayoffs`  every structure that can still feed a playoff offers a chip per range it could play off
  *   - `fit`          how the event's entries fill each structure that takes entries, with levers to change it
+ *   - `journey`      one participant's path through every connected structure — rounds and links, never names
  *
  * A mode is a lens over the same topology, never a second editor: in a live draw every change it leads to is a
  * factory mutation made by the host, and the host loads the topology again from the draw afterwards. Further modes
  * belong here — fitting an event's entries to a structure is the next one planned (CA, 2026-11-08).
  */
-export type TopologyMode = 'view' | 'addPlayoffs' | 'fit';
+export type TopologyMode = 'view' | 'addPlayoffs' | 'fit' | 'journey';
 
 /**
  * One playoff a structure could still feed, as a chip in the `addPlayoffs` mode.
@@ -124,6 +127,12 @@ export interface TopologyBuilderConfig {
    * qualifiers, links), not on every render: dragging a card does not regenerate the draw.
    */
   drawFit?: (state: TopologyState) => DrawFit | undefined;
+  /**
+   * A participant's path through the draw, from the host. Given, the toolbar offers a Player journey mode (for a
+   * topology of more than one structure). The canvas never shows a name: the search in the footer takes one, and the
+   * canvas lights the rounds and links of the participant chosen.
+   */
+  journey?: JourneyHost;
 }
 
 export interface TopologyTemplate {
@@ -174,4 +183,29 @@ export interface DrawFit {
   structures?: StructureFit[];
   notPlaced?: { participantId: string; entryStatus?: string; entryStage?: string; reason?: string }[];
   error?: unknown;
+}
+
+/** One matchUp of a participant's journey. */
+export interface JourneyStep {
+  /** The structure it is played in — a topology node's id; a round robin group's matchUps take their container's. */
+  structureId: string;
+  roundNumber?: number;
+  matchUpId?: string;
+  /** How it went for the participant. */
+  result?: 'WON' | 'LOST' | 'BYE' | 'PENDING';
+}
+
+/** A participant the journey search can offer. */
+export interface JourneyParticipant {
+  participantId: string;
+  name: string;
+}
+
+export interface JourneyHost {
+  /** Participants matching a typed query, for the footer's search. The only place a name appears. */
+  search: (query: string) => JourneyParticipant[];
+  /** The participant's matchUps in the draw, in the order they were (or will be) played. */
+  stepsFor: (participantId: string) => JourneyStep[];
+  /** A lit round was clicked: the host goes to that matchUp in the draw. */
+  onStep?: (step: JourneyStep) => void;
 }
