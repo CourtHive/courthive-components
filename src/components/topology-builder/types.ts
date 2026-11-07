@@ -6,7 +6,11 @@ import type { SchematicMatchUp } from '../renderSchematicStructure';
 export interface TopologyNode {
   id: string;
   structureName: string;
-  stage: 'MAIN' | 'QUALIFYING' | 'CONSOLATION' | 'PLAY_OFF';
+  /**
+   * VOLUNTARY_CONSOLATION is a live draw's opt-in consolation: no link feeds it (players are added to it after their
+   * main-draw loss), so it is drawn beside the main structure rather than downstream of a link.
+   */
+  stage: 'MAIN' | 'QUALIFYING' | 'CONSOLATION' | 'PLAY_OFF' | 'VOLUNTARY_CONSOLATION';
   structureType: string;
   drawSize: number;
   qualifyingPositions?: number;
@@ -64,6 +68,14 @@ export type TopologyMode = 'view' | 'addPlayoffs';
 export interface PlayoffOffer {
   /** Unique within its structure. */
   key: string;
+  /**
+   * What the chip adds. Absent reads as `playoff`.
+   *
+   *   - `playoff`               the losers of a round, or a group finishing position, play off a range
+   *   - `pagePlayoff`           positions 1-4 as a page playoff, in place of the semifinal and 3-4 (offered beside `3-4`)
+   *   - `voluntaryConsolation`  an opt-in consolation for main-draw losers; no playoff generator, its own attach
+   */
+  kind?: 'playoff' | 'pagePlayoff' | 'voluntaryConsolation';
   /** The positions it would decide, as the factory names them, e.g. `'17-24'`. */
   finishingPositionRange: string;
   finishingPositions?: number[];

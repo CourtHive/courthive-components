@@ -193,6 +193,20 @@
   background: var(--chc-container-success);
   color: var(--chc-on-success);
 }
+.tb-card-badge--voluntary {
+  background: var(--chc-container-warning);
+  color: var(--chc-on-warning);
+}
+
+/* A voluntary consolation before anyone opts in: a sentence where the schematic would be */
+.tb-card-preview--opt-in {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  font-size: 11px;
+  color: var(--chc-text-muted);
+}
 
 .tb-card-name {
   font-size: 12px;

@@ -590,6 +590,8 @@ export {
   playoffOffersFromProfile,
   playoffOffersByStructure,
   playoffGenerationParams,
+  offerStructureName,
+  canAddVoluntaryConsolation,
   buildTopologyCanvas,
   buildStructureCard,
   getPortPosition,
@@ -608,6 +610,7 @@ export type {
   PlayoffOffer,
   AvailablePlayoffProfile,
   PlayoffGenerationParams,
+  OfferDrawDefinition,
   TopologyTemplate,
   DrawOptionsResult,
   ValidationError

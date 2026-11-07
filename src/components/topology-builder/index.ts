@@ -19,8 +19,14 @@ export { generatePreviewMatchUps } from './domain/previewGenerator';
 export { getPlayoffProfiles, clearPlayoffProfilesCache } from './domain/playoffProfilesCache';
 export type { PlayoffProfiles, PlayoffRoundRange, PlayoffFinishingPositionRange } from './domain/playoffProfilesCache';
 export { standardTemplates } from './domain/templates';
-export { playoffOffersFromProfile, playoffOffersByStructure, playoffGenerationParams } from './domain/playoffOffers';
-export type { AvailablePlayoffProfile, PlayoffGenerationParams } from './domain/playoffOffers';
+export {
+  playoffOffersFromProfile,
+  playoffOffersByStructure,
+  playoffGenerationParams,
+  offerStructureName,
+  canAddVoluntaryConsolation
+} from './domain/playoffOffers';
+export type { AvailablePlayoffProfile, PlayoffGenerationParams, OfferDrawDefinition } from './domain/playoffOffers';
 
 // UI Components (for custom layouts)
 export { buildTopologyCanvas } from './ui/topologyCanvas';

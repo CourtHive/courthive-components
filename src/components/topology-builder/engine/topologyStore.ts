@@ -7,7 +7,7 @@ import { getNodeLosersForRound } from '../domain/feedRounds';
 import { getCardWidth } from '../ui/structureCard';
 import type { TopologyNode, TopologyEdge, TopologyState, TopologyChangeListener, TopologyMode } from '../types';
 
-const { MAIN, QUALIFYING, CONSOLATION, WINNER, LOSER, ROUND_ROBIN } = drawDefinitionConstants;
+const { MAIN, QUALIFYING, CONSOLATION, VOLUNTARY_CONSOLATION, WINNER, LOSER, ROUND_ROBIN } = drawDefinitionConstants;
 const POSITION = 'POSITION';
 
 let idCounter = 0;
@@ -218,12 +218,12 @@ export class TopologyStore {
   /**
    * Place the nodes in columns by flow, each column stacked top to bottom.
    *
-   * `heightOf` gives a card's rendered height. The store has no DOM, so without it every card is taken as
-   * `CARD_HEIGHT`, which a round robin's tall preview or a row of Add playoffs chips exceeds — the next card in the
-   * column was then drawn over it (2026-11-08). The controller measures and passes it; a card it cannot measure (no
-   * layout, as under a headless DOM) still takes `CARD_HEIGHT`.
+   * `sizeOf` gives a card's rendered size. The store has no DOM, so without it every card is taken as `CARD_HEIGHT`
+   * tall and `getCardWidth` wide, which a round robin's tall preview or a row of Add playoffs chips exceeds — the next
+   * card in the column, or the next column, was then drawn over it (2026-11-08). The controller measures and passes
+   * it; a card it cannot measure (no layout, as under a headless DOM) keeps the computed size.
    */
-  autoLayout(heightOf?: (nodeId: string) => number | undefined): void {
+  autoLayout(sizeOf?: (nodeId: string) => CardSize | undefined): void {
     const nodes = this.state.nodes;
     const edges = this.state.edges;
     if (!nodes.length) return;
@@ -296,6 +296,8 @@ export class TopologyStore {
       }
     }
 
+    placeVoluntaryConsolations(nodes, colOf);
+
     // Assign any unvisited nodes (disconnected) to column 0
     for (const node of nodes) {
       if (!colOf.has(node.id)) colOf.set(node.id, 0);
@@ -315,7 +317,7 @@ export class TopologyStore {
       columns.get(col)!.push(node);
     }
 
-    placeColumns(columns, heightOf);
+    placeColumns(columns, sizeOf);
   }
 
   loadState(newState: TopologyState): void {
@@ -345,10 +347,26 @@ export class TopologyStore {
   }
 }
 
-/** Lay the columns out left to right, each one's cards stacked by their heights. */
+/** A card's rendered size, as the controller measures it. */
+export interface CardSize {
+  width: number;
+  height: number;
+}
+
+/**
+ * A voluntary consolation has no inbound link (players opt in after their main-draw loss), so it is a root like the
+ * main structure — and stacked under it, it read as a second main draw. It sits in the column after main.
+ */
+function placeVoluntaryConsolations(nodes: TopologyNode[], colOf: Map<string, number>): void {
+  for (const node of nodes) {
+    if (node.stage === VOLUNTARY_CONSOLATION) colOf.set(node.id, 1);
+  }
+}
+
+/** Lay the columns out left to right, each as wide as its widest card, its cards stacked by their heights. */
 function placeColumns(
   columns: Map<number, TopologyNode[]>,
-  heightOf: ((nodeId: string) => number | undefined) | undefined
+  sizeOf: ((nodeId: string) => CardSize | undefined) | undefined
 ): void {
   let xOffset = 40;
   for (const col of [...columns.keys()].sort((a, b) => a - b)) {
@@ -356,8 +374,8 @@ function placeColumns(
     let yOffset = 40;
     for (const node of colNodes) {
       node.position = { x: xOffset, y: yOffset };
-      yOffset += Math.max(CARD_HEIGHT, heightOf?.(node.id) ?? 0) + ROW_GAP;
+      yOffset += Math.max(CARD_HEIGHT, sizeOf?.(node.id)?.height ?? 0) + ROW_GAP;
     }
-    xOffset += Math.max(...colNodes.map((n) => getCardWidth(n))) + COLUMN_GAP;
+    xOffset += Math.max(...colNodes.map((n) => Math.max(getCardWidth(n), sizeOf?.(n.id)?.width ?? 0))) + COLUMN_GAP;
   }
 }

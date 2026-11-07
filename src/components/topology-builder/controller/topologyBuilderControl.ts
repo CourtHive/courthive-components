@@ -4,6 +4,7 @@
  */
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { TopologyStore } from '../engine/topologyStore';
+import type { CardSize } from '../engine/topologyStore';
 import { buildTopologyCanvas } from '../ui/topologyCanvas';
 import { buildNodeEditor } from '../ui/nodeEditor';
 import { buildEdgeEditor } from '../ui/edgeEditor';
@@ -101,7 +102,7 @@ export class TopologyBuilderControl {
           });
         },
         onAutoLayout: () => {
-          this.store.autoLayout(this.renderedHeights());
+          this.store.autoLayout(this.renderedSizes());
           const state = this.store.getState();
           this.store.loadState(state);
         },
@@ -243,7 +244,7 @@ export class TopologyBuilderControl {
   }
 
   autoLayout(): void {
-    this.store.autoLayout(this.renderedHeights());
+    this.store.autoLayout(this.renderedSizes());
     const state = this.store.getState();
     this.store.loadState(state);
   }
@@ -252,13 +253,15 @@ export class TopologyBuilderControl {
     return this.store.getState();
   }
 
-  /** Each card's height as rendered, for `autoLayout`; nothing for a card with no layout to measure. */
-  private renderedHeights(): (nodeId: string) => number | undefined {
-    const heights = new Map<string, number>();
+  /** Each card's size as rendered, for `autoLayout`; nothing for a card with no layout to measure. */
+  private renderedSizes(): (nodeId: string) => CardSize | undefined {
+    const sizes = new Map<string, CardSize>();
     for (const card of this.layout.element.querySelectorAll<HTMLElement>('.tb-card[data-node-id]')) {
-      if (card.offsetHeight) heights.set(card.dataset.nodeId as string, card.offsetHeight);
+      if (card.offsetHeight) {
+        sizes.set(card.dataset.nodeId as string, { width: card.offsetWidth, height: card.offsetHeight });
+      }
     }
-    return (nodeId) => heights.get(nodeId);
+    return (nodeId) => sizes.get(nodeId);
   }
 
   loadState(state: TopologyState): void {
