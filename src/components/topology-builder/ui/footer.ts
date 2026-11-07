@@ -37,6 +37,6 @@ export function buildFooter(options: FooterOptions = {}): FooterPanel {
 
 function addPlayoffsHint(count: number): string {
   if (!count) return 'Every finishing position is already played off';
-  const ranges = count === 1 ? '1 range' : `${count} ranges`;
-  return `${ranges} can still be played off — choose one to add it as a playoff`;
+  const structures = count === 1 ? '1 structure' : `${count} structures`;
+  return `${structures} can still be added — choose a chip to add it`;
 }

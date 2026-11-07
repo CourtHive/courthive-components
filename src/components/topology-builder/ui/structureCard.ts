@@ -9,8 +9,18 @@ import { getPlayoffProfiles } from '../domain/playoffProfilesCache';
 import { getLuckyDrawTotalRounds } from '../domain/feedRounds';
 import type { PlayoffOffer, TopologyNode } from '../types';
 
-const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, ROUND_ROBIN, AD_HOC, LUCKY_DRAW, WINNER, LOSER } =
-  drawDefinitionConstants;
+const {
+  VOLUNTARY_CONSOLATION,
+  CONSOLATION,
+  QUALIFYING,
+  ROUND_ROBIN,
+  LUCKY_DRAW,
+  PLAY_OFF,
+  AD_HOC,
+  WINNER,
+  LOSER,
+  MAIN
+} = drawDefinitionConstants;
 
 const MIN_CARD_WIDTH = 240;
 const ROUND_LAYOUT_WIDTH = 48; // 40px matchup + 4px margin each side
@@ -66,8 +76,12 @@ const BADGE_CLASS: Record<string, string> = {
   [MAIN]: 'tb-card-badge--main',
   [QUALIFYING]: 'tb-card-badge--qualifying',
   [CONSOLATION]: 'tb-card-badge--consolation',
-  [PLAY_OFF]: 'tb-card-badge--playoff'
+  [PLAY_OFF]: 'tb-card-badge--playoff',
+  [VOLUNTARY_CONSOLATION]: 'tb-card-badge--voluntary'
 };
+
+/** The badge's short stage name; `VOLUNTARY_CONSOLATION` cut to four letters read `VOLU`. */
+const BADGE_TEXT: Record<string, string> = { [VOLUNTARY_CONSOLATION]: 'VC' };
 
 export interface RoundAnnotation {
   roundNumber: number;
@@ -99,7 +113,23 @@ export interface StructureCardExtras {
 
 /** The chip's text: `+ 17–24`, an en dash as a range reads. */
 export function offerLabel(offer: PlayoffOffer): string {
-  return `+ ${offer.finishingPositionRange.replace('-', '\u2013')}`;
+  const range = offer.finishingPositionRange.replace('-', '\u2013');
+  if (offer.kind === 'voluntaryConsolation') return '+ Voluntary consolation';
+  if (offer.kind === 'pagePlayoff') return `+ Page playoff ${range}`;
+  return `+ ${range}`;
+}
+
+/** What a chip says it does, for its aria-label and title. */
+function offerDescription(offer: PlayoffOffer): string {
+  if (offer.kind === 'voluntaryConsolation') return 'Add a voluntary consolation that main-draw losers can opt into';
+  if (offer.kind === 'pagePlayoff') {
+    return `Add a page playoff for positions 1-4, in place of the 3-4 playoff, from losers of round ${offer.sourceRoundNumber}`;
+  }
+  const source =
+    offer.sourceRoundNumber !== undefined
+      ? `losers of round ${offer.sourceRoundNumber}`
+      : `group position ${offer.groupFinishingPosition}`;
+  return `Add a playoff for positions ${offer.finishingPositionRange}, from ${source}`;
 }
 
 export interface StructureCardCallbacks {
@@ -130,48 +160,30 @@ export function buildStructureCard(
   card.style.minWidth = `${getCardWidth(node)}px`;
   card.setAttribute('data-node-id', node.id);
 
-  // Header
-  const header = document.createElement('div');
-  header.className = 'tb-card-header';
-
-  const badge = document.createElement('span');
-  badge.className = `tb-card-badge ${BADGE_CLASS[node.stage] || 'tb-card-badge--main'}`;
-  badge.textContent = node.stage.substring(0, 4);
-
-  const name = document.createElement('span');
-  name.className = 'tb-card-name';
-  name.textContent = node.structureName;
-
-  const size = document.createElement('span');
-  size.className = 'tb-card-size';
-  size.textContent = `\u00d7${node.drawSize}`;
-
-  header.appendChild(badge);
-  header.appendChild(name);
-  header.appendChild(size);
-
-  // Advance info for RR structures
-  if (advanceInfo) {
-    const advanceDiv = document.createElement('div');
-    advanceDiv.className = 'tb-card-advance';
-    advanceDiv.textContent = advanceInfo;
-    header.appendChild(advanceDiv);
-  }
+  const header = buildCardHeader(node, advanceInfo);
 
   // Preview
   const preview = document.createElement('div');
   preview.className = 'tb-card-preview';
 
-  const matchUps =
-    node.matchUps ||
-    generatePreviewMatchUps({
-      structureType: node.structureType,
-      drawSize: node.drawSize,
-      stage: node.stage,
-      structureId: node.id,
-      qualifyingPositions: node.qualifyingPositions,
-      structureOptions: node.structureOptions
-    });
+  // A voluntary consolation is empty until players opt in: no positions to draw, and saying so is the preview
+  const optIn = node.stage === VOLUNTARY_CONSOLATION && !node.matchUps?.length;
+  const matchUps = optIn
+    ? []
+    : node.matchUps ||
+      generatePreviewMatchUps({
+        structureType: node.structureType,
+        drawSize: node.drawSize,
+        stage: node.stage,
+        structureId: node.id,
+        qualifyingPositions: node.qualifyingPositions,
+        structureOptions: node.structureOptions
+      });
+
+  if (optIn) {
+    preview.textContent = 'Main-draw losers opt in';
+    preview.classList.add('tb-card-preview--opt-in');
+  }
 
   if (matchUps.length > 0) {
     try {
@@ -337,6 +349,35 @@ export function buildStructureCard(
   return card;
 }
 
+/** The card's header: stage badge, name, size, and a round robin's advance line. */
+function buildCardHeader(node: TopologyNode, advanceInfo?: string): HTMLElement {
+  const header = document.createElement('div');
+  header.className = 'tb-card-header';
+
+  const badge = document.createElement('span');
+  badge.className = `tb-card-badge ${BADGE_CLASS[node.stage] || 'tb-card-badge--main'}`;
+  badge.textContent = BADGE_TEXT[node.stage] ?? node.stage.substring(0, 4);
+
+  const name = document.createElement('span');
+  name.className = 'tb-card-name';
+  name.textContent = node.structureName;
+
+  const size = document.createElement('span');
+  size.className = 'tb-card-size';
+  // an opt-in consolation has no size until players join it
+  size.textContent = node.stage === VOLUNTARY_CONSOLATION && !node.drawSize ? '' : `\u00d7${node.drawSize}`;
+
+  header.append(badge, name, size);
+
+  if (advanceInfo) {
+    const advanceDiv = document.createElement('div');
+    advanceDiv.className = 'tb-card-advance';
+    advanceDiv.textContent = advanceInfo;
+    header.appendChild(advanceDiv);
+  }
+  return header;
+}
+
 /**
  * What a structure of this type and size could feed, from a mock draw: a design-time answer, for the template builder.
  * A live draw leaves it out (`hideRoundsInfo`) — the draw's own answer comes as `addPlayoffs` chips.
@@ -379,12 +420,9 @@ function appendOfferChips(card: HTMLElement, { offers, onAddPlayoff }: CardPlayo
     chip.dataset.offerKey = offer.key;
     chip.dataset.finishingPositionRange = offer.finishingPositionRange;
     chip.textContent = offerLabel(offer);
-    const source =
-      offer.sourceRoundNumber !== undefined
-        ? `losers of round ${offer.sourceRoundNumber}`
-        : `group position ${offer.groupFinishingPosition}`;
-    chip.setAttribute('aria-label', `Add a playoff for positions ${offer.finishingPositionRange}, from ${source}`);
-    chip.title = `Play off ${offer.finishingPositionRange} — ${source}`;
+    chip.dataset.kind = offer.kind ?? 'playoff';
+    chip.setAttribute('aria-label', offerDescription(offer));
+    chip.title = offerDescription(offer);
 
     const round =
       offer.sourceRoundNumber === undefined

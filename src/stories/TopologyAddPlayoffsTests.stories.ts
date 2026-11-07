@@ -8,7 +8,7 @@ import '../styles/theme.css';
 import '../styles/schematic.css';
 import '../components/topology-builder/ui/topology-builder.css';
 
-import { liveTopologyHost } from './helpers/liveTopologyHost';
+import { ELIMINATION_16, liveTopologyHost } from './helpers/liveTopologyHost';
 import { expect } from 'storybook/test';
 
 import type { LiveTopologyHost } from './helpers/liveTopologyHost';
@@ -26,6 +26,7 @@ const PLAYOFF_5_8 = 'Playoff 5-8';
 const MAIN = 'Main';
 const ARIA_PRESSED = 'aria-pressed';
 const OFFER = '.tb-card-offer';
+const PAGE_1_4 = '+ Page playoff 1–4';
 const ROUND_OFFER = 'tb-round-offer';
 const TOGGLE = 'button.tb-mode-toggle[data-mode="addPlayoffs"]';
 
@@ -57,7 +58,8 @@ export const ChipsOnlyInTheMode: Story = {
     await expect(canvasElement.querySelector(TOGGLE)!.getAttribute(ARIA_PRESSED)).toBe('true');
     // the live draw's answer, not the mock-draw cache's: 1-16 is already played off, so it is not offered again
     await expect(chips(canvasElement, MAIN)).toEqual(['+ 17–24', '+ 25–32']);
-    await expect(chips(canvasElement, PLAYOFF_1_16)).toEqual(['+ 3–4', '+ 5–8', '+ 9–16']);
+    // the 1-16 playoff offers 3-4, so it offers a page playoff for 1-4 beside it
+    await expect(chips(canvasElement, PLAYOFF_1_16)).toEqual([PAGE_1_4, '+ 3–4', '+ 5–8', '+ 9–16']);
     // in the mode, the mock-draw rounds line is never shown for a live draw
     await expect(canvasElement.querySelector('.tb-card-rounds')).toBeNull();
 
@@ -100,7 +102,7 @@ export const AChipAttachesThatOnePlayoff: Story = {
     await expect(host.structureNames()).toEqual([MAIN, PLAYOFF_1_16, PLAYOFF_5_8]);
     await expect(card(canvasElement, PLAYOFF_5_8)).toBeTruthy();
     await expect(canvasElement.querySelector(TOGGLE)!.getAttribute(ARIA_PRESSED)).toBe('true');
-    await expect(chips(canvasElement, PLAYOFF_1_16)).toEqual(['+ 3–4', '+ 9–16']);
+    await expect(chips(canvasElement, PLAYOFF_1_16)).toEqual([PAGE_1_4, '+ 3–4', '+ 9–16']);
     // the new playoff offers what it can feed in turn
     await expect(chips(canvasElement, PLAYOFF_5_8)).toEqual(['+ 7–8']);
 
@@ -146,7 +148,7 @@ export const FillsTheHostWithAFooter: Story = {
     await expect(attachments).toEqual(['local', 'local']);
     // the footer says what the mode asks
     await expect(canvasElement.querySelector('.tb-footer-hint')!.textContent).toBe(
-      '5 ranges can still be played off — choose one to add it as a playoff'
+      '6 structures can still be added — choose a chip to add it'
     );
     canvasElement.querySelector<HTMLButtonElement>(TOGGLE)!.click();
     await expect(canvasElement.querySelector('.tb-footer-hint')!.textContent).toBe('');
@@ -165,5 +167,61 @@ export const LinksSpanContentTallerThanTheCanvas: Story = {
     await expect(nodes.offsetHeight).toBeGreaterThan(canvas.clientHeight);
     // the links layer covers the content, so a link below the first screenful is drawn
     await expect(svg.getBoundingClientRect().height).toBeGreaterThanOrEqual(nodes.offsetHeight);
+  }
+};
+
+const mountElimination = () => {
+  host = liveTopologyHost({ mode: 'addPlayoffs', height: '640px', drawProfile: ELIMINATION_16 });
+  return host.element;
+};
+const chipOfKind = (root: HTMLElement, kind: string) =>
+  card(root, MAIN)?.querySelector<HTMLButtonElement>(`.tb-card-offer[data-kind="${kind}"]`);
+
+export const PagePlayoffBesideThirdFourth: Story = {
+  render: () => mountElimination(),
+  play: async ({ canvasElement }) => {
+    // the page playoff is the alternative to 3-4, offered wherever 3-4 is; the voluntary consolation comes last
+    await expect(chips(canvasElement, MAIN)).toEqual([
+      '+ Page playoff 1\u20134',
+      '+ 3\u20134',
+      '+ 5\u20138',
+      '+ 9\u201316',
+      '+ Voluntary consolation'
+    ]);
+    const page = chipOfKind(canvasElement, 'pagePlayoff')!;
+    // it draws from the semifinal, whose losers would otherwise play 3-4
+    const semifinal = () =>
+      card(canvasElement, MAIN)!.querySelector<HTMLElement>('.chc-schematic-round-container[data-round-number="3"]');
+    page.dispatchEvent(new MouseEvent('mouseenter'));
+    await expect(semifinal()!.classList.contains(ROUND_OFFER)).toBe(true);
+
+    page.click();
+    await expect(host.structureNames()).toEqual(['Main', '3-4 Playoff', 'Playoff Qualifier', 'Playoff Final']);
+    // the factory no longer offers 3-4, so both alternatives are gone
+    await expect(chips(canvasElement, MAIN)).toEqual(['+ 5\u20138', '+ 9\u201316', '+ Voluntary consolation']);
+    for (const name of ['3-4 Playoff', 'Playoff Qualifier', 'Playoff Final']) {
+      await expect(card(canvasElement, name)).toBeTruthy();
+    }
+  }
+};
+
+export const VoluntaryConsolationBesideMain: Story = {
+  render: () => mountElimination(),
+  play: async ({ canvasElement }) => {
+    chipOfKind(canvasElement, 'voluntaryConsolation')!.click();
+
+    await expect(host.structureNames()).toEqual(['Main', 'Consolation']);
+    const vc = card(canvasElement, 'Consolation')!;
+    // its own stage: a VC badge, and the opt-in state where a schematic would be
+    await expect(vc.querySelector('.tb-card-badge')!.textContent).toBe('VC');
+    await expect(vc.querySelector('.tb-card-preview')!.textContent).toBe('Main-draw losers opt in');
+    await expect(vc.querySelector('.tb-card-size')!.textContent).toBe('');
+    // beside Main, in the next column — not stacked under it as a second main draw
+    const main = card(canvasElement, MAIN)!.getBoundingClientRect();
+    const consolation = vc.getBoundingClientRect();
+    await expect(consolation.left).toBeGreaterThan(main.right);
+    await expect(Math.round(consolation.top)).toBe(Math.round(main.top));
+    // one only
+    await expect(chipOfKind(canvasElement, 'voluntaryConsolation')).toBeNull();
   }
 };

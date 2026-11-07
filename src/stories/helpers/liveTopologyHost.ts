@@ -12,7 +12,8 @@
  */
 import {
   playoffGenerationParams,
-  playoffOffersByStructure
+  playoffOffersByStructure,
+  offerStructureName
 } from '../../components/topology-builder/domain/playoffOffers';
 import { TopologyBuilderControl } from '../../components/topology-builder/controller/topologyBuilderControl';
 import { mocksEngine, tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
@@ -32,22 +33,21 @@ export type LiveTopologyHost = {
 };
 
 /** A 32-entry round robin in groups of four, with a 1-16 playoff: the draw CA was working with on 2026-11-07. */
+export const ROUND_ROBIN_32 = {
+  drawSize: 32,
+  drawType: 'ROUND_ROBIN_WITH_PLAYOFF',
+  structureOptions: { groupSize: 4, playoffGroups: [{ finishingPositions: [1, 2], structureName: 'Playoff 1-16' }] }
+};
+
+/** A plain 16 elimination draw: the shape a voluntary consolation and a page playoff hang off. */
+export const ELIMINATION_16 = { drawSize: 16 };
+
 export function liveTopologyHost({
   mode,
-  height = '100vh'
-}: { mode?: 'view' | 'addPlayoffs'; height?: string } = {}): LiveTopologyHost {
-  const generated: any = mocksEngine.generateTournamentRecord({
-    drawProfiles: [
-      {
-        drawSize: 32,
-        drawType: 'ROUND_ROBIN_WITH_PLAYOFF',
-        structureOptions: {
-          groupSize: 4,
-          playoffGroups: [{ finishingPositions: [1, 2], structureName: 'Playoff 1-16' }]
-        }
-      }
-    ]
-  });
+  height = '100vh',
+  drawProfile = ROUND_ROBIN_32
+}: { mode?: 'view' | 'addPlayoffs'; height?: string; drawProfile?: Record<string, unknown> } = {}): LiveTopologyHost {
+  const generated: any = mocksEngine.generateTournamentRecord({ drawProfiles: [drawProfile] });
   tournamentEngine.setState(generated.tournamentRecord);
   const drawId: string = generated.drawIds[0];
   const drawDefinition = () => tournamentEngine.getEvent({ drawId }).drawDefinition;
@@ -56,7 +56,8 @@ export function liveTopologyHost({
   let offers = new Map<string, PlayoffOffer[]>();
   const readOffers = () => {
     offers = playoffOffersByStructure(
-      tournamentEngine.getAvailablePlayoffProfiles({ drawId }).availablePlayoffProfiles
+      tournamentEngine.getAvailablePlayoffProfiles({ drawId }).availablePlayoffProfiles,
+      drawDefinition()
     );
   };
   readOffers();
@@ -74,21 +75,27 @@ export function liveTopologyHost({
     mode,
     playoffOffers: (node) => offers.get(node.id),
     onAddPlayoff: (node, offer) => {
-      const structureName = `Playoff ${offer.finishingPositionRange}`;
-      const playoffs: any = tournamentEngine.generateAndPopulatePlayoffStructures({
-        drawId,
-        structureId: node.id,
-        ...(playoffGenerationParams(offer, structureName) as any)
-      });
-      if (playoffs.error) throw new Error(playoffs.error.message);
-      const attached: any = tournamentEngine.attachPlayoffStructures({
-        drawId,
-        structures: playoffs.structures,
-        links: playoffs.links,
-        matchUpModifications: playoffs.matchUpModifications
-      });
+      const structureName = offerStructureName(offer);
+      const params = playoffGenerationParams(offer, structureName);
+      // a voluntary consolation is not a playoff: its own generator, its own attach (as the structure menu does it)
+      const generated: any = params
+        ? tournamentEngine.generateAndPopulatePlayoffStructures({ drawId, structureId: node.id, ...(params as any) })
+        : tournamentEngine.generateVoluntaryConsolation({ drawId, structureName });
+      if (generated.error) throw new Error(generated.error.message);
+      const attached: any = params
+        ? tournamentEngine.attachPlayoffStructures({
+            drawId,
+            structures: generated.structures,
+            links: generated.links,
+            matchUpModifications: generated.matchUpModifications
+          })
+        : tournamentEngine.attachConsolationStructures({
+            drawId,
+            structures: generated.structures,
+            links: generated.links
+          });
       if (!attached.success) throw new Error(attached.error?.message ?? 'attach failed');
-      added.push(structureName);
+      added.push(structureName ?? offer.kind ?? 'playoff');
       readOffers();
       control.loadState(hydrate(drawDefinition()) as TopologyState);
       control.autoLayout();

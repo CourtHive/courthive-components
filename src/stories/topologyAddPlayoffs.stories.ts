@@ -13,7 +13,7 @@ import '../styles/theme.css';
 import '../styles/schematic.css';
 import '../components/topology-builder/ui/topology-builder.css';
 
-import { liveTopologyHost } from './helpers/liveTopologyHost';
+import { ELIMINATION_16, liveTopologyHost } from './helpers/liveTopologyHost';
 
 import type { Meta, StoryObj } from '@storybook/html-vite';
 
@@ -38,4 +38,9 @@ export const AddPlayoffsOpenDark: Story = {
   name: 'The mode on (dark)',
   globals: { theme: 'dark' },
   render: () => liveTopologyHost({ mode: 'addPlayoffs' }).element
+};
+
+export const EliminationAddPlayoffs: Story = {
+  name: 'Elimination 16 — page playoff and voluntary consolation chips',
+  render: () => liveTopologyHost({ mode: 'addPlayoffs', drawProfile: ELIMINATION_16 }).element
 };
