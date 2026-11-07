@@ -6,8 +6,10 @@ import { drawDefinitionConstants } from 'tods-competition-factory';
 import { renderSchematicStructure } from '../../renderSchematicStructure';
 import { generatePreviewMatchUps } from '../domain/previewGenerator';
 import { getPlayoffProfiles } from '../domain/playoffProfilesCache';
+import { FIT_STATUS_TEXT, fitSentence } from '../domain/drawFit';
 import { getNodeTotalRounds } from '../domain/feedRounds';
-import type { PlayoffOffer, TopologyNode } from '../types';
+
+import type { PlayoffOffer, StructureFit, TopologyNode } from '../types';
 
 const {
   VOLUNTARY_CONSOLATION,
@@ -22,6 +24,7 @@ const {
   MAIN
 } = drawDefinitionConstants;
 
+const ARIA_LABEL = 'aria-label';
 const MIN_CARD_WIDTH = 240;
 const ROUND_LAYOUT_WIDTH = 48; // 40px matchup + 4px margin each side
 const PREVIEW_PADDING = 16; // 8px left + 8px right
@@ -103,8 +106,24 @@ export interface CardPlayoffOffers {
   onAddPlayoff: (offer: PlayoffOffer) => void;
 }
 
+/** A Fit mode lever on a card. */
+export type FitLever = 'size' | 'qualifiers';
+
+/** A node's fit, as Fit mode draws it on the card. */
+export interface NodeFit {
+  /** False for a structure filled by results (a playoff, a consolation): nothing to fit. */
+  takesEntries: boolean;
+  fit?: StructureFit;
+  canResize?: { down: boolean; up: boolean };
+  /** A qualifying structure's qualifier count. */
+  canQualify?: { down: boolean; up: boolean };
+}
+
 /** Card extras beyond the positional parameters. */
 export interface StructureCardExtras {
+  /** Fit mode: this node's fit, and the levers it may move (none in a read-only topology). */
+  fit?: NodeFit;
+  onFitLever?: (lever: FitLever, direction: 1 | -1) => void;
   /** The `addPlayoffs` mode: this card's chips, or none (the card is dimmed: nothing to add from it). */
   playoffOffers?: CardPlayoffOffers;
   /** A live draw: the mock-draw rounds line describes a draw that is not this one, so it is left out. */
@@ -300,7 +319,7 @@ export function buildStructureCard(
 
   if (roundsDiv) card.appendChild(roundsDiv);
 
-  if (extras.playoffOffers) appendOfferChips(card, extras.playoffOffers, preview);
+  appendModeExtras(card, node, preview, extras);
 
   // Warning banner
   if (hasWarnings) {
@@ -421,7 +440,7 @@ function appendOfferChips(card: HTMLElement, { offers, onAddPlayoff }: CardPlayo
     chip.dataset.finishingPositionRange = offer.finishingPositionRange;
     chip.textContent = offerLabel(offer);
     chip.dataset.kind = offer.kind ?? 'playoff';
-    chip.setAttribute('aria-label', offerDescription(offer));
+    chip.setAttribute(ARIA_LABEL, offerDescription(offer));
     chip.title = offerDescription(offer);
 
     const round =
@@ -445,6 +464,129 @@ function appendOfferChips(card: HTMLElement, { offers, onAddPlayoff }: CardPlayo
     row.appendChild(chip);
   }
   card.appendChild(row);
+}
+
+/** What the current mode adds beneath a card: Add playoffs chips, or Fit mode's gauge. */
+function appendModeExtras(
+  card: HTMLElement,
+  node: TopologyNode,
+  preview: HTMLElement,
+  extras: StructureCardExtras
+): void {
+  if (extras.playoffOffers) appendOfferChips(card, extras.playoffOffers, preview);
+  if (extras.fit) appendFit(card, node, extras.fit, extras.onFitLever);
+}
+
+/**
+ * Fit mode on a card: a bar of how the positions are taken, a sentence, the factory's status, and the levers.
+ *
+ * The bar's segments are the fit's own counts — entries, qualifier slots, BYEs the seeds take, BYEs beyond them, open
+ * positions — so it can only show what `getDrawFit` measured. A structure filled by results has nothing to fit and
+ * steps back, as a card with no chips does in the Add playoffs mode.
+ */
+function appendFit(
+  card: HTMLElement,
+  node: TopologyNode,
+  nodeFit: NodeFit,
+  onLever?: (lever: FitLever, direction: 1 | -1) => void
+): void {
+  if (!nodeFit.takesEntries) {
+    card.classList.add('tb-card--no-fit');
+    return;
+  }
+  const block = document.createElement('div');
+  block.className = 'tb-fit';
+  const fit = nodeFit.fit;
+  if (!fit) {
+    block.textContent = 'No fit for this topology yet';
+    block.classList.add('tb-fit--none');
+    card.appendChild(block);
+    return;
+  }
+  block.dataset.status = fit.status;
+
+  const head = document.createElement('div');
+  head.className = 'tb-fit-head';
+  const status = document.createElement('span');
+  status.className = 'tb-fit-status';
+  status.dataset.status = fit.status;
+  status.textContent = FIT_STATUS_TEXT[fit.status];
+  const sentence = document.createElement('span');
+  sentence.className = 'tb-fit-text';
+  sentence.textContent = fitSentence(fit);
+  head.append(status, sentence);
+
+  block.append(head, fitBar(fit));
+  const levers = fitLevers(node, nodeFit, onLever);
+  if (levers) block.appendChild(levers);
+  card.appendChild(block);
+}
+
+/** The positions as a stacked bar, one segment per kind of occupant. */
+function fitBar(fit: StructureFit): HTMLElement {
+  const bar = document.createElement('div');
+  bar.className = 'tb-fit-bar';
+  bar.setAttribute('role', 'img');
+  bar.setAttribute(ARIA_LABEL, `${fitSentence(fit)} of ${fit.positions} positions`);
+  const segments: [string, number][] = [
+    ['placed', fit.placed],
+    ['qualifier', fit.qualifierSlots],
+    ['seed-bye', fit.seedByes],
+    ['bye', fit.byesBeyondSeeds],
+    ['open', fit.open]
+  ];
+  for (const [kind, count] of segments) {
+    if (!count || !fit.positions) continue;
+    const segment = document.createElement('span');
+    segment.className = `tb-fit-seg tb-fit-seg--${kind}`;
+    segment.dataset.kind = kind;
+    segment.dataset.count = String(count);
+    segment.style.width = `${(count / fit.positions) * 100}%`;
+    bar.appendChild(segment);
+  }
+  return bar;
+}
+
+/** The size stepper, and a qualifying structure's qualifier stepper. None without a lever handler. */
+function fitLevers(
+  node: TopologyNode,
+  nodeFit: NodeFit,
+  onLever?: (lever: FitLever, direction: 1 | -1) => void
+): HTMLElement | null {
+  if (!onLever) return null;
+  const row = document.createElement('div');
+  row.className = 'tb-fit-levers';
+  const stepper = (lever: FitLever, label: string, value: number, can?: { down: boolean; up: boolean }) => {
+    const group = document.createElement('span');
+    group.className = 'tb-fit-stepper';
+    group.dataset.lever = lever;
+    const name = document.createElement('span');
+    name.className = 'tb-fit-stepper-label';
+    name.textContent = `${label} ${value}`;
+    const button = (direction: 1 | -1, glyph: string) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'tb-fit-step';
+      b.dataset.direction = direction > 0 ? 'up' : 'down';
+      b.textContent = glyph;
+      b.setAttribute(ARIA_LABEL, `${direction > 0 ? 'More' : 'Fewer'} ${label.toLowerCase()}`);
+      b.disabled = !(direction > 0 ? can?.up : can?.down);
+      b.addEventListener('mousedown', (e) => e.stopPropagation());
+      b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        onLever(lever, direction);
+      });
+      return b;
+    };
+    group.append(button(-1, '\u2212'), name, button(1, '+'));
+    return group;
+  };
+  row.appendChild(stepper('size', 'Size', node.drawSize, nodeFit.canResize));
+  if (nodeFit.canQualify) {
+    const qualifiers = node.qualifyingPositions || Math.floor(node.drawSize / 4);
+    row.appendChild(stepper('qualifiers', 'Qualifiers', qualifiers, nodeFit.canQualify));
+  }
+  return row;
 }
 
 /**

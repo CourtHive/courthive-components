@@ -610,3 +610,135 @@
   align-items: center;
   gap: 8px;
 }
+
+/* ── Fit mode ────────────────────────────────────────────── */
+/* How the event's entries fill each structure that takes entries (CA, 2026-11-08) */
+.tb-fit {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 8px;
+  border-top: 1px dashed var(--chc-border-secondary);
+  font-size: 11px;
+}
+
+.tb-fit--none {
+  color: var(--chc-text-muted);
+}
+
+.tb-fit-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tb-fit-status {
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.tb-fit-status[data-status='FITS'] {
+  background: var(--chc-container-success);
+  color: var(--chc-on-success);
+}
+
+.tb-fit-status[data-status='OVER'] {
+  background: var(--chc-container-danger);
+  color: var(--chc-on-danger);
+}
+
+.tb-fit-status[data-status='SHORT'] {
+  background: var(--chc-container-warning);
+  color: var(--chc-on-warning);
+}
+
+.tb-fit-status[data-status='EMPTY'] {
+  background: var(--chc-bg-secondary);
+  color: var(--chc-text-secondary);
+}
+
+.tb-fit-text {
+  color: var(--chc-text-secondary);
+}
+
+.tb-fit-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--chc-bg-secondary);
+}
+
+.tb-fit-seg--placed {
+  background: var(--chc-status-success);
+}
+
+.tb-fit-seg--qualifier {
+  background: var(--chc-status-info);
+}
+
+.tb-fit-seg--seed-bye {
+  background: var(--chc-border-secondary);
+}
+
+.tb-fit-seg--bye {
+  background: var(--chc-status-warning);
+}
+
+.tb-fit-seg--open {
+  background: transparent;
+}
+
+.tb-fit-levers {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tb-fit-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tb-fit-stepper-label {
+  min-width: 52px;
+  text-align: center;
+  color: var(--chc-text-primary);
+}
+
+.tb-fit-step {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  font: inherit;
+  line-height: 1;
+  border: 1px solid var(--chc-border-primary);
+  border-radius: 4px;
+  background: var(--chc-bg-primary);
+  color: var(--chc-text-primary);
+  cursor: pointer;
+}
+
+.tb-fit-step:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.tb-fit-step:focus-visible {
+  outline: 2px solid var(--chc-border-focus);
+  outline-offset: 1px;
+}
+
+/* In the mode, a structure filled by results steps back so the ones taking entries read first */
+.tb-canvas--fit .tb-card--no-fit {
+  opacity: 0.55;
+}
+
+/* the ledger separates its stages with spaces, which a collapsed line loses */
+.tb-footer-hint[data-mode='fit'] {
+  white-space: pre-wrap;
+}

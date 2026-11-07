@@ -629,6 +629,10 @@ export type {
   AvailablePlayoffProfile,
   PlayoffGenerationParams,
   OfferDrawDefinition,
+  DrawFit,
+  StructureFit,
+  FitStatus,
+  FitLedgerStage,
   TopologyTemplate,
   DrawOptionsResult,
   ValidationError

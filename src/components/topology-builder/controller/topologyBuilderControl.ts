@@ -10,6 +10,7 @@ import { buildNodeEditor } from '../ui/nodeEditor';
 import { buildEdgeEditor } from '../ui/edgeEditor';
 import { buildToolbar } from '../ui/toolbar';
 import { buildTopologyBuilderLayout } from '../ui/topologyBuilderLayout';
+import { fitByNode, fitKey, ledgerText, steppedDrawSize, steppedQualifiers, takesEntries } from '../domain/drawFit';
 import { buildFooter } from '../ui/footer';
 import { standardTemplates } from '../domain/templates';
 import { validateTopology } from '../domain/topologyValidator';
@@ -22,9 +23,13 @@ import type {
   TopologyEdge,
   TopologyMode,
   PlayoffOffer,
+  StructureFit,
+  DrawFit,
   UIPanel
 } from '../types';
 import type { FooterPanel } from '../ui/footer';
+import type { ModeToggle } from '../ui/toolbar';
+import type { FitLever, NodeFit } from '../ui/structureCard';
 
 const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, SINGLE_ELIMINATION, LUCKY_DRAW, WINNER, LOSER } =
   drawDefinitionConstants;
@@ -86,7 +91,89 @@ export class TopologyBuilderControl {
 
   private buildFooterPanel(): FooterPanel {
     const countPlayoffOffers = this.offersPlayoffs() ? (state: TopologyState) => this.countOffers(state) : undefined;
-    return buildFooter({ countPlayoffOffers });
+    const fitLedger = this.config.drawFit ? (state: TopologyState) => ledgerText(this.currentFit(state)) : undefined;
+    return buildFooter({ countPlayoffOffers, fitLedger });
+  }
+
+  /** The modes the host has given the topology what it needs for. */
+  private modeToggles(): ModeToggle[] {
+    const toggles: ModeToggle[] = [];
+    if (this.offersPlayoffs()) {
+      toggles.push({
+        mode: 'addPlayoffs',
+        label: 'Add playoffs',
+        unavailable: (state) =>
+          this.countOffers(state) ? undefined : 'Every finishing position is already played off',
+        offTitle: 'Show the playoffs each structure can still feed',
+        onTitle: 'Done adding playoffs'
+      });
+    }
+    if (this.config.drawFit) {
+      toggles.push({
+        mode: 'fit',
+        label: 'Fit',
+        unavailable: (state) =>
+          state.nodes.some((node) => node.stage === MAIN) ? undefined : 'Add a main structure to fit the entries to',
+        offTitle: "Show how the event's entries fill the draw",
+        onTitle: 'Done fitting'
+      });
+    }
+    return toggles;
+  }
+
+  // ── Fit mode ──────────────────────────────────────────────────────────
+
+  private fitCache?: { key: string; fit: DrawFit | undefined; byNode: Map<string, StructureFit> };
+
+  /**
+   * The host's fit for the topology as it stands, asked again only when its fit-relevant shape changes (`fitKey`):
+   * the host regenerates a draw to answer, and a card dragged across the canvas must not do that on every frame.
+   */
+  private currentFit(state: TopologyState): DrawFit | undefined {
+    return this.fitEntry(state)?.fit;
+  }
+
+  private fitEntry(state: TopologyState) {
+    if (!this.config.drawFit) return undefined;
+    const key = fitKey(state);
+    if (this.fitCache?.key === key) return this.fitCache;
+    let fit: DrawFit | undefined;
+    try {
+      fit = this.config.drawFit(state);
+    } catch (error) {
+      // a topology the converter cannot read yet (no main structure, a link mid-edit) has no fit to show
+      fit = { error };
+    }
+    this.fitCache = { key, fit, byNode: fitByNode(state, fit) };
+    return this.fitCache;
+  }
+
+  private fitFor(nodeId: string): NodeFit {
+    const state = this.store.getState();
+    const node = state.nodes.find((n) => n.id === nodeId);
+    if (!node || !takesEntries(node, state)) return { takesEntries: false };
+    const fit = this.fitEntry(state)?.byNode.get(nodeId);
+    return {
+      takesEntries: true,
+      fit,
+      canResize: { down: steppedDrawSize(node, -1) !== undefined, up: steppedDrawSize(node, 1) !== undefined },
+      ...(node.stage === QUALIFYING && {
+        canQualify: { down: steppedQualifiers(node, -1) !== undefined, up: steppedQualifiers(node, 1) !== undefined }
+      })
+    };
+  }
+
+  /** A Fit mode lever: the topology changes, and the next render asks the host for the new fit. */
+  private applyFitLever(nodeId: string, lever: FitLever, direction: 1 | -1): void {
+    const node = this.store.getState().nodes.find((n) => n.id === nodeId);
+    if (!node) return;
+    if (lever === 'size') {
+      const drawSize = steppedDrawSize(node, direction);
+      if (drawSize !== undefined) this.store.updateNode(nodeId, { drawSize });
+      return;
+    }
+    const qualifyingPositions = steppedQualifiers(node, direction);
+    if (qualifyingPositions !== undefined) this.store.updateNode(nodeId, { qualifyingPositions });
   }
 
   private buildToolbarPanel(allTemplates: any[], isReadOnly: boolean) {
@@ -111,9 +198,9 @@ export class TopologyBuilderControl {
           ? () => this.config.onSaveTemplate(this.store.getState())
           : undefined,
         onClear: this.config.onClear,
-        ...(this.offersPlayoffs() && {
+        ...(this.modeToggles().length && {
           onSetMode: (mode: TopologyMode) => this.setMode(mode),
-          countPlayoffOffers: (state: TopologyState) => this.countOffers(state)
+          modes: this.modeToggles()
         })
       },
       allTemplates,
@@ -139,6 +226,12 @@ export class TopologyBuilderControl {
             this.handleCreateEdge(sourceNodeId, targetNodeId, linkType);
           },
       onPortMouseDown: () => {},
+      ...(this.config.drawFit && {
+        fitFor: (nodeId: string) => this.fitFor(nodeId),
+        onFitLever: isReadOnly
+          ? undefined
+          : (nodeId: string, lever: FitLever, direction: 1 | -1) => this.applyFitLever(nodeId, lever, direction)
+      }),
       ...(this.offersPlayoffs() && {
         playoffOffers: (nodeId: string) => {
           const node = this.store.getState().nodes.find((n) => n.id === nodeId);
