@@ -31,8 +31,8 @@ import { createScoreEntryStore } from '../../components/scoring/logic/scoreEntry
 import { getMatchUpFormatModal } from '../../components/matchUpFormat/matchUpFormat';
 import { createDialPadRegion } from '../../components/scoring/regions/dialPadRegion';
 import { isDoubleExitStatus } from '../../components/scoring/logic/irregularEnding';
-import { renderScoreEntryCard } from '../../components/scoring/scoreEntryCard';
 import { switchApproach } from '../../components/scoring/logic/scoreEntryModel';
+import { renderScoreEntryCard } from '../../components/scoring/scoreEntryCard';
 
 import type { ScoreEntryStore } from '../../components/scoring/logic/scoreEntryStore';
 import type { StatusCodeGroups } from '../../components/scoring/logic/statusCodes';
