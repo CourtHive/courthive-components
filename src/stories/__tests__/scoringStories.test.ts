@@ -58,6 +58,7 @@ describe('the dialog stories run', () => {
   it('found every story in both modules', () => {
     expect(playable.map(([name]) => name)).toEqual([
       'PlayedOut',
+      'SwitchApproach',
       'Walkover',
       'ClearedPartScore',
       'Tiebreak',

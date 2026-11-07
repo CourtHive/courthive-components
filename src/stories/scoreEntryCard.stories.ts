@@ -32,12 +32,14 @@ export default {
 const FORMAT = 'SET3-S:6/TB7';
 const CONTEXT = 'R16 · Court 3';
 const SUBMIT = 'button[data-action="submit"]';
+const SWITCH = 'button[data-action="switchApproach"]';
 const BAND = '.chc-sec-band';
 const OTHER = 'button[data-action="other"]';
 const ROW_ENDING = '[data-row-ending]';
 const ROW_HEAD = '.chc-sec-row-head';
 const ENDED_EARLY_2 = 'button[data-action="endedEarly"][data-side="2"]';
 const LEM_ADVANCES = 'Rosalind Lem advances';
+const LEM_DEFEATS_ELLUL = 'Rosalind Lem def. Derrick Ellul';
 const MATCH_TIEBREAK_FORMAT = 'SET1-S:TB10';
 /** "Wo [inj]" — a real entry in the shipped vocabulary, not a hand-mirror of one. */
 const WALKOVER_INJURY = 'W1';
@@ -96,6 +98,13 @@ const PART_SCORE_SETS = [
   { setNumber: 2, side1Score: 2, side2Score: 1 }
 ];
 
+/** Click the one element a selector names, or fail loudly — a silent miss would pass the assertions after it. */
+function clickIn(canvasElement: HTMLElement, selector: string): void {
+  const target = canvasElement.querySelector<HTMLElement>(selector);
+  if (!target) throw new Error(`nothing matched ${selector}`);
+  target.click();
+}
+
 function frame(element: HTMLElement, width = 720): HTMLElement {
   const outer = document.createElement('div');
   outer.style.cssText = `padding:30px;background:var(--chc-bg-secondary);display:flex;justify-content:center`;
@@ -118,7 +127,7 @@ export const PlayedOut = {
 
     const band = canvasElement.querySelector<HTMLElement>(BAND);
     await expect(band!.dataset.tone).toBe('good');
-    await expect(band!.textContent).toContain('Rosalind Lem def. Derrick Ellul');
+    await expect(band!.textContent).toContain(LEM_DEFEATS_ELLUL);
 
     // No ENDING is pre-selected. A pre-selected ending would be a fail-open default on the most
     // consequential field in the dialog.
@@ -140,15 +149,50 @@ export const PlayedOut = {
   }
 };
 
+export const SwitchApproach = {
+  name: 'Approach switcher — the same score in all three',
+  render: () => frame(cardWithSets(PLAYED_OUT_SETS)),
+  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+    const click = (selector: string) => clickIn(canvasElement, selector);
+    const switcher = () => canvasElement.querySelector<HTMLButtonElement>(SWITCH)!;
+
+    // CA, 2026-11-07: *"why do all of the stories under the Score Entry => Card section not have a working
+    // [Dynamic Sets] button"* — the host passed a label and nothing to choose from. The menu is the
+    // dialog's: all three, the active one checked rather than omitted.
+    await expect(switcher().textContent).toBe('Dynamic Sets');
+    click(SWITCH);
+    const offered = [...canvasElement.querySelectorAll<HTMLElement>('[data-approach]')];
+    await expect(offered.map((item) => item.dataset.approach)).toEqual(['dynamicSets', 'freeScore', 'dialPad']);
+    await expect(canvasElement.querySelector('[data-approach="dynamicSets"]')!.getAttribute('aria-pressed')).toBe(
+      'true'
+    );
+
+    // One store under every region, so the score comes across and the band does not move.
+    click('[data-approach="freeScore"]');
+    await expect(switcher().textContent).toBe('Free Score');
+    await expect(canvasElement.querySelector<HTMLInputElement>('input[data-free-score]')!.value).toContain('6-4 6-3');
+    await expect(canvasElement.querySelector('input[data-set="1"]')).toBeNull();
+    await expect(canvasElement.querySelector<HTMLElement>(BAND)!.textContent).toContain(LEM_DEFEATS_ELLUL);
+
+    click(SWITCH);
+    click('[data-approach="dialPad"]');
+    await expect(switcher().textContent).toBe('Dial Pad');
+    await expect(canvasElement.querySelector('button[data-digit="6"]')).toBeTruthy();
+    await expect([...canvasElement.querySelectorAll('.chc-sec-readout-set')].map((cell) => cell.textContent)).toEqual([
+      '6',
+      '6',
+      '4',
+      '3'
+    ]);
+    await expect(canvasElement.querySelector<HTMLButtonElement>(SUBMIT)!.disabled).toBe(false);
+  }
+};
+
 export const Walkover = {
   name: 'Walkover — chosen on the row it happened to',
   render: () => frame(cardWithSets(undefined)),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
-    const click = (selector: string) => {
-      const target = canvasElement.querySelector<HTMLElement>(selector);
-      if (!target) throw new Error(`nothing matched ${selector}`);
-      target.click();
-    };
+    const click = (selector: string) => clickIn(canvasElement, selector);
 
     // ── Closed: the participant's NAME is the control ──
     //
@@ -429,9 +473,7 @@ const extraTimeAndShootout = {
     // The scoring engine decides the match on the shootout tally, so the result can be submitted
     const submit = canvasElement.querySelector<HTMLButtonElement>(SUBMIT);
     await expect(submit!.disabled).toBe(false);
-    await expect(canvasElement.querySelector<HTMLElement>(BAND)!.textContent).toContain(
-      'Rosalind Lem def. Derrick Ellul'
-    );
+    await expect(canvasElement.querySelector<HTMLElement>(BAND)!.textContent).toContain(LEM_DEFEATS_ELLUL);
   }
 };
 
