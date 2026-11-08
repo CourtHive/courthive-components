@@ -273,6 +273,12 @@ async function checkBroadcastVisibility({ canvasElement }: { canvasElement: HTML
   expect(name.textContent?.trim()).toBeTruthy();
   expect(getComputedStyle(name).color).toBe('rgb(255, 255, 255)');
   const preview = canvasElement.querySelector('.ce-preview-body')!;
+  // A narrow editor must scroll the whole card, rather than letting rows overflow its painted box.
+  for (const card of preview.querySelectorAll<HTMLElement>('.ce-preview-matchup .chc-matchup')) {
+    for (const row of card.querySelectorAll<HTMLElement>('.chc-side-row')) {
+      expect(card.clientWidth).toBeGreaterThanOrEqual(row.scrollWidth);
+    }
+  }
   const scores = [...preview.querySelectorAll<HTMLElement>('.chc-game-score')];
   expect(scores.length).toBeGreaterThan(0);
   for (const score of scores) {

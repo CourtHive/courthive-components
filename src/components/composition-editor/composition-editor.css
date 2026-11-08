@@ -231,6 +231,9 @@
 }
 
 .ce-preview-matchup {
+  /* Keep the painted card as wide as its names and scores; the preview body scrolls it as a unit. */
+  width: max-content;
+  min-width: 100%;
   transform-origin: top left;
 }
 
