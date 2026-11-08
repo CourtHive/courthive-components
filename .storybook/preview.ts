@@ -13,6 +13,7 @@ import '../src/styles/components/ui.css';
 import '../src/styles/components/sp-buttons.css';
 import '../src/components/forms/checkradio.css';
 import '../src/styles/accessibility.css';
+import '../src/components/display-settings/display-settings.css';
 import '../src/components/courts/courts.css';
 import '../src/components/inline-scoring/inline-scoring.css';
 import '../src/components/scorecard/scorecard.css';
