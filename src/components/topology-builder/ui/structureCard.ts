@@ -6,7 +6,7 @@ import { drawDefinitionConstants } from 'tods-competition-factory';
 import { renderSchematicStructure } from '../../renderSchematicStructure';
 import { generatePreviewMatchUps } from '../domain/previewGenerator';
 import { getPlayoffProfiles } from '../domain/playoffProfilesCache';
-import { getLuckyDrawTotalRounds } from '../domain/feedRounds';
+import { getNodeTotalRounds } from '../domain/feedRounds';
 import type { PlayoffOffer, TopologyNode } from '../types';
 
 const {
@@ -40,7 +40,7 @@ export function getNumRounds(node: TopologyNode): number {
     return node.structureOptions?.roundsCount || 1;
   }
   if (node.structureType === LUCKY_DRAW) {
-    return getLuckyDrawTotalRounds(node.drawSize);
+    return getNodeTotalRounds(LUCKY_DRAW, node.drawSize, node.structureOptions);
   }
   const n = Math.max(2, node.drawSize);
   const base = Math.pow(2, Math.floor(Math.log2(n)));

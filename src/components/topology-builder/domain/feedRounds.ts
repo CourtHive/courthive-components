@@ -4,6 +4,7 @@
  *
  * Also provides lucky-draw-aware helpers for round count and loser computation.
  */
+import { losersLeavingRound, validateRoundProfile } from '../../roundProfile/roundProfileLogic';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 
 const { LUCKY_DRAW, ROUND_ROBIN, AD_HOC } = drawDefinitionConstants;
@@ -115,6 +116,17 @@ export function getLuckyDrawLosersForRound(drawSize: number, roundNumber: number
 }
 
 /**
+ * A lucky draw's explicit round profile (`structureOptions.roundProfile`, the factory's `roundProfile`), when it is one
+ * the factory will generate; otherwise undefined and the default cascade applies. An invalid profile is never half-used:
+ * the validator reports it, and every count here falls back to what the factory would play without it.
+ */
+export function customLuckyProfile(drawSize: number, structureOptions?: any): number[] | undefined {
+  const profile = structureOptions?.roundProfile;
+  if (!Array.isArray(profile) || !profile.length) return undefined;
+  return validateRoundProfile(profile, drawSize) ? undefined : profile;
+}
+
+/**
  * Structure-type-aware total rounds.
  * Dispatches to the correct algorithm based on structureType.
  */
@@ -126,7 +138,7 @@ export function getNodeTotalRounds(structureType: string, drawSize: number, stru
     return structureOptions?.roundsCount || 1;
   }
   if (structureType === LUCKY_DRAW) {
-    return getLuckyDrawTotalRounds(drawSize);
+    return customLuckyProfile(drawSize, structureOptions)?.length ?? getLuckyDrawTotalRounds(drawSize);
   }
   return getTotalRounds(drawSize);
 }
@@ -134,11 +146,18 @@ export function getNodeTotalRounds(structureType: string, drawSize: number, stru
 /**
  * Structure-type-aware losers count for a given round.
  * For elimination/feed-in: drawSize / 2^round
- * For lucky draw: uses luckyRoundProfiles
+ * For lucky draw: an explicit round profile's losers less the lucky losers the next round takes back, else the
+ * default cascade (luckyRoundProfiles)
  */
-export function getNodeLosersForRound(structureType: string, drawSize: number, roundNumber: number): number {
+export function getNodeLosersForRound(
+  structureType: string,
+  drawSize: number,
+  roundNumber: number,
+  structureOptions?: any
+): number {
   if (structureType === LUCKY_DRAW) {
-    return getLuckyDrawLosersForRound(drawSize, roundNumber);
+    const profile = customLuckyProfile(drawSize, structureOptions);
+    return profile ? losersLeavingRound(profile, roundNumber) : getLuckyDrawLosersForRound(drawSize, roundNumber);
   }
   return Math.floor(drawSize / Math.pow(2, roundNumber));
 }

@@ -50,6 +50,23 @@ export type { CategoryConfig, Category } from './components/categories/category/
 // Flight profile editor modal
 export { getFlightProfileModal } from './components/flightProfile/flightProfileNew';
 export type { FlightProfileConfig } from './components/flightProfile/flightProfileNew';
+export { mountRoundProfileEditor, defaultProblemMessage } from './components/roundProfile/roundProfileEditor';
+export type {
+  RoundProfileEditorController,
+  RoundProfileEditorOptions,
+  RoundProfileEditorLabels
+} from './components/roundProfile/roundProfileEditor';
+export {
+  defaultProfile,
+  isRoundProfileEditable,
+  losersLeavingRound,
+  luckyLosersNeeded,
+  roundRange,
+  sanitizeProfile,
+  setRound,
+  validateRoundProfile,
+  type RoundProfileProblem
+} from './components/roundProfile/roundProfileLogic';
 
 // Score Entry — the scoring dialog: a card in a modal, with three interchangeable entry approaches
 // (Dynamic Sets, Free Score, Dial Pad) over one set of geometry, a live format picker, irregular endings
@@ -107,6 +124,7 @@ import './styles/palettes.css';
 import './styles/draw.css';
 import './styles/schematic.css';
 import './components/topology-builder/ui/topology-builder.css';
+import './components/roundProfile/roundProfileEditor.css';
 import './styles/components/buttons.css';
 import './styles/components/sp-buttons.css';
 import './styles/components/forms.css';
