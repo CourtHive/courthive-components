@@ -30,8 +30,8 @@
  * `chooseEnding` — and every answer here comes back the moment the ending is un-chosen.
  */
 
-import { matchUpStatusConstants, scoreGovernor } from 'tods-competition-factory';
 import { isOvertimeFormat, overtimeProgress } from '../../../tools/overtimeEntry/overtimeEntry';
+import { matchUpStatusConstants, scoreGovernor } from 'tods-competition-factory';
 import { isCompletedLevelClose } from './combinedPointTie';
 import { ordinalSetLabel } from '../regions/setColumns';
 import { resolveScoreEntry } from './scoreEntryState';
