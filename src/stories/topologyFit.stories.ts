@@ -34,3 +34,22 @@ export const FitOpenDark: Story = {
   globals: { theme: 'dark' },
   render: () => fitTopologyHost({ mode: 'fit' }).element
 };
+
+/** The acceptance line open: the ranked MAIN entries, the cut between them, and what it changes. */
+const withAcceptanceOpen = (cut?: number) => {
+  const host = fitTopologyHost({ mode: 'fit' });
+  host.element.querySelector<HTMLButtonElement>('.tb-acceptance-toggle')?.click();
+  if (cut !== undefined) host.control.setAcceptanceCut(cut);
+  return host.element;
+};
+
+export const AcceptanceLine: Story = {
+  name: 'Fit on — the acceptance line, moved up to 20',
+  render: () => withAcceptanceOpen(20)
+};
+
+export const AcceptanceLineDark: Story = {
+  name: 'The acceptance line (dark)',
+  globals: { theme: 'dark' },
+  render: () => withAcceptanceOpen(20)
+};

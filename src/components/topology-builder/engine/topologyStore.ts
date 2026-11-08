@@ -337,6 +337,13 @@ export class TopologyStore {
     this.notify();
   }
 
+  /** Fit mode's acceptance line; `undefined` is today's statuses. */
+  setAcceptanceCut(cut: number | undefined): void {
+    if (this.state.acceptanceCut === cut) return;
+    this.state = { ...this.state, acceptanceCut: cut };
+    this.notify();
+  }
+
   setMode(mode: TopologyMode): void {
     if ((this.state.mode ?? 'view') === mode) return;
     this.state = { ...this.state, mode, selectedNodeId: null, selectedEdgeId: null };
