@@ -4,16 +4,27 @@
  */
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { TopologyStore } from '../engine/topologyStore';
+import type { CardSize } from '../engine/topologyStore';
 import { buildTopologyCanvas } from '../ui/topologyCanvas';
 import { buildNodeEditor } from '../ui/nodeEditor';
 import { buildEdgeEditor } from '../ui/edgeEditor';
 import { buildToolbar } from '../ui/toolbar';
 import { buildTopologyBuilderLayout } from '../ui/topologyBuilderLayout';
+import { buildFooter } from '../ui/footer';
 import { standardTemplates } from '../domain/templates';
 import { validateTopology } from '../domain/topologyValidator';
 import { getNodeTotalRounds } from '../domain/feedRounds';
 import { getCardWidth } from '../ui/structureCard';
-import type { TopologyState, TopologyNode, TopologyEdge, TopologyBuilderConfig, UIPanel } from '../types';
+import type {
+  TopologyBuilderConfig,
+  TopologyState,
+  TopologyNode,
+  TopologyEdge,
+  TopologyMode,
+  PlayoffOffer,
+  UIPanel
+} from '../types';
+import type { FooterPanel } from '../ui/footer';
 
 const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, SINGLE_ELIMINATION, LUCKY_DRAW, WINNER, LOSER } =
   drawDefinitionConstants;
@@ -24,10 +35,14 @@ export class TopologyBuilderControl {
   private readonly layout: UIPanel<TopologyState>;
   private readonly unsubscribe: () => void;
   private readonly config: TopologyBuilderConfig;
+  private readonly footer?: FooterPanel;
 
   constructor(config: TopologyBuilderConfig = {}) {
     this.config = config;
-    this.store = new TopologyStore(config.initialState);
+    this.store = new TopologyStore({
+      ...config.initialState,
+      ...(config.mode && { mode: config.mode })
+    });
 
     const allTemplates = [...standardTemplates, ...(config.templates || [])];
     const isReadOnly = !!config.readOnly;
@@ -35,25 +50,15 @@ export class TopologyBuilderControl {
     const toolbar = this.buildToolbarPanel(allTemplates, isReadOnly);
     const canvas = this.buildCanvasPanel(isReadOnly);
 
-    const nodeEditor = buildNodeEditor({
-      onUpdateNode: isReadOnly ? () => {} : (nodeId, updates) => this.store.updateNode(nodeId, updates),
-      onUpdateEdge: isReadOnly ? () => {} : (edgeId, updates) => this.store.updateEdge(edgeId, updates),
-      onDeleteNode: isReadOnly ? () => {} : (nodeId) => this.store.removeNode(nodeId),
-      readOnly: isReadOnly,
-      hideDelete: config.hideDelete
-    });
-
-    const edgeEditor = buildEdgeEditor({
-      onUpdateEdge: isReadOnly ? () => {} : (edgeId, updates) => this.store.updateEdge(edgeId, updates),
-      onDeleteEdge: isReadOnly ? () => {} : (edgeId) => this.store.removeEdge(edgeId),
-      readOnly: isReadOnly
-    });
+    const { nodeEditor, edgeEditor } = this.buildEditorPanels(isReadOnly);
+    this.footer = config.footer ? this.buildFooterPanel() : undefined;
 
     this.layout = buildTopologyBuilderLayout({
       toolbar,
       canvas,
       nodeEditor,
-      edgeEditor
+      edgeEditor,
+      footer: this.footer
     });
 
     this.unsubscribe = this.store.subscribe((state) => {
@@ -61,6 +66,27 @@ export class TopologyBuilderControl {
     });
 
     this.layout.update(this.store.getState());
+  }
+
+  private buildEditorPanels(isReadOnly: boolean) {
+    const nodeEditor = buildNodeEditor({
+      onUpdateNode: isReadOnly ? () => {} : (nodeId, updates) => this.store.updateNode(nodeId, updates),
+      onUpdateEdge: isReadOnly ? () => {} : (edgeId, updates) => this.store.updateEdge(edgeId, updates),
+      onDeleteNode: isReadOnly ? () => {} : (nodeId) => this.store.removeNode(nodeId),
+      readOnly: isReadOnly,
+      hideDelete: this.config.hideDelete
+    });
+    const edgeEditor = buildEdgeEditor({
+      onUpdateEdge: isReadOnly ? () => {} : (edgeId, updates) => this.store.updateEdge(edgeId, updates),
+      onDeleteEdge: isReadOnly ? () => {} : (edgeId) => this.store.removeEdge(edgeId),
+      readOnly: isReadOnly
+    });
+    return { nodeEditor, edgeEditor };
+  }
+
+  private buildFooterPanel(): FooterPanel {
+    const countPlayoffOffers = this.offersPlayoffs() ? (state: TopologyState) => this.countOffers(state) : undefined;
+    return buildFooter({ countPlayoffOffers });
   }
 
   private buildToolbarPanel(allTemplates: any[], isReadOnly: boolean) {
@@ -76,7 +102,7 @@ export class TopologyBuilderControl {
           });
         },
         onAutoLayout: () => {
-          this.store.autoLayout();
+          this.store.autoLayout(this.renderedSizes());
           const state = this.store.getState();
           this.store.loadState(state);
         },
@@ -84,7 +110,11 @@ export class TopologyBuilderControl {
         onSaveTemplate: this.config.onSaveTemplate
           ? () => this.config.onSaveTemplate(this.store.getState())
           : undefined,
-        onClear: this.config.onClear
+        onClear: this.config.onClear,
+        ...(this.offersPlayoffs() && {
+          onSetMode: (mode: TopologyMode) => this.setMode(mode),
+          countPlayoffOffers: (state: TopologyState) => this.countOffers(state)
+        })
       },
       allTemplates,
       { hideTemplates: this.config.hideTemplates, hideGenerate: this.config.hideGenerate, readOnly: isReadOnly }
@@ -108,8 +138,47 @@ export class TopologyBuilderControl {
         : (sourceNodeId, targetNodeId, linkType) => {
             this.handleCreateEdge(sourceNodeId, targetNodeId, linkType);
           },
-      onPortMouseDown: () => {}
+      onPortMouseDown: () => {},
+      ...(this.offersPlayoffs() && {
+        playoffOffers: (nodeId: string) => {
+          const node = this.store.getState().nodes.find((n) => n.id === nodeId);
+          return node ? this.offersFor(node) : undefined;
+        },
+        onAddPlayoff: (nodeId: string, offer: PlayoffOffer) => {
+          const node = this.store.getState().nodes.find((n) => n.id === nodeId);
+          if (node) this.config.onAddPlayoff!(node, offer);
+        }
+      })
     });
+  }
+
+  /** The Add playoffs mode needs both halves from the host: the live offers, and what to do with a chosen one. */
+  private offersPlayoffs(): boolean {
+    return !!this.config.playoffOffers && !!this.config.onAddPlayoff;
+  }
+
+  private offersFor(node: TopologyNode): PlayoffOffer[] | undefined {
+    return this.config.playoffOffers?.(node);
+  }
+
+  private countOffers(state: TopologyState): number {
+    return state.nodes.reduce((count, node) => count + (this.offersFor(node)?.length ?? 0), 0);
+  }
+
+  /** The footer's slot for the host's own controls, when the control was built with `footer`. */
+  getFooterSlot(): HTMLElement | undefined {
+    return this.footer?.slot;
+  }
+
+  /** Change what the canvas is for. Leaving a mode with nothing to do in it is always possible. */
+  setMode(mode: TopologyMode): void {
+    if ((this.store.getState().mode ?? 'view') === mode) return;
+    this.store.setMode(mode);
+    this.config.onModeChange?.(mode);
+  }
+
+  getMode(): TopologyMode {
+    return this.store.getState().mode ?? 'view';
   }
 
   private handleCreateEdge(sourceNodeId: string, targetNodeId: string, linkType: TopologyEdge['linkType']): void {
@@ -175,13 +244,24 @@ export class TopologyBuilderControl {
   }
 
   autoLayout(): void {
-    this.store.autoLayout();
+    this.store.autoLayout(this.renderedSizes());
     const state = this.store.getState();
     this.store.loadState(state);
   }
 
   getState(): TopologyState {
     return this.store.getState();
+  }
+
+  /** Each card's size as rendered, for `autoLayout`; nothing for a card with no layout to measure. */
+  private renderedSizes(): (nodeId: string) => CardSize | undefined {
+    const sizes = new Map<string, CardSize>();
+    for (const card of this.layout.element.querySelectorAll<HTMLElement>('.tb-card[data-node-id]')) {
+      if (card.offsetHeight) {
+        sizes.set(card.dataset.nodeId as string, { width: card.offsetWidth, height: card.offsetHeight });
+      }
+    }
+    return (nodeId) => sizes.get(nodeId);
   }
 
   loadState(state: TopologyState): void {

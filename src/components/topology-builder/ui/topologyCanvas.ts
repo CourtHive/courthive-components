@@ -12,7 +12,7 @@ import {
 } from '../domain/edgeTraversal';
 
 // constants and types
-import type { TopologyState, TopologyEdge, TopologyNode, UIPanel } from '../types';
+import type { PlayoffOffer, TopologyState, TopologyEdge, TopologyNode, UIPanel } from '../types';
 import type { RoundAnnotation, PositionChip } from './structureCard';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 
@@ -47,6 +47,9 @@ export interface CanvasCallbacks {
   onMoveNode: (nodeId: string, x: number, y: number) => void;
   onCreateEdge: (sourceNodeId: string, targetNodeId: string, linkType: 'WINNER' | 'LOSER' | 'POSITION') => void;
   onPortMouseDown: (nodeId: string, portType: 'winner' | 'loser') => void;
+  /** The live draw's offers for a node; given, the cards leave out the mock-draw rounds line. */
+  playoffOffers?: (nodeId: string) => PlayoffOffer[] | undefined;
+  onAddPlayoff?: (nodeId: string, offer: PlayoffOffer) => void;
 }
 
 export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<TopologyState> {
@@ -341,8 +344,16 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
     const nodeWarnings = computeNodeWarnings(state);
     const positionChipsByNode = computePositionChipsByNode(state);
     const cardCallbacks = buildCardCallbacks(state);
+    const addingPlayoffs = state.mode === 'addPlayoffs' && !!callbacks.playoffOffers && !!callbacks.onAddPlayoff;
+    root.classList.toggle('tb-canvas--add-playoffs', addingPlayoffs);
 
     for (const node of state.nodes) {
+      const playoffOffers = addingPlayoffs
+        ? {
+            offers: callbacks.playoffOffers!(node.id) ?? [],
+            onAddPlayoff: (offer: PlayoffOffer) => callbacks.onAddPlayoff!(node.id, offer)
+          }
+        : undefined;
       const card = buildStructureCard(
         node,
         cardCallbacks,
@@ -351,7 +362,8 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
         annotationsByNode.get(node.id),
         nodeWarnings.get(node.id),
         computeAdvanceInfo(node, state),
-        positionChipsByNode.get(node.id)
+        positionChipsByNode.get(node.id),
+        { playoffOffers, hideRoundsInfo: !!callbacks.playoffOffers }
       );
       nodesLayer.appendChild(card);
     }
@@ -388,6 +400,10 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
     svg.setAttribute('height', String(maxY));
     nodesLayer.style.width = `${maxX}px`;
     nodesLayer.style.height = `${maxY}px`;
+    // The links layer spans the content too: the canvas scrolls inside a fixed height now, and a layer sized to the
+    // canvas box would clip every link below the first screenful.
+    svg.style.width = `max(100%, ${maxX}px)`;
+    svg.style.height = `max(100%, ${maxY}px)`;
     spacer.style.width = `${maxX}px`;
     spacer.style.height = `${maxY}px`;
   }

@@ -65,7 +65,10 @@
     linear-gradient(90deg, var(--chc-border-secondary) 1px, transparent 1px);
   background-size: 20px 20px;
   background-position: -1px -1px;
-  min-height: 600px;
+  /* The grid belongs to the content, not the box: it scrolls with the cards and covers every area a drag opens up */
+  background-attachment: local;
+  /* Fills whatever height the host gives the layout (CA, 2026-11-08); this floor is for a host that gives none */
+  min-height: 320px;
 }
 
 .tb-canvas-svg {
@@ -189,6 +192,20 @@
 .tb-card-badge--playoff {
   background: var(--chc-container-success);
   color: var(--chc-on-success);
+}
+.tb-card-badge--voluntary {
+  background: var(--chc-container-warning);
+  color: var(--chc-on-warning);
+}
+
+/* A voluntary consolation before anyone opts in: a sentence where the schematic would be */
+.tb-card-preview--opt-in {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  font-size: 11px;
+  color: var(--chc-text-muted);
 }
 
 .tb-card-name {
@@ -511,4 +528,85 @@
 .tb-validation-icon--warning {
   background: var(--chc-container-warning);
   color: var(--chc-on-warning);
+}
+
+/* ── Add playoffs mode ───────────────────────────────────── */
+/* Chips for the playoffs a structure can still feed (CA, 2026-11-08). Dashed: a structure that does not exist yet. */
+.tb-mode-toggle {
+  align-self: center;
+  /* clear of the toolbar's edge, where its border was clipped */
+  margin: 4px 8px;
+}
+
+.tb-card-offers {
+  display: flex;
+  gap: 4px;
+  padding: 5px 8px;
+  flex-wrap: wrap;
+  border-top: 1px dashed var(--chc-status-info);
+}
+
+.tb-card-offer {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px dashed var(--chc-status-info);
+  border-radius: 10px;
+  background: var(--chc-bg-primary);
+  color: var(--chc-status-info);
+  cursor: pointer;
+  transition:
+    background-color 0.1s,
+    color 0.1s;
+}
+
+.tb-card-offer:hover,
+.tb-card-offer:focus-visible {
+  border-style: solid;
+  background: var(--chc-container-info);
+  color: var(--chc-on-info);
+  outline: none;
+}
+
+/* The round a pointed-at chip would draw its participants from */
+.tb-round-offer {
+  outline: 2px dashed var(--chc-status-info);
+  outline-offset: 2px;
+  border-radius: 3px;
+  z-index: 1;
+}
+
+/* In the mode, a structure with nothing to add steps back so the ones with chips read first */
+.tb-canvas--add-playoffs .tb-card--no-offers {
+  opacity: 0.55;
+}
+
+/* ── Footer ──────────────────────────────────────────────── */
+/* The strip beneath the canvas, matching the schedule page's beneath its grid */
+.tb-footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 36px;
+  padding: 8px 16px;
+  box-sizing: border-box;
+  border-top: 1px solid var(--chc-border-secondary);
+  background: var(--chc-bg-primary);
+  flex-wrap: wrap;
+}
+
+.tb-footer-hint {
+  flex: 1;
+  font-size: 12px;
+  color: var(--chc-text-secondary);
+}
+
+.tb-footer-slot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
