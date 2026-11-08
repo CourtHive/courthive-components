@@ -11,6 +11,7 @@ import { buildEdgeEditor } from '../ui/edgeEditor';
 import { buildToolbar } from '../ui/toolbar';
 import { buildTopologyBuilderLayout } from '../ui/topologyBuilderLayout';
 import { fitByNode, fitKey, ledgerText, steppedDrawSize, steppedQualifiers, takesEntries } from '../domain/drawFit';
+import { changesKey, clampCut, currentCut, entryChangesAt, heldEntries, linePool } from '../domain/acceptanceLine';
 import { journeyEdgeIds, journeySummary, stepsByNode } from '../domain/journey';
 import { buildFooter } from '../ui/footer';
 import { standardTemplates } from '../domain/templates';
@@ -27,7 +28,9 @@ import type {
   StructureFit,
   JourneyStep,
   DrawFit,
-  UIPanel
+  UIPanel,
+  AcceptanceEntry,
+  EntryChange
 } from '../types';
 import type { FooterPanel } from '../ui/footer';
 import type { ModeToggle } from '../ui/toolbar';
@@ -102,7 +105,18 @@ export class TopologyBuilderControl {
             state.journeyParticipantId ? journeySummary(state, this.journeyEntry(state).steps) : ''
         }
       : undefined;
-    return buildFooter({ countPlayoffOffers, fitLedger, journey });
+    const acceptance =
+      this.config.acceptance && this.config.drawFit && !this.config.readOnly
+        ? {
+            pool: () => this.acceptancePool(),
+            held: () => heldEntries(this.config.acceptance!.entries()),
+            cut: (state: TopologyState) => state.acceptanceCut ?? currentCut(this.acceptancePool()),
+            changes: (state: TopologyState) => this.entryChanges(state),
+            setCut: (cut: number) => this.setAcceptanceCut(cut),
+            discard: () => this.discardEntryChanges()
+          }
+        : undefined;
+    return buildFooter({ countPlayoffOffers, fitLedger, journey, acceptance });
   }
 
   /** The modes the host has given the topology what it needs for. */
@@ -180,11 +194,13 @@ export class TopologyBuilderControl {
 
   private fitEntry(state: TopologyState) {
     if (!this.config.drawFit) return undefined;
-    const key = fitKey(state);
+    // the acceptance line's changes are part of the question: moving the line asks for the fit again
+    const entryChanges = this.entryChanges(state);
+    const key = `${fitKey(state)}|${changesKey(entryChanges)}`;
     if (this.fitCache?.key === key) return this.fitCache;
     let fit: DrawFit | undefined;
     try {
-      fit = this.config.drawFit(state);
+      fit = this.config.drawFit(state, entryChanges.length ? { entryChanges } : undefined);
     } catch (error) {
       // a topology the converter cannot read yet (no main structure, a link mid-edit) has no fit to show
       fit = { error };
@@ -206,6 +222,38 @@ export class TopologyBuilderControl {
         canQualify: { down: steppedQualifiers(node, -1) !== undefined, up: steppedQualifiers(node, 1) !== undefined }
       })
     };
+  }
+
+  // ── Fit mode: the acceptance line ─────────────────────────────────────
+
+  /** The entries the line runs through, in the host's ranking. */
+  private acceptancePool(): AcceptanceEntry[] {
+    return linePool(this.config.acceptance?.entries() ?? []);
+  }
+
+  private entryChanges(state: TopologyState): EntryChange[] {
+    return this.config.acceptance ? entryChangesAt(this.acceptancePool(), state.acceptanceCut) : [];
+  }
+
+  /** Move the acceptance line: the first `cut` of the line's entries are accepted, the rest wait as alternates. */
+  setAcceptanceCut(cut: number): void {
+    const pool = this.acceptancePool();
+    const bounded = clampCut(pool, cut);
+    // the line back where today's statuses put it is no change at all
+    const next = entryChangesAt(pool, bounded).length ? bounded : undefined;
+    this.store.setAcceptanceCut(next);
+    this.config.onEntryChanges?.(this.getEntryChanges());
+  }
+
+  /** The entry changes the acceptance line makes now — for the host to apply together with the generation. */
+  getEntryChanges(): EntryChange[] {
+    return this.entryChanges(this.store.getState());
+  }
+
+  /** The acceptance line back to today's statuses. */
+  discardEntryChanges(): void {
+    this.store.setAcceptanceCut(undefined);
+    this.config.onEntryChanges?.([]);
   }
 
   /** A Fit mode lever: the topology changes, and the next render asks the host for the new fit. */
