@@ -2,6 +2,7 @@
 
 .ce-layout {
   display: flex;
+  flex-wrap: wrap;
   gap: 1rem;
   height: 100%;
   min-height: 400px;
@@ -10,8 +11,8 @@
 }
 
 .ce-left {
-  flex: 1 1 260px;
-  min-width: 220px;
+  flex: 1 1 360px;
+  min-width: min(100%, 320px);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -104,8 +105,8 @@
   font-size: 0.8rem;
   color: var(--chc-text-secondary);
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
   min-width: 0;
 }
 
@@ -231,6 +232,9 @@
 }
 
 .ce-preview-matchup {
+  /* Keep the painted card as wide as its names and scores; the preview body scrolls it as a unit. */
+  width: max-content;
+  min-width: 100%;
   transform-origin: top left;
 }
 
@@ -261,4 +265,22 @@
   font-weight: 600;
   color: var(--chc-text-secondary);
   margin-bottom: 0.2rem;
+}
+
+/* Color names and editable values get a complete row in narrow settings panels. */
+.ce-color-field {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.3rem;
+  margin-block: 0.7rem;
+}
+
+.ce-color-field .ce-field-label {
+  overflow: visible;
+  white-space: normal;
+  text-overflow: clip;
+}
+
+.ce-color-field .ce-text-input {
+  width: auto;
+  min-width: 0;
 }

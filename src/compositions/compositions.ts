@@ -8,6 +8,8 @@ import {
   typtiTheme,
   itfTheme
 } from '../styles/themes';
+
+// constants and types
 import type { Composition } from '../types';
 
 export const compositions: Record<string, Composition> = {
@@ -104,6 +106,42 @@ export const compositions: Record<string, Composition> = {
       scheduleInfo: { elapsed: true, eventRound: true, layout: 'inline' }
     },
     theme: basicCardTheme
+  },
+  /** Broadcast graphics stay dark in both host modes. Wrap structures in renderContainer({ theme, content }). */
+  'Broadcast Scorebug': {
+    configuration: {
+      flags: false,
+      liveStatusPill: false,
+      serverIndicator: 'column',
+      gameScore: { position: 'trailing', inverted: false },
+      connectors: true
+    },
+    theme: 'chc-theme-broadcast-scorebug'
+  },
+  'Broadcast Bold': {
+    configuration: {
+      flags: false,
+      rounded: true,
+      liveStatusPill: false,
+      serverIndicator: 'column',
+      gameScore: { position: 'trailing', inverted: true },
+      matchUpFooter: true,
+      connectors: true
+    },
+    theme: 'chc-theme-broadcast-bold'
+  },
+  Broadcast: {
+    configuration: {
+      flags: false,
+      rounded: true,
+      entryStatus: true,
+      seedingElement: 'span',
+      liveStatusPill: false,
+      roundHeader: true,
+      connectors: true,
+      pathHighlight: true
+    },
+    theme: 'chc-theme-broadcast'
   },
   InlineScoring: {
     configuration: {

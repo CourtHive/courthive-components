@@ -1413,7 +1413,7 @@
   border: 1px solid var(--chc-border-primary);
   border-radius: var(--chc-radius-pill);
   background: transparent;
-  color: var(--chc-text-primary);
+  color: var(--chc-color-text, var(--chc-text-primary));
   align-items: center;
   font-size: 0.8rem;
   font-weight: 600;

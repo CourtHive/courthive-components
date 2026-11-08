@@ -1,6 +1,4 @@
-import type { CompositionEditorState, EditorPanel } from '../compositionEditorTypes';
-import type { CompositionEditorStore } from '../compositionEditorStore';
-import type { CompositionColors } from '../../../types';
+import { readCompositionColors } from '../../../styles/applyCompositionColors';
 import {
   ceField,
   ceFieldLabel,
@@ -11,6 +9,11 @@ import {
   ceSubgroupTitle
 } from '../styles';
 
+// constants and types
+import type { CompositionEditorState, EditorPanel } from '../compositionEditorTypes';
+import type { CompositionEditorStore } from '../compositionEditorStore';
+import type { CompositionColors } from '../../../types';
+
 interface ColorRowDef {
   key: keyof CompositionColors;
   label: string;
@@ -20,6 +23,8 @@ interface ColorRowDef {
 const FOOTER_HINT = 'Shown when Layout & Info › MatchUp footer is on';
 
 const COLOR_ROWS: ColorRowDef[] = [
+  { key: 'accent', label: 'Accent color', hint: 'Active scores, selection and broadcast footer' },
+  { key: 'accentText', label: 'Text on accent', hint: 'Choose readable text for the accent fill' },
   { key: 'border', label: 'MatchUp border' },
   { key: 'borderHover', label: 'MatchUp border (hover)' },
   { key: 'borderInlineStart', label: 'Left-edge accent' },
@@ -44,10 +49,11 @@ function buildColorRow(
   def: ColorRowDef,
   current: string | undefined,
   onChange: (value: string | undefined) => void,
-  disabled: boolean
-): { element: HTMLElement; setValue: (v: string | undefined) => void } {
+  disabled: boolean,
+  resolvedColor?: string
+): { element: HTMLElement; setValue: (v: string | undefined, resolved?: string) => void } {
   const row = document.createElement('div');
-  row.className = ceField();
+  row.className = `${ceField()} ce-color-field`;
 
   const label = document.createElement('span');
   label.className = ceFieldLabel();
@@ -72,17 +78,18 @@ function buildColorRow(
   textInput.disabled = disabled;
   textInput.style.flex = '1';
 
-  function applyValue(value: string | undefined): void {
+  function applyValue(value: string | undefined, resolved = value): void {
     textInput.value = value || '';
-    if (value && HEX_PATTERN.test(value)) {
-      colorInput.value = value;
+    const swatch = value && HEX_PATTERN.test(value) ? value : resolved;
+    if (swatch && HEX_PATTERN.test(swatch)) {
+      colorInput.value = swatch;
       colorInput.style.opacity = '1';
     } else {
       colorInput.value = '#000000';
       colorInput.style.opacity = value ? '0.4' : '1';
     }
   }
-  applyValue(current);
+  applyValue(current, resolvedColor);
 
   colorInput.addEventListener('input', () => {
     textInput.value = colorInput.value;
@@ -116,12 +123,15 @@ export function buildColorsSection(store: CompositionEditorStore): EditorPanel {
   hint.textContent = 'Per-composition overrides. Leave blank to inherit from the selected theme.';
   root.appendChild(hint);
 
+  const state = store.getState();
+  const resolved = readCompositionColors(state.theme, state.colors);
   const rowControls = COLOR_ROWS.map((def) => {
     const ctrl = buildColorRow(
       def,
-      store.getState().colors?.[def.key] as string | undefined,
+      state.colors?.[def.key] || resolved[def.key],
       (value) => store.setColorField(def.key, value),
-      readOnly
+      readOnly,
+      resolved[def.key]
     );
     root.appendChild(ctrl.element);
     return { def, ctrl };
@@ -195,8 +205,9 @@ export function buildColorsSection(store: CompositionEditorStore): EditorPanel {
   root.appendChild(clearBtn);
 
   function update(state: CompositionEditorState): void {
+    const resolved = readCompositionColors(state.theme, state.colors);
     for (const { def, ctrl } of rowControls) {
-      ctrl.setValue(state.colors?.[def.key] as string | undefined);
+      ctrl.setValue(state.colors?.[def.key] || resolved[def.key], resolved[def.key]);
     }
     widthInput.value = state.colors?.borderInlineStartWidth || '';
     for (const { sideNumber, ctrl } of sideControls) ctrl.setValue(sideColorsOf(state)[sideNumber]);

@@ -1,8 +1,8 @@
 /**
  * Composition presets — structural validation and consistency tests.
  */
-import { describe, it, expect } from 'vitest';
 import { compositions } from '../compositions';
+import { describe, it, expect } from 'vitest';
 
 const EXPECTED_NAMES = [
   'Australian',
@@ -17,7 +17,10 @@ const EXPECTED_NAMES = [
   'InlineScoring',
   'National',
   'Scoreboard',
-  'Watch'
+  'Watch',
+  'Broadcast Scorebug',
+  'Broadcast Bold',
+  'Broadcast'
 ];
 
 describe('compositions', () => {
@@ -45,6 +48,8 @@ describe('compositions', () => {
 
       it('configuration contains only valid keys', () => {
         const validKeys = new Set([
+          'entryStatus',
+          'pathHighlight',
           'flags',
           'connectors',
           'flag',
