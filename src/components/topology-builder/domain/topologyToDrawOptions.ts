@@ -7,6 +7,7 @@
  * structure shape (SE, FEED_IN, ROUND_ROBIN, AD_HOC).
  */
 import { carriesQualifiers, traversesByFinishingPosition } from './edgeTraversal';
+import { customLuckyProfile } from './feedRounds';
 import type { TopologyState, TopologyNode, TopologyEdge } from '../types';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 
@@ -103,12 +104,19 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
     drawType = FEED_IN;
   }
 
+  // A lucky draw's explicit round profile is the factory's top-level `roundProfile` (customLuckyDraw), not a
+  // structure option; it is sent only when valid, so an invalid one plays the default cascade, as the canvas shows.
+  const { roundProfile: _roundProfile, ...structureOptions } = mainNode.structureOptions ?? {};
+  const roundProfile =
+    drawType === LUCKY_DRAW ? customLuckyProfile(mainNode.drawSize, mainNode.structureOptions) : undefined;
+
   const drawOptions: any = {
     drawName: state.drawName,
     drawType,
     drawSize: mainNode.drawSize,
     matchUpFormat: mainNode.matchUpFormat || undefined,
-    structureOptions: mainNode.structureOptions || undefined,
+    structureOptions: Object.keys(structureOptions).length ? structureOptions : undefined,
+    ...(roundProfile && { roundProfile: [...roundProfile] }),
     automated: true
   };
 

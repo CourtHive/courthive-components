@@ -3,12 +3,15 @@
  */
 import { carriesQualifiers, isRoundWinnerEdge, traversesByFinishingPosition } from './edgeTraversal';
 import { getFeedRoundCapacities, getNodeTotalRounds, getNodeLosersForRound } from './feedRounds';
+import { defaultProblemMessage } from '../../roundProfile/roundProfileEditor';
+import { validateRoundProfile } from '../../roundProfile/roundProfileLogic';
 
 // constants and types
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import type { TopologyState } from '../types';
 
-const { MAIN, QUALIFYING, CONSOLATION, LOSER, SINGLE_ELIMINATION, ROUND_ROBIN, AD_HOC } = drawDefinitionConstants;
+const { MAIN, QUALIFYING, CONSOLATION, LOSER, SINGLE_ELIMINATION, ROUND_ROBIN, AD_HOC, LUCKY_DRAW } =
+  drawDefinitionConstants;
 
 export interface ValidationError {
   severity: 'error' | 'warning';
@@ -32,12 +35,32 @@ export function validateTopology(state: TopologyState): ValidationError[] {
   validateLoserLinkFeedCapacity(state, errors);
   validateConsolationDrawSizes(state, errors);
   validatePositionLinks(state, errors);
+  validateRoundProfiles(state, errors);
 
   if (hasCircularDependency(state)) {
     errors.push({ severity: 'error', message: 'Circular dependency detected between structures' });
   }
 
   return errors;
+}
+
+/**
+ * A lucky draw's explicit round profile must be one the factory generates. An invalid one would silently play the
+ * default cascade instead (the counts and the draw options both ignore it), so it is an error, on its node.
+ */
+function validateRoundProfiles(state: TopologyState, errors: ValidationError[]): void {
+  for (const node of state.nodes) {
+    const roundProfile = node.structureOptions?.roundProfile;
+    if (node.structureType !== LUCKY_DRAW || !Array.isArray(roundProfile)) continue;
+    const problem = validateRoundProfile(roundProfile, node.drawSize);
+    if (problem) {
+      errors.push({
+        severity: 'error',
+        message: `${node.structureName}: ${defaultProblemMessage(problem)}`,
+        nodeId: node.id
+      });
+    }
+  }
 }
 
 function validateMainNodes(state: TopologyState, errors: ValidationError[]): TopologyState['nodes'] {
@@ -265,7 +288,12 @@ function validateLoserLinkFeedCapacity(state: TopologyState, errors: ValidationE
     const sourceRound = edge.sourceRoundNumber || 1;
     const targetRound = edge.targetRoundNumber || 1;
 
-    const losersProduced = getNodeLosersForRound(source.structureType, source.drawSize, sourceRound);
+    const losersProduced = getNodeLosersForRound(
+      source.structureType,
+      source.drawSize,
+      sourceRound,
+      source.structureOptions
+    );
     const feedCapacities = getFeedRoundCapacities(target.drawSize);
 
     if (targetRound !== 1) {
@@ -320,7 +348,7 @@ function validateConsolationDrawSizes(state: TopologyState, errors: ValidationEr
       if (!source) continue;
       if (edge.linkType === LOSER) {
         const round = edge.sourceRoundNumber || 1;
-        capacity += getNodeLosersForRound(source.structureType, source.drawSize, round);
+        capacity += getNodeLosersForRound(source.structureType, source.drawSize, round, source.structureOptions);
       } else {
         capacity += source.qualifyingPositions || Math.floor(source.drawSize / 2);
       }

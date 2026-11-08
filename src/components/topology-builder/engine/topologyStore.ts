@@ -193,7 +193,7 @@ export class TopologyStore {
       if (!source) continue;
       if (edge.linkType === LOSER) {
         const round = edge.sourceRoundNumber || 1;
-        total += getNodeLosersForRound(source.structureType, source.drawSize, round);
+        total += getNodeLosersForRound(source.structureType, source.drawSize, round, source.structureOptions);
       } else {
         // WINNER or POSITION links carry qualifyingPositions or drawSize/2
         total += source.qualifyingPositions || Math.floor(source.drawSize / 2);

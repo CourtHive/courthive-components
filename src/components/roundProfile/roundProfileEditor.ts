@@ -10,9 +10,16 @@
  *
  * All rules live in `roundProfileLogic.ts`. Labels default to English; a host passes its own translations.
  */
-import { validateRoundProfile, type RoundProfileProblem } from './roundProfileLogic';
-import { defaultProfile, luckyLosersNeeded, roundRange, sanitizeProfile } from './roundProfileLogic';
-import { isRoundProfileEditable, setRound } from './roundProfileLogic';
+import {
+  defaultProfile,
+  isRoundProfileEditable,
+  luckyLosersNeeded,
+  roundRange,
+  sanitizeProfile,
+  setRound,
+  validateRoundProfile,
+  type RoundProfileProblem
+} from './roundProfileLogic';
 
 export type RoundProfileEditorLabels = {
   title?: string;
@@ -32,6 +39,8 @@ export type RoundProfileEditorOptions = {
   initialProfile?: number[];
   onChange?: (profile: number[] | null) => void;
   labels?: RoundProfileEditorLabels;
+  /** Show the profile without letting it be changed (e.g. a draw already generated). */
+  readOnly?: boolean;
 };
 
 export type RoundProfileEditorController = {
@@ -115,6 +124,7 @@ export function mountRoundProfileEditor(
   resetBtn.className = CLASS_RESET;
   resetBtn.type = 'button';
   resetBtn.textContent = labels.reset;
+  if (options.readOnly) resetBtn.style.display = 'none';
   root.appendChild(resetBtn);
 
   parentEl.appendChild(root);
@@ -147,7 +157,7 @@ export function mountRoundProfileEditor(
       cell.dataset.roundIndex = String(i);
 
       // R1 is derived from drawSize and the last cell is the locked final: both read-only.
-      if (i === 0 || isLast) {
+      if (i === 0 || isLast || options.readOnly) {
         cell.disabled = true;
         cell.classList.add(CLASS_CELL_LOCKED);
       } else {

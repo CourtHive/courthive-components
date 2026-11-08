@@ -3,6 +3,8 @@
  * Uses renderForm (items + relationships) pattern.
  */
 import { carriesQualifiers, traversesByFinishingPosition } from '../domain/edgeTraversal';
+import { mountRoundProfileEditor } from '../../roundProfile/roundProfileEditor';
+import { defaultProfile } from '../../roundProfile/roundProfileLogic';
 import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
 import { nameValidator } from '../../../validators/nameValidator';
 import { numericRange } from '../../../validators/numericRange';
@@ -90,6 +92,40 @@ function getValidGroupSizes(drawSize: number, groupSizeLimit = 8): number[] {
     }
   }
   return valid;
+}
+
+function withoutRoundProfile(structureOptions: any): any {
+  if (!structureOptions) return structureOptions;
+  const { roundProfile: _roundProfile, ...rest } = structureOptions;
+  return Object.keys(rest).length ? rest : undefined;
+}
+
+/**
+ * A main lucky draw's round profile (matchUps per round), stored as `structureOptions.roundProfile` and sent to the
+ * factory as its `roundProfile`. Only a profile that differs from the default cascade is stored, so an untouched (or
+ * reset) editor leaves the factory to derive it — the two are the same draw (roundProfileLogic tests).
+ */
+function addRoundProfileEditor(
+  node: TopologyNode,
+  isReadOnly: boolean,
+  callbacks: NodeEditorCallbacks,
+  body: HTMLElement
+): void {
+  const field = document.createElement('div');
+  field.className = 'field';
+  body.appendChild(field);
+  mountRoundProfileEditor(field, {
+    drawSize: node.drawSize,
+    initialProfile: node.structureOptions?.roundProfile,
+    readOnly: isReadOnly,
+    onChange: (profile) => {
+      const isDefault = !profile || profile.join() === defaultProfile(node.drawSize).join();
+      const base = withoutRoundProfile(node.structureOptions);
+      callbacks.onUpdateNode(node.id, {
+        structureOptions: isDefault ? base : { ...base, roundProfile: profile }
+      });
+    }
+  });
 }
 
 function addRoundRobinFields(
@@ -446,7 +482,11 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
           },
           {
             control: 'structureType',
-            onChange: ({ e }: any) => callbacks.onUpdateNode(node.id, { structureType: e.target.value })
+            onChange: ({ e }: any) =>
+              callbacks.onUpdateNode(node.id, {
+                structureType: e.target.value,
+                ...(e.target.value !== LUCKY_DRAW && { structureOptions: withoutRoundProfile(node.structureOptions) })
+              })
           },
           {
             control: 'drawSize',
@@ -455,6 +495,10 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
               const minSize = node.structureType === AD_HOC ? 0 : 2;
               if (size < minSize) return;
               const updates: Partial<TopologyNode> = { drawSize: size };
+              // A lucky draw's explicit round profile is drawn for one drawSize; another size starts from the default.
+              if (node.structureType === LUCKY_DRAW && node.structureOptions?.roundProfile) {
+                updates.structureOptions = withoutRoundProfile(node.structureOptions);
+              }
               // Auto-correct groupSize if it becomes invalid for the new drawSize
               if (node.structureType === ROUND_ROBIN) {
                 const currentGS = node.structureOptions?.groupSize || 4;
@@ -481,6 +525,10 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
     }
 
     renderForm(body, items, relationships);
+
+    if (node.structureType === LUCKY_DRAW && node.stage === MAIN) {
+      addRoundProfileEditor(node, isReadOnly, callbacks, body);
+    }
 
     // MatchUp Format trigger
     const formatField = document.createElement('div');

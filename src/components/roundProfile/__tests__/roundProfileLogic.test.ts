@@ -161,3 +161,24 @@ describe('validateRoundProfile agrees with the factory', () => {
     }
   });
 });
+
+/**
+ * The editor's "default" is what the factory plays with NO profile, for every even drawSize — so a host can treat an
+ * untouched (or reset) profile as "none" and leave the factory to derive it.
+ */
+describe('defaultProfile is what the factory plays without a profile', () => {
+  const perRoundWithoutProfile = (drawSize: number) => {
+    const result: any = mocksEngine.generateTournamentRecord({
+      drawProfiles: [{ drawSize, drawType: LUCKY_DRAW }],
+      setState: false
+    });
+    const matchUps: any[] = result.tournamentRecord?.events?.[0]?.drawDefinitions?.[0]?.structures?.[0]?.matchUps ?? [];
+    const perRound: number[] = [];
+    for (const matchUp of matchUps) perRound[matchUp.roundNumber - 1] = (perRound[matchUp.roundNumber - 1] ?? 0) + 1;
+    return perRound;
+  };
+
+  it.each([6, 10, 12, 20, 24, 28, 40, 44, 48, 64, 96])('drawSize %i', (drawSize) => {
+    expect(perRoundWithoutProfile(drawSize)).toEqual(defaultProfile(drawSize));
+  });
+});
