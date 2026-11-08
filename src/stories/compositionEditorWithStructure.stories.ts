@@ -22,7 +22,7 @@ const meta: Meta<Args> = {
   argTypes: {
     preset: {
       control: { type: 'select' },
-      options: ['Australian', 'National', 'BasicCard', 'Scoreboard', 'Watch', 'ITF']
+      options: Object.keys(compositions)
     },
     drawSize: {
       control: { type: 'select' },
@@ -264,4 +264,35 @@ export const LargeDraw: StoryObj<Args> = {
 export const ITF: StoryObj<Args> = {
   render: createEditorStructureView,
   args: { preset: 'ITF', drawSize: 16 }
+};
+
+/** Exercise themes without a renderContainer wrapper, as the editor's consumer preview does. */
+async function checkBroadcastVisibility({ canvasElement }: { canvasElement: HTMLElement }) {
+  const structure = fullStructure(canvasElement);
+  const name = structure.querySelector('.chc-participant-name')!;
+  expect(name.textContent?.trim()).toBeTruthy();
+  expect(getComputedStyle(name).color).toBe('rgb(255, 255, 255)');
+  const preview = canvasElement.querySelector('.ce-preview-body')!;
+  const scores = [...preview.querySelectorAll<HTMLElement>('.chc-game-score')];
+  expect(scores.length).toBeGreaterThan(0);
+  for (const score of scores) {
+    expect(score.getBoundingClientRect().width).toBeGreaterThan(0);
+    expect(score.getBoundingClientRect().height).toBeGreaterThan(0);
+    expect(getComputedStyle(score).color).not.toBe('rgb(0, 0, 0)');
+  }
+  const live = preview.querySelector('[data-live]')!;
+  expect(getComputedStyle(live.querySelector('.chc-participant-name')!).color).toBe('rgb(255, 255, 255)');
+  expect(live.querySelectorAll('.chc-point-score')).toHaveLength(2);
+}
+
+export const Broadcast: StoryObj<Args> = {
+  render: createEditorStructureView,
+  args: { preset: 'Broadcast', drawSize: 8 },
+  play: checkBroadcastVisibility
+};
+
+export const BroadcastCyan: StoryObj<Args> = {
+  render: createEditorStructureView,
+  args: { preset: 'BroadcastCyan', drawSize: 8 },
+  play: checkBroadcastVisibility
 };

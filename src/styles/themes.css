@@ -127,6 +127,8 @@
   --chc-space-participant-inline: 0.75rem;
   --chc-broadcast-accent: #2924ed;
   --chc-broadcast-serve: #ddf34a;
+  /* Cards also render directly in editors, without a .chc-container to set the foreground. */
+  color: var(--chc-color-text);
 }
 
 :is(.chc-theme-broadcast, .chc-theme-broadcast-cyan, .chc-theme-broadcast-bracket) .chc-participant-name {
@@ -163,8 +165,7 @@
 }
 
 /* Only an unfinished last set is active. Finished set winners retain their lime scores. */
-.chc-theme-broadcast
-  [data-live]
+:is(.chc-theme-broadcast[data-live], .chc-theme-broadcast [data-live])
   .chc-game-score:not(.chc-game-score--winner, .chc-game-score--loser):is(:last-child, :has(+ .chc-point-score)) {
   background: var(--chc-broadcast-accent) !important; /* overrides setScore's inline transparent background */
   color: #fff;
