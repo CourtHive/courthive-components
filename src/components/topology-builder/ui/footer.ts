@@ -4,6 +4,9 @@
  * Left, what the current mode asks of the operator; right, a slot the host fills (`getFooterSlot`) — where a mode's
  * own controls go, starting with fitting an event's entries to the topology.
  */
+import { buildAcceptancePanel, type AcceptanceOptions } from './acceptanceLine';
+import { changeSummary } from '../domain/acceptanceLine';
+
 import type { JourneyParticipant, TopologyState, UIPanel } from '../types';
 
 export interface FooterOptions {
@@ -17,6 +20,8 @@ export interface FooterOptions {
     choose: (participantId: string) => void;
     summary: (state: TopologyState) => string;
   };
+  /** Fit mode's acceptance line: a panel over the canvas, and the pending entry changes beside the ledger. */
+  acceptance?: AcceptanceOptions;
 }
 
 export interface FooterPanel extends UIPanel<TopologyState> {
@@ -38,10 +43,19 @@ export function buildFooter(options: FooterOptions = {}): FooterPanel {
   // their journey. The canvas and the summary stay nameless.
   const search = options.journey ? buildJourneySearch(options.journey) : undefined;
 
-  element.append(...(search ? [search.element] : []), hint, slot);
+  const acceptance = options.acceptance ? buildAcceptanceControls(options.acceptance) : undefined;
+
+  element.append(
+    ...(search ? [search.element] : []),
+    ...(acceptance ? [acceptance.toggle] : []),
+    hint,
+    ...(acceptance ? [acceptance.pending, acceptance.panel.element] : []),
+    slot
+  );
 
   function update(state: TopologyState): void {
     if (search) search.element.hidden = state.mode !== 'journey';
+    acceptance?.update(state);
     hint.textContent =
       state.mode === 'addPlayoffs'
         ? addPlayoffsHint(options.countPlayoffOffers?.(state) ?? 0)
@@ -101,4 +115,56 @@ function buildJourneySearch(journey: NonNullable<FooterOptions['journey']>): { e
 
   element.append(input, results);
   return { element };
+}
+
+/**
+ * Fit mode's acceptance line in the footer: the button that opens the panel, and the pending changes with Discard.
+ * The panel opens above the footer, over the canvas, so the cards' gauges stay in view while the line moves.
+ */
+function buildAcceptanceControls(options: AcceptanceOptions) {
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'tb-acceptance-toggle';
+  toggle.textContent = 'Acceptance line';
+  toggle.setAttribute('aria-expanded', 'false');
+
+  const pending = document.createElement('span');
+  pending.className = 'tb-acceptance-pending';
+  const summary = document.createElement('span');
+  const discard = document.createElement('button');
+  discard.type = 'button';
+  discard.className = 'tb-acceptance-discard';
+  discard.textContent = 'Discard';
+  discard.addEventListener('click', () => options.discard());
+  pending.append(summary, discard);
+
+  const panel = buildAcceptancePanel(options);
+  let open = false;
+  let last: TopologyState | undefined;
+  const setOpen = (next: boolean) => {
+    open = next;
+    toggle.setAttribute('aria-expanded', String(open));
+    panel.element.hidden = !open;
+    if (open && last) panel.update(last);
+  };
+  toggle.addEventListener('click', () => setOpen(!open));
+  panel.element.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    setOpen(false);
+    toggle.focus();
+  });
+  setOpen(false);
+
+  function update(state: TopologyState): void {
+    last = state;
+    const inFit = state.mode === 'fit';
+    toggle.hidden = !inFit;
+    if (!inFit && open) setOpen(false);
+    const text = inFit ? changeSummary(options.changes(state)) : '';
+    summary.textContent = text;
+    pending.hidden = !text;
+    if (open) panel.update(state);
+  }
+
+  return { toggle, pending, panel, update };
 }

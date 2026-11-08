@@ -587,6 +587,7 @@
 /* ── Footer ──────────────────────────────────────────────── */
 /* The strip beneath the canvas, matching the schedule page's beneath its grid */
 .tb-footer {
+  position: relative;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -847,4 +848,167 @@
 .tb-canvas--journey .tb-round-linked .chc-schematic-slot {
   background-color: var(--chc-border-secondary);
   opacity: 0.6;
+}
+
+/* ── Fit mode: the acceptance line (TOPOLOGY_FIT_MODE.md § levers, step 3) ──
+   The panel opens above the footer at the right, over the properties panel, so the cards and their levers stay in
+   view while the line moves. */
+.tb-acceptance-toggle,
+.tb-acceptance-discard {
+  padding: 2px 10px;
+  border: 1px solid var(--chc-border-primary);
+  border-radius: 999px;
+  background: var(--chc-bg-primary);
+  color: var(--chc-text-primary);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.tb-acceptance-toggle[aria-expanded='true'] {
+  border-color: var(--chc-status-info);
+  background: var(--chc-container-info);
+  color: var(--chc-on-info);
+}
+
+.tb-acceptance-toggle:focus-visible,
+.tb-acceptance-discard:focus-visible,
+.tb-acceptance-row:focus-visible,
+.tb-acceptance-line:focus-visible {
+  outline: 2px solid var(--chc-border-focus);
+  outline-offset: 1px;
+}
+
+.tb-acceptance-pending {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--chc-status-warning);
+}
+
+.tb-acceptance {
+  position: absolute;
+  right: 12px;
+  bottom: calc(100% + 6px);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  width: 340px;
+  max-height: 50vh;
+  border: 1px solid var(--chc-border-primary);
+  border-radius: 8px;
+  background: var(--chc-bg-primary);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
+}
+
+.tb-acceptance[hidden] {
+  display: none;
+}
+
+.tb-acceptance-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px 8px;
+  border-bottom: 1px solid var(--chc-border-secondary);
+}
+
+.tb-acceptance-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--chc-text-primary);
+}
+
+.tb-acceptance-held {
+  font-size: 11px;
+  color: var(--chc-text-muted);
+}
+
+.tb-acceptance-list {
+  position: relative;
+  overflow-y: auto;
+  padding: 4px 0 12px;
+}
+
+.tb-acceptance-row {
+  display: grid;
+  grid-template-columns: 2.2em 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 12px;
+  border: none;
+  background: none;
+  color: var(--chc-text-primary);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tb-acceptance-row:hover {
+  background: var(--chc-bg-secondary);
+}
+
+.tb-acceptance-row[data-status='alternate'] {
+  color: var(--chc-text-muted);
+}
+
+.tb-acceptance-rank,
+.tb-acceptance-rank-label {
+  color: var(--chc-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.tb-acceptance-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tb-acceptance-status {
+  justify-self: end;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--chc-container-success);
+  color: var(--chc-on-success);
+}
+
+.tb-acceptance-row[data-status='alternate'] .tb-acceptance-status {
+  background: var(--chc-bg-secondary);
+  color: var(--chc-text-secondary);
+}
+
+.tb-acceptance-row[data-changed='true'] .tb-acceptance-status {
+  background: var(--chc-container-warning);
+  color: var(--chc-on-warning);
+}
+
+/* the cut itself: a bar between rows, dragged, or moved by the keyboard */
+.tb-acceptance-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 2px solid var(--chc-status-info);
+  cursor: ns-resize;
+  touch-action: none;
+}
+
+.tb-acceptance-line-label {
+  position: absolute;
+  right: 12px;
+  top: -10px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--chc-status-info);
+  color: var(--chc-on-info);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
 }
