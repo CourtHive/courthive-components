@@ -1,1 +1,1 @@
-import{n as e}from"./assets/everything.js-C9u2e6CZ.js";e();
+import{n as e}from"./assets/everything.js-B6szRoFh.js";e();

@@ -35,6 +35,8 @@ export declare class TopologyStore {
     autoLayout(sizeOf?: (nodeId: string) => CardSize | undefined): void;
     loadState(newState: TopologyState): void;
     setJourneyParticipant(participantId: string | undefined): void;
+    /** Fit mode's acceptance line; `undefined` is today's statuses. */
+    setAcceptanceCut(cut: number | undefined): void;
     setMode(mode: TopologyMode): void;
     private computeEdgeLabel;
 }

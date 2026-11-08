@@ -43,6 +43,11 @@ export interface TopologyState {
     mode?: TopologyMode;
     /** The participant whose journey the `journey` mode shows. Presentation, like the mode. */
     journeyParticipantId?: string;
+    /**
+     * Fit mode's acceptance line: how many of the line's entries (DA and ALT, ranked) are accepted. Absent is today's
+     * statuses. Not the topology's shape: the entries' statuses change only when the host applies it.
+     */
+    acceptanceCut?: number;
 }
 /**
  * What the canvas is for right now.
@@ -119,7 +124,16 @@ export interface TopologyBuilderConfig {
      * Given, the toolbar offers a Fit mode. Asked when the fit-relevant shape of the topology changes (sizes, types,
      * qualifiers, links), not on every render: dragging a card does not regenerate the draw.
      */
-    drawFit?: (state: TopologyState) => DrawFit | undefined;
+    drawFit?: (state: TopologyState, trial?: {
+        entryChanges: EntryChange[];
+    }) => DrawFit | undefined;
+    /**
+     * Fit mode's acceptance line. Given, the footer offers a cut through the event's MAIN entries, and `drawFit` is
+     * asked with the entry changes the cut would make, so the gauges and the ledger preview them.
+     */
+    acceptance?: AcceptanceHost;
+    /** The acceptance line moved: the entry changes it now makes. The host applies them with the generation. */
+    onEntryChanges?: (changes: EntryChange[]) => void;
     /**
      * A participant's path through the draw, from the host. Given, the toolbar offers a Player journey mode (for a
      * topology of more than one structure). The canvas never shows a name: the search in the footer takes one, and the
@@ -136,6 +150,26 @@ export interface UIPanel<T = unknown> {
     element: HTMLElement;
     update: (state: T) => void;
     destroy?: () => void;
+}
+/** One MAIN entry as the acceptance line lists it. The host ranks them, best first; the line never ranks anyone. */
+export interface AcceptanceEntry {
+    participantId: string;
+    /** The participant's name. Fit mode is a director's tool: unlike a journey, it names who is cut */
+    name: string;
+    entryStatus: string;
+    /** What the ranking is by, shown beside the name: "ELO 2047", "#12" */
+    rankLabel?: string;
+}
+/** The host side of the acceptance line. */
+export interface AcceptanceHost {
+    /** The event's MAIN entries, ranked best first. Withdrawn entries may be included; the line leaves them out. */
+    entries: () => AcceptanceEntry[];
+}
+/** An entry whose status the acceptance line changes. */
+export interface EntryChange {
+    participantId: string;
+    from: string;
+    to: string;
 }
 /** How a structure's positions are taken: the factory's `getDrawFit` status. */
 export type FitStatus = 'FITS' | 'OVER' | 'SHORT' | 'EMPTY';

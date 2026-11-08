@@ -1,4 +1,4 @@
-import { TopologyBuilderConfig, TopologyState, TopologyMode } from '../types';
+import { TopologyBuilderConfig, TopologyState, TopologyMode, EntryChange } from '../types';
 export declare class TopologyBuilderControl {
     private readonly store;
     private readonly layout;
@@ -24,6 +24,15 @@ export declare class TopologyBuilderControl {
     private currentFit;
     private fitEntry;
     private fitFor;
+    /** The entries the line runs through, in the host's ranking. */
+    private acceptancePool;
+    private entryChanges;
+    /** Move the acceptance line: the first `cut` of the line's entries are accepted, the rest wait as alternates. */
+    setAcceptanceCut(cut: number): void;
+    /** The entry changes the acceptance line makes now — for the host to apply together with the generation. */
+    getEntryChanges(): EntryChange[];
+    /** The acceptance line back to today's statuses. */
+    discardEntryChanges(): void;
     /** A Fit mode lever: the topology changes, and the next render asks the host for the new fit. */
     private applyFitLever;
     private buildToolbarPanel;
