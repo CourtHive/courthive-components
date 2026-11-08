@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.13.0](https://github.com/CourtHive/courthive-components/compare/v7.12.0...v7.13.0) (2026-11-08)
+
+
+### Features
+
+* **topology:** Fit mode's acceptance line — a cut through the ranked main entries ([#948](https://github.com/CourtHive/courthive-components/issues/948)) ([410367f](https://github.com/CourtHive/courthive-components/commit/410367fa71e858aee219cf7c329a0491de76ebe5))
+
 ## [7.12.0](https://github.com/CourtHive/courthive-components/compare/v7.11.0...v7.12.0) (2026-11-08)
 
 
