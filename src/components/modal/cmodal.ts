@@ -598,6 +598,7 @@ export const cModal = (() => {
       onClose?: (params: { content?: any }) => void;
     }) => {
       config = newConfig || config;
+      if (newConfig?.maxWidth !== undefined) container.style.maxWidth = `${newConfig.maxWidth || 450}px`;
       frame.clickAway = config?.clickAway;
 
       // Close any open info popover when config changes (content may be stale)
