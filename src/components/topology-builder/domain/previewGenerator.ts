@@ -2,9 +2,9 @@
  * Preview Generator — Generates SchematicMatchUp[] from node's drawType + drawSize.
  * Pure geometry with feed-round support for non-power-of-2 draw sizes.
  */
-import { drawDefinitionConstants } from 'tods-competition-factory';
-import { customLuckyProfile, luckyRoundProfiles } from './feedRounds';
 import { luckyLosersNeeded } from '../../roundProfile/roundProfileLogic';
+import { customLuckyProfile, luckyRoundProfiles } from './feedRounds';
+import { drawDefinitionConstants } from 'tods-competition-factory';
 import type { SchematicMatchUp } from '../../renderSchematicStructure';
 
 const { ROUND_ROBIN, AD_HOC, LUCKY_DRAW } = drawDefinitionConstants;

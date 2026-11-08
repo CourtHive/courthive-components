@@ -7,9 +7,9 @@
  * structure shape (SE, FEED_IN, ROUND_ROBIN, AD_HOC).
  */
 import { carriesQualifiers, traversesByFinishingPosition } from './edgeTraversal';
-import { customLuckyProfile } from './feedRounds';
 import type { TopologyState, TopologyNode, TopologyEdge } from '../types';
 import { drawDefinitionConstants } from 'tods-competition-factory';
+import { customLuckyProfile } from './feedRounds';
 
 const {
   MAIN,

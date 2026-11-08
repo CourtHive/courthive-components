@@ -4,8 +4,8 @@
  */
 import { carriesQualifiers, traversesByFinishingPosition } from '../domain/edgeTraversal';
 import { mountRoundProfileEditor } from '../../roundProfile/roundProfileEditor';
-import { defaultProfile } from '../../roundProfile/roundProfileLogic';
 import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
+import { defaultProfile } from '../../roundProfile/roundProfileLogic';
 import { nameValidator } from '../../../validators/nameValidator';
 import { numericRange } from '../../../validators/numericRange';
 import { getFeedRoundCapacities } from '../domain/feedRounds';
