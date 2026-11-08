@@ -69,6 +69,7 @@ describe('the dialog stories run', () => {
       'ExtraTimeAndShootout',
       'ExtraTimeAndShootoutDark',
       'DecidedRegulationOpensNoOvertime',
+      'ScorelessTimedSet',
       'InModal',
       'InModalFreeScore',
       'InModalDialPad',

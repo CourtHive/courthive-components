@@ -37,6 +37,36 @@ export default {
   title: 'Scoring/Score Entry/Dialog'
 };
 
+export const ScorelessTimedSet = {
+  name: 'Single timed set — 0–0 cannot be completed',
+  render: () =>
+    harness(
+      'A single timed set needs at least one scored point before it can be completed.',
+      dialogTrip({
+        matchUpFormat: 'SET1-S:T15P',
+        approach: 'dynamicSets',
+        sets: [{ setNumber: 1, side1Score: 0, side2Score: 0 }]
+      })
+    ),
+  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+    closeAll();
+    canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
+    const submit = () => inModal<HTMLButtonElement>('button[data-action="submit"]')!;
+    await expect(submit().disabled).toBe(true);
+    await expect(inModal(BAND)!.textContent).toContain('Timed set requires at least one side to have scored');
+    submit().click();
+    await expect(canvasElement.querySelector('#scoreEntryLog')!.textContent).toBe('');
+
+    const field = inModal<HTMLInputElement>('input[data-side="2"][data-set="1"]')!;
+    field.value = '1';
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+    await expect(submit().disabled).toBe(false);
+    submit().click();
+    await expect(document.querySelector(MODAL)).toBeNull();
+    await expect(canvasElement.querySelector('#scoreEntryLog')!.textContent).toContain('COMPLETED');
+  }
+};
+
 const FORMAT = 'SET3-S:6/TB7';
 const OPEN_BUTTON = '#openScoreEntry';
 /** Every `cModal` dialog is a `section` with an id of `cmdl-<n>`. */
