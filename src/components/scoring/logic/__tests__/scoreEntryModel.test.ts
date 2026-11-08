@@ -304,6 +304,15 @@ describe('setCell', () => {
     expect(clearCell(withPoints, G(0, 2)).sets[0]).toEqual({ side1: 7, tiebreak1: 7, tiebreak2: 3 });
   });
 
+  it("a 0-0 pair is no points — CA's gesture for declining them once a complement has filled them", () => {
+    const toLove = setCell(setCell(typed(STANDARD, [7, 6]), TB(0, 1), 7), TB(0, 2), 0);
+    expect(toLove.sets[0]).toEqual({ side1: 7, side2: 6, tiebreak1: 7, tiebreak2: 0 });
+    // a 0 over the derived 7: no tiebreak finishes 0-0, so the pair goes and the set is a bare 7-6
+    expect(setCell(toLove, TB(0, 1), 0).sets[0]).toEqual({ side1: 7, side2: 6 });
+    // a lone 0 is points — a tiebreak to love in the making
+    expect(setCell(typed(STANDARD, [7, 6]), TB(0, 2), 0).sets[0]).toEqual({ side1: 7, side2: 6, tiebreak2: 0 });
+  });
+
   it('keeps a tiebreak typed ONTO games that do not call for one, so error can say so', () => {
     // The Dial Pad's rule: a stray 3 on a 6-2 is shown and refused, never quietly dropped. Only a change
     // to the GAMES forgets a tiebreak; a change to the tiebreak itself is the operator speaking.

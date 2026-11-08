@@ -882,20 +882,10 @@ function handleSeparator(state: ParserState): void {
   }
 
   if (state.state === TokenizerState.PARSING_SIDE2 && state.currentSide2Buffer) {
-    // Check if set requires a tiebreak
-    const side1Score = Number.parseInt(state.currentSide1Buffer);
-    const side2Score = Number.parseInt(state.currentSide2Buffer);
-    const currentSetFormat = getSetFormat(state.parsedFormat, state.setIndex);
-
-    if (requiresTiebreak(side1Score, side2Score, currentSetFormat)) {
-      // Transition to tiebreak parsing - next digits are the tiebreak score
-      state.inTiebreak = true;
-      state.state = TokenizerState.PARSING_TIEBREAK_SIDE1;
-      state.position++;
-      return;
-    }
-
-    // Otherwise finalize the set normally
+    // A separator ends the set, 7-6 included. The tokenizer used to enter tiebreak state here because the
+    // games called for one, so the NEXT set's digits were read as points: `7-6 6-4` became one set, 7-6(6)
+    // with an invented 8, and the 6-4 vanished. Tiebreak points are typed in parentheses or not at all — a
+    // bare 7-6 is a finished set whose points were not recorded (CA, 2026-11-07; the factory's ruling V11).
     finalizeSet(state);
     state.position++;
     return;
@@ -1034,14 +1024,6 @@ function handleSide2GameDigit(state: ParserState, char: string, setFormat: any, 
 
   const side1 = Number.parseInt(state.currentSide1Buffer);
   const side2 = Number.parseInt(state.currentSide2Buffer);
-
-  if (requiresTiebreak(side1, side2, setFormat)) {
-    state.inTiebreak = true;
-    state.state = TokenizerState.PARSING_TIEBREAK_SIDE1;
-    state.position++;
-    return;
-  }
-
   const nextPos = state.position + 1;
 
   if (nextPos < state.input.length && isDigit(state.input[nextPos])) {
@@ -1202,20 +1184,6 @@ function inferMissingTiebreakScore(set: ParsedSet, tb1Str: string, tb2Str: strin
 }
 
 /**
- * Check if set scores require a tiebreak based on format rules
- */
-function requiresTiebreak(side1Score: number, side2Score: number, setFormat: any): boolean {
-  const tiebreakAt = setFormat.tiebreakAt || setFormat.setTo || 6;
-
-  // Check if both scores are at tiebreakAt and differ by exactly 1
-  const atTiebreak =
-    (side1Score === tiebreakAt && side2Score === tiebreakAt + 1) ||
-    (side2Score === tiebreakAt && side1Score === tiebreakAt + 1);
-
-  return atTiebreak;
-}
-
-/**
  * Create a regular set with game scores
  */
 function createRegularSet(state: ParserState, currentSetFormat: any): ParsedSet | null {
@@ -1226,16 +1194,7 @@ function createRegularSet(state: ParserState, currentSetFormat: any): ParsedSet 
   const side1Score = Number.parseInt(state.currentSide1Buffer);
   const side2Score = Number.parseInt(state.currentSide2Buffer);
 
-  // CRITICAL: Check if this set requires a tiebreak but doesn't have one yet
-  if (
-    requiresTiebreak(side1Score, side2Score, currentSetFormat) &&
-    !state.currentTiebreakSide1Buffer &&
-    !state.currentTiebreakSide2Buffer
-  ) {
-    // Set is incomplete - needs tiebreak score
-    return null;
-  }
-
+  // A 7-6 with no tiebreak points is a finished set (ruling V11); the points, when typed, come in parentheses
   const set: ParsedSet = {
     side1Score,
     side2Score,

@@ -447,7 +447,7 @@ function withSet(
  */
 function normalize(sets: readonly SetEntry[], config: MatchUpConfig, gamesEditedAt?: number): SetEntry[] {
   const settled = sets.map((entry, index) =>
-    index === gamesEditedAt ? dropStaleTiebreak(entry, index, config) : entry
+    withoutZeroZeroPoints(index === gamesEditedAt ? dropStaleTiebreak(entry, index, config) : entry)
   );
   const sized = withOvertimeRoom(settled, config);
   const decider = decidingIndex(sized, config);
@@ -471,6 +471,18 @@ function withOvertimeRoom(sets: SetEntry[], config: MatchUpConfig): SetEntry[] {
 
 function unlimitedOvertime(config: MatchUpConfig): boolean {
   return config.overtimeFormat?.count === 'unlimited';
+}
+
+/**
+ * A `0-0` tiebreak pair is no points — the factory's rule (7.30.0: `setMatchUpStatus`; 7.33.0: every reader), and
+ * CA's gesture for declining the points once a complement has filled them (2026-11-07): type a `0` over the
+ * derived `7` and the pair reads `0-0`, which no tiebreak ever finishes on. Dropped here so the cells, the band and
+ * the submitted set all say the same thing: a bare `7-6`. A lone `0` — `7-0`, a tiebreak to love — is points.
+ */
+function withoutZeroZeroPoints(entry: SetEntry): SetEntry {
+  if (entry.tiebreak1 !== 0 || entry.tiebreak2 !== 0) return entry;
+  const { tiebreak1: _tiebreak1, tiebreak2: _tiebreak2, ...rest } = entry;
+  return rest;
 }
 
 function dropStaleTiebreak(entry: SetEntry, index: number, config: MatchUpConfig): SetEntry {

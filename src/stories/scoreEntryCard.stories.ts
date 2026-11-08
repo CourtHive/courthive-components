@@ -282,14 +282,14 @@ export const Tiebreak = {
   name: 'A tiebreak — the column appears, then folds into 6³',
   render: () => frame(cardWithSets([{ setNumber: 1, side1Score: 7, side2Score: 6 }])),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
-    // Opens mid-tiebreak, which is the state worth looking at: a 7-6 is NOT a finished set until its
-    // points are known, so the column is present and the second set is not.
+    // Opens on a 7-6 with the column present. The points are offered, not owed (CA, 2026-11-07): a bare 7-6 is
+    // a finished set, so the second set is open beside the column. Submit is dead because one set is not a match.
     const tb = (side: number) =>
       canvasElement.querySelector<HTMLInputElement>(`input[data-tiebreak-side="${side}"][data-tiebreak-set="1"]`);
 
     await expect(tb(1)).toBeTruthy();
     await expect(tb(2)).toBeTruthy();
-    await expect(canvasElement.querySelector('input[data-side="1"][data-set="2"]')).toBeNull();
+    await expect(canvasElement.querySelector('input[data-side="1"][data-set="2"]')).toBeTruthy();
     await expect(canvasElement.querySelector<HTMLButtonElement>(SUBMIT)!.disabled).toBe(true);
 
     // Entering the loser's points completes it and the other side autocompletes to the format's target,
@@ -318,6 +318,30 @@ export const Tiebreak = {
     await expect(markOn(1)?.textContent).toBe('');
     await expect(canvasElement.querySelector<HTMLElement>(BAND)!.textContent).toContain('7-6(3)');
     await expect(canvasElement.querySelector('input[data-side="1"][data-set="2"]')).toBeTruthy();
+  }
+};
+
+export const BareTiebreak = {
+  name: 'A bare 7-6 — the points are offered, not owed',
+  render: () =>
+    frame(
+      cardWithSets([
+        { setNumber: 1, side1Score: 7, side2Score: 6 },
+        { setNumber: 2, side1Score: 6, side2Score: 4 }
+      ])
+    ),
+  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+    // CA, 2026-11-07: *"we need to support entering 7-6 for a set score and not requiring the entry of the
+    // tiebreak values."* The engine records this score with TIEBREAK_POINTS_NOT_RECORDED; the card submits
+    // it, and the band says what was left out while the column is still there to fill.
+    const submit = canvasElement.querySelector<HTMLButtonElement>(SUBMIT);
+    await expect(submit!.disabled).toBe(false);
+    const band = canvasElement.querySelector<HTMLElement>(BAND)!;
+    await expect(band.dataset.tone).toBe('good');
+    await expect(band.textContent).toContain(LEM_DEFEATS_ELLUL);
+    await expect(band.textContent).toContain('7-6 6-4');
+    await expect(band.textContent).toContain('1st set: tiebreak points not recorded');
+    await expect(canvasElement.querySelector('input[data-tiebreak-side="2"][data-tiebreak-set="1"]')).toBeTruthy();
   }
 };
 

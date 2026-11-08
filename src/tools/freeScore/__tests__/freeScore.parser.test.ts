@@ -254,3 +254,50 @@ describe('freeScore Parser', () => {
     });
   });
 });
+
+describe('a bare 7-6 is a finished set — the points are typed in parentheses or not at all (CA, 2026-11-07)', () => {
+  // The tokenizer entered tiebreak state because the games called for one, so the NEXT set's digits were read
+  // as points: "7-6 6-4" was one set, 7-6(6) with an invented 8, and the 6-4 vanished; "76 64" was a 66-64 tiebreak.
+  const games = (result: any) =>
+    result.sets.map((set: any) => [set.side1Score, set.side2Score, set.side1TiebreakScore, set.side2TiebreakScore]);
+
+  it('reads "7-6 6-4" as two sets and a finished match', () => {
+    const result = parseScore('7-6 6-4', FORMAT_SET3_TB7);
+    expect(result.valid).toBe(true);
+    expect(games(result)).toEqual([
+      [7, 6, undefined, undefined],
+      [6, 4, undefined, undefined]
+    ]);
+    expect(result.sets.map((set: any) => set.winningSide)).toEqual([1, 1]);
+    expect(result.matchComplete).toBe(true);
+    expect(result.formattedScore).toBe('7-6 6-4');
+  });
+
+  it('reads "76 64" and "6-7 6-4 7-6" the same way', () => {
+    expect(games(parseScore('76 64', FORMAT_SET3_TB7))).toEqual([
+      [7, 6, undefined, undefined],
+      [6, 4, undefined, undefined]
+    ]);
+    const three = parseScore('6-7 6-4 7-6', FORMAT_SET3_TB7);
+    expect(games(three)).toEqual([
+      [6, 7, undefined, undefined],
+      [6, 4, undefined, undefined],
+      [7, 6, undefined, undefined]
+    ]);
+    expect(three.matchComplete).toBe(true);
+  });
+
+  it('still reads the points when they are given, in parentheses, by the loser alone or in full', () => {
+    expect(games(parseScore('7-6(3) 6-4', FORMAT_SET3_TB7))).toEqual([
+      [7, 6, 7, 3],
+      [6, 4, undefined, undefined]
+    ]);
+    expect(games(parseScore('6-7(8-10) 6-4', FORMAT_SET3_TB7))[0]).toEqual([6, 7, 8, 10]);
+  });
+
+  it('a 7-6 with a second set half-typed is incomplete on the second set, not the first', () => {
+    const result = parseScore('7-6 6', FORMAT_SET3_TB7);
+    expect(games(result)[0]).toEqual([7, 6, undefined, undefined]);
+    expect(result.matchComplete).toBe(false);
+  });
+});

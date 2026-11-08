@@ -62,6 +62,7 @@ describe('the dialog stories run', () => {
       'Walkover',
       'ClearedPartScore',
       'Tiebreak',
+      'BareTiebreak',
       'MatchTiebreak',
       'SubmitAndReopen',
       'NineTimedBolts',
