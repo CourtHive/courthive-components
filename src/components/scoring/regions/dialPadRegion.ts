@@ -199,8 +199,9 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
       //
       // `5-1 1-4 3-3` under `SET3-S:6/TB7` was accepted tap by tap and refused only at Submit, so every
       // tap after the `5-1` was work the operator could not see was wasted. A set whose two cells hold
-      // games that do not finish it — 5-1, or 6-7 owed its tiebreak — stops the keypad here: Backspace
-      // corrects it, or the Tiebreak key completes it, and only then does the next set open.
+      // games that do not finish it — 5-1, or 6-6 — stops the keypad here: Backspace corrects it, and only
+      // then does the next set open. A 6-7 is finished: the Tiebreak key adds its points, or the next set
+      // simply starts and the points go unrecorded (CA, 2026-11-07; the factory's ruling V11).
       if (!holds(index)) return undefined;
     }
     return undefined;

@@ -265,8 +265,12 @@ describe('dynamicSetsLogic - Pure Functions', () => {
         expect(isSetComplete(0, { side1: 6, side2: 5 }, standardBestOf3)).toBe(false);
       });
 
-      it('recognizes 7-6 without tiebreak as incomplete', () => {
-        expect(isSetComplete(0, { side1: 7, side2: 6 }, standardBestOf3)).toBe(false);
+      it('recognizes 7-6 without tiebreak as complete — the points were not recorded (CA, 2026-11-07)', () => {
+        expect(isSetComplete(0, { side1: 7, side2: 6 }, standardBestOf3)).toBe(true);
+      });
+
+      it('recognizes 6-6 as incomplete — a tiebreak still being played', () => {
+        expect(isSetComplete(0, { side1: 6, side2: 6 }, standardBestOf3)).toBe(false);
       });
 
       it('recognizes 0-0 as incomplete', () => {
@@ -329,8 +333,8 @@ describe('dynamicSetsLogic - Pure Functions', () => {
         expect(isSetComplete(0, { side1: 4, side2: 5, tiebreak: 7 }, s5at4Config)).toBe(true);
       });
 
-      it('recognizes 5-4 without tiebreak as incomplete', () => {
-        expect(isSetComplete(0, { side1: 5, side2: 4 }, s5at4Config)).toBe(false);
+      it('recognizes 5-4 without tiebreak as complete — the tiebreak games score at @4, points not recorded', () => {
+        expect(isSetComplete(0, { side1: 5, side2: 4 }, s5at4Config)).toBe(true);
       });
 
       it('recognizes 4-4 as incomplete', () => {

@@ -49,9 +49,11 @@ describe('isSetComplete delegates to the factory', () => {
     expect(isSetComplete(0, { side1: 4, side2: 4 }, cfg(S5_WB1))).toBe(false);
   });
 
-  it("completes a tiebreak set from the loser's points alone, and refuses one without them", () => {
+  it("completes a tiebreak set from the loser's points alone, and without any — the points are not owed", () => {
     expect(isSetComplete(0, { side1: 7, side2: 6, tiebreak: 3 }, cfg(S6_TB7))).toBe(true);
-    expect(isSetComplete(0, { side1: 7, side2: 6 }, cfg(S6_TB7))).toBe(false);
+    // a bare 7-6 is the set the engine records (ruling V11); since factory 7.33.0 the analysis agrees
+    expect(isSetComplete(0, { side1: 7, side2: 6 }, cfg(S6_TB7))).toBe(true);
+    expect(isSetComplete(0, { side1: 6, side2: 6 }, cfg(S6_TB7))).toBe(false);
     expect(isSetComplete(0, { side1: 7, side2: 5 }, cfg(S6_TB7))).toBe(true);
     expect(isSetComplete(0, { side1: 6, side2: 5 }, cfg(S6_TB7))).toBe(false);
   });

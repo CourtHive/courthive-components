@@ -73,6 +73,7 @@ export const SCORE_ENTRY_TEXT = {
   tiebreakContradiction: '{{set}} {{name}} won it, so they must win the tiebreak',
   setHasNoScore: '{{set}} has no score',
   setNotFinished: '{{set}} is not finished',
+  tiebreakPointsNotRecorded: '{{set}} tiebreak points not recorded',
 
   // ── Dynamic Sets ──
   setHeading: '{{ordinal}}',

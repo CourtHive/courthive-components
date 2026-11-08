@@ -140,10 +140,14 @@ describe('the dialog with every key translated', () => {
     openScoreEntryDialog({ sides: SIDES, matchUpFormat: FORMAT, labels: LABELS });
     type(SET_1_SIDE_1, '7');
     type(SET_1_SIDE_2, '6');
-    // 7-6 opens the set's tiebreak; the loser's points are what the operator is asked for
+    // 7-6 opens the set's tiebreak and the second set beside it: the points are offered, not owed
+    type('input[data-side="1"][data-set="2"]', '6');
+    type('input[data-side="2"][data-set="2"]', '3');
+    expectTranslated('a finished match whose tiebreak points were left out — the band says so');
+    // the loser's points are what the operator is asked for, and the column is still there to take them
     type('input[data-tiebreak-side="2"][data-tiebreak-set="1"]', '4');
     expectTranslated('a tiebreak being entered');
-    type('input[data-side="1"][data-set="2"]', '6');
+    // back into the second set: the first set's column folds to its readout, 7-6⁴
     type('input[data-side="2"][data-set="2"]', '3');
     expectTranslated('a finished match');
   });

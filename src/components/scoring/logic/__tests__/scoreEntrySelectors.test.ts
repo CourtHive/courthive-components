@@ -21,7 +21,8 @@ import {
   cellValue,
   hasEntry,
   columns,
-  error
+  error,
+  unrecordedTiebreakNote
 } from '../scoreEntrySelectors';
 
 const { COMPLETED, RETIRED, WALKOVER, SUSPENDED, DOUBLE_WALKOVER } = matchUpStatusConstants;
@@ -109,9 +110,22 @@ describe('isComplete', () => {
     expect(isComplete(typed(STANDARD, [4, 2], [2, 6], [2, 6]))).toBe(false);
   });
 
-  it('a 7-6 whose points are unknown does not finish anything', () => {
-    expect(isComplete(typed(STANDARD, [7, 6], [6, 3]))).toBe(false);
+  it('a 7-6 with no points is a finished set; a pair half-typed is not (CA, 2026-11-07)', () => {
+    // The engine records a bare 7-6 (ruling V11) and, since 7.33.0, calls it complete on the read surface.
+    expect(isComplete(typed(STANDARD, [7, 6], [6, 3]))).toBe(true);
+    expect(isComplete(setCell(typed(STANDARD, [7, 6], [6, 3]), TB(0, 2), 3))).toBe(false);
     expect(isComplete(enter(sevenSixWithPoints(), 1, 6, 3))).toBe(true);
+  });
+
+  it('the band note names the sets whose tiebreak points were left out, or nothing', () => {
+    expect(unrecordedTiebreakNote(typed(STANDARD, [7, 6], [6, 3]))).toBe('1st set: tiebreak points not recorded');
+    expect(unrecordedTiebreakNote(typed(STANDARD, [7, 6], [6, 7], [7, 6]))).toBe(
+      '1st set: tiebreak points not recorded · 2nd set: tiebreak points not recorded · 3rd set: tiebreak points not recorded'
+    );
+    expect(unrecordedTiebreakNote(enter(sevenSixWithPoints(), 1, 6, 3))).toBeUndefined();
+    expect(unrecordedTiebreakNote(typed(STANDARD, [7, 5], [6, 3]))).toBeUndefined();
+    // nothing typed will be submitted under a score-clearing ending
+    expect(unrecordedTiebreakNote(walkover(typed(STANDARD, [7, 6])))).toBeUndefined();
   });
 
   it('a match tiebreak is finished when strict validation says so, not when a side merely leads', () => {
@@ -214,8 +228,10 @@ describe('error', () => {
   it('note 10A: a set before the last must be finished', () => {
     expect(error(typed(STANDARD, [4, 2], [2, 6], [2, 6]))).toBe('1st set: is not finished');
     expect(error(typed(STANDARD, [6, 4], [3, 2], [6, 1]))).toBe('2nd set: is not finished');
-    // Unfinished on POINTS, not games: a 7-6 whose tiebreak is still owed, with a set after it.
-    expect(error(typed(STANDARD, [7, 6], [6, 3]))).toBe('1st set: is not finished');
+    // Unfinished on POINTS, not games: a 7-6 whose tiebreak pair is half-typed, with a set after it. A 7-6
+    // with no points at all is finished (CA, 2026-11-07), so it reports nothing.
+    expect(error(setCell(typed(STANDARD, [7, 6], [6, 3]), TB(0, 2), 3))).toBe('1st set: is not finished');
+    expect(error(typed(STANDARD, [7, 6], [6, 3]))).toBeUndefined();
   });
 
   it('note 9: a cleared set beside a typed one is an empty set, not a vanished one', () => {
@@ -248,8 +264,10 @@ describe('columns', () => {
     expect(columns(typed('SET5-S:6/TB7', [6, 4], [6, 3]))).toEqual([games(0), games(1), games(2)]);
   });
 
-  it('shows a tiebreak column beside a set whose points are owed, and folds it once they are in', () => {
-    expect(columns(typed(STANDARD, [7, 6]))).toEqual([games(0), tiebreak(0)]);
+  it('shows a tiebreak column beside a set whose points are offered, and folds it once they are in', () => {
+    // the next set opens beside the column: a bare 7-6 is settled, and the points are typed or not
+    expect(columns(typed(STANDARD, [7, 6]))).toEqual([games(0), tiebreak(0), games(1)]);
+    // a pair half-typed is mid-keystroke: the next set waits
     expect(columns(setCell(typed(STANDARD, [7, 6]), TB(0, 2), 3))).toEqual([games(0), tiebreak(0)]);
     expect(columns(sevenSixWithPoints())).toEqual([games(0), games(1)]);
     // 7-5 never calls for one.
