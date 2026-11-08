@@ -12,8 +12,8 @@ import {
 } from '../domain/edgeTraversal';
 
 // constants and types
-import type { TopologyState, TopologyEdge, TopologyNode, UIPanel } from '../types';
-import type { RoundAnnotation, PositionChip } from './structureCard';
+import type { PlayoffOffer, TopologyState, TopologyEdge, TopologyNode, UIPanel } from '../types';
+import type { RoundAnnotation, PositionChip, FitLever, NodeFit, NodeJourney } from './structureCard';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 
 const { WINNER, LOSER, QUALIFYING, CONSOLATION, ROUND_ROBIN } = drawDefinitionConstants;
@@ -47,6 +47,15 @@ export interface CanvasCallbacks {
   onMoveNode: (nodeId: string, x: number, y: number) => void;
   onCreateEdge: (sourceNodeId: string, targetNodeId: string, linkType: 'WINNER' | 'LOSER' | 'POSITION') => void;
   onPortMouseDown: (nodeId: string, portType: 'winner' | 'loser') => void;
+  /** The live draw's offers for a node; given, the cards leave out the mock-draw rounds line. */
+  playoffOffers?: (nodeId: string) => PlayoffOffer[] | undefined;
+  onAddPlayoff?: (nodeId: string, offer: PlayoffOffer) => void;
+  /** Fit mode: a node's fit, and the levers it may move. */
+  fitFor?: (nodeId: string) => NodeFit;
+  onFitLever?: (nodeId: string, lever: FitLever, direction: 1 | -1) => void;
+  /** Journey mode: a node's steps for the chosen participant, and the links they travelled. */
+  journeyFor?: (nodeId: string) => NodeJourney | undefined;
+  journeyEdges?: () => Set<string>;
 }
 
 export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<TopologyState> {
@@ -108,6 +117,8 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
   let justDragged = false;
 
   let currentState: TopologyState | null = null;
+  /** Journey mode: the edges the chosen participant travelled, for this render. */
+  let travelled = new Set<string>();
 
   // Canvas click = deselect (suppressed after drag)
   root.addEventListener('click', () => {
@@ -341,8 +352,21 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
     const nodeWarnings = computeNodeWarnings(state);
     const positionChipsByNode = computePositionChipsByNode(state);
     const cardCallbacks = buildCardCallbacks(state);
+    const addingPlayoffs = state.mode === 'addPlayoffs' && !!callbacks.playoffOffers && !!callbacks.onAddPlayoff;
+    root.classList.toggle('tb-canvas--add-playoffs', addingPlayoffs);
+    const fitting = state.mode === 'fit' && !!callbacks.fitFor;
+    root.classList.toggle('tb-canvas--fit', fitting);
+    const following = state.mode === 'journey' && !!callbacks.journeyFor && !!state.journeyParticipantId;
+    root.classList.toggle('tb-canvas--journey', following);
+    travelled = following ? (callbacks.journeyEdges?.() ?? new Set()) : new Set();
 
     for (const node of state.nodes) {
+      const playoffOffers = addingPlayoffs
+        ? {
+            offers: callbacks.playoffOffers!(node.id) ?? [],
+            onAddPlayoff: (offer: PlayoffOffer) => callbacks.onAddPlayoff!(node.id, offer)
+          }
+        : undefined;
       const card = buildStructureCard(
         node,
         cardCallbacks,
@@ -351,7 +375,18 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
         annotationsByNode.get(node.id),
         nodeWarnings.get(node.id),
         computeAdvanceInfo(node, state),
-        positionChipsByNode.get(node.id)
+        positionChipsByNode.get(node.id),
+        {
+          playoffOffers,
+          hideRoundsInfo: !!callbacks.playoffOffers || fitting,
+          ...(following && { journey: callbacks.journeyFor!(node.id) }),
+          ...(fitting && {
+            fit: callbacks.fitFor!(node.id),
+            onFitLever: callbacks.onFitLever
+              ? (lever: FitLever, direction: 1 | -1) => callbacks.onFitLever!(node.id, lever, direction)
+              : undefined
+          })
+        }
       );
       nodesLayer.appendChild(card);
     }
@@ -388,6 +423,10 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
     svg.setAttribute('height', String(maxY));
     nodesLayer.style.width = `${maxX}px`;
     nodesLayer.style.height = `${maxY}px`;
+    // The links layer spans the content too: the canvas scrolls inside a fixed height now, and a layer sized to the
+    // canvas box would clip every link below the first screenful.
+    svg.style.width = `max(100%, ${maxX}px)`;
+    svg.style.height = `max(100%, ${maxY}px)`;
     spacer.style.width = `${maxX}px`;
     spacer.style.height = `${maxY}px`;
   }
@@ -424,6 +463,7 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
     const displayType = edgeDisplayType(edge, state.nodes);
     path.classList.add(EDGE_COLORS[displayType] || 'tb-edge--winner');
     if (state.selectedEdgeId === edge.id) path.classList.add('tb-edge--selected');
+    if (travelled.has(edge.id)) path.classList.add('tb-edge--journey');
     path.setAttribute('marker-end', `url(#arrowhead-${displayType})`);
 
     path.addEventListener('click', (e) => {

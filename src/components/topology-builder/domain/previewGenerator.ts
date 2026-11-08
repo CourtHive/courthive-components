@@ -2,8 +2,9 @@
  * Preview Generator — Generates SchematicMatchUp[] from node's drawType + drawSize.
  * Pure geometry with feed-round support for non-power-of-2 draw sizes.
  */
+import { luckyLosersNeeded } from '../../roundProfile/roundProfileLogic';
+import { customLuckyProfile, luckyRoundProfiles } from './feedRounds';
 import { drawDefinitionConstants } from 'tods-competition-factory';
-import { luckyRoundProfiles } from './feedRounds';
 import type { SchematicMatchUp } from '../../renderSchematicStructure';
 
 const { ROUND_ROBIN, AD_HOC, LUCKY_DRAW } = drawDefinitionConstants;
@@ -33,6 +34,8 @@ export function generatePreviewMatchUps({
     return generateAdHocPreview({ drawSize, stage, structureId, roundsCount });
   }
   if (structureType === LUCKY_DRAW) {
+    const roundProfile = customLuckyProfile(drawSize, structureOptions);
+    if (roundProfile) return generateCustomLuckyDrawPreview({ roundProfile, stage, structureId });
     return generateLuckyDrawPreview({ drawSize, stage, structureId });
   }
   return generateEliminationPreview({ drawSize, stage, structureId, qualifyingPositions });
@@ -214,6 +217,45 @@ function generateLuckyDrawPreview({
         finishingRound: totalRounds - r,
         roundFactor: 1, // Lucky draws don't use merge connectors
         preFeedRound: !!preFeedRound,
+        stage,
+        structureId
+      });
+    }
+  }
+
+  return matchUps;
+}
+
+/**
+ * Preview for a lucky draw with an explicit round profile: each round has the matchUps the profile names, and a round
+ * whose losers feed the next (it takes lucky losers) is marked preFeedRound, as in the default cascade.
+ */
+function generateCustomLuckyDrawPreview({
+  roundProfile,
+  stage,
+  structureId
+}: {
+  roundProfile: number[];
+  stage?: string;
+  structureId?: string;
+}): SchematicMatchUp[] {
+  const totalRounds = roundProfile.length;
+  const matchUps: SchematicMatchUp[] = [];
+  let drawPosCounter = 1;
+
+  for (let r = 0; r < totalRounds; r++) {
+    const roundNumber = r + 1;
+    const next = roundProfile[r + 1];
+    const preFeedRound = next !== undefined && luckyLosersNeeded(roundProfile[r], next) > 0;
+    for (let pos = 1; pos <= roundProfile[r]; pos++) {
+      matchUps.push({
+        matchUpId: `preview-${++matchUpCounter}`,
+        roundNumber,
+        roundPosition: pos,
+        drawPositions: roundNumber === 1 ? [drawPosCounter++, drawPosCounter++] : [],
+        finishingRound: totalRounds - r,
+        roundFactor: 1,
+        preFeedRound,
         stage,
         structureId
       });

@@ -27,16 +27,20 @@
  */
 import { createDynamicSetsRegion } from '../../components/scoring/regions/dynamicSetsRegion';
 import { createFreeScoreRegion } from '../../components/scoring/regions/freeScoreRegion';
-import { hydrateScoreEntryState } from '../../components/scoring/logic/scoreEntryState';
+import { createScoreEntryStore } from '../../components/scoring/logic/scoreEntryStore';
 import { getMatchUpFormatModal } from '../../components/matchUpFormat/matchUpFormat';
 import { createDialPadRegion } from '../../components/scoring/regions/dialPadRegion';
 import { isDoubleExitStatus } from '../../components/scoring/logic/irregularEnding';
+import { switchApproach } from '../../components/scoring/logic/scoreEntryModel';
 import { renderScoreEntryCard } from '../../components/scoring/scoreEntryCard';
-import { scoreLine } from '../../components/scoring/regions/scoreLine';
 
+import type { ScoreEntryStore } from '../../components/scoring/logic/scoreEntryStore';
 import type { StatusCodeGroups } from '../../components/scoring/logic/statusCodes';
 
 export type StoryApproach = 'dynamicSets' | 'freeScore' | 'dialPad';
+
+/** The order the switcher's menu lists them, the same as the dialog's. */
+export const ALL_APPROACHES: StoryApproach[] = ['dynamicSets', 'freeScore', 'dialPad'];
 
 export const APPROACH_LABELS: Record<StoryApproach, string> = {
   dynamicSets: 'Dynamic Sets',
@@ -84,25 +88,42 @@ export function scoreEntryCardHost(params: ScoreEntryCardHostParams): HTMLElemen
   let matchUpFormat = params.matchUpFormat;
   let record = params.matchUp;
   let sets = params.sets ?? params.matchUp?.score?.sets;
+  let approach: StoryApproach = params.approach ?? 'dynamicSets';
 
   build();
   return container;
 
   function build(): void {
-    const region: any = createRegion(params.approach ?? 'dynamicSets', matchUpFormat, sets, {
+    // ONE store for the card and every region, as the dialog has — which is what makes the approach
+    // switcher a change of renderer and not of score. The recorded outcome seeds the ending, so a card
+    // reopened after a submit shows the ending it holds.
+    const store = createScoreEntryStore({ matchUpFormat, sets, matchUp: record, approach });
+    const hooks = {
       onChange: () => card.refresh(),
       onStructureChange: () => card.rerender()
-    });
+    };
+    let region: any = createRegion(approach, store, hooks);
 
     const card = renderScoreEntryCard({
       sides: params.sides,
       matchUpFormat,
       context: params.context,
       statusCodeGroups: params.statusCodeGroups,
-      approachLabel: APPROACH_LABELS[params.approach ?? 'dynamicSets'],
+      approachLabel: APPROACH_LABELS[approach],
+      // CA, 2026-11-07: the switcher was a button with no handler in every Card story — the host passed
+      // a label and nothing to choose from. The three approaches are offered as the dialog offers them,
+      // and a choice rebuilds the region over the same store, so the typed score comes across.
+      approaches: ALL_APPROACHES.map((key) => ({ key, label: APPROACH_LABELS[key] })),
+      onSelectApproach: (key: string) => {
+        const next = key as StoryApproach;
+        store.set(switchApproach(store.get(), next));
+        approach = next;
+        region = createRegion(approach, store, hooks);
+        card.update({ region, approachLabel: APPROACH_LABELS[approach] });
+        params.log?.(`approach → ${next}`);
+      },
       region,
-      // The recorded outcome, so a card reopened after a submit shows the ending it holds.
-      initialState: hydrateScoreEntryState(record),
+      store,
       // CA: the chip is live in EVERY story. It opens this package's real picker, and what comes back
       // rebuilds the region under the new format.
       onEditFormat: () =>
@@ -144,31 +165,20 @@ export function scoreEntryCardHost(params: ScoreEntryCardHostParams): HTMLElemen
   }
 }
 
-/** The region for an approach, seeded from whatever score the host is holding. */
+/**
+ * The region for an approach, rendering the host's one store.
+ *
+ * Free Score renders the model's own score line, so all three open quoting the same score — it used to
+ * be seeded with text of its own, which a switch would then have had to translate.
+ */
 export function createRegion(
   approach: StoryApproach,
-  matchUpFormat: string,
-  sets: any[] | undefined,
+  store: ScoreEntryStore,
   hooks: { onChange: () => void; onStructureChange: () => void }
 ): any {
-  if (approach === 'freeScore') {
-    // Free Score is seeded with TEXT, and the factory's own line is what the other two display — so all
-    // three open quoting the same score.
-    return createFreeScoreRegion({
-      matchUpFormat,
-      initialText: scoreLine(sets ?? [], matchUpFormat),
-      onChange: hooks.onChange
-    });
-  }
-  if (approach === 'dialPad') {
-    return createDialPadRegion({ matchUpFormat, sets, onChange: hooks.onChange });
-  }
-  return createDynamicSetsRegion({
-    matchUpFormat,
-    sets,
-    onChange: hooks.onChange,
-    onStructureChange: hooks.onStructureChange
-  });
+  if (approach === 'freeScore') return createFreeScoreRegion({ store, onChange: hooks.onChange });
+  if (approach === 'dialPad') return createDialPadRegion({ store, onChange: hooks.onChange });
+  return createDynamicSetsRegion({ store, onChange: hooks.onChange, onStructureChange: hooks.onStructureChange });
 }
 
 /**

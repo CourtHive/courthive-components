@@ -629,17 +629,62 @@ describe('the tiebreak column — CA, 2026-09-27', () => {
 
     expect(h.tb(1, 1)).toBeTruthy();
     expect(h.tb(2, 1)).toBeTruthy();
-    expect(h.all(COL_HEAD).map((c) => c.textContent)).toEqual(['1st', 'TB']);
+    // and the second set opens beside it: a bare 7-6 is a finished set (see below)
+    expect(h.all(COL_HEAD).map((c) => c.textContent)).toEqual(['1st', 'TB', '2nd']);
   });
 
-  it('holds the second set closed while the tiebreak is outstanding', () => {
-    // `isSetComplete(0, 7-6)` is FALSE, measured — a 7-6 is not a finished set until its tiebreak is
-    // known. That is what makes the column a step rather than an optional extra.
+  it('opens the second set beside the column — the points are offered, not owed (CA, 2026-11-07)', () => {
+    // Until then the second set stayed closed and Submit dead until the points were in, while the engine
+    // had recorded a bare 7-6 since ruling V11. Submit is still dead here because ONE set is not a match.
     const h = mount();
     h.enterSet(1, '7', '6');
 
-    expect(h.cell(1, 2)).toBeNull();
+    expect(h.cell(1, 2)).toBeTruthy();
+    expect(h.tb(2, 1), 'the column stays, so the points can still be typed').toBeTruthy();
     expect(h.submit()?.disabled).toBe(true);
+
+    h.enterSet(2, '6', '3');
+    expect(h.submit()?.disabled).toBe(false);
+    // the band says what was left out, before Submit rather than after
+    expect(h.band()?.textContent).toContain('7-6 6-3');
+    expect(h.band()?.textContent).toContain('1st set: tiebreak points not recorded');
+
+    const set = h.region.getSets()[0];
+    expect(set.winningSide).toBe(1);
+    expect(set.side1TiebreakScore).toBeUndefined();
+  });
+
+  it('a pair half-typed is not a finished set: one side’s points without the other’s', () => {
+    const h = mount({ smartComplements: false });
+    h.enterSet(1, '7', '6');
+    h.typeTb(2, 1, '3');
+    expect(h.cell(1, 2), 'the second set closes while the pair is mid-keystroke').toBeNull();
+    h.typeTb(1, 1, '7');
+    expect(h.cell(1, 2)).toBeTruthy();
+    expect(h.band()?.textContent).toContain('7-6(3)');
+  });
+
+  it("CA's gesture: a 0 typed over the derived 7 reads 0-0, which is no points — the cells clear", () => {
+    const h = mount();
+    h.enterSet(1, '7', '6');
+    h.typeTb(2, 1, '0'); // a tiebreak to love: the complement fills the winner's 7
+    expect(h.band()?.textContent).toContain('7-6(0)');
+    h.typeTb(1, 1, '0');
+    expect(h.band()?.textContent).not.toContain('(0)');
+    expect(h.tb(1, 1)?.value).toBe('');
+    expect(h.tb(2, 1)?.value).toBe('');
+    expect(h.cell(1, 2), 'and the set is settled without points').toBeTruthy();
+  });
+
+  it('Enter in the empty tiebreak column moves on to the next set', () => {
+    const h = mount();
+    h.enterSet(1, '7', '6');
+    const field = h.tb(2, 1)!;
+    field.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    const active = document.activeElement as HTMLInputElement | null;
+    expect(active?.dataset.set).toBe('2');
+    // the column stays: the points can still be typed, and the band will say they were left out
+    expect(h.tb(1, 1)).toBeTruthy();
   });
 
   it('autocompletes the other side to the format target — a 3 in a TB7 gives 7', () => {

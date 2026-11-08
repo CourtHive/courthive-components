@@ -65,7 +65,10 @@
     linear-gradient(90deg, var(--chc-border-secondary) 1px, transparent 1px);
   background-size: 20px 20px;
   background-position: -1px -1px;
-  min-height: 600px;
+  /* The grid belongs to the content, not the box: it scrolls with the cards and covers every area a drag opens up */
+  background-attachment: local;
+  /* Fills whatever height the host gives the layout (CA, 2026-11-08); this floor is for a host that gives none */
+  min-height: 320px;
 }
 
 .tb-canvas-svg {
@@ -189,6 +192,20 @@
 .tb-card-badge--playoff {
   background: var(--chc-container-success);
   color: var(--chc-on-success);
+}
+.tb-card-badge--voluntary {
+  background: var(--chc-container-warning);
+  color: var(--chc-on-warning);
+}
+
+/* A voluntary consolation before anyone opts in: a sentence where the schematic would be */
+.tb-card-preview--opt-in {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  font-size: 11px;
+  color: var(--chc-text-muted);
 }
 
 .tb-card-name {
@@ -511,4 +528,323 @@
 .tb-validation-icon--warning {
   background: var(--chc-container-warning);
   color: var(--chc-on-warning);
+}
+
+/* ── Add playoffs mode ───────────────────────────────────── */
+/* Chips for the playoffs a structure can still feed (CA, 2026-11-08). Dashed: a structure that does not exist yet. */
+.tb-mode-toggle {
+  align-self: center;
+  /* clear of the toolbar's edge, where its border was clipped */
+  margin: 4px 8px;
+}
+
+.tb-card-offers {
+  display: flex;
+  gap: 4px;
+  padding: 5px 8px;
+  flex-wrap: wrap;
+  border-top: 1px dashed var(--chc-status-info);
+}
+
+.tb-card-offer {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px dashed var(--chc-status-info);
+  border-radius: 10px;
+  background: var(--chc-bg-primary);
+  color: var(--chc-status-info);
+  cursor: pointer;
+  transition:
+    background-color 0.1s,
+    color 0.1s;
+}
+
+.tb-card-offer:hover,
+.tb-card-offer:focus-visible {
+  border-style: solid;
+  background: var(--chc-container-info);
+  color: var(--chc-on-info);
+  outline: none;
+}
+
+/* The round a pointed-at chip would draw its participants from */
+.tb-round-offer {
+  outline: 2px dashed var(--chc-status-info);
+  outline-offset: 2px;
+  border-radius: 3px;
+  z-index: 1;
+}
+
+/* In the mode, a structure with nothing to add steps back so the ones with chips read first */
+.tb-canvas--add-playoffs .tb-card--no-offers {
+  opacity: 0.55;
+}
+
+/* ── Footer ──────────────────────────────────────────────── */
+/* The strip beneath the canvas, matching the schedule page's beneath its grid */
+.tb-footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 36px;
+  padding: 8px 16px;
+  box-sizing: border-box;
+  border-top: 1px solid var(--chc-border-secondary);
+  background: var(--chc-bg-primary);
+  flex-wrap: wrap;
+}
+
+.tb-footer-hint {
+  flex: 1;
+  font-size: 12px;
+  color: var(--chc-text-secondary);
+}
+
+.tb-footer-slot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Fit mode ────────────────────────────────────────────── */
+/* How the event's entries fill each structure that takes entries (CA, 2026-11-08) */
+.tb-fit {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 8px;
+  border-top: 1px dashed var(--chc-border-secondary);
+  font-size: 11px;
+}
+
+.tb-fit--none {
+  color: var(--chc-text-muted);
+}
+
+.tb-fit-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tb-fit-status {
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.tb-fit-status[data-status='FITS'] {
+  background: var(--chc-container-success);
+  color: var(--chc-on-success);
+}
+
+.tb-fit-status[data-status='OVER'] {
+  background: var(--chc-container-danger);
+  color: var(--chc-on-danger);
+}
+
+.tb-fit-status[data-status='SHORT'] {
+  background: var(--chc-container-warning);
+  color: var(--chc-on-warning);
+}
+
+.tb-fit-status[data-status='EMPTY'] {
+  background: var(--chc-bg-secondary);
+  color: var(--chc-text-secondary);
+}
+
+.tb-fit-text {
+  color: var(--chc-text-secondary);
+}
+
+.tb-fit-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--chc-bg-secondary);
+}
+
+.tb-fit-seg--placed {
+  background: var(--chc-status-success);
+}
+
+.tb-fit-seg--qualifier {
+  background: var(--chc-status-info);
+}
+
+.tb-fit-seg--seed-bye {
+  background: var(--chc-border-secondary);
+}
+
+.tb-fit-seg--bye {
+  background: var(--chc-status-warning);
+}
+
+.tb-fit-seg--open {
+  background: transparent;
+}
+
+.tb-fit-levers {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tb-fit-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tb-fit-stepper-label {
+  min-width: 52px;
+  text-align: center;
+  color: var(--chc-text-primary);
+}
+
+.tb-fit-step {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  font: inherit;
+  line-height: 1;
+  border: 1px solid var(--chc-border-primary);
+  border-radius: 4px;
+  background: var(--chc-bg-primary);
+  color: var(--chc-text-primary);
+  cursor: pointer;
+}
+
+.tb-fit-step:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.tb-fit-step:focus-visible {
+  outline: 2px solid var(--chc-border-focus);
+  outline-offset: 1px;
+}
+
+/* In the mode, a structure filled by results steps back so the ones taking entries read first */
+.tb-canvas--fit .tb-card--no-fit {
+  opacity: 0.55;
+}
+
+/* the ledger separates its stages with spaces, which a collapsed line loses */
+.tb-footer-hint[data-mode='fit'] {
+  white-space: pre-wrap;
+}
+
+/* ── Journey mode ────────────────────────────────────────── */
+/* One participant's path through the draw: rounds lit by result, links travelled, no names (CA, 2026-11-08) */
+.tb-canvas--journey .tb-card--off-journey {
+  opacity: 0.45;
+}
+
+.tb-canvas--journey .tb-card--on-journey {
+  box-shadow: 0 0 0 2px var(--chc-border-focus);
+}
+
+.tb-round-journey {
+  outline: 2px solid var(--chc-status-info);
+  outline-offset: 2px;
+  border-radius: 3px;
+  z-index: 1;
+}
+
+.tb-round-journey--won {
+  outline-color: var(--chc-status-success);
+}
+
+.tb-round-journey--lost {
+  outline-color: var(--chc-status-error);
+}
+
+.tb-round-journey--bye {
+  outline-style: dashed;
+}
+
+.tb-canvas--journey .tb-canvas-svg path:not(.tb-edge--journey):not(.tb-edge-hit) {
+  opacity: 0.25;
+}
+
+.tb-canvas-svg path.tb-edge--journey {
+  stroke-width: 4;
+}
+
+.tb-journey-search {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.tb-journey-search[hidden] {
+  display: none;
+}
+
+.tb-journey-input {
+  width: 220px;
+  padding: 4px 8px;
+  font: inherit;
+  font-size: 12px;
+  border: 1px solid var(--chc-border-primary);
+  border-radius: 4px;
+  background: var(--chc-bg-primary);
+  color: var(--chc-text-primary);
+}
+
+.tb-journey-input:focus-visible {
+  outline: 2px solid var(--chc-border-focus);
+  outline-offset: 1px;
+}
+
+.tb-journey-results {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 220px;
+  margin-bottom: 4px;
+  background: var(--chc-bg-primary);
+  border: 1px solid var(--chc-border-primary);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+.tb-journey-results:empty {
+  display: none;
+}
+
+.tb-journey-result {
+  padding: 4px 8px;
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: var(--chc-text-primary);
+  cursor: pointer;
+}
+
+.tb-journey-result:hover,
+.tb-journey-result:focus-visible {
+  background: var(--chc-container-info);
+  color: var(--chc-on-info);
+  outline: none;
+}
+
+/* In journey mode only the journey's colours mean anything: the link annotations' slot tints step back */
+.tb-canvas--journey .tb-round-linked .chc-schematic-slot {
+  background-color: var(--chc-border-secondary);
+  opacity: 0.6;
 }

@@ -6,12 +6,25 @@ import { drawDefinitionConstants } from 'tods-competition-factory';
 import { renderSchematicStructure } from '../../renderSchematicStructure';
 import { generatePreviewMatchUps } from '../domain/previewGenerator';
 import { getPlayoffProfiles } from '../domain/playoffProfilesCache';
-import { getLuckyDrawTotalRounds } from '../domain/feedRounds';
-import type { TopologyNode } from '../types';
+import { FIT_STATUS_TEXT, fitSentence } from '../domain/drawFit';
+import { getNodeTotalRounds } from '../domain/feedRounds';
 
-const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, ROUND_ROBIN, AD_HOC, LUCKY_DRAW, WINNER, LOSER } =
-  drawDefinitionConstants;
+import type { JourneyStep, PlayoffOffer, StructureFit, TopologyNode } from '../types';
 
+const {
+  VOLUNTARY_CONSOLATION,
+  CONSOLATION,
+  QUALIFYING,
+  ROUND_ROBIN,
+  LUCKY_DRAW,
+  PLAY_OFF,
+  AD_HOC,
+  WINNER,
+  LOSER,
+  MAIN
+} = drawDefinitionConstants;
+
+const ARIA_LABEL = 'aria-label';
 const MIN_CARD_WIDTH = 240;
 const ROUND_LAYOUT_WIDTH = 48; // 40px matchup + 4px margin each side
 const PREVIEW_PADDING = 16; // 8px left + 8px right
@@ -30,7 +43,7 @@ export function getNumRounds(node: TopologyNode): number {
     return node.structureOptions?.roundsCount || 1;
   }
   if (node.structureType === LUCKY_DRAW) {
-    return getLuckyDrawTotalRounds(node.drawSize);
+    return getNodeTotalRounds(LUCKY_DRAW, node.drawSize, node.structureOptions);
   }
   const n = Math.max(2, node.drawSize);
   const base = Math.pow(2, Math.floor(Math.log2(n)));
@@ -66,8 +79,12 @@ const BADGE_CLASS: Record<string, string> = {
   [MAIN]: 'tb-card-badge--main',
   [QUALIFYING]: 'tb-card-badge--qualifying',
   [CONSOLATION]: 'tb-card-badge--consolation',
-  [PLAY_OFF]: 'tb-card-badge--playoff'
+  [PLAY_OFF]: 'tb-card-badge--playoff',
+  [VOLUNTARY_CONSOLATION]: 'tb-card-badge--voluntary'
 };
+
+/** The badge's short stage name; `VOLUNTARY_CONSOLATION` cut to four letters read `VOLU`. */
+const BADGE_TEXT: Record<string, string> = { [VOLUNTARY_CONSOLATION]: 'VC' };
 
 export interface RoundAnnotation {
   roundNumber: number;
@@ -81,6 +98,65 @@ export interface PositionChip {
   position: number;
   edgeId: string;
   targetName: string;
+}
+
+/** What the `addPlayoffs` mode adds to a card. */
+export interface CardPlayoffOffers {
+  offers: PlayoffOffer[];
+  onAddPlayoff: (offer: PlayoffOffer) => void;
+}
+
+/** A Fit mode lever on a card. */
+export type FitLever = 'size' | 'qualifiers';
+
+/** A node's fit, as Fit mode draws it on the card. */
+export interface NodeFit {
+  /** False for a structure filled by results (a playoff, a consolation): nothing to fit. */
+  takesEntries: boolean;
+  fit?: StructureFit;
+  canResize?: { down: boolean; up: boolean };
+  /** A qualifying structure's qualifier count. */
+  canQualify?: { down: boolean; up: boolean };
+}
+
+/** A node's part in the chosen participant's journey. */
+export interface NodeJourney {
+  steps: JourneyStep[];
+  onStep?: (step: JourneyStep) => void;
+}
+
+/** Card extras beyond the positional parameters. */
+export interface StructureCardExtras {
+  /** Journey mode: the chosen participant's steps in this structure (none — the card steps back). */
+  journey?: NodeJourney;
+  /** Fit mode: this node's fit, and the levers it may move (none in a read-only topology). */
+  fit?: NodeFit;
+  onFitLever?: (lever: FitLever, direction: 1 | -1) => void;
+  /** The `addPlayoffs` mode: this card's chips, or none (the card is dimmed: nothing to add from it). */
+  playoffOffers?: CardPlayoffOffers;
+  /** A live draw: the mock-draw rounds line describes a draw that is not this one, so it is left out. */
+  hideRoundsInfo?: boolean;
+}
+
+/** The chip's text: `+ 17–24`, an en dash as a range reads. */
+export function offerLabel(offer: PlayoffOffer): string {
+  const range = offer.finishingPositionRange.replace('-', '\u2013');
+  if (offer.kind === 'voluntaryConsolation') return '+ Voluntary consolation';
+  if (offer.kind === 'pagePlayoff') return `+ Page playoff ${range}`;
+  return `+ ${range}`;
+}
+
+/** What a chip says it does, for its aria-label and title. */
+function offerDescription(offer: PlayoffOffer): string {
+  if (offer.kind === 'voluntaryConsolation') return 'Add a voluntary consolation that main-draw losers can opt into';
+  if (offer.kind === 'pagePlayoff') {
+    return `Add a page playoff for positions 1-4, in place of the 3-4 playoff, from losers of round ${offer.sourceRoundNumber}`;
+  }
+  const source =
+    offer.sourceRoundNumber !== undefined
+      ? `losers of round ${offer.sourceRoundNumber}`
+      : `group position ${offer.groupFinishingPosition}`;
+  return `Add a playoff for positions ${offer.finishingPositionRange}, from ${source}`;
 }
 
 export interface StructureCardCallbacks {
@@ -100,7 +176,8 @@ export function buildStructureCard(
   roundAnnotations?: RoundAnnotation[],
   warnings?: string[],
   advanceInfo?: string,
-  positionChips?: PositionChip[]
+  positionChips?: PositionChip[],
+  extras: StructureCardExtras = {}
 ): HTMLElement {
   const hasWarnings = warnings && warnings.length > 0;
   const card = document.createElement('div');
@@ -110,48 +187,30 @@ export function buildStructureCard(
   card.style.minWidth = `${getCardWidth(node)}px`;
   card.setAttribute('data-node-id', node.id);
 
-  // Header
-  const header = document.createElement('div');
-  header.className = 'tb-card-header';
-
-  const badge = document.createElement('span');
-  badge.className = `tb-card-badge ${BADGE_CLASS[node.stage] || 'tb-card-badge--main'}`;
-  badge.textContent = node.stage.substring(0, 4);
-
-  const name = document.createElement('span');
-  name.className = 'tb-card-name';
-  name.textContent = node.structureName;
-
-  const size = document.createElement('span');
-  size.className = 'tb-card-size';
-  size.textContent = `\u00d7${node.drawSize}`;
-
-  header.appendChild(badge);
-  header.appendChild(name);
-  header.appendChild(size);
-
-  // Advance info for RR structures
-  if (advanceInfo) {
-    const advanceDiv = document.createElement('div');
-    advanceDiv.className = 'tb-card-advance';
-    advanceDiv.textContent = advanceInfo;
-    header.appendChild(advanceDiv);
-  }
+  const header = buildCardHeader(node, advanceInfo);
 
   // Preview
   const preview = document.createElement('div');
   preview.className = 'tb-card-preview';
 
-  const matchUps =
-    node.matchUps ||
-    generatePreviewMatchUps({
-      structureType: node.structureType,
-      drawSize: node.drawSize,
-      stage: node.stage,
-      structureId: node.id,
-      qualifyingPositions: node.qualifyingPositions,
-      structureOptions: node.structureOptions
-    });
+  // A voluntary consolation is empty until players opt in: no positions to draw, and saying so is the preview
+  const optIn = node.stage === VOLUNTARY_CONSOLATION && !node.matchUps?.length;
+  const matchUps = optIn
+    ? []
+    : node.matchUps ||
+      generatePreviewMatchUps({
+        structureType: node.structureType,
+        drawSize: node.drawSize,
+        stage: node.stage,
+        structureId: node.id,
+        qualifyingPositions: node.qualifyingPositions,
+        structureOptions: node.structureOptions
+      });
+
+  if (optIn) {
+    preview.textContent = 'Main-draw losers opt in';
+    preview.classList.add('tb-card-preview--opt-in');
+  }
 
   if (matchUps.length > 0) {
     try {
@@ -206,23 +265,7 @@ export function buildStructureCard(
     }
   }
 
-  // Rounds info
-  const profiles = getPlayoffProfiles(node.structureType, node.drawSize, node.structureOptions?.groupSize);
-  let roundsDiv: HTMLElement | null = null;
-
-  if (profiles.playoffRoundsRanges?.length) {
-    roundsDiv = document.createElement('div');
-    roundsDiv.className = 'tb-card-rounds';
-    roundsDiv.textContent = profiles.playoffRoundsRanges
-      .map((r) => `R${r.roundNumber}:${r.finishingPositionRange}`)
-      .join(' ');
-  } else if (profiles.playoffFinishingPositionRanges?.length) {
-    roundsDiv = document.createElement('div');
-    roundsDiv.className = 'tb-card-rounds';
-    roundsDiv.textContent = profiles.playoffFinishingPositionRanges
-      .map((p) => `P${p.finishingPosition}:${p.finishingPositionRange}`)
-      .join(' ');
-  }
+  const roundsDiv = extras.hideRoundsInfo ? null : buildRoundsInfo(node);
 
   // Ports
   const ports = document.createElement('div');
@@ -284,6 +327,8 @@ export function buildStructureCard(
 
   if (roundsDiv) card.appendChild(roundsDiv);
 
+  appendModeExtras(card, node, preview, extras);
+
   // Warning banner
   if (hasWarnings) {
     const warningDiv = document.createElement('div');
@@ -329,6 +374,257 @@ export function buildStructureCard(
   });
 
   return card;
+}
+
+/** The card's header: stage badge, name, size, and a round robin's advance line. */
+function buildCardHeader(node: TopologyNode, advanceInfo?: string): HTMLElement {
+  const header = document.createElement('div');
+  header.className = 'tb-card-header';
+
+  const badge = document.createElement('span');
+  badge.className = `tb-card-badge ${BADGE_CLASS[node.stage] || 'tb-card-badge--main'}`;
+  badge.textContent = BADGE_TEXT[node.stage] ?? node.stage.substring(0, 4);
+
+  const name = document.createElement('span');
+  name.className = 'tb-card-name';
+  name.textContent = node.structureName;
+
+  const size = document.createElement('span');
+  size.className = 'tb-card-size';
+  // an opt-in consolation has no size until players join it
+  size.textContent = node.stage === VOLUNTARY_CONSOLATION && !node.drawSize ? '' : `\u00d7${node.drawSize}`;
+
+  header.append(badge, name, size);
+
+  if (advanceInfo) {
+    const advanceDiv = document.createElement('div');
+    advanceDiv.className = 'tb-card-advance';
+    advanceDiv.textContent = advanceInfo;
+    header.appendChild(advanceDiv);
+  }
+  return header;
+}
+
+/**
+ * What a structure of this type and size could feed, from a mock draw: a design-time answer, for the template builder.
+ * A live draw leaves it out (`hideRoundsInfo`) — the draw's own answer comes as `addPlayoffs` chips.
+ */
+function buildRoundsInfo(node: TopologyNode): HTMLElement | null {
+  const profiles = getPlayoffProfiles(node.structureType, node.drawSize, node.structureOptions?.groupSize);
+  const text = profiles.playoffRoundsRanges?.length
+    ? profiles.playoffRoundsRanges.map((r) => `R${r.roundNumber}:${r.finishingPositionRange}`).join(' ')
+    : profiles.playoffFinishingPositionRanges
+        ?.map((p) => `P${p.finishingPosition}:${p.finishingPositionRange}`)
+        .join(' ');
+  if (!text) return null;
+  const roundsDiv = document.createElement('div');
+  roundsDiv.className = 'tb-card-rounds';
+  roundsDiv.textContent = text;
+  return roundsDiv;
+}
+
+/**
+ * The `addPlayoffs` chips: one button per playoff this structure could still feed.
+ *
+ * Pointing at a chip (hover or keyboard focus) boxes the round whose losers would play it off, so the operator sees
+ * where the playoff comes from before choosing it. A round robin's playoffs come from a group finishing position,
+ * which the schematic has no column for, so its chips box nothing. Clicking a chip is the whole choice: the host
+ * attaches that one playoff — no list of every range to pick from (CA, 2026-11-08).
+ */
+function appendOfferChips(card: HTMLElement, { offers, onAddPlayoff }: CardPlayoffOffers, preview: HTMLElement): void {
+  // a structure with nothing to add: no row, and the card steps back
+  if (!offers.length) {
+    card.classList.add('tb-card--no-offers');
+    return;
+  }
+  const row = document.createElement('div');
+  row.className = 'tb-card-offers';
+
+  for (const offer of offers) {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'tb-card-offer';
+    chip.dataset.offerKey = offer.key;
+    chip.dataset.finishingPositionRange = offer.finishingPositionRange;
+    chip.textContent = offerLabel(offer);
+    chip.dataset.kind = offer.kind ?? 'playoff';
+    chip.setAttribute(ARIA_LABEL, offerDescription(offer));
+    chip.title = offerDescription(offer);
+
+    const round =
+      offer.sourceRoundNumber === undefined
+        ? null
+        : preview.querySelector<HTMLElement>(
+            `.chc-schematic-round-container[data-round-number="${offer.sourceRoundNumber}"]`
+          );
+    const point = (on: boolean) => round?.classList.toggle('tb-round-offer', on);
+    chip.addEventListener('mouseenter', () => point(true));
+    chip.addEventListener('mouseleave', () => point(false));
+    chip.addEventListener('focus', () => point(true));
+    chip.addEventListener('blur', () => point(false));
+
+    // The card drags on mousedown and selects on click; a chip is neither.
+    chip.addEventListener('mousedown', (e) => e.stopPropagation());
+    chip.addEventListener('click', (e) => {
+      e.stopPropagation();
+      onAddPlayoff(offer);
+    });
+    row.appendChild(chip);
+  }
+  card.appendChild(row);
+}
+
+/** What the current mode adds beneath a card: Add playoffs chips, or Fit mode's gauge. */
+function appendModeExtras(
+  card: HTMLElement,
+  node: TopologyNode,
+  preview: HTMLElement,
+  extras: StructureCardExtras
+): void {
+  if (extras.playoffOffers) appendOfferChips(card, extras.playoffOffers, preview);
+  if (extras.fit) appendFit(card, node, extras.fit, extras.onFitLever);
+  if (extras.journey) markJourney(card, preview, extras.journey);
+}
+
+/**
+ * Journey mode on a card: the rounds the participant played here are lit by result, and a lit round goes to that
+ * matchUp in the draw. A structure the participant never entered steps back. No name is drawn.
+ */
+function markJourney(card: HTMLElement, preview: HTMLElement, { steps, onStep }: NodeJourney): void {
+  if (!steps.length) {
+    card.classList.add('tb-card--off-journey');
+    return;
+  }
+  card.classList.add('tb-card--on-journey');
+  for (const step of steps) {
+    const round = preview.querySelector<HTMLElement>(
+      `.chc-schematic-round-container[data-round-number="${step.roundNumber}"]`
+    );
+    if (!round) continue;
+    const result = (step.result ?? 'PENDING').toLowerCase();
+    round.classList.add('tb-round-journey', `tb-round-journey--${result}`);
+    round.dataset.journeyResult = step.result ?? 'PENDING';
+    round.title = `Round ${step.roundNumber}: ${result}`;
+    if (onStep) {
+      round.style.cursor = 'pointer';
+      round.addEventListener('click', (e) => {
+        e.stopPropagation();
+        onStep(step);
+      });
+    }
+  }
+}
+
+/**
+ * Fit mode on a card: a bar of how the positions are taken, a sentence, the factory's status, and the levers.
+ *
+ * The bar's segments are the fit's own counts — entries, qualifier slots, BYEs the seeds take, BYEs beyond them, open
+ * positions — so it can only show what `getDrawFit` measured. A structure filled by results has nothing to fit and
+ * steps back, as a card with no chips does in the Add playoffs mode.
+ */
+function appendFit(
+  card: HTMLElement,
+  node: TopologyNode,
+  nodeFit: NodeFit,
+  onLever?: (lever: FitLever, direction: 1 | -1) => void
+): void {
+  if (!nodeFit.takesEntries) {
+    card.classList.add('tb-card--no-fit');
+    return;
+  }
+  const block = document.createElement('div');
+  block.className = 'tb-fit';
+  const fit = nodeFit.fit;
+  if (!fit) {
+    block.textContent = 'No fit for this topology yet';
+    block.classList.add('tb-fit--none');
+    card.appendChild(block);
+    return;
+  }
+  block.dataset.status = fit.status;
+
+  const head = document.createElement('div');
+  head.className = 'tb-fit-head';
+  const status = document.createElement('span');
+  status.className = 'tb-fit-status';
+  status.dataset.status = fit.status;
+  status.textContent = FIT_STATUS_TEXT[fit.status];
+  const sentence = document.createElement('span');
+  sentence.className = 'tb-fit-text';
+  sentence.textContent = fitSentence(fit);
+  head.append(status, sentence);
+
+  block.append(head, fitBar(fit));
+  const levers = fitLevers(node, nodeFit, onLever);
+  if (levers) block.appendChild(levers);
+  card.appendChild(block);
+}
+
+/** The positions as a stacked bar, one segment per kind of occupant. */
+function fitBar(fit: StructureFit): HTMLElement {
+  const bar = document.createElement('div');
+  bar.className = 'tb-fit-bar';
+  bar.setAttribute('role', 'img');
+  bar.setAttribute(ARIA_LABEL, `${fitSentence(fit)} of ${fit.positions} positions`);
+  const segments: [string, number][] = [
+    ['placed', fit.placed],
+    ['qualifier', fit.qualifierSlots],
+    ['seed-bye', fit.seedByes],
+    ['bye', fit.byesBeyondSeeds],
+    ['open', fit.open]
+  ];
+  for (const [kind, count] of segments) {
+    if (!count || !fit.positions) continue;
+    const segment = document.createElement('span');
+    segment.className = `tb-fit-seg tb-fit-seg--${kind}`;
+    segment.dataset.kind = kind;
+    segment.dataset.count = String(count);
+    segment.style.width = `${(count / fit.positions) * 100}%`;
+    bar.appendChild(segment);
+  }
+  return bar;
+}
+
+/** The size stepper, and a qualifying structure's qualifier stepper. None without a lever handler. */
+function fitLevers(
+  node: TopologyNode,
+  nodeFit: NodeFit,
+  onLever?: (lever: FitLever, direction: 1 | -1) => void
+): HTMLElement | null {
+  if (!onLever) return null;
+  const row = document.createElement('div');
+  row.className = 'tb-fit-levers';
+  const stepper = (lever: FitLever, label: string, value: number, can?: { down: boolean; up: boolean }) => {
+    const group = document.createElement('span');
+    group.className = 'tb-fit-stepper';
+    group.dataset.lever = lever;
+    const name = document.createElement('span');
+    name.className = 'tb-fit-stepper-label';
+    name.textContent = `${label} ${value}`;
+    const button = (direction: 1 | -1, glyph: string) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'tb-fit-step';
+      b.dataset.direction = direction > 0 ? 'up' : 'down';
+      b.textContent = glyph;
+      b.setAttribute(ARIA_LABEL, `${direction > 0 ? 'More' : 'Fewer'} ${label.toLowerCase()}`);
+      b.disabled = !(direction > 0 ? can?.up : can?.down);
+      b.addEventListener('mousedown', (e) => e.stopPropagation());
+      b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        onLever(lever, direction);
+      });
+      return b;
+    };
+    group.append(button(-1, '\u2212'), name, button(1, '+'));
+    return group;
+  };
+  row.appendChild(stepper('size', 'Size', node.drawSize, nodeFit.canResize));
+  if (nodeFit.canQualify) {
+    const qualifiers = node.qualifyingPositions || Math.floor(node.drawSize / 4);
+    row.appendChild(stepper('qualifiers', 'Qualifiers', qualifiers, nodeFit.canQualify));
+  }
+  return row;
 }
 
 /**
