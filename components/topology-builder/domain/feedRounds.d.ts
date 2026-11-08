@@ -30,6 +30,12 @@ export declare function getLuckyDrawTotalRounds(drawSize: number): number;
  */
 export declare function getLuckyDrawLosersForRound(drawSize: number, roundNumber: number): number;
 /**
+ * A lucky draw's explicit round profile (`structureOptions.roundProfile`, the factory's `roundProfile`), when it is one
+ * the factory will generate; otherwise undefined and the default cascade applies. An invalid profile is never half-used:
+ * the validator reports it, and every count here falls back to what the factory would play without it.
+ */
+export declare function customLuckyProfile(drawSize: number, structureOptions?: any): number[] | undefined;
+/**
  * Structure-type-aware total rounds.
  * Dispatches to the correct algorithm based on structureType.
  */
@@ -37,6 +43,7 @@ export declare function getNodeTotalRounds(structureType: string, drawSize: numb
 /**
  * Structure-type-aware losers count for a given round.
  * For elimination/feed-in: drawSize / 2^round
- * For lucky draw: uses luckyRoundProfiles
+ * For lucky draw: an explicit round profile's losers less the lucky losers the next round takes back, else the
+ * default cascade (luckyRoundProfiles)
  */
-export declare function getNodeLosersForRound(structureType: string, drawSize: number, roundNumber: number): number;
+export declare function getNodeLosersForRound(structureType: string, drawSize: number, roundNumber: number, structureOptions?: any): number;

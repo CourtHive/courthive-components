@@ -64,6 +64,7 @@ export declare const SCORE_ENTRY_TEXT: {
     readonly tiebreakContradiction: "{{set}} {{name}} won it, so they must win the tiebreak";
     readonly setHasNoScore: "{{set}} has no score";
     readonly setNotFinished: "{{set}} is not finished";
+    readonly tiebreakPointsNotRecorded: "{{set}} tiebreak points not recorded";
     readonly setHeading: "{{ordinal}}";
     readonly tiebreakHeading: "TB";
     readonly overtimeHeading: "OT{{period}}";

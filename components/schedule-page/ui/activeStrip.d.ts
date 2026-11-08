@@ -17,9 +17,22 @@ export interface ActiveStripCourtMeta {
 export interface ActiveStripCourtBlock {
     /** Block type label, used as the banner intent class (e.g. "PRACTICE", "MAINTENANCE"). */
     type: string;
-    /** Banner text. Caller controls formatting — e.g. "PRACTICE 14:00–16:00". */
+    /**
+     * Banner headline — normally the block type ("PRACTICE"). Wraps rather than truncates.
+     * Put the time window in `timeRange` so it gets its own line; a label that carries both
+     * ("PRACTICE 14:00–16:00") still renders, but has to share one line and breaks at the space.
+     */
     label: string;
-    /** Optional short note (block.reason, registrant name from a future practice-registration system, etc.). */
+    /**
+     * The block's time window, pre-formatted by the consumer — e.g. "14:00–16:00". Rendered on its
+     * own non-wrapping line beneath the label, so the end time is always readable in a narrow column.
+     */
+    timeRange?: string;
+    /**
+     * Optional short note (block.reason, registrant name from a future practice-registration system,
+     * etc.). Dropped when it only repeats `label` (case-insensitive): a reason of "BLOCKED" under a
+     * "BLOCKED" headline says nothing twice.
+     */
     detail?: string;
 }
 /**

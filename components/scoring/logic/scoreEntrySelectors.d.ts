@@ -69,9 +69,17 @@ export declare function error(model: ScoreEntryModel, options?: ErrorOptions): s
  */
 export declare function columns(model: ScoreEntryModel, options?: ColumnOptions): ScoreSlot[];
 /**
- * Whether a set is finished: both principal cells in, no tiebreak points owed, and the factory accepts
- * it as a COMPLETE legal set. A `7-6` whose points are unknown is not settled, so the next set does not
- * open under it.
+ * Whether a set is finished: both principal cells in, no tiebreak half-typed, and the factory accepts
+ * it as a COMPLETE legal set.
+ *
+ * ── A `7-6` with no points is settled (CA, 2026-11-07) ──
+ *
+ * It read unsettled until then: the next set did not open and Submit stayed dead until the points were
+ * in, while the engine had recorded a bare `7-6` since ruling V11 (`TIEBREAK_POINTS_NOT_RECORDED`) and,
+ * since 7.33.0, calls it complete on the read surface too. The points are OFFERED, not owed: the column
+ * opens and takes focus, and the operator types them or moves on. A pair half-typed — one side's points
+ * and not the other's — is still unsettled, as it is mid-keystroke. `unrecordedTiebreakNote` says what
+ * was left out, so leniency is never silent.
  *
  * ── Strict `validateSetScore`, and not `analyzeSet`'s winning side ──
  *
@@ -84,7 +92,16 @@ export declare function columns(model: ScoreEntryModel, options?: ColumnOptions)
  * whole test — strict validation refuses a `0-0` bolt, which is unusual but not impossible.
  */
 export declare function isSettled(model: ScoreEntryModel, index: number): boolean;
-/** Whether the set's games call for a tiebreak whose points the operator has not supplied yet. */
+/**
+ * Whether the set's games call for a tiebreak whose points are not both in. Where the regions send focus
+ * and where the column shows; NOT whether the set is finished — see `isSettled`.
+ */
 export declare function tiebreakOutstanding(model: ScoreEntryModel, index: number): boolean;
+/**
+ * The band's note when a set decided by its tiebreak carries no points — `1st set: tiebreak points not
+ * recorded` — or nothing. The engine records the set and warns (`TIEBREAK_POINTS_NOT_RECORDED`); the card
+ * says so before Submit rather than after, so the leniency is a choice the operator can see.
+ */
+export declare function unrecordedTiebreakNote(model: ScoreEntryModel, options?: ErrorOptions): string | undefined;
 /** The value in one cell. Exported for regions, which render cells from the model and never read them back. */
 export declare function cellValue(model: ScoreEntryModel, setIndex: number, side: SideNumber, kind: ScoreSlot['kind']): number | undefined;
