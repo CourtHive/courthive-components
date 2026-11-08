@@ -1,5 +1,25 @@
 # Changelog
 
+## [7.12.0](https://github.com/CourtHive/courthive-components/compare/v7.11.0...v7.12.0) (2026-11-08)
+
+
+### Features
+
+* **round-profile:** LUCKY_DRAW round-profile editor, and round profiles in the topology builder ([#943](https://github.com/CourtHive/courthive-components/issues/943)) ([74b0908](https://github.com/CourtHive/courthive-components/commit/74b0908949fc8d6e832c696e8089a786e4887e93))
+* **schedule-page:** active strip block banner stacks type, time window and detail on their own lines ([#936](https://github.com/CourtHive/courthive-components/issues/936)) ([885eb6d](https://github.com/CourtHive/courthive-components/commit/885eb6d2fa91200c5115b8c4d264de664eb3dc89))
+* **scoring:** a bare 7-6 is a finished set in all three approaches (with factory 7.33.0) ([#942](https://github.com/CourtHive/courthive-components/issues/942)) ([15bd234](https://github.com/CourtHive/courthive-components/commit/15bd23435466c18f7a2ebf01e099e499b90e7b2b))
+* **topology:** an Add playoffs mode — chips for the playoffs each structure can still feed ([#938](https://github.com/CourtHive/courthive-components/issues/938)) ([6b2710f](https://github.com/CourtHive/courthive-components/commit/6b2710fa118f872b83ec035a98a2e9f7c72d8013))
+* **topology:** Fit mode — how an event's entries fill the draw, with levers ([21b8bbf](https://github.com/CourtHive/courthive-components/commit/21b8bbf083b7ed72bfa2660f03ecfc59589919d3))
+* **topology:** page playoff and voluntary consolation chips in the Add playoffs mode ([#940](https://github.com/CourtHive/courthive-components/issues/940)) ([ce682fd](https://github.com/CourtHive/courthive-components/commit/ce682fd32acc02de65a262edeecb170154183a00))
+* **topology:** Player journey mode — one participant's path, no names on the canvas ([06fc99c](https://github.com/CourtHive/courthive-components/commit/06fc99c57970af2b08620f15f1f4afc0fe4abd8c))
+* **topology:** the canvas fills its host, with a footer strip beneath it ([#939](https://github.com/CourtHive/courthive-components/issues/939)) ([0654012](https://github.com/CourtHive/courthive-components/commit/06540128ac0f0482bbb90d0b01e6f5da16ad8581))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.32.0 ([#935](https://github.com/CourtHive/courthive-components/issues/935)) ([cb73d51](https://github.com/CourtHive/courthive-components/commit/cb73d519301ac69696c80aeabb2b3be5d25c47b5))
+* **stories:** the score entry card's approach switcher offers all three approaches ([#937](https://github.com/CourtHive/courthive-components/issues/937)) ([62b04bf](https://github.com/CourtHive/courthive-components/commit/62b04bff45d816aed931536fac34f5945a1b7afb))
+
 ## [7.11.0](https://github.com/CourtHive/courthive-components/compare/v7.10.0...v7.11.0) (2026-11-06)
 
 
