@@ -1,6 +1,8 @@
 import type { CompositionColors } from '../types';
 
 const COLOR_TO_CSS_VAR: Record<keyof CompositionColors, string> = {
+  accent: '--chc-color-accent',
+  accentText: '--chc-color-accent-text',
   border: '--chc-color-border',
   borderHover: '--chc-color-border-hover',
   borderInlineStart: '--chc-color-border-inline-start',
@@ -34,5 +36,49 @@ export function applyCompositionColors(element: HTMLElement, colors?: Compositio
 export function clearCompositionColors(element: HTMLElement): void {
   for (const cssVar of Object.values(COLOR_TO_CSS_VAR)) {
     element.style.removeProperty(cssVar);
+  }
+}
+
+/** Read effective theme colors for the editor without saving inherited defaults as explicit overrides. */
+export function readCompositionColors(theme: string, colors?: CompositionColors): CompositionColors {
+  const probe = document.createElement('div');
+  probe.className = theme;
+  probe.style.cssText = 'position:fixed; visibility:hidden; pointer-events:none; width:0; height:0; overflow:hidden;';
+  applyCompositionColors(probe, colors);
+  const swatch = document.createElement('span');
+  probe.appendChild(swatch);
+  document.body.appendChild(probe);
+  try {
+    const styles = getComputedStyle(probe);
+    const fallbacks: Partial<Record<keyof CompositionColors, string>> = {
+      accent: 'var(--chc-status-info)',
+      accentText: 'var(--chc-on-primary)',
+      borderInlineStart: 'var(--chc-color-border)',
+      score: 'var(--chc-status-info)',
+      roundHeader: 'var(--chc-text-primary)',
+      roundHeaderUnderline: 'var(--chc-color-round-header, var(--chc-text-primary))',
+      matchUpFooterBackground: 'var(--chc-color-matchup)',
+      matchUpFooterText: 'var(--chc-text-muted)'
+    };
+    const resolved: CompositionColors = {};
+    for (const [key, cssVar] of Object.entries(COLOR_TO_CSS_VAR)) {
+      const field = key as keyof CompositionColors;
+      if (field === 'borderInlineStartWidth') continue;
+      const value = styles.getPropertyValue(cssVar).trim() || fallbacks[field] || 'transparent';
+      swatch.style.color = value;
+      const color = getComputedStyle(swatch).color;
+      const rgb = color.match(/^rgb\(\s*(\d+),\s*(\d+),\s*(\d+)\s*\)$/);
+      resolved[field] = rgb
+        ? `#${rgb
+            .slice(1)
+            .map((channel) => Number(channel).toString(16).padStart(2, '0'))
+            .join('')}`
+        : color === 'rgba(0, 0, 0, 0)'
+          ? 'transparent'
+          : color;
+    }
+    return resolved;
+  } finally {
+    probe.remove();
   }
 }

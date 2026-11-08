@@ -125,7 +125,9 @@
   --chc-point-score-width: 3.2rem;
   --chc-space-game-margin: 0;
   --chc-space-participant-inline: 0.75rem;
-  --chc-broadcast-accent: #2924ed;
+  --chc-color-accent: #2924ed;
+  --chc-color-accent-text: #fff;
+  --chc-broadcast-accent: var(--chc-color-accent);
   --chc-broadcast-serve: #ddf34a;
   /* Cards also render directly in editors, without a .chc-container to set the foreground. */
   color: var(--chc-color-text);
@@ -168,7 +170,7 @@
 :is(.chc-theme-broadcast[data-live], .chc-theme-broadcast [data-live])
   .chc-game-score:not(.chc-game-score--winner, .chc-game-score--loser):is(:last-child, :has(+ .chc-point-score)) {
   background: var(--chc-broadcast-accent) !important; /* overrides setScore's inline transparent background */
-  color: #fff;
+  color: var(--chc-color-accent-text, #fff);
 }
 
 .chc-theme-broadcast .chc-point-score {
@@ -183,11 +185,13 @@
   --chc-participant-text-transform: none;
   --chc-color-winner: #fff;
   --chc-color-loser: #fff;
-  --chc-broadcast-accent: #00bedc;
-  --chc-point-score-bg: #00bedc;
-  --chc-point-score-text: #041017;
-  --chc-color-matchup-footer-bg: #00bedc;
-  --chc-color-matchup-footer-text: #041017;
+  --chc-color-accent: #00bedc;
+  --chc-color-accent-text: #041017;
+  --chc-broadcast-accent: var(--chc-color-accent);
+  --chc-point-score-bg: var(--chc-broadcast-accent);
+  --chc-point-score-text: var(--chc-color-accent-text, #041017);
+  --chc-color-matchup-footer-bg: var(--chc-broadcast-accent);
+  --chc-color-matchup-footer-text: var(--chc-color-accent-text, #041017);
 }
 
 .chc-theme-broadcast-cyan .chc-game-score {
@@ -262,10 +266,16 @@
   .chc-side-row
   > * {
   background-color: var(--chc-broadcast-accent);
+  color: var(--chc-color-accent-text, #fff);
 }
 
 /* The selected rows supply the fill; keep the stock translucent overlay from tinting their text. */
 .chc-theme-broadcast-bracket .chc-selected-matchup {
   background: transparent;
   pointer-events: none;
+}
+
+:is(.chc-theme-broadcast-bracket.tmx-m, .chc-theme-broadcast-bracket .tmx-m):has(> .chc-selected-matchup)
+  .chc-participant-name {
+  color: var(--chc-color-accent-text, #fff);
 }

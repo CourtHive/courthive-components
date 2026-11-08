@@ -1,14 +1,17 @@
 import { getSelectedMatchUpStyle } from '../../styles/getSelectedMatchUpStyle';
+import { applyCompositionColors } from '../../styles/applyCompositionColors';
 import { matchUpContainerStyle } from '../../styles/matchUpContainerStyle';
 import { getMatchUpStyle } from '../../styles/getMatchUpStyle';
 import { renderMatchUpActions } from './renderMatchUpActions';
 import { renderCenterInfo } from './renderCenterInfo';
 import { hasVideo } from './renderOnlineResources';
-import { renderSlot } from './renderSlot';
-import { upsetOf } from './matchUpState';
 import { isFunction } from '../modal/cmodal';
+import { renderSlot } from './renderSlot';
 import { renderSide } from './renderSide';
+import { upsetOf } from './matchUpState';
 import cx from 'classnames';
+
+// constants and types
 import type { Composition, Configuration, EventHandlers, MatchUp } from '../../types';
 
 export function renderMatchUp(params: {
@@ -54,6 +57,9 @@ export function renderMatchUp(params: {
     configuration.rounded && 'chc-rounded',
     configuration.density === 'compact' && 'chc-density--compact'
   );
+
+  // Apply on the theme root too: its theme defaults override properties inherited from a draw/preview parent.
+  applyCompositionColors(container, composition?.colors);
 
   // event metadata
   container.classList.add('tmx-m');
