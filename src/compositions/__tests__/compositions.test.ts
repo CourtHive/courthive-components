@@ -1,8 +1,8 @@
 /**
  * Composition presets — structural validation and consistency tests.
  */
-import { describe, it, expect } from 'vitest';
 import { compositions } from '../compositions';
+import { describe, it, expect } from 'vitest';
 
 const EXPECTED_NAMES = [
   'Australian',
@@ -18,9 +18,9 @@ const EXPECTED_NAMES = [
   'National',
   'Scoreboard',
   'Watch',
-  'Broadcast',
-  'BroadcastCyan',
-  'BroadcastBracket'
+  'Broadcast Scorebug',
+  'Broadcast Bold',
+  'Broadcast'
 ];
 
 describe('compositions', () => {

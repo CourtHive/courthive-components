@@ -16,7 +16,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Three opt-in compositions inspired by matchUpRender references. Use compositions.Broadcast, BroadcastCyan or BroadcastBracket with renderMatchUp. For renderStructure, wrap the result in renderContainer({ theme: composition.theme, content }) so the theme also reaches round headers and connectors. These graphics retain their dark colours in either host mode. Nationality and event-footer content use the existing runtime renderer slots; player photos can be supplied by a host through participantSuffix. No photos or broadcast fonts are bundled.'
+          'Three opt-in compositions inspired by matchUpRender references. Use Broadcast Scorebug, Broadcast Bold or Broadcast with renderMatchUp. For renderStructure, wrap the result in renderContainer({ theme: composition.theme, content }) so the theme also reaches round headers and connectors. These graphics retain their dark colours in either host mode. Nationality and event-footer content use the existing runtime renderer slots; player photos can be supplied by a host through participantSuffix. No photos or broadcast fonts are bundled.'
       }
     }
   }
@@ -67,7 +67,7 @@ function show(composition: Composition, content: HTMLElement, width: string): HT
 
 export const LiveScorebug: Story = {
   render: () => {
-    const composition = compositions.Broadcast;
+    const composition = compositions['Broadcast Scorebug'];
     const matchUp = liveMatch([
       { setNumber: 1, side1Score: 6, side2Score: 6, side1PointScore: '15', side2PointScore: '30' }
     ]);
@@ -85,7 +85,7 @@ export const LiveScorebug: Story = {
 
 export const TiebreakScorebug: Story = {
   render: () => {
-    const composition = compositions.Broadcast;
+    const composition = compositions['Broadcast Scorebug'];
     const matchUp = liveMatch([
       { setNumber: 1, side1Score: 7, side2Score: 5, winningSide: 1 },
       { setNumber: 2, side1Score: 3, side2Score: 6, winningSide: 2 },
@@ -101,9 +101,9 @@ export const TiebreakScorebug: Story = {
   }
 };
 
-export const CyanScorebug: Story = {
+export const BoldScorebug: Story = {
   render: () => {
-    const composition = withNationality(compositions.BroadcastCyan);
+    const composition = withNationality(compositions['Broadcast Bold']);
     composition.configuration!.renderers!.matchUpFooter = ({ matchUp }) => {
       const footer = document.createElement('div');
       const event = document.createElement('span');
@@ -136,7 +136,7 @@ function bracket(): MatchUp[] {
 
 export const BroadcastDraw: Story = {
   render: () => {
-    const composition = withNationality(compositions.BroadcastBracket);
+    const composition = withNationality(compositions.Broadcast);
     const matchUps = bracket();
     const selectedMatchUpId = matchUps.find((matchUp) => matchUp.roundNumber === 2)!.matchUpId;
     const content = renderStructure({ composition, matchUps, selectedMatchUpId });

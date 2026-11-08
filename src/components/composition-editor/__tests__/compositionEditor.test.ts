@@ -1,9 +1,9 @@
 /**
  * @vitest-environment happy-dom
  */
-import { describe, it, expect, vi } from 'vitest';
-import { createCompositionEditor } from '../compositionEditor';
 import { compositions } from '../../../compositions/compositions';
+import { createCompositionEditor } from '../compositionEditor';
+import { describe, it, expect, vi } from 'vitest';
 
 const NAME_INPUT_SELECTOR = 'input[type="text"]';
 
@@ -83,7 +83,7 @@ describe('createCompositionEditor', () => {
   });
 
   it('saves edited broadcast accent colors and restores them into a new editor', () => {
-    const { container, editor } = setup({ composition: compositions.BroadcastCyan });
+    const { container, editor } = setup({ composition: compositions['Broadcast Bold'] });
     const header = [...container.querySelectorAll<HTMLElement>('.ce-section-header')].find((element) =>
       element.textContent?.includes('Colors')
     )!;

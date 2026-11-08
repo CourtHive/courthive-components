@@ -99,7 +99,7 @@
 }
 
 /* Broadcast compositions: fixed on-air colours, independent of the host's palette. */
-:is(.chc-theme-broadcast, .chc-theme-broadcast-cyan, .chc-theme-broadcast-bracket) {
+:is(.chc-theme-broadcast-scorebug, .chc-theme-broadcast-bold, .chc-theme-broadcast) {
   --chc-color-container-bg: #061126;
   --chc-color-matchup-bg: #081329;
   --chc-color-matchup: #081329;
@@ -133,52 +133,52 @@
   color: var(--chc-color-text);
 }
 
-:is(.chc-theme-broadcast, .chc-theme-broadcast-cyan, .chc-theme-broadcast-bracket) .chc-participant-name {
+:is(.chc-theme-broadcast-scorebug, .chc-theme-broadcast-bold, .chc-theme-broadcast) .chc-participant-name {
   font-family: Arial, sans-serif;
   font-weight: 700;
   letter-spacing: -0.035em;
 }
 
-:is(.chc-theme-broadcast, .chc-theme-broadcast-cyan, .chc-theme-broadcast-bracket) .chc-score-wrapper {
+:is(.chc-theme-broadcast-scorebug, .chc-theme-broadcast-bold, .chc-theme-broadcast) .chc-score-wrapper {
   padding-inline-end: 0;
   color: #fff;
 }
 
-:is(.chc-theme-broadcast, .chc-theme-broadcast-cyan, .chc-theme-broadcast-bracket) .chc-tick {
+:is(.chc-theme-broadcast-scorebug, .chc-theme-broadcast-bold, .chc-theme-broadcast) .chc-tick {
   display: none;
 }
 
 /* Move the existing accessible serve column before the name, keeping both rows aligned. */
-:is(.chc-theme-broadcast, .chc-theme-broadcast-cyan) .chc-server {
+:is(.chc-theme-broadcast-scorebug, .chc-theme-broadcast-bold) .chc-server {
   order: -1;
   margin-inline: 0.65rem 0;
   width: 0.55rem;
   height: 0.55rem;
 }
 
-:is(.chc-theme-broadcast, .chc-theme-broadcast-cyan) .chc-server--active {
+:is(.chc-theme-broadcast-scorebug, .chc-theme-broadcast-bold) .chc-server--active {
   background: var(--chc-broadcast-serve);
   box-shadow: 0 0 9px var(--chc-broadcast-serve);
 }
 
-.chc-theme-broadcast .chc-game-score {
+.chc-theme-broadcast-scorebug .chc-game-score {
   font-style: italic;
   margin-inline: 0.35rem;
 }
 
 /* Only an unfinished last set is active. Finished set winners retain their lime scores. */
-:is(.chc-theme-broadcast[data-live], .chc-theme-broadcast [data-live])
+:is(.chc-theme-broadcast-scorebug[data-live], .chc-theme-broadcast-scorebug [data-live])
   .chc-game-score:not(.chc-game-score--winner, .chc-game-score--loser):is(:last-child, :has(+ .chc-point-score)) {
   background: var(--chc-broadcast-accent) !important; /* overrides setScore's inline transparent background */
   color: var(--chc-color-accent-text, #fff);
 }
 
-.chc-theme-broadcast .chc-point-score {
+.chc-theme-broadcast-scorebug .chc-point-score {
   margin-inline: 0.35rem;
   color: #fff;
 }
 
-.chc-theme-broadcast-cyan {
+.chc-theme-broadcast-bold {
   --chc-color-matchup: #080b0f;
   --chc-color-matchup-bg: #080b0f;
   --chc-color-internal-dividers: #252c32;
@@ -194,43 +194,43 @@
   --chc-color-matchup-footer-text: var(--chc-color-accent-text, #041017);
 }
 
-.chc-theme-broadcast-cyan .chc-game-score {
+.chc-theme-broadcast-bold .chc-game-score {
   background: #191d22 !important; /* setScore supplies a transparent inline background */
   border-radius: 5px;
   line-height: 2.8rem;
   margin-inline: 0.25rem;
 }
 
-.chc-theme-broadcast-cyan .chc-point-score {
+.chc-theme-broadcast-bold .chc-point-score {
   min-height: 2.8rem;
   border-radius: 5px;
   line-height: 2.8rem;
   margin-inline: 0.25rem;
 }
 
-.chc-theme-broadcast-cyan .chc-matchup-footer {
+.chc-theme-broadcast-bold .chc-matchup-footer {
   text-transform: uppercase;
   font-weight: 700;
 }
 
-.chc-theme-broadcast-cyan .chc-slot--matchup-footer > div {
+.chc-theme-broadcast-bold .chc-slot--matchup-footer > div {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
 }
 
-:is(.chc-theme-broadcast-cyan, .chc-theme-broadcast-bracket) .chc-slot--participant-suffix {
+:is(.chc-theme-broadcast-bold, .chc-theme-broadcast) .chc-slot--participant-suffix {
   margin-inline-start: 0.4rem;
   font-size: 0.65em;
   font-weight: 400;
   letter-spacing: 0;
 }
 
-.chc-theme-broadcast-cyan .chc-slot--participant-suffix {
+.chc-theme-broadcast-bold .chc-slot--participant-suffix {
   color: var(--chc-broadcast-accent);
 }
 
-.chc-theme-broadcast-bracket {
+.chc-theme-broadcast {
   --chc-color-matchup: #192b42;
   --chc-color-matchup-bg: #192b42;
   --chc-participant-name-size: 1.1rem;
@@ -241,41 +241,37 @@
   --chc-space-matchup: 16px;
 }
 
-.chc-theme-broadcast-bracket .chc-game-score {
+.chc-theme-broadcast .chc-game-score {
   font-style: italic;
 }
 
-.chc-theme-broadcast-bracket .tmx-sd:not([data-winner]) .chc-participant-name {
+.chc-theme-broadcast .tmx-sd:not([data-winner]) .chc-participant-name {
   color: #929dac;
 }
 
 /* Unplayed sides remain white; only the loser of a decided match is muted. */
-:is(.chc-theme-broadcast-bracket.tmx-m, .chc-theme-broadcast-bracket .tmx-m):not(:has([data-winner]))
-  .chc-participant-name {
+:is(.chc-theme-broadcast.tmx-m, .chc-theme-broadcast .tmx-m):not(:has([data-winner])) .chc-participant-name {
   color: #fff;
 }
 
-.chc-theme-broadcast-bracket .chc-round-header {
+.chc-theme-broadcast .chc-round-header {
   font-size: 1rem;
   text-align: center;
   text-transform: uppercase;
   padding-block: 1rem;
 }
 
-:is(.chc-theme-broadcast-bracket.tmx-m, .chc-theme-broadcast-bracket .tmx-m):has(> .chc-selected-matchup)
-  .chc-side-row
-  > * {
+:is(.chc-theme-broadcast.tmx-m, .chc-theme-broadcast .tmx-m):has(> .chc-selected-matchup) .chc-side-row > * {
   background-color: var(--chc-broadcast-accent);
   color: var(--chc-color-accent-text, #fff);
 }
 
 /* The selected rows supply the fill; keep the stock translucent overlay from tinting their text. */
-.chc-theme-broadcast-bracket .chc-selected-matchup {
+.chc-theme-broadcast .chc-selected-matchup {
   background: transparent;
   pointer-events: none;
 }
 
-:is(.chc-theme-broadcast-bracket.tmx-m, .chc-theme-broadcast-bracket .tmx-m):has(> .chc-selected-matchup)
-  .chc-participant-name {
+:is(.chc-theme-broadcast.tmx-m, .chc-theme-broadcast .tmx-m):has(> .chc-selected-matchup) .chc-participant-name {
   color: var(--chc-color-accent-text, #fff);
 }

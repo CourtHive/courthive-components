@@ -299,15 +299,15 @@ async function checkBroadcastVisibility({ canvasElement }: { canvasElement: HTML
   expect(live.querySelectorAll('.chc-point-score')).toHaveLength(2);
 }
 
-export const Broadcast: StoryObj<Args> = {
+export const BroadcastScorebug: StoryObj<Args> = {
   render: createEditorStructureView,
-  args: { preset: 'Broadcast', drawSize: 8 },
+  args: { preset: 'Broadcast Scorebug', drawSize: 8 },
   play: checkBroadcastVisibility
 };
 
-export const BroadcastCyan: StoryObj<Args> = {
+export const BroadcastBold: StoryObj<Args> = {
   render: createEditorStructureView,
-  args: { preset: 'BroadcastCyan', drawSize: 8 },
+  args: { preset: 'Broadcast Bold', drawSize: 8 },
   play: async (context) => {
     await checkBroadcastVisibility(context);
     const canvas = context.canvasElement;
@@ -334,10 +334,10 @@ export const BroadcastCyan: StoryObj<Args> = {
     const preset = [...canvas.querySelectorAll('select')].find(
       (select) => select.options[0]?.textContent === '— Load preset —'
     )!;
-    preset.value = 'Broadcast';
+    preset.value = 'Broadcast Scorebug';
     preset.dispatchEvent(new Event('change'));
     expect(picker(ACCENT_LABEL).value).toBe('#2924ed');
-    preset.value = 'BroadcastCyan';
+    preset.value = 'Broadcast Bold';
     preset.dispatchEvent(new Event('change'));
     expect(picker(ACCENT_LABEL).value).toBe('#00bedc');
     expect(picker(FOOTER_BACKGROUND).value).toBe('#00bedc');
@@ -383,7 +383,7 @@ export const BroadcastCyan: StoryObj<Args> = {
 /** The bracket and settings have distinct scroll containers inside the viewport. */
 export const IndependentScrolling: StoryObj<Args> = {
   render: createEditorStructureView,
-  args: { preset: 'BroadcastBracket', drawSize: 32 },
+  args: { preset: 'Broadcast', drawSize: 32 },
   play: async ({ canvasElement }) => {
     const structure = canvasElement.querySelector<HTMLElement>('[data-story-structure]')!;
     const editor = canvasElement.querySelector<HTMLElement>('[data-story-editor-panel]')!;
