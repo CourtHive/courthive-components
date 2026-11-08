@@ -97,3 +97,174 @@
   --chc-color-matchup-bg: var(--chc-bg-primary);
   --chc-color-internal-dividers: var(--chc-border-secondary);
 }
+
+/* Broadcast compositions: fixed on-air colours, independent of the host's palette. */
+:is(.chc-theme-broadcast, .chc-theme-broadcast-cyan, .chc-theme-broadcast-bracket) {
+  --chc-color-container-bg: #061126;
+  --chc-color-matchup-bg: #081329;
+  --chc-color-matchup: #081329;
+  --chc-color-text: #fff;
+  --chc-color-winner-name: #fff;
+  --chc-color-winner: #ddf34a;
+  --chc-color-loser: #929dac;
+  --chc-color-score: #fff;
+  --chc-color-border: transparent;
+  --chc-color-border-hover: #3b36ff;
+  --chc-color-internal-dividers: #667384;
+  --chc-color-connector: #7b8797;
+  --chc-color-round-header: #fff;
+  --chc-color-round-header-underline: transparent;
+  --chc-participant-hover-bg: #2924ed;
+  --chc-participant-seed-color: #fff;
+  --chc-participant-text-transform: uppercase;
+  --chc-line-height-game-score: 3.5rem;
+  --chc-participant-min-height: 3.5rem;
+  --chc-participant-name-size: 1.6rem;
+  --chc-font-size-1: 1.8rem;
+  --chc-score-set-width: 3.2rem;
+  --chc-point-score-width: 3.2rem;
+  --chc-space-game-margin: 0;
+  --chc-space-participant-inline: 0.75rem;
+  --chc-broadcast-accent: #2924ed;
+  --chc-broadcast-serve: #ddf34a;
+}
+
+:is(.chc-theme-broadcast, .chc-theme-broadcast-cyan, .chc-theme-broadcast-bracket) .chc-participant-name {
+  font-family: Arial, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+
+:is(.chc-theme-broadcast, .chc-theme-broadcast-cyan, .chc-theme-broadcast-bracket) .chc-score-wrapper {
+  padding-inline-end: 0;
+  color: #fff;
+}
+
+:is(.chc-theme-broadcast, .chc-theme-broadcast-cyan, .chc-theme-broadcast-bracket) .chc-tick {
+  display: none;
+}
+
+/* Move the existing accessible serve column before the name, keeping both rows aligned. */
+:is(.chc-theme-broadcast, .chc-theme-broadcast-cyan) .chc-server {
+  order: -1;
+  margin-inline: 0.65rem 0;
+  width: 0.55rem;
+  height: 0.55rem;
+}
+
+:is(.chc-theme-broadcast, .chc-theme-broadcast-cyan) .chc-server--active {
+  background: var(--chc-broadcast-serve);
+  box-shadow: 0 0 9px var(--chc-broadcast-serve);
+}
+
+.chc-theme-broadcast .chc-game-score {
+  font-style: italic;
+  margin-inline: 0.35rem;
+}
+
+/* Only an unfinished last set is active. Finished set winners retain their lime scores. */
+.chc-theme-broadcast
+  [data-live]
+  .chc-game-score:not(.chc-game-score--winner, .chc-game-score--loser):is(:last-child, :has(+ .chc-point-score)) {
+  background: var(--chc-broadcast-accent) !important; /* overrides setScore's inline transparent background */
+  color: #fff;
+}
+
+.chc-theme-broadcast .chc-point-score {
+  margin-inline: 0.35rem;
+  color: #fff;
+}
+
+.chc-theme-broadcast-cyan {
+  --chc-color-matchup: #080b0f;
+  --chc-color-matchup-bg: #080b0f;
+  --chc-color-internal-dividers: #252c32;
+  --chc-participant-text-transform: none;
+  --chc-color-winner: #fff;
+  --chc-color-loser: #fff;
+  --chc-broadcast-accent: #00bedc;
+  --chc-point-score-bg: #00bedc;
+  --chc-point-score-text: #041017;
+  --chc-color-matchup-footer-bg: #00bedc;
+  --chc-color-matchup-footer-text: #041017;
+}
+
+.chc-theme-broadcast-cyan .chc-game-score {
+  background: #191d22 !important; /* setScore supplies a transparent inline background */
+  border-radius: 5px;
+  line-height: 2.8rem;
+  margin-inline: 0.25rem;
+}
+
+.chc-theme-broadcast-cyan .chc-point-score {
+  min-height: 2.8rem;
+  border-radius: 5px;
+  line-height: 2.8rem;
+  margin-inline: 0.25rem;
+}
+
+.chc-theme-broadcast-cyan .chc-matchup-footer {
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.chc-theme-broadcast-cyan .chc-slot--matchup-footer > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+:is(.chc-theme-broadcast-cyan, .chc-theme-broadcast-bracket) .chc-slot--participant-suffix {
+  margin-inline-start: 0.4rem;
+  font-size: 0.65em;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.chc-theme-broadcast-cyan .chc-slot--participant-suffix {
+  color: var(--chc-broadcast-accent);
+}
+
+.chc-theme-broadcast-bracket {
+  --chc-color-matchup: #192b42;
+  --chc-color-matchup-bg: #192b42;
+  --chc-participant-name-size: 1.1rem;
+  --chc-font-size-1: 1.3rem;
+  --chc-score-set-width: 2rem;
+  --chc-line-height-game-score: 3rem;
+  --chc-participant-min-height: 3rem;
+  --chc-space-matchup: 16px;
+}
+
+.chc-theme-broadcast-bracket .chc-game-score {
+  font-style: italic;
+}
+
+.chc-theme-broadcast-bracket .tmx-sd:not([data-winner]) .chc-participant-name {
+  color: #929dac;
+}
+
+/* Unplayed sides remain white; only the loser of a decided match is muted. */
+:is(.chc-theme-broadcast-bracket.tmx-m, .chc-theme-broadcast-bracket .tmx-m):not(:has([data-winner]))
+  .chc-participant-name {
+  color: #fff;
+}
+
+.chc-theme-broadcast-bracket .chc-round-header {
+  font-size: 1rem;
+  text-align: center;
+  text-transform: uppercase;
+  padding-block: 1rem;
+}
+
+:is(.chc-theme-broadcast-bracket.tmx-m, .chc-theme-broadcast-bracket .tmx-m):has(> .chc-selected-matchup)
+  .chc-side-row
+  > * {
+  background-color: var(--chc-broadcast-accent);
+}
+
+/* The selected rows supply the fill; keep the stock translucent overlay from tinting their text. */
+.chc-theme-broadcast-bracket .chc-selected-matchup {
+  background: transparent;
+  pointer-events: none;
+}

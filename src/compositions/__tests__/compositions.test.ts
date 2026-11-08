@@ -17,7 +17,10 @@ const EXPECTED_NAMES = [
   'InlineScoring',
   'National',
   'Scoreboard',
-  'Watch'
+  'Watch',
+  'Broadcast',
+  'BroadcastCyan',
+  'BroadcastBracket'
 ];
 
 describe('compositions', () => {
@@ -45,6 +48,8 @@ describe('compositions', () => {
 
       it('configuration contains only valid keys', () => {
         const validKeys = new Set([
+          'entryStatus',
+          'pathHighlight',
           'flags',
           'connectors',
           'flag',

@@ -105,6 +105,42 @@ export const compositions: Record<string, Composition> = {
     },
     theme: basicCardTheme
   },
+  /** Broadcast graphics stay dark in both host modes. Wrap structures in renderContainer({ theme, content }). */
+  Broadcast: {
+    configuration: {
+      flags: false,
+      liveStatusPill: false,
+      serverIndicator: 'column',
+      gameScore: { position: 'trailing', inverted: false },
+      connectors: true
+    },
+    theme: 'chc-theme-broadcast'
+  },
+  BroadcastCyan: {
+    configuration: {
+      flags: false,
+      rounded: true,
+      liveStatusPill: false,
+      serverIndicator: 'column',
+      gameScore: { position: 'trailing', inverted: true },
+      matchUpFooter: true,
+      connectors: true
+    },
+    theme: 'chc-theme-broadcast-cyan'
+  },
+  BroadcastBracket: {
+    configuration: {
+      flags: false,
+      rounded: true,
+      entryStatus: true,
+      seedingElement: 'span',
+      liveStatusPill: false,
+      roundHeader: true,
+      connectors: true,
+      pathHighlight: true
+    },
+    theme: 'chc-theme-broadcast-bracket'
+  },
   InlineScoring: {
     configuration: {
       matchUpFooter: true,
