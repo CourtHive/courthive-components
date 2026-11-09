@@ -854,6 +854,8 @@
    The panel opens above the footer at the right, over the properties panel, so the cards and their levers stay in
    view while the line moves. */
 .tb-acceptance-toggle,
+.tb-proposals-toggle,
+.tb-feed-toggle,
 .tb-acceptance-discard {
   padding: 2px 10px;
   border: 1px solid var(--chc-border-primary);
@@ -1011,4 +1013,57 @@
   font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
+}
+
+.tb-proposals {
+  position: relative;
+}
+.tb-proposal-panel {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  width: min(420px, 80vw);
+  max-height: 50vh;
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid var(--chc-border-primary, #777);
+  background: var(--chc-bg-primary, white);
+  color: var(--chc-text-primary, #222);
+  z-index: 20;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px #0003;
+}
+.tb-proposal {
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 12px;
+  text-align: left;
+  color: inherit;
+  background: var(--chc-bg-secondary, #eee);
+  border: 1px solid var(--chc-border-primary, #777);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.tb-feed-toggle[aria-pressed='true'] {
+  background: var(--chc-container-info);
+  color: var(--chc-on-info);
+}
+.tb-feed-toggle:focus-visible,
+.tb-proposals-toggle:focus-visible,
+.tb-proposal:focus-visible {
+  outline: 2px solid var(--chc-border-focus);
+  outline-offset: 1px;
+}
+
+.tb-proposals[hidden],
+.tb-proposal-panel[hidden],
+.tb-acceptance-pending[hidden] {
+  display: none;
 }

@@ -54,6 +54,7 @@ export type {
   DrawFit,
   StructureFit,
   FitStatus,
+  FitProposal,
   FitLedgerStage,
   JourneyStep,
   JourneyParticipant,
