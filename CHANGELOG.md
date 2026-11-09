@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.15.0](https://github.com/CourtHive/courthive-components/compare/v7.14.0...v7.15.0) (2026-11-09)
+
+
+### Features
+
+* preview factory draw-fit proposals in topology builder ([#964](https://github.com/CourtHive/courthive-components/issues/964)) ([af9b53c](https://github.com/CourtHive/courthive-components/commit/af9b53c973a6480a6f43937dc817e31ae80fac4b))
+
 ## [7.14.0](https://github.com/CourtHive/courthive-components/compare/v7.13.0...v7.14.0) (2026-11-09)
 
 
