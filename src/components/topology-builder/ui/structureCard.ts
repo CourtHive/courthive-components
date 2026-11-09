@@ -2,10 +2,10 @@
  * Structure Card — Card component for topology nodes.
  * Header (stage badge + name + size) + embedded schematic preview + ports.
  */
-import { drawDefinitionConstants } from 'tods-competition-factory';
 import { renderSchematicStructure } from '../../renderSchematicStructure';
 import { generatePreviewMatchUps } from '../domain/previewGenerator';
 import { getPlayoffProfiles } from '../domain/playoffProfilesCache';
+import { drawDefinitionConstants } from 'tods-competition-factory';
 import { FIT_STATUS_TEXT, fitSentence } from '../domain/drawFit';
 import { getNodeTotalRounds } from '../domain/feedRounds';
 
