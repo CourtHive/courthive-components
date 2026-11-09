@@ -575,6 +575,12 @@ export interface CompositionColors {
   /** round header underline (divider between header and participants) — sets
    * `--chc-color-round-header-underline`. Falls back to `roundHeader`, then `--chc-text-primary`. */
   roundHeaderUnderline?: string;
+  /** Schedule header text — sets `--chc-color-schedule-header-text`. Falls back to `--chc-text-muted`. */
+  scheduleHeaderText?: string;
+  /** Schedule header background — sets `--chc-color-schedule-header-bg`. Falls back to `--chc-bg-secondary`. */
+  scheduleHeaderBackground?: string;
+  /** Schedule header bottom divider — sets `--chc-color-schedule-header-divider`. Falls back to `--chc-border-primary`. */
+  scheduleHeaderDivider?: string;
   /** matchUp footer background color — sets `--chc-color-matchup-footer-bg`. Falls back to `matchUpBackground`. */
   matchUpFooterBackground?: string;
   /** matchUp footer text color — sets `--chc-color-matchup-footer-text`. Falls back to `--chc-text-muted`. */

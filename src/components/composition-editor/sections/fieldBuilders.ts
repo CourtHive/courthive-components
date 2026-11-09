@@ -13,6 +13,18 @@ import {
   ceColorInput
 } from '../styles';
 
+let hintSequence = 0;
+
+/** Visible help attached to the field's control for keyboard and screen-reader users. */
+export function addFieldHint(field: HTMLElement, text: string): void {
+  const hint = document.createElement('div');
+  hint.className = 'ce-field-hint';
+  hint.id = `ce-field-hint-${++hintSequence}`;
+  hint.textContent = text;
+  field.appendChild(hint);
+  for (const control of field.querySelectorAll('input, select')) control.setAttribute('aria-describedby', hint.id);
+}
+
 export function buildToggleField(
   label: string,
   checked: boolean,
@@ -64,7 +76,7 @@ export function buildSelectField(
   currentValue: string,
   onChange: (val: string) => void,
   disabled = false
-): { element: HTMLElement; setValue: (v: string) => void } {
+): { element: HTMLElement; setValue: (v: string) => void; setDisabled: (v: boolean) => void } {
   const row = document.createElement('div');
   row.className = ceField();
 
@@ -96,6 +108,9 @@ export function buildSelectField(
     element: row,
     setValue: (v: string) => {
       select.value = v;
+    },
+    setDisabled: (v: boolean) => {
+      select.disabled = v;
     }
   };
 }

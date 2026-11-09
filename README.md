@@ -292,6 +292,8 @@ compositions.Wimbledon; // Wimbledon colors
 compositions['US Open']; // US Open colors
 ```
 
+See the [composition options reference](docs/COMPOSITION_OPTIONS.md) for serving indicators, header/footer visibility, theme inheritance and editor behavior.
+
 ### Constants
 
 #### **MATCH_FORMATS**

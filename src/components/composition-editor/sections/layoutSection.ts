@@ -1,12 +1,9 @@
 import type { CompositionEditorState, EditorPanel } from '../compositionEditorTypes';
+import { buildToggleField, buildSelectField, addFieldHint } from './fieldBuilders';
 import type { CompositionEditorStore } from '../compositionEditorStore';
 import { showsConnectors } from '../../../compositions/showsConnectors';
-import { buildToggleField, buildSelectField } from './fieldBuilders';
 import type { ScheduleInfoOptions } from '../../../types';
 import { ceSubgroup, ceSubgroupTitle } from '../styles';
-
-const headerOptionsOf = (scheduleInfo: unknown): ScheduleInfoOptions =>
-  scheduleInfo && typeof scheduleInfo === 'object' ? (scheduleInfo as ScheduleInfoOptions) : {};
 
 function subgroup(title: string, ...fields: { element: HTMLElement }[]): HTMLElement {
   const group = document.createElement('div');
@@ -27,24 +24,29 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
   const scheduleInfo = buildToggleField(
     'Schedule info',
     !!cfg.scheduleInfo,
-    (v) => store.setConfigField('scheduleInfo', v),
+    (v) => store.setScheduleInfoEnabled(v),
     readOnly
   );
-  // configuration.scheduleInfo as an object; any of these turns the header on
-  const setHeaderOption = (key: keyof ScheduleInfoOptions, value: unknown) =>
+  addFieldHint(
+    scheduleInfo.element,
+    'Shows the schedule header above each card. Hidden header choices are kept until you load a preset or close the editor.'
+  );
+  const setHeaderOption = (key: keyof ScheduleInfoOptions, value: unknown) => {
+    if (!store.getState().configuration.scheduleInfo) return;
     store.setConfigField('scheduleInfo', {
-      ...headerOptionsOf(store.getState().configuration.scheduleInfo),
+      ...store.getScheduleInfoOptions(),
       [key]: value
     });
+  };
   const elapsed = buildToggleField(
     'Playing time',
-    !!headerOptionsOf(cfg.scheduleInfo).elapsed,
+    !!store.getScheduleInfoOptions().elapsed,
     (v) => setHeaderOption('elapsed', v),
     readOnly
   );
   const eventRound = buildToggleField(
     'Event & round',
-    !!headerOptionsOf(cfg.scheduleInfo).eventRound,
+    !!store.getScheduleInfoOptions().eventRound,
     (v) => setHeaderOption('eventRound', v),
     readOnly
   );
@@ -54,7 +56,7 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
       { value: '', label: 'Split' },
       { value: 'inline', label: 'Inline' }
     ],
-    headerOptionsOf(cfg.scheduleInfo).layout === 'inline' ? 'inline' : '',
+    store.getScheduleInfoOptions().layout === 'inline' ? 'inline' : '',
     (v) => setHeaderOption('layout', v === 'inline' ? 'inline' : undefined),
     readOnly
   );
@@ -91,6 +93,11 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
     !!cfg.matchUpFooter,
     (v) => store.setConfigField('matchUpFooter', v),
     readOnly
+  );
+  addFieldHint(roundHeader.element, 'Shows the round name above each bracket column.');
+  addFieldHint(
+    matchUpFooter.element,
+    'Shows the built-in round label or inline scoring controls. A host-provided custom footer can appear independently.'
   );
   const centerInfo = buildToggleField(
     'Center info',
@@ -170,10 +177,14 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
   function update(state: CompositionEditorState): void {
     const c = state.configuration;
     scheduleInfo.setChecked(!!c.scheduleInfo);
-    const header = headerOptionsOf(c.scheduleInfo);
+    const header = store.getScheduleInfoOptions();
     elapsed.setChecked(!!header.elapsed);
     eventRound.setChecked(!!header.eventRound);
     headerLayout.setValue(header.layout === 'inline' ? 'inline' : '');
+    const headerDisabled = state.readOnly || !c.scheduleInfo;
+    elapsed.setDisabled(headerDisabled);
+    eventRound.setDisabled(headerDisabled);
+    headerLayout.setDisabled(headerDisabled);
     liveStatusPill.setChecked(c.liveStatusPill !== false);
     watchAction.setChecked(!!c.matchUpActions?.watch);
     shareAction.setChecked(!!c.matchUpActions?.share);
