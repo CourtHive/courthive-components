@@ -11,10 +11,12 @@
 
 import { createCompositionEditor } from '../components/composition-editor/compositionEditor';
 import { renderMatchUp } from '../components/renderStructure/renderMatchUp';
-import { compositions } from '../compositions/compositions';
-import type { Composition, MatchUp } from '../types';
-import type { SavedComposition } from '../components/composition-editor/compositionEditorTypes';
 import { mocksEngine, queryGovernor } from 'tods-competition-factory';
+import { compositions } from '../compositions/compositions';
+
+// constants and types
+import type { SavedComposition } from '../components/composition-editor/compositionEditorTypes';
+import type { Composition, MatchUp } from '../types';
 
 export default {
   title: 'Policies & Setup/Composition/Catalog'
@@ -55,12 +57,15 @@ function renderPreviewRow(comp: Composition, matchUps: MatchUp[]): HTMLElement {
 export const BrowseBuiltins = {
   render: () => {
     const matchUps = generatePreviewMatchUps();
+    const catalogCompositions = Object.entries(compositions).filter(
+      ([name]) => !['Broadcast Bold', 'Broadcast Scorebug', 'TYPTI'].includes(name)
+    );
 
     const outer = document.createElement('div');
     outer.style.cssText = 'font-family:sans-serif;';
 
     const title = document.createElement('h3');
-    title.textContent = `Built-in Compositions (${Object.keys(compositions).length})`;
+    title.textContent = `Built-in Compositions (${catalogCompositions.length})`;
     title.style.cssText = 'font-size:14px; margin-bottom:12px;';
     outer.appendChild(title);
 
@@ -68,7 +73,7 @@ export const BrowseBuiltins = {
     grid.style.cssText = 'display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:12px;';
     outer.appendChild(grid);
 
-    for (const [name, comp] of Object.entries(compositions)) {
+    for (const [name, comp] of catalogCompositions) {
       const card = document.createElement('div');
       card.style.cssText =
         'border:1px solid var(--chc-border-primary, #dee2e6); border-radius:6px; padding:10px; background:var(--chc-bg-primary, #fff);';
