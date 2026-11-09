@@ -79,7 +79,7 @@ export function liveTopologyHost({
       const params = playoffGenerationParams(offer, structureName);
       // a voluntary consolation is not a playoff: its own generator, its own attach (as the structure menu does it)
       const generated: any = params
-        ? tournamentEngine.generateAndPopulatePlayoffStructures({ drawId, structureId: node.id, ...(params as any) })
+        ? tournamentEngine.generateAndPopulatePlayoffStructures({ drawId, structureId: node.id, ...params })
         : tournamentEngine.generateVoluntaryConsolation({ drawId, structureName });
       if (generated.error) throw new Error(generated.error.message);
       const attached: any = params

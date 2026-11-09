@@ -4,32 +4,17 @@
  * Two-column layout: left = collapsible sections with controls, right = live matchUp preview.
  * Follows the store/control/panel pattern used by policy-catalog and schedule-page.
  */
-import { CompositionEditorStore } from './compositionEditorStore';
-import type { CompositionEditorConfig, SavedComposition, EditorPanel } from './compositionEditorTypes';
 import { ceLayout, ceLeft, ceRight, ceNameRow, ceNameLabel, ceNameInput } from './styles';
-import { buildSection, type SectionDef } from './sections/sectionBuilder';
-import { buildThemeSection } from './sections/themeSection';
-import { buildColorsSection } from './sections/colorsSection';
-import { buildDisplaySection } from './sections/displaySection';
-import { buildScoreSection } from './sections/scoreSection';
-import { buildParticipantSection } from './sections/participantSection';
-import { buildPlaceholderSection } from './sections/placeholderSection';
-import { buildScaleSection } from './sections/scaleSection';
-import { buildLayoutSection } from './sections/layoutSection';
+import { COMPOSITION_EDITOR_SECTIONS } from './compositionEditorSections';
+import { CompositionEditorStore } from './compositionEditorStore';
 import { buildCompositionPreview } from './compositionPreview';
+import { compositionSnapshot } from './compositionSnapshot';
+import { buildSection } from './sections/sectionBuilder';
+
+// constants and types
+import type { CompositionEditorConfig, SavedComposition, EditorPanel } from './compositionEditorTypes';
 
 export type { CompositionEditorConfig, SavedComposition };
-
-const SECTION_DEFS: SectionDef[] = [
-  { id: 'theme', label: 'Theme & Preset', factory: buildThemeSection },
-  { id: 'colors', label: 'Colors', factory: buildColorsSection },
-  { id: 'display', label: 'Display', factory: buildDisplaySection },
-  { id: 'score', label: 'Score', factory: buildScoreSection },
-  { id: 'participant', label: 'Participant', factory: buildParticipantSection },
-  { id: 'placeholder', label: 'Placeholders', factory: buildPlaceholderSection },
-  { id: 'scale', label: 'Scale Attributes', factory: buildScaleSection },
-  { id: 'layout', label: 'Layout & Info', factory: buildLayoutSection }
-];
 
 export function createCompositionEditor(
   container: HTMLElement,
@@ -65,7 +50,7 @@ export function createCompositionEditor(
   left.appendChild(nameRow);
 
   // Build sections
-  const sections: EditorPanel[] = SECTION_DEFS.map((def) => {
+  const sections: EditorPanel[] = COMPOSITION_EDITOR_SECTIONS.map((def) => {
     const panel = buildSection(def, store);
     left.appendChild(panel.element);
     return panel;
@@ -105,22 +90,6 @@ export function createCompositionEditor(
         container.removeChild(root);
       }
     },
-    getComposition: (): SavedComposition => {
-      const state = store.getState();
-      // Strip runtime-only fields that aren't serializable
-      const {
-        participantProvider: _pp,
-        persistInputFields: _pi,
-        inlineAssignment: _ia,
-        ...serializableConfig
-      } = state.configuration as any;
-      return {
-        compositionName: state.compositionName,
-        theme: state.theme,
-        configuration: serializableConfig,
-        ...(state.colors ? { colors: { ...state.colors } } : {}),
-        version: 1
-      };
-    }
+    getComposition: () => compositionSnapshot(store.getState())
   };
 }

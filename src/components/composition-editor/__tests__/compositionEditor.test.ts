@@ -1,9 +1,9 @@
 /**
  * @vitest-environment happy-dom
  */
-import { describe, it, expect, vi } from 'vitest';
-import { createCompositionEditor } from '../compositionEditor';
 import { compositions } from '../../../compositions/compositions';
+import { createCompositionEditor } from '../compositionEditor';
+import { describe, it, expect, vi } from 'vitest';
 
 const NAME_INPUT_SELECTOR = 'input[type="text"]';
 
@@ -80,6 +80,35 @@ describe('createCompositionEditor', () => {
     expect(saved.theme).toBe('chc-theme-french');
     expect(saved.configuration.flags).toBe(true);
     expect(saved.version).toBe(1);
+  });
+
+  it('saves edited broadcast accent colors and restores them into a new editor', () => {
+    const { container, editor } = setup({ composition: compositions['Broadcast Bold'] });
+    const header = [...container.querySelectorAll<HTMLElement>('.ce-section-header')].find((element) =>
+      element.textContent?.includes('Colors')
+    )!;
+    header.click();
+    const edited = { 'Accent color': '#ff6a00', 'Text on accent': '#ffffff' };
+    for (const [label, value] of Object.entries(edited)) {
+      const row = [...container.querySelectorAll('.ce-color-field')].find(
+        (element) => element.querySelector('.ce-field-label')?.textContent === label
+      )!;
+      const input = row.querySelector<HTMLInputElement>(NAME_INPUT_SELECTOR)!;
+      input.value = value;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    // Exercise the JSON persistence boundary, including new color fields.
+    const serialized = JSON.stringify(editor.getComposition());
+    const saved = JSON.parse(serialized);
+    editor.destroy();
+    const restored = setup({ composition: saved });
+    expect(restored.editor.getComposition().colors).toEqual({ accent: '#ff6a00', accentText: '#ffffff' });
+    const card = restored.container.querySelector<HTMLElement>('.tmx-m')!;
+    expect(card.style.getPropertyValue('--chc-color-accent')).toBe('#ff6a00');
+    expect(card.style.getPropertyValue('--chc-color-accent-text')).toBe('#ffffff');
+    restored.editor.destroy();
+    container.remove();
+    restored.container.remove();
   });
 
   it('getComposition strips runtime-only fields', () => {

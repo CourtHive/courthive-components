@@ -12,6 +12,9 @@ import { compositions } from '../compositions/compositions';
 import type { Meta, StoryObj } from '@storybook/html-vite';
 import { expect } from 'storybook/test';
 
+const WHITE_RGB = 'rgb(255, 255, 255)';
+const SECTION_HEADER = '.ce-section-header';
+
 type Args = {
   preset: string;
   drawSize: number;
@@ -22,7 +25,7 @@ const meta: Meta<Args> = {
   argTypes: {
     preset: {
       control: { type: 'select' },
-      options: ['Australian', 'National', 'BasicCard', 'Scoreboard', 'Watch', 'ITF']
+      options: Object.keys(compositions)
     },
     drawSize: {
       control: { type: 'select' },
@@ -37,14 +40,18 @@ function createEditorStructureView(args: Args): HTMLElement {
 
   const container = document.createElement('div');
   container.style.display = 'grid';
-  container.style.gridTemplateColumns = '400px 1fr';
+  container.style.gridTemplateColumns = 'minmax(360px, 440px) minmax(0, 1fr)';
   container.style.gap = '2em';
   container.style.padding = '1em';
-  container.style.minHeight = '100vh';
+  container.style.height = 'calc(100dvh - 2rem)';
+  container.style.minHeight = '0';
+  container.style.boxSizing = 'border-box';
   container.style.backgroundColor = 'var(--chc-bg-primary, #fff)';
 
   // ── Editor Panel ──
   const editorPanel = document.createElement('div');
+  editorPanel.dataset.storyEditorPanel = 'true';
+  editorPanel.style.minHeight = '0';
   editorPanel.style.display = 'flex';
   editorPanel.style.flexDirection = 'column';
   editorPanel.style.overflowY = 'auto';
@@ -80,6 +87,7 @@ function createEditorStructureView(args: Args): HTMLElement {
   structurePanel.style.display = 'flex';
   structurePanel.style.flexDirection = 'column';
   structurePanel.style.minHeight = '0';
+  structurePanel.style.minWidth = '0';
 
   const structureTitle = document.createElement('h2');
   structureTitle.textContent = `Structure Preview (${drawSize}-draw)`;
@@ -141,7 +149,7 @@ const fullStructure = (canvas: HTMLElement) =>
   canvas.querySelector('[data-story-structure] .chc-structure') as HTMLElement;
 
 const layoutToggle = (canvas: HTMLElement, label: string) => {
-  const header = [...canvas.querySelectorAll<HTMLElement>('.ce-section-header')].find((el) =>
+  const header = [...canvas.querySelectorAll<HTMLElement>(SECTION_HEADER)].find((el) =>
     el.textContent?.includes('Layout')
   );
   const findToggle = () =>
@@ -264,4 +272,139 @@ export const LargeDraw: StoryObj<Args> = {
 export const ITF: StoryObj<Args> = {
   render: createEditorStructureView,
   args: { preset: 'ITF', drawSize: 16 }
+};
+
+/** Exercise themes without a renderContainer wrapper, as the editor's consumer preview does. */
+async function checkBroadcastVisibility({ canvasElement }: { canvasElement: HTMLElement }) {
+  const structure = fullStructure(canvasElement);
+  const name = structure.querySelector('.chc-participant-name')!;
+  expect(name.textContent?.trim()).toBeTruthy();
+  expect(getComputedStyle(name).color).toBe(WHITE_RGB);
+  const preview = canvasElement.querySelector('.ce-preview-body')!;
+  // A narrow editor must scroll the whole card, rather than letting rows overflow its painted box.
+  for (const card of preview.querySelectorAll<HTMLElement>('.ce-preview-matchup .chc-matchup')) {
+    for (const row of card.querySelectorAll<HTMLElement>('.chc-side-row')) {
+      expect(card.clientWidth).toBeGreaterThanOrEqual(row.scrollWidth);
+    }
+  }
+  const scores = [...preview.querySelectorAll<HTMLElement>('.chc-game-score')];
+  expect(scores.length).toBeGreaterThan(0);
+  for (const score of scores) {
+    expect(score.getBoundingClientRect().width).toBeGreaterThan(0);
+    expect(score.getBoundingClientRect().height).toBeGreaterThan(0);
+    expect(getComputedStyle(score).color).not.toBe('rgb(0, 0, 0)');
+  }
+  const live = preview.querySelector('[data-live]')!;
+  expect(getComputedStyle(live.querySelector('.chc-participant-name')!).color).toBe(WHITE_RGB);
+  expect(live.querySelectorAll('.chc-point-score')).toHaveLength(2);
+}
+
+export const BroadcastScorebug: StoryObj<Args> = {
+  render: createEditorStructureView,
+  args: { preset: 'Broadcast Scorebug', drawSize: 8 },
+  play: checkBroadcastVisibility
+};
+
+export const BroadcastBold: StoryObj<Args> = {
+  render: createEditorStructureView,
+  args: { preset: 'Broadcast Bold', drawSize: 8 },
+  play: async (context) => {
+    await checkBroadcastVisibility(context);
+    const canvas = context.canvasElement;
+    const colorsHeader = [...canvas.querySelectorAll<HTMLElement>(SECTION_HEADER)].find((header) =>
+      header.textContent?.includes('Colors')
+    )!;
+    colorsHeader.click();
+    const setColor = (label: string, value: string) => {
+      const field = [...canvas.querySelectorAll('.ce-color-field')].find(
+        (row) => row.querySelector('.ce-field-label')?.textContent === label
+      )!;
+      const input = field.querySelector<HTMLInputElement>('input[type="text"]')!;
+      input.value = value;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+    const picker = (label: string) =>
+      [...canvas.querySelectorAll('.ce-color-field')]
+        .find((row) => row.querySelector('.ce-field-label')?.textContent === label)!
+        .querySelector<HTMLInputElement>('input[type="color"]')!;
+    const ACCENT_LABEL = 'Accent color';
+    const FOOTER_BACKGROUND = 'MatchUp footer background';
+    expect(picker(ACCENT_LABEL).value).toBe('#00bedc');
+    expect(picker(FOOTER_BACKGROUND).value).toBe('#00bedc');
+    const preset = [...canvas.querySelectorAll('select')].find(
+      (select) => select.options[0]?.textContent === '— Load preset —'
+    )!;
+    preset.value = 'Broadcast Scorebug';
+    preset.dispatchEvent(new Event('change'));
+    expect(picker(ACCENT_LABEL).value).toBe('#2924ed');
+    preset.value = 'Broadcast Bold';
+    preset.dispatchEvent(new Event('change'));
+    expect(picker(ACCENT_LABEL).value).toBe('#00bedc');
+    expect(picker(FOOTER_BACKGROUND).value).toBe('#00bedc');
+    const point = () => canvas.querySelector('.ce-preview-body [data-live] .chc-point-score')!;
+    const footers = () => canvas.querySelectorAll('.chc-matchup-footer');
+    const ORANGE = 'rgb(255, 106, 0)';
+    setColor(ACCENT_LABEL, '#ff6a00');
+    expect(picker(FOOTER_BACKGROUND).value).toBe('#ff6a00');
+    expect(getComputedStyle(point()).backgroundColor).toBe(ORANGE);
+    expect(footers().length).toBeGreaterThan(0);
+    for (const footer of footers()) expect(getComputedStyle(footer).backgroundColor).toBe(ORANGE);
+
+    setColor('Text on accent', '#ffffff');
+    expect(getComputedStyle(point()).color).toBe(WHITE_RGB);
+    for (const footer of footers()) expect(getComputedStyle(footer).color).toBe(WHITE_RGB);
+
+    // An independent footer override still wins over the shared accent.
+    setColor(FOOTER_BACKGROUND, '#7135a5');
+    for (const footer of footers()) expect(getComputedStyle(footer).backgroundColor).toBe('rgb(113, 53, 165)');
+    expect(getComputedStyle(point()).backgroundColor).toBe(ORANGE);
+
+    // All labels fit in the narrow editor host, and values get their own full row.
+    expect(canvas.querySelector('.ce-left')!.getBoundingClientRect().width).toBeGreaterThanOrEqual(320);
+    for (const label of canvas.querySelectorAll<HTMLElement>('.ce-color-field .ce-field-label')) {
+      expect(label.scrollWidth).toBeLessThanOrEqual(label.clientWidth);
+      expect(getComputedStyle(label).whiteSpace).toBe('normal');
+    }
+    const clear = [...canvas.querySelectorAll('button')].find(
+      (button) => button.textContent === 'Clear color overrides'
+    )!;
+    clear.click();
+    expect(picker(ACCENT_LABEL).value).toBe('#00bedc');
+    expect(picker(FOOTER_BACKGROUND).value).toBe('#00bedc');
+    layoutToggle(canvas, 'Share button').click();
+    const share = canvas.querySelector('.ce-preview-body .chc-matchup-action--share')!;
+    expect(getComputedStyle(share).color).toBe(WHITE_RGB);
+    expect(getComputedStyle(share.querySelector('svg')!).stroke).toBe(WHITE_RGB);
+    expect(getComputedStyle(point()).backgroundColor).toBe('rgb(0, 190, 220)');
+    for (const footer of footers()) expect(getComputedStyle(footer).backgroundColor).toBe('rgb(0, 190, 220)');
+  }
+};
+
+/** The bracket and settings have distinct scroll containers inside the viewport. */
+export const IndependentScrolling: StoryObj<Args> = {
+  render: createEditorStructureView,
+  args: { preset: 'Broadcast', drawSize: 32 },
+  play: async ({ canvasElement }) => {
+    const structure = canvasElement.querySelector<HTMLElement>('[data-story-structure]')!;
+    const editor = canvasElement.querySelector<HTMLElement>('[data-story-editor-panel]')!;
+    const editorTop = editor.getBoundingClientRect().top;
+    const pageScroll = document.scrollingElement!.scrollTop;
+    const editorScroll = editor.scrollTop;
+    expect(structure.scrollHeight).toBeGreaterThan(structure.clientHeight);
+    structure.scrollTop = 200;
+    expect(structure.scrollTop).toBeGreaterThan(0);
+    expect(editor.scrollTop).toBe(editorScroll);
+    expect(editor.getBoundingClientRect().top).toBe(editorTop);
+    expect(document.scrollingElement!.scrollTop).toBe(pageScroll);
+
+    // Opening the color settings makes the editor panel scroll, without moving the bracket.
+    [...editor.querySelectorAll<HTMLElement>(SECTION_HEADER)]
+      .find((header) => header.textContent?.includes('Colors'))!
+      .click();
+    const structureScroll = structure.scrollTop;
+    expect(editor.scrollHeight).toBeGreaterThan(editor.clientHeight);
+    editor.scrollTop = 100;
+    expect(editor.scrollTop).toBeGreaterThan(0);
+    expect(structure.scrollTop).toBe(structureScroll);
+  }
 };

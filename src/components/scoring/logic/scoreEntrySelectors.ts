@@ -30,8 +30,8 @@
  * `chooseEnding` — and every answer here comes back the moment the ending is un-chosen.
  */
 
-import { matchUpStatusConstants, scoreGovernor } from 'tods-competition-factory';
 import { isOvertimeFormat, overtimeProgress } from '../../../tools/overtimeEntry/overtimeEntry';
+import { matchUpStatusConstants, scoreGovernor } from 'tods-competition-factory';
 import { isCompletedLevelClose } from './combinedPointTie';
 import { ordinalSetLabel } from '../regions/setColumns';
 import { resolveScoreEntry } from './scoreEntryState';
@@ -231,11 +231,14 @@ function setError(
 ): string | undefined {
   if (tiebreakOutstanding(model, index)) return undefined;
 
+  // A single timed 0–0 cannot be completed. Ask the factory for its completion refusal,
+  // while a chosen non-completed ending still records the unfinished score as before.
+  const allowIncomplete = resolveEnding(model).hasEnding || !scorelessSingleTimedSet(entry, index, config);
   const { isValid, error: message } = scoreGovernor.validateSetScore(
     strictSetShape(entry, isSetTiebreakOnly(getSetFormatForIndex(index, config))),
     model.matchUpFormat,
     isFinalSetIndex(index, config),
-    true
+    allowIncomplete
   );
 
   if (isValid || !message) return undefined;
@@ -327,8 +330,8 @@ function aggregateIsLevel(model: ScoreEntryModel, count: number): boolean {
  * `dynamicSetsLogic` now asks the factory too. Strict validation stays the rule here all the same: it is
  * the same answer `error` reports, so "settled" and "no error" cannot come apart.
  *
- * A timed set is the exception: any pair of scores ends it, a tie included, so both cells in is the
- * whole test — strict validation refuses a `0-0` bolt, which is unusual but not impossible.
+ * Timed periods may finish scoreless, but a single non-aggregate timed set needs a score before
+ * it can be completed. Keep the period exception without treating an unplayed match as finished.
  */
 export function isSettled(model: ScoreEntryModel, index: number): boolean {
   const entry = model.sets[index];
@@ -336,7 +339,7 @@ export function isSettled(model: ScoreEntryModel, index: number): boolean {
 
   const config = configOf(model);
   const setFormat = getSetFormatForIndex(index, config);
-  if (isSetTimed(setFormat)) return true;
+  if (isSetTimed(setFormat)) return !scorelessSingleTimedSet(entry, index, config);
 
   return scoreGovernor.validateSetScore(
     strictSetShape(entry, isSetTiebreakOnly(setFormat)),
@@ -344,6 +347,17 @@ export function isSettled(model: ScoreEntryModel, index: number): boolean {
     isFinalSetIndex(index, config),
     false
   ).isValid;
+}
+
+function scorelessSingleTimedSet(entry: SetEntry, index: number, config: MatchUpConfig): boolean {
+  return (
+    index === 0 &&
+    (config.exactly ?? config.bestOf) === 1 &&
+    !config.aggregate &&
+    isSetTimed(getSetFormatForIndex(index, config)) &&
+    entry.side1 === 0 &&
+    entry.side2 === 0
+  );
 }
 
 /** An entry as `validateSetScore` reads it: a tiebreak-only set's points go in the tiebreak fields. */

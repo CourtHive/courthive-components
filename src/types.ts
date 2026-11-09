@@ -547,6 +547,10 @@ export interface StructureRenderers {
 }
 
 export interface CompositionColors {
+  /** Accent fill used by broadcast active scores, selection and the cyan footer. */
+  accent?: string;
+  /** Foreground on the accent fill. */
+  accentText?: string;
   /** matchUp border color — sets `--chc-color-border` on the draw container */
   border?: string;
   /** matchUp border color on hover — sets `--chc-color-border-hover` */
@@ -583,7 +587,7 @@ export interface CompositionColors {
 export interface Composition {
   theme: string;
   configuration?: Configuration;
-  /** Per-composition color overrides. Applied as inline CSS custom properties on the draw root,
+  /** Per-composition color overrides. Applied as inline CSS custom properties on the draw and matchUp roots,
    * cascading to `.chc-matchup` borders and `.chc-link` connector pseudo-elements. Unspecified
    * fields fall back to the theme's defaults. */
   colors?: CompositionColors;

@@ -909,3 +909,14 @@ export {
   resolveThemePalette
 } from './theme/palettes';
 export type { ThemeMode, ThemePalette } from './theme/palettes';
+
+export { createDisplaySettings } from './components/display-settings/createDisplaySettings';
+export { openDisplaySettingsDialog } from './components/display-settings/openDisplaySettingsDialog';
+export type {
+  DisplaySettingsConfig,
+  DisplaySettingsDialogConfig,
+  DisplaySettingsLabels,
+  DisplaySettingsMode,
+  DisplaySettingsPreset
+} from './components/display-settings/displaySettingsTypes';
+import './components/display-settings/display-settings.css';
