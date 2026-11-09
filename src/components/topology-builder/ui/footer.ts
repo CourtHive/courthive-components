@@ -6,7 +6,9 @@
  */
 import { buildAcceptancePanel, type AcceptanceOptions } from './acceptanceLine';
 import { changeSummary } from '../domain/acceptanceLine';
+import { buildFitProposals } from './fitProposals';
 
+// constants and types
 import type { JourneyParticipant, TopologyState, UIPanel } from '../types';
 
 export interface FooterOptions {
@@ -22,6 +24,7 @@ export interface FooterOptions {
   };
   /** Fit mode's acceptance line: a panel over the canvas, and the pending entry changes beside the ledger. */
   acceptance?: AcceptanceOptions;
+  proposals?: Parameters<typeof buildFitProposals>[0];
 }
 
 export interface FooterPanel extends UIPanel<TopologyState> {
@@ -45,7 +48,10 @@ export function buildFooter(options: FooterOptions = {}): FooterPanel {
 
   const acceptance = options.acceptance ? buildAcceptanceControls(options.acceptance) : undefined;
 
+  const proposals = options.proposals ? buildFitProposals(options.proposals) : undefined;
+
   element.append(
+    ...(proposals ? [proposals.element] : []),
     ...(search ? [search.element] : []),
     ...(acceptance ? [acceptance.toggle] : []),
     hint,
@@ -56,6 +62,7 @@ export function buildFooter(options: FooterOptions = {}): FooterPanel {
   function update(state: TopologyState): void {
     if (search) search.element.hidden = state.mode !== 'journey';
     acceptance?.update(state);
+    proposals?.update(state);
     hint.textContent =
       state.mode === 'addPlayoffs'
         ? addPlayoffsHint(options.countPlayoffOffers?.(state) ?? 0)

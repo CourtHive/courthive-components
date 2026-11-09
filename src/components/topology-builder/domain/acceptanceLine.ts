@@ -55,12 +55,18 @@ export function entryChangesAt(pool: AcceptanceEntry[], cut?: number): EntryChan
 
 /** The pending changes in a line: `3 DA → ALT · 1 ALT → DA`. Empty with none. */
 export function changeSummary(changes: EntryChange[]): string {
-  const demoted = changes.filter(({ to }) => to === ALTERNATE).length;
-  const promoted = changes.filter(({ to }) => to === ACCEPTED).length;
-  const parts = [];
-  if (demoted) parts.push(`${demoted} DA → ALT`);
-  if (promoted) parts.push(`${promoted} ALT → DA`);
-  return parts.join(' · ');
+  const groups = new Map<string, { from: string; to: string; count: number }>();
+  for (const change of changes) {
+    const key = `${change.from}:${change.to}`;
+    const group = groups.get(key) ?? { from: change.from, to: change.to, count: 0 };
+    group.count++;
+    groups.set(key, group);
+  }
+  const label = (status: string) => ({ DIRECT_ACCEPTANCE: 'DA', ALTERNATE: 'ALT', WILDCARD: 'WC' })[status] ?? status;
+  return [...groups.values()]
+    .sort((a, b) => Number(b.to === ALTERNATE) - Number(a.to === ALTERNATE))
+    .map(({ from, to, count }) => `${count} ${label(from)} → ${label(to)}`)
+    .join(' · ');
 }
 
 /** The changes as a stable key, for the fit cache: the fit is asked again when they change. */
