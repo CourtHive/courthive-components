@@ -1,5 +1,19 @@
 # Changelog
 
+## [7.14.0](https://github.com/CourtHive/courthive-components/compare/v7.13.0...v7.14.0) (2026-11-09)
+
+
+### Features
+
+* add configurable broadcast compositions and improve the editor ([#954](https://github.com/CourtHive/courthive-components/issues/954)) ([a2986a1](https://github.com/CourtHive/courthive-components/commit/a2986a18e0f2c5b30227000a24bf00d07c44ab5c))
+* add shared display settings dialog with advanced composition editing ([#957](https://github.com/CourtHive/courthive-components/issues/957)) ([69053fa](https://github.com/CourtHive/courthive-components/commit/69053fac7b2f25d269f87cd8e0997ffc0dadbe4f))
+
+
+### Bug Fixes
+
+* omit oversized broadcast and TYPTI catalog previews ([#960](https://github.com/CourtHive/courthive-components/issues/960)) ([a296437](https://github.com/CourtHive/courthive-components/commit/a29643762ab9d8df05ce00e5ca29bbc4c138366a))
+* reject completed scoreless single timed sets in score dialogs ([#955](https://github.com/CourtHive/courthive-components/issues/955)) ([8378516](https://github.com/CourtHive/courthive-components/commit/837851644c9b1b55cbb43a8de7904b2a31b31b36))
+
 ## [7.13.0](https://github.com/CourtHive/courthive-components/compare/v7.12.0...v7.13.0) (2026-11-08)
 
 
