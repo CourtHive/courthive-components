@@ -135,3 +135,6 @@ export { PolicyCatalogControl, PolicyCatalogStore, createPolicyCatalog, filterPo
 export type { PolicyCatalogItem, PolicyCatalogState, PolicyCatalogChangeListener, PolicyCatalogConfig, PolicyEditorInstance, PolicyEditorPlugin, PolicySource, PolicyTypeGroup, PolicyTypeMeta, CatalogGroupBy as PolicyCatalogGroupBy, SchedulingPolicyData, SchedulingEditorState, SchedulingEditorSection, SchedulingEditorChangeListener, SchedulingEditorConfig, SchedulingValidationResult, ValidationSeverity as SchedulingValidationSeverity, MinutesEntry, AverageTimeEntry, RecoveryTimeEntry, MatchUpAverageTime, MatchUpRecoveryTime } from './components/policy-catalog';
 export { THEME_PALETTES, DEFAULT_DARK_PALETTE, DEFAULT_LIGHT_PALETTE, applyThemePalette, getThemePalettes, defaultThemePalette, resolveThemePalette } from './theme/palettes';
 export type { ThemeMode, ThemePalette } from './theme/palettes';
+export { createDisplaySettings } from './components/display-settings/createDisplaySettings';
+export { openDisplaySettingsDialog } from './components/display-settings/openDisplaySettingsDialog';
+export type { DisplaySettingsConfig, DisplaySettingsDialogConfig, DisplaySettingsLabels, DisplaySettingsMode, DisplaySettingsPreset } from './components/display-settings/displaySettingsTypes';

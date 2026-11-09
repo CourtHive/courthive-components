@@ -7,3 +7,5 @@ import { CompositionColors } from '../types';
 export declare function applyCompositionColors(element: HTMLElement, colors?: CompositionColors): void;
 /** Remove every CSS custom property managed by `applyCompositionColors` from a container. */
 export declare function clearCompositionColors(element: HTMLElement): void;
+/** Read effective theme colors for the editor without saving inherited defaults as explicit overrides. */
+export declare function readCompositionColors(theme: string, colors?: CompositionColors): CompositionColors;

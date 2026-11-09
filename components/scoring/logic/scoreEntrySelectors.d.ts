@@ -88,8 +88,8 @@ export declare function columns(model: ScoreEntryModel, options?: ColumnOptions)
  * `dynamicSetsLogic` now asks the factory too. Strict validation stays the rule here all the same: it is
  * the same answer `error` reports, so "settled" and "no error" cannot come apart.
  *
- * A timed set is the exception: any pair of scores ends it, a tie included, so both cells in is the
- * whole test — strict validation refuses a `0-0` bolt, which is unusual but not impossible.
+ * Timed periods may finish scoreless, but a single non-aggregate timed set needs a score before
+ * it can be completed. Keep the period exception without treating an unplayed match as finished.
  */
 export declare function isSettled(model: ScoreEntryModel, index: number): boolean;
 /**
