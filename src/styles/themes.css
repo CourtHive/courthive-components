@@ -51,6 +51,7 @@
 /* ── Basic Card ─────────────────────────────────────────── */
 .chc-theme-basiccard {
   --chc-color-border: var(--chc-border-secondary);
+  --chc-color-schedule-header-divider: transparent;
   --chc-color-border-hover: var(--chc-border-focus);
   /* the lines have a colour but are hidden by default; configuration.connectors shows them */
   --chc-color-connector: var(--chc-border-primary);
@@ -64,7 +65,7 @@
 }
 
 .chc-theme-basiccard .chc-scheduling {
-  border-bottom: none;
+  border-bottom: 1px solid var(--chc-color-schedule-header-divider, transparent);
 }
 
 .chc-theme-basiccard .chc-score-wrapper--side1 {
@@ -92,10 +93,16 @@
   --chc-color-border-hover: #ff6a00;
   --chc-color-connector: #ff6a00;
   --chc-color-score: #ff6a00;
-  --chc-color-round-header: #ff6a00;
+  --chc-color-round-header: var(--chc-typti-header-text, #b24700);
+  --chc-color-round-header-underline: #ff6a00;
   --chc-color-matchup: var(--chc-bg-elevated);
   --chc-color-matchup-bg: var(--chc-bg-primary);
   --chc-color-internal-dividers: var(--chc-border-secondary);
+}
+
+/* Keep the bright orange header on dark surfaces, with a deeper orange for readable light-mode text. */
+[data-theme='dark'] .chc-theme-typti {
+  --chc-typti-header-text: #ff6a00;
 }
 
 /* Broadcast compositions: fixed on-air colours, independent of the host's palette. */
@@ -104,6 +111,10 @@
   --chc-color-matchup-bg: #081329;
   --chc-color-matchup: #081329;
   --chc-color-text: #fff;
+  --chc-color-schedule-header-text: #c4cedb;
+  --chc-color-schedule-header-bg: var(--chc-color-matchup);
+  --chc-color-schedule-header-divider: var(--chc-color-internal-dividers);
+  --chc-color-matchup-footer-text: #c4cedb;
   --chc-color-winner-name: #fff;
   --chc-color-winner: #ddf34a;
   --chc-color-loser: #929dac;

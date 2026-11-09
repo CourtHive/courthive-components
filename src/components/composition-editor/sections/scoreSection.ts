@@ -1,7 +1,7 @@
-import type { CompositionEditorStore } from '../compositionEditorStore';
 import type { CompositionEditorState, EditorPanel } from '../compositionEditorTypes';
+import { buildToggleField, buildSelectField, addFieldHint } from './fieldBuilders';
+import type { CompositionEditorStore } from '../compositionEditorStore';
 import { ceSubgroup, ceSubgroupTitle } from '../styles';
-import { buildToggleField, buildSelectField } from './fieldBuilders';
 
 export function buildScoreSection(store: CompositionEditorStore): EditorPanel {
   const root = document.createElement('div');
@@ -33,6 +33,10 @@ export function buildScoreSection(store: CompositionEditorStore): EditorPanel {
   root.appendChild(scoreBox.element);
   root.appendChild(gameScoreOnly.element);
   root.appendChild(serverIndicator.element);
+  addFieldHint(
+    serverIndicator.element,
+    'Marks the side serving the next point when serving data is available. Column keeps scores aligned; After name puts the dot beside the name. Hidden for finished matches.'
+  );
 
   // gameScore sub-group
   const subgroup = document.createElement('div');

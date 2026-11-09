@@ -14,6 +14,9 @@ const COLOR_TO_CSS_VAR: Record<keyof CompositionColors, string> = {
   roundHeader: '--chc-color-round-header',
   roundHeaderBackground: '--chc-color-round-header-bg',
   roundHeaderUnderline: '--chc-color-round-header-underline',
+  scheduleHeaderText: '--chc-color-schedule-header-text',
+  scheduleHeaderBackground: '--chc-color-schedule-header-bg',
+  scheduleHeaderDivider: '--chc-color-schedule-header-divider',
   matchUpFooterBackground: '--chc-color-matchup-footer-bg',
   matchUpFooterText: '--chc-color-matchup-footer-text',
   matchUpFooterDivider: '--chc-color-matchup-footer-divider'
@@ -57,6 +60,9 @@ export function readCompositionColors(theme: string, colors?: CompositionColors)
       score: 'var(--chc-status-info)',
       roundHeader: 'var(--chc-text-primary)',
       roundHeaderUnderline: 'var(--chc-color-round-header, var(--chc-text-primary))',
+      scheduleHeaderText: 'var(--chc-text-muted)',
+      scheduleHeaderBackground: 'var(--chc-bg-secondary)',
+      scheduleHeaderDivider: 'var(--chc-border-primary)',
       matchUpFooterBackground: 'var(--chc-color-matchup)',
       matchUpFooterText: 'var(--chc-text-muted)'
     };
