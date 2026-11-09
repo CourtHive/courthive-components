@@ -26,4 +26,4 @@ export { buildEdgeEditor } from './ui/edgeEditor';
 export { buildToolbar } from './ui/toolbar';
 export { buildTopologyBuilderLayout } from './ui/topologyBuilderLayout';
 export { buildFooter } from './ui/footer';
-export type { TopologyNode, TopologyEdge, TopologyState, TopologyChangeListener, TopologyBuilderConfig, TopologyTemplate, TopologyMode, PlayoffOffer, DrawFit, StructureFit, FitStatus, FitLedgerStage, JourneyStep, JourneyParticipant, JourneyHost, UIPanel } from './types';
+export type { TopologyNode, TopologyEdge, TopologyState, TopologyChangeListener, TopologyBuilderConfig, TopologyTemplate, TopologyMode, PlayoffOffer, DrawFit, StructureFit, FitStatus, FitProposal, FitLedgerStage, JourneyStep, JourneyParticipant, JourneyHost, UIPanel } from './types';

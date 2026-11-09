@@ -27,7 +27,7 @@ export interface CardPlayoffOffers {
     onAddPlayoff: (offer: PlayoffOffer) => void;
 }
 /** A Fit mode lever on a card. */
-export type FitLever = 'size' | 'qualifiers';
+export type FitLever = 'size' | 'qualifiers' | 'feedIn';
 /** A node's fit, as Fit mode draws it on the card. */
 export interface NodeFit {
     /** False for a structure filled by results (a playoff, a consolation): nothing to fit. */

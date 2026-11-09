@@ -1,4 +1,5 @@
 import { AcceptanceOptions } from './acceptanceLine';
+import { buildFitProposals } from './fitProposals';
 import { JourneyParticipant, TopologyState, UIPanel } from '../types';
 export interface FooterOptions {
     /** How many playoffs the topology could still add, for the Add playoffs mode's hint. */
@@ -13,6 +14,7 @@ export interface FooterOptions {
     };
     /** Fit mode's acceptance line: a panel over the canvas, and the pending entry changes beside the ledger. */
     acceptance?: AcceptanceOptions;
+    proposals?: Parameters<typeof buildFitProposals>[0];
 }
 export interface FooterPanel extends UIPanel<TopologyState> {
     slot: HTMLElement;

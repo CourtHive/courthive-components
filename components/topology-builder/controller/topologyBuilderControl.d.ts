@@ -33,6 +33,9 @@ export declare class TopologyBuilderControl {
     getEntryChanges(): EntryChange[];
     /** The acceptance line back to today's statuses. */
     discardEntryChanges(): void;
+    private proposalCache?;
+    private currentProposals;
+    private applyFitProposal;
     /** A Fit mode lever: the topology changes, and the next render asks the host for the new fit. */
     private applyFitLever;
     private buildToolbarPanel;

@@ -48,6 +48,8 @@ export interface TopologyState {
      * statuses. Not the topology's shape: the entries' statuses change only when the host applies it.
      */
     acceptanceCut?: number;
+    /** Exact factory proposal changes, pending until Generate. */
+    proposalEntryChanges?: EntryChange[];
 }
 /**
  * What the canvas is for right now.
@@ -132,6 +134,13 @@ export interface TopologyBuilderConfig {
      * asked with the entry changes the cut would make, so the gauges and the ledger preview them.
      */
     acceptance?: AcceptanceHost;
+    /** Factory-backed alternatives for the current trial acceptance. */
+    fitProposals?: (state: TopologyState, trial: {
+        entryChanges: EntryChange[];
+    }) => {
+        proposals?: FitProposal[];
+        error?: unknown;
+    };
     /** The acceptance line moved: the entry changes it now makes. The host applies them with the generation. */
     onEntryChanges?: (changes: EntryChange[]) => void;
     /**
@@ -231,4 +240,19 @@ export interface JourneyHost {
     stepsFor: (participantId: string) => JourneyStep[];
     /** A lit round was clicked: the host goes to that matchUp in the draw. */
     onStep?: (step: JourneyStep) => void;
+}
+/** A host-supplied factory proposal; choosing it previews these exact changes. */
+export interface FitProposal {
+    kind: 'Cut' | 'Grow' | 'Feed-in';
+    label: string;
+    drawSize: number;
+    drawType: string;
+    qualifyingPositions?: number;
+    entryChanges: EntryChange[];
+    fit: DrawFit;
+    consequence: {
+        cutToAlternate: number;
+        byesBeyondSeeds: number;
+        fedIn: number;
+    };
 }
