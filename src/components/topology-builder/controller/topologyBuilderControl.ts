@@ -2,22 +2,27 @@
  * Topology Builder Control — Orchestrator class.
  * Creates store, all UI panels, wires callbacks, subscribes to state changes.
  */
-import { drawDefinitionConstants } from 'tods-competition-factory';
-import { TopologyStore } from '../engine/topologyStore';
-import type { CardSize } from '../engine/topologyStore';
-import { buildTopologyCanvas } from '../ui/topologyCanvas';
-import { buildNodeEditor } from '../ui/nodeEditor';
-import { buildEdgeEditor } from '../ui/edgeEditor';
-import { buildToolbar } from '../ui/toolbar';
-import { buildTopologyBuilderLayout } from '../ui/topologyBuilderLayout';
 import { fitByNode, fitKey, ledgerText, steppedDrawSize, steppedQualifiers, takesEntries } from '../domain/drawFit';
 import { changesKey, clampCut, currentCut, entryChangesAt, heldEntries, linePool } from '../domain/acceptanceLine';
 import { journeyEdgeIds, journeySummary, stepsByNode } from '../domain/journey';
-import { buildFooter } from '../ui/footer';
-import { standardTemplates } from '../domain/templates';
+import { buildTopologyBuilderLayout } from '../ui/topologyBuilderLayout';
+import { drawDefinitionConstants } from 'tods-competition-factory';
 import { validateTopology } from '../domain/topologyValidator';
+import { buildTopologyCanvas } from '../ui/topologyCanvas';
 import { getNodeTotalRounds } from '../domain/feedRounds';
+import { TopologyStore } from '../engine/topologyStore';
+import { standardTemplates } from '../domain/templates';
+import { buildNodeEditor } from '../ui/nodeEditor';
+import { buildEdgeEditor } from '../ui/edgeEditor';
 import { getCardWidth } from '../ui/structureCard';
+import { buildToolbar } from '../ui/toolbar';
+import { buildFooter } from '../ui/footer';
+
+// constants and types
+import type { FitLever, NodeFit, NodeJourney } from '../ui/structureCard';
+import type { CardSize } from '../engine/topologyStore';
+import type { FooterPanel } from '../ui/footer';
+import type { ModeToggle } from '../ui/toolbar';
 import type {
   TopologyBuilderConfig,
   TopologyState,
@@ -30,11 +35,9 @@ import type {
   DrawFit,
   UIPanel,
   AcceptanceEntry,
-  EntryChange
+  EntryChange,
+  FitProposal
 } from '../types';
-import type { FooterPanel } from '../ui/footer';
-import type { ModeToggle } from '../ui/toolbar';
-import type { FitLever, NodeFit, NodeJourney } from '../ui/structureCard';
 
 const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, SINGLE_ELIMINATION, LUCKY_DRAW, WINNER, LOSER } =
   drawDefinitionConstants;
@@ -116,7 +119,14 @@ export class TopologyBuilderControl {
             discard: () => this.discardEntryChanges()
           }
         : undefined;
-    return buildFooter({ countPlayoffOffers, fitLedger, journey, acceptance });
+    const proposals =
+      this.config.fitProposals && !this.config.readOnly
+        ? {
+            proposals: (state: TopologyState) => this.currentProposals(state),
+            choose: (proposal: FitProposal) => this.applyFitProposal(proposal)
+          }
+        : undefined;
+    return buildFooter({ countPlayoffOffers, fitLedger, journey, acceptance, proposals });
   }
 
   /** The modes the host has given the topology what it needs for. */
@@ -232,7 +242,10 @@ export class TopologyBuilderControl {
   }
 
   private entryChanges(state: TopologyState): EntryChange[] {
-    return this.config.acceptance ? entryChangesAt(this.acceptancePool(), state.acceptanceCut) : [];
+    return (
+      state.proposalEntryChanges ??
+      (this.config.acceptance ? entryChangesAt(this.acceptancePool(), state.acceptanceCut) : [])
+    );
   }
 
   /** Move the acceptance line: the first `cut` of the line's entries are accepted, the rest wait as alternates. */
@@ -241,7 +254,7 @@ export class TopologyBuilderControl {
     const bounded = clampCut(pool, cut);
     // the line back where today's statuses put it is no change at all
     const next = entryChangesAt(pool, bounded).length ? bounded : undefined;
-    this.store.setAcceptanceCut(next);
+    this.store.loadState({ ...this.store.getState(), acceptanceCut: next, proposalEntryChanges: undefined });
     this.config.onEntryChanges?.(this.getEntryChanges());
   }
 
@@ -252,14 +265,64 @@ export class TopologyBuilderControl {
 
   /** The acceptance line back to today's statuses. */
   discardEntryChanges(): void {
-    this.store.setAcceptanceCut(undefined);
+    this.store.loadState({ ...this.store.getState(), acceptanceCut: undefined, proposalEntryChanges: undefined });
     this.config.onEntryChanges?.([]);
+  }
+
+  private proposalCache?: { key: string; result: ReturnType<NonNullable<TopologyBuilderConfig['fitProposals']>> };
+
+  private currentProposals(state: TopologyState): ReturnType<NonNullable<TopologyBuilderConfig['fitProposals']>> {
+    const entryChanges = this.entryChanges(state);
+    const key = `${fitKey(state)}:${changesKey(entryChanges)}`;
+    if (this.proposalCache?.key === key) return this.proposalCache.result;
+    const result = this.config.fitProposals!(state, { entryChanges });
+    this.proposalCache = { key, result };
+    return result;
+  }
+
+  private applyFitProposal(proposal: FitProposal): void {
+    const state = this.store.getState();
+    const main = state.nodes.find((node) => node.stage === MAIN);
+    if (!main) return;
+    const pool = this.acceptancePool();
+    const statuses = new Map(proposal.entryChanges.map((change) => [change.participantId, change.to]));
+    const cut = pool.filter(
+      (entry) => (statuses.get(entry.participantId) ?? entry.entryStatus) === 'DIRECT_ACCEPTANCE'
+    ).length;
+    const isLine = pool.every(
+      (entry, index) =>
+        (statuses.get(entry.participantId) ?? entry.entryStatus) === (index < cut ? 'DIRECT_ACCEPTANCE' : 'ALTERNATE')
+    );
+    this.store.loadState({
+      ...state,
+      nodes: state.nodes.map((node) =>
+        node.id === main.id
+          ? {
+              ...node,
+              drawSize: proposal.drawSize,
+              structureType: ['SINGLE_ELIMINATION', 'FEED_IN', 'ROUND_ROBIN'].includes(proposal.drawType)
+                ? proposal.drawType
+                : node.structureType,
+              ...(proposal.qualifyingPositions !== undefined && { qualifyingPositions: proposal.qualifyingPositions })
+            }
+          : node
+      ),
+      acceptanceCut: this.config.acceptance && isLine ? cut : undefined,
+      proposalEntryChanges: proposal.entryChanges
+    });
+    this.config.onEntryChanges?.(this.getEntryChanges());
   }
 
   /** A Fit mode lever: the topology changes, and the next render asks the host for the new fit. */
   private applyFitLever(nodeId: string, lever: FitLever, direction: 1 | -1): void {
     const node = this.store.getState().nodes.find((n) => n.id === nodeId);
     if (!node) return;
+    if (lever === 'feedIn') {
+      this.store.updateNode(nodeId, {
+        structureType: node.structureType === 'FEED_IN' ? SINGLE_ELIMINATION : 'FEED_IN'
+      });
+      return;
+    }
     if (lever === 'size') {
       const drawSize = steppedDrawSize(node, direction);
       if (drawSize !== undefined) this.store.updateNode(nodeId, { drawSize });

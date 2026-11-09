@@ -150,7 +150,13 @@ export function buildAcceptancePanel(options: AcceptanceOptions): {
         ? `${STATUS_TEXT[pool[index].entryStatus] ?? pool[index].entryStatus} → ${STATUS_TEXT[status] ?? status}`
         : (STATUS_TEXT[status] ?? status);
     });
-    const heldCount = options.held().length;
+    const demoted = new Set(
+      options
+        .changes(state)
+        .filter((change) => change.to === ALTERNATE)
+        .map((change) => change.participantId)
+    );
+    const heldCount = options.held().filter((entry) => !demoted.has(entry.participantId)).length;
     held.textContent = heldCount ? `${heldCount} held above the line (wildcards, exemptions)` : '';
     // the line is placed once the rows are laid out
     requestAnimationFrame(placeLine);

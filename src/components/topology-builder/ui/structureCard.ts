@@ -107,7 +107,7 @@ export interface CardPlayoffOffers {
 }
 
 /** A Fit mode lever on a card. */
-export type FitLever = 'size' | 'qualifiers';
+export type FitLever = 'size' | 'qualifiers' | 'feedIn';
 
 /** A node's fit, as Fit mode draws it on the card. */
 export interface NodeFit {
@@ -554,6 +554,18 @@ function appendFit(
   sentence.textContent = fitSentence(fit);
   head.append(status, sentence);
 
+  if (onLever && node.stage === 'MAIN' && ['SINGLE_ELIMINATION', 'FEED_IN'].includes(node.structureType)) {
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'tb-feed-toggle';
+    toggle.textContent = 'Feed-in';
+    toggle.setAttribute('aria-pressed', String(node.structureType === 'FEED_IN'));
+    toggle.addEventListener('click', (event) => {
+      event.stopPropagation();
+      onLever('feedIn', 1);
+    });
+    head.append(toggle);
+  }
   block.append(head, fitBar(fit));
   const levers = fitLevers(node, nodeFit, onLever);
   if (levers) block.appendChild(levers);
