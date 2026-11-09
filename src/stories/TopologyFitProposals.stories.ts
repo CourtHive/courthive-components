@@ -160,6 +160,8 @@ export const WildcardCutPreview: StoryObj = {
     root.querySelector<HTMLButtonElement>(CUT)!.click();
     await expect(control.getEntryChanges().filter((change) => change.from === 'WILDCARD')).toHaveLength(4);
     await expect(root.querySelector('.tb-acceptance-pending')?.textContent).toContain('4 WC → ALT');
+    root.querySelector<HTMLButtonElement>('.tb-acceptance-toggle')!.click();
+    await expect(root.querySelector('.tb-acceptance-held')?.textContent).toBe('');
     await expect(JSON.stringify(tournamentEngine.getTournament().tournamentRecord)).toBe(before);
   }
 };
