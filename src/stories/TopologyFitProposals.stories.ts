@@ -10,6 +10,7 @@ import type { StoryObj, Meta } from '@storybook/html-vite';
 
 const meta: Meta = { title: 'Draws/Topology Builder/Tests/Fit Proposals' };
 export default meta;
+const PANEL = '.tb-proposal-panel';
 const CUT = '[data-kind="Cut"]';
 const GROW = '[data-kind="Grow"]';
 
@@ -98,7 +99,7 @@ export const CutPreview: StoryObj = {
     root.querySelector<HTMLButtonElement>(CUT)!.click();
     await expect(control.getEntryChanges()).toHaveLength(8);
     await expect(JSON.stringify(tournamentEngine.getTournament().tournamentRecord)).toBe(before);
-    await expect(root.querySelector('.tb-proposal-panel')?.hasAttribute('hidden')).toBe(true);
+    await expect(root.querySelector(PANEL)?.hasAttribute('hidden')).toBe(true);
   }
 };
 export const GrowPreview: StoryObj = {
@@ -132,9 +133,13 @@ export const DarkOptions: StoryObj = {
   play: async ({ canvasElement: root }) => {
     open(root);
     await expect(root.querySelectorAll('.tb-proposal')).toHaveLength(3);
-    const background = getComputedStyle(root.querySelector<HTMLElement>('.tb-proposal-panel')!).backgroundColor;
+    const background = getComputedStyle(root.querySelector<HTMLElement>(PANEL)!).backgroundColor;
     const channels = background.match(/\d+/g)!.slice(0, 3).map(Number);
     await expect(channels.reduce((sum, value) => sum + value, 0) / 3).toBeLessThan(100);
+    root
+      .querySelector('.tb-proposals-toggle')!
+      .dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await expect(root.querySelector<HTMLElement>(PANEL)!.hidden).toBe(true);
   }
 };
 

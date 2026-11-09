@@ -56,7 +56,7 @@ export function buildFitProposals(options: {
     panel.hidden = false;
     toggle.setAttribute(EXPANDED, 'true');
   });
-  panel.addEventListener('keydown', (event) => {
+  element.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
       close();
       toggle.focus();
