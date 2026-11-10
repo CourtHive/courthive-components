@@ -101,16 +101,31 @@ pnpm test:stories src/stories/compositionConsistency.stories.ts src/stories/comp
 
 ## Scoreboard defaults and TEAM branding
 
-The Scoreboard preset uses the selected theme's winner, loser, live-score and serving treatment for both sides. It contains no sample team palette. Existing saved compositions that explicitly include `configuration.sideColors` keep their palette; loading/resetting the current preset restores the neutral default.
+The Scoreboard preset follows the selected theme. Explicit `configuration.sideColors` maps/callbacks keep
+their existing semantics and precedence. Automatic TEAM branding is opt-in through
+`renderScorecard({ teamBranding: true })`; the scorecard header stays plain, and branded match lines use
+team-name treatments without decorative bars or trim.
 
-For a deliberate demonstration, supply `configuration: { ...compositions.Scoreboard.configuration, sideColors: { 1: '#0b7a75', 2: '#b3365b' } }`. The public `sideColors` API remains a one-based map or `({ matchUp, sideNumber }) => color` callback. Manual maps and callback arguments refer to rendered sides, including when a scorecard swaps them. Blank/partial explicit palettes own their results and suppress automatic branding.
+CODES `Participant.teamColors` contains a nonempty palette of stable IDs/opaque hex values and optional
+`display.roles`. Supported roles are `team.surface`, `team.text`, `team.accent`, `score.surface` and
+`score.text`. Each default role references a palette ID. Palette groups are descriptive; no array index,
+primary/secondary ranking or palette count determines assignments.
 
-`renderScorecard({ matchUp, composition, teamBranding: true })` opts into TEAM identity accents on collection lines. The scorecard header retains its normal theme styling, without colored bars or trim. The default is false. Colors come from `side.participant.teamColors` only for a TEAM, or from the privacy-filtered `side.teamParticipant` on a tie line. The participant ID is required. Individual and PAIR colors are ignored. Missing/invalid/filtered colors remain theme-neutral; the renderer never consults raw tournament data or restores denied child fields from a parent.
+`ScorecardOptions.teamPresentation` accepts sparse tournament overrides; by default it uses the hydrated
+matchUp's teamPresentation. All-team `roles` contain hex values or `{ theme: true }` values; `teams[participantId].roles` may also
+reference that TEAM palette. Resolution is theme fallback → team default → all-team override → team
+exception. `{ theme: true }` uses theme fallback; omission inherits. Provider refresh can replace defaults without
+changing tournament overrides. Specific team mappings belong in tournament presentation settings rather
+than reusable composition presets.
 
-Each CODES TEAM palette stores named entries with stable `colorId`s and `display.primary` / optional `display.secondary` references. `resolveTeamColors` resolves those references to an opaque hex accent and trim; it never selects by array position. `normalizeTeamPalette` validates and normalizes the canonical shape. The palette retains all stored colors; the two display references select the current renderer's accent and optional trim. The 32-entry capacity is an implementation resource guard, not a researched maximum for a team brand. The closed palette allows 1–32 entries, unique IDs, bounded labels and valid selection references. Multiple entries may share values or brand groups. Text retains theme contrast. Identical team colors are allowed; names, score, winner and serve indicators remain independent. Reversing the sides array or enabling `swapSides` moves identity and accents together without mutating match data.
+`TEAM_RENDERERS` declares the role surface for clean scorecards, branded lines and arena panels. A clean
+scorecard consumes no team roles; branded lines use text/accent preferences; arena layouts support
+independent team/score surfaces and text. `readableTeamText`, `teamContrastRatio` and `teamRoleStyles` choose
+readable paint values against consumer-local surfaces without editing stored colors. Names and visible
+serve/outcome cues remain meaningful without color.
 
-Clearing both Side 1 / Side 2 editor fields removes `sideColors`. On an opted-in scorecard, this restores automatic TEAM accents. An explicit empty map `{}` suppresses them; `teamBranding: false` disables automatic resolution at the host.
-
-Brand resolution is runtime data. Composition JSON retains explicit maps and strips callbacks; it does not store hydrated TEAM records or the opt-in scorecard option. TMX and Epixodic adopt the option at their scorecard hosts; direct matchUp callers retain their current explicit palette behavior.
-
-The DOM-free `courthive-components/team-colors` entry exports `normalizeTeamPalette` and `resolveTeamColors`, with palette/display types. Services and workers must use this subpath rather than the root UI entry.
+The DOM-free `courthive-components/team-colors` entry exports CODES normalizers, role resolver/declarations
+and contrast/paint helpers. Node producers can use it without initializing UI libraries. Resolved role
+values may be transported before consumer-local contrast decisions; unselected palette metadata is omitted.
+`renderTeamColorsEditor` provides full-palette/default-role authoring. `renderTeamPresentationEditor`
+provides sparse tournament overrides, explicit theme fallback, reference validation and reset-to-inherit.
