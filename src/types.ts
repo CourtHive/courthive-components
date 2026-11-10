@@ -110,7 +110,7 @@ export interface Side {
   seedingBasis?: string;
 }
 
-export type { TeamColors, TeamPaletteColor } from './components/scorecard/teamPalette';
+export type { TeamPresentation, TeamColorRole, TeamColors, TeamPaletteColor } from './components/scorecard/teamPalette';
 
 export interface Participant {
   teamColors?: TeamColors;

@@ -14,13 +14,13 @@
 import { renderCollectionCard, type FinishingOrderEntryOptions, type ScorecardLabels } from './renderCollectionCard';
 import { dualIssues, issueMessage, MANUAL_SCORE, type ScorecardIssue } from './dualIssues';
 import { attachTeamScoreEditor, type TeamScoreOptions } from './teamScoreEditor';
-import { applyTeamAccent, headerTeamColors } from './teamBranding';
 import { swapSetScores, swapWinningSide } from './scorecardSides';
 import { icon, WARNING_ICON } from './scorecardIcons';
 import { attachHomeEditor } from './homeEditor';
 
 // constants and types
 import type { ScorecardHomeOptions } from './homeSides';
+import type { TeamPresentation } from './teamPalette';
 
 export type { ScorecardLabels } from './renderCollectionCard';
 
@@ -31,6 +31,7 @@ export interface ScorecardOptions {
   swapSides?: boolean;
   /** Opt in to TEAM identity accents; explicit configuration.sideColors retains ownership. */
   teamBranding?: boolean;
+  teamPresentation?: TeamPresentation;
   labels?: ScorecardLabels;
   /** one collection in its order-of-finish entry mode (see `renderCollectionCard`) */
   finishingOrder?: FinishingOrderEntryOptions & { editingCollectionId?: string };
@@ -56,7 +57,6 @@ export interface TeamVsOptions {
   winningSide?: number;
   side1Id?: string;
   side2Id?: string;
-  teamColors?: ReturnType<typeof headerTeamColors>;
 }
 
 const winningClass = 'chc-scorecard-side-score--winner';
@@ -69,6 +69,7 @@ export function renderScorecard({
   composition,
   eventHandlers,
   teamBranding,
+  teamPresentation = matchUp?.teamPresentation,
   swapSides,
   labels,
   finishingOrder,
@@ -93,8 +94,7 @@ export function renderScorecard({
     sets: swappedSets,
     winningSide: swappedWinningSide,
     side1Id: 'chc-sc-side1',
-    side2Id: 'chc-sc-side2',
-    teamColors: teamBranding ? headerTeamColors(matchUp, composition, swapSides) : undefined
+    side2Id: 'chc-sc-side2'
   });
   if (home) {
     const participantIds = [leftSide, rightSide].map(
@@ -132,6 +132,7 @@ export function renderScorecard({
       composition,
       eventHandlers,
       teamBranding,
+      teamPresentation,
       swapSides,
       labels,
       issues
@@ -151,8 +152,7 @@ export function renderTeamVsHeader({
   sets,
   winningSide,
   side1Id,
-  side2Id,
-  teamColors
+  side2Id
 }: TeamVsOptions): HTMLDivElement {
   const header = document.createElement('div');
   header.className = 'chc-scorecard-header';
@@ -162,8 +162,6 @@ export function renderTeamVsHeader({
 
   const side1 = renderSideElement(side1Name, 'end');
   const side2 = renderSideElement(side2Name, 'start');
-  applyTeamAccent(side1, teamColors?.[0]);
-  applyTeamAccent(side2, teamColors?.[1]);
 
   const side1Score = renderSideScore(sets, 1, winningSide, side1Id);
   const side2Score = renderSideScore(sets, 2, winningSide, side2Id);

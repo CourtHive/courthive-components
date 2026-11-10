@@ -5,10 +5,12 @@ import { compositions } from '../../../compositions/compositions';
 import { renderScorecard } from '../renderScorecard';
 import { describe, expect, it } from 'vitest';
 
+const winnerScoreSelector = '.chc-scorecard-side-score--winner';
+
 function palette(primary: string, secondary?: string) {
   return {
     palette: [{ colorId: 'accent', value: primary }, ...(secondary ? [{ colorId: 'trim', value: secondary }] : [])],
-    display: { primary: 'accent', ...(secondary && { secondary: 'trim' }) }
+    display: { roles: { 'team.accent': 'accent', ...(secondary && { 'team.surface': 'trim' }) } }
   };
 }
 const alpha = {
@@ -55,7 +57,7 @@ function fixture() {
 }
 const accents = (card: HTMLElement) =>
   [...card.querySelectorAll<HTMLElement>('.chc-team-accent')].map((el) =>
-    el.style.getPropertyValue('--chc-team-primary')
+    el.style.getPropertyValue('--chc-team-accent')
   );
 
 describe('TEAM identity accents', () => {
@@ -74,12 +76,12 @@ describe('TEAM identity accents', () => {
       expect(names).toEqual(swapSides ? ['Beta', 'Alpha'] : ['Alpha', 'Beta']);
       const scores = [...card.querySelectorAll('.chc-scorecard-side-score')].map((el) => el.textContent);
       expect(scores).toEqual(swapSides ? ['2', '1'] : ['1', '2']);
-      expect(card.querySelector('.chc-scorecard-side-score--winner')?.textContent).toBe('2');
+      expect(card.querySelector(winnerScoreSelector)?.textContent).toBe('2');
       const expected = swapSides ? ['#FFFF00', '#FFFFFF'] : ['#FFFFFF', '#FFFF00'];
-      expect(accents(card)).toEqual([...expected, ...expected]);
+      expect(accents(card)).toEqual(expected);
       for (const el of card.querySelectorAll<HTMLElement>('.chc-team-accent')) {
-        expect(el.style.color).toBe('');
-        expect(el.style.backgroundColor).toBe('');
+        expect(el.style.borderInlineStart).toBe('');
+        expect(el.style.boxShadow).toBe('');
       }
       expect(JSON.stringify(matchUp)).toBe(original);
     }
@@ -91,7 +93,7 @@ describe('TEAM identity accents', () => {
     for (const side of matchUp.tieMatchUps[0].sides)
       side.teamParticipant = { participantId: side.teamParticipant.participantId } as any;
     const card = renderScorecard({ matchUp, teamBranding: true });
-    expect(accents(card)).toHaveLength(2); // header only: parent cannot restore private child attributes
+    expect(accents(card)).toHaveLength(0); // parent cannot restore private child attributes
     expect(card.querySelector('.chc-scorecard-card .chc-team-accent')).toBeNull();
   });
 
@@ -106,9 +108,7 @@ describe('TEAM identity accents', () => {
           configuration: { ...compositions.Scoreboard.configuration, sideColors }
         }
       });
-      expect(accents(card)).toEqual(
-        typeof sideColors === 'function' || !Object.keys(sideColors).length ? [] : ['#abcdef']
-      );
+      expect(accents(card)).toEqual([]);
       expect(card.querySelector('.chc-scorecard-card .chc-team-accent')).toBeNull();
     }
   );
@@ -126,12 +126,7 @@ describe('TEAM identity accents', () => {
         teamColors: palette('#123456')
       } as any;
     });
-    expect(accents(renderScorecard({ matchUp, teamBranding: true }))).toEqual([
-      '#FFFF00',
-      '#FFFFFF',
-      '#FFFF00',
-      '#FFFFFF'
-    ]);
+    expect(accents(renderScorecard({ matchUp, teamBranding: true }))).toEqual(['#FFFF00', '#FFFFFF']);
   });
 
   it.each(['#000000', '#FFFF00', '#FFFFFF', '#110022'])(
@@ -142,9 +137,13 @@ describe('TEAM identity accents', () => {
         ...side,
         participant: { ...side.participant, teamColors: palette(primary) }
       }));
+      matchUp.tieMatchUps[0].sides.forEach((side) => {
+        side.teamParticipant = { ...side.teamParticipant, teamColors: palette(primary) };
+      });
       const card = renderScorecard({ matchUp, teamBranding: true });
-      expect(accents(card).slice(0, 2)).toEqual([primary, primary]);
-      expect(card.querySelector('.chc-scorecard-side-score--winner')?.textContent).toBe('2');
+      expect(accents(card)).toEqual([primary, primary]);
+      expect(card.querySelectorAll('.chc-scorecard-header .chc-team-accent')).toHaveLength(0);
+      expect(card.querySelector(winnerScoreSelector)?.textContent).toBe('2');
     }
   );
 
@@ -152,7 +151,7 @@ describe('TEAM identity accents', () => {
     const matchUp = fixture();
     const sideColors = ({ matchUp: rendered, sideNumber }: any) => {
       const side = rendered.sides.find((candidate: any) => candidate.sideNumber === sideNumber);
-      return resolveTeamColors((side.teamParticipant ?? side.participant)?.teamColors)?.primary;
+      return resolveTeamColors((side.teamParticipant ?? side.participant)?.teamColors)?.roles['team.accent'];
     };
     const card = renderScorecard({
       matchUp,
@@ -163,7 +162,7 @@ describe('TEAM identity accents', () => {
         configuration: { ...compositions.Scoreboard.configuration, sideColors }
       }
     });
-    expect(accents(card)).toEqual(swapSides ? ['#FFFF00', '#FFFFFF'] : ['#FFFFFF', '#FFFF00']);
+    expect(accents(card)).toEqual([]);
     const rows = [...card.querySelectorAll<HTMLElement>('.chc-scorecard-card .tmx-sd')];
     expect(rows.map((row) => row.style.getPropertyValue('--chc-side-color'))).toEqual(
       swapSides ? ['#FFFF00', '#FFFFFF'] : ['#FFFFFF', '#FFFF00']
@@ -185,7 +184,7 @@ describe('TEAM identity accents', () => {
         }))
       } as any;
     const card = renderScorecard({ matchUp, teamBranding: true, swapSides: true });
-    expect(accents(card)).toEqual(['#FFFF00', '#FFFFFF', '#FFFF00', '#FFFFFF']);
+    expect(accents(card)).toEqual(['#FFFF00', '#FFFFFF']);
     expect(card.textContent).toContain('Substitute');
     expect(card.textContent).toContain('Partner');
   });
@@ -251,8 +250,8 @@ it('accepts old TEAM subsets without a type marker and refuses explicitly non-TE
     const { participantType: _type, ...legacyTeam } = side.teamParticipant;
     side.teamParticipant = legacyTeam as any;
   }
-  expect(accents(renderScorecard({ matchUp, teamBranding: true }))).toHaveLength(4);
+  expect(accents(renderScorecard({ matchUp, teamBranding: true }))).toHaveLength(2);
   for (const side of matchUp.tieMatchUps[0].sides)
     side.teamParticipant = { ...side.teamParticipant, participantType: 'PAIR' };
-  expect(accents(renderScorecard({ matchUp, teamBranding: true }))).toHaveLength(2);
+  expect(accents(renderScorecard({ matchUp, teamBranding: true }))).toHaveLength(0);
 });

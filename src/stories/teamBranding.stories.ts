@@ -1,5 +1,6 @@
 import { renderMatchUp } from '../components/renderStructure/renderMatchUp';
 import { renderScorecard } from '../components/scorecard/renderScorecard';
+import { teamRoleStyles } from '../components/scorecard/teamPalette';
 import { compositions } from '../compositions/compositions';
 import { applyThemePalette } from '../theme/palettes';
 import { expect } from 'storybook/test';
@@ -72,7 +73,7 @@ function render(args: Args): HTMLElement {
             { colorId: 'white', value: '#ffffff', group: 'Primary' },
             { colorId: 'black', value: '#000000', group: 'Primary' }
           ],
-          display: { primary: 'accent', secondary: 'trim' }
+          display: { roles: { 'team.accent': 'accent', 'team.surface': 'trim' } }
         }
       }
     }));
@@ -134,9 +135,9 @@ function play({ canvasElement, args }: { canvasElement: HTMLElement; args: Args 
   expect(canvasElement.querySelectorAll('[data-audit="server1"] .chc-server--active')).toHaveLength(1);
   expect(canvasElement.querySelectorAll('[data-audit="serverundefined"] .chc-server--active')).toHaveLength(0);
   for (const card of canvasElement.querySelectorAll<HTMLElement>('[data-primary]')) {
-    expect(card.querySelectorAll('.chc-team-accent')).toHaveLength(4);
+    expect(card.querySelectorAll('.chc-team-accent')).toHaveLength(2);
     const headerSides = card.querySelectorAll<HTMLElement>('.chc-scorecard-header .chc-team-accent');
-    expect(headerSides).toHaveLength(2);
+    expect(headerSides).toHaveLength(0);
     for (const headerSide of headerSides) {
       expect(getComputedStyle(headerSide).borderInlineStartWidth).toBe('0px');
       expect(getComputedStyle(headerSide).boxShadow).toBe('none');
@@ -144,13 +145,14 @@ function play({ canvasElement, args }: { canvasElement: HTMLElement; args: Args 
     const lineSides = card.querySelectorAll<HTMLElement>('.chc-scorecard-card .chc-team-accent');
     expect(lineSides).toHaveLength(2);
     for (const lineSide of lineSides) {
-      expect(Number.parseFloat(getComputedStyle(lineSide).borderInlineStartWidth)).toBeGreaterThan(0);
+      expect(getComputedStyle(lineSide).borderInlineStartWidth).toBe('0px');
+      expect(getComputedStyle(lineSide).boxShadow).toBe('none');
     }
     for (const accent of card.querySelectorAll<HTMLElement>('.chc-team-accent'))
-      expect(accent.style.getPropertyValue('--chc-team-primary')).toBe(card.dataset.primary);
+      expect(accent.style.getPropertyValue('--chc-team-accent')).toBe(card.dataset.primary);
   }
   for (const text of canvasElement.querySelectorAll(
-    '.chc-participant-name, .chc-scorecard-side-name, .chc-scorecard-side-score, .chc-point-score'
+    '.chc-participant-name, .chc-scorecard-side-name, .chc-scorecard-side-score, .chc-point-score, .team-preview-name, .team-preview-score'
   )) {
     expect(contrast(text), text.className).toBeGreaterThanOrEqual(4.5);
   }
@@ -165,3 +167,50 @@ export const Light: Story = { args: { mode: 'light', width: 900, swapped: false 
 export const Dark: Story = { args: { mode: 'dark', width: 900, swapped: true }, render, play };
 export const NarrowLight: Story = { args: { mode: 'light', width: 320, swapped: true }, render, play };
 export const NarrowDark: Story = { args: { mode: 'dark', width: 320, swapped: false }, render, play };
+
+/** The same imported defaults feed all three treatments without per-tournament authoring. */
+export const DefaultDisplayTreatments: Story = {
+  args: { mode: 'light', width: 1100, swapped: false },
+  render: (args) => {
+    const root = render(args);
+    const title = document.createElement('h2');
+    title.textContent = 'Team defaults: clean scorecard, branded lines and arena panels';
+    root.prepend(title);
+    const cleanTitle = document.createElement('h3');
+    cleanTitle.textContent = 'Clean scorecard — plain header and theme defaults';
+    const clean = renderScorecard({ matchUp: { ...match(1), tieFormat: { collectionDefinitions: [] } } });
+    root.append(cleanTitle, clean);
+    const arenaTitle = document.createElement('h3');
+    arenaTitle.textContent = 'Arena — independent team and score surfaces';
+    const panels = document.createElement('div');
+    panels.style.cssText = 'display:flex;gap:1rem';
+    for (const [name, surface, foreground, scoreSurface, scoreText] of [
+      ['College Alpha', '#13294B', '#FFFFFF', '#E8B923', '#13294B'],
+      ['College Beta', '#8C1515', '#FFFFFF', '#FFFFFF', '#8C1515']
+    ]) {
+      const panel = document.createElement('div');
+      const colors = {
+        roles: {
+          'team.surface': surface,
+          'team.text': foreground,
+          'score.surface': scoreSurface,
+          'score.text': scoreText
+        }
+      };
+      const theme = { background: '#FFFFFF', text: '#111111' };
+      panel.style.cssText = `padding:1rem;flex:1;${teamRoleStyles(colors, theme)}`;
+      const label = document.createElement('div');
+      label.textContent = name;
+      label.className = 'team-preview-name';
+      const score = document.createElement('strong');
+      score.textContent = '4';
+      score.className = 'team-preview-score';
+      score.style.cssText = `display:block;padding:1rem;font-size:2rem;${teamRoleStyles(colors, theme, 'score')}`;
+      panel.append(label, score);
+      panels.appendChild(panel);
+    }
+    root.append(arenaTitle, panels);
+    return root;
+  },
+  play
+};

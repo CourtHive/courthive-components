@@ -660,7 +660,3 @@
 }
 
 /* Identity accents belong to match lines; keep the scorecard header free of decorative bars or trim. */
-.chc-scorecard-card .chc-team-accent {
-  border-inline-start: 0.25rem solid var(--chc-team-primary);
-  box-shadow: inset 0 -0.125rem var(--chc-team-secondary);
-}
