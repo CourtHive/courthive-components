@@ -1,3 +1,4 @@
+import { buildSanctionLimits } from './sanctionLimits';
 /**
  * Footer — the slim strip beneath the canvas, as the schedule page has beneath its court grid (CA, 2026-11-08).
  *
@@ -23,8 +24,9 @@ export interface FooterOptions {
     summary: (state: TopologyState) => string;
   };
   /** Fit mode's acceptance line: a panel over the canvas, and the pending entry changes beside the ledger. */
-  acceptance?: AcceptanceOptions;
+  acceptance?: AcceptanceOptions | AcceptanceOptions[];
   proposals?: Parameters<typeof buildFitProposals>[0];
+  sanctionLimits?: Parameters<typeof buildSanctionLimits>[0];
 }
 
 export interface FooterPanel extends UIPanel<TopologyState> {
@@ -46,23 +48,36 @@ export function buildFooter(options: FooterOptions = {}): FooterPanel {
   // their journey. The canvas and the summary stay nameless.
   const search = options.journey ? buildJourneySearch(options.journey) : undefined;
 
-  const acceptance = options.acceptance ? buildAcceptanceControls(options.acceptance) : undefined;
+  const acceptanceOptions = options.acceptance
+    ? Array.isArray(options.acceptance)
+      ? options.acceptance
+      : [options.acceptance]
+    : [];
+  const acceptance = acceptanceOptions.map(buildAcceptanceControls);
+  for (const control of acceptance)
+    control.toggle.addEventListener('click', () => {
+      acceptance.filter((other) => other !== control).forEach((other) => other.close());
+    });
 
   const proposals = options.proposals ? buildFitProposals(options.proposals) : undefined;
 
+  const sanctionLimits = options.sanctionLimits ? buildSanctionLimits(options.sanctionLimits) : undefined;
+
   element.append(
+    ...(sanctionLimits ? [sanctionLimits.element] : []),
     ...(proposals ? [proposals.element] : []),
     ...(search ? [search.element] : []),
-    ...(acceptance ? [acceptance.toggle] : []),
+    ...acceptance.map((control) => control.toggle),
     hint,
-    ...(acceptance ? [acceptance.pending, acceptance.panel.element] : []),
+    ...acceptance.flatMap((control) => [control.pending, control.panel.element]),
     slot
   );
 
   function update(state: TopologyState): void {
     if (search) search.element.hidden = state.mode !== 'journey';
-    acceptance?.update(state);
+    acceptance.forEach((control) => control.update(state));
     proposals?.update(state);
+    sanctionLimits?.update(state);
     hint.textContent =
       state.mode === 'addPlayoffs'
         ? addPlayoffsHint(options.countPlayoffOffers?.(state) ?? 0)
@@ -132,11 +147,12 @@ function buildAcceptanceControls(options: AcceptanceOptions) {
   const toggle = document.createElement('button');
   toggle.type = 'button';
   toggle.className = 'tb-acceptance-toggle';
-  toggle.textContent = 'Acceptance line';
+  toggle.textContent = options.stage === 'QUALIFYING' ? 'Qualifying line' : 'Acceptance line';
   toggle.setAttribute('aria-expanded', 'false');
 
   const pending = document.createElement('span');
   pending.className = 'tb-acceptance-pending';
+  pending.dataset.stage = options.stage ?? 'MAIN';
   const summary = document.createElement('span');
   const discard = document.createElement('button');
   discard.type = 'button';
@@ -164,14 +180,14 @@ function buildAcceptanceControls(options: AcceptanceOptions) {
 
   function update(state: TopologyState): void {
     last = state;
-    const inFit = state.mode === 'fit';
+    const inFit = state.mode === 'fit' && (options.visible?.(state) ?? true);
     toggle.hidden = !inFit;
     if (!inFit && open) setOpen(false);
-    const text = inFit ? changeSummary(options.changes(state)) : '';
+    const text = inFit ? changeSummary(options.summary?.(state) ?? options.changes(state)) : '';
     summary.textContent = text;
     pending.hidden = !text;
     if (open) panel.update(state);
   }
 
-  return { toggle, pending, panel, update };
+  return { toggle, pending, panel, update, close: () => setOpen(false) };
 }

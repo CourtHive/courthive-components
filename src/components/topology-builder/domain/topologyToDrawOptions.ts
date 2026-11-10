@@ -111,6 +111,8 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
     drawType === LUCKY_DRAW ? customLuckyProfile(mainNode.drawSize, mainNode.structureOptions) : undefined;
 
   const drawOptions: any = {
+    ...(state.constraintOverrides &&
+      Object.keys(state.constraintOverrides).length && { constraintOverrides: { ...state.constraintOverrides } }),
     drawName: state.drawName,
     drawType,
     drawSize: mainNode.drawSize,

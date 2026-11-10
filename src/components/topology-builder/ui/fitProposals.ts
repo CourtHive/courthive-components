@@ -40,7 +40,10 @@ export function buildFitProposals(options: {
       title.textContent = `${proposal.kind} · ${proposal.drawSize} ${proposal.drawType.replaceAll('_', ' ').toLowerCase()}`;
       const detail = document.createElement('span');
       const c = proposal.consequence;
-      detail.textContent = `${c.cutToAlternate} to alternate · ${c.byesBeyondSeeds} extra BYEs · ${c.fedIn} fed in`;
+      detail.textContent =
+        proposal.kind === 'Qualify'
+          ? `${c.movedToQualifying ?? 0} to qualifying · ${proposal.qualifyingDrawSize} → ${proposal.qualifyingPositions} · ${c.promotedAlternates ?? 0} alternates promoted`
+          : `${c.cutToAlternate} to alternate · ${c.byesBeyondSeeds} extra BYEs · ${c.fedIn} fed in`;
       button.append(title, detail);
       button.addEventListener('click', () => {
         close();

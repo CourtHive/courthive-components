@@ -9,10 +9,14 @@ import { ALTERNATE, statusAt } from '../domain/acceptanceLine';
 import type { AcceptanceEntry, EntryChange, TopologyState } from '../types';
 
 export interface AcceptanceOptions {
+  stage?: string;
+  below?: () => string;
+  visible?: (state: TopologyState) => boolean;
   pool: () => AcceptanceEntry[];
   held: () => AcceptanceEntry[];
   cut: (state: TopologyState) => number;
   changes: (state: TopologyState) => EntryChange[];
+  summary?: (state: TopologyState) => EntryChange[];
   setCut: (cut: number) => void;
   discard: () => void;
 }
@@ -25,6 +29,7 @@ export function buildAcceptancePanel(options: AcceptanceOptions): {
 } {
   const element = document.createElement('div');
   element.className = 'tb-acceptance';
+  element.dataset.stage = options.stage ?? 'MAIN';
   element.setAttribute('role', 'dialog');
   element.setAttribute('aria-label', 'Acceptance line');
 
@@ -32,7 +37,7 @@ export function buildAcceptancePanel(options: AcceptanceOptions): {
   heading.className = 'tb-acceptance-heading';
   const title = document.createElement('span');
   title.className = 'tb-acceptance-title';
-  title.textContent = 'Acceptance line · Main';
+  title.textContent = `Acceptance line · ${options.stage === 'QUALIFYING' ? 'Qualifying' : 'Main'}`;
   const held = document.createElement('span');
   held.className = 'tb-acceptance-held';
   heading.append(title, held);
@@ -87,7 +92,9 @@ export function buildAcceptancePanel(options: AcceptanceOptions): {
     const top =
       cut < rows.length ? rows[cut].offsetTop : (rows.at(-1)?.offsetTop ?? 0) + (rows.at(-1)?.offsetHeight ?? 0);
     line.style.top = `${top}px`;
-    lineLabel.textContent = `${cut} accepted · ${pool.length - cut} alternate${pool.length - cut === 1 ? '' : 's'}`;
+    const waiting = pool.length - cut;
+    const below = options.below?.() === 'qualifying' ? 'below main line' : `alternate${waiting === 1 ? '' : 's'}`;
+    lineLabel.textContent = `${cut} accepted · ${waiting} ${below}`;
     line.setAttribute('aria-valuenow', String(cut));
     line.setAttribute('aria-valuemax', String(pool.length));
     line.setAttribute('aria-valuemin', '0');
@@ -140,20 +147,31 @@ export function buildAcceptancePanel(options: AcceptanceOptions): {
       buildRows();
     }
     cut = options.cut(state);
-    const changed = new Set(options.changes(state).map(({ participantId }) => participantId));
+    const changes = new Map(options.changes(state).map((change) => [change.participantId, change]));
+    const changed = new Set(changes.keys());
     rows.forEach((row, index) => {
       const status = statusAt(pool, index, cut);
+      const statusText = STATUS_TEXT[status] ?? status;
       row.dataset.status = status === ALTERNATE ? 'alternate' : 'accepted';
       row.dataset.changed = String(changed.has(pool[index].participantId));
       const badge = row.lastElementChild as HTMLElement;
-      badge.textContent = changed.has(pool[index].participantId)
-        ? `${STATUS_TEXT[pool[index].entryStatus] ?? pool[index].entryStatus} → ${STATUS_TEXT[status] ?? status}`
-        : (STATUS_TEXT[status] ?? status);
+      const change = changes.get(pool[index].participantId);
+      const fromStage = change?.fromStage ?? 'MAIN';
+      const toStage = change?.toStage ?? fromStage;
+      badge.textContent =
+        change && fromStage !== toStage
+          ? `${fromStage === 'QUALIFYING' ? 'Q' : 'MAIN'} → ${toStage === 'QUALIFYING' ? 'Q' : toStage}`
+          : change
+            ? `${STATUS_TEXT[change.from] ?? change.from} → ${STATUS_TEXT[change.to] ?? change.to}`
+            : statusText;
     });
     const demoted = new Set(
       options
         .changes(state)
-        .filter((change) => change.to === ALTERNATE)
+        .filter(
+          (change) =>
+            change.to === ALTERNATE || (change.toStage ?? change.fromStage ?? 'MAIN') !== (options.stage ?? 'MAIN')
+        )
         .map((change) => change.participantId)
     );
     const heldCount = options.held().filter((entry) => !demoted.has(entry.participantId)).length;

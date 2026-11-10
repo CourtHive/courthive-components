@@ -2,7 +2,7 @@ import '../styles/theme.css';
 import '../components/topology-builder/ui/topology-builder.css';
 import { TopologyBuilderControl } from '../components/topology-builder/controller/topologyBuilderControl';
 import { topologyToDrawOptions } from '../components/topology-builder/domain/topologyToDrawOptions';
-import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { drawDefinitionConstants, mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { user } from './helpers/trustedUser';
 import { expect } from 'storybook/test';
 
@@ -14,6 +14,8 @@ export default meta;
 const PANEL = '.tb-proposal-panel';
 const CUT = '[data-kind="Cut"]';
 const GROW = '[data-kind="Grow"]';
+const STATUS = '.tb-fit-status';
+const { MAIN, QUALIFYING } = drawDefinitionConstants;
 
 let control: TopologyBuilderControl;
 let eventId: string;
@@ -59,11 +61,16 @@ function mount(dark = false, sanctioned = false, wildcards = false) {
     acceptance: { entries: () => entries().map((e: any) => ({ ...e, name: e.participantId })) },
     drawFit: (state, trial) => {
       const { drawOptions } = topologyToDrawOptions(state);
-      const changes = new Map(trial?.entryChanges.map((c) => [c.participantId, c.to]));
+      const changes = new Map(
+        trial?.entryChanges.map((change) => [`${change.fromStage ?? MAIN}:${change.participantId}`, change])
+      );
       return tournamentEngine.getDrawFit({
         eventId,
         ...drawOptions,
-        drawEntries: entries().map((e: any) => ({ ...e, entryStatus: changes.get(e.participantId) ?? e.entryStatus }))
+        drawEntries: entries().map((entry: any) => {
+          const change = changes.get(`${entry.entryStage ?? MAIN}:${entry.participantId}`);
+          return change ? { ...entry, entryStatus: change.to, entryStage: change.toStage ?? entry.entryStage } : entry;
+        })
       });
     },
     fitProposals: (state) => {
@@ -76,8 +83,13 @@ function mount(dark = false, sanctioned = false, wildcards = false) {
           ...p,
           entryChanges: p.entryChanges.map((e: any) => ({
             participantId: e.participantId,
-            from: entries().find((original: any) => original.participantId === e.participantId).entryStatus,
-            to: e.entryStatus
+            from: entries().find(
+              (original: any) =>
+                original.participantId === e.participantId && (original.entryStage ?? MAIN) === (e.entryStage ?? MAIN)
+            ).entryStatus,
+            to: e.entryStatus,
+            fromStage: e.entryStage,
+            toStage: e.toStage
           }))
         }))
       };
@@ -109,7 +121,7 @@ export const GrowPreview: StoryObj = {
     await open(root);
     await expect(root.querySelector(GROW)?.textContent).toContain('24 extra BYEs');
     await user.click(root.querySelector<HTMLButtonElement>(GROW)!);
-    await expect(root.querySelector<HTMLElement>('.tb-fit-status')?.dataset.status).toBe('SHORT');
+    await expect(root.querySelector<HTMLElement>(STATUS)?.dataset.status).toBe('SHORT');
     await expect(control.getEntryChanges()).toHaveLength(0);
     await expect(JSON.stringify(tournamentEngine.getTournament().tournamentRecord)).toBe(before);
   }
@@ -119,7 +131,7 @@ export const FeedInPreview: StoryObj = {
   play: async ({ canvasElement: root }) => {
     await open(root);
     await user.click(root.querySelector<HTMLButtonElement>('[data-kind="Feed-in"]')!);
-    await expect(root.querySelector<HTMLElement>('.tb-fit-status')?.dataset.status).toBe('FITS');
+    await expect(root.querySelector<HTMLElement>(STATUS)?.dataset.status).toBe('FITS');
     const toggle = [...root.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent === 'Feed-in')!;
     await expect(toggle.getAttribute('aria-pressed')).toBe('true');
     await user.click(toggle);
@@ -133,7 +145,7 @@ export const DarkOptions: StoryObj = {
   render: () => mount(true),
   play: async ({ canvasElement: root }) => {
     await open(root);
-    await expect(root.querySelectorAll('.tb-proposal')).toHaveLength(3);
+    await expect(root.querySelectorAll('.tb-proposal')).toHaveLength(4);
     const background = getComputedStyle(root.querySelector<HTMLElement>(PANEL)!).backgroundColor;
     const channels = background.match(/\d+/g)!.slice(0, 3).map(Number);
     await expect(channels.reduce((sum, value) => sum + value, 0) / 3).toBeLessThan(100);
@@ -174,6 +186,23 @@ export const DraggingKeepsCachedOptions: StoryObj = {
     const state = control.getState();
     control.loadState({ ...state, nodes: state.nodes.map((node) => ({ ...node, position: { x: 160, y: 80 } })) });
     await expect(proposalCalls).toBe(1);
-    await expect(root.querySelectorAll('.tb-proposal')).toHaveLength(3);
+    await expect(root.querySelectorAll('.tb-proposal')).toHaveLength(4);
+  }
+};
+
+export const QualifyPreview: StoryObj = {
+  render: () => mount(),
+  play: async ({ canvasElement: root }) => {
+    await open(root);
+    await user.click(root.querySelector<HTMLButtonElement>('[data-kind="Qualify"]')!);
+    await expect(control.getState().nodes.find((node) => node.stage === QUALIFYING)).toMatchObject({
+      drawSize: 16,
+      qualifyingPositions: 8
+    });
+    await expect(control.getEntryChanges().filter((change) => change.toStage === QUALIFYING)).toHaveLength(16);
+    await expect(
+      [...root.querySelectorAll<HTMLElement>(STATUS)].every((status) => status.dataset.status === 'FITS')
+    ).toBe(true);
+    await expect(JSON.stringify(tournamentEngine.getTournament().tournamentRecord)).toBe(before);
   }
 };

@@ -140,7 +140,7 @@ export const AcceptanceLineCutsTheRankedEntries: Story = {
     await expect(sentence(canvasElement, MAIN)).toBe('27 entered · 4 qualifiers · 1 BYE');
     await expect(status(canvasElement, MAIN)).toBe('SHORT');
     await expect(pending(canvasElement).hidden).toBe(false);
-    await expect(pending(canvasElement).textContent).toContain('DA → ALT');
+    await expect(pending(canvasElement).textContent).toContain('Q ');
     // the host was told: after the move, 23 of the line are accepted
     const changes = host.lastEntryChanges();
     await expect(changes.length).toBeGreaterThan(0);

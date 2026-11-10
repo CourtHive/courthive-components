@@ -50,19 +50,21 @@ export function fitTopologyHost({
   let entryChanges: EntryChange[] = [];
 
   // the MAIN entries, best ELO first, as TMX would rank them for the acceptance line
-  const acceptanceEntries = (): AcceptanceEntry[] => {
+  const acceptanceEntries = (stage: 'MAIN' | 'QUALIFYING'): AcceptanceEntry[] => {
     const { event } = tournamentEngine.getEvent({ eventId });
     const { participants } = tournamentEngine.getParticipants({ withScaleValues: true });
     const byId = new Map(participants.map((p: any) => [p.participantId, p]));
     return (event.entries ?? [])
-      .filter((entry: any) => (entry.entryStage ?? 'MAIN') === 'MAIN')
+      .filter((entry: any) => (entry.entryStage ?? 'MAIN') === stage)
       .map((entry: any) => {
         const participant: any = byId.get(entry.participantId);
         const elo = ratingValue(participant?.ratings?.SINGLES?.find((r: any) => r.scaleName === 'ELO')?.scaleValue);
         return { entry, participant, elo };
       })
       .sort((a: any, b: any) => b.elo - a.elo)
-      .map(({ entry, participant, elo }: any) => ({
+      .map(({ entry, participant, elo }: any, rankOrder) => ({
+        rankOrder,
+        entryStage: entry.entryStage ?? 'MAIN',
         participantId: entry.participantId,
         name: participant?.participantName ?? entry.participantId,
         entryStatus: entry.entryStatus,
@@ -72,11 +74,14 @@ export function fitTopologyHost({
 
   // the event's entries with the acceptance line's changes, for the trial fit; the event itself is never changed
   const trialEntries = (changes: EntryChange[]) => {
-    const to = new Map(changes.map(({ participantId, to }) => [participantId, to]));
     const { event } = tournamentEngine.getEvent({ eventId });
-    return (event.entries ?? []).map((entry: any) =>
-      to.has(entry.participantId) ? { ...entry, entryStatus: to.get(entry.participantId) } : entry
-    );
+    return (event.entries ?? []).map((entry: any) => {
+      const change = changes.find(
+        (change) =>
+          change.participantId === entry.participantId && (change.fromStage ?? 'MAIN') === (entry.entryStage ?? 'MAIN')
+      );
+      return change ? { ...entry, entryStatus: change.to, entryStage: change.toStage ?? entry.entryStage } : entry;
+    });
   };
   const initialState: Partial<TopologyState> = {
     drawName: 'Open Singles',
