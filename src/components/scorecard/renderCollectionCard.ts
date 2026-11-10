@@ -10,6 +10,7 @@
  * and aria label, and the header counts the collection's lines with one.
  */
 import { createFinishingOrderState, type FinishingOrderEntry } from './finishingOrderState';
+import { applyTeamAccent, hasExplicitSideColors, teamColorsOf } from './teamBranding';
 import { issueMessage, lineIssues, type ScorecardIssue } from './dualIssues';
 import { completedMatchUpStatuses } from 'tods-competition-factory';
 import { renderMatchUp } from '../renderStructure/renderMatchUp';
@@ -73,6 +74,7 @@ export interface CollectionCardOptions {
   composition?: any;
   eventHandlers?: any;
   swapSides?: boolean;
+  teamBranding?: boolean;
   labels?: ScorecardLabels;
   finishingOrder?: FinishingOrderEntryOptions;
   /** the dual's issues; those naming this collection's lines are marked */
@@ -88,6 +90,7 @@ export function renderCollectionCard({
   collectionMatchUps,
   composition,
   eventHandlers,
+  teamBranding,
   swapSides,
   labels,
   finishingOrder,
@@ -112,6 +115,12 @@ export function renderCollectionCard({
     const rendered = swapSides ? swapMatchUpSides(tieMatchUp) : tieMatchUp;
     const card = renderMatchUp({ matchUp: rendered, isLucky: true, eventHandlers, composition });
     card.classList.add('chc-scorecard-card');
+    if (teamBranding && !hasExplicitSideColors(composition)) {
+      for (const side of rendered.sides ?? []) {
+        const element = card.querySelector<HTMLElement>(`.tmx-sd[sidenumber="${side.sideNumber}"]`);
+        if (element) applyTeamAccent(element, teamColorsOf(side));
+      }
+    }
     const cardIssues = byLine.get(tieMatchUp.matchUpId);
     if (cardIssues) markIssues(card, cardIssues);
     card.prepend(renderLineBar({ tieMatchUp, collectionDefinition, state, labels, issues: cardIssues }));

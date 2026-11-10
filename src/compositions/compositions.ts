@@ -68,9 +68,9 @@ export const compositions: Record<string, Composition> = {
     theme: basicCardTheme
   },
   /**
-   * A scoreboard card: team colours, playing time and the event and round in the header, the server marked, the
-   * point score boxed. For one matchUp shown on its own; `sideColors` are placeholders a host replaces (a team's
-   * colours, by function).
+   * A scoreboard card: playing time and the event and round in the header, the server marked, the
+   * point score boxed. Theme-semantic defaults apply equally to either side. Hosts can supply explicit
+   * configuration.sideColors maps or callbacks; sample palettes do not belong in the generic preset.
    */
   Scoreboard: {
     configuration: {
@@ -83,8 +83,7 @@ export const compositions: Record<string, Composition> = {
       serverIndicator: 'column',
       connectors: true,
       gameScore: { position: 'trailing' },
-      scheduleInfo: { elapsed: true, eventRound: true },
-      sideColors: { 1: '#0b7a75', 2: '#b3365b' }
+      scheduleInfo: { elapsed: true, eventRound: true }
     },
     theme: basicCardTheme
   },

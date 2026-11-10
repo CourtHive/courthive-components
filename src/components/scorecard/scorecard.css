@@ -658,3 +658,9 @@
     min-height: 44px;
   }
 }
+
+/* Identity accents leave names, live scores and winner/serve semantics on readable theme tokens. */
+.chc-team-accent {
+  border-inline-start: 0.25rem solid var(--chc-team-primary);
+  box-shadow: inset 0 -0.125rem var(--chc-team-secondary);
+}

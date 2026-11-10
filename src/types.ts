@@ -86,6 +86,8 @@ export interface Side {
   sideNumber?: number;
   drawPosition?: number;
   participant?: Participant;
+  /** Privacy-filtered TEAM identity on a tie-match side. */
+  teamParticipant?: Participant;
   participantFed?: string;
   sourceMatchUp?: MatchUp;
   qualifier?: boolean;
@@ -106,7 +108,13 @@ export interface Side {
   seedingBasis?: string;
 }
 
+export interface TeamColors {
+  primary: string;
+  secondary?: string;
+}
+
 export interface Participant {
+  teamColors?: TeamColors;
   participantId: string;
   participantName?: string;
   participantOtherName?: string;
@@ -606,6 +614,8 @@ export interface EventHandlers {
     matchUp?: MatchUp;
     pointerEvent: MouseEvent;
     participant?: Participant;
+    /** Privacy-filtered TEAM identity on a tie-match side. */
+    teamParticipant?: Participant;
     side?: Side;
   }) => void;
   assignParticipant?: (params: {

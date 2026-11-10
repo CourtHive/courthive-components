@@ -14,7 +14,10 @@ export function swapSetScores(sets?: any[]): any[] | undefined {
     side1Score: set.side2Score,
     side2Score: set.side1Score,
     side1TiebreakScore: set.side2TiebreakScore,
-    side2TiebreakScore: set.side1TiebreakScore
+    side2TiebreakScore: set.side1TiebreakScore,
+    side1PointScore: set.side2PointScore,
+    side2PointScore: set.side1PointScore,
+    winningSide: swapWinningSide(set.winningSide)
   }));
 }
 
@@ -26,7 +29,15 @@ export function swapMatchUpSides(matchUp: any): any {
   return {
     ...matchUp,
     sides: swappedSides,
-    score: matchUp.score ? { ...matchUp.score, sets: swapSetScores(matchUp.score.sets) } : matchUp.score,
+    score: matchUp.score
+      ? {
+          ...matchUp.score,
+          scoreStringSide1: matchUp.score.scoreStringSide2,
+          scoreStringSide2: matchUp.score.scoreStringSide1,
+          sets: swapSetScores(matchUp.score.sets)
+        }
+      : matchUp.score,
+    serverSideNumber: swapWinningSide(matchUp.serverSideNumber),
     winningSide: swapWinningSide(matchUp.winningSide)
   };
 }
