@@ -43,6 +43,10 @@ export { buildFooter } from './ui/footer';
 
 // Types
 export type {
+  CompositionLimits,
+  AcceptanceEntry,
+  AcceptanceHost,
+  EntryChange,
   TopologyNode,
   TopologyEdge,
   TopologyState,
