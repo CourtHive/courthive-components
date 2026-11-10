@@ -57,7 +57,7 @@ describe('provider defaults and tournament presentation inheritance', () => {
     expect(resolveTeamColors({ palette })).toBeUndefined();
     expect(resolveTeamColors({ ...colors, palette: colors.palette.toReversed() })).toEqual(resolveTeamColors(colors));
   });
-  it('diagnoses dangling override references and atomically refuses unsupported role/CSS input', () => {
+  it('diagnoses dangling override references and drops unsupported role/CSS input as issues', () => {
     const diagnostics: string[] = [];
     const result = resolveTeamColors(colors, {
       participantId: 'alpha',
@@ -71,8 +71,21 @@ describe('provider defaults and tournament presentation inheritance', () => {
       { roles: { 'team.text': 'navy' } },
       { roles: { 'team.text': 'var(--anything)' } },
       { teams: { alpha: { arbitraryCss: 'red' } } }
-    ])
-      expect(normalizeTeamPresentation(value)).toBeUndefined();
+    ]) {
+      const issues: string[] = [];
+      const normalized = normalizeTeamPresentation(value, issues);
+      expect(issues).toHaveLength(1);
+      expect(JSON.stringify(normalized)).not.toMatch(/navy|var\(|red|#FFFFFF/);
+    }
+    // An empty team exception inherits; a malformed sibling exception does not cost the valid settings.
+    const issues: string[] = [];
+    expect(
+      normalizeTeamPresentation(
+        { roles: { 'score.text': '#ffffff' }, teams: { alpha: {}, beta: { roles: { 'team.text': 42 } } } },
+        issues
+      )
+    ).toEqual({ roles: { 'score.text': '#FFFFFF' }, teams: { alpha: { roles: {} }, beta: { roles: {} } } });
+    expect(issues).toEqual(['teams.beta: invalid team.text']);
   });
   it.each(['#000000', '#FFFFFF', '#E8B923', '#13294B'])(
     'chooses readable text on %s without editing brand values',
