@@ -6,11 +6,11 @@ A composition combines a theme, shared renderer configuration and optional color
 
 `configuration.serverIndicator` controls the dot marking the side serving the next point:
 
-| Value | Behavior |
-| --- | --- |
-| Absent or `false` | Off |
+| Value                | Behavior                                                              |
+| -------------------- | --------------------------------------------------------------------- |
+| Absent or `false`    | Off                                                                   |
 | `true` or `'column'` | Reserve an indicator column on both sides, filled on the serving side |
-| `'name'` | Append a dot after the serving side's name |
+| `'name'`             | Append a dot after the serving side's name                            |
 
 The host must supply `matchUp.serverSideNumber` as `1` or `2`. Missing or invalid service data produces no dot or reserved column. A finished matchUp produces no indicator, even if it still carries a serving side. The active dot has the title and accessible label “Serving”; the inactive alignment marker is hidden from assistive technology.
 
@@ -22,13 +22,13 @@ Preset defaults: Scoreboard, Broadcast Scorebug and Broadcast Bold use column; W
 
 ## Headers and footers
 
-| Region | Configuration | Meaning |
-| --- | --- | --- |
-| Round header | `roundHeader` | Round name above each bracket column; the editor also previews a sample only when enabled |
-| Schedule header | `scheduleInfo` | Schedule/date/location above the card; an options object adds playing time, event/round or inline layout |
-| Custom top slot | `renderers.matchUpHeader` | Host-provided DOM above the schedule header, independent of its visibility |
-| Built-in card footer | `matchUpFooter` | Round/match label, or inline scoring controls during an applicable scoring session |
-| Custom card footer | `renderers.matchUpFooter` | Host-provided DOM that replaces the label; can render even with the built-in footer toggle off |
+| Region               | Configuration             | Meaning                                                                                                  |
+| -------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Round header         | `roundHeader`             | Round name above each bracket column; the editor also previews a sample only when enabled                |
+| Schedule header      | `scheduleInfo`            | Schedule/date/location above the card; an options object adds playing time, event/round or inline layout |
+| Custom top slot      | `renderers.matchUpHeader` | Host-provided DOM above the schedule header, independent of its visibility                               |
+| Built-in card footer | `matchUpFooter`           | Round/match label, or inline scoring controls during an applicable scoring session                       |
+| Custom card footer   | `renderers.matchUpFooter` | Host-provided DOM that replaces the label; can render even with the built-in footer toggle off           |
 
 Watch/Share actions are separate from the card footer. Inline scoring also has its own `inlineScoring.showFooter` setting. Hiding a built-in footer does not remove an independently supplied custom footer.
 
@@ -42,17 +42,17 @@ The preview renders the actual built-in visibility settings. Color controls do n
 
 Existing round-header and footer fields remain available. Schedule-header controls follow the same convention:
 
-| `colors` field | CSS property | Fallback |
-| --- | --- | --- |
-| `roundHeader` | `--chc-color-round-header` | Inherited text color |
-| `roundHeaderBackground` | `--chc-color-round-header-bg` | Transparent |
-| `roundHeaderUnderline` | `--chc-color-round-header-underline` | Round-header color, then primary text |
-| `scheduleHeaderText` | `--chc-color-schedule-header-text` | Muted text |
-| `scheduleHeaderBackground` | `--chc-color-schedule-header-bg` | Secondary background |
-| `scheduleHeaderDivider` | `--chc-color-schedule-header-divider` | Primary border; BasicCard defaults to transparent |
-| `matchUpFooterText` | `--chc-color-matchup-footer-text` | Muted text |
-| `matchUpFooterBackground` | `--chc-color-matchup-footer-bg` | MatchUp background |
-| `matchUpFooterDivider` | `--chc-color-matchup-footer-divider` | Transparent |
+| `colors` field             | CSS property                          | Fallback                                          |
+| -------------------------- | ------------------------------------- | ------------------------------------------------- |
+| `roundHeader`              | `--chc-color-round-header`            | Inherited text color                              |
+| `roundHeaderBackground`    | `--chc-color-round-header-bg`         | Transparent                                       |
+| `roundHeaderUnderline`     | `--chc-color-round-header-underline`  | Round-header color, then primary text             |
+| `scheduleHeaderText`       | `--chc-color-schedule-header-text`    | Muted text                                        |
+| `scheduleHeaderBackground` | `--chc-color-schedule-header-bg`      | Secondary background                              |
+| `scheduleHeaderDivider`    | `--chc-color-schedule-header-divider` | Primary border; BasicCard defaults to transparent |
+| `matchUpFooterText`        | `--chc-color-matchup-footer-text`     | Muted text                                        |
+| `matchUpFooterBackground`  | `--chc-color-matchup-footer-bg`       | MatchUp background                                |
+| `matchUpFooterDivider`     | `--chc-color-matchup-footer-divider`  | Transparent                                       |
 
 An explicit color overrides the theme. A blank field inherits the theme, and **Clear color overrides** restores inheritance. Effective swatches show the selected theme's colors without saving those defaults as explicit overrides. Editing colors while a region is hidden leaves it hidden and saves the colors for later use.
 
@@ -98,3 +98,17 @@ Run the browser checks with one worker when sharing development CPU:
 ```bash
 pnpm test:stories src/stories/compositionConsistency.stories.ts src/stories/compositionConsistencyControls.stories.ts --maxWorkers=1
 ```
+
+## Scoreboard defaults and TEAM branding
+
+The Scoreboard preset uses the selected theme's winner, loser, live-score and serving treatment for both sides. It contains no sample team palette. Existing saved compositions that explicitly include `configuration.sideColors` keep their palette; loading/resetting the current preset restores the neutral default.
+
+For a deliberate demonstration, supply `configuration: { ...compositions.Scoreboard.configuration, sideColors: { 1: '#0b7a75', 2: '#b3365b' } }`. The public `sideColors` API remains a one-based map or `({ matchUp, sideNumber }) => color` callback. Manual maps and callback arguments refer to rendered sides, including when a scorecard swaps them. Blank/partial explicit palettes own their results and suppress automatic branding.
+
+`renderScorecard({ matchUp, composition, teamBranding: true })` opts into TEAM identity accents on the header and collection lines. The default is false. Colors come from `side.participant.teamColors` only for a TEAM, or from the privacy-filtered `side.teamParticipant` on a tie line. The participant ID is required. Individual and PAIR colors are ignored. Missing/invalid/filtered colors remain theme-neutral; the renderer never consults raw tournament data or restores denied child fields from a parent.
+
+Each team's `primary` is an opaque six-digit hex accent border; optional `secondary` is a trim for that same team. Text retains theme contrast. Identical team colors are allowed; names, score, winner and serve indicators remain independent. Reversing the sides array or enabling `swapSides` moves identity and accents together without mutating match data.
+
+Clearing both Side 1 / Side 2 editor fields removes `sideColors`. On an opted-in scorecard, this restores automatic TEAM accents. An explicit empty map `{}` suppresses them; `teamBranding: false` disables automatic resolution at the host.
+
+Brand resolution is runtime data. Composition JSON retains explicit maps and strips callbacks; it does not store hydrated TEAM records or the opt-in scorecard option. TMX and Epixodic adopt the option at their scorecard hosts; direct matchUp callers retain their current explicit palette behavior.

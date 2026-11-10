@@ -7,6 +7,7 @@ import { compositions } from '../compositions/compositions';
 import { expect } from 'storybook/test';
 import '../components/forms/styles';
 
+const SIDE_COLOR = '[data-side-color]';
 const DESC_COLOR = 'var(--chc-text-secondary, #666)';
 
 export default {
@@ -114,12 +115,24 @@ export const Default = {
 
     // Australian: none of the scoreboard options
     expect(live().querySelector(SERVER)).toBeNull();
-    expect(live().querySelector('[data-side-color]')).toBeNull();
+    expect(live().querySelector(SIDE_COLOR)).toBeNull();
     expect(live().querySelector('.chc-matchup-actions')).toBeNull();
 
     // ── Scoreboard ──
     loadPreset('Scoreboard');
-    const sideColors = compositions.Scoreboard.configuration?.sideColors as Record<1 | 2, string>;
+    // Explicit demonstration palette: the generic preset itself is neutral.
+    const sideColors = { 1: '#0b7a75', 2: '#b3365b' };
+    expect(live().querySelector(SIDE_COLOR)).toBeNull();
+    openSection('Colors');
+    for (const sideNumber of [1, 2] as const) {
+      const row = [...canvasElement.querySelectorAll('.ce-field')].find(
+        (el) => el.querySelector('span')?.textContent === `Side ${sideNumber}`
+      ) as HTMLElement;
+      const input = row.querySelector('input[type="text"]') as HTMLInputElement;
+      input.value = sideColors[sideNumber];
+      input.dispatchEvent(new Event('input'));
+    }
+    openSection('Colors');
     const header = live().querySelector('.chc-scheduling') as HTMLElement;
     expect(header.querySelector('.chc-scheduling__left .chc-scheduling__elapsed')?.textContent).toBe('0:16');
     expect(header.querySelector('.chc-scheduling__left .chc-scheduling__location')?.textContent).toBe('RMTA Court 2');
@@ -172,7 +185,7 @@ export const Default = {
     expect(sideField('Side 1').value).toBe(sideColors[1]);
     typeInto(sideField('Side 1'), '');
     typeInto(sideField('Side 2'), '');
-    expect(live().querySelector('[data-side-color]')).toBeNull();
+    expect(live().querySelector(SIDE_COLOR)).toBeNull();
     typeInto(sideField('Side 1'), '#123456');
     expect(sideOf(live(), 1).dataset.sideColor).toBe('true');
     expect(sideOf(live(), 2).dataset.sideColor).toBeUndefined();
