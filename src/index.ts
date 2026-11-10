@@ -921,3 +921,7 @@ export type {
   DisplaySettingsPreset
 } from './components/display-settings/displaySettingsTypes';
 import './components/display-settings/display-settings.css';
+
+// CODES TEAM palettes and their selected display colors
+export { normalizeTeamPalette, resolveTeamColors } from './components/scorecard/teamPalette';
+export type { TeamColors, TeamPaletteColor } from './types';
