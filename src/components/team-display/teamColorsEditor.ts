@@ -144,7 +144,7 @@ export function renderTeamColorsEditor(target: HTMLElement, initial: unknown, la
       const row = document.createElement('div');
       row.className = 'team-palette-row';
       row.style.marginBlockEnd = '1rem';
-      row.style.borderBottom = '1px solid var(--tmx-border-primary)';
+      row.style.borderBottom = '1px solid var(--chc-border-primary)';
       row.dataset.colorId = entry.colorId;
       for (const key of ['name', 'value', 'group'] as const) field(row, entry, key);
       const move = button('moveColorUp', () => {
