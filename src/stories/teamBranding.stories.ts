@@ -135,6 +135,17 @@ function play({ canvasElement, args }: { canvasElement: HTMLElement; args: Args 
   expect(canvasElement.querySelectorAll('[data-audit="serverundefined"] .chc-server--active')).toHaveLength(0);
   for (const card of canvasElement.querySelectorAll<HTMLElement>('[data-primary]')) {
     expect(card.querySelectorAll('.chc-team-accent')).toHaveLength(4);
+    const headerSides = card.querySelectorAll<HTMLElement>('.chc-scorecard-header .chc-team-accent');
+    expect(headerSides).toHaveLength(2);
+    for (const headerSide of headerSides) {
+      expect(getComputedStyle(headerSide).borderInlineStartWidth).toBe('0px');
+      expect(getComputedStyle(headerSide).boxShadow).toBe('none');
+    }
+    const lineSides = card.querySelectorAll<HTMLElement>('.chc-scorecard-card .chc-team-accent');
+    expect(lineSides).toHaveLength(2);
+    for (const lineSide of lineSides) {
+      expect(Number.parseFloat(getComputedStyle(lineSide).borderInlineStartWidth)).toBeGreaterThan(0);
+    }
     for (const accent of card.querySelectorAll<HTMLElement>('.chc-team-accent'))
       expect(accent.style.getPropertyValue('--chc-team-primary')).toBe(card.dataset.primary);
   }
