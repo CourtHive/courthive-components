@@ -20,9 +20,10 @@ export function renderTeamPresentationEditor(
   labels: Record<string, string> = {}
 ) {
   const text = (key: string, fallback: string) => labels[key] ?? fallback;
-  const normalized = normalizeTeamPresentation(initial ?? {});
+  const initialIssues: string[] = [];
+  const normalized = normalizeTeamPresentation(initial ?? {}, initialIssues);
   const draft: TeamPresentation = normalized ?? {};
-  let unreadable = !normalized;
+  let unreadable = !normalized || initialIssues.length > 0;
   const root = document.createElement('section');
   root.className = 'team-presentation-editor';
   const title = document.createElement('h3');
@@ -152,7 +153,9 @@ export function renderTeamPresentationEditor(
     error.textContent = unreadable ? text('invalid', 'Check presentation settings') : '';
   }
   function read(): TeamPresentation | undefined {
-    const result = unreadable ? undefined : normalizeTeamPresentation(draft);
+    const issues: string[] = [];
+    const normalized = unreadable ? undefined : normalizeTeamPresentation(draft, issues);
+    const result = issues.length ? undefined : normalized;
     const missing = Object.entries(result?.teams ?? {}).some(([id, team]) => {
       const palette = teams.find((candidate) => candidate.participantId === id)?.teamColors?.palette ?? [];
       return Object.values(team.roles).some(
