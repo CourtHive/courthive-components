@@ -88,3 +88,14 @@ it('offers palette colors by name while persisting their stable IDs', () => {
   change(selects[1], 'navy');
   expect(editor.read()?.teams?.alpha.roles['team.surface']).toBe('navy');
 });
+
+it('keeps option labels and accessible names distinct and uses library control classes', () => {
+  renderTeamPresentationEditor(document.body, {}, [], { color: 'Use color', colorValue: 'custom color' });
+  const row = [...document.querySelectorAll('.team-presentation-role')][1];
+  const mode = row.querySelector('select')!;
+  expect([...mode.options].map((option) => option.textContent)).toContain('Use color');
+  expect(row.querySelector('input')?.ariaLabel).toBe('Team text custom color');
+  expect(document.querySelector('.team-presentation-editor > button')?.className).toBe('button');
+  for (const control of document.querySelectorAll('.team-presentation-editor select, .team-presentation-editor input'))
+    expect(control.classList.contains('input')).toBe(true);
+});

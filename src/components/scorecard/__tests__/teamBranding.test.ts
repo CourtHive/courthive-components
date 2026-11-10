@@ -55,10 +55,8 @@ function fixture() {
     ]
   };
 }
-const accents = (card: HTMLElement) =>
-  [...card.querySelectorAll<HTMLElement>('.chc-team-accent')].map((el) =>
-    el.style.getPropertyValue('--chc-team-accent')
-  );
+const accentRows = (card: HTMLElement) => [...card.querySelectorAll<HTMLElement>('.chc-team-accent')];
+const accents = (card: HTMLElement) => accentRows(card).map((el) => el.style.getPropertyValue('--chc-team-accent'));
 
 describe('TEAM identity accents', () => {
   it.each([false, true])(
@@ -217,6 +215,29 @@ describe('TEAM identity accents', () => {
     expect(top.querySelector('.chc-point-score')?.textContent).toBe('30');
     expect(top.querySelector('.chc-server--active')).not.toBeNull();
     expect(JSON.stringify(matchUp)).toBe(original);
+  });
+
+  it('re-resolves readable name paint after attach and on a theme switch without touching brand values', async () => {
+    const surface = document.createElement('div');
+    surface.style.backgroundColor = '#ffffff';
+    const card = renderScorecard({ matchUp: fixture(), composition: compositions.Scoreboard, teamBranding: true });
+    surface.appendChild(card);
+    document.body.appendChild(surface);
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    const betaName = () =>
+      accentRows(card)
+        .find((el) => el.style.getPropertyValue('--chc-team-accent') === '#FFFF00')
+        ?.querySelector<HTMLElement>('.chc-participant-name');
+    const yellow = (color = '') => ['#ffff00', 'rgb(255, 255, 0)'].includes(color.toLowerCase());
+    expect(betaName()).toBeTruthy();
+    expect(yellow(betaName()?.style.color)).toBe(false); // yellow on white is unreadable
+    surface.style.backgroundColor = '#000000';
+    document.documentElement.dataset.theme = 'dark';
+    await Promise.resolve();
+    expect(yellow(betaName()?.style.color)).toBe(true);
+    expect(accents(card)).toEqual(['#FFFFFF', '#FFFF00']);
+    surface.remove();
+    delete document.documentElement.dataset.theme;
   });
 
   it('rejects malformed and non-TEAM data', () => {

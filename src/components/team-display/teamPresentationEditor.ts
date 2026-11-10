@@ -10,6 +10,8 @@ export interface PresentationTeam {
   teamColors?: TeamColors;
 }
 
+const SELECT_CLASS = 'input font-medium';
+
 /** Sparse overrides stay separate from the provider-authored team defaults. */
 export function renderTeamPresentationEditor(
   target: HTMLElement,
@@ -28,6 +30,7 @@ export function renderTeamPresentationEditor(
   const scopeLabel = document.createElement('label');
   scopeLabel.textContent = text('scope', 'Apply to');
   const scope = document.createElement('select');
+  scope.className = SELECT_CLASS;
   scope.appendChild(teamDisplayOption(text('allTeams', 'All teams'), ''));
   for (const team of teams)
     scope.appendChild(teamDisplayOption(team.participantName ?? team.participantId, team.participantId));
@@ -41,6 +44,7 @@ export function renderTeamPresentationEditor(
   error.setAttribute('role', 'alert');
   const reset = document.createElement('button');
   reset.type = 'button';
+  reset.className = 'button';
   reset.textContent = text('reset', 'Reset this scope to inherited defaults');
   reset.addEventListener('click', () => {
     if (scope.value) delete draft.teams?.[scope.value];
@@ -88,6 +92,7 @@ export function renderTeamPresentationEditor(
       };
       caption.textContent = text(role, roleLabels[role]);
       const mode = document.createElement('select');
+      mode.className = SELECT_CLASS;
       mode.ariaLabel = caption.textContent ?? role;
       const modes = [
         ['inherit', 'Inherit'],
@@ -106,11 +111,13 @@ export function renderTeamPresentationEditor(
               ? 'color'
               : 'palette';
       const color = document.createElement('input');
+      color.className = 'input';
       color.value = typeof value === 'string' && value.startsWith('#') ? value : '';
       color.placeholder = '#RRGGBB';
-      color.ariaLabel = `${caption.textContent} ${text('color', 'custom color')}`;
+      color.ariaLabel = `${caption.textContent} ${text('colorValue', 'custom color')}`;
       const palette = document.createElement('select');
-      palette.ariaLabel = `${caption.textContent} ${text('palette', 'team palette')}`;
+      palette.className = SELECT_CLASS;
+      palette.ariaLabel = `${caption.textContent} ${text('paletteValue', 'team palette color')}`;
       palette.appendChild(teamDisplayOption(text('choosePalette', 'Choose team color'), ''));
       const entries = teams.find((team) => team.participantId === scope.value)?.teamColors?.palette ?? [];
       for (const entry of entries) palette.appendChild(teamDisplayOption(entry.name ?? entry.value, entry.colorId));
