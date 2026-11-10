@@ -1,20 +1,27 @@
+import { resolveTeamColors } from '../teamBranding';
 /** @vitest-environment happy-dom */
 import { compositionSnapshot } from '../../composition-editor/compositionSnapshot';
 import { compositions } from '../../../compositions/compositions';
 import { renderScorecard } from '../renderScorecard';
 import { describe, expect, it } from 'vitest';
 
+function palette(primary: string, secondary?: string) {
+  return {
+    palette: [{ colorId: 'accent', value: primary }, ...(secondary ? [{ colorId: 'trim', value: secondary }] : [])],
+    display: { primary: 'accent', ...(secondary && { secondary: 'trim' }) }
+  };
+}
 const alpha = {
   participantId: 'alpha',
   participantType: 'TEAM',
   participantName: 'Alpha',
-  teamColors: { primary: '#ffffff', secondary: '#000000' }
+  teamColors: palette('#FFFFFF', '#000000')
 };
 const beta = {
   participantId: 'beta',
   participantType: 'TEAM',
   participantName: 'Beta',
-  teamColors: { primary: '#ffff00' }
+  teamColors: palette('#FFFF00')
 };
 function fixture() {
   return {
@@ -68,7 +75,7 @@ describe('TEAM identity accents', () => {
       const scores = [...card.querySelectorAll('.chc-scorecard-side-score')].map((el) => el.textContent);
       expect(scores).toEqual(swapSides ? ['2', '1'] : ['1', '2']);
       expect(card.querySelector('.chc-scorecard-side-score--winner')?.textContent).toBe('2');
-      const expected = swapSides ? ['#ffff00', '#ffffff'] : ['#ffffff', '#ffff00'];
+      const expected = swapSides ? ['#FFFF00', '#FFFFFF'] : ['#FFFFFF', '#FFFF00'];
       expect(accents(card)).toEqual([...expected, ...expected]);
       for (const el of card.querySelectorAll<HTMLElement>('.chc-team-accent')) {
         expect(el.style.color).toBe('');
@@ -116,24 +123,24 @@ describe('TEAM identity accents', () => {
       side.participant = {
         ...side.participant,
         participantId: 'substitute',
-        teamColors: { primary: '#123456' }
+        teamColors: palette('#123456')
       } as any;
     });
     expect(accents(renderScorecard({ matchUp, teamBranding: true }))).toEqual([
-      '#ffff00',
-      '#ffffff',
-      '#ffff00',
-      '#ffffff'
+      '#FFFF00',
+      '#FFFFFF',
+      '#FFFF00',
+      '#FFFFFF'
     ]);
   });
 
-  it.each(['#000000', '#ffff00', '#ffffff', '#110022'])(
+  it.each(['#000000', '#FFFF00', '#FFFFFF', '#110022'])(
     'accepts identical %s accents without altering outcome semantics',
     (primary) => {
       const matchUp = fixture();
       matchUp.sides = matchUp.sides.map((side) => ({
         ...side,
-        participant: { ...side.participant, teamColors: { primary } }
+        participant: { ...side.participant, teamColors: palette(primary) }
       }));
       const card = renderScorecard({ matchUp, teamBranding: true });
       expect(accents(card).slice(0, 2)).toEqual([primary, primary]);
@@ -145,7 +152,7 @@ describe('TEAM identity accents', () => {
     const matchUp = fixture();
     const sideColors = ({ matchUp: rendered, sideNumber }: any) => {
       const side = rendered.sides.find((candidate: any) => candidate.sideNumber === sideNumber);
-      return (side.teamParticipant ?? side.participant)?.teamColors?.primary;
+      return resolveTeamColors((side.teamParticipant ?? side.participant)?.teamColors)?.primary;
     };
     const card = renderScorecard({
       matchUp,
@@ -156,10 +163,10 @@ describe('TEAM identity accents', () => {
         configuration: { ...compositions.Scoreboard.configuration, sideColors }
       }
     });
-    expect(accents(card)).toEqual(swapSides ? ['#ffff00', '#ffffff'] : ['#ffffff', '#ffff00']);
+    expect(accents(card)).toEqual(swapSides ? ['#FFFF00', '#FFFFFF'] : ['#FFFFFF', '#FFFF00']);
     const rows = [...card.querySelectorAll<HTMLElement>('.chc-scorecard-card .tmx-sd')];
     expect(rows.map((row) => row.style.getPropertyValue('--chc-side-color'))).toEqual(
-      swapSides ? ['#ffff00', '#ffffff'] : ['#ffffff', '#ffff00']
+      swapSides ? ['#FFFF00', '#FFFFFF'] : ['#FFFFFF', '#FFFF00']
     );
   });
 
@@ -170,7 +177,7 @@ describe('TEAM identity accents', () => {
       side.participant = {
         participantId: `pair-${side.sideNumber}`,
         participantType: 'PAIR',
-        teamColors: { primary: '#123456' },
+        teamColors: palette('#123456'),
         individualParticipants: ['Substitute', 'Partner'].map((name) => ({
           participantId: `${name}-${side.sideNumber}`,
           participantName: name,
@@ -178,7 +185,7 @@ describe('TEAM identity accents', () => {
         }))
       } as any;
     const card = renderScorecard({ matchUp, teamBranding: true, swapSides: true });
-    expect(accents(card)).toEqual(['#ffff00', '#ffffff', '#ffff00', '#ffffff']);
+    expect(accents(card)).toEqual(['#FFFF00', '#FFFFFF', '#FFFF00', '#FFFFFF']);
     expect(card.textContent).toContain('Substitute');
     expect(card.textContent).toContain('Partner');
   });
@@ -220,7 +227,7 @@ describe('TEAM identity accents', () => {
       participant: { ...side.participant, participantType: 'PAIR' }
     }));
     matchUp.tieMatchUps[0].sides.forEach((side) => {
-      side.teamParticipant = { ...side.teamParticipant, teamColors: { primary: 'red' } };
+      side.teamParticipant = { ...side.teamParticipant, teamColors: palette('red') };
     });
     expect(accents(renderScorecard({ matchUp, teamBranding: true }))).toEqual([]);
   });
@@ -234,8 +241,8 @@ it('keeps the generic preset neutral and round-trips explicit maps while removin
       compositionName: 'Scoreboard',
       configuration: { ...compositions.Scoreboard.configuration, sideColors }
     });
-  expect(snapshot({ 1: '#ffffff' }).configuration.sideColors).toEqual({ 1: '#ffffff' });
-  expect(snapshot(() => '#ffffff').configuration.sideColors).toBeUndefined();
+  expect(snapshot({ 1: '#FFFFFF' }).configuration.sideColors).toEqual({ 1: '#FFFFFF' });
+  expect(snapshot(() => '#FFFFFF').configuration.sideColors).toBeUndefined();
 });
 
 it('accepts old TEAM subsets without a type marker and refuses explicitly non-TEAM tie identities', () => {

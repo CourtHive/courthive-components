@@ -65,7 +65,15 @@ function render(args: Args): HTMLElement {
         participantId: `team${sideNumber}`,
         participantType: 'TEAM',
         participantName: `Team ${sideNumber} Montgomery-Wellington`,
-        teamColors: { primary, secondary: '#abcdef' }
+        teamColors: {
+          palette: [
+            { colorId: 'accent', value: primary, group: 'Primary' },
+            { colorId: 'trim', value: '#abcdef', group: 'Primary' },
+            { colorId: 'white', value: '#ffffff', group: 'Primary' },
+            { colorId: 'black', value: '#000000', group: 'Primary' }
+          ],
+          display: { primary: 'accent', secondary: 'trim' }
+        }
       }
     }));
     const line = match(2);
@@ -85,7 +93,7 @@ function render(args: Args): HTMLElement {
       teamBranding: true,
       swapSides: args.swapped
     });
-    card.dataset.primary = primary;
+    card.dataset.primary = primary.toUpperCase();
     root.appendChild(card);
   }
   return root;

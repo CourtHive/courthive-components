@@ -9,7 +9,11 @@ export default defineConfig({
       external: (id) => Object.keys(peerDependencies).some((peer) => id === peer || id.startsWith(peer + '/'))
     },
     lib: {
-      entry: { courts: 'src/components/courts/index.ts', 'segmented-bar': 'src/components/segmentedBar/index.ts' },
+      entry: {
+        courts: 'src/components/courts/index.ts',
+        'segmented-bar': 'src/components/segmentedBar/index.ts',
+        'team-colors': 'src/components/scorecard/teamPalette.ts'
+      },
       formats: ['es'],
       fileName: (_format, entry) => `${entry}.mjs`,
       cssFileName: 'features'

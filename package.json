@@ -27,6 +27,10 @@
       "types": "./dist/features-types/segmentedBar/index.d.ts",
       "import": "./dist/segmented-bar.mjs"
     },
+    "./team-colors": {
+      "types": "./dist/features-types/scorecard/teamPalette.d.ts",
+      "import": "./dist/team-colors.mjs"
+    },
     "./features.css": "./dist/features.css"
   },
   "repository": {

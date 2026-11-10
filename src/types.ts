@@ -1,3 +1,5 @@
+import type { TeamColors } from './components/scorecard/teamPalette';
+
 /**
  * Per-side provenance for an exit: what the side carries, what produced it, and which matchUp it
  * came from. RE-EXPORTED FROM THE FACTORY, which owns this shape.
@@ -108,10 +110,7 @@ export interface Side {
   seedingBasis?: string;
 }
 
-export interface TeamColors {
-  primary: string;
-  secondary?: string;
-}
+export type { TeamColors, TeamPaletteColor } from './components/scorecard/teamPalette';
 
 export interface Participant {
   teamColors?: TeamColors;
