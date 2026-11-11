@@ -23,7 +23,9 @@ export function renderSeeding({
 
   const { bracketedSeeds } = configuration;
 
-  const brackets: [string, string] = (typeof bracketedSeeds === 'boolean' && ['(', ')']) ||
+  // `false` means no brackets, as an absent setting does: it used to read `typeof === 'boolean'` and
+  // render `(9)` with the brackets switched OFF
+  const brackets: [string, string] = (bracketedSeeds === true && ['(', ')']) ||
     (bracketedSeeds === 'square' && ['[', ']']) || ['', ''];
 
   // Inside the seed's own brackets, so `[9]` becomes `[9†]` rather than growing the line. See
