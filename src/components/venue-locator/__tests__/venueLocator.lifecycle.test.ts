@@ -1,4 +1,4 @@
-import { createLocatorLifetime, loadUnlessDisposed } from '../lifetime';
+import { createLifetime, loadUnlessDisposed } from '../../../helpers/lifetime';
 import { describe, expect, it, vi } from 'vitest';
 
 /**
@@ -19,7 +19,7 @@ function deferred<T>() {
 
 describe('venue locator lifetime', () => {
   it('reports disposed when destroyed while the load is pending, even though the load succeeds', async () => {
-    const lifetime = createLocatorLifetime();
+    const lifetime = createLifetime();
     const load = deferred<string>();
     const outcome = loadUnlessDisposed(lifetime, () => load.promise);
     lifetime.dispose();
@@ -28,7 +28,7 @@ describe('venue locator lifetime', () => {
   });
 
   it('reports disposed, not failed, when destroyed while a load that then fails is pending', async () => {
-    const lifetime = createLocatorLifetime();
+    const lifetime = createLifetime();
     const load = deferred<string>();
     const outcome = loadUnlessDisposed(lifetime, () => load.promise);
     lifetime.dispose();
@@ -38,19 +38,19 @@ describe('venue locator lifetime', () => {
 
   it('CONTROL: a live lifetime gets the loaded value or the failure cause', async () => {
     const cause = new Error('not installed');
-    await expect(loadUnlessDisposed(createLocatorLifetime(), async () => 'leaflet')).resolves.toEqual({
+    await expect(loadUnlessDisposed(createLifetime(), async () => 'leaflet')).resolves.toEqual({
       status: 'loaded',
       value: 'leaflet'
     });
     await expect(
-      loadUnlessDisposed(createLocatorLifetime(), async () => {
+      loadUnlessDisposed(createLifetime(), async () => {
         throw cause;
       })
     ).resolves.toEqual({ status: 'failed', cause });
   });
 
   it('dispose runs the cleanup installed after creation, the one a mounted map replaces', () => {
-    const lifetime = createLocatorLifetime();
+    const lifetime = createLifetime();
     const removeMap = vi.fn();
     lifetime.cleanup = removeMap;
     lifetime.dispose();
