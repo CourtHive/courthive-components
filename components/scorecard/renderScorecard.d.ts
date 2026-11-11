@@ -1,13 +1,17 @@
 import { FinishingOrderEntryOptions, ScorecardLabels } from './renderCollectionCard';
-import { ScorecardHomeOptions } from './homeSides';
 import { ScorecardIssue } from './dualIssues';
 import { TeamScoreOptions } from './teamScoreEditor';
+import { ScorecardHomeOptions } from './homeSides';
+import { TeamPresentation } from './teamPalette';
 export type { ScorecardLabels } from './renderCollectionCard';
 export interface ScorecardOptions {
     matchUp: any;
     composition?: any;
     eventHandlers?: any;
     swapSides?: boolean;
+    /** Opt in to TEAM identity accents; explicit configuration.sideColors retains ownership. */
+    teamBranding?: boolean;
+    teamPresentation?: TeamPresentation;
     labels?: ScorecardLabels;
     /** one collection in its order-of-finish entry mode (see `renderCollectionCard`) */
     finishingOrder?: FinishingOrderEntryOptions & {
@@ -37,7 +41,7 @@ export interface TeamVsOptions {
 /**
  * Render a full team scorecard: header + collection panels + matchUp grids.
  */
-export declare function renderScorecard({ matchUp, composition, eventHandlers, swapSides, labels, finishingOrder, issues, issueActions, teamScore, home }: ScorecardOptions): HTMLDivElement;
+export declare function renderScorecard({ matchUp, composition, eventHandlers, teamBranding, teamPresentation, swapSides, labels, finishingOrder, issues, issueActions, teamScore, home }: ScorecardOptions): HTMLDivElement;
 /**
  * Render the team vs team header with names and aggregate score.
  */

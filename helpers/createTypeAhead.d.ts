@@ -35,6 +35,17 @@ type CreateTypeAheadParams = {
  * Exported for unit testing; the wiring below is the only production caller.
  */
 export declare function resolveCurrentLabel(list: any[], code?: string): string | undefined;
+export type HighlightSegment = {
+    text: string;
+    match: boolean;
+};
+/**
+ * Split `text` into the runs a suggestion renders: every case-insensitive occurrence of the trimmed
+ * `input` is a `match` segment holding the ORIGINAL casing, everything between is plain. An empty or
+ * whitespace-only input yields the whole text as one plain segment. Pure: segments are strings, and
+ * what renders them decides whether they are text or markup — `typeAheadItem` renders them as text.
+ */
+export declare function highlightSegments(text: string, input: string): HighlightSegment[];
 /**
  * Awesomplete's default item renderer builds each suggestion with innerHTML (to wrap matches in
  * <mark>), so a suggestion label holding markup — a participant name, say — would run as script.

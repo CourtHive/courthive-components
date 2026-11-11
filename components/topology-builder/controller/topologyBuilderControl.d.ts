@@ -24,11 +24,12 @@ export declare class TopologyBuilderControl {
     private currentFit;
     private fitEntry;
     private fitFor;
-    /** The entries the line runs through, in the host's ranking. */
+    private originalAcceptanceEntries;
+    private acceptanceEntries;
     private acceptancePool;
     private entryChanges;
-    /** Move the acceptance line: the first `cut` of the line's entries are accepted, the rest wait as alternates. */
-    setAcceptanceCut(cut: number): void;
+    /** Each stage's line adjusts the pending proposal; Generate remains the only write. */
+    setAcceptanceCut(cut: number, stage?: 'MAIN' | 'QUALIFYING'): void;
     /** The entry changes the acceptance line makes now — for the host to apply together with the generation. */
     getEntryChanges(): EntryChange[];
     /** The acceptance line back to today's statuses. */
@@ -36,6 +37,7 @@ export declare class TopologyBuilderControl {
     private proposalCache?;
     private currentProposals;
     private applyFitProposal;
+    private effectiveLimits;
     /** A Fit mode lever: the topology changes, and the next render asks the host for the new fit. */
     private applyFitLever;
     private buildToolbarPanel;

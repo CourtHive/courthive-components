@@ -1,7 +1,3 @@
-/**
- * The picker's two dropdowns: a plain list of choices, and the game-format chooser. Moved out of
- * matchUpFormat.ts unchanged except that they are given their labels instead of reading module state.
- */
 export interface DropdownItem {
     text: string;
     onClick: () => void;

@@ -44,6 +44,7 @@ export declare class InlineScoringManager {
      * Get situation flags (break point, set point, etc.) for display.
      */
     getSituation(matchUpId: string): Record<string, boolean> | undefined;
+    /** Whether there is an action of this session's to undo: never the stored score it was loaded with. */
     canUndo(matchUpId: string): boolean;
     canRedo(matchUpId: string): boolean;
     isComplete(matchUpId: string): boolean;

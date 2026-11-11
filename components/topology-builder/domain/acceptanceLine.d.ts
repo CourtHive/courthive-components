@@ -1,4 +1,4 @@
-import { AcceptanceEntry, EntryChange } from '../types';
+import { AcceptanceEntry, EntryChange, TopologyState } from '../types';
 export declare const ACCEPTED = "DIRECT_ACCEPTANCE";
 export declare const ALTERNATE = "ALTERNATE";
 /** The entries the line runs through, in the host's ranked order. */
@@ -17,3 +17,9 @@ export declare function entryChangesAt(pool: AcceptanceEntry[], cut?: number): E
 export declare function changeSummary(changes: EntryChange[]): string;
 /** The changes as a stable key, for the fit cache: the fit is asked again when they change. */
 export declare function changesKey(changes: EntryChange[]): string;
+/** Entries with the exact pending proposal applied, before any per-stage line adjustments. */
+export declare function proposalEntries(entries: AcceptanceEntry[], changes?: EntryChange[]): AcceptanceEntry[];
+/** The main line follows MAIN origins, so its cut can be moved back after a Qualify proposal. */
+export declare function stageAcceptanceEntries(entries: AcceptanceEntry[], state: TopologyState, stage: 'MAIN' | 'QUALIFYING'): AcceptanceEntry[];
+/** Compose cuts with the proposal, retaining each entry's original source for the atomic write. */
+export declare function stageEntryChanges(entries: AcceptanceEntry[], state: TopologyState): EntryChange[];

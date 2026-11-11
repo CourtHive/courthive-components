@@ -85,7 +85,9 @@ export declare class AvailabilityGrid {
     private capacityElement;
     private statsBarInstance;
     private viewToolbarResult;
+    /** Attached a tick after render (the package is loaded on first use); every read is null-guarded. */
     private datepicker;
+    private datepickerLifetime;
     private courtVisibilityCustomized;
     private visibleCourts;
     private initialSnapshot;

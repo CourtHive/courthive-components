@@ -32,7 +32,10 @@ export interface TopologyEdge {
     qualifyingPositions?: number;
     label?: string;
 }
+export type CompositionLimits = Partial<Record<'drawSize' | 'maxWildcards' | 'maxAlternates' | 'maxQualifiers', number>>;
 export interface TopologyState {
+    /** Explicit requests, bounded by sanction-record permissions in the factory. */
+    constraintOverrides?: CompositionLimits;
     nodes: TopologyNode[];
     edges: TopologyEdge[];
     selectedNodeId: string | null;
@@ -48,6 +51,8 @@ export interface TopologyState {
      * statuses. Not the topology's shape: the entries' statuses change only when the host applies it.
      */
     acceptanceCut?: number;
+    /** Per-stage cuts, applied after the exact pending proposal. */
+    acceptanceCuts?: Partial<Record<'MAIN' | 'QUALIFYING', number>>;
     /** Exact factory proposal changes, pending until Generate. */
     proposalEntryChanges?: EntryChange[];
 }
@@ -92,6 +97,11 @@ export interface PlayoffOffer {
 }
 export type TopologyChangeListener = (state: TopologyState) => void;
 export interface TopologyBuilderConfig {
+    /** Factory-resolved base limits and sanction-record permission ceilings. */
+    sanctionLimits?: () => {
+        constraints?: CompositionLimits;
+        overrideLimits?: CompositionLimits;
+    };
     initialState?: Partial<TopologyState>;
     onGenerate?: (state: TopologyState) => void;
     onDoubleClickNode?: (node: TopologyNode, state: TopologyState) => void;
@@ -162,6 +172,9 @@ export interface UIPanel<T = unknown> {
 }
 /** One MAIN entry as the acceptance line lists it. The host ranks them, best first; the line never ranks anyone. */
 export interface AcceptanceEntry {
+    entryStage?: string;
+    /** Global ranked order, used when a proposal moves entries between stage lists. */
+    rankOrder?: number;
     participantId: string;
     /** The participant's name. Fit mode is a director's tool: unlike a journey, it names who is cut */
     name: string;
@@ -172,10 +185,13 @@ export interface AcceptanceEntry {
 /** The host side of the acceptance line. */
 export interface AcceptanceHost {
     /** The event's MAIN entries, ranked best first. Withdrawn entries may be included; the line leaves them out. */
-    entries: () => AcceptanceEntry[];
+    entries: (stage: 'MAIN' | 'QUALIFYING') => AcceptanceEntry[];
 }
 /** An entry whose status the acceptance line changes. */
 export interface EntryChange {
+    /** Source defaults to MAIN for existing hosts. */
+    fromStage?: string;
+    toStage?: string;
     participantId: string;
     from: string;
     to: string;
@@ -243,7 +259,8 @@ export interface JourneyHost {
 }
 /** A host-supplied factory proposal; choosing it previews these exact changes. */
 export interface FitProposal {
-    kind: 'Cut' | 'Grow' | 'Feed-in';
+    kind: 'Cut' | 'Grow' | 'Feed-in' | 'Qualify';
+    qualifyingDrawSize?: number;
     label: string;
     drawSize: number;
     drawType: string;
@@ -254,5 +271,7 @@ export interface FitProposal {
         cutToAlternate: number;
         byesBeyondSeeds: number;
         fedIn: number;
+        movedToQualifying?: number;
+        promotedAlternates?: number;
     };
 }

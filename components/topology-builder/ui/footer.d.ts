@@ -1,3 +1,4 @@
+import { buildSanctionLimits } from './sanctionLimits';
 import { AcceptanceOptions } from './acceptanceLine';
 import { buildFitProposals } from './fitProposals';
 import { JourneyParticipant, TopologyState, UIPanel } from '../types';
@@ -13,8 +14,9 @@ export interface FooterOptions {
         summary: (state: TopologyState) => string;
     };
     /** Fit mode's acceptance line: a panel over the canvas, and the pending entry changes beside the ledger. */
-    acceptance?: AcceptanceOptions;
+    acceptance?: AcceptanceOptions | AcceptanceOptions[];
     proposals?: Parameters<typeof buildFitProposals>[0];
+    sanctionLimits?: Parameters<typeof buildSanctionLimits>[0];
 }
 export interface FooterPanel extends UIPanel<TopologyState> {
     slot: HTMLElement;

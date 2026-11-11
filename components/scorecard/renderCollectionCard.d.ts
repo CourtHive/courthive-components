@@ -1,5 +1,6 @@
 import { FinishingOrderEntry } from './finishingOrderState';
 import { ScorecardIssue } from './dualIssues';
+import { TeamPresentation } from './teamPalette';
 export interface ScorecardLabels {
     /** names the order-of-finish badge for assistive technology and its tooltip, e.g. "Order of finish" */
     orderOfFinish?: string;
@@ -55,9 +56,11 @@ export interface CollectionCardOptions {
     composition?: any;
     eventHandlers?: any;
     swapSides?: boolean;
+    teamBranding?: boolean;
+    teamPresentation?: TeamPresentation;
     labels?: ScorecardLabels;
     finishingOrder?: FinishingOrderEntryOptions;
     /** the dual's issues; those naming this collection's lines are marked */
     issues?: ScorecardIssue[];
 }
-export declare function renderCollectionCard({ collectionDefinition, collectionMatchUps, composition, eventHandlers, swapSides, labels, finishingOrder, issues }: CollectionCardOptions): HTMLDivElement;
+export declare function renderCollectionCard({ collectionDefinition, collectionMatchUps, composition, eventHandlers, teamBranding, teamPresentation, swapSides, labels, finishingOrder, issues }: CollectionCardOptions): HTMLDivElement;

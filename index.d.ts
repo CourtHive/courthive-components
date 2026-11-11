@@ -138,3 +138,7 @@ export type { ThemeMode, ThemePalette } from './theme/palettes';
 export { createDisplaySettings } from './components/display-settings/createDisplaySettings';
 export { openDisplaySettingsDialog } from './components/display-settings/openDisplaySettingsDialog';
 export type { DisplaySettingsConfig, DisplaySettingsDialogConfig, DisplaySettingsLabels, DisplaySettingsMode, DisplaySettingsPreset } from './components/display-settings/displaySettingsTypes';
+export { TEAM_COLOR_ROLES, TEAM_RENDERERS, normalizeTeamPresentation, normalizeTeamPalette, resolveTeamColors, readableTeamText, teamContrastRatio, teamRoleStyles } from './components/scorecard/teamPalette';
+export type { TeamColors, TeamPaletteColor } from './types';
+export { renderTeamColorsEditor } from './components/team-display/teamColorsEditor';
+export { renderTeamPresentationEditor } from './components/team-display/teamPresentationEditor';

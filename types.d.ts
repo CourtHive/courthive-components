@@ -1,3 +1,4 @@
+import { TeamColors } from './components/scorecard/teamPalette';
 import { OnlineResource, SideExitProvenance } from 'tods-competition-factory';
 export type { OnlineResource, SideExitProvenance, SideExitProvenanceEntry } from 'tods-competition-factory';
 /**
@@ -57,6 +58,8 @@ export interface Side {
     sideNumber?: number;
     drawPosition?: number;
     participant?: Participant;
+    /** Privacy-filtered TEAM identity on a tie-match side. */
+    teamParticipant?: Participant;
     participantFed?: string;
     sourceMatchUp?: MatchUp;
     qualifier?: boolean;
@@ -76,7 +79,9 @@ export interface Side {
      */
     seedingBasis?: string;
 }
+export type { TeamPresentation, TeamColorRole, TeamColors, TeamPaletteColor } from './components/scorecard/teamPalette';
 export interface Participant {
+    teamColors?: TeamColors;
     participantId: string;
     participantName?: string;
     participantOtherName?: string;
@@ -541,6 +546,12 @@ export interface CompositionColors {
     /** round header underline (divider between header and participants) — sets
      * `--chc-color-round-header-underline`. Falls back to `roundHeader`, then `--chc-text-primary`. */
     roundHeaderUnderline?: string;
+    /** Schedule header text — sets `--chc-color-schedule-header-text`. Falls back to `--chc-text-muted`. */
+    scheduleHeaderText?: string;
+    /** Schedule header background — sets `--chc-color-schedule-header-bg`. Falls back to `--chc-bg-secondary`. */
+    scheduleHeaderBackground?: string;
+    /** Schedule header bottom divider — sets `--chc-color-schedule-header-divider`. Falls back to `--chc-border-primary`. */
+    scheduleHeaderDivider?: string;
     /** matchUp footer background color — sets `--chc-color-matchup-footer-bg`. Falls back to `matchUpBackground`. */
     matchUpFooterBackground?: string;
     /** matchUp footer text color — sets `--chc-color-matchup-footer-text`. Falls back to `--chc-text-muted`. */
@@ -567,6 +578,8 @@ export interface EventHandlers {
         matchUp?: MatchUp;
         pointerEvent: MouseEvent;
         participant?: Participant;
+        /** Privacy-filtered TEAM identity on a tie-match side. */
+        teamParticipant?: Participant;
         side?: Side;
     }) => void;
     assignParticipant?: (params: {

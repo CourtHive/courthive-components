@@ -22,7 +22,7 @@ interface RenderInlineMatchUpParams {
  * driven by the inlineScoring config state and eventHandlers passed down.
  *
  * Returns a container element that re-renders itself after each scoring action, or **`null`** when the
- * matchUp must not be offered for scoring — see `isScorable`. Callers must handle the null rather than
+ * matchUp must not be offered for scoring — see `inlineScoringRefusal`. Callers must handle the null rather than
  * replacing a rendered cell with it; the return type is what forces them to.
  */
 export declare function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElement | null;

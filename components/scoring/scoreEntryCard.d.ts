@@ -1,3 +1,4 @@
+import { ScoreEntryOutcome } from './logic/scoreEntryRules';
 import { ScoreEntryState, SideNumber } from './logic/scoreEntryState';
 import { ScoreEntryModel } from './logic/scoreEntryModel';
 import { ScoreEntryStore } from './logic/scoreEntryStore';
@@ -92,29 +93,8 @@ export type ApproachOption = {
     key: string;
     label: string;
 };
-/**
- * What the card reports when Submit is pressed.
- *
- * `winningSide` is the ending's where one was recorded and the SCORE's otherwise. Both are real answers
- * and a host needs whichever applies: measured 2026-09-27, this carried only the ending's, so an
- * ordinary 6-4 6-3 submitted as `{ matchUpStatus: undefined, winningSide: undefined }` — the 95% case
- * reporting nothing at all about who won.
- */
-export type ScoreEntryOutcome = {
-    matchUpStatus?: string;
-    winningSide?: number;
-    reasonCode?: string;
-    /** The score as the region formats it, which is what a host stores alongside the outcome. */
-    score?: string;
-    /**
-     * The operator cleared a recorded outcome and submitted the empty result — REMOVE what is stored.
-     *
-     * Only ever `true`, never `false`, so a host that does not know about it is unaffected. It exists
-     * because an empty outcome is otherwise indistinguishable from a submission that says nothing, and
-     * the two must not be treated alike: one erases a stored score and the other must not.
-     */
-    cleared?: boolean;
-};
+/** What the card reports when Submit is pressed. Declared with the rules that build it. */
+export type { ScoreEntryOutcome };
 export type ScoreEntryCardParams = {
     sides: [{
         participantName: string;
