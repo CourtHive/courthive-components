@@ -1414,6 +1414,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       // One menu at a time: the approach menu stayed open beside this one (CA's screenshot, 2026-10-08).
       approachMenuOpen = false;
       render();
+      focusOtherChip();
     });
     endingsContainer.append(other);
 
@@ -1438,11 +1439,24 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
         clearScoreWhenEndingCarriesNone();
         otherMenuOpen = false;
         render();
+        focusOtherChip();
       });
       menu.append(item);
     }
     endingsContainer.append(menu);
     trackEndingsMenu(menu, other);
+  }
+
+  /**
+   * Focus the Other… chip once a render has replaced it.
+   *
+   * `render()` rebuilds the endings row, so the chip that was just clicked is gone and focus falls to the
+   * body. Measured in Chromium 2026-11-10: after opening the menu with the chip, Tab restarted from the top
+   * of the document instead of entering the menu. The new chip is where the operator was, and the menu
+   * follows it in Tab order; after a choice it names what was chosen, as the `c` shortcut leaves it.
+   */
+  function focusOtherChip(): void {
+    endingsContainer.querySelector<HTMLElement>('button[data-action="other"]')?.focus();
   }
 
   /**
@@ -1499,16 +1513,32 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   function placeEndingsMenu(menu: HTMLElement, anchor: HTMLElement): void {
     const GAP = 6;
     const rect = anchor.getBoundingClientRect();
-    const height = menu.offsetHeight;
-    const roomBelow = globalThis.innerHeight - rect.bottom;
+    // Its NATURAL height — content plus borders — so a cap left by the previous placement is not read back
+    // as the size. Read without lifting the cap, because lifting it resets the menu's scroll, and the
+    // scroll is itself one of the events this runs on.
+    const height = menu.scrollHeight + menu.offsetHeight - menu.clientHeight;
+    const roomBelow = globalThis.innerHeight - rect.bottom - GAP * 2;
+    const roomAbove = rect.top - GAP * 2;
 
     // Below by default, above when there is not room and there is room above — the ordinary behaviour
     // of a dropdown near the bottom of a screen, rather than a fixed direction.
-    const openUp = roomBelow < height + GAP && rect.top > height + GAP;
+    //
+    // And when there is room on NEITHER side, the larger side, with the menu capped to it and scrolling.
+    // Measured 2026-11-10 in Chromium at 1280x560: the menu (seven items, 379px) had 140px below its chip
+    // and about 400px above, so it dropped below and ran 229px off the bottom of the screen — the clipped
+    // menu CA reported. `ScoreEntryOtherChipTests.stories.ts` measures it at six viewport heights.
+    const fitsBelow = roomBelow >= height;
+    const openUp = !fitsBelow && (roomAbove >= height || roomAbove > roomBelow);
+    const room = Math.max(0, openUp ? roomAbove : roomBelow);
+    const shown = Math.min(height, room);
+    menu.style.maxHeight = shown < height ? `${shown}px` : '';
+    menu.style.overflowY = shown < height ? 'auto' : '';
 
     menu.style.position = 'fixed';
-    menu.style.left = `${rect.left}px`;
-    menu.style.top = openUp ? `${rect.top - height - GAP}px` : `${rect.bottom + GAP}px`;
+    // Kept inside the right edge too: the chip can sit far enough right that a 250px menu would not fit.
+    const left = Math.min(rect.left, globalThis.innerWidth - menu.offsetWidth - GAP);
+    menu.style.left = `${Math.max(GAP, left)}px`;
+    menu.style.top = openUp ? `${rect.top - shown - GAP}px` : `${rect.bottom + GAP}px`;
 
     // `bottom` and `right` are cleared, not merely left alone. The stylesheet positions this menu for
     // its OTHER use — the approach switcher, which is still `absolute` — and a `bottom` surviving
