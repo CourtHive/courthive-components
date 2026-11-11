@@ -1,8 +1,7 @@
+import { CompositionEditorStore, scheduleHeaderDisabled } from '../compositionEditorStore';
 import type { CompositionEditorState, EditorPanel } from '../compositionEditorTypes';
 import { buildToggleField, buildSelectField, addFieldHint } from './fieldBuilders';
-import type { CompositionEditorStore } from '../compositionEditorStore';
 import { showsConnectors } from '../../../compositions/showsConnectors';
-import type { ScheduleInfoOptions } from '../../../types';
 import { ceSubgroup, ceSubgroupTitle } from '../styles';
 
 function subgroup(title: string, ...fields: { element: HTMLElement }[]): HTMLElement {
@@ -31,23 +30,16 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
     scheduleInfo.element,
     'Shows the schedule header above each card. Hidden header choices are kept until you load a preset or close the editor.'
   );
-  const setHeaderOption = (key: keyof ScheduleInfoOptions, value: unknown) => {
-    if (!store.getState().configuration.scheduleInfo) return;
-    store.setConfigField('scheduleInfo', {
-      ...store.getScheduleInfoOptions(),
-      [key]: value
-    });
-  };
   const elapsed = buildToggleField(
     'Playing time',
     !!store.getScheduleInfoOptions().elapsed,
-    (v) => setHeaderOption('elapsed', v),
+    (v) => store.setScheduleInfoOption('elapsed', v),
     readOnly
   );
   const eventRound = buildToggleField(
     'Event & round',
     !!store.getScheduleInfoOptions().eventRound,
-    (v) => setHeaderOption('eventRound', v),
+    (v) => store.setScheduleInfoOption('eventRound', v),
     readOnly
   );
   const headerLayout = buildSelectField(
@@ -57,7 +49,7 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
       { value: 'inline', label: 'Inline' }
     ],
     store.getScheduleInfoOptions().layout === 'inline' ? 'inline' : '',
-    (v) => setHeaderOption('layout', v === 'inline' ? 'inline' : undefined),
+    (v) => store.setScheduleInfoOption('layout', v === 'inline' ? 'inline' : undefined),
     readOnly
   );
   const liveStatusPill = buildToggleField(
@@ -181,7 +173,7 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
     elapsed.setChecked(!!header.elapsed);
     eventRound.setChecked(!!header.eventRound);
     headerLayout.setValue(header.layout === 'inline' ? 'inline' : '');
-    const headerDisabled = state.readOnly || !c.scheduleInfo;
+    const headerDisabled = scheduleHeaderDisabled(state);
     elapsed.setDisabled(headerDisabled);
     eventRound.setDisabled(headerDisabled);
     headerLayout.setDisabled(headerDisabled);

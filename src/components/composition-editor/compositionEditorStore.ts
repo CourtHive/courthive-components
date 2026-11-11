@@ -6,6 +6,11 @@ import type {
   SectionId
 } from './compositionEditorTypes';
 
+/** The schedule header's detail controls are locked in read-only mode and while the header itself is off. */
+export function scheduleHeaderDisabled(state: Pick<CompositionEditorState, 'readOnly' | 'configuration'>): boolean {
+  return state.readOnly || !state.configuration.scheduleInfo;
+}
+
 export class CompositionEditorStore {
   private state: CompositionEditorState;
   private readonly listeners: Set<CompositionEditorListener> = new Set();
@@ -86,6 +91,12 @@ export class CompositionEditorStore {
   /** Hidden header details are retained for this edit session, never serialized while the header is off. */
   setScheduleInfoEnabled(enabled: boolean): void {
     this.setConfigField('scheduleInfo', enabled ? this.scheduleInfoChoice : false);
+  }
+
+  /** Change one header detail; ignored while the header is off, so a hidden choice cannot turn it back on. */
+  setScheduleInfoOption<K extends keyof ScheduleInfoOptions>(key: K, value: ScheduleInfoOptions[K]): void {
+    if (!this.state.configuration.scheduleInfo) return;
+    this.setConfigField('scheduleInfo', { ...this.getScheduleInfoOptions(), [key]: value });
   }
 
   getScheduleInfoOptions(): ScheduleInfoOptions {
