@@ -5,7 +5,7 @@ import { defineConfig } from 'vite';
 import path from 'path';
 
 // Two projects, run separately:
-//  - `unit` (`pnpm test`): the src/**/*.test.ts suites, in node (or happy-dom, per file). No browser.
+//  - `unit` (`pnpm test`): the src/**/*.test.ts suites, in node. No DOM: anything that needs one is a story.
 //  - `storybook` (`pnpm test:stories`): every story's play function, run by Storybook's own Vitest
 //    integration in headless Chromium. It replaced @storybook/test-runner, which failed every story
 //    under Storybook 10 (CA, 2026-10-10). Needs `pnpm exec playwright install chromium` once.
