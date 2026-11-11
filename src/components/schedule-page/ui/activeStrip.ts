@@ -17,6 +17,7 @@
  */
 
 import { computeActiveStrip, computeActiveStripDropTarget } from '../domain/activeStrip';
+import { DRAG_PAYLOAD_MIME, parseDragPayload } from '../domain/dragPayload';
 import type { SchedulePageDragPayload, SchedulePageState, UIPanel } from '../types';
 import type {
   ActiveStripCell,
@@ -179,13 +180,8 @@ function attachDropTarget(
     e.preventDefault();
     if (!callbacks.onMatchUpDrop) return;
 
-    let payload: SchedulePageDragPayload;
-    try {
-      payload = JSON.parse(e.dataTransfer?.getData('application/json') ?? '');
-    } catch {
-      return;
-    }
-    if (payload.type !== 'CATALOG_MATCHUP' && payload.type !== 'GRID_MATCHUP') return;
+    const payload = parseDragPayload(e.dataTransfer?.getData(DRAG_PAYLOAD_MIME));
+    if (!payload) return;
 
     const candidate: ActiveStripDropCandidate = {
       matchUpId: payload.matchUp.matchUpId,

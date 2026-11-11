@@ -11,6 +11,10 @@
  *   3. A court block in force paints a banner whose type, time window and detail
  *      sit on separate lines — the end time is never lost to an ellipsis, and a
  *      detail that only repeats the type is dropped (CA, 2026-11-07).
+ *   4. A matchUp card dragged onto a strip cell fires `onMatchUpDrop` with the
+ *      payload and the resolved row; a drag that carries no matchUp is ignored.
+ *      Real drags (`user.dragAndDrop`): a browser drops only where `dragover`
+ *      accepted, which a synthetic `drop` event cannot show.
  *
  * The pure `hasPending` flag is covered in `__tests__/activeStrip.test.ts`. These
  * play functions are the rendering-side counterpart.
@@ -20,13 +24,16 @@
  */
 
 import { buildActiveStripPanel } from '../../components/schedule-page/ui/activeStrip';
+import { buildMatchUpCard } from '../../components/schedule-page/ui/matchUpCard';
 // The strip's own stylesheet: without it the geometry assertions below measure unstyled inline spans.
 import '../../components/schedule-page/ui/styles';
 import type { Meta, StoryObj } from '@storybook/html-vite';
-import { expect } from 'storybook/test';
+import { expect, fn, waitFor } from 'storybook/test';
+import { user } from '../helpers/trustedUser';
 
 // constants and types
 import type { ActiveStripPanelData } from '../../components/schedule-page/ui/activeStrip';
+import type { CatalogMatchUpItem } from '../../components/schedule-page';
 
 const meta: Meta = {
   title: 'Scheduling/Schedule Page/Tests/Active Strip',
@@ -192,5 +199,77 @@ export const BlockBannerKeepsDistinctDetail: StoryObj = {
     const cell = cellFor(canvasElement, 'C6');
     expect(cell?.querySelector(BLOCK_DETAIL)?.textContent).toBe('Resurfacing');
     expect(cell?.querySelector(BLOCK_TIME)?.textContent).toBe(WINDOW);
+  }
+};
+
+const DRAGGED: CatalogMatchUpItem = {
+  matchUpId: 'M-drag',
+  eventId: 'E1',
+  eventName: 'Singles',
+  drawId: 'D1',
+  structureId: 'S1',
+  roundNumber: 1,
+  isScheduled: false,
+  sides: [{ participantName: 'Alice' }, { participantName: 'Bob' }]
+};
+const onStripDrop = fn();
+
+/** The strip, with a matchUp card and a draggable element that carries no matchUp above it. */
+function renderDropStrip(): HTMLElement {
+  onStripDrop.mockClear();
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'padding: 16px; display: flex; flex-direction: column; gap: 16px;';
+  const card = buildMatchUpCard(DRAGGED, {});
+  card.dataset.testid = 'drag-card';
+  card.style.width = '280px';
+  const foreign = document.createElement('div');
+  foreign.dataset.testid = 'foreign-drag';
+  foreign.draggable = true;
+  foreign.textContent = 'not a matchUp';
+  foreign.style.cssText = 'width: 140px; padding: 8px; border: 1px dashed currentColor;';
+  foreign.addEventListener('dragstart', (e) => e.dataTransfer?.setData('text/plain', 'not a matchUp'));
+  const strip = buildActiveStripPanel({ onMatchUpDrop: onStripDrop }, { spacerLabel: 'Now', cellHeight: '56px' });
+  strip.setData(DATA);
+  wrap.append(card, foreign, strip.element);
+  return wrap;
+}
+
+export const DropFromCatalogCard: StoryObj = {
+  name: 'dropping a matchUp card on a court fires onMatchUpDrop with its target row',
+  render: renderDropStrip,
+  play: async ({ canvasElement }) => {
+    const card = canvasElement.querySelector<HTMLElement>('[data-testid="drag-card"]')!;
+    await user.dragAndDrop(card, cellFor(canvasElement, 'C6')!);
+
+    await waitFor(() => expect(onStripDrop).toHaveBeenCalledTimes(1));
+    const [payload, target, event] = onStripDrop.mock.calls[0];
+    await expect(payload).toEqual({ type: 'CATALOG_MATCHUP', matchUp: DRAGGED });
+    // C6 holds one completed matchUp at row 0, so the drop lands below it.
+    await expect(target).toEqual({ courtId: 'C6', rowIndex: 1 });
+    await expect(event.isTrusted).toBe(true);
+    await expect(cellFor(canvasElement, 'C6')?.classList.contains('drop-over')).toBe(false);
+  }
+};
+
+export const DropWithoutMatchUpIgnored: StoryObj = {
+  name: 'a drag that carries no matchUp is ignored',
+  render: renderDropStrip,
+  play: async ({ canvasElement }) => {
+    const foreign = canvasElement.querySelector<HTMLElement>('[data-testid="foreign-drag"]')!;
+    const card = canvasElement.querySelector<HTMLElement>('[data-testid="drag-card"]')!;
+    const drops: string[] = [];
+    const strip = canvasElement.querySelector<HTMLElement>(CELL)!.parentElement!;
+    strip.addEventListener('drop', (e) => drops.push(e.type), true);
+
+    await user.dragAndDrop(foreign, cellFor(canvasElement, 'C6')!);
+    // The browser did deliver the drop to the strip; the panel refused it.
+    await waitFor(() => expect(drops).toHaveLength(1));
+    await expect(onStripDrop).not.toHaveBeenCalled();
+
+    // CONTROL: a matchUp card dropped the same way does arrive.
+    await user.dragAndDrop(card, cellFor(canvasElement, 'C5')!);
+    await waitFor(() => expect(onStripDrop).toHaveBeenCalledTimes(1));
+    await expect(drops).toHaveLength(2);
+    await expect(onStripDrop.mock.calls[0][1].courtId).toBe('C5');
   }
 };
