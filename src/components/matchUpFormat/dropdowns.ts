@@ -2,6 +2,7 @@
  * The picker's two dropdowns: a plain list of choices, and the game-format chooser. Moved out of
  * matchUpFormat.ts unchanged except that they are given their labels instead of reading module state.
  */
+import { listenForOutsideClick } from '../../helpers/outsideClick';
 
 const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
 const CHC_DROPDOWN_BG = 'var(--chc-dropdown-bg)';
@@ -14,19 +15,14 @@ export interface DropdownItem {
 
 // Track the currently open dropdown so opening another one closes it
 let currentDropdown: HTMLElement | null = null;
-let currentCleanupListener: ((event: MouseEvent) => void) | null = null;
-// The outside-click listener waits 100 ms after opening; closing must cancel the wait
-let pendingListener: ReturnType<typeof setTimeout> | undefined;
+// The outside-click listener waits 100 ms after opening; closing must cancel it, pending or attached
+let cancelOutsideClick: (() => void) | undefined;
 
 export function closeCurrentDropdown(): void {
-  clearTimeout(pendingListener);
-  pendingListener = undefined;
+  cancelOutsideClick?.();
+  cancelOutsideClick = undefined;
   if (currentDropdown && document.body.contains(currentDropdown)) {
     currentDropdown.remove();
-  }
-  if (currentCleanupListener) {
-    document.removeEventListener('click', currentCleanupListener);
-    currentCleanupListener = null;
   }
   currentDropdown = null;
 }
@@ -39,13 +35,9 @@ function showBelow(e: Event, dropdown: HTMLElement): void {
   currentDropdown = dropdown;
 
   // Close on a click outside, after a short delay so the opening click does not close it at once
-  pendingListener = setTimeout(() => {
-    pendingListener = undefined;
-    currentCleanupListener = (event: MouseEvent) => {
-      if (!dropdown.contains(event.target as Node)) closeCurrentDropdown();
-    };
-    document.addEventListener('click', currentCleanupListener);
-  }, 100);
+  cancelOutsideClick = listenForOutsideClick((event) => {
+    if (!dropdown.contains(event.target as Node)) closeCurrentDropdown();
+  });
 }
 
 function newDropdown(): { dropdown: HTMLElement; menu: HTMLElement } {
