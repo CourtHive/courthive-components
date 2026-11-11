@@ -254,10 +254,9 @@ export const ClearedPartScore = {
   name: 'Other… → Cancelled — and the score it clears',
   render: () => frame(cardWithSets(PART_SCORE_SETS)),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
-    const click = async (selector: string) => {
-      const target = canvasElement.querySelector<HTMLElement>(selector);
-      if (target) await user.click(target);
-    };
+    // `clickIn` fails loudly on a miss; the guard that was here skipped a missing control and let the
+    // assertions after it run against a card nothing had been done to.
+    const click = (selector: string) => clickIn(canvasElement, selector);
 
     // The three privileged endings are buttons; the rest are behind Other…
     for (const status of [SUSPENDED]) {
