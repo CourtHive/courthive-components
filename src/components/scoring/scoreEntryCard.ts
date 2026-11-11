@@ -931,7 +931,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     // Decided in S5, deliberately: this stays a PRESENTATION past tense in the card, and the model's sets
     // are emptied for real through `clearScore`. The alternative — keep the sets and let the selectors
     // suppress them — would bring the score back on an approach switch, which CA reported as a bug on
-    // 2026-09-30 and `clearedScoreStaysCleared.test.ts` forbids.
+    // 2026-09-30 and `scoreEntryRules.test.ts` (clearScoreForEnding) forbids.
     if (discarding.discarded) scoreDiscardedByEnding = discarding.discarded;
     store.set(discarding.model);
     region.clear?.();
