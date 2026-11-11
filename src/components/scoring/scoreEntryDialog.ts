@@ -92,7 +92,7 @@ export type ScoreEntryDialogParams = Omit<
   approach?: ScoreEntryApproach;
   /** Which approaches the switcher offers. Defaults to all three; a single entry hides the menu. */
   approaches?: ScoreEntryApproach[];
-  /** Sets already recorded, e.g. from a saved matchUp. Ignored when `matchUp` carries a score. */
+  /** Sets already recorded. Wins over `matchUp.score.sets` when both are given, as every explicit param does. */
   sets?: SetScore[];
   /**
    * A matchUp whose outcome is being REOPENED.
