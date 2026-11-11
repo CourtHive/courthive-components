@@ -96,6 +96,9 @@ export const APointShowsAndUndoes: StoryObj = {
     const page = ui(shell);
     const changed = fn();
     shell.addEventListener('stateChanged', changed);
+    // What the page shows at the moment each notice arrives: the shell re-renders BEFORE it notifies.
+    const seen: (string | undefined)[] = [];
+    shell.addEventListener('stateChanged', () => seen.push(page.game()));
 
     await user.click(page.side1());
     await expect(page.game()).toBe('15 — 0');
@@ -112,6 +115,10 @@ export const APointShowsAndUndoes: StoryObj = {
     await user.click(page.undo());
     await expect(page.game()).toBe('0 — 0');
     await expect(page.undo(), 'nothing left to undo').toBeDisabled();
+
+    // ONE notice per click — three points and three undos — each heard with the page already showing it
+    await expect(changed).toHaveBeenCalledTimes(6);
+    await expect(seen).toEqual(['15 — 0', '15 — 15', '30 — 15', '15 — 15', '15 — 0', '0 — 0']);
   }
 };
 
@@ -134,6 +141,8 @@ export const PlayedToMatchComplete: StoryObj = {
     await expect(page.side1()).toBeDisabled();
     await expect(page.side2()).toBeDisabled();
     await expect(shell.getState().winningSide).toBe(1);
+    // one notice per point: the winning point is ONE notice carrying the result, not two
+    await expect(changed).toHaveBeenCalledTimes(48);
     const last = changed.mock.calls.at(-1)![0] as CustomEvent;
     await expect(last.detail).toMatchObject({ isComplete: true, winningSide: 1 });
     await expect(page.undo(), 'the winning point can still be undone').toBeEnabled();

@@ -50,8 +50,8 @@ export function buildInteractiveScoringShell(config: InteractiveScoringShellConf
 
   function onPoint(winner: 0 | 1): void {
     if (session.isComplete()) return;
+    // The session re-renders through `beforeNotify`, before its one `stateChanged`.
     session.point(winner);
-    render();
   }
 
   function onUndo(): void {

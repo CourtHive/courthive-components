@@ -171,18 +171,95 @@ describe('stateChanged', () => {
     expect(details(listener).filter(({ isComplete }) => isComplete)).toHaveLength(1);
   });
 
-  // The engine's own change notice goes out first, from inside the undo or reset; the session's second,
-  // complete notice follows the shell's re-render, so a listener reading the page sees the new state.
-  it('fires on undo and on reset, the last notice after the hook the shell renders in', () => {
-    const order: string[] = [];
-    const session = createInteractiveScoringSession(BASE_CONFIG, { beforeNotify: () => order.push('render') });
-    session.addListener(() => order.push('notify'));
-    session.point(0);
-    order.length = 0;
+  /** A session whose listener and `beforeNotify` hook write to one ordered log. */
+  function logged() {
+    const log: string[] = [];
+    const events: StateChangedDetail[] = [];
+    const session = createInteractiveScoringSession(BASE_CONFIG, { beforeNotify: () => log.push('render') });
+    session.addListener((event) => {
+      log.push('notify');
+      events.push(event.detail);
+    });
+    const clear = () => {
+      log.length = 0;
+      events.length = 0;
+    };
+    return { session, log, events, clear };
+  }
 
+  // ONE notice per action, and only after the shell has re-rendered, so a listener reading the page sees
+  // the new state. The engine's own change notice used to go out first, from inside the call, and the
+  // session's followed it: two per undo and per reset, and a point's went out before the re-render.
+  it('a point is one render then one notice', () => {
+    const { session, log, events } = logged();
+    session.point(0);
+    expect(log).toEqual(['render', 'notify']);
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({ matchUpId: 'mu-1', isComplete: false });
+  });
+
+  it('an undo is one render then one notice, carrying the state undone to', () => {
+    const { session, log, events, clear } = logged();
+    session.point(0);
+    session.point(0);
+    clear();
     session.undo();
+    expect(log).toEqual(['render', 'notify']);
+    expect((events[0].matchUp.score?.sets?.[0] as any).side1PointScore).toBe('15');
+  });
+
+  it('a reset is one render then one notice, and so is a confirmed confirmAndReset', async () => {
+    const { session, log, events, clear } = logged();
+    session.point(0);
+    clear();
     session.reset();
-    expect(order).toEqual(['notify', 'render', 'notify', 'notify', 'render', 'notify']);
+    expect(log).toEqual(['render', 'notify']);
+    expect((events[0].matchUp.score?.sets?.[0] as any).side1PointScore).toBe('0');
+
+    session.point(1);
+    clear();
+    await session.confirmAndReset();
+    expect(log).toEqual(['render', 'notify']);
+  });
+
+  it('the match-winning point is ONE notice, carrying isComplete and the winner', () => {
+    const { session, log, events, clear } = logged();
+    while (!session.isComplete()) {
+      clear();
+      session.point(1);
+    }
+    expect(log).toEqual(['render', 'notify']);
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({ isComplete: true, winningSide: 2 });
+    expect(events[0].matchUp.winningSide).toBe(2);
+  });
+
+  it('undoing the winning point is one notice, no longer complete', () => {
+    const { session, log, events, clear } = logged();
+    playOut(session, 0);
+    clear();
+    session.undo();
+    expect(log).toEqual(['render', 'notify']);
+    expect(events[0].isComplete).toBe(false);
+  });
+
+  it('what is refused notifies nothing and renders nothing: a point after the match, an empty undo', async () => {
+    const refusing = createInteractiveScoringSession({ ...BASE_CONFIG, confirmReset: () => false });
+    const log: string[] = [];
+    const watched = createInteractiveScoringSession(BASE_CONFIG, { beforeNotify: () => log.push('render') });
+    watched.addListener(() => log.push('notify'));
+    expect(watched.undo()).toBe(false);
+    playOut(watched, 0);
+    log.length = 0;
+    expect(watched.point(0)).toBe(false);
+    expect(log).toEqual([]);
+
+    const heard = vi.fn();
+    refusing.addListener(heard);
+    refusing.point(0);
+    heard.mockClear();
+    await refusing.confirmAndReset();
+    expect(heard).not.toHaveBeenCalled();
   });
 
   it('a removed listener hears nothing', () => {
