@@ -41,3 +41,23 @@ export function swapMatchUpSides(matchUp: any): any {
     winningSide: swapWinningSide(matchUp.winningSide)
   };
 }
+
+/**
+ * The aggregate tie score as the header shows it, left then right, with the winner by position: after a
+ * swap side 2 is on the left, so its score and its win are too. Undefined when the result has no set.
+ */
+export function tieScoreDisplay(
+  result: any,
+  swapSides?: boolean
+): { left: string; right: string; winner?: 1 | 2 } | undefined {
+  const set = result?.score?.sets?.[0];
+  if (!set) return undefined;
+  const leftScoreKey = swapSides ? 'side2Score' : 'side1Score';
+  const rightScoreKey = swapSides ? 'side1Score' : 'side2Score';
+  const winningSide = swapSides ? swapWinningSide(result.winningSide) : result.winningSide;
+  return {
+    left: String(set[leftScoreKey] ?? 0),
+    right: String(set[rightScoreKey] ?? 0),
+    winner: winningSide === 1 || winningSide === 2 ? winningSide : undefined
+  };
+}

@@ -13,8 +13,8 @@
  */
 import { renderCollectionCard, type FinishingOrderEntryOptions, type ScorecardLabels } from './renderCollectionCard';
 import { dualIssues, issueMessage, MANUAL_SCORE, type ScorecardIssue } from './dualIssues';
+import { swapSetScores, swapWinningSide, tieScoreDisplay } from './scorecardSides';
 import { attachTeamScoreEditor, type TeamScoreOptions } from './teamScoreEditor';
-import { swapSetScores, swapWinningSide } from './scorecardSides';
 import { icon, WARNING_ICON } from './scorecardIcons';
 import { attachHomeEditor } from './homeEditor';
 
@@ -195,8 +195,8 @@ export function updateTieScore(
   side2Id = 'chc-sc-side2',
   swapSides?: boolean
 ): void {
-  const set = result?.score?.sets?.[0];
-  if (!set) return;
+  const display = tieScoreDisplay(result, swapSides);
+  if (!display) return;
 
   const s1 = document.getElementById(side1Id);
   const s2 = document.getElementById(side2Id);
@@ -205,14 +205,10 @@ export function updateTieScore(
   s1.classList.remove(winningClass);
   s2.classList.remove(winningClass);
 
-  const leftScoreKey = swapSides ? 'side2Score' : 'side1Score';
-  const rightScoreKey = swapSides ? 'side1Score' : 'side2Score';
-  s1.textContent = String(set[leftScoreKey] ?? 0);
-  s2.textContent = String(set[rightScoreKey] ?? 0);
-
-  const winningSide = swapSides ? swapWinningSide(result.winningSide) : result.winningSide;
-  if (winningSide === 1) s1.classList.add(winningClass);
-  if (winningSide === 2) s2.classList.add(winningClass);
+  s1.textContent = display.left;
+  s2.textContent = display.right;
+  if (display.winner === 1) s1.classList.add(winningClass);
+  if (display.winner === 2) s2.classList.add(winningClass);
 }
 
 // ── Internal helpers ──
