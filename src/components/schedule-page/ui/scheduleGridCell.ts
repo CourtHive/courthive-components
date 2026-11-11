@@ -9,6 +9,7 @@
  */
 
 import type { ScheduleCellConfig, ScheduleCellData, ScheduleCellSide, ParticipantDisplayConfig } from '../types';
+import { timeModifierLabels } from '../domain/timeModifierLabels';
 import { memberNamesLabel } from '../domain/utils';
 
 import './schedule-grid-cell.css';
@@ -283,37 +284,14 @@ function renderField(field: string, data: ScheduleCellData, cfg: ScheduleCellCon
 
 // ── Time ──
 
-// English defaults for consumers that do not supply a locale. Never display stored enum identifiers.
-const DEFAULT_TIME_MODIFIER_LABELS: NonNullable<ScheduleCellConfig['timeModifierLabels']> = {
-  NOT_BEFORE: { label: 'Not Before', short: 'NB' },
-  FOLLOWED_BY: { label: 'Followed by' },
-  NEXT_AVAILABLE: { label: 'Next available' },
-  AFTER_REST: { label: 'After rest' },
-  TO_BE_ANNOUNCED: { label: 'To be announced', short: 'TBA' },
-  RAIN_DELAY: { label: 'Rain delay' }
-};
-
 function renderTime(data: ScheduleCellData, cfg: ScheduleCellConfig): HTMLElement | null {
-  const time = data.schedule?.scheduledTime || data.schedule?.startTime;
-  const modifiers = data.schedule?.timeModifiers;
-  const courtAnnotation = data.schedule?.courtAnnotation;
-
-  if (!time && !modifiers?.length && !courtAnnotation) return null;
+  const labels = timeModifierLabels(data.schedule, cfg.timeModifierLabels);
+  if (!labels) return null;
+  const { compact, time, courtAnnotation, title } = labels;
 
   const el = document.createElement('div');
   el.className = 'spl-grid-cell__time';
 
-  const labels = (modifiers ?? []).map((modifier) => {
-    const fallback = modifier.replaceAll('_', ' ').toLowerCase();
-    return (
-      cfg.timeModifierLabels?.[modifier] ??
-      DEFAULT_TIME_MODIFIER_LABELS[modifier] ?? {
-        label: fallback.charAt(0).toUpperCase() + fallback.slice(1)
-      }
-    );
-  });
-  const compact = labels.map(({ label, short }) => short || label);
-  const full = labels.map(({ label }) => label);
   if (compact.length) {
     const modifierText = document.createElement('span');
     modifierText.className = 'spl-grid-cell__time-modifiers';
@@ -327,7 +305,6 @@ function renderTime(data: ScheduleCellData, cfg: ScheduleCellConfig): HTMLElemen
     clock.textContent = time;
     if (compact.length) el.append(document.createTextNode(' '));
     el.append(clock);
-    full.push(time);
   }
 
   if (courtAnnotation) {
@@ -336,11 +313,10 @@ function renderTime(data: ScheduleCellData, cfg: ScheduleCellConfig): HTMLElemen
     anno.className = 'spl-grid-cell__court-annotation';
     anno.textContent = ` ${courtAnnotation}`;
     el.appendChild(anno);
-    full.push(courtAnnotation);
   }
 
   // A single description also exposes anything visually ellipsized in a narrow court column.
-  el.title = full.join(' · ');
+  el.title = title;
   el.setAttribute('role', 'note');
   el.setAttribute('aria-label', el.title);
 

@@ -16,6 +16,7 @@ const { calculateCapacityStats } = availability;
 type CourtRef = availability.CourtRef;
 type DayId = availability.DayId;
 import { AvailabilityGridControl, type AvailabilityGridControlConfig } from '../controller/availabilityGridControl';
+import { buildVenueTreeModel, resolveVisibleCourts } from './venueTreeModel';
 import { buildViewToolbar, type ViewToolbarResult } from './viewToolbar';
 import { showCourtAvailabilityModal } from './courtAvailabilityModal';
 import { buildStatsBar, type StatsBarUpdate } from './statsBar';
@@ -549,14 +550,7 @@ export class AvailabilityGrid {
     const tournamentId = this.engine.getConfig().tournamentId;
 
     // Initialize all courts as visible if not already set
-    if (!this.courtVisibilityCustomized) {
-      this.visibleCourts.clear();
-      courtMeta.forEach((meta) => {
-        // Match resource ID format: tournamentId|venueId|courtId
-        const key = `${meta.ref.tournamentId}|${meta.ref.venueId}|${meta.ref.courtId}`;
-        this.visibleCourts.add(key);
-      });
-    }
+    this.visibleCourts = resolveVisibleCourts(courtMeta, this.visibleCourts, this.courtVisibilityCustomized);
 
     // Build venueId → venueName lookup from tournament record
     const venueNameMap = new Map<string, string>();
@@ -565,26 +559,13 @@ export class AvailabilityGrid {
       if (vid) venueNameMap.set(vid, venue.venueName || venue.venueAbbreviation || vid);
     }
 
-    // Group by venue
-    const venues = new Map<string, typeof courtMeta>();
-    for (const meta of courtMeta) {
-      const venueId = meta.ref.venueId;
-      if (!venues.has(venueId)) {
-        venues.set(venueId, []);
-      }
-      venues.get(venueId)!.push(meta);
-    }
-
     // Build tree HTML
     let html = '';
-    for (const [venueId, courts] of venues) {
-      // Check if all courts in this venue are visible
-      const allVisible = courts.every((c) => {
-        const key = `${c.ref.tournamentId}|${c.ref.venueId}|${c.ref.courtId}`;
-        return this.visibleCourts.has(key);
-      });
-
-      const venueName = venueNameMap.get(venueId) || venueId;
+    for (const { venueId, venueName, checked: allVisible, courts } of buildVenueTreeModel(
+      courtMeta,
+      this.visibleCourts,
+      venueNameMap
+    )) {
       html += `
         <div class="venue-group">
           <div class="venue-header">
@@ -600,9 +581,7 @@ export class AvailabilityGrid {
           </div>
           <div class="courts-list">
             ${courts
-              .map((court) => {
-                const key = `${court.ref.tournamentId}|${court.ref.venueId}|${court.ref.courtId}`;
-                const checked = this.visibleCourts.has(key);
+              .map(({ meta: court, checked }) => {
                 return `
                 <div class="court-item">
                   <input type="checkbox" class="court-checkbox"
