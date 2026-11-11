@@ -1,5 +1,42 @@
 # Changelog
 
+## [7.16.0](https://github.com/CourtHive/courthive-components/compare/v7.15.0...v7.16.0) (2026-11-11)
+
+
+### Features
+
+* add qualifying acceptance lines to topology builder ([8f897f3](https://github.com/CourtHive/courthive-components/commit/8f897f3bbae2ae8a86d145068240db2ddd52da84))
+* add team display roles and shared presentation editors ([981cb2b](https://github.com/CourtHive/courthive-components/commit/981cb2b02c6adbe906dd03fb5c8b0e22929b6120))
+* **scorecard:** add team identity accents and neutral defaults ([92400ca](https://github.com/CourtHive/courthive-components/commit/92400cadf7dc172a882d60340c23b467f1f3cb0d))
+* **scorecard:** resolve CODES palettes through a pure entry ([e20d2b7](https://github.com/CourtHive/courthive-components/commit/e20d2b7db8cd09f4adbc0ad2c511ef0fc7456ccf))
+
+
+### Bug Fixes
+
+* address team display review findings ([dccd4d4](https://github.com/CourtHive/courthive-components/commit/dccd4d49f73596e032b56adfb96635459a269398))
+* **build:** use the host's vanillajs-datepicker so its registered locales apply ([91f80bb](https://github.com/CourtHive/courthive-components/commit/91f80bb9f55f04197dfd88f1cf77e3d64f1744d9))
+* **compositions:** align editor controls and header styling ([#969](https://github.com/CourtHive/courthive-components/issues/969)) ([eb57a98](https://github.com/CourtHive/courthive-components/commit/eb57a985767a4713af448b7eeb5f81bff05d756a))
+* **forms:** load vanillajs-datepicker on first use so the barrel needs no DOM ([1d6b495](https://github.com/CourtHive/courthive-components/commit/1d6b495d38639df6edd6f8023d6487ee333958e5))
+* **inline-scoring:** show situation flags in the footer inline scoring renders ([d135435](https://github.com/CourtHive/courthive-components/commit/d1354353c50c59c0fe83eb2df74840ce8101c011))
+* **inline-scoring:** stop undo at a resumed matchUp's stored score ([bf780d0](https://github.com/CourtHive/courthive-components/commit/bf780d039d22eee6fc93fc7e295a2e4f8345aba2))
+* **interactive-scoring:** one stateChanged per point, undo and reset, after the re-render ([6bb4640](https://github.com/CourtHive/courthive-components/commit/6bb4640470576baa08af572428a38b350fda0faf))
+* **notes-toolbar:** focus the url popover input without tippy's stylesheet ([82977e0](https://github.com/CourtHive/courthive-components/commit/82977e0026bac752675f52190a4ecb387a8774f2))
+* **rating-distribution-chart:** a pool in one bin draws its donut ring ([582de86](https://github.com/CourtHive/courthive-components/commit/582de866b5aa6451563a8b08cc0b52552953844b))
+* **render-structure:** a side without recorded tiebreak points shows none, not 'undefined' ([ff51be1](https://github.com/CourtHive/courthive-components/commit/ff51be199757ffb52a323c208381386756ee7e92))
+* **render-structure:** bracketedSeeds: false renders no brackets ([1df5ce9](https://github.com/CourtHive/courthive-components/commit/1df5ce91af6091ef8f59a43af2d2e01213f66432))
+* **render-structure:** raise tiebreak points only on the side that lost the set ([eaa5fe3](https://github.com/CourtHive/courthive-components/commit/eaa5fe35e33ab4a63fc26c864903da3c96674862))
+* **scorecard:** read team presentation tolerantly, mirroring the factory ([df95d57](https://github.com/CourtHive/courthive-components/commit/df95d5754fd8865d7140a841e455f5af3a45eacc))
+* **scorecard:** remove decorative header color bars ([5e66eec](https://github.com/CourtHive/courthive-components/commit/5e66eec2a8f1db18c7fb855daedfa917b4706032))
+* **scoring-card:** keep the Other… menu on screen and focus on its chip ([4fde010](https://github.com/CourtHive/courthive-components/commit/4fde010c6b40ed5970741ef88437d3aa1b4e3eaa))
+* **scoring-dialog:** keep cModal's first-control focus out of the score dialog ([1563fc9](https://github.com/CourtHive/courthive-components/commit/1563fc9d04e233553bce280ae1d930224b205044))
+* **stories:** replace third-party live-score fixtures with synthetic matches ([#973](https://github.com/CourtHive/courthive-components/issues/973)) ([dda2970](https://github.com/CourtHive/courthive-components/commit/dda2970ece2276b6caf935cc9fe9cb906350a423))
+
+
+### Documentation
+
+* fix the README's TypeScript example and bring its framing up to date ([#972](https://github.com/CourtHive/courthive-components/issues/972)) ([4f279c9](https://github.com/CourtHive/courthive-components/commit/4f279c989de9ce667c085547f4cfcb8437868394))
+* **scoring:** explicit sets win over matchUp.score.sets, as the matchUp param says ([90307cf](https://github.com/CourtHive/courthive-components/commit/90307cf5bd07714374547f63484af13c6d72b4b0))
+
 ## [7.15.0](https://github.com/CourtHive/courthive-components/compare/v7.14.0...v7.15.0) (2026-11-09)
 
 
