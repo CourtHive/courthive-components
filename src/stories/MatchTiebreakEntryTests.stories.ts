@@ -1,6 +1,7 @@
 import { createDynamicSetsRegion } from '../components/scoring/regions/dynamicSetsRegion';
 import { renderScoreEntryCard } from '../components/scoring/scoreEntryCard';
-import { expect, userEvent } from 'storybook/test';
+import { user } from './helpers/trustedUser';
+import { expect } from 'storybook/test';
 
 import type { Meta, StoryObj } from '@storybook/html-vite';
 
@@ -35,8 +36,8 @@ function renderCard(): HTMLElement {
 export const LowerTen: StoryObj = {
   render: renderCard,
   play: async ({ canvasElement }) => {
-    await userEvent.click(cell(canvasElement, 2));
-    await userEvent.keyboard('[Digit1][Digit0]');
+    await user.click(cell(canvasElement, 2));
+    await user.keyboard('[Digit1][Digit0]');
     await expect(cell(canvasElement, 2)).toHaveValue('10');
     await expect(cell(canvasElement, 1)).toHaveValue('12');
   }
@@ -45,8 +46,8 @@ export const LowerTen: StoryObj = {
 export const UpperSixteen: StoryObj = {
   render: renderCard,
   play: async ({ canvasElement }) => {
-    await userEvent.click(cell(canvasElement, 1));
-    await userEvent.keyboard('[Digit1][Digit6]');
+    await user.click(cell(canvasElement, 1));
+    await user.keyboard('[Digit1][Digit6]');
     await expect(cell(canvasElement, 1)).toHaveValue('16');
     await expect(cell(canvasElement, 2)).toHaveValue('18');
   }
@@ -55,8 +56,8 @@ export const UpperSixteen: StoryObj = {
 export const ShiftedTen: StoryObj = {
   render: renderCard,
   play: async ({ canvasElement }) => {
-    await userEvent.click(cell(canvasElement, 2));
-    await userEvent.keyboard('{Shift>}[Digit1][Digit0]{/Shift}');
+    await user.click(cell(canvasElement, 2));
+    await user.keyboard('{Shift>}[Digit1][Digit0]{/Shift}');
     await expect(cell(canvasElement, 1)).toHaveValue('10');
     await expect(cell(canvasElement, 2)).toHaveValue('12');
     await expect(cell(canvasElement, 2)).toHaveFocus();
@@ -66,8 +67,8 @@ export const ShiftedTen: StoryObj = {
 export const ShiftedSixteen: StoryObj = {
   render: renderCard,
   play: async ({ canvasElement }) => {
-    await userEvent.click(cell(canvasElement, 2));
-    await userEvent.keyboard('{Shift>}[Digit1][Digit6]{/Shift}');
+    await user.click(cell(canvasElement, 2));
+    await user.keyboard('{Shift>}[Digit1][Digit6]{/Shift}');
     await expect(cell(canvasElement, 1)).toHaveValue('16');
     await expect(cell(canvasElement, 2)).toHaveValue('18');
   }
