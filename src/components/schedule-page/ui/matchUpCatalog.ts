@@ -9,17 +9,17 @@
  */
 
 import { wrapSearchWithClear, syncClearVisibility } from '../../../helpers/searchClearButton';
+import { DRAG_PAYLOAD_MIME, parseDragPayload } from '../domain/dragPayload';
 import { clearRelatedHighlight } from './matchUpHighlight';
 import { buildMatchUpCard } from './matchUpCard';
-import type {
-  SchedulePageState,
-  UIPanel,
-  MatchUpCatalogGroupBy,
-  CatalogMatchUpItem,
-  CatalogFilters,
-  SchedulePageDragPayload
-} from '../types';
-import { visibleCatalogGroups, isCompletedStatus, computeBaseRoundByEvent } from '../domain/matchUpCatalogProjections';
+import type { SchedulePageState, UIPanel, MatchUpCatalogGroupBy, CatalogMatchUpItem, CatalogFilters } from '../types';
+import {
+  catalogCardInputs,
+  catalogRenderGroups,
+  computeBaseRoundByEvent,
+  isCompletedStatus,
+  sameCatalogCardInputs
+} from '../domain/matchUpCatalogProjections';
 import {
   spPanelStyle,
   spPanelHeaderStyle,
@@ -76,7 +76,7 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
   const CATALOG_DROP_OVER = 'spl-catalog-drop-over';
   const FILTERING_CLASS = 'is-filtering';
   let lastState: SchedulePageState | null = null;
-  // What the cards were last built from (see `cardInputs`); null forces the next build.
+  // What the cards were last built from (see `catalogCardInputs`); null forces the next build.
   let builtFrom: unknown[] | null = null;
   let filterTip: Instance | undefined;
   let currentFilters: CatalogFilters = {};
@@ -99,15 +99,8 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
     e.preventDefault();
     if (!callbacks.onDropRemove) return;
 
-    let payload: SchedulePageDragPayload;
-    try {
-      payload = JSON.parse(e.dataTransfer.getData('application/json'));
-    } catch {
-      return;
-    }
-    if (payload.type === 'CATALOG_MATCHUP' || payload.type === 'GRID_MATCHUP') {
-      callbacks.onDropRemove(payload.matchUp.matchUpId);
-    }
+    const payload = parseDragPayload(e.dataTransfer?.getData(DRAG_PAYLOAD_MIME));
+    if (payload) callbacks.onDropRemove(payload.matchUp.matchUpId);
   });
 
   // Header
@@ -355,25 +348,6 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
   body.className = spCatalogStyle();
   root.appendChild(body);
 
-  /**
-   * Every state field the card list depends on. The store emits on every write — a selection, the
-   * Inspector toggle, a date-strip push — and rebuilding every card for each one re-ran the
-   * consumer's `renderCardExtra` per card (engine work per card in TMX) to move one highlight.
-   * Compared by reference: the consumer pushes a new catalog array when its data changes.
-   */
-  function cardInputs(state: SchedulePageState): unknown[] {
-    return [
-      state.matchUpCatalog,
-      state.catalogSearchQuery,
-      state.catalogGroupBy,
-      state.catalogFilters,
-      state.showCompleted,
-      state.showScheduled,
-      state.scheduledBehavior,
-      state.catalogCollapsedGroups
-    ];
-  }
-
   function markSelection(selectedId: string | undefined): void {
     for (const card of body.querySelectorAll<HTMLElement>('[data-match-up-id]')) {
       card.classList.toggle('selected', card.dataset.matchUpId === selectedId);
@@ -385,8 +359,8 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
     currentFilters = state.catalogFilters ?? {};
     updateFilterBadge();
 
-    const inputs = cardInputs(state);
-    if (builtFrom?.every((value, i) => value === inputs[i])) {
+    const inputs = catalogCardInputs(state);
+    if (sameCatalogCardInputs(builtFrom, inputs)) {
       markSelection(state.selectedMatchUp?.matchUpId);
       return;
     }
@@ -401,10 +375,9 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
     const baseRoundByEvent = computeBaseRoundByEvent(state.matchUpCatalog);
 
     // The same derivation the store collapses from, so "collapse all" collapses exactly these groups.
-    const groups = visibleCatalogGroups(state);
-    const collapsedGroups = new Set(state.catalogCollapsedGroups ?? []);
+    const groups = catalogRenderGroups(state);
 
-    const unscheduledCount = [...groups.values()].flat().filter((m) => !m.isScheduled).length;
+    const unscheduledCount = groups.flatMap((group) => group.items).filter((m) => !m.isScheduled).length;
     meta.textContent = `${unscheduledCount} unscheduled`;
 
     // Sync controls
@@ -421,11 +394,9 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
     clearRelatedHighlight();
     body.innerHTML = '';
 
-    for (const [gk, items] of groups) {
+    for (const { groupKey: gk, items, collapsed: isCollapsed, cards } of groups) {
       const group = document.createElement('div');
       group.className = spGroupStyle();
-
-      const isCollapsed = collapsedGroups.has(gk);
 
       // Group header with chevron
       const gh = document.createElement('button');
@@ -450,7 +421,7 @@ export function buildMatchUpCatalog(callbacks: MatchUpCatalogCallbacks): UIPanel
       if (isCollapsed) gb.style.display = 'none';
 
       // A collapsed group's cards are not built; expanding it rebuilds.
-      for (const item of isCollapsed ? [] : items) {
+      for (const item of cards) {
         // Round-offset only attached when this event has an eligible base
         // round (i.e. at least one unscheduled, non-completed item exists).
         // Skip for scheduled / completed items — their card class already

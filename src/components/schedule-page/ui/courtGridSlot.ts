@@ -9,6 +9,7 @@
  */
 
 import { SchedulePageDragPayload, SchedulePageState, UIPanel } from '../types';
+import { DRAG_PAYLOAD_MIME, parseDragPayload } from '../domain/dragPayload';
 import {
   splCenterStyle,
   splGridSlotStyle,
@@ -103,15 +104,8 @@ export function buildCourtGridSlot(
     e.preventDefault();
     if (!callbacks.onMatchUpDrop) return;
 
-    let payload: SchedulePageDragPayload;
-    try {
-      payload = JSON.parse(e.dataTransfer!.getData('application/json'));
-    } catch {
-      return;
-    }
-    if (payload.type === 'CATALOG_MATCHUP' || payload.type === 'GRID_MATCHUP') {
-      callbacks.onMatchUpDrop(payload, e);
-    }
+    const payload = parseDragPayload(e.dataTransfer?.getData(DRAG_PAYLOAD_MIME));
+    if (payload) callbacks.onMatchUpDrop(payload, e);
   });
 
   root.appendChild(slot);

@@ -10,6 +10,7 @@
  * an optional dependency mandatory at type-check time for every consumer.
  */
 
+import { createLocatorLifetime, loadUnlessDisposed, type LocatorLifetime } from './lifetime';
 import { mergeVenueLocatorConfig } from './defaultConfig';
 import { sortCourtsByOrder } from '../../helpers/cards';
 import {
@@ -52,10 +53,6 @@ const NO_GEO_MESSAGE = 'No coordinates for this venue';
 const MAP_UNAVAILABLE_MESSAGE = 'Map unavailable';
 
 /** Teardown per rendered root — Leaflet leaks listeners and tile requests without an explicit remove(). */
-interface LocatorLifetime {
-  disposed: boolean;
-  cleanup: () => void;
-}
 const teardowns = new WeakMap<HTMLElement, () => void>();
 
 export function hasVenueGeo(data: VenueLocatorData): boolean {
@@ -88,11 +85,8 @@ export function buildVenueLocator(
   const root = document.createElement('div');
   root.className = vlRootStyle();
   root.dataset.venueId = data.venueId;
-  const lifetime: LocatorLifetime = { disposed: false, cleanup: () => {} };
-  teardowns.set(root, () => {
-    lifetime.disposed = true;
-    lifetime.cleanup();
-  });
+  const lifetime = createLocatorLifetime();
+  teardowns.set(root, lifetime.dispose);
 
   if (cfg.showHeader) root.appendChild(buildHeader(data));
 
@@ -298,19 +292,19 @@ function popupHtml(data: VenueLocatorData): string {
 }
 
 async function mountMap({ root, mapEl, data, cfg, callbacks, lifetime }: MountArgs): Promise<void> {
-  let leaflet: any;
-  try {
-    leaflet = await import('leaflet');
-  } catch (cause) {
-    if (lifetime.disposed) return;
+  const loaded = await loadUnlessDisposed<any>(lifetime, () => import('leaflet'));
+  if (loaded.status === 'disposed') return;
+  if (loaded.status === 'failed') {
     mapEl.replaceChildren(buildFallback(MAP_UNAVAILABLE_MESSAGE));
     callbacks?.onMapUnavailable?.(
-      new Error('leaflet is an optional peerDependency of courthive-components and is not installed', { cause })
+      new Error('leaflet is an optional peerDependency of courthive-components and is not installed', {
+        cause: loaded.cause
+      })
     );
     return;
   }
 
-  if (lifetime.disposed) return;
+  const leaflet = loaded.value;
   const L = leaflet.default ?? leaflet;
   try {
     mapEl.replaceChildren();

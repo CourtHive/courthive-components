@@ -48,6 +48,29 @@ export function resolveCurrentLabel(list: any[], code?: string): string | undefi
   return list.find((item: any) => item?.value === code)?.label;
 }
 
+export type HighlightSegment = { text: string; match: boolean };
+
+/**
+ * Split `text` into the runs a suggestion renders: every case-insensitive occurrence of the trimmed
+ * `input` is a `match` segment holding the ORIGINAL casing, everything between is plain. An empty or
+ * whitespace-only input yields the whole text as one plain segment. Pure: segments are strings, and
+ * what renders them decides whether they are text or markup — `typeAheadItem` renders them as text.
+ */
+export function highlightSegments(text: string, input: string): HighlightSegment[] {
+  const needle = input.trim().toLowerCase();
+  if (!needle) return [{ text, match: false }];
+  const haystack = text.toLowerCase();
+  const segments: HighlightSegment[] = [];
+  let from = 0;
+  for (let at = haystack.indexOf(needle); at >= 0; at = haystack.indexOf(needle, from)) {
+    if (at > from) segments.push({ text: text.slice(from, at), match: false });
+    segments.push({ text: text.slice(at, at + needle.length), match: true });
+    from = at + needle.length;
+  }
+  if (from < text.length) segments.push({ text: text.slice(from), match: false });
+  return segments;
+}
+
 /**
  * Awesomplete's default item renderer builds each suggestion with innerHTML (to wrap matches in
  * <mark>), so a suggestion label holding markup — a participant name, say — would run as script.
@@ -59,22 +82,15 @@ export function typeAheadItem(this: { count?: number } | undefined, text: unknow
   li.setAttribute('aria-selected', 'false');
   li.tabIndex = -1;
   li.id = `awesomplete_list_${this?.count ?? 0}_item_${itemId}`;
-  const label = String(text);
-  const needle = input.trim().toLowerCase();
-  if (!needle) {
-    li.textContent = label;
-    return li;
-  }
-  const haystack = label.toLowerCase();
-  let from = 0;
-  for (let at = haystack.indexOf(needle); at >= 0; at = haystack.indexOf(needle, from)) {
-    li.append(label.slice(from, at));
+  for (const segment of highlightSegments(String(text), input)) {
+    if (!segment.match) {
+      li.append(segment.text);
+      continue;
+    }
     const mark = document.createElement('mark');
-    mark.textContent = label.slice(at, at + needle.length);
+    mark.textContent = segment.text;
     li.append(mark);
-    from = at + needle.length;
   }
-  li.append(label.slice(from));
   return li;
 }
 

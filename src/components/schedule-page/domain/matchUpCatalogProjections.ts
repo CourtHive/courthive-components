@@ -310,3 +310,51 @@ export function allCatalogGroupsCollapsed(
   const collapsed = new Set(state.catalogCollapsedGroups ?? []);
   return keys.length > 0 && keys.every((key) => collapsed.has(key));
 }
+
+/**
+ * Every state field the catalog's CARDS are built from, in a fixed order. The store emits on every
+ * write — a selection, the Inspector toggle, a date-strip push — and rebuilding every card for each one
+ * re-ran the consumer's `renderCardExtra` per card (engine work per card in TMX) to move one highlight.
+ * `selectedMatchUp` is deliberately absent: the panel moves the highlight on the cards it already has.
+ * Compared by reference (`sameCatalogCardInputs`): the consumer pushes a new catalog array when its data
+ * changes.
+ */
+export function catalogCardInputs(
+  state: CatalogViewState & Pick<SchedulePageState, 'catalogCollapsedGroups'>
+): unknown[] {
+  return [
+    state.matchUpCatalog,
+    state.catalogSearchQuery,
+    state.catalogGroupBy,
+    state.catalogFilters,
+    state.showCompleted,
+    state.showScheduled,
+    state.scheduledBehavior,
+    state.catalogCollapsedGroups
+  ];
+}
+
+/** True when the cards built from `previous` are still the cards `next` asks for. */
+export function sameCatalogCardInputs(previous: unknown[] | null, next: unknown[]): boolean {
+  return !!previous && previous.length === next.length && previous.every((value, i) => value === next[i]);
+}
+
+export interface CatalogRenderGroup {
+  groupKey: string;
+  /** Every matchUp the group holds; its header counts these. */
+  items: CatalogMatchUpItem[];
+  collapsed: boolean;
+  /** The matchUps to build cards for, in order: none for a collapsed group. */
+  cards: CatalogMatchUpItem[];
+}
+
+/** The groups the catalog draws for a state, in display order, with what each one builds. */
+export function catalogRenderGroups(
+  state: CatalogViewState & Pick<SchedulePageState, 'catalogCollapsedGroups'>
+): CatalogRenderGroup[] {
+  const collapsedGroups = new Set(state.catalogCollapsedGroups ?? []);
+  return [...visibleCatalogGroups(state)].map(([groupKey, items]) => {
+    const collapsed = collapsedGroups.has(groupKey);
+    return { groupKey, items, collapsed, cards: collapsed ? [] : items };
+  });
+}
