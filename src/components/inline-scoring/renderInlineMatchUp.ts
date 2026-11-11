@@ -1,7 +1,8 @@
 import { winnerFromExitingSide, carriesNoScore } from '../scoring/logic/irregularEnding';
 import { renderStatusPill } from '../renderStructure/renderStatusPill';
+import { listenForOutsideClick } from '../../helpers/outsideClick';
 import { renderMatchUp } from '../renderStructure/renderMatchUp';
-import { isScorable } from './isScorable';
+import { inlineScoringRefusal } from './inlineScoringOffer';
 
 // constants and types
 import type { Composition, EventHandlers, MatchUp } from '../../types';
@@ -42,7 +43,7 @@ interface RenderInlineMatchUpParams {
  * driven by the inlineScoring config state and eventHandlers passed down.
  *
  * Returns a container element that re-renders itself after each scoring action, or **`null`** when the
- * matchUp must not be offered for scoring — see `isScorable`. Callers must handle the null rather than
+ * matchUp must not be offered for scoring — see `inlineScoringRefusal`. Callers must handle the null rather than
  * replacing a rendered cell with it; the return type is what forces them to.
  */
 export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElement | null {
@@ -54,26 +55,12 @@ export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElem
   // The format is NOT defaulted. It used to fall back to a hardcoded 'SET3-S:6/TB7' here, which meant
   // this library handed `new ScoringEngine(...)` an invented format for every consumer whenever one
   // was missing — the single widest instance of the defect, since it served TMX and the public viewer
-  // alike. Refuse instead.
+  // alike. Refuse instead. A format whose set in play takes neither input the mode scores with (a
+  // segment of outs takes set totals) is not offered either: its points would be refused on every click.
   const format = matchUpFormat || params.matchUp.matchUpFormat;
-  if (!isScorable(params.matchUp, format)) {
-    console.error(
-      `[renderInlineMatchUp] refusing to offer scoring for ${matchUpId ?? '(no matchUpId)'} — ` +
-        `it needs the factory's matchUpFormat and two named participants.`
-    );
-    return null;
-  }
-
-  manager.getOrCreate(matchUpId, format as string, params.matchUp);
-
-  // Inline scoring is by the point or by the game. A format whose set in play takes neither — a segment
-  // of outs takes set totals — is not offered: its points would otherwise be refused on every click.
-  if (!manager.accepts(matchUpId, mode === 'games' ? 'game' : 'point')) {
-    console.error(
-      `[renderInlineMatchUp] refusing to offer ${mode} scoring for ${matchUpId}: ` +
-        `its format (${format}) does not take ${mode === 'games' ? 'game' : 'point'} input.`
-    );
-    manager.remove(matchUpId);
+  const refusal = inlineScoringRefusal({ matchUp: params.matchUp, format, mode, manager });
+  if (refusal) {
+    console.error(refusal);
     return null;
   }
 
@@ -274,9 +261,9 @@ function showEndMatchPopover(
   const closeHandler = (e: MouseEvent) => {
     if (!popover.contains(e.target as Node)) closePopover();
   };
+  let stopListening: (() => void) | undefined;
   const closePopover = () => {
-    clearTimeout(listening);
-    document.removeEventListener('click', closeHandler);
+    stopListening?.();
     popover.remove();
     if (closeEndMatchPopover === closePopover) closeEndMatchPopover = undefined;
   };
@@ -349,6 +336,6 @@ function showEndMatchPopover(
 
   document.body.appendChild(popover);
 
-  // Defer to avoid immediate close from the same click
-  const listening = setTimeout(() => document.addEventListener('click', closeHandler), 0);
+  // Deferred so the click that opened the popover does not close it
+  stopListening = listenForOutsideClick(closeHandler, { delay: 0 });
 }
