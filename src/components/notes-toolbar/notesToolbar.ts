@@ -1,4 +1,5 @@
 import './notesToolbar.css';
+import { RECENT_COLORS_KEY, parseRecentColors, pushRecentColor } from './recentColors';
 import tippy, { Instance } from 'tippy.js';
 
 export interface NotesToolbarOptions {
@@ -50,22 +51,21 @@ const PALETTE_COLORS = [
   '#ead1dc'
 ];
 
-const RECENT_COLORS_KEY = 'notes-toolbar-recent-colors';
-const MAX_RECENT = 8;
-
+// Storage can be blocked (a private window, cleared site data): the palette then works without a history.
 function getRecentColors(): string[] {
   try {
-    return JSON.parse(localStorage.getItem(RECENT_COLORS_KEY) || '[]');
+    return parseRecentColors(localStorage.getItem(RECENT_COLORS_KEY));
   } catch {
     return [];
   }
 }
 
 function addRecentColor(color: string): void {
-  let recent = getRecentColors().filter((c) => c !== color);
-  recent.unshift(color);
-  if (recent.length > MAX_RECENT) recent = recent.slice(0, MAX_RECENT);
-  localStorage.setItem(RECENT_COLORS_KEY, JSON.stringify(recent));
+  try {
+    localStorage.setItem(RECENT_COLORS_KEY, JSON.stringify(pushRecentColor(getRecentColors(), color)));
+  } catch {
+    // the colour is still applied; only the history is lost
+  }
 }
 
 export function notesToolbar(options: NotesToolbarOptions = {}): HTMLElement {
