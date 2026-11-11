@@ -37,9 +37,16 @@ export default defineConfig({
       // `leaflet` is an OPTIONAL peerDependency, dynamically imported by venue-locator. Marking it
       // external keeps it out of the bundle so consumers that never render a map (courthive-public,
       // CourtHive.com, epixodic) pay nothing for it, and hosts that do render one supply their copy.
+      // `vanillajs-datepicker` is external for the same reason as Tiptap: its `Datepicker.locales` is
+      // module state. A host registers its locales on the copy it imports (TMX: `initialState.ts`,
+      // `Object.assign(Datepicker.locales, fr, es, …)`), and a copy bundled here never saw them, so
+      // `language: 'fr'` silently rendered English. Only the bare specifier is external: the
+      // stylesheet (`vanillajs-datepicker/css/datepicker.css`) is still bundled into our CSS.
+      // `scripts/verify/consumerBundle.mjs` fails the build if the picker's code is bundled again.
       external: [
         'tods-competition-factory',
         'leaflet',
+        'vanillajs-datepicker',
         '@tiptap/core',
         '@tiptap/starter-kit',
         '@tiptap/extension-color',
@@ -52,6 +59,7 @@ export default defineConfig({
         globals: {
           'tods-competition-factory': 'competitionFactory',
           leaflet: 'L',
+          'vanillajs-datepicker': 'VanillaJsDatepicker',
           '@tiptap/core': 'TiptapCore',
           '@tiptap/starter-kit': 'TiptapStarterKit',
           '@tiptap/extension-color': 'TiptapExtensionColor',

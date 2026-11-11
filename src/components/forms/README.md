@@ -332,6 +332,22 @@ The renderers require the following packages (already installed):
   form returns as `inputs['<field>.date']` (and `renderField` as `datepicker`) queues calls such as
   `setDate`/`setOptions` until then and forwards everything afterwards; `await handle.ready` for the
   instance. See `src/helpers/loadDatepicker.ts`.
+
+  **Locales are the host's.** The package does not bundle its own copy: `vanillajs-datepicker` is external in
+  the build, so the picker a field renders is the host's copy and uses the locales the host registered on it.
+  Register them once, on your own import, and pass `language` per field:
+
+  ```typescript
+  import fr from 'vanillajs-datepicker/locales/fr';
+  import { Datepicker } from 'vanillajs-datepicker';
+  Object.assign(Datepicker.locales, fr);
+  renderField({ field: 'playedOn', date: true, language: 'fr' });
+  ```
+
+  Keep the host on the same `vanillajs-datepicker` version as this package (`1.3.4`). Two versions install two
+  copies, and the registrations land on the other one: an unregistered `language` silently renders English.
+  `pnpm verify:consumer-bundle` fails the build if a copy is ever bundled here again.
+
 - **awesomplete** (v1.1.7) - Type-ahead/autocomplete functionality
 - **checkradio.css** - Checkbox and radio styling
 
