@@ -78,7 +78,9 @@ export class InlineScoringManager {
       }
     }
 
-    state = { engine, matchUpFormat, pointCount: 0 };
+    // The factory records `setInitialScore` as a timeline action that `undo` removes. A stored score is not an
+    // action this session took, so the loaded baseline is the floor that undo stops at.
+    state = { engine, matchUpFormat, pointCount: 0, baselineDepth: engine.getUndoDepth?.() ?? 0 };
     this.engines.set(matchUpId, state);
     return state;
   }
@@ -146,7 +148,7 @@ export class InlineScoringManager {
 
   undo(matchUpId: string, baseMatchUp: MatchUp): MatchUp | undefined {
     const state = this.engines.get(matchUpId);
-    if (!state || !state.engine.canUndo()) return undefined;
+    if (!state || !this.canUndo(matchUpId)) return undefined;
 
     state.engine.undo();
     if (state.pointCount > 0) state.pointCount--;
@@ -168,6 +170,8 @@ export class InlineScoringManager {
 
     state.engine.reset();
     state.pointCount = 0;
+    // a reset clears the timeline, the loaded baseline with it
+    state.baselineDepth = 0;
     return this.notifyAndReturn(matchUpId, baseMatchUp);
   }
 
@@ -189,8 +193,12 @@ export class InlineScoringManager {
     return state.engine.getScore()?.situation;
   }
 
+  /** Whether there is an action of this session's to undo: never the stored score it was loaded with. */
   canUndo(matchUpId: string): boolean {
-    return this.engines.get(matchUpId)?.engine.canUndo() ?? false;
+    const state = this.engines.get(matchUpId);
+    if (!state?.engine.canUndo()) return false;
+    const depth = state.engine.getUndoDepth?.();
+    return depth === undefined || depth > state.baselineDepth;
   }
 
   canRedo(matchUpId: string): boolean {

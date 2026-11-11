@@ -33,4 +33,6 @@ export interface InlineScoringEngineState {
   matchUpFormat: string;
   /** Points added in this session. Not a server: the engine derives who served. */
   pointCount: number;
+  /** The engine's undo depth once the stored score was loaded: undo stops here, never removing that score. */
+  baselineDepth: number;
 }

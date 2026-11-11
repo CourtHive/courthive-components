@@ -91,6 +91,24 @@ describe('createInteractiveScoringSession', () => {
     expect(session.point(1)).toBe(false);
   });
 
+  it('resumed from a stored matchUp, has nothing to undo, and undoes a new point back to it', () => {
+    const initialMatchUp = {
+      matchUpId: 'mu-1',
+      matchUpFormat: STANDARD_FORMAT,
+      matchUpStatus: 'IN_PROGRESS',
+      score: { sets: [{ setNumber: 1, side1Score: 2, side2Score: 1 }] },
+      sides: []
+    } as any;
+    const session = createInteractiveScoringSession({ ...BASE_CONFIG, initialMatchUp });
+    expect(session.canUndo(), 'the stored score is not this session’s to undo').toBe(false);
+
+    session.point(1);
+    expect(session.canUndo()).toBe(true);
+    session.undo();
+    expect(lastSet(session)).toMatchObject({ side1Score: 2, side2Score: 1 });
+    expect(session.canUndo()).toBe(false);
+  });
+
   it('reset goes back to nothing played', () => {
     const session = createInteractiveScoringSession(BASE_CONFIG);
     session.point(0);

@@ -269,3 +269,68 @@ describe('InlineScoringManager — what a point records', () => {
     expect(players[1].winners).toBeUndefined();
   });
 });
+
+// The factory makes `setInitialScore` a timeline action that `undo` removes (scoring-engine-spec.md, "A
+// late-start baseline"). The manager loads a STORED score that way, and a stored score is not an action this
+// session took, so undo stops at it.
+describe('InlineScoringManager — a resumed matchUp undoes back to its stored score, not past it', () => {
+  const stored = () =>
+    makeMatchUp({
+      score: {
+        sets: [
+          { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
+          { setNumber: 2, side1Score: 3, side2Score: 2 }
+        ]
+      }
+    } as Partial<MatchUp>);
+  const games = (matchUp: MatchUp) => matchUp.score?.sets?.map((set: any) => [set.side1Score, set.side2Score]);
+
+  it('has nothing to undo before a point is scored', () => {
+    const manager = new InlineScoringManager();
+    const matchUp = stored();
+    manager.getOrCreate('mu-1', STANDARD_FORMAT, matchUp);
+    expect(games(manager.getMatchUp('mu-1', matchUp)), 'control: the stored score loaded').toEqual([
+      [6, 4],
+      [3, 2]
+    ]);
+    expect(manager.canUndo('mu-1')).toBe(false);
+    expect(manager.undo('mu-1', matchUp)).toBeUndefined();
+    expect(games(manager.getMatchUp('mu-1', matchUp))).toEqual([
+      [6, 4],
+      [3, 2]
+    ]);
+  });
+
+  it('undoes a new point back to the stored score, then stops; redo still replays it', () => {
+    const manager = new InlineScoringManager();
+    const matchUp = stored();
+    manager.getOrCreate('mu-1', STANDARD_FORMAT, matchUp);
+    manager.addGame('mu-1', 1, matchUp);
+    expect(games(manager.getMatchUp('mu-1', matchUp))).toEqual([
+      [6, 4],
+      [3, 3]
+    ]);
+    expect(manager.canUndo('mu-1')).toBe(true);
+
+    expect(manager.undo('mu-1', matchUp)).toBeDefined();
+    expect(games(manager.getMatchUp('mu-1', matchUp)), 'the stored score, not 0-0').toEqual([
+      [6, 4],
+      [3, 2]
+    ]);
+    expect(manager.canUndo('mu-1')).toBe(false);
+    expect(manager.undo('mu-1', matchUp)).toBeUndefined();
+
+    expect(manager.redo('mu-1', matchUp)).toBeDefined();
+    expect(games(manager.getMatchUp('mu-1', matchUp))?.[1]).toEqual([3, 3]);
+  });
+
+  it('a matchUp with no stored score undoes every point, as before', () => {
+    const manager = new InlineScoringManager();
+    const matchUp = makeMatchUp();
+    manager.getOrCreate('mu-1', STANDARD_FORMAT, matchUp);
+    manager.addGame('mu-1', 0, matchUp);
+    expect(manager.canUndo('mu-1')).toBe(true);
+    manager.undo('mu-1', matchUp);
+    expect(manager.canUndo('mu-1')).toBe(false);
+  });
+});
