@@ -1,8 +1,7 @@
-/**
- * @vitest-environment happy-dom
- */
-import { renderMatchUp } from '../renderMatchUp';
+import { makeMatchUp, pillSides } from './helpers/matchUpFixtures';
 import { describe, it, expect } from 'vitest';
+
+// constants and types
 import type { MatchUp } from '../../../types';
 
 /**
@@ -23,57 +22,45 @@ import type { MatchUp } from '../../../types';
  *
  * The second element is a RESERVED SLOT, not an exit: it is how the engine records a side whose
  * origin is not yet known. Reading it as an exit is what put the badge on an empty chair.
+ *
+ * The rules live in `../sideStatus` (`sideStatusPill`), which `renderParticipant` calls; these tests
+ * run them in node through `sidePills`. That the rendered card puts the pill on the side the rule
+ * names is asserted in a browser by `StructureRenderMatchUpTests.stories.ts` (ExitPillOnTheExitingSide).
  */
 
-// `renderStatusPill` names the variant after the lowercased status, so WALKOVER and
-// DOUBLE_WALKOVER carry DIFFERENT classes (`--walkover` / `--double_walkover`) while both read
-// "WO". Selecting the specific class silently matched nothing for the double exits, so the sides
-// are found by the pill element itself.
-const pillCount = (el: HTMLElement) => el.querySelectorAll('.chc-pill').length;
-const pillSides = (el: HTMLElement) =>
-  Array.from(el.querySelectorAll('.chc-side-container'))
-    .filter((side) => side.querySelector('.chc-pill'))
-    .map((side) => Number(side.getAttribute('sidenumber')))
-    .sort((a, b) => a - b);
+/** How many pills the matchUp shows, across both sides. */
+const pillCount = (matchUp: MatchUp) => pillSides(matchUp).length;
 
 function base(overrides: Partial<MatchUp> = {}): MatchUp {
-  return {
+  return makeMatchUp({
     matchUpId: 'mu-exit',
-    matchUpType: 'SINGLES',
-    structureId: 'struct-1',
     roundNumber: 3,
-    roundPosition: 1,
     finishingRound: 1,
     sides: [{ sideNumber: 1 }, { sideNumber: 2 }],
-    score: { scoreStringSide1: '', scoreStringSide2: '' },
     ...overrides
-  } as MatchUp;
+  } as Partial<MatchUp>);
 }
 
 describe('the exit pill belongs to the exiting side', () => {
   it('renders WO on side 1 only, when the codes name side 1 and reserve side 2', () => {
     // the exact record TMX reported
-    const el = renderMatchUp({
-      matchUp: base({
-        matchUpStatus: 'WALKOVER',
-        matchUpStatusCodes: [
-          { previousMatchUpStatus: 'DOUBLE_WALKOVER', matchUpStatus: 'WALKOVER', sideNumber: 1 },
-          { sideNumber: 2 }
-        ]
-      } as Partial<MatchUp>)
-    });
-    expect(pillSides(el)).toEqual([1]);
-    expect(pillCount(el)).toBe(1);
+    const matchUp = base({
+      matchUpStatus: 'WALKOVER',
+      matchUpStatusCodes: [
+        { previousMatchUpStatus: 'DOUBLE_WALKOVER', matchUpStatus: 'WALKOVER', sideNumber: 1 },
+        { sideNumber: 2 }
+      ]
+    } as Partial<MatchUp>);
+    expect(pillSides(matchUp)).toEqual([1]);
+    expect(pillCount(matchUp)).toBe(1);
   });
 
   it('prefers sideExitProvenance when present', () => {
-    const el = renderMatchUp({
-      matchUp: base({
-        matchUpStatus: 'WALKOVER',
-        sideExitProvenance: { 2: { matchUpStatus: 'WALKOVER', previousMatchUpStatus: 'DOUBLE_WALKOVER' } }
-      } as Partial<MatchUp>)
-    });
-    expect(pillSides(el)).toEqual([2]);
+    const matchUp = base({
+      matchUpStatus: 'WALKOVER',
+      sideExitProvenance: { 2: { matchUpStatus: 'WALKOVER', previousMatchUpStatus: 'DOUBLE_WALKOVER' } }
+    } as Partial<MatchUp>);
+    expect(pillSides(matchUp)).toEqual([2]);
   });
 
   /**
@@ -92,37 +79,33 @@ describe('the exit pill belongs to the exiting side', () => {
    * fallback, this is the test that must fail first.
    */
   it('renders the exit for a record that has NO sideExitProvenance — the retained legacy fallback', () => {
-    const el = renderMatchUp({
-      matchUp: base({
-        matchUpStatus: 'WALKOVER',
-        matchUpStatusCodes: [{ previousMatchUpStatus: 'DOUBLE_WALKOVER', matchUpStatus: 'WALKOVER', sideNumber: 2 }]
-      } as Partial<MatchUp>)
-    });
-    expect(pillSides(el)).toEqual([2]);
-    expect(pillCount(el)).toBe(1);
+    const matchUp = base({
+      matchUpStatus: 'WALKOVER',
+      matchUpStatusCodes: [{ previousMatchUpStatus: 'DOUBLE_WALKOVER', matchUpStatus: 'WALKOVER', sideNumber: 2 }]
+    } as Partial<MatchUp>);
+    expect(pillSides(matchUp)).toEqual([2]);
+    expect(pillCount(matchUp)).toBe(1);
   });
 
   it('CONTROL — a double walkover naming BOTH sides still badges both', () => {
-    const el = renderMatchUp({
-      matchUp: base({
-        matchUpStatus: 'DOUBLE_WALKOVER',
-        matchUpStatusCodes: [
-          { previousMatchUpStatus: 'DOUBLE_WALKOVER', matchUpStatus: 'WALKOVER', sideNumber: 1 },
-          { previousMatchUpStatus: 'DOUBLE_WALKOVER', matchUpStatus: 'WALKOVER', sideNumber: 2 }
-        ]
-      } as Partial<MatchUp>)
-    });
-    expect(pillSides(el)).toEqual([1, 2]);
+    const matchUp = base({
+      matchUpStatus: 'DOUBLE_WALKOVER',
+      matchUpStatusCodes: [
+        { previousMatchUpStatus: 'DOUBLE_WALKOVER', matchUpStatus: 'WALKOVER', sideNumber: 1 },
+        { previousMatchUpStatus: 'DOUBLE_WALKOVER', matchUpStatus: 'WALKOVER', sideNumber: 2 }
+      ]
+    } as Partial<MatchUp>);
+    expect(pillSides(matchUp)).toEqual([1, 2]);
   });
 
   it('CONTROL — a DIRECTLY ENTERED double walkover, which records no sides, still badges both', () => {
     // nothing here says anything about sides, so the match-level status is all there is
-    const el = renderMatchUp({ matchUp: base({ matchUpStatus: 'DOUBLE_WALKOVER' } as Partial<MatchUp>) });
-    expect(pillSides(el)).toEqual([1, 2]);
+    const matchUp = base({ matchUpStatus: 'DOUBLE_WALKOVER' } as Partial<MatchUp>);
+    expect(pillSides(matchUp)).toEqual([1, 2]);
   });
 
   it('CONTROL — a match-level status (SUSPENDED) is not side-attributable and stays on both', () => {
-    const el = renderMatchUp({ matchUp: base({ matchUpStatus: 'SUSPENDED' } as Partial<MatchUp>) });
-    expect(pillSides(el)).toEqual([1, 2]);
+    const matchUp = base({ matchUpStatus: 'SUSPENDED' } as Partial<MatchUp>);
+    expect(pillSides(matchUp)).toEqual([1, 2]);
   });
 });
