@@ -13,11 +13,16 @@
  */
 import '../components/forms/styles';
 import { openDatepicker, pickDay, datepickerFor } from './helpers/datepickerHelpers';
+import datepickerFrench from 'vanillajs-datepicker/locales/fr';
 import { renderField } from '../components/forms/renderField';
 import { renderForm } from '../components/forms/renderForm';
 import type { Meta, StoryObj } from '@storybook/html-vite';
+import { Datepicker } from 'vanillajs-datepicker';
 import { expect, waitFor } from 'storybook/test';
 import { user } from './helpers/trustedUser';
+
+const MARCH_TENTH = '2026-03-10';
+const VIEW_SWITCH = '.view-switch';
 
 const meta: Meta = {
   title: 'Foundations/Forms/Tests/Date Pickers',
@@ -34,7 +39,7 @@ export const PickAndInitialValue: StoryObj = {
     wrap.style.cssText = 'padding: 24px; max-width: 360px; min-height: 420px;';
     formInputs = renderForm(wrap, [
       { label: 'Played on', field: 'playedOn', id: 'playedOn', date: true, placeholder: 'YYYY-MM-DD' },
-      { label: 'Starts', field: 'starts', id: 'starts', date: true, value: '2026-03-10' }
+      { label: 'Starts', field: 'starts', id: 'starts', date: true, value: MARCH_TENTH }
     ]);
     return wrap;
   },
@@ -44,7 +49,7 @@ export const PickAndInitialValue: StoryObj = {
 
     // The initial value: the picker read it when it attached, so it opens on March 2026 with the 10th selected.
     const startsPicker = await openDatepicker(starts);
-    await expect(startsPicker.querySelector('.view-switch')?.textContent).toBe('March 2026');
+    await expect(startsPicker.querySelector(VIEW_SWITCH)?.textContent).toBe('March 2026');
     await expect(startsPicker.querySelector('.datepicker-cell.day.selected')?.textContent?.trim()).toBe('10');
     const startsDate = formInputs['starts.date'].getDate() as Date;
     await expect([startsDate.getFullYear(), startsDate.getMonth(), startsDate.getDate()]).toEqual([2026, 2, 10]);
@@ -103,5 +108,58 @@ export const DestroyedBeforeLoad: StoryObj = {
     await expect(document.activeElement).toBe(destroyedInput);
     await expect((destroyedInput as any).datepicker).toBeUndefined();
     await expect(document.querySelectorAll(PICKER)).toHaveLength(1);
+  }
+};
+
+let frenchField: HTMLInputElement;
+let unregisteredField: HTMLInputElement;
+
+/**
+ * The host's locale registrations reach this package's pickers.
+ *
+ * A host registers datepicker locales on the `Datepicker` IT imports — TMX's `initialState.ts` does
+ * `Object.assign(Datepicker.locales, fr, es, …)` — and then passes `language` to `renderField`/`renderForm`. That
+ * works only while both resolve to one copy of `vanillajs-datepicker`, which is why the package build marks it
+ * external (`vite.config.mts`) and `verify:consumer-bundle` fails if a copy is bundled again. Bundled, the
+ * lookup `locales[lang] || locales.en` found no `fr` and every French form showed English.
+ */
+export const HostLocalesReachThePicker: StoryObj = {
+  name: "a locale the host registers on its own Datepicker is the one a field's picker renders",
+  render: () => {
+    // What a host does, on its own import of the package.
+    Object.assign(Datepicker.locales, datepickerFrench);
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'padding: 24px; max-width: 360px; min-height: 420px;';
+    const french = renderField({
+      label: 'Joué le',
+      field: 'joue',
+      id: 'joue',
+      date: true,
+      language: 'fr',
+      value: MARCH_TENTH
+    });
+    // Control: a language nobody registered falls back to English, so the French above is not a default.
+    const unregistered = renderField({
+      label: 'Gespielt',
+      field: 'gespielt',
+      id: 'gespielt',
+      date: true,
+      language: 'de',
+      value: MARCH_TENTH
+    });
+    frenchField = french.inputElement as unknown as HTMLInputElement;
+    unregisteredField = unregistered.inputElement as unknown as HTMLInputElement;
+    wrap.append(french.field, unregistered.field);
+    return wrap;
+  },
+  play: async () => {
+    const french = await openDatepicker(frenchField);
+    await expect(french.querySelector(VIEW_SWITCH)?.textContent).toBe('mars 2026');
+    // `weekStart: 1` comes from the registered locale too: the week opens on lundi.
+    await expect(french.querySelector('.days-of-week .dow')?.textContent).toBe('l');
+    await user.keyboard('{Escape}');
+
+    const fallback = await openDatepicker(unregisteredField);
+    await expect(fallback.querySelector(VIEW_SWITCH)?.textContent).toBe('March 2026');
   }
 };
