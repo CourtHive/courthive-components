@@ -39,6 +39,8 @@ eslint-report*
 
 *storybook.log
 storybook-static
+# Vitest browser mode writes a screenshot of every failing story here.
+.vitest/
 
 # Per-session Claude Code state: `settings.local.json` is personal and
 # `.claude/worktrees/` holds git worktrees (architectural standard A8), so this
