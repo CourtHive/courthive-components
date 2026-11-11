@@ -1,6 +1,8 @@
 import '../components/forms/styles';
+import { openDatepicker, pickDay } from './helpers/datepickerHelpers';
 import { renderForm } from '../components/forms/renderForm';
 import { genderConstants } from 'tods-competition-factory';
+import { expect, waitFor } from 'storybook/test';
 
 const { MALE, FEMALE } = genderConstants;
 
@@ -315,6 +317,28 @@ export const DateRangeForm = {
         fields: ['startDate', 'endDate']
       }
     ]
+  },
+  // The range picker is loaded on first use, so it attaches after render. Its constraint is start <= end:
+  // a start alone is copied to the end, and an end picked before the start swaps the two.
+  play: async ({ canvasElement }) => {
+    const inputByLabel = (text: string) =>
+      [...canvasElement.querySelectorAll('.field')]
+        .find((field) => field.querySelector('label')?.textContent === text)!
+        .querySelector('input')!;
+    const name = inputByLabel('Tournament Name');
+    const start = inputByLabel('Start date');
+    const end = inputByLabel('End date');
+    // `focus: true` moves focus to the name 200ms after render; let it, so it does not close a picker later.
+    await waitFor(() => expect(document.activeElement).toBe(name));
+
+    const twentieth = await pickDay(await openDatepicker(start), 20);
+    await waitFor(() => expect(start.value).toBe(twentieth));
+    await expect(end.value, 'a one-sided range is not allowed: the end follows').toBe(twentieth);
+
+    const tenth = await pickDay(await openDatepicker(end), 10);
+    await waitFor(() => expect(start.value, 'an end before the start swaps them').toBe(tenth));
+    await expect(end.value).toBe(twentieth);
+    await expect(start.value < end.value).toBe(true);
   }
 };
 
