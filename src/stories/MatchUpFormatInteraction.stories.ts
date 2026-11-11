@@ -26,8 +26,9 @@ type Story = StoryObj;
  * Test: Final set tiebreak should default to match main set
  *
  * Bug fixed: When opening with SET3-S:6/TB7 and toggling final set ON,
- * the format was incorrectly generated as SET3-S:6/TB7-F:6 (missing tiebreak)
- * instead of SET3-S:6/TB7-F:6/TB7
+ * the format was incorrectly generated as SET3-S:6/TB7-F:6 (missing tiebreak).
+ * The final set now starts as a copy of the main set, and a copy is no final set:
+ * Select returns SET3-S:6/TB7 until the final set is edited.
  */
 export const FinalSetTiebreakInitialization: Story = {
   render: () => {
@@ -63,7 +64,7 @@ export const FinalSetTiebreakInitialization: Story = {
 
     const description = document.createElement('p');
     description.innerHTML =
-      'This test verifies that when toggling "Final set" ON with a format that has tiebreak on the main set (SET3-S:6/TB7), the final set should also default to having a tiebreak.<br><br><strong>Expected:</strong> SET3-S:6/TB7-F:6/TB7<br><strong>Bug (fixed):</strong> SET3-S:6/TB7-F:6';
+      'This test verifies that when toggling "Final set" ON with a format that has tiebreak on the main set (SET3-S:6/TB7), the final set should also default to having a tiebreak. A final set identical to the main set is written as none.<br><br><strong>Expected:</strong> SET3-S:6/TB7<br><strong>Bug (fixed):</strong> SET3-S:6/TB7-F:6';
     description.style.color = CHC_TEXT_SECONDARY;
     description.style.marginBottom = '1.5em';
 
@@ -124,9 +125,9 @@ export const FinalSetTiebreakInitialization: Story = {
       const resultDisplay = canvas.getByText(/selected format:/i);
       expect(resultDisplay).toBeInTheDocument();
 
-      // The format should be SET3-S:6/TB7-F:6/TB7 (WITH tiebreak on final set)
-      const code = canvas.getByText(/SET3-S:6\/TB7-F:6\/TB7/i);
-      expect(code).toBeInTheDocument();
+      // A final set identical to the main set is no final set: the code stays SET3-S:6/TB7. Asserted on the
+      // result alone, exactly — a getByText on the code also matched this story's own description.
+      expect(canvasElement.querySelector('#result-display code')).toHaveTextContent(/^SET3-S:6\/TB7$/);
     });
   }
 };
@@ -168,7 +169,7 @@ export const FinalSetNoTiebreakWhenMainHasNone: Story = {
 
     const description = document.createElement('p');
     description.innerHTML =
-      'When main set has NO tiebreak, final set should also default to NO tiebreak.<br><br><strong>Expected:</strong> SET3-S:6-F:6';
+      'When main set has NO tiebreak, final set should also default to NO tiebreak. A final set identical to the main set is written as none.<br><br><strong>Expected:</strong> SET3-S:6';
     description.style.color = CHC_TEXT_SECONDARY;
     description.style.marginBottom = '1.5em';
 
@@ -215,10 +216,10 @@ export const FinalSetNoTiebreakWhenMainHasNone: Story = {
     const selectButton = within(document.body).getByRole('button', { name: /^select$/i });
     await user.click(selectButton);
 
-    // Verify result is SET3-S:6-F:6 (NO tiebreak on either)
+    // Verify the result: no tiebreak on either set
     await waitFor(() => {
-      const code = canvas.getByText(/SET3-S:6-F:6$/i);
-      expect(code).toBeInTheDocument();
+      // As above: an identical final set collapses, so the code stays SET3-S:6.
+      expect(canvasElement.querySelector('#result-display-2 code')).toHaveTextContent(/^SET3-S:6$/);
     });
   }
 };
