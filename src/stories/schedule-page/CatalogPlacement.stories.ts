@@ -4,6 +4,11 @@ import { expect, within } from 'storybook/test';
 import { user } from '../helpers/trustedUser';
 
 const INSPECTOR_NAME = 'MatchUp inspector';
+// `toBeVisible()` treats the `hidden` attribute itself as invisible, so it cannot see CSS that overrides it
+// (the floating window is `display: flex`; only `.spl-floating-inspector[hidden]` hides it). The renderer's
+// own answer can: with that rule removed, these checks fail and `toBeVisible()` alone did not.
+const painted = (el: Element) => el.checkVisibility();
+const floatingWindow = (root: HTMLElement) => root.querySelector<HTMLElement>('.spl-floating-inspector')!;
 
 let dispose: (() => void) | undefined;
 export default {
@@ -68,11 +73,15 @@ export const BottomAndFloating = {
     expect(grid.getBoundingClientRect().width).toBeLessThan(fullWidth);
     await user.click(canvas.getByRole('button', { name: 'Float inspector' }));
     expect(canvas.getByRole('dialog', { name: INSPECTOR_NAME })).toBeVisible();
+    expect(painted(floatingWindow(canvasElement))).toBe(true);
     await user.click(canvas.getByRole('button', { name: /^Close$/ }));
     expect(canvas.queryByRole('dialog', { name: INSPECTOR_NAME })).toBeNull();
+    expect(painted(floatingWindow(canvasElement))).toBe(false);
     await user.click(canvas.getByRole('button', { name: 'Show inspector' }));
     expect(canvas.getByRole('dialog', { name: INSPECTOR_NAME })).toBeVisible();
+    expect(painted(floatingWindow(canvasElement))).toBe(true);
     await user.click(canvas.getByRole('button', { name: /^Dock$/ }));
     expect(canvas.queryByRole('dialog', { name: INSPECTOR_NAME })).toBeNull();
+    expect(painted(floatingWindow(canvasElement))).toBe(false);
   }
 };
