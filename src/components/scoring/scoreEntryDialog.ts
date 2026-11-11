@@ -243,6 +243,10 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
       // bottom border from the dialog's edge. '0' and not 0: cModal reads the value truthily, so a
       // numeric zero silently becomes the default.
       padding: '0',
+      // The dialog places focus itself (`focusEntry`). cModal's own first-control focus, a frame after
+      // open, otherwise took it from a host that passed `autoFocus: false` and put it in the first visible
+      // set cell — set 1's UPPER cell, or the first cell left unfolded — measured in Chromium 2026-11-10.
+      autoFocus: false,
       ...params.modalConfig
     },
     // Reached when cModal closes for its own reasons — a footer button, a nested-modal teardown — so the
@@ -473,7 +477,8 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
    *
    * This replaces the earlier Escape rule, which closed only an EMPTY dialog so that a stray key could not
    * discard a typed score. CA chose Escape-as-Cancel over that guard. A mis-aimed CLICK on the backdrop is
-   * still ignored (`clickAway: false`, held by `__tests__/dismissGuard.test.ts`); a key press is deliberate.
+   * still ignored (`clickAway: false`, held by `BackdropClickDoesNotClose` in
+   * `src/stories/ScoreEntryDialogTests.stories.ts`); a key press is deliberate.
    *
    * Delete and Backspace clear only when nothing else took the key. In a score cell or the Free Score field
    * they edit text, and the Dial Pad's keypad keeps Backspace for removing its last digit (it calls
