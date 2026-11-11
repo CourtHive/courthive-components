@@ -10,7 +10,10 @@
  * @returns Object with { field, inputElement, datepicker, subFields }
  *   - field: HTMLDivElement container with label and control
  *   - inputElement: The actual input element (input, select, or checkbox input)
- *   - datepicker: Datepicker instance if date field
+ *   - datepicker: date fields only — a handle that IS the Datepicker once it attaches (the package is
+ *     loaded on first use, so it attaches a tick after render). Calls that change it made before then are
+ *     queued and replayed; reads return undefined; `datepicker.ready` resolves to the real instance.
+ *     See `helpers/loadDatepicker.ts`.
  *   - subFields: Array of { field, input } for radio button options
  *
  * ============================================================================
@@ -143,7 +146,8 @@
  * - maxNumberOfDates: Number - max dates selectable (default: 1)
  * - autohide: Boolean - auto-hide picker after selection
  *
- * Returns datepicker instance accessible via: inputs['{fieldName}.date']
+ * Returns the datepicker handle, accessible via: inputs['{fieldName}.date'] (see `datepicker` above).
+ * An initial `value` is selected in the picker when it attaches.
  *
  * Example:
  * {
@@ -228,8 +232,8 @@
  * - Creates two fields in horizontal layout
  * - Both fields accessible via their field names in inputs object
  */
+import { attachDatepicker, pickerHandle } from '../../helpers/loadDatepicker';
 import { createTypeAhead } from '../../helpers/createTypeAhead';
-import { Datepicker } from 'vanillajs-datepicker';
 import { isFunction } from '../../helpers/typeOf';
 import { validator } from './renderValidator';
 
@@ -436,14 +440,21 @@ function buildTextInputField(item: any, control: HTMLElement): { inputElement: a
   if (item.date) {
     const maxNumberOfDates = item.maxNumberOfDates || 1;
     const autohide = !item.maxNumberOfDates || maxNumberOfDates === 1;
-    datepicker = new Datepicker(input, {
-      maxDate: item.maxDate,
-      minDate: item.minDate,
-      format: 'yyyy-mm-dd',
-      language: item.language || 'en',
-      maxNumberOfDates,
-      autohide
-    });
+    datepicker = pickerHandle(
+      attachDatepicker({
+        inputs: [input],
+        owner: '[forms]',
+        create: ({ Datepicker }) =>
+          new Datepicker(input, {
+            maxDate: item.maxDate,
+            minDate: item.minDate,
+            format: 'yyyy-mm-dd',
+            language: item.language || 'en',
+            maxNumberOfDates,
+            autohide
+          })
+      })
+    );
   } else if (item.typeAhead) {
     createTypeAhead({ ...item.typeAhead, element: input });
   }

@@ -86,14 +86,15 @@
  * Returns an object containing all input elements:
  * - Keys: field names from item.field properties
  * - Values: HTML input elements (input, select, div for checkboxes/radios)
- * - Special keys: {fieldName}.date for datepicker instances
+ * - Special keys: {fieldName}.date for datepicker handles (see renderField: the picker attaches a tick
+ *   after render; `inputs['{fieldName}.date'].ready` resolves to the instance)
  *
  * ACCESSING VALUES:
  * - Text inputs: inputs.fieldName.value
  * - Selects: inputs.fieldName.value
  * - Checkboxes: inputs.fieldName.checked (returns actual input element)
  * - Radio groups: inputs.fieldName.querySelector('input:checked').value
- * - Datepickers: inputs['fieldName.date'] (Datepicker instance)
+ * - Datepickers: inputs['fieldName.date'] (Datepicker handle; a date range's is the DateRangePicker's)
  *
  * ============================================================================
  * EXAMPLE USAGE
@@ -188,7 +189,7 @@
  *   { label: 'Save credentials', field: 'remember', checkbox: true }
  * ]);
  */
-import { DateRangePicker } from 'vanillajs-datepicker';
+import { attachDatepicker, pickerHandle } from '../../helpers/loadDatepicker';
 import { isFunction } from '../../helpers/typeOf';
 import { renderField } from './renderField';
 
@@ -367,16 +368,22 @@ function applyRelationships(relationships: any[], items: any[], inputs: any, fie
 
       if (inputs[field1] && inputs[field2]) {
         const langItem = items.find((i: any) => i.field === field1);
-        const datepicker = new DateRangePicker(inputs[field1], {
-          inputs: [inputs[field1], inputs[field2]],
-          minDate: relationship.minDate,
-          maxDate: relationship.maxDate,
-          format: 'yyyy-mm-dd',
-          language: langItem?.language || 'en',
-          autohide: true
-        });
-
-        inputs[`${field1}.date`] = datepicker;
+        const ends: HTMLElement[] = [inputs[field1], inputs[field2]];
+        inputs[`${field1}.date`] = pickerHandle(
+          attachDatepicker({
+            inputs: ends,
+            owner: '[forms]',
+            create: ({ DateRangePicker }) =>
+              new DateRangePicker(ends[0], {
+                inputs: ends,
+                minDate: relationship.minDate,
+                maxDate: relationship.maxDate,
+                format: 'yyyy-mm-dd',
+                language: langItem?.language || 'en',
+                autohide: true
+              })
+          })
+        );
       }
     }
 

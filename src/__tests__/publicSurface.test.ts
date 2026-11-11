@@ -1,13 +1,3 @@
-// @vitest-environment happy-dom
-// Kept on happy-dom deliberately, the one file in its area that is. Test 1 evaluates the WHOLE barrel, and
-// `vanillajs-datepicker` (a dependency, not our code) runs `document.createRange()` at module top level
-// (`js/lib/dom.js:1`). Three of our modules import it eagerly: `components/forms/renderField.ts`,
-// `components/forms/renderForm.ts` and `components/availability-grid/ui/availabilityGrid.ts`. Under node
-// the import throws `ReferenceError: document is not defined` before any assertion runs. Measured
-// 2026-11-10: with that one package mocked, the barrel imports cleanly in node — tippy, tabbable and
-// prosemirror guard their own globals — so the datepicker is the only blocker. Making it lazy means turning
-// three synchronous `new Datepicker(...)` constructions async, which is a behaviour change, not a test
-// move; mocking it here would make this file prove reachability of a barrel that is not the one shipped.
 /**
  * What the PACKAGE promises, asserted through the barrel rather than through a deep path.
  *
