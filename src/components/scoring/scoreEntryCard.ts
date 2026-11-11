@@ -31,33 +31,34 @@
  * called, and nothing else. If a rule appears here, it is in the wrong file.
  */
 
-import { NON_DIRECTING_ENDINGS, NO_SCORE_STATUSES, endingLabels } from './logic/irregularEnding';
-import { chooseEnding, changeFormat, clearScore, clearAll } from './logic/scoreEntryModel';
+import { offersBothSidesOut, matchEndingOptions, sideEndingOptions, reasonCodeStatus } from './logic/scoreEntryState';
+import { unrecordedTiebreakNote, scoreString, winningSide } from './logic/scoreEntrySelectors';
 import { statusCodeSubtext, statusCodeDisplay, codesForStatus } from './logic/statusCodes';
-import { statusScopeError, statusScopeNotice } from './logic/statusScope';
+import { chooseEnding, changeFormat, clearAll } from './logic/scoreEntryModel';
 import { ENTRY_SIDE, hasCommandModifier, otherSide } from './keyboard';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 import { createScoreEntryStore } from './logic/scoreEntryStore';
 import { scoreEntrySummary } from './logic/scoreEntrySummary';
 import { scoreEntryText } from './logic/scoreEntryText';
+import { statusScopeNotice } from './logic/statusScope';
+import { endingLabels } from './logic/irregularEnding';
 import {
-  unrecordedTiebreakNote,
-  discardedScore,
-  resolveEnding,
-  scoreString,
-  winningSide,
-  isComplete,
-  hasEntry,
-  error
-} from './logic/scoreEntrySelectors';
-import {
-  offersBothSidesOut,
-  matchEndingOptions,
-  resolveReportedEnding,
-  sideEndingOptions,
-  reasonCodeStatus
-} from './logic/scoreEntryState';
+  retractEndingContradictedByScore,
+  holdsEntry as viewHoldsEntry,
+  scoreIsFinished as isScoreFinished,
+  endingRefusalReason,
+  clearScoreForEnding,
+  resolutionInForce,
+  scoreEntryError,
+  endingOffered,
+  clearHeadline,
+  footerState,
+  scoreLocked,
+  submission,
+  clearGate
+} from './logic/scoreEntryRules';
 
+import type { ScoreEntryView, ScoreEntryRulesContext, ScoreEntryOutcome, ClearGate } from './logic/scoreEntryRules';
 import type { ScoreEntryState, ScoreEntryResolution, SideNumber } from './logic/scoreEntryState';
 import type { ScoreEntryModel, EndingIntent } from './logic/scoreEntryModel';
 import type { ScoreEntryTextKey } from './logic/scoreEntryText';
@@ -280,29 +281,8 @@ export type ApproachOption = {
   label: string;
 };
 
-/**
- * What the card reports when Submit is pressed.
- *
- * `winningSide` is the ending's where one was recorded and the SCORE's otherwise. Both are real answers
- * and a host needs whichever applies: measured 2026-09-27, this carried only the ending's, so an
- * ordinary 6-4 6-3 submitted as `{ matchUpStatus: undefined, winningSide: undefined }` — the 95% case
- * reporting nothing at all about who won.
- */
-export type ScoreEntryOutcome = {
-  matchUpStatus?: string;
-  winningSide?: number;
-  reasonCode?: string;
-  /** The score as the region formats it, which is what a host stores alongside the outcome. */
-  score?: string;
-  /**
-   * The operator cleared a recorded outcome and submitted the empty result — REMOVE what is stored.
-   *
-   * Only ever `true`, never `false`, so a host that does not know about it is unaffected. It exists
-   * because an empty outcome is otherwise indistinguishable from a submission that says nothing, and
-   * the two must not be treated alike: one erases a stored score and the other must not.
-   */
-  cleared?: boolean;
-};
+/** What the card reports when Submit is pressed. Declared with the rules that build it. */
+export type { ScoreEntryOutcome };
 
 export type ScoreEntryCardParams = {
   sides: [{ participantName: string; seed?: string }, { participantName: string; seed?: string }];
@@ -430,12 +410,11 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   const openedOnRecordedOutcome = holdsEntry();
   // Decided at open, as `openedOnRecordedOutcome` is: the host's answer is about what was recorded.
   const disabledStatuses = new Set(params.disabledMatchUpStatuses);
-  const removalRefused = params.clearable === false && openedOnRecordedOutcome;
   /**
    * `[Clear]` was pressed at some point.
    *
    * Deliberately never reset. A reset on re-entry was written first and then DELETED, because
-   * falsification showed it changed nothing: `submitsAClear` already requires the card to be empty,
+   * falsification showed it changed nothing: `clearGate` already requires the card to be empty for a clear,
    * so the flag is never read while a score exists. Carrying an untested line that looks load-bearing
    * is worse than not having it.
    */
@@ -737,7 +716,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       region.clear?.();
       openPanelSide = undefined;
       otherMenuOpen = false;
-      // Only meaningful when there WAS something to remove; see `submitsAClear`.
+      // Only meaningful when there WAS something to remove; see `clearGate`.
       clearedRecordedOutcome = true;
       params.onClear?.();
       render();
@@ -747,26 +726,10 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
     submitButton.dataset.action = 'submit';
     submitButton.addEventListener('click', () => {
-      if (removalRefused && !holdsEntry()) return undefined;
-      if (statusScopeError(currentResolution().matchUpStatus, params.disabledMatchUpStatuses, labels)) return undefined;
-      // An emptied card submits the REMOVAL of what it opened on, and says so rather than leaving a
-      // host to infer it from four undefined fields.
-      if (submitsAClear()) {
-        params.onSubmit?.({ cleared: true });
-        return;
-      }
-
-      const resolution = currentResolution();
-      params.onSubmit?.({
-        matchUpStatus: resolution.matchUpStatus,
-        // The ending's winner where there is one; the score's otherwise. An ending always wins, because
-        // a walkover recorded against a side is an instruction and a completed score is an inference.
-        winningSide: resolution.hasEnding ? resolution.winningSide : winningSide(model()),
-        reasonCode: chosen().reasonCode,
-        // Omitted rather than emptied where the ending clears the score, so a host cannot store a score
-        // the card has just said is being discarded.
-        score: resolution.clearsScore ? undefined : scoreString(model())
-      });
+      // Refused (nothing sent) for a removal the host withholds and for an ending out of scope; an emptied
+      // card sends `{ cleared: true }`. The rule is `submission`'s.
+      const outcome = submission(view(), gate(), rulesContext());
+      if (outcome) params.onSubmit?.(outcome);
     });
 
     bar.append(cancel, div(CLS_SPACER), clearButton, submitButton);
@@ -792,22 +755,39 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   }
 
   /**
-   * Whether the SCORE is a finished result.
-   *
-   * The model's `isComplete`, with the parser's rule kept for Free Score: a region-reported ending means
-   * the text is not claiming a finished match — `6-4 6-3 ret` is a retirement with a score — so the
-   * score stops being a result the moment the text says how the match ended instead.
+   * What the rules read: the model, plus what the active region holds that the model cannot — a status
+   * Free Score parsed out of its text, and a half-typed field.
    */
+  function view(): ScoreEntryView {
+    return { model: model(), reportedStatus: region.matchUpStatus?.(), regionHasEntry: !!region.hasEntry?.() };
+  }
+
+  /** The host's scope and the card's words, which every refusal message is built from. */
+  function rulesContext(): ScoreEntryRulesContext {
+    return {
+      disabledMatchUpStatuses: params.disabledMatchUpStatuses,
+      labels,
+      sideNames: [params.sides[0].participantName, params.sides[1].participantName]
+    };
+  }
+
+  /** The clear gate as it stands — see `clearGate`. */
+  function gate(): ClearGate {
+    return clearGate({
+      openedOnRecordedOutcome,
+      cleared: clearedRecordedOutcome,
+      clearable: params.clearable,
+      holdsEntry: holdsEntry()
+    });
+  }
+
   function scoreIsFinished(): boolean {
-    return isComplete(model()) && !region.matchUpStatus?.();
+    return isScoreFinished(view());
   }
 
   /** The model's integrity message, naming the participants rather than "side 1". */
   function scoreError(): string | undefined {
-    return (
-      statusScopeError(currentResolution().matchUpStatus, params.disabledMatchUpStatuses, labels) ??
-      error(model(), { sideNames: [params.sides[0].participantName, params.sides[1].participantName], labels })
-    );
+    return scoreEntryError(view(), rulesContext());
   }
 
   // ── Render ───────────────────────────────────────────────────────────
@@ -846,7 +826,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    * have been protected by an omission instead of by a decision.
    */
   function lockScoreEntry(): void {
-    const locked = resolveEnding(model()).clearsScore;
+    const locked = scoreLocked(model());
     element.dataset.scoreLocked = locked ? 'true' : 'false';
 
     // The per-set cells live in the ROWS, beside the ending controls, so they are named precisely
@@ -933,10 +913,11 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    * is NOT in it**, and that is now CA's ruling rather than an open question (2026-10-04): *"keep the
    * score (and then refuse Defaulted on a complete score)"*. A default DURING a match keeps the score
    * it was defaulted at; the refusal half lives in `endingOffered` and
-   * `retractEndingContradictedByScore`, below.
+   * `retractEndingContradictedByScore` (`logic/scoreEntryRules.ts`).
    */
   function clearScoreWhenEndingCarriesNone(): void {
-    if (!resolveEnding(model()).clearsScore) {
+    const discarding = clearScoreForEnding(model());
+    if (!discarding) {
       scoreDiscardedByEnding = undefined;
       return;
     }
@@ -951,53 +932,14 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     // are emptied for real through `clearScore`. The alternative — keep the sets and let the selectors
     // suppress them — would bring the score back on an approach switch, which CA reported as a bug on
     // 2026-09-30 and `clearedScoreStaysCleared.test.ts` forbids.
-    const held = discardedScore(model());
-    if (held) scoreDiscardedByEnding = held;
-    store.set(clearScore(model()));
+    if (discarding.discarded) scoreDiscardedByEnding = discarding.discarded;
+    store.set(discarding.model);
     region.clear?.();
   }
 
-  /**
-   * Whether an ending can be chosen at all, given the score.
-   *
-   * CA, 2026-09-30: *"I should not be able to select (Retired) if the score is actually complete!"* A
-   * retirement means the match did not finish, and a finished score says it did.
-   *
-   * CA, 2026-10-04, on DEFAULTED: *"keep the score (and then refuse Defaulted on a complete score)"*.
-   * A default keeps the part-score it was given at, so it is the same contradiction as a retirement
-   * and is refused the same way. DOUBLE_DEFAULT is not offered on its own — it is DEFAULTED with "no
-   * one advances" ticked — so refusing DEFAULTED refuses it too.
-   *
-   * The match-level endings that resolve nobody (Suspended, Abandoned, Incomplete, In Progress,
-   * Awaiting Result) say the same thing about the match — it did not finish — and keep the score
-   * beside them, so a finished score refuses them too. Before this, finishing the score and THEN
-   * clicking Suspended submitted SUSPENDED with a complete score: the retraction below only ran when
-   * the score changed, so the other order walked straight past it.
-   *
-   * NOT refused: the endings that carry no score at all — a walkover, Cancelled, Dead Rubber. Choosing
-   * one on a complete score CLEARS it (`clearScoreWhenEndingCarriesNone`), which resolves the
-   * contradiction the other way instead of leaving it standing.
-   */
-  function endingOffered(status: string): boolean {
-    if (disabledStatuses.has(status)) return false;
-    // A retirement keeps the score that was played; with nothing played there is nothing to keep, and
-    // the result would be a walkover wearing the wrong name (CA, 2026-10-08: "Retired is only supposed
-    // to be enabled once there is a score present"). A default is different: a player can be defaulted
-    // before the first ball, so it stays offered.
-    if (status === RETIRED && !scoreEntered()) return false;
-    if (!contradictsFinishedScore(status)) return true;
-    return !scoreIsFinished();
-  }
-
-  /** Whether any score has been entered — in the model, or as text the region holds that the model cannot see yet. */
-  function scoreEntered(): boolean {
-    return hasEntry(model()) || !!region.hasEntry?.();
-  }
-
-  /** The endings that say the match did not finish AND keep the score that says it did. */
-  function contradictsFinishedScore(status: string): boolean {
-    if (status === RETIRED || status === DEFAULTED) return true;
-    return NON_DIRECTING_ENDINGS.has(status) && !NO_SCORE_STATUSES.has(status);
+  /** Whether an ending can be chosen at all, given the score and the host's scope — `endingOffered`'s rule. */
+  function offered(status: string): boolean {
+    return endingOffered(status, view(), params.disabledMatchUpStatuses);
   }
 
   /**
@@ -1019,7 +961,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     );
     for (const control of controls) {
       const status = control.dataset.ending ?? '';
-      const refused = !endingOffered(status) && control.getAttribute(ARIA_PRESSED) !== 'true';
+      const refused = !offered(status) && control.getAttribute(ARIA_PRESSED) !== 'true';
       control.disabled = refused;
       if (refused) control.title = refusalReason(status);
       else control.removeAttribute('title');
@@ -1027,46 +969,23 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   }
 
   function refusalReason(status: string): string {
-    const label = labels[status] ?? status;
-    const scopeError = statusScopeError(status, params.disabledMatchUpStatuses, labels);
-    if (scopeError) return scopeError;
-    if (status === RETIRED && !scoreEntered()) return say('endingNeedsScore', { status: label });
-    return say('endingAfterCompleteScore', { status: label });
+    return endingRefusalReason(status, view(), rulesContext());
   }
 
   /**
-   * Retract an ending the score has just contradicted.
-   *
-   * CA, 2026-09-30: *"If I click (Suspended) and then complete the score the Suspended status should
-   * disappear. A completed score should cause matchUpStatus to change to COMPLETED."*
-   *
-   * Applies to every ending that resolves nobody — Suspended, Abandoned, Incomplete — and to a side
-   * RETIRED or DEFAULTED, which is the same contradiction reached from the other direction:
-   * `endingOffered` refuses it when the score is already complete, and this refuses it when the score
-   * becomes complete after. A rule enforced on only one of those orders is a rule an operator can walk
-   * around.
+   * Retract an ending the score has just contradicted — `retractEndingContradictedByScore` names it.
    *
    * Returns whether anything changed, because the ending chip lives in the participant rows and its
    * removal needs a full render rather than a derived refresh.
    */
-  function retractEndingContradictedByScore(): boolean {
-    if (!scoreIsFinished()) return false;
+  function retractContradictedEnding(): boolean {
+    const retraction = retractEndingContradictedByScore(view());
+    if (!retraction) return false;
 
-    const current = chosen();
-    if (current.matchEnding && NON_DIRECTING_ENDINGS.has(current.matchEnding)) {
-      choose({ kind: 'match', status: current.matchEnding });
-      otherMenuOpen = false;
-      return true;
-    }
-
-    const sideStatus = current.sideEnding?.status;
-    if (current.sideEnding && (sideStatus === RETIRED || sideStatus === DEFAULTED)) {
-      choose({ kind: 'side', sideNumber: current.sideEnding.sideNumber, status: current.sideEnding.status });
-      openPanelSide = undefined;
-      return true;
-    }
-
-    return false;
+    choose(retraction);
+    if (retraction.kind === 'match') otherMenuOpen = false;
+    else openPanelSide = undefined;
+    return true;
   }
 
   /**
@@ -1077,7 +996,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    * the derived refresh deliberately avoids.
    */
   function onScoreChanged(): void {
-    if (retractEndingContradictedByScore()) {
+    if (retractContradictedEnding()) {
       render();
       return;
     }
@@ -1114,10 +1033,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    * which is what keeps Free Score's "6-4 ret" working without letting parsed text override a click.
    */
   function currentResolution(): ScoreEntryResolution {
-    const selected = resolveEnding(model());
-    if (selected.hasEnding) return selected;
-
-    return resolveReportedEnding(region.matchUpStatus?.(), winningSide(model()));
+    return resolutionInForce(view());
   }
 
   /**
@@ -1129,27 +1045,6 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     renderDerived();
   }
 
-  /**
-   * Whether pressing Submit now means *"remove the recorded outcome"*.
-   *
-   * Three conditions, and all three are load-bearing:
-   *
-   *   - `clearedRecordedOutcome` — the operator pressed `[Clear]`. Arriving at an empty card by
-   *     backspacing is not the same act, and the shipping modal does not treat it as one either.
-   *   - `openedOnRecordedOutcome` — there was something to remove. Submitting blank on a matchUp that
-   *     never had a score is a no-op, not a clear, and offering it would be offering nothing.
-   *   - `!holdsEntry()` — the card is still empty. This is what makes a clear-then-retype submit the
-   *     SCORE rather than a deletion, and it is why `clearedRecordedOutcome` needs no reset.
-   *
-   * Mirrors the removed `scoringModal`'s `wasCleared && hadExistingScore`, deliberately: this is the behaviour
-   * CA asked for by name — *"the current scoring modals allow for an empty score to be submitted which
-   * clears a submitted score in the factory for the matchUp being modified"* — so it is the shipping
-   * rule reproduced, not a second opinion about it.
-   */
-  function submitsAClear(): boolean {
-    return clearedRecordedOutcome && openedOnRecordedOutcome && !holdsEntry() && !removalRefused;
-  }
-
   function renderDerived(): void {
     lockScoreEntry();
     refreshEndingAvailability();
@@ -1157,36 +1052,17 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     const resolution = currentResolution();
     renderBand(resolution);
 
-    // ── The submit gate ──
-    //
-    // Live when an ending resolves, OR when the score region says the score is a finished result. The
-    // OR is the point: the 95% case is a played-out match with no ending at all, and gating on the
-    // ending alone would make Submit dead for it. Gating on the score alone would make a walkover
-    // unsubmittable, which is the bug the four approaches each fixed differently.
-    //
-    // A region-reported ERROR closes it regardless. An impossible score stays impossible however it was
-    // qualified: a 3-7 is not made submittable by also being marked Suspended.
-    submitButton.disabled =
-      (removalRefused && !holdsEntry()) ||
-      !!scoreError() ||
-      !(submitsAClear() || resolution.isValid || (!resolution.hasEnding && scoreIsFinished()));
-
-    // Nothing to clear is not the same as a clear that does nothing: the old dialog disables the button,
-    // which is the honest signal. An ENDING counts as something to clear even with no score typed.
-    clearButton.disabled = !holdsEntry();
-    submitButton.title = removalRefused && !holdsEntry() ? say('clearRefused') : '';
+    // ── The submit gate ── `footerState`: Submit live on an ending that resolves OR a finished score, and
+    // closed by any error; Clear live whenever the card holds anything.
+    const footer = footerState(view(), gate(), rulesContext());
+    submitButton.disabled = footer.submitDisabled;
+    clearButton.disabled = footer.clearDisabled;
+    submitButton.title = footer.submitTitle;
   }
 
   /** Whether anything at all has been entered — a score, an ending, or text the model cannot see. */
   function holdsEntry(): boolean {
-    const current = chosen();
-    return !!(
-      current.sideEnding ||
-      current.matchEnding ||
-      current.reasonCode ||
-      hasEntry(model()) ||
-      region.hasEntry?.()
-    );
+    return viewHoldsEntry(view());
   }
 
   // ── The ending shortcuts: w/W, r/R, d/D per side; i, c, a, s for the match ──
@@ -1222,7 +1098,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
 
     // Refused for the same reason the panel button is disabled — a key must not reach a state the
     // control it stands for cannot.
-    if (!endingOffered(status)) {
+    if (!offered(status)) {
       event.preventDefault();
       return true;
     }
@@ -1248,7 +1124,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     event.preventDefault();
     // Refused unless the card offers the control: a status out of scope for this matchUp, or one the
     // score contradicts, is disabled for the pointer and so for the key.
-    if (!matchEndingOptions().includes(status) || !endingOffered(status)) return true;
+    if (!matchEndingOptions().includes(status) || !offered(status)) return true;
 
     choose({ kind: 'match', status });
     clearScoreWhenEndingCarriesNone();
@@ -1444,7 +1320,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   function pickPlayerForEnding(sideNumber: SideNumber, status: string): void {
     pendingSideEnding = undefined;
     const current = chosen().sideEnding;
-    if (endingOffered(status) && !(current?.sideNumber === sideNumber && current.status === status)) {
+    if (offered(status) && !(current?.sideNumber === sideNumber && current.status === status)) {
       choose({ kind: 'side', sideNumber, status });
       clearScoreWhenEndingCarriesNone();
     }
@@ -1477,7 +1353,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       // A retirement or a default cannot follow a finished score; the control says so rather than
       // accepting and then contradicting itself in the band. Set here for the first paint and kept
       // current by `refreshEndingAvailability` as the score changes.
-      option.disabled = !endingOffered(status) && !selected;
+      option.disabled = !offered(status) && !selected;
       if (option.disabled) option.title = refusalReason(status);
 
       option.addEventListener('click', () => {
@@ -1637,7 +1513,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     if (hint) stack.append(text('chc-sec-side-option-hint', say(hint)));
     item.append(div(CLS_CHECK), stack, text('chc-sec-other-item-pick', say('pickPlayer')));
 
-    item.disabled = !endingOffered(status);
+    item.disabled = !offered(status);
     if (item.disabled) item.title = refusalReason(status);
 
     item.addEventListener('click', () => {
@@ -1770,20 +1646,12 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     // will be removed — Submit to clear it.'"* A first draft added a second clause, "Enter a score to
     // keep it", which the card already demonstrates the moment anything is typed. Kept as a single
     // headline with no detail, so it reads as one statement rather than an instruction with a caveat.
-    if (removalRefused && !holdsEntry()) {
+    const headline = clearHeadline(gate());
+    if (headline) {
       band.replaceChildren();
       band.dataset.tone = 'warn';
       band.setAttribute('role', 'status');
-      band.append(text(CLS_BAND_HEADLINE, say('clearRefused')));
-      appendBandControl(true);
-      return undefined;
-    }
-
-    if (submitsAClear()) {
-      band.replaceChildren();
-      band.dataset.tone = 'warn';
-      band.setAttribute('role', 'status');
-      band.append(text(CLS_BAND_HEADLINE, say('clearedHeadline')));
+      band.append(text(CLS_BAND_HEADLINE, say(headline)));
       appendBandControl(true);
       return;
     }
