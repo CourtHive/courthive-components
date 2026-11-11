@@ -124,3 +124,58 @@ export const SeedingBasis = {
     await expect(seedTitles(blocks[3])).toEqual(['', '']);
   }
 };
+
+const edgeCard = (testid: string, configuration: Record<string, any>, side2: Record<string, any>) => {
+  const themed = document.createElement('div');
+  themed.dataset.testid = testid;
+  themed.className = `chc-container ${base.theme}`;
+  themed.style.cssText = 'height:auto; overflow:visible;';
+  const edgeComposition = { ...base, configuration: { ...base.configuration, ...configuration } };
+  themed.appendChild(renderMatchUp({ matchUp: matchUp({ seedValue: 1 }, side2), composition: edgeComposition } as any));
+  return themed;
+};
+
+/**
+ * The edges the visual story does not show, moved from an emulated-DOM unit test: the marker without
+ * brackets, the composition switch that turns it off, and an unseeded side that carries a basis.
+ */
+export const SeedingBasisEdges = {
+  tags: ['!dev'],
+  render: () => {
+    const outer = document.createElement('div');
+    outer.style.cssText = 'display:flex; flex-direction:column; gap:18px; padding:12px;';
+    outer.append(
+      // no brackets: `9†`, still titled, whether the setting is absent or `false`
+      edgeCard('absent', { bracketedSeeds: undefined }, { seedValue: 9, seedingBasis: 'ORGANISER_DISCRETION' }),
+      edgeCard('unbracketed', { bracketedSeeds: false }, { seedValue: 9, seedingBasis: 'ORGANISER_DISCRETION' }),
+      // a consumer that renders its own explanation elsewhere switches the marker off
+      edgeCard(
+        'switched-off',
+        { bracketedSeeds: 'square', seedingBasisMarker: false },
+        { seedValue: 9, seedingBasis: 'PROTECTED_RANKING' }
+      ),
+      // the basis is meaningless without a seed, and a marker alone would be a mark on nothing
+      edgeCard('unseeded', { bracketedSeeds: 'square' }, { seedingBasis: 'PROTECTED_RANKING' })
+    );
+    return outer;
+  },
+  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+    const seeds = (testid: string) =>
+      Array.from(canvasElement.querySelectorAll<HTMLElement>(`[data-testid="${testid}"] .chc-seed`));
+
+    for (const testid of ['absent', 'unbracketed']) {
+      const [, unbracketed] = seeds(testid);
+      await expect(unbracketed).toBeVisible();
+      await expect(unbracketed.textContent).toBe('9†');
+      await expect(unbracketed.title).toBe('Additional seed — organiser discretion');
+    }
+
+    const [, switchedOff] = seeds('switched-off');
+    await expect(switchedOff.textContent).toBe('[9]');
+    await expect(switchedOff.title).toBe('');
+
+    // only side 1's ordinary seed renders: the unseeded side has no seed element at all
+    await expect(seeds('unseeded').map((el) => el.textContent)).toEqual(['[1]']);
+    await expect(canvasElement.querySelector('[data-testid="unseeded"]')).not.toHaveTextContent('†');
+  }
+};
