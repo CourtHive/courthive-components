@@ -8,6 +8,7 @@ import '../styles/schematic.css';
 import '../components/topology-builder/ui/topology-builder.css';
 
 import { fitTopologyHost } from './helpers/fitTopologyHost';
+import { user } from './helpers/trustedUser';
 import { expect } from 'storybook/test';
 
 import type { FitTopologyHost } from './helpers/fitTopologyHost';
@@ -47,7 +48,7 @@ export const GaugesOnlyInTheMode: Story = {
   render: () => mount(),
   play: async ({ canvasElement }) => {
     await expect(canvasElement.querySelectorAll('.tb-fit')).toHaveLength(0);
-    canvasElement.querySelector<HTMLButtonElement>(TOGGLE)!.click();
+    await user.click(canvasElement.querySelector<HTMLButtonElement>(TOGGLE)!);
     await expect(canvasElement.querySelector(TOGGLE)!.getAttribute('aria-pressed')).toBe('true');
     // the main draw takes 24 DA + 4 WC and 4 qualifiers: full
     await expect(status(canvasElement, MAIN)).toBe('FITS');
@@ -63,15 +64,15 @@ export const TheLeversMoveTheFit: Story = {
   render: () => mount('fit'),
   play: async ({ canvasElement }) => {
     // one more qualifier: 28 + 5 for 32 positions — one direct entry has no place
-    step(canvasElement, QUALIFYING, 'qualifiers', 'up').click();
+    await user.click(step(canvasElement, QUALIFYING, 'qualifiers', 'up'));
     await expect(status(canvasElement, MAIN)).toBe('OVER');
     await expect(sentence(canvasElement, MAIN)).toBe('27 entered · 5 qualifiers · 1 not placed');
     await expect(ledger(canvasElement)).toContain('1 not placed');
 
     // back to four, then double the main draw: 28 + 4 in 64 — 32 BYEs, no seeds to take them
-    step(canvasElement, QUALIFYING, 'qualifiers', 'down').click();
+    await user.click(step(canvasElement, QUALIFYING, 'qualifiers', 'down'));
     await expect(status(canvasElement, MAIN)).toBe('FITS');
-    step(canvasElement, MAIN, 'size', 'up').click();
+    await user.click(step(canvasElement, MAIN, 'size', 'up'));
     await expect(card(canvasElement, MAIN).querySelector('.tb-card-size')!.textContent).toBe('×64');
     await expect(status(canvasElement, MAIN)).toBe('SHORT');
     await expect(sentence(canvasElement, MAIN)).toBe('28 entered · 4 qualifiers · 32 BYEs');
@@ -107,14 +108,14 @@ const cutOf = (element: HTMLElement) => element.getAttribute('aria-valuenow');
 const rows = (root: HTMLElement) => [...root.querySelectorAll<HTMLElement>('.tb-acceptance-row')];
 const pending = (root: HTMLElement) => root.querySelector<HTMLElement>('.tb-acceptance-pending')!;
 const accepted = (root: HTMLElement) => rows(root).filter((row) => row.dataset.status === 'accepted').length;
-const openAcceptance = (root: HTMLElement) => root.querySelector<HTMLButtonElement>(ACCEPTANCE_TOGGLE)!.click();
+const openAcceptance = (root: HTMLElement) => user.click(root.querySelector<HTMLButtonElement>(ACCEPTANCE_TOGGLE)!);
 const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
 
 export const AcceptanceLineOnlyInFit: Story = {
   render: () => mount(),
   play: async ({ canvasElement }) => {
     await expect(canvasElement.querySelector<HTMLElement>(ACCEPTANCE_TOGGLE)!.hidden).toBe(true);
-    canvasElement.querySelector<HTMLButtonElement>(TOGGLE)!.click();
+    await user.click(canvasElement.querySelector<HTMLButtonElement>(TOGGLE)!);
     await expect(canvasElement.querySelector<HTMLElement>(ACCEPTANCE_TOGGLE)!.hidden).toBe(false);
     // nothing pending until the line moves
     await expect(pending(canvasElement).hidden).toBe(true);
@@ -124,7 +125,7 @@ export const AcceptanceLineOnlyInFit: Story = {
 export const AcceptanceLineCutsTheRankedEntries: Story = {
   render: () => mount('fit'),
   play: async ({ canvasElement }) => {
-    openAcceptance(canvasElement);
+    await openAcceptance(canvasElement);
     await expect(panel(canvasElement).hidden).toBe(false);
     // the line runs through 24 DA + 6 ALT; the 4 wildcards are held above it, the 2 withdrawals are out
     await expect(rows(canvasElement)).toHaveLength(30);
@@ -134,7 +135,7 @@ export const AcceptanceLineCutsTheRankedEntries: Story = {
 
     // the keyboard: one fewer accepted — 23 DA + 4 WC + 4 qualifiers in 32, one BYE
     line(canvasElement).focus();
-    line(canvasElement).dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+    await user.keyboard('{ArrowUp}');
     await expect(cutOf(line(canvasElement))).toBe('23');
     await expect(sentence(canvasElement, MAIN)).toBe('27 entered · 4 qualifiers · 1 BYE');
     await expect(status(canvasElement, MAIN)).toBe('SHORT');
@@ -146,14 +147,14 @@ export const AcceptanceLineCutsTheRankedEntries: Story = {
     await expect(rows(canvasElement).filter((row) => row.dataset.changed === 'true')).toHaveLength(changes.length);
 
     // choosing a row accepts down to it: 26 + 4 WC + 4 qualifiers is two more than 32
-    rows(canvasElement)[25].click();
+    await user.click(rows(canvasElement)[25]);
     await expect(cutOf(line(canvasElement))).toBe('26');
     await expect(status(canvasElement, MAIN)).toBe('OVER');
     await expect(sentence(canvasElement, MAIN)).toContain('2 not placed');
     await expect(ledger(canvasElement)).toContain('2 not placed');
 
     // Discard: today's statuses, the fit as it was
-    canvasElement.querySelector<HTMLButtonElement>('.tb-acceptance-discard')!.click();
+    await user.click(canvasElement.querySelector<HTMLButtonElement>('.tb-acceptance-discard')!);
     await expect(cutOf(line(canvasElement))).toBe('24');
     await expect(sentence(canvasElement, MAIN)).toBe('28 entered · 4 qualifiers');
     await expect(pending(canvasElement).hidden).toBe(true);
@@ -164,14 +165,12 @@ export const AcceptanceLineCutsTheRankedEntries: Story = {
 export const AcceptanceLineDrags: Story = {
   render: () => mount('fit'),
   play: async ({ canvasElement }) => {
-    openAcceptance(canvasElement);
+    await openAcceptance(canvasElement);
     await nextFrame();
     const handle = line(canvasElement);
-    const target = rows(canvasElement)[10].getBoundingClientRect();
-    handle.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerId: 1, clientY: target.top - 20 }));
-    // just inside row 11: rows 1 to 10 have their middles above the pointer
-    handle.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, pointerId: 1, clientY: target.top + 1 }));
-    handle.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, pointerId: 1 }));
+    // the line itself is a zero-height bar: a director grabs it by its label and drops it on row 11,
+    // whose middle is the pointer — rows 1 to 10 have their middles above it
+    await user.dragAndDrop(handle.querySelector<HTMLElement>('.tb-acceptance-line-label')!, rows(canvasElement)[10]);
     await expect(cutOf(handle)).toBe('10');
     await expect(accepted(canvasElement)).toBe(10);
     await nextFrame();
@@ -179,7 +178,8 @@ export const AcceptanceLineDrags: Story = {
     await expect(handle.style.top).toBe(`${rows(canvasElement)[10].offsetTop}px`);
 
     // Escape closes the panel; the change stays pending
-    panel(canvasElement).dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    handle.focus();
+    await user.keyboard('{Escape}');
     await expect(panel(canvasElement).hidden).toBe(true);
     await expect(pending(canvasElement).hidden).toBe(false);
   }

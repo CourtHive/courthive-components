@@ -9,6 +9,7 @@ import '../styles/schematic.css';
 import '../components/topology-builder/ui/topology-builder.css';
 
 import { ELIMINATION_16, liveTopologyHost } from './helpers/liveTopologyHost';
+import { user } from './helpers/trustedUser';
 import { expect } from 'storybook/test';
 
 import type { LiveTopologyHost } from './helpers/liveTopologyHost';
@@ -54,7 +55,7 @@ export const ChipsOnlyInTheMode: Story = {
     // no chips until the operator asks for them (CA: "so the chips aren't always visible")
     await expect(canvasElement.querySelectorAll(OFFER)).toHaveLength(0);
 
-    toggle.click();
+    await user.click(toggle);
     await expect(canvasElement.querySelector(TOGGLE)!.getAttribute(ARIA_PRESSED)).toBe('true');
     // the live draw's answer, not the mock-draw cache's: 1-16 is already played off, so it is not offered again
     await expect(chips(canvasElement, MAIN)).toEqual(['+ 17–24', '+ 25–32']);
@@ -63,7 +64,7 @@ export const ChipsOnlyInTheMode: Story = {
     // in the mode, the mock-draw rounds line is never shown for a live draw
     await expect(canvasElement.querySelector('.tb-card-rounds')).toBeNull();
 
-    canvasElement.querySelector<HTMLButtonElement>(TOGGLE)!.click();
+    await user.click(canvasElement.querySelector<HTMLButtonElement>(TOGGLE)!);
     await expect(canvasElement.querySelectorAll(OFFER)).toHaveLength(0);
   }
 };
@@ -79,9 +80,9 @@ export const PointingBoxesTheSourceRound: Story = {
     await expect(round()).toBeTruthy();
     await expect(round()!.classList.contains(ROUND_OFFER)).toBe(false);
 
-    fiveToEight.dispatchEvent(new MouseEvent('mouseenter'));
+    await user.hover(fiveToEight);
     await expect(round()!.classList.contains(ROUND_OFFER)).toBe(true);
-    fiveToEight.dispatchEvent(new MouseEvent('mouseleave'));
+    await user.unhover(fiveToEight);
     await expect(round()!.classList.contains(ROUND_OFFER)).toBe(false);
 
     // the keyboard gets the same pointer
@@ -96,7 +97,7 @@ export const PointingBoxesTheSourceRound: Story = {
 export const AChipAttachesThatOnePlayoff: Story = {
   render: () => mount('addPlayoffs'),
   play: async ({ canvasElement }) => {
-    chip(canvasElement, PLAYOFF_1_16, '5-8')!.click();
+    await user.click(chip(canvasElement, PLAYOFF_1_16, '5-8')!);
 
     // the draw has the playoff, the topology was read again from it, and the operator is still in the mode
     await expect(host.structureNames()).toEqual([MAIN, PLAYOFF_1_16, PLAYOFF_5_8]);
@@ -107,7 +108,7 @@ export const AChipAttachesThatOnePlayoff: Story = {
     await expect(chips(canvasElement, PLAYOFF_5_8)).toEqual(['+ 7–8']);
 
     // a round robin chip plays off a group finishing position
-    chip(canvasElement, MAIN, '17-24')!.click();
+    await user.click(chip(canvasElement, MAIN, '17-24')!);
     await expect(host.added).toEqual([PLAYOFF_5_8, 'Playoff 17-24']);
     await expect(chips(canvasElement, MAIN)).toEqual(['+ 25–32']);
   }
@@ -120,13 +121,13 @@ export const NothingLeftToAdd: Story = {
     for (let guard = 0; guard < 40; guard += 1) {
       const next = canvasElement.querySelector<HTMLButtonElement>(OFFER);
       if (!next) break;
-      next.click();
+      await user.click(next);
     }
     await expect(canvasElement.querySelectorAll(OFFER)).toHaveLength(0);
     // leaving the mode is still possible; entering it again is not, and the toggle says why
     const toggle = () => canvasElement.querySelector<HTMLButtonElement>(TOGGLE)!;
     await expect(toggle().disabled).toBe(false);
-    toggle().click();
+    await user.click(toggle());
     await expect(toggle().disabled).toBe(true);
     await expect(toggle().title).toBe('Every finishing position is already played off');
   }
@@ -150,7 +151,7 @@ export const FillsTheHostWithAFooter: Story = {
     await expect(canvasElement.querySelector('.tb-footer-hint')!.textContent).toBe(
       '6 structures can still be added — choose a chip to add it'
     );
-    canvasElement.querySelector<HTMLButtonElement>(TOGGLE)!.click();
+    await user.click(canvasElement.querySelector<HTMLButtonElement>(TOGGLE)!);
     await expect(canvasElement.querySelector('.tb-footer-hint')!.textContent).toBe('');
     await expect(host.control.getFooterSlot()).toBe(canvasElement.querySelector('.tb-footer-slot'));
   }
@@ -160,7 +161,7 @@ export const LinksSpanContentTallerThanTheCanvas: Story = {
   render: () => mount('addPlayoffs', '360px'),
   play: async ({ canvasElement }) => {
     // three playoffs from the 1-16 stack its column well below a 360px canvas
-    for (const range of ['9-16', '5-8', '3-4']) chip(canvasElement, PLAYOFF_1_16, range)!.click();
+    for (const range of ['9-16', '5-8', '3-4']) await user.click(chip(canvasElement, PLAYOFF_1_16, range)!);
     const canvas = canvasElement.querySelector<HTMLElement>('.tb-canvas')!;
     const nodes = canvasElement.querySelector<HTMLElement>('.tb-canvas-nodes')!;
     const svg = canvasElement.querySelector<SVGElement>('.tb-canvas-svg')!;
@@ -192,10 +193,10 @@ export const PagePlayoffBesideThirdFourth: Story = {
     // it draws from the semifinal, whose losers would otherwise play 3-4
     const semifinal = () =>
       card(canvasElement, MAIN)!.querySelector<HTMLElement>('.chc-schematic-round-container[data-round-number="3"]');
-    page.dispatchEvent(new MouseEvent('mouseenter'));
+    await user.hover(page);
     await expect(semifinal()!.classList.contains(ROUND_OFFER)).toBe(true);
 
-    page.click();
+    await user.click(page);
     await expect(host.structureNames()).toEqual(['Main', '3-4 Playoff', 'Playoff Qualifier', 'Playoff Final']);
     // the factory no longer offers 3-4, so both alternatives are gone
     await expect(chips(canvasElement, MAIN)).toEqual(['+ 5\u20138', '+ 9\u201316', '+ Voluntary consolation']);
@@ -208,7 +209,7 @@ export const PagePlayoffBesideThirdFourth: Story = {
 export const VoluntaryConsolationBesideMain: Story = {
   render: () => mountElimination(),
   play: async ({ canvasElement }) => {
-    chipOfKind(canvasElement, 'voluntaryConsolation')!.click();
+    await user.click(chipOfKind(canvasElement, 'voluntaryConsolation')!);
 
     await expect(host.structureNames()).toEqual(['Main', 'Consolation']);
     const vc = card(canvasElement, 'Consolation')!;

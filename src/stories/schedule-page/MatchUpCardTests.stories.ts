@@ -27,6 +27,7 @@
 import { buildMatchUpCard } from '../../components/schedule-page/ui/matchUpCard';
 import type { CatalogMatchUpItem } from '../../components/schedule-page';
 import type { Meta, StoryObj } from '@storybook/html-vite';
+import { user } from '../helpers/trustedUser';
 import { expect } from 'storybook/test';
 
 const meta: Meta = {
@@ -272,12 +273,12 @@ export const RelatedHighlightOnHover: StoryObj = {
     const card = canvasElement.querySelector<HTMLElement>('[data-matchup-id="card-1"]');
     const related = canvasElement.querySelector<HTMLElement>('[data-matchup-id="related-1"]');
 
-    card?.dispatchEvent(new MouseEvent('mouseenter'));
+    await user.hover(card!);
     expect(related?.classList.contains(RELATED_HIGHLIGHT)).toBe(true);
     // The card joins its own relation, so the set reads as a set.
     expect(card?.classList.contains(RELATED_HIGHLIGHT)).toBe(true);
 
-    card?.dispatchEvent(new MouseEvent('mouseleave'));
+    await user.unhover(card!);
     expect(related?.classList.contains(RELATED_HIGHLIGHT)).toBe(false);
   }
 };
@@ -288,6 +289,8 @@ export const RelatedHighlightClearedOnDragStart: StoryObj = {
     const wrap = document.createElement('div');
     const related = document.createElement('div');
     related.setAttribute('data-matchup-id', 'related-2');
+    // Visible text gives the drop target a box a real pointer can reach.
+    related.textContent = 'a drop target somewhere else on the page';
     wrap.appendChild(renderCard({ matchUpId: 'card-2' }, { relatedMatchUpIds: () => ['related-2'] }));
     wrap.appendChild(related);
     return wrap;
@@ -296,13 +299,18 @@ export const RelatedHighlightClearedOnDragStart: StoryObj = {
     const card = canvasElement.querySelector<HTMLElement>('[data-matchup-id="card-2"]');
     const related = canvasElement.querySelector<HTMLElement>('[data-matchup-id="related-2"]');
 
-    card?.dispatchEvent(new MouseEvent('mouseenter'));
+    await user.hover(card!);
     expect(related?.classList.contains(RELATED_HIGHLIGHT)).toBe(true);
 
-    // A real DragEvent with a DataTransfer: the card's own dragstart listener
-    // calls `setDragImage`, which throws on a bare Event and surfaces as an
-    // uncaught error rather than as a failed assertion.
-    card?.dispatchEvent(new DragEvent('dragstart', { dataTransfer: new DataTransfer() }));
+    // A real drag. The pointer leaving the card would clear the highlight too, so read it
+    // at dragstart itself: a listener added after the component's runs after them on the
+    // same target, where the card's own stopPropagation cannot reach it.
+    let highlightedAtDragStart: boolean | undefined;
+    card!.addEventListener('dragstart', () => {
+      highlightedAtDragStart = related!.classList.contains(RELATED_HIGHLIGHT);
+    });
+    await user.dragAndDrop(card!, related!);
+    expect(highlightedAtDragStart).toBe(false);
     expect(related?.classList.contains(RELATED_HIGHLIGHT)).toBe(false);
   }
 };
@@ -312,7 +320,7 @@ export const NoRelationNoHighlight: StoryObj = {
   render: () => renderCard({ matchUpId: 'card-3' }, { relatedMatchUpIds: () => [] }),
   play: async ({ canvasElement }) => {
     const card = canvasElement.querySelector<HTMLElement>('[data-matchup-id="card-3"]');
-    card?.dispatchEvent(new MouseEvent('mouseenter'));
+    await user.hover(card!);
     expect(card?.classList.contains(RELATED_HIGHLIGHT)).toBe(false);
   }
 };

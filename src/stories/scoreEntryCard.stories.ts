@@ -14,6 +14,7 @@
 import { matchUpStatusConstants, fixtures, policyConstants } from 'tods-competition-factory';
 import { codesForStatus, statusCodeDisplay } from '../components/scoring/logic/statusCodes';
 import { scoreEntryCardHost, storyLog } from './helpers/scoreEntryStoryHost';
+import { user } from './helpers/trustedUser';
 import { expect } from 'storybook/test';
 
 import type { StatusCodeGroups } from '../components/scoring/logic/statusCodes';
@@ -99,10 +100,10 @@ const PART_SCORE_SETS = [
 ];
 
 /** Click the one element a selector names, or fail loudly — a silent miss would pass the assertions after it. */
-function clickIn(canvasElement: HTMLElement, selector: string): void {
+async function clickIn(canvasElement: HTMLElement, selector: string): Promise<void> {
   const target = canvasElement.querySelector<HTMLElement>(selector);
   if (!target) throw new Error(`nothing matched ${selector}`);
-  target.click();
+  await user.click(target);
 }
 
 function frame(element: HTMLElement, width = 720): HTMLElement {
@@ -160,7 +161,7 @@ export const SwitchApproach = {
     // [Dynamic Sets] button"* — the host passed a label and nothing to choose from. The menu is the
     // dialog's: all three, the active one checked rather than omitted.
     await expect(switcher().textContent).toBe('Dynamic Sets');
-    click(SWITCH);
+    await click(SWITCH);
     const offered = [...canvasElement.querySelectorAll<HTMLElement>('[data-approach]')];
     await expect(offered.map((item) => item.dataset.approach)).toEqual(['dynamicSets', 'freeScore', 'dialPad']);
     await expect(canvasElement.querySelector('[data-approach="dynamicSets"]')!.getAttribute('aria-pressed')).toBe(
@@ -168,14 +169,14 @@ export const SwitchApproach = {
     );
 
     // One store under every region, so the score comes across and the band does not move.
-    click('[data-approach="freeScore"]');
+    await click('[data-approach="freeScore"]');
     await expect(switcher().textContent).toBe('Free Score');
     await expect(canvasElement.querySelector<HTMLInputElement>('input[data-free-score]')!.value).toContain('6-4 6-3');
     await expect(canvasElement.querySelector('input[data-set="1"]')).toBeNull();
     await expect(canvasElement.querySelector<HTMLElement>(BAND)!.textContent).toContain(LEM_DEFEATS_ELLUL);
 
-    click(SWITCH);
-    click('[data-approach="dialPad"]');
+    await click(SWITCH);
+    await click('[data-approach="dialPad"]');
     await expect(switcher().textContent).toBe('Dial Pad');
     await expect(canvasElement.querySelector('button[data-digit="6"]')).toBeTruthy();
     await expect([...canvasElement.querySelectorAll('.chc-sec-readout-set')].map((cell) => cell.textContent)).toEqual([
@@ -211,12 +212,12 @@ export const Walkover = {
     );
 
     // Drive the design's actual flow: open the row's panel, choose the ending there.
-    click(ENDED_EARLY_2);
+    await click(ENDED_EARLY_2);
     await expect(canvasElement.querySelector('[data-panel-side="2"]')?.textContent).toContain(
       'What happened to Derrick Ellul?'
     );
 
-    click(`[data-panel-side="2"] button[data-ending="${WALKOVER}"]`);
+    await click(`[data-panel-side="2"] button[data-ending="${WALKOVER}"]`);
 
     // THE assertion: the ending was recorded on side 2, so side 1 advances. Getting this backwards
     // advances the wrong participant in every walkover, and the card looks correct while doing it.
@@ -253,7 +254,10 @@ export const ClearedPartScore = {
   name: 'Other… → Cancelled — and the score it clears',
   render: () => frame(cardWithSets(PART_SCORE_SETS)),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
-    const click = (selector: string) => canvasElement.querySelector<HTMLElement>(selector)?.click();
+    const click = async (selector: string) => {
+      const target = canvasElement.querySelector<HTMLElement>(selector);
+      if (target) await user.click(target);
+    };
 
     // The three privileged endings are buttons; the rest are behind Other…
     for (const status of [SUSPENDED]) {
@@ -261,10 +265,10 @@ export const ClearedPartScore = {
     }
     await expect(canvasElement.querySelector(`.chc-sec-endings > button[data-ending="${CANCELLED}"]`)).toBeNull();
 
-    click(OTHER);
+    await click(OTHER);
     await expect(canvasElement.querySelectorAll('.chc-sec-other-menu button[data-ending]')).toHaveLength(4);
 
-    click(`.chc-sec-other-menu button[data-ending="${CANCELLED}"]`);
+    await click(`.chc-sec-other-menu button[data-ending="${CANCELLED}"]`);
 
     // The sentence this band exists for: WHICH score is being discarded, by value, before Submit.
     const band = canvasElement.querySelector<HTMLElement>(BAND);
@@ -295,13 +299,12 @@ export const Tiebreak = {
     // Entering the loser's points completes it and the other side autocompletes to the format's target,
     // but the column stays open: a `3` (or a `1`) can still be the first digit of a longer tiebreak.
     const field = tb(2)!;
-    field.value = '3';
-    field.dispatchEvent(new Event('input', { bubbles: true }));
+    await user.fill(field, '3');
 
     await expect(tb(1), 'the column stays open while the points may still be typed').toBeTruthy();
 
     // Enter confirms: the column folds, and the raised digit takes its place.
-    field.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    await user.keyboard('{Enter}');
 
     await expect(tb(1), 'the column should have folded away').toBeNull();
 
@@ -356,14 +359,16 @@ export const MatchTiebreak = {
       })
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
-    const press = (digit: number) =>
-      canvasElement.querySelector<HTMLButtonElement>(`button[data-digit="${digit}"]`)?.click();
+    const press = async (digit: number) => {
+      const key = canvasElement.querySelector<HTMLButtonElement>(`button[data-digit="${digit}"]`);
+      if (key) await user.click(key);
+    };
 
     // This format was UNENTERABLE on the keypad: `getMaxAllowedScore` returns 7 for it, because it reads
     // `setFormat.setTo` and a tiebreak-only format keeps its target on `tiebreakSet.tiebreakTo`. So the
     // 1 could never be extended to a 10 — tapping 1, 0, 8 gave a tiebreak of 1-0 and dropped the 8.
     // ONE number — the low score. The 10 is derived (CA, 2026-09-28).
-    press(8);
+    await press(8);
 
     await expect(canvasElement.querySelector<HTMLElement>(BAND)!.textContent).toContain('[10-8]');
     await expect(canvasElement.querySelector<HTMLButtonElement>(SUBMIT)!.disabled).toBe(false);
@@ -390,21 +395,24 @@ export const SubmitAndReopen = {
   render: () => frame(cardWithSets(PART_SCORE_SETS)),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     const q = <T extends Element>(selector: string) => canvasElement.querySelector<T>(selector);
-    const click = (selector: string) => q<HTMLElement>(selector)?.click();
+    const click = async (selector: string) => {
+      const target = q<HTMLElement>(selector);
+      if (target) await user.click(target);
+    };
 
     // A walkover against the LOWER participant, WITH a reason — the reason is what makes this a real
     // probe. The ending alone survives a card that never rebuilt at all, because it was already on
     // screen; the reason has to go out into a record and come back through a different field.
-    click(ENDED_EARLY_2);
-    click(`[data-panel-side="2"] button[data-ending="${WALKOVER}"]`);
-    click(`[data-panel-side="2"] button[data-reason="${WALKOVER_INJURY}"]`);
+    await click(ENDED_EARLY_2);
+    await click(`[data-panel-side="2"] button[data-ending="${WALKOVER}"]`);
+    await click(`[data-panel-side="2"] button[data-reason="${WALKOVER_INJURY}"]`);
     await expect(q<HTMLElement>(BAND)!.textContent).toContain(LEM_ADVANCES);
 
     // Captured so the rebuild can be shown rather than assumed. Without this the assertions below pass
     // against a card that ignored Submit entirely — measured, by planting exactly that.
     const before = q<HTMLElement>('[data-component="scoreEntryCard"]');
 
-    click(SUBMIT);
+    await click(SUBMIT);
 
     const after = q<HTMLElement>('[data-component="scoreEntryCard"]');
     await expect(after, 'the card was rebuilt, not left standing').not.toBe(before);

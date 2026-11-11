@@ -13,7 +13,8 @@
  */
 
 import { buildInteractiveScoringShell } from '../components/interactive-scoring/buildInteractiveScoringShell';
-import { within, waitFor, userEvent, expect } from 'storybook/test';
+import { within, waitFor, expect } from 'storybook/test';
+import { user } from './helpers/trustedUser';
 import type { Meta, StoryObj } from '@storybook/html-vite';
 
 const SIDE1_NAME = 'Alice';
@@ -40,7 +41,7 @@ function renderShell(matchUpFormat: string): HTMLElement {
 async function clickPointN(canvas: ReturnType<typeof within>, label: RegExp, n: number): Promise<void> {
   for (let i = 0; i < n; i++) {
     const button = await canvas.findByLabelText(label);
-    await userEvent.click(button);
+    await user.click(button);
   }
 }
 
@@ -92,16 +93,16 @@ export const PickleballDeuce: Story = {
 
     // Take it to 10-10
     for (let i = 0; i < 10; i++) {
-      await userEvent.click(await canvas.findByLabelText(SIDE1_LABEL));
-      await userEvent.click(await canvas.findByLabelText(SIDE2_LABEL));
+      await user.click(await canvas.findByLabelText(SIDE1_LABEL));
+      await user.click(await canvas.findByLabelText(SIDE2_LABEL));
     }
 
     // 11-10 — side 1 leads but no win yet (needs +2)
-    await userEvent.click(await canvas.findByLabelText(SIDE1_LABEL));
+    await user.click(await canvas.findByLabelText(SIDE1_LABEL));
     await expectNotComplete();
 
     // 12-10 — set won
-    await userEvent.click(await canvas.findByLabelText(SIDE1_LABEL));
+    await user.click(await canvas.findByLabelText(SIDE1_LABEL));
 
     // Second set straight to side 1
     await clickPointN(canvas, SIDE1_LABEL, 11);

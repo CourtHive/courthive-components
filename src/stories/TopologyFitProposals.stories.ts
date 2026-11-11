@@ -3,6 +3,7 @@ import '../components/topology-builder/ui/topology-builder.css';
 import { TopologyBuilderControl } from '../components/topology-builder/controller/topologyBuilderControl';
 import { topologyToDrawOptions } from '../components/topology-builder/domain/topologyToDrawOptions';
 import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { user } from './helpers/trustedUser';
 import { expect } from 'storybook/test';
 
 // constants and types
@@ -89,14 +90,14 @@ function mount(dark = false, sanctioned = false, wildcards = false) {
   return element;
 }
 function open(root: HTMLElement) {
-  root.querySelector<HTMLButtonElement>('.tb-proposals > button')!.click();
+  return user.click(root.querySelector<HTMLButtonElement>('.tb-proposals > button')!);
 }
 
 export const CutPreview: StoryObj = {
   render: () => mount(),
   play: async ({ canvasElement: root }) => {
-    open(root);
-    root.querySelector<HTMLButtonElement>(CUT)!.click();
+    await open(root);
+    await user.click(root.querySelector<HTMLButtonElement>(CUT)!);
     await expect(control.getEntryChanges()).toHaveLength(8);
     await expect(JSON.stringify(tournamentEngine.getTournament().tournamentRecord)).toBe(before);
     await expect(root.querySelector(PANEL)?.hasAttribute('hidden')).toBe(true);
@@ -105,9 +106,9 @@ export const CutPreview: StoryObj = {
 export const GrowPreview: StoryObj = {
   render: () => mount(),
   play: async ({ canvasElement: root }) => {
-    open(root);
+    await open(root);
     await expect(root.querySelector(GROW)?.textContent).toContain('24 extra BYEs');
-    root.querySelector<HTMLButtonElement>(GROW)!.click();
+    await user.click(root.querySelector<HTMLButtonElement>(GROW)!);
     await expect(root.querySelector<HTMLElement>('.tb-fit-status')?.dataset.status).toBe('SHORT');
     await expect(control.getEntryChanges()).toHaveLength(0);
     await expect(JSON.stringify(tournamentEngine.getTournament().tournamentRecord)).toBe(before);
@@ -116,12 +117,12 @@ export const GrowPreview: StoryObj = {
 export const FeedInPreview: StoryObj = {
   render: () => mount(),
   play: async ({ canvasElement: root }) => {
-    open(root);
-    root.querySelector<HTMLButtonElement>('[data-kind="Feed-in"]')!.click();
+    await open(root);
+    await user.click(root.querySelector<HTMLButtonElement>('[data-kind="Feed-in"]')!);
     await expect(root.querySelector<HTMLElement>('.tb-fit-status')?.dataset.status).toBe('FITS');
     const toggle = [...root.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent === 'Feed-in')!;
     await expect(toggle.getAttribute('aria-pressed')).toBe('true');
-    toggle.click();
+    await user.click(toggle);
     await expect(
       [...root.querySelectorAll('button')].find((b) => b.textContent === 'Feed-in')?.getAttribute('aria-pressed')
     ).toBe('false');
@@ -131,14 +132,14 @@ export const FeedInPreview: StoryObj = {
 export const DarkOptions: StoryObj = {
   render: () => mount(true),
   play: async ({ canvasElement: root }) => {
-    open(root);
+    await open(root);
     await expect(root.querySelectorAll('.tb-proposal')).toHaveLength(3);
     const background = getComputedStyle(root.querySelector<HTMLElement>(PANEL)!).backgroundColor;
     const channels = background.match(/\d+/g)!.slice(0, 3).map(Number);
     await expect(channels.reduce((sum, value) => sum + value, 0) / 3).toBeLessThan(100);
-    root
-      .querySelector('.tb-proposals-toggle')!
-      .dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    // the toggle that opened the panel still has focus
+    await expect(document.activeElement).toBe(root.querySelector('.tb-proposals-toggle'));
+    await user.keyboard('{Escape}');
     await expect(root.querySelector<HTMLElement>(PANEL)!.hidden).toBe(true);
   }
 };
@@ -146,7 +147,7 @@ export const DarkOptions: StoryObj = {
 export const SanctionBounded: StoryObj = {
   render: () => mount(false, true),
   play: async ({ canvasElement: root }) => {
-    open(root);
+    await open(root);
     await expect(root.querySelector(CUT)).not.toBeNull();
     await expect(root.querySelector(GROW)).toBeNull();
     await expect(root.querySelector('[data-kind="Feed-in"]')).toBeNull();
@@ -156,11 +157,11 @@ export const SanctionBounded: StoryObj = {
 export const WildcardCutPreview: StoryObj = {
   render: () => mount(false, false, true),
   play: async ({ canvasElement: root }) => {
-    open(root);
-    root.querySelector<HTMLButtonElement>(CUT)!.click();
+    await open(root);
+    await user.click(root.querySelector<HTMLButtonElement>(CUT)!);
     await expect(control.getEntryChanges().filter((change) => change.from === 'WILDCARD')).toHaveLength(4);
     await expect(root.querySelector('.tb-acceptance-pending')?.textContent).toContain('4 WC → ALT');
-    root.querySelector<HTMLButtonElement>('.tb-acceptance-toggle')!.click();
+    await user.click(root.querySelector<HTMLButtonElement>('.tb-acceptance-toggle')!);
     await expect(root.querySelector('.tb-acceptance-held')?.textContent).toBe('');
     await expect(JSON.stringify(tournamentEngine.getTournament().tournamentRecord)).toBe(before);
   }
@@ -169,7 +170,7 @@ export const WildcardCutPreview: StoryObj = {
 export const DraggingKeepsCachedOptions: StoryObj = {
   render: () => mount(),
   play: async ({ canvasElement: root }) => {
-    open(root);
+    await open(root);
     const state = control.getState();
     control.loadState({ ...state, nodes: state.nodes.map((node) => ({ ...node, position: { x: 160, y: 80 } })) });
     await expect(proposalCalls).toBe(1);

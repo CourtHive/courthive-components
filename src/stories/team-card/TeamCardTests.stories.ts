@@ -16,7 +16,8 @@
 import { buildTeamCard } from '../../components/team-card/buildTeamCard';
 import type { TeamCardData } from '../../components/team-card/types';
 import type { Meta, StoryObj } from '@storybook/html-vite';
-import { expect, fn, userEvent } from 'storybook/test';
+import { user } from '../helpers/trustedUser';
+import { expect, fn } from 'storybook/test';
 
 const meta: Meta = {
   title: 'Cards/Team/Tests/Build Team Card',
@@ -167,7 +168,7 @@ export const ClickActivation: StoryObj = {
   render: renderActivationCard,
   play: async ({ canvasElement }) => {
     const card = canvasElement.querySelector<HTMLElement>(CARD_SELECTOR);
-    await userEvent.click(card!);
+    await user.click(card!);
     expect(activationSpy).toHaveBeenCalledTimes(1);
     expect(activationSpy).toHaveBeenLastCalledWith(ACTIVATION_DATA);
   }
@@ -179,7 +180,7 @@ export const EnterKeyActivation: StoryObj = {
   play: async ({ canvasElement }) => {
     const card = canvasElement.querySelector<HTMLElement>(CARD_SELECTOR);
     card!.focus();
-    await userEvent.keyboard('{Enter}');
+    await user.keyboard('{Enter}');
     expect(activationSpy).toHaveBeenCalledTimes(1);
   }
 };
@@ -190,7 +191,7 @@ export const SpaceKeyActivation: StoryObj = {
   play: async ({ canvasElement }) => {
     const card = canvasElement.querySelector<HTMLElement>(CARD_SELECTOR);
     card!.focus();
-    await userEvent.keyboard(' ');
+    await user.keyboard(' ');
     expect(activationSpy).toHaveBeenCalledTimes(1);
   }
 };
@@ -201,7 +202,7 @@ export const NonActivatingKeysIgnored: StoryObj = {
   play: async ({ canvasElement }) => {
     const card = canvasElement.querySelector<HTMLElement>(CARD_SELECTOR);
     card!.focus();
-    await userEvent.keyboard('a');
+    await user.keyboard('a');
     expect(activationSpy).not.toHaveBeenCalled();
   }
 };

@@ -18,6 +18,7 @@
 import { renderTeamPresentationEditor } from '../components/team-display/teamPresentationEditor';
 import { renderTeamColorsEditor } from '../components/team-display/teamColorsEditor';
 import type { Meta, StoryObj } from '@storybook/html-vite';
+import { user } from './helpers/trustedUser';
 import { expect } from 'storybook/test';
 
 const meta: Meta = {
@@ -48,10 +49,8 @@ const expectInputUnchanged = (target: HTMLElement) => {
   const input = inputs.get(target)!;
   expect(JSON.stringify(input.value)).toBe(input.original);
 };
-const change = (element: HTMLSelectElement | HTMLInputElement, value: string) => {
-  element.value = value;
-  element.dispatchEvent(new Event(element.tagName === 'SELECT' ? 'change' : 'input'));
-};
+const change = (element: HTMLSelectElement | HTMLInputElement, value: string) =>
+  element.tagName === 'SELECT' ? user.selectOptions(element, value) : user.fill(element, value);
 
 const colors = () => ({
   palette: [
@@ -73,13 +72,13 @@ export const ColorsEditorRolesAndCancel: StoryObj = {
     const initial = colors();
     const selects = target.querySelectorAll('select');
     expect(selects).toHaveLength(5);
-    change(selects[3], 'white');
+    await change(selects[3], 'white');
     expect(editor.read()).toEqual({
       ...initial,
       display: { roles: { ...initial.display.roles, 'score.surface': 'white' } }
     });
     expectInputUnchanged(target);
-    target.querySelector<HTMLButtonElement>('.team-palette-row button:last-child')!.click();
+    await user.click(target.querySelector<HTMLButtonElement>('.team-palette-row button:last-child')!);
     expect(editor.read()).toBeUndefined();
     expect(target.querySelector('[role="alert"]')?.textContent).toContain('Check colors');
   }
@@ -106,17 +105,17 @@ export const PresentationInheritanceAndReset: StoryObj = {
     const editor = editorOf(target);
     const initial = presentationInitial();
     const scope = target.querySelector('select')!;
-    change(scope, 'alpha');
+    await change(scope, 'alpha');
     const modes = target.querySelectorAll('select');
-    change(modes[1], 'theme');
+    await change(modes[1], 'theme');
     expect(editor.read()?.teams?.alpha.roles['team.surface']).toEqual({ theme: true });
     expect(editor.read()?.roles).toEqual(initial.roles);
     expectInputUnchanged(target);
-    target.querySelector('button')!.click();
+    await user.click(target.querySelector('button')!);
     expect(editor.read()?.teams?.alpha).toBeUndefined();
     expect(editor.read()?.roles).toEqual(initial.roles);
-    change(scope, '');
-    target.querySelector('button')!.click();
+    await change(scope, '');
+    await user.click(target.querySelector('button')!);
     expect(editor.read()?.roles).toBeUndefined();
   }
 };
@@ -133,8 +132,8 @@ export const RemovedTeamExceptions: StoryObj = {
     expect(editor.read()).toBeUndefined();
     const scope = target.querySelector('select')!;
     expect(scope.options[1].textContent).toContain('missing team');
-    change(scope, 'removed');
-    target.querySelector('button')!.click();
+    await change(scope, 'removed');
+    await user.click(target.querySelector('button')!);
     expect(editor.read()?.teams).toEqual({});
   }
 };
@@ -149,9 +148,9 @@ export const AddColorKeepsImportedIds: StoryObj = {
     const target = getHost(canvasElement);
     const editor = editorOf(target);
     const add = [...target.querySelectorAll('button')].find((button) => button.textContent === 'Add color')!;
-    add.click();
+    await user.click(add);
     const row = target.querySelector('.team-palette-row:last-child')!;
-    change(row.querySelector<HTMLInputElement>('input[placeholder="#RRGGBB"]')!, '#FFFFFF');
+    await change(row.querySelector<HTMLInputElement>('input[placeholder="#RRGGBB"]')!, '#FFFFFF');
     const value = editor.read() as { palette: { colorId: string }[] };
     expect(value.palette).toHaveLength(65);
     expect(new Set(value.palette.map((entry) => entry.colorId)).size).toBe(65);
@@ -169,12 +168,12 @@ export const PaletteColorsByName: StoryObj = {
   play: async ({ canvasElement }) => {
     const target = getHost(canvasElement);
     const editor = editorOf(target);
-    change(target.querySelector('select')!, 'alpha');
+    await change(target.querySelector('select')!, 'alpha');
     const row = target.querySelector('.team-presentation-role')!;
     const selects = row.querySelectorAll('select');
-    change(selects[0], 'palette');
+    await change(selects[0], 'palette');
     expect(selects[1].options[1].textContent).toBe('Navy');
-    change(selects[1], 'navy');
+    await change(selects[1], 'navy');
     expect(editor.read()?.teams?.alpha.roles['team.surface']).toBe('navy');
   }
 };

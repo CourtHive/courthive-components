@@ -11,6 +11,7 @@ import '../components/roundProfile/roundProfileEditor.css';
 
 import { TopologyBuilderControl } from '../components/topology-builder/controller/topologyBuilderControl';
 import { drawDefinitionConstants } from 'tods-competition-factory';
+import { user } from './helpers/trustedUser';
 import { expect } from 'storybook/test';
 
 import type { TopologyNode } from '../components/topology-builder/types';
@@ -50,10 +51,10 @@ const mount = (drawSize = 40, structureOptions?: any) => {
 
 const mainNode = () => controller.getState().nodes.find((n) => n.id === 'main')!;
 const cells = (root: HTMLElement) => [...root.querySelectorAll<HTMLInputElement>(`${EDITOR} ${CELL}`)];
-const setCell = (root: HTMLElement, index: number, value: string) => {
-  const cell = cells(root)[index];
-  cell.value = value;
-  cell.dispatchEvent(new Event('change'));
+// a round is committed on change: type the value, then leave the cell
+const setCell = async (root: HTMLElement, index: number, value: string) => {
+  await user.fill(cells(root)[index], value);
+  await user.tab();
 };
 export const EditStoresTheProfile: Story = {
   render: () => mount(),
@@ -63,7 +64,7 @@ export const EditStoresTheProfile: Story = {
     // untouched: no explicit profile, the factory derives the same cascade
     await expect(mainNode().structureOptions?.roundProfile).toBeUndefined();
 
-    setCell(canvasElement, 1, '12');
+    await setCell(canvasElement, 1, '12');
     await expect(mainNode().structureOptions?.roundProfile).toEqual([20, 12, 6, 3, 2, 1]);
     // the panel re-renders from the stored profile
     await expect(cells(canvasElement).map((c) => Number(c.value))).toEqual([20, 12, 6, 3, 2, 1]);
@@ -74,7 +75,7 @@ export const ResetStoresNothing: Story = {
   render: () => mount(40, { roundProfile: [20, 12, 8, 4, 2, 1] }),
   play: async ({ canvasElement }) => {
     await expect(cells(canvasElement).map((c) => Number(c.value))).toEqual([20, 12, 8, 4, 2, 1]);
-    canvasElement.querySelector<HTMLButtonElement>(`${EDITOR} .rpe__reset`)!.click();
+    await user.click(canvasElement.querySelector<HTMLButtonElement>(`${EDITOR} .rpe__reset`)!);
     await expect(mainNode().structureOptions?.roundProfile).toBeUndefined();
   }
 };
@@ -87,9 +88,8 @@ export const DrawSizeChangeDropsTheProfile: Story = {
       .find((field) => field.querySelector('label')?.textContent?.trim() === 'Draw Size')
       ?.querySelector<HTMLInputElement>('input');
     await expect(drawSize).toBeTruthy();
-    drawSize!.value = '48';
-    drawSize!.dispatchEvent(new Event('input', { bubbles: true }));
-    drawSize!.dispatchEvent(new Event('change', { bubbles: true }));
+    await user.fill(drawSize!, '48');
+    await user.tab();
     await expect(mainNode().drawSize).toBe(48);
     await expect(mainNode().structureOptions?.roundProfile).toBeUndefined();
     await expect(cells(canvasElement).map((c) => Number(c.value))).toEqual([24, 12, 6, 3, 2, 1]);

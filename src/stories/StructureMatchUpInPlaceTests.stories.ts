@@ -15,6 +15,7 @@ import { renderStructure } from '../components/renderStructure/renderStructure';
 import { generateEventData } from '../data/generateEventData';
 import { compositions } from '../compositions/compositions';
 import type { Meta, StoryObj } from '@storybook/html-vite';
+import { user } from './helpers/trustedUser';
 import { expect, fn } from 'storybook/test';
 
 const meta: Meta = {
@@ -90,7 +91,7 @@ export const SwapEqualsAFullRender: StoryObj = {
     expect(fresh.outerHTML).toBe(nodeOf(full, target.matchUpId).outerHTML);
 
     // its handler answers for the updated matchUp
-    fresh.click();
+    await user.click(fresh);
     expect(matchUpClick.mock.calls.at(-1)?.[0].matchUp).toBe(updated);
 
     // a matchUp that is not there

@@ -1,6 +1,7 @@
 import { renderForm } from '../components/forms/renderForm';
 import { cModal } from '../components/modal/cmodal';
 import { waitFor, expect } from 'storybook/test';
+import { user } from './helpers/trustedUser';
 import '../components/forms/styles';
 
 /**
@@ -100,9 +101,7 @@ export const PopupsOverTheFooter = {
 
     // Twelve suggestions run well past this body's bottom edge.
     const playerInput = modal.querySelector<HTMLInputElement>('#popupPlayer')!;
-    playerInput.focus();
-    playerInput.value = 'Pl';
-    playerInput.dispatchEvent(new Event('input', { bubbles: true }));
+    await user.fill(playerInput, 'Pl');
     const items = await waitFor(() => {
       const shown = [...modal.querySelectorAll<HTMLElement>('.awesomplete > ul:not([hidden]) > li')];
       // Awesomplete shows at most ten (its `maxItems` default).
@@ -156,10 +155,10 @@ export const PopupsFollowAScrolledBody = {
     const before = gap();
     const inputTop = dateInput.getBoundingClientRect().top;
 
+    // Setting scrollTop scrolls the body for real; the browser fires its own `scroll` on the next frame.
     body.scrollTop = 30;
-    body.dispatchEvent(new Event('scroll'));
     await expect(Math.round(inputTop - dateInput.getBoundingClientRect().top), 'the input moved').toBe(30);
-    await expect(Math.abs(gap() - before), 'the calendar moved with its input').toBeLessThan(1);
+    await waitFor(() => expect(Math.abs(gap() - before), 'the calendar moved with its input').toBeLessThan(1));
 
     closeAll();
   }
@@ -193,7 +192,7 @@ export const MultiSelectOverTheFooter = {
     const trigger = panel.previousElementSibling as HTMLElement;
 
     // Before the fix the body clipped the panel and only its first row showed above the footer.
-    trigger.click();
+    await user.click(trigger);
     await expect(panel.getBoundingClientRect().bottom, 'the panel reaches past the body').toBeGreaterThan(
       footer.getBoundingClientRect().top
     );
@@ -234,9 +233,7 @@ export const SuggestionsOpenWhereTheyHang = {
     openFormModal();
     const modal = topModal()!;
     const playerInput = modal.querySelector<HTMLInputElement>('#popupPlayer')!;
-    playerInput.focus();
-    playerInput.value = 'Pl';
-    playerInput.dispatchEvent(new Event('input', { bubbles: true }));
+    await user.fill(playerInput, 'Pl');
     const list = await waitFor(() => {
       const shown = modal.querySelector<HTMLElement>('.awesomplete > ul:not([hidden])');
       if (!shown) throw new Error('the suggestions did not open');

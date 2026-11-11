@@ -1,6 +1,7 @@
 import { createCompositionEditor } from '../components/composition-editor/compositionEditor';
 import { readCompositionColors } from '../styles/applyCompositionColors';
 import { compositions } from '../compositions/compositions';
+import { user } from './helpers/trustedUser';
 import { expect } from 'storybook/test';
 
 // constants and types
@@ -23,45 +24,50 @@ function input(root: HTMLElement, label: string, selector = 'input, select'): HT
     .querySelector(selector)!;
 }
 
-function change(control: HTMLInputElement, value: string, event = 'input'): void {
-  control.value = value;
-  control.dispatchEvent(new Event(event, { bubbles: true }));
+/** a select is chosen from, a text field typed over */
+function change(control: HTMLInputElement, value: string): Promise<void> {
+  return control.tagName === 'SELECT' ? user.selectOptions(control, value) : user.fill(control, value);
 }
 
-function open(root: HTMLElement, label: string): void {
-  [...root.querySelectorAll<HTMLElement>('.ce-section-header')]
-    .find((header) => header.textContent?.includes(label))!
-    .click();
+/** the checkbox is zero-size under the switch: a user clicks the switch, the label that wraps it */
+function flip(toggle: HTMLInputElement): Promise<void> {
+  return user.click(toggle.closest('label') as HTMLLabelElement);
+}
+
+function open(root: HTMLElement, label: string): Promise<void> {
+  return user.click(
+    [...root.querySelectorAll<HTMLElement>('.ce-section-header')].find((header) => header.textContent?.includes(label))!
+  );
 }
 
 export const HeaderColorsAndReset: StoryObj = {
   render: renderEditor,
   play: async ({ canvasElement }) => {
-    open(canvasElement, 'Colors');
-    open(canvasElement, 'Layout');
+    await open(canvasElement, 'Colors');
+    await open(canvasElement, 'Layout');
     const fields: Record<string, string> = {
       'Schedule header text': '#ffffff',
       'Schedule header background': '#123456',
       'Schedule header divider': '#ff6a00'
     };
     for (const name of Object.keys(compositions)) {
-      change(input(canvasElement, 'Load preset'), name, 'change');
+      await change(input(canvasElement, 'Load preset'), name);
       const toggle = input(canvasElement, 'Schedule info');
-      if (!toggle.checked) toggle.click();
+      if (!toggle.checked) await flip(toggle);
       for (const [label, value] of Object.entries(fields))
-        change(input(canvasElement, label, 'input[type="text"]'), value);
+        await change(input(canvasElement, label, 'input[type="text"]'), value);
       const header = () => canvasElement.querySelector('.ce-preview-matchup .chc-scheduling')!;
       expect(getComputedStyle(header()).color).toBe('rgb(255, 255, 255)');
       expect(getComputedStyle(header()).backgroundColor).toBe(HEADER_BACKGROUND_RGB);
       expect(getComputedStyle(header()).borderBottomColor).toBe('rgb(255, 106, 0)');
       expect(getComputedStyle(header()).borderBottomStyle).toBe('solid');
-      toggle.click();
+      await flip(toggle);
       expect(canvasElement.querySelector('.ce-preview-matchup .chc-scheduling')).toBeNull();
-      toggle.click();
+      await flip(toggle);
       expect(getComputedStyle(header()).backgroundColor).toBe(HEADER_BACKGROUND_RGB);
-      [...canvasElement.querySelectorAll('button')]
-        .find((button) => button.textContent === 'Clear color overrides')!
-        .click();
+      await user.click(
+        [...canvasElement.querySelectorAll('button')].find((button) => button.textContent === 'Clear color overrides')!
+      );
       expect(getComputedStyle(header()).backgroundColor).not.toBe(HEADER_BACKGROUND_RGB);
       if (presetUsesBasicCard(name)) {
         expect(readCompositionColors(compositions[name].theme).scheduleHeaderDivider).toBe('transparent');
@@ -78,32 +84,32 @@ function presetUsesBasicCard(name: string): boolean {
 export const ServingAndVisibility: StoryObj = {
   render: renderEditor,
   play: async ({ canvasElement }) => {
-    open(canvasElement, 'Score');
-    open(canvasElement, 'Layout');
+    await open(canvasElement, 'Score');
+    await open(canvasElement, 'Layout');
     const live = () => canvasElement.querySelector('[id="preview-in-progress"]')!;
     const selector = input(canvasElement, 'Server indicator');
-    change(selector, '', 'change');
+    await change(selector, '');
     expect(live().querySelector('.chc-server')).toBeNull();
-    change(selector, 'column', 'change');
+    await change(selector, 'column');
     expect(live().querySelectorAll('.chc-server')).toHaveLength(2);
-    change(selector, 'name', 'change');
+    await change(selector, 'name');
     expect(live().querySelectorAll('.chc-participant-name .chc-server')).toHaveLength(1);
     expect(canvasElement.querySelector('.ce-preview-matchup .tmx-m:not([data-live]) .chc-server')).toBeNull();
     const schedule = input(canvasElement, 'Schedule info');
     const layout = input(canvasElement, 'Header layout');
-    change(layout, 'inline', 'change');
-    schedule.click();
+    await change(layout, 'inline');
+    await flip(schedule);
     expect(layout.disabled).toBe(true);
     expect(live().querySelector('.chc-scheduling')).toBeNull();
-    schedule.click();
+    await flip(schedule);
     expect(live().querySelector('.chc-scheduling--inline')).not.toBeNull();
     expect(layout.value).toBe('inline');
     const roundHeader = input(canvasElement, 'Round header');
     expect(roundHeader.checked).toBe(false);
     expect(canvasElement.querySelector(PREVIEW_ROUND_HEADER)).toBeNull();
-    roundHeader.click();
+    await flip(roundHeader);
     expect(canvasElement.querySelector(PREVIEW_ROUND_HEADER)).not.toBeNull();
-    roundHeader.click();
+    await flip(roundHeader);
     expect(canvasElement.querySelector(PREVIEW_ROUND_HEADER)).toBeNull();
   }
 };

@@ -28,6 +28,7 @@ import { fixtures, policyConstants, matchUpStatusConstants } from 'tods-competit
 import { openScoreEntryDialog } from '../components/scoring/scoreEntryDialog';
 import { gamesPerSet, storyLog } from './helpers/scoreEntryStoryHost';
 import { cModal } from '../components/modal/cmodal';
+import { user } from './helpers/trustedUser';
 import { expect } from 'storybook/test';
 import {
   describeAnswer,
@@ -173,20 +174,16 @@ export const DrawBehindTheModal = {
   render: () => renderDrawBehind().element,
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
-    const reopen = () => canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
+    const reopen = () => user.click(canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!);
     const logText = () => canvasElement.querySelector(LOG)!.textContent ?? '';
     const readout = () => canvasElement.querySelector(HELD_READOUT)!.textContent ?? '';
     const cell = (side: number, set: number) =>
       inModal<HTMLInputElement>(`input[data-side="${side}"][data-set="${set}"]`)!;
-    const type = (side: number, set: number, value: string) => {
-      const input = cell(side, set);
-      input.value = value;
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-    };
+    const type = (side: number, set: number, value: string) => user.fill(cell(side, set), value);
 
     // Nobody has played yet, and the readout says so before anything is opened.
     await expect(readout()).toContain(TO_BE_PLAYED);
-    reopen();
+    await reopen();
 
     // The names on the card are the engine's participants, not a fixture. A control first: the names
     // are non-empty, so an equal pair of blanks cannot pass this.
@@ -194,12 +191,12 @@ export const DrawBehindTheModal = {
     await expect(shown.every(Boolean), 'the engine named both participants').toBe(true);
     await expect(shown).toHaveLength(2);
 
-    type(2, 1, '4');
-    type(1, 1, '6');
-    type(2, 2, '3');
-    type(1, 2, '6');
+    await type(2, 1, '4');
+    await type(1, 1, '6');
+    await type(2, 2, '3');
+    await type(1, 2, '6');
     await expect(inModal(BAND)!.textContent).toContain('6-4 6-3');
-    inModal<HTMLButtonElement>(SUBMIT)!.click();
+    await user.click(inModal<HTMLButtonElement>(SUBMIT)!);
 
     // The engine took it, and said so in its own score string. The modal closed.
     await expect(topModal(), 'Submit closes the dialog').toBeUndefined();
@@ -208,22 +205,22 @@ export const DrawBehindTheModal = {
     await expect(readout()).toContain('6-4 6-3');
 
     // Reopened on what the ENGINE holds — the cells carry the stored sets.
-    reopen();
+    await reopen();
     await expect(cell(1, 1).value, 'reopened on the engine’s matchUp').toBe('6');
     await expect(cell(2, 1).value).toBe('4');
     await expect(cell(2, 2).value).toBe('3');
     await expect(inModal(BAND)!.textContent).toContain('6-4 6-3');
 
     // ── The clear leg: Clear + Submit is how a stored result is removed ──
-    inModal<HTMLButtonElement>('button[data-action="clear"]')!.click();
+    await user.click(inModal<HTMLButtonElement>('button[data-action="clear"]')!);
     await expect(inModal<HTMLButtonElement>(SUBMIT)!.disabled, 'a cleared stored score is submittable').toBe(false);
-    inModal<HTMLButtonElement>(SUBMIT)!.click();
+    await user.click(inModal<HTMLButtonElement>(SUBMIT)!);
 
     await expect(topModal()).toBeUndefined();
     await expect(readout(), 'the engine is back to nothing played').toContain(TO_BE_PLAYED);
     await expect(readout()).not.toContain('6-4');
 
-    reopen();
+    await reopen();
     await expect(cell(1, 1).value, 'and the dialog reopens blank').toBe('');
     closeAll();
   }

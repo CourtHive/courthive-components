@@ -1,6 +1,7 @@
 import { MATCHUP_CATALOG, SCHEDULE_DATES, makeMockCourtGrid } from './data';
 import { createSchedulePage } from '../../components/schedule-page';
-import { expect, userEvent, within } from 'storybook/test';
+import { expect, within } from 'storybook/test';
+import { user } from '../helpers/trustedUser';
 
 const INSPECTOR_NAME = 'MatchUp inspector';
 
@@ -63,15 +64,15 @@ export const BottomAndFloating = {
     expect(card.getBoundingClientRect().height).toBeGreaterThan(70);
     expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(window.innerWidth);
     const fullWidth = grid.getBoundingClientRect().width;
-    await userEvent.click(canvas.getByRole('button', { name: 'Catalog left' }));
+    await user.click(canvas.getByRole('button', { name: 'Catalog left' }));
     expect(grid.getBoundingClientRect().width).toBeLessThan(fullWidth);
-    await userEvent.click(canvas.getByRole('button', { name: 'Float inspector' }));
+    await user.click(canvas.getByRole('button', { name: 'Float inspector' }));
     expect(canvas.getByRole('dialog', { name: INSPECTOR_NAME })).toBeVisible();
-    await userEvent.click(canvas.getByRole('button', { name: /^Close$/ }));
+    await user.click(canvas.getByRole('button', { name: /^Close$/ }));
     expect(canvas.queryByRole('dialog', { name: INSPECTOR_NAME })).toBeNull();
-    await userEvent.click(canvas.getByRole('button', { name: 'Show inspector' }));
+    await user.click(canvas.getByRole('button', { name: 'Show inspector' }));
     expect(canvas.getByRole('dialog', { name: INSPECTOR_NAME })).toBeVisible();
-    await userEvent.click(canvas.getByRole('button', { name: /^Dock$/ }));
+    await user.click(canvas.getByRole('button', { name: /^Dock$/ }));
     expect(canvas.queryByRole('dialog', { name: INSPECTOR_NAME })).toBeNull();
   }
 };
