@@ -30,16 +30,23 @@ const LIVE_CHIP = '.chc-live-chip';
 const POPOVER = '.chc-live-chip-popover';
 const POPOVER_ITEM = '.chc-live-chip-popover-item';
 const OUTSIDE = '[data-testid="outside"]';
+const SITUATION = '.chc-inline-scoring-situation';
 
-function makeComposition(mode: 'points' | 'games' = 'points', showFooter = true): Composition {
+function makeComposition(
+  mode: 'points' | 'games' = 'points',
+  showFooter = true,
+  /** `'absent'` leaves the setting out (an `undefined` argument would take the default instead). */
+  showSituation: boolean | 'absent' = true
+): Composition {
   const base = compositions.Australian;
+  const inlineScoring = showSituation === 'absent' ? { mode, showFooter } : { mode, showFooter, showSituation };
   return {
     ...base,
     configuration: {
       ...base.configuration,
       matchUpFooter: true,
       gameScore: { position: 'trailing', inverted: true },
-      inlineScoring: { mode, showFooter, showSituation: true }
+      inlineScoring
     }
   };
 }
@@ -241,6 +248,67 @@ export const ResumedMatchUpUndoStopsAtTheStoredScore: StoryObj = {
     await expect(shown(), 'back to the stored score, not 0-0').toEqual(['3', '2']);
     await expect(footerButton(canvas, 'Undo')).toBeDisabled();
     await expect(footerButton(canvas, 'Redo')).toBeEnabled();
+  }
+};
+
+// ── Situation flags (`inlineScoring.showSituation`) ──
+
+/** Plays `count` points to `sideNumber` with real clicks on its score, waiting for each re-render. */
+async function playPoints(canvas: HTMLElement, sideNumber: number, count: number): Promise<void> {
+  for (let point = 0; point < count; point += 1) {
+    // before the first point the set score takes it; after, the point cell does
+    const target = pointCell(canvas, sideNumber) ?? gameCell(canvas, sideNumber);
+    await user.click(target);
+  }
+}
+
+export const SituationFlagsFollowThePlay: StoryObj = {
+  name: 'showSituation: 0-40 on side 1’s serve shows BREAK in the footer; the next point clears it',
+  render: empty,
+  play: async ({ canvasElement }) => {
+    const { canvas } = mount(canvasElement, { composition: makeComposition('points') });
+    const flags = () => wrapper(canvas).querySelector<HTMLElement>(SITUATION);
+
+    // Nothing to flag before a point is played, nor at 0-15 / 0-30.
+    await expect(flags()).toBeNull();
+    await playPoints(canvas, 2, 2);
+    await expect(flags()).toBeNull();
+
+    // SET3-S:6/TB7, side 1 serving the first game: 0-40 is a break point for side 2.
+    await playPoints(canvas, 2, 1);
+    await expect(flags(), 'the footer carries the flags').not.toBeNull();
+    const shown = flags()!;
+    await expect(shown.textContent).toBe('Break');
+    await expect(shown).toBeVisible();
+    await expect(shown.checkVisibility()).toBe(true);
+    await expect(getComputedStyle(shown).textTransform).toBe('uppercase');
+    await expect(wrapper(canvas).querySelector(FOOTER)!.contains(shown), 'in the inline footer').toBe(true);
+    // it sits beside the buttons, not over them
+    const undo = footerButton(canvas, 'Undo').getBoundingClientRect();
+    await expect(shown.getBoundingClientRect().right).toBeLessThanOrEqual(undo.left + 1);
+
+    // Side 2 converts: 0-1, 0-0 in the next game, nothing to flag.
+    await playPoints(canvas, 2, 1);
+    await expect(flags()).toBeNull();
+
+    // Undo brings the break point back: the flags follow every score change.
+    await user.click(footerButton(canvas, 'Undo'));
+    await waitFor(() => expect(flags()?.textContent).toBe('Break'));
+  }
+};
+
+export const SituationFlagsOffShowNothing: StoryObj = {
+  name: 'showSituation false, or absent: the same break point shows no flags',
+  render: empty,
+  play: async ({ canvasElement }) => {
+    for (const showSituation of [false, 'absent'] as const) {
+      const { canvas, manager } = mount(canvasElement, { composition: makeComposition('points', true, showSituation) });
+      await playPoints(canvas, 2, 3);
+      // CONTROL: the engine does see a break point, so the absence below is earned
+      await expect(manager.getSituation('mu-1')?.isBreakPoint, `showSituation ${showSituation}`).toBe(true);
+      await expect(wrapper(canvas).querySelector(FOOTER)).toBeVisible();
+      await expect(wrapper(canvas).querySelector(SITUATION), `showSituation ${showSituation}`).toBeNull();
+    }
   }
 };
 

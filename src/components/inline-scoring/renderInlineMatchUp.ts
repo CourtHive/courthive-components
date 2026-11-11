@@ -3,6 +3,7 @@ import { renderStatusPill } from '../renderStructure/renderStatusPill';
 import { listenForOutsideClick } from '../../helpers/outsideClick';
 import { renderMatchUp } from '../renderStructure/renderMatchUp';
 import { inlineScoringRefusal } from './inlineScoringOffer';
+import { situationFlags } from './situationFlags';
 
 // constants and types
 import type { Composition, EventHandlers, MatchUp } from '../../types';
@@ -95,7 +96,11 @@ export function renderInlineMatchUp(params: RenderInlineMatchUpParams): HTMLElem
           canUndo: manager.canUndo(matchUpId),
           canRedo: manager.canRedo(matchUpId),
           isComplete,
-          isDirty
+          isDirty,
+          // Re-read on every render, and every score change re-renders, so the flags follow the play.
+          ...(inlineScoringConfig?.showSituation && {
+            situationText: situationFlags(manager.getSituation(matchUpId), isComplete)
+          })
         }
       }
     };
