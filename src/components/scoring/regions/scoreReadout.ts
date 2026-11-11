@@ -19,6 +19,7 @@
  * to disagree about everything else.
  */
 
+import { lowerTiebreakPoints } from '../logic/tiebreakPoints';
 import { scoreEntryText } from '../logic/scoreEntryText';
 
 import type { SideNumber } from '../logic/scoreEntryState';
@@ -90,8 +91,8 @@ function write(
     // `?? 0` and not `|| 0`: a genuine 0 is a set lost to love, and both reach here as a number.
     const base = String(matchTiebreak ? mine : (games ?? 0));
     // Only the LOWER of the two points shows. When only one was recorded it is the loser's, because
-    // that is what a score line carries.
-    const raised = !matchTiebreak && mine !== undefined && (theirs === undefined || mine < theirs);
+    // that is what a score line carries. Entry feedback, as Dynamic Sets: see `logic/tiebreakPoints`.
+    const raised = !matchTiebreak && lowerTiebreakPoints(mine, theirs) !== undefined;
 
     if (index > 0) element.append('  ');
     const cell = document.createElement('span');

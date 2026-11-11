@@ -8,6 +8,7 @@
 
 import { getSetFormatForIndex, isSetTiebreakOnly, matchUpConfigFor } from './dynamicSetsLogic';
 import { clearCell, typeDigit } from './scoreEntryModel';
+import { lowerTiebreakPoints } from './tiebreakPoints';
 import { cellValue } from './scoreEntrySelectors';
 import { otherSide } from '../keyboard';
 
@@ -75,10 +76,11 @@ export function complementFired(before: ScoreEntryModel, after: ScoreEntryModel,
  * The tiebreak points to raise beside a side's games, or `undefined`.
  *
  * Only the LOWER of the two shows — `7-6³` means the loser took three — and when only one side's points
- * are in, they show on that side.
+ * are in, they show on that side, so what was just typed stays in view. The rule is `lowerTiebreakPoints`;
+ * the draw cell raises by the same rule but only once both values are in (`settledTiebreakPoints`).
  */
 export function raisedTiebreakPoints(model: ScoreEntryModel, setIndex: number, side: SideNumber): number | undefined {
   const mine = cellValue(model, setIndex, side, 'tiebreak');
   const theirs = cellValue(model, setIndex, otherSide(side), 'tiebreak');
-  return mine !== undefined && (theirs === undefined || mine < theirs) ? mine : undefined;
+  return lowerTiebreakPoints(mine, theirs);
 }
