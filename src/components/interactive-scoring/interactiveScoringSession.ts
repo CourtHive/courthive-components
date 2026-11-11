@@ -30,9 +30,10 @@ export interface InteractiveScoringSession {
 }
 
 /**
- * `beforeNotify` runs after an undo or reset and before its `stateChanged` goes out, so the shell has
- * re-rendered by the time a listener hears of it. (A point notifies from inside the engine call, before
- * the shell re-renders, as it always has.)
+ * Every accepted point, undo and reset sends exactly ONE `stateChanged`, carrying the state after it:
+ * `isComplete` and `winningSide` included, so the match-winning point is one notice, not a score notice
+ * and a completion notice. `beforeNotify` runs first, so the shell has re-rendered by the time a listener
+ * hears of it. A refused action (a point after the match, nothing to undo, a declined reset) sends none.
  */
 export function createInteractiveScoringSession(
   config: InteractiveScoringShellConfig,
@@ -50,15 +51,9 @@ export function createInteractiveScoringSession(
   const baseMatchUp: MatchUp = config.initialMatchUp ?? buildEmptyBaseMatchUp(config);
   const listeners = new Set<StateChangedListener>();
 
-  const manager = new InlineScoringManager({
-    onScoreChange: ({ matchUp }) => {
-      dispatchStateChanged(matchUp, false);
-    },
-    onMatchComplete: ({ winningSide }) => {
-      // Re-emit with the isComplete flag so persistence can stop listening
-      dispatchStateChanged(getState(), true, winningSide);
-    }
-  });
+  // No engine callbacks: the manager would notify from inside each call, before the shell re-renders,
+  // and a second time on completion. The session notifies once, after the action, in `settled`.
+  const manager = new InlineScoringManager();
 
   // Initialize the engine with the resume state (or empty)
   manager.getOrCreate(matchUpId, config.matchUpFormat, baseMatchUp);
@@ -85,22 +80,32 @@ export function createInteractiveScoringSession(
     });
   }
 
+  /** After an accepted action: let the shell re-render, then tell the listeners, once. */
+  function settled(): void {
+    beforeNotify?.();
+    const matchUp = getState();
+    const isComplete = manager.isComplete(matchUpId);
+    // A match can end level (a combined-point tie), so a complete matchUp need not carry a winningSide.
+    const winner = isComplete ? manager.get(matchUpId)?.engine.getWinner() : undefined;
+    dispatchStateChanged(matchUp, isComplete, winner ?? undefined);
+  }
+
   function reset(): void {
     manager.reset(matchUpId, baseMatchUp);
-    beforeNotify?.();
-    dispatchStateChanged(getState(), false);
+    settled();
   }
 
   return {
     point: (winner) => {
       if (manager.isComplete(matchUpId)) return false;
-      return !!manager.addPoint(matchUpId, winner, baseMatchUp);
+      if (!manager.addPoint(matchUpId, winner, baseMatchUp)) return false;
+      settled();
+      return true;
     },
     undo: () => {
       if (!manager.canUndo(matchUpId)) return false;
       manager.undo(matchUpId, baseMatchUp);
-      beforeNotify?.();
-      dispatchStateChanged(getState(), manager.isComplete(matchUpId));
+      settled();
       return true;
     },
     reset,
