@@ -3,6 +3,7 @@ import { applyCompositionColors } from '../../styles/applyCompositionColors';
 import { matchUpContainerStyle } from '../../styles/matchUpContainerStyle';
 import { getMatchUpStyle } from '../../styles/getMatchUpStyle';
 import { renderMatchUpActions } from './renderMatchUpActions';
+import { matchUpFooterLabel } from './matchUpFooterLabel';
 import { renderCenterInfo } from './renderCenterInfo';
 import { hasVideo } from './renderOnlineResources';
 import { isFunction } from '../modal/cmodal';
@@ -165,9 +166,7 @@ function renderFooter({
     // Round label on the left
     const roundLabel = document.createElement('span');
     roundLabel.className = 'chc-matchup-footer-round';
-    const roundName = matchUp.roundName || '';
-    const roundPosition = matchUp.roundPosition;
-    roundLabel.textContent = roundPosition ? `${roundName} \u2022 M${roundPosition}` : roundName;
+    roundLabel.textContent = matchUpFooterLabel(matchUp, true);
     footer.appendChild(roundLabel);
 
     // Buttons on the right — driven by eventHandlers
@@ -205,9 +204,7 @@ function renderFooter({
     footer.appendChild(buttonsContainer);
   } else {
     footer.className = 'chc-matchup-footer';
-    const roundName = matchUp.roundName || '';
-    const roundPosition = matchUp.roundPosition;
-    const label = roundPosition ? `${roundName} \u2022 Match ${roundPosition}` : roundName;
+    const label = matchUpFooterLabel(matchUp);
     // renderers.matchUpFooter replaces the round label
     if (footerSlot) footer.appendChild(footerSlot);
     else footer.textContent = label;

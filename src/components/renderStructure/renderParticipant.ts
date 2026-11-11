@@ -1,5 +1,6 @@
 import { getParticipantContainerStyle, participantTypeStyle } from '../../styles/participantStyle';
 import { getChevronStyle } from '../../styles/getChevronStyle';
+import { sideIsWinner, sideStatusPill } from './sideStatus';
 import { renderIndividual } from './renderIndividual';
 import { renderStatusPill } from './renderStatusPill';
 import { isElement } from '../../utilities/isElement';
@@ -10,108 +11,7 @@ import { renderTick } from './renderTick';
 import type { Composition, EventHandlers, MatchUp, Participant } from '../../types';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 
-const {
-  WALKOVER,
-  DEFAULTED,
-  DOUBLE_WALKOVER,
-  DOUBLE_DEFAULT,
-  RETIRED,
-  SUSPENDED,
-  CANCELLED,
-  IN_PROGRESS,
-  ABANDONED,
-  AWAITING_RESULT,
-  DEAD_RUBBER,
-  INCOMPLETE,
-  BYE
-} = matchUpStatusConstants;
-
-const EXIT_STATUSES: string[] = [RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT];
-
-/**
- * The sides an EXIT actually belongs to, or `undefined` when the matchUp records none.
- *
- * `matchUpStatus` is a fact about the MATCH; a walkover is a fact about a SIDE. Rendering the
- * match-level status against every participant puts a `WO` beside a player who did appear — and
- * beside an empty slot that is merely reserved. Reported from TMX on a MAIN final that carried
- * `matchUpStatusCodes: [{ previousMatchUpStatus: DOUBLE_WALKOVER, matchUpStatus: WALKOVER,
- * sideNumber: 1 }, { sideNumber: 2 }]` — unambiguous that only side 1 exited — and rendered `WO` on
- * both sides.
- *
- * READ ORDER. `sideExitProvenance` is the first-class record and is preferred. It is a declared
- * field on `MatchUp` as of factory 7.0.0, mirrored onto this package's own `MatchUp` in
- * `src/types.ts`, so it is read directly. It used to be read through an `as unknown as` view; the
- * stated reason — that CI resolves the published package, where the field was absent — was a
- * misdiagnosis. A cast is erased at runtime and never governed whether the read found anything, and
- * this package's `MatchUp` carries `[key: string]: any` regardless. The declaration is what makes
- * the read typed; nothing about the access changed.
- *
- * `matchUpStatusCodes` REMAINS the fallback and is deliberately retained (CA, 2026-09-22). Its
- * provenance tenant is deprecated in factory 7.0.0 §24 and will be evicted behind `schemaWriteMode`,
- * but `sideExitProvenance` is a PERSISTED field whose writes are gated on `writeNativeEnabled()` —
- * false under LEGACY mode. So this path is the only one that renders an exit for a matchUp last
- * mutated by factory 6.x, still inside this package's peer range, or by a LEGACY-mode consumer.
- * It is consulted only when provenance is absent, so it costs nothing. Do not remove it without
- * re-opening that decision.
- *
- * A BARE `{ sideNumber }` ELEMENT IS A RESERVED SLOT, NOT AN EXIT. It is how the engine records a
- * side whose origin is not yet known, and it is exactly the element that must not raise a badge.
- *
- * Returning `undefined` means "this matchUp says nothing about sides" — a directly-entered walkover
- * or double walkover — and the caller then keeps the match-level behaviour.
- */
-function sidesCarryingExit(matchUp?: MatchUp): Set<number> | undefined {
-  const provenance = matchUp?.sideExitProvenance;
-  if (provenance) {
-    const named = [1, 2].filter((sideNumber) => provenance[sideNumber]);
-    if (named.length) return new Set(named);
-  }
-
-  const codes = matchUp?.matchUpStatusCodes;
-  if (Array.isArray(codes)) {
-    const named = new Set<number>();
-    codes.forEach((element: any, index: number) => {
-      if (!element || typeof element !== 'object') return;
-      if (!element.previousMatchUpStatus && !element.matchUpStatus) return;
-      const sideNumber = element.sideNumber ?? index + 1;
-      if (sideNumber === 1 || sideNumber === 2) named.add(sideNumber);
-    });
-    if (named.size) return named;
-  }
-
-  return undefined;
-}
-
-/**
- * The exit ONE side carries, when its own record names one.
- *
- * A BYE matchUp can carry a propagated exit on the side that is not the BYE: the walkover arrived
- * beside the BYE and travelled on. The match-level status is `BYE`, so the status lists below say
- * nothing about it and nothing rendered — a TD saw a plain BYE with no sign of what passed through.
- *
- * Decided by the side's OWN `matchUpStatus`, never by the presence of a record. The BYE side carries
- * provenance too (`BYE -> BYE`), and a naive "any side with a record" would put a `WO` on the BYE —
- * the mirror of the defect #577 fixed. A bare `{ sideNumber }` code is a reserved slot and names no
- * status, so it is excluded by the same test.
- *
- * Read order matches `sidesCarryingExit`: `sideExitProvenance` first, now as a declared field, then
- * the retained `matchUpStatusCodes` fallback. See that function for why the fallback stays.
- */
-function sideExitStatus(matchUp?: MatchUp, sideNumber?: number): string | undefined {
-  if (sideNumber !== 1 && sideNumber !== 2) return undefined;
-
-  const provenanceStatus = matchUp?.sideExitProvenance?.[sideNumber]?.matchUpStatus;
-  if (provenanceStatus) return EXIT_STATUSES.includes(provenanceStatus) ? provenanceStatus : undefined;
-
-  const codes = matchUp?.matchUpStatusCodes;
-  if (!Array.isArray(codes)) return undefined;
-  const code: any = codes.find(
-    (element: any, index: number) =>
-      element && typeof element === 'object' && (element.sideNumber ?? index + 1) === sideNumber
-  );
-  const codeStatus = code?.matchUpStatus;
-  return codeStatus && EXIT_STATUSES.includes(codeStatus) ? codeStatus : undefined;
-}
+const { IN_PROGRESS } = matchUpStatusConstants;
 
 function buildEndMatter({
   configuration,
@@ -122,8 +22,7 @@ function buildEndMatter({
   matchUpStatus,
   isWinningSide,
   gameScoreOnly,
-  irregularEnding,
-  carriedExitStatus
+  pillStatus
 }): HTMLElement | undefined {
   const endMatter = document.createElement('div');
   const inlineScoring = configuration?.inlineScoring;
@@ -156,9 +55,9 @@ function buildEndMatter({
     } else {
       endMatter.appendChild(tick);
     }
-  } else if (irregularEnding) {
-    // a side of a BYE matchUp shows the exit IT carries, not the matchUp's own BYE
-    const statusPill = renderStatusPill({ matchUpStatus: carriedExitStatus ?? matchUpStatus });
+  } else if (pillStatus) {
+    // a side of a BYE matchUp shows the exit IT carries, not the matchUp's own BYE (see ./sideStatus)
+    const statusPill = renderStatusPill({ matchUpStatus: pillStatus });
     if (inlineScoring) {
       statusPill.classList.add('chc-live-chip');
       statusPill.onclick = (e) => {
@@ -214,45 +113,17 @@ export function renderParticipant({
 
   const firstParticipant = isDoubles ? participant?.individualParticipants?.[0] : participant;
   const secondParticipant = isDoubles && participant?.individualParticipants?.[1];
-  const isWinningSide = Boolean(
-    (winningSide && sideNumber === winningSide) || (matchUpStatus === 'BYE' && participant)
-  );
+  const isWinningSide = sideIsWinner({ participant, sideNumber, matchUp });
   const winnerChevron = configuration?.winnerChevron && isWinningSide;
 
   const teamLogo = configuration?.teamLogo;
-  // Match-level statuses describe the MATCH and belong on both sides.
-  // The exits do not: they name a side, and `sidesCarryingExit` says which.
-  const exitSides = ([RETIRED, WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT] as string[]).includes(
-    matchUpStatus
-  )
-    ? sidesCarryingExit(matchUp)
-    : undefined;
-  const sideOwnsTheExit = !exitSides || (sideNumber !== 1 && sideNumber !== 2) || exitSides.has(sideNumber as number);
-  // BYE is in neither list below — it is a fact about the MATCH — but a side of it can still carry a
-  // propagated exit, which is the only thing that tells a TD a walkover arrived here and moved on.
-  const carriedExitStatus = matchUpStatus === BYE ? sideExitStatus(matchUp, sideNumber) : undefined;
-  const irregularEnding =
-    ((
-      [
-        RETIRED,
-        WALKOVER,
-        DEFAULTED,
-        DOUBLE_WALKOVER,
-        DOUBLE_DEFAULT,
-        SUSPENDED,
-        CANCELLED,
-        IN_PROGRESS,
-        ABANDONED,
-        AWAITING_RESULT,
-        DEAD_RUBBER,
-        INCOMPLETE
-      ] as string[]
-    ).includes(matchUpStatus) &&
-      !isWinningSide &&
-      sideOwnsTheExit &&
-      // configuration.liveStatusPill: false drops the LIVE pill
-      !(matchUpStatus === IN_PROGRESS && configuration?.liveStatusPill === false)) ||
-    Boolean(carriedExitStatus && !isWinningSide);
+  // which status pill, if any, this side shows: see ./sideStatus for the rules
+  const pillStatus = sideStatusPill({
+    liveStatusPill: configuration?.liveStatusPill,
+    isWinningSide,
+    sideNumber,
+    matchUp
+  });
   const gameScoreOnly = configuration?.gameScoreOnly;
 
   const participantContainer = document.createElement('div');
@@ -328,8 +199,7 @@ export function renderParticipant({
       matchUpStatus,
       isWinningSide,
       gameScoreOnly,
-      irregularEnding,
-      carriedExitStatus
+      pillStatus
     });
   if (endMatter) participantContainer.appendChild(endMatter);
 
