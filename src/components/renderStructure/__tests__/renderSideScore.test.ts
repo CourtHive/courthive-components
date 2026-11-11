@@ -51,6 +51,19 @@ describe('setScoreView', () => {
     expect(setScoreView({ set, sideNumber: 1 }).tiebreak).toBe('7');
   });
 
+  it('shows nothing, not "undefined", for a side whose tiebreak points are not recorded', () => {
+    // Only the OTHER side's points are on the set (TMX's inline-scoring submit sends each side only when
+    // non-null). The recorded side shows its points, as it always did; this side has none to show. The
+    // factory's score string and TMX's live display coerce a missing side to 0, but that is a combined
+    // string's convenience, not a recorded value, so the cell does not invent one.
+    const set = makeSet({ side1Score: 7, side2Score: 6, side1TiebreakScore: 7 });
+    expect(setScoreView({ set, sideNumber: 1 }).tiebreak).toBe('7');
+    expect(setScoreView({ set, sideNumber: 2 }).tiebreak).toBe('');
+    const mirrored = makeSet({ side1Score: 6, side2Score: 7, winningSide: 2, side1TiebreakScore: 4 });
+    expect(setScoreView({ set: mirrored, sideNumber: 1 }).tiebreak).toBe('4');
+    expect(setScoreView({ set: mirrored, sideNumber: 2 }).tiebreak).toBe('');
+  });
+
   it('shows an empty superscript for a set without a tiebreak', () => {
     expect(setScoreView({ set: makeSet(), sideNumber: 1 }).tiebreak).toBe('');
   });

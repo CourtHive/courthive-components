@@ -67,6 +67,11 @@ export const SetCells: StoryObj = {
         setScore({ set: makeSet({ setNumber: 2, side1TiebreakScore: 7, side2TiebreakScore: 5 }), sideNumber: 2 })
       ],
       [
+        // only side 1's tiebreak points are recorded; this is side 2's cell
+        'one-sided',
+        setScore({ set: makeSet({ side1Score: 7, side2Score: 6, side1TiebreakScore: 7 }), sideNumber: 2 })
+      ],
+      [
         'game-only',
         setScore({ set: makeSet({ side1TiebreakScore: 7, side2TiebreakScore: 5 }), sideNumber: 1, gameScoreOnly: true })
       ],
@@ -92,6 +97,11 @@ export const SetCells: StoryObj = {
     await expect(Number.parseFloat(getComputedStyle(superscript).fontSize)).toBeLessThan(
       Number.parseFloat(getComputedStyle(tiebreak).fontSize)
     );
+
+    // a side with no recorded tiebreak points shows its games and nothing else (it used to read "6undefined")
+    const oneSided = inFrame(canvasElement, 'one-sided');
+    await expect(oneSided.textContent).toBe('6');
+    await expect(oneSided.querySelector('span.chc-tiebreak')?.textContent).toBe('');
 
     await expect(inFrame(canvasElement, 'game-only').querySelector('span')).toBeNull();
 

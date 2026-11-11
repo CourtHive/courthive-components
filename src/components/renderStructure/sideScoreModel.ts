@@ -39,7 +39,10 @@ export function setScoreView({
   const scoreDisplay = tieBreakSet ? tieBreakScore : gameScore;
   const text = scoreDisplay != null && !Number.isNaN(Number(scoreDisplay)) ? String(scoreDisplay) : '';
   const background = scoreStripes && set.setNumber % 2 ? 'var(--chc-bg-secondary)' : 'transparent';
-  const tiebreak = gameScoreOnly ? undefined : (hasTiebreakScore && !tieBreakSet && String(tieBreakScore)) || '';
+  // A side shows only its OWN recorded points. When just the other side's are on the set, this side has
+  // none, and shows nothing rather than `String(undefined)`.
+  const showsTiebreak = hasTiebreakScore && !tieBreakSet && tieBreakScore !== undefined;
+  const tiebreak = gameScoreOnly ? undefined : (showsTiebreak && String(tieBreakScore)) || '';
 
   return { variant, scoreDisplay, text, tiebreak, background };
 }
