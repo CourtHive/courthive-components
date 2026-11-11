@@ -145,7 +145,27 @@ export function polarToCartesian(cx: number, cy: number, radius: number, angle: 
   return [cx + radius * Math.sin(angle), cy - radius * Math.cos(angle)];
 }
 
+/**
+ * A full ring, as two half-arcs per circle: the outer clockwise, the inner counter-clockwise so the hole stays
+ * empty under the nonzero fill rule. One arc cannot draw it — an arc whose endpoints coincide is omitted
+ * (SVG 1.1 F.6.2), which drew a pool that sits in a single bin as an EMPTY donut.
+ */
+function ringPath(cx: number, cy: number, outer: number, inner: number, start: number): string {
+  const circle = (radius: number, sweep: 0 | 1) => {
+    const [startX, startY] = polarToCartesian(cx, cy, radius, start);
+    const [midX, midY] = polarToCartesian(cx, cy, radius, start + Math.PI);
+    return [
+      `M ${startX} ${startY}`,
+      `A ${radius} ${radius} 0 0 ${sweep} ${midX} ${midY}`,
+      `A ${radius} ${radius} 0 0 ${sweep} ${startX} ${startY}`,
+      'Z'
+    ].join(' ');
+  };
+  return `${circle(outer, 1)} ${circle(inner, 0)}`;
+}
+
 function arcPath(cx: number, cy: number, outer: number, inner: number, start: number, end: number): string {
+  if (end - start >= 2 * Math.PI - 1e-9) return ringPath(cx, cy, outer, inner, start);
   const [outerStartX, outerStartY] = polarToCartesian(cx, cy, outer, start);
   const [outerEndX, outerEndY] = polarToCartesian(cx, cy, outer, end);
   const [innerStartX, innerStartY] = polarToCartesian(cx, cy, inner, end);
