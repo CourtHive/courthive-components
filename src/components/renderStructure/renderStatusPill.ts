@@ -16,6 +16,11 @@ const STATUS_LABELS: Record<string, string> = {
   [IN_PROGRESS]: 'LIVE'
 };
 
+/** The pill's text: a fixed abbreviation, else the status's first three letters with underscores dropped. */
+export function statusPillText(matchUpStatus?: string): string {
+  return STATUS_LABELS[matchUpStatus ?? ''] ?? (matchUpStatus?.split('_').join('').slice(0, 3) || '');
+}
+
 export function renderStatusPill({ matchUpStatus }: { matchUpStatus?: string }): HTMLElement {
   const variantValue = matchUpStatus?.toLowerCase();
   const validVariants = [
@@ -37,7 +42,7 @@ export function renderStatusPill({ matchUpStatus }: { matchUpStatus?: string }):
     ? (variantValue as (typeof validVariants)[number])
     : undefined;
 
-  const statusText = STATUS_LABELS[matchUpStatus ?? ''] ?? (matchUpStatus?.split('_').join('').slice(0, 3) || '');
+  const statusText = statusPillText(matchUpStatus);
 
   const div = document.createElement('div');
   div.className = pillStyle(variant ? { variant } : {});
