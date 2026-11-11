@@ -29,6 +29,7 @@ import { matchUpStatusConstants, fixtures, policyConstants } from 'tods-competit
 import { openScoreEntryDialog } from '../components/scoring/scoreEntryDialog';
 import { asRecord } from './helpers/scoreEntryStoryHost';
 import { cModal } from '../components/modal/cmodal';
+import { user } from './helpers/trustedUser';
 import { expect } from 'storybook/test';
 
 import { codesForStatus, statusCodeDisplay } from '../components/scoring/logic/statusCodes';
@@ -207,8 +208,8 @@ export const OutAndBackIn = {
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
-    const reopen = () => canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
-    reopen();
+    const reopen = () => user.click(canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!);
+    await reopen();
 
     // ── It opened on the right side, with its reason ──
     //
@@ -226,7 +227,7 @@ export const OutAndBackIn = {
 
     // Then in the panel, which proves the STATE carries it and not merely the prose: the chip for the
     // recorded code is the pressed one.
-    inModal<HTMLButtonElement>('button[data-action="endedEarly"][data-side="2"]')!.click();
+    await user.click(inModal<HTMLButtonElement>('button[data-action="endedEarly"][data-side="2"]')!);
     const reason = inModal<HTMLElement>(`[data-panel-side="2"] button[data-reason="${WALKOVER_INJURY}"]`);
     await expect(reason).toBeTruthy();
     await expect(reason!.getAttribute(ARIA_PRESSED)).toBe(PRESSED);
@@ -234,11 +235,11 @@ export const OutAndBackIn = {
     // Submittable as it stands: reopening a complete outcome must not require re-declaring it.
     await expect(inModal<HTMLButtonElement>(SUBMIT)!.disabled).toBe(false);
 
-    inModal<HTMLButtonElement>(SUBMIT)!.click();
+    await user.click(inModal<HTMLButtonElement>(SUBMIT)!);
 
     // It CLOSED, and reopening is a press of the story's own button.
     await expect(topModal(), SUBMIT_CLOSES).toBeUndefined();
-    reopen();
+    await reopen();
 
     // THE assertion: the ending is still on side 2. A double inversion — or none — puts it on side 1,
     // and every value in between looks plausible.
@@ -273,31 +274,27 @@ export const EnterSubmitReopenClear = {
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
-    const reopen = () => canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
-    reopen();
+    const reopen = () => user.click(canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!);
+    await reopen();
 
     const cell = (side: number, set: number) =>
       inModal<HTMLInputElement>(`input[data-side="${side}"][data-set="${set}"]`)!;
     const submit = () => inModal<HTMLButtonElement>(SUBMIT)!;
     const clear = () => inModal<HTMLButtonElement>('button[data-action="clear"]')!;
-    const type = (side: number, set: number, value: string) => {
-      const input = cell(side, set);
-      input.value = value;
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-    };
+    const type = (side: number, set: number, value: string) => user.fill(cell(side, set), value);
 
     // Opens blank, and nothing is submittable yet.
     await expect(submit().disabled, 'a blank card submits nothing').toBe(true);
 
     // Entry begins on the LOWER row, so the loser's games are typed first in each column.
-    type(2, 1, '4');
-    type(1, 1, '6');
-    type(2, 2, '3');
-    type(1, 2, '6');
+    await type(2, 1, '4');
+    await type(1, 1, '6');
+    await type(2, 2, '3');
+    await type(1, 2, '6');
 
     await expect(inModal<HTMLElement>(BAND)!.textContent).toContain('6-4 6-3');
     await expect(submit().disabled).toBe(false);
-    submit().click();
+    await user.click(submit());
 
     // IT CLOSED. This assertion could not exist while the story reopened itself on a timer — the
     // modal was replaced in the same frame, so there was no moment at which nothing was on screen.
@@ -306,7 +303,7 @@ export const EnterSubmitReopenClear = {
     await expect(topModal(), SUBMIT_CLOSES).toBeUndefined();
 
     // And reopening is a BUTTON, which is what "allow me to re-open" means.
-    reopen();
+    await reopen();
 
     // THE assertion CA went looking for: the score that was submitted is the score it reopened on,
     // in the cells rather than only in the prose.
@@ -316,16 +313,16 @@ export const EnterSubmitReopenClear = {
     await expect(inModal<HTMLElement>(BAND)!.textContent).toContain('6-4 6-3');
 
     // ── The clear leg ──
-    clear().click();
+    await user.click(clear());
 
     // Submit stays live, and the band says what it will do rather than reading as an empty new entry.
     await expect(submit().disabled, 'a cleared recorded score is still submittable').toBe(false);
     await expect(inModal<HTMLElement>(BAND)!.textContent).toContain('removed');
 
-    submit().click();
+    await user.click(submit());
     await expect(topModal(), 'and the clear closes it too').toBeUndefined();
 
-    reopen();
+    await reopen();
 
     // It reopened on nothing, which is the point: the recorded score is gone, and the dialog now has
     // the same blank card it started with.
@@ -345,7 +342,7 @@ export const ReopenARetirement = {
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
-    canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
+    await user.click(canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!);
 
     // The part-score is in the cells, read off `matchUp.score.sets` rather than passed separately.
     await expect(inModal<HTMLInputElement>('input[data-side="1"][data-set="1"]')!.value).toBe('6');
@@ -369,7 +366,7 @@ export const ReopenAMatchLevelEnding = {
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
-    canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
+    await user.click(canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!);
 
     // On the match-level control, and NOT on a row: a suspension resolves nobody, so a row pill would
     // be claiming it happened to one participant.
@@ -391,8 +388,8 @@ export const ReopenADoubleExit = {
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
-    const reopen = () => canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
-    reopen();
+    const reopen = () => user.click(canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!);
+    await reopen();
 
     // Both rows carry the chip — CA, 2026-09-27: *"If 'no one advances' is selected shouldn't (Defaulted)
     // or (Walkover) chip appear next to the other player as well?"*
@@ -402,21 +399,21 @@ export const ReopenADoubleExit = {
     // "against the side that lost" — it goes on BOTH, and side 1 is what `recordedStatusCode` reads.
     // Without this the round trip below passes just as well against a record that stored no reason at
     // all, which is the one thing about a double exit that is easy to get wrong.
-    inModal<HTMLButtonElement>('button[data-action="endedEarly"][data-side="1"]')!.click();
-    inModal<HTMLButtonElement>(`[data-panel-side="1"] button[data-reason="${WALKOVER_INJURY}"]`)!.click();
+    await user.click(inModal<HTMLButtonElement>('button[data-action="endedEarly"][data-side="1"]')!);
+    await user.click(inModal<HTMLButtonElement>(`[data-panel-side="1"] button[data-reason="${WALKOVER_INJURY}"]`)!);
     await expect(
       inModal<HTMLElement>(`[data-panel-side="1"] button[data-reason="${WALKOVER_INJURY}"]`)!.getAttribute(ARIA_PRESSED)
     ).toBe(PRESSED);
 
     // And it resolves back to the DOUBLE status, not to the single ending that was clicked.
-    inModal<HTMLButtonElement>(SUBMIT)!.click();
+    await user.click(inModal<HTMLButtonElement>(SUBMIT)!);
     await expect(document.querySelector('#roundTripLog')!.textContent).toContain(DOUBLE_WALKOVER);
 
     // It closed, then reopened on the press of the story's own button. This replaced a timer, which
     // also removed a hazard in its own right: a timer that fires after the story has finished opens a
     // dialog into whatever is on screen next.
     await expect(topModal(), SUBMIT_CLOSES).toBeUndefined();
-    reopen();
+    await reopen();
 
     // Both rows again — a double exit that reopened as a single one would have lost the second
     // participant, which is the failure this whole file exists to catch.
@@ -431,7 +428,7 @@ export const ReopenADoubleExit = {
     // code rather than merely the prose.
     await expect(inModal<HTMLElement>(BAND)!.textContent).toContain(walkoverInjuryDisplay());
 
-    inModal<HTMLButtonElement>('button[data-action="endedEarly"][data-side="1"]')!.click();
+    await user.click(inModal<HTMLButtonElement>('button[data-action="endedEarly"][data-side="1"]')!);
     const reason = inModal<HTMLElement>(`[data-panel-side="1"] button[data-reason="${WALKOVER_INJURY}"]`);
     await expect(reason, 'the reason chip is offered again').toBeTruthy();
     await expect(reason!.getAttribute(ARIA_PRESSED), 'and it is the pressed one').toBe('true');

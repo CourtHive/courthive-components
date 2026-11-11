@@ -15,7 +15,8 @@
 import 'leaflet/dist/leaflet.css';
 import { buildVenueLocator } from '../components/venue-locator/buildVenueLocator';
 import { VenueLocatorData } from '../components/venue-locator/types';
-import { within, userEvent, expect } from 'storybook/test';
+import { within, expect } from 'storybook/test';
+import { user } from './helpers/trustedUser';
 
 export default {
   title: 'Cards/Venue Locator',
@@ -94,7 +95,7 @@ export const ViewToggle = {
     await expect(mapBtn.getAttribute(ARIA_PRESSED)).toBe('true');
     await expect(satBtn.getAttribute(ARIA_PRESSED)).toBe('false');
 
-    await userEvent.click(satBtn);
+    await user.click(satBtn);
     await expect(satBtn.getAttribute(ARIA_PRESSED)).toBe('true');
     await expect(mapBtn.getAttribute(ARIA_PRESSED)).toBe('false');
     // satellite imagery is never eligible for dark inversion — a false-colour photo is worse than none
@@ -135,7 +136,7 @@ export const ClickableCourts = {
   },
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     const canvas = within(canvasElement);
-    await userEvent.click(await canvas.findByText('Stadium'));
+    await user.click(await canvas.findByText('Stadium'));
     await expect(await canvas.findByText('Selected Stadium')).toBeInTheDocument();
     // a clickable court must be a real button, not a div with a handler
     await expect((canvasElement.querySelector('.chc-vl-court') as HTMLElement).tagName).toBe('BUTTON');

@@ -10,6 +10,7 @@ import { renderStructure } from '../components/renderStructure/renderStructure';
 import { generateEventData } from '../data/generateEventData';
 import { compositions } from '../compositions/compositions';
 import type { Meta, StoryObj } from '@storybook/html-vite';
+import { user } from './helpers/trustedUser';
 import { expect } from 'storybook/test';
 
 const WHITE_RGB = 'rgb(255, 255, 255)';
@@ -148,7 +149,7 @@ function createEditorStructureView(args: Args): HTMLElement {
 const fullStructure = (canvas: HTMLElement) =>
   canvas.querySelector('[data-story-structure] .chc-structure') as HTMLElement;
 
-const layoutToggle = (canvas: HTMLElement, label: string) => {
+const layoutToggle = async (canvas: HTMLElement, label: string) => {
   const header = [...canvas.querySelectorAll<HTMLElement>(SECTION_HEADER)].find((el) =>
     el.textContent?.includes('Layout')
   );
@@ -156,15 +157,20 @@ const layoutToggle = (canvas: HTMLElement, label: string) => {
     [...canvas.querySelectorAll('.ce-field')]
       .find((el) => el.querySelector('span')?.textContent === label)
       ?.querySelector('input[type="checkbox"]') as HTMLInputElement | undefined;
-  if (!findToggle()) header?.click();
+  // a collapsed section keeps its fields in the DOM, undisplayed: open it, as a user would, before reaching in
+  const shown = findToggle()?.closest('label')?.getClientRects().length;
+  if (!shown) await user.click(header!);
   return findToggle() as HTMLInputElement;
 };
 
-const hoverFirstPlayer = (structure: HTMLElement) => {
+const hoverFirstPlayer = async (structure: HTMLElement) => {
   const player = structure.querySelector('.tmx-i[id]:not([id="undefined"])') as HTMLElement;
-  player.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+  await user.hover(player);
   return player;
 };
+
+/** the checkbox is zero-size under the switch: a user clicks the switch, the label that wraps it */
+const flip = (toggle: HTMLInputElement) => user.click(toggle.closest('label') as HTMLLabelElement);
 
 // a line is a pseudo-element of its cell; what is drawn is its computed opacity
 const lineOpacity = (cell: Element) => Number(getComputedStyle(cell, '::after').opacity);
@@ -181,13 +187,13 @@ export const Default: StoryObj<Args> = {
     expect(before.querySelectorAll('.tmx-m').length).toBe(15);
 
     // an editor change re-renders the structure: Path highlight on, then hovering a player marks their path
-    const toggle = layoutToggle(canvasElement, 'Path highlight on hover');
+    const toggle = await layoutToggle(canvasElement, 'Path highlight on hover');
     expect(toggle.checked).toBe(false);
-    toggle.click();
+    await flip(toggle);
     const structure = fullStructure(canvasElement);
     expect(structure).not.toBe(before);
 
-    hoverFirstPlayer(structure);
+    await hoverFirstPlayer(structure);
     const onPath = structure.querySelector('.tmx-m.chc-path') as HTMLElement;
     expect(onPath).not.toBeNull();
 
@@ -220,15 +226,15 @@ export const Scoreboard: StoryObj<Args> = {
     const cell = () => fullStructure(canvasElement).querySelector('.chc-link--m1') as HTMLElement;
     expect(lineOpacity(cell())).toBe(1);
 
-    const connectors = layoutToggle(canvasElement, 'Connectors');
+    const connectors = await layoutToggle(canvasElement, 'Connectors');
     expect(connectors.checked).toBe(true);
-    connectors.click();
+    await flip(connectors);
     expect(lineOpacity(cell())).toBe(0);
 
     // with the lines hidden, a path highlight still draws the path's own
-    layoutToggle(canvasElement, 'Path highlight on hover').click();
+    await flip(await layoutToggle(canvasElement, 'Path highlight on hover'));
     const structure = fullStructure(canvasElement);
-    hoverFirstPlayer(structure);
+    await hoverFirstPlayer(structure);
     const pathCell = structure.querySelector('.chc-cell:has(> .tmx-m.chc-path)') as HTMLElement;
     expect(Number(getComputedStyle(pathCell, '::before').opacity)).toBe(1);
   }
@@ -314,14 +320,13 @@ export const BroadcastBold: StoryObj<Args> = {
     const colorsHeader = [...canvas.querySelectorAll<HTMLElement>(SECTION_HEADER)].find((header) =>
       header.textContent?.includes('Colors')
     )!;
-    colorsHeader.click();
-    const setColor = (label: string, value: string) => {
+    await user.click(colorsHeader);
+    const setColor = async (label: string, value: string) => {
       const field = [...canvas.querySelectorAll('.ce-color-field')].find(
         (row) => row.querySelector('.ce-field-label')?.textContent === label
       )!;
       const input = field.querySelector<HTMLInputElement>('input[type="text"]')!;
-      input.value = value;
-      input.dispatchEvent(new Event('input', { bubbles: true }));
+      await user.fill(input, value);
     };
     const picker = (label: string) =>
       [...canvas.querySelectorAll('.ce-color-field')]
@@ -334,28 +339,26 @@ export const BroadcastBold: StoryObj<Args> = {
     const preset = [...canvas.querySelectorAll('select')].find(
       (select) => select.options[0]?.textContent === '— Load preset —'
     )!;
-    preset.value = 'Broadcast Scorebug';
-    preset.dispatchEvent(new Event('change'));
+    await user.selectOptions(preset, 'Broadcast Scorebug');
     expect(picker(ACCENT_LABEL).value).toBe('#2924ed');
-    preset.value = 'Broadcast Bold';
-    preset.dispatchEvent(new Event('change'));
+    await user.selectOptions(preset, 'Broadcast Bold');
     expect(picker(ACCENT_LABEL).value).toBe('#00bedc');
     expect(picker(FOOTER_BACKGROUND).value).toBe('#00bedc');
     const point = () => canvas.querySelector('.ce-preview-body [data-live] .chc-point-score')!;
     const footers = () => canvas.querySelectorAll('.chc-matchup-footer');
     const ORANGE = 'rgb(255, 106, 0)';
-    setColor(ACCENT_LABEL, '#ff6a00');
+    await setColor(ACCENT_LABEL, '#ff6a00');
     expect(picker(FOOTER_BACKGROUND).value).toBe('#ff6a00');
     expect(getComputedStyle(point()).backgroundColor).toBe(ORANGE);
     expect(footers().length).toBeGreaterThan(0);
     for (const footer of footers()) expect(getComputedStyle(footer).backgroundColor).toBe(ORANGE);
 
-    setColor('Text on accent', '#ffffff');
+    await setColor('Text on accent', '#ffffff');
     expect(getComputedStyle(point()).color).toBe(WHITE_RGB);
     for (const footer of footers()) expect(getComputedStyle(footer).color).toBe(WHITE_RGB);
 
     // An independent footer override still wins over the shared accent.
-    setColor(FOOTER_BACKGROUND, '#7135a5');
+    await setColor(FOOTER_BACKGROUND, '#7135a5');
     for (const footer of footers()) expect(getComputedStyle(footer).backgroundColor).toBe('rgb(113, 53, 165)');
     expect(getComputedStyle(point()).backgroundColor).toBe(ORANGE);
 
@@ -368,10 +371,10 @@ export const BroadcastBold: StoryObj<Args> = {
     const clear = [...canvas.querySelectorAll('button')].find(
       (button) => button.textContent === 'Clear color overrides'
     )!;
-    clear.click();
+    await user.click(clear);
     expect(picker(ACCENT_LABEL).value).toBe('#00bedc');
     expect(picker(FOOTER_BACKGROUND).value).toBe('#00bedc');
-    layoutToggle(canvas, 'Share button').click();
+    await flip(await layoutToggle(canvas, 'Share button'));
     const share = canvas.querySelector('.ce-preview-body .chc-matchup-action--share')!;
     expect(getComputedStyle(share).color).toBe(WHITE_RGB);
     expect(getComputedStyle(share.querySelector('svg')!).stroke).toBe(WHITE_RGB);
@@ -398,9 +401,11 @@ export const IndependentScrolling: StoryObj<Args> = {
     expect(document.scrollingElement!.scrollTop).toBe(pageScroll);
 
     // Opening the color settings makes the editor panel scroll, without moving the bracket.
-    [...editor.querySelectorAll<HTMLElement>(SECTION_HEADER)]
-      .find((header) => header.textContent?.includes('Colors'))!
-      .click();
+    await user.click(
+      [...editor.querySelectorAll<HTMLElement>(SECTION_HEADER)].find((header) =>
+        header.textContent?.includes('Colors')
+      )!
+    );
     const structureScroll = structure.scrollTop;
     expect(editor.scrollHeight).toBeGreaterThan(editor.clientHeight);
     editor.scrollTop = 100;

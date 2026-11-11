@@ -15,6 +15,7 @@ import { drawDefinitionConstants } from 'tods-competition-factory';
 import { generateEventData } from '../data/generateEventData';
 import { compositions } from '../compositions/compositions';
 import type { Meta, StoryObj } from '@storybook/html-vite';
+import { user } from './helpers/trustedUser';
 import { expect } from 'storybook/test';
 
 const { ROUND_ROBIN } = drawDefinitionConstants;
@@ -49,10 +50,8 @@ const renderHost = () => {
   return container;
 };
 
-const hover = (structure: HTMLElement, participantId: string) => {
-  const individual = structure.querySelector(`.tmx-i[id="${CSS.escape(participantId)}"]`) as HTMLElement;
-  individual.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
-};
+const hover = (structure: HTMLElement, participantId: string) =>
+  user.hover(structure.querySelector(`.tmx-i[id="${CSS.escape(participantId)}"]`) as HTMLElement);
 
 const marked = (structure: HTMLElement, className: string) =>
   [...structure.querySelectorAll<HTMLElement>(`.tmx-m.${className}`)]
@@ -76,7 +75,7 @@ export const ChampionAndLoserPaths: StoryObj = {
     const champion = winnerId(final);
     expect(champion).toBeTruthy(); // control: a completed draw
 
-    hover(structure, champion);
+    await hover(structure, champion);
     const championMatchUps = matchUps.filter((m) =>
       m.sides?.some((s: any) => s.participant?.participantId === champion)
     );
@@ -87,12 +86,16 @@ export const ChampionAndLoserPaths: StoryObj = {
     // a first-round loser: one matchUp, nothing won, nothing ahead
     const firstRound = matchUps.find((m) => m.roundNumber === 1 && m.sides.every((s: any) => s.participant));
     const loser = firstRound.sides.find((s: any) => s.sideNumber !== firstRound.winningSide).participant.participantId;
-    hover(structure, loser);
+    await hover(structure, loser);
     expect(marked(structure, PATH)).toEqual([firstRound.matchUpId]);
     expect(marked(structure, PATH_WON)).toEqual([]);
 
-    // leaving the structure clears it
-    structure.dispatchEvent(new MouseEvent('mouseleave'));
+    // leaving the structure clears it. `unhover` parks the pointer at the body's centre, which is inside the
+    // draw, so the pointer is moved to something on the page outside the structure instead.
+    const outside = document.createElement('p');
+    outside.textContent = 'Outside the draw';
+    host.prepend(outside);
+    await user.hover(outside);
     expect(marked(structure, PATH)).toEqual([]);
   }
 };
@@ -119,7 +122,7 @@ export const ProjectedPathWhileAlive: StoryObj = {
     // control: nobody has advanced, so the player appears only in the first round
     expect(ahead.some((m) => m.sides?.some((side: any) => side.participant?.participantId === player))).toBe(false);
 
-    hover(structure, player);
+    await hover(structure, player);
     expect(marked(structure, PATH)).toEqual([firstRound.matchUpId]);
     expect(marked(structure, PATH_PROJECTED)).toEqual(idsOf(ahead));
     const projected = structure.querySelector('.tmx-m.chc-path--projected .chc-matchup') as HTMLElement;
@@ -135,7 +138,7 @@ export const OffByDefaultAndRoundRobin: StoryObj = {
     const plain = renderStructure({ composition: { ...compositions.Australian, configuration: {} }, matchUps });
     host.appendChild(plain);
     const someone = matchUps[0].sides.find((s: any) => s.participant).participant.participantId;
-    hover(plain, someone);
+    await hover(plain, someone);
     expect(plain.querySelectorAll('.chc-participant-hover').length).toBeGreaterThan(0); // the old hover holds
     expect(marked(plain, PATH)).toEqual([]);
 
@@ -143,7 +146,7 @@ export const OffByDefaultAndRoundRobin: StoryObj = {
     const rr = renderStructure({ composition: withPath, matchUps: roundRobin });
     host.appendChild(rr);
     const rrPlayer = roundRobin[0].sides.find((s: any) => s.participant).participant.participantId;
-    hover(rr, rrPlayer);
+    await hover(rr, rrPlayer);
     expect(marked(rr, PATH).length).toBeGreaterThan(1);
     expect(marked(rr, PATH_PROJECTED)).toEqual([]);
   }
@@ -198,7 +201,7 @@ export const HoverShowsInEveryRound: StoryObj = {
       host.innerHTML = '';
       const structure = renderStructure({ composition: (compositions as any)[name], matchUps });
       host.appendChild(structure);
-      hover(structure, champion);
+      await hover(structure, champion);
       const highlighted = [...structure.querySelectorAll<HTMLElement>('.chc-participant-hover')];
       // control: the champion appears once per round, so the check below looked at every round
       expect(highlighted.length).toBe(final.roundNumber);

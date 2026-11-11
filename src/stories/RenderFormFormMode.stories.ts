@@ -13,7 +13,8 @@
  */
 import { renderForm } from '../components/forms/renderForm';
 import type { Meta, StoryObj } from '@storybook/html-vite';
-import { expect, fn, userEvent } from 'storybook/test';
+import { user } from './helpers/trustedUser';
+import { expect, fn } from 'storybook/test';
 
 const meta: Meta = {
   title: 'Foundations/Forms/Tests/Form Mode',
@@ -68,9 +69,9 @@ export const FormModeSubmitFiresOnSubmit: StoryObj = {
     const email = canvasElement.querySelector('input[type="email"]') as HTMLInputElement;
     const password = canvasElement.querySelector('input[type="password"]') as HTMLInputElement;
 
-    await userEvent.type(email, 'player@courthive.com');
+    await user.type(email, 'player@courthive.com');
     // Enter in a field of a form that has a submit button submits the form.
-    await userEvent.type(password, 'secret{Enter}');
+    await user.type(password, 'secret{Enter}');
 
     expect(args.onSubmit).toHaveBeenCalledTimes(1);
     const submitted = args.onSubmit.mock.calls[0][0];

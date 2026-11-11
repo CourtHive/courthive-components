@@ -18,6 +18,7 @@ import { renderCollectionCard } from '../components/scorecard/renderCollectionCa
 import { renderScorecard } from '../components/scorecard/renderScorecard';
 import { compositions } from '../compositions/compositions';
 import type { Meta, StoryObj } from '@storybook/html-vite';
+import { user } from './helpers/trustedUser';
 import { expect, fn } from 'storybook/test';
 
 const { TEAM: TEAM_EVENT } = eventConstants;
@@ -70,12 +71,13 @@ const values = (host: HTMLElement) =>
     ])
   );
 
-const enter = (host: HTMLElement, matchUpId: string, value: number) => {
+/** types a number into a line's field and leaves it, which commits the value as a `change` */
+const enter = async (host: HTMLElement, matchUpId: string, value: number) => {
   const input = host.querySelector<HTMLInputElement>(
     `${INPUT_SELECTOR}[data-match-up-id="${matchUpId}"]`
   ) as HTMLInputElement;
-  input.value = String(value);
-  input.dispatchEvent(new Event('change', { bubbles: true }));
+  await user.fill(input, String(value));
+  await user.tab();
 };
 
 export const EntryReshufflesAndSaves: StoryObj = {
@@ -101,14 +103,14 @@ export const EntryReshufflesAndSaves: StoryObj = {
     const save = host.querySelector(SAVE_SELECTOR) as HTMLButtonElement;
     expect(save.disabled).toBe(true);
 
-    enter(host, second, 1);
+    await enter(host, second, 1);
     expect(values(host)[second]).toBe(1);
     expect(values(host)[first]).toBe(2);
     const numbers = Object.values(values(host)).sort((a, b) => a - b);
     expect(numbers).toEqual(singles.map((_, index) => index + 1));
     expect(save.disabled).toBe(false);
 
-    save.click();
+    await user.click(save);
     expect(onSave).toHaveBeenCalledTimes(1);
     const saved = onSave.mock.calls[0][0];
     expect(saved[0]).toEqual({ matchUpId: second, orderOfFinish: 1 });
@@ -139,10 +141,10 @@ export const CancelRestoresAndUnplayedLinesHaveNoField: StoryObj = {
     expect(Object.values(values(host)).sort((a, b) => a - b)).toEqual(played.map((_, index) => index + 1));
 
     const before = values(host);
-    enter(host, played[played.length - 1].matchUpId, 1);
+    await enter(host, played[played.length - 1].matchUpId, 1);
     expect(values(host)).not.toEqual(before);
 
-    (host.querySelector('[data-action="cancel-finishing-order"]') as HTMLButtonElement).click();
+    await user.click(host.querySelector('[data-action="cancel-finishing-order"]') as HTMLButtonElement);
     expect(values(host)).toEqual(before);
     expect(onCancel).toHaveBeenCalledTimes(1);
     expect((host.querySelector(SAVE_SELECTOR) as HTMLButtonElement).disabled).toBe(true);
@@ -200,7 +202,7 @@ export const StepperMovesALineAndStopsAtTheEnds: StoryObj = {
     expect(step(first, LATER).disabled).toBe(false);
 
     // a step later swaps the first two, and the bounds follow the new numbers
-    step(first, LATER).click();
+    await user.click(step(first, LATER));
     expect(values(host)[first]).toBe(2);
     expect(values(host)[second]).toBe(1);
     expect(step(first, EARLIER).disabled).toBe(false);
@@ -254,7 +256,11 @@ export const ASavedOrderIsTheNewBaseline: StoryObj = {
     const host = getHost(canvasElement);
     const { singlesDefinition, singles } = dualAndSingles();
     let accept = true;
-    const onSave = fn(async () => accept);
+    // The save is held open until the story releases it, so "in flight" is a state the story can see:
+    // a trusted click is awaited until the browser has delivered it, which an immediately-settling
+    // onSave would already have outlived.
+    let release = () => {};
+    const onSave = fn(() => new Promise<boolean>((resolve) => (release = () => resolve(accept))));
     host.appendChild(
       renderCollectionCard({
         collectionDefinition: singlesDefinition,
@@ -267,26 +273,29 @@ export const ASavedOrderIsTheNewBaseline: StoryObj = {
     const save = host.querySelector(SAVE_SELECTOR) as HTMLButtonElement;
     const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 
-    enter(host, second, 1);
+    await enter(host, second, 1);
     expect(save.disabled).toBe(false);
-    save.click();
+    await user.click(save);
     // in flight: no second save
+    expect(onSave).toHaveBeenCalledTimes(1);
     expect(save.disabled).toBe(true);
+    release();
     await settle();
     expect(onSave).toHaveBeenCalledTimes(1);
     // saved: the numbers stay, Save waits for the next edit, and Cancel now returns to the saved order
     expect(save.disabled).toBe(true);
     expect(values(host)[second]).toBe(1);
-    enter(host, first, 1);
+    await enter(host, first, 1);
     expect(save.disabled).toBe(false);
-    (host.querySelector('[data-action="cancel-finishing-order"]') as HTMLButtonElement).click();
+    await user.click(host.querySelector('[data-action="cancel-finishing-order"]') as HTMLButtonElement);
     expect(values(host)[second]).toBe(1);
     expect(save.disabled).toBe(true);
 
     // refused: the edits stay and Save is offered again
     accept = false;
-    enter(host, first, 1);
-    save.click();
+    await enter(host, first, 1);
+    await user.click(save);
+    release();
     await settle();
     expect(onSave).toHaveBeenCalledTimes(2);
     expect(values(host)[first]).toBe(1);

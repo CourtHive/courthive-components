@@ -20,6 +20,7 @@ import { mocksEngine, tournamentEngine, eventConstants } from 'tods-competition-
 import { renderScorecard } from '../components/scorecard/renderScorecard';
 import { compositions } from '../compositions/compositions';
 import type { Meta, StoryObj } from '@storybook/html-vite';
+import { user } from './helpers/trustedUser';
 import { expect, fn } from 'storybook/test';
 
 const { TEAM: TEAM_EVENT } = eventConstants;
@@ -132,7 +133,7 @@ export const InferredHomeShowsItsBasis: StoryObj = {
   }
 };
 
-const click = (host: HTMLElement, selector: string) => (host.querySelector(selector) as HTMLButtonElement).click();
+const click = (host: HTMLElement, selector: string) => user.click(host.querySelector(selector) as HTMLButtonElement);
 const target = (host: HTMLElement, index: number) => host.querySelectorAll<HTMLButtonElement>(TARGET)[index];
 const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -177,7 +178,7 @@ export const EditThroughTheFactory: StoryObj = {
     expect(host.querySelector(TARGET)).toBeNull();
     expect(host.querySelector(GEAR)?.getAttribute(ARIA_LABEL)).toBe('Edit home team');
 
-    click(host, GEAR);
+    await click(host, GEAR);
     expect(host.querySelectorAll(TARGET)).toHaveLength(2);
     expect(host.querySelector(GEAR)).toBeNull();
     expect(host.querySelector(SAVE)?.getAttribute(ARIA_LABEL)).toBe('Save home team');
@@ -186,13 +187,13 @@ export const EditThroughTheFactory: StoryObj = {
     expect(document.activeElement).toBe(target(host, 0));
 
     // choosing moves the label in the draft and records nothing yet
-    target(host, 1).click();
+    await user.click(target(host, 1));
     expect(sideOf(host, 1).querySelector(HOME_TAG)).not.toBeNull();
     expect(target(host, 1).getAttribute(ARIA_PRESSED)).toBe('true');
     expect(host.querySelector(BAR)?.textContent).toContain(`Home: ${side2.participant.participantName} (unsaved)`);
     expect(onSetHome).not.toHaveBeenCalled();
 
-    click(host, SAVE);
+    await click(host, SAVE);
     await settle();
     expect(onSetHome).toHaveBeenCalledTimes(1);
     expect(onSetHome).toHaveBeenCalledWith(side2.participantId);
@@ -201,12 +202,12 @@ export const EditThroughTheFactory: StoryObj = {
     expect(host.querySelector(GEAR)).not.toBeNull();
 
     // selecting the home team again leaves none: Save clears it
-    click(host, GEAR);
+    await click(host, GEAR);
     expect(document.activeElement).toBe(target(host, 1));
-    target(host, 1).click();
+    await user.click(target(host, 1));
     expect(host.querySelector(HOME_TAG)).toBeNull();
     expect(host.querySelector(BAR)?.textContent).toContain('No home team set (unsaved)');
-    click(host, SAVE);
+    await click(host, SAVE);
     await settle();
     expect(onClearHome).toHaveBeenCalledTimes(1);
     expect(getDual().schedule?.homeParticipantId).toBeUndefined();
@@ -221,24 +222,25 @@ export const CancelEscapeAndNoChangeSendNothing: StoryObj = {
     const host = getHost(canvasElement);
     const { onSetHome, onClearHome } = factoryCard(host);
 
-    click(host, GEAR);
-    target(host, 0).click();
-    click(host, CANCEL);
+    await click(host, GEAR);
+    await user.click(target(host, 0));
+    await click(host, CANCEL);
     expect(host.querySelector(HOME_TAG), 'the draft is discarded').toBeNull();
     expect(host.querySelector(BAR)).toBeNull();
     expect(document.activeElement).toBe(host.querySelector(GEAR));
 
-    click(host, GEAR);
-    target(host, 1).click();
-    target(host, 1).dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    await click(host, GEAR);
+    await user.click(target(host, 1));
+    // the clicked target has focus, so Escape goes where a user's would
+    await user.keyboard('{Escape}');
     expect(host.querySelector(HOME_TAG)).toBeNull();
     expect(host.querySelector(TARGET)).toBeNull();
 
     // chosen and unchosen again: Save just closes
-    click(host, GEAR);
-    target(host, 0).click();
-    target(host, 0).click();
-    click(host, SAVE);
+    await click(host, GEAR);
+    await user.click(target(host, 0));
+    await user.click(target(host, 0));
+    await click(host, SAVE);
     await settle();
     expect(host.querySelector(TARGET)).toBeNull();
     expect(onSetHome).not.toHaveBeenCalled();
@@ -260,18 +262,18 @@ export const InferredHomeIsConfirmedNotCleared: StoryObj = {
       })
     );
 
-    click(host, GEAR);
+    await click(host, GEAR);
     expect(host.querySelector(BAR)?.textContent).toContain('Home comes from the venue');
     expect(target(host, 0).getAttribute(ARIA_PRESSED), 'inferred is not chosen').toBe('false');
 
     // selecting it confirms it; selecting it again goes back to the inferred home, not to none
-    target(host, 0).click();
+    await user.click(target(host, 0));
     expect(sideOf(host, 0).querySelector(`${HOME_TAG}--inferred`)).toBeNull();
-    target(host, 0).click();
+    await user.click(target(host, 0));
     expect(sideOf(host, 0).querySelector(`${HOME_TAG}--inferred`)).not.toBeNull();
 
-    target(host, 0).click();
-    click(host, SAVE);
+    await user.click(target(host, 0));
+    await click(host, SAVE);
     await settle();
     expect(onSetHome).toHaveBeenCalledWith(side1.participantId);
     // the caller did not re-render: the card shows what was saved
@@ -288,9 +290,9 @@ export const RefusedSaveKeepsTheEdit: StoryObj = {
     const onSetHome = fn(async () => false);
     host.appendChild(renderScorecard({ matchUp: dual, composition: compositions.National, home: { onSetHome } }));
 
-    click(host, GEAR);
-    target(host, 1).click();
-    click(host, SAVE);
+    await click(host, GEAR);
+    await user.click(target(host, 1));
+    await click(host, SAVE);
     await settle();
     expect(onSetHome).toHaveBeenCalledTimes(1);
     expect(host.querySelector(TARGET), 'still editing').not.toBeNull();
@@ -307,12 +309,12 @@ export const HomeEditAndTeamScoreTakeTurns: StoryObj = {
     factoryCard(host, { teamScore: { onOverride: fn() } });
     const controls = () => host.querySelector<HTMLElement>('.chc-scorecard-score-controls')!;
 
-    click(host, GEAR);
+    await click(host, GEAR);
     expect(getComputedStyle(controls()).display).toBe('none');
-    click(host, CANCEL);
+    await click(host, CANCEL);
     expect(getComputedStyle(controls()).display).not.toBe('none');
 
-    click(host, '[data-action="override-team-score"]');
+    await click(host, '[data-action="override-team-score"]');
     expect(getComputedStyle(host.querySelector(GEAR) as HTMLElement).display).toBe('none');
   }
 };

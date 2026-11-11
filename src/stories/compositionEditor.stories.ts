@@ -4,6 +4,7 @@
  */
 import { createCompositionEditor } from '../components/composition-editor/compositionEditor';
 import { compositions } from '../compositions/compositions';
+import { user } from './helpers/trustedUser';
 import { expect } from 'storybook/test';
 import '../components/forms/styles';
 
@@ -70,8 +71,7 @@ export const Default = {
       const select = [...canvasElement.querySelectorAll('select')].find(
         (el) => el.options[0]?.textContent === '— Load preset —'
       ) as HTMLSelectElement;
-      select.value = name;
-      select.dispatchEvent(new Event('change'));
+      return user.selectOptions(select, name);
     };
     const preview = () => canvasElement.querySelector('.ce-preview-body') as HTMLElement;
     const live = () => preview().querySelector('[id="preview-in-progress"]') as HTMLElement;
@@ -91,25 +91,29 @@ export const Default = {
     // the preview shows a footer exactly when the MatchUp footer toggle is on (CA, 2026-10-26: Australian showed one
     // with the toggle off)
     const openSection = (label: string) =>
-      [...canvasElement.querySelectorAll<HTMLElement>('.ce-section-header')]
-        .find((el) => el.textContent?.includes(label))
-        ?.click();
-    openSection('Layout'); // a section refreshes its fields while it is open
+      user.click(
+        [...canvasElement.querySelectorAll<HTMLElement>('.ce-section-header')].find((el) =>
+          el.textContent?.includes(label)
+        )!
+      );
+    await openSection('Layout'); // a section refreshes its fields while it is open
     const footerToggle = [...canvasElement.querySelectorAll('.ce-field')]
       .find((el) => el.querySelector('span')?.textContent === 'MatchUp footer')
       ?.querySelector('input[type="checkbox"]') as HTMLInputElement;
     const footers = () => preview().querySelectorAll('.ce-preview-matchup .chc-matchup-footer').length;
     expect(footerToggle.checked).toBe(false);
     expect(footers()).toBe(0);
-    footerToggle.click();
+    // the checkbox itself is zero-size under the switch: a user clicks the switch, the label that wraps it
+    const footerSwitch = footerToggle.closest('label') as HTMLLabelElement;
+    await user.click(footerSwitch);
     expect(footerToggle.checked).toBe(true);
     expect(footers()).toBeGreaterThan(0);
-    footerToggle.click();
+    await user.click(footerSwitch);
     expect(footers()).toBe(0);
-    loadPreset('BasicCard'); // a preset with the footer on: the toggle and the preview agree
+    await loadPreset('BasicCard'); // a preset with the footer on: the toggle and the preview agree
     expect(footerToggle.checked).toBe(true);
     expect(footers()).toBeGreaterThan(0);
-    loadPreset('Australian');
+    await loadPreset('Australian');
     expect(footerToggle.checked).toBe(false);
     expect(footers()).toBe(0);
 
@@ -119,20 +123,19 @@ export const Default = {
     expect(live().querySelector('.chc-matchup-actions')).toBeNull();
 
     // ── Scoreboard ──
-    loadPreset('Scoreboard');
+    await loadPreset('Scoreboard');
     // Explicit demonstration palette: the generic preset itself is neutral.
     const sideColors = { 1: '#0b7a75', 2: '#b3365b' };
     expect(live().querySelector(SIDE_COLOR)).toBeNull();
-    openSection('Colors');
+    await openSection('Colors');
     for (const sideNumber of [1, 2] as const) {
       const row = [...canvasElement.querySelectorAll('.ce-field')].find(
         (el) => el.querySelector('span')?.textContent === `Side ${sideNumber}`
       ) as HTMLElement;
       const input = row.querySelector('input[type="text"]') as HTMLInputElement;
-      input.value = sideColors[sideNumber];
-      input.dispatchEvent(new Event('input'));
+      await user.fill(input, sideColors[sideNumber]);
     }
-    openSection('Colors');
+    await openSection('Colors');
     const header = live().querySelector('.chc-scheduling') as HTMLElement;
     expect(header.querySelector('.chc-scheduling__left .chc-scheduling__elapsed')?.textContent).toBe('0:16');
     expect(header.querySelector('.chc-scheduling__left .chc-scheduling__location')?.textContent).toBe('RMTA Court 2');
@@ -176,22 +179,19 @@ export const Default = {
       ) as HTMLElement;
       return row.querySelector('input[type="text"]') as HTMLInputElement;
     };
-    const typeInto = (input: HTMLInputElement, value: string) => {
-      input.value = value;
-      input.dispatchEvent(new Event('input'));
-    };
+    const typeInto = (input: HTMLInputElement, value: string) => user.fill(input, value);
     // open Colors, as a user would: a section refreshes its fields while it is open
-    openSection('Colors');
+    await openSection('Colors');
     expect(sideField('Side 1').value).toBe(sideColors[1]);
-    typeInto(sideField('Side 1'), '');
-    typeInto(sideField('Side 2'), '');
+    await typeInto(sideField('Side 1'), '');
+    await typeInto(sideField('Side 2'), '');
     expect(live().querySelector(SIDE_COLOR)).toBeNull();
-    typeInto(sideField('Side 1'), '#123456');
+    await typeInto(sideField('Side 1'), '#123456');
     expect(sideOf(live(), 1).dataset.sideColor).toBe('true');
     expect(sideOf(live(), 2).dataset.sideColor).toBeUndefined();
 
     // ── Watch ──
-    loadPreset('Watch');
+    await loadPreset('Watch');
     const meta = live().querySelector('.chc-scheduling--inline .chc-scheduling__meta') as HTMLElement;
     const parts = [...meta.children].filter((el) => !el.classList.contains('chc-scheduling__dot'));
     expect(parts.map((el) => el.textContent)).toEqual(['Live', '0:16', 'RMTA Court 2', "Men's Singles", 'R32']);

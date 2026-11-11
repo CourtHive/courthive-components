@@ -8,6 +8,7 @@ import '../styles/schematic.css';
 import '../components/topology-builder/ui/topology-builder.css';
 
 import { journeyTopologyHost } from './helpers/journeyTopologyHost';
+import { user } from './helpers/trustedUser';
 import { expect } from 'storybook/test';
 
 import type { JourneyTopologyHost } from './helpers/journeyTopologyHost';
@@ -44,7 +45,7 @@ export const SearchThenFollow: Story = {
     // the search is hidden until the mode is on
     const search = canvasElement.querySelector<HTMLElement>('.tb-journey-search')!;
     await expect(search.hidden).toBe(true);
-    canvasElement.querySelector<HTMLButtonElement>(TOGGLE)!.click();
+    await user.click(canvasElement.querySelector<HTMLButtonElement>(TOGGLE)!);
     await expect(search.hidden).toBe(false);
     await expect(canvasElement.querySelector('.tb-footer-hint')!.textContent).toBe(
       'Type a name to follow a participant'
@@ -52,13 +53,12 @@ export const SearchThenFollow: Story = {
 
     // typing offers the participant by name — the one place a name appears
     const input = canvasElement.querySelector<HTMLInputElement>('.tb-journey-input')!;
-    input.value = host.traveller.name.slice(0, 4);
-    input.dispatchEvent(new Event('input'));
+    await user.fill(input, host.traveller.name.slice(0, 4));
     const option = [...canvasElement.querySelectorAll<HTMLButtonElement>('.tb-journey-result')].find(
       (o) => o.dataset.participantId === host.traveller.participantId
     )!;
     await expect(option.textContent).toBe(host.traveller.name);
-    option.click();
+    await user.click(option);
 
     await expect(host.control.getState().journeyParticipantId).toBe(host.traveller.participantId);
     await expect(canvasElement.querySelectorAll('.tb-journey-result')).toHaveLength(0);
@@ -95,7 +95,7 @@ export const TheJourneyAcrossStructures: Story = {
     await expect(summary.includes(host.traveller.name)).toBe(false);
 
     // a lit round goes to that matchUp
-    card(canvasElement, CONSOLATION).querySelector<HTMLElement>('.tb-round-journey')!.click();
+    await user.click(card(canvasElement, CONSOLATION).querySelector<HTMLElement>('.tb-round-journey')!);
     await expect(host.stepped).toHaveLength(1);
     await expect(host.stepped[0].matchUpId).toBeDefined();
   }

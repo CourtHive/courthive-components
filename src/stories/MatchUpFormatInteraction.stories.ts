@@ -2,9 +2,10 @@
  * Interaction tests for matchUpFormat modal
  * Tests the final set tiebreak initialization bug fix
  */
-import type { Meta, StoryObj } from '@storybook/html-vite';
-import { within, waitFor, userEvent, expect } from 'storybook/test';
 import { getMatchUpFormatModal } from '../components/matchUpFormat/matchUpFormat';
+import type { Meta, StoryObj } from '@storybook/html-vite';
+import { within, waitFor, expect } from 'storybook/test';
+import { user } from './helpers/trustedUser';
 
 const SELECTED_FORMAT_PLACEHOLDER = '<strong>Selected format will appear here</strong>';
 const BUTTON_IS_PRIMARY = 'button is-primary';
@@ -79,7 +80,7 @@ export const FinalSetTiebreakInitialization: Story = {
 
     // Step 1: Click the button to open modal
     const openButton = await canvas.findByRole('button', { name: /open match format editor/i });
-    await userEvent.click(openButton);
+    await user.click(openButton);
 
     // Step 2: Wait for modal to open and find the format display
     await waitFor(async () => {
@@ -104,7 +105,9 @@ export const FinalSetTiebreakInitialization: Story = {
     expect(finalSetCheckbox.checked).toBe(false);
 
     // Step 4: Toggle final set ON
-    await userEvent.click(finalSetCheckbox);
+    // The switch styling hides the input itself; a user toggles it through its label.
+    await user.click(document.querySelector('label[for="finalSetOption"]')!);
+    await waitFor(() => expect(finalSetCheckbox.checked).toBe(true));
 
     // Step 5: CRITICAL TEST - Final set tiebreak should now be checked (matching main set)
     // This is the bug fix: it should default to true because main set has tiebreak
@@ -114,7 +117,7 @@ export const FinalSetTiebreakInitialization: Story = {
 
     // Step 6: Click Select button to get the format
     const selectButton = within(document.body).getByRole('button', { name: /^select$/i });
-    await userEvent.click(selectButton);
+    await user.click(selectButton);
 
     // Step 7: Verify the result shows correct format with tiebreak on final set
     await waitFor(async () => {
@@ -182,7 +185,7 @@ export const FinalSetNoTiebreakWhenMainHasNone: Story = {
 
     // Open modal
     const openButton = await canvas.findByRole('button', { name: /open modal.*no tiebreak/i });
-    await userEvent.click(openButton);
+    await user.click(openButton);
 
     // Wait for modal
     await waitFor(() => {
@@ -199,7 +202,9 @@ export const FinalSetNoTiebreakWhenMainHasNone: Story = {
     expect(setTiebreakCheckbox.checked).toBe(false);
 
     // Toggle final set ON
-    await userEvent.click(finalSetCheckbox);
+    // The switch styling hides the input itself; a user toggles it through its label.
+    await user.click(document.querySelector('label[for="finalSetOption"]')!);
+    await waitFor(() => expect(finalSetCheckbox.checked).toBe(true));
 
     // Final set tiebreak should be FALSE (matching main set)
     await waitFor(() => {
@@ -208,7 +213,7 @@ export const FinalSetNoTiebreakWhenMainHasNone: Story = {
 
     // Select
     const selectButton = within(document.body).getByRole('button', { name: /^select$/i });
-    await userEvent.click(selectButton);
+    await user.click(selectButton);
 
     // Verify result is SET3-S:6-F:6 (NO tiebreak on either)
     await waitFor(() => {
@@ -273,7 +278,7 @@ export const PreserveExistingFinalSetTiebreak: Story = {
 
     // Open modal
     const openButton = await canvas.findByRole('button', { name: /open with explicit f:6/i });
-    await userEvent.click(openButton);
+    await user.click(openButton);
 
     // Wait for modal
     await waitFor(() => {
@@ -293,7 +298,7 @@ export const PreserveExistingFinalSetTiebreak: Story = {
 
     // Close modal to complete test
     const cancelButton = within(document.body).getByRole('button', { name: /cancel/i });
-    await userEvent.click(cancelButton);
+    await user.click(cancelButton);
   }
 };
 
@@ -359,7 +364,7 @@ export const PredefinedFormatUpdatesControls: Story = {
 
     // Step 1: Open modal
     const openButton = await canvas.findByRole('button', { name: /open match format editor/i });
-    await userEvent.click(openButton);
+    await user.click(openButton);
 
     // Step 2: Wait for modal and verify initial state
     await waitFor(() => {
@@ -379,7 +384,7 @@ export const PredefinedFormatUpdatesControls: Story = {
     const selector = document.getElementById('matchUpFormatSelector') as HTMLSelectElement;
     expect(selector).toBeInTheDocument();
 
-    await userEvent.selectOptions(selector, 'SET7XA-S:T10P');
+    await user.selectOptions(selector, 'SET7XA-S:T10P');
 
     // Step 4: Verify format string updated
     await waitFor(() => {
@@ -407,6 +412,6 @@ export const PredefinedFormatUpdatesControls: Story = {
 
     // Close modal
     const cancelButton = within(document.body).getByRole('button', { name: /cancel/i });
-    await userEvent.click(cancelButton);
+    await user.click(cancelButton);
   }
 };
