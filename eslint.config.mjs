@@ -5,6 +5,45 @@ import sonarjs from 'eslint-plugin-sonarjs';
 import globals from 'globals';
 import js from '@eslint/js';
 
+// The repo-wide `no-restricted-syntax` selectors. Hoisted so the story-file block below can EXTEND them:
+// a later config object that sets the same rule REPLACES the earlier one's options for the files it
+// matches, so a story block that listed only its own selectors would silently switch these off there.
+const restrictedSyntax = [
+  {
+    // DOM data attributes are read via `.dataset`, never `.getAttribute`.
+    selector: "CallExpression[callee.property.name='getAttribute'][arguments.0.value=/^data-/]",
+    message: 'Use .dataset.propName instead of .getAttribute("data-*") — Mentat coding standards.'
+  },
+  {
+    // `JSON.parse(JSON.stringify(x))` as a deep copy silently drops `undefined`, functions,
+    // `Date`/`Map`/`Set` and throws on cycles. Mirrors factory and competition-factory-server.
+    selector:
+      "CallExpression[callee.object.name='JSON'][callee.property.name='parse'] > CallExpression[callee.object.name='JSON'][callee.property.name='stringify']",
+    message:
+      'Use structuredClone() to deep-copy — JSON.parse(JSON.stringify(x)) drops undefined/functions/Date/Map/Set and throws on cycles. For tournamentRecords use tools.makeDeepCopy, which carries factory extension semantics.'
+  }
+];
+
+// Story files may touch the page only through `src/stories/helpers/trustedUser.ts` (real, browser-
+// delivered input). Each of these reaches an element a user could not: covered, inert or hidden.
+const storyInput = [
+  {
+    selector: "CallExpression[callee.property.name='click'][arguments.length=0]",
+    message: 'Use `await user.click(el)` from ./helpers/trustedUser — `.click()` reaches covered and hidden elements.'
+  },
+  {
+    selector: "CallExpression[callee.property.name='dispatchEvent']",
+    message:
+      'Use the trustedUser helper (click/hover/fill/keyboard/dragAndDrop) — a dispatched event is not one a user can produce.'
+  },
+  {
+    selector:
+      "ImportDeclaration[source.value='storybook/test'] ImportSpecifier[imported.name=/^(userEvent|fireEvent)$/]",
+    message:
+      "Use `user` from ./helpers/trustedUser — storybook/test's userEvent is testing-library's in-page emulation."
+  }
+];
+
 export default [
   {
     ignores: ['dist/**', 'node_modules/**', 'storybook-static/**']
@@ -46,22 +85,7 @@ export default [
       // violations each rule targets had already been fixed. Add a selector here; never a second key.
       //
       // Severity is the stricter of the two ('error'): both are hard standards.
-      'no-restricted-syntax': [
-        'error',
-        {
-          // DOM data attributes are read via `.dataset`, never `.getAttribute`.
-          selector: "CallExpression[callee.property.name='getAttribute'][arguments.0.value=/^data-/]",
-          message: 'Use .dataset.propName instead of .getAttribute("data-*") — Mentat coding standards.'
-        },
-        {
-          // `JSON.parse(JSON.stringify(x))` as a deep copy silently drops `undefined`, functions,
-          // `Date`/`Map`/`Set` and throws on cycles. Mirrors factory and competition-factory-server.
-          selector:
-            "CallExpression[callee.object.name='JSON'][callee.property.name='parse'] > CallExpression[callee.object.name='JSON'][callee.property.name='stringify']",
-          message:
-            'Use structuredClone() to deep-copy — JSON.parse(JSON.stringify(x)) drops undefined/functions/Date/Map/Set and throws on cycles. For tournamentRecords use tools.makeDeepCopy, which carries factory extension semantics.'
-        }
-      ],
+      'no-restricted-syntax': ['error', ...restrictedSyntax],
       'no-unused-expressions': 'off',
       'no-useless-assignment': 'warn',
       'sonarjs/cognitive-complexity': ['warn', 30],
@@ -100,7 +124,8 @@ export default [
       storybook: storybook
     },
     rules: {
-      ...storybook.configs.recommended.rules
+      ...storybook.configs.recommended.rules,
+      'no-restricted-syntax': ['error', ...restrictedSyntax, ...storyInput]
     }
   }
 ];
