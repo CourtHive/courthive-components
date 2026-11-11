@@ -46,13 +46,14 @@ interface Backend {
   tab(options?: { shift?: boolean }): Promise<unknown>;
   selectOptions(target: Target, values: string | string[]): Promise<unknown>;
   dragAndDrop(source: Target, target: Target): Promise<unknown>;
+  viewport(width: number, height: number): Promise<unknown>;
 }
 
 const underTestRunner = () => (globalThis as any).__vitest_browser__ === true;
 
 async function load(): Promise<Backend> {
   try {
-    const { userEvent } = await import('vitest/browser');
+    const { userEvent, page } = await import('vitest/browser');
     return {
       trusted: true,
       click: (target) => userEvent.click(target),
@@ -66,7 +67,8 @@ async function load(): Promise<Backend> {
       fill: (target, text) => userEvent.fill(target, text),
       tab: (options) => userEvent.tab(options),
       selectOptions: (target, values) => userEvent.selectOptions(target as HTMLElement, values),
-      dragAndDrop: (source, target) => userEvent.dragAndDrop(source, target)
+      dragAndDrop: (source, target) => userEvent.dragAndDrop(source, target),
+      viewport: (width, height) => page.viewport(width, height)
     };
   } catch (error) {
     if (underTestRunner()) {
@@ -93,6 +95,9 @@ async function load(): Promise<Backend> {
         throw new Error(
           'trustedUser.dragAndDrop needs real pointer input; replay this story under `pnpm test:stories`.'
         );
+      },
+      viewport: async () => {
+        throw new Error('trustedUser.viewport needs the test runner; replay this story under `pnpm test:stories`.');
       }
     };
   }
@@ -136,5 +141,11 @@ export const user = {
   fill: act((b) => b.fill),
   tab: act((b) => b.tab),
   selectOptions: act((b) => b.selectOptions),
-  dragAndDrop: act((b) => b.dragAndDrop)
+  dragAndDrop: act((b) => b.dragAndDrop),
+  /**
+   * Resize the page itself, so media queries and layout answer as they would on that screen — what a
+   * stubbed `matchMedia` cannot show. A story that narrows the page restores the size it found, in a
+   * `finally`, since every later story in the run shares the page.
+   */
+  viewport: act((b) => b.viewport)
 };
