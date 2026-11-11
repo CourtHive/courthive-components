@@ -1,14 +1,18 @@
-// @vitest-environment happy-dom
-import { buildRatingDistributionChart } from '../ratingDistributionChart';
+import { donutModel, histogramModel } from '../chartModel';
 import { expect, it, describe } from 'vitest';
 
 // constants and types
-import { RatingDistributionStats } from 'tods-competition-factory';
+import type { RatingDistributionStats } from 'tods-competition-factory';
 
-const BAR_SELECTOR = 'rect.chc-rdc-bar';
-const COUNT_LABEL_SELECTOR = 'text.chc-rdc-count';
-const MEAN_LINE_SELECTOR = 'line.chc-rdc-mean';
-const SLICE_SELECTOR = 'path.chc-rdc-slice';
+/**
+ * The chart's geometry and labels, from `../chartModel`, which `buildRatingDistributionChart` draws. The
+ * drawn SVG — its element, class, size and aria-label, the count labels `showCounts` turns on and off,
+ * and the geometry as the browser lays it out — is asserted by `RatingDistributionChartTests.stories.ts`.
+ */
+
+// the defaults `buildRatingDistributionChart` passes
+const HISTOGRAM = { width: 480, height: 200, margin: { top: 12, right: 12, bottom: 28, left: 32 }, showMean: true };
+const DONUT = { size: 280, margin: { top: 12, right: 12, bottom: 12, left: 12 } };
 
 function buildStats(overrides: Partial<RatingDistributionStats> = {}): RatingDistributionStats {
   return {
@@ -29,122 +33,151 @@ function buildStats(overrides: Partial<RatingDistributionStats> = {}): RatingDis
   };
 }
 
-describe('buildRatingDistributionChart — output shape', () => {
-  it('returns an SVGSVGElement with the chc-rating-distribution-chart class', () => {
-    const svg = buildRatingDistributionChart(buildStats());
-    expect(svg.tagName.toLowerCase()).toEqual('svg');
-    expect(svg.classList.contains('chc-rating-distribution-chart')).toBe(true);
+const withZeroBin = () =>
+  buildStats({
+    histogram: [
+      { binStart: 4, binEnd: 4.5, count: 0 },
+      { binStart: 4.5, binEnd: 5, count: 5 }
+    ],
+    count: 5
   });
 
-  it('defaults to HISTOGRAM mode with sensible default dimensions', () => {
-    const svg = buildRatingDistributionChart(buildStats());
-    expect(Number(svg.getAttribute('width'))).toBeGreaterThan(0);
-    expect(Number(svg.getAttribute('height'))).toBeGreaterThan(0);
-    expect(svg.querySelectorAll(BAR_SELECTOR).length).toEqual(3);
+const EMPTY = { histogram: [], count: 0, mean: 0 };
+
+describe('histogramModel', () => {
+  it('has one bar per histogram bin', () => {
+    const model = histogramModel({ ...HISTOGRAM, stats: buildStats() })!;
+    expect(model.bars.map((bar) => bar.label)).toEqual(['4.0–4.5', '4.5–5.0', '5.0–5.5']);
   });
 
-  it('defaults aria-label can be overridden', () => {
-    const labeled = buildRatingDistributionChart(buildStats(), { ariaLabel: 'Pool A distribution' });
-    expect(labeled.getAttribute('aria-label')).toEqual('Pool A distribution');
-  });
-});
-
-describe('buildRatingDistributionChart — HISTOGRAM mode', () => {
-  it('renders one bar per histogram bin', () => {
-    const svg = buildRatingDistributionChart(buildStats(), { mode: 'HISTOGRAM' });
-    const bars = svg.querySelectorAll(BAR_SELECTOR);
-    expect(bars.length).toEqual(3);
+  it('sizes each bar in proportion to its count, from the baseline', () => {
+    const model = histogramModel({ ...HISTOGRAM, stats: buildStats() })!;
+    const [three, five, two] = model.bars;
+    // a bar stands on the baseline: its top plus its height is the inner height
+    for (const bar of model.bars) expect(bar.y + bar.height).toBeCloseTo(model.innerHeight);
+    expect(five.height / three.height).toBeCloseTo(5 / 3);
+    expect(two.height / three.height).toBeCloseTo(2 / 3);
+    // the tallest bar reaches the top of the (niced) y domain [0, 5]
+    expect(five.height).toBeCloseTo(model.innerHeight);
   });
 
-  it('respects showCounts=false (no count labels)', () => {
-    const svg = buildRatingDistributionChart(buildStats(), { showCounts: false });
-    expect(svg.querySelectorAll(COUNT_LABEL_SELECTOR).length).toEqual(0);
+  it('lays the bars left to right in equal bands inside the plot', () => {
+    const model = histogramModel({ ...HISTOGRAM, stats: buildStats() })!;
+    const widths = new Set(model.bars.map((bar) => bar.width));
+    expect(widths.size).toBe(1);
+    for (let index = 1; index < model.bars.length; index++) {
+      expect(model.bars[index].x).toBeGreaterThan(model.bars[index - 1].x + model.bars[index - 1].width);
+    }
+    expect(model.bars[0].x).toBeGreaterThanOrEqual(0);
+    const last = model.bars.at(-1)!;
+    expect(last.x + last.width).toBeLessThanOrEqual(model.innerWidth);
+    // the inner plot is the chart less its margins
+    expect(model.innerWidth).toBe(480 - 32 - 12);
+    expect(model.innerHeight).toBe(200 - 12 - 28);
   });
 
-  it('shows count labels by default', () => {
-    const svg = buildRatingDistributionChart(buildStats(), { showCounts: true });
-    expect(svg.querySelectorAll(COUNT_LABEL_SELECTOR).length).toEqual(3);
+  it('labels each bar with its count, centred above it', () => {
+    const model = histogramModel({ ...HISTOGRAM, stats: buildStats() })!;
+    expect(model.bars.map((bar) => bar.countText)).toEqual(['3', '5', '2']);
+    for (const bar of model.bars) {
+      expect(bar.countX).toBeCloseTo(bar.x + bar.width / 2);
+      expect(bar.countY).toBeLessThan(bar.y);
+    }
   });
 
-  it('omits zero-count text labels (empty string)', () => {
-    const stats = buildStats({
-      histogram: [
-        { binStart: 4, binEnd: 4.5, count: 0 },
-        { binStart: 4.5, binEnd: 5, count: 5 }
-      ],
-      count: 5
-    });
-    const svg = buildRatingDistributionChart(stats);
-    const labels = Array.from(svg.querySelectorAll(COUNT_LABEL_SELECTOR)).map((n) => n.textContent ?? '');
-    expect(labels).toContain('');
-    expect(labels).toContain('5');
+  it('leaves a zero-count bin’s label empty', () => {
+    const model = histogramModel({ ...HISTOGRAM, stats: withZeroBin() })!;
+    expect(model.bars.map((bar) => bar.countText)).toEqual(['', '5']);
+    expect(model.bars[0].height).toBe(0);
   });
 
-  it('renders the mean reference line when mean is within histogram range', () => {
-    const svg = buildRatingDistributionChart(buildStats());
-    const meanLines = svg.querySelectorAll(MEAN_LINE_SELECTOR);
-    expect(meanLines.length).toEqual(1);
+  it('places the mean line at the mean’s fraction of the bins’ range', () => {
+    const model = histogramModel({ ...HISTOGRAM, stats: buildStats() })!;
+    // 4.65 across [4, 5.5]
+    expect(model.meanX).toBeCloseTo(((4.65 - 4) / 1.5) * model.innerWidth);
   });
 
   it('omits the mean line when mean is outside histogram range', () => {
-    const svg = buildRatingDistributionChart(buildStats({ mean: 7 }));
-    expect(svg.querySelectorAll(MEAN_LINE_SELECTOR).length).toEqual(0);
+    expect(histogramModel({ ...HISTOGRAM, stats: buildStats({ mean: 7 }) })!.meanX).toBeUndefined();
+    expect(histogramModel({ ...HISTOGRAM, stats: buildStats({ mean: 3.9 }) })!.meanX).toBeUndefined();
   });
 
   it('omits the mean line when showMean=false', () => {
-    const svg = buildRatingDistributionChart(buildStats(), { showMean: false });
-    expect(svg.querySelectorAll(MEAN_LINE_SELECTOR).length).toEqual(0);
+    expect(histogramModel({ ...HISTOGRAM, showMean: false, stats: buildStats() })!.meanX).toBeUndefined();
   });
 
   it('respects custom binColor function', () => {
-    const svg = buildRatingDistributionChart(buildStats(), { binColor: () => '#ff00ff' });
-    const bars = svg.querySelectorAll(BAR_SELECTOR);
-    bars.forEach((bar) => expect(bar.getAttribute('fill')).toEqual('#ff00ff'));
+    const model = histogramModel({ ...HISTOGRAM, binColor: () => '#ff00ff', stats: buildStats() })!;
+    expect(model.bars.map((bar) => bar.fill)).toEqual(['#ff00ff', '#ff00ff', '#ff00ff']);
   });
 
-  it('returns an empty chart shell when histogram is empty', () => {
-    const svg = buildRatingDistributionChart(buildStats({ histogram: [], count: 0, mean: 0 }));
-    expect(svg.querySelectorAll(BAR_SELECTOR).length).toEqual(0);
+  it('CONTROL — the default colours run from the low token to the high token', () => {
+    const fills = histogramModel({ ...HISTOGRAM, stats: buildStats() })!.bars.map((bar) => bar.fill);
+    expect(fills[0]).toContain('--chc-rating-low');
+    expect(fills[2]).toContain('--chc-rating-high');
+  });
+
+  it('shows every axis label when they fit, else only the first and last', () => {
+    expect(histogramModel({ ...HISTOGRAM, stats: buildStats() })!.tickValues).toEqual([
+      '4.0–4.5',
+      '4.5–5.0',
+      '5.0–5.5'
+    ]);
+    // 3 bins across 480 - 44 = 436 px is 145 px a bin; at 120 px wide (76 inner) it is 25 px a bin
+    expect(histogramModel({ ...HISTOGRAM, width: 120, stats: buildStats() })!.tickValues).toEqual([
+      '4.0–4.5',
+      '5.0–5.5'
+    ]);
+  });
+
+  it('has nothing to draw when histogram is empty', () => {
+    expect(histogramModel({ ...HISTOGRAM, stats: buildStats(EMPTY) })).toBeUndefined();
   });
 });
 
-describe('buildRatingDistributionChart — DONUT mode', () => {
-  it('renders one slice path per non-empty bin', () => {
-    const svg = buildRatingDistributionChart(buildStats(), { mode: 'DONUT' });
-    const slices = svg.querySelectorAll(SLICE_SELECTOR);
-    expect(slices.length).toEqual(3);
+describe('donutModel', () => {
+  it('has one slice per non-empty bin, swept in proportion to its count around the full circle', () => {
+    const model = donutModel({ ...DONUT, stats: buildStats() })!;
+    expect(model.slices.map((slice) => slice.labelText)).toEqual(['3', '5', '2']);
+    const sweeps = model.slices.map((slice) => slice.end - slice.start);
+    expect(sweeps[0]).toBeCloseTo((3 / 10) * 2 * Math.PI);
+    expect(sweeps[1]).toBeCloseTo((5 / 10) * 2 * Math.PI);
+    expect(sweeps[2]).toBeCloseTo((2 / 10) * 2 * Math.PI);
+    // contiguous, from 12 o'clock all the way round
+    expect(model.slices[0].start).toBe(0);
+    expect(model.slices[1].start).toBe(model.slices[0].end);
+    expect(model.slices.at(-1)!.end).toBeCloseTo(2 * Math.PI);
   });
 
-  it('skips zero-count bins (no slice rendered)', () => {
-    const stats = buildStats({
-      histogram: [
-        { binStart: 4, binEnd: 4.5, count: 0 },
-        { binStart: 4.5, binEnd: 5, count: 5 }
-      ],
-      count: 5
-    });
-    const svg = buildRatingDistributionChart(stats, { mode: 'DONUT' });
-    expect(svg.querySelectorAll(SLICE_SELECTOR).length).toEqual(1);
+  it('rings the centre between the inner and outer radius, inside the margins', () => {
+    const model = donutModel({ ...DONUT, stats: buildStats() })!;
+    expect(model.cx).toBe(140);
+    expect(model.cy).toBe(140);
+    // usable 280 - 24 = 256, radius 128
+    expect(model.outer).toBeCloseTo(128 * 0.9);
+    expect(model.inner).toBeCloseTo(128 * 0.6);
+    for (const slice of model.slices) {
+      const distance = Math.hypot(slice.labelX - model.cx, slice.labelY - model.cy);
+      expect(distance).toBeCloseTo((model.outer + model.inner) / 2);
+    }
   });
 
-  it('renders a center text label with the participant count', () => {
-    const svg = buildRatingDistributionChart(buildStats(), { mode: 'DONUT' });
-    const center = svg.querySelector('text.chc-rdc-center-count');
-    expect(center?.textContent).toEqual('10');
+  it('skips zero-count bins (no slice)', () => {
+    const model = donutModel({ ...DONUT, stats: withZeroBin() })!;
+    expect(model.slices.map((slice) => slice.labelText)).toEqual(['5']);
+    // the one slice is the whole ring: drawn as two closed circles (outer, then the hole), never as one
+    // arc from a point back to itself, which SVG omits
+    expect(model.slices[0].end - model.slices[0].start).toBeCloseTo(2 * Math.PI);
+    expect(model.slices[0].d.match(/M /g)).toHaveLength(2);
+    expect(model.slices[0].d.match(/A /g)).toHaveLength(4);
   });
 
-  it('renders one slice-count label per slice when showCounts=true', () => {
-    const svg = buildRatingDistributionChart(buildStats(), { mode: 'DONUT', showCounts: true });
-    expect(svg.querySelectorAll('text.chc-rdc-slice-label').length).toEqual(3);
+  it('has the participant count for its centre', () => {
+    expect(donutModel({ ...DONUT, stats: buildStats() })!.centerText).toBe('10');
   });
 
-  it('omits slice-count labels when showCounts=false', () => {
-    const svg = buildRatingDistributionChart(buildStats(), { mode: 'DONUT', showCounts: false });
-    expect(svg.querySelectorAll('text.chc-rdc-slice-label').length).toEqual(0);
-  });
-
-  it('returns an empty chart shell when count is zero', () => {
-    const svg = buildRatingDistributionChart(buildStats({ histogram: [], count: 0, mean: 0 }), { mode: 'DONUT' });
-    expect(svg.querySelectorAll(SLICE_SELECTOR).length).toEqual(0);
+  it('has nothing to draw when count is zero', () => {
+    expect(donutModel({ ...DONUT, stats: buildStats(EMPTY) })).toBeUndefined();
+    expect(donutModel({ ...DONUT, stats: buildStats({ count: 0 }) })).toBeUndefined();
   });
 });
