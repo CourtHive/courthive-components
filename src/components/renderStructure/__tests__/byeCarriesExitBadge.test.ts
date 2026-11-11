@@ -1,8 +1,7 @@
-/**
- * @vitest-environment happy-dom
- */
-import { renderMatchUp } from '../renderMatchUp';
+import { makeMatchUp, pillSides, sidePills } from './helpers/matchUpFixtures';
 import { describe, it, expect } from 'vitest';
+
+// constants and types
 import type { MatchUp } from '../../../types';
 
 /**
@@ -19,125 +18,109 @@ import type { MatchUp } from '../../../types';
  * Both fixtures below are MEASURED, not invented: factory `fix/converged-double-exit-cascades-onward`
  * @ `426384fe8`, SINGLE_ELIMINATION 8 with 7 participants, drawPosition 1 replaced with a BYE, then
  * `MAIN|1|2` entered as a DOUBLE_WALKOVER.
+ *
+ * The rules live in `../sideStatus` (`sideStatusPill`, `sideExitStatus`), which `renderParticipant`
+ * calls; these tests run them in node through `sidePills`. The rendered card is asserted in a browser
+ * by `byeExitBadge.stories.ts` (ByeCarryingExit).
  */
 
-const pillCount = (el: HTMLElement) => el.querySelectorAll('.chc-pill').length;
-const pillSides = (el: HTMLElement) =>
-  Array.from(el.querySelectorAll('.chc-side-container'))
-    .filter((side) => side.querySelector('.chc-pill'))
-    .map((side) => Number(side.getAttribute('sidenumber')))
-    .sort((a, b) => a - b);
-const pillText = (el: HTMLElement) =>
-  Array.from(el.querySelectorAll('.chc-pill')).map((pill) => pill.textContent?.trim());
+/** How many pills the matchUp shows, across both sides. */
+const pillCount = (matchUp: MatchUp) => pillSides(matchUp).length;
+/** The text of each pill shown, side 1 first. */
+const pillText = (matchUp: MatchUp) => sidePills(matchUp).filter((pill) => pill !== undefined);
 
 function base(overrides: Partial<MatchUp> = {}): MatchUp {
-  return {
+  return makeMatchUp({
     matchUpId: 'mu-bye-exit',
-    matchUpType: 'SINGLES',
-    structureId: 'struct-1',
     roundNumber: 2,
-    roundPosition: 1,
     finishingRound: 2,
     sides: [{ sideNumber: 1, bye: true }, { sideNumber: 2 }],
-    score: { scoreStringSide1: '', scoreStringSide2: '' },
     ...overrides
-  } as MatchUp;
+  } as Partial<MatchUp>);
 }
 
 describe('a BYE matchUp shows the exit its side carries', () => {
   it('badges the exit side of MAIN|2|1 — and not the BYE side, which has BYE -> BYE provenance', () => {
-    const el = renderMatchUp({
-      matchUp: base({
-        matchUpStatus: 'BYE',
-        matchUpStatusCodes: [
-          { previousMatchUpStatus: 'BYE', matchUpStatus: 'BYE', sideNumber: 1 },
-          { previousMatchUpStatus: 'DOUBLE_WALKOVER', matchUpStatus: 'WALKOVER', sideNumber: 2 }
-        ],
-        sideExitProvenance: {
-          1: { matchUpStatus: 'BYE', previousMatchUpStatus: 'BYE', sourceMatchUpId: 'm-1-1' },
-          2: { matchUpStatus: 'WALKOVER', previousMatchUpStatus: 'DOUBLE_WALKOVER', sourceMatchUpId: 'm-1-2' }
-        }
-      } as Partial<MatchUp>)
-    });
+    const matchUp = base({
+      matchUpStatus: 'BYE',
+      matchUpStatusCodes: [
+        { previousMatchUpStatus: 'BYE', matchUpStatus: 'BYE', sideNumber: 1 },
+        { previousMatchUpStatus: 'DOUBLE_WALKOVER', matchUpStatus: 'WALKOVER', sideNumber: 2 }
+      ],
+      sideExitProvenance: {
+        1: { matchUpStatus: 'BYE', previousMatchUpStatus: 'BYE', sourceMatchUpId: 'm-1-1' },
+        2: { matchUpStatus: 'WALKOVER', previousMatchUpStatus: 'DOUBLE_WALKOVER', sourceMatchUpId: 'm-1-2' }
+      }
+    } as Partial<MatchUp>);
 
-    expect(pillSides(el)).toEqual([2]);
-    expect(pillCount(el)).toBe(1);
+    expect(pillSides(matchUp)).toEqual([2]);
+    expect(pillCount(matchUp)).toBe(1);
     // the pill reads the exit the side carries, not the matchUp's own BYE
-    expect(pillText(el)).toEqual(['WO']);
+    expect(pillText(matchUp)).toEqual(['WO']);
   });
 
   it('badges the exit side of CONSOLATION|1|1, where the other side is a bare reserved slot', () => {
-    const el = renderMatchUp({
-      matchUp: base({
-        matchUpStatus: 'BYE',
-        matchUpStatusCodes: [
-          { sideNumber: 1 },
-          { previousMatchUpStatus: 'DOUBLE_WALKOVER', matchUpStatus: 'WALKOVER', sideNumber: 2 }
-        ],
-        sideExitProvenance: {
-          2: { matchUpStatus: 'WALKOVER', previousMatchUpStatus: 'DOUBLE_WALKOVER', sourceMatchUpId: 'm-1-2' }
-        }
-      } as Partial<MatchUp>)
-    });
+    const matchUp = base({
+      matchUpStatus: 'BYE',
+      matchUpStatusCodes: [
+        { sideNumber: 1 },
+        { previousMatchUpStatus: 'DOUBLE_WALKOVER', matchUpStatus: 'WALKOVER', sideNumber: 2 }
+      ],
+      sideExitProvenance: {
+        2: { matchUpStatus: 'WALKOVER', previousMatchUpStatus: 'DOUBLE_WALKOVER', sourceMatchUpId: 'm-1-2' }
+      }
+    } as Partial<MatchUp>);
 
-    expect(pillSides(el)).toEqual([2]);
-    expect(pillCount(el)).toBe(1);
+    expect(pillSides(matchUp)).toEqual([2]);
+    expect(pillCount(matchUp)).toBe(1);
   });
 
   it('falls back to matchUpStatusCodes for a record written before sideExitProvenance', () => {
-    const el = renderMatchUp({
-      matchUp: base({
-        matchUpStatus: 'BYE',
-        matchUpStatusCodes: [
-          { previousMatchUpStatus: 'BYE', matchUpStatus: 'BYE', sideNumber: 1 },
-          { previousMatchUpStatus: 'DOUBLE_WALKOVER', matchUpStatus: 'WALKOVER', sideNumber: 2 }
-        ]
-      } as Partial<MatchUp>)
-    });
+    const matchUp = base({
+      matchUpStatus: 'BYE',
+      matchUpStatusCodes: [
+        { previousMatchUpStatus: 'BYE', matchUpStatus: 'BYE', sideNumber: 1 },
+        { previousMatchUpStatus: 'DOUBLE_WALKOVER', matchUpStatus: 'WALKOVER', sideNumber: 2 }
+      ]
+    } as Partial<MatchUp>);
 
-    expect(pillSides(el)).toEqual([2]);
+    expect(pillSides(matchUp)).toEqual([2]);
   });
 
   it('CONTROL — an ordinary BYE with nothing propagated renders no badge at all', () => {
-    const el = renderMatchUp({
-      matchUp: base({
-        matchUpStatus: 'BYE',
-        sides: [
-          { sideNumber: 1, participant: { participantId: 'p1', participantName: 'Advancing Player' } },
-          { sideNumber: 2, bye: true }
-        ]
-      } as Partial<MatchUp>)
-    });
+    const matchUp = base({
+      matchUpStatus: 'BYE',
+      sides: [
+        { sideNumber: 1, participant: { participantId: 'p1', participantName: 'Advancing Player' } },
+        { sideNumber: 2, bye: true }
+      ]
+    } as Partial<MatchUp>);
 
-    expect(pillCount(el)).toBe(0);
+    expect(pillCount(matchUp)).toBe(0);
   });
 
   it('CONTROL — a BYE whose only record is a RETIRED exit shows RET, not WO', () => {
-    const el = renderMatchUp({
-      matchUp: base({
-        matchUpStatus: 'BYE',
-        sideExitProvenance: {
-          2: { matchUpStatus: 'RETIRED', previousMatchUpStatus: 'RETIRED', sourceMatchUpId: 'm-1-2' }
-        }
-      } as Partial<MatchUp>)
-    });
+    const matchUp = base({
+      matchUpStatus: 'BYE',
+      sideExitProvenance: {
+        2: { matchUpStatus: 'RETIRED', previousMatchUpStatus: 'RETIRED', sourceMatchUpId: 'm-1-2' }
+      }
+    } as Partial<MatchUp>);
 
-    expect(pillSides(el)).toEqual([2]);
-    expect(pillText(el)).toEqual(['RET']);
+    expect(pillSides(matchUp)).toEqual([2]);
+    expect(pillText(matchUp)).toEqual(['RET']);
   });
 
   it('CONTROL — a BYE side whose record names a non-exit status raises nothing', () => {
     // `BYE -> BYE` on BOTH sides: two byes converging is not an exit, and must stay silent
-    const el = renderMatchUp({
-      matchUp: base({
-        matchUpStatus: 'BYE',
-        sideExitProvenance: {
-          1: { matchUpStatus: 'BYE', previousMatchUpStatus: 'BYE', sourceMatchUpId: 'm-1-1' },
-          2: { matchUpStatus: 'BYE', previousMatchUpStatus: 'BYE', sourceMatchUpId: 'm-1-3' }
-        }
-      } as Partial<MatchUp>)
-    });
+    const matchUp = base({
+      matchUpStatus: 'BYE',
+      sideExitProvenance: {
+        1: { matchUpStatus: 'BYE', previousMatchUpStatus: 'BYE', sourceMatchUpId: 'm-1-1' },
+        2: { matchUpStatus: 'BYE', previousMatchUpStatus: 'BYE', sourceMatchUpId: 'm-1-3' }
+      }
+    } as Partial<MatchUp>);
 
-    expect(pillCount(el)).toBe(0);
+    expect(pillCount(matchUp)).toBe(0);
   });
 });

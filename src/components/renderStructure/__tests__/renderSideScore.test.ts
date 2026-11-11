@@ -1,118 +1,105 @@
-/**
- * @vitest-environment happy-dom
- */
-import type { Composition, MatchUp, SetScore } from '../../../types';
-import { setScore, renderSideScore } from '../renderSideScore';
-import { describe, it, expect, vi } from 'vitest';
+import { enrichTiebreakSet, setScoreView, sideScoreCells } from '../sideScoreModel';
+import { makeMatchUp } from './helpers/matchUpFixtures';
+import { describe, it, expect } from 'vitest';
 
-const WINNER = 'chc-game-score--winner';
-const LOSER = 'chc-game-score--loser';
+// constants and types
+import type { Composition, MatchUp, SetScore } from '../../../types';
+import type { SideScoreCell } from '../sideScoreModel';
+
+/**
+ * What one side's score shows, computed by `../sideScoreModel`, which `renderSideScore` and `setScore`
+ * draw. The drawn result — the elements and classes, the stripe's paint, the click, the leading point
+ * score's place on screen, `participantHeight` and the `resultsInfo` labels — is asserted in a browser
+ * by `StructureSideScoreTests.stories.ts`.
+ */
+
+const STRIPE = 'var(--chc-bg-secondary)';
 
 function makeSet(overrides: Partial<SetScore> = {}): SetScore {
   return { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1, ...overrides };
 }
 
-function makeMatchUp(sets: SetScore[]): MatchUp {
-  return {
-    matchUpId: 'mu-1',
-    matchUpType: 'SINGLES',
-    structureId: 'struct-1',
-    score: { sets, scoreStringSide1: '6-4' },
-    sides: [
-      { sideNumber: 1, participant: { participantId: 'p1', participantName: 'Player 1' } },
-      { sideNumber: 2, participant: { participantId: 'p2', participantName: 'Player 2' } }
-    ]
-  } as MatchUp;
+function scoreMatchUp(sets: SetScore[], score: Partial<MatchUp['score']> = {}): MatchUp {
+  return makeMatchUp({ score: { sets, scoreStringSide1: '6-4', ...score } });
 }
 
-describe('setScore', () => {
-  it('creates a paragraph element', () => {
-    const el = setScore({ set: makeSet(), sideNumber: 1 });
-    expect(el.tagName).toBe('P');
-  });
+const cells = (matchUp: MatchUp, sideNumber: number, configuration: Composition['configuration'] = {}) =>
+  sideScoreCells({ matchUp, sideNumber, gameScore: configuration.gameScore, resultsInfo: configuration.resultsInfo });
 
+/** Each cell as `kind:text`, so a test reads the order and the values at once. */
+const describeCells = (list: SideScoreCell[], sideNumber: number) =>
+  list.map((cell) =>
+    cell.kind === 'point' ? `point:${cell.point.text}` : `set:${setScoreView({ set: cell.set, sideNumber }).text}`
+  );
+
+describe('setScoreView', () => {
   it('displays side1Score for sideNumber 1', () => {
-    const el = setScore({ set: makeSet({ side1Score: 6, side2Score: 4, winningSide: 1 }), sideNumber: 1 });
-    expect(el.textContent).toContain('6');
+    expect(setScoreView({ set: makeSet({ side1Score: 6, side2Score: 4, winningSide: 1 }), sideNumber: 1 }).text).toBe(
+      '6'
+    );
   });
 
   it('displays side2Score for sideNumber 2', () => {
-    const el = setScore({ set: makeSet({ side1Score: 6, side2Score: 4, winningSide: 1 }), sideNumber: 2 });
-    expect(el.textContent).toContain('4');
+    expect(setScoreView({ set: makeSet({ side1Score: 6, side2Score: 4, winningSide: 1 }), sideNumber: 2 }).text).toBe(
+      '4'
+    );
   });
 
-  it('has tmx-st class and setNumber attribute', () => {
-    const el = setScore({ set: makeSet({ setNumber: 2 }), sideNumber: 1 });
-    expect(el.classList.contains('tmx-st')).toBe(true);
-    expect(el.getAttribute('setNumber')).toBe('2');
-  });
-
-  it('renders tiebreak score in a span', () => {
+  it('shows the side’s own tiebreak score as the superscript', () => {
     const set = makeSet({ side1TiebreakScore: 7, side2TiebreakScore: 5 });
-    const el = setScore({ set, sideNumber: 2 });
-    const span = el.querySelector('span');
-    expect(span).not.toBeNull();
-    expect(span!.textContent).toBe('5');
+    expect(setScoreView({ set, sideNumber: 2 }).tiebreak).toBe('5');
+    expect(setScoreView({ set, sideNumber: 1 }).tiebreak).toBe('7');
   });
 
-  it('does not render tiebreak when gameScoreOnly is true', () => {
+  it('shows an empty superscript for a set without a tiebreak', () => {
+    expect(setScoreView({ set: makeSet(), sideNumber: 1 }).tiebreak).toBe('');
+  });
+
+  it('drops the tiebreak superscript when gameScoreOnly is true', () => {
     const set = makeSet({ side1TiebreakScore: 7, side2TiebreakScore: 5 });
-    const el = setScore({ set, sideNumber: 1, gameScoreOnly: true });
-    const span = el.querySelector('span');
-    expect(span).toBeNull();
+    expect(setScoreView({ set, sideNumber: 1, gameScoreOnly: true }).tiebreak).toBeUndefined();
   });
 
   // The variant was `(isWinningSide && 'winner') || set?.winningSide ? 'loser' : undefined`, which by operator
   // precedence marked BOTH sides of a decided set `loser` (2023-08 until 2026-10-19).
   it.each([1, 2])('marks the winning side %s of a decided set as the winner, and only that side', (winningSide) => {
     const loserSide = 3 - winningSide;
-    const winner = setScore({ set: makeSet({ winningSide }), sideNumber: winningSide });
-    const loser = setScore({ set: makeSet({ winningSide }), sideNumber: loserSide });
-
-    expect(winner.classList.contains(WINNER)).toBe(true);
-    expect(winner.classList.contains(LOSER)).toBe(false);
-    expect(loser.classList.contains(LOSER)).toBe(true);
-    expect(loser.classList.contains(WINNER)).toBe(false);
+    expect(setScoreView({ set: makeSet({ winningSide }), sideNumber: winningSide }).variant).toBe('winner');
+    expect(setScoreView({ set: makeSet({ winningSide }), sideNumber: loserSide }).variant).toBe('loser');
   });
 
   it('marks neither side of an undecided set', () => {
     for (const sideNumber of [1, 2]) {
-      const el = setScore({ set: makeSet({ winningSide: undefined }), sideNumber });
-      expect(el.classList.contains(WINNER)).toBe(false);
-      expect(el.classList.contains(LOSER)).toBe(false);
+      expect(setScoreView({ set: makeSet({ winningSide: undefined }), sideNumber }).variant).toBeUndefined();
     }
   });
 
   it('renders empty string for undefined score', () => {
-    const el = setScore({
-      set: { setNumber: 1, side1Score: undefined, side2Score: undefined } as any,
-      sideNumber: 1
-    });
-    expect(el.textContent?.trim()).toBe('');
+    const set = { setNumber: 1, side1Score: undefined, side2Score: undefined } as SetScore;
+    expect(setScoreView({ set, sideNumber: 1 }).text).toBe('');
   });
 
-  it('applies scoreStripes background for odd set numbers', () => {
-    const el = setScore({ set: makeSet({ setNumber: 1 }), sideNumber: 1, scoreStripes: true });
-    expect(el.style.backgroundColor).not.toBe('transparent');
+  it('stripes odd set numbers with the secondary background token', () => {
+    expect(setScoreView({ set: makeSet({ setNumber: 1 }), sideNumber: 1, scoreStripes: true }).background).toBe(STRIPE);
+    expect(setScoreView({ set: makeSet({ setNumber: 3 }), sideNumber: 1, scoreStripes: true }).background).toBe(STRIPE);
   });
 
-  it('applies transparent background for even set numbers', () => {
-    const el = setScore({ set: makeSet({ setNumber: 2 }), sideNumber: 1, scoreStripes: true });
-    expect(el.style.backgroundColor).toBe('transparent');
+  it('leaves even set numbers transparent', () => {
+    expect(setScoreView({ set: makeSet({ setNumber: 2 }), sideNumber: 1, scoreStripes: true }).background).toBe(
+      'transparent'
+    );
+  });
+
+  it('CONTROL — no stripes at all without scoreStripes', () => {
+    expect(setScoreView({ set: makeSet({ setNumber: 1 }), sideNumber: 1 }).background).toBe('transparent');
   });
 
   it('handles tiebreak-only set (no game score, only tiebreak)', () => {
-    const set: SetScore = {
-      setNumber: 3,
-      side1Score: undefined as any,
-      side2Score: undefined as any,
-      side1TiebreakScore: 10,
-      side2TiebreakScore: 8,
-      winningSide: 1
-    };
-    const el = setScore({ set, sideNumber: 1 });
-    // Should display tiebreak score directly
-    expect(el.innerHTML).toContain('10');
+    const set: SetScore = { setNumber: 3, side1TiebreakScore: 10, side2TiebreakScore: 8, winningSide: 1 };
+    const view = setScoreView({ set, sideNumber: 1 });
+    // the tiebreak points ARE the score, so they are not repeated as a superscript
+    expect(view.text).toBe('10');
+    expect(view.tiebreak).toBe('');
   });
 
   it('handles match-tiebreak final set normalised by the engine (tiebreakSet flag set, game score collapsed to 1/0)', () => {
@@ -129,102 +116,73 @@ describe('setScore', () => {
       tiebreakSet: true,
       winningSide: 1
     };
-    const side1El = setScore({ set, sideNumber: 1 });
-    expect(side1El.innerHTML).toContain('10');
-    expect(side1El.innerHTML).not.toMatch(/>1</);
-    const side2El = setScore({ set, sideNumber: 2 });
-    expect(side2El.innerHTML).toContain('7');
-    expect(side2El.innerHTML).not.toMatch(/>0</);
+    expect(setScoreView({ set, sideNumber: 1 })).toMatchObject({ text: '10', tiebreak: '' });
+    expect(setScoreView({ set, sideNumber: 2 })).toMatchObject({ text: '7', tiebreak: '' });
   });
 });
 
-describe('renderSideScore', () => {
-  it('creates a wrapper div with sideScore class', () => {
-    const sets = [makeSet()];
-    const el = renderSideScore({
-      matchUp: makeMatchUp(sets),
-      sideNumber: 1
-    });
-    expect(el.classList.contains('sideScore')).toBe(true);
-    expect(el.classList.contains('tmx-scr')).toBe(true);
-  });
-
-  it('renders all set scores', () => {
+describe('sideScoreCells', () => {
+  it('has one cell per set, in order', () => {
     const sets = [
       makeSet({ setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 }),
       makeSet({ setNumber: 2, side1Score: 3, side2Score: 6, winningSide: 2 })
     ];
-    const el = renderSideScore({ matchUp: makeMatchUp(sets), sideNumber: 1 });
-    const setElements = el.querySelectorAll('.tmx-st');
-    expect(setElements.length).toBe(2);
+    expect(describeCells(cells(scoreMatchUp(sets), 1), 1)).toEqual(['set:6', 'set:3']);
+    expect(describeCells(cells(scoreMatchUp(sets), 2), 2)).toEqual(['set:4', 'set:6']);
   });
 
-  it('fires scoreClick on click', () => {
-    const scoreClick = vi.fn();
-    const el = renderSideScore({
-      matchUp: makeMatchUp([makeSet()]),
-      sideNumber: 1,
-      eventHandlers: { scoreClick }
-    });
-    el.click();
-    expect(scoreClick).toHaveBeenCalledTimes(1);
-  });
-
-  it('renders point scores when gameScore config is set (trailing)', () => {
+  it('puts the point score after the sets when gameScore is trailing', () => {
     const sets: SetScore[] = [
       { setNumber: 1, side1Score: 4, side2Score: 5, side1PointScore: '30', side2PointScore: '40' }
     ];
-    const composition: Composition = {
-      theme: 'test',
-      configuration: { gameScore: { position: 'trailing', inverted: true } }
-    };
-    const el = renderSideScore({
-      matchUp: makeMatchUp(sets),
-      sideNumber: 1,
-      composition
-    });
-    expect(el.textContent).toContain('30');
+    const list = cells(scoreMatchUp(sets), 1, { gameScore: { position: 'trailing', inverted: true } });
+    expect(describeCells(list, 1)).toEqual(['set:4', 'point:30']);
   });
 
-  it('renders point scores in leading position', () => {
+  it('puts the point score before the sets when gameScore is leading', () => {
     const sets: SetScore[] = [
       { setNumber: 1, side1Score: 4, side2Score: 5, side1PointScore: '15', side2PointScore: '0' }
     ];
-    const composition: Composition = {
-      theme: 'test',
-      configuration: { gameScore: { position: 'leading' } }
-    };
-    const el = renderSideScore({
-      matchUp: makeMatchUp(sets),
-      sideNumber: 1,
-      composition
-    });
-    // Leading point score should appear before set scores
-    const children = el.querySelector('div')!.children;
-    expect(children.length).toBeGreaterThan(1);
+    const list = cells(scoreMatchUp(sets), 1, { gameScore: { position: 'leading' } });
+    expect(describeCells(list, 1)).toEqual(['point:15', 'set:4']);
+    expect(describeCells(cells(scoreMatchUp(sets), 2, { gameScore: { position: 'leading' } }), 2)).toEqual([
+      'point:0',
+      'set:5'
+    ]);
   });
 
-  it('does not render point scores when gameScore config is absent', () => {
+  it('still shows the point score, trailing and inverted, when gameScore config is absent', () => {
+    // This test used to be titled "does not render point scores when gameScore config is absent" and
+    // asserted only that the text contained '4' — which the game score alone satisfies. The point
+    // score DOES render without the config, deliberately: until 2026-04-03 the code read "Renders
+    // whenever the last set has point score data, regardless of gameScore config". The config only
+    // places and inverts it.
     const sets: SetScore[] = [
       { setNumber: 1, side1Score: 4, side2Score: 5, side1PointScore: '30', side2PointScore: '40' }
     ];
-    const el = renderSideScore({
-      matchUp: makeMatchUp(sets),
-      sideNumber: 1
-    });
-    // Without gameScore config, point scores should not appear
-    // Only game scores should be rendered
-    const text = el.textContent || '';
-    expect(text).toContain('4');
+    const list = cells(scoreMatchUp(sets), 1);
+    expect(describeCells(list, 1)).toEqual(['set:4', 'point:30']);
+    expect(list[1]).toMatchObject({ kind: 'point', point: { position: 'trailing', inverted: true } });
+  });
+
+  it('CONTROL — no point cell when the last set carries no point score', () => {
+    expect(describeCells(cells(scoreMatchUp([makeSet()]), 1, { gameScore: { position: 'trailing' } }), 1)).toEqual([
+      'set:6'
+    ]);
   });
 
   it('handles empty sets array', () => {
-    const el = renderSideScore({
-      matchUp: makeMatchUp([]),
-      sideNumber: 1
-    });
-    expect(el).toBeInstanceOf(HTMLElement);
-    expect(el.querySelectorAll('.tmx-st').length).toBe(0);
+    expect(cells(scoreMatchUp([]), 1)).toEqual([]);
+  });
+
+  it('labels each cell with resultsInfo, on side 1 only', () => {
+    const sets = [makeSet({ setNumber: 1 }), makeSet({ setNumber: 2, side1Score: 3, side2Score: 6, winningSide: 2 })];
+    const side1 = cells(scoreMatchUp(sets), 1, { resultsInfo: true });
+    expect(side1.map((cell) => cell.label)).toEqual(['1', '2']);
+    const side2 = cells(scoreMatchUp(sets), 2, { resultsInfo: true });
+    expect(side2.map((cell) => cell.label)).toEqual([undefined, undefined]);
+    // and without the flag, no labels at all
+    expect(cells(scoreMatchUp(sets), 1).map((cell) => cell.label)).toEqual([undefined, undefined]);
   });
 
   it('renders tiebreak points from scoreStringSide bracket token when the set lacks side*TiebreakScore', () => {
@@ -236,66 +194,34 @@ describe('renderSideScore', () => {
       { setNumber: 2, side1Score: 6, side2Score: 7, side1TiebreakScore: 4, side2TiebreakScore: 7, winningSide: 2 },
       { setNumber: 3, side1Score: 1, side2Score: 0, tiebreakSet: true, winningSide: 1 }
     ];
-    const matchUp = {
-      matchUpId: 'mu-tb',
-      matchUpType: 'SINGLES',
-      structureId: 'struct-1',
-      score: {
-        sets,
-        scoreStringSide1: '7-5 6-7(4) [10-7]',
-        scoreStringSide2: '5-7 7-6(4) [7-10]'
-      },
-      sides: [
-        { sideNumber: 1, participant: { participantId: 'p1', participantName: 'Player 1' } },
-        { sideNumber: 2, participant: { participantId: 'p2', participantName: 'Player 2' } }
-      ]
-    } as MatchUp;
+    const matchUp = scoreMatchUp(sets, {
+      scoreStringSide1: '7-5 6-7(4) [10-7]',
+      scoreStringSide2: '5-7 7-6(4) [7-10]'
+    });
 
-    const side1El = renderSideScore({ matchUp, sideNumber: 1 });
-    const side1SetEls = side1El.querySelectorAll('.tmx-st');
-    expect(side1SetEls[2].innerHTML).toContain('10');
-    expect(side1SetEls[2].innerHTML).not.toMatch(/>1</);
+    expect(describeCells(cells(matchUp, 1), 1)).toEqual(['set:7', 'set:6', 'set:10']);
+    expect(describeCells(cells(matchUp, 2), 2)).toEqual(['set:5', 'set:7', 'set:7']);
+  });
+});
 
-    const side2El = renderSideScore({ matchUp, sideNumber: 2 });
-    const side2SetEls = side2El.querySelectorAll('.tmx-st');
-    expect(side2SetEls[2].innerHTML).toContain('7');
-    expect(side2SetEls[2].innerHTML).not.toMatch(/>0</);
+describe('enrichTiebreakSet', () => {
+  const tiebreakSet: SetScore = { setNumber: 3, side1Score: 1, side2Score: 0, tiebreakSet: true, winningSide: 1 };
+
+  it('reads both sides from one side’s token when only that one is present', () => {
+    expect(enrichTiebreakSet(tiebreakSet, 0, { scoreStringSide1: '[10-7]' })).toMatchObject({
+      side1TiebreakScore: 10,
+      side2TiebreakScore: 7
+    });
+    expect(enrichTiebreakSet(tiebreakSet, 0, { scoreStringSide2: '[7-10]' })).toMatchObject({
+      side1TiebreakScore: 10,
+      side2TiebreakScore: 7
+    });
   });
 
-  it('applies participantHeight when provided', () => {
-    const el = renderSideScore({
-      matchUp: makeMatchUp([makeSet()]),
-      sideNumber: 2,
-      participantHeight: 40
-    });
-    expect(el.style.height).toBe('40px');
-  });
-
-  it('renders with resultsInfo enabled', () => {
-    const composition: Composition = {
-      theme: 'test',
-      configuration: { resultsInfo: true }
-    };
-    const sets = [makeSet({ setNumber: 1 }), makeSet({ setNumber: 2, side1Score: 3, side2Score: 6, winningSide: 2 })];
-    const el = renderSideScore({
-      matchUp: makeMatchUp(sets),
-      sideNumber: 1,
-      composition
-    });
-    // resultsInfo wraps each set score in a column with a label
-    expect(el).toBeInstanceOf(HTMLElement);
-  });
-
-  it('renders with winnerChevron (scoreStripes)', () => {
-    const composition: Composition = {
-      theme: 'test',
-      configuration: { winnerChevron: true }
-    };
-    const el = renderSideScore({
-      matchUp: makeMatchUp([makeSet()]),
-      sideNumber: 1,
-      composition
-    });
-    expect(el).toBeInstanceOf(HTMLElement);
+  it('CONTROL — leaves a set that already carries tiebreak points, or is not a tiebreak set, untouched', () => {
+    const carried = { ...tiebreakSet, side1TiebreakScore: 10, side2TiebreakScore: 8 };
+    expect(enrichTiebreakSet(carried, 0, { scoreStringSide1: '[10-7]' })).toBe(carried);
+    const ordinary = makeSet();
+    expect(enrichTiebreakSet(ordinary, 0, { scoreStringSide1: '[10-7]' })).toBe(ordinary);
   });
 });

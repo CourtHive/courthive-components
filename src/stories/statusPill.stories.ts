@@ -59,6 +59,13 @@ export const Retirement = {
 export const Awaiting = {
   args: {
     matchUpStatus: AWAITING_RESULT
+  },
+  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+    const pill = canvasElement.querySelector<HTMLElement>('.chc-pill')!;
+    await expect(pill).toBeVisible();
+    await expect(pill).toHaveTextContent('AWA');
+    // the abbreviation is the text; the full status is the hover
+    await expect(pill.querySelector('abbr')?.title).toBe(AWAITING_RESULT);
   }
 };
 
