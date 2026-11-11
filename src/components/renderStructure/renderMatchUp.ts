@@ -196,6 +196,14 @@ function renderFooter({
     clearBtn.disabled = !inlineScoring.canUndo && !inlineScoring.canRedo;
     submitBtn.disabled = !inlineScoring.isDirty;
 
+    // `inlineScoring.showSituation`: the flags `renderInlineMatchUp` computes (`situationText`), beside the buttons
+    if (inlineScoring.showSituation && inlineScoring.situationText) {
+      const situation = document.createElement('span');
+      situation.className = 'chc-inline-scoring-situation';
+      situation.textContent = inlineScoring.situationText;
+      buttonsContainer.appendChild(situation);
+    }
+
     const buttonBar = document.createElement('div');
     buttonBar.className = 'chc-inline-scoring-buttons';
     buttonBar.append(undoBtn, redoBtn, clearBtn, submitBtn);
