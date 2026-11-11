@@ -1,3 +1,5 @@
+import { settledTiebreakPoints } from '../scoring/logic/tiebreakPoints';
+
 // constants and types
 import type { Configuration, MatchUp, SetScore } from '../../types';
 
@@ -9,7 +11,10 @@ export interface SetScoreView {
   scoreDisplay: number | undefined;
   /** The cell's text: `scoreDisplay`, or `''` when there is no numeric value. */
   text: string;
-  /** The tiebreak superscript's text (`''` when none), or `undefined` under `gameScoreOnly`, which drops it. */
+  /**
+   * The tiebreak superscript's text: the set loser's points, only when both sides' are recorded
+   * (`settledTiebreakPoints`); `''` when none, or `undefined` under `gameScoreOnly`, which drops it.
+   */
   tiebreak: string | undefined;
   /** `configuration.winnerChevron` stripes odd sets. */
   background: string;
@@ -29,8 +34,8 @@ export function setScoreView({
   const isWinningSide = sideNumber === set?.winningSide;
   const variant = (isWinningSide && 'winner') || (set?.winningSide ? 'loser' : undefined);
   const gameScore = sideNumber === 2 ? set.side2Score : set.side1Score;
-  const hasTiebreakScore = set.side2TiebreakScore !== undefined || set.side1TiebreakScore !== undefined;
   const tieBreakScore = sideNumber === 2 ? set.side2TiebreakScore : set.side1TiebreakScore;
+  const otherTieBreakScore = sideNumber === 2 ? set.side1TiebreakScore : set.side2TiebreakScore;
   // A "tiebreak set" is either a tiebreak-only set (no game score) or a final-set match
   // tiebreak normalised by the engine to side{1,2}Score 1/0 with `tiebreakSet: true` and
   // the actual points carried on side{1,2}TiebreakScore. In both cases the displayed value
@@ -39,10 +44,11 @@ export function setScoreView({
   const scoreDisplay = tieBreakSet ? tieBreakScore : gameScore;
   const text = scoreDisplay != null && !Number.isNaN(Number(scoreDisplay)) ? String(scoreDisplay) : '';
   const background = scoreStripes && set.setNumber % 2 ? 'var(--chc-bg-secondary)' : 'transparent';
-  // A side shows only its OWN recorded points. When just the other side's are on the set, this side has
-  // none, and shows nothing rather than `String(undefined)`.
-  const showsTiebreak = hasTiebreakScore && !tieBreakSet && tieBreakScore !== undefined;
-  const tiebreak = gameScoreOnly ? undefined : (showsTiebreak && String(tieBreakScore)) || '';
+  // Only the side that lost the tiebreak raises its points (CA, 2026-11-11: 7-6(0) is 7-6(7-0)), and only
+  // when BOTH values are recorded; with one missing the cell shows the games alone. The scoring dialog
+  // raises the lower by the same rule (see `scoring/logic/tiebreakPoints`).
+  const raised = tieBreakSet ? undefined : settledTiebreakPoints(tieBreakScore, otherTieBreakScore);
+  const tiebreak = gameScoreOnly ? undefined : raised === undefined ? '' : String(raised);
 
   return { variant, scoreDisplay, text, tiebreak, background };
 }

@@ -24,6 +24,7 @@ const meta: Meta = {
 export default meta;
 
 const TRANSPARENT = 'rgba(0, 0, 0, 0)';
+const SUPERSCRIPT = 'span.chc-tiebreak';
 
 function makeSet(overrides: Partial<SetScore> = {}): SetScore {
   return { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1, ...overrides };
@@ -67,9 +68,19 @@ export const SetCells: StoryObj = {
         setScore({ set: makeSet({ setNumber: 2, side1TiebreakScore: 7, side2TiebreakScore: 5 }), sideNumber: 2 })
       ],
       [
+        // the same 7-5 tiebreak, the winner's cell: CA's standard raises only the loser's points
+        'tiebreak-winner',
+        setScore({ set: makeSet({ setNumber: 2, side1TiebreakScore: 7, side2TiebreakScore: 5 }), sideNumber: 1 })
+      ],
+      [
         // only side 1's tiebreak points are recorded; this is side 2's cell
         'one-sided',
         setScore({ set: makeSet({ side1Score: 7, side2Score: 6, side1TiebreakScore: 7 }), sideNumber: 2 })
+      ],
+      [
+        // ...and side 1's own cell, which holds the lone value
+        'one-sided-recorded',
+        setScore({ set: makeSet({ side1Score: 7, side2Score: 6, side1TiebreakScore: 7 }), sideNumber: 1 })
       ],
       [
         'game-only',
@@ -89,8 +100,8 @@ export const SetCells: StoryObj = {
     await expect(tiebreak.classList.contains('tmx-st')).toBe(true);
     await expect(tiebreak.getAttribute('setNumber')).toBe('2');
     await expect(tiebreak).toBeVisible();
-    // the game count, with the side's tiebreak points as a smaller superscript beside it
-    const superscript = tiebreak.querySelector<HTMLElement>('span.chc-tiebreak')!;
+    // the set loser's game count, with its tiebreak points as a smaller superscript beside it
+    const superscript = tiebreak.querySelector<HTMLElement>(SUPERSCRIPT)!;
     await expect(superscript.textContent).toBe('5');
     await expect(superscript).toBeVisible();
     await expect(tiebreak.firstChild?.textContent).toBe('4');
@@ -98,10 +109,19 @@ export const SetCells: StoryObj = {
       Number.parseFloat(getComputedStyle(tiebreak).fontSize)
     );
 
+    // CA, 2026-11-11: *"only show the tiebreak points for the losing side"* — the winner's 7 is implied
+    const winner = inFrame(canvasElement, 'tiebreak-winner');
+    await expect(winner.textContent).toBe('6');
+    await expect(winner.querySelector(SUPERSCRIPT)?.textContent).toBe('');
+
     // a side with no recorded tiebreak points shows its games and nothing else (it used to read "6undefined")
     const oneSided = inFrame(canvasElement, 'one-sided');
     await expect(oneSided.textContent).toBe('6');
-    await expect(oneSided.querySelector('span.chc-tiebreak')?.textContent).toBe('');
+    await expect(oneSided.querySelector(SUPERSCRIPT)?.textContent).toBe('');
+    // CA, 2026-11-11: *"if we don't have both tiebreak values just show the games score"*
+    const recorded = inFrame(canvasElement, 'one-sided-recorded');
+    await expect(recorded.textContent).toBe('7');
+    await expect(recorded.querySelector(SUPERSCRIPT)?.textContent).toBe('');
 
     await expect(inFrame(canvasElement, 'game-only').querySelector('span')).toBeNull();
 

@@ -45,23 +45,46 @@ describe('setScoreView', () => {
     );
   });
 
-  it('shows the side’s own tiebreak score as the superscript', () => {
-    const set = makeSet({ side1TiebreakScore: 7, side2TiebreakScore: 5 });
-    expect(setScoreView({ set, sideNumber: 2 }).tiebreak).toBe('5');
-    expect(setScoreView({ set, sideNumber: 1 }).tiebreak).toBe('7');
+  // CA, 2026-11-11: *"It is standard to only show the tiebreak points for the losing side, so 7-6(0) is
+  // assumed to be 7-6(7-0)"*. The draw cell follows the scoring dialog's rule (`lowerTiebreakPoints`).
+  it('raises the tiebreak points on the side that lost the set, and nothing on the winner', () => {
+    const set = makeSet({ side1Score: 7, side2Score: 6, side1TiebreakScore: 7, side2TiebreakScore: 4 });
+    expect(setScoreView({ set, sideNumber: 2 }).tiebreak).toBe('4');
+    expect(setScoreView({ set, sideNumber: 1 }).tiebreak).toBe('');
+    const mirrored = makeSet({
+      side1Score: 6,
+      side2Score: 7,
+      winningSide: 2,
+      side1TiebreakScore: 9,
+      side2TiebreakScore: 11
+    });
+    expect(setScoreView({ set: mirrored, sideNumber: 1 }).tiebreak).toBe('9');
+    expect(setScoreView({ set: mirrored, sideNumber: 2 }).tiebreak).toBe('');
   });
 
-  it('shows nothing, not "undefined", for a side whose tiebreak points are not recorded', () => {
-    // Only the OTHER side's points are on the set (TMX's inline-scoring submit sends each side only when
-    // non-null). The recorded side shows its points, as it always did; this side has none to show. The
-    // factory's score string and TMX's live display coerce a missing side to 0, but that is a combined
-    // string's convenience, not a recorded value, so the cell does not invent one.
+  it('raises a love tiebreak: 7-6(0) shows the 0 on the loser', () => {
+    const set = makeSet({ side1Score: 7, side2Score: 6, side1TiebreakScore: 7, side2TiebreakScore: 0 });
+    expect(setScoreView({ set, sideNumber: 2 }).tiebreak).toBe('0');
+    expect(setScoreView({ set, sideNumber: 1 }).tiebreak).toBe('');
+  });
+
+  it('raises nothing on either side unless BOTH tiebreak values are recorded', () => {
+    // CA, 2026-11-11: *"if we don't have both tiebreak values just show the games score (for a tiebreak
+    // set we must have both values, I'd assume)"*. Only ONE side's points can reach a stored set (TMX's
+    // inline-scoring submit sends each side only when non-null); that is incomplete data, so the cell
+    // shows the games alone rather than guessing whose points they are. (It never shows "undefined".)
     const set = makeSet({ side1Score: 7, side2Score: 6, side1TiebreakScore: 7 });
-    expect(setScoreView({ set, sideNumber: 1 }).tiebreak).toBe('7');
-    expect(setScoreView({ set, sideNumber: 2 }).tiebreak).toBe('');
+    expect(setScoreView({ set, sideNumber: 1 })).toMatchObject({ text: '7', tiebreak: '' });
+    expect(setScoreView({ set, sideNumber: 2 })).toMatchObject({ text: '6', tiebreak: '' });
     const mirrored = makeSet({ side1Score: 6, side2Score: 7, winningSide: 2, side1TiebreakScore: 4 });
-    expect(setScoreView({ set: mirrored, sideNumber: 1 }).tiebreak).toBe('4');
-    expect(setScoreView({ set: mirrored, sideNumber: 2 }).tiebreak).toBe('');
+    expect(setScoreView({ set: mirrored, sideNumber: 1 })).toMatchObject({ text: '6', tiebreak: '' });
+    expect(setScoreView({ set: mirrored, sideNumber: 2 })).toMatchObject({ text: '7', tiebreak: '' });
+  });
+
+  it('raises neither side of an impossible tied tiebreak', () => {
+    const set = makeSet({ side1Score: 7, side2Score: 6, side1TiebreakScore: 6, side2TiebreakScore: 6 });
+    expect(setScoreView({ set, sideNumber: 1 }).tiebreak).toBe('');
+    expect(setScoreView({ set, sideNumber: 2 }).tiebreak).toBe('');
   });
 
   it('shows an empty superscript for a set without a tiebreak', () => {
@@ -113,6 +136,14 @@ describe('setScoreView', () => {
     // the tiebreak points ARE the score, so they are not repeated as a superscript
     expect(view.text).toBe('10');
     expect(view.tiebreak).toBe('');
+  });
+
+  it('a tiebreak-only set is assumed to carry both values; with one missing, that side reads blank', () => {
+    // Not special-cased (CA: "for a tiebreak set we must have both values"). Recorded as it stands: the
+    // recorded side shows its points as the score, the other side has neither games nor points to show.
+    const set: SetScore = { setNumber: 3, side1TiebreakScore: 10, winningSide: 1 };
+    expect(setScoreView({ set, sideNumber: 1 })).toMatchObject({ text: '10', tiebreak: '' });
+    expect(setScoreView({ set, sideNumber: 2 })).toMatchObject({ text: '', tiebreak: '' });
   });
 
   it('handles match-tiebreak final set normalised by the engine (tiebreakSet flag set, game score collapsed to 1/0)', () => {
