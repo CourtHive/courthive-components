@@ -28,12 +28,12 @@
  * `resolveReportedEnding` in `scoreEntryState.ts`, which is where that precedence is written down.
  */
 
-import { enteredSets, scoreString, isComplete } from '../logic/scoreEntrySelectors';
+import { enteredSets, scoreString } from '../logic/scoreEntrySelectors';
 import { createScoreReadouts, READOUT_COLUMN_WIDTH } from './scoreReadout';
 import { createScoreEntryStore } from '../logic/scoreEntryStore';
 import { parseScore } from '../../../tools/freeScore/freeScore';
 import { scoreEntryText } from '../logic/scoreEntryText';
-import { statusScopeError } from '../logic/statusScope';
+import { freeScoreNote } from '../logic/freeScoreEntry';
 import { replaceSets } from '../logic/scoreEntryModel';
 
 import type { ScoreEntryStore } from '../logic/scoreEntryStore';
@@ -206,42 +206,15 @@ export function createFreeScoreRegion(params: FreeScoreRegionParams): FreeScoreR
     if (!note) return;
 
     const { result } = parsed();
-    const scopeError = statusScopeError(
-      result?.matchUpStatus,
-      params.disabledMatchUpStatuses,
-      params.statusScopeLabels
-    );
-    if (scopeError) {
-      note.textContent = scopeError;
-      note.dataset.tone = 'error';
-      return undefined;
-    }
-    if (!text.trim()) {
-      note.textContent = '';
-      note.dataset.tone = 'idle';
-      return;
-    }
-
-    // ── `valid` alone does not mean the text was understood ──
-    //
-    // Measured 2026-09-27: `parseScore('qqq', 'SET3-S:6/TB7')` returns `valid: true` with ZERO errors
-    // and ZERO sets. So the parser's `valid` flag says "nothing went wrong", not "this is a score", and
-    // a note keyed on it alone reports nonsense as fine. The signal is text that produced no sets and
-    // no ending — something was typed and none of it landed.
-    const parsedNothing = !result?.sets?.length && !result?.matchUpStatus;
-    if (!result?.valid || parsedNothing) {
-      const first = result?.errors?.[0];
-      note.textContent = typeof first === 'string' ? first : (first?.message ?? scoreEntryText(labels, 'notAScore'));
-      note.dataset.tone = 'error';
-      return;
-    }
-
-    // "Finished" is the MODEL's judgement now, not the parser's: the parser calls `4-2 2-6 2-6`
-    // complete, and it is not.
-    const finished = !result.matchUpStatus && isComplete(model());
-    note.dataset.tone = finished ? 'good' : 'idle';
-    note.textContent = finished
-      ? scoreEntryText(labels, 'completeMatch', { format: matchUpFormat })
-      : scoreEntryText(labels, 'notFinished', { score: result.formattedScore });
+    const shown = freeScoreNote({
+      text,
+      result,
+      model: model(),
+      disabledMatchUpStatuses: params.disabledMatchUpStatuses,
+      statusScopeLabels: params.statusScopeLabels,
+      labels
+    });
+    note.textContent = shown.text;
+    note.dataset.tone = shown.tone;
   }
 }
