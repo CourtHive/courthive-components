@@ -156,8 +156,6 @@ export const PointsModeClickScoresAPoint: StoryObj = {
   name: 'Points mode: a click on side 1’s score awards it a point, and the footer wakes',
   render: empty,
   play: async ({ canvasElement }) => {
-    // No stored score: the engine loads a stored score as an undoable step, which would keep Undo
-    // enabled after the point below is undone.
     const { canvas, manager, callbacks } = mount(canvasElement, { composition: makeComposition('points') });
     // Before any point there is no point cell: in points mode the set score itself takes the point.
     for (const sideNumber of [1, 2]) {
@@ -210,6 +208,39 @@ export const SubmitReportsTheMatchUp: StoryObj = {
     await expect(matchUpId).toBe('mu-1');
     await expect(matchUp.score.sets[0].side1Score).toBe(1);
     await expect(footerButton(canvas, 'Submit'), 'nothing new to submit').toBeDisabled();
+  }
+};
+
+export const ResumedMatchUpUndoStopsAtTheStoredScore: StoryObj = {
+  name: 'A resumed matchUp: Undo starts disabled, and undoes a new game back to the stored score',
+  render: empty,
+  play: async ({ canvasElement }) => {
+    const { canvas } = mount(canvasElement, {
+      matchUp: makeMatchUp({
+        score: {
+          sets: [
+            { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
+            { setNumber: 2, side1Score: 3, side2Score: 2 }
+          ]
+        }
+      } as any),
+      composition: makeComposition('games')
+    });
+    const setTwo = (sideNumber: number) =>
+      side(canvas, sideNumber).querySelector<HTMLElement>('.chc-game-score[setnumber="2"]')!;
+    const shown = () => [setTwo(1).textContent, setTwo(2).textContent];
+
+    await expect(shown(), 'control: the stored score is on the page').toEqual(['3', '2']);
+    await expect(footerButton(canvas, 'Undo'), 'nothing this session did to undo').toBeDisabled();
+
+    await user.click(setTwo(2));
+    await expect(shown()).toEqual(['3', '3']);
+    await expect(footerButton(canvas, 'Undo')).toBeEnabled();
+
+    await user.click(footerButton(canvas, 'Undo'));
+    await expect(shown(), 'back to the stored score, not 0-0').toEqual(['3', '2']);
+    await expect(footerButton(canvas, 'Undo')).toBeDisabled();
+    await expect(footerButton(canvas, 'Redo')).toBeEnabled();
   }
 };
 
