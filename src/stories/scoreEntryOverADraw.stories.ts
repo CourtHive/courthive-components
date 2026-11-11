@@ -16,7 +16,7 @@
  * `validateSet` checks that no side exceeds `setTo + 1`, so a 7 is within bounds whatever stands
  * opposite it. The factory validates BOUNDS, not completeness. The card's refusal before Submit is the
  * only guard those two scores meet, which is the strongest argument for the state engine CA asked for.
- * Each is pinned in `__tests__/scoringStories.test.ts`, driven through this story's own handlers, so
+ * Each is pinned in `__tests__/scoreEntryEngineHost.test.ts`, through the same `recordOutcome`, so
  * the day the engine starts refusing them the pin says so.
  *
  * ── Modal hygiene ──
@@ -52,7 +52,7 @@ const REAL_GROUPS = fixtures.policies.POLICY_SCORING_USTA[POLICY_TYPE_SCORING].m
 export default {
   title: 'Scoring/Score Entry/Over a Draw',
   // Storybook renders EVERY named export of a stories file as a story. `renderDrawBehind` is exported for
-  // `__tests__/scoringStories.test.ts`, and returns `{ element, host }`, not a node — so without this it
+  // `ScoreEntryOverADrawTests.stories.ts`, and returns `{ element, host }`, not a node — so without this it
   // appeared as a broken story, "Render Draw Behind", next to the real one.
   excludeStories: ['renderDrawBehind']
 };

@@ -1,6 +1,4 @@
 /**
- * @vitest-environment happy-dom
- *
  * `asRecord` — turning a submitted outcome back into a stored matchUp.
  *
  * This is the mapping a real host performs between the card and the factory, and the stories exercise

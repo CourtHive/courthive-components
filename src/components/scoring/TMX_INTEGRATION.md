@@ -85,7 +85,7 @@ Measured 2026-10-01 against published factory **7.4.0** and against factory `dev
 by calling `tournamentEngine.setMatchUpStatus` with each shape over a mocks-engine draw and reading the
 matchUp back. The story that shows it is `Scoring/Score Entry Over a Draw` and the mapping it uses is
 `src/stories/helpers/scoreEntryEngineHost.ts` (`toEngineOutcome`). Every case below is pinned in
-`src/stories/__tests__/scoringStories.test.ts`, so a factory release that changes an answer fails there.
+`src/stories/__tests__/scoreEntryEngineHost.test.ts`, so a factory release that changes an answer fails there.
 
 **Re-measured 2026-10-05 against published factory 7.5.0: all five rows still hold.** Two of them
 (top-level `sets`, `reasonCode`) were described here but not pinned in their forwarded-as-is form; they
