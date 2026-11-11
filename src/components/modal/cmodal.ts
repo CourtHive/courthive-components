@@ -1,3 +1,4 @@
+import { listenForOutsideClick } from '../../helpers/outsideClick';
 import { anchorModalPopups } from './anchorModalPopups';
 import { focusFirstControl } from './focusFirstControl';
 import { getAttr } from '../../helpers/getAttr';
@@ -25,11 +26,10 @@ const EMPTY = 'Nothing to see here';
  */
 const popoverListeners = new Map<() => void, number>();
 
-function listenForOutsideClick(listener: (event: MouseEvent) => void, owner: number): () => void {
-  const timer = setTimeout(() => document.addEventListener('click', listener, true), 100);
+function listenWhileOpen(listener: (event: MouseEvent) => void, owner: number): () => void {
+  const stop = listenForOutsideClick(listener, { capture: true });
   const cancel = () => {
-    clearTimeout(timer);
-    document.removeEventListener('click', listener, true);
+    stop();
     popoverListeners.delete(cancel);
   };
   popoverListeners.set(cancel, owner);
@@ -396,7 +396,7 @@ export const cModal = (() => {
             closeInfoPopover();
           }
         };
-        cancelInfoListener = listenForOutsideClick(closePopover, modalNumber);
+        cancelInfoListener = listenWhileOpen(closePopover, modalNumber);
       };
 
       headerRight.appendChild(infoIcon);
@@ -476,7 +476,7 @@ export const cModal = (() => {
             closeMenuDropdown();
           }
         };
-        cancelMenuListener = listenForOutsideClick(closeMenu, modalNumber);
+        cancelMenuListener = listenWhileOpen(closeMenu, modalNumber);
       };
 
       headerRight.appendChild(menuCaret);

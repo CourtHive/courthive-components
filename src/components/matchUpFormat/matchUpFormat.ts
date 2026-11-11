@@ -6,211 +6,26 @@
  * control from `deriveView`. Nothing here decides visibility or enforces a rule: those live in the
  * machine, once. Element ids are unchanged, so stories, tests and hosts that read them still work.
  */
+import { controlView, editForControl, NOT_IN_FINAL_SET, segmentOf, SET_CONTROLS } from './machine/controls';
 import { createDropdown, createGameFormatDropdown, closeCurrentDropdown } from './dropdowns';
-import { deriveView, CUSTOM, DEFAULT_LABELS } from './machine/view';
-import { matchUpFormatCode } from 'tods-competition-factory';
+import { codec, resolvePickerConfig } from './machine/pickerConfig';
 import { fromCode, selectedCode } from './machine/codec';
+import { deriveView, CUSTOM } from './machine/view';
 import { applyEdit } from './machine/edits';
 import { cModal } from '../modal/cmodal';
-
-import matchUpFormats from './matchUpFormats.json';
 import './matchUpFormat.css';
 
 // constants and types
-import type { Capabilities, CombinedPointsConfig, Edit, EditorState, SegmentKey, SegmentField } from './machine/types';
-import type { ControlView, EditorView, SegmentView } from './machine/view';
-import { MATCH_ROOTS } from './machine/options';
+import type { MatchUpFormatConfig } from './machine/pickerConfig';
+import type { ControlView, EditorView } from './machine/view';
+import type { SetControl } from './machine/controls';
+import type { Edit, EditorState } from './machine/types';
+
+export type { MatchUpFormatConfig } from './machine/pickerConfig';
 
 const NONE = 'none';
 const TRANSITION_STYLE = 'all .2s ease-in-out';
 const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
-
-// Configuration interface for customizing the matchUpFormat editor
-export interface MatchUpFormatConfig {
-  labels?: {
-    title?: string;
-    setFormatLabel?: string;
-    finalSetLabel?: string;
-    tiebreakLabel?: string;
-    finalSetToggleLabel?: string;
-    standardFormatsLabel?: string;
-    cancel?: string;
-    select?: string;
-    custom?: string;
-    aggregate?: string;
-    game?: string;
-    gameType?: string;
-    deuceRule?: string;
-    none?: string;
-    traditional?: string;
-    consecutive2?: string;
-    consecutive3?: string;
-    consecutive4?: string;
-    goldenPoint?: string;
-    starPoint?: string;
-    games?: string;
-    points?: string;
-    /** Shown when a format cannot be edited here and will be returned unchanged. */
-    readOnly?: string;
-    /** The match-level time limit control. */
-    maxTime?: string;
-    descriptors?: {
-      bestOf?: string;
-      exactly?: string;
-    };
-    /** The set-type names, singular ("Best of 1 Set"). */
-    what?: {
-      sets?: string;
-      tiebreaks?: string;
-      timedSets?: string;
-      outs?: string;
-      pointsTotal?: string;
-    };
-    /** The set-type names, plural ("Best of 3 Sets"). */
-    whatPlural?: {
-      sets?: string;
-      tiebreaks?: string;
-      timedSets?: string;
-      outs?: string;
-      pointsTotal?: string;
-    };
-    advantage?: {
-      ad?: string;
-      noAd?: string;
-    };
-    /** Match-root names by code (SET, HAL, QTR, PER, INN, RND, FRM, MAP). */
-    matchRoots?: Record<string, string>;
-    // Templates: `{n}` is replaced by the number, wherever the language puts it.
-    /** 'to {n}': games to win a set. */
-    setTo?: string;
-    /** 'TB to {n}': points to win a tiebreak. */
-    tiebreakTo?: string;
-    /** 'Win by {n}': a margin to win (a tiebreak, a set, or a points total after a tie). */
-    winBy?: string;
-    /** '{n} Minutes': a timed set's length. */
-    minutes?: string;
-    /** '{n} outs': outs per side. */
-    outs?: string;
-    /** '{n} min': the match time limit. */
-    maxMinutes?: string;
-    /** '{n} points': a points total. */
-    pointsTotal?: string;
-    /** '{n} consecutive': a game format without its own consecutive2-4 label. */
-    consecutive?: string;
-    /** A points total whose tie stands as the result. */
-    tieAllowed?: string;
-  };
-  options?: {
-    bestOf?: number[];
-    exactly?: number[];
-    setTo?: number[];
-    tiebreakTo?: number[];
-    tiebreakToExactly?: number[]; // Additional options for Exactly + Final Set
-    tiebreakAt?: number[];
-    minutes?: number[];
-    winBy?: number[];
-    matchRoots?: string[];
-    gameFormats?: string[];
-    modifiers?: string[];
-    /** Outs per side offered for an outs set. */
-    outs?: number[];
-    /** Minutes offered for the match-level time limit. */
-    maxMinutes?: number[];
-    /** Totals offered for a points total (`SET1-S:P32`). */
-    combinedPointTotals?: number[];
-  };
-  /** A policy's permitted points totals and tie rules. Narrows what is offered; the engine still validates. */
-  combinedPoints?: CombinedPointsConfig;
-  /** Switch parts of the picker off. Everything is on unless set to false. */
-  capabilities?: Capabilities;
-  preDefinedFormats?: Array<{
-    code: string;
-    text: string;
-  }>;
-}
-
-const defaultConfig: MatchUpFormatConfig = {
-  labels: {
-    title: 'Match format',
-    setFormatLabel: 'Set format',
-    finalSetLabel: 'Final set',
-    tiebreakLabel: 'Tiebreak',
-    finalSetToggleLabel: 'Final set',
-    standardFormatsLabel: 'Standard formats',
-    cancel: 'Cancel',
-    select: 'Select',
-    custom: 'Custom',
-    aggregate: 'Aggregate',
-    game: 'Game',
-    gameType: 'Game type',
-    deuceRule: 'Deuce rule',
-    none: 'None',
-    traditional: 'Traditional',
-    consecutive2: '2 consecutive',
-    consecutive3: '3 consecutive',
-    consecutive4: '4 consecutive',
-    goldenPoint: 'Golden point',
-    starPoint: 'Star point',
-    games: 'Games',
-    points: 'Points',
-    readOnly: 'This format cannot be edited here. Select keeps it unchanged; choose another format to replace it.',
-    maxTime: 'Max time',
-    descriptors: {
-      bestOf: 'Best of',
-      exactly: 'Exactly'
-    },
-    ...DEFAULT_LABELS
-  },
-  options: {
-    bestOf: [1, 3, 5, 7, 9],
-    exactly: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-    setTo: [1, 2, 3, 4, 5, 6, 7, 8, 9],
-    tiebreakTo: [1, 3, 5, 7, 9, 10, 11, 12, 13, 15, 21, 25],
-    tiebreakToExactly: [1, 3],
-    tiebreakAt: [3, 4, 5, 6, 7, 8],
-    minutes: [3, 5, 8, 10, 12, 15, 20, 25, 30, 45, 60, 90, 120],
-    winBy: [1, 2],
-    matchRoots: [...MATCH_ROOTS],
-    gameFormats: ['None', 'TN', '2C', '3C', '4C'],
-    modifiers: ['None', 'RALLY']
-  }
-};
-
-const codec = { parse: matchUpFormatCode.parse, stringify: matchUpFormatCode.stringify };
-
-/** The set-row controls in display order. Descriptor and count belong to the match, not the final set. */
-const SET_CONTROLS = [
-  'descriptor',
-  'bestOf',
-  'advantage',
-  'what',
-  'setTo',
-  'tiebreakTo',
-  'tiebreakAt',
-  'winBy',
-  'minutes',
-  'based',
-  'modifier',
-  'outs',
-  'pointsTotal',
-  'tieRule'
-] as const;
-type SetControl = (typeof SET_CONTROLS)[number];
-const MATCH_ONLY = new Set<SetControl>(['descriptor', 'bestOf']);
-/** A points total is the whole match, so its controls have no place in the final set. */
-const NOT_IN_FINAL_SET = new Set<SetControl>([...MATCH_ONLY, 'pointsTotal', 'tieRule']);
-const SEGMENT_FIELDS: Partial<Record<SetControl, SegmentField>> = {
-  setTo: 'setTo',
-  tiebreakTo: 'tiebreakTo',
-  tiebreakAt: 'tiebreakAt',
-  minutes: 'minutes',
-  based: 'based',
-  modifier: 'modifier',
-  outs: 'outs',
-  advantage: 'noAd',
-  pointsTotal: 'combinedPointTotal',
-  tieRule: 'tieMargin'
-};
 
 function styleButton(button: HTMLButtonElement): void {
   // Inline, because courthive-components has no .mfcButton stylesheet
@@ -253,17 +68,6 @@ function showControl(element: HTMLElement, control: ControlView, readOnly: boole
   (element as HTMLButtonElement).disabled = readOnly || !!control.locked;
 }
 
-function mergeConfig(config?: MatchUpFormatConfig): MatchUpFormatConfig {
-  if (!config) return defaultConfig;
-  return {
-    labels: { ...defaultConfig.labels, ...config.labels },
-    options: { ...defaultConfig.options, ...config.options },
-    capabilities: config.capabilities,
-    combinedPoints: config.combinedPoints,
-    preDefinedFormats: config.preDefinedFormats || defaultConfig.preDefinedFormats
-  };
-}
-
 export function getMatchUpFormatModal({
   existingMatchUpFormat = 'SET3-S:6/TB7',
   callback,
@@ -278,29 +82,7 @@ export function getMatchUpFormatModal({
   config?: MatchUpFormatConfig;
   modalConfig?: any;
 } = {}) {
-  const editorConfig = mergeConfig(config);
-  const labels = editorConfig.labels;
-  const capabilities = editorConfig.capabilities;
-
-  const catalog = editorConfig.preDefinedFormats
-    ? editorConfig.preDefinedFormats.map((entry) => ({ code: entry.code, label: entry.text }))
-    : (matchUpFormats as { format?: string; name: string }[])
-        .filter((entry) => entry.format)
-        .map((entry) => ({ code: entry.format, label: entry.name }));
-  const viewConfig = {
-    codec,
-    capabilities,
-    labels,
-    options: editorConfig.options,
-    catalogCodes: catalog.map((entry) => entry.code),
-    combinedPoints: editorConfig.combinedPoints
-  };
-  const editContext = {
-    codec,
-    capabilities,
-    tiebreakToOptions: editorConfig.options.tiebreakTo,
-    combinedPoints: editorConfig.combinedPoints
-  };
+  const { labels, capabilities, catalog, viewConfig, editContext } = resolvePickerConfig(config);
 
   if (existingMatchUpFormat && !codec.parse(existingMatchUpFormat)) {
     console.warn('Invalid matchUpFormat:', existingMatchUpFormat);
@@ -322,31 +104,14 @@ export function getMatchUpFormatModal({
     );
   };
 
-  const segmentOf = (index?: number): SegmentKey => (index ? 'finalSet' : 'set');
-  const segmentView = (segment: SegmentKey): SegmentView => (segment === 'set' ? view.set : view.finalSet);
-
-  function editForControl(id: SetControl, segment: SegmentKey, value: any): Edit {
-    if (id === 'descriptor') return { type: 'setCountMode', mode: value };
-    if (id === 'bestOf') return { type: 'setCount', count: value };
-    if (id === 'what') return { type: 'setSetType', segment, setType: value };
-    if (id === 'winBy') return { type: 'setSegmentValue', segment, field: segmentView(segment).winBy.field, value };
-    return { type: 'setSegmentValue', segment, field: SEGMENT_FIELDS[id], value };
-  }
-
-  function controlView(id: SetControl, segment: SegmentKey): ControlView {
-    if (id === 'descriptor') return view.descriptor;
-    if (id === 'bestOf') return view.count;
-    return segmentView(segment)[id];
-  }
-
   function setControlButton(id: SetControl, index?: number): HTMLButtonElement {
     const segment = segmentOf(index);
     const button = newButton(index ? `${id}-${index}` : id);
     button.onclick = (e) =>
       openChoices(
         e,
-        () => controlView(id, segment),
-        (value) => editForControl(id, segment, value)
+        () => controlView(view, id, segment),
+        (value) => editForControl(view, id, segment, value)
       );
     elements[button.id] = button;
     return button;
@@ -525,7 +290,7 @@ export function getMatchUpFormatModal({
     for (const id of SET_CONTROLS) {
       if (index && NOT_IN_FINAL_SET.has(id)) continue;
       const element = elements[index ? `${id}-${index}` : id];
-      showControl(element, controlView(id, segmentOf(index)), view.readOnly);
+      showControl(element, controlView(view, id, segmentOf(index)), view.readOnly);
     }
   }
 
