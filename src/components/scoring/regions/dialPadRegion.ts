@@ -8,13 +8,14 @@
  *
  * S2 of `Mentat/planning/SCORE_ENTRY_STATE_ENGINE.md`. This region no longer holds a score of its own:
  * no `entries` array, no `tiebreakLows` map. It holds ONE `ScoreEntryModel`, replaces it through the
- * model's transitions, and answers every question the card asks through the model's selectors. What
- * is left here is exactly two jobs — decide WHERE a tap lands, and draw the keypad and readouts.
+ * model's transitions, and answers every question the card asks through the model's selectors. WHERE a
+ * tap lands — and when the keypad holds, and what Backspace undoes — is `logic/dialPadEntry.ts`, pure
+ * and tested in node; what is left here is Tiebreak mode and drawing the keypad and readouts.
  *
  * It was chosen first because it read the DOM for a score value in zero places, so its private array
  * was already its only truth; that made it the cheapest honest proof that the model can drive a real
- * region. Every behavioural test in `freeScoreAndDialPadRegions.test.ts` describes this region and
- * none of its assertions changed.
+ * region. Its rules are tested in `freeScoreAndDialPadRegions.test.ts` and
+ * `dialPadHoldsOnUnfinishedSet.test.ts` (node), its keys and keystrokes in `DialPadEntryTests.stories.ts`.
  *
  * ── What stays here, deliberately ──
  *
@@ -23,9 +24,9 @@
  * be a store, not an engine.
  *
  * The keypad's navigation — "extend the number just typed if it can still be a score, else start the
- * next empty cell" — is also here, because it is about where a tap goes. But it decides nothing about
- * tennis: it asks the model, and a refused `typeDigit` (the same model back) is what tells it to move
- * on. The ceiling behind that refusal is the factory's.
+ * next empty cell" — is `dialPadDigit`. It decides nothing about tennis: it asks the model, and a
+ * refused `typeDigit` (the same model back) is what tells it to move on. The ceiling behind that
+ * refusal is the factory's.
  *
  * ── The entry order ──
  *
@@ -43,28 +44,19 @@
  * model; they differ only in which selector they ask.
  */
 
-import { clearCell, gamesLoser, isEmptyEntry, readCell, typeDigit } from '../logic/scoreEntryModel';
-import { ENTRY_SIDE, digitFromCode, hasCommandModifier, otherSide } from '../keyboard';
+import { dialPadBackspace, dialPadDigit, dialPadReadout, tiebreakKeyOffered } from '../logic/dialPadEntry';
 import { createScoreReadouts, READOUT_COLUMN_WIDTH } from './scoreReadout';
 import { createScoreEntryStore } from '../logic/scoreEntryStore';
-import { tiebreakOnlyTarget } from '../logic/tiebreakEntry';
+import { digitFromCode, hasCommandModifier } from '../keyboard';
 import { enteredSets } from '../logic/scoreEntrySelectors';
 import { scoreEntryText } from '../logic/scoreEntryText';
-import {
-  getSetFormatForIndex,
-  isSetComplete,
-  isSetTiebreakOnly,
-  matchUpConfigFor,
-  shouldShowTiebreak
-} from '../logic/dynamicSetsLogic';
 
-import type { CellRef, ScoreEntryModel, SetEntry } from '../logic/scoreEntryModel';
+import type { ScoreEntryModel } from '../logic/scoreEntryModel';
 import type { ScoreEntryStore } from '../logic/scoreEntryStore';
-import type { SideNumber } from '../logic/scoreEntryState';
-
-const ARIA_PRESSED = 'aria-pressed';
 import type { ScoreRegion } from '../scoreEntryCard';
 import type { SetScore } from '../types';
+
+const ARIA_PRESSED = 'aria-pressed';
 
 export type DialPadRegionParams = {
   /** The model the card holds. Omit it and the region makes its own from the params below. */
@@ -88,9 +80,6 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
   const store =
     params.store ??
     createScoreEntryStore({ matchUpFormat: params.matchUpFormat, approach: 'dialPad', sets: params.sets });
-  const config = matchUpConfigFor(store.get().matchUpFormat);
-  // read live: under unlimited overtime the sets grow one period at a time (`withOvertimeRoom`)
-  const setCount = () => store.get().sets.length;
   /** Whether the next digit is entered as a tiebreak rather than as games. Presentation: see the header. */
   let tiebreakMode = false;
   /** The Tiebreak key, so `changed` can offer or withdraw it as the games change. */
@@ -102,7 +91,7 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
   return {
     store,
     columns: () => [{ width: READOUT_COLUMN_WIDTH }],
-    rowCells: (sideNumber) => [readouts.cell(sideNumber, readoutSets())],
+    rowCells: (sideNumber) => [readouts.cell(sideNumber, dialPadReadout(model()))],
     block: () => keypad(),
     getSets: () => enteredSets(model()),
     // The card has already emptied the model; this resets what is the keypad's own.
@@ -120,297 +109,24 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     return store.get();
   }
 
-  /**
-   * What the rows SHOW: every set holding anything, a missing side read as 0.
-   *
-   * Distinct from `enteredSets`, which the band and `getSets()` use and which leaves a half-entered set
-   * out. The readout is the one place a partial set is visible, and the 0 opposite a lone digit is
-   * asserted: it tells the operator which row their tap landed on.
-   */
-  function readoutSets(): SetScore[] {
-    return model().sets.flatMap((entry, index) => {
-      if (isEmptyEntry(entry)) return [];
-      if (tiebreakOnly(index)) {
-        return [
-          {
-            setNumber: index + 1,
-            side1Score: 0,
-            side2Score: 0,
-            side1TiebreakScore: entry.side1,
-            side2TiebreakScore: entry.side2
-          }
-        ];
-      }
-      return [
-        {
-          setNumber: index + 1,
-          side1Score: entry.side1 ?? 0,
-          side2Score: entry.side2 ?? 0,
-          side1TiebreakScore: entry.tiebreak1,
-          side2TiebreakScore: entry.tiebreak2
-        }
-      ];
-    });
-  }
-
-  function games(setIndex: number, side: SideNumber): CellRef {
-    return { setIndex, side, kind: 'games' };
-  }
-
-  function tiebreak(setIndex: number, side: SideNumber): CellRef {
-    return { setIndex, side, kind: 'tiebreak' };
-  }
-
-  /** Whether this side of a set has a games value. */
-  function filled(entry: SetEntry, side: SideNumber): boolean {
-    return (side === 1 ? entry.side1 : entry.side2) !== undefined;
-  }
-
-  /** Whether this set is played ENTIRELY as a tiebreak — a match tiebreak. */
-  function tiebreakOnly(index: number): boolean {
-    return isSetTiebreakOnly(getSetFormatForIndex(index, config));
-  }
-
-  /**
-   * Where the next entry lands: the first set that is not yet full, and which side within it.
-   *
-   * ── The LOWER row first, and Shift for the upper ──
-   *
-   * A shifted keystroke prefers the opposite side. Preferring a side is not the same as insisting on
-   * it: where the preferred cell is already filled the other one takes the digit, so a shifted press
-   * into a set whose upper row is done still lands somewhere sensible rather than silently doing
-   * nothing.
-   *
-   * Returns `undefined` when every set has both sides, which is when the keypad goes quiet rather than
-   * silently overwriting the first set — an operator who has finished entering has no way to know a tap
-   * went somewhere they cannot see.
-   */
-  function nextSlot(shifted = false): CellRef | undefined {
-    const named: SideNumber = shifted ? otherSide(ENTRY_SIDE) : ENTRY_SIDE;
-
-    for (const [index, entry] of model().sets.entries()) {
-      if (!filled(entry, named)) return games(index, named);
-      // Only an UNSHIFTED press alternates into the other side of the same set. A shifted press NAMES
-      // the upper row, so when that row is taken it moves on to the next set rather than landing on the
-      // row it explicitly did not name — otherwise `Shift` would sometimes mean "upper" and sometimes
-      // mean "wherever there is space", which is not a convention anyone can rely on.
-      if (!shifted && !filled(entry, otherSide(named))) return games(index, otherSide(named));
-      // ── A finished set is the condition for starting the next one (CA, 2026-10-08) ──
-      //
-      // `5-1 1-4 3-3` under `SET3-S:6/TB7` was accepted tap by tap and refused only at Submit, so every
-      // tap after the `5-1` was work the operator could not see was wasted. A set whose two cells hold
-      // games that do not finish it — 5-1, or 6-6 — stops the keypad here: Backspace corrects it, and only
-      // then does the next set open. A 6-7 is finished: the Tiebreak key adds its points, or the next set
-      // simply starts and the points go unrecorded (CA, 2026-11-07; the factory's ruling V11).
-      if (!holds(index)) return undefined;
-    }
-    return undefined;
-  }
-
-  /** Whether a set with both cells filled is finished, by the factory's rule, tiebreak points included. */
-  function holds(index: number): boolean {
-    const entry = model().sets[index];
-    if (!filled(entry, 1) || !filled(entry, 2)) return false;
-    return isSetComplete(
-      index,
-      { side1: entry.side1 as number, side2: entry.side2 as number, tiebreak: lowTiebreak(entry) },
-      config
-    );
-  }
-
-  /** The LOSER's tiebreak points on a set, which is the single value this module's helpers carry. */
-  function lowTiebreak(entry: SetEntry): number | undefined {
-    const points = [entry.tiebreak1, entry.tiebreak2].filter((p): p is number => p !== undefined);
-    return points.length ? Math.min(...points) : undefined;
-  }
-
-  /**
-   * Whether the Tiebreak key does anything RIGHT NOW: the format has one, and the set being entered has
-   * games that carry one — 7-6, or 5-4 under `S:5/TB9@4`. At 6-6 the tiebreak is still being played and
-   * there is nothing to type yet; after 6-4 there was none. `shouldShowTiebreak` is the Dynamic Sets
-   * rule for the same question, so the two approaches offer the control in the same states.
-   */
-  function tiebreakOffered(): boolean {
-    if (!formatHasTiebreak()) return false;
-    const index = lastActiveIndex();
-    const entry = model().sets[index];
-    if (tiebreakOnly(index) || !filled(entry, 1) || !filled(entry, 2)) return false;
-    return shouldShowTiebreak(index, { side1: entry.side1 as number, side2: entry.side2 as number }, config);
-  }
-
-  /**
-   * The side most recently written to.
-   *
-   * Entry fills the lower row first (see `nextSlot`), so within the last set with content the UPPER
-   * row is the more recent one where both are present. This order is what makes a second digit extend
-   * the value just typed rather than a value entered before it.
-   */
-  function lastWritten(): CellRef | undefined {
-    for (let index = model().sets.length - 1; index >= 0; index -= 1) {
-      const entry = model().sets[index];
-      if (filled(entry, otherSide(ENTRY_SIDE))) return games(index, otherSide(ENTRY_SIDE));
-      if (filled(entry, ENTRY_SIDE)) return games(index, ENTRY_SIDE);
-    }
-    return undefined;
-  }
-
-  /** The set a tiebreak would attach to: the last one with any games in it. */
-  function lastActiveIndex(): number {
-    for (let index = model().sets.length - 1; index >= 0; index -= 1) {
-      if (!isEmptyEntry(model().sets[index])) return index;
-    }
-    return 0;
-  }
-
-  /**
-   * The tiebreak-only set a digit belongs to, if the keypad is in one.
-   *
-   * The first tiebreak-only set whose low score is still being typed — not yet started, or one digit
-   * so far. Anything earlier that is NOT tiebreak-only must be complete first, so a mixed format
-   * (`SET3-S:6/TB7-F:TB10`) keeps its ordinary sets on the ordinary path and only the deciding set
-   * comes here. The low score is the LOWER of the two cells, because the model always derives the other
-   * one ahead of it.
-   */
-  function openTiebreakOnlySet(): number | undefined {
-    for (let index = 0; index < setCount(); index += 1) {
-      const entry = model().sets[index];
-      if (!tiebreakOnly(index)) {
-        if (!filled(entry, 1) || !filled(entry, 2)) return undefined;
-        continue;
-      }
-
-      const low = lowTiebreakOnly(entry);
-      if (low === undefined || low < 10) return index;
-    }
-    return undefined;
-  }
-
-  /** The typed (lower) points of a tiebreak-only set, and the row they are on. */
-  function lowTiebreakOnly(entry: SetEntry): number | undefined {
-    const values = [entry.side1, entry.side2].filter((value): value is number => value !== undefined);
-    return values.length ? Math.min(...values) : undefined;
-  }
-
-  function lowTiebreakOnlySide(entry: SetEntry): SideNumber | undefined {
-    const low = lowTiebreakOnly(entry);
-    if (low === undefined) return undefined;
-    return entry.side2 === low ? 2 : 1;
-  }
-
   // ── Input ────────────────────────────────────────────────────────────
+  //
+  // Where a tap lands, when the keypad holds, and what Backspace undoes are `logic/dialPadEntry.ts`.
+  // This region holds only Tiebreak mode and the keys.
 
-  /** Replace the model, and refuse nothing silently: an unchanged model means the tap went nowhere. */
-  function apply(next: ScoreEntryModel): boolean {
-    if (next === model()) return false;
+  /** Replace the model; an unchanged model means the tap went nowhere, and nothing is redrawn. */
+  function apply(next: ScoreEntryModel): void {
+    if (next === model()) return;
     store.set(next);
     changed();
-    return true;
   }
 
   function pressDigit(digit: number, shifted = false): void {
-    if (tiebreakMode) {
-      pressTiebreakDigit(digit);
-      return;
-    }
-
-    // A set that IS a tiebreak takes one number, not two: the row names the loser, and the model
-    // derives the winner's points — the derivation is a transition, not something this region does.
-    const tiebreakSet = openTiebreakOnlySet();
-    if (tiebreakSet !== undefined) {
-      apply(
-        typeDigit(model(), {
-          cell: games(tiebreakSet, shifted ? otherSide(ENTRY_SIDE) : ENTRY_SIDE),
-          digit,
-          complement: true
-        })
-      );
-      return;
-    }
-
-    // Extend the side just written to, if a second digit could still be a legal score there. The model
-    // refuses — hands the same object back — when it could not, and that refusal is the cue to start
-    // the next empty slot. The ceiling behind it is the factory's, asked with the opponent's games.
-    //
-    // A SHIFTED press extends only the row it NAMES. Unshifted follows the entry order and extends
-    // whatever was written last, which is what makes `1` then `0` a ten. Shifted extending the last
-    // write regardless would let `Shift+0` land on the lower row simply because the lower row was typed
-    // more recently.
-    const written = lastWritten();
-    const last = shifted && written?.side !== otherSide(ENTRY_SIDE) ? undefined : written;
-    if (last && apply(typeDigit(model(), { cell: last, digit }))) return;
-
-    const slot = nextSlot(shifted);
-    if (!slot) return;
-    apply(typeDigit(model(), { cell: slot, digit }));
+    apply(dialPadDigit(model(), { digit, shifted, tiebreakMode }));
   }
 
-  /**
-   * A digit in tiebreak mode: the LOSER's points, with the winner's derived by the model.
-   *
-   * Attached to the last set with games in it, on the cell of the side that lost it — the only side a
-   * complement can be derived from. Where the games are level nothing has been lost yet, so the digit
-   * goes on the entry row undecorated and the factory's validation says what is wrong with that.
-   */
-  function pressTiebreakDigit(digit: number): void {
-    const index = lastActiveIndex();
-    const loser = gamesLoser(model().sets[index]);
-    apply(typeDigit(model(), { cell: tiebreak(index, loser ?? ENTRY_SIDE), digit, complement: loser !== undefined }));
-  }
-
-  /**
-   * Remove the last thing entered.
-   *
-   * Walks the sets backwards so a backspace always undoes the most recent tap, whatever it was — a
-   * tiebreak digit before the games it belongs to, and the upper row before the lower, mirroring the
-   * fill order. Without that ordering, backspace after a tiebreak would eat the set score instead and
-   * leave the tiebreak orphaned.
-   *
-   * A cell is re-typed rather than truncated: the model has no "drop a digit" transition, and it needs
-   * none — clearing the cell and typing the digits that remain is the same keystrokes in reverse, and
-   * it re-derives whatever the model derives (a tiebreak-only complement, a tiebreak pair) on the way.
-   */
   function backspace(): void {
-    for (let index = model().sets.length - 1; index >= 0; index -= 1) {
-      const entry = model().sets[index];
-      if (isEmptyEntry(entry)) continue;
-
-      if (tiebreakOnly(index)) {
-        // One typed number plus a derived one: take a digit off what was TYPED and let the model
-        // recompute the other. Deleting from the derived cell would leave a pair the operator never
-        // entered and could not correct.
-        const side = lowTiebreakOnlySide(entry) ?? ENTRY_SIDE;
-        retype(games(index, side), shorten(lowTiebreakOnly(entry)), [games(index, 1), games(index, 2)], true);
-        return;
-      }
-
-      if (entry.tiebreak1 !== undefined || entry.tiebreak2 !== undefined) {
-        const loser = gamesLoser(entry) ?? ENTRY_SIDE;
-        const points = loser === 1 ? entry.tiebreak1 : entry.tiebreak2;
-        retype(tiebreak(index, loser), shorten(points), [tiebreak(index, 1), tiebreak(index, 2)], loser !== undefined);
-        return;
-      }
-
-      // Upper row before lower, mirroring the fill order.
-      for (const side of [otherSide(ENTRY_SIDE), ENTRY_SIDE]) {
-        const value = readCell(entry, games(index, side));
-        if (value === undefined) continue;
-        retype(games(index, side), shorten(value), [games(index, side)]);
-        return;
-      }
-    }
-  }
-
-  /** A number with its last digit removed, or nothing when there is none left. */
-  function shorten(value: number | undefined): string {
-    return value === undefined ? '' : String(value).slice(0, -1);
-  }
-
-  /** Clear the given cells, then type `digits` back into `cell` one keystroke at a time. */
-  function retype(cell: CellRef, digits: string, toClear: CellRef[], complement = false): void {
-    let next = model();
-    for (const target of toClear) next = clearCell(next, target);
-    for (const digit of digits) next = typeDigit(next, { cell, digit: Number(digit), complement });
-    apply(next);
+    apply(dialPadBackspace(model()));
   }
 
   /**
@@ -422,7 +138,7 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
    * control being added later that changes the score without the rows following.
    */
   function changed(): void {
-    readouts.update(readoutSets());
+    readouts.update(dialPadReadout(model()));
     syncTiebreakKey();
     params.onChange?.();
   }
@@ -430,7 +146,7 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
   /** Offer or withdraw the Tiebreak key for the games now entered; leaving tiebreak mode when withdrawn. */
   function syncTiebreakKey(): void {
     if (!tiebreakKey) return;
-    const offered = tiebreakOffered();
+    const offered = tiebreakKeyOffered(model());
     tiebreakKey.disabled = !offered;
     if (!offered && tiebreakMode) {
       tiebreakMode = false;
@@ -494,10 +210,10 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     key.dataset.action = 'tiebreak';
     key.textContent = scoreEntryText(params.labels, 'tiebreak');
     key.setAttribute(ARIA_PRESSED, String(tiebreakMode));
-    // Offered only while the games just entered can carry a tiebreak (see `tiebreakOffered`), and never
+    // Offered only while the games just entered can carry a tiebreak (see `tiebreakKeyOffered`), and never
     // in a format without one. A disabled control the operator cannot explain is worse than one that is
     // not there — and a key that opens tiebreak mode over a 5-1 produced a score nothing could accept.
-    key.disabled = !tiebreakOffered();
+    key.disabled = !tiebreakKeyOffered(model());
     key.addEventListener('click', () => {
       tiebreakMode = !tiebreakMode;
       key.setAttribute(ARIA_PRESSED, String(tiebreakMode));
@@ -515,25 +231,5 @@ export function createDialPadRegion(params: DialPadRegionParams): DialPadRegion 
     side.append(key, back);
     wrapper.append(digits, side);
     return wrapper;
-  }
-
-  /**
-   * Whether the Tiebreak key does anything in this format.
-   *
-   * A set that is ITSELF a tiebreak has nothing to attach one to: its own cells are the points, so the
-   * key would be a second place to enter the same number — which is the reason Dynamic Sets renders no
-   * separate tiebreak column for these sets either. So a format whose every set is tiebreak-only
-   * (`SET1-S:TB10`, `SET3-S:TB10`) disables the key rather than offering a control that can only
-   * produce a contradiction. A MIXED format keeps it, because sets 1 and 2 of `SET3-S:6/TB7-F:TB10`
-   * genuinely need it.
-   */
-  function formatHasTiebreak(): boolean {
-    let anyAttachable = false;
-    for (let index = 0; index < setCount(); index += 1) {
-      if (tiebreakOnly(index)) continue;
-      const setFormat = getSetFormatForIndex(index, config);
-      if (setFormat?.tiebreakFormat || tiebreakOnlyTarget(setFormat)) anyAttachable = true;
-    }
-    return anyAttachable;
   }
 }

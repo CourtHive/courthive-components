@@ -51,10 +51,17 @@ import { tiebreakOutstanding, enteredSets, cellValue, isSettled, columns, error 
 import { getSetFormatForIndex, matchUpConfigFor, isSetTiebreakOnly, isSetTimed } from '../logic/dynamicSetsLogic';
 import { ENTRY_SIDE, digitFromCode, hasCommandModifier, otherSide } from '../keyboard';
 import { overtimePhaseOf } from '../../../tools/overtimeEntry/overtimeEntry';
-import { gamesLoser, clearCell, typeDigit } from '../logic/scoreEntryModel';
+import { gamesLoser, typeDigit } from '../logic/scoreEntryModel';
 import { createScoreEntryStore } from '../logic/scoreEntryStore';
 import { scoreEntryText } from '../logic/scoreEntryText';
 import { ordinalSetLabel } from './setColumns';
+import {
+  offersComplement as offersComplementFor,
+  raisedTiebreakPoints,
+  complementFired,
+  replayDigits,
+  cleanDigits
+} from '../logic/dynamicSetsEntry';
 
 import type { CellRef, ScoreEntryModel } from '../logic/scoreEntryModel';
 import type { ScoreColumn, ScoreRegion } from '../scoreEntryCard';
@@ -344,9 +351,8 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
   /** The result as the representation reads it: `6` with a raised `3` on the side that lost the tiebreak. */
   function writeCompleted(done: HTMLButtonElement, sideNumber: SideNumber, setIndex: number): void {
     const gamesText = textOf(games(setIndex, sideNumber));
-    const mine = valueOf(tiebreak(setIndex, sideNumber));
-    const theirs = valueOf(tiebreak(setIndex, otherSide(sideNumber)));
-    const raised = mine !== undefined && (theirs === undefined || mine < theirs);
+    const mine = raisedTiebreakPoints(model(), setIndex, sideNumber);
+    const raised = mine !== undefined;
 
     done.replaceChildren(gamesText);
     if (raised) {
@@ -426,12 +432,10 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
     const spoken = spokenMarks.get(cellKey);
     if (!mark) return;
 
-    const mine = valueOf(tiebreak(setIndex, sideNumber));
-    const theirs = valueOf(tiebreak(setIndex, otherSide(sideNumber)));
-
     // Only the lower of the two shows. When only one was entered it IS the loser's, because that is what
     // the operator was asked for.
-    const show = mine !== undefined && (theirs === undefined || mine < theirs);
+    const mine = raisedTiebreakPoints(model(), setIndex, sideNumber);
+    const show = mine !== undefined;
     mark.textContent = show ? String(mine) : '';
     // The words, for anyone who cannot see the raised digit. Without this a screen reader announces "6"
     // then "3" — two numbers with no stated relationship.
@@ -484,7 +488,7 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
    * which is the keystroke itself. The model is told what was typed; it is never asked what a field holds.
    */
   function digitsOnly(input: HTMLInputElement): string {
-    const cleaned = input.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+    const cleaned = cleanDigits(input.value);
     // Written back immediately: a rejected character left sitting in the field reads as accepted.
     if (cleaned !== input.value) input.value = cleaned;
     return cleaned;
@@ -500,31 +504,19 @@ export function createDynamicSetsRegion(params: DynamicSetsRegionParams): Dynami
    * empty set, where the model's own rule says it applies.
    */
   function replayed(cell: CellRef, digits: string): ScoreEntryModel {
-    let next = clearCell(model(), cell);
-    for (const character of digits) {
-      const after = typeDigit(next, { cell, digit: Number(character), complement: offersComplement(cell) });
-      if (after === next) break;
-      next = after;
-    }
+    const next = replayDigits(model(), cell, digits, offersComplement(cell));
     noteComplement(cell, next);
     return next;
   }
 
   /** Whether the model may infer the other side from this cell right now. */
   function offersComplement(cell: CellRef): boolean {
-    if (!smartComplements) return false;
-    return (
-      cell.kind === 'tiebreak' ||
-      isSetTiebreakOnly(getSetFormatForIndex(cell.setIndex, config)) ||
-      !complementsUsed.has(cell.setIndex)
-    );
+    return offersComplementFor(model(), cell, { smart: smartComplements, used: complementsUsed });
   }
 
   /** Record that a games complement fired for this set, judged by the other cell having moved. */
   function noteComplement(cell: CellRef, next: ScoreEntryModel): boolean {
-    if (cell.kind !== 'games') return false;
-    const other = otherSide(cell.side);
-    const moved = cellValue(next, cell.setIndex, other, 'games') !== valueOf(games(cell.setIndex, other));
+    const moved = complementFired(model(), next, cell);
     if (moved) complementsUsed.add(cell.setIndex);
     return moved;
   }
