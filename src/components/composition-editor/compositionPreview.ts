@@ -3,14 +3,14 @@
  * Renders mock matchUps using the current composition settings.
  */
 import { applyCompositionColors, clearCompositionColors } from '../../styles/applyCompositionColors';
+import { cePreview, cePreviewHeader, cePreviewBody, cePreviewMatchup } from './styles';
+import type { CompositionEditorState, EditorPanel } from './compositionEditorTypes';
 import { renderRoundHeader } from '../renderStructure/renderRoundHeader';
 import { renderStructure } from '../renderStructure/renderStructure';
 import { renderMatchUp } from '../renderStructure/renderMatchUp';
 import { generateMatchUps } from '../../data/generateMatchUps';
-import { cePreview, cePreviewHeader, cePreviewBody, cePreviewMatchup } from './styles';
-import type { CompositionEditorState, EditorPanel } from './compositionEditorTypes';
-import type { Composition } from '../../types';
 import { KNOWN_SCALES } from './scaleConstants';
+import type { Composition } from '../../types';
 
 const PREVIEW_HANDLERS = { matchUpShare: () => undefined };
 
@@ -233,15 +233,13 @@ export function buildCompositionPreview(): EditorPanel {
       colors: state.colors ? { ...state.colors } : undefined
     };
 
-    // Sample round header above the matchUp cards so the round-header
-    // color controls (text / background / underline) have something to
-    // paint in the preview, regardless of whether `roundHeader` is on in
-    // this composition's configuration.
-    const sampleHeader = renderRoundHeader({
-      roundNumber: 1,
-      roundProfile: { 1: { roundName: 'Round 1' } }
-    });
-    body.appendChild(sampleHeader);
+    if (state.configuration.roundHeader) {
+      const sampleHeader = renderRoundHeader({
+        roundNumber: 1,
+        roundProfile: { 1: { roundName: 'Round 1' } }
+      });
+      body.appendChild(sampleHeader);
+    }
 
     const matchUps = getMockMatchUps();
     for (const matchUp of matchUps) {

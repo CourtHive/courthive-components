@@ -1,6 +1,8 @@
-import { InlineScoringManager } from '../inline-scoring/inlineScoringManager';
-import type { MatchUp } from '../../types';
-import type { InteractiveScoringShell, InteractiveScoringShellConfig, StateChangedDetail } from './types';
+import { createInteractiveScoringSession } from './interactiveScoringSession';
+
+// constants and types
+import type { InteractiveScoringShell, InteractiveScoringShellConfig } from './types';
+import type { InteractiveScoringSession } from './interactiveScoringSession';
 
 const SCORE_CELL_CLASS = 'chc-iss-score-cell';
 
@@ -35,31 +37,8 @@ const SCORE_CELL_CLASS = 'chc-iss-score-cell';
  * `--sp-*` / `--chc-*` theme variables.
  */
 export function buildInteractiveScoringShell(config: InteractiveScoringShellConfig): InteractiveScoringShell {
-  if (!config?.matchUpId) {
-    throw new Error('buildInteractiveScoringShell: matchUpId is required');
-  }
-  if (!config?.matchUpFormat) {
-    throw new Error('buildInteractiveScoringShell: matchUpFormat is required');
-  }
-
-  // Base matchUp — starts from the resume state if provided, else an empty shell
-  const baseMatchUp: MatchUp = config.initialMatchUp ?? buildEmptyBaseMatchUp(config);
-
-  const listeners = new Set<(event: CustomEvent<StateChangedDetail>) => void>();
-
-  const manager = new InlineScoringManager({
-    onScoreChange: ({ matchUp }) => {
-      dispatchStateChanged(matchUp, false);
-    },
-    onMatchComplete: ({ winningSide }) => {
-      // Re-emit with the isComplete flag so persistence can stop listening
-      const currentMatchUp = manager.getMatchUp(config.matchUpId, baseMatchUp);
-      dispatchStateChanged(currentMatchUp, true, winningSide);
-    }
-  });
-
-  // Initialize the engine with the resume state (or empty)
-  manager.getOrCreate(config.matchUpId, config.matchUpFormat, baseMatchUp);
+  // Validates the config and owns the engine and listeners; this function owns only the DOM.
+  const session = createInteractiveScoringSession(config, { beforeNotify: () => render() });
 
   // Build the root element and render the initial DOM
   const element = document.createElement('div');
@@ -69,75 +48,43 @@ export function buildInteractiveScoringShell(config: InteractiveScoringShellConf
 
   render();
 
-  function dispatchStateChanged(matchUp: MatchUp, isComplete: boolean, winningSide?: number): void {
-    const detail: StateChangedDetail = {
-      matchUpId: config.matchUpId,
-      matchUp,
-      isComplete,
-      winningSide: winningSide ?? matchUp.winningSide
-    };
-    const event = new CustomEvent<StateChangedDetail>('stateChanged', { detail });
-    listeners.forEach((listener) => {
-      try {
-        listener(event);
-      } catch (err) {
-        // A consumer's listener throwing shouldn't break the shell
-        console.warn('[interactive-scoring] listener threw', err);
-      }
-    });
-  }
-
   function onPoint(winner: 0 | 1): void {
-    if (manager.isComplete(config.matchUpId)) return;
-    manager.addPoint(config.matchUpId, winner, baseMatchUp);
-    render();
+    if (session.isComplete()) return;
+    // The session re-renders through `beforeNotify`, before its one `stateChanged`.
+    session.point(winner);
   }
 
   function onUndo(): void {
-    if (!manager.canUndo(config.matchUpId)) return;
-    manager.undo(config.matchUpId, baseMatchUp);
-    render();
-    dispatchStateChanged(manager.getMatchUp(config.matchUpId, baseMatchUp), manager.isComplete(config.matchUpId));
+    session.undo();
   }
 
   async function onReset(): Promise<void> {
-    if (config.confirmReset) {
-      const confirmed = await config.confirmReset();
-      if (!confirmed) return;
-    }
-    manager.reset(config.matchUpId, baseMatchUp);
-    render();
-    dispatchStateChanged(manager.getMatchUp(config.matchUpId, baseMatchUp), false);
+    await session.confirmAndReset();
   }
 
   function render(): void {
     element.innerHTML = '';
     element.append(
       renderHeader(config),
-      renderScoreDisplay(manager, config, baseMatchUp),
-      renderPointButtons(manager, config, onPoint),
-      renderControlBar(manager, config, onUndo, onReset)
+      renderScoreDisplay(session, config),
+      renderPointButtons(session, config, onPoint),
+      renderControlBar(session, onUndo, onReset)
     );
   }
 
   return {
     element,
-    getState: () => manager.getMatchUp(config.matchUpId, baseMatchUp),
-    reset: () => {
-      manager.reset(config.matchUpId, baseMatchUp);
-      render();
-      dispatchStateChanged(manager.getMatchUp(config.matchUpId, baseMatchUp), false);
-    },
+    getState: session.getState,
+    reset: session.reset,
     destroy: () => {
-      listeners.clear();
-      manager.remove(config.matchUpId);
+      session.destroy();
       element.innerHTML = '';
     },
     addEventListener: (type, listener) => {
-      if (type === 'stateChanged') listeners.add(listener);
+      if (type === 'stateChanged') session.addListener(listener);
     },
     removeEventListener: (type, listener) => {
-      if (type === 'stateChanged') listeners.delete(listener);
+      if (type === 'stateChanged') session.removeListener(listener);
     }
   };
 }
@@ -145,20 +92,6 @@ export function buildInteractiveScoringShell(config: InteractiveScoringShellConf
 // ─────────────────────────────────────────────────────────────────
 // Private helpers — DOM rendering
 // ─────────────────────────────────────────────────────────────────
-
-function buildEmptyBaseMatchUp(config: InteractiveScoringShellConfig): MatchUp {
-  return {
-    matchUpId: config.matchUpId,
-    tournamentId: config.tournamentId,
-    matchUpFormat: config.matchUpFormat,
-    matchUpStatus: 'TO_BE_PLAYED',
-    score: { sets: [] },
-    sides: [
-      { sideNumber: 1, participant: { participantName: config.side1Name } },
-      { sideNumber: 2, participant: { participantName: config.side2Name } }
-    ]
-  } as unknown as MatchUp;
-}
 
 function renderHeader(config: InteractiveScoringShellConfig): HTMLElement {
   const header = document.createElement('div');
@@ -180,15 +113,11 @@ function renderHeader(config: InteractiveScoringShellConfig): HTMLElement {
   return header;
 }
 
-function renderScoreDisplay(
-  manager: InlineScoringManager,
-  config: InteractiveScoringShellConfig,
-  baseMatchUp: MatchUp
-): HTMLElement {
+function renderScoreDisplay(session: InteractiveScoringSession, config: InteractiveScoringShellConfig): HTMLElement {
   const container = document.createElement('div');
   container.className = 'chc-iss-score-display';
 
-  const matchUp = manager.getMatchUp(config.matchUpId, baseMatchUp);
+  const matchUp = session.getState();
   const sets = matchUp.score?.sets ?? [];
 
   // Render one row per side, each with a cell per set
@@ -249,7 +178,7 @@ function renderScoreDisplay(
   }
 
   // Match complete banner
-  if (manager.isComplete(config.matchUpId)) {
+  if (session.isComplete()) {
     const complete = document.createElement('div');
     complete.className = 'chc-iss-match-complete';
     const winner = matchUp.winningSide === 1 ? config.side1Name : config.side2Name;
@@ -261,14 +190,14 @@ function renderScoreDisplay(
 }
 
 function renderPointButtons(
-  manager: InlineScoringManager,
+  session: InteractiveScoringSession,
   config: InteractiveScoringShellConfig,
   onPoint: (winner: 0 | 1) => void
 ): HTMLElement {
   const container = document.createElement('div');
   container.className = 'chc-iss-point-buttons';
 
-  const isComplete = manager.isComplete(config.matchUpId);
+  const isComplete = session.isComplete();
 
   const side1Button = document.createElement('button');
   side1Button.type = 'button';
@@ -303,8 +232,7 @@ function renderPointButtons(
 }
 
 function renderControlBar(
-  manager: InlineScoringManager,
-  config: InteractiveScoringShellConfig,
+  session: InteractiveScoringSession,
   onUndo: () => void,
   onReset: () => void | Promise<void>
 ): HTMLElement {
@@ -315,7 +243,7 @@ function renderControlBar(
   undoButton.type = 'button';
   undoButton.className = 'chc-iss-control-button chc-iss-control-undo';
   undoButton.textContent = 'Undo';
-  undoButton.disabled = !manager.canUndo(config.matchUpId);
+  undoButton.disabled = !session.canUndo();
   undoButton.addEventListener('click', onUndo);
 
   const resetButton = document.createElement('button');

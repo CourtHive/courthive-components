@@ -1,4 +1,5 @@
 import { readCompositionColors } from '../../../styles/applyCompositionColors';
+import { addFieldHint } from './fieldBuilders';
 import {
   ceField,
   ceFieldLabel,
@@ -20,7 +21,9 @@ interface ColorRowDef {
   hint?: string;
 }
 
-const FOOTER_HINT = 'Shown when Layout & Info › MatchUp footer is on';
+const FOOTER_HINT = 'Used by the built-in footer or a host-provided custom footer.';
+const ROUND_HINT = 'Visible when Layout & Info › Round header is on.';
+const SCHEDULE_HINT = 'Visible when Layout & Info › Schedule info is on.';
 
 const COLOR_ROWS: ColorRowDef[] = [
   { key: 'accent', label: 'Accent color', hint: 'Active scores, selection and broadcast footer' },
@@ -32,9 +35,12 @@ const COLOR_ROWS: ColorRowDef[] = [
   { key: 'matchUpBackground', label: 'MatchUp background' },
   { key: 'internalDividers', label: 'Participant dividers' },
   { key: 'score', label: '[Score] placeholder text' },
-  { key: 'roundHeader', label: 'Round header text' },
-  { key: 'roundHeaderBackground', label: 'Round header background', hint: 'Leave blank for transparent' },
-  { key: 'roundHeaderUnderline', label: 'Round header underline', hint: 'Divider below header' },
+  { key: 'roundHeader', label: 'Round header text', hint: ROUND_HINT },
+  { key: 'roundHeaderBackground', label: 'Round header background', hint: `Blank inherits the theme. ${ROUND_HINT}` },
+  { key: 'roundHeaderUnderline', label: 'Round header underline', hint: `Divider below header. ${ROUND_HINT}` },
+  { key: 'scheduleHeaderText', label: 'Schedule header text', hint: SCHEDULE_HINT },
+  { key: 'scheduleHeaderBackground', label: 'Schedule header background', hint: SCHEDULE_HINT },
+  { key: 'scheduleHeaderDivider', label: 'Schedule header divider', hint: SCHEDULE_HINT },
   { key: 'matchUpFooterText', label: 'MatchUp footer text', hint: FOOTER_HINT },
   { key: 'matchUpFooterBackground', label: 'MatchUp footer background', hint: FOOTER_HINT },
   { key: 'matchUpFooterDivider', label: 'MatchUp footer divider', hint: `Border above footer. ${FOOTER_HINT}` }
@@ -110,6 +116,8 @@ function buildColorRow(
   controlWrap.appendChild(colorInput);
   controlWrap.appendChild(textInput);
   row.appendChild(controlWrap);
+  const isRegionColor = /^(scheduleHeader|roundHeader|matchUpFooter)/.test(def.key);
+  if (def.hint && isRegionColor) addFieldHint(row, def.hint);
 
   return { element: row, setValue: applyValue };
 }

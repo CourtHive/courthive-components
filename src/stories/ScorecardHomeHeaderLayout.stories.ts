@@ -11,7 +11,8 @@
  * Run as tests: `pnpm test:stories`
  */
 import { renderScorecard } from '../components/scorecard/renderScorecard';
-import { expect, fn, userEvent } from 'storybook/test';
+import { user } from './helpers/trustedUser';
+import { expect, fn } from 'storybook/test';
 
 import type { Meta, StoryObj } from '@storybook/html-vite';
 
@@ -107,7 +108,7 @@ export const EditMovesNoName: StoryObj = {
 
     const gear = host.querySelector<HTMLButtonElement>(GEAR)!;
     gear.focus();
-    await userEvent.keyboard('{Enter}');
+    await user.keyboard('{Enter}');
     const after = [...host.querySelectorAll(NAME)].map(rect);
     for (const [index, box] of after.entries()) {
       await expect(Math.abs(box.left - before[index].left)).toBeLessThan(1);
@@ -115,10 +116,10 @@ export const EditMovesNoName: StoryObj = {
     }
 
     // the label follows the choice, and Enter on the check saves it
-    await userEvent.click(host.querySelectorAll<HTMLButtonElement>('[data-action="choose-home"]')[0]);
+    await user.click(host.querySelectorAll<HTMLButtonElement>('[data-action="choose-home"]')[0]);
     await expect(host.querySelectorAll(SIDE)[0].querySelector(TAG)).not.toBeNull();
     host.querySelector<HTMLButtonElement>('[data-action="save-home"]')!.focus();
-    await userEvent.keyboard('{Enter}');
+    await user.keyboard('{Enter}');
     await expect(onSetHome).toHaveBeenCalledWith('north');
   }
 };

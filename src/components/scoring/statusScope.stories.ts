@@ -1,4 +1,5 @@
 import { openScoreEntryDialog } from './scoreEntryDialog';
+import { user } from '../../stories/helpers/trustedUser';
 import { cModal } from '../modal/cmodal';
 import { expect } from 'storybook/test';
 
@@ -29,17 +30,15 @@ const find = <T extends HTMLElement>(selector: string) => document.querySelector
 export const RestrictedStatus = {
   render: () => render(['DEAD_RUBBER', 'CHALLENGED']),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
-    canvasElement.querySelector<HTMLButtonElement>('button')!.click();
+    await user.click(canvasElement.querySelector<HTMLButtonElement>('button')!);
     try {
-      find<HTMLButtonElement>('button[data-action="other"]').click();
+      await user.click(find<HTMLButtonElement>('button[data-action="other"]'));
       await expect(document.querySelector(DEAD_OPTION)).toBeNull();
       const field = find<HTMLInputElement>('.chc-sec-score-region input');
-      field.value = 'dead rubber';
-      field.dispatchEvent(new Event('input', { bubbles: true }));
+      await user.fill(field, 'dead rubber');
       await expect(find<HTMLButtonElement>(SUBMIT).disabled).toBe(true);
       await expect(find<HTMLElement>('.chc-sec-field-note').textContent).toContain('unavailable');
-      field.value = '6-4 6-3';
-      field.dispatchEvent(new Event('input', { bubbles: true }));
+      await user.fill(field, '6-4 6-3');
       await expect(find<HTMLButtonElement>(SUBMIT).disabled).toBe(false);
     } finally {
       cModal.close();
@@ -50,12 +49,12 @@ export const RestrictedStatus = {
 export const UnrestrictedStatus = {
   render: () => render([]),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
-    canvasElement.querySelector<HTMLButtonElement>('button')!.click();
+    await user.click(canvasElement.querySelector<HTMLButtonElement>('button')!);
     try {
-      find<HTMLButtonElement>('button[data-action="other"]').click();
+      await user.click(find<HTMLButtonElement>('button[data-action="other"]'));
       const dead = find<HTMLButtonElement>(DEAD_OPTION);
       await expect(dead.disabled).toBe(false);
-      dead.click();
+      await user.click(dead);
       await expect(find<HTMLButtonElement>(SUBMIT).disabled).toBe(false);
     } finally {
       cModal.close();

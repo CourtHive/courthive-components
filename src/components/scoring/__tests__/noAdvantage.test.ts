@@ -1,6 +1,4 @@
 /**
- * @vitest-environment happy-dom
- *
  * No-advantage formats, which this module read under the wrong name and therefore never applied.
  *
  * ── What was wrong ──
@@ -20,6 +18,9 @@
  * keeps agreeing if the engine's rule ever changes. The literal is stated in the comment so a reader
  * can see what is meant without running anything.
  */
+import { matchUpFormatCode, scoreGovernor } from 'tods-competition-factory';
+import { completeTiebreakOnly } from '../logic/tiebreakEntry';
+import { describe, it, expect } from 'vitest';
 import {
   shouldApplySmartComplement,
   getSetFormatForIndex,
@@ -27,23 +28,12 @@ import {
   matchUpConfigFor,
   buildSetScore
 } from '../logic/dynamicSetsLogic';
-import { matchUpFormatCode, scoreGovernor } from 'tods-competition-factory';
-import { createDynamicSetsRegion } from '../regions/dynamicSetsRegion';
-import { completeTiebreakOnly } from '../logic/tiebreakEntry';
-import { describe, it, expect, beforeEach } from 'vitest';
-import { renderScoreEntryCard } from '../scoreEntryCard';
-
-const SIDES: any = [{ participantName: 'Rosalind Lem' }, { participantName: 'Derrick Ellul' }];
 
 /** The formats under test, named because each appears in several cases. */
 const MATCH_TIEBREAK_NOAD = 'SET1-S:TB10NOAD';
 const SET_TIEBREAK_NOAD = 'SET3-S:6/TB7NOAD';
 const SET_TIEBREAK = 'SET3-S:6/TB7';
 const SET_NOAD = 'SET3-S:6NOAD';
-
-beforeEach(() => {
-  document.body.innerHTML = '';
-});
 
 describe('the parsed format carries `NoAD`, and this module now reads it', () => {
   it.each([
@@ -117,52 +107,8 @@ describe('a no-advantage TIEBREAK', () => {
     expect(set.side1TiebreakScore).toBe(8);
   });
 
-  it.each([
-    [SET_TIEBREAK_NOAD, '7', 'no-ad: the winner needs one more point'],
-    [SET_TIEBREAK, '8', 'advantage: the winner needs two']
-  ])('%s reopens the tiebreak column showing %s', (matchUpFormat, expected) => {
-    // The region never passed the flag to `getTiebreakComplement` at all, so this column wrote 8 for a
-    // 6 whatever the format said.
-    //
-    // ── Why this reopens the column instead of reading it straight after typing ──
-    //
-    // Completing the pair FOLDS the column away, so the winner's cell is gone from the document the
-    // moment it is written — a first version of this asserted on it and failed for that reason. And
-    // `getSets()` cannot see it either: `tiebreakOf` takes the MINIMUM of the two cells and
-    // `buildSetScore` re-derives the winner's points from it, so the complement's high value never
-    // reaches the outcome at all. What it does reach is the operator, when they click back into the set
-    // to check what was recorded — which is the state this drives.
-    const region: any = createDynamicSetsRegion({
-      matchUpFormat,
-      sets: [{ setNumber: 1, side1Score: 7, side2Score: 6 }],
-      onChange: () => card.refresh(),
-      onStructureChange: () => card.rerender()
-    });
-    const card = renderScoreEntryCard({ sides: SIDES, matchUpFormat, region });
-    document.body.append(card.element);
-
-    // Side 2 lost the set, so its cell is the one the complement fires from.
-    const field = card.element.querySelector<HTMLInputElement>('input[data-tiebreak-side="2"][data-tiebreak-set="1"]')!;
-    field.value = '6';
-    field.dispatchEvent(new Event('input', { bubbles: true }));
-
-    card.element
-      .querySelector('input[data-tiebreak-side="2"]')
-      ?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-
-    // Confirmed entry folds the tiebreak column.
-    expect(card.element.querySelector('input[data-tiebreak-set="1"]')).toBeNull();
-
-    // Click back into the set: entering it reopens its tiebreak column.
-    card.element
-      .querySelector<HTMLInputElement>('input[data-side="1"][data-set="1"]')!
-      .dispatchEvent(new FocusEvent('focus', { bubbles: true }));
-
-    const winnerCell = card.element.querySelector<HTMLInputElement>(
-      'input[data-tiebreak-side="1"][data-tiebreak-set="1"]'
-    );
-    expect(winnerCell?.value).toBe(expected);
-  });
+  // What the operator SEES when they reopen the folded tiebreak column — 7 under no-ad, 8 under advantage —
+  // is a rendered fact, asserted in `src/stories/ScoreEntryCardModelTests.stories.ts` (NoAdTiebreakReopens).
 });
 
 describe('the SHIPPING dialog is fixed too, not only the new card', () => {

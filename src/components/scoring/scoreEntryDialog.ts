@@ -26,18 +26,18 @@
  * answer: the alternative is replacing what the operator is typing now with a score they moved past.
  */
 
-import { endingLabels, isDoubleExitStatus } from './logic/irregularEnding';
+import { dialogSeed, formatChangeReport, reopensResult } from './logic/scoreEntryDialogRules';
 import { getMatchUpFormatModal } from '../matchUpFormat/matchUpFormat';
 import { createDynamicSetsRegion } from './regions/dynamicSetsRegion';
-import { enteredSets, isComplete } from './logic/scoreEntrySelectors';
 import { createFreeScoreRegion } from './regions/freeScoreRegion';
 import { createScoreEntryStore } from './logic/scoreEntryStore';
 import { createDialPadRegion } from './regions/dialPadRegion';
+import { enteredSets } from './logic/scoreEntrySelectors';
 import { switchApproach } from './logic/scoreEntryModel';
-import { scoreGovernor } from 'tods-competition-factory';
-import { toEngineOutcome } from './logic/engineOutcome';
 import { scoreEntryText } from './logic/scoreEntryText';
+import { toEngineOutcome } from './logic/engineOutcome';
 import { renderScoreEntryCard } from './scoreEntryCard';
+import { endingLabels } from './logic/irregularEnding';
 import { cModal } from '../modal/cmodal';
 
 import type { ScoreEntryTextKey } from './logic/scoreEntryText';
@@ -92,7 +92,7 @@ export type ScoreEntryDialogParams = Omit<
   approach?: ScoreEntryApproach;
   /** Which approaches the switcher offers. Defaults to all three; a single entry hides the menu. */
   approaches?: ScoreEntryApproach[];
-  /** Sets already recorded, e.g. from a saved matchUp. Ignored when `matchUp` carries a score. */
+  /** Sets already recorded. Wins over `matchUp.score.sets` when both are given, as every explicit param does. */
   sets?: SetScore[];
   /**
    * A matchUp whose outcome is being REOPENED.
@@ -188,7 +188,8 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
   const labels: Record<string, string> = { ...endingLabels(), ...params.labels };
   const approachName = (key: ScoreEntryApproach) => scoreEntryText(labels, APPROACH_TEXT[key]);
   let approach: ScoreEntryApproach = params.approach ?? offered[0];
-  let matchUpFormat = params.matchUpFormat ?? params.matchUp?.matchUpFormat;
+  const seed = dialogSeed(params);
+  let matchUpFormat = seed.matchUpFormat;
   const openedFormat = matchUpFormat;
   let closed = false;
   let notified = false;
@@ -197,15 +198,10 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
   // 2026-09-28: *"we need to be able to open existing outcomes!"* — and every region opens on it, so all
   // three approaches show the same score whichever one opens first. (Free Score used to be seeded with
   // text and opened EMPTY on a scored matchUp, measured 2026-09-28; it now reads the model.)
-  const store = createScoreEntryStore({
-    matchUpFormat,
-    approach,
-    sets: params.sets ?? params.matchUp?.score?.sets,
-    matchUp: params.matchUp
-  });
+  const store = createScoreEntryStore({ ...seed, approach });
   // Decided ONCE, at open, from what was handed in: a reopened result is read before it is edited, and
   // the way back into a finished set is clicking it, not a caret the dialog placed.
-  const openedOnResult = reopensResult();
+  const openedOnResult = reopensResult(params.matchUp, store.get());
   let currentRegion = buildRegion(approach);
 
   const card = renderScoreEntryCard({
@@ -247,6 +243,10 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
       // bottom border from the dialog's edge. '0' and not 0: cModal reads the value truthily, so a
       // numeric zero silently becomes the default.
       padding: '0',
+      // The dialog places focus itself (`focusEntry`). cModal's own first-control focus, a frame after
+      // open, otherwise took it from a host that passed `autoFocus: false` and put it in the first visible
+      // set cell — set 1's UPPER cell, or the first cell left unfolded — measured in Chromium 2026-11-10.
+      autoFocus: false,
       ...params.modalConfig
     },
     // Reached when cModal closes for its own reasons — a footer button, a nested-modal teardown — so the
@@ -370,8 +370,7 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
     // The REPORT of what the change costs, in the factory's words. The change itself is the model's
     // (`changeFormat`, through `card.update`), which asks the same factory function; this call exists
     // so the host can be told WHICH sets went and why.
-    const held = enteredSets(store.get());
-    const retained = scoreGovernor.retainScoreForFormat({ sets: held, matchUpFormat: next, previousMatchUpFormat });
+    const report = formatChangeReport(enteredSets(store.get()), next, previousMatchUpFormat);
 
     matchUpFormat = next;
     // The format FIRST, because a region reads the set count off the model when it is built.
@@ -382,7 +381,7 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
 
     // Said, not discovered. The band already refuses to discard a part-score silently, and a score
     // thrown away by a format change is the same event with a different trigger.
-    if (retained.discarded.length) params.onScoreDiscarded?.({ ...retained, matchUpFormat: next });
+    if (report) params.onScoreDiscarded?.(report);
 
     params.onFormatChange?.(next);
   }
@@ -464,17 +463,6 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
     (field ?? ownSection())?.focus();
   }
 
-  /**
-   * Whether the dialog opened on a RECORDED result: a winner, a double exit, or a score that decides
-   * the match by itself. A part-score with no winner — a suspension, a match still being entered — is
-   * not one, and keeps the caret, because the operator is there to finish it.
-   */
-  function reopensResult(): boolean {
-    const recorded = params.matchUp;
-    if (!recorded) return false;
-    return !!recorded.winningSide || isDoubleExitStatus(recorded.matchUpStatus) || isComplete(store.get());
-  }
-
   function ownSection(): HTMLElement | null {
     return card.element.closest<HTMLElement>('section[id^="cmdl-"]');
   }
@@ -489,7 +477,8 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
    *
    * This replaces the earlier Escape rule, which closed only an EMPTY dialog so that a stray key could not
    * discard a typed score. CA chose Escape-as-Cancel over that guard. A mis-aimed CLICK on the backdrop is
-   * still ignored (`clickAway: false`, held by `__tests__/dismissGuard.test.ts`); a key press is deliberate.
+   * still ignored (`clickAway: false`, held by `BackdropClickDoesNotClose` in
+   * `src/stories/ScoreEntryDialogTests.stories.ts`); a key press is deliberate.
    *
    * Delete and Backspace clear only when nothing else took the key. In a score cell or the Free Score field
    * they edit text, and the Dial Pad's keypad keeps Backspace for removing its last digit (it calls

@@ -18,7 +18,8 @@
  */
 
 import type { Meta, StoryObj } from '@storybook/html-vite';
-import { userEvent, expect } from 'storybook/test';
+import { user } from './helpers/trustedUser';
+import { expect } from 'storybook/test';
 
 import { buildPressureHorizon, HORIZON_VARIANT } from '../components/pressureHorizon/pressureHorizon';
 import { buildPressureSeries } from '../components/pressureChart/buildPressureSeries';
@@ -135,7 +136,7 @@ export const KeyboardMovesARow: StoryObj = {
     await expect(firstShape).not.toEqual(secondShape);
 
     first?.focus();
-    await userEvent.keyboard('{Alt>}{ArrowDown}{/Alt}');
+    await user.keyboard('{Alt>}{ArrowDown}{/Alt}');
 
     // The two paths have exchanged slots, and the slot column still counts 1..n.
     await expect(rowOf(0)?.querySelector('svg')?.innerHTML).toEqual(secondShape);
@@ -155,7 +156,7 @@ export const BareArrowMovesFocusNotTheRow: StoryObj = {
     const firstShape = rowOf(0)?.querySelector('svg')?.innerHTML;
 
     rowOf(0)?.focus();
-    await userEvent.keyboard('{ArrowDown}');
+    await user.keyboard('{ArrowDown}');
 
     await expect(rowOf(0)?.querySelector('svg')?.innerHTML).toEqual(firstShape);
     await expect(canvasElement.querySelector(META)?.textContent).toContain('0 moves');
@@ -169,7 +170,7 @@ export const RevealAgreesWithTheScoreItPrints: StoryObj = {
   render: () => document.createElement('div'),
   play: async ({ canvasElement }) => {
     const { names } = mountGame(canvasElement);
-    await userEvent.click(await findButton(canvasElement, CHECK_BUTTON));
+    await user.click(await findButton(canvasElement, CHECK_BUTTON));
 
     const headline = canvasElement.querySelector(SCORE_HEADLINE)?.textContent ?? '';
     await expect(headline).toMatch(/^\d+%$/);
@@ -190,14 +191,14 @@ export const RevealedBoardIsFrozen: StoryObj = {
   render: () => document.createElement('div'),
   play: async ({ canvasElement }) => {
     mountGame(canvasElement);
-    await userEvent.click(await findButton(canvasElement, CHECK_BUTTON));
+    await user.click(await findButton(canvasElement, CHECK_BUTTON));
 
     const rowOf = (slot: number) => canvasElement.querySelector<HTMLElement>(`${ROW}[data-slot="${slot}"]`);
     const firstShape = rowOf(0)?.querySelector('svg')?.innerHTML;
     await expect(rowOf(0)?.draggable).toBe(false);
 
     rowOf(0)?.focus();
-    await userEvent.keyboard('{Alt>}{ArrowDown}{/Alt}');
+    await user.keyboard('{Alt>}{ArrowDown}{/Alt}');
     await expect(rowOf(0)?.querySelector('svg')?.innerHTML).toEqual(firstShape);
   }
 };
@@ -210,8 +211,8 @@ export const PlayAgainDealsAFreshBoard: StoryObj = {
       [...canvasElement.querySelectorAll(ROW)].map((row) => row.querySelector('svg')?.innerHTML);
 
     const before = orderShapes();
-    await userEvent.click(await findButton(canvasElement, CHECK_BUTTON));
-    await userEvent.click(await findButton(canvasElement, 'Play again'));
+    await user.click(await findButton(canvasElement, CHECK_BUTTON));
+    await user.click(await findButton(canvasElement, 'Play again'));
 
     await expect(canvasElement.querySelectorAll(SCORE_HEADLINE)).toHaveLength(0);
     await expect(canvasElement.querySelectorAll(REVEAL)).toHaveLength(0);

@@ -1,4 +1,4 @@
-import type { CompositionColors, Configuration } from '../../types';
+import type { CompositionColors, Configuration, ScheduleInfoOptions } from '../../types';
 import type {
   CompositionEditorConfig,
   CompositionEditorState,
@@ -6,13 +6,20 @@ import type {
   SectionId
 } from './compositionEditorTypes';
 
+/** The schedule header's detail controls are locked in read-only mode and while the header itself is off. */
+export function scheduleHeaderDisabled(state: Pick<CompositionEditorState, 'readOnly' | 'configuration'>): boolean {
+  return state.readOnly || !state.configuration.scheduleInfo;
+}
+
 export class CompositionEditorStore {
   private state: CompositionEditorState;
   private readonly listeners: Set<CompositionEditorListener> = new Set();
   private readonly config: CompositionEditorConfig;
+  private scheduleInfoChoice: true | ScheduleInfoOptions;
 
   constructor(config: CompositionEditorConfig) {
     this.config = config;
+    this.scheduleInfoChoice = config.composition?.configuration?.scheduleInfo || true;
     this.state = {
       compositionName: config.compositionName || 'Custom',
       theme: config.composition?.theme || '',
@@ -75,9 +82,25 @@ export class CompositionEditorStore {
 
   // ── Configuration field updates ──
   setConfigField<K extends keyof Configuration>(key: K, value: Configuration[K]): void {
+    if (key === 'scheduleInfo' && value) this.scheduleInfoChoice = value as true | ScheduleInfoOptions;
     const configuration = { ...this.state.configuration, [key]: value };
     this.setState({ configuration, isDirty: true });
     this.notifyChange();
+  }
+
+  /** Hidden header details are retained for this edit session, never serialized while the header is off. */
+  setScheduleInfoEnabled(enabled: boolean): void {
+    this.setConfigField('scheduleInfo', enabled ? this.scheduleInfoChoice : false);
+  }
+
+  /** Change one header detail; ignored while the header is off, so a hidden choice cannot turn it back on. */
+  setScheduleInfoOption<K extends keyof ScheduleInfoOptions>(key: K, value: ScheduleInfoOptions[K]): void {
+    if (!this.state.configuration.scheduleInfo) return;
+    this.setConfigField('scheduleInfo', { ...this.getScheduleInfoOptions(), [key]: value });
+  }
+
+  getScheduleInfoOptions(): ScheduleInfoOptions {
+    return typeof this.scheduleInfoChoice === 'object' ? this.scheduleInfoChoice : {};
   }
 
   /** Update a nested object field (e.g., gameScore, placeHolders, scaleAttributes) */
@@ -89,12 +112,14 @@ export class CompositionEditorStore {
 
   /** Replace the entire configuration (e.g., loading a preset) */
   setConfiguration(configuration: Configuration): void {
+    this.scheduleInfoChoice = configuration.scheduleInfo || true;
     this.setState({ configuration: { ...configuration }, isDirty: true });
     this.notifyChange();
   }
 
   /** Load a full composition (theme + config + name + colors) */
   loadComposition(name: string, theme: string, configuration: Configuration, colors?: CompositionColors): void {
+    this.scheduleInfoChoice = configuration.scheduleInfo || true;
     this.setState({
       compositionName: name,
       theme,
@@ -107,6 +132,7 @@ export class CompositionEditorStore {
 
   // ── Reset ──
   resetToInitial(): void {
+    this.scheduleInfoChoice = this.config.composition?.configuration?.scheduleInfo || true;
     this.setState({
       compositionName: this.config.compositionName || 'Custom',
       theme: this.config.composition?.theme || '',

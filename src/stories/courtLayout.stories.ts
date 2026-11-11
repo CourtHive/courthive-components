@@ -10,7 +10,8 @@
 
 import { buildCourtLayout } from '../components/court-layout/buildCourtLayout';
 import { CourtLayoutCourt } from '../components/court-layout/types';
-import { within, userEvent, expect } from 'storybook/test';
+import { within, expect } from 'storybook/test';
+import { user } from './helpers/trustedUser';
 
 export default {
   title: 'Scheduling/Court Layout',
@@ -153,7 +154,7 @@ export const ClickableCourts = {
   },
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     const canvas = within(canvasElement);
-    await userEvent.click(await canvas.findByText('Stadium'));
+    await user.click(await canvas.findByText('Stadium'));
     await expect(await canvas.findByText('Selected Stadium')).toBeInTheDocument();
   }
 };

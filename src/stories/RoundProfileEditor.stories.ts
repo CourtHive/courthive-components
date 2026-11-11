@@ -7,6 +7,7 @@ import {
   type RoundProfileEditorController
 } from '../components/roundProfile/roundProfileEditor';
 import type { Meta, StoryObj } from '@storybook/html-vite';
+import { user } from './helpers/trustedUser';
 import { expect, fn } from 'storybook/test';
 
 type Args = { drawSize: number; initialProfile?: number[] };
@@ -94,20 +95,20 @@ export const EditCascadeAndReset: Story = {
   args: { drawSize: 40 },
   play: async ({ canvasElement }) => {
     onChange.mockClear();
-    const change = (index: number, value: string) => {
-      const cell = canvasElement.querySelectorAll<HTMLInputElement>(CELL)[index];
-      cell.value = value;
-      cell.dispatchEvent(new Event('change'));
+    // a round is committed on change: type the value, then leave the cell
+    const change = async (index: number, value: string) => {
+      await user.fill(canvasElement.querySelectorAll<HTMLInputElement>(CELL)[index], value);
+      await user.tab();
     };
 
-    change(1, '12');
+    await change(1, '12');
     expect(cells(canvasElement)).toEqual([20, 12, 6, 3, 2, 1]);
     expect(onChange).toHaveBeenLastCalledWith([20, 12, 6, 3, 2, 1]);
 
-    change(1, '99'); // above the previous round → clamped to 20
+    await change(1, '99'); // above the previous round → clamped to 20
     expect(cells(canvasElement)).toEqual([20, 20, 10, 5, 3, 2, 1]);
 
-    (canvasElement.querySelector('.rpe__reset') as HTMLButtonElement).click();
+    await user.click(canvasElement.querySelector('.rpe__reset') as HTMLButtonElement);
     expect(cells(canvasElement)).toEqual([20, 10, 5, 3, 2, 1]);
     expect(onChange).toHaveBeenLastCalledWith([20, 10, 5, 3, 2, 1]);
 

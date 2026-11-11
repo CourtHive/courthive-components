@@ -411,15 +411,15 @@
   contain: inline-size;
   gap: 0.5rem;
   height: var(--chc-line-height-schedule-info);
-  border-bottom: 1px solid var(--chc-border-primary);
+  border-bottom: 1px solid var(--chc-color-schedule-header-divider, var(--chc-border-primary));
   justify-content: space-between;
-  background-color: var(--chc-bg-secondary);
+  background-color: var(--chc-color-schedule-header-bg, var(--chc-bg-secondary));
   box-sizing: border-box;
   padding-right: 0.2rem;
   padding-left: 0.5rem;
   align-items: center;
   cursor: pointer;
-  color: var(--chc-text-muted);
+  color: var(--chc-color-schedule-header-text, var(--chc-text-muted));
   display: flex;
   width: 100%;
 }

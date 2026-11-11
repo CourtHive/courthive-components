@@ -14,6 +14,7 @@ import { renderStructure } from '../components/renderStructure/renderStructure';
 import { generateEventData } from '../data/generateEventData';
 import { compositions } from '../compositions/compositions';
 import type { Meta, StoryObj } from '@storybook/html-vite';
+import { user } from './helpers/trustedUser';
 import { expect } from 'storybook/test';
 
 const meta: Meta = {
@@ -112,7 +113,7 @@ export const PagerScrollsAndTracks: StoryObj = {
     expect(buttons.map((b) => b.textContent)).toEqual(headerTexts);
     expect(buttons[0].getAttribute(ARIA_CURRENT)).toBe('true');
 
-    buttons[2].click();
+    await user.click(buttons[2]);
     const third = structure.querySelectorAll<HTMLElement>(COLUMNS)[2];
     expect(Math.abs(structure.scrollLeft - (third.offsetLeft - structure.offsetLeft))).toBeLessThan(2);
     expect(buttons[2].getAttribute(ARIA_CURRENT)).toBe('true');

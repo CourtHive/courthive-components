@@ -1,14 +1,23 @@
-// @vitest-environment happy-dom
-import { allCatalogGroupsCollapsed } from '../domain/matchUpCatalogProjections';
 import { SchedulePageStore } from '../engine/schedulePageStore';
-import { buildMatchUpCatalog } from '../ui/matchUpCatalog';
-import type { CatalogMatchUpItem } from '../types';
 import { describe, it, expect } from 'vitest';
+import {
+  allCatalogGroupsCollapsed,
+  catalogCardInputs,
+  catalogRenderGroups,
+  sameCatalogCardInputs
+} from '../domain/matchUpCatalogProjections';
+
+import type { CatalogMatchUpItem, SchedulePageState } from '../types';
 
 /**
  * The catalog builds its cards from a handful of state fields, and the store emits on every write.
  * Each card build runs the consumer's `renderCardExtra`, which in TMX grades the matchUp's readiness
  * and rest through the engine — so a rebuild the cards did not need is engine work per card.
+ *
+ * `buildMatchUpCatalog.update` rebuilds exactly when `sameCatalogCardInputs` says the inputs changed,
+ * and then builds `catalogRenderGroups(state)[*].cards`. Both are pure, so the rule is asserted here,
+ * in node, against the real store. That the panel keeps its card ELEMENTS across a selection and builds
+ * on a header click is asserted in Chromium by `src/stories/schedule-page/MatchUpCatalogTests.stories.ts`.
  */
 
 const item = (matchUpId: string, eventName: string, roundNumber = 1): CatalogMatchUpItem => ({
@@ -30,71 +39,54 @@ const catalog = [
   item('B2', 'Bravo')
 ];
 
-/** The group header whose label starts with `name`, e.g. `Alpha (2)`. */
-const groupHeader = (panel: { element: HTMLElement }, name: string) =>
-  Array.from(panel.element.querySelectorAll<HTMLElement>('button.sp-group-header')).find((el) =>
-    el.lastElementChild?.textContent?.startsWith(`${name} (`)
-  )!;
-
-function mount() {
-  const store = new SchedulePageStore({ matchUpCatalog: catalog, scheduleDates: [] });
-  let extras = 0;
-  const panel = buildMatchUpCatalog({
-    onSearchChange: (query) => store.setCatalogSearch(query),
-    onGroupByChange: (mode) => store.setCatalogGroupBy(mode),
-    onFilterChange: (filters) => store.setCatalogFilters(filters),
-    onShowCompletedChange: (show) => store.setShowCompleted(show),
-    onToggleGroupCollapsed: (groupKey) => store.toggleCatalogGroupCollapsed(groupKey),
-    renderCardExtra: () => {
-      extras += 1;
-      return null;
-    }
-  });
-  document.body.appendChild(panel.element);
-  store.subscribe((state) => panel.update(state));
-  panel.update(store.getState());
+/**
+ * Watches a store the way the panel does: on each emission, how many cards would be (re)built — zero
+ * when the card inputs are unchanged.
+ */
+function watch(store = new SchedulePageStore({ matchUpCatalog: catalog, scheduleDates: [] })) {
+  let builtFrom: unknown[] | null = null;
+  let built = 0;
+  const observe = (state: SchedulePageState) => {
+    const inputs = catalogCardInputs(state);
+    if (sameCatalogCardInputs(builtFrom, inputs)) return;
+    builtFrom = inputs;
+    built += catalogRenderGroups(state).flatMap((group) => group.cards).length;
+  };
+  store.subscribe(observe);
+  observe(store.getState());
   const builds = () => {
-    const count = extras;
-    extras = 0;
+    const count = built;
+    built = 0;
     return count;
   };
-  const cards = () => Array.from(panel.element.querySelectorAll<HTMLElement>('[data-match-up-id]'));
-  return { store, panel, builds, cards };
+  const cardIds = () =>
+    catalogRenderGroups(store.getState())
+      .flatMap((group) => group.cards)
+      .map((card) => card.matchUpId);
+  return { store, builds, cardIds };
 }
+
+const collapsedOf = (state: SchedulePageState) =>
+  Object.fromEntries(catalogRenderGroups(state).map((group) => [group.groupKey, group.collapsed]));
 
 describe('matchUpCatalog rebuilds', () => {
   it('builds every card once on the first render', () => {
-    const { builds, cards } = mount();
+    const { builds, cardIds } = watch();
     expect(builds()).toEqual(catalog.length);
-    expect(cards().map((card) => card.dataset.matchUpId)).toEqual(['A1', 'A2', 'A3', 'B1', 'B2']);
+    expect(cardIds()).toEqual(['A1', 'A2', 'A3', 'B1', 'B2']);
   });
 
-  it('moves the highlight on selection without rebuilding a card', () => {
-    const { store, builds, cards } = mount();
+  it('does not rebuild on selection', () => {
+    const { store, builds } = watch();
     builds();
-    const before = cards();
-
     store.selectMatchUp(catalog[3]);
-    expect(builds()).toEqual(0);
-    expect(cards()).toEqual(before);
-    expect(
-      cards()
-        .filter((card) => card.classList.contains('selected'))
-        .map((c) => c.dataset.matchUpId)
-    ).toEqual(['B1']);
-
     store.selectMatchUp(catalog[0]);
-    expect(
-      cards()
-        .filter((card) => card.classList.contains('selected'))
-        .map((c) => c.dataset.matchUpId)
-    ).toEqual(['A1']);
     store.selectMatchUp(null);
-    expect(cards().some((card) => card.classList.contains('selected'))).toBe(false);
+    expect(builds()).toEqual(0);
   });
 
   it('does not rebuild for state the cards do not read', () => {
-    const { store, builds } = mount();
+    const { store, builds } = watch();
     builds();
     store.setInspectorVisible(false);
     store.setActiveStripVisible(false);
@@ -103,7 +95,7 @@ describe('matchUpCatalog rebuilds', () => {
   });
 
   it('rebuilds when the data or the view of it changes', () => {
-    const { store, builds } = mount();
+    const { store, builds } = watch();
     builds();
 
     store.setMatchUpCatalog([...catalog]);
@@ -123,37 +115,51 @@ describe('matchUpCatalog rebuilds', () => {
   });
 
   it('builds no cards for a collapsed group, and builds them on expanding it', () => {
-    const { panel, builds, cards } = mount();
+    const { store, builds, cardIds } = watch();
     builds();
-    const header = (name: string) => groupHeader(panel, name);
 
-    header('Alpha').click();
+    store.toggleCatalogGroupCollapsed('Alpha');
     expect(builds()).toEqual(2);
-    expect(cards().map((card) => card.dataset.matchUpId)).toEqual(['B1', 'B2']);
+    expect(cardIds()).toEqual(['B1', 'B2']);
+    // The collapsed group still shows its header and count.
+    const alpha = catalogRenderGroups(store.getState()).find((group) => group.groupKey === 'Alpha')!;
+    expect([alpha.collapsed, alpha.items.length, alpha.cards.length]).toEqual([true, 3, 0]);
 
-    header('Alpha').click();
+    store.toggleCatalogGroupCollapsed('Alpha');
     expect(builds()).toEqual(catalog.length);
-    expect(cards()).toHaveLength(catalog.length);
+    expect(cardIds()).toHaveLength(catalog.length);
+  });
+});
+
+describe('sameCatalogCardInputs', () => {
+  it('forces a build when nothing has been built', () => {
+    expect(sameCatalogCardInputs(null, [])).toBe(false);
+  });
+
+  it('compares by reference, so a copied catalog array is a change', () => {
+    const state = new SchedulePageStore({ matchUpCatalog: catalog, scheduleDates: [] }).getState();
+    expect(sameCatalogCardInputs(catalogCardInputs(state), catalogCardInputs({ ...state }))).toBe(true);
+    expect(
+      sameCatalogCardInputs(catalogCardInputs(state), catalogCardInputs({ ...state, matchUpCatalog: [...catalog] }))
+    ).toBe(false);
   });
 });
 
 describe('collapsed groups are store state', () => {
-  const header = groupHeader;
-
   it('collapses every visible group, then expands them all', () => {
-    const { store, cards } = mount();
+    const { store, cardIds } = watch();
     store.setAllCatalogGroupsCollapsed(true);
     expect(store.getState().catalogCollapsedGroups?.sort()).toEqual(['Alpha', 'Bravo']);
     expect(allCatalogGroupsCollapsed(store.getState())).toBe(true);
-    expect(cards()).toHaveLength(0);
+    expect(cardIds()).toHaveLength(0);
 
     store.setAllCatalogGroupsCollapsed(false);
     expect(store.getState().catalogCollapsedGroups).toEqual([]);
-    expect(cards()).toHaveLength(catalog.length);
+    expect(cardIds()).toHaveLength(catalog.length);
   });
 
   it('collapses only what is on screen, and reads "all collapsed" against what is on screen', () => {
-    const { store } = mount();
+    const { store } = watch();
     store.setCatalogFilters({ eventName: 'Bravo' });
     store.setAllCatalogGroupsCollapsed(true);
     expect(store.getState().catalogCollapsedGroups).toEqual(['Bravo']);
@@ -164,20 +170,20 @@ describe('collapsed groups are store state', () => {
   });
 
   it('is never "all collapsed" when nothing is shown', () => {
-    const { store } = mount();
+    const { store } = watch();
     store.setCatalogSearch('no such player');
     expect(allCatalogGroupsCollapsed(store.getState())).toBe(false);
   });
 
   it('starts a new grouping fully expanded', () => {
-    const { store } = mount();
+    const { store } = watch();
     store.setAllCatalogGroupsCollapsed(true);
     store.setCatalogGroupBy('round');
     expect(store.getState().catalogCollapsedGroups).toEqual([]);
     // Re-selecting the current mode is not a change and keeps the set.
     store.setAllCatalogGroupsCollapsed(true);
     store.setCatalogGroupBy('round');
-    expect(store.getState().catalogCollapsedGroups?.length).toBeGreaterThan(0);
+    expect(store.getState().catalogCollapsedGroups).toEqual(['Round 1']);
   });
 
   it('restores collapsed groups from initialCatalogState, as a host remount does', () => {
@@ -186,14 +192,6 @@ describe('collapsed groups are store state', () => {
       scheduleDates: [],
       initialCatalogState: { catalogCollapsedGroups: ['Alpha'] }
     });
-    const panel = buildMatchUpCatalog({
-      onSearchChange: () => undefined,
-      onGroupByChange: () => undefined,
-      onFilterChange: () => undefined,
-      onShowCompletedChange: () => undefined
-    });
-    panel.update(store.getState());
-    expect(header(panel, 'Alpha').getAttribute('aria-expanded')).toBe('false');
-    expect(header(panel, 'Bravo').getAttribute('aria-expanded')).toBe('true');
+    expect(collapsedOf(store.getState())).toEqual({ Alpha: true, Bravo: false });
   });
 });

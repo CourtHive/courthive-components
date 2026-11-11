@@ -12,12 +12,15 @@ Framework-independent TypeScript UI components for tournament management and com
 
 ## Overview
 
-This library provides a comprehensive set of UI components for building tournament management applications. Components are framework-agnostic (vanilla JavaScript) and designed to work seamlessly with the [Competition Factory](https://github.com/CourtHive/tods-competition-factory) engine.
+This library provides the UI components of the CourtHive competition management platform. Components are framework-agnostic (vanilla TypeScript) and render **CODES** records — CourtHive's canonical competition data standard, a superset of the ITF's TODS — as produced by the [Competition Factory](https://github.com/CourtHive/competition-factory) engine.
 
 **Used by:**
 
-- **TMX** (Tournament Management eXperience) - Production tournament management application
-- **Competition Factory Documentation** - Interactive examples and demonstrations
+- **[TMX](https://github.com/CourtHive/TMX)** — the tournament desk client
+- **[courthive-public](https://github.com/CourtHive/courthive-public)** — the public viewer and player-facing pages
+- **[epixodic](https://github.com/CourtHive/epixodic)** — point-by-point match tracking
+- **[CourtHive.com](https://courthive.com)** — the marketing site
+- **[Competition Factory documentation](https://courthive.github.io/competition-factory/)** — interactive examples
 
 ## Installation
 
@@ -292,6 +295,8 @@ compositions.Wimbledon; // Wimbledon colors
 compositions['US Open']; // US Open colors
 ```
 
+See the [composition options reference](docs/COMPOSITION_OPTIONS.md) for serving indicators, header/footer visibility, theme inheritance and editor behavior.
+
 ### Constants
 
 #### **MATCH_FORMATS**
@@ -375,21 +380,22 @@ its own `--tmx-*` system.
 The package includes TypeScript definitions:
 
 ```typescript
-import { renderMatchUp, ScoringModalParams, ScoreOutcome } from 'courthive-components';
+import { openScoreEntryDialog } from 'courthive-components';
+import type { ScoreEntryDialogParams } from 'courthive-components';
 
-const params: ScoringModalParams = {
+const params: ScoreEntryDialogParams = {
   matchUp: myMatchUp,
-  callback: (outcome: ScoreOutcome) => {
-    if (outcome.isValid) {
-      console.log('Winner:', outcome.winningSide);
-    }
+  sides: [{ participantName: 'Ann' }, { participantName: 'Bea' }],
+  onSubmit: ({ winningSide, outcome }) => {
+    console.log('Winner:', winningSide, 'engine outcome:', outcome);
   }
 };
+openScoreEntryDialog(params);
 ```
 
 ## Integration with Competition Factory
 
-Components are designed to work with TODS (Tennis Open Data Standards) data structures from [tods-competition-factory](https://www.npmjs.com/package/tods-competition-factory):
+Components read the CODES records that [tods-competition-factory](https://www.npmjs.com/package/tods-competition-factory) produces:
 
 ```javascript
 import { tournamentEngine } from 'tods-competition-factory';
@@ -455,10 +461,11 @@ the release and starts the package/documentation workflow.
 ## Contributing
 
 Contributions are welcome! This library is actively used in production tournament management applications.
+Branch from `dev` and open pull requests against `dev`; `main` advances at release checkpoints.
 
 ### Guidelines
 
-- Maintain framework-agnostic vanilla JavaScript
+- Maintain framework-agnostic vanilla TypeScript
 - Follow existing component patterns
 - Add Storybook stories for new components
 - Include TypeScript types
@@ -466,9 +473,9 @@ Contributions are welcome! This library is actively used in production tournamen
 
 ## License
 
-MIT © Charles Allen
+MIT — see [LICENSE](LICENSE).
 
 ## Links
 
-- **Competition Factory:** <https://github.com/CourtHive/tods-competition-factory>
+- **Competition Factory:** <https://github.com/CourtHive/competition-factory>
 - **TMX:** <https://github.com/CourtHive/tmx>

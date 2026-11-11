@@ -1,6 +1,6 @@
 {
   "name": "courthive-components",
-  "packageManager": "pnpm@12.16.1",
+  "packageManager": "pnpm@12.18.0",
   "version": "7.15.0",
   "engines": {
     "node": ">=24"
@@ -26,6 +26,10 @@
     "./segmented-bar": {
       "types": "./dist/features-types/segmentedBar/index.d.ts",
       "import": "./dist/segmented-bar.mjs"
+    },
+    "./team-colors": {
+      "types": "./dist/features-types/scorecard/teamPalette.d.ts",
+      "import": "./dist/team-colors.mjs"
     },
     "./features.css": "./dist/features.css"
   },
@@ -63,7 +67,7 @@
     "deploy-storybook": "gh-pages -d storybook-static",
     "pre-commit": "lint-staged",
     "predeploy": "pnpm build-storybook",
-    "lint": "eslint src scripts/buildFeatureTypes.mjs scripts/verify/consumerBundle.mjs --cache --max-warnings 0",
+    "lint": "eslint src scripts/buildFeatureTypes.mjs scripts/generateSyntheticMatches.mjs scripts/verify/consumerBundle.mjs --cache --max-warnings 0",
     "lint:fix": "eslint src --fix --cache",
     "lint:report": "eslint src & eslint --cache src -f json > eslint-report.json",
     "format": "prettier --write src",
@@ -90,6 +94,7 @@
     "@storybook/html-vite": "^10.2.17",
     "@types/d3": "^7.4.3",
     "@types/leaflet": "^1.9.12",
+    "@types/node": "^26.6.6",
     "@types/vanillajs-datepicker": "^1.3.5",
     "@typescript-eslint/eslint-plugin": "8.72.1",
     "@typescript-eslint/parser": "8.72.1",
@@ -102,18 +107,17 @@
     "eslint-plugin-storybook": "^10.2.17",
     "gh-pages": "6.3.0",
     "globals": "^17.3.0",
-    "happy-dom": "^21.0.0",
     "husky": "9.1.7",
     "leaflet": "1.9.4",
     "lint-staged": "17.6.0",
     "playwright": "^1.57.0",
     "prettier": "^3.8.1",
-    "semver": "7.8.5",
+    "semver": "7.8.6",
     "storybook": "^10.2.17",
     "tabulator-tables": "6.7.1",
-    "tods-competition-factory": "7.34.0",
+    "tods-competition-factory": "7.36.0",
     "typescript": "^6.0.2",
-    "vite": "8.3.5",
+    "vite": "8.3.6",
     "vite-plugin-dts": "^5.0.0",
     "vitest": "^5.0.0"
   },

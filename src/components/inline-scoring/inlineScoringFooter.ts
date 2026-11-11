@@ -1,3 +1,5 @@
+import { situationFlags } from './situationFlags';
+
 import type { InlineScoringManager } from './inlineScoringManager';
 import type { MatchUp } from '../../types';
 
@@ -12,6 +14,10 @@ interface FooterParams {
 /**
  * Creates an interactive footer bar for inline scoring:
  * [Undo] [Redo] [Clear] [Submit]  |  situation flags
+ *
+ * @deprecated Not what inline scoring renders: use the footer `renderMatchUp` / `renderInlineMatchUp`
+ * provide, which shows the same situation flags under `inlineScoring.showSituation`. Kept, working, until
+ * the next major removes it.
  */
 export function createInlineScoringFooter(params: FooterParams): {
   element: HTMLElement;
@@ -95,21 +101,7 @@ export function createInlineScoringFooter(params: FooterParams): {
     redoBtn.disabled = !canRedo;
     clearBtn.disabled = !canUndo && !canRedo;
 
-    if (situationEl) {
-      const situation = manager.getSituation(matchUpId);
-      if (situation && !isComplete) {
-        const flags = [
-          situation.isTiebreak && 'TB',
-          situation.isBreakPoint && 'Break',
-          situation.isGamePoint && 'Game',
-          situation.isSetPoint && 'Set',
-          situation.isMatchPoint && 'Match'
-        ].filter(Boolean);
-        situationEl.textContent = flags.length ? flags.join(' \u2022 ') : '';
-      } else {
-        situationEl.textContent = isComplete ? 'Complete' : '';
-      }
-    }
+    if (situationEl) situationEl.textContent = situationFlags(manager.getSituation(matchUpId), isComplete);
   }
 
   update();

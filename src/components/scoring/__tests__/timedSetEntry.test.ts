@@ -1,300 +1,75 @@
 /**
- * @vitest-environment happy-dom
+ * Timed formats: which bolts the grid offers, and when nine of them make a result.
  *
- * Timed formats — where a digit is NOT the end of a bolt, and Enter is.
- *
- * CA, 2026-09-28: *"when I'm in a timed format the enter key in an entry cell should advance to the
- * next 'set/bolt', not a numeric key; as it is I can enter 33 in the top and then only 3 in the bottom
- * because the entry in the bottom is the trigger, regardless of if it's a number. this means I can't
- * easily enter 22/21 without going back and editing a previous column."*
- *
- * Two distinct causes sat behind that one report, and both are pinned here:
- *
- *   1. Completing a bolt reveals the next one, which changes the row grid, which re-renders every cell
- *      — so the input being typed into was DESTROYED after its first digit. Focus is now restored to
- *      it, with the caret at the end.
- *   2. Nothing else finishes a timed bolt. A games set is finished by its complement, so moving on when
- *      one lands is right; a timed bolt has no complement and routinely takes two digits, so the card
- *      must wait to be told. Enter is what tells it.
- *
- * ── Why these type character by character ──
- *
- * happy-dom does not insert text from a `keydown`, and a browser does. So typing is simulated the way
- * it actually happens: a `keydown` (which is where the region's own handling lives), then the value the
- * browser would have written, then `input`. Setting `.value` alone would skip the handler entirely and
- * test nothing.
+ * CA, 2026-09-28: *"if there are still bolts left <enter> should advance to the next Bolt."* What the grid
+ * offers is the model's `columns`; when the score is finished is `isComplete`. Typing two digits into a
+ * bolt, the caret surviving the re-render a reveal causes, and Enter moving on or submitting are browser
+ * behaviour and live in `DynamicSetsEntryTests.stories.ts` (Timed bolts).
  */
-import { createDynamicSetsRegion } from '../regions/dynamicSetsRegion';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { renderScoreEntryCard } from '../scoreEntryCard';
+import { createScoreEntryModel } from '../logic/scoreEntryModel';
+import { columns, isComplete } from '../logic/scoreEntrySelectors';
+import { replayDigits } from '../logic/dynamicSetsEntry';
+import { G } from '../logic/__tests__/scoreEntryModelTestHelpers';
+import { describe, it, expect } from 'vitest';
+
+import type { ScoreEntryModel } from '../logic/scoreEntryModel';
 
 /** Nine ten-minute bolts. `SET9-…` does NOT parse — measured; the nine-set form is `SET9X`. */
 const NINE_BOLTS = 'SET9X-S:T10';
-const ONE_BOLT = 'SET1-S:T10';
-const GAMES_FORMAT = 'SET3-S:6/TB7';
-const SIDES: any = [{ participantName: 'Rosalind Lem' }, { participantName: 'Derrick Ellul' }];
 
-function mount(matchUpFormat: string, over: { sets?: any[]; onSubmit?: any } = {}) {
-  document.body.innerHTML = '';
-  const region = createDynamicSetsRegion({
-    matchUpFormat,
-    sets: over.sets,
-    onChange: () => card.refresh(),
-    onStructureChange: () => card.rerender()
-  });
-  const card = renderScoreEntryCard({ sides: SIDES, matchUpFormat, region, onSubmit: over.onSubmit });
-  document.body.append(card.element);
+/** Bolts already won by side 1 — enough to "decide" the match by a games-set reading of it. */
+const wonBolts = (count: number) =>
+  Array.from({ length: count }, (_unused, index) => ({
+    setNumber: index + 1,
+    side1Score: 22,
+    side2Score: 21,
+    winningSide: 1
+  }));
 
-  /** Re-queried every time: a structural render REPLACES these elements. */
-  const cell = (side: number, set: number) =>
-    card.element.querySelector<HTMLInputElement>(`input[data-side="${side}"][data-set="${set}"]`);
-
-  /** One character, as a browser delivers it: keydown, then the resulting value, then input. */
-  const typeInto = (side: number, set: number, digits: string) => {
-    for (const digit of digits) {
-      const input = cell(side, set);
-      if (!input) throw new Error(`no cell for side ${side}, set ${set}`);
-      input.focus();
-      const handled = !input.dispatchEvent(
-        new KeyboardEvent('keydown', { code: `Digit${digit}`, key: digit, bubbles: true, cancelable: true })
-      );
-      if (handled) continue;
-      // The browser's own insertion. `cell(...)` again because the keydown may have re-rendered.
-      const live = cell(side, set)!;
-      live.value = `${live.value}${digit}`;
-      live.dispatchEvent(new Event('input', { bubbles: true }));
-    }
-  };
-
-  const enter = (side: number, set: number) =>
-    cell(side, set)!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
-
-  return { card, region, cell, typeInto, enter, element: card.element };
-}
-
-beforeEach(() => {
-  document.body.innerHTML = '';
-});
-
-describe('a timed bolt takes two digits on BOTH sides', () => {
-  it("enters 22/21 without going back to correct a previous column — CA's case", () => {
-    const h = mount(NINE_BOLTS);
-
-    // Entry begins on the lower row, so the lower value is typed first.
-    h.typeInto(2, 1, '21');
-    h.typeInto(1, 1, '22');
-
-    expect(h.cell(2, 1)!.value).toBe('21');
-    expect(h.cell(1, 1)!.value).toBe('22');
-  });
-
-  it('keeps the caret in the cell when completing the bolt reveals the next one', () => {
-    // The mechanism behind the report. The second value's FIRST digit completes the bolt, which reveals
-    // bolt 2, which rebuilds the row grid and replaces every input. Before the fix the operator was left
-    // on the document body and the second digit went nowhere.
-    const h = mount(NINE_BOLTS);
-
-    h.typeInto(2, 1, '21');
-    expect(h.cell(1, 2), 'bolt 2 is not revealed yet').toBeNull();
-
-    h.typeInto(1, 1, '2');
-
-    expect(h.cell(1, 2), 'bolt 2 revealed, so the grid did change').toBeTruthy();
-    expect(document.activeElement, 'and the operator is still in the cell they were typing in').toBe(h.cell(1, 1));
-  });
-
-  it('puts the caret at the END on that restore, so the next digit appends', () => {
-    // Focus arriving at a NEW cell selects its contents, so typing replaces. Focus RETURNING to a cell
-    // mid-number must not, or the second digit of a 22 would wipe the first.
-    const h = mount(NINE_BOLTS);
-
-    h.typeInto(2, 1, '21');
-    h.typeInto(1, 1, '2');
-
-    const live = h.cell(1, 1)!;
-    expect(live.selectionStart).toBe(live.value.length);
-    expect(live.selectionEnd).toBe(live.value.length);
-  });
-});
-
-describe('what advances a timed bolt, and what must not', () => {
-  it('a DIGIT does not move on', () => {
-    // The explicit half of CA's instruction: *"not a numeric key"*. Note what carries this: not a guard
-    // in `advanceTarget` — one was written there and removing it changed nothing, because that path is
-    // unreachable for a timed set — but the focus RESTORE in `settle`. Reverting that turns this red.
-    const h = mount(NINE_BOLTS);
-
-    h.typeInto(2, 1, '21');
-    h.typeInto(1, 1, '22');
-
-    expect(document.activeElement).toBe(h.cell(1, 1));
-    expect(document.activeElement).not.toBe(h.cell(2, 2));
-  });
-
-  it('ENTER moves to the next bolt, on its lower row', () => {
-    const h = mount(NINE_BOLTS);
-
-    h.typeInto(2, 1, '21');
-    h.typeInto(1, 1, '22');
-    h.enter(1, 1);
-
-    expect(document.activeElement).toBe(h.cell(2, 2));
-  });
-
-  it('Enter does NOT submit while there is a bolt to go to', () => {
-    // The same key cannot both move to the next bolt and end the match. The card owns Enter, so the
-    // cell has to stop it reaching there.
-    const onSubmit = vi.fn();
-    const h = mount(NINE_BOLTS, { onSubmit });
-
-    h.typeInto(2, 1, '21');
-    h.typeInto(1, 1, '22');
-    h.enter(1, 1);
-
-    expect(onSubmit).not.toHaveBeenCalled();
-  });
-
-  it('Enter submits on the LAST bolt, where there is nowhere to advance to', () => {
-    // The end of the sequence, and the control for the test above: if Enter were swallowed everywhere,
-    // that test would pass for the wrong reason and a one-bolt match could never be submitted.
-    const onSubmit = vi.fn();
-    const h = mount(ONE_BOLT, { onSubmit });
-
-    h.typeInto(2, 1, '21');
-    h.typeInto(1, 1, '22');
-    h.enter(1, 1);
-
-    expect(onSubmit).toHaveBeenCalledTimes(1);
-  });
-
-  it('Enter still submits in a GAMES format — the rule is scoped to timed sets', () => {
-    // Enter has meant Submit since the card was written and goes on meaning it. Only a timed bolt, which
-    // has no other way to say "done", takes it over.
-    const onSubmit = vi.fn();
-    const h = mount(GAMES_FORMAT, {
-      onSubmit,
-      sets: [
-        { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
-        { setNumber: 2, side1Score: 6, side2Score: 3, winningSide: 1 }
-      ]
-    });
-
-    h.enter(2, 1);
-
-    expect(onSubmit).toHaveBeenCalledTimes(1);
-  });
-
-  it('Enter does nothing while the bolt is half entered — there is nothing to advance to yet', () => {
-    const h = mount(NINE_BOLTS);
-
-    h.typeInto(2, 1, '21');
-    h.enter(2, 1);
-
-    expect(h.cell(1, 2)).toBeNull();
-    expect(document.activeElement).toBe(h.cell(2, 1));
-  });
-});
+const open = (sets?: any[]) => createScoreEntryModel({ matchUpFormat: NINE_BOLTS, approach: 'dynamicSets', sets });
+const bolts = (model: ScoreEntryModel) => columns(model).map((slot) => slot.setIndex + 1);
+/** One bolt as an operator types it — lower row first, two digits each, no complement for a timed set. */
+const typeBolt = (model: ScoreEntryModel, bolt: number, lower: string, upper: string) =>
+  replayDigits(replayDigits(model, G(bolt - 1, 2), lower, true), G(bolt - 1, 1), upper, true);
 
 describe('a nine-bolt format plays nine bolts', () => {
-  /** Bolts already won by side 1 — enough to "decide" the match by a games-set reading of it. */
-  const wonBolts = (count: number) =>
-    Array.from({ length: count }, (_unused, index) => ({
-      setNumber: index + 1,
-      side1Score: 22,
-      side2Score: 21,
-      winningSide: 1
-    }));
-
   it('keeps revealing bolts after one side has taken five of them', () => {
-    // CA, 2026-09-28: *"if there are still bolts left <enter> should advance to the next Bolt."*
-    //
-    // `shouldCreateNextSet` refuses once the match reads as decided, and measured against `SET9X-S:T10`
-    // that happens at EXACTLY five bolts won — `calculatedWinningSide` is 1 at five and `undefined`
-    // again at six. So bolts stopped being revealed at 5 and resumed at 6, which is nobody's rule. A
-    // nine-bolt format plays nine bolts.
-    const h = mount(NINE_BOLTS, { sets: wonBolts(5) });
-
-    expect(h.cell(2, 6), 'bolt 6 is on screen').toBeTruthy();
-    expect(h.cell(1, 6)).toBeTruthy();
-  });
-
-  it('and Enter advances into the sixth', () => {
-    const h = mount(NINE_BOLTS, { sets: wonBolts(5) });
-
-    h.enter(1, 5);
-
-    expect(document.activeElement).toBe(h.cell(2, 6));
+    // `shouldCreateNextSet` refused once the match read as decided — at EXACTLY five bolts won — so bolts
+    // stopped being revealed at 5 and resumed at 6, which is nobody's rule.
+    expect(bolts(open(wonBolts(5)))).toEqual([1, 2, 3, 4, 5, 6]);
   });
 
   it('stops at the ninth, where there is genuinely nothing left', () => {
-    // The other end, and the control: if bolts were revealed unconditionally this would run past the
-    // format's own count.
-    const h = mount(NINE_BOLTS, { sets: wonBolts(9) });
-
-    expect(h.cell(2, 9)).toBeTruthy();
-    expect(h.cell(2, 10), 'there is no tenth bolt').toBeNull();
+    expect(bolts(open(wonBolts(9)))).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
   });
 });
 
 describe('a DRAWN bolt is an ordinary result', () => {
   it('reveals the next bolt, though nobody won it', () => {
-    // A timed bolt ends on the clock. `shouldCreateNextSet` asks for a `winningSide`, and a tied 21-21
-    // resolves `undefined` — measured against `SET9X-S:T10` — so a draw used to reveal no successor and
-    // entry stopped dead with eight bolts still to record.
-    const h = mount(NINE_BOLTS);
-
-    h.typeInto(2, 1, '21');
-    h.typeInto(1, 1, '21');
-
-    expect(h.cell(1, 2)).toBeTruthy();
-    expect(h.cell(2, 2)).toBeTruthy();
+    // A tied 21-21 resolves no `winningSide`, so a draw used to reveal no successor.
+    expect(bolts(typeBolt(open(), 1, '21', '21'))).toEqual([1, 2]);
   });
 
-  it('and Enter moves into it', () => {
-    const h = mount(NINE_BOLTS);
-
-    h.typeInto(2, 1, '21');
-    h.typeInto(1, 1, '21');
-    h.enter(1, 1);
-
-    expect(document.activeElement).toBe(h.cell(2, 2));
+  it('a two-digit value takes both digits in a bolt', () => {
+    const model = typeBolt(open(), 1, '21', '22');
+    expect(model.sets[0]).toEqual({ side1: 22, side2: 21 });
   });
 });
 
 describe('nine bolts entered one by one make a finished score', () => {
-  /** The card's own gate, read off the element rather than inferred from the model. */
-  const submit = (h: ReturnType<typeof mount>) =>
-    h.element.querySelector<HTMLButtonElement>('button[data-action="submit"]')!;
+  it('is a result once the ninth bolt is in, and not one bolt before', () => {
+    // The bolts ALTERNATE, so after eight the match stands 4-4 and only the ninth can settle it. Had side 1
+    // won every bolt, the score completes at the fifth (measured), and the ninth would prove nothing.
+    let model = open();
+    for (let bolt = 1; bolt <= 8; bolt += 1) {
+      const side1Wins = bolt % 2 === 1;
+      model = typeBolt(model, bolt, side1Wins ? '21' : '22', side1Wins ? '22' : '21');
+    }
+    expect(bolts(model), 'the ninth bolt is offered').toContain(9);
+    expect(isComplete(model), 'level at four bolts each: not a finished result').toBe(false);
 
-  /**
-   * Type one bolt the way an operator does — lower row first — and Enter on to the next.
-   *
-   * The bolts ALTERNATE: side 1 takes the odd ones, side 2 the even ones. So after eight the match
-   * stands 4-4 and only the ninth can settle it — the score is genuinely unfinished until the last
-   * bolt is in, which is what makes the "not before" half of the test below mean something. Had side
-   * 1 won every bolt, the gate opens at the fifth (measured), and the ninth would prove nothing.
-   */
-  function enterBolt(h: ReturnType<typeof mount>, bolt: number) {
-    const side1Wins = bolt % 2 === 1;
-    h.typeInto(2, bolt, side1Wins ? '21' : '22');
-    h.typeInto(1, bolt, side1Wins ? '22' : '21');
-    if (bolt < 9) h.enter(1, bolt);
-  }
-
-  it('enables Submit once the ninth bolt is in, and not one bolt before', () => {
-    // The 'Nine timed bolts' story SEEDS all nine; this TYPES them, which is the path an operator
-    // takes. Bolts are revealed one at a time, so the ninth cell exists only if the region's own
-    // reveal-and-advance carried entry through the first eight.
-    const h = mount(NINE_BOLTS);
-
-    for (let bolt = 1; bolt <= 8; bolt += 1) enterBolt(h, bolt);
-    expect(h.cell(1, 9), 'the ninth bolt has been revealed').toBeTruthy();
-    expect(submit(h).disabled, 'level at four bolts each: not a finished result').toBe(true);
-
-    enterBolt(h, 9);
-
-    expect(h.cell(1, 9)!.value).toBe('22');
-    expect(h.cell(2, 9)!.value).toBe('21');
-    expect(submit(h).disabled, 'all nine bolts in: the score is complete').toBe(false);
+    model = typeBolt(model, 9, '21', '22');
+    expect(model.sets[8]).toEqual({ side1: 22, side2: 21 });
+    expect(isComplete(model), 'all nine bolts in: the score is complete').toBe(true);
   });
 });

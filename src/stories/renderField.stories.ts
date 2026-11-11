@@ -1,5 +1,7 @@
 import '../components/forms/styles';
+import { openDatepicker, pickDay } from './helpers/datepickerHelpers';
 import { renderField } from '../components/forms/renderField';
+import { expect, waitFor } from 'storybook/test';
 
 export default {
   title: 'Foundations/Forms/Field',
@@ -244,6 +246,14 @@ export const DatePicker = {
     placeholder: 'YYYY-MM-DD',
     date: true,
     maxDate: new Date()
+  },
+  // The picker is loaded on first use, so it attaches after render; this drives the real one with a real click.
+  play: async ({ canvasElement }) => {
+    const input = canvasElement.querySelector('input')!;
+    const picker = await openDatepicker(input);
+    // The 1st is never after `maxDate` (today), so it is always pickable.
+    const expected = await pickDay(picker, 1);
+    await waitFor(() => expect(input.value).toBe(expected));
   }
 };
 

@@ -1,12 +1,8 @@
+import { CompositionEditorStore, scheduleHeaderDisabled } from '../compositionEditorStore';
 import type { CompositionEditorState, EditorPanel } from '../compositionEditorTypes';
-import type { CompositionEditorStore } from '../compositionEditorStore';
+import { buildToggleField, buildSelectField, addFieldHint } from './fieldBuilders';
 import { showsConnectors } from '../../../compositions/showsConnectors';
-import { buildToggleField, buildSelectField } from './fieldBuilders';
-import type { ScheduleInfoOptions } from '../../../types';
 import { ceSubgroup, ceSubgroupTitle } from '../styles';
-
-const headerOptionsOf = (scheduleInfo: unknown): ScheduleInfoOptions =>
-  scheduleInfo && typeof scheduleInfo === 'object' ? (scheduleInfo as ScheduleInfoOptions) : {};
 
 function subgroup(title: string, ...fields: { element: HTMLElement }[]): HTMLElement {
   const group = document.createElement('div');
@@ -27,25 +23,23 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
   const scheduleInfo = buildToggleField(
     'Schedule info',
     !!cfg.scheduleInfo,
-    (v) => store.setConfigField('scheduleInfo', v),
+    (v) => store.setScheduleInfoEnabled(v),
     readOnly
   );
-  // configuration.scheduleInfo as an object; any of these turns the header on
-  const setHeaderOption = (key: keyof ScheduleInfoOptions, value: unknown) =>
-    store.setConfigField('scheduleInfo', {
-      ...headerOptionsOf(store.getState().configuration.scheduleInfo),
-      [key]: value
-    });
+  addFieldHint(
+    scheduleInfo.element,
+    'Shows the schedule header above each card. Hidden header choices are kept until you load a preset or close the editor.'
+  );
   const elapsed = buildToggleField(
     'Playing time',
-    !!headerOptionsOf(cfg.scheduleInfo).elapsed,
-    (v) => setHeaderOption('elapsed', v),
+    !!store.getScheduleInfoOptions().elapsed,
+    (v) => store.setScheduleInfoOption('elapsed', v),
     readOnly
   );
   const eventRound = buildToggleField(
     'Event & round',
-    !!headerOptionsOf(cfg.scheduleInfo).eventRound,
-    (v) => setHeaderOption('eventRound', v),
+    !!store.getScheduleInfoOptions().eventRound,
+    (v) => store.setScheduleInfoOption('eventRound', v),
     readOnly
   );
   const headerLayout = buildSelectField(
@@ -54,8 +48,8 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
       { value: '', label: 'Split' },
       { value: 'inline', label: 'Inline' }
     ],
-    headerOptionsOf(cfg.scheduleInfo).layout === 'inline' ? 'inline' : '',
-    (v) => setHeaderOption('layout', v === 'inline' ? 'inline' : undefined),
+    store.getScheduleInfoOptions().layout === 'inline' ? 'inline' : '',
+    (v) => store.setScheduleInfoOption('layout', v === 'inline' ? 'inline' : undefined),
     readOnly
   );
   const liveStatusPill = buildToggleField(
@@ -91,6 +85,11 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
     !!cfg.matchUpFooter,
     (v) => store.setConfigField('matchUpFooter', v),
     readOnly
+  );
+  addFieldHint(roundHeader.element, 'Shows the round name above each bracket column.');
+  addFieldHint(
+    matchUpFooter.element,
+    'Shows the built-in round label or inline scoring controls. A host-provided custom footer can appear independently.'
   );
   const centerInfo = buildToggleField(
     'Center info',
@@ -170,10 +169,14 @@ export function buildLayoutSection(store: CompositionEditorStore): EditorPanel {
   function update(state: CompositionEditorState): void {
     const c = state.configuration;
     scheduleInfo.setChecked(!!c.scheduleInfo);
-    const header = headerOptionsOf(c.scheduleInfo);
+    const header = store.getScheduleInfoOptions();
     elapsed.setChecked(!!header.elapsed);
     eventRound.setChecked(!!header.eventRound);
     headerLayout.setValue(header.layout === 'inline' ? 'inline' : '');
+    const headerDisabled = scheduleHeaderDisabled(state);
+    elapsed.setDisabled(headerDisabled);
+    eventRound.setDisabled(headerDisabled);
+    headerLayout.setDisabled(headerDisabled);
     liveStatusPill.setChecked(c.liveStatusPill !== false);
     watchAction.setChecked(!!c.matchUpActions?.watch);
     shareAction.setChecked(!!c.matchUpActions?.share);

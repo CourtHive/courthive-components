@@ -8,9 +8,10 @@
  *
  * All four are behaviours of `openScoreEntryDialog`, not of these stories. That is deliberate: the
  * wiring used to live in a story, which meant the thing being reviewed in Storybook was not the thing a
- * host would get. These stories now open the shipped dialog and drive it, and the same behaviours are
- * asserted in `__tests__/scoreEntryDialog.test.ts`. The play functions here also run in CI
- * (`pnpm test:stories`, since 2026-10-10); the unit suite stays the place each behaviour is pinned.
+ * host would get. These stories now open the shipped dialog and drive it; each behaviour is pinned in
+ * `ScoreEntryDialogTests.stories.ts` (focus, keys, menus, the picker, disposal) and its rules in node
+ * (`logic/__tests__/scoreEntryDialogRules.test.ts`). The play functions here also run in CI
+ * (`pnpm test:stories`, since 2026-10-10).
  *
  * ── Modal hygiene ──
  *
@@ -22,6 +23,7 @@ import { matchUpStatusConstants, fixtures, policyConstants } from 'tods-competit
 import { openScoreEntryDialog } from '../components/scoring/scoreEntryDialog';
 import { asRecord, gamesPerSet } from './helpers/scoreEntryStoryHost';
 import { cModal } from '../components/modal/cmodal';
+import { user } from './helpers/trustedUser';
 import { expect } from 'storybook/test';
 
 import type { ScoreEntryDialog, ScoreEntryApproach } from '../components/scoring/scoreEntryDialog';
@@ -50,18 +52,16 @@ export const ScorelessTimedSet = {
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
-    canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
+    await user.click(canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!);
     const submit = () => inModal<HTMLButtonElement>('button[data-action="submit"]')!;
     await expect(submit().disabled).toBe(true);
     await expect(inModal(BAND)!.textContent).toContain('Timed set requires at least one side to have scored');
-    submit().click();
+    // A disabled Submit cannot be pressed — a trusted click on it is refused — so nothing reached the log.
     await expect(canvasElement.querySelector('#scoreEntryLog')!.textContent).toBe('');
 
-    const field = inModal<HTMLInputElement>('input[data-side="2"][data-set="1"]')!;
-    field.value = '1';
-    field.dispatchEvent(new Event('input', { bubbles: true }));
+    await user.fill(inModal<HTMLInputElement>('input[data-side="2"][data-set="1"]')!, '1');
     await expect(submit().disabled).toBe(false);
-    submit().click();
+    await user.click(submit());
     await expect(document.querySelector(MODAL)).toBeNull();
     await expect(canvasElement.querySelector('#scoreEntryLog')!.textContent).toContain('COMPLETED');
   }
@@ -90,10 +90,10 @@ const inModal = <T extends HTMLElement>(selector: string) => topModal()?.querySe
 const anywhere = <T extends HTMLElement>(selector: string) =>
   document.querySelector<T>(`${MODAL} ${selector}`) ?? undefined;
 
-function clickIn(selector: string) {
+async function clickIn(selector: string) {
   const target = anywhere<HTMLElement>(selector);
   if (!target) throw new Error(`nothing matched ${selector}`);
-  target.click();
+  await user.click(target);
 }
 
 /** Close anything a previous story left standing. */
@@ -211,7 +211,7 @@ export const InModal = {
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
-    canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
+    await user.click(canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!);
 
     // The card is in the modal, not in the canvas — which is the whole reason these play functions read
     // `document`.
@@ -223,10 +223,10 @@ export const InModal = {
     await expect((topModal()!.firstElementChild as HTMLElement).style.maxWidth).toBe('780px');
 
     // The panel CA wanted to see in context, opened from the participant's name.
-    clickIn('button[data-action="endedEarly"][data-side="2"]');
+    await clickIn('button[data-action="endedEarly"][data-side="2"]');
     await expect(inModal('[data-panel-side="2"]')!.textContent).toContain('What happened to Derrick Ellul?');
 
-    clickIn(`[data-panel-side="2"] button[data-ending="${WALKOVER}"]`);
+    await clickIn(`[data-panel-side="2"] button[data-ending="${WALKOVER}"]`);
     await expect(inModal('[data-row-ending]')!.textContent).toBe('Walkover');
     await expect(inModal(BAND)!.textContent).toContain('Rosalind Lem advances');
 
@@ -235,14 +235,14 @@ export const InModal = {
     // This could not be asserted while the story reopened itself on a timer: the modal was replaced in
     // the same frame, so there was no moment at which nothing was on screen. CA, 2026-09-29: *"NONE of
     // the Score Entry Round Trip stories close the modal upon clicking [Submit]!"* — true here too.
-    clickIn('button[data-action="submit"]');
+    await clickIn('button[data-action="submit"]');
     await expect(document.querySelector(MODAL), 'Submit closes the dialog').toBeNull();
 
-    canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
+    await user.click(canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!);
     await expect(inModal('[data-row-ending]')!.textContent, 'and it reopens on what was saved').toBe('Walkover');
 
     // [X] closes it, which is the other half of "the modal actually works".
-    clickIn(CANCEL);
+    await clickIn(CANCEL);
     await expect(document.querySelector(MODAL)).toBeNull();
   }
 };
@@ -274,7 +274,7 @@ export const InModalFreeScore = {
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
-    canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
+    await user.click(canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!);
 
     // The text field is the entry surface, and it carries the recorded score: this approach is the one
     // that opened EMPTY before the seed was fixed, because its whole input is text.
@@ -288,7 +288,7 @@ export const InModalFreeScore = {
     await expect(inModal(BAND)!.textContent).toContain('6-4 2-1');
     await expect(inModal(CANCEL)).toBeTruthy();
 
-    clickIn(CANCEL);
+    await clickIn(CANCEL);
   }
 };
 
@@ -301,7 +301,7 @@ export const InModalDialPad = {
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
-    canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
+    await user.click(canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!);
 
     // Ten digit keys, and the rows READ rather than accept input.
     await expect(topModal()!.querySelectorAll('button[data-digit]')).toHaveLength(10);
@@ -314,7 +314,7 @@ export const InModalDialPad = {
     await expect(inModal(SWITCH)!.textContent).toBe('Dial Pad');
     await expect(inModal(BAND)!.textContent).toContain('6-4 2-1');
 
-    clickIn(CANCEL);
+    await clickIn(CANCEL);
   }
 };
 
@@ -329,32 +329,27 @@ export const ApproachSwitching = {
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
-    canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
+    await user.click(canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!);
 
-    const type = (selector: string, value: string) => {
-      const field = inModal<HTMLInputElement>(selector)!;
-      field.value = value;
-      field.dispatchEvent(new Event('input', { bubbles: true }));
-    };
-    type('input[data-side="1"][data-set="1"]', '6');
-    type('input[data-side="2"][data-set="1"]', '4');
+    await user.fill(inModal<HTMLInputElement>('input[data-side="1"][data-set="1"]')!, '6');
+    await user.fill(inModal<HTMLInputElement>('input[data-side="2"][data-set="1"]')!, '4');
 
-    clickIn(SWITCH);
+    await clickIn(SWITCH);
     const offered = [...topModal()!.querySelectorAll<HTMLElement>('[data-approach]')];
     await expect(offered.map((item) => item.dataset.approach)).toEqual(['dynamicSets', 'freeScore', 'dialPad']);
     // The active approach is listed and CHECKED rather than omitted — a menu missing its current state
     // makes the operator infer it from what is absent.
     await expect(inModal('[data-approach="dynamicSets"]')!.getAttribute('aria-pressed')).toBe('true');
 
-    clickIn('[data-approach="freeScore"]');
+    await clickIn('[data-approach="freeScore"]');
 
     // The typed score came across, and the switcher says where you are.
     await expect(inModal<HTMLInputElement>('input[data-free-score]')!.value).toContain('6-4');
     await expect(inModal(SWITCH)!.textContent).toBe('Free Score');
     await expect(inModal('input[data-set="1"]')).toBeUndefined();
 
-    clickIn(SWITCH);
-    clickIn('[data-approach="dialPad"]');
+    await clickIn(SWITCH);
+    await clickIn('[data-approach="dialPad"]');
 
     await expect(inModal('button[data-digit="6"]')).toBeTruthy();
     await expect([...topModal()!.querySelectorAll('.chc-sec-readout')].map((cell) => cell.textContent)).toEqual([
@@ -362,7 +357,7 @@ export const ApproachSwitching = {
       '4'
     ]);
 
-    clickIn(CANCEL);
+    await clickIn(CANCEL);
   }
 };
 
@@ -379,13 +374,13 @@ export const FormatPicker = {
     ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     closeAll();
-    canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!.click();
+    await user.click(canvasElement.querySelector<HTMLButtonElement>(OPEN_BUTTON)!);
 
     const chip = inModal<HTMLButtonElement>('button[data-action="editFormat"]')!;
     await expect(chip.textContent).toBe(FORMAT);
     await expect(chip.getAttribute('aria-label')).toBe(`Scoring format ${FORMAT} — edit`);
 
-    chip.click();
+    await user.click(chip);
 
     // The REAL picker — `getMatchUpFormatModal`, which was barrel-exported and wired to nothing. It opens
     // as a second cModal on top, and the card is still underneath.
@@ -398,7 +393,7 @@ export const FormatPicker = {
     await expect(document.querySelectorAll(MODAL)).toHaveLength(1);
     await expect(inModal(CARD)).toBeTruthy();
 
-    clickIn(CANCEL);
+    await clickIn(CANCEL);
     await expect(document.querySelector(MODAL)).toBeNull();
   }
 };

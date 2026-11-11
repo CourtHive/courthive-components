@@ -1,26 +1,22 @@
-/** @vitest-environment happy-dom */
-import { isComplete, isSettled, matchUpStatus, error } from '../logic/scoreEntrySelectors';
+import { footerState, scoreEntryError, submission, holdsEntry, clearGate } from '../logic/scoreEntryRules';
+import { isComplete, isSettled, matchUpStatus, error, enteredSets } from '../logic/scoreEntrySelectors';
 import { createScoreEntryModel, chooseEnding, setCell } from '../logic/scoreEntryModel';
 import { matchUpStatusConstants, scoreGovernor } from 'tods-competition-factory';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { openScoreEntryDialog } from '../scoreEntryDialog';
-import { cModal } from '../../modal/cmodal';
+import { toEngineOutcome } from '../logic/engineOutcome';
+import { describe, expect, it } from 'vitest';
+
+import type { CellRef, ScoreEntryModel } from '../logic/scoreEntryModel';
 
 const { COMPLETED, RETIRED, SUSPENDED, WALKOVER } = matchUpStatusConstants;
 const TIMED = 'SET1-S:T15P';
 const DECIDING = 'SET1-S:T15P/TB1';
-const MODAL = 'section[id^="cmdl-"]';
-const SUBMIT = 'button[data-action="submit"]';
 const MESSAGE = 'Timed set requires at least one side to have scored';
 const zero = { setNumber: 1, side1Score: 0, side2Score: 0 };
+const G1: CellRef = { setIndex: 0, side: 1, kind: 'games' };
+const G2: CellRef = { setIndex: 0, side: 2, kind: 'games' };
 
 const modelFor = (matchUpFormat = TIMED, side1Score = 0, side2Score = 0) =>
   createScoreEntryModel({ matchUpFormat, sets: [{ ...zero, side1Score, side2Score }] });
-
-afterEach(() => {
-  while (document.querySelector(MODAL)) cModal.close();
-  document.body.replaceChildren();
-});
 
 describe('single timed set with no points', () => {
   it.each([TIMED, DECIDING, 'SET1-S:T15', 'SET1X-S:T15P'])(
@@ -87,46 +83,36 @@ describe('single timed set with no points', () => {
   });
 });
 
-describe('dialog submission', () => {
-  it.each(['dynamicSets', 'freeScore', 'dialPad'] as const)('blocks a seeded 0–0 in %s and shows why', (approach) => {
-    const onSubmit = vi.fn();
-    const dialog = openScoreEntryDialog({
-      sides: [{ participantName: 'Side one' }, { participantName: 'Side two' }],
-      matchUpFormat: TIMED,
-      approach,
-      sets: [zero],
-      onSubmit
-    });
-    const button = dialog.card.element.querySelector<HTMLButtonElement>(SUBMIT)!;
-    expect(button.disabled).toBe(true);
-    expect(dialog.card.element.textContent).toContain(MESSAGE);
-    button.click();
-    expect(onSubmit).not.toHaveBeenCalled();
+/**
+ * What Submit does with it. The dialog tests this replaced opened all three approaches on a seeded 0–0; the
+ * rule is the model's and the same for every approach, so it is asked of the footer here. The dialog round
+ * trip — the message in the band, a trusted click refused on the disabled Submit, then 0–1 submitted as
+ * COMPLETED — is the `ScorelessTimedSet` story in `src/stories/scoreEntryDialog.stories.ts`.
+ */
+describe('the footer', () => {
+  const view = (model: ScoreEntryModel) => ({ model });
+  const gate = (model: ScoreEntryModel) =>
+    clearGate({ openedOnRecordedOutcome: false, cleared: false, holdsEntry: holdsEntry(view(model)) });
+
+  it('closes Submit on a seeded 0–0 and says why', () => {
+    const seeded = modelFor();
+    expect(footerState(view(seeded), gate(seeded)).submitDisabled).toBe(true);
+    expect(scoreEntryError(view(seeded))).toContain(MESSAGE);
   });
 
-  it('blocks a typed 0–0, then submits after either side scores', () => {
-    const onSubmit = vi.fn();
-    const dialog = openScoreEntryDialog({
-      sides: [{ participantName: 'Side one' }, { participantName: 'Side two' }],
-      matchUpFormat: TIMED,
-      approach: 'dynamicSets',
-      onSubmit
+  it('closes it on a typed 0–0, then submits COMPLETED to the side that scores', () => {
+    const empty = createScoreEntryModel({ matchUpFormat: TIMED });
+    const zeroZero = setCell(setCell(empty, G1, 0), G2, 0);
+    expect(footerState(view(zeroZero), gate(zeroZero)).submitDisabled).toBe(true);
+
+    const scored = setCell(zeroZero, G2, 1);
+    expect(footerState(view(scored), gate(scored)).submitDisabled).toBe(false);
+    expect(scoreEntryError(view(scored))).toBeUndefined();
+
+    const outcome = submission(view(scored), gate(scored))!;
+    expect(toEngineOutcome({ ...outcome, sets: enteredSets(scored) })).toMatchObject({
+      matchUpStatus: COMPLETED,
+      winningSide: 2
     });
-    const type = (side: number, value: string) => {
-      const input = dialog.card.element.querySelector<HTMLInputElement>(`input[data-side="${side}"][data-set="1"]`)!;
-      input.value = value;
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-    };
-    const submit = () => dialog.card.element.querySelector<HTMLButtonElement>(SUBMIT)!;
-    type(1, '0');
-    type(2, '0');
-    expect(submit().disabled).toBe(true);
-    expect(dialog.card.element.textContent).toContain(MESSAGE);
-    type(2, '1');
-    expect(submit().disabled).toBe(false);
-    expect(dialog.card.element.textContent).not.toContain(MESSAGE);
-    submit().click();
-    expect(onSubmit).toHaveBeenCalledOnce();
-    expect(onSubmit.mock.calls[0][0].outcome).toMatchObject({ matchUpStatus: COMPLETED, winningSide: 2 });
   });
 });

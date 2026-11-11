@@ -61,7 +61,7 @@ export function fitKey(state: TopologyState): string {
     e.targetRoundNumber ?? null,
     (e.finishingPositions ?? []).join(',')
   ]);
-  return JSON.stringify([nodes, edges]);
+  return JSON.stringify([nodes, edges, state.constraintOverrides ?? null]);
 }
 
 /** A card's one-line reading of its fit. */

@@ -1,9 +1,6 @@
-/**
- * @vitest-environment happy-dom
- */
 import { describe, expect, it } from 'vitest';
 
-import { COURT_SVG_RESOURCE_SUB_TYPE, createCourtSvg, resolveCourtSport, sportFromMatchUpFormat } from './courtSvgUtil';
+import { COURT_SVG_RESOURCE_SUB_TYPE, resolveCourtSport, sportFromMatchUpFormat } from './courtSvgUtil';
 
 const TENNIS = 'tennis';
 const BEST_OF_3 = 'SET3-S:6/TB7';
@@ -72,37 +69,7 @@ describe('resolveCourtSport', () => {
   });
 });
 
-describe('createCourtSvg', () => {
-  it('returns an SVG element for a known sport', () => {
-    const svg = createCourtSvg('tennis');
-    expect(svg).toBeDefined();
-    expect(svg?.tagName.toLowerCase()).toBe('svg');
-  });
-
-  it('applies the sport class plus a custom className', () => {
-    const svg = createCourtSvg('tennis', 'extra-class');
-    expect(svg?.getAttribute('class')).toBe('court--tennis extra-class');
-  });
-
-  it('applies just the sport class when no custom className is given', () => {
-    const svg = createCourtSvg('basketball');
-    expect(svg?.getAttribute('class')).toBe('court--basketball');
-  });
-
-  it('rotates portrait viewBox to landscape (tennis is 360x780 portrait)', () => {
-    const svg = createCourtSvg('tennis');
-    const vb = svg?.getAttribute('viewBox')?.split(/\s+/).map(Number);
-    expect(vb?.[2]).toBeGreaterThanOrEqual(vb?.[3] ?? 0);
-  });
-
-  it('returns undefined for an unknown sport', () => {
-    expect(createCourtSvg('cricket' as any)).toBeUndefined();
-  });
-
-  it('returns undefined for missing sport', () => {
-    expect(createCourtSvg(undefined)).toBeUndefined();
-  });
-});
+// `createCourtSvg` builds SVG elements, so it is asserted in a browser by `CourtSvgTests.stories.ts`.
 
 describe('COURT_SVG_RESOURCE_SUB_TYPE', () => {
   it('is COURT_SVG', () => {

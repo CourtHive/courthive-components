@@ -1,131 +1,86 @@
-// @vitest-environment happy-dom
 /**
  * The Dial Pad does not move on from a set that is not finished (CA, 2026-10-08).
  *
  * Under `SET3-S:6/TB7` the keypad accepted `5-1 1-4 3-3`: Submit rightly refused it, but every tap after
  * the `5-1` was wasted work the operator could not see was wasted. Now a finished set is the condition
  * for starting the next one, and the Tiebreak key is offered only once a set's games can carry one.
+ *
+ * The rules are `logic/dialPadEntry.ts`, driven here as taps over a frozen model. What the band SAYS for
+ * those models is the card's composition of these selectors (`scoreEntrySummary`); that the keys reach
+ * these rules, and the band follows, is `DialPadEntryTests.stories.ts`.
  */
-import { createDialPadRegion } from '../regions/dialPadRegion';
-import { beforeEach, describe, expect, it } from 'vitest';
-import { renderScoreEntryCard } from '../scoreEntryCard';
+import { scoreString, isComplete, error, unrecordedTiebreakNote } from '../logic/scoreEntrySelectors';
+import { dialPadDigit, dialPadReadout, tiebreakKeyOffered } from '../logic/dialPadEntry';
+import { frozen } from '../logic/__tests__/scoreEntryModelTestHelpers';
+import { describe, expect, it } from 'vitest';
+
+import type { ScoreEntryModel } from '../logic/scoreEntryModel';
 
 const FORMAT = 'SET3-S:6/TB7';
-const TIEBREAK = 'button[data-action="tiebreak"]';
-const SIDES: [{ participantName: string }, { participantName: string }] = [
-  { participantName: 'Rosalind Lem' },
-  { participantName: 'Derrick Ellul' }
-];
+const NOT_RECORDED = '1st set: tiebreak points not recorded';
 
-function dialPad(matchUpFormat = FORMAT) {
-  document.body.innerHTML = '';
-  const region = createDialPadRegion({ matchUpFormat, onChange: () => card.refresh() });
-  const card = renderScoreEntryCard({ sides: SIDES, matchUpFormat, region });
-  document.body.append(card.element);
-  const q = <T extends Element>(s: string) => card.element.querySelector<T>(s);
-  return {
-    press: (digit: number) => q<HTMLButtonElement>(`button[data-digit="${digit}"]`)?.click(),
-    tiebreak: () => q<HTMLButtonElement>(TIEBREAK),
-    band: () => q<HTMLElement>('.chc-sec-band')?.textContent ?? '',
-    readout: (side: number) => q<HTMLElement>(`[data-readout-side="${side}"]`)?.textContent ?? '',
-    submit: () => q<HTMLButtonElement>('button[data-action="submit"]')
-  };
-}
-
-beforeEach(() => {
-  document.body.innerHTML = '';
-});
+const pad = (matchUpFormat = FORMAT) => frozen({ matchUpFormat, approach: 'dialPad' });
+const tap = (model: ScoreEntryModel, ...digits: number[]) =>
+  digits.reduce((next, digit) => dialPadDigit(next, { digit }), model);
+const tapTiebreak = (model: ScoreEntryModel, ...digits: number[]) =>
+  digits.reduce((next, digit) => dialPadDigit(next, { digit, tiebreakMode: true }), model);
 
 describe('the Dial Pad holds on an unfinished set', () => {
   it('after 5-1 the keypad goes quiet: no second set starts', () => {
-    const h = dialPad();
-    h.press(1);
-    h.press(5);
-    expect(h.band()).toContain('5-1');
+    const fiveOne = tap(pad(), 1, 5);
+    expect(scoreString(fiveOne)).toBe('5-1');
 
-    // the taps that used to begin set two
-    h.press(4);
-    h.press(1);
-    expect(h.band()).toContain('5-1');
-    expect(h.band()).not.toContain('1-4');
-    expect(h.readout(1)).not.toContain('1');
+    // the taps that used to begin set two go nowhere: the same model comes back
+    expect(tap(fiveOne, 4, 1)).toBe(fiveOne);
+    expect(dialPadReadout(fiveOne).map((set) => set.side1Score)).toEqual([5]);
   });
 
   it('6-7 is a finished set: the next set starts, with or without the tiebreak points', () => {
     // Until 2026-11-07 the keypad stopped here until the Tiebreak key supplied the points. A bare 7-6 is the
     // set the engine records (ruling V11), so the next set opens; the points are offered, not owed (CA).
-    const h = dialPad();
-    h.press(7); // lower row
-    h.press(6); // upper row: 6-7, a tiebreak set with no points
-    expect(h.band()).toContain('6-7');
+    const sixSeven = tap(pad(), 7, 6); // lower row 7, upper row 6
+    expect(scoreString(sixSeven)).toBe('6-7');
 
-    h.press(4);
-    h.press(6);
-    expect(h.band()).toContain('6-7 6-4');
+    const second = tap(sixSeven, 4, 6);
+    expect(scoreString(second)).toBe('6-7 6-4');
 
-    // once the score is a result, the band says what was left out
-    h.press(4);
-    h.press(6);
-    expect(h.band()).toContain('6-7 6-4 6-4');
-    expect(h.band()).toContain('1st set: tiebreak points not recorded');
-    expect(h.submit()?.disabled).toBe(false);
+    const third = tap(second, 4, 6);
+    expect(scoreString(third)).toBe('6-7 6-4 6-4');
+    // once the score is a result, the band's note says what was left out
+    expect(unrecordedTiebreakNote(third)).toBe(NOT_RECORDED);
+    expect(isComplete(third)).toBe(true);
+    expect(error(third)).toBeUndefined();
   });
 
-  it('the Tiebreak key still records the points on a 6-7, before the next set starts', () => {
-    const h = dialPad();
-    h.press(7);
-    h.press(6);
-    h.tiebreak()?.click();
-    h.press(4); // the loser's points: 6-7(4)
-    expect(h.band()).toContain('6-7(4)');
-    // tiebreak mode stays on (points can run to two digits); leaving it is the operator's toggle
-    h.tiebreak()?.click();
-    h.press(4);
-    h.press(6);
-    expect(h.band()).toContain('6-7(4) 6-4');
-    expect(h.band()).not.toContain('not recorded');
+  it('Tiebreak mode still records the points on a 6-7, before the next set starts', () => {
+    const points = tapTiebreak(tap(pad(), 7, 6), 4); // the loser's points: 6-7(4)
+    expect(scoreString(points)).toBe('6-7(4)');
+
+    // leaving Tiebreak mode is the operator's toggle; the next games digits start set two
+    const second = tap(points, 4, 6);
+    expect(scoreString(second)).toBe('6-7(4) 6-4');
+    expect(unrecordedTiebreakNote(second)).toBeUndefined();
   });
 
   it('a finished set still lets the next one start', () => {
-    const h = dialPad();
-    for (const digit of [4, 6, 3, 6]) h.press(digit);
-    expect(h.band()).toContain('6-4');
-    expect(h.band()).toContain('6-3');
-    expect(h.submit()?.disabled).toBe(false);
+    const played = tap(pad(), 4, 6, 3, 6);
+    expect(scoreString(played)).toBe('6-4 6-3');
+    expect(isComplete(played)).toBe(true);
   });
 });
 
 describe('the Tiebreak key is offered only when a set can carry one', () => {
-  it('is disabled with no games, after 5-1, after a finished 6-4 and at 6-6; enabled at 7-6', () => {
-    const h = dialPad();
-    expect(h.tiebreak()?.disabled).toBe(true);
-
-    h.press(1);
-    h.press(5);
-    expect(h.tiebreak()?.disabled).toBe(true);
-
-    document.body.innerHTML = '';
-    const g = dialPad();
-    g.press(4);
-    g.press(6);
-    expect(g.tiebreak()?.disabled).toBe(true);
-
-    document.body.innerHTML = '';
-    const t = dialPad();
-    t.press(6);
-    t.press(7);
-    expect(t.tiebreak()?.disabled).toBe(false);
-
-    document.body.innerHTML = '';
+  it('is withheld with no games, after 5-1, after a finished 6-4 and at 6-6; offered at 7-6', () => {
+    expect(tiebreakKeyOffered(pad())).toBe(false);
+    expect(tiebreakKeyOffered(tap(pad(), 1, 5))).toBe(false);
+    expect(tiebreakKeyOffered(tap(pad(), 4, 6))).toBe(false);
+    expect(tiebreakKeyOffered(tap(pad(), 6, 7))).toBe(true);
     // at six-all the tiebreak is being PLAYED: there is no result to type yet (the Dynamic Sets rule)
-    const level = dialPad();
-    level.press(6);
-    level.press(6);
-    expect(level.tiebreak()?.disabled).toBe(true);
+    expect(tiebreakKeyOffered(tap(pad(), 6, 6))).toBe(false);
   });
 
   it('a match tiebreak set never offers the key: its cells are the points', () => {
-    const h = dialPad('SET1-S:TB10');
-    expect(h.tiebreak()?.disabled).toBe(true);
+    expect(tiebreakKeyOffered(pad('SET1-S:TB10'))).toBe(false);
+    expect(tiebreakKeyOffered(tap(pad('SET1-S:TB10'), 8))).toBe(false);
   });
 });

@@ -1,4 +1,3 @@
-// @vitest-environment happy-dom
 /**
  * What the PACKAGE promises, asserted through the barrel rather than through a deep path.
  *

@@ -22,6 +22,7 @@ import { generateEventData } from '../data/generateEventData';
 import { compositions } from '../compositions/compositions';
 import type { Meta, StoryObj } from '@storybook/html-vite';
 import type { Configuration, MatchUp } from '../types';
+import { user } from './helpers/trustedUser';
 import { expect, fn } from 'storybook/test';
 
 const meta: Meta = {
@@ -152,7 +153,7 @@ export const ClickCallsTheHandlerOnly: StoryObj = {
     const icon = host.querySelector(ICON_SELECTOR) as HTMLElement;
     expect(icon.tagName).toBe('BUTTON');
     expect(icon.getAttribute('aria-label')).toBe('Watch video');
-    icon.click();
+    await user.click(icon);
 
     expect(eventHandlers.onlineResourceClick).toHaveBeenCalledTimes(1);
     const [{ matchUp: clicked, onlineResource, pointerEvent }] = eventHandlers.onlineResourceClick.mock.calls[0];
@@ -163,7 +164,7 @@ export const ClickCallsTheHandlerOnly: StoryObj = {
     expect(eventHandlers.scheduleClick).not.toHaveBeenCalled();
 
     // control: a click elsewhere on the card does reach matchUpClick
-    (host.querySelector('.tmx-m') as HTMLElement).click();
+    await user.click(host.querySelector('.tmx-m') as HTMLElement);
     expect(eventHandlers.matchUpClick).toHaveBeenCalledTimes(1);
   }
 };
@@ -213,7 +214,7 @@ export const ClickSurvivesAnInPlaceRefresh: StoryObj = {
     // what TMX's morphdom does to a reused node: it takes the fresh render's handler PROPERTY
     const reusedIcon = reused.querySelector(ICON_SELECTOR) as HTMLElement;
     reusedIcon.onclick = (fresh.querySelector(ICON_SELECTOR) as HTMLElement).onclick;
-    reusedIcon.click();
+    await user.click(reusedIcon);
 
     expect(onlineResourceClick).toHaveBeenCalledTimes(1);
     expect(onlineResourceClick.mock.calls[0][0].matchUp).toBe(after);

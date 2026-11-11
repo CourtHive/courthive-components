@@ -854,6 +854,7 @@
    The panel opens above the footer at the right, over the properties panel, so the cards and their levers stay in
    view while the line moves. */
 .tb-acceptance-toggle,
+.tb-limits-toggle,
 .tb-proposals-toggle,
 .tb-feed-toggle,
 .tb-acceptance-discard {
@@ -1015,9 +1016,11 @@
   white-space: nowrap;
 }
 
+.tb-limits,
 .tb-proposals {
   position: relative;
 }
+.tb-limits-panel,
 .tb-proposal-panel {
   position: absolute;
   bottom: calc(100% + 8px);
@@ -1056,14 +1059,35 @@
   color: var(--chc-on-info);
 }
 .tb-feed-toggle:focus-visible,
+.tb-limits-toggle:focus-visible,
 .tb-proposals-toggle:focus-visible,
 .tb-proposal:focus-visible {
   outline: 2px solid var(--chc-border-focus);
   outline-offset: 1px;
 }
 
+.tb-limits[hidden],
+.tb-limits-panel[hidden],
 .tb-proposals[hidden],
 .tb-proposal-panel[hidden],
 .tb-acceptance-pending[hidden] {
   display: none;
+}
+
+.tb-limits-panel label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tb-limits-panel input {
+  width: 5em;
+  color: inherit;
+  background: var(--chc-bg-secondary);
+}
+
+/* Neutral toolbar controls follow the topology palette when a host also supplies button styles. */
+.tb-toolbar-wrapper .button:not(.is-success):not(.is-info) {
+  color: var(--chc-text-primary);
+  background-color: var(--chc-bg-primary);
+  border-color: var(--chc-border-primary);
 }

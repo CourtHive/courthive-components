@@ -18,6 +18,7 @@ import { mocksEngine, tournamentEngine, eventConstants } from 'tods-competition-
 import { renderScorecard } from '../components/scorecard/renderScorecard';
 import { compositions } from '../compositions/compositions';
 import type { Meta, StoryObj } from '@storybook/html-vite';
+import { user } from './helpers/trustedUser';
 import { expect, fn } from 'storybook/test';
 
 const { TEAM: TEAM_EVENT } = eventConstants;
@@ -64,10 +65,11 @@ function generateDual({ completeAllMatchUps = false } = {}) {
 const button = (host: HTMLElement, action: string) =>
   host.querySelector(`[data-action="${action}"]`) as HTMLButtonElement;
 
-const enter = (host: HTMLElement, position: string, value: number) => {
+/** types a score into one side's field and leaves it, which commits the value as a `change` */
+const enter = async (host: HTMLElement, position: string, value: number) => {
   const input = host.querySelector<HTMLInputElement>(`${SCORE_INPUT}[data-position="${position}"]`) as HTMLInputElement;
-  input.value = String(value);
-  input.dispatchEvent(new Event('change', { bubbles: true }));
+  await user.fill(input, String(value));
+  await user.tab();
 };
 
 export const LineMarkersAndBanner: StoryObj = {
@@ -110,7 +112,7 @@ export const LineMarkersAndBanner: StoryObj = {
     const items = [...host.querySelectorAll<HTMLElement>('.chc-scorecard-banner-item')];
     expect(items.map((item) => item.dataset.issueCode)).toEqual(['DUAL_DECIDED', 'MANUAL_SCORE_DIVERGES']);
     expect(items[1].textContent).toBe('The lines produce 1-0');
-    button(host, 'issue-action').click();
+    await user.click(button(host, 'issue-action'));
     expect(onDecided).toHaveBeenCalledWith({ code: 'DUAL_DECIDED', matchUpIds: [third] });
   }
 };
@@ -141,7 +143,7 @@ export const OverrideInlineThroughASwap: StoryObj = {
     );
 
     expect(host.querySelector(SCORE_INPUT)).toBeNull();
-    button(host, OVERRIDE).click();
+    await user.click(button(host, OVERRIDE));
     // swapped: side 2 is on the left
     const values = [...host.querySelectorAll<HTMLInputElement>(SCORE_INPUT)].map((input) => input.value);
     expect(values).toEqual(['1', '2']);
@@ -149,14 +151,14 @@ export const OverrideInlineThroughASwap: StoryObj = {
     expect(save.disabled).toBe(true);
 
     // level: no winner yet, so nothing to save
-    enter(host, 'left', 2);
+    await enter(host, 'left', 2);
     const choice = host.querySelector('.chc-scorecard-winner-choice') as HTMLElement;
     expect(choice.hidden).toBe(false);
     expect(save.disabled).toBe(true);
 
-    (host.querySelector('[data-action="choose-winner"][data-position="left"]') as HTMLButtonElement).click();
+    await user.click(host.querySelector('[data-action="choose-winner"][data-position="left"]') as HTMLButtonElement);
     expect(save.disabled).toBe(false);
-    save.click();
+    await user.click(save);
     expect(onOverride).toHaveBeenCalledWith({ side1Score: 2, side2Score: 2, winningSide: 2 });
     expect(host.querySelector(SCORE_INPUT)).toBeNull();
     const shown = [...host.querySelectorAll<HTMLElement>('.chc-scorecard-side-score')].map((span) => span.textContent);
@@ -173,12 +175,12 @@ export const CancelRestoresTheHeader: StoryObj = {
     const onOverride = fn();
     host.appendChild(renderScorecard({ matchUp, composition: compositions.National, teamScore: { onOverride } }));
 
-    button(host, OVERRIDE).click();
-    enter(host, 'right', 7);
+    await user.click(button(host, OVERRIDE));
+    await enter(host, 'right', 7);
     // a score that is not a whole number of 0 or more is put back
-    enter(host, 'left', -1);
+    await enter(host, 'left', -1);
     expect((host.querySelector(`${SCORE_INPUT}[data-position="left"]`) as HTMLInputElement).value).toBe('3');
-    button(host, 'cancel-team-score').click();
+    await user.click(button(host, 'cancel-team-score'));
 
     expect(host.querySelector(SCORE_INPUT)).toBeNull();
     const shown = [...host.querySelectorAll<HTMLElement>('.chc-scorecard-side-score')];
@@ -187,7 +189,7 @@ export const CancelRestoresTheHeader: StoryObj = {
     expect(onOverride).not.toHaveBeenCalled();
 
     // reopened, it starts from the recorded score
-    button(host, OVERRIDE).click();
+    await user.click(button(host, OVERRIDE));
     expect([...host.querySelectorAll<HTMLInputElement>(SCORE_INPUT)].map((input) => input.value)).toEqual(['3', '0']);
   }
 };
@@ -211,7 +213,7 @@ export const SetByHandOffersRestore: StoryObj = {
     expect(host.querySelector(MANUAL_TAG)?.textContent).toBe('Set by hand');
     // the header says so; the banner does not repeat it
     expect(host.querySelector('[data-issue-code="MANUAL_SCORE"]')).toBeNull();
-    button(host, RESTORE).click();
+    await user.click(button(host, RESTORE));
     expect(onRestore).toHaveBeenCalledTimes(1);
 
     host.replaceChildren(
@@ -241,7 +243,7 @@ export const TheEditorReplacesTheControlsAndLeavesTheNamesInPlace: StoryObj = {
     const shown = (element: HTMLElement | null) => !!element && element.getClientRects().length > 0;
     const before = names();
 
-    button(host, OVERRIDE).click();
+    await user.click(button(host, OVERRIDE));
     // the override, restore and tag are off screen while the editor is open, not merely flagged hidden
     expect(shown(button(host, OVERRIDE))).toBe(false);
     expect(shown(button(host, RESTORE))).toBe(false);
@@ -249,7 +251,7 @@ export const TheEditorReplacesTheControlsAndLeavesTheNamesInPlace: StoryObj = {
     expect(shown(button(host, 'save-team-score'))).toBe(true);
     expect(names()).toEqual(before);
 
-    button(host, 'cancel-team-score').click();
+    await user.click(button(host, 'cancel-team-score'));
     expect(shown(button(host, OVERRIDE))).toBe(true);
     expect(host.querySelectorAll('.chc-scorecard-score-editor')).toHaveLength(0);
   }

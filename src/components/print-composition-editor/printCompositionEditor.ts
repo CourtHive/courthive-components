@@ -14,6 +14,7 @@
  * end-to-end architecture.
  */
 
+import { ensureBlock, printConfigSnapshot, resolvePrintConfig, setPrintField } from './printCompositionConfig';
 import './print-composition-editor.css';
 import type {
   PrintCompositionConfig,
@@ -31,22 +32,11 @@ const FOOTER_LAYOUTS: FooterLayout[] = ['standard', 'seedings', 'officials', 'no
 const PAGE_SIZES: PageSize[] = ['a4', 'letter'];
 const PAGE_ORIENTATIONS: PageOrientation[] = ['auto', 'portrait', 'landscape'];
 
-const DEFAULT_CONFIG: PrintCompositionConfig = {
-  page: {
-    pageSize: 'a4',
-    orientation: 'auto',
-    margins: { top: 15, right: 10, bottom: 15, left: 10 }
-  },
-  header: { layout: 'itf', tournamentName: '' },
-  footer: { layout: 'standard', showTimestamp: true, showPageNumbers: true },
-  content: {}
-};
-
 export function createPrintCompositionEditor(
   container: HTMLElement,
   config: PrintCompositionEditorConfig
 ): PrintCompositionEditorHandle {
-  const state: PrintCompositionConfig = mergeConfig(DEFAULT_CONFIG, config.config ?? {});
+  const state: PrintCompositionConfig = resolvePrintConfig(config.config);
   const readOnly = !!config.readOnly;
 
   const root = el('div', 'pce-root');
@@ -65,7 +55,7 @@ export function createPrintCompositionEditor(
     form.appendChild(buildFooterSection(state, readOnly, onChange));
     form.appendChild(buildContentSection(state, readOnly, config.printType, onChange));
     if (!readOnly && config.onSave) {
-      form.appendChild(buildActions(() => config.onSave?.(deepClone(state))));
+      form.appendChild(buildActions(() => config.onSave?.(printConfigSnapshot(state))));
     }
 
     aside.innerHTML = '';
@@ -89,7 +79,7 @@ export function createPrintCompositionEditor(
 
   function onChange(): void {
     if (previewBody) previewBody.textContent = JSON.stringify(state, null, 2);
-    config.onChange?.(deepClone(state));
+    config.onChange?.(printConfigSnapshot(state));
   }
 
   rerender();
@@ -99,9 +89,9 @@ export function createPrintCompositionEditor(
     destroy: () => {
       if (root.parentNode) root.parentNode.removeChild(root);
     },
-    getConfig: () => deepClone(state),
+    getConfig: () => printConfigSnapshot(state),
     setConfig: (next: PrintCompositionConfig) => {
-      Object.assign(state, mergeConfig(DEFAULT_CONFIG, next));
+      Object.assign(state, resolvePrintConfig(next));
       rerender();
     }
   };
@@ -113,13 +103,13 @@ function buildPageSection(state: PrintCompositionConfig, readOnly: boolean, onCh
   const { section, body } = makeSection('Page');
   body.appendChild(
     selectField('Size', PAGE_SIZES, state.page?.pageSize ?? 'a4', readOnly, (v) => {
-      ensureBlock(state, 'page').pageSize = v as PageSize;
+      setPrintField(state, ['page', 'pageSize'], v as PageSize);
       onChange();
     })
   );
   body.appendChild(
     selectField('Orientation', PAGE_ORIENTATIONS, state.page?.orientation ?? 'auto', readOnly, (v) => {
-      ensureBlock(state, 'page').orientation = v as PageOrientation;
+      setPrintField(state, ['page', 'orientation'], v as PageOrientation);
       onChange();
     })
   );
@@ -133,8 +123,7 @@ function buildPageSection(state: PrintCompositionConfig, readOnly: boolean, onCh
   (['top', 'right', 'bottom', 'left'] as const).forEach((side) => {
     row.appendChild(
       numberField(side, state.page?.margins?.[side] ?? 10, readOnly, (n) => {
-        const margins = ensureBlock(ensureBlock(state, 'page'), 'margins') as Record<string, number>;
-        margins[side] = n;
+        setPrintField(state, ['page', 'margins', side], n);
         onChange();
       })
     );
@@ -148,19 +137,19 @@ function buildHeaderSection(state: PrintCompositionConfig, readOnly: boolean, on
   const { section, body } = makeSection('Header');
   body.appendChild(
     selectField('Layout', HEADER_LAYOUTS, state.header?.layout ?? 'itf', readOnly, (v) => {
-      ensureBlock(state, 'header').layout = v as HeaderLayout;
+      setPrintField(state, ['header', 'layout'], v as HeaderLayout);
       onChange();
     })
   );
   body.appendChild(
     textField('Tournament name', state.header?.tournamentName ?? '', readOnly, (v) => {
-      ensureBlock(state, 'header').tournamentName = v;
+      setPrintField(state, ['header', 'tournamentName'], v);
       onChange();
     })
   );
   body.appendChild(
     textField('Subtitle', state.header?.subtitle ?? '', readOnly, (v) => {
-      ensureBlock(state, 'header').subtitle = v || undefined;
+      setPrintField(state, ['header', 'subtitle'], v || undefined);
       onChange();
     })
   );
@@ -171,19 +160,19 @@ function buildFooterSection(state: PrintCompositionConfig, readOnly: boolean, on
   const { section, body } = makeSection('Footer');
   body.appendChild(
     selectField('Layout', FOOTER_LAYOUTS, state.footer?.layout ?? 'standard', readOnly, (v) => {
-      ensureBlock(state, 'footer').layout = v as FooterLayout;
+      setPrintField(state, ['footer', 'layout'], v as FooterLayout);
       onChange();
     })
   );
   body.appendChild(
     checkboxField('Show timestamp', state.footer?.showTimestamp ?? true, readOnly, (v) => {
-      ensureBlock(state, 'footer').showTimestamp = v;
+      setPrintField(state, ['footer', 'showTimestamp'], v);
       onChange();
     })
   );
   body.appendChild(
     checkboxField('Show page numbers', state.footer?.showPageNumbers ?? true, readOnly, (v) => {
-      ensureBlock(state, 'footer').showPageNumbers = v;
+      setPrintField(state, ['footer', 'showPageNumbers'], v);
       onChange();
     })
   );
@@ -352,25 +341,4 @@ function labelEl(text: string): HTMLElement {
   const l = el('label', 'pce-field-label');
   l.textContent = text;
   return l;
-}
-
-function ensureBlock<T extends object, K extends keyof T>(parent: T, key: K): NonNullable<T[K]> {
-  if (parent[key] === undefined || parent[key] === null) {
-    (parent as any)[key] = {} as any;
-  }
-  return parent[key] as NonNullable<T[K]>;
-}
-
-function mergeConfig(base: PrintCompositionConfig, overlay: PrintCompositionConfig): PrintCompositionConfig {
-  return {
-    name: overlay.name ?? base.name,
-    page: { ...base.page, ...overlay.page, margins: { ...base.page?.margins, ...overlay.page?.margins } },
-    header: { ...base.header, ...overlay.header },
-    footer: { ...base.footer, ...overlay.footer },
-    content: { ...base.content, ...overlay.content }
-  };
-}
-
-function deepClone<T>(value: T): T {
-  return structuredClone(value);
 }
