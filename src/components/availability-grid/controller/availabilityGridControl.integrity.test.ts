@@ -1,8 +1,18 @@
-// @vitest-environment happy-dom
 import { AvailabilityGridControl } from './availabilityGridControl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+/**
+ * Node, no DOM: the constructor defers timeline creation to a macro-task (`ensureTimeline`), so up to
+ * that timer nothing reaches the container. The container below throws on ANY access, so these tests
+ * would fail — not quietly pass — if the constructor, `setVisibleCourts` or `destroy` began touching it.
+ */
 afterEach(() => vi.useRealTimers());
+
+const untouchableContainer = new Proxy({} as HTMLElement, {
+  get: (_target, key) => {
+    throw new Error(`container.${String(key)} read before the timeline mounts`);
+  }
+});
 
 function controller() {
   return new AvailabilityGridControl(
@@ -10,7 +20,7 @@ function controller() {
       getActiveDays: () => ['2026-10-16'],
       subscribe: () => () => {}
     } as any,
-    { container: document.createElement('div') }
+    { container: untouchableContainer }
   );
 }
 
@@ -22,6 +32,16 @@ describe('availability controller ownership', () => {
     control.destroy();
     vi.runAllTimers();
     expect(create).not.toHaveBeenCalled();
+  });
+
+  it('CONTROL: creates the timeline on the deferred tick when not destroyed', () => {
+    vi.useFakeTimers();
+    const control = controller();
+    const create = vi.spyOn(control as any, 'createTimelineWithData').mockImplementation(() => {});
+    expect(create).not.toHaveBeenCalled();
+    vi.runAllTimers();
+    expect(create).toHaveBeenCalledTimes(1);
+    control.destroy();
   });
 
   it('distinguishes an empty visible-court selection from all courts', () => {
