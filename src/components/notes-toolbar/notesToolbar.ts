@@ -440,7 +440,9 @@ function attachUrlPopover(
       trigger: 'manual',
       interactive: true,
       placement: 'bottom-start',
-      onShown: () => setTimeout(() => input.focus(), 0),
+      // Focus once the panel is attached and positioned, not in onShown: onShown waits for the transitionend
+      // that tippy.css drives, so without that stylesheet it never fires. A frame after mount is both.
+      onMount: () => requestAnimationFrame(() => input.focus()),
       onHidden: () => {
         tip?.destroy();
         tip = undefined;
