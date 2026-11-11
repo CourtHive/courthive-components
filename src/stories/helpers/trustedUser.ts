@@ -29,10 +29,13 @@
 import { userEvent as emulated } from 'storybook/test';
 
 type Target = Element;
+/** A point inside the target, in CSS pixels from its top-left corner. */
+type Position = { x: number; y: number };
 
 interface Backend {
   trusted: boolean;
   click(target: Target): Promise<unknown>;
+  clickAt(target: Target, position: Position): Promise<unknown>;
   dblClick(target: Target): Promise<unknown>;
   hover(target: Target): Promise<unknown>;
   unhover(target: Target): Promise<unknown>;
@@ -53,6 +56,7 @@ async function load(): Promise<Backend> {
     return {
       trusted: true,
       click: (target) => userEvent.click(target),
+      clickAt: (target, position) => userEvent.click(target, { position }),
       dblClick: (target) => userEvent.dblClick(target),
       hover: (target) => userEvent.hover(target),
       unhover: (target) => userEvent.unhover(target),
@@ -71,6 +75,8 @@ async function load(): Promise<Backend> {
     return {
       trusted: false,
       click: (target) => emulated.click(target),
+      // testing-library cannot aim: it dispatches on the target itself, whatever is drawn at the point.
+      clickAt: (target) => emulated.click(target),
       dblClick: (target) => emulated.dblClick(target),
       hover: (target) => emulated.hover(target),
       unhover: (target) => emulated.unhover(target),
@@ -107,6 +113,12 @@ export const user = {
   /** True once the trusted backend has loaded; false in the Storybook UI's fallback. */
   isTrusted: async () => (await resolve()).trusted,
   click: act((b) => b.click),
+  /**
+   * Click at a point inside the target rather than its centre — for a large surface whose centre is
+   * covered by something else, such as a modal's click-away area around its dialog. The trusted click
+   * lands on whatever is DRAWN at that point, which is the point of using it.
+   */
+  clickAt: act((b) => b.clickAt),
   dblClick: act((b) => b.dblClick),
   hover: act((b) => b.hover),
   /**
