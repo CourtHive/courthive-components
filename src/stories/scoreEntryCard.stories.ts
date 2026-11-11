@@ -142,8 +142,9 @@ export const PlayedOut = {
     // The format chip is a BUTTON here, not inert text — CA, 2026-09-28: *"the 'format chip' should be
     // active for all Score Entry Card stories."* It is live in all of them because the shared host
     // always offers an editor, so asserting it once is asserting it everywhere. What a change then DOES
-    // — rebuild the region and clear the score — is pinned in `scoreEntryDialog.test.ts`, where the
-    // picker can be driven without opening a second modal.
+    // — rebuild the region and keep what the new format allows — is pinned in
+    // `ScoreEntryDialogTests.stories.ts` (`FormatChangeRebuildsTheRegion`), where the picker is injected
+    // rather than opened as a second modal, and its rule in `logic/__tests__/scoreEntryDialogRules.test.ts`.
     const chip = canvasElement.querySelector<HTMLButtonElement>('button[data-action="editFormat"]');
     await expect(chip).toBeTruthy();
     await expect(chip!.textContent).toBe(FORMAT);

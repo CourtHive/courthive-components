@@ -8,9 +8,10 @@
  *
  * All four are behaviours of `openScoreEntryDialog`, not of these stories. That is deliberate: the
  * wiring used to live in a story, which meant the thing being reviewed in Storybook was not the thing a
- * host would get. These stories now open the shipped dialog and drive it, and the same behaviours are
- * asserted in `__tests__/scoreEntryDialog.test.ts`. The play functions here also run in CI
- * (`pnpm test:stories`, since 2026-10-10); the unit suite stays the place each behaviour is pinned.
+ * host would get. These stories now open the shipped dialog and drive it; each behaviour is pinned in
+ * `ScoreEntryDialogTests.stories.ts` (focus, keys, menus, the picker, disposal) and its rules in node
+ * (`logic/__tests__/scoreEntryDialogRules.test.ts`). The play functions here also run in CI
+ * (`pnpm test:stories`, since 2026-10-10).
  *
  * ── Modal hygiene ──
  *
