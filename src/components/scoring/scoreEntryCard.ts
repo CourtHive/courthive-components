@@ -35,13 +35,15 @@ import { offersBothSidesOut, matchEndingOptions, sideEndingOptions, reasonCodeSt
 import { unrecordedTiebreakNote, scoreString, winningSide } from './logic/scoreEntrySelectors';
 import { statusCodeSubtext, statusCodeDisplay, codesForStatus } from './logic/statusCodes';
 import { chooseEnding, changeFormat, clearAll } from './logic/scoreEntryModel';
-import { ENTRY_SIDE, hasCommandModifier, otherSide } from './keyboard';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 import { createScoreEntryStore } from './logic/scoreEntryStore';
 import { scoreEntrySummary } from './logic/scoreEntrySummary';
+import { ENTRY_SIDE, hasCommandModifier } from './keyboard';
+import { endingForKey } from './logic/endingShortcutKeys';
 import { scoreEntryText } from './logic/scoreEntryText';
 import { statusScopeNotice } from './logic/statusScope';
 import { endingLabels } from './logic/irregularEnding';
+import { shouldStack } from './logic/scoreRowLayout';
 import {
   retractEndingContradictedByScore,
   holdsEntry as viewHoldsEntry,
@@ -67,7 +69,7 @@ import type { StatusCodeGroups } from './logic/statusCodes';
 
 import './scoreEntryCard.css';
 
-const { RETIRED, WALKOVER, DEFAULTED, IN_PROGRESS, CANCELLED, AWAITING_RESULT, SUSPENDED } = matchUpStatusConstants;
+const { RETIRED, WALKOVER, DEFAULTED } = matchUpStatusConstants;
 
 /** Class names and attribute names used often enough that a typo in one would be silent. */
 const CLS_BTN = 'chc-sec-btn';
@@ -101,25 +103,6 @@ const CHECK_PATH = 'M20 6 9 17l-5-5';
 const SCORE_COLUMN_PX = 62;
 
 /**
- * How many score columns can sit BESIDE the participant names before the names have to move.
- *
- * CA, 2026-09-28: *"If I have 9 timed Bolts the width will make the entry columns collide with the
- * participant names; in such a case the upper participant name should float to a row above the cells
- * and the lower participant name should float/wrap to a row beneath the cells."*
- *
- * Six, and the number is a consequence rather than a taste: conventional tennis never asks for more.
- * Best-of-five is five games columns plus at most one transient tiebreak column, so every racquet
- * format in the ecosystem stays inline and the stacked layout is reserved for the formats that
- * genuinely cannot fit — a nine-bolt timed match needs 558px of columns, which leaves nothing usable
- * for a name inside the dialog's 780.
- *
- * Counted rather than measured because a count is the same answer in happy-dom as in a browser. A
- * `getBoundingClientRect` threshold would be untestable in the suite that is this package's only DOM
- * evidence, and would silently choose the inline layout there — where every width is zero.
- */
-const MAX_INLINE_SCORE_COLUMNS = 6;
-
-/**
  * The phone breakpoint, the same query the stylesheet uses for every other phone rule.
  *
  * Below it the rows take the STACKED layout whatever the column count — CA, 2026-10-08, a screenshot of
@@ -129,8 +112,10 @@ const MAX_INLINE_SCORE_COLUMNS = 6;
  * takes its own line and the cells keep their 52px columns under their headings, which fit a 390px
  * screen up to best-of-five.
  *
- * A media query rather than a measurement, for the reason the column count is counted: it gives the same
- * answer in happy-dom (stubbed) as in a browser. Read at every render, so a rotation is picked up by the
+ * A media query rather than a measurement, for the reason the column count is counted (`scoreRowLayout.ts`):
+ * the decision is taken before there is a box to measure. It is the stylesheet's own query, so the card
+ * and the CSS cannot disagree about what a phone is, and `WideFormatRowsTests.stories.ts` resizes the real
+ * page to 390px and measures the stacked rows. Read at every render, so a rotation is picked up by the
  * next keystroke rather than needing a listener the card would have to remove.
  */
 const PHONE_QUERY = '(width <= 560px)';
@@ -151,41 +136,6 @@ const SIDE_ENDING_HINTS: Record<string, ScoreEntryTextKey> = {
   [WALKOVER]: 'hintWalkover',
   [RETIRED]: 'hintRetired',
   [DEFAULTED]: 'hintDefaulted'
-};
-
-/**
- * One letter per side ending, and the CASE names the row.
- *
- * CA, 2026-09-28: *"in all scoring modes 'w' should be a WALKOVER to the lower participant and 'W'
- * should be a WALKOVER to the upper participant; same for 'r/R' and 'd/D' => pressing these keys
- * toggles the appropriate irregular ending pane below the appropriate participant."*
- *
- * The same three endings the row panels offer, so the keyboard cannot reach an ending the pointer
- * cannot — the letters are a shortcut to the existing control, never a second way to record an
- * outcome. Case rather than a modifier because it needs no second key: lower case is the lower row,
- * which is the same mnemonic as the digits.
- */
-const SIDE_ENDING_KEYS: Record<string, string> = {
-  w: WALKOVER,
-  r: RETIRED,
-  d: DEFAULTED
-};
-
-/**
- * One letter per match-level ending that names no side, and here the case means nothing.
- *
- * CA, 2026-10-15: *"we can extend that behavior to statuses which don't have a side such that 'i', 'I'
- * behave as if (In Progress) was clicked, 'c', 'C' as if (Cancelled), 'a', 'A' as if (Awaiting Result),
- * 's', 'S' (Suspended). We will leave 'Abandoned' and 'Incomplete' without shortcut keys"*.
- *
- * As with the side letters, each one is a shortcut to an existing control — the privileged buttons, or
- * Cancelled inside "Other…" — so it is refused wherever that control is absent or disabled.
- */
-const MATCH_ENDING_KEYS: Record<string, string> = {
-  i: IN_PROGRESS,
-  c: CANCELLED,
-  a: AWAITING_RESULT,
-  s: SUSPENDED
 };
 
 /**
@@ -1083,18 +1033,15 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
    * typed `w` from a score cell would be left on the document body.
    */
   function endingShortcut(event: KeyboardEvent): boolean {
-    if (event.key.length !== 1) return false;
+    // Which field may receive a letter is the browser's question, and stays here; which ending the letter
+    // names is the table's (`endingForKey`).
     if (consumesLetters(event.target)) return false;
 
-    const matchStatus = MATCH_ENDING_KEYS[event.key.toLowerCase()];
-    if (matchStatus) return matchEndingShortcut(event, matchStatus);
+    const intent = endingForKey(event.key, event, { entrySide: ENTRY_SIDE });
+    if (!intent) return false;
+    if (intent.kind === 'match') return matchEndingShortcut(event, intent.status);
 
-    const status = SIDE_ENDING_KEYS[event.key.toLowerCase()];
-    if (!status) return false;
-
-    // Upper case names the UPPER row. Read from the character rather than from `shiftKey`, so Caps
-    // Lock means the same thing as Shift — the operator is looking at a capital either way.
-    const sideNumber: SideNumber = event.key === event.key.toUpperCase() ? otherSide(ENTRY_SIDE) : ENTRY_SIDE;
+    const { sideNumber, status } = intent;
 
     // Refused for the same reason the panel button is disabled — a key must not reach a state the
     // control it stands for cannot.
@@ -1179,7 +1126,7 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     const scoreTracks = columns.map((column) => column.width ?? `${SCORE_COLUMN_PX}px`).join(' ');
     // Past the point where a name fits beside them, the columns take the whole row and the name floats
     // onto a line of its own — above its cells for the upper participant, beneath them for the lower.
-    const stacked = columns.length > MAX_INLINE_SCORE_COLUMNS || isPhoneViewport();
+    const stacked = shouldStack(columns.length, isPhoneViewport());
     // No trailing action track: the ending control moved into the name cell (see `participantRow`), which
     // returns its width to the participant and stops the row ending in something shaped like an overflow
     // menu.
