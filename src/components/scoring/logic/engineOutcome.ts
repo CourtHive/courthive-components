@@ -7,7 +7,7 @@
  * dialog applies it on Submit, and a host hands the result to the engine as its `outcome`.
  *
  * Every line is a MEASURED difference between the two shapes (2026-10-01 against factory 7.4.0, re-measured
- * 2026-10-05 against 7.5.0; pinned in `src/stories/__tests__/scoringStories.test.ts`):
+ * 2026-10-05 against 7.5.0; pinned in `src/stories/__tests__/scoreEntryEngineHost.test.ts`):
  *
  *   - the engine reads `outcome.score.sets`, `winningSide`, `matchUpStatus`, `matchUpStatusCodes` and
  *     `matchUpFormat`, and nothing else; the card's `score` STRING is refused outright, and `sets` at the
