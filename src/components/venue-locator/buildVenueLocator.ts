@@ -10,7 +10,7 @@
  * an optional dependency mandatory at type-check time for every consumer.
  */
 
-import { createLocatorLifetime, loadUnlessDisposed, type LocatorLifetime } from './lifetime';
+import { createLifetime, loadUnlessDisposed, type Lifetime } from '../../helpers/lifetime';
 import { mergeVenueLocatorConfig } from './defaultConfig';
 import { sortCourtsByOrder } from '../../helpers/cards';
 import {
@@ -85,7 +85,7 @@ export function buildVenueLocator(
   const root = document.createElement('div');
   root.className = vlRootStyle();
   root.dataset.venueId = data.venueId;
-  const lifetime = createLocatorLifetime();
+  const lifetime = createLifetime();
   teardowns.set(root, lifetime.dispose);
 
   if (cfg.showHeader) root.appendChild(buildHeader(data));
@@ -274,7 +274,7 @@ function buildCourtList(
 // ============================================================================
 
 interface MountArgs {
-  lifetime: LocatorLifetime;
+  lifetime: Lifetime;
   root: HTMLElement;
   mapEl: HTMLElement;
   data: VenueLocatorData;
