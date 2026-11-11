@@ -19,9 +19,11 @@ import { AvailabilityGridControl, type AvailabilityGridControlConfig } from '../
 import { buildVenueTreeModel, resolveVisibleCourts } from './venueTreeModel';
 import { buildViewToolbar, type ViewToolbarResult } from './viewToolbar';
 import { showCourtAvailabilityModal } from './courtAvailabilityModal';
+import { attachDatepicker } from '../../../helpers/loadDatepicker';
 import { buildStatsBar, type StatsBarUpdate } from './statsBar';
+import { createLifetime } from '../../../helpers/lifetime';
 import { escapeHtml } from '../../../helpers/escapeHtml';
-import Datepicker from 'vanillajs-datepicker/Datepicker';
+import type { Datepicker } from 'vanillajs-datepicker';
 
 // ============================================================================
 // Component Configuration
@@ -130,7 +132,9 @@ export class AvailabilityGrid {
   private capacityElement: HTMLElement | null = null;
   private statsBarInstance: { element: HTMLElement; update: (stats: StatsBarUpdate) => void } | null = null;
   private viewToolbarResult: ViewToolbarResult | null = null;
+  /** Attached a tick after render (the package is loaded on first use); every read is null-guarded. */
   private datepicker: Datepicker | null = null;
+  private datepickerLifetime: ReturnType<typeof createLifetime> | null = null;
 
   // State
   private courtVisibilityCustomized = false;
@@ -244,10 +248,10 @@ export class AvailabilityGrid {
    * Destroy the component and cleanup
    */
   destroy(): void {
-    if (this.datepicker) {
-      this.datepicker.destroy();
-      this.datepicker = null;
-    }
+    // Destroys the picker, or, while its import is still pending, makes sure it never attaches.
+    this.datepickerLifetime?.dispose();
+    this.datepickerLifetime = null;
+    this.datepicker = null;
 
     if (this.control) {
       this.control.destroy();
@@ -315,30 +319,35 @@ export class AvailabilityGrid {
    * Must be called after the toolbar element is in the DOM.
    */
   private initDatepicker(): void {
-    if (this.datepicker || !this.viewToolbarResult) return;
+    if (this.datepickerLifetime || !this.viewToolbarResult) return;
 
     const days = this.engine.getActiveDays();
     const activeDaySet = new Set(days);
-    this.datepicker = new Datepicker(this.viewToolbarResult.dateInput, {
-      format: 'yyyy-mm-dd',
-      language: this.config.language || 'en',
-      autohide: true,
-      beforeShowDay: (date: Date) => {
-        const y = date.getFullYear();
-        const m = String(date.getMonth() + 1).padStart(2, '0');
-        const d = String(date.getDate()).padStart(2, '0');
-        if (activeDaySet.has(`${y}-${m}-${d}`)) {
-          return { classes: 'tg-datepicker-active-day' };
-        }
-        return {};
-      }
+    const dateInput = this.viewToolbarResult.dateInput;
+    this.datepickerLifetime = createLifetime();
+    // The picker reads the input's value when it is constructed: `renderToolbar` set the initial day there,
+    // and `onDayNavigate` / `handleDateChange` keep it current until the picker attaches.
+    attachDatepicker<Datepicker>({
+      inputs: [dateInput],
+      owner: '[availability-grid]',
+      lifetime: this.datepickerLifetime,
+      onAttach: (picker) => (this.datepicker = picker),
+      create: ({ Datepicker }) =>
+        new Datepicker(dateInput, {
+          format: 'yyyy-mm-dd',
+          language: this.config.language || 'en',
+          autohide: true,
+          beforeShowDay: (date: Date) => {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            if (activeDaySet.has(`${y}-${m}-${d}`)) {
+              return { classes: 'tg-datepicker-active-day' };
+            }
+            return {};
+          }
+        })
     });
-
-    // Set initial date
-    const initialDay = this.config.initialDay || (days.length > 0 ? days[0] : '');
-    if (initialDay) {
-      this.datepicker.setDate(initialDay, { clear: true });
-    }
   }
 
   private handleDateChange(dateStr: string): void {

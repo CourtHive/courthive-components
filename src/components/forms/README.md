@@ -327,7 +327,11 @@ input.addEventListener('input', (e) => {
 
 The renderers require the following packages (already installed):
 
-- **vanillajs-datepicker** (v1.3.4) - Date picker functionality
+- **vanillajs-datepicker** (v1.3.4) - Date picker functionality. Loaded on first use, not at import (it
+  touches `document` when evaluated), so a date field's picker attaches a tick after render. The handle a
+  form returns as `inputs['<field>.date']` (and `renderField` as `datepicker`) queues calls such as
+  `setDate`/`setOptions` until then and forwards everything afterwards; `await handle.ready` for the
+  instance. See `src/helpers/loadDatepicker.ts`.
 - **awesomplete** (v1.1.7) - Type-ahead/autocomplete functionality
 - **checkradio.css** - Checkbox and radio styling
 
