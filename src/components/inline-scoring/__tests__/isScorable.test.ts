@@ -4,8 +4,9 @@ import { isScorable } from '../isScorable';
 
 /**
  * No DOM environment on purpose: `isScorable` is pure. The refusal path of `renderInlineMatchUp` is
- * covered in `renderInlineMatchUp.test.ts`, which already declares one — importing the renderer pulls
- * in a chain reaching `vanillajs-datepicker`, which touches `document` at import time.
+ * covered by `inlineScoringOffer.test.ts` (the rule) and `InlineScoringTests.stories.ts` (the render). The
+ * renderer is not imported here: its chain reaches `vanillajs-datepicker`, which touches `document` at
+ * import time.
  */
 
 const FORMAT = 'SET5-S:6/TB7-F:TB10';
