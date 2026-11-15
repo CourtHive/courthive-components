@@ -212,7 +212,7 @@ importers:
         version: 8.2.4
       timepicker-ui:
         specifier: ^4.1.2
-        version: 4.6.0
+        version: 4.7.0
       tippy.js:
         specifier: 6.3.7
         version: 6.3.7
@@ -2878,8 +2878,8 @@ packages:
   tabulator-tables@6.7.1:
     resolution: {integrity: sha512-6CMy17XdemQaIdg1BOqD5K6nzF2xoD47eRNiBYJBK+QrLWji7sgukyPjKXYrjRdWLwbGENdUsiAYJrNS3XeUfw==}
 
-  timepicker-ui@4.6.0:
-    resolution: {integrity: sha512-35U5wk7uli/ERaH8eMTXBA2QXJcacthwE3nNOqxSTEn9y/5tPzE5cVh4J/nEChwuEkb5JJQTaShr1/mWnfDSZw==}
+  timepicker-ui@4.7.0:
+    resolution: {integrity: sha512-VnRrmtWuEODYXIhxwArs78RYO7PqxvwHTd+Ei8+Nn+MnBMC9tTFomMvY1OhmPFCJVBMaALMRXUvttBr9AVJNcA==}
 
   tiny-invariant@1.3.3:
     resolution: {integrity: sha512-+FbBPE1o9QAYvviau/qC5SE3caw21q3xkvWKBtja5vgqOWIHHJ3ioaq1VPfn/Szqctz2bU/oYeKd9/z5BL+PVg==}
@@ -5686,7 +5686,7 @@ snapshots:
 
   tabulator-tables@6.7.1: {}
 
-  timepicker-ui@4.6.0: {}
+  timepicker-ui@4.7.0: {}
 
   tiny-invariant@1.3.3: {}
 
