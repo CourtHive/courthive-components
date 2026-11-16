@@ -2,7 +2,16 @@
  * Topology Builder Control — Orchestrator class.
  * Creates store, all UI panels, wires callbacks, subscribes to state changes.
  */
-import { fitByNode, fitKey, ledgerText, steppedDrawSize, steppedQualifiers, takesEntries } from '../domain/drawFit';
+import {
+  entryLedger,
+  fitByNode,
+  fitKey,
+  ledgerGroups,
+  ledgerText,
+  steppedDrawSize,
+  steppedQualifiers,
+  takesEntries
+} from '../domain/drawFit';
 import { journeyEdgeIds, journeySummary, stepsByNode } from '../domain/journey';
 import { buildTopologyBuilderLayout } from '../ui/topologyBuilderLayout';
 import { drawDefinitionConstants } from 'tods-competition-factory';
@@ -28,6 +37,7 @@ import {
 
 // constants and types
 import type { FitLever, NodeFit, NodeJourney } from '../ui/structureCard';
+import type { LedgerGroup } from '../domain/drawFit';
 import type { CardSize } from '../engine/topologyStore';
 import type { FooterPanel } from '../ui/footer';
 import type { ModeToggle } from '../ui/toolbar';
@@ -50,6 +60,7 @@ import type {
 const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, SINGLE_ELIMINATION, FEED_IN, ROUND_ROBIN, LUCKY_DRAW, WINNER, LOSER } =
   drawDefinitionConstants;
 const POSITION = 'POSITION';
+const NO_MAIN_STRUCTURE = 'Add a main structure to fit the entries to';
 const FIT_DRAW_TYPES = new Set<string>([SINGLE_ELIMINATION, FEED_IN, ROUND_ROBIN]);
 
 export class TopologyBuilderControl {
@@ -109,6 +120,7 @@ export class TopologyBuilderControl {
   private buildFooterPanel(): FooterPanel {
     const countPlayoffOffers = this.offersPlayoffs() ? (state: TopologyState) => this.countOffers(state) : undefined;
     const fitLedger = this.config.drawFit ? (state: TopologyState) => ledgerText(this.currentFit(state)) : undefined;
+    const ledger = this.config.drawFit ? (state: TopologyState) => this.ledger(state) : undefined;
     const journey = this.config.journey
       ? {
           search: (query: string) => this.config.journey!.search(query),
@@ -145,7 +157,9 @@ export class TopologyBuilderControl {
       this.config.fitProposals && !this.config.readOnly
         ? {
             proposals: (state: TopologyState) => this.currentProposals(state),
-            choose: (proposal: FitProposal) => this.applyFitProposal(proposal)
+            choose: (proposal: FitProposal) => this.applyFitProposal(proposal),
+            unavailable: (state: TopologyState) =>
+              state.nodes.some((node) => node.stage === MAIN) ? undefined : NO_MAIN_STRUCTURE
           }
         : undefined;
     const sanctionLimits =
@@ -156,7 +170,7 @@ export class TopologyBuilderControl {
               this.store.loadState({ ...this.store.getState(), constraintOverrides })
           }
         : undefined;
-    return buildFooter({ countPlayoffOffers, fitLedger, journey, acceptance, proposals, sanctionLimits });
+    return buildFooter({ countPlayoffOffers, fitLedger, ledger, journey, acceptance, proposals, sanctionLimits });
   }
 
   /** The modes the host has given the topology what it needs for. */
@@ -185,8 +199,8 @@ export class TopologyBuilderControl {
       toggles.push({
         mode: 'fit',
         label: 'Fit',
-        unavailable: (state) =>
-          state.nodes.some((node) => node.stage === MAIN) ? undefined : 'Add a main structure to fit the entries to',
+        // Always available: before there is a main structure, Fit mode still shows what the event's entries are, and
+        // a toggle that could be left but not re-entered stranded the footer's controls (CA, 2026-11-16)
         offTitle: "Show how the event's entries fill the draw",
         onTitle: 'Done fitting'
       });
@@ -344,7 +358,13 @@ export class TopologyBuilderControl {
     const entryChanges = this.entryChanges(state);
     const key = `${fitKey(state)}:${changesKey(entryChanges)}`;
     if (this.proposalCache?.key === key) return this.proposalCache.result;
-    const result = this.config.fitProposals!(state, { entryChanges });
+    let result: ReturnType<NonNullable<TopologyBuilderConfig['fitProposals']>>;
+    try {
+      result = this.config.fitProposals!(state, { entryChanges });
+    } catch (error) {
+      // as for the fit: a topology the host cannot convert yet has no proposals, and must not throw from a click
+      result = { error: error instanceof Error ? error.message : error };
+    }
     this.proposalCache = { key, result };
     return result;
   }
@@ -423,6 +443,27 @@ export class TopologyBuilderControl {
     if (proposal.qualifyingDrawSize) this.autoLayout();
     this.config.onEntryChanges?.(this.getEntryChanges());
   }
+
+  /**
+   * The footer's ledger: the factory's when the fit has one, else the host's entries counted as they stand with the
+   * pending changes — so the director sees what the event holds before any structure exists (CA, 2026-11-16).
+   */
+  private ledger(state: TopologyState) {
+    // asked on every render, a dragged card's frames included: counted again only when the fit's question changes
+    const key = `${fitKey(state)}|${changesKey(this.entryChanges(state))}`;
+    if (this.ledgerCache?.key === key) return this.ledgerCache.groups;
+    const fit = this.currentFit(state);
+    const groups =
+      fit?.ledger && Object.keys(fit.ledger).length
+        ? ledgerGroups(fit.ledger, fit.notPlaced?.length ?? 0)
+        : this.config.acceptance
+          ? ledgerGroups(entryLedger([...this.acceptanceEntries(MAIN), ...this.acceptanceEntries(QUALIFYING)]))
+          : [];
+    this.ledgerCache = { key, groups };
+    return groups;
+  }
+
+  private ledgerCache?: { key: string; groups: LedgerGroup[] };
 
   private effectiveLimits() {
     return { ...this.config.sanctionLimits?.().constraints, ...this.store.getState().constraintOverrides };
@@ -695,10 +736,8 @@ export class TopologyBuilderControl {
     const errors = validateTopology(state);
     const hasErrors = errors.some((e) => e.severity === 'error');
 
-    if (hasErrors) {
-      // Could show validation errors, but let the consumer handle it
-      console.warn('Topology validation errors:', errors);
-    }
+    // The toolbar disables Generate while there are errors; this is the guard for a host that calls it anyway
+    if (hasErrors) return;
 
     if (this.config.onGenerate) {
       this.config.onGenerate(state);

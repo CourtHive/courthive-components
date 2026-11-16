@@ -35,6 +35,9 @@ interface FloatingInspectorOptions {
   onGeometryChange?: (geometry: InspectorGeometry) => void;
   onClose: () => void;
   onDock: () => void;
+  /** The header's text and the dialog's accessible name; the topology builder floats its properties pane too. */
+  title?: string;
+  label?: string;
 }
 
 /** A non-modal host. The caller owns selection, content, visibility and persistence. */
@@ -42,14 +45,14 @@ export function buildFloatingInspector(panel: HTMLElement, options: FloatingInsp
   const element = document.createElement('section');
   element.className = 'spl-floating-inspector';
   element.setAttribute('role', 'dialog');
-  element.setAttribute(ARIA_LABEL, 'MatchUp inspector');
+  element.setAttribute(ARIA_LABEL, options.label ?? 'MatchUp inspector');
   element.hidden = true;
   const header = document.createElement('div');
   header.className = 'spl-floating-header';
   header.tabIndex = 0;
   header.setAttribute(ARIA_LABEL, 'Move inspector with arrow keys');
   const title = document.createElement('strong');
-  title.textContent = 'Inspector';
+  title.textContent = options.title ?? 'Inspector';
   header.appendChild(title);
   let returnFocus: HTMLElement | null = null;
   function button(label: string, icon: string, action: () => void): HTMLButtonElement {

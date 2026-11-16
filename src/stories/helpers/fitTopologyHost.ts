@@ -17,6 +17,8 @@ export type FitTopologyHost = {
   fitCalls: () => number;
   /** The entry changes the acceptance line last reported, as a host would apply them */
   lastEntryChanges: () => EntryChange[];
+  /** How often Generate reached the host */
+  generateCalls: () => number;
 };
 
 /** A rating as a number: mocks write a plain number or an accessor object. */
@@ -29,8 +31,14 @@ const ratingValue = (value: unknown): number => {
 /** 24 DA, 4 WC, 6 ALT and 2 WD in MAIN, 12 in QUALIFYING: the mixed event measured on 2026-11-08. */
 export function fitTopologyHost({
   mode,
-  height = '100vh'
-}: { mode?: 'view' | 'fit'; height?: string } = {}): FitTopologyHost {
+  height = '100vh',
+  empty = false
+}: {
+  mode?: 'view' | 'fit';
+  height?: string;
+  /** A new draw as TMX's topology page opens it: no structures yet, with Generate and the proposals wired */
+  empty?: boolean;
+} = {}): FitTopologyHost {
   const generated: any = mocksEngine.generateTournamentRecord({
     participantsProfile: { participantsCount: 48, scaleAllParticipants: true, category: { ratingType: 'ELO' } },
     eventProfiles: [{ eventName: 'Open Singles' }]
@@ -47,6 +55,7 @@ export function fitTopologyHost({
   add(46, 48, { entryStatus: 'WITHDRAWN' });
 
   let calls = 0;
+  let generateCalls = 0;
   let entryChanges: EntryChange[] = [];
 
   // the MAIN entries, best ELO first, as TMX would rank them for the acceptance line
@@ -120,10 +129,21 @@ export function fitTopologyHost({
 
   const element = document.createElement('div');
   element.style.height = height;
+  element.style.display = 'flex';
+  element.style.flexDirection = 'column';
   const control = new TopologyBuilderControl({
-    initialState,
+    initialState: empty ? { ...initialState, nodes: [], edges: [] } : initialState,
     hideTemplates: true,
-    hideGenerate: true,
+    hideGenerate: !empty,
+    ...(empty && {
+      onGenerate: () => (generateCalls += 1),
+      onClear: () => control.loadState({ ...control.getState(), nodes: [], edges: [] }),
+      // as TMX's host does: the conversion throws for a topology with no main structure
+      fitProposals: (state: TopologyState) => {
+        topologyToDrawOptions(state);
+        return { proposals: [] };
+      }
+    }),
     footer: true,
     mode,
     drawFit: (state, trial) => {
@@ -140,5 +160,11 @@ export function fitTopologyHost({
   });
   control.render(element);
   control.autoLayout();
-  return { element, control, fitCalls: () => calls, lastEntryChanges: () => entryChanges };
+  return {
+    element,
+    control,
+    fitCalls: () => calls,
+    lastEntryChanges: () => entryChanges,
+    generateCalls: () => generateCalls
+  };
 }

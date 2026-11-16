@@ -42,7 +42,15 @@ const step = (root: HTMLElement, name: string, lever: string, direction: string)
   card(root, name).querySelector<HTMLButtonElement>(
     `.tb-fit-stepper[data-lever="${lever}"] .tb-fit-step[data-direction="${direction}"]`
   )!;
-const ledger = (root: HTMLElement) => root.querySelector('.tb-footer-hint')!.textContent;
+// the ledger's chips read back as one line: `Main  24 DA · 4 WC   |   Qualifying  12 DA   |   1 not placed`
+const ledger = (root: HTMLElement) =>
+  [...root.querySelectorAll<HTMLElement>('.tb-footer-hint .tb-ledger-group')]
+    .map((group) => {
+      const stage = group.querySelector('.tb-ledger-stage')?.textContent;
+      const chips = [...group.querySelectorAll('.tb-ledger-chip')].map((chip) => chip.textContent).join(' · ');
+      return stage ? `${stage}  ${chips}` : chips;
+    })
+    .join('   |   ');
 
 export const GaugesOnlyInTheMode: Story = {
   render: () => mount(),
@@ -182,5 +190,69 @@ export const AcceptanceLineDrags: Story = {
     await user.keyboard('{Escape}');
     await expect(panel(canvasElement).hidden).toBe(true);
     await expect(pending(canvasElement).hidden).toBe(false);
+  }
+};
+
+// ── A new draw: nothing on the canvas yet (CA, 2026-11-16) ──
+
+const toolbarButton = (root: HTMLElement, label: string) =>
+  [...root.querySelectorAll<HTMLButtonElement>('.tb-toolbar-wrapper button')].find(
+    (b) => b.textContent?.trim() === label
+  )!;
+const ALTERNATIVES = '.tb-proposals-toggle';
+const GENERATE = 'Generate Draw';
+
+export const AnEmptyCanvasOffersNothingToAct: Story = {
+  render: () => {
+    host = fitTopologyHost({ mode: 'fit', height: '720px', empty: true });
+    return host.element;
+  },
+  play: async ({ canvasElement }) => {
+    // the entries are counted before any structure exists
+    await expect(ledger(canvasElement)).toBe('Main  24 DA · 4 WC · 6 ALT · 2 WD   |   Qualifying  12 DA');
+
+    // nothing to generate, lay out or clear; the reason is the title
+    await expect(toolbarButton(canvasElement, GENERATE).disabled).toBe(true);
+    await expect(toolbarButton(canvasElement, GENERATE).title).toBe('A main draw structure is required');
+    await expect(toolbarButton(canvasElement, 'Auto Layout').disabled).toBe(true);
+    await expect(toolbarButton(canvasElement, 'Clear').disabled).toBe(true);
+    await expect(canvasElement.querySelector<HTMLButtonElement>(ALTERNATIVES)!.disabled).toBe(true);
+
+    // leaving Fit mode can be undone, and the footer's controls come back
+    await user.click(canvasElement.querySelector<HTMLButtonElement>(TOGGLE)!);
+    await expect(canvasElement.querySelector<HTMLElement>('.tb-proposals')!.hidden).toBe(true);
+    await expect(canvasElement.querySelector<HTMLButtonElement>(TOGGLE)!.disabled).toBe(false);
+    await user.click(canvasElement.querySelector<HTMLButtonElement>(TOGGLE)!);
+    await expect(canvasElement.querySelector<HTMLElement>('.tb-proposals')!.hidden).toBe(false);
+
+    // a main structure: Generate and Clear wake, Auto Layout still waits for a second structure
+    await user.click(toolbarButton(canvasElement, 'Add Structure'));
+    await user.click(
+      [...document.querySelectorAll<HTMLElement>('.dropdown-item')].find((i) => i.textContent?.trim() === 'Main')!
+    );
+    await expect(toolbarButton(canvasElement, GENERATE).disabled).toBe(false);
+    await expect(toolbarButton(canvasElement, 'Clear').disabled).toBe(false);
+    await expect(toolbarButton(canvasElement, 'Auto Layout').disabled).toBe(true);
+    await expect(canvasElement.querySelector<HTMLButtonElement>(ALTERNATIVES)!.disabled).toBe(false);
+    await user.click(toolbarButton(canvasElement, GENERATE));
+    await expect(host.generateCalls()).toBe(1);
+  }
+};
+
+export const ThePropertiesPaneDetaches: Story = {
+  render: () => mount('fit'),
+  play: async ({ canvasElement }) => {
+    const layout = canvasElement.querySelector<HTMLElement>('.tb-layout')!;
+    const floating = () => layout.querySelector<HTMLElement>('.spl-floating-inspector')!;
+    await user.click(canvasElement.querySelector<HTMLButtonElement>('.tb-editor-detach')!);
+    await expect(layout.dataset.editorPlacement).toBe('floating');
+    await expect(floating().hidden).toBe(false);
+    await expect(floating().querySelector('.tb-editor-content')).not.toBeNull();
+    await expect(canvasElement.querySelector<HTMLElement>('.tb-editor')!.hidden).toBe(true);
+
+    await user.click(floating().querySelector<HTMLButtonElement>('button[aria-label="Dock"]')!);
+    await expect(layout.dataset.editorPlacement).toBe('docked');
+    await expect(floating().hidden).toBe(true);
+    await expect(canvasElement.querySelector('.tb-editor .tb-editor-content')).not.toBeNull();
   }
 };

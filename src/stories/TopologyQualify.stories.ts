@@ -196,12 +196,10 @@ function mount({
   return element;
 }
 function button(root: HTMLElement, label: string) {
-  return [...root.querySelectorAll<HTMLButtonElement>('button')].find(
-    (b) => b.textContent === label && (label !== 'Fit' || b.classList.contains('tb-proposals-toggle'))
-  )!;
+  return [...root.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent === label)!;
 }
 async function choose(root: HTMLElement) {
-  await user.click(button(root, 'Fit'));
+  await user.click(button(root, 'Alternatives'));
   const proposal = root.querySelector<HTMLButtonElement>(QUALIFY);
   if (!proposal) throw new Error(root.querySelector('.tb-proposal-panel')?.textContent ?? 'missing proposals');
   await user.click(proposal);
@@ -274,7 +272,7 @@ export const MainLineCanMoveBack: StoryObj = {
 export const RankedAlternates: StoryObj = {
   render: () => mount({ alternates: true }),
   play: async ({ canvasElement: root }) => {
-    await user.click(button(root, 'Fit'));
+    await user.click(button(root, 'Alternatives'));
     await expect(
       root.querySelector(QUALIFY)?.textContent,
       root.querySelector('.tb-proposal-panel')?.textContent
@@ -292,7 +290,7 @@ export const BindingSanction: StoryObj = {
   play: async ({ canvasElement: root }) => {
     await user.click(button(root, 'Sanction limits'));
     await expect(root.querySelectorAll('input[type="number"]')).toHaveLength(0);
-    await user.click(button(root, 'Fit'));
+    await user.click(button(root, 'Alternatives'));
     await expect(root.querySelector('[data-kind="Grow"]')).toBeNull();
   }
 };
@@ -305,7 +303,7 @@ export const PermittedOverride: StoryObj = {
     await user.fill(input, '64');
     await user.tab();
     await expect(control.getState().constraintOverrides).toEqual({ drawSize: 64 });
-    await user.click(button(root, 'Fit'));
+    await user.click(button(root, 'Alternatives'));
     await expect(root.querySelector('[data-kind="Grow"]')).not.toBeNull();
     await expect(record()).toBe(before);
   }
@@ -344,7 +342,7 @@ export const RoundRobinQualifying: StoryObj = {
 export const CutWithQualifyingKeepsAlternates: StoryObj = {
   render: () => mount({ qualifying: 8, initialQualifying: true }),
   play: async ({ canvasElement: root }) => {
-    await user.click(button(root, 'Fit'));
+    await user.click(button(root, 'Alternatives'));
     await user.click(root.querySelector<HTMLButtonElement>('[data-kind="Cut"]')!);
     await expect(control.getEntryChanges()).toHaveLength(12);
     await expect(control.getEntryChanges().every((change) => change.to === ALT && !change.toStage)).toBe(true);
