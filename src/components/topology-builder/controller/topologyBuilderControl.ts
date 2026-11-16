@@ -37,8 +37,8 @@ import {
 
 // constants and types
 import type { FitLever, NodeFit, NodeJourney } from '../ui/structureCard';
-import type { LedgerGroup } from '../domain/drawFit';
 import type { CardSize } from '../engine/topologyStore';
+import type { LedgerGroup } from '../domain/drawFit';
 import type { FooterPanel } from '../ui/footer';
 import type { ModeToggle } from '../ui/toolbar';
 import type {
