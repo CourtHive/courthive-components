@@ -1104,6 +1104,10 @@
 .tb-limits,
 .tb-proposals {
   position: relative;
+  /* As a plain block, the wrapper set its button on a text line, on the baseline and below the footer's centre line,
+     out of line with the unwrapped buttons beside it (CA, 2026-11-16) */
+  display: inline-flex;
+  align-items: center;
 }
 .tb-limits-panel,
 .tb-proposal-panel {

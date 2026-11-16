@@ -217,6 +217,15 @@ export const AnEmptyCanvasOffersNothingToAct: Story = {
     await expect(toolbarButton(canvasElement, 'Auto Layout').disabled).toBe(true);
     await expect(toolbarButton(canvasElement, 'Clear').disabled).toBe(true);
     await expect(canvasElement.querySelector<HTMLButtonElement>(ALTERNATIVES)!.disabled).toBe(true);
+    // the wrapped Alternatives button shares the footer's centre line with the unwrapped Acceptance line
+    const middle = (element: Element) => {
+      const box = element.getBoundingClientRect();
+      return box.top + box.height / 2;
+    };
+    const offset =
+      middle(canvasElement.querySelector(ALTERNATIVES)!) -
+      middle(canvasElement.querySelector('.tb-acceptance-toggle')!);
+    await expect(Math.abs(offset)).toBeLessThan(0.5);
 
     // leaving Fit mode can be undone, and the footer's controls come back
     await user.click(canvasElement.querySelector<HTMLButtonElement>(TOGGLE)!);
