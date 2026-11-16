@@ -6,6 +6,9 @@
 .tb-layout {
   display: flex;
   flex-direction: column;
+  /* Fills a flex host as well as a sized one: the footer sits at the bottom of the page, as the schedule page's does */
+  flex: 1 1 auto;
+  min-height: 0;
   height: 100%;
   background: var(--chc-bg-primary);
   color: var(--chc-text-primary);
@@ -415,11 +418,55 @@
 
 /* ── Editor Panel ────────────────────────────────────────── */
 .tb-editor {
+  display: flex;
+  flex-direction: column;
   width: 250px;
   border-left: 1px solid var(--chc-border-primary);
   background: var(--chc-bg-primary);
-  overflow-y: auto;
   flex-shrink: 0;
+}
+
+.tb-editor[hidden] {
+  display: none;
+}
+
+.tb-editor-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 6px 4px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--chc-text-secondary);
+  border-bottom: 1px solid var(--chc-border-secondary);
+}
+
+.tb-editor-detach {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: var(--chc-text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.tb-editor-detach:hover,
+.tb-editor-detach:focus-visible {
+  color: var(--chc-text-primary);
+  border-color: var(--chc-border-primary);
+}
+
+.tb-editor-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .tb-editor-header {
@@ -604,6 +651,39 @@
   flex: 1;
   font-size: 12px;
   color: var(--chc-text-secondary);
+}
+
+/* Fit mode's ledger: each stage's entries by status, as chips */
+.tb-footer-hint .tb-ledger-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 12px;
+}
+
+.tb-ledger-stage {
+  font-weight: 600;
+  color: var(--chc-text-primary);
+}
+
+.tb-ledger-chip {
+  padding: 1px 8px;
+  border: 1px solid var(--chc-border-secondary);
+  border-radius: 999px;
+  background: var(--chc-bg-secondary);
+  color: var(--chc-text-primary);
+  white-space: nowrap;
+}
+
+.tb-ledger-chip[data-status='ALTERNATE'],
+.tb-ledger-chip[data-status='WITHDRAWN'] {
+  color: var(--chc-text-secondary);
+}
+
+.tb-ledger-chip[data-status='NOT_PLACED'] {
+  border-color: var(--chc-status-warning);
+  color: var(--chc-status-warning);
+  font-weight: 600;
 }
 
 .tb-footer-slot {
@@ -868,6 +948,11 @@
   cursor: pointer;
 }
 
+.tb-proposals-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .tb-acceptance-toggle[aria-expanded='true'] {
   border-color: var(--chc-status-info);
   background: var(--chc-container-info);
@@ -899,7 +984,7 @@
   display: flex;
   flex-direction: column;
   width: 340px;
-  max-height: 50vh;
+  max-height: calc(var(--tb-body-height, 50vh) - 16px);
   border: 1px solid var(--chc-border-primary);
   border-radius: 8px;
   background: var(--chc-bg-primary);
@@ -1026,7 +1111,7 @@
   bottom: calc(100% + 8px);
   left: 0;
   width: min(420px, 80vw);
-  max-height: 50vh;
+  max-height: calc(var(--tb-body-height, 50vh) - 16px);
   overflow: auto;
   padding: 12px;
   border: 1px solid var(--chc-border-primary, #777);

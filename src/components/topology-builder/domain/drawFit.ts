@@ -7,7 +7,7 @@
  * `topologyToDrawOptions`, which makes the draw the fit is asked about: the FIRST main node is the generated main
  * structure, and each qualifying node is passed to the generator under its own name.
  */
-import { drawDefinitionConstants } from 'tods-competition-factory';
+import { drawDefinitionConstants, entryStatusConstants } from 'tods-competition-factory';
 
 import type { DrawFit, FitLedgerStage, StructureFit, TopologyNode, TopologyState } from '../types';
 
@@ -115,6 +115,87 @@ export function ledgerText(fit: DrawFit | undefined): string {
   const notPlaced = fit.notPlaced?.length ?? 0;
   if (notPlaced) lines.push(`${notPlaced} not placed`);
   return lines.length ? lines.join('   |   ') : 'No entries yet';
+}
+
+/** One count in the footer's ledger: `24 DA`, with the status spelled out for its title. */
+export interface LedgerChip {
+  status: string;
+  count: number;
+  label: string;
+  title: string;
+}
+
+/** One stage's chips, or the warning chip for entries the draw has no place for. */
+export interface LedgerGroup {
+  stage: string;
+  label: string;
+  chips: LedgerChip[];
+}
+
+const ALTERNATE = 'ALTERNATE';
+const WITHDRAWN = 'WITHDRAWN';
+const NOT_PLACED = 'NOT_PLACED';
+const SELECTED_STATUSES = new Set<string>(entryStatusConstants.STRUCTURE_SELECTED_STATUSES);
+
+const titleCase = (status: string) => status.charAt(0) + status.slice(1).toLowerCase().replaceAll('_', ' ');
+
+/**
+ * The ledger the factory's fit reports, built from the host's entries instead — for when there is no fit to read:
+ * before a main structure exists the director still needs to see what the event holds (CA, 2026-11-16).
+ */
+export function entryLedger(entries: { entryStage?: string; entryStatus: string }[]): Record<string, FitLedgerStage> {
+  const ledger: Record<string, FitLedgerStage> = {};
+  for (const entry of entries) {
+    const stage = entry.entryStage ?? MAIN;
+    const row = (ledger[stage] ??= { selected: {}, selectedCount: 0, alternates: 0, withdrawn: 0, other: {} });
+    const status = entry.entryStatus;
+    if (SELECTED_STATUSES.has(status)) {
+      row.selected[status] = (row.selected[status] ?? 0) + 1;
+      row.selectedCount += 1;
+    } else if (status === ALTERNATE) row.alternates += 1;
+    else if (status === WITHDRAWN) row.withdrawn += 1;
+    else row.other[status] = (row.other[status] ?? 0) + 1;
+  }
+  return ledger;
+}
+
+/** The footer's ledger as chips: each stage that has entries, main first, then what was not placed. */
+export function ledgerGroups(ledger: Record<string, FitLedgerStage> = {}, notPlaced = 0): LedgerGroup[] {
+  const chip = (status: string, count: number, label: string): LedgerChip => ({
+    status,
+    count,
+    label: `${count} ${label}`,
+    title: `${count} ${titleCase(status)}`
+  });
+  const stages = Object.keys(ledger).sort((a, b) => (a === MAIN ? -1 : b === MAIN ? 1 : a.localeCompare(b)));
+  const groups = stages.map((stage) => {
+    const row = ledger[stage];
+    const chips = [
+      ...Object.entries(row.selected).map(([status, count]) =>
+        chip(status, count, STATUS_ABBREVIATION[status] ?? status)
+      ),
+      ...(row.alternates ? [chip(ALTERNATE, row.alternates, 'ALT')] : []),
+      ...(row.withdrawn ? [chip(WITHDRAWN, row.withdrawn, 'WD')] : []),
+      ...Object.entries(row.other ?? {}).map(([status, count]) =>
+        chip(status, count, STATUS_ABBREVIATION[status] ?? status)
+      )
+    ];
+    return { stage, label: stage === MAIN ? 'Main' : titleCase(stage), chips };
+  });
+  if (notPlaced)
+    groups.push({
+      stage: NOT_PLACED,
+      label: '',
+      chips: [
+        {
+          status: NOT_PLACED,
+          count: notPlaced,
+          label: `${notPlaced} not placed`,
+          title: 'Entries the draw has no position for'
+        }
+      ]
+    });
+  return groups;
 }
 
 const isPowerOf2 = (n: number) => n > 0 && (n & (n - 1)) === 0;

@@ -11,12 +11,15 @@ import { buildFitProposals } from './fitProposals';
 
 // constants and types
 import type { JourneyParticipant, TopologyState, UIPanel } from '../types';
+import type { LedgerGroup } from '../domain/drawFit';
 
 export interface FooterOptions {
   /** How many playoffs the topology could still add, for the Add playoffs mode's hint. */
   countPlayoffOffers?: (state: TopologyState) => number;
   /** The Fit mode's ledger line: the event's entries by stage, and what was not placed. */
   fitLedger?: (state: TopologyState) => string;
+  /** The Fit mode's ledger as chips: how many entries of each status in each stage. Preferred over `fitLedger`. */
+  ledger?: (state: TopologyState) => LedgerGroup[];
   /** Journey mode: the participant search, the choice, and the chosen journey's summary. */
   journey?: {
     search: (query: string) => JourneyParticipant[];
@@ -73,23 +76,55 @@ export function buildFooter(options: FooterOptions = {}): FooterPanel {
     slot
   );
 
+  let renderedGroups: LedgerGroup[] | undefined;
+
   function update(state: TopologyState): void {
     if (search) search.element.hidden = state.mode !== 'journey';
     acceptance.forEach((control) => control.update(state));
     proposals?.update(state);
     sanctionLimits?.update(state);
-    hint.textContent =
-      state.mode === 'addPlayoffs'
-        ? addPlayoffsHint(options.countPlayoffOffers?.(state) ?? 0)
-        : state.mode === 'fit'
-          ? (options.fitLedger?.(state) ?? '')
-          : state.mode === 'journey'
-            ? options.journey?.summary(state) || 'Type a name to follow a participant'
-            : '';
+    const groups = state.mode === 'fit' ? options.ledger?.(state) : undefined;
+    if (groups?.length) {
+      // the same groups (the host caches them) are not rebuilt on each render
+      if (groups !== renderedGroups) hint.replaceChildren(...groups.map(buildLedgerGroup));
+      renderedGroups = groups;
+    } else {
+      renderedGroups = undefined;
+      hint.textContent =
+        state.mode === 'addPlayoffs'
+          ? addPlayoffsHint(options.countPlayoffOffers?.(state) ?? 0)
+          : state.mode === 'fit'
+            ? (options.fitLedger?.(state) ?? '')
+            : state.mode === 'journey'
+              ? options.journey?.summary(state) || 'Type a name to follow a participant'
+              : '';
+    }
     hint.dataset.mode = state.mode ?? 'view';
   }
 
   return { element, slot, update };
+}
+
+/** One stage's label and its chips; the not-placed group is a single warning chip. */
+function buildLedgerGroup(group: LedgerGroup): HTMLElement {
+  const element = document.createElement('span');
+  element.className = 'tb-ledger-group';
+  element.dataset.stage = group.stage;
+  if (group.label) {
+    const label = document.createElement('span');
+    label.className = 'tb-ledger-stage';
+    label.textContent = group.label;
+    element.appendChild(label);
+  }
+  for (const chip of group.chips) {
+    const item = document.createElement('span');
+    item.className = 'tb-ledger-chip';
+    item.dataset.status = chip.status;
+    item.title = chip.title;
+    item.textContent = chip.label;
+    element.appendChild(item);
+  }
+  return element;
 }
 
 function addPlayoffsHint(count: number): string {

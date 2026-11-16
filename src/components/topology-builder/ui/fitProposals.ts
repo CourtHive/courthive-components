@@ -1,16 +1,21 @@
 import type { FitProposal, TopologyState, UIPanel } from '../types';
 
 const EXPANDED = 'aria-expanded';
+const PROPOSALS_TITLE = 'Ways to make the entries fit: cut, grow, feed in or qualify';
 
 export function buildFitProposals(options: {
   proposals: (state: TopologyState) => { proposals?: FitProposal[]; error?: unknown };
   choose: (proposal: FitProposal) => void;
+  /** Why there is nothing to propose yet, or nothing when there is: the button is disabled and its title says why. */
+  unavailable?: (state: TopologyState) => string | undefined;
 }): UIPanel<TopologyState> {
   const element = document.createElement('div');
   element.className = 'tb-proposals';
   const toggle = document.createElement('button');
   toggle.type = 'button';
-  toggle.textContent = 'Fit';
+  // Not "Fit": the toolbar's mode toggle is Fit, and two buttons of one name doing different things confused (CA, 2026-11-16)
+  toggle.textContent = 'Alternatives';
+  toggle.title = PROPOSALS_TITLE;
   toggle.className = 'tb-proposals-toggle';
   toggle.setAttribute(EXPANDED, 'false');
   const panel = document.createElement('div');
@@ -71,7 +76,10 @@ export function buildFitProposals(options: {
     update(next) {
       state = next;
       element.hidden = state.mode !== 'fit';
-      if (element.hidden) close();
+      const reason = element.hidden ? undefined : options.unavailable?.(state);
+      toggle.disabled = !!reason;
+      toggle.title = reason ?? PROPOSALS_TITLE;
+      if (element.hidden || reason) close();
       else if (!panel.hidden) show();
     }
   };
