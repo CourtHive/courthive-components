@@ -81,9 +81,12 @@ interface FlightProfileConfig {
     eventTypeLabel?: string;
     splitMethodLabel?: string;
     flightNamesLabel?: string;
+    noRatingsLabel?: string;
   };
   options?: {
     eventTypes?: string[];
+    // the rating systems offered (default: every system), e.g. only those the participants hold;
+    // empty disables the Rating strategy and selects Ranking
     ratingTypes?: string[];
   };
   eventType?: string; // Pre-set event type from parent context

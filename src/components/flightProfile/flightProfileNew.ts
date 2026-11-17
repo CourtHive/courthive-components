@@ -38,12 +38,15 @@ export interface FlightProfileConfig {
     flightNamesLabel?: string;
     ratingMinLabel?: string;
     ratingMaxLabel?: string;
+    /** The Rating strategy's label when no rating system is offered (`options.ratingTypes` is empty). */
+    noRatingsLabel?: string;
     cancel?: string;
     ok?: string;
     existingNote?: string;
   };
   options?: {
     eventTypes?: string[];
+    // the rating systems offered (default: every system); TMX gives those its participants hold. Empty disables Rating
     ratingTypes?: string[];
     // fewest flights allowed (default 2); 1 lets a caller make a single flight, e.g. a rating band's top flight
     minFlights?: number;

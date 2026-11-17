@@ -2,9 +2,11 @@
  * Fit mode's reading of `getDrawFit`: which node is which structure, what a card and the footer say, what a lever does.
  */
 import {
+  entryLedger,
   fitByNode,
   fitKey,
   fitSentence,
+  ledgerGroups,
   ledgerText,
   steppedDrawSize,
   steppedQualifiers,
@@ -113,6 +115,44 @@ describe('what a card and the footer say', () => {
     };
     expect(ledgerText(fit)).toBe('Main  24 DA · 4 WC · 6 ALT · 2 WD   |   Qualifying  12 DA   |   1 not placed');
     expect(ledgerText({ ledger: {} })).toBe('No entries yet');
+  });
+
+  it('counts the host entries by stage and status when there is no fit to read', () => {
+    const ledger = entryLedger([
+      { entryStatus: 'DIRECT_ACCEPTANCE' },
+      { entryStatus: 'DIRECT_ACCEPTANCE', entryStage: 'MAIN' },
+      { entryStatus: 'WILDCARD' },
+      { entryStatus: 'ALTERNATE' },
+      { entryStatus: 'WITHDRAWN' },
+      { entryStatus: 'UNGROUPED' },
+      { entryStatus: 'DIRECT_ACCEPTANCE', entryStage: 'QUALIFYING' }
+    ]);
+    expect(ledger.MAIN).toEqual({
+      selected: { DIRECT_ACCEPTANCE: 2, WILDCARD: 1 },
+      selectedCount: 3,
+      alternates: 1,
+      withdrawn: 1,
+      other: { UNGROUPED: 1 }
+    });
+    expect(ledger.QUALIFYING.selectedCount).toBe(1);
+    expect(entryLedger([])).toEqual({});
+  });
+
+  it('reads the ledger as chips: main first, each status, then what was not placed', () => {
+    const groups = ledgerGroups(
+      entryLedger([
+        { entryStatus: 'DIRECT_ACCEPTANCE', entryStage: 'QUALIFYING' },
+        { entryStatus: 'DIRECT_ACCEPTANCE' },
+        { entryStatus: 'ALTERNATE' },
+        { entryStatus: 'WITHDRAWN' }
+      ]),
+      3
+    );
+    expect(groups.map((group) => group.label)).toEqual(['Main', 'Qualifying', '']);
+    expect(groups[0].chips.map((chip) => chip.label)).toEqual(['1 DA', '1 ALT', '1 WD']);
+    expect(groups[0].chips[0].title).toBe('1 Direct acceptance');
+    expect(groups[2].chips).toEqual([expect.objectContaining({ status: 'NOT_PLACED', label: '3 not placed' })]);
+    expect(ledgerGroups({})).toEqual([]);
   });
 });
 

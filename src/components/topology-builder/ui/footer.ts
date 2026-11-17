@@ -5,18 +5,23 @@ import { buildSanctionLimits } from './sanctionLimits';
  * Left, what the current mode asks of the operator; right, a slot the host fills (`getFooterSlot`) — where a mode's
  * own controls go, starting with fitting an event's entries to the topology.
  */
+import { buildFloatingInspector } from '../../schedule-page/ui/floatingInspector';
 import { buildAcceptancePanel, type AcceptanceOptions } from './acceptanceLine';
 import { changeSummary } from '../domain/acceptanceLine';
 import { buildFitProposals } from './fitProposals';
 
 // constants and types
 import type { JourneyParticipant, TopologyState, UIPanel } from '../types';
+import type { InspectorGeometry } from '../../schedule-page/types';
+import type { LedgerGroup } from '../domain/drawFit';
 
 export interface FooterOptions {
   /** How many playoffs the topology could still add, for the Add playoffs mode's hint. */
   countPlayoffOffers?: (state: TopologyState) => number;
   /** The Fit mode's ledger line: the event's entries by stage, and what was not placed. */
   fitLedger?: (state: TopologyState) => string;
+  /** The Fit mode's ledger as chips: how many entries of each status in each stage. Preferred over `fitLedger`. */
+  ledger?: (state: TopologyState) => LedgerGroup[];
   /** Journey mode: the participant search, the choice, and the chosen journey's summary. */
   journey?: {
     search: (query: string) => JourneyParticipant[];
@@ -69,27 +74,63 @@ export function buildFooter(options: FooterOptions = {}): FooterPanel {
     ...(search ? [search.element] : []),
     ...acceptance.map((control) => control.toggle),
     hint,
-    ...acceptance.flatMap((control) => [control.pending, control.panel.element]),
+    ...acceptance.flatMap((control) => [control.pending, control.floating.element]),
     slot
   );
+
+  let renderedGroups: LedgerGroup[] | undefined;
 
   function update(state: TopologyState): void {
     if (search) search.element.hidden = state.mode !== 'journey';
     acceptance.forEach((control) => control.update(state));
     proposals?.update(state);
     sanctionLimits?.update(state);
-    hint.textContent =
-      state.mode === 'addPlayoffs'
-        ? addPlayoffsHint(options.countPlayoffOffers?.(state) ?? 0)
-        : state.mode === 'fit'
-          ? (options.fitLedger?.(state) ?? '')
-          : state.mode === 'journey'
-            ? options.journey?.summary(state) || 'Type a name to follow a participant'
-            : '';
+    const groups = state.mode === 'fit' ? options.ledger?.(state) : undefined;
+    if (groups?.length) {
+      // the same groups (the host caches them) are not rebuilt on each render
+      if (groups !== renderedGroups) hint.replaceChildren(...groups.map(buildLedgerGroup));
+      renderedGroups = groups;
+    } else {
+      renderedGroups = undefined;
+      hint.textContent =
+        state.mode === 'addPlayoffs'
+          ? addPlayoffsHint(options.countPlayoffOffers?.(state) ?? 0)
+          : state.mode === 'fit'
+            ? (options.fitLedger?.(state) ?? '')
+            : state.mode === 'journey'
+              ? options.journey?.summary(state) || 'Type a name to follow a participant'
+              : '';
+    }
     hint.dataset.mode = state.mode ?? 'view';
   }
 
-  return { element, slot, update };
+  function destroy(): void {
+    acceptance.forEach((control) => control.floating.destroy());
+  }
+
+  return { element, slot, update, destroy };
+}
+
+/** One stage's label and its chips; the not-placed group is a single warning chip. */
+function buildLedgerGroup(group: LedgerGroup): HTMLElement {
+  const element = document.createElement('span');
+  element.className = 'tb-ledger-group';
+  element.dataset.stage = group.stage;
+  if (group.label) {
+    const label = document.createElement('span');
+    label.className = 'tb-ledger-stage';
+    label.textContent = group.label;
+    element.appendChild(label);
+  }
+  for (const chip of group.chips) {
+    const item = document.createElement('span');
+    item.className = 'tb-ledger-chip';
+    item.dataset.status = chip.status;
+    item.title = chip.title;
+    item.textContent = chip.label;
+    element.appendChild(item);
+  }
+  return element;
 }
 
 function addPlayoffsHint(count: number): string {
@@ -139,9 +180,13 @@ function buildJourneySearch(journey: NonNullable<FooterOptions['journey']>): { e
   return { element };
 }
 
+// Where each stage's line was left, for the next time it is opened in this session
+const lineGeometry = new Map<string, InspectorGeometry>();
+
 /**
  * Fit mode's acceptance line in the footer: the button that opens the panel, and the pending changes with Discard.
- * The panel opens above the footer, over the canvas, so the cards' gauges stay in view while the line moves.
+ * The panel floats as the schedule page's inspector does (CA, 2026-11-16): moved and resized off the cards whose
+ * gauges answer it, rather than pinned over them.
  */
 function buildAcceptanceControls(options: AcceptanceOptions) {
   const toggle = document.createElement('button');
@@ -162,12 +207,28 @@ function buildAcceptanceControls(options: AcceptanceOptions) {
   pending.append(summary, discard);
 
   const panel = buildAcceptancePanel(options);
+  const stage = options.stage ?? 'MAIN';
+  const title = `${stage === 'QUALIFYING' ? 'Qualifying' : 'Acceptance'} line`;
+  const floating = buildFloatingInspector(panel.element, {
+    title,
+    label: title,
+    geometry: lineGeometry.get(stage),
+    size: { width: 340, height: 560 },
+    // first opened, a line sits on the canvas, clear of the builder's toolbar wherever the host puts the builder
+    anchor: () => toggle.closest('.tb-layout')?.querySelector('.tb-body')?.getBoundingClientRect(),
+    onGeometryChange: (geometry) => lineGeometry.set(stage, geometry),
+    onClose: () => setOpen(false)
+  });
+  floating.element.classList.add('tb-acceptance-floating');
+  floating.content.appendChild(panel.element);
   let open = false;
   let last: TopologyState | undefined;
   const setOpen = (next: boolean) => {
     open = next;
     toggle.setAttribute('aria-expanded', String(open));
+    if (open) floating.rememberFocus();
     panel.element.hidden = !open;
+    floating.setVisible(open);
     if (open && last) panel.update(last);
   };
   toggle.addEventListener('click', () => setOpen(!open));
@@ -189,5 +250,5 @@ function buildAcceptanceControls(options: AcceptanceOptions) {
     if (open) panel.update(state);
   }
 
-  return { toggle, pending, panel, update, close: () => setOpen(false) };
+  return { toggle, pending, panel, floating, update, close: () => setOpen(false) };
 }

@@ -23,6 +23,20 @@
   display: inline-flex;
 }
 
+/* A split button: the main action and the caret that opens the menu, joined as one control */
+.dropdown-split .dropdown-split-main {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.dropdown-split .dropdown-split-toggle {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  margin-left: 1px;
+  padding-left: 0.6em;
+  padding-right: 0.6em;
+}
+
 .dropdown-menu {
   display: none;
   left: 0;

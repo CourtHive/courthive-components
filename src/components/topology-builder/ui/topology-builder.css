@@ -6,6 +6,9 @@
 .tb-layout {
   display: flex;
   flex-direction: column;
+  /* Fills a flex host as well as a sized one: the footer sits at the bottom of the page, as the schedule page's does */
+  flex: 1 1 auto;
+  min-height: 0;
   height: 100%;
   background: var(--chc-bg-primary);
   color: var(--chc-text-primary);
@@ -49,9 +52,22 @@
   gap: 4px;
 }
 
-.tb-toolbar-wrapper .options_right {
-  flex-grow: 1;
+.tb-toolbar-wrapper .buttonBar {
   flex-wrap: wrap;
+}
+
+.tb-toolbar-wrapper .options_left,
+.tb-toolbar-wrapper .options_right {
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.tb-toolbar-wrapper .options_center {
+  display: none;
+}
+
+.tb-toolbar-wrapper .options_right {
   justify-content: flex-end;
 }
 
@@ -415,11 +431,55 @@
 
 /* ── Editor Panel ────────────────────────────────────────── */
 .tb-editor {
+  display: flex;
+  flex-direction: column;
   width: 250px;
   border-left: 1px solid var(--chc-border-primary);
   background: var(--chc-bg-primary);
-  overflow-y: auto;
   flex-shrink: 0;
+}
+
+.tb-editor[hidden] {
+  display: none;
+}
+
+.tb-editor-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 6px 4px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--chc-text-secondary);
+  border-bottom: 1px solid var(--chc-border-secondary);
+}
+
+.tb-editor-detach {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: var(--chc-text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.tb-editor-detach:hover,
+.tb-editor-detach:focus-visible {
+  color: var(--chc-text-primary);
+  border-color: var(--chc-border-primary);
+}
+
+.tb-editor-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .tb-editor-header {
@@ -534,8 +594,6 @@
 /* Chips for the playoffs a structure can still feed (CA, 2026-11-08). Dashed: a structure that does not exist yet. */
 .tb-mode-toggle {
   align-self: center;
-  /* clear of the toolbar's edge, where its border was clipped */
-  margin: 4px 8px;
 }
 
 .tb-card-offers {
@@ -604,6 +662,39 @@
   flex: 1;
   font-size: 12px;
   color: var(--chc-text-secondary);
+}
+
+/* Fit mode's ledger: each stage's entries by status, as chips */
+.tb-footer-hint .tb-ledger-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 12px;
+}
+
+.tb-ledger-stage {
+  font-weight: 600;
+  color: var(--chc-text-primary);
+}
+
+.tb-ledger-chip {
+  padding: 1px 8px;
+  border: 1px solid var(--chc-border-secondary);
+  border-radius: 999px;
+  background: var(--chc-bg-secondary);
+  color: var(--chc-text-primary);
+  white-space: nowrap;
+}
+
+.tb-ledger-chip[data-status='ALTERNATE'],
+.tb-ledger-chip[data-status='WITHDRAWN'] {
+  color: var(--chc-text-secondary);
+}
+
+.tb-ledger-chip[data-status='NOT_PLACED'] {
+  border-color: var(--chc-status-warning);
+  color: var(--chc-status-warning);
+  font-weight: 600;
 }
 
 .tb-footer-slot {
@@ -868,6 +959,11 @@
   cursor: pointer;
 }
 
+.tb-proposals-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .tb-acceptance-toggle[aria-expanded='true'] {
   border-color: var(--chc-status-info);
   background: var(--chc-container-info);
@@ -892,18 +988,30 @@
 }
 
 .tb-acceptance {
-  position: absolute;
-  right: 12px;
-  bottom: calc(100% + 6px);
-  z-index: 5;
+  /* the floating inspector places and sizes it; the panel fills the inspector's content */
   display: flex;
   flex-direction: column;
-  width: 340px;
-  max-height: 50vh;
-  border: 1px solid var(--chc-border-primary);
-  border-radius: 8px;
+  height: 100%;
+  min-height: 0;
   background: var(--chc-bg-primary);
-  box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
+  color: var(--chc-text-primary);
+}
+
+/* The builder's floating windows (properties, acceptance lines) set their own type: outside the schedule page's layout
+   the inspector's title inherited the host page's size, 22px in TMX (CA, 2026-11-16) */
+.tb-layout .spl-floating-inspector {
+  font-size: 13px;
+  color: var(--chc-text-primary);
+}
+
+.tb-layout .spl-floating-header strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* the inspector's header names the line; the panel's own title would repeat it */
+.tb-acceptance-floating .tb-acceptance-title {
+  display: none;
 }
 
 .tb-acceptance[hidden] {
@@ -931,6 +1039,8 @@
 
 .tb-acceptance-list {
   position: relative;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 4px 0 12px;
 }
@@ -1019,6 +1129,10 @@
 .tb-limits,
 .tb-proposals {
   position: relative;
+  /* As a plain block, the wrapper set its button on a text line, on the baseline and below the footer's centre line,
+     out of line with the unwrapped buttons beside it (CA, 2026-11-16) */
+  display: inline-flex;
+  align-items: center;
 }
 .tb-limits-panel,
 .tb-proposal-panel {
@@ -1026,7 +1140,7 @@
   bottom: calc(100% + 8px);
   left: 0;
   width: min(420px, 80vw);
-  max-height: 50vh;
+  max-height: calc(var(--tb-body-height, 50vh) - 16px);
   overflow: auto;
   padding: 12px;
   border: 1px solid var(--chc-border-primary, #777);

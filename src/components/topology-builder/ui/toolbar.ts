@@ -7,6 +7,8 @@ import { validateTopology } from '../domain/topologyValidator';
 import type { TopologyMode, TopologyState, TopologyTemplate, UIPanel } from '../types';
 
 const { MAIN, QUALIFYING, CONSOLATION, PLAY_OFF, LUCKY_DRAW } = drawDefinitionConstants;
+const LEFT = 'left';
+const RIGHT = 'right';
 
 export interface ToolbarCallbacks {
   onAddStructure: (stage: string, structureType?: string) => void;
@@ -66,7 +68,7 @@ export function buildToolbar(
   const toggles = (callbacks.onSetMode ? (callbacks.modes ?? []) : []).map((modeToggle) => {
     const toggle = document.createElement('button');
     toggle.type = 'button';
-    toggle.className = 'button is-small tb-mode-toggle';
+    toggle.className = 'button font-medium tb-mode-toggle';
     toggle.dataset.mode = modeToggle.mode;
     toggle.textContent = modeToggle.label;
     toggle.setAttribute(ARIA_PRESSED, 'false');
@@ -74,7 +76,6 @@ export function buildToolbar(
       const active = toggle.getAttribute(ARIA_PRESSED) === 'true';
       callbacks.onSetMode!(active ? 'view' : modeToggle.mode);
     });
-    topRow.appendChild(toggle);
     return { toggle, modeToggle };
   });
 
@@ -132,7 +133,7 @@ export function buildToolbar(
       { label: 'Consolation', value: CONSOLATION, onClick: () => callbacks.onAddStructure(CONSOLATION), close: true },
       { label: 'Playoff', value: PLAY_OFF, onClick: () => callbacks.onAddStructure(PLAY_OFF), close: true }
     ];
-    items.push({ label: 'Add Structure', location: 'right', options: stageOptions });
+    items.push({ label: 'Add Structure', location: LEFT, options: stageOptions });
   }
 
   if (!options.hideTemplates && templates.length > 0) {
@@ -145,24 +146,36 @@ export function buildToolbar(
       },
       close: true
     }));
-    items.push({ label: 'Templates', location: 'right', options: templateOptions });
+    items.push({ label: 'Templates', location: LEFT, options: templateOptions });
   }
 
+  // Each action is enabled only while there is something for it to act on (CA, 2026-11-16); the ids reach the buttons
+  // in `update`, suffixed so two builders on one page do not share them
+  const suffix = Math.random().toString(36).slice(2, 8);
+  const ids = {
+    clear: `tb-clear-${suffix}`,
+    autoLayout: `tb-auto-layout-${suffix}`,
+    validate: `tb-validate-${suffix}`,
+    saveTemplate: `tb-save-template-${suffix}`,
+    generate: `tb-generate-${suffix}`
+  };
+
   if (!options.readOnly && callbacks.onClear) {
-    items.push({ label: 'Clear', location: 'right', onClick: () => callbacks.onClear!() });
+    items.push({ id: ids.clear, label: 'Clear', location: LEFT, onClick: () => callbacks.onClear!() });
   }
 
   if (!options.readOnly) {
     items.push(
-      { label: 'Auto Layout', location: 'right', onClick: () => callbacks.onAutoLayout() },
-      { label: 'Validate', location: 'right', onClick: () => showValidation() }
+      { id: ids.autoLayout, label: 'Auto Layout', location: LEFT, onClick: () => callbacks.onAutoLayout() },
+      { id: ids.validate, label: 'Validate', location: LEFT, onClick: () => showValidation() }
     );
   }
 
   if (!options.readOnly && callbacks.onSaveTemplate) {
     items.push({
+      id: ids.saveTemplate,
       label: 'Save Template',
-      location: 'right',
+      location: RIGHT,
       intent: 'is-success',
       onClick: () => callbacks.onSaveTemplate!()
     });
@@ -170,17 +183,39 @@ export function buildToolbar(
 
   if (!options.readOnly && !options.hideGenerate) {
     items.push({
+      id: ids.generate,
       label: 'Generate Draw',
-      location: 'right',
+      location: RIGHT,
       intent: 'is-success',
       onClick: () => callbacks.onGenerate()
     });
   }
 
-  controlBar({ target, items });
+  const { elements } = controlBar({ target, items });
+
+  // One row (CA, 2026-11-16): the editing controls on the left; on the right the modes, then Save Template and
+  // Generate Draw. The mode toggles join the bar's right group, ahead of its buttons, so the row wraps as one.
+  const rightGroup = target.querySelector<HTMLElement>('.options_right');
+  rightGroup?.prepend(...toggles.map(({ toggle }) => toggle));
+
+  const enable = (id: string, reason: string | undefined, title?: string) => {
+    const button = elements[id] as HTMLButtonElement | undefined;
+    if (!button) return;
+    button.disabled = !!reason;
+    button.title = reason ?? title ?? '';
+  };
 
   function update(state: TopologyState): void {
     lastState = state;
+    const empty = !state.nodes.length;
+    enable(ids.clear, empty && !state.edges.length ? 'Nothing to clear' : undefined);
+    enable(ids.autoLayout, state.nodes.length < 2 ? 'Auto layout arranges two or more structures' : undefined);
+    enable(ids.validate, empty ? 'Add a structure to validate' : undefined);
+    enable(ids.saveTemplate, empty ? 'Add a structure to save as a template' : undefined);
+    if (elements[ids.generate]) {
+      const blocking = validateTopology(state).find((error) => error.severity === 'error');
+      enable(ids.generate, blocking?.message, 'Generate the draw this topology describes');
+    }
     for (const { toggle, modeToggle } of toggles) {
       const active = state.mode === modeToggle.mode;
       const reason = active ? undefined : modeToggle.unavailable?.(state);

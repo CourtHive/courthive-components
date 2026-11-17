@@ -1,3 +1,5 @@
+import './floating-inspector.css';
+
 import type { InspectorGeometry } from '../types';
 
 const ARIA_LABEL = 'aria-label';
@@ -30,11 +32,39 @@ export function clampInspectorGeometry(
   };
 }
 
+/**
+ * Where a panel with no remembered place opens: inside its host's area (a page whose own chrome sits lower than the
+ * window's top), at the area's top right, no taller than the area. Without an area, the window's default.
+ */
+export function anchoredInspectorGeometry(
+  size: Partial<InspectorGeometry>,
+  area: { top: number; right: number; bottom: number } | undefined,
+  width: number,
+  height: number
+): InspectorGeometry {
+  if (!area) return clampInspectorGeometry(size, width, height);
+  const w = Math.min(Math.max(280, size.width ?? 340), Math.max(1, width - 16));
+  const room = area.bottom - area.top - 16;
+  const h = room >= 180 ? Math.min(size.height ?? 380, room) : size.height;
+  return clampInspectorGeometry({ width: w, height: h, top: area.top + 8, left: area.right - w - 8 }, width, height);
+}
+
 interface FloatingInspectorOptions {
   geometry?: InspectorGeometry;
+  /** The size a panel with no remembered geometry opens at. */
+  size?: Partial<InspectorGeometry>;
+  /**
+   * The area a panel with no remembered geometry opens in, asked when it is first shown (and on Reset position): the
+   * topology builder's canvas, so a panel never opens over the builder's own toolbar.
+   */
+  anchor?: () => { top: number; right: number; bottom: number } | undefined;
   onGeometryChange?: (geometry: InspectorGeometry) => void;
   onClose: () => void;
-  onDock: () => void;
+  /** Without it there is no Dock button: a panel with nowhere to dock, such as the topology's acceptance lines. */
+  onDock?: () => void;
+  /** The header's text and the dialog's accessible name; the topology builder floats its properties pane too. */
+  title?: string;
+  label?: string;
 }
 
 /** A non-modal host. The caller owns selection, content, visibility and persistence. */
@@ -42,14 +72,14 @@ export function buildFloatingInspector(panel: HTMLElement, options: FloatingInsp
   const element = document.createElement('section');
   element.className = 'spl-floating-inspector';
   element.setAttribute('role', 'dialog');
-  element.setAttribute(ARIA_LABEL, 'MatchUp inspector');
+  element.setAttribute(ARIA_LABEL, options.label ?? 'MatchUp inspector');
   element.hidden = true;
   const header = document.createElement('div');
   header.className = 'spl-floating-header';
   header.tabIndex = 0;
   header.setAttribute(ARIA_LABEL, 'Move inspector with arrow keys');
   const title = document.createElement('strong');
-  title.textContent = 'Inspector';
+  title.textContent = options.title ?? 'Inspector';
   header.appendChild(title);
   let returnFocus: HTMLElement | null = null;
   function button(label: string, icon: string, action: () => void): HTMLButtonElement {
@@ -63,14 +93,17 @@ export function buildFloatingInspector(panel: HTMLElement, options: FloatingInsp
     header.appendChild(button);
     return button;
   }
+  const placeByAnchor = () =>
+    anchoredInspectorGeometry(options.size ?? {}, options.anchor?.(), globalThis.innerWidth, globalThis.innerHeight);
   button('Reset position', RESET_ICON, () => {
-    geometry = clampInspectorGeometry({}, globalThis.innerWidth, globalThis.innerHeight);
+    geometry = placeByAnchor();
     paint(true);
   });
-  button('Dock', DOCK_ICON, () => {
-    options.onDock();
-    returnFocus?.focus();
-  });
+  if (options.onDock)
+    button('Dock', DOCK_ICON, () => {
+      options.onDock!();
+      returnFocus?.focus();
+    });
   button('Close', CLOSE_ICON, () => {
     options.onClose();
     returnFocus?.focus();
@@ -83,7 +116,13 @@ export function buildFloatingInspector(panel: HTMLElement, options: FloatingInsp
   resize.textContent = '↘';
   resize.setAttribute(ARIA_LABEL, 'Resize inspector with arrow keys');
   element.append(header, content, resize);
-  let geometry = clampInspectorGeometry(options.geometry ?? {}, globalThis.innerWidth, globalThis.innerHeight);
+  let geometry = clampInspectorGeometry(
+    options.geometry ?? options.size ?? {},
+    globalThis.innerWidth,
+    globalThis.innerHeight
+  );
+  // a remembered place is kept; otherwise the anchor places the panel the first time it is shown
+  let placed = !!options.geometry || !options.anchor;
   let drag: {
     id: number;
     x: number;
@@ -149,6 +188,10 @@ export function buildFloatingInspector(panel: HTMLElement, options: FloatingInsp
   let listening = false;
   function setVisible(visible: boolean): void {
     element.hidden = !visible;
+    if (visible && !placed) {
+      geometry = placeByAnchor();
+      placed = true;
+    }
     if (visible && !listening) {
       globalThis.addEventListener('resize', onResize);
       paint();

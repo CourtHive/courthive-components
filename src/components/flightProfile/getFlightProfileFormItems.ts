@@ -78,6 +78,15 @@ export function getFlightProfileFormItems({
     }
   }
 
+  // The rating systems offered: a caller can give only those its participants hold (TMX, CA 2026-11-17), so the
+  // selector never offers a system nobody can be flighted by. Every system when it does not say.
+  const ratingSystems: string[] = editorConfig.options?.ratingTypes ?? RATING_SYSTEMS;
+  const noRatings = !ratingSystems.length;
+  if (!isExisting) {
+    if (!ratingSystems.includes(initialState.scaleName as string)) initialState.scaleName = ratingSystems[0];
+    if (noRatings) initialState.scaleType = RANKING as 'RANKING';
+  }
+
   const minFlights = editorConfig.options?.minFlights ?? 2;
   const ratingBand = !!editorConfig.options?.ratingBand;
 
@@ -125,7 +134,12 @@ export function getFlightProfileFormItems({
     },
     {
       options: [
-        { label: 'Rating', value: RATING, selected: initialState.scaleType === RATING },
+        {
+          label: noRatings ? editorConfig.labels?.noRatingsLabel || 'Rating (no ratings present)' : 'Rating',
+          selected: initialState.scaleType === RATING,
+          disabled: noRatings,
+          value: RATING
+        },
         { label: 'Ranking', value: RANKING, selected: initialState.scaleType === RANKING }
       ],
       label: editorConfig.labels?.scaleTypeLabel || 'Flighting Strategy',
@@ -134,7 +148,7 @@ export function getFlightProfileFormItems({
       hide: isExisting
     },
     {
-      options: RATING_SYSTEMS.map((system) => ({
+      options: ratingSystems.map((system) => ({
         label: system,
         value: system,
         selected: system === initialState.scaleName
