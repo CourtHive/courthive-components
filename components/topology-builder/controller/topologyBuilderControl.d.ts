@@ -37,6 +37,12 @@ export declare class TopologyBuilderControl {
     private proposalCache?;
     private currentProposals;
     private applyFitProposal;
+    /**
+     * The footer's ledger: the factory's when the fit has one, else the host's entries counted as they stand with the
+     * pending changes — so the director sees what the event holds before any structure exists (CA, 2026-11-16).
+     */
+    private ledger;
+    private ledgerCache?;
     private effectiveLimits;
     /** A Fit mode lever: the topology changes, and the next render asks the host for the new fit. */
     private applyFitLever;

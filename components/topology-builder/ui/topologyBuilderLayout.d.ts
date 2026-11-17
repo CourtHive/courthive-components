@@ -1,5 +1,5 @@
-import { FooterPanel } from './footer';
 import { TopologyState, UIPanel } from '../types';
+import { FooterPanel } from './footer';
 export declare function buildTopologyBuilderLayout({ toolbar, canvas, nodeEditor, edgeEditor, footer }: {
     toolbar: UIPanel<TopologyState>;
     canvas: UIPanel<TopologyState>;

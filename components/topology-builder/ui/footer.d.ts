@@ -2,11 +2,14 @@ import { buildSanctionLimits } from './sanctionLimits';
 import { AcceptanceOptions } from './acceptanceLine';
 import { buildFitProposals } from './fitProposals';
 import { JourneyParticipant, TopologyState, UIPanel } from '../types';
+import { LedgerGroup } from '../domain/drawFit';
 export interface FooterOptions {
     /** How many playoffs the topology could still add, for the Add playoffs mode's hint. */
     countPlayoffOffers?: (state: TopologyState) => number;
     /** The Fit mode's ledger line: the event's entries by stage, and what was not placed. */
     fitLedger?: (state: TopologyState) => string;
+    /** The Fit mode's ledger as chips: how many entries of each status in each stage. Preferred over `fitLedger`. */
+    ledger?: (state: TopologyState) => LedgerGroup[];
     /** Journey mode: the participant search, the choice, and the chosen journey's summary. */
     journey?: {
         search: (query: string) => JourneyParticipant[];

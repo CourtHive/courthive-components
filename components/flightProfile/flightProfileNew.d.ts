@@ -12,6 +12,8 @@ export interface FlightProfileConfig {
         flightNamesLabel?: string;
         ratingMinLabel?: string;
         ratingMaxLabel?: string;
+        /** The Rating strategy's label when no rating system is offered (`options.ratingTypes` is empty). */
+        noRatingsLabel?: string;
         cancel?: string;
         ok?: string;
         existingNote?: string;
