@@ -5,7 +5,7 @@ import { buildSanctionLimits } from './sanctionLimits';
  * Left, what the current mode asks of the operator; right, a slot the host fills (`getFooterSlot`) — where a mode's
  * own controls go, starting with fitting an event's entries to the topology.
  */
-import { buildFloatingInspector, clampInspectorGeometry } from '../../schedule-page/ui/floatingInspector';
+import { buildFloatingInspector } from '../../schedule-page/ui/floatingInspector';
 import { buildAcceptancePanel, type AcceptanceOptions } from './acceptanceLine';
 import { changeSummary } from '../domain/acceptanceLine';
 import { buildFitProposals } from './fitProposals';
@@ -212,9 +212,10 @@ function buildAcceptanceControls(options: AcceptanceOptions) {
   const floating = buildFloatingInspector(panel.element, {
     title,
     label: title,
-    geometry:
-      lineGeometry.get(stage) ??
-      clampInspectorGeometry({ width: 340, height: 560 }, globalThis.innerWidth, globalThis.innerHeight),
+    geometry: lineGeometry.get(stage),
+    size: { width: 340, height: 560 },
+    // first opened, a line sits on the canvas, clear of the builder's toolbar wherever the host puts the builder
+    anchor: () => toggle.closest('.tb-layout')?.querySelector('.tb-body')?.getBoundingClientRect(),
     onGeometryChange: (geometry) => lineGeometry.set(stage, geometry),
     onClose: () => setOpen(false)
   });
