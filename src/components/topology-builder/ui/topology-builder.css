@@ -997,6 +997,18 @@
   color: var(--chc-text-primary);
 }
 
+/* The builder's floating windows (properties, acceptance lines) set their own type: outside the schedule page's layout
+   the inspector's title inherited the host page's size, 22px in TMX (CA, 2026-11-16) */
+.tb-layout .spl-floating-inspector {
+  font-size: 13px;
+  color: var(--chc-text-primary);
+}
+
+.tb-layout .spl-floating-header strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+
 /* the inspector's header names the line; the panel's own title would repeat it */
 .tb-acceptance-floating .tb-acceptance-title {
   display: none;
