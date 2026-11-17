@@ -1,0 +1,64 @@
+/* The floating inspector: a movable, resizable, non-modal window (floatingInspector.ts). Used by the schedule
+   page's inspector and the topology builder's properties pane and acceptance lines. */
+.spl-floating-inspector {
+  position: fixed;
+  z-index: 950;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--sp-line);
+  border-radius: 12px;
+  background: var(--sp-panel-bg);
+  box-shadow: var(--sp-panel-shadow);
+}
+.spl-floating-inspector[hidden] {
+  display: none;
+}
+.spl-floating-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  cursor: move;
+  touch-action: none;
+  background: var(--sp-chip-bg);
+}
+.spl-floating-header strong {
+  flex: 1;
+}
+.spl-floating-header button,
+.spl-floating-resize {
+  color: var(--sp-text);
+  background: var(--sp-panel-bg);
+  border: 1px solid var(--sp-line);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.6875rem;
+}
+.spl-floating-header .spl-floating-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: var(--sp-muted);
+  background: transparent;
+  border-color: transparent;
+}
+.spl-floating-header .spl-floating-icon:hover,
+.spl-floating-header .spl-floating-icon:focus-visible {
+  color: var(--sp-text);
+  background: var(--sp-panel-bg);
+  border-color: var(--sp-line);
+}
+.spl-floating-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.spl-floating-resize {
+  align-self: flex-end;
+  cursor: nwse-resize;
+  touch-action: none;
+}

@@ -130,6 +130,7 @@ export function buildTopologyBuilderLayout({
   function destroy(): void {
     observer?.disconnect();
     floating.destroy();
+    footer?.destroy?.();
     toolbar.destroy?.();
     canvas.destroy?.();
     nodeEditor.destroy?.();

@@ -201,6 +201,9 @@ const toolbarButton = (root: HTMLElement, label: string) =>
   )!;
 const ALTERNATIVES = '.tb-proposals-toggle';
 const GENERATE = 'Generate Draw';
+const ADD_STRUCTURE = 'Add Structure';
+const AUTO_LAYOUT = 'Auto Layout';
+const CLEAR = 'Clear';
 
 export const AnEmptyCanvasOffersNothingToAct: Story = {
   render: () => {
@@ -211,11 +214,19 @@ export const AnEmptyCanvasOffersNothingToAct: Story = {
     // the entries are counted before any structure exists
     await expect(ledger(canvasElement)).toBe('Main  24 DA · 4 WC · 6 ALT · 2 WD   |   Qualifying  12 DA');
 
+    // one row: the editing controls on the left; the mode, Save Template and Generate Draw on the right
+    const group = (label: string) =>
+      toolbarButton(canvasElement, label).closest('.options_left, .options_right')!.className;
+    for (const label of [ADD_STRUCTURE, CLEAR, AUTO_LAYOUT, 'Validate'])
+      await expect(group(label)).toBe('options_left');
+    await expect(group(GENERATE)).toBe('options_right');
+    await expect(canvasElement.querySelector(TOGGLE)!.closest('.options_right')).not.toBeNull();
+
     // nothing to generate, lay out or clear; the reason is the title
     await expect(toolbarButton(canvasElement, GENERATE).disabled).toBe(true);
     await expect(toolbarButton(canvasElement, GENERATE).title).toBe('A main draw structure is required');
-    await expect(toolbarButton(canvasElement, 'Auto Layout').disabled).toBe(true);
-    await expect(toolbarButton(canvasElement, 'Clear').disabled).toBe(true);
+    await expect(toolbarButton(canvasElement, AUTO_LAYOUT).disabled).toBe(true);
+    await expect(toolbarButton(canvasElement, CLEAR).disabled).toBe(true);
     await expect(canvasElement.querySelector<HTMLButtonElement>(ALTERNATIVES)!.disabled).toBe(true);
     // the wrapped Alternatives button shares the footer's centre line with the unwrapped Acceptance line
     const middle = (element: Element) => {
@@ -235,13 +246,13 @@ export const AnEmptyCanvasOffersNothingToAct: Story = {
     await expect(canvasElement.querySelector<HTMLElement>('.tb-proposals')!.hidden).toBe(false);
 
     // a main structure: Generate and Clear wake, Auto Layout still waits for a second structure
-    await user.click(toolbarButton(canvasElement, 'Add Structure'));
+    await user.click(toolbarButton(canvasElement, ADD_STRUCTURE));
     await user.click(
       [...document.querySelectorAll<HTMLElement>('.dropdown-item')].find((i) => i.textContent?.trim() === 'Main')!
     );
     await expect(toolbarButton(canvasElement, GENERATE).disabled).toBe(false);
-    await expect(toolbarButton(canvasElement, 'Clear').disabled).toBe(false);
-    await expect(toolbarButton(canvasElement, 'Auto Layout').disabled).toBe(true);
+    await expect(toolbarButton(canvasElement, CLEAR).disabled).toBe(false);
+    await expect(toolbarButton(canvasElement, AUTO_LAYOUT).disabled).toBe(true);
     await expect(canvasElement.querySelector<HTMLButtonElement>(ALTERNATIVES)!.disabled).toBe(false);
     await user.click(toolbarButton(canvasElement, GENERATE));
     await expect(host.generateCalls()).toBe(1);
@@ -252,7 +263,8 @@ export const ThePropertiesPaneDetaches: Story = {
   render: () => mount('fit'),
   play: async ({ canvasElement }) => {
     const layout = canvasElement.querySelector<HTMLElement>('.tb-layout')!;
-    const floating = () => layout.querySelector<HTMLElement>('.spl-floating-inspector')!;
+    const floating = () =>
+      layout.querySelector<HTMLElement>('.spl-floating-inspector[aria-label="Structure properties"]')!;
     await user.click(canvasElement.querySelector<HTMLButtonElement>('.tb-editor-detach')!);
     await expect(layout.dataset.editorPlacement).toBe('floating');
     await expect(floating().hidden).toBe(false);
@@ -263,5 +275,32 @@ export const ThePropertiesPaneDetaches: Story = {
     await expect(layout.dataset.editorPlacement).toBe('docked');
     await expect(floating().hidden).toBe(true);
     await expect(canvasElement.querySelector('.tb-editor .tb-editor-content')).not.toBeNull();
+  }
+};
+
+export const TheAcceptanceLineFloats: Story = {
+  render: () => mount('fit'),
+  play: async ({ canvasElement }) => {
+    const floating = () =>
+      canvasElement.querySelector<HTMLElement>('.spl-floating-inspector[aria-label="Acceptance line"]')!;
+    await expect(floating().hidden).toBe(true);
+    await openAcceptance(canvasElement);
+    await expect(floating().hidden).toBe(false);
+    await expect(floating().contains(panel(canvasElement))).toBe(true);
+    // a line has nowhere to dock: only Reset position and Close
+    await expect(floating().querySelector('button[aria-label="Dock"]')).toBeNull();
+
+    // moved by its header with the keyboard, as the schedule inspector is
+    const header = floating().querySelector<HTMLElement>('.spl-floating-header')!;
+    // the header takes focus from the keyboard (its pointerdown starts a drag, so a click does not focus it)
+    header.focus();
+    await expect(document.activeElement).toBe(header);
+    const left = floating().getBoundingClientRect().left;
+    await user.keyboard('{Shift>}{ArrowLeft}{/Shift}');
+    await expect(floating().getBoundingClientRect().left).toBe(left - 40);
+
+    await user.click(floating().querySelector<HTMLButtonElement>('button[aria-label="Close"]')!);
+    await expect(floating().hidden).toBe(true);
+    await expect(canvasElement.querySelector(ACCEPTANCE_TOGGLE)!.getAttribute('aria-expanded')).toBe('false');
   }
 };

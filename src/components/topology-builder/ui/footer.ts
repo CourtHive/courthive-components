@@ -5,12 +5,14 @@ import { buildSanctionLimits } from './sanctionLimits';
  * Left, what the current mode asks of the operator; right, a slot the host fills (`getFooterSlot`) — where a mode's
  * own controls go, starting with fitting an event's entries to the topology.
  */
+import { buildFloatingInspector, clampInspectorGeometry } from '../../schedule-page/ui/floatingInspector';
 import { buildAcceptancePanel, type AcceptanceOptions } from './acceptanceLine';
 import { changeSummary } from '../domain/acceptanceLine';
 import { buildFitProposals } from './fitProposals';
 
 // constants and types
 import type { JourneyParticipant, TopologyState, UIPanel } from '../types';
+import type { InspectorGeometry } from '../../schedule-page/types';
 import type { LedgerGroup } from '../domain/drawFit';
 
 export interface FooterOptions {
@@ -72,7 +74,7 @@ export function buildFooter(options: FooterOptions = {}): FooterPanel {
     ...(search ? [search.element] : []),
     ...acceptance.map((control) => control.toggle),
     hint,
-    ...acceptance.flatMap((control) => [control.pending, control.panel.element]),
+    ...acceptance.flatMap((control) => [control.pending, control.floating.element]),
     slot
   );
 
@@ -102,7 +104,11 @@ export function buildFooter(options: FooterOptions = {}): FooterPanel {
     hint.dataset.mode = state.mode ?? 'view';
   }
 
-  return { element, slot, update };
+  function destroy(): void {
+    acceptance.forEach((control) => control.floating.destroy());
+  }
+
+  return { element, slot, update, destroy };
 }
 
 /** One stage's label and its chips; the not-placed group is a single warning chip. */
@@ -174,9 +180,13 @@ function buildJourneySearch(journey: NonNullable<FooterOptions['journey']>): { e
   return { element };
 }
 
+// Where each stage's line was left, for the next time it is opened in this session
+const lineGeometry = new Map<string, InspectorGeometry>();
+
 /**
  * Fit mode's acceptance line in the footer: the button that opens the panel, and the pending changes with Discard.
- * The panel opens above the footer, over the canvas, so the cards' gauges stay in view while the line moves.
+ * The panel floats as the schedule page's inspector does (CA, 2026-11-16): moved and resized off the cards whose
+ * gauges answer it, rather than pinned over them.
  */
 function buildAcceptanceControls(options: AcceptanceOptions) {
   const toggle = document.createElement('button');
@@ -197,12 +207,27 @@ function buildAcceptanceControls(options: AcceptanceOptions) {
   pending.append(summary, discard);
 
   const panel = buildAcceptancePanel(options);
+  const stage = options.stage ?? 'MAIN';
+  const title = `${stage === 'QUALIFYING' ? 'Qualifying' : 'Acceptance'} line`;
+  const floating = buildFloatingInspector(panel.element, {
+    title,
+    label: title,
+    geometry:
+      lineGeometry.get(stage) ??
+      clampInspectorGeometry({ width: 340, height: 560 }, globalThis.innerWidth, globalThis.innerHeight),
+    onGeometryChange: (geometry) => lineGeometry.set(stage, geometry),
+    onClose: () => setOpen(false)
+  });
+  floating.element.classList.add('tb-acceptance-floating');
+  floating.content.appendChild(panel.element);
   let open = false;
   let last: TopologyState | undefined;
   const setOpen = (next: boolean) => {
     open = next;
     toggle.setAttribute('aria-expanded', String(open));
+    if (open) floating.rememberFocus();
     panel.element.hidden = !open;
+    floating.setVisible(open);
     if (open && last) panel.update(last);
   };
   toggle.addEventListener('click', () => setOpen(!open));
@@ -224,5 +249,5 @@ function buildAcceptanceControls(options: AcceptanceOptions) {
     if (open) panel.update(state);
   }
 
-  return { toggle, pending, panel, update, close: () => setOpen(false) };
+  return { toggle, pending, panel, floating, update, close: () => setOpen(false) };
 }

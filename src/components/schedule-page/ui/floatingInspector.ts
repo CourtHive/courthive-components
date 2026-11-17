@@ -1,3 +1,5 @@
+import './floating-inspector.css';
+
 import type { InspectorGeometry } from '../types';
 
 const ARIA_LABEL = 'aria-label';
@@ -34,7 +36,8 @@ interface FloatingInspectorOptions {
   geometry?: InspectorGeometry;
   onGeometryChange?: (geometry: InspectorGeometry) => void;
   onClose: () => void;
-  onDock: () => void;
+  /** Without it there is no Dock button: a panel with nowhere to dock, such as the topology's acceptance lines. */
+  onDock?: () => void;
   /** The header's text and the dialog's accessible name; the topology builder floats its properties pane too. */
   title?: string;
   label?: string;
@@ -70,10 +73,11 @@ export function buildFloatingInspector(panel: HTMLElement, options: FloatingInsp
     geometry = clampInspectorGeometry({}, globalThis.innerWidth, globalThis.innerHeight);
     paint(true);
   });
-  button('Dock', DOCK_ICON, () => {
-    options.onDock();
-    returnFocus?.focus();
-  });
+  if (options.onDock)
+    button('Dock', DOCK_ICON, () => {
+      options.onDock!();
+      returnFocus?.focus();
+    });
   button('Close', CLOSE_ICON, () => {
     options.onClose();
     returnFocus?.focus();
