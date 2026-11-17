@@ -1,11 +1,15 @@
 /**
  * Dropdown button component with configurable options.
  * Supports selection, custom styling, and state management.
+ *
+ * `split: true` makes a split button: the label is its own button running `onClick`, the most common action, and only
+ * the caret opens the menu of the others (TMX's Add draw, CA 2026-11-17). Without it a click anywhere opens the menu.
  */
 import { isFunction } from '../../helpers/typeOf';
 
 const RIGHT = 'right';
 const FONT_MEDIUM = 'font-medium';
+const ARIA_EXPANDED = 'aria-expanded';
 
 export function dropDownButton({
   target,
@@ -31,10 +35,13 @@ export function dropDownButton({
     elem.classList.add('is-right');
   }
   const isActive = (e: HTMLElement) => e.classList.contains('is-active');
+  const split = !!button.split;
+  if (split) elem.classList.add('dropdown-split');
   const closeDropDown = () => {
     if (isActive(elem)) {
       elem.classList.remove('is-active');
     }
+    if (split) ddButton.setAttribute(ARIA_EXPANDED, 'false');
   };
   const activeState = (e: HTMLElement): boolean => {
     if (isActive(e)) {
@@ -46,7 +53,10 @@ export function dropDownButton({
     }
   };
   elem.onmouseleave = closeDropDown;
-  elem.onclick = () => activeState(elem);
+  elem.onclick = () => {
+    const open = activeState(elem);
+    if (split) ddButton.setAttribute(ARIA_EXPANDED, String(open));
+  };
 
   const trigger = document.createElement('div');
   trigger.classList.add('dropdown-trigger');
@@ -55,12 +65,31 @@ export function dropDownButton({
   if (button.intent) ddButton.classList.add(button.intent);
   ddButton.setAttribute('aria-haspopup', 'true');
   const label = document.createElement('span');
-  if (isFunction(button.onClick)) label.onclick = button.onClick;
+  if (isFunction(button.onClick) && !split) label.onclick = button.onClick;
   label.style.cssText = `margin-right: 1em`;
   label.innerHTML = button.label;
-  ddButton.appendChild(label);
+  if (split) {
+    // the label is the main button; the caret alone is the menu's
+    const main = document.createElement('button');
+    main.type = 'button';
+    main.className = 'button font-medium dropdown-split-main';
+    if (button.intent) main.classList.add(button.intent);
+    main.appendChild(label);
+    label.style.cssText = '';
+    main.onclick = (e: MouseEvent) => {
+      e.stopPropagation();
+      closeDropDown();
+      if (isFunction(button.onClick)) button.onClick(e);
+    };
+    trigger.appendChild(main);
+    ddButton.classList.add('dropdown-split-toggle');
+    ddButton.setAttribute(ARIA_EXPANDED, 'false');
+    ddButton.setAttribute('aria-label', button.menuLabel ?? `${button.label}: more`);
+  } else {
+    ddButton.appendChild(label);
+  }
   const icon = document.createElement('span');
-  if (isFunction(button.onClick)) icon.onclick = button.onClick;
+  if (isFunction(button.onClick) && !split) icon.onclick = button.onClick;
   icon.innerHTML = `
       <span class="icon is-small font-medium">
         <i class="fas fa-angle-down font-medium" aria-hidden="true"></i>

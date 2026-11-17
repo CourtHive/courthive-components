@@ -75,6 +75,7 @@ export function buildTopologyBuilderLayout({
     title: 'Properties',
     label: 'Structure properties',
     geometry: lastGeometry,
+    anchor: () => body.getBoundingClientRect(),
     onGeometryChange: (geometry) => (lastGeometry = geometry),
     // closing a floating pane docks it: the properties are how a structure is edited, so they never go away
     onClose: () => setFloating(false),
