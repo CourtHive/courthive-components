@@ -1,5 +1,20 @@
 # Changelog
 
+## [7.17.0](https://github.com/CourtHive/courthive-components/compare/v7.16.3...v7.17.0) (2026-11-17)
+
+
+### Features
+
+* split buttons, anchored floating panels, and offered rating systems ([#1015](https://github.com/CourtHive/courthive-components/issues/1015)) ([a159bc3](https://github.com/CourtHive/courthive-components/commit/a159bc3b36498f84bce6342e8f629e6519d6d0c6))
+* **topology-builder:** one-row toolbar and floating acceptance lines ([#1014](https://github.com/CourtHive/courthive-components/issues/1014)) ([6582382](https://github.com/CourtHive/courthive-components/commit/65823826d131da9448e476dc9db79a67caf00150))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.40.0 ([#1016](https://github.com/CourtHive/courthive-components/issues/1016)) ([b38d585](https://github.com/CourtHive/courthive-components/commit/b38d5858be1cd62a826d056d8b55e99b7cc1d10f))
+* **topology-builder:** centre the wrapped footer buttons with the rest ([#1013](https://github.com/CourtHive/courthive-components/issues/1013)) ([6ffe92e](https://github.com/CourtHive/courthive-components/commit/6ffe92e2458ee7705f2044033cf50fe38afeec88))
+* **topology-builder:** make fit mode usable on a new draw ([#1011](https://github.com/CourtHive/courthive-components/issues/1011)) ([85e6a70](https://github.com/CourtHive/courthive-components/commit/85e6a7027d8e65328e512d16672397b8c5a6189f))
+
 ## [7.16.3](https://github.com/CourtHive/courthive-components/compare/v7.16.2...v7.16.3) (2026-11-16)
 
 
