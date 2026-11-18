@@ -45,5 +45,8 @@ export declare function ledgerGroups(ledger?: Record<string, FitLedgerStage>, no
  * the step would leave the valid range.
  */
 export declare function steppedDrawSize(node: TopologyNode, direction: 1 | -1): number | undefined;
-/** A qualifying node's qualifier count one step up or down, within one and half its size. */
+/**
+ * A qualifying node's qualifier count one step up or down, among the counts its structure can produce. It stepped by
+ * one, so 40 entrants reached 18 qualifiers, which no structure of 40 produces (CA, 2026-11-17).
+ */
 export declare function steppedQualifiers(node: TopologyNode, direction: 1 | -1): number | undefined;

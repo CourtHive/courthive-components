@@ -18,5 +18,8 @@
  *   is made fixed here (inline, to win over its own inline style) and placed under the trigger when it
  *   opens and whenever the body scrolls. Clipped, only one row of the panel showed above the footer.
  *   Fixed, it is bounded by the viewport instead: it shrinks to the room below, or opens upward.
+ * - The time zone picker's list hangs below its search box the same way, and is placed the same way
+ *   (`chc-tz-place`): absolute, it was clipped under the Edit Dates footer as the type-ahead it replaced
+ *   had been (CA, 2026-11-17).
  */
 export declare function anchorModalPopups(body: HTMLElement): void;

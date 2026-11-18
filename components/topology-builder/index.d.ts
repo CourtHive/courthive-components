@@ -16,6 +16,7 @@ export { standardTemplates } from './domain/templates';
 export { playoffOffersFromProfile, playoffOffersByStructure, playoffGenerationParams, offerStructureName, canAddVoluntaryConsolation } from './domain/playoffOffers';
 export type { AvailablePlayoffProfile, PlayoffGenerationParams, OfferDrawDefinition } from './domain/playoffOffers';
 export { fitByNode, ledgerText, fitSentence } from './domain/drawFit';
+export { defaultQualifiers, eliminationQualifierCounts, eliminationQualifyingShape, qualifierCounts } from './domain/qualifierCounts';
 export { journeySummary, journeyEdgeIds, journeyStepsFromMatchUps } from './domain/journey';
 export type { JourneyMatchUp } from './domain/journey';
 export { buildTopologyCanvas } from './ui/topologyCanvas';
