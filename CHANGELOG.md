@@ -1,5 +1,18 @@
 # Changelog
 
+## [7.18.0](https://github.com/CourtHive/courthive-components/compare/v7.17.0...v7.18.0) (2026-11-18)
+
+
+### Features
+
+* **forms:** time zone picker with search and a world map ([#1020](https://github.com/CourtHive/courthive-components/issues/1020)) ([1bcedb9](https://github.com/CourtHive/courthive-components/commit/1bcedb9ea42e8a238bf43eb629cf0d7e0cf67bd5))
+
+
+### Bug Fixes
+
+* **topology-builder:** qualifier counts the structure can produce, and the formats it plays ([#1022](https://github.com/CourtHive/courthive-components/issues/1022)) ([f9282a2](https://github.com/CourtHive/courthive-components/commit/f9282a254169e31fa8839bd2eee6d748d5d7565f))
+* **topology-builder:** qualifiers step by one; footer in the entries page's stage colours ([#1023](https://github.com/CourtHive/courthive-components/issues/1023)) ([67812b9](https://github.com/CourtHive/courthive-components/commit/67812b902553a1ab12e9128383602ca445c6fb01))
+
 ## [7.17.0](https://github.com/CourtHive/courthive-components/compare/v7.16.3...v7.17.0) (2026-11-17)
 
 
