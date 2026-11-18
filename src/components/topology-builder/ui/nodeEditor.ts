@@ -360,7 +360,7 @@ function addQualifyingFields(
 }
 
 function appendFeedWarnings(node: TopologyNode, state: TopologyState, body: HTMLElement): void {
-  const feedCapacities = getFeedRoundCapacities(node.drawSize);
+  const feedCapacities = getFeedRoundCapacities(node.drawSize, node.structureOptions);
   const demandByRound = new Map<number, number>();
   const feedEntries: { targetRound: number; qp: number; sourceName: string }[] = [];
   for (const edge of state.edges) {

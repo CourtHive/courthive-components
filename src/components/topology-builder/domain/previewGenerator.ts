@@ -4,7 +4,7 @@
  */
 import { luckyLosersNeeded } from '../../roundProfile/roundProfileLogic';
 import { defaultQualifiers, eliminationQualifyingShape } from './qualifierCounts';
-import { customLuckyProfile, luckyRoundProfiles } from './feedRounds';
+import { customLuckyProfile, eliminationRounds, luckyRoundProfiles } from './feedRounds';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import type { SchematicMatchUp } from '../../renderSchematicStructure';
 
@@ -44,7 +44,7 @@ export function generatePreviewMatchUps({
     const { rounds } = eliminationQualifyingShape(drawSize, qualifiers);
     return generateRoundsPreview({ rounds, stage, structureId });
   }
-  return generateEliminationPreview({ drawSize, stage, structureId, qualifyingPositions });
+  return generateEliminationPreview({ drawSize, stage, structureId, qualifyingPositions, structureOptions });
 }
 
 /**
@@ -93,30 +93,20 @@ function generateRoundsPreview({
  *   (* = feed round)
  */
 function generateEliminationPreview({
-  drawSize,
-  stage,
+  qualifyingPositions,
+  structureOptions,
   structureId,
-  qualifyingPositions
+  drawSize,
+  stage
 }: {
+  qualifyingPositions?: number;
+  structureOptions?: any;
+  structureId?: string;
   drawSize: number;
   stage?: string;
-  structureId?: string;
-  qualifyingPositions?: number;
 }): SchematicMatchUp[] {
-  const n = Math.max(2, drawSize);
-  const base = Math.pow(2, Math.floor(Math.log2(n)));
-  const feedIn = n - base;
-
-  // Build round descriptors
-  const rounds: { count: number; isFeed: boolean }[] = [];
-  let matchCount = base / 2;
-  while (matchCount >= 1) {
-    rounds.push({ count: matchCount, isFeed: false });
-    if (feedIn & matchCount) {
-      rounds.push({ count: matchCount, isFeed: true });
-    }
-    matchCount = Math.floor(matchCount / 2);
-  }
+  // the base rounds, each followed by its feed rounds (a feed rounds profile can stack them: 48 as [8, 8])
+  const rounds = eliminationRounds(drawSize, structureOptions);
 
   // Truncate for qualifying structures — only show rounds needed to produce qualifiers
   if (qualifyingPositions && qualifyingPositions > 0 && drawSize > qualifyingPositions) {

@@ -10,7 +10,8 @@ import { carriesQualifiers, traversesByFinishingPosition } from './edgeTraversal
 import type { TopologyState, TopologyNode, TopologyEdge } from '../types';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { defaultQualifiers } from './qualifierCounts';
-import { customLuckyProfile } from './feedRounds';
+import { customLuckyProfile, feedRoundsProfileOf } from './feedRounds';
+import { qualifyingChains } from './qualifyingPaths';
 
 const {
   MAIN,
@@ -107,7 +108,15 @@ export function topologyToDrawOptions(state: TopologyState): DrawOptionsResult {
 
   // A lucky draw's explicit round profile is the factory's top-level `roundProfile` (customLuckyDraw), not a
   // structure option; it is sent only when valid, so an invalid one plays the default cascade, as the canvas shows.
-  const { roundProfile: _roundProfile, ...structureOptions } = mainNode.structureOptions ?? {};
+  const {
+    roundProfile: _roundProfile,
+    feedRoundsProfile: _feedRoundsProfile,
+    ...structureOptions
+  } = mainNode.structureOptions ?? {};
+  // a FEED_IN's stacked feed rounds, sent only when they describe this draw: the factory refuses any other profile
+  const feedRoundsProfile =
+    drawType === FEED_IN ? feedRoundsProfileOf(mainNode.drawSize, mainNode.structureOptions) : undefined;
+  if (feedRoundsProfile) structureOptions.feedRoundsProfile = [...feedRoundsProfile];
   const roundProfile =
     drawType === LUCKY_DRAW ? customLuckyProfile(mainNode.drawSize, mainNode.structureOptions) : undefined;
 
@@ -257,23 +266,23 @@ function buildPlayoffOptions(
   }
 }
 
+/**
+ * One qualifying profile per chain into MAIN, its cards deepest first: the factory generates a profile's structures as
+ * a chain, each feeding the next (pre-qualifying, then qualifying). Cards were grouped by the round their own edge
+ * targets, so a pre-qualifying card joined MAIN's R1 group wherever its chain led, and two parallel cards into one
+ * round were generated as a chain.
+ */
 function applyQualifyingProfiles(drawOptions: any, qualifyingNodes: TopologyNode[], state: TopologyState): void {
-  // a qualifying structure's qualifiers leave by a round winner edge, or (a round robin) by a finishing-position edge
-  const qualifyingEdges = state.edges.filter((e) => carriesQualifiers(e, state.nodes));
-
-  const byTargetRound: Record<number, { node: TopologyNode; edge: TopologyEdge }[]> = {};
-  for (const qNode of qualifyingNodes) {
-    const edge = qualifyingEdges.find((e) => e.sourceNodeId === qNode.id);
-    const targetRound = edge?.targetRoundNumber || 1;
-    if (!byTargetRound[targetRound]) byTargetRound[targetRound] = [];
-    byTargetRound[targetRound].push({ node: qNode, edge });
-  }
+  const chains = qualifyingChains(state);
+  const chained = new Set(chains.flatMap(({ nodes }) => nodes.map((n) => n.id)));
+  // a card not yet linked to MAIN is generated as its own chain into round 1, as it was before it had a path
+  const unlinked = qualifyingNodes.filter((n) => !chained.has(n.id)).map((n) => ({ roundTarget: 1, nodes: [n] }));
 
   let totalQualifiers = 0;
-  const profiles = Object.entries(byTargetRound).map(([roundTarget, entries]) => {
-    const structureProfiles = entries.map(({ node, edge }) => {
+  const profiles = [...chains, ...unlinked].map(({ roundTarget, nodes }) => {
+    const structureProfiles = nodes.map((node) => {
+      const edge = state.edges.find((e) => e.sourceNodeId === node.id && carriesQualifiers(e, state.nodes));
       const qualifyingPositions = node.qualifyingPositions || edge?.qualifyingPositions || defaultQualifiers(node);
-      totalQualifiers += qualifyingPositions;
       return {
         structureName: node.structureName,
         drawType: node.structureType,
@@ -284,10 +293,9 @@ function applyQualifyingProfiles(drawOptions: any, qualifyingNodes: TopologyNode
         ...(node.matchUpFormat && { matchUpFormat: node.matchUpFormat })
       };
     });
-    return {
-      roundTarget: Number(roundTarget),
-      structureProfiles
-    };
+    // MAIN takes the qualifiers of the chain's last structure
+    totalQualifiers += structureProfiles.at(-1)!.qualifyingPositions;
+    return { roundTarget, structureProfiles };
   });
 
   drawOptions.qualifyingProfiles = profiles;

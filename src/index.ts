@@ -639,7 +639,17 @@ export {
   defaultQualifiers,
   eliminationQualifierCounts,
   eliminationQualifyingShape,
-  qualifierCounts
+  qualifierCounts,
+  depthLabel,
+  parallelQualifying,
+  qualifyingChains,
+  qualifyingPaths,
+  qualifyingSlots,
+  assignQualifyingSlots,
+  lateEntry,
+  lateEntryText,
+  eliminationRounds,
+  feedRoundsProfileOf
 } from './components/topology-builder';
 export type {
   TopologyNode,
@@ -663,7 +673,12 @@ export type {
   JourneyMatchUp,
   TopologyTemplate,
   DrawOptionsResult,
-  ValidationError
+  ValidationError,
+  QualifyingChain,
+  QualifyingPath,
+  QualifyingSlot,
+  LateEntry,
+  LateEntryRound
 } from './components/topology-builder';
 
 export type {

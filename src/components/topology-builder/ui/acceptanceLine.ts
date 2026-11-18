@@ -4,6 +4,7 @@
  * the keyboard (it is a slider), or by choosing the last row to accept. Every move is a preview: the cards' gauges and
  * the ledger read the fit with the changes, and nothing is written until the host applies them.
  */
+import { qualifyingSlots, type QualifyingSlot } from '../domain/qualifyingPaths';
 import { ALTERNATE, statusAt } from '../domain/acceptanceLine';
 
 import type { AcceptanceEntry, EntryChange, TopologyState } from '../types';
@@ -18,10 +19,13 @@ export interface AcceptanceOptions {
   changes: (state: TopologyState) => EntryChange[];
   summary?: (state: TopologyState) => EntryChange[];
   setCut: (cut: number) => void;
+  /** QUALIFYING: a dragged band divider resizes the card above it to `entrants` of its own. */
+  setSlotEntrants?: (nodeId: string, entrants: number) => void;
   discard: () => void;
 }
 
 const STATUS_TEXT: Record<string, string> = { DIRECT_ACCEPTANCE: 'DA', ALTERNATE: 'ALT' };
+const ARIA_LABEL = 'aria-label';
 
 export function buildAcceptancePanel(options: AcceptanceOptions): {
   element: HTMLElement;
@@ -31,7 +35,7 @@ export function buildAcceptancePanel(options: AcceptanceOptions): {
   element.className = 'tb-acceptance';
   element.dataset.stage = options.stage ?? 'MAIN';
   element.setAttribute('role', 'dialog');
-  element.setAttribute('aria-label', 'Acceptance line');
+  element.setAttribute(ARIA_LABEL, 'Acceptance line');
 
   const heading = document.createElement('div');
   heading.className = 'tb-acceptance-heading';
@@ -49,7 +53,7 @@ export function buildAcceptancePanel(options: AcceptanceOptions): {
   line.className = 'tb-acceptance-line';
   line.tabIndex = 0;
   line.setAttribute('role', 'slider');
-  line.setAttribute('aria-label', 'Acceptance line: entries above it are accepted');
+  line.setAttribute(ARIA_LABEL, 'Acceptance line: entries above it are accepted');
   const lineLabel = document.createElement('span');
   lineLabel.className = 'tb-acceptance-line-label';
   line.appendChild(lineLabel);
@@ -57,6 +61,8 @@ export function buildAcceptancePanel(options: AcceptanceOptions): {
   element.append(heading, list);
 
   let rows: HTMLElement[] = [];
+  let dividers: HTMLElement[] = [];
+  let slotsKey = '';
   let poolKey = '';
   let pool: AcceptanceEntry[] = [];
   let cut = 0;
@@ -84,7 +90,77 @@ export function buildAcceptancePanel(options: AcceptanceOptions): {
       row.addEventListener('click', () => options.setCut(index + 1));
       return row;
     });
+    slotsKey = '';
     list.replaceChildren(...rows, line);
+  };
+
+  /**
+   * The QUALIFYING list's bands (CA, 2026-11-18): with more than one qualifying card, a divider before each card's first
+   * row names the card its entrants play and the path they take. The strongest band is first: it earns the latest entry.
+   */
+  // a dragged divider: the card above it, and the row its band starts at. Tracked on the window: every move resizes the
+  // card, the panel rebuilds its dividers, and the element under the pointer is replaced mid-drag
+  let dragging: { nodeId: string; bandStart: number } | undefined;
+  let focusedNodeId: string | undefined;
+
+  const placeDividers = (slots: QualifyingSlot[], heldCount: number) => {
+    const slotKeys = slots.map((slot) => [slot.nodeId, slot.entrants, slot.path.label].join(':'));
+    const key = [heldCount, ...slotKeys].join('|');
+    if (key === slotsKey) return;
+    slotsKey = key;
+    focusedNodeId = dividers.find((divider) => divider === document.activeElement)?.dataset.aboveNodeId;
+    dividers.forEach((divider) => divider.remove());
+    dividers = [];
+    if (slots.length < 2) return;
+    // held entries (wildcards, exemptions) are accepted ahead of every row: they fill the first band first
+    let start = -heldCount;
+    slots.forEach((slot, i) => {
+      const divider = document.createElement('div');
+      divider.className = 'tb-acceptance-slot';
+      divider.dataset.nodeId = slot.nodeId;
+      divider.textContent = `${slot.structureName} \u00b7 ${slot.path.label} \u2192 R${slot.path.roundTarget} \u00b7 ${slot.entrants}`;
+      const above = slots[i - 1];
+      // a divider after the first moves the band above it: dragging it resizes that card (CA, 2026-11-18)
+      if (above && options.setSlotEntrants) {
+        const bandStart = start - above.entrants;
+        divider.dataset.aboveNodeId = above.nodeId;
+        divider.tabIndex = 0;
+        divider.setAttribute('role', 'slider');
+        divider.setAttribute(ARIA_LABEL, `${above.structureName}: its entrants end here`);
+        divider.setAttribute('aria-valuenow', String(above.entrants));
+        divider.setAttribute('aria-valuemin', '1');
+        divider.addEventListener('pointerdown', (event) => {
+          event.preventDefault();
+          dragging = { nodeId: above.nodeId, bandStart };
+          globalThis.addEventListener('pointermove', onDividerMove);
+          globalThis.addEventListener('pointerup', onDividerUp);
+          globalThis.addEventListener('pointercancel', onDividerUp);
+        });
+        divider.addEventListener('keydown', (event) => {
+          const steps: Record<string, number> = { ArrowUp: -1, ArrowDown: 1, PageUp: -5, PageDown: 5 };
+          if (!(event.key in steps)) return;
+          event.preventDefault();
+          options.setSlotEntrants!(above.nodeId, Math.max(1, above.entrants + steps[event.key]));
+        });
+      }
+      list.insertBefore(divider, rows[Math.max(0, start)] ?? line);
+      dividers.push(divider);
+      start += slot.entrants;
+    });
+    dividers.find((divider) => focusedNodeId && divider.dataset.aboveNodeId === focusedNodeId)?.focus();
+  };
+
+  // a dragged divider ends the band above it at the rows whose middle is above the pointer
+  const onDividerMove = (event: PointerEvent) => {
+    if (!dragging) return;
+    const entrants = Math.max(1, cutAt(event.clientY) - dragging.bandStart);
+    options.setSlotEntrants?.(dragging.nodeId, entrants);
+  };
+  const onDividerUp = () => {
+    dragging = undefined;
+    globalThis.removeEventListener('pointermove', onDividerMove);
+    globalThis.removeEventListener('pointerup', onDividerUp);
+    globalThis.removeEventListener('pointercancel', onDividerUp);
   };
 
   // the line sits on the boundary between the last accepted row and the first alternate
@@ -146,6 +222,7 @@ export function buildAcceptancePanel(options: AcceptanceOptions): {
       poolKey = key;
       buildRows();
     }
+    if (options.stage === 'QUALIFYING') placeDividers(qualifyingSlots(state), options.held().length);
     cut = options.cut(state);
     const changes = new Map(options.changes(state).map((change) => [change.participantId, change]));
     const changed = new Set(changes.keys());

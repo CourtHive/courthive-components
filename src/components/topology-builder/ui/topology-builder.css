@@ -733,6 +733,34 @@
   font-weight: 600;
 }
 
+/* MAIN's fed positions short of its seeds and late qualifiers, and the stacked feed round that fits them */
+.tb-late-entry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--chc-status-warning);
+}
+
+.tb-late-entry-stack {
+  padding: 1px 8px;
+  border: 1px solid var(--chc-status-warning);
+  border-radius: 999px;
+  background: var(--chc-bg-primary);
+  color: var(--chc-status-warning);
+  font: inherit;
+  cursor: pointer;
+}
+
+.tb-late-entry-stack:hover,
+.tb-late-entry-stack:focus-visible {
+  background: var(--chc-container-warning);
+  color: var(--chc-on-warning);
+  outline: none;
+}
+
 .tb-footer-slot {
   display: flex;
   align-items: center;
@@ -1162,6 +1190,15 @@
 }
 
 /* the cut itself: a bar between rows, dragged, or moved by the keyboard */
+/* a band of the QUALIFYING list: the card its entrants play (CA, 2026-11-18) */
+.tb-acceptance-slot {
+  padding: 4px 8px 2px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--chc-status-info);
+  border-top: 1px solid var(--chc-status-info);
+}
+
 .tb-acceptance-line {
   position: absolute;
   left: 0;

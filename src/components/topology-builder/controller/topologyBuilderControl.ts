@@ -19,6 +19,8 @@ import { drawDefinitionConstants } from 'tods-competition-factory';
 import { validateTopology } from '../domain/topologyValidator';
 import { buildTopologyCanvas } from '../ui/topologyCanvas';
 import { getNodeTotalRounds } from '../domain/feedRounds';
+import { lateEntry } from '../domain/lateEntry';
+import { assignQualifyingSlots, qualifyingSlots } from '../domain/qualifyingPaths';
 import { TopologyStore } from '../engine/topologyStore';
 import { standardTemplates } from '../domain/templates';
 import { buildNodeEditor } from '../ui/nodeEditor';
@@ -151,6 +153,9 @@ export class TopologyBuilderControl {
               ),
             summary: (state: TopologyState) => (stage === MAIN ? this.entryChanges(state) : []),
             setCut: (cut: number) => this.setAcceptanceCut(cut, stage),
+            ...(stage === QUALIFYING && {
+              setSlotEntrants: (nodeId: string, entrants: number) => this.setQualifyingEntrants(nodeId, entrants)
+            }),
             discard: () => this.discardEntryChanges()
           }))
         : undefined;
@@ -281,6 +286,8 @@ export class TopologyBuilderControl {
           nextSize !== undefined &&
           (node.stage !== MAIN || limits?.drawSize === undefined || nextSize <= limits.drawSize)
       },
+      // MAIN's fed positions: its seeds (the fit's count) and the qualifiers routed after round 1 (CA, 2026-11-18)
+      ...(node.stage === MAIN && { lateEntry: lateEntry(node, state, fit?.seedsCount ?? 0) }),
       ...(node.stage === QUALIFYING && {
         canQualify: {
           down: steppedQualifiers(node, -1) !== undefined,
@@ -312,6 +319,50 @@ export class TopologyBuilderControl {
     return this.config.acceptance
       ? stageEntryChanges(this.originalAcceptanceEntries(), state)
       : (state.proposalEntryChanges ?? []);
+  }
+
+  /**
+   * The path each accepted QUALIFYING entry takes, as the qualifying list's bands assign them (CA, 2026-11-18): held
+   * entries first, then the list down to its line, cut into the cards' bands strongest first. For the host to write with
+   * `setEntryQualifyingPath` on Generate, beside the entry changes; an entry past the last band has no path.
+   */
+  qualifyingPathAssignments(): {
+    structureName: string;
+    participantIds: string[];
+    roundTarget: number;
+    entryStageSequence: number;
+  }[] {
+    const state = this.store.getState();
+    const pool = this.acceptancePool(QUALIFYING);
+    const cut = state.acceptanceCuts?.[QUALIFYING] ?? currentCut(pool);
+    const accepted = [...heldEntries(this.acceptanceEntries(QUALIFYING)), ...pool.slice(0, cut)];
+    return assignQualifyingSlots(
+      accepted.map(({ participantId }) => participantId),
+      qualifyingSlots(state)
+    ).map(({ slot, participantIds }) => ({
+      structureName: slot.structureName,
+      participantIds,
+      roundTarget: slot.path.roundTarget,
+      entryStageSequence: slot.path.entryStageSequence
+    }));
+  }
+
+  /**
+   * A dragged band divider in the QUALIFYING list (CA, 2026-11-18): the card above it takes `entrants` of its own, so its
+   * size is those plus what its pre-qualifying sends it. A qualifier count over half the new size comes down to half.
+   */
+  setQualifyingEntrants(nodeId: string, entrants: number): void {
+    const state = this.store.getState();
+    const node = state.nodes.find((n) => n.id === nodeId);
+    const slot = qualifyingSlots(state).find((s) => s.nodeId === nodeId);
+    if (!node || !slot) return;
+    const drawSize = Math.max(2, entrants + (node.drawSize - slot.entrants));
+    if (drawSize === node.drawSize) return;
+    const half = Math.max(1, Math.floor(drawSize / 2));
+    this.store.updateNode(nodeId, {
+      drawSize,
+      ...(node.qualifyingPositions && node.qualifyingPositions > half && { qualifyingPositions: half })
+    });
   }
 
   /** Each stage's line adjusts the pending proposal; Generate remains the only write. */
@@ -473,25 +524,40 @@ export class TopologyBuilderControl {
     return { ...this.config.sanctionLimits?.().constraints, ...this.store.getState().constraintOverrides };
   }
 
+  private withinDrawSizeLimit(drawSize: number): boolean {
+    const limit = this.effectiveLimits().drawSize;
+    return limit === undefined || drawSize <= limit;
+  }
+
   /** A Fit mode lever: the topology changes, and the next render asks the host for the new fit. */
   private applyFitLever(nodeId: string, lever: FitLever, direction: 1 | -1): void {
     const node = this.store.getState().nodes.find((n) => n.id === nodeId);
     if (!node) return;
+    // a feed rounds profile describes one draw size: a lever that changes the size or the type lets it go
+    const { feedRoundsProfile: _profile, ...structureOptions } = node.structureOptions ?? {};
+    const withoutProfile = { structureOptions: Object.keys(structureOptions).length ? structureOptions : undefined };
     if (lever === 'feedIn') {
       this.store.updateNode(nodeId, {
-        structureType: node.structureType === 'FEED_IN' ? SINGLE_ELIMINATION : 'FEED_IN'
+        structureType: node.structureType === 'FEED_IN' ? SINGLE_ELIMINATION : 'FEED_IN',
+        ...withoutProfile
+      });
+      return;
+    }
+    if (lever === 'stackFeed') {
+      // the late-entry proposal: one more feed round after the qualifiers' round, for the seeds
+      const proposal = this.fitFor(nodeId).lateEntry?.proposal;
+      if (!proposal || !this.withinDrawSizeLimit(proposal.drawSize)) return;
+      this.store.updateNode(nodeId, {
+        drawSize: proposal.drawSize,
+        structureType: 'FEED_IN',
+        structureOptions: { ...structureOptions, feedRoundsProfile: proposal.feedRoundsProfile }
       });
       return;
     }
     if (lever === 'size') {
       const drawSize = steppedDrawSize(node, direction);
-      if (
-        drawSize !== undefined &&
-        (node.stage !== MAIN ||
-          this.effectiveLimits().drawSize === undefined ||
-          drawSize <= this.effectiveLimits().drawSize!)
-      )
-        this.store.updateNode(nodeId, { drawSize });
+      if (drawSize !== undefined && (node.stage !== MAIN || this.withinDrawSizeLimit(drawSize)))
+        this.store.updateNode(nodeId, { drawSize, ...withoutProfile });
       return;
     }
     const qualifyingPositions = steppedQualifiers(node, direction);
