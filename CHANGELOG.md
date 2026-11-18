@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.19.1](https://github.com/CourtHive/courthive-components/compare/v7.19.0...v7.19.1) (2026-11-18)
+
+
+### Bug Fixes
+
+* **topology-builder:** ask the fit with the qualifying bands' paths ([#1033](https://github.com/CourtHive/courthive-components/issues/1033)) ([8a6f594](https://github.com/CourtHive/courthive-components/commit/8a6f594790a9e95653bcc66c32ef83059193e23f))
+
 ## [7.19.0](https://github.com/CourtHive/courthive-components/compare/v7.18.0...v7.19.0) (2026-11-18)
 
 
