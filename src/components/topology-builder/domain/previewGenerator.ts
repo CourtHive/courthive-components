@@ -49,7 +49,7 @@ export function generatePreviewMatchUps({
 
 /**
  * An elimination qualifying structure as the factory builds it: straight rounds of `rounds` matchUps, no feed rounds.
- * 40 entrants for 10 qualifiers play [20, 10]; for 16, a 64 draw with byes plays [32, 16]. The feed-round geometry
+ * 40 entrants for 10 qualifiers play [20, 10]; for 16, a 64 draw with byes plays [32, 16]; for 9, a 72 plays [36, 18, 9]. The feed-round geometry
  * below drew 40 as 32 plus a fed 8 whatever the qualifier count, so the card never changed shape (CA, 2026-11-17).
  */
 function generateRoundsPreview({

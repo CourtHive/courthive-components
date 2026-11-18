@@ -59,29 +59,35 @@ function generatedQualifying(entrants: number, qualifiers: number) {
 }
 
 describe('qualifier counts', () => {
-  it('offers both shapes, up to half the entrants (CA, 2026-11-17)', () => {
-    // 40 halves to 20, 10, 5; a 64 draw gives 16, 8, 4, 2, 1; 32 would qualify 24 on byes
-    expect(eliminationQualifierCounts(40)).toEqual([20, 16, 10, 8, 5, 4, 2, 1]);
-    expect(eliminationQualifierCounts(32)).toEqual([16, 8, 4, 2, 1]);
-    expect(eliminationQualifierCounts(24)).toEqual([12, 8, 6, 4, 3, 2, 1]);
+  it('offers every count up to half the entrants (CA, 2026-11-18)', () => {
+    expect(eliminationQualifierCounts(40)).toEqual(Array.from({ length: 20 }, (_, i) => 20 - i));
+    expect(eliminationQualifierCounts(5)).toEqual([2, 1]);
+    expect(eliminationQualifierCounts(1)).toEqual([]);
   });
 
   it("takes a feed-in structure's counts from the factory", () => {
     expect(qualifierCounts(node(40, FEED_IN))).toEqual([20, 10, 8, 5, 4, 2, 1]);
   });
 
-  it('steps only between counts the structure produces: 40 never reaches 18', () => {
-    expect(steppedQualifierCount(node(40, SINGLE_ELIMINATION, 10), 1)).toBe(16);
-    expect(steppedQualifierCount(node(40, SINGLE_ELIMINATION, 16), 1)).toBe(20);
+  it('steps by one, from 8 to 9, and stops at half the entrants', () => {
+    expect(steppedQualifierCount(node(40, SINGLE_ELIMINATION, 8), 1)).toBe(9);
+    expect(steppedQualifierCount(node(40, SINGLE_ELIMINATION, 16), 1)).toBe(17);
     expect(steppedQualifierCount(node(40, SINGLE_ELIMINATION, 20), 1)).toBeUndefined();
-    expect(steppedQualifierCount(node(40, SINGLE_ELIMINATION, 10), -1)).toBe(8);
+    expect(steppedQualifierCount(node(40, SINGLE_ELIMINATION, 10), -1)).toBe(9);
     expect(steppedQualifierCount(node(40, SINGLE_ELIMINATION, 1), -1)).toBeUndefined();
   });
 
-  it('defaults to a count the structure produces, about a quarter of its entrants', () => {
+  it('works the shape backwards from the count: each round twice the next, until it seats every entrant', () => {
+    expect(eliminationQualifyingShape(40, 9)).toEqual({ positions: 72, rounds: [36, 18, 9] });
+    expect(eliminationQualifyingShape(40, 10)).toEqual({ positions: 40, rounds: [20, 10] });
+    expect(eliminationQualifyingShape(40, 16)).toEqual({ positions: 64, rounds: [32, 16] });
+    expect(eliminationQualifyingShape(40, 20)).toEqual({ positions: 40, rounds: [20] });
+  });
+
+  it('defaults to about a quarter of its entrants, from the counts that need fewest byes', () => {
     expect(defaultQualifiers(node(40))).toBe(10);
     expect(defaultQualifiers(node(32))).toBe(8);
-    // a quarter of 30 is 7, which neither shape produces
+    // a quarter of 30 is 7, a 56 draw with 26 byes; 4 plays from 32
     expect(defaultQualifiers(node(30))).toBe(4);
   });
 });

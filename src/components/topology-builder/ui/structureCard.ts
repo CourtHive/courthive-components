@@ -409,8 +409,8 @@ function buildCardHeader(node: TopologyNode, advanceInfo?: string): HTMLElement 
 
   header.append(badge, name, size);
 
-  // a qualifying count its own size cannot halve to is played in the next power of two, with byes: say so beside
-  // the size, which stays the entrant count (CA, 2026-11-17: 16 of 40 is a 64 draw, which the card never showed)
+  // a qualifying count its own size cannot halve to is played in a larger draw, with byes: say so beside the size,
+  // which stays the entrant count (CA, 2026-11-17: 16 of 40 is a 64 draw, which the card never showed; 9 is a 72)
   const byes = qualifyingByes(node);
   if (byes) {
     const note = document.createElement('span');
