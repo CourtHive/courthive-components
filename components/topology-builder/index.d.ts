@@ -17,6 +17,11 @@ export { playoffOffersFromProfile, playoffOffersByStructure, playoffGenerationPa
 export type { AvailablePlayoffProfile, PlayoffGenerationParams, OfferDrawDefinition } from './domain/playoffOffers';
 export { fitByNode, ledgerText, fitSentence } from './domain/drawFit';
 export { defaultQualifiers, eliminationQualifierCounts, eliminationQualifyingShape, qualifierCounts } from './domain/qualifierCounts';
+export { assignQualifyingSlots, depthLabel, parallelQualifying, qualifyingChains, qualifyingPaths, qualifyingSlots } from './domain/qualifyingPaths';
+export type { QualifyingChain, QualifyingPath, QualifyingSlot } from './domain/qualifyingPaths';
+export { lateEntry, lateEntryText } from './domain/lateEntry';
+export type { LateEntry, LateEntryRound } from './domain/lateEntry';
+export { eliminationRounds, feedRoundsProfileOf } from './domain/feedRounds';
 export { journeySummary, journeyEdgeIds, journeyStepsFromMatchUps } from './domain/journey';
 export type { JourneyMatchUp } from './domain/journey';
 export { buildTopologyCanvas } from './ui/topologyCanvas';

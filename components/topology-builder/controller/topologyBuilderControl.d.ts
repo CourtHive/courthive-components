@@ -28,6 +28,22 @@ export declare class TopologyBuilderControl {
     private acceptanceEntries;
     private acceptancePool;
     private entryChanges;
+    /**
+     * The path each accepted QUALIFYING entry takes, as the qualifying list's bands assign them (CA, 2026-11-18): held
+     * entries first, then the list down to its line, cut into the cards' bands strongest first. For the host to write with
+     * `setEntryQualifyingPath` on Generate, beside the entry changes; an entry past the last band has no path.
+     */
+    qualifyingPathAssignments(): {
+        structureName: string;
+        participantIds: string[];
+        roundTarget: number;
+        entryStageSequence: number;
+    }[];
+    /**
+     * A dragged band divider in the QUALIFYING list (CA, 2026-11-18): the card above it takes `entrants` of its own, so its
+     * size is those plus what its pre-qualifying sends it. A qualifier count over half the new size comes down to half.
+     */
+    setQualifyingEntrants(nodeId: string, entrants: number): void;
     /** Each stage's line adjusts the pending proposal; Generate remains the only write. */
     setAcceptanceCut(cut: number, stage?: 'MAIN' | 'QUALIFYING'): void;
     /** The entry changes the acceptance line makes now — for the host to apply together with the generation. */
@@ -44,6 +60,7 @@ export declare class TopologyBuilderControl {
     private ledger;
     private ledgerCache?;
     private effectiveLimits;
+    private withinDrawSizeLimit;
     /** A Fit mode lever: the topology changes, and the next render asks the host for the new fit. */
     private applyFitLever;
     private buildToolbarPanel;

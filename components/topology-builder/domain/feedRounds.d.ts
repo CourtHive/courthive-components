@@ -1,16 +1,32 @@
 /**
+ * A FEED_IN structure's explicit feed rounds (`structureOptions.feedRoundsProfile`), when they describe a draw of
+ * `drawSize`: each the size of one of the base draw's rounds, adding up to what `drawSize` adds to its base. The
+ * factory refuses any other profile (`isValidFeedRoundsProfile`), so the builder shows the default shape instead.
+ */
+export declare function feedRoundsProfileOf(drawSize: number, structureOptions?: any): number[] | undefined;
+/**
+ * An elimination structure's rounds, largest first: the base draw's rounds, each followed by the feed rounds of its
+ * size. By default a feed round follows each base round whose size is a bit of what `drawSize` adds to its base (36:
+ * one feed round of 4); a feed rounds profile names them instead (48 as [8, 8]: 16, 8, 8 fed, 8 fed, 4, 2, 1).
+ */
+export declare function eliminationRounds(drawSize: number, structureOptions?: any): {
+    count: number;
+    isFeed: boolean;
+}[];
+/**
  * For a given drawSize, return a Map from round number → feed capacity.
  * Feed rounds are the extra rounds inserted when drawSize > nearest power of 2.
  *
  * Example: drawSize=36, base=32, feedIn=4
  *   → { 4 → 4 }  (feed round 4 has capacity 4)
+ * With a feed rounds profile: drawSize=48 as [8, 8] → { 3 → 8, 4 → 8 }
  */
-export declare function getFeedRoundCapacities(drawSize: number): Map<number, number>;
+export declare function getFeedRoundCapacities(drawSize: number, structureOptions?: any): Map<number, number>;
 /**
  * Total number of rounds for a given drawSize, including feed rounds.
  * Equivalent to getNumRounds but works with drawSize directly.
  */
-export declare function getTotalRounds(drawSize: number): number;
+export declare function getTotalRounds(drawSize: number, structureOptions?: any): number;
 /**
  * Compute round profiles for a lucky draw — mirrors the factory's luckyRoundProfiles().
  * Returns array of { participantsCount, preFeedRound, feedRound } per round.

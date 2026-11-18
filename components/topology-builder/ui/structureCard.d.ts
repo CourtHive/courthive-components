@@ -1,4 +1,5 @@
 import { JourneyStep, PlayoffOffer, StructureFit, TopologyNode } from '../types';
+import { LateEntry } from '../domain/lateEntry';
 /**
  * Compute the number of schematic rounds for a given draw configuration.
  * For qualifying structures with qualifyingPositions, truncate to only
@@ -27,7 +28,7 @@ export interface CardPlayoffOffers {
     onAddPlayoff: (offer: PlayoffOffer) => void;
 }
 /** A Fit mode lever on a card. */
-export type FitLever = 'size' | 'qualifiers' | 'feedIn';
+export type FitLever = 'size' | 'qualifiers' | 'feedIn' | 'stackFeed';
 /** A node's fit, as Fit mode draws it on the card. */
 export interface NodeFit {
     /** False for a structure filled by results (a playoff, a consolation): nothing to fit. */
@@ -42,6 +43,8 @@ export interface NodeFit {
         down: boolean;
         up: boolean;
     };
+    /** MAIN: whether its fed positions hold its seeds and the qualifiers routed after round 1. */
+    lateEntry?: LateEntry;
 }
 /** A node's part in the chosen participant's journey. */
 export interface NodeJourney {

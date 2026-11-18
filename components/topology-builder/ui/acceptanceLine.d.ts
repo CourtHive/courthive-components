@@ -9,6 +9,8 @@ export interface AcceptanceOptions {
     changes: (state: TopologyState) => EntryChange[];
     summary?: (state: TopologyState) => EntryChange[];
     setCut: (cut: number) => void;
+    /** QUALIFYING: a dragged band divider resizes the card above it to `entrants` of its own. */
+    setSlotEntrants?: (nodeId: string, entrants: number) => void;
     discard: () => void;
 }
 export declare function buildAcceptancePanel(options: AcceptanceOptions): {
