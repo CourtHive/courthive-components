@@ -8,6 +8,7 @@
  * structure, and each qualifying node is passed to the generator under its own name.
  */
 import { drawDefinitionConstants, entryStatusConstants } from 'tods-competition-factory';
+import { steppedQualifierCount } from './qualifierCounts';
 
 import type { DrawFit, FitLedgerStage, StructureFit, TopologyNode, TopologyState } from '../types';
 
@@ -220,9 +221,10 @@ export function steppedDrawSize(node: TopologyNode, direction: 1 | -1): number |
   return next >= 2 ? next : undefined;
 }
 
-/** A qualifying node's qualifier count one step up or down, within one and half its size. */
+/**
+ * A qualifying node's qualifier count one step up or down, among the counts its structure can produce. It stepped by
+ * one, so 40 entrants reached 18 qualifiers, which no structure of 40 produces (CA, 2026-11-17).
+ */
 export function steppedQualifiers(node: TopologyNode, direction: 1 | -1): number | undefined {
-  const current = node.qualifyingPositions || Math.floor(node.drawSize / 4);
-  const next = current + direction;
-  return next >= 1 && next <= Math.floor(node.drawSize / 2) ? next : undefined;
+  return steppedQualifierCount(node, direction);
 }

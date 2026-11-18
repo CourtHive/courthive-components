@@ -5,6 +5,7 @@
 import { carriesQualifiers, traversesByFinishingPosition } from '../domain/edgeTraversal';
 import { mountRoundProfileEditor } from '../../roundProfile/roundProfileEditor';
 import { getMatchUpFormatModal } from '../../matchUpFormat/matchUpFormat';
+import { qualifierCounts, qualifiersOf } from '../domain/qualifierCounts';
 import { defaultProfile } from '../../roundProfile/roundProfileLogic';
 import { nameValidator } from '../../../validators/nameValidator';
 import { numericRange } from '../../../validators/numericRange';
@@ -62,17 +63,6 @@ export interface NodeEditorCallbacks {
   onDeleteNode: (nodeId: string) => void;
   readOnly?: boolean;
   hideDelete?: boolean;
-}
-
-/** Returns descending powers of 2 less than drawSize (e.g. 32 → [16, 8, 4, 2, 1]). */
-function validQualifierCounts(drawSize: number): number[] {
-  const counts: number[] = [];
-  let n = Math.floor(drawSize / 2);
-  while (n >= 1) {
-    counts.push(n);
-    n = Math.floor(n / 2);
-  }
-  return counts;
 }
 
 /**
@@ -326,8 +316,9 @@ function addQualifyingFields(
   items: any[],
   relationships: any[]
 ): void {
-  const qualifierOptions = validQualifierCounts(node.drawSize);
-  const current = node.qualifyingPositions ?? qualifierOptions[0];
+  // the counts the structure can produce, as the card's stepper steps them
+  const qualifierOptions = qualifierCounts(node);
+  const current = qualifiersOf(node);
   items.push({
     label: 'Qualifying Positions',
     field: 'qualifyingPositions',
@@ -378,7 +369,7 @@ function appendFeedWarnings(node: TopologyNode, state: TopologyState, body: HTML
     if (targetRound <= 1) continue;
     const source = state.nodes.find((n) => n.id === edge.sourceNodeId);
     if (!source || source.stage !== QUALIFYING) continue;
-    const qp = source.qualifyingPositions || Math.floor(source.drawSize / 4);
+    const qp = qualifiersOf(source);
     demandByRound.set(targetRound, (demandByRound.get(targetRound) || 0) + qp);
     feedEntries.push({ targetRound, qp, sourceName: source.structureName });
   }
@@ -535,8 +526,9 @@ export function buildNodeEditor(callbacks: NodeEditorCallbacks): UIPanel<Topolog
     formatField.className = 'field font-medium';
     formatField.style.cssText = 'flex-grow: 1';
 
+    // the form's own label, as every other field has: it was set larger than the rest (CA, 2026-11-17)
     const formatLabel = document.createElement('label');
-    formatLabel.style.cssText = 'font-weight: bold; font-size: larger;';
+    formatLabel.className = 'label';
     formatLabel.textContent = 'MatchUp Format';
     formatField.appendChild(formatLabel);
 

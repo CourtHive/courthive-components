@@ -3,11 +3,12 @@
  * Pure geometry with feed-round support for non-power-of-2 draw sizes.
  */
 import { luckyLosersNeeded } from '../../roundProfile/roundProfileLogic';
+import { defaultQualifiers, eliminationQualifyingShape } from './qualifierCounts';
 import { customLuckyProfile, luckyRoundProfiles } from './feedRounds';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import type { SchematicMatchUp } from '../../renderSchematicStructure';
 
-const { ROUND_ROBIN, AD_HOC, LUCKY_DRAW } = drawDefinitionConstants;
+const { ROUND_ROBIN, AD_HOC, LUCKY_DRAW, QUALIFYING, FEED_IN } = drawDefinitionConstants;
 
 let matchUpCounter = 0;
 
@@ -38,7 +39,41 @@ export function generatePreviewMatchUps({
     if (roundProfile) return generateCustomLuckyDrawPreview({ roundProfile, stage, structureId });
     return generateLuckyDrawPreview({ drawSize, stage, structureId });
   }
+  if (stage === QUALIFYING && structureType !== FEED_IN) {
+    const qualifiers = qualifyingPositions || defaultQualifiers({ drawSize, structureType });
+    const { rounds } = eliminationQualifyingShape(drawSize, qualifiers);
+    return generateRoundsPreview({ rounds, stage, structureId });
+  }
   return generateEliminationPreview({ drawSize, stage, structureId, qualifyingPositions });
+}
+
+/**
+ * An elimination qualifying structure as the factory builds it: straight rounds of `rounds` matchUps, no feed rounds.
+ * 40 entrants for 10 qualifiers play [20, 10]; for 16, a 64 draw with byes plays [32, 16]. The feed-round geometry
+ * below drew 40 as 32 plus a fed 8 whatever the qualifier count, so the card never changed shape (CA, 2026-11-17).
+ */
+function generateRoundsPreview({
+  rounds,
+  stage,
+  structureId
+}: {
+  rounds: number[];
+  stage?: string;
+  structureId?: string;
+}): SchematicMatchUp[] {
+  return rounds.flatMap((count, r) =>
+    Array.from({ length: count }, (_, i) => ({
+      matchUpId: `preview-${++matchUpCounter}`,
+      roundNumber: r + 1,
+      roundPosition: i + 1,
+      drawPositions: r === 0 ? [i * 2 + 1, i * 2 + 2] : [],
+      finishingRound: rounds.length - r,
+      roundFactor: 2 ** r,
+      preFeedRound: false,
+      stage,
+      structureId
+    }))
+  );
 }
 
 /**

@@ -12,6 +12,7 @@ import { createTimeZonePicker } from '../components/timezone-picker/timeZonePick
 import { ZONE_LOCATIONS } from '../components/timezone-picker/data/zoneLocations';
 import { MAP_HEIGHT, MAP_WIDTH } from '../components/timezone-picker/data/worldMap';
 import { renderForm } from '../components/forms/renderForm';
+import { cModal } from '../components/modal/cmodal';
 import type { Meta, StoryObj } from '@storybook/html-vite';
 import { expect, fn, waitFor } from 'storybook/test';
 import { user } from './helpers/trustedUser';
@@ -163,5 +164,60 @@ export const AsAFormField: StoryObj = {
     await user.type(search, 'sydney');
     await user.keyboard('{Enter}');
     await expect(localTimeZone.value).toBe('Australia/Sydney');
+  }
+};
+
+// In a modal the body scrolls and clips what is absolutely positioned inside it: the list was cut off under the
+// footer, as the type-ahead it replaced had been (journey 161). The modal places it fixed below the search box.
+export const InAModalTheListIsDrawnOverTheFooter: StoryObj = {
+  render: () => {
+    const root = document.createElement('div');
+    root.style.cssText = 'min-height: 200px;';
+    return root;
+  },
+  play: async () => {
+    const closeAll = () => {
+      for (let attempt = 0; attempt < 6 && document.querySelector('.chc-modal-dialog'); attempt += 1) cModal.close();
+    };
+    closeAll();
+    try {
+      cModal.open({
+        title: 'Edit Dates',
+        content: (elem: HTMLElement) => {
+          // fields above push the time zone field to the bottom of the body, against the footer
+          const filler = document.createElement('div');
+          filler.style.height = '320px';
+          elem.appendChild(filler);
+          renderForm(elem, [
+            { label: 'Time zone', field: 'localTimeZone', timeZone: { locale: 'en-US', showMap: false } }
+          ]);
+        },
+        buttons: [{ label: 'Cancel' }]
+      } as any);
+      const dialog = await waitFor(() => {
+        const element = document.querySelector<HTMLElement>('.chc-modal-dialog');
+        if (!element) throw new Error('modal not open');
+        return element;
+      });
+      const search = dialog.querySelector<HTMLInputElement>(SEARCH)!;
+      await user.click(search);
+      const list = dialog.querySelector<HTMLUListElement>(LIST)!;
+      await expect(list).toBeVisible();
+      // the rows the list shows: it scrolls its own rows, so one below its bottom edge is hidden by design
+      const box = list.getBoundingClientRect();
+      const rows = [...list.querySelectorAll<HTMLElement>('.chc-tz-option')].filter((row) => {
+        const { top, bottom } = row.getBoundingClientRect();
+        return (top + bottom) / 2 < box.bottom;
+      });
+      await expect(rows.length).toBeGreaterThanOrEqual(3);
+      const covered = rows.filter((row) => {
+        const { left, right, top, bottom } = row.getBoundingClientRect();
+        const drawn = document.elementFromPoint((left + right) / 2, (top + bottom) / 2);
+        return !drawn || !row.contains(drawn);
+      });
+      await expect(covered.map((row) => row.textContent)).toEqual([]);
+    } finally {
+      closeAll();
+    }
   }
 };

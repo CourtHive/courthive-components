@@ -635,7 +635,11 @@ export {
   buildNodeEditor,
   buildEdgeEditor,
   buildToolbar,
-  buildTopologyBuilderLayout
+  buildTopologyBuilderLayout,
+  defaultQualifiers,
+  eliminationQualifierCounts,
+  eliminationQualifyingShape,
+  qualifierCounts
 } from './components/topology-builder';
 export type {
   TopologyNode,

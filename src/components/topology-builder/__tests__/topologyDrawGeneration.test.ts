@@ -418,3 +418,39 @@ describe('generateDrawFromTopology — factory integration', () => {
     expect(totalMatchUps).toEqual(72);
   });
 });
+
+describe('topologyToDrawOptions — formats (CA, 2026-11-17)', () => {
+  const nodes = (qualifyingFormat?: string): TopologyNode[] => [
+    {
+      id: 'q',
+      structureName: 'Qualifying',
+      stage: QUALIFYING as Stage,
+      structureType: SINGLE_ELIMINATION,
+      drawSize: 40,
+      qualifyingPositions: 16,
+      ...(qualifyingFormat && { matchUpFormat: qualifyingFormat }),
+      position: { x: 0, y: 0 }
+    },
+    {
+      id: 'main',
+      structureName: 'Main',
+      stage: MAIN as Stage,
+      structureType: SINGLE_ELIMINATION,
+      drawSize: 32,
+      matchUpFormat: 'SET3-S:6/TB7',
+      position: { x: 300, y: 0 }
+    }
+  ];
+  const edges = [{ id: 'e', sourceNodeId: 'q', targetNodeId: 'main', linkType: WINNER, targetRoundNumber: 1 }] as any;
+
+  it("carries a qualifying structure's own format into its profile: it was dropped", () => {
+    const { drawOptions } = topologyToDrawOptions(makeState({ nodes: nodes('SET1-S:6/TB7'), edges }));
+    expect(drawOptions.matchUpFormat).toBe('SET3-S:6/TB7');
+    expect(drawOptions.qualifyingProfiles[0].structureProfiles[0].matchUpFormat).toBe('SET1-S:6/TB7');
+  });
+
+  it("leaves a qualifying structure without a format to the draw's", () => {
+    const { drawOptions } = topologyToDrawOptions(makeState({ nodes: nodes(), edges }));
+    expect(drawOptions.qualifyingProfiles[0].structureProfiles[0].matchUpFormat).toBeUndefined();
+  });
+});
