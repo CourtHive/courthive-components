@@ -86,18 +86,8 @@ function mount(parallel = false): HTMLElement {
   const eventId: string = generated.eventIds[0];
   const ids = tournamentEngine.getParticipants().participants.map((p: any) => p.participantId);
   tournamentEngine.addEventEntries({ eventId, participantIds: ids.slice(0, 24) });
-  tournamentEngine.addEventEntries({
-    eventId,
-    participantIds: ids.slice(24, 40),
-    entryStage: 'QUALIFYING',
-    roundTarget: 3
-  });
-  tournamentEngine.addEventEntries({
-    eventId,
-    participantIds: ids.slice(40),
-    entryStage: 'QUALIFYING',
-    roundTarget: 1
-  });
+  // no path is set on any entry: the builder's bands decide them, as they do in TMX
+  tournamentEngine.addEventEntries({ eventId, participantIds: ids.slice(24), entryStage: 'QUALIFYING' });
 
   const element = document.createElement('div');
   element.style.height = '760px';
@@ -109,9 +99,19 @@ function mount(parallel = false): HTMLElement {
     hideGenerate: true,
     footer: true,
     mode: 'fit',
-    drawFit: (state) => {
+    // the fit is asked of the entries with the paths the bands give them, from the first fit on (the host has no
+    // handle on the control while it is being built)
+    drawFit: (state, trial) => {
       const { drawOptions } = topologyToDrawOptions(state);
-      return (tournamentEngine as any).getDrawFit({ ...drawOptions, seedsCount: 8, eventId });
+      const paths = new Map(
+        (trial?.qualifyingPaths ?? []).flatMap(({ participantIds, roundTarget, entryStageSequence }) =>
+          participantIds.map((id) => [id, { roundTarget, entryStageSequence }] as const)
+        )
+      );
+      const drawEntries = tournamentEngine
+        .getEvent({ eventId })
+        .event.entries.map((entry: any) => ({ ...entry, ...paths.get(entry.participantId) }));
+      return (tournamentEngine as any).getDrawFit({ ...drawOptions, seedsCount: 8, drawEntries, eventId });
     },
     // each stage's entries in entry order, as a host would rank them for its acceptance line
     acceptance: {

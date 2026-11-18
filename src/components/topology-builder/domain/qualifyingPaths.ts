@@ -145,3 +145,11 @@ export function assignQualifyingSlots(
     return { slot, participantIds: band };
   });
 }
+
+/**
+ * Whether the bands route their entries: more than one band, or one into a MAIN round after the first. A lone
+ * qualifying structure into round 1 needs no path, and its entries are left as they are.
+ */
+export function routesQualifying(assignments: { roundTarget: number }[]): boolean {
+  return assignments.length > 1 || assignments.some(({ roundTarget }) => roundTarget > 1);
+}
