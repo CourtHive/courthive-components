@@ -20,7 +20,7 @@ import { validateTopology } from '../domain/topologyValidator';
 import { buildTopologyCanvas } from '../ui/topologyCanvas';
 import { getNodeTotalRounds } from '../domain/feedRounds';
 import { lateEntry } from '../domain/lateEntry';
-import { assignQualifyingSlots, qualifyingSlots } from '../domain/qualifyingPaths';
+import { assignQualifyingSlots, qualifyingSlots, routesQualifying } from '../domain/qualifyingPaths';
 import { TopologyStore } from '../engine/topologyStore';
 import { standardTemplates } from '../domain/templates';
 import { buildNodeEditor } from '../ui/nodeEditor';
@@ -45,6 +45,7 @@ import type { LedgerGroup } from '../domain/drawFit';
 import type { FooterPanel } from '../ui/footer';
 import type { ModeToggle } from '../ui/toolbar';
 import type {
+  QualifyingPathAssignment,
   TopologyBuilderConfig,
   TopologyState,
   TopologyNode,
@@ -258,9 +259,16 @@ export class TopologyBuilderControl {
     const entryChanges = this.entryChanges(state);
     const key = `${fitKey(state)}|${changesKey(entryChanges)}`;
     if (this.fitCache?.key === key) return this.fitCache;
+    // the qualifying bands' paths are part of it too: without them the factory cannot tell which qualifying structure an
+    // entry plays. Asked of the state in hand, not of the host's handle on this control, which the first fit precedes
+    const assignments = this.config.acceptance ? this.qualifyingPathAssignments(state) : [];
+    const qualifyingPaths = routesQualifying(assignments) ? assignments : [];
     let fit: DrawFit | undefined;
     try {
-      fit = this.config.drawFit(state, entryChanges.length ? { entryChanges } : undefined);
+      fit = this.config.drawFit(
+        state,
+        entryChanges.length || qualifyingPaths.length ? { entryChanges, qualifyingPaths } : undefined
+      );
     } catch (error) {
       // a topology the converter cannot read yet (no main structure, a link mid-edit) has no fit to show
       fit = { error };
@@ -326,13 +334,7 @@ export class TopologyBuilderControl {
    * entries first, then the list down to its line, cut into the cards' bands strongest first. For the host to write with
    * `setEntryQualifyingPath` on Generate, beside the entry changes; an entry past the last band has no path.
    */
-  qualifyingPathAssignments(): {
-    structureName: string;
-    participantIds: string[];
-    roundTarget: number;
-    entryStageSequence: number;
-  }[] {
-    const state = this.store.getState();
+  qualifyingPathAssignments(state: TopologyState = this.store.getState()): QualifyingPathAssignment[] {
     const pool = this.acceptancePool(QUALIFYING);
     const cut = state.acceptanceCuts?.[QUALIFYING] ?? currentCut(pool);
     const accepted = [...heldEntries(this.acceptanceEntries(QUALIFYING)), ...pool.slice(0, cut)];
