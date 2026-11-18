@@ -8,9 +8,11 @@ import { getPlayoffProfiles } from '../domain/playoffProfilesCache';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { FIT_STATUS_TEXT, fitSentence } from '../domain/drawFit';
 import { defaultQualifiers, eliminationQualifyingShape, qualifiersOf } from '../domain/qualifierCounts';
-import { getNodeTotalRounds } from '../domain/feedRounds';
+import { getNodeTotalRounds, getTotalRounds } from '../domain/feedRounds';
+import { lateEntryText } from '../domain/lateEntry';
 
 import type { JourneyStep, PlayoffOffer, StructureFit, TopologyNode } from '../types';
+import type { LateEntry } from '../domain/lateEntry';
 
 const {
   VOLUNTARY_CONSOLATION,
@@ -51,16 +53,7 @@ export function getNumRounds(node: TopologyNode): number {
     const qualifiers = node.qualifyingPositions || defaultQualifiers(node);
     return eliminationQualifyingShape(node.drawSize, qualifiers).rounds.length;
   }
-  const n = Math.max(2, node.drawSize);
-  const base = Math.pow(2, Math.floor(Math.log2(n)));
-  const feedIn = n - base;
-  let numRounds = 0;
-  let mc = base / 2;
-  while (mc >= 1) {
-    numRounds++;
-    if (feedIn & mc) numRounds++;
-    mc = Math.floor(mc / 2);
-  }
+  let numRounds = getTotalRounds(node.drawSize, node.structureOptions);
 
   // Truncate qualifying structures to only show rounds needed
   if (node.qualifyingPositions && node.qualifyingPositions > 0 && node.drawSize > node.qualifyingPositions) {
@@ -113,7 +106,7 @@ export interface CardPlayoffOffers {
 }
 
 /** A Fit mode lever on a card. */
-export type FitLever = 'size' | 'qualifiers' | 'feedIn';
+export type FitLever = 'size' | 'qualifiers' | 'feedIn' | 'stackFeed';
 
 /** A node's fit, as Fit mode draws it on the card. */
 export interface NodeFit {
@@ -123,6 +116,8 @@ export interface NodeFit {
   canResize?: { down: boolean; up: boolean };
   /** A qualifying structure's qualifier count. */
   canQualify?: { down: boolean; up: boolean };
+  /** MAIN: whether its fed positions hold its seeds and the qualifiers routed after round 1. */
+  lateEntry?: LateEntry;
 }
 
 /** A node's part in the chosen participant's journey. */
@@ -591,6 +586,8 @@ function appendFit(
     head.append(toggle);
   }
   block.append(head, fitBar(fit));
+  const late = lateEntryNote(nodeFit.lateEntry, onLever);
+  if (late) block.appendChild(late);
   const levers = fitLevers(node, nodeFit, onLever);
   if (levers) block.appendChild(levers);
   card.appendChild(block);
@@ -619,6 +616,41 @@ function fitBar(fit: StructureFit): HTMLElement {
     bar.appendChild(segment);
   }
   return bar;
+}
+
+/**
+ * MAIN's late entry, when its fed positions cannot hold its seeds and the qualifiers routed after round 1: the short
+ * round, and the stacked feed round that fits them (CA, 2026-11-18).
+ */
+function lateEntryNote(
+  late: LateEntry | undefined,
+  onLever?: (lever: FitLever, direction: 1 | -1) => void
+): HTMLElement | null {
+  if (!late?.short.length) return null;
+  const note = document.createElement('div');
+  note.className = 'tb-late-entry';
+  for (const round of late.short) {
+    const line = document.createElement('span');
+    line.className = 'tb-late-entry-text';
+    line.textContent = lateEntryText(round);
+    note.appendChild(line);
+  }
+  const { proposal } = late;
+  if (proposal && onLever) {
+    const stack = document.createElement('button');
+    stack.type = 'button';
+    stack.className = 'tb-late-entry-stack';
+    const seedsRound = Math.max(...late.short.map((round) => round.roundNumber)) + 1;
+    stack.textContent = `Seeds enter at R${seedsRound} \u2192 ${proposal.drawSize}`;
+    stack.title = `A ${proposal.drawSize} draw whose fed rounds are ${proposal.feedRoundsProfile.join(', ')}`;
+    stack.addEventListener('mousedown', (e) => e.stopPropagation());
+    stack.addEventListener('click', (e) => {
+      e.stopPropagation();
+      onLever('stackFeed', 1);
+    });
+    note.appendChild(stack);
+  }
+  return note;
 }
 
 /** The size stepper, and a qualifying structure's qualifier stepper. None without a lever handler. */

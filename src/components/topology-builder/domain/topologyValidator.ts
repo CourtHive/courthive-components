@@ -3,6 +3,7 @@
  */
 import { carriesQualifiers, isRoundWinnerEdge, traversesByFinishingPosition } from './edgeTraversal';
 import { getFeedRoundCapacities, getNodeTotalRounds, getNodeLosersForRound } from './feedRounds';
+import { PARALLEL_QUALIFYING_WARNING, parallelQualifying } from './qualifyingPaths';
 import { defaultProblemMessage } from '../../roundProfile/roundProfileEditor';
 import { validateRoundProfile } from '../../roundProfile/roundProfileLogic';
 import { qualifiersOf } from './qualifierCounts';
@@ -37,12 +38,27 @@ export function validateTopology(state: TopologyState): ValidationError[] {
   validateConsolationDrawSizes(state, errors);
   validatePositionLinks(state, errors);
   validateRoundProfiles(state, errors);
+  validateParallelQualifying(state, errors);
 
   if (hasCircularDependency(state)) {
     errors.push({ severity: 'error', message: 'Circular dependency detected between structures' });
   }
 
   return errors;
+}
+
+/**
+ * A second qualifying chain into the same MAIN round: its entries' path is the first chain's, so the builder cannot
+ * tell which structure each belongs to (CA, 2026-11-18). One card is a draw with sections; raise its qualifiers.
+ */
+function validateParallelQualifying(state: TopologyState, errors: ValidationError[]): void {
+  for (const node of parallelQualifying(state)) {
+    errors.push({
+      severity: 'warning',
+      message: PARALLEL_QUALIFYING_WARNING(node.structureName),
+      nodeId: node.id
+    });
+  }
 }
 
 /**
@@ -259,7 +275,7 @@ function validateQualifyingFeedCapacity(state: TopologyState, errors: Validation
   for (const [targetId, entries] of feedEdgesByTarget) {
     const target = state.nodes.find((n) => n.id === targetId);
     if (!target) continue;
-    const feedCapacities = getFeedRoundCapacities(target.drawSize);
+    const feedCapacities = getFeedRoundCapacities(target.drawSize, target.structureOptions);
     const demandByRound = new Map<number, number>();
     for (const entry of entries) {
       demandByRound.set(entry.targetRound, (demandByRound.get(entry.targetRound) || 0) + entry.qp);
@@ -295,7 +311,7 @@ function validateLoserLinkFeedCapacity(state: TopologyState, errors: ValidationE
       sourceRound,
       source.structureOptions
     );
-    const feedCapacities = getFeedRoundCapacities(target.drawSize);
+    const feedCapacities = getFeedRoundCapacities(target.drawSize, target.structureOptions);
 
     if (targetRound !== 1) {
       validateLoserFeedRound(feedCapacities, targetRound, losersProduced, source, target, sourceRound, edge.id, errors);
