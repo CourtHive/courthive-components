@@ -4,7 +4,13 @@
  */
 import { buildStructureCard, getPortPosition, getCardWidth, getNumRounds } from './structureCard';
 import { getFeedRoundCapacities } from '../domain/feedRounds';
-import { qualifiersOf } from '../domain/qualifierCounts';
+import { eliminationQualifyingShape, qualifiersOf } from '../domain/qualifierCounts';
+import {
+  PARALLEL_QUALIFYING_WARNING,
+  parallelQualifying,
+  qualifyingPaths,
+  type QualifyingPath
+} from '../domain/qualifyingPaths';
 import {
   carriesQualifiers,
   edgeDisplayType,
@@ -17,12 +23,33 @@ import type { PlayoffOffer, TopologyState, TopologyEdge, TopologyNode, UIPanel }
 import type { RoundAnnotation, PositionChip, FitLever, NodeFit, NodeJourney } from './structureCard';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 
-const { WINNER, LOSER, QUALIFYING, CONSOLATION, ROUND_ROBIN } = drawDefinitionConstants;
+const { WINNER, LOSER, QUALIFYING, CONSOLATION, ROUND_ROBIN, FEED_IN } = drawDefinitionConstants;
 const POSITION = 'POSITION';
 
 const isRoundRobin = (structureType: string) => structureType === ROUND_ROBIN;
 
-function computeAdvanceInfo(node: TopologyNode, state: TopologyState): string | undefined {
+/**
+ * A qualifying card's path, read from where it is drawn (CA, 2026-11-18): its depth, where its qualifiers go, and its
+ * sections — one per qualifier, each the size the shape gives it: `Pre-qualifying → Qualifying · 8 sections of 4`.
+ */
+function qualifyingPathInfo(node: TopologyNode, state: TopologyState, path?: QualifyingPath): string | undefined {
+  if (!path) return undefined;
+  const next = state.edges.find((e) => e.sourceNodeId === node.id && carriesQualifiers(e, state.nodes));
+  const target = state.nodes.find((n) => n.id === next?.targetNodeId);
+  const goesTo = target?.stage === QUALIFYING ? target.structureName : `R${path.roundTarget}`;
+  const qualifiers = qualifiersOf(node);
+  const sections =
+    !isRoundRobin(node.structureType) && node.structureType !== FEED_IN && qualifiers > 1
+      ? ` \u00b7 ${qualifiers} sections of ${eliminationQualifyingShape(node.drawSize, qualifiers).positions / qualifiers}`
+      : '';
+  return `${path.label} \u2192 ${goesTo}${sections}`;
+}
+
+function computeAdvanceInfo(node: TopologyNode, state: TopologyState, path?: QualifyingPath): string | undefined {
+  if (node.stage === QUALIFYING) {
+    const info = qualifyingPathInfo(node, state, path);
+    if (info || !isRoundRobin(node.structureType)) return info;
+  }
   if (!isRoundRobin(node.structureType)) return undefined;
   const positionEdges = state.edges.filter(
     (e) => e.sourceNodeId === node.id && traversesByFinishingPosition(e, state.nodes)
@@ -243,7 +270,7 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
     for (const [targetId, entries] of feedEdgesByTarget) {
       const target = state.nodes.find((n) => n.id === targetId);
       if (!target) continue;
-      const feedCapacities = getFeedRoundCapacities(target.drawSize);
+      const feedCapacities = getFeedRoundCapacities(target.drawSize, target.structureOptions);
       const demandByRound = new Map<number, number>();
       for (const entry of entries) {
         demandByRound.set(entry.targetRound, (demandByRound.get(entry.targetRound) || 0) + entry.qp);
@@ -256,6 +283,12 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
       }
       if (warnings.length > 0) nodeWarnings.set(targetId, warnings);
     }
+    // a second qualifying chain into the same MAIN round: the validator's warning, on its card
+    for (const node of parallelQualifying(state))
+      nodeWarnings.set(node.id, [
+        ...(nodeWarnings.get(node.id) ?? []),
+        PARALLEL_QUALIFYING_WARNING(node.structureName)
+      ]);
     return nodeWarnings;
   }
 
@@ -361,6 +394,7 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
     root.classList.toggle('tb-canvas--journey', following);
     travelled = following ? (callbacks.journeyEdges?.() ?? new Set()) : new Set();
 
+    const paths = qualifyingPaths(state);
     for (const node of state.nodes) {
       const playoffOffers = addingPlayoffs
         ? {
@@ -375,7 +409,7 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
         nodesWithWinnerLink.has(node.id),
         annotationsByNode.get(node.id),
         nodeWarnings.get(node.id),
-        computeAdvanceInfo(node, state),
+        computeAdvanceInfo(node, state, paths.get(node.id)),
         positionChipsByNode.get(node.id),
         {
           playoffOffers,

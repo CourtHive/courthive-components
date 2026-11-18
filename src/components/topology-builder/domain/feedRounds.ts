@@ -10,29 +10,52 @@ import { drawDefinitionConstants } from 'tods-competition-factory';
 const { LUCKY_DRAW, ROUND_ROBIN, AD_HOC } = drawDefinitionConstants;
 
 /**
+ * A FEED_IN structure's explicit feed rounds (`structureOptions.feedRoundsProfile`), when they describe a draw of
+ * `drawSize`: each the size of one of the base draw's rounds, adding up to what `drawSize` adds to its base. The
+ * factory refuses any other profile (`isValidFeedRoundsProfile`), so the builder shows the default shape instead.
+ */
+export function feedRoundsProfileOf(drawSize: number, structureOptions?: any): number[] | undefined {
+  const profile = structureOptions?.feedRoundsProfile;
+  if (!Array.isArray(profile) || !profile.length) return undefined;
+  const base = Math.pow(2, Math.floor(Math.log2(Math.max(2, drawSize))));
+  const baseRounds = new Set<number>();
+  for (let mc = base / 2; mc >= 1; mc = Math.floor(mc / 2)) baseRounds.add(mc);
+  const fed = profile.reduce((sum, size) => sum + (Number.isInteger(size) ? size : NaN), 0);
+  return profile.every((size) => baseRounds.has(size)) && fed === drawSize - base ? profile : undefined;
+}
+
+/**
+ * An elimination structure's rounds, largest first: the base draw's rounds, each followed by the feed rounds of its
+ * size. By default a feed round follows each base round whose size is a bit of what `drawSize` adds to its base (36:
+ * one feed round of 4); a feed rounds profile names them instead (48 as [8, 8]: 16, 8, 8 fed, 8 fed, 4, 2, 1).
+ */
+export function eliminationRounds(drawSize: number, structureOptions?: any): { count: number; isFeed: boolean }[] {
+  const n = Math.max(2, drawSize);
+  const base = Math.pow(2, Math.floor(Math.log2(n)));
+  const feedIn = n - base;
+  const profile = feedRoundsProfileOf(n, structureOptions);
+  const rounds: { count: number; isFeed: boolean }[] = [];
+  for (let mc = base / 2; mc >= 1; mc = Math.floor(mc / 2)) {
+    rounds.push({ count: mc, isFeed: false });
+    const feeds = profile ? profile.filter((size) => size === mc).length : feedIn & mc ? 1 : 0;
+    for (let f = 0; f < feeds; f++) rounds.push({ count: mc, isFeed: true });
+  }
+  return rounds;
+}
+
+/**
  * For a given drawSize, return a Map from round number → feed capacity.
  * Feed rounds are the extra rounds inserted when drawSize > nearest power of 2.
  *
  * Example: drawSize=36, base=32, feedIn=4
  *   → { 4 → 4 }  (feed round 4 has capacity 4)
+ * With a feed rounds profile: drawSize=48 as [8, 8] → { 3 → 8, 4 → 8 }
  */
-export function getFeedRoundCapacities(drawSize: number): Map<number, number> {
-  const n = Math.max(2, drawSize);
-  const base = Math.pow(2, Math.floor(Math.log2(n)));
-  const feedIn = n - base;
-  if (feedIn <= 0) return new Map();
-
+export function getFeedRoundCapacities(drawSize: number, structureOptions?: any): Map<number, number> {
   const result = new Map<number, number>();
-  let roundNumber = 0;
-  let mc = base / 2;
-  while (mc >= 1) {
-    roundNumber++; // regular round
-    if (feedIn & mc) {
-      roundNumber++; // feed round
-      result.set(roundNumber, mc);
-    }
-    mc = Math.floor(mc / 2);
-  }
+  eliminationRounds(drawSize, structureOptions).forEach(({ count, isFeed }, i) => {
+    if (isFeed) result.set(i + 1, count);
+  });
   return result;
 }
 
@@ -40,18 +63,8 @@ export function getFeedRoundCapacities(drawSize: number): Map<number, number> {
  * Total number of rounds for a given drawSize, including feed rounds.
  * Equivalent to getNumRounds but works with drawSize directly.
  */
-export function getTotalRounds(drawSize: number): number {
-  const n = Math.max(2, drawSize);
-  const base = Math.pow(2, Math.floor(Math.log2(n)));
-  const feedIn = n - base;
-  let numRounds = 0;
-  let mc = base / 2;
-  while (mc >= 1) {
-    numRounds++;
-    if (feedIn & mc) numRounds++;
-    mc = Math.floor(mc / 2);
-  }
-  return numRounds;
+export function getTotalRounds(drawSize: number, structureOptions?: any): number {
+  return eliminationRounds(drawSize, structureOptions).length;
 }
 
 /**
@@ -140,7 +153,7 @@ export function getNodeTotalRounds(structureType: string, drawSize: number, stru
   if (structureType === LUCKY_DRAW) {
     return customLuckyProfile(drawSize, structureOptions)?.length ?? getLuckyDrawTotalRounds(drawSize);
   }
-  return getTotalRounds(drawSize);
+  return getTotalRounds(drawSize, structureOptions);
 }
 
 /**
