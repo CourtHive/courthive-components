@@ -268,6 +268,8 @@ export function createTimeZonePicker(options: TimeZonePickerOptions = {}): TimeZ
     renderList();
     list.hidden = false;
     search.setAttribute(ARIA_EXPANDED, 'true');
+    // a host that clips its content (a modal's scrolling body) places the list itself (`anchorModalPopups`)
+    element.dispatchEvent(new CustomEvent('chc-tz-place', { bubbles: true }));
     const selected = query ? 0 : shown.findIndex((option) => option.timeZone === value);
     activeIndex = -1;
     setActive(selected);
