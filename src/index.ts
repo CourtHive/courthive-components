@@ -279,6 +279,24 @@ export type {
   VenueLocatorView
 } from './components/venue-locator';
 
+// Time Zone Picker — find a zone by city, name, country or offset, or on a world map; the value is the IANA id.
+// The map data loads on first use. Also a form field: `renderField({ field, timeZone: true })`.
+export {
+  createTimeZonePicker,
+  buildTimeZoneOptions,
+  formatOffset,
+  isValidTimeZone,
+  runtimeTimeZones,
+  searchTimeZones,
+  timeZoneDisplay
+} from './components/timezone-picker';
+export type {
+  TimeZoneOption,
+  TimeZonePicker,
+  TimeZonePickerLabels,
+  TimeZonePickerOptions
+} from './components/timezone-picker';
+
 // Team Card — header-style card primitive for a TEAM participant
 import './components/team-card/team-card.css';
 export { buildTeamCard } from './components/team-card';
