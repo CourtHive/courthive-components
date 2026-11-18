@@ -1,5 +1,18 @@
 # Changelog
 
+## [7.19.0](https://github.com/CourtHive/courthive-components/compare/v7.18.0...v7.19.0) (2026-11-18)
+
+
+### Features
+
+* **topology-builder:** late entry into MAIN, and qualifying paths read from the topology ([#1028](https://github.com/CourtHive/courthive-components/issues/1028)) ([6198290](https://github.com/CourtHive/courthive-components/commit/61982909ea1f8e0ce4f1ded057d3ae26857d1d95))
+* **topology-builder:** the qualifying list in bands, one per qualifying card, with draggable dividers ([#1029](https://github.com/CourtHive/courthive-components/issues/1029)) ([3136602](https://github.com/CourtHive/courthive-components/commit/3136602e0cc1d03476dddd76b93b7b8c9dd3caa3))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.41.0 ([#1027](https://github.com/CourtHive/courthive-components/issues/1027)) ([65e10ce](https://github.com/CourtHive/courthive-components/commit/65e10ce95a1f0e3f710ccf72ccf85540a866f0b4))
+
 ## [7.18.0](https://github.com/CourtHive/courthive-components/compare/v7.17.0...v7.18.0) (2026-11-18)
 
 
