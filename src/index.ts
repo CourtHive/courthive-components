@@ -644,6 +644,8 @@ export {
   parallelQualifying,
   qualifyingChains,
   qualifyingPaths,
+  qualifyingSlots,
+  assignQualifyingSlots,
   lateEntry,
   lateEntryText,
   eliminationRounds,
@@ -674,6 +676,7 @@ export type {
   ValidationError,
   QualifyingChain,
   QualifyingPath,
+  QualifyingSlot,
   LateEntry,
   LateEntryRound
 } from './components/topology-builder';

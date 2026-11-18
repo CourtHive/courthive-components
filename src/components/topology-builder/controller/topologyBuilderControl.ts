@@ -20,6 +20,7 @@ import { validateTopology } from '../domain/topologyValidator';
 import { buildTopologyCanvas } from '../ui/topologyCanvas';
 import { getNodeTotalRounds } from '../domain/feedRounds';
 import { lateEntry } from '../domain/lateEntry';
+import { assignQualifyingSlots, qualifyingSlots } from '../domain/qualifyingPaths';
 import { TopologyStore } from '../engine/topologyStore';
 import { standardTemplates } from '../domain/templates';
 import { buildNodeEditor } from '../ui/nodeEditor';
@@ -152,6 +153,9 @@ export class TopologyBuilderControl {
               ),
             summary: (state: TopologyState) => (stage === MAIN ? this.entryChanges(state) : []),
             setCut: (cut: number) => this.setAcceptanceCut(cut, stage),
+            ...(stage === QUALIFYING && {
+              setSlotEntrants: (nodeId: string, entrants: number) => this.setQualifyingEntrants(nodeId, entrants)
+            }),
             discard: () => this.discardEntryChanges()
           }))
         : undefined;
@@ -315,6 +319,50 @@ export class TopologyBuilderControl {
     return this.config.acceptance
       ? stageEntryChanges(this.originalAcceptanceEntries(), state)
       : (state.proposalEntryChanges ?? []);
+  }
+
+  /**
+   * The path each accepted QUALIFYING entry takes, as the qualifying list's bands assign them (CA, 2026-11-18): held
+   * entries first, then the list down to its line, cut into the cards' bands strongest first. For the host to write with
+   * `setEntryQualifyingPath` on Generate, beside the entry changes; an entry past the last band has no path.
+   */
+  qualifyingPathAssignments(): {
+    structureName: string;
+    participantIds: string[];
+    roundTarget: number;
+    entryStageSequence: number;
+  }[] {
+    const state = this.store.getState();
+    const pool = this.acceptancePool(QUALIFYING);
+    const cut = state.acceptanceCuts?.[QUALIFYING] ?? currentCut(pool);
+    const accepted = [...heldEntries(this.acceptanceEntries(QUALIFYING)), ...pool.slice(0, cut)];
+    return assignQualifyingSlots(
+      accepted.map(({ participantId }) => participantId),
+      qualifyingSlots(state)
+    ).map(({ slot, participantIds }) => ({
+      structureName: slot.structureName,
+      participantIds,
+      roundTarget: slot.path.roundTarget,
+      entryStageSequence: slot.path.entryStageSequence
+    }));
+  }
+
+  /**
+   * A dragged band divider in the QUALIFYING list (CA, 2026-11-18): the card above it takes `entrants` of its own, so its
+   * size is those plus what its pre-qualifying sends it. A qualifier count over half the new size comes down to half.
+   */
+  setQualifyingEntrants(nodeId: string, entrants: number): void {
+    const state = this.store.getState();
+    const node = state.nodes.find((n) => n.id === nodeId);
+    const slot = qualifyingSlots(state).find((s) => s.nodeId === nodeId);
+    if (!node || !slot) return;
+    const drawSize = Math.max(2, entrants + (node.drawSize - slot.entrants));
+    if (drawSize === node.drawSize) return;
+    const half = Math.max(1, Math.floor(drawSize / 2));
+    this.store.updateNode(nodeId, {
+      drawSize,
+      ...(node.qualifyingPositions && node.qualifyingPositions > half && { qualifyingPositions: half })
+    });
   }
 
   /** Each stage's line adjusts the pending proposal; Generate remains the only write. */

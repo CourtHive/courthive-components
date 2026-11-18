@@ -34,8 +34,15 @@ export {
   eliminationQualifyingShape,
   qualifierCounts
 } from './domain/qualifierCounts';
-export { depthLabel, parallelQualifying, qualifyingChains, qualifyingPaths } from './domain/qualifyingPaths';
-export type { QualifyingChain, QualifyingPath } from './domain/qualifyingPaths';
+export {
+  assignQualifyingSlots,
+  depthLabel,
+  parallelQualifying,
+  qualifyingChains,
+  qualifyingPaths,
+  qualifyingSlots
+} from './domain/qualifyingPaths';
+export type { QualifyingChain, QualifyingPath, QualifyingSlot } from './domain/qualifyingPaths';
 export { lateEntry, lateEntryText } from './domain/lateEntry';
 export type { LateEntry, LateEntryRound } from './domain/lateEntry';
 export { eliminationRounds, feedRoundsProfileOf } from './domain/feedRounds';
