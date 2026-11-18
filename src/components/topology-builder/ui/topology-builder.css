@@ -693,9 +693,38 @@
   white-space: nowrap;
 }
 
-.tb-ledger-chip[data-status='ALTERNATE'],
-.tb-ledger-chip[data-status='WITHDRAWN'] {
-  color: var(--chc-text-secondary);
+/* Each stage in the colours the entries page gives it (CA, 2026-11-18): accepted green, qualifying blue, alternates
+   amber, withdrawn red */
+.tb-ledger-group[data-stage='MAIN'] .tb-ledger-stage {
+  color: var(--chc-status-success);
+}
+
+.tb-ledger-group[data-stage='QUALIFYING'] .tb-ledger-stage {
+  color: var(--chc-status-info);
+}
+
+.tb-ledger-group[data-stage='MAIN'] .tb-ledger-chip {
+  border-color: var(--chc-status-success);
+  background: var(--chc-container-success);
+  color: var(--chc-on-success);
+}
+
+.tb-ledger-group[data-stage='QUALIFYING'] .tb-ledger-chip {
+  border-color: var(--chc-status-info);
+  background: var(--chc-container-info);
+  color: var(--chc-on-info);
+}
+
+.tb-ledger-group .tb-ledger-chip[data-status='ALTERNATE'] {
+  border-color: var(--chc-container-warning);
+  background: var(--chc-container-warning);
+  color: var(--chc-on-warning);
+}
+
+.tb-ledger-group .tb-ledger-chip[data-status='WITHDRAWN'] {
+  border-color: var(--chc-container-danger);
+  background: var(--chc-container-danger);
+  color: var(--chc-on-danger);
 }
 
 .tb-ledger-chip[data-status='NOT_PLACED'] {
@@ -973,6 +1002,29 @@
 
 .tb-acceptance-toggle[aria-expanded='true'] {
   border-color: var(--chc-status-info);
+  background: var(--chc-container-info);
+  color: var(--chc-on-info);
+}
+
+/* the stage's colour, as its ledger chips: outlined while closed, filled while open */
+.tb-acceptance-toggle[data-stage='MAIN'] {
+  border-color: var(--chc-status-success);
+  color: var(--chc-status-success);
+  font-weight: 600;
+}
+
+.tb-acceptance-toggle[data-stage='QUALIFYING'] {
+  border-color: var(--chc-status-info);
+  color: var(--chc-status-info);
+  font-weight: 600;
+}
+
+.tb-acceptance-toggle[data-stage='MAIN'][aria-expanded='true'] {
+  background: var(--chc-container-success);
+  color: var(--chc-on-success);
+}
+
+.tb-acceptance-toggle[data-stage='QUALIFYING'][aria-expanded='true'] {
   background: var(--chc-container-info);
   color: var(--chc-on-info);
 }

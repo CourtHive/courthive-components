@@ -193,6 +193,8 @@ function buildAcceptanceControls(options: AcceptanceOptions) {
   toggle.type = 'button';
   toggle.className = 'tb-acceptance-toggle';
   toggle.textContent = options.stage === 'QUALIFYING' ? 'Qualifying line' : 'Acceptance line';
+  // coloured as the entries page colours its stage chips: accepted green, qualifying blue
+  toggle.dataset.stage = options.stage ?? 'MAIN';
   toggle.setAttribute('aria-expanded', 'false');
 
   const pending = document.createElement('span');

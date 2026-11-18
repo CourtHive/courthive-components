@@ -71,12 +71,12 @@ export const GaugesOnlyInTheMode: Story = {
 export const TheLeversMoveTheFit: Story = {
   render: () => mount('fit'),
   play: async ({ canvasElement }) => {
-    // the next count a 16 qualifying draw produces is 8 (CA, 2026-11-17: it stepped to 5, which no draw of 16
-    // produces): 28 + 8 for 32 positions — four direct entries have no place
+    // the qualifiers step by one (CA, 2026-11-18: the qualifying draw is worked backwards from the count, 5 of 16 is
+    // a 20 draw): 28 + 5 for 32 positions — one direct entry has no place
     await user.click(step(canvasElement, QUALIFYING, 'qualifiers', 'up'));
     await expect(status(canvasElement, MAIN)).toBe('OVER');
-    await expect(sentence(canvasElement, MAIN)).toBe('24 entered · 8 qualifiers · 4 not placed');
-    await expect(ledger(canvasElement)).toContain('4 not placed');
+    await expect(sentence(canvasElement, MAIN)).toBe('27 entered · 5 qualifiers · 1 not placed');
+    await expect(ledger(canvasElement)).toContain('1 not placed');
 
     // back to four, then double the main draw: 28 + 4 in 64 — 32 BYEs, no seeds to take them
     await user.click(step(canvasElement, QUALIFYING, 'qualifiers', 'down'));
