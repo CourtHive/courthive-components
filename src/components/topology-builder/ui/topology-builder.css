@@ -239,6 +239,13 @@
   flex-shrink: 0;
 }
 
+.tb-card-byes {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--chc-text-muted);
+  white-space: nowrap;
+}
+
 .tb-card-advance {
   font-size: 9px;
   color: var(--chc-status-success);

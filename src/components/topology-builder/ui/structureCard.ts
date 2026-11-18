@@ -7,6 +7,7 @@ import { generatePreviewMatchUps } from '../domain/previewGenerator';
 import { getPlayoffProfiles } from '../domain/playoffProfilesCache';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { FIT_STATUS_TEXT, fitSentence } from '../domain/drawFit';
+import { defaultQualifiers, eliminationQualifyingShape, qualifiersOf } from '../domain/qualifierCounts';
 import { getNodeTotalRounds } from '../domain/feedRounds';
 
 import type { JourneyStep, PlayoffOffer, StructureFit, TopologyNode } from '../types';
@@ -18,6 +19,7 @@ const {
   ROUND_ROBIN,
   LUCKY_DRAW,
   PLAY_OFF,
+  FEED_IN,
   AD_HOC,
   WINNER,
   LOSER,
@@ -44,6 +46,10 @@ export function getNumRounds(node: TopologyNode): number {
   }
   if (node.structureType === LUCKY_DRAW) {
     return getNodeTotalRounds(LUCKY_DRAW, node.drawSize, node.structureOptions);
+  }
+  if (node.stage === QUALIFYING && node.structureType !== FEED_IN) {
+    const qualifiers = node.qualifyingPositions || defaultQualifiers(node);
+    return eliminationQualifyingShape(node.drawSize, qualifiers).rounds.length;
   }
   const n = Math.max(2, node.drawSize);
   const base = Math.pow(2, Math.floor(Math.log2(n)));
@@ -376,6 +382,13 @@ export function buildStructureCard(
   return card;
 }
 
+/** The byes an elimination qualifying structure plays with, when its count needs a draw larger than its entrants. */
+function qualifyingByes(node: TopologyNode): { positions: number; count: number } | undefined {
+  if (node.stage !== QUALIFYING || node.structureType === FEED_IN || !node.drawSize) return undefined;
+  const { positions } = eliminationQualifyingShape(node.drawSize, qualifiersOf(node));
+  return positions > node.drawSize ? { positions, count: positions - node.drawSize } : undefined;
+}
+
 /** The card's header: stage badge, name, size, and a round robin's advance line. */
 function buildCardHeader(node: TopologyNode, advanceInfo?: string): HTMLElement {
   const header = document.createElement('div');
@@ -395,6 +408,17 @@ function buildCardHeader(node: TopologyNode, advanceInfo?: string): HTMLElement 
   size.textContent = node.stage === VOLUNTARY_CONSOLATION && !node.drawSize ? '' : `\u00d7${node.drawSize}`;
 
   header.append(badge, name, size);
+
+  // a qualifying count its own size cannot halve to is played in the next power of two, with byes: say so beside
+  // the size, which stays the entrant count (CA, 2026-11-17: 16 of 40 is a 64 draw, which the card never showed)
+  const byes = qualifyingByes(node);
+  if (byes) {
+    const note = document.createElement('span');
+    note.className = 'tb-card-byes';
+    note.textContent = `${byes.positions} \u00b7 ${byes.count} byes`;
+    note.title = `${node.drawSize} entrants play a ${byes.positions} draw for ${qualifiersOf(node)} qualifiers`;
+    header.appendChild(note);
+  }
 
   if (advanceInfo) {
     const advanceDiv = document.createElement('div');
@@ -633,7 +657,7 @@ function fitLevers(
   };
   row.appendChild(stepper('size', 'Size', node.drawSize, nodeFit.canResize));
   if (nodeFit.canQualify) {
-    const qualifiers = node.qualifyingPositions || Math.floor(node.drawSize / 4);
+    const qualifiers = qualifiersOf(node);
     row.appendChild(stepper('qualifiers', 'Qualifiers', qualifiers, nodeFit.canQualify));
   }
   return row;

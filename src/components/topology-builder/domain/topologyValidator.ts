@@ -5,6 +5,7 @@ import { carriesQualifiers, isRoundWinnerEdge, traversesByFinishingPosition } fr
 import { getFeedRoundCapacities, getNodeTotalRounds, getNodeLosersForRound } from './feedRounds';
 import { defaultProblemMessage } from '../../roundProfile/roundProfileEditor';
 import { validateRoundProfile } from '../../roundProfile/roundProfileLogic';
+import { qualifiersOf } from './qualifierCounts';
 
 // constants and types
 import { drawDefinitionConstants } from 'tods-competition-factory';
@@ -250,7 +251,7 @@ function validateQualifyingFeedCapacity(state: TopologyState, errors: Validation
     const source = state.nodes.find((n) => n.id === edge.sourceNodeId);
     if (!source || source.stage !== QUALIFYING) continue;
     if (!feedEdgesByTarget.has(edge.targetNodeId)) feedEdgesByTarget.set(edge.targetNodeId, []);
-    const qp = source.qualifyingPositions || Math.floor(source.drawSize / 4);
+    const qp = qualifiersOf(source);
     feedEdgesByTarget
       .get(edge.targetNodeId)!
       .push({ edgeId: edge.id, targetRound, qp, sourceName: source.structureName });

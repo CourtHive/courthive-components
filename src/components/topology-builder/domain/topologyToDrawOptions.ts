@@ -9,6 +9,7 @@
 import { carriesQualifiers, traversesByFinishingPosition } from './edgeTraversal';
 import type { TopologyState, TopologyNode, TopologyEdge } from '../types';
 import { drawDefinitionConstants } from 'tods-competition-factory';
+import { defaultQualifiers } from './qualifierCounts';
 import { customLuckyProfile } from './feedRounds';
 
 const {
@@ -271,15 +272,16 @@ function applyQualifyingProfiles(drawOptions: any, qualifyingNodes: TopologyNode
   let totalQualifiers = 0;
   const profiles = Object.entries(byTargetRound).map(([roundTarget, entries]) => {
     const structureProfiles = entries.map(({ node, edge }) => {
-      const qualifyingPositions =
-        node.qualifyingPositions || edge?.qualifyingPositions || Math.floor(node.drawSize / 4);
+      const qualifyingPositions = node.qualifyingPositions || edge?.qualifyingPositions || defaultQualifiers(node);
       totalQualifiers += qualifyingPositions;
       return {
         structureName: node.structureName,
         drawType: node.structureType,
         drawSize: node.drawSize,
         qualifyingPositions,
-        seedsCount: node.seedsCount ?? 0
+        seedsCount: node.seedsCount ?? 0,
+        // a qualifying card's own format was dropped here, so its structure played the draw's (CA, 2026-11-17)
+        ...(node.matchUpFormat && { matchUpFormat: node.matchUpFormat })
       };
     });
     return {

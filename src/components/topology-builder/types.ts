@@ -110,6 +110,11 @@ export interface TopologyBuilderConfig {
   /** Factory-resolved base limits and sanction-record permission ceilings. */
   sanctionLimits?: () => { constraints?: CompositionLimits; overrideLimits?: CompositionLimits };
   initialState?: Partial<TopologyState>;
+  /**
+   * The format a structure added on the canvas starts with: the host's default for the event (TMX: the event's own,
+   * then its competition format's, then Standard Advantage). Without it a new card's format is "Not set".
+   */
+  defaultMatchUpFormat?: string;
   onGenerate?: (state: TopologyState) => void;
   onDoubleClickNode?: (node: TopologyNode, state: TopologyState) => void;
   onSaveTemplate?: (state: TopologyState) => void;

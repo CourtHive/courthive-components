@@ -13,6 +13,7 @@ import {
   takesEntries
 } from '../domain/drawFit';
 import { journeyEdgeIds, journeySummary, stepsByNode } from '../domain/journey';
+import { defaultQualifiers, eliminationQualifyingShape } from '../domain/qualifierCounts';
 import { buildTopologyBuilderLayout } from '../ui/topologyBuilderLayout';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { validateTopology } from '../domain/topologyValidator';
@@ -408,7 +409,8 @@ export class TopologyBuilderControl {
           id: crypto.randomUUID(),
           stage: QUALIFYING,
           structureName: 'Qualifying',
-          position: { x: Math.max(40, main.position.x - 300), y: main.position.y + 160 }
+          position: { x: Math.max(40, main.position.x - 300), y: main.position.y + 160 },
+          ...(this.config.defaultMatchUpFormat && { matchUpFormat: this.config.defaultMatchUpFormat })
         }),
         structureType: SINGLE_ELIMINATION,
         drawSize: proposal.qualifyingDrawSize,
@@ -426,7 +428,9 @@ export class TopologyBuilderControl {
           sourceNodeId: qualifying.id,
           targetNodeId: main.id,
           linkType: WINNER,
-          sourceRoundNumber: Math.log2(proposal.qualifyingDrawSize / proposal.qualifyingPositions),
+          // the round its qualifiers win: log2(size / qualifiers) was 1.32 for 16 of 40, which a 64 draw plays in round 2
+          sourceRoundNumber: eliminationQualifyingShape(proposal.qualifyingDrawSize, proposal.qualifyingPositions)
+            .rounds.length,
           targetRoundNumber: 1,
           qualifyingPositions: proposal.qualifyingPositions
         }
@@ -710,7 +714,10 @@ export class TopologyBuilderControl {
       stage: stage as any,
       structureType: structureType || SINGLE_ELIMINATION,
       drawSize,
-      ...(stage === QUALIFYING && { qualifyingPositions: Math.floor(drawSize / 4) })
+      ...(this.config.defaultMatchUpFormat && { matchUpFormat: this.config.defaultMatchUpFormat }),
+      ...(stage === QUALIFYING && {
+        qualifyingPositions: defaultQualifiers({ drawSize, structureType: structureType || SINGLE_ELIMINATION })
+      })
     });
 
     this.scrollCanvasToNode(node);
