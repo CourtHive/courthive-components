@@ -148,7 +148,10 @@ export interface TopologyBuilderConfig {
    * Given, the toolbar offers a Fit mode. Asked when the fit-relevant shape of the topology changes (sizes, types,
    * qualifiers, links), not on every render: dragging a card does not regenerate the draw.
    */
-  drawFit?: (state: TopologyState, trial?: { entryChanges: EntryChange[] }) => DrawFit | undefined;
+  drawFit?: (
+    state: TopologyState,
+    trial?: { entryChanges: EntryChange[]; qualifyingPaths?: QualifyingPathAssignment[] }
+  ) => DrawFit | undefined;
   /**
    * Fit mode's acceptance line. Given, the footer offers a cut through the event's MAIN entries, and `drawFit` is
    * asked with the entry changes the cut would make, so the gauges and the ledger preview them.
@@ -290,4 +293,16 @@ export interface FitProposal {
     movedToQualifying?: number;
     promotedAlternates?: number;
   };
+}
+
+/**
+ * A band of the QUALIFYING acceptance list: the entries that play one qualifying card, and the path they take to MAIN
+ * (CA, 2026-11-18). The host writes it with `setEntryQualifyingPath` on Generate, and `drawFit` is asked with it, so the
+ * fit reads the entries as Generate will make them.
+ */
+export interface QualifyingPathAssignment {
+  structureName: string;
+  participantIds: string[];
+  roundTarget: number;
+  entryStageSequence: number;
 }

@@ -40,7 +40,8 @@ export {
   parallelQualifying,
   qualifyingChains,
   qualifyingPaths,
-  qualifyingSlots
+  qualifyingSlots,
+  routesQualifying
 } from './domain/qualifyingPaths';
 export type { QualifyingChain, QualifyingPath, QualifyingSlot } from './domain/qualifyingPaths';
 export { lateEntry, lateEntryText } from './domain/lateEntry';
@@ -81,5 +82,6 @@ export type {
   JourneyStep,
   JourneyParticipant,
   JourneyHost,
-  UIPanel
+  UIPanel,
+  QualifyingPathAssignment
 } from './types';
