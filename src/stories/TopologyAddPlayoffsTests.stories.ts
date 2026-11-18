@@ -144,9 +144,9 @@ export const FillsTheHostWithAFooter: Story = {
       Math.round(host.element.getBoundingClientRect().bottom)
     );
     // the grid scrolls with the content rather than staying painted on the box
-    // (the grid is two gradient layers, so the computed value lists one attachment per layer)
+    // (every layer is local; Chromium lists one value per gradient layer before Playwright 1.65.1, one value after)
     const attachments = getComputedStyle(canvasElement.querySelector('.tb-canvas')!).backgroundAttachment.split(', ');
-    await expect(attachments).toEqual(['local', 'local']);
+    await expect(new Set(attachments)).toEqual(new Set(['local']));
     // the footer says what the mode asks
     await expect(canvasElement.querySelector('.tb-footer-hint')!.textContent).toBe(
       '6 structures can still be added — choose a chip to add it'
