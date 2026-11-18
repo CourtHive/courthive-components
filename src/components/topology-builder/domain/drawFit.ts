@@ -98,9 +98,24 @@ const STATUS_ABBREVIATION: Record<string, string> = {
   QUALIFIER: 'Q'
 };
 
+const STATUS_ORDER = Object.keys(STATUS_ABBREVIATION);
+
+/**
+ * A stage's selected statuses in a fixed order — DA, WC, SE, JE, OA, CF, LL, Q, then any other by name — not the order
+ * the entries are first met in. That followed the event's entries, so one event read `24 DA · 4 WC` or `4 WC · 24 DA`
+ * by the order its wildcards were added.
+ */
+function orderedStatuses(selected: Record<string, number>): [string, number][] {
+  const rank = (status: string) => {
+    const index = STATUS_ORDER.indexOf(status);
+    return index < 0 ? STATUS_ORDER.length : index;
+  };
+  return Object.entries(selected).sort(([a], [b]) => rank(a) - rank(b) || a.localeCompare(b));
+}
+
 /** One stage's ledger as the footer reads it: `24 DA · 4 WC · 6 ALT · 2 WD`. */
 export function ledgerLine(ledger: FitLedgerStage): string {
-  const parts = Object.entries(ledger.selected).map(
+  const parts = orderedStatuses(ledger.selected).map(
     ([status, count]) => `${count} ${STATUS_ABBREVIATION[status] ?? status}`
   );
   if (ledger.alternates) parts.push(`${ledger.alternates} ALT`);
@@ -172,7 +187,7 @@ export function ledgerGroups(ledger: Record<string, FitLedgerStage> = {}, notPla
   const groups = stages.map((stage) => {
     const row = ledger[stage];
     const chips = [
-      ...Object.entries(row.selected).map(([status, count]) =>
+      ...orderedStatuses(row.selected).map(([status, count]) =>
         chip(status, count, STATUS_ABBREVIATION[status] ?? status)
       ),
       ...(row.alternates ? [chip(ALTERNATE, row.alternates, 'ALT')] : []),

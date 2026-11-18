@@ -7,6 +7,7 @@ import {
   fitKey,
   fitSentence,
   ledgerGroups,
+  ledgerLine,
   ledgerText,
   steppedDrawSize,
   steppedQualifiers,
@@ -176,5 +177,31 @@ describe('the levers', () => {
     expect(steppedQualifiers(q, 1)).toBe(5);
     expect(steppedQualifiers({ ...q, qualifyingPositions: 8 }, 1)).toBeUndefined();
     expect(steppedQualifiers({ ...q, qualifyingPositions: 1 }, -1)).toBeUndefined();
+  });
+});
+
+describe('the ledger orders statuses, not by the order entries are met', () => {
+  // wildcards entered before the direct acceptances: the counts are inserted WC first
+  const stage = {
+    selected: { WILDCARD: 4, CUSTOM_STATUS: 1, DIRECT_ACCEPTANCE: 24, JUNIOR_EXEMPT: 2 },
+    selectedCount: 31,
+    alternates: 6,
+    withdrawn: 2,
+    other: {}
+  };
+
+  it('reads DA, WC, SE, JE, … then any other status by name', () => {
+    expect(ledgerLine(stage)).toBe('24 DA · 4 WC · 2 JE · 1 CUSTOM_STATUS · 6 ALT · 2 WD');
+  });
+
+  it('draws the chips in the same order', () => {
+    expect(ledgerGroups({ MAIN: stage })[0].chips.map(({ label }) => label)).toEqual([
+      '24 DA',
+      '4 WC',
+      '2 JE',
+      '1 CUSTOM_STATUS',
+      '6 ALT',
+      '2 WD'
+    ]);
   });
 });
