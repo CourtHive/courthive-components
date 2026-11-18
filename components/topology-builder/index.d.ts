@@ -17,7 +17,7 @@ export { playoffOffersFromProfile, playoffOffersByStructure, playoffGenerationPa
 export type { AvailablePlayoffProfile, PlayoffGenerationParams, OfferDrawDefinition } from './domain/playoffOffers';
 export { fitByNode, ledgerText, fitSentence } from './domain/drawFit';
 export { defaultQualifiers, eliminationQualifierCounts, eliminationQualifyingShape, qualifierCounts } from './domain/qualifierCounts';
-export { assignQualifyingSlots, depthLabel, parallelQualifying, qualifyingChains, qualifyingPaths, qualifyingSlots } from './domain/qualifyingPaths';
+export { assignQualifyingSlots, depthLabel, parallelQualifying, qualifyingChains, qualifyingPaths, qualifyingSlots, routesQualifying } from './domain/qualifyingPaths';
 export type { QualifyingChain, QualifyingPath, QualifyingSlot } from './domain/qualifyingPaths';
 export { lateEntry, lateEntryText } from './domain/lateEntry';
 export type { LateEntry, LateEntryRound } from './domain/lateEntry';
@@ -32,4 +32,4 @@ export { buildEdgeEditor } from './ui/edgeEditor';
 export { buildToolbar } from './ui/toolbar';
 export { buildTopologyBuilderLayout } from './ui/topologyBuilderLayout';
 export { buildFooter } from './ui/footer';
-export type { CompositionLimits, AcceptanceEntry, AcceptanceHost, EntryChange, TopologyNode, TopologyEdge, TopologyState, TopologyChangeListener, TopologyBuilderConfig, TopologyTemplate, TopologyMode, PlayoffOffer, DrawFit, StructureFit, FitStatus, FitProposal, FitLedgerStage, JourneyStep, JourneyParticipant, JourneyHost, UIPanel } from './types';
+export type { CompositionLimits, AcceptanceEntry, AcceptanceHost, EntryChange, TopologyNode, TopologyEdge, TopologyState, TopologyChangeListener, TopologyBuilderConfig, TopologyTemplate, TopologyMode, PlayoffOffer, DrawFit, StructureFit, FitStatus, FitProposal, FitLedgerStage, JourneyStep, JourneyParticipant, JourneyHost, UIPanel, QualifyingPathAssignment } from './types';

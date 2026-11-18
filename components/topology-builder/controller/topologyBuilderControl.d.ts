@@ -1,4 +1,4 @@
-import { TopologyBuilderConfig, TopologyState, TopologyMode, EntryChange } from '../types';
+import { QualifyingPathAssignment, TopologyBuilderConfig, TopologyState, TopologyMode, EntryChange } from '../types';
 export declare class TopologyBuilderControl {
     private readonly store;
     private readonly layout;
@@ -33,12 +33,7 @@ export declare class TopologyBuilderControl {
      * entries first, then the list down to its line, cut into the cards' bands strongest first. For the host to write with
      * `setEntryQualifyingPath` on Generate, beside the entry changes; an entry past the last band has no path.
      */
-    qualifyingPathAssignments(): {
-        structureName: string;
-        participantIds: string[];
-        roundTarget: number;
-        entryStageSequence: number;
-    }[];
+    qualifyingPathAssignments(state?: TopologyState): QualifyingPathAssignment[];
     /**
      * A dragged band divider in the QUALIFYING list (CA, 2026-11-18): the card above it takes `entrants` of its own, so its
      * size is those plus what its pre-qualifying sends it. A qualifier count over half the new size comes down to half.

@@ -143,6 +143,7 @@ export interface TopologyBuilderConfig {
      */
     drawFit?: (state: TopologyState, trial?: {
         entryChanges: EntryChange[];
+        qualifyingPaths?: QualifyingPathAssignment[];
     }) => DrawFit | undefined;
     /**
      * Fit mode's acceptance line. Given, the footer offers a cut through the event's MAIN entries, and `drawFit` is
@@ -279,4 +280,15 @@ export interface FitProposal {
         movedToQualifying?: number;
         promotedAlternates?: number;
     };
+}
+/**
+ * A band of the QUALIFYING acceptance list: the entries that play one qualifying card, and the path they take to MAIN
+ * (CA, 2026-11-18). The host writes it with `setEntryQualifyingPath` on Generate, and `drawFit` is asked with it, so the
+ * fit reads the entries as Generate will make them.
+ */
+export interface QualifyingPathAssignment {
+    structureName: string;
+    participantIds: string[];
+    roundTarget: number;
+    entryStageSequence: number;
 }
