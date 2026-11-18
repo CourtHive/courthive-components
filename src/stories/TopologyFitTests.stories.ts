@@ -71,7 +71,8 @@ export const GaugesOnlyInTheMode: Story = {
 export const TheLeversMoveTheFit: Story = {
   render: () => mount('fit'),
   play: async ({ canvasElement }) => {
-    // one more qualifier: 28 + 5 for 32 positions — one direct entry has no place
+    // the qualifiers step by one (CA, 2026-11-18: the qualifying draw is worked backwards from the count, 5 of 16 is
+    // a 20 draw): 28 + 5 for 32 positions — one direct entry has no place
     await user.click(step(canvasElement, QUALIFYING, 'qualifiers', 'up'));
     await expect(status(canvasElement, MAIN)).toBe('OVER');
     await expect(sentence(canvasElement, MAIN)).toBe('27 entered · 5 qualifiers · 1 not placed');

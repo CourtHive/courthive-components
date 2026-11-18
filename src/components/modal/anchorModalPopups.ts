@@ -18,11 +18,15 @@
  *   is made fixed here (inline, to win over its own inline style) and placed under the trigger when it
  *   opens and whenever the body scrolls. Clipped, only one row of the panel showed above the footer.
  *   Fixed, it is bounded by the viewport instead: it shrinks to the room below, or opens upward.
+ * - The time zone picker's list hangs below its search box the same way, and is placed the same way
+ *   (`chc-tz-place`): absolute, it was clipped under the Edit Dates footer as the type-ahead it replaced
+ *   had been (CA, 2026-11-17).
  */
 
 const TYPE_AHEAD_LIST = ':scope > ul[role="listbox"]';
 const OPEN_DATEPICKER = '.datepicker-dropdown.active';
 const MULTI_SELECT_PANEL = '.chc-multi-select-dropdown';
+const TIME_ZONE_LIST = '.chc-tz-list';
 
 function placeTypeAheadList(input: HTMLElement): void {
   const list = input.parentElement?.querySelector<HTMLElement>(TYPE_AHEAD_LIST);
@@ -37,9 +41,10 @@ const PANEL_MAX_HEIGHT = 220;
 const PANEL_MIN_HEIGHT = 120;
 const VIEWPORT_MARGIN = 8;
 
-function placeMultiSelectPanel(panel: HTMLElement): void {
+/** A panel hanging below its trigger, the element before it: the multi-select's, the time zone picker's list. */
+function placePanelBelowTrigger(panel: HTMLElement): void {
   const trigger = panel.previousElementSibling;
-  if (!trigger || panel.style.display === 'none') return;
+  if (!trigger || panel.hidden || panel.style.display === 'none') return;
   const { left, top, bottom, width } = trigger.getBoundingClientRect();
   panel.style.position = 'fixed';
   panel.style.left = `${left}px`;
@@ -65,7 +70,12 @@ export function anchorModalPopups(body: HTMLElement): void {
 
   body.addEventListener('chc-multi-select-place', (event) => {
     const panel = (event.target as HTMLElement).querySelector<HTMLElement>(`:scope > ${MULTI_SELECT_PANEL}`);
-    if (panel) placeMultiSelectPanel(panel);
+    if (panel) placePanelBelowTrigger(panel);
+  });
+
+  body.addEventListener('chc-tz-place', (event) => {
+    const list = (event.target as HTMLElement).querySelector<HTMLElement>(`:scope > ${TIME_ZONE_LIST}`);
+    if (list) placePanelBelowTrigger(list);
   });
 
   body.addEventListener('scroll', () => {
@@ -73,7 +83,7 @@ export function anchorModalPopups(body: HTMLElement): void {
     lastScrollTop = body.scrollTop;
 
     body.querySelectorAll<HTMLElement>('.awesomplete > input').forEach(placeTypeAheadList);
-    body.querySelectorAll<HTMLElement>(MULTI_SELECT_PANEL).forEach(placeMultiSelectPanel);
+    body.querySelectorAll<HTMLElement>(`${MULTI_SELECT_PANEL}, ${TIME_ZONE_LIST}`).forEach(placePanelBelowTrigger);
 
     // The calendar keeps the coordinates it computed when it opened; move it with its input.
     body.querySelectorAll<HTMLElement>(OPEN_DATEPICKER).forEach((picker) => {

@@ -194,7 +194,23 @@
  *   typeAhead: { list: ['UTC', 'Europe/Paris', 'America/New_York'] }
  * }
  *
- * 7. STATIC TEXT/HTML
+ * 7. TIME ZONE
+ * Properties:
+ * - timeZone: true, or the picker's options (see components/timezone-picker): { timeZones, locale, showMap,
+ *     allowEmpty, labels }. The field's `value`, `placeholder`, `id` and `disabled` apply as for a text input.
+ * The director searches by city, zone name, country or offset, or picks on a world map. `inputs[field]` is a
+ * hidden input holding the IANA id (`America/New_York`), firing `input` and `change` when the zone changes.
+ * `focus: true` does not open it: a field that opened its list as a form rendered would cover the form.
+ *
+ * Example:
+ * {
+ *   label: 'Time zone',
+ *   field: 'localTimeZone',
+ *   value: 'America/New_York',
+ *   timeZone: { locale: 'fr' }
+ * }
+ *
+ * 8. STATIC TEXT/HTML
  * Properties:
  * - text: String - plain text to display (no input)
  *
@@ -233,6 +249,7 @@
  * - Both fields accessible via their field names in inputs object
  */
 import { attachDatepicker, pickerHandle } from '../../helpers/loadDatepicker';
+import { createTimeZonePicker } from '../timezone-picker/timeZonePicker';
 import { createTypeAhead } from '../../helpers/createTypeAhead';
 import { isFunction } from '../../helpers/typeOf';
 import { validator } from './renderValidator';
@@ -311,6 +328,8 @@ export function renderField(item: any): {
     inputElement = buildSelectField(item, control);
   } else if (item.checkbox) {
     inputElement = buildCheckboxField(item, control);
+  } else if (item.timeZone) {
+    inputElement = buildTimeZoneField(item, control) as any;
   } else {
     const result = buildTextInputField(item, control);
     inputElement = result.inputElement;
@@ -323,6 +342,20 @@ export function renderField(item: any): {
   }
 
   return { field, inputElement, datepicker, subFields };
+}
+
+/** The time zone picker; the form's input is its hidden IANA value, so `inputs[field].value` reads as before. */
+function buildTimeZoneField(item: any, control: HTMLElement): HTMLInputElement {
+  const picker = createTimeZonePicker({
+    ...(typeof item.timeZone === 'object' ? item.timeZone : {}),
+    placeholder: item.placeholder,
+    disabled: item.disabled,
+    value: item.value,
+    id: item.id
+  });
+  control.appendChild(picker.element);
+  if (isFunction(item.onChange)) picker.input.addEventListener('change', (e) => item.onChange(e, item));
+  return picker.input;
 }
 
 function buildRadioGroup(item: any, subFields: any[]): HTMLDivElement {

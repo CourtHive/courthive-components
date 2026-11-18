@@ -4,6 +4,7 @@
  */
 import { buildStructureCard, getPortPosition, getCardWidth, getNumRounds } from './structureCard';
 import { getFeedRoundCapacities } from '../domain/feedRounds';
+import { qualifiersOf } from '../domain/qualifierCounts';
 import {
   carriesQualifiers,
   edgeDisplayType,
@@ -231,7 +232,7 @@ export function buildTopologyCanvas(callbacks: CanvasCallbacks): UIPanel<Topolog
       const source = state.nodes.find((n) => n.id === edge.sourceNodeId);
       if (!source || source.stage !== QUALIFYING) continue;
       if (!feedEdgesByTarget.has(edge.targetNodeId)) feedEdgesByTarget.set(edge.targetNodeId, []);
-      const qp = source.qualifyingPositions || Math.floor(source.drawSize / 4);
+      const qp = qualifiersOf(source);
       feedEdgesByTarget.get(edge.targetNodeId)!.push({
         targetRound,
         qp,

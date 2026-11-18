@@ -170,7 +170,8 @@ describe('the levers', () => {
     expect(steppedDrawSize(node({ structureType: 'FEED_IN', drawSize: 24 }), 1)).toBe(25);
   });
 
-  it('qualifiers stay between one and half the qualifying draw', () => {
+  // steps by one (CA, 2026-11-18): the structure is worked backwards from the count, 5 of 16 is a 20 draw
+  it('qualifiers step by one, up to half the qualifying entrants', () => {
     const q = node({ stage: 'QUALIFYING', drawSize: 16, qualifyingPositions: 4 });
     expect(steppedQualifiers(q, 1)).toBe(5);
     expect(steppedQualifiers({ ...q, qualifyingPositions: 8 }, 1)).toBeUndefined();

@@ -57,6 +57,8 @@ Renders individual form fields with support for multiple input types.
 - Radio button groups
 - Date pickers (with vanillajs-datepicker)
 - Type-ahead/autocomplete (with awesomplete)
+- Time zones (`timeZone: true`): search by city, zone name, country or offset, or pick on a world map; the value is
+  the IANA id. See [timezone-picker](../timezone-picker/timeZonePicker.ts)
 
 **Features:**
 
@@ -87,6 +89,23 @@ container.appendChild(field);
 // Access the input value
 console.log(inputElement.value);
 ```
+
+**Time zone:**
+
+```typescript
+const { field, inputElement } = renderField({
+  label: 'Time zone',
+  field: 'localTimeZone',
+  value: 'America/New_York', // shown as "New York · Eastern Time (UTC−5)"
+  timeZone: { locale: 'fr' } // or `true`; options: timeZones, locale, showMap, allowEmpty, labels
+});
+
+inputElement.value; // 'America/New_York' — a hidden input; it fires `input` and `change` when the zone changes
+```
+
+The map and the zones' locations load on first use, as separate chunks: a host that never renders a time zone field
+does not fetch them. They are generated from public-domain data (Natural Earth, the IANA tz database) by
+`scripts/buildTimeZoneMap.mjs`.
 
 **See:** [renderField.stories.ts](../../stories/renderField.stories.ts) for all field types and configurations
 
