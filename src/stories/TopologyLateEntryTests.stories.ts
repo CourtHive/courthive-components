@@ -27,6 +27,7 @@ const meta: Meta = {
 export default meta;
 type Story = StoryObj;
 
+const ROW = '.tb-acceptance-row';
 const at = { x: 0, y: 0 };
 const staggered = (parallel = false): Partial<TopologyState> => ({
   drawName: 'Staggered',
@@ -111,6 +112,20 @@ function mount(parallel = false): HTMLElement {
     drawFit: (state) => {
       const { drawOptions } = topologyToDrawOptions(state);
       return (tournamentEngine as any).getDrawFit({ ...drawOptions, seedsCount: 8, eventId });
+    },
+    // each stage's entries in entry order, as a host would rank them for its acceptance line
+    acceptance: {
+      entries: (stage) =>
+        tournamentEngine
+          .getEvent({ eventId })
+          .event.entries.filter((entry: any) => (entry.entryStage ?? 'MAIN') === stage)
+          .map((entry: any, rankOrder: number) => ({
+            rankOrder,
+            entryStage: stage,
+            participantId: entry.participantId,
+            name: `Player ${rankOrder + 1}`,
+            entryStatus: entry.entryStatus
+          }))
     }
   });
   control.render(element);
@@ -167,5 +182,62 @@ export const ParallelQualifyingIsFlagged: Story = {
     // a second structure into R1: its entries' path is the first's, so routing cannot tell them apart
     await expect(card(canvasElement, 'Other').classList.contains('tb-card--warning')).toBe(true);
     await expect(card(canvasElement, 'Weaker').classList.contains('tb-card--warning')).toBe(false);
+  }
+};
+
+export const QualifyingBands: Story = {
+  render: () => mount(),
+  play: async ({ canvasElement }) => {
+    // the qualifying list in bands, strongest first: the stronger field earns R3
+    await user.click(canvasElement.querySelector<HTMLButtonElement>('.tb-acceptance-toggle[data-stage="QUALIFYING"]')!);
+    const panel = [...document.querySelectorAll<HTMLElement>('.tb-acceptance')].find(
+      (p) => p.dataset.stage === 'QUALIFYING'
+    )!;
+    const dividers = [...panel.querySelectorAll('.tb-acceptance-slot')].map((d) => d.textContent);
+    await expect(dividers).toEqual(['Stronger · Qualifying → R3 · 16', 'Weaker · Qualifying → R1 · 32']);
+    // the first band's divider leads the list; the second sits before the 17th row
+    const rows = [...panel.querySelectorAll<HTMLElement>(ROW)];
+    await expect(rows[16].previousElementSibling?.classList.contains('tb-acceptance-slot')).toBe(true);
+
+    // the paths the host writes on Generate
+    const assignments = control.qualifyingPathAssignments();
+    await expect(
+      assignments.map(({ structureName, participantIds, roundTarget, entryStageSequence }) => [
+        structureName,
+        participantIds.length,
+        roundTarget,
+        entryStageSequence
+      ])
+    ).toEqual([
+      ['Stronger', 16, 3, 1],
+      ['Weaker', 32, 1, 1]
+    ]);
+    await expect(assignments[0].participantIds[0]).toBe(rows[0].dataset.participantId);
+  }
+};
+
+export const DraggingABandResizesItsCard: Story = {
+  render: () => mount(),
+  play: async ({ canvasElement }) => {
+    await user.click(canvasElement.querySelector<HTMLButtonElement>('.tb-acceptance-toggle[data-stage="QUALIFYING"]')!);
+    const panel = () =>
+      [...document.querySelectorAll<HTMLElement>('.tb-acceptance')].find((p) => p.dataset.stage === 'QUALIFYING')!;
+    const divider = () => panel().querySelector<HTMLElement>('.tb-acceptance-slot[data-above-node-id="strong"]')!;
+    const strongSize = () => control.getState().nodes.find((n) => n.id === 'strong')!.drawSize;
+
+    // the keyboard: one more entrant for the stronger field, and the divider keeps the focus as the panel redraws
+    divider().focus();
+    await user.keyboard('{ArrowDown}{ArrowDown}');
+    await expect(strongSize()).toBe(18);
+    await expect(document.activeElement).toBe(divider());
+    await expect(panel().querySelector('.tb-acceptance-slot')!.textContent).toBe('Stronger · Qualifying → R3 · 18');
+
+    // the pointer: dropped on the 21st row's middle, 20 rows lie above it and the stronger card takes 20
+    const rows = [...panel().querySelectorAll<HTMLElement>(ROW)];
+    await user.dragAndDrop(divider(), rows[20]);
+    await expect(strongSize()).toBe(20);
+    // the weaker band follows: it starts after the stronger card's 20
+    const after = [...panel().querySelectorAll<HTMLElement>(ROW)];
+    await expect(after[20].previousElementSibling).toBe(divider());
   }
 };

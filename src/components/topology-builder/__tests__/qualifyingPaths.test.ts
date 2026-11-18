@@ -3,6 +3,8 @@ import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { topologyToDrawOptions } from '../domain/topologyToDrawOptions';
 import { describe, expect, it } from 'vitest';
 
+const PRE_QUALIFYING = 'Pre-qualifying';
+
 const node = (id: string, stage: string, drawSize: number, qualifyingPositions?: number) => ({
   id,
   stage,
@@ -38,7 +40,7 @@ function topology({ stronger = false, parallel = false } = {}): any {
 describe('qualifying paths (CA, 2026-11-18)', () => {
   it('a card linked to a qualifying card is its pre-qualifying: sequence 1, the deepest', () => {
     const paths = qualifyingPaths(topology());
-    expect(paths.get('Pre')).toEqual({ roundTarget: 1, entryStageSequence: 1, depth: 2, label: 'Pre-qualifying' });
+    expect(paths.get('Pre')).toEqual({ roundTarget: 1, entryStageSequence: 1, depth: 2, label: PRE_QUALIFYING });
     expect(paths.get('Q')).toEqual({ roundTarget: 1, entryStageSequence: 2, depth: 1, label: 'Qualifying' });
   });
 
@@ -52,7 +54,7 @@ describe('qualifying paths (CA, 2026-11-18)', () => {
   });
 
   it('labels by distance from MAIN', () => {
-    expect([1, 2, 3].map(depthLabel)).toEqual(['Qualifying', 'Pre-qualifying', 'Pre-pre-qualifying']);
+    expect([1, 2, 3].map(depthLabel)).toEqual(['Qualifying', PRE_QUALIFYING, 'Pre-pre-qualifying']);
   });
 
   it('a second chain into the same MAIN round is parallel; another round is not', () => {
@@ -106,5 +108,33 @@ describe('a chain generates as the factory chains qualifying', () => {
         .length;
     expect(placed('Pre')).toEqual(32);
     expect(placed('Q')).toEqual(16);
+  });
+});
+
+describe('the QUALIFYING list cut into bands (CA, 2026-11-18)', () => {
+  it('strongest first: the R3 chain, then the R1 qualifying, then its pre-qualifying; each its own entrants', async () => {
+    const { qualifyingSlots } = await import('../domain/qualifyingPaths');
+    const slots = qualifyingSlots(topology({ stronger: true }));
+    expect(
+      slots.map(({ structureName, entrants, path }) => [structureName, entrants, path.label, path.roundTarget])
+    ).toEqual([
+      ['Strong', 16, 'Qualifying', 3],
+      // the qualifying 24 takes 8 from its pre-qualifying: 16 of its own
+      ['Q', 16, 'Qualifying', 1],
+      ['Pre', 32, PRE_QUALIFYING, 1]
+    ]);
+  });
+
+  it('cuts the accepted list into the bands, in order; entries past the last band have none', async () => {
+    const { assignQualifyingSlots, qualifyingSlots } = await import('../domain/qualifyingPaths');
+    const ids = Array.from({ length: 70 }, (_, i) => `p${i + 1}`);
+    const bands = assignQualifyingSlots(ids, qualifyingSlots(topology({ stronger: true })));
+    expect(
+      bands.map(({ slot, participantIds }) => [slot.structureName, participantIds.length, participantIds[0]])
+    ).toEqual([
+      ['Strong', 16, 'p1'],
+      ['Q', 16, 'p17'],
+      ['Pre', 32, 'p33']
+    ]);
   });
 });

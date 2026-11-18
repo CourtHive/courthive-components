@@ -10,6 +10,7 @@
  */
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { carriesQualifiers } from './edgeTraversal';
+import { qualifiersOf } from './qualifierCounts';
 import type { TopologyEdge, TopologyNode, TopologyState } from '../types';
 
 const { MAIN, QUALIFYING } = drawDefinitionConstants;
@@ -97,4 +98,50 @@ export function parallelQualifying(state: TopologyState): TopologyNode[] {
     rounds.add(roundTarget);
   }
   return parallel;
+}
+
+/** One band of the QUALIFYING acceptance list: the card its entrants play, and how many it takes directly. */
+export interface QualifyingSlot {
+  nodeId: string;
+  structureName: string;
+  path: QualifyingPath;
+  /** The card's own entrants: its size less the qualifiers its pre-qualifying sends it. */
+  entrants: number;
+}
+
+/**
+ * The QUALIFYING acceptance list's bands, strongest first (CA, 2026-11-18): the stronger field earns the later entry
+ * point, so a chain into a later MAIN round comes first, and within a chain the card nearest MAIN before its
+ * pre-qualifying. Each band is as long as its card's own entrants, so resizing a card moves the cut line after it.
+ */
+export function qualifyingSlots(state: TopologyState): QualifyingSlot[] {
+  const paths = qualifyingPaths(state);
+  const chains = qualifyingChains(state).toSorted((a, b) => b.roundTarget - a.roundTarget);
+  return chains.flatMap(({ nodes }) =>
+    nodes.toReversed().map((node) => {
+      const fed = feeders(node, state).reduce((sum, feeder) => sum + qualifiersOf(feeder), 0);
+      return {
+        nodeId: node.id,
+        structureName: node.structureName,
+        path: paths.get(node.id)!,
+        entrants: Math.max(0, node.drawSize - fed)
+      };
+    })
+  );
+}
+
+/**
+ * The accepted QUALIFYING entries, in acceptance order, cut into the slots' bands: the path each participant's entry
+ * takes. Entries past the last band have no slot (the draws have no room for them).
+ */
+export function assignQualifyingSlots(
+  participantIds: string[],
+  slots: QualifyingSlot[]
+): { slot: QualifyingSlot; participantIds: string[] }[] {
+  let start = 0;
+  return slots.map((slot) => {
+    const band = participantIds.slice(start, start + slot.entrants);
+    start += slot.entrants;
+    return { slot, participantIds: band };
+  });
 }
