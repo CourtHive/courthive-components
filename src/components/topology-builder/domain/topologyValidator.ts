@@ -111,10 +111,12 @@ function computeNodesWithFeedLinks(state: TopologyState): Set<string> {
 
 function validateDrawSizes(state: TopologyState, nodesWithFeedLinks: Set<string>, errors: ValidationError[]): void {
   for (const node of state.nodes) {
+    // A qualifying elimination is any size: the factory plays it at its qualifiers × 2ⁿ, the rest BYEs (40 entrants for
+    // 8 qualifiers: 64 positions, rounds 32, 16, 8, 24 BYEs — qualifierCounts.ts). The rule held qualifying to a power of
+    // 2, and blocked Generate on a topology the cards, the fit and the factory all build (CA, 2026-11-18).
     if (node.structureType === SINGLE_ELIMINATION && !nodesWithFeedLinks.has(node.id)) {
       const isTarget = state.edges.some((e) => e.targetNodeId === node.id);
-      const isMainOrQualifying = node.stage === MAIN || node.stage === QUALIFYING;
-      if (isMainOrQualifying && !isTarget) {
+      if (node.stage === MAIN && !isTarget) {
         const isPow2 = node.drawSize > 0 && (node.drawSize & (node.drawSize - 1)) === 0;
         if (!isPow2) {
           errors.push({
