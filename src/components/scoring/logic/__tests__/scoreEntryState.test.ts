@@ -12,6 +12,7 @@
  * side it HAPPENED TO, and the winner is the other side. That is what lets the separate winner
  * question be deleted rather than redesigned, so it gets its own named test.
  */
+import { WINNER_REQUIRING_STATUSES, NON_DIRECTING_ENDINGS, SELECTABLE_ENDINGS } from '../irregularEnding';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 import { describe, it, expect } from 'vitest';
 import {
@@ -27,7 +28,6 @@ import {
   sideEndingOptions,
   reasonCodeStatus
 } from '../scoreEntryState';
-import { WINNER_REQUIRING_STATUSES, NON_DIRECTING_ENDINGS, SELECTABLE_ENDINGS } from '../irregularEnding';
 
 import type { ScoreEntryState } from '../scoreEntryState';
 

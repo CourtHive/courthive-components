@@ -11,8 +11,8 @@
  * and the headings standing over their cells — is `DynamicSetsEntryTests.stories.ts`.
  */
 import { offersComplement, complementFired, replayDigits, cleanDigits } from '../logic/dynamicSetsEntry';
-import { createScoreEntryModel, chooseEnding } from '../logic/scoreEntryModel';
 import { deepFreeze, G, TB } from '../logic/__tests__/scoreEntryModelTestHelpers';
+import { createScoreEntryModel, chooseEnding } from '../logic/scoreEntryModel';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 import { raisedTiebreakPoints } from '../logic/dynamicSetsEntry';
 import { describe, it, expect } from 'vitest';

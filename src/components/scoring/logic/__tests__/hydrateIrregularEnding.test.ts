@@ -15,6 +15,8 @@
  * seventh ending added to the vocabulary is covered the day it is added rather than the day someone
  * remembers.
  */
+import { matchUpStatusConstants } from 'tods-competition-factory';
+import { describe, it, expect } from 'vitest';
 import {
   applyIrregularEndingToValidation,
   hydrateIrregularEnding,
@@ -25,8 +27,6 @@ import {
   requiresWinner,
   NEITHER_SIDE
 } from '../irregularEnding';
-import { matchUpStatusConstants } from 'tods-competition-factory';
-import { describe, it, expect } from 'vitest';
 
 const { COMPLETED, RETIRED, WALKOVER, DEFAULTED, ABANDONED, CANCELLED, INCOMPLETE, DOUBLE_WALKOVER, DOUBLE_DEFAULT } =
   matchUpStatusConstants;

@@ -7,10 +7,10 @@
  * rule and differ only on a lone value. The parity block holds the scoring dialog (`raisedTiebreakPoints`)
  * and the draw cell (`setScoreView`) to exactly that: equal whenever both values are in.
  */
+import { lowerTiebreakPoints, settledTiebreakPoints } from '../tiebreakPoints';
 import { setScoreView } from '../../../renderStructure/sideScoreModel';
 import { raisedTiebreakPoints } from '../dynamicSetsEntry';
 import { createScoreEntryModel } from '../scoreEntryModel';
-import { lowerTiebreakPoints, settledTiebreakPoints } from '../tiebreakPoints';
 import { describe, it, expect } from 'vitest';
 
 import type { SetScore } from '../../../../types';

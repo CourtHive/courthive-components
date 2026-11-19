@@ -30,6 +30,7 @@
  * No DOM, no side effects, and every transition returns a new object.
  */
 
+import { recordedStatusCode } from './statusCodes';
 import {
   hydrateIrregularEnding,
   WINNER_REQUIRING_STATUSES,
@@ -40,7 +41,6 @@ import {
   carriesNoScore,
   NEITHER_SIDE
 } from './irregularEnding';
-import { recordedStatusCode } from './statusCodes';
 
 import type { IrregularEndingResolution } from './irregularEnding';
 

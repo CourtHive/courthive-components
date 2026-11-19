@@ -28,8 +28,8 @@
  * `resolveReportedEnding` in `scoreEntryState.ts`, which is where that precedence is written down.
  */
 
-import { enteredSets, scoreString } from '../logic/scoreEntrySelectors';
 import { createScoreReadouts, READOUT_COLUMN_WIDTH } from './scoreReadout';
+import { enteredSets, scoreString } from '../logic/scoreEntrySelectors';
 import { createScoreEntryStore } from '../logic/scoreEntryStore';
 import { parseScore } from '../../../tools/freeScore/freeScore';
 import { scoreEntryText } from '../logic/scoreEntryText';

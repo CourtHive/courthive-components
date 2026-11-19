@@ -14,9 +14,9 @@ import { dialPadBackspace, dialPadDigit, dialPadReadout, tiebreakKeyOffered } fr
 import { scoreString, isComplete, winningSide, enteredSets, error } from '../logic/scoreEntrySelectors';
 import { deepFreeze, frozen } from '../logic/__tests__/scoreEntryModelTestHelpers';
 import { createScoreEntryModel, replaceSets } from '../logic/scoreEntryModel';
-import { resolveReportedEnding } from '../logic/scoreEntryState';
 import { createFreeScoreRegion } from '../regions/freeScoreRegion';
 import { matchUpStatusConstants } from 'tods-competition-factory';
+import { resolveReportedEnding } from '../logic/scoreEntryState';
 import { parseScore } from '../../../tools/freeScore/freeScore';
 import { freeScoreNote } from '../logic/freeScoreEntry';
 import { describe, expect, it } from 'vitest';
