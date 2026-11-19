@@ -441,7 +441,9 @@ export const standardTemplates: TopologyTemplate[] = [
           structureName: 'Consolation',
           stage: CONSOLATION as Stage,
           structureType: SINGLE_ELIMINATION,
-          drawSize: 4,
+          // a lucky draw of 11 plays six R1 matchUps, one a BYE: five R1 losers, so an 8 (it was a 4, which the
+          // validator refused, and the template could not be generated)
+          drawSize: 8,
           position: { x: 340, y: 40 }
         }
       ],

@@ -26,9 +26,7 @@ export function validateTopology(state: TopologyState): ValidationError[] {
   const errors: ValidationError[] = [];
 
   const mainNodes = validateMainNodes(state, errors);
-  const nodesWithFeedLinks = computeNodesWithFeedLinks(state);
-
-  validateDrawSizes(state, nodesWithFeedLinks, errors);
+  validateDrawSizes(state, errors);
   validateEdgeRoundNumbers(state, errors);
   validateWinnerLinks(state, errors);
   validateDuplicateSourceRounds(state, errors);
@@ -90,39 +88,24 @@ function validateMainNodes(state: TopologyState, errors: ValidationError[]): Top
   return mainNodes;
 }
 
-function computeNodesWithFeedLinks(state: TopologyState): Set<string> {
-  const nodesWithFeedLinks = new Set<string>();
-  for (const edge of state.edges) {
-    if (carriesQualifiers(edge, state.nodes) && (edge.targetRoundNumber || 1) > 1) {
-      nodesWithFeedLinks.add(edge.targetNodeId);
-    }
-  }
-  const loserLinkCountByTarget = new Map<string, number>();
-  for (const edge of state.edges) {
-    if (edge.linkType === LOSER) {
-      loserLinkCountByTarget.set(edge.targetNodeId, (loserLinkCountByTarget.get(edge.targetNodeId) || 0) + 1);
-    }
-  }
-  for (const [nodeId, count] of loserLinkCountByTarget) {
-    if (count > 1) nodesWithFeedLinks.add(nodeId);
-  }
-  return nodesWithFeedLinks;
-}
-
-function validateDrawSizes(state: TopologyState, nodesWithFeedLinks: Set<string>, errors: ValidationError[]): void {
+function validateDrawSizes(state: TopologyState, errors: ValidationError[]): void {
   for (const node of state.nodes) {
-    if (node.structureType === SINGLE_ELIMINATION && !nodesWithFeedLinks.has(node.id)) {
-      const isTarget = state.edges.some((e) => e.targetNodeId === node.id);
-      const isMainOrQualifying = node.stage === MAIN || node.stage === QUALIFYING;
-      if (isMainOrQualifying && !isTarget) {
-        const isPow2 = node.drawSize > 0 && (node.drawSize & (node.drawSize - 1)) === 0;
-        if (!isPow2) {
-          errors.push({
-            severity: 'error',
-            message: `"${node.structureName}" draw size must be a power of 2`,
-            nodeId: node.id
-          });
-        }
+    // A qualifying elimination is any size: the factory plays it at its qualifiers × 2ⁿ, the rest BYEs (40 entrants for
+    // 8 qualifiers: 64 positions, rounds 32, 16, 8, 24 BYEs — qualifierCounts.ts). The rule held qualifying to a power of
+    // 2, and blocked Generate on a topology the cards, the fit and the factory all build (CA, 2026-11-18).
+    //
+    // A single elimination MAIN is a power of 2, whatever links into it: a draw of another size is a Feed-in draw, and
+    // the director says so by choosing Feed-in (CA, 2026-11-18). Lucky, adaptive, round robin and ad hoc MAINs are their
+    // own types. The rule was skipped for a MAIN with anything linked into it, which then generated as a Feed-in nobody
+    // chose.
+    if (node.stage === MAIN && node.structureType === SINGLE_ELIMINATION) {
+      const isPow2 = node.drawSize > 0 && (node.drawSize & (node.drawSize - 1)) === 0;
+      if (!isPow2) {
+        errors.push({
+          severity: 'error',
+          message: `"${node.structureName}" is a single elimination of ${node.drawSize}: choose a power of 2, or Feed-in for a draw of ${node.drawSize}`,
+          nodeId: node.id
+        });
       }
     }
 
