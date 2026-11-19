@@ -30,6 +30,7 @@ import { dialogSeed, formatChangeReport, reopensResult } from './logic/scoreEntr
 import { getMatchUpFormatModal } from '../matchUpFormat/matchUpFormat';
 import { createDynamicSetsRegion } from './regions/dynamicSetsRegion';
 import { createFreeScoreRegion } from './regions/freeScoreRegion';
+import { isThenable, refusalOf } from './logic/controlledSubmit';
 import { createScoreEntryStore } from './logic/scoreEntryStore';
 import { createDialPadRegion } from './regions/dialPadRegion';
 import { enteredSets } from './logic/scoreEntrySelectors';
@@ -78,6 +79,12 @@ export type ScoreEntryDialogParams = Omit<
   /**
    * Called with the outcome, then the dialog closes.
    *
+   * Return a promise to make the submission CONTROLLED: the dialog stays open while it is pending (Submit says it
+   * is saving) and closes only when it is accepted. A rejection, or a value carrying a truthy `error` — the
+   * factory's result shape, so `setMatchUpStatus`'s result can be returned as it is — keeps the dialog open with
+   * the refusal shown, for the operator to correct and submit again. Return nothing and it closes at once, as
+   * before.
+   *
    * `sets` is added to what the card reports, because the dialog knows its regions carry them and a
    * host saving to the factory needs the structured sets rather than only the formatted string.
    *
@@ -87,7 +94,7 @@ export type ScoreEntryDialogParams = Omit<
    * chosen reason as positional `matchUpStatusCodes`, a clear as the empty-sets outcome that actually
    * clears, and a format changed through the chip as `matchUpFormat`. See `logic/engineOutcome.ts`.
    */
-  onSubmit?: (outcome: ScoreEntryOutcome & { sets: SetScore[]; outcome: EngineOutcome }) => void;
+  onSubmit?: (outcome: ScoreEntryOutcome & { sets: SetScore[]; outcome: EngineOutcome }) => void | PromiseLike<unknown>;
   /** Which approach opens. Defaults to Dynamic Sets. */
   approach?: ScoreEntryApproach;
   /** Which approaches the switcher offers. Defaults to all three; a single entry hides the menu. */
@@ -227,8 +234,20 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
       const sets = enteredSets(store.get());
       // the format rides along only when the operator changed it here; an unchanged one is the engine's own
       const changedFormat = matchUpFormat !== openedFormat ? matchUpFormat : undefined;
-      params.onSubmit?.({ ...outcome, sets, outcome: toEngineOutcome({ ...outcome, sets }, changedFormat) });
-      close();
+      const pending = params.onSubmit?.({
+        ...outcome,
+        sets,
+        outcome: toEngineOutcome({ ...outcome, sets }, changedFormat)
+      });
+      if (!isThenable(pending)) {
+        close();
+        return undefined;
+      }
+      // controlled: close once it is accepted; a refusal reaches the card, which shows it and stays usable
+      return Promise.resolve(pending).then((value) => {
+        if (refusalOf(value) === undefined) close();
+        return value;
+      });
     }
   });
 
