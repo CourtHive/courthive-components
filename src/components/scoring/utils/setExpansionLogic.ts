@@ -2,6 +2,7 @@
  * Logic for determining when to expand set inputs dynamically
  */
 import { isOvertimeFormat, overtimeProgress } from '../../../tools/overtimeEntry/overtimeEntry';
+import { matchUpConfigFor } from 'tods-competition-factory/score-entry-state';
 import { matchUpFormatCode } from 'tods-competition-factory';
 import type { SetScore } from '../types';
 
@@ -14,42 +15,20 @@ type MatchUpFormatInfo = {
 };
 
 /**
- * Parse match format string to extract best-of information
- * Examples: "SET3-S:6/TB7" → bestOf=3, "SET5-S:6/TB7" → bestOf=5
- * Examples: "SET3X-S:T10" → exactly=3, isTimed=true
+ * A format's set counts, read from the factory's `matchUpConfigFor` — the one place a format's best-of, its
+ * `exactly` count and the fallback for an unparseable code (`SET3-S:6/TB7`) are decided.
+ * Examples: "SET3-S:6/TB7" → bestOf=3, "SET5-S:6/TB7" → bestOf=5, "SET3X-S:T10" → exactly=3, isTimed=true
  */
 export function parseMatchUpFormat(matchUpFormat?: string): MatchUpFormatInfo {
-  if (!matchUpFormat) {
-    return { bestOf: 3, setsToWin: 2, isTimed: false, isExactlyFormat: false };
-  }
-
-  // Parse using factory to get detailed information
-  const parsed = matchUpFormatCode.parse(matchUpFormat);
-
-  if (!parsed) {
-    // If factory parse fails, return default SET3 format
-    // Never use regex to parse matchUpFormat strings!
-    return { bestOf: 3, setsToWin: 2, isTimed: false, isExactlyFormat: false };
-  }
-
-  // Check if this is a timed set format
-  const isTimed = !!(parsed.setFormat?.timed || parsed.finalSetFormat?.timed);
-
-  // Determine if this is an "exactly" format (exactly:N or bestOf:1)
-  // Note: bestOf:1 is functionally the same as exactly:1
-  const isExactlyFormat = !!parsed.exactly || parsed.bestOf === 1;
-  const setCount = parsed.exactly || parsed.bestOf || 3;
-
-  // For exactly formats or bestOf:1, we know the exact number of sets
-  // For bestOf, calculate sets needed to win
-  const setsToWin = Math.ceil(setCount / 2);
-
+  const config = matchUpConfigFor(matchUpFormat);
+  const setCount = config.exactly ?? config.bestOf;
   return {
-    bestOf: parsed.bestOf || setCount,
-    exactly: parsed.exactly,
-    setsToWin,
-    isTimed,
-    isExactlyFormat
+    bestOf: config.bestOf,
+    exactly: config.exactly,
+    setsToWin: Math.ceil(setCount / 2),
+    isTimed: !!(config.setFormat?.timed || config.finalSetFormat?.timed),
+    // bestOf:1 is functionally exactly:1
+    isExactlyFormat: !!config.exactly || config.bestOf === 1
   };
 }
 
