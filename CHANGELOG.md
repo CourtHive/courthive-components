@@ -1,5 +1,13 @@
 # Changelog
 
+## [7.19.2](https://github.com/CourtHive/courthive-components/compare/v7.19.1...v7.19.2) (2026-11-19)
+
+
+### Bug Fixes
+
+* **topology-builder:** qualifying is any size; a single elimination MAIN is a power of 2 whatever links into it ([#1039](https://github.com/CourtHive/courthive-components/issues/1039)) ([a48a922](https://github.com/CourtHive/courthive-components/commit/a48a92286a5339d17413ddccf6dbcfef85e71c8c))
+* **topology-builder:** the ledger reads its statuses in a fixed order, not as entries are met ([#1038](https://github.com/CourtHive/courthive-components/issues/1038)) ([437e4b6](https://github.com/CourtHive/courthive-components/commit/437e4b6e4275e86c0c29cf04b9634fc0235785b5))
+
 ## [7.19.1](https://github.com/CourtHive/courthive-components/compare/v7.19.0...v7.19.1) (2026-11-18)
 
 
