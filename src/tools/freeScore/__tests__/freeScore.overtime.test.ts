@@ -1,6 +1,6 @@
 import { determineWinningSide, shouldExpandSets } from '../../../components/scoring/utils/setExpansionLogic';
-import { parseScore } from '../freeScore';
 import { describe, expect, it } from 'vitest';
+import { parseScore } from '../freeScore';
 
 /**
  * Free Score on an overtime format (overtime activation S6): periods are "#-#", and how many are played is the

@@ -3,8 +3,11 @@
  * These tests verify business logic without any DOM dependencies
  */
 
+import { MATCH_FORMATS } from '../../../../constants/matchUpFormats';
+import { matchUpFormatCode } from 'tods-competition-factory';
 import { scoreGovernor } from 'tods-competition-factory';
 import { describe, it, expect } from 'vitest';
+import type { SetScore } from '../../types';
 import {
   getSetFormatForIndex,
   isSetTiebreakOnly,
@@ -21,9 +24,6 @@ import {
   matchUpConfigFor,
   type MatchUpConfig
 } from '../dynamicSetsLogic';
-import type { SetScore } from '../../types';
-import { MATCH_FORMATS } from '../../../../constants/matchUpFormats';
-import { matchUpFormatCode } from 'tods-competition-factory';
 
 // Helper to create MatchUpConfig from format string
 function parseFormat(formatString: string): MatchUpConfig {

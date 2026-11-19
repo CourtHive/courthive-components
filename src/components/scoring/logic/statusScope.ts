@@ -18,8 +18,8 @@ const DEFAULT_SCOPE_LABELS = {
 export function scoringStatusScopeLabels(labels: ScoringModalLabels = {}): Record<string, string> {
   return {
     ...endingLabels(labels),
-    CHALLENGED: labels.challenged ?? DEFAULT_SCOPE_LABELS.CHALLENGED,
-    statusUnavailable: labels.statusUnavailable ?? DEFAULT_SCOPE_LABELS.statusUnavailable
+    CHALLENGED: present(labels.challenged) ?? DEFAULT_SCOPE_LABELS.CHALLENGED,
+    statusUnavailable: present(labels.statusUnavailable) ?? DEFAULT_SCOPE_LABELS.statusUnavailable
   };
 }
 
@@ -30,7 +30,16 @@ export function statusScopeError(
   labels: Record<string, string> = DEFAULT_SCOPE_LABELS
 ): string | undefined {
   if (!status || !statusOutOfScope(status, disabledMatchUpStatuses)) return undefined;
-  const name = labels[status] ?? DEFAULT_SCOPE_LABELS[status] ?? status;
-  const template = labels.statusUnavailable ?? DEFAULT_SCOPE_LABELS.statusUnavailable;
+  const name = present(labels[status]) ?? DEFAULT_SCOPE_LABELS[status] ?? status;
+  const template = present(labels.statusUnavailable) ?? DEFAULT_SCOPE_LABELS.statusUnavailable;
   return template.replaceAll('{{status}}', name);
+}
+
+/**
+ * A host's word, unless it is blank: then the English default stands, as `scoreEntryText` does for every other key.
+ * A blank translation used to make the refusal itself blank, and a blank refusal reads as no refusal: Submit stayed
+ * live and the out-of-scope status was submitted.
+ */
+function present(word: string | undefined): string | undefined {
+  return word?.trim() ? word : undefined;
 }

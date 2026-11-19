@@ -12,10 +12,10 @@
 
 /* eslint-disable sonarjs/no-duplicate-string */
 
-import { describe, it, expect } from 'vitest';
-import { matchUpFormatCode } from 'tods-competition-factory';
 import { getSetFormatForIndex, matchUpConfigFor } from '../dynamicSetsLogic';
 import { MATCH_FORMATS } from '../../../../constants/matchUpFormats';
+import { matchUpFormatCode } from 'tods-competition-factory';
+import { describe, it, expect } from 'vitest';
 
 /**
  * Replicates the getSetFormat logic from dynamicSetsApproach.ts

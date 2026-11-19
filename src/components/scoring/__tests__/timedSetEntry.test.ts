@@ -6,10 +6,10 @@
  * bolt, the caret surviving the re-render a reveal causes, and Enter moving on or submitting are browser
  * behaviour and live in `DynamicSetsEntryTests.stories.ts` (Timed bolts).
  */
-import { createScoreEntryModel } from '../logic/scoreEntryModel';
 import { columns, isComplete } from '../logic/scoreEntrySelectors';
-import { replayDigits } from '../logic/dynamicSetsEntry';
 import { G } from '../logic/__tests__/scoreEntryModelTestHelpers';
+import { createScoreEntryModel } from '../logic/scoreEntryModel';
+import { replayDigits } from '../logic/dynamicSetsEntry';
 import { describe, it, expect } from 'vitest';
 
 import type { ScoreEntryModel } from '../logic/scoreEntryModel';

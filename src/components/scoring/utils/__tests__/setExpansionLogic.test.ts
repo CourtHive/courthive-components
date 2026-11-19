@@ -5,10 +5,10 @@
  * Critical for proper match progression and winner determination.
  */
 
-import { describe, it, expect } from 'vitest';
 import { parseMatchUpFormat, shouldExpandSets, determineWinningSide } from '../setExpansionLogic';
-import type { SetScore } from '../../types';
 import { MATCH_FORMATS } from '../../../../constants/matchUpFormats';
+import { describe, it, expect } from 'vitest';
+import type { SetScore } from '../../types';
 
 describe('setExpansionLogic', () => {
   describe('parseMatchUpFormat', () => {

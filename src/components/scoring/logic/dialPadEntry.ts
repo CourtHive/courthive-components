@@ -21,8 +21,8 @@
  */
 
 import { clearCell, gamesLoser, isEmptyEntry, readCell, typeDigit } from './scoreEntryModel';
-import { ENTRY_SIDE, otherSide } from '../keyboard';
 import { tiebreakOnlyTarget } from './tiebreakEntry';
+import { ENTRY_SIDE, otherSide } from '../keyboard';
 import {
   getSetFormatForIndex,
   shouldShowTiebreak,

@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
 import { matchUpStatusConstants, nonDirectingMatchUpStatuses } from 'tods-competition-factory';
+import { describe, it, expect } from 'vitest';
 import {
   applyIrregularEndingToValidation,
   WINNER_REQUIRING_STATUSES,
