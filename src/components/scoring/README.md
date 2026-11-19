@@ -25,12 +25,12 @@ const dialog = openScoreEntryDialog({
 
 ## Layout
 
-| Path                  | What it holds                                                                    |
-| --------------------- | -------------------------------------------------------------------------------- |
-| `scoreEntryDialog.ts` | The modal around the card: approach switching, the format picker, closing        |
-| `scoreEntryCard.ts`   | The card: participant rows, endings and reasons, the band, Clear and Submit      |
-| `regions/`            | One entry region per approach (Dynamic Sets, Free Score, Dial Pad) over the card |
-| `logic/`              | The pure model and store the card renders, and the engine-outcome mapping        |
-| `utils/`              | Set-expansion rules shared by the model                                          |
+| Path                  | What it holds                                                                                                                                 |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scoreEntryDialog.ts` | The modal around the card: approach switching, the format picker, closing                                                                     |
+| `scoreEntryCard.ts`   | The card: participant rows, endings and reasons, the band, Clear and Submit                                                                   |
+| `regions/`            | One entry region per approach (Dynamic Sets, Free Score, Dial Pad) over the card                                                              |
+| `logic/`              | The store the card renders from, the wording of the draft's codes, and re-exports of the draft (`tods-competition-factory/score-entry-state`) |
+| `utils/`              | Set-expansion rules shared by the model                                                                                                       |
 
 Stories: **Scoring / Score Entry** in Storybook (card, dialog, over a real draw, round trip).

@@ -37,11 +37,11 @@ import { statusCodeSubtext, statusCodeDisplay, codesForStatus } from './logic/st
 import { chooseEnding, changeFormat, clearAll } from './logic/scoreEntryModel';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 import { createScoreEntryStore } from './logic/scoreEntryStore';
+import { statusScopeNotice } from './logic/statusScopeNotice';
 import { scoreEntrySummary } from './logic/scoreEntrySummary';
 import { ENTRY_SIDE, hasCommandModifier } from './keyboard';
 import { endingForKey } from './logic/endingShortcutKeys';
 import { scoreEntryText } from './logic/scoreEntryText';
-import { statusScopeNotice } from './logic/statusScope';
 import { endingLabels } from './logic/irregularEnding';
 import { shouldStack } from './logic/scoreRowLayout';
 import {

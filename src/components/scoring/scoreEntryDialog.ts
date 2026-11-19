@@ -223,6 +223,13 @@ export function openScoreEntryDialog(params: ScoreEntryDialogParams): ScoreEntry
       params.onCancel?.();
       close();
     },
+    // ── A known seam: submission is synchronous, then the dialog closes ──
+    //
+    // `onSubmit` is handed the outcome and the dialog closes at once, whatever the host then does with it. A host
+    // that submits to a server (CFS) and may be refused has nowhere to report the refusal into an open dialog; it
+    // reopens on the stored result instead. A controlled submission (`onSubmit` returning a promise the dialog
+    // awaits, staying open on a refusal) is the future seam here, deliberately not mixed into the move of the draft to
+    // `tods-competition-factory/score-entry-state` (2026-11-19).
     onSubmit: (outcome) => {
       const sets = enteredSets(store.get());
       // the format rides along only when the operator changed it here; an unchanged one is the engine's own
