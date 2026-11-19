@@ -5,6 +5,8 @@ export declare class TopologyBuilderControl {
     private readonly unsubscribe;
     private readonly config;
     private readonly footer?;
+    /** The mode toggles a host shows in its own bar, kept in step with the store. */
+    private hostToggles?;
     constructor(config?: TopologyBuilderConfig);
     private buildEditorPanels;
     private buildFooterPanel;
@@ -64,6 +66,12 @@ export declare class TopologyBuilderControl {
     private offersPlayoffs;
     private offersFor;
     private countOffers;
+    /**
+     * The mode toggles (Add playoffs, Player journey, Fit) as buttons for the host's own bar, when the control was built
+     * with `hostModeToggles` (CA, 2026-11-19: one bar, not two). Each call builds a fresh set, for a host bar that is
+     * rebuilt; the latest set follows the store.
+     */
+    modeToggleButtons(): HTMLButtonElement[];
     /** The footer's slot for the host's own controls, when the control was built with `footer`. */
     getFooterSlot(): HTMLElement | undefined;
     /** Change what the canvas is for. Leaving a mode with nothing to do in it is always possible. */

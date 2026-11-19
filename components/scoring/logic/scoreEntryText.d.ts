@@ -59,6 +59,9 @@ export declare const SCORE_ENTRY_TEXT: {
     readonly notReadyToSubmit: "not ready to submit";
     readonly clearedHeadline: "The recorded result will be removed — Submit to clear it.";
     readonly clearRefused: "Enter a replacement score: a later match depends on this result.";
+    readonly submitting: "Saving…";
+    readonly submitRefused: "Not saved: {{message}}";
+    readonly submitRefusedNoReason: "Not saved. Try again.";
     readonly setPrefix: "{{ordinal}} set:";
     readonly sideFallback: "side {{side}}";
     readonly tiebreakContradiction: "{{set}} {{name}} won it, so they must win the tiebreak";

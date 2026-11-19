@@ -27,3 +27,14 @@ export interface ToolbarOptions {
     readOnly?: boolean;
 }
 export declare function buildToolbar(callbacks: ToolbarCallbacks, templates: TopologyTemplate[], options?: ToolbarOptions): UIPanel<TopologyState>;
+/**
+ * The mode toggles, as buttons: the toolbar's, or a host's own bar's (`TopologyBuilderControl.modeToggleButtons`).
+ *
+ * Their own buttons rather than controlBar items: each has a pressed state that follows the store, and a controlBar is
+ * built once. Offered in a read-only topology too, which is where a live draw shows them — a mode changes the draw
+ * only through the host's callbacks, never by editing the graph.
+ */
+export declare function buildModeToggles(onSetMode: (mode: TopologyMode) => void, modes: ModeToggle[]): {
+    elements: HTMLButtonElement[];
+    update: (state: TopologyState) => void;
+};

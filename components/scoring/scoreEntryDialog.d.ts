@@ -7,6 +7,12 @@ export type ScoreEntryDialogParams = Omit<ScoreEntryCardParams, 'region' | 'appr
     /**
      * Called with the outcome, then the dialog closes.
      *
+     * Return a promise to make the submission CONTROLLED: the dialog stays open while it is pending (Submit says it
+     * is saving) and closes only when it is accepted. A rejection, or a value carrying a truthy `error` — the
+     * factory's result shape, so `setMatchUpStatus`'s result can be returned as it is — keeps the dialog open with
+     * the refusal shown, for the operator to correct and submit again. Return nothing and it closes at once, as
+     * before.
+     *
      * `sets` is added to what the card reports, because the dialog knows its regions carry them and a
      * host saving to the factory needs the structured sets rather than only the formatted string.
      *
@@ -19,7 +25,7 @@ export type ScoreEntryDialogParams = Omit<ScoreEntryCardParams, 'region' | 'appr
     onSubmit?: (outcome: ScoreEntryOutcome & {
         sets: SetScore[];
         outcome: EngineOutcome;
-    }) => void;
+    }) => void | PromiseLike<unknown>;
     /** Which approach opens. Defaults to Dynamic Sets. */
     approach?: ScoreEntryApproach;
     /** Which approaches the switcher offers. Defaults to all three; a single entry hides the menu. */

@@ -138,7 +138,12 @@ export type ScoreEntryCardParams = {
     /** An ending already recorded, for reopening an outcome. Build it with `hydrateScoreEntryState`. */
     initialState?: ScoreEntryState;
     onClear?: () => void;
-    onSubmit?: (outcome: ScoreEntryOutcome) => void;
+    /**
+     * Called with the outcome when Submit is pressed. Return a promise to make the submission CONTROLLED: Submit
+     * shows it is saving and Submit and Clear wait; a rejection, or a value carrying a truthy `error` (the
+     * factory's result shape), re-enables them and shows the refusal on the card. See `logic/controlledSubmit.ts`.
+     */
+    onSubmit?: (outcome: ScoreEntryOutcome) => void | PromiseLike<unknown>;
     /**
      * Whether a recorded outcome may be REMOVED. Only the draw knows whether a later match depends on the
      * result, so the host reads it from the engine (the factory's `CLEAR_SCORE` matchUp action) rather than

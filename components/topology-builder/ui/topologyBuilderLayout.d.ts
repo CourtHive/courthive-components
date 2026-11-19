@@ -1,10 +1,12 @@
 import { TopologyState, UIPanel } from '../types';
 import { FooterPanel } from './footer';
-export declare function buildTopologyBuilderLayout({ toolbar, canvas, nodeEditor, edgeEditor, footer }: {
+export declare function buildTopologyBuilderLayout({ toolbar, canvas, nodeEditor, edgeEditor, footer, onClose }: {
     toolbar: UIPanel<TopologyState>;
     canvas: UIPanel<TopologyState>;
     nodeEditor: UIPanel<TopologyState>;
     edgeEditor: UIPanel<TopologyState>;
     /** The strip beneath the canvas, when the host asks for one. */
     footer?: FooterPanel;
+    /** Closing the floating pane: the host clears the selection, which hides it. */
+    onClose: () => void;
 }): UIPanel<TopologyState>;
