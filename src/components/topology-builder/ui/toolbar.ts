@@ -59,25 +59,9 @@ export function buildToolbar(
   topRow.appendChild(target);
   wrapper.appendChild(topRow);
 
-  // ── The mode toggles ──
-  //
-  // Their own buttons rather than controlBar items: each has a pressed state that follows the store, and the
-  // controlBar is built once. Offered in a read-only topology too, which is where a live draw shows them — a mode
-  // changes the draw only through the host's callbacks, never by editing the graph.
-  const ARIA_PRESSED = 'aria-pressed';
-  const toggles = (callbacks.onSetMode ? (callbacks.modes ?? []) : []).map((modeToggle) => {
-    const toggle = document.createElement('button');
-    toggle.type = 'button';
-    toggle.className = 'button font-medium tb-mode-toggle';
-    toggle.dataset.mode = modeToggle.mode;
-    toggle.textContent = modeToggle.label;
-    toggle.setAttribute(ARIA_PRESSED, 'false');
-    toggle.addEventListener('click', () => {
-      const active = toggle.getAttribute(ARIA_PRESSED) === 'true';
-      callbacks.onSetMode!(active ? 'view' : modeToggle.mode);
-    });
-    return { toggle, modeToggle };
-  });
+  // The mode toggles: in the bar's right group, unless the host shows them in its own bar (`modes` left out)
+  const toggles =
+    callbacks.onSetMode && callbacks.modes?.length ? buildModeToggles(callbacks.onSetMode, callbacks.modes) : undefined;
 
   // Validation display
   const validationPanel = document.createElement('div');
@@ -196,7 +180,7 @@ export function buildToolbar(
   // One row (CA, 2026-11-16): the editing controls on the left; on the right the modes, then Save Template and
   // Generate Draw. The mode toggles join the bar's right group, ahead of its buttons, so the row wraps as one.
   const rightGroup = target.querySelector<HTMLElement>('.options_right');
-  rightGroup?.prepend(...toggles.map(({ toggle }) => toggle));
+  if (toggles) rightGroup?.prepend(...toggles.elements);
 
   const enable = (id: string, reason: string | undefined, title?: string) => {
     const button = elements[id] as HTMLButtonElement | undefined;
@@ -216,6 +200,39 @@ export function buildToolbar(
       const blocking = validateTopology(state).find((error) => error.severity === 'error');
       enable(ids.generate, blocking?.message, 'Generate the draw this topology describes');
     }
+    toggles?.update(state);
+  }
+
+  return { element: wrapper, update };
+}
+
+/**
+ * The mode toggles, as buttons: the toolbar's, or a host's own bar's (`TopologyBuilderControl.modeToggleButtons`).
+ *
+ * Their own buttons rather than controlBar items: each has a pressed state that follows the store, and a controlBar is
+ * built once. Offered in a read-only topology too, which is where a live draw shows them — a mode changes the draw
+ * only through the host's callbacks, never by editing the graph.
+ */
+export function buildModeToggles(
+  onSetMode: (mode: TopologyMode) => void,
+  modes: ModeToggle[]
+): { elements: HTMLButtonElement[]; update: (state: TopologyState) => void } {
+  const ARIA_PRESSED = 'aria-pressed';
+  const toggles = modes.map((modeToggle) => {
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'button font-medium tb-mode-toggle';
+    toggle.dataset.mode = modeToggle.mode;
+    toggle.textContent = modeToggle.label;
+    toggle.setAttribute(ARIA_PRESSED, 'false');
+    toggle.addEventListener('click', () => {
+      const active = toggle.getAttribute(ARIA_PRESSED) === 'true';
+      onSetMode(active ? 'view' : modeToggle.mode);
+    });
+    return { toggle, modeToggle };
+  });
+
+  function update(state: TopologyState): void {
     for (const { toggle, modeToggle } of toggles) {
       const active = state.mode === modeToggle.mode;
       const reason = active ? undefined : modeToggle.unavailable?.(state);
@@ -227,5 +244,5 @@ export function buildToolbar(
     }
   }
 
-  return { element: wrapper, update };
+  return { elements: toggles.map(({ toggle }) => toggle), update };
 }

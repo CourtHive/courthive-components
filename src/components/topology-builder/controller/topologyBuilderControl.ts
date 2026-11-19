@@ -26,7 +26,7 @@ import { standardTemplates } from '../domain/templates';
 import { buildNodeEditor } from '../ui/nodeEditor';
 import { buildEdgeEditor } from '../ui/edgeEditor';
 import { getCardWidth } from '../ui/structureCard';
-import { buildToolbar } from '../ui/toolbar';
+import { buildModeToggles, buildToolbar } from '../ui/toolbar';
 import { buildFooter } from '../ui/footer';
 import {
   changesKey,
@@ -73,6 +73,8 @@ export class TopologyBuilderControl {
   private readonly unsubscribe: () => void;
   private readonly config: TopologyBuilderConfig;
   private readonly footer?: FooterPanel;
+  /** The mode toggles a host shows in its own bar, kept in step with the store. */
+  private hostToggles?: { update: (state: TopologyState) => void };
 
   constructor(config: TopologyBuilderConfig = {}) {
     this.config = config;
@@ -95,11 +97,17 @@ export class TopologyBuilderControl {
       canvas,
       nodeEditor,
       edgeEditor,
-      footer: this.footer
+      footer: this.footer,
+      // closing the floating properties pane clears the selection, which hides it (CA, 2026-11-19)
+      onClose: () => {
+        this.store.selectNode(null);
+        this.store.selectEdge(null);
+      }
     });
 
     this.unsubscribe = this.store.subscribe((state) => {
       this.layout.update(state);
+      this.hostToggles?.update(state);
     });
 
     this.layout.update(this.store.getState());
@@ -593,10 +601,11 @@ export class TopologyBuilderControl {
           ? () => this.config.onSaveTemplate(this.store.getState())
           : undefined,
         onClear: this.config.onClear,
-        ...(this.modeToggles().length && {
-          onSetMode: (mode: TopologyMode) => this.setMode(mode),
-          modes: this.modeToggles()
-        })
+        ...(this.modeToggles().length &&
+          !this.config.hostModeToggles && {
+            onSetMode: (mode: TopologyMode) => this.setMode(mode),
+            modes: this.modeToggles()
+          })
       },
       allTemplates,
       { hideTemplates: this.config.hideTemplates, hideGenerate: this.config.hideGenerate, readOnly: isReadOnly }
@@ -655,6 +664,20 @@ export class TopologyBuilderControl {
 
   private countOffers(state: TopologyState): number {
     return state.nodes.reduce((count, node) => count + (this.offersFor(node)?.length ?? 0), 0);
+  }
+
+  /**
+   * The mode toggles (Add playoffs, Player journey, Fit) as buttons for the host's own bar, when the control was built
+   * with `hostModeToggles` (CA, 2026-11-19: one bar, not two). Each call builds a fresh set, for a host bar that is
+   * rebuilt; the latest set follows the store.
+   */
+  modeToggleButtons(): HTMLButtonElement[] {
+    const modes = this.modeToggles();
+    if (!modes.length) return [];
+    const toggles = buildModeToggles((mode) => this.setMode(mode), modes);
+    toggles.update(this.store.getState());
+    this.hostToggles = toggles;
+    return toggles.elements;
   }
 
   /** The footer's slot for the host's own controls, when the control was built with `footer`. */

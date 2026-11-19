@@ -4,6 +4,10 @@
  *
  * The editor panel can be detached into the schedule page's floating inspector (CA, 2026-11-16): a floating pane
  * gives the canvas its full width while a structure's properties stay in reach, and docking puts it back.
+ *
+ * The panel shows only while a structure or link is selected (CA, 2026-11-19): with nothing selected the canvas has the
+ * whole width. Closing the floating pane clears the selection, so it goes away rather than docking; the next selection
+ * opens it where it was left.
  */
 import { buildFloatingInspector } from '../../schedule-page/ui/floatingInspector';
 
@@ -23,7 +27,8 @@ export function buildTopologyBuilderLayout({
   canvas,
   nodeEditor,
   edgeEditor,
-  footer
+  footer,
+  onClose
 }: {
   toolbar: UIPanel<TopologyState>;
   canvas: UIPanel<TopologyState>;
@@ -31,6 +36,8 @@ export function buildTopologyBuilderLayout({
   edgeEditor: UIPanel<TopologyState>;
   /** The strip beneath the canvas, when the host asks for one. */
   footer?: FooterPanel;
+  /** Closing the floating pane: the host clears the selection, which hides it. */
+  onClose: () => void;
 }): UIPanel<TopologyState> {
   const root = document.createElement('div');
   root.className = 'tb-layout';
@@ -77,18 +84,26 @@ export function buildTopologyBuilderLayout({
     geometry: lastGeometry,
     anchor: () => body.getBoundingClientRect(),
     onGeometryChange: (geometry) => (lastGeometry = geometry),
-    // closing a floating pane docks it: the properties are how a structure is edited, so they never go away
-    onClose: () => setFloating(false),
+    onClose,
     onDock: () => setFloating(false)
   });
   root.appendChild(floating.element);
 
+  let isFloating = false;
+  let hasSelection = false;
+
+  // where the panel shows: docked or floating, and either only while something is selected
+  function place(): void {
+    editorPanel.hidden = isFloating || !hasSelection;
+    floating.setVisible(isFloating && hasSelection);
+  }
+
   function setFloating(next: boolean): void {
     floating.rememberFocus();
+    isFloating = next;
     root.dataset.editorPlacement = next ? 'floating' : 'docked';
     (next ? floating.content : editorPanel).appendChild(editorContent);
-    editorPanel.hidden = next;
-    floating.setVisible(next);
+    place();
     if (!next) detach.focus();
   }
   detach.addEventListener('click', () => setFloating(true));
@@ -106,23 +121,11 @@ export function buildTopologyBuilderLayout({
     canvas.update(state);
     footer?.update(state);
 
-    // Show appropriate editor based on selection
+    // Show appropriate editor based on selection, and the panel only while there is one
     nodeEditor.element.style.display = state.selectedNodeId ? '' : 'none';
     edgeEditor.element.style.display = state.selectedEdgeId ? '' : 'none';
-
-    if (!state.selectedNodeId && !state.selectedEdgeId) {
-      // Show empty state in editor
-      const existing = editorContent.querySelector('.tb-editor-empty');
-      if (!existing) {
-        const empty = document.createElement('div');
-        empty.className = 'tb-editor-empty';
-        empty.textContent = 'Select a structure or link to view properties';
-        editorContent.appendChild(empty);
-      }
-    } else {
-      const existing = editorContent.querySelector('.tb-editor-empty');
-      if (existing) existing.remove();
-    }
+    hasSelection = !!(state.selectedNodeId || state.selectedEdgeId);
+    place();
 
     nodeEditor.update(state);
     edgeEditor.update(state);

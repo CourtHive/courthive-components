@@ -141,6 +141,10 @@ export interface TopologyBuilderConfig {
   playoffOffers?: (node: TopologyNode) => PlayoffOffer[] | undefined;
   /** A chip was chosen. The host attaches the playoff, then loads the topology again from the draw. */
   onAddPlayoff?: (node: TopologyNode, offer: PlayoffOffer) => void;
+  /**
+   * The host shows the mode toggles in its own bar (`modeToggleButtons()`), so the toolbar leaves them out.
+   */
+  hostModeToggles?: boolean;
   /** Called when the mode changes, by the toolbar or by `setMode`. */
   onModeChange?: (mode: TopologyMode) => void;
   /**
