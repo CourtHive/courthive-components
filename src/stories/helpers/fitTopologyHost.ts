@@ -32,12 +32,15 @@ const ratingValue = (value: unknown): number => {
 export function fitTopologyHost({
   mode,
   height = '100vh',
-  empty = false
+  empty = false,
+  hostModeToggles = false
 }: {
   mode?: 'view' | 'fit';
   height?: string;
   /** A new draw as TMX's topology page opens it: no structures yet, with Generate and the proposals wired */
   empty?: boolean;
+  /** The mode toggles in a bar of the host's own, above the builder, as TMX's draws page shows them */
+  hostModeToggles?: boolean;
 } = {}): FitTopologyHost {
   const generated: any = mocksEngine.generateTournamentRecord({
     participantsProfile: { participantsCount: 48, scaleAllParticipants: true, category: { ratingType: 'ELO' } },
@@ -145,6 +148,7 @@ export function fitTopologyHost({
       }
     }),
     footer: true,
+    hostModeToggles,
     mode,
     drawFit: (state, trial) => {
       calls += 1;
@@ -160,8 +164,16 @@ export function fitTopologyHost({
   });
   control.render(element);
   control.autoLayout();
+  let outer = element;
+  if (hostModeToggles) {
+    const hostBar = document.createElement('div');
+    hostBar.className = 'story-host-bar';
+    hostBar.append(...control.modeToggleButtons());
+    outer = document.createElement('div');
+    outer.append(hostBar, element);
+  }
   return {
-    element,
+    element: outer,
     control,
     fitCalls: () => calls,
     lastEntryChanges: () => entryChanges,

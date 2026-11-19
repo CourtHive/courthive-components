@@ -22,12 +22,14 @@ export default meta;
 type Story = StoryObj;
 
 const TOGGLE = 'button.tb-mode-toggle[data-mode="fit"]';
+const PRESSED = 'aria-pressed';
+const FIRST_CARD = '.tb-card .tb-card-name';
 const MAIN = 'Main';
 const QUALIFYING = 'Qualifying';
 
 let host: FitTopologyHost;
-const mount = (mode?: 'view' | 'fit') => {
-  host = fitTopologyHost({ mode, height: '720px' });
+const mount = (mode?: 'view' | 'fit', hostModeToggles = false) => {
+  host = fitTopologyHost({ mode, height: '720px', hostModeToggles });
   return host.element;
 };
 
@@ -57,7 +59,7 @@ export const GaugesOnlyInTheMode: Story = {
   play: async ({ canvasElement }) => {
     await expect(canvasElement.querySelectorAll('.tb-fit')).toHaveLength(0);
     await user.click(canvasElement.querySelector<HTMLButtonElement>(TOGGLE)!);
-    await expect(canvasElement.querySelector(TOGGLE)!.getAttribute('aria-pressed')).toBe('true');
+    await expect(canvasElement.querySelector(TOGGLE)!.getAttribute(PRESSED)).toBe('true');
     // the main draw takes 24 DA + 4 WC and 4 qualifiers: full
     await expect(status(canvasElement, MAIN)).toBe('FITS');
     await expect(sentence(canvasElement, MAIN)).toBe('28 entered · 4 qualifiers');
@@ -264,18 +266,53 @@ export const ThePropertiesPaneDetaches: Story = {
   render: () => mount('fit'),
   play: async ({ canvasElement }) => {
     const layout = canvasElement.querySelector<HTMLElement>('.tb-layout')!;
+    const docked = () => canvasElement.querySelector<HTMLElement>('.tb-editor')!;
     const floating = () =>
       layout.querySelector<HTMLElement>('.spl-floating-inspector[aria-label="Structure properties"]')!;
+
+    // nothing selected: no properties pane at all, the canvas has the width (CA, 2026-11-19)
+    await expect(docked().hidden).toBe(true);
+    await expect(floating().hidden).toBe(true);
+    await user.click(canvasElement.querySelector<HTMLElement>(FIRST_CARD)!);
+    await expect(docked().hidden).toBe(false);
+
     await user.click(canvasElement.querySelector<HTMLButtonElement>('.tb-editor-detach')!);
     await expect(layout.dataset.editorPlacement).toBe('floating');
     await expect(floating().hidden).toBe(false);
     await expect(floating().querySelector('.tb-editor-content')).not.toBeNull();
-    await expect(canvasElement.querySelector<HTMLElement>('.tb-editor')!.hidden).toBe(true);
+    await expect(docked().hidden).toBe(true);
+
+    // closing the floating pane makes it go away, rather than docking it
+    await user.click(floating().querySelector<HTMLButtonElement>('button[aria-label="Close"]')!);
+    await expect(floating().hidden).toBe(true);
+    await expect(docked().hidden).toBe(true);
+    await expect(host.control.getState().selectedNodeId).toBeNull();
+
+    // the next selection opens it where it was left
+    await user.click(canvasElement.querySelector<HTMLElement>(FIRST_CARD)!);
+    await expect(floating().hidden).toBe(false);
 
     await user.click(floating().querySelector<HTMLButtonElement>('button[aria-label="Dock"]')!);
     await expect(layout.dataset.editorPlacement).toBe('docked');
     await expect(floating().hidden).toBe(true);
     await expect(canvasElement.querySelector('.tb-editor .tb-editor-content')).not.toBeNull();
+    await expect(docked().hidden).toBe(false);
+  }
+};
+
+export const TheModeTogglesSitInTheHostsBar: Story = {
+  render: () => mount('view', true),
+  play: async ({ canvasElement }) => {
+    const hostToggle = () =>
+      canvasElement.querySelector<HTMLButtonElement>('.story-host-bar .tb-mode-toggle[data-mode="fit"]')!;
+    // one bar: the builder's toolbar leaves them out (CA, 2026-11-19)
+    await expect(canvasElement.querySelector('.tb-toolbar-wrapper .tb-mode-toggle')).toBeNull();
+    await expect(hostToggle().getAttribute(PRESSED)).toBe('false');
+    await user.click(hostToggle());
+    await expect(host.control.getMode()).toBe('fit');
+    await expect(hostToggle().getAttribute(PRESSED)).toBe('true');
+    await user.click(hostToggle());
+    await expect(host.control.getMode()).toBe('view');
   }
 };
 
