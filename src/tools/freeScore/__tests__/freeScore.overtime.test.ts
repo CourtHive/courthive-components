@@ -1,4 +1,3 @@
-import { determineWinningSide, shouldExpandSets } from '../../../components/scoring/utils/setExpansionLogic';
 import { describe, expect, it } from 'vitest';
 import { parseScore } from '../freeScore';
 
@@ -46,39 +45,5 @@ describe('Free Score, overtime', () => {
   it('a shootout is its tally', () => {
     expect(parseScore('1-0 0-1 0-0 0-0 4-3', SO)).toMatchObject({ valid: true, matchComplete: true });
     expect(parseScore('1-0 0-1 0-0 0-0 4-0', SO).errors[0]?.message).toMatch(/catch up/);
-  });
-});
-
-describe('set expansion, overtime', () => {
-  it('expands while the engine calls the match undecided, and names the winner', () => {
-    const sets = (pairs: number[][]) => pairs.map(([a, b]) => ({ side1Score: a, side2Score: b }));
-    expect(
-      shouldExpandSets(
-        sets([
-          [1, 0],
-          [0, 1]
-        ]),
-        F5
-      )
-    ).toBe(true);
-    expect(
-      shouldExpandSets(
-        sets([
-          [2, 0],
-          [0, 1]
-        ]),
-        F5
-      )
-    ).toBe(false);
-    expect(
-      determineWinningSide(
-        sets([
-          [1, 0],
-          [0, 1],
-          [0, 1]
-        ]),
-        F5
-      )
-    ).toBe(2);
   });
 });

@@ -65,7 +65,7 @@ openScoreEntryDialog({
 
 `outcome.score.sets` carries the sets; a chosen reason is a positional `matchUpStatusCodes`; a clear is
 `{ score: { sets: [] }, matchUpStatusCodes: [] }`; a format changed through the chip rides as
-`matchUpFormat` (an unchanged one is left to the engine's own). The mapping is `logic/engineOutcome.ts`,
+`matchUpFormat` (an unchanged one is left to the engine's own). The mapping is `toEngineOutcome` from `tods-competition-factory/score-entry-state` (re-exported by `logic/engineOutcome.ts`),
 exported as `toEngineOutcome` for a host that builds an outcome by hand. The raw fields (`score` string,
 `sets`, `reasonCode`, `cleared`) are still reported beside it, unchanged.
 
