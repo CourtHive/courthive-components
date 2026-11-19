@@ -1,6 +1,6 @@
+import { matchUpStatusConstants } from 'tods-competition-factory';
 import { describe, it, expect } from 'vitest';
 import { parseScore } from '../freeScore';
-import { matchUpStatusConstants } from 'tods-competition-factory';
 
 const { RETIRED, WALKOVER, DEFAULTED, SUSPENDED, CANCELLED, INCOMPLETE, DEAD_RUBBER, IN_PROGRESS, AWAITING_RESULT } =
   matchUpStatusConstants;

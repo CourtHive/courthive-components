@@ -10,6 +10,9 @@
  * exact prose would make every copy edit a test failure and would tempt the next person to update the
  * expectation without reading whether the claim was still true.
  */
+import { matchUpStatusConstants } from 'tods-competition-factory';
+import { scoreEntrySummary } from '../scoreEntrySummary';
+import { describe, it, expect } from 'vitest';
 import {
   resolveScoreEntry,
   chooseSideEnding,
@@ -17,9 +20,6 @@ import {
   toggleBothSidesOut,
   emptyScoreEntryState
 } from '../scoreEntryState';
-import { matchUpStatusConstants } from 'tods-competition-factory';
-import { scoreEntrySummary } from '../scoreEntrySummary';
-import { describe, it, expect } from 'vitest';
 
 import type { SummaryParams } from '../scoreEntrySummary';
 

@@ -10,8 +10,8 @@
  * No DOM, no side effects.
  */
 
-import { matchUpStatusConstants } from 'tods-competition-factory';
 import { isDoubleExitStatus, requiresWinner } from './irregularEnding';
+import { matchUpStatusConstants } from 'tods-competition-factory';
 
 const { WALKOVER, DEFAULTED, DOUBLE_WALKOVER, DOUBLE_DEFAULT } = matchUpStatusConstants;
 

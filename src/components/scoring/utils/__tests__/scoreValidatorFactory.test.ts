@@ -2,8 +2,8 @@
  * Test using factory's generateOutcomeFromScoreString with preserveSideOrder: true
  * to replace custom winningSide calculation
  */
-import { describe, it, expect } from 'vitest';
 import { tournamentEngine } from 'tods-competition-factory';
+import { describe, it, expect } from 'vitest';
 
 const FORMAT_SET3_TB7 = 'SET3-S:6/TB7';
 const FORMAT_SET3XA_T10 = 'SET3XA-S:T10';

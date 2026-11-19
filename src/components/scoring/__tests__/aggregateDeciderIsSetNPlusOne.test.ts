@@ -10,9 +10,9 @@
  * decider as set 4, and refuses the decider played in bolt 3's place.
  */
 import { columns, isComplete, winningSide as cardWinningSide } from '../logic/scoreEntrySelectors';
-import { shouldExpandSets } from '../utils/setExpansionLogic';
 import { typed } from '../logic/__tests__/scoreEntryModelTestHelpers';
 import { parseScore } from '../../../tools/freeScore/freeScore';
+import { shouldExpandSets } from '../utils/setExpansionLogic';
 import { describe, expect, it } from 'vitest';
 
 const FORMAT = 'SET3XA-S:T10-F:TB1';

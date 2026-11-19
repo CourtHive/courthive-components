@@ -4,8 +4,8 @@
  * No DOM dependencies, no side effects - pure business logic only
  */
 
-import { matchUpFormatCode, matchUpGovernor, scoreGovernor } from 'tods-competition-factory';
 import { isOvertimeFormat, overtimeProgress, overtimeSetFormat } from '../../../tools/overtimeEntry/overtimeEntry';
+import { matchUpFormatCode, matchUpGovernor, scoreGovernor } from 'tods-competition-factory';
 import { parseMatchUpFormat } from '../utils/setExpansionLogic';
 
 /**
