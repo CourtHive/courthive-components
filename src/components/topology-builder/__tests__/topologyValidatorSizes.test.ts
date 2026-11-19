@@ -1,6 +1,7 @@
 import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { topologyToDrawOptions } from '../domain/topologyToDrawOptions';
 import { validateTopology } from '../domain/topologyValidator';
+import { standardTemplates } from '../domain/templates';
 import { describe, expect, it } from 'vitest';
 
 const at = { x: 0, y: 0 };
@@ -75,8 +76,24 @@ describe('a qualifying elimination is any size (CA, 2026-11-18)', () => {
     expect(qualifying.positionAssignments.filter((a: any) => a.bye)).toHaveLength(24);
   });
 
-  it('a single elimination MAIN with nothing linked into it keeps its power of 2 rule (unchanged here)', () => {
-    const mainOnly = { ...topology(40, 36), nodes: topology(40, 36).nodes.filter((n: any) => n.id === 'm'), edges: [] };
-    expect(sizeErrors(mainOnly).map(({ nodeId }) => nodeId)).toEqual(['m']);
+  it('a single elimination MAIN is a power of 2, whatever links into it; a Feed-in MAIN is any size', () => {
+    // linked from qualifying, a 36 was let through and generated as a Feed-in nobody chose (CA, 2026-11-18)
+    expect(sizeErrors(topology(40, 36)).map(({ nodeId }) => nodeId)).toEqual(['m']);
+    expect(validateTopology(topology(40, 36)).find(({ nodeId }) => nodeId === 'm')?.message).toBe(
+      '"Main" is a single elimination of 36: choose a power of 2, or Feed-in for a draw of 36'
+    );
+    const feedIn = topology(40, 36);
+    feedIn.nodes[1].structureType = 'FEED_IN';
+    expect(validateTopology(feedIn).filter(({ nodeId }) => nodeId === 'm')).toEqual([]);
+    expect(sizeErrors(topology(40, 32))).toEqual([]);
   });
+});
+
+describe('every built-in template can be generated', () => {
+  for (const template of standardTemplates) {
+    it(template.name, () => {
+      const state: any = { ...template.state, selectedNodeId: null, selectedEdgeId: null };
+      expect(validateTopology(state).filter(({ severity }) => severity === 'error')).toEqual([]);
+    });
+  }
 });
