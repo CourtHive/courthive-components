@@ -1,5 +1,18 @@
 # Changelog
 
+## [7.20.0](https://github.com/CourtHive/courthive-components/compare/v7.19.2...v7.20.0) (2026-11-19)
+
+
+### Features
+
+* **scoring:** controlled score submission, and a blank scope translation still refuses ([15f118e](https://github.com/CourtHive/courthive-components/commit/15f118e48e7840d01ee9ca3cdc70298427da60fe))
+* **topology-builder:** properties only with a selection; mode toggles in the host's bar ([#1043](https://github.com/CourtHive/courthive-components/issues/1043)) ([1d17d9e](https://github.com/CourtHive/courthive-components/commit/1d17d9e2045d5664c0094c319f2f42e13e8f6baf))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.43.0 ([#1046](https://github.com/CourtHive/courthive-components/issues/1046)) ([73bc32d](https://github.com/CourtHive/courthive-components/commit/73bc32d3aba8e822ba73cc1a6eab190703797370))
+
 ## [7.19.2](https://github.com/CourtHive/courthive-components/compare/v7.19.1...v7.19.2) (2026-11-19)
 
 
