@@ -15,8 +15,8 @@
 import { SCORE_ENTRY_TEXT } from '../components/scoring/logic/scoreEntryText';
 import { endingLabels } from '../components/scoring/logic/irregularEnding';
 import { fixtures, policyConstants } from 'tods-competition-factory';
+import { expect, waitFor } from 'storybook/test';
 import { user } from './helpers/trustedUser';
-import { expect } from 'storybook/test';
 import {
   closeAllModals,
   dialogLauncher,
@@ -104,6 +104,15 @@ const OVERTIME_SETS = [
   [0, 0]
 ].map(([side1Score, side2Score], index) => ({ setNumber: index + 1, side1Score, side2Score }));
 
+const SUBMIT = 'button[data-action="submit"]';
+
+/** A controlled submission the walk-through settles by hand, to see its saving and refusal words. */
+let settleSubmission: { reject: (reason: unknown) => void } | undefined;
+const controlledSubmit = () =>
+  new Promise((_, reject) => {
+    settleSubmission = { reject };
+  });
+
 const CONFIGS: Record<string, ScoreEntryDialogParams> = {
   control: { sides: SIDES, matchUpFormat: FORMAT, statusCodeGroups: GROUPS },
   reasons: { sides: SIDES, matchUpFormat: FORMAT, statusCodeGroups: GROUPS, labels: LABELS },
@@ -111,7 +120,8 @@ const CONFIGS: Record<string, ScoreEntryDialogParams> = {
   free: { sides: SIDES, matchUpFormat: FORMAT, labels: LABELS, approach: 'freeScore' },
   recorded: { sides: SIDES, matchUp: RECORDED, labels: LABELS },
   refused: { sides: SIDES, matchUp: RECORDED, labels: LABELS, clearable: false },
-  overtime: { sides: SIDES, matchUpFormat: 'HAL2XA-S:T45P-O:2X/T15P-F:SO5', sets: OVERTIME_SETS, labels: LABELS }
+  overtime: { sides: SIDES, matchUpFormat: 'HAL2XA-S:T45P-O:2X/T15P-F:SO5', sets: OVERTIME_SETS, labels: LABELS },
+  controlled: { sides: SIDES, matchUp: RECORDED, labels: LABELS, onSubmit: controlledSubmit }
 };
 
 /** Everything a person or a screen reader gets: text, and every `title` and `aria-label`. */
@@ -254,6 +264,19 @@ export const EveryKeyTranslated: StoryObj = {
         await open('free');
         await user.fill(inModal(FREE_SCORE_INPUT), '3-2 6-4');
         await expectTranslated('an unfinished first set');
+      });
+
+      await step('a controlled submission: saving, refused with a reason, refused without one', async () => {
+        await open('controlled');
+        await user.click(inModal(SUBMIT));
+        await expectTranslated('a submission the host is still saving');
+        settleSubmission?.reject(new Error('⟦reason⟧'));
+        await waitFor(() => expect(inModal('.chc-sec-submit-note')).toBeVisible());
+        await expectTranslated('a refusal with the host reason');
+        await user.click(inModal(SUBMIT));
+        settleSubmission?.reject(undefined);
+        await waitFor(() => expect(inModal(SUBMIT)).toBeEnabled());
+        await expectTranslated('a refusal with no reason');
       });
 
       await step('every key rendered except the ones listed as unreachable', async () => {

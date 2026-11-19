@@ -35,13 +35,14 @@ import { offersBothSidesOut, matchEndingOptions, sideEndingOptions, reasonCodeSt
 import { unrecordedTiebreakNote, scoreString, winningSide } from './logic/scoreEntrySelectors';
 import { statusCodeSubtext, statusCodeDisplay, codesForStatus } from './logic/statusCodes';
 import { chooseEnding, changeFormat, clearAll } from './logic/scoreEntryModel';
+import { isThenable, messageOf, refusalOf } from './logic/controlledSubmit';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 import { createScoreEntryStore } from './logic/scoreEntryStore';
+import { statusScopeNotice } from './logic/statusScopeNotice';
 import { scoreEntrySummary } from './logic/scoreEntrySummary';
 import { ENTRY_SIDE, hasCommandModifier } from './keyboard';
 import { endingForKey } from './logic/endingShortcutKeys';
 import { scoreEntryText } from './logic/scoreEntryText';
-import { statusScopeNotice } from './logic/statusScope';
 import { endingLabels } from './logic/irregularEnding';
 import { shouldStack } from './logic/scoreRowLayout';
 import {
@@ -271,7 +272,12 @@ export type ScoreEntryCardParams = {
   /** An ending already recorded, for reopening an outcome. Build it with `hydrateScoreEntryState`. */
   initialState?: ScoreEntryState;
   onClear?: () => void;
-  onSubmit?: (outcome: ScoreEntryOutcome) => void;
+  /**
+   * Called with the outcome when Submit is pressed. Return a promise to make the submission CONTROLLED: Submit
+   * shows it is saving and Submit and Clear wait; a rejection, or a value carrying a truthy `error` (the
+   * factory's result shape), re-enables them and shows the refusal on the card. See `logic/controlledSubmit.ts`.
+   */
+  onSubmit?: (outcome: ScoreEntryOutcome) => void | PromiseLike<unknown>;
   /**
    * Whether a recorded outcome may be REMOVED. Only the draw knows whether a later match depends on the
    * result, so the host reads it from the engine (the factory's `CLEAR_SCORE` matchUp action) rather than
@@ -404,6 +410,12 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   const blockContainer = div('chc-sec-score-region');
   const submitButton = button(say('submit'), 'chc-sec-btn chc-sec-btn-primary');
   const clearButton = button(say('clear'), CLS_BTN);
+  // A controlled submission (`onSubmit` returned a promise): pending while it is, and its refusal, if any, shown here
+  const submitNote = div('chc-sec-submit-note');
+  submitNote.setAttribute('role', 'alert');
+  submitNote.hidden = true;
+  let submitting = false;
+  let disposed = false;
 
   element.append(headerContainer, body(), band, footer());
 
@@ -491,7 +503,10 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
   return {
     element,
     closeMenus,
-    destroy: releaseEndingsMenu,
+    destroy: () => {
+      disposed = true;
+      releaseEndingsMenu();
+    },
     // `refresh` updates ONLY the derived parts — the band and the submit gate. It deliberately does
     // NOT re-render the rows.
     //
@@ -679,11 +694,47 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
       // Refused (nothing sent) for a removal the host withholds and for an ending out of scope; an emptied
       // card sends `{ cleared: true }`. The rule is `submission`'s.
       const outcome = submission(view(), gate(), rulesContext());
-      if (outcome) params.onSubmit?.(outcome);
+      if (!outcome) return;
+      const pending = params.onSubmit?.(outcome);
+      if (isThenable(pending)) awaitSubmission(pending);
     });
 
-    bar.append(cancel, div(CLS_SPACER), clearButton, submitButton);
+    bar.append(cancel, div(CLS_SPACER), submitNote, clearButton, submitButton);
     return bar;
+  }
+
+  /**
+   * Wait on a controlled submission. Submit says it is saving and the footer's actions wait; an accepted one leaves
+   * the card to its host (the dialog closes it), a refused one re-enables them and says why. Nothing is touched once
+   * the card is destroyed, since a host may close it while the submission is still pending.
+   */
+  function awaitSubmission(pending: PromiseLike<unknown>): void {
+    setSubmitting(true);
+    showSubmitRefusal(undefined);
+    pending.then(
+      (value) => settleSubmission(refusalOf(value)),
+      (reason) => settleSubmission(messageOf(reason))
+    );
+  }
+
+  function settleSubmission(refusal: string | undefined): void {
+    if (disposed) return;
+    setSubmitting(false);
+    showSubmitRefusal(refusal);
+  }
+
+  function setSubmitting(busy: boolean): void {
+    submitting = busy;
+    submitButton.textContent = say(busy ? 'submitting' : 'submit');
+    submitButton.setAttribute('aria-busy', String(busy));
+    renderDerived();
+  }
+
+  /** The refusal in words, or nothing: `''` is a refusal that gave no reason. */
+  function showSubmitRefusal(refusal: string | undefined): void {
+    submitNote.hidden = refusal === undefined;
+    submitNote.textContent =
+      refusal === undefined ? '' : refusal ? say('submitRefused', { message: refusal }) : say('submitRefusedNoReason');
   }
 
   // ── The model ────────────────────────────────────────────────────────
@@ -1005,8 +1056,9 @@ export function renderScoreEntryCard(params: ScoreEntryCardParams): ScoreEntryCa
     // ── The submit gate ── `footerState`: Submit live on an ending that resolves OR a finished score, and
     // closed by any error; Clear live whenever the card holds anything.
     const footer = footerState(view(), gate(), rulesContext());
-    submitButton.disabled = footer.submitDisabled;
-    clearButton.disabled = footer.clearDisabled;
+    // a controlled submission in flight holds both: neither a second submission nor a clear under it
+    submitButton.disabled = footer.submitDisabled || submitting;
+    clearButton.disabled = footer.clearDisabled || submitting;
     submitButton.title = footer.submitTitle;
   }
 

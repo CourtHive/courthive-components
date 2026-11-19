@@ -34,22 +34,6 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
       expect(result.sets[2].side2Score).toBe(1);
     });
 
-    it('should calculate MATCH winningSide correctly for 30-1, 0-1, 0-1 aggregate', async () => {
-      const result = parseScore('30-1 0-1 0-1', format);
-
-      // Aggregate: 30-3, side 1 wins
-      // Sets won: 1-2, side 2 wins
-      // Winner should be side 1 (aggregate)
-      expect(result.valid).toBe(true);
-      expect(result.sets.length).toBe(3);
-
-      // Now test with determineWinningSide
-      const { determineWinningSide } = await import('../../../components/scoring/utils/setExpansionLogic');
-      const matchWinningSide = determineWinningSide(result.sets, format);
-
-      expect(matchWinningSide).toBe(1); // Should be side 1 based on aggregate (30 > 3)
-    });
-
     it('should require all 3 sets even when one side dominates aggregate (no conditional TB)', () => {
       const result = parseScore('50-0 0-1', format);
 

@@ -501,13 +501,6 @@
   padding: 12px;
 }
 
-.tb-editor-empty {
-  padding: 20px 12px;
-  text-align: center;
-  color: var(--chc-text-muted);
-  font-size: 12px;
-}
-
 /* renderForm overrides for compact editor panel */
 .tb-editor-body .field label {
   font-size: 11px;

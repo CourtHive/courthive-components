@@ -1,5 +1,12 @@
-import type { ScoringModalLabels } from '../types';
+/**
+ * The words for a status the host's scope refuses. Whether a status is out of scope is the factory's draft rule
+ * (`statusOutOfScope`, from the host's `SCORE` action); this module only says so, in the host's labels. The DOM
+ * notice that shows these sentences is `statusScopeNotice.ts`, kept apart so this stays importable without a DOM.
+ */
+import { statusOutOfScope } from 'tods-competition-factory/score-entry-state';
 import { endingLabels } from './irregularEnding';
+
+import type { ScoringModalLabels } from '../types';
 
 const DEFAULT_SCOPE_LABELS = {
   ...endingLabels(),
@@ -11,8 +18,8 @@ const DEFAULT_SCOPE_LABELS = {
 export function scoringStatusScopeLabels(labels: ScoringModalLabels = {}): Record<string, string> {
   return {
     ...endingLabels(labels),
-    CHALLENGED: labels.challenged ?? DEFAULT_SCOPE_LABELS.CHALLENGED,
-    statusUnavailable: labels.statusUnavailable ?? DEFAULT_SCOPE_LABELS.statusUnavailable
+    CHALLENGED: present(labels.challenged) ?? DEFAULT_SCOPE_LABELS.CHALLENGED,
+    statusUnavailable: present(labels.statusUnavailable) ?? DEFAULT_SCOPE_LABELS.statusUnavailable
   };
 }
 
@@ -22,26 +29,17 @@ export function statusScopeError(
   disabledMatchUpStatuses: readonly string[] = [],
   labels: Record<string, string> = DEFAULT_SCOPE_LABELS
 ): string | undefined {
-  if (!status || !new Set(disabledMatchUpStatuses).has(status)) return undefined;
-  const name = labels[status] ?? DEFAULT_SCOPE_LABELS[status] ?? status;
-  const template = labels.statusUnavailable ?? DEFAULT_SCOPE_LABELS.statusUnavailable;
+  if (!status || !statusOutOfScope(status, disabledMatchUpStatuses)) return undefined;
+  const name = present(labels[status]) ?? DEFAULT_SCOPE_LABELS[status] ?? status;
+  const template = present(labels.statusUnavailable) ?? DEFAULT_SCOPE_LABELS.statusUnavailable;
   return template.replaceAll('{{status}}', name);
 }
 
-/** Keep the refusal visible even where the restricted status has been removed from the choices. */
-export function statusScopeNotice(
-  disabledMatchUpStatuses: readonly string[] = [],
-  labels?: Record<string, string>
-): HTMLElement {
-  const notice = document.createElement('div');
-  notice.className = 'chc-scoring-status-scope';
-  notice.style.fontSize = '0.75rem';
-  notice.style.color = 'var(--chc-text-secondary)';
-  notice.style.flexBasis = '100%';
-  notice.setAttribute('role', 'note');
-  notice.textContent = disabledMatchUpStatuses
-    .map((status) => statusScopeError(status, disabledMatchUpStatuses, labels))
-    .join('. ');
-  notice.hidden = !disabledMatchUpStatuses.length;
-  return notice;
+/**
+ * A host's word, unless it is blank: then the English default stands, as `scoreEntryText` does for every other key.
+ * A blank translation used to make the refusal itself blank, and a blank refusal reads as no refusal: Submit stayed
+ * live and the out-of-scope status was submitted.
+ */
+function present(word: string | undefined): string | undefined {
+  return word?.trim() ? word : undefined;
 }

@@ -66,6 +66,9 @@ export const SCORE_ENTRY_TEXT = {
   notReadyToSubmit: 'not ready to submit',
   clearedHeadline: 'The recorded result will be removed — Submit to clear it.',
   clearRefused: 'Enter a replacement score: a later match depends on this result.',
+  submitting: 'Saving…',
+  submitRefused: 'Not saved: {{message}}',
+  submitRefusedNoReason: 'Not saved. Try again.',
 
   // ── Score problems ──
   setPrefix: '{{ordinal}} set:',

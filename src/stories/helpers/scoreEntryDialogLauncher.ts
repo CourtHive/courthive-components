@@ -67,7 +67,8 @@ export function dialogLauncher(
       ...params,
       onSubmit: (outcome) => {
         state.submitted.push(outcome);
-        params.onSubmit?.(outcome);
+        // returned, so a host's promise reaches the dialog and the submission is controlled
+        return params.onSubmit?.(outcome);
       }
     });
   });

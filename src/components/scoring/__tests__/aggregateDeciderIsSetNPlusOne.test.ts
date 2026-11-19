@@ -10,7 +10,6 @@
  * decider as set 4, and refuses the decider played in bolt 3's place.
  */
 import { columns, isComplete, winningSide as cardWinningSide } from '../logic/scoreEntrySelectors';
-import { shouldExpandSets } from '../utils/setExpansionLogic';
 import { typed } from '../logic/__tests__/scoreEntryModelTestHelpers';
 import { parseScore } from '../../../tools/freeScore/freeScore';
 import { describe, expect, it } from 'vitest';
@@ -22,12 +21,6 @@ const ONE_ZERO_AS_BOLT_3 = '30-25 25-30 1-0';
 
 const ACCEPTS = 'accepts three level bolts and the decider as set 4';
 const REFUSES = "refuses the decider in bolt 3's place";
-
-const LEVEL_BOLTS = [
-  { side1: 30, side2: 25 },
-  { side1: 25, side2: 30 },
-  { side1: 20, side2: 20 }
-];
 
 describe('parseScore (Free Score)', () => {
   it(ACCEPTS, () => {
@@ -43,26 +36,6 @@ describe('parseScore (Free Score)', () => {
     const bolt = parseScore(ONE_ZERO_AS_BOLT_3, FORMAT);
     expect(bolt.sets[2].side1Score).toBe(1);
     expect(bolt.sets[2].side1TiebreakScore).toBeUndefined();
-  });
-});
-
-describe('shouldExpandSets', () => {
-  it('opens the set 4 decider after three level bolts, and not after three that are not', () => {
-    const level = LEVEL_BOLTS.map(({ side1, side2 }) => ({ side1Score: side1, side2Score: side2 }));
-    expect(shouldExpandSets(level, FORMAT)).toBe(true);
-    expect(shouldExpandSets([...level.slice(0, 2), { side1Score: 20, side2Score: 10 }], FORMAT)).toBe(false);
-  });
-
-  it('opens bolt 3 after two bolts, level or not', () => {
-    expect(
-      shouldExpandSets(
-        [
-          { side1Score: 30, side2Score: 25 },
-          { side1Score: 25, side2Score: 30 }
-        ],
-        FORMAT
-      )
-    ).toBe(true);
   });
 });
 

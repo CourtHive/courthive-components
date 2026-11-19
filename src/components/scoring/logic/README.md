@@ -1,3 +1,24 @@
+# Score entry logic
+
+**The headless score-entry draft lives in the factory** (2026-11-19): `tods-competition-factory/score-entry-state`
+owns the model and its transitions, the ending, the selectors, the submit/clear rules, the outcome mapping and the
+format rules they read (`dynamicSetsLogic`'s delegations, overtime, level closes, tiebreak entry). The modules here of
+the same names re-export it, so the card, regions, stories and tests import exactly what they did. What stays here is
+this dialog's own:
+
+- `scoreEntryStore.ts`: the get/set holder the card and the regions share. UI plumbing, deliberately not reactive: the
+  card's `refresh`/`rerender` seams decide what redraws, to protect the caret. A headless host holds the model itself.
+- the WORDS: `scoreEntryText.ts`, `error`/`issueText`/`unrecordedTiebreakNote` (`scoreEntrySelectors.ts`),
+  `scoreEntryError`/`endingRefusalReason`/`footerState`'s title (`scoreEntryRules.ts`), `statusScope.ts`, ending labels
+  and the double-exit warning (`irregularEnding.ts`), code display (`statusCodes.ts`). The draft reports codes; these
+  word them, unchanged.
+- per-approach policy: `dialPadEntry.ts`, `dynamicSetsEntry.ts`, `freeScoreEntry.ts` (Free Score's unfinished raw text
+  stays in its region, never in the draft), `endingShortcutKeys.ts`, `scoreRowLayout.ts`, `scoreEntrySummary.ts`,
+  `scoreEntryDialogRules.ts`, and Dynamic Sets' `shouldApplySmartComplement` / `shouldCreateNextSet`.
+- DOM: `statusScopeNotice.ts`, split from `statusScope.ts` so the sentences stay importable without a `document`.
+
+The history below describes the original extraction of these functions from the Dynamic Sets approach.
+
 # Dynamic Sets Logic - Pure Functions Layer
 
 This directory contains pure, testable business logic extracted from the Dynamic Sets score entry approach.

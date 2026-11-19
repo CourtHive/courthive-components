@@ -3,8 +3,11 @@
  * These tests verify business logic without any DOM dependencies
  */
 
+import { MATCH_FORMATS } from '../../../../constants/matchUpFormats';
+import { matchUpFormatCode } from 'tods-competition-factory';
 import { scoreGovernor } from 'tods-competition-factory';
 import { describe, it, expect } from 'vitest';
+import type { SetScore } from '../../types';
 import {
   getSetFormatForIndex,
   isSetTiebreakOnly,
@@ -21,9 +24,6 @@ import {
   matchUpConfigFor,
   type MatchUpConfig
 } from '../dynamicSetsLogic';
-import type { SetScore } from '../../types';
-import { MATCH_FORMATS } from '../../../../constants/matchUpFormats';
-import { matchUpFormatCode } from 'tods-competition-factory';
 
 // Helper to create MatchUpConfig from format string
 function parseFormat(formatString: string): MatchUpConfig {
@@ -56,9 +56,8 @@ const FINAL_TB10 = 'SET3-S:6/TB7-F:TB10';
 /**
  * `matchUpConfigFor` — the derivation `dynamicSetsApproach` already carried its own copy of.
  *
- * It takes TWO sources and they must agree: `bestOf` comes from `parseMatchUpFormat`, which resolves
- * an `exactly:N` format down to a set count, while `exactly`, `setFormat` and `finalSetFormat` come
- * straight off `matchUpFormatCode.parse`. Hoisted so a region does not become a second copy whose
+ * It takes TWO readings and they must agree: `bestOf` resolves an `exactly:N` format down to a set
+ * count, while `exactly`, `setFormat` and `finalSetFormat` come straight off `matchUpFormatCode.parse`. Hoisted so a region does not become a second copy whose
  * halves can drift apart.
  */
 describe('matchUpConfigFor', () => {
@@ -75,7 +74,7 @@ describe('matchUpConfigFor', () => {
   });
 
   it('carries a distinct final-set format when the format has one', () => {
-    // The half that comes from the factory parse rather than from parseMatchUpFormat. A config that
+    // The half that comes from the factory parse rather than from the set count. A config that
     // dropped it would score a deciding match tiebreak as a full set.
     const config = matchUpConfigFor(FINAL_TB10);
 

@@ -544,6 +544,12 @@
   padding: 14px 20px;
 }
 
+/* A controlled submission's refusal, beside the buttons it re-enabled. */
+.chc-sec-submit-note {
+  color: var(--chc-status-error);
+  font-size: 0.8125rem;
+}
+
 /* ── Phone: one question per screen ────────────────────────────────── */
 
 @media (width <= 560px) {
