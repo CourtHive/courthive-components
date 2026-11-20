@@ -48,6 +48,9 @@ const CLASS_ROUND_NEXT = 'spl-card-title--round-next';
 const CLASS_ROUND_LATER = 'spl-card-title--round-later';
 const EXTRA_HOLDER_SELECTOR = '.spl-card-extra';
 const EXTRA_MARKER_SELECTOR = '[data-test="card-extra"]';
+const CARD_SELECTOR = '.spl-matchup-card';
+const ACTIVATIONS_LABEL = 'Card activations';
+const ARIA_LABEL = 'aria-label';
 
 // ── Test fixtures ──
 
@@ -386,7 +389,7 @@ export const RenderExtraThrowingLeavesTheCardIntact: StoryObj = {
     // drag affordance — the whole point of the try/catch in appendCardExtra.
     expect(canvasElement.querySelector(TITLE_SELECTOR)).not.toBeNull();
     expect(canvasElement.querySelector(EXTRA_HOLDER_SELECTOR)).toBeNull();
-    const card = canvasElement.querySelector('.spl-matchup-card') as HTMLElement;
+    const card = canvasElement.querySelector(CARD_SELECTOR) as HTMLElement;
     expect(card.draggable).toBe(true);
   }
 };
@@ -395,7 +398,7 @@ export const RenderExtraSitsAfterChipsBeforeCheck: StoryObj = {
   name: 'extra is placed after the chips row and before the scheduled checkmark',
   render: () => renderCard({ isScheduled: true, scheduledTime: '09:00' }, { renderExtra: () => badge('rested') }),
   play: async ({ canvasElement }) => {
-    const card = canvasElement.querySelector('.spl-matchup-card') as HTMLElement;
+    const card = canvasElement.querySelector(CARD_SELECTOR) as HTMLElement;
     const classes = [...card.children].map((c) => c.className);
     expect(classes.indexOf('spl-card-extra')).toBeGreaterThan(classes.indexOf('spl-card-chips'));
     expect(classes.indexOf('spl-card-extra')).toBeLessThan(classes.indexOf('spl-matchup-check'));
@@ -407,7 +410,7 @@ export const NativeKeyboardActivation: StoryObj = {
   render: () => {
     const host = document.createElement('div');
     const log = document.createElement('output');
-    log.setAttribute('aria-label', 'Card activations');
+    log.setAttribute(ARIA_LABEL, ACTIVATIONS_LABEL);
     let calls = 0;
     host.append(
       buildMatchUpCard(baseItem(), {
@@ -420,13 +423,97 @@ export const NativeKeyboardActivation: StoryObj = {
     return host;
   },
   play: async ({ canvasElement }) => {
-    const card = canvasElement.querySelector<HTMLButtonElement>('button.spl-matchup-card')!;
-    expect(card.type).toBe('button');
+    // The card stays a draggable container; the button inside it carries activation.
+    const card = canvasElement.querySelector<HTMLElement>(CARD_SELECTOR)!;
+    const button = card.querySelector<HTMLButtonElement>(':scope > button.spl-matchup-card__activate')!;
+    expect(card.tagName).toBe('DIV');
     expect(card.draggable).toBe(true);
-    expect(card.getAttribute('aria-label')).toContain('Test Event');
-    await user.click(card);
+    expect(button.type).toBe('button');
+    expect(button.getAttribute(ARIA_LABEL)).toContain('Test Event');
+    await user.click(button);
     await user.keyboard('{Enter}');
     await user.keyboard(' ');
     expect(canvasElement.querySelector('output')).toHaveTextContent('3');
+  }
+};
+
+// ── renderExtra beside, not inside, the activating button ──
+
+/** A card with a click counter and an extra holding an interactive control. */
+function renderActivatableWithExtra(extra: () => HTMLElement): HTMLElement {
+  const host = document.createElement('div');
+  const log = document.createElement('output');
+  log.setAttribute(ARIA_LABEL, ACTIVATIONS_LABEL);
+  log.textContent = '0';
+  let calls = 0;
+  host.append(
+    buildMatchUpCard(
+      baseItem(),
+      { onClick: () => (log.textContent = String(++calls)) },
+      { renderExtra: () => extra() }
+    ),
+    log
+  );
+  return host;
+}
+
+export const RenderExtraSitsOutsideTheButton: StoryObj = {
+  name: 'renderExtra is a sibling of the activating button, never inside it',
+  render: () => renderActivatableWithExtra(() => badge('2h 14m')),
+  play: async ({ canvasElement }) => {
+    const button = canvasElement.querySelector('button.spl-matchup-card__activate')!;
+    const holder = canvasElement.querySelector(EXTRA_HOLDER_SELECTOR)!;
+    expect(button.contains(holder)).toBe(false);
+    expect(holder.parentElement?.classList.contains('spl-matchup-card')).toBe(true);
+    expect(canvasElement.querySelector('button button')).toBeNull();
+  }
+};
+
+export const InteractiveExtraKeepsItsOwnClick: StoryObj = {
+  name: 'a control in the extra takes its own click; the badge text and card padding still select the card',
+  render: () =>
+    renderActivatableWithExtra(() => {
+      const wrap = document.createElement('span');
+      const info = badge('rested');
+      const control = document.createElement('button');
+      control.type = 'button';
+      control.textContent = 'Why?';
+      control.dataset.test = 'extra-control';
+      control.addEventListener('click', () => (control.dataset.clicked = 'true'));
+      wrap.append(info, control);
+      return wrap;
+    }),
+  play: async ({ canvasElement }) => {
+    const output = canvasElement.querySelector('output')!;
+    const control = canvasElement.querySelector<HTMLButtonElement>('[data-test="extra-control"]')!;
+    await user.click(control);
+    expect(control.dataset.clicked).toBe('true');
+    expect(output).toHaveTextContent('0');
+    await user.click(canvasElement.querySelector<HTMLElement>(EXTRA_MARKER_SELECTOR)!);
+    expect(output).toHaveTextContent('1');
+    // The card's own padding, outside the button: pointer users could always click there.
+    await user.clickAt(canvasElement.querySelector<HTMLElement>(CARD_SELECTOR)!, { x: 3, y: 3 });
+    expect(output).toHaveTextContent('2');
+  }
+};
+
+export const DraggableCardShowsGrabCursor: StoryObj = {
+  name: 'a draggable catalog card shows the grab cursor; a scheduled one does not',
+  render: () => {
+    const host = document.createElement('div');
+    host.append(
+      buildMatchUpCard(baseItem({ matchUpId: 'free' }), { onClick: () => undefined }),
+      buildMatchUpCard(baseItem({ matchUpId: 'placed', isScheduled: true, scheduledTime: '09:00' }), {
+        onClick: () => undefined
+      })
+    );
+    return host;
+  },
+  play: async ({ canvasElement }) => {
+    const free = canvasElement.querySelector<HTMLElement>('[data-matchup-id="free"]')!;
+    const placed = canvasElement.querySelector<HTMLElement>('[data-matchup-id="placed"]')!;
+    expect(getComputedStyle(free).cursor).toBe('grab');
+    expect(getComputedStyle(free.querySelector('.spl-matchup-card__activate')!).cursor).toBe('grab');
+    expect(getComputedStyle(placed).cursor).toBe('default');
   }
 };

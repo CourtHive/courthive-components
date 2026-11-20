@@ -52,8 +52,19 @@ export function buildMatchUpCard(
       timeTitle: options.timeTitle,
       roundOffset: options.roundOffset
     },
-    { onActivate: callbacks.onClick ? () => callbacks.onClick!(item) : undefined }
+    // `inner`: the card stays a draggable container (TMX's drag source is unchanged) and a button inside it
+    // carries activation, so consumer extras sit beside that button rather than inside it.
+    { onActivate: callbacks.onClick ? () => callbacks.onClick!(item) : undefined, activator: 'inner' }
   );
+  if (callbacks.onClick) {
+    // Pointer users could click anywhere on the catalog card before it gained a button; keep that, except
+    // where the click lands on an interactive control a consumer put in its extra.
+    card.addEventListener('click', (event) => {
+      const target = event.target as Element | null;
+      if (target?.closest('a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])') !== null) return;
+      callbacks.onClick!(item);
+    });
+  }
   if (item.isScheduled) card.classList.add('scheduled');
   else if (completed) card.classList.add('completed');
   card.draggable = !item.isScheduled && !completed;

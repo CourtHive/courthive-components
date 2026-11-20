@@ -29,35 +29,51 @@ function span(className: string, text?: string) {
   if (text !== undefined) node.textContent = text;
   return node;
 }
+/**
+ * Where activation lives. `root`: the card itself is the `<button>` (a self-contained row).
+ * `inner`: the card is a container and a `<button>` inside it holds the display content, so a host
+ * can append its own content (badges, extras) to the card without putting it inside the button,
+ * where it would be invalid, unreachable to assistive technology and unable to take its own clicks.
+ */
+export type CardActivator = 'root' | 'inner';
+
 /** Shared presentation primitive. No catalog state, drag, highlighting, transport or factory imports. */
 export function buildSharedMatchUpCard(
   data: SharedMatchUpCardData,
-  options: { onActivate?: () => void; compact?: boolean } = {}
+  options: { onActivate?: () => void; compact?: boolean; activator?: CardActivator } = {}
 ): HTMLElement {
-  const card = options.onActivate ? document.createElement('button') : document.createElement('article');
+  const inner = !!options.onActivate && options.activator === 'inner';
+  const card =
+    options.onActivate && !inner ? document.createElement('button') : document.createElement(inner ? 'div' : 'article');
   if (card instanceof HTMLButtonElement) card.type = 'button';
   card.className = 'spl-matchup-card';
   card.dataset.matchupId = data.id;
   if (options.compact) card.classList.add('spl-matchup-card--compact');
+  const content = inner ? document.createElement('button') : card;
+  if (content instanceof HTMLButtonElement) content.type = 'button';
+  if (inner) {
+    content.className = 'spl-matchup-card__activate';
+    card.append(content);
+  }
   if (options.onActivate) {
-    card.setAttribute(ARIA_LABEL, data.accessibleName ?? [data.title, data.names].filter(Boolean).join(' · '));
-    card.addEventListener('click', (event) => {
+    content.setAttribute(ARIA_LABEL, data.accessibleName ?? [data.title, data.names].filter(Boolean).join(' · '));
+    content.addEventListener('click', (event) => {
       event.stopPropagation();
       options.onActivate?.();
     });
   }
   const title = titleRow(data);
-  if (title) card.append(title);
-  card.append(sideRows(data));
-  if (data.scoreText) card.append(span('spl-card-meta', data.scoreText));
-  if (data.meta) card.append(span('spl-card-meta', data.meta));
+  if (title) content.append(title);
+  content.append(sideRows(data));
+  if (data.scoreText) content.append(span('spl-card-meta', data.scoreText));
+  if (data.meta) content.append(span('spl-card-meta', data.meta));
   const chips = span('spl-card-chips');
   for (const chip of data.chips ?? []) {
     const node = span(`spl-card-chip ${chip.kind}`, chip.text);
     if (chip.tone) node.dataset.tone = chip.tone;
     chips.append(node);
   }
-  if (chips.children.length) card.append(chips);
+  if (chips.children.length) content.append(chips);
   return card;
 }
 
