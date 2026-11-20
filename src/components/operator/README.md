@@ -1,4 +1,4 @@
-# Operator presentation widgets
+# Operator presentation widgets (unpublished candidate)
 
 Read-only match cards, match lists and round navigation for a thin client. The factory supplies the display facts;
 components renders them. The app owns routing, session, query/command clients and document freshness.
@@ -43,8 +43,17 @@ widgets later requires explicit qualification of their approved pure scoring sub
 
 Storybook play functions use the trusted Playwright input helper. They cover keyboard focus/navigation, callbacks,
 whole replacements, disposal, empty/unverified state, escaping, real light/dark palettes, phone widths and 44px controls.
+A 124-match fixture checks dense day rendering and first/last selection at 320/390/736px in both themes. It is
+hand-written example DTO data repeated for density, not a live-day readiness or advancement benchmark.
 
 This candidate depends on the **unreleased factory operator-types contract**. It was qualified using independently
 installed packed candidates, not a sibling dist. The existing peer floor does not yet admit this new API on a fresh
 published install: publish/qualify the factory change, then set its actual minimum version before merging/releasing
 this consumer. The prototype does not imply that published factory 7.43.0 already contains operator-types.
+
+Venue calendar dates use the configured locale (default `en-GB`), without converting the date through the browser
+time zone. Match times show the producer-supplied venue IANA zone, or explicitly say that the zone is unavailable.
+The supplied winner fact has screen-reader text as well as visual emphasis; the renderer never infers a winner.
+
+W4/W6 began before complete operator-document contract v1. Keep this branch unpublished and unmerged until
+that contract is reviewed and the producer version is available; do not release it with the independent constants work.

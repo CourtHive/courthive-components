@@ -8,6 +8,7 @@ export type OperatorRenderOptions = {
   onOpenMatch?: (matchUpId: string) => void;
   labels?: OperatorLabels;
   phase?: OperatorViewPhase;
+  locale?: string;
 };
 
 function node(tag: string, className: string, text?: string): HTMLElement {
@@ -38,7 +39,7 @@ export function renderOperatorMatch(
   options: OperatorRenderOptions = {}
 ): HTMLElement {
   const labels = options.labels ?? defaultOperatorLabels;
-  const view = operatorMatchText(match, labels);
+  const view = operatorMatchText(match, labels, options.locale);
   const card = node('article', 'chc-operator-match');
   card.dataset.matchUpId = match.matchUpId;
   const heading = node('div', 'chc-operator-match-header');
@@ -49,7 +50,9 @@ export function renderOperatorMatch(
   for (const side of view.sides) {
     const row = node('li', 'chc-operator-side');
     row.dataset.winner = String(side.isWinner);
-    row.append(node('span', 'chc-operator-name', side.displayName));
+    const name = node('span', 'chc-operator-name', side.displayName);
+    if (side.winnerLabel) name.append(node('span', 'chc-operator-sr-only', ' · ' + side.winnerLabel));
+    row.append(name);
     if (side.qualifierLabel) row.append(node('span', 'chc-operator-qualifier', side.qualifierLabel));
     if (side.seedLabel) row.append(node('span', 'chc-operator-seed', side.seedLabel));
     sides.append(row);

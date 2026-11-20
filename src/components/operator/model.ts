@@ -7,6 +7,9 @@ export type OperatorRoundState = Readonly<{ roundNumber?: number }>;
 export type OperatorLabels = {
   openMatch: string;
   versus: string;
+  winner: string;
+  timeZoneUnavailable: string;
+  dateUnavailable: string;
   bye: string;
   qualifier: string;
   awaitingParticipant: string;
@@ -22,6 +25,9 @@ export type OperatorLabels = {
 export const defaultOperatorLabels: OperatorLabels = {
   openMatch: 'Open match',
   versus: 'versus',
+  winner: 'Winner',
+  timeZoneUnavailable: 'Time zone unavailable',
+  dateUnavailable: 'Date unavailable',
   bye: 'BYE',
   qualifier: 'Qualifier',
   awaitingParticipant: 'Awaiting participant',
@@ -64,13 +70,29 @@ export function moveOperatorRound(
   return next ? { roundNumber: next.roundNumber } : selected;
 }
 
+/** Format a venue calendar date without converting it through the browser's time zone. */
+export function operatorDateLabel(date: string | undefined, locale = 'en-GB', unavailable = 'Date unavailable') {
+  if (!date) return undefined;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return unavailable;
+  const calendarDate = new Date(date + 'T12:00:00Z');
+  if (!Number.isFinite(calendarDate.getTime()) || calendarDate.toISOString().slice(0, 10) !== date) return unavailable;
+  return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(
+    calendarDate
+  );
+}
+
 /** Names/labels only. Winner, upset, score and BYE facts are already computed/supplied by the producer. */
-export function operatorMatchText(match: OperatorMatchPresentation, labels: OperatorLabels = defaultOperatorLabels) {
+export function operatorMatchText(
+  match: OperatorMatchPresentation,
+  labels: OperatorLabels = defaultOperatorLabels,
+  locale = 'en-GB'
+) {
   const sides = match.sides.map((side) => ({
     ...side,
     displayName: side.name || (side.bye ? labels.bye : side.qualifier ? labels.qualifier : labels.awaitingParticipant),
     seedLabel: side.seed === undefined ? undefined : '[' + side.seed + ']',
-    qualifierLabel: side.qualifier && side.name ? labels.qualifier : undefined
+    qualifierLabel: side.qualifier && side.name ? labels.qualifier : undefined,
+    winnerLabel: side.isWinner ? labels.winner : undefined
   }));
   const separator = ` ${labels.versus} `;
   return {
@@ -79,7 +101,14 @@ export function operatorMatchText(match: OperatorMatchPresentation, labels: Oper
     upsetLabel: match.isUpset ? labels.upset : undefined,
     scoreLine: match.scoreText ? labels.score + ': ' + match.scoreText : undefined,
     accessibleName: `${labels.openMatch}: ${sides.map((side) => side.displayName).join(separator)}`,
-    scheduleText: [match.schedule?.date, match.schedule?.time, match.schedule?.venue, match.schedule?.court]
+    scheduleText: [
+      operatorDateLabel(match.schedule?.date, locale, labels.dateUnavailable),
+      match.schedule?.time
+        ? match.schedule.time + ' (' + (match.schedule.timeZone || labels.timeZoneUnavailable) + ')'
+        : undefined,
+      match.schedule?.venue,
+      match.schedule?.court
+    ]
       .filter(Boolean)
       .join(' · ')
   };

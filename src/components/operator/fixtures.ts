@@ -20,7 +20,13 @@ export const operatorMatchFixture: OperatorMatchPresentation = {
       isWinner: false
     }
   ],
-  schedule: { date: '2026-11-20', time: '10:30', venue: 'Central courts', court: 'Court 2' }
+  schedule: {
+    date: '2026-11-20',
+    time: '10:30',
+    timeZone: 'America/New_York',
+    venue: 'Central courts',
+    court: 'Court 2'
+  }
 };
 
 export const operatorDrawFixture: OperatorDrawPresentation = {
@@ -57,3 +63,10 @@ export const operatorDrawFixture: OperatorDrawPresentation = {
     }
   ]
 };
+
+/** Density copies only the hand-written match DTO. No participants or tournament records are generated. */
+export const operatorBusyDayFixture: readonly OperatorMatchPresentation[] = Array.from({ length: 124 }, (_, index) => ({
+  ...operatorMatchFixture,
+  matchUpId: `density-match-${index + 1}`,
+  schedule: { ...operatorMatchFixture.schedule, court: `Court ${(index % 8) + 1}` }
+}));

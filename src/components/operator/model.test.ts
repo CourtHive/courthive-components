@@ -1,6 +1,12 @@
-import { defaultOperatorLabels, moveOperatorRound, operatorMatchText, reconcileOperatorRound } from './model';
 import { operatorDrawFixture, operatorMatchFixture } from './fixtures';
 import { describe, expect, it } from 'vitest';
+import {
+  defaultOperatorLabels,
+  moveOperatorRound,
+  operatorMatchText,
+  reconcileOperatorRound,
+  operatorDateLabel
+} from './model';
 
 describe('operator presentation logic without a DOM', () => {
   it('moves through supplied round identities, including non-consecutive round numbers, without wrapping', () => {
@@ -41,6 +47,21 @@ describe('operator presentation logic without a DOM', () => {
     });
     expect(view.sides[0].displayName).toBe('Alex Morgan');
     expect(view.sides[0].qualifierLabel).toBe('Qualifier');
+  });
+
+  it('formats calendar dates without a browser-zone shift and never leaves a clock unlabeled', () => {
+    expect(operatorDateLabel('2026-11-20', 'en-GB')).toBe('20 November 2026');
+    expect(operatorDateLabel('2026-11-20', 'en-US')).toBe('November 20, 2026');
+    expect(operatorDateLabel('2026-02-30')).toBe('Date unavailable');
+    expect(operatorMatchText(operatorMatchFixture).scheduleText).toContain('10:30 (America/New_York)');
+    expect(operatorMatchText({ ...operatorMatchFixture, schedule: { time: '10:30' } }).scheduleText).toContain(
+      'Time zone unavailable'
+    );
+  });
+  it('labels only the producer-supplied winner for assistive technology', () => {
+    const sides = operatorMatchText(operatorMatchFixture).sides;
+    expect(sides[0].winnerLabel).toBe('Winner');
+    expect(sides[1].winnerLabel).toBeUndefined();
   });
 
   it('accepts localized UI wording without changing producer facts', () => {

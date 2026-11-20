@@ -1,5 +1,5 @@
+import { operatorDrawFixture, operatorMatchFixture, operatorBusyDayFixture } from './fixtures';
 import { createOperatorDraw, renderOperatorMatchList, renderOperatorMatch } from './render';
-import { operatorDrawFixture, operatorMatchFixture } from './fixtures';
 import { applyThemePalette } from '../../theme/palettes';
 import { user } from '../../stories/helpers/trustedUser';
 import { createOperatorMatchListPage } from './page';
@@ -15,6 +15,8 @@ export default meta;
 type Story = StoryObj;
 const NEXT_ROUND = 'Next round';
 const CURRENT_STATUS = 'Up to date';
+const FIXTURE_DAY = 'Friday · 20 November';
+const DENSITY_SELECTION = 'Density selection';
 
 function example(phase: OperatorViewPhase = 'current') {
   const host = document.createElement('div');
@@ -150,7 +152,7 @@ export const DayPage: Story = {
     const page = createOperatorMatchListPage(
       {
         title: 'Today',
-        dateLabel: 'Friday · 20 November',
+        dateLabel: FIXTURE_DAY,
         matches: [operatorMatchFixture]
       },
       {
@@ -159,7 +161,7 @@ export const DayPage: Story = {
           page.update(
             {
               title: 'Today',
-              dateLabel: 'Friday · 20 November',
+              dateLabel: FIXTURE_DAY,
               matches: [{ ...operatorMatchFixture, scoreText: '6-2 6-4' }]
             },
             'current'
@@ -180,6 +182,77 @@ export const DayPage: Story = {
     expect(canvas.queryByText('Score: 6-4 6-3')).toBeNull();
     expect(canvas.getByRole('button', { name: 'Refresh' })).toHaveFocus();
     expect(canvasElement.querySelector('.chc-operator-page')).toHaveAttribute('data-requests', '1');
+  }
+};
+
+export const BusyDayDensity: Story = {
+  render: () => {
+    const selection = document.createElement('p');
+    selection.setAttribute('role', 'log');
+    selection.setAttribute('aria-label', DENSITY_SELECTION);
+    const page = createOperatorMatchListPage(
+      {
+        title: 'Today · 124-match density fixture',
+        dateLabel: FIXTURE_DAY,
+        matches: operatorBusyDayFixture
+      },
+      {
+        onOpenMatch: (id) => {
+          selection.textContent = id;
+        }
+      }
+    );
+    const host = document.createElement('div');
+    host.append(page.element, selection);
+    return host;
+  },
+  play: async ({ canvasElement }) => {
+    const original = {
+      width: globalThis.innerWidth,
+      height: globalThis.innerHeight,
+      theme: document.documentElement.dataset.theme,
+      palette: document.documentElement.dataset.palette
+    };
+    try {
+      const canvas = within(canvasElement);
+      const cards = canvasElement.querySelectorAll('.chc-operator-match');
+      expect(cards).toHaveLength(124);
+      for (const theme of ['light', 'dark'] as const) {
+        document.documentElement.dataset.theme = theme;
+        applyThemePalette(theme);
+        for (const width of [320, 390, 736]) {
+          await user.viewport(width, 850);
+          expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(globalThis.innerWidth);
+          for (const button of canvasElement.querySelectorAll('button'))
+            expect(button.getBoundingClientRect().height).toBeGreaterThanOrEqual(44);
+        }
+      }
+      const buttons = canvas.getAllByRole('button', { name: /Open match:/ });
+      await user.click(buttons[0]);
+      expect(canvas.getByRole('log', { name: DENSITY_SELECTION })).toHaveTextContent('density-match-1');
+      await user.click(buttons[123]);
+      expect(canvas.getByRole('log', { name: DENSITY_SELECTION })).toHaveTextContent('density-match-124');
+    } finally {
+      if (original.theme === undefined) delete document.documentElement.dataset.theme;
+      else document.documentElement.dataset.theme = original.theme;
+      if (original.palette === undefined) delete document.documentElement.dataset.palette;
+      else document.documentElement.dataset.palette = original.palette;
+      await user.viewport(original.width, original.height);
+    }
+  }
+};
+
+export const WinnerAndVenueTime: Story = {
+  render: () => renderOperatorMatch(operatorMatchFixture),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    expect(canvas.getByText(/20 November 2026/)).toBeVisible();
+    expect(canvas.getByText(/10:30 \(America\/New_York\)/)).toBeVisible();
+    expect(canvas.queryByText(/2026-11-20/)).toBeNull();
+    const cues = canvasElement.querySelectorAll('.chc-operator-sr-only');
+    expect(cues).toHaveLength(1);
+    expect(cues[0]).toHaveTextContent('Winner');
+    expect(cues[0]).not.toHaveAttribute('aria-hidden', 'true');
   }
 };
 
