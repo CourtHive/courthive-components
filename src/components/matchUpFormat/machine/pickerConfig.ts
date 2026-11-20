@@ -3,7 +3,7 @@
  * the catalog the dropdown offers, and the contexts the view and the edits are computed in. Moved out of
  * `matchUpFormat.ts` unchanged, so the picker's own view of a code can be asked for without a DOM.
  */
-import { matchUpFormatCode } from 'tods-competition-factory';
+import { parseMatchUpFormat, stringifyMatchUpFormat } from 'tods-competition-factory/score-entry-state';
 import matchUpFormats from '../matchUpFormats.json';
 import { DEFAULT_LABELS } from './view';
 import { MATCH_ROOTS } from './options';
@@ -163,7 +163,7 @@ export const DEFAULT_CONFIG: MatchUpFormatConfig = {
   }
 };
 
-export const codec: Codec = { parse: matchUpFormatCode.parse, stringify: matchUpFormatCode.stringify };
+export const codec: Codec = { parse: parseMatchUpFormat, stringify: stringifyMatchUpFormat };
 
 export function mergeConfig(config?: MatchUpFormatConfig): MatchUpFormatConfig {
   if (!config) return DEFAULT_CONFIG;

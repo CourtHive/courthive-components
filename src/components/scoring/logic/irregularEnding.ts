@@ -8,7 +8,7 @@
  * architectural standard A3).
  */
 
-import { matchUpStatusConstants } from 'tods-competition-factory';
+import { matchUpStatusConstants } from 'tods-competition-factory/constants';
 import { asStatus, withStatus } from './statusBoundary';
 import { scoreEntryText } from './scoreEntryText';
 import {
