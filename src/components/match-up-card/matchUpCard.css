@@ -215,16 +215,46 @@
   text-align: start;
   box-sizing: border-box;
 }
-.spl-matchup-card > span {
+.spl-matchup-card > span,
+.spl-matchup-card__activate > span {
   display: block;
 }
 .spl-matchup-card > .spl-card-chips,
-.spl-matchup-card > .spl-card-title.with-time {
+.spl-matchup-card > .spl-card-title.with-time,
+.spl-matchup-card__activate > .spl-card-chips,
+.spl-matchup-card__activate > .spl-card-title.with-time {
   display: flex;
 }
 .spl-matchup-card:focus-visible {
   outline: 3px solid var(--chc-border-focus, #258b9d);
   outline-offset: 2px;
+}
+/* `activator: 'inner'` — the activating button is invisible chrome; the card keeps every visual. */
+.spl-matchup-card__activate {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: inherit;
+}
+/* The ring belongs to the card the operator sees, not to the borderless button inside it. */
+.spl-matchup-card:has(> .spl-matchup-card__activate:focus-visible) {
+  outline: 3px solid var(--chc-border-focus, #258b9d);
+  outline-offset: 2px;
+}
+@supports selector(:has(*)) {
+  .spl-matchup-card__activate:focus-visible {
+    outline: none;
+  }
+}
+/* A card that can be dragged says so on hover, as the catalog card always did. */
+.spl-matchup-card[draggable='true'] {
+  cursor: grab;
 }
 .spl-card-scoreboard {
   display: grid !important;

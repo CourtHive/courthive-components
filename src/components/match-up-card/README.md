@@ -3,7 +3,7 @@
 Internal presentation primitive used by the scheduling catalog and future DTO renderers. It renders supplied
 text, chips, time, sides and preformatted score cells. It imports no factory, transport or storage code.
 
-An activation callback produces a native button; otherwise the card is an article. Its accessible name uses
+An activation callback produces a native button; otherwise the card is an article. The catalog uses `activator: inner`: a draggable container holds the body button and sibling consumer extras, so their controls are never nested inside a button. Its accessible name uses
 all visible content by default. A caller supplying `accessibleName` must include the same facts, including time,
 court, status and score. Winner cues include screen-reader text as well as weight/color.
 

@@ -66,8 +66,10 @@ try {
           readFileSync(join(evidence, `${name}-${theme}-after.png`))
         );
         const card = page.locator('[data-matchup-id="unplayed-1"]');
-        const accessible = await card.ariaSnapshot();
-        const completed = await page.locator('[data-matchup-id="completed-1"]').ariaSnapshot();
+        const accessible = await card.locator('.spl-matchup-card__activate').ariaSnapshot();
+        const completed = await page
+          .locator('[data-matchup-id="completed-1"] .spl-matchup-card__activate')
+          .ariaSnapshot();
         const fullLabel =
           accessible.includes('Ann Example') &&
           accessible.includes('10:30') &&
