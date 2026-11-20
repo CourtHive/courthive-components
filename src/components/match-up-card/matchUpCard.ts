@@ -40,7 +40,7 @@ export function buildSharedMatchUpCard(
   card.dataset.matchupId = data.id;
   if (options.compact) card.classList.add('spl-matchup-card--compact');
   if (options.onActivate) {
-    card.setAttribute(ARIA_LABEL, data.accessibleName ?? [data.title, data.names].filter(Boolean).join(' · '));
+    if (data.accessibleName) card.setAttribute(ARIA_LABEL, data.accessibleName);
     card.addEventListener('click', (event) => {
       event.stopPropagation();
       options.onActivate?.();

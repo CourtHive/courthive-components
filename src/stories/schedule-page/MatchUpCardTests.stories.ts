@@ -423,7 +423,7 @@ export const NativeKeyboardActivation: StoryObj = {
     const card = canvasElement.querySelector<HTMLButtonElement>('button.spl-matchup-card')!;
     expect(card.type).toBe('button');
     expect(card.draggable).toBe(true);
-    expect(card.getAttribute('aria-label')).toContain('Test Event');
+    expect(card).toHaveAccessibleName(/Test Event/);
     await user.click(card);
     await user.keyboard('{Enter}');
     await user.keyboard(' ');

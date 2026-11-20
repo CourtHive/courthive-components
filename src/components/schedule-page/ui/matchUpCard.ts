@@ -1,7 +1,6 @@
 /** Schedule catalog adapter. Drag, highlight and consumer extras stay outside the shared display core. */
 import { buildSharedMatchUpCard } from '../../match-up-card/matchUpCard';
 import { isCompletedStatus } from '../domain/matchUpCatalogProjections';
-import { matchUpStatusLabel } from '../../match-up-card/labels';
 import { attachRelatedHighlight } from './matchUpHighlight';
 import { matchUpLabel } from '../domain/utils';
 
@@ -19,8 +18,6 @@ export interface MatchUpCardOptions {
   timeStatus?: CardTimeStatus;
   timeTitle?: string;
   relatedMatchUpIds?: (item: CatalogMatchUpItem) => string[];
-  statusLabels?: Readonly<Record<string, string>>;
-  unknownStatusLabel?: string;
 }
 export function buildMatchUpCard(
   item: CatalogMatchUpItem,
@@ -34,7 +31,7 @@ export function buildMatchUpCard(
   if (item.matchUpFormat) chips.push({ text: item.matchUpFormat, kind: 'type' });
   if (completed && item.matchUpStatus)
     chips.push({
-      text: matchUpStatusLabel(item.matchUpStatus, options.statusLabels, options.unknownStatusLabel),
+      text: item.matchUpStatus.replaceAll('_', ' '),
       kind: 'status'
     });
   if (item.stage && item.stage !== 'MAIN') chips.push({ text: item.stage.replaceAll('_', ' '), kind: 'stage' });
