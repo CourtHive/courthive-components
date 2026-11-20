@@ -15,6 +15,18 @@
 
 import { isFunction } from '../../helpers/typeOf';
 
+/**
+ * An option label as the single select shows it. `renderOptions` writes a label into an `<option>` with innerHTML, so
+ * an `options[].label` is HTML there: callers escape names (`Men&#39;s Singles`) and the option shows them decoded.
+ * The multi-select wrote the same label with textContent, so the entities showed literally. Parsing it through an
+ * `<option>` here gives exactly the single select's text: entities decoded, markup reduced to its text, never live.
+ */
+export function optionLabelText(label: unknown): string {
+  const option = document.createElement('option');
+  option.innerHTML = String(label ?? '');
+  return option.textContent ?? '';
+}
+
 interface MultiSelectOption {
   label: string;
   value: string;
@@ -103,7 +115,7 @@ export function createMultiSelect(item: MultiSelectItem): { container: HTMLDivEl
     cb.style.cssText = 'margin: 0; cursor: pointer;';
 
     const span = document.createElement('span');
-    span.textContent = option.label;
+    span.textContent = optionLabelText(option.label);
 
     row.appendChild(cb);
     row.appendChild(span);
@@ -157,7 +169,7 @@ export function createMultiSelect(item: MultiSelectItem): { container: HTMLDivEl
         'font-size: 0.85em',
         'white-space: nowrap'
       ].join('; ');
-      tag.textContent = opt.label;
+      tag.textContent = optionLabelText(opt.label);
 
       const remove = document.createElement('span');
       remove.textContent = '×';
