@@ -40,13 +40,20 @@ export function createOperatorMatchListPage(
       refresh.className = 'chc-operator-refresh';
       refresh.type = 'button';
       refresh.textContent = options.refreshLabel ?? 'Refresh';
-      refresh.addEventListener('click', () => options.onRefresh?.());
+      refresh.addEventListener('click', () => {
+        if (!destroyed) options.onRefresh?.();
+      });
       header.append(refresh);
     }
     const list = renderOperatorMatchList(page.matches, {
       ...options,
       labels: options.labels ?? defaultOperatorLabels,
-      phase
+      phase,
+      onOpenMatch: options.onOpenMatch
+        ? (matchUpId) => {
+            if (!destroyed) options.onOpenMatch?.(matchUpId);
+          }
+        : undefined
     });
     element.replaceChildren(header, list);
     if (refreshHadFocus) element.querySelector<HTMLButtonElement>('.chc-operator-refresh')?.focus();

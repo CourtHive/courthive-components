@@ -56,8 +56,11 @@ function judge(result, built = false, logic = false) {
       : local.startsWith('src/components/operator/');
     return !allowed || /\.(stories|test)\.|\/fixtures\./.test(local);
   });
-  if (/\b(fetch|XMLHttpRequest|WebSocket|localStorage|sessionStorage)\b/.test(result.text))
+  if (
+    /\b(fetch|XMLHttpRequest|WebSocket|localStorage|sessionStorage|indexedDB|caches|serviceWorker)\b/.test(result.text)
+  )
     bad.push('transport/storage code');
+  if (/\b(console|Error|DOMException)\b/.test(result.text)) bad.push('error/telemetry sink');
   if (logic && /\b(document|window|HTMLElement)\b/.test(result.text)) bad.push('DOM code in model');
   return bad;
 }
@@ -73,7 +76,12 @@ async function selfTest() {
     'factory root': "import 'tods-competition-factory';",
     'components root renderer': "import '../renderStructure/renderStructure';",
     transport: "fetch('/factory');",
-    storage: "console.log(localStorage.getItem('tournament'));"
+    storage: "localStorage.getItem('tournament');",
+    indexedDB: "indexedDB.open('protected-documents');",
+    'cache storage': "caches.open('protected-documents');",
+    'service worker': "navigator.serviceWorker.register('/worker.js');",
+    'personal telemetry': "console.error('Private Person Name');",
+    'personal error': "throw new Error('Private Person Name');"
   })) {
     const result = await graph(ENTRY, `export * from './index'; ${plant}`);
     ok = report(`self-test ${name}`, judge(result).length ? [] : ['planted dependency was not detected']) && ok;

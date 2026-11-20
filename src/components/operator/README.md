@@ -30,8 +30,9 @@ presentation; destroy clears the view and makes later updates inert. There are n
 All supplied names use text nodes, including accessible button names. Labels are configurable.
 
 The first producer-owned presentation contract supplies round order, score text, score presence and upset facts.
-It is a **facet**, not a complete operator document: CFS must authorize/filter its input and wrap it with audience,
-source revision and time validity. No raw record, action offers, readiness or rest calculation occurs here.
+It is a **facet**, not a complete operator document: CFS supplies verified audience/scope; the factory minimizes
+fields for that audience and the producer adds source revision and time validity. Query serves that exact authorized
+variant without field stripping. No raw record, action offers, readiness or rest calculation occurs here.
 `fixtures.ts` is hand-written Storybook/test data and is absent from the public entry's graph.
 
 ## Verification and release dependency
@@ -57,3 +58,20 @@ The supplied winner fact has screen-reader text as well as visual emphasis; the 
 
 W4/W6 began before complete operator-document contract v1. Keep this branch unpublished and unmerged until
 that contract is reviewed and the producer version is available; do not release it with the independent constants work.
+
+## Exposure and session boundary
+
+Render only the factory-minimized DTO for the verified caller. Do not hide forbidden fields from a broader response.
+The provisional `recorder`/`director` facets carry no contacts, birth dates or raw person records. Their role catalog
+is experimental and still needs complete-document/audience sizing before publication.
+
+The entry has no persistence, token handling, telemetry, toast or error-report sink. Its graph guard deliberately
+plants IndexedDB, Cache Storage, service-worker, personal logging/error and transport code and rejects each.
+Callbacks emit match IDs only. Destroying a view clears its DOM, releases its current DTO and disables retained
+navigation/open/refresh handlers. Playwright checks disposal and ID-only intents; this is not a logout test.
+
+The app shell must wipe protected documents/tokens on logout, provider change and expiry, across every storage
+mechanism it uses, and test a deliberately retained payload/token once. Query must refuse a revoked grant even
+when a document is cached. Those app/query integrations do not yet exist, so these acceptance gates stay open.
+CMX is a separate static app with HiveID login; no app server or SSR is required. The preferred cookie mode still
+needs coordinated HiveID/query/CFS support; the shipped mode must be recorded before rollout.

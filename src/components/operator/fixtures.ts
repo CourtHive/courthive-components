@@ -2,6 +2,7 @@
 import type { OperatorDrawPresentation, OperatorMatchPresentation } from 'tods-competition-factory/operator-types';
 
 export const operatorMatchFixture: OperatorMatchPresentation = {
+  audience: 'recorder',
   matchUpId: 'example-semifinal',
   roundPosition: 1,
   status: 'COMPLETED',
@@ -30,6 +31,7 @@ export const operatorMatchFixture: OperatorMatchPresentation = {
 };
 
 export const operatorDrawFixture: OperatorDrawPresentation = {
+  audience: 'recorder',
   schemaVersion: 'operator-presentation.v1',
   drawId: 'example-draw',
   structureId: 'example-main',

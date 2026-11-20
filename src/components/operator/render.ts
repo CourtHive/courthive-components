@@ -63,7 +63,8 @@ export function renderOperatorMatch(
   if (options.onOpenMatch) {
     const open = button('chc-operator-open', labels.openMatch);
     open.setAttribute('aria-label', view.accessibleName);
-    open.addEventListener('click', () => options.onOpenMatch?.(match.matchUpId));
+    const matchUpId = match.matchUpId;
+    open.addEventListener('click', () => options.onOpenMatch?.(matchUpId));
     card.append(open);
   }
   return card;
@@ -94,22 +95,24 @@ export function createOperatorDraw(
 ): OperatorDrawHandle {
   const labels = options.labels ?? defaultOperatorLabels;
   const element = node('section', 'chc-operator-draw');
-  let current = initial;
+  let current: OperatorDrawPresentation | undefined = initial;
   let phase = options.phase ?? 'read-only';
   let state: OperatorRoundState = reconcileOperatorRound({}, current);
   let destroyed = false;
   function render() {
-    if (destroyed) return;
+    if (destroyed || !current) return;
+    const presentation = current;
     element.replaceChildren();
-    state = reconcileOperatorRound(state, current);
-    const index = current.rounds.findIndex((round) => round.roundNumber === state.roundNumber);
-    const round = current.rounds[index];
+    state = reconcileOperatorRound(state, presentation);
+    const index = presentation.rounds.findIndex((round) => round.roundNumber === state.roundNumber);
+    const round = presentation.rounds[index];
     const navigation = node('nav', 'chc-operator-round-nav');
     navigation.setAttribute('aria-label', labels.round);
     for (const direction of [-1, 1] as const) {
       const control = button('', direction === -1 ? labels.previousRound : labels.nextRound);
-      control.disabled = !current.rounds[index + direction];
+      control.disabled = !presentation.rounds[index + direction];
       control.addEventListener('click', () => {
+        if (destroyed || !current) return;
         state = moveOperatorRound(state, direction, current);
         render();
         // Restore focus to the equivalent navigation control after replacing the DOM.
@@ -124,7 +127,19 @@ export function createOperatorDraw(
       'chc-operator-round-title',
       round?.name ?? (round ? `${labels.round} ${round.roundNumber}` : labels.noMatches)
     );
-    element.append(navigation, title, renderOperatorMatchList(round?.matches ?? [], { ...options, phase }));
+    element.append(
+      navigation,
+      title,
+      renderOperatorMatchList(round?.matches ?? [], {
+        ...options,
+        phase,
+        onOpenMatch: options.onOpenMatch
+          ? (matchUpId) => {
+              if (!destroyed) options.onOpenMatch?.(matchUpId);
+            }
+          : undefined
+      })
+    );
   }
   render();
   return {
@@ -137,6 +152,8 @@ export function createOperatorDraw(
     },
     destroy() {
       destroyed = true;
+      current = undefined;
+      state = {};
       element.replaceChildren();
     }
   };

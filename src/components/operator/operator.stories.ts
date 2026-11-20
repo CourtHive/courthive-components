@@ -18,13 +18,80 @@ const CURRENT_STATUS = 'Up to date';
 const FIXTURE_DAY = 'Friday · 20 November';
 const DENSITY_SELECTION = 'Density selection';
 
+const ARIA_LABEL = 'aria-label';
+const EXAMPLE_NAME = 'Alex Morgan';
+const RETAINED_CONTROLS = 'Retained controls';
+const DRAW_ROOT = '.chc-operator-draw';
+const PAGE_ROOT = '.chc-operator-page';
+const ID_INTENTS = 'ID intents';
+const OPEN_EXAMPLE_MATCH = 'Open match: Alex Morgan versus Sam Rivera';
+
+export const DisposalAndIdIntents: Story = {
+  render: () => {
+    const host = document.createElement('div');
+    const ids: string[] = [];
+    const log = document.createElement('output');
+    log.setAttribute(ARIA_LABEL, ID_INTENTS);
+    const options = {
+      onOpenMatch: (id: string) => {
+        ids.push(id);
+        log.textContent = JSON.stringify(ids);
+      }
+    };
+    const draw = createOperatorDraw(operatorDrawFixture, options);
+    const page = createOperatorMatchListPage(
+      { title: 'Day', matches: [operatorMatchFixture] },
+      {
+        ...options,
+        onRefresh: () => {
+          ids.push('refresh');
+          log.textContent = JSON.stringify(ids);
+        }
+      }
+    );
+    const staleOpen = draw.element.querySelector<HTMLButtonElement>('.chc-operator-open')!;
+    const staleNext = draw.element.querySelector<HTMLButtonElement>('nav button:last-child')!;
+    const staleRefresh = page.element.querySelector<HTMLButtonElement>('.chc-operator-refresh')!;
+    const dispose = document.createElement('button');
+    dispose.textContent = 'Dispose views';
+    dispose.addEventListener('click', () => {
+      draw.destroy();
+      page.destroy();
+    });
+    const retained = document.createElement('div');
+    retained.setAttribute('role', 'group');
+    retained.setAttribute(ARIA_LABEL, RETAINED_CONTROLS);
+    const retain = document.createElement('button');
+    retain.textContent = 'Retain controls';
+    // A deliberately retained host node stays clickable after view teardown; this is not a logout simulation.
+    retain.addEventListener('click', () => retained.append(staleOpen, staleNext, staleRefresh));
+    host.append(draw.element, page.element, retain, dispose, retained, log);
+    return host;
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    expect(canvasElement.querySelector(DRAW_ROOT)?.textContent).toContain(EXAMPLE_NAME);
+    await user.click(canvas.getAllByRole('button', { name: OPEN_EXAMPLE_MATCH })[0]);
+    expect(canvas.getByLabelText(ID_INTENTS)).toHaveTextContent('["example-semifinal"]');
+    await user.click(canvas.getByRole('button', { name: 'Retain controls' }));
+    await user.click(canvas.getByRole('button', { name: 'Dispose views' }));
+    const retained = within(canvas.getByRole('group', { name: RETAINED_CONTROLS }));
+    await user.click(retained.getByRole('button', { name: OPEN_EXAMPLE_MATCH }));
+    await user.click(retained.getByRole('button', { name: NEXT_ROUND }));
+    await user.click(retained.getByRole('button', { name: 'Refresh' }));
+    expect(canvasElement.querySelector(DRAW_ROOT)?.textContent).toBe('');
+    expect(canvasElement.querySelector(PAGE_ROOT)?.textContent).toBe('');
+    expect(canvas.getByLabelText(ID_INTENTS)).toHaveTextContent('["example-semifinal"]');
+  }
+};
+
 function example(phase: OperatorViewPhase = 'current') {
   const host = document.createElement('div');
   host.style.maxWidth = '640px';
   host.style.margin = '0 auto';
   const selection = document.createElement('p');
   selection.setAttribute('role', 'log');
-  selection.setAttribute('aria-label', 'Selected match');
+  selection.setAttribute(ARIA_LABEL, 'Selected match');
   const draw = createOperatorDraw(operatorDrawFixture, {
     phase,
     onOpenMatch: (id) => {
@@ -46,7 +113,7 @@ export const Rounds: Story = {
     expect(canvas.getByRole('button', { name: 'Previous round' })).toHaveFocus();
     await user.keyboard('{Enter}');
     expect(canvas.getByRole('heading', { name: 'Semifinals' })).toBeVisible();
-    await user.click(canvas.getByRole('button', { name: 'Open match: Alex Morgan versus Sam Rivera' }));
+    await user.click(canvas.getByRole('button', { name: OPEN_EXAMPLE_MATCH }));
     expect(canvas.getByRole('log', { name: 'Selected match' })).toHaveTextContent('example-semifinal');
   }
 };
@@ -67,11 +134,11 @@ export const PhoneWidthsAndThemes: Story = {
         applyThemePalette(theme);
         for (const width of [320, 390, 736]) {
           await user.viewport(width, 850);
-          const root = canvasElement.querySelector<HTMLElement>('.chc-operator-draw')!;
+          const root = canvasElement.querySelector<HTMLElement>(DRAW_ROOT)!;
           expect(root.scrollWidth).toBeLessThanOrEqual(root.clientWidth + 1);
           for (const button of root.querySelectorAll('button'))
             expect(button.getBoundingClientRect().height).toBeGreaterThanOrEqual(44);
-          expect(within(canvasElement).getByText('Alex Morgan')).toBeVisible();
+          expect(within(canvasElement).getByText(EXAMPLE_NAME)).toBeVisible();
         }
         backgrounds.push(getComputedStyle(canvasElement.querySelector('.chc-operator-match')!).backgroundColor);
       }
@@ -181,7 +248,7 @@ export const DayPage: Story = {
     expect(canvas.getByText('Score: 6-2 6-4')).toBeVisible();
     expect(canvas.queryByText('Score: 6-4 6-3')).toBeNull();
     expect(canvas.getByRole('button', { name: 'Refresh' })).toHaveFocus();
-    expect(canvasElement.querySelector('.chc-operator-page')).toHaveAttribute('data-requests', '1');
+    expect(canvasElement.querySelector(PAGE_ROOT)).toHaveAttribute('data-requests', '1');
   }
 };
 
@@ -189,7 +256,7 @@ export const BusyDayDensity: Story = {
   render: () => {
     const selection = document.createElement('p');
     selection.setAttribute('role', 'log');
-    selection.setAttribute('aria-label', DENSITY_SELECTION);
+    selection.setAttribute(ARIA_LABEL, DENSITY_SELECTION);
     const page = createOperatorMatchListPage(
       {
         title: 'Today · 124-match density fixture',
@@ -264,7 +331,7 @@ export const NamedQualifier: Story = {
     }),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    expect(canvas.getByText('Alex Morgan')).toBeVisible();
+    expect(canvas.getByText(EXAMPLE_NAME)).toBeVisible();
     expect(canvas.getByText('Qualifier')).toBeVisible();
   }
 };
