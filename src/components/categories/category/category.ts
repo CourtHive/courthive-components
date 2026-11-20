@@ -187,9 +187,10 @@ export function getCategoryModal(params: {
 
   // Validation function that reads LIVE values from inputs (not stale state)
   const isValid = (inputs: any): boolean => {
-    // Require category name to be at least 5 characters
+    // Require a category name. Any length: category codes are short (U9, MS, 18U), and a five-character
+    // minimum made them impossible to save
     const categoryName = inputs.categoryName?.value || '';
-    if (categoryName.trim().length < 5) {
+    if (!categoryName.trim().length) {
       return false;
     }
 
@@ -236,8 +237,8 @@ export function getCategoryModal(params: {
       // Category Name
       {
         label: config.labels?.categoryNameLabel || 'Category Name',
-        validator: nameValidator(5),
-        error: 'Minimum 5 characters',
+        validator: nameValidator(1),
+        error: 'A category name is required',
         field: 'categoryName',
         placeholder: 'e.g., Boys U18, Open Singles, 3.5-4.0',
         value: category.categoryName,
