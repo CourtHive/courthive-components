@@ -18,7 +18,7 @@
  */
 
 import { NON_DIRECTING_ENDINGS, doubleExitWarning, endingLabels } from './irregularEnding';
-import { matchUpStatusConstants } from 'tods-competition-factory';
+import { matchUpStatusConstants } from 'tods-competition-factory/constants';
 import { scoreEntryText } from './scoreEntryText';
 
 import type { ScoreEntryResolution } from './scoreEntryState';

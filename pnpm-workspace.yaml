@@ -14,7 +14,7 @@ allowBuilds:
 
 overrides:
   typescript: 6.0.3 # block native TS7 (no classic JS API — crashes tsc/nest/sonarjs); pairs with renovate TS-major block
-  tods-competition-factory: link:../factory
+  tods-competition-factory: 7.44.0
   # Security override — fast-uri host confusion (GHSA-v2hh-gcrm-f6hx, high);
   # dev-only, transitive via ajv (^3.0.1). Patched 3.1.4.
   # A security FLOOR, not a range. It was '^4.0.0' for an earlier advisory and stopped being
