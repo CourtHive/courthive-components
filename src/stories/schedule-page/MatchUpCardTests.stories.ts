@@ -401,3 +401,32 @@ export const RenderExtraSitsAfterChipsBeforeCheck: StoryObj = {
     expect(classes.indexOf('spl-card-extra')).toBeLessThan(classes.indexOf('spl-matchup-check'));
   }
 };
+
+export const NativeKeyboardActivation: StoryObj = {
+  name: 'shared card activates through native Enter and Space',
+  render: () => {
+    const host = document.createElement('div');
+    const log = document.createElement('output');
+    log.setAttribute('aria-label', 'Card activations');
+    let calls = 0;
+    host.append(
+      buildMatchUpCard(baseItem(), {
+        onClick: () => {
+          log.textContent = String(++calls);
+        }
+      }),
+      log
+    );
+    return host;
+  },
+  play: async ({ canvasElement }) => {
+    const card = canvasElement.querySelector<HTMLButtonElement>('button.spl-matchup-card')!;
+    expect(card.type).toBe('button');
+    expect(card.draggable).toBe(true);
+    expect(card).toHaveAccessibleName(/Test Event/);
+    await user.click(card);
+    await user.keyboard('{Enter}');
+    await user.keyboard(' ');
+    expect(canvasElement.querySelector('output')).toHaveTextContent('3');
+  }
+};

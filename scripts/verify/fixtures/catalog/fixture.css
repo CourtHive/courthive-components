@@ -1,0 +1,30 @@
+body {
+  margin: 24px;
+  font:
+    14px system-ui,
+    sans-serif;
+  color: var(--chc-text-primary);
+  background: var(--chc-bg-primary);
+  display: grid;
+  grid-template-columns: 380px 300px;
+  gap: 24px;
+}
+#catalog {
+  height: 700px;
+  display: flex;
+  flex-direction: column;
+  background: var(--sp-bg);
+}
+#catalog > div {
+  flex: 1;
+  min-height: 0;
+}
+#court {
+  margin-top: 120px;
+  height: 200px;
+  border: 2px dashed var(--chc-border-primary);
+  padding: 20px;
+}
+#evidence {
+  grid-column: 2;
+}

@@ -1,0 +1,292 @@
+/* ── MatchUp Card ───────────────────────────────────────── */
+
+.spl-matchup-card {
+  border: 1px solid var(--sp-border, var(--chc-color-border, #ccd8df));
+  border-radius: 14px;
+  padding: 10px;
+  background: var(--sp-card-bg, var(--chc-bg-primary, #fff));
+  cursor: pointer;
+}
+
+.spl-matchup-card:hover {
+  border-color: var(--sp-border-hover, var(--chc-border-focus, #258b9d));
+}
+
+.spl-matchup-card[draggable='true']:active {
+  cursor: grabbing;
+}
+
+.spl-matchup-card.selected {
+  border-color: var(--sp-selected-border, var(--chc-border-focus, #258b9d));
+}
+
+.spl-matchup-card.scheduled {
+  opacity: 0.5;
+  background: var(--sp-dimmed-bg, var(--chc-bg-secondary, #edf3f5));
+  cursor: default;
+  position: relative;
+}
+
+.spl-matchup-card.scheduled .spl-card-title,
+.spl-matchup-card.scheduled .spl-card-meta {
+  color: var(--sp-dimmed-text, var(--chc-text-secondary, #536978));
+}
+
+.spl-matchup-card.scheduled:hover {
+  border-color: var(--sp-border, var(--chc-color-border, #ccd8df));
+}
+
+/* ── Completed Card ────────────────────────────────────── */
+
+.spl-matchup-card.completed {
+  opacity: 0.55;
+  cursor: default;
+  position: relative;
+  border-left: 3px solid var(--sp-ok, #2e8256);
+}
+
+.spl-matchup-card.completed .spl-card-sides {
+  text-decoration: line-through;
+  color: var(--sp-muted, var(--chc-text-secondary, #536978));
+}
+
+.spl-matchup-card.completed:hover {
+  border-color: var(--sp-border, var(--chc-color-border, #ccd8df));
+  border-left-color: var(--sp-ok, #2e8256);
+}
+
+.spl-matchup-check {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.875rem;
+  color: var(--sp-ok-text, var(--chc-color-success, #2e8256));
+  pointer-events: none;
+}
+
+.spl-card-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.spl-card-title.with-time {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Round-emphasis tiers — see `buildMatchUpCard` MatchUpCardOptions.roundOffset.
+ * The catalog computes the earliest unscheduled, non-completed round per
+ * event and tags each card with offset 0 / 1 / >= 2. Operators scan the
+ * panel for "what should I schedule next inside event X" and the colour
+ * tiers answer that visually without forcing a sort. */
+.spl-card-title--round-current {
+  color: var(--sp-accent-text, var(--chc-color-primary, #17698a));
+}
+.spl-card-title--round-next {
+  color: var(--sp-text, var(--chc-text-primary, #172b3a));
+  opacity: 0.85;
+}
+.spl-card-title--round-later {
+  color: var(--sp-muted, var(--chc-text-secondary, #536978));
+  opacity: 0.6;
+}
+
+.spl-card-title-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spl-card-time-header {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--sp-ok-text, var(--chc-color-success, #2e8256));
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Graded time header — see `MatchUpCardOptions.timeStatus`. Green (the base
+ * rule above) is "this time can be met"; the consumer decides what compromises
+ * it. Only colour changes, so a time stays a time: an operator scanning the
+ * panel reads the same glyph in the same place and the hue is the only thing
+ * that has to be learned. `title` carries the reason. */
+.spl-card-time-header--warn {
+  color: var(--sp-warn-text, #a96716);
+}
+.spl-card-time-header--alert {
+  color: var(--sp-err-text, #ba3845);
+}
+
+/* Scheduled-tab card whose matchUp has a date but no scheduledTime —
+ * dashed border + softened opacity hint that a time still needs to be set. */
+.spl-matchup-card.no-time {
+  border-style: dashed;
+  opacity: 0.75;
+}
+
+.spl-card-sides {
+  margin-top: 4px;
+  font-size: 0.6875rem;
+  color: var(--sp-text, var(--chc-text-primary, #172b3a));
+}
+
+.spl-card-meta {
+  margin-top: 4px;
+  font-size: 0.6875rem;
+  color: var(--sp-muted, var(--chc-text-secondary, #536978));
+}
+
+.spl-card-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+/* Consumer slot for `MatchUpCardOptions.renderExtra`. Layout only — the
+   consumer owns everything visual about what it puts here, so no colour,
+   border or font is set. */
+.spl-card-extra {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.spl-card-chip {
+  font-size: 0.625rem;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--sp-border-light, var(--chc-color-border, #ccd8df));
+  color: var(--sp-muted, var(--chc-text-secondary, #536978));
+}
+
+.spl-card-chip.time {
+  border-color: var(--sp-ok-border, var(--chc-color-border, #ccd8df));
+  color: var(--sp-ok-text, var(--chc-color-success, #2e8256));
+}
+
+.spl-card-chip.court {
+  border-color: var(--sp-accent-border, var(--chc-color-border, #ccd8df));
+  color: var(--sp-accent-text, var(--chc-color-primary, #17698a));
+}
+
+.spl-card-chip.type {
+  border-color: var(--sp-border-light, var(--chc-color-border, #ccd8df));
+  color: var(--sp-muted, var(--chc-text-secondary, #536978));
+}
+
+.spl-card-chip.status {
+  border-color: var(--sp-ok-border, var(--chc-color-border, #ccd8df));
+  color: var(--sp-ok-text, var(--chc-color-success, #2e8256));
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.5625rem;
+  letter-spacing: 0.3px;
+}
+
+/* Stage chip — distinct accent so CONSOLATION / PLAYOFF / QUALIFYING reads
+ * unmistakably against the main draw cards. Sits last in the chip row by
+ * virtue of being appended last in `buildMatchUpCard`. */
+.spl-card-chip.stage {
+  border-color: var(--sp-accent-border, var(--chc-color-border, #ccd8df));
+  background: var(--sp-accent-bg);
+  color: var(--sp-accent-text, var(--chc-color-primary, #17698a));
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.5625rem;
+  letter-spacing: 0.4px;
+}
+
+/* Shared defaults work without the schedule page's 29KB stylesheet. */
+.spl-matchup-card {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  color: var(--sp-text, var(--chc-text-primary, #172b3a));
+  font: inherit;
+  text-align: start;
+  box-sizing: border-box;
+}
+.spl-matchup-card > span {
+  display: block;
+}
+.spl-matchup-card > .spl-card-chips,
+.spl-matchup-card > .spl-card-title.with-time {
+  display: flex;
+}
+.spl-matchup-card:focus-visible {
+  outline: 3px solid var(--chc-border-focus, #258b9d);
+  outline-offset: 2px;
+}
+.spl-card-scoreboard {
+  display: grid !important;
+  gap: 3px;
+}
+.spl-card-side {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  min-width: 0;
+  line-height: 1.5;
+}
+.spl-card-side[data-winner='true'] {
+  font-weight: 700;
+}
+.spl-card-side-name {
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.spl-card-seed {
+  font-weight: 400;
+  font-size: 0.75rem;
+  color: var(--sp-muted, var(--chc-text-secondary, #536978));
+}
+.spl-card-score-cell {
+  flex: 0 0 1.3rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.spl-matchup-card--compact {
+  border-radius: 0;
+  border-width: 0 0 1px;
+  padding: 8px 10px;
+}
+.spl-matchup-card--compact .spl-card-sides {
+  font-size: 0.85rem;
+}
+.spl-card-chip[data-tone='active'] {
+  box-shadow: inset 2px 0 var(--chc-color-primary, #17698a);
+}
+.spl-card-chip[data-tone='finished'] {
+  box-shadow: inset 2px 0 var(--chc-color-success, #2e8256);
+}
+.spl-card-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Operator display tones do not claim scheduling readiness; unplayed/unknown stays neutral. */
+.spl-card-chip[data-tone='neutral'] {
+  color: var(--sp-muted, var(--chc-text-secondary, #536978));
+  border-color: var(--sp-border-light, var(--chc-color-border, #ccd8df));
+}
+.spl-card-chip[data-tone='active'] {
+  color: var(--sp-accent-text, var(--chc-color-primary, #17698a));
+  border-color: var(--sp-accent-border, var(--chc-color-border, #ccd8df));
+}
