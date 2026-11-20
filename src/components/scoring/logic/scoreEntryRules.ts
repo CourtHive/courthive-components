@@ -11,16 +11,16 @@
 import { issueText } from './scoreEntrySelectors';
 import { scoreEntryText } from './scoreEntryText';
 import { statusScopeError } from './statusScope';
-import { draftView } from './statusBoundary';
+import { typedView } from './statusBoundary';
 import {
-  retractEndingContradictedByScore as draftRetractEnding,
-  resolutionInForce as draftResolutionInForce,
-  scoreIsFinished as draftScoreIsFinished,
-  endingOffered as draftEndingOffered,
-  scoreEntered as draftScoreEntered,
-  footerState as draftFooterState,
-  holdsEntry as draftHoldsEntry,
-  submission as draftSubmission,
+  retractEndingContradictedByScore as factoryRetractEnding,
+  resolutionInForce as factoryResolutionInForce,
+  scoreIsFinished as factoryScoreIsFinished,
+  endingOffered as factoryEndingOffered,
+  scoreEntered as factoryScoreEntered,
+  footerState as factoryFooterState,
+  holdsEntry as factoryHoldsEntry,
+  submission as factorySubmission,
   statusOutOfScope,
   scoreEntryIssue,
   endingRefusal
@@ -31,8 +31,8 @@ import type {
   EndingIntent,
   ScoreEntryOutcome,
   ScoreEntryResolution,
-  ScoreEntryView as DraftView,
-  ScoreEntryRulesContext as DraftRulesContext
+  ScoreEntryView as FactoryView,
+  ScoreEntryRulesContext as FactoryRulesContext
 } from 'tods-competition-factory/score-entry-state';
 
 export {
@@ -48,26 +48,26 @@ export type { ScoreEntryOutcome, ClearGateInput, ClearGate } from 'tods-competit
  * What the card's rules read: the model, and what the active region holds that the model cannot. The reported status
  * is held as a string, as Free Score's parser returns it (see `statusBoundary.ts`).
  */
-export type ScoreEntryView = Omit<DraftView, 'reportedStatus'> & { reportedStatus?: string };
+export type ScoreEntryView = Omit<FactoryView, 'reportedStatus'> & { reportedStatus?: string };
 
 /** Whether the SCORE is a finished result. */
 export function scoreIsFinished(view: ScoreEntryView): boolean {
-  return draftScoreIsFinished(draftView(view));
+  return factoryScoreIsFinished(typedView(view));
 }
 
 /** Whether any score has been entered, in the model or as text the region holds. */
 export function scoreEntered(view: ScoreEntryView): boolean {
-  return draftScoreEntered(draftView(view));
+  return factoryScoreEntered(typedView(view));
 }
 
 /** Whether anything at all has been entered. */
 export function holdsEntry(view: ScoreEntryView): boolean {
-  return draftHoldsEntry(draftView(view));
+  return factoryHoldsEntry(typedView(view));
 }
 
 /** The resolution in force: the operator's selection, or failing that whatever the region parsed. */
 export function resolutionInForce(view: ScoreEntryView): ScoreEntryResolution {
-  return draftResolutionInForce(draftView(view));
+  return factoryResolutionInForce(typedView(view));
 }
 
 /** Whether an ending can be chosen at all, given the score. */
@@ -76,16 +76,16 @@ export function endingOffered(
   view: ScoreEntryView,
   disabledMatchUpStatuses: readonly string[] = []
 ): boolean {
-  return draftEndingOffered(status, draftView(view), disabledMatchUpStatuses);
+  return factoryEndingOffered(status, typedView(view), disabledMatchUpStatuses);
 }
 
 /** The ending a score that has just finished contradicts, as the intent that un-chooses it. */
 export function retractEndingContradictedByScore(view: ScoreEntryView): EndingIntent | undefined {
-  return draftRetractEnding(draftView(view));
+  return factoryRetractEnding(typedView(view));
 }
 
 /** The host's scope and words, which every refusal message is built from. */
-export type ScoreEntryRulesContext = DraftRulesContext & {
+export type ScoreEntryRulesContext = FactoryRulesContext & {
   /** The card's labels: status names and `SCORE_ENTRY_TEXT` keys, defaults already merged in. */
   labels?: Record<string, string>;
   /** The participants' names, for an integrity message that names them rather than "side 1". */
@@ -111,7 +111,7 @@ export function endingRefusalReason(
 ): string {
   const { disabledMatchUpStatuses, labels = {} } = context;
   const label = labels[status] ?? status;
-  const refusal = endingRefusal(status, draftView(view), { disabledMatchUpStatuses });
+  const refusal = endingRefusal(status, typedView(view), { disabledMatchUpStatuses });
   if (refusal === 'STATUS_UNAVAILABLE') return statusScopeError(status, disabledMatchUpStatuses, labels) as string;
   if (refusal === 'ENDING_NEEDS_SCORE') return scoreEntryText(labels, 'endingNeedsScore', { status: label });
   return scoreEntryText(labels, 'endingAfterCompleteScore', { status: label });
@@ -123,7 +123,7 @@ export function footerState(
   gate: ClearGate,
   context: ScoreEntryRulesContext = {}
 ): { submitDisabled: boolean; submitTitle: string; clearDisabled: boolean } {
-  const { submitDisabled, submitRefusedNow, clearDisabled } = draftFooterState(draftView(view), gate, {
+  const { submitDisabled, submitRefusedNow, clearDisabled } = factoryFooterState(typedView(view), gate, {
     disabledMatchUpStatuses: context.disabledMatchUpStatuses
   });
   return {
@@ -139,5 +139,5 @@ export function submission(
   gate: ClearGate,
   context: ScoreEntryRulesContext = {}
 ): ScoreEntryOutcome | undefined {
-  return draftSubmission(draftView(view), gate, { disabledMatchUpStatuses: context.disabledMatchUpStatuses });
+  return factorySubmission(typedView(view), gate, { disabledMatchUpStatuses: context.disabledMatchUpStatuses });
 }

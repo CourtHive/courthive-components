@@ -1,5 +1,5 @@
 /**
- * The words for a status the host's scope refuses. Whether a status is out of scope is the factory's draft rule
+ * The words for a status the host's scope refuses. Whether a status is out of scope is the factory's score-state rule
  * (`statusOutOfScope`, from the host's `SCORE` action); this module only says so, in the host's labels. The DOM
  * notice that shows these sentences is `statusScopeNotice.ts`, kept apart so this stays importable without a DOM.
  */
