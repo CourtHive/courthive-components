@@ -280,3 +280,13 @@
   white-space: nowrap;
   border: 0;
 }
+
+/* Operator display tones do not claim scheduling readiness; unplayed/unknown stays neutral. */
+.spl-card-chip[data-tone='neutral'] {
+  color: var(--sp-muted, var(--chc-text-secondary, #536978));
+  border-color: var(--sp-border-light, var(--chc-color-border, #ccd8df));
+}
+.spl-card-chip[data-tone='active'] {
+  color: var(--sp-accent-text, var(--chc-color-primary, #17698a));
+  border-color: var(--sp-accent-border, var(--chc-color-border, #ccd8df));
+}
