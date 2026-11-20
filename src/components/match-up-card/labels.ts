@@ -1,7 +1,7 @@
 /** Display wording only. These labels never decide completion, readiness or available actions. */
 export const matchUpStatusLabels: Readonly<Record<string, string>> = {
   COMPLETED: 'Finished',
-  TO_BE_PLAYED: 'Scheduled',
+  TO_BE_PLAYED: 'To play',
   IN_PROGRESS: 'On court',
   SUSPENDED: 'Suspended',
   RETIRED: 'Retired',

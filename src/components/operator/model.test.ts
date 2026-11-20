@@ -92,6 +92,7 @@ describe('operator day facets and independent view state', () => {
   it('never infers Ready from an unplayed status', () => {
     const unplayed = [{ ...operatorMatchFixture, status: 'TO_BE_PLAYED' }];
     expect(operatorDayGroups(unplayed, {}, 'ready', 'court')).toEqual([]);
+    expect(operatorMatchText(unplayed[0]).statusText).toBe('To play');
     expect(operatorDayGroups(unplayed, {}, 'other', 'court')[0].matches).toHaveLength(1);
   });
   it('selects the supplied Ready bucket and groups naturally without mutating delivered rows', () => {
