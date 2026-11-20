@@ -31,7 +31,12 @@
       "types": "./dist/features-types/scorecard/teamPalette.d.ts",
       "import": "./dist/team-colors.mjs"
     },
-    "./features.css": "./dist/features.css"
+    "./features.css": "./dist/features.css",
+    "./operator": {
+      "types": "./dist/features-types/operator/index.d.ts",
+      "import": "./dist/operator.mjs"
+    },
+    "./operator.css": "./dist/operator.css"
   },
   "repository": {
     "type": "git",
@@ -58,7 +63,7 @@
     "test:watch": "vitest --project unit",
     "test:ui": "vitest --ui --project unit",
     "dev": "vite",
-    "build": "tsc && vite build && vite build --config vite.features.config.mts && node scripts/buildFeatureTypes.mjs",
+    "build": "tsc && vite build && vite build --config vite.features.config.mts && vite build --config vite.operator.config.mts && node scripts/buildFeatureTypes.mjs",
     "check-types": "tsc --noEmit",
     "prepublishOnly": "pnpm build",
     "preview": "vite preview",
@@ -67,7 +72,7 @@
     "deploy-storybook": "gh-pages -d storybook-static",
     "pre-commit": "lint-staged",
     "predeploy": "pnpm build-storybook",
-    "lint": "eslint src scripts/buildFeatureTypes.mjs scripts/generateSyntheticMatches.mjs scripts/verify/consumerBundle.mjs --cache --max-warnings 0",
+    "lint": "eslint src scripts/buildFeatureTypes.mjs scripts/generateSyntheticMatches.mjs scripts/verify/consumerBundle.mjs scripts/verify/operator.mjs --cache --max-warnings 0",
     "lint:fix": "eslint src --fix --cache",
     "lint:report": "eslint src & eslint --cache src -f json > eslint-report.json",
     "format": "prettier --write src",
@@ -77,7 +82,8 @@
     "release:patch": "npm run commits && npm version $(semver $npm_package_version -i patch) && git push && git push --tags",
     "release:beta": "npm run commits && npm version $(semver $npm_package_version -i prerelease --preid beta) && git push && git push --tags",
     "patch:beta": "npm run commits && npm version $(semver $npm_package_version -i prerelease --preid beta) && npm publish --tag beta",
-    "verify:consumer-bundle": "node scripts/verify/consumerBundle.mjs --self-test && node scripts/verify/consumerBundle.mjs"
+    "verify:consumer-bundle": "node scripts/verify/consumerBundle.mjs --self-test && node scripts/verify/consumerBundle.mjs",
+    "verify:operator": "node scripts/verify/operator.mjs --self-test && node scripts/verify/operator.mjs"
   },
   "lint-staged": {
     "*.{js,ts}": "eslint --cache --fix",

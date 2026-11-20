@@ -24,6 +24,7 @@ const parsed = ts.getParsedCommandLineOfConfigFile(
 const program = ts.createProgram({
   rootNames: [
     join(root, 'src/components/courts/index.ts'),
+    join(root, 'src/components/operator/index.ts'),
     join(root, 'src/components/segmentedBar/index.ts'),
     join(root, 'src/components/scorecard/teamPalette.ts'),
     join(root, 'src/css.d.ts')

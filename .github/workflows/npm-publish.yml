@@ -112,6 +112,7 @@ jobs:
       - run: pnpm check-types
 
       - run: pnpm build
+      - run: pnpm verify:operator
 
       - run: pnpm test
 
