@@ -72,7 +72,7 @@
     "deploy-storybook": "gh-pages -d storybook-static",
     "pre-commit": "lint-staged",
     "predeploy": "pnpm build-storybook",
-    "lint": "eslint src scripts/buildFeatureTypes.mjs scripts/generateSyntheticMatches.mjs scripts/verify/consumerBundle.mjs scripts/verify/operator.mjs --cache --max-warnings 0",
+    "lint": "eslint src scripts/buildFeatureTypes.mjs scripts/generateSyntheticMatches.mjs scripts/verify/consumerBundle.mjs scripts/verify/operator.mjs scripts/verify/scoreEntryDialog.mjs --cache --max-warnings 0",
     "lint:fix": "eslint src --fix --cache",
     "lint:report": "eslint src & eslint --cache src -f json > eslint-report.json",
     "format": "prettier --write src",
@@ -83,7 +83,8 @@
     "release:beta": "npm run commits && npm version $(semver $npm_package_version -i prerelease --preid beta) && git push && git push --tags",
     "patch:beta": "npm run commits && npm version $(semver $npm_package_version -i prerelease --preid beta) && npm publish --tag beta",
     "verify:consumer-bundle": "node scripts/verify/consumerBundle.mjs --self-test && node scripts/verify/consumerBundle.mjs",
-    "verify:operator": "node scripts/verify/operator.mjs --self-test && node scripts/verify/operator.mjs"
+    "verify:operator": "node scripts/verify/operator.mjs --self-test && node scripts/verify/operator.mjs && pnpm verify:score-entry-dialog",
+    "verify:score-entry-dialog": "node scripts/verify/scoreEntryDialog.mjs"
   },
   "lint-staged": {
     "*.{js,ts}": "eslint --cache --fix",

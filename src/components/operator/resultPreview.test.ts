@@ -1,3 +1,4 @@
+import { createScoreEntryModel, changeFormat, replaceSets } from 'tods-competition-factory/score-entry-state';
 import { createResultPreview } from './result.stories.model';
 import { describe, expect, it } from 'vitest';
 
@@ -82,6 +83,25 @@ describe('story-only result host, using the released scoring state engine', () =
     expect(controller.snapshot().stage).toBe('refused');
     expect(controller.snapshot().model.sets).toBe(sets);
     expect(controller.snapshot().canSave).toBe(true);
+  });
+  it('sends the changed format and canonical deciding tiebreak outcome from the shared dialog model', async () => {
+    const commands: Parameters<PreviewPorts['send']>[0][] = [];
+    const { controller } = fixture({
+      send: async (command) => {
+        commands.push(command);
+        return { kind: 'refused' };
+      }
+    });
+    const model = replaceSets(changeFormat(createScoreEntryModel(), 'SET3-S:6NOAD/TB7-F:TB10'), [
+      { setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 },
+      { setNumber: 2, side1Score: 4, side2Score: 6, winningSide: 2 },
+      { setNumber: 3, side1Score: 0, side2Score: 0, side1TiebreakScore: 10, side2TiebreakScore: 8, winningSide: 1 }
+    ]);
+    controller.replaceModel(model);
+    await controller.save();
+    expect(commands).toHaveLength(1);
+    expect(commands[0].outcome).toMatchObject({ matchUpFormat: 'SET3-S:6NOAD/TB7-F:TB10', winningSide: 1 });
+    expect(commands[0].outcome.score?.sets?.[2]).toMatchObject({ side1TiebreakScore: 10, side2TiebreakScore: 8 });
   });
   it('no supplied offer means the preview cannot save, even a valid score', async () => {
     const { controller, complete, sends } = fixture({}, false);

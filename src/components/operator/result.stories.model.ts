@@ -11,7 +11,12 @@ import {
 } from 'tods-competition-factory/score-entry-state';
 
 // constants and types
-import type { CellRef, EngineOutcome, ScoreEntryRulesContext } from 'tods-competition-factory/score-entry-state';
+import type {
+  CellRef,
+  EngineOutcome,
+  ScoreEntryModel,
+  ScoreEntryRulesContext
+} from 'tods-competition-factory/score-entry-state';
 export type PreviewStage = 'editing' | 'saving' | 'projection-pending' | 'current' | 'refused' | 'outcome-unknown';
 export type PreviewReceipt = { kind: 'accepted'; revision: number } | { kind: 'refused' } | { kind: 'unknown' };
 export type PreviewDocument = { revision: number; matchUpId: string };
@@ -82,6 +87,12 @@ export function createResultPreview(
       stage = 'editing';
       notify();
     },
+    replaceModel(next: ScoreEntryModel) {
+      if (destroyed || !snapshot().editable) return;
+      model = next;
+      stage = 'editing';
+      notify();
+    },
     async save() {
       if (destroyed || !snapshot().canSave) return undefined;
       const gate = clearGate({ openedOnRecordedOutcome: false, cleared: false, holdsEntry: holdsEntry({ model }) });
@@ -95,7 +106,10 @@ export function createResultPreview(
           await ports.send({
             commandId,
             matchUpId: offer.matchUpId,
-            outcome: toEngineOutcome({ ...report, sets: enteredSets(model) })
+            outcome: toEngineOutcome(
+              { ...report, sets: enteredSets(model) },
+              model.matchUpFormat !== 'SET3-S:6/TB7' ? model.matchUpFormat : undefined
+            )
           })
         );
       } catch {

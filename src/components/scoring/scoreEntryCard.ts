@@ -36,7 +36,7 @@ import { unrecordedTiebreakNote, scoreString, winningSide } from './logic/scoreE
 import { statusCodeSubtext, statusCodeDisplay, codesForStatus } from './logic/statusCodes';
 import { chooseEnding, changeFormat, clearAll } from './logic/scoreEntryModel';
 import { isThenable, messageOf, refusalOf } from './logic/controlledSubmit';
-import { matchUpStatusConstants } from 'tods-competition-factory';
+import { matchUpStatusConstants } from 'tods-competition-factory/constants';
 import { createScoreEntryStore } from './logic/scoreEntryStore';
 import { statusScopeNotice } from './logic/statusScopeNotice';
 import { scoreEntrySummary } from './logic/scoreEntrySummary';

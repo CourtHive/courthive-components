@@ -7,7 +7,7 @@
  * the DOM. The dialog still owns the modal, focus and the keyboard; these answer the questions those
  * act on.
  */
-import { scoreGovernor } from 'tods-competition-factory';
+import { retainScoreForFormat } from 'tods-competition-factory/score-entry-state';
 import { isDoubleExitStatus } from './irregularEnding';
 import { isComplete } from './scoreEntrySelectors';
 
@@ -76,7 +76,7 @@ export function formatChangeReport(
   matchUpFormat: string,
   previousMatchUpFormat?: string
 ): ScoreDiscardedReport | undefined {
-  const retained = scoreGovernor.retainScoreForFormat({ sets, matchUpFormat, previousMatchUpFormat });
+  const retained = retainScoreForFormat({ sets, matchUpFormat, previousMatchUpFormat });
   if (!retained.discarded.length) return undefined;
   return { ...retained, matchUpFormat };
 }
