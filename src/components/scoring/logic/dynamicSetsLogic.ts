@@ -2,7 +2,7 @@
  * Pure logic for Dynamic Sets score entry.
  *
  * The format rules — set formats, completeness, winners, complements, ceilings, the tiebreak question — are owned by
- * the factory (`tods-competition-factory/score-entry-state`), where the score-entry draft is judged by them, and are
+ * the factory (`tods-competition-factory/score-entry-state`), where a score state is judged by them, and are
  * re-exported here under the names this package has always exported. Every one of them delegates to the factory's
  * scoring rules (CA, 2026-09-27: *"why would we hand roll something?"*). What stays is the shipping approach's own
  * keystroke policy: when a smart complement fires, and when a new set row opens.

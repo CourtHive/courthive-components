@@ -30,7 +30,7 @@ const dialog = openScoreEntryDialog({
 | `scoreEntryDialog.ts` | The modal around the card: approach switching, the format picker, closing                                                                     |
 | `scoreEntryCard.ts`   | The card: participant rows, endings and reasons, the band, Clear and Submit                                                                   |
 | `regions/`            | One entry region per approach (Dynamic Sets, Free Score, Dial Pad) over the card                                                              |
-| `logic/`              | The store the card renders from, the wording of the draft's codes, and re-exports of the draft (`tods-competition-factory/score-entry-state`) |
-| `utils/`              | Set-expansion rules shared by the model                                                                                                       |
+| `logic/`              | The store the card renders from, the wording of the state engine's codes, and re-exports of it (`tods-competition-factory/score-entry-state`) |
+| `utils/`              | No source since the factory took the set-expansion rules (#1045); one test of its outcome parsing                                             |
 
 Stories: **Scoring / Score Entry** in Storybook (card, dialog, over a real draw, round trip).

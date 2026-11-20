@@ -1,16 +1,16 @@
 /**
  * The score-entry MODEL — now owned by the factory.
  *
- * The immutable draft value and its transitions moved to `tods-competition-factory/score-entry-state` (CA, 2026-11-19),
- * so a host with no DOM — a worker, a server, a mobile shell that holds no tournament engine — keeps the same draft
- * with the same rules this dialog uses. This module re-exports them under the names the regions, the card and the
- * tests have always imported. Nothing about the score is decided here any more.
+ * The immutable score state and its transitions moved to `tods-competition-factory/score-entry-state` (CA,
+ * 2026-11-19), so a host with no DOM — a worker, a server, a mobile shell that holds no tournament engine — keeps
+ * the same score state with the same rules this dialog uses. This module re-exports them under the names the regions,
+ * the card and the tests have always imported. Nothing about the score is decided here any more.
  */
-import { createScoreEntryModel as createDraft } from 'tods-competition-factory/score-entry-state';
+import { createScoreEntryModel as createFactoryModel } from 'tods-competition-factory/score-entry-state';
 import { withStatus } from './statusBoundary';
 
 import type {
-  CreateScoreEntryModelParams as DraftParams,
+  CreateScoreEntryModelParams as FactoryParams,
   RecordedReason,
   ScoreEntryModel
 } from 'tods-competition-factory/score-entry-state';
@@ -46,12 +46,12 @@ export type {
   TypeDigitIntent
 } from 'tods-competition-factory/score-entry-state';
 
-/** A recorded matchUp the draft hydrates from, with its status held as a string (see `statusBoundary.ts`). */
+/** A recorded matchUp the score state hydrates from, with its status held as a string (see `statusBoundary.ts`). */
 export type RecordedMatchUpReason = Omit<RecordedReason, 'matchUpStatus'> & { matchUpStatus?: string };
 
-export type CreateScoreEntryModelParams = Omit<DraftParams, 'matchUp'> & { matchUp?: RecordedMatchUpReason };
+export type CreateScoreEntryModelParams = Omit<FactoryParams, 'matchUp'> & { matchUp?: RecordedMatchUpReason };
 
-/** The draft for a matchUp, empty or hydrated from a recorded one. */
+/** The score state for a matchUp, empty or hydrated from a recorded one. */
 export function createScoreEntryModel(params: CreateScoreEntryModelParams = {}): ScoreEntryModel {
-  return createDraft({ ...params, matchUp: withStatus(params.matchUp) });
+  return createFactoryModel({ ...params, matchUp: withStatus(params.matchUp) });
 }
