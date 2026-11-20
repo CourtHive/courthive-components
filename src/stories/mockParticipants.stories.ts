@@ -3,18 +3,21 @@
  *
  * Interactive modal for generating mock participants with configurable options:
  * - Gender selection (Any/Male/Female)
- * - Participant count (8-128)
+ * - Participant count: presets 8-128 or any whole number typed in, clamped to 1-128
  * - Age range with automatic validation
  * - Optional WTN/UTR ratings
  * - Birthdate generation based on consideredDate
  */
-import { getMockParticipantsModal } from '../components/modal/mockParticipants';
+import { getMockParticipantsModal, PARTICIPANTS_COUNT_PRESETS } from '../components/modal/mockParticipants';
+import { within, waitFor, expect } from 'storybook/test';
 import { createJsonViewer } from './helpers/JsonViewer';
+import { user } from './helpers/trustedUser';
 import '../components/forms/styles';
 
 const CONSIDERED_DATE = '2024-12-31';
 const CHC_TEXT_PRIMARY = 'var(--chc-text-primary)';
 const CHC_TEXT_SECONDARY = 'var(--chc-text-secondary)';
+const GENERATE_BUTTON_TEXT = 'Generate Mock Participants';
 
 export default {
   title: 'Policies & Setup/Mock Participants',
@@ -41,7 +44,7 @@ export const Basic = {
 
     const button = document.createElement('button');
     button.className = 'button is-primary';
-    button.textContent = 'Generate Mock Participants';
+    button.textContent = GENERATE_BUTTON_TEXT;
     button.style.marginBottom = '1em';
 
     // Output container for JSON viewer
@@ -557,5 +560,62 @@ export const CustomLabels = {
     container.appendChild(outputContainer);
 
     return container;
+  }
+};
+
+/**
+ * The count field is a combo: the presets drop down, and any whole number can be typed instead. Leaving the
+ * field clamps it to 1-128, so the number Generate uses is the number the field shows.
+ */
+export const CountPresetsAndFreeEntry = {
+  render: () => {
+    const container = document.createElement('div');
+    container.style.padding = '2em';
+
+    const button = document.createElement('button');
+    button.className = 'button is-primary';
+    button.textContent = GENERATE_BUTTON_TEXT;
+
+    const output = document.createElement('p');
+    output.dataset.testid = 'generated-count';
+    output.style.marginTop = '1em';
+    output.style.color = CHC_TEXT_PRIMARY;
+
+    button.onclick = () =>
+      getMockParticipantsModal({
+        consideredDate: CONSIDERED_DATE,
+        callback: (participants) => (output.textContent = `Generated ${participants.length} participants`)
+      });
+
+    container.appendChild(button);
+    container.appendChild(output);
+    return container;
+  },
+  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+    const canvas = within(canvasElement);
+    await user.click(await canvas.findByText(GENERATE_BUTTON_TEXT));
+
+    const count = await waitFor(() => {
+      const input = document.querySelector<HTMLInputElement>('input[list^="chc-presets-participantsCount"]');
+      expect(input).toBeTruthy();
+      return input!;
+    });
+    const presets = [...document.getElementById(count.getAttribute('list')!)!.querySelectorAll('option')];
+    await expect(presets.map((option) => Number(option.value))).toEqual(PARTICIPANTS_COUNT_PRESETS);
+    await expect(count.value).toBe('32');
+
+    // a count between the presets is accepted as typed
+    await user.fill(count, '40');
+    await user.tab();
+    await expect(count.value).toBe('40');
+
+    // an out-of-range count is clamped when the field is left
+    await user.fill(count, '500');
+    await user.tab();
+    await expect(count.value).toBe('128');
+
+    await user.fill(count, '40');
+    await user.click(await within(document.body).findByText('Generate'));
+    await waitFor(() => expect(canvas.getByTestId('generated-count').textContent).toBe('Generated 40 participants'));
   }
 };
