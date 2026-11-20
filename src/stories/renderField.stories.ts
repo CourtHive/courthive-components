@@ -334,3 +334,42 @@ export const WithDataAttributes = {
     ]
   }
 };
+
+/**
+ * Option labels are HTML, as they are for the single select: a caller escapes a name and both selects show it
+ * decoded. Markup in a label shows as text in the multi-select's tags and rows, never as live elements.
+ */
+export const MultiSelectEscapedLabels = {
+  render: () => {
+    const container = document.createElement('div');
+    container.style.maxWidth = '420px';
+    const { field } = renderField({
+      label: 'Events listed publicly',
+      field: 'events',
+      multiple: true,
+      options: [
+        { label: 'Men&#39;s Singles', value: 'ms', selected: true },
+        { label: 'Women&#39;s Doubles &amp; Mixed', value: 'wd', selected: true },
+        { label: '<b>Bold</b> attempt', value: 'b', selected: true }
+      ]
+    });
+    container.appendChild(field);
+    return container;
+  },
+  play: async ({ canvasElement }) => {
+    const tags = await waitFor(() => {
+      const found = [...canvasElement.querySelectorAll('span')].filter((el) =>
+        /Singles|Doubles|attempt/.test(el.textContent ?? '')
+      );
+      expect(found.length).toBeGreaterThan(0);
+      return found;
+    });
+    const texts = tags.map((el) => el.textContent);
+    await expect(texts.some((text) => text?.startsWith("Men's Singles"))).toBe(true);
+    await expect(texts.some((text) => text?.startsWith("Women's Doubles & Mixed"))).toBe(true);
+    await expect(texts.some((text) => text?.includes('&#39;') || text?.includes('&amp;'))).toBe(false);
+    // markup is text, never an element
+    await expect(canvasElement.querySelector('b')).toBeNull();
+    await expect(texts.some((text) => text?.startsWith('Bold attempt'))).toBe(true);
+  }
+};
