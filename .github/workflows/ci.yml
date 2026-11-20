@@ -119,6 +119,8 @@ jobs:
         if: steps.scope.outputs.light != 'true'
       - run: pnpm build
         if: steps.scope.outputs.light != 'true'
+      - run: pnpm verify:score-entry
+        if: steps.scope.outputs.light != 'true'
       - run: pnpm verify:consumer-bundle
         if: steps.scope.outputs.light != 'true'
       - run: pnpm test
@@ -130,6 +132,8 @@ jobs:
       - name: Install Chromium for the story tests
         if: steps.scope.outputs.light != 'true'
         run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm verify:score-entry:packed
+        if: steps.scope.outputs.light != 'true'
       - run: pnpm test:stories
         if: steps.scope.outputs.light != 'true'
 
@@ -159,9 +163,11 @@ jobs:
       - run: pnpm lint
       - run: pnpm check-types
       - run: pnpm build
+      - run: pnpm verify:score-entry
       - run: pnpm verify:consumer-bundle
       - run: pnpm test
       - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm verify:score-entry:packed
       - run: pnpm test:stories
 
       - name: Explain a failure
