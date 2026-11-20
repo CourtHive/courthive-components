@@ -58,6 +58,10 @@
  * - selectOnFocus: Boolean - selects all text when field receives focus
  * - iconLeft: String - Font Awesome icon class for left icon
  * - iconRight: String - Font Awesome icon class for right icon (password fields)
+ * - min / max / step: Number - written to the input's attributes (meaningful with type: 'number')
+ * - presets: Array - suggested values offered in a dropdown (a native <datalist>) while the field still
+ *     accepts free entry — a combo field. Plain values, or { value, label } entries. Presets only suggest:
+ *     enforce a range with min/max plus the caller's own clamping, since a browser accepts any typed value.
  *
  * Example:
  * {
@@ -257,6 +261,9 @@ import { validator } from './renderValidator';
 import { createMultiSelect } from './createMultiSelect';
 import { NONE } from '../../data/componentConstants';
 
+// Each datalist needs a document-unique id for its input's `list` attribute; two forms can share a field name.
+let presetsListCount = 0;
+
 export function renderOptions(select: HTMLSelectElement, item: any): void {
   for (const option of item.options) {
     if (option.hide) continue;
@@ -443,7 +450,23 @@ function buildTextInputField(item: any, control: HTMLElement): { inputElement: a
   input.setAttribute('placeholder', item.placeholder || '');
   if (item.disabled) input.setAttribute('disabled', 'true');
   if (item.id) input.setAttribute('id', item.id);
+  for (const attribute of ['min', 'max', 'step']) {
+    if (item[attribute] !== undefined) input.setAttribute(attribute, String(item[attribute]));
+  }
   control.appendChild(input);
+  if (Array.isArray(item.presets) && item.presets.length) {
+    const datalist = document.createElement('datalist');
+    datalist.id = `chc-presets-${item.field ?? 'field'}-${++presetsListCount}`;
+    for (const preset of item.presets) {
+      const option = document.createElement('option');
+      const isEntry = preset !== null && typeof preset === 'object';
+      option.value = String(isEntry ? preset.value : preset);
+      if (isEntry && preset.label !== undefined) option.label = String(preset.label);
+      datalist.appendChild(option);
+    }
+    input.setAttribute('list', datalist.id);
+    control.appendChild(datalist);
+  }
 
   if (item.iconLeft) {
     control.classList.add('has-icons-left');

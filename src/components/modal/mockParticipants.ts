@@ -13,6 +13,23 @@ const { ratingsParameters } = fixtures;
 const { WTN, UTR } = factoryConstants.ratingConstants;
 const { FEMALE, MALE, ANY } = genderConstants;
 
+/** Offered in the count field's dropdown; any other whole number in range can be typed. */
+export const PARTICIPANTS_COUNT_PRESETS = [8, 16, 32, 64, 128];
+export const PARTICIPANTS_COUNT_MIN = 1;
+/** A generous ceiling: a mock field larger than this is a typo, not a tournament. */
+export const PARTICIPANTS_COUNT_MAX = 128;
+
+/**
+ * The count the generator will use for whatever is in the field: a whole number clamped to
+ * [PARTICIPANTS_COUNT_MIN, PARTICIPANTS_COUNT_MAX]. Anything that is not a number falls back to `fallback`
+ * (itself clamped), so an emptied field generates the default rather than nothing.
+ */
+export function clampParticipantsCount(value: unknown, fallback = 32): number {
+  const parsed = typeof value === 'number' ? value : Number.parseFloat(String(value ?? '').trim());
+  const count = Number.isFinite(parsed) ? Math.round(parsed) : fallback;
+  return Math.min(PARTICIPANTS_COUNT_MAX, Math.max(PARTICIPANTS_COUNT_MIN, count));
+}
+
 /**
  * Configuration for mock participants generation
  */
@@ -67,7 +84,7 @@ export interface MockParticipantsConfig {
  *
  * Features:
  * - Gender selection (Any/Male/Female)
- * - Participant count (8-128)
+ * - Participant count: presets 8-128 or any whole number typed in, clamped to 1-128
  * - Age range with automatic validation (ageMax >= ageMin)
  * - Number of countries to limit nationality diversity
  * - Optional WTN/UTR ratings
@@ -141,7 +158,7 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
   // Merge default values with custom defaults
   const finalDefaults = {
     gender: defaults.gender || ANY,
-    participantsCount: defaults.participantsCount || 32,
+    participantsCount: clampParticipantsCount(defaults.participantsCount || 32),
     ageMin: defaults.ageMin,
     ageMax: defaults.ageMax,
     nationalityCodesCount: defaults.nationalityCodesCount
@@ -157,7 +174,7 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
     }));
 
   const generate = () => {
-    const count = inputs.participantsCount.value;
+    const count = clampParticipantsCount(inputs.participantsCount.value, finalDefaults.participantsCount);
     const gender = inputs.gender.value;
     const sex = gender === ANY ? undefined : gender;
     const participantRole = hasRoleOptions ? inputs.participantRole.value : defaultRole;
@@ -191,7 +208,7 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
         : undefined;
 
     const { participants } = mocksEngine.generateParticipants({
-      participantsCount: Number.parseInt(count),
+      participantsCount: count,
       scaleAllParticipants: true,
       nationalityCodesCount,
       participantRole,
@@ -271,16 +288,20 @@ export function getMockParticipantsModal(config: MockParticipantsConfig = {}): v
           value: finalDefaults.gender
         },
         {
-          options: [
-            { label: '8', value: 8, selected: finalDefaults.participantsCount === 8 },
-            { label: '16', value: 16, selected: finalDefaults.participantsCount === 16 },
-            { label: '32', value: 32, selected: finalDefaults.participantsCount === 32 },
-            { label: '64', value: 64, selected: finalDefaults.participantsCount === 64 },
-            { label: '128', value: 128, selected: finalDefaults.participantsCount === 128 }
-          ],
           label: finalLabels.count,
           field: 'participantsCount',
-          value: finalDefaults.participantsCount
+          type: 'number',
+          min: PARTICIPANTS_COUNT_MIN,
+          max: PARTICIPANTS_COUNT_MAX,
+          step: 1,
+          presets: PARTICIPANTS_COUNT_PRESETS,
+          selectOnFocus: true,
+          value: finalDefaults.participantsCount,
+          // Show the clamped value as soon as the field is left, so what Generate uses is what the field says.
+          onChange: (event: Event) => {
+            const input = event.target as HTMLInputElement;
+            input.value = String(clampParticipantsCount(input.value, finalDefaults.participantsCount));
+          }
         },
         {
           label: finalLabels.minAge,

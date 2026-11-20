@@ -1,6 +1,6 @@
 /**
  * Irregular endings: the resolution rule is owned by the factory (`tods-competition-factory/score-entry-state`), with
- * the draft that uses it, and re-exported here. What stays is presentation: the ending labels, the double-exit
+ * the score state that uses it, and re-exported here. What stays is presentation: the ending labels, the double-exit
  * warning, and the legacy validation adapter with its English winner prompt.
  *
  * The rule itself: absence is absence. `undefined` is "not answered yet" and never valid, and a double exit requires
@@ -12,9 +12,9 @@ import { matchUpStatusConstants } from 'tods-competition-factory';
 import { asStatus, withStatus } from './statusBoundary';
 import { scoreEntryText } from './scoreEntryText';
 import {
-  hydrateIrregularEnding as hydrateDraftIrregularEnding,
-  winnerFromExitingSide as draftWinnerFromExitingSide,
-  isDoubleExitStatus as draftIsDoubleExitStatus,
+  hydrateIrregularEnding as factoryHydrateIrregularEnding,
+  winnerFromExitingSide as factoryWinnerFromExitingSide,
+  isDoubleExitStatus as factoryIsDoubleExitStatus,
   resolveIrregularEnding,
   SELECTABLE_ENDINGS
 } from 'tods-competition-factory/score-entry-state';
@@ -53,7 +53,7 @@ const {
 
 /** Whether this status IS a double exit: no side advances. */
 export function isDoubleExitStatus(matchUpStatus: string | undefined): boolean {
-  return draftIsDoubleExitStatus(asStatus(matchUpStatus));
+  return factoryIsDoubleExitStatus(asStatus(matchUpStatus));
 }
 
 /** The winner implied by a per-side exit control: the side that did not exit. */
@@ -61,7 +61,7 @@ export function winnerFromExitingSide(
   matchUpStatus: string | undefined,
   exitingSideNumber?: number
 ): number | undefined {
-  return draftWinnerFromExitingSide(asStatus(matchUpStatus), exitingSideNumber);
+  return factoryWinnerFromExitingSide(asStatus(matchUpStatus), exitingSideNumber);
 }
 
 /** What the controls should show for a matchUp that already carries a result (its status held as a string). */
@@ -69,7 +69,7 @@ export function hydrateIrregularEnding(matchUp?: { matchUpStatus?: string; winni
   selectedOutcome: string;
   winnerSelection: WinnerSelection;
 } {
-  return hydrateDraftIrregularEnding(withStatus(matchUp));
+  return factoryHydrateIrregularEnding(withStatus(matchUp));
 }
 
 /** Shown when an irregular ending has been chosen but the winner question is unanswered. */
