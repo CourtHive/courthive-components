@@ -1,5 +1,22 @@
 # Changelog
 
+## [7.21.0](https://github.com/CourtHive/courthive-components/compare/v7.20.0...v7.21.0) (2026-11-20)
+
+
+### Features
+
+* **forms:** presets on text inputs; participant count takes any number up to 128 ([#1051](https://github.com/CourtHive/courthive-components/issues/1051)) ([ae2e401](https://github.com/CourtHive/courthive-components/commit/ae2e401139e6a009832465ddf99c1dab56b022af))
+
+
+### Bug Fixes
+
+* **forms:** multi-select shows option labels as the single select does ([#1052](https://github.com/CourtHive/courthive-components/issues/1052)) ([ac1c9c7](https://github.com/CourtHive/courthive-components/commit/ac1c9c708ebfefd26f966a1378f35c31fad624f9))
+
+
+### Documentation
+
+* **scoring:** call the factory's score entry a state engine holding a score state, not a draft ([#1050](https://github.com/CourtHive/courthive-components/issues/1050)) ([2b902b3](https://github.com/CourtHive/courthive-components/commit/2b902b3ba29c6934a942c85e61e99329d0e124f2))
+
 ## [7.20.0](https://github.com/CourtHive/courthive-components/compare/v7.19.2...v7.20.0) (2026-11-19)
 
 
