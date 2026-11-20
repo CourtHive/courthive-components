@@ -1,11 +1,11 @@
-import { ClearGate, EndingIntent, ScoreEntryOutcome, ScoreEntryResolution, ScoreEntryView as DraftView, ScoreEntryRulesContext as DraftRulesContext } from 'tods-competition-factory/score-entry-state';
+import { ClearGate, EndingIntent, ScoreEntryOutcome, ScoreEntryResolution, ScoreEntryView as FactoryView, ScoreEntryRulesContext as FactoryRulesContext } from 'tods-competition-factory/score-entry-state';
 export { contradictsFinishedScore, scoreLocked, clearScoreForEnding, clearGate, clearHeadline } from 'tods-competition-factory/score-entry-state';
 export type { ScoreEntryOutcome, ClearGateInput, ClearGate } from 'tods-competition-factory/score-entry-state';
 /**
  * What the card's rules read: the model, and what the active region holds that the model cannot. The reported status
  * is held as a string, as Free Score's parser returns it (see `statusBoundary.ts`).
  */
-export type ScoreEntryView = Omit<DraftView, 'reportedStatus'> & {
+export type ScoreEntryView = Omit<FactoryView, 'reportedStatus'> & {
     reportedStatus?: string;
 };
 /** Whether the SCORE is a finished result. */
@@ -21,7 +21,7 @@ export declare function endingOffered(status: string, view: ScoreEntryView, disa
 /** The ending a score that has just finished contradicts, as the intent that un-chooses it. */
 export declare function retractEndingContradictedByScore(view: ScoreEntryView): EndingIntent | undefined;
 /** The host's scope and words, which every refusal message is built from. */
-export type ScoreEntryRulesContext = DraftRulesContext & {
+export type ScoreEntryRulesContext = FactoryRulesContext & {
     /** The card's labels: status names and `SCORE_ENTRY_TEXT` keys, defaults already merged in. */
     labels?: Record<string, string>;
     /** The participants' names, for an integrity message that names them rather than "side 1". */

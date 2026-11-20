@@ -1,3 +1,14 @@
+/** Offered in the count field's dropdown; any other whole number in range can be typed. */
+export declare const PARTICIPANTS_COUNT_PRESETS: number[];
+export declare const PARTICIPANTS_COUNT_MIN = 1;
+/** A generous ceiling: a mock field larger than this is a typo, not a tournament. */
+export declare const PARTICIPANTS_COUNT_MAX = 128;
+/**
+ * The count the generator will use for whatever is in the field: a whole number clamped to
+ * [PARTICIPANTS_COUNT_MIN, PARTICIPANTS_COUNT_MAX]. Anything that is not a number falls back to `fallback`
+ * (itself clamped), so an emptied field generates the default rather than nothing.
+ */
+export declare function clampParticipantsCount(value: unknown, fallback?: number): number;
 /**
  * Configuration for mock participants generation
  */
@@ -54,7 +65,7 @@ export interface MockParticipantsConfig {
  *
  * Features:
  * - Gender selection (Any/Male/Female)
- * - Participant count (8-128)
+ * - Participant count: presets 8-128 or any whole number typed in, clamped to 1-128
  * - Age range with automatic validation (ageMax >= ageMin)
  * - Number of countries to limit nationality diversity
  * - Optional WTN/UTR ratings

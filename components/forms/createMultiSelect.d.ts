@@ -12,6 +12,13 @@
  *
  * All colors use --chc-* CSS variables for automatic dark-mode support.
  */
+/**
+ * An option label as the single select shows it. `renderOptions` writes a label into an `<option>` with innerHTML, so
+ * an `options[].label` is HTML there: callers escape names (`Men&#39;s Singles`) and the option shows them decoded.
+ * The multi-select wrote the same label with textContent, so the entities showed literally. Parsing it through an
+ * `<option>` here gives exactly the single select's text: entities decoded, markup reduced to its text, never live.
+ */
+export declare function optionLabelText(label: unknown): string;
 interface MultiSelectOption {
     label: string;
     value: string;
