@@ -1,77 +1,83 @@
 # Operator presentation widgets (unpublished candidate)
 
-Read-only match cards, match lists and round navigation for a thin client. The factory supplies the display facts;
-components renders them. The app owns routing, session, query/command clients and document freshness.
+CMX's day and draw compositions now use the **same match-up card core** as the schedule catalog:
+`../match-up-card/matchUpCard.ts`, with an isolated stylesheet and a shared status-label map.
+The catalog adapter owns drag payloads, highlighting, completion decoration and extra content;
+the core owns display and native keyboard activation. The operator adapter supplies ID-only tap intent,
+per-side score cells, winner text and compact mode. It never imports the catalog's state or page styles.
 
 ```ts
 import { createOperatorDraw } from 'courthive-components/operator';
 import 'courthive-components/operator.css';
-import type { OperatorDrawPresentation } from 'tods-competition-factory/operator-types';
 
 const handle = createOperatorDraw(presentation, {
-  phase: 'read-only',
+  access: 'read-only',
+  freshness: 'unverified',
+  dayFrame,
+  details,
   onOpenMatch: (matchUpId) => openMatchRoute(matchUpId)
 });
 container.append(handle.element);
-// After the host verifies a whole replacement and its source/audience/time metadata:
-handle.update(replacement, 'current');
-// On route teardown:
+handle.update(replacement, { freshness: 'current', updatedAt: serverDocumentBuiltAt });
 handle.destroy();
 ```
 
-The default phase is **read-only**, never a claim that a document is current. Callers may explicitly show
-projection-pending, outcome-unknown, stale, current, read-only or unavailable. Those labels display host state;
-components does not compare revisions, infer authorization, recover commands or run a projection fence.
-`onOpenMatch` is navigation intent only, not a result/placement command or an eligibility decision.
+Access and freshness are independent. The defaults are quiet **read-only** access and **unverified** freshness,
+never a claim of current data. Pending projection is informational; stale/unknown outcomes request attention,
+and unavailable/refused states have stronger treatment. The host owns state and the last-updated instant.
+Each stateful page/draw keeps one persistent polite live region; updates change its text instead of replacing it.
+This establishes the DOM prerequisites for announcements, not a claim of testing every screen reader.
 
-`model.ts` contains the DOM-free selection/text logic. `render.ts` owns DOM creation, event binding and focus.
-Round selection is reconciled by supplied round identity when a replacement arrives. Update replaces the whole
-presentation; destroy clears the view and makes later updates inert. There are no global subscriptions or timers.
-All supplied names use text nodes, including accessible button names. Labels are configurable.
+## Display inputs and boundaries
 
-The first producer-owned presentation contract supplies round order, score text, score presence and upset facts.
-It is a **facet**, not a complete operator document: CFS supplies verified audience/scope; the factory minimizes
-fields for that audience and the producer adds source revision and time validity. Query serves that exact authorized
-variant without field stripping. No raw record, action offers, readiness or rest calculation occurs here.
-`fixtures.ts` is hand-written Storybook/test data and is absent from the public entry's graph.
+`model.ts` contains DOM-free text, grouping, filtering and round selection. `render.ts` is a thin adapter over
+shared cards; `page.ts` composes day controls. Direct round selection preserves supplied round identities.
+Structure selection is still a known gap: one draw presentation describes one structure.
 
-## Verification and release dependency
+A day frame supplies one venue date, locale, IANA zone, human zone label, venue label and optional venue-clock
+"now". The date is formatted without a browser-zone conversion. Matching rows omit repeated date/zone metadata;
+the page shows the zone once. Missing time context is explicit. Different date/zone rows retain exception context.
+"Jump to now" uses the supplied clock; it never infers the venue's time from the browser.
 
-`pnpm verify:operator` checks the DOM-free model, source graph, built renderer and public package entry. Its
-negative controls plant the factory root, an existing engine-backed renderer, transport/storage code and DOM in
-model logic. The current read-only entry allows **no factory runtime**; type imports erase. Adding score-entry
-widgets later requires explicit qualification of their approved pure scoring subpath.
+Day rows are whole native button targets when a host supplies an open handler. The host owns the route; no fake
+href is invented. Court/time groups have sticky headings, natural court ordering and Ready/On court/Finished/Other
+facets. Filters operate only on already delivered authorized rows. Incomplete collections say "delivered matches".
+Unknown bucket membership goes to Other; TO_BE_PLAYED does **not** imply Ready.
 
-Storybook play functions use the trusted Playwright input helper. They cover keyboard focus/navigation, callbacks,
-whole replacements, disposal, empty/unverified state, escaping, real light/dark palettes, phone widths and 44px controls.
-A 124-match fixture checks dense day rendering and first/last selection at 320/390/736px in both themes. It is
-hand-written example DTO data repeated for density, not a live-day readiness or advancement benchmark.
+`OperatorDetails` is an **unpublished UI-contract experiment**, separate from the existing factory DTO: title,
+preformatted score columns, bucket membership and stable court-group identity are host-supplied display slots.
+The stories hand-author these values. The factory/CFS contract must emit and audience-validate them before real
+query integration. The browser neither splits score strings nor computes readiness, eligibility or actions.
+Unsupported/unstructured scoring retains the producer's canonical score text. Upset facts are not rendered.
 
-This candidate depends on the **unreleased factory operator-types contract**. It was qualified using independently
-installed packed candidates, not a sibling dist. The existing peer floor does not yet admit this new API on a fresh
-published install: publish/qualify the factory change, then set its actual minimum version before merging/releasing
-this consumer. The prototype does not imply that published factory 7.43.0 already contains operator-types.
+All names and labels use text nodes. Winner and score facts are included in accessible card names as well as
+per-side rows. Configurable labels include the shared status map; unknown codes do not leak raw enum text.
+Destroy clears the current document and disables retained open, navigation and refresh handlers.
 
-Venue calendar dates use the configured locale (default `en-GB`), without converting the date through the browser
-time zone. Match times show the producer-supplied venue IANA zone, or explicitly say that the zone is unavailable.
-The supplied winner fact has screen-reader text as well as visual emphasis; the renderer never infers a winner.
+## Stories and score-entry workflow preview
 
-W4/W6 began before complete operator-document contract v1. Keep this branch unpublished and unmerged until
-that contract is reviewed and the producer version is available; do not release it with the independent constants work.
+`Operator/Read-only surfaces` contains interactive visual examples. Automated play checks and the explicitly
+labelled hostile-name security fixture live under hidden `!dev` test stories, so opening a showcase does not
+resize the browser or complete its workflow. Security strings are not example participant names.
 
-## Exposure and session boundary
+`Operator/Result entry preview/Record a result (interactive)` uses the **released**
+`tods-competition-factory/score-entry-state` API. Its DOM-free story-host model calls canonical transitions,
+validation, submission and outcome conversion. No scoring rules are copied. The small two-set tennis form is a
+workflow prototype, not the general scoring modal or a released operator API.
 
-Render only the factory-minimized DTO for the verified caller. Do not hide forbidden fields from a broader response.
-The provisional `recorder`/`director` facets carry no contacts, birth dates or raw person records. Their role catalog
-is experimental and still needs complete-document/audience sizing before publication.
+The preview's simulation controls demonstrate Saving → Saved · updating views → Up to date, refusal with retained
+entry, and unknown-outcome recovery by the original command ID without resubmission. Acceptance does not close
+the modal; a sufficiently recent matching document does. The command/read/receipt ports are explicit simulations
+of a prospective app-host contract, **not** implemented CFS/query routes or proof of server authorization/fences.
+These story-only modules and the pure scoring package are absent from the production operator graph.
 
-The entry has no persistence, token handling, telemetry, toast or error-report sink. Its graph guard deliberately
-plants IndexedDB, Cache Storage, service-worker, personal logging/error and transport code and rejects each.
-Callbacks emit match IDs only. Destroying a view clears its DOM, releases its current DTO and disables retained
-navigation/open/refresh handlers. Playwright checks disposal and ID-only intents; this is not a logout test.
+## Qualification and publication hold
 
-The app shell must wipe protected documents/tokens on logout, provider change and expiry, across every storage
-mechanism it uses, and test a deliberately retained payload/token once. Query must refuse a revoked grant even
-when a document is cached. Those app/query integrations do not yet exist, so these acceptance gates stay open.
-CMX is a separate static app with HiveID login; no app server or SSR is required. The preferred cookie mode still
-needs coordinated HiveID/query/CFS support; the shipped mode must be recorded before rollout.
+The operator entry may import only its own production modules and the three explicitly approved shared-card
+files. Its guard rejects root factory, engine-backed renderers, the entire scheduling adapter/page CSS,
+transport, storage and telemetry, and demonstrates those failures with planted imports/calls.
+
+This branch and its types remain unpublished/unmerged pending complete operator-document contract v1 and the
+released producer dependency. No new factory API, package subpath or dependency version is introduced by this UX
+revision. CMX's separate session foundation already tests local logout/provider/expiry cleanup; real query grant
+revocation and operator delivery still require the live integration.

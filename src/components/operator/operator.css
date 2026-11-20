@@ -1,114 +1,101 @@
+.chc-operator-page,
 .chc-operator-draw,
 .chc-operator-list {
   min-width: 0;
   color: var(--chc-text-primary, #172b3a);
+  font-family: inherit;
 }
-.chc-operator-list {
-  display: grid;
-  gap: 12px;
+.chc-operator-status-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 12px 0;
+  font-size: 0.8rem;
+}
+.chc-operator-access {
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--chc-bg-secondary, #edf3f5);
+}
+.chc-operator-access[hidden] {
+  display: none;
 }
 .chc-operator-status {
   margin: 0;
-  padding: 12px;
-  border-radius: 8px;
-  background: var(--chc-bg-secondary, #edf3f5);
-}
-.chc-operator-status:not([data-phase='current']) {
-  border-inline-start: 4px solid var(--chc-color-warning, #a96716);
-}
-.chc-operator-match {
-  min-width: 0;
-  padding: 16px;
-  border: 1px solid var(--chc-color-border, #ccd8df);
-  border-radius: 12px;
-  background: var(--chc-bg-primary, #fff);
-}
-.chc-operator-match-header,
-.chc-operator-side {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-}
-.chc-operator-match-header {
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
+  padding: 6px 0;
   color: var(--chc-text-secondary, #536978);
 }
-.chc-operator-sides {
-  display: grid;
-  gap: 8px;
-  list-style: none;
-  margin: 12px 0;
-  padding: 0;
-}
-.chc-operator-side[data-winner='true'] {
-  font-weight: 700;
-}
-.chc-operator-name {
-  min-width: 0;
-  overflow-wrap: anywhere;
-  flex: 1;
-}
-.chc-operator-seed {
-  flex: 0 0 auto;
-  color: var(--chc-text-secondary, #536978);
-}
-.chc-operator-score,
-.chc-operator-schedule {
-  overflow-wrap: anywhere;
-  font-size: 0.875rem;
-  margin: 8px 0;
-}
-.chc-operator-round-nav {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-.chc-operator-round-nav button,
-.chc-operator-open {
-  min-height: 44px;
+.chc-operator-status[data-severity='warning'],
+.chc-operator-status[data-severity='error'] {
   padding: 8px 12px;
-  border: 1px solid var(--chc-color-border, #ccd8df);
-  border-radius: 8px;
-  color: inherit;
+  border-inline-start: 3px solid var(--chc-color-warning, #a96716);
   background: var(--chc-bg-secondary, #edf3f5);
-  font: inherit;
-  cursor: pointer;
 }
-.chc-operator-round-nav button {
-  min-width: 0;
-  flex: 1;
+.chc-operator-status[data-severity='error'] {
+  border-color: var(--chc-color-danger, #ba3845);
 }
-.chc-operator-round-nav button:disabled {
-  cursor: default;
-  opacity: 0.5;
+/* Card paint, names and score cells belong to the shared catalog/CMX primitive. */
+.chc-operator-row {
+  margin: 0;
+  border-radius: 0;
 }
-.chc-operator-round-nav button:focus-visible,
-.chc-operator-open:focus-visible {
-  outline: 3px solid var(--chc-border-focus, #258b9d);
-  outline-offset: 2px;
+.chc-operator-row-exception {
+  display: block;
+  font-size: 0.7rem;
+  overflow-wrap: anywhere;
+}
+.chc-operator-list {
+  display: grid;
+  gap: 0;
 }
 .chc-operator-round-title {
   font-size: 1.25rem;
   margin: 12px 0;
 }
-.chc-operator-upset {
-  font-weight: 700;
+.chc-operator-round-nav {
+  display: grid;
+  grid-template-columns: minmax(44px, 1fr) minmax(0, 2fr) minmax(44px, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
 }
-
-.chc-operator-qualifier {
+.chc-operator-round-nav button,
+.chc-operator-round-nav select,
+.chc-operator-open,
+.chc-operator-refresh,
+.chc-operator-toolbar button,
+.chc-operator-toolbar select,
+.chc-operator-filters button {
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px;
+  border: 1px solid var(--chc-color-border, #ccd8df);
+  border-radius: 6px;
+  color: inherit;
+  background: var(--chc-bg-primary, #fff);
+  font: inherit;
+  cursor: pointer;
+}
+.chc-operator-round-nav button {
   font-size: 0.75rem;
-  color: var(--chc-text-secondary, #536978);
 }
-
+.chc-operator-round-nav button:disabled,
+.chc-operator-toolbar button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.chc-operator-page :is(button, select):focus-visible,
+.chc-operator-draw :is(button, select):focus-visible,
+.chc-operator-open:focus-visible {
+  outline: 3px solid var(--chc-border-focus, #258b9d);
+  outline-offset: 2px;
+}
 .chc-operator-page-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 20px;
-  color: var(--chc-text-primary, #172b3a);
+  margin: 16px 0;
 }
 .chc-operator-page-header > div {
   min-width: 0;
@@ -119,26 +106,53 @@
   margin: 0;
 }
 .chc-operator-page-header p {
-  margin: 4px 0 0;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
+  margin: 4px 0;
   color: var(--chc-text-secondary, #536978);
 }
-.chc-operator-refresh {
-  min-height: 44px;
-  flex: 0 0 auto;
-  padding: 8px 12px;
-  border: 1px solid var(--chc-color-border, #ccd8df);
-  border-radius: 8px;
-  color: var(--chc-text-primary, #172b3a);
+.chc-operator-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: end;
+  margin: 12px 0;
+}
+.chc-operator-group-select {
+  display: grid;
+  gap: 4px;
+  font-size: 0.75rem;
+}
+.chc-operator-filters {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.chc-operator-filters button {
+  font-size: 0.75rem;
+}
+.chc-operator-filters button[aria-pressed='true'] {
   background: var(--chc-bg-secondary, #edf3f5);
-  font: inherit;
-  cursor: pointer;
+  box-shadow: inset 0 -3px var(--chc-color-primary, #17698a);
+  font-weight: 700;
 }
-.chc-operator-refresh:focus-visible {
-  outline: 3px solid var(--chc-border-focus, #258b9d);
-  outline-offset: 2px;
+.chc-operator-count {
+  font-size: 0.75rem;
+  color: var(--chc-text-secondary, #536978);
 }
-
+.chc-operator-day-group {
+  min-width: 0;
+}
+.chc-operator-group-heading {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--chc-bg-secondary, #edf3f5);
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--chc-color-border, #ccd8df);
+}
 .chc-operator-sr-only {
   position: absolute;
   width: 1px;
@@ -149,4 +163,9 @@
   clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
+}
+/* An ungraded time is a clock, not a readiness signal. Catalog grades remain host-owned. */
+.chc-operator-row .spl-card-time-header:not([data-time-status]),
+.chc-operator-match .spl-card-time-header:not([data-time-status]) {
+  color: var(--chc-text-primary, #172b3a);
 }

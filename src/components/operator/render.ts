@@ -1,159 +1,218 @@
-import { defaultOperatorLabels, operatorMatchText, reconcileOperatorRound, moveOperatorRound } from './model';
+import { buildSharedMatchUpCard } from '../match-up-card/matchUpCard';
+import { createOperatorStatus } from './status';
+import {
+  defaultOperatorLabels,
+  operatorMatchText,
+  operatorDateLabel,
+  reconcileOperatorRound,
+  moveOperatorRound,
+  selectOperatorRound
+} from './model';
 
 // constants and types
+import type { OperatorLabels, OperatorRoundState, OperatorViewState, OperatorDayFrame, OperatorDetails } from './model';
 import type { OperatorDrawPresentation, OperatorMatchPresentation } from 'tods-competition-factory/operator-types';
-import type { OperatorLabels, OperatorRoundState, OperatorViewPhase } from './model';
 
-export type OperatorRenderOptions = {
+export type OperatorRenderOptions = OperatorViewState & {
   onOpenMatch?: (matchUpId: string) => void;
   labels?: OperatorLabels;
-  phase?: OperatorViewPhase;
   locale?: string;
+  dayFrame?: OperatorDayFrame;
+  /** Preformatted display cells from the host/producer; never split a score string in the browser. */
+  details?: OperatorDetails;
 };
-
-function node(tag: string, className: string, text?: string): HTMLElement {
+export function operatorNode(tag: string, className: string, text?: string): HTMLElement {
   const element = document.createElement(tag);
   element.className = className;
   if (text !== undefined) element.textContent = text;
   return element;
 }
-
-function button(className: string, text: string): HTMLButtonElement {
+export function operatorButton(className: string, text: string): HTMLButtonElement {
   const element = document.createElement('button');
   element.type = 'button';
   element.className = className;
   element.textContent = text;
   return element;
 }
-
-function viewStatus(phase: OperatorViewPhase, labels: OperatorLabels) {
-  const status = node('p', 'chc-operator-status', labels.phases[phase]);
-  status.dataset.phase = phase;
-  status.setAttribute('role', 'status');
-  return status;
+/** Thin adapter over the same engine-free card used by the scheduling catalog. */
+function matchCard(match: OperatorMatchPresentation, options: OperatorRenderOptions, compact: boolean): HTMLElement {
+  const labels = options.labels ?? defaultOperatorLabels;
+  const view = operatorMatchText(match, labels, options.locale, options.dayFrame);
+  const details = options.details?.[match.matchUpId];
+  const columns = details?.scoreColumns;
+  const chips = [{ text: view.statusText, kind: 'status', tone: view.statusTone }];
+  if (match.schedule?.court) chips.push({ text: match.schedule.court, kind: 'court', tone: 'neutral' });
+  const card = buildSharedMatchUpCard(
+    {
+      id: match.matchUpId,
+      title: details?.title,
+      sides: view.sides.map((side) => ({
+        name: side.displayName,
+        seed: side.seedLabel,
+        qualifier: side.qualifierLabel,
+        winner: side.winnerLabel,
+        scores: columns?.map((column) => ({
+          label: column.label,
+          text: side.sideNumber === 1 ? column.side1 : column.side2
+        }))
+      })),
+      scoreText: columns?.length ? undefined : view.scoreLine,
+      meta: compact
+        ? details?.meta
+        : options.dayFrame
+          ? [
+              operatorDateLabel(options.dayFrame.date, options.dayFrame.locale),
+              options.dayFrame.venueLabel,
+              options.dayFrame.timeZoneLabel ?? labels.timeZoneUnavailable
+            ]
+              .filter(Boolean)
+              .join(' · ')
+          : view.scheduleText,
+      chips,
+      time: match.schedule?.time,
+      accessibleName: [
+        view.accessibleName,
+        match.schedule?.court ?? labels.otherCourt,
+        match.schedule?.time ?? labels.unscheduled,
+        view.statusText,
+        ...view.sides.filter((side) => side.winnerLabel).map((side) => labels.winner + ': ' + side.displayName),
+        ...(columns ?? []).map((column) => column.label + ': ' + column.side1 + '–' + column.side2)
+      ].join(' · ')
+    },
+    { compact, onActivate: options.onOpenMatch ? () => options.onOpenMatch?.(match.matchUpId) : undefined }
+  );
+  card.classList.add(compact ? 'chc-operator-row' : 'chc-operator-match');
+  card.dataset.matchUpId = match.matchUpId;
+  if (
+    compact &&
+    options.dayFrame &&
+    (match.schedule?.date !== options.dayFrame.date || match.schedule?.timeZone !== options.dayFrame.timeZone)
+  )
+    card.append(operatorNode('span', 'chc-operator-row-exception', view.scheduleText));
+  return card;
 }
-
-/** No engine calls, eligibility checks, fetch, navigation or global composition state. */
 export function renderOperatorMatch(
   match: OperatorMatchPresentation,
   options: OperatorRenderOptions = {}
 ): HTMLElement {
-  const labels = options.labels ?? defaultOperatorLabels;
-  const view = operatorMatchText(match, labels, options.locale);
-  const card = node('article', 'chc-operator-match');
-  card.dataset.matchUpId = match.matchUpId;
-  const heading = node('div', 'chc-operator-match-header');
-  heading.append(node('span', '', view.statusText));
-  if (view.upsetLabel) heading.append(node('span', 'chc-operator-upset', view.upsetLabel));
-  card.append(heading);
-  const sides = node('ul', 'chc-operator-sides');
-  for (const side of view.sides) {
-    const row = node('li', 'chc-operator-side');
-    row.dataset.winner = String(side.isWinner);
-    const name = node('span', 'chc-operator-name', side.displayName);
-    if (side.winnerLabel) name.append(node('span', 'chc-operator-sr-only', ' · ' + side.winnerLabel));
-    row.append(name);
-    if (side.qualifierLabel) row.append(node('span', 'chc-operator-qualifier', side.qualifierLabel));
-    if (side.seedLabel) row.append(node('span', 'chc-operator-seed', side.seedLabel));
-    sides.append(row);
-  }
-  card.append(sides);
-  if (view.scoreLine) card.append(node('p', 'chc-operator-score', view.scoreLine));
-  if (view.scheduleText) card.append(node('p', 'chc-operator-schedule', view.scheduleText));
-  if (options.onOpenMatch) {
-    const open = button('chc-operator-open', labels.openMatch);
-    open.setAttribute('aria-label', view.accessibleName);
-    const matchUpId = match.matchUpId;
-    open.addEventListener('click', () => options.onOpenMatch?.(matchUpId));
-    card.append(open);
-  }
-  return card;
+  return matchCard(match, options, false);
 }
-
+export function renderOperatorMatchRow(
+  match: OperatorMatchPresentation,
+  options: OperatorRenderOptions = {}
+): HTMLElement {
+  return matchCard(match, options, true);
+}
 export function renderOperatorMatchList(
   matches: readonly OperatorMatchPresentation[],
   options: OperatorRenderOptions = {}
 ): HTMLElement {
   const labels = options.labels ?? defaultOperatorLabels;
-  const list = node('section', 'chc-operator-list');
-  list.append(viewStatus(options.phase ?? 'read-only', labels));
-  if (!matches.length) list.append(node('p', 'chc-operator-empty', labels.noMatches));
-  for (const match of matches) list.append(renderOperatorMatch(match, options));
+  const list = operatorNode('section', 'chc-operator-list');
+  const status = createOperatorStatus(labels, options.dayFrame);
+  list.append(status.element);
+  status.update(options);
+  if (!matches.length) list.append(operatorNode('p', 'chc-operator-empty', labels.noMatches));
+  for (const match of matches) list.append(renderOperatorMatchRow(match, options));
   return list;
 }
-
 export type OperatorDrawHandle = {
   element: HTMLElement;
-  update(document: OperatorDrawPresentation, phase?: OperatorViewPhase): void;
+  update(document: OperatorDrawPresentation, state?: OperatorViewState): void;
   destroy(): void;
 };
-
-/** The host replaces a whole presentation. Round selection survives by identity, never by stale array index. */
 export function createOperatorDraw(
   initial: OperatorDrawPresentation,
   options: OperatorRenderOptions = {}
 ): OperatorDrawHandle {
   const labels = options.labels ?? defaultOperatorLabels;
-  const element = node('section', 'chc-operator-draw');
+  const element = operatorNode('section', 'chc-operator-draw');
+  const status = createOperatorStatus(labels, options.dayFrame);
+  const body = operatorNode('div', 'chc-operator-draw-body');
+  element.append(status.element, body);
   let current: OperatorDrawPresentation | undefined = initial;
-  let phase = options.phase ?? 'read-only';
-  let state: OperatorRoundState = reconcileOperatorRound({}, current);
+  let viewState: OperatorViewState = options;
+  let state: OperatorRoundState = reconcileOperatorRound({}, initial);
   let destroyed = false;
-  function render() {
-    if (destroyed || !current) return;
+  function render(focus?: 'select' | -1 | 1) {
+    if (destroyed || !current) return undefined;
     const presentation = current;
-    element.replaceChildren();
     state = reconcileOperatorRound(state, presentation);
     const index = presentation.rounds.findIndex((round) => round.roundNumber === state.roundNumber);
     const round = presentation.rounds[index];
-    const navigation = node('nav', 'chc-operator-round-nav');
-    navigation.setAttribute('aria-label', labels.round);
-    for (const direction of [-1, 1] as const) {
-      const control = button('', direction === -1 ? labels.previousRound : labels.nextRound);
-      control.disabled = !presentation.rounds[index + direction];
-      control.addEventListener('click', () => {
-        if (destroyed || !current) return;
-        state = moveOperatorRound(state, direction, current);
-        render();
-        // Restore focus to the equivalent navigation control after replacing the DOM.
-        const buttons = element.querySelectorAll<HTMLButtonElement>('nav button');
-        const preferred = buttons[direction === -1 ? 0 : 1];
-        (preferred?.disabled ? [...buttons].find((button) => !button.disabled) : preferred)?.focus();
-      });
-      navigation.append(control);
-    }
-    const title = node(
+    const title = operatorNode(
       'h2',
       'chc-operator-round-title',
       round?.name ?? (round ? `${labels.round} ${round.roundNumber}` : labels.noMatches)
     );
-    element.append(
-      navigation,
-      title,
-      renderOperatorMatchList(round?.matches ?? [], {
-        ...options,
-        phase,
-        onOpenMatch: options.onOpenMatch
-          ? (matchUpId) => {
-              if (!destroyed) options.onOpenMatch?.(matchUpId);
-            }
-          : undefined
-      })
-    );
+    const navigation = operatorNode('nav', 'chc-operator-round-nav');
+    navigation.setAttribute('aria-label', `${labels.round}: ${title.textContent}`);
+    for (const direction of [-1, 1] as const) {
+      const control = operatorButton('', direction === -1 ? labels.previousRound : labels.nextRound);
+      control.dataset.direction = String(direction);
+      control.disabled = !presentation.rounds[index + direction];
+      control.addEventListener('click', () => {
+        if (destroyed || !current) return undefined;
+        state = moveOperatorRound(state, direction, current);
+        render(direction);
+      });
+      navigation.append(control);
+    }
+    const select = document.createElement('select');
+    select.setAttribute('aria-label', labels.round);
+    for (const item of presentation.rounds) {
+      const option = document.createElement('option');
+      option.value = String(item.roundNumber);
+      option.textContent = item.name ?? `${labels.round} ${item.roundNumber}`;
+      option.selected = item.roundNumber === state.roundNumber;
+      select.append(option);
+    }
+    select.disabled = !presentation.rounds.length;
+    select.addEventListener('change', () => {
+      if (destroyed || !current) return undefined;
+      state = selectOperatorRound(Number(select.value), current);
+      render('select');
+    });
+    navigation.insertBefore(select, navigation.lastChild);
+    const list = operatorNode('div', 'chc-operator-list');
+    if (!round?.matches.length) list.append(operatorNode('p', 'chc-operator-empty', labels.noMatches));
+    for (const match of round?.matches ?? [])
+      list.append(
+        renderOperatorMatchRow(match, {
+          ...options,
+          onOpenMatch: options.onOpenMatch
+            ? (id) => {
+                if (!destroyed) options.onOpenMatch?.(id);
+              }
+            : undefined
+        })
+      );
+    body.replaceChildren(title, navigation, list);
+    status.update(viewState);
+    if (focus === 'select') select.focus();
+    else if (focus !== undefined) {
+      const controls = [...navigation.querySelectorAll<HTMLButtonElement>('button')];
+      (
+        controls.find((control) => control.dataset.direction === String(focus) && !control.disabled) ??
+        controls.find((control) => !control.disabled) ??
+        select
+      ).focus();
+    }
   }
   render();
   return {
     element,
-    update(document, nextPhase = phase) {
-      if (destroyed) return;
+    update(document, nextState = {}) {
+      if (destroyed) return undefined;
       current = document;
-      phase = nextPhase;
+      viewState = { ...viewState, ...nextState };
       render();
     },
     destroy() {
       destroyed = true;
       current = undefined;
       state = {};
+      status.destroy();
       element.replaceChildren();
     }
   };

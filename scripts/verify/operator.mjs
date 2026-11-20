@@ -1,8 +1,10 @@
 /** The first read-only operator entry renders DTOs only. No factory runtime, root components, transport or storage. */
+import { existsSync, realpathSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
-import { existsSync, realpathSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { execFileSync } from 'node:child_process';
 import { gzipSync } from 'node:zlib';
+import { tmpdir } from 'node:os';
 import { build } from 'vite';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -51,9 +53,14 @@ function judge(result, built = false, logic = false) {
   const bad = result.modules.filter((path) => {
     const absolute = resolve(ROOT, path);
     const local = relative(ROOT, absolute).replaceAll('\\', '/');
+    const shared = new Set([
+      'src/components/match-up-card/matchUpCard.ts',
+      'src/components/match-up-card/matchUpCard.css',
+      'src/components/match-up-card/labels.ts'
+    ]);
     const allowed = built
       ? local.startsWith('dist/') && !local.includes('courthive-components.')
-      : local.startsWith('src/components/operator/');
+      : local.startsWith('src/components/operator/') || shared.has(local);
     return !allowed || /\.(stories|test)\.|\/fixtures\./.test(local);
   });
   if (
@@ -74,6 +81,7 @@ async function selfTest() {
   let ok = true;
   for (const [name, plant] of Object.entries({
     'factory root': "import 'tods-competition-factory';",
+    'schedule adapter and broad CSS': "import '../schedule-page/ui/matchUpCard';",
     'components root renderer': "import '../renderStructure/renderStructure';",
     transport: "fetch('/factory');",
     storage: "localStorage.getItem('tournament');",
@@ -123,8 +131,38 @@ async function verify() {
   return ok;
 }
 
+async function verifyPacked(file) {
+  if (!file) return report('packed operator', ['supply a tarball after --packed']);
+  const directory = mkdtempSync(join(tmpdir(), 'operator-pack-'));
+  try {
+    execFileSync('tar', ['-xzf', resolve(file), '-C', directory]);
+    const entry = join(directory, 'package/dist/operator.mjs');
+    const module = await import(pathToFileURL(entry).href);
+    const code = readFileSync(entry, 'utf8');
+    const css = readFileSync(join(directory, 'package/dist/operator.css'), 'utf8');
+    const missing = ['renderOperatorMatchRow', 'createOperatorDraw', 'createOperatorMatchListPage'].filter(
+      (name) => typeof module[name] !== 'function'
+    );
+    if (!css.includes('spl-card-side')) missing.push('shared card stylesheet');
+    if (/tods-competition-factory|score-entry-state|schedule-page\.css|Simulated services/.test(code))
+      missing.push('forbidden packed runtime');
+    return report('packed operator imports without DOM and carries isolated CSS', missing);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+}
+
 try {
-  process.exitCode = (process.argv.includes('--self-test') ? await selfTest() : await verify()) ? 0 : 1;
+  const packed = process.argv.indexOf('--packed');
+  process.exitCode = (
+    packed >= 0
+      ? await verifyPacked(process.argv[packed + 1])
+      : process.argv.includes('--self-test')
+        ? await selfTest()
+        : await verify()
+  )
+    ? 0
+    : 1;
 } catch (error) {
   console.error(`[operator] FAIL: ${error.stack}`);
   process.exitCode = 1;

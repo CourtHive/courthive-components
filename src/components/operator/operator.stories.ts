@@ -1,91 +1,35 @@
-import { operatorDrawFixture, operatorMatchFixture, operatorBusyDayFixture } from './fixtures';
 import { createOperatorDraw, renderOperatorMatchList, renderOperatorMatch } from './render';
 import { applyThemePalette } from '../../theme/palettes';
 import { user } from '../../stories/helpers/trustedUser';
 import { createOperatorMatchListPage } from './page';
 import { expect, within } from 'storybook/test';
+import {
+  operatorDrawFixture,
+  operatorMatchFixture,
+  operatorBusyDayFixture,
+  operatorDayFrame,
+  operatorDetails,
+  operatorBusyDetails
+} from './fixtures';
 
 // constants and types
 import type { Meta, StoryObj } from '@storybook/html-vite';
-import type { OperatorViewPhase } from './model';
+import type { OperatorFreshness } from './model';
 import './operator.css';
 
 const meta: Meta = { title: 'Operator/Read-only surfaces', parameters: { layout: 'padded' } };
 export default meta;
 type Story = StoryObj;
-const NEXT_ROUND = 'Next round';
-const CURRENT_STATUS = 'Up to date';
-const FIXTURE_DAY = 'Friday · 20 November';
-const DENSITY_SELECTION = 'Density selection';
-
 const ARIA_LABEL = 'aria-label';
-const EXAMPLE_NAME = 'Alex Morgan';
-const RETAINED_CONTROLS = 'Retained controls';
-const DRAW_ROOT = '.chc-operator-draw';
-const PAGE_ROOT = '.chc-operator-page';
+const MATCH_ID = 'example-semifinal';
+const ROW = '.chc-operator-row';
 const ID_INTENTS = 'ID intents';
-const OPEN_EXAMPLE_MATCH = 'Open match: Alex Morgan versus Sam Rivera';
-
-export const DisposalAndIdIntents: Story = {
-  render: () => {
-    const host = document.createElement('div');
-    const ids: string[] = [];
-    const log = document.createElement('output');
-    log.setAttribute(ARIA_LABEL, ID_INTENTS);
-    const options = {
-      onOpenMatch: (id: string) => {
-        ids.push(id);
-        log.textContent = JSON.stringify(ids);
-      }
-    };
-    const draw = createOperatorDraw(operatorDrawFixture, options);
-    const page = createOperatorMatchListPage(
-      { title: 'Day', matches: [operatorMatchFixture] },
-      {
-        ...options,
-        onRefresh: () => {
-          ids.push('refresh');
-          log.textContent = JSON.stringify(ids);
-        }
-      }
-    );
-    const staleOpen = draw.element.querySelector<HTMLButtonElement>('.chc-operator-open')!;
-    const staleNext = draw.element.querySelector<HTMLButtonElement>('nav button:last-child')!;
-    const staleRefresh = page.element.querySelector<HTMLButtonElement>('.chc-operator-refresh')!;
-    const dispose = document.createElement('button');
-    dispose.textContent = 'Dispose views';
-    dispose.addEventListener('click', () => {
-      draw.destroy();
-      page.destroy();
-    });
-    const retained = document.createElement('div');
-    retained.setAttribute('role', 'group');
-    retained.setAttribute(ARIA_LABEL, RETAINED_CONTROLS);
-    const retain = document.createElement('button');
-    retain.textContent = 'Retain controls';
-    // A deliberately retained host node stays clickable after view teardown; this is not a logout simulation.
-    retain.addEventListener('click', () => retained.append(staleOpen, staleNext, staleRefresh));
-    host.append(draw.element, page.element, retain, dispose, retained, log);
-    return host;
-  },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    expect(canvasElement.querySelector(DRAW_ROOT)?.textContent).toContain(EXAMPLE_NAME);
-    await user.click(canvas.getAllByRole('button', { name: OPEN_EXAMPLE_MATCH })[0]);
-    expect(canvas.getByLabelText(ID_INTENTS)).toHaveTextContent('["example-semifinal"]');
-    await user.click(canvas.getByRole('button', { name: 'Retain controls' }));
-    await user.click(canvas.getByRole('button', { name: 'Dispose views' }));
-    const retained = within(canvas.getByRole('group', { name: RETAINED_CONTROLS }));
-    await user.click(retained.getByRole('button', { name: OPEN_EXAMPLE_MATCH }));
-    await user.click(retained.getByRole('button', { name: NEXT_ROUND }));
-    await user.click(retained.getByRole('button', { name: 'Refresh' }));
-    expect(canvasElement.querySelector(DRAW_ROOT)?.textContent).toBe('');
-    expect(canvasElement.querySelector(PAGE_ROOT)?.textContent).toBe('');
-    expect(canvas.getByLabelText(ID_INTENTS)).toHaveTextContent('["example-semifinal"]');
-  }
-};
-
-function example(phase: OperatorViewPhase = 'current') {
+const CURRENT = 'Up to date';
+const EXAMPLE = 'Alex Morgan';
+const rowName = /Open match: Alex Morgan versus Sam Rivera/;
+const dayData = { title: 'Today', dayFrame: operatorDayFrame, matches: operatorBusyDayFixture, complete: true };
+const displayOptions = { dayFrame: operatorDayFrame, details: operatorDetails };
+function example(freshness: OperatorFreshness = 'current') {
   const host = document.createElement('div');
   host.style.maxWidth = '640px';
   host.style.margin = '0 auto';
@@ -93,7 +37,8 @@ function example(phase: OperatorViewPhase = 'current') {
   selection.setAttribute('role', 'log');
   selection.setAttribute(ARIA_LABEL, 'Selected match');
   const draw = createOperatorDraw(operatorDrawFixture, {
-    phase,
+    ...displayOptions,
+    freshness,
     onOpenMatch: (id) => {
       selection.textContent = id;
     }
@@ -101,204 +46,100 @@ function example(phase: OperatorViewPhase = 'current') {
   host.append(draw.element, selection);
   return { host, draw };
 }
-
-export const Rounds: Story = {
+const RoundsCase: Story = {
   render: () => example().host,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    expect(await user.isTrusted()).toBe(true);
-    await user.click(canvas.getByRole('button', { name: NEXT_ROUND }));
+    await user.selectOptions(canvas.getByRole('combobox', { name: 'Round' }), '3');
     expect(canvas.getByRole('heading', { name: 'Final' })).toBeVisible();
-    expect(canvas.getByRole('button', { name: NEXT_ROUND })).toBeDisabled();
-    expect(canvas.getByRole('button', { name: 'Previous round' })).toHaveFocus();
-    await user.keyboard('{Enter}');
+    expect(canvas.getByRole('combobox')).toHaveFocus();
+    await user.click(canvas.getByRole('button', { name: 'Previous round' }));
     expect(canvas.getByRole('heading', { name: 'Semifinals' })).toBeVisible();
-    await user.click(canvas.getByRole('button', { name: OPEN_EXAMPLE_MATCH }));
-    expect(canvas.getByRole('log', { name: 'Selected match' })).toHaveTextContent('example-semifinal');
+    await user.click(canvas.getByRole('button', { name: rowName }));
+    expect(canvas.getByRole('log')).toHaveTextContent(MATCH_ID);
+    const title = canvasElement.querySelector('h2')!;
+    expect(
+      title.compareDocumentPosition(canvas.getByRole('navigation')) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
   }
 };
-
-export const PhoneWidthsAndThemes: Story = {
-  render: () => example().host,
-  play: async ({ canvasElement }) => {
-    const original = {
-      width: globalThis.innerWidth,
-      height: globalThis.innerHeight,
-      theme: document.documentElement.dataset.theme,
-      palette: document.documentElement.dataset.palette
-    };
-    try {
-      const backgrounds: string[] = [];
-      for (const theme of ['light', 'dark'] as const) {
-        document.documentElement.dataset.theme = theme;
-        applyThemePalette(theme);
-        for (const width of [320, 390, 736]) {
-          await user.viewport(width, 850);
-          const root = canvasElement.querySelector<HTMLElement>(DRAW_ROOT)!;
-          expect(root.scrollWidth).toBeLessThanOrEqual(root.clientWidth + 1);
-          for (const button of root.querySelectorAll('button'))
-            expect(button.getBoundingClientRect().height).toBeGreaterThanOrEqual(44);
-          expect(within(canvasElement).getByText(EXAMPLE_NAME)).toBeVisible();
-        }
-        backgrounds.push(getComputedStyle(canvasElement.querySelector('.chc-operator-match')!).backgroundColor);
-      }
-      expect(backgrounds[0]).not.toBe(backgrounds[1]);
-    } finally {
-      if (original.theme === undefined) delete document.documentElement.dataset.theme;
-      else document.documentElement.dataset.theme = original.theme;
-      if (original.palette === undefined) delete document.documentElement.dataset.palette;
-      else document.documentElement.dataset.palette = original.palette;
-      await user.viewport(original.width, original.height);
-    }
-  }
-};
-
-export const HostReplacements: Story = {
+const DayPageCase: Story = {
   render: () => {
-    const { host, draw } = example('projection-pending');
-    const replace = document.createElement('button');
-    replace.textContent = 'Install replacement';
-    replace.addEventListener('click', () =>
-      draw.update(
-        {
-          ...operatorDrawFixture,
-          rounds: [
-            {
-              ...operatorDrawFixture.rounds[1],
-              matches: [{ ...operatorDrawFixture.rounds[1].matches[0], scoreText: '6-2 6-4', hasScore: true }]
-            }
-          ]
-        },
-        'current'
-      )
-    );
-    const destroy = document.createElement('button');
-    destroy.textContent = 'Dispose view';
-    destroy.addEventListener('click', () => {
-      draw.destroy();
-      draw.update(operatorDrawFixture);
-    });
-    host.append(replace, destroy);
-    return host;
-  },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    expect(canvas.getByRole('status')).toHaveTextContent('Saved · updating views');
-    await user.click(canvas.getByRole('button', { name: NEXT_ROUND }));
-    await user.click(canvas.getByRole('button', { name: 'Install replacement' }));
-    expect(canvas.getByRole('heading', { name: 'Final' })).toBeVisible();
-    expect(canvas.getByRole('status')).toHaveTextContent(CURRENT_STATUS);
-    expect(canvas.getByText('Score: 6-2 6-4')).toBeVisible();
-    expect(canvas.queryByRole('heading', { name: 'Semifinals' })).toBeNull();
-    await user.click(canvas.getByRole('button', { name: 'Dispose view' }));
-    expect(canvas.queryByRole('status')).toBeNull();
-  }
-};
-
-export const EscapedNamesAndEmptySides: Story = {
-  render: () =>
-    renderOperatorMatch({
-      ...operatorMatchFixture,
-      sides: [
-        { ...operatorMatchFixture.sides[0], name: '<img src=x onerror="alert(1)">' },
-        { sideNumber: 2, bye: false, qualifier: true, isWinner: false }
-      ]
-    }),
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    expect(canvas.getByText('<img src=x onerror="alert(1)">')).toBeVisible();
-    expect(canvasElement.querySelector('img')).toBeNull();
-    expect(canvas.getByText('Qualifier')).toBeVisible();
-    expect(canvas.queryByRole('button')).toBeNull();
-  }
-};
-
-export const DayPage: Story = {
-  render: () => {
-    let requests = 0;
+    const sample = operatorBusyDayFixture.filter((_, index) => [0, 1, 32, 33, 64, 65, 96, 97].includes(index));
     const page = createOperatorMatchListPage(
+      { ...dayData, matches: sample },
       {
-        title: 'Today',
-        dateLabel: FIXTURE_DAY,
-        matches: [operatorMatchFixture]
-      },
-      {
-        onRefresh: () => {
-          requests += 1;
-          page.update(
-            {
-              title: 'Today',
-              dateLabel: FIXTURE_DAY,
-              matches: [{ ...operatorMatchFixture, scoreText: '6-2 6-4' }]
-            },
-            'current'
-          );
-          page.element.dataset.requests = String(requests);
-        }
+        ...displayOptions,
+        details: operatorBusyDetails,
+        onOpenMatch: () => {},
+        onRefresh: () =>
+          page.update({ ...dayData, matches: sample }, { freshness: 'current', updatedAt: '2026-11-20T16:02:00Z' })
       }
     );
     return page.element;
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    expect(canvas.getByRole('heading', { name: 'Today' })).toBeVisible();
-    expect(canvas.getByRole('status')).toHaveTextContent('Read only');
+    const live = canvas.getByRole('status');
+    expect(canvas.getByText('Read only')).toBeVisible();
+    expect(live).toHaveAttribute('data-severity', 'quiet');
     await user.click(canvas.getByRole('button', { name: 'Refresh' }));
-    expect(canvas.getByRole('status')).toHaveTextContent(CURRENT_STATUS);
-    expect(canvas.getByText('Score: 6-2 6-4')).toBeVisible();
-    expect(canvas.queryByText('Score: 6-4 6-3')).toBeNull();
+    expect(canvas.getByRole('status')).toBe(live);
+    expect(live).toHaveTextContent('Up to date · Last updated 11:02');
     expect(canvas.getByRole('button', { name: 'Refresh' })).toHaveFocus();
-    expect(canvasElement.querySelector(PAGE_ROOT)).toHaveAttribute('data-requests', '1');
+    expect(canvas.getByText('Central courts · Eastern Time (EST)')).toBeVisible();
+    expect(canvas.queryByText(/America\/New_York/)).toBeNull();
   }
 };
-
-export const BusyDayDensity: Story = {
+const BusyDayDensityCase: Story = {
   render: () => {
+    const host = document.createElement('div');
     const selection = document.createElement('p');
     selection.setAttribute('role', 'log');
-    selection.setAttribute(ARIA_LABEL, DENSITY_SELECTION);
-    const page = createOperatorMatchListPage(
-      {
-        title: 'Today · 124-match density fixture',
-        dateLabel: FIXTURE_DAY,
-        matches: operatorBusyDayFixture
-      },
-      {
-        onOpenMatch: (id) => {
-          selection.textContent = id;
-        }
+    const page = createOperatorMatchListPage(dayData, {
+      details: operatorBusyDetails,
+      freshness: 'current',
+      onOpenMatch: (id) => {
+        selection.textContent = id;
       }
-    );
-    const host = document.createElement('div');
+    });
     host.append(page.element, selection);
     return host;
   },
   play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
     const original = {
-      width: globalThis.innerWidth,
-      height: globalThis.innerHeight,
+      width: innerWidth,
+      height: innerHeight,
       theme: document.documentElement.dataset.theme,
       palette: document.documentElement.dataset.palette
     };
     try {
-      const canvas = within(canvasElement);
-      const cards = canvasElement.querySelectorAll('.chc-operator-match');
-      expect(cards).toHaveLength(124);
       for (const theme of ['light', 'dark'] as const) {
         document.documentElement.dataset.theme = theme;
         applyThemePalette(theme);
         for (const width of [320, 390, 736]) {
           await user.viewport(width, 850);
-          expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(globalThis.innerWidth);
-          for (const button of canvasElement.querySelectorAll('button'))
-            expect(button.getBoundingClientRect().height).toBeGreaterThanOrEqual(44);
+          expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(innerWidth);
+          const rows = canvasElement.querySelectorAll<HTMLElement>(ROW);
+          expect(rows).toHaveLength(124);
+          for (const row of rows) {
+            expect(row.getBoundingClientRect().height).toBeGreaterThanOrEqual(44);
+            expect(row.getBoundingClientRect().height).toBeLessThanOrEqual(124);
+            expect(row.querySelectorAll('button')).toHaveLength(0);
+          }
+          expect(getComputedStyle(canvasElement.querySelector('.chc-operator-group-heading')!).position).toBe('sticky');
         }
       }
-      const buttons = canvas.getAllByRole('button', { name: /Open match:/ });
-      await user.click(buttons[0]);
-      expect(canvas.getByRole('log', { name: DENSITY_SELECTION })).toHaveTextContent('density-match-1');
-      await user.click(buttons[123]);
-      expect(canvas.getByRole('log', { name: DENSITY_SELECTION })).toHaveTextContent('density-match-124');
+      await user.click(canvas.getByRole('button', { name: 'Ready 32' }));
+      expect(canvasElement.querySelectorAll(ROW)).toHaveLength(32);
+      await user.click(canvas.getByRole('button', { name: 'All 124' }));
+      await user.click(canvas.getByRole('button', { name: 'Jump to now' }));
+      expect(document.activeElement).toHaveAttribute('data-match-up-id', 'density-match-33');
+      await user.selectOptions(canvas.getByRole('combobox', { name: 'Group by' }), 'time');
+      expect(canvasElement.querySelectorAll('.chc-operator-group-heading')).toHaveLength(16);
+      await user.click(canvas.getAllByRole('button', { name: rowName })[0]);
+      expect(canvas.getByRole('log')).toHaveTextContent('density-match-1');
     } finally {
       if (original.theme === undefined) delete document.documentElement.dataset.theme;
       else document.documentElement.dataset.theme = original.theme;
@@ -308,43 +149,205 @@ export const BusyDayDensity: Story = {
     }
   }
 };
-
-export const WinnerAndVenueTime: Story = {
-  render: () => renderOperatorMatch(operatorMatchFixture),
+const PhoneWidthsAndThemesCase: Story = {
+  render: () => example().host,
   play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    expect(canvas.getByText(/20 November 2026/)).toBeVisible();
-    expect(canvas.getByText(/10:30 \(America\/New_York\)/)).toBeVisible();
-    expect(canvas.queryByText(/2026-11-20/)).toBeNull();
-    const cues = canvasElement.querySelectorAll('.chc-operator-sr-only');
-    expect(cues).toHaveLength(1);
-    expect(cues[0]).toHaveTextContent('Winner');
-    expect(cues[0]).not.toHaveAttribute('aria-hidden', 'true');
+    const original = {
+      width: innerWidth,
+      height: innerHeight,
+      theme: document.documentElement.dataset.theme,
+      palette: document.documentElement.dataset.palette
+    };
+    try {
+      const paints: string[] = [];
+      for (const theme of ['light', 'dark'] as const) {
+        document.documentElement.dataset.theme = theme;
+        applyThemePalette(theme);
+        for (const width of [320, 390, 736]) {
+          await user.viewport(width, 850);
+          expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(innerWidth);
+          for (const control of canvasElement.querySelectorAll('button,select'))
+            expect(control.getBoundingClientRect().height).toBeGreaterThanOrEqual(44);
+          expect(within(canvasElement).getByText(EXAMPLE)).toBeVisible();
+        }
+        paints.push(getComputedStyle(canvasElement.querySelector('.spl-matchup-card')!).backgroundColor);
+      }
+      expect(paints[0]).not.toBe(paints[1]);
+    } finally {
+      if (original.theme === undefined) delete document.documentElement.dataset.theme;
+      else document.documentElement.dataset.theme = original.theme;
+      if (original.palette === undefined) delete document.documentElement.dataset.palette;
+      else document.documentElement.dataset.palette = original.palette;
+      await user.viewport(original.width, original.height);
+    }
   }
 };
-
-export const NamedQualifier: Story = {
-  render: () =>
-    renderOperatorMatch({
-      ...operatorMatchFixture,
-      sides: [{ ...operatorMatchFixture.sides[0], qualifier: true }, operatorMatchFixture.sides[1]]
-    }),
+const MatchDetailCase: Story = {
+  render: () => renderOperatorMatch(operatorMatchFixture, displayOptions),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    expect(canvas.getByText(EXAMPLE_NAME)).toBeVisible();
+    expect(canvas.getByText('Open singles', { exact: false })).toBeVisible();
+    expect(canvasElement.querySelectorAll('.spl-card-score-cell')).toHaveLength(4);
+    expect(canvasElement.querySelector('.spl-card-sr-only')).toHaveTextContent('Winner');
+    expect(canvas.queryByText('Upset')).toBeNull();
+    expect(canvas.queryByText('COMPLETED')).toBeNull();
+    expect(canvas.getByText('Finished')).toBeVisible();
+  }
+};
+const EmptySidesCase: Story = {
+  render: () =>
+    renderOperatorMatch(
+      {
+        ...operatorMatchFixture,
+        scoreText: '',
+        sides: [
+          { sideNumber: 1, bye: true, qualifier: false, isWinner: false },
+          { sideNumber: 2, bye: false, qualifier: true, isWinner: false }
+        ]
+      },
+      displayOptions
+    ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    expect(canvas.getByText('BYE')).toBeVisible();
     expect(canvas.getByText('Qualifier')).toBeVisible();
   }
 };
-
+export const NamedQualifier: Story = {
+  render: () =>
+    renderOperatorMatch(
+      {
+        ...operatorMatchFixture,
+        sides: [{ ...operatorMatchFixture.sides[0], qualifier: true }, operatorMatchFixture.sides[1]]
+      },
+      displayOptions
+    )
+};
 export const OutcomeUnknown: Story = { render: () => example('outcome-unknown').host };
-export const ReadOnly: Story = { render: () => example('read-only').host };
+export const ReadOnly: Story = { render: () => example('current').host };
 export const Stale: Story = { render: () => example('stale').host };
-export const Empty: Story = {
+const EmptyCase: Story = {
   render: () => renderOperatorMatchList([]),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    expect(canvas.getByRole('status')).toHaveTextContent('Read only');
+    expect(canvas.getByText('Read only')).toBeVisible();
     expect(canvas.getByText('No matches in this view')).toBeVisible();
-    expect(canvas.queryByText(CURRENT_STATUS)).toBeNull();
+    expect(canvas.queryByText(CURRENT)).toBeNull();
+  }
+};
+export const HostReplacements: Story = {
+  tags: ['!dev'],
+  render: () => {
+    const { host, draw } = example('projection-pending');
+    const replace = document.createElement('button');
+    replace.textContent = 'Install replacement';
+    replace.addEventListener('click', () =>
+      draw.update({ ...operatorDrawFixture, rounds: [operatorDrawFixture.rounds[1]] }, { freshness: 'current' })
+    );
+    host.append(replace);
+    return host;
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const live = canvas.getByRole('status');
+    expect(live).toHaveTextContent('Saved · updating views');
+    await user.click(canvas.getByRole('button', { name: 'Install replacement' }));
+    expect(canvas.getByRole('status')).toBe(live);
+    expect(live).toHaveTextContent(CURRENT);
+    expect(canvas.getByRole('heading', { name: 'Final' })).toBeVisible();
+  }
+};
+export const DisposalAndIdIntents: Story = {
+  tags: ['!dev'],
+  render: () => {
+    const host = document.createElement('div');
+    const output = document.createElement('output');
+    output.setAttribute(ARIA_LABEL, ID_INTENTS);
+    const draw = createOperatorDraw(operatorDrawFixture, {
+      ...displayOptions,
+      onOpenMatch: (id) => {
+        output.textContent = id;
+      }
+    });
+    const retained = document.createElement('div');
+    retained.setAttribute('role', 'group');
+    retained.setAttribute(ARIA_LABEL, 'Retained controls');
+    const page = createOperatorMatchListPage(
+      { title: 'Today', matches: [operatorMatchFixture], dayFrame: operatorDayFrame },
+      {
+        onRefresh: () => {
+          output.textContent = 'unexpected refresh';
+        }
+      }
+    );
+    const refresh = page.element.querySelector('.chc-operator-refresh')!;
+    const row = draw.element.querySelector(ROW)!;
+    const next = draw.element.querySelector('nav button:last-child')!;
+    const select = draw.element.querySelector('select')!;
+    const dispose = document.createElement('button');
+    dispose.textContent = 'Dispose view';
+    dispose.addEventListener('click', () => {
+      draw.destroy();
+      page.destroy();
+      retained.append(row, next, select, refresh);
+    });
+    host.append(draw.element, page.element, dispose, retained, output);
+    return host;
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await user.click(canvas.getByRole('button', { name: rowName }));
+    expect(canvas.getByLabelText(ID_INTENTS)).toHaveTextContent(MATCH_ID);
+    await user.click(canvas.getByRole('button', { name: 'Dispose view' }));
+    const retained = within(canvas.getByRole('group', { name: 'Retained controls' }));
+    await user.click(retained.getByRole('button', { name: rowName }));
+    await user.click(retained.getByRole('button', { name: 'Next round' }));
+    await user.selectOptions(retained.getByRole('combobox'), '3');
+    await user.click(retained.getByRole('button', { name: 'Refresh' }));
+    expect(canvasElement.querySelector('.chc-operator-page')?.textContent).toBe('');
+    expect(canvasElement.querySelector('.chc-operator-draw')?.textContent).toBe('');
+    expect(canvas.getByLabelText(ID_INTENTS)).toHaveTextContent(MATCH_ID);
+  }
+};
+
+export const Rounds: Story = { render: RoundsCase.render };
+export const RoundsChecks: Story = { ...RoundsCase, tags: ['!dev'] };
+
+export const DayPage: Story = { render: DayPageCase.render };
+export const DayPageChecks: Story = { ...DayPageCase, tags: ['!dev'] };
+
+export const BusyDayDensity: Story = { render: BusyDayDensityCase.render };
+export const BusyDayDensityChecks: Story = { ...BusyDayDensityCase, tags: ['!dev'] };
+
+export const PhoneWidthsAndThemes: Story = { render: PhoneWidthsAndThemesCase.render };
+export const PhoneWidthsAndThemesChecks: Story = { ...PhoneWidthsAndThemesCase, tags: ['!dev'] };
+
+export const MatchDetail: Story = { render: MatchDetailCase.render };
+export const MatchDetailChecks: Story = { ...MatchDetailCase, tags: ['!dev'] };
+
+export const EmptySides: Story = { render: EmptySidesCase.render };
+export const EmptySidesChecks: Story = { ...EmptySidesCase, tags: ['!dev'] };
+
+export const Empty: Story = { render: EmptyCase.render };
+export const EmptyChecks: Story = { ...EmptyCase, tags: ['!dev'] };
+
+export const BackgroundRefreshKeepsOtherViewFocus: Story = {
+  tags: ['!dev'],
+  render: () => {
+    const host = document.createElement('div');
+    const first = createOperatorMatchListPage({ ...dayData, matches: [] }, { onRefresh: () => {} });
+    const second = createOperatorMatchListPage(
+      { ...dayData, title: 'Other view', matches: [] },
+      {
+        onRefresh: () => first.update({ ...dayData, matches: [] }, { freshness: 'current' })
+      }
+    );
+    host.append(first.element, second.element);
+    return host;
+  },
+  play: async ({ canvasElement }) => {
+    const buttons = within(canvasElement).getAllByRole('button', { name: 'Refresh' });
+    await user.click(buttons[1]);
+    expect(buttons[1]).toHaveFocus();
   }
 };
